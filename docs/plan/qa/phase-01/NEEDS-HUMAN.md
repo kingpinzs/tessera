@@ -41,3 +41,10 @@ UI), H17 (light-theme accent variants), H18 (easing), H20, H21, H23, H26, H27, H
 Samsung badge provider readability (P6), One UI Home as the crash-loop fallback, Device care optimise, 24-hour idle,
 Secure Folder, a revealed Samsung bar over the drawn one, and the Live Tile API uninstall receiver while the shell is
 stopped (adversarial F11).
+## Signed off
+
+**2026-09-17, on the fresh-install Start capture (FINAL/fresh_start.png): "looks good".**
+That capture is the whole evidence for H24 (drawn status bar and nav keys), H29 (dark theme default),
+H35 (the bottom tile row), H36 (out-of-box accent 0,120,215) and H37 (the default tile arrangement) —
+those five are signed off. H1 is signed off for Start; its app-list half (E12/applist_top.png,
+E12/new_row_fixed.png) is still open, as are the other emulator rows above and every phone row.
