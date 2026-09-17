@@ -21,8 +21,12 @@ sealed interface TileFace {
     data class NowPlaying(val art: ImageBitmap?, val title: String, val artist: String) : TileFace
 }
 
-/** How a tile moves between faces (R3 A7): flip tiles squash vertically, image tiles crossfade. */
-enum class FaceTransition { FLIP, CROSSFADE }
+/**
+ * How a tile moves between faces (R3 A7): flip tiles squash vertically, image tiles crossfade, and peek tiles slide:
+ * the face on show retracts (downward when a photo comes in, as the Store tile's text panel does; upward when the
+ * content comes back) while the next face follows it in.
+ */
+enum class FaceTransition { FLIP, CROSSFADE, PEEK }
 
 data class TileContent(
     val faces: List<TileFace>,

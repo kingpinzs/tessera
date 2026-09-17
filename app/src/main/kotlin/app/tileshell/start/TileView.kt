@@ -3,6 +3,7 @@ package app.tileshell.start
 import android.os.SystemClock
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -90,6 +91,10 @@ fun TileView(
     var faceIndex by remember(model.id) { mutableIntStateOf(0) }
     val flip = remember(model.id) { Animatable(1f) }
     val fade = remember(model.id) { Animatable(1f) }
+    // Peek slide: 0..1 travel of the outgoing face; slideFrom is the face sliding out (-1 when no slide is running).
+    val slide = remember(model.id) { Animatable(0f) }
+    var slideFrom by remember(model.id) { mutableIntStateOf(-1) }
+    var slideDown by remember(model.id) { mutableStateOf(true) }
     val transition = model.content?.transition ?: FaceTransition.FLIP
 
     // Render-latency diagnostics for E5: log once per new source time.
@@ -106,24 +111,44 @@ fun TileView(
         // left squashed or faded out until its next cycle.
         flip.snapTo(1f)
         fade.snapTo(1f)
+        slide.snapTo(0f)
+        slideFrom = -1
         if (faceIndex > faces.size) faceIndex = 0
         if (faces.isEmpty()) { faceIndex = 0; return@LaunchedEffect }
-        val (min, max) = if (transition == FaceTransition.FLIP)
-            Motion.FLIP_PERIOD_MIN_MS to Motion.FLIP_PERIOD_MAX_MS else Motion.CROSSFADE_PERIOD_MIN_MS to Motion.CROSSFADE_PERIOD_MAX_MS
+        // Peek tiles run on the flip tiles' timer band (R3 A8 has no separate band for them).
+        val (min, max) = if (transition == FaceTransition.CROSSFADE)
+            Motion.CROSSFADE_PERIOD_MIN_MS to Motion.CROSSFADE_PERIOD_MAX_MS else Motion.FLIP_PERIOD_MIN_MS to Motion.FLIP_PERIOD_MAX_MS
         delay(Random.nextLong(0, max)) // random start phase
         while (true) {
+            // R3 A8 periods are start-to-start: the wait after an animation is the period less the animation's own time.
+            val startedAt = SystemClock.uptimeMillis()
+            val period = Random.nextLong(min, max + 1)
             val next = (faceIndex + 1) % (faces.size + 1)
-            Diagnostics.add("tile_anim", "tile=${model.id} kind=$transition uptime=${SystemClock.uptimeMillis()}")
-            if (transition == FaceTransition.FLIP) {
-                flip.animateTo(0f, tween(Motion.FLIP_MS / 2, easing = LinearEasing))
-                faceIndex = next
-                flip.animateTo(1f, tween(Motion.FLIP_MS / 2, easing = LinearEasing))
-            } else {
-                fade.animateTo(0f, tween(Motion.CROSSFADE_MS / 2, easing = LinearEasing))
-                faceIndex = next
-                fade.animateTo(1f, tween(Motion.CROSSFADE_MS / 2, easing = LinearEasing))
+            Diagnostics.add("tile_anim", "tile=${model.id} kind=$transition uptime=$startedAt")
+            when (transition) {
+                FaceTransition.FLIP -> {
+                    flip.animateTo(0f, tween(Motion.FLIP_MS / 2, easing = LinearEasing))
+                    faceIndex = next
+                    flip.animateTo(1f, tween(Motion.FLIP_MS / 2, easing = LinearEasing))
+                }
+                FaceTransition.CROSSFADE -> {
+                    fade.animateTo(0f, tween(Motion.CROSSFADE_MS / 2, easing = LinearEasing))
+                    faceIndex = next
+                    fade.animateTo(1f, tween(Motion.CROSSFADE_MS / 2, easing = LinearEasing))
+                }
+                FaceTransition.PEEK -> {
+                    slideDown = next != 0 && faces[next - 1] is TileFace.Photo
+                    slide.snapTo(0f)
+                    slideFrom = faceIndex
+                    faceIndex = next
+                    slide.animateTo(1f, keyframes {
+                        durationMillis = Motion.PEEK_MS
+                        Motion.peekKeyframes.forEach { (t, v) -> v at t using LinearEasing }
+                    })
+                    slideFrom = -1
+                }
             }
-            delay(Random.nextLong(min, max + 1))
+            delay((period - (SystemClock.uptimeMillis() - startedAt)).coerceAtLeast(0L))
         }
     }
 
@@ -181,10 +206,18 @@ fun TileView(
             .background(accent.copy(alpha = accent.alpha * tileAlpha))
             .clipToBounds(),
     ) {
-        if (faceIndex == 0 || faces.isEmpty()) {
-            LogoFace(model, widthDp, heightDp)
+        @Composable
+        fun Face(index: Int) {
+            if (index == 0 || faces.isEmpty() || index > faces.size) LogoFace(model, widthDp, heightDp) else LiveFace(faces[index - 1], model, heightDp)
+        }
+        val outgoing = slideFrom
+        if (outgoing >= 0) {
+            // R3 A7 peek: the outgoing face travels one tile height on the measured ease-out; the next face follows it in.
+            val direction = if (slideDown) 1f else -1f
+            Box(Modifier.fillMaxSize().graphicsLayer { translationY = direction * slide.value * size.height }) { Face(outgoing) }
+            Box(Modifier.fillMaxSize().graphicsLayer { translationY = direction * (slide.value - 1f) * size.height }) { Face(faceIndex) }
         } else {
-            LiveFace(faces[faceIndex - 1], model, heightDp)
+            Face(faceIndex)
         }
         if (pressStyle == PressStyle.P4_PRESS && pressed) {
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = P4_PRESS_DIM)))

@@ -308,15 +308,21 @@ class LiveTileStore private constructor(private val context: Context) {
     private fun render(owner: Owner): TileContent? {
         val dir = ownerDir(owner.pkg)
         val faces = mutableListOf<TileFace>()
+        var peeks = false
         for (entry in owner.queue.asReversed()) {
             val payload = (TileXmlValidator.validate(entry.xml) as? TileXmlResult.Valid)?.payload ?: continue
             val files = entry.images.associate { it.src to File(dir, it.file) }
             faces += TileRenderer.faces(payload) { src -> files[src] }
+            peeks = peeks || TileRenderer.peeks(payload)
             if (faces.size >= MAX_FACES) break
         }
         if (faces.isEmpty()) return null
         val newest = owner.queue.lastOrNull()?.addedAtMs ?: 0L
-        val transition = if (faces.all { it is TileFace.Photo }) FaceTransition.CROSSFADE else FaceTransition.FLIP
+        val transition = when {
+            peeks -> FaceTransition.PEEK
+            faces.all { it is TileFace.Photo } -> FaceTransition.CROSSFADE
+            else -> FaceTransition.FLIP
+        }
         return TileContent(faces.take(MAX_FACES), transition, sourceTimeMs = newest, sourceTag = "livetile")
     }
 
