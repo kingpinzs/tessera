@@ -234,6 +234,8 @@ class StartActivity : ComponentActivity() {
         super.onResume()
         inFront = true
         hideSystemBars()
+        // A default app (dialer, SMS, browser) may have been changed elsewhere while Start was away.
+        app.tileshell.tiles.SlotDefaults.refresh()
         if (returningFromLaunch) {
             returningFromLaunch = false
             animation = StartAnimation(entranceElapsedMs = 0f)

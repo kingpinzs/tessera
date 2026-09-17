@@ -36,6 +36,7 @@ import app.tileshell.bars.BarMetrics
 import app.tileshell.brand.Glyph
 import app.tileshell.tiles.LayoutStore
 import app.tileshell.tiles.ShellTiles
+import app.tileshell.tiles.SlotDefaults
 import app.tileshell.tiles.Slot
 import app.tileshell.tiles.SlotResolver
 import app.tileshell.tiles.TileKey
@@ -78,11 +79,13 @@ fun rememberPlacedTiles(): StartTiles {
     val apps by catalog.apps.collectAsState()
     val badges by BadgeStore.counts.collectAsState()
     val content by LiveTileEngine.content.collectAsState()
+    // Role slots follow Android's default apps, which change without any package or layout change.
+    val defaults by SlotDefaults.generation.collectAsState()
     val widthPx = remember(LocalDensity.current) { Scale.portraitWidthPx(context).toFloat() }
     val grid = StartGrid(widthPx, theme.mediumColumns)
     val topPx = StartGrid.GRID_TOP_EPX * (widthPx / Scale.CANVAS_EPX)
 
-    return remember(layout, apps, badges, content, grid) {
+    return remember(layout, apps, badges, content, grid, defaults) {
         fun place(key: TileKey, size: TileSize, x: Float, y: Float, idPrefix: String, live: Boolean, wPx: Float? = null, hPx: Float? = null): PlacedTile {
             val w = wPx ?: (size.spanX * grid.smallPitchPx - grid.gutterPx)
             val h = hPx ?: (size.spanY * grid.smallPitchPx - grid.gutterPx)
