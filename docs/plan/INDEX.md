@@ -53,4 +53,5 @@ A phase is `done` only when: acceptance criteria + edge cases executed with capt
 |---|---|---|---|---|---|---|---|
 
 ## Change Log (post-FINAL doc changes only)
+- 2026-09-17: POST-FINAL CHANGE (Jeremy, while trying the phase 01 emulator build): "I know this is going to break away from the w10m but I see another thing that needs fixed. there should be a group of riles that are anchored fixed at the bottom which can be moved there but by default should be phone, message and camera"; size ruled "(a)": one row of small tiles, up to 6. Applied to phase-01 (Scope, Decisions "Bottom tile row", DefaultLayout, E21, H35, edge cases) and phase-02 (Decisions, build task, E9, edge cases: moving tiles into and out of the row). PLAN.md feature list updated. Design details are P4 (no W10M original).
 - 2026-09-17: docs FINALIZED (Jeremy: "A"): phases 01, 02, 03, 05, 06, 07, 08, 09. Phase 04 stays DRAFT (waits for R4 + its interview). If R4 or the phase 04 interview changes anything in a FINAL doc (e.g. phase 06 voicemail, phase 07/08 dependencies), it lands here as a dated entry.
