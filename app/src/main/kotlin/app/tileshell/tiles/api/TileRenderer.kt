@@ -21,6 +21,11 @@ object TileRenderer {
     private const val MAX_LINES = 6
     private const val MAX_DECODE_SIDE = 1024
 
+    /** True when the chosen binding has a peek image, so the tile moves between its faces with the peek slide. */
+    fun peeks(payload: TilePayload): Boolean =
+        ORDER.firstNotNullOfOrNull { payload.binding(it) }?.flatten()
+            ?.any { it is TileElement.Image && it.placement == ImagePlacement.PEEK } == true
+
     fun faces(payload: TilePayload, fileFor: (String) -> File?): List<TileFace> {
         val binding = ORDER.firstNotNullOfOrNull { payload.binding(it) } ?: return emptyList()
         val flat = binding.flatten()
