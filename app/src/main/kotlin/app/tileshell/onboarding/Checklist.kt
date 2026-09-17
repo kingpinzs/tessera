@@ -30,6 +30,8 @@ import app.tileshell.feeds.PhotosFeed
 import app.tileshell.feeds.TileNotificationListener
 import app.tileshell.settings.PageHeader
 import app.tileshell.settings.TwoLineItem
+import app.tileshell.tiles.api.LegacyBadgeReceiver
+import app.tileshell.tiles.api.SamsungBadgeReader
 
 /** One checklist row's state. Later phases ADD rows (phase 01 Decisions). */
 enum class RowState { GRANTED, PARTIAL, MISSING }
@@ -87,6 +89,13 @@ fun ChecklistPage() {
         },
         ChecklistRow("usage", "Usage access", if (Checklist.usageAccess(context)) RowState.GRANTED else RowState.MISSING, "Back on Start returns to your last app") {
             context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).setData(Uri.parse("package:${context.packageName}")))
+        },
+        SamsungBadgeReader.probe(context).let { probe ->
+            ChecklistRow("samsung_badges", "Samsung badge counts", if (probe == "readable") RowState.GRANTED else RowState.MISSING, "Real unread counts from Samsung: $probe") {}
+        },
+        LegacyBadgeReceiver.lastSeen.let { seen ->
+            ChecklistRow("legacy_badges", "App badge messages", if (seen != null) RowState.GRANTED else RowState.MISSING,
+                seen?.let { "Last from ${it.sender ?: it.pkg}: ${it.count}" } ?: "None received yet") {}
         },
         ChecklistRow("listener", "Live tiles running", if (TileNotificationListener.connected) RowState.GRANTED else RowState.MISSING, if (TileNotificationListener.connected) "Connected" else "Not connected") {
             context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))

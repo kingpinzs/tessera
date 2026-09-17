@@ -170,6 +170,9 @@ class LiveTileStore private constructor(private val context: Context) {
         return Owner(pkg, identity).also { owners[pkg] = it }
     }
 
+    /** Packages that have used the Live Tile API (Settings > Live tile access lists them with their kill switch). */
+    fun callerPackages(): Set<String> = synchronized(lock) { ensureLoaded(); owners.keys.toSet() }
+
     fun ownerDir(pkg: String) = File(root, pkg)
 
     fun imageBytesUsed(pkg: String): Long = synchronized(lock) {
