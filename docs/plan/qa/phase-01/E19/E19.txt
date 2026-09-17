@@ -1,0 +1,33 @@
+# E19 2026-09-17T09:08:47-06:00
+## start
+$ adb shell dumpsys window windows (focused window 'app.tileshell/app.tileshell.StartActivity': requested non-default-visibility types)
+app.tileshell/app.tileshell.StartActivity -> statusBars navigationBars
+status bar height epx: 28.0 (expect 28 ± 1)
+nav bar height epx: 48.0 (expect 48 ± 1, X6)
+slots: back x 0 - 360  windows x 360 - 720  right slot x 720 - 1080  third width 360.0
+## app_list
+$ adb shell dumpsys window windows (focused window 'app.tileshell/app.tileshell.StartActivity': requested non-default-visibility types)
+app.tileshell/app.tileshell.StartActivity -> statusBars navigationBars
+status bar height epx: 28.0 (expect 28 ± 1)
+nav bar height epx: 48.0 (expect 48 ± 1, X6)
+slots: back x 0 - 360  windows x 360 - 720  right slot x 720 - 1080  third width 360.0
+## settings_hub
+$ adb shell dumpsys window windows (focused window 'app.tileshell/app.tileshell.settings.SettingsActivity': requested non-default-visibility types)
+app.tileshell/app.tileshell.settings.SettingsActivity -> statusBars navigationBars
+status bar height epx: 28.0 (expect 28 ± 1)
+nav bar height epx: 48.0 (expect 48 ± 1, X6)
+slots: back x 0 - 360  windows x 360 - 720  right slot x 720 - 1080  third width 360.0
+## Drawn Back on a Settings page returns to the hub
+text="START + THEME"
+text="START SETTINGS"
+## weather_app
+$ adb shell dumpsys window windows (focused window 'app.tileshell/app.tileshell.weather.WeatherActivity': requested non-default-visibility types)
+app.tileshell/app.tileshell.weather.WeatherActivity -> statusBars navigationBars
+status bar height epx: 28.0 (expect 28 ± 1)
+nav bar height epx: 48.0 (expect 48 ± 1, X6)
+slots: back x 0 - 360  windows x 360 - 720  right slot x 720 - 1080  third width 360.0
+## Transient reveal on Start and auto-hide
+$ adb shell input swipe 540 0 540 400 250; 0.6 s later: count of mControlTarget=TransientControlTarget in dumpsys window
+2
+$ 5 s later: same count (0 = hidden again)
+0
