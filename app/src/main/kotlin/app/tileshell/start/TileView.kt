@@ -168,9 +168,9 @@ fun TileView(
                 rotationX = tiltX.value
                 rotationY = tiltY.value
                 scaleX = depress.value
-                val swing = kotlin.math.abs(1f - 2f * cycle.value)
-                scaleY = depress.value * (if (transition == FaceTransition.FLIP) swing else 1f)
-                alpha = if (transition == FaceTransition.CROSSFADE) swing else 1f
+                // The flip squashes the whole tile; a crossfade fades only the face, so the accent plate, the label
+                // and the badge stay put instead of the tile blinking out (R1 section 1.4, review finding).
+                scaleY = depress.value * (if (transition == FaceTransition.FLIP) kotlin.math.abs(1f - 2f * cycle.value) else 1f)
                 cameraDistance = 12f * density.density
             }
             .pointerInput(pressStyle, model.id) {
@@ -205,12 +205,15 @@ fun TileView(
             .background(accent.copy(alpha = accent.alpha * tileAlpha))
             .clipToBounds(),
     ) {
+        val faceAlpha = if (transition == FaceTransition.CROSSFADE) kotlin.math.abs(1f - 2f * cycle.value) else 1f
         @Composable
         fun Face(index: Int) {
             if (index == 0 || faces.isEmpty() || index > faces.size) LogoFace(model, widthDp, heightDp) else LiveFace(faces[index - 1], model, heightDp)
         }
         val outgoing = slideFrom
-        if (outgoing >= 0) {
+        if (transition == FaceTransition.CROSSFADE) {
+            Box(Modifier.fillMaxSize().graphicsLayer { alpha = faceAlpha }) { Face(faceIndex) }
+        } else if (outgoing >= 0) {
             // R3 A7 peek: the outgoing face travels one tile height on the measured ease-out; the next face follows it in.
             val direction = if (slideDown) 1f else -1f
             Box(Modifier.fillMaxSize().graphicsLayer { translationY = direction * slide.value * size.height }) { Face(outgoing) }

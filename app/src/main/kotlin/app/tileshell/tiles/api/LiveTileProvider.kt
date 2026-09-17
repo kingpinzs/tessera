@@ -74,9 +74,10 @@ class LiveTileProvider : ContentProvider() {
             }
             val store = LiveTileStore.get(ctx)
             store.checkIdentity(pkg, "call $method")
-            val disabled = LiveTileSettings.isDisabled(ctx, pkg)
+            val disabled = LiveTileSettings.isDisabled(ctx, pkg) || !LiveTileSettings.isApiEnabled(ctx)
             if (disabled && method != LiveTileProtocol.TILE_SETTING) {
-                return reject(pkg, uid, method, Error.DISABLED, "user turned this app's live tile off")
+                val why = if (LiveTileSettings.isApiEnabled(ctx)) "user turned this app's live tile off" else "the user turned live tiles off for every app"
+                return reject(pkg, uid, method, Error.DISABLED, why)
             }
             val args = extras ?: Bundle.EMPTY
             return when (method) {
@@ -110,7 +111,7 @@ class LiveTileProvider : ContentProvider() {
             is TileXmlResult.Invalid -> return reject(pkg, uid, method, v.reason, v.detail)
             is TileXmlResult.Valid -> v.payload
         }
-        val images = when (val r = ImageIngest(ctx).ingest(pkg, payload.images(), store.ownerDir(pkg))) {
+        val images = when (val r = ImageIngest(ctx).ingest(pkg, payload.images(), store.ownerDir(pkg), store.imageBytesUsed(pkg))) {
             is ImageIngest.Result.Rejected -> return reject(pkg, uid, method, r.reason, r.detail)
             is ImageIngest.Result.Ok -> r.images
         }
@@ -147,7 +148,7 @@ class LiveTileProvider : ContentProvider() {
             is TileXmlResult.Invalid -> return reject(pkg, uid, method, v.reason, v.detail)
             is TileXmlResult.Valid -> v.payload
         }
-        val images = when (val r = ImageIngest(ctx).ingest(pkg, payload.images(), store.ownerDir(pkg))) {
+        val images = when (val r = ImageIngest(ctx).ingest(pkg, payload.images(), store.ownerDir(pkg), store.imageBytesUsed(pkg))) {
             is ImageIngest.Result.Rejected -> return reject(pkg, uid, method, r.reason, r.detail)
             is ImageIngest.Result.Ok -> r.images
         }

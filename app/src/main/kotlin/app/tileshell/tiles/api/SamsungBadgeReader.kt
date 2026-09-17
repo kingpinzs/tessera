@@ -23,9 +23,25 @@ object SamsungBadgeReader {
     private var observer: ContentObserver? = null
     private val known = HashMap<String, Int>()
 
+    /**
+     * The badge authority is only trusted when a system package serves it: on a device where Samsung's provider is
+     * absent the authority is free for any app to claim, and this source reports counts for every package
+     * (adversarial review F5).
+     */
+    private fun systemProvider(context: Context): android.content.pm.ProviderInfo? {
+        val provider = context.packageManager.resolveContentProvider(AUTHORITY, 0) ?: return null
+        val app = provider.applicationInfo
+        val isSystem = app != null && (app.flags and (android.content.pm.ApplicationInfo.FLAG_SYSTEM or android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0
+        if (!isSystem) {
+            Diagnostics.add("livetile", "samsung badge authority is served by ${provider.packageName}, which is not a system package: ignored")
+            return null
+        }
+        return provider
+    }
+
     /** "readable" / "not present" / "not permitted: <reason>" for the onboarding checklist row. */
     fun probe(context: Context): String {
-        val result = if (context.packageManager.resolveContentProvider(AUTHORITY, 0) == null) {
+        val result = if (systemProvider(context) == null) {
             "not present"
         } else {
             try {
@@ -62,6 +78,7 @@ object SamsungBadgeReader {
 
     @Synchronized
     fun readAll(context: Context) {
+        if (systemProvider(context) == null) return
         val counts = HashMap<String, Int>()
         try {
             context.contentResolver.query(URI, PROJECTION, null, null, null)?.use { c ->
