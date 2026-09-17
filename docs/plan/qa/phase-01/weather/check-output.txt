@@ -1,0 +1,6 @@
+GET https://api.open-meteo.com/v1/forecast?latitude=40.7100&longitude=-74.0100&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+saved docs/plan/qa/phase-01/weather/open-meteo-sample.json
+keys checked: 27  hourly: 240  daily: 10  timezone: America/New_York
+current: {'time': '1789655400unixtime', 'interval': '900seconds', 'temperature_2m': '76.5°F', 'relative_humidity_2m': '76%', 'apparent_temperature': '80.4°F', 'is_day': '1', 'weather_code': '0wmo code', 'wind_speed_10m': '7.5mp/h', 'wind_direction_10m': '168°', 'pressure_msl': '1023.0hPa'}
+PASS: every key OpenMeteoProvider.parse() reads is present with the type its getter needs
+rc=0
