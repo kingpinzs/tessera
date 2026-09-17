@@ -6,17 +6,21 @@ package app.tileshell.tiles
  * INDEX change log with its own NEEDS-HUMAN row.
  */
 object DefaultLayout {
-    fun placements(): List<Placement> = listOf(
-        Placement(TileKey.SlotTile(Slot.PEOPLE), 0, 0, TileSize.MEDIUM),
-        Placement(TileKey.SlotTile(Slot.BROWSER), 2, 0, TileSize.MEDIUM),
-        Placement(TileKey.SlotTile(Slot.MAIL), 4, 0, TileSize.MEDIUM),
-        Placement(TileKey.SlotTile(Slot.CALENDAR), 0, 2, TileSize.WIDE),
-        Placement(TileKey.SlotTile(Slot.PHOTOS), 4, 2, TileSize.MEDIUM),
-        Placement(TileKey.ShellTile(ShellTiles.WEATHER), 0, 4, TileSize.WIDE),
-        Placement(TileKey.SlotTile(Slot.STORE), 4, 4, TileSize.SMALL),
-        Placement(TileKey.SlotTile(Slot.MAPS), 5, 4, TileSize.SMALL),
-        Placement(TileKey.SlotTile(Slot.MUSIC), 4, 5, TileSize.SMALL),
-        Placement(TileKey.ShellTile(ShellTiles.SETTINGS), 5, 5, TileSize.SMALL),
+    /**
+     * Reading order of the default Start (phase 02: positions are packed from the order by [GridPack], which
+     * reproduces the phase 01 coordinates on the 6-unit grid and re-packs losslessly on the 4-unit one).
+     */
+    fun order(): List<Sized> = listOf(
+        Sized(TileKey.SlotTile(Slot.PEOPLE), TileSize.MEDIUM),
+        Sized(TileKey.SlotTile(Slot.BROWSER), TileSize.MEDIUM),
+        Sized(TileKey.SlotTile(Slot.MAIL), TileSize.MEDIUM),
+        Sized(TileKey.SlotTile(Slot.CALENDAR), TileSize.WIDE),
+        Sized(TileKey.SlotTile(Slot.PHOTOS), TileSize.MEDIUM),
+        Sized(TileKey.ShellTile(ShellTiles.WEATHER), TileSize.WIDE),
+        Sized(TileKey.SlotTile(Slot.STORE), TileSize.SMALL),
+        Sized(TileKey.SlotTile(Slot.MAPS), TileSize.SMALL),
+        Sized(TileKey.SlotTile(Slot.MUSIC), TileSize.SMALL),
+        Sized(TileKey.ShellTile(ShellTiles.SETTINGS), TileSize.SMALL),
     )
 
     /** Bottom tile row default (INDEX Change Log 2026-09-17, Jeremy): Phone, Messaging, Camera. */

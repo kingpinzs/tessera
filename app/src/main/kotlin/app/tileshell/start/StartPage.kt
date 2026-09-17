@@ -120,6 +120,14 @@ fun rememberPlacedTiles(): StartTiles {
                         badges[key.component.packageName] ?: 0, entry == null)
                     PlacedTile(model, entry?.let { TileTarget.App(it) } ?: TileTarget.Shell("missing"), x, y, w, h)
                 }
+                is TileKey.FolderTile -> {
+                    // Folder faces land in the phase 02 edit-mode pass below; this keeps the model total.
+                    val folder = layout.folders[key.folderId]
+                    PlacedTile(TileModel(idPrefix + key.id, folder?.name ?: "", size, null, Glyph.APPS, null, 0, false), TileTarget.Shell("folder"), x, y, w, h)
+                }
+                is TileKey.SecondaryTile -> {
+                    PlacedTile(TileModel(idPrefix + key.id, key.tileId, size, null, Glyph.APPS, null, 0, false), TileTarget.Shell("secondary"), x, y, w, h)
+                }
                 is TileKey.ShellTile -> {
                     val (label, glyph, feed) = when (key.name) {
                         ShellTiles.WEATHER -> Triple("Weather", Glyph.WEATHER_PARTLY, LiveTileEngine.WEATHER)
@@ -130,7 +138,7 @@ fun rememberPlacedTiles(): StartTiles {
                 }
             }
         }
-        val gridTiles = layout.placements.map { p -> place(p.key, p.size, grid.unitX(p.x), topPx + grid.unitY(p.y), "", live = true) }
+        val gridTiles = layout.placements(grid.unitsAcross).map { p -> place(p.key, p.size, grid.unitX(p.x), topPx + grid.unitY(p.y), "", live = true) }
         // Bottom tile row (INDEX Change Log 2026-09-17, amended by Jeremy the same day): the row's tiles share the grid width
         // equally, 1.5 small tiles tall, glyph + badge, no label; live previews flip like other tiles (amendment 3). Their y is set when Start lays out.
         val dockKeys = layout.dock.take(grid.unitsAcross)

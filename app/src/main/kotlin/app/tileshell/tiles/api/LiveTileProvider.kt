@@ -190,14 +190,16 @@ class LiveTileProvider : ContentProvider() {
         return result(true, null, null).apply { putString(LiveTileProtocol.RESULT_SETTING, setting) }
     }
 
+    /** Pinned = the package owns any tile the layout holds: the grid, a folder's members or the bottom row (phase 02). */
     private fun isPinned(ctx: Context, pkg: String): Boolean = runCatching {
         val layout = LayoutStore.get(ctx).layout.value
         val resolver by lazy { SlotResolver(ctx, AppCatalog.get(ctx)) }
-        layout.placements.any { p ->
-            when (val key = p.key) {
+        layout.allKeys().any { key ->
+            when (key) {
                 is TileKey.AppTile -> key.component.packageName == pkg
+                is TileKey.SecondaryTile -> key.owner == pkg
                 is TileKey.SlotTile -> resolver.resolve(key.slot, layout.explicitSlots)?.component?.packageName == pkg
-                is TileKey.ShellTile -> false
+                is TileKey.ShellTile, is TileKey.FolderTile -> false
             }
         }
     }.getOrDefault(false)
