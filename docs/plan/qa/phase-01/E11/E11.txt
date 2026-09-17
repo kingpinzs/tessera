@@ -1,0 +1,19 @@
+# E11 2026-09-17T09:56:45-06:00
+calendar tile center: 358 610
+tap at device uptime 3752.59 s
+$ adb shell dumpsys activity activities | grep -i resumed
+    topResumedActivity=ActivityRecord{46530219 u0 com.android.calendar/.AllInOneActivity t60}
+      state=RESUMED delayedResume=false finishing=false
+  Resumed activities in task display areas (from top to bottom):
+    Resumed: ActivityRecord{46530219 u0 com.android.calendar/.AllInOneActivity t60}
+  ResumedActivity: ActivityRecord{46530219 u0 com.android.calendar/.AllInOneActivity t60}
+$ diagnostics (launch + motion lines)
+    2026-09-17 09:48:26.260 wall=1789660106260 [motion] start entrance finished
+    2026-09-17 09:56:51.647 wall=1789660611647 [launch] startMainActivity com.android.calendar/.AllInOneActivity user=0
+    2026-09-17 09:56:51.647 wall=1789660611647 [launch] tile=slot:CALENDAR target=App(entry=AppEntry(component=ComponentInfo{com.android.calendar/com.android.calendar.AllInOneActivity}, user=UserHandle{0}, label=Calendar, profile=MAIN, isSystem=true, firstInstallTime=1789653839298))
+    2026-09-17 09:56:51.647 wall=1789660611647 [motion] start exit finished tile=slot:CALENDAR
+## recording (e11.mp4, frame_times.txt from ffprobe best_effort_timestamp_time, motion.txt = mean abs change per real frame)
+Start exit runs frames 2-16 (1.491-1.724 s, still by 1.791 s: about 300 ms, R3 A11 250 ms + 67 ms for the tapped tile); Calendar's window appears from frame 21 (1.955 s).
+exit_frames.png = frames 1, 4, 8, 12, 16, 24: rows scale up and fade top-down, the tapped Calendar tile fades last, then Calendar opens.
+## verdict
+PASS. Calendar resumed (topResumedActivity com.android.calendar/.AllInOneActivity), launch and "start exit finished tile=slot:CALENDAR" logged, exit frames present in the recording. Exit timing against the R3 A11 tolerance is measured in E10.
