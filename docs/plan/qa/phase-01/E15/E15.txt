@@ -1,0 +1,47 @@
+# E15 2026-09-17T11:37:55-06:00
+## tile.update with text
+09-17 11:37:54.839 19670 19688 I TileClient: app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+update faces seen:
+    Meeting at 4 / Room 12 / With the team / Tile client A
+## badge.update 3
+09-17 11:38:20.260 19670 19793 I TileClient: app.tileshell.testclient.a badge.update: ok=true error=null detail=null
+badge node: badge:app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 | desc= | texts=3
+## queue of 5 (demo.queue: enableQueue then q1..q5)
+09-17 11:38:26.502 19670 19829 I TileClient: tile.update q5: ok=true error=null detail=null
+queue faces seen:
+    Queue item 5 / 11:38:26 / Tile client A
+## tile.clear
+09-17 11:39:21.732 19670 20038 I TileClient: app.tileshell.testclient.a tile.clear: ok=true error=null detail=null
+cleared faces seen:
+    Tile client A / 3
+## badge.clear
+09-17 11:39:38.640 19670 20105 I TileClient: app.tileshell.testclient.a badge.clear: ok=true error=null detail=null
+badge node after clear: 
+## expiry: tile.update with expiresInMs 8000
+09-17 11:39:44.836 19670 20139 I TileClient: app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+expiring faces seen:
+    Tile client A
+expired faces seen:
+    Tile client A
+    2026-09-17 11:38:26.490 wall=1789666706490 [livetile] accept app.tileshell.testclient.a uid=10170 tile.update bindings=TileSmall,TileMedium,TileWide images=0 tag=q2 expiresAt=null xmlBytes=312
+    2026-09-17 11:38:26.493 wall=1789666706493 [livetile] accept app.tileshell.testclient.a uid=10170 tile.update bindings=TileSmall,TileMedium,TileWide images=0 tag=q3 expiresAt=null xmlBytes=312
+    2026-09-17 11:38:26.495 wall=1789666706495 [livetile] accept app.tileshell.testclient.a uid=10170 tile.update bindings=TileSmall,TileMedium,TileWide images=0 tag=q4 expiresAt=null xmlBytes=312
+    2026-09-17 11:38:26.499 wall=1789666706499 [livetile] accept app.tileshell.testclient.a uid=10170 tile.update bindings=TileSmall,TileMedium,TileWide images=0 tag=q5 expiresAt=null xmlBytes=312
+    2026-09-17 11:39:21.732 wall=1789666761732 [livetile] accept app.tileshell.testclient.a uid=10170 tile.clear queue cleared
+    2026-09-17 11:39:38.640 wall=1789666778640 [livetile] accept app.tileshell.testclient.a uid=10170 badge.clear badge cleared
+    2026-09-17 11:39:44.836 wall=1789666784836 [livetile] accept app.tileshell.testclient.a uid=10170 tile.update bindings=TileSmall,TileMedium,TileWide images=0 tag=null expiresAt=1789666792833 xmlBytes=249
+    2026-09-17 11:39:52.834 wall=1789666792834 [livetile] expire app.tileshell.testclient.a 1 queued ([7]) (alarm)
+## queue and expiry rerun with screencaps: a tile's text in the uiautomator dump can lag behind what it draws (the
+## dump kept reporting "Queue item 5" while screencaps showed the tile cycling), so these two checks read pixels
+queue (queue_shots/, queue_faces.png): 14 screencaps over 28 s show the logo face and all five queued items, newest first: Queue item 5, 4, 3, 2, 1
+09-17 11:45:55.005 19670 20793 I TileClient: app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+expiry (expiry_shots/): seconds after the update -> text-band variation in the tile (high = a text face, low = the logo face):
+   0s 0.0, 2s 26.6, 4s 9.8, 6s 9.8, 8s 9.8, 10s 9.8, 12s 9.8, 14s 9.8, 16s 9.8, 18s 9.8, 20s 9.8, 22s 9.8, 24s 9.8, 26s 9.8, 28s 9.8, 30s 9.8
+   expiry_faces.png: 0, 2, 4, 8, 12, 16, 20, 24, 28 s after the update
+(the text-band figure above does not separate the faces well; expiry_faces.png is the evidence: the text face "Expires in 10 s" shows at 2 s and, after the expiry alarm at 10 s, only the logo face appears for the next 20 s)
+## verdict
+PASS. The client library's own app updates its tile (three text lines rendered), sets a badge (3 drawn on the tile) and clears both; a queue of five renders as five faces cycling newest first plus the logo face; an item with expiresInMs disappears when its alarm fires ("[livetile] expire ... 1 queued (alarm)") and does not come back.
+uninstall tileclient-a: Success
+uninstall tileclient-b: Success
+uninstall tileclient-b2: Success
+## restore (RV12): layout written back, test clients uninstalled

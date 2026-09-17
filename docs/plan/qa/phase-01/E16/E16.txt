@@ -1,0 +1,32 @@
+# E16 2026-09-17T11:47:15-06:00
+## adb shell (shell uid) calling the provider directly
+$ adb shell content call --uri content://app.tileshell.livetile --method tile.update --extra xml:s:...
+Result: Bundle[{detail=adb shell uid, v=1, ok=false, error=identity}]
+$ adb shell content call ... --method badge.update --extra value:i:9
+Result: Bundle[{detail=adb shell uid, v=1, ok=false, error=identity}]
+## tileclient-b targeting tileclient-a (owner extra)
+09-17 11:47:16.806 20880 20997 I TileClient: app.tileshell.testclient.b owner.attack target=app.tileshell.testclient.a
+09-17 11:47:16.806 20880 20997 I TileClient: tile.update: ok=false error=shared-uid detail=uid 10171 shared by [app.tileshell.testclient.b, app.tileshell.testclient.b2]
+09-17 11:47:16.806 20880 20997 I TileClient: badge.update: ok=false error=shared-uid detail=uid 10171 shared by [app.tileshell.testclient.b, app.tileshell.testclient.b2]
+## shared-uid pair (tileclient-b and tileclient-b2 share app.tileshell.testclient.shared)
+09-17 11:47:19.936 20880 21011 I TileClient: app.tileshell.testclient.b tile.update: ok=false error=shared-uid detail=uid 10171 shared by [app.tileshell.testclient.b, app.tileshell.testclient.b2]
+09-17 11:47:23.077 20924 21021 I TileClient: app.tileshell.testclient.b2 tile.update: ok=false error=shared-uid detail=uid 10171 shared by [app.tileshell.testclient.b, app.tileshell.testclient.b2]
+    2026-09-17 11:47:06.554 wall=1789667226554 [livetile] reject app.tileshell.testclient.b uid=10171 tile.update reason=shared-uid: uid 10171 shared by [app.tileshell.testclient.b, app.tileshell.testclient.b2]
+    2026-09-17 11:47:09.813 wall=1789667229813 [livetile] reject app.tileshell.testclient.b2 uid=10171 tile.update reason=shared-uid: uid 10171 shared by [app.tileshell.testclient.b, app.tileshell.testclient.b2]
+    2026-09-17 11:47:15.040 wall=1789667235040 [livetile] reject ? uid=2000 tile.update reason=identity: adb shell uid
+    2026-09-17 11:47:15.968 wall=1789667235968 [livetile] reject ? uid=2000 badge.update reason=identity: adb shell uid
+    2026-09-17 11:47:16.805 wall=1789667236805 [livetile] reject app.tileshell.testclient.b uid=10171 tile.update reason=shared-uid: uid 10171 shared by [app.tileshell.testclient.b, app.tileshell.testclient.b2]
+    2026-09-17 11:47:16.805 wall=1789667236805 [livetile] reject app.tileshell.testclient.b uid=10171 badge.update reason=shared-uid: uid 10171 shared by [app.tileshell.testclient.b, app.tileshell.testclient.b2]
+    2026-09-17 11:47:19.936 wall=1789667239936 [livetile] reject app.tileshell.testclient.b uid=10171 tile.update reason=shared-uid: uid 10171 shared by [app.tileshell.testclient.b, app.tileshell.testclient.b2]
+    2026-09-17 11:47:23.077 wall=1789667243077 [livetile] reject app.tileshell.testclient.b2 uid=10171 tile.update reason=shared-uid: uid 10171 shared by [app.tileshell.testclient.b, app.tileshell.testclient.b2]
+## the owner-targeting rejection on its own: with tileclient-b2 uninstalled, tileclient-b has its own uid
+$ adb uninstall app.tileshell.testclient.b2: Success
+09-17 11:47:45.977 20880 21063 I TileClient: app.tileshell.testclient.b owner.attack target=app.tileshell.testclient.a
+09-17 11:47:45.977 20880 21063 I TileClient: tile.update: ok=false error=identity detail=owner app.tileshell.testclient.a is not the caller
+09-17 11:47:45.977 20880 21063 I TileClient: badge.update: ok=false error=identity detail=owner app.tileshell.testclient.a is not the caller
+$ adb install -r tileclient-b2 (restore the shared-uid pair): Success
+    2026-09-17 11:47:45.977 wall=1789667265977 [livetile] reject app.tileshell.testclient.b uid=10171 tile.update reason=identity: owner app.tileshell.testclient.a is not the caller
+    2026-09-17 11:47:45.977 wall=1789667265977 [livetile] reject app.tileshell.testclient.b uid=10171 badge.update reason=identity: owner app.tileshell.testclient.a is not the caller
+tileclient-a's stored tile after the attempts: 0 entries containing 'spoofed'; badge: badge None queue 0
+## verdict
+PASS. Three rejections, each in the caller's result and in the shell's log: the shell uid through content call -> error identity (detail 'adb shell uid') for tile.update and badge.update; tileclient-b naming tileclient-a as owner -> error identity (detail 'owner app.tileshell.testclient.a is not the caller'); either package of the shared-uid pair -> error shared-uid (detail 'uid 10171 shared by [b, b2]'). Tile client A's stored tile and badge were not touched.

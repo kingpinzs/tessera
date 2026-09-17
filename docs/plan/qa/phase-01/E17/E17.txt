@@ -1,0 +1,19 @@
+# E17 2026-09-17T11:53:38-06:00
+notification listener connected: SERVICE app.tileshell/.feeds.TileNotificationListener 4c39e6a pid=21935 user=0
+## notification with setNumber(7)
+notification_7: dump badge node [7]; set app.tileshell.testclient.a NOTIFICATIONS=7 -> effective 7
+## legacy badge broadcast (count 3)
+legacy_3: dump badge node [3]; set app.tileshell.testclient.a LEGACY_BROADCAST=3 -> effective 3
+## badge.update 5 through the API
+api_5: dump badge node [5]; set app.tileshell.testclient.a API=5 -> effective 5
+## badge.clear (falls back to the legacy broadcast, then the notification)
+after_api_clear: dump badge node [3]; set app.tileshell.testclient.a API=0 -> effective 3
+## legacy broadcast cleared (count 0)
+after_legacy_clear: dump badge node [7]; set app.tileshell.testclient.a LEGACY_BROADCAST=0 -> effective 7
+## notification cancelled
+after_notification_cancel: dump badge node []; set app.tileshell.testclient.a NOTIFICATIONS=0 -> effective 0
+## DEFECT found and fixed by this row
+The count was drawn only on a tile's logo face, so a tile showing live content (here the notification preview) hid it: run 3 (E17_run3_badge_only_on_logo_face.txt, run3_badge_steps_no_badge_on_live_face.png) shows the right effective counts in the engine and no number on the tile. R1 section 1.4 puts the badge in the tile's lower-right corner as a property of the tile, and R3 C3 notes a camera capture of a numeric badge on that tile type's content face. The badge is now drawn over whichever face is showing.
+## verdict
+PASS on the fixed build (badge_steps.png, one screencap per step): notification setNumber(7) -> 7; a legacy badge broadcast (3) overrides it -> 3; badge.update 5 through the API overrides both -> 5; badge.clear falls back to the legacy broadcast -> 3; the legacy broadcast cleared falls back to the notification -> 7; the notification cancelled -> no badge. The shell's log shows the same order (API > legacy broadcast > notifications), sources never summed.
+Earlier runs kept: run 1 (POST_NOTIFICATIONS not granted to the test app), run 2 (its first step still ran before the grant took effect).
