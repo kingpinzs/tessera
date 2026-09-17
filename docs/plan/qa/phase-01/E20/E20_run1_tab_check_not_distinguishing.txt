@@ -1,0 +1,26 @@
+# E20 2026-09-17T09:58:41-06:00
+$ adb shell appops get app.tileshell GET_USAGE_STATS
+GET_USAGE_STATS: allow; time=+1m55s855ms ago
+$ adb shell am start -n com.android.deskclock/.DeskClock
+Starting: Intent { cmp=com.android.deskclock/.DeskClock }
+Timer tab at: 604 237
+$ tasks before Home
+  * Task{3137db8 #61 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{25700379 u0 com.android.deskclock/.DeskClock t61}
+      * Task{3137db8 #61 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+drawn Back at: 180 2268
+$ after drawn Back: resumed + deskclock task
+  * Task{3137db8 #61 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{25700379 u0 com.android.deskclock/.DeskClock t61}
+      * Task{3137db8 #61 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+Timer tab selected after drawn Back: selected="true"
+    2026-09-17 09:58:57.191 wall=1789660737191 [back] window start=1789656858669 candidate=(com.android.deskclock, com.android.deskclock.DeskClock) at=1789660721664 -> com.android.deskclock/.DeskClock
+    2026-09-17 09:58:57.546 wall=1789660737546 [launch] tile=back target=App(entry=AppEntry(component=ComponentInfo{com.android.deskclock/com.android.deskclock.DeskClock}, user=UserHandle{0}, label=Clock, profile=MAIN, isSystem=true, firstInstallTime=1789653839295))
+    2026-09-17 09:58:57.546 wall=1789660737546 [motion] start exit finished tile=back
+system bars transient after swipe: 0
+$ after KEYCODE_BACK: resumed + deskclock task
+  * Task{3137db8 #61 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{25700379 u0 com.android.deskclock/.DeskClock t61}
+      * Task{3137db8 #61 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+Timer tab selected after KEYCODE_BACK: selected="true"
+    2026-09-17 09:59:07.433 wall=1789660747433 [back] window start=1789656858670 candidate=(com.android.deskclock, com.android.deskclock.DeskClock) at=1789660737549 -> com.android.deskclock/.DeskClock

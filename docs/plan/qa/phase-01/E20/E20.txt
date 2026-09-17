@@ -1,0 +1,89 @@
+# E20 2026-09-17T10:05:09-06:00
+$ adb shell appops get app.tileshell GET_USAGE_STATS
+GET_USAGE_STATS: allow; time=+2m7s231ms ago
+$ adb shell am start -n com.android.deskclock/.DeskClock
+Starting: Intent { cmp=com.android.deskclock/.DeskClock }
+Alarm tab at: 120 237; Timer selected on Alarm tab: selected="false"
+Timer tab at: 604 237
+Timer selected after tapping Timer: selected="true"
+deskclock pid before Home: 12407
+$ tasks before Home
+  * Task{14a1d79 #64 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{36985408 u0 com.android.deskclock/.DeskClock t64}
+      * Task{14a1d79 #64 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+drawn Back at: 180 2268
+$ after drawn Back: resumed + deskclock task
+deskclock pid after drawn Back: 12407
+  * Task{14a1d79 #64 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{36985408 u0 com.android.deskclock/.DeskClock t64}
+      * Task{14a1d79 #64 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+Timer tab selected after drawn Back: selected="true"
+    2026-09-17 10:05:29.377 wall=1789661129377 [back] events=138 keyguards=1 candidate=Resumed(pkg=com.android.deskclock, cls=com.android.deskclock.DeskClock) -> com.android.deskclock/.DeskClock
+    2026-09-17 10:05:29.719 wall=1789661129719 [launch] tile=back target=App(entry=AppEntry(component=ComponentInfo{com.android.deskclock/com.android.deskclock.DeskClock}, user=UserHandle{0}, label=Clock, profile=MAIN, isSystem=true, firstInstallTime=1789653839295))
+    2026-09-17 10:05:29.719 wall=1789661129719 [motion] start exit finished tile=back
+E19 reveal method, swipe from top edge: TransientControlTarget count 2
+$ after KEYCODE_BACK: resumed + deskclock task
+  * Task{14a1d79 #64 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{36985408 u0 com.android.deskclock/.DeskClock t64}
+      * Task{14a1d79 #64 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+Timer tab selected after KEYCODE_BACK: selected="true"
+    2026-09-17 10:05:39.082 wall=1789661139082 [back] events=140 keyguards=1 candidate=Resumed(pkg=com.android.deskclock, cls=com.android.deskclock.DeskClock) -> com.android.deskclock/.DeskClock
+## build: BackRules fix (activity-level HOME exclusion, lock continuation, launchable fallback); lock screen enabled (locksettings set-disabled false)
+## different-affinity page (X24)
+$ adb shell am start -a android.settings.WIFI_SETTINGS
+Starting: Intent { act=android.settings.WIFI_SETTINGS }
+    topResumedActivity=ActivityRecord{228479892 u0 com.android.settings/.Settings$WifiSettingsActivity t63}
+$ after drawn Back
+    topResumedActivity=ActivityRecord{75529640 u0 com.android.settings/.Settings t67}
+page title nodes after Back: (pattern missed; see below)
+    2026-09-17 10:05:54.132 wall=1789661154132 [back] events=143 keyguards=1 candidate=Resumed(pkg=com.android.settings, cls=com.android.settings.Settings$WifiSettingsActivity) -> com.android.settings/.Settings
+    2026-09-17 10:05:54.498 wall=1789661154498 [launch] startMainActivity com.android.settings/.Settings user=0
+## lock step (X12)
+    topResumedActivity=ActivityRecord{36985408 u0 com.android.deskclock/.DeskClock t64}
+$ after sleep / wake / dismiss-keyguard
+    topResumedActivity=ActivityRecord{36985408 u0 com.android.deskclock/.DeskClock t64}
+$ after drawn Back on Start
+      topResumedActivity=ActivityRecord{83745633 u0 app.tileshell/.StartActivity t66}
+    2026-09-17 10:06:14.298 wall=1789661174298 [back] events=148 keyguards=2 candidate=null -> null
+Settings page texts after Back: text="Search Settings" text="Network &amp; internet" text="Mobile, Wi‑Fi, hotspot"  (launcher page; before Home the page was Wi-Fi: text="Wi-Fi")
+## reboot step (X12)
+    topResumedActivity=ActivityRecord{36985408 u0 com.android.deskclock/.DeskClock t64}
+$ adb reboot; adb wait-for-device; poll sys.boot_completed
+boot_completed=1 after ~6 s
+FallbackHome events in capture: 11
+      topResumedActivity=ActivityRecord{119044432 u0 app.tileshell/.StartActivity t6}
+drawn Back at: 180 2268
+$ after drawn Back
+      topResumedActivity=ActivityRecord{119044432 u0 app.tileshell/.StartActivity t6}
+    2026-09-17 10:07:12.530 wall=1789661232530 [back] events=4 keyguards=1 candidate=null -> null
+## Usage access revoke
+$ adb shell appops set app.tileshell GET_USAGE_STATS ignore
+checklist usage row: checklist:usage:missing
+$ adb shell appops set app.tileshell GET_USAGE_STATS allow
+checklist usage row after restore: checklist:usage:granted
+GET_USAGE_STATS: allow; time=+14s62ms ago
+## edge: Back on Start with Usage access revoked
+$ adb shell appops set app.tileshell GET_USAGE_STATS ignore
+    topResumedActivity=ActivityRecord{58881844 u0 com.android.deskclock/.DeskClock t69}
+$ after drawn Back
+      topResumedActivity=ActivityRecord{119044432 u0 app.tileshell/.StartActivity t6}
+    2026-09-17 10:07:47.417 wall=1789661267417 [back] no Usage access: Back on Start does nothing
+$ adb shell appops set app.tileshell GET_USAGE_STATS allow
+GET_USAGE_STATS: allow; time=+23s869ms ago
+## restore lock screen baseline
+$ adb shell locksettings set-disabled true
+Lock screen disabled set to true
+true
+## verdict
+PASS on the fixed build (E20.txt from "# E20 2026-09-17T10:05"):
+- Timer tab: drawn Back and KEYCODE_BACK (bars revealed, TransientControlTarget 2) both resume DeskClock in the same task t64, same ActivityRecord 36985408, same pid 12407, Timer tab selected; exit frames in back_exit_frames.png (recorded on the pre-fix build, same motion code path; frames 17-29 = Start exit, 38 = DeskClock entering).
+- X24: Wi-Fi page, Home, Back: com.android.settings/.Settings (launcher page, "Search Settings", "Network & internet") resumes.
+- Lock (lock screen enabled): Back leaves Start showing, "[back] ... keyguards=2 candidate=null".
+- Reboot: 11 FallbackHome events in usagestats_after_reboot.txt; Back leaves Start showing, candidate=null.
+- Usage access ignore: checklist row checklist:usage:missing, Back does nothing ("no Usage access"); allow restores checklist:usage:granted.
+Defects found and fixed by this row (evidence of the failures kept):
+1. E20_run2_before_fix.txt, X24: BackHistory excluded whole packages that own a HOME activity, so Settings (FallbackHome) never counted; Decisions exclude the HOME activity only.
+2. E20_run2_before_fix.txt, lock: the app showing at the lock resumes again when the keyguard is dismissed (usagestats_lock_step_keyguard.txt: KEYGUARD_SHOWN 10:02:38, DeskClock RESUMED 10:02:42, KEYGUARD_HIDDEN 10:02:43) and was counted as opened.
+3. A last app that is no longer launchable returned nothing instead of the most recent launchable app (edge case list).
+Fix: start/BackRules.kt (unit tests start/BackRulesTest.kt, 12 pass), wired in start/BackHistory.kt.
+Method note: the AVD ships with the lock screen disabled (locksettings get-disabled true, 0 KEYGUARD events), so the row enables the swipe lock for its lock and reboot steps and restores it (set-disabled true, done above).

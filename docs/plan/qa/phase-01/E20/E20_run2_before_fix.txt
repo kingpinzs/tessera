@@ -1,0 +1,59 @@
+# E20 2026-09-17T09:59:36-06:00
+$ adb shell appops get app.tileshell GET_USAGE_STATS
+GET_USAGE_STATS: allow; time=+28s897ms ago
+$ adb shell am start -n com.android.deskclock/.DeskClock
+Starting: Intent { cmp=com.android.deskclock/.DeskClock }
+Alarm tab at: 120 237; Timer selected on Alarm tab: selected="false"
+Timer tab at: 604 237
+Timer selected after tapping Timer: selected="true"
+deskclock pid before Home: 11589
+$ tasks before Home
+  * Task{5c55628 #62 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{206658635 u0 com.android.deskclock/.DeskClock t62}
+      * Task{5c55628 #62 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+drawn Back at: 180 2268
+$ after drawn Back: resumed + deskclock task
+deskclock pid after drawn Back: 11589
+  * Task{5c55628 #62 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{206658635 u0 com.android.deskclock/.DeskClock t62}
+      * Task{5c55628 #62 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+Timer tab selected after drawn Back: selected="true"
+    2026-09-17 09:59:56.024 wall=1789660796024 [back] window start=1789656858669 candidate=(com.android.deskclock, com.android.deskclock.DeskClock) at=1789660776496 -> com.android.deskclock/.DeskClock
+    2026-09-17 09:59:56.363 wall=1789660796363 [launch] tile=back target=App(entry=AppEntry(component=ComponentInfo{com.android.deskclock/com.android.deskclock.DeskClock}, user=UserHandle{0}, label=Clock, profile=MAIN, isSystem=true, firstInstallTime=1789653839295))
+    2026-09-17 09:59:56.363 wall=1789660796363 [motion] start exit finished tile=back
+E19 reveal method, swipe from top edge: TransientControlTarget count 2
+$ after KEYCODE_BACK: resumed + deskclock task
+  * Task{5c55628 #62 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{206658635 u0 com.android.deskclock/.DeskClock t62}
+      * Task{5c55628 #62 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+Timer tab selected after KEYCODE_BACK: selected="true"
+    2026-09-17 10:00:05.912 wall=1789660805912 [back] window start=1789656858669 candidate=(com.android.deskclock, com.android.deskclock.DeskClock) at=1789660796365 -> com.android.deskclock/.DeskClock
+## different-affinity page (X24)
+$ adb shell am start -a android.settings.WIFI_SETTINGS
+Starting: Intent { act=android.settings.WIFI_SETTINGS }
+    topResumedActivity=ActivityRecord{228479892 u0 com.android.settings/.Settings$WifiSettingsActivity t63}
+$ after drawn Back
+    topResumedActivity=ActivityRecord{206658635 u0 com.android.deskclock/.DeskClock t62}
+page title nodes after Back: 
+    2026-09-17 10:00:47.763 wall=1789660847763 [back] window start=1789656858670 candidate=(com.android.deskclock, com.android.deskclock.DeskClock) at=1789660806264 -> com.android.deskclock/.DeskClock
+    2026-09-17 10:00:48.112 wall=1789660848112 [launch] startMainActivity com.android.deskclock/.DeskClock user=0
+## lock step (X12)
+    topResumedActivity=ActivityRecord{206658635 u0 com.android.deskclock/.DeskClock t62}
+$ after sleep / wake / dismiss-keyguard
+    topResumedActivity=ActivityRecord{206658635 u0 com.android.deskclock/.DeskClock t62}
+$ after drawn Back on Start
+    topResumedActivity=ActivityRecord{206658635 u0 com.android.deskclock/.DeskClock t62}
+    2026-09-17 10:01:07.898 wall=1789660867898 [back] window start=1789656858669 candidate=(com.android.deskclock, com.android.deskclock.DeskClock) at=1789660857812 -> com.android.deskclock/.DeskClock
+## lock step result above is INVALID: the AVD's lock screen is disabled, so KEYCODE_SLEEP never showed a keyguard
+$ adb shell locksettings get-disabled -> true; dumpsys window isKeyguardShowing=false; usagestats has 0 KEYGUARD events (usagestats_lock_step_no_keyguard.txt)
+## changed one named thing: enable the swipe lock screen for this step (restore: locksettings set-disabled true)
+$ adb shell locksettings set-disabled false
+Lock screen disabled set to false
+false
+keyguard after wake:     isKeyguardShowing=true
+keyguard after dismiss:     isKeyguardShowing=false
+    topResumedActivity=ActivityRecord{206658635 u0 com.android.deskclock/.DeskClock t62}
+$ Home, drawn Back (keyguard enabled run)
+    topResumedActivity=ActivityRecord{206658635 u0 com.android.deskclock/.DeskClock t62}
+    2026-09-17 10:03:02.344 wall=1789660982344 [back] window start=1789660958903 candidate=(com.android.deskclock, com.android.deskclock.DeskClock) at=1789660962661 -> com.android.deskclock/.DeskClock
+FAIL (before fix): KEYGUARD_SHOWN 10:02:38, DeskClock ACTIVITY_RESUMED 10:02:42 during the dismiss, KEYGUARD_HIDDEN 10:02:43; BackHistory counts the re-shown DeskClock as opened after the lock, so Back resumes it instead of leaving Start (X12).
