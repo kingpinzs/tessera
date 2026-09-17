@@ -1,12 +1,17 @@
 package app.tileshell.bars
 
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.database.ContentObserver
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.BatteryManager
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.view.WindowInsets
 import android.view.WindowInsetsController
@@ -26,6 +31,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,7 +54,8 @@ import app.tileshell.diag.Diagnostics
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.delay
-import java.text.DateFormat
+import java.util.TimeZone
+import android.text.format.DateFormat as AndroidDateFormat
 import java.util.Date
 
 /** Bar rule (phase 01 Decisions): every shell-owned screen hides Samsung's bars; an edge swipe reveals them transiently. */
@@ -82,6 +89,36 @@ fun W10mStatusBar(modifier: Modifier = Modifier) {
     var charging by remember { mutableStateOf(false) }
     var wifi by remember { mutableStateOf(wifiConnected(context)) }
     var cell by remember { mutableStateOf(hasCellService(context)) }
+    // The process caches the default time zone and the 12/24-hour format, so the clock follows the system's
+    // time zone, time and locale broadcasts.
+    var clockGeneration by remember { mutableIntStateOf(0) }
+    DisposableEffect(context) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(ignored: Context?, intent: Intent?) {
+                TimeZone.setDefault(null)
+                clockGeneration++
+            }
+        }
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_TIMEZONE_CHANGED)
+            addAction(Intent.ACTION_TIME_CHANGED)
+            addAction(Intent.ACTION_LOCALE_CHANGED)
+        }
+        context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+        // The 12/24-hour setting changes with no broadcast, so it is observed directly.
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) { clockGeneration++ }
+        }
+        runCatching {
+            context.contentResolver.registerContentObserver(Settings.System.getUriFor(Settings.System.TIME_12_24), false, observer)
+        }
+        onDispose {
+            runCatching { context.unregisterReceiver(receiver) }
+            runCatching { context.contentResolver.unregisterContentObserver(observer) }
+        }
+    }
+    // android.text.format.DateFormat honours the user's 12/24-hour setting; java.text.DateFormat only the locale.
+    val timeFormat = remember(clockGeneration) { AndroidDateFormat.getTimeFormat(context) }
     LaunchedEffect(Unit) {
         while (true) {
             now = Date()
@@ -102,7 +139,7 @@ fun W10mStatusBar(modifier: Modifier = Modifier) {
         Spacer(Modifier.weight(1f))
         BasicText(batteryGlyph(battery, charging), style = glyphStyle(colors.text, 15))
         Spacer(Modifier.width(6.dp))
-        BasicText(DateFormat.getTimeInstance(DateFormat.SHORT).format(now), style = ShellType.caption.copy(color = colors.text))
+        BasicText(timeFormat.format(now), style = ShellType.caption.copy(color = colors.text))
     }
 }
 
