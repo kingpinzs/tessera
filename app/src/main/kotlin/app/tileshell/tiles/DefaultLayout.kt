@@ -7,19 +7,23 @@ package app.tileshell.tiles
  */
 object DefaultLayout {
     fun placements(): List<Placement> = listOf(
-        Placement(TileKey.SlotTile(Slot.PHONE), 0, 0, TileSize.MEDIUM),
-        Placement(TileKey.SlotTile(Slot.PEOPLE), 2, 0, TileSize.MEDIUM),
-        Placement(TileKey.SlotTile(Slot.MESSAGING), 4, 0, TileSize.MEDIUM),
-        Placement(TileKey.SlotTile(Slot.BROWSER), 0, 2, TileSize.MEDIUM),
-        Placement(TileKey.SlotTile(Slot.MAIL), 2, 2, TileSize.MEDIUM),
-        Placement(TileKey.SlotTile(Slot.CAMERA), 4, 2, TileSize.SMALL),
-        Placement(TileKey.SlotTile(Slot.STORE), 5, 2, TileSize.SMALL),
-        Placement(TileKey.SlotTile(Slot.MAPS), 4, 3, TileSize.SMALL),
-        Placement(TileKey.SlotTile(Slot.MUSIC), 5, 3, TileSize.SMALL),
-        Placement(TileKey.SlotTile(Slot.CALENDAR), 0, 4, TileSize.WIDE),
-        Placement(TileKey.SlotTile(Slot.PHOTOS), 4, 4, TileSize.MEDIUM),
-        Placement(TileKey.ShellTile(ShellTiles.WEATHER), 0, 6, TileSize.WIDE),
-        Placement(TileKey.ShellTile(ShellTiles.SETTINGS), 4, 6, TileSize.MEDIUM),
+        Placement(TileKey.SlotTile(Slot.PEOPLE), 0, 0, TileSize.MEDIUM),
+        Placement(TileKey.SlotTile(Slot.BROWSER), 2, 0, TileSize.MEDIUM),
+        Placement(TileKey.SlotTile(Slot.MAIL), 4, 0, TileSize.MEDIUM),
+        Placement(TileKey.SlotTile(Slot.CALENDAR), 0, 2, TileSize.WIDE),
+        Placement(TileKey.SlotTile(Slot.PHOTOS), 4, 2, TileSize.MEDIUM),
+        Placement(TileKey.ShellTile(ShellTiles.WEATHER), 0, 4, TileSize.WIDE),
+        Placement(TileKey.SlotTile(Slot.STORE), 4, 4, TileSize.SMALL),
+        Placement(TileKey.SlotTile(Slot.MAPS), 5, 4, TileSize.SMALL),
+        Placement(TileKey.SlotTile(Slot.MUSIC), 4, 5, TileSize.SMALL),
+        Placement(TileKey.ShellTile(ShellTiles.SETTINGS), 5, 5, TileSize.SMALL),
+    )
+
+    /** Bottom tile row default (INDEX Change Log 2026-09-17, Jeremy): Phone, Messaging, Camera. */
+    fun dock(): List<TileKey> = listOf(
+        TileKey.SlotTile(Slot.PHONE),
+        TileKey.SlotTile(Slot.MESSAGING),
+        TileKey.SlotTile(Slot.CAMERA),
     )
 }
 
