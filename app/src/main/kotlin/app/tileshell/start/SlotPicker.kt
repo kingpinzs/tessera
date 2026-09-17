@@ -32,7 +32,8 @@ import app.tileshell.ui.tokens.ShellType
 
 /**
  * The slot app picker (interview Q1; H6 approximation): a W10M list page of only the apps that handle the
- * slot's category. Choosing one is an explicit assignment that always sticks.
+ * slot's category. Choosing one is an explicit assignment that always sticks. The host places it between the drawn
+ * W10M status bar and nav bar (bar rule), so Back and the Windows key stay on screen.
  */
 @Composable
 fun SlotPicker(slot: Slot, onDone: () -> Unit) {
@@ -40,7 +41,7 @@ fun SlotPicker(slot: Slot, onDone: () -> Unit) {
     val colors = LocalShellColors.current
     val catalog = remember { AppCatalog.get(context) }
     val candidates = remember(slot) { SlotResolver(context, catalog).candidates(slot) }
-    Column(Modifier.fillMaxSize().background(colors.background).padding(top = 28.dp).testTag("slot_picker")) {
+    Column(Modifier.fillMaxSize().background(colors.background).testTag("slot_picker")) {
         BasicText("CHOOSE AN APP", style = ShellType.base.copy(color = colors.text), modifier = Modifier.padding(start = 12.dp, top = 14.dp))
         BasicText(slot.label.lowercase(), style = ShellType.header.copy(color = colors.text), modifier = Modifier.padding(start = 12.dp, bottom = 8.dp))
         if (candidates.isEmpty()) {
