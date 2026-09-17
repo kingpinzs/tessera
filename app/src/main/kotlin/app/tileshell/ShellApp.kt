@@ -21,6 +21,7 @@ class ShellApp : Application() {
         PhotosFeed.start(this)
         CalendarFeed.start(this)
         MusicFeed.start(this)
+        app.tileshell.weather.WeatherFeed.start(this)
         Diagnostics.add("app", "feeds started ($reason)")
     }
 }
