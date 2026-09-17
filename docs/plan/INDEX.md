@@ -34,7 +34,7 @@ Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules
 
 | Phase | Doc | Status | QA evidence | Notes |
 |---|---|---|---|---|
-| 01 | [phase-01-start-live-tiles.md](phase-01-start-live-tiles.md) | building | — | FINAL; creates Settings hub + onboarding checklist |
+| 01 | [phase-01-start-live-tiles.md](phase-01-start-live-tiles.md) | QA | [qa/phase-01/](qa/phase-01/) | FINAL; creates Settings hub + onboarding checklist. E1-E21 pass (E10 motion, E20 Back, E15-E18 API and profiles included); edge cases running; then reviewers, NEEDS-HUMAN rows and the phone P rows |
 | 02 | [phase-02-edit-mode-folders.md](phase-02-edit-mode-folders.md) | pending | — | FINAL |
 | 03 | [phase-03-cortana-commands.md](phase-03-cortana-commands.md) | pending | — | FINAL; no toggle commands (they come with 04) |
 | 04 | [phase-04-action-center-volume-helper.md](phase-04-action-center-volume-helper.md) | pending | — | DRAFT; entry gate = R4 |
