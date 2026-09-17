@@ -97,3 +97,118 @@ $ cmd package query-activities --brief -a android.media.action.STILL_IMAGE_CAMER
   Activity #2:
     priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
     org.fossify.camera/.activities.MainActivity
+# E4 run 2 (fixture swaps per INDEX Change Log 2026-09-17 QA-gate agent calls) 2026-09-17T10:09:47-06:00
+saved layout before E4 (restored at the end): {'PHOTOS': 'deckers.thibault.aves.libre/deckers.thibault.aves.MainActivity'}
+wrote layout with no explicit slots: {}
+## role holders
+DIALER: com.android.dialer
+SMS: org.fossify.messages
+BROWSER: org.chromium.webview_shell
+## handlers per category after fixture swaps
+APP_EMAIL: com.fsck.k9/net.thunderbird.app.common.MainActivity eu.faircode.email/.ActivityMain 
+APP_MUSIC: org.akanework.gramophone/.ui.MainActivity org.oxycblt.auxio/.MainActivity 
+APP_MAPS: net.osmand.plus/.activities.MapActivity 
+APP_MARKET: org.fdroid.basic/org.fdroid.MainActivity org.fdroid.fdroid/org.fdroid.MainActivity 
+APP_GALLERY: com.android.gallery3d/.app.GalleryActivity deckers.thibault.aves.libre/deckers.thibault.aves.MainActivity 
+APP_CONTACTS: com.android.contacts/.activities.PeopleActivity 
+APP_CALENDAR: com.android.calendar/.AllInOneActivity 
+STILL_IMAGE_CAMERA: com.android.camera2/com.android.camera.CameraActivity net.sourceforge.opencamera/.MainActivity org.fossify.camera/.activities.MainActivity 
+VIEW https BROWSABLE: org.chromium.webview_shell/.WebViewBrowserActivity 
+## Start tiles (content-desc = app label when assigned, slot label when unassigned; grid labels add 'Tap to choose')
+tile:slot:PEOPLE | desc=Contacts | texts=Contacts
+tile:slot:BROWSER | desc=WebView Browser Tester | texts=WebView Browser Tester
+tile:slot:MAIL | desc=Mail | texts= / Mail · Tap to choose
+tile:slot:CALENDAR | desc=Calendar | texts=Thursday / 17 / Calendar
+tile:slot:PHOTOS | desc=Photos | texts=Photos
+tile:shell:weather | desc=Weather | texts= / Weather
+tile:slot:STORE | desc=Store | texts=
+tile:slot:MAPS | desc=OsmAnd~ | texts=
+tile:slot:MUSIC | desc=Music | texts=
+tile:shell:settings | desc=Start settings | texts=
+tile:dock:slot:PHONE | desc=Phone | texts=
+tile:dock:slot:MESSAGING | desc=Messages | texts=
+tile:dock:slot:CAMERA | desc=Camera | texts=
+## Settings > Tile apps
+tile_app_slot:PHONE | desc= | texts= / Phone / Phone · follows your default app
+tile_app_slot:MESSAGING | desc= | texts= / Messaging / Messages · follows your default app
+tile_app_slot:BROWSER | desc= | texts= / Browser / WebView Browser Tester · follows your default app
+tile_app_slot:MAIL | desc= | texts= / Mail / None · not chosen yet
+tile_app_slot:MUSIC | desc= | texts= / Music / None · not chosen yet
+tile_app_slot:MAPS | desc= | texts= / Maps / OsmAnd~ · Android's default
+tile_app_slot:STORE | desc= | texts= / Store / None · not chosen yet
+tile_app_slot:PHOTOS | desc= | texts= / Photos / None · not chosen yet
+tile_app_slot:PEOPLE | desc= | texts= / People / Contacts · Android's default
+tile_app_slot:CAMERA | desc= | texts= / Camera / None · not chosen yet
+tile_app_slot:CALENDAR | desc= | texts= / Calendar
+Tile apps page scrolls (tile_apps_scrolled.xml): tile_app_slot:CALENDAR | Calendar / Calendar · Android's default
+screenshots: start_default_slots.png, tile_apps_default.png
+## E4 verdict
+PASS. Role slots show the role holders (Phone = com.android.dialer "Phone", Messaging = org.fossify.messages "Messages", Browser = org.chromium.webview_shell "WebView Browser Tester"); one-handler categories are auto-assigned (Maps = OsmAnd~, People = Contacts, Calendar = Calendar, "Android's default"); 2+-handler categories with no preference show unassigned tiles (Mail "Mail · Tap to choose", Music, Store, Photos, Camera: tile content-desc is the slot label, Tile apps "None · not chosen yet").
+# E4b 2026-09-17T10:11:00-06:00
+## tap unassigned Mail tile
+picker shown: 1
+picker candidates: slot_candidate:com.fsck.k9 slot_candidate:eu.faircode.email 
+APP_EMAIL handlers: com.fsck.k9 eu.faircode.email 
+after choosing com.fsck.k9: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+layout slots: {'MAIL': 'com.fsck.k9/net.thunderbird.app.common.MainActivity'}
+## tap unassigned Camera row tile, then Back closes the picker
+camera picker candidates: slot_candidate:com.android.camera2 slot_candidate:net.sourceforge.opencamera slot_candidate:org.fossify.camera 
+picker after Back: 0; camera tile: tile:dock:slot:CAMERA | desc=Camera | texts=
+## force-stop
+$ adb shell am force-stop app.tileshell
+after force-stop: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+$ adb shell am force-stop com.fsck.k9
+after force-stop of the assigned app: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+## reboot
+after reboot: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+## reassign from Settings > Tile apps
+before: tile_app_slot:MAIL | desc= | texts= / Mail / K-9 Mail · you chose this
+picker candidates: 
+after: 
+Start after reassign: 
+layout slots: {'MAIL': 'com.fsck.k9/net.thunderbird.app.common.MainActivity'}
+## FAIL (reassign step): tapping tile_app_slot:MAIL crashed app.tileshell
+09-17 10:12:07.034  1495  1495 E AndroidRuntime: FATAL EXCEPTION: main
+09-17 10:12:07.034  1495  1495 E AndroidRuntime: Process: app.tileshell, PID: 1495
+09-17 10:12:07.034  1495  1495 E AndroidRuntime: java.lang.IllegalStateException: Vertically scrollable component was measured with an infinity maximum height constraints, which is disallowed. One of the common reasons is nesting layouts like LazyColumn and Column(Modifier.verticalScroll()). If you want to add a header before the list of items please add a header as a separate item() before the main items() inside the LazyColumn scope. There could be other reasons for this to happen: your ComposeView was added into a LinearLayout with some weight, you applied Modifier.wrapContentSize(unbounded = true) or wrote a custom layout. Please try to remove the source of infinite constraints in the hierarchy above the scrolling container.
+cause: TileAppsPage drew SlotPicker (a LazyColumn) inside the Settings page Column(verticalScroll), infinite max height
+consequence: system_server 'Clearing package preferred activities from app.tileshell', Home showed 'Select a Home app' (e4b_start_after_reassign.xml)
+also found: the Start picker covered the drawn status and nav bars (e4b_picker_mail.png), against the bar rule
+fix: the picker is a page between the drawn bars on Start, and its own entry on the Settings page stack (not inside the scrolling page)
+$ adb shell cmd package set-home-activity app.tileshell/.StartActivity -> Success; Home resumes app.tileshell/.StartActivity
+## rerun on the fixed build (crash buffer cleared first)
+# E4b 2026-09-17T10:14:48-06:00
+reset to no explicit slots: {}
+## tap unassigned Mail tile
+picker shown: 1; bars on the picker: status_bar=1 nav_back=1 nav_windows=1
+picker candidates: slot_candidate:com.fsck.k9 slot_candidate:eu.faircode.email 
+APP_EMAIL handlers: com.fsck.k9 eu.faircode.email 
+after choosing com.fsck.k9: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+layout slots: {'MAIL': 'com.fsck.k9/net.thunderbird.app.common.MainActivity'}
+## tap unassigned Camera row tile, then Back closes the picker
+camera picker candidates: slot_candidate:com.android.camera2 slot_candidate:net.sourceforge.opencamera slot_candidate:org.fossify.camera 
+picker after Back: 0; camera tile: tile:dock:slot:CAMERA | desc=Camera | texts=
+## Camera picker again, drawn Windows key closes it
+picker before Windows: 1; after Windows: 0; start_page: 1
+## force-stop
+$ adb shell am force-stop app.tileshell
+after force-stop: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+$ adb shell am force-stop com.fsck.k9
+after force-stop of the assigned app: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+## reboot
+after reboot: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+## reassign from Settings > Tile apps
+before: tile_app_slot:MAIL | desc= | texts= / Mail / K-9 Mail · you chose this
+picker candidates: slot_candidate:com.fsck.k9 slot_candidate:eu.faircode.email ; bars: status_bar=1 nav_back=1 nav_windows=1
+Back on the Settings picker: picker=0 tile_apps_rows=1
+after: tile_app_slot:MAIL | desc= | texts= / Mail / FairEmail · you chose this
+Start after reassign: tile:slot:MAIL | desc=FairEmail | texts=FairEmail
+layout slots: {'MAIL': 'eu.faircode.email/eu.faircode.email.ActivityMain'}
+$ crash buffer since this run
+0
+## E4b verdict
+PASS on the fixed build. The unassigned Mail tile opens the picker with the drawn bars (status_bar=1 nav_back=1 nav_windows=1) listing exactly the APP_EMAIL handlers (K-9 Mail, FairEmail); choosing K-9 assigns it (tile "K-9 Mail", layout slots MAIL); the Camera row tile's picker lists the 3 STILL_IMAGE_CAMERA handlers, and Back or the Windows key closes it; the assignment survives force-stop of the shell and of K-9, and a reboot; Settings > Tile apps reassigns Mail to FairEmail through the same picker (bars drawn, Back returns to Tile apps), and Start shows FairEmail. 0 crashes.
+Defects found and fixed by this row: the Tile apps picker crashed the shell (crash_tile_apps_picker.txt) and cleared it as the default Home; the Start picker covered the drawn bars.
+Fixture scans: fixture_candidates.tsv (first candidates, sha256), fixture_scan_named.tsv (53 apps), fixture_scan_all.tsv (212 apps): column 6 = declares the category (1) or not (0).
+## restore (RV12)
+wrote layout_before_E4.json back: {'PHOTOS': 'deckers.thibault.aves.libre/deckers.thibault.aves.MainActivity'}
