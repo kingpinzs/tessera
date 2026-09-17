@@ -1,6 +1,15 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+}
+
+// Release signing material stays outside git (keystore.properties is git-ignored). Phone installs are always
+// release-signed and non-debuggable (phase 01 Decisions: "Build types").
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
 }
 
 android {
@@ -15,6 +24,17 @@ android {
         versionName = "0.1.0"
     }
 
+    signingConfigs {
+        if (keystoreProps.getProperty("storeFile") != null) {
+            create("release") {
+                storeFile = file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             isDebuggable = true
@@ -22,6 +42,7 @@ android {
         release {
             isDebuggable = false
             isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
