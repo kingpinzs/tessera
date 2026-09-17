@@ -11,8 +11,8 @@ import app.tileshell.apps.AppEntry
 import app.tileshell.diag.Diagnostics
 
 /**
- * Back on Start (R6 §4.1.1): resume the most recently used eligible app inside the Back history window,
- * which starts at the later of the last keyguard shown and boot (R6 §4.1.2; phase 01 Decisions).
+ * Back on Start (R6 §4.1.1): resume the most recently used eligible app since the last keyguard or boot
+ * (R6 §4.1.2; phase 01 Decisions). The choice itself is [BackRules].
  */
 object BackHistory {
     private val alwaysExcluded = setOf(
@@ -35,37 +35,28 @@ object BackHistory {
         val now = System.currentTimeMillis()
         val bootWall = now - SystemClock.elapsedRealtime()
         val events = usm.queryEvents(bootWall, now)
-        val homePackages = context.packageManager
+        val homeComponents = context.packageManager
             .queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), 0)
-            .map { it.activityInfo.packageName }.toSet()
+            .flatMap { r -> listOfNotNull(r.activityInfo.name, r.activityInfo.targetActivity).map { r.activityInfo.packageName to it } }
+            .toSet()
         val imePackages = context.getSystemService(InputMethodManager::class.java).inputMethodList.map { it.packageName }.toSet()
-        var windowStart = bootWall
-        var candidate: Pair<String, String>? = null
-        var candidateTime = 0L
+        val rules = BackRules(context.packageName, homeComponents, alwaysExcluded + imePackages)
+        val stream = mutableListOf<BackRules.Event>()
+        var keyguards = 0
         val e = UsageEvents.Event()
         while (events.hasNextEvent()) {
             events.getNextEvent(e)
             when (e.eventType) {
-                UsageEvents.Event.KEYGUARD_SHOWN -> if (e.timeStamp > windowStart) windowStart = e.timeStamp
-                UsageEvents.Event.ACTIVITY_RESUMED -> {
-                    val pkg = e.packageName
-                    val cls = e.className ?: ""
-                    val excluded = pkg in alwaysExcluded || pkg in imePackages ||
-                        (pkg != context.packageName && pkg in homePackages) ||
-                        (pkg == context.packageName && cls.endsWith("StartActivity"))
-                    if (!excluded && e.timeStamp >= candidateTime) {
-                        candidate = pkg to cls
-                        candidateTime = e.timeStamp
-                    }
-                }
+                UsageEvents.Event.KEYGUARD_SHOWN -> { stream += BackRules.KeyguardShown; keyguards++ }
+                UsageEvents.Event.ACTIVITY_RESUMED -> stream += BackRules.Resumed(e.packageName, e.className ?: "")
             }
         }
-        val found = candidate?.takeIf { candidateTime > windowStart }
-        val entry = found?.let { (pkg, cls) ->
-            catalog.apps.value.firstOrNull { it.component.packageName == pkg && it.component.className == cls }
-                ?: catalog.firstForPackage(pkg)
+        var picked: BackRules.Resumed? = null
+        val entry = rules.pick(stream) { r ->
+            (catalog.apps.value.firstOrNull { it.component.packageName == r.pkg && it.component.className == r.cls }
+                ?: catalog.firstForPackage(r.pkg))?.also { picked = r }
         }
-        Diagnostics.add("back", "window start=$windowStart candidate=$candidate at=$candidateTime -> ${entry?.component?.flattenToShortString()}")
+        Diagnostics.add("back", "events=${stream.size} keyguards=$keyguards candidate=$picked -> ${entry?.component?.flattenToShortString()}")
         return entry
     }
 }
