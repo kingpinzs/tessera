@@ -101,12 +101,16 @@ object AppListMetrics {
     val TEXT_X = 56.dp
     val TEXT_END = 5.dp
 
-    /** R6 §5.1.5 (MEDIUM): an uncaptioned name's text centre sits 2.75 epx below the icon centre: baseline 31 epx from the row top. */
-    const val NAME_BASELINE = 31f
-    /** R6 §5.1.5: a captioned name's text centre sits 7 epx above the icon centre: baseline 22 epx (on the icon centre line). */
-    const val NAME_BASELINE_CAPTIONED = 22f
+    /** The icon centre line: the 41-epx icon centred in the 44-epx row. */
+    private const val ICON_CENTRE = 22f
+    /** Selawik's cap height (OS/2 sCapHeight 1434 of 2048 units) at the 15-epx name style: the name's text centre is this / 2 above its baseline. */
+    private const val NAME_CAP = 15f * 1434f / 2048f
+    /** R6 §5.1.5 (MEDIUM): an uncaptioned name's text centre sits 2.75 epx below the icon centre (baseline 30 epx from the row top). */
+    const val NAME_BASELINE = ICON_CENTRE + 2.75f + NAME_CAP / 2
+    /** R6 §5.1.5: a captioned name's text centre sits 7 epx above the icon centre (baseline 20.25 epx from the row top). */
+    const val NAME_BASELINE_CAPTIONED = ICON_CENTRE - 7f + NAME_CAP / 2
     /** R6 §5.1.5: the "New" baseline sits 18 epx below the name's (cap 8.3 epx, 12-epx class, R6 §5.1.3). */
-    const val CAPTION_BASELINE = 40f
+    const val CAPTION_BASELINE = NAME_BASELINE_CAPTIONED + 18f
 
     /** R3 C2: previous icon bottom to next icon top across a header is 53 ± 1.5 epx; the block is that less the two 1.5-epx row insets. */
     val HEADER_BLOCK = 50.dp
