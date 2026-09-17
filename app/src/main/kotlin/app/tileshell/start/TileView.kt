@@ -89,8 +89,9 @@ fun TileView(
     val faces = model.content?.faces.orEmpty()
     // Face 0 is the logo face; 1..n are live faces.
     var faceIndex by remember(model.id) { mutableIntStateOf(0) }
-    val flip = remember(model.id) { Animatable(1f) }
-    val fade = remember(model.id) { Animatable(1f) }
+    // One face change = one continuous animation (R3 A7 counts 6-7 frames for a 108-ms flip): progress 0..1, the face
+    // swaps at the midpoint; a flip squashes with |1 - 2p|, a crossfade fades with the same shape.
+    val cycle = remember(model.id) { Animatable(0f) }
     // Peek slide: 0..1 travel of the outgoing face; slideFrom is the face sliding out (-1 when no slide is running).
     val slide = remember(model.id) { Animatable(0f) }
     var slideFrom by remember(model.id) { mutableIntStateOf(-1) }
@@ -109,8 +110,7 @@ fun TileView(
     LaunchedEffect(model.id, faces.size, transition) {
         // A content change cancels any running flip / crossfade; restore full visibility first so a tile is never
         // left squashed or faded out until its next cycle.
-        flip.snapTo(1f)
-        fade.snapTo(1f)
+        cycle.snapTo(0f)
         slide.snapTo(0f)
         slideFrom = -1
         if (faceIndex > faces.size) faceIndex = 0
@@ -126,15 +126,12 @@ fun TileView(
             val next = (faceIndex + 1) % (faces.size + 1)
             Diagnostics.add("tile_anim", "tile=${model.id} kind=$transition uptime=$startedAt")
             when (transition) {
-                FaceTransition.FLIP -> {
-                    flip.animateTo(0f, tween(Motion.FLIP_MS / 2, easing = LinearEasing))
+                FaceTransition.FLIP, FaceTransition.CROSSFADE -> {
+                    val ms = if (transition == FaceTransition.FLIP) Motion.FLIP_MS else Motion.CROSSFADE_MS
+                    cycle.snapTo(0f)
+                    cycle.animateTo(1f, tween(ms, easing = LinearEasing)) { if (value >= 0.5f) faceIndex = next }
                     faceIndex = next
-                    flip.animateTo(1f, tween(Motion.FLIP_MS / 2, easing = LinearEasing))
-                }
-                FaceTransition.CROSSFADE -> {
-                    fade.animateTo(0f, tween(Motion.CROSSFADE_MS / 2, easing = LinearEasing))
-                    faceIndex = next
-                    fade.animateTo(1f, tween(Motion.CROSSFADE_MS / 2, easing = LinearEasing))
+                    cycle.snapTo(0f)
                 }
                 FaceTransition.PEEK -> {
                     slideDown = next != 0 && faces[next - 1] is TileFace.Photo
@@ -170,8 +167,9 @@ fun TileView(
                 rotationX = tiltX.value
                 rotationY = tiltY.value
                 scaleX = depress.value
-                scaleY = depress.value * flip.value
-                alpha = fade.value
+                val swing = kotlin.math.abs(1f - 2f * cycle.value)
+                scaleY = depress.value * (if (transition == FaceTransition.FLIP) swing else 1f)
+                alpha = if (transition == FaceTransition.CROSSFADE) swing else 1f
                 cameraDistance = 12f * density.density
             }
             .pointerInput(pressStyle, model.id) {
