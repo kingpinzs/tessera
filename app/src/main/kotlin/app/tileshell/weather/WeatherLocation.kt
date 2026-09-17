@@ -3,13 +3,16 @@ package app.tileshell.weather
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Address
-import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import android.os.CancellationSignal
 import app.tileshell.diag.Diagnostics
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 
@@ -57,22 +60,31 @@ object WeatherLocation {
         return LocationOutcome.Found(chosen.latitude, chosen.longitude, if (chosen === fresh) "fresh:${chosen.provider}" else "lastKnown:${chosen.provider}", chosen.time)
     }
 
-    /** Place name from the platform [Geocoder] when the device has a geocoder backend; null otherwise (the app then shows coordinates). */
-    suspend fun placeName(context: Context, latitude: Double, longitude: Double): String? {
-        if (!Geocoder.isPresent()) return null
-        val addresses = withTimeoutOrNull(GEOCODE_TIMEOUT_MS) {
-            suspendCancellableCoroutine<List<Address>?> { cont ->
-                try {
-                    Geocoder(context).getFromLocation(latitude, longitude, 1, object : Geocoder.GeocodeListener {
-                        override fun onGeocode(addresses: MutableList<Address>) { if (cont.isActive) cont.resume(addresses) }
-                        override fun onError(errorMessage: String?) { if (cont.isActive) cont.resume(null) }
-                    })
-                } catch (e: Exception) {
-                    if (cont.isActive) cont.resume(null)
+    /**
+     * Place name by reverse lookup through OpenStreetMap's Nominatim (P5: no Google; Android's platform Geocoder
+     * is backed by Google services on the phone). It is part of the Weather feature's internet use (A11), runs
+     * only when the location moved, and follows Nominatim's usage policy (identifying User-Agent, one request).
+     * Null when the lookup fails; the app then shows coordinates.
+     */
+    suspend fun placeName(context: Context, latitude: Double, longitude: Double): String? = withContext(Dispatchers.IO) {
+        runCatching {
+            val url = URL("https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&lat=$latitude&lon=$longitude&accept-language=" + java.util.Locale.getDefault().toLanguageTag())
+            val conn = url.openConnection() as HttpURLConnection
+            conn.connectTimeout = GEOCODE_TIMEOUT_MS.toInt()
+            conn.readTimeout = GEOCODE_TIMEOUT_MS.toInt()
+            conn.setRequestProperty("User-Agent", "tileshell-launcher/" + (runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "0"))
+            try {
+                if (conn.responseCode != 200) error("HTTP " + conn.responseCode)
+                val json = JSONObject(conn.inputStream.bufferedReader().readText())
+                val address = json.optJSONObject("address")
+                val name = address?.let { a ->
+                    listOf("city", "town", "village", "municipality", "county", "state", "country").firstNotNullOfOrNull { k -> a.optString(k).takeIf { it.isNotBlank() } }
                 }
+                Diagnostics.add("weather", "place lookup (nominatim) -> $name")
+                name
+            } finally {
+                conn.disconnect()
             }
-        }
-        val a = addresses?.firstOrNull() ?: return null
-        return a.locality ?: a.subAdminArea ?: a.adminArea ?: a.countryName
+        }.onFailure { Diagnostics.add("weather", "place lookup failed: $it") }.getOrNull()
     }
 }
