@@ -1,0 +1,101 @@
+# E13 2026-09-17T11:30:19-06:00
+## starting values (Settings > Start dumps start_values_1..4.xml)
+accent: accent:Red
+background: none (no Remove picture row)
+mode: theme_mode_dark
+press: press_tilt
+theme_show_more_tiles: true
+theme_show_profiles: true
+transparency (slider hidden while no background; prefs): <float name="transparency" value="0.5" />
+## Start before changes
+slot:MAIL: bounds (721, 84, 1064, 427) (343 px wide), top-band colour [232, 17, 35]
+slot:PEOPLE: bounds (9, 84, 352, 427) (343 px wide), top-band colour [232, 17, 35]
+dock:slot:CAMERA: bounds (721, 1935, 1064, 2182) (343 px wide), top-band colour [232, 17, 35]
+gutter between People and Browser at x 358: colour [0, 0, 0] (gutter 13 px)
+page below the grid (y 1198, x 540): colour [0, 0, 0]
+## accent_blue: tapped accent:Default Blue ; control after: content-desc="Default Blue" checked="true" 
+slot:MAIL: bounds (721, 84, 1064, 427) (343 px wide), top-band colour [0, 120, 215]
+slot:PEOPLE: bounds (9, 84, 352, 427) (343 px wide), top-band colour [0, 120, 215]
+dock:slot:CAMERA: bounds (721, 1935, 1064, 2182) (343 px wide), top-band colour [0, 120, 215]
+gutter between People and Browser at x 358: colour [0, 0, 0] (gutter 13 px)
+page below the grid (y 1198, x 540): colour [0, 0, 0]
+## theme_light: tapped theme_mode_light ; control after: content-desc="" checked="true" 
+slot:MAIL: bounds (721, 84, 1064, 427) (343 px wide), top-band colour [0, 120, 215]
+slot:PEOPLE: bounds (9, 84, 352, 427) (343 px wide), top-band colour [0, 120, 215]
+dock:slot:CAMERA: bounds (721, 1935, 1064, 2182) (343 px wide), top-band colour [0, 120, 215]
+gutter between People and Browser at x 358: colour [255, 255, 255] (gutter 13 px)
+page below the grid (y 1198, x 540): colour [255, 255, 255]
+## fewer_tiles: tapped theme_show_more_tiles ; control after: content-desc="" checked="false" 
+slot:MAIL: bounds (1077, 84, 1080, 605) (3 px wide), top-band colour [-9223372036854775808, -9223372036854775808, -9223372036854775808]
+slot:PEOPLE: bounds (9, 84, 530, 605) (521 px wide), top-band colour [0, 120, 215]
+dock:slot:CAMERA: bounds (721, 1802, 1064, 2183) (343 px wide), top-band colour [0, 120, 215]
+gutter between People and Browser at x 536: colour [255, 255, 255] (gutter 13 px)
+page below the grid (y 1732, x 540): colour [255, 255, 255]
+note: with show more tiles off the medium tile is 521 px (2 columns) and the tiles placed in columns 4-5 of the 6-unit default layout (Mail, Photos, Store, Maps, Music, Start settings) fall outside the narrower grid (Mail at x 1077-1080). Reflowing a layout when show more tiles changes is phase 02's part (phase-02 edge case 'Changing show-more-tiles reflows a persisted layout without losing tiles', phase-02 E9); recorded here, not built in phase 01.
+## background_image: tapped theme_background_choose, the system photo picker (com.android.providers.media.module PhotoPickerActivity) opened (bg_picker.png), first QA photo chosen
+controls after: remove row 1, transparency slider content-desc="Tile transparency 50 %"
+slot:MAIL: bounds (1077, 84, 1080, 605) (3 px wide), top-band colour [-9223372036854775808, -9223372036854775808, -9223372036854775808]
+slot:PEOPLE: bounds (9, 84, 530, 605) (521 px wide), top-band colour [80, 96, 145]
+dock:slot:CAMERA: bounds (721, 1802, 1064, 2183) (343 px wide), top-band colour [80, 96, 145]
+gutter between People and Browser at x 536: colour [201, 60, 40] (gutter 13 px)
+page below the grid (y 1732, x 540): colour [201, 60, 40]
+## transparency_10: tapped theme_transparency at 0.1; control after: content-desc="Tile transparency 10 %" checked="false" 
+slot:MAIL: bounds (1077, 84, 1080, 605) (3 px wide), top-band colour [-9223372036854775808, -9223372036854775808, -9223372036854775808]
+slot:PEOPLE: bounds (9, 84, 530, 605) (521 px wide), top-band colour [16, 116, 201]
+dock:slot:CAMERA: bounds (721, 1802, 1064, 2183) (343 px wide), top-band colour [16, 116, 201]
+gutter between People and Browser at x 536: colour [201, 60, 40] (gutter 13 px)
+page below the grid (y 1732, x 540): colour [201, 60, 40]
+## transparency_90: tapped theme_transparency at 0.9; control after: content-desc="Tile transparency 90 %" checked="false" 
+slot:MAIL: bounds (1077, 84, 1080, 605) (3 px wide), top-band colour [-9223372036854775808, -9223372036854775808, -9223372036854775808]
+slot:PEOPLE: bounds (9, 84, 530, 605) (521 px wide), top-band colour [145, 76, 89]
+dock:slot:CAMERA: bounds (721, 1802, 1064, 2183) (343 px wide), top-band colour [145, 76, 89]
+gutter between People and Browser at x 536: colour [201, 60, 40] (gutter 13 px)
+page below the grid (y 1732, x 540): colour [201, 60, 40]
+## restore (each back to its starting value)
+## restore_transparency: tapped theme_transparency at 0.5; control after: content-desc="Tile transparency 50 %" checked="false" 
+slot:MAIL: bounds (1077, 84, 1080, 605) (3 px wide), top-band colour [-9223372036854775808, -9223372036854775808, -9223372036854775808]
+slot:PEOPLE: bounds (9, 84, 530, 605) (521 px wide), top-band colour [80, 96, 145]
+dock:slot:CAMERA: bounds (721, 1802, 1064, 2183) (343 px wide), top-band colour [80, 96, 145]
+gutter between People and Browser at x 536: colour [201, 60, 40] (gutter 13 px)
+page below the grid (y 1732, x 540): colour [201, 60, 40]
+## restore_background: tapped theme_background_remove ; control after: 
+slot:MAIL: bounds (1077, 84, 1080, 605) (3 px wide), top-band colour [-9223372036854775808, -9223372036854775808, -9223372036854775808]
+slot:PEOPLE: bounds (9, 84, 530, 605) (521 px wide), top-band colour [0, 120, 215]
+dock:slot:CAMERA: bounds (721, 1802, 1064, 2183) (343 px wide), top-band colour [0, 120, 215]
+gutter between People and Browser at x 536: colour [255, 255, 255] (gutter 13 px)
+page below the grid (y 1732, x 540): colour [255, 255, 255]
+## restore_more_tiles: tapped theme_show_more_tiles ; control after: content-desc="" checked="true" 
+slot:MAIL: bounds (721, 84, 1064, 427) (343 px wide), top-band colour [0, 120, 215]
+slot:PEOPLE: bounds (9, 84, 352, 427) (343 px wide), top-band colour [0, 120, 215]
+dock:slot:CAMERA: bounds (721, 1935, 1064, 2182) (343 px wide), top-band colour [0, 120, 215]
+gutter between People and Browser at x 358: colour [255, 255, 255] (gutter 13 px)
+page below the grid (y 1198, x 540): colour [255, 255, 255]
+## restore_dark: tapped theme_mode_dark ; control after: content-desc="" checked="true" 
+slot:MAIL: bounds (721, 84, 1064, 427) (343 px wide), top-band colour [0, 120, 215]
+slot:PEOPLE: bounds (9, 84, 352, 427) (343 px wide), top-band colour [0, 120, 215]
+dock:slot:CAMERA: bounds (721, 1935, 1064, 2182) (343 px wide), top-band colour [0, 120, 215]
+gutter between People and Browser at x 358: colour [0, 0, 0] (gutter 13 px)
+page below the grid (y 1198, x 540): colour [0, 0, 0]
+## restore_accent: tapped accent:Red ; control after: content-desc="Red" checked="true" 
+slot:MAIL: bounds (721, 84, 1064, 427) (343 px wide), top-band colour [232, 17, 35]
+slot:PEOPLE: bounds (9, 84, 352, 427) (343 px wide), top-band colour [232, 17, 35]
+dock:slot:CAMERA: bounds (721, 1935, 1064, 2182) (343 px wide), top-band colour [232, 17, 35]
+gutter between People and Browser at x 358: colour [0, 0, 0] (gutter 13 px)
+page below the grid (y 1198, x 540): colour [0, 0, 0]
+## values after restore (end_values_1..4.xml)
+accent: accent:Red
+background: none (no Remove picture row)
+mode: theme_mode_dark
+press: press_tilt
+theme_show_more_tiles: true
+theme_show_profiles: true
+transparency (prefs): <float name="transparency" value="0.5" />
+## verdict
+PASS. Every Start setting was recorded from the Settings dump first (accent Red, dark mode, no background, transparency 0.5 in prefs while the slider is hidden, show more tiles on, show work and private apps on, press tilt) and each change showed on Start:
+  accent Default Blue: every tile's colour 232,17,35 -> 0,120,215 (grid and bottom row)
+  light mode: page background 0,0,0 -> 255,255,255, tiles keep the accent
+  show more tiles off: medium tile 343 -> 521 px (2 columns), grid gutter unchanged at 13 px
+  background picture (system photo picker, com.android.providers.media.module): the picture shows in the gutters (201,60,40) and through the tiles (80,96,145 at 50 %), and the Remove picture row and the transparency slider appear
+  transparency 10 % -> tile 16,116,201 (nearly the accent), 90 % -> 145,76,89 (nearly the picture)
+  press effect style: the three styles are chosen and measured in E10 (press.txt, press_measure.txt); each is confirmed in prefs when chosen
+  restore: every setting set back and the end dumps (end_values_1..4.xml) show the recorded starting values, transparency 0.5 in prefs
