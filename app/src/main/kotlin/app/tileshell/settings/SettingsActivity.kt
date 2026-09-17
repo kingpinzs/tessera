@@ -37,7 +37,7 @@ import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.ShellRoot
 import app.tileshell.ui.motion.Motion
 
-enum class SettingsPage { HOME, START_THEME, TILE_APPS, CHECKLIST, DIAGNOSTICS, ABOUT }
+enum class SettingsPage { HOME, START_THEME, TILE_APPS, LIVE_TILE_ACCESS, CHECKLIST, DIAGNOSTICS, ABOUT }
 
 /** The W10M Settings hub (build task 13). Every shell screen follows the bar rule. */
 class SettingsActivity : ComponentActivity() {
@@ -64,6 +64,7 @@ class SettingsActivity : ComponentActivity() {
                                         SettingsPage.HOME -> HomePage { stack += it }
                                         SettingsPage.START_THEME -> StartThemePage()
                                         SettingsPage.TILE_APPS -> TileAppsPage()
+                                        SettingsPage.LIVE_TILE_ACCESS -> LiveTileAccessPage()
                                         SettingsPage.CHECKLIST -> ChecklistPage()
                                         SettingsPage.DIAGNOSTICS -> DiagnosticsPage()
                                         SettingsPage.ABOUT -> AboutPage()
@@ -113,6 +114,7 @@ private fun HomePage(open: (SettingsPage) -> Unit) {
     PageHeader(Glyph.SETTINGS, "Start settings")
     TwoLineItem(Glyph.PALETTE, "Start + theme", "Background, accent colour, tiles, press effect", "settings_start_theme") { open(SettingsPage.START_THEME) }
     TwoLineItem(Glyph.APPS, "Tile apps", "Choose the apps behind Mail, Music, Maps and more", "settings_tile_apps") { open(SettingsPage.TILE_APPS) }
+    TwoLineItem(Glyph.APPS, "Live tile access", "Apps that update their own tiles", "settings_live_tile_access") { open(SettingsPage.LIVE_TILE_ACCESS) }
     TwoLineItem(Glyph.CHECKMARK, "Setup checklist", "Home, permissions and live tile health", "settings_checklist") { open(SettingsPage.CHECKLIST) }
     TwoLineItem(Glyph.DOCUMENT, "Diagnostics", "What the shell recorded", "settings_diagnostics") { open(SettingsPage.DIAGNOSTICS) }
     TwoLineItem(Glyph.INFO, "About", "Version and licences", "settings_about") { open(SettingsPage.ABOUT) }

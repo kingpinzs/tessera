@@ -102,6 +102,8 @@ theme page and an onboarding/health checklist exist. Every visual/motion value i
 
 - 2026-09-17: Bottom tile row (post-FINAL change, Jeremy: "there should be a group of riles that are anchored fixed at the bottom which can be moved there but by default should be phone, message and camera"; size "(a)"). P4 design (agent), H35: one row of small tiles (R3 A1 small tile and small-tile gutter), as many slots as the grid has small-tile units across (6 with show more tiles on, 4 with it off), tiles left-aligned from the grid's left margin, anchored directly above the drawn nav bar with one small-tile gutter above and below; the Start grid scrolls above it and its content ends above the row so no tile hides behind it. Row tiles behave like W10M small tiles: glyph and badge count, no label, no live faces. The row shows on Start only, not on the app list. The layout store keeps the row as its own ordered list (store version 2); a version-1 store keeps its slot assignments and takes the new default placements, because version 1 had no user placements (pinning is phase 02). Default Start grid without the three: People, Browser, Mail (medium, top row); Calendar (wide) + Photos (medium); Weather (wide) + Store, Maps, Music, Start settings (small). In the Start exit, the row fades with the last visible row (INDEX Change Log 2026-09-17)
 
+- 2026-09-17: Build-start agent calls, listed in the INDEX Change Log entry of 2026-09-17: Compose BOM 2026.06.01; default accent 0078D7 (X26, H36); default Start arrangement (X27, H37); white monochrome tile glyphs where apps provide them (P4, H38); P4 press = scale 0.97 plus a 12 % black overlay (E10, H8); Calendar as a category slot; Settings hub labelled Start settings; Weather place names from OpenStreetMap Nominatim (P5); Settings > Live tile access holds the kill switch (agent)
+
 ## Interview queue (Stage A step 4)
 Jeremy = behaviour/look decision; agent = implementation call recorded here without asking.
 1. ~~Default tile stand-ins~~ ruled 2026-09-16 (see Decisions)
@@ -246,6 +248,9 @@ Rows start from the baseline state and restore what they change (PLAN RV12); mot
 - H33 P4 design: the onboarding / health checklist looks like something Microsoft would have shipped
 - H34 The keyboard's placement over a shell screen's drawn nav bar (X25, approximation)
 - H35 P4 design: the bottom tile row's look and placement (Change Log 2026-09-17)
+- H36 Out-of-box accent colour Default Blue 0078D7 (X26, approximation)
+- H37 Default Start tile arrangement (X27, approximation)
+- H38 P4 design: white monochrome app glyphs on tiles, full-colour icons for apps without a monochrome layer
 
 ## Edge cases
 - Assigned app uninstalled or disabled (slot → unassigned); role holder changes (e.g. default SMS app switched); Android default for a category changes after auto-assignment vs after explicit assignment; no app handles a category at all (picker empty state)
