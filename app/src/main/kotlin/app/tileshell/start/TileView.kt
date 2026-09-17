@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -124,7 +125,7 @@ fun TileView(
             val startedAt = SystemClock.uptimeMillis()
             val period = Random.nextLong(min, max + 1)
             val next = (faceIndex + 1) % (faces.size + 1)
-            Diagnostics.add("tile_anim", "tile=${model.id} kind=$transition uptime=$startedAt")
+            Diagnostics.add("tile_anim", "tile=${model.id} kind=$transition uptime=$startedAt faceIndex=$faceIndex next=$next faces=${faces.size}")
             when (transition) {
                 FaceTransition.FLIP, FaceTransition.CROSSFADE -> {
                     val ms = if (transition == FaceTransition.FLIP) Motion.FLIP_MS else Motion.CROSSFADE_MS
@@ -217,6 +218,7 @@ fun TileView(
         } else {
             Face(faceIndex)
         }
+        Badge(model)
         if (pressStyle == PressStyle.P4_PRESS && pressed) {
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = P4_PRESS_DIM)))
         }
@@ -257,14 +259,18 @@ private fun LogoFace(model: TileModel, widthDp: Dp, heightDp: Dp) {
                 modifier = Modifier.align(Alignment.BottomStart).padding(start = StartGrid.LABEL_INSET_EPX.dp, end = 28.dp, bottom = 5.dp),
             )
         }
-        if (model.badge > 0) {
-            BasicText(
-                if (model.badge > 99) "99+" else model.badge.toString(),
-                style = ShellType.caption.copy(color = Color.White, fontWeight = FontWeight.Normal),
-                modifier = Modifier.align(Alignment.BottomEnd).padding(end = StartGrid.LABEL_INSET_EPX.dp, bottom = 5.dp).testTag("badge:${model.id}"),
-            )
-        }
     }
+}
+
+/** The count in the tile's lower-right corner (R1 section 1.4), drawn over whichever face is showing. */
+@Composable
+private fun BoxScope.Badge(model: TileModel) {
+    if (model.badge <= 0) return
+    BasicText(
+        if (model.badge > 99) "99+" else model.badge.toString(),
+        style = ShellType.caption.copy(color = Color.White, fontWeight = FontWeight.Normal),
+        modifier = Modifier.align(Alignment.BottomEnd).padding(end = StartGrid.LABEL_INSET_EPX.dp, bottom = 5.dp).testTag("badge:${model.id}"),
+    )
 }
 
 @Composable
