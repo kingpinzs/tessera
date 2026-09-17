@@ -1,19 +1,212 @@
 package app.tileshell
 
+import android.app.ActivityOptions
+import android.content.Intent
+import android.graphics.Rect
 import android.os.Bundle
+import android.window.SplashScreen
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameMillis
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.unit.dp
+import app.tileshell.apps.AppCatalog
+import app.tileshell.applist.AppListPage
+import app.tileshell.bars.BarMetrics
+import app.tileshell.bars.W10mNavBar
+import app.tileshell.bars.W10mStatusBar
+import app.tileshell.bars.hideSystemBars
+import app.tileshell.diag.Diagnostics
+import app.tileshell.start.BackHistory
+import app.tileshell.start.PlacedTile
+import app.tileshell.start.SlotPicker
+import app.tileshell.start.StartAnimation
+import app.tileshell.start.StartPage
+import app.tileshell.start.TileTarget
+import app.tileshell.start.rememberPlacedTiles
+import app.tileshell.tiles.ShellTiles
+import app.tileshell.tiles.Slot
+import app.tileshell.ui.ShellRoot
+import app.tileshell.ui.motion.Motion
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 
+/** The HOME activity: Start and the app list on one pivot, the drawn W10M bars, launch / return motion. */
 class StartActivity : ComponentActivity() {
+    private val homeEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private var animation by mutableStateOf(StartAnimation())
+    private var pickerSlot by mutableStateOf<Slot?>(null)
+    private var returningFromLaunch = false
+    private var page by mutableStateOf(0)
+    private val backEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        hideSystemBars()
+        AppCatalog.get(this)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() { backEvents.tryEmit(Unit) }
+        })
         setContent {
-            Box(Modifier.fillMaxSize().background(Color.Black))
+            ShellRoot {
+                Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
+                    StartHost()
+                }
+            }
+        }
+        Diagnostics.add("start", "StartActivity created")
+    }
+
+    @OptIn(ExperimentalFoundationApi::class)
+    @Composable
+    private fun StartHost() {
+        val tiles = rememberPlacedTiles()
+        val scroll = rememberScrollState()
+        val pager = rememberPagerState(pageCount = { 2 })
+        val scope = rememberCoroutineScope()
+
+        LaunchedEffect(Unit) {
+            homeEvents.collect {
+                // X20 approximation: Home while Start is showing scrolls Start to the top.
+                pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
+                scroll.animateScrollTo(0)
+                Diagnostics.add("start", "home pressed on Start: scrolled to top")
+            }
+        }
+        LaunchedEffect(Unit) {
+            backEvents.collect {
+                when {
+                    pickerSlot != null -> pickerSlot = null
+                    pager.currentPage == 1 -> pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
+                    else -> backOnStart()
+                }
+            }
+        }
+        LaunchedEffect(pager.currentPage) { page = pager.currentPage }
+
+        Box(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize()) {
+                HorizontalPager(
+                    state = pager,
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    // X13 approximation: follows the finger 1:1, settles with an ease-out over 250 ms.
+                    flingBehavior = PagerDefaults.flingBehavior(pager, snapAnimationSpec = tween(Motion.PIVOT_SETTLE_MS)),
+                    snapPosition = SnapPosition.Start,
+                    beyondViewportPageCount = 1,
+                ) { index ->
+                    if (index == 0) {
+                        StartPage(tiles, scroll, animation) { tile -> onTileTap(tile) }
+                    } else {
+                        AppListPage(onLaunch = { entry, bounds -> launchApp(TileTarget.App(entry), bounds, null) })
+                    }
+                }
+                W10mNavBar(
+                    onBack = { backEvents.tryEmit(Unit) },
+                    onWindows = { homeEvents.tryEmit(Unit) },
+                )
+            }
+            W10mStatusBar(Modifier.align(Alignment.TopCenter))
+            pickerSlot?.let { slot -> SlotPicker(slot, onDone = { pickerSlot = null }) }
+        }
+
+        // Drive exit / entrance animations frame by frame.
+        LaunchedEffect(animation.exitTappedId) {
+            val tapped = animation.exitTappedId ?: return@LaunchedEffect
+            val start = withFrameMillis { it }
+            while (true) {
+                val t = withFrameMillis { it } - start
+                animation = animation.copy(exitElapsedMs = t.toFloat())
+                if (t >= Motion.EXIT_TOTAL_MS + Motion.EXIT_TAPPED_EXTRA_MS) break
+            }
+            pendingLaunch?.invoke()
+            pendingLaunch = null
+            Diagnostics.add("motion", "start exit finished tile=$tapped")
+        }
+        LaunchedEffect(animation.entranceElapsedMs == 0f) {
+            if (animation.entranceElapsedMs != 0f) return@LaunchedEffect
+            val start = withFrameMillis { it }
+            while (true) {
+                val t = withFrameMillis { it } - start
+                animation = animation.copy(entranceElapsedMs = t.toFloat(), exitElapsedMs = null, exitTappedId = null)
+                if (t >= Motion.FRAME_MS * Motion.entranceAlphaFrames.size) break
+            }
+            animation = StartAnimation()
+        }
+    }
+
+    private var pendingLaunch: (() -> Unit)? = null
+
+    private fun onTileTap(tile: PlacedTile) {
+        when (val target = tile.target) {
+            is TileTarget.Unassigned -> pickerSlot = target.slot
+            else -> {
+                val bounds = Rect(tile.xPx.toInt(), tile.yPx.toInt(), (tile.xPx + tile.wPx).toInt(), (tile.yPx + tile.hPx).toInt())
+                pendingLaunch = { launchApp(target, bounds, tile.model.id) }
+                animation = StartAnimation(exitElapsedMs = 0f, exitTappedId = tile.model.id)
+            }
+        }
+    }
+
+    private fun launchApp(target: TileTarget, bounds: Rect?, tileId: String?) {
+        // Splash style request (N-09): the launcher can only ask for the solid-colour splash.
+        val options = ActivityOptions.makeBasic().setSplashScreenStyle(SplashScreen.SPLASH_SCREEN_STYLE_SOLID_COLOR).toBundle()
+        returningFromLaunch = true
+        when (target) {
+            is TileTarget.App -> AppCatalog.get(this).launch(target.entry, bounds, options)
+            is TileTarget.Shell -> when (target.name) {
+                ShellTiles.WEATHER -> startActivity(Intent(this, app.tileshell.weather.WeatherActivity::class.java), options)
+                ShellTiles.SETTINGS -> startActivity(Intent(this, app.tileshell.settings.SettingsActivity::class.java), options)
+                else -> Diagnostics.add("launch", "shell tile ${target.name} has no target")
+            }
+            is TileTarget.Unassigned -> Unit
+        }
+        Diagnostics.add("launch", "tile=$tileId target=$target")
+    }
+
+    private fun backOnStart() {
+        val entry = BackHistory.findTarget(this, AppCatalog.get(this))
+        if (entry == null) return // X12: nothing happens
+        pendingLaunch = { launchApp(TileTarget.App(entry), null, "back") }
+        animation = StartAnimation(exitElapsedMs = 0f, exitTappedId = "back")
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_HOME) && lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
+            homeEvents.tryEmit(Unit)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        hideSystemBars()
+        if (returningFromLaunch) {
+            returningFromLaunch = false
+            animation = StartAnimation(entranceElapsedMs = 0f)
+            Diagnostics.add("motion", "start entrance")
         }
     }
 }
