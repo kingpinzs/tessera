@@ -12,6 +12,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Samsung badge provider read (R5 §2.4); whether One UI grants it is probed at runtime (P6). -->
+    <uses-permission android:name="com.sec.android.provider.badge.permission.READ" />
 
     <application
         android:label="@string/app_name"
@@ -69,5 +71,33 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
+
+        <!-- Public Live Tile API (R5 §4b). No permissions by design: every call() verb authorises on Binder identity. -->
+        <provider
+            android:name=".tiles.api.LiveTileProvider"
+            android:authorities="app.tileshell.livetile"
+            android:exported="true"
+            tools:ignore="ExportedContentProvider" />
+
+        <!-- Legacy badge broadcasts (R5 §2.5): manifest entry so senders resolve the shell; the runtime copy receives implicit sends. -->
+        <receiver
+            android:name=".tiles.api.LegacyBadgeReceiver"
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BADGE_COUNT_UPDATE" />
+                <action android:name="me.leolin.shortcutbadger.BADGE_COUNT_UPDATE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Live Tile API expiry / scheduled-delivery alarm and uninstall cleanup. Only the system and the shell reach it. -->
+        <receiver
+            android:name=".tiles.api.LiveTileSystemReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
