@@ -18,7 +18,7 @@ feed: publish tile faces=2 temp=26° condition=3 stale=false fetchedAt=178967026
 location_mode 3; app locale [Locales for app.tileshell for user 0 are []]
 ## reading
 location permission revoked: the refresh ends with "no coordinates problems=[NO_PERMISSION]", the tile keeps its last conditions, and the checklist row reads checklist:location:missing
-location services off (permission granted): the feed still fetches with the last known coordinates and the tile keeps updating
-moving to a new location (emulator geo fix to Denver): the next refresh fetches the new grid (39.74471,-105.02203, America/Denver) and the Weather page shows "Denver" at 78 deg F
+location services off (settings secure location_mode 0, permission granted): the feed still fetches, with the last known coordinates, and the tile keeps updating; no reading was taken of the location provider's state while it was off
+moving to a new location (emulator geo fix to Denver): the refresh right after the fix still used the last known coordinates (grid 37.4162,-122.0803), and the one after it fetched the new grid (39.74471,-105.02203, America/Denver) with the Weather page showing "Denver" at 78 deg F
 region units change: the units follow the device region per the Decisions (the C / F labels on the page are indicators, tapping them changes nothing); with the shell's locale set to en-GB the feed refreshes with units=METRIC and the page reads 26 deg, "Wind NNW 4 km/h", "Barometer 1013 mb"
 provider error or timeout and data past the stale threshold: E9 (airplane mode, clock +61 min)

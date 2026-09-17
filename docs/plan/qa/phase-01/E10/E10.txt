@@ -36,16 +36,16 @@ segments 1, 3, 4 (509.5 s; 60 fps during motion, median frame interval 16.7 ms),
   Weather flip: 100 intervals, mean 4.938 s PASS; duration median 117 ms, 103/103 within PASS
   Photos crossfade: 111 intervals, mean 4.436 s (band 4.4 +/- 0.4 + one frame) PASS; duration median 367 ms, 113/114 within 367 +/- 34 ms (the other is a 17-ms content swap) PASS
   test tile peek: 101 intervals, mean 4.958 s (flip band) PASS; slide median 917 ms (R3 A7 approx. 920 ms)
-  static tiles (People, Browser, Mail, Store, Maps, Music, Start settings, row Phone / Messaging / Camera): 0 changes
+  static tiles (People, Browser, Mail, Store, Maps, Music, Start settings, row Phone / Messaging / Camera): 0 changes (the FLIP / CROSSFADE / PEEK labels come from the shell's own diagnostics; what is measured here is the periods and durations, not the labels)
   identical interval sequences between live tiles: 0 PASS
   same-frame event starts over 6 tile pairs: 2; lambda 2.20, limit 9.65 PASS
 ## Start exit / return (R3 A11): scripts/e10_exit_capture.sh (tap a tile, wait, Home), scripts/e10_exit.py
 Method: bands of tiles that do not animate on their own; accent energy max(R - (G+B)/2, 0) so an app's white screen reads dark; each band measured inside its rectangle scaled by the frame's measured scale about the page centre (the fixed rectangle confused movement with fading); frame times from ffmpeg showinfo.
 exit_calendar_analysis.txt, exit_people_analysis.txt, entrance_isolated.txt (three taps):
   scale per frame 1.00, 1.04, 1.04, 1.08, 1.12, 1.16-1.17, 1.23, 1.32, 1.44-1.45, 1.56 (R3 A11 table 1.00, 1.04, 1.04, 1.08, 1.12, 1.16/1.20, 1.24, 1.32, 1.44, 1.56) PASS
-  whole exit, first change -> every band dark: 217, 219, 251 ms (R3 217-267) PASS
+  whole exit, first change -> every band dark: 217 ms (exit_people_analysis.txt), 250 ms (exit_calendar_analysis.txt), 251 ms (entrance_isolated.txt) (R3 217-267) PASS
   row fades 133-136 ms (R3 130-170) PASS; fade starts: row 0 at 17 ms, row 2 at 83 ms, about 33 ms per row (R3 about 30) PASS
-  tapped tile last: frames at 150-251 ms (exit_frames_150_251ms_tapped_last.png): Store / Music gone by 217 ms, Photos (Calendar's row) last seen at 183 ms, the tapped Calendar tile still visible at 234 ms and gone at 251 ms, about 3 frames after its row (R3 about 4) PASS; the script's 3 % reading for the wide tapped tile is not used (its scaled rectangle runs off the left edge)
+  tapped tile last (judged from frames, not from the script: the script's 3 % rule reads a scaled rectangle that has left the page as dark, which is why its two runs disagree - 250 ms for Calendar, 133 ms for People): frames at 150-251 ms (exit_frames_150_251ms_tapped_last.png): Store / Music gone by 217 ms, Photos (Calendar's row) last seen at 183 ms, the tapped Calendar tile still visible at 234 ms and gone at 251 ms, about 3 frames after its row (R3 about 4) PASS; the script's 3 % reading for the wide tapped tile is not used (its scaled rectangle runs off the left edge)
 Return: with the system's window transition on (exit_calendar / exit_people), Android plays its own go-home slide (Start slides in from the left while the app leaves to the right) over our entrance: the window return animation is the system's per Decisions (N-09), accepted by Jeremy in H2. Our side measured with the system transition switched off for one capture (settings global transition_animation_scale 0, restored to 1.0; the shell's entrance is frame-driven and not scaled by it):
   before the fix (entrance_isolated_before_fade_fix_analysis.txt): scale 0.86, 0.91, 0.94, 0.94, 0.94, 0.96, 0.98, 0.98, 1.00 PASS; alpha played R3's ten gains one per frame, 0.99 at 149 ms against R3's 13 frames = 217 ms FAIL
   DEFECT fixed: the gains are spread over 217 ms (Motion.entranceAlpha, MotionTest), also used by the Settings page transition (X7)
@@ -67,3 +67,7 @@ PASS on the final build for every measured value: flip 117 ms median (103/103 an
 NEEDS-HUMAN: H8 (tilt and P4 press numbers above), H2 (the system's return animation over our entrance).
 Defects found and fixed by this row: no peek motion (f5edc1e), periods not start-to-start (f5edc1e), flip 150 ms (e1dc849), entrance fade 149 ms (bdbcaed). Also built for E13: settings widget state in the accessibility tree (next commit).
 Large videos: the seven 170-s timing screenrecords (22 MB each) are kept on disk in this folder and not committed; large_videos_manifest.txt holds their sha256 and sizes.
+
+note: the bottom tile row's own fade cannot be read by this analyser - its rectangle leaves the page while the grid scales up, so its band reports a negative duration. The row's fade with the last row (Decisions) is judged by eye in the frame strip and by Jeremy in H8/H35.
+note: the peek tile is graded against the flip band; R3 A8 has no separate band for peek tiles (agent call, INDEX Change Log).
+note: exit frame intervals ran to a maximum of 50.1 ms (two dropped frames) inside a 217-251 ms window, so each whole-exit figure carries about a frame and a half of uncertainty on top of R3's own tolerance.

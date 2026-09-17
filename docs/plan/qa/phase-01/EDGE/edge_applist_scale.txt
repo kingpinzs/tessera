@@ -14,8 +14,8 @@ Q group: 51 Quartz rows seen while scrolling from the Q header
 search for a CJK character: results 
 search over non-Latin labels cannot be typed through adb (input text is ASCII only), so it is covered by the unit test AppIndexTest.searchMatchesNonLatinLabels (Japanese, Cyrillic, Greek, Korean queries)
 ## reading
-331 launcher entries (300 test apps installed on top of the 31 real ones): the app list opens and scrolls, the index rebuilds through the package callbacks, no crash
-many apps under one letter: the 60 "Quartz NN" apps all sit under Q and scroll in order
+331 launcher entries (300 test apps installed on top of the 31 real ones): the app list opens and scrolls, the index rebuilds through the package callbacks, no crash; the walk recorded 288 of the 331 rows before it ended
+many apps under one letter: the Quartz apps all sit under Q; 51 of the 60 were seen while scrolling from the Q header before the walk ended
 non-Latin names: all ten (Greek, Cyrillic, Hebrew, Arabic, Thai, Korean, Chinese, Japanese) sit in the "#" group before A, sorted
 the "New" caption appears on every app installed after the shell became Home (256 seen while walking the list), which is the rule E12 measured
 ## restore: the 300 test apps uninstalled

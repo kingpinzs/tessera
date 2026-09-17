@@ -1,0 +1,31 @@
+# E5 rerun on the current build, 2026-09-17 (Reviewer 2: the row's own method is the render timestamp, but the preview FACE appears at the tile's next flip; both are measured here)
+SMS role holder: org.fossify.messages
+notification and render diagnostics:
+    2026-09-17 13:17:58.599 wall=1789672678599 [notif] posted org.fossify.messages key=0|org.fossify.messages|1|null|10163 postTime=1789672678392
+    2026-09-17 13:17:58.600 wall=1789672678600 [engine] publish pkg:org.fossify.messages faces=1 source=notification sourceTime=1789672678392
+    2026-09-17 13:17:58.619 wall=1789672678619 [render] tile=dock:slot:MESSAGING sourceTime=1789672678392 renderedAt=1789672678619 faces=1
+    2026-09-17 13:18:03.530 wall=1789672683530 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=10952900 faceIndex=0 next=1 faces=1
+    2026-09-17 13:18:08.318 wall=1789672688318 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=10957688 faceIndex=1 next=0 faces=1
+    2026-09-17 13:18:13.323 wall=1789672693323 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=10962693 faceIndex=0 next=1 faces=1
+Messaging row tile bounds [365,1935][708,2182]; frames every 1.0 s after the send:
+  t+1s: mean change vs the idle tile 0.0
+  t+2s: mean change vs the idle tile 0.2
+  t+3s: mean change vs the idle tile 0.2
+  t+4s: mean change vs the idle tile 0.2
+  t+5s: mean change vs the idle tile 0.2
+  t+6s: mean change vs the idle tile 12.4
+  t+7s: mean change vs the idle tile 12.4
+  t+8s: mean change vs the idle tile 12.4
+  t+9s: mean change vs the idle tile 0.2
+  t+10s: mean change vs the idle tile 0.2
+  t+11s: mean change vs the idle tile 0.2
+  t+12s: mean change vs the idle tile 0.2
+  t+13s: mean change vs the idle tile 12.4
+  t+14s: mean change vs the idle tile 12.4
+first frame whose tile differs from the idle face: t+6s
+## dismissing the notification
+## dismissing the notification (cmd notification snooze on its key, the key quoted for the device shell)
+snoozing <0|org.fossify.messages|1|null|10163> until time: Thu Sep 17 13:22:10 MDT 2026
+engine after dismissal: pkg:org.fossify.messages faces=0 source=null sourceTime=null
+badge: set org.fossify.messages NOTIFICATIONS=0 -> effective 0
+after the dismissal, tile vs the idle face over 9 s: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] (0 = the idle face)
