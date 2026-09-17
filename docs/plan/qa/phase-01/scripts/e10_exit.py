@@ -2,7 +2,7 @@
 """e10_exit.py <start dump.xml> <mp4> <tapped tile id> <tile_anim diagnostics>: Start exit and entrance timings (R3 A11).
 
 Measured on tiles that do not animate on their own (live tiles in the diagnostics are left out of the bands), with
-"accent energy" per pixel = max(R - (G + B) / 2, 0), so an app's white or blue screen reads as dark. Frame times come
+"tile colour" per pixel = the chroma max(R,G,B) - min(R,G,B), so an app's white or grey screen reads as dark whatever the accent is. Frame times come
 from ffmpeg showinfo, aligned with the frames actually decoded.
 - bands = distinct top edges of those static tiles (the bottom tile row is its own band);
 - exit start = the frame before the first frame where a static band falls below 95 % of its resting value, or the
@@ -40,7 +40,9 @@ with open(info_path, "w") as info:
         buf = p.stdout.read(W * H * 3)
         if len(buf) < W * H * 3: break
         fr = np.frombuffer(buf, np.uint8).reshape(H, W, 3).astype(np.int16)
-        acc = np.maximum(fr[..., 0] - (fr[..., 1] + fr[..., 2]) // 2, 0)
+        # Chroma (max channel - min channel): high on a coloured tile whatever the accent is, near zero on the white
+        # or grey screens of an app underneath, so an app window still reads as "dark" here.
+        acc = fr.max(axis=2) - fr.min(axis=2)
         yb = int(cy + est * (yw - cy)); xp = cx + est * (x0 - cx)
         prof = acc[max(yb - 30, 0):min(yb + 30, H), :].mean(axis=0)
         found = None
@@ -71,7 +73,7 @@ with open(info_path, "w") as info:
     p.wait()
 pts = [float(m.group(1)) for m in re.finditer(r"pts_time:([0-9.]+)", open(info_path).read())]
 n = min(len(energy), len(pts)); E = np.array(energy[:n]); rest = np.median(E[:5], axis=0)
-out = [f"static bands (top edge px): {bands}; resting accent energy {np.round(rest, 1).tolist()}; live tiles left out: {sorted(live)}"]
+out = [f"static bands (top edge px): {bands}; resting tile colour {np.round(rest, 1).tolist()}; live tiles left out: {sorted(live)}"]
 first = next(i for i in range(1, n) if np.any(np.nan_to_num(E[i], nan=0) < 0.95 * rest) or (scale[i] is not None and abs(scale[i] - 1) > 0.02))
 t0 = pts[first - 1] if pts[first] - pts[first - 1] <= 0.02 else pts[first] - 1 / 60
 ms = lambda i: (pts[i] - t0) * 1000
