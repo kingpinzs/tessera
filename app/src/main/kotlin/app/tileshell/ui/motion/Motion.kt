@@ -34,6 +34,12 @@ object Motion {
     // R3 A11 (MEDIUM, S1 14393): Start entrance on return.
     val entranceScaleFrames: List<Float> = listOf(0.78f, 0.86f, 0.92f, 0.94f, 0.94f, 0.94f, 0.96f, 0.98f, 0.98f, 1.00f)
     val entranceAlphaFrames: List<Float> = listOf(0.01f, 0.13f, 0.35f, 0.51f, 0.59f, 0.73f, 0.88f, 0.92f, 0.95f, 0.99f, 1.00f)
+    // The ten measured gains span 13 frames (the fade completes in 217 ms), so they are spread over that time rather
+    // than played one per frame; the scale table above is one value per frame (0.78 -> 0.98 in 150 ms).
+    const val ENTRANCE_FADE_MS = 217
+
+    fun entranceAlpha(elapsedMs: Float): Float =
+        sampleFrames(entranceAlphaFrames, elapsedMs / ENTRANCE_FADE_MS * entranceAlphaFrames.lastIndex * FRAME_MS)
 
     // X13 (approximation): Start <-> app list pivot settles with an ease-out over 250 ms.
     const val PIVOT_SETTLE_MS = 250

@@ -183,7 +183,7 @@ fun StartPage(
         entrance != null -> Motion.sampleFrames(Motion.entranceScaleFrames, entrance)
         else -> 1f
     }
-    val gridAlpha = entrance?.let { Motion.sampleFrames(Motion.entranceAlphaFrames, it) } ?: 1f
+    val gridAlpha = entrance?.let { Motion.entranceAlpha(it) } ?: 1f
 
     fun exitAlpha(row: Int, id: String): Float = exit?.let { elapsed ->
         val extra = if (id == animation.exitTappedId) Motion.EXIT_TAPPED_EXTRA_MS else 0

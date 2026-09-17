@@ -173,7 +173,7 @@ class StartActivity : ComponentActivity() {
             while (true) {
                 val t = withFrameMillis { it } - start
                 animation = StartAnimation(entranceElapsedMs = t.toFloat())
-                if (t >= Motion.FRAME_MS * Motion.entranceAlphaFrames.size) break
+                if (t >= Motion.ENTRANCE_FADE_MS) break
             }
             animation = StartAnimation()
             Diagnostics.add("motion", "start entrance finished")

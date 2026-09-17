@@ -126,7 +126,7 @@ private fun PageTransition(page: Any, content: @Composable () -> Unit) {
     Box(Modifier.fillMaxSize().graphicsLayer {
         val s = Motion.sampleFrames(Motion.entranceScaleFrames, elapsed)
         scaleX = s; scaleY = s
-        alpha = Motion.sampleFrames(Motion.entranceAlphaFrames, elapsed)
+        alpha = Motion.entranceAlpha(elapsed)
     }) { content() }
 }
 
