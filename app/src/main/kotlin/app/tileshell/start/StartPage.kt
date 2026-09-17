@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,6 +39,7 @@ import app.tileshell.tiles.ShellTiles
 import app.tileshell.tiles.Slot
 import app.tileshell.tiles.SlotResolver
 import app.tileshell.tiles.TileKey
+import app.tileshell.tiles.TileSize
 import app.tileshell.tiles.engine.BadgeStore
 import app.tileshell.tiles.engine.LiveTileEngine
 import app.tileshell.ui.LocalShellColors
@@ -60,8 +62,11 @@ data class PlacedTile(val model: TileModel, val target: TileTarget, val xPx: Flo
 /** Exit / entrance animation state driven by the host (R3 A11). */
 data class StartAnimation(val exitElapsedMs: Float? = null, val exitTappedId: String? = null, val entranceElapsedMs: Float? = null)
 
+/** Start's tiles: the scrolling grid and the fixed bottom tile row (INDEX Change Log 2026-09-17). */
+data class StartTiles(val grid: List<PlacedTile>, val dock: List<PlacedTile>)
+
 @Composable
-fun rememberPlacedTiles(): List<PlacedTile> {
+fun rememberPlacedTiles(): StartTiles {
     val context = LocalContext.current
     val theme = LocalStartTheme.current
     val catalog = remember { AppCatalog.get(context) }
@@ -75,13 +80,11 @@ fun rememberPlacedTiles(): List<PlacedTile> {
     val topPx = StartGrid.GRID_TOP_EPX * (widthPx / Scale.CANVAS_EPX)
 
     return remember(layout, apps, badges, content, grid) {
-        layout.placements.map { p ->
-            val x = grid.unitX(p.x)
-            val y = topPx + grid.unitY(p.y)
-            val w = p.size.spanX * grid.smallPitchPx - grid.gutterPx
-            val h = p.size.spanY * grid.smallPitchPx - grid.gutterPx
+        fun place(key: TileKey, size: TileSize, x: Float, y: Float, idPrefix: String, live: Boolean): PlacedTile {
+            val w = size.spanX * grid.smallPitchPx - grid.gutterPx
+            val h = size.spanY * grid.smallPitchPx - grid.gutterPx
             val iconPx = (minOf(w, h) * 0.52f).toInt().coerceAtLeast(24)
-            when (val key = p.key) {
+            return when (key) {
                 is TileKey.SlotTile -> {
                     val entry = resolver.resolve(key.slot, layout.explicitSlots)
                     val feedKey = when (key.slot) {
@@ -92,12 +95,12 @@ fun rememberPlacedTiles(): List<PlacedTile> {
                     }
                     val pkgContent = entry?.let { content[LiveTileEngine.packageKey(it.component.packageName)] }
                     val model = TileModel(
-                        id = key.id,
+                        id = idPrefix + key.id,
                         label = entry?.label ?: key.slot.label,
-                        size = p.size,
+                        size = size,
                         icon = entry?.let { TileIcons.load(context, it, iconPx) },
                         fallbackGlyph = slotGlyph(key.slot),
-                        content = feedKey?.let { content[it] } ?: pkgContent,
+                        content = if (live) feedKey?.let { content[it] } ?: pkgContent else null,
                         badge = entry?.let { badges[it.component.packageName] } ?: 0,
                         unassigned = entry == null,
                     )
@@ -105,9 +108,10 @@ fun rememberPlacedTiles(): List<PlacedTile> {
                 }
                 is TileKey.AppTile -> {
                     val entry = catalog.find(key.component)
-                    val model = TileModel(key.id, entry?.label ?: key.component.packageName, p.size,
+                    val model = TileModel(idPrefix + key.id, entry?.label ?: key.component.packageName, size,
                         entry?.let { TileIcons.load(context, it, iconPx) }, Glyph.APPS,
-                        content[LiveTileEngine.packageKey(key.component.packageName)], badges[key.component.packageName] ?: 0, entry == null)
+                        if (live) content[LiveTileEngine.packageKey(key.component.packageName)] else null,
+                        badges[key.component.packageName] ?: 0, entry == null)
                     PlacedTile(model, entry?.let { TileTarget.App(it) } ?: TileTarget.Shell("missing"), x, y, w, h)
                 }
                 is TileKey.ShellTile -> {
@@ -116,10 +120,14 @@ fun rememberPlacedTiles(): List<PlacedTile> {
                         ShellTiles.SETTINGS -> Triple("Start settings", Glyph.SETTINGS, null)
                         else -> Triple(key.name, Glyph.APPS, null)
                     }
-                    PlacedTile(TileModel(key.id, label, p.size, null, glyph, feed?.let { content[it] }, 0, false), TileTarget.Shell(key.name), x, y, w, h)
+                    PlacedTile(TileModel(idPrefix + key.id, label, size, null, glyph, if (live) feed?.let { content[it] } else null, 0, false), TileTarget.Shell(key.name), x, y, w, h)
                 }
             }
         }
+        val gridTiles = layout.placements.map { p -> place(p.key, p.size, grid.unitX(p.x), topPx + grid.unitY(p.y), "", live = true) }
+        // Row tiles are W10M small tiles: glyph + badge, no label, no live faces. Their y is set when Start lays out.
+        val dockTiles = layout.dock.take(grid.unitsAcross).mapIndexed { i, key -> place(key, TileSize.SMALL, grid.unitX(i), 0f, "dock:", live = false) }
+        StartTiles(gridTiles, dockTiles)
     }
 }
 
@@ -139,7 +147,7 @@ private fun slotGlyph(slot: Slot): String = when (slot) {
 
 @Composable
 fun StartPage(
-    tiles: List<PlacedTile>,
+    tiles: StartTiles,
     scroll: ScrollState,
     animation: StartAnimation,
     onTileTap: (PlacedTile) -> Unit,
@@ -149,8 +157,11 @@ fun StartPage(
     val colors = LocalShellColors.current
     val density = LocalDensity.current
     val widthPx = Scale.portraitWidthPx(context).toFloat()
-    val pitchPx = StartGrid(widthPx, theme.mediumColumns).pitchPx
-    val contentHeightPx = (tiles.maxOfOrNull { it.yPx + it.hPx } ?: 0f) + with(density) { (BarMetrics.NAV_EPX + 40).dp.toPx() }
+    val grid = StartGrid(widthPx, theme.mediumColumns)
+    val pitchPx = grid.pitchPx
+    // Bottom tile row: one small tile tall with one small-tile gutter above and below (INDEX Change Log 2026-09-17).
+    val dockHeightPx = if (tiles.dock.isEmpty()) 0f else grid.smallPx + grid.gutterPx * 2
+    val contentHeightPx = (tiles.grid.maxOfOrNull { it.yPx + it.hPx } ?: 0f) + grid.gutterPx + dockHeightPx
 
     val background = rememberBackground(context, theme.backgroundUri)
     val tileAlpha = if (background != null) 1f - theme.transparency * 0.8f else 1f
@@ -165,7 +176,14 @@ fun StartPage(
     }
     val gridAlpha = entrance?.let { Motion.sampleFrames(Motion.entranceAlphaFrames, it) } ?: 1f
 
-    Box(Modifier.fillMaxSize().background(colors.background).testTag("start_page")) {
+    fun exitAlpha(row: Int, id: String): Float = exit?.let { elapsed ->
+        val extra = if (id == animation.exitTappedId) Motion.EXIT_TAPPED_EXTRA_MS else 0
+        val start = minOf(row * Motion.EXIT_ROW_STAGGER_MS, Motion.EXIT_TOTAL_MS - Motion.EXIT_ROW_FADE_MS) + extra
+        1f - ((elapsed - start) / Motion.EXIT_ROW_FADE_MS).coerceIn(0f, 1f)
+    } ?: 1f
+
+    BoxWithConstraints(Modifier.fillMaxSize().background(colors.background).testTag("start_page")) {
+        val pageHeightPx = with(density) { maxHeight.toPx() }
         if (background != null) {
             Image(
                 background, contentDescription = null, contentScale = ContentScale.Crop,
@@ -185,13 +203,8 @@ fun StartPage(
             }.verticalScroll(scroll),
         ) {
             Box(Modifier.fillMaxWidth().height(with(density) { contentHeightPx.toDp() })) {
-                tiles.forEach { t ->
-                    val tileAlphaExit = exit?.let { elapsed ->
-                        val row = ((t.yPx - scroll.value) / pitchPx).toInt().coerceAtLeast(0)
-                        val extra = if (t.model.id == animation.exitTappedId) Motion.EXIT_TAPPED_EXTRA_MS else 0
-                        val start = minOf(row * Motion.EXIT_ROW_STAGGER_MS, Motion.EXIT_TOTAL_MS - Motion.EXIT_ROW_FADE_MS) + extra
-                        1f - ((elapsed - start) / Motion.EXIT_ROW_FADE_MS).coerceIn(0f, 1f)
-                    } ?: 1f
+                tiles.grid.forEach { t ->
+                    val row = ((t.yPx - scroll.value) / pitchPx).toInt().coerceAtLeast(0)
                     TileView(
                         model = t.model,
                         widthDp = with(density) { t.wPx.toDp() },
@@ -202,7 +215,28 @@ fun StartPage(
                         onTap = { if (exit == null) onTileTap(t) },
                         modifier = Modifier
                             .offset { IntOffset(t.xPx.toInt(), t.yPx.toInt()) }
-                            .graphicsLayer { alpha = tileAlphaExit },
+                            .graphicsLayer { alpha = exitAlpha(row, t.model.id) },
+                    )
+                }
+            }
+        }
+        // The fixed bottom tile row: does not scroll; fades with the last visible row on exit.
+        if (tiles.dock.isNotEmpty()) {
+            val dockY = pageHeightPx - grid.gutterPx - grid.smallPx
+            val lastRow = (pageHeightPx / pitchPx).toInt()
+            Box(Modifier.fillMaxSize().graphicsLayer { scaleX = gridScale; scaleY = gridScale; alpha = gridAlpha }.testTag("bottom_tile_row")) {
+                tiles.dock.forEach { t ->
+                    TileView(
+                        model = t.model,
+                        widthDp = with(density) { t.wPx.toDp() },
+                        heightDp = with(density) { t.hPx.toDp() },
+                        accent = colors.accent,
+                        tileAlpha = tileAlpha,
+                        pressStyle = theme.pressStyle,
+                        onTap = { if (exit == null) onTileTap(t.copy(yPx = dockY)) },
+                        modifier = Modifier
+                            .offset { IntOffset(t.xPx.toInt(), dockY.toInt()) }
+                            .graphicsLayer { alpha = exitAlpha(lastRow, t.model.id) },
                     )
                 }
             }

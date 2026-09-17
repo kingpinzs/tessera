@@ -19,10 +19,12 @@ class LayoutStore private constructor(private val context: Context) {
         val version: Int = VERSION,
         val placements: List<Placement>,
         val explicitSlots: Map<Slot, ComponentName>,
+        /** The bottom tile row, left to right (INDEX Change Log 2026-09-17). */
+        val dock: List<TileKey>,
     )
 
     private val file = File(context.filesDir, "start_layout.json")
-    private val state = MutableStateFlow(load() ?: Layout(placements = DefaultLayout.placements(), explicitSlots = emptyMap()))
+    private val state = MutableStateFlow(load() ?: Layout(placements = DefaultLayout.placements(), explicitSlots = emptyMap(), dock = DefaultLayout.dock()))
     val layout: StateFlow<Layout> = state.asStateFlow()
 
     fun assignSlot(slot: Slot, component: ComponentName) {
@@ -53,6 +55,7 @@ class LayoutStore private constructor(private val context: Context) {
             .put("slots", JSONObject().apply {
                 layout.explicitSlots.forEach { (slot, cn) -> put(slot.name, cn.flattenToString()) }
             })
+            .put("dock", JSONArray().apply { layout.dock.forEach { put(it.id) } })
         val tmp = File(file.parentFile, file.name + ".tmp")
         tmp.writeText(json.toString())
         if (!tmp.renameTo(file)) error("layout store rename failed")
@@ -73,7 +76,18 @@ class LayoutStore private constructor(private val context: Context) {
                 val slot = runCatching { Slot.valueOf(name) }.getOrNull() ?: return@mapNotNull null
                 ComponentName.unflattenFromString(slotsJson.getString(name))?.let { slot to it }
             }.toMap()
-            Layout(version = json.optInt("version", VERSION), placements = placements, explicitSlots = slots)
+            val storedVersion = json.optInt("version", 1)
+            if (storedVersion < 2) {
+                // Version 1 had no user placements (pinning arrives in phase 02) and no bottom tile row: keep the
+                // slot assignments, take the version-2 default placements and row (INDEX Change Log 2026-09-17).
+                Diagnostics.add("layout", "migrating layout store v$storedVersion -> v$VERSION (slot assignments kept)")
+                Layout(version = VERSION, placements = DefaultLayout.placements(), explicitSlots = slots, dock = DefaultLayout.dock())
+                    .also { save(it) }
+            } else {
+                val dockJson = json.optJSONArray("dock") ?: JSONArray()
+                val dock = (0 until dockJson.length()).mapNotNull { parseKey(dockJson.getString(it)) }
+                Layout(version = storedVersion, placements = placements, explicitSlots = slots, dock = dock)
+            }
         }.onFailure { Diagnostics.add("layout", "layout store unreadable, using default: $it") }.getOrNull()
     }
 
@@ -85,7 +99,7 @@ class LayoutStore private constructor(private val context: Context) {
     }
 
     companion object {
-        const val VERSION = 1
+        const val VERSION = 2
         @Volatile private var instance: LayoutStore? = null
         fun get(context: Context): LayoutStore =
             instance ?: synchronized(this) { instance ?: LayoutStore(context.applicationContext).also { instance = it } }
