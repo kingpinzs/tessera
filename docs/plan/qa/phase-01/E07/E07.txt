@@ -1,0 +1,13 @@
+# E7 2026-09-17T09:35:42-06:00
+$ adb shell pm grant app.tileshell android.permission.READ_CALENDAR
+$ adb shell content insert (local calendar via sync-adapter URI)
+QA calendar id: 1
+$ adb shell content insert --uri content://com.android.calendar/events (title 'QA standup' at now+2 h)
+event id: 1
+event title 'QA standup' seen on Start in 6 of 14 dumps (~20 s) -> expect > 0
+    2026-09-17 09:36:00.003 wall=1789659360003 [calendar] refresh (minute): access=true faces=2
+$ adb shell content delete --uri content://com.android.calendar/events/1
+    2026-09-17 09:36:33.964 wall=1789659393964 [calendar] refresh (provider change): access=true faces=1
+event title seen after delete in 0 of 14 dumps -> expect 0
+day face still shown (weekday text present): 1
+$ restore: delete QA calendar 1

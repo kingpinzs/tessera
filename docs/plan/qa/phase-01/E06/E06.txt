@@ -1,0 +1,33 @@
+# E6 2026-09-17T09:34:32-06:00
+$ adb shell pm grant app.tileshell android.permission.READ_MEDIA_IMAGES
+$ adb shell mkdir -p /sdcard/DCIM/Camera
+$ adb push docs/plan/qa/phase-01/E06/images/qa_photo_1.jpg /sdcard/DCIM/Camera/
+docs/plan/qa/phase-01/E06/images/qa_photo_1.jpg: 1 file pushed, 0 skipped. 649.0 MB/s (54050 bytes in 0.000s)
+$ adb push docs/plan/qa/phase-01/E06/images/qa_photo_2.jpg /sdcard/DCIM/Camera/
+docs/plan/qa/phase-01/E06/images/qa_photo_2.jpg: 1 file pushed, 0 skipped. 572.9 MB/s (56134 bytes in 0.000s)
+$ adb push docs/plan/qa/phase-01/E06/images/qa_photo_3.jpg /sdcard/DCIM/Camera/
+docs/plan/qa/phase-01/E06/images/qa_photo_3.jpg: 1 file pushed, 0 skipped. 618.6 MB/s (54548 bytes in 0.000s)
+$ adb push docs/plan/qa/phase-01/E06/images/qa_photo_4.jpg /sdcard/DCIM/Camera/
+docs/plan/qa/phase-01/E06/images/qa_photo_4.jpg: 1 file pushed, 0 skipped. 718.2 MB/s (58497 bytes in 0.000s)
+$ adb push docs/plan/qa/phase-01/E06/images/qa_photo_5.jpg /sdcard/DCIM/Camera/
+docs/plan/qa/phase-01/E06/images/qa_photo_5.jpg: 1 file pushed, 0 skipped. 542.4 MB/s (54206 bytes in 0.000s)
+$ adb shell ls /sdcard/DCIM/Camera
+qa_photo_1.jpg
+qa_photo_2.jpg
+qa_photo_3.jpg
+qa_photo_4.jpg
+qa_photo_5.jpg
+$ adb shell content call --uri content://media/external/file --method scan_volume --arg external_primary
+Result: Bundle[{}]
+$ adb shell "content query --uri content://media/external/images/media --projection _display_name"
+Row: 0 _display_name=qa_photo_1.jpg
+Row: 1 _display_name=qa_photo_2.jpg
+Row: 2 _display_name=qa_photo_3.jpg
+Row: 3 _display_name=qa_photo_4.jpg
+Row: 4 _display_name=qa_photo_5.jpg
+    2026-09-17 09:34:39.811 wall=1789659279811 [photos] refresh (start): access=GRANTED photos=5
+    2026-09-17 09:34:39.811 wall=1789659279811 [engine] publish feed:photos faces=5 source=photos sourceTime=1789659279811
+    2026-09-17 09:34:44.937 wall=1789659284937 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=2426268
+## screenshots of the Photos tile over 24 s
+Photos tile bounds (721, 439, 1064, 782)
+distinct tile appearances in 12 captures: 6 -> PASS (the tile cycles)
