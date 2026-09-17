@@ -1,0 +1,45 @@
+# E9 2026-09-17T10:25:46-06:00
+host fetch at 2026-09-17T10:25:53-06:00 rc=0
+    2026-09-17 10:25:46.201 wall=1789662346201 [weather] publish tile faces=2 temp=64° condition=2 stale=false fetchedAt=1789662250732
+    2026-09-17 10:25:46.201 wall=1789662346201 [weather] refresh start reason=start units=IMPERIAL
+    2026-09-17 10:25:50.500 wall=1789662350500 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-09-17 10:25:50.501 wall=1789662350501 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0900&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-17 10:25:51.353 wall=1789662351353 [weather] fetch ok provider=open-meteo ms=852 grid=37.4162,-122.0803 tz=America/Los_Angeles current=2/64.4 hourly=240 daily=10 place=true
+    2026-09-17 10:25:51.362 wall=1789662351362 [weather] publish tile faces=2 temp=64° condition=2 stale=false fetchedAt=1789662351351
+request: https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0900&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+tile sample 1: tile:shell:weather | desc=Weather | texts=Thu /  / 72°/59° / Fri /  / 70°/57° / Sat /  / 82°/56° / Weather
+tile sample 2: tile:shell:weather | desc=Weather | texts= / Weather
+tile sample 3: tile:shell:weather | desc=Weather | texts=Partly Sunny / 64° / 72°/59° / Precip 0% / Weather
+tile sample 4: tile:shell:weather | desc=Weather | texts=Thu /  / 72°/59° / Fri /  / 70°/57° / Sat /  / 82°/56° / Weather
+tile sample 5: tile:shell:weather | desc=Weather | texts= / Weather
+tile sample 6: tile:shell:weather | desc=Weather | texts=Partly Sunny / 64° / 72°/59° / Precip 0% / Weather
+## E9 offline
+$ adb shell cmd connectivity airplane-mode enable
+dumpsys connectivity: Active default network: none
+tile sample 1: tile:shell:weather | desc=Weather | texts=Thu /  / 72°/59° / Fri /  / 70°/57° / Sat /  / 82°/56° / Weather
+tile sample 2: tile:shell:weather | desc=Weather | texts= / Weather
+tile sample 3: tile:shell:weather | desc=Weather | texts=Partly Sunny / 64° / 72°/59° / Precip 0% / Weather
+tile sample 4: tile:shell:weather | desc=Weather | texts=Thu /  / 72°/59° / Fri /  / 70°/57° / Sat /  / 82°/56° / Weather
+## clock +61 min
+device epoch before: 1789662577 (Thu Sep 17 10:29:37 MDT 2026)
+$ auto_time 0; date -u set to +61 min: Thu Sep 17 11:30:37 MDT 2026
+    2026-09-17 10:27:15.365 wall=1789662435365 [weather] app background key=partly_cloudy_day
+    2026-09-17 11:30:37.005 wall=1789666237005 [weather] refresh start reason=interval (broadcast android.intent.action.TIME_SET) units=IMPERIAL
+    2026-09-17 11:30:48.045 wall=1789666248045 [weather] publish tile faces=2 temp=64° condition=2 stale=true fetchedAt=1789662351351
+tile sample 1: tile:shell:weather | desc=Weather | texts= / Weather
+tile sample 2: tile:shell:weather | desc=Weather | texts=Partly Sunny / 64° / 72°/59° / Precip 0% / Updated 10:25 / Weather
+tile sample 3: tile:shell:weather | desc=Weather | texts=
+tile sample 4: tile:shell:weather | desc=Weather | texts=Thu /  / 72°/59° / Fri /  / 70°/57° / Sat /  / 82°/56° / Updated 10:25 / Weather
+tile sample 5: tile:shell:weather | desc=Weather | texts= / Weather
+tile sample 6: tile:shell:weather | desc=Weather | texts=Partly Sunny / 64° / 72°/59° / Precip 0% / Updated 10:25 / Weather
+## restore (RV12 clock restore, then network)
+host 1789662703 device 1789662702 auto_time=1 root=2000
+airplane mode disabled: Active default network: 103
+## E9b: Weather app vs the captured provider response (open_meteo_response.json, fetched 2 s after the device's fetch)
+all 10 day cells and 24 hour cells collected by swiping the rows (weather_rows_union.txt), compared by scripts/e9_compare.py: 112 checks, 0 mismatches (compare.txt)
+current block (weather_app_top.xml): 64°, Partly Sunny, Feels Like 64°, Wind SE 6 mph, Barometer 30.09 in, Humidity 73%, location Mountain View; provider: 64.4 °F, code 2 by day, apparent 63.8, wind 5.5 mph from 133°, 1019.1 hPa = 30.09 inHg, 73 %
+attribution: weather_attribution "Weather data by Open-Meteo.com (CC BY 4.0)"
+page structure (C5 with S11's 15063 differences) is judged by Jeremy in H9
+## verdict
+E9 PASS: the tile shows the provider's current conditions (Partly Sunny, 64°, 72°/59°, Precip 0%; days face Thu 72/59, Fri 70/57, Sat 82/56 = provider daily max/min rounded); with airplane mode on (Active default network: none) it keeps them; after the clock moved 61 minutes the feed republishes stale=true and the tile shows "Updated 10:25" on both faces; restore done (clock within 1 s of host, auto_time 1, unrooted, network back).
+E9b PASS (data, attribution); structure NEEDS-HUMAN H9.
