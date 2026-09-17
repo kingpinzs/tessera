@@ -1,0 +1,60 @@
+# Edge cases: slots and the bottom tile row 2026-09-17T12:02:59-06:00
+## assigned app uninstalled (explicit assignment)
+Mail assigned explicitly: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+$ adb uninstall com.fsck.k9: Success
+after uninstalling the assigned app: tile:slot:MAIL | desc=FairEmail | texts=FairEmail
+    2026-09-17 12:03:14.980 wall=1789668194980 [slots] explicit MAIL -> com.fsck.k9/net.thunderbird.app.common.MainActivity no longer launchable; slot falls back
+    2026-09-17 12:03:14.997 wall=1789668194997 [slots] explicit MAIL -> com.fsck.k9/net.thunderbird.app.common.MainActivity no longer launchable; slot falls back
+## no app handles the category at all (FairEmail uninstalled too)
+$ adb uninstall eu.faircode.email: Success
+picker with no handlers: empty-state node 1, text [No installed app can be used for Mail.], candidates 0
+## assigned app disabled (pm disable-user) - Photos is explicitly assigned to Aves
+$ adb shell pm disable-user deckers.thibault.aves.libre: Package deckers.thibault.aves.libre new state: disabled-user
+Photos tile with its assigned app disabled: tile:slot:PHOTOS | desc=Gallery | texts=Gallery
+$ adb shell pm enable deckers.thibault.aves.libre: Package deckers.thibault.aves.libre new state: enabled
+after enabling it again: tile:slot:PHOTOS | desc=Aves Libre | texts=Aves Libre
+## role holder changes (default SMS app)
+SMS holder before: org.fossify.messages
+Messaging row tile before: tile:dock:slot:MESSAGING | desc=Messages | texts=
+SMS holder now: com.android.messaging
+Messaging row tile after: tile:dock:slot:MESSAGING | desc=Messages | texts=
+restored SMS holder: org.fossify.messages; tile: tile:dock:slot:MESSAGING | desc=Messages | texts=
+the tap test hit com.android.permissioncontroller RequestRoleActivity (the AOSP Messaging app asks for the SMS role when opened), so the tile is compared by its icon instead
+SMS holder: org.fossify.messages
+SMS holder switched to: com.android.messaging
+SMS holder restored to: org.fossify.messages
+Messaging row tile icon, mean abs difference: fossify vs aosp 0.0, fossify vs restored 0.0
+## DEFECT: the role slot did not follow a role change
+with the old build the Messaging row tile kept the previous holder after the SMS role changed (icon identical, content-desc unchanged): Start re-resolved its slots only when the layout, app list, badges or tile content changed, and a role change touches none of those.
+## DEFECT: a role slot did not follow a role change
+old build: after the SMS role changed, the Messaging row tile kept the previous holder. Start re-resolved its slots only when the layout, app list, badges or tile content changed, and a role change touches none of those.
+Android gives a launcher no live signal: RoleManager's listener needs a system permission, the pre-Android-10 Secure keys read null (settings get secure sms_default_application -> null), and ACTION_DEFAULT_SMS_PACKAGE_CHANGED is sent only to the old and new default app (registered for it: no broadcast arrived).
+fix: Start re-resolves its slots on resume (SlotDefaults), which is the path a user takes: change the default in Settings, come back to Start.
+### the real flow: Start away, default changed, back to Start
+holder before: org.fossify.messages
+tile before: tile:dock:slot:MESSAGING | desc=Messages | texts=
+holder now: com.android.messaging; tile after returning to Start: tile:dock:slot:MESSAGING | desc=Messaging | texts=
+holder restored: org.fossify.messages; tile: tile:dock:slot:MESSAGING | desc=Messages | texts=
+## Android's default for a category changes after an auto-assignment
+$ adb install K-9 + FairEmail back: Success / Success
+Mail tile with both handlers back (the explicit K-9 assignment stuck through the uninstall and applies again): tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+Calendar before (auto-assigned, one handler): com.android.calendar/.AllInOneActivity 
+$ adb install Etar (a second APP_CALENDAR handler): Success
+handlers now: com.android.calendar/.AllInOneActivity ws.xsoh.etar/com.android.calendar.AllInOneActivity 
+Calendar tile (was auto-assigned): tile:slot:CALENDAR | desc=Calendar | texts= / Calendar · Tap to choose
+$ adb uninstall ws.xsoh.etar: Success
+Calendar tile after removing the second handler: tile:slot:CALENDAR | desc=Calendar | texts=Calendar
+## bottom tile row: a row app uninstalled
+Camera row tile assigned to Open Camera: tile:dock:slot:CAMERA | desc=Open Camera | texts=
+$ adb uninstall net.sourceforge.opencamera: Success
+row tile after uninstalling it: tile:dock:slot:CAMERA | desc=Camera | texts=
+tapping it opens the picker: slot_picker 1, candidates slot_candidate:com.android.camera2 slot_candidate:org.fossify.camera 
+$ adb install Open Camera back: Success
+row tile after reinstalling it: tile:dock:slot:CAMERA | desc=Open Camera | texts=
+## a version-1 layout store on upgrade
+written v1 file (two placements, no dock, slots kept): {"version": 1, "placements": [{"key": "slot:PEOPLE", "x": 0, "y": 0, "size": "MEDIUM"}, {"key": "slot:MAIL", "x": 2, "y": 0, "size": "MEDIUM"}], "slots": {"PHOTOS": "deckers.thibault.aves.libre/decker
+after starting on the v1 file: version 2 placements 10 dock ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA'] slots {'PHOTOS': 'deckers.thibault.aves.libre/deckers.thibault.aves.MainActivity', 'MAIL': 'com.fsck.k9/net.thunderbird.app.common.MainActivity', 'CAMERA': 'net.sourceforge.opencamera/net.sourceforge.opencamera.MainActivity'}
+tiles on Start: slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR slot:PHOTOS shell:weather slot:STORE slot:MAPS slot:MUSIC shell:settings dock:slot:PHONE dock:slot:MESSAGING dock:slot:CAMERA 
+## restore
+layout restored to the baseline: 10 placements, slots {'PHOTOS': 'deckers.thibault.aves.libre/deckers.thibault.aves.MainActivity'}
+fixtures reinstalled: K-9, FairEmail, Open Camera; Etar removed; SMS holder org.fossify.messages

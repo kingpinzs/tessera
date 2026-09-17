@@ -1,0 +1,39 @@
+# Edge cases: notifications 2026-09-17T12:15:22-06:00
+## a notification with no usable content (no title, no text)
+empty: set android NOTIFICATIONS=0 -> effective 0 | pkg:app.tileshell.testclient.a faces=0 source=null sourceTime=null
+## a group summary plus two children (the summary must not be counted)
+grouped: set app.tileshell.testclient.a NOTIFICATIONS=2 -> effective 2 | pkg:app.tileshell.testclient.a faces=2 source=notification sourceTime=1789668939083
+## updated in place (same id, new text)
+updated: set app.tileshell.testclient.a NOTIFICATIONS=2 -> effective 2 | pkg:app.tileshell.testclient.a faces=2 source=notification sourceTime=1789668944515
+## dismissed (children cancelled)
+dismissed: set app.tileshell.testclient.a NOTIFICATIONS=0 -> effective 0 | pkg:app.tileshell.testclient.a faces=0 source=null sourceTime=null
+## ongoing (media / download style)
+ongoing: set app.tileshell.testclient.a NOTIFICATIONS=5 -> effective 5 | pkg:app.tileshell.testclient.a faces=1 source=notification sourceTime=1789668956387
+## a channel with badges turned off
+badge_off: set app.tileshell.testclient.a NOTIFICATIONS=0 -> effective 0 | pkg:app.tileshell.testclient.a faces=0 source=null sourceTime=null
+## sensitive (visibility secret) and private
+secret: set app.tileshell.testclient.a NOTIFICATIONS=2 -> effective 2 | pkg:app.tileshell.testclient.a faces=1 source=notification sourceTime=1789668971269
+private: set app.tileshell.testclient.a NOTIFICATIONS=4 -> effective 4 | pkg:app.tileshell.testclient.a faces=2 source=notification sourceTime=1789668976902
+none_left: set app.tileshell.testclient.a NOTIFICATIONS=0 -> effective 0 | pkg:app.tileshell.testclient.a faces=0 source=null sourceTime=null
+    2026-09-17 12:15:49.949 wall=1789668949949 [notif] removed app.tileshell.testclient.a key=0|app.tileshell.testclient.a|32|null|10176
+    2026-09-17 12:15:56.591 wall=1789668956591 [notif] posted app.tileshell.testclient.a key=0|app.tileshell.testclient.a|41|null|10176 postTime=1789668956387
+    2026-09-17 12:16:01.819 wall=1789668961819 [notif] removed app.tileshell.testclient.a key=0|app.tileshell.testclient.a|41|null|10176
+    2026-09-17 12:16:04.031 wall=1789668964031 [notif] posted app.tileshell.testclient.a key=0|app.tileshell.testclient.a|51|null|10176 postTime=1789668963829
+    2026-09-17 12:16:09.260 wall=1789668969260 [notif] removed app.tileshell.testclient.a key=0|app.tileshell.testclient.a|51|null|10176
+    2026-09-17 12:16:11.473 wall=1789668971473 [notif] posted app.tileshell.testclient.a key=0|app.tileshell.testclient.a|61|null|10176 postTime=1789668971269
+    2026-09-17 12:16:16.905 wall=1789668976905 [notif] posted app.tileshell.testclient.a key=0|app.tileshell.testclient.a|62|null|10176 postTime=1789668976700
+    2026-09-17 12:16:16.907 wall=1789668976907 [notif] rescan (ranking): 2 packages with notifications
+    2026-09-17 12:16:17.105 wall=1789668977105 [notif] posted app.tileshell.testclient.a key=0|app.tileshell.testclient.a|0|0|app.tileshell.testclient.a|g:Aggregate_AlertingSection|10176|0|app.tileshell.testclient.a|g:Aggregate_AlertingSection postTime=1789668976902
+    2026-09-17 12:16:22.135 wall=1789668982135 [notif] removed app.tileshell.testclient.a key=0|app.tileshell.testclient.a|61|null|10176
+    2026-09-17 12:16:23.141 wall=1789668983141 [notif] removed app.tileshell.testclient.a key=0|app.tileshell.testclient.a|62|null|10176
+    2026-09-17 12:16:23.141 wall=1789668983141 [notif] removed app.tileshell.testclient.a key=0|app.tileshell.testclient.a|0|0|app.tileshell.testclient.a|g:Aggregate_AlertingSection|10176|0|app.tileshell.testclient.a|g:Aggregate_AlertingSection
+## reading
+no usable content (no title, no text, number 4): not counted, no preview face - the Launcher3 rule the Decisions cite filters group summaries and notifications with neither title nor text
+group summary (number 9) plus two children (number 1 each): count 2 (the summary is not counted) and two preview faces
+updated in place (same id, new text): still count 2, the publish carries the new source time
+all three cancelled: count 0, no faces
+ongoing (number 5): counted (5) with a preview face - the Launcher3 rule filters only summaries and content-less notifications, so an ongoing media or download notification counts; recorded as the build's behaviour
+channel with setShowBadge(false) (number 6): not counted, no face (the system reports it as not badge-eligible)
+visibility secret (number 2): counted with a preview face; Start is only reachable unlocked, so secret content is shown there. visibility private added on top: count 4 (2 + 2), two faces
+Android 16's own aggregate group summary ("g:Aggregate_AlertingSection") appears in the stream and is not counted (it is a group summary)
+everything cancelled: count 0, no faces

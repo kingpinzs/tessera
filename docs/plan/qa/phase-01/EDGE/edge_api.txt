@@ -1,0 +1,65 @@
+# Edge cases: Live Tile API 2026-09-17T12:17:19-06:00
+## XML with a DTD
+--------- beginning of main
+09-17 12:17:18.222 26789 27213 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=xml-dtd detail=markup declaration at offset 21
+## XML with an external entity (XXE)
+09-17 12:17:18.222 26789 27213 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=xml-dtd detail=markup declaration at offset 21
+09-17 12:17:20.738 26789 27226 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=xml-dtd detail=markup declaration at offset 21
+## entity expansion (billion laughs)
+09-17 12:17:20.738 26789 27226 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=xml-dtd detail=markup declaration at offset 21
+09-17 12:17:23.266 26789 27236 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=xml-dtd detail=markup declaration at offset 21
+## malformed XML
+09-17 12:17:23.266 26789 27236 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=xml-dtd detail=markup declaration at offset 21
+09-17 12:17:25.793 26789 27246 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=xml-malformed detail=At line 1, column 59: no element found
+## an image URI whose authority is the shell itself (confused deputy)
+09-17 12:17:25.793 26789 27246 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=xml-malformed detail=At line 1, column 59: no element found
+09-17 12:17:28.323 26789 27256 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=image-authority detail=authority app.tileshell.livetile belongs to the shell
+## an oversized image (> 200 KB)
+09-17 12:17:28.323 26789 27256 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=image-authority detail=authority app.tileshell.livetile belongs to the shell
+09-17 12:17:30.979 26789 27266 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=image-size detail=content://app.tileshell.testclient.a.images/big.png: more than 204800 bytes
+## queue overflow past 5
+09-17 12:17:33.391 26789 27275 I TileClient: tile.update q4: ok=true error=null detail=null
+09-17 12:17:33.391 26789 27275 I TileClient: tile.update q5: ok=true error=null detail=null
+09-17 12:17:33.391 26789 27275 I TileClient: tile.update q5: ok=true error=null detail=null
+09-17 12:17:35.902 26789 27285 I TileClient: app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+queue entries now: 5 ['q2', 'q3', 'q4', 'q5', 'q6']
+## rate limit (70 calls in a minute)
+09-17 12:17:35.902 26789 27285 I TileClient: app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+09-17 12:17:38.606 26789 27296 I TileClient: app.tileshell.testclient.a flood: 70 calls, ok=47 rate=23 other=0
+## API app uninstalled: its tile content and badge go
+09-17 12:17:38.606 26789 27296 I TileClient: app.tileshell.testclient.a flood: 70 calls, ok=47 rate=23 other=0
+09-17 12:17:41.060 26789 27306 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=rate detail=over 60 verbs/min, retry in 37160ms
+09-17 12:17:41.060 26789 27306 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=rate detail=over 60 verbs/min, retry in 37160ms
+09-17 12:17:43.587 26789 27315 I TileClient: app.tileshell.testclient.a badge.update: ok=false error=rate detail=over 60 verbs/min, retry in 34633ms
+before uninstall: pkg:app.tileshell.testclient.a faces=5 source=livetile sourceTime=1789669055899; badge set app.tileshell.testclient.a API=0 -> effective 0
+$ adb uninstall app.tileshell.testclient.a: Success
+after uninstall: stored state dir ; badge set app.tileshell.testclient.a API=0 -> effective 0
+    2026-09-17 12:17:38.582 wall=1789669058582 [livetile] accept app.tileshell.testclient.a uid=10176 tile.setting -> ENABLED
+    2026-09-17 12:17:38.583 wall=1789669058583 [livetile] accept app.tileshell.testclient.a uid=10176 tile.setting -> ENABLED
+    2026-09-17 12:17:38.585 wall=1789669058585 [livetile] accept app.tileshell.testclient.a uid=10176 tile.setting -> ENABLED
+    2026-09-17 12:17:38.586 wall=1789669058586 [livetile] accept app.tileshell.testclient.a uid=10176 tile.setting -> ENABLED
+    2026-09-17 12:17:38.587 wall=1789669058587 [livetile] accept app.tileshell.testclient.a uid=10176 tile.setting -> ENABLED
+    2026-09-17 12:17:38.589 wall=1789669058589 [livetile] accept app.tileshell.testclient.a uid=10176 tile.setting -> ENABLED
+## API app uninstalled (rerun after the rate-limit window, which had swallowed the first attempt)
+before uninstall: pkg:app.tileshell.testclient.a faces=1 source=livetile sourceTime=1789669146061; badge: set app.tileshell.testclient.a API=4 -> effective 4; stored: app.tileshell.testclient.a 
+$ adb uninstall app.tileshell.testclient.a: Success
+after uninstall: pkg:app.tileshell.testclient.a faces=0 source=null sourceTime=null; badge: set app.tileshell.testclient.a API=0 -> effective 0; stored: []
+## an image URI from an authority the caller does not own (no grant)
+09-17 12:19:53.500 27564 27580 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=image-authority detail=no provider for authority app.tileshell.testclient.b.images
+## per-app kill switch (Settings > Live tile access)
+access page row for the test app: livetile_access:app.tileshell.testclient.a | desc= | texts=On
+after tapping its row: livetile_access:app.tileshell.testclient.a | desc= | texts=Off
+09-17 12:20:22.820 27564 27656 I TileClient: app.tileshell.testclient.a tile.update: ok=false error=disabled detail=user turned this app's live tile off
+tile content with access off: pkg:app.tileshell.testclient.a faces=0 source=null sourceTime=null
+access turned back on: livetile_access:app.tileshell.testclient.a | desc= | texts=Off
+09-17 12:20:37.078 27564 27711 I TileClient: app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+## reading
+XML with a DTD, with an external entity (file:///data/data/app.tileshell/files/start_layout.json) and with entity expansion: all three rejected at the DTD (error xml-dtd, "markup declaration at offset 21"), so no entity is ever resolved
+malformed XML: error xml-malformed
+image URI whose authority is the shell's own provider: error image-authority ("authority app.tileshell.livetile belongs to the shell")
+image URI from an authority the caller does not own: error image-authority ("no provider for authority ...") - nothing is read without a grant from the caller's own provider
+image over the size cap: error image-size ("more than 204800 bytes")
+queue overflow past 5: the queue keeps the five newest (q2, q3, q4, q5, q6); the oldest is dropped
+rate limit: 70 calls in a minute -> 47 accepted, 23 rejected with error rate ("over 60 verbs/min, retry in ...")
+API app uninstalled: its tile content goes (publish faces=0), its badge falls back to 0 and its stored state directory is removed
+per-app kill switch (Settings > Live tile access): turning the app Off rejects its calls with error disabled and clears its tile content; turning it back On accepts again

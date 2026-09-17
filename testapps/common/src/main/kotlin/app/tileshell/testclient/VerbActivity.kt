@@ -163,9 +163,10 @@ class VerbActivity : Activity() {
                 val rate = results.count { it.contains("error=rate") }
                 "flood: $n calls, ok=$ok rate=$rate other=${n - ok - rate}"
             }
-            "notify" -> notifyWithNumber(x.getInt("number", 7), x.getString("title") ?: "Tile client", x.getString("text") ?: "setNumber test")
+            "notify" -> notifyWithNumber(x)
             "notify.cancel" -> {
-                getSystemService(NotificationManager::class.java).cancel(NOTIFICATION_ID)
+                val nm = getSystemService(NotificationManager::class.java)
+                if (x.containsKey("id")) nm.cancel(x.getInt("id")) else nm.cancelAll()
                 "notify.cancel: done"
             }
             "legacyBadge" -> sendLegacyBadge(x)
@@ -193,21 +194,40 @@ class VerbActivity : Activity() {
         "$method: exception ${e.javaClass.simpleName}: ${e.message}"
     }
 
-    private fun notifyWithNumber(number: Int, title: String, text: String): String {
+    /**
+     * notify extras: number, title, text, id (default NOTIFICATION_ID), group (string), summary (bool: post it as the
+     * group summary), ongoing (bool), badgeOff (bool: a channel with setShowBadge(false)), visibility
+     * (public|private|secret), empty (bool: no title and no text).
+     */
+    private fun notifyWithNumber(x: Bundle): String {
         if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             runOnUiThread { requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1) }
             return "notify: POST_NOTIFICATIONS not granted (adb shell pm grant $packageName android.permission.POST_NOTIFICATIONS)"
         }
         val nm = getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(NotificationChannel(CHANNEL, "Tile client", NotificationManager.IMPORTANCE_DEFAULT).apply { setShowBadge(true) })
-        val n = Notification.Builder(this, CHANNEL)
+        val badgeOff = x.getBoolean("badgeOff", false)
+        val channel = if (badgeOff) "$CHANNEL.nobadge" else CHANNEL
+        nm.createNotificationChannel(
+            NotificationChannel(channel, if (badgeOff) "Tile client (no badge)" else "Tile client", NotificationManager.IMPORTANCE_DEFAULT)
+                .apply { setShowBadge(!badgeOff) },
+        )
+        val id = x.getInt("id", NOTIFICATION_ID)
+        val empty = x.getBoolean("empty", false)
+        val builder = Notification.Builder(this, channel)
             .setSmallIcon(android.R.drawable.stat_notify_chat)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setNumber(number)
-            .build()
-        nm.notify(NOTIFICATION_ID, n)
-        return "notify: posted id=$NOTIFICATION_ID number=$number"
+            .setNumber(x.getInt("number", 7))
+            .setOngoing(x.getBoolean("ongoing", false))
+        if (!empty) {
+            builder.setContentTitle(x.getString("title") ?: "Tile client").setContentText(x.getString("text") ?: "setNumber test")
+        }
+        x.getString("group")?.let { builder.setGroup(it).setGroupSummary(x.getBoolean("summary", false)) }
+        when (x.getString("visibility")) {
+            "secret" -> builder.setVisibility(Notification.VISIBILITY_SECRET)
+            "private" -> builder.setVisibility(Notification.VISIBILITY_PRIVATE)
+            "public" -> builder.setVisibility(Notification.VISIBILITY_PUBLIC)
+        }
+        nm.notify(id, builder.build())
+        return "notify: posted id=$id number=${x.getInt("number", 7)} channel=$channel group=${x.getString("group")} summary=${x.getBoolean("summary", false)} ongoing=${x.getBoolean("ongoing", false)} empty=$empty visibility=${x.getString("visibility")}"
     }
 
     /** ShortcutBadger's delivery: resolve manifest receivers first, then send (implicit by default) with identity shared. */
