@@ -69,23 +69,26 @@ class AppCatalog private constructor(private val context: Context) {
 
     fun isQuietMode(user: UserHandle): Boolean = runCatching { userManager.isQuietModeEnabled(user) }.getOrDefault(false)
 
+    /** Profiles the default Home may see (LauncherApps also returns private space when the platform allows it). */
+    fun profiles(): List<UserHandle> = runCatching { launcherApps.profiles }.getOrNull() ?: userManager.userProfiles
+
     @Synchronized
     fun refresh(reason: String) {
-        val pm = context.packageManager
         val list = mutableListOf<AppEntry>()
-        for (user in userManager.userProfiles) {
+        for (user in profiles()) {
             val activities: List<LauncherActivityInfo> = runCatching { launcherApps.getActivityList(null, user) }.getOrDefault(emptyList())
+            val kind = profileKind(user)
             for (a in activities) {
                 if (a.componentName.packageName == context.packageName && a.componentName.className.endsWith("StartActivity")) continue
                 val info = a.applicationInfo
-                val installTime = runCatching { pm.getPackageInfo(a.componentName.packageName, 0).firstInstallTime }.getOrDefault(0L)
                 list += AppEntry(
                     component = a.componentName,
                     user = user,
                     label = a.label?.toString() ?: a.componentName.packageName,
-                    profile = profileKind(user),
+                    profile = kind,
                     isSystem = info.flags and ApplicationInfo.FLAG_SYSTEM != 0,
-                    firstInstallTime = installTime,
+                    // Per-user install time ("New" caption, X14); an update keeps it, a reinstall changes it.
+                    firstInstallTime = a.firstInstallTime,
                 )
             }
         }
@@ -100,19 +103,26 @@ class AppCatalog private constructor(private val context: Context) {
     fun firstForPackage(packageName: String): AppEntry? =
         state.value.firstOrNull { it.component.packageName == packageName && it.profile == ProfileKind.MAIN }
 
-    fun icon(entry: AppEntry, sizePx: Int): ImageBitmap? = synchronized(iconCache) {
-        iconCache.getOrPut("${entry.key}@$sizePx") {
+    /** [badged] = false returns the icon without Android's profile badge (the app list draws its own P4 glyph). */
+    fun icon(entry: AppEntry, sizePx: Int, badged: Boolean = true): ImageBitmap? = synchronized(iconCache) {
+        iconCache.getOrPut("${entry.key}@$sizePx${if (badged) "" else "u"}") {
             val drawable = runCatching {
                 launcherApps.getActivityList(entry.component.packageName, entry.user)
-                    .firstOrNull { it.componentName == entry.component }?.getBadgedIcon(0)
+                    .firstOrNull { it.componentName == entry.component }?.let { if (badged) it.getBadgedIcon(0) else it.getIcon(0) }
             }.getOrNull() ?: return null
             drawable.toBitmap(sizePx).asImageBitmap()
         }
     }
 
+    private val launchListeners = java.util.concurrent.CopyOnWriteArrayList<(AppEntry) -> Unit>()
+
+    /** Called after every shell launch of an app (the app list's "New" caption clears on first launch, X11). */
+    fun addLaunchListener(listener: (AppEntry) -> Unit) { launchListeners += listener }
+
     fun launch(entry: AppEntry, sourceBounds: android.graphics.Rect?, options: android.os.Bundle?) {
         launcherApps.startMainActivity(entry.component, entry.user, sourceBounds, options)
         Diagnostics.add("launch", "startMainActivity ${entry.component.flattenToShortString()} user=${entry.user.hashCode()}")
+        launchListeners.forEach { it(entry) }
     }
 
     companion object {
