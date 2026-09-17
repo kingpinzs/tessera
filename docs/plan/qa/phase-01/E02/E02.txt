@@ -1,0 +1,6 @@
+# E2 2026-09-17T08:57:42-06:00
+$ adb shell cmd role get-role-holders android.app.role.HOME
+app.tileshell
+$ adb shell input keyevent KEYCODE_HOME
+$ adb shell dumpsys activity activities | grep -i topResumedActivity
+      topResumedActivity=ActivityRecord{202653558 u0 app.tileshell/.StartActivity t26}
