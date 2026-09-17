@@ -1,0 +1,129 @@
+# E8 2026-09-17T09:37:45-06:00
+generated qa_song.mp3 with ID3 title/artist
+$ adb shell mkdir -p /sdcard/Music
+$ adb push docs/plan/qa/phase-01/E08/qa_song.mp3 /sdcard/Music/
+docs/plan/qa/phase-01/E08/qa_song.mp3: 1 file pushed, 0 skipped. 391.8 MB/s (1440574 bytes in 0.004s)
+$ adb shell content call --uri content://media/external/file --method scan_volume --arg external_primary
+Result: Bundle[{}]
+MediaStore audio id: 32
+$ adb shell pm grant org.oxycblt.auxio android.permission.READ_MEDIA_AUDIO
+$ adb shell pm grant org.oxycblt.auxio android.permission.POST_NOTIFICATIONS
+$ adb shell am start -a android.intent.action.VIEW -d content://media/external/audio/media/32 -t audio/mpeg -n org.oxycblt.auxio/.MainActivity
+Starting: Intent { act=android.intent.action.VIEW dat=content://media/... typ=audio/mpeg cmp=org.oxycblt.auxio/.MainActivity }
+Warning: Activity not started, its current task has been brought to the front
+$ adb shell dumpsys media_session (active sessions)
+    package=com.android.server.telecom
+      package=com.android.music
+      state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=0, actions=516, custom actions=[], active item id=-1, error=null}
+      package=org.oxycblt.auxio
+    2026-09-17 09:35:46.285 wall=1789659346285 [music] idle (start)
+    2026-09-17 09:37:52.446 wall=1789659472446 [music] idle (sessions changed)
+    2026-09-17 09:37:52.448 wall=1789659472448 [music] idle (sessions changed)
+'QA Song' seen on the Music tile in 0 of 14 dumps (expect > 0)
+$ adb shell cmd media_session dispatch pause
+    2026-09-17 09:37:52.448 wall=1789659472448 [music] idle (sessions changed)
+'QA Song' seen after pause in 0 of 10 dumps (expect 0)
+
+## rerun with AOSP Music (com.android.music): Auxio needs its music sources chosen in its own UI before it plays, so the VIEW intent only brought it to the front (screenshot auxio_not_configured.png)
+com.android.music/.AudioPreview
+$ adb shell am start -a android.intent.action.VIEW -d content://media/external/audio/media/32 -t audio/mpeg -n com.android.music/.AudioPreview
+Starting: Intent { act=android.intent.action.VIEW dat=content://media/... typ=audio/mpeg cmp=com.android.music/.AudioPreview }
+$ adb shell dumpsys media_session (playing session)
+      package=com.android.music
+    2026-09-17 09:39:01.080 wall=1789659541080 [music] idle (destroyed org.oxycblt.auxio)
+    2026-09-17 09:39:43.741 wall=1789659583741 [music] idle (sessions changed)
+'QA Song' seen on the Music tile in 0 of 14 dumps (expect > 0)
+$ adb shell cmd media_session dispatch pause
+    2026-09-17 09:39:43.741 wall=1789659583741 [music] idle (sessions changed)
+'QA Song' seen after pause in 0 of 10 dumps (expect 0: tile back to idle)
+
+## rerun with Fossify Music Player: AOSP Music's AudioPreview is a dialog player that stops when it loses focus, so pressing Home ended playback before Start could show it (dumpsys audio showed no player from com.android.music)
+$ adb shell am start -a android.intent.action.VIEW -d content://media/external/audio/media/32 -t audio/mpeg -n org.fossify.musicplayer/.activities.TrackActivity
+Starting: Intent { act=android.intent.action.VIEW dat=content://media/... typ=audio/mpeg cmp=org.fossify.musicplayer/.activities.TrackActivity }
+$ adb shell dumpsys media_session (sessions)
+    package=com.android.server.telecom
+      package=com.android.music
+      state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=0, actions=516, custom actions=[], active item id=-1, error=null}
+$ adb shell dumpsys media_session after Home
+    2026-09-17 09:41:44.246 wall=1789659704246 [music] idle (sessions changed)
+    2026-09-17 09:41:44.247 wall=1789659704247 [music] idle (destroyed org.fossify.musicplayer)
+'QA Song' seen on the Music tile in 0 of 14 dumps (expect > 0)
+$ adb shell cmd media_session dispatch pause
+    2026-09-17 09:41:44.247 wall=1789659704247 [music] idle (destroyed org.fossify.musicplayer)
+'QA Song' seen after pause in 0 of 10 dumps (expect 0: tile back to idle)
+
+## diagnosis after three different failures (Rule 8): launching a player with a VIEW intent and pressing Home is the wrong method; Auxio needs sources set in its UI, AOSP AudioPreview stops on focus loss, Fossify TrackActivity closed at once (fossify_music.png shows Start). Method changed: open AOSP Music's song list and tap the song, as a user does, so its MediaPlaybackService plays in the background.
+$ adb shell am start -n com.android.music/.MusicBrowserActivity
+Starting: Intent { cmp=com.android.music/.MusicBrowserActivity }
+Error type 3
+Error: Activity class {com.android.music/com.android.music.MusicBrowserActivity} does not exist.
+['Contacts', 'WebView Browser Tester', '\uebbc', 'Mail · Tap to choose', 'Calendar', 'Aves Libre', 'Partly Sunny', '63°', '72°/59°', 'Precip 0%', 'Weather', '\uf00f', '\ue3c2', '\ue115', '\ue3f8', '\uf5a7', '\ue1df', '9:43 AM']
+AOSP Music on this image only has MusicPicker and AudioPreview (no browser), so the song list comes from Fossify Music Player's launcher UI
+$ adb shell monkey -p org.fossify.musicplayer -c android.intent.category.LAUNCHER 1
+texts: ['Search', 'Music', '1 Track', 'QA Song • QA Artist', 'Playlists', 'Folders', 'Artists', 'Albums', 'Tracks']
+$ adb shell input tap 563 1934 (the 'QA Song' row)
+after tap texts: ['00:00', '1x', '03:00', 'QA Song', 'QA Artist', 'Next: QA Song • QA Artist']
+$ adb shell dumpsys media_session (playing?)
+package=org.fossify
+state=PlaybackState {state=PAUSED
+$ after Home: dumpsys media_session
+    2026-09-17 09:44:25.295 wall=1789659865295 [music] idle (destroyed org.fossify.musicplayer)
+    2026-09-17 09:44:25.295 wall=1789659865295 [music] idle (sessions changed)
+'QA Song' seen on the Music tile in 0 of 14 dumps (expect > 0)
+$ adb shell cmd media_session dispatch pause
+    2026-09-17 09:44:25.295 wall=1789659865295 [music] idle (sessions changed)
+'QA Song' seen after pause in 0 of 10 dumps (expect 0: tile back to idle)
+## the row tap queued the song PAUSED; start it with play while the player is in front
+$ adb shell cmd media_session dispatch play
+$ dumpsys media_session state
+state=PlaybackState {state=NONE
+$ dumpsys audio playback activity (latest player events)
+09-17 09:30:47:509 player piid:79 event:started
+09-17 09:39:43:740 player piid:87 event:started
+## relaunching with monkey restarted the player process and emptied its queue, so dispatch play had nothing to play; tap the song, then the player's own Play button
+song row at: 
+Play / Pause [432,2064][648,2165]
+play button at: 
+$ dumpsys media_session state after Play
+state=PlaybackState {state=NONE
+$ adb shell input tap 540 2114 (content-desc "Play / Pause")
+$ dumpsys media_session state
+state=PlaybackState {state=PLAYING
+$ after Home: dumpsys media_session state
+state=PlaybackState {state=PAUSED
+    2026-09-17 09:47:09.960 wall=1789660029960 [music] idle (state org.fossify.musicplayer)
+    2026-09-17 09:47:09.960 wall=1789660029960 [music] idle (state org.fossify.musicplayer)
+'QA Song' seen on the Music tile in 0 of 14 dumps (expect > 0)
+$ adb shell cmd media_session dispatch pause
+state=PlaybackState {state=PAUSED
+    2026-09-17 09:47:52.264 wall=1789660072264 [music] idle (sessions changed)
+'QA Song' seen after pause in 6 of 10 dumps (expect 0: tile back to idle)
+## clean pass: Play button, Home only (Back paused the player in the previous attempt), state and tile sampled together
+song row: 563 1934
+Play / Pause at: 540 1877
+state before Play: PAUSED
+state after Play: PLAYING
+sample 1: session=PLAYING tile_shows_QA_Song=1
+sample 2: session=PLAYING tile_shows_QA_Song=0
+sample 3: session=PLAYING tile_shows_QA_Song=1
+sample 4: session=PLAYING tile_shows_QA_Song=1
+sample 5: session=PLAYING tile_shows_QA_Song=0
+sample 6: session=PLAYING tile_shows_QA_Song=0
+sample 7: session=PLAYING tile_shows_QA_Song=1
+sample 8: session=PLAYING tile_shows_QA_Song=1
+sample 9: session=PLAYING tile_shows_QA_Song=0
+sample 10: session=PLAYING tile_shows_QA_Song=1
+sample 11: session=PLAYING tile_shows_QA_Song=1
+sample 12: session=PLAYING tile_shows_QA_Song=0
+    2026-09-17 09:49:50.042 wall=1789660190042 [music] now playing org.fossify.musicplayer title=QA Song (state org.fossify.musicplayer)
+    2026-09-17 09:49:53.043 wall=1789660193043 [music] now playing org.fossify.musicplayer title=QA Song (state org.fossify.musicplayer)
+    2026-09-17 09:49:56.045 wall=1789660196045 [music] now playing org.fossify.musicplayer title=QA Song (state org.fossify.musicplayer)
+$ adb shell cmd media_session dispatch pause
+after pause sample 1: session=PAUSED tile_shows_QA_Song=0
+after pause sample 2: session=PAUSED tile_shows_QA_Song=0
+after pause sample 3: session=PAUSED tile_shows_QA_Song=0
+after pause sample 4: session=PAUSED tile_shows_QA_Song=0
+after pause sample 5: session=PAUSED tile_shows_QA_Song=0
+after pause sample 6: session=PAUSED tile_shows_QA_Song=0
+after pause sample 7: session=PAUSED tile_shows_QA_Song=0
+after pause sample 8: session=PAUSED tile_shows_QA_Song=0
