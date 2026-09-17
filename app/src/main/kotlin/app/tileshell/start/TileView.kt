@@ -202,7 +202,8 @@ private val lastLoggedSource = HashMap<String, Long>()
 private fun LogoFace(model: TileModel, widthDp: Dp, heightDp: Dp) {
     val showLabel = model.size != TileSize.SMALL
     val iconSize = when (model.size) {
-        TileSize.SMALL -> widthDp * 0.52f
+        // Sized from the shorter side, so a stretched bottom-row tile keeps a small-tile glyph.
+        TileSize.SMALL -> minOf(widthDp, heightDp) * 0.52f
         TileSize.MEDIUM -> widthDp * 0.42f
         TileSize.WIDE -> heightDp * 0.42f
     }

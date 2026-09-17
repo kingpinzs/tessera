@@ -57,6 +57,10 @@ import kotlinx.coroutines.launch
 class StartActivity : ComponentActivity() {
     private val homeEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private var animation by mutableStateOf(StartAnimation())
+    // Each run of the exit or entrance animation has its own token, so updating the animation state every frame
+    // never restarts (and freezes) the effect that drives it.
+    private var exitToken by mutableStateOf(0)
+    private var entranceToken by mutableStateOf(0)
     private var pickerSlot by mutableStateOf<Slot?>(null)
     private var returningFromLaunch = false
     private var page by mutableStateOf(0)
@@ -133,8 +137,9 @@ class StartActivity : ComponentActivity() {
         }
 
         // Drive exit / entrance animations frame by frame.
-        LaunchedEffect(animation.exitTappedId) {
-            val tapped = animation.exitTappedId ?: return@LaunchedEffect
+        LaunchedEffect(exitToken) {
+            if (exitToken == 0) return@LaunchedEffect
+            val tapped = animation.exitTappedId
             val start = withFrameMillis { it }
             while (true) {
                 val t = withFrameMillis { it } - start
@@ -145,15 +150,16 @@ class StartActivity : ComponentActivity() {
             pendingLaunch = null
             Diagnostics.add("motion", "start exit finished tile=$tapped")
         }
-        LaunchedEffect(animation.entranceElapsedMs == 0f) {
-            if (animation.entranceElapsedMs != 0f) return@LaunchedEffect
+        LaunchedEffect(entranceToken) {
+            if (entranceToken == 0) return@LaunchedEffect
             val start = withFrameMillis { it }
             while (true) {
                 val t = withFrameMillis { it } - start
-                animation = animation.copy(entranceElapsedMs = t.toFloat(), exitElapsedMs = null, exitTappedId = null)
+                animation = StartAnimation(entranceElapsedMs = t.toFloat())
                 if (t >= Motion.FRAME_MS * Motion.entranceAlphaFrames.size) break
             }
             animation = StartAnimation()
+            Diagnostics.add("motion", "start entrance finished")
         }
     }
 
@@ -166,6 +172,7 @@ class StartActivity : ComponentActivity() {
                 val bounds = Rect(tile.xPx.toInt(), tile.yPx.toInt(), (tile.xPx + tile.wPx).toInt(), (tile.yPx + tile.hPx).toInt())
                 pendingLaunch = { launchApp(target, bounds, tile.model.id) }
                 animation = StartAnimation(exitElapsedMs = 0f, exitTappedId = tile.model.id)
+                exitToken++
             }
         }
     }
@@ -191,6 +198,7 @@ class StartActivity : ComponentActivity() {
         if (entry == null) return // X12: nothing happens
         pendingLaunch = { launchApp(TileTarget.App(entry), null, "back") }
         animation = StartAnimation(exitElapsedMs = 0f, exitTappedId = "back")
+        exitToken++
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -206,6 +214,7 @@ class StartActivity : ComponentActivity() {
         if (returningFromLaunch) {
             returningFromLaunch = false
             animation = StartAnimation(entranceElapsedMs = 0f)
+            entranceToken++
             Diagnostics.add("motion", "start entrance")
         }
     }

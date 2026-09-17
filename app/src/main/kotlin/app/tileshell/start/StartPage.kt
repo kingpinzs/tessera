@@ -80,9 +80,9 @@ fun rememberPlacedTiles(): StartTiles {
     val topPx = StartGrid.GRID_TOP_EPX * (widthPx / Scale.CANVAS_EPX)
 
     return remember(layout, apps, badges, content, grid) {
-        fun place(key: TileKey, size: TileSize, x: Float, y: Float, idPrefix: String, live: Boolean): PlacedTile {
-            val w = size.spanX * grid.smallPitchPx - grid.gutterPx
-            val h = size.spanY * grid.smallPitchPx - grid.gutterPx
+        fun place(key: TileKey, size: TileSize, x: Float, y: Float, idPrefix: String, live: Boolean, wPx: Float? = null, hPx: Float? = null): PlacedTile {
+            val w = wPx ?: (size.spanX * grid.smallPitchPx - grid.gutterPx)
+            val h = hPx ?: (size.spanY * grid.smallPitchPx - grid.gutterPx)
             val iconPx = (minOf(w, h) * 0.52f).toInt().coerceAtLeast(24)
             return when (key) {
                 is TileKey.SlotTile -> {
@@ -125,8 +125,14 @@ fun rememberPlacedTiles(): StartTiles {
             }
         }
         val gridTiles = layout.placements.map { p -> place(p.key, p.size, grid.unitX(p.x), topPx + grid.unitY(p.y), "", live = true) }
-        // Row tiles are W10M small tiles: glyph + badge, no label, no live faces. Their y is set when Start lays out.
-        val dockTiles = layout.dock.take(grid.unitsAcross).mapIndexed { i, key -> place(key, TileSize.SMALL, grid.unitX(i), 0f, "dock:", live = false) }
+        // Bottom tile row (INDEX Change Log 2026-09-17, amended by Jeremy the same day): the row's tiles share the grid width
+        // equally and are one small tile tall; glyph + badge, no label, no live faces. Their y is set when Start lays out.
+        val dockKeys = layout.dock.take(grid.unitsAcross)
+        val rowWidth = widthPx - grid.leftMarginPx - grid.rightMarginPx
+        val dockW = if (dockKeys.isEmpty()) 0f else (rowWidth - grid.gutterPx * (dockKeys.size - 1)) / dockKeys.size
+        val dockTiles = dockKeys.mapIndexed { i, key ->
+            place(key, TileSize.SMALL, grid.leftMarginPx + i * (dockW + grid.gutterPx), 0f, "dock:", live = false, wPx = dockW, hPx = grid.smallPx)
+        }
         StartTiles(gridTiles, dockTiles)
     }
 }
