@@ -10,11 +10,13 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
@@ -48,6 +50,7 @@ import app.tileshell.start.TileTarget
 import app.tileshell.start.rememberPlacedTiles
 import app.tileshell.tiles.ShellTiles
 import app.tileshell.tiles.Slot
+import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.ShellRoot
 import app.tileshell.ui.motion.Motion
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -98,6 +101,7 @@ class StartActivity : ComponentActivity() {
 
         LaunchedEffect(Unit) {
             homeEvents.collect { alreadyInFront ->
+                pickerSlot = null
                 pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
                 if (alreadyInFront) {
                     // X20 approximation: Home while Start is showing scrolls Start to the top.
@@ -119,18 +123,26 @@ class StartActivity : ComponentActivity() {
 
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
-                HorizontalPager(
-                    state = pager,
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    // X13 approximation: follows the finger 1:1, settles with an ease-out over 250 ms.
-                    flingBehavior = PagerDefaults.flingBehavior(pager, snapAnimationSpec = tween(Motion.PIVOT_SETTLE_MS)),
-                    snapPosition = SnapPosition.Start,
-                    beyondViewportPageCount = 1,
-                ) { index ->
-                    if (index == 0) {
-                        StartPage(tiles, scroll, animation) { tile -> onTileTap(tile) }
-                    } else {
-                        AppListPage(onLaunch = { entry, bounds -> launchApp(TileTarget.App(entry), bounds, null) })
+                Box(Modifier.weight(1f).fillMaxWidth()) {
+                    HorizontalPager(
+                        state = pager,
+                        modifier = Modifier.fillMaxSize(),
+                        // X13 approximation: follows the finger 1:1, settles with an ease-out over 250 ms.
+                        flingBehavior = PagerDefaults.flingBehavior(pager, snapAnimationSpec = tween(Motion.PIVOT_SETTLE_MS)),
+                        snapPosition = SnapPosition.Start,
+                        beyondViewportPageCount = 1,
+                    ) { index ->
+                        if (index == 0) {
+                            StartPage(tiles, scroll, animation) { tile -> onTileTap(tile) }
+                        } else {
+                            AppListPage(onLaunch = { entry, bounds -> launchApp(TileTarget.App(entry), bounds, null) })
+                        }
+                    }
+                    // The picker is a page between the drawn bars (bar rule): the status bar draws over its top inset.
+                    pickerSlot?.let { slot ->
+                        Box(Modifier.fillMaxSize().background(LocalShellColors.current.background).padding(top = BarMetrics.STATUS_EPX.dp)) {
+                            SlotPicker(slot, onDone = { pickerSlot = null })
+                        }
                     }
                 }
                 W10mNavBar(
@@ -139,7 +151,6 @@ class StartActivity : ComponentActivity() {
                 )
             }
             W10mStatusBar(Modifier.align(Alignment.TopCenter))
-            pickerSlot?.let { slot -> SlotPicker(slot, onDone = { pickerSlot = null }) }
         }
 
         // Drive exit / entrance animations frame by frame.

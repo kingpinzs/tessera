@@ -33,21 +33,29 @@ import app.tileshell.bars.W10mStatusBar
 import app.tileshell.bars.hideSystemBars
 import app.tileshell.brand.Glyph
 import app.tileshell.onboarding.ChecklistPage
+import app.tileshell.start.SlotPicker
+import app.tileshell.tiles.Slot
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.ShellRoot
 import app.tileshell.ui.motion.Motion
 
 enum class SettingsPage { HOME, START_THEME, TILE_APPS, LIVE_TILE_ACCESS, CHECKLIST, DIAGNOSTICS, ABOUT }
 
+/** An entry on the Settings page stack: a page, or the slot app picker opened from Tile apps (its own list, not scrolled by the page). */
+private sealed interface Route {
+    data class Page(val page: SettingsPage) : Route
+    data class Picker(val slot: Slot) : Route
+}
+
 /** The W10M Settings hub (build task 13). Every shell screen follows the bar rule. */
 class SettingsActivity : ComponentActivity() {
-    private val stack = mutableStateListOf(SettingsPage.HOME)
+    private val stack = mutableStateListOf<Route>(Route.Page(SettingsPage.HOME))
 
     @OptIn(ExperimentalComposeUiApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         hideSystemBars()
-        intent?.getStringExtra(EXTRA_PAGE)?.let { runCatching { SettingsPage.valueOf(it) }.getOrNull() }?.let { if (it != SettingsPage.HOME) stack += it }
+        intent?.getStringExtra(EXTRA_PAGE)?.let { runCatching { SettingsPage.valueOf(it) }.getOrNull() }?.let { if (it != SettingsPage.HOME) stack += Route.Page(it) }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() = goBack()
         })
@@ -57,17 +65,20 @@ class SettingsActivity : ComponentActivity() {
                 Box(Modifier.fillMaxSize().background(colors.background).semantics { testTagsAsResourceId = true }) {
                     Column(Modifier.fillMaxSize()) {
                         Box(Modifier.weight(1f).fillMaxWidth().padding(top = BarMetrics.STATUS_EPX.dp)) {
-                            val page = stack.last()
-                            PageTransition(page) {
-                                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                                    when (page) {
-                                        SettingsPage.HOME -> HomePage { stack += it }
-                                        SettingsPage.START_THEME -> StartThemePage()
-                                        SettingsPage.TILE_APPS -> TileAppsPage()
-                                        SettingsPage.LIVE_TILE_ACCESS -> LiveTileAccessPage()
-                                        SettingsPage.CHECKLIST -> ChecklistPage()
-                                        SettingsPage.DIAGNOSTICS -> DiagnosticsPage()
-                                        SettingsPage.ABOUT -> AboutPage()
+                            val route = stack.last()
+                            PageTransition(route) {
+                                when (route) {
+                                    is Route.Picker -> SlotPicker(route.slot) { goBack() }
+                                    is Route.Page -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                                        when (route.page) {
+                                            SettingsPage.HOME -> HomePage { stack += Route.Page(it) }
+                                            SettingsPage.START_THEME -> StartThemePage()
+                                            SettingsPage.TILE_APPS -> TileAppsPage { stack += Route.Picker(it) }
+                                            SettingsPage.LIVE_TILE_ACCESS -> LiveTileAccessPage()
+                                            SettingsPage.CHECKLIST -> ChecklistPage()
+                                            SettingsPage.DIAGNOSTICS -> DiagnosticsPage()
+                                            SettingsPage.ABOUT -> AboutPage()
+                                        }
                                     }
                                 }
                             }
@@ -87,8 +98,8 @@ class SettingsActivity : ComponentActivity() {
         // Opening a specific page while Settings is already running (e.g. the checklist from another shell screen).
         intent.getStringExtra(EXTRA_PAGE)?.let { runCatching { SettingsPage.valueOf(it) }.getOrNull() }?.let { page ->
             stack.clear()
-            stack += SettingsPage.HOME
-            if (page != SettingsPage.HOME) stack += page
+            stack += Route.Page(SettingsPage.HOME)
+            if (page != SettingsPage.HOME) stack += Route.Page(page)
         }
     }
 
@@ -108,7 +119,7 @@ class SettingsActivity : ComponentActivity() {
 
 /** X7 approximation: page-to-page = the Start entrance form (scale 0.78 -> 1 with fade over ≈217 ms). */
 @Composable
-private fun PageTransition(page: SettingsPage, content: @Composable () -> Unit) {
+private fun PageTransition(page: Any, content: @Composable () -> Unit) {
     val progress = remember(page) { Animatable(0f) }
     LaunchedEffect(page) { progress.animateTo(1f, tween(Motion.PAGE_ENTER_MS, easing = LinearEasing)) }
     val elapsed = progress.value * Motion.PAGE_ENTER_MS
