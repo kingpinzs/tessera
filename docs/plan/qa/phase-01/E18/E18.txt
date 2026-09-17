@@ -1,0 +1,66 @@
+# E18 2026-09-17T11:55:18-06:00
+users before:
+Users:
+	UserInfo{0:Owner:4c13} running
+$ adb shell pm create-user --profileOf 0 --managed work
+Success: created user id 10
+$ adb shell am start-user 10
+Success: user started
+$ adb install --user 10 (K-9 Mail fixture)
+Performing Streamed Install
+Success
+users now:
+Users:
+	UserInfo{0:Owner:4c13} running
+	UserInfo{10:work:1030} running
+packages in user 10: 169; K-9 present: 1
+## work group in the app list (applist_bottom.xml, applist_bottom.png)
+order: last letter header W at y 312, then profile_group:work at y 726 with profile_lock:work (Lock) on the same row, then the work rows (Calendar, Camera, Contacts, Files, Gallery, K-9 Mail, Messaging, Phone, Search, WebView Browser Tester)
+## launching a work app (the work K-9 row, not the main one)
+tapping work K-9 at 540 1602
+    topResumedActivity=ActivityRecord{68884328 u10 com.fsck.k9/app.k9mail.feature.launcher.FeatureLauncherActivity t108}
+resumed user: u10 com.fsck.k9/app.k9mail.feature.launcher.FeatureLauncherActivity
+## jump grid
+cells: # A B C D E F G H I J K L M N O P Q R S T U V W X Y Z work 
+after tapping the work cell: first node on screen applist_header:W at y 312
+work cell tapped: the list shows the tail of the alphabet with profile_group:work on screen (the group is the last item, so the list cannot scroll it to the top)
+## Settings toggle: Show work and private apps
+with the toggle off: profile groups in the list: 0; work rows: 0
+with the toggle back on: profile groups: 1; work K-9 row present: 1
+## Lock (quiet mode) through the shell group action
+quiet mode before: 
+quiet mode after Lock:         mAuthAlwaysRequiredToDisableQuietMode=false     Flags: 4272 (INITIALIZED|MANAGED_PROFILE|PROFILE|QUIET_MODE)         mAuthAlwaysRequiredToDisableQuietMode=false 
+group row now: profile_group:work | desc= | texts=
+profile_unlock:work | desc= | texts= / Tap to unlock
+work rows visible: 0
+after Tap to unlock: quiet flag (none means off); group row: profile_group:work | desc= | texts= profile_lock:work | desc= | texts=Lock ; work rows visible: 0
+## private space
+$ adb shell pm create-user --profileOf 0 --user-type android.os.usertype.profile.PRIVATE private
+Success: created user id 11
+work rows after unlock (scrolled): K-9 row present 1, rows under the group 0
+$ adb shell am start-user 11
+Success: user started
+$ adb install --user 11 (Fossify Gallery fixture)
+Performing Streamed Install
+Success
+Users:
+	UserInfo{0:Owner:4c13} running
+	UserInfo{10:work:1030} running
+	UserInfo{11:private:1010} running
+## private space in the app list
+profile nodes: profile_group:private | desc= | texts=;profile_lock:private | desc= | texts=Lock;
+jump grid cells: (checked below)
+private user quiet flag: 
+after Lock on the private group: profile_group:work | desc= | texts=;profile_lock:work | desc= | texts=Lock;profile_group:private | desc= | texts=;profile_unlock:private | desc= | texts= / Tap to unlock;
+private user flags: Flags: 4240 (INITIALIZED|PROFILE|QUIET_MODE)
+private rows visible (org.fossify.gallery): 0
+jump grid cells with both profiles: # A B C D E F G H I J K L M N O P Q R S T U V W X Y Z work private 
+## restore (RV12)
+$ adb shell pm remove-user 10: Success: removed user
+$ adb shell pm remove-user 11: Success: removed user
+users now: Users: 	UserInfo{0:Owner:4c13} running 
+app list after removal: profile groups 0, work/private rows 0
+## verdict
+PASS. Work profile (pm create-user --profileOf 0 --managed, am start-user, adb install --user 10 K-9 Mail): the app list shows the work group after the last letter header with the briefcase glyph and its own Lock action, its apps listed with badged icons (applist_bottom.png); tapping the work K-9 row launches it in the profile (topResumedActivity u10 com.fsck.k9); the jump grid has a work cell; Settings > Show work and private apps off hides the group and its rows and on brings them back; the group's Lock action puts the profile in quiet mode (dumpsys user Flags ... QUIET_MODE) and the group collapses to "Tap to unlock" with its rows hidden (applist_work_locked.png); Tap to unlock clears quiet mode and the Lock action returns.
+Private space (pm create-user --user-type android.os.usertype.profile.PRIVATE, start, install Fossify Gallery): the private group appears with the padlock glyph and its apps (applist_private.png); its Lock action sets QUIET_MODE and hides its apps (applist_private_locked.png); the jump grid carries both profile cells (# A..Z work private).
+Restore: both users removed; the app list shows no profile group and none of their apps.
