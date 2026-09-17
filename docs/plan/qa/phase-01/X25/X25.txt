@@ -1,0 +1,16 @@
+# X25 keyboard over a shell screen's drawn nav bar (build-start check owed by the bar rule) 2026-09-17T10:33:32-06:00
+AVD has hw.keyboard=yes, so Android hides the soft keyboard; the phone has none. Show it for this check:
+$ adb shell settings put secure show_ime_with_hard_keyboard 1
+drawn nav bar in dump: bounds="[0,2196][1080,2340]"
+app_list bounds: bounds="[0,0][1080,2196]"
+InputMethod window frame:  Frames: parent=[0,136][1080,2340] display=[0,136][1080,2340] frame=[0,136][1080,2340] last=[0,136][1080,2340] insetsChanged=false
+navigationBars / ime sources:  InsetsSource id=3 type=ime frame=[0,1422][1080,2340] visibleFrame=[0,1422][1080,2340] visible=true flags= sideHint=BOTTOM boundingRects=null
+ InsetsSource id=6f660001 type=navigationBars frame=[0,2205][1080,2340] visible=true flags=INSETS_ROUNDED_CORNER sideHint=BOTTOM boundingRects=null
+ mSource=InsetsSource id=6f660001 type=navigationBars frame=[0,2205][1080,2340] visible=true flags=INSETS_ROUNDED_CORNER sideHint=BOTTOM boundingRects=null
+ mSource=InsetsSource id=3 type=ime frame=[0,1422][1080,2340] visibleFrame=[0,1422][1080,2340] visible=true flags= sideHint=BOTTOM boundingRects=null
+ InsetsFrameProvider: {id=#6f660001, index=0, type=navigationBars, source=FRAME, flags=[INSETS_ROUNDED_CORNER], insetsSize=Insets{left=0, top=0, right=0, bottom=135}, insetsSizeOverrides=[TypedInsetsSize: {windowType=INP
+ InsetsFrameProvider: {id=#9a250001, index=0, type=navigationBars, source=FRAME, flags=[INSETS_ROUNDED_CORNER], insetsSize=Insets{left=0, top=0, right=0, bottom=135}, insetsSizeOverrides=[TypedInsetsSize: {windowType=INP
+keyboard drawn by 10:33 (search_keyboard_later.png; the first capture was taken before the keyboard window drew): dumpsys input_method mInputShown=true mIsInputViewShown=true
+RESULT (platform): with the keyboard up on a shell screen whose system bars are hidden, Android shows its own navigation bar (IME back, home, recents; navigationBars source visible=true frame [0,2205][1080,2340]) below the keyboard (ime frame [0,1422][1080,2340]), and the keyboard and that bar cover the drawn W10M nav bar ([0,2196][1080,2340]); the shell window is not resized (app_list [0,0][1080,2196]). The drawn nav bar shows again when the keyboard hides (E12 search_cleared.xml). This is the covered form of X25, recorded in Decisions; judged in H34, checked on the phone by P7.
+$ restore: adb shell settings put secure show_ime_with_hard_keyboard 0
+show_ime_with_hard_keyboard=0
