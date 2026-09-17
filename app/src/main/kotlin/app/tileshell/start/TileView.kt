@@ -184,7 +184,7 @@ fun TileView(
         if (faceIndex == 0 || faces.isEmpty()) {
             LogoFace(model, widthDp, heightDp)
         } else {
-            LiveFace(faces[faceIndex - 1], model)
+            LiveFace(faces[faceIndex - 1], model, heightDp)
         }
         if (pressStyle == PressStyle.P4_PRESS && pressed) {
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = P4_PRESS_DIM)))
@@ -237,13 +237,14 @@ private fun LogoFace(model: TileModel, widthDp: Dp, heightDp: Dp) {
 }
 
 @Composable
-private fun LiveFace(face: TileFace, model: TileModel) {
+private fun LiveFace(face: TileFace, model: TileModel, heightDp: Dp) {
     val white = Color.White
     Box(Modifier.fillMaxSize()) {
         when (face) {
             is TileFace.TextLines -> Column(Modifier.padding(start = 7.5.dp, top = 6.dp, end = 8.dp)) {
                 // R3 C3 Mail tile: caption-class lines, 16-epx pitch, up to 4 lines.
-                face.lines.flatMap { it.split('\n') }.take(if (model.size == TileSize.SMALL) 0 else 4).forEach {
+                // Line count follows the tile's height (16-epx pitch), so a bottom-row tile shows as many lines as fit.
+                face.lines.flatMap { it.split('\n') }.take(((heightDp.value - 8f) / 16f).toInt().coerceIn(0, 4)).forEach {
                     BasicText(it, style = ShellType.caption.copy(color = white, lineHeight = 16.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }

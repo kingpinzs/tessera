@@ -129,12 +129,12 @@ fun rememberPlacedTiles(): StartTiles {
         }
         val gridTiles = layout.placements.map { p -> place(p.key, p.size, grid.unitX(p.x), topPx + grid.unitY(p.y), "", live = true) }
         // Bottom tile row (INDEX Change Log 2026-09-17, amended by Jeremy the same day): the row's tiles share the grid width
-        // equally and are one small tile tall; glyph + badge, no label, no live faces. Their y is set when Start lays out.
+        // equally, 1.5 small tiles tall, glyph + badge, no label; live previews flip like other tiles (amendment 3). Their y is set when Start lays out.
         val dockKeys = layout.dock.take(grid.unitsAcross)
         val rowWidth = widthPx - grid.leftMarginPx - grid.rightMarginPx
         val dockW = if (dockKeys.isEmpty()) 0f else (rowWidth - grid.gutterPx * (dockKeys.size - 1)) / dockKeys.size
         val dockTiles = dockKeys.mapIndexed { i, key ->
-            place(key, TileSize.SMALL, grid.leftMarginPx + i * (dockW + grid.gutterPx), 0f, "dock:", live = false, wPx = dockW, hPx = dockTileHeight(grid))
+            place(key, TileSize.SMALL, grid.leftMarginPx + i * (dockW + grid.gutterPx), 0f, "dock:", live = true, wPx = dockW, hPx = dockTileHeight(grid))
         }
         StartTiles(gridTiles, dockTiles)
     }
