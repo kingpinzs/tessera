@@ -1,0 +1,40 @@
+# E5 2026-09-17T09:30:40-06:00 (rerun: bottom tile row shows previews since amendment 3)
+$ adb install -r app/build/outputs/apk/debug/app-debug.apk
+Performing Streamed Install
+Success
+$ adb shell cmd role get-role-holders android.app.role.SMS
+org.fossify.messages
+$ adb emu sms send 5551234 Dinner at 7? Live tile test
+OK
+## dumps every ~1 s for 20 s after the SMS
+t=3s preview_in_dump=0 badge=text="1"
+t=5s preview_in_dump=1 badge=
+t=9s preview_in_dump=1 badge=
+t=12s preview_in_dump=0 badge=text="1"
+t=14s preview_in_dump=0 badge=text="1"
+t=16s preview_in_dump=1 badge=
+t=19s preview_in_dump=1 badge=
+t=22s preview_in_dump=0 badge=text="1"
+t=24s preview_in_dump=0 badge=text="1"
+t=27s preview_in_dump=1 badge=
+t=30s preview_in_dump=1 badge=
+t=32s preview_in_dump=0 badge=text="1"
+t=35s preview_in_dump=0 badge=text="1"
+t=37s preview_in_dump=1 badge=
+t=40s preview_in_dump=1 badge=
+t=43s preview_in_dump=0 badge=text="1"
+posted: [1789659046802] removed at: []
+row Messaging tile renders (sourceTime, renderedAt): [(1789659046802, 1789659047022)]
+latency: 220 ms -> PASS (<= 2000)
+fossify notifications still active: 2
+## dismissal (a first attempt ran without adb on PATH; its output was invalid and was removed)
+notification key: 0|org.fossify.messages|1|null|10163
+$ adb shell cmd notification snooze --for 600000 '0|org.fossify.messages|1|null|10163' (removes the notification from the shade, as a dismissal does)
+snoozing <0|org.fossify.messages|1|null|10163> until time: Thu Sep 17 09:42:20 MDT 2026
+    2026-09-17 09:32:20.941 wall=1789659140941 [notif] removed org.fossify.messages key=0|org.fossify.messages|1|null|10163
+    2026-09-17 09:32:20.942 wall=1789659140942 [engine] publish pkg:org.fossify.messages faces=0 source=null sourceTime=null
+badges after dismissal: badges={}
+valid dumps: 8 of 8 over ~15 s after dismissal; preview text absent: PASS; row badge absent: PASS
+$ restore: adb shell cmd notification unsnooze '0|org.fossify.messages|1|null|10163'
+unsnoozing: 0|org.fossify.messages|1|null|10163
+Error occurred. Check logcat for details. Permission Denial: getIntentSender() from pid=6272, uid=2000 is not allowed to send as package android

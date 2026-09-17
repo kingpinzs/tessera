@@ -1,0 +1,6 @@
+# E14 2026-09-17T09:14:34-06:00
+checklist notification row before: resource-id="checklist:notifications:granted"
+$ adb shell cmd notification disallow_listener app.tileshell/app.tileshell.feeds.TileNotificationListener
+checklist notification row after revoke: resource-id="checklist:notifications:missing"
+$ adb shell cmd notification allow_listener app.tileshell/app.tileshell.feeds.TileNotificationListener
+checklist notification row after re-allow: resource-id="checklist:notifications:granted"

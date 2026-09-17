@@ -1,0 +1,99 @@
+# E4 2026-09-17T09:15:09-06:00
+## before fixtures: AOSP image handlers per category
+$ cmd package query-activities -a android.intent.action.MAIN -c android.intent.category.APP_EMAIL
+No activities found
+$ cmd package query-activities -a android.intent.action.MAIN -c android.intent.category.APP_MUSIC
+No activities found
+$ cmd package query-activities -a android.intent.action.MAIN -c android.intent.category.APP_MAPS
+No activities found
+$ cmd package query-activities -a android.intent.action.MAIN -c android.intent.category.APP_MARKET
+No activities found
+$ cmd package query-activities -a android.intent.action.MAIN -c android.intent.category.APP_GALLERY
+1 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    com.android.gallery3d/.app.GalleryActivity
+$ cmd package query-activities -a android.intent.action.MAIN -c android.intent.category.APP_CONTACTS
+1 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    com.android.contacts/.activities.PeopleActivity
+$ cmd package query-activities -a android.intent.action.MAIN -c android.intent.category.APP_CALENDAR
+1 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    com.android.calendar/.AllInOneActivity
+$ cmd package query-activities -a android.media.action.STILL_IMAGE_CAMERA
+1 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    com.android.camera2/com.android.camera.CameraActivity
+## installing fixtures (open-source test apps from F-Droid, sha256-verified; never bundled)
+app.organicmaps_26082718.apk: Success
+com.fsck.k9_39044.apk: Success
+com.looker.droidify_770.apk: Success
+deckers.thibault.aves.libre_17704.apk: Success
+eu.faircode.email_2333.apk: Success
+net.osmand.plus_540402.apk: Success
+net.sourceforge.opencamera_96.apk: Success
+opencontacts.open.com.opencontacts_32.apk: Success
+org.fdroid.fdroid_2000041.apk: Success
+org.fossify.camera_11.apk: Success
+org.fossify.contacts_13.apk: Success
+org.fossify.gallery_28.apk: Success
+org.fossify.messages_23.apk: Success
+org.fossify.musicplayer_14.apk: Success
+org.oxycblt.auxio_75.apk: Success
+## after fixtures: handlers per category (fixture category filters confirmed)
+$ cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.APP_EMAIL
+2 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    com.fsck.k9/net.thunderbird.app.common.MainActivity
+  Activity #1:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    eu.faircode.email/.ActivityMain
+$ cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.APP_MUSIC
+1 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    org.oxycblt.auxio/.MainActivity
+$ cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.APP_MAPS
+1 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false
+    net.osmand.plus/.activities.MapActivity
+$ cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.APP_MARKET
+1 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false
+    org.fdroid.fdroid/org.fdroid.MainActivity
+$ cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.APP_GALLERY
+2 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    com.android.gallery3d/.app.GalleryActivity
+  Activity #1:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    deckers.thibault.aves.libre/deckers.thibault.aves.MainActivity
+$ cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.APP_CONTACTS
+1 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    com.android.contacts/.activities.PeopleActivity
+$ cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.APP_CALENDAR
+1 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    com.android.calendar/.AllInOneActivity
+$ cmd package query-activities --brief -a android.media.action.STILL_IMAGE_CAMERA
+3 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    com.android.camera2/com.android.camera.CameraActivity
+  Activity #1:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    net.sourceforge.opencamera/.MainActivity
+  Activity #2:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    org.fossify.camera/.activities.MainActivity

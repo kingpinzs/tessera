@@ -1,0 +1,72 @@
+SERVICE app.tileshell/.feeds.TileNotificationListener a87da78 pid=5718 user=0
+  Client:
+    listener connected=true
+    badges={org.fossify.messages=1}
+    tileshell diagnostics: 67 entries
+    2026-09-17 09:30:40.752 wall=1789659040752 [livetile] store loaded 0 owners
+    2026-09-17 09:30:40.752 wall=1789659040752 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+    2026-09-17 09:30:40.754 wall=1789659040754 [livetile] samsung badge provider probe: not present
+    2026-09-17 09:30:40.756 wall=1789659040756 [app] process start
+    2026-09-17 09:30:40.786 wall=1789659040786 [apps] catalog refreshed (init): 29 activities
+    2026-09-17 09:30:40.792 wall=1789659040792 [engine] publish feed:music faces=0 source=null sourceTime=null
+    2026-09-17 09:30:40.792 wall=1789659040792 [music] idle (start)
+    2026-09-17 09:30:40.793 wall=1789659040793 [weather] feed start provider=open-meteo
+    2026-09-17 09:30:40.795 wall=1789659040795 [engine] publish feed:photos faces=0 source=null sourceTime=null
+    2026-09-17 09:30:40.795 wall=1789659040795 [photos] refresh (start): access=GRANTED photos=0
+    2026-09-17 09:30:40.795 wall=1789659040795 [engine] publish feed:calendar faces=1 source=calendar sourceTime=1789659040795
+    2026-09-17 09:30:40.795 wall=1789659040795 [calendar] refresh (start): access=true faces=1
+    2026-09-17 09:30:40.795 wall=1789659040795 [app] feeds started (process start)
+    2026-09-17 09:30:40.806 wall=1789659040806 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-17 09:30:40.807 wall=1789659040807 [start] StartActivity created
+    2026-09-17 09:30:40.813 wall=1789659040813 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-17 09:30:40.830 wall=1789659040830 [weather] cache loaded fetchedAt=1789658913084 provider=open-meteo units=IMPERIAL
+    2026-09-17 09:30:40.830 wall=1789659040830 [engine] publish feed:weather faces=2 source=weather:open-meteo sourceTime=1789658913084
+    2026-09-17 09:30:40.831 wall=1789659040831 [weather] publish tile faces=2 temp=63° condition=2 stale=false fetchedAt=1789658913084
+    2026-09-17 09:30:40.831 wall=1789659040831 [weather] refresh start reason=start units=IMPERIAL
+2026-09-17 09:30:41.014 wall=1789659041014 [render] tile=slot:CALENDAR sourceTime=1789659040795 renderedAt=1789659041014 faces=1
+    2026-09-17 09:30:41.014 wall=1789659041014 [render] tile=shell:weather sourceTime=1789658913084 renderedAt=1789659041014 faces=2
+    2026-09-17 09:30:41.159 wall=1789659041159 [notif] listener connected
+    2026-09-17 09:30:41.160 wall=1789659041160 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-17 09:30:41.160 wall=1789659041160 [engine] publish pkg:android faces=0 source=null sourceTime=null
+    2026-09-17 09:30:41.160 wall=1789659041160 [notif] rescan (connected): 1 packages with notifications
+    2026-09-17 09:30:41.165 wall=1789659041165 [applist] model: 29 rows, groups=A,C,D,F,G,K,M,O,P,S,T,W
+    2026-09-17 09:30:43.253 wall=1789659043253 [tile_anim] tile=shell:weather kind=FLIP uptime=2184583
+    2026-09-17 09:30:44.319 wall=1789659044319 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2185649
+    2026-09-17 09:30:47.006 wall=1789659047006 [notif] posted org.fossify.messages key=0|org.fossify.messages|1|null|10163 postTime=1789659046802
+    2026-09-17 09:30:47.006 wall=1789659047006 [badge] set org.fossify.messages NOTIFICATIONS=1 -> effective 1
+    2026-09-17 09:30:47.006 wall=1789659047006 [engine] publish pkg:org.fossify.messages faces=1 source=notification sourceTime=1789659046802
+    2026-09-17 09:30:47.022 wall=1789659047022 [render] tile=dock:slot:MESSAGING sourceTime=1789659046802 renderedAt=1789659047022 faces=1
+    2026-09-17 09:30:48.267 wall=1789659048267 [tile_anim] tile=shell:weather kind=FLIP uptime=2189598
+    2026-09-17 09:30:49.418 wall=1789659049418 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2190749
+    2026-09-17 09:30:50.122 wall=1789659050122 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=2191453
+    2026-09-17 09:30:53.390 wall=1789659053390 [tile_anim] tile=shell:weather kind=FLIP uptime=2194721
+    2026-09-17 09:30:54.535 wall=1789659054535 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2195866
+    2026-09-17 09:30:55.155 wall=1789659055155 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=2196486
+    2026-09-17 09:30:55.902 wall=1789659055902 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=none via=fused
+    2026-09-17 09:30:55.903 wall=1789659055903 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-17 09:30:57.757 wall=1789659057757 [weather] fetch ok provider=open-meteo ms=1853 grid=37.4162,-122.0803 tz=America/Los_Angeles current=2/62.9 hourly=240 daily=10 place=true
+    2026-09-17 09:30:57.765 wall=1789659057765 [engine] publish feed:weather faces=2 source=weather:open-meteo sourceTime=1789659057755
+    2026-09-17 09:30:57.765 wall=1789659057765 [weather] publish tile faces=2 temp=63° condition=2 stale=false fetchedAt=1789659057755
+    2026-09-17 09:30:57.787 wall=1789659057787 [render] tile=shell:weather sourceTime=1789659057755 renderedAt=1789659057787 faces=2
+    2026-09-17 09:30:58.703 wall=1789659058703 [tile_anim] tile=shell:weather kind=FLIP uptime=2200034
+    2026-09-17 09:30:59.644 wall=1789659059644 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2200975
+    2026-09-17 09:31:00.004 wall=1789659060004 [engine] publish feed:calendar faces=1 source=calendar sourceTime=1789659060003
+    2026-09-17 09:31:00.004 wall=1789659060004 [calendar] refresh (minute): access=true faces=1
+    2026-09-17 09:31:00.020 wall=1789659060020 [render] tile=slot:CALENDAR sourceTime=1789659060003 renderedAt=1789659060020 faces=1
+    2026-09-17 09:31:00.380 wall=1789659060380 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=2201711
+    2026-09-17 09:31:03.710 wall=1789659063710 [tile_anim] tile=shell:weather kind=FLIP uptime=2205041
+    2026-09-17 09:31:04.904 wall=1789659064904 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2206235
+    2026-09-17 09:31:05.518 wall=1789659065518 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=2206848
+    2026-09-17 09:31:08.833 wall=1789659068833 [tile_anim] tile=shell:weather kind=FLIP uptime=2210163
+    2026-09-17 09:31:10.162 wall=1789659070162 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2211492
+    2026-09-17 09:31:10.669 wall=1789659070669 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=2212000
+    2026-09-17 09:31:13.873 wall=1789659073873 [tile_anim] tile=shell:weather kind=FLIP uptime=2215204
+    2026-09-17 09:31:15.255 wall=1789659075255 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2216586
+    2026-09-17 09:31:15.589 wall=1789659075589 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=2216920
+    2026-09-17 09:31:18.933 wall=1789659078933 [tile_anim] tile=shell:weather kind=FLIP uptime=2220264
+    2026-09-17 09:31:20.519 wall=1789659080519 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2221849
+    2026-09-17 09:31:20.679 wall=1789659080679 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=2222009
+    2026-09-17 09:31:24.063 wall=1789659084063 [tile_anim] tile=shell:weather kind=FLIP uptime=2225393
+    2026-09-17 09:31:25.565 wall=1789659085565 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2226896
+    2026-09-17 09:31:25.753 wall=1789659085753 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=2227084
+    2026-09-17 09:31:29.028 wall=1789659089028 [tile_anim] tile=shell:weather kind=FLIP uptime=2230358
