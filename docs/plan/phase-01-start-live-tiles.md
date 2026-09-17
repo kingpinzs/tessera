@@ -280,4 +280,32 @@ Rows start from the baseline state and restore what they change (PLAN RV12); mot
 - Bottom tile row: a row app uninstalled (its tile shows unassigned, tap opens the picker); the default SMS app changes (the Messaging row tile follows); a version-1 layout store on upgrade (slot assignments kept, new default placements)
 
 ## QA evidence
-<!-- Filled during Stage C: docs/plan/qa/phase-01/ paths + date + verdicts (fable / codex / Jeremy). -->
+All under docs/plan/qa/phase-01/, 2026-09-17, run on the emulator (AVD tileshell_fhd, AOSP Android 36, 1080x2340 @ 450 dpi).
+
+| Rows | Evidence | Verdict |
+|---|---|---|
+| E1, E2 | E01/, E02/, and FINAL/ (the final APK, installed over a wiped state) | PASS |
+| E3 | E03/, FINAL/E03/ | PASS (14/14 tiles within 0.333 epx at 1440x3120, 720x1560, density 420 and 560, font 1.3) |
+| E4, E4b | E04/, FINAL/ | PASS (fixture swaps recorded in the Change Log; the picker crash and the bar-rule break it found are fixed) |
+| E5 | E05/, E05/E05_rerun_final_build.txt | PASS (render 225-227 ms; the preview face appears at the tile's next flip) |
+| E6, E7, E8 | E06/, E07/, E08/ | PASS |
+| E9, E9b | E09/ | PASS on data and attribution; page structure is H9 |
+| E10 | E10/ (two timing runs, exit and entrance captures, press styles), FINAL/E10/ | PASS; four motion defects found and fixed here |
+| E11 | E11/, FINAL/E11/ | PASS |
+| E12 | E12/, FINAL/ (the real "installed before onboarding" precondition) | PASS; caption placement fixed here |
+| E13 | E13/ | PASS (press styles measured in E10) |
+| E14 | E14/ | PASS |
+| E15, E16, E17 | E15/, E16/, E17/, SEC/ | PASS; the badge-on-live-face defect and the trust-surface holes were fixed here |
+| E18 | E18/ | PASS |
+| E19 | E19/, FINAL/E19/ (both inset sources visible=false on all four shell screens) | PASS |
+| E20 | E20/, FINAL/E20/ | PASS; three Back-history defects found and fixed here |
+| E21 | E21/, FINAL/E21/ | PASS |
+| Edge cases | EDGE/ (one file per group, EDGE.txt is the index) | PASS; two defects found and fixed |
+| X25 build-start check | X25/ | recorded (covered form, H34) |
+| Adversarial review of the Live Tile API | ../review/2026-09-17-phase01-livetile-adversarial.md, SEC/ | 11 findings, the HIGH and MEDIUM ones fixed |
+
+Reviews: ../review/2026-09-17-phase01-qa-codex.md (reviewer 2), the design review and the adversarial review with it,
+and ../review/2026-09-17-phase01-qa-triage.md for what happened to every finding.
+
+**Still open:** the NEEDS-HUMAN rows (see qa/phase-01/NEEDS-HUMAN.md) and the phone-only P rows, which wait for the
+S25 Ultra build.
