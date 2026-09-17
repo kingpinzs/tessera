@@ -1,0 +1,21 @@
+# E16 2026-09-17T13:43:45-06:00
+## adb shell (shell uid) calling the provider directly
+$ adb shell content call --uri content://app.tileshell.livetile --method tile.update --extra xml:s:...
+Result: Bundle[{detail=adb shell uid, v=1, ok=false, error=identity}]
+$ adb shell content call ... --method badge.update --extra value:i:9
+Result: Bundle[{detail=adb shell uid, v=1, ok=false, error=identity}]
+## tileclient-b targeting tileclient-a (owner extra)
+09-17 13:42:44.099  2957  3330 I TileClient: app.tileshell.testclient.a tile.clear: ok=true error=null detail=null
+09-17 13:43:00.924  2957  3396 I TileClient: app.tileshell.testclient.a badge.clear: ok=true error=null detail=null
+09-17 13:43:07.049  2957  3430 I TileClient: app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+## shared-uid pair (tileclient-b and tileclient-b2 share app.tileshell.testclient.shared)
+09-17 13:43:07.049  2957  3430 I TileClient: app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+09-17 13:43:07.049  2957  3430 I TileClient: app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+    2026-09-17 13:41:49.042 wall=1789674109042 [livetile] accept app.tileshell.testclient.a uid=10481 tile.update bindings=TileSmall,TileMedium,TileWide images=0 tag=q3 expiresAt=null xmlBytes=312
+    2026-09-17 13:41:49.044 wall=1789674109044 [livetile] accept app.tileshell.testclient.a uid=10481 tile.update bindings=TileSmall,TileMedium,TileWide images=0 tag=q4 expiresAt=null xmlBytes=312
+    2026-09-17 13:41:49.047 wall=1789674109047 [livetile] accept app.tileshell.testclient.a uid=10481 tile.update bindings=TileSmall,TileMedium,TileWide images=0 tag=q5 expiresAt=null xmlBytes=312
+    2026-09-17 13:42:44.099 wall=1789674164099 [livetile] accept app.tileshell.testclient.a uid=10481 tile.clear queue cleared
+    2026-09-17 13:43:00.923 wall=1789674180923 [livetile] accept app.tileshell.testclient.a uid=10481 badge.clear badge cleared
+    2026-09-17 13:43:07.049 wall=1789674187049 [livetile] accept app.tileshell.testclient.a uid=10481 tile.update bindings=TileSmall,TileMedium,TileWide images=0 tag=null expiresAt=1789674195044 xmlBytes=249
+    2026-09-17 13:43:44.488 wall=1789674224488 [livetile] reject ? uid=2000 tile.update reason=identity: adb shell uid
+    2026-09-17 13:43:45.406 wall=1789674225406 [livetile] reject ? uid=2000 badge.update reason=identity: adb shell uid

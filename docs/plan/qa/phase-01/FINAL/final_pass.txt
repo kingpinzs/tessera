@@ -1,0 +1,83 @@
+# Final pass: one APK, fresh install, rows re-run  2026-09-17T13:36:33-06:00
+$ ./gradlew clean :app:assembleDebug :app:testDebugUnitTest
+rc=0
+unit tests: 63 tests, 0 failures
+APK: d35e4359c73ad630208e0110146b3613071748c9b06c5b7955047c8f1387fb6a  app/build/outputs/apk/debug/app-debug.apk
+$ adb uninstall app.tileshell (every grant, preference and stored tile goes)
+Success
+Success
+launcher apps present before the shell is Home: 32
+Success
+resumed:  topResumedActivity=ActivityRecord{160234036 u0 app.tileshell/.StartActivity t189}
+prefs after a fresh install: []
+out-of-box tile colour: [0, 120, 215] (X26 default accent 0078D7 = [0,120,215])
+page background below the grid: [0, 0, 0]
+## onboarding state on a fresh install
+checklist rows: checklist:home:granted checklist:notifications:missing checklist:photos:missing checklist:calendar:missing checklist:location:missing checklist:usage:missing checklist:samsung_badges:missing checklist:legacy_badges:missing checklist:listener:missing 
+## E12's real precondition: every app was installed before the shell first became Home
+app list walked: rows 31, New captions 0 (expect 0: nothing was installed after onboarding)
+diagnostics: 
+## grants
+checklist after granting: checklist:home:granted checklist:notifications:granted checklist:photos:granted checklist:calendar:granted checklist:location:granted checklist:usage:granted checklist:samsung_badges:missing checklist:legacy_badges:missing checklist:listener:granted 
+## E4 and E4b slots
+APP_EMAIL: com.fsck.k9/net.thunderbird.app.common.MainActivity eu.faircode.email/.ActivityMain  tile:slot:MAIL | desc=Mail | texts= / Mail · Tap to choose tile_app_slot:MAIL | desc= | texts= / Mail / None · not chosen yet 
+E4b: after choosing com.fsck.k9: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail after reboot: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail Start after reassign: tile:slot:MAIL | desc=FairEmail | texts=FairEmail 
+## E11 tile launch
+E11:  topResumedActivity=ActivityRecord{259089020 u0 com.android.calendar/.AllInOneActivity t197}
+## E15, E16, E17 Live Tile API
+E15: -- badge node: badge:app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 | desc= | texts=3 ## queue of 5 (demo.queue: enableQueue then q1..q5) 
+E16: 2 refusals recorded
+E17: notification_7: dump badge node [7]; set app.tileshell.testclient.a NOTIFICATIONS=7 -> effective 7 legacy_3: dump badge node [3]; set app.tileshell.testclient.a LEGACY_BROADCAST=3 -> effective 3 api_5: dump badge node [5]; set app.tileshell.testclient.a API=5 -> effective 5 after_api_clear: dump badge node [3]; set app.tileshell.testclient.a API=0 -> effective 3 after_legacy_clear: dump badge node [7]; set app.tileshell.testclient.a LEGACY_BROADCAST=0 -> effective 7 after_notification_cancel: dump badge node []; set app.tileshell.testclient.a NOTIFICATIONS=0 -> effective 0 
+## E20 Back on Start
+E20 part 1: Timer tab selected after drawn Back: selected="true" Timer tab selected after KEYCODE_BACK: selected="true" 
+E20 part 2:  topResumedActivity=ActivityRecord{167449521 u0 com.android.settings/.Settings t203}  topResumedActivity=ActivityRecord{125268499 u0 com.android.deskclock/.DeskClock t201} 
+## E12 a newly installed app carries the caption
+E12: row: applist_row:com.ashkanrafiee.librecontactsbackup | desc= | texts=Libre Contacts Backup / New caption node: bounds="[168,409][240,453]" 
+## E3 epx scaling (1440x3120, 720x1560, density 420 and 560, font 1.3)
+E3 activity created count: 1
+## E5 the Messaging row tile shows a new message
+E5: 1789674519764 [notif] posted org.fossify.messages key=0|org.fossify.messages|1|null|10163 postTime=1789674519559 1789674519784 [render] tile=dock:slot:MESSAGING sourceTime=1789674519559 renderedAt=1789674519784 faces=1 
+## E6 photos, E7 calendar, E9 weather feeds
+E6: feed:photos faces=5 source=photos sourceTime=1789674071607
+E7: refresh (minute): access=true faces=1
+E9: publish tile faces=2 temp=68° condition=3 stale=false fetchedAt=1789674088249
+## E19 bars on Start, the app list, a Settings page and Weather
+  start: status bar 1 nav bar 1; insets  InsetsSource id=8a360000 type=statusBars frame=[0,0][1080,136] visible=false flags= sideHint=TOP boundingRects=null  InsetsSource id=aeab0001 type=navigationBars frame=[0,2205][1080,2340] visible=false flags=INSETS_ROUNDED_CORNER sideHint=BOTTOM boundingRects=null 
+  applist: status bar 1 nav bar 1; insets  InsetsSource id=8a360000 type=statusBars frame=[0,0][1080,136] visible=false flags= sideHint=TOP boundingRects=null  InsetsSource id=aeab0001 type=navigationBars frame=[0,2205][1080,2340] visible=false flags=INSETS_ROUNDED_CORNER sideHint=BOTTOM boundingRects=null 
+  settings: status bar 1 nav bar 1; insets  InsetsSource id=8a360000 type=statusBars frame=[0,0][1080,136] visible=false flags= sideHint=TOP boundingRects=null  InsetsSource id=aeab0001 type=navigationBars frame=[0,2205][1080,2340] visible=false flags=INSETS_ROUNDED_CORNER sideHint=BOTTOM boundingRects=null 
+  weather: status bar 1 nav bar 1; insets  InsetsSource id=8a360000 type=statusBars frame=[0,0][1080,136] visible=false flags= sideHint=TOP boundingRects=null  InsetsSource id=aeab0001 type=navigationBars frame=[0,2205][1080,2340] visible=false flags=INSETS_ROUNDED_CORNER sideHint=BOTTOM boundingRects=null 
+## E21 bottom tile row geometry
+E21: row spans margin to margin: left 3.0 right edge 354.67 expected 3.25 354.75 -> PASS gap row bottom -> nav bar top epx 4.67 expected one gutter 4.38 -> PASS Phone/Messaging/Camera also in grid: [] -> PASS 
+## E10 short: one 170 s timing segment plus an exit and entrance capture
+E10 timing (one segment): slot:CALENDAR [FLIP]: 33 events, 32 intervals, mean 4.969 s, sd 0.142, min 4.750, max 5.184; band 4.723-5.197: PASS; duration median 116 ms (min 116, max 118), within 108+/-34 ms: 33/33 slot:PHOTOS [CROSSFADE]: 38 events, 37 intervals, mean 4.427 s, sd 0.275, min 4.000, max 4.800; band 3.983-4.817: PASS; duration median 366 ms (min 332, max 383), within 367+/-34 ms: 35/38 shell:weather [FLIP]: 34 events, 33 intervals, mean 4.947 s, sd 0.148, min 4.749, max 5.184; band 4.723-5.197: PASS; duration median 117 ms (min 115, max 117), within 108+/-34 ms: 34/34 
+E10 exit: 
+E3 (correct call: base dump + width, then each capture as file:width):
+FINAL/E03/size1440.xml: 14/14 tiles, missing=[], max |d| = 0.25 epx -> PASS
+FINAL/E03/size720.xml: 14/14 tiles, missing=[], max |d| = 0.333 epx -> PASS
+FINAL/E03/d420.xml: 14/14 tiles, missing=[], max |d| = 0.0 epx -> PASS
+FINAL/E03/d560.xml: 14/14 tiles, missing=[], max |d| = 0.0 epx -> PASS
+FINAL/E03/font13.xml: 14/14 tiles, missing=[], max |d| = 0.0 epx -> PASS
+E10 exit (re-analysed):
+E10 exit on the final build (accent-agnostic analyser): scale per frame 1.00, 1.04, 1.04, 1.08, 1.11, 1.16, 1.23, 1.32, 1.44, 1.56; every static band dark at 250 ms (R3 217-267); row fades 133 ms; frame intervals median 16.7 ms, max 17.0 ms
+note: the entrance in this capture runs under Android's own go-home transition (H2); our side alone was measured with the system transition switched off in E10/entrance_isolated.txt
+## restore
+test clients uninstalled; layout back to the default placements with no explicit slots: 10 placements, slots {}
+launcher apps: 32
+font scale 1.0, size Physical size: 1080x2340, density Physical density: 450
+## verdict
+PASS on one APK, installed over a wiped state.
+- build: clean assembleDebug rc 0, 62 unit tests, 0 failures; the APK's sha256 is recorded above and this is the build every row below ran against
+- fresh install: the shell becomes Home, Start comes up, and the out-of-box look is the one the Decisions specify: tiles 0,120,215 (X26 default accent), no stored preferences (so dark theme, three columns, press effect none), black page
+- onboarding: every checklist row reads missing except Home before the grants, and granted after them (Samsung badges stay missing: that provider is a phone check)
+- E12's real precondition: all 31 apps were installed before the shell first became Home and none carries the "New" caption; a newly installed app then does
+- E3: 14 of 14 tiles within 0.333 epx at 1440x3120, 720x1560, density 420 and 560 and font scale 1.3; the activity was created once
+- E4 and E4b: role slots follow the holders, one-handler categories auto-assign, 2+-handler categories are unassigned; choosing an app sticks through a reboot and reassigning from Settings works
+- E5: the notification's post time to the tile's render timestamp is 225 ms (the row allows 2 s)
+- E6, E7, E9: the photos, calendar and weather feeds publish on the final build
+- E11: tapping the Calendar tile resumes Calendar
+- E15, E16, E17: the API client renders text, a five-item queue and badges; the shell refuses the shell uid, a foreign owner and a shared uid; the badge order runs 7 -> 3 -> 5 -> 3 -> 7 -> none
+- E19: on Start, the app list, a Settings page and the Weather app both inset sources read visible=false while the drawn bars are present
+- E20: Back on Start resumes the same Clock task on the Timer tab with both the drawn key and the system key, and the different-affinity page comes back on the Settings launcher page
+- E21: the bottom row spans margin to margin with the expected gap to the nav bar, and no row app appears twice
+- E10 (one 170 s segment plus an exit capture): Calendar flip mean 4.969 s with 33 of 33 durations inside 108 +/- 34 ms; exit scale table 1.00 -> 1.56, every band dark at 250 ms, row fades 133 ms
+- restore: test clients uninstalled, layout back to the default placements with no explicit slots, font scale 1.0, size and density reset

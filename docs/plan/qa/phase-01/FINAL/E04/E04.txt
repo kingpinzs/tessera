@@ -1,0 +1,72 @@
+# E4 run 2 (fixture swaps per INDEX Change Log 2026-09-17 QA-gate agent calls) 2026-09-17T13:39:06-06:00
+saved layout before E4 (restored at the end): 
+wrote layout with no explicit slots: 
+## role holders
+DIALER: com.android.dialer
+SMS: org.fossify.messages
+BROWSER: org.chromium.webview_shell
+## handlers per category after fixture swaps
+APP_EMAIL: com.fsck.k9/net.thunderbird.app.common.MainActivity eu.faircode.email/.ActivityMain 
+APP_MUSIC: org.akanework.gramophone/.ui.MainActivity org.oxycblt.auxio/.MainActivity 
+APP_MAPS: net.osmand.plus/.activities.MapActivity 
+APP_MARKET: org.fdroid.basic/org.fdroid.MainActivity org.fdroid.fdroid/org.fdroid.MainActivity 
+APP_GALLERY: com.android.gallery3d/.app.GalleryActivity deckers.thibault.aves.libre/deckers.thibault.aves.MainActivity 
+APP_CONTACTS: com.android.contacts/.activities.PeopleActivity 
+APP_CALENDAR: com.android.calendar/.AllInOneActivity 
+STILL_IMAGE_CAMERA: com.android.camera2/com.android.camera.CameraActivity net.sourceforge.opencamera/.MainActivity org.fossify.camera/.activities.MainActivity 
+VIEW https BROWSABLE: org.chromium.webview_shell/.WebViewBrowserActivity 
+## Start tiles (content-desc = app label when assigned, slot label when unassigned; grid labels add 'Tap to choose')
+tile:slot:PEOPLE | desc=Contacts | texts=Contacts
+tile:slot:BROWSER | desc=WebView Browser Tester | texts=WebView Browser Tester
+tile:slot:MAIL | desc=Mail | texts= / Mail · Tap to choose
+tile:slot:CALENDAR | desc=Calendar | texts=Thursday / 17 / Calendar
+tile:slot:PHOTOS | desc=Photos | texts=Photos
+tile:shell:weather | desc=Weather | texts=Cloudy / 67° / 72°/59° / Precip 0% / Weather
+tile:slot:STORE | desc=Store | texts=
+tile:slot:MAPS | desc=OsmAnd~ | texts=
+tile:slot:MUSIC | desc=Music | texts=
+tile:shell:settings | desc=Start settings | texts=
+tile:dock:slot:PHONE | desc=Phone | texts=
+tile:dock:slot:MESSAGING | desc=Messages | texts=5551234 / Dinner at 7? QA rerun / 1
+tile:dock:slot:CAMERA | desc=Camera | texts=
+## Settings > Tile apps
+tile_app_slot:PHONE | desc= | texts= / Phone / Phone · follows your default app
+tile_app_slot:MESSAGING | desc= | texts= / Messaging / Messages · follows your default app
+tile_app_slot:BROWSER | desc= | texts= / Browser / WebView Browser Tester · follows your default app
+tile_app_slot:MAIL | desc= | texts= / Mail / None · not chosen yet
+tile_app_slot:MUSIC | desc= | texts= / Music / None · not chosen yet
+tile_app_slot:MAPS | desc= | texts= / Maps / OsmAnd~ · Android's default
+tile_app_slot:STORE | desc= | texts= / Store / None · not chosen yet
+tile_app_slot:PHOTOS | desc= | texts= / Photos / None · not chosen yet
+tile_app_slot:PEOPLE | desc= | texts= / People / Contacts · Android's default
+tile_app_slot:CAMERA | desc= | texts= / Camera / None · not chosen yet
+tile_app_slot:CALENDAR | desc= | texts= / Calendar
+# E4b 2026-09-17T13:39:20-06:00
+reset to no explicit slots: 
+## tap unassigned Mail tile
+picker shown: 1; bars on the picker: status_bar=1 nav_back=1 nav_windows=1
+picker candidates: slot_candidate:com.fsck.k9 slot_candidate:eu.faircode.email 
+APP_EMAIL handlers: com.fsck.k9 eu.faircode.email 
+after choosing com.fsck.k9: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+layout slots: {'MAIL': 'com.fsck.k9/net.thunderbird.app.common.MainActivity'}
+## tap unassigned Camera row tile, then Back closes the picker
+camera picker candidates: slot_candidate:com.android.camera2 slot_candidate:net.sourceforge.opencamera slot_candidate:org.fossify.camera 
+picker after Back: 0; camera tile: tile:dock:slot:CAMERA | desc=Camera | texts=
+## Camera picker again, drawn Windows key closes it
+picker before Windows: 1; after Windows: 0; start_page: 1
+## force-stop
+$ adb shell am force-stop app.tileshell
+after force-stop: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+$ adb shell am force-stop com.fsck.k9
+after force-stop of the assigned app: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+## reboot
+after reboot: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+## reassign from Settings > Tile apps
+before: tile_app_slot:MAIL | desc= | texts= / Mail / K-9 Mail · you chose this
+picker candidates: slot_candidate:com.fsck.k9 slot_candidate:eu.faircode.email ; bars: status_bar=1 nav_back=1 nav_windows=1
+Back on the Settings picker: picker=0 tile_apps_rows=1
+after: tile_app_slot:MAIL | desc= | texts= / Mail / FairEmail · you chose this
+Start after reassign: tile:slot:MAIL | desc=FairEmail | texts=FairEmail
+layout slots: {'MAIL': 'eu.faircode.email/eu.faircode.email.ActivityMain'}
+$ crash buffer since this run
+0

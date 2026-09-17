@@ -1,0 +1,46 @@
+# E20 2026-09-17T13:44:55-06:00
+$ adb shell appops get app.tileshell GET_USAGE_STATS
+GET_USAGE_STATS: allow; time=+4s459ms ago
+$ adb shell am start -n com.android.deskclock/.DeskClock
+Starting: Intent { cmp=com.android.deskclock/.DeskClock }
+Alarm tab at: 120 237; Timer selected on Alarm tab: selected="false"
+Timer tab at: 604 237
+Timer selected after tapping Timer: selected="true"
+deskclock pid before Home: 4059
+$ tasks before Home
+  * Task{4f8c50 #201 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{125268499 u0 com.android.deskclock/.DeskClock t201}
+      * Task{4f8c50 #201 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+drawn Back at: 180 2268
+$ after drawn Back: resumed + deskclock task
+deskclock pid after drawn Back: 4059
+  * Task{4f8c50 #201 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{125268499 u0 com.android.deskclock/.DeskClock t201}
+      * Task{4f8c50 #201 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+Timer tab selected after drawn Back: selected="true"
+    2026-09-17 13:45:14.208 wall=1789674314208 [back] events=32 keyguards=0 candidate=Resumed(pkg=com.android.deskclock, cls=com.android.deskclock.DeskClock) -> com.android.deskclock/.DeskClock
+    2026-09-17 13:45:14.570 wall=1789674314570 [launch] tile=back target=App(entry=AppEntry(component=ComponentInfo{com.android.deskclock/com.android.deskclock.DeskClock}, user=UserHandle{0}, label=Clock, profile=MAIN, isSystem=true, firstInstallTime=1789653839295))
+    2026-09-17 13:45:14.570 wall=1789674314570 [motion] start exit finished tile=back
+E19 reveal method, swipe from top edge: TransientControlTarget count 2
+$ after KEYCODE_BACK: resumed + deskclock task
+  * Task{4f8c50 #201 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+    topResumedActivity=ActivityRecord{125268499 u0 com.android.deskclock/.DeskClock t201}
+      * Task{4f8c50 #201 type=standard A=10105:com.android.deskclock U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+Timer tab selected after KEYCODE_BACK: selected="true"
+    2026-09-17 13:45:23.902 wall=1789674323902 [back] events=34 keyguards=0 candidate=Resumed(pkg=com.android.deskclock, cls=com.android.deskclock.DeskClock) -> com.android.deskclock/.DeskClock
+## different-affinity page (X24)
+$ adb shell am start -a android.settings.WIFI_SETTINGS
+Starting: Intent { act=android.settings.WIFI_SETTINGS }
+    topResumedActivity=ActivityRecord{142430172 u0 com.android.settings/.Settings$WifiSettingsActivity t202}
+$ after drawn Back
+    topResumedActivity=ActivityRecord{167449521 u0 com.android.settings/.Settings t203}
+page title nodes after Back: 
+    2026-09-17 13:45:40.820 wall=1789674340820 [back] events=37 keyguards=0 candidate=Resumed(pkg=com.android.settings, cls=com.android.settings.Settings$WifiSettingsActivity) -> com.android.settings/.Settings
+    2026-09-17 13:45:41.168 wall=1789674341168 [launch] startMainActivity com.android.settings/.Settings user=0
+## lock step (X12)
+    topResumedActivity=ActivityRecord{125268499 u0 com.android.deskclock/.DeskClock t201}
+$ after sleep / wake / dismiss-keyguard
+    topResumedActivity=ActivityRecord{125268499 u0 com.android.deskclock/.DeskClock t201}
+$ after drawn Back on Start
+    topResumedActivity=ActivityRecord{125268499 u0 com.android.deskclock/.DeskClock t201}
+    2026-09-17 13:46:00.965 wall=1789674360965 [back] events=41 keyguards=0 candidate=Resumed(pkg=com.android.deskclock, cls=com.android.deskclock.DeskClock) -> com.android.deskclock/.DeskClock

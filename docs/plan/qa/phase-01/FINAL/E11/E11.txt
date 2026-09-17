@@ -1,0 +1,13 @@
+# E11 2026-09-17T13:41:02-06:00
+calendar tile center: 358 610
+tap at device uptime 60.92 s
+$ adb shell dumpsys activity activities | grep -i resumed
+    topResumedActivity=ActivityRecord{259089020 u0 com.android.calendar/.AllInOneActivity t197}
+      state=RESUMED delayedResume=false finishing=false
+  Resumed activities in task display areas (from top to bottom):
+    Resumed: ActivityRecord{259089020 u0 com.android.calendar/.AllInOneActivity t197}
+  ResumedActivity: ActivityRecord{259089020 u0 com.android.calendar/.AllInOneActivity t197}
+$ diagnostics (launch + motion lines)
+    2026-09-17 13:41:07.857 wall=1789674067857 [launch] startMainActivity com.android.calendar/.AllInOneActivity user=0
+    2026-09-17 13:41:07.857 wall=1789674067857 [launch] tile=slot:CALENDAR target=App(entry=AppEntry(component=ComponentInfo{com.android.calendar/com.android.calendar.AllInOneActivity}, user=UserHandle{0}, label=Calendar, profile=MAIN, isSystem=true, firstInstallTime=1789653839298))
+    2026-09-17 13:41:07.857 wall=1789674067857 [motion] start exit finished tile=slot:CALENDAR
