@@ -25,6 +25,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import app.tileshell.brand.Glyph
 import app.tileshell.prefs.PressStyle
@@ -77,7 +80,8 @@ fun StartThemePage() {
                         Modifier.size(44.dp).background(Color(argb))
                             .let { if (selected) it.border(3.dp, colors.text) else it }
                             .pointerInput(argb) { detectTapGestures { settings.update { it.copy(accent = argb) } } }
-                            .testTag("accent:$name"),
+                            .testTag("accent:$name")
+                            .semantics { contentDescription = name; this.selected = selected },
                     )
                     Spacer(Modifier.width(4.dp))
                 }

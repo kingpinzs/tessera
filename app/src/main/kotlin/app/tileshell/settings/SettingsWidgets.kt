@@ -27,10 +27,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.tileshell.brand.Brand
+import kotlin.math.roundToInt
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.components.PressRow
 import app.tileshell.ui.tokens.ShellType
@@ -75,7 +85,11 @@ fun ToggleRow(label: String, checked: Boolean, tag: String, onChange: (Boolean) 
     val colors = LocalShellColors.current
     Column(Modifier.fillMaxWidth().padding(start = 12.dp, top = 8.dp, bottom = 8.dp)) {
         BasicText(label, style = ShellType.body.copy(color = colors.text))
-        Row(Modifier.padding(top = 6.dp).pointerInput(checked) { detectTapGestures { onChange(!checked) } }.testTag(tag), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.padding(top = 6.dp).pointerInput(checked) { detectTapGestures { onChange(!checked) } }.testTag(tag)
+                .semantics { role = Role.Switch; toggleableState = ToggleableState(checked) },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Box(
                 Modifier.size(44.dp, 20.dp)
                     .background(if (checked) colors.accent else Color.Transparent, CircleShape)
@@ -99,6 +113,8 @@ fun SliderRow(label: String, value: Float, tag: String, onChange: (Float) -> Uni
         BasicText(label, style = ShellType.body.copy(color = colors.text))
         Box(
             Modifier.fillMaxWidth().height(32.dp).onSizeChanged { widthPx = it.width.toFloat() }.testTag(tag)
+                // The value has no visible text in the W10M slider, so accessibility (and the QA dump) reads it here.
+                .semantics { contentDescription = "$label ${(value * 100).roundToInt()} %"; progressBarRangeInfo = ProgressBarRangeInfo(value, 0f..1f) }
                 .pointerInput(Unit) {
                     detectTapGestures { onChange((it.x / widthPx).coerceIn(0f, 1f)) }
                 }
@@ -118,7 +134,7 @@ fun SliderRow(label: String, value: Float, tag: String, onChange: (Float) -> Uni
 @Composable
 fun RadioRow(label: String, selected: Boolean, tag: String, onSelect: () -> Unit) {
     val colors = LocalShellColors.current
-    PressRow(onSelect, Modifier.fillMaxWidth().height(44.dp).testTag(tag)) {
+    PressRow(onSelect, Modifier.fillMaxWidth().height(44.dp).testTag(tag).semantics { role = Role.RadioButton; this.selected = selected }) {
         Row(Modifier.padding(start = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(20.dp).border(2.dp, colors.text, CircleShape), contentAlignment = Alignment.Center) {
                 if (selected) Box(Modifier.size(10.dp).background(colors.text, CircleShape))
