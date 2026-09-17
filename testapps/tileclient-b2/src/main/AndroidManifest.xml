@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shares a uid with tileclient-b (E16 shared-uid case). Both are signed with the same debug key. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    android:sharedUserId="app.tileshell.testclient.shared">
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Package visibility for ShortcutBadger-style receiver resolution (queryBroadcastReceivers). -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.BADGE_COUNT_UPDATE" />
+        </intent>
+        <intent>
+            <action android:name="me.leolin.shortcutbadger.BADGE_COUNT_UPDATE" />
+        </intent>
+    </queries>
+
+    <application
+        android:icon="@android:drawable/sym_def_app_icon"
+        android:label="Tile client B2">
+
+        <activity
+            android:name="app.tileshell.testclient.VerbActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="app.tileshell.testclient.TestImageProvider"
+            android:authorities="${applicationId}.images"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+    </application>
+</manifest>

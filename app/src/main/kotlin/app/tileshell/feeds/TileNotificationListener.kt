@@ -4,6 +4,7 @@ import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import app.tileshell.diag.Diagnostics
+import app.tileshell.tiles.api.LiveTileStore
 import app.tileshell.tiles.engine.BadgeStore
 import app.tileshell.tiles.engine.FaceTransition
 import app.tileshell.tiles.engine.LiveTileEngine
@@ -70,6 +71,8 @@ class TileNotificationListener : NotificationListenerService() {
         val mine = active().filter { it.packageName == pkg && eligible(it) }.sortedByDescending { it.postTime }
         val count = mine.sumOf { maxOf(1, it.notification.number) }
         BadgeStore.set(pkg, BadgeStore.Source.NOTIFICATIONS, count)
+        // Preview precedence (phase 01 Decisions): an app's Live Tile API queue owns its preview; notifications still count.
+        if (pkg in LiveTileStore.get(this).previewOwners) return
         val faces = mine.take(3).map { sbn ->
             val extras = sbn.notification.extras
             val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty()
