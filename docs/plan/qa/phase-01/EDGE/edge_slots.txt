@@ -58,3 +58,14 @@ tiles on Start: slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR slot:PHOTOS she
 ## restore
 layout restored to the baseline: 10 placements, slots {'PHOTOS': 'deckers.thibault.aves.libre/deckers.thibault.aves.MainActivity'}
 fixtures reinstalled: K-9, FairEmail, Open Camera; Etar removed; SMS holder org.fossify.messages
+## rerun after the fix (Reviewer 2 finding: the Decisions say an uninstalled or disabled assigned app leaves the slot unassigned, the build fell back to another handler)
+Mail assigned to K-9: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+$ adb uninstall com.fsck.k9: Success
+after uninstalling the assigned app: tile:slot:MAIL | desc=Mail | texts= / Mail · Tap to choose
+explicit MAIL -> com.fsck.k9/net.thunderbird.app.common.MainActivity is not launchable; the slot is unassigned until it returns
+$ adb install K-9 back: Success
+after reinstalling it: tile:slot:MAIL | desc=K-9 Mail | texts=K-9 Mail
+$ adb shell pm disable-user deckers.thibault.aves.libre (Photos is explicitly assigned to it): Package deckers.thibault.aves.libre new state: disabled-user
+Photos tile with its assigned app disabled: tile:slot:PHOTOS | desc=Photos | texts=Photos
+$ adb shell pm enable deckers.thibault.aves.libre: Package deckers.thibault.aves.libre new state: enabled
+after enabling it again: tile:slot:PHOTOS | desc=Aves Libre | texts=Aves Libre

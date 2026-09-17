@@ -15,7 +15,8 @@ import app.tileshell.diag.Diagnostics
 
 /**
  * Resolves a default-layout slot to an app (phase 01 Decisions, interview Q1 and the derived line):
- * - an explicit assignment always sticks while its app is still launchable;
+ * - an explicit assignment always sticks; while its app is not launchable the slot is unassigned rather than
+ *   falling back to another app (Decisions: "assigned app uninstalled or disabled -> slot becomes unassigned");
  * - role slots follow Android's role holder (default dialer, default SMS app, default browser);
  * - category slots are auto-assigned only when Android resolves exactly one app or a preferred app for the
  *   category intent (not the chooser); otherwise the slot is unassigned.
@@ -26,7 +27,10 @@ class SlotResolver(private val context: Context, private val catalog: AppCatalog
     fun resolve(slot: Slot, explicit: Map<Slot, ComponentName>): AppEntry? {
         explicit[slot]?.let { cn ->
             catalog.find(cn)?.let { return it }
-            Diagnostics.add("slots", "explicit ${slot.name} -> ${cn.flattenToShortString()} no longer launchable; slot falls back")
+            // Decisions: "assigned app uninstalled or disabled -> slot becomes unassigned". The assignment is kept, so
+            // the slot shows that app again if it comes back, but nothing is chosen for the user in the meantime.
+            Diagnostics.add("slots", "explicit ${slot.name} -> ${cn.flattenToShortString()} is not launchable; the slot is unassigned until it returns")
+            return null
         }
         val pkg = when {
             slot.role != null -> roleHolderPackage(slot)
