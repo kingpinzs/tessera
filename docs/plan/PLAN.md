@@ -59,6 +59,7 @@ search at the top, live folders, and a full-screen background image showing thro
 - App launch and return transitions
 - App list: swipe left from Start, search box, New caption on newly installed apps (R3 A13), A-Z list with letter jump-grid
 - Edit mode: long-press to rearrange, resize, unpin; live folders
+- Bottom tile row (post-FINAL change 2026-09-17, Jeremy; P4 design, not in W10M): one fixed row of up to 6 small tiles above the nav bar, default Phone, Messaging, Camera; tiles move in and out in edit mode (phase 02)
 - Settings screens in Windows 10 Mobile style (a permanent hub from phase 1; each phase adds its own page)
 - Onboarding/health checklist (from phase 1; each phase adds its own permission and liveness rows)
 - Start layout persistence and app uninstall/update handling (no backup, no export/import: Jeremy, 2026-09-16)
