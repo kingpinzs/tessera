@@ -1,7 +1,7 @@
 # metro-launcher — build index
 
 mode: standard
-reviewers: fable + codex-mcp (Stage A rounds 1-3, 2026-09-16); fable + fable (phase-doc review round 1, 2026-09-16: codex out, CLI exit 1 untrusted dir + MCP usage limit until 2026-09-19); opus + opus (phase-doc review round 2, 2026-09-16: Fable limit reached (HTTP 429), Jeremy approved Opus); opus + opus (phase-doc review round 3, the last, 2026-09-17)
+reviewers: fable + codex-mcp (Stage A rounds 1-3, 2026-09-16); fable + fable (phase-doc review round 1, 2026-09-16: codex out, CLI exit 1 untrusted dir + MCP usage limit until 2026-09-19); opus + opus (phase-doc review round 2, 2026-09-16: Fable limit reached (HTTP 429), Jeremy approved Opus); opus + opus (phase-doc review round 3, the last, 2026-09-17); codex-mcp + opus, plus an opus adversarial reviewer on the Live Tile API trust surface (phase 01 QA gate, 2026-09-17: the Fable subagents stopped at the Fable limit, HTTP 429, and Jeremy's earlier approval of Opus applies)
 
 **Bootstrap a fresh conversation with:** "Load the phased-build skill, read docs/plan/INDEX.md, continue the build."
 Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules). Plan source: [PLAN.md](PLAN.md) · Build prompt: [build-prompt.md](build-prompt.md)
