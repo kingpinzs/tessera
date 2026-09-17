@@ -78,4 +78,14 @@ class AppIndexTest {
         assertEquals(listOf("微信"), AppIndex.search(labels, { AppIndex.normalize(it) }, "微"))
         assertEquals(listOf("Ёлка"), AppIndex.search(labels, { AppIndex.normalize(it) }, "елка"))
     }
+
+    @Test
+    fun searchMatchesNonLatinLabels() {
+        // adb input text cannot type these, so the matching is checked here (the grouping is checked on the device).
+        val labels = listOf("日本語アプリ", "北京地图", "Азбука", "Ελλάδα", "한국어 앱", "App Test 001")
+        assertEquals(listOf("日本語アプリ"), AppIndex.search(labels, { AppIndex.normalize(it) }, "日本"))
+        assertEquals(listOf("Азбука"), AppIndex.search(labels, { AppIndex.normalize(it) }, "азб"))
+        assertEquals(listOf("Ελλάδα"), AppIndex.search(labels, { AppIndex.normalize(it) }, "ελλ"))
+        assertEquals(listOf("한국어 앱"), AppIndex.search(labels, { AppIndex.normalize(it) }, "앱"))
+    }
 }

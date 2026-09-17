@@ -1,0 +1,48 @@
+# Phase 01 edge cases (the phase doc's Edge cases list), 2026-09-17
+Each file below holds the commands, the readings and the restore for one group.
+
+edge_slots.txt        assigned app uninstalled or disabled; role holder changed; a category's Android default changing
+                      after an auto-assignment and after an explicit one; no app handling a category (empty picker);
+                      a bottom-row app uninstalled; a version-1 layout store upgrading.
+                      DEFECT fixed: a role slot did not follow a role change (commit 9d7a248).
+edge_notifications.txt no usable content; group summary and children; updated in place; dismissed; ongoing; a channel
+                      with badges off; secret and private visibility; Android's own aggregate summary.
+edge_api.txt          DTD, external entity and entity expansion; malformed XML; an image URI with the shell's own
+                      authority and with an authority the caller does not own; an oversized image; queue overflow past
+                      five; the 60-per-minute rate limit; the API app uninstalled; the per-app kill switch.
+edge_counts.txt       three sources disagreeing (API wins, never summed); a legacy broadcast past its three days.
+edge_photos.txt       no images; a very large image; one deleted while the tile cycles; permission revoked; partial
+                      access (the checklist reads "partial").
+edge_background.txt   none set; a picture chosen; the file deleted afterwards; a very large picture; media permission
+                      revoked while one is set.
+edge_calendar.txt     no calendars; an all-day event and two overlapping events; permission revoked.
+edge_music.txt        several sessions (the playing one wins); no artwork; the player killed mid-playback.
+edge_weather.txt      location permission revoked; location services off; moving to a new location; region units
+                      (F -> C through the device region).
+edge_locale.txt       the shell's locale changed (calendar day name and app labels follow; the shell's own strings are
+                      English in phase 01); a time zone change; the 12/24-hour setting.
+                      DEFECT fixed: the drawn clock ignored both (commit 2060d53).
+edge_interaction.txt  rapid taps; taps landing during flips; an app that cannot start; the system bars revealed over
+                      the drawn ones; accent changed while the tiles animate.
+edge_liveness.txt     notification access turned off and on again; a crash loop (Android drops the shell as preferred
+                      Home and shows its chooser; choosing Start and Always brings it back).
+edge_applist_scale.txt 331 launcher entries; 60 apps under one letter; ten non-Latin names in the "#" group; the "New"
+                      caption at scale. Non-Latin search is covered by AppIndexTest.searchMatchesNonLatinLabels
+                      (adb input text is ASCII only).
+edge_profiles.txt     a profile added and removed while the app list is open.
+
+Covered by acceptance rows rather than repeated here:
+- runtime density, window size and font-scale changes, including HD+ at 2 px/epx: E3
+- Back on Start: no eligible app since boot, keyguard since the last app, an excluded activity latest, a different
+  affinity, Usage access revoked: E20 (its first lock run, with the AVD's lock screen disabled, is also the
+  "screen off and on with no keyguard shown" case: the history is kept and the app resumes)
+- reboot: E20 and E4b; 3-button nav reveal and auto-hide: E19; Home on Start scrolling to the top: E19/E20
+- API app queue, expiry, badge order: E15 and E17; work profile and private space: E18
+
+Phone-only (P rows, Jeremy's S25 Ultra): Secure Folder not exposed on One UI, Device care optimise, 24 h idle,
+One UI Home as the crash-loop fallback, Samsung's badge provider, a revealed Samsung bar over the drawn one.
+
+## verdict
+PASS. Every emulator-testable case in the phase doc's list was exercised with the commands and readings in these
+files, each group restoring what it changed. Two defects were found and fixed (role slots not following a role
+change; the drawn clock ignoring the time zone and the 12/24-hour setting), each with its own evidence above.

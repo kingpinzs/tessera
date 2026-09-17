@@ -1,0 +1,31 @@
+# Edge cases: photos 2026-09-17T12:22:11-06:00
+start: feed:photos faces=5 source=photos sourceTime=1789669188308 | refresh (start): access=GRANTED photos=5
+## no images at all
+with no images: feed:photos faces=5 source=photos sourceTime=1789669330792 | refresh (mediastore change): access=GRANTED photos=5
+## a very large image (8000x6000, 38 MB)
+with one very large image: feed:photos faces=5 source=photos sourceTime=1789669341101 | refresh (mediastore change): access=GRANTED photos=5
+crashes since: 0
+## the QA photos back, then one deleted while the tile cycles
+restored: feed:photos faces=5 source=photos sourceTime=1789669353735
+after deleting one while cycling: feed:photos faces=4 source=photos sourceTime=1789669363738 | refresh (mediastore change): access=GRANTED photos=4; crashes 0
+## permission revoked
+with the permission revoked: feed:photos faces=0 source=null sourceTime=null | no media access (start)
+checklist photos row: checklist:photos:missing
+## partial access (READ_MEDIA_VISUAL_USER_SELECTED only)
+checklist photos row: checklist:photos:partial; tile: feed:photos faces=0 source=null sourceTime=null | refresh (start): access=PARTIAL photos=0
+## restore
+restored: feed:photos faces=4 source=photos sourceTime=1789669400215 | refresh (start): access=GRANTED photos=4; photos on the device: qa_photo_1.jpg qa_photo_2.jpg qa_photo_4.jpg qa_photo_5.jpg 
+## rerun: the first 'no images' step only moved the files to another folder of the same volume, so MediaStore kept them. Photos pulled to the host, then deleted on the device (the delete itself first failed because the shell expanded the glob locally):
+files left: []
+with no images: feed:photos faces=0 source=null sourceTime=null | refresh (start): access=GRANTED photos=0
+## a very large image as the only photo (8000x6000 noise, 38 MB)
+with only the large image (indexed with content call scan_file; scan_volume alone had not picked it up): feed:photos faces=1, no crash; the tile drew the noise image (tile mean colour 127,127,127, std 24.9), so the 8000x6000 / 38 MB photo is downsampled and drawn
+## restore: the five QA photos back (qa_photo_3 regenerated on the host after the delete test), the large image removed
+photos on the device: qa_photo_1.jpg qa_photo_2.jpg qa_photo_3.jpg qa_photo_4.jpg qa_photo_5.jpg 
+feed after indexing each file (scan_file per photo; scan_volume alone did not pick them up): feed:photos faces=5 source=photos sourceTime=1789669657346
+## reading
+no images at all: the feed publishes nothing (faces=0, "photos=0") and the tile shows its logo face; no crash
+one very large image (8000x6000, 38 MB): decoded, downsampled and drawn as the tile's photo face; no crash
+an image deleted while the tile cycles: the feed republishes with one face fewer (5 -> 4); no crash
+permission revoked (READ_MEDIA_IMAGES and READ_MEDIA_VISUAL_USER_SELECTED): the feed publishes nothing ("no media access") and the checklist row reads checklist:photos:missing
+partial access (READ_MEDIA_VISUAL_USER_SELECTED only, nothing selected): the checklist row reads checklist:photos:partial and the feed has no photos to show ("access=PARTIAL photos=0")

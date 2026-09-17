@@ -1,0 +1,28 @@
+# Edge cases: Start background picture 2026-09-17T12:44:57-06:00
+## none set (baseline)
+gutter [233, 30, 47] below-grid [0, 0, 0]
+## a picture chosen
+gutter [210, 154, 135] below-grid [239, 200, 60]
+prefs: <string name="background">content://media/picker/0/com.android.providers.media.photopicker/media/28</string>
+## the picked file deleted from the device
+picked media id 28 -> file: Row: 0 _id=28, _data=/storage/emulated/0/DCIM/Camera/qa_photo_3.jpg
+## the picked file deleted from the device (media id 28 = qa_photo_3.jpg; the first attempt deleted the wrong file and the background stayed, correctly)
+after deleting it (shell restarted): gutter [209, 125, 131] below-grid [0, 0, 0]
+crashes: 0
+prefs still hold the URI: <string name="background">content://media/picker/0/com.android.providers.media.photopicker/media/28</string>
+## a very large image (8000x6000, 38 MB) as the background
+picked the newest image (the huge one) by tapping the first thumbnail: pref <string name="background">content://media/picker/0/com.android.providers.media.photopicker/media/28</string>
+crashes: 0
+picked the huge image (media/46): below-grid mean 127,127,127 std 25.1 (the noise image fills the page), no crash
+## media permission revoked while a background is set
+below-grid mean [127, 127, 127] std 25.1
+crashes: 0
+## restore
+picture removed and the huge file deleted: prefs 0 background entries; photos on the device: qa_photo_1.jpg qa_photo_2.jpg qa_photo_3.jpg qa_photo_4.jpg qa_photo_5.jpg 
+below-grid mean [0, 0, 0]
+## reading
+none set: the page below the grid is black
+a picture chosen through the system photo picker: it shows in the gutters and through the tiles (E13 has the pixel figures)
+the picked file deleted from the device: the background disappears (the page goes black again), no crash, and the URI stays in the settings so the picture returns if the file does
+a very large picture (8000x6000, 38 MB): drawn as the background, no crash
+media permission revoked while a background is set: the background keeps drawing, because the photo picker URI carries its own persistent grant, independent of READ_MEDIA_IMAGES

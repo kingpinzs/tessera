@@ -1,0 +1,24 @@
+# Edge cases: weather 2026-09-17T12:35:13-06:00
+## location permission revoked
+feed: refresh ended without new data: no coordinates problems=[NO_PERMISSION] publish tile faces=2 temp=65° condition=3 stale=false fetchedAt=1789669918834 
+checklist location row: checklist:location:missing
+weather tile: tile:shell:weather | desc=Weather | texts= / Weather
+## location services off (permission granted again)
+feed: fetch ok provider=open-meteo ms=1885 grid=37.4162,-122.0803 tz=America/Los_Angeles current=3/65.3 hourly=240 daily=10 place=true publish tile faces=2 temp=65° condition=3 stale=false fetchedAt=1789670134541 
+## a new location (emulator geo fix to Denver)
+feed: fetch ok provider=open-meteo ms=856 grid=37.4162,-122.0803 tz=America/Los_Angeles current=3/65.3 hourly=240 daily=10 place=true publish tile faces=2 temp=65° condition=3 stale=false fetchedAt=1789670145871 
+weather page: location weather_location | desc= | texts=Denver, temp weather_current_temp | desc= | texts=78°
+## units change (F -> C) on the Weather page
+## region units change (Decisions: units = device region; the C / F labels on the page are indicators, not buttons - tapping C changed nothing)
+$ adb shell cmd locale set-app-locales app.tileshell --locales en-GB
+feed: publish tile faces=2 temp=78° condition=3 stale=false fetchedAt=1789670162755 refresh start reason=start units=METRIC 
+weather page in en-GB: temp weather_current_temp | desc= | texts=26°, feels/wind weather_feels_wind | desc= | texts=Feels Like 27°    Wind NNW 4 km/h, barometer weather_barometer_humidity | desc= | texts=Barometer 1013 mb    Humidity 44%, day 0 weather_day_0 | desc= | texts=Thu 17 /  / 30° / 18° / Light Drizzle
+## restore
+feed: publish tile faces=2 temp=26° condition=3 stale=false fetchedAt=1789670263185 refresh start reason=start units=IMPERIAL 
+location_mode 3; app locale [Locales for app.tileshell for user 0 are []]
+## reading
+location permission revoked: the refresh ends with "no coordinates problems=[NO_PERMISSION]", the tile keeps its last conditions, and the checklist row reads checklist:location:missing
+location services off (permission granted): the feed still fetches with the last known coordinates and the tile keeps updating
+moving to a new location (emulator geo fix to Denver): the next refresh fetches the new grid (39.74471,-105.02203, America/Denver) and the Weather page shows "Denver" at 78 deg F
+region units change: the units follow the device region per the Decisions (the C / F labels on the page are indicators, tapping them changes nothing); with the shell's locale set to en-GB the feed refreshes with units=METRIC and the page reads 26 deg, "Wind NNW 4 km/h", "Barometer 1013 mb"
+provider error or timeout and data past the stale threshold: E9 (airplane mode, clock +61 min)

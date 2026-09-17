@@ -1,0 +1,19 @@
+# Edge cases: liveness 2026-09-17T12:54:24-06:00
+## notification access turned off in Settings
+listeners before: app.tileshell/app.tileshell.feeds.TileNotificationListener
+listeners now: []
+checklist rows: checklist:home:granted checklist:notifications:missing checklist:photos:granted checklist:calendar:granted checklist:location:granted checklist:usage:granted checklist:samsung_badges:missing checklist:legacy_badges:missing checklist:listener:missing 
+diagnostics: No services match: app.tileshell/.feeds.TileNotificationListener Use -h for help. 
+checklist rows after allowing it again: checklist:home:granted checklist:notifications:granted checklist:photos:granted checklist:calendar:granted checklist:location:granted checklist:usage:granted checklist:samsung_badges:missing checklist:legacy_badges:missing checklist:listener:granted 
+## crash loop (am crash five times)
+home role holder: app.tileshell
+resumed now:  topResumedActivity=ActivityRecord{120541241 u0 android/com.android.internal.app.ResolverActivity t172}
+crash entries: 3
+Start after the loop: start_page 0, tiles 0
+after the loop Android shows its Home chooser (the preferred Home was cleared, the role holder is still app.tileshell):
+chooser items: text="" text="" text="" text="" text="" text="Select a Home app" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="Start" text="" text="" text="" text="Quickstep" t
+chose Start then Always in the chooser: resumed  topResumedActivity=ActivityRecord{72000 u0 app.tileshell/.StartActivity t174}; start_page 1, tiles 13
+## reading
+notification access turned off: the listener service disconnects (dumpsys has no service) and the checklist row reads checklist:notifications:missing; allowing it again reconnects and the row reads granted
+crash loop (am crash five times): Android clears the shell as the preferred Home and shows its Home chooser; the HOME role holder is still app.tileshell. Choosing Start and Always brings Start back as Home with its tiles intact. On the phone the fallback is One UI Home (P row)
+reboot recovery: E20's reboot step

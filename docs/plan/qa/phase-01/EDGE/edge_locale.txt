@@ -1,0 +1,32 @@
+# Edge cases: locale, timezone and date 2026-09-17T12:38:37-06:00
+## the shell's locale set to fr-FR
+Calendar tile: tile:slot:CALENDAR | desc=Agenda | texts=jeudi / 17 / Agenda
+status bar: w10m_status_bar | desc= | texts= /  /  / 12:38
+Mail tile label: tile:slot:MAIL | desc=Mail | texts= / Mail · Tap to choose
+app list headers in fr-FR: A C D F 
+search box: applist_search | desc= | texts=Search / 
+## restore the locale
+Calendar tile after restore: tile:slot:CALENDAR | desc=Calendar | texts=Calendar
+note: the shell's own strings stay English under another locale (no translations in phase 01): the unassigned Mail tile still reads 'Mail - Tap to choose' and the search box 'Search', while app labels and the calendar day name come from Android and are translated ('Agenda', 'jeudi')
+## timezone change
+timezone before: America/Boise
+status bar before: w10m_status_bar | desc= | texts= /  /  / 12:39 PM
+timezone now: America/New_York; device time Thu Sep 17 14:39:43 EDT 2026
+status bar after: w10m_status_bar | desc= | texts= /  /  / 12:39 PM
+Calendar tile: tile:slot:CALENDAR | desc=Calendar | texts=Calendar
+## restore the timezone
+timezone restored: America/Boise; status bar: w10m_status_bar | desc= | texts= /  /  / 12:39 PM; host time 12:40
+## rerun after the fix (the clock formatted with the process's cached zone and ignored the 12/24-hour setting)
+timezone: America/New_York, device time Thu Sep 17 14:42:04 EDT 2026
+12/24-hour setting: null
+restore: timezone America/Boise, time_12_24 12
+device time after restore: Thu Sep 17 12:42:32 MDT 2026, host 12:42
+## DEFECT: the drawn clock did not follow a time zone change, and ignored the 12/24-hour setting
+before the fix: with the device at 14:40 EDT the bar still read 12:40 PM (tz_clock_before.png / tz_clock_after.png)
+cause: the process caches the default time zone, and the bar formatted with java.text.DateFormat (locale only, so the user's 24-hour setting had no effect)
+fix: the bar drops the cached zone on the time zone / time / locale broadcasts, observes Settings.System.TIME_12_24, and formats with android.text.format.DateFormat
+after the fix, with the shell running: cmd alarm set-timezone America/New_York -> 2:43 PM, back to America/Boise -> 12:43 PM (tz_live_*.png); time_12_24 24 -> "12:44", back to 12 -> "12:44 PM" (clock_12h.png, clock_24h.png, clock_12h_restored.png)
+## reading
+locale (shell set to fr-FR): the Calendar tile reads "jeudi / 17" and app labels come through translated ("Agenda"); the shell's own strings are English in phase 01 (no translations), so an unassigned tile still reads "Mail - Tap to choose"
+time zone: the drawn clock follows a change made through AlarmManager (the path Settings uses), see the fix above
+date: the clock moves are exercised by E9 (+61 min) and E12 (+3 days)

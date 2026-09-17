@@ -1,0 +1,23 @@
+# Edge cases: calendar 2026-09-17T12:28:40-06:00
+## no calendars at all (E7 deleted its QA calendar)
+calendars on the device: No result found. 
+tile: refresh (start): access=true faces=1
+## a local calendar with an all-day event and two overlapping events
+QA calendar id: 
+tile with three events: refresh (minute): access=true faces=1
+## permission revoked
+tile: refresh (start): access=false faces=1
+checklist calendar row: checklist:calendar:missing
+## restore
+after restore: refresh (start): access=true faces=1; calendars left: No result found. 
+## rerun with the URI quoted: a local calendar (id 1) with an all-day event and two overlapping events
+events: Row: 0 title=QA all day, allDay=1 Row: 1 title=QA overlap one, allDay=0 Row: 2 title=QA overlap two, allDay=0 
+tile: refresh (provider change): access=true faces=4
+faces on the tile (calendar_faces.png, 14 frames): 'QA overlap two 2:00 PM', the logo face, the day face 'Thursday 17', and 'QA all day / All day'
+## restore
+QA calendar deleted; calendars left: No result found. ; events left: No result found. 
+tile: refresh (minute): access=true faces=1; READ_CALENDAR  android.permission.READ_CALENDAR
+## reading
+no calendars at all: the feed publishes one face, the day face, and the tile shows "Thursday 17"
+an all-day event and two overlapping events: each event gets its own face ("QA all day / All day", "QA overlap two / 2:00 PM"), cycling with the day face
+permission revoked: the feed reports access=false and keeps the day face; the checklist row reads checklist:calendar:missing

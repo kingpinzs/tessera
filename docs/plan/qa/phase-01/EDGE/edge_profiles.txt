@@ -1,0 +1,9 @@
+# Edge cases: profiles 2026-09-17T13:04:21-06:00
+## a profile added while the app list is open
+list open, profile groups before: 0
+$ pm create-user --profileOf 0 --managed work2: Success: created user id 12
+user id 12 started, K-9 installed into it
+profile groups while the list stayed open: 1; rows for the profile: 1
+## the profile removed while the list is open
+$ pm remove-user 12: Success: removed user
+profile groups after removing it: 0; users: Users: 	UserInfo{0:Owner:4c13} running 

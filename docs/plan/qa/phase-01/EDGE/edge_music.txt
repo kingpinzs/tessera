@@ -1,0 +1,17 @@
+# Edge cases: music 2026-09-17T12:32:35-06:00
+## one player (Fossify Music Player), no artwork in the file
+sessions: 0
+music feed: now playing org.fossify.musicplayer title=QA Song (state org.fossify.musicplayer)
+## several media sessions (Fossify playing QA Song, then Gramophone playing QA Track Two)
+sessions:  package=org.fossify.musicplayer  state=PlaybackState {state=PAUSED(2), position=103376, buffered position=176039, speed=0.0, updated=8313787, actions=7340029, custom actions=[Action:mName='Close, mIcon=2131230912, mExtras=Bundle[EMPTY_PARCEL]], active item id=0, error=null}  package=com.android.music  state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=0, actions=516, custom actions=[], active item id=-1, error=null}  package=com.android.music  state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=0, actions=516, custom actions=[], active item id=-1, error=null} 
+music feed: now playing org.akanework.gramophone title=QA Track Two (state org.akanework.gramophone)
+## player killed mid-playback
+$ adb shell am force-stop org.akanework.gramophone
+music feed: idle (sessions changed)
+sessions left: 0
+## reading
+several media sessions: with Fossify Music Player paused and Gramophone playing, the feed follows the playing session ("now playing org.akanework.gramophone title=QA Track Two")
+no artwork in the file: the tile draws the title and artist lines only (music_tile_playing.png, tile shows "QA Tra... / QA Art...")
+player killed mid-playback (am force-stop): the feed goes idle ("idle (sessions changed)") and no session is left
+## restore
+music files: qa_song.mp3 ; feed: idle (destroyed org.fossify.musicplayer)

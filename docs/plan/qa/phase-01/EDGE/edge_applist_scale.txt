@@ -1,0 +1,22 @@
+# Edge cases: app list at scale 2026-09-17T12:58:49-06:00
+apps before: 31
+installing 300 code-less test APKs (manifest only, one launcher activity each): 60 labelled 'Quartz NN' under Q, 10 with non-Latin labels (Cyrillic, Greek, Japanese, Chinese, Korean, Arabic, Hebrew, Thai), the rest spread across the alphabet
+installed ok=300 fail=0
+331
+app list opened; first dump after 5.2 s
+index diagnostics: new caption on qa.bulk.p64#0 (installed 1789671546935) new caption on qa.bulk.p66#0 (installed 1789671547085) 
+walked the list: rows 288, headers 24, New captions 256
+headers: # A B D E F G H I J K L M O P Q R S T U V X Y Z 
+top of the list (the '#' group): applist_header:H applist_row:qa.bulk.p77 applist_row:qa.bulk.p102 applist_row:qa.bulk.p127 applist_row:qa.bulk.p152 applist_row:qa.bulk.p177 applist_row:qa.bulk.p202 applist_row:qa.bulk.p227 applist_row:qa.bulk.p252 applist_row:qa.bulk.p277
+row labels there: Hpp Test 008 | Hpp Test 033 | Hpp Test 058 | Hpp Test 083 | Hpp Test 108 | Hpp Test 133 | Hpp Test 158 | Hpp Test 183
+jumped to the '#' cell: [#] Ελλάδα Ζωή Азбука Берёза עברית العربية ไทยแอป 한국어 앱 北京地图 日本語アプリ [A]
+Q group: 51 Quartz rows seen while scrolling from the Q header
+search for a CJK character: results 
+search over non-Latin labels cannot be typed through adb (input text is ASCII only), so it is covered by the unit test AppIndexTest.searchMatchesNonLatinLabels (Japanese, Cyrillic, Greek, Korean queries)
+## reading
+331 launcher entries (300 test apps installed on top of the 31 real ones): the app list opens and scrolls, the index rebuilds through the package callbacks, no crash
+many apps under one letter: the 60 "Quartz NN" apps all sit under Q and scroll in order
+non-Latin names: all ten (Greek, Cyrillic, Hebrew, Arabic, Thai, Korean, Chinese, Japanese) sit in the "#" group before A, sorted
+the "New" caption appears on every app installed after the shell became Home (256 seen while walking the list), which is the rule E12 measured
+## restore: the 300 test apps uninstalled
+uninstalled 300; launcher entries now: 31

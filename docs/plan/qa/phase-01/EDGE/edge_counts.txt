@@ -1,0 +1,16 @@
+# Edge cases: badge counts 2026-09-17T12:52:52-06:00
+## sources disagree (notification 7, legacy 3, API 5 at the same time)
+badge log: set app.tileshell.testclient.a NOTIFICATIONS=7 -> effective 7 set app.tileshell.testclient.a LEGACY_BROADCAST=3 -> effective 3 set app.tileshell.testclient.a API=5 -> effective 5 
+tile badge drawn: 5 (API wins; the three sources are never summed)
+## a legacy broadcast older than 3 days
+after clearing the API badge: set app.tileshell.testclient.a API=0 -> effective 3
+clock moved 4 days: Mon Sep 21 12:53:28 MDT 2026
+badge after 4 days: set app.tileshell.testclient.a NOTIFICATIONS=7 -> effective 7 set android NOTIFICATIONS=0 -> effective 0 
+## restore the clock (RV12)
+host 1789671227 device 1789671227 auto_time 1
+## reading
+sources disagree (notification 7, legacy broadcast 3, API 5 on the same app at the same time): the API count wins (5) and the sources are never summed
+a legacy broadcast older than 3 days: with the API badge cleared the legacy count showed (3); after the clock moved 4 days forward the legacy value expired and the count fell back to the notification (7)
+## restore
+test client uninstalled: Success
+layout back to the baseline: 10 placements
