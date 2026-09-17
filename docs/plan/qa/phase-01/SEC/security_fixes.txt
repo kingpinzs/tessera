@@ -1,0 +1,59 @@
+# Verification of the adversarial-review fixes, 2026-09-17T13:29:16-06:00
+## F1 one app badging another (the attack): tileclient-a names org.fossify.messages in the extra
+legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+legacy reject org.fossify.messages sender=app.tileshell.testclient.a senderUid=10480 via=runtime action=android.intent.action.BADGE_COUNT_UPDATE reason=identity: sender is not the badge's package
+badge on the victim: set android NOTIFICATIONS=0 -> effective 0
+## F1 the app's own legacy badge, unverified sender, switch off (default)
+legacy accept app.tileshell.testclient.a count=3 class=app.tileshell.testclient.VerbActivity sender=app.tileshell.testclient.a senderUid=10480 via=runtime action=android.intent.action.BADGE_COUNT_UPDATE verified
+## F1 the real attack: a sender that does not share its identity names another app's package
+legacy reject org.fossify.messages sender=unknown senderUid=invalid via=runtime action=android.intent.action.BADGE_COUNT_UPDATE reason=identity: the sender did not share its identity (Settings > Live tile access can accept these)
+victim badge: set org.fossify.messages NOTIFICATIONS=1 -> effective 1
+## with the switch on (Settings > Live tile access), the same broadcast is accepted again
+access page rows: livetile_api_enabled | desc= | texts=On;livetile_legacy_trust | desc= | texts=Off;
+legacy accept app.tileshell.testclient.a count=7 class=app.tileshell.testclient.VerbActivity sender=unknown senderUid=invalid via=runtime action=android.intent.action.BADGE_COUNT_UPDATE UNVERIFIED (sender identity not shared)
+## F2 an image the caller's provider never delivers (a pipe it never writes)
+## F2 an image the caller's provider never delivers (a pipe it never writes)
+app.tileshell.testclient.a tile.update: ok=false error=image-read detail=content://app.tileshell.testclient.a.images/slow.png: the caller's provider did not deliver the image within 3000 ms
+the call came back after 4 s instead of holding a binder thread
+## oversized XML, past the 8 KB cap
+app.tileshell.testclient.a xml.big: ok=false error=xml-size detail=9084 chars > 8192 bytes
+## more images than the per-payload cap
+app.tileshell.testclient.a images.many: ok=false error=image-count detail=14 images > 12
+## an image URI the caller never granted (raw call, its own authority)
+app.tileshell.testclient.a tile.update: ok=false error=image-read detail=content://app.tileshell.testclient.a.images/peek.png: no read grant to the shell (Permission Denial: opening provider app.tiles
+## images written for this caller after the refusals: 0
+## state is stored with tile content, then the app is reinstalled signed by a different key
+stored before: {"v":1,"pkg":"app.tileshell.testclient.a","signer":"96bc481b47d1b1751c6a728b1663c2b2fb9f6fcf4df675575dcc4df8524a2bc1","f
+$ adb uninstall app.tileshell.testclient.a; adb install (same package, different signer)
+Success
+All files should be loaded. Notifying the device.
+Install command complete in 78 ms
+signer now:     signatures=PackageSignatures{af0bf1f version:4, signatures:[d02d36e1], past 
+stored after the reinstall: []
+wipe app.tileshell.testclient.a: package removed (tiles, queue, schedule, badge cleared)
+    2026-09-17 13:33:18.745 wall=1789673598745 [bars] StartActivity: system bars hidden (transient by swipe)
+## F9 the master switch (Settings > Live tile access, 'Let apps update their tiles')
+app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+with the master switch off: app.tileshell.testclient.a tile.update: ok=false error=disabled detail=the user turned live tiles off for every app
+engine content for the caller: pkg:app.tileshell.testclient.a faces=0 source=null sourceTime=null
+master switch back on: app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+## the crossfade no longer blanks the tile
+SEC/crossfade.mp4, 25 s of the Photos tile: mean luminance min 72.2, max 179.1, median 93.0; frames below 20 (a tile
+blinking out to the page background): 0. The outgoing face fades out while the next fades in, so the accent plate,
+the label and the badge stay drawn.
+## reading
+F1 one app badging another: refused. With a sender that shares its identity the mismatch is caught ("sender is not the
+badge's package"); with a sender that does not (how the real ShortcutBadger senders send) the broadcast is refused
+outright, and the victim's count stayed at its notification-derived value. Turning on "Accept badge counts from
+senders that do not identify themselves" accepts them again, which is the old behaviour and the user's choice.
+F2 an image the caller never delivers: refused after 3 s ("did not deliver the image within 3000 ms"), the call
+returned in 4 s instead of holding a binder thread.
+F4 quota before writing: no image files were written for the caller after any of the refusals.
+F5, F6, F7, F8: code changes with no device-visible behaviour to measure here (system-package check on the Samsung
+authority, generic authority errors, one shared change URI, stored file names validated, backup turned off).
+F9 master switch: with "Let apps update their tiles" off a call is refused ("the user turned live tiles off for every
+app") and the caller's tile content is cleared; turning it back on accepts again.
+Reinstall under a different signer: the stored state is wiped ("wipe ... package removed (tiles, queue, schedule,
+badge cleared)") and the new install starts empty.
+Other caps proven here: XML past 8 KB (error xml-size, 9084 chars > 8192), 14 images in one payload (error
+image-count, 14 > 12), an image URI with no grant to the shell (error image-read, "no read grant").

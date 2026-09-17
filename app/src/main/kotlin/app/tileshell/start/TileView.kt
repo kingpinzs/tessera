@@ -96,6 +96,8 @@ fun TileView(
     // Peek slide: 0..1 travel of the outgoing face; slideFrom is the face sliding out (-1 when no slide is running).
     val slide = remember(model.id) { Animatable(0f) }
     var slideFrom by remember(model.id) { mutableIntStateOf(-1) }
+    // The face fading out during a crossfade (-1 when none).
+    var fadeFrom by remember(model.id) { mutableIntStateOf(-1) }
     var slideDown by remember(model.id) { mutableStateOf(true) }
     val transition = model.content?.transition ?: FaceTransition.FLIP
 
@@ -114,6 +116,7 @@ fun TileView(
         cycle.snapTo(0f)
         slide.snapTo(0f)
         slideFrom = -1
+        fadeFrom = -1
         if (faceIndex > faces.size) faceIndex = 0
         if (faces.isEmpty()) { faceIndex = 0; return@LaunchedEffect }
         // Peek tiles run on the flip tiles' timer band (R3 A8 has no separate band for them).
@@ -127,11 +130,20 @@ fun TileView(
             val next = (faceIndex + 1) % (faces.size + 1)
             Diagnostics.add("tile_anim", "tile=${model.id} kind=$transition uptime=$startedAt faceIndex=$faceIndex next=$next faces=${faces.size}")
             when (transition) {
-                FaceTransition.FLIP, FaceTransition.CROSSFADE -> {
-                    val ms = if (transition == FaceTransition.FLIP) Motion.FLIP_MS else Motion.CROSSFADE_MS
+                FaceTransition.FLIP -> {
                     cycle.snapTo(0f)
-                    cycle.animateTo(1f, tween(ms, easing = LinearEasing)) { if (value >= 0.5f) faceIndex = next }
+                    cycle.animateTo(1f, tween(Motion.FLIP_MS, easing = LinearEasing)) { if (value >= 0.5f) faceIndex = next }
                     faceIndex = next
+                    cycle.snapTo(0f)
+                }
+                FaceTransition.CROSSFADE -> {
+                    // A true cross-dissolve: the outgoing face fades out while the next fades in, so the tile's
+                    // accent plate, label and badge never blink out (R3 A7 "image -> image crossfade").
+                    cycle.snapTo(0f)
+                    fadeFrom = faceIndex
+                    faceIndex = next
+                    cycle.animateTo(1f, tween(Motion.CROSSFADE_MS, easing = LinearEasing))
+                    fadeFrom = -1
                     cycle.snapTo(0f)
                 }
                 FaceTransition.PEEK -> {
@@ -205,14 +217,14 @@ fun TileView(
             .background(accent.copy(alpha = accent.alpha * tileAlpha))
             .clipToBounds(),
     ) {
-        val faceAlpha = if (transition == FaceTransition.CROSSFADE) kotlin.math.abs(1f - 2f * cycle.value) else 1f
         @Composable
         fun Face(index: Int) {
             if (index == 0 || faces.isEmpty() || index > faces.size) LogoFace(model, widthDp, heightDp) else LiveFace(faces[index - 1], model, heightDp)
         }
         val outgoing = slideFrom
-        if (transition == FaceTransition.CROSSFADE) {
-            Box(Modifier.fillMaxSize().graphicsLayer { alpha = faceAlpha }) { Face(faceIndex) }
+        if (fadeFrom >= 0) {
+            Box(Modifier.fillMaxSize().graphicsLayer { alpha = 1f - cycle.value }) { Face(fadeFrom) }
+            Box(Modifier.fillMaxSize().graphicsLayer { alpha = cycle.value }) { Face(faceIndex) }
         } else if (outgoing >= 0) {
             // R3 A7 peek: the outgoing face travels one tile height on the measured ease-out; the next face follows it in.
             val direction = if (slideDown) 1f else -1f

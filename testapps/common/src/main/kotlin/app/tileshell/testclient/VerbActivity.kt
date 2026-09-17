@@ -33,7 +33,8 @@ import java.util.Locale
  *
  * Verbs and extras:
  *   tile.update      text ("|"-separated lines), tag, expiresInMs (long), image (bool: peek image from this app's own
- *                    provider), bigImage (bool: > 200 KB image), imageAuthority (string: use another authority, no grant),
+ *                    provider), bigImage (bool: > 200 KB image), slowImage (bool: a pipe the provider never writes,
+ *                    for the shell's read deadline), imageAuthority (string: use another authority, no grant),
  *                    xml (raw payload, overrides the rest)
  *   tile.clear
  *   tile.enableQueue enabled (bool, default true)
@@ -46,7 +47,8 @@ import java.util.Locale
  *   flood            count (int, default 70) tile.setting calls; reports ok / rate
  *   notify           number (int, default 7), title, text: a notification with setNumber
  *   notify.cancel
- *   legacyBadge      count (int, default 3), action (android|shortcutbadger), explicit (bool), badgePackage (default own)
+ *   legacyBadge      count (int, default 3), action (android|shortcutbadger), explicit (bool), badgePackage (default own),
+ *                    shareIdentity (bool, default true; false is how the real ShortcutBadger senders send)
  *
  * tileclient-b alone has its own uid (owner.attack -> error "identity"); once tileclient-b2 is installed they share a
  * uid and every call from either answers error "shared-uid".
@@ -116,6 +118,7 @@ class VerbActivity : Activity() {
                 }
                 val lines = (x.getString("text") ?: "Hello from $packageName|${stamp()}").split('|')
                 val image = when {
+                    x.getBoolean("slowImage", false) -> TestImageProvider.uri(this, TestImageProvider.SLOW)
                     x.getBoolean("bigImage", false) -> TestImageProvider.uri(this, TestImageProvider.BIG)
                     x.getBoolean("image", false) -> TestImageProvider.uri(this, TestImageProvider.PEEK)
                     else -> null
@@ -164,6 +167,17 @@ class VerbActivity : Activity() {
                 "flood: $n calls, ok=$ok rate=$rate other=${n - ok - rate}"
             }
             "notify" -> notifyWithNumber(x)
+            "xml.big" -> {
+                // A payload past the shell's 8 KB XML cap.
+                val pad = "x".repeat(x.getInt("bytes", 9000))
+                fmt(verb, tiles.update("""<tile><visual><binding template="TileMedium"><text>$pad</text></binding></visual></tile>"""))
+            }
+            "images.many" -> {
+                // More distinct images than the shell's per-payload cap.
+                val count = x.getInt("count", 14)
+                val images = (1..count).joinToString("") { """<image src="content://$packageName.images/peek$it.png" placement="inline"/>""" }
+                fmt(verb, tiles.update("""<tile><visual><binding template="TileMedium">$images<text>many</text></binding></visual></tile>"""))
+            }
             "notify.cancel" -> {
                 val nm = getSystemService(NotificationManager::class.java)
                 if (x.containsKey("id")) nm.cancel(x.getInt("id")) else nm.cancelAll()
@@ -241,14 +255,16 @@ class VerbActivity : Activity() {
             .putExtra("badge_count_class_name", VerbActivity::class.java.name)
         val receivers = packageManager.queryBroadcastReceivers(intent, 0)
         if (receivers.isEmpty()) return "legacyBadge: unable to resolve intent (no manifest receiver for $action)"
-        val options = BroadcastOptions.makeBasic().setShareIdentityEnabled(true).toBundle()
+        // shareIdentity=false is how the real ShortcutBadger senders behave: the receiver is not told who sent it.
+        val shareIdentity = x.getBoolean("shareIdentity", true)
+        val options = BroadcastOptions.makeBasic().setShareIdentityEnabled(shareIdentity).toBundle()
         val explicit = x.getBoolean("explicit", false)
         if (explicit) {
             receivers.map { it.activityInfo.packageName }.distinct().forEach { sendBroadcast(Intent(intent).setPackage(it), null, options) }
         } else {
             sendBroadcast(intent, null, options)
         }
-        return "legacyBadge: sent $action count=$count package=$badgePackage explicit=$explicit receivers=${receivers.map { it.activityInfo.packageName + "/" + it.activityInfo.name }}"
+        return "legacyBadge: sent $action count=$count package=$badgePackage explicit=$explicit shareIdentity=$shareIdentity receivers=${receivers.map { it.activityInfo.packageName + "/" + it.activityInfo.name }}"
     }
 
     private fun stamp(ms: Long = System.currentTimeMillis()) = SimpleDateFormat("HH:mm:ss", Locale.US).format(Date(ms))

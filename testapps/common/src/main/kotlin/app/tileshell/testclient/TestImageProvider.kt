@@ -17,7 +17,8 @@ import kotlin.random.Random
 /**
  * This test app's own image provider (authority <package>.images, not exported, grantUriPermissions) so the client
  * library can grant the shell read access for one call. /peek.png is a small generated PNG; /big.png is a noise PNG
- * well over the shell's 200 KB per-image cap.
+ * well over the shell's 200 KB per-image cap; /slow.png is a pipe nothing is ever written to, so a reader that has no
+ * deadline waits for ever (the shell's image read deadline is measured with it).
  */
 class TestImageProvider : ContentProvider() {
     override fun onCreate() = true
@@ -25,11 +26,17 @@ class TestImageProvider : ContentProvider() {
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
         val ctx = context ?: throw FileNotFoundException("no context")
         val name = uri.lastPathSegment ?: throw FileNotFoundException(uri.toString())
+        if (name == SLOW) {
+            // The read end is handed over; the write end is kept open here and never written, so the reader blocks.
+            val pipe = ParcelFileDescriptor.createPipe()
+            stalled += pipe[1]
+            return pipe[0]
+        }
         val file = File(ctx.cacheDir, name)
         if (!file.exists()) {
-            val bitmap = when (name) {
-                PEEK -> peek(ctx.packageName)
-                BIG -> noise()
+            val bitmap = when {
+                name.startsWith("peek") -> peek(ctx.packageName)   // peek.png, peek2.png ... so a payload can carry many distinct images
+                name == BIG -> noise()
                 else -> throw FileNotFoundException(uri.toString())
             }
             file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
@@ -54,6 +61,9 @@ class TestImageProvider : ContentProvider() {
     }
 
     override fun getType(uri: Uri) = "image/png"
+
+    private val stalled = mutableListOf<ParcelFileDescriptor>()
+
     override fun query(uri: Uri, p: Array<out String>?, s: String?, a: Array<out String>?, o: String?): Cursor? = null
     override fun insert(uri: Uri, values: ContentValues?): Uri? = null
     override fun delete(uri: Uri, s: String?, a: Array<out String>?) = 0
@@ -61,6 +71,7 @@ class TestImageProvider : ContentProvider() {
 
     companion object {
         const val PEEK = "peek.png"
+        const val SLOW = "slow.png"
         const val BIG = "big.png"
         fun uri(context: Context, name: String): Uri = Uri.parse("content://${context.packageName}.images/$name")
     }
