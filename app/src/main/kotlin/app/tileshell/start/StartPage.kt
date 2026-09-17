@@ -62,6 +62,9 @@ data class PlacedTile(val model: TileModel, val target: TileTarget, val xPx: Flo
 /** Exit / entrance animation state driven by the host (R3 A11). */
 data class StartAnimation(val exitElapsedMs: Float? = null, val exitTappedId: String? = null, val entranceElapsedMs: Float? = null)
 
+/** Bottom tile row height: 1.5 small tiles (INDEX Change Log, Jeremy's second amendment 2026-09-17). */
+fun dockTileHeight(grid: StartGrid): Float = grid.smallPx * 1.5f
+
 /** Start's tiles: the scrolling grid and the fixed bottom tile row (INDEX Change Log 2026-09-17). */
 data class StartTiles(val grid: List<PlacedTile>, val dock: List<PlacedTile>)
 
@@ -131,7 +134,7 @@ fun rememberPlacedTiles(): StartTiles {
         val rowWidth = widthPx - grid.leftMarginPx - grid.rightMarginPx
         val dockW = if (dockKeys.isEmpty()) 0f else (rowWidth - grid.gutterPx * (dockKeys.size - 1)) / dockKeys.size
         val dockTiles = dockKeys.mapIndexed { i, key ->
-            place(key, TileSize.SMALL, grid.leftMarginPx + i * (dockW + grid.gutterPx), 0f, "dock:", live = false, wPx = dockW, hPx = grid.smallPx)
+            place(key, TileSize.SMALL, grid.leftMarginPx + i * (dockW + grid.gutterPx), 0f, "dock:", live = false, wPx = dockW, hPx = dockTileHeight(grid))
         }
         StartTiles(gridTiles, dockTiles)
     }
@@ -166,7 +169,7 @@ fun StartPage(
     val grid = StartGrid(widthPx, theme.mediumColumns)
     val pitchPx = grid.pitchPx
     // Bottom tile row: one small tile tall with one small-tile gutter above and below (INDEX Change Log 2026-09-17).
-    val dockHeightPx = if (tiles.dock.isEmpty()) 0f else grid.smallPx + grid.gutterPx * 2
+    val dockHeightPx = if (tiles.dock.isEmpty()) 0f else dockTileHeight(grid) + grid.gutterPx * 2
     val contentHeightPx = (tiles.grid.maxOfOrNull { it.yPx + it.hPx } ?: 0f) + grid.gutterPx + dockHeightPx
 
     val background = rememberBackground(context, theme.backgroundUri)
@@ -228,7 +231,7 @@ fun StartPage(
         }
         // The fixed bottom tile row: does not scroll; fades with the last visible row on exit.
         if (tiles.dock.isNotEmpty()) {
-            val dockY = pageHeightPx - grid.gutterPx - grid.smallPx
+            val dockY = pageHeightPx - grid.gutterPx - dockTileHeight(grid)
             val lastRow = (pageHeightPx / pitchPx).toInt()
             Box(Modifier.fillMaxSize().graphicsLayer { scaleX = gridScale; scaleY = gridScale; alpha = gridAlpha }.testTag("bottom_tile_row")) {
                 tiles.dock.forEach { t ->
