@@ -55,7 +55,11 @@ import kotlinx.coroutines.launch
 
 /** The HOME activity: Start and the app list on one pivot, the drawn W10M bars, launch / return motion. */
 class StartActivity : ComponentActivity() {
-    private val homeEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    /** true = Home pressed while Start was already in front (scroll to top); false = Home from elsewhere (page 0 only). */
+    private val homeEvents = MutableSharedFlow<Boolean>(extraBufferCapacity = 1)
+    // In front means resumed and not stopped since; Android pauses Start before delivering a Home intent, so
+    // RESUMED can't be read in onNewIntent.
+    private var inFront = false
     private var animation by mutableStateOf(StartAnimation())
     // Each run of the exit or entrance animation has its own token, so updating the animation state every frame
     // never restarts (and freezes) the effect that drives it.
@@ -93,11 +97,13 @@ class StartActivity : ComponentActivity() {
         val scope = rememberCoroutineScope()
 
         LaunchedEffect(Unit) {
-            homeEvents.collect {
-                // X20 approximation: Home while Start is showing scrolls Start to the top.
+            homeEvents.collect { alreadyInFront ->
                 pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
-                scroll.animateScrollTo(0)
-                Diagnostics.add("start", "home pressed on Start: scrolled to top")
+                if (alreadyInFront) {
+                    // X20 approximation: Home while Start is showing scrolls Start to the top.
+                    scroll.animateScrollTo(0)
+                }
+                Diagnostics.add("start", "home: page 0" + if (alreadyInFront) ", scrolled to top" else "")
             }
         }
         LaunchedEffect(Unit) {
@@ -129,7 +135,7 @@ class StartActivity : ComponentActivity() {
                 }
                 W10mNavBar(
                     onBack = { backEvents.tryEmit(Unit) },
-                    onWindows = { homeEvents.tryEmit(Unit) },
+                    onWindows = { homeEvents.tryEmit(true) },
                 )
             }
             W10mStatusBar(Modifier.align(Alignment.TopCenter))
@@ -201,15 +207,21 @@ class StartActivity : ComponentActivity() {
         exitToken++
     }
 
+    override fun onStop() {
+        super.onStop()
+        inFront = false
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_HOME) && lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
-            homeEvents.tryEmit(Unit)
+        if (intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_HOME)) {
+            homeEvents.tryEmit(inFront)
         }
     }
 
     override fun onResume() {
         super.onResume()
+        inFront = true
         hideSystemBars()
         if (returningFromLaunch) {
             returningFromLaunch = false

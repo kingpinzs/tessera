@@ -82,6 +82,16 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Opening a specific page while Settings is already running (e.g. the checklist from another shell screen).
+        intent.getStringExtra(EXTRA_PAGE)?.let { runCatching { SettingsPage.valueOf(it) }.getOrNull() }?.let { page ->
+            stack.clear()
+            stack += SettingsPage.HOME
+            if (page != SettingsPage.HOME) stack += page
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         hideSystemBars()
