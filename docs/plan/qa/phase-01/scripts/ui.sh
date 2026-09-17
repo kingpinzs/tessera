@@ -29,3 +29,10 @@ tap_id() { # tap_id <xml> <resource-id>
   local xy; xy=$(center "$1" "$2") || { echo "no node $2" >&2; return 1; }
   adb shell "input tap $xy"
 }
+scroll_to_id() { # scroll_to_id <xml out> <resource-id>: swipe the page up until the node is on screen (up to 8 swipes)
+  for i in 1 2 3 4 5 6 7 8 9; do
+    dump "$1" && grep -q "resource-id=\"$2\"" "$1" && return 0
+    adb shell input swipe 540 1800 540 900 300; sleep 1
+  done
+  echo "no node $2 after scrolling" >&2; return 1
+}

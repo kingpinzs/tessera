@@ -1,0 +1,1 @@
+INVALID: the press rows are below the fold of Settings > Start, tap_id found no press_none / press_tilt / press_p4 node, so every capture ran with the style already set (WP8_TILT); kept for the record
