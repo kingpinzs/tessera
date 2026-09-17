@@ -34,7 +34,7 @@ Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules
 
 | Phase | Doc | Status | QA evidence | Notes |
 |---|---|---|---|---|
-| 01 | [phase-01-start-live-tiles.md](phase-01-start-live-tiles.md) | QA passed, NEEDS-HUMAN open | [qa/phase-01/](qa/phase-01/) | FINAL; creates Settings hub + onboarding checklist. E1-E21 and the edge cases pass on one final APK installed over a wiped state (qa/phase-01/FINAL); three reviews done and triaged (qa review, design, adversarial on the Live Tile API); 22 defects found and fixed, including a badge-spoofing hole. Waiting on Jeremy's NEEDS-HUMAN sign-offs (qa/phase-01/NEEDS-HUMAN.md) and the phone P rows |
+| 01 | [phase-01-start-live-tiles.md](phase-01-start-live-tiles.md) | QA passed, NEEDS-HUMAN open | [qa/phase-01/](qa/phase-01/) | FINAL; creates Settings hub + onboarding checklist. E1-E21 and the edge cases pass on one final APK installed over a wiped state (qa/phase-01/FINAL); three reviews done and triaged (qa review, design, adversarial on the Live Tile API); 22 defects found and fixed, including a badge-spoofing hole. Waiting on Jeremy's NEEDS-HUMAN sign-offs (qa/phase-01/NEEDS-HUMAN.md; H24, H29, H35, H36, H37 and Start-side H1 signed off 2026-09-17) and the phone P rows. Per the 2026-09-17 ruling in the Change Log, phase 02 is cleared to start while these stay open |
 | 02 | [phase-02-edit-mode-folders.md](phase-02-edit-mode-folders.md) | pending | — | FINAL |
 | 03 | [phase-03-cortana-commands.md](phase-03-cortana-commands.md) | pending | — | FINAL; no toggle commands (they come with 04) |
 | 04 | [phase-04-action-center-volume-helper.md](phase-04-action-center-volume-helper.md) | pending | — | DRAFT; entry gate = R4 |
