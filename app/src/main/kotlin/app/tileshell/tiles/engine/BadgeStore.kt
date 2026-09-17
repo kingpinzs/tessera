@@ -47,6 +47,17 @@ object BadgeStore {
         return 0
     }
 
+    /**
+     * Re-evaluates every source's expiry (R5 rule 4). Nothing else recomputes the published map while the device is
+     * idle, so a legacy badge would otherwise outlive its three days until some unrelated badge event arrived.
+     */
+    @Synchronized
+    fun sweep(nowMs: Long = System.currentTimeMillis()) {
+        val before = state.value
+        publish(nowMs)
+        if (before != state.value) Diagnostics.add("badge", "expiry sweep changed the counts: $before -> ${state.value}")
+    }
+
     private fun publish(nowMs: Long) {
         state.value = values.keys.associateWith { effective(it, nowMs) }.filterValues { it > 0 }
     }

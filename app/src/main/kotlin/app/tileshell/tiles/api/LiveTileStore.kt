@@ -285,9 +285,15 @@ class LiveTileStore private constructor(private val context: Context) {
         synchronized(lock) { republishLocked(pkg) }
     }
 
+    /** After the API master switch changes, every owner's tile and badge are published again. */
+    fun republishAll() {
+        ensureLoaded()
+        synchronized(lock) { owners.keys.toList().forEach { republishLocked(it) } }
+    }
+
     private fun republishLocked(pkg: String) {
         val owner = owners[pkg]
-        val disabled = LiveTileSettings.isDisabled(context, pkg)
+        val disabled = LiveTileSettings.isDisabled(context, pkg) || !LiveTileSettings.isApiEnabled(context)
         val key = LiveTileEngine.packageKey(pkg)
         val content = if (owner == null || disabled) null else render(owner)
         if (content != null) {
@@ -301,7 +307,7 @@ class LiveTileStore private constructor(private val context: Context) {
     }
 
     private fun publishBadgeLocked(owner: Owner) {
-        val disabled = LiveTileSettings.isDisabled(context, owner.pkg)
+        val disabled = LiveTileSettings.isDisabled(context, owner.pkg) || !LiveTileSettings.isApiEnabled(context)
         BadgeStore.set(owner.pkg, BadgeStore.Source.API, if (disabled) 0 else owner.badge ?: 0)
     }
 
@@ -457,17 +463,38 @@ class LiveTileStore private constructor(private val context: Context) {
         return owner
     }
 
-    private fun images(o: JSONObject) = o.getJSONArray("images").objects().map { StoredImage(it.getString("src"), it.getString("file"), it.getLong("bytes")) }
+    /**
+     * A stored file name must be one the shell itself wrote (IMAGE_PREFIX + a UUID, no path separators): the state
+     * file is in the app's data directory, which a device backup can restore, and the name is used both to read and
+     * to delete files under the owner's directory (adversarial review F8).
+     */
+    private fun images(o: JSONObject) = o.getJSONArray("images").objects().mapNotNull {
+        val file = it.getString("file")
+        if (!IMAGE_FILE.matches(file)) {
+            Diagnostics.add("livetile", "stored image name $file is not one this shell wrote; dropped")
+            null
+        } else {
+            StoredImage(it.getString("src"), file, it.getLong("bytes"))
+        }
+    }
     private fun JSONArray.objects() = (0 until length()).map { getJSONObject(it) }
     private fun JSONObject.optStringOrNull(k: String) = if (isNull(k)) null else optString(k)
     private fun JSONObject.optLongOrNull(k: String) = if (isNull(k)) null else optLong(k)
 
-    fun changeUri(pkg: String): Uri = Uri.parse("content://${LiveTileProtocol.AUTHORITY}/tiles/$pkg/primary")
+    /**
+     * One shared change URI for every owner. A per-package URI on an exported provider with no read permission let any
+     * app observe when a particular app updated its tile - when a messaging app got a message, say (adversarial review
+     * F7). An observer now learns only that some tile changed, and an app still hears about changes the shell makes to
+     * its own tile (expiry, queue eviction, the kill switch).
+     */
+    fun changeUri(pkg: String): Uri = Uri.parse("content://${LiveTileProtocol.AUTHORITY}/tiles")
 
     companion object {
         const val MAX_SCHEDULED = 32
         const val MAX_BADGE = 999
         const val MAX_FACES = 9
+        /** The shell's own image file names: the prefix plus a UUID, nothing else. */
+        private val IMAGE_FILE = Regex("^" + Regex.escape(IMAGE_PREFIX) + "[0-9a-fA-F-]{36}$")
         const val MAX_OWNER_IMAGE_BYTES = 16L * 1024 * 1024
         const val SCHEDULED_DEFAULT_EXPIRY_MS = 3L * 24 * 60 * 60 * 1000
         const val IMAGE_PREFIX = "img-"

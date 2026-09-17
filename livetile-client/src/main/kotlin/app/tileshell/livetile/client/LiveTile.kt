@@ -21,9 +21,12 @@ object LiveTile {
     @JvmStatic
     fun isAvailable(context: Context): Boolean = shellPackage(context) != null
 
-    /** Uri an app can observe (ContentObserver) to learn that the shell accepted a change to its tile. */
+    /**
+     * Uri an app can observe (ContentObserver) to learn that the shell accepted a change to a tile. It is shared by
+     * every app, so an observer cannot tell which app changed; re-read your own state when it fires.
+     */
     @JvmStatic
-    fun changeUri(context: Context): Uri = Uri.parse("content://$AUTHORITY/tiles/${context.packageName}/primary")
+    fun changeUri(context: Context): Uri = Uri.parse("content://$AUTHORITY/tiles")
 
     internal fun shellPackage(context: Context): String? =
         runCatching { context.packageManager.resolveContentProvider(AUTHORITY, 0)?.packageName }.getOrNull()

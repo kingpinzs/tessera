@@ -20,8 +20,12 @@ import java.util.concurrent.atomic.AtomicBoolean
  * and registered on the Application context with RECEIVER_EXPORTED (which is what receives the implicit copy on
  * API 26+). Both instances may see one broadcast; duplicates within 2 s are dropped.
  *
- * Identity: getSentFromPackage() (API 34+) must equal badge_count_package_name. A sender that did not share its
- * identity (null / INVALID_UID) is accepted and flagged "unverified" in diagnostics, per R5 §4b.
+ * Identity: getSentFromPackage() (API 34+) must equal badge_count_package_name. Android only fills that in when the
+ * sender opted into sharing its identity, which the ShortcutBadger senders do not, so an unverified broadcast is
+ * refused by default: otherwise any installed app could set or clear the badge of any other app by naming it in the
+ * extra (adversarial review F1). Settings > Live tile access has a switch that accepts unverified senders again for
+ * people who want the old behaviour. Accepted badges also honour the per-app kill switch and the master switch, and
+ * a sender is rate limited.
  */
 class LegacyBadgeReceiver(private val via: String = "manifest") : BroadcastReceiver() {
 
@@ -44,6 +48,15 @@ class LegacyBadgeReceiver(private val via: String = "manifest") : BroadcastRecei
         }
         if (!installed) return log("reject $pkg $who reason=package: not installed")
         if (sentPkg != null && sentPkg != pkg) return log("reject $pkg $who reason=identity: sender is not the badge's package")
+        if (sentPkg == null && !LiveTileSettings.trustsUnverifiedLegacyBadges(context)) {
+            return log("reject $pkg $who reason=identity: the sender did not share its identity (Settings > Live tile access can accept these)")
+        }
+        if (!LiveTileSettings.isApiEnabled(context)) return log("reject $pkg $who reason=disabled: live tiles are off for every app")
+        if (LiveTileSettings.isDisabled(context, pkg)) return log("reject $pkg $who reason=disabled: this app's live tile is off")
+        val limiterKey = if (sentPkg != null) "sender:$sentPkg" else "uid:$sentUid|pkg:$pkg"
+        if (!limiter.tryAcquire(limiterKey, SystemClock.elapsedRealtime())) {
+            return log("reject $pkg $who reason=rate: more than $RATE_LIMIT badge broadcasts a minute")
+        }
 
         val key = "$sentUid|$pkg|$count"
         val now = SystemClock.elapsedRealtime()
@@ -64,6 +77,10 @@ class LegacyBadgeReceiver(private val via: String = "manifest") : BroadcastRecei
     data class LastSeen(val pkg: String, val sender: String?, val count: Int, val wallMs: Long)
 
     companion object {
+        /** Badge broadcasts are not the provider, so they carry their own limiter (adversarial review F1). */
+        const val RATE_LIMIT = 30
+        private val limiter = RateLimiter(limit = RATE_LIMIT, windowMs = 60_000L)
+
         const val ACTION_BADGE = "android.intent.action.BADGE_COUNT_UPDATE"
         const val ACTION_SHORTCUTBADGER = "me.leolin.shortcutbadger.BADGE_COUNT_UPDATE"
         const val EXTRA_COUNT = "badge_count"

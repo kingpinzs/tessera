@@ -27,6 +27,16 @@ fun LiveTileAccessPage() {
     @Suppress("UNUSED_EXPRESSION") tick
     val packages = (LiveTileStore.get(context).callerPackages() + LiveTileSettings.disabledPackages(context)).sorted()
     PageHeader(Glyph.APPS, "Live tile access")
+    SectionHeader("All apps")
+    ToggleRow("Let apps update their tiles", LiveTileSettings.isApiEnabled(context), "livetile_api_enabled") { on ->
+        LiveTileSettings.setApiEnabled(context, on)
+        tick++
+    }
+    ToggleRow("Accept badge counts from senders that do not identify themselves", LiveTileSettings.trustsUnverifiedLegacyBadges(context), "livetile_legacy_trust") { on ->
+        LiveTileSettings.setTrustUnverifiedLegacyBadges(context, on)
+        tick++
+    }
+    SectionHeader("Apps")
     if (packages.isEmpty()) {
         BasicText("No app has updated its tile yet.", style = ShellType.body.copy(color = colors.subtleText), modifier = Modifier.padding(12.dp))
     }
