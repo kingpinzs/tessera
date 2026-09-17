@@ -127,3 +127,7 @@ after pause sample 5: session=PAUSED tile_shows_QA_Song=0
 after pause sample 6: session=PAUSED tile_shows_QA_Song=0
 after pause sample 7: session=PAUSED tile_shows_QA_Song=0
 after pause sample 8: session=PAUSED tile_shows_QA_Song=0
+
+## verdict
+PASS. A playing media session (Fossify Music Player, "QA Song") appears on the Music tile (7 of 12 samples show the song face; the rest are the logo face between flips) and the diagnostics log "[music] now playing org.fossify.musicplayer title=QA Song". After "cmd media_session dispatch pause" the session reads PAUSED and the tile is idle in 8 of 8 samples.
+The earlier attempts above are invalid runs (player setup, not the tile): Auxio needed sources, AOSP Music's AudioPreview stopped on focus loss, a monkey relaunch emptied Fossify's queue, and Back paused the player. Method changed per Hard Rule 8/9.
