@@ -1,0 +1,21 @@
+# E21 2026-09-17T09:12:35-06:00
+$ python3 scripts/e21_row.py default_layout.xml
+row tiles: ['tile:dock:slot:CAMERA', 'tile:dock:slot:MESSAGING', 'tile:dock:slot:PHONE'] expected ['tile:dock:slot:PHONE', 'tile:dock:slot:MESSAGING', 'tile:dock:slot:CAMERA'] -> PASS
+widths epx [114.33, 114.33, 114.33] expected 114.25 ±1 -> PASS
+heights epx [82.33, 82.33, 82.33] expected 1.5 small tiles 82.41 ±1 -> PASS
+row spans margin to margin: left 3.0 right edge 354.67 expected 3.25 354.75 -> PASS
+gap row bottom -> nav bar top epx 4.67 expected one gutter 4.38 -> PASS
+Phone/Messaging/Camera also in grid: [] -> PASS
+rc=0
+## Scroll check. The default layout is shorter than the page (pinning is phase 02), so a longer layout is written in the layout store's own v2 JSON format through run-as (debug build) and the app process is restarted to load it; the file is deleted afterwards (RV12 restore).
+$ adb shell run-as app.tileshell sh -c "cat > files/start_layout.json" < long_layout.json; adb shell am force-stop app.tileshell; HOME
+$ adb shell input swipe 540 1600 540 400 300
+row bounds unchanged after scroll: PASS {'tile:dock:slot:PHONE': (9, 1935, 352, 2182), 'tile:dock:slot:MESSAGING': (365, 1935, 708, 2182), 'tile:dock:slot:CAMERA': (721, 1935, 1064, 2182)}
+grid tiles moved: 10 -> PASS
+after scrolling to the end: lowest grid tile bottom 1909 row top 1935 -> PASS (fully above the row)
+$ restore: adb shell run-as app.tileshell rm files/start_layout.json; force-stop; HOME
+## app list page shows no row
+row nodes on the app list page: 0 (expect 0); app list visible: 1
+## show more tiles off
+2 columns: row tiles 3 spans margins PASS heights [127.0, 127.0, 127.0] expected 126.89 PASS
+restored to show more tiles on: row tiles: ['tile:dock:slot:CAMERA', 'tile:dock:slot:MESSAGING', 'tile:dock:slot:PHONE'] expected ['tile:dock:slot:PHONE', 'tile:dock:slot:MESSAGING', 'tile:dock:slot:CAMERA'] -> PASS widths epx [114.33, 114.33, 114.33] expected 114.25 ±1 -> PASS 
