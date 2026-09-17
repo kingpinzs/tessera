@@ -102,6 +102,11 @@ fun TileView(
     }
 
     LaunchedEffect(model.id, faces.size, transition) {
+        // A content change cancels any running flip / crossfade; restore full visibility first so a tile is never
+        // left squashed or faded out until its next cycle.
+        flip.snapTo(1f)
+        fade.snapTo(1f)
+        if (faceIndex > faces.size) faceIndex = 0
         if (faces.isEmpty()) { faceIndex = 0; return@LaunchedEffect }
         val (min, max) = if (transition == FaceTransition.FLIP)
             Motion.FLIP_PERIOD_MIN_MS to Motion.FLIP_PERIOD_MAX_MS else Motion.CROSSFADE_PERIOD_MIN_MS to Motion.CROSSFADE_PERIOD_MAX_MS
