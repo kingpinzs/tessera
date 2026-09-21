@@ -43,14 +43,17 @@ adb shell input keyevent KEYCODE_BACK; sleep 1.5
 dump "$OUT/r_back_on_start.xml"
 grep -q 'resource-id="start_page"' "$OUT/r_back_on_start.xml" && ok yes yes "Back returned to Start" || ok no yes "Back returned to Start"
 
-say "--- 4. Start still scrolls ---"
-adb shell input keyevent KEYCODE_HOME; sleep 2
+say "--- 4. Start still scrolls (with a layout taller than the screen: the default ten tiles are not) ---"
+layout_save "$OUT/r_layout_before.json"
+python3 "$(dirname "$0")/make_tall.py" "$OUT/r_layout_before.json" "$OUT/r_tall.json"
+layout_restore "$OUT/r_tall.json"
 dump "$OUT/r_scroll_before.xml"
 adb shell input swipe 540 1600 540 700 250; sleep 1.5
 dump "$OUT/r_scroll_after.xml"
 python3 "$(dirname "$0")/dumpdiff.py" "$OUT/r_scroll_before.xml" "$OUT/r_scroll_after.xml" > "$OUT/r_scroll.diff" 2>&1
 grep -q DIFFERENT "$OUT/r_scroll.diff" && ok yes yes "a swipe scrolled the grid" || ok no yes "a swipe scrolled the grid"
 adb shell input swipe 540 700 540 1900 250; sleep 1
+layout_restore "$OUT/r_layout_before.json"
 
 say "--- 5. a short press does NOT enter edit mode (under the 783 ms hold) ---"
 dump "$OUT/r_short.xml"
