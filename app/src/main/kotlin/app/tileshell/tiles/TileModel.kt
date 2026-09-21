@@ -41,9 +41,18 @@ sealed interface TileKey {
     /** An app slot (resolved to a component at runtime). */
     data class SlotTile(val slot: Slot) : TileKey { override val id = "slot:${slot.name}" }
 
-    /** A specific app component (phase 02 pins these; the model supports it from phase 01). */
+    /**
+     * A specific app component (phase 02 pins these; the model supports it from phase 01).
+     *
+     * Equality is the [id], not the fields: the store persists the id and a null user means "this user", so
+     * `AppTile(cn, null)` and `AppTile(cn, myUserHandle)` are the same tile. Without this, a pinned tile read
+     * back from disk did not compare equal to the one the app list pins, and pinning the same app twice made a
+     * second tile after a restart (found by build task 3's E2c).
+     */
     data class AppTile(val component: ComponentName, val user: UserHandle?) : TileKey {
         override val id = "app:${component.flattenToString()}:${user?.hashCode() ?: 0}"
+        override fun equals(other: Any?): Boolean = other is AppTile && other.id == id
+        override fun hashCode(): Int = id.hashCode()
     }
 
     /** A shell part with its own tile (Weather; later phases ADD more, e.g. Cortana in phase 03). */

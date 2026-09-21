@@ -2,6 +2,9 @@ package app.tileshell.tiles
 
 import android.content.ComponentName
 import android.content.Context
+import android.content.pm.LauncherApps
+import android.os.Process
+import android.os.UserHandle
 import app.tileshell.diag.Diagnostics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -238,8 +241,24 @@ class LayoutStore private constructor(private val context: Context) {
         id.startsWith("folder:") -> TileKey.FolderTile(id.removePrefix("folder:"))
         id.startsWith("secondary:") -> id.removePrefix("secondary:").split(':', limit = 2).takeIf { it.size == 2 && it.all(String::isNotEmpty) }
             ?.let { TileKey.SecondaryTile(it[0], it[1]) }
-        id.startsWith("app:") -> id.removePrefix("app:").substringBeforeLast(':').let { ComponentName.unflattenFromString(it) }?.let { TileKey.AppTile(it, null) }
+        id.startsWith("app:") -> {
+            val body = id.removePrefix("app:")
+            val component = ComponentName.unflattenFromString(body.substringBeforeLast(':'))
+            // The trailing number is the profile the tile belongs to. Dropping it (phase 01 read it as null)
+            // sent every work-profile tile back as a main-profile one, so the tile no longer matched the app it
+            // came from: resolve it against the profiles this device actually has.
+            component?.let { TileKey.AppTile(it, userForHandleHash(body.substringAfterLast(':').toIntOrNull())) }
+        }
         else -> null
+    }
+
+    /** The UserHandle whose hash the id carries, or null when that profile is not on this device any more. */
+    private fun userForHandleHash(hash: Int?): UserHandle? {
+        if (hash == null) return null
+        val me = Process.myUserHandle()
+        if (hash == me.hashCode()) return me
+        val launcherApps = runCatching { context.getSystemService(LauncherApps::class.java) }.getOrNull()
+        return runCatching { launcherApps?.profiles }.getOrNull()?.firstOrNull { it.hashCode() == hash }
     }
 
     companion object {
