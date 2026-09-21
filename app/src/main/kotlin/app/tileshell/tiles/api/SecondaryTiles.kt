@@ -156,15 +156,52 @@ object SecondaryTiles {
         }
     }
 
-    /** `secondary.requestDelete`: the tile leaves Start and its stored state goes with it. */
+    /**
+     * `secondary.requestDelete`: the tile leaves Start and its stored state goes with it. Done on the calling thread
+     * (the verb's binder thread), so `secondary.exists` is already false when the call returns.
+     */
     fun delete(context: Context, owner: String, tileId: String) {
+        val app = context.applicationContext ?: context
+        LayoutStore.get(app).unpin(TileKey.SecondaryTile(owner, tileId))
+        LiveTileStore.get(app).deleteSecondary(owner, tileId, System.currentTimeMillis())
+        dropRequest(TileKey.SecondaryTile(owner, tileId).id)
+    }
+
+    /**
+     * The owner was uninstalled: its secondary tiles leave Start, wherever they are (the grid, the bottom row or
+     * inside a folder), and a pin request it was still waiting on is dropped. Windows: secondary tiles "are
+     * automatically deleted when the app is uninstalled" (R5 §1.9); [LiveTileStore.onPackageRemoved] drops the stored
+     * side. Phase 02 build task 5 owns package handling for app tiles in general; this is only the secondary ones,
+     * and `LayoutStore.onPackagesRemoved` doing the same thing later is harmless.
+     */
+    fun onOwnerRemoved(context: Context, owner: String) {
+        val app = context.applicationContext ?: context
+        LiveTileStore.get(app).handler.post {
+            val layout = LayoutStore.get(app)
+            val gone = layout.layout.value.allKeys().filterIsInstance<TileKey.SecondaryTile>().filter { it.owner == owner }
+            gone.forEach { layout.unpin(it) }
+            if (gone.isNotEmpty()) Diagnostics.add("livetile", "owner $owner removed: ${gone.size} secondary tile(s) unpinned ${gone.map { it.tileId }}")
+        }
+        val (dropped, next) = queue.removeIf { it.owner == owner }
+        dropped.forEach { pendingRecords.remove(it.key.id) }
+        if (dropped.isNotEmpty()) Diagnostics.add("livetile", "owner $owner removed: ${dropped.size} pin request(s) dropped")
+        publish(next)
+    }
+
+    /**
+     * The owner was added or replaced: a secondary tile still on Start whose stored record is gone (the install
+     * identity changed, so the store wiped it) is unpinned, because it is not the same app's tile any more.
+     */
+    fun onOwnerChanged(context: Context, owner: String) {
         val app = context.applicationContext ?: context
         val store = LiveTileStore.get(app)
         store.handler.post {
-            LayoutStore.get(app).unpin(TileKey.SecondaryTile(owner, tileId))
-            store.deleteSecondary(owner, tileId, System.currentTimeMillis())
+            val layout = LayoutStore.get(app)
+            val stale = layout.layout.value.allKeys().filterIsInstance<TileKey.SecondaryTile>()
+                .filter { it.owner == owner && store.secondary(owner, it.tileId) == null }
+            stale.forEach { layout.unpin(it) }
+            if (stale.isNotEmpty()) Diagnostics.add("livetile", "owner $owner changed: ${stale.size} secondary tile(s) with no stored record unpinned")
         }
-        dropRequest(TileKey.SecondaryTile(owner, tileId).id)
     }
 
     /** The records of requests waiting for the user, by tile key id (written from binder threads and the UI thread). */
