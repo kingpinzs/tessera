@@ -17,9 +17,37 @@ object LiveTile {
     private val AUTHORITY_URI: Uri = Uri.parse("content://$AUTHORITY")
     private val CONTENT_SRC = Regex("src\\s*=\\s*\"(content://[^\"]+)\"")
 
+    /**
+     * Extras the shell puts on the intent it starts your CATEGORY_LAUNCHER activity with when one of your tiles is
+     * tapped: the secondary tile's id, that tile's `arguments`, and the `arguments` of the notifications on the tile
+     * at that moment (Windows' chaseable tiles). Read them with [tileId], [arguments] and [activatedArguments].
+     */
+    const val EXTRA_TILE_ID = "app.tileshell.extra.TILE_ID"
+    const val EXTRA_ARGUMENTS = "app.tileshell.extra.ARGUMENTS"
+    const val EXTRA_TILE_ACTIVATED_ARGS = "app.tileshell.extra.TILE_ACTIVATED_ARGS"
+
     /** True when a tile shell exposing the Live Tile API is installed. */
     @JvmStatic
     fun isAvailable(context: Context): Boolean = shellPackage(context) != null
+
+    /** The secondary tile the user tapped, or null when the app was started some other way. */
+    @JvmStatic
+    fun tileId(intent: Intent?): String? = intent?.getStringExtra(EXTRA_TILE_ID)
+
+    /** The tapped secondary tile's `arguments`, or null. */
+    @JvmStatic
+    fun arguments(intent: Intent?): String? = intent?.getStringExtra(EXTRA_ARGUMENTS)
+
+    /** The `arguments` of the notifications that were on the tapped tile, newest first. */
+    @JvmStatic
+    fun activatedArguments(intent: Intent?): List<String> = intent?.getStringArrayExtra(EXTRA_TILE_ACTIVATED_ARGS)?.toList().orEmpty()
+
+    /**
+     * One of this app's secondary tiles (Windows' SecondaryTile): pin requests, updates, deletion, and the tile /
+     * badge verbs routed to that tile instead of the app's own tile.
+     */
+    @JvmStatic
+    fun forSecondaryTile(context: Context, tileId: String): SecondaryTile = SecondaryTile(context.applicationContext ?: context, tileId)
 
     /**
      * Uri an app can observe (ContentObserver) to learn that the shell accepted a change to a tile. It is shared by
@@ -52,6 +80,9 @@ object LiveTile {
                 error = out.getString("error"),
                 detail = out.getString("detail"),
                 setting = out.getString("setting"),
+                exists = if (out.containsKey("exists")) out.getBoolean("exists") else null,
+                tileIds = out.getStringArray("tileIds")?.toList(),
+                pending = if (out.containsKey("pending")) out.getBoolean("pending") else null,
             )
         } catch (e: SecurityException) {
             LiveTileResult(false, if (granted.size < images.count { it.scheme == "content" }) "grant" else "transport", e.message)
@@ -70,6 +101,12 @@ data class LiveTileResult(
     val error: String? = null,
     val detail: String? = null,
     val setting: String? = null,
+    /** secondary.exists. */
+    val exists: Boolean? = null,
+    /** secondary.findAll: this app's own tile ids. */
+    val tileIds: List<String>? = null,
+    /** secondary.requestCreate: true = the user still has to confirm; false = an existing tile was updated. */
+    val pending: Boolean? = null,
 ) {
     companion object {
         @JvmField val UNAVAILABLE = LiveTileResult(false, "unavailable", "no tile shell with the Live Tile API is installed")

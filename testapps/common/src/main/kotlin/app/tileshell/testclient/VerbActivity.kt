@@ -11,6 +11,9 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import app.tileshell.livetile.client.BadgeGlyph
@@ -18,7 +21,9 @@ import app.tileshell.livetile.client.BadgeUpdater
 import app.tileshell.livetile.client.ImagePlacement
 import app.tileshell.livetile.client.LiveTile
 import app.tileshell.livetile.client.LiveTileResult
+import app.tileshell.livetile.client.SecondaryTile
 import app.tileshell.livetile.client.TextStyle
+import app.tileshell.livetile.client.TileSize
 import app.tileshell.livetile.client.TileUpdater
 import app.tileshell.livetile.client.tileContent
 import java.text.SimpleDateFormat
@@ -26,8 +31,8 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Button-free QA driver for phase 01 rows E15-E17. Each launch performs the verb named in the intent extras and shows
- * (and logs, tag "TileClient") the result, e.g.
+ * QA driver for phase 01 rows E15-E17 and phase 02 row E5. Each launch performs the verb named in the intent extras
+ * and shows (and logs, tag "TileClient") the result, e.g.
  *
  *   adb shell am start -n app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity --es verb tile.update --es text "Hi|Line two"
  *
@@ -50,27 +55,106 @@ import java.util.Locale
  *   legacyBadge      count (int, default 3), action (android|shortcutbadger), explicit (bool), badgePackage (default own),
  *                    shareIdentity (bool, default true; false is how the real ShortcutBadger senders send)
  *
+ * Secondary tiles (phase 02, E5). Every tile / badge verb above takes a `tileId` extra to address one of this app's
+ * secondary tiles instead of its own tile:
+ *   secondary.requestCreate  tileId (default st1), displayName, arguments, size (small|medium|wide), showName (bool),
+ *                            logo (bool: this app's own image provider), logoAuthority (string: someone else's)
+ *   secondary.update         the same extras; the tile must already be pinned
+ *   secondary.requestDelete  tileId
+ *   secondary.exists         tileId
+ *   secondary.findAll
+ * The PIN TILE button runs secondary.requestCreate with those same extras, so E5 can drive it by hand as Windows
+ * requires ("The user must explicitly click a Pin button within your app").
+ *
+ * When the shell launches this app from a secondary tile, the top line of the screen shows what the tile sent:
+ * `TILE_ID=... ARGS=... ACTIVATED=...`, which `uiautomator dump` reads (dumpsys activity prints only "(has extras)").
+ *
  * tileclient-b alone has its own uid (owner.attack -> error "identity"); once tileclient-b2 is installed they share a
  * uid and every call from either answers error "shared-uid".
  */
 class VerbActivity : Activity() {
     private lateinit var output: TextView
+    private lateinit var launchArgs: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        output = TextView(this).apply {
-            setPadding(32, 96, 32, 32)
+        launchArgs = TextView(this).apply {
+            setPadding(32, 96, 32, 8)
             textSize = 14f
             setTextIsSelectable(true)
         }
-        setContentView(ScrollView(this).apply { addView(output) })
+        val pin = Button(this).apply {
+            text = "PIN TILE"
+            contentDescription = "pin_tile_button"
+            setOnClickListener { pinFromButton() }
+        }
+        output = TextView(this).apply {
+            setPadding(32, 8, 32, 32)
+            textSize = 14f
+            setTextIsSelectable(true)
+        }
+        setContentView(
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(launchArgs)
+                addView(pin, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+                addView(ScrollView(this@VerbActivity).apply { addView(output) })
+            },
+        )
+        showLaunchArgs(intent)
         handle(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        showLaunchArgs(intent)
         handle(intent)
+    }
+
+    /**
+     * What the tile that started us sent (E5 reads this line with `uiautomator dump`, because `dumpsys activity`
+     * prints only "(has extras)" for an intent's extras).
+     */
+    private fun showLaunchArgs(intent: Intent?) {
+        val tileId = LiveTile.tileId(intent)
+        val args = LiveTile.arguments(intent)
+        val activated = LiveTile.activatedArguments(intent)
+        val text = "TILE_ID=${tileId ?: "-"} ARGS=${args ?: "-"} ACTIVATED=${activated.joinToString(",").ifEmpty { "-" }}"
+        launchArgs.text = text
+        launchArgs.contentDescription = text
+        Log.i(TAG, "$packageName launched with $text")
+    }
+
+    /** Windows: only the user may pin a secondary tile, from a button inside the app (R5 1.9). */
+    private fun pinFromButton() {
+        val x = intent?.extras ?: Bundle()
+        show("secondary.requestCreate: running...")
+        Thread {
+            val text = runCatching { secondaryCreate("secondary.requestCreate", x) }.getOrElse { "secondary.requestCreate: exception $it" }
+            Log.i(TAG, "$packageName $text")
+            runOnUiThread { show(text) }
+        }.start()
+    }
+
+    private fun secondaryTile(x: Bundle): SecondaryTile = LiveTile.forSecondaryTile(this, x.getString("tileId") ?: "st1")
+
+    private fun secondaryCreate(verb: String, x: Bundle): String {
+        val tile = secondaryTile(x)
+        val logo = when {
+            x.getString("logoAuthority") != null -> Uri.parse("content://" + x.getString("logoAuthority") + "/peek.png")
+            x.getBoolean("logo", false) -> TestImageProvider.uri(this, TestImageProvider.PEEK)
+            else -> null
+        }
+        val size = TileSize.entries.firstOrNull { it.value == x.getString("size") } ?: TileSize.MEDIUM
+        val displayName = x.getString("displayName") ?: "Test tile"
+        val arguments = x.getString("arguments") ?: "tile-args-${tile.tileId}"
+        val r = if (verb == "secondary.update") {
+            tile.update(displayName, arguments, logo, size, x.getBoolean("showName", false))
+        } else {
+            tile.requestCreate(displayName, arguments, logo, size, x.getBoolean("showName", false))
+        }
+        return "$verb tileId=${tile.tileId} arguments=$arguments: ok=${r.ok} error=${r.error} pending=${r.pending} detail=${r.detail}"
     }
 
     private fun handle(intent: Intent) {
@@ -100,8 +184,10 @@ class VerbActivity : Activity() {
         "$verb: ok=${r.ok} error=${r.error} detail=${r.detail}" + (r.setting?.let { " setting=$it" } ?: "")
 
     private fun perform(verb: String, x: Bundle): String {
-        val tiles = TileUpdater.forApplication(this)
-        val badges = BadgeUpdater.forApplication(this)
+        // A tileId extra sends the tile / badge verbs to one of this app's secondary tiles instead of its own tile.
+        val tileIdExtra = x.getString("tileId")
+        val tiles = if (tileIdExtra == null) TileUpdater.forApplication(this) else TileUpdater.forSecondaryTile(this, tileIdExtra)
+        val badges = if (tileIdExtra == null) BadgeUpdater.forApplication(this) else BadgeUpdater.forSecondaryTile(this, tileIdExtra)
         val now = System.currentTimeMillis()
         return when (verb) {
             "tile.update" -> {
@@ -143,10 +229,7 @@ class VerbActivity : Activity() {
                 }
             }
             "badge.clear" -> fmt(verb, badges.clear())
-            "tile.setting" -> {
-                val r = TileUpdater.forApplication(this)
-                "tile.setting: ${r.setting()}"
-            }
+            "tile.setting" -> "tile.setting: ${tiles.setting()}"
             "demo.queue" -> {
                 val results = mutableListOf(fmt("tile.enableQueue", tiles.enableNotificationQueue(true)))
                 for (i in 1..5) results += fmt("tile.update q$i", tiles.update(content(listOf("Queue item $i", stamp()), null), tag = "q$i"))
@@ -184,6 +267,17 @@ class VerbActivity : Activity() {
                 "notify.cancel: done"
             }
             "legacyBadge" -> sendLegacyBadge(x)
+            "secondary.requestCreate", "secondary.update" -> secondaryCreate(verb, x)
+            "secondary.requestDelete" -> {
+                val tile = secondaryTile(x)
+                val r = tile.requestDelete()
+                "$verb tileId=${tile.tileId}: ok=${r.ok} error=${r.error} detail=${r.detail}"
+            }
+            "secondary.exists" -> {
+                val tile = secondaryTile(x)
+                "$verb tileId=${tile.tileId}: ${tile.exists()}"
+            }
+            "secondary.findAll" -> "secondary.findAll: ${SecondaryTile.findAll(this)}"
             else -> "unknown verb $verb"
         }
     }
