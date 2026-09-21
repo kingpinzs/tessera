@@ -112,7 +112,9 @@ fun PinToStartMenu(anchorPx: Float, onPin: () -> Unit, onDismiss: () -> Unit) {
             },
             modifier = Modifier.fillMaxSize(),
         ) { measurables, constraints ->
-            val band = measurables[0].measure(constraints)
+            // Full width, but only as tall as its items: the incoming constraints are fixed to the overlay's
+            // size, and passing them on would stretch the band's background over the whole list.
+            val band = measurables[0].measure(constraints.copy(minWidth = constraints.maxWidth, minHeight = 0))
             layout(constraints.maxWidth, constraints.maxHeight) {
                 val room = (constraints.maxHeight - band.height).coerceAtLeast(0)
                 band.place(0, anchorPx.roundToInt().coerceIn(0, room))
