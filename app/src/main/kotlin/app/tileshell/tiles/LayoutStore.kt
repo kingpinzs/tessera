@@ -55,46 +55,31 @@ class LayoutStore private constructor(private val context: Context) {
         Diagnostics.add("layout", "slot ${slot.name} explicit assignment cleared")
     }
 
-    // ---------------- phase 02 mutations ----------------
+    // ---------------- phase 02 mutations (the rules live in LayoutOps; this adds persistence) ----------------
 
     /** Pin [key] at the end of the grid. Returns false when it is already on Start (edge case: pin twice). */
     fun pin(key: TileKey, size: TileSize = TileSize.MEDIUM): Boolean {
         var pinned = false
-        mutate { layout ->
-            if (layout.contains(key)) layout else {
-                pinned = true
-                layout.copy(order = layout.order + Sized(key, size))
-            }
-        }
+        mutate { layout -> LayoutOps.pin(layout, key, size)?.also { pinned = true } ?: layout }
         Diagnostics.add("layout", "pin ${key.id} size=$size -> ${if (pinned) "added" else "already on Start"}")
         return pinned
     }
 
     /** Remove [key] from wherever it is (grid, folder, bottom row); a folder left with one tile dissolves (H19). */
     fun unpin(key: TileKey) {
-        mutate { it.without(key) }
+        mutate { LayoutOps.without(it, key) }
         Diagnostics.add("layout", "unpin ${key.id}")
     }
 
     /** Resize [key] to [size], in the grid or inside a folder. */
     fun resize(key: TileKey, size: TileSize) {
-        mutate { layout ->
-            layout.copy(
-                order = layout.order.map { if (it.key == key) it.copy(size = size) else it },
-                folders = layout.folders.mapValues { (_, f) -> f.copy(members = f.members.map { if (it.key == key) it.copy(size = size) else it }) },
-            )
-        }
+        mutate { LayoutOps.resize(it, key, size) }
         Diagnostics.add("layout", "resize ${key.id} -> $size")
     }
 
     /** Move [key] to [index] of the grid order (taking it out of a folder or the bottom row first). */
     fun moveInGrid(key: TileKey, index: Int) {
-        mutate { layout ->
-            val size = layout.sizeOf(key) ?: TileSize.MEDIUM
-            val stripped = layout.without(key, dissolveEmptyFolders = true)
-            val at = index.coerceIn(0, stripped.order.size)
-            stripped.copy(order = stripped.order.toMutableList().apply { add(at, Sized(key, size)) })
-        }
+        mutate { LayoutOps.moveInGrid(it, key, index) }
         Diagnostics.add("layout", "move ${key.id} to grid index $index")
     }
 
@@ -104,15 +89,7 @@ class LayoutStore private constructor(private val context: Context) {
      */
     fun moveToDock(key: TileKey, index: Int, capacity: Int): Boolean {
         var moved = false
-        mutate { layout ->
-            val already = key in layout.dock
-            if (!already && layout.dock.size >= capacity) layout else {
-                moved = true
-                val stripped = layout.without(key, dissolveEmptyFolders = true)
-                val at = index.coerceIn(0, stripped.dock.size)
-                stripped.copy(dock = stripped.dock.toMutableList().apply { add(at, key) })
-            }
-        }
+        mutate { layout -> LayoutOps.moveToDock(layout, key, index, capacity)?.also { moved = true } ?: layout }
         Diagnostics.add("layout", "move ${key.id} to row index $index capacity=$capacity -> ${if (moved) "moved" else "refused (row full)"}")
         return moved
     }
@@ -123,21 +100,11 @@ class LayoutStore private constructor(private val context: Context) {
      * cannot make a folder (no nesting, H23).
      */
     fun createFolder(target: TileKey, dragged: TileKey): String? {
-        if (target is TileKey.FolderTile || dragged is TileKey.FolderTile) return null
         var id: String? = null
         mutate { layout ->
-            val targetItem = layout.order.firstOrNull { it.key == target } ?: return@mutate layout
-            val draggedSize = layout.sizeOf(dragged) ?: TileSize.MEDIUM
-            val stripped = layout.without(dragged, dissolveEmptyFolders = true)
-            val index = stripped.order.indexOfFirst { it.key == target }
-            if (index < 0) return@mutate layout
-            val newId = nextFolderId(stripped.folders.keys)
-            id = newId
-            val folder = Folder(newId, null, listOf(Sized(target, targetItem.size), Sized(dragged, draggedSize)))
-            stripped.copy(
-                order = stripped.order.toMutableList().apply { set(index, Sized(TileKey.FolderTile(newId), targetItem.size)) },
-                folders = stripped.folders + (newId to folder),
-            )
+            val made = LayoutOps.createFolder(layout, target, dragged) ?: return@mutate layout
+            id = made.second
+            made.first
         }
         Diagnostics.add("layout", "create folder from ${target.id} + ${dragged.id} -> ${id ?: "refused"}")
         return id
@@ -145,27 +112,15 @@ class LayoutStore private constructor(private val context: Context) {
 
     /** Add [key] to folder [folderId] at [index] (default: last member, R6 §1.6.2 / H23). */
     fun addToFolder(folderId: String, key: TileKey, index: Int = Int.MAX_VALUE): Boolean {
-        if (key is TileKey.FolderTile) return false
         var added = false
-        mutate { layout ->
-            val folder = layout.folders[folderId] ?: return@mutate layout
-            val size = layout.sizeOf(key) ?: TileSize.MEDIUM
-            val stripped = layout.without(key, dissolveEmptyFolders = true)
-            val live = stripped.folders[folderId] ?: return@mutate layout
-            added = true
-            val at = index.coerceIn(0, live.members.size)
-            stripped.copy(folders = stripped.folders + (folderId to live.copy(members = live.members.toMutableList().apply { add(at, Sized(key, size)) })))
-        }
+        mutate { layout -> LayoutOps.addToFolder(layout, folderId, key, index)?.also { added = true } ?: layout }
         Diagnostics.add("layout", "add ${key.id} to folder $folderId -> ${if (added) "added" else "refused"}")
         return added
     }
 
     /** The folder's name (R6 §1.7; null or blank clears it back to the "Name folder" placeholder). */
     fun renameFolder(folderId: String, name: String?) {
-        mutate { layout ->
-            val folder = layout.folders[folderId] ?: return@mutate layout
-            layout.copy(folders = layout.folders + (folderId to folder.copy(name = name?.trim()?.takeIf { it.isNotEmpty() })))
-        }
+        mutate { LayoutOps.renameFolder(it, folderId, name) }
         Diagnostics.add("layout", "rename folder $folderId -> ${name ?: "(none)"}")
     }
 
@@ -176,18 +131,7 @@ class LayoutStore private constructor(private val context: Context) {
     fun onPackagesRemoved(packages: Set<String>) {
         if (packages.isEmpty()) return
         val before = state.value
-        mutate { layout ->
-            var next = layout
-            for (key in layout.allKeys().distinct()) {
-                val owner = when (key) {
-                    is TileKey.AppTile -> key.component.packageName
-                    is TileKey.SecondaryTile -> key.owner
-                    else -> null
-                }
-                if (owner != null && owner in packages) next = next.without(key)
-            }
-            next
-        }
+        mutate { LayoutOps.removePackages(it, packages) }
         if (before != state.value) Diagnostics.add("layout", "packages removed $packages: tiles dropped")
     }
 
@@ -197,51 +141,7 @@ class LayoutStore private constructor(private val context: Context) {
      * (phase 02 Decisions "Bottom tile row editing", E9).
      */
     fun applyRowCapacity(capacity: Int) {
-        mutate { layout ->
-            if (layout.dock.size <= capacity) layout else {
-                val overflow = layout.dock.drop(capacity)
-                Diagnostics.add("layout", "row capacity $capacity: ${overflow.size} tile(s) moved to the end of the grid")
-                layout.copy(dock = layout.dock.take(capacity), order = layout.order + overflow.map { Sized(it, TileSize.SMALL) })
-            }
-        }
-    }
-
-    /** Remove [key] everywhere, dissolving a folder that falls to one member (H19) or empties. */
-    private fun Layout.without(key: TileKey, dissolveEmptyFolders: Boolean = true): Layout {
-        var order = this.order.filterNot { it.key == key }
-        var folders = this.folders
-        val holder = folderHolding(key)
-        if (holder != null) {
-            val members = holder.members.filterNot { it.key == key }
-            folders = folders + (holder.id to holder.copy(members = members))
-        }
-        // A folder tile removed from the grid takes its folder with it.
-        if (key is TileKey.FolderTile) folders = folders - key.folderId
-        if (dissolveEmptyFolders) {
-            for (folder in folders.values.toList()) {
-                when (folder.members.size) {
-                    1 -> {
-                        val last = folder.members.first()
-                        val index = order.indexOfFirst { it.key == TileKey.FolderTile(folder.id) }
-                        order = if (index >= 0) order.toMutableList().apply { set(index, last) } else order + last
-                        folders = folders - folder.id
-                        Diagnostics.add("layout", "folder ${folder.id} left with one tile: dissolved into ${last.key.id}")
-                    }
-                    0 -> {
-                        order = order.filterNot { it.key == TileKey.FolderTile(folder.id) }
-                        folders = folders - folder.id
-                        Diagnostics.add("layout", "folder ${folder.id} is empty: removed")
-                    }
-                }
-            }
-        }
-        return copy(order = order, dock = dock.filterNot { it == key }, folders = folders)
-    }
-
-    private fun nextFolderId(taken: Set<String>): String {
-        var n = 1
-        while ("f$n" in taken) n++
-        return "f$n"
+        mutate { LayoutOps.applyRowCapacity(it, capacity) }
     }
 
     @Synchronized

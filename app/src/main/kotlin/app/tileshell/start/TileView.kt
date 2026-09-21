@@ -70,7 +70,19 @@ data class TileModel(
     val content: TileContent?,
     val badge: Int,
     val unassigned: Boolean,
+    /** Phase 02: a live folder draws its members' mini tiles instead of one icon (R6 §1.6.3-§1.6.4). */
+    val folder: FolderFace? = null,
 )
+
+/** One member of a folder, drawn as a mini tile on the folder's face (R6 §1.6.3, H12). */
+data class MiniTile(val icon: TileIcons.Icon?, val glyph: String?)
+
+/**
+ * A folder tile's face (phase 02): the member mini tiles, or the "^" chevron while the folder is expanded
+ * (R6 §1.6.5, H14). A wide folder puts the mini grid on the left and one member's live content on the right
+ * with a numeric badge (R6 §1.6.4, H13).
+ */
+data class FolderFace(val minis: List<MiniTile>, val expanded: Boolean, val count: Int, val live: TileContent? = null)
 
 /**
  * One Start tile: accent background (translucent over a Start background, R3 A4), glyph, caption label
@@ -86,6 +98,14 @@ fun TileView(
     pressStyle: PressStyle,
     onTap: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Edit-mode dimming of everything but the held tile (R6 §1.1.5-§1.1.6); Unspecified = no dim. */
+    dim: Color = Color.Unspecified,
+    /** False in edit mode: Start owns the gestures there, so a tile never launches or tilts under a drag. */
+    interactive: Boolean = true,
+    /** Folder-create feedback: the tile holds still and lights up while a tile dwells on it (R6 §1.6.1, H10). */
+    folderTarget: Boolean = false,
+    /** A resize hides the tile's content while the rectangle changes size, leaving the accent fill (R6 §1.4). */
+    contentAlpha: Float = 1f,
 ) {
     val faces = model.content?.faces.orEmpty()
     // Face 0 is the logo face; 1..n are live faces.
@@ -185,7 +205,8 @@ fun TileView(
                 scaleY = depress.value * (if (transition == FaceTransition.FLIP) kotlin.math.abs(1f - 2f * cycle.value) else 1f)
                 cameraDistance = 12f * density.density
             }
-            .pointerInput(pressStyle, model.id) {
+            .pointerInput(pressStyle, model.id, interactive) {
+                if (!interactive) return@pointerInput
                 awaitEachGesture {
                     val down = awaitFirstDown()
                     pressed = true
@@ -219,10 +240,14 @@ fun TileView(
     ) {
         @Composable
         fun Face(index: Int) {
-            if (index == 0 || faces.isEmpty() || index > faces.size) LogoFace(model, widthDp, heightDp) else LiveFace(faces[index - 1], model, heightDp)
+            val folder = model.folder
+            if (folder != null) FolderFaceView(model, folder, widthDp, heightDp)
+            else if (index == 0 || faces.isEmpty() || index > faces.size) LogoFace(model, widthDp, heightDp) else LiveFace(faces[index - 1], model, heightDp)
         }
         val outgoing = slideFrom
-        if (fadeFrom >= 0) {
+        if (contentAlpha < 1f) {
+            Box(Modifier.fillMaxSize().graphicsLayer { alpha = contentAlpha }) { Face(faceIndex) }
+        } else if (fadeFrom >= 0) {
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = 1f - cycle.value }) { Face(fadeFrom) }
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = cycle.value }) { Face(faceIndex) }
         } else if (outgoing >= 0) {
@@ -237,6 +262,10 @@ fun TileView(
         if (pressStyle == PressStyle.P4_PRESS && pressed) {
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = P4_PRESS_DIM)))
         }
+        // R6 §1.6.1 (H10): the tile a dragged tile is dwelling on stays highlighted behind it.
+        if (folderTarget) Box(Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.25f)))
+        // Edit-mode dimming is drawn over the whole tile, faces, label and badge alike (R6 §1.1.5).
+        if (dim != Color.Unspecified && dim.alpha > 0f) Box(Modifier.fillMaxSize().background(dim).testTag("dim:${model.id}"))
     }
 }
 
@@ -289,7 +318,7 @@ private fun BoxScope.Badge(model: TileModel) {
 }
 
 @Composable
-private fun LiveFace(face: TileFace, model: TileModel, heightDp: Dp) {
+internal fun LiveFace(face: TileFace, model: TileModel, heightDp: Dp) {
     val white = Color.White
     Box(Modifier.fillMaxSize()) {
         when (face) {
