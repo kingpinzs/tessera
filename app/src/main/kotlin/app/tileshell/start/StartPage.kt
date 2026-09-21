@@ -399,6 +399,9 @@ fun StartPage(
             if (overshoot > 0) scroll.scrollTo((scroll.value + overshoot.toInt()).coerceIn(0, scroll.maxValue))
         }
 
+        val geoState = rememberUpdatedState(geo)
+        val pitchState = rememberUpdatedState(pitchScale)
+        Box(Modifier.fillMaxSize().startEditGestures(edit, geoState, store, scroll, scope, pitchState)) {
         if (background != null) {
             Image(
                 background, contentDescription = null, contentScale = ContentScale.Crop,
@@ -511,11 +514,7 @@ fun StartPage(
             }
         }
 
-        // One transparent layer over the whole screen carries edit mode's gestures, so a drag can cross from
-        // the scrolling grid into the bottom tile row and back.
-        val geoState = rememberUpdatedState(geo)
-        val pitchState = rememberUpdatedState(pitchScale)
-        Box(Modifier.fillMaxSize().startEditGestures(edit, geoState, store, scroll, scope, pitchState))
+        }
 
         // Edit mode's drivers: the entry/exit motion, the dwell, and the edge auto-scroll while dragging.
         EditMotion(edit)
