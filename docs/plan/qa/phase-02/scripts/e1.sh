@@ -52,23 +52,22 @@ dump "$OUT/e1_before_resize.xml"
 C=$(tile_center "$OUT/e1_before_resize.xml" "$TO")
 enter_edit ${C% *} ${C#* }
 for step in 1 2 3; do
-  dump "$OUT/e1_resize_${step}_dump.xml"
-  P=$(corner_point "$OUT/e1_before_resize.xml" "$TO" bottom)
+  dump "$OUT/e1_resize_${step}_dump.xml"          # taken IN edit mode: the discs are in it
+  P=$(disc_center "$OUT/e1_resize_${step}_dump.xml" resize) || { say "step $step: no resize disc in the dump"; break; }
   say "step $step: tapping the resize disc at $P"
   adb shell input tap ${P% *} ${P#* }
-  sleep 1.2
+  sleep 1.4
   adb exec-out screencap -p > "$OUT/e1_resize_$step.png"
   layout_order | head -1 | tee -a "$LOG"
-  # the tile changed size, so its corner moved: re-read the layout bounds for the next step
-  dump "$OUT/e1_before_resize.xml"
 done
 
 # --- 3. the unpin disc removes the tile ------------------------------------------------------------------------
 say "--- 3. unpin disc ---"
-P=$(corner_point "$OUT/e1_before_resize.xml" "$TO" top)
+dump "$OUT/e1_before_unpin.xml"
+P=$(disc_center "$OUT/e1_before_unpin.xml" unpin) || say "no unpin disc in the dump"
 say "tapping the unpin disc at $P"
 adb shell input tap ${P% *} ${P#* }
-sleep 1.2
+sleep 1.3
 adb exec-out screencap -p > "$OUT/e1_after_unpin.png"
 say "--- order after the unpin (the tile is gone, the tiles after it fill the gap) ---"
 layout_order | tee -a "$LOG"

@@ -1,0 +1,30 @@
+# E1 2026-09-21T17:40:09-06:00
+baseline layout saved (restored at the end, RV12)
+--- order at rest ---
+order: ['slot:PEOPLE/SMALL', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: []
+--- 1. one gesture: hold shell:settings past 783 ms, drag onto slot:PEOPLE's cell, release after the dwell ---
+from 803 877 to 136 261
+--- order after the move ---
+order: ['shell:settings/SMALL', 'slot:PEOPLE/SMALL', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: []
+--- 2. resize disc ---
+step 1: tapping the resize disc at 379 342
+order: ['shell:settings/SMALL', 'slot:PEOPLE/WIDE', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL']
+step 2: tapping the resize disc at 886 512
+order: ['shell:settings/SMALL', 'slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL']
+step 3: tapping the resize disc at 547 512
+order: ['shell:settings/SMALL', 'slot:PEOPLE/SMALL', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL']
+--- 3. unpin disc ---
+tapping the unpin disc at 379 178
+--- order after the unpin (the tile is gone, the tiles after it fill the gap) ---
+order: ['shell:settings/SMALL', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: []
+baseline layout restored
+--- order after restore ---
+order: ['slot:PEOPLE/SMALL', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: []
