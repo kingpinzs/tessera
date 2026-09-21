@@ -24,3 +24,44 @@ tile_bounds() { bounds "$1" "tile:$2"; }
 
 # tile_center <dump.xml> <tile id>: "x y"
 tile_center() { center "$1" "tile:$2"; }
+
+# edit_point <dump.xml> <tile id>: where that tile's centre sits ON SCREEN while edit mode is on.
+# The grid contracts to 0.90 of each centre's distance from the fixed point (R6 §1.1.3), which a uiautomator
+# dump cannot show (it reports layout bounds), so the QA driver computes it the same way the shell draws it.
+edit_point() {
+  python3 - "$1" "$2" <<'PY'
+import re, sys
+s = open(sys.argv[1]).read()
+m = re.search(r'resource-id="tile:' + re.escape(sys.argv[2]) + r'"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', s)
+if not m: sys.exit(1)
+x1, y1, x2, y2 = map(int, m.groups())
+cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+page = re.search(r'resource-id="start_page"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', s)
+H = int(page.group(4)) if page else 2340
+fx, fy = 1080 * 0.5, H * 0.475
+# The bottom tile row is not in the scrolling grid and does not contract.
+print(int(round(cx)), int(round(cy))) if sys.argv[2].startswith("dock:") else \
+    print(int(round(fx + (cx - fx) * 0.90)), int(round(fy + (cy - fy) * 0.90)))
+PY
+}
+
+# corner_point <dump.xml> <tile id> <top|bottom>: the screen point of the held tile's right-hand corner, where
+# the unpin (top) and resize (bottom) discs are centred (R6 §1.2.1-§1.2.3). The held tile stays at scale 1.00,
+# so only its centre moves with the contraction.
+corner_point() {
+  python3 - "$1" "$2" "$3" <<'PY'
+import re, sys
+s = open(sys.argv[1]).read()
+m = re.search(r'resource-id="tile:' + re.escape(sys.argv[2]) + r'"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', s)
+if not m: sys.exit(1)
+x1, y1, x2, y2 = map(int, m.groups())
+cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+page = re.search(r'resource-id="start_page"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', s)
+H = int(page.group(4)) if page else 2340
+dock = sys.argv[2].startswith("dock:")
+fx, fy = 1080 * 0.5, H * 0.475
+ecx, ecy = (cx, cy) if dock else (fx + (cx - fx) * 0.90, fy + (cy - fy) * 0.90)
+w, h = x2 - x1, y2 - y1
+print(int(round(ecx + w / 2)), int(round(ecy - h / 2 if sys.argv[3] == "top" else ecy + h / 2)))
+PY
+}
