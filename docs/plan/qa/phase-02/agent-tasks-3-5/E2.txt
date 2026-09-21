@@ -1,0 +1,27 @@
+# E2 2026-09-21T14:38:42-06:00
+worktree apk md5 : 39e6239424de09bafc56fcd528b8d512
+installed apk md5: 39e6239424de09bafc56fcd528b8d512
+INSTALLED BUILD = MINE
+$ adb uninstall app.tileshell.testclient.a: Success   # a fresh install time is what earns the caption
+$ adb install -r tileclient-a-debug.apk: Success
+$ adb shell input swipe 900 1200 150 1200 250   # Start -> app list
+row present: 1; New caption on the row: 1
+row bounds: 0 1518 1080 1650
+$ adb shell input swipe 540 1584 540 1584 900   # hold past Edit.HOLD_MS (783 ms)
+menu band: 1 bounds=0 1650 1080 1776
+Pin to Start item: 1 bounds=0 1650 1080 1776 node=applist_menu_pin | desc= | texts=Pin to Start
+the list is still under the menu (row still dumped): 1
+$ tap the "Pin to Start" item
+menu after the tap: 0 (0 = closed)
+New caption after the pin: 0 (0 = cleared); the row itself: 1
+tiles named tile:app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 on Start: 1 bounds=721 973 1064 1316
+layout: version 3 | last 3 of order: [('slot:MUSIC', 'SMALL'), ('shell:settings', 'SMALL'), ('app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0', 'MEDIUM')]
+diagnostics:
+    2026-09-21 14:39:07.373 wall=1790023147373 [applist] context menu on app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity
+    2026-09-21 14:39:12.169 wall=1790023152169 [layout] pin app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 size=MEDIUM -> added
+    2026-09-21 14:39:12.169 wall=1790023152169 [applist] new caption cleared on app.tileshell.testclient.a#0: pinned to Start
+    2026-09-21 14:39:12.169 wall=1790023152169 [applist] pin to Start app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity -> pinned
+worktree apk md5 : 39e6239424de09bafc56fcd528b8d512
+installed apk md5: 39e6239424de09bafc56fcd528b8d512
+INSTALLED BUILD = MINE
+done

@@ -1,0 +1,34 @@
+# E6b 2026-09-21T14:40:32-06:00
+worktree apk md5 : 39e6239424de09bafc56fcd528b8d512
+installed apk md5: 39e6239424de09bafc56fcd528b8d512
+INSTALLED BUILD = MINE
+$ adb install -r tileclient-a: Success
+$ adb install -r tileclient-b: Success
+pinned: 2026-09-21 14:40:50.353 wall=1790023250353 [applist] pin to Start app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity -> pinned
+2026-09-21 14:41:06.614 wall=1790023266614 [applist] pin to Start app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity -> pinned
+
+## uninstall while Start is NOT in the foreground
+top resumed activity:  topResumedActivity=ActivityRecord{245489716 u0 app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity t238}
+$ adb uninstall app.tileshell.testclient.a: Success
+callbacks + layout while Start was in the background:
+    2026-09-21 14:40:32.140 wall=1790023232140 [apps] LauncherApps.onPackageAdded app.tileshell.testclient.b user=0
+    2026-09-21 14:40:32.143 wall=1790023232143 [apps] LauncherApps.onPackageChanged app.tileshell.testclient.b user=0
+    2026-09-21 14:41:11.724 wall=1790023271724 [apps] LauncherApps.onPackageRemoved app.tileshell.testclient.a user=0
+    2026-09-21 14:41:11.734 wall=1790023271734 [layout] packages removed [app.tileshell.testclient.a]: tiles dropped
+tile A on Start: 0 (0 = removed); tile B: 1 (1 = untouched)
+
+## disable (pm disable-user): the tile must stay
+$ adb shell pm disable-user --user 0 app.tileshell.testclient.b: Package app.tileshell.testclient.b new state: disabled-user
+callbacks:
+    2026-09-21 14:40:32.143 wall=1790023232143 [apps] LauncherApps.onPackageChanged app.tileshell.testclient.b user=0
+    2026-09-21 14:41:11.724 wall=1790023271724 [apps] LauncherApps.onPackageRemoved app.tileshell.testclient.a user=0
+    2026-09-21 14:41:11.734 wall=1790023271734 [layout] packages removed [app.tileshell.testclient.a]: tiles dropped
+    2026-09-21 14:41:20.959 wall=1790023280959 [apps] LauncherApps.onPackageChanged app.tileshell.testclient.b user=0
+tile B on Start while disabled: 1 (1 = kept)
+layout file mentions B: 1
+app list row for B while disabled: 1 (1 = the package is disabled, not gone)
+$ adb shell pm enable app.tileshell.testclient.b: Package app.tileshell.testclient.b new state: enabled
+worktree apk md5 : 39e6239424de09bafc56fcd528b8d512
+installed apk md5: 39e6239424de09bafc56fcd528b8d512
+INSTALLED BUILD = MINE
+done
