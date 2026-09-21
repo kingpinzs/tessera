@@ -1,0 +1,21 @@
+# E6c 2026-09-21T14:43:20-06:00
+worktree apk md5 : 39e6239424de09bafc56fcd528b8d512
+installed apk md5: 39e6239424de09bafc56fcd528b8d512
+INSTALLED BUILD = MINE
+$ adb install -r tileclient-b: Success
+$ adb shell pm disable-user --user 0 app.tileshell.testclient.b: Package app.tileshell.testclient.b new state: disabled-user
+$ adb shell pm list packages -d | grep app.tileshell.testclient.b: package:app.tileshell.testclient.b (installed, disabled)
+$ adb shell pm list packages | grep app.tileshell.testclient.ghost: '' (never installed)
+seed landed on the device: 1 ghost entry
+layout seeded with a disabled package's tile and a never-installed package's tile while the shell was stopped
+ghost tile on Start after the process start: 0 (0 = reconciled away)
+disabled package's tile on Start: 1 (1 = kept)
+layout file mentions the ghost: 0; mentions the disabled package: 1
+diagnostics:
+    2026-09-21 14:43:24.937 wall=1790023404937 [app] packages gone while the shell was not running: [app.tileshell.testclient.ghost]
+    2026-09-21 14:43:24.937 wall=1790023404937 [layout] packages removed [app.tileshell.testclient.ghost]: tiles dropped
+$ adb shell pm enable app.tileshell.testclient.b: Package app.tileshell.testclient.b new state: enabled
+worktree apk md5 : 39e6239424de09bafc56fcd528b8d512
+installed apk md5: 39e6239424de09bafc56fcd528b8d512
+INSTALLED BUILD = MINE
+done

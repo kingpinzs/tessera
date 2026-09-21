@@ -1,0 +1,33 @@
+# E6 2026-09-21T14:39:48-06:00
+worktree apk md5 : 39e6239424de09bafc56fcd528b8d512
+installed apk md5: 39e6239424de09bafc56fcd528b8d512
+INSTALLED BUILD = MINE
+tile on Start before: 1
+
+## adb install -r (update): the tile must stay
+$ adb install -r tileclient-a-debug.apk: Success
+LauncherApps callbacks delivered:
+    2026-09-21 14:38:41.968 wall=1790023121968 [apps] LauncherApps.onPackageRemoved app.tileshell.testclient.a user=0
+    2026-09-21 14:38:42.036 wall=1790023122036 [apps] LauncherApps.onPackageAdded app.tileshell.testclient.a user=0
+    2026-09-21 14:38:42.049 wall=1790023122049 [apps] LauncherApps.onPackageChanged app.tileshell.testclient.a user=0
+    2026-09-21 14:39:53.354 wall=1790023193354 [apps] LauncherApps.onPackageChanged app.tileshell.testclient.a user=0
+tile on Start after the update: 1 (1 = kept)
+layout order tail: ['shell:settings', 'app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0']
+
+## adb uninstall: the tile must go
+$ adb uninstall app.tileshell.testclient.a: Success
+LauncherApps callbacks delivered:
+    2026-09-21 14:38:41.968 wall=1790023121968 [apps] LauncherApps.onPackageRemoved app.tileshell.testclient.a user=0
+    2026-09-21 14:38:42.036 wall=1790023122036 [apps] LauncherApps.onPackageAdded app.tileshell.testclient.a user=0
+    2026-09-21 14:38:42.049 wall=1790023122049 [apps] LauncherApps.onPackageChanged app.tileshell.testclient.a user=0
+    2026-09-21 14:39:53.354 wall=1790023193354 [apps] LauncherApps.onPackageChanged app.tileshell.testclient.a user=0
+    2026-09-21 14:40:02.824 wall=1790023202824 [apps] LauncherApps.onPackageRemoved app.tileshell.testclient.a user=0
+layout diagnostics:
+    2026-09-21 14:38:41.995 wall=1790023121995 [layout] packages removed [app.tileshell.testclient.a]: tiles dropped
+    2026-09-21 14:40:02.834 wall=1790023202834 [layout] packages removed [app.tileshell.testclient.a]: tiles dropped
+tile on Start after the uninstall (top screen): 0 (0 = removed)
+layout file mentions the package: 0 (0 = gone from the layout, folders and row included)
+worktree apk md5 : 39e6239424de09bafc56fcd528b8d512
+installed apk md5: 39e6239424de09bafc56fcd528b8d512
+INSTALLED BUILD = MINE
+done

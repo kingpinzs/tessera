@@ -1,0 +1,22 @@
+# E6d 2026-09-21T14:46:20-06:00
+worktree apk md5 : 39e6239424de09bafc56fcd528b8d512
+installed apk md5: 39e6239424de09bafc56fcd528b8d512
+INSTALLED BUILD = MINE
+$ adb install -r tileclient-a: Success
+$ adb install -r tileclient-b: Success
+folder tile on Start: 1; members in the layout: ['app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0', 'app:app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity:0']
+
+$ adb uninstall app.tileshell.testclient.a   # a tile that lives inside the folder
+result: Success
+layout mentions A: 0 (0 = removed from inside the folder)
+folders left: [] (empty = the one-tile folder dissolved, H19)
+B took the folder's place in the order: ['shell:settings', 'app:app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity:0']
+tile B drawn on Start: 1; tile A: 0; folder tile: 0
+diagnostics:
+    2026-09-21 14:46:35.805 wall=1790023595805 [apps] LauncherApps.onPackageRemoved app.tileshell.testclient.a user=0
+    2026-09-21 14:46:35.830 wall=1790023595830 [layout] folder f1 left with one tile: dissolved into app:app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity:0
+    2026-09-21 14:46:35.831 wall=1790023595831 [layout] packages removed [app.tileshell.testclient.a]: tiles dropped
+worktree apk md5 : 39e6239424de09bafc56fcd528b8d512
+installed apk md5: 39e6239424de09bafc56fcd528b8d512
+INSTALLED BUILD = MINE
+done

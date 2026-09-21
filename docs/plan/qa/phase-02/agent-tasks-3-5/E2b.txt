@@ -1,0 +1,41 @@
+# E2b 2026-09-21T14:43:53-06:00
+worktree apk md5 : 39e6239424de09bafc56fcd528b8d512
+installed apk md5: 39e6239424de09bafc56fcd528b8d512
+INSTALLED BUILD = MINE
+$ adb install -r tileclient-a: Success
+
+## pin once, then pin the same app again
+pin diagnostics:
+    2026-09-21 14:44:20.508 wall=1790023460508 [layout] pin app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 size=MEDIUM -> added
+    2026-09-21 14:44:20.508 wall=1790023460508 [applist] pin to Start app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity -> pinned
+    2026-09-21 14:44:36.772 wall=1790023476772 [layout] pin app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 size=MEDIUM -> already on Start
+    2026-09-21 14:44:36.772 wall=1790023476772 [applist] pin to Start app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity -> already on Start
+tiles for A in the layout file: 1 (1 = no second tile)
+tiles for A drawn on Start: 1
+
+## Back closes the menu
+menu open on applist_row:opencontacts.open.com.opencontacts: 1
+after Back -> menu: 0 (0 = closed); still on the app list: 1; rows still listed: 1
+
+## a tap outside the band closes the menu and launches nothing
+menu open: 1 band=0 195 1080 321
+$ adb shell input tap 540 1900   # well below the band
+after the tap outside -> menu: 0 (0 = closed); foreground: package="app.tileshell" 
+launches recorded since the menu opened: 0 total; last: 
+
+## the list still behaves: tap launches, search finds, the jump grid opens
+tap on applist_row:opencontacts.open.com.opencontacts -> foreground: package="opencontacts.open.com.opencontacts" 
+launch diagnostics: 2026-09-21 14:45:16.343 wall=1790023516343 [launch] tile=null target=App(entry=AppEntry(component=ComponentInfo{opencontacts.open.com.opencontacts/opencontacts.open.com.opencontacts.activities.MainActivity}, user=UserHandle{0}, label=OpenContacts, profile=MAIN, isSystem=false, firstInstallTime=1789658120715))
+search 'tile' -> rows: app.tileshell.testclient.a app.tileshell.testclient.b 
+tap on applist_header:P -> jump grid: 1 cells: 1
+worktree apk md5 : 39e6239424de09bafc56fcd528b8d512
+installed apk md5: 39e6239424de09bafc56fcd528b8d512
+INSTALLED BUILD = MINE
+done
+
+## occurrence counts re-read from the saved dumps (grep -o, not grep -c)
+tiles for A drawn on Start (e2b_start.xml): 1
+rows listed after Back (e2b_after_back.xml): 12
+jump grid cells (e2b_grid.xml): 27
+menu bands in the after-Back dump: 0
+menu bands in the after-tap-outside dump: 0

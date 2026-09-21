@@ -1,0 +1,42 @@
+# Phase 02 build tasks 3 and 5 - emulator evidence (emulator-5554, 1080x2340 450dpi, Android 16)
+# Every check names the APK it ran against (scripts/guard.sh compares the installed APK's md5 with this
+# worktree's) and was driven on the real shell as the HOME app. Fixtures: testapps/tileclient-a and -b.
+
+E2.txt    build task 3 / row E2: app list -> hold a row past Edit.HOLD_MS (783 ms) -> the H21 context menu
+          -> "Pin to Start" -> a medium tile at the end of the Start grid and the "New" caption cleared.
+          e2_1_row_with_new.png (the row with its caption), e2_2_menu.png (the band under the row),
+          e2_3_after_pin.png (caption gone), e2_4_start_tile.png (the tile), e2_layout.json.
+E2b.txt   build task 3, the rest of the menu: a second pin of the same app makes no second tile; Back and a
+          tap outside close the band without pinning or launching; a tap still launches, search still finds,
+          the letter jump grid still opens. e2b_1_search.png, e2b_2_jump_grid.png. The last block recounts
+          occurrences from the saved dumps (grep -c counts lines and a dump is one line).
+E2c.txt   edge case "pinning an app already on Start" ACROSS A PROCESS RESTART: FAILS - two tiles.
+          Cause is outside these two tasks' files: LayoutStore.parseKey rebuilds an AppTile with user = null
+          while the app list pins it with the entry's UserHandle, so the data-class equality in
+          Layout.contains misses even though both ids are "app:<component>:0". One-line fix belongs in
+          LayoutStore.parseKey (the lead's file). Live in-process pinning is correct (see E2b).
+E6.txt    row E6: `adb install -r` of an update KEEPS the pinned tile; `adb uninstall` removes it. Quotes the
+          LauncherApps callbacks Android actually delivered for each. e6_1_after_update.png,
+          e6_2_after_uninstall.png.
+E6b.txt   build task 5: an uninstall while Start is NOT in the foreground still drops the tile (the top
+          resumed activity at the time is in the log), and `pm disable-user` keeps it.
+          e6b_1_after_background_uninstall.png, e6b_2_after_disable.png.
+E6c.txt   build task 5: a package that went away while the shell was not running is reconciled at the next
+          process start, and an installed-but-disabled package's tile survives the same start.
+          e6c_1_after_restart.png.
+E6d.txt   row E6, the folder half: uninstalling an app whose tile is inside a folder removes it from the
+          folder, and the folder left with one tile dissolves into it (H19). e6d_1_folder.png,
+          e6d_2_after_uninstall.png.
+RESTORE.txt  the emulator put back: start_layout.json restored byte-for-byte from the backup taken before
+          the pass, both fixtures uninstalled, the shell and the HOME role untouched. restore_1_start.png.
+
+scripts/  p2.sh (helpers on top of phase 01's ui.sh), guard.sh (which build is installed), e2_pin.sh,
+          e2b_menu.sh, e2b_counts.sh, e2c_pin_after_restart.sh, e6_uninstall_update.sh,
+          e6b_background_disable.sh, e6c_dead_process.sh, e6d_folder.sh, restore.sh,
+          probe_hold*.sh (the hold-threshold probes that settled how the gesture is driven).
+
+Callbacks Android delivered (quoted from the ring, E6.txt / E6b.txt):
+  adb uninstall      -> [apps] LauncherApps.onPackageRemoved <pkg> user=0        (tiles dropped)
+  adb install -r     -> [apps] LauncherApps.onPackageChanged <pkg> user=0        (tiles kept)
+  first install      -> onPackageAdded then onPackageChanged
+  pm disable-user    -> [apps] LauncherApps.onPackageChanged <pkg> user=0        (tiles kept)
