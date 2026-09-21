@@ -45,9 +45,9 @@ import app.tileshell.start.BackHistory
 import app.tileshell.start.PlacedTile
 import app.tileshell.start.SlotPicker
 import app.tileshell.start.StartAnimation
+import app.tileshell.start.StartEditState
 import app.tileshell.start.StartPage
 import app.tileshell.start.TileTarget
-import app.tileshell.start.rememberPlacedTiles
 import app.tileshell.tiles.ShellTiles
 import app.tileshell.tiles.Slot
 import app.tileshell.ui.LocalShellColors
@@ -72,6 +72,8 @@ class StartActivity : ComponentActivity() {
     private var returningFromLaunch = false
     private var page by mutableStateOf(0)
     private val backEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    /** Phase 02 edit mode: held here so Back, Home and the pivot can see it. */
+    private val edit = StartEditState()
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,7 +96,6 @@ class StartActivity : ComponentActivity() {
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     private fun StartHost() {
-        val tiles = rememberPlacedTiles()
         val scroll = rememberScrollState()
         val pager = rememberPagerState(pageCount = { 2 })
         val scope = rememberCoroutineScope()
@@ -102,6 +103,8 @@ class StartActivity : ComponentActivity() {
         LaunchedEffect(Unit) {
             homeEvents.collect { alreadyInFront ->
                 pickerSlot = null
+                // Windows leaves edit mode when Start is re-entered (X20's sibling; agent).
+                if (edit.active) edit.requestExit()
                 pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
                 if (alreadyInFront) {
                     // X20 approximation: Home while Start is showing scrolls Start to the top.
@@ -113,6 +116,9 @@ class StartActivity : ComponentActivity() {
         LaunchedEffect(Unit) {
             backEvents.collect {
                 when {
+                    // R6 §4.1.7 (H9): Back exits edit mode like a tap, and an expanded folder stays expanded.
+                    edit.active -> edit.requestExit()
+                    edit.expandedFolder != null -> edit.expandedFolder = null
                     pickerSlot != null -> pickerSlot = null
                     pager.currentPage == 1 -> pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
                     else -> backOnStart()
@@ -131,9 +137,11 @@ class StartActivity : ComponentActivity() {
                         flingBehavior = PagerDefaults.flingBehavior(pager, snapAnimationSpec = tween(Motion.PIVOT_SETTLE_MS)),
                         snapPosition = SnapPosition.Start,
                         beyondViewportPageCount = 1,
+                        // Edit mode holds Start still: a drag across the screen moves a tile, not the pivot (agent).
+                        userScrollEnabled = !edit.active,
                     ) { index ->
                         if (index == 0) {
-                            StartPage(tiles, scroll, animation) { tile -> onTileTap(tile) }
+                            StartPage(scroll, animation, edit) { tile -> onTileTap(tile) }
                         } else {
                             AppListPage(onLaunch = { entry, bounds -> launchApp(TileTarget.App(entry), bounds, null) })
                         }
@@ -185,6 +193,12 @@ class StartActivity : ComponentActivity() {
     private fun onTileTap(tile: PlacedTile) {
         when (val target = tile.target) {
             is TileTarget.Unassigned -> pickerSlot = target.slot
+            // R6 §1.6.6 / §1.6.7 (H15 / H16): a tap opens the folder's band, another tap folds it away.
+            is TileTarget.Folder -> {
+                edit.expandedFolder = if (edit.expandedFolder == target.folderId) null else target.folderId
+                edit.naming = false
+                Diagnostics.add("start", "folder ${target.folderId} " + if (edit.expandedFolder == null) "collapsed" else "expanded")
+            }
             else -> {
                 val bounds = Rect(tile.xPx.toInt(), tile.yPx.toInt(), (tile.xPx + tile.wPx).toInt(), (tile.yPx + tile.hPx).toInt())
                 pendingLaunch = { launchApp(target, bounds, tile.model.id) }
@@ -205,7 +219,9 @@ class StartActivity : ComponentActivity() {
                 ShellTiles.SETTINGS -> startActivity(Intent(this, app.tileshell.settings.SettingsActivity::class.java), options)
                 else -> Diagnostics.add("launch", "shell tile ${target.name} has no target")
             }
-            is TileTarget.Unassigned -> Unit
+            is TileTarget.Unassigned, is TileTarget.Folder -> Unit
+            // Build task 6 owns the secondary-tile launch (owner + TILE_ID / ARGUMENTS extras); wired at merge.
+            is TileTarget.Secondary -> Diagnostics.add("launch", "secondary tile ${target.owner}/${target.tileId}")
         }
         Diagnostics.add("launch", "tile=$tileId target=$target")
     }
