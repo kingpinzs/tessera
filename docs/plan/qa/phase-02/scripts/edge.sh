@@ -10,6 +10,7 @@ mkdir -p "$OUT"; : > "$LOG"
 say() { echo "$*" | tee -a "$LOG"; }
 say "# phase 02 edge cases $(date -Iseconds)"
 layout_save "$OUT/layout_before.json"
+layout_restore "$(dirname "$0")/../baseline_layout.json"   # every row starts from the same Start
 
 say "=== 1. a layout store written by an older shell build (v2 -> v3 upgrade keeps the layout) ==="
 python3 - "$OUT/v2.json" <<'PY'
@@ -41,7 +42,7 @@ adb exec-out screencap -p > "$OUT/edge_v2_upgrade.png"
 layout_restore "$OUT/layout_before.json"
 
 say "=== 2. Back in edit mode, without and with a folder expanded (H9) ==="
-adb shell input keyevent KEYCODE_HOME; sleep 2
+ensure_start
 dump "$OUT/edge_back_pre.xml"
 XY=$(tile_center "$OUT/edge_back_pre.xml" "slot:PEOPLE" || tile_center "$OUT/edge_back_pre.xml" "slot:MAIL")
 enter_edit ${XY% *} ${XY#* }
@@ -51,7 +52,7 @@ adb exec-out screencap -p > "$OUT/edge_back_exited.png"
 say "expect: Back left edit mode and stayed on Start (top activity: $(adb shell dumpsys activity activities | grep -m1 topResumedActivity | sed 's/.*u0 //;s/ .*//'))"
 
 say "=== 3. drag across several occupied cells without stopping: no reflow, no feedback left behind ==="
-adb shell input keyevent KEYCODE_HOME; sleep 2
+ensure_start
 dump "$OUT/edge_sweep_pre.xml"
 layout_save "$OUT/edge_sweep_before.json"
 A=$(layout_json | python3 -c "import json,sys; print(json.load(sys.stdin)['order'][-1]['key'])")
@@ -73,7 +74,7 @@ adb shell input keyevent KEYCODE_BACK; sleep 1
 layout_restore "$OUT/edge_sweep_before.json"
 
 say "=== 4. process death mid-drag ==="
-adb shell input keyevent KEYCODE_HOME; sleep 2
+ensure_start
 dump "$OUT/edge_death_pre.xml"
 layout_save "$OUT/edge_death_before.json"
 A=$(layout_json | python3 -c "import json,sys; print(json.load(sys.stdin)['order'][-1]['key'])")
@@ -83,7 +84,7 @@ glide ${FROM% *} ${FROM#* } 540 700 6
 adb shell am force-stop app.tileshell
 sleep 1
 up 540 700
-adb shell input keyevent KEYCODE_HOME; sleep 4
+ensure_start
 adb exec-out screencap -p > "$OUT/edge_after_death.png"
 say "store after the process died mid-drag (expect the layout from before the drag: an uncommitted drag writes nothing):"
 diff <(python3 -c "import json;d=json.load(open('$OUT/edge_death_before.json'));print([o['key'] for o in d['order']])") \
@@ -91,7 +92,7 @@ diff <(python3 -c "import json;d=json.load(open('$OUT/edge_death_before.json'));
   && say "PASS: unchanged" || say "FAIL: the layout changed"
 
 say "=== 5. a wide dragged tile whose centre sits over a small tile ==="
-adb shell input keyevent KEYCODE_HOME; sleep 2
+ensure_start
 dump "$OUT/edge_wide_pre.xml"
 layout_save "$OUT/edge_wide_before.json"
 W=$(layout_json | python3 -c "
@@ -117,7 +118,7 @@ fi
 layout_restore "$OUT/edge_wide_before.json"
 
 say "=== 6. drag during a live flip ==="
-adb shell input keyevent KEYCODE_HOME; sleep 2
+ensure_start
 dump "$OUT/edge_flip_pre.xml"
 layout_save "$OUT/edge_flip_before.json"
 L=$(grep -o 'resource-id="tile:slot:CALENDAR"' "$OUT/edge_flip_pre.xml" >/dev/null && echo slot:CALENDAR || echo shell:weather)

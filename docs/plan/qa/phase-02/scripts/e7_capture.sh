@@ -8,7 +8,7 @@ OUT=$1; TILE=$2; LOG=$OUT/e7_capture.txt
 mkdir -p "$OUT"
 echo "# E7 capture $(date -Iseconds) held=$TILE" > "$LOG"
 adb shell svc power stayon true
-adb shell input keyevent KEYCODE_HOME; sleep 2
+ensure_start
 adb shell input swipe 540 700 540 1900 200; sleep 1   # scroll to the top so both captures share a scroll
 
 # --- 1. Start at rest -----------------------------------------------------------------------------------------
@@ -70,13 +70,13 @@ adb exec-out screencap -p > "$OUT/after_exit.png"
 # launches its app; over it, nothing launches and the grid contracts.
 top() { adb shell dumpsys activity activities | grep -m1 topResumedActivity | sed 's/.*u0 //;s/ .*//'; }
 for MS in 740 830; do
-  adb shell input keyevent KEYCODE_HOME; sleep 2.5
+  ensure_start
   adb shell input swipe ${XY% *} ${XY#* } ${XY% *} ${XY#* } $MS
   sleep 1.4
   adb exec-out screencap -p > "$OUT/hold_$MS.png"
   echo "hold ${MS}ms: top activity $(top)" >> "$LOG"
-  adb shell input keyevent KEYCODE_HOME; sleep 1.5
-  adb shell input keyevent KEYCODE_HOME; sleep 1
+  ensure_start
+  ensure_start
 done
 
 adb shell dumpsys activity service app.tileshell/.feeds.TileNotificationListener | grep "\[edit\]" | tail -40 > "$OUT/e7_edit_diag.txt"

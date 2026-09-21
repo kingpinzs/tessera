@@ -12,12 +12,13 @@ say() { echo "$*" | tee -a "$LOG"; }
 row() { layout_json | python3 -c "import json,sys; print('row:', json.load(sys.stdin)['dock'])"; }
 say "# E9 $(date -Iseconds)"
 layout_save "$OUT/layout_before.json"
-adb shell input keyevent KEYCODE_HOME; sleep 2
+layout_restore "$(dirname "$0")/../baseline_layout.json"   # every row starts from the same Start
+ensure_start
 say "row at rest:"; row | tee -a "$LOG"
 
 drag_to() { # drag_to <tile id> <x> <y> [holdms]
   local T=$1 X=$2 Y=$3 hold=${4:-900} from
-  adb shell input keyevent KEYCODE_HOME; sleep 2
+  ensure_start
   dump "$OUT/e9_pre.xml"
   from=$(tile_center "$OUT/e9_pre.xml" "$T") || { say "no tile $T"; return 1; }
   down ${from% *} ${from#* }; sleep 1.1
@@ -60,7 +61,7 @@ adb exec-out screencap -p > "$OUT/e9_reordered.png"
 say "expect the order to have changed:"; row | tee -a "$LOG"
 
 say "--- 4. unpin a row tile ---"
-adb shell input keyevent KEYCODE_HOME; sleep 2
+ensure_start
 dump "$OUT/e9_unpin_pre.xml"
 D=$(grep -o 'resource-id="tile:dock:[^"]*"' "$OUT/e9_unpin_pre.xml" | head -1 | sed 's/.*tile:\(.*\)"/\1/')
 C=$(tile_center "$OUT/e9_unpin_pre.xml" "$D")
@@ -96,7 +97,7 @@ adb shell am start -n app.tileshell/app.tileshell.settings.SettingsActivity >/de
 scroll_to_id "$OUT/e9_settings.xml" "setting:columns" || say "could not find the show-more-tiles row in Settings"
 tap_id "$OUT/e9_settings.xml" "setting:columns"; sleep 1.5
 adb exec-out screencap -p > "$OUT/e9_settings_columns.png"
-adb shell input keyevent KEYCODE_HOME; sleep 3
+ensure_start
 adb exec-out screencap -p > "$OUT/e9_two_columns.png"
 say "row after the column change:"; row | tee -a "$LOG"; layout_order | tee -a "$LOG"
 dump "$OUT/e9_two_columns.xml"

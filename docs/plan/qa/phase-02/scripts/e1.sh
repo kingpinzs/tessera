@@ -12,8 +12,9 @@ say() { echo "$*" | tee -a "$LOG"; }
 
 say "# E1 $(date -Iseconds)"
 layout_save "$OUT/layout_before.json"
+layout_restore "$(dirname "$0")/../baseline_layout.json"   # every row starts from the same Start
 say "baseline layout saved (restored at the end, RV12)"
-adb shell input keyevent KEYCODE_HOME; sleep 2
+ensure_start
 dump "$OUT/e1_start.xml"
 say "--- order at rest ---"; layout_order | tee -a "$LOG"
 

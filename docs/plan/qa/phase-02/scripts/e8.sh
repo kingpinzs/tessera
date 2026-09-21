@@ -15,6 +15,7 @@ say() { echo "$*" | tee -a "$LOG"; }
 
 say "# E8 $(date -Iseconds)"
 layout_save "$OUT/layout_before.json"
+layout_restore "$(dirname "$0")/../baseline_layout.json"   # every row starts from the same Start
 BASE=$OUT/e8_base.json
 layout_save "$BASE"
 
@@ -22,7 +23,7 @@ layout_save "$BASE"
 # A screencap is taken at ≈1000 ms (inside the dwell) and at ≈2600 ms (past it) whenever the hold runs that long.
 drag() {
   local label=$1 A=$2 B=$3 holdms=$4
-  adb shell input keyevent KEYCODE_HOME; sleep 2
+  ensure_start
   dump "$OUT/${label}_start.xml"
   local from to
   from=$(tile_center "$OUT/${label}_start.xml" "$A") || { say "$label: no tile $A"; return 1; }

@@ -1,0 +1,31 @@
+# E3 2026-09-21T17:55:14-06:00
+--- 1. create a folder: shell:settings dropped on slot:PEOPLE, released inside the dwell ---
+folder tile = folder:f1 (id f1); R6 §1.6.2: created in place, Start stays in edit mode, the band opens
+band rules in the dump: top=54 556 1026 558 bottom=54 988 1026 990
+members drawn in the band: resource-id="tile:member:slot:PEOPLE" resource-id="tile:member:shell:settings" 
+  folder f1 name=None members=['slot:PEOPLE', 'shell:settings']
+--- 2. name it through the 'Name folder' placeholder (R6 §1.7.1-§1.7.2) ---
+placeholder bounds: 62 568 252 619
+PASS the name box opened: 27 477 1046 621
+after typing Work:
+  folder f1 name='Work' members=['slot:PEOPLE', 'shell:settings']
+--- 3. tap-and-hold on the name opens the same box (R6 §1.7.3) ---
+PASS tap-and-hold on the name opened the box
+--- 4. collapse and re-expand by tapping the folder tile (R6 §1.6.6 / §1.6.7) ---
+PASS H9: leaving edit mode left the folder expanded
+PASS the band folded away
+PASS the band re-opened
+--- 5. a third and a fourth member, dropped on the collapsed folder tile ---
+member 3: dragging slot:MUSIC onto folder:f1
+  folder f1 name='Work' members=['slot:PEOPLE', 'shell:settings', 'slot:MUSIC']
+member 4: dragging slot:MAPS onto folder:f1
+  folder f1 name='Work' members=['slot:PEOPLE', 'shell:settings', 'slot:MUSIC', 'slot:MAPS']
+the collapsed face with four members is in e3_face_3plus1.png (3 + 1 mini tiles, R6 §1.6.3, judged in H12)
+--- 6. unpin one member of a two-member folder: it dissolves into the other (H19) ---
+selecting band member member:slot:PEOPLE
+tapping its unpin disc at 388 607
+order after (expect: no folder, the surviving tile in its place at its own size):
+order: ['shell:settings/SMALL', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: []
+  (no folders)baseline layout restored
