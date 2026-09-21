@@ -4,8 +4,16 @@ import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 
-/** Windows TileUpdater for the app's own (primary) tile. The shell decides the owner from the caller's identity. */
-class TileUpdater private constructor(private val context: Context) {
+/**
+ * Windows TileUpdater. The shell decides the owner from the caller's identity; [tileId] (null for the app's own
+ * primary tile) picks which of the caller's tiles the verb addresses.
+ */
+class TileUpdater private constructor(private val context: Context, private val tileId: String?) {
+
+    private fun extras(block: Bundle.() -> Unit = {}) = Bundle().apply {
+        tileId?.let { putString("tileId", it) }
+        block()
+    }
 
     /** TileUpdater.Update: shows [content]; with the queue enabled it joins the 5-deep queue ([tag] replaces a match). */
     fun update(content: TileContent, tag: String? = null, expiresAtMs: Long? = null): LiveTileResult =
@@ -13,7 +21,7 @@ class TileUpdater private constructor(private val context: Context) {
 
     /** Raw adaptive-tile XML. content:// image sources are granted to the shell for the duration of the call. */
     fun update(xml: String, images: Collection<Uri> = emptyList(), tag: String? = null, expiresAtMs: Long? = null): LiveTileResult {
-        val extras = Bundle().apply {
+        val extras = extras {
             putString("xml", xml)
             tag?.let { putString("tag", it) }
             expiresAtMs?.let { putLong("expiresAt", it) }
@@ -22,18 +30,18 @@ class TileUpdater private constructor(private val context: Context) {
     }
 
     /** TileUpdater.Clear: empties the queue; scheduled notifications stay scheduled. */
-    fun clear(): LiveTileResult = LiveTile.call(context, "tile.clear", Bundle())
+    fun clear(): LiveTileResult = LiveTile.call(context, "tile.clear", extras())
 
     /** TileUpdater.EnableNotificationQueue (one flag for all phone sizes). */
     fun enableNotificationQueue(enabled: Boolean): LiveTileResult =
-        LiveTile.call(context, "tile.enableQueue", Bundle().apply { putBoolean("enabled", enabled) })
+        LiveTile.call(context, "tile.enableQueue", extras { putBoolean("enabled", enabled) })
 
     /** TileUpdater.AddToSchedule: [id] is 1-16 alphanumeric characters; the same id replaces an earlier schedule. */
     fun schedule(id: String, deliveryAtMs: Long, content: TileContent, tag: String? = null, expiresAtMs: Long? = null): LiveTileResult =
         schedule(id, deliveryAtMs, content.toXml(), content.imageUris(), tag, expiresAtMs)
 
     fun schedule(id: String, deliveryAtMs: Long, xml: String, images: Collection<Uri> = emptyList(), tag: String? = null, expiresAtMs: Long? = null): LiveTileResult {
-        val extras = Bundle().apply {
+        val extras = extras {
             putString("id", id)
             putLong("deliveryAt", deliveryAtMs)
             putString("xml", xml)
@@ -45,37 +53,52 @@ class TileUpdater private constructor(private val context: Context) {
 
     /** TileUpdater.Setting. */
     fun setting(): TileSetting {
-        val r = LiveTile.call(context, "tile.setting", Bundle())
+        val r = LiveTile.call(context, "tile.setting", extras())
         if (!r.ok) return TileSetting.UNAVAILABLE
         return TileSetting.entries.firstOrNull { it.name == r.setting } ?: TileSetting.UNAVAILABLE
     }
 
     companion object {
         @JvmStatic
-        fun forApplication(context: Context): TileUpdater = TileUpdater(context.applicationContext ?: context)
+        fun forApplication(context: Context): TileUpdater = TileUpdater(context.applicationContext ?: context, null)
+
+        /** CreateTileUpdaterForSecondaryTile: the same verbs, addressed to one of this app's own secondary tiles. */
+        @JvmStatic
+        fun forSecondaryTile(context: Context, tileId: String): TileUpdater = TileUpdater(context.applicationContext ?: context, tileId)
     }
 }
 
-/** Windows BadgeUpdater for the app's own tile: 1-99 as digits, 100+ as 99+, 0 clears. */
-class BadgeUpdater private constructor(private val context: Context) {
+/**
+ * Windows BadgeUpdater: 1-99 as digits, 100+ as 99+, 0 clears. [tileId] null = the app's own tile,
+ * else one of its secondary tiles (CreateBadgeUpdaterForApplication vs. CreateBadgeUpdaterForSecondaryTile).
+ */
+class BadgeUpdater private constructor(private val context: Context, private val tileId: String?) {
+
+    private fun extras(block: Bundle.() -> Unit = {}) = Bundle().apply {
+        tileId?.let { putString("tileId", it) }
+        block()
+    }
 
     fun update(count: Int, expiresAtMs: Long? = null): LiveTileResult =
-        LiveTile.call(context, "badge.update", Bundle().apply {
+        LiveTile.call(context, "badge.update", extras {
             putInt("value", count)
             expiresAtMs?.let { putLong("expiresAt", it) }
         })
 
     fun update(glyph: BadgeGlyph, expiresAtMs: Long? = null): LiveTileResult =
-        LiveTile.call(context, "badge.update", Bundle().apply {
+        LiveTile.call(context, "badge.update", extras {
             putString("value", glyph.value)
             expiresAtMs?.let { putLong("expiresAt", it) }
         })
 
-    fun clear(): LiveTileResult = LiveTile.call(context, "badge.clear", Bundle())
+    fun clear(): LiveTileResult = LiveTile.call(context, "badge.clear", extras())
 
     companion object {
         @JvmStatic
-        fun forApplication(context: Context): BadgeUpdater = BadgeUpdater(context.applicationContext ?: context)
+        fun forApplication(context: Context): BadgeUpdater = BadgeUpdater(context.applicationContext ?: context, null)
+
+        @JvmStatic
+        fun forSecondaryTile(context: Context, tileId: String): BadgeUpdater = BadgeUpdater(context.applicationContext ?: context, tileId)
     }
 }
 
