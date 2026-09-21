@@ -20,13 +20,14 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -35,6 +36,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -234,6 +236,7 @@ class StartGeometry(
     val bandFolder: String?,
     val bandTilePlacement: Placement?,
     val members: List<Placement>,
+    /** The band's height RIGHT NOW: the full height times the reveal progress (R6 §1.6.6 / §1.6.7). */
     val bandHeightPx: Float,
     val pageHeightPx: Float,
     val dockKeys: List<TileKey>,
@@ -250,8 +253,10 @@ class StartGeometry(
     val bandRuleTopPx: Float
         get() = bandTilePlacement?.let { yPx(it) + hPx(it.size) + grid.mediumPx * Edit.BAND_TOP_RULE } ?: 0f
     val bandMembersTopPx: Float get() = bandRuleTopPx + grid.mediumPx * Edit.BAND_MEMBERS_TOP
+    /** The band's bottom rule rides the reveal: at full progress it sits a BAND_BOTTOM_RULE below the members. */
     val bandRuleBottomPx: Float
-        get() = bandMembersTopPx + (if (members.isEmpty()) 0f else GridPack.rowCount(members) * grid.smallPitchPx - grid.gutterPx) + grid.mediumPx * Edit.BAND_BOTTOM_RULE
+        get() = bandTilePlacement?.let { yPx(it) + hPx(it.size) + bandHeightPx } ?: 0f
+    val bandTopPx: Float get() = bandTilePlacement?.let { yPx(it) + hPx(it.size) } ?: 0f
 
     fun memberXPx(p: Placement): Float = grid.unitX(p.x)
     fun memberYPx(p: Placement): Float = bandMembersTopPx + grid.unitY(p.y)
@@ -331,10 +336,28 @@ fun StartPage(
     val tileDim = Edit.tileDim(theme.theme).let { it.copy(alpha = it.alpha * edit.dimProgress) }
     val wallDim = Edit.wallpaperDim(theme.theme).let { it.copy(alpha = it.alpha * edit.dimProgress) }
 
+    // R6 §1.6.6 / §1.6.7 (H15 / H16): the band is revealed top to bottom in ≈375 ms and folded away in ≈133 ms,
+    // and Start scrolls so the band fits, then scrolls back when it closes.
+    var shownFolder by remember { mutableStateOf<String?>(null) }
+    val bandReveal = remember { Animatable(0f) }
+    var scrollBefore by remember { mutableIntStateOf(0) }
+    LaunchedEffect(edit.expandedFolder) {
+        val target = edit.expandedFolder
+        if (target != null) {
+            if (shownFolder == null) scrollBefore = scroll.value
+            shownFolder = target
+            bandReveal.animateTo(1f, tween(Edit.FOLDER_EXPAND_MS))
+        } else if (shownFolder != null) {
+            bandReveal.animateTo(0f, tween(Edit.FOLDER_COLLAPSE_MS))
+            shownFolder = null
+            scroll.animateScrollTo(scrollBefore.coerceIn(0, scroll.maxValue), tween(Edit.FOLDER_SCROLL_BACK_MS))
+        }
+    }
+
     val drag = edit.drag
     val order = edit.previewOrder ?: layout.order
     val placements = remember(order, grid.unitsAcross) { GridPack.pack(order, grid.unitsAcross) }
-    val bandFolder = edit.expandedFolder?.takeIf { it in layout.folders }
+    val bandFolder = shownFolder?.takeIf { it in layout.folders }
     val bandTile = bandFolder?.let { id -> placements.firstOrNull { (it.key as? TileKey.FolderTile)?.folderId == id } }
     val members = remember(bandFolder, layout.folders, grid.unitsAcross) {
         bandFolder?.let { GridPack.pack(layout.folders[it]!!.members, grid.unitsAcross) }.orEmpty()
@@ -349,7 +372,19 @@ fun StartPage(
 
     BoxWithConstraints(Modifier.fillMaxSize().background(colors.background).testTag("start_page")) {
         val pageHeightPx = with(density) { maxHeight.toPx() }
-        val geo = StartGeometry(grid, topPx, placements, bandFolder, bandTile, members, if (bandTile != null) Edit.bandHeight(grid, GridPack.rowCount(members)) else 0f, pageHeightPx, dockKeys, dockW)
+        val geo = StartGeometry(
+            grid, topPx, placements, bandFolder, bandTile, members,
+            if (bandTile != null) Edit.bandHeight(grid, GridPack.rowCount(members)) * bandReveal.value else 0f,
+            pageHeightPx, dockKeys, dockW,
+        )
+        // Scroll the band into view as it opens (R6 §1.6.2: a new folder is scrolled into view; §1.6.6: expanding
+        // auto-scrolls so the band fits).
+        LaunchedEffect(bandFolder, geo.bandRuleBottomPx.toInt() / 16) {
+            if (bandFolder == null) return@LaunchedEffect
+            val visibleBottom = scroll.value + pageHeightPx - (if (dockKeys.isEmpty()) 0f else dockTileHeight(grid) + grid.gutterPx * 2)
+            val overshoot = geo.bandRuleBottomPx - visibleBottom
+            if (overshoot > 0) scroll.scrollTo((scroll.value + overshoot.toInt()).coerceIn(0, scroll.maxValue))
+        }
 
         if (background != null) {
             Image(
@@ -389,7 +424,16 @@ fun StartPage(
                         exitAlpha(animation, row, tile.model.id), onTileTap)
                 }
                 if (bandTile != null && bandFolder != null) {
-                    FolderBand(geo, factory, layout.folders[bandFolder]!!, edit, store, scroll, colors.accent, tileAlpha, theme.pressStyle, heldScale, otherScale, tileDim, onTileTap)
+                    // The reveal is a clip, so the rows appear top to bottom and the tiles below slide with it.
+                    Box(
+                        Modifier
+                            .offset { IntOffset(0, geo.bandTopPx.toInt()) }
+                            .fillMaxWidth()
+                            .height(with(density) { geo.bandHeightPx.coerceAtLeast(0f).toDp() })
+                            .clipToBounds(),
+                    ) {
+                        FolderBand(geo, factory, layout.folders[bandFolder]!!, edit, store, colors.accent, tileAlpha, theme.pressStyle, heldScale, otherScale, tileDim, onTileTap)
+                    }
                 }
                 // The dragged tile: 1.00, undimmed, at the finger with its grab offset (R6 §1.3.1).
                 if (drag != null) {
@@ -574,8 +618,8 @@ private fun GridTile(
     // the previous one shrinks and dims. The entry itself is driven by the progress values, not by this.
     val heldness by animateFloatAsState(if (held) 1f else 0f, tween(Edit.SELECT_MS), label = "held")
     // R6 §1.3.2 (H4): tiles that must make room slide, they never fade or jump.
-    val x by animateFloatAsState(tile.xPx, tween(Edit.REFLOW_MS, easing = FastOutSlowInEasing), label = "x")
-    val y by animateFloatAsState(tile.yPx, tween(Edit.REFLOW_MS, easing = FastOutSlowInEasing), label = "y")
+    val x by animateFloatAsState(tile.xPx, tween(Edit.REFLOW_MS, easing = LinearOutSlowInEasing), label = "x")
+    val y by animateFloatAsState(tile.yPx, tween(Edit.REFLOW_MS, easing = LinearOutSlowInEasing), label = "y")
     // R6 §1.4 (H6 / H7): a resize grows in ≈170 ms or shrinks in ≈500 ms, and the content is hidden until the
     // rectangle has settled, then fades back in over ≈170 ms.
     val growing = tile.wPx * tile.hPx > (lastArea[tile.model.id] ?: 0f)
@@ -646,7 +690,6 @@ private fun FolderBand(
     folder: app.tileshell.tiles.Folder,
     edit: StartEditState,
     store: LayoutStore,
-    scroll: ScrollState,
     accent: Color,
     tileAlpha: Float,
     pressStyle: app.tileshell.prefs.PressStyle,
@@ -658,9 +701,10 @@ private fun FolderBand(
     val density = LocalDensity.current
     val colors = LocalShellColors.current
     val rule = with(density) { Edit.BAND_RULE_EPX.dp.toPx() }
+    val top = geo.bandTopPx
     Box(
         Modifier
-            .offset { IntOffset(0, geo.bandRuleTopPx.toInt()) }
+            .offset { IntOffset(0, (geo.bandRuleTopPx - top).toInt()) }
             .fillMaxWidth()
             .height(with(density) { rule.toDp() })
             .background(colors.subtleText)
@@ -668,7 +712,7 @@ private fun FolderBand(
     )
     Box(
         Modifier
-            .offset { IntOffset(0, geo.bandRuleBottomPx.toInt()) }
+            .offset { IntOffset(0, (geo.bandRuleBottomPx - top - rule).toInt()) }
             .fillMaxWidth()
             .height(with(density) { rule.toDp() })
             .background(colors.subtleText)
@@ -676,13 +720,13 @@ private fun FolderBand(
     )
     geo.members.forEach { p ->
         if (edit.drag?.key == p.key) return@forEach
-        val tile = factory.place(p.key, p.size, geo.memberXPx(p), geo.memberYPx(p), geo.wPx(p.size), geo.hPx(p.size), idPrefix = "member:")
+        val tile = factory.place(p.key, p.size, geo.memberXPx(p), geo.memberYPx(p) - top, geo.wPx(p.size), geo.hPx(p.size), idPrefix = "member:")
         val held = edit.selected == p.key
         GridTile(tile, held, heldScale, otherScale, dim, edit, accent, tileAlpha, pressStyle, 1f, onTileTap)
     }
     if (edit.active) {
         if (edit.naming) {
-            FolderNameBox(folder.name.orEmpty(), geo, onDone = { name ->
+            FolderNameBox(folder.name.orEmpty(), geo, top, onDone = { name ->
                 store.renameFolder(folder.id, name)
                 edit.naming = false
             })
@@ -691,7 +735,7 @@ private fun FolderBand(
                 folder.name ?: "Name folder",
                 style = ShellType.caption.copy(color = colors.subtleText),
                 modifier = Modifier
-                    .offset { IntOffset(geo.grid.leftMarginPx.toInt(), (geo.bandRuleTopPx + geo.grid.mediumPx * 0.04f).toInt()) }
+                    .offset { IntOffset(geo.grid.leftMarginPx.toInt(), (geo.bandRuleTopPx - top + geo.grid.mediumPx * 0.04f).toInt()) }
                     .testTag("folder_name_placeholder:${folder.id}")
                     .padding(2.dp),
             )
@@ -701,7 +745,7 @@ private fun FolderBand(
 
 /** R6 §1.7.2 (H18): a full-width single-line box with a white fill, ≈0.27 × the tile side tall. */
 @Composable
-private fun FolderNameBox(initial: String, geo: StartGeometry, onDone: (String) -> Unit) {
+private fun FolderNameBox(initial: String, geo: StartGeometry, bandTop: Float, onDone: (String) -> Unit) {
     val density = LocalDensity.current
     var text by remember { mutableStateOf(initial) }
     val focus = remember { FocusRequester() }
@@ -715,7 +759,7 @@ private fun FolderNameBox(initial: String, geo: StartGeometry, onDone: (String) 
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { onDone(text) }),
         modifier = Modifier
-            .offset { IntOffset(geo.grid.leftMarginPx.toInt(), (geo.bandRuleTopPx + geo.grid.mediumPx * 0.02f).toInt()) }
+            .offset { IntOffset(geo.grid.leftMarginPx.toInt(), (geo.bandRuleTopPx - bandTop + geo.grid.mediumPx * 0.02f).toInt()) }
             .size(
                 width = with(density) { (geo.grid.widthPx - geo.grid.leftMarginPx - geo.grid.rightMarginPx).toDp() },
                 height = with(density) { (geo.grid.mediumPx * Edit.NAME_BOX_HEIGHT).toDp() },
