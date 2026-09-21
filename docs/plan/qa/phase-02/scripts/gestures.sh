@@ -45,9 +45,14 @@ print(int(round(cx)), int(round(cy))) if sys.argv[2].startswith("dock:") else \
 PY
 }
 
-# corner_point <dump.xml> <tile id> <top|bottom>: the screen point of the held tile's right-hand corner, where
-# the unpin (top) and resize (bottom) discs are centred (R6 §1.2.1-§1.2.3). The held tile stays at scale 1.00,
-# so only its centre moves with the contraction.
+# disc_center <dump.xml> <unpin|resize>: the centre of an edit-mode disc, read straight out of a dump taken
+# WHILE the tile is held. A uiautomator dump of Compose does carry the graphicsLayer transform (verified
+# 2026-09-21: in edit mode an unheld tile's bounds are 0.835 of its resting size and moved), and the discs and
+# the dim overlays carry their test tags as resource-ids, so nothing has to be recomputed here.
+disc_center() { center "$1" "edit_disc:$2"; }
+
+# corner_point <dump.xml> <tile id> <top|bottom>: the same point computed from a dump taken OUTSIDE edit mode,
+# for the cases where the dump has to be taken before the gesture starts.
 corner_point() {
   python3 - "$1" "$2" "$3" <<'PY'
 import re, sys
@@ -58,8 +63,12 @@ x1, y1, x2, y2 = map(int, m.groups())
 cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
 dock = sys.argv[2].startswith("dock:")
 fx, fy = 1080 * 0.5, 2340 * 0.475
-ecx, ecy = (cx, cy) if dock else (fx + (cx - fx) * 0.90, fy + (cy - fy) * 0.90)
-w, h = x2 - x1, y2 - y1
-print(int(round(ecx + w / 2)), int(round(ecy - h / 2 if sys.argv[3] == "top" else ecy + h / 2)))
+pitch, counter = 0.90, 1 / 0.90
+if dock:
+    ecx, ecy, hw, hh = cx, cy, (x2 - x1) / 2, (y2 - y1) / 2
+else:
+    ecx, ecy = fx + (cx - fx) * pitch, fy + (cy - fy) * pitch
+    hw, hh = (x2 - x1) / 2 * counter, (y2 - y1) / 2 * counter
+print(int(round(ecx + hw)), int(round(ecy - hh if sys.argv[3] == "top" else ecy + hh)))
 PY
 }
