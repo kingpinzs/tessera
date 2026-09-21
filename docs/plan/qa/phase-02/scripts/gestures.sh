@@ -25,6 +25,29 @@ tile_bounds() { bounds "$1" "tile:$2"; }
 # tile_center <dump.xml> <tile id>: "x y"
 tile_center() { center "$1" "tile:$2"; }
 
+# ensure_start: bring the pivot back to Start.
+# KEYCODE_HOME is not enough on this AVD: when the shell is already the resumed home activity, Android does not
+# re-deliver the home intent (no onNewIntent), so the pivot stays wherever it is. Phase 01 never exercised that
+# either — its own X20 / H28 row for "Home while Start is showing" is a phone row. A right-swipe is what the
+# user would do, and it is what these drivers use to get back to page 0.
+ensure_start() {
+  local i
+  adb shell input keyevent KEYCODE_HOME >/dev/null 2>&1
+  sleep 1.5
+  for i in 1 2 3; do
+    dump /tmp/qa_ensure_start.xml >/dev/null 2>&1 || true
+    if grep -q 'resource-id="start_page"' /tmp/qa_ensure_start.xml 2>/dev/null && ! grep -q 'resource-id="app_list"' /tmp/qa_ensure_start.xml 2>/dev/null; then
+      return 0
+    fi
+    adb shell input keyevent KEYCODE_BACK >/dev/null 2>&1   # close an IME or a menu first
+    sleep 0.6
+    adb shell input swipe 200 1200 950 1200 250
+    sleep 1.5
+  done
+  echo "ensure_start: could not get back to Start" >&2
+  return 1
+}
+
 # edit_point <dump.xml> <tile id>: where that tile's centre sits ON SCREEN while edit mode is on.
 # The grid contracts to 0.90 of each centre's distance from the fixed point (R6 §1.1.3), which a uiautomator
 # dump cannot show (it reports layout bounds), so the QA driver computes it the same way the shell draws it.

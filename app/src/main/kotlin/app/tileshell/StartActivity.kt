@@ -31,6 +31,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.focusGroup
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
@@ -46,6 +48,7 @@ import app.tileshell.start.BackHistory
 import app.tileshell.start.PlacedTile
 import app.tileshell.start.SlotPicker
 import app.tileshell.start.StartAnimation
+import app.tileshell.start.FolderNameBox
 import app.tileshell.start.SecondaryPinPrompt
 import app.tileshell.start.StartEditState
 import app.tileshell.start.StartPage
@@ -146,7 +149,34 @@ class StartActivity : ComponentActivity() {
                         if (index == 0) {
                             StartPage(scroll, animation, edit) { tile -> onTileTap(tile) }
                         } else {
-                            AppListPage(onLaunch = { entry, bounds -> launchApp(TileTarget.App(entry), bounds, null) })
+                            // A pivot page that is not showing takes no focus. Without this, dismissing a text
+                            // field on Start (the folder name box) handed focus to the app list's search field,
+                            // and the pager dutifully scrolled that page into view — Start swung away on its own.
+                            Box(
+                                Modifier
+                                    .fillMaxSize()
+                                    .focusGroup()
+                                    .focusProperties { canFocus = pager.currentPage == 1 },
+                            ) {
+                                AppListPage(onLaunch = { entry, bounds -> launchApp(TileTarget.App(entry), bounds, null) })
+                            }
+                        }
+                    }
+                    // The folder name box (R6 §1.7.2): drawn here, above the pivot, so focusing it cannot make
+                    // the pager bring it into view and swing Start over to the app list.
+                    if (edit.naming) {
+                        val folderId = edit.expandedFolder
+                        val store = app.tileshell.tiles.LayoutStore.get(this@StartActivity)
+                        if (folderId != null) {
+                            FolderNameBox(
+                                initial = store.layout.value.folders[folderId]?.name.orEmpty(),
+                                yPx = edit.nameBoxYPx,
+                            ) { name ->
+                                store.renameFolder(folderId, name)
+                                edit.naming = false
+                            }
+                        } else {
+                            edit.naming = false
                         }
                     }
                     // The pin confirmation band sits at the top of the screen, under the drawn status bar (H22).

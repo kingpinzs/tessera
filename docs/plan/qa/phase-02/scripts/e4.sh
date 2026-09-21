@@ -8,13 +8,13 @@ OUT=$1; LOG=$OUT/E04.txt
 mkdir -p "$OUT"; : > "$LOG"
 say() { echo "$*" | tee -a "$LOG"; }
 say "# E4 $(date -Iseconds)"
-adb shell input keyevent KEYCODE_HOME; sleep 2
+ensure_start
 dump "$OUT/e4_before.xml"
 layout_save "$OUT/e4_before.json"
 adb exec-out screencap -p > "$OUT/e4_before.png"
 say "--- force-stop then Home ---"
 adb shell am force-stop app.tileshell
-adb shell input keyevent KEYCODE_HOME; sleep 4
+ensure_start
 dump "$OUT/e4_after_forcestop.xml"
 layout_save "$OUT/e4_after_forcestop.json"
 adb exec-out screencap -p > "$OUT/e4_after_forcestop.png"
@@ -25,7 +25,7 @@ adb reboot
 adb wait-for-device
 for i in $(seq 1 60); do [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ] && break; sleep 4; done
 sleep 8
-adb shell input keyevent KEYCODE_HOME; sleep 5
+ensure_start
 dump "$OUT/e4_after_reboot.xml"
 layout_save "$OUT/e4_after_reboot.json"
 adb exec-out screencap -p > "$OUT/e4_after_reboot.png"

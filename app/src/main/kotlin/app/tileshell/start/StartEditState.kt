@@ -53,6 +53,13 @@ class StartEditState {
     var expandedFolder by mutableStateOf<String?>(null)
     var naming by mutableStateOf(false)
 
+    /**
+     * Where the name box belongs on screen, published by the band as it lays out. The box itself is drawn
+     * OUTSIDE the pivot: a focused text field asks every scrollable ancestor to bring it into view, and inside
+     * a pager page that scrolled the pivot to the app list the moment the keyboard opened.
+     */
+    var nameBoxYPx by mutableStateOf(0f)
+
     /** Entry/exit progress, driven by the frame clock: 0 = plain Start, 1 = fully in edit mode. */
     var scaleProgress by mutableStateOf(0f)
     var dimProgress by mutableStateOf(0f)

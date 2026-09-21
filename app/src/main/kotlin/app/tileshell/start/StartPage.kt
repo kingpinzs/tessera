@@ -24,6 +24,7 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -48,6 +49,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.IntOffset
@@ -456,7 +459,7 @@ fun StartPage(
                             .height(with(density) { geo.bandHeightPx.coerceAtLeast(0f).toDp() })
                             .clipToBounds(),
                     ) {
-                        FolderBand(geo, factory, layout.folders[bandFolder]!!, edit, store, colors.accent, tileAlpha, theme.pressStyle, heldScale, otherScale, tileDim, onTileTap)
+                        FolderBand(geo, factory, layout.folders[bandFolder]!!, edit, store, scroll.value, colors.accent, tileAlpha, theme.pressStyle, heldScale, otherScale, tileDim, onTileTap)
                     }
                 }
                 // The dragged tile: 1.00, undimmed, at the finger with its grab offset (R6 §1.3.1).
@@ -721,6 +724,7 @@ private fun FolderBand(
     folder: app.tileshell.tiles.Folder,
     edit: StartEditState,
     store: LayoutStore,
+    scrollValue: Int,
     accent: Color,
     tileAlpha: Float,
     pressStyle: app.tileshell.prefs.PressStyle,
@@ -756,12 +760,9 @@ private fun FolderBand(
         GridTile(tile, held, heldScale, otherScale, dim, edit, accent, tileAlpha, pressStyle, 1f, onTileTap)
     }
     if (edit.active) {
-        if (edit.naming) {
-            FolderNameBox(folder.name.orEmpty(), geo, top, onDone = { name ->
-                store.renameFolder(folder.id, name)
-                edit.naming = false
-            })
-        } else {
+        // The box itself is drawn by the host, above the pivot; the band only says where it goes.
+        edit.nameBoxYPx = geo.bandRuleTopPx - scrollValue + geo.grid.mediumPx * 0.02f
+        if (!edit.naming) {
             BasicText(
                 folder.name ?: "Name folder",
                 style = ShellType.caption.copy(color = colors.subtleText),
@@ -774,13 +775,31 @@ private fun FolderBand(
     }
 }
 
-/** R6 §1.7.2 (H18): a full-width single-line box with a white fill, ≈0.27 × the tile side tall. */
+/**
+ * R6 §1.7.2 (H18): a full-width single-line box with a white fill, ≈0.27 × the tile side tall, with the
+ * keyboard up. Drawn by the host ABOVE the pivot, not inside the band: a focused text field asks every
+ * scrollable ancestor to bring it into view, and from inside a pager page that swung the pivot over to the
+ * app list as soon as the keyboard opened.
+ */
 @Composable
-private fun FolderNameBox(initial: String, geo: StartGeometry, bandTop: Float, onDone: (String) -> Unit) {
+fun FolderNameBox(initial: String, yPx: Float, onDone: (String) -> Unit) {
+    val context = LocalContext.current
     val density = LocalDensity.current
+    val widthPx = Scale.portraitWidthPx(context).toFloat()
+    val grid = StartGrid(widthPx, LocalStartTheme.current.mediumColumns)
     var text by remember { mutableStateOf(initial) }
     val focus = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
     LaunchedEffect(Unit) { focus.requestFocus() }
+    // When the box goes, focus has to go with it: left to itself Compose hands focus to the next focusable,
+    // which is the app list's search field on the next pivot page, and the pager then brings THAT into view.
+    DisposableEffect(Unit) {
+        onDispose {
+            keyboard?.hide()
+            focusManager.clearFocus(force = true)
+        }
+    }
     BasicTextField(
         value = text,
         onValueChange = { text = it },
@@ -788,12 +807,16 @@ private fun FolderNameBox(initial: String, geo: StartGeometry, bandTop: Float, o
         textStyle = ShellType.body.copy(color = Color.Black),
         cursorBrush = SolidColor(Color.Black),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { onDone(text) }),
+        keyboardActions = KeyboardActions(onDone = {
+            keyboard?.hide()
+            focusManager.clearFocus(force = true)
+            onDone(text)
+        }),
         modifier = Modifier
-            .offset { IntOffset(geo.grid.leftMarginPx.toInt(), (geo.bandRuleTopPx - bandTop + geo.grid.mediumPx * 0.02f).toInt()) }
+            .offset { IntOffset(grid.leftMarginPx.toInt(), yPx.toInt()) }
             .size(
-                width = with(density) { (geo.grid.widthPx - geo.grid.leftMarginPx - geo.grid.rightMarginPx).toDp() },
-                height = with(density) { (geo.grid.mediumPx * Edit.NAME_BOX_HEIGHT).toDp() },
+                width = with(density) { (widthPx - grid.leftMarginPx - grid.rightMarginPx).toDp() },
+                height = with(density) { (grid.mediumPx * Edit.NAME_BOX_HEIGHT).toDp() },
             )
             .background(Color.White)
             .padding(horizontal = 6.dp)
