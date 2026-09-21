@@ -51,6 +51,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -72,6 +73,9 @@ import app.tileshell.bars.BarMetrics
 import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
 import app.tileshell.diag.Diagnostics
+import app.tileshell.tiles.LayoutStore
+import app.tileshell.tiles.TileKey
+import app.tileshell.tiles.TileSize
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.LocalStartTheme
 import app.tileshell.ui.components.PressRow
@@ -159,6 +163,9 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
 
     var query by remember { mutableStateOf("") }
     var gridOpen by remember { mutableStateOf(false) }
+    // The long-press context menu (H21): the app it was opened on, and where its band is anchored in the list area.
+    var menu by remember { mutableStateOf<AppMenuTarget?>(null) }
+    var listTopPx by remember { mutableStateOf(0f) }
     var visible by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val searchState = rememberLazyListState()
@@ -183,6 +190,7 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
     }
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
         gridOpen = false
+        menu = null
         focusManager.clearFocus()
     }
     // Leaving the page (pivot back to Start) resets search and the grid so Back on Start stays Start's.
@@ -190,10 +198,12 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
         if (!visible) {
             query = ""
             gridOpen = false
+            menu = null
             focusManager.clearFocus()
         }
     }
     BackHandler(enabled = visible && gridOpen) { gridOpen = false }
+    BackHandler(enabled = visible && menu != null) { menu = null }
     BackHandler(enabled = visible && !gridOpen && query.isNotEmpty()) {
         query = ""
         focusManager.clearFocus()
@@ -208,6 +218,24 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
         focusManager.clearFocus()
         gridOpen = true
         Diagnostics.add("applist", "jump grid opened")
+    }
+    // A hold of Edit.HOLD_MS opens the context menu under the row that was held (H21).
+    val hold: (AppEntry, Rect?) -> Unit = { entry, bounds ->
+        focusManager.clearFocus()
+        menu = AppMenuTarget(entry, (bounds?.bottom?.toFloat() ?: listTopPx) - listTopPx)
+        Diagnostics.add("applist", "context menu on ${entry.component.flattenToShortString()}")
+    }
+    // Pin to Start: a medium tile at the end of the grid, and the app's "New" caption clears exactly as a launch
+    // clears it (phase 02 Decisions 2026-09-16, E2). An app already on Start is not pinned twice (pin returns
+    // false); the menu closes either way.
+    val pinToStart: (AppEntry) -> Unit = { entry ->
+        val pinned = LayoutStore.get(context).pin(TileKey.AppTile(entry.component, entry.user), TileSize.MEDIUM)
+        store.markPinned(entry)
+        menu = null
+        Diagnostics.add(
+            "applist",
+            "pin to Start ${entry.component.flattenToShortString()} -> ${if (pinned) "pinned" else "already on Start"}",
+        )
     }
 
     Box(
@@ -226,9 +254,14 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
                 gridOpen = false
                 scope.launch { searchState.scrollToItem(0) }
             }
-            Box(Modifier.weight(1f).fillMaxWidth()) {
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .onGloballyPositioned { listTopPx = it.positionInWindow().y },
+            ) {
                 if (query.isBlank()) {
-                    AzList(model, listState, newKeys, icons, generation, launch, openGrid, tracker)
+                    AzList(model, listState, newKeys, icons, generation, launch, hold, openGrid, tracker)
                 } else {
                     val results = remember(model, query) { AppIndex.search(model.searchable, { it.normalizedLabel }, query) }
                     LazyColumn(
@@ -236,8 +269,13 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
                         modifier = Modifier.fillMaxSize().testTag("applist_results"),
                         contentPadding = WindowInsets.ime.asPaddingValues(),
                     ) {
-                        items(results, key = { it.key }) { item -> AppRow(item, item.newKey in newKeys, icons, generation, launch) }
+                        items(results, key = { it.key }) { item ->
+                            AppRow(item, item.newKey in newKeys, icons, generation, launch, hold)
+                        }
                     }
+                }
+                menu?.let { target ->
+                    PinToStartMenu(target.anchorPx, onPin = { pinToStart(target.entry) }, onDismiss = { menu = null })
                 }
                 if (gridOpen) {
                     JumpGrid(model.cells, onPick = { cell ->
@@ -262,6 +300,7 @@ private fun AzList(
     icons: IconMemo,
     generation: Int,
     launch: (AppEntry, Rect?) -> Unit,
+    hold: (AppEntry, Rect?) -> Unit,
     openGrid: () -> Unit,
     tracker: ProfileTracker,
 ) {
@@ -275,7 +314,7 @@ private fun AzList(
                 is LetterHeaderItem -> LetterHeader(item.letter, openGrid)
                 is ProfileHeaderItem -> ProfileHeader(item.profile, openGrid) { tracker.requestQuietMode(item.profile, true) }
                 is UnlockItem -> UnlockRow(item.profile) { tracker.requestQuietMode(item.profile, false) }
-                is AppRowItem -> AppRow(item, item.newKey in newKeys, icons, generation, launch)
+                is AppRowItem -> AppRow(item, item.newKey in newKeys, icons, generation, launch, hold)
             }
         }
     }
@@ -382,16 +421,28 @@ private fun UnlockRow(profile: ShellProfile, onUnlock: () -> Unit) {
     }
 }
 
+/** The app the context menu is open on, and the band's anchor: the row's bottom in the list area (H21). */
+private data class AppMenuTarget(val entry: AppEntry, val anchorPx: Float)
+
 @Composable
-private fun AppRow(item: AppRowItem, isNew: Boolean, icons: IconMemo, generation: Int, onLaunch: (AppEntry, Rect?) -> Unit) {
+private fun AppRow(
+    item: AppRowItem,
+    isNew: Boolean,
+    icons: IconMemo,
+    generation: Int,
+    onLaunch: (AppEntry, Rect?) -> Unit,
+    onHold: (AppEntry, Rect?) -> Unit,
+) {
     val colors = LocalShellColors.current
     val coordinates = remember { arrayOfNulls<LayoutCoordinates>(1) }
     val pkg = item.entry.component.packageName
-    PressRow(
-        onClick = {
-            val bounds = coordinates[0]?.takeIf { it.isAttached }?.boundsInWindow()
-            onLaunch(item.entry, bounds?.let { Rect(it.left.roundToInt(), it.top.roundToInt(), it.right.roundToInt(), it.bottom.roundToInt()) })
-        },
+    val rowBounds = {
+        coordinates[0]?.takeIf { it.isAttached }?.boundsInWindow()
+            ?.let { Rect(it.left.roundToInt(), it.top.roundToInt(), it.right.roundToInt(), it.bottom.roundToInt()) }
+    }
+    HoldRow(
+        onClick = { onLaunch(item.entry, rowBounds()) },
+        onHold = { onHold(item.entry, rowBounds()) },
         modifier = Modifier
             .fillMaxWidth()
             .height(AppListMetrics.ROW)
