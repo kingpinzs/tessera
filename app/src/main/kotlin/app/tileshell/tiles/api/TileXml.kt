@@ -78,6 +78,12 @@ sealed interface TileXmlResult {
     data class Invalid(val reason: String, val detail: String) : TileXmlResult
 }
 
+/** One image URI checked on its own (a secondary tile's logo, R5 §4b), with the same rules as an `<image src>`. */
+sealed interface ImageSourceResult {
+    data class Ok(val image: TileElement.Image) : ImageSourceResult
+    data class Invalid(val reason: String, val detail: String) : ImageSourceResult
+}
+
 object TileXmlValidator {
     const val MAX_XML_BYTES = 8 * 1024
     const val MAX_IMAGES = 12
@@ -114,6 +120,39 @@ object TileXmlValidator {
     private val IMAGE_ALIGN = setOf("stretch", "left", "center", "right")
     private val CROP = setOf("none", "circle")
     private val BOOL = setOf("true", "false")
+
+    /** The longest image URI accepted anywhere (an `<image src>` or a secondary tile's logo). */
+    const val MAX_IMAGE_URI = 1024
+
+    /**
+     * Checks one image URI on its own and returns the image element a bare `<image src="…">` would produce: no
+     * network (http(s) refused), only content:// and android.resource://, and a well-formed authority. Whether the
+     * authority belongs to the CALLER is not decided here — that needs the package manager and stays in [ImageIngest].
+     * The XML parser and the secondary-tile logo both come through this one function.
+     */
+    fun imageSource(src: String): ImageSourceResult {
+        if (src.length > MAX_IMAGE_URI) return ImageSourceResult.Invalid(Reason.IMAGE_URI, "src longer than $MAX_IMAGE_URI chars")
+        val scheme = src.substringBefore(':', "").lowercase()
+        val (authority, kind) = when (scheme) {
+            "http", "https" -> return ImageSourceResult.Invalid(Reason.IMAGE_HTTP, "web images are not fetched (no network)")
+            "content" -> (CONTENT_URI.matchEntire(src) ?: return ImageSourceResult.Invalid(Reason.IMAGE_URI, "malformed content URI")).groupValues[1] to "content"
+            "android.resource" -> (RESOURCE_URI.matchEntire(src) ?: return ImageSourceResult.Invalid(Reason.IMAGE_URI, "malformed android.resource URI")).groupValues[1] to "android.resource"
+            else -> return ImageSourceResult.Invalid(Reason.IMAGE_SCHEME, "scheme '$scheme' (only content:// and android.resource://)")
+        }
+        return ImageSourceResult.Ok(
+            TileElement.Image(
+                src = src,
+                authority = authority,
+                scheme = kind,
+                placement = ImagePlacement.INLINE,
+                crop = null,
+                overlay = null,
+                removeMargin = false,
+                align = null,
+                alt = null,
+            ),
+        )
+    }
 
     /** Attributes W10M phones did not render (R5 §4b): rejected with an explicit reason, never dropped. */
     private val UNSUPPORTED_ATTRIBUTES = setOf("baseUri", "addImageQuery", "hint-lockDetailedStatus1", "hint-lockDetailedStatus2", "hint-lockDetailedStatus3")
@@ -352,18 +391,11 @@ object TileXmlValidator {
 
         private fun image(node: Node): TileElement.Image {
             val src = node.attrs["src"] ?: throw Coded(Reason.VALUE, "<image> without src")
-            if (src.length > 1024) throw Coded(Reason.IMAGE_URI, "src longer than 1024 chars")
-            val scheme = src.substringBefore(':', "").lowercase()
-            val (authority, kind) = when (scheme) {
-                "http", "https" -> throw Coded(Reason.IMAGE_HTTP, "web images are not fetched (no network)")
-                "content" -> (CONTENT_URI.matchEntire(src) ?: throw Coded(Reason.IMAGE_URI, "malformed content URI")).groupValues[1] to "content"
-                "android.resource" -> (RESOURCE_URI.matchEntire(src) ?: throw Coded(Reason.IMAGE_URI, "malformed android.resource URI")).groupValues[1] to "android.resource"
-                else -> throw Coded(Reason.IMAGE_SCHEME, "scheme '$scheme' (only content:// and android.resource://)")
+            val base = when (val r = imageSource(src)) {
+                is ImageSourceResult.Ok -> r.image
+                is ImageSourceResult.Invalid -> throw Coded(r.reason, r.detail)
             }
-            return TileElement.Image(
-                src = src,
-                authority = authority,
-                scheme = kind,
+            return base.copy(
                 placement = when (node.attrs["placement"] ?: "inline") {
                     "inline" -> ImagePlacement.INLINE
                     "background" -> ImagePlacement.BACKGROUND

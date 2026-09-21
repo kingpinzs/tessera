@@ -1,0 +1,120 @@
+package app.tileshell.tiles.api
+
+import app.tileshell.tiles.TileSize
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.Test
+
+/** The secondary-tile verbs' field validation (R5 §1.9 / §4b, phase 02 build task 6). */
+class SecondaryTileRulesTest {
+
+    private fun ok(
+        tileId: Any? = "tile1",
+        displayName: Any? = "Jen",
+        arguments: Any? = "chat=42",
+        logo: Any? = null,
+        size: Any? = "medium",
+        showName: Any? = null,
+    ): SecondaryFields = when (val r = SecondaryTileRules.validate(tileId, displayName, arguments, logo, size, showName)) {
+        is SecondaryFieldsResult.Ok -> r.fields
+        is SecondaryFieldsResult.Invalid -> { fail("expected valid, got ${r.reason}: ${r.detail}"); error("unreachable") }
+    }
+
+    private fun bad(
+        tileId: Any? = "tile1",
+        displayName: Any? = "Jen",
+        arguments: Any? = "chat=42",
+        logo: Any? = null,
+        size: Any? = "medium",
+        showName: Any? = null,
+    ): SecondaryFieldsResult.Invalid = when (val r = SecondaryTileRules.validate(tileId, displayName, arguments, logo, size, showName)) {
+        is SecondaryFieldsResult.Invalid -> r
+        is SecondaryFieldsResult.Ok -> { fail("expected a rejection, got ${r.fields}"); error("unreachable") }
+    }
+
+    @Test fun minimalRequestCreate() {
+        val f = ok()
+        assertEquals("tile1", f.tileId)
+        assertEquals("Jen", f.displayName)
+        assertEquals("chat=42", f.arguments)
+        assertEquals(TileSize.MEDIUM, f.size)
+        // Windows: "By default the display name will NOT be shown".
+        assertFalse(f.showName)
+        assertNull(f.logo)
+    }
+
+    @Test fun everySizeMapsAndAnythingElseIsRejected() {
+        assertEquals(TileSize.SMALL, ok(size = "small").size)
+        assertEquals(TileSize.MEDIUM, ok(size = "medium").size)
+        assertEquals(TileSize.WIDE, ok(size = "wide").size)
+        // No size = Windows' TileSize.Default for a square tile.
+        assertEquals(TileSize.MEDIUM, ok(size = null).size)
+        assertEquals(LiveTileProtocol.Error.SIZE, bad(size = "large").reason)
+        assertEquals(LiveTileProtocol.Error.SIZE, bad(size = "TileMedium").reason)
+        assertEquals(LiveTileProtocol.Error.SIZE, bad(size = 2).reason)
+    }
+
+    @Test fun tileIdIsRequiredAndBounded() {
+        assertEquals(LiveTileProtocol.Error.TILE_ID, bad(tileId = null).reason)
+        assertEquals(LiveTileProtocol.Error.TILE_ID, bad(tileId = 7).reason)
+        assertEquals(LiveTileProtocol.Error.TILE_ID, bad(tileId = "").reason)
+        assertEquals(LiveTileProtocol.Error.TILE_ID, bad(tileId = "a".repeat(65)).reason)
+        assertEquals("a".repeat(64), ok(tileId = "a".repeat(64)).tileId)
+        assertEquals("chat.42_x-1", ok(tileId = "chat.42_x-1").tileId)
+    }
+
+    /** A tile id ends up in a tile key, a diagnostics line and a JSON key: no separators, no traversal, no spaces. */
+    @Test fun tileIdCannotCarryASeparatorOrATraversal() {
+        // Control: a length-only rule takes every one of these, so what rejects them below is the pattern itself and
+        // not the shape of the inputs (the red-proof of this guard, without weakening the shipped one).
+        val lengthOnly = Regex("^.{1,64}$", RegexOption.DOT_MATCHES_ALL)
+        for (id in listOf("../evil", "a/b", "a:b", "a b", "a\nb", ".", "..", "tile ", "tile#1", "%2e%2e")) {
+            assertTrue("control: a length-only rule accepts '$id'", lengthOnly.matches(id))
+            assertEquals("tileId '$id'", LiveTileProtocol.Error.TILE_ID, bad(tileId = id).reason)
+            assertFalse("isValidTileId('$id')", LiveTileProtocol.isValidTileId(id))
+        }
+    }
+
+    @Test fun displayNameIsRequiredTrimmedAndBounded() {
+        assertEquals(LiveTileProtocol.Error.DISPLAY_NAME, bad(displayName = null).reason)
+        assertEquals(LiveTileProtocol.Error.DISPLAY_NAME, bad(displayName = 1).reason)
+        assertEquals(LiveTileProtocol.Error.DISPLAY_NAME, bad(displayName = "   ").reason)
+        assertEquals(LiveTileProtocol.Error.DISPLAY_NAME, bad(displayName = "x".repeat(65)).reason)
+        assertEquals(LiveTileProtocol.Error.DISPLAY_NAME, bad(displayName = "two\nlines").reason)
+        assertEquals("Jen", ok(displayName = "  Jen  ").displayName)
+    }
+
+    @Test fun argumentsDefaultToEmptyAndAreBounded() {
+        assertEquals("", ok(arguments = null).arguments)
+        assertEquals(LiveTileProtocol.Error.ARGUMENTS, bad(arguments = 42).reason)
+        assertEquals(LiveTileProtocol.Error.ARGUMENTS, bad(arguments = "x".repeat(2049)).reason)
+        assertEquals(2048, ok(arguments = "x".repeat(2048)).arguments.length)
+    }
+
+    @Test fun showNameMustBeABoolean() {
+        assertTrue(ok(showName = true).showName)
+        assertFalse(ok(showName = false).showName)
+        assertEquals(LiveTileProtocol.Error.SHOW_NAME, bad(showName = "true").reason)
+    }
+
+    /** The logo goes through the same URI rules as a payload image: no web, no other schemes (R5 §4b). */
+    @Test fun logoUriRules() {
+        val content = ok(logo = "content://com.example.app.images/logo.png").logo!!
+        assertEquals("com.example.app.images", content.authority)
+        assertEquals("content", content.scheme)
+        assertEquals("com.example.app", ok(logo = "android.resource://com.example.app/drawable/logo").logo!!.authority)
+        assertEquals(LiveTileProtocol.Error.LOGO, bad(logo = "https://example.com/logo.png").reason)
+        assertEquals(LiveTileProtocol.Error.LOGO, bad(logo = "file:///data/data/app.tileshell/files/x.png").reason)
+        assertEquals(LiveTileProtocol.Error.LOGO, bad(logo = "content://").reason)
+        assertEquals(LiveTileProtocol.Error.LOGO, bad(logo = 7).reason)
+        assertEquals(LiveTileProtocol.Error.LOGO, bad(logo = "content://a/" + "x".repeat(TileXmlValidator.MAX_IMAGE_URI)).reason)
+    }
+
+    /** The rejection never says which package owns an authority (adversarial review F6 is decided later, in the ingest). */
+    @Test fun logoRejectionNamesNoOtherPackage() {
+        assertFalse(bad(logo = "https://example.com/logo.png").detail.contains("example.com/logo"))
+    }
+}
