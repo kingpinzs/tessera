@@ -23,18 +23,25 @@ class LiveTileSystemReceiver : BroadcastReceiver() {
             ACTION_SWEEP -> store.requestSweep("alarm")
             Intent.ACTION_PACKAGE_FULLY_REMOVED -> pkg?.let { p ->
                 val pending = goAsync()
+                // The tiles leave Start before the state is wiped: the layout is what names them (R5 §1.9).
+                SecondaryTiles.onOwnerRemoved(app, p)
                 store.handler.post {
                     try { store.onPackageRemoved(p, "package fully removed") } finally { pending.finish() }
                 }
             }
             Intent.ACTION_PACKAGE_REMOVED -> if (pkg != null && !replacing) {
+                SecondaryTiles.onOwnerRemoved(app, pkg)
                 store.handler.post { store.onPackageRemoved(pkg, "package removed") }
             }
             Intent.ACTION_PACKAGE_ADDED -> pkg?.let { p ->
                 Diagnostics.add("livetile", "package added $p replacing=$replacing")
                 store.handler.post { store.onPackageAdded(p, replacing) }
+                SecondaryTiles.onOwnerChanged(app, p)
             }
-            Intent.ACTION_PACKAGE_REPLACED -> pkg?.let { p -> store.handler.post { store.onPackageAdded(p, true) } }
+            Intent.ACTION_PACKAGE_REPLACED -> pkg?.let { p ->
+                store.handler.post { store.onPackageAdded(p, true) }
+                SecondaryTiles.onOwnerChanged(app, p)
+            }
         }
     }
 
