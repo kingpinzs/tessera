@@ -23,6 +23,8 @@ import kotlinx.coroutines.withTimeoutOrNull
 private sealed interface Hit {
     data class Tile(val key: TileKey, val grabFrac: Offset, val inRow: Boolean) : Hit
     data class DiscHit(val kind: Disc) : Hit
+    /** The strip at the top of an expanded band: the "Name folder" placeholder, or the folder's name. */
+    data class FolderName(val folderId: String) : Hit
     data object Empty : Hit
 }
 
@@ -77,8 +79,12 @@ fun Modifier.startEditGestures(
             if (broke != null) return@awaitEachGesture
             Diagnostics.add("edit", "hold ${Edit.HOLD_MS}ms on ${hit.key.id}: edit mode on")
             edit.enter(hit.key)
-            edit.drag = Drag(hit.key, down.position, hit.grabFrac, hit.inRow)
-            dragLoop(edit, geoState, store, scroll, down, pitchScaleState)
+            // The discs appear now and ride the entry contraction (R6 §1.2.7). The same gesture only becomes a
+            // drag if the finger moves; lifting it leaves the tile held with its two discs.
+            if (waitForMoveOrUp(down, viewConfiguration.touchSlop)) {
+                edit.drag = Drag(hit.key, down.position, hit.grabFrac, hit.inRow)
+                dragLoop(edit, geoState, store, scroll, down, pitchScaleState)
+            }
         } else {
             when (hit) {
                 is Hit.DiscHit -> {
@@ -100,6 +106,14 @@ fun Modifier.startEditGestures(
                     } else {
                         Diagnostics.add("edit", "selection moves to ${hit.key.id}")
                         edit.selected = hit.key
+                    }
+                }
+                is Hit.FolderName -> {
+                    // A tap, and Microsoft's documented tap-and-hold, both open the name box (R6 §1.7.2-§1.7.3).
+                    val moved = waitForMoveOrUp(down, viewConfiguration.touchSlop)
+                    if (!moved) {
+                        Diagnostics.add("edit", "folder ${hit.folderId}: name box opened")
+                        edit.naming = true
                     }
                 }
                 Hit.Empty -> {
@@ -288,6 +302,7 @@ private fun hitTest(edit: StartEditState, geo: StartGeometry, coords: Coords, sc
         }
     }
     if (geo.bandFolder != null && geo.inBand(content.y)) {
+        if (content.y < geo.bandMembersTopPx) return Hit.FolderName(geo.bandFolder)
         geo.members.forEach { p ->
             val x = geo.memberXPx(p)
             val y = geo.memberYPx(p)
