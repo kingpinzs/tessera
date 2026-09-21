@@ -23,6 +23,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,10 +46,12 @@ import app.tileshell.start.BackHistory
 import app.tileshell.start.PlacedTile
 import app.tileshell.start.SlotPicker
 import app.tileshell.start.StartAnimation
+import app.tileshell.start.SecondaryPinPrompt
 import app.tileshell.start.StartEditState
 import app.tileshell.start.StartPage
 import app.tileshell.start.TileTarget
 import app.tileshell.tiles.ShellTiles
+import app.tileshell.tiles.api.SecondaryTiles
 import app.tileshell.tiles.Slot
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.ShellRoot
@@ -146,6 +149,11 @@ class StartActivity : ComponentActivity() {
                             AppListPage(onLaunch = { entry, bounds -> launchApp(TileTarget.App(entry), bounds, null) })
                         }
                     }
+                    // The pin confirmation band sits at the top of the screen, under the drawn status bar (H22).
+                    val pinRequest by SecondaryTiles.pending.collectAsState()
+                    pinRequest?.let { request ->
+                        SecondaryPinPrompt(request, Modifier.align(Alignment.TopCenter).padding(top = BarMetrics.STATUS_EPX.dp))
+                    }
                     // The picker is a page between the drawn bars (bar rule): the status bar draws over its top inset.
                     pickerSlot?.let { slot ->
                         Box(Modifier.fillMaxSize().background(LocalShellColors.current.background).padding(top = BarMetrics.STATUS_EPX.dp)) {
@@ -220,8 +228,8 @@ class StartActivity : ComponentActivity() {
                 else -> Diagnostics.add("launch", "shell tile ${target.name} has no target")
             }
             is TileTarget.Unassigned, is TileTarget.Folder -> Unit
-            // Build task 6 owns the secondary-tile launch (owner + TILE_ID / ARGUMENTS extras); wired at merge.
-            is TileTarget.Secondary -> Diagnostics.add("launch", "secondary tile ${target.owner}/${target.tileId}")
+            // The seam starts the OWNER's launcher activity with the tile's TILE_ID / ARGUMENTS extras (R5 §4b).
+            is TileTarget.Secondary -> SecondaryTiles.launch(this, target.owner, target.tileId, bounds, options)
         }
         Diagnostics.add("launch", "tile=$tileId target=$target")
     }
@@ -232,6 +240,11 @@ class StartActivity : ComponentActivity() {
         pendingLaunch = { launchApp(TileTarget.App(entry), null, "back") }
         animation = StartAnimation(exitElapsedMs = 0f, exitTappedId = "back")
         exitToken++
+    }
+
+    override fun onPause() {
+        super.onPause()
+        SecondaryTiles.setStartVisible(false)
     }
 
     override fun onStop() {
@@ -249,6 +262,8 @@ class StartActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         inFront = true
+        // A pin request that arrived while Start was away is shown now, never over another app (R5 §1.9).
+        SecondaryTiles.setStartVisible(true)
         hideSystemBars()
         // A default app (dialer, SMS, browser) may have been changed elsewhere while Start was away.
         app.tileshell.tiles.SlotDefaults.refresh()

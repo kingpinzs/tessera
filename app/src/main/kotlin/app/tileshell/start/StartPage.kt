@@ -68,6 +68,7 @@ import app.tileshell.tiles.TileKey
 import app.tileshell.tiles.TileSize
 import app.tileshell.tiles.engine.BadgeStore
 import app.tileshell.tiles.engine.LiveTileEngine
+import app.tileshell.tiles.api.SecondaryTiles
 import app.tileshell.tiles.engine.TileContent
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.LocalStartTheme
@@ -110,6 +111,7 @@ class TileFactory(
     private val badges: Map<String, Int>,
     private val content: Map<String, TileContent>,
     private val expandedFolder: String?,
+    private val secondaries: Map<String, SecondaryTiles.SecondaryTileInfo>,
 ) {
     fun place(key: TileKey, size: TileSize, x: Float, y: Float, wPx: Float, hPx: Float, idPrefix: String = "", live: Boolean = true): PlacedTile {
         val iconPx = (minOf(wPx, hPx) * 0.52f).toInt().coerceAtLeast(24)
@@ -156,9 +158,19 @@ class TileFactory(
                 PlacedTile(key, model, TileTarget.Folder(key.folderId), x, y, wPx, hPx)
             }
             is TileKey.SecondaryTile -> {
-                // Display name, logo and this tile's own queue come from build task 6's seam, wired when that
-                // branch merges; the key alone is enough to place and move the tile.
-                val model = TileModel(idPrefix + key.id, key.tileId, size, null, Glyph.APPS, null, 0, false)
+                // Build task 6's seam: the record carries the name, the logo and the requested size; the faces
+                // and the badge come out of the same maps every other tile reads, under the seam's keys.
+                val info = secondaries[key.id]
+                val model = TileModel(
+                    id = idPrefix + key.id,
+                    label = if (info?.showName == true) info.displayName else "",
+                    size = size,
+                    icon = info?.let { SecondaryTiles.logo(it, iconPx) }?.let { TileIcons.Icon(it, monochrome = false) },
+                    fallbackGlyph = Glyph.APPS,
+                    content = if (live) content[SecondaryTiles.contentKey(key.owner, key.tileId)] else null,
+                    badge = badges[SecondaryTiles.badgeKey(key.owner, key.tileId)] ?: 0,
+                    unassigned = info == null,
+                )
                 PlacedTile(key, model, TileTarget.Secondary(key.owner, key.tileId), x, y, wPx, hPx)
             }
             is TileKey.ShellTile -> {
@@ -192,7 +204,7 @@ class TileFactory(
         }
         is TileKey.AppTile -> MiniTile(catalog.find(key.component)?.let { TileIcons.load(context, it, iconPx) }, Glyph.APPS)
         is TileKey.ShellTile -> MiniTile(null, if (key.name == ShellTiles.WEATHER) Glyph.WEATHER_PARTLY else Glyph.SETTINGS)
-        is TileKey.SecondaryTile -> MiniTile(null, Glyph.APPS)
+        is TileKey.SecondaryTile -> MiniTile(secondaries[key.id]?.let { SecondaryTiles.logo(it, iconPx) }?.let { TileIcons.Icon(it, monochrome = false) }, Glyph.APPS)
         is TileKey.FolderTile -> MiniTile(null, Glyph.APPS)
     }
 }
@@ -208,8 +220,9 @@ fun rememberTileFactory(expandedFolder: String?): Pair<TileFactory, LayoutStore.
     val content by LiveTileEngine.content.collectAsState()
     // Role slots follow Android's default apps, which change without any package or layout change.
     val defaults by SlotDefaults.generation.collectAsState()
-    val factory = remember(layout, apps, badges, content, defaults, expandedFolder) {
-        TileFactory(context, resolver, catalog, layout, badges, content, expandedFolder)
+    val secondaries by SecondaryTiles.tiles.collectAsState()
+    val factory = remember(layout, apps, badges, content, defaults, expandedFolder, secondaries) {
+        TileFactory(context, resolver, catalog, layout, badges, content, expandedFolder, secondaries)
     }
     return factory to layout
 }
