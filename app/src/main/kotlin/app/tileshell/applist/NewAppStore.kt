@@ -90,12 +90,21 @@ class NewAppStore private constructor(private val context: Context) {
     }
 
     /** A launch the shell saw clears the caption (X11). */
-    fun markLaunched(entry: AppEntry) {
+    fun markLaunched(entry: AppEntry) = markSeen(entry, "launched from the shell")
+
+    /**
+     * Pinning the app to Start clears the caption too (phase 02 Decisions 2026-09-16, measured by E2). It writes
+     * the same SharedPreferences record a launch writes, so the cleared state persists exactly like X11's and
+     * survives process death, a reinstall of the shell aside.
+     */
+    fun markPinned(entry: AppEntry) = markSeen(entry, "pinned to Start")
+
+    private fun markSeen(entry: AppEntry, why: String) {
         val key = keyOf(entry)
         synchronized(this) {
             val rec = records[key] ?: return
             if (rec.state != NewState.NEW) return
-            clear(key, rec, "launched from the shell")
+            clear(key, rec, why)
         }
     }
 
