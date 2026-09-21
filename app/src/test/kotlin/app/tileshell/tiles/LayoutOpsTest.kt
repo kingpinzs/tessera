@@ -171,6 +171,26 @@ class LayoutOpsTest {
     }
 
     @Test
+    fun `moving a folder tile keeps its folder and its members`() {
+        // E8's no-nesting path: a folder dragged onto a tile is detached and re-inserted, and detaching used to
+        // delete the folder record, leaving the order pointing at a folder that no longer existed.
+        val folder = Folder("f1", "Stuff", listOf(a, b))
+        val start = layout(Sized(TileKey.FolderTile("f1"), TileSize.MEDIUM), c, folders = mapOf("f1" to folder))
+        val next = LayoutOps.moveInGrid(start, TileKey.FolderTile("f1"), 1)
+        assertEquals(listOf("shell:c", "folder:f1"), next.order.map { it.key.id })
+        assertEquals(folder, next.folders["f1"])
+    }
+
+    @Test
+    fun `moving a folder tile into the bottom row keeps its folder`() {
+        val folder = Folder("f1", null, listOf(a, b))
+        val start = layout(Sized(TileKey.FolderTile("f1"), TileSize.MEDIUM), folders = mapOf("f1" to folder))
+        val next = LayoutOps.moveToDock(start, TileKey.FolderTile("f1"), 0, capacity = 6)!!
+        assertEquals(listOf("folder:f1"), next.dock.map { it.id })
+        assertEquals(2, next.folders["f1"]!!.members.size)
+    }
+
+    @Test
     fun `resize reaches a tile inside a folder too`() {
         val start = layout(Sized(TileKey.FolderTile("f1"), TileSize.MEDIUM), folders = mapOf("f1" to Folder("f1", null, listOf(a, b))))
         val next = LayoutOps.resize(start, shell("a"), TileSize.WIDE)

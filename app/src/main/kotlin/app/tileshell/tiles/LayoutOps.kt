@@ -19,13 +19,15 @@ object LayoutOps {
      * dissolves into that tile, which takes the folder's place in the grid at its own size (R6 §1.8.1, H19);
      * an empty folder goes altogether.
      */
-    fun without(layout: L, key: TileKey): L {
+    fun without(layout: L, key: TileKey, dropFolderRecord: Boolean = true): L {
         var order = layout.order.filterNot { it.key == key }
         var folders = layout.folders
         val holder = layout.folderHolding(key)
         if (holder != null) folders = folders + (holder.id to holder.copy(members = holder.members.filterNot { it.key == key }))
-        // A folder tile removed from the grid takes its folder with it.
-        if (key is TileKey.FolderTile) folders = folders - key.folderId
+        // A folder tile REMOVED from the grid takes its folder with it — but a folder tile being MOVED is only
+        // detached for a moment, and deleting its record there loses every member (found by E8's no-nesting
+        // path, which left the order pointing at a folder that no longer existed).
+        if (key is TileKey.FolderTile && dropFolderRecord) folders = folders - key.folderId
         for (folder in folders.values.toList()) {
             when (folder.members.size) {
                 1 -> {
@@ -53,7 +55,7 @@ object LayoutOps {
     /** Move [key] to [index] of the grid order, out of a folder or the bottom row if that is where it was. */
     fun moveInGrid(layout: L, key: TileKey, index: Int): L {
         val size = layout.sizeOf(key) ?: TileSize.MEDIUM
-        val stripped = without(layout, key)
+        val stripped = without(layout, key, dropFolderRecord = false)
         val at = index.coerceIn(0, stripped.order.size)
         return stripped.copy(order = stripped.order.toMutableList().apply { add(at, Sized(key, size)) })
     }
@@ -61,7 +63,7 @@ object LayoutOps {
     /** Move [key] into the bottom tile row at [index]; null when the row is full (E9: the drop is refused). */
     fun moveToDock(layout: L, key: TileKey, index: Int, capacity: Int): L? {
         if (key !in layout.dock && layout.dock.size >= capacity) return null
-        val stripped = without(layout, key)
+        val stripped = without(layout, key, dropFolderRecord = false)
         val at = index.coerceIn(0, stripped.dock.size)
         return stripped.copy(dock = stripped.dock.toMutableList().apply { add(at, key) })
     }
@@ -75,7 +77,7 @@ object LayoutOps {
         if (target is TileKey.FolderTile || dragged is TileKey.FolderTile) return null
         val targetItem = layout.order.firstOrNull { it.key == target } ?: return null
         val draggedSize = layout.sizeOf(dragged) ?: TileSize.MEDIUM
-        val stripped = without(layout, dragged)
+        val stripped = without(layout, dragged, dropFolderRecord = false)
         val index = stripped.order.indexOfFirst { it.key == target }
         if (index < 0) return null
         val id = nextFolderId(stripped.folders.keys)
@@ -91,7 +93,7 @@ object LayoutOps {
         if (key is TileKey.FolderTile) return null
         layout.folders[folderId] ?: return null
         val size = layout.sizeOf(key) ?: TileSize.MEDIUM
-        val stripped = without(layout, key)
+        val stripped = without(layout, key, dropFolderRecord = false)
         val live = stripped.folders[folderId] ?: return null
         val at = index.coerceIn(0, live.members.size)
         return stripped.copy(folders = stripped.folders + (folderId to live.copy(members = live.members.toMutableList().apply { add(at, Sized(key, size)) })))

@@ -225,7 +225,10 @@ class LayoutStore private constructor(private val context: Context) {
                             parseKey(e.getString("key"))?.let { Sized(it, TileSize.valueOf(e.getString("size"))) }
                         }
                         val id = o.getString("id")
-                        id to Folder(id, o.optString("name", null)?.takeIf { it.isNotBlank() }, members)
+                        // optString turns a JSON null into the four-letter string "null"; a folder with no name
+                        // has to come back as a real null or the band shows "null" as its name.
+                        val name = if (o.isNull("name")) null else o.optString("name").takeIf { it.isNotBlank() }
+                        id to Folder(id, name, members)
                     }.toMap()
                     // A folder id in the order with no folder behind it (a hand-edited or truncated file) is dropped
                     // rather than drawn as an empty tile.
