@@ -30,7 +30,13 @@ import app.tileshell.tiles.api.LiveTileProtocol.Error
  * Every decision is written to the diagnostics ring buffer under tag "livetile".
  *
  * onCreate is the shell process's start hook for the API's companions: the store load, the runtime legacy badge
- * receiver, package-change listening and the Samsung badge reader (providers are created at every process start).
+ * receiver, package-change listening, the Samsung badge reader and the secondary-tile holder (providers are created
+ * at every process start).
+ *
+ * Secondary tiles (phase 02 build task 6): every verb may carry a `tileId` naming one of the CALLER'S OWN secondary
+ * tiles - rule 4 above already refuses an `owner` that is not the caller, so a tileId can never reach another app's
+ * tile - and the five secondary.* verbs create, update, delete and list them. Creating one is a request: the user
+ * confirms it on Start (SecondaryTiles / SecondaryPinPrompt) and nothing is pinned until they do.
  */
 class LiveTileProvider : ContentProvider() {
     private val limiter = RateLimiter(limit = 60, windowMs = 60_000L)
@@ -43,6 +49,7 @@ class LiveTileProvider : ContentProvider() {
         store.start()
         LegacyBadgeReceiver.registerRuntime(app)
         LiveTileSystemReceiver.registerRuntime(app)
+        SecondaryTiles.start(app)
         store.handler.post { SamsungBadgeReader.start(app, store.handler) }
         return true
     }
@@ -69,8 +76,11 @@ class LiveTileProvider : ContentProvider() {
             if (owner != null && owner != pkg) return reject(pkg, uid, method, Error.IDENTITY, "owner $owner is not the caller")
             if (!limiter.tryAcquire(pkg, SystemClock.elapsedRealtime())) return rateReject(pkg, uid, method)
             if (method !in LiveTileProtocol.VERBS) return reject(pkg, uid, method, Error.UNKNOWN_VERB, "verb not in protocol v${LiveTileProtocol.VERSION}")
-            if (extras?.getString(LiveTileProtocol.EXTRA_TILE_ID) != null) {
-                return reject(pkg, uid, method, Error.SECONDARY_UNSUPPORTED, "secondary tiles are not available in this version")
+            // A tileId addresses one of the CALLER'S OWN secondary tiles: the owner is always getCallingPackage(), so
+            // there is no id an app can write here that reaches another app's tile (R5 §4b identity rule).
+            val tileId = extras?.getString(LiveTileProtocol.EXTRA_TILE_ID)
+            if (tileId != null && !LiveTileProtocol.isValidTileId(tileId)) {
+                return reject(pkg, uid, method, Error.TILE_ID, "tileId must be 1-64 characters of letters, digits, '.', '_' or '-', and not only dots")
             }
             val store = LiveTileStore.get(ctx)
             store.checkIdentity(pkg, "call $method")
@@ -81,13 +91,18 @@ class LiveTileProvider : ContentProvider() {
             }
             val args = extras ?: Bundle.EMPTY
             return when (method) {
-                LiveTileProtocol.TILE_UPDATE -> tileUpdate(ctx, store, pkg, uid, args)
-                LiveTileProtocol.TILE_CLEAR -> outcome(pkg, uid, method, store.clear(pkg, System.currentTimeMillis()), "queue cleared", store)
-                LiveTileProtocol.TILE_ENABLE_QUEUE -> enableQueue(store, pkg, uid, args)
-                LiveTileProtocol.TILE_SCHEDULE -> schedule(ctx, store, pkg, uid, args)
-                LiveTileProtocol.BADGE_UPDATE -> badgeUpdate(store, pkg, uid, args)
-                LiveTileProtocol.BADGE_CLEAR -> outcome(pkg, uid, method, store.setBadge(pkg, 0, null, System.currentTimeMillis()), "badge cleared", store)
-                LiveTileProtocol.TILE_SETTING -> tileSetting(ctx, pkg, uid, disabled)
+                LiveTileProtocol.TILE_UPDATE -> tileUpdate(ctx, store, pkg, uid, tileId, args)
+                LiveTileProtocol.TILE_CLEAR -> outcome(pkg, uid, method, store.clear(pkg, tileId, System.currentTimeMillis()), "queue cleared tileId=$tileId", store)
+                LiveTileProtocol.TILE_ENABLE_QUEUE -> enableQueue(store, pkg, uid, tileId, args)
+                LiveTileProtocol.TILE_SCHEDULE -> schedule(ctx, store, pkg, uid, tileId, args)
+                LiveTileProtocol.BADGE_UPDATE -> badgeUpdate(store, pkg, uid, tileId, args)
+                LiveTileProtocol.BADGE_CLEAR -> outcome(pkg, uid, method, store.setBadge(pkg, tileId, 0, null, System.currentTimeMillis()), "badge cleared tileId=$tileId", store)
+                LiveTileProtocol.TILE_SETTING -> tileSetting(ctx, store, pkg, uid, tileId, disabled)
+                LiveTileProtocol.SECONDARY_REQUEST_CREATE -> secondaryRequestCreate(ctx, store, pkg, uid, args)
+                LiveTileProtocol.SECONDARY_UPDATE -> secondaryUpdate(ctx, store, pkg, uid, args)
+                LiveTileProtocol.SECONDARY_REQUEST_DELETE -> secondaryRequestDelete(ctx, store, pkg, uid, tileId)
+                LiveTileProtocol.SECONDARY_EXISTS -> secondaryExists(store, pkg, uid, tileId)
+                LiveTileProtocol.SECONDARY_FIND_ALL -> secondaryFindAll(store, pkg, uid)
                 else -> reject(pkg, uid, method, Error.UNKNOWN_VERB, method)
             }
         } catch (e: RuntimeException) {
@@ -97,7 +112,7 @@ class LiveTileProvider : ContentProvider() {
         }
     }
 
-    private fun tileUpdate(ctx: Context, store: LiveTileStore, pkg: String, uid: Int, args: Bundle): Bundle {
+    private fun tileUpdate(ctx: Context, store: LiveTileStore, pkg: String, uid: Int, tileId: String?, args: Bundle): Bundle {
         val method = LiveTileProtocol.TILE_UPDATE
         val now = System.currentTimeMillis()
         val tag = args.getString(LiveTileProtocol.EXTRA_TAG)
@@ -115,21 +130,21 @@ class LiveTileProvider : ContentProvider() {
             is ImageIngest.Result.Rejected -> return reject(pkg, uid, method, r.reason, r.detail)
             is ImageIngest.Result.Ok -> r.images
         }
-        val stored = store.update(pkg, xml, images, tag, expiresAtMs, now)
+        val stored = store.update(pkg, tileId, xml, images, tag, expiresAtMs, now)
         if (stored is LiveTileStore.Outcome.Rejected) images.forEach { store.ownerDir(pkg).resolve(it.file).delete() }
         val bindings = payload.bindings.joinToString(",") { it.template.xmlName }
-        return outcome(pkg, uid, method, stored, "bindings=$bindings images=${images.size} tag=$tag expiresAt=$expiresAtMs xmlBytes=${xml.length}", store)
+        return outcome(pkg, uid, method, stored, "tileId=$tileId bindings=$bindings images=${images.size} tag=$tag expiresAt=$expiresAtMs xmlBytes=${xml.length}", store)
     }
 
-    private fun enableQueue(store: LiveTileStore, pkg: String, uid: Int, args: Bundle): Bundle {
+    private fun enableQueue(store: LiveTileStore, pkg: String, uid: Int, tileId: String?, args: Bundle): Bundle {
         val method = LiveTileProtocol.TILE_ENABLE_QUEUE
         @Suppress("DEPRECATION")
         val enabled = args.get(LiveTileProtocol.EXTRA_ENABLED) as? Boolean
             ?: return reject(pkg, uid, method, Error.ENABLED, "enabled must be a boolean")
-        return outcome(pkg, uid, method, store.enableQueue(pkg, enabled, System.currentTimeMillis()), "queue enabled=$enabled", store)
+        return outcome(pkg, uid, method, store.enableQueue(pkg, tileId, enabled, System.currentTimeMillis()), "tileId=$tileId queue enabled=$enabled", store)
     }
 
-    private fun schedule(ctx: Context, store: LiveTileStore, pkg: String, uid: Int, args: Bundle): Bundle {
+    private fun schedule(ctx: Context, store: LiveTileStore, pkg: String, uid: Int, tileId: String?, args: Bundle): Bundle {
         val method = LiveTileProtocol.TILE_SCHEDULE
         val now = System.currentTimeMillis()
         val id = args.getString(LiveTileProtocol.EXTRA_ID)
@@ -153,12 +168,12 @@ class LiveTileProvider : ContentProvider() {
             is ImageIngest.Result.Ok -> r.images
         }
         val entry = LiveTileStore.ScheduledEntry(id, deliverAtMs, tag, xml, images, expiresAtMs)
-        val stored = store.schedule(pkg, entry, now)
+        val stored = store.schedule(pkg, tileId, entry, now)
         if (stored is LiveTileStore.Outcome.Rejected) images.forEach { store.ownerDir(pkg).resolve(it.file).delete() }
-        return outcome(pkg, uid, method, stored, "id=$id deliveryAt=$deliverAtMs in=${deliverAtMs - now}ms images=${images.size}", store)
+        return outcome(pkg, uid, method, stored, "tileId=$tileId id=$id deliveryAt=$deliverAtMs in=${deliverAtMs - now}ms images=${images.size}", store)
     }
 
-    private fun badgeUpdate(store: LiveTileStore, pkg: String, uid: Int, args: Bundle): Bundle {
+    private fun badgeUpdate(store: LiveTileStore, pkg: String, uid: Int, tileId: String?, args: Bundle): Bundle {
         val method = LiveTileProtocol.BADGE_UPDATE
         val expiresAt = longExtra(args, LiveTileProtocol.EXTRA_EXPIRES_AT)
         if (expiresAt is LongExtra.Invalid) return reject(pkg, uid, method, Error.EXPIRES_AT, "expiresAt must be a long (epoch ms)")
@@ -177,17 +192,141 @@ class LiveTileProvider : ContentProvider() {
             else -> return reject(pkg, uid, method, Error.VALUE, "value must be an int >= 0 or a glyph name")
         }
         if (count < 0) return reject(pkg, uid, method, Error.VALUE, "value $count < 0")
-        return outcome(pkg, uid, method, store.setBadge(pkg, count, expiresAtMs, System.currentTimeMillis()), "badge=$count expiresAt=$expiresAtMs", store)
+        return outcome(pkg, uid, method, store.setBadge(pkg, tileId, count, expiresAtMs, System.currentTimeMillis()), "tileId=$tileId badge=$count expiresAt=$expiresAtMs", store)
     }
 
-    private fun tileSetting(ctx: Context, pkg: String, uid: Int, disabled: Boolean): Bundle {
+    private fun tileSetting(ctx: Context, store: LiveTileStore, pkg: String, uid: Int, tileId: String?, disabled: Boolean): Bundle {
+        val pinned = if (tileId == null) isPinned(ctx, pkg) else store.secondary(pkg, tileId) != null
         val setting = when {
             disabled -> LiveTileProtocol.SETTING_DISABLED_FOR_APPLICATION
-            isPinned(ctx, pkg) -> LiveTileProtocol.SETTING_ENABLED
+            pinned -> LiveTileProtocol.SETTING_ENABLED
             else -> LiveTileProtocol.SETTING_NOT_PINNED
         }
-        Diagnostics.add("livetile", "accept $pkg uid=$uid ${LiveTileProtocol.TILE_SETTING} -> $setting")
+        Diagnostics.add("livetile", "accept $pkg uid=$uid ${LiveTileProtocol.TILE_SETTING} tileId=$tileId -> $setting")
         return result(true, null, null).apply { putString(LiveTileProtocol.RESULT_SETTING, setting) }
+    }
+
+    // ---------- secondary tiles (R5 §1.9 / §4b, phase 02 build task 6) ----------
+
+    /**
+     * Windows' `RequestCreateAsync`: the app asks, the user confirms. The confirmation is a band on Start
+     * ([app.tileshell.start.SecondaryPinPrompt]); this call only takes the request. A tileId the caller already has
+     * pinned is UPDATED in place with no confirmation (phase 02 Decisions: "a duplicate tileId updates the existing
+     * tile (no second tile)").
+     */
+    private fun secondaryRequestCreate(ctx: Context, store: LiveTileStore, pkg: String, uid: Int, args: Bundle): Bundle {
+        val method = LiveTileProtocol.SECONDARY_REQUEST_CREATE
+        val fields = when (val v = validateSecondary(args)) {
+            is SecondaryFieldsResult.Invalid -> return reject(pkg, uid, method, v.reason, v.detail)
+            is SecondaryFieldsResult.Ok -> v.fields
+        }
+        if (store.secondary(pkg, fields.tileId) != null) {
+            val stored = storeSecondary(ctx, store, pkg, fields)
+            if (stored is LiveTileStore.Outcome.Rejected) return reject(pkg, uid, method, stored.reason, stored.detail)
+            Diagnostics.add("livetile", "accept $pkg uid=$uid $method tileId=${fields.tileId} -> already pinned, updated in place")
+            ctx.contentResolver.notifyChange(store.changeUri(pkg), null)
+            return result(true, null, "the tile was already pinned and was updated").apply { putBoolean(LiveTileProtocol.RESULT_PENDING, false) }
+        }
+        val logo = when (val r = ingestLogo(ctx, store, pkg, fields)) {
+            is LogoResult.Rejected -> return reject(pkg, uid, method, r.reason, r.detail)
+            is LogoResult.Ok -> r.image
+        }
+        val record = LiveTileStore.SecondaryRecord(pkg, fields.tileId, fields.displayName, fields.arguments, logo, fields.size, fields.showName)
+        return when (val offered = SecondaryTiles.request(ctx, record)) {
+            is SecondaryTiles.RequestResult.Queued -> {
+                Diagnostics.add(
+                    "livetile",
+                    "accept $pkg uid=$uid $method tileId=${fields.tileId} name=${fields.displayName} size=${fields.size} showName=${fields.showName} " +
+                        "logo=${logo != null} -> waiting for the user (${offered.waiting} request(s) held)",
+                )
+                result(true, null, "waiting for the user to confirm on Start").apply { putBoolean(LiveTileProtocol.RESULT_PENDING, true) }
+            }
+            SecondaryTiles.RequestResult.Full -> {
+                logo?.let { store.ownerDir(pkg).resolve(it.file).delete() }
+                reject(pkg, uid, method, Error.QUOTA, "too many pin requests are waiting for the user")
+            }
+        }
+    }
+
+    /** Windows' `UpdateAsync`: the tile must exist, and every property is assigned (R5 §1.9). */
+    private fun secondaryUpdate(ctx: Context, store: LiveTileStore, pkg: String, uid: Int, args: Bundle): Bundle {
+        val method = LiveTileProtocol.SECONDARY_UPDATE
+        val fields = when (val v = validateSecondary(args)) {
+            is SecondaryFieldsResult.Invalid -> return reject(pkg, uid, method, v.reason, v.detail)
+            is SecondaryFieldsResult.Ok -> v.fields
+        }
+        if (store.secondary(pkg, fields.tileId) == null) {
+            return reject(pkg, uid, method, Error.NOT_FOUND, "no secondary tile '${fields.tileId}' is pinned for this app")
+        }
+        val stored = storeSecondary(ctx, store, pkg, fields)
+        return outcome(pkg, uid, method, stored, "tileId=${fields.tileId} name=${fields.displayName} size=${fields.size} showName=${fields.showName}", store)
+    }
+
+    /** Windows' `RequestDeleteAsync`: the app removes its own tile; the user needs no dialog to lose a tile. */
+    private fun secondaryRequestDelete(ctx: Context, store: LiveTileStore, pkg: String, uid: Int, tileId: String?): Bundle {
+        val method = LiveTileProtocol.SECONDARY_REQUEST_DELETE
+        if (tileId == null) return reject(pkg, uid, method, Error.TILE_ID, "tileId is required")
+        if (store.secondary(pkg, tileId) == null) return reject(pkg, uid, method, Error.NOT_FOUND, "no secondary tile '$tileId' is pinned for this app")
+        SecondaryTiles.delete(ctx, pkg, tileId)
+        Diagnostics.add("livetile", "accept $pkg uid=$uid $method tileId=$tileId")
+        ctx.contentResolver.notifyChange(store.changeUri(pkg), null)
+        return result(true, null, null)
+    }
+
+    /** Windows' `SecondaryTile.Exists`: only ever about the caller's own tiles. */
+    private fun secondaryExists(store: LiveTileStore, pkg: String, uid: Int, tileId: String?): Bundle {
+        val method = LiveTileProtocol.SECONDARY_EXISTS
+        if (tileId == null) return reject(pkg, uid, method, Error.TILE_ID, "tileId is required")
+        val exists = store.secondary(pkg, tileId) != null
+        Diagnostics.add("livetile", "accept $pkg uid=$uid $method tileId=$tileId -> $exists")
+        return result(true, null, null).apply { putBoolean(LiveTileProtocol.RESULT_EXISTS, exists) }
+    }
+
+    /** Windows' `SecondaryTile.FindAllAsync`: the caller's own tile ids, in the order they were pinned. */
+    private fun secondaryFindAll(store: LiveTileStore, pkg: String, uid: Int): Bundle {
+        val ids = store.secondaryRecords(pkg).map { it.tileId }
+        Diagnostics.add("livetile", "accept $pkg uid=$uid ${LiveTileProtocol.SECONDARY_FIND_ALL} -> ${ids.size} tile(s)")
+        return result(true, null, null).apply { putStringArray(LiveTileProtocol.RESULT_TILE_IDS, ids.toTypedArray()) }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun validateSecondary(args: Bundle): SecondaryFieldsResult = SecondaryTileRules.validate(
+        tileId = args.get(LiveTileProtocol.EXTRA_TILE_ID),
+        displayName = args.get(LiveTileProtocol.EXTRA_DISPLAY_NAME),
+        arguments = args.get(LiveTileProtocol.EXTRA_ARGUMENTS),
+        logo = args.get(LiveTileProtocol.EXTRA_LOGO),
+        size = args.get(LiveTileProtocol.EXTRA_SIZE),
+        showName = args.get(LiveTileProtocol.EXTRA_SHOW_NAME),
+    )
+
+    private sealed interface LogoResult {
+        data class Ok(val image: LiveTileStore.StoredImage?) : LogoResult
+        data class Rejected(val reason: String, val detail: String) : LogoResult
+    }
+
+    /**
+     * The logo is copied into the shell's own storage exactly as a payload image is: the authority must belong to the
+     * caller, the read has a deadline and a concurrency cap, and the owner's image quota is checked before anything
+     * is written (R5 §4b; adversarial review F2 / F4 / F6).
+     */
+    private fun ingestLogo(ctx: Context, store: LiveTileStore, pkg: String, fields: SecondaryFields): LogoResult {
+        val image = fields.logo ?: return LogoResult.Ok(null)
+        return when (val r = ImageIngest(ctx).ingest(pkg, listOf(image), store.ownerDir(pkg), store.imageBytesUsed(pkg))) {
+            is ImageIngest.Result.Rejected -> LogoResult.Rejected(r.reason, r.detail)
+            is ImageIngest.Result.Ok -> LogoResult.Ok(r.images.firstOrNull())
+        }
+    }
+
+    /** Ingests the logo (when there is one) and writes the record; used by both update paths. */
+    private fun storeSecondary(ctx: Context, store: LiveTileStore, pkg: String, fields: SecondaryFields): LiveTileStore.Outcome {
+        val logo = when (val r = ingestLogo(ctx, store, pkg, fields)) {
+            is LogoResult.Rejected -> return LiveTileStore.Outcome.Rejected(r.reason, r.detail)
+            is LogoResult.Ok -> r.image
+        }
+        val record = LiveTileStore.SecondaryRecord(pkg, fields.tileId, fields.displayName, fields.arguments, logo, fields.size, fields.showName)
+        val stored = store.putSecondary(record, System.currentTimeMillis())
+        if (stored is LiveTileStore.Outcome.Rejected && logo != null) store.ownerDir(pkg).resolve(logo.file).delete()
+        return stored
     }
 
     /** Pinned = the package owns any tile the layout holds: the grid, a folder's members or the bottom row (phase 02). */
