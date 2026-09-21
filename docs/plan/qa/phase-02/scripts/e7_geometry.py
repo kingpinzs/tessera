@@ -97,7 +97,8 @@ for tid, (rest, shown) in measured.items():
 fixed_x, fixed_y = float(np.median(fixed_xs)), float(np.median(fixed_ys))
 print(f"  fixed point: x={fixed_x:.1f}px ({fixed_x / qa.PANEL_W:.3f} of the width), y={fixed_y:.1f}px")
 results.append(("fixed point x", qa.check("fixed point x as a fraction of the width", fixed_x / qa.PANEL_W, 0.5, 0.02)))
-results.append(("fixed point y", qa.check_range("fixed point y as a fraction of the height", fixed_y / page_h, 0.46, 0.49)))
+# page_h here IS the screencap, i.e. the whole panel, which is what R6 §1.1.3 measures against.
+results.append(("fixed point y", qa.check_range("fixed point y as a fraction of the screen height", fixed_y / page_h, 0.46, 0.49)))
 
 # --- §1.1.5 / §1.1.6 the dimming ------------------------------------------------------------------------------
 dim_samples = []

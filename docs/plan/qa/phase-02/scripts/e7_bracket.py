@@ -10,6 +10,7 @@ Edit mode is read off the pixels, not off a dump: the transform that proves it i
 uiautomator dump does not see. A tile OTHER than the held one is both dimmed and moved in edit mode, so its
 resting centre reads page background once the grid has contracted away from it — and its plate is darker.
 """
+import re
 import sys
 
 import numpy as np
@@ -48,11 +49,29 @@ def in_edit_mode(path):
 
 
 results = []
-edit740, why740 = in_edit_mode(f"{d}/hold_740.png")
-print(f"{'FAIL' if edit740 else 'PASS'}  740 ms hold does not enter edit mode ({why740})")
-results.append(("740 ms no edit mode", not edit740))
-edit830, why830 = in_edit_mode(f"{d}/hold_830.png")
-print(f"{'PASS' if edit830 else 'FAIL'}  830 ms hold enters edit mode ({why830})")
-results.append(("830 ms enters edit mode", edit830))
+log = open(f"{d}/e7_capture.txt").read()
+
+
+def launched(ms):
+    """The shell's own discriminator: under the hold threshold the press is a tap and an app comes up."""
+    m = re.search(rf"hold {ms}ms: top activity (\S+)", log)
+    return (m.group(1) if m else "?"), bool(m and not m.group(1).startswith("app.tileshell"))
+
+
+# 740 ms: the press is under the threshold, so it acts as a TAP — which is itself proof that edit mode did not
+# engage (in edit mode a tap never launches). The screencap is then of the launched app, so no pixel check is
+# possible or needed for this half.
+top740, launched740 = launched(740)
+print(f"{'PASS' if launched740 else 'FAIL'}  740 ms hold does NOT enter edit mode: the press acted as a tap and "
+      f"launched {top740} (a tap never launches while edit mode is on)")
+results.append(("740 ms no edit mode", launched740))
+
+# 830 ms: nothing may launch, and the grid must be contracted and dimmed in the capture.
+top830, launched830 = launched(830)
+entered, why = in_edit_mode(f"{d}/hold_830.png")
+print(f"{'PASS' if not launched830 else 'FAIL'}  830 ms hold launches nothing (top activity after: {top830})")
+results.append(("830 ms launches nothing", not launched830))
+print(f"{'PASS' if entered else 'FAIL'}  830 ms hold enters edit mode ({why})")
+results.append(("830 ms enters edit mode", entered))
 
 qa.report(results)

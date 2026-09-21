@@ -36,9 +36,9 @@ m = re.search(r'resource-id="tile:' + re.escape(sys.argv[2]) + r'"[^>]*bounds="\
 if not m: sys.exit(1)
 x1, y1, x2, y2 = map(int, m.groups())
 cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
-page = re.search(r'resource-id="start_page"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', s)
-H = int(page.group(4)) if page else 2340
-fx, fy = 1080 * 0.5, H * 0.475
+# The fixed point is a fraction of the SCREEN's height (R6 §1.1.3), not of the page, which stops above the
+# drawn nav bar.
+fx, fy = 1080 * 0.5, 2340 * 0.475
 # The bottom tile row is not in the scrolling grid and does not contract.
 print(int(round(cx)), int(round(cy))) if sys.argv[2].startswith("dock:") else \
     print(int(round(fx + (cx - fx) * 0.90)), int(round(fy + (cy - fy) * 0.90)))
@@ -56,10 +56,8 @@ m = re.search(r'resource-id="tile:' + re.escape(sys.argv[2]) + r'"[^>]*bounds="\
 if not m: sys.exit(1)
 x1, y1, x2, y2 = map(int, m.groups())
 cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
-page = re.search(r'resource-id="start_page"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', s)
-H = int(page.group(4)) if page else 2340
 dock = sys.argv[2].startswith("dock:")
-fx, fy = 1080 * 0.5, H * 0.475
+fx, fy = 1080 * 0.5, 2340 * 0.475
 ecx, ecy = (cx, cy) if dock else (fx + (cx - fx) * 0.90, fy + (cy - fy) * 0.90)
 w, h = x2 - x1, y2 - y1
 print(int(round(ecx + w / 2)), int(round(ecy - h / 2 if sys.argv[3] == "top" else ecy + h / 2)))

@@ -26,6 +26,13 @@ object Scale {
         return min(bounds.width(), bounds.height())
     }
 
+    /** The panel's long side: R6 measures the edit-mode fixed point against the whole screen. */
+    fun portraitHeightPx(context: Context): Int {
+        val wm = context.getSystemService(WindowManager::class.java)
+        val bounds = wm.maximumWindowMetrics.bounds
+        return kotlin.math.max(bounds.width(), bounds.height())
+    }
+
     fun pxPerEpx(context: Context): Float = portraitWidthPx(context) / CANVAS_EPX
 }
 
