@@ -35,6 +35,13 @@ android {
         }
     }
 
+    // Unit tests exercise the layout rules (LayoutOps), which log to the shell's diagnostics ring buffer;
+
+    // android.os.SystemClock is not mocked in a JVM test, so unstubbed framework calls return defaults.
+
+    testOptions { unitTests.isReturnDefaultValues = true }
+
+
     buildTypes {
         debug {
             isDebuggable = true
