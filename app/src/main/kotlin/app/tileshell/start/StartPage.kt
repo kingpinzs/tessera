@@ -254,7 +254,10 @@ class StartGeometry(
     val pageHeightPx: Float,
     val dockKeys: List<TileKey>,
     val dockWidthPx: Float,
+    /** The panel's height: the contraction's fixed point is a fraction of the SCREEN, not of this page. */
+    val screenHeightPx: Float,
 ) {
+    val fixedPointY: Float get() = screenHeightPx * Edit.FIXED_POINT_Y
     private val pushFromRow: Int? = bandTilePlacement?.let { it.y + it.size.spanY }
 
     fun xPx(p: Placement): Float = grid.unitX(p.x)
@@ -323,6 +326,7 @@ fun StartPage(
     val store = remember { LayoutStore.get(context) }
     val (factory, layout) = rememberTileFactory(edit.expandedFolder)
     val widthPx = Scale.portraitWidthPx(context).toFloat()
+    val screenHeightPx = Scale.portraitHeightPx(context).toFloat()
     val grid = StartGrid(widthPx, theme.mediumColumns)
     val topPx = StartGrid.GRID_TOP_EPX * (widthPx / Scale.CANVAS_EPX)
     val scope = rememberCoroutineScope()
@@ -388,7 +392,7 @@ fun StartPage(
         val geo = StartGeometry(
             grid, topPx, placements, bandFolder, bandTile, members,
             if (bandTile != null) Edit.bandHeight(grid, GridPack.rowCount(members)) * bandReveal.value else 0f,
-            pageHeightPx, dockKeys, dockW,
+            pageHeightPx, dockKeys, dockW, screenHeightPx,
         )
         // Scroll the band into view as it opens (R6 §1.6.2: a new folder is scrolled into view; §1.6.6: expanding
         // auto-scrolls so the band fits).
@@ -425,7 +429,11 @@ fun StartPage(
                     scaleX = launchScale * pitchScale
                     scaleY = launchScale * pitchScale
                     alpha = gridAlpha
-                    transformOrigin = if (edit.scaleProgress > 0f) TransformOrigin(Edit.FIXED_POINT_X, Edit.FIXED_POINT_Y) else TransformOrigin.Center
+                    // The fixed point is a fraction of the SCREEN's height (R6 §1.1.3); this layer is the page,
+                    // which ends above the drawn nav bar, so the fraction is converted into the page's own space.
+                    transformOrigin = if (edit.scaleProgress > 0f)
+                        TransformOrigin(Edit.FIXED_POINT_X, screenHeightPx * Edit.FIXED_POINT_Y / pageHeightPx)
+                    else TransformOrigin.Center
                 }
                 // Edit mode owns the gestures, so Start scrolls under a drag only when Start decides to.
                 .verticalScroll(scroll, enabled = !edit.active),
@@ -479,14 +487,14 @@ fun StartPage(
                     Discs(
                         xPx = geo.xPx(selectedPlacement), yPx = geo.yPx(selectedPlacement),
                         wPx = geo.wPx(selectedPlacement.size), hPx = geo.hPx(selectedPlacement.size),
-                        size = selectedPlacement.size, theme = theme.theme,
+                        size = selectedPlacement.size, theme = theme.theme, counterScale = heldScale,
                     )
                 } else if (edit.active && !edit.exiting && drag == null && selectedMember != null) {
                     // A member of the expanded folder is held: its discs sit on the band tile's corners.
                     Discs(
                         xPx = geo.memberXPx(selectedMember), yPx = geo.memberYPx(selectedMember),
                         wPx = geo.wPx(selectedMember.size), hPx = geo.hPx(selectedMember.size),
-                        size = selectedMember.size, theme = theme.theme,
+                        size = selectedMember.size, theme = theme.theme, counterScale = heldScale,
                     )
                 }
             }
@@ -508,7 +516,7 @@ fun StartPage(
                 if (edit.active && !edit.exiting && drag == null && selectedDock >= 0) {
                     Discs(
                         xPx = grid.leftMarginPx + selectedDock * (dockW + grid.gutterPx), yPx = geo.dockTopPx,
-                        wPx = dockW, hPx = dockTileHeight(grid), size = TileSize.SMALL, theme = theme.theme,
+                        wPx = dockW, hPx = dockTileHeight(grid), size = TileSize.SMALL, theme = theme.theme, counterScale = 1f,
                     )
                 }
             }
@@ -679,15 +687,26 @@ private val lastArea = HashMap<String, Float>()
 
 /** The two discs on the held tile's top-right and bottom-right corners (R6 §1.2.1-§1.2.3). */
 @Composable
-private fun Discs(xPx: Float, yPx: Float, wPx: Float, hPx: Float, size: TileSize, theme: ThemeMode) {
+private fun Discs(xPx: Float, yPx: Float, wPx: Float, hPx: Float, size: TileSize, theme: ThemeMode, counterScale: Float) {
     val density = LocalDensity.current
     val widthPx = with(density) { 1.dp.toPx() } // 1 epx in px under the shell density
     val discPx = Edit.DISC_EPX * widthPx
     // §1.2.4: disc = theme foreground, glyph = theme background.
     val disc = if (theme == ThemeMode.DARK) Color.White else Color.Black
     val glyph = if (theme == ThemeMode.DARK) Color.Black else Color.White
-    EditDisc(Disc.UNPIN, size, discSizeDp, disc, glyph, Modifier.offset { IntOffset((xPx + wPx - discPx / 2f).toInt(), (yPx - discPx / 2f).toInt()) })
-    EditDisc(Disc.RESIZE, size, discSizeDp, disc, glyph, Modifier.offset { IntOffset((xPx + wPx - discPx / 2f).toInt(), (yPx + hPx - discPx / 2f).toInt()) })
+    // The disc box is 31 epx and carries the held tile's counter-scale, so what lands on the screen is
+    // 31 ± 1.5 epx (R6 §1.2.1). It is centred on the tile's DRAWN corner: the held tile stays at 1.00 inside a
+    // grid contracted to 0.90, so its drawn corner is further from its centre than its layout corner is.
+    val cx = xPx + wPx / 2f
+    val cy = yPx + hPx / 2f
+    val halfW = wPx / 2f * counterScale
+    val halfH = hPx / 2f * counterScale
+    EditDisc(Disc.UNPIN, size, discSizeDp, disc, glyph,
+        Modifier.offset { IntOffset((cx + halfW - discPx / 2f).toInt(), (cy - halfH - discPx / 2f).toInt()) }
+            .graphicsLayer { scaleX = counterScale; scaleY = counterScale })
+    EditDisc(Disc.RESIZE, size, discSizeDp, disc, glyph,
+        Modifier.offset { IntOffset((cx + halfW - discPx / 2f).toInt(), (cy + halfH - discPx / 2f).toInt()) }
+            .graphicsLayer { scaleX = counterScale; scaleY = counterScale })
 }
 
 /**

@@ -55,20 +55,29 @@ adb shell input tap $EMPTY_X $EMPTY_Y
 sleep 3
 wait $REC
 adb pull /sdcard/e7_exit.mp4 "$OUT/e7_exit.mp4" >/dev/null
-adb shell settings put system show_touches "${TOUCHES_BEFORE:-0}"
+# "null" means the setting was never set: deleting restores that exactly, rather than writing a 0 that was
+# not there before (RV12).
+if [ -z "$TOUCHES_BEFORE" ] || [ "$TOUCHES_BEFORE" = "null" ]; then
+  adb shell settings delete system show_touches
+else
+  adb shell settings put system show_touches "$TOUCHES_BEFORE"
+fi
 adb exec-out screencap -p > "$OUT/after_exit.png"
 
 # --- 5. the hold bracket (E7: 740 ms must not enter edit mode, 830 ms must) -------------------------------------
-adb shell input keyevent KEYCODE_HOME; sleep 2
-adb shell input swipe ${XY% *} ${XY#* } ${XY% *} ${XY#* } 740
-sleep 1.2
-adb exec-out screencap -p > "$OUT/hold_740.png"
-adb shell input keyevent KEYCODE_BACK; sleep 1
-adb shell input keyevent KEYCODE_HOME; sleep 2
-adb shell input swipe ${XY% *} ${XY#* } ${XY% *} ${XY#* } 830
-sleep 1.2
-adb exec-out screencap -p > "$OUT/hold_830.png"
-adb shell input keyevent KEYCODE_BACK; sleep 1
+# `input swipe x y x y <ms>` presses for exactly that long on the device, so the bracket does not depend on host
+# timing. The discriminator is the shell's own behaviour: under the threshold the press is a TAP and the tile
+# launches its app; over it, nothing launches and the grid contracts.
+top() { adb shell dumpsys activity activities | grep -m1 topResumedActivity | sed 's/.*u0 //;s/ .*//'; }
+for MS in 740 830; do
+  adb shell input keyevent KEYCODE_HOME; sleep 2.5
+  adb shell input swipe ${XY% *} ${XY#* } ${XY% *} ${XY#* } $MS
+  sleep 1.4
+  adb exec-out screencap -p > "$OUT/hold_$MS.png"
+  echo "hold ${MS}ms: top activity $(top)" >> "$LOG"
+  adb shell input keyevent KEYCODE_HOME; sleep 1.5
+  adb shell input keyevent KEYCODE_HOME; sleep 1
+done
 
 adb shell dumpsys activity service app.tileshell/.feeds.TileNotificationListener | grep "\[edit\]" | tail -40 > "$OUT/e7_edit_diag.txt"
 adb shell svc power stayon false

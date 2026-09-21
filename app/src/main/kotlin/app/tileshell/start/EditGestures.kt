@@ -46,7 +46,7 @@ private sealed interface Hit {
  */
 class Coords(private val geo: StartGeometry, private val scrollValue: Int, private val pitchScale: Float) {
     private val originX = geo.grid.widthPx * Edit.FIXED_POINT_X
-    private val originY = geo.pageHeightPx * Edit.FIXED_POINT_Y
+    private val originY = geo.fixedPointY
 
     /** A point on the screen, in the scrolling grid's own coordinates. */
     fun toContent(screen: Offset): Offset = Offset(
@@ -70,7 +70,7 @@ fun Modifier.startEditGestures(
         val geo = geoState.value
         val pitchScale = pitchScaleState.value
         val coords = Coords(geo, scroll.value, pitchScale)
-        val hit = hitTest(edit, geo, coords, down.position)
+        val hit = hitTest(edit, geo, coords, down.position, pitchScale)
         if (!edit.active) {
             if (hit !is Hit.Tile) return@awaitEachGesture
             // The hold race: a move past the touch slop, a consumption (the scroll or the pager taking the
@@ -90,7 +90,7 @@ fun Modifier.startEditGestures(
                 is Hit.DiscHit -> {
                     val selected = edit.selected
                     val up = waitForUpConsuming(down)
-                    if (up != null && selected != null && hitTest(edit, geo, coords, up) is Hit.DiscHit) {
+                    if (up != null && selected != null && hitTest(edit, geo, coords, up, pitchScale) is Hit.DiscHit) {
                         onDisc(hit.kind, selected, edit, store)
                     }
                 }
@@ -266,30 +266,36 @@ private fun onDisc(kind: Disc, selected: TileKey, edit: StartEditState, store: L
 }
 
 /** Where a press landed. Discs and the bottom row are screen-space; the grid and a band are content-space. */
-private fun hitTest(edit: StartEditState, geo: StartGeometry, coords: Coords, screen: Offset): Hit {
-    val discPx = Edit.px(Edit.DISC_EPX, geo.grid.widthPx)
+private fun hitTest(edit: StartEditState, geo: StartGeometry, coords: Coords, screen: Offset, pitchScale: Float): Hit {
+    // The disc is drawn at 31 epx on the screen, i.e. 31/0.90 in the contracted grid's own coordinates, centred
+    // on the held tile's DRAWN corner — the same two numbers StartPage draws it with.
+    val counter = 1f / pitchScale
+    val discPx = Edit.px(Edit.DISC_EPX, geo.grid.widthPx) * counter
     val selected = edit.selected
     val content = coords.toContent(screen)
     if (edit.active && selected != null && edit.drag == null) {
         val p = geo.placements.firstOrNull { it.key == selected }
         if (p != null) {
-            val right = geo.xPx(p) + geo.wPx(p.size)
-            val top = geo.yPx(p)
-            if (near(content, right, top, discPx)) return Hit.DiscHit(Disc.UNPIN)
-            if (near(content, right, top + geo.hPx(p.size), discPx)) return Hit.DiscHit(Disc.RESIZE)
+            val cx = geo.xPx(p) + geo.wPx(p.size) / 2f + geo.wPx(p.size) / 2f * counter
+            val cy = geo.yPx(p) + geo.hPx(p.size) / 2f
+            val half = geo.hPx(p.size) / 2f * counter
+            if (near(content, cx, cy - half, discPx)) return Hit.DiscHit(Disc.UNPIN)
+            if (near(content, cx, cy + half, discPx)) return Hit.DiscHit(Disc.RESIZE)
         }
         val member = geo.members.firstOrNull { it.key == selected }
         if (member != null) {
-            val right = geo.memberXPx(member) + geo.wPx(member.size)
-            val top = geo.memberYPx(member)
-            if (near(content, right, top, discPx)) return Hit.DiscHit(Disc.UNPIN)
-            if (near(content, right, top + geo.hPx(member.size), discPx)) return Hit.DiscHit(Disc.RESIZE)
+            val cx = geo.memberXPx(member) + geo.wPx(member.size) / 2f + geo.wPx(member.size) / 2f * counter
+            val cy = geo.memberYPx(member) + geo.hPx(member.size) / 2f
+            val half = geo.hPx(member.size) / 2f * counter
+            if (near(content, cx, cy - half, discPx)) return Hit.DiscHit(Disc.UNPIN)
+            if (near(content, cx, cy + half, discPx)) return Hit.DiscHit(Disc.RESIZE)
         }
         val rowIndex = geo.dockKeys.indexOfFirst { it == selected }
         if (rowIndex >= 0) {
+            val plain = Edit.px(Edit.DISC_EPX, geo.grid.widthPx)
             val right = geo.grid.leftMarginPx + rowIndex * (geo.dockWidthPx + geo.grid.gutterPx) + geo.dockWidthPx
-            if (near(screen, right, geo.dockTopPx, discPx)) return Hit.DiscHit(Disc.UNPIN)
-            if (near(screen, right, geo.dockTopPx + dockTileHeight(geo.grid), discPx)) return Hit.DiscHit(Disc.RESIZE)
+            if (near(screen, right, geo.dockTopPx, plain)) return Hit.DiscHit(Disc.UNPIN)
+            if (near(screen, right, geo.dockTopPx + dockTileHeight(geo.grid), plain)) return Hit.DiscHit(Disc.RESIZE)
         }
     }
     if (geo.dockKeys.isNotEmpty() && screen.y >= geo.dockTopPx && screen.y <= geo.dockTopPx + dockTileHeight(geo.grid)) {

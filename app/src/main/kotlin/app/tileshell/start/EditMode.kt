@@ -22,8 +22,12 @@ object Edit {
     const val FIXED_POINT_X = 0.5f
     const val FIXED_POINT_Y = 0.475f
 
-    /** R6 §1.1.8 (MEDIUM): the scale settles in 417 ± 50 ms, 50 % done by ≈67 ms (strong ease-out). */
-    const val SCALE_MS = 417
+    /**
+     * R6 §1.1.8 (MEDIUM): the scale settles in 417 ± 50 ms, 50 % done by ≈67 ms (strong ease-out). The curve is
+     * a saturating exponential with that half-life; [SCALE_MS] is how long it is driven, which has to be past
+     * the settle so the tail is not cut short — at 700 ms the tile is 0.04 px from home.
+     */
+    const val SCALE_MS = 700
     const val SCALE_HALF_MS = 67f
 
     /** R6 §1.1.9 (MEDIUM): the dimming settles in 550 ± 50 ms, 50 % by ≈83 ms, 90 % by ≈350 ms. */
@@ -98,14 +102,16 @@ object Edit {
     fun wallpaperDim(theme: ThemeMode): Color =
         if (theme == ThemeMode.DARK) Color.Black.copy(alpha = 0.725f) else Color(0.659f, 0.659f, 0.659f, 0.37f)
 
-    /** Strong ease-out fitted to R6 §1.1.8's "50 % by 67 ms of 417 ms": 1-(1-t)^k with k from that half-life. */
+    /**
+     * R6 §1.1.8 gives the entry TWO numbers: half the move is done by ≈67 ms and it is still settling at
+     * 417 ms. A power curve cannot hold both — fitted to the half-life it stops moving visibly by ≈250 ms —
+     * so this is the saturating exponential those two numbers describe, with a half-life of [halfMs] and
+     * normalised to reach exactly 1 at [durationMs] (no jump at the end).
+     */
     fun easeOutProgress(elapsedMs: Float, durationMs: Int, halfMs: Float): Float {
         if (elapsedMs <= 0f) return 0f
         if (elapsedMs >= durationMs) return 1f
-        val t = elapsedMs / durationMs
-        val half = (halfMs / durationMs).coerceIn(0.01f, 0.99f)
-        val k = (Math.log(0.5) / Math.log((1.0 - half))).toFloat()
-        return (1f - Math.pow((1f - t).toDouble(), k.toDouble()).toFloat()).coerceIn(0f, 1f)
+        return (1.0 - Math.exp(-Math.log(2.0) / halfMs * elapsedMs)).toFloat().coerceIn(0f, 1f)
     }
 
     /** epx -> px for this panel (the shell's 360-epx canvas, phase 01 Scale). */

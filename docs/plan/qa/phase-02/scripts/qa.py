@@ -93,9 +93,12 @@ def plate_colour(img, rect, inset=0.30):
 
 def find_disc(img, cx, cy, disc_colour, search=60):
     """
-    The edit-mode disc centred on a tile corner: inside a search box around (cx, cy), the pixels within 30 of
-    [disc_colour] are the disc. Returns (centre_x, centre_y, diameter_px, pixel_count) or None.
+    The edit-mode disc centred on a tile corner. Only the CONNECTED run of disc-coloured pixels that touches the
+    expected corner counts: a white glyph inside the tile (the Contacts icon, a label) sits within the search box
+    and would otherwise inflate the bounding box.
+    Returns (centre_x, centre_y, diameter_px, pixel_count) or None.
     """
+    from collections import deque
     h, w, _ = img.shape
     x1, y1 = max(0, int(cx - search)), max(0, int(cy - search))
     x2, y2 = min(w, int(cx + search)), min(h, int(cy + search))
@@ -103,11 +106,28 @@ def find_disc(img, cx, cy, disc_colour, search=60):
     mask = (np.abs(box - np.asarray(disc_colour, dtype=np.int16)).max(axis=2) <= 30)
     if mask.sum() < 40:
         return None
+    # A seed inside the disc: the disc-coloured pixel nearest the expected corner.
     ys, xs = np.nonzero(mask)
-    # The disc is the filled circle: its diameter is the widest run of mask pixels in any row.
-    widths = [int(mask[r].sum()) for r in range(mask.shape[0]) if mask[r].any()]
-    heights = [int(mask[:, c].sum()) for c in range(mask.shape[1]) if mask[:, c].any()]
-    return (x1 + xs.mean(), y1 + ys.mean(), (max(widths) + max(heights)) / 2.0, int(mask.sum()))
+    d2 = (xs - (cx - x1)) ** 2 + (ys - (cy - y1)) ** 2
+    seed = (int(ys[d2.argmin()]), int(xs[d2.argmin()]))
+    seen = np.zeros_like(mask)
+    q = deque([seed])
+    seen[seed] = True
+    count = 0
+    left = right = seed[1]
+    top = bottom = seed[0]
+    while q:
+        r, c = q.popleft()
+        count += 1
+        left, right = min(left, c), max(right, c)
+        top, bottom = min(top, r), max(bottom, r)
+        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < mask.shape[0] and 0 <= nc < mask.shape[1] and mask[nr, nc] and not seen[nr, nc]:
+                seen[nr, nc] = True
+                q.append((nr, nc))
+    diameter = ((right - left + 1) + (bottom - top + 1)) / 2.0
+    return (x1 + (left + right) / 2.0, y1 + (top + bottom) / 2.0, diameter, count)
 
 
 def check(label, value, expected, tolerance, unit=""):

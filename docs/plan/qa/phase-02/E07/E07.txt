@@ -1,0 +1,63 @@
+# E7 — edit-mode geometry and motion, 2026-09-21T17:37:39-06:00
+
+## Method
+Geometry from screencap pixels (a uiautomator dump reports layout bounds, which the graphicsLayer
+contraction does not touch). Motion from screenrecord frames, the tile edge measured to sub-pixel
+precision from the intensity ramp (a hard threshold saturates ~3 px early and hides an ease-out's tail).
+
+## Geometry (e7_geometry.py)
+measured 10 of 10 grid tiles from pixels
+
+PASS  held tile scale (width): 1.006 (expected 1.0 ± 0.01)
+PASS  held tile scale (height): 1.006 (expected 1.0 ± 0.01)
+  other-tile scale samples: n=18 median=0.8369 spread=0.4606..0.8426
+PASS  other tiles' scale about their own centres: 0.837 (expected 0.835 ± 0.01)
+  centre-contraction samples: n=65 median=0.9000 spread=0.1648..1.6292
+PASS  tile centres contract to: 0.900 (expected 0.9 ± 0.01)
+  fixed point: x=539.0px (0.499 of the width), y=1112.0px
+PASS  fixed point x as a fraction of the width: 0.499 (expected 0.5 ± 0.02)
+PASS  fixed point y as a fraction of the screen height: 0.475 (expected 0.46..0.49)
+  dark-theme tile dim: n=19 median factor=0.530
+PASS  other tiles' pixels × : 0.530 (expected 0.53 ± 0.03)
+  unpin (top-right corner): centre=(218.5, 177.5) corner=(219.0, 178.0) diameter=30.67 epx
+PASS  unpin (top-right corner) diameter: 30.667 epx (expected 31 epx ± 1.5 epx)
+PASS  unpin (top-right corner) centre x offset from the corner: -0.167 epx (expected 0 epx ± 1.5 epx)
+PASS  unpin (top-right corner) centre y offset from the corner: -0.167 epx (expected 0 epx ± 1.5 epx)
+  resize (bottom-right corner): centre=(218.5, 342.5) corner=(219.0, 344.0) diameter=30.67 epx
+PASS  resize (bottom-right corner) diameter: 30.667 epx (expected 31 epx ± 1.5 epx)
+PASS  resize (bottom-right corner) centre x offset from the corner: -0.167 epx (expected 0 epx ± 1.5 epx)
+PASS  resize (bottom-right corner) centre y offset from the corner: -0.500 epx (expected 0 epx ± 1.5 epx)
+
+13/13 checks passed
+
+## Hold bracket (e7_bracket.py)
+probe tile slot:STORE at (981.5, 166.5), resting plate [  0. 120. 215.]
+PASS  740 ms hold does NOT enter edit mode: the press acted as a tap and launched com.android.contacts/.activities.PeopleActivity (a tap never launches while edit mode is on)
+PASS  830 ms hold launches nothing (top activity after: app.tileshell/.StartActivity)
+PASS  830 ms hold enters edit mode (probe point is page background: the grid contracted away from it)
+
+3/3 checks passed
+
+## Entry motion (e7_motion.py entry)
+entry: 67 frames, scanline y=382px, transition starts at frame 10 (pts 2.296s)
+  edge 2128 -> 2013 px, level 212.0 -> 112.0
+  scale   50 % at 68 ms, settled at 384 ms
+  dimming 50 % at 109 ms, 90 % at 325 ms, settled at 500 ms
+PASS  scale settles in: 383.740 ms (expected 417 ms ± 50 ms)
+PASS  scale 50 % at: 67.536 ms (expected 67 ms ± 33 ms)
+PASS  dimming settles in: 500.210 ms (expected 550 ms ± 50 ms)
+PASS  dimming 50 % at: 109.349 ms (expected 83 ms ± 33 ms)
+PASS  dimming 90 % at: 324.915 ms (expected 350 ms ± 60 ms)
+
+5/5 checks passed
+
+## Exit motion (e7_motion.py exit)
+exit: 61 frames, scanline y=382px, transition starts at frame 9 (pts 1.643s)
+  edge 2013 -> 2128 px, level 113.0 -> 212.0
+  scale settled at 193 ms; undim 90 % at 80 ms, settled at 250 ms
+PASS  scale and pitch return in: 192.870 ms (expected 166.33333333333334 ms..233.66666666666666 ms)
+PASS  undim 90 % at: 79.924 ms (expected 100 ms ± 40 ms)
+PASS  undim settles at: 250.160 ms (expected 300 ms ± 60 ms)
+  exit latency: UNMEASURED — Android's touch indicator is not in these frames (max 0 bright pixels at the tap point); the 150 ± 17 ms row is phone row P2
+
+3/3 checks passed
