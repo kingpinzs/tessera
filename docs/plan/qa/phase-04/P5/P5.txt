@@ -1,0 +1,42 @@
+P5 — can an accessibility/application overlay draw over Android's navigation bar?
+R4's nav-bar probe (PLAN.md R4, extended 2026-09-16; R7 §4.1.10; phase 04 interview item 8).
+
+DEVICE (from the probe's own report, not assumed)
+  samsung SM-S938U (pa3q), Android 16 / API 36, One UI 80500
+  build BP4A.251205.006.S938USQSCCZF9, security patch 2026-08-05
+  display 1080 x 2340 at density 3.0 — exactly 3.0000 px per epx, so the plan's 360-epx canvas
+  maps to this phone with no rounding at all. Status bar 96 px (32 epx); nav bar 144 px (48 epx).
+
+METHOD
+  A TYPE_APPLICATION_OVERLAY window, twice, in one run:
+    A. MATCH_PARENT with the legacy flags — a window is fitted to the system-bar insets by DEFAULT
+    B. the same window with setFitInsetsTypes(0) and an explicit full-height pixel size
+  The first version of this probe only did A, and reported "cannot cover the nav bar". That was the
+  default answering, not the platform. Both attempts are now run and printed so the difference is
+  visible rather than inferred.
+
+RESULT — 3-button navigation (navigation_mode = 0), 2026-09-22 00:17:52
+  A. laid out 1080 x 2196 px — STOPS 144 px short, and sees a 0 px nav inset from inside itself
+  B. laid out 1080 x 2340 px — REACHES the display's bottom edge, and sees the 144 px inset
+  So the window CAN occupy the nav bar's strip. It has to ask with setFitInsetsTypes(0); the default
+  silently gives it the leftover space.
+
+  p5_3button_overlay.jpg is attempt B on screen. The overlay's tint covers the full height INCLUDING
+  the bottom 144 px — and Android's own nav glyphs are still drawn ON TOP of it. A non-privileged
+  overlay is below the navigation bar in the window layer order, so it can fill the strip but cannot
+  hide the buttons.
+
+WHAT THIS MEANS FOR THE ACTION CENTER (interview item 8)
+  The doc's proposed default — "the panel stops at the nav bar's top edge with the handle above it" —
+  is NOT forced by the platform. The panel's background and its drag handle can run to the display's
+  bottom edge. What cannot happen is W10M's actual behaviour, where the open action center COVERED
+  its nav bar: Android keeps drawing its buttons over the top. So the choice Jeremy is being asked to
+  make is between a panel that ends above the buttons and a panel that runs behind them, not between
+  covering them and not.
+  Still to establish: whether a touch in that strip reaches the overlay or the nav bar. The glyphs
+  being drawn on top strongly suggests the nav bar also takes the touches, which would make content
+  placed there unusable — that is the next thing the probe should measure, not assume.
+
+STILL TO RUN
+  The same two attempts with gesture navigation (navigation_mode = 2). W10M had no gesture mode, so
+  the gesture result is what decides whether the panel's bottom edge can be one design or must be two.

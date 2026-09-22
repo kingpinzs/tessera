@@ -82,6 +82,31 @@ design should not assume loopback ADB is permanent.
 Source: kitsumed.github.io/blog/posts/android-may-soon-restrict-on-device-adb (2026-07-20), citing
 Google IssueTracker #526109803 and #541312863.
 
+### P5, the nav-bar probe — ANSWERED for 3-button (agent + Jeremy's phone, 2026-09-22)
+
+Evidence, including the screenshot that settles it: qa/phase-04/P5/.
+
+An overlay **can** occupy the nav bar's strip, but it has to ask: with the default flags a window is
+fitted to the system-bar insets, so MATCH_PARENT gives it the leftover space and it comes back exactly
+the nav bar short. With setFitInsetsTypes(0) and an explicit full-height size it is laid out to the
+whole display (1080 x 2340, 0 px short) and reports the 144 px inset from inside itself.
+
+**But Android keeps drawing its nav glyphs on top.** The screenshot of that full-height overlay shows
+its tint over the bottom 144 px with the three nav glyphs still painted above it: a non-privileged
+overlay sits below the navigation bar in the window layer order.
+
+So interview item 8's choice is NOT "covered or not covered". W10M's behaviour — the open action
+center covering its nav bar — is not available at all. The real choice is between a panel that ends
+above the buttons and a panel whose background runs behind them while the buttons stay visible.
+
+Not yet established, and it decides whether "runs behind them" is even usable: whether a TOUCH in that
+strip reaches the overlay or the nav bar. The glyphs drawing on top strongly suggests the nav bar takes
+the touches too, which would make any content placed there dead. The probe measures that next rather
+than assuming it.
+
+Still to run for P5: the same two attempts with gesture navigation (navigation_mode = 2). W10M had no
+gesture mode, so that result decides whether the panel's bottom edge is one design or two.
+
 ### Parts still to run — all need the phone on adb
 
 1. `app_process` under the shell uid on One UI 8, and daemonising
