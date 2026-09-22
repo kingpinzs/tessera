@@ -78,7 +78,9 @@ class SherpaTts(private val context: Context) {
 
         val started = System.currentTimeMillis()
         val built = try {
+            SpeechBreadcrumb.enter("tts construct")
             OfflineTts(assetManager = assets, config = config(espeak.absolutePath))
+                .also { SpeechBreadcrumb.done("tts construct") }
         } catch (t: Throwable) {
             Diagnostics.add("speech", "tts: engine construction failed: $t")
             throw SpeechModelException(SpeechError.MODEL_CORRUPT, "TTS model rejected: $t", t)

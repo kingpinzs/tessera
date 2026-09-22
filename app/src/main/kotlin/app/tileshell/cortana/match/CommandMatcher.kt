@@ -100,7 +100,9 @@ object CommandMatcher {
         if (matchesAny(text, "what's today's date", "whats todays date", "what is today's date", "what day is it",
                 "what's the date", "whats the date", "what is the date", "today's date", "date")) return Request.DateQuery
 
-        if (text.contains("weather") || text.contains("forecast") || text.contains("how hot") || text.contains("how cold")) return Request.Weather
+        // Weather is matched last, after every command that could contain one of these words (a
+        // reminder to bring an umbrella is already a reminder by the time this line runs).
+        if (WEATHER_WORDS.any { text.contains(it) }) return Request.Weather
 
         return null
     }
@@ -117,7 +119,7 @@ object CommandMatcher {
             Regex(pattern).find(body)?.let { it.groupValues[1].trim() to it.range }
         }?.let { (name, range) ->
             val task = body.removeRange(range).trim().trim(',').trim()
-            if (name.isNotBlank()) return Request.SetReminder(cleanTask(task), null, personName = name)
+            if (name.isNotBlank()) return Request.SetReminder(cleanTask(task), null, personName = personName(name))
         }
 
         PLACE_PATTERNS.firstNotNullOfOrNull { pattern ->
@@ -175,14 +177,14 @@ object CommandMatcher {
         // "text Mom saying I'm late" / "text Mom that I'm late" — the message starts after the connector.
         SAYING.firstNotNullOfOrNull { word ->
             Regex("^(.+?) $word (.+)$").find(body)?.let { it.groupValues[1].trim() to it.groupValues[2].trim() }
-        }?.let { (name, message) -> return Request.TextContact(name, message) }
+        }?.let { (name, message) -> return Request.TextContact(personName(name), message) }
 
         val words = body.split(' ').filter { it.isNotEmpty() }
         // One or two words is a name; anything longer is "<name> <message>" with a one-word name, which is
         // what W10M's one-shot form was. A name alone leaves the message null and Cortana asks for it.
         return when {
-            words.size <= 2 -> Request.TextContact(body, null)
-            else -> Request.TextContact(words.first(), words.drop(1).joinToString(" "))
+            words.size <= 2 -> Request.TextContact(personName(body), null)
+            else -> Request.TextContact(personName(words.first()), words.drop(1).joinToString(" "))
         }
     }
 
@@ -190,7 +192,7 @@ object CommandMatcher {
         after(text, "call ", "phone ", "dial ", "ring ")?.let { body ->
             // "call Mom on mobile" — the number label is read back from the contact, not taken from here.
             val name = body.replace(Regex("\\bon (mobile|home|work|cell)\\b"), "").trim()
-            if (name.isBlank()) null else Request.CallContact(name)
+            if (name.isBlank()) null else Request.CallContact(personName(name))
         }
 
     /** Place source C: "this is home" / "save this as work" saves the spot the phone is standing on. */
@@ -227,6 +229,11 @@ object CommandMatcher {
 
     // ---------------- helpers ----------------
 
+    private val WEATHER_WORDS = listOf(
+        "weather", "forecast", "how hot", "how cold", "how warm", "rain", "raining", "snow", "snowing",
+        "temperature", "umbrella", "degrees outside",
+    )
+
     private val SAYING = listOf("saying", "that says", "that", "and say", "say")
 
     private val PERSON_PATTERNS = listOf(
@@ -249,6 +256,15 @@ object CommandMatcher {
      */
     private fun normalisePlace(place: String): String =
         place.trim().removePrefix("the ").trim().replaceFirstChar { it.uppercase() }
+
+    /**
+     * A person's name is read back — on the card, in the subline, and in "I couldn't find <name> in
+     * your contacts" — so it is title-cased here rather than left in the recogniser's lower case.
+     * The Contacts lookup is case-insensitive, so this changes what is SHOWN and nothing else.
+     */
+    private fun personName(name: String): String =
+        name.trim().split(' ').filter { it.isNotBlank() }
+            .joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
 
     private fun cleanTask(task: String): String =
         task.trim().removePrefix("to ").removeSuffix(" at").removeSuffix(" on").removeSuffix(" in").trim()

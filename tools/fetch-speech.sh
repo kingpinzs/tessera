@@ -9,7 +9,8 @@
 #
 # What it produces (all git-ignored):
 #   app/libs/sherpa-onnx-1.13.8.aar                      the runtime (Apache-2.0), 4 ABIs
-#   app/src/main/assets/speech/asr/*                     streaming zipformer en 2023-06-26 int8 + bpe.model
+#   app/src/main/assets/speech/asr/*                     streaming zipformer en 2023-06-26 int8,
+#                                                        plus bpe.model and the bpe.vocab derived from it
 #   app/src/main/assets/speech/tts/model.int8.onnx       Kokoro-82M int8 en v0.19 (Apache-2.0)
 #   app/src/main/assets/speech/tts/voices.bin            its 11 voices
 #   app/src/main/assets/speech/tts/espeak-ng-data.zip    GPL-3.0-or-later, PQ1 = A (personal use)
@@ -67,6 +68,24 @@ echo "$ASR_FILES" | while read -r remote local sha; do
   cp -f "$work/asr/$local" "$assets/asr/$local"
 done
 
+# sherpa-onnx parses the BPE vocabulary itself and wants a TEXT file ("<piece> <score>" per line), not
+# the sentencepiece binary — given bpe.model it refuses with "Each line in vocab should contain two
+# items". The vocabulary is derived here, once, so the APK carries the form the runtime actually reads.
+if ! python3 -c "import sentencepiece" 2>/dev/null; then
+  echo "tools/fetch-speech.sh needs sentencepiece to derive bpe.vocab: pip install sentencepiece" >&2
+  exit 1
+fi
+python3 - "$assets/asr/bpe.model" "$assets/asr/bpe.vocab" <<'PYEOF'
+import sys
+import sentencepiece as spm
+sp = spm.SentencePieceProcessor()
+sp.Load(sys.argv[1])
+with open(sys.argv[2], "w") as out:
+    for i in range(sp.GetPieceSize()):
+        out.write(f"{sp.IdToPiece(i)} {sp.GetScore(i)}\n")
+print(f"bpe.vocab: {sp.GetPieceSize()} pieces")
+PYEOF
+
 ttssrc="$work/models/kokoro-int8-en-v0_19"
 cp -f "$ttssrc/model.int8.onnx" "$assets/tts/model.int8.onnx"
 cp -f "$ttssrc/voices.bin"      "$assets/tts/voices.bin"
@@ -81,5 +100,6 @@ echo
 echo "payload:"
 du -sh "$libs/sherpa-onnx-1.13.8.aar" "$assets/asr" "$assets/tts"
 echo
-echo "espeak-ng-data.zip sha256 (paste into SpeechModels.ESPEAK_ZIP_SHA256):"
-sha256sum "$assets/tts/espeak-ng-data.zip" | cut -d' ' -f1
+echo "checksums (paste into SpeechAssets):"
+echo "  ESPEAK_ZIP_SHA256 = $(sha256sum "$assets/tts/espeak-ng-data.zip" | cut -d' ' -f1)"
+echo "  ASR_BPE_SHA256    = $(sha256sum "$assets/asr/bpe.vocab" | cut -d' ' -f1)"

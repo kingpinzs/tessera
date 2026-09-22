@@ -87,6 +87,8 @@ object TimeWords {
         val atIndex = words.indexOfFirst { it == "at" }
         var hour: Int? = null
         var minute = 0
+        // [EXPLICIT] when the phrase named its own half of the day (am / pm / noon / midnight / a
+        // 24-hour hour), which is what stops the "said in the morning, so it means the evening" nudge.
         var meridiem: String? = null
         var timeStart = -1
         var timeEnd = -1
@@ -94,8 +96,10 @@ object TimeWords {
         fun readClockAt(index: Int): Boolean {
             if (index !in words.indices) return false
             val word = words[index]
-            if (word == "noon") { hour = 12; minute = 0; timeStart = index; timeEnd = index; return true }
-            if (word == "midnight") { hour = 0; minute = 0; timeStart = index; timeEnd = index; return true }
+            // Noon and midnight name the hour outright, so they are treated as carrying their own
+            // meridiem: without that, "at midnight" said in the morning gets nudged to noon.
+            if (word == "noon") { hour = 12; minute = 0; meridiem = EXPLICIT; timeStart = index; timeEnd = index; return true }
+            if (word == "midnight") { hour = 0; minute = 0; meridiem = EXPLICIT; timeStart = index; timeEnd = index; return true }
             // "8:30" comes through as one token when the recognizer wrote digits.
             if (word.contains(':')) {
                 val parts = word.split(':')
@@ -107,6 +111,7 @@ object TimeWords {
             val h = numberOf(word) ?: return false
             if (h > 24) return false
             hour = h
+            if (h == 0 || h > 12) meridiem = EXPLICIT
             timeStart = index; timeEnd = index
             // "eight thirty", "eight oh five", "eight fifteen"
             val next = words.getOrNull(index + 1)
@@ -116,7 +121,19 @@ object TimeWords {
                 } else if (next == "oh" || next == "o") {
                     numberOf(words.getOrNull(index + 2).orEmpty())?.let { minute = it; timeEnd = index + 2 }
                 } else {
-                    numberOf(next)?.let { if (it in 1..59) { minute = it; timeEnd = index + 1 } }
+                    numberOf(next)?.let { tens ->
+                        if (tens in 1..59) {
+                            minute = tens
+                            timeEnd = index + 1
+                            // "six forty five" is 6:45. A tens word followed by a unit word is one number,
+                            // and the recogniser writes it as two, so the two have to be added here.
+                            if (tens % 10 == 0 && tens >= 20) {
+                                numberOf(words.getOrNull(index + 2).orEmpty())?.let { units ->
+                                    if (units in 1..9) { minute = tens + units; timeEnd = index + 2 }
+                                }
+                            }
+                        }
+                    }
                 }
             }
             return true
@@ -151,7 +168,7 @@ object TimeWords {
                 }
             }
             dayOffset > 0 -> calendar.add(Calendar.DAY_OF_YEAR, dayOffset)
-            calendar.timeInMillis <= nowMs && meridiem == null && h < 12 -> {
+            calendar.timeInMillis <= nowMs && meridiem == null && h in 1..11 -> {
                 // "at 8" said at 9 in the morning means 8 in the evening, the way a phone assistant reads it;
                 // if that is past too, tomorrow.
                 calendar.add(Calendar.HOUR_OF_DAY, 12)
@@ -179,6 +196,9 @@ object TimeWords {
         }
         return Parsed(recurrence, index..(index + 1))
     }
+
+    /** A time that named its own half of the day: noon, midnight, a 24-hour hour, or an explicit am/pm. */
+    private const val EXPLICIT = "explicit"
 
     private val WEEKDAYS = mapOf(
         "sunday" to Calendar.SUNDAY, "monday" to Calendar.MONDAY, "tuesday" to Calendar.TUESDAY,

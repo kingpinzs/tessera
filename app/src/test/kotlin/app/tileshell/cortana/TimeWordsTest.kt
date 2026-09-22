@@ -129,11 +129,18 @@ class TimeWordsTest {
 
     @Test
     fun `the day word is what the list and the saved card both build on`() {
-        assertEquals("Today", ReminderText.dayWord(now + 3_600_000L))
-        assertEquals("Tomorrow", ReminderText.dayWord(now + 86_400_000L))
+        // dayWord reads the real clock on purpose — the list says "Today" relative to the phone, not to
+        // whenever the reminder was made — so this row uses the real now rather than the fixed one.
+        val real = System.currentTimeMillis()
+        val noon = Calendar.getInstance().apply {
+            timeInMillis = real; set(Calendar.HOUR_OF_DAY, 12); set(Calendar.MINUTE, 0)
+        }.timeInMillis
+        assertEquals("Today", ReminderText.dayWord(noon))
+        assertEquals("Tomorrow", ReminderText.dayWord(noon + 86_400_000L))
         // Three days out is a weekday name, not a date.
-        assertEquals("Saturday", ReminderText.dayWord(now + 3 * 86_400_000L))
+        val threeDays = ReminderText.dayWord(noon + 3 * 86_400_000L)
+        assertTrue("a weekday name, not a date: $threeDays", "/" !in threeDays)
         // Far out is a date.
-        assertTrue("/" in ReminderText.dayWord(now + 40L * 86_400_000L))
+        assertTrue("/" in ReminderText.dayWord(noon + 40L * 86_400_000L))
     }
 }

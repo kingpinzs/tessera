@@ -35,18 +35,20 @@ class CommandMatcherTest {
 
     @Test
     fun `call a contact`() {
-        assertEquals(Request.CallContact("mom"), match("call Mom"))
-        assertEquals(Request.CallContact("mom"), match("CALL MOM"))
+        // The name is title-cased because it is read back — on the card, and in "I couldn't find
+        // <name> in your contacts". The Contacts lookup itself is case-insensitive.
+        assertEquals(Request.CallContact("Mom"), match("call Mom"))
+        assertEquals(Request.CallContact("Mom"), match("CALL MOM"))
         // The number label is read back from the contact, not taken from the utterance.
-        assertEquals(Request.CallContact("mom"), match("call Mom on mobile"))
+        assertEquals(Request.CallContact("Mom"), match("call Mom on mobile"))
     }
 
     @Test
     fun `text a contact, with and without the message`() {
-        assertEquals(Request.TextContact("mom", null), match("text Mom"))
-        assertEquals(Request.TextContact("mom", "i'm on my way"), match("text Mom I'm on my way"))
-        assertEquals(Request.TextContact("mom", "i'm late"), match("text Mom saying I'm late"))
-        assertEquals(Request.TextContact("mom", null), match("send a text to Mom"))
+        assertEquals(Request.TextContact("Mom", null), match("text Mom"))
+        assertEquals(Request.TextContact("Mom", "i'm on my way"), match("text Mom I'm on my way"))
+        assertEquals(Request.TextContact("Mom", "i'm late"), match("text Mom saying I'm late"))
+        assertEquals(Request.TextContact("Mom", null), match("send a text to Mom"))
     }
 
     @Test

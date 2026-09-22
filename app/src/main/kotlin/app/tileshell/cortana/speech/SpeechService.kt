@@ -107,6 +107,13 @@ class SpeechService : Service() {
         asrWorker = Executors.newSingleThreadExecutor { r -> Thread(r, "speech-asr") }
         ttsWorker = Executors.newSingleThreadExecutor { r -> Thread(r, "speech-tts") }
         idleScheduler = Executors.newSingleThreadScheduledExecutor { r -> Thread(r, "speech-idle") }
+        SpeechBreadcrumb.attach(this)
+        // A native abort takes this process's diagnostics ring with it, so the first thing a new process
+        // says is what the last one was doing when it stopped.
+        SpeechBreadcrumb.previous()?.let {
+            lastError = "the previous speech process stopped during: $it"
+            Diagnostics.add("speech", "PREVIOUS PROCESS DIED DURING: $it")
+        }
         Diagnostics.add("speech", "service created pid=${Process.myPid()} (no model loaded yet)")
     }
 
@@ -182,6 +189,22 @@ class SpeechService : Service() {
             ttsLoadRequested.set(false)
             ttsFailure = null
         }
+    }
+
+    /**
+     * `adb shell dumpsys activity service app.tileshell/.cortana.speech.SpeechService`.
+     *
+     * This process has its own [Diagnostics] ring — the launcher's dump cannot see it — so without this
+     * the only evidence of a model load would be whatever crossed the Binder. QA reads it, and so does
+     * the checklist's "Speech engine" row through [status].
+     */
+    override fun dump(fd: java.io.FileDescriptor, writer: java.io.PrintWriter, args: Array<out String>?) {
+        writer.println("tileshell speech process pid=${Process.myPid()}")
+        writer.println("breadcrumb: ${SpeechBreadcrumb.read()}")
+        writer.println("--- status ---")
+        writer.println(binder.status())
+        writer.println("--- diagnostics ---")
+        Diagnostics.dump(writer)
     }
 
     // ---- loading ---------------------------------------------------------------------------------
