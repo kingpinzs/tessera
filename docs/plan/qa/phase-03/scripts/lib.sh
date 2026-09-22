@@ -29,7 +29,20 @@ LOG=""
 PASS=0
 FAIL=0
 
+# Only one driver may drive the device at a time. Two E2 runs overlapped once and wrote to the same
+# log: the second row read the first's diagnostics and recorded a verdict about an utterance it never
+# spoke. A row that cannot get the lock refuses to start rather than producing evidence about nothing.
+DEVICE_LOCK="${TMPDIR:-/tmp}/tileshell-qa-device.lock"
+take_device_lock() {
+  exec 9>"$DEVICE_LOCK"
+  if ! flock -n 9; then
+    echo "another QA driver is already driving the device (lock $DEVICE_LOCK); refusing to start" >&2
+    exit 3
+  fi
+}
+
 row_begin() { # id description
+  take_device_lock
   ROW="$1"
   ROW_DIR="$QA/$ROW"
   mkdir -p "$ROW_DIR"
