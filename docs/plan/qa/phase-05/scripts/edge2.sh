@@ -54,7 +54,8 @@ adb shell locksettings set-password tessa >/dev/null
 lock_and_bouncer() {
   adb shell input keyevent KEYCODE_SLEEP; sleep 1.5
   adb shell input keyevent KEYCODE_WAKEUP; sleep 1.5
-  adb shell wm dismiss-keyguard >/dev/null 2>&1; sleep 1   # asks for the bouncer; the password stays required
+  # A swipe up raises the password bouncer. (Run 1 also called `wm dismiss-keyguard` first; with that,
+  # the typed password never unlocked — without it, it does, measured by a probe on the same build.)
   adb shell input swipe 540 1900 540 600 250; sleep 2
 }
 type_on_keyguard() { # word

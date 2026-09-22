@@ -1,0 +1,33 @@
+==============================================================================
+ROW E9 — space-bar drag: moves by the drag, clamps, persists, band passes taps
+at            2026-09-22T14:32:52-06:00
+driver        e9.sh blob ef0a5b61a2a316578a06ff9f119b31dca0397778
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     2be228f6ede24f11 333513390 bytes
+apk installed eaf7c8d7780e52e9
+apk match     yes (eaf7c8d7780e52e9)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      kb_begin: prior ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+      panel top at rest 1559; space centre (592,2124); max raise 649 px
+        INSTRUMENTATION_STATUS: gesture.drag.elapsed_ms=2051
+        INSTRUMENTATION_STATUS: gesture.drag.result=true
+      after a 300-px drag up: panel top 1267
+FAIL  the panel's top moved up by the drag distance (300 px)      292.00 vs 300.00 +/- 3.0
+        INSTRUMENTATION_STATUS: gesture.drag.elapsed_ms=2057
+        INSTRUMENTATION_STATUS: gesture.drag.result=true
+      after a further 900-px drag up: panel top 910
+PASS  Decisions (H13): clamped at one key block (865 phys) above rest  649.00 vs 649.00 +/- 3.0
+PASS  the diagnostics record the move                             contains [keyboard moved]
+PASS  it stays raised after the keyboard hides and shows again    = 910
+      raised panel [910..1556]; bottom_field [2063..2182]
+PASS  bottom_field lies in the band below the raised panel        = yes
+      a pixel in the band: 250 250 250 (the app's page shows through; the panel is (22,27,21))
+PASS  the band is see-through (not the panel's colour)            = yes
+PASS  a tap in the band reaches the app (bottom_field has focus)  = bottom_field
+        INSTRUMENTATION_STATUS: gesture.drag.elapsed_ms=2062
+        INSTRUMENTATION_STATUS: gesture.drag.result=true
+PASS  dragged back down: clamped at rest                          = 1559
+      kb_end: restored ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+------------------------------------------------------------------------------
+E9: 7 passed, 1 failed

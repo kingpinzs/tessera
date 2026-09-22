@@ -1,0 +1,54 @@
+==============================================================================
+ROW EDGE1 — edge cases in fields and keys
+at            2026-09-22T14:33:22-06:00
+driver        edge1.sh blob 1a02c0ffded4f046fea03800b52b47db419c3b08
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     2be228f6ede24f11 333513390 bytes
+apk installed eaf7c8d7780e52e9
+apk match     yes (eaf7c8d7780e52e9)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      kb_begin: prior ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+PASS  field_url: the Enter key is white                           = white
+PASS  field_url: Enter performs GO                                = IME_ACTION_GO@field_url
+PASS  field_search: the Enter key is white                        = white
+PASS  field_search: Enter performs SEARCH                         = IME_ACTION_SEARCH@field_search
+PASS  field_send: the Enter key is grey                           = grey
+PASS  field_send: Enter performs SEND                             = IME_ACTION_SEND@field_send
+PASS  field_next: the Enter key is grey                           = grey
+PASS  field_next: Enter performs NEXT (focus moves on)            = IME_ACTION_NEXT@field_next
+PASS  field_done: the Enter key is grey                           = grey
+PASS  field_done: Enter performs DONE                             = IME_ACTION_DONE@field_done
+PASS  multi-line: Enter inserts a newline                         = [ab\ncd]
+PASS  textNoSuggestions: the strip offers nothing                 = 
+PASS  textNoSuggestions: no autocorrect ('teh ' stays)            = [teh ]
+PASS  textCapSentences: capitals at the start and after '. '      = [Hi. Yo]
+PASS  textCapWords: every word capitalised                        = [Ab Cd]
+PASS  no caps flag: no automatic capital                          = [ab]
+PASS  input filters: the capital is dropped by the app and the length caps at 5  = [bcdef]
+PASS  input filters: typing after a filtered edit still lands where the caret is  = [bcdez]
+PASS  paste: the app pasted                                       = [copycopy]
+PASS  paste: the keyboard types at the caret after the paste      = [copycopyx]
+FAIL  very long text: 1500 characters, then ' end' typed by the keyboard  expected [1504] got [485]
+FAIL  very long text: backspace still deletes at the end          expected [1501] got [482]
+      non-dictionary swipe q-z-x-v committed: [Wac]
+PASS  a non-dictionary swipe commits a dictionary word or nothing, never garbage letters  = no
+PASS  the keyboard is still up after it                           = yes
+      very fast swipe h-e-l-o (1 step per segment): [h]
+PASS  a very fast swipe still commits a word (no crash, no stuck trail)  = yes
+PASS  no crash in the keyboard's process                          does not contain [FATAL]
+PASS  no alternates for g: the normal press popup, nothing else   = yes no
+PASS  and lifting commits g                                       = [g]
+PASS  caps lock is on                                             contains [shift=LOCKED]
+PASS  caps lock does not follow into the next field               contains [shift=OFF]
+PASS  double space after a number: two spaces, no period          = [5  ]
+PASS  double space in a URL field: no period                      = [ab  ]
+PASS  the misspelling is learned after two commits                contains [zqxjw]
+      strip with the caret in the word: – zqxjw
+PASS  R6 2.2.7: the strip offers '– zqxjw'                      contains [– zqxjw]
+      the remove item is kb_sugg_0
+FAIL  '– word' removes it from the learned words (and from the pending count)  should NOT contain [zqxjw]
+PASS  password: no suggestions                                    = 
+      kb_end: restored ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+------------------------------------------------------------------------------
+EDGE1: 33 passed, 3 failed

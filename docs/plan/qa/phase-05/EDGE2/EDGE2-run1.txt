@@ -1,0 +1,44 @@
+==============================================================================
+ROW EDGE2 — edge cases in the system: crash, force-stop, keyguard, landscape, hardware keyboard
+at            2026-09-22T14:36:22-06:00
+driver        edge2.sh blob 3bb99076bbd64fb5a6795d8cc9573709a4f2b91b
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     cfa470b59287fabf 333513390 bytes
+apk installed eaf7c8d7780e52e9
+apk match     NO (device eaf7c8d7780e52e9, built 5fa181480e36d7c9)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      kb_begin: prior ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+      keyboard up, :ime pid 14057; killing it by that pid (Hard Rule 13)
+      after the kill: :ime pid 14265
+PASS  Android restarted the keyboard's process                    != 14057
+PASS  the keyboard is back on the next focus                      = yes
+PASS  and types                                                   = [ok]
+PASS  it is still the selected keyboard                           = app.tileshell/.ime.KeyboardService
+after am force-stop app.tileshell the selected keyboard is: com.android.inputmethod.latin/.LatinIME
+PASS  a force-stop makes Android select another keyboard (measured platform behaviour)  != app.tileshell/.ime.KeyboardService
+      scroll_to_node checklist:keyboard_selected:missing: 0 swipe(s), found=yes
+PASS  N-01: the checklist shows 'Keyboard selected' missing, which is the way back  = yes
+PASS  keyguard: locked (the bracket)                              = KeyguardShowing=true
+PASS  keyguard: the shell keyboard is up on the password bouncer  = yes
+FAIL  keyguard: typing the password with it unlocks               expected [KeyguardShowing=false] got [KeyguardShowing=true]
+PASS  keyguard: after the keyboard crashes on it, it comes back (restarted)  = yes
+PASS  keyguard: a new :ime process                                != 14508
+FAIL  keyguard: and the restarted keyboard unlocks it             expected [KeyguardShowing=false] got [KeyguardShowing=true]
+      lock cleared: KeyguardShowing=true
+PASS  hardware keyboard: the soft keyboard stays hidden (Android's own rule)  = no
+FAIL  hardware keyboard: physical keys type through the shell keyboard's service  expected [[hi]] got []
+      raised panel top ; field_filter [..]
+FAIL  raised keyboard: the app keeps the focused bottom field above the panel  expected [yes] got [no]
+      landscape: panel [,][,]; q [,][,]
+FAIL  landscape: the keyboard spans the landscape width           expected [2340] got [0]
+FAIL  landscape: keys widen with the width (q = 130 phys x 2340/1440)  0.00 vs 211.25 +/- 2.0
+PASS  landscape: the keyboard leaves most of the screen to the app (panel < 60 % of the height)  = yes
+FAIL  landscape: typing works                                     does not contain [and]: text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="t-mobile" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" 
+      scroll_to_node keyboard_cursor_left: 4 swipe(s), found=no
+FAIL  handedness changed mid-hold: the next keyboard has the dot on the left (1077.5 phys)  could not be measured (actual=[])
+FAIL  and it is not stuck dimmed from the interrupted hold (key 48)  0.00 vs 48.00 +/- 6.0
+      scroll_to_node keyboard_cursor_right: 4 swipe(s), found=no
+      kb_end: restored ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+------------------------------------------------------------------------------
+EDGE2: 12 passed, 9 failed
