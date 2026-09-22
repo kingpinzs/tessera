@@ -4,12 +4,15 @@ import android.app.Application
 import android.os.Handler
 import android.os.Looper
 import app.tileshell.apps.AppCatalog
+import app.tileshell.cortana.reminders.ReminderScheduler
 import app.tileshell.diag.Diagnostics
 import app.tileshell.feeds.CalendarFeed
 import app.tileshell.feeds.MusicFeed
 import app.tileshell.feeds.PhotosFeed
 import app.tileshell.tiles.LayoutStore
+import app.tileshell.tiles.ShellTiles
 import app.tileshell.tiles.TileKey
+import app.tileshell.tiles.TileSize
 import app.tileshell.tiles.engine.BadgeStore
 
 /** Process entry: builds the app catalog and starts every live tile feed the granted permissions allow. */
@@ -18,8 +21,26 @@ class ShellApp : Application() {
         super.onCreate()
         Diagnostics.add("app", "process start")
         followPackageChanges(AppCatalog.get(this))
+        addCortanaTile()
         startFeeds("process start")
         startBadgeExpirySweep()
+        // A reboot, an app update and `am force-stop` all cancel alarms and proximity alerts, so every
+        // process start re-arms what the reminder store holds (phase 03 Decisions; E6).
+        ReminderScheduler.rearm(this, "process start")
+    }
+
+    /**
+     * Phase 03's Cortana tile. It is ADDed rather than put in the default layout, so it appears on a
+     * phone that already has a persisted phase 01/02 layout — and the store records that the ADD ran, so
+     * a Cortana tile unpinned in phase 02's edit mode does not come back after a restart, reboot or
+     * update (Decisions "The Cortana slot ADD runs once"; E6).
+     */
+    private fun addCortanaTile() {
+        LayoutStore.get(this).addOnce(
+            ShellTiles.CORTANA_ADD,
+            TileKey.ShellTile(ShellTiles.CORTANA),
+            TileSize.MEDIUM,
+        )
     }
 
     /**

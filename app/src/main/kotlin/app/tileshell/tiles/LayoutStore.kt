@@ -31,6 +31,14 @@ class LayoutStore private constructor(private val context: Context) {
         val dock: List<TileKey>,
         /** Live folders by id (phase 02). */
         val folders: Map<String, Folder> = emptyMap(),
+        /**
+         * The one-shot ADDs that have already run (phase 03's Cortana slot is the first).
+         *
+         * A later phase adds its own tile to the default layout, and a persisted layout must still get
+         * it — but only once. Recording the ADD here is what makes "a tile Jeremy unpins does not come
+         * back after a restart, reboot or update" true (review R2-m8).
+         */
+        val addedOnce: Set<String> = emptySet(),
     ) {
         fun placements(unitsAcross: Int): List<Placement> = GridPack.pack(order, unitsAcross)
         fun folderOf(key: TileKey): Folder? = (key as? TileKey.FolderTile)?.let { folders[it.folderId] }
@@ -51,6 +59,25 @@ class LayoutStore private constructor(private val context: Context) {
     fun assignSlot(slot: Slot, component: ComponentName) {
         mutate { it.copy(explicitSlots = it.explicitSlots + (slot to component)) }
         Diagnostics.add("layout", "slot ${slot.name} explicitly assigned to ${component.flattenToShortString()}")
+    }
+
+    /**
+     * Put [key] on Start the first time this build runs, and never again. [marker] names the ADD, not
+     * the tile, so a tile the user unpins stays unpinned.
+     *
+     * @return true when the tile was added by this call
+     */
+    fun addOnce(marker: String, key: TileKey, size: TileSize): Boolean {
+        var added = false
+        mutate { layout ->
+            if (marker in layout.addedOnce) return@mutate layout
+            val withMarker = layout.copy(addedOnce = layout.addedOnce + marker)
+            val placed = LayoutOps.pin(withMarker, key, size)
+            added = placed != null
+            placed ?: withMarker
+        }
+        Diagnostics.add("layout", "addOnce $marker ${key.id} -> ${if (added) "added" else "already run or already on Start"}")
+        return added
     }
 
     fun clearSlot(slot: Slot) {
@@ -165,6 +192,7 @@ class LayoutStore private constructor(private val context: Context) {
                 layout.explicitSlots.forEach { (slot, cn) -> put(slot.name, cn.flattenToString()) }
             })
             .put("dock", JSONArray().apply { layout.dock.forEach { put(it.id) } })
+            .put("addedOnce", JSONArray().apply { layout.addedOnce.forEach { put(it) } })
             .put("folders", JSONArray().apply {
                 layout.folders.values.forEach { f ->
                     put(JSONObject()
@@ -232,7 +260,9 @@ class LayoutStore private constructor(private val context: Context) {
                     }.toMap()
                     // A folder id in the order with no folder behind it (a hand-edited or truncated file) is dropped
                     // rather than drawn as an empty tile.
-                    Layout(storedVersion, order.filter { (it.key as? TileKey.FolderTile)?.folderId?.let { id -> id in folders } ?: true }, slots, dock, folders)
+                    val addedJson = json.optJSONArray("addedOnce") ?: JSONArray()
+                    val addedOnce = (0 until addedJson.length()).map { addedJson.getString(it) }.toSet()
+                    Layout(storedVersion, order.filter { (it.key as? TileKey.FolderTile)?.folderId?.let { id -> id in folders } ?: true }, slots, dock, folders, addedOnce)
                 }
             }
         }.onFailure { Diagnostics.add("layout", "layout store unreadable, using default: $it") }.getOrNull()

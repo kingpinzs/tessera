@@ -34,4 +34,14 @@ object DefaultLayout {
 object ShellTiles {
     const val WEATHER = "weather"
     const val SETTINGS = "settings"
+
+    /**
+     * Phase 03: Cortana's tile is not in [DefaultLayout.order] — it is ADDed through the store's
+     * one-shot ADD path, so it appears even on a phone that already has a persisted phase 01/02 layout
+     * (Decisions "Cortana tile"; E6).
+     */
+    const val CORTANA = "cortana"
+
+    /** The marker [app.tileshell.tiles.LayoutStore.addOnce] records for that ADD. */
+    const val CORTANA_ADD = "phase03:cortana"
 }

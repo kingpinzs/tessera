@@ -57,6 +57,9 @@ import app.tileshell.ui.motion.Motion
 import app.tileshell.ui.tokens.ShellType
 import app.tileshell.ui.tokens.StartGrid
 import kotlinx.coroutines.delay
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.drawscope.Stroke
+import app.tileshell.tiles.ShellTiles
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -72,6 +75,13 @@ data class TileModel(
     val unassigned: Boolean,
     /** Phase 02: a live folder draws its members' mini tiles instead of one icon (R6 §1.6.3-§1.6.4). */
     val folder: FolderFace? = null,
+    /**
+     * Phase 03: a shell tile that draws its own face instead of an icon. Cortana's is a static
+     * logo/ring (Decisions "Cortana tile"): A11 buys no news internet use, so W10M's headline back face
+     * in R3 C3 is out, and the ring geometry comes from R3 A22 at MEDIUM. The composition itself is an
+     * approximation with its own row (H7).
+     */
+    val shellFace: String? = null,
 )
 
 /** One member of a folder, drawn as a mini tile on the folder's face (R6 §1.6.3, H12). */
@@ -287,7 +297,9 @@ private fun LogoFace(model: TileModel, widthDp: Dp, heightDp: Dp) {
     Box(Modifier.fillMaxSize()) {
         Box(Modifier.align(Alignment.Center).size(iconSize), contentAlignment = Alignment.Center) {
             val icon = model.icon
-            if (icon != null) {
+            if (model.shellFace == ShellTiles.CORTANA) {
+                CortanaTileFace(Modifier.fillMaxSize())
+            } else if (icon != null) {
                 Image(icon.bitmap, contentDescription = null, modifier = Modifier.fillMaxSize().let { if (icon.monochrome) it else it.padding(iconSize * 0.08f) })
             } else if (model.fallbackGlyph != null) {
                 BasicText(model.fallbackGlyph, style = ShellType.body.copy(fontFamily = Brand.iconFont, fontSize = (iconSize.value * 0.8f).sp, color = Color.White, textAlign = TextAlign.Center))
@@ -382,4 +394,19 @@ internal fun LiveFace(face: TileFace, model: TileModel, heightDp: Dp) {
 @Composable
 private fun PhotoFill(image: ImageBitmap) {
     Image(image, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+}
+
+/**
+ * Cortana's static tile face (Decisions "Cortana tile", H7): the persona's ring, drawn at R3 A22's
+ * proportions — outer 70, inner 48, stroke 11 epx — scaled into whatever the tile gives it. It does not
+ * animate: a live face on Start would need a feed, and Cortana has none.
+ */
+@Composable
+private fun CortanaTileFace(modifier: Modifier = Modifier) {
+    Canvas(modifier.testTag("cortana_tile_face")) {
+        val outer = size.minDimension
+        // A22's ratios: stroke 11 / outer 70, and the bright outer band is the thinner of the two tones.
+        val stroke = outer * (11f / 70f)
+        drawCircle(Color.White, radius = (outer - stroke) / 2f, style = Stroke(stroke))
+    }
 }
