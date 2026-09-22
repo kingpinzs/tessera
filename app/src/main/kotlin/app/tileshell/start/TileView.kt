@@ -252,8 +252,12 @@ fun TileView(
         @Composable
         fun Face(index: Int) {
             val folder = model.folder
+            val front = model.content?.front
             if (folder != null) FolderFaceView(model, folder, widthDp, heightDp)
-            else if (index == 0 || faces.isEmpty() || index > faces.size) LogoFace(model, widthDp, heightDp) else LiveFace(faces[index - 1], model, heightDp)
+            // A tile whose front IS its content (Weather, see TileContent.front) draws that instead of its logo.
+            else if (index == 0 || faces.isEmpty() || index > faces.size) {
+                if (front != null) LiveFace(front, model, widthDp, heightDp) else LogoFace(model, widthDp, heightDp)
+            } else LiveFace(faces[index - 1], model, widthDp, heightDp)
         }
         val outgoing = slideFrom
         if (contentAlpha < 1f) {
@@ -331,7 +335,7 @@ private fun BoxScope.Badge(model: TileModel) {
 }
 
 @Composable
-internal fun LiveFace(face: TileFace, model: TileModel, heightDp: Dp) {
+internal fun LiveFace(face: TileFace, model: TileModel, widthDp: Dp, heightDp: Dp) {
     val white = Color.White
     Box(Modifier.fillMaxSize()) {
         when (face) {
@@ -359,12 +363,7 @@ internal fun LiveFace(face: TileFace, model: TileModel, heightDp: Dp) {
                     BasicText(face.dayNumber, style = ShellType.header.copy(fontSize = 43.sp, lineHeight = 44.sp, color = white))
                 }
             }
-            is TileFace.WeatherNow -> Column(Modifier.padding(start = 7.5.dp, top = 6.dp)) {
-                BasicText(face.condition, style = ShellType.caption.copy(color = white))
-                BasicText(face.temperature, style = ShellType.subheader.copy(fontSize = 30.sp, lineHeight = 36.sp, color = white))
-                face.details.take(2).forEach { BasicText(it, style = ShellType.caption.copy(color = white), maxLines = 1) }
-                face.stale?.let { BasicText(it, style = ShellType.caption.copy(color = white), maxLines = 1) }
-            }
+            is TileFace.WeatherNow -> WeatherNowFace(face, model)
             is TileFace.WeatherDays -> Column(Modifier.padding(start = 7.5.dp, top = 8.dp)) {
                 androidx.compose.foundation.layout.Row {
                     face.days.take(if (model.size == TileSize.WIDE) 3 else 2).forEach { (day, glyph, temps) ->
@@ -388,6 +387,57 @@ internal fun LiveFace(face: TileFace, model: TileModel, heightDp: Dp) {
         if (model.size != TileSize.SMALL) {
             BasicText(model.label, style = ShellType.caption.copy(color = white), maxLines = 1,
                 modifier = Modifier.align(Alignment.BottomStart).padding(start = StartGrid.LABEL_INSET_EPX.dp, bottom = 5.dp))
+        }
+    }
+}
+
+/**
+ * The Weather tile's current-conditions face: the animated sky (INDEX Change Log 2026-09-21 item 2) with the
+ * day's numbers over it. [WeatherSkyFace] draws the weather; this draws what it is.
+ *
+ * The text is laid out from the tile's own size rather than one fixed stack, because the same face has to
+ * read at 1 unit, 2x2 and 4x2. A small tile has room for the temperature and nothing else — that is the one
+ * number that has to survive at every size — so the place, the condition word and the detail line drop as the
+ * tile shrinks instead of being clipped in half. The stale line (X22, "Updated h:mm") outranks the details:
+ * E9 reads it off the tile, and a wrong-looking temperature with no explanation is worse than no wind speed.
+ */
+@Composable
+private fun WeatherNowFace(face: TileFace.WeatherNow, model: TileModel) {
+    val white = Color.White
+    Box(Modifier.fillMaxSize()) {
+        face.sky?.let { WeatherSkyFace(it, Modifier.fillMaxSize()) }
+        if (model.size == TileSize.SMALL) {
+            BasicText(
+                face.temperature,
+                style = ShellType.subheader.copy(fontSize = 20.sp, lineHeight = 24.sp, color = white),
+                maxLines = 1,
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 7.5.dp),
+            )
+            return@Box
+        }
+        val wide = model.size == TileSize.WIDE
+        Column(Modifier.padding(start = 7.5.dp, top = 6.dp, end = 6.dp)) {
+            // Line 1 is the place when the feed knows it (W10M's weather tile named the city), and the
+            // condition word otherwise, so the line is never empty and the word is never lost.
+            BasicText(face.place ?: face.condition, style = ShellType.caption.copy(color = white), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.Bottom) {
+                BasicText(
+                    face.temperature,
+                    style = ShellType.subheader.copy(fontSize = if (wide) 34.sp else 30.sp, lineHeight = if (wide) 40.sp else 36.sp, color = white),
+                    maxLines = 1,
+                )
+                if (face.place != null) {
+                    BasicText(
+                        face.condition,
+                        style = ShellType.caption.copy(color = white),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(start = 6.dp, bottom = 4.dp),
+                    )
+                }
+            }
+            val third = face.stale ?: face.details.joinToString("  ").takeIf { it.isNotEmpty() && wide }
+            third?.let { BasicText(it, style = ShellType.caption.copy(color = white), maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
     }
 }

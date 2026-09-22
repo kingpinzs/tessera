@@ -71,7 +71,7 @@ internal fun FolderFaceView(model: TileModel, face: FolderFace, widthDp: Dp, hei
         val liveFace = face.live?.faces?.firstOrNull()
         if (model.size == TileSize.WIDE && liveFace != null) {
             Box(Modifier.align(Alignment.CenterEnd).size(width = widthDp / 2, height = heightDp)) {
-                LiveFace(liveFace, model.copy(label = "", folder = null), heightDp)
+                LiveFace(liveFace, model.copy(label = "", folder = null), widthDp / 2, heightDp)
             }
         }
         if (model.size != TileSize.SMALL) {

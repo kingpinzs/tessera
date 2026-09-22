@@ -192,17 +192,33 @@ object WeatherFeed {
             today?.precipPct?.let { add("Precip $it%") }
             add("Wind ${WeatherFormat.wind(report.units, c.windSpeed, c.windDirectionDeg)}")
         }
+        // The tile's MAIN face is the day's weather, animated (Jeremy, INDEX Change Log 2026-09-21 item 2), so
+        // the current conditions go in TileContent.front — the place a face takes over the logo front — and
+        // only the 3-day face takes a turn behind it. Publishing conditions in both would flip the tile
+        // between two identical pictures every 5 s.
+        val sky = SkyRules.of(report, now)
+        val front = TileFace.WeatherNow(
+            condition = WmoCodes.word(c.code, c.isDay),
+            temperature = WeatherFormat.degrees(c.temperature),
+            details = details,
+            stale = staleText,
+            place = report.place,
+            sky = sky,
+        )
         val faces = buildList<TileFace> {
-            add(TileFace.WeatherNow(WmoCodes.word(c.code, c.isDay), WeatherFormat.degrees(c.temperature), details, staleText))
             if (days.isNotEmpty()) {
                 add(TileFace.WeatherDays(days.take(3).map { d ->
                     Triple(WeatherFormat.dayName(d.dateMs, report.timeZone), WmoCodes.glyph(d.code, true), "${WeatherFormat.degrees(d.high)}/${WeatherFormat.degrees(d.low)}")
                 }, staleText))
             }
         }
-        LiveTileEngine.publish(LiveTileEngine.WEATHER, TileContent(faces, FaceTransition.FLIP, sourceTimeMs = report.fetchedAtMs, sourceTag = "weather:${report.provider}"))
+        LiveTileEngine.publish(
+            LiveTileEngine.WEATHER,
+            TileContent(faces, FaceTransition.FLIP, sourceTimeMs = report.fetchedAtMs, sourceTag = "weather:${report.provider}", front = front),
+        )
         publishedStale = stale
-        Diagnostics.add("weather", "publish tile faces=${faces.size} temp=${WeatherFormat.degrees(c.temperature)} condition=${c.code} stale=$stale fetchedAt=${report.fetchedAtMs}")
+        Diagnostics.add("weather", "publish tile faces=${faces.size} temp=${WeatherFormat.degrees(c.temperature)} condition=${c.code} " +
+            "sky=${sky.scene}/${if (sky.isDay) "day" else "night"}/${sky.intensity} stale=$stale fetchedAt=${report.fetchedAtMs}")
     }
 
     private fun networkAvailable(app: Context): Boolean {
