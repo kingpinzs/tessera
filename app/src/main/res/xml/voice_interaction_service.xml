@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Phase 03 build task 1. supportsAssist is what makes the assist gesture, KEYCODE_ASSIST and the side
+  key reach this service; supportsLaunchVoiceAssistFromKeyguard is what lets a session open over the
+  keyguard at all, which the PQ3 ruling (safe commands while locked) depends on (E9, E10).
+-->
+<voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:sessionService="app.tileshell.cortana.CortanaSessionService"
+    android:recognitionService="app.tileshell.cortana.CortanaRecognitionService"
+    android:settingsActivity="app.tileshell.settings.SettingsActivity"
+    android:supportsAssist="true"
+    android:supportsLaunchVoiceAssistFromKeyguard="true"
+    android:supportsLocalInteraction="true" />
