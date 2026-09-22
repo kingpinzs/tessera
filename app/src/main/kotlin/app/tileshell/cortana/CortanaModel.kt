@@ -78,7 +78,14 @@ class CortanaModel(
     private var speakingUtteranceId: String? = null
     private var eventJob: Job? = null
 
+    /**
+     * Idempotent: the framework REUSES a VoiceInteractionSession across show and hide, so this runs on
+     * every show, not once per session object. Binding only in the session's onCreate left the second
+     * and every later open with no engine at all ("startListening dropped: not bound") — found on the
+     * device, not in review.
+     */
     fun start() {
+        if (eventJob != null) return
         eventJob = scope.launch {
             SpeechClient.events.collect { onSpeechEvent(it) }
         }
@@ -87,6 +94,7 @@ class CortanaModel(
     }
 
     fun stop() {
+        if (eventJob == null) return
         eventJob?.cancel()
         eventJob = null
         SpeechClient.stopListening()

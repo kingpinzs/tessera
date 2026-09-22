@@ -1,0 +1,26 @@
+# Every component the APK exports, with its reason and the permission that guards it.
+#
+# Phase 03 Decisions, "Exported components allow-list": this list is written at build start from phase
+# 01's components plus this phase's, and later phases ADD their own entries. E5 compares
+# `adb shell dumpsys package app.tileshell` against it EXACTLY — a component that appears on the device
+# and not here fails the row, and so does one here that is not on the device.
+#
+# The point of the row is that Cortana has exactly one way in: the text box the user can see. A
+# debug intent, a broadcast or a provider verb that took a request would make every other row in this
+# gate meaningless, so the surface is pinned rather than reviewed.
+#
+# Format: <component>\t<guard>\t<why>
+# "guard: none" means the component is reachable by any app and authorises callers itself.
+
+# ---- phase 01 ----
+app.tileshell.StartActivity	guard: none (HOME intent filter)	The home screen. A launcher's HOME activity has to be exported or the platform cannot start it.
+app.tileshell.weather.WeatherActivity	guard: none (LAUNCHER intent filter)	The Weather app's own launcher entry.
+app.tileshell.settings.SettingsActivity	guard: none (LAUNCHER intent filter)	The Start settings launcher entry, and the settingsActivity the voice-interaction and recognition services point at.
+app.tileshell.feeds.TileNotificationListener	android.permission.BIND_NOTIFICATION_LISTENER_SERVICE	The live-tile notification listener. Only the system holds the permission.
+app.tileshell.tiles.api.LiveTileProvider	guard: none by design (R5 4b)	The public Live Tile API. Every call() verb authorises on the caller's Binder identity rather than on a manifest permission.
+app.tileshell.tiles.api.LegacyBadgeReceiver	guard: none (legacy badge broadcasts)	Legacy badge senders resolve the shell through this entry. A sender that does not share its identity is refused by default (phase 01 adversarial review).
+
+# ---- phase 03 ----
+app.tileshell.cortana.CortanaService	android.permission.BIND_VOICE_INTERACTION	The assistant. Only the system holds the permission; this is what the assist gesture, the side key and KEYCODE_ASSIST reach.
+app.tileshell.cortana.CortanaSessionService	android.permission.BIND_VOICE_INTERACTION	The session window the framework asks for.
+app.tileshell.cortana.CortanaRecognitionService	android.permission.BIND_VOICE_INTERACTION	The offline recogniser a VoiceInteractionService must name. It serves the same :speech process.
