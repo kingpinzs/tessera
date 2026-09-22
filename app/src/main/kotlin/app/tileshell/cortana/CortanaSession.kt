@@ -153,6 +153,7 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
         // Re-asserted per show: the window is recreated around a reused session, and a window whose UI
         // is not enabled is not touchable.
         setUiEnabled(true)
+        makeTouchable()
         // The session object outlives a hide, so the engines are bound per SHOW, not per session.
         model.start()
         hideSystemBars()
@@ -210,6 +211,41 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
 
     fun onDrawnBack() {
         if (!model.onBack()) hide()
+    }
+
+    /**
+     * Give the session window a real input channel.
+     *
+     * `dumpsys input` listed NO window for this session at all — only a focus request answered
+     * `result='NO_WINDOW'` — so the page rendered and reported every node clickable while the input
+     * dispatcher had nothing to deliver a touch to. A window with `INPUT_FEATURE_NO_INPUT_CHANNEL`, or
+     * with FLAG_NOT_FOCUSABLE / FLAG_NOT_TOUCHABLE, is exactly that: visible and deaf.
+     *
+     * The flags are logged before and after, because the useful fact is which bit was set, not that
+     * something was cleared.
+     */
+    private fun makeTouchable() {
+        val dialogWindow = window?.window ?: return
+        val before = dialogWindow.attributes
+        Diagnostics.add(
+            "cortana",
+            "session window type=${before.type} flags=0x${Integer.toHexString(before.flags)} " +
+                "softInputMode=0x${Integer.toHexString(before.softInputMode)}",
+        )
+        dialogWindow.clearFlags(
+            android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+        )
+        // INPUT_FEATURE_NO_INPUT_CHANNEL is @hide, so an app cannot read or clear it. If that is what
+        // the framework set on this window, nothing here can undo it — which would make the missing
+        // input channel the platform's, not the shell's, and a phone row rather than a bug to fix.
+        val after = dialogWindow.attributes
+        Diagnostics.add(
+            "cortana",
+            "session window now flags=0x${Integer.toHexString(after.flags)} " +
+                "softInputMode=0x${Integer.toHexString(after.softInputMode)}",
+        )
     }
 
     private fun hideSystemBars() {
