@@ -31,6 +31,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.tokens.ShellType
@@ -97,10 +98,10 @@ fun CortanaNavPane(
         ) {
             val paneHeightEpx = maxHeight.value
 
-            // ---- header band: the ≡ button and "CORTANA" (R7 §3.1.7)
+            // ---- header band: the ≡ button and the assistant name in caps (R7 §3.1.7)
             MenuButton(onDismiss, Modifier.testTag("cortana_pane_menu"))
             CapCentreText(
-                text = "CORTANA",
+                text = Brand.ASSISTANT_NAME.uppercase(),
                 style = ShellType.base.copy(color = CortanaUi.ROW_TITLE_COLOR),
                 capCentreEpx = CortanaUi.PANE_TITLE_CAP_CENTRE_EPX,
                 leftEpx = CortanaUi.PANE_TITLE_LEFT_EPX,

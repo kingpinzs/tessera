@@ -24,6 +24,6 @@ object Brand {
 
     val iconFont = FontFamily(Font(R.font.fluent_icons))
 
-    const val PRODUCT_NAME = "Windows"
-    const val ASSISTANT_NAME = "Cortana"
+    const val PRODUCT_NAME = "Tessera"
+    const val ASSISTANT_NAME = "Tess"
 }
