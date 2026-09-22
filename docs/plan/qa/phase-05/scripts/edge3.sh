@@ -44,8 +44,10 @@ wait_listening
 ip="$(ime_pid)"
 assert_eq "the keyboard holds the microphone" "$ip" "$(speech_status mic_owner_pid)"
 cortana_assist; sleep 4
-cortana_listen 3 || true
-sleep 1
+cortana_listen 0 || true
+# Read the owner WHILE Cortana's capture runs: with no speech it endpoints on silence within seconds
+# (run 1 read it 4 s later and found nobody holding the microphone).
+for _ in $(seq 1 20); do [ "$(speech_status asr_listening)" = "true" ] && break; sleep 0.25; done
 owner="$(speech_status mic_owner_pid)"
 note "after Cortana asked: microphone owner pid $owner (keyboard $ip, launcher $(main_pid)); cortana: $(diag cortana | tail -3 | tr '\n' ' ' | cut -c1-240)"
 note "keyboard: $(ime_log 'voice' | tail -3 | tr '\n' ' ' | cut -c1-300)"

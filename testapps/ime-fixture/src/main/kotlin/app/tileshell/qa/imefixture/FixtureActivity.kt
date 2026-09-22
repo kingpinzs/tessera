@@ -24,6 +24,7 @@ abstract class FixtureActivity(private val layout: Int) : Activity() {
 
     protected lateinit var mirror: Mirror
     private var pendingShow: EditText? = null
+    private var pendingFill = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,12 +74,9 @@ abstract class FixtureActivity(private val layout: Int) : Activity() {
         // caret at the end. `adb shell input text` drops characters on long strings (phase 05 EDGE1 runs
         // 1-2 got 481 and 555 of 1500), and the edge case is about the keyboard in a long field, not about
         // typing speed.
-        val fill = intent.getIntExtra(EXTRA_FILL, 0)
-        pendingShow?.takeIf { fill > 0 }?.let { field ->
-            val text = buildString { while (length < fill) append("abcdefghij") }.take(fill)
-            field.setText(text)
-            field.setSelection(text.length)
-        }
+        // Applied once the field HAS focus (showPending): setting the text before the window was focused
+        // left no field focused at all (EDGE1 run 3: mirror_focus "none").
+        pendingFill = intent.getIntExtra(EXTRA_FILL, 0)
         // showSoftInput before the window is focused is ignored by the IMM ("view not served"); on
         // a fresh start onWindowFocusChanged does it, on a re-delivered intent the window is already
         // focused and it can happen now.
@@ -89,6 +87,12 @@ abstract class FixtureActivity(private val layout: Int) : Activity() {
         val field = pendingShow ?: return
         pendingShow = null
         if (!field.isFocused) field.requestFocus()
+        if (pendingFill > 0) {
+            val text = buildString { while (length < pendingFill) append("abcdefghij") }.take(pendingFill)
+            pendingFill = 0
+            field.setText(text)
+            field.setSelection(text.length)
+        }
         field.post { mirror.showKeyboard(field) }
     }
 
