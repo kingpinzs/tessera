@@ -27,6 +27,9 @@ object MusicPlayer {
     private var controller: MediaController? = null
     private var connecting = false
 
+    /** One line of the play queue, as the session reports it (phase 10 build task 7, R8 §1.9). */
+    data class QueueEntry(val id: String, val title: String, val artist: String, val album: String)
+
     /** The media id (the MediaStore track id, as a string) that is loaded right now, for the drawn list. */
     var nowPlayingId by mutableStateOf<String?>(null)
         private set
@@ -34,15 +37,129 @@ object MusicPlayer {
     var isPlaying by mutableStateOf(false)
         private set
 
-    private val listener = object : Player.Listener {
-        override fun onMediaItemTransition(item: androidx.media3.common.MediaItem?, reason: Int) {
-            nowPlayingId = item?.mediaId
-        }
+    // What the now-playing screen draws. Read off the SESSION rather than off the tap that started it,
+    // so the screen is right about music this activity did not start — a headset button, the tile's own
+    // transport strip, or a queue that was already playing when the app was opened.
+    var title by mutableStateOf("")
+        private set
+    var artist by mutableStateOf("")
+        private set
+    var album by mutableStateOf("")
+        private set
+    var albumId by mutableStateOf<Long?>(null)
+        private set
+    var durationMs by mutableStateOf(0L)
+        private set
+    var positionMs by mutableStateOf(0L)
+        private set
+    var shuffleOn by mutableStateOf(false)
+        private set
+    var repeatOn by mutableStateOf(false)
+        private set
+    var queue by mutableStateOf<List<QueueEntry>>(emptyList())
+        private set
+    var queueIndex by mutableStateOf(0)
+        private set
 
-        override fun onIsPlayingChanged(playing: Boolean) {
-            isPlaying = playing
+    /** The library is what knows about albums; a media session only ever names a track. */
+    private fun albumIdOf(mediaId: String?): Long? =
+        mediaId?.toLongOrNull()?.let { id -> MusicStore.library.value.firstOrNull { it.id == id }?.albumId }
+
+    private fun readSession() {
+        val c = controller ?: return
+        val item = c.currentMediaItem
+        nowPlayingId = item?.mediaId
+        val meta = item?.mediaMetadata
+        title = meta?.title?.toString().orEmpty()
+        artist = meta?.artist?.toString().orEmpty()
+        album = meta?.albumTitle?.toString().orEmpty()
+        albumId = albumIdOf(item?.mediaId)
+        // A duration of C.TIME_UNSET is negative; it means "not known yet", not "zero seconds".
+        durationMs = c.duration.takeIf { it > 0L } ?: 0L
+        positionMs = c.currentPosition.coerceAtLeast(0L)
+        isPlaying = c.isPlaying
+        shuffleOn = c.shuffleModeEnabled
+        repeatOn = c.repeatMode != Player.REPEAT_MODE_OFF
+        queueIndex = c.currentMediaItemIndex
+        queue = (0 until c.mediaItemCount).map { i ->
+            val m = c.getMediaItemAt(i)
+            QueueEntry(
+                m.mediaId,
+                m.mediaMetadata.title?.toString().orEmpty(),
+                m.mediaMetadata.artist?.toString().orEmpty(),
+                m.mediaMetadata.albumTitle?.toString().orEmpty(),
+            )
         }
     }
+
+    /** The elapsed label and the thumb are the only things that move on their own; the screen ticks them. */
+    fun refreshPosition() {
+        val c = controller ?: return
+        positionMs = c.currentPosition.coerceAtLeast(0L)
+        if (durationMs <= 0L) durationMs = c.duration.takeIf { it > 0L } ?: 0L
+    }
+
+    private val listener = object : Player.Listener {
+        override fun onEvents(player: Player, events: Player.Events) {
+            // One handler rather than eight: every event this screen cares about ends in the same
+            // re-read, and a partial listener is how a screen ends up right about the title and wrong
+            // about the duration.
+            readSession()
+        }
+    }
+
+    fun togglePlay() {
+        val c = controller ?: return
+        if (c.isPlaying) c.pause() else c.play()
+    }
+
+    fun next() {
+        controller?.seekToNextMediaItem()
+    }
+
+    fun previous() {
+        // What every player does and what a person expects: restart this track unless you are already
+        // near its start, in which case go back one.
+        val c = controller ?: return
+        if (c.currentPosition > RESTART_MS) c.seekTo(0L) else c.seekToPreviousMediaItem()
+    }
+
+    fun seekTo(ms: Long) {
+        controller?.seekTo(ms.coerceAtLeast(0L))
+        positionMs = ms.coerceAtLeast(0L)
+    }
+
+    fun toggleShuffle() {
+        val c = controller ?: return
+        c.shuffleModeEnabled = !c.shuffleModeEnabled
+        Diagnostics.add("music", "shuffle ${if (c.shuffleModeEnabled) "on" else "off"}")
+    }
+
+    /** R8 §1.6: repeat is a three-state control — off, all, one — and its glyph carries a "1" badge. */
+    fun cycleRepeat() {
+        val c = controller ?: return
+        c.repeatMode = when (c.repeatMode) {
+            Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+            else -> Player.REPEAT_MODE_OFF
+        }
+        Diagnostics.add("music", "repeat ${when (c.repeatMode) {
+            Player.REPEAT_MODE_OFF -> "off"
+            Player.REPEAT_MODE_ALL -> "all"
+            else -> "one"
+        }}")
+    }
+
+    /** A row of the open queue was tapped (R8 §1.9). */
+    fun playAt(index: Int) {
+        val c = controller ?: return
+        if (index !in 0 until c.mediaItemCount) return
+        c.seekTo(index, 0L)
+        c.play()
+    }
+
+    /** How far into a track "previous" means restart rather than go back one. */
+    private const val RESTART_MS = 3_000L
 
     fun connect(context: Context) {
         if (controller != null || connecting) return
@@ -57,8 +174,7 @@ object MusicPlayer {
             }
             controller?.let {
                 it.addListener(listener)
-                nowPlayingId = it.currentMediaItem?.mediaId
-                isPlaying = it.isPlaying
+                readSession()
                 Diagnostics.add("music", "controller connected, ${it.mediaItemCount} item(s) in the queue")
             }
         }, context.mainExecutor)

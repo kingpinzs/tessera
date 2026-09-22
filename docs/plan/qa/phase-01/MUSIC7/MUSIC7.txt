@@ -1,0 +1,74 @@
+==============================================================================
+ROW MUSIC7 — the now-playing screen against R8's measurements, and the scrolling pivot headers
+at            2026-09-22T10:19:29-06:00
+driver        music7.sh blob 789bf2b3a6332d1237663329f44ab131ee60fb5d
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     b954940a72a86137 326225566 bytes
+apk installed 2864615ebf02a0ec
+apk match     yes (2864615ebf02a0ec)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  the pivot reaches songs                                     contains [pivot settled on songs]
+      on songs, the playlists header's right edge is at 1080px of a 1080px screen
+PASS  the playlists header is on the strip at all                 != 
+PASS  on songs it is still CUT OFF by the screen edge, as Jeremy has it now  = ok
+      pivot -> playlists (settled after 0s, diagnostics say [playlists])
+PASS  and reaches playlists                                       contains [pivot settled on playlists]
+      on playlists its right edge is 1068px; the albums header's right edge went 319 -> 122
+PASS  swiping to playlists scrolls it fully into view             = ok
+PASS  and the whole strip moved to do it, taking albums off the left  = ok
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+      back on songs, the playlists header's right edge is 1080px again
+PASS  going back to songs puts it out of view again, not fully, exactly as before  = 1080
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  there is a song to open                                     != 
+PASS  a tap on a track opens the now-playing screen               contains [nowplaying_root]
+PASS  the header title is R8's, all caps                          = NOW PLAYING
+      header title left edge: 183px = 61.0 epx (R8: 61.0)
+PASS  the title starts at R8's 61 epx                             61.00 vs 61.00 +/- 2.0
+PASS  the hamburger's centre is at R8's 24 epx                    24.00 vs 24.00 +/- 3.0
+PASS  the search glyph's centre is at R8's 336 epx (360 - 24)     336.00 vs 336.00 +/- 3.0
+      art [48..1032] top 228, chrome bottom 228
+PASS  V-2016's 16-epx left margin                                 16.00 vs 16.00 +/- 1.0
+PASS  V-2016's 16-epx right margin                                16.00 vs 16.00 +/- 1.0
+PASS  the art is flush under the chrome, with no seam             = ok
+PASS  the track title is drawn                                    != 
+      second line: [Radiohead • The King of Limbs]
+PASS  the second line is Artist - dot - Album, which is V-2016    contains [ • ]
+PASS  both metadata lines start at R8's 12-epx origin             12.00 vs 12.00 +/- 2.0
+PASS  the shell's nav bar is drawn, which everything below is measured from  != 
+      above the nav bar, in epx — scrubber 96.0 · transport 55.67 · chevron 16.0
+PASS  the scrubber row sits 96 epx above the nav bar (V-2016)     96.00 vs 96.00 +/- 2.0
+PASS  the transport row sits 56 epx above it                      55.67 vs 56.00 +/- 2.0
+PASS  the chevron sits 16 epx above it                            16.00 vs 16.00 +/- 2.0
+PASS  the previous control's centre is at 30 epx                  30.33 vs 30.00 +/- 2.0
+PASS  the play_pause control's centre is at 90 epx                90.33 vs 90.00 +/- 2.0
+PASS  the next control's centre is at 150 epx                     150.33 vs 150.00 +/- 2.0
+PASS  the repeat control's centre is at 210 epx                   210.33 vs 210.00 +/- 2.0
+PASS  the shuffle control's centre is at 270 epx                  270.33 vs 270.00 +/- 2.0
+PASS  the more control's centre is at 330 epx                     330.33 vs 330.00 +/- 2.0
+PASS  the chevron is at exactly half the width                    180.00 vs 180.00 +/- 2.0
+      elapsed 0:04 -> 0:16 · total 1:30 -> 1:30
+PASS  the elapsed label advances                                  != 0:04
+PASS  the right label does NOT, because it is the total duration (R8 1.5, HIGH)  = 1:30
+      after play/pause:       state=PlaybackState {state=PAUSED(2), position=17910, buffered position=90044, speed=0.0, updated=2770846, actions=7340029, custom actions=[], active item id=0, error=null}
+PASS  the play-pause control pauses the session                   contains [PAUSED(2)]
+PASS  and starts it again                                         contains [PLAYING(3)]
+      next: [4 Minute Warning] -> [An Ending]
+PASS  next moves to another track                                 != 4 Minute Warning
+PASS  the shuffle control reaches the player                      contains [shuffle on]
+PASS  and so does repeat, which is three-state                    contains [repeat all]
+PASS  the chevron opens the play queue                            contains [nowplaying_queue]
+PASS  and the art is gone, because album mode removes it entirely  does not contain [resource-id="nowplaying_art"]
+      expanded, the title band starts at 228px = 76.0 epx
+PASS  the block moved UP to sit under the chrome                  = ok
+      queue row pitch: 185px = 61.7 epx (R8: 61.5)
+PASS  the queue rows are at R8's 61.5-epx pitch                   61.67 vs 61.50 +/- 1.5
+PASS  a queue row carries Artist - dot - Album in grey            contains [ • ]
+PASS  and it closes again                                         does not contain [nowplaying_queue]
+PASS  with the art back                                           contains [resource-id="nowplaying_art"]
+PASS  Back returns to the collection                              contains [music_pivot_header:albums]
+PASS  and the session is still playing behind it                  contains [PLAYING(3)]
+------------------------------------------------------------------------------
+MUSIC7: 46 passed, 0 failed
