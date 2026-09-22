@@ -142,7 +142,9 @@ class ProbeActivity : Activity() {
         line("fails is the evidence that the helper is needed at all.")
         kv("WRITE_SECURE_SETTINGS", permissionState("android.permission.WRITE_SECURE_SETTINGS"))
         kv("WRITE_SETTINGS", if (Settings.System.canWrite(this)) "granted" else "not granted")
-        kv("adb_wifi_enabled", "${secureInt("adb_wifi_enabled")} (Wireless debugging)")
+        // Both of these live in Settings.Global, not Secure. Reading them from Secure returned -1 on
+        // the S25 Ultra, which reads as "off" and means "wrong table".
+        kv("adb_wifi_enabled", "${secureGlobalInt("adb_wifi_enabled")} (Wireless debugging)")
         kv("development_settings_enabled", "${secureGlobalInt("development_settings_enabled")}")
         blank()
 
@@ -174,47 +176,71 @@ class ProbeActivity : Activity() {
         }
         val wm = getSystemService(WindowManager::class.java)
         val bounds = wm.currentWindowMetrics.bounds
-        val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-            PixelFormat.TRANSLUCENT,
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            @Suppress("DEPRECATION")
-            layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-        }
-        val probe = View(this).apply { setBackgroundColor(0x5500AAFFL.toInt()) }
-        wm.addView(probe, params)
-        probe.post {
-            val mode = secureInt("navigation_mode")
-            val navInset = probe.rootWindowInsets?.getInsets(WindowInsets.Type.navigationBars())?.bottom ?: -1
-            val text = buildString {
-                append("navigation_mode = $mode ${navName(mode)}\n")
-                append("display bounds    ${bounds.width()} x ${bounds.height()} px\n")
-                append("overlay laid out  ${probe.width} x ${probe.height} px\n")
-                append("overlay bottom    ${probe.height - bounds.height()} px vs the display\n")
-                append("nav bar inset     $navInset px reported INSIDE the overlay\n")
-                append(
-                    when {
-                        probe.height >= bounds.height() ->
-                            "RESULT: the overlay reaches the display's bottom edge, so its content " +
-                                "occupies the nav bar's strip. Whether the system then DRAWS the nav " +
-                                "glyphs on top is the screenshot's job — take one now."
-                        else ->
-                            "RESULT: the overlay stops ${bounds.height() - probe.height} px short of the " +
-                                "display's bottom edge, so it cannot cover the nav bar."
-                    }
-                )
+        val results = StringBuilder()
+        results.append("navigation_mode = ${secureInt("navigation_mode")} ${navName(secureInt("navigation_mode"))}\n")
+        results.append("display bounds  ${bounds.width()} x ${bounds.height()} px\n\n")
+
+        // TWO attempts, because the first version of this probe asked the wrong question and answered
+        // "cannot cover the nav bar" on a device that had never been asked properly.
+        //
+        //   A. MATCH_PARENT with the legacy flags. A window is fitted to the system-bar insets by
+        //      DEFAULT, so MATCH_PARENT means "as big as the space left over", not "as big as the
+        //      screen". It comes back exactly the nav bar short, every time, on every device — which
+        //      looks like a platform answer and is really just the default.
+        //   B. The same window with setFitInsetsTypes(0) and an EXPLICIT pixel height. That is the
+        //      modern way to say "do not fit me to anything"; it is what an overlay that means to
+        //      cover the bar has to do, and it is the one whose answer counts.
+        //
+        // Both are reported. If A and B differ, the difference IS the finding.
+        fun attempt(label: String, fitInsets: Boolean, explicitSize: Boolean, then: () -> Unit) {
+            val params = WindowManager.LayoutParams(
+                if (explicitSize) bounds.width() else WindowManager.LayoutParams.MATCH_PARENT,
+                if (explicitSize) bounds.height() else WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                PixelFormat.TRANSLUCENT,
+            ).apply {
+                gravity = Gravity.TOP or Gravity.START
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                if (!fitInsets) runCatching { setFitInsetsTypes(0) }
             }
-            overlayResult = text
-            collect()
-            probe.postDelayed({ runCatching { wm.removeView(probe) } }, 4000)
-            toast("Overlay is up for 4 s — screenshot it now")
+            val probe = View(this).apply { setBackgroundColor(0x5500AAFFL.toInt()) }
+            runCatching { wm.addView(probe, params) }.onFailure {
+                results.append("$label: could not add the window (${it.javaClass.simpleName})\n\n")
+                then()
+                return
+            }
+            probe.post {
+                val navInset = probe.rootWindowInsets?.getInsets(WindowInsets.Type.navigationBars())?.bottom ?: -1
+                val short = bounds.height() - probe.height
+                results.append("$label\n")
+                results.append("  laid out       ${probe.width} x ${probe.height} px\n")
+                results.append("  short by       $short px (the nav bar is ${navBarPx()} px)\n")
+                results.append("  nav inset seen $navInset px from inside the overlay\n")
+                results.append(
+                    if (short <= 0) "  REACHES the display's bottom edge.\n\n"
+                    else "  STOPS $short px short.\n\n"
+                )
+                // Keep B on screen to be photographed; A is measured and taken straight down.
+                if (label.startsWith("B")) {
+                    overlayResult = results.toString() +
+                        "Whether the system still DRAWS its nav glyphs on top of a window that reaches " +
+                        "the bottom is the screenshot's job, not a number's. Take one now."
+                    collect()
+                    toast("Overlay is up for 5 s — screenshot it now")
+                    probe.postDelayed({ runCatching { wm.removeView(probe) } }, 5000)
+                } else {
+                    runCatching { wm.removeView(probe) }
+                    then()
+                }
+            }
+        }
+
+        attempt("A. MATCH_PARENT, insets fitted (the default)", fitInsets = true, explicitSize = false) {
+            attempt("B. setFitInsetsTypes(0) + explicit full height", fitInsets = false, explicitSize = true) {}
         }
     }
 
@@ -232,6 +258,9 @@ class ProbeActivity : Activity() {
     private fun line(text: String) { report.append(text).append('\n') }
     private fun blank() { report.append('\n') }
     private fun kv(name: String, value: String) { line("  %-28s %s".format(name, value)) }
+
+    private fun navBarPx(): Int =
+        window.decorView.rootWindowInsets?.getInsets(WindowInsets.Type.navigationBars())?.bottom ?: -1
 
     private fun secureInt(key: String): Int =
         runCatching { Settings.Secure.getInt(contentResolver, key, -1) }.getOrDefault(-2)
