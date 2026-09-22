@@ -1,25 +1,34 @@
 #!/usr/bin/env python3
-"""E4: measure Cortana's persona out of screenrecord frames, to sub-pixel precision.
+"""E4: measure the persona out of screenrecord frames, to sub-pixel precision.
 
     persona.py <frames-dir>
 
 Prints `key=value` lines for the driver to assert on, and exits non-zero when the persona could not be
 found at all — a measurement that silently returns a default is worse than no measurement.
 
-Method (PLAN RV11, and the correction phase 02's harness made): the disc and its halo are found by
-their COLOUR, not by a brightness threshold, and each edge is read at the half-intensity crossing
-between the two neighbouring pixels. A hard threshold on an antialiased edge saturates about three
-pixels early and quietly hides the tail of an ease-out.
+Method (PLAN RV11, and the correction phase 02's harness made): the persona is found by its COLOUR,
+not by a brightness threshold, and every edge is read at the half-intensity crossing between the two
+neighbouring pixels. A hard threshold on an antialiased edge saturates about three pixels early and
+quietly hides the tail of an ease-out.
 
-The page is black (R6 §3.1.14) and the persona is the only coloured thing on it, which is what makes a
-colour search safe here.
+2026-09-21, the lens: the persona is painted as HAL's lens rather than a flat accent fill (INDEX Change
+Log), so the hue searched for is the lens red instead of the accent blue. The method is unchanged and
+so is everything it measures: the lens tones all sit on one hue line and its outermost tone is opaque
+to the edge, so the crossings land where the flat disc's did.
 
-2026-09-21: the persona is painted as HAL's lens rather than a flat accent fill (INDEX Change Log), so
-the hue searched for is the lens red instead of the accent blue. The METHOD is unchanged, and so is
-every number it measures: the lens is a gradient, but all of its tones sit on one hue line and the
-outermost one is opaque to the edge, so the half-intensity crossings land exactly where the flat disc's
-did. The specular core reads white and scores 0; that is fine, because the disc is measured from the
-first and last pixel above the cut, not from a contiguous run.
+2026-09-21, the first real run: two things this file got wrong before it had ever been run on a capture.
+
+  1. It separated the opaque disc from its 25 %-alpha halo with a cut at 0.85 of the peak SCORE, where
+     the halo's own score is 0.847 — a margin of three thousandths, on a saturating score. It now
+     separates them by the raw channel, where the halo plateau sits at about a quarter of the disc's
+     rim and a cut at twice the halo's own level clears both by a factor of two. Measured on a real
+     listening frame: halo plateau r = 50-53, disc rim r = 141-145, core r = 255.
+  2. It measured `listen_*` over EVERY frame of the capture and `idle_*` over the first third. A
+     capture holds four different things — Start with the Cortana tile before the session opens, the
+     idle ring, the listening persona, then the small persona on the response card — so the minima and
+     maxima were taken across all four. It now segments the capture and measures each form inside its
+     own segment. The segmentation uses only what the frames say (is the page black, does the frame
+     have a halo, where is the centre), never the values under test.
 """
 import glob
 import os
@@ -34,70 +43,156 @@ FPS = 60.0
 # (Brand.kt). The halo is the iris at 25 % over black, so both are found by hue, not by brightness.
 LENS = (0x8A, 0x10, 0x08)
 
+# A pixel is on the lens hue line if its green and blue are within this of the rim's, scaled by red.
+HUE_TOLERANCE = 26
 
-def lens_score(pixel):
-    """How lens-like a pixel is, 0..1, independent of how bright it is."""
+# Anything at more than twice the outer plateau's level is opaque, not the 25 % halo.
+OPAQUE_FACTOR = 2.0
+
+# Where on the run's own histogram each plateau is read. The halo is the wider of the two runs, so
+# the lower quartile lands on it; the disc's rim is the dimmest tenth of what is left.
+OUTER_QUANTILE = 0.25
+RIM_QUANTILE = 0.10
+
+# The page is black (R6 §3.1.14); Start is not. Two columns well outside the widest persona.
+PAGE_COLUMNS = (60, 1020)
+PAGE_BLACK = 24
+
+# A22: the ring pops in over 650 ms. E4 does not measure the pop-in, so the idle segment's first
+# 650 ms are not part of its settled diameter.
+POP_MS = 650
+
+# Two segments are different places on the page if their centres differ by more than this.
+CENTRE_BREAK_EPX = 20.0
+
+
+def lens_red(pixel):
+    """The red channel if the pixel is on the lens hue line, else 0."""
     r, g, b = pixel[:3]
-    if r < 24:
-        return 0.0
-    # Every lens tone is strongly red-dominant with a low green and a lower blue.
-    if not (r > g > b):
-        return 0.0
+    if r < 24 or not (r > g > b):
+        return 0
     scale = r / LENS[0]
-    expected_g = LENS[1] * scale
-    expected_b = LENS[2] * scale
-    if abs(g - expected_g) > 26 or abs(b - expected_b) > 26:
-        return 0.0
-    return min(1.0, r / 255.0 * 4)
+    if abs(g - LENS[1] * scale) > HUE_TOLERANCE or abs(b - LENS[2] * scale) > HUE_TOLERANCE:
+        return 0
+    return r
 
 
-def row_extent(image, y, width):
-    """The sub-pixel left and right edges of the lens run on row [y], or None."""
-    scores = [lens_score(image.getpixel((x, y))) for x in range(width)]
-    peak = max(scores)
-    if peak < 0.12:
+def crossing(values, inner, outer, level):
+    """The sub-pixel x where [values] crosses [level] between two neighbouring pixels."""
+    a, b = values[outer], values[inner]
+    if b == a:
+        return float(inner)
+    return outer + (level - a) / (b - a) * (inner - outer)
+
+
+def extent(values, level):
+    """The sub-pixel left and right edges of the run at or above [level], or None."""
+    inside = [x for x, v in enumerate(values) if v >= level]
+    if len(inside) < 2:
         return None
-    half = peak / 2.0
-    first = next((x for x, s in enumerate(scores) if s >= half), None)
-    last = next((x for x in range(width - 1, -1, -1) if scores[x] >= half), None)
-    if first is None or last is None or last <= first:
-        return None
-
-    def cross(inner, outer):
-        a, b = scores[outer], scores[inner]
-        if b == a:
-            return float(inner)
-        return outer + (half - a) / (b - a) * (inner - outer)
-
-    left = cross(first, first - 1) if first > 0 else float(first)
-    right = cross(last, last + 1) if last < width - 1 else float(last)
+    first, last = inside[0], inside[-1]
+    left = crossing(values, first, first - 1, level) if first > 0 else float(first)
+    right = crossing(values, last, last + 1, level) if last < len(values) - 1 else float(last)
     return left, right
 
 
+def page_is_black(image, y):
+    """R6 §3.1.14: the Cortana page is black. Start, with its tiles, is not."""
+    for x in PAGE_COLUMNS:
+        p = image.getpixel((x, y))
+        if max(p[:3]) > PAGE_BLACK:
+            return False
+    return True
+
+
+def percentile(values, q):
+    """The q-th percentile of [values], 0..1. Used to read a PLATEAU level, never an edge pixel."""
+    ordered = sorted(values)
+    return ordered[min(len(ordered) - 1, int(q * len(ordered)))]
+
+
+def measure_row(values):
+    """(outer_width, inner_width or None) for one row of lens-red values."""
+    peak = max(values)
+    if peak < 24:
+        return None
+    rough = extent(values, max(4.0, peak * 0.06))
+    if not rough:
+        return None
+    lo, hi = int(rough[0]), int(rough[1]) + 1
+    # The outer plateau's level is read as a PERCENTILE of the run's non-zero pixels, not from a pixel
+    # one step inside the end. That pixel is on the antialiased edge, so it reads low, and with the
+    # opaque cut at twice it the cut could fall INSIDE the halo — which is exactly what happened on 37
+    # of 212 listening frames, where the halo's own width came back as the disc's. The persona is two
+    # plateaus (a 25 % halo and an opaque disc) and the halo is always the wider run of the two, so the
+    # lower quartile of the non-zero pixels sits squarely on the halo.
+    body = [v for v in values[lo:hi] if v > 0]
+    if len(body) < 8:
+        return None
+    outer_level = percentile(body, OUTER_QUANTILE)
+    if outer_level < 8:
+        return None
+    outer = extent(values, outer_level / 2.0)
+    if not outer:
+        return None
+    # A halo is present when something inside is at more than twice the outer plateau's level. Its
+    # opaque edge is then read at the half-crossing BETWEEN the two plateaus — not at a fraction of the
+    # peak, because the specular core is far brighter than the rim and a fraction of it reads late.
+    opaque_cut = outer_level * OPAQUE_FACTOR
+    if peak <= opaque_cut:
+        return (outer[1] - outer[0], None)
+    inner_rough = extent(values, opaque_cut)
+    if not inner_rough:
+        return (outer[1] - outer[0], None)
+    a, b = int(inner_rough[0]), int(inner_rough[1]) + 1
+    core = [v for v in values[a:b] if v >= opaque_cut]
+    if len(core) < 4:
+        return (outer[1] - outer[0], None)
+    rim_level = percentile(core, RIM_QUANTILE)
+    inner = extent(values, (rim_level + outer_level) / 2.0)
+    if not inner:
+        return (outer[1] - outer[0], None)
+    return (outer[1] - outer[0], inner[1] - inner[0])
+
+
 def measure(path):
-    """(centre_y_px, halo_diameter_px, disc_diameter_px) for one frame, or None."""
+    """(centre_y_px, outer_px, inner_px or None) for one frame, or None."""
     with Image.open(path) as raw:
         image = raw.convert("RGB")
         width, height = image.size
-        # Scan the upper two thirds: the persona sits well above the text box.
+        px = image.load()
         rows = {}
         for y in range(0, int(height * 0.7), 2):
-            extent = row_extent(image, y, width)
-            if extent:
-                rows[y] = extent
+            values = [lens_red(px[x, y]) for x in range(width)]
+            m = measure_row(values)
+            if m:
+                rows[y] = m
         if not rows:
             return None
-        widest_y = max(rows, key=lambda y: rows[y][1] - rows[y][0])
-        left, right = rows[widest_y]
-        halo = right - left
-        # The disc is the SOLID core: on the widest row it is the run whose score is near the peak.
-        scores = [lens_score(image.getpixel((x, widest_y))) for x in range(width)]
-        peak = max(scores)
-        core = [x for x, s in enumerate(scores) if s >= peak * 0.85]
-        disc = (core[-1] - core[0]) if len(core) > 1 else 0.0
+        widest_y = max(rows, key=lambda y: rows[y][0])
+        if not page_is_black(image, widest_y):
+            return None
+        outer, inner = rows[widest_y]
         ys = sorted(rows)
-        centre_y = (ys[0] + ys[-1]) / 2.0
-        return centre_y, halo, float(disc)
+        return (ys[0] + ys[-1]) / 2.0, outer, inner
+
+
+def segment(series):
+    """Split consecutive frames into runs of the same form at the same place on the page."""
+    segments = []
+    for index, (centre, outer, inner) in series:
+        haloed = inner is not None
+        if (segments and segments[-1]["haloed"] == haloed
+                and abs(segments[-1]["frames"][-1][1] - centre) / PX_PER_EPX <= CENTRE_BREAK_EPX
+                and index == segments[-1]["frames"][-1][0] + 1):
+            segments[-1]["frames"].append((index, centre, outer, inner))
+        else:
+            segments.append({"haloed": haloed, "frames": [(index, centre, outer, inner)]})
+    return segments
+
+
+def mean(values):
+    return sum(values) / len(values)
 
 
 def main():
@@ -107,28 +202,51 @@ def main():
         sys.exit(2)
 
     series = []
-    for path in frames:
+    for index, path in enumerate(frames):
         m = measure(path)
         if m:
-            series.append((path, m))
+            series.append((index, m))
     if len(series) < 10:
         print(f"the persona was found in only {len(series)} of {len(frames)} frames")
         sys.exit(2)
-
     print(f"persona found in {len(series)} of {len(frames)} frames")
 
-    halos = [m[1] for _, m in series]
-    discs = [m[2] for _, m in series]
-    centres = [m[0] for _, m in series]
+    segments = segment(series)
+    for s in segments:
+        f = s["frames"]
+        print(f"# segment frames {f[0][0]}-{f[-1][0]} haloed={s['haloed']} "
+              f"centre={mean([c for _, c, _, _ in f]) / PX_PER_EPX:.1f} "
+              f"outer={mean([o for _, _, o, _ in f]) / PX_PER_EPX:.1f}")
 
-    # The idle ring is the steady stretch before listening begins: the frames whose halo barely moves.
-    idle = [(c, h, d) for c, h, d in (m for _, m in series[: len(series) // 3])]
-    idle_outer = sum(h for _, h, _ in idle) / len(idle)
-    idle_centre = sum(c for c, _, _ in idle) / len(idle)
-    print(f"idle_outer_epx={idle_outer / PX_PER_EPX:.2f}")
-    print(f"idle_centre_epx={idle_centre / PX_PER_EPX:.2f}")
+    # The idle ring: the longest segment with no halo. Its first 650 ms are the pop-in, which this row
+    # does not measure, so they are not part of the settled diameter.
+    plain = [s for s in segments if not s["haloed"]]
+    if not plain:
+        print("no un-haloed segment: the idle ring was never captured")
+        sys.exit(2)
+    idle = max(plain, key=lambda s: len(s["frames"]))["frames"]
+    settled = idle[int(POP_MS / 1000.0 * FPS):] or idle
+    print(f"idle_outer_epx={mean([o for _, _, o, _ in settled]) / PX_PER_EPX:.2f}")
+    print(f"idle_centre_epx={mean([c for _, c, _, _ in settled]) / PX_PER_EPX:.2f}")
+    idle_centre = mean([c for _, c, _, _ in settled])
 
-    print(f"listen_centre_epx={sum(centres) / len(centres) / PX_PER_EPX:.2f}")
+    # Listening replaces the idle ring IN PLACE, so it is the haloed segment at the ring's own centre.
+    # The response card's small persona is haloed too, but it sits at the top of the page.
+    haloed = [s for s in segments if s["haloed"]]
+    in_place = [s for s in haloed
+                if abs(mean([c for _, c, _, _ in s["frames"]]) - idle_centre) / PX_PER_EPX
+                <= CENTRE_BREAK_EPX]
+    if not in_place:
+        print("no haloed segment at the idle ring's centre: listening was never captured")
+        sys.exit(2)
+    listening = max(in_place, key=lambda s: len(s["frames"]))["frames"]
+    print(f"listen_frames={len(listening)}")
+
+    halos = [o for _, _, o, _ in listening]
+    discs = [i for _, _, _, i in listening]
+    centres = [c for c, in [(c,) for _, c, _, _ in listening]]
+
+    print(f"listen_centre_epx={mean(centres) / PX_PER_EPX:.2f}")
     print(f"listen_halo_min_epx={min(halos) / PX_PER_EPX:.2f}")
     print(f"listen_halo_max_epx={max(halos) / PX_PER_EPX:.2f}")
     print(f"listen_disc_min_epx={min(discs) / PX_PER_EPX:.2f}")
@@ -141,14 +259,13 @@ def main():
     ]
     if len(peaks) >= 2:
         gaps = [(peaks[i + 1] - peaks[i]) / FPS * 1000 for i in range(len(peaks) - 1)]
-        print(f"listen_period_ms={sum(gaps) / len(gaps):.0f}")
+        print(f"listen_period_ms={mean(gaps):.0f}")
     else:
         print("listen_period_ms=")
 
-    # Antiphase: the correlation between halo and disc across the capture should be strongly negative.
+    # Antiphase: the correlation between halo and disc through the listening segment.
     n = len(halos)
-    mean_h = sum(halos) / n
-    mean_d = sum(discs) / n
+    mean_h, mean_d = mean(halos), mean(discs)
     cov = sum((halos[i] - mean_h) * (discs[i] - mean_d) for i in range(n))
     var_h = sum((h - mean_h) ** 2 for h in halos) ** 0.5
     var_d = sum((d - mean_d) ** 2 for d in discs) ** 0.5
