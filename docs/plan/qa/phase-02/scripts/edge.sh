@@ -64,7 +64,10 @@ glide 120 300 950 300 6
 glide 950 300 120 800 6
 glide 120 800 950 800 6
 adb exec-out screencap -p > "$OUT/edge_sweeping.png"
-up 950 800; sleep 1.3
+# The release lands on EMPTY space below the grid: a release ON a tile inside its dwell is supposed to make a
+# folder (that is E8's path), so ending there would test the opposite of this edge case.
+glide 950 800 540 1500 4
+up 540 1500; sleep 1.3
 say "order after the sweep (the tile lands where it was dropped; nothing else should have been folded):"
 layout_order | tee -a "$LOG"
 layout_json | python3 -c "

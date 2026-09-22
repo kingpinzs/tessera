@@ -16,14 +16,16 @@ layout_restore "$(dirname "$0")/../baseline_layout.json"   # every row starts fr
 ensure_start
 say "row at rest:"; row | tee -a "$LOG"
 
-drag_to() { # drag_to <tile id> <x> <y> [holdms]
-  local T=$1 X=$2 Y=$3 hold=${4:-900} from
+# drag_to <tile id> <x> <y> [hold seconds]: a drop on the GRID has to wait out the 2000 ms dwell or it makes a
+# folder with whatever tile is under it; a drop on the row never makes a folder, so 0.9 s is enough there.
+drag_to() {
+  local T=$1 X=$2 Y=$3 hold=${4:-0.9} from
   ensure_start
   dump "$OUT/e9_pre.xml"
   from=$(tile_center "$OUT/e9_pre.xml" "$T") || { say "no tile $T"; return 1; }
   down ${from% *} ${from#* }; sleep 1.1
   glide ${from% *} ${from#* } "$X" "$Y" 8
-  sleep 0.$((hold / 100))
+  sleep "$hold"
   up "$X" "$Y"; sleep 1.3
   adb shell input keyevent KEYCODE_BACK; sleep 1
 }
@@ -44,7 +46,7 @@ dump "$OUT/e9_into_row.xml"
 grep -o 'resource-id="tile:dock:[^"]*"' "$OUT/e9_into_row.xml" | tee -a "$LOG"
 
 say "--- 2. drag it back out into the grid ---"
-drag_to "dock:$G" 540 700
+drag_to "dock:$G" 540 700 2.6
 adb exec-out screencap -p > "$OUT/e9_out_of_row.png"
 say "expect the row back to three and $G in the grid:"; row | tee -a "$LOG"; layout_order | head -1 | tee -a "$LOG"
 
@@ -94,8 +96,11 @@ diff <(python3 -c "import json;print(json.load(open('$OUT/e9_full_row.json'))['d
 say "--- 6. turn 'show more tiles' off with a full row: the overflow moves to the end of the grid ---"
 say "row before:"; row | tee -a "$LOG"; layout_order | tee -a "$LOG"
 adb shell am start -n app.tileshell/app.tileshell.settings.SettingsActivity >/dev/null; sleep 2
-scroll_to_id "$OUT/e9_settings.xml" "setting:columns" || say "could not find the show-more-tiles row in Settings"
-tap_id "$OUT/e9_settings.xml" "setting:columns"; sleep 1.5
+scroll_to_id "$OUT/e9_settings.xml" "settings_start_theme" >/dev/null 2>&1 || true
+tap_id "$OUT/e9_settings.xml" "settings_start_theme" >/dev/null 2>&1 || true
+sleep 1.5
+scroll_to_id "$OUT/e9_settings.xml" "theme_show_more_tiles" || say "FAIL could not find the show-more-tiles toggle in Settings"
+tap_id "$OUT/e9_settings.xml" "theme_show_more_tiles"; sleep 1.5
 adb exec-out screencap -p > "$OUT/e9_settings_columns.png"
 ensure_start
 adb exec-out screencap -p > "$OUT/e9_two_columns.png"
@@ -105,4 +110,15 @@ python3 "$(dirname "$0")/e9_overflow.py" "$OUT/e9_two_columns.xml" | tee -a "$LO
 
 adb shell dumpsys activity service app.tileshell/.feeds.TileNotificationListener | grep -E "\[edit\]|\[layout\]" | tail -60 > "$OUT/e9_diag.txt"
 layout_restore "$OUT/layout_before.json"
-say "baseline layout restored (the column setting is restored by the caller)"
+# put the column setting back the way it was (RV12)
+adb shell am start -n app.tileshell/app.tileshell.settings.SettingsActivity >/dev/null; sleep 2
+scroll_to_id "$OUT/e9_settings_restore.xml" "settings_start_theme" >/dev/null 2>&1 || true
+tap_id "$OUT/e9_settings_restore.xml" "settings_start_theme" >/dev/null 2>&1 || true
+sleep 1.5
+if scroll_to_id "$OUT/e9_settings_restore.xml" "theme_show_more_tiles"; then
+  tap_id "$OUT/e9_settings_restore.xml" "theme_show_more_tiles"; sleep 1.5
+  say "show more tiles restored to on"
+fi
+ensure_start
+layout_restore "$(dirname "$0")/../baseline_layout.json"
+say "baseline layout and the column setting restored"

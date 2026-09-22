@@ -1,0 +1,25 @@
+# phase 02 edge cases 2026-09-21T18:06:34-06:00
+=== 1. a layout store written by an older shell build (v2 -> v3 upgrade keeps the layout) ===
+store after the upgrade (expect version 3, the six tiles in READING order, the row kept):
+{"version":3,"order":[{"key":"slot:PEOPLE","size":"MEDIUM"},{"key":"slot:BROWSER","size":"MEDIUM"},{"key":"slot:MAIL","size":"MEDIUM"},{"key":"slot:CALENDAR","size":"WIDE"},{"key":"shell:weather","size":"WIDE"},{"key":"slot:STORE","size":"SMALL"}],"slots":{},"dock":["slot:PHONE","slot:MESSAGING","slot:CAMERA"],"folders":[]}=== 2. Back in edit mode, without and with a folder expanded (H9) ===
+expect: Back left edit mode and stayed on Start (top activity: app.tileshell/.StartActivity)
+=== 3. drag across several occupied cells without stopping: no reflow, no feedback left behind ===
+order after the sweep (the tile lands where it was dropped; nothing else should have been folded):
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: []
+=== 4. process death mid-drag ===
+store after the process died mid-drag (expect the layout from before the drag: an uncommitted drag writes nothing):
+PASS: unchanged
+=== 5. a wide dragged tile whose centre sits over a small tile ===
+wide slot:CALENDAR onto small slot:STORE
+order after (a folder at the small tile's place, holding both, is the expected result):
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'folder:f1/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: [{'id': 'f1', 'name': None, 'members': [{'key': 'slot:STORE', 'size': 'SMALL'}, {'key': 'slot:CALENDAR', 'size': 'WIDE'}]}]
+=== 6. drag during a live flip ===
+recorded a drag of a live tile (slot:CALENDAR) to docs/plan/qa/phase-02/EDGE/edge_flip.mp4; order after:
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL', 'slot:CALENDAR/WIDE']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: []
+baseline layout restored
