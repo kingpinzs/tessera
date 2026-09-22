@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Phase 05 EDGE3: the fixture asks Android's default speech recogniser for a result (a second client
+         of the shell's speech process while its keyboard holds the microphone, and the reverse). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <application
         android:icon="@android:drawable/sym_def_app_icon"
         android:label="IME fixture"

@@ -12,9 +12,12 @@
       first_visible_ms, rest_ms, duration_ms, t90_ms (when 90 % of the travel was done).
 
   motion.py popup FRAMES_DIR TX TY PX0 PY0 PX1 PY1 FPS
-      Frame of the first touch indicator at (TX, TY) (show_touches draws a translucent grey disc, which
-      moves the pixel away from the key's own colour) and the first frame with accent pixels filling the
-      popup box. Prints touch_ms, popup_ms, delay_ms, popup_fill (share of the box that is accent).
+      (TX, TY) must be a pixel ONLY the touch indicator can change: in the row gap just below the pressed
+      key, where the keyboard draws nothing when a key is pressed (review B2: a pixel inside the key
+      changes with the keyboard's own accent fill, so the "touch" and the popup were always one frame).
+      The popup's first frame is the first with ANY accent in its box (> 2 %), and its fill there is
+      reported against the box's final fill (R6 §2.3.5: ≥ 91 % of the final accent-pixel count in the first
+      frame; review M1). Prints touch_ms, popup_ms, delay_ms, first_fill, final_fill, first_over_final.
 
 A pixel's colour is read from the frames ffmpeg resampled to FPS; the real capture rate is checked
 separately by the row (ffprobe), and a capture below 55 fps is rejected there (RV11).
@@ -113,6 +116,7 @@ def popup(d, tx, ty, box, fps):
     fs = frames(d)
     base = None
     touch = pop = None
+    fills = []
     x0, y0, x1, y1 = box
     for i, f in enumerate(fs):
         with Image.open(f) as im:
@@ -130,17 +134,21 @@ def popup(d, tx, ty, box, fps):
                     n += 1
                     if q[2] > 150 and q[2] - q[0] > 60:
                         acc += 1
-            if pop is None and acc / n > 0.5:
+            fills.append(acc / n)
+            if pop is None and acc / n > 0.02:
                 pop = i
-                fill = acc / n
     frame_ms = 1000.0 / fps
     if touch is None or pop is None:
         print("touch=%s popup=%s: not both seen" % (touch, pop))
         sys.exit(2)
+    # The popup's settled fill: the largest fill over the next 100 ms (it stays while the key is held).
+    final = max(fills[pop:pop + int(0.1 * fps) + 1])
     print("touch_ms=%.1f" % (touch * frame_ms))
     print("popup_ms=%.1f" % (pop * frame_ms))
     print("delay_ms=%.1f" % ((pop - touch) * frame_ms))
-    print("popup_fill=%.2f" % fill)
+    print("first_fill=%.3f" % fills[pop])
+    print("final_fill=%.3f" % final)
+    print("first_over_final=%.3f" % (fills[pop] / final if final else 0))
 
 
 if __name__ == "__main__":

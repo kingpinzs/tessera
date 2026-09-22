@@ -85,13 +85,42 @@ adb shell locksettings clear --old tessa >/dev/null
 adb shell input keyevent KEYCODE_WAKEUP; adb shell wm dismiss-keyguard >/dev/null 2>&1; sleep 1
 note "lock cleared: $(kg_showing)"
 
+# ---- recovery through Android's own keyboard switcher (m9 / review m16) ----------------------------------
+open_field field_text
+kb_dump "$D"
+adb shell ime set com.android.inputmethod.latin/.LatinIME >/dev/null 2>&1   # a second keyboard to switch to
+adb shell ime set "$IME_ID" >/dev/null
+adb shell input keyevent KEYCODE_BACK; sleep 1; dump_ui "$F"; tap_node "$F" "$FIX:id/field_text"; sleep 1.5
+# The nav bar's keyboard-switch button (the globe) opens Android's picker; the picker lists the keyboards.
+kb_dump "$D"
+sw="$(python3 - "$D" <<'PY'
+import re, sys
+x = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+for n in re.finditer(r'<node[^>]*>', x):
+    t = n.group(0)
+    if 'ime_switcher' in t or re.search(r'content-desc="[^"]*(input method|keyboard)[^"]*"', t, re.I):
+        m = re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', t)
+        if m:
+            l, tt, r, b = map(int, m.groups()); print((l + r) // 2, (tt + b) // 2); break
+PY
+)"
+note "the nav bar's keyboard-switch button: ${sw:-not found}"
+if [ -n "$sw" ]; then adb shell input tap $sw; else adb shell input tap 962 2272; fi
+sleep 1.5
+P="$ROW_DIR/.edge2_picker.xml"; dump_ui "$P"
+screencap "$ROW_DIR/edge2_switcher.png"
+picked="$(grep -o 'text="[^"]*"' "$P" | tr '\n' ' ')"
+note "switcher texts: ${picked:0:300}"
+assert_contains "Android's keyboard switcher is reachable with the shell keyboard up, and lists it" "Tessera keyboard" "$picked"
+adb shell input keyevent KEYCODE_BACK; sleep 1
+
 # ---- a hardware keyboard attached ----------------------------------------------------------------------
 adb shell settings put secure show_ime_with_hard_keyboard 0
 open_field field_text
 kb_dump "$D" || true
 assert_eq "hardware keyboard: the soft keyboard stays hidden (Android's own rule)" "no" "$(has_node "$D" kb_key_q)"
 adb shell input keyevent KEYCODE_H; adb shell input keyevent KEYCODE_I; sleep 0.8
-assert_eq "hardware keyboard: physical keys type through the shell keyboard's service" "[hi]" "$(read_mirror text)"
+assert_eq "hardware keyboard: physical keys still type with the soft keyboard hidden (review m7: this proves the keys reach the app, not the service's part in it)" "[hi]" "$(read_mirror text)"
 adb shell settings put secure show_ime_with_hard_keyboard 1
 
 # ---- a field near the bottom with the keyboard raised --------------------------------------------------
@@ -158,7 +187,9 @@ K="$ROW_DIR/.edge2_kp.xml"; scroll_to_node "$K" keyboard_cursor_left 4 >/dev/nul
 open_field field_text
 kb_dump "$D"; screencap "$ROW_DIR/edge2_hand_changed.png"
 read -r l t r b <<< "$(bounds "$D" kb_cursor_dot)"
-assert_within "handedness changed mid-hold: the next keyboard has the dot on the left (1077.5 phys)" 1077.5 "$(python3 -c "print((($l+$r)/2)/0.75)")" 3
+# Review m8: the change cannot land WHILE the dot is held — opening Settings ends the hold (the keyboard
+# hides). What this proves is that the interrupted hold leaves nothing behind and the change takes.
+assert_within "handedness changed after an interrupted hold: the next keyboard has the dot on the left (1077.5 phys)" 1077.5 "$(python3 -c "print((($l+$r)/2)/0.75)")" 3
 read -r ql qt _ _ <<< "$(bounds "$D" kb_key_q)"
 set -- $(python3 "$HERE/measure.py" px "$ROW_DIR/edge2_hand_changed.png" $((ql + 6)) $((qt + 6)))
 assert_within "and it is not stuck dimmed from the interrupted hold (key 48)" 48 "$1" 6

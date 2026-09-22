@@ -333,3 +333,28 @@ Files this check adds (nothing else touched; no Kotlin, Gradle, manifest or phas
 `tools/fetch-keyboard.sh`, this file, and a `.gitignore` block for `.keyboardsrc/`,
 `app/src/main/assets/keyboard/` and the five fetched licence files (`git check-ignore`
 confirmed). Generated payload lives only in the ignored paths.
+
+---
+
+## 4. Show / hide: can the input method own the slide? (Decisions "Show / hide", UNVERIFIED) — NO
+
+Checked at build start by building the keyboard with **no show or hide animation of its own** (the panel
+is drawn at rest from its first frame; `KeyboardView` has no animation on appearing) and capturing the
+window coming up and going down at 60 fps (`E3M/`, method in `qa/phase-05/README.md`):
+
+* in: the panel's edge travels from the nav bar to rest in 167 ms after its first visible frame, 90 % of
+  the travel in 117 ms, and its first frame is only 33 % opaque — the window is also **faded** in;
+* out: off-screen in 117 ms, fading as it goes (opacity 0.88 at the start of the move, 0.52 half way).
+
+Motion the keyboard never draws is on the screen, so it is applied to the window from outside: since
+Android 11 the IME window's show and hide are an insets animation run by the focused app's
+`InsetsController` on the IME window's leash, and `InputMethodService` exposes no API that sets its curve,
+duration or alpha. The Decisions' failure branch therefore applies as written: the system's slide is
+used, the result is recorded (INDEX Change Log, 2026-09-22), H10 asks Jeremy to accept it, and E3's
+show / hide clause checks only what the IME draws (the press popup, E3M).
+
+## 5. The band under a raised panel (Decisions "Moving the keyboard", UNVERIFIED) — YES
+
+`onComputeInsets` with `TOUCHABLE_INSETS_REGION` set to the panel gives a see-through, non-touchable band
+below a raised panel: E9 raises the panel 649 px and a tap on `bottom_field`, which then lies in that band,
+focuses it (`E9/E9.txt`).

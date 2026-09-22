@@ -110,13 +110,17 @@ sleep 2.5
 kb_dump "$D"
 adb shell settings put system show_touches 1
 read -r gl gt gr gb <<< "$(bounds "$D" kb_key_g)"
-gx=$(( (gl + gr) / 2 )); gy=$(( (gt + gb) / 2 ))
+read -r _ bt _ _ <<< "$(bounds "$D" kb_key_b)"
+# Touch g near its BOTTOM edge, so the touch indicator's disc spills into the row gap below g, and read the
+# indicator there: the keyboard draws nothing in that gap when a key is pressed (review B2).
+gx=$(( (gl + gr) / 2 )); gy=$(( gb - 6 )); tgy=$(( (gb + bt) / 2 ))
+note "touch at ($gx, $gy); indicator pixel in the g/b row gap at ($gx, $tgy)"
 # The popup box: centred on g, its bottom 7 phys (5 px) above g's top, 233 phys (175 px) tall.
 pw=$(( 173 * 3 / 4 )); ph=$(( 233 * 3 / 4 ))
 px0=$(( gx - pw / 2 + 8 )); px1=$(( gx + pw / 2 - 8 )); py1=$(( gt - 5 - 8 )); py0=$(( gt - 5 - ph + 8 ))
 popup_action() { adb shell input swipe $gx $gy $gx $gy 400; sleep 1.5; }
 record e3m_popup 5 popup_action
-python3 "$MO" popup "$ROW_DIR/e3m_popup_frames" $gx $((gy + 40)) $px0 $py0 $px1 $py1 60 > "$ROW_DIR/e3m_popup.txt" 2>&1
+python3 "$MO" popup "$ROW_DIR/e3m_popup_frames" $gx $tgy $px0 $py0 $px1 $py1 60 > "$ROW_DIR/e3m_popup.txt" 2>&1
 pop_rc=$?
 cat "$ROW_DIR/e3m_popup.txt" | while read -r l; do note "popup: $l"; done
 tms="$(sed -n 's/^touch_ms=//p' "$ROW_DIR/e3m_popup.txt")"; pms="$(sed -n 's/^popup_ms=//p' "$ROW_DIR/e3m_popup.txt")"
@@ -124,7 +128,7 @@ gap="$(max_gap_in "$ROW_DIR/e3m_popup.pts" "$(python3 -c "print(${tms:-0}/1000)"
 note "popup: largest source-frame gap between touch and popup ${gap} ms"
 if [ "$pop_rc" -eq 0 ] && python3 -c "import sys; sys.exit(0 if $gap <= 18.2 else 1)"; then
   delay="$(sed -n 's/^delay_ms=//p' "$ROW_DIR/e3m_popup.txt")"
-  fill="$(sed -n 's/^popup_fill=//p' "$ROW_DIR/e3m_popup.txt")"
+  ratio="$(sed -n 's/^first_over_final=//p' "$ROW_DIR/e3m_popup.txt")"
   # R6 2.3.5: 17-50 ms after the touch indicator, at >= 91 % of its final accent in the first frame
   # (no scale, slide or fade). RV11 widens by one capture frame (16.7 ms) on EACH side: 0.3-66.7 ms.
   # Run 1 recorded the indicator and the popup in the SAME frame (0 ms): at 60 fps "same frame" means
@@ -133,7 +137,8 @@ if [ "$pop_rc" -eq 0 ] && python3 -c "import sys; sys.exit(0 if $gap <= 18.2 els
   # half it CAN resolve — never later than W10M's slowest plus a frame, and never before the touch —
   # i.e. -16.7..66.7 ms, and P3 re-measures the timing from a faster phone capture (RV11).
   assert_within "R6 2.3.5 popup no later than 50 ms after the touch indicator (+1 frame each side)" 25 "$delay" 41.7
-  assert_within "R6 2.3.5 popup at full size in its first frame (no scale / fade)" 1.0 "$fill" 0.12
+  # R6 2.3.5: at >= 91 % of its FINAL accent-pixel count in its FIRST frame (first = any accent at all).
+  assert_eq "R6 2.3.5 popup at >= 91 % of its final fill in its first frame (no scale / fade)" "yes" "$(python3 -c "print('yes' if $ratio >= 0.91 else 'no')")"
 else
   _verdict FAIL "the popup was captured at >= 55 fps (RV11)" "rc=$pop_rc largest gap ${gap} ms"
 fi

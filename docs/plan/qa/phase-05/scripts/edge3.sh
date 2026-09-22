@@ -37,61 +37,60 @@ assert_contains "the keyboard recorded the refusal" "voice refused: no RECORD_AU
 adb shell pm grant app.tileshell android.permission.RECORD_AUDIO
 sleep 1
 
-# ---- microphone busy: the keyboard listening, then Cortana asks ---------------------------------------
+# ---- one microphone, two clients: refused, both ways (review M5) --------------------------------------
+# The second client is the shell's OWN recognition service (in the launcher process), which Android starts
+# when an app asks its default speech recogniser — here the fixture, on a broadcast, so the fixture's screen
+# and the keyboard showing over it stay exactly as they are. No either/or branches: each direction must
+# show the refusal.
+adb shell pm grant "$FIX" android.permission.RECORD_AUDIO
+note "default recogniser: $(adb shell settings get secure voice_recognition_service | tr -d '\r')"
+recog() { read_mirror recog; }
+
+# (a) the keyboard listening; the fixture's recogniser asks -> refused (ERROR_RECOGNIZER_BUSY = 8).
 open_field field_text
 kb_dump "$D"; tap_node "$D" kb_mic
 wait_listening
 ip="$(ime_pid)"
-assert_eq "the keyboard holds the microphone" "$ip" "$(speech_status mic_owner_pid)"
-cortana_assist; sleep 4
-cortana_listen 0 || true
-# Read the owner WHILE Cortana's capture runs: with no speech it endpoints on silence within seconds
-# (run 1 read it 4 s later and found nobody holding the microphone).
-for _ in $(seq 1 20); do [ "$(speech_status asr_listening)" = "true" ] && break; sleep 0.25; done
-owner="$(speech_status mic_owner_pid)"
-note "after Cortana asked: microphone owner pid $owner (keyboard $ip, launcher $(main_pid)); cortana: $(diag cortana | tail -3 | tr '\n' ' ' | cut -c1-240)"
-note "keyboard: $(ime_log 'voice' | tail -3 | tr '\n' ' ' | cut -c1-300)"
-speech_dump | grep -E "refused|listening for|released" | tail -4 > "$ROW_DIR/edge3_busy_speech.txt"
-note "speech process: $(tr '\n' ' ' < "$ROW_DIR/edge3_busy_speech.txt")"
-# One microphone, one owner, whichever way the platform orders it: either the keyboard still owns it
-# and Cortana was REFUSED with the busy code (7), or the keyboard's window hid when Cortana's opened, the
-# keyboard stopped listening and let go, and Cortana then got a free microphone. Never both, never a crash.
-if [ "$owner" = "$ip" ]; then
-  assert_contains "the keyboard kept the microphone and Cortana was refused with the busy code (7)" "speech error 7" "$(diag cortana | tail -20)"
-else
-  assert_contains "the keyboard let go when its window hid" "voice: unbound" "$(ime_log 'voice: unbound' | tail -1)"
-  assert_eq "and Cortana then owns the microphone" "$(main_pid)" "$owner"
-fi
-cortana_close
-assert_ne "no crash: the launcher process is alive" "" "$(main_pid)"
-assert_ne "no crash: a keyboard process is alive" "" "$(ime_pid)"
+assert_eq "(a) the keyboard holds the microphone" "$ip" "$(speech_status mic_owner_pid)"
+adb shell am broadcast -a "$FIX.RECOGNIZE" -p "$FIX" >/dev/null
+for _ in $(seq 1 20); do r="$(recog)"; case "$r" in error:*|results:*) break ;; esac; sleep 0.5; done
+note "(a) the fixture's recogniser answered: $r; speech: $(speech_dump | grep -E 'refused' | tail -1 | tr -s ' ' | cut -c1-200)"
+assert_eq "(a) the second client is refused as busy (SpeechRecognizer.ERROR_RECOGNIZER_BUSY)" "error:8" "$r"
+assert_eq "(a) and the keyboard still holds the microphone" "$ip" "$(speech_status mic_owner_pid)"
+assert_contains "(a) the speech process recorded the refusal" "refused" "$(speech_dump | grep -E 'refused' | tail -1)"
+assert_eq "(a) no crash: the keyboard's process is the same one" "$ip" "$(ime_pid)"
+kb_dump "$D"; tap_node "$D" kb_mic   # the keyboard stops (tap the voice key again)
 wait_idle || true
 
-# ---- microphone busy the other way: Cortana listening, then the keyboard asks -------------------------
+# (b) the fixture's recogniser listening; the keyboard's voice key asks -> refused with the notice.
 open_field field_text
-cortana_assist; sleep 4
-cortana_listen 2 || true
-wait_listening
+adb shell am broadcast -a "$FIX.RECOGNIZE" -p "$FIX" >/dev/null
+for _ in $(seq 1 20); do [ "$(recog)" = "listening" ] && break; sleep 0.25; done
 mp="$(main_pid)"
-note "Cortana listening: owner pid $(speech_status mic_owner_pid), launcher pid $mp"
-assert_eq "Cortana holds the microphone" "$mp" "$(speech_status mic_owner_pid)"
-# The keyboard's voice key from inside Cortana's own text box, while Cortana still listens.
-C="$ROW_DIR/.edge3_c.xml"; dump_ui "$C"
-tap_node "$C" cortana_text_box_field 2>/dev/null; sleep 1.5
-if kb_dump "$D" && [ "$(has_node "$D" kb_mic)" = yes ]; then
-  tap_node "$D" kb_mic; sleep 1.5
-  n="$(notice)"
-  note "the keyboard's strip: $n (owner now $(speech_status mic_owner_pid))"
-  if [ "$(speech_status mic_owner_pid)" = "$mp" ]; then
-    assert_contains "the keyboard is refused with a notice" "using the microphone" "$n"
-  else
-    note "focusing the text box ended Cortana's listening first, so the keyboard got the free microphone"
-    assert_eq "no crash either way: the keyboard's process is alive" "yes" "$([ -n "$(ime_pid)" ] && echo yes || echo no)"
-  fi
-else
-  note "Cortana's text box did not bring up the keyboard while listening; the refusal side is carried by the first direction"
-fi
+note "(b) fixture recogniser: $(recog); microphone owner pid $(speech_status mic_owner_pid) (launcher $mp)"
+assert_eq "(b) the recognition service (launcher process) holds the microphone" "$mp" "$(speech_status mic_owner_pid)"
+kb_dump "$D"; tap_node "$D" kb_mic; sleep 1.2
+n="$(notice)"
+note "(b) the keyboard's strip: $n"
+assert_contains "(b) the keyboard is refused with a notice, not a crash" "is using the microphone" "$n"
+assert_eq "(b) and the recogniser still holds the microphone" "$mp" "$(speech_status mic_owner_pid)"
+assert_contains "(b) the keyboard recorded the busy error (code 7)" "voice error 7" "$(ime_log 'voice error' | tail -1)"
+wait_idle || true
+
+# (c) Cortana itself: the keyboard's window hides when Cortana's opens, so the keyboard lets go first and
+# Cortana gets a free microphone — the one ordering a user can produce with the two on screen.
+open_field field_text
+kb_dump "$D"; tap_node "$D" kb_mic
+wait_listening
+ip="$(ime_pid)"
+cortana_assist; sleep 4
+cortana_listen 0 || true
+for _ in $(seq 1 20); do [ "$(speech_status asr_listening)" = "true" ] && break; sleep 0.25; done
+note "(c) after Cortana asked: owner $(speech_status mic_owner_pid) (launcher $(main_pid), keyboard $ip); keyboard: $(ime_log 'voice' | tail -2 | tr '\n' ' ' | cut -c1-200)"
+assert_contains "(c) the keyboard let go when its window hid behind Cortana's" "voice: unbound" "$(ime_log 'voice: unbound' | tail -1)"
+assert_eq "(c) and Cortana then holds the microphone" "$(main_pid)" "$(speech_status mic_owner_pid)"
 cortana_close
+assert_ne "(c) no crash: the launcher process is alive" "" "$(main_pid)"
 wait_idle || true
 
 # ---- another app holds the assistant role -------------------------------------------------------------
@@ -120,7 +119,9 @@ kb_dump "$D"; tap_node "$D" kb_mic; sleep 1
 sleep 9
 t="$(read_mirror text)"; n="$(notice)"
 log "during a call: field $t; strip notice [$n]"
-assert_eq "during a call: the keyboard either types or explains, and never crashes" "yes" "$([ -n "$(ime_pid)" ] && { [ "$t" != "[]" ] || [ -n "$n" ]; } && echo yes || echo no)"
+# Review m6: the emulator's call does not take the microphone, so this proves only that voice typing during
+# a call does not crash; whether a real call blocks the microphone is the phone's (P1).
+assert_eq "during a call: no crash (the microphone under a real call is a phone row)" "yes" "$([ -n "$(ime_pid)" ] && { [ "$t" != "[]" ] || [ -n "$n" ]; } && echo yes || echo no)"
 adb emu gsm cancel 5550100 >/dev/null; sleep 2
 note "call ended: $(adb shell dumpsys telephony.registry | grep -m1 -o 'mCallState=[0-9]')"
 

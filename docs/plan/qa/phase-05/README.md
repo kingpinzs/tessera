@@ -58,6 +58,22 @@ enforced by lib.sh's device lock) while the next drivers are written.
 | E9 run 1 | the space-bar drag never moved the panel: each move rebuilt the metrics and re-read the stored raise (0) | a move changes only the raise and requests a layout pass |
 | E9 run 2 | the lift point was ignored (a 300-px drag landed 292 px up) | the UP position is applied as a final move in every gesture mode |
 | E1 | the checklist's "Keyboard selected" row read Settings.Secure | InputMethodManager.getCurrentInputMethodInfo |
+| EDGE2 run 1 | in landscape the keys were laid out over the full display width while the IME window stops at the side nav bar and cutout | keys span the display width less the side insets |
+| EDGE1 run 2 | a 64-letter slice of a long run was taken as a word, autocorrected and counted toward learning | a run reaching the read window's start is not a word |
+| review B1 / MAJOR-2 | every character typed in a password field (a keyguard password included) was logged in clear in the :ime ring | password fields log counts only; alternates and touch lines withheld |
+| review M3 | an emoji typed into a password became a Recent cell | Recent is not recorded in password fields |
+| review MAJOR-1 | a strip tap during a held key committed the nearest row-1 letter; a key tapped during a strip gesture was dropped | per-pointer key-block ownership; Layout.hit stops at the key block |
+| review M5 | the one-microphone refusal had no device row that could fail | MicArbiter (JVM tests) and EDGE3 (a) / (b) through the fixture's recogniser |
+| review minors | trail ticker vs a new swipe; drifted &123 tap; held space; double bind after :speech death; chevrons; stopSpeaking owner; stale strip after emoji; phone field → QWERTY after emoji; "+ word" after an original pick; restartInput re-report | each fixed at the producer (commits ecbf8ea, 06f6250) |
+| review B2 / M1 / M2 / m1 / m14 (drivers) | popup timing read a pixel the key fill changes; a fade could pass the first-frame check; the dot's diameters, bold, colours, separator and corners unmeasured | the gap pixel, R6's ≥ 91 % rule, and the new measurements in E3 / E5 |
+
+## Findings for Jeremy (not defects of this phase)
+
+* **Android's spell checker** is separate from the keyboard: a tap on a red-underlined word opens the app's
+  own suggestion popup ("Add to dictionary / Delete"), which lies over the left of the strip and takes the
+  next tap there (EDGE1 run 2; EDGE1 now moves the caret with the arrow keys).
+* **A force-stop deselects the keyboard** (a crash does not); the checklist's "Keyboard selected" row is the
+  way back (EDGE2).
 
 ## Rows
 

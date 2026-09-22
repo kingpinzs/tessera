@@ -18,7 +18,7 @@ fresh() { open_field "${1:-field_text}"; kb_dump "$D"; }
 strip() { ime_dump | sed -n 's/^ *strip=//p' | tr -d '\r'; }
 
 # ---- action keys: what each draws and what it does -------------------------------------------------
-for f in field_url:GO field_search:SEARCH field_send:SEND field_next:NEXT field_done:DONE; do
+for f in field_text:NONE field_url:GO field_search:SEARCH field_send:SEND field_next:NEXT field_done:DONE; do
   field="${f%%:*}"; act="${f#*:}"
   fresh "$field"
   screencap "$ROW_DIR/edge1_enter_$field.png"
@@ -33,7 +33,11 @@ for f in field_url:GO field_search:SEARCH field_send:SEND field_next:NEXT field_
   assert_eq "$field: the Enter key is $want" "$want" "$got"
   tap_key "$D" enter; sleep 1
   action="$(read_mirror action)"
-  if [ "$act" = NEXT ]; then
+  if [ "$act" = NONE ]; then
+    # A default single-line field: the grey ↵ (R6 2.8.1) sends Enter, which the app sees as no action id.
+    note "$field: after Enter the app recorded [$action]"
+    assert_ne "$field: Enter reached the app" "none" "$action"
+  elif [ "$act" = NEXT ]; then
     assert_eq "$field: Enter performs NEXT (focus moves on)" "IME_ACTION_NEXT@field_next" "$action"
   else
     assert_eq "$field: Enter performs $act" "IME_ACTION_$act@$field" "$action"
@@ -101,15 +105,20 @@ path() { local w="$1" i p="" ; for ((i = 0; i < ${#w}; i++)); do read -r x y <<<
 swipe_pts "$(path qzxv)" 8 > /dev/null; sleep 1
 t="$(read_mirror text)"
 note "non-dictionary swipe q-z-x-v committed: $t"
-assert_eq "a non-dictionary swipe commits a dictionary word or nothing, never garbage letters" "no" "$([ "$t" = "[qzxv]" ] && echo yes || echo no)"
+w="${t#[}"; w="${w%]}"
+inlex="$( [ -z "$w" ] && echo empty || (grep -qiP "^\Q$w\E\t" "$REPO/app/src/main/assets/keyboard/en_US.tsv" && echo yes || echo no) )"
+note "committed [$w]: in the dictionary = $inlex"
+assert_ne "a non-dictionary swipe commits a dictionary word or nothing (review m4)" "no" "$inlex"
 assert_eq "the keyboard is still up after it" "yes" "$(kb_dump "$D"; has_node "$D" kb_key_q)"
 fresh field_text
+pid_before="$(adb shell pidof app.tileshell:ime | tr -d '\r')"
 swipe_pts "$(path helo)" 1 > /dev/null; sleep 1
 t="$(read_mirror text)"
 note "very fast swipe h-e-l-o (1 step per segment): $t; decoder: $(ime_log 'word flow' | tail -1)"
 # Run 1 committed "[h]": the flick was taken as a TAP on h. A swipe, however fast, is a word.
 assert_eq "a very fast swipe is decoded as a word, not taken as a tap" "yes" "$([ ${#t} -gt 3 ] && echo yes || echo no)"
-assert_absent "no crash in the keyboard's process" "FATAL" "$(ime_dump | head -3)"
+# No crash: the same :ime process before and after (review m5 replaced a check that could never fail).
+assert_eq "no crash: the keyboard's process survived the fast swipe" "$pid_before" "$(adb shell pidof app.tileshell:ime | tr -d '\r')"
 
 # ---- long-press on a key with no alternates ------------------------------------------------------------
 fresh field_text
@@ -164,10 +173,44 @@ assert_absent "'– word' removes it from the learned words (and from the pendin
 adb shell run-as app.tileshell sh -c "'cat > files/learned_words.txt'" < "$saved"
 pid="$(adb shell pidof app.tileshell:ime | tr -d '\r')"; [ -n "$pid" ] && adb shell run-as app.tileshell kill "$pid"
 
-# ---- password: no suggestions, no learning (once more, briefly) ----------------------------------------
+# ---- "+ word", the pressed item's accent fill, and more suggestions by swiping the strip -----------------
+learned > "$saved"
+fresh field_text
+tap_word "$D" "zqxvb"; sleep 0.8
+kb_dump "$D"
+vb="$(grep -o '<node[^>]*content-desc="zqxvb"[^>]*>' "$D" | grep -o 'kb_sugg_[0-9]*' | head -1)"
+note "the typed word is offered verbatim as $vb"
+read -r vx vy <<< "$(node_center "$D" "$vb")"
+adb shell input swipe $vx $vy $vx $vy 900 &
+h=$!; sleep 0.5; screencap "$ROW_DIR/edge1_pressed_item.png"; wait $h; sleep 1
+colour_ok="$(python3 "$HERE/measure.py" px "$ROW_DIR/edge1_pressed_item.png" "$vx" $((vy - 40)))"
+note "strip item while pressed: $colour_ok"
+set -- $colour_ok
+assert_eq "R6 2.2.7 a pressed item is accent-filled across the strip's height" "yes" "$([ "$3" -gt 180 ] && [ "$1" -lt 60 ] && echo yes || echo no)"
+assert_contains "R6 2.2.7 / D1: after keeping the unknown word the strip offers '+ zqxvb'" "+ zqxvb" "$(strip)"
+kb_dump "$D"; tap_node "$D" kb_sugg_0; sleep 1
+assert_contains "'+ word' adds it to the learned words at once" "zqxvb" "$(learned)"
+adb shell run-as app.tileshell sh -c "'cat > files/learned_words.txt'" < "$saved"
+pid="$(adb shell pidof app.tileshell:ime | tr -d '\r')"; [ -n "$pid" ] && adb shell run-as app.tileshell kill "$pid"; sleep 1
+fresh field_text
+tap_word "$D" "th"; sleep 0.8
+kb_dump "$D"
+read -r s0l _ _ _ <<< "$(bounds "$D" kb_sugg_0)"
+read -r sl st sr sb <<< "$(bounds "$D" kb_strip)"
+adb shell input swipe $((sr - 60)) $(( (st + sb) / 2 )) $((sl + 60)) $(( (st + sb) / 2 )) 300; sleep 1
+kb_dump "$D"
+read -r s0l2 _ _ _ <<< "$(bounds "$D" kb_sugg_0 2>/dev/null)"
+note "first strip item's left edge before / after swiping the strip left: $s0l / ${s0l2:-off-screen}"
+assert_eq "R6 2.2.8 swiping the strip left brings more suggestions in (the first item moves off left)" "yes" "$([ -z "$s0l2" ] || [ "$s0l2" -lt "$s0l" ] && echo yes || echo no)"
+
+# ---- password: no suggestions, no learning, no autocorrect (review m9) -----------------------------------
 fresh field_password
 tap_word "$D" "teh"; sleep 0.6
 assert_eq "password: no suggestions" "" "$(strip)"
+tap_key "$D" space; sleep 0.6
+assert_eq "password: no autocorrect ('teh ' stays)" "[teh ]" "$(read_mirror text)"
+assert_eq "password: nothing typed is in the keyboard's log (count only)" "no" "$(ime_log 'commit' | tail -5 | grep -q '"t"\|"e"\|"h"' && echo yes || echo no)"
+assert_contains "password: the log says how many, not which" "hidden" "$(ime_log 'commit' | tail -1)"
 
 kb_end
 row_end
