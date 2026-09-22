@@ -31,7 +31,7 @@ class VoicesTest {
         override fun startListening(owner: ISpeechCallback?, hotwords: String?) = Unit
         override fun stopListening(owner: ISpeechCallback?) = Unit
         override fun speak(owner: ISpeechCallback?, utteranceId: String?, text: String?, speakerId: Int) = Unit
-        override fun stopSpeaking() = Unit
+        override fun stopSpeaking(owner: ISpeechCallback?) = Unit
         override fun preload() = Unit
         override fun status(): String = ""
     }
