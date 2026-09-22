@@ -1,5 +1,5 @@
 ---
-status: DRAFT   # Stage A: interview in progress; Q1 ruled 2026-09-22, Q2 is with Jeremy
+status: DRAFT   # Stage A: interview in progress; Q1 and Q3 ruled 2026-09-22, Q4 is with Jeremy
 ---
 # Phase 10 — W10M media player
 
@@ -35,20 +35,35 @@ whatever Android offers, which is what Q2 in the original queue was going to ask
 takes Groove's Radio pivot and its streaming catalogue off the table by itself — what is left is the
 local library, which is what a phone with no account showed anyway.
 
+**Q3 — what this is measured against (2026-09-22, Jeremy: "C").** The NOW-PLAYING screen is measured;
+the collection pivots are approximated from geometry this build already has.
+
+That split is not a compromise for its own sake. The now-playing screen is the one people look at, and it
+is the one surface here with no existing analogue anywhere in the shell — the art, the transport row and
+the track metadata are laid out in a way nothing in R3, R6 or R7 covers. The collection, by contrast, IS
+the pivot pattern that R6 measured for Cortana's pane and phase 06 measured for Phone's tabs: a pivot
+header, a scrolling list beneath it, the same type ramp. Measuring it again would produce numbers this
+build already has under another name.
+
+So: a targeted research task (**R8**) produces the now-playing numbers before this doc can go FINAL, the
+way R3 gated phases 01-03 and R7 gated phase 06. Every value the collection takes from an existing
+measurement cites the measurement it came from; every value that is genuinely new and NOT measured is
+recorded as an approximation with a NEEDS-HUMAN row, the same discipline the default Start layout got.
+
 ## Interview queue (Stage A step 4)
 
 - ~~Q1 — what the player IS.~~ Ruled 2026-09-22 ("A"); see Decisions.
 - ~~Q2 — where it lives.~~ Settled by Q1: it takes over the MUSIC slot.
-- **Q3 — what this is measured against.** With Jeremy. Nothing in R1/R3/R6/R7 covers Groove Music: R3 and
-  R6 measured Start, the app list and Cortana, and R7 measured Phone, Messaging, the Notebook and the
-  action center. So either a research task produces the numbers first, or the build approximates from the
-  shell's existing tokens and records every value as an approximation. This gates FINAL the same way R3
-  gated phases 01-03 and R7 gated phase 06.
-- Q4 — the library: what it indexes, how it handles a phone with no local audio, and whether it watches
+- ~~Q3 — what this is measured against.~~ Ruled 2026-09-22 ("C"); see Decisions. Adds research task R8.
+- **Q4 — what the Music tile follows once the shell has its own player.** With Jeremy. The tile reads
+  whatever media session is active today, and that is built and verified (INDEX Change Log 2026-09-21
+  item 3; Jeremy on the device: "it grows, glyphs do survive, buttons do drive the player"). Once this
+  app owns a session of its own, "the Music tile" could mean the active session whoever owns it, or this
+  player's tile specifically. It is the one question here that can take away something already working.
+- Q5 — the library: what it indexes, a phone with no local audio at all, and whether it watches
   MediaStore the way PhotosFeed does.
-- Q5 — playback: what the engine is, what happens to the existing MusicFeed and the tile's transport
-  controls (they read a media session today — this app would OWN one), and headset / Bluetooth handling.
-- Q6 — the lock-screen and glance relationship (phase 07 territory).
+- Q6 — playback: the engine, headset and Bluetooth handling, and what becomes of MusicFeed.
+- Q7 — the lock-screen and glance relationship (phase 07 territory).
 
 ## Build tasks
 
