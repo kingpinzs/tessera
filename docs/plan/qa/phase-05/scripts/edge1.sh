@@ -82,9 +82,11 @@ assert_eq "paste: the keyboard types at the caret after the paste" "[copycopyx]"
 
 # ---- very long text ------------------------------------------------------------------------------------
 fresh field_multiline
-long="$(python3 -c "print('abcdefghij' * 150)")"
-adb shell input text "$long"
-sleep 2
+# `input text` truncates a long argument (run 1 got 481 of 1500 characters), so the app is filled in
+# fifteen 100-character chunks; the keyboard only ever reads the 64 characters before the caret.
+chunk="$(python3 -c "print('abcdefghij' * 10)")"
+for _ in $(seq 1 15); do adb shell input text "$chunk"; done
+sleep 1
 tap_key "$D" space; tap_word "$D" "end"; sleep 0.8
 len="$(read_mirror len)"
 assert_eq "very long text: 1500 characters, then ' end' typed by the keyboard" "1504" "$len"
@@ -102,8 +104,9 @@ assert_eq "the keyboard is still up after it" "yes" "$(kb_dump "$D"; has_node "$
 fresh field_text
 swipe_pts "$(path helo)" 1 > /dev/null; sleep 1
 t="$(read_mirror text)"
-note "very fast swipe h-e-l-o (1 step per segment): $t"
-assert_eq "a very fast swipe still commits a word (no crash, no stuck trail)" "yes" "$([ "$t" != "[]" ] && echo yes || echo no)"
+note "very fast swipe h-e-l-o (1 step per segment): $t; decoder: $(ime_log 'word flow' | tail -1)"
+# Run 1 committed "[h]": the flick was taken as a TAP on h. A swipe, however fast, is a word.
+assert_eq "a very fast swipe is decoded as a word, not taken as a tap" "yes" "$([ ${#t} -gt 3 ] && echo yes || echo no)"
 assert_absent "no crash in the keyboard's process" "FATAL" "$(ime_dump | head -3)"
 
 # ---- long-press on a key with no alternates ------------------------------------------------------------
@@ -152,6 +155,7 @@ rm_idx="$(grep -o 'resource-id="kb_sugg_[0-9]*"[^>]*content-desc="– zqxjw"' "$
 [ -z "$rm_idx" ] && rm_idx="$(grep -o 'content-desc="– zqxjw"[^>]*resource-id="kb_sugg_[0-9]*"' "$D" | head -1 | sed 's/.*kb_sugg_\([0-9]*\).*/\1/')"
 note "the remove item is kb_sugg_$rm_idx"
 tap_node "$D" "kb_sugg_$rm_idx"; sleep 1
+assert_contains "the tap on '– zqxjw' reached the dictionary" "dictionary - zqxjw" "$(ime_log 'dictionary' | tail -1)"
 assert_absent "'– word' removes it from the learned words (and from the pending count)" "zqxjw" "$(learned)"
 adb shell run-as app.tileshell sh -c "'cat > files/learned_words.txt'" < "$saved"
 pid="$(adb shell pidof app.tileshell:ime | tr -d '\r')"; [ -n "$pid" ] && adb shell run-as app.tileshell kill "$pid"
