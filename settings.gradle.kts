@@ -12,7 +12,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "tileshell"
+rootProject.name = "tessera"
 include(":app")
 include(":livetile-client")
 include(":testapps:tileclient-a", ":testapps:tileclient-b", ":testapps:tileclient-b2")

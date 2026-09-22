@@ -14,6 +14,7 @@ import android.telecom.TelecomManager
 import android.telephony.SmsManager
 import app.tileshell.apps.AppCatalog
 import app.tileshell.apps.AppEntry
+import app.tileshell.brand.Brand
 import app.tileshell.cortana.Card
 import app.tileshell.cortana.CardAction
 import app.tileshell.cortana.CardButton
@@ -579,7 +580,7 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
 
     private fun takeNote(text: String?): Outcome {
         val notes = prefs.settings.value.notesApp
-            ?: return answer("Choose a Notes app in Cortana's settings first.")
+            ?: return answer("Choose a Notes app in ${Brand.ASSISTANT_NAME}'s settings first.")
         val intent = context.packageManager.getLaunchIntentForPackage(notes.packageName)
             ?: return answer("I couldn't open your notes app.")
         // A note with words goes through ACTION_SEND so the app receives the text; a bare "take a note"

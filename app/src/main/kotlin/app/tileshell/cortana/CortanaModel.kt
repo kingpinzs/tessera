@@ -2,6 +2,7 @@ package app.tileshell.cortana
 
 import android.content.Context
 import app.tileshell.apps.AppCatalog
+import app.tileshell.brand.Brand
 import app.tileshell.cortana.action.ActionHost
 import app.tileshell.cortana.action.ActionLayer
 import app.tileshell.cortana.action.Contacts
@@ -237,7 +238,7 @@ class CortanaModel(
         val spoken = when (event.code) {
             SpeechError.NO_MICROPHONE_PERMISSION -> "I need permission to use the microphone."
             SpeechError.MODEL_MISSING, SpeechError.MODEL_CORRUPT, SpeechError.ESPEAK_DATA_BAD ->
-                "My speech files are missing. Open Cortana's settings to check."
+                "My speech files are missing. Open ${Brand.ASSISTANT_NAME}'s settings to check."
             SpeechError.AUDIO_UNAVAILABLE -> "I can't get to the microphone right now."
             else -> "Something went wrong."
         }

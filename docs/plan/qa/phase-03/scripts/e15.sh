@@ -50,7 +50,7 @@ if [ -n "$b" ]; then
 else
   _verdict FAIL "the pane is measurable" "no bounds"
 fi
-assert_contains "R7 3.1.1 the pane title" "CORTANA" "$(node_text "$pane" cortana_pane_title)"
+assert_contains "R7 3.1.1 the pane title" "TESS" "$(node_text "$pane" cortana_pane_title)"
 assert_eq "R7 3.1.1 Home item" "yes" "$(has_node "$pane" cortana_pane_item_home)"
 assert_eq "R7 3.1.1 Reminders item" "yes" "$(has_node "$pane" cortana_pane_item_reminders)"
 assert_eq "R7 3.1.9 Settings item" "yes" "$(has_node "$pane" cortana_pane_item_settings)"
