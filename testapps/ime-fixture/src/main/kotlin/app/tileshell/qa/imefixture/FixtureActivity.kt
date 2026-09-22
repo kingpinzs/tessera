@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputFilter
+import android.view.Choreographer
+import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 
@@ -31,6 +33,26 @@ abstract class FixtureActivity(private val layout: Int) : Activity() {
         mirror = Mirror(this, root)
         mirror.attach()
         applyFocusExtra(intent)
+        if (intent.getBooleanExtra(EXTRA_TICKER, false)) startTicker()
+    }
+
+    /**
+     * `-e ticker true`: flip the mirror block's background between two greys one level apart on EVERY
+     * frame. The emulator's screenrecord only emits a frame when the screen changes, so a capture of a
+     * still screen has no frames to time a touch against; with the ticker every vsync is a frame (phase 05
+     * E3 motion, the press-popup timing). Off by default: a screen that never idles breaks plain dumps.
+     */
+    private fun startTicker() {
+        val block = findViewById<View>(R.id.mirror_block) ?: return
+        var odd = false
+        val cb = object : Choreographer.FrameCallback {
+            override fun doFrame(frameTimeNanos: Long) {
+                odd = !odd
+                block.setBackgroundColor(if (odd) 0xFFEEEEEE.toInt() else 0xFFEFEFEF.toInt())
+                if (!isFinishing) Choreographer.getInstance().postFrameCallback(this)
+            }
+        }
+        Choreographer.getInstance().postFrameCallback(cb)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -65,6 +87,7 @@ abstract class FixtureActivity(private val layout: Int) : Activity() {
 
     companion object {
         const val EXTRA_FOCUS = "focus"
+        const val EXTRA_TICKER = "ticker"
 
         /** Keeps only ASCII lowercase letters from an insertion; the LengthFilter caps at 5. */
         val LOWERCASE_ONLY = InputFilter { source, start, end, _, _, _ ->

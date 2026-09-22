@@ -1,0 +1,36 @@
+==============================================================================
+ROW E3M — press-popup timing and the show / hide slide, from frames
+at            2026-09-22T14:16:51-06:00
+driver        e3motion.sh blob b02a9d34e57d7985ebea2e7cdc675ee1d776f362
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     01d2c07c75bf2dfd 333513390 bytes
+apk installed 3a337a3500b83727
+apk match     yes (3a337a3500b83727)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      kb_begin: prior ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+      panel top at rest 1419, nav bar top 2205, key block 646px
+      e3m_show: 37 frames, geometry 1080,2340
+      show: duration_ms=166.7
+      show: t90_ms=116.7
+      show: moving_frames=10
+      show: alpha_first_visible=0.33
+      show: motion_window_s=1.3333 1.5000
+      show: largest source-frame gap during the slide 21.2 ms
+FAIL  the show slide was captured at >= 55 fps (RV11)             rc=0 largest gap 21.2 ms
+      e3m_hide: 39 frames, geometry 1080,2340
+      hide: alpha_at_start=0.89 alpha_mid=0.53
+      hide: motion_window_s=1.1667 1.2833
+      hide: largest source-frame gap during the slide 22.0 ms
+FAIL  the hide slide was captured at >= 55 fps (RV11)             rc=0 largest gap 22.0 ms
+      e3m_popup: 297 frames, geometry 1080,2340
+      popup: touch_ms=1133.3
+      popup: popup_ms=1133.3
+      popup: delay_ms=0.0
+      popup: popup_fill=0.93
+      popup: largest source-frame gap between touch and popup 16.9 ms
+PASS  R6 2.3.5 popup no later than 50 ms after the touch indicator (+1 frame each side)  0.00 vs 25.00 +/- 41.7
+PASS  R6 2.3.5 popup at full size in its first frame (no scale / fade)  0.93 vs 1.00 +/- 0.12
+      kb_end: restored ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+------------------------------------------------------------------------------
+E3M: 2 passed, 2 failed
