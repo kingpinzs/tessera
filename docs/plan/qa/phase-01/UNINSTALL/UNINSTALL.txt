@@ -1,0 +1,23 @@
+==============================================================================
+ROW UNINSTALL — the app list's hold menu offers Uninstall
+at            2026-09-22T06:05:28-06:00
+driver        uninstall.sh blob efad020d6e2ce59fc50d9398aecf28123bf71725
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     85879fc73c633d3f 327038374 bytes
+apk installed 8db49d18303537fa
+apk match     yes (8db49d18303537fa)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  holding a row opens the menu                                contains [resource-id="applist_menu"]
+PASS  the menu still offers Pin to Start                          contains [applist_menu_pin]
+PASS  and now offers Uninstall                                    contains [applist_menu_uninstall]
+      the screen now belongs to: com.android.packageinstaller
+PASS  Android's uninstaller is on screen, not the shell           != app.tileshell
+PASS  Android is the one asking                                   contains [Do you want to uninstall this app?]
+PASS  and it names the app that was held                          contains [Notes]
+PASS  the app survived the row cancelling it                      contains [package:org.fossify.notes]
+PASS  the shell's own row opens the menu too                      contains [resource-id="applist_menu"]
+PASS  and still offers Pin to Start                               contains [applist_menu_pin]
+PASS  but never offers to uninstall the launcher itself           does not contain [applist_menu_uninstall]
+------------------------------------------------------------------------------
+UNINSTALL: 10 passed, 0 failed

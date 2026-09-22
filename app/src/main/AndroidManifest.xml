@@ -6,6 +6,12 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
     <!-- Back on Start (Usage access), granted by the user through the onboarding checklist. -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
+
+    <!-- The app list's hold menu offers Uninstall (Jeremy, 2026-09-22). Android hands the request to its
+         own package installer, which asks the user; without this permission that activity finishes
+         silently and the tap appears to do nothing, which is exactly what the first run of the UNINSTALL
+         row caught. Normal permission: granted at install, no runtime prompt. -->
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <!-- Private space apps are only visible to the default Home with this permission (Android 15+). -->
     <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />

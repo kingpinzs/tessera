@@ -91,7 +91,21 @@ fun HoldRow(
  * also read as a tap outside. Back is handled by the caller.
  */
 @Composable
-fun PinToStartMenu(anchorPx: Float, onPin: () -> Unit, onDismiss: () -> Unit) {
+fun PinToStartMenu(
+    anchorPx: Float,
+    onPin: () -> Unit,
+    onDismiss: () -> Unit,
+    /**
+     * Uninstall (Jeremy, 2026-09-22: "I should be able to long hold app icon to bring up a quick menu to
+     * uninstall it"). W10M's own hold menu carried it, under "pin to start", so this is the row's second
+     * item and not a new surface.
+     *
+     * Null when the app cannot be uninstalled — an inbox app, or the shell itself. W10M did not offer an
+     * uninstall it could not perform either, and an item that opens a dialog Android then refuses is
+     * worse than no item.
+     */
+    onUninstall: (() -> Unit)? = null,
+) {
     val colors = LocalShellColors.current
     Box(
         Modifier
@@ -108,6 +122,7 @@ fun PinToStartMenu(anchorPx: Float, onPin: () -> Unit, onDismiss: () -> Unit) {
             content = {
                 Column(Modifier.fillMaxWidth().background(colors.background).testTag("applist_menu")) {
                     MenuItem("Pin to Start", "applist_menu_pin", onPin)
+                    onUninstall?.let { MenuItem("Uninstall", "applist_menu_uninstall", it) }
                 }
             },
             modifier = Modifier.fillMaxSize(),

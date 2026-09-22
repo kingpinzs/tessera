@@ -284,7 +284,19 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
                     }
                 }
                 menu?.let { target ->
-                    PinToStartMenu(target.anchorPx, onPin = { pinToStart(target.entry) }, onDismiss = { menu = null })
+                    PinToStartMenu(
+                        target.anchorPx,
+                        onPin = { pinToStart(target.entry) },
+                        onDismiss = { menu = null },
+                        onUninstall = if (AppUninstall.canUninstall(target.entry, context)) {
+                            {
+                                menu = null
+                                AppUninstall.request(context, target.entry)
+                            }
+                        } else {
+                            null
+                        },
+                    )
                 }
                 if (gridOpen) {
                     JumpGrid(model.cells, onPick = { cell ->
