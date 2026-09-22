@@ -86,5 +86,8 @@ dependencies {
     // Phase 03: one runtime for ASR and TTS (Decisions, R2 §5.2). The AAR is a pinned GitHub release
     // asset fetched by tools/fetch-speech.sh, not a repo dependency: k2-fsa publishes no Maven artifact.
     implementation(files("libs/sherpa-onnx-1.13.8.aar"))
+    // Phase 10: playback and the media session the tile rule keys on (build tasks 3 and 4).
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.session)
     testImplementation(libs.junit)
 }

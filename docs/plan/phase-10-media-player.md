@@ -1,5 +1,5 @@
 ---
-status: DRAFT   # Stage A: interview CLOSED 2026-09-22; awaiting R8 and the cross-model review
+status: FINAL   # frozen 2026-09-22 by Jeremy's ruling, WITHOUT the cross-model review (see Decisions); changes via a dated INDEX.md Change Log entry
 ---
 # Phase 10 — W10M media player
 
