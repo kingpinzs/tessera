@@ -6,6 +6,15 @@ package app.tileshell.tiles
  * if its one of the others on the home screen rearrange so the tile goes right above the phone bar and
  * goes back to where it was after closing it").
  *
+ * **"Right above the bottom row" is a place on the SCREEN, not a place in the grid** (Jeremy,
+ * 2026-09-22: "the last active app goes right above the bottom row in this black space", with a photo
+ * of the empty band between the last grid row and the bottom row). This first moved the tile to the end
+ * of the grid order on the assumption that the end of the grid is the row above the bottom row. It is
+ * not: the grid ends wherever the tiles happen to end, so on a Start that does not fill the screen the
+ * promoted tile landed part-way up and the band above the bottom row stayed black — the exact space the
+ * promotion exists to use. So the tile is LIFTED OUT of the grid and handed back separately, for the
+ * caller to draw in a fixed row above the bottom row, pinned the same way the bottom row itself is.
+ *
  * **This never touches the stored layout.** It is a transform applied to the order on the way to the
  * screen, so "goes back to where it was" costs nothing and cannot go wrong: there is no saved original
  * position to restore, no window in which a crash could strand a tile somewhere it does not belong, and
@@ -24,22 +33,28 @@ package app.tileshell.tiles
 object RecentPromotion {
 
     /**
-     * [order] with [promoted] moved to the end, which is where [GridPack] packs the last row — the
-     * section directly above the bottom tile row. Everything else keeps its relative position, so the
-     * grid a person knows only shifts by the one tile that left it.
+     * The grid to pack, and the one tile to draw above the bottom row.
+     *
+     * [tile] is null whenever nothing is promoted or the promoted app is one of the three left alone
+     * above, and [grid] is then the caller's own list instance — a quiet Start allocates nothing.
      */
-    fun apply(order: List<Sized>, promoted: TileKey?): List<Sized> {
-        if (promoted == null) return order
+    data class Promotion(val grid: List<Sized>, val tile: Sized?)
+
+    /**
+     * [order] with [promoted] lifted out of it. The tile keeps its own size: what is promoted is where a
+     * tile is drawn, never how big it is, so a small tile promoted stays small and [TileGrowth] remains
+     * the only thing that resizes on the way to the screen.
+     */
+    fun apply(order: List<Sized>, promoted: TileKey?): Promotion {
+        if (promoted == null) return Promotion(order, null)
         val index = order.indexOfFirst { it.key == promoted }
         // Not on the grid: a bottom-row app, a folder member, or an app with no tile at all.
-        if (index < 0) return order
-        // Already the last tile: moving it would be a no-op that still allocated a new list.
-        if (index == order.lastIndex) return order
-        val moved = order[index]
-        return buildList(order.size) {
+        if (index < 0) return Promotion(order, null)
+        val lifted = order[index]
+        val rest = buildList(order.size - 1) {
             addAll(order.subList(0, index))
             addAll(order.subList(index + 1, order.size))
-            add(moved)
         }
+        return Promotion(rest, lifted)
     }
 }

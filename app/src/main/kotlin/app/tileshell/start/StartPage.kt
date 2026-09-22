@@ -298,6 +298,12 @@ class StartGeometry(
     val dockWidthPx: Float,
     /** The panel's height: the contraction's fixed point is a fraction of the SCREEN, not of this page. */
     val screenHeightPx: Float,
+    /**
+     * The size the last-opened app's tile is drawn at above the bottom tile row, or null when nothing is
+     * promoted ([app.tileshell.tiles.RecentPromotion]). Held here because that row is placed off the
+     * bottom of the PAGE, like the bottom tile row, and not off the end of the grid.
+     */
+    val recentSize: TileSize? = null,
 ) {
     val fixedPointY: Float get() = screenHeightPx * Edit.FIXED_POINT_Y
     private val pushFromRow: Int? = bandTilePlacement?.let { it.y + it.size.spanY }
@@ -326,6 +332,16 @@ class StartGeometry(
         }
 
     val dockTopPx: Float get() = pageHeightPx - grid.gutterPx - dockTileHeight(grid)
+
+    /**
+     * Top of the last-opened app's tile: directly above the bottom tile row, one gutter clear of it, or
+     * off the bottom of the page when there is no bottom row to sit above.
+     */
+    val recentTopPx: Float
+        get() {
+            val below = if (dockKeys.isEmpty()) pageHeightPx else dockTopPx
+            return below - grid.gutterPx - (recentSize?.let { hPx(it) } ?: 0f)
+        }
 
     /** The grid cell a content-space point falls in, skipping the band's own rows. */
     fun cellAt(x: Float, y: Float): Pair<Int, Int>? {
@@ -433,16 +449,22 @@ fun StartPage(
                 sized.key.takeIf { factory.packageOf(it) in ActiveTiles.grownPackages }
             }
         }
-    val order =
-        if (edit.active) stored
-        else remember(stored, RecentApp.promoted, grownKeys) {
-            // Two transforms, both on the way to the screen and neither of them stored: where the last
-            // opened app sits, and how big a tile with something happening on it is drawn (INDEX Change
-            // Log 2026-09-21 items 3, 4 and 7). Order does not matter — one moves tiles, the other
-            // resizes them — but the promotion runs first so the grown tile lands in the row the
-            // promotion put it in rather than the other way round.
-            TileGrowth.apply(RecentPromotion.apply(stored, RecentApp.promoted), grownKeys)
-        }
+    // Two transforms, both on the way to the screen and neither of them stored: where the last opened
+    // app sits, and how big a tile with something happening on it is drawn (INDEX Change Log 2026-09-21
+    // items 3, 4 and 7). The promotion runs first, because it decides WHICH tiles the grid still has to
+    // pack; the growth then applies to the promoted tile as well, so the app you just came back from
+    // still shows its controls if it is playing something.
+    val promotion = remember(stored, edit.active, RecentApp.promoted) {
+        if (edit.active) RecentPromotion.Promotion(stored, null)
+        else RecentPromotion.apply(stored, RecentApp.promoted)
+    }
+    val order = remember(promotion.grid, edit.active, grownKeys) {
+        if (edit.active) promotion.grid else TileGrowth.apply(promotion.grid, grownKeys)
+    }
+    /** The last opened app's tile, drawn in its own fixed row above the bottom tile row, or null. */
+    val recentTile = remember(promotion.tile, grownKeys) {
+        promotion.tile?.let { TileGrowth.apply(listOf(it), grownKeys).first() }
+    }
     val placements = remember(order, grid.unitsAcross) { GridPack.pack(order, grid.unitsAcross) }
     val bandFolder = shownFolder?.takeIf { it in layout.folders }
     val bandTile = bandFolder?.let { id -> placements.firstOrNull { (it.key as? TileKey.FolderTile)?.folderId == id } }
@@ -462,7 +484,7 @@ fun StartPage(
         val geo = StartGeometry(
             grid, topPx, placements, bandFolder, bandTile, members,
             if (bandTile != null) Edit.bandHeight(grid, GridPack.rowCount(members)) * bandReveal.value else 0f,
-            pageHeightPx, dockKeys, dockW, screenHeightPx,
+            pageHeightPx, dockKeys, dockW, screenHeightPx, recentTile?.size,
         )
         // Scroll the band into view as it opens (R6 §1.6.2: a new folder is scrolled into view; §1.6.6: expanding
         // auto-scrolls so the band fits).
@@ -473,6 +495,8 @@ fun StartPage(
             if (overshoot > 0) scroll.scrollTo((scroll.value + overshoot.toInt()).coerceIn(0, scroll.maxValue))
         }
 
+        // Every tile on screen takes its own turn in the face-change comb, the two fixed rows included.
+        val cycleCount = placements.size + dockKeys.size + (if (recentTile != null) 1 else 0)
         val geoState = rememberUpdatedState(geo)
         val pitchState = rememberUpdatedState(pitchScale)
         Box(Modifier.fillMaxSize().startEditGestures(edit, geoState, store, scroll, scope, pitchState)) {
@@ -509,7 +533,6 @@ fun StartPage(
                 .verticalScroll(scroll, enabled = !edit.active),
         ) {
             Box(Modifier.fillMaxWidth().height(with(density) { geo.contentHeightPx.toDp() })) {
-                val cycleCount = placements.size + dockKeys.size
                 placements.forEachIndexed { cycleIndex, p ->
                     if (drag != null && p.key == drag.key) return@forEachIndexed // the dragged tile is drawn at the finger
                     val tile = factory.place(p.key, p.size, geo.xPx(p), geo.yPx(p), geo.wPx(p.size), geo.hPx(p.size))
@@ -571,6 +594,25 @@ fun StartPage(
             }
         }
 
+        // The last app you opened, in the band between the end of the grid and the bottom tile row
+        // (Jeremy 2026-09-22: "the last active app goes right above the bottom row in this black space").
+        // Fixed, exactly like the bottom row it sits on, because "right above the bottom row" is a place
+        // on the SCREEN: the grid ends wherever its tiles end, which on a Start that does not fill the
+        // screen is nowhere near the bottom. It carries no idPrefix, so the tile keeps the same model id
+        // it had in the grid and the launch animation still knows which tile was tapped.
+        if (recentTile != null) {
+            val tile = factory.place(
+                recentTile.key, recentTile.size, grid.leftMarginPx, geo.recentTopPx,
+                geo.wPx(recentTile.size), geo.hPx(recentTile.size),
+            )
+            val row = (geo.recentTopPx / grid.pitchPx).toInt().coerceAtLeast(0)
+            Box(Modifier.fillMaxSize().graphicsLayer { scaleX = launchScale; scaleY = launchScale; alpha = gridAlpha }.testTag("recent_app_row")) {
+                GridTile(tile, false, 1f, 1f, tileDim, edit, colors.accent, tileAlpha, theme.pressStyle,
+                    exitAlpha(animation, row, tile.model.id), onTileTap,
+                    placements.size + dockKeys.size, cycleCount)
+            }
+        }
+
         // The fixed bottom tile row: does not scroll; fades with the last visible row on exit.
         if (dockKeys.isNotEmpty()) {
             val lastRow = (pageHeightPx / grid.pitchPx).toInt()
@@ -582,7 +624,7 @@ fun StartPage(
                     val held = edit.selected == key
                     GridTile(tile, held, 1f, if (edit.active) Edit.OTHER_TILE_SCALE else 1f, tileDim, edit, colors.accent, tileAlpha, theme.pressStyle,
                         exitAlpha(animation, lastRow, tile.model.id), onTileTap,
-                        placements.size + i, placements.size + dockKeys.size)
+                        placements.size + i, cycleCount)
                 }
                 val selectedDock = dockKeys.indexOfFirst { it == edit.selected }
                 if (edit.active && !edit.exiting && drag == null && selectedDock >= 0) {
