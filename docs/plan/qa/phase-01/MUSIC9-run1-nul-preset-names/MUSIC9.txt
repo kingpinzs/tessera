@@ -1,0 +1,65 @@
+==============================================================================
+ROW MUSIC9 — the equaliser in the audio path, and a sleep timer that actually stops the music
+at            2026-09-22T11:02:05-06:00
+driver        music9.sh blob 4b3800b950da0b9d7da8032d78e4b769fcee8614
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     704e8e807e363195 326376266 bytes
+apk installed 874c65d2724f3a51
+apk match     yes (874c65d2724f3a51)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      the player's audio session: 305
+PASS  the service reports the audio session it made               != 
+PASS  and that the device has an equaliser                        contains [equaliser available]
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  a track is playing on the now-playing screen                contains [nowplaying_root]
+PASS  AudioFlinger has an effect chain on the player's session    contains [effects for session 305]
+PASS  and it is an Equalizer                                      contains [name: Equalizer]
+      the active track on that session: [ 79 yes 14232/ 10150 305 39 A 0x000 00000001 00000001 44100 3 1 2 -inf 0 0 0 -in]
+PASS  the SAME session carries the track that is actually sounding  != 
+PASS  with the equaliser off, the effect is not enabled           = n
+PASS  the ••• opens a menu with the sleep timer             contains [music_menu_sleep]
+PASS  and the equaliser                                           contains [music_menu_eq]
+PASS  the equaliser entry says it is off                          = Equaliser: off
+      presets the device offers: 0 · 
+FAIL  it lists the device's own presets                           expected [ok] got [0]
+FAIL  and Off                                                     does not contain [music_menu_eq:off]: 
+      choosing preset -1 []
+FAIL  choosing a preset ENABLES the effect in the audio path      expected [y] got [n]
+FAIL  the service says which preset it applied                    does not contain [equaliser:  (enabled=true)]:     2026-09-22 11:02:16.189 wall=1790096536189 [music] MusicActivity created
+    2026-09-22 11:02:16.197 wall=1790096536197 [music] library (start): 6 tracks
+    2026-09-22 11:02:16.415 wall=1790096536415 [music] equaliser: off (enabled=fal
+FAIL  and the ••• menu now names it                         expected [Equaliser: ] got []
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+      after a force-stop the player's session is 321
+FAIL  after a force-stop the preset is applied again from the start  expected [y] got [n]
+FAIL  and the service says it restored it                         does not contain [equaliser:  (enabled=true)]:     2026-09-22 11:03:17.042 wall=1790096597042 [music] MusicActivity created
+    2026-09-22 11:03:17.151 wall=1790096597151 [music] library (start): 6 tracks
+    2026-09-22 11:03:17.252 wall=1790096597252 [music] equaliser: off (enabled=fal
+PASS  choosing Off disables it again                              = n
+FAIL  with no timer the entry just says Sleep timer               expected [Sleep timer] got []
+FAIL  the timer offers 15                                         does not contain [music_menu_sleep:15]: <?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0"><node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="app.tileshell" content-desc="" checkable="false" checked="false" clickable="f
+FAIL  the timer offers 30                                         does not contain [music_menu_sleep:30]: <?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0"><node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="app.tileshell" content-desc="" checkable="false" checked="false" clickable="f
+FAIL  the timer offers 45                                         does not contain [music_menu_sleep:45]: <?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0"><node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="app.tileshell" content-desc="" checkable="false" checked="false" clickable="f
+FAIL  the timer offers 60                                         does not contain [music_menu_sleep:60]: <?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0"><node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="app.tileshell" content-desc="" checkable="false" checked="false" clickable="f
+FAIL  the timer offers eot                                        does not contain [music_menu_sleep:eot]: <?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0"><node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="app.tileshell" content-desc="" checkable="false" checked="false" clickable="f
+PASS  and offers no Off while nothing is armed                    does not contain [music_menu_sleep:off]
+FAIL  arming 30 minutes reaches the service                       does not contain [armed for 30 minute(s)]:     2026-09-22 11:03:17.042 wall=1790096597042 [music] MusicActivity created
+    2026-09-22 11:03:17.151 wall=1790096597151 [music] library (start): 6 tracks
+    2026-09-22 11:03:17.252 wall=1790096597252 [music] equaliser: off (enabled=fal
+FAIL  and the entry counts it down                                expected [Sleep timer: 30 minutes left] got [Sleep timer]
+FAIL  an armed timer can be turned off                            does not contain [music_menu_sleep:off]: <?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0"><node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="app.tileshell" content-desc="" checkable="false" checked="false" clickable="f
+FAIL  turning it off reaches the service                          does not contain [sleep timer: off]:     2026-09-22 11:03:17.042 wall=1790096597042 [music] MusicActivity created
+    2026-09-22 11:03:17.151 wall=1790096597151 [music] library (start): 6 tracks
+    2026-09-22 11:03:17.252 wall=1790096597252 [music] equaliser: off (enabled=fal
+FAIL  end-of-track reaches the service                            does not contain [armed for the end of this track]:     2026-09-22 11:03:17.042 wall=1790096597042 [music] MusicActivity created
+    2026-09-22 11:03:17.151 wall=1790096597151 [music] library (start): 6 tracks
+    2026-09-22 11:03:17.252 wall=1790096597252 [music] equaliser: off (enabled=fal
+      seeked to 80 % of [4 Minute Warning]; waiting for the end
+
+PRESERVED 2026-09-22, run stopped by hand. This first run of MUSIC9 found a PRODUCT defect: the
+device's equaliser preset names (android.media.audiofx.Equalizer.getPresetName, AOSP bundle effect)
+come back padded with NUL characters. The app drew them into the preset list, and uiautomator crashed
+serialising the node ("IllegalArgumentException: Illegal character (U+0)" in KXmlSerializer), so every
+dump after the list opened failed and every assertion after that point is fallout, not evidence. Fixed at
+the producer (the service cleans the names as it reads them); MUSIC9 was re-run on the fixed build.

@@ -31,7 +31,8 @@ music_open
 dump "$ROW_DIR/denied.xml"
 adb exec-out screencap -p > "$ROW_DIR/denied.png"
 assert_contains "with the permission denied the pivot draws an empty state" "music_empty:albums" "$(cat "$ROW_DIR/denied.xml")"
-assert_contains "and it says the permission is the reason" "music access" "$(node_text "$ROW_DIR/denied.xml" music_empty:albums)"
+assert_contains "and it says the permission is the reason" "can't read the music" "$(node_text "$ROW_DIR/denied.xml" music_empty:albums)"
+assert_contains "and offers the grant right there (task 10)" "music_grant" "$(cat "$ROW_DIR/denied.xml")"
 assert_eq "no album row is drawn at all" 0 "$(count_prefix "$ROW_DIR/denied.xml" 'music_album:')"
 assert_contains "the shell says why in its diagnostics" "no audio access" "$(diag music)"
 

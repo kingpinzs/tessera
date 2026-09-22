@@ -183,9 +183,14 @@ fun clockText(ms: Long): String {
     return "${total / 60}:${(total % 60).toString().padStart(2, '0')}"
 }
 
+/** Which level of the `•••` menu is open (task 9): the two entries, or one of their choice lists. */
+private enum class MoreMenu { ROOT, SLEEP, EQUALISER }
+
 @Composable
 fun NowPlayingPage(onBack: () -> Unit, onWindows: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
+    var more by remember { mutableStateOf<MoreMenu?>(null) }
+    androidx.activity.compose.BackHandler(enabled = more != null) { more = null }
     // The elapsed label and the thumb are the only things on this screen that move on their own. Four
     // reads a second is finer than the label's own resolution and far cheaper than a frame callback.
     LaunchedEffect(MusicPlayer.isPlaying, expanded) {
@@ -210,7 +215,7 @@ fun NowPlayingPage(onBack: () -> Unit, onWindows: () -> Unit) {
         Metadata(cy = scrubCy - NowPlayingMetrics.TITLE_CY_ABOVE_SCRUB, style = MetaLine.TITLE)
         Metadata(cy = scrubCy - NowPlayingMetrics.ARTIST_CY_ABOVE_SCRUB, style = MetaLine.ARTIST)
         Scrubber(cy = scrubCy, width = maxWidth)
-        TransportRow(cy = transportCy, width = maxWidth)
+        TransportRow(cy = transportCy, width = maxWidth, onMore = { more = MoreMenu.ROOT })
         Chevron(cy = chevronCy, width = maxWidth, expanded = expanded) { expanded = !expanded }
 
         if (expanded) {
@@ -222,6 +227,18 @@ fun NowPlayingPage(onBack: () -> Unit, onWindows: () -> Unit) {
 
         // The chrome last, so nothing can draw over it.
         Chrome(onBack)
+        more?.let { level ->
+            val density = LocalDensity.current
+            // The band rises from just above the transport row, so it covers neither the nav bar nor
+            // the row the `•••` sits in.
+            val rise = with(density) { (transportCy - NowPlayingMetrics.TOGGLE_PILL / 2).toPx() }
+            MusicMenu(
+                anchorPx = 0f,
+                riseFromPx = rise,
+                items = moreEntries(level) { more = it },
+                onDismiss = { more = null },
+            )
+        }
         Box(Modifier.align(Alignment.BottomStart)) {
             app.tileshell.bars.W10mNavBar(onBack = onBack, onWindows = onWindows)
         }
@@ -388,8 +405,43 @@ private suspend fun androidx.compose.ui.input.pointer.PointerInputScope.detectSe
 
 private enum class Control { PREVIOUS, PLAY_PAUSE, NEXT, REPEAT, SHUFFLE, MORE }
 
+/**
+ * The `•••` menu's entries (task 9). R8 UNMEASURED-3 never established what the `•••` holds; the sleep
+ * timer and the equaliser are this build's "more", which is a P4 design call and not something R8 said.
+ * Each entry's label carries the current state, so the menu IS the status display.
+ */
+private fun moreEntries(level: MoreMenu, go: (MoreMenu?) -> Unit): List<MenuEntry> {
+    val now = android.os.SystemClock.elapsedRealtime()
+    return when (level) {
+        MoreMenu.ROOT -> buildList {
+            add(MenuEntry(SleepTimer.menuLabel(now, MusicPlayer.sleepAt, MusicPlayer.sleepEndOfTrack), "music_menu_sleep") { go(MoreMenu.SLEEP) })
+            // No equaliser on the device means no entry, rather than an entry that opens an empty list.
+            if (MusicPlayer.eqAvailable) {
+                add(MenuEntry(Equaliser.menuLabel(MusicPlayer.eqPreset, MusicPlayer.eqPresets), "music_menu_eq") { go(MoreMenu.EQUALISER) })
+            }
+        }
+        MoreMenu.SLEEP -> buildList {
+            SleepTimer.Choice.entries.forEach { choice ->
+                add(MenuEntry(choice.label, "music_menu_sleep:${choice.tag}") { MusicPlayer.setSleep(choice.minutes); go(null) })
+            }
+            if (MusicPlayer.sleepEndOfTrack || MusicPlayer.sleepAt > now) {
+                add(MenuEntry("Turn off the sleep timer", "music_menu_sleep:off") { MusicPlayer.setSleep(SleepTimer.OFF); go(null) })
+            }
+        }
+        MoreMenu.EQUALISER -> buildList {
+            add(MenuEntry(if (MusicPlayer.eqPreset == Equaliser.OFF) "Off (current)" else "Off", "music_menu_eq:off") {
+                MusicPlayer.setEqualiser(Equaliser.OFF); go(null)
+            })
+            MusicPlayer.eqPresets.forEachIndexed { i, name ->
+                val label = if (i == MusicPlayer.eqPreset) "$name (current)" else name
+                add(MenuEntry(label, "music_menu_eq:$i") { MusicPlayer.setEqualiser(i); go(null) })
+            }
+        }
+    }
+}
+
 @Composable
-private fun BoxWithConstraintsScope.TransportRow(cy: Dp, width: Dp) {
+private fun BoxWithConstraintsScope.TransportRow(cy: Dp, width: Dp, onMore: () -> Unit) {
     val cell = width / NowPlayingMetrics.TRANSPORT_CELLS
     val pill = NowPlayingMetrics.TOGGLE_PILL
     Control.entries.forEachIndexed { i, control ->
@@ -405,7 +457,7 @@ private fun BoxWithConstraintsScope.TransportRow(cy: Dp, width: Dp) {
             Modifier
                 .offset(x = cx - pill / 2, y = cy - pill / 2)
                 .size(pill)
-                .clickable { onControl(control) }
+                .clickable { if (control == Control.MORE) onMore() else onControl(control) }
                 .testTag("nowplaying_control:${control.name.lowercase()}"),
             Alignment.Center,
         ) {
@@ -424,8 +476,7 @@ private fun onControl(control: Control) = when (control) {
     Control.NEXT -> MusicPlayer.next()
     Control.REPEAT -> MusicPlayer.cycleRepeat()
     Control.SHUFFLE -> MusicPlayer.toggleShuffle()
-    // R8 UNMEASURED-3: what the ••• holds was never established, so it holds nothing rather than
-    // something invented. The glyph is drawn because R8 measured it as present.
+    // Opened by the page (task 9): the sleep timer and the equaliser. See [moreEntries].
     Control.MORE -> Unit
 }
 

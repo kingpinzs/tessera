@@ -1,0 +1,36 @@
+==============================================================================
+ROW MUSIC10 — music access denied: the app says so, and both the checklist and the app offer the grant
+at            2026-09-22T11:26:27-06:00
+driver        music10.sh blob e983b71ced9030e71a599ffc80c54e1db699403d
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     2b6486da9e2438f0 326384698 bytes
+apk installed 278bafec4112af9f
+apk match     yes (278bafec4112af9f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  the permission starts denied                                = false
+PASS  the setup checklist has a Music row, marked off             contains [checklist:music:missing]
+PASS  tapping it raises Android's own permission dialog           contains [permissioncontroller]
+PASS  allowing it there grants the permission                     = true
+PASS  and the row turns on                                        contains [checklist:music:granted]
+      the empty state reads: [Tessera can't read the music on this phone yet. You can allow it here, or from Music in Start settings &gt; Setup checklist.]
+PASS  the app says it cannot read the music, rather than that there is none  contains [can't read the music]
+PASS  and names where else it can be turned on                    contains [Setup checklist]
+PASS  and offers the grant right there                            contains [music_grant]
+PASS  no album is drawn                                           = 0
+PASS  tapping it raises the same dialog                           contains [permissioncontroller]
+PASS  allowing it grants the permission                           = true
+      albums drawn after the grant, without leaving the app: 1
+PASS  and the library appears at once, without restarting the app  = ok
+PASS  with the grant button gone                                  does not contain [music_grant]
+PASS  the app says why it refreshed                               contains [permission granted]
+PASS  denied for good, the app still offers the grant             contains [music_grant]
+      after the tap:     topResumedActivity=ActivityRecord{19637817 u0 com.android.settings/.spa.SpaActivity t193}
+PASS  Android shows no dialog, because it will not ask again      does not contain [permissioncontroller]
+PASS  so the tap opens the app's own settings page, the only place left to allow it  contains [com.android.settings]
+PASS  and the app says why                                        contains [will not be asked again]
+      albums drawn after coming back: 1
+PASS  coming back to the app shows the library without a restart  = ok
+PASS  because the app re-reads access on resume                   contains [access changed while away]
+------------------------------------------------------------------------------
+MUSIC10: 20 passed, 0 failed

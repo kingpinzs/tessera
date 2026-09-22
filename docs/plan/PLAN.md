@@ -66,10 +66,11 @@ search at the top, live folders, and a full-screen background image showing thro
 - Shell parts (Q6): W10M action center (pull-down overlay), volume panel overlay, glance screen,
   keyboard (IME), phone dialer (default dialer role), messaging (default SMS role), privileged helper for direct toggles (Q13;
   added round 3, R3F-03; its phase is named at the split)
-- Side pane left of Start with at-a-glance cards (added 2026-09-22 from R10; name open, "Glance" is taken by phase 07)
+- The "pod bay": a side pane left of Start whose at-a-glance cards are "pods", opened by a swipe or by telling Tess
+  "open the pod bay doors" (added 2026-09-22 from R10; named R10-Q5)
 - W10M inbox apps inside the shell APK (added 2026-09-22 from R10): Calculator, Alarms & Clock, Calendar, Photos, Camera,
-  People, Voice Recorder, video player, Files, a W10M Settings front (partial by nature). Mail, a browser and Maps are held
-  against A11; a Store and Microsoft's cloud apps are out.
+  People, Voice Recorder, video player, Files, a W10M Settings front (partial by nature). Mail, a browser and Maps are out
+  (A11 stands, R10-Q4), as are a Store and Microsoft's cloud apps.
 - First-run setup wizard (added 2026-09-22 from R10) and tile quick actions from App Shortcuts (added 2026-09-22; trigger open)
 - Fluent materials on the transient surfaces — acrylic and light (R10-Q1, 2026-09-22)
 - Cortana persona (final-release look, Q12): ring states (idle / thinking / speaking) + waveform listening state (R3F-04); voice in and out, Cortana tile,
@@ -209,6 +210,28 @@ SUPERSEDED older note (launcher-only framing, kept for history):
   - **Out**: a Store (Android installs come through the Play Store or an installer the user picks; the shell
     cannot stand in for it), and Microsoft's cloud products (Office, OneNote, OneDrive, Skype, Xbox, the MSN
     news / money / sports apps) — cloud services and Microsoft marks both.
+
+- 2026-09-22 R10-Q3 Quick-action trigger (Jeremy: "(a)"): **A. Press-and-hold, then let go, opens the burst;
+  hold and DRAG still moves the tile straight away.** One of the four satellites is "Edit", which enters edit mode
+  on that tile (the discs: resize, unpin), so at most three App Shortcuts show and resize / unpin cost one extra
+  tap. This is the Android / iOS launcher convention. It CHANGES phase 02's measured behaviour (R6 §1.1.1: a
+  hold enters edit mode on release) — the hold threshold (Edit.HOLD_MS, 783 ms) and the drag stay as measured;
+  only a hold released without a drag now opens the burst — so when it is built, phase 02's doc gets an INDEX
+  Change Log entry. A tile with no shortcuts (a shell tile, a folder) still opens the burst with "Edit" alone
+  rather than silently doing something different from every other tile.
+
+- 2026-09-22 R10-Q4 Mail, a browser and Maps against A11 (Jeremy: "(a)"): **A. A11 stands as written.** The shell
+  builds none of the three; the phone's own browser, mail and maps apps fill those tiles through their slots, as
+  they do today. The "held for a ruling" line in the scope add above is resolved: out.
+
+- 2026-09-22 R10-Q5 The side pane's name (Jeremy: "(a)", asking for "something easter egg like and play on words and AI
+  leaning"): **"pod bay"** — a bay you pull open, continuing the HAL lineage already in Tess's eye (the lens,
+  2026-09-21). Its cards are **pods** (Jeremy: "so each card is called a pod?" — yes: in the film the pods are
+  what the pod bay holds). **The easter egg**: telling Tess "open the pod bay doors" slides the pane open — after
+  she answers "I'm afraid I can't do that, Dave…" and then does it anyway. It is a phase 03 command (Tess's
+  offline matcher) wired to the pane, so it lands with whichever phase builds the pane. The name and the reply
+  are a film reference, not a mark; "Halo" was considered for the Cortana nod and rejected as a Microsoft game
+  trademark.
 
 ## Review resolutions (round 1, 2026-09-16; agent design calls, Jeremy can overrule)
 Full mapping: docs/plan/review/2026-09-16-triage.md

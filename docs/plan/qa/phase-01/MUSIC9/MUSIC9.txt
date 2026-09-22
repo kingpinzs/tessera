@@ -1,0 +1,71 @@
+==============================================================================
+ROW MUSIC9 — the equaliser in the audio path, and a sleep timer that actually stops the music
+at            2026-09-22T11:29:36-06:00
+driver        music9.sh blob 6f24421b1bf58b35b1d869de088e5599443aa300
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     2b6486da9e2438f0 326384698 bytes
+apk installed 278bafec4112af9f
+apk match     yes (278bafec4112af9f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      the player's audio session: 417
+PASS  the service reports the audio session it made               != 
+PASS  and that the device has an equaliser                        contains [equaliser available]
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  a track is playing on the now-playing screen                contains [nowplaying_root]
+PASS  AudioFlinger has an effect chain on the player's session    contains [effects for session 417]
+PASS  and it is an Equalizer                                      contains [name: Equalizer]
+      the active track on that session: [ 87 yes 17822/ 10150 417 47 A 0x000 00000001 00000001 44100 3 1 2 -inf 0 0 0 -in]
+PASS  the SAME session carries the track that is actually sounding  != 
+PASS  with the equaliser off, the effect is not enabled           = n
+PASS  the ••• opens a menu with the sleep timer             contains [music_menu_sleep]
+PASS  and the equaliser                                           contains [music_menu_eq]
+PASS  the equaliser entry says it is off                          = Equaliser: off
+      presets the device offers: 10 · |||||||||4 Minute Warning|Radiohead • The King of Limbs||1:30||||||||||||||11:30 AM|||NOW PLAYING||||||Off (current)||Normal||Classical||Dance||Flat||Folk||Heavy Metal||Hip Hop||Jazz||Pop||Rock|||||||
+PASS  it lists the device's own presets                           = ok
+PASS  and Off                                                     contains [music_menu_eq:off]
+      choosing preset 9 [Rock]
+PASS  choosing a preset ENABLES the effect in the audio path      = y
+PASS  the service says which preset it applied                    contains [equaliser: Rock (enabled=true)]
+PASS  and the ••• menu now names it                         = Equaliser: Rock
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+      after a force-stop the player's session is 433
+PASS  after a force-stop the preset is applied again from the start  = y
+PASS  and the service says it restored it                         contains [equaliser: Rock (enabled=true)]
+PASS  choosing Off disables it again                              = n
+PASS  with no timer the entry just says Sleep timer               = Sleep timer
+PASS  the timer offers 15                                         contains [music_menu_sleep:15]
+PASS  the timer offers 30                                         contains [music_menu_sleep:30]
+PASS  the timer offers 45                                         contains [music_menu_sleep:45]
+PASS  the timer offers 60                                         contains [music_menu_sleep:60]
+PASS  the timer offers eot                                        contains [music_menu_sleep:eot]
+PASS  and offers no Off while nothing is armed                    does not contain [music_menu_sleep:off]
+PASS  arming 30 minutes reaches the service                       contains [armed for 30 minute(s)]
+      30-minute arm: armed for 30 minute(s) at elapsed 7011895, fires at elapsed 8811895
+PASS  and its deadline is thirty minutes after it was armed       = 1800000
+PASS  and the entry counts it down                                = Sleep timer: 30 minutes left
+PASS  an armed timer can be turned off                            contains [music_menu_sleep:off]
+PASS  turning it off reaches the service                          contains [sleep timer: off]
+PASS  end-of-track reaches the service                            contains [armed for the end of this track]
+      seeked to 80 % of [4 Minute Warning]; waiting for the end
+      after the wait:       state=PlaybackState {state=PAUSED(2), position=90050, buffered position=90044, speed=0.0, updated=7064830, actions=7340029, custom actions=[], active item id=0, error=null}
+PASS  the music pauses at the end of the track                    contains [PAUSED(2)]
+PASS  and it was the timer that paused it                         contains [paused at the end of the track]
+      paused at position 90044 ms; track [4 Minute Warning]
+PASS  at the END of the track, not part-way through it            = ok
+PASS  and on the same track, not a moment into the next one       = 4 Minute Warning
+PASS  a fired timer is disarmed, not left showing                 = Sleep timer
+PASS  repeat all is on, so the queue cannot end first             contains [repeat all]
+PASS  and the music is playing again                              contains [PLAYING(3)]
+      armed for 15 minutes at elapsed 7089994, due at 7989994; waiting
+PASS  the 15-minute timer armed                                   != 
+PASS  due exactly fifteen minutes after it was armed              = 900000
+      ten minutes in:       state=PlaybackState {state=PLAYING(3), position=76137, buffered position=90044, speed=1.0, updated=7692803, actions=7340027, custom actions=[], active item id=1, error=null}
+PASS  ten minutes in, it is still playing — the queue did not run out and the timer did not fire early  contains [PLAYING(3)]
+      fired at elapsed 7989995; the session:       state=PlaybackState {state=PAUSED(2), position=13329, buffered position=90044, speed=0.0, updated=7989996, actions=7340029, custom actions=[], active item id=5, error=null}
+PASS  after fifteen minutes the music has stopped                 contains [PAUSED(2)]
+PASS  and the timer is what stopped it                            != 
+      it fired 900001 ms after it was armed (1 ms past 15:00)
+PASS  at its time: within five seconds of fifteen minutes, and not before  = ok
+------------------------------------------------------------------------------
+MUSIC9: 44 passed, 0 failed

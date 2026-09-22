@@ -1,17 +1,18 @@
 ==============================================================================
 ROW MUSIC6 — the music collection: four pivots, the jump grid, and a tap that plays
-at            2026-09-22T10:36:43-06:00
-driver        music6.sh blob cfd4ba921d632557390c0beb2f9067cd7d36527f
+at            2026-09-22T11:48:23-06:00
+driver        music6.sh blob c6427b119e93419798747aa0629522d02de84a06
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     b4a5eacd6bc00d7b 326343678 bytes
-apk installed 6176fb72c0d512c3
-apk match     yes (6176fb72c0d512c3)
+apk built     2b6486da9e2438f0 326384698 bytes
+apk installed 278bafec4112af9f
+apk match     yes (278bafec4112af9f)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       MediaStore holds 6 audio rows
 PASS  the six fixtures scanned in                                 = ok
 PASS  with the permission denied the pivot draws an empty state   contains [music_empty:albums]
-PASS  and it says the permission is the reason                    contains [music access]
+PASS  and it says the permission is the reason                    contains [can't read the music]
+PASS  and offers the grant right there (task 10)                  contains [music_grant]
 PASS  no album row is drawn at all                                = 0
 PASS  the shell says why in its diagnostics                       contains [no audio access]
 PASS  the collection opens                                        contains [music_root]
@@ -47,7 +48,7 @@ PASS  and the list lands on that letter                           contains [musi
       tapping [music_song:32]
 PASS  there is a song row to tap                                  != 
 PASS  the shell owns a media session                              contains [app.tileshell]
-      the shell's session:       state=PlaybackState {state=PLAYING(3), position=2952, buffered position=90044, speed=1.0, updated=3812139, actions=7340027, custom actions=[], active item id=0, error=null}
+      the shell's session:       state=PlaybackState {state=PLAYING(3), position=2989, buffered position=90044, speed=1.0, updated=8113529, actions=7340027, custom actions=[], active item id=0, error=null}
 PASS  and that session is PLAYING                                 contains [PLAYING(3)]
 PASS  with the track actually advancing, not merely loaded        = ok
 PASS  the player says which track it started, and of how many     contains [ of 6)]
@@ -62,4 +63,4 @@ PASS  holding that album's tracks and no others                   = ok
 PASS  Back leaves the album page                                  does not contain [music_detail_title]
 PASS  and returns to the pivot it was opened from                 contains [music_pivot_header:albums]
 ------------------------------------------------------------------------------
-MUSIC6: 38 passed, 0 failed
+MUSIC6: 39 passed, 0 failed

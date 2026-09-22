@@ -3,8 +3,13 @@ package app.tileshell.music
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import android.Manifest
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.collectAsState
@@ -16,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import app.tileshell.bars.hideSystemBars
 import app.tileshell.diag.Diagnostics
 import app.tileshell.ui.ShellRoot
@@ -62,7 +69,34 @@ class MusicActivity : ComponentActivity() {
                         Screen.COLLECTION -> {
                             val context = LocalContext.current
                             val tracks by MusicStore.library.collectAsState()
-                            val access = remember(tracks) { MusicStore.hasAccess(context) }
+                            // Held as state and re-read on every resume — NOT derived from the track
+                            // list. A phone with no music has an empty list before AND after the grant,
+                            // so an access flag keyed on the list would stay "denied" forever there.
+                            var access by remember { mutableStateOf(MusicStore.hasAccess(context)) }
+                            LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                                val now = MusicStore.hasAccess(context)
+                                if (now != access) {
+                                    access = now
+                                    MusicStore.refresh(context, "access changed while away")
+                                }
+                            }
+                            val grant = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+                                access = granted
+                                Diagnostics.add("music", "audio permission request: ${if (granted) "granted" else "denied"}")
+                                if (granted) {
+                                    MusicStore.refresh(context, "permission granted")
+                                } else if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_MEDIA_AUDIO)) {
+                                    // Denied with no rationale to show right after asking means Android will
+                                    // not ask again ("don't ask again", or a second denial). The app's own
+                                    // settings page is the only place left where it can be turned on, so the
+                                    // tap goes there rather than doing nothing.
+                                    Diagnostics.add("music", "audio permission will not be asked again: opening the app's settings")
+                                    startActivity(
+                                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                            .setData(Uri.fromParts("package", packageName, null)),
+                                    )
+                                }
+                            }
                             val store = remember(context) { PlaylistStore.get(context) }
                             val playlists by store.playlists.collectAsState()
                             MusicCollectionPage(
@@ -76,6 +110,7 @@ class MusicActivity : ComponentActivity() {
                                 },
                                 onBack = { finish() },
                                 onWindows = { goHome() },
+                                onGrant = { grant.launch(Manifest.permission.READ_MEDIA_AUDIO) },
                             )
                         }
                         Screen.NOW_PLAYING -> NowPlayingPage(

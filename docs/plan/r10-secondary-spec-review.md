@@ -89,10 +89,12 @@ Everything else in the spec either exists here already or conflicts with a rulin
 2. The Start mark — A / B / C, lean B (drawn in `r10/`). **RULED 2026-09-22: B.** Also ruled the same
    day without a question: the first-run setup wizard (item 16) is added, and tile quick actions
    (item 10) are added with Jeremy's own motion values. The quick actions' trigger is question 3.
-3. Tile quick actions: the trigger (press-and-hold is edit mode). *(asked 2026-09-22)*
+3. Tile quick actions: the trigger (press-and-hold is edit mode). **RULED 2026-09-22: A — hold and let go opens
+   the burst, hold and drag moves the tile, one satellite is Edit.**
 4. A third pane left of Start — and its name. **ADDED 2026-09-22** (Jeremy: "that side pull out thing at a
-   glance thing"); only the name is still open.
+   glance thing"). **Named 2026-09-22: the "pod bay", its cards "pods"**, with Tess's "open the pod bay doors"
+   easter egg.
 5. Which inbox apps. **ADDED 2026-09-22** (Jeremy: "did you add ALL the apps"): every buildable one is in
-   (PLAN.md); Mail, a browser and Maps wait on a ruling against A11.
+   (PLAN.md). Mail, a browser and Maps: **RULED 2026-09-22, A — A11 stands, all three out.**
 6. A Tessera bar over every app — opt-in only, after R4's probe.
 7. A local-network LLM (Ollama on the PC) as an option for phase 08 — against Q2's no-cloud ruling.
