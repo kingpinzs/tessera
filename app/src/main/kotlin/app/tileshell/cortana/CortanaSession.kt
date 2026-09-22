@@ -88,7 +88,6 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
         super.onCreate()
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         setUiEnabled(true)
-        model.start()
         scope.launch { model.closeRequests.collect { hide() } }
         Diagnostics.add("cortana", "session created")
     }
@@ -124,6 +123,8 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
     override fun onShow(args: Bundle?, showFlags: Int) {
         super.onShow(args, showFlags)
         lifecycleRegistry.currentState = Lifecycle.State.RESUMED
+        // The session object outlives a hide, so the engines are bound per SHOW, not per session.
+        model.start()
         hideSystemBars()
         val mode = args?.getString(CortanaService.EXTRA_MODE)
             ?.let { runCatching { CortanaMode.valueOf(it) }.getOrNull() }

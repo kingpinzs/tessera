@@ -26,9 +26,11 @@ interface TtsEvents {
 /**
  * Kokoro en v0.19 and the AudioTrack it plays through, in the `:speech` process.
  *
- * Synthesis streams: `generateWithCallback` hands back audio in chunks and each chunk is written to a
- * MODE_STREAM track as it arrives, so speech starts before the sentence is finished. espeak-ng's data
- * cannot be read out of the APK, so [EspeakData] unpacks it and its real path is the engine's `dataDir`.
+ * Synthesis is ONE call, not a streaming callback: sherpa-onnx's JNI looks the streaming callback up by
+ * a signature Kotlin does not emit, and calling it aborts the whole process (see [speak]). The utterance
+ * is generated in full, then written to a MODE_STREAM track in ~50 ms blocks so the speaking halo has a
+ * level to step on. espeak-ng's data cannot be read out of the APK, so [EspeakData] unpacks it and its
+ * real path is the engine's `dataDir`.
  */
 class SherpaTts(private val context: Context) {
 
@@ -200,16 +202,25 @@ class SherpaTts(private val context: Context) {
             player.play()
             val levelChunk = max(1, rate * LEVEL_INTERVAL_MS / 1000)
 
-            engine.generateWithCallback(text = text, sid = sid, speed = SPEED) { samples ->
-                if (generation.get() != myGeneration) {
-                    cancelled = true
-                    return@generateWithCallback 0
-                }
+            // Synthesised in one call, not through generateWithCallback.
+            //
+            // sherpa-onnx's JNI looks the callback up as `invoke([F)Ljava/lang/Integer;`, and neither the
+            // invokedynamic lambda D8 emits nor a Kotlin lambda class carries a method with that exact
+            // signature — the native side then calls NewFloatArray with a pending NoSuchMethodError and
+            // ART aborts the whole process. It took the speech process down on the first real reply
+            // ("JNI DETECTED ERROR IN APPLICATION", SherpaTts.kt in the tombstone), and no Kotlin-side
+            // guard can catch an abort. Cortana's replies are a second or two long, so generating the
+            // whole utterance before playback costs a little latency and removes the crash entirely.
+            val audio = engine.generate(text = text, sid = sid, speed = SPEED)
+            val samples = audio.samples
+            if (generation.get() != myGeneration) {
+                cancelled = true
+            } else {
                 var offset = 0
                 while (offset < samples.size) {
                     if (generation.get() != myGeneration) {
                         cancelled = true
-                        return@generateWithCallback 0
+                        break
                     }
                     val count = min(levelChunk, samples.size - offset)
                     // Mono float PCM: one float is one frame.
@@ -217,22 +228,22 @@ class SherpaTts(private val context: Context) {
                     if (wrote < 0) {
                         Diagnostics.add("speech", "tts: AudioTrack.write returned $wrote")
                         cancelled = true
-                        return@generateWithCallback 0
+                        break
                     }
                     framesWritten += wrote
                     if (wrote > 0) {
+                        // The speaking halo steps on this, every ~50 ms (R6 §3.2.1 measured 51 ± 17 ms).
                         events.onSpeakingLevel(utteranceId, AudioLevel.ofBlock(samples, wrote, offset))
                     }
                     offset += wrote
                     if (wrote < count) {
                         // A blocking write only comes up short when the track was stopped or flushed under
-                        // us, which is what [interrupt] does. Stop generating rather than spin.
+                        // us, which is what [interrupt] does.
                         Diagnostics.add("speech", "tts: short write ($wrote of $count); treating as cancelled")
                         cancelled = true
-                        return@generateWithCallback 0
+                        break
                     }
                 }
-                1
             }
 
             if (generation.get() != myGeneration) cancelled = true

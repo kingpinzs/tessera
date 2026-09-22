@@ -114,10 +114,34 @@ def make_tts():
     return sherpa_onnx.OfflineTts(config)
 
 
-def write_wav(path, samples, rate):
+# The recogniser endpoints on trailing silence and needs a moment of room tone before the first
+# phoneme; without them the first word arrives clipped and the last word runs into the endpoint. The
+# first run without padding read "What time is it?" as "BUT TIME IS IT NOT".
+LEAD_SILENCE_S = 0.4
+# Long enough to still be FEEDING the microphone when the recogniser endpoints (its rules want 1.4 s of
+# trailing silence after speech, 2.4 s without). When playback stopped first, the AVD's virtual
+# microphone looped its last buffer and the recogniser heard the utterance twice
+# ("WHAT TIME IS IT WHAT TIME IS IT", audioMs 5600 for a 2.6 s file).
+TAIL_SILENCE_S = 3.0
+
+# Peak-normalised so every utterance reaches the microphone at the same level, whatever the voice did.
+PEAK = 0.9
+
+
+def write_wav(path, samples, rate, pad=False):
     import numpy as np
 
-    pcm = np.clip(np.asarray(samples), -1.0, 1.0)
+    pcm = np.asarray(samples, dtype="float32")
+    if pad and pcm.size:
+        peak = float(np.max(np.abs(pcm)))
+        if peak > 0:
+            pcm = pcm * (PEAK / peak)
+        pcm = np.concatenate([
+            np.zeros(int(LEAD_SILENCE_S * rate), dtype="float32"),
+            pcm,
+            np.zeros(int(TAIL_SILENCE_S * rate), dtype="float32"),
+        ])
+    pcm = np.clip(pcm, -1.0, 1.0)
     pcm = (pcm * 32767.0).astype("<i2")
     with wave.open(path, "wb") as w:
         w.setnchannels(1)
@@ -155,7 +179,7 @@ def build(ids):
             print(f"  {key}.wav (2.0 s of silence)")
             continue
         audio = tts.generate(text, sid=PROMPT_SPEAKER, speed=0.95)
-        write_wav(path, audio.samples, rate)
+        write_wav(path, audio.samples, rate, pad=True)
         if rate != 16000:
             resample_to_16k(path)
         with wave.open(path) as w:

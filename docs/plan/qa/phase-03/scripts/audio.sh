@@ -16,6 +16,8 @@
 # no ASR grading of Cortana's own voice anywhere in this gate.
 set -uo pipefail
 
+export PATH="$HOME/Android/Sdk/platform-tools:$PATH"
+
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 state="$here/../.audio-state"
 SINK=vmic
@@ -24,7 +26,9 @@ setup() {
   mkdir -p "$(dirname "$state")"
   if ! pactl list short sources | grep -q "^[0-9]*[[:space:]]*$SINK\.monitor"; then
     pactl list short sinks | grep -q "[[:space:]]$SINK[[:space:]]" || \
-      pactl load-module module-null-sink sink_name=$SINK sink_properties=device.description=tileshell-mic > "$state.module"
+      pactl load-module module-null-sink sink_name=$SINK \
+        rate=16000 channels=1 format=s16le \
+        sink_properties=device.description=tileshell-mic > "$state.module"
   fi
   # Remember what the default source was, so teardown really restores it.
   [ -f "$state.prevsource" ] || pactl get-default-source > "$state.prevsource"
@@ -45,6 +49,11 @@ teardown() {
   fi
   echo "default source: $(pactl get-default-source)"
 }
+
+# The sink is created at 16 kHz MONO on purpose: the AVD's microphone path is 16 kHz mono, and a
+# 48 kHz stereo null sink puts a resample and a downmix between the utterance and the recogniser. The
+# first run through a 48 kHz stereo sink turned "What time is it?" into "BUT TIME IS IT NOT"; at the
+# microphone's own rate there is nothing in between.
 
 # The emulator's own output sink input, so a reply is captured from what the AVD plays, not from the
 # whole desktop.
