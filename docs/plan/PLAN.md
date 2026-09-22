@@ -249,6 +249,14 @@ SUPERSEDED older note (launcher-only framing, kept for history):
   Settings front after phase 04. The Tessera bar over every app waits on phase 04's R4 probe; a local-network
   LLM is not raised (Q2 and A11 stand). **None of the 2026-09-22 additions is split into a phase yet.**
 
+- 2026-09-22 **R10-Q3 re-ruled (Jeremy: "lets go with A"), superseding the first R10-Q3 entry above:** at the
+  783-ms hold, edit mode starts EXACTLY as measured (R6 §1.1.1: the contraction, the dim, the held tile's discs) and
+  the burst of quick actions appears around the held tile at the same moment. Letting go leaves both: a tap on a
+  satellite runs it, a drag moves the tile (the burst closes), a tap elsewhere closes the burst and edit mode stays.
+  All four satellites are App Shortcuts; there is no "Edit" satellite, because edit mode has already begun. Every
+  measured R6 value and every phase 02 proof stands — the burst is ADDED on top of the hold, nothing about the hold
+  changes. The motion remains Jeremy's ruling: boundsInRoot tracking, spring dampingRatio 0.65, four satellites.
+
 ## Review resolutions (round 1, 2026-09-16; agent design calls, Jeremy can overrule)
 Full mapping: docs/plan/review/2026-09-16-triage.md
 - RV1. One APK holds every part; no part depends on a separately installed app. Install via adb over USB or Wireless debugging;
