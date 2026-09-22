@@ -176,7 +176,7 @@ object SpeechClient {
         return id
     }
 
-    fun stopSpeaking() = call("stopSpeaking") { it.stopSpeaking() }
+    fun stopSpeaking() = call("stopSpeaking") { it.stopSpeaking(callback) }
 
     fun voices(): List<Voice> {
         val raw = service?.let { runCatching { it.voices() }.getOrNull() } ?: return emptyList()

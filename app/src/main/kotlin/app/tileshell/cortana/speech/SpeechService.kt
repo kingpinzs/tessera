@@ -104,11 +104,8 @@ class SpeechService : Service() {
         }
     }
 
-    /** One microphone: who it is listening for, which capture generation that is, and their pid. */
-    private val micLock = Any()
-    @Volatile private var micOwner: ISpeechCallback? = null
-    @Volatile private var micGeneration = -1
-    @Volatile private var micOwnerPid = -1
+    /** One microphone: who it is listening for, keyed by the client's binder (rules in [MicArbiter]). */
+    private val mic = MicArbiter<IBinder>()
 
     /** Who the voice is speaking for; TTS progress and TTS errors go to them alone. */
     @Volatile private var speakOwner: ISpeechCallback? = null
@@ -324,12 +321,7 @@ class SpeechService : Service() {
 
     /** Free the microphone if [binder] holds it, ending its capture. */
     private fun releaseMicIf(binder: IBinder, why: String) {
-        synchronized(micLock) {
-            if (micOwner?.asBinder() != binder) return
-            micOwner = null
-            micGeneration = -1
-            micOwnerPid = -1
-        }
+        if (!mic.release(binder)) return
         asr.interrupt()
         Diagnostics.add("speech", "microphone released: $why")
     }
@@ -358,22 +350,11 @@ class SpeechService : Service() {
             // One engine, one microphone (phase 05 edge case): a second client is refused with a notice,
             // never allowed to take the microphone from the one using it. The same client starting again
             // replaces its own capture, as it always has.
-            val generation = synchronized(micLock) {
-                val holder = micOwner
-                if (holder != null && holder.asBinder() != owner.asBinder()) {
-                    Diagnostics.add("speech", "startListening from pid=$pid refused: the microphone is listening for pid=$micOwnerPid")
-                    null
-                } else {
-                    // Bumped here, on the Binder thread: a capture already running sees it and unwinds, so
-                    // there is never a second AudioRecord.
-                    val g = asr.interrupt()
-                    micOwner = owner
-                    micGeneration = g
-                    micOwnerPid = pid
-                    g
-                }
-            }
+            // Bumped inside acquire, on the Binder thread: a capture already running sees it and unwinds,
+            // so there is never a second AudioRecord.
+            val generation = mic.acquire(owner.asBinder(), pid) { asr.interrupt() }
             if (generation == null) {
+                Diagnostics.add("speech", "startListening from pid=$pid refused: the microphone is listening for pid=${mic.ownerPid}")
                 report(SpeechError.MICROPHONE_BUSY, "the microphone is in use by another part of the shell", owner)
                 return
             }
@@ -389,19 +370,12 @@ class SpeechService : Service() {
                 }
                 // The capture is over (endpoint, stop, or failure): the microphone is free again, unless a
                 // newer capture by the same owner has already claimed it.
-                synchronized(micLock) {
-                    if (micGeneration == generation) {
-                        micOwner = null
-                        micGeneration = -1
-                        micOwnerPid = -1
-                    }
-                }
+                mic.finished(generation)
             }
         }
 
         override fun stopListening(owner: ISpeechCallback?) {
-            val holder = micOwner
-            if (owner == null || holder == null || holder.asBinder() != owner.asBinder()) {
+            if (owner == null || !mic.isHolder(owner.asBinder())) {
                 Diagnostics.add("speech", "stopListening from a non-owner ignored (pid=${Binder.getCallingPid()})")
                 return
             }
@@ -427,7 +401,12 @@ class SpeechService : Service() {
             }
         }
 
-        override fun stopSpeaking() {
+        override fun stopSpeaking(owner: ISpeechCallback?) {
+            val speaker = speakOwner
+            if (speaker != null && (owner == null || speaker.asBinder() != owner.asBinder())) {
+                Diagnostics.add("speech", "stopSpeaking from a non-owner ignored (pid=${Binder.getCallingPid()})")
+                return
+            }
             if (!tts.speaking) {
                 Diagnostics.add("speech", "stopSpeaking: nothing playing")
             }
@@ -499,7 +478,7 @@ class SpeechService : Service() {
         lines += "pid=${Process.myPid()}"
         lines += "process=app.tileshell:speech"
         lines += "asr_listening=${asr.listening}"
-        lines += "mic_owner_pid=$micOwnerPid"
+        lines += "mic_owner_pid=${mic.ownerPid}"
         lines += "clients=${clients.registeredCallbackCount}"
         lines += "asr_error=${asrFailure?.let { "code ${it.first}: ${it.second}" }.orEmpty().replace('\n', ' ')}"
         lines += "asr_bpe_vocab=${asr.bpeVocabSource}"

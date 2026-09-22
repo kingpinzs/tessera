@@ -38,8 +38,11 @@ interface ISpeech {
      */
     void speak(ISpeechCallback owner, String utteranceId, String text, int speakerId);
 
-    /** Stop any speech in flight (onSpeakingDone arrives with cancelled = true). */
-    void stopSpeaking();
+    /**
+     * Stop [owner]'s speech in flight (onSpeakingDone arrives with cancelled = true). Like stopListening, a
+     * client that is not speaking cannot cancel another's speech.
+     */
+    void stopSpeaking(ISpeechCallback owner);
 
     /** Force the models in now, so the first request does not wait for them (the session binds on open). */
     void preload();
