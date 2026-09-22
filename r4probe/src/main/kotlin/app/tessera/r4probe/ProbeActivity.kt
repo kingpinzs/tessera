@@ -160,6 +160,7 @@ class ProbeActivity : Activity() {
     // ---------------- P5 ----------------
 
     private var overlayResult: String? = null
+    private val touches = mutableListOf<String>()
 
     /**
      * Ask for a window the size of the whole display and measure what actually arrives.
@@ -177,6 +178,7 @@ class ProbeActivity : Activity() {
         val wm = getSystemService(WindowManager::class.java)
         val bounds = wm.currentWindowMetrics.bounds
         val results = StringBuilder()
+        touches.clear()
         results.append("navigation_mode = ${secureInt("navigation_mode")} ${navName(secureInt("navigation_mode"))}\n")
         results.append("display bounds  ${bounds.width()} x ${bounds.height()} px\n\n")
 
@@ -207,7 +209,32 @@ class ProbeActivity : Activity() {
                 layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
                 if (!fitInsets) runCatching { setFitInsetsTypes(0) }
             }
-            val probe = View(this).apply { setBackgroundColor(0x5500AAFFL.toInt()) }
+            // Attempt B is also the TOUCH test, which is the half a screenshot cannot answer: the nav
+            // glyphs being drawn on top says nothing about who receives a tap there. The overlay
+            // records every touch it gets and where. A tap in the bottom strip that never arrives is
+            // the nav bar taking it, and that would make any content placed there dead.
+            val probe: View = if (label.startsWith("B")) {
+                android.widget.FrameLayout(this).apply {
+                    setBackgroundColor(0x5500AAFFL.toInt())
+                    addView(TextView(this@ProbeActivity).apply {
+                        text = "TAP THE STRIP OVER THE NAV BUTTONS,\nthen tap anywhere higher up"
+                        setTextColor(Color.WHITE)
+                        textSize = 16f
+                        gravity = Gravity.CENTER
+                    })
+                    setOnTouchListener { _, e ->
+                        if (e.actionMasked == android.view.MotionEvent.ACTION_DOWN) {
+                            val nav = navBarPx()
+                            val inStrip = nav > 0 && e.y >= height - nav
+                            touches += "    touch at y=${e.y.toInt()} of $height — " +
+                                (if (inStrip) "IN the nav bar's strip" else "above the strip")
+                        }
+                        true
+                    }
+                }
+            } else {
+                View(this).apply { setBackgroundColor(0x5500AAFFL.toInt()) }
+            }
             runCatching { wm.addView(probe, params) }.onFailure {
                 results.append("$label: could not add the window (${it.javaClass.simpleName})\n\n")
                 then()
@@ -227,11 +254,28 @@ class ProbeActivity : Activity() {
                 // Keep B on screen to be photographed; A is measured and taken straight down.
                 if (label.startsWith("B")) {
                     overlayResult = results.toString() +
-                        "Whether the system still DRAWS its nav glyphs on top of a window that reaches " +
-                        "the bottom is the screenshot's job, not a number's. Take one now."
+                        "Screenshot it, and TAP the strip over the nav buttons before it goes.\n" +
+                        "Whether the system still DRAWS its glyphs on top is the screenshot's job; who\n" +
+                        "RECEIVES a tap there is the touch list below."
                     collect()
-                    toast("Overlay is up for 5 s — screenshot it now")
-                    probe.postDelayed({ runCatching { wm.removeView(probe) } }, 5000)
+                    toast("15 s: screenshot it, then tap the nav strip")
+                    probe.postDelayed({
+                        runCatching { wm.removeView(probe) }
+                        results.append("\n  TOUCHES the overlay received:\n")
+                        results.append(
+                            if (touches.isEmpty()) "    none at all\n"
+                            else touches.joinToString("\n") + "\n"
+                        )
+                        results.append(
+                            if (touches.any { "IN the nav" in it })
+                                "  RESULT: a tap in the nav bar's strip REACHED the overlay.\n"
+                            else
+                                "  RESULT: no tap in the strip reached the overlay. Either none was made, or\n" +
+                                    "  the nav bar takes them — compare with the taps above the strip.\n"
+                        )
+                        overlayResult = results.toString()
+                        collect()
+                    }, 15000)
                 } else {
                     runCatching { wm.removeView(probe) }
                     then()

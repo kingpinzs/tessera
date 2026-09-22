@@ -37,6 +37,19 @@ WHAT THIS MEANS FOR THE ACTION CENTER (interview item 8)
   being drawn on top strongly suggests the nav bar also takes the touches, which would make content
   placed there unusable — that is the next thing the probe should measure, not assume.
 
+TOUCH — who receives a tap in that strip? (emulator, 2026-09-22; phone run pending)
+  The probe's attempt B now records every touch it receives and where. On the AOSP emulator, Android
+  16, 3-button, display 2340 px with a 135 px nav bar:
+    tap at y = 1200  -> reached the overlay ("above the strip")
+    tap at y = 2300  -> did NOT reach the overlay, and the emulator went HOME
+  So the navigation bar takes the touches in its own strip even when an overlay's content is drawn
+  there. The overlay can FILL the strip and cannot USE it.
+
+  What that means for the action center: the panel's background and scrim may run to the display's
+  bottom edge, but anything a finger has to reach — the drag handle, a quick action, a notification —
+  must end above the nav bar, because a touch there goes to Android. This is the emulator's answer;
+  the phone's is pending and One UI is entitled to differ.
+
 STILL TO RUN
   The same two attempts with gesture navigation (navigation_mode = 2). W10M had no gesture mode, so
   the gesture result is what decides whether the panel's bottom edge can be one design or must be two.
