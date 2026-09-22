@@ -25,8 +25,11 @@ data class CortanaPrefsState(
 ) {
     companion object {
         /**
-         * Kokoro en v0.19 speaker 2 = `af_bella` (build-start agent call, H2): of the eleven bundled
-         * voices it is the warm, clear American female closest to Cortana's tone. Jeremy judges it in H2.
+         * Kokoro en v0.19 speaker 2 = `af_nicole` (build-start agent call, H2): of the eleven bundled
+         * voices it is the warm, close American female closest to Cortana's tone. Jeremy judges it in H2.
+         *
+         * (Corrected during the build: an earlier note here named speaker 2 `af_bella`. Bella is
+         * speaker 1; the id the default points at never changed, only the name written beside it.)
          */
         const val DEFAULT_VOICE_ID = 2
     }

@@ -35,8 +35,8 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <!--
       Person reminders read the call log and the SMS provider. Both are hard-restricted: an app holding
-      no dialer or SMS role gets them only because the installer allow-lists them, which `adb install`
-      does unless `--restrict-permissions` is passed. The shell is never installed with that flag, and
+      no dialer or SMS role gets them only because the installer allow-lists them, which "adb install"
+      does unless its restrict-permissions flag is passed. The shell is never installed with that flag, and
       the checklist has a row for each (Decisions "Place and person reminder mechanics" (1)).
     -->
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
