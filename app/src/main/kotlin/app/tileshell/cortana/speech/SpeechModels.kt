@@ -27,11 +27,15 @@ object SpeechAssets {
      * The BPE vocabulary. It is what turns a plain-text hotword — a contact name the shell cannot know
      * in advance — into the tokens the grammar stream boosts, so the grammar pass does not exist without
      * it. The 20M model this phase started on shipped none, which is why the model was swapped.
+     *
+     * It is the TEXT vocabulary ("<piece> <score>" per line), NOT the sentencepiece `bpe.model` binary:
+     * sherpa-onnx parses this file itself and refuses the binary with "Each line in vocab should contain
+     * two items". tools/fetch-speech.sh derives it from bpe.model with sentencepiece.
      */
-    const val ASR_BPE = "speech/asr/bpe.model"
+    const val ASR_BPE = "speech/asr/bpe.vocab"
 
-    /** sha256 of bpe.model as fetched by tools/fetch-speech.sh; checked before it is ever unpacked. */
-    const val ASR_BPE_SHA256 = "c53433de083c4a6ad12d034550ef22de68cec62c4f58932a7b6b8b2f1e743fa5"
+    /** sha256 of bpe.vocab as derived by tools/fetch-speech.sh. */
+    const val ASR_BPE_SHA256 = "010f69344848b004b3a9c7fe2456c56b300ce381745cfadea6056ccc3bdf47f0"
 
     const val TTS_MODEL = "speech/tts/model.int8.onnx"
     const val TTS_VOICES = "speech/tts/voices.bin"
@@ -325,5 +329,47 @@ object ExtractedAsset {
         stamp.writeText(actual)
         Diagnostics.add("speech", "extract: wrote ${target.absolutePath} (${target.length()} bytes, sha256 verified)")
         return target
+    }
+}
+
+/**
+ * A one-line trail on disk, written before each native call that could take the process down with it.
+ *
+ * The speech process has its own [Diagnostics] ring, and a native abort inside onnxruntime takes that
+ * ring with it — the launcher's dump then shows only "process gone" and nothing about WHY. This file
+ * survives, so the next start (and any QA driver) can read exactly which model was being constructed
+ * when the process died. It is the same rule the rest of the shell follows: nothing that matters is
+ * left only in a log the next run cannot read.
+ */
+object SpeechBreadcrumb {
+
+    private const val NAME = "speech-breadcrumb.txt"
+
+    @Volatile private var file: File? = null
+
+    fun attach(context: Context) {
+        file = File(context.filesDir, NAME)
+    }
+
+    /** What is about to happen. Cleared by [done] when it survives. */
+    fun enter(step: String) {
+        write("ENTER $step at ${System.currentTimeMillis()}")
+        Diagnostics.add("speech", "breadcrumb: $step")
+    }
+
+    fun done(step: String) {
+        write("DONE  $step at ${System.currentTimeMillis()}")
+    }
+
+    /** What the previous run was doing when it stopped, or null when it finished cleanly. */
+    fun previous(): String? = runCatching {
+        file?.takeIf { it.exists() }?.readText()?.trim()?.takeIf { it.startsWith("ENTER") }
+    }.getOrNull()
+
+    fun read(): String = runCatching { file?.takeIf { it.exists() }?.readText()?.trim() }.getOrNull() ?: "(none)"
+
+    private fun write(line: String) {
+        val target = file ?: return
+        runCatching { target.writeText(line + "\n") }
     }
 }

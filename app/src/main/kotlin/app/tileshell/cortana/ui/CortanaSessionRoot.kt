@@ -118,7 +118,10 @@ private fun HomeOrResult(model: CortanaModel) {
             when (state.route) {
                 is CortanaRoute.Result -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                     state.card?.let { card ->
-                        ResponseCardView(card, state.persona, state.level, accent) { model.onCardAction(it) }
+                        ResponseCardView(
+                            card, state.persona, state.level, accent,
+                            onAction = { action -> model.onCardAction(action) },
+                        )
                     }
                 }
                 else -> HomePage(model)

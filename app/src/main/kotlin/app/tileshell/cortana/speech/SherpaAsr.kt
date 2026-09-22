@@ -154,7 +154,9 @@ class SherpaAsr(private val context: Context) {
         // hands it one, extracted under the same checksum discipline as espeak-ng-data. Which one won is
         // recorded in [bpeVocabSource] and in the diagnostics ring.
         val assetAttempt = try {
+            SpeechBreadcrumb.enter("asr construct (bpeVocab as an asset)")
             OnlineRecognizer(assetManager = assets, config = config(SpeechAssets.ASR_BPE))
+                .also { SpeechBreadcrumb.done("asr construct (bpeVocab as an asset)") }
         } catch (t: Throwable) {
             Diagnostics.add("speech", "asr: construction with bpeVocab as an asset path failed: $t")
             null
@@ -170,7 +172,9 @@ class SherpaAsr(private val context: Context) {
                 expectedSha256 = SpeechAssets.ASR_BPE_SHA256,
             )
             val fileAttempt = try {
+                SpeechBreadcrumb.enter("asr construct (bpeVocab extracted)")
                 OnlineRecognizer(assetManager = assets, config = config(extracted.absolutePath))
+                    .also { SpeechBreadcrumb.done("asr construct (bpeVocab extracted)") }
             } catch (t: Throwable) {
                 Diagnostics.add("speech", "asr: construction with an extracted bpe.model failed too: $t")
                 throw SpeechModelException(SpeechError.MODEL_CORRUPT, "ASR model rejected: $t", t)
