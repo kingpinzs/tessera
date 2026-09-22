@@ -110,6 +110,9 @@ object KeyGrid {
     /** §2.1.15: the "&123" label's digits are 40 ± 2 tall. */
     const val SYMBOLS_LABEL_DIGIT_H = 40f
 
+    /** §2.1.15: and the "&123" text is 112 ± 3 wide. */
+    const val SYMBOLS_LABEL_W = 112f
+
     /** §2.3.4 (MEDIUM): the popup glyph's x-height 59.5 ± 5. */
     const val POPUP_X_HEIGHT = 59.5f
 

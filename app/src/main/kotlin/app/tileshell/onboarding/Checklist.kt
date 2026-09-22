@@ -63,9 +63,13 @@ object Checklist {
     fun keyboardEnabled(context: Context): Boolean =
         context.getSystemService(InputMethodManager::class.java).enabledInputMethodList.any { it.id == keyboardId(context) }
 
-    /** Phase 05 E1: the keyboard is the SELECTED input method (`ime set`). */
+    /**
+     * Phase 05 E1: the keyboard is the SELECTED input method (`ime set`). Asked of the input-method
+     * manager (API 34, the shell's minSdk), not read out of Settings.Secure: E1 caught the secure
+     * setting coming back empty to the app while `ime set` had plainly selected the keyboard.
+     */
     fun keyboardSelected(context: Context): Boolean =
-        Settings.Secure.getString(context.contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD) == keyboardId(context)
+        context.getSystemService(InputMethodManager::class.java).currentInputMethodInfo?.id == keyboardId(context)
 }
 
 @Composable
