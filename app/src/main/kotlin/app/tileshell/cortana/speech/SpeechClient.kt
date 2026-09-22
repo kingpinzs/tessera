@@ -22,6 +22,23 @@ object SpeechError {
     const val ESPEAK_DATA_BAD = 4
     const val AUDIO_UNAVAILABLE = 5
     const val INTERNAL = 6
+
+    /**
+     * Whether the sentence describing [code] can be SAID, or only shown.
+     *
+     * [MODEL_MISSING], [MODEL_CORRUPT] and [ESPEAK_DATA_BAD] all mean the TTS engine could not be
+     * built, so speaking the notice fails for the same reason and arrives back at the error handler,
+     * which speaks it again. On the phone (2026-09-22, espeak data refused) one tap produced over a
+     * thousand speak-error-speak round trips in 50 ms and filled the diagnostics ring, which hid the
+     * fault it was reporting. A notice about speech being broken is shown; it is never spoken.
+     *
+     * The microphone faults stay speakable: they say nothing about the voice, and when the voice does
+     * turn out to be broken too the reply is one extra hop that ends here rather than a loop.
+     */
+    fun isSpeakable(code: Int): Boolean = when (code) {
+        MODEL_MISSING, MODEL_CORRUPT, ESPEAK_DATA_BAD -> false
+        else -> true
+    }
 }
 
 /** One bundled voice, as Cortana's Settings page lists it (Q3: several voices, pick one). */

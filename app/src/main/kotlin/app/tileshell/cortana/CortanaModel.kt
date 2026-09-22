@@ -258,9 +258,15 @@ class CortanaModel(
             else -> "Something went wrong."
         }
         val shown = if (event.detail.isBlank()) spoken else "$spoken\n\n${event.detail}"
-        Diagnostics.add("cortana", "speech error ${event.code}: ${event.detail}")
+        val speakable = SpeechError.isSpeakable(event.code)
+        Diagnostics.add(
+            "cortana",
+            "speech error ${event.code}: ${event.detail}" + if (speakable) "" else " (shown, not spoken)",
+        )
         mutable.value = mutable.value.copy(listening = false, level = 0f)
-        reply(Outcome(spoken, Card(CardKind.NOT_UNDERSTOOD, shown)))
+        // An error that says the voice is broken cannot be delivered BY the voice: speaking it fails
+        // the same way and comes straight back here. See [SpeechError.isSpeakable].
+        reply(Outcome(if (speakable) spoken else "", Card(CardKind.NOT_UNDERSTOOD, shown)))
     }
 
     // ---------------- the request path (speech and text share it) ----------------
