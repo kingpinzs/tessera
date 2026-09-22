@@ -1,0 +1,31 @@
+==============================================================================
+ROW E9 — lock screen options, and the locked session
+at            2026-09-21T22:53:30-06:00
+driver        e9.sh blob 8838fd5596a2e1cb45b0c470a2da05a00bbf97d3
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     c52d65d2a29826c6 317969716 bytes
+apk installed ef8897d441c9b258
+apk match     yes (ef8897d441c9b258)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  the menu pane opens                                         cortana_pane present
+PASS  Cortana's Settings page is on screen (H27, H28)             = yes
+      scroll_to_node cortana_settings_section:lock_screen_options: 1 swipe(s), found=yes
+PASS  it has a Lock screen options section                        = yes
+      toggle wording: Open Tess when I press and hold the side key – even when my device is locked
+PASS  R6 3.5.1's W10M wording, side key adapted (H8)              contains [press and hold the side key]
+PASS  and its 'even when my device is locked' half                contains [even when my device is locked]
+PASS  On by default on a fresh install (R6 3.5.3 candidate, H8)   = On
+PASS  a PIN is set                                                = yes
+PASS  and the lock screen is enabled, so there is a keyguard to test against  = false
+PASS  the keyguard is showing                                     contains [isKeyguardShowing=true]
+PASS  Cortana opens above the keyguard with the toggle On         = yes
+PASS  R6 3.5.5: it opens LISTENING                                = yes
+PASS  R6 3.5.5: the non-personalised greeting                     = What's on your mind?
+PASS  R6 3.5.5: no menu node at all (H11)                         = no
+FAIL  and the session recorded that it opened locked              does not contain [locked=true]: 
+PASS  the keyguard is still up behind it                          contains [isKeyguardShowing=true]
+FAIL  with the toggle Off, nothing opens over the keyguard        expected [no] got [yes]
+------------------------------------------------------------------------------
+E9: 14 passed, 2 failed
+      restored: the PIN was cleared

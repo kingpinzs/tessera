@@ -1,0 +1,55 @@
+==============================================================================
+ROW E10 — the locked commands
+at            2026-09-21T22:54:28-06:00
+driver        e10.sh blob b82c3e098b9636f4b1a0084388a8dafd846ffe4f
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     c52d65d2a29826c6 317969716 bytes
+apk installed ef8897d441c9b258
+apk match     yes (ef8897d441c9b258)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  a PIN is set                                                = yes
+PASS  and the lock screen is enabled, so there is a keyguard to test against  = false
+PASS  Cortana is open over the keyguard                           = yes
+FAIL  locked: time_query replies directly                         does not contain [It's]: 
+PASS  locked: time_query shows no Unlock card                     does not contain [cortana_card:unlock]
+FAIL  locked: date_query replies directly                         does not contain [Today is]: 
+PASS  locked: date_query shows no Unlock card                     does not contain [cortana_card:unlock]
+FAIL  locked: weather replies directly                            does not contain [degrees]: 
+PASS  locked: weather shows no Unlock card                        does not contain [cortana_card:unlock]
+FAIL  locked: an alarm is set directly                            does not contain [Alarm set for]: 
+FAIL  and it reaches DeskClock with the keyguard still up         should not be [0]
+PASS  the keyguard never came down for it                         contains [isKeyguardShowing=true]
+      media_session after 'play music': 1
+FAIL  locked: text_contact shows Unlock to continue (H12)         expected [yes] got [no]
+FAIL  locked: text_contact was UNDERSTOOD, then refused           does not contain [text_contact]: 
+FAIL  locked: call_contact shows Unlock to continue (H12)         expected [yes] got [no]
+FAIL  locked: call_contact was UNDERSTOOD, then refused           does not contain [call_contact]: 
+FAIL  locked: calendar_query shows Unlock to continue (H12)       expected [yes] got [no]
+FAIL  locked: calendar_query was UNDERSTOOD, then refused         does not contain [calendar_query]: 
+FAIL  locked: reminder_time shows Unlock to continue (H12)        expected [yes] got [no]
+FAIL  locked: reminder_time was UNDERSTOOD, then refused          does not contain [reminder_time]: 
+FAIL  locked: directions shows Unlock to continue (H12)           expected [yes] got [no]
+FAIL  locked: directions was UNDERSTOOD, then refused             does not contain [directions]: 
+FAIL  locked: take_photo shows Unlock to continue (H12)           expected [yes] got [no]
+FAIL  locked: take_photo was UNDERSTOOD, then refused             does not contain [take_photo]: 
+FAIL  locked: take_note shows Unlock to continue (H12)            expected [yes] got [no]
+FAIL  locked: take_note was UNDERSTOOD, then refused              does not contain [take_note]: 
+FAIL  locked: calendar_add shows Unlock to continue (H12)         expected [yes] got [no]
+FAIL  locked: calendar_add was UNDERSTOOD, then refused           does not contain [calendar_add]: 
+FAIL  locked: open an app shows Unlock to continue                expected [yes] got [no]
+PASS  nothing was sent                                            = 0
+PASS  nothing was dialled                                         = 0
+PASS  nothing was added to the calendar                           = 0
+PASS  no reminder was stored                                      = 0
+PASS  and no app was opened                                       = 
+PASS  the Unlock button raises the bouncer                        contains [isKeyguardShowing=true]
+      after unlock: 
+FAIL  the request that was on the card runs                       does not contain [deskclock]: 
+PASS  and none of the earlier gated requests ran: nothing sent    = 0
+PASS  nothing dialled                                             = 0
+PASS  nothing added to the calendar                               = 0
+PASS  no reminder stored                                          = 0
+------------------------------------------------------------------------------
+E10: 17 passed, 23 failed
+      restored: PIN cleared, lock screen disabled again, device awake

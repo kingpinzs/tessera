@@ -1,0 +1,54 @@
+==============================================================================
+ROW E13 — place reminders
+at            2026-09-21T22:35:22-06:00
+driver        e13.sh blob 20516dae8ef315160a98b8132fc8fa3d05d61a1d
+harness       lib.sh blob e237261b78d153dbe443cbc4ff33af1fff6ac9ce
+apk built     c52d65d2a29826c6 317969716 bytes
+apk installed ef8897d441c9b258
+apk match     yes (ef8897d441c9b258)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      throttle set to 5000 ms (was null)
+PASS  ACCESS_BACKGROUND_LOCATION is granted                       contains [ACCESS_BACKGROUND_LOCATION: granted=true]
+PASS  and fine location with it                                   contains [ACCESS_FINE_LOCATION: granted=true]
+FAIL  saying 'this is home' opens the Places page with the name filled in  expected [yes] got [no]
+FAIL  Home is saved                                               does not contain ["name":"Home"]: 
+Traceback (most recent call last):
+  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-03/scripts/coords.py", line 9, in <module>
+    store = json.load(open(sys.argv[1]))
+  File "/usr/lib/python3.10/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+  File "/usr/lib/python3.10/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/python3.10/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib/python3.10/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+FAIL  at the coordinates the AVD was standing on (+/- 0.0005 deg)  Traceback (most recent call last):
+  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-03/scripts/coords.py", line 9, in <module>
+    store = json.load(open(sys.argv[1]))
+  File "/usr/lib/python3.10/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+  File "/usr/lib/python3.10/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/python3.10/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib/python3.10/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+FAIL  and it was saved from GPS, not a lookup                     does not contain ["source":"current"]: 
+PASS  offline, a typed address saves nothing                      does not contain ["name":"Work"]
+FAIL  and the shell says the lookup failed                        does not contain [LookupFailed]: 
+FAIL  online, the typed address is saved                          does not contain [Amphitheatre]: 
+FAIL  the attribution line is on the page                         does not contain [OpenStreetMap]: <?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0"><node index="0" text="" resource-id="com.android.systemui:id/legacy_window_root" class="android.widget.FrameLayout" package="com.android.systemui" content-desc=
+FAIL  the place card is on screen (H22)                           expected [yes] got [no]
+FAIL  with a place field                                          expected [yes] got [no]
+PASS  and NO recurrence dropdown: a place reminder fires once     = no
+FAIL  the spoken wording (H22)                                    does not contain [when you get to Home]: 
+FAIL  the saved card's subline (H22)                              does not contain [When I arrive at Home]: 
+FAIL  arriving inside the radius fires the reminder within 60 s   should not be [0]
+PASS  moving out and back in fires nothing more                   = 0
+------------------------------------------------------------------------------
+E13: 5 passed, 12 failed
+      restored: throttle=null, network enabled (location was true)

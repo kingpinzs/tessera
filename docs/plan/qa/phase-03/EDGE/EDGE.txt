@@ -1,0 +1,56 @@
+==============================================================================
+ROW EDGE — the edge cases
+at            2026-09-21T22:47:14-06:00
+driver        edge.sh blob f222ee9d34d9cfcf478046963257f23dd6a6b968
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     c52d65d2a29826c6 317969716 bytes
+apk installed ef8897d441c9b258
+apk match     yes (ef8897d441c9b258)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      silence produced no final at all, which is itself the answer
+      silence reply: 
+FAIL  silence is answered, not ignored                            does not contain [didn't catch that]: 
+PASS  and silence does NOT reach the not-understood handler as text  does not contain [transcript=""]
+      long utterance:     2026-09-21 22:44:18.806 wall=1790052258806 [speech] asr: final gen=2 via endpoint audioMs=2100 open="AND" grammar="AND"
+PASS  a very long utterance still produces a final                contains [audioMs=]
+FAIL  a command naming an app that is not installed               does not contain [don't see an app]: 
+      unknown contact reply: 
+FAIL  a contact that does not exist                               does not contain [couldn't find]: 
+      with RECORD_AUDIO revoked: 
+FAIL  a revoked microphone is reported, not silently dead         does not contain [microphone]: 
+FAIL  with the role gone, the Search key opens the role notice (H30)  expected [yes] got [no]
+FAIL  and NOT a session                                           expected [no] got [yes]
+PASS  the role is restored                                        = app.tileshell
+      speech storage before: cache
+code_cache
+files
+shared_prefs
+PASS  a deleted espeak-ng-data is re-extracted, and the engine still loads  = true
+PASS  and TTS comes back with it                                  = true
+FAIL  a reminder arms an alarm                                    should not be [0]
+PASS  a force-stop cancels it                                     = 0
+FAIL  and the process start re-arms it                            should not be [0]
+FAIL  under Doze the alarm is still an allow-while-idle one       does not contain [tileshell://reminder]: Current Alarm Manager state:
+  Settings:
+    version=1 
+    min_futurity=+5s0ms
+    min_interval=+1m0s0ms
+    max_interval=+365d0h0m0s0ms
+    min_window=+10m0s0ms
+    listener_timeout=+5s0ms
+    allow_while_idle_quota=72 
+    allow_while_id
+      reminders after a past-time request: 0 -> 0
+FAIL  a reminder time in the past is armed to fire, not dropped   does not contain [rearm]: 
+FAIL  Cortana answers with no network at all                      does not contain [It's]: 
+PASS  and the network really was off                              = 0
+      NOT driven on this AVD, and where each goes instead:
+        background noise, speech interrupted mid-utterance: a real microphone, phone row P1
+        incoming call while listening: needs a second number, phone row P8
+        screen turns off mid-command: the AVD's sleep also stops the audio route
+        Device care optimise, 24 h idle liveness (N-01): One UI only, phone
+        lockdown mode: not on the AOSP image
+        GPS drift at the radius edge with a real fix: phone row P7
+------------------------------------------------------------------------------
+EDGE: 7 passed, 11 failed

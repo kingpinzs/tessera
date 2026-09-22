@@ -1,0 +1,29 @@
+==============================================================================
+ROW E8 — the Search key: tap, hold, and the assist key
+at            2026-09-21T22:32:18-06:00
+driver        e8.sh blob d9230957f0f6f6fc477a0555b000e31e7569d015
+harness       lib.sh blob e237261b78d153dbe443cbc4ff33af1fff6ac9ce
+apk built     c52d65d2a29826c6 317969716 bytes
+apk installed ef8897d441c9b258
+apk match     yes (ef8897d441c9b258)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  Start is showing                                            = yes
+PASS  the Search key is in the bar                                = yes
+PASS  and phase 01's empty slot is gone                           = no
+PASS  X17: the Search slot is a third of the bar                  120.00 vs 120.00 +/- 2.0
+PASS  and it is the RIGHT third                                   240.00 vs 240.00 +/- 2.0
+PASS  with Back in the left third                                 0.00 vs 0.00 +/- 2.0
+PASS  a tap opens Cortana                                         = yes
+PASS  on its home page                                            = yes
+PASS  NOT listening (R6 4.2.1)                                    = no
+FAIL  and the session recorded the mode it opened in              does not contain [mode=HOME]: 
+PASS  a press-and-hold opens Cortana                              = yes
+PASS  already listening (R6 4.2.3)                                = yes
+PASS  showing the Listening placeholder                           = Listening...
+FAIL  and the session recorded the listening mode                 does not contain [mode=LISTENING]: 
+PASS  KEYCODE_ASSIST opens Cortana                                = yes
+      long-press Home opened a session: no (T-B1 expects no on the AOSP image; P3 covers the phone)
+PASS  long-press Home behaves as T-B1 recorded for this image     = no
+------------------------------------------------------------------------------
+E8: 14 passed, 2 failed

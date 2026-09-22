@@ -1,0 +1,42 @@
+==============================================================================
+ROW E4 — the persona's motion
+at            2026-09-21T22:29:28-06:00
+driver        e4.sh blob f061f8482e4581080b33b43fa2f4dd937e93f87b
+harness       lib.sh blob e237261b78d153dbe443cbc4ff33af1fff6ac9ce
+apk built     c52d65d2a29826c6 317969716 bytes
+apk installed ef8897d441c9b258
+apk match     yes (ef8897d441c9b258)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  a screenrecord was captured                                 1.3M
+      frames extracted: 1196 at 60 fps
+PASS  frames were extracted                                       != 0
+persona found in 1134 of 1196 frames
+# segment frames 62-551 haloed=False centre=244.0 outer=69.0
+# segment frames 552-780 haloed=True centre=243.5 outer=90.4
+# segment frames 781-1195 haloed=True centre=49.3 outer=34.7
+idle_outer_epx=69.64
+idle_centre_epx=244.00
+listen_frames=229
+listen_centre_epx=243.51
+listen_halo_min_epx=85.33
+listen_halo_max_epx=94.66
+listen_disc_min_epx=36.32
+listen_disc_max_epx=41.07
+listen_period_ms=871
+listen_antiphase_correlation=-0.960
+PASS  the persona was found in the frames                         persona found in 1134 of 1196 frames
+PASS  R3 A22 idle ring outer diameter 70 epx                      69.64 vs 70.00 +/- 2.0
+PASS  R3 A22 idle ring centre 244 epx from the screen top         244.00 vs 244.00 +/- 2.0
+PASS  R6 3.1.9 listening centre 243.8 epx                         243.51 vs 243.80 +/- 2.0
+PASS  R6 3.1.6 halo minimum 85.8 epx                              85.33 vs 85.80 +/- 2.0
+PASS  R6 3.1.6 halo maximum 94.7 epx                              94.66 vs 94.70 +/- 2.0
+PASS  R6 3.1.6 disc maximum 41.1 epx                              41.07 vs 41.10 +/- 2.0
+PASS  R6 3.1.6 disc minimum 37.3 epx                              36.32 vs 37.30 +/- 2.0
+FAIL  R6 3.1.8 period 1.04 s                                      871.00 vs 1040.00 +/- 40.0
+      halo/disc correlation across the capture: -0.960
+PASS  R6 3.1.7 the halo and disc move in antiphase                correlation -0.960
+      H9 (the large persona never speaks) and H10 (bars follow the mic level) are approximations, judged
+      P5 (phone) keeps: listening entrance 333 +/- 17 ms, waveform step 128 +/- 15 ms, speaking halo step 51 +/- 17 ms
+------------------------------------------------------------------------------
+E4: 11 passed, 1 failed

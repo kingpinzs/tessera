@@ -1,0 +1,47 @@
+==============================================================================
+ROW E14 — person reminders
+at            2026-09-21T22:39:22-06:00
+driver        e14.sh blob bf400a2660d2567a227cd6c1590bfe35d830a982
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     c52d65d2a29826c6 317969716 bytes
+apk installed ef8897d441c9b258
+apk match     yes (ef8897d441c9b258)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  READ_CALL_LOG is allow-listed                               contains [READ_CALL_LOG: granted=true]
+PASS  READ_SMS is allow-listed                                    contains [READ_SMS: granted=true]
+PASS  incoming_call: the person card is on screen (H29)           = yes
+PASS  incoming_call: with a contact chip                          = yes
+PASS  incoming_call: and NO recurrence dropdown, because it fires once  = no
+FAIL  incoming_call: the spoken wording (H29)                     does not contain [next time you talk to]: 
+FAIL  incoming_call: the saved card's subline (H29)               does not contain [Next time I talk to]: 
+FAIL  an answered incoming call fires it                          should not be [0]
+FAIL  outgoing_call: the person card is on screen (H29)           expected [yes] got [no]
+FAIL  outgoing_call: with a contact chip                          expected [yes] got [no]
+PASS  outgoing_call: and NO recurrence dropdown, because it fires once  = no
+FAIL  outgoing_call: the spoken wording (H29)                     does not contain [next time you talk to]: 
+FAIL  outgoing_call: the saved card's subline (H29)               does not contain [Next time I talk to]: 
+FAIL  an outgoing call fires it                                   should not be [0]
+FAIL  incoming_text: the person card is on screen (H29)           expected [yes] got [no]
+FAIL  incoming_text: with a contact chip                          expected [yes] got [no]
+PASS  incoming_text: and NO recurrence dropdown, because it fires once  = no
+FAIL  incoming_text: the spoken wording (H29)                     does not contain [next time you talk to]: 
+FAIL  incoming_text: the saved card's subline (H29)               does not contain [Next time I talk to]: 
+FAIL  a received text fires it                                    should not be [0]
+FAIL  outgoing_text: the person card is on screen (H29)           expected [yes] got [no]
+FAIL  outgoing_text: with a contact chip                          expected [yes] got [no]
+PASS  outgoing_text: and NO recurrence dropdown, because it fires once  = no
+FAIL  outgoing_text: the spoken wording (H29)                     does not contain [next time you talk to]: 
+FAIL  outgoing_text: the saved card's subline (H29)               does not contain [Next time I talk to]: 
+FAIL  a sent text fires it                                        should not be [0]
+FAIL  negatives: the person card is on screen (H29)               expected [yes] got [no]
+FAIL  negatives: with a contact chip                              expected [yes] got [no]
+PASS  negatives: and NO recurrence dropdown, because it fires once  = no
+FAIL  negatives: the spoken wording (H29)                         does not contain [next time you talk to]: 
+FAIL  negatives: the saved card's subline (H29)                   does not contain [Next time I talk to]: 
+PASS  a call from another number fires nothing                    = 0
+PASS  a missed call from the contact fires nothing                = 0
+      reminders left in the store: 0
+------------------------------------------------------------------------------
+E14: 11 passed, 22 failed
+      restored: no call in progress
