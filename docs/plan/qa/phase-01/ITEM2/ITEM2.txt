@@ -1,0 +1,29 @@
+==============================================================================
+ROW ITEM2 — Weather tile: one animated sky per condition, and the medium tile's detail line
+at            2026-09-22T05:09:12-06:00
+driver        item2.sh blob 1d99b6002a56b5a8872a7d079cac3152d19c712d
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     66a7eb1a8ca7b9e1 327038374 bytes
+apk installed 6b7e2d07b86b37b8
+apk match     yes (6b7e2d07b86b37b8)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  the device is off the network                               = 1
+PASS  WMO 0 by day draws the clear sky                            contains [weather_sky:clear]
+PASS  WMO 2 by day draws the partly sky                           contains [weather_sky:partly]
+PASS  WMO 3 by day draws the cloudy sky                           contains [weather_sky:cloudy]
+PASS  WMO 45 by day draws the fog sky                             contains [weather_sky:fog]
+PASS  WMO 63 by day draws the rain sky                            contains [weather_sky:rain]
+PASS  WMO 73 by day draws the snow sky                            contains [weather_sky:snow]
+PASS  WMO 95 by day draws the thunder sky                         contains [weather_sky:thunder]
+PASS  WMO 81 by day draws the rainbow sky                         contains [weather_sky:rainbow]
+PASS  WMO 0 by night draws the clear sky                          contains [weather_sky:clear]
+      weather tile bounds: 9 795 708 1138
+PASS  the tile shows the day's high and low                       contains [72]
+PASS  the tile shows the precipitation                            contains [Precip]
+      medium weather tile bounds: 9 795 352 1138
+PASS  the MEDIUM tile shows the high and low                      contains [72]
+PASS  the MEDIUM tile shows the precipitation                     contains [Precip]
+PASS  the MEDIUM tile leaves the wind to the wide tile            does not contain [Wind]
+------------------------------------------------------------------------------
+ITEM2: 15 passed, 0 failed
