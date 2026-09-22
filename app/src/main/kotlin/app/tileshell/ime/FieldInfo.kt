@@ -40,8 +40,12 @@ data class FieldInfo(
     /** Word Flow needs the dictionary, so it follows the same rule. */
     val swipeOn: Boolean get() = suggestionsOn
 
-    /** Words typed here may be learned (Decisions: "learning new words ... never in password fields"). */
-    val learningOn: Boolean get() = suggestionsOn
+    /**
+     * Words typed here may be learned — everywhere but a password field (Decisions: "learning new words
+     * from what Jeremy types (never in password fields)"). The same rule as the engine's own column
+     * (engine FieldKind.learns), so there is one truth table, not two (review m13).
+     */
+    val learningOn: Boolean get() = !isPassword
 
     /**
      * Enter inserts a newline in a multi-line field, or when the app asked for no action on Enter

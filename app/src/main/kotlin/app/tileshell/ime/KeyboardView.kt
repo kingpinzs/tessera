@@ -326,14 +326,31 @@ private fun DrawScope.drawDot(state: KeyboardState, m: KeyboardMetrics, accent: 
 private fun DrawScope.drawCursorDrag(d: CursorDrag, m: KeyboardMetrics, fonts: KeyFonts, accent: Color, panelTop: Float) {
     drawRect(Color.Black.copy(alpha = 0.5f), Offset(0f, panelTop), Size(m.screenWidthPx, m.panelH))
     drawLine(accent, d.dot, d.finger, strokeWidth = m.h(15f), cap = StrokeCap.Round)
+    // Each chevron is placed by its INK, its inner edge 115 phys from the dot's centre (inside R6's
+    // 105-126); review MINOR-6 measured the centred glyphs' inner edges at ≈135.
     val inner = m.h(115f)
     val size = m.h(70f)
-    val half = size / 2f
-    drawGlyph(Layouts.GLYPH_CHEVRON_LEFT, fonts.icons, size, d.dot.x - inner - half, d.dot.y, KeyColors.label)
-    drawGlyph(Layouts.GLYPH_CHEVRON_RIGHT, fonts.icons, size, d.dot.x + inner + half, d.dot.y, KeyColors.label)
-    drawGlyph(Layouts.GLYPH_CHEVRON_UP, fonts.icons, size, d.dot.x, d.dot.y - inner - half, KeyColors.label)
-    drawGlyph(Layouts.GLYPH_CHEVRON_DOWN, fonts.icons, size, d.dot.x, d.dot.y + inner + half, KeyColors.label)
+    drawChevron(Layouts.GLYPH_CHEVRON_LEFT, fonts, size, d.dot, inner, -1, 0)
+    drawChevron(Layouts.GLYPH_CHEVRON_RIGHT, fonts, size, d.dot, inner, 1, 0)
+    drawChevron(Layouts.GLYPH_CHEVRON_UP, fonts, size, d.dot, inner, 0, -1)
+    drawChevron(Layouts.GLYPH_CHEVRON_DOWN, fonts, size, d.dot, inner, 0, 1)
     drawCircle(accent, m.h(KeyGrid.DOT_CORE_D) / 2f, d.dot)
+}
+
+/** A chevron whose ink's near edge sits [inner] from [dot] in direction (dx, dy), centred across it. */
+private fun DrawScope.drawChevron(glyph: String, fonts: KeyFonts, size: Float, dot: Offset, inner: Float, dx: Int, dy: Int) {
+    textPaint.typeface = fonts.icons
+    textPaint.textSize = size
+    textPaint.color = KeyColors.label.toArgb()
+    val b = android.graphics.Rect()
+    textPaint.getTextBounds(glyph, 0, glyph.length, b)
+    val align = textPaint.textAlign
+    textPaint.textAlign = Paint.Align.LEFT
+    // The ink box's top-left, then the glyph origin that puts it there.
+    val inkLeft = when (dx) { -1 -> dot.x - inner - b.width(); 1 -> dot.x + inner; else -> dot.x - b.width() / 2f }
+    val inkTop = when (dy) { -1 -> dot.y - inner - b.height(); 1 -> dot.y + inner; else -> dot.y - b.height() / 2f }
+    drawContext.canvas.nativeCanvas.drawText(glyph, inkLeft - b.left, inkTop - b.top, textPaint)
+    textPaint.textAlign = align
 }
 
 /** R6 §2.4.1–2.4.4 (LOW, H3): an opaque flat accent line ≈9.4 epx wide with round ends; retracts from its tail. */

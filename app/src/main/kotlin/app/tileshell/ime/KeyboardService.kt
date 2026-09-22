@@ -237,6 +237,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         state.field = field
         controller.reset()
         editor.reset(info)
+        editor.secret = field.isPassword
         state.emojiOpen = false
         state.voice = VoiceState.Idle
         state.notice = null
@@ -292,15 +293,21 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         when (action) {
             is EmojiAction.Insert -> {
                 editor.commit(action.text, "emoji")
-                store.addRecent(action.text)
-                state.recentEmoji = store.recentEmoji
+                // Recent is learning too: an emoji typed into a password must not become the first cell the
+                // panel shows in the next app (review M3; Decisions: learning never in password fields).
+                if (!state.field.isPassword) {
+                    store.addRecent(action.text)
+                    state.recentEmoji = store.recentEmoji
+                }
                 val cps = action.text.codePoints().toArray().joinToString(" ") { "U+" + Integer.toHexString(it).uppercase() }
-                Diagnostics.add("ime", "emoji inserted $cps")
-                // Decisions: "Switch back to letters after I type an emoticon" (R6 §2.6.5, LOW, H18).
+                Diagnostics.add("ime", if (editor.secret) "emoji inserted (hidden: password field)" else "emoji inserted $cps")
+                // Decisions: "Switch back to letters after I type an emoticon" (R6 §2.6.5, LOW, H18) — to the
+                // field's own keys, so a phone field gets its keypad back (review MINOR-9).
                 if (config.switchBackAfterEmoji) {
                     state.emojiOpen = false
-                    controller.switchLayer(Layer.LETTERS)
+                    controller.switchLayer(controller.homeLayer())
                 }
+                controller.afterPanelEdit()
             }
             is EmojiAction.Category -> {
                 state.emojiCategory = action.category
@@ -308,9 +315,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             }
             EmojiAction.Letters -> {
                 state.emojiOpen = false
-                controller.switchLayer(Layer.LETTERS)
+                controller.switchLayer(controller.homeLayer())
             }
-            EmojiAction.Backspace -> editor.backspace()
+            EmojiAction.Backspace -> {
+                editor.backspace()
+                controller.afterPanelEdit()
+            }
         }
     }
 
@@ -319,7 +329,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
     override fun micTapped() {
         feedback.press()
         if (state.voice is VoiceState.Listening) {
-            SpeechClient.stopListening()
+            if (pendingListen) {
+                // Tapped again while the speech process was still binding: nothing is listening yet, so
+                // the stop has to cancel the pending start rather than go to the service (review m11).
+                pendingListen = false
+                state.voice = VoiceState.Idle
+                Diagnostics.add("ime", "voice typing cancelled before it started")
+            } else {
+                SpeechClient.stopListening()
+            }
             return
         }
         startVoice()
@@ -340,11 +358,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         }
         state.voice = VoiceState.Listening("")
         state.notice = null
-        if (SpeechClient.bound) {
-            SpeechClient.listen("")
-        } else {
-            pendingListen = true
-            SpeechClient.bind(this, includeCapabilities = true)
+        when {
+            SpeechClient.bound -> SpeechClient.listen("")
+            // Already binding (first use, or Android re-binding after the speech process died): wait for it.
+            // Binding again here would leave the bind count one too high (review MINOR-5).
+            SpeechClient.connection.value != SpeechClient.Connection.UNBOUND -> pendingListen = true
+            else -> {
+                pendingListen = true
+                SpeechClient.bind(this, includeCapabilities = true)
+            }
         }
         Diagnostics.add("ime", "voice typing started (bound=${SpeechClient.bound})")
     }
@@ -367,7 +389,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             is SpeechEvent.Final -> if (listening) {
                 state.voice = VoiceState.Idle
                 val text = sentenceCase(event.open.trim())
-                Diagnostics.add("ime", "voice final \"$text\" (${event.audioMs} ms)")
+                Diagnostics.add("ime", if (editor.secret) "voice final (hidden: password field)" else "voice final \"$text\" (${event.audioMs} ms)")
                 if (text.isEmpty()) {
                     state.notice = "Didn't catch that."
                 } else {
@@ -442,11 +464,24 @@ class KeyboardHost(
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
             ownGesture = controller.inKeyBlock(ev.x, ev.y)
+        } else if (!ownGesture && ev.actionMasked == MotionEvent.ACTION_POINTER_DOWN) {
+            // A thumb resting on the strip must not swallow a key the other thumb taps (review MAJOR-1):
+            // the strip's gesture is cancelled and the rest of the gesture is the keyboard's, starting with
+            // this finger.
+            val i = ev.actionIndex
+            if (controller.inKeyBlock(ev.getX(i), ev.getY(i))) {
+                val cancel = MotionEvent.obtain(ev).apply { action = MotionEvent.ACTION_CANCEL }
+                super.dispatchTouchEvent(cancel)
+                cancel.recycle()
+                ownGesture = true
+                controller.pointerDown(ev.getPointerId(i), ev.getX(i), ev.getY(i), ev.eventTime)
+                return true
+            }
         }
         val result = if (ownGesture) controller.onTouch(ev) else super.dispatchTouchEvent(ev)
         // Where a touch outside the key block went (the strip, the emoji panel, the one-handed band):
         // without this "the strip did nothing" and "the strip never got the touch" look the same.
-        if (!ownGesture && (ev.actionMasked == MotionEvent.ACTION_DOWN || ev.actionMasked == MotionEvent.ACTION_UP)) {
+        if (!ownGesture && !controller.secret && (ev.actionMasked == MotionEvent.ACTION_DOWN || ev.actionMasked == MotionEvent.ACTION_UP)) {
             Diagnostics.add("ime", "touch ${if (ev.actionMasked == MotionEvent.ACTION_DOWN) "down" else "up"} at ${ev.x.toInt()},${ev.y.toInt()} -> compose handled=$result")
         }
         if (ev.actionMasked == MotionEvent.ACTION_UP || ev.actionMasked == MotionEvent.ACTION_CANCEL) ownGesture = false
