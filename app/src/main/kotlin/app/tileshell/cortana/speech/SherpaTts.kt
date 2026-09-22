@@ -13,6 +13,8 @@ import com.k2fsa.sherpa.onnx.OfflineTtsKokoroModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.PI
+import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 
@@ -199,7 +201,6 @@ class SherpaTts(private val context: Context) {
                 }
             }
 
-            player.play()
             val levelChunk = max(1, rate * LEVEL_INTERVAL_MS / 1000)
 
             // Synthesised in one call, not through generateWithCallback.
@@ -213,9 +214,39 @@ class SherpaTts(private val context: Context) {
             // whole utterance before playback costs a little latency and removes the crash entirely.
             val audio = engine.generate(text = text, sid = sid, speed = SPEED)
             val samples = audio.samples
+
+            // Clicking in the reply, fixed at the producer in three places.
+            //
+            // 1. ENCODING_PCM_FLOAT is HARD-clipped by the mixer: every sample past 1.0 is flattened,
+            //    and a flattened peak is a click. Kokoro does not promise its output sits inside
+            //    [-1, 1]. The whole utterance is scaled by ONE factor when it is over, so nothing
+            //    inside it is reshaped relative to anything else — this is a ceiling, not a limiter,
+            //    and it never makes a quiet reply louder. The raw peak is logged either way, so the
+            //    diagnostics say whether an utterance was actually clipping.
+            val peak = peakOf(samples)
+            if (peak > PEAK_CEILING) {
+                val gain = PEAK_CEILING / peak
+                for (i in samples.indices) samples[i] *= gain
+            }
+            // 2. A waveform that starts or stops at a non-zero sample IS a click — the speaker cone is
+            //    asked to jump. Kokoro's first and last samples are not guaranteed to be near zero, so
+            //    each end gets a raised-cosine ramp a few milliseconds long, far shorter than any
+            //    speech sound and inaudible as a fade.
+            rampEnds(samples, max(1, rate * RAMP_MS / 1000))
+            Diagnostics.add(
+                "speech",
+                "tts: $utteranceId peak=$peak" +
+                    (if (peak > PEAK_CEILING) " scaled to $PEAK_CEILING (was clipping)" else "") +
+                    " samples=${samples.size}",
+            )
+
             if (generation.get() != myGeneration) {
                 cancelled = true
             } else {
+                // 3. play() used to be called BEFORE generate(), so the track ran dry for as long as
+                //    the model took and underran from its first frame. It starts once there is
+                //    something to play.
+                player.play()
                 var offset = 0
                 while (offset < samples.size) {
                     if (generation.get() != myGeneration) {
@@ -333,6 +364,34 @@ class SherpaTts(private val context: Context) {
             Diagnostics.add("speech", "tts: AudioTrack construction failed: $t")
             null
         }
+    }
+}
+
+/** The largest sample any reply is allowed to reach; above this the float mixer hard-clips. */
+private const val PEAK_CEILING = 0.99f
+
+/** The raised-cosine ramp at each end of an utterance, in milliseconds. */
+private const val RAMP_MS = 5
+
+private fun peakOf(samples: FloatArray): Float {
+    var peak = 0f
+    for (s in samples) {
+        val a = if (s < 0f) -s else s
+        if (a > peak) peak = a
+    }
+    return peak
+}
+
+/** Ramps [samples] up from silence and back down to it, so neither end is a step. */
+private fun rampEnds(samples: FloatArray, rampSamples: Int) {
+    val n = min(rampSamples, samples.size / 2)
+    if (n <= 1) return
+    for (i in 0 until n) {
+        // A raised cosine, not a straight line: its slope is zero at both ends, so the ramp itself
+        // introduces no corner.
+        val w = (0.5 - 0.5 * cos(PI * i / n)).toFloat()
+        samples[i] *= w
+        samples[samples.size - 1 - i] *= w
     }
 }
 
