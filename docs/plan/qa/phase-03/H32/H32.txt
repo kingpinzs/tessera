@@ -43,3 +43,36 @@ UNIT EVIDENCE
     every lens tone but the core sits on one hue line, so a colour search finds the whole lens
     the halo stays below the score the disc measurement cuts at
     a full reveal is the pre-HAL drawing - every lens tone becomes the flat accent
+
+------------------------------------------------------------------------------------------------
+ADDENDUM, later on 2026-09-21: the two things above that "could not be captured" now ARE captured.
+
+The AVD was never wedged and the session was never untappable. Two real faults were stacked:
+
+  1. SystemUI's immersive-mode cling. The first time the shell hides the system bars, SystemUI puts
+     a full-screen "Viewing full screen / To exit, swipe down from the top of your screen / Got it"
+     window on top of everything. It is a SystemUI window, so a uiautomator dump shows only
+     SystemUI and every tap lands on it -- including taps on Android's own dialogs. Cleared with
+     `settings put secure immersive_mode_confirmations confirmed`, now in provision.sh.
+  2. The session crashed before it drew. `ViewTreeLifecycleOwner not found from
+     CortanaSession$onCreateContentView$host$1` at AbstractComposeView.onAttachedToWindow, twice out
+     of two opens (22:05:04 and 22:06:00). The owners were set on the ComposeView, but Compose
+     builds the window recomposer from the window's ROOT view, and the root is the instrumentation
+     FrameLayout that wraps it. Fixed at the producer: the owners go on the view onCreateContentView
+     returns. Zero crashes since.
+
+WITH BOTH FIXED, ON THE DEVICE
+  A tap on Start's Search key opens Cortana's home page: cortana_session, cortana_persona_large_idle,
+  cortana_greeting, cortana_menu_button, cortana_text_box -- see cortana_home.png. The idle ring is
+  drawn by drawLensRing, so the hollow form is now captured too.
+
+THE EASTER EGG, ON THE DEVICE
+  The A22 idle ring's stroke band sits ~88 px from the centre (outer 70 epx = 210 px, stroke 11 epx
+  = 33 px). Sampled at 84, 88 and 92 px left of centre:
+
+    before the taps     (161, 21, 12)  (157, 20, 11)  (153, 19, 10)   HAL's lens
+    1 s after 3 taps    (0, 120, 214)  (0, 120, 214)  (0, 120, 214)   Cortana, = accent 0078D7
+    7 s later           (161, 21, 12)  (157, 20, 11)  (153, 19, 10)   HAL again
+
+  egg_1_hal.png, egg_2_cortana.png, egg_3_hal_again.png are those three frames cropped to the
+  persona. The reveal opens on the third tap, holds, and closes on its own, exactly as LensTest says.

@@ -34,6 +34,18 @@ say "installing the shell"
 # shell is never installed with --restrict-permissions (phase 03 Decisions).
 adb install -r -g "$APK"
 
+say "the system UI a wipe brings back"
+# THE fault that cost this build a day. The first time an app hides the system bars, SystemUI puts a
+# full-screen "Viewing full screen / To exit, swipe down from the top of your screen / Got it" window
+# on top of everything. It is a SystemUI window, so a uiautomator dump shows only SystemUI and EVERY
+# tap lands on it — including taps on Android's own dialogs. It looks exactly like an emulator whose
+# input has died. A wipe brings it back, so it is turned off here before anything else runs.
+adb shell settings put secure immersive_mode_confirmations confirmed
+echo "immersive cling: $(adb shell settings get secure immersive_mode_confirmations | tr -d '\r')"
+# A wipe also restores the keyguard; the drawn shell never sees a tap from behind it.
+adb shell locksettings set-disabled true >/dev/null 2>&1
+adb shell wm dismiss-keyguard >/dev/null 2>&1
+
 say "roles"
 adb shell cmd role add-role-holder android.app.role.HOME app.tileshell
 adb shell cmd role add-role-holder android.app.role.ASSISTANT app.tileshell
@@ -44,15 +56,43 @@ echo "home=$(adb shell cmd role get-role-holders android.app.role.HOME | tr -d '
 echo "assistant=$(adb shell cmd role get-role-holders android.app.role.ASSISTANT | tr -d '\r')"
 
 say "fixture apps"
-# The E2 table names these; they are installed for tests only and never bundled.
+# The E2 table and phase 01's category rows name these; they are installed for tests only and never
+# bundled. A wipe takes them with it, so they are restored from the stash pulled off the device before
+# the wipe (FIXTURES, one directory per package, holding that package's APK files as `pm path` gave
+# them). Rebuild the stash from a provisioned device with:
+#   for p in $(adb shell pm list packages -3 | sed s/package://); do
+#     for f in $(adb shell pm path $p | sed s/package://); do adb pull $f "$FIXTURES/$p/"; done
+#   done
+FIXTURES="${FIXTURES:-$HOME/android-fixtures}"
+if [ -d "$FIXTURES" ]; then
+  for dir in "$FIXTURES"/*/; do
+    [ -d "$dir" ] || continue
+    pkg="$(basename "$dir")"
+    if adb shell pm list packages "$pkg" | grep -q "^package:$pkg$"; then
+      echo "have $pkg"
+      continue
+    fi
+    apks=("$dir"*.apk)
+    if [ ! -e "${apks[0]}" ]; then echo "MISSING apks for $pkg"; continue; fi
+    if [ "${#apks[@]}" -gt 1 ]; then
+      adb install-multiple -r -g "${apks[@]}" >/dev/null 2>&1 && echo "installed $pkg (split)" \
+        || echo "FAILED $pkg"
+    else
+      adb install -r -g "${apks[0]}" >/dev/null 2>&1 && echo "installed $pkg" || echo "FAILED $pkg"
+    fi
+  done
+else
+  echo "no fixture stash at $FIXTURES - E2 and the category rows will be short of apps"
+fi
+# The rows that need a specific handler name it here rather than trusting whatever the image picks.
 for pkg in org.fossify.messages app.organicmaps org.oxycblt.auxio org.fossify.camera org.fossify.notes; do
-  if adb shell pm list packages "$pkg" | grep -q "$pkg"; then
-    echo "have $pkg"
-  else
-    echo "MISSING $pkg - install it before running E2"
-  fi
+  adb shell pm list packages "$pkg" | grep -q "^package:$pkg$" || echo "MISSING $pkg - E2 needs it"
 done
 adb shell cmd role add-role-holder android.app.role.SMS org.fossify.messages >/dev/null 2>&1
+# Installing packages drops the preferred home ACTIVITY again, and without it Home raises the chooser,
+# which sits in front of Start and swallows every tap. Re-assert it after the installs, not before.
+adb shell cmd package set-home-activity app.tileshell/app.tileshell.StartActivity
+echo "home activity re-asserted after the installs"
 
 say "a contact for the call, text and person-reminder rows"
 existing="$(adb shell content query --uri content://com.android.contacts/data/phones --projection display_name 2>/dev/null | grep -c 'display_name=Mom')"
