@@ -1,0 +1,39 @@
+==============================================================================
+ROW EDGE3 — voice typing: permission denied, microphone busy, assistant role elsewhere, a call
+at            2026-09-22T14:57:35-06:00
+driver        edge3.sh blob 34c2e4f56802c5e7acfe49cb4400a014de368fbd
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     f1c622a09245a23e 333513390 bytes
+apk installed 4f4fa6cc566ec873
+apk match     yes (4f4fa6cc566ec873)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+OK
+default source: vmic.monitor
+emulator sink:  
+after the voice key without the permission, the top activity is:     topResumedActivity=ActivityRecord{142960970 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t431}
+PASS  permission denied: Android's own grant prompt is raised     contains [permissioncontroller]
+PASS  the keyboard recorded the refusal                           contains [voice refused: no RECORD_AUDIO]
+PASS  the keyboard holds the microphone                           = 25742
+      after Cortana asked: microphone owner pid -1 (keyboard 25742, launcher 25700); cortana:     2026-09-22 14:57:52.255 wall=1790110672255 [cortana] session opened mode=HOME locked=false     2026-09-22 14:57:58.556 wall=1790110678556 [cortana] touch 0 at 1008,2124 handled=true childCount=1 composeAttached=true     2026-09-22 14:57
+      keyboard:     2026-09-22 14:57:42.435 wall=1790110662435 [ime] voice refused: no RECORD_AUDIO; asking     2026-09-22 14:57:51.096 wall=1790110671096 [ime] voice typing started (bound=false)     2026-09-22 14:57:52.344 wall=1790110672344 [ime] voice: unbound (input finished) 
+      speech process:     2026-09-22 14:57:51.161 wall=1790110671161 [speech] listening for pid=25742     2026-09-22 14:57:52.342 wall=1790110672342 [speech] microphone released: owner unregistered     2026-09-22 14:57:58.561 wall=1790110678561 [speech] listening for pid=25700 
+PASS  the keyboard let go when its window hid                     contains [voice: unbound]
+FAIL  and Cortana then owns the microphone                        expected [25700] got [-1]
+PASS  no crash: the launcher process is alive                     != 
+PASS  no crash: a keyboard process is alive                       != 
+      Cortana listening: owner pid 25700, launcher pid 25700
+PASS  Cortana holds the microphone                                = 25700
+      Cortana's text box did not bring up the keyboard while listening; the refusal side is carried by the first direction
+      assistant role holders now: []
+PASS  the shell no longer holds the assistant role                != app.tileshell
+PASS  voice typing works without the assistant role               contains [hat time is it]
+PASS  restored: the assistant role holder                         = app.tileshell
+      call state: mCallState=2
+during a call: field [and ]; strip notice []
+PASS  during a call: the keyboard either types or explains, and never crashes  = yes
+      call ended: mCallState=0
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+------------------------------------------------------------------------------
+EDGE3: 11 passed, 1 failed

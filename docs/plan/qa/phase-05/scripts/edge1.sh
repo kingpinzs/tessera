@@ -84,7 +84,9 @@ assert_eq "paste: the keyboard types at the caret after the paste" "[copycopyx]"
 # `input text` drops characters on a long string (runs 1-2 got 481 and 555 of 1500), so the fixture puts
 # the 1500 characters in itself (--ei fill) with the caret at the end; the keyboard then types after them
 # and reads only the 64 characters before the caret.
-adb shell am start -S -W -n "$FIX/.MainActivity" -e focus field_multiline --ei fill 1500 >/dev/null
+# A single-line field: a 1500-character MULTI-line field grows taller than the fixture's ScrollView and
+# drops focus (run 3; 100 characters is fine), which is the fixture's layout, not the keyboard.
+adb shell am start -S -W -n "$FIX/.MainActivity" -e focus field_text --ei fill 1500 >/dev/null
 sleep 2.5; kb_dump "$D"
 assert_eq "very long text: the field holds 1500 characters" "1500" "$(read_mirror len)"
 tap_key "$D" space; tap_word "$D" "end"; sleep 0.8

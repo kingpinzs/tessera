@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- mirror_text is capped at two lines on screen (its accessibility text, which dumps read, is still the
+     whole text): uncapped, a 1500-character field grew it until it pushed every field off the screen and
+     no field kept focus (phase 05 EDGE1 run 3). -->
 <!-- The mirror block. Always visible at the top of the window, outside any ScrollView. The value views'
      resource ids are the contract read from `uiautomator dump`:
        mirror_focus      focused field's id name (field_email) or "none"
@@ -53,6 +56,8 @@
             android:id="@+id/mirror_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:maxLines="2"
+            android:ellipsize="end"
             android:textSize="12sp"
             android:fontFamily="monospace"
             android:text="[]" />

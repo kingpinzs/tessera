@@ -1,0 +1,26 @@
+==============================================================================
+ROW E8 — voice typing, network off, inserts the spoken text
+at            2026-09-22T14:57:06-06:00
+driver        e8.sh blob dd5fed3a93405354f379a21ce10b9a076749068d
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     f1c622a09245a23e 333513390 bytes
+apk installed 4f4fa6cc566ec873
+apk match     yes (4f4fa6cc566ec873)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+OK
+default source: vmic.monitor
+emulator sink:  
+dumpsys connectivity: Active default network: none
+PASS  the network is off (no active default network)              contains [none]
+PASS  the voice key leads the strip                               = yes
+      speech process: asr_listening=true mic_owner_pid=24476 clients=1
+PASS  the microphone is listening for the keyboard's own process  = 24476
+field after speaking "What time is it?": [what time is it ]
+PASS  the spoken text went into the field                         contains [hat time is it]
+PASS  the keyboard recorded the final transcript                  contains [voice final]
+      restored: Active default network: 102
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+------------------------------------------------------------------------------
+E8: 5 passed, 0 failed

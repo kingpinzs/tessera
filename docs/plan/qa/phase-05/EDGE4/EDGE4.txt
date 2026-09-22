@@ -1,0 +1,23 @@
+==============================================================================
+ROW EDGE4 — after a reboot the keyboard is still selected and types
+at            2026-09-22T14:59:15-06:00
+driver        edge4.sh blob 92eec45e8a771972aaab9e3f9bb3013f3d39d765
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     f1c622a09245a23e 333513390 bytes
+apk installed 4f4fa6cc566ec873
+apk match     yes (4f4fa6cc566ec873)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      before the reboot: selected app.tileshell/.ime.KeyboardService, :ime pid 25742
+PASS  after the reboot: still the selected keyboard               = app.tileshell/.ime.KeyboardService
+PASS  after the reboot: still enabled                             contains [app.tileshell/.ime.KeyboardService]
+PASS  the keyboard comes up on the first field after the reboot   = yes
+PASS  a fresh :ime process                                        != 25742
+PASS  and it types                                                = [up]
+      scroll_to_node checklist:keyboard_selected:granted: 0 swipe(s), found=yes
+PASS  the checklist: keyboard enabled                             = yes
+PASS  the checklist: keyboard selected                            = yes
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+------------------------------------------------------------------------------
+EDGE4: 7 passed, 0 failed
