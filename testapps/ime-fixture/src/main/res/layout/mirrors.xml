@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The mirror block. Always visible at the top of the window, outside any ScrollView. The value views'
+     resource ids are the contract read from `uiautomator dump`:
+       mirror_focus      focused field's id name (field_email) or "none"
+       mirror_text       "[" + the focused field's raw text + "]", newlines escaped as \n
+       mirror_sel        "selectionStart,selectionEnd"
+       mirror_len        text length
+       mirror_action     last editor action received, IME_ACTION_SEARCH@field_search, or "none"
+       mirror_inputtype  the focused field's inputType as hex (0x21) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mirror_block"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FFEEEEEE"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <LinearLayout
+        android:id="@+id/mirror_row_focus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/mirror_label_focus"
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:text="focus" />
+        <TextView
+            android:id="@+id/mirror_focus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:text="none" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mirror_row_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/mirror_label_text"
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:text="text" />
+        <TextView
+            android:id="@+id/mirror_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:text="[]" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mirror_row_sel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/mirror_label_sel"
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:text="sel" />
+        <TextView
+            android:id="@+id/mirror_sel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:text="0,0" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mirror_row_len"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/mirror_label_len"
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:text="len" />
+        <TextView
+            android:id="@+id/mirror_len"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:text="0" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mirror_row_action"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/mirror_label_action"
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:text="action" />
+        <TextView
+            android:id="@+id/mirror_action"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:text="none" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mirror_row_inputtype"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/mirror_label_inputtype"
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:text="inputtype" />
+        <TextView
+            android:id="@+id/mirror_inputtype"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:text="0x0" />
+    </LinearLayout>
+</LinearLayout>

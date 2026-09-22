@@ -18,3 +18,6 @@ include(":livetile-client")
 // R4, the helper feasibility spike: phone-only and standalone (PLAN.md R4).
 include(":r4probe")
 include(":testapps:tileclient-a", ":testapps:tileclient-b", ":testapps:tileclient-b2")
+// Phase 05 QA tooling, never shipped: the IME fixture app (mirrors the focused field's raw text and
+// selection into TextViews) and, in its androidTest, the UiAutomator gesture driver.
+include(":testapps:ime-fixture")
