@@ -31,7 +31,9 @@ android {
     // APK by the native asset loader, so they must not be deflated. espeak-ng-data.zip is read by the
     // extractor as a stream, so it is stored too rather than double-compressed.
     androidResources {
-        noCompress += listOf("onnx", "bin", "zip")
+        // "model" is the BPE vocabulary's extension: sherpa-onnx may read it through a file descriptor
+        // rather than the asset stream, and a deflated asset has no usable fd.
+        noCompress += listOf("onnx", "bin", "zip", "model")
     }
 
     signingConfigs {
