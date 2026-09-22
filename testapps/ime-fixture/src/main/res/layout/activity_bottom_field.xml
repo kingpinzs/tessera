@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- BottomFieldActivity (E9): the mirror block, top_field under it, bottom_field anchored to the bottom
+     of the window (8 dp margin). The window is adjustNothing so the keyboard never pushes bottom_field up:
+     with the panel dragged upward, bottom_field sits in the transparent band below it and a tap there
+     must reach it. -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:importantForAutofill="noExcludeDescendants">
+
+    <include
+        android:id="@+id/mirror_block"
+        layout="@layout/mirrors"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true" />
+
+    <TextView
+        android:id="@+id/label_top_field"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/mirror_block"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="6dp"
+        android:textSize="11sp"
+        android:text="top_field: text" />
+
+    <app.tileshell.qa.imefixture.MirrorEditText
+        android:id="@+id/top_field"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/label_top_field"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:textSize="16sp"
+        android:inputType="text" />
+
+    <app.tileshell.qa.imefixture.MirrorEditText
+        android:id="@+id/bottom_field"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:inputType="text" />
+</RelativeLayout>
