@@ -1,5 +1,5 @@
 ---
-status: DRAFT   # Stage A: interview in progress; Q1, Q3, Q4 and Q5 ruled 2026-09-22, Q6 is with Jeremy
+status: DRAFT   # Stage A: interview in progress; Q1, Q3-Q6 ruled 2026-09-22, Q7 is with Jeremy
 ---
 # Phase 10 — W10M media player
 
@@ -93,6 +93,15 @@ One consequence for the app list: this player appears there like any other app, 
 offers Uninstall. It cannot be uninstalled separately — it is part of the shell APK — so it must be
 excluded the way the shell's own package already is (AppUninstall.canUninstall), or the menu offers an
 item that cannot work.
+
+**Q6 — what the library indexes (2026-09-22, Jeremy: "A").** Everything MediaStore reports as audio,
+watched for changes the way PhotosFeed already watches images rather than scanned once at start.
+
+The consequence, recorded because it is the thing the other options existed to avoid: MediaStore's audio
+collection is not only music. Ringtones, notification sounds, alarms and voice recordings are audio too,
+so on a real phone they appear in the songs list and their folders appear as albums. That is the answer
+given, and it is one predicate to add later (MediaStore.Audio.Media.IS_MUSIC) if it turns out noisy on
+the S25 Ultra — a NEEDS-HUMAN row rather than a rebuild, since nothing else depends on it.
 
 ## Interview queue (Stage A step 4)
 
