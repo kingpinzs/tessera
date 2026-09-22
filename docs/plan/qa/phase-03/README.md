@@ -91,7 +91,7 @@ Status is what the driver's exit code says, not a judgement.
 | E4 persona motion from screenrecord | NOT RUN | — |
 | E5 typed request, text box geometry, exported components | **PASS 12/12** | `E5/E5.txt` |
 | E6 the tile ADD runs once; reminders survive force-stop and reboot | tile half PASS 8/8; reminder half owed a re-run | `E6/E6.txt` |
-| E7 the confirmation flow | NOT RUN | — |
+| E7 the confirmation flow | driver written and run; BLOCKED on the touch defect below | `E7/E7.txt` |
 | E8 the Search key, tap and hold | NOT RUN | — |
 | E9 lock screen options and the locked session | NOT RUN | — |
 | E10 the locked commands | NOT RUN | — |
@@ -122,6 +122,41 @@ Status is what the driver's exit code says, not a judgement.
 * **`bpeVocab` works as an asset path** — no extraction needed. `status()` reports
   `asr_bpe_vocab=asset:speech/asr/bpe.vocab`.
 * **Kokoro reports 11 speakers**, matching the bundled voice table.
+
+## The blocking defect E7 found: nothing inside the Cortana session responds to touch
+
+Every tap inside Cortana does nothing — the microphone button, the ≡ button, and a card's Remind and
+Cancel. E7 cannot get past its first exchange, and E15 and every card row depend on the same surface.
+
+What is established, on the device:
+
+* The session window is focused and full-screen: `dumpsys window` shows
+  `mCurrentFocus=Window{... VoiceInteractionSession}`, `(0,0)(fillxfill) ty=VOICE_INTERACTION`.
+* Accessibility sees every node at the right place: `cortana_text_box_mic` reports
+  `bounds=[936,2052][1080,2196]`, `clickable="true"`, `enabled="true"`.
+* The UI is live, not frozen: the text field takes focus by itself (`focused="true"`), and
+  `adb shell input text` reaches it — which is why E5's typed request passed.
+* Injected `input tap` AND a full `input motionevent DOWN/UP` stream at those coordinates produce
+  **no `dispatchTouchEvent` at all** on the session's content view. That is instrumented, not inferred:
+  the content view is wrapped in a FrameLayout that records every DOWN and UP to the diagnostics ring,
+  and the ring stays empty across a tap.
+
+Two real causes were found and fixed on the way, and neither was the whole story:
+
+1. **The session's touchable region was empty.** A VoiceInteractionSession computes it from the content
+   frame by default; here every tap counted as a touch OUTSIDE the session and dismissed it. Fixed with
+   `onComputeInsets` → `TOUCHABLE_INSETS_FRAME`. After the fix a tap no longer dismisses the session —
+   but it still does not reach the content view.
+2. **The session's lifecycle owner was only CREATED when the ComposeView was attached.** Now RESUMED
+   before `onCreateContentView`, and `setUiEnabled(true)` is re-asserted on every show.
+
+What is NOT established: whether a real finger works. This is an AVD, and input injection into a
+`TYPE_VOICE_INTERACTION` window may be restricted in a way a real touch is not. That distinction
+decides whether this is a shipping defect or an emulator limit, and it cannot be settled here — it
+belongs on the phone, alongside P3, which already covers the session on real hardware.
+
+Until it is settled, every card button in this phase is untested, and E7's tap-based sub-rows
+(a tap on Remind with the fields empty) cannot run at all.
 
 ## What E2 still owes, and one defect it left open
 

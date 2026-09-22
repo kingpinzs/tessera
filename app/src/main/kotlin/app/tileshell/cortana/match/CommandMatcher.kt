@@ -302,4 +302,10 @@ object CommandMatcher {
         .replace(Regex("\\ba m\\b"), "am")
         .replace(Regex("\\bp m\\b"), "pm")
         .replace(Regex("\\bo clock\\b"), "o'clock")
+        // A command verb does not always arrive first. The device produced "THE TEXT MA'AM ON MY WAY"
+        // for "Text Mom I'm on my way" and "AT WHAT TIME IS IT" for "What time is it?", and a command
+        // prefix is matched from the START of the utterance, so one stray leading word loses the whole
+        // request. None of the ruled commands begins with any of these, so dropping them costs nothing.
+        .replace(Regex("^(?:the|a|uh|um|er|so|ok|okay|hey|please|and|now|just)\\s+"), "")
+        .trim()
 }

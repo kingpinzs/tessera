@@ -1,0 +1,86 @@
+==============================================================================
+ROW E7 — the confirmation flow
+at            2026-09-21T20:41:04-06:00
+driver        e7.sh blob d455f318fe27a35d7328d32e40644be4144c3070
+harness       lib.sh blob e237261b78d153dbe443cbc4ff33af1fff6ac9ce
+apk built     f31ac978e694e489 317957472 bytes
+apk installed b6207bbd03d113f7
+apk match     yes (b6207bbd03d113f7)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      read-back reply: Sorry, I can't do that yet.
+FAIL  R6 3.4.1 read-back names the contact                        does not contain [I'll text Mom]: Sorry, I can't do that yet.
+FAIL  R6 3.4.1 read-back quotes the message                       does not contain [on my way]: Sorry, I can't do that yet.
+FAIL  R6 3.4.1 read-back offers the three answers                 does not contain [Send it, add more, or try again?]: Sorry, I can't do that yet.
+FAIL  the text read-back card is on screen                        expected [yes] got [no]
+FAIL  with a Send button                                          expected [yes] got [no]
+FAIL  and a Cancel button                                         expected [yes] got [no]
+      at the read-back: listening box=no, tappable mic=no
+FAIL  a confirmation can be answered by voice                     no listening box and no tappable mic: the card can only be answered by its buttons
+      answering by tap, because voice was not available at the card
+PASS  cancel sends nothing                                        = 0
+FAIL  and Cortana says so                                         does not contain [won't send it]: Sorry, I can't do that yet.
+      add more reply: Sorry, I can't do that yet.
+FAIL  R6 3.4.1 add more asks for the addition                     does not contain [what would you like to add]: Sorry, I can't do that yet.
+      second read-back: Sorry, I can't do that yet.
+FAIL  the next read-back starts with Okay, now I've got:          does not contain [Okay, now I've got:]: Sorry, I can't do that yet.
+FAIL  and carries the FIRST part of the message                   does not contain [on my way]: Sorry, I can't do that yet.
+FAIL  and the added part too                                      does not contain [milk]: Sorry, I can't do that yet.
+FAIL  send it replies Message sent.                               does not contain [Message sent.]: Sorry, I can't do that yet.
+FAIL  and the SMS provider gained a sent row                      should not be [0]
+FAIL  whose body is the WHOLE message                             does not contain [milk]: No result found.
+FAIL  try again asks for the message again                        does not contain [What do you want to say?]: Sorry, I can't do that yet.
+      call read-back: I couldn't find Ma'am in your contacts.
+FAIL  the call is read back                                       does not contain [I'll call Mom]: I couldn't find Ma'am in your contacts.
+FAIL  and asks before dialling                                    does not contain [Call, or try again?]: I couldn't find Ma'am in your contacts.
+FAIL  the call confirmation card is on screen                     expected [yes] got [no]
+PASS  dumpsys telecom shows no call yet                           = 0
+FAIL  and the call appears only after confirm                     should not be [0]
+FAIL  the reminder confirm card is on screen                      expected [yes] got [no]
+FAIL  R6 3.4.2 title                                              expected [Remind you about this?] got []
+FAIL  R6 3.4.2 caption                                            expected [Reminder] got []
+FAIL  field: the reminder text                                    expected [yes] got [no]
+FAIL  field: the time                                             expected [yes] got [no]
+FAIL  field: the day                                              expected [yes] got [no]
+FAIL  R6 3.4.2 recurrence dropdown                                does not contain [Only once]: 
+FAIL  R6 3.4.2 Add a photo row                                    expected [yes] got [no]
+FAIL  R6 3.4.2 Remind button                                      expected [yes] got [no]
+FAIL  R6 3.4.2 Cancel button                                      expected [yes] got [no]
+FAIL  R6 3.4.2 callout                                            does not contain [Yes, No, or Cancel]: 
+PASS  the reminder card does NOT offer add more                   = no
+FAIL  the card's fields are measurable                            text=[] time=[]
+FAIL  the card's buttons are measurable                           remind=[] cancel=[]
+PASS  no stores nothing                                           = 0
+0
+FAIL  and Cortana says so                                         does not contain [nothing saved]: I couldn't find Ma'am in your contacts.
+FAIL  a spoken yes stores the reminder                            should not be [0
+0]
+FAIL  R7 3.8.1 saved card is on screen                            expected [yes] got [no]
+FAIL  R7 3.8.1 title                                              expected [I'll remind you.] got []
+FAIL  R7 3.8.1 caption                                            expected [Reminder] got []
+FAIL  R7 3.8.1 the saved row carries the reminder text            does not contain [bins]: 
+      saved subline: 
+FAIL  R7 3.8.1 subline is written with a hyphen, not 'at'         does not contain [ - ]: 
+FAIL  R6 3.4.3 missing-time title (H16)                           expected [When would you like to be reminded?] got []
+FAIL  a spoken whenever stores a Whenever reminder                should not be [0
+0]
+FAIL  whose saved card has the lightbulb row                      expected [yes] got [no]
+PASS  and NO subline (H16)                                        = no
+FAIL  a TAP on Remind with the fields empty also stores a Whenever reminder  should not be [0
+0]
+PASS  and its saved card has no subline either                    = no
+FAIL  the stored reminder really has no time                      does not contain ["timeMs":null]: 
+FAIL  the calendar card is on screen (H17)                        expected [yes] got [no]
+PASS  the calendar card does NOT offer add more                   = no
+PASS  no adds nothing to the calendar                             = 0
+FAIL  yes adds the event                                          should not be [0]
+FAIL  the delete card is on screen (H18)                          expected [yes] got [no]
+PASS  the delete card does NOT offer add more                     = no
+FAIL  confirming deletes the event                                should not be [0]
+FAIL  the reminder delete card is on screen (H18)                 expected [yes] got [no]
+FAIL  confirming deletes the reminder                             should not be [0
+0]
+      reminders left at the end: 0
+0
+------------------------------------------------------------------------------
+E7: 9 passed, 51 failed

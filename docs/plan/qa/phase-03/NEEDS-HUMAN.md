@@ -38,6 +38,7 @@ The phase doc's Decisions carry the full reasoning for each; this sheet is the i
 | H28 | Cortana's Settings page look on the final release | R7 §3.9.4 UNMEASURED | E9 captures |
 | H29 | The person reminder card, its spoken wording and its saved-card subline | P4 design | E14 captures |
 | H30 | The role-notice page shown when another app holds the assistant role | no W10M counterpart | E1-adjacent capture |
+| H31 | The tolerant contact lookup: a spoken name that matches no contact exactly is matched to the one that sounds closest | The shipped recogniser hears "Mom" as "MAM" and "MA'AM" — on the device AND on the host, with "Mom" in the grammar pass's hotwords at a raised boost. Without tolerance the ruled "call or text a contact" command cannot be used at all; with it, there is a risk of texting the wrong person. Only a single close match counts, and two near-misses are refused rather than guessed | `ContactsNearMatchTest`, and the contacts lines in the diagnostics |
 
 ## Build-start agent calls in this phase, for the record
 

@@ -34,6 +34,110 @@ object Contacts {
      * back as two matches for the caller to disambiguate (edge case).
      */
     fun byName(context: Context, name: String): List<Match> {
+        val exact = lookup(context, name)
+        if (exact.isNotEmpty()) return exact
+        // The recogniser mishears a short name more often than it mishears a command: on this build
+        // "Text Mom" comes back as "TEXT MAM" and "Call Mom" as "CALL MA'AMS", on the device AND on the
+        // host, with "Mom" sitting in the grammar pass's hotwords at a raised boost. Without a tolerant
+        // lookup the whole ruled "call or text a contact" command is unusable with the shipped engine,
+        // so a spoken name that no contact matches exactly is compared against the contacts this phone
+        // actually has. Only a SINGLE close match counts: two near-misses are an ambiguity, not a guess.
+        // Agent call, its own NEEDS-HUMAN row (H31).
+        val near = nearestName(name, allNames(context, NEAR_MATCH_SCAN))
+        if (near != null) {
+            Diagnostics.add("contacts", "\"$name\" matched no contact exactly; nearest is \"$near\"")
+            return lookup(context, near)
+        }
+        Diagnostics.add("contacts", "\"$name\" matched no contact, exactly or nearly")
+        return emptyList()
+    }
+
+    /**
+     * The one contact name closest to what was heard, or null when nothing is close enough or two are
+     * equally close. Pure, so every pairing is pinned by a unit test rather than by a lucky utterance.
+     */
+    fun nearestName(spoken: String, names: List<String>): String? {
+        val heard = letters(spoken)
+        if (heard.isBlank() || names.isEmpty()) return null
+        val scored = names
+            .map { it to similarity(heard, letters(it)) }
+            .filter { (candidate, score) ->
+                // Two ways in. Plain closeness catches a dropped or swapped letter ("Sara" for
+                // "Sarah"). Sounding the same catches the error this engine actually makes: "MA'AM"
+                // is only 0.4 away from "Mom" by letters but is the same sound, and a homophone is
+                // precisely what a speech recogniser gets wrong.
+                score >= NEAR_MATCH_THRESHOLD ||
+                    (soundex(heard) == soundex(letters(candidate)) && score >= SOUNDEX_FLOOR)
+            }
+            .sortedByDescending { it.second }
+        if (scored.isEmpty()) return null
+        if (scored.size > 1 && scored[0].second == scored[1].second) return null
+        return scored[0].first
+    }
+
+    /** Letters only, lower case: the recogniser writes "MA'AM", and the apostrophe is not a sound. */
+    private fun letters(value: String): String = value.lowercase().filter { it.isLetter() }
+
+    /**
+     * Soundex, the classic English sound code: same first letter, same consonant classes. It is here to
+     * catch homophones, which is the error class a speech recogniser produces — not to be clever.
+     */
+    fun soundex(value: String): String {
+        val word = value.lowercase().filter { it.isLetter() }
+        if (word.isEmpty()) return ""
+        fun code(c: Char): Char = when (c) {
+            'b', 'f', 'p', 'v' -> '1'
+            'c', 'g', 'j', 'k', 'q', 's', 'x', 'z' -> '2'
+            'd', 't' -> '3'
+            'l' -> '4'
+            'm', 'n' -> '5'
+            'r' -> '6'
+            else -> '0'
+        }
+        val out = StringBuilder().append(word[0].uppercaseChar())
+        var previous = code(word[0])
+        for (c in word.drop(1)) {
+            val digit = code(c)
+            if (digit != '0' && digit != previous) out.append(digit)
+            // h and w do not break a run of the same code; a vowel does.
+            if (c != 'h' && c != 'w') previous = digit
+            if (out.length == 4) break
+        }
+        return out.padEnd(4, '0').toString()
+    }
+
+    /** 1.0 for identical, 0.0 for nothing in common: edit distance over the longer string's length. */
+    fun similarity(a: String, b: String): Float {
+        if (a == b) return 1f
+        val longer = maxOf(a.length, b.length)
+        if (longer == 0) return 1f
+        return 1f - editDistance(a, b).toFloat() / longer
+    }
+
+    private fun editDistance(a: String, b: String): Int {
+        var previous = IntArray(b.length + 1) { it }
+        for (i in 1..a.length) {
+            val current = IntArray(b.length + 1)
+            current[0] = i
+            for (j in 1..b.length) {
+                val substitution = previous[j - 1] + if (a[i - 1] == b[j - 1]) 0 else 1
+                current[j] = minOf(previous[j] + 1, current[j - 1] + 1, substitution)
+            }
+            previous = current
+        }
+        return previous[b.length]
+    }
+
+    /** A name has to be at least this close to be taken as the one that was meant. */
+    const val NEAR_MATCH_THRESHOLD = 0.6f
+
+    /** How close a name that SOUNDS the same still has to be, so a shared code alone is not enough. */
+    const val SOUNDEX_FLOOR = 0.4f
+
+    /** How many contacts the near-match scan reads. */
+    private const val NEAR_MATCH_SCAN = 500
+
+    private fun lookup(context: Context, name: String): List<Match> {
         if (!granted(context) || name.isBlank()) return emptyList()
         val uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_FILTER_URI, Uri.encode(name.trim()))
         val found = linkedMapOf<String, Pair<String, MutableList<Number>>>()
