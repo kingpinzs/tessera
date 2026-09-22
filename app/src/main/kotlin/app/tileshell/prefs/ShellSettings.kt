@@ -25,6 +25,27 @@ data class StartTheme(
     /** Tile size follows use (INDEX Change Log 2026-09-21 item 1). On by default; a size set by
      *  hand is pinned whatever this says. */
     val autoSizeTiles: Boolean = true,
+    /**
+     * The Photos tile runs a slideshow (INDEX Change Log 2026-09-21 item 4: "the photo one should have a
+     * slide show option on the tile"). Off by default: the tile behaves exactly as phase 01 built it
+     * until someone asks for a slideshow.
+     */
+    val photosSlideshow: Boolean = false,
+    /**
+     * The Photos tile's main photo — "set a main photo kind of like a picture frame and it does not flip
+     * when that is set". Null means no frame.
+     *
+     * It lives HERE, in the shell's settings, rather than in the layout store, and that is deliberate:
+     * the layout store holds what the grid IS (which tiles, where, how big) and is the thing edit mode
+     * writes by index; a chosen photo is a preference about one tile's content, the same kind of thing as
+     * the Start background two fields up, and it must survive the tile being moved, resized, put in a
+     * folder or into the bottom row. It is stored as a persisted content URI, exactly as the Start
+     * background is, so it is one already-proven mechanism rather than a second one.
+     *
+     * The Photos tile is a single slot tile (Slot.PHOTOS), so one setting is one tile: there is no
+     * per-tile key to invent and nothing to clean up when a tile is unpinned.
+     */
+    val photoFrameUri: String? = null,
 )
 
 /** Start + theme settings (phase 01 Settings hub). SharedPreferences-backed, exposed as a StateFlow. */
@@ -42,6 +63,8 @@ class ShellSettings private constructor(context: Context) {
         pressStyle = PressStyle.valueOf(prefs.getString("press", PressStyle.NONE.name)!!),
         showWorkAndPrivateApps = prefs.getBoolean("profiles", true),
         autoSizeTiles = prefs.getBoolean("autosize", true),
+        photosSlideshow = prefs.getBoolean("photos_slideshow", false),
+        photoFrameUri = prefs.getString("photo_frame", null),
     )
 
     fun update(change: (StartTheme) -> StartTheme) {
@@ -55,6 +78,8 @@ class ShellSettings private constructor(context: Context) {
             .putString("press", next.pressStyle.name)
             .putBoolean("profiles", next.showWorkAndPrivateApps)
             .putBoolean("autosize", next.autoSizeTiles)
+            .putBoolean("photos_slideshow", next.photosSlideshow)
+            .putString("photo_frame", next.photoFrameUri)
             .apply()
         state.value = next
         Diagnostics.add("settings", "start theme changed: $next")

@@ -60,6 +60,7 @@ import app.tileshell.apps.AppEntry
 import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
 import app.tileshell.diag.Diagnostics
+import app.tileshell.feeds.MusicFeed
 import app.tileshell.prefs.ThemeMode
 import app.tileshell.tiles.GridPack
 import app.tileshell.tiles.LayoutStore
@@ -69,8 +70,10 @@ import app.tileshell.tiles.Sized
 import app.tileshell.tiles.Slot
 import app.tileshell.tiles.SlotDefaults
 import app.tileshell.tiles.SlotResolver
+import app.tileshell.tiles.ActiveTiles
 import app.tileshell.tiles.RecentApp
 import app.tileshell.tiles.RecentPromotion
+import app.tileshell.tiles.TileGrowth
 import app.tileshell.tiles.TileKey
 import app.tileshell.tiles.TileSize
 import app.tileshell.tiles.engine.BadgeStore
@@ -401,7 +404,14 @@ fun StartPage(
     val stored = edit.previewOrder ?: layout.order
     val order =
         if (edit.active) stored
-        else remember(stored, RecentApp.promoted) { RecentPromotion.apply(stored, RecentApp.promoted) }
+        else remember(stored, RecentApp.promoted, ActiveTiles.grown) {
+            // Two transforms, both on the way to the screen and neither of them stored: where the last
+            // opened app sits, and how big a tile with something happening on it is drawn (INDEX Change
+            // Log 2026-09-21 items 3, 4 and 7). Order does not matter — one moves tiles, the other
+            // resizes them — but the promotion runs first so the grown tile lands in the row the
+            // promotion put it in rather than the other way round.
+            TileGrowth.apply(RecentPromotion.apply(stored, RecentApp.promoted), ActiveTiles.grown)
+        }
     val placements = remember(order, grid.unitsAcross) { GridPack.pack(order, grid.unitsAcross) }
     val bandFolder = shownFolder?.takeIf { it in layout.folders }
     val bandTile = bandFolder?.let { id -> placements.firstOrNull { (it.key as? TileKey.FolderTile)?.folderId == id } }
@@ -709,6 +719,9 @@ private fun GridTile(
         tileAlpha = tileAlpha,
         pressStyle = pressStyle,
         onTap = { onTileTap(tile) },
+        // A control tap goes to the media session the tile is already reading, and NOT through
+        // onTileTap — which is the Start exit and a launch (INDEX Change Log 2026-09-21 item 3).
+        onControl = { MusicFeed.send(it) },
         interactive = !edit.active,
         dim = if (edit.active) dim.copy(alpha = dim.alpha * (1f - heldness)) else Color.Unspecified,
         folderTarget = edit.folderFeedback && edit.hover == tile.key,

@@ -20,11 +20,22 @@ object LiveTileEngine {
     const val MUSIC = "feed:music"
     const val WEATHER = "feed:weather"
 
+    /**
+     * Content with neither live faces nor a [TileContent.front] is nothing to show, so it clears the tile.
+     * A front face on its own IS content, and has to survive: the Music tile while a song is playing and
+     * the Photos tile in picture-frame mode both publish exactly one face — the one that REPLACES the
+     * logo — and no flip faces at all, because neither of them may flip (INDEX Change Log 2026-09-21
+     * items 3 and 4). Before this, a faces-less publish silently cleared the tile back to its logo.
+     */
     @Synchronized
     fun publish(key: String, content: TileContent?) {
         val next = state.value.toMutableMap()
-        if (content == null || content.faces.isEmpty()) next.remove(key) else next[key] = content
+        if (content == null || (content.faces.isEmpty() && content.front == null)) next.remove(key) else next[key] = content
         state.value = next
-        Diagnostics.add("engine", "publish $key faces=${content?.faces?.size ?: 0} source=${content?.sourceTag} sourceTime=${content?.sourceTimeMs}")
+        Diagnostics.add(
+            "engine",
+            "publish $key faces=${content?.faces?.size ?: 0} front=${content?.front != null} " +
+                "source=${content?.sourceTag} sourceTime=${content?.sourceTimeMs}",
+        )
     }
 }
