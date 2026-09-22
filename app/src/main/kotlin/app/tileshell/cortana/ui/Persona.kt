@@ -3,12 +3,14 @@ package app.tileshell.cortana.ui
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
@@ -19,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import app.tileshell.cortana.PersonaState
@@ -146,23 +149,34 @@ object PersonaValues {
 fun LargePersona(state: PersonaState, level: Float, accent: Color, modifier: Modifier = Modifier) {
     val start = remember(state) { mutableLongStateOf(0L) }
     var elapsed by remember(state) { mutableLongStateOf(0L) }
+    // The easter egg outlives the state changes the rest of the persona is keyed on, so it is
+    // remembered without a key: Cortana does not vanish because the reply started while she was out.
+    var egg by remember { mutableStateOf(LensValues.Egg()) }
+    var reveal by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(state) {
         val first = withFrameMillis { it }
         start.longValue = first
         while (true) {
             val now = withFrameMillis { it }
             elapsed = now - first
+            reveal = LensValues.revealFraction(egg, System.currentTimeMillis())
         }
     }
     val boxEpx = PersonaValues.LISTEN_HALO_MAX_EPX
     Box(
-        modifier.size(boxEpx.dp).testTag("cortana_persona_large_${state.name.lowercase()}"),
+        modifier.size(boxEpx.dp)
+            .testTag("cortana_persona_large_${state.name.lowercase()}")
+            // R6 gives the persona no tap behaviour, so nothing spec'd is taken by this: three taps
+            // inside 1.5 s open the lens into Cortana's ring for five seconds.
+            .pointerInput(Unit) {
+                detectTapGestures { egg = LensValues.tap(egg, System.currentTimeMillis()) }
+            },
     ) {
         Canvas(Modifier.size(boxEpx.dp)) {
             when (state) {
-                PersonaState.LISTENING -> drawListening(elapsed, level, accent)
-                PersonaState.THINKING -> drawThinkingRing(elapsed, accent)
-                else -> drawIdleRing(elapsed, accent)
+                PersonaState.LISTENING -> drawListening(elapsed, level, accent, reveal)
+                PersonaState.THINKING -> drawThinkingRing(elapsed, accent, reveal)
+                else -> drawIdleRing(elapsed, accent, reveal)
             }
         }
     }
@@ -191,9 +205,10 @@ fun SmallPersona(state: PersonaState, level: Float, accent: Color, modifier: Mod
     Box(modifier.size(boxEpx.dp).testTag("cortana_persona_small_${state.name.lowercase()}")) {
         Canvas(Modifier.size(boxEpx.dp)) {
             when (state) {
-                PersonaState.SPEAKING -> drawSpeaking(steppedLevel, accent)
-                PersonaState.LISTENING, PersonaState.THINKING -> drawAwaitingReply(elapsed, accent)
-                else -> drawIdleAfterSpeaking(elapsed, accent)
+                // The small persona is a passenger on the response card and takes no taps of its own.
+                PersonaState.SPEAKING -> drawSpeaking(steppedLevel, accent, 0f)
+                PersonaState.LISTENING, PersonaState.THINKING -> drawAwaitingReply(elapsed, accent, 0f)
+                else -> drawIdleAfterSpeaking(elapsed, accent, 0f)
             }
         }
     }
@@ -205,7 +220,7 @@ private fun DrawScope.centre() = Offset(size.width / 2f, size.height / 2f)
 
 private fun DrawScope.epx(value: Float) = value * density
 
-private fun DrawScope.drawIdleRing(elapsedMs: Long, accent: Color) {
+private fun DrawScope.drawIdleRing(elapsedMs: Long, accent: Color, reveal: Float) {
     // A22's pop-in: a dot grows to full width in 183 ms, and the filled disc becomes a ring by 650 ms.
     val grow = min(1f, elapsedMs.toFloat() / PersonaValues.POP_GROW_MS)
     val hollow = ((elapsedMs - PersonaValues.POP_GROW_MS).toFloat() /
@@ -214,10 +229,10 @@ private fun DrawScope.drawIdleRing(elapsedMs: Long, accent: Color) {
     val stroke = epx(PersonaValues.IDLE_STROKE_EPX)
     // While the disc is still filling in, the stroke is half the radius (a disc) and thins to the ring.
     val effectiveStroke = outer / 2f + (stroke - outer / 2f) * hollow
-    drawCircle(accent, radius = (outer - effectiveStroke) / 2f, centre(), style = Stroke(effectiveStroke))
+    drawLensRing(centre(), outer, effectiveStroke, accent, reveal)
 }
 
-private fun DrawScope.drawThinkingRing(elapsedMs: Long, accent: Color) {
+private fun DrawScope.drawThinkingRing(elapsedMs: Long, accent: Color, reveal: Float) {
     val scaleX = PersonaValues.rotationScaleX(elapsedMs)
     val outer = epx(PersonaValues.THINKING_OUTER_EPX)
     val stroke = epx(PersonaValues.THINKING_STROKE_EPX)
@@ -225,11 +240,11 @@ private fun DrawScope.drawThinkingRing(elapsedMs: Long, accent: Color) {
     // apparent-width change rather than a real 3-D projection.
     val c = centre()
     scale(scaleX, 1f, c) {
-        drawCircle(accent, radius = (outer - stroke) / 2f, c, style = Stroke(stroke))
+        drawLensRing(c, outer, stroke, accent, reveal)
     }
 }
 
-private fun DrawScope.drawListening(elapsedMs: Long, level: Float, accent: Color) {
+private fun DrawScope.drawListening(elapsedMs: Long, level: Float, accent: Color, reveal: Float) {
     val phase = PersonaValues.listenPhase(elapsedMs)
     // R6 §3.1.7: halo and disc move in ANTIPHASE — the halo grows while the disc shrinks.
     val halo = PersonaValues.LISTEN_HALO_MIN_EPX +
@@ -237,30 +252,30 @@ private fun DrawScope.drawListening(elapsedMs: Long, level: Float, accent: Color
     val disc = PersonaValues.LISTEN_DISC_MAX_EPX -
         (PersonaValues.LISTEN_DISC_MAX_EPX - PersonaValues.LISTEN_DISC_MIN_EPX) * phase
     val c = centre()
-    drawCircle(accent.copy(alpha = 0.25f), radius = epx(halo) / 2f, c)
-    drawCircle(accent, radius = epx(disc) / 2f, c)
+    drawLensHalo(c, epx(halo), accent, reveal)
+    drawLensDisc(c, epx(disc), accent, reveal)
 }
 
-private fun DrawScope.drawSpeaking(level: Float, accent: Color) {
+private fun DrawScope.drawSpeaking(level: Float, accent: Color, reveal: Float) {
     val halo = PersonaValues.SPEAK_HALO_MIN_EPX +
         (PersonaValues.SPEAK_HALO_MAX_EPX - PersonaValues.SPEAK_HALO_MIN_EPX) * level.coerceIn(0f, 1f)
     val c = centre()
-    drawCircle(accent.copy(alpha = 0.25f), radius = epx(halo) / 2f, c)
-    drawCircle(accent, radius = epx(PersonaValues.SPEAK_DISC_EPX) / 2f, c)
+    drawLensHalo(c, epx(halo), accent, reveal)
+    drawLensDisc(c, epx(PersonaValues.SPEAK_DISC_EPX), accent, reveal)
 }
 
-private fun DrawScope.drawAwaitingReply(elapsedMs: Long, accent: Color) {
+private fun DrawScope.drawAwaitingReply(elapsedMs: Long, accent: Color, reveal: Float) {
     val phase = PersonaValues.breathe(elapsedMs, PersonaValues.AWAIT_PERIOD_MS)
     val disc = PersonaValues.AWAIT_DISC_MIN_EPX +
         (PersonaValues.AWAIT_DISC_MAX_EPX - PersonaValues.AWAIT_DISC_MIN_EPX) * phase
     val halo = PersonaValues.AWAIT_HALO_MAX_EPX -
         (PersonaValues.AWAIT_HALO_MAX_EPX - PersonaValues.AWAIT_HALO_MIN_EPX) * phase
     val c = centre()
-    drawCircle(accent.copy(alpha = 0.25f), radius = epx(halo) / 2f, c)
-    drawCircle(accent, radius = epx(disc) / 2f, c)
+    drawLensHalo(c, epx(halo), accent, reveal)
+    drawLensDisc(c, epx(disc), accent, reveal)
 }
 
-private fun DrawScope.drawIdleAfterSpeaking(elapsedMs: Long, accent: Color) {
+private fun DrawScope.drawIdleAfterSpeaking(elapsedMs: Long, accent: Color, reveal: Float) {
     val phase = PersonaValues.breathe(elapsedMs, PersonaValues.AFTER_PERIOD_MS)
     val ring = PersonaValues.AFTER_RING_MIN_EPX +
         (PersonaValues.AFTER_RING_MAX_EPX - PersonaValues.AFTER_RING_MIN_EPX) * phase
@@ -268,8 +283,8 @@ private fun DrawScope.drawIdleAfterSpeaking(elapsedMs: Long, accent: Color) {
         (PersonaValues.AFTER_HALO_MAX_EPX - PersonaValues.AFTER_HALO_MIN_EPX) * phase
     val stroke = epx(3f)
     val c = centre()
-    drawCircle(accent.copy(alpha = 0.25f), radius = epx(halo) / 2f, c)
-    drawCircle(accent, radius = (epx(ring) - stroke) / 2f, c, style = Stroke(stroke))
+    drawLensHalo(c, epx(halo), accent, reveal)
+    drawLensRing(c, epx(ring), stroke, accent, reveal)
 }
 
 /**

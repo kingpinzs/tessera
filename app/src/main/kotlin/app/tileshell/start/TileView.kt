@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.tileshell.brand.Brand
+import app.tileshell.cortana.ui.drawLensDisc
 import app.tileshell.diag.Diagnostics
 import app.tileshell.prefs.PressStyle
 import app.tileshell.tiles.TileSize
@@ -397,16 +398,25 @@ private fun PhotoFill(image: ImageBitmap) {
 }
 
 /**
- * Cortana's static tile face (Decisions "Cortana tile", H7): the persona's ring, drawn at R3 A22's
- * proportions — outer 70, inner 48, stroke 11 epx — scaled into whatever the tile gives it. It does not
- * animate: a live face on Start would need a feed, and Cortana has none.
+ * Tess's static tile face (Decisions "Cortana tile", H7): the persona's ring at R3 A22's proportions —
+ * outer 70, inner 48, stroke 11 epx — scaled into whatever the tile gives it, and since 2026-09-21 lit
+ * as HAL 9000's lens rather than filled white. The geometry is A22's either way. It does not animate: a
+ * live face on Start would need a feed, and Tess has none.
+ *
+ * The tile is the one place the lens is drawn SOLID: at tile size the ring reads as a hoop rather than
+ * an eye, and the tile already carries the accent behind it, so the eye needs the dark body to sit in.
  */
 @Composable
 private fun CortanaTileFace(modifier: Modifier = Modifier) {
     Canvas(modifier.testTag("cortana_tile_face")) {
         val outer = size.minDimension
-        // A22's ratios: stroke 11 / outer 70, and the bright outer band is the thinner of the two tones.
+        // A22's ratios: stroke 11 / outer 70. The bezel takes the ring's band, the lens fills the hole.
         val stroke = outer * (11f / 70f)
-        drawCircle(Color.White, radius = (outer - stroke) / 2f, style = Stroke(stroke))
+        val centre = Offset(size.width / 2f, size.height / 2f)
+        drawCircle(TILE_LENS_BEZEL, radius = outer / 2f, center = centre)
+        drawLensDisc(centre, outer - stroke * 2f, Color.White, 0f)
     }
 }
+
+/** The lens body the tile's eye sits in: dark enough to read as an eye on any accent. */
+private val TILE_LENS_BEZEL = Color(0xFF14110F)

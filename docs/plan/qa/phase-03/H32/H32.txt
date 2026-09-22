@@ -1,0 +1,45 @@
+H32 — Tess's eye is HAL 9000's lens, and Cortana is the easter egg inside it
+2026-09-21, on emulator-5554, against the build installed from this tree.
+
+WHAT WAS CAPTURED ON THE DEVICE
+  adb install -r -g app/build/outputs/apk/debug/app-debug.apk   -> Success
+  adb shell cmd package set-home-activity app.tileshell/app.tileshell.StartActivity
+  adb shell input keyevent KEYCODE_HOME
+  adb exec-out uiautomator dump      -> resource-id="cortana_tile_face" bounds=[109,1251][253,1395]
+  adb exec-out screencap -p          -> lens_idle.png (1080x2340, the whole Start screen)
+  tile_face.png is that capture cropped to the tile face and scaled x2 with NEAREST, so every
+  pixel in it is a device pixel.
+
+THE LENS, READ OFF THE DEVICE PIXELS (centre row of the 144 x 144 tile face)
+  centre              (255, 233, 200)   Brand.LENS_CORE, the specular highlight
+  r = 0.10 of the box (255, 100,  78)   core falling off into the glow
+  r = 0.25            (206,  23,  15)   Brand.LENS_IRIS
+  r = 0.40 and out    ( 20,  17,  15)   the bezel the lens sits in
+  outside the face    (  0, 120, 215)   the tile's accent, Windows "Default Blue"
+
+E4's OWN COLOUR SEARCH, RUN AGAINST THAT REAL CAPTURE
+  persona.py row_extent on the tile's centre row -> (130.5, 230.5), width 100.00 px
+  the geometric lens disc                        -> 144 - 2*(144*11/70) = 98.74 px
+  the 0.85-of-peak disc cut                      -> 99 px, peak score 1.0
+  the blue tile background                       -> score 0.0
+  The 1.3 px difference is the antialiased edge being read at its half-intensity crossing, which
+  is what the method is for. The finder locates the lens exactly as it located the flat accent
+  disc, which is the whole claim the hue-line tones make.
+
+WHAT IS NOT CAPTURED, AND WHY
+  The persona inside a voice session. This AVD will not open one: KEYCODE_ASSIST leaves Start
+  showing, ACTION_ASSIST resolves to nothing, a tap on the Cortana tile does nothing (the input
+  wedge already recorded against E4/E8-E10/E13-E15), and `cmd voiceinteraction show` is refused
+  with "requires android.permission.ACCESS_VOICE_INTERACTION_SERVICE". So drawLensRing — the
+  idle, thinking and after-speaking forms — and the three-tap reveal are covered by LensTest and
+  by compilation, not by a screenshot. They go to Jeremy with the rest of the wedged rows.
+
+UNIT EVIDENCE
+  app/src/test/kotlin/app/tileshell/cortana/ui/LensTest.kt — 7 tests, 0 failures:
+    three taps inside the window open the lens
+    a tap after the window starts the count again
+    two taps never open it
+    the reveal fades in, holds Cortana, and fades out
+    every lens tone but the core sits on one hue line, so a colour search finds the whole lens
+    the halo stays below the score the disc measurement cuts at
+    a full reveal is the pre-HAL drawing - every lens tone becomes the flat accent
