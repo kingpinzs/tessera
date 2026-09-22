@@ -1,0 +1,33 @@
+==============================================================================
+ROW MICPERM — the microphone prompt appears (revoked, and denied for good)
+at            2026-09-22T16:46:28-06:00
+driver        micperm.sh blob 9fe0e4e7d32687e552b93b57a3abdd34b22f0638
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     1fc5411aa6faf7d3 334447554 bytes
+apk installed 5f80458a1233070f
+apk match     yes (5f80458a1233070f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+after the tap (revoked):     topResumedActivity=ActivityRecord{29440899 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t633}
+PASS  revoked: Android's permission prompt is the resumed activity  contains [permissioncontroller]
+PASS  revoked: the prompt's allow button is on screen (not hidden under Tess)  != 
+PASS  revoked: Tess's session stepped aside for it                = no
+PASS  revoked: Tess recorded that she asked                       contains [listen: no RECORD_AUDIO; asking]
+PASS  revoked: allowing it grants it                              contains [granted=true]
+PASS  revoked, then allowed: Tess comes back listening by herself  = true
+PASS  and says so in the ring                                     contains [reopening Tess listening (shown=true)]
+PASS  Tess's session is on screen again                           = yes
+after the tap (denied for good):     topResumedActivity=ActivityRecord{246150548 u0 com.android.settings/.spa.SpaActivity t634}
+PASS  denied for good: Tessera's app-info page opens (the prompt cannot appear)  contains [com.android.settings]
+PASS  denied for good: the permission page recorded why           contains [permission blocked by Android]
+keyboard voice key (denied for good):     topResumedActivity=ActivityRecord{64955173 u0 com.android.settings/.spa.SpaActivity t636}
+PASS  keyboard, denied for good: Tessera's app-info page opens    contains [com.android.settings]
+PASS  keyboard, denied for good: the permission page really ran (a new request, not a stale task)  = 2
+permission page's task before the tap: * Task{469bbb7 #636 type=standard A=10150:app.tileshell.cortana.permission U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+after the tap (revoked, stale task):     topResumedActivity=ActivityRecord{216910897 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t636}
+PASS  stale task: Android's permission prompt is the resumed activity  contains [permissioncontroller]
+PASS  stale task: the permission page really ran (a new request)  = 3
+PASS  stale task, then allowed: Tess comes back listening by herself  = true
+      restored: android.permission.RECORD_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+------------------------------------------------------------------------------
+MICPERM: 15 passed, 0 failed

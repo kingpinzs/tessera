@@ -1,0 +1,26 @@
+==============================================================================
+ROW MICPERM — the microphone prompt appears (revoked, and denied for good)
+at            2026-09-22T16:35:59-06:00
+driver        micperm.sh blob efc316da3870b492e26f900f20162f70e80d5635
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     ba7a9907d71d6ef6 334447062 bytes
+apk installed b45e46dd4e3d2c0c
+apk match     yes (b45e46dd4e3d2c0c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+after the tap (revoked):       topResumedActivity=ActivityRecord{35059202 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t619}
+PASS  revoked: Android's permission prompt is the resumed activity  contains [permissioncontroller]
+FAIL  revoked: the prompt's allow button is on screen (not hidden under Tess)  should not be []
+PASS  revoked: Tess recorded that she asked                       contains [listen: no RECORD_AUDIO; asking]
+FAIL  revoked: allowing it grants it                              does not contain [granted=true]:         android.permission.RECORD_AUDIO: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+FAIL  revoked, then allowed: the next tap listens                 expected [true] got [false]
+after the tap (denied for good):       topResumedActivity=ActivityRecord{35059202 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t619}
+FAIL  denied for good: Tessera's app-info page opens (the prompt cannot appear)  does not contain [com.android.settings]:       topResumedActivity=ActivityRecord{35059202 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t619}
+FAIL  denied for good: the permission page recorded why           does not contain [permission blocked by Android]:     2026-09-22 16:36:50.996 wall=1790116610996 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-22 16:36:50.996 wall=1790116610996 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-
+keyboard voice key (denied for good):     topResumedActivity=ActivityRecord{54879089 u0 com.android.settings/.spa.SpaActivity t621}
+PASS  keyboard, denied for good: Tessera's app-info page opens    contains [com.android.settings]
+      restored: android.permission.RECORD_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+------------------------------------------------------------------------------
+MICPERM: 3 passed, 5 failed

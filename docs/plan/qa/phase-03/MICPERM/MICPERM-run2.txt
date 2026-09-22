@@ -1,0 +1,27 @@
+==============================================================================
+ROW MICPERM — the microphone prompt appears (revoked, and denied for good)
+at            2026-09-22T16:38:54-06:00
+driver        micperm.sh blob 0c0c1777e5d1e40000bc9e4c7f7016cdd4d9f339
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     f7c5907eb4f8b79a 334447514 bytes
+apk installed 2634e6bb032b8ef9
+apk match     yes (2634e6bb032b8ef9)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+after the tap (revoked):     topResumedActivity=ActivityRecord{197811106 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t624}
+PASS  revoked: Android's permission prompt is the resumed activity  contains [permissioncontroller]
+PASS  revoked: the prompt's allow button is on screen (not hidden under Tess)  != 
+PASS  revoked: Tess's session stepped aside for it                = no
+PASS  revoked: Tess recorded that she asked                       contains [listen: no RECORD_AUDIO; asking]
+PASS  revoked: allowing it grants it                              contains [granted=true]
+FAIL  revoked, then allowed: Tess comes back listening by herself  expected [true] got [false]
+PASS  and says so in the ring                                     contains [reopening Tess listening (shown=true)]
+PASS  Tess's session is on screen again                           = yes
+after the tap (denied for good):     topResumedActivity=ActivityRecord{104270143 u0 com.android.settings/.spa.SpaActivity t625}
+PASS  denied for good: Tessera's app-info page opens (the prompt cannot appear)  contains [com.android.settings]
+PASS  denied for good: the permission page recorded why           contains [permission blocked by Android]
+keyboard voice key (denied for good):     topResumedActivity=ActivityRecord{247005935 u0 com.android.settings/.spa.SpaActivity t627}
+PASS  keyboard, denied for good: Tessera's app-info page opens    contains [com.android.settings]
+      restored: android.permission.RECORD_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+------------------------------------------------------------------------------
+MICPERM: 10 passed, 1 failed
