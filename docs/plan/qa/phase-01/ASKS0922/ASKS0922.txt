@@ -1,0 +1,35 @@
+==============================================================================
+ROW ASKS0922 — the slot's own name, spread flip timers, and the category folders
+at            2026-09-22T05:51:00-06:00
+driver        asks0922.sh blob 1b4a5445448789c078fa80f2d0a283b21cb5ca0d
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     09011757c5becf65 327038374 bytes
+apk installed 8e63a3178694602d
+apk match     yes (8e63a3178694602d)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  the People tile is called People                            = People
+PASS  the Browser tile is called Browser                          = Browser
+PASS  the Maps tile is called Maps                                = Maps
+PASS  the Messaging tile is called Messaging                      = Messaging
+PASS  the Weather tile is untouched                               = Weather
+      face changes seen: 30
+      closest first-flip gap between two tiles: [330] ms
+PASS  at least two tiles cycled, so there is something to compare  != 
+PASS  no two tiles take their turn together                       = ok
+      folders before the ADD: 0 []
+PASS  the category scan ran                                       contains [category folders: scanned]
+      category folders: scanned 32 apps
+PASS  no game is installed, so no Games folder is invented        contains [addFolderOnce folder:games:v1 "Games" 0 members -> already run or refused]
+PASS  the Office folder is created from the apps that declare productivity  contains [-> created]
+      folders after the ADD: 1 [f1|Office|3 ]
+PASS  exactly one folder appeared                                 = 1
+PASS  a folder named Office is on Start                           != 
+      Office holds 3 apps
+PASS  it holds at least the two a folder needs                    = ok
+PASS  no Games folder was created                                 does not contain [|Games|]
+      no folder existed before the ADD here, so there was nothing to raid; the rule itself is covered by CategoryFoldersTest
+PASS  the second start was captured                               contains [addOnce phase03:cortana]
+PASS  and it did not scan again                                   = 0
+------------------------------------------------------------------------------
+ASKS0922: 16 passed, 0 failed
