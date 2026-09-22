@@ -92,9 +92,34 @@ cp -f "$ttssrc/voices.bin"      "$assets/tts/voices.bin"
 cp -f "$ttssrc/tokens.txt"      "$assets/tts/tokens.txt"
 cp -f "$ttssrc/LICENSE"         "$root/app/src/main/assets/licenses/kokoro-Apache-2.0.txt"
 
-# One deterministic zip (no timestamps, sorted) so its checksum is the same on every machine.
+# ONE ZIP THAT IS ACTUALLY DETERMINISTIC.
+#
+# `zip -X` drops the extra fields but NOT the DOS date/time in each entry header, and DOS time is
+# written in the BUILDER'S LOCAL timezone. The same 355 files zipped here and on the CI runner
+# therefore came out with identical contents and different bytes, so ESPEAK_ZIP_SHA256 was a
+# checksum of this machine's timezone: every CI APK carried an espeak zip the app then refused, and
+# shipped with no voice at all. Measured 2026-09-22 from the phone's own diagnostics — the APK's zip
+# hashed a477296a…, the pin said cd01895b…, the payloads were byte-identical, and one source tree
+# built under UTC / America-Denver / Asia-Tokyo gave three different hashes.
+#
+# Python writes the archive instead of the zip binary so nothing machine-dependent can get in: entry
+# order, timestamp, mode and compression level are all fixed here rather than taken from the host.
 rm -f "$assets/tts/espeak-ng-data.zip"
-( cd "$ttssrc" && find espeak-ng-data -type f | sort | zip -q -X -D "$assets/tts/espeak-ng-data.zip" -@ )
+python3 - "$ttssrc/espeak-ng-data" "$assets/tts/espeak-ng-data.zip" <<'PYEOF'
+import pathlib
+import sys
+import zipfile
+
+source, out = pathlib.Path(sys.argv[1]), sys.argv[2]
+names = sorted(p.relative_to(source.parent).as_posix() for p in source.rglob("*") if p.is_file())
+with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+    for name in names:
+        entry = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+        entry.external_attr = 0o100644 << 16
+        entry.compress_type = zipfile.ZIP_DEFLATED
+        archive.writestr(entry, (source.parent / name).read_bytes())
+print(f"espeak-ng-data.zip: {len(names)} entries")
+PYEOF
 
 echo
 echo "payload:"
@@ -103,3 +128,26 @@ echo
 echo "checksums (paste into SpeechAssets):"
 echo "  ESPEAK_ZIP_SHA256 = $(sha256sum "$assets/tts/espeak-ng-data.zip" | cut -d' ' -f1)"
 echo "  ASR_BPE_SHA256    = $(sha256sum "$assets/asr/bpe.vocab" | cut -d' ' -f1)"
+
+# These two pins are what the app checks before it will build an engine, so a payload that no longer
+# matches them is a phone with no voice and no ears. Fail HERE, in one line of build output, instead
+# of on a device. bpe.vocab is derived by whatever sentencepiece pip installed and its scores are
+# written with Python's default float formatting, so it can drift the same way the zip did.
+echo
+echo "pins:"
+models_kt="$root/app/src/main/kotlin/app/tileshell/cortana/speech/SpeechModels.kt"
+verify_pin() {
+  local name="$1" file="$2" actual pinned
+  actual="$(sha256sum "$file" | cut -d' ' -f1)"
+  pinned="$(grep -oE "$name = \"[0-9a-f]{64}\"" "$models_kt" | grep -oE '[0-9a-f]{64}' || true)"
+  if [ "$actual" != "$pinned" ]; then
+    echo "  FAIL $name" >&2
+    echo "    $(basename "$file") is $actual" >&2
+    echo "    SpeechModels.kt pins ${pinned:-<constant not found>}" >&2
+    echo "    The payload changed. Once you know why, set $name = $actual" >&2
+    return 1
+  fi
+  echo "  $name matches SpeechModels.kt"
+}
+verify_pin ESPEAK_ZIP_SHA256 "$assets/tts/espeak-ng-data.zip"
+verify_pin ASR_BPE_SHA256    "$assets/asr/bpe.vocab"
