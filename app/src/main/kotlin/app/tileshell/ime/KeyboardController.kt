@@ -603,7 +603,7 @@ class KeyboardController(
     private fun autocorrectBefore() {
         val field = state.field
         if (!field.suggestionsOn) return
-        val word = trailingWord(editor.before(64))
+        val word = wordBeforeCaret(editor.before(READ_WINDOW))
         if (word.isEmpty()) return
         val b = brain() ?: return
         val offer = b.offer(word, previousWord(), field)
@@ -642,7 +642,7 @@ class KeyboardController(
         val (left, right) = if (swipeCommitted != null && before.endsWith(swipeCommitted!!)) {
             swipeCommitted!!.length to 0
         } else {
-            trailingWord(before).length to leadingWord(after).length
+            wordBeforeCaret(before).length to leadingWord(after).length
         }
         val chosen = item.text
         // D1 l.1558–1560 and R6 §2.2.7: picking the word as typed keeps it and offers "+ word" for it.
@@ -680,9 +680,9 @@ class KeyboardController(
         }
         pendingAdd?.let { state.strip = listOf(StripItem(it, kind = StripItem.Kind.ADD)); return }
         val b = brain() ?: run { state.strip = emptyList(); return }
-        val before = editor.before(64)
-        val after = editor.after(64)
-        val prefix = trailingWord(before)
+        val before = editor.before(READ_WINDOW)
+        val after = editor.after(READ_WINDOW)
+        val prefix = wordBeforeCaret(before)
         val suffix = leadingWord(after)
         val items = mutableListOf<StripItem>()
         if (typing && suffix.isEmpty()) {
@@ -779,6 +779,19 @@ class KeyboardController(
         const val STRIP_MAX = 8
 
         private val WORD_ENDERS = setOf('.', ',', '!', '?', ';', ':')
+
+        /** How much text the keyboard reads either side of the caret. */
+        const val READ_WINDOW = 64
+
+        /**
+         * The word just before the caret, or "" when there is none — or when the letters run all the way
+         * back to the start of the [READ_WINDOW] the field returned, so the word's real start is unknown.
+         * EDGE1 run 2 caught the keyboard counting a 64-letter slice of a long run toward learning.
+         */
+        fun wordBeforeCaret(before: String): String {
+            val w = trailingWord(before)
+            return if (before.length >= READ_WINDOW && w.length >= before.length - 1) "" else w
+        }
 
         fun isWordChar(c: Char) = c.isLetterOrDigit() || c == '\'' || c == '-'
         fun trailingWord(s: String) = s.takeLastWhile { isWordChar(it) }.trimStart('\'', '-')
