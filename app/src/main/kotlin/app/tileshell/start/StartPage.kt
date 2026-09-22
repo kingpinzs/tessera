@@ -137,7 +137,13 @@ class TileFactory(
                 val pkgContent = entry?.let { content[LiveTileEngine.packageKey(it.component.packageName)] }
                 val model = TileModel(
                     id = idPrefix + key.id,
-                    label = entry?.label ?: key.slot.label,
+                    // The SLOT's name, not the resolved app's. A slot IS the W10M tile — People, Mail,
+                    // Maps — and which app happens to serve it is Android's business: letting the app's
+                    // label win put "Contacts" on the People tile (Jeremy, 2026-09-22: "Contacts should
+                    // be called people"), and with it "WebView Browser Tester" on Browser, "OsmAnd~" on
+                    // Maps and "Messages" on Messaging. A tile pinned to a specific app (AppTile) still
+                    // carries that app's own label, because there the app is what was pinned.
+                    label = key.slot.label,
                     size = size,
                     icon = entry?.let { TileIcons.load(context, it, iconPx) },
                     fallbackGlyph = slotGlyph(key.slot),
@@ -478,13 +484,14 @@ fun StartPage(
                 .verticalScroll(scroll, enabled = !edit.active),
         ) {
             Box(Modifier.fillMaxWidth().height(with(density) { geo.contentHeightPx.toDp() })) {
-                placements.forEach { p ->
-                    if (drag != null && p.key == drag.key) return@forEach // the dragged tile is drawn at the finger
+                val cycleCount = placements.size + dockKeys.size
+                placements.forEachIndexed { cycleIndex, p ->
+                    if (drag != null && p.key == drag.key) return@forEachIndexed // the dragged tile is drawn at the finger
                     val tile = factory.place(p.key, p.size, geo.xPx(p), geo.yPx(p), geo.wPx(p.size), geo.hPx(p.size))
                     val held = edit.selected == p.key
                     val row = ((tile.yPx - scroll.value) / grid.pitchPx).toInt().coerceAtLeast(0)
                     GridTile(tile, held, heldScale, otherScale, tileDim, edit, colors.accent, tileAlpha, theme.pressStyle,
-                        exitAlpha(animation, row, tile.model.id), onTileTap)
+                        exitAlpha(animation, row, tile.model.id), onTileTap, cycleIndex, cycleCount)
                 }
                 if (bandTile != null && bandFolder != null) {
                     // The reveal is a clip, so the rows appear top to bottom and the tiles below slide with it.
@@ -549,7 +556,8 @@ fun StartPage(
                     val tile = factory.place(key, TileSize.SMALL, x, geo.dockTopPx, dockW, dockTileHeight(grid), idPrefix = "dock:")
                     val held = edit.selected == key
                     GridTile(tile, held, 1f, if (edit.active) Edit.OTHER_TILE_SCALE else 1f, tileDim, edit, colors.accent, tileAlpha, theme.pressStyle,
-                        exitAlpha(animation, lastRow, tile.model.id), onTileTap)
+                        exitAlpha(animation, lastRow, tile.model.id), onTileTap,
+                        placements.size + i, placements.size + dockKeys.size)
                 }
                 val selectedDock = dockKeys.indexOfFirst { it == edit.selected }
                 if (edit.active && !edit.exiting && drag == null && selectedDock >= 0) {
@@ -680,6 +688,9 @@ private fun GridTile(
     pressStyle: app.tileshell.prefs.PressStyle,
     alpha: Float,
     onTileTap: (PlacedTile) -> Unit,
+    /** This tile's place among the tiles on screen, so their face-change timers are spread and not drawn. */
+    cycleIndex: Int = 0,
+    cycleCount: Int = 1,
 ) {
     val density = LocalDensity.current
     // R6 §1.5.4 (H8): the selection moves between tiles over ≈185 ms — the tapped tile grows and undims while
@@ -719,6 +730,8 @@ private fun GridTile(
         tileAlpha = tileAlpha,
         pressStyle = pressStyle,
         onTap = { onTileTap(tile) },
+        cycleIndex = cycleIndex,
+        cycleCount = cycleCount,
         // A control tap goes to the media session the tile is already reading, and NOT through
         // onTileTap — which is the Start exit and a launch (INDEX Change Log 2026-09-21 item 3).
         onControl = { MusicFeed.send(it) },
@@ -804,11 +817,12 @@ private fun FolderBand(
             .background(colors.subtleText)
             .testTag("folder_band_bottom:${folder.id}"),
     )
-    geo.members.forEach { p ->
-        if (edit.drag?.key == p.key) return@forEach
+    geo.members.forEachIndexed { cycleIndex, p ->
+        if (edit.drag?.key == p.key) return@forEachIndexed
         val tile = factory.place(p.key, p.size, geo.memberXPx(p), geo.memberYPx(p) - top, geo.wPx(p.size), geo.hPx(p.size), idPrefix = "member:")
         val held = edit.selected == p.key
-        GridTile(tile, held, heldScale, otherScale, dim, edit, accent, tileAlpha, pressStyle, 1f, onTileTap)
+        GridTile(tile, held, heldScale, otherScale, dim, edit, accent, tileAlpha, pressStyle, 1f, onTileTap,
+            cycleIndex, geo.members.size)
     }
     if (edit.active) {
         // The box itself is drawn by the host, above the pivot; the band only says where it goes.

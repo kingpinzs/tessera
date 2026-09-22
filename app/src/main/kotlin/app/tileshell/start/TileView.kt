@@ -133,12 +133,21 @@ fun TileView(
      * CARRIES controls can produce one, so every other tile in the shell is untouched by this.
      */
     onControl: (Transport) -> Unit = {},
+    /**
+     * Where this tile sits among the tiles on screen, and how many there are, so each takes its own turn
+     * on a comb read off the clock and no two ever flip together. See [TileTiming.untilSlotMs]: drawing
+     * the phases at random left two tiles 400 ms apart on Jeremy's phone, and spreading them by index was
+     * not enough either while each was measured from its own start. A tile shown on its own keeps the
+     * defaults and takes the first slot.
+     */
+    cycleIndex: Int = 0,
+    cycleCount: Int = 1,
 ) {
     val faces = model.content?.faces.orEmpty()
     // Face 0 is the logo face; 1..n are live faces.
     var faceIndex by remember(model.id) { mutableIntStateOf(0) }
     // One face change = one continuous animation (R3 A7 counts 6-7 frames for a 108-ms flip): progress 0..1, the face
-    // swaps at the midpoint; a flip squashes with |1 - 2p|, a crossfade fades with the same shape.
+    // swaps at the midpoint; a flip squashes on [Motion.flipScale], a crossfade fades linearly.
     val cycle = remember(model.id) { Animatable(0f) }
     // Peek slide: 0..1 travel of the outgoing face; slideFrom is the face sliding out (-1 when no slide is running).
     val slide = remember(model.id) { Animatable(0f) }
@@ -181,7 +190,7 @@ fun TileView(
     }
     val cycling = faces.isNotEmpty() && (slideshowMs <= 0 || (resumed && onScreen))
 
-    LaunchedEffect(model.id, faces.size, transition, slideshowMs, cycling) {
+    LaunchedEffect(model.id, faces.size, transition, slideshowMs, cycling, cycleIndex, cycleCount) {
         // A content change cancels any running flip / crossfade; restore full visibility first so a tile is never
         // left squashed or faded out until its next cycle.
         cycle.snapTo(0f)
@@ -196,7 +205,10 @@ fun TileView(
         // Peek tiles run on the flip tiles' timer band (R3 A8 has no separate band for them).
         val (min, max) = if (transition == FaceTransition.CROSSFADE)
             Motion.CROSSFADE_PERIOD_MIN_MS to Motion.CROSSFADE_PERIOD_MAX_MS else Motion.FLIP_PERIOD_MIN_MS to Motion.FLIP_PERIOD_MAX_MS
-        delay(TileTiming.startPhaseMs(slideshowMs, max) { Random.nextLong(0, it) }) // random start phase (R3 A8)
+        // A live tile takes its turn on a comb read off the clock, so no two tiles ever flip together
+        // (see TileTiming.untilSlotMs); a slideshow ignores the comb and starts at once.
+        val band = TileTiming.COMB_MS
+        if (slideshowMs <= 0) delay(TileTiming.untilSlotMs(SystemClock.uptimeMillis(), band, cycleIndex, cycleCount))
         while (true) {
             // R3 A8 periods are start-to-start: the wait after an animation is the period less the animation's own time.
             val startedAt = SystemClock.uptimeMillis()
@@ -232,7 +244,11 @@ fun TileView(
                     slideFrom = -1
                 }
             }
-            delay(TileTiming.remainingMs(period, SystemClock.uptimeMillis() - startedAt))
+            if (slideshowMs > 0) {
+                delay(TileTiming.remainingMs(period, SystemClock.uptimeMillis() - startedAt))
+            } else {
+                delay(TileTiming.untilSlotMs(SystemClock.uptimeMillis(), band, cycleIndex, cycleCount))
+            }
         }
     }
 
@@ -269,7 +285,7 @@ fun TileView(
                 scaleX = depress.value
                 // The flip squashes the whole tile; a crossfade fades only the face, so the accent plate, the label
                 // and the badge stay put instead of the tile blinking out (R1 section 1.4, review finding).
-                scaleY = depress.value * (if (transition == FaceTransition.FLIP) kotlin.math.abs(1f - 2f * cycle.value) else 1f)
+                scaleY = depress.value * (if (transition == FaceTransition.FLIP) Motion.flipScale(cycle.value) else 1f)
                 cameraDistance = 12f * density.density
             }
             .let { if (slideshowMs > 0) it.onGloballyPositioned { c -> onScreen = !c.boundsInWindow().isEmpty } else it }
