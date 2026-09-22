@@ -27,6 +27,13 @@ class Editor(private val ic: () -> InputConnection?) {
 
     private val pending = ArrayDeque<Int>()
 
+    /**
+     * True while the field is a password field: every line this class writes to the diagnostics ring then
+     * says how MANY characters went in, never which. The ring is readable through `dumpsys`, and a
+     * keyguard password typed with this keyboard was sitting in it in plain text.
+     */
+    var secret = false
+
     /** When the last space the keyboard typed went in (for the double-space period). */
     var lastSpaceAt = 0L
         private set
@@ -35,6 +42,9 @@ class Editor(private val ic: () -> InputConnection?) {
         selStart = info?.initialSelStart ?: -1
         selEnd = info?.initialSelEnd ?: -1
         pending.clear()
+        // Android re-reports the unchanged selection once after a (re)start; that report is not the user
+        // moving the caret (review MINOR-1).
+        if (selStart >= 0 && selStart == selEnd) pending.addLast(selStart)
         lastSpaceAt = 0L
     }
 
@@ -75,7 +85,8 @@ class Editor(private val ic: () -> InputConnection?) {
         // selection's start plus what was typed.
         expect(if (selStart >= 0) selStart + text.length else -1)
         if (text == " ") lastSpaceAt = SystemClock.uptimeMillis()
-        Diagnostics.add("ime", "commit ${quote(text)} ($why)")
+        // In a password field the reason is withheld too: "key t" would name the letter.
+        Diagnostics.add("ime", "commit ${quote(text)} (${if (secret) "password field" else why})")
     }
 
     /** Replace the [before] chars left of the caret and the [after] chars right of it with [text]. */
@@ -132,5 +143,5 @@ class Editor(private val ic: () -> InputConnection?) {
 
     fun capsMode(inputType: Int): Boolean = (ic()?.getCursorCapsMode(inputType) ?: 0) != 0
 
-    private fun quote(s: String) = "\"" + s.replace("\n", "\\n") + "\""
+    private fun quote(s: String) = if (secret) "(${s.length} hidden)" else "\"" + s.replace("\n", "\\n") + "\""
 }

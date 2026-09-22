@@ -44,6 +44,9 @@ class KeyboardController(
 
     var metrics: KeyboardMetrics = KeyboardMetrics(1080f, 2340f, 3f)
 
+    /** True in a password field: the host view stops logging where touches land (review M4). */
+    val secret: Boolean get() = state.field.isPassword
+
     private val handler = Handler(Looper.getMainLooper())
     private var touchSlop = 16f
     private var longPressMs = ViewConfiguration.getLongPressTimeout().toLong()
@@ -153,7 +156,14 @@ class KeyboardController(
         return true
     }
 
+    /** A pointer the host hands over mid-gesture (a second finger that landed in the key block). */
+    fun pointerDown(id: Int, x: Float, y: Float, time: Long) = down(id, x, y, time)
+
     private fun down(id: Int, x: Float, y: Float, time: Long) {
+        // A finger outside the key block (the strip, the one-handed band) is not a key press, whatever
+        // finger came first: review MAJOR-1 found a strip tap during a held key committing the nearest
+        // row-1 letter. It is ignored here, and nothing else is disturbed.
+        if (!inKeyBlock(x, y)) return
         // Rollover: a new finger commits whatever the previous one was pressing and takes over, and the
         // new key's popup replaces the old at once (R6 §2.3.5).
         tracks.values.filter { it.mode == Mode.KEY && it.key?.code == KeyCode.CHAR }.forEach { t ->
@@ -286,16 +296,28 @@ class KeyboardController(
             }
             Mode.SYMBOL_SLIDE -> {
                 // Decisions stand-in (1): lifting over a key commits it and returns to the letters;
-                // lifting back on &123 commits nothing.
+                // lifting back on &123 commits nothing — and leaves the symbols up, so a tap that merely
+                // wobbled past the touch slop still does what a tap does (review MINOR-3).
                 val key = t.key
-                if (key != null && key.code == KeyCode.CHAR) commitKey(key)
-                switchLayer(Layer.LETTERS)
+                if (key != null && key.code == KeyCode.CHAR) {
+                    commitKey(key)
+                    switchLayer(Layer.LETTERS)
+                } else if (key?.code != KeyCode.LETTERS) {
+                    switchLayer(Layer.LETTERS)
+                }
             }
             Mode.ONE_HANDED -> {
                 state.oneHanded?.selected?.let { setDock(it) }
                 state.oneHanded = null
             }
             Mode.SPACE_MOVE -> {
+                // Held past the long-press timeout but never dragged: it was a (slow) space, not a move
+                // (review MINOR-4).
+                if (state.raise == t.raiseAtDown) {
+                    endTrack(t)
+                    space()
+                    return
+                }
                 store.raise = state.raise / metrics.sy
                 Diagnostics.add("ime", "keyboard moved: raise ${state.raise.toInt()} px (${(state.raise / metrics.sy).toInt()} phys)")
             }
@@ -378,7 +400,8 @@ class KeyboardController(
         val rightEdge = metrics.x(key.centerX) + metrics.w(KeyGrid.PITCH) * (cells.size - 0.5f)
         val leftward = rightEdge > metrics.screenWidthPx
         state.alternates = AlternatesPopup(key, cells, leftward, 0)
-        Diagnostics.add("ime", "alternates for ${key.text}: ${cells.joinToString(" ")}")
+        // Never name the letter in a password field (review M4): the ring is readable through dumpsys.
+        Diagnostics.add("ime", if (state.field.isPassword) "alternates popup (password field)" else "alternates for ${key.text}: ${cells.joinToString(" ")}")
     }
 
     private fun alternateIndex(p: AlternatesPopup, x: Float): Int {
@@ -434,7 +457,11 @@ class KeyboardController(
 
     // ---- Word Flow (R6 §2.4, LOW, H3) --------------------------------------------------------------
 
+    /** Bumped by every new swipe, so an old trail's retract ticker cannot draw over or erase a live one. */
+    private var trailGeneration = 0
+
     private fun startSwipe(t: Track) {
+        trailGeneration++
         cancelLongPress(t)
         t.mode = Mode.SWIPE
         t.key?.let { release(it) }
@@ -478,8 +505,11 @@ class KeyboardController(
     private fun retractTrail(points: List<Offset>) {
         state.trail = Trail(points, 0f)
         val start = SystemClock.uptimeMillis() + TRAIL_HOLD_MS
+        val gen = trailGeneration
         val tick = object : Runnable {
             override fun run() {
+                // A swipe started inside the retract window owns the trail now (review MINOR-2).
+                if (gen != trailGeneration) return
                 val now = SystemClock.uptimeMillis()
                 val f = ((now - start).toFloat() / TRAIL_RETRACT_MS).coerceIn(0f, 1f)
                 if (f >= 1f) {
@@ -649,7 +679,10 @@ class KeyboardController(
         editor.replaceAround(left, right, "$chosen ", "suggestion ${item.kind}")
         swipeCommitted = null
         b?.committed(chosen, state.field)
-        pendingAdd = if (item.kind == StripItem.Kind.VERBATIM && b != null && !b.isKnown(chosen) && state.field.learningOn) chosen else null
+        // Choosing the word as typed — from the typing strip or as the ORIGINAL spelling after autocorrect
+        // (R6 §2.2.7 t=138 s shows "+ Becase" offered after that pick) — offers "+ word" (review MINOR-10).
+        val keptAsTyped = item.kind == StripItem.Kind.VERBATIM || item.kind == StripItem.Kind.ORIGINAL
+        pendingAdd = if (keptAsTyped && b != null && !b.isKnown(chosen) && state.field.learningOn) chosen else null
         refreshStrip(typing = false)
         autoShift()
     }
@@ -716,6 +749,16 @@ class KeyboardController(
         val stripped = before.dropLastWhile { isWordChar(it) }.trimEnd()
         return trailingWord(stripped).ifEmpty { null }
     }
+
+    /** The emoji panel edited the field (an insert, its backspace): the strip and capitals follow (review MINOR-8). */
+    fun afterPanelEdit() {
+        pendingAdd = null
+        refreshStrip(typing = true)
+        autoShift()
+    }
+
+    /** The layer a field returns to from the emoji panel or the symbols: its own (review MINOR-9). */
+    fun homeLayer(): Layer = Layouts.initialLayer(state.field)
 
     // ---- layers, capitals, case -------------------------------------------------------------------
 

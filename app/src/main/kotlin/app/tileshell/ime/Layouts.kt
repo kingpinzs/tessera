@@ -53,7 +53,9 @@ class Layout(val layer: Layer, val keys: List<Key>) {
     fun key(id: String): Key? = keys.firstOrNull { it.id == id }
 
     fun hit(x: Float, y: Float): Key? {
-        if (y < -KeyGrid.ROW_PITCH / 2f || y > KeyGrid.BLOCK_H) return null
+        // The key block only: half a row gap above row 1 at most (review MAJOR-1: the old bound reached
+        // into the strip's lower half, so a slide drifting up "pressed" a row-1 key).
+        if (y < -(KeyGrid.ROW_PITCH - KeyGrid.KEY_H) / 2f || y > KeyGrid.BLOCK_H) return null
         return keys.minByOrNull { it.distance2(x, y) }
     }
 
