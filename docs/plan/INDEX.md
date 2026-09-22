@@ -28,6 +28,7 @@ Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules
 | R5 Windows live-tile model + Android unread-count sources + Live Tile API design | done 2026-09-16 | r5-live-tile-api.md | FINAL of phase 01 |
 | R6 Second measurement pass (edit mode, keyboard, Cortana flows, Back / Search keys, "New" caption, glance) | done 2026-09-16 | r6-measurements.md | FINAL of phases 01, 02, 03, 05, 07 |
 | R7 Phone and Messaging apps, Cortana Notebook, action center / volume motion | done 2026-09-16 (38 HIGH / 114 MEDIUM / 32 LOW / 18 UNMEASURED; applied to phases 04, 06, 09, and to 03 on 2026-09-17) | r7-measurements.md | FINAL of phases 03, 04, 06, 09 |
+| R8 Groove Music now-playing measurement (phase 10 Q3: the now-playing screen only; the collection pivots are approximated from R6's Cortana pane and phase 06's Phone tabs) | pending: not started | review/ or qa/ | FINAL of phase 10 |
 | R4 In-APK helper feasibility + licence spike (phone-only), plus the T-Mobile visual voicemail probe (PQ2) and the nav-bar overlay probe (R7 §4.1.10, phase 04 P5) | pending: needs the S25 Ultra connected over USB (Auto Blocker off, USB debugging on) | review/ or qa/ spike notes | phase 04 interview; phase 06 voicemail |
 
 ## Phases
@@ -43,7 +44,7 @@ Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules
 | 07 | [phase-07-glance.md](phase-07-glance.md) | pending | — | FINAL |
 | 08 | [phase-08-cortana-llm.md](phase-08-cortana-llm.md) | pending | — | FINAL |
 | 09 | [phase-09-cortana-harness.md](phase-09-cortana-harness.md) | pending | — | FINAL; added 2026-09-16 (phase 08 interview Q3) |
-| 10 | [phase-10-media-player.md](phase-10-media-player.md) | pending | — | DRAFT; added 2026-09-22 (Jeremy: "Need a media player that feels and looks like the windows one"). Stage A interview in progress: Q1 ruled "A" — a local music app in Groove's idiom with its own playback engine, taking over the MUSIC slot. Q3 (what it is measured against; nothing in R1/R3/R6/R7 covers Groove) is with Jeremy. Nothing is built until the interview and the cross-model review are done |
+| 10 | [phase-10-media-player.md](phase-10-media-player.md) | pending | — | DRAFT; added 2026-09-22 (Jeremy: "Need a media player that feels and looks like the windows one"). Stage A interview in progress: Q1 ruled "A" — a local music app in Groove's idiom with its own playback engine, taking over the MUSIC slot. Q3 ruled "C" — the now-playing screen is measured (research task R8, which gates FINAL) and the collection pivots are approximated from geometry this build already has. Q4 (what the Music tile follows once the shell owns a session) is with Jeremy. Nothing is built until the interview and the cross-model review are done |
 
 Status values: `pending` → `building` → `QA` → `done`, or `blocked (L<n>)` / `reopened (L<n>)` pointing at the ledger below.
 A phase is `done` only when: acceptance criteria + edge cases executed with captured evidence, BOTH reviewers on the `reviewers:` line above judged pass, every NEEDS-HUMAN row has Jeremy's sign-off, and the row links the evidence. Next phase starts only after that.
