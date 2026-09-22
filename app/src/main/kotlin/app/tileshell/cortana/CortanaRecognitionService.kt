@@ -90,6 +90,7 @@ class CortanaRecognitionService : RecognitionService() {
                     when (event.code) {
                         SpeechError.NO_MICROPHONE_PERMISSION -> SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS
                         SpeechError.AUDIO_UNAVAILABLE -> SpeechRecognizer.ERROR_AUDIO
+                        SpeechError.MICROPHONE_BUSY -> SpeechRecognizer.ERROR_RECOGNIZER_BUSY
                         SpeechError.MODEL_MISSING, SpeechError.MODEL_CORRUPT, SpeechError.ESPEAK_DATA_BAD ->
                             SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE
                         else -> SpeechRecognizer.ERROR_CLIENT

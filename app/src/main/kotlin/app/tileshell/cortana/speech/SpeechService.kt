@@ -2,8 +2,10 @@ package app.tileshell.cortana.speech
 
 import android.app.Service
 import android.content.Intent
+import android.os.Binder
 import android.os.DeadObjectException
 import android.os.IBinder
+import android.os.RemoteCallbackList
 import android.os.Process
 import android.os.RemoteException
 import android.os.SystemClock
@@ -90,8 +92,26 @@ class SpeechService : Service() {
     @Volatile private var asrFailure: Pair<Int, String>? = null
     @Volatile private var ttsFailure: Pair<Int, String>? = null
 
-    /** One caller at a time (ISpeech.register); a second registration replaces the first. */
-    @Volatile private var callback: ISpeechCallback? = null
+    /**
+     * Every registered client (phase 05: Cortana in the launcher process and the keyboard in `:ime`).
+     * A client that dies is dropped by the list itself, and [onCallbackDied] ends its capture.
+     */
+    private val clients = object : RemoteCallbackList<ISpeechCallback>() {
+        override fun onCallbackDied(callback: ISpeechCallback) {
+            Diagnostics.add("speech", "a client died")
+            releaseMicIf(callback.asBinder(), "owner died")
+            if (speakOwner?.asBinder() == callback.asBinder()) speakOwner = null
+        }
+    }
+
+    /** One microphone: who it is listening for, which capture generation that is, and their pid. */
+    private val micLock = Any()
+    @Volatile private var micOwner: ISpeechCallback? = null
+    @Volatile private var micGeneration = -1
+    @Volatile private var micOwnerPid = -1
+
+    /** Who the voice is speaking for; TTS progress and TTS errors go to them alone. */
+    @Volatile private var speakOwner: ISpeechCallback? = null
 
     @Volatile private var asrBytes = -1L
     @Volatile private var ttsBytes = -1L
@@ -136,6 +156,7 @@ class SpeechService : Service() {
 
     override fun onDestroy() {
         Diagnostics.add("speech", "service destroyed; releasing engines")
+        clients.kill()
         idleTask?.cancel(false)
         idleScheduler.shutdownNow()
         asr.interrupt()
@@ -249,13 +270,13 @@ class SpeechService : Service() {
      * Every callback goes through here. A client that died between two events is dropped and the service
      * keeps serving: its process outliving ours is the normal case, not an error.
      */
-    private fun dispatch(what: String, body: (ISpeechCallback) -> Unit) {
-        val target = callback ?: return
+    private fun dispatch(target: ISpeechCallback?, what: String, body: (ISpeechCallback) -> Unit) {
+        target ?: return
         try {
             body(target)
         } catch (e: DeadObjectException) {
-            callback = null
             Diagnostics.add("speech", "$what: client is gone; callback dropped")
+            releaseMicIf(target.asBinder(), "owner gone during $what")
         } catch (e: RemoteException) {
             Diagnostics.add("speech", "$what: remote exception $e")
         } catch (t: Throwable) {
@@ -263,30 +284,54 @@ class SpeechService : Service() {
         }
     }
 
+    /** An event with no owner (a load failure on bind) goes to every registered client. */
+    private fun broadcast(what: String, body: (ISpeechCallback) -> Unit) {
+        val n = clients.beginBroadcast()
+        try {
+            for (i in 0 until n) dispatch(clients.getBroadcastItem(i), what, body)
+        } finally {
+            clients.finishBroadcast()
+        }
+    }
+
     /**
      * The single funnel for every error, so `last_error` in [ISpeech.status] is recorded even when no
      * client was registered to hear it — which is exactly the case for a failure during the first load.
+     * [to] is the client the error belongs to; null means nobody asked, so everybody hears it.
      */
-    private fun report(code: Int, detail: String) {
+    private fun report(code: Int, detail: String, to: ISpeechCallback? = null) {
         lastError = "code $code: $detail"
-        dispatch("onError") { it.onError(code, detail) }
+        if (to != null) dispatch(to, "onError") { it.onError(code, detail) } else broadcast("onError") { it.onError(code, detail) }
     }
 
-    private val asrEvents = object : AsrEvents {
-        override fun onListening() = dispatch("onListening") { it.onListening() }
-        override fun onPartial(text: String) = dispatch("onPartial") { it.onPartial(text) }
-        override fun onLevel(level: Float) = dispatch("onLevel") { it.onLevel(level) }
+    /** ASR events for the capture of [owner]; a capture only ever reports to the client it listens for. */
+    private fun asrEventsFor(owner: ISpeechCallback) = object : AsrEvents {
+        override fun onListening() = dispatch(owner, "onListening") { it.onListening() }
+        override fun onPartial(text: String) = dispatch(owner, "onPartial") { it.onPartial(text) }
+        override fun onLevel(level: Float) = dispatch(owner, "onLevel") { it.onLevel(level) }
         override fun onFinal(open: String, grammar: String, audioMs: Int) =
-            dispatch("onFinal") { it.onFinal(open, grammar, audioMs) }
-        override fun onError(code: Int, detail: String) = report(code, detail)
+            dispatch(owner, "onFinal") { it.onFinal(open, grammar, audioMs) }
+        override fun onError(code: Int, detail: String) = report(code, detail, owner)
     }
 
-    private val ttsEvents = object : TtsEvents {
+    private fun ttsEventsFor(owner: ISpeechCallback?) = object : TtsEvents {
         override fun onSpeakingLevel(utteranceId: String, level: Float) =
-            dispatch("onSpeakingLevel") { it.onSpeakingLevel(utteranceId, level) }
+            dispatch(owner, "onSpeakingLevel") { it.onSpeakingLevel(utteranceId, level) }
         override fun onSpeakingDone(utteranceId: String, cancelled: Boolean) =
-            dispatch("onSpeakingDone") { it.onSpeakingDone(utteranceId, cancelled) }
-        override fun onError(code: Int, detail: String) = report(code, detail)
+            dispatch(owner, "onSpeakingDone") { it.onSpeakingDone(utteranceId, cancelled) }
+        override fun onError(code: Int, detail: String) = report(code, detail, owner)
+    }
+
+    /** Free the microphone if [binder] holds it, ending its capture. */
+    private fun releaseMicIf(binder: IBinder, why: String) {
+        synchronized(micLock) {
+            if (micOwner?.asBinder() != binder) return
+            micOwner = null
+            micGeneration = -1
+            micOwnerPid = -1
+        }
+        asr.interrupt()
+        Diagnostics.add("speech", "microphone released: $why")
     }
 
     // ---- the contract ----------------------------------------------------------------------------
@@ -294,51 +339,91 @@ class SpeechService : Service() {
     private val binder = object : ISpeech.Stub() {
 
         override fun register(cb: ISpeechCallback?) {
-            callback = cb
-            Diagnostics.add("speech", "callback registered")
+            cb ?: return
+            clients.register(cb)
+            Diagnostics.add("speech", "client registered pid=${Binder.getCallingPid()} (${clients.registeredCallbackCount} registered)")
         }
 
         override fun unregister(cb: ISpeechCallback?) {
-            if (cb == null || callback?.asBinder() == cb.asBinder()) {
-                callback = null
-                Diagnostics.add("speech", "callback unregistered")
-            }
+            cb ?: return
+            clients.unregister(cb)
+            releaseMicIf(cb.asBinder(), "owner unregistered")
+            if (speakOwner?.asBinder() == cb.asBinder()) speakOwner = null
+            Diagnostics.add("speech", "client unregistered pid=${Binder.getCallingPid()} (${clients.registeredCallbackCount} registered)")
         }
 
-        override fun startListening(hotwords: String?) {
-            // Bumped here, on the Binder thread: a capture already running sees it and unwinds, so there
-            // is never a second AudioRecord.
-            val generation = asr.interrupt()
+        override fun startListening(owner: ISpeechCallback?, hotwords: String?) {
+            owner ?: return
+            val pid = Binder.getCallingPid()
+            // One engine, one microphone (phase 05 edge case): a second client is refused with a notice,
+            // never allowed to take the microphone from the one using it. The same client starting again
+            // replaces its own capture, as it always has.
+            val generation = synchronized(micLock) {
+                val holder = micOwner
+                if (holder != null && holder.asBinder() != owner.asBinder()) {
+                    Diagnostics.add("speech", "startListening from pid=$pid refused: the microphone is listening for pid=$micOwnerPid")
+                    null
+                } else {
+                    // Bumped here, on the Binder thread: a capture already running sees it and unwinds, so
+                    // there is never a second AudioRecord.
+                    val g = asr.interrupt()
+                    micOwner = owner
+                    micGeneration = g
+                    micOwnerPid = pid
+                    g
+                }
+            }
+            if (generation == null) {
+                report(SpeechError.MICROPHONE_BUSY, "the microphone is in use by another part of the shell", owner)
+                return
+            }
+            Diagnostics.add("speech", "listening for pid=$pid")
             loadAsr()
             val phrases = hotwords.orEmpty()
             asrWorker.execute {
                 val failure = asrFailure
                 if (failure != null) {
-                    report(failure.first, failure.second)
-                    return@execute
+                    report(failure.first, failure.second, owner)
+                } else {
+                    asr.capture(phrases, generation, asrEventsFor(owner))
                 }
-                asr.capture(phrases, generation, asrEvents)
+                // The capture is over (endpoint, stop, or failure): the microphone is free again, unless a
+                // newer capture by the same owner has already claimed it.
+                synchronized(micLock) {
+                    if (micGeneration == generation) {
+                        micOwner = null
+                        micGeneration = -1
+                        micOwnerPid = -1
+                    }
+                }
             }
         }
 
-        override fun stopListening() {
+        override fun stopListening(owner: ISpeechCallback?) {
+            val holder = micOwner
+            if (owner == null || holder == null || holder.asBinder() != owner.asBinder()) {
+                Diagnostics.add("speech", "stopListening from a non-owner ignored (pid=${Binder.getCallingPid()})")
+                return
+            }
             asr.interrupt()
             Diagnostics.add("speech", "stopListening requested")
         }
 
-        override fun speak(utteranceId: String?, text: String?, speakerId: Int) {
+        override fun speak(owner: ISpeechCallback?, utteranceId: String?, text: String?, speakerId: Int) {
             val id = utteranceId.orEmpty()
             val words = text.orEmpty()
+            speakOwner = owner
+            val events = ttsEventsFor(owner)
             val generation = tts.interrupt()
             loadTts()
             ttsWorker.execute {
                 val failure = ttsFailure
                 if (failure != null) {
-                    report(failure.first, failure.second)
-                    ttsEvents.onSpeakingDone(id, true)
+                    report(failure.first, failure.second, owner)
+                    events.onSpeakingDone(id, true)
                     return@execute
                 }
-                tts.speak(id, words, speakerId, generation, ttsEvents)
+                tts.speak(id, words, speakerId, generation, events)
             }
         }
 
@@ -414,6 +499,8 @@ class SpeechService : Service() {
         lines += "pid=${Process.myPid()}"
         lines += "process=app.tileshell:speech"
         lines += "asr_listening=${asr.listening}"
+        lines += "mic_owner_pid=$micOwnerPid"
+        lines += "clients=${clients.registeredCallbackCount}"
         lines += "asr_error=${asrFailure?.let { "code ${it.first}: ${it.second}" }.orEmpty().replace('\n', ' ')}"
         lines += "asr_bpe_vocab=${asr.bpeVocabSource}"
         lines += "asr_decoding=${SherpaAsr.DECODING_METHOD}"

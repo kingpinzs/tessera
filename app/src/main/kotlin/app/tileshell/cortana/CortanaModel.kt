@@ -255,6 +255,7 @@ class CortanaModel(
             SpeechError.ESPEAK_DATA_BAD ->
                 "My pronunciation data is damaged. $settings"
             SpeechError.AUDIO_UNAVAILABLE -> "I can't get to the microphone right now."
+            SpeechError.MICROPHONE_BUSY -> "The keyboard is using the microphone right now."
             else -> "Something went wrong."
         }
         val shown = if (event.detail.isBlank()) spoken else "$spoken\n\n${event.detail}"

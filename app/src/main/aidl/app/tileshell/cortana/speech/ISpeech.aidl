@@ -10,26 +10,33 @@ import app.tileshell.cortana.speech.ISpeechCallback;
  * dialer are unaffected, and the next request gets the reload notice (E12).
  */
 interface ISpeech {
-    /** Register the caller's callback. One caller at a time; a second registration replaces the first. */
+    /**
+     * Register the caller's callback. Several clients may be registered at once — Cortana in the
+     * launcher process and the keyboard in `:ime` (phase 05 Decisions: the voice typing key is an ADD
+     * to this process's clients). Unregistering a client that owns the microphone ends its capture.
+     */
     void register(ISpeechCallback callback);
     void unregister(ISpeechCallback callback);
 
     /**
-     * Open the microphone and decode until the endpoint (or stopListening).
+     * Open the microphone for [owner] and decode until the endpoint (or stopListening). There is one
+     * engine and one microphone: while another client's capture is running this one is refused with
+     * SpeechError.MICROPHONE_BUSY, never queued behind it and never allowed to take it over. The same
+     * owner starting again replaces its own capture.
      *
      * @param hotwords one boosted phrase per line, in the recognizer's token form (the grammar pass);
      *                 an empty string runs the open pass alone
      */
-    void startListening(String hotwords);
+    void startListening(ISpeechCallback owner, String hotwords);
 
-    /** End the utterance now and deliver onFinal with what has been decoded. */
-    void stopListening();
+    /** End [owner]'s utterance now and deliver onFinal with what has been decoded. A non-owner's stop does nothing. */
+    void stopListening(ISpeechCallback owner);
 
     /**
-     * Speak [text] with the voice [speakerId] and report progress under [utteranceId].
+     * Speak [text] with the voice [speakerId] and report progress to [owner] under [utteranceId].
      * A new speak cancels the one playing.
      */
-    void speak(String utteranceId, String text, int speakerId);
+    void speak(ISpeechCallback owner, String utteranceId, String text, int speakerId);
 
     /** Stop any speech in flight (onSpeakingDone arrives with cancelled = true). */
     void stopSpeaking();
