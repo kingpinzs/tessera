@@ -20,6 +20,12 @@ app.tileshell.feeds.TileNotificationListener	android.permission.BIND_NOTIFICATIO
 app.tileshell.tiles.api.LiveTileProvider	guard: none by design (R5 4b)	The public Live Tile API. Every call() verb authorises on the caller's Binder identity rather than on a manifest permission.
 app.tileshell.tiles.api.LegacyBadgeReceiver	guard: none (legacy badge broadcasts)	Legacy badge senders resolve the shell through this entry. A sender that does not share its identity is refused by default (phase 01 adversarial review).
 
+# ---- a library's own component, not the shell's ----
+# Found by this very check rather than by reading the manifest: androidx.profileinstaller adds it, and
+# it is exported with android.permission.DUMP, which only the shell tool and the system hold. It is on
+# the list because the list has to be the WHOLE exported surface to be worth anything.
+androidx.profileinstaller.ProfileInstallReceiver	android.permission.DUMP	androidx.profileinstaller's baseline-profile trigger. Added by the library, guarded by DUMP.
+
 # ---- phase 03 ----
 app.tileshell.cortana.CortanaService	android.permission.BIND_VOICE_INTERACTION	The assistant. Only the system holds the permission; this is what the assist gesture, the side key and KEYCODE_ASSIST reach.
 app.tileshell.cortana.CortanaSessionService	android.permission.BIND_VOICE_INTERACTION	The session window the framework asks for.
