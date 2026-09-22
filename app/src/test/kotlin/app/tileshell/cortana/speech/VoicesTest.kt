@@ -28,9 +28,9 @@ class VoicesTest {
         override fun voices(): String = payload
         override fun register(callback: ISpeechCallback?) = Unit
         override fun unregister(callback: ISpeechCallback?) = Unit
-        override fun startListening(hotwords: String?) = Unit
-        override fun stopListening() = Unit
-        override fun speak(utteranceId: String?, text: String?, speakerId: Int) = Unit
+        override fun startListening(owner: ISpeechCallback?, hotwords: String?) = Unit
+        override fun stopListening(owner: ISpeechCallback?) = Unit
+        override fun speak(owner: ISpeechCallback?, utteranceId: String?, text: String?, speakerId: Int) = Unit
         override fun stopSpeaking() = Unit
         override fun preload() = Unit
         override fun status(): String = ""
