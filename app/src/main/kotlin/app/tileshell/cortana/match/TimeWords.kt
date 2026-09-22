@@ -141,9 +141,23 @@ object TimeWords {
 
         if (atIndex >= 0) readClockAt(atIndex + 1)
         if (hour == null) {
-            // "remind me at 8" is the common form, but "wake me up 7 am" happens too.
+            // "remind me at 8" is the common form, but "wake me up 7 am" happens too — and so does
+            // "set an alarm for seven twenty am", where the word before the meridiem is the MINUTE.
+            // Reading only the word before it gave 20:00 for "seven twenty am", so the start of the
+            // number group is searched for: the earliest word whose clock reading consumes exactly up
+            // to the meridiem.
             val meridiemIndex = words.indexOfFirst { it == "am" || it == "pm" }
-            if (meridiemIndex > 0) readClockAt(meridiemIndex - 1)
+            if (meridiemIndex > 0) {
+                for (start in maxOf(0, meridiemIndex - 3) until meridiemIndex) {
+                    if (readClockAt(start) && timeEnd == meridiemIndex - 1) break
+                    hour = null
+                    timeStart = -1
+                    timeEnd = -1
+                    minute = 0
+                }
+                // Nothing lined up with the meridiem: fall back to the word just before it.
+                if (hour == null) readClockAt(meridiemIndex - 1)
+            }
         }
         if (hour == null) return null
 

@@ -272,7 +272,20 @@ object CommandMatcher {
     private fun after(text: String, vararg prefixes: String): String? =
         prefixes.firstOrNull { text.startsWith(it) }?.let { text.removePrefix(it).trim().ifBlank { null } }
 
-    private fun matchesAny(text: String, vararg forms: String): Boolean = forms.any { it == text }
+    /**
+     * A fixed query phrase, matched as a PHRASE rather than as the whole utterance.
+     *
+     * Real recognition puts stray words at the edges — the device produced "AT WHAT TIME IS IT" for
+     * "What time is it?" — and an exact-equality match turns that into "Sorry, I can't do that yet."
+     * A multi-word form therefore only has to be CONTAINED in the utterance. A single-word form
+     * ("time", "date") still has to be the whole utterance, because "set a timer" contains "time".
+     *
+     * Order does the rest of the work: every command that could contain one of these phrases —
+     * a reminder, a calendar add, an alarm — is matched before this is ever reached.
+     */
+    private fun matchesAny(text: String, vararg forms: String): Boolean = forms.any { form ->
+        if (' ' in form) text == form || text.contains(form) else text == form
+    }
 
     /**
      * The recognizer emits lower-case words with no punctuation, but a typed request (the text box) can
@@ -283,4 +296,10 @@ object CommandMatcher {
         .replace(Regex("[^a-z0-9':\\s]"), " ")
         .replace(Regex("\\s+"), " ")
         .trim()
+        // The recogniser spells the meridiem out as two letters: the device produced
+        // "SET IN ALARM FOR SEVEN TWENTY A M", and without this the phrase carries no am/pm at all,
+        // the time does not parse, and the whole alarm falls through to "Sorry, I can't do that yet."
+        .replace(Regex("\\ba m\\b"), "am")
+        .replace(Regex("\\bp m\\b"), "pm")
+        .replace(Regex("\\bo clock\\b"), "o'clock")
 }
