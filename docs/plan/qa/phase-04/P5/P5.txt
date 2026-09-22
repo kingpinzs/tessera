@@ -45,6 +45,14 @@ TOUCH — who receives a tap in that strip? (emulator, 2026-09-22; phone run pen
   So the navigation bar takes the touches in its own strip even when an overlay's content is drawn
   there. The overlay can FILL the strip and cannot USE it.
 
+  CONFIRMED ON THE PHONE, 2026-09-22 00:32 (S25 Ultra, One UI 8.5, 3-button, nav bar 144 px, so the
+  strip begins at y = 2196). Six taps, every one of them recorded as "above the strip":
+    y = 1549, 2104, 1392, 1136, 1564, 917
+  The closest, 2104, is 92 px above the strip. Repeated attempts produced nothing at or below 2196
+  while every tap above it registered. Together with the emulator, where a programmatic tap at
+  y = 2300 went to the nav bar and sent the device Home instead of reaching the overlay, that settles
+  it: the navigation bar takes the touches in its own strip. Screenshot: p5_3button_touch.jpg.
+
   What that means for the action center: the panel's background and scrim may run to the display's
   bottom edge, but anything a finger has to reach — the drag handle, a quick action, a notification —
   must end above the nav bar, because a touch there goes to Android. This is the emulator's answer;
