@@ -1,0 +1,22 @@
+# E2 + E6 re-run 2026-09-21T18:15:39-06:00
+Success
+--- E2: pin the fixture from the app list ---
+holding the app list row at 540 1584
+tapping Pin to Start at 540 1713
+tiles for app.tileshell.testclient.a on Start: 1
+order:
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL', 'app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0/MEDIUM']
+--- E2c: pin the same app again, then restart the shell (the defect the store fix was for) ---
+holding the app list row at 540 1584
+tapping Pin to Start at 540 1713
+tiles after the second pin (live): 1
+tiles after a restart: 1
+PASS one tile, before and after the restart
+--- E6: an update keeps the tile, an uninstall drops it ---
+Success
+tiles after install -r (update): 1
+PASS the update kept the tile
+Success
+tiles after uninstall: 0
+PASS the uninstall dropped the tile
+baseline layout restored
