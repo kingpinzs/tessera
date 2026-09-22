@@ -1,0 +1,26 @@
+==============================================================================
+ROW E6 — the Cortana tile ADD runs once, and reminders survive a force-stop and a reboot
+at            2026-09-21T20:22:35-06:00
+driver        e6.sh blob 68eed4950922baaf61a23eb705443d601a42e9ff
+harness       lib.sh blob 777b41ba9813902d1b44f6443b4f64755d029467
+apk built     296a74ac6a75865c 318484572 bytes
+apk installed c37b4609d2742849
+apk match     yes (c37b4609d2742849)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  the layout store recorded the one-shot ADD                  contains [phase03:cortana]
+PASS  and the Cortana tile is in the order                        contains [shell:cortana]
+PASS  the Cortana tile is drawn on Start                          = yes
+PASS  tapping the tile opens Cortana                              = yes
+FAIL  the reminder is in the store                                does not contain [bins]: 
+FAIL  and its alarm is armed                                      should not be [0]
+PASS  a force-stop cancels the alarm                              = 0
+FAIL  the shell re-arms it on process start                       should not be [0]
+      alarms after the force-stop and restart: 0
+PASS  a restart does not bring the tile back                      does not contain [shell:cortana]
+PASS  because the marker is still recorded                        contains [phase03:cortana]
+PASS  a reboot does not bring the tile back                       does not contain [shell:cortana]
+FAIL  and the reminder's alarm is armed again after the reboot    should not be [0]
+      layout restored to the pre-row state
+------------------------------------------------------------------------------
+E6: 8 passed, 4 failed

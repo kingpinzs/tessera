@@ -125,6 +125,35 @@ class CommandMatcherTest {
     }
 
     @Test
+    fun `a stray word at the edge does not lose a fixed query`() {
+        // The device really produced this for "What time is it?" — an exact-equality match turned it
+        // into "Sorry, I can't do that yet."
+        assertEquals(Request.TimeQuery, match("at what time is it"))
+        assertEquals(Request.TimeQuery, match("so what time is it now"))
+        assertEquals(Request.DateQuery, match("um what day is it"))
+        assertEquals(Request.WhatsOnMyCalendar, match("so what's on my calendar today"))
+    }
+
+    @Test
+    fun `the recogniser spells the meridiem out as two letters`() {
+        // Verbatim from the device: "SET IN ALARM FOR SEVEN TWENTY A M".
+        assertEquals(Request.SetAlarm(7, 20), match("set in alarm for seven twenty a m"))
+        assertEquals(Request.SetAlarm(7, 20), match("set an alarm for seven twenty a m"))
+        assertEquals(Request.SetAlarm(19, 20), match("set an alarm for seven twenty p m"))
+        // And the written forms still work.
+        assertEquals(Request.SetAlarm(7, 20), match("set an alarm for 7:20 am"))
+    }
+
+    @Test
+    fun `a one-word form still has to be the whole utterance`() {
+        // "set a timer for 5 minutes" contains "time"; it is a timer, not the clock.
+        assertEquals(Request.SetTimer(300), match("set a timer for 5 minutes"))
+        assertEquals(Request.TimeQuery, match("time"))
+        // And a reminder that mentions the date is a reminder: order settles it before this is reached.
+        assertTrue(match("remind me to check the date at 9 am") is Request.SetReminder)
+    }
+
+    @Test
     fun `music, directions, photo and note`() {
         assertEquals(Request.PlayMusic(null), match("play music"))
         assertEquals(Request.PlayMusic("bohemian rhapsody"), match("play Bohemian Rhapsody"))

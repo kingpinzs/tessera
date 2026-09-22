@@ -35,8 +35,11 @@ command_row() { # utterance expected-request expected-reply-substring
   ensure_start
   cortana_assist
   sleep 4
-  # The reply is captured from the AVD's own output while Cortana speaks it.
-  ( "$HERE/audio.sh" record "$ROW_DIR/${utterance}_reply.wav" 14 >/dev/null 2>&1 ) &
+  # The reply is captured from the AVD's own output while Cortana speaks it. The window has to cover
+  # the WHOLE chain - play the utterance, endpoint, match, act, synthesise, then play - which on this
+  # AVD runs past 20 s for a short reply. A 14 s window ended before the reply began and every capture
+  # read -114 dBFS, which looks exactly like a silent device.
+  ( "$HERE/audio.sh" record "$ROW_DIR/${utterance}_reply.wav" 28 >/dev/null 2>&1 ) &
   local recorder=$!
   local final
   final="$("$HERE/speak.sh" "$utterance" 11)"
