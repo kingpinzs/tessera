@@ -78,6 +78,8 @@ class StartActivity : ComponentActivity() {
     private var entranceToken by mutableStateOf(0)
     private var pickerSlot by mutableStateOf<Slot?>(null)
     private var returningFromLaunch = false
+    /** The tile that launched something, promoted above the bottom row when Start comes back. */
+    private var pendingRecent: app.tileshell.tiles.TileKey? = null
     private var page by mutableStateOf(0)
     private val backEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     /** Phase 02 edit mode: held here so Back, Home and the pivot can see it. */
@@ -261,7 +263,12 @@ class StartActivity : ComponentActivity() {
             // The last app you opened is shown in the row above the bottom tile row (INDEX Change Log
             // 2026-09-21 item 7). A dock tile is never found in the grid order, so opening one of the
             // three bottom apps leaves the grid alone on its own, with nothing to special-case.
-            app.tileshell.tiles.RecentApp.opened(it)
+            //
+            // Recorded here but APPLIED on the way back, in onResume, for the same reason auto-sizing is:
+            // the tile must not leave the grid under the finger that just tapped it. It now moves to a
+            // fixed row at the bottom of the screen rather than to the end of the grid, so doing it at
+            // tap time would pull the tile out from under the launch animation that is scaling it.
+            pendingRecent = it
         }
         when (target) {
             is TileTarget.App -> AppCatalog.get(this).launch(target.entry, bounds, options)
@@ -318,6 +325,10 @@ class StartActivity : ComponentActivity() {
         // it, and coming back from the app you just opened is exactly when the new count lands.
         if (app.tileshell.prefs.ShellSettings.get(this).theme.value.autoSizeTiles) {
             app.tileshell.tiles.LayoutStore.get(this).applyAutoSize(UseCounts.get(this).scores())
+        }
+        pendingRecent?.let {
+            pendingRecent = null
+            app.tileshell.tiles.RecentApp.opened(it)
         }
         if (returningFromLaunch) {
             returningFromLaunch = false

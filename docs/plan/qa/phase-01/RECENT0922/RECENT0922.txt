@@ -1,0 +1,28 @@
+==============================================================================
+ROW RECENT0922 — the last opened app sits in the band directly above the bottom tile row
+at            2026-09-22T09:25:38-06:00
+driver        recent0922.sh blob 7263e272e0d4080c8646f0543157c66cd544fc6c
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     53dbcbf741762cda 325976122 bytes
+apk installed 4a2be29d269c4562
+apk match     yes (4a2be29d269c4562)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  a freshly started shell promotes nothing                    = no
+      the Browser tile starts at [365 84 708 427]
+PASS  the Browser tile is on the grid to begin with               != 
+      resumed after the tap:     topResumedActivity=ActivityRecord{6119483 u0 org.chromium.webview_shell/.WebViewBrowserActivity t121}
+PASS  the tap actually left Start                                 does not contain [app.tileshell/.StartActivity]
+PASS  coming back promotes the app that was opened                = yes
+      promoted Browser tile [9 1579 352 1922] · bottom tile row [9 1935 352 2182]
+PASS  the promoted tile is on screen                              != 
+PASS  the bottom tile row is on screen                            != 
+      the promoted tile's underside is 13px above the bottom tile row (a small tile is 164px)
+PASS  it sits ON the bottom tile row, one gutter clear of it      = ok
+PASS  and it is drawn once, not left in the grid as well          = 1
+PASS  so it is no longer where it was on the grid                 != 365 84 708 427
+PASS  opening a bottom-row app promotes nothing                   = no
+PASS  and the tile that was promoted is back exactly where it was  = 365 84 708 427
+      diagnostics: 6 line(s)
+------------------------------------------------------------------------------
+RECENT0922: 11 passed, 0 failed
