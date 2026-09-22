@@ -154,8 +154,15 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
     val newKeys by store.newKeys.collectAsState()
     val locale = LocalConfiguration.current.locales[0]
     val showProfiles = theme.showWorkAndPrivateApps
-    val model = remember(apps, profiles, showProfiles, locale) {
-        buildAppListModel(apps, profiles, showProfiles, locale, store::keyOf, store::serialOf)
+    // Re-read on every resume rather than on a timer: the recent section is only ever looked at when
+    // the list is actually open, and a phone used elsewhere should show that the moment it is opened.
+    var lastUsed by remember { mutableStateOf(emptyMap<String, Long>()) }
+    val model = remember(apps, profiles, showProfiles, locale, lastUsed) {
+        buildAppListModel(
+            apps, profiles, showProfiles, locale, store::keyOf, store::serialOf,
+            lastUsed = lastUsed,
+            selfPackage = context.packageName,
+        )
     }
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -175,6 +182,7 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
 
     LaunchedEffect(model) { Diagnostics.add("applist", "model: ${model.describe()}") }
     LaunchedEffect(apps) {
+        withContext(Dispatchers.IO) { lastUsed = RecentRuns.lastUsed(context) }
         tracker.refresh()
         withContext(Dispatchers.IO) {
             store.reconcile(apps)
@@ -182,6 +190,7 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
         }
     }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        scope.launch(Dispatchers.IO) { lastUsed = RecentRuns.lastUsed(context) }
         tracker.refresh()
         scope.launch(Dispatchers.IO) {
             store.reconcile(catalog.apps.value)
@@ -312,6 +321,7 @@ private fun AzList(
         items(model.items, key = { it.key }, contentType = { it.contentType }) { item ->
             when (item) {
                 is LetterHeaderItem -> LetterHeader(item.letter, openGrid)
+                is SectionHeaderItem -> SectionHeader(item)
                 is ProfileHeaderItem -> ProfileHeader(item.profile, openGrid) { tracker.requestQuietMode(item.profile, true) }
                 is UnlockItem -> UnlockRow(item.profile) { tracker.requestQuietMode(item.profile, false) }
                 is AppRowItem -> AppRow(item, item.newKey in newKeys, icons, generation, launch, hold)
@@ -447,7 +457,7 @@ private fun AppRow(
             .fillMaxWidth()
             .height(AppListMetrics.ROW)
             .onPlaced { coordinates[0] = it }
-            .testTag("applist_row:$pkg"),
+            .testTag("${item.tagPrefix}:$pkg"),
     ) {
         RowLayout(
             icon = { AppIcon(item.entry, icons, generation) },
@@ -460,6 +470,26 @@ private fun AppRow(
                 null
             },
         )
+    }
+}
+
+/**
+ * "Recent" / "Recently added" (INDEX Change Log 2026-09-21 item 8). Drawn as a letter header is drawn,
+ * because it is the same thing in the same list — a group heading — and W10M gave every group one form.
+ * It is not a jump-grid target: the grid's cells are letters and profiles, and neither of these is a
+ * place the alphabet can send you.
+ */
+@Composable
+private fun SectionHeader(item: SectionHeaderItem) {
+    val colors = LocalShellColors.current
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(AppListMetrics.HEADER_BLOCK)
+            .testTag("applist_section:${item.id}"),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        BasicText(item.title, style = ShellType.body.copy(color = colors.accent), maxLines = 1)
     }
 }
 

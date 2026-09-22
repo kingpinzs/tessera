@@ -27,9 +27,28 @@ data class UnlockItem(val profile: ShellProfile) : ListItem {
     override val contentType: Int get() = 2
 }
 
-data class AppRowItem(val entry: AppEntry, val newKey: String, val normalizedLabel: String) : ListItem {
-    override val key: String get() = "row:${entry.key}"
+/**
+ * @param section "" for the A-Z list, or the id of a top section ("recent", "added"). It is part of the
+ *   list key and the row's test tag, because the same app appears BOTH at the top and in its letter
+ *   group: a LazyColumn refuses two items with one key, and two nodes with one tag would make an
+ *   existing driver tap whichever copy it found first.
+ */
+data class AppRowItem(
+    val entry: AppEntry,
+    val newKey: String,
+    val normalizedLabel: String,
+    val section: String = "",
+) : ListItem {
+    override val key: String get() = if (section.isEmpty()) "row:${entry.key}" else "row:$section:${entry.key}"
     override val contentType: Int get() = 3
+    /** applist_row:pkg for the A-Z list, so every driver written against it still finds what it expects. */
+    val tagPrefix: String get() = if (section.isEmpty()) "applist_row" else "applist_${section}_row"
+}
+
+/** A top section's header: "Recent" and "Recently added" (INDEX Change Log 2026-09-21 item 8). */
+data class SectionHeaderItem(val id: String, val title: String) : ListItem {
+    override val key: String get() = "shdr:$id"
+    override val contentType: Int get() = 4
 }
 
 /** A jump grid cell: "#", "A".."Z" or a profile glyph; [targetIndex] null = no apps (dimmed). */
@@ -66,6 +85,8 @@ fun buildAppListModel(
     locale: Locale,
     keyOf: (AppEntry) -> String,
     serialOf: (UserHandle) -> Long,
+    lastUsed: Map<String, Long> = emptyMap(),
+    selfPackage: String = "",
 ): AppListModel {
     val collator = AppIndex.collator(locale)
     val items = ArrayList<ListItem>(apps.size + 40)
@@ -74,6 +95,31 @@ fun buildAppListModel(
     fun row(entry: AppEntry) = AppRowItem(entry, keyOf(entry), AppIndex.normalize(entry.label)).also { items += it; searchable += it }
 
     val main = apps.filter { it.profile == ProfileKind.MAIN }
+
+    // The top sections go in FIRST, so every letter's index in headerIndex is already correct for the
+    // jump grid: the indices are taken as the items are appended, not counted afterwards.
+    //
+    // A section row is an item but NOT searchable: search reads `searchable`, and an app listed twice
+    // would come back twice for one query.
+    //
+    // Work and private apps are left out of both sections on purpose. The A-Z list puts them behind
+    // their own header, and surfacing a private-space app at the top of the list — where it is the
+    // first thing anyone holding the phone sees — is not something a person asked for.
+    fun sectionRow(entry: AppEntry, section: String) {
+        items += AppRowItem(entry, keyOf(entry), AppIndex.normalize(entry.label), section)
+    }
+    val candidates = main.filter { it.component.packageName != selfPackage }
+    val recent = AppSections.recent(candidates, lastUsed, { it.component.packageName }, { it.label })
+    if (recent.isNotEmpty()) {
+        items += SectionHeaderItem("recent", "Recent")
+        recent.forEach { sectionRow(it, "recent") }
+    }
+    val added = AppSections.added(candidates, { it.firstInstallTime }, { it.label })
+    if (added.isNotEmpty()) {
+        items += SectionHeaderItem("added", "Recently added")
+        added.forEach { sectionRow(it, "added") }
+    }
+
     for ((letter, group) in AppIndex.group(main, { it.label }, { it.key }, collator)) {
         headerIndex[letter] = items.size
         items += LetterHeaderItem(letter)
