@@ -78,9 +78,19 @@ face lands on the same tile it lands on now. The rule only starts to bite when a
 **Q5 — an app, and we build it (2026-09-22, Jeremy: "Music player app we build unless there is one
 exactly like groove already open source we can add").**
 
-It is a real app inside the APK: a launcher activity with android.intent.category.APP_MUSIC, so the
-MUSIC slot resolves to it exactly as it resolves any music app and no resolver, app list or per-package
-tile rule needs a carve-out. That is also what W10M did — Groove was an app in the list.
+It is a real app inside the APK: a launcher activity with android.intent.category.APP_MUSIC, so it sits
+in the app list beside every other app and the MUSIC slot points at it the way it points at any music
+app. That is also what W10M did — Groove was an app in the list.
+
+**CORRECTION, found while building task 1 on 2026-09-22.** This decision as first written said the slot
+would resolve to the player "with no carve-out". That is wrong, and the code says so: SlotResolver
+auto-assigns a category slot only when Android resolves EXACTLY ONE handler for the category, or a
+handler the user has set as default. Declaring APP_MUSIC makes this player one candidate among however
+many music apps the phone has — on the QA emulator that is at least three — so the slot would resolve to
+nothing and the tile would read "Tap to choose". The fix is to SEED the assignment once
+(LayoutStore.assignSlotOnce, marker slot:music:v1), which is the explicit-assignment path that already
+existed and exactly what the user would otherwise do by hand. Re-pointing the slot at another player
+still works and still sticks, so nothing is taken away. Acceptance row E1 is what proves it.
 
 The "unless" was checked rather than assumed: research task **R9** (r9-music-player-reuse.md). Nothing
 can be added. The one credible look-alike, MetroMusic, is GPL-3.0 — which by R2's standing finding makes

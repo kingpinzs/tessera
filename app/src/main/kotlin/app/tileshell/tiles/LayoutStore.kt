@@ -109,6 +109,35 @@ class LayoutStore private constructor(private val context: Context) {
         return added
     }
 
+    /**
+     * Point [slot] at [component] the first time this build runs, and never again — the same contract as
+     * [addOnce], so a slot the user re-points stays re-pointed.
+     *
+     * Phase 10 needs this and phase 10's Q5 said it would not. Q5 assumed the shell's own music app
+     * would win the MUSIC slot by resolution alone, because it declares APP_MUSIC like any music app.
+     * It does not: [SlotResolver] auto-assigns a category slot only when Android resolves EXACTLY ONE
+     * handler or a user-set default, and on a phone with any other music app installed there are
+     * several — so the slot would sit unassigned and the tile would say "Tap to choose". Seeding the
+     * assignment once is the honest fix: it uses the explicit-assignment path that already exists, it
+     * is what the user would otherwise have to do by hand, and re-pointing the slot at another player
+     * still works and still sticks.
+     *
+     * @return true when this call made the assignment
+     */
+    fun assignSlotOnce(marker: String, slot: Slot, component: ComponentName): Boolean {
+        var assigned = false
+        mutate { layout ->
+            if (marker in layout.addedOnce) return@mutate layout
+            assigned = true
+            layout.copy(
+                addedOnce = layout.addedOnce + marker,
+                explicitSlots = layout.explicitSlots + (slot to component),
+            )
+        }
+        Diagnostics.add("layout", "assignSlotOnce $marker ${slot.name} -> ${component.flattenToShortString()} -> ${if (assigned) "assigned" else "already run"}")
+        return assigned
+    }
+
     fun clearSlot(slot: Slot) {
         mutate { it.copy(explicitSlots = it.explicitSlots - slot) }
         Diagnostics.add("layout", "slot ${slot.name} explicit assignment cleared")
