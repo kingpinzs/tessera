@@ -164,9 +164,17 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
      * never a dock change mid-gesture.
      */
     private fun recomputeMetrics(why: String, reloadRaise: Boolean = false) {
-        val bounds = getSystemService(WindowManager::class.java).maximumWindowMetrics.bounds
+        val max = getSystemService(WindowManager::class.java).maximumWindowMetrics
+        val bounds = max.bounds
+        // The keys span the width the IME window actually gets: the display less any system bar or cutout
+        // at its SIDES. In portrait that is the whole width; in landscape the 3-button nav bar and the
+        // cutout sit left and right, and EDGE2 run 1 measured the window at x 136-2205 while the keys were
+        // laid out over all 2340 px, cutting off the right-hand keys. The epx scale (the strip) still comes
+        // from the portrait width, which is RV10's rule.
+        val side = max.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.navigationBars() or WindowInsets.Type.displayCutout())
+        val usableWidth = bounds.width() - side.left - side.right
         metrics = KeyboardMetrics(
-            screenWidthPx = bounds.width().toFloat(),
+            screenWidthPx = usableWidth.toFloat(),
             screenHeightPx = bounds.height().toFloat(),
             pxPerEpx = Scale.pxPerEpx(this),
             dock = state.dock,
@@ -176,7 +184,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         state.raise = if (reloadRaise) (store.raise * metrics.sy).coerceIn(0f, metrics.maxRaise) else state.raise.coerceIn(0f, metrics.maxRaise)
         Diagnostics.add(
             "ime",
-            "metrics ($why): screen ${bounds.width()}x${bounds.height()} sx=${metrics.sx} sy=${metrics.sy} " +
+            "metrics ($why): screen ${bounds.width()}x${bounds.height()} usable width $usableWidth sx=${metrics.sx} sy=${metrics.sy} " +
                 "epx=${metrics.pxPerEpx} strip=${metrics.stripH} panel=${metrics.panelH} view=${metrics.viewH} " +
                 "dock=${state.dock} raise=${state.raise} inset=$bottomInset",
         )
@@ -436,6 +444,11 @@ class KeyboardHost(
             ownGesture = controller.inKeyBlock(ev.x, ev.y)
         }
         val result = if (ownGesture) controller.onTouch(ev) else super.dispatchTouchEvent(ev)
+        // Where a touch outside the key block went (the strip, the emoji panel, the one-handed band):
+        // without this "the strip did nothing" and "the strip never got the touch" look the same.
+        if (!ownGesture && (ev.actionMasked == MotionEvent.ACTION_DOWN || ev.actionMasked == MotionEvent.ACTION_UP)) {
+            Diagnostics.add("ime", "touch ${if (ev.actionMasked == MotionEvent.ACTION_DOWN) "down" else "up"} at ${ev.x.toInt()},${ev.y.toInt()} -> compose handled=$result")
+        }
         if (ev.actionMasked == MotionEvent.ACTION_UP || ev.actionMasked == MotionEvent.ACTION_CANCEL) ownGesture = false
         return result
     }
