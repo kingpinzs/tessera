@@ -91,7 +91,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         store = ImeStore(this)
         editor = Editor { currentInputConnection }
         feedback = KeyFeedback(this) { host }
-        fonts = KeyFonts(resources.getFont(R.font.selawik_regular), resources.getFont(R.font.fluent_icons))
+        fonts = KeyFonts(resources.getFont(R.font.selawik_regular), resources.getFont(R.font.fluent_icons), resources.getFont(R.font.selawik_bold))
         emoji = EmojiCatalog(assets)
         controller = KeyboardController(state, editor, { brain }, feedback, store, this)
         controller.configure(ViewConfiguration.get(this))

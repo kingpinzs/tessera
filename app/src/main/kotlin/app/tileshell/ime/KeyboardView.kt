@@ -72,7 +72,7 @@ object KeyColors {
 private const val X_HEIGHT_RATIO = 0.5f
 
 /** The typefaces the Canvas draws labels with: the branding module's fonts as android.graphics Typefaces. */
-class KeyFonts(val regular: Typeface, val icons: Typeface)
+class KeyFonts(val regular: Typeface, val icons: Typeface, val bold: Typeface = regular)
 
 /** Everything the view calls back into. */
 interface KeyboardActions {
@@ -116,7 +116,7 @@ fun KeyboardView(state: KeyboardState, metrics: KeyboardMetrics, fonts: KeyFonts
                 Box(Modifier.at(0f, metrics.viewH - metrics.bottomInsetPx, metrics.screenWidthPx, metrics.bottomInsetPx).background(KeyColors.navBar))
             }
             Box(Modifier.at(0f, panelTop, metrics.screenWidthPx, metrics.panelH).testTag("kb_panel"))
-            Strip(state, metrics, panelTop, accent, actions)
+            Strip(state, metrics, panelTop, accent, actions, fonts)
             if (state.emojiOpen) {
                 EmojiPanel(state, metrics, panelTop, accent, emoji, actions)
             } else {
@@ -149,6 +149,11 @@ fun KeyboardView(state: KeyboardState, metrics: KeyboardMetrics, fonts: KeyFonts
                     BasicText(Layouts.GLYPH_KEYBOARD, style = TextStyle(fontFamily = Brand.iconFont, fontSize = metrics.h(ICON_PHYS).sp, color = KeyColors.label))
                 }
             }
+            // The overlay: the cursor-drag dimming covers the strip too (R6 §2.5.7), and a row-1 popup
+            // covers the strip (R6 §2.3.3), so both are drawn ABOVE the strip's text, not under it.
+            Canvas(Modifier.fillMaxSize()) {
+                drawOverlay(state, metrics, fonts, accent, panelTop)
+            }
             PopupNodes(state, metrics, panelTop)
         }
     }
@@ -164,6 +169,9 @@ private fun DrawScope.drawKeyboard(state: KeyboardState, m: KeyboardMetrics, fon
         state.layout.keys.forEach { k -> drawKey(k, state, m, fonts, accent, panelTop, labelFor) }
         if (state.layout.layer != Layer.PHONE) drawDot(state, m, accent, panelTop)
     }
+}
+
+private fun DrawScope.drawOverlay(state: KeyboardState, m: KeyboardMetrics, fonts: KeyFonts, accent: Color, panelTop: Float) {
     state.cursorDrag?.let { drawCursorDrag(it, m, fonts, accent, panelTop) }
     state.trail?.let { drawTrail(it, m, accent) }
     state.popup?.let { drawPressPopup(it, m, fonts, accent, panelTop) }
@@ -204,9 +212,12 @@ private fun DrawScope.drawKey(k: Key, state: KeyboardState, m: KeyboardMetrics, 
             drawRect(KeyColors.grip, Offset(cx - gw / 2f, gTop + m.h(KeyGrid.GRIP_H) - line), Size(gw, line))
         }
         k.code == KeyCode.SYMBOLS || k.code == KeyCode.LETTERS || k.code == KeyCode.PAGE -> {
-            // R6 §2.1.15: "&123" digits 40 ± 2 tall.
+            // R6 §2.1.15 (HIGH): "&123" digits 40 ± 2 tall AND the text 112 ± 3 wide. Selawik at the
+            // measured digit height sets "&123" ≈131 wide (E3 run 1), so the label is condensed
+            // horizontally to the measured width: both measured numbers hold, not just one of them.
             val size = m.h(KeyGrid.SYMBOLS_LABEL_DIGIT_H) / CapMetrics.CAP_RATIO
-            drawLabel(k.text, fonts.regular, size, cx, cy + m.h(KeyGrid.SYMBOLS_LABEL_DIGIT_H) / 2f, ink)
+            val scaleX = if (k.text == "&123") condenseTo(k.text, fonts.regular, size, m.w(KeyGrid.SYMBOLS_LABEL_W)) else 1f
+            drawLabel(k.text, fonts.regular, size, cx, cy + m.h(KeyGrid.SYMBOLS_LABEL_DIGIT_H) / 2f, ink, scaleX)
             if (k.code == KeyCode.SYMBOLS) {
                 // R6 §2.1.17 (MEDIUM): three hold dots at the top-left.
                 val r = m.h(4f) / 2f
@@ -247,11 +258,45 @@ private fun labelMetrics(label: String, k: Key, m: KeyboardMetrics): Pair<Float,
 
 private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER }
 
-private fun DrawScope.drawLabel(text: String, typeface: Typeface, size: Float, cx: Float, baseline: Float, color: Color) {
+private fun DrawScope.drawLabel(text: String, typeface: Typeface, size: Float, cx: Float, baseline: Float, color: Color, scaleX: Float = 1f) {
+    textPaint.typeface = typeface
+    textPaint.textSize = size
+    textPaint.textScaleX = scaleX
+    textPaint.color = color.toArgb()
+    drawContext.canvas.nativeCanvas.drawText(text, cx, baseline, textPaint)
+    textPaint.textScaleX = 1f
+}
+
+/** A word's left and right side bearings (ink inset from its advance box) at [size] px. */
+private fun bearings(text: String, typeface: Typeface, size: Float): Pair<Float, Float> {
+    val p = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.typeface = typeface; textSize = size }
+    val b = android.graphics.Rect()
+    p.getTextBounds(text, 0, text.length, b)
+    val advance = p.measureText(text)
+    return b.left.toFloat() to (advance - b.right)
+}
+
+/** The horizontal scale that makes [text]'s INK exactly [inkWidth] wide at [size]. */
+private fun condenseTo(text: String, typeface: Typeface, size: Float, inkWidth: Float): Float {
+    textPaint.typeface = typeface
+    textPaint.textSize = size
+    textPaint.textScaleX = 1f
+    val b = android.graphics.Rect()
+    textPaint.getTextBounds(text, 0, text.length, b)
+    return if (b.width() > 0) inkWidth / b.width() else 1f
+}
+
+/** An icon-font glyph placed by its INK: its ink's left edge at [left], its ink centred on [cy]. */
+fun DrawScope.drawGlyphInkAt(glyph: String, typeface: Typeface, size: Float, left: Float, cy: Float, color: Color) {
     textPaint.typeface = typeface
     textPaint.textSize = size
     textPaint.color = color.toArgb()
-    drawContext.canvas.nativeCanvas.drawText(text, cx, baseline, textPaint)
+    val b = android.graphics.Rect()
+    textPaint.getTextBounds(glyph, 0, glyph.length, b)
+    val align = textPaint.textAlign
+    textPaint.textAlign = Paint.Align.LEFT
+    drawContext.canvas.nativeCanvas.drawText(glyph, left - b.left, cy - b.exactCenterY(), textPaint)
+    textPaint.textAlign = align
 }
 
 /** An icon-font glyph centred on (cx, cy) by its own ink bounds. */
@@ -403,7 +448,7 @@ private fun PopupNodes(state: KeyboardState, m: KeyboardMetrics, panelTop: Float
 // ---- the suggestion strip (R6 §2.2) -----------------------------------------------------------------
 
 @Composable
-private fun Strip(state: KeyboardState, m: KeyboardMetrics, panelTop: Float, accent: Color, actions: KeyboardActions) {
+private fun Strip(state: KeyboardState, m: KeyboardMetrics, panelTop: Float, accent: Color, actions: KeyboardActions, fonts: KeyFonts) {
     val listening = state.voice as? VoiceState.Listening
     val showMic = state.field.suggestionsOn || state.field.kind == FieldKind.SEARCH
     // R6 §2.2.3: cap height 13.3 epx → Selawik at 13.3 / 0.7002 ≈ 19 epx, vertically centred.
@@ -417,21 +462,29 @@ private fun Strip(state: KeyboardState, m: KeyboardMetrics, panelTop: Float, acc
             Modifier.fillMaxSize().horizontalScroll(rememberScrollState()).testTag("kb_strip_scroll"),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // R6 §2.2.5 (MEDIUM, 14393): the microphone's ink starts 13 epx in, and the first word's ink
+            // 28.6 epx right of the microphone's. Both are placed by INK, not by their layout boxes, which
+            // carry the glyphs' side bearings (E3 run 1 measured the mic 5 epx too far right).
+            val pad = m.epx(STRIP_GAP_EPX) / 2f
+            val firstText = if (showMic) m.epx(STRIP_LEFT_EPX + MIC_INK_W_EPX + MIC_TO_WORD_EPX) else m.epx(STRIP_LEFT_EPX)
             if (showMic) {
-                // R6 §2.2.5 (MEDIUM, 14393): the microphone leads the strip, 13 epx in, the first word 28.6
-                // epx to its right.
+                val micBox = m.epx(STRIP_LEFT_EPX + MIC_INK_W_EPX)
                 Box(
                     Modifier
-                        .padding(start = m.epx(STRIP_LEFT_EPX).dp)
+                        .width(micBox.dp)
                         .height(m.stripH.dp)
                         .testTag("kb_mic")
                         .pointerInput(Unit) { detectTapGestures { actions.micTapped() } },
-                    contentAlignment = Alignment.Center,
                 ) {
-                    BasicText(Layouts.GLYPH_MIC, style = TextStyle(fontFamily = Brand.iconFont, fontSize = m.epx(MIC_EPX).sp, color = if (listening != null) accent else KeyColors.label))
+                    Canvas(Modifier.fillMaxSize()) {
+                        drawGlyphInkAt(Layouts.GLYPH_MIC, fonts.icons, m.epx(MIC_EPX), m.epx(STRIP_LEFT_EPX), size.height / 2f, if (listening != null) accent else KeyColors.label)
+                    }
                 }
+                Box(Modifier.width((firstText - pad - micBox).coerceAtLeast(0f).dp).height(m.stripH.dp))
+            } else {
+                Box(Modifier.width((firstText - pad).coerceAtLeast(0f).dp).height(m.stripH.dp))
             }
-            val firstGap = if (showMic) m.epx(MIC_TO_WORD_EPX) else m.epx(STRIP_LEFT_EPX)
+            val firstGap = pad
             val notice = state.notice
             when {
                 listening != null -> BasicText(
@@ -441,7 +494,7 @@ private fun Strip(state: KeyboardState, m: KeyboardMetrics, panelTop: Float, acc
                 )
                 notice != null -> BasicText(notice, style = textStyle, modifier = Modifier.padding(start = firstGap.dp).testTag("kb_notice"))
                 else -> state.strip.forEachIndexed { i, item ->
-                    StripWord(item, i, textStyle, accent, m, if (i == 0) firstGap else m.epx(STRIP_GAP_EPX)) { actions.stripTapped(item) }
+                    StripWord(item, i, textStyle, accent, m, fonts) { actions.stripTapped(item) }
                 }
             }
         }
@@ -449,12 +502,18 @@ private fun Strip(state: KeyboardState, m: KeyboardMetrics, panelTop: Float, acc
 }
 
 @Composable
-private fun StripWord(item: StripItem, index: Int, style: TextStyle, accent: Color, m: KeyboardMetrics, gap: Float, onTap: () -> Unit) {
+private fun StripWord(item: StripItem, index: Int, style: TextStyle, accent: Color, m: KeyboardMetrics, fonts: KeyFonts, onTap: () -> Unit) {
     var pressed by remember { mutableStateOf(false) }
+    // R6 §2.2.4: 26 epx between suggestions, measured INK to ink. Each item's box carries half of it on
+    // either side less the word's own side bearings, so the boxes abut and the gap between the inks is
+    // exact (E3 run 2 measured 29.3 epx with the bearings left in); the accent fill of a pressed item
+    // (§2.2.7) spans its share.
     val pad = m.epx(STRIP_GAP_EPX) / 2f
+    val (lb, rb) = remember(item.shown, item.bold, style.fontSize) {
+        bearings(item.shown, if (item.bold) fonts.bold else fonts.regular, style.fontSize.value)
+    }
     Box(
         Modifier
-            .padding(start = (gap - pad).coerceAtLeast(0f).dp)
             .height(m.stripH.dp)
             // R6 §2.2.7 (MEDIUM): the pressed item is accent-filled across the strip's height.
             .background(if (pressed) accent else Color.Transparent)
@@ -475,7 +534,7 @@ private fun StripWord(item: StripItem, index: Int, style: TextStyle, accent: Col
         BasicText(
             item.shown,
             style = style.copy(fontWeight = if (item.bold) FontWeight.Bold else FontWeight.Normal),
-            modifier = Modifier.padding(horizontal = pad.dp),
+            modifier = Modifier.padding(start = (pad - lb).coerceAtLeast(0f).dp, end = (pad - rb).coerceAtLeast(0f).dp),
         )
     }
 }
@@ -485,6 +544,9 @@ private const val STRIP_TEXT_EPX = 13.3f / CapMetrics.CAP_RATIO
 private const val STRIP_LEFT_EPX = 13f
 private const val STRIP_GAP_EPX = 26f
 private const val MIC_TO_WORD_EPX = 28.6f
+
+/** R6 §2.2.5 (MEDIUM): the microphone glyph's ink, 13.8 × 20.3 epx. */
+private const val MIC_INK_W_EPX = 13.8f
 
 /** The mic glyph's font size so its ink is ≈13.8 × 20.3 epx (R6 §2.2.5); the Fluent mic fills ≈85 % of its em. */
 private const val MIC_EPX = 24f
