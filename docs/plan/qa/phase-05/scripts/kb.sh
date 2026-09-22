@@ -105,7 +105,9 @@ mirror() { # dump.xml name
 read_mirror() { # name  (fresh plain dump: the fixture's own views are in it)
   local f="$ROW_DIR/.mirror.xml"
   dump_ui "$f" >/dev/null
-  mirror "$f" "$1"
+  # uiautomator writes characters outside the BMP (every emoji) as XML character references
+  # (&#128512;), so the text is unescaped before anyone compares it (E7 run 1 compared the reference).
+  mirror "$f" "$1" | python3 -c "import html, sys; sys.stdout.write(html.unescape(sys.stdin.read()))"
 }
 
 ime_dump() { adb shell dumpsys activity service "$IME_ID" 2>/dev/null; }
