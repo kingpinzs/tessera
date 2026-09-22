@@ -89,6 +89,11 @@ jobs:
       - name: Build
         run: ./gradlew :app:assemble${{ steps.signing.outputs.variant == 'release' && 'Release' || 'Debug' }} --console=plain
 
+      # R4's spike is a separate, standalone APK (PLAN.md R4: "phone-only, standalone"). It rides the
+      # same release so it can be installed from the phone's browser, and it is tiny next to the shell.
+      - name: Build the R4 probe
+        run: ./gradlew :r4probe:assembleDebug --console=plain
+
       - name: Name the APK
         id: apk
         run: |
@@ -155,4 +160,6 @@ jobs:
             Open this page on the phone and tap the `.apk` to install it. Sideloading needs
             "Install unknown apps" allowed for the browser, and the shell needs to be made the default
             Home and given the assistant role before Cortana will open.
-          files: ${{ steps.apk.outputs.path }}
+          files: |
+            ${{ steps.apk.outputs.path }}
+            r4probe/build/outputs/apk/debug/r4probe-debug.apk
