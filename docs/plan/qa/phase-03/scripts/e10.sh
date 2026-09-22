@@ -15,8 +15,10 @@ PIN=1234
 pin_set=no
 restore() {
   [ "$pin_set" = yes ] && adb shell locksettings clear --old $PIN >/dev/null 2>&1
+  adb shell locksettings set-disabled true >/dev/null 2>&1
   adb shell input keyevent KEYCODE_WAKEUP >/dev/null 2>&1
-  note "restored: PIN cleared, device awake"
+  adb shell wm dismiss-keyguard >/dev/null 2>&1
+  note "restored: PIN cleared, lock screen disabled again, device awake"
 }
 trap restore EXIT
 
@@ -42,8 +44,16 @@ lock_and_open() {
   fi
 }
 
+# Phase 01's E20 learned this and it never reached phase 03: the AOSP AVD ships with its lock
+# screen DISABLED (`locksettings get-disabled` prints true), and provision.sh keeps it that way so
+# the drawn shell is not sitting behind a keyguard all day. A PIN alone does not bring the keyguard
+# back — `set-disabled` has to be cleared first, and restored afterwards. Without it every keyguard
+# assertion in this row fails on a device that simply has no keyguard to show.
+adb shell locksettings set-disabled false >/dev/null 2>&1
 adb shell locksettings set-pin $PIN >/dev/null 2>&1 && pin_set=yes
 assert_eq "a PIN is set" "yes" "$pin_set"
+assert_eq "and the lock screen is enabled, so there is a keyguard to test against" "false" \
+  "$(adb shell locksettings get-disabled | tr -d '\r')"
 
 # ---- the allowed commands run directly ----------------------------------------------------------
 lock_and_open

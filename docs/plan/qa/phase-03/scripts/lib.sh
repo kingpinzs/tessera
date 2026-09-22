@@ -137,6 +137,23 @@ speech_status() { # key
   speech_dump | sed -n "s/^ *$1=//p" | head -1 | tr -d '\r'
 }
 
+# uiautomator only dumps what is LAID OUT. On a scrolling page every row below the fold is simply
+# absent from the dump, which reads exactly like a missing feature: E9's first real run recorded "no
+# Lock screen options section" for a section that was there, three swipes down, under eleven voice
+# rows. A driver that wants a row on a scrolling page scrolls to it and says so in the log.
+scroll_to_node() { # out.xml resource-id [max-swipes]
+  local out="$1" id="$2" max="${3:-8}" i=0
+  dump_ui "$out" || return 1
+  while [ "$(has_node "$out" "$id")" = no ] && [ "$i" -lt "$max" ]; do
+    adb shell input swipe 540 1700 540 800 320
+    sleep 1
+    i=$((i + 1))
+    dump_ui "$out" || return 1
+  done
+  note "scroll_to_node $id: $i swipe(s), found=$(has_node "$out" "$id")"
+  [ "$(has_node "$out" "$id")" = yes ]
+}
+
 dump_ui() { # out.xml
   local out="$1"
   for _ in 1 2 3; do
