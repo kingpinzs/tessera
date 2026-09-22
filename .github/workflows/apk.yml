@@ -87,6 +87,10 @@ jobs:
         run: ./gradlew :app:testDebugUnitTest --console=plain
 
       - name: Build
+        env:
+          # The build number becomes the APK's versionCode, so each build is an update of the last one
+          # rather than a reinstall of the same version (and a downgrade is refused, as it should be).
+          TESSERA_VERSION_CODE: ${{ github.run_number }}
         run: ./gradlew :app:assemble${{ steps.signing.outputs.variant == 'release' && 'Release' || 'Debug' }} --console=plain
 
       # R4's spike is a separate, standalone APK (PLAN.md R4: "phone-only, standalone"). It rides the
