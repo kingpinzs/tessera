@@ -1,5 +1,5 @@
 ---
-status: DRAFT   # Stage A: interview in progress; Q1, Q3-Q6 ruled 2026-09-22, Q7 is with Jeremy
+status: DRAFT   # Stage A: interview CLOSED 2026-09-22; awaiting R8 and the cross-model review
 ---
 # Phase 10 — W10M media player
 
@@ -103,6 +103,27 @@ so on a real phone they appear in the songs list and their folders appear as alb
 given, and it is one predicate to add later (MediaStore.Audio.Media.IS_MUSIC) if it turns out noisy on
 the S25 Ultra — a NEEDS-HUMAN row rather than a rebuild, since nothing else depends on it.
 
+**Q7 — what the first version holds (2026-09-22, Jeremy: "EVERYTHING there is only one version built").**
+All of it, and there is no "first version": collection pivots, now-playing, queue, shuffle and repeat,
+notification controls, headset and Bluetooth, playlists that can be created / renamed / reordered /
+deleted, sleep timer, equaliser, and gapless or crossfade playback.
+
+"Only one version" is not a new rule, it is Hard Rule 16 applied here: a phase builds the FINAL form of
+its part and never an interim one for a later phase to replace. So playlist editing and the extras are
+in this build, not deferred behind it.
+
+**Q8 — playback mechanics (agent call, 2026-09-22).** No question was put to Jeremy because no fork
+survives the rulings above. Media3 / ExoPlayer: Apache-2.0, maintained, and what both MetroMusic and
+Google's own archived sample use — R9 found nothing else with a usable licence. Playback lives in a
+MediaSessionService as a foreground service so it survives Start being killed, which is also what makes
+Android draw the notification transport and what gives Q4's rule a session to key on. MusicFeed is NOT
+replaced: it keeps reading media sessions, and gains the per-package routing Q4 settled, so this player
+is simply the session it usually finds.
+
+**Q9 — glance (deferred, 2026-09-22).** The lock screen and glance surface belong to phase 07 and are
+gated on phase 04's accessibility service. This phase publishes a media session; what a glance screen
+draws from it is phase 07's question, asked there.
+
 ## Interview queue (Stage A step 4)
 
 - ~~Q1 — what the player IS.~~ Ruled 2026-09-22 ("A"); see Decisions.
@@ -117,15 +138,79 @@ the S25 Ultra — a NEEDS-HUMAN row rather than a rebuild, since nothing else de
 
 ## Build tasks
 
-_To be written once the interview settles the scope._
+Ordered so that everything the tile rule and the UI depend on exists before they are built, and so the
+one task that touches shipped code is done early enough to be re-verified rather than at the end.
+
+1. **App identity.** A launcher activity with android.intent.category.APP_MUSIC inside the shell APK, so
+   the MUSIC slot resolves to it with no carve-out (Q5). It appears in the app list like any app — and
+   must be excluded from the hold menu's Uninstall the way the shell's own package already is
+   (AppUninstall.canUninstall), because it cannot be uninstalled separately and an item that cannot work
+   is worse than no item.
+2. **Library index.** Everything MediaStore reports as audio (Q6), grouped into albums, artists, songs
+   and playlists, observed for changes with a ContentObserver the way PhotosFeed observes images rather
+   than scanned once at start. Includes the empty case: a phone with no audio at all.
+3. **Playback.** Media3 / ExoPlayer inside a MediaSessionService running as a foreground service (Q8),
+   with queue, shuffle, repeat, and gapless / crossfade (Q7). Surviving Start being killed is the point
+   of the service, not a bonus.
+4. **Session, notification and buttons.** The media session Android draws its transport notification
+   from, plus headset and Bluetooth media buttons, and audio focus (ducking, pausing on a call, not
+   resuming after a transient loss the user did not ask to resume).
+5. **The tile rule (touches shipped code).** MusicFeed publishes the now-playing face under
+   LiveTileEngine.packageKey(owner) instead of the MUSIC slot key, and ActiveTiles grows THAT tile (Q4).
+   Re-verifies the three device findings this moves: the tile grows, white glyphs survive a bright
+   cover, and the transport controls drive the player.
+6. **Collection UI.** The pivot — albums / artists / songs / playlists — on MangoTile's pivot and
+   LongListSelector with its jump grid (MIT, already a dependency, R9). Geometry approximated from R6's
+   Cortana pane and phase 06's Phone tabs, each value citing the measurement it came from (Q3).
+7. **Now-playing screen.** Built to R8's measurements. **Gated on R8**: building it first would mean
+   building it twice, which is the whole reason Q3 ruled for measuring this one screen.
+8. **Playlists.** Create, rename, reorder, delete (Q7), persisted where MediaStore playlists are not
+   writable on modern Android — the store is the build's own, and where it lives is a build-time call
+   recorded in this doc when task 8 starts.
+9. **Extras.** Sleep timer and equaliser (Q7).
+10. **Settings page + checklist rows.** The audio permission (READ_MEDIA_AUDIO), and the rows the
+    onboarding checklist needs so a phone with the permission denied says so rather than showing an
+    empty library.
 
 ## Acceptance criteria
 
-_To be written once the interview settles the scope._
+Every row runs on the device and captures its evidence, per the harness in qa/phase-01/scripts/lib.sh.
+
+| Row | What must hold |
+|---|---|
+| E1 | The MUSIC slot resolves to this player with no explicit assignment, and its tile opens it |
+| E2 | The app appears in the app list, and its hold menu offers Pin to Start but NOT Uninstall |
+| E3 | The library lists every audio file MediaStore reports, grouped into the four pivots |
+| E4 | A file added while the shell is running appears without a restart (the observer, not a rescan) |
+| E5 | A phone with no audio at all shows an empty state, not a crash and not a blank pivot |
+| E6 | Play, pause, next, previous, shuffle and repeat all do what they say, with audio actually heard |
+| E7 | Playback continues when Start is killed, and the notification transport still drives it |
+| E8 | A headset button and a Bluetooth button both reach the session |
+| E9 | Audio focus: a call pauses playback; a notification ducks it; playback does not resume by itself |
+| E10 | Playing a local file puts the now-playing face on THIS app's tile (Q4) |
+| E11 | Playing in another app that has a pinned tile puts the face on THAT tile, not on this one |
+| E12 | Playing in an app with no tile puts the face nowhere — no tile is borrowed |
+| E13 | The tile grows while playing, white glyphs survive a bright cover, and its controls drive playback (re-verification of the 2026-09-21 item 3 findings under the new rule) |
+| E14 | The now-playing screen matches R8's measured values within its stated tolerances |
+| E15 | Playlists can be created, renamed, reordered and deleted, and survive a restart |
+| E16 | Sleep timer stops playback at its time; the equaliser changes what is heard |
+| E17 | Gapless / crossfade behaves as set between two tracks |
+| E18 | With READ_MEDIA_AUDIO denied, the app says so and the checklist row offers the grant |
 
 ## Edge cases
 
-_To be written once the interview settles the scope._
+- Audio with no album art at all, and audio whose art fails to decode
+- A track whose metadata is entirely missing (no title, no artist) — it still has to be playable and nameable
+- Enormous libraries: the jump grid and the pivot must stay responsive at thousands of tracks
+- A file deleted, or its storage unmounted, while it is the playing track
+- Two audio files with identical title, artist and album
+- Ringtones, alarms and recordings in the library, which Q6 admits by design — the UI must not assume "music"
+- A playlist referring to a file that no longer exists
+- Another app taking audio focus and never giving it back
+- The shell being killed mid-track, and what the tile shows on the next start
+- A Bluetooth device disconnecting mid-playback
+- The MUSIC slot explicitly reassigned to a different player: this app stays in the app list and keeps
+  working, and Q4's rule then puts its face on its own tile rather than the slot's
 
 ## QA evidence
 
