@@ -11,37 +11,23 @@
 # the person holding the phone.
 . "$(dirname "$0")/lib.sh"
 source "$(dirname "$0")/ui.sh"
+source "$(dirname "$0")/music_lib.sh"
 
-FIXDIR="$(cd "$(dirname "$0")/../MUSIC6-fixtures" 2>/dev/null && pwd)"
 count_prefix() { grep -o "resource-id=\"$2[^\"]*\"" "$1" | wc -l | tr -d ' '; }
 
-# The PlaybackState of the SHELL's session, not of whatever the dump happens to list first.
-session_state() { awk '/package=app\.tileshell/ { found = 1 } found && /state=PlaybackState/ { print; exit }' "$1"; }
-
-open_music() {
-  adb shell am force-stop $PKG; command sleep 1
-  adb shell am start -n $PKG/.music.MusicActivity >/dev/null 2>&1
-  command sleep 5
-}
-pivot() { # pivot <dump> <name>
-  tap_id "$1" "music_pivot_header:$2" || return 1
-  command sleep 2
-}
 
 row_begin MUSIC6 "the music collection: four pivots, the jump grid, and a tap that plays"
 
 # ---- the library ---------------------------------------------------------------------------------
-adb shell mkdir -p /sdcard/Music/tessera-qa >/dev/null 2>&1
-for f in "$FIXDIR"/*.mp3; do adb push "$f" /sdcard/Music/tessera-qa/ >/dev/null 2>&1; done
-adb shell content call --uri content://media --method scan_volume --arg external_primary >/dev/null 2>&1
-command sleep 4
+music_mute
+music_fixtures
 SCANNED=$(adb shell content query --uri content://media/external/audio/media --projection title 2>/dev/null | grep -c 'title=')
 note "MediaStore holds $SCANNED audio rows"
 assert_eq "the six fixtures scanned in" ok "$([ "$SCANNED" -ge 6 ] && echo ok || echo "$SCANNED")"
 
 # ---- bracket: no audio permission, so the page says so -------------------------------------------
 adb shell pm revoke $PKG android.permission.READ_MEDIA_AUDIO >/dev/null 2>&1
-open_music
+music_open
 dump "$ROW_DIR/denied.xml"
 adb exec-out screencap -p > "$ROW_DIR/denied.png"
 assert_contains "with the permission denied the pivot draws an empty state" "music_empty:albums" "$(cat "$ROW_DIR/denied.xml")"
@@ -51,7 +37,7 @@ assert_contains "the shell says why in its diagnostics" "no audio access" "$(dia
 
 # ---- granted: the pivot, and the four headers ----------------------------------------------------
 adb shell pm grant $PKG android.permission.READ_MEDIA_AUDIO >/dev/null 2>&1
-open_music
+music_open
 dump "$ROW_DIR/albums.xml"
 adb exec-out screencap -p > "$ROW_DIR/albums.png"
 assert_contains "the collection opens" "music_root" "$(cat "$ROW_DIR/albums.xml")"
@@ -67,8 +53,7 @@ assert_contains "Achtung Baby files under A" "music_header:A" "$(cat "$ROW_DIR/a
 assert_contains "The King of Limbs files under T" "music_header:T" "$(cat "$ROW_DIR/albums.xml")"
 
 # ---- artists -------------------------------------------------------------------------------------
-pivot "$ROW_DIR/albums.xml" artists
-dump "$ROW_DIR/artists.xml"
+goto_pivot artists "$ROW_DIR/artists.xml"
 adb exec-out screencap -p > "$ROW_DIR/artists.png"
 note "artist rows: $(count_prefix "$ROW_DIR/artists.xml" 'music_artist:')"
 assert_eq "three artists" 3 "$(count_prefix "$ROW_DIR/artists.xml" 'music_artist:')"
@@ -78,8 +63,7 @@ assert_eq "and it counts that artist's tracks" "3 songs" "$(node_text "$ROW_DIR/
 
 
 # ---- songs: all six, A-Z, with a digit under "#" --------------------------------------------------
-pivot "$ROW_DIR/artists.xml" songs
-dump "$ROW_DIR/songs.xml"
+goto_pivot songs "$ROW_DIR/songs.xml"
 adb exec-out screencap -p > "$ROW_DIR/songs.png"
 note "song rows: $(count_prefix "$ROW_DIR/songs.xml" 'music_song:')"
 assert_eq "all six songs" 6 "$(count_prefix "$ROW_DIR/songs.xml" 'music_song:')"
@@ -87,15 +71,13 @@ assert_contains "a title starting with a digit files under the hash group" "musi
 assert_contains "and the letters are the app list's own index" "music_header:D" "$(cat "$ROW_DIR/songs.xml")"
 
 # ---- playlists: empty, and it says so rather than showing nothing ---------------------------------
-pivot "$ROW_DIR/songs.xml" playlists
-dump "$ROW_DIR/playlists.xml"
+goto_pivot playlists "$ROW_DIR/playlists.xml"
 adb exec-out screencap -p > "$ROW_DIR/playlists.png"
 assert_contains "the playlists pivot draws its empty state" "music_empty:playlists" "$(cat "$ROW_DIR/playlists.xml")"
 assert_contains "and it is about playlists, not about the permission" "playlists" "$(node_text "$ROW_DIR/playlists.xml" music_empty:playlists)"
 
 # ---- the jump grid ---------------------------------------------------------------------------------
-pivot "$ROW_DIR/playlists.xml" songs
-dump "$ROW_DIR/pre_jump.xml"
+goto_pivot songs "$ROW_DIR/pre_jump.xml"
 tap_id "$ROW_DIR/pre_jump.xml" "music_header:#"; command sleep 2
 dump "$ROW_DIR/jump.xml"
 adb exec-out screencap -p > "$ROW_DIR/jump.png"
@@ -133,10 +115,12 @@ assert_eq "with the track actually advancing, not merely loaded" ok \
 assert_contains "the player says which track it started, and of how many" " of 6)" "$(diag music)"
 assert_absent "the controller was connected, not skipped" "play ignored" "$(diag music)"
 assert_contains "the playback service is up" "MusicService" "$(adb shell dumpsys activity services $PKG 2>/dev/null)"
+# Build task 7's route: a tap plays the track AND opens the now-playing screen. Back returns here.
+assert_contains "and the tap opened the now-playing screen" "nowplaying_root" "$(cat "$ROW_DIR/playing.xml")"
+adb shell input keyevent KEYCODE_BACK; command sleep 2
 
 # ---- an album opens onto its own tracks ------------------------------------------------------------
-pivot "$ROW_DIR/playing.xml" albums
-dump "$ROW_DIR/albums2.xml"
+goto_pivot albums "$ROW_DIR/albums2.xml"
 ALBUM=$(grep -o 'resource-id="music_album:[0-9]*"' "$ROW_DIR/albums2.xml" | head -1 | sed 's/resource-id="//; s/"$//')
 note "opening [$ALBUM]"
 tap_id "$ROW_DIR/albums2.xml" "$ALBUM"; command sleep 2
