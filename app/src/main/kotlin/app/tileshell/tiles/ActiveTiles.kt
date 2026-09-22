@@ -36,10 +36,30 @@ object ActiveTiles {
         Diagnostics.add("tile_size", "${key.id} ${if (active) "grew" else "returned to its stored size"} ($reason)")
     }
 
+    /**
+     * The PACKAGES whose tiles are busy right now.
+     *
+     * Kept apart from [grown] because the music feed knows which app owns the session and nothing else:
+     * it does not know, and should not have to know, whether that app is on Start as a slot tile, as a
+     * pinned tile, as both or not at all (phase 10 Q4). Start expands these into tile keys where the
+     * layout and the slot resolver are both already in hand.
+     */
+    var grownPackages by mutableStateOf<Set<String>>(emptySet())
+        private set
+
+    /** Every tile standing for [pkg] is busy (or is not). */
+    fun setPackage(pkg: String, active: Boolean, reason: String) {
+        val has = pkg in grownPackages
+        if (has == active) return
+        grownPackages = if (active) grownPackages + pkg else grownPackages - pkg
+        Diagnostics.add("tile_size", "tiles for $pkg ${if (active) "grew" else "returned to their stored size"} ($reason)")
+    }
+
     /** Everything returns to its stored size (a feed losing access, or a test starting clean). */
     fun clear(reason: String) {
-        if (grown.isEmpty()) return
+        if (grown.isEmpty() && grownPackages.isEmpty()) return
         Diagnostics.add("tile_size", "every grown tile returned to its stored size ($reason)")
         grown = emptySet()
+        grownPackages = emptySet()
     }
 }

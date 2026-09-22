@@ -123,6 +123,19 @@ class TileFactory(
     private val expandedFolder: String?,
     private val secondaries: Map<String, SecondaryTiles.SecondaryTileInfo>,
 ) {
+    /**
+     * The package a tile stands for, or null when it stands for no app (a shell page, a folder).
+     *
+     * Phase 10 Q4 needs this: the music feed knows only which package owns the session, because that is
+     * all a media session tells it, and the question "which tiles stand for that package" belongs to
+     * whatever holds the layout and the slot resolver — which is this.
+     */
+    fun packageOf(key: TileKey): String? = when (key) {
+        is TileKey.AppTile -> key.component.packageName
+        is TileKey.SlotTile -> resolver.resolve(key.slot, layout.explicitSlots)?.component?.packageName
+        else -> null
+    }
+
     fun place(key: TileKey, size: TileSize, x: Float, y: Float, wPx: Float, hPx: Float, idPrefix: String = "", live: Boolean = true): PlacedTile {
         val iconPx = (minOf(wPx, hPx) * 0.52f).toInt().coerceAtLeast(24)
         return when (key) {
@@ -408,15 +421,27 @@ fun StartPage(
     // drawn and writes back by INDEX (moveInGrid), so a displayed order that differs from the stored
     // one would move the wrong tile. What you edit is what is saved, always.
     val stored = edit.previewOrder ?: layout.order
+    // Phase 10 Q4: the music feed knows only which PACKAGE owns the session, because that is all a media
+    // session tells it. Which tiles stand for that package — a slot tile, a pinned tile, both, or none —
+    // is a question about the layout, and this is where the layout and the slot resolver are both in
+    // hand. Expanding here keeps TileGrowth pure and keeps the feed out of the layout's business.
+    val grownKeys =
+        if (ActiveTiles.grownPackages.isEmpty()) {
+            ActiveTiles.grown
+        } else {
+            ActiveTiles.grown + stored.mapNotNull { sized ->
+                sized.key.takeIf { factory.packageOf(it) in ActiveTiles.grownPackages }
+            }
+        }
     val order =
         if (edit.active) stored
-        else remember(stored, RecentApp.promoted, ActiveTiles.grown) {
+        else remember(stored, RecentApp.promoted, grownKeys) {
             // Two transforms, both on the way to the screen and neither of them stored: where the last
             // opened app sits, and how big a tile with something happening on it is drawn (INDEX Change
             // Log 2026-09-21 items 3, 4 and 7). Order does not matter — one moves tiles, the other
             // resizes them — but the promotion runs first so the grown tile lands in the row the
             // promotion put it in rather than the other way round.
-            TileGrowth.apply(RecentPromotion.apply(stored, RecentApp.promoted), ActiveTiles.grown)
+            TileGrowth.apply(RecentPromotion.apply(stored, RecentApp.promoted), grownKeys)
         }
     val placements = remember(order, grid.unitsAcross) { GridPack.pack(order, grid.unitsAcross) }
     val bandFolder = shownFolder?.takeIf { it in layout.folders }

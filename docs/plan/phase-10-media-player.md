@@ -197,6 +197,11 @@ one task that touches shipped code is done early enough to be re-verified rather
 3. **Playback.** Media3 / ExoPlayer inside a MediaSessionService running as a foreground service (Q8),
    with queue, shuffle, repeat, and gapless / crossfade (Q7). Surviving Start being killed is the point
    of the service, not a bonus.
+   **Status 2026-09-22:** the service, the session, audio focus and becoming-noisy are built; queue,
+   shuffle and repeat are ExoPlayer's own and are driven by the UI in task 6. **Gapless is ExoPlayer's
+   default and comes free; CROSSFADE IS NOT BUILT.** ExoPlayer has no crossfade — it needs two players
+   with volume ramps, or a custom AudioProcessor — so it is the one part of Q7's "everything" still
+   outstanding, recorded here rather than quietly dropped. E17 does not pass until it exists.
 4. **Session, notification and buttons.** The media session Android draws its transport notification
    from, plus headset and Bluetooth media buttons, and audio focus (ducking, pausing on a call, not
    resuming after a transient loss the user did not ask to resume).

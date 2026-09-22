@@ -16,6 +16,10 @@
     <!-- Phase 10: the music library. Q6 indexes everything MediaStore calls audio, which is what this
          grants read of; without it the player says so rather than showing an empty library (E18). -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+    <!-- Phase 10: playback outlives Start, which is the point of the service (E7). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <!-- Private space apps are only visible to the default Home with this permission (Android 15+). -->
     <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
@@ -87,6 +91,20 @@
             APP_MUSIC, so it sits in the app list like any app and the MUSIC slot can point at it the way
             it points at any music app. Groove was an app in W10M's list too.
         -->
+        <!--
+            Phase 10 build tasks 3 and 4. Android draws the notification transport from this session and
+            routes headset and Bluetooth buttons to it, so neither is a second thing to build.
+        -->
+        <service
+            android:name=".music.MusicService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name=".music.MusicActivity"
             android:exported="true"
