@@ -159,6 +159,28 @@ SUPERSEDED older note (launcher-only framing, kept for history):
   an unlockable second phone (option B) stays open as a possible later project.
 - 2026-09-16 Q5 Live tiles: **A. Notification-driven for every app** plus built-in Photos/Calendar/Music, with all permissions granted. Weather added (A11).
 
+- 2026-09-22 R10-Q1 Design direction (Jeremy: "B"), from the R10 review of his pasted secondary spec,
+  framed as "more like Windows Mobile but as if they never stopped developing it": **B. W10M plus Fluent
+  materials.** Square tiles, Metro type and every measured geometry stay; acrylic and light effects arrive on
+  the TRANSIENT surfaces — action center, volume panel, menus, the app-list backdrop. Fluent is what desktop
+  Windows 10 received in 2017, right after W10M's last build. Mechanism note from R10: real acrylic is a
+  blurred BACKDROP (a blurred copy of the layer behind, in-app; cross-window blur-behind for overlay windows,
+  API 31+ and device-dependent) — the secondary spec's modifier blurred the element itself and is not used.
+- 2026-09-22 R10-Q2 Start mark (Jeremy: "go with logo B"): **B. three tiles and one empty place** replaces the
+  Windows logo on the drawn nav bar — the only Microsoft mark the shell drew. Post-FINAL change to phase 01's
+  part, recorded in the INDEX Change Log when built.
+- 2026-09-22 Scope add (Jeremy: "do we have MetroSetupWizardScreen in our plan if not have to add it"): **a
+  first-run setup wizard.** The plan had the Setup checklist (phase 01: a settings page of permission and
+  liveness rows, each opening its grant) and no first-run flow; the wizard is new. "MetroSetupWizardScreen" is
+  the secondary spec's name for it, not this build's.
+- 2026-09-22 Scope add (Jeremy): **tile quick actions** — the secondary spec's "MixView", a name R10 treats as
+  unverified. Jeremy's ruling of the motion, verbatim: "boundsInRoot coordinate tracking" and "Spring
+  animation (dampingRatio = 0.65f) shooting 4 satellite action tiles outward." No W10M original exists (it
+  was a cancelled concept), so these values are Jeremy's ruling, not a measurement, and no NEEDS-HUMAN row
+  can be closed against footage. Per R10 the actions come from Android App Shortcuts
+  (LauncherApps.getShortcuts, which the Home app may call). Open: the trigger, because press-and-hold is W10M's
+  measured way into edit mode (R6 §1.1.1) — the next question.
+
 ## Review resolutions (round 1, 2026-09-16; agent design calls, Jeremy can overrule)
 Full mapping: docs/plan/review/2026-09-16-triage.md
 - RV1. One APK holds every part; no part depends on a separately installed app. Install via adb over USB or Wireless debugging;

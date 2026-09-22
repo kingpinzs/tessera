@@ -1,0 +1,22 @@
+==============================================================================
+ROW STARTMARK — the Start key draws three tiles and an empty place, not the Windows logo
+at            2026-09-22T11:29:09-06:00
+driver        startmark.sh blob 77f8fa5b46697909cbb1002a44a199227b998f52
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     2b6486da9e2438f0 326384698 bytes
+apk installed 278bafec4112af9f
+apk match     yes (278bafec4112af9f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      the Start key's slot: [360 2196 720 2340]
+PASS  the Start key is on the drawn nav bar                       != 
+      ink 60x60px; lit fraction per quadrant: top-left 1.0, top-right 0.0, bottom-left 1.0, bottom-right 1.0
+PASS  the mark keeps the old glyph's 20-epx box (60 px wide here)  60.00 vs 60.00 +/- 3.0
+PASS  and its height                                              60.00 vs 60.00 +/- 3.0
+PASS  the top-right place is EMPTY — which is what makes it not the four-pane logo  = ok
+PASS  the top-left tile is drawn                                  = ok
+PASS  the bottom-left tile is drawn                               = ok
+PASS  the bottom-right tile is drawn                              = ok
+PASS  and the key still does its job: Start is in front           contains [StartActivity]
+------------------------------------------------------------------------------
+STARTMARK: 8 passed, 0 failed
