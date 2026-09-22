@@ -1,0 +1,16 @@
+── E1 the keyboard is listed, enabled, selected, and the checklist agrees
+ime list -a -s: com.android.inputmethod.latin/.LatinIME app.tileshell/.ime.KeyboardService
+ime list -s (after disable): com.android.inputmethod.latin/.LatinIME
+PASS  ime list -a -s lists the keyboard                           contains [app.tileshell/.ime.KeyboardService]
+PASS  ime list -s does not list it while disabled                 does not contain [app.tileshell/.ime.KeyboardService]
+PASS  checklist: enabled row while disabled                       = missing
+PASS  checklist: selected row while disabled                      = missing
+ime enable: Input method app.tileshell/.ime.KeyboardService: now enabled for user #0
+PASS  ime list -s lists it after enable                           contains [app.tileshell/.ime.KeyboardService]
+PASS  checklist: enabled row after enable                         = granted
+PASS  checklist: selected row before set                          = missing
+ime set: Input method app.tileshell/.ime.KeyboardService selected for user #0
+PASS  default_input_method is the keyboard                        = app.tileshell/.ime.KeyboardService
+PASS  checklist: enabled row after set                            = granted
+PASS  checklist: selected row after set                           = granted
+   E1: 10 passed, 0 failed

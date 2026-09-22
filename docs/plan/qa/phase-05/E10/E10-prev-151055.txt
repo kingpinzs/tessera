@@ -1,0 +1,26 @@
+==============================================================================
+ROW E10 — handedness: left 1077.5, right 358, both 218 above the nav bar
+at            2026-09-22T14:29:13-06:00
+driver        e10.sh blob 435f14234bb7c02c7d66370851db4abdd60885a2
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     01d2c07c75bf2dfd 333513390 bytes
+apk installed 3a337a3500b83727
+apk match     yes (3a337a3500b83727)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      kb_begin: prior ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+      scroll_to_node keyboard_cursor_left: 0 swipe(s), found=yes
+PASS  Settings: left-handed is selected                           = true
+PASS  left-handed: dot centre from the left (dump)                1078.00 vs 1077.50 +/- 3.0
+PASS  left-handed: dot centre above the nav bar (dump)            216.67 vs 218.00 +/- 3.0
+      left: dot node [776,2010][841,2075]; accent core pixels 2035 800 2049 815 15 16
+PASS  left-handed: the accent core is drawn there (screen, +1 px)  1076.67 vs 1077.50 +/- 4.333333333333333
+      scroll_to_node keyboard_cursor_right: 0 swipe(s), found=yes
+PASS  Settings: right-handed is selected                          = true
+PASS  right-handed: dot centre from the left (dump)               358.00 vs 358.00 +/- 3.0
+PASS  right-handed: dot centre above the nav bar (dump)           216.67 vs 218.00 +/- 3.0
+      right: dot node [236,2010][301,2075]; accent core pixels 2035 260 2049 275 15 16
+PASS  right-handed: the accent core is drawn there (screen, +1 px)  356.67 vs 358.00 +/- 4.333333333333333
+      kb_end: restored ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+------------------------------------------------------------------------------
+E10: 8 passed, 0 failed

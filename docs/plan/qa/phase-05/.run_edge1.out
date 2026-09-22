@@ -1,0 +1,40 @@
+── EDGE1 edge cases in fields and keys
+PASS  field_url: the Enter key is white                           = white
+PASS  field_url: Enter performs GO                                = IME_ACTION_GO@field_url
+PASS  field_search: the Enter key is white                        = white
+PASS  field_search: Enter performs SEARCH                         = IME_ACTION_SEARCH@field_search
+PASS  field_send: the Enter key is grey                           = grey
+PASS  field_send: Enter performs SEND                             = IME_ACTION_SEND@field_send
+PASS  field_next: the Enter key is grey                           = grey
+PASS  field_next: Enter performs NEXT (focus moves on)            = IME_ACTION_NEXT@field_next
+PASS  field_done: the Enter key is grey                           = grey
+PASS  field_done: Enter performs DONE                             = IME_ACTION_DONE@field_done
+PASS  multi-line: Enter inserts a newline                         = [ab\ncd]
+PASS  textNoSuggestions: the strip offers nothing                 = 
+PASS  textNoSuggestions: no autocorrect ('teh ' stays)            = [teh ]
+PASS  textCapSentences: capitals at the start and after '. '      = [Hi. Yo]
+PASS  textCapWords: every word capitalised                        = [Ab Cd]
+PASS  no caps flag: no automatic capital                          = [ab]
+PASS  input filters: the capital is dropped by the app and the length caps at 5  = [bcdef]
+PASS  input filters: typing after a filtered edit still lands where the caret is  = [bcdez]
+PASS  paste: the app pasted                                       = [copycopy]
+PASS  paste: the keyboard types at the caret after the paste      = [copycopyx]
+PASS  very long text: the field holds 1500 characters             = 1500
+PASS  very long text: 1500 characters, then ' end' typed by the keyboard  = 1504
+PASS  very long text: backspace still deletes at the end          = 1501
+PASS  a non-dictionary swipe commits a dictionary word or nothing, never garbage letters  = no
+PASS  the keyboard is still up after it                           = yes
+PASS  a very fast swipe is decoded as a word, not taken as a tap  = yes
+PASS  no crash in the keyboard's process                          does not contain [FATAL]
+PASS  no alternates for g: the normal press popup, nothing else   = yes no
+PASS  and lifting commits g                                       = [g]
+PASS  caps lock is on                                             contains [shift=LOCKED]
+PASS  caps lock does not follow into the next field               contains [shift=OFF]
+PASS  double space after a number: two spaces, no period          = [5  ]
+PASS  double space in a URL field: no period                      = [ab  ]
+PASS  the misspelling is learned after two commits                contains [zqxjw]
+PASS  R6 2.2.7: the strip offers '– zqxjw'                      contains [– zqxjw]
+PASS  the tap on '– zqxjw' reached the dictionary               contains [dictionary - zqxjw]
+PASS  '– word' removes it from the learned words (and from the pending count)  does not contain [zqxjw]
+PASS  password: no suggestions                                    = 
+   EDGE1: 38 passed, 0 failed

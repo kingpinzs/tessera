@@ -1,14 +1,14 @@
 ==============================================================================
 ROW E7 — an emoji from the panel lands as the right code points
-at            2026-09-22T14:28:40-06:00
+at            2026-09-22T15:09:51-06:00
 driver        e7.sh blob 984e2d14e92a45444ec509e63798a4ac65700a62
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     01d2c07c75bf2dfd 333513390 bytes
-apk installed 3a337a3500b83727
-apk match     yes (3a337a3500b83727)
+apk built     c34da1006a535e9d 334444054 bytes
+apk installed b9948a444fe18037
+apk match     yes (b9948a444fe18037)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
-      kb_begin: prior ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
       smileys cell 0: 0 swipe(s) to reach it
       smileys cell 0: panel cell says [😀] = index [1F600]; field got [1F600]
 PASS  smileys cell 0 is an emoji the index knows                  != 
@@ -25,6 +25,6 @@ PASS  people cell 69 lands as its index code points               = 1F9D4 200D 2
 PASS  symbols cell 13 is an emoji the index knows                 != 
 PASS  symbols cell 13 lands as its index code points              = 26A0 FE0F
 PASS  the diagnostics name the inserted code points               contains [emoji inserted U+]
-      kb_end: restored ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
 ------------------------------------------------------------------------------
 E7: 8 passed, 0 failed

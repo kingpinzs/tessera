@@ -1,11 +1,11 @@
 ==============================================================================
 ROW EDGE1 — edge cases in fields and keys
-at            2026-09-22T14:52:26-06:00
-driver        edge1.sh blob 17265b694f876a291e1d6594961aa9d9ca2e581b
+at            2026-09-22T15:13:42-06:00
+driver        edge1.sh blob 97671a693524323db4b2c9525cb00de7b00a83f2
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     f1c622a09245a23e 333513390 bytes
-apk installed 4f4fa6cc566ec873
-apk match     yes (4f4fa6cc566ec873)
+apk built     c34da1006a535e9d 334444054 bytes
+apk installed b9948a444fe18037
+apk match     yes (b9948a444fe18037)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
@@ -29,13 +29,13 @@ PASS  input filters: the capital is dropped by the app and the length caps at 5 
 PASS  input filters: typing after a filtered edit still lands where the caret is  = [bcdez]
 PASS  paste: the app pasted                                       = [copycopy]
 PASS  paste: the keyboard types at the caret after the paste      = [copycopyx]
-FAIL  very long text: the field holds 1500 characters             expected [1500] got []
-FAIL  very long text: 1500 characters, then ' end' typed by the keyboard  expected [1504] got []
-FAIL  very long text: backspace still deletes at the end          expected [1501] got []
+PASS  very long text: the field holds 1500 characters             = 1500
+PASS  very long text: 1500 characters, then ' end' typed by the keyboard  = 1504
+PASS  very long text: backspace still deletes at the end          = 1501
       non-dictionary swipe q-z-x-v committed: [Wac]
 PASS  a non-dictionary swipe commits a dictionary word or nothing, never garbage letters  = no
 PASS  the keyboard is still up after it                           = yes
-      very fast swipe h-e-l-o (1 step per segment): [ho]; decoder:     2026-09-22 14:54:24.091 wall=1790110464091 [ime] commit "ho" (word flow)
+      very fast swipe h-e-l-o (1 step per segment): [ho]; decoder:     2026-09-22 15:15:40.044 wall=1790111740044 [ime] commit "ho" (word flow)
 PASS  a very fast swipe is decoded as a word, not taken as a tap  = yes
 PASS  no crash in the keyboard's process                          does not contain [FATAL]
 PASS  no alternates for g: the normal press popup, nothing else   = yes no
@@ -54,4 +54,4 @@ PASS  '– word' removes it from the learned words (and from the pending count) 
 PASS  password: no suggestions                                    = 
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
 ------------------------------------------------------------------------------
-EDGE1: 35 passed, 3 failed
+EDGE1: 38 passed, 0 failed

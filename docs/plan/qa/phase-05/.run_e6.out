@@ -1,0 +1,11 @@
+── E6 the cursor-control dot moves the caret
+PASS  start: caret at the end of the text                         = 11,11
+PASS  R6 2.5.8 caret stepped left ≈ one char per 150 ms over ≈1.1 s (7 ± 2)  8.00 vs 7.00 +/- 2.0
+PASS  the selection stayed collapsed (a caret, not a selection)   = 3,3
+PASS  caret stepped right (4 ± 2 over ≈0.65 s)                 5.00 vs 4.00 +/- 2.0
+PASS  R6 2.5.8 the axis locks: drifting down after going right still moves the caret sideways  = yes
+PASS  R6 2.5.7 (LOW, H4) the keyboard dims to ≈50 % while the dot is held (key 48 → ≈24)  24.00 vs 24.00 +/- 6.0
+PASS  released: the keyboard is restored (key 48)                 48.00 vs 48.00 +/- 6.0
+PASS  R6 2.5.8 holding above the dot moves the caret up a line    = yes
+PASS  holding below the dot moves it back down                    = yes
+   E6: 9 passed, 0 failed

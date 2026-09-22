@@ -1,0 +1,34 @@
+==============================================================================
+ROW E1 — the keyboard is listed, enabled, selected, and the checklist agrees
+at            2026-09-22T13:56:56-06:00
+driver        e1.sh blob 956516ff07aa0877607df63718c37c86b0b22e31
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     add9f4aa17a9339f 333513390 bytes
+apk installed 942b635771e5a770
+apk match     yes (942b635771e5a770)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      prior default ime: com.android.inputmethod.latin/.LatinIME
+ime list -a -s: com.android.inputmethod.latin/.LatinIME app.tileshell/.ime.KeyboardService
+ime list -s (after disable): com.android.inputmethod.latin/.LatinIME
+PASS  ime list -a -s lists the keyboard                           contains [app.tileshell/.ime.KeyboardService]
+PASS  ime list -s does not list it while disabled                 does not contain [app.tileshell/.ime.KeyboardService]
+      scroll_to_node checklist:keyboard_enabled:granted: 6 swipe(s), found=no
+PASS  checklist: enabled row while disabled                       = missing
+      scroll_to_node checklist:keyboard_selected:granted: 6 swipe(s), found=no
+PASS  checklist: selected row while disabled                      = missing
+ime enable: Input method app.tileshell/.ime.KeyboardService: now enabled for user #0
+PASS  ime list -s lists it after enable                           contains [app.tileshell/.ime.KeyboardService]
+      scroll_to_node checklist:keyboard_enabled:granted: 0 swipe(s), found=yes
+PASS  checklist: enabled row after enable                         = granted
+      scroll_to_node checklist:keyboard_selected:granted: 6 swipe(s), found=no
+PASS  checklist: selected row before set                          = missing
+ime set: Input method app.tileshell/.ime.KeyboardService selected for user #0
+PASS  default_input_method is the keyboard                        = app.tileshell/.ime.KeyboardService
+      scroll_to_node checklist:keyboard_enabled:granted: 0 swipe(s), found=yes
+PASS  checklist: enabled row after set                            = granted
+      scroll_to_node checklist:keyboard_selected:granted: 0 swipe(s), found=yes
+PASS  checklist: selected row after set                           = granted
+      restored default ime: com.android.inputmethod.latin/.LatinIME
+------------------------------------------------------------------------------
+E1: 10 passed, 0 failed

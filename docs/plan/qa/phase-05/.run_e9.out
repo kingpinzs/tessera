@@ -1,0 +1,10 @@
+── E9 space-bar drag: moves by the drag, clamps, persists, band passes taps
+PASS  the panel's top moved up by the drag distance (300 px)      300.00 vs 300.00 +/- 3.0
+PASS  Decisions (H13): clamped at one key block (865 phys) above rest  649.00 vs 649.00 +/- 3.0
+PASS  the diagnostics record the move                             contains [keyboard moved]
+PASS  it stays raised after the keyboard hides and shows again    = 910
+PASS  bottom_field lies in the band below the raised panel        = yes
+PASS  the band is see-through (not the panel's colour)            = yes
+PASS  a tap in the band reaches the app (bottom_field has focus)  = bottom_field
+PASS  dragged back down: clamped at rest                          = 1559
+   E9: 8 passed, 0 failed

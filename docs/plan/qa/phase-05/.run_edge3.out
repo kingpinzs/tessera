@@ -1,0 +1,16 @@
+── EDGE3 voice typing: permission denied, microphone busy, assistant role elsewhere, a call
+after the voice key without the permission, the top activity is:     topResumedActivity=ActivityRecord{90603201 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t521}
+PASS  permission denied: Android's own grant prompt is raised     contains [permissioncontroller]
+PASS  the keyboard recorded the refusal                           contains [voice refused: no RECORD_AUDIO]
+PASS  the keyboard holds the microphone                           = 19736
+PASS  the keyboard let go when its window hid                     contains [voice: unbound]
+PASS  and Cortana then owns the microphone                        = 19693
+PASS  no crash: the launcher process is alive                     != 
+PASS  no crash: a keyboard process is alive                       != 
+PASS  Cortana holds the microphone                                = 19693
+PASS  the shell no longer holds the assistant role                != app.tileshell
+PASS  voice typing works without the assistant role               contains [hat time is it]
+PASS  restored: the assistant role holder                         = app.tileshell
+during a call: field [and ]; strip notice []
+PASS  during a call: the keyboard either types or explains, and never crashes  = yes
+   EDGE3: 12 passed, 0 failed

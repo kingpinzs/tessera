@@ -1,0 +1,19 @@
+── E5 autocorrect, per-keystroke suggestions, no learning in password fields
+PASS  the strip changed on 'b'                                    != 
+PASS  the strip changed on 'e'                                    != b | be | been | being | but | buts | by | best
+PASS  the strip changed on 'c'                                    != be | been | being | he | best | better | because | before
+PASS  the strip changed on 'a'                                    != *be | bec | because | became | become | becomes | becoming | beckon
+PASS  the strip changed on 's'                                    != beca | because | became | becalm | becalmed | becalming | becalms | beta
+PASS  the strip changed on 'e'                                    != becas | became | betas | becks | necks | bead | bras | Bess
+PASS  R6 2.2.6 the autocorrect candidate for 'becase' is bold and first  = *because
+PASS  the word as typed is still offered                          contains [becase]
+PASS  space commits the correction                                = [because ]
+PASS  a second misspelling                                        = [because the ]
+PASS  punctuation also commits the correction                     = [because the receive.]
+PASS  the diagnostics record the replacements                     contains [autocorrect]
+PASS  password field: the strip offers nothing while typing       = 
+PASS  password field: two commits leave no trace in the learned words  does not contain [zqxjv]
+PASS  text field: two commits learn the word (the bracket)        contains [zqxjv]
+PASS  text field: the learned word is offered afterwards          contains [zqxjv]
+PASS  restored: the test word is gone again                       does not contain [zqxjv]
+   E5: 17 passed, 0 failed

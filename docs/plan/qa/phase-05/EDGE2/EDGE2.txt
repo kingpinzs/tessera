@@ -1,17 +1,17 @@
 ==============================================================================
 ROW EDGE2 — edge cases in the system: crash, force-stop, keyguard, landscape, hardware keyboard
-at            2026-09-22T14:55:17-06:00
+at            2026-09-22T15:16:33-06:00
 driver        edge2.sh blob 187de31652c6b3b103f856ecc936303b89382fd1
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     f1c622a09245a23e 333513390 bytes
-apk installed 4f4fa6cc566ec873
-apk match     yes (4f4fa6cc566ec873)
+apk built     c34da1006a535e9d 334444054 bytes
+apk installed b9948a444fe18037
+apk match     yes (b9948a444fe18037)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      keyboard up, :ime pid 23848; killing it by that pid (Hard Rule 13)
-      after the kill: :ime pid 24071
-PASS  Android restarted the keyboard's process                    != 23848
+      keyboard up, :ime pid 17817; killing it by that pid (Hard Rule 13)
+      after the kill: :ime pid 18018
+PASS  Android restarted the keyboard's process                    != 17817
 PASS  the keyboard is back on the next focus                      = yes
 PASS  and types                                                   = [ok]
 PASS  it is still the selected keyboard                           = app.tileshell/.ime.KeyboardService
@@ -23,7 +23,7 @@ PASS  keyguard: locked (the bracket)                              = KeyguardShow
 PASS  keyguard: the shell keyboard is up on the password bouncer  = yes
 PASS  keyguard: typing the password with it unlocks               = KeyguardShowing=false
 PASS  keyguard: after the keyboard crashes on it, it comes back (restarted)  = yes
-PASS  keyguard: a new :ime process                                != 24314
+PASS  keyguard: a new :ime process                                != 18267
 PASS  keyguard: and the restarted keyboard unlocks it             = KeyguardShowing=false
       lock cleared: KeyguardShowing=false
 PASS  hardware keyboard: the soft keyboard stays hidden (Android's own rule)  = no

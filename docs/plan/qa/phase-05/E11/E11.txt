@@ -1,14 +1,14 @@
 ==============================================================================
 ROW E11 — switch back to letters after an emoji: on returns, off stays
-at            2026-09-22T14:26:00-06:00
+at            2026-09-22T15:11:19-06:00
 driver        e11.sh blob 4a9fc802a3bd0fc7f72d398e74268592ecc1c8e7
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     01d2c07c75bf2dfd 333513390 bytes
-apk installed 3a337a3500b83727
-apk match     yes (3a337a3500b83727)
+apk built     c34da1006a535e9d 334444054 bytes
+apk installed b9948a444fe18037
+apk match     yes (b9948a444fe18037)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
-      kb_begin: prior ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
       scroll_to_node keyboard_switch_back: 0 swipe(s), found=yes
 PASS  Settings: switch back is true                               = true
 PASS  on: the emoji went into the field                           = yes
@@ -22,6 +22,6 @@ PASS  off: the emoji panel stays                                  = yes
 PASS  off: no letter keys                                         = no
       scroll_to_node keyboard_switch_back: 0 swipe(s), found=yes
 PASS  Settings: switch back is true                               = true
-      kb_end: restored ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
 ------------------------------------------------------------------------------
 E11: 9 passed, 0 failed

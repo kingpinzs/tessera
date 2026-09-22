@@ -1,0 +1,32 @@
+── E12 alternates, caps lock, double-space period, &123 slide and hold, docking, learning
+PASS  a hold on e past the long-press timeout shows the alternates popup  = yes
+PASS  é is one of the cells                                      contains [é]
+PASS  sliding to é and lifting commits it                        = [é]
+PASS  caps lock: Shift is accent-filled (screencap)               = yes
+PASS  the next three letters are capitals                         = [ABC]
+PASS  one tap on Shift ends caps lock                             = [ABCd]
+PASS  twice 500 ms apart is no caps lock (the second tap turns shift off)  = [abc]
+PASS  two spaces 500 ms apart after a word insert '. '            = [hi. ]
+PASS  two spaces 1500 ms apart insert two spaces                  = [hi  ]
+PASS  &123 slide onto 1 commits 1                                 = [1]
+PASS  and the letters are back                                    = layer=LETTERS
+PASS  &123 held still opens the one-handed popup: dock left       = yes
+PASS  ... full width                                              = yes
+PASS  ... dock right                                              = yes
+PASS  lifting where there is no cell picks nothing (still full width)  = 0 1080
+PASS  ... and a hold types nothing                                = []
+PASS  docked left: the grid and strip are 0.80 of the panel width (1152 phys)  1152.00 vs 1152.00 +/- 3.0
+PASS  docked left: key block edge to edge (q.left..backspace.right) is 0.80 x 1426 phys  1141.33 vs 1140.80 +/- 3.0
+PASS  docked left: flush with the left edge                       = 0
+PASS  the freed band carries the restore glyph                    = yes
+PASS  the full-width glyph restores the full width (from the left dock)  = 0 1080
+PASS  docked right: the grid and strip are 0.80 of the panel width (1152 phys)  1152.00 vs 1152.00 +/- 3.0
+PASS  docked right: key block edge to edge (q.left..backspace.right) is 0.80 x 1426 phys  1141.33 vs 1140.80 +/- 3.0
+PASS  docked right: flush with the right edge                     = 1080
+PASS  the full-width glyph restores the full width (from the right dock)  = 0 1080
+PASS  a tap on &123 shows the symbol layer                        = layer=SYMBOLS_1
+PASS  and it stays after a symbol is typed                        = layer=SYMBOLS_1
+PASS  the symbol went in                                          = [1]
+PASS  typed twice in a password field: never offered              does not contain [vqzjx]
+PASS  typed twice in a text field: offered afterwards             contains [vqzjx]
+   E12: 30 passed, 0 failed
