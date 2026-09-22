@@ -1,0 +1,65 @@
+MEDIA SESSION SERVICE (dumpsys media_session)
+
+8 sessions listeners.
+Global priority session is com.android.server.telecom/HeadsetMediaButton/1 (userId=0)
+  HeadsetMediaButton com.android.server.telecom/HeadsetMediaButton/1 (userId=0)
+    ownerPid=673, ownerUid=1000, userId=0
+    package=com.android.server.telecom
+    launchIntent=null
+    mediaButtonReceiver=null
+    active=false
+    flags=65537
+    rating type=0
+    controllers: 0
+    state=null
+    audioAttrs=AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+    volumeType=LOCAL, controlType=ABSOLUTE, max=0, current=0, volumeControlId=null
+    metadata: null
+    queueTitle=null, size=0
+User Records:
+Record for full_user=0
+  Volume key long-press listener: null
+  Volume key long-press listener package: 
+  Media key listener: null
+  Media key listener package: 
+  OnMediaKeyEventDispatchedListener: added 0 listener(s)
+  OnMediaKeyEventSessionChangedListener: added 1 listener(s)
+    from com.android.bluetooth
+  Last MediaButtonReceiver: null
+  Media button session is app.tileshell/androidx.media3.session.id./50 (userId=0)
+  Sessions Stack - have 2 sessions:
+    androidx.media3.session.id. app.tileshell/androidx.media3.session.id./50 (userId=0)
+      ownerPid=31599, ownerUid=10150, userId=0
+      package=app.tileshell
+      launchIntent=null
+      mediaButtonReceiver=null
+      active=true
+      flags=7
+      rating type=0
+      controllers: 9
+      state=PlaybackState {state=PAUSED(2), position=90050, buffered position=90044, speed=0.0, updated=8758514, actions=7340029, custom actions=[], active item id=3, error=null}
+      audioAttrs=AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
+      volumeType=LOCAL, controlType=ABSOLUTE, max=0, current=0, volumeControlId=null
+      metadata: size=5, description=Codex, Radiohead, The King of Limbs
+      queueTitle=null, size=6
+    MediaPlaybackService com.android.music/MediaPlaybackService/6 (userId=0)
+      ownerPid=1493, ownerUid=10102, userId=0
+      package=com.android.music
+      launchIntent=PendingIntent{5e9e686: PendingIntentRecord{a782b47 com.android.music startActivity}}
+      mediaButtonReceiver=null
+      active=false
+      flags=3
+      rating type=0
+      controllers: 0
+      state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=0, actions=516, custom actions=[], active item id=-1, error=null}
+      audioAttrs=AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
+      volumeType=LOCAL, controlType=ABSOLUTE, max=0, current=0, volumeControlId=null
+      metadata: null
+      queueTitle=null, size=0
+Audio playback (lastly played comes first)
+  uid=10150 packages=app.tileshell 
+Media session config:
+  media_button_receiver_fgs_allowlist_duration_ms: [cur: 10000, def: 10000]
+  media_session_calback_fgs_allowlist_duration_ms: [cur: 10000, def: 10000]
+  media_session_callback_fgs_while_in_use_temp_allow_duration_ms: [cur: 10000, def: 10000]
+  media_session_temp_user_engaged_duration_ms: [cur: 600000, def: 600000]

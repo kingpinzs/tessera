@@ -1,0 +1,46 @@
+==============================================================================
+ROW MUSIC17 — crossfade: off is one track across a transition; on is two, on one session, then one again
+at            2026-09-22T11:57:49-06:00
+driver        music17.sh blob b10f4fae860b928f483238558dc6d301f55d3520
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     452d57a0f0e51b73 326406454 bytes
+apk installed 4efab9de4ea9546b
+apk match     yes (4efab9de4ea9546b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      shell pid 31599, the player's audio session 545
+PASS  the player's audio session is known                         != 
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  the ••• menu says crossfade is off                    = Crossfade: off
+      off: 462 samples, most tracks of ours at once 1, samples not PLAYING 0; [4 Minute Warning] -> [An Ending]
+PASS  with crossfade off there is never more than one track of ours  = ok
+PASS  and the next track did arrive                               != 4 Minute Warning
+PASS  without the session ever leaving PLAYING                    = 0
+PASS  setting 5 seconds reaches the service                       contains [crossfade: 5000 ms (set)]
+PASS  and the ••• menu says so                              = Crossfade: 5 seconds
+      on: 709 samples; with two tracks of ours: 242 (both on session 545: 242); last sample 1; not PLAYING: 0; [An Ending] -> [Bloom]
+PASS  with crossfade on, the two tracks overlap                   = ok
+PASS  both on the player's own audio session, every time          = 242
+PASS  the equaliser's effect chain is on that session             contains [effects for session 545]
+PASS  and afterwards there is one track again, not a fader left behind  = 1
+PASS  the session never left PLAYING through the fade and the handback  = 0
+PASS  and the next track arrived                                  != An Ending
+      the fade ran 4948 ms; the handback: [handed back at elapsed 8714719, drift -2 ms after 2 seek(s)]
+PASS  the fade lasted the five seconds it was set to              4948.00 vs 5000.00 +/- 400.0
+PASS  the incoming track was handed back to the session's player  != 
+PASS  with the two copies within 40 ms of each other when they swapped  = ok
+      paused mid-fade: ours [0], session PAUSED
+PASS  pausing mid-fade silences both players                      = 0
+PASS  and the session is paused                                   = PAUSED
+PASS  because the fade was aborted, not left running              contains [aborted in fading (paused)]
+PASS  resuming brings back exactly one track                      = 1
+      end-of-track armed: most tracks of ours at once 1; last state 0 | PAUSED
+PASS  with the end-of-track sleep timer armed, nothing fades in   = ok
+PASS  and the service says why                                    contains [end-of-track sleep armed]
+PASS  and the music pauses at the end, as the timer promised      contains [PAUSED]
+PASS  after a force-stop the service restores 5 seconds           contains [crossfade: 5000 ms (restored)]
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  and the ••• menu shows it                             = Crossfade: 5 seconds
+PASS  and it can be put back to off                               contains [crossfade: 0 ms (set)]
+------------------------------------------------------------------------------
+MUSIC17: 26 passed, 0 failed

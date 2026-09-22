@@ -27,8 +27,11 @@ object MusicCommands {
     const val SLEEP = "app.tileshell.music.SLEEP"
     /** Choose an equaliser preset. [ARG_PRESET]: a preset index, or [Equaliser.OFF]. */
     const val EQUALISER = "app.tileshell.music.EQUALISER"
+    /** Set the crossfade. [ARG_MS]: one of [Crossfade.Choice]'s lengths, 0 for off (E17). */
+    const val CROSSFADE = "app.tileshell.music.CROSSFADE"
     const val ARG_MINUTES = "minutes"
     const val ARG_PRESET = "preset"
+    const val ARG_MS = "ms"
 
     /** Session extras: the deadline in elapsedRealtime (0 = no timer), and the end-of-track flag. */
     const val X_SLEEP_AT = "sleepAt"
@@ -37,6 +40,8 @@ object MusicCommands {
     const val X_EQ_PRESET = "eqPreset"
     const val X_EQ_PRESETS = "eqPresets"
     const val X_EQ_AVAILABLE = "eqAvailable"
+    /** Session extras: the crossfade length in ms, 0 for off (gapless). */
+    const val X_CROSSFADE_MS = "crossfadeMs"
 }
 
 object SleepTimer {

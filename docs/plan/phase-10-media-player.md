@@ -198,10 +198,27 @@ one task that touches shipped code is done early enough to be re-verified rather
    with queue, shuffle, repeat, and gapless / crossfade (Q7). Surviving Start being killed is the point
    of the service, not a bonus.
    **Status 2026-09-22:** the service, the session, audio focus and becoming-noisy are built; queue,
-   shuffle and repeat are ExoPlayer's own and are driven by the UI in task 6. **Gapless is ExoPlayer's
-   default and comes free; CROSSFADE IS NOT BUILT.** ExoPlayer has no crossfade — it needs two players
-   with volume ramps, or a custom AudioProcessor — so it is the one part of Q7's "everything" still
-   outstanding, recorded here rather than quietly dropped. E17 does not pass until it exists.
+   shuffle and repeat are ExoPlayer's own and are driven by the UI in task 6. Gapless is ExoPlayer's
+   default. **Crossfade is BUILT (2026-09-22, the last part of Q7's "everything"; E17 passes).**
+   ExoPlayer has none, so the service runs a second player for the length of a fade: the session's own
+   player keeps the whole queue and makes every transition itself — so the queue index, shuffle, repeat,
+   the notification, the tile's face and gapless-when-off are untouched — while a "fader" plays the
+   incoming track under the outgoing one on the equal-power curve, then hands it back: the session's
+   player advances by itself at volume 0, seeks to where the fader has got to, the drift is measured and a
+   200 ms micro-fade swaps them. The fader shares the audio session (the equaliser covers both) and takes
+   no audio focus (it would pause the primary). Anything a person does mid-fade — pause, seek, skip, a call,
+   headphones out, the sleep timer — aborts the fade; repeat-one, the last track with repeat off, an armed
+   end-of-track sleep timer and a track shorter than twice the fade never fade. The setting is a third
+   entry in the now-playing ••• menu: Off (the default, so gapless stays the default), 2, 5, 8 or 12
+   seconds, persisted by the service. Both players seek MP3s by index (accurate VBR seeking) so the
+   handback can land. Evidence qa/phase-01/MUSIC17, 26/26, measured in AudioFlinger: with crossfade off
+   never more than one playing track of ours across a transition; with 5 s, 242 samples with two playing
+   tracks of ours, every one on the player's own audio session, a fade of 4948 ms, a handback drift of −2 ms
+   after two seeks, one track afterwards, the session PLAYING throughout; pausing mid-fade silences both;
+   end-of-track armed never fades; the setting survives a force-stop. Stated, not hidden: the notification
+   and tile show the incoming title when the session's player advances — at the END of the fade, not its
+   start; and the fader does not duck for a notification sound (ducking is the focus holder's, the
+   primary's), so a notification mid-fade ducks only the outgoing track.
 4. **Session, notification and buttons.** The media session Android draws its transport notification
    from, plus headset and Bluetooth media buttons, and audio focus (ducking, pausing on a call, not
    resuming after a transient loss the user did not ask to resume).
