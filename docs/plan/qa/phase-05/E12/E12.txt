@@ -1,35 +1,36 @@
 ==============================================================================
 ROW E12 — alternates, caps lock, double-space period, &123 slide and hold, docking, learning
-at            2026-09-22T15:11:57-06:00
+at            2026-09-22T15:45:31-06:00
 driver        e12.sh blob dbdbe840c9d7cd99d79bec044d46ced2fe7ee830
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     c34da1006a535e9d 334444054 bytes
-apk installed b9948a444fe18037
-apk match     yes (b9948a444fe18037)
+apk built     a28c7b582477ab00 334444054 bytes
+apk installed 63644dd8ae6a441b
+apk match     yes (63644dd8ae6a441b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD 897bd2f (2026-09-22T15:36:44-06:00); uncommitted files under app/: 0; apk built 2026-09-22T15:35:12-06:00
       long-press timeout 400 ms; 1 phys = 0.75 px
       alternates popup cells: e è é ê ë ē ė ę 
 PASS  a hold on e past the long-press timeout shows the alternates popup  = yes
 PASS  é is one of the cells                                      contains [é]
-      alt injected: cmd.0=down 268 1634 gap.0= cmd.1=sleep 700 gap.1=28 cmd.2=moveto 485 1634 120 6 gap.2=672 cmd.3=up gap.3=141 
+      alt injected: cmd.0=down 268 1634 gap.0= cmd.1=sleep 700 gap.1=18 cmd.2=moveto 485 1634 120 6 gap.2=683 cmd.3=up gap.3=132 
 PASS  sliding to é and lifting commits it                        = [é]
-      caps150 injected: cmd.0=tap 79 1961 gap.0= cmd.1=sleep 110 gap.1=48 cmd.2=tap 79 1961 gap.2=102 
+      caps150 injected: cmd.0=tap 79 1961 gap.0= cmd.1=sleep 110 gap.1=52 cmd.2=tap 79 1961 gap.2=98 
       shift key fill after the 150-ms double tap: 0 120 215 (accent 0,120,215)
 PASS  caps lock: Shift is accent-filled (screencap)               = yes
-      abc injected: cmd.0=tap 106 1797 gap.0= cmd.1=sleep 250 gap.1=71 cmd.2=tap 646 1961 gap.2=219 cmd.3=sleep 250 gap.3=65 cmd.4=tap 430 1961 gap.4=225 
+      abc injected: cmd.0=tap 106 1797 gap.0= cmd.1=sleep 250 gap.1=74 cmd.2=tap 646 1961 gap.2=216 cmd.3=sleep 250 gap.3=67 cmd.4=tap 430 1961 gap.4=224 
 PASS  the next three letters are capitals                         = [ABC]
-      unlock injected: cmd.0=tap 79 1961 gap.0= cmd.1=sleep 250 gap.1=57 cmd.2=tap 322 1797 gap.2=233 
+      unlock injected: cmd.0=tap 79 1961 gap.0= cmd.1=sleep 250 gap.1=43 cmd.2=tap 322 1797 gap.2=247 
 PASS  one tap on Shift ends caps lock                             = [ABCd]
-      caps500 injected: cmd.0=tap 79 1961 gap.0= cmd.1=sleep 460 gap.1=47 cmd.2=tap 79 1961 gap.2=453 
-      abc2 injected: cmd.0=tap 106 1797 gap.0= cmd.1=sleep 250 gap.1=64 cmd.2=tap 646 1961 gap.2=226 cmd.3=sleep 250 gap.3=74 cmd.4=tap 430 1961 gap.4=216 
+      caps500 injected: cmd.0=tap 79 1961 gap.0= cmd.1=sleep 460 gap.1=57 cmd.2=tap 79 1961 gap.2=443 
+      abc2 injected: cmd.0=tap 106 1797 gap.0= cmd.1=sleep 250 gap.1=74 cmd.2=tap 646 1961 gap.2=216 cmd.3=sleep 250 gap.3=67 cmd.4=tap 430 1961 gap.4=224 
 PASS  twice 500 ms apart is no caps lock (the second tap turns shift off)  = [abc]
-      dsp500 injected: cmd.0=tap 592 2124 gap.0= cmd.1=sleep 460 gap.1=63 cmd.2=tap 592 2124 gap.2=437 
+      dsp500 injected: cmd.0=tap 592 2124 gap.0= cmd.1=sleep 460 gap.1=64 cmd.2=tap 592 2124 gap.2=437 
 PASS  two spaces 500 ms apart after a word insert '. '            = [hi. ]
-      dsp1500 injected: cmd.0=tap 592 2124 gap.0= cmd.1=sleep 1460 gap.1=60 cmd.2=tap 592 2124 gap.2=1440 
+      dsp1500 injected: cmd.0=tap 592 2124 gap.0= cmd.1=sleep 1460 gap.1=64 cmd.2=tap 592 2124 gap.2=1436 
 PASS  two spaces 1500 ms apart insert two spaces                  = [hi  ]
-      slide injected: cmd.0=down 79 2124 gap.0= cmd.1=moveto 52 1634 60 3 gap.1=21 cmd.2=up gap.2=81 
+      slide injected: cmd.0=down 79 2124 gap.0= cmd.1=moveto 52 1634 60 3 gap.1=20 cmd.2=up gap.2=81 
 PASS  &123 slide onto 1 commits 1                                 = [1]
 PASS  and the letters are back                                    = layer=LETTERS
 PASS  &123 held still opens the one-handed popup: dock left       = yes
@@ -37,14 +38,14 @@ PASS  ... full width                                              = yes
 PASS  ... dock right                                              = yes
 PASS  lifting where there is no cell picks nothing (still full width)  = 0 1080
 PASS  ... and a hold types nothing                                = []
-      dockleft injected: cmd.0=down 79 2124 gap.0= cmd.1=sleep 650 gap.1=32 cmd.2=moveto 58 1955 100 5 gap.2=618 cmd.3=up gap.3=113 
+      dockleft injected: cmd.0=down 79 2124 gap.0= cmd.1=sleep 650 gap.1=17 cmd.2=moveto 58 1955 100 5 gap.2=634 cmd.3=up gap.3=114 
       left: strip [0..864], q.left 3, backspace.right 859
 PASS  docked left: the grid and strip are 0.80 of the panel width (1152 phys)  1152.00 vs 1152.00 +/- 3.0
 PASS  docked left: key block edge to edge (q.left..backspace.right) is 0.80 x 1426 phys  1141.33 vs 1140.80 +/- 3.0
 PASS  docked left: flush with the left edge                       = 0
 PASS  the freed band carries the restore glyph                    = yes
 PASS  the full-width glyph restores the full width (from the left dock)  = 0 1080
-      dockright injected: cmd.0=down 79 2124 gap.0= cmd.1=sleep 650 gap.1=22 cmd.2=moveto 274 1955 100 5 gap.2=629 cmd.3=up gap.3=119 
+      dockright injected: cmd.0=down 79 2124 gap.0= cmd.1=sleep 650 gap.1=33 cmd.2=moveto 274 1955 100 5 gap.2=617 cmd.3=up gap.3=114 
       right: strip [216..1080], q.left 219, backspace.right 1075
 PASS  docked right: the grid and strip are 0.80 of the panel width (1152 phys)  1152.00 vs 1152.00 +/- 3.0
 PASS  docked right: key block edge to edge (q.left..backspace.right) is 0.80 x 1426 phys  1141.33 vs 1140.80 +/- 3.0
@@ -55,7 +56,7 @@ PASS  and it stays after a symbol is typed                        = layer=SYMBOL
 PASS  the symbol went in                                          = [1]
 PASS  typed twice in a password field: never offered              does not contain [vqzjx]
 PASS  typed twice in a text field: offered afterwards             contains [vqzjx]
-      learned words restored; :ime (pid 11456) restarted to reload them
+      learned words restored; :ime (pid 9009) restarted to reload them
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
 ------------------------------------------------------------------------------
 E12: 30 passed, 0 failed

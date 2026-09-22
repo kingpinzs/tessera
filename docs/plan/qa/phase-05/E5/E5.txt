@@ -1,14 +1,15 @@
 ==============================================================================
 ROW E5 — autocorrect, per-keystroke suggestions, no learning in password fields
-at            2026-09-22T15:08:32-06:00
-driver        e5.sh blob f54d7d9f32f0c4786765cee9c3d814c81fb841c3
+at            2026-09-22T15:42:05-06:00
+driver        e5.sh blob d66f7c8aa59c07dfab43b750dffad7bff2f28a36
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     c34da1006a535e9d 334444054 bytes
-apk installed b9948a444fe18037
-apk match     yes (b9948a444fe18037)
+apk built     a28c7b582477ab00 334444054 bytes
+apk installed 63644dd8ae6a441b
+apk match     yes (63644dd8ae6a441b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD 897bd2f (2026-09-22T15:36:44-06:00); uncommitted files under app/: 0; apk built 2026-09-22T15:35:12-06:00
       learned words before: 0 line(s)
       after 'b': b | be | been | being | but | buts | by | best
 PASS  the strip changed on 'b'                                    != 
@@ -24,6 +25,8 @@ PASS  the strip changed on 's'                                    != beca | beca
 PASS  the strip changed on 'e'                                    != becas | became | betas | becks | necks | bead | bras | Bess
 PASS  R6 2.2.6 the autocorrect candidate for 'becase' is bold and first  = *because
 PASS  the word as typed is still offered                          contains [becase]
+      ink per inked column: item 0 (bold 'because') 20.23, item 1 (regular) 14.65
+PASS  R6 2.2.6 the autocorrect candidate is DRAWN bold (denser ink than a regular item)  = yes
 PASS  space commits the correction                                = [because ]
 PASS  a second misspelling                                        = [because the ]
 PASS  punctuation also commits the correction                     = [because the receive.]
@@ -32,8 +35,8 @@ PASS  password field: the strip offers nothing while typing       =
 PASS  password field: two commits leave no trace in the learned words  does not contain [zqxjv]
 PASS  text field: two commits learn the word (the bracket)        contains [zqxjv]
 PASS  text field: the learned word is offered afterwards          contains [zqxjv]
-      restarting the :ime process (pid 3529) so it reloads the restored file
+      restarting the :ime process (pid 3157) so it reloads the restored file
 PASS  restored: the test word is gone again                       does not contain [zqxjv]
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
 ------------------------------------------------------------------------------
-E5: 17 passed, 0 failed
+E5: 18 passed, 0 failed

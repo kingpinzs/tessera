@@ -1,39 +1,46 @@
 ==============================================================================
 ROW EDGE3 — voice typing: permission denied, microphone busy, assistant role elsewhere, a call
-at            2026-09-22T15:18:51-06:00
-driver        edge3.sh blob 7cb8f2a86d332db6556dda0dc218d06d757266f1
+at            2026-09-22T15:53:07-06:00
+driver        edge3.sh blob 69a6e93993da8549c7d1c4862199ae1f20522b98
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     c34da1006a535e9d 334444054 bytes
-apk installed b9948a444fe18037
-apk match     yes (b9948a444fe18037)
+apk built     a28c7b582477ab00 334444054 bytes
+apk installed 63644dd8ae6a441b
+apk match     yes (63644dd8ae6a441b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD 897bd2f (2026-09-22T15:36:44-06:00); uncommitted files under app/: 0; apk built 2026-09-22T15:35:12-06:00
 OK
 default source: vmic.monitor
 emulator sink:  
-after the voice key without the permission, the top activity is:     topResumedActivity=ActivityRecord{90603201 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t521}
+after the voice key without the permission, the top activity is:     topResumedActivity=ActivityRecord{153882514 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t607}
 PASS  permission denied: Android's own grant prompt is raised     contains [permissioncontroller]
 PASS  the keyboard recorded the refusal                           contains [voice refused: no RECORD_AUDIO]
-PASS  the keyboard holds the microphone                           = 19736
-      after Cortana asked: microphone owner pid 19693 (keyboard 19736, launcher 19693); cortana:     2026-09-22 15:19:08.483 wall=1790111948483 [cortana] session opened mode=HOME locked=false     2026-09-22 15:19:14.657 wall=1790111954657 [cortana] touch 0 at 1008,2124 handled=true childCount=1 composeAttached=true     2026-09-22 15:19
-      keyboard:     2026-09-22 15:18:58.590 wall=1790111938590 [ime] voice refused: no RECORD_AUDIO; asking     2026-09-22 15:19:07.324 wall=1790111947324 [ime] voice typing started (bound=false)     2026-09-22 15:19:08.594 wall=1790111948594 [ime] voice: unbound (input finished) 
-      speech process:     2026-09-22 15:19:07.380 wall=1790111947380 [speech] listening for pid=19736     2026-09-22 15:19:08.594 wall=1790111948594 [speech] microphone released: owner unregistered     2026-09-22 15:19:14.662 wall=1790111954662 [speech] listening for pid=19693 
-PASS  the keyboard let go when its window hid                     contains [voice: unbound]
-PASS  and Cortana then owns the microphone                        = 19693
-PASS  no crash: the launcher process is alive                     != 
-PASS  no crash: a keyboard process is alive                       != 
-      Cortana listening: owner pid 19693, launcher pid 19693
-PASS  Cortana holds the microphone                                = 19693
-      Cortana's text box did not bring up the keyboard while listening; the refusal side is carried by the first direction
+      default recogniser: app.tileshell/.cortana.CortanaRecognitionService
+PASS  (a) the keyboard holds the microphone                       = 17883
+      (a) the fixture's recogniser answered: listening; speech: 
+FAIL  (a) the second client is refused as busy (SpeechRecognizer.ERROR_RECOGNIZER_BUSY)  expected [error:8] got [listening]
+FAIL  (a) and the keyboard still holds the microphone             expected [17883] got [-1]
+FAIL  (a) the speech process recorded the refusal                 does not contain [refused]: 
+PASS  (a) no crash: the keyboard's process is the same one        = 17883
+      (b) fixture recogniser: listening; microphone owner pid -1 (launcher 17841)
+FAIL  (b) the recognition service (launcher process) holds the microphone  expected [17841] got [-1]
+      (b) the keyboard's strip: 
+FAIL  (b) the keyboard is refused with a notice, not a crash      does not contain [is using the microphone]: 
+FAIL  (b) and the recogniser still holds the microphone           expected [17841] got [17883]
+FAIL  (b) the keyboard recorded the busy error (code 7)           does not contain [voice error 7]: 
+      (c) after Cortana asked: owner 17841 (launcher 17841, keyboard 17883); keyboard:     2026-09-22 15:54:33.219 wall=1790114073219 [ime] voice typing started (bound=false)     2026-09-22 15:54:34.452 wall=1790114074452 [ime] voice: unbound (input finished) 
+PASS  (c) the keyboard let go when its window hid behind Cortana's  contains [voice: unbound]
+PASS  (c) and Cortana then holds the microphone                   = 17841
+PASS  (c) no crash: the launcher process is alive                 != 
       assistant role holders now: []
 PASS  the shell no longer holds the assistant role                != app.tileshell
 PASS  voice typing works without the assistant role               contains [hat time is it]
 PASS  restored: the assistant role holder                         = app.tileshell
       call state: mCallState=2
 during a call: field [and ]; strip notice []
-PASS  during a call: the keyboard either types or explains, and never crashes  = yes
+PASS  during a call: no crash (the microphone under a real call is a phone row)  = yes
       call ended: mCallState=0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
 ------------------------------------------------------------------------------
-EDGE3: 12 passed, 0 failed
+EDGE3: 11 passed, 7 failed

@@ -1,0 +1,39 @@
+==============================================================================
+ROW E5 — autocorrect, per-keystroke suggestions, no learning in password fields
+at            2026-09-22T15:08:32-06:00
+driver        e5.sh blob f54d7d9f32f0c4786765cee9c3d814c81fb841c3
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     c34da1006a535e9d 334444054 bytes
+apk installed b9948a444fe18037
+apk match     yes (b9948a444fe18037)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      learned words before: 0 line(s)
+      after 'b': b | be | been | being | but | buts | by | best
+PASS  the strip changed on 'b'                                    != 
+      after 'e': be | been | being | he | best | better | because | before
+PASS  the strip changed on 'e'                                    != b | be | been | being | but | buts | by | best
+      after 'c': *be | bec | because | became | become | becomes | becoming | beckon
+PASS  the strip changed on 'c'                                    != be | been | being | he | best | better | because | before
+      after 'a': beca | because | became | becalm | becalmed | becalming | becalms | beta
+PASS  the strip changed on 'a'                                    != *be | bec | because | became | become | becomes | becoming | beckon
+      after 's': becas | became | betas | becks | necks | bead | bras | Bess
+PASS  the strip changed on 's'                                    != beca | because | became | becalm | becalmed | becalming | becalms | beta
+      after 'e': *because | becase | became | decade | Hecate
+PASS  the strip changed on 'e'                                    != becas | became | betas | becks | necks | bead | bras | Bess
+PASS  R6 2.2.6 the autocorrect candidate for 'becase' is bold and first  = *because
+PASS  the word as typed is still offered                          contains [becase]
+PASS  space commits the correction                                = [because ]
+PASS  a second misspelling                                        = [because the ]
+PASS  punctuation also commits the correction                     = [because the receive.]
+PASS  the diagnostics record the replacements                     contains [autocorrect]
+PASS  password field: the strip offers nothing while typing       = 
+PASS  password field: two commits leave no trace in the learned words  does not contain [zqxjv]
+PASS  text field: two commits learn the word (the bracket)        contains [zqxjv]
+PASS  text field: the learned word is offered afterwards          contains [zqxjv]
+      restarting the :ime process (pid 3529) so it reloads the restored file
+PASS  restored: the test word is gone again                       does not contain [zqxjv]
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+------------------------------------------------------------------------------
+E5: 17 passed, 0 failed

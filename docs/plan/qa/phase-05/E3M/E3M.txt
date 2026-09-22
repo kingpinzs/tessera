@@ -1,21 +1,19 @@
 ==============================================================================
 ROW E3M — press-popup timing and the show / hide slide, from frames
-at            2026-09-22T15:06:52-06:00
-driver        e3motion.sh blob aa1b1fdc017d7c894612613fcde45b6ea4992aa2
+at            2026-09-22T15:40:50-06:00
+driver        e3motion.sh blob a6539bec36bbd2b267804a020f4bd89c76542cf9
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     c34da1006a535e9d 334444054 bytes
-apk installed b9948a444fe18037
-apk match     yes (b9948a444fe18037)
+apk built     a28c7b582477ab00 334444054 bytes
+apk installed 63644dd8ae6a441b
+apk match     yes (63644dd8ae6a441b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD 897bd2f (2026-09-22T15:36:44-06:00); uncommitted files under app/: 0; apk built 2026-09-22T15:35:12-06:00
       panel top at rest 1419, nav bar top 2205, key block 646px
-      e3m_show1: 355 frames, geometry 1080,2340
-      e3m_hide1: 296 frames, geometry 1080,2340
-      attempt 1: show rc=0 largest gap 39.8 ms; hide rc=0 largest gap 17.7 ms
-      e3m_show2: 358 frames, geometry 1080,2340
-      e3m_hide2: 297 frames, geometry 1080,2340
-      attempt 2: show rc=0 largest gap 17.2 ms; hide rc=0 largest gap 17.3 ms
+      e3m_show1: 354 frames, geometry 1080,2340
+      e3m_hide1: 297 frames, geometry 1080,2340
+      attempt 1: show rc=0 largest gap 18.0 ms; hide rc=0 largest gap 17.6 ms
       show: rest_ms=1550.0
       show: duration_ms=166.7
       show: t90_ms=116.7
@@ -24,19 +22,16 @@ device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:u
       show: motion_window_s=1.3833 1.5500
       hide: hide_ms=116.7
       hide: alpha_at_start=0.89 alpha_mid=0.53
-      hide: motion_window_s=1.1500 1.2667
+      hide: motion_window_s=1.1333 1.2500
 SYSTEM SLIDE (show): at rest 166.7 ms after its first visible frame, 90 % of the travel in 116.7 ms, first frame 0.33 opaque (R6 2.7.1-2.7.3: 250 ± 33, 90 % by 100-117, no fade) — recorded for H10, not asserted: the IME cannot own it
 PASS  the show slide was captured at >= 55 fps and measured       != 
 SYSTEM SLIDE (hide): off-screen 116.7 ms after it starts to move; opacity at start 0.89 alpha_mid=0.53 (R6 2.7.4: ≈133, no fade) — Android's hide also FADES the window; recorded for H10, not asserted
 PASS  the hide slide was captured at >= 55 fps and measured       != 
+      touch at (538, 1867); indicator pixel in the g/b row gap at (538, 1879)
       e3m_popup: 298 frames, geometry 1080,2340
-      popup: touch_ms=1133.3
-      popup: popup_ms=1133.3
-      popup: delay_ms=0.0
-      popup: popup_fill=0.93
-      popup: largest source-frame gap between touch and popup 16.9 ms
-PASS  R6 2.3.5 popup no later than 50 ms after the touch indicator (+1 frame each side)  0.00 vs 25.00 +/- 41.7
-PASS  R6 2.3.5 popup at full size in its first frame (no scale / fade)  0.93 vs 1.00 +/- 0.12
+      popup: touch=None popup=69: not both seen
+      popup: largest source-frame gap between touch and popup 15.7 ms
+FAIL  the popup was captured at >= 55 fps (RV11)                  rc=2 largest gap 15.7 ms
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
 ------------------------------------------------------------------------------
-E3M: 4 passed, 0 failed
+E3M: 2 passed, 1 failed

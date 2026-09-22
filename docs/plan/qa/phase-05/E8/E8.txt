@@ -1,23 +1,24 @@
 ==============================================================================
 ROW E8 — voice typing, network off, inserts the spoken text
-at            2026-09-22T15:18:21-06:00
+at            2026-09-22T15:52:38-06:00
 driver        e8.sh blob dd5fed3a93405354f379a21ce10b9a076749068d
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     c34da1006a535e9d 334444054 bytes
-apk installed b9948a444fe18037
-apk match     yes (b9948a444fe18037)
+apk built     a28c7b582477ab00 334444054 bytes
+apk installed 63644dd8ae6a441b
+apk match     yes (63644dd8ae6a441b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD 897bd2f (2026-09-22T15:36:44-06:00); uncommitted files under app/: 0; apk built 2026-09-22T15:35:12-06:00
 OK
 default source: vmic.monitor
 emulator sink:  
 dumpsys connectivity: Active default network: none
 PASS  the network is off (no active default network)              contains [none]
 PASS  the voice key leads the strip                               = yes
-      speech process: asr_listening=true mic_owner_pid=18440 clients=1
-PASS  the microphone is listening for the keyboard's own process  = 18440
-field after speaking "What time is it?": [what time is it ]
+      speech process: asr_listening=true mic_owner_pid=16391 clients=1
+PASS  the microphone is listening for the keyboard's own process  = 16391
+field after speaking "What time is it?": [at what time is it ]
 PASS  the spoken text went into the field                         contains [hat time is it]
 PASS  the keyboard recorded the final transcript                  contains [voice final]
       restored: Active default network: 102

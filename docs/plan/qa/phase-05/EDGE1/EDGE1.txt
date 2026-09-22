@@ -1,14 +1,18 @@
 ==============================================================================
 ROW EDGE1 — edge cases in fields and keys
-at            2026-09-22T15:13:42-06:00
-driver        edge1.sh blob 97671a693524323db4b2c9525cb00de7b00a83f2
+at            2026-09-22T15:47:16-06:00
+driver        edge1.sh blob c5e71aa4acf0a58cce1859a17cf5028e020aaae5
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     c34da1006a535e9d 334444054 bytes
-apk installed b9948a444fe18037
-apk match     yes (b9948a444fe18037)
+apk built     a28c7b582477ab00 334444054 bytes
+apk installed 63644dd8ae6a441b
+apk match     yes (63644dd8ae6a441b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD 897bd2f (2026-09-22T15:36:44-06:00); uncommitted files under app/: 0; apk built 2026-09-22T15:35:12-06:00
+PASS  field_text: the Enter key is grey                           = grey
+      field_text: after Enter the app recorded [IME_ACTION_NEXT@field_text]
+PASS  field_text: Enter reached the app                           != none
 PASS  field_url: the Enter key is white                           = white
 PASS  field_url: Enter performs GO                                = IME_ACTION_GO@field_url
 PASS  field_search: the Enter key is white                        = white
@@ -33,11 +37,12 @@ PASS  very long text: the field holds 1500 characters             = 1500
 PASS  very long text: 1500 characters, then ' end' typed by the keyboard  = 1504
 PASS  very long text: backspace still deletes at the end          = 1501
       non-dictionary swipe q-z-x-v committed: [Wac]
-PASS  a non-dictionary swipe commits a dictionary word or nothing, never garbage letters  = no
+      committed [Wac]: in the dictionary = yes
+PASS  a non-dictionary swipe commits a dictionary word or nothing (review m4)  != no
 PASS  the keyboard is still up after it                           = yes
-      very fast swipe h-e-l-o (1 step per segment): [ho]; decoder:     2026-09-22 15:15:40.044 wall=1790111740044 [ime] commit "ho" (word flow)
+      very fast swipe h-e-l-o (1 step per segment): [ho]; decoder:     2026-09-22 15:49:20.817 wall=1790113760817 [ime] commit "ho" (word flow)
 PASS  a very fast swipe is decoded as a word, not taken as a tap  = yes
-PASS  no crash in the keyboard's process                          does not contain [FATAL]
+PASS  no crash: the keyboard's process survived the fast swipe    = 12884
 PASS  no alternates for g: the normal press popup, nothing else   = yes no
 PASS  and lifting commits g                                       = [g]
 PASS  caps lock is on                                             contains [shift=LOCKED]
@@ -51,7 +56,17 @@ PASS  R6 2.2.7: the strip offers '– zqxjw'                      contains [– 
       the remove item is kb_sugg_0
 PASS  the tap on '– zqxjw' reached the dictionary               contains [dictionary - zqxjw]
 PASS  '– word' removes it from the learned words (and from the pending count)  does not contain [zqxjw]
+      the typed word is offered verbatim as kb_sugg_0
+      strip item while pressed: 0 120 215
+PASS  R6 2.2.7 a pressed item is accent-filled across the strip's height  = yes
+PASS  R6 2.2.7 / D1: after keeping the unknown word the strip offers '+ zqxvb'  contains [+ zqxvb]
+PASS  '+ word' adds it to the learned words at once               contains [zqxvb]
+      first strip item's left edge before / after swiping the strip left: 127 / off-screen
+PASS  R6 2.2.8 swiping the strip left brings more suggestions in (the first item moves off left)  = yes
 PASS  password: no suggestions                                    = 
+PASS  password: no autocorrect ('teh ' stays)                     = [teh ]
+FAIL  password: nothing typed is in the keyboard's log (count only)  expected [no] got [yes]
+PASS  password: the log says how many, not which                  contains [hidden]
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
 ------------------------------------------------------------------------------
-EDGE1: 38 passed, 0 failed
+EDGE1: 46 passed, 1 failed

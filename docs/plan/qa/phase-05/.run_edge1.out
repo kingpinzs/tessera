@@ -1,4 +1,6 @@
 ── EDGE1 edge cases in fields and keys
+PASS  field_text: the Enter key is grey                           = grey
+PASS  field_text: Enter reached the app                           != none
 PASS  field_url: the Enter key is white                           = white
 PASS  field_url: Enter performs GO                                = IME_ACTION_GO@field_url
 PASS  field_search: the Enter key is white                        = white
@@ -22,10 +24,10 @@ PASS  paste: the keyboard types at the caret after the paste      = [copycopyx]
 PASS  very long text: the field holds 1500 characters             = 1500
 PASS  very long text: 1500 characters, then ' end' typed by the keyboard  = 1504
 PASS  very long text: backspace still deletes at the end          = 1501
-PASS  a non-dictionary swipe commits a dictionary word or nothing, never garbage letters  = no
+PASS  a non-dictionary swipe commits a dictionary word or nothing (review m4)  != no
 PASS  the keyboard is still up after it                           = yes
 PASS  a very fast swipe is decoded as a word, not taken as a tap  = yes
-PASS  no crash in the keyboard's process                          does not contain [FATAL]
+PASS  no crash: the keyboard's process survived the fast swipe    = 12884
 PASS  no alternates for g: the normal press popup, nothing else   = yes no
 PASS  and lifting commits g                                       = [g]
 PASS  caps lock is on                                             contains [shift=LOCKED]
@@ -36,5 +38,12 @@ PASS  the misspelling is learned after two commits                contains [zqxj
 PASS  R6 2.2.7: the strip offers '– zqxjw'                      contains [– zqxjw]
 PASS  the tap on '– zqxjw' reached the dictionary               contains [dictionary - zqxjw]
 PASS  '– word' removes it from the learned words (and from the pending count)  does not contain [zqxjw]
+PASS  R6 2.2.7 a pressed item is accent-filled across the strip's height  = yes
+PASS  R6 2.2.7 / D1: after keeping the unknown word the strip offers '+ zqxvb'  contains [+ zqxvb]
+PASS  '+ word' adds it to the learned words at once               contains [zqxvb]
+PASS  R6 2.2.8 swiping the strip left brings more suggestions in (the first item moves off left)  = yes
 PASS  password: no suggestions                                    = 
-   EDGE1: 38 passed, 0 failed
+PASS  password: no autocorrect ('teh ' stays)                     = [teh ]
+FAIL  password: nothing typed is in the keyboard's log (count only)  expected [no] got [yes]
+PASS  password: the log says how many, not which                  contains [hidden]
+   EDGE1: 46 passed, 1 failed

@@ -7,6 +7,7 @@ PASS  the strip changed on 's'                                    != beca | beca
 PASS  the strip changed on 'e'                                    != becas | became | betas | becks | necks | bead | bras | Bess
 PASS  R6 2.2.6 the autocorrect candidate for 'becase' is bold and first  = *because
 PASS  the word as typed is still offered                          contains [becase]
+PASS  R6 2.2.6 the autocorrect candidate is DRAWN bold (denser ink than a regular item)  = yes
 PASS  space commits the correction                                = [because ]
 PASS  a second misspelling                                        = [because the ]
 PASS  punctuation also commits the correction                     = [because the receive.]
@@ -16,4 +17,4 @@ PASS  password field: two commits leave no trace in the learned words  does not 
 PASS  text field: two commits learn the word (the bracket)        contains [zqxjv]
 PASS  text field: the learned word is offered afterwards          contains [zqxjv]
 PASS  restored: the test word is gone again                       does not contain [zqxjv]
-   E5: 17 passed, 0 failed
+   E5: 18 passed, 0 failed

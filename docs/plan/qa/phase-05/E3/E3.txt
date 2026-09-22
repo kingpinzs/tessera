@@ -1,14 +1,15 @@
 ==============================================================================
 ROW E3 — geometry, labels, colours, popup, dot and strip against R6 §2
-at            2026-09-22T15:05:44-06:00
-driver        e3.sh blob c8d23074d5699a9f374c5600ce267b5430568b27
+at            2026-09-22T15:39:35-06:00
+driver        e3.sh blob 8b10455ad616751ac7fef6edd4a4c0d3b1fbc451
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     c34da1006a535e9d 334444054 bytes
-apk installed b9948a444fe18037
-apk match     yes (b9948a444fe18037)
+apk built     a28c7b582477ab00 334444054 bytes
+apk installed 63644dd8ae6a441b
+apk match     yes (63644dd8ae6a441b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD 897bd2f (2026-09-22T15:36:44-06:00); uncommitted files under app/: 0; apk built 2026-09-22T15:35:12-06:00
 panel 1080px wide: 1 phys = 0.75 px, 1 epx = 3.0 px; one pixel = 1.3333333333333333 phys = 0.3333333333333333 epx
 PASS  R6 2.1.2 row 1 q width 130                                  129.33 vs 130.00 +/- 3.0
 PASS  R6 2.1.2 row 1 w width 130                                  129.33 vs 130.00 +/- 3.0
@@ -82,6 +83,10 @@ PASS  R6 2.1.13 key block 865                                     861.33 vs 865.
 PASS  R6 2.2.1 strip height 46.5 epx                              46.67 vs 46.50 +/- 1.3
 PASS  R6 2.5.4 dot centre 358 from the left                       358.00 vs 358.00 +/- 3.0
 PASS  R6 2.5.4 dot centre 218 above the nav bar                   216.67 vs 218.00 +/- 3.0
+      dot diameters (px): core 15.56, disc 41.72, ring 64.35
+PASS  R6 2.5.2 accent core 21 across (+1 px)                      20.75 vs 21.00 +/- 4.333
+PASS  R6 2.5.3 key-grey disc 56 across (+1 px)                    55.63 vs 56.00 +/- 5.333
+PASS  R6 2.5.3 dark ring 87 outer diameter (+1 px)                85.80 vs 87.00 +/- 5.333
 PASS  R6 2.1.18 panel (22,27,21) in the q/w gap R                 22.00 vs 22.00 +/- 32.0
 PASS  R6 2.1.18 panel (22,27,21) in the q/w gap G                 27.00 vs 27.00 +/- 32.0
 PASS  R6 2.1.18 panel (22,27,21) in the q/w gap B                 21.00 vs 21.00 +/- 32.0
@@ -92,6 +97,36 @@ PASS  R6 2.1.18 function key (73,74,72) R                         73.00 vs 73.00
 PASS  R6 2.1.18 function key (73,74,72) G                         74.00 vs 74.00 +/- 32.0
 PASS  R6 2.1.18 function key (73,74,72) B                         72.00 vs 72.00 +/- 32.0
 PASS  R6 2.1.18 labels are white (a pixel >= 223 in q's label)    != none
+PASS  R6 2.1.18 sym key (73,74,72) R                              73.00 vs 73.00 +/- 32.0
+PASS  R6 2.1.18 sym key (73,74,72) G                              74.00 vs 74.00 +/- 32.0
+PASS  R6 2.1.18 sym key (73,74,72) B                              72.00 vs 72.00 +/- 32.0
+PASS  R6 2.1.18 emoji key (73,74,72) R                            73.00 vs 73.00 +/- 32.0
+PASS  R6 2.1.18 emoji key (73,74,72) G                            74.00 vs 74.00 +/- 32.0
+PASS  R6 2.1.18 emoji key (73,74,72) B                            72.00 vs 72.00 +/- 32.0
+PASS  R6 2.1.18 enter key (73,74,72) R                            73.00 vs 73.00 +/- 32.0
+PASS  R6 2.1.18 enter key (73,74,72) G                            74.00 vs 74.00 +/- 32.0
+PASS  R6 2.1.18 enter key (73,74,72) B                            72.00 vs 72.00 +/- 32.0
+PASS  R6 2.1.18 comma key (48,48,48) R                            48.00 vs 48.00 +/- 32.0
+PASS  R6 2.1.18 comma key (48,48,48) G                            48.00 vs 48.00 +/- 32.0
+PASS  R6 2.1.18 comma key (48,48,48) B                            48.00 vs 48.00 +/- 32.0
+PASS  R6 2.1.18 space key (48,48,48) R                            48.00 vs 48.00 +/- 32.0
+PASS  R6 2.1.18 space key (48,48,48) G                            48.00 vs 48.00 +/- 32.0
+PASS  R6 2.1.18 space key (48,48,48) B                            48.00 vs 48.00 +/- 32.0
+PASS  R6 2.1.18 period key (48,48,48) R                           48.00 vs 48.00 +/- 32.0
+PASS  R6 2.1.18 period key (48,48,48) G                           48.00 vs 48.00 +/- 32.0
+PASS  R6 2.1.18 period key (48,48,48) B                           48.00 vs 48.00 +/- 32.0
+PASS  R6 2.1.18 bksp key (73,74,72) R                             73.00 vs 73.00 +/- 32.0
+PASS  R6 2.1.18 bksp key (73,74,72) G                             74.00 vs 74.00 +/- 32.0
+PASS  R6 2.1.18 bksp key (73,74,72) B                             72.00 vs 72.00 +/- 32.0
+PASS  R6 2.2.2 no separator above row 1 (x 106) R                 22.00 vs 22.00 +/- 32.0
+PASS  R6 2.2.2 no separator above row 1 (x 106) G                 27.00 vs 27.00 +/- 32.0
+PASS  R6 2.2.2 no separator above row 1 (x 106) B                 21.00 vs 21.00 +/- 32.0
+PASS  R6 2.2.2 no separator above row 1 (x 538) R                 22.00 vs 22.00 +/- 32.0
+PASS  R6 2.2.2 no separator above row 1 (x 538) G                 27.00 vs 27.00 +/- 32.0
+PASS  R6 2.2.2 no separator above row 1 (x 538) B                 21.00 vs 21.00 +/- 32.0
+PASS  R6 2.2.2 no separator above row 1 (x 970) R                 22.00 vs 22.00 +/- 32.0
+PASS  R6 2.2.2 no separator above row 1 (x 970) G                 27.00 vs 27.00 +/- 32.0
+PASS  R6 2.2.2 no separator above row 1 (x 970) B                 21.00 vs 21.00 +/- 32.0
       x label ink: 1947 309 1975 334 29 26
 PASS  R6 2.1.14 lowercase x-height 41 (+1 px)                     38.67 vs 41.00 +/- 3.333
 PASS  R6 2.1.14 label centred in its key (x)                      -0.67 vs 0.00 +/- 4.333
@@ -120,6 +155,12 @@ PASS  R6 2.3.3 popup top 25 above the row above's top             22.67 vs 25.00
 PASS  R6 2.3.1 popup is accent-filled R                           0.00 vs 0.00 +/- 32.0
 PASS  R6 2.3.1 popup is accent-filled G                           120.00 vs 120.00 +/- 32.0
 PASS  R6 2.3.1 popup is accent-filled B                           215.00 vs 215.00 +/- 32.0
+PASS  R6 2.3.1 square corners: the popup's top-left corner pixel is accent R  0.00 vs 0.00 +/- 32.0
+PASS  R6 2.3.1 square corners: the popup's top-left corner pixel is accent G  120.00 vs 120.00 +/- 32.0
+PASS  R6 2.3.1 square corners: the popup's top-left corner pixel is accent B  215.00 vs 215.00 +/- 32.0
+PASS  R6 2.3.1 no shadow: the pixel left of the popup is the panel R  48.00 vs 22.00 +/- 32.0
+PASS  R6 2.3.1 no shadow: the pixel left of the popup is the panel G  48.00 vs 27.00 +/- 32.0
+PASS  R6 2.3.1 no shadow: the pixel left of the popup is the panel B  48.00 vs 21.00 +/- 32.0
 PASS  R6 2.3.1 the pressed key fills with the accent R            0.00 vs 0.00 +/- 32.0
 PASS  R6 2.3.1 the pressed key fills with the accent G            120.00 vs 120.00 +/- 32.0
 PASS  R6 2.3.1 the pressed key fills with the accent B            215.00 vs 215.00 +/- 32.0
@@ -163,4 +204,4 @@ PASS  R6 2.8.2 the search key carries a dark magnifier            != none
 PASS  R6 2.8.2 search action key 201 wide                         201.33 vs 201.00 +/- 3.0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
 ------------------------------------------------------------------------------
-E3: 135 passed, 0 failed
+E3: 174 passed, 0 failed

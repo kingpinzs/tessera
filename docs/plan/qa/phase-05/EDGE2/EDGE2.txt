@@ -1,17 +1,18 @@
 ==============================================================================
 ROW EDGE2 — edge cases in the system: crash, force-stop, keyguard, landscape, hardware keyboard
-at            2026-09-22T15:16:33-06:00
-driver        edge2.sh blob 187de31652c6b3b103f856ecc936303b89382fd1
+at            2026-09-22T15:50:33-06:00
+driver        edge2.sh blob 448fc85cc69b0101e01f9c2c435f6f85bf1a0d39
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     c34da1006a535e9d 334444054 bytes
-apk installed b9948a444fe18037
-apk match     yes (b9948a444fe18037)
+apk built     a28c7b582477ab00 334444054 bytes
+apk installed 63644dd8ae6a441b
+apk match     yes (63644dd8ae6a441b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      keyboard up, :ime pid 17817; killing it by that pid (Hard Rule 13)
-      after the kill: :ime pid 18018
-PASS  Android restarted the keyboard's process                    != 17817
+      tree: HEAD 897bd2f (2026-09-22T15:36:44-06:00); uncommitted files under app/: 0; apk built 2026-09-22T15:35:12-06:00
+      keyboard up, :ime pid 15580; killing it by that pid (Hard Rule 13)
+      after the kill: :ime pid 15977
+PASS  Android restarted the keyboard's process                    != 15580
 PASS  the keyboard is back on the next focus                      = yes
 PASS  and types                                                   = [ok]
 PASS  it is still the selected keyboard                           = app.tileshell/.ime.KeyboardService
@@ -23,11 +24,14 @@ PASS  keyguard: locked (the bracket)                              = KeyguardShow
 PASS  keyguard: the shell keyboard is up on the password bouncer  = yes
 PASS  keyguard: typing the password with it unlocks               = KeyguardShowing=false
 PASS  keyguard: after the keyboard crashes on it, it comes back (restarted)  = yes
-PASS  keyguard: a new :ime process                                != 18267
+PASS  keyguard: a new :ime process                                != 16221
 PASS  keyguard: and the restarted keyboard unlocks it             = KeyguardShowing=false
       lock cleared: KeyguardShowing=false
+      the nav bar's keyboard-switch button: not found
+      switcher texts: text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="What's on your mind?" text="" text="" text="Ask me anything" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="3:51 PM" 
+FAIL  Android's keyboard switcher is reachable with the shell keyboard up, and lists it  does not contain [Tessera keyboard]: text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="What's on your mind?" text="" text="" text="Ask me anything" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" t
 PASS  hardware keyboard: the soft keyboard stays hidden (Android's own rule)  = no
-PASS  hardware keyboard: physical keys type through the shell keyboard's service  = [hi]
+PASS  hardware keyboard: physical keys still type with the soft keyboard hidden (review m7: this proves the keys reach the app, not the service's part in it)  = [hi]
       raised panel top 1259; field_filter [1000..1119]
 PASS  raised keyboard: the app keeps the focused bottom field above the panel  = yes
       landscape: panel [136,716][2205,1079]; q [143,716][330,802]
@@ -37,9 +41,9 @@ PASS  landscape: keys widen with the width (q = 130 phys x window width / 1440) 
 PASS  landscape: the keyboard leaves most of the screen to the app (panel < 60 % of the height)  = yes
 PASS  landscape: typing works                                     contains [and]
       scroll_to_node keyboard_cursor_left: 0 swipe(s), found=yes
-PASS  handedness changed mid-hold: the next keyboard has the dot on the left (1077.5 phys)  1078.00 vs 1077.50 +/- 3.0
+PASS  handedness changed after an interrupted hold: the next keyboard has the dot on the left (1077.5 phys)  1078.00 vs 1077.50 +/- 3.0
 PASS  and it is not stuck dimmed from the interrupted hold (key 48)  48.00 vs 48.00 +/- 6.0
       scroll_to_node keyboard_cursor_right: 0 swipe(s), found=yes
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
 ------------------------------------------------------------------------------
-EDGE2: 21 passed, 0 failed
+EDGE2: 21 passed, 1 failed

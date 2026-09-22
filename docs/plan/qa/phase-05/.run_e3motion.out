@@ -3,6 +3,5 @@ SYSTEM SLIDE (show): at rest 166.7 ms after its first visible frame, 90 % of the
 PASS  the show slide was captured at >= 55 fps and measured       != 
 SYSTEM SLIDE (hide): off-screen 116.7 ms after it starts to move; opacity at start 0.89 alpha_mid=0.53 (R6 2.7.4: ≈133, no fade) — Android's hide also FADES the window; recorded for H10, not asserted
 PASS  the hide slide was captured at >= 55 fps and measured       != 
-PASS  R6 2.3.5 popup no later than 50 ms after the touch indicator (+1 frame each side)  0.00 vs 25.00 +/- 41.7
-PASS  R6 2.3.5 popup at full size in its first frame (no scale / fade)  0.93 vs 1.00 +/- 0.12
-   E3M: 4 passed, 0 failed
+FAIL  the popup was captured at >= 55 fps (RV11)                  rc=2 largest gap 15.7 ms
+   E3M: 2 passed, 1 failed

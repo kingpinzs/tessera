@@ -1,16 +1,22 @@
 ── EDGE3 voice typing: permission denied, microphone busy, assistant role elsewhere, a call
-after the voice key without the permission, the top activity is:     topResumedActivity=ActivityRecord{90603201 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t521}
+after the voice key without the permission, the top activity is:     topResumedActivity=ActivityRecord{153882514 u0 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity t607}
 PASS  permission denied: Android's own grant prompt is raised     contains [permissioncontroller]
 PASS  the keyboard recorded the refusal                           contains [voice refused: no RECORD_AUDIO]
-PASS  the keyboard holds the microphone                           = 19736
-PASS  the keyboard let go when its window hid                     contains [voice: unbound]
-PASS  and Cortana then owns the microphone                        = 19693
-PASS  no crash: the launcher process is alive                     != 
-PASS  no crash: a keyboard process is alive                       != 
-PASS  Cortana holds the microphone                                = 19693
+PASS  (a) the keyboard holds the microphone                       = 17883
+FAIL  (a) the second client is refused as busy (SpeechRecognizer.ERROR_RECOGNIZER_BUSY)  expected [error:8] got [listening]
+FAIL  (a) and the keyboard still holds the microphone             expected [17883] got [-1]
+FAIL  (a) the speech process recorded the refusal                 does not contain [refused]: 
+PASS  (a) no crash: the keyboard's process is the same one        = 17883
+FAIL  (b) the recognition service (launcher process) holds the microphone  expected [17841] got [-1]
+FAIL  (b) the keyboard is refused with a notice, not a crash      does not contain [is using the microphone]: 
+FAIL  (b) and the recogniser still holds the microphone           expected [17841] got [17883]
+FAIL  (b) the keyboard recorded the busy error (code 7)           does not contain [voice error 7]: 
+PASS  (c) the keyboard let go when its window hid behind Cortana's  contains [voice: unbound]
+PASS  (c) and Cortana then holds the microphone                   = 17841
+PASS  (c) no crash: the launcher process is alive                 != 
 PASS  the shell no longer holds the assistant role                != app.tileshell
 PASS  voice typing works without the assistant role               contains [hat time is it]
 PASS  restored: the assistant role holder                         = app.tileshell
 during a call: field [and ]; strip notice []
-PASS  during a call: the keyboard either types or explains, and never crashes  = yes
-   EDGE3: 12 passed, 0 failed
+PASS  during a call: no crash (the microphone under a real call is a phone row)  = yes
+   EDGE3: 11 passed, 7 failed

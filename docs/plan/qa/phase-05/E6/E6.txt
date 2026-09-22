@@ -1,21 +1,22 @@
 ==============================================================================
 ROW E6 — the cursor-control dot moves the caret
-at            2026-09-22T15:09:11-06:00
+at            2026-09-22T15:42:45-06:00
 driver        e6.sh blob 72e7479a59de179df33f5b6ce17456bc08d29330
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     c34da1006a535e9d 334444054 bytes
-apk installed b9948a444fe18037
-apk match     yes (b9948a444fe18037)
+apk built     a28c7b582477ab00 334444054 bytes
+apk installed 63644dd8ae6a441b
+apk match     yes (63644dd8ae6a441b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD 897bd2f (2026-09-22T15:36:44-06:00); uncommitted files under app/: 0; apk built 2026-09-22T15:35:12-06:00
 PASS  start: caret at the end of the text                         = 11,11
       dot centre (268, 2042)
-      left: INSTRUMENTATION_STATUS: gesture.script.cmd.0=down 268 2042 INSTRUMENTATION_STATUS: gesture.script.start.0=601884 INSTRUMENTATION_STATUS: gesture.script.cmd.1=moveto 128 2042 80 4 INSTRUMENTATION_STATUS: gesture.script.start.1=601904 INSTRUMENTATION_STATUS: gesture.script.cmd.2=sleep 1050 INSTRUMENTA
+      left: INSTRUMENTATION_STATUS: gesture.script.cmd.0=down 268 2042 INSTRUMENTATION_STATUS: gesture.script.start.0=1313308 INSTRUMENTATION_STATUS: gesture.script.cmd.1=moveto 128 2042 80 4 INSTRUMENTATION_STATUS: gesture.script.start.1=1313338 INSTRUMENTATION_STATUS: gesture.script.cmd.2=sleep 1050 INSTRUMEN
       after holding left: sel=3,3
 PASS  R6 2.5.8 caret stepped left ≈ one char per 150 ms over ≈1.1 s (7 ± 2)  8.00 vs 7.00 +/- 2.0
 PASS  the selection stayed collapsed (a caret, not a selection)   = 3,3
-      right: INSTRUMENTATION_STATUS: gesture.script.cmd.0=down 268 2042 INSTRUMENTATION_STATUS: gesture.script.start.0=606207 INSTRUMENTATION_STATUS: gesture.script.cmd.1=moveto 408 2042 80 4 INSTRUMENTATION_STATUS: gesture.script.start.1=606237 INSTRUMENTATION_STATUS: gesture.script.cmd.2=sleep 600 INSTRUMENTAT
+      right: INSTRUMENTATION_STATUS: gesture.script.cmd.0=down 268 2042 INSTRUMENTATION_STATUS: gesture.script.start.0=1317645 INSTRUMENTATION_STATUS: gesture.script.cmd.1=moveto 408 2042 80 4 INSTRUMENTATION_STATUS: gesture.script.start.1=1317672 INSTRUMENTATION_STATUS: gesture.script.cmd.2=sleep 600 INSTRUMENT
       after holding right: sel=8,8
 PASS  caret stepped right (4 ± 2 over ≈0.65 s)                 5.00 vs 4.00 +/- 2.0
 PASS  R6 2.5.8 the axis locks: drifting down after going right still moves the caret sideways  = yes
@@ -23,10 +24,10 @@ PASS  R6 2.5.8 the axis locks: drifting down after going right still moves the c
 PASS  R6 2.5.7 (LOW, H4) the keyboard dims to ≈50 % while the dot is held (key 48 → ≈24)  24.00 vs 24.00 +/- 6.0
 PASS  released: the keyboard is restored (key 48)                 48.00 vs 48.00 +/- 6.0
       multi-line text [one\ntwo], caret 7,7
-      up: INSTRUMENTATION_STATUS: gesture.script.cmd.0=down 268 2042 INSTRUMENTATION_STATUS: gesture.script.start.0=624145 INSTRUMENTATION_STATUS: gesture.script.cmd.1=moveto 268 1902 80 4 INSTRUMENTATION_STATUS: gesture.script.start.1=624169 INSTRUMENTATION_STATUS: gesture.script.cmd.2=sleep 900 INSTRUMENTAT
+      up: INSTRUMENTATION_STATUS: gesture.script.cmd.0=down 268 2042 INSTRUMENTATION_STATUS: gesture.script.start.0=1335571 INSTRUMENTATION_STATUS: gesture.script.cmd.1=moveto 268 1902 80 4 INSTRUMENTATION_STATUS: gesture.script.start.1=1335605 INSTRUMENTATION_STATUS: gesture.script.cmd.2=sleep 900 INSTRUMENT
       after holding up: sel=0,0
 PASS  R6 2.5.8 holding above the dot moves the caret up a line    = yes
-      down: INSTRUMENTATION_STATUS: gesture.script.cmd.0=down 268 2042 INSTRUMENTATION_STATUS: gesture.script.start.0=628155 INSTRUMENTATION_STATUS: gesture.script.cmd.1=moveto 268 2182 80 4 INSTRUMENTATION_STATUS: gesture.script.start.1=628187 INSTRUMENTATION_STATUS: gesture.script.cmd.2=sleep 900 INSTRUMENTAT
+      down: INSTRUMENTATION_STATUS: gesture.script.cmd.0=down 268 2042 INSTRUMENTATION_STATUS: gesture.script.start.0=1339585 INSTRUMENTATION_STATUS: gesture.script.cmd.1=moveto 268 2182 80 4 INSTRUMENTATION_STATUS: gesture.script.start.1=1339604 INSTRUMENTATION_STATUS: gesture.script.cmd.2=sleep 900 INSTRUMENT
       after holding down: sel=7,7
 PASS  holding below the dot moves it back down                    = yes
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1

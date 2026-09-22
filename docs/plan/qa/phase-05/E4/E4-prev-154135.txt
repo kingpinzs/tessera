@@ -1,0 +1,45 @@
+==============================================================================
+ROW E4 — Word Flow commits the swiped dictionary words, with the spaces added
+at            2026-09-22T15:08:02-06:00
+driver        e4.sh blob 759f25d51ce3cf10ce048a0a25011b80db8d5eb5
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     c34da1006a535e9d 334444054 bytes
+apk installed b9948a444fe18037
+apk match     yes (b9948a444fe18037)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      hello: path 646,1797;268,1634;970,1797;916,1634
+        INSTRUMENTATION_STATUS: gesture.swipe.elapsed_ms=767
+        INSTRUMENTATION_STATUS: gesture.swipe.result=true
+PASS  after swiping hello                                         = [hello]
+        strip: *hello | help | jello | hemp | grip | GDP | getup | grep
+PASS  R6 2.4.5 the strip leads with the swiped word, bold         = *hello
+      world: path 160,1634;916,1634;376,1634;970,1797;322,1797
+        INSTRUMENTATION_STATUS: gesture.swipe.elapsed_ms=1026
+        INSTRUMENTATION_STATUS: gesture.swipe.result=true
+PASS  after swiping world                                         = [hello world]
+        strip: *world | works | work's | works's | quorums | quorum's | quirks | quirk's
+PASS  R6 2.4.5 the strip leads with the swiped word, bold         = *world
+      phone: path 1024,1634;646,1797;916,1634;754,1961;268,1634
+        INSTRUMENTATION_STATUS: gesture.swipe.elapsed_ms=985
+        INSTRUMENTATION_STATUS: gesture.swipe.result=true
+PASS  after swiping phone                                         = [hello world phone]
+        strip: *phone | pule | puke | plume | Luke | philter | puller | Lyme
+PASS  R6 2.4.5 the strip leads with the swiped word, bold         = *phone
+      water: path 160,1634;106,1797;484,1634;268,1634;376,1634
+        INSTRUMENTATION_STATUS: gesture.swipe.elapsed_ms=992
+        INSTRUMENTATION_STATUS: gesture.swipe.result=true
+PASS  after swiping water                                         = [hello world phone water]
+        strip: *water | waster | eater | Easter | waste | wafer | ester | warder
+PASS  R6 2.4.5 the strip leads with the swiped word, bold         = *water
+      great: path 538,1797;376,1634;268,1634;106,1797;484,1634
+        INSTRUMENTATION_STATUS: gesture.swipe.elapsed_ms=989
+        INSTRUMENTATION_STATUS: gesture.swipe.result=true
+PASS  after swiping great                                         = [hello world phone water great]
+        strip: *great | heat | heart | frat | freest | hearty | greaser | gear
+PASS  R6 2.4.5 the strip leads with the swiped word, bold         = *great
+PASS  the diagnostics name the decoder's candidates               contains [word flow]
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+------------------------------------------------------------------------------
+E4: 11 passed, 0 failed

@@ -1,19 +1,20 @@
 ==============================================================================
 ROW EDGE4 — after a reboot the keyboard is still selected and types
-at            2026-09-22T15:20:58-06:00
+at            2026-09-22T15:56:04-06:00
 driver        edge4.sh blob 92eec45e8a771972aaab9e3f9bb3013f3d39d765
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     c34da1006a535e9d 334444054 bytes
-apk installed b9948a444fe18037
-apk match     yes (b9948a444fe18037)
+apk built     a28c7b582477ab00 334444054 bytes
+apk installed 63644dd8ae6a441b
+apk match     yes (63644dd8ae6a441b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      before the reboot: selected app.tileshell/.ime.KeyboardService, :ime pid 19736
+      tree: HEAD 897bd2f (2026-09-22T15:36:44-06:00); uncommitted files under app/: 0; apk built 2026-09-22T15:35:12-06:00
+      before the reboot: selected app.tileshell/.ime.KeyboardService, :ime pid 17883
 PASS  after the reboot: still the selected keyboard               = app.tileshell/.ime.KeyboardService
 PASS  after the reboot: still enabled                             contains [app.tileshell/.ime.KeyboardService]
 PASS  the keyboard comes up on the first field after the reboot   = yes
-PASS  a fresh :ime process                                        != 19736
+PASS  a fresh :ime process                                        != 17883
 PASS  and it types                                                = [up]
       scroll_to_node checklist:keyboard_selected:granted: 0 swipe(s), found=yes
 PASS  the checklist: keyboard enabled                             = yes
