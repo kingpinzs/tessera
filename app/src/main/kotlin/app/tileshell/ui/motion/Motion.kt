@@ -10,6 +10,20 @@ object Motion {
     // R3 A7 (15063, HIGH): flip = vertical squash about the tile's horizontal centre, 108 ± 17 ms.
     const val FLIP_MS = 108
 
+    /**
+     * The flip's vertical scale at [t] of the way through it, 0..1.
+     *
+     * R3 A7 measured the flip's FORM and its DURATION and gave no curve, so the build used a linear
+     * squash: scale went 1 -> 0 -> 1 at constant speed, which leaves rest instantly, reverses on a hard
+     * corner and stops dead. Jeremy, 2026-09-22: "Tile flips seem a bit abrupt."
+     *
+     * A tile flipping about its horizontal axis at a constant angular rate has a vertical scale of
+     * |cos(angle)|, and that is what this is: it leaves and returns to rest with zero velocity, is
+     * fastest as the face passes edge-on, and still crosses zero at the half-way point where the face
+     * swaps. It is the same 108 ms and the same form — only the gap R3 left is filled differently.
+     */
+    fun flipScale(t: Float): Float = kotlin.math.abs(kotlin.math.cos(Math.PI * t.coerceIn(0f, 1f)).toFloat())
+
     // R3 A7 (MEDIUM): cycle crossfade 367 ± 17 ms.
     const val CROSSFADE_MS = 367
 
