@@ -24,6 +24,12 @@ object SpeechError {
     const val INTERNAL = 6
 
     /**
+     * Another client is using the microphone (phase 05: the keyboard's voice key and Cortana share one
+     * engine and one microphone). The second caller is refused with this, never queued and never crashed.
+     */
+    const val MICROPHONE_BUSY = 7
+
+    /**
      * Whether the sentence describing [code] can be SAID, or only shown.
      *
      * [MODEL_MISSING], [MODEL_CORRUPT] and [ESPEAK_DATA_BAD] all mean the TTS engine could not be
@@ -118,15 +124,22 @@ object SpeechClient {
         }
     }
 
+    /**
+     * @param includeCapabilities pass the caller's while-in-use capabilities (the microphone) on to the
+     *   speech process. The keyboard needs it: it is visible only through the IME window the system
+     *   binds, and without it the speech process, which is where the microphone is actually opened, has
+     *   no foreground claim of its own (Context.BIND_INCLUDE_CAPABILITIES).
+     */
     @Synchronized
-    fun bind(context: Context) {
+    fun bind(context: Context, includeCapabilities: Boolean = false) {
         val app = context.applicationContext
         appContext = app
         bindCount++
         if (connectionState.value != Connection.UNBOUND) return
         connectionState.value = Connection.BINDING
         val intent = Intent(app, SpeechService::class.java)
-        val ok = app.bindService(intent, connection0, Context.BIND_AUTO_CREATE)
+        val flags = Context.BIND_AUTO_CREATE or (if (includeCapabilities) Context.BIND_INCLUDE_CAPABILITIES else 0)
+        val ok = app.bindService(intent, connection0, flags)
         Diagnostics.add("speech", "bind requested -> $ok")
         if (!ok) {
             connectionState.value = Connection.UNBOUND
@@ -150,15 +163,16 @@ object SpeechClient {
     fun preload() = call("preload") { it.preload() }
 
     /** @param hotwords one boosted phrase per line for the grammar pass; empty runs the open pass alone */
-    fun listen(hotwords: String) = call("startListening") { it.startListening(hotwords) }
+    /** This process's callback is its identity to the speech process: it owns the microphone while listening. */
+    fun listen(hotwords: String) = call("startListening") { it.startListening(callback, hotwords) }
 
-    fun stopListening() = call("stopListening") { it.stopListening() }
+    fun stopListening() = call("stopListening") { it.stopListening(callback) }
 
     /** @return the utterance id the SpeakingDone event will carry */
     fun speak(text: String, speakerId: Int): String {
         val id = UUID.randomUUID().toString()
         Diagnostics.add("speech", "speak[$id] voice=$speakerId text=\"$text\"")
-        call("speak") { it.speak(id, text, speakerId) }
+        call("speak") { it.speak(callback, id, text, speakerId) }
         return id
     }
 
