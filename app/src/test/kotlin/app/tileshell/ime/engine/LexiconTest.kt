@@ -59,4 +59,24 @@ class LexiconTest {
         assertEquals(0, l.rankOf("alpha"))
         assertEquals(1, l.rankOf("beta"))
     }
+
+    @Test
+    fun `150k lines load in under 300 ms, and the swipe index builds on them`() {
+        // The IME loads once at start-up, cold; the real asset is timed by RealDictionarySmokeTest
+        // when it is in the tree. This is the same size through the same Reader path.
+        val text = TestWords.tsv(TestWords.common + TestWords.synthetic(150_000)).joinToString("\n")
+        val cold = System.nanoTime()
+        val first = Lexicon.load(StringReader(text))
+        val coldMs = (System.nanoTime() - cold) / 1_000_000.0
+        val warm = System.nanoTime()
+        val second = Lexicon.load(StringReader(text))
+        val warmMs = (System.nanoTime() - warm) / 1_000_000.0
+        val index = System.nanoTime()
+        SwipeDecoder(second, TestLayout.w10m)
+        val indexMs = (System.nanoTime() - index) / 1_000_000.0
+        println("TIMING load 150k lines: cold ${"%.0f".format(coldMs)} ms, warm ${"%.0f".format(warmMs)} ms; swipe index ${"%.0f".format(indexMs)} ms")
+        assertEquals(150_000 + TestWords.common.size, first.size)
+        assertEquals(first.size, second.size)
+        assertTrue("warm load took $warmMs ms", warmMs < 300.0)
+    }
 }
