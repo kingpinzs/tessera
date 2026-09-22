@@ -67,7 +67,10 @@ Both were added because the first device run showed only "process gone" and noth
 | `scripts/exported.py` | the APK's exported components, from its own merged manifest, vs the allow-list |
 | `scripts/barvis.py` | E11: are Android's own status and nav bar windows visible |
 | `scripts/pixel.py`, `scripts/within.py` | one captured pixel; one measured comparison |
-| `scripts/e1.sh` … | one per acceptance row |
+| `scripts/persona.py` | E4: the persona's disc and halo per frame, to sub-pixel precision |
+| `scripts/fade.py` | E15: R7 3.2's black hold and fade-up, from 60-fps frames |
+| `scripts/coords.py` | E13: is a saved place where the AVD was standing |
+| `scripts/e1.sh` … `scripts/edge.sh` | one per acceptance row, plus the edge cases |
 
 ## How a fix gets verified here
 
@@ -88,19 +91,19 @@ Status is what the driver's exit code says, not a judgement.
 | E1 assistant role | **PASS 5/5** | `E1/E1.txt` |
 | E2 the ruled command list, spoken, offline | PARTIAL — see "what E2 still owes" below | `E2/E2.txt` |
 | E3 unmatched speech reaches the not-understood handler | **PASS 7/7** | `E3/E3.txt` |
-| E4 persona motion from screenrecord | NOT RUN | — |
+| E4 persona motion from screenrecord | driver written, not yet run | `scripts/e4.sh` |
 | E5 typed request, text box geometry, exported components | **PASS 12/12** | `E5/E5.txt` |
 | E6 the tile ADD runs once; reminders survive force-stop and reboot | tile half PASS 8/8; reminder half owed a re-run | `E6/E6.txt` |
 | E7 the confirmation flow | driver written and run; BLOCKED on the touch defect below | `E7/E7.txt` |
-| E8 the Search key, tap and hold | NOT RUN | — |
-| E9 lock screen options and the locked session | NOT RUN | — |
-| E10 the locked commands | NOT RUN | — |
+| E8 the Search key, tap and hold | driver written, not yet run | `scripts/e8.sh` |
+| E9 lock screen options and the locked session | driver written, not yet run | `scripts/e9.sh` |
+| E10 the locked commands | driver written, not yet run | `scripts/e10.sh` |
 | E11 the session's drawn bars | **PASS 14/14** | `E11/E11.txt` |
 | E12 the speech process's death is contained | 9/10 on the run captured; the one failure was the driver's, fixed, re-run owed | `E12/E12.txt` |
-| E13 place reminder | NOT RUN | — |
-| E14 person reminder | NOT RUN | — |
-| E15 the pane, Reminders and Settings pages | NOT RUN | — |
-| Edge cases | NOT RUN | — |
+| E13 place reminder | driver written, not yet run | `scripts/e13.sh` |
+| E14 person reminder | driver written, not yet run | `scripts/e14.sh` |
+| E15 the pane, Reminders and Settings pages | driver written, not yet run | `scripts/e15.sh` |
+| Edge cases | driver written, not yet run | `scripts/edge.sh` |
 
 ## Defects this gate found, all fixed in this phase
 
@@ -123,40 +126,39 @@ Status is what the driver's exit code says, not a judgement.
   `asr_bpe_vocab=asset:speech/asr/bpe.vocab`.
 * **Kokoro reports 11 speakers**, matching the bundled voice table.
 
-## The blocking defect E7 found: nothing inside the Cortana session responds to touch
+## The touch blocker E7 hit — and the correction to what it is
 
-Every tap inside Cortana does nothing — the microphone button, the ≡ button, and a card's Remind and
-Cancel. E7 cannot get past its first exchange, and E15 and every card row depend on the same surface.
+E7 stops at its first exchange: every tap inside Cortana does nothing. **An earlier version of this
+section called that a product defect. That was wrong, and the correction matters more than the
+original claim.**
 
-What is established, on the device:
+What was established first, and still stands:
 
-* The session window is focused and full-screen: `dumpsys window` shows
-  `mCurrentFocus=Window{... VoiceInteractionSession}`, `(0,0)(fillxfill) ty=VOICE_INTERACTION`.
-* Accessibility sees every node at the right place: `cortana_text_box_mic` reports
-  `bounds=[936,2052][1080,2196]`, `clickable="true"`, `enabled="true"`.
-* The UI is live, not frozen: the text field takes focus by itself (`focused="true"`), and
-  `adb shell input text` reaches it — which is why E5's typed request passed.
-* Injected `input tap` AND a full `input motionevent DOWN/UP` stream at those coordinates produce
-  **no `dispatchTouchEvent` at all** on the session's content view. That is instrumented, not inferred:
-  the content view is wrapped in a FrameLayout that records every DOWN and UP to the diagnostics ring,
-  and the ring stays empty across a tap.
+* The session window is focused and full-screen, accessibility sees every node at the right place with
+  `clickable="true"`, and the UI is live — the text field takes focus by itself and `adb shell input
+  text` reaches it, which is why E5's typed request passed.
+* An injected tap AND a full `motionevent DOWN/UP` stream produce **no `dispatchTouchEvent`** on the
+  session's content view. That is instrumented, not inferred: the content view is wrapped in a
+  FrameLayout that records every DOWN and UP into the diagnostics ring, and the ring stays empty.
 
-Two real causes were found and fixed on the way, and neither was the whole story:
+What then showed the diagnosis was wrong: **the same failure appeared on Start**, whose taps passed
+their own gate in phases 01 and 02 and passed E6 earlier the same day. A tap on a Start tile stopped
+launching anything, a swipe to the app list still worked, and finally `KEYCODE_HOME` stopped returning
+to Start at all. An app cannot break the Home key. The AVD's input had wedged, and the session rows
+were simply the ones running when it did.
+
+Two real defects were found and fixed on the way, and both were worth fixing regardless:
 
 1. **The session's touchable region was empty.** A VoiceInteractionSession computes it from the content
-   frame by default; here every tap counted as a touch OUTSIDE the session and dismissed it. Fixed with
-   `onComputeInsets` → `TOUCHABLE_INSETS_FRAME`. After the fix a tap no longer dismisses the session —
-   but it still does not reach the content view.
-2. **The session's lifecycle owner was only CREATED when the ComposeView was attached.** Now RESUMED
-   before `onCreateContentView`, and `setUiEnabled(true)` is re-asserted on every show.
+   frame by default; every tap counted as a touch OUTSIDE the session and dismissed it. Fixed with
+   `onComputeInsets` → `TOUCHABLE_INSETS_FRAME`; after it, a tap no longer dismisses the session.
+2. **The lifecycle owner was only CREATED when the ComposeView attached.** Now RESUMED before
+   `onCreateContentView`, with `setUiEnabled(true)` re-asserted on every show.
 
-What is NOT established: whether a real finger works. This is an AVD, and input injection into a
-`TYPE_VOICE_INTERACTION` window may be restricted in a way a real touch is not. That distinction
-decides whether this is a shipping defect or an emulator limit, and it cannot be settled here — it
-belongs on the phone, alongside P3, which already covers the session on real hardware.
-
-Until it is settled, every card button in this phase is untested, and E7's tap-based sub-rows
-(a tap on Remind with the fields empty) cannot run at all.
+**Still unknown, and it is the first thing the next session should settle:** whether Cortana's UI is
+tappable at all. Nothing has yet tapped a card button successfully, on any build. The AVD has been
+restarted since; the check is one tap on the microphone, and it decides whether E7, E9, E10, E13, E14
+and E15 can run on an emulator at all or whether they belong on the phone next to P3.
 
 ## What E2 still owes, and one defect it left open
 

@@ -195,6 +195,13 @@ class CortanaModel(
                     // R6 §3.2.4: after speaking, the small persona breathes on the result page.
                     mutable.value = mutable.value.copy(persona = PersonaState.IDLE_AFTER_SPEAKING, level = 0f)
                 }
+                if (event.utteranceId == listenAfterUtterance) {
+                    listenAfterUtterance = null
+                    if (!event.cancelled) {
+                        Diagnostics.add("cortana", "question spoken; listening for the answer")
+                        startListening()
+                    }
+                }
                 if (event.utteranceId == closeAfterUtterance) {
                     closeAfterUtterance = null
                     Diagnostics.add("cortana", "reply finished; the session closes now")
@@ -334,7 +341,16 @@ class CortanaModel(
         )
         val utterance = if (outcome.spoken.isNotBlank()) SpeechClient.speak(outcome.spoken, voice) else null
         speakingUtteranceId = utterance
-        if (!outcome.close) return
+        if (!outcome.close) {
+            // Cortana asked a question, so Cortana listens for the answer.
+            //
+            // The card's own callout says "you can say Yes, No, or Cancel", and R6 §3.3.7 has the text
+            // bar go EMPTY with a grey mic and no accent fill while a confirm card waits — i.e. there is
+            // no microphone to press, because it is already open. Without this a confirmation can only
+            // be answered by its buttons, which is not what the row requires and not what W10M did.
+            if (outcome.awaiting != null) listenAfter(utterance)
+            return
+        }
         if (utterance == null) {
             closeRequests.tryEmit(Unit)
             return
@@ -351,6 +367,20 @@ class CortanaModel(
             }
         }
     }
+
+    /**
+     * Start listening once the question has finished being spoken, so the answer is not swallowed by
+     * Cortana's own voice. With no utterance to wait for, listening starts at once.
+     */
+    private fun listenAfter(utterance: String?) {
+        if (utterance == null) {
+            startListening()
+            return
+        }
+        listenAfterUtterance = utterance
+    }
+
+    private var listenAfterUtterance: String? = null
 
     /** The session collects this and hides itself: an app has taken the screen. */
     val closeRequests = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
