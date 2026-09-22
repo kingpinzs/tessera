@@ -154,12 +154,16 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         // The headroom above the panel (for popups and the raised keyboard) must show the app through it.
         window?.window?.setBackgroundDrawable(ColorDrawable(AndroidColor.TRANSPARENT))
         host = h
-        recomputeMetrics("input view created")
+        recomputeMetrics("input view created", reloadRaise = true)
         return h
     }
 
-    /** RV10: sizes from the display (maximum window metrics), never from this window's own bounds. */
-    private fun recomputeMetrics(why: String) {
+    /**
+     * RV10: sizes from the display (maximum window metrics), never from this window's own bounds.
+     * [reloadRaise] re-reads where the panel was last dropped; only a new input view or a new field does,
+     * never a dock change mid-gesture.
+     */
+    private fun recomputeMetrics(why: String, reloadRaise: Boolean = false) {
         val bounds = getSystemService(WindowManager::class.java).maximumWindowMetrics.bounds
         metrics = KeyboardMetrics(
             screenWidthPx = bounds.width().toFloat(),
@@ -169,7 +173,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
             bottomInsetPx = bottomInset,
         )
         controller.metrics = metrics
-        state.raise = (store.raise * metrics.sy).coerceIn(0f, metrics.maxRaise)
+        state.raise = if (reloadRaise) (store.raise * metrics.sy).coerceIn(0f, metrics.maxRaise) else state.raise.coerceIn(0f, metrics.maxRaise)
         Diagnostics.add(
             "ime",
             "metrics ($why): screen ${bounds.width()}x${bounds.height()} sx=${metrics.sx} sy=${metrics.sy} " +
@@ -207,6 +211,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         recomputeMetrics("dimensions")
     }
 
+    /** A layout pass is what makes the window re-run onComputeInsets for the panel's new position. */
+    override fun raiseChanged() {
+        host?.requestLayout()
+    }
+
     // ---- input lifecycle ----------------------------------------------------------------------------
 
     override fun onStartInputView(info: EditorInfo, restarting: Boolean) {
@@ -224,7 +233,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         state.voice = VoiceState.Idle
         state.notice = null
         state.layout = Layouts.build(Layouts.initialLayer(field), field)
-        recomputeMetrics("start input")
+        recomputeMetrics("start input", reloadRaise = true)
         controller.autoShift()
         controller.refreshStrip(typing = true)
         Diagnostics.add(

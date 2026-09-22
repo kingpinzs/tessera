@@ -36,7 +36,10 @@ class KeyboardController(
         val editorInfo: EditorInfo?
         fun openEmoji()
         fun startVoice()
+        /** The dock changed: the metrics are rebuilt. */
         fun dimensionsChanged()
+        /** The raise changed: nothing is rebuilt, but Android must re-read the insets. */
+        fun raiseChanged()
     }
 
     var metrics: KeyboardMetrics = KeyboardMetrics(1080f, 2340f, 3f)
@@ -237,8 +240,11 @@ class KeyboardController(
             Mode.SPACE_MOVE -> {
                 val raise = (t.raiseAtDown + (t.downY - y)).coerceIn(0f, metrics.maxRaise)
                 if (raise != state.raise) {
+                    // Only the raise changes. E9 run 1 caught this calling dimensionsChanged(), which
+                    // rebuilt the metrics and re-read the STORED raise (still 0) on every move, so the
+                    // panel never left rest.
                     state.raise = raise
-                    host.dimensionsChanged()
+                    host.raiseChanged()
                 }
             }
             Mode.CURSOR -> cursorMove(t, x, y)
