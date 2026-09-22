@@ -81,12 +81,12 @@ tap_word "$D" "x"; sleep 0.6
 assert_eq "paste: the keyboard types at the caret after the paste" "[copycopyx]" "$(read_mirror text)"
 
 # ---- very long text ------------------------------------------------------------------------------------
-fresh field_multiline
-# `input text` truncates a long argument (run 1 got 481 of 1500 characters), so the app is filled in
-# fifteen 100-character chunks; the keyboard only ever reads the 64 characters before the caret.
-chunk="$(python3 -c "print('abcdefghij' * 10)")"
-for _ in $(seq 1 15); do adb shell input text "$chunk"; done
-sleep 1
+# `input text` drops characters on a long string (runs 1-2 got 481 and 555 of 1500), so the fixture puts
+# the 1500 characters in itself (--ei fill) with the caret at the end; the keyboard then types after them
+# and reads only the 64 characters before the caret.
+adb shell am start -S -W -n "$FIX/.MainActivity" -e focus field_multiline --ei fill 1500 >/dev/null
+sleep 2.5; kb_dump "$D"
+assert_eq "very long text: the field holds 1500 characters" "1500" "$(read_mirror len)"
 tap_key "$D" space; tap_word "$D" "end"; sleep 0.8
 len="$(read_mirror len)"
 assert_eq "very long text: 1500 characters, then ' end' typed by the keyboard" "1504" "$len"
@@ -144,10 +144,12 @@ saved="$ROW_DIR/.learned_before.txt"; learned > "$saved"
 fresh field_text
 for _ in 1 2; do tap_word "$D" "zqxjw"; tap_key "$D" space; sleep 0.4; done
 assert_contains "the misspelling is learned after two commits" "zqxjw" "$(learned)"
-# Put the caret INTO the first word with a tap in the text (the fixture's field starts at its left).
-dump_ui "$F"
-read -r fl ft fr fb <<< "$(bounds "$F" "$FIX:id/field_text")"
-adb shell input tap $((fl + 40)) $(( (ft + fb) / 2 )); sleep 1
+# Put the caret INTO the first word with the arrow keys. (Run 2 tapped the word in the text instead, and
+# Android's own spell checker — not the keyboard — answered a tap on a red-underlined word with the app's
+# suggestion popup, which lies over the left of the strip and took the next tap. Recorded as a finding.)
+for _ in 1 2 3 4 5 6 7 8 9; do adb shell input keyevent KEYCODE_DPAD_LEFT; done
+sleep 1
+note "caret after the arrow keys: $(read_mirror sel)"
 note "strip with the caret in the word: $(strip)"
 assert_contains "R6 2.2.7: the strip offers '– zqxjw'" "– zqxjw" "$(strip)"
 kb_dump "$D"

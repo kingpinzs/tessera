@@ -99,7 +99,9 @@ open_field field_text
 kb_dump "$D"
 read -r sx0 sy0 <<< "$(node_center "$D" kb_key_space)"
 drag_pts "$sx0,$sy0" "$sx0,$((sy0 - 300))" 40 > /dev/null; sleep 1
-dump_ui "$F"; tap_node "$F" "$FIX:id/field_filter"; sleep 2
+# field_filter is the last field, below the fold: the fixture focuses it itself (the intent is re-delivered
+# to the running screen, so the raised keyboard stays raised). Run 1 tapped it while it was off-screen.
+adb shell am start -W -n "$FIX/.MainActivity" -e focus field_filter >/dev/null; sleep 2
 kb_dump "$D"
 read -r _ ptop _ _ <<< "$(bounds "$D" kb_panel)"
 dump_ui "$F"
@@ -125,8 +127,13 @@ screencap "$ROW_DIR/edge2_landscape.png"
 read -r pl pt pr pb <<< "$(bounds "$D" kb_panel)"
 read -r ql qt qr qb <<< "$(bounds "$D" kb_key_q)"
 note "landscape: panel [$pl,$pt][$pr,$pb]; q [$ql,$qt][$qr,$qb]"
-assert_eq "landscape: the keyboard spans the landscape width" "2340" "$((pr - pl))"
-assert_within "landscape: keys widen with the width (q = 130 phys x 2340/1440)" 211.25 $((qr - ql)) 2
+# The IME window in landscape stops at the side nav bar and the cutout; the keys span THAT width.
+usable="$(adb shell dumpsys window | grep -m1 -o 'InputMethod.*mFrame=\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]' | sed 's/.*mFrame=\[\([0-9]*\),[0-9]*\]\[\([0-9]*\),.*/\2 \1/' | awk '{print $1-$2}')"
+[ -z "$usable" ] && usable=$((pr - pl))
+note "landscape: IME window width $usable"
+read -r bl _ br _ <<< "$(bounds "$D" kb_key_bksp)"
+assert_eq "landscape: the whole key grid is inside the window (backspace's right edge is on screen)" "yes" "$([ "$br" -le "$pr" ] && [ "$br" -gt $((pr - 20)) ] && echo yes || echo no)"
+assert_within "landscape: keys widen with the width (q = 130 phys x window width / 1440)" "$(python3 -c "print(130*$((pr - pl))/1440)")" $((qr - ql)) 2
 assert_eq "landscape: the keyboard leaves most of the screen to the app (panel < 60 % of the height)" "yes" "$([ $((pb - pt)) -lt 648 ] && echo yes || echo no)"
 tap_word "$D" "land"; sleep 1; dump_ui "$N"
 assert_contains "landscape: typing works" "and" "$(grep -o 'text="[^"]*"' "$N" | tr '\n' ' ' | tr 'A-Z' 'a-z')"
@@ -139,12 +146,15 @@ sleep 2
 open_field field_text
 kb_dump "$D"
 read -r dx dy <<< "$(node_center "$D" kb_cursor_dot)"
-adb shell input swipe $dx $dy $dx $dy 6000 &
+adb shell input swipe $dx $dy $dx $dy 4000 &
 hold=$!
 sleep 1.2
-adb shell am start -W -f 0x10008000 -n app.tileshell/.settings.SettingsActivity --es page KEYBOARD >/dev/null; sleep 1.5
+# Settings comes up over the held dot (the keyboard hides, and the hold is cancelled under it); the
+# setting is changed once that injected hold has ended — run 1 tapped while the swipe's pointer was still
+# down, and the tap never landed.
+adb shell am start -W -f 0x10008000 -n app.tileshell/.settings.SettingsActivity --es page KEYBOARD >/dev/null
+wait $hold; sleep 0.5
 K="$ROW_DIR/.edge2_kp.xml"; scroll_to_node "$K" keyboard_cursor_left 4 >/dev/null 2>&1; tap_node "$K" keyboard_cursor_left; sleep 0.5
-wait $hold
 open_field field_text
 kb_dump "$D"; screencap "$ROW_DIR/edge2_hand_changed.png"
 read -r l t r b <<< "$(bounds "$D" kb_cursor_dot)"
