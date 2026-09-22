@@ -127,6 +127,15 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
                 return handled
             }
         }
+        // The owners go on the view this method RETURNS, not only on the ComposeView inside it. Compose
+        // creates the window recomposer from the window's ROOT view, and the root here is the host, so
+        // with the owners only on the child every open died with
+        //   IllegalStateException: ViewTreeLifecycleOwner not found from ...$host$1
+        // at AbstractComposeView.onAttachedToWindow — the session crashed before it drew, which from
+        // outside looks exactly like a Cortana that ignores every touch.
+        host.setViewTreeLifecycleOwner(this@CortanaSession)
+        host.setViewTreeViewModelStoreOwner(this@CortanaSession)
+        host.setViewTreeSavedStateRegistryOwner(this@CortanaSession)
         host.addView(
             compose,
             android.widget.FrameLayout.LayoutParams(
