@@ -14,8 +14,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import app.tileshell.diag.Diagnostics
 import app.tileshell.tiles.ActiveTiles
-import app.tileshell.tiles.Slot
-import app.tileshell.tiles.TileKey
 import app.tileshell.tiles.engine.FaceTransition
 import app.tileshell.tiles.engine.LiveTileEngine
 import app.tileshell.tiles.engine.TileContent
@@ -46,6 +44,13 @@ object MusicFeed {
 
     /** What was last published, so a position tick can be recognised as "nothing changed". */
     private var published: MusicRules.Now? = null
+
+    /**
+     * The package whose tile currently carries the face, so it can be cleared when the session moves to
+     * another app (phase 10 Q4). Without this, stopping Spotify and starting the shell's own player
+     * would leave Spotify's tile showing a track that is no longer playing anywhere.
+     */
+    private var publishedPkg: String? = null
 
     /** The art belonging to [published]'s track: kept so an unchanged track is not re-read over a Binder. */
     private var publishedArt: ImageBitmap? = null
@@ -145,16 +150,25 @@ object MusicFeed {
         published = next
         publishedArt = art
         val plan = MusicRules.plan(next)
-        ActiveTiles.set(MUSIC_TILE, plan.grow, "music ${if (plan.grow) "playing" else "idle"}")
+        val pkg = next?.track?.pkg
 
-        if (next == null) {
-            LiveTileEngine.publish(LiveTileEngine.MUSIC, null)
+        // Phase 10 Q4: the face belongs to the tile of the app that OWNS the session, so it is published
+        // under that package's key and the tiles standing for that package are the ones that grow. A tile
+        // is never borrowed: an app with nothing on Start simply shows nowhere.
+        if (publishedPkg != null && publishedPkg != pkg) {
+            LiveTileEngine.publish(LiveTileEngine.packageKey(publishedPkg!!), null)
+            ActiveTiles.setPackage(publishedPkg!!, false, "the session moved to ${pkg ?: "nothing"}")
+        }
+        publishedPkg = pkg
+        pkg?.let { ActiveTiles.setPackage(it, plan.grow, "music ${if (plan.grow) "playing" else "idle"}") }
+
+        if (next == null || pkg == null) {
             Diagnostics.add("music", "idle, nothing known ($reason)")
             return
         }
         val face = TileFace.NowPlaying(art, next.track.title, next.track.artist, next.playing, plan.controls)
         LiveTileEngine.publish(
-            LiveTileEngine.MUSIC,
+            LiveTileEngine.packageKey(pkg),
             TileContent(
                 faces = if (plan.flip) listOf(face) else emptyList(),
                 transition = FaceTransition.FLIP,
@@ -175,15 +189,11 @@ object MusicFeed {
         current = null
         published = null
         publishedArt = null
-        ActiveTiles.set(MUSIC_TILE, false, reason)
-        LiveTileEngine.publish(LiveTileEngine.MUSIC, null)
+        publishedPkg?.let {
+            ActiveTiles.setPackage(it, false, reason)
+            LiveTileEngine.publish(LiveTileEngine.packageKey(it), null)
+        }
+        publishedPkg = null
     }
 
-    /**
-     * The tile that grows. The Music SLOT tile is the only tile the music feed drives (a pinned app tile
-     * reads `pkg:` content, which this feed never publishes), so it is the only one that can grow.
-     * A Music tile in the bottom row or inside a folder is not in the grid order and is left alone by
-     * [app.tileshell.tiles.TileGrowth] on its own.
-     */
-    private val MUSIC_TILE: TileKey = TileKey.SlotTile(Slot.MUSIC)
 }
