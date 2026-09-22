@@ -6,13 +6,20 @@
 Prints `key=value` lines for the driver to assert on, and exits non-zero when the persona could not be
 found at all — a measurement that silently returns a default is worse than no measurement.
 
-Method (PLAN RV11, and the correction phase 02's harness made): the accent disc and its halo are found
-by their COLOUR, not by a brightness threshold, and each edge is read at the half-intensity crossing
+Method (PLAN RV11, and the correction phase 02's harness made): the disc and its halo are found by
+their COLOUR, not by a brightness threshold, and each edge is read at the half-intensity crossing
 between the two neighbouring pixels. A hard threshold on an antialiased edge saturates about three
 pixels early and quietly hides the tail of an ease-out.
 
-The page is black (R6 §3.1.14) and the persona is the only accent-coloured thing on it, which is what
-makes a colour search safe here.
+The page is black (R6 §3.1.14) and the persona is the only coloured thing on it, which is what makes a
+colour search safe here.
+
+2026-09-21: the persona is painted as HAL's lens rather than a flat accent fill (INDEX Change Log), so
+the hue searched for is the lens red instead of the accent blue. The METHOD is unchanged, and so is
+every number it measures: the lens is a gradient, but all of its tones sit on one hue line and the
+outermost one is opaque to the edge, so the half-intensity crossings land exactly where the flat disc's
+did. The specular core reads white and scores 0; that is fine, because the disc is measured from the
+first and last pixel above the cut, not from a contiguous run.
 """
 import glob
 import os
@@ -23,30 +30,30 @@ from PIL import Image
 PX_PER_EPX = 1080 / 360.0
 FPS = 60.0
 
-# Windows "Default Blue" 0078D7, the out-of-box accent (phase 01 X26). The halo is the same hue at 25 %
-# over black, so both are found by hue rather than by brightness.
-ACCENT = (0x00, 0x78, 0xD7)
+# Brand.LENS_RIM 8A1008, the deepest tone of the lens and the reference the others are scaled from
+# (Brand.kt). The halo is the iris at 25 % over black, so both are found by hue, not by brightness.
+LENS = (0x8A, 0x10, 0x08)
 
 
-def accent_score(pixel):
-    """How accent-like a pixel is, 0..1, independent of how bright it is."""
+def lens_score(pixel):
+    """How lens-like a pixel is, 0..1, independent of how bright it is."""
     r, g, b = pixel[:3]
-    if b < 24:
+    if r < 24:
         return 0.0
-    # The accent is strongly blue-dominant with a mid green and almost no red.
-    if not (b > g > r):
+    # Every lens tone is strongly red-dominant with a low green and a lower blue.
+    if not (r > g > b):
         return 0.0
-    scale = b / ACCENT[2]
-    expected_g = ACCENT[1] * scale
-    expected_r = ACCENT[0] * scale
-    if abs(g - expected_g) > 26 or abs(r - expected_r) > 26:
+    scale = r / LENS[0]
+    expected_g = LENS[1] * scale
+    expected_b = LENS[2] * scale
+    if abs(g - expected_g) > 26 or abs(b - expected_b) > 26:
         return 0.0
-    return min(1.0, b / 255.0 * 4)
+    return min(1.0, r / 255.0 * 4)
 
 
 def row_extent(image, y, width):
-    """The sub-pixel left and right edges of the accent run on row [y], or None."""
-    scores = [accent_score(image.getpixel((x, y))) for x in range(width)]
+    """The sub-pixel left and right edges of the lens run on row [y], or None."""
+    scores = [lens_score(image.getpixel((x, y))) for x in range(width)]
     peak = max(scores)
     if peak < 0.12:
         return None
@@ -84,7 +91,7 @@ def measure(path):
         left, right = rows[widest_y]
         halo = right - left
         # The disc is the SOLID core: on the widest row it is the run whose score is near the peak.
-        scores = [accent_score(image.getpixel((x, widest_y))) for x in range(width)]
+        scores = [lens_score(image.getpixel((x, widest_y))) for x in range(width)]
         peak = max(scores)
         core = [x for x, s in enumerate(scores) if s >= peak * 0.85]
         disc = (core[-1] - core[0]) if len(core) > 1 else 0.0
