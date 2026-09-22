@@ -1,0 +1,27 @@
+==============================================================================
+ROW E11 — the session hides the system bars and draws W10M's
+at            2026-09-21T20:19:46-06:00
+driver        e11.sh blob 535430706d33772b3a65e8611254a2e0172c8a2f
+harness       lib.sh blob 777b41ba9813902d1b44f6443b4f64755d029467
+apk built     296a74ac6a75865c 318484572 bytes
+apk installed c37b4609d2742849
+apk match     yes (c37b4609d2742849)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  the session is showing                                      = yes
+PASS  the session reports the system bars hidden                  contains [system bars hidden=true]
+StatusBar: isReadyForDisplay()=false isVisible=false; Taskbar: isReadyForDisplay()=false isVisible=false
+PASS  dumpsys window: the system bars are not visible             StatusBar: isReadyForDisplay()=false isVisible=false; Taskbar: isReadyForDisplay()=false isVisible=false
+PASS  the drawn W10M status bar is on screen                      = yes
+PASS  the drawn W10M nav bar is on screen                         = yes
+PASS  Back                                                        = yes
+PASS  Windows                                                     = yes
+PASS  Search, which phase 03 ADDed into phase 01's empty slot     = yes
+PASS  and the empty slot is gone                                  = no
+PASS  the text box's bottom edge sits on the drawn nav bar's top  0.00 vs 0.00 +/- 1.0
+PASS  the drawn nav bar is 48 epx (phase 01 X6)                   48.00 vs 48.00 +/- 1.0
+PASS  the drawn status bar is 28 epx (R3 C4)                      28.00 vs 28.00 +/- 1.0
+PASS  and it starts at the screen top                             0.00 vs 0.00 +/- 1.0
+PASS  the drawn nav bar reaches the screen bottom                 2340.00 vs 2340.00 +/- 2.0
+------------------------------------------------------------------------------
+E11: 14 passed, 0 failed

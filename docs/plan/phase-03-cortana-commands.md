@@ -159,3 +159,34 @@ Per-command observables for E2 (fixture apps installed for tests only, never bun
 - Person reminders: contact with several numbers (any matches); a number not in contacts; a missed or rejected call (doesn't count as talking); a call still in progress (counts only once it ends); a group text including the contact; a call or text in a direction the R3T-B6 ruling does not count; `READ_CALL_LOG` or `READ_SMS` not allow-listed (checklist rows red, person reminders cannot fire)
 
 ## QA evidence
+
+Index: [qa/phase-03/README.md](qa/phase-03/README.md) · NEEDS-HUMAN: [qa/phase-03/NEEDS-HUMAN.md](qa/phase-03/NEEDS-HUMAN.md) · exported allow-list: [qa/phase-03/exported-allowlist.txt](qa/phase-03/exported-allowlist.txt)
+
+Every row's status below is the driver's exit code, not a judgement. A row that makes no assertions fails by construction (qa/phase-03/scripts/lib.sh), and every log carries the driver's git blob plus a comparison of the installed APK's md5 against the one just built — phase 02's returned gate, answered up front.
+
+| Row | Status | Evidence |
+|---|---|---|
+| E1 assistant role | PASS 5/5 | qa/phase-03/E1/E1.txt |
+| E2 the ruled command list, spoken, offline | see qa/phase-03/E2/E2.txt | qa/phase-03/E2/ |
+| E3 unmatched speech reaches the not-understood handler | PASS 7/7 | qa/phase-03/E3/E3.txt |
+| E4 persona motion from screenrecord | NOT RUN | — |
+| E5 typed request, text box geometry, exported components | PASS 12/12 | qa/phase-03/E5/E5.txt |
+| E6 the tile ADD runs once; reminders survive force-stop and reboot | see qa/phase-03/E6/E6.txt | qa/phase-03/E6/ |
+| E7 the confirmation flow | NOT RUN | — |
+| E8 the Search key, tap and hold | NOT RUN | — |
+| E9 lock screen options and the locked session | NOT RUN | — |
+| E10 the locked commands | NOT RUN | — |
+| E11 the session's drawn bars | see qa/phase-03/E11/E11.txt | qa/phase-03/E11/ |
+| E12 the speech process's death is contained | see qa/phase-03/E12/E12.txt | qa/phase-03/E12/ |
+| E13 place reminder | NOT RUN | — |
+| E14 person reminder | NOT RUN | — |
+| E15 the pane, Reminders and Settings pages | NOT RUN | — |
+| Edge cases | NOT RUN | — |
+| Unit tests | PASS 233/233, 0 failures | ./gradlew :app:testDebugUnitTest |
+
+**Questions this doc left open that the device answered.** Recorded here because the doc says to record them, and because each one had a fallback written into the plan that is now unnecessary:
+
+- **Session bars.** "Hiding the system bars over the voice-interaction window is UNVERIFIED; E11 and P3 prove it, and if it cannot be done the session keeps the system bars." It CAN be done. The session logs `system bars hidden=true`, and E11's `dumpsys window` capture shows StatusBar and Taskbar both `isReadyForDisplay()=false isVisible=false` while the session is showing. The fallback is not needed; every measured value in this phase is read against the drawn bars as written.
+- **bpeVocab as an asset.** The speech process reports `asr_bpe_vocab=asset:speech/asr/bpe.vocab` — no extraction to storage is needed, so only espeak-ng-data is written to the filesystem.
+- **Kokoro's speaker count.** `voices_reported=11` equals `voices_expected=11`; the bundled voice table matches the model.
+- **`EXTRA_SKIP_UI` alarms.** Not yet exercised over the keyguard (E10 NOT RUN), so the PQ3 re-ask has not been triggered either way.

@@ -42,7 +42,7 @@ row_begin() { # id description
     echo "at            $(date -Is)"
     # The build guard phase 02's rework added: a log that cannot say which driver and which APK
     # produced it is not evidence of anything.
-    echo "driver        $(basename "$0") blob $(git -C "$REPO" hash-object "$0")"
+    echo "driver        $(basename "$0") blob $(git -C "$REPO" hash-object "$HERE/$(basename "$0")")"
     echo "harness       lib.sh blob $(git -C "$REPO" hash-object "$HERE/lib.sh")"
     echo "apk built     $(sha256sum "$APK" 2>/dev/null | cut -c1-16) $(stat -c%s "$APK" 2>/dev/null) bytes"
     echo "apk installed $(installed_apk_id)"

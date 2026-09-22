@@ -1,0 +1,22 @@
+==============================================================================
+ROW E12 — the speech process can die without taking the shell with it
+at            2026-09-21T20:18:43-06:00
+driver        e12.sh blob 2623b23cab1237b7d1efb31ed6ebb28d009d7ca6
+harness       lib.sh blob 777b41ba9813902d1b44f6443b4f64755d029467
+apk built     296a74ac6a75865c 318484572 bytes
+apk installed c37b4609d2742849
+apk match     yes (c37b4609d2742849)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      launcher pid 8692, speech pid 8764
+PASS  the launcher process is running                             != 
+PASS  the speech process is running                               != 
+PASS  and they are different processes                            != 8692
+PASS  the models are loaded in it                                 = true
+PASS  the launcher process pid is unchanged                       = 8692
+PASS  the shell noticed the process was gone                      contains [process gone]
+PASS  Start is still drawing                                      = yes
+FAIL  and the live tile engine is still publishing                should not be [19]
+PASS  the notification listener is still connected                = yes
+PASS  the speech process came back with a new pid                 != 8764
+PASS  and the new process says what the old one died doing, or nothing when it was killed  contains [service created]

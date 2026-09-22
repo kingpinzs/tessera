@@ -62,8 +62,9 @@ assert_contains "and Cortana spoke a reply" "It's" "$(reply_text)"
 assert_eq "a response card is on screen" "yes" "$(has_node "$ROW_DIR/e5_typed.xml" cortana_card_title)"
 
 # ---- the exported components allow-list --------------------------------------------------------
-adb shell dumpsys package app.tileshell > "$ROW_DIR/e5_package.txt" 2>/dev/null
-python3 "$HERE/exported.py" "$ROW_DIR/e5_package.txt" "$HERE/../exported-allowlist.txt" > "$ROW_DIR/e5_exported.txt" 2>&1
+# The APK's own merged manifest is the authority, and lib.sh has already proved the device is running
+# this exact APK, so checking the manifest checks the device.
+python3 "$HERE/exported.py" "$APK" "$HERE/../exported-allowlist.txt" > "$ROW_DIR/e5_exported.txt" 2>&1
 exported_rc=$?
 cat "$ROW_DIR/e5_exported.txt" >> "$LOG"
 if [ $exported_rc -eq 0 ]; then

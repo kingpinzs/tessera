@@ -1,0 +1,31 @@
+10 exported in app.tileshell, 10 on the allow-list
+  receiver       androidx.profileinstaller.ProfileInstallReceiver
+                 manifest permission: android.permission.DUMP
+                 allow-list: android.permission.DUMP - androidx.profileinstaller's baseline-profile trigger. Added by the library, guarded by DUMP.
+  activity       app.tileshell.StartActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (HOME intent filter) - The home screen. A launcher's HOME activity has to be exported or the platform cannot start it.
+  service        app.tileshell.cortana.CortanaRecognitionService
+                 manifest permission: android.permission.BIND_VOICE_INTERACTION
+                 allow-list: android.permission.BIND_VOICE_INTERACTION - The offline recogniser a VoiceInteractionService must name. It serves the same :speech process.
+  service        app.tileshell.cortana.CortanaService
+                 manifest permission: android.permission.BIND_VOICE_INTERACTION
+                 allow-list: android.permission.BIND_VOICE_INTERACTION - The assistant. Only the system holds the permission; this is what the assist gesture, the side key and KEYCODE_ASSIST reach.
+  service        app.tileshell.cortana.CortanaSessionService
+                 manifest permission: android.permission.BIND_VOICE_INTERACTION
+                 allow-list: android.permission.BIND_VOICE_INTERACTION - The session window the framework asks for.
+  service        app.tileshell.feeds.TileNotificationListener
+                 manifest permission: android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
+                 allow-list: android.permission.BIND_NOTIFICATION_LISTENER_SERVICE - The live-tile notification listener. Only the system holds the permission.
+  activity       app.tileshell.settings.SettingsActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - The Start settings launcher entry, and the settingsActivity the voice-interaction and recognition services point at.
+  receiver       app.tileshell.tiles.api.LegacyBadgeReceiver
+                 manifest permission: (none)
+                 allow-list: guard: none (legacy badge broadcasts) - Legacy badge senders resolve the shell through this entry. A sender that does not share its identity is refused by default (phase 01 adversarial review).
+  provider       app.tileshell.tiles.api.LiveTileProvider
+                 manifest permission: (none)
+                 allow-list: guard: none by design (R5 4b) - The public Live Tile API. Every call() verb authorises on the caller's Binder identity rather than on a manifest permission.
+  activity       app.tileshell.weather.WeatherActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - The Weather app's own launcher entry.

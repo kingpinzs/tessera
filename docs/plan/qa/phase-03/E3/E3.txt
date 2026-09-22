@@ -1,0 +1,22 @@
+==============================================================================
+ROW E3 — an unmatched utterance reaches the not-understood handler
+at            2026-09-21T20:17:49-06:00
+driver        e3.sh blob 42dd0bdb0e67470c5f1c9097202a8b8d53ac4fc8
+harness       lib.sh blob 777b41ba9813902d1b44f6443b4f64755d029467
+apk built     296a74ac6a75865c 318484572 bytes
+apk installed c37b4609d2742849
+apk match     yes (c37b4609d2742849)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      final: open="WHAT IS THE CAPITAL OF PERU" grammar="WHAT IS THE CAPITAL OF PERU"
+      open pass: [WHAT IS THE CAPITAL OF PERU]
+PASS  the recogniser produced an open-vocabulary transcript       != 
+      handler line:     2026-09-21 20:18:01.022 wall=1790043481022 [not_understood] transcript="WHAT IS THE CAPITAL OF PERU" handler=none
+PASS  the not-understood handler ran                              contains [transcript=]
+PASS  with no phase 08 handler registered yet                     contains [handler=none]
+PASS  and it logged the transcript the recogniser produced        contains [WHAT IS THE CAPITAL OF PERU]
+PASS  Cortana said it cannot do that yet                          contains [can't do that yet]
+PASS  a not-understood card is on screen                          = yes
+PASS  a matched command does NOT reach the handler                = 3
+------------------------------------------------------------------------------
+E3: 7 passed, 0 failed

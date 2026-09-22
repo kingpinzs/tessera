@@ -1,0 +1,17 @@
+==============================================================================
+ROW E1 — the assistant role
+at            2026-09-21T20:16:19-06:00
+driver        e1.sh blob 60029823f8f791ea5c533c2baac74d87910e311a
+harness       lib.sh blob 777b41ba9813902d1b44f6443b4f64755d029467
+apk built     296a74ac6a75865c 318484572 bytes
+apk installed c37b4609d2742849
+apk match     yes (c37b4609d2742849)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  role holder                                                 = app.tileshell
+PASS  secure assistant component                                  = app.tileshell/.cortana.CortanaService
+PASS  voice interaction service                                   = app.tileshell/.cortana.CortanaService
+PASS  a session opens on the assist key                           = yes
+PASS  the service reported itself ready                           contains [VoiceInteractionService ready]
+------------------------------------------------------------------------------
+E1: 5 passed, 0 failed
