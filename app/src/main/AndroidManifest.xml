@@ -237,6 +237,32 @@
             android:process=":speech"
             android:exported="false" />
 
+        <!-- ===== Phase 05: the keyboard ===== -->
+
+        <!--
+          The W10M keyboard (Decisions: shell-owned IME in the one APK). Guarded by BIND_INPUT_METHOD,
+          which only the system holds. Its own process: a keyboard crash cannot take Start with it (and
+          Start's cannot take the keyboard), and the :speech process sees it as a client of its own when
+          the voice key and Cortana both want the one microphone.
+        -->
+        <service
+            android:name=".ime.KeyboardService"
+            android:label="@string/keyboard_name"
+            android:permission="android.permission.BIND_INPUT_METHOD"
+            android:process=":ime"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+            <meta-data android:name="android.view.im" android:resource="@xml/method" />
+        </service>
+
+        <!-- The keyboard's settings, read across the process boundary. Not exported: only this app calls it. -->
+        <provider
+            android:name=".ime.KeyboardConfigProvider"
+            android:authorities="app.tileshell.keyboardconfig"
+            android:exported="false" />
+
         <!-- Reminder alarms, proximity alerts, and the re-registration a reboot or an update needs. -->
         <receiver
             android:name=".cortana.reminders.ReminderReceiver"
