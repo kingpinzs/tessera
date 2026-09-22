@@ -29,7 +29,11 @@ class RealDictionarySmokeTest {
         val lexicon = file.reader(Charsets.UTF_8).use { Lexicon.load(it) }
         val loadMs = (System.nanoTime() - t0) / 1_000_000.0
         assertTrue("dictionary has ${lexicon.size} words; expected 60k–150k", lexicon.size in 60_000..150_000)
-        assertTrue("the commonest word is not 'the'", lexicon.wordAt(0).equals("the", ignoreCase = true))
+        // The chosen source ranks by 12dicts frequency BANDS, not counts (BUILD-START.md): every word in a
+        // band shares one count and ties sort alphabetically, so "the" is in the top band, not at rank 0.
+        val the = lexicon.rankOf("the")
+        assertTrue("'the' is not in the dictionary", the >= 0)
+        assertEquals("'the' is not in the top frequency band", lexicon.countAt(0), lexicon.countAt(the))
         assertTrue(lexicon.contains("because"))
         assertEquals("I", lexicon.canonical("i"))
 
