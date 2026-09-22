@@ -220,9 +220,37 @@ one task that touches shipped code is done early enough to be re-verified rather
    built on the geometry this shell already has and every number cites its source (MusicMetrics). Phase
    06 does not exist yet, so its Phone tabs could not be cited either; the rows are the app list's
    (R3 C2 / R6 §5.1.4) and the pivot header is P4 design, flagged as such. Evidence
-   qa/phase-01/MUSIC6, 37/37 on the emulator against six tagged fixtures.
+   qa/phase-01/MUSIC6, 38/38 on the emulator against six tagged fixtures.
+   **Amended 2026-09-22 (Jeremy): the header strip scrolls with the page.** "playing is cut off and
+   should scroll into view when swiping right from songs and go out of view again when swiping left to
+   go to songs but not fully out of view just the way it is now where pla is showing." The rule is
+   *scroll no further than the selected header needs* — `max(0, headerRight − visibleWidth)` per page,
+   interpolated across the swipe — and NOT "pin the selected header to the left margin", which his own
+   sentence rules out: on songs the strip has to look exactly as it did, all four headers with "pla"
+   at the edge. Asserted both ways in qa/phase-01/MUSIC7: on songs the playlists header's right edge
+   is at 1080 px of a 1080-px screen (cut off), on playlists it is 1068 (whole) with the albums header
+   dragged off the left, and going back to songs returns it to 1080 exactly.
 7. **Now-playing screen.** Built to R8's measurements. **Gated on R8**: building it first would mean
    building it twice, which is the whole reason Q3 ruled for measuring this one screen.
+   **Built 2026-09-22 to V-2016, anchored per R8 §1.10.** Evidence qa/phase-01/MUSIC7, 46/46 on the
+   emulator, every geometry check asserted in epx against the nav bar this build actually draws: title
+   left edge 61.0 (R8 61.0), hamburger centre 24.0, search centre 336.0, art margins 16.0/16.0 flush
+   under the chrome with no seam, metadata origin 12.0, scrubber 96.0 / transport 55.67 / chevron 16.0
+   epx above the nav bar, the six transport centres on the W/6 grid (30.33 … 330.33), the chevron at
+   180.0, and the expanded queue at a 61.67-epx pitch (R8 61.5). The second line reads
+   "Artist • Album", which is V-2016's own change and the reason Ruling 1 picked it.
+   **Three things stated rather than implied.** (a) R8 measured Groove's status bar at 24 epx; this
+   shell draws its own at 28 (R3 C4) on every page, and one app inside the shell with a shorter status
+   bar would be the odd one out rather than the faithful one — R8's 48-epx app header below it is
+   unchanged. (b) R8 §1.3's full-bleed ARTIST-art mode needs artist photography, which a MediaStore
+   library does not have; album-art mode is built and nothing is approximated in its place. (c) R8
+   UNMEASURED-3 never established what the `•••` holds, so it holds nothing — the glyph is drawn
+   because R8 measured it as present.
+   **The route to it is a build-time call**, stated because R8 does not cover it: Groove reached this
+   screen from a mini-player strip that is in no measurement, so instead a tap on a track plays it and
+   opens this screen, and Back returns to the collection with the session still playing (asserted).
+   H-M1 and H-M2 remain open: the transport glyph FORMS are drawn from R8's verbal descriptions
+   ("a bar plus a hollow triangle", `⤬`, 20-epx repeat), not from measured outlines.
 8. **Playlists.** Create, rename, reorder, delete (Q7), persisted where MediaStore playlists are not
    writable on modern Android — the store is the build's own, and where it lives is a build-time call
    recorded in this doc when task 8 starts.

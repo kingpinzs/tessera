@@ -7,17 +7,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
@@ -25,7 +24,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -33,13 +34,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -49,6 +53,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.tileshell.applist.AppListMetrics
 import app.tileshell.bars.BarMetrics
+import app.tileshell.diag.Diagnostics
+import app.tileshell.bars.W10mNavBar
+import app.tileshell.bars.W10mStatusBar
 import app.tileshell.brand.Glyph
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.tokens.ShellType
@@ -88,6 +95,8 @@ object MusicMetrics {
     val TITLE_BLOCK = 28.dp
     /** P4 design: the pivot header strip; the header face is `subheader` (34 epx light) plus its lead. */
     val PIVOT_BLOCK = 54.dp
+    /** P4 design: the space between two pivot headers. */
+    val PIVOT_GAP = 14.dp
     /** P4 design: the unselected pivot headers, the standard W10M "disabled ink" fraction. */
     const val PIVOT_DIM = 0.4f
     /** R3 C2: the row pitch and its icon, shared with the app list. */
@@ -104,7 +113,13 @@ object MusicMetrics {
  * WAS ON — a second activity would come back to a rebuilt pivot sitting on albums again.
  */
 @Composable
-fun MusicCollectionPage(tracks: List<Track>, hasAccess: Boolean) {
+fun MusicCollectionPage(
+    tracks: List<Track>,
+    hasAccess: Boolean,
+    onPlay: (List<Track>, Int) -> Unit,
+    onBack: () -> Unit,
+    onWindows: () -> Unit,
+) {
     val colors = LocalShellColors.current
     val locale = LocalConfiguration.current.locales[0]
     val scope = rememberCoroutineScope()
@@ -113,67 +128,117 @@ fun MusicCollectionPage(tracks: List<Track>, hasAccess: Boolean) {
 
     BackHandler(enabled = detail != null) { detail = null }
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(colors.background)
-            .padding(top = MusicMetrics.TOP + WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
-            .testTag("music_root"),
-    ) {
-        val open = detail
-        if (open != null) {
-            DetailPage(open, onBack = { detail = null })
-        } else {
-            Column(Modifier.fillMaxSize()) {
-                BasicText(
-                    "music",
-                    style = ShellType.caption.copy(color = colors.subtleText),
-                    modifier = Modifier
-                        .padding(start = MusicMetrics.SIDE)
-                        .height(MusicMetrics.TITLE_BLOCK)
-                        .testTag("music_app_title"),
-                )
-                PivotHeaders(pager.currentPage) { page ->
-                    scope.launch { pager.animateScrollToPage(page, animationSpec = androidx.compose.animation.core.tween(app.tileshell.ui.motion.Motion.PIVOT_SETTLE_MS)) }
-                }
-                HorizontalPager(state = pager, modifier = Modifier.fillMaxSize().testTag("music_pivot")) { index ->
-                    val pivot = MusicPivot.entries[index]
-                    val page = remember(pivot, tracks, locale) { MusicCollection.page(pivot, tracks, locale) }
-                    PivotPage(pivot, page, hasAccess) { item ->
-                        when (item) {
-                            is SongItem -> MusicPlayer.play(page.queue, page.startIndexOf(item.track))
-                            is AlbumItem, is ArtistItem -> detail = item
-                            is LetterHeader -> Unit
+    // The shell's own chrome, drawn by the page as every other shell-owned page draws it: the music
+    // player is an app INSIDE the shell, so it gets the same status bar and the same W10M nav bar
+    // rather than Android's.
+    Column(Modifier.fillMaxSize().background(colors.background).testTag("music_root")) {
+        W10mStatusBar()
+        Box(Modifier.fillMaxWidth().weight(1f)) {
+            val open = detail
+            if (open != null) {
+                DetailPage(open, onPlay)
+            } else {
+                Column(Modifier.fillMaxSize()) {
+                    BasicText(
+                        "music",
+                        style = ShellType.caption.copy(color = colors.subtleText),
+                        modifier = Modifier
+                            .padding(start = MusicMetrics.SIDE)
+                            .height(MusicMetrics.TITLE_BLOCK)
+                            .testTag("music_app_title"),
+                    )
+                    // Which pivot is actually showing, said out loud. A device row cannot read it off
+                    // the dump: the pager keeps a neighbouring page composed, so both pages' rows are
+                    // in the tree and "which page am I on" is a guess from the XML.
+                    LaunchedEffect(pager.settledPage) {
+                        Diagnostics.add("music", "pivot settled on ${MusicPivot.entries[pager.settledPage].title}")
+                    }
+                    PivotHeaders(pager.currentPage + pager.currentPageOffsetFraction) { page ->
+                        scope.launch { pager.animateScrollToPage(page, animationSpec = androidx.compose.animation.core.tween(app.tileshell.ui.motion.Motion.PIVOT_SETTLE_MS)) }
+                    }
+                    HorizontalPager(state = pager, modifier = Modifier.fillMaxSize().testTag("music_pivot")) { index ->
+                        val pivot = MusicPivot.entries[index]
+                        val page = remember(pivot, tracks, locale) { MusicCollection.page(pivot, tracks, locale) }
+                        PivotPage(pivot, page, hasAccess) { item ->
+                            when (item) {
+                                is SongItem -> onPlay(page.queue, page.startIndexOf(item.track))
+                                is AlbumItem, is ArtistItem -> detail = item
+                                is LetterHeader -> Unit
+                            }
                         }
                     }
                 }
             }
         }
+        W10mNavBar(onBack = { if (detail != null) detail = null else onBack() }, onWindows = onWindows)
     }
 }
 
-/** The pivot's headers: the current one in full ink, its neighbours dimmed, tapping one swings to it. */
+/**
+ * The pivot's headers: the current one in full ink, its neighbours dimmed, tapping one swings to it —
+ * and the strip SCROLLS with the page (Jeremy, 2026-09-22: "playing is cut off and should scroll into
+ * view when swiping right from songs and go out of view again when swiping left to go to songs but not
+ * fully out of view just the way it is now where pla is showing").
+ *
+ * The rule is **scroll no further than the selected header needs**, not "pin the selected header to
+ * the left margin", and his sentence is what settles it: on songs the strip must look exactly as it
+ * does now — all four headers with "pla" peeking at the edge — and only playlists, which does not fit,
+ * pulls the strip along. Pinning to the left margin would have thrown albums and artists off the
+ * screen the moment you left them, which is not what he described.
+ *
+ * So each page has its own offset, `max(0, headerRight − visibleWidth)`, and the strip interpolates
+ * between the two the swipe is between. That makes the scroll-in and the scroll-out the same motion
+ * run in opposite directions, and it returns to zero on the way back without any state to reset.
+ */
 @Composable
-private fun PivotHeaders(current: Int, onPick: (Int) -> Unit) {
+private fun PivotHeaders(pageOffset: Float, onPick: (Int) -> Unit) {
     val colors = LocalShellColors.current
-    Row(
+    val density = LocalDensity.current
+    val widths = remember { mutableStateListOf(*Array(MusicPivot.entries.size) { 0 }) }
+    BoxWithConstraints(
         Modifier
             .fillMaxWidth()
             .height(MusicMetrics.PIVOT_BLOCK)
-            .padding(start = MusicMetrics.SIDE),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .clipToBounds()
+            .testTag("music_pivot_headers"),
     ) {
-        MusicPivot.entries.forEachIndexed { i, pivot ->
-            val ink = if (i == current) colors.text else colors.text.copy(alpha = MusicMetrics.PIVOT_DIM)
-            BasicText(
-                pivot.title,
-                style = ShellType.subheader.copy(color = ink),
-                maxLines = 1,
-                modifier = Modifier
-                    .clickable { onPick(i) }
-                    .testTag("music_pivot_header:${pivot.name.lowercase()}"),
-            )
+        val visiblePx = with(density) { (maxWidth - MusicMetrics.SIDE * 2).toPx() }
+        val gapPx = with(density) { MusicMetrics.PIVOT_GAP.toPx() }
+        // Where each header starts, and how far the strip has to move for that header to be whole.
+        val shiftFor = remember(widths.toList(), visiblePx, gapPx) {
+            var start = 0f
+            widths.map { w ->
+                val right = start + w
+                start += w + gapPx
+                (right - visiblePx).coerceAtLeast(0f)
+            }
+        }
+        val last = MusicPivot.entries.lastIndex
+        val lo = pageOffset.toInt().coerceIn(0, last)
+        val hi = (lo + 1).coerceAtMost(last)
+        val shift = shiftFor[lo] + (shiftFor[hi] - shiftFor[lo]) * (pageOffset - lo).coerceIn(0f, 1f)
+        val current = kotlin.math.round(pageOffset).toInt().coerceIn(0, last)
+        Row(
+            Modifier
+                .padding(start = MusicMetrics.SIDE)
+                .wrapContentWidth(Alignment.Start, unbounded = true)
+                .graphicsLayer { translationX = -shift },
+            horizontalArrangement = Arrangement.spacedBy(MusicMetrics.PIVOT_GAP),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MusicPivot.entries.forEachIndexed { i, pivot ->
+                val ink = if (i == current) colors.text else colors.text.copy(alpha = MusicMetrics.PIVOT_DIM)
+                BasicText(
+                    pivot.title,
+                    style = ShellType.subheader.copy(color = ink),
+                    maxLines = 1,
+                    softWrap = false,
+                    modifier = Modifier
+                        .onGloballyPositioned { widths[i] = it.size.width }
+                        .clickable { onPick(i) }
+                        .testTag("music_pivot_header:${pivot.name.lowercase()}"),
+                )
+            }
         }
     }
 }
@@ -413,7 +478,7 @@ private fun JumpGrid(targets: List<JumpTarget>, onDismiss: () -> Unit, onPick: (
 
 /** An album or an artist, opened from the pivot: its tracks, in the order they play. */
 @Composable
-private fun DetailPage(item: CollectionItem, onBack: () -> Unit) {
+private fun DetailPage(item: CollectionItem, onPlay: (List<Track>, Int) -> Unit) {
     val colors = LocalShellColors.current
     val queue = remember(item) { MusicCollection.tracksOf(item) }
     val title = when (item) {
@@ -441,12 +506,11 @@ private fun DetailPage(item: CollectionItem, onBack: () -> Unit) {
             modifier = Modifier
                 .padding(start = MusicMetrics.SIDE)
                 .height(MusicMetrics.PIVOT_BLOCK)
-                .clickable(onClick = onBack)
                 .testTag("music_detail_title"),
         )
         LazyColumn(Modifier.fillMaxSize()) {
             items(queue.size, key = { queue[it].id }) { i ->
-                SongRow(SongItem(queue[i])) { MusicPlayer.play(queue, i) }
+                SongRow(SongItem(queue[i])) { onPlay(queue, i) }
             }
         }
     }
