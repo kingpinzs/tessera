@@ -124,6 +124,41 @@ is simply the session it usually finds.
 gated on phase 04's accessibility service. This phase publishes a media session; what a glance screen
 draws from it is phase 07's question, asked there.
 
+**R8 landed 2026-09-22, and the two rulings it asks for (agent calls).**
+
+R8 (r8-groove-measurements.md) established the now-playing screen's structure and every static value
+from four native-resolution screenshots across two devices at two different W10M scale factors — which
+is what lets each number be classified as fixed-in-epx or proportional-to-width instead of guessed. The
+shape task 7 builds: a 72-epx chrome band (24 status + 48 header carrying the hamburger, "NOW PLAYING"
+and search), art flush beneath it, a two-line metadata block, a time-labelled scrubber with an 18-epx
+HOLLOW thumb, a six-button transport row on an exact W/6 grid, and a centred chevron at W/2 that
+expands the play queue. THERE IS NO BOTTOM APP BAR — the overflow is the sixth transport cell. Artist
+art is full-bleed with no scrim, no blur and no tint; album art insets a square on a black page. And
+nothing on the collapsed screen is accent-coloured: the scrubber is white at two opacities and the
+accent appears only on the queue's playing row, proven across two phones with different accents.
+
+**Ruling 1 — build to V-2016 (agent call).** Neither measurable source is the governing build: every
+capture is 10586-era, and the Dec-2015 and Feb-2016 versions genuinely differ (art 311 epx with 24-epx
+margins versus 328 epx with 16-epx margins; title cap 22.75 versus ~14 epx; a second line reading
+"Artist" versus "Artist • Album"). V-2016 is the later of the two and the only one carrying the album on
+the second line, and it is the release AAWP documents as the update that changed artwork handling — so
+it is the nearer ancestor of whatever 14393+ shipped. Taken as an agent call rather than sent back as a
+question because it is reversible by eye: **NEEDS-HUMAN row H-M1** asks Jeremy to look at the finished
+screen, and switching to V-2015 is four numbers and a string.
+
+**Ruling 2 — the vertical layout is anchored, not absolute (agent call).** R8's own §1.10 says the
+chrome anchors to the top while the nav bar, chevron and transport row anchor to the bottom at 48 / 16 /
+56 epx, and that this holds across both a 640-epx and a 731-epx canvas. The S25 Ultra is ~780 epx tall,
+so the measured absolute y values (400 / 444 / 488 / 536) are NOT carried across; only the offsets from
+each end are, and the extra ~140 epx falls between the art and the metadata. Building to the absolute
+numbers would put the transport row 244 epx off the bottom of the phone this is for.
+
+**Motion is entirely UNMEASURED** and task 7 cannot close it: YouTube extraction was blocked in the
+research environment, so not one frame was pulled. Entry and exit, art transitions on track change, the
+queue collapse/expand and press feedback all get **approximations recorded as approximations**, with
+**NEEDS-HUMAN row H-M2**. MangoTile's own artwork-slide claim is explicitly WP8 and carries no numbers,
+so it is not a substitute.
+
 ## Interview queue (Stage A step 4)
 
 - ~~Q1 — what the player IS.~~ Ruled 2026-09-22 ("A"); see Decisions.
@@ -191,7 +226,9 @@ Every row runs on the device and captures its evidence, per the harness in qa/ph
 | E11 | Playing in another app that has a pinned tile puts the face on THAT tile, not on this one |
 | E12 | Playing in an app with no tile puts the face nowhere — no tile is borrowed |
 | E13 | The tile grows while playing, white glyphs survive a bright cover, and its controls drive playback (re-verification of the 2026-09-21 item 3 findings under the new rule) |
-| E14 | The now-playing screen matches R8's measured values within its stated tolerances |
+| E14 | The now-playing screen matches R8's measured values within its stated tolerances, built to V-2016 and anchored per §1.10 rather than to absolute y values |
+| H-M1 | NEEDS-HUMAN: Jeremy looks at the finished now-playing screen and rules V-2016 vs V-2015 (four numbers and a string) |
+| H-M2 | NEEDS-HUMAN: Jeremy judges the motion, which R8 could not measure at all |
 | E15 | Playlists can be created, renamed, reordered and deleted, and survive a restart |
 | E16 | Sleep timer stops playback at its time; the equaliser changes what is heard |
 | E17 | Gapless / crossfade behaves as set between two tracks |
