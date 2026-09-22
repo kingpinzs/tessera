@@ -18,6 +18,12 @@ set_pref() { # <key> <boolean|string> <value|--remove>; the shell rewrites prefs
   [ -s "$ROW_DIR/prefs-in.xml" ] || printf '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n<map />\n' > "$ROW_DIR/prefs-in.xml"
   python3 "$HERE/prefs_edit.py" "$ROW_DIR/prefs-in.xml" "$1" "$2" "$3" > "$ROW_DIR/prefs-out.xml"
   adb shell "run-as $PKG sh -c 'cat > shared_prefs/start_theme.xml'" < "$ROW_DIR/prefs-out.xml"
+  # The notification listener is restarted by the system within a second of a force-stop and reads the
+  # settings as it comes up, so a write that lands after that restart is not seen until the NEXT start.
+  # The first run of this row measured exactly that — every state was one setting behind, which read as
+  # "the slideshow does not grow the tile" and "a picture frame does", both of which are false. Stopping
+  # the package again AFTER the write makes the next start the first process to read it.
+  adb shell am force-stop $PKG; sleep 2
 }
 
 show_start() { adb shell input keyevent KEYCODE_HOME; sleep 7; }
