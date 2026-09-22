@@ -603,7 +603,13 @@ private fun WeatherNowFace(face: TileFace.WeatherNow, model: TileModel) {
                     )
                 }
             }
-            val third = face.stale ?: face.details.joinToString("  ").takeIf { it.isNotEmpty() && wide }
+            // The detail line is on MEDIUM as well as WIDE (Jeremy, 2026-09-22: asked for the wind and
+            // high-low back after item 2 rebuilt this face). MEDIUM is half the width, so it carries the
+            // two the width fits — the day's high/low and the precipitation — and WIDE carries the wind
+            // as well; WeatherFeed builds the list in that order. A stale report still wins the line,
+            // because numbers nobody should trust are worth less than saying they are old.
+            val shown = if (wide) face.details else face.details.take(2)
+            val third = face.stale ?: shown.joinToString("  ").takeIf { it.isNotEmpty() }
             third?.let { BasicText(it, style = ShellType.caption.copy(color = white), maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
     }
