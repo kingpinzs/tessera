@@ -26,3 +26,46 @@ PASS  alarm: DeskClock holds a pending alarm                      contains [com.
 PASS  timer -> SetTimer                                           contains [SetTimer]
 PASS  timer reply text                                            contains [Timer set for]
 FAIL  timer reply was audible                                     RMS -117.87 dBFS is not above -40
+      time_query final: open="AT WHAT TIME IS IT" grammar="AT WHAT TIME IS IT"
+      time_query match: "AT WHAT TIME IS IT" -> TimeQuery
+PASS  time_query -> TimeQuery                                     contains [TimeQuery]
+PASS  time_query reply text                                       contains [It's]
+PASS  time_query reply was audible                                RMS -35.58 dBFS > -40
+      date_query final: open="WHAT DAY IS IT" grammar="WHAT DAY IS IT"
+      date_query match: "WHAT DAY IS IT" -> DateQuery
+PASS  date_query -> DateQuery                                     contains [DateQuery]
+PASS  date_query reply text                                       contains [Today is]
+PASS  date_query reply was audible                                RMS -33.57 dBFS > -40
+      take_photo final: open="TAKE A PHOTO" grammar="TAKE A PHOTO"
+      take_photo match: "TAKE A PHOTO" -> TakePhoto
+PASS  take_photo -> TakePhoto                                     contains [TakePhoto]
+FAIL  take_photo reply text                                       does not contain [camera]: Choose a Camera app in Start settings first.
+PASS  take_photo reply was audible                                RMS -34.63 dBFS > -40
+FAIL  take a photo: the Camera slot app resumed                   does not contain [camera]:       topresumedactivity=activityrecord{129997260 u0 app.tileshell/.startactivity t404}
+      take_note final: open="TAKE A NOTE" grammar="TAKE A NOTE"
+      take_note match: "TAKE A NOTE" -> TakeNote(text=null)
+PASS  take_note -> TakeNote                                       contains [TakeNote]
+FAIL  take_note reply text                                        does not contain [notes]: Choose a Notes app in Cortana's settings first.
+PASS  take_note reply was audible                                 RMS -34.37 dBFS > -40
+      play_music final: open="PLAY MUSIC" grammar="PLAY MUSIC"
+      play_music match: "PLAY MUSIC" -> PlayMusic(query=null)
+PASS  play_music -> PlayMusic                                     contains [PlayMusic]
+PASS  play_music reply text                                       contains [Playing]
+PASS  play_music reply was audible                                RMS -26.29 dBFS > -40
+      directions final: 
+      directions match: "DIRECTIONS TO THE AIRPORT" -> Directions(destination=the airport)
+PASS  directions -> Directions                                    contains [Directions]
+PASS  directions reply text                                       contains [directions]
+FAIL  directions reply was audible                                RMS -98.95 dBFS is not above -40
+      calendar_add final: open="AD A MEETING CALLED STAND UP TO MY CALENDAR AT TEN A M" grammar="AD A MEETING CALLED STAND UP TO MY CALENDAR AT TEN A M"
+      calendar_add match: "AD A MEETING CALLED STAND UP TO MY CALENDAR AT TEN A M" -> NotUnderstood(text=AD A MEETING CALLED STAND UP TO MY CALENDAR AT TEN A M)
+FAIL  calendar_add -> AddCalendarEvent                            does not contain [AddCalendarEvent]: "AD A MEETING CALLED STAND UP TO MY CALENDAR AT TEN A M" -> NotUnderstood(text=AD A MEETING CALLED STAND UP TO MY CALENDAR AT TEN A M)
+FAIL  calendar_add reply text                                     does not contain [Add this to your calendar?]: Sorry, I can't do that yet.
+FAIL  calendar_add reply was audible                              RMS -100.40 dBFS is not above -40
+FAIL  add a calendar event: the provider gained a row after confirm  should not be [1]
+      calendar_query final: open="WHAT'S ON MY CALENDAR" grammar="WHAT'S ON MY CALENDAR"
+      calendar_query match: "WHAT'S ON MY CALENDAR" -> WhatsOnMyCalendar
+PASS  calendar_query -> WhatsOnMyCalendar                         contains [WhatsOnMyCalendar]
+PASS  calendar_query reply text                                   contains [calendar]
+PASS  calendar_query reply was audible                            RMS -34.85 dBFS > -40
+      restored: wifi and data enabled (wifi_on was 1)
