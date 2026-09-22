@@ -125,16 +125,48 @@ class SwipeDecoder(
         return List(kept) { bestWord[it]!! }
     }
 
+    /**
+     * The three terms of [word]'s score against [path] — location, shape, frequency — for tuning the
+     * σ constants against synthesised and recorded gestures. Not used on the typing path.
+     */
+    internal fun channels(path: List<KeyPoint>, word: String, rank: Int): FloatArray {
+        val n = path.size
+        val xs = FloatArray(n) { path[it].x }
+        val ys = FloatArray(n) { path[it].y }
+        resample(xs, ys, n, userX, userY)
+        normalise(userX, userY, userShapeX, userShapeY)
+        val count = visits(word)
+        val total = score(count, rank)
+        val freq = FREQUENCY_WEIGHT * log10(rank + 1f)
+        // score() adds the three terms; recover location and shape by recomputing shape alone.
+        var shape = 0f
+        for (i in 0 until SAMPLES) {
+            val dx = wordShapeX[i] - userShapeX[i]
+            val dy = wordShapeY[i] - userShapeY[i]
+            shape += dx * dx + dy * dy
+        }
+        shape = shape / SAMPLES / (SHAPE_SIGMA * SHAPE_SIGMA)
+        return floatArrayOf(total - shape - freq, shape, freq)
+    }
+
     // ---- scoring ----
 
-    /** Score for the word whose [count] ideal visits are in [visitX]/[visitY]; lower is better. */
+    /**
+     * Score for the word whose [count] ideal visits are in [visitX]/[visitY]; lower is better.
+     *
+     * Each channel is the MEAN SQUARED point deviation over its σ² — the log-likelihood of independent
+     * Gaussian noise at every sample — rather than SHARK2's squared mean deviation. The difference
+     * matters for a word that departs from a commoner one at a single key: "three" leaves "the"'s
+     * straight h→e line for a bump to r that is about a third of a pitch at its peak. Squaring the
+     * mean lets that bump hide in the average; squaring per point makes it cost what it should.
+     */
     private fun score(count: Int, rank: Int): Float {
         resample(visitX, visitY, count, wordX, wordY)
         var location = 0f
         for (i in 0 until SAMPLES) {
             val dx = (wordX[i] - userX[i]) / layout.pitchX
             val dy = (wordY[i] - userY[i]) / layout.pitchY
-            location += sqrt(dx * dx + dy * dy)
+            location += dx * dx + dy * dy
         }
         location /= SAMPLES
         normalise(wordX, wordY, wordShapeX, wordShapeY)
@@ -142,12 +174,11 @@ class SwipeDecoder(
         for (i in 0 until SAMPLES) {
             val dx = wordShapeX[i] - userShapeX[i]
             val dy = wordShapeY[i] - userShapeY[i]
-            shape += sqrt(dx * dx + dy * dy)
+            shape += dx * dx + dy * dy
         }
         shape /= SAMPLES
-        val l = location / LOCATION_SIGMA
-        val s = shape / SHAPE_SIGMA
-        return l * l + s * s + FREQUENCY_WEIGHT * log10(rank + 1f)
+        return location / (LOCATION_SIGMA * LOCATION_SIGMA) + shape / (SHAPE_SIGMA * SHAPE_SIGMA) +
+            FREQUENCY_WEIGHT * log10(rank + 1f)
     }
 
     /**
@@ -223,10 +254,20 @@ class SwipeDecoder(
         const val LENGTH_SLACK_PITCHES = 1f
         const val LENGTH_SLACK_RATIO = 0.3f
 
-        /** Channel widths: the typical deviation of a finger that meant this word. */
-        const val LOCATION_SIGMA = 0.35f
-        const val SHAPE_SIGMA = 0.1f
-        const val FREQUENCY_WEIGHT = 0.5f
+        /**
+         * Channel widths: the typical deviation of a finger that meant this word, in key pitches for
+         * location and in unit-box fractions for shape. Frequency is deliberately light next to them —
+         * it decides between words that trace the SAME path ("to" / "too") and must not let a common
+         * word win over a rarer one whose keys the finger actually visited.
+         *
+         * Tuned on synthesised paths (SwipeDecoderTest, 6 and 12 px of jitter, corners cut by up to
+         * 30–45 px) with [channels]: on a "three" path "the" trails on fit by ≈ 0.3 at these widths
+         * while paying 0.31 less in frequency, and on a "the" path "the" leads "three" by ≈ 1.0, so
+         * both directions decode right with a margin.
+         */
+        const val LOCATION_SIGMA = 0.18f
+        const val SHAPE_SIGMA = 0.07f
+        const val FREQUENCY_WEIGHT = 0.15f
 
         internal fun pathLength(xs: FloatArray, ys: FloatArray, count: Int): Float {
             var length = 0f
