@@ -24,6 +24,15 @@ import app.tileshell.tiles.engine.BadgeStore
 class ShellApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        // Application.onCreate runs in EVERY process of the app. The launcher's start-up work — the
+        // catalog, the layout-store ADDs, the feeds, the reminder alarms — belongs to the main process
+        // alone: the keyboard's `:ime` process (phase 05) and the `:speech` process must not seed
+        // start_layout.json or start a second set of feeds beside the launcher's.
+        val process = getProcessName()
+        if (process != packageName) {
+            Diagnostics.add("app", "process start: $process (no launcher start-up work here)")
+            return
+        }
         Diagnostics.add("app", "process start")
         followPackageChanges(AppCatalog.get(this))
         addCortanaTile()
