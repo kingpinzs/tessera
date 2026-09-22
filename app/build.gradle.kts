@@ -22,6 +22,16 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
+        // Phase 03: the speech runtime ships native code. arm64-v8a is the S25 Ultra, x86_64 is the AVD;
+        // the other two ABIs in the AAR would add ~58 MB for hardware this plan never targets.
+        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+    }
+
+    // Phase 03 Decisions "Model variants and budget": the ASR and TTS models are read straight out of the
+    // APK by the native asset loader, so they must not be deflated. espeak-ng-data.zip is read by the
+    // extractor as a stream, so it is stored too rather than double-compressed.
+    androidResources {
+        noCompress += listOf("onnx", "bin", "zip")
     }
 
     signingConfigs {
@@ -60,6 +70,9 @@ android {
 
     buildFeatures {
         compose = true
+        // Phase 03: the speech engines live in their own process (Decisions "Model storage and process"),
+        // so the shell reaches them across a Binder.
+        aidl = true
     }
 }
 
@@ -68,5 +81,8 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.foundation)
     implementation(libs.activity.compose)
+    // Phase 03: one runtime for ASR and TTS (Decisions, R2 §5.2). The AAR is a pinned GitHub release
+    // asset fetched by tools/fetch-speech.sh, not a repo dependency: k2-fsa publishes no Maven artifact.
+    implementation(files("libs/sherpa-onnx-1.13.8.aar"))
     testImplementation(libs.junit)
 }

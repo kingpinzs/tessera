@@ -17,6 +17,31 @@
     <!-- Samsung badge provider read (R5 §2.4); whether One UI grants it is probed at runtime (P6). -->
     <uses-permission android:name="com.sec.android.provider.badge.permission.READ" />
 
+    <!-- ===== Phase 03: Cortana ===== -->
+    <!-- Voice requests. The models never leave the device and Cortana makes no network request. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- "Call/text <contact>" and person reminders resolve names through the Contacts provider. -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- "What's on my calendar" reads; "add a calendar event" inserts after the confirmation card. -->
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+    <!-- The action layer sends the text itself (SmsManager) and places the call itself (TelecomManager). -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <!-- Reminders fire at the exact time. A sideloaded app gets this at install; no Play policy applies (F1-m7). -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Place reminders: Android's own proximity alerts, no Google Play services (P5). -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <!--
+      Person reminders read the call log and the SMS provider. Both are hard-restricted: an app holding
+      no dialer or SMS role gets them only because the installer allow-lists them, which `adb install`
+      does unless `--restrict-permissions` is passed. The shell is never installed with that flag, and
+      the checklist has a row for each (Decisions "Place and person reminder mechanics" (1)).
+    -->
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+
     <application
         android:name=".ShellApp"
         android:allowBackup="false"
@@ -103,5 +128,78 @@
                 <data android:scheme="package" />
             </intent-filter>
         </receiver>
+
+        <!-- ===== Phase 03: Cortana ===== -->
+
+        <!--
+          The assistant. Exported and guarded by BIND_VOICE_INTERACTION, which only the system holds:
+          that is how a VoiceInteractionService is declared, and it is what the assist gesture, the side
+          key and KEYCODE_ASSIST reach.
+        -->
+        <service
+            android:name=".cortana.CortanaService"
+            android:exported="true"
+            android:label="@string/cortana_name"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <meta-data
+                android:name="android.voice_interaction"
+                android:resource="@xml/voice_interaction_service" />
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionService" />
+            </intent-filter>
+        </service>
+
+        <!-- The session's window: Cortana's pages, its persona and its drawn W10M bars. -->
+        <service
+            android:name=".cortana.CortanaSessionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION" />
+
+        <!--
+          A VoiceInteractionService must name a RecognitionService. This one is the offline engine behind
+          the same `:speech` process the session uses; phase 05's voice typing binds it as a normal client.
+        -->
+        <service
+            android:name=".cortana.CortanaRecognitionService"
+            android:exported="true"
+            android:label="@string/cortana_name"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data android:name="android.speech" android:resource="@xml/recognition_service" />
+        </service>
+
+        <!--
+          The speech engines' own process (Decisions "Model storage and process"). Not exported: only the
+          shell binds it. Its death leaves Start, tiles, the listener, the IME and the dialer untouched (E12).
+        -->
+        <service
+            android:name=".cortana.speech.SpeechService"
+            android:process=":speech"
+            android:exported="false" />
+
+        <!-- Reminder alarms, proximity alerts, and the re-registration a reboot or an update needs. -->
+        <receiver
+            android:name=".cortana.reminders.ReminderReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+          Shown when another app holds the assistant role: a session cannot open without the role, so the
+          Search key opens this page instead, which offers the role request (H30). Not exported — only the
+          shell starts it.
+        -->
+        <activity
+            android:name=".cortana.CortanaRoleNoticeActivity"
+            android:exported="false"
+            android:taskAffinity="app.tileshell.cortana"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode" />
     </application>
 </manifest>
