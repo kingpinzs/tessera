@@ -255,6 +255,9 @@ class StartActivity : ComponentActivity() {
             is TileTarget.Shell -> when (target.name) {
                 ShellTiles.WEATHER -> startActivity(Intent(this, app.tileshell.weather.WeatherActivity::class.java), options)
                 ShellTiles.SETTINGS -> startActivity(Intent(this, app.tileshell.settings.SettingsActivity::class.java), options)
+                // Phase 03: the tile opens the same session the Search key, the assist gesture and the
+                // side key open — there is no second Cortana screen.
+                ShellTiles.CORTANA -> app.tileshell.cortana.CortanaService.open(this, app.tileshell.cortana.CortanaMode.HOME)
                 else -> Diagnostics.add("launch", "shell tile ${target.name} has no target")
             }
             is TileTarget.Unassigned, is TileTarget.Folder -> Unit

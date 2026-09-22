@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import app.tileshell.apps.AppCatalog
 import app.tileshell.apps.AppEntry
+import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
 import app.tileshell.diag.Diagnostics
 import app.tileshell.prefs.ThemeMode
@@ -181,9 +182,18 @@ class TileFactory(
                 val (label, glyph, feed) = when (key.name) {
                     ShellTiles.WEATHER -> Triple("Weather", Glyph.WEATHER_PARTLY, LiveTileEngine.WEATHER)
                     ShellTiles.SETTINGS -> Triple("Start settings", Glyph.SETTINGS, null)
+                    ShellTiles.CORTANA -> Triple(Brand.ASSISTANT_NAME, Glyph.MIC_FILLED, null)
                     else -> Triple(key.name, Glyph.APPS, null)
                 }
-                PlacedTile(key, TileModel(idPrefix + key.id, label, size, null, glyph, if (live) feed?.let { content[it] } else null, 0, false), TileTarget.Shell(key.name), x, y, wPx, hPx)
+                PlacedTile(
+                    key,
+                    TileModel(
+                        idPrefix + key.id, label, size, null, glyph,
+                        if (live) feed?.let { content[it] } else null, 0, false,
+                        shellFace = if (key.name == ShellTiles.CORTANA) ShellTiles.CORTANA else null,
+                    ),
+                    TileTarget.Shell(key.name), x, y, wPx, hPx,
+                )
             }
         }
     }
@@ -207,7 +217,11 @@ class TileFactory(
             MiniTile(entry?.let { TileIcons.load(context, it, iconPx) }, slotGlyph(key.slot))
         }
         is TileKey.AppTile -> MiniTile(catalog.find(key.component)?.let { TileIcons.load(context, it, iconPx) }, Glyph.APPS)
-        is TileKey.ShellTile -> MiniTile(null, if (key.name == ShellTiles.WEATHER) Glyph.WEATHER_PARTLY else Glyph.SETTINGS)
+        is TileKey.ShellTile -> MiniTile(null, when (key.name) {
+            ShellTiles.WEATHER -> Glyph.WEATHER_PARTLY
+            ShellTiles.CORTANA -> Glyph.MIC_FILLED
+            else -> Glyph.SETTINGS
+        })
         is TileKey.SecondaryTile -> MiniTile(secondaries[key.id]?.let { SecondaryTiles.logo(it, iconPx) }?.let { TileIcons.Icon(it, monochrome = false) }, Glyph.APPS)
         is TileKey.FolderTile -> MiniTile(null, Glyph.APPS)
     }

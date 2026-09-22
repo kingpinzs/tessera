@@ -57,6 +57,28 @@ object Contacts {
         return result
     }
 
+    /**
+     * Every contact's display name, for the grammar pass's boosted phrases. Bounded by [limit] because
+     * the hotwords file is built on every listen and a 5,000-contact phone would make it enormous.
+     */
+    fun allNames(context: Context, limit: Int): List<String> {
+        if (!granted(context)) return emptyList()
+        return runCatching {
+            context.contentResolver.query(
+                ContactsContract.Contacts.CONTENT_URI,
+                arrayOf(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY),
+                "${ContactsContract.Contacts.HAS_PHONE_NUMBER} = 1", null,
+                "${ContactsContract.Contacts.TIMES_CONTACTED} DESC",
+            )?.use { cursor ->
+                buildList {
+                    while (cursor.moveToNext() && size < limit) {
+                        cursor.getString(0)?.takeIf { it.isNotBlank() }?.let { add(it) }
+                    }
+                }
+            }.orEmpty()
+        }.onFailure { Diagnostics.add("contacts", "name list failed: $it") }.getOrDefault(emptyList())
+    }
+
     fun byLookupKey(context: Context, lookupKey: String): Match? {
         if (!granted(context)) return null
         val uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey)

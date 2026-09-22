@@ -16,7 +16,9 @@ import android.telephony.TelephonyManager
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,6 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
+import app.tileshell.cortana.CortanaMode
+import app.tileshell.cortana.CortanaService
 import app.tileshell.diag.Diagnostics
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.tokens.ShellType
@@ -170,25 +174,54 @@ private fun hasCellService(context: Context): Boolean =
     context.getSystemService(TelephonyManager::class.java)?.simState == TelephonyManager.SIM_STATE_READY
 
 /**
- * Drawn W10M nav bar: three equal slots (X17). Phase 01 draws Back (left) and Windows (centre); the right
- * slot stays empty until phase 03 ADDs Search.
+ * Drawn W10M nav bar: three equal slots (X17). Phase 01 drew Back (left) and Windows (centre) and left
+ * the right slot empty; phase 03 ADDs Search there and wires it to Cortana (R6 §4.2).
+ *
+ * Phase 01's bar rule makes this one component shared by every shell screen, so the Search key shows
+ * wherever the drawn nav bar does (review R3D-04). [onSearch] defaults to opening Cortana on its home
+ * page and [onSearchHold] to opening it already listening; Cortana's own session passes its own, since
+ * inside Cortana the key goes back to the home page rather than opening a second session.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun W10mNavBar(onBack: () -> Unit, onWindows: () -> Unit, modifier: Modifier = Modifier) {
-    val colors = LocalShellColors.current
+fun W10mNavBar(
+    onBack: () -> Unit,
+    onWindows: () -> Unit,
+    modifier: Modifier = Modifier,
+    onSearch: (() -> Unit)? = null,
+    onSearchHold: (() -> Unit)? = null,
+) {
+    val context = LocalContext.current
+    val search: () -> Unit = onSearch ?: { CortanaService.open(context, CortanaMode.HOME) }
+    // R6 §4.2.3: press-and-hold opens Cortana already listening. W10M's hold time is not in R6, so the
+    // build uses Android's own long-press timeout (approximation, H20).
+    val searchHold: () -> Unit = onSearchHold ?: { CortanaService.open(context, CortanaMode.LISTENING) }
     Row(modifier.fillMaxWidth().height(BarMetrics.NAV_EPX.dp).background(Color.Black).testTag("w10m_nav_bar"), horizontalArrangement = Arrangement.SpaceEvenly) {
         NavSlot("nav_back", onBack) { BasicText(Glyph.ARROW_LEFT, style = glyphStyle(Color.White, 20)) }
         NavSlot("nav_windows", onWindows) { WindowsGlyph() }
-        NavSlot("nav_search_slot", null) {}
+        NavSlot("nav_search", search, searchHold) { BasicText(Glyph.SEARCH, style = glyphStyle(Color.White, 20)) }
     }
 }
 
 @Composable
-private fun androidx.compose.foundation.layout.RowScope.NavSlot(tag: String, onClick: (() -> Unit)?, glyph: @Composable () -> Unit) {
+private fun androidx.compose.foundation.layout.RowScope.NavSlot(
+    tag: String,
+    onClick: (() -> Unit)?,
+    onLongClick: (() -> Unit)? = null,
+    glyph: @Composable () -> Unit,
+) {
     val interaction = remember { MutableInteractionSource() }
     Box(
         Modifier.weight(1f).fillMaxHeight().testTag(tag)
-            .let { if (onClick != null) it.clickable(interaction, indication = null, onClick = onClick) else it },
+            .let {
+                when {
+                    onClick == null -> it
+                    onLongClick == null -> it.clickable(interaction, indication = null, onClick = onClick)
+                    else -> it.combinedClickable(
+                        interaction, indication = null, onClick = onClick, onLongClick = onLongClick,
+                    )
+                }
+            },
         contentAlignment = Alignment.Center,
     ) { glyph() }
 }

@@ -195,6 +195,31 @@
           Search key opens this page instead, which offers the role request (H30). Not exported — only the
           shell starts it.
         -->
+        <!--
+          Raises Android's unlock prompt for the "Unlock to continue" card (H12): a session is not an
+          Activity, and requestDismissKeyguard needs one. Draws nothing.
+        -->
+        <activity
+            android:name=".cortana.CortanaUnlockActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:taskAffinity="app.tileshell.cortana.unlock" />
+
+        <!--
+          Grants a checklist row's permission or asks for the assistant role. A session cannot raise
+          either prompt; this is the smallest thing that can. Draws nothing.
+        -->
+        <activity
+            android:name=".cortana.CortanaPermissionActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:taskAffinity="app.tileshell.cortana.permission" />
+
         <activity
             android:name=".cortana.CortanaRoleNoticeActivity"
             android:exported="false"
