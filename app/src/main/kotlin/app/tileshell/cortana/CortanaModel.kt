@@ -70,7 +70,7 @@ enum class CortanaDestinationKey { HOME, REMINDERS, SETTINGS }
 class CortanaModel(
     private val context: Context,
     private val scope: CoroutineScope,
-    host: ActionHost,
+    private val host: ActionHost,
 ) {
     private val actions = ActionLayer(context, host)
     private val mutable = MutableStateFlow(CortanaState())
@@ -136,6 +136,17 @@ class CortanaModel(
     // ---------------- listening ----------------
 
     fun startListening() {
+        // Ask BEFORE listening, at the tap: the speech process can only report that the permission is
+        // missing, and reporting it was all that ever happened (Jeremy, 2026-09-22: "it is saying it needs
+        // permission to use the microphone but it never popped up the prompt to grant it").
+        if (context.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            SpeechClient.stopSpeaking()
+            Diagnostics.add("cortana", "listen: no RECORD_AUDIO; asking")
+            mutable.value = mutable.value.copy(listening = false, level = 0f)
+            reply(Outcome("", Card(CardKind.NOT_UNDERSTOOD, "I need permission to use the microphone. Allow it, then tap the microphone again.")))
+            host.requestMicrophone()
+            return
+        }
         SpeechClient.stopSpeaking()
         mutable.value = mutable.value.copy(
             persona = PersonaState.LISTENING, listening = true, query = "", reloading = false,
