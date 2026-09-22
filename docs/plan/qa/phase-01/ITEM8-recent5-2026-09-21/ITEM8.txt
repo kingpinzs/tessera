@@ -1,0 +1,36 @@
+==============================================================================
+ROW ITEM8 — app list: Recent (last 5 run) and Recently added (last 3 installed)
+at            2026-09-22T05:01:12-06:00
+driver        item8.sh blob 71c735c1a89a5dffcda8942c1b6dd61cfc5ad4ff
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     66a7eb1a8ca7b9e1 327038374 bytes
+apk installed 6b7e2d07b86b37b8
+apk match     yes (6b7e2d07b86b37b8)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  Recent section is absent while Usage access is denied       does not contain [resource-id="applist_section:recent"]
+PASS  the shell says why                                          contains [no Usage access]
+PASS  Usage access is granted                                     contains [allow]
+PASS  Recent section header is drawn                              contains [applist_section:recent]
+PASS  Recently added section header is drawn                      contains [applist_section:added]
+PASS  a launched app is in Recent: org.fossify.notes              contains [applist_recent_row:org.fossify.notes]
+PASS  a launched app is in Recent: net.osmand.plus                contains [applist_recent_row:net.osmand.plus]
+PASS  a launched app is in Recent: com.fsck.k9                    contains [applist_recent_row:com.fsck.k9]
+      recent rows=5 added rows=3
+PASS  Recent holds at most 5                                      = ok
+PASS  Recently added holds at most 3                              = ok
+PASS  Recent is not empty                                         = ok
+PASS  the same app still has its A-Z row: org.fossify.notes       contains [applist_row:org.fossify.notes]
+      search hits for osmand: 1
+PASS  searching finds the app exactly once                        = 1
+PASS  no section row in the results                               does not contain [applist_recent_row:net.osmand.plus]
+      opening the jump grid from [applist_header:A], jumping to [W]
+PASS  the jump grid opens                                         contains [jump_cell:]
+PASS  the jump lands on its own letter header: W                  contains [applist_header:W]
+------------------------------------------------------------------------------
+ITEM8: 16 passed, 0 failed
+
+PRESERVED 2026-09-22: this is the 2026-09-21 run of ITEM8, against the "Recent" section of the 5 apps
+run in the last seven days. Jeremy's 2026-09-22 amendment replaced that section with "Running" (run
+since the phone booted, at most 3), so item8.sh was rewritten and ITEM8 now holds the new run. Nothing
+here is wrong — it is evidence about behaviour that has since been changed on his instruction.

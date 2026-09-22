@@ -154,13 +154,17 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
     val newKeys by store.newKeys.collectAsState()
     val locale = LocalConfiguration.current.locales[0]
     val showProfiles = theme.showWorkAndPrivateApps
-    // Re-read on every resume rather than on a timer: the recent section is only ever looked at when
+    // Re-read on every resume rather than on a timer: the Running section is only ever looked at when
     // the list is actually open, and a phone used elsewhere should show that the moment it is opened.
     var lastUsed by remember { mutableStateOf(emptyMap<String, Long>()) }
+    // Wall-clock boot time, the cut-off the Running section is measured from. Computed once per model
+    // rather than read live: elapsedRealtime only ever moves forward, so this is a constant for the run.
+    val bootMs = remember { System.currentTimeMillis() - android.os.SystemClock.elapsedRealtime() }
     val model = remember(apps, profiles, showProfiles, locale, lastUsed) {
         buildAppListModel(
             apps, profiles, showProfiles, locale, store::keyOf, store::serialOf,
             lastUsed = lastUsed,
+            bootMs = bootMs,
             selfPackage = context.packageName,
         )
     }
@@ -486,7 +490,7 @@ private fun AppRow(
 }
 
 /**
- * "Recent" / "Recently added" (INDEX Change Log 2026-09-21 item 8). Drawn as a letter header is drawn,
+ * "Running" / "Recently added" (INDEX Change Log 2026-09-21 item 8). Drawn as a letter header is drawn,
  * because it is the same thing in the same list — a group heading — and W10M gave every group one form.
  * It is not a jump-grid target: the grid's cells are letters and profiles, and neither of these is a
  * place the alphabet can send you.

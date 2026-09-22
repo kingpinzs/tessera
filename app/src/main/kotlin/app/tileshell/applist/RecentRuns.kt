@@ -7,14 +7,14 @@ import app.tileshell.diag.Diagnostics
 import app.tileshell.start.BackHistory
 
 /**
- * When each app was last run, for the app list's recent section (INDEX Change Log 2026-09-21 item 8).
+ * When each app was last run, for the app list's Running section (INDEX Change Log 2026-09-21 item 8, amended 2026-09-22).
  *
  * Read from [UsageStatsManager], not from the shell's own launches, because "the last 5 ran programs"
  * means what it says: an app opened from a notification, from a link, or from another launcher was
  * still run. The shell already declares PACKAGE_USAGE_STATS and already reads usage events for Back on
  * Start and for the "New" caption, so this costs no new permission and no new checklist row.
  *
- * Without Usage access there is no recent section at all, and the diagnostics say so. That is the same
+ * Without Usage access there is no Running section at all, and the diagnostics say so. That is the same
  * thing Back on Start does rather than guess, and a section built only from launches the shell itself
  * happened to see would be wrong in a way nobody could spot.
  */
