@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import app.tileshell.apps.AppCatalog
 import app.tileshell.apps.AppEntry
 import app.tileshell.brand.Glyph
+import app.tileshell.diag.Diagnostics
 import app.tileshell.prefs.ThemeMode
 import app.tileshell.tiles.GridPack
 import app.tileshell.tiles.LayoutStore
@@ -540,10 +541,19 @@ private fun EditMotion(edit: StartEditState) {
     LaunchedEffect(edit.motionToken) {
         if (edit.motionToken == 0) return@LaunchedEffect
         if (edit.exiting) {
-            delay(Edit.EXIT_DELAY_MS) // R6 §1.5.2: the exit starts 150 ± 17 ms after touch-up
+            // R6 §1.5.2: the exit starts 150 ± 17 ms after TOUCH-UP. Sleeping 150 ms from here would add
+            // however long this coroutine took to be scheduled — measured at 169-185 ms on the emulator —
+            // so the wait is what is left of the 150 ms from the touch-up's own event time.
+            val since = android.os.SystemClock.uptimeMillis() - edit.exitRequestedUptimeMs
+            delay((Edit.EXIT_DELAY_MS - since).coerceAtLeast(0L))
             val scale0 = edit.scaleProgress
             val dim0 = edit.dimProgress
             val start = androidx.compose.runtime.withFrameMillis { it }
+            // The measurement of that 150 ms, on one clock: the touch-up's own event time against the frame
+            // this exit first draws in. Both are uptime millis, so QA reads the interval out of the ring
+            // buffer instead of hunting for a touch indicator the emulator never renders.
+            Diagnostics.add("edit", "exit first frame at uptime=$start, " +
+                "${start - edit.exitRequestedUptimeMs} ms after touch-up (R6 §1.5.2: 150 ± 17 ms)")
             while (true) {
                 val t = (androidx.compose.runtime.withFrameMillis { it } - start).toFloat()
                 edit.scaleProgress = scale0 * (1f - (t / Edit.EXIT_SCALE_MS).coerceIn(0f, 1f))
@@ -649,6 +659,9 @@ private fun GridTile(
     val w by animateFloatAsState(tile.wPx, tween(if (growing) Edit.RESIZE_GROW_MS else Edit.RESIZE_SHRINK_MS), label = "w")
     val h by animateFloatAsState(tile.hPx, tween(if (growing) Edit.RESIZE_GROW_MS else Edit.RESIZE_SHRINK_MS), label = "h")
     val contentAlpha = remember(tile.model.id) { Animatable(1f) }
+    // Keyed by tile id and pruned with the tile: left to grow, a tile unpinned and re-pinned at another size
+    // came back with a stale area and blanked its content for the length of a resize.
+    DisposableEffect(tile.model.id) { onDispose { lastArea.remove(tile.model.id) } }
     LaunchedEffect(tile.model.size) {
         val previous = lastArea.put(tile.model.id, tile.wPx * tile.hPx)
         if (previous == null || previous == tile.wPx * tile.hPx) return@LaunchedEffect

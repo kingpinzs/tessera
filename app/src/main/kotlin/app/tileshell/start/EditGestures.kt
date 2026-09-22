@@ -94,19 +94,20 @@ fun Modifier.startEditGestures(
                         onDisc(hit.kind, selected, edit, store)
                     }
                 }
-                is Hit.Tile -> {
-                    val moved = waitForMoveOrUp(down, viewConfiguration.touchSlop)
-                    if (moved) {
+                is Hit.Tile -> when (val press = awaitPress(down, viewConfiguration.touchSlop)) {
+                    Press.Moved -> {
                         edit.selected = hit.key
                         edit.drag = Drag(hit.key, down.position, hit.grabFrac, hit.inRow)
                         dragLoop(edit, geoState, store, scroll, down, pitchScaleState)
-                    } else if (hit.key == edit.selected) {
-                        Diagnostics.add("edit", "tap on the held tile ${hit.key.id}: exit")
-                        edit.requestExit()
+                    }
+                    is Press.Tap -> if (hit.key == edit.selected) {
+                        Diagnostics.add("edit", "tap on the held tile ${hit.key.id}: exit, touch-up uptime=${press.uptimeMs}")
+                        edit.requestExit(press.uptimeMs)
                     } else {
                         Diagnostics.add("edit", "selection moves to ${hit.key.id}")
                         edit.selected = hit.key
                     }
+                    Press.Cancelled -> Unit
                 }
                 is Hit.FolderName -> {
                     // A tap, and Microsoft's documented tap-and-hold, both open the name box (R6 §1.7.2-§1.7.3).
@@ -116,12 +117,13 @@ fun Modifier.startEditGestures(
                         edit.naming = true
                     }
                 }
-                Hit.Empty -> {
-                    val moved = waitForMoveOrUp(down, viewConfiguration.touchSlop)
-                    if (moved) scrollLoop(down, scroll, scope) else {
-                        Diagnostics.add("edit", "tap on empty space: exit")
-                        edit.requestExit()
+                Hit.Empty -> when (val press = awaitPress(down, viewConfiguration.touchSlop)) {
+                    Press.Moved -> scrollLoop(down, scroll, scope)
+                    is Press.Tap -> {
+                        Diagnostics.add("edit", "tap on empty space: exit, touch-up uptime=${press.uptimeMs}")
+                        edit.requestExit(press.uptimeMs)
                     }
+                    Press.Cancelled -> Unit
                 }
             }
         }
@@ -347,16 +349,27 @@ private fun hitTest(edit: StartEditState, geo: StartGeometry, coords: Coords, sc
 private fun near(at: Offset, cx: Float, cy: Float, discPx: Float): Boolean =
     kotlin.math.abs(at.x - cx) <= discPx / 2f && kotlin.math.abs(at.y - cy) <= discPx / 2f
 
-/** True when the finger moved past the slop; false when it lifted (or another handler took the gesture). */
-private suspend fun AwaitPointerEventScope.waitForMoveOrUp(down: PointerInputChange, slop: Float): Boolean {
+/** How a press ended: the finger moved past the slop, it lifted (a tap, with its own event time), or another
+ *  handler took the gesture — which is NOT a tap, and used to be treated as one. */
+private sealed interface Press {
+    data object Moved : Press
+    data class Tap(val uptimeMs: Long) : Press
+    data object Cancelled : Press
+}
+
+private suspend fun AwaitPointerEventScope.awaitPress(down: PointerInputChange, slop: Float): Press {
     while (true) {
         val event = awaitPointerEvent()
-        val change = event.changes.firstOrNull { it.id == down.id } ?: return false
-        if (!change.pressed) return false
-        if (change.isConsumed) return false
-        if ((change.position - down.position).getDistance() > slop) return true
+        val change = event.changes.firstOrNull { it.id == down.id } ?: return Press.Cancelled
+        if (!change.pressed) return Press.Tap(change.uptimeMillis)
+        if (change.isConsumed) return Press.Cancelled
+        if ((change.position - down.position).getDistance() > slop) return Press.Moved
     }
 }
+
+/** True when the finger moved past the slop; false when it lifted or the gesture was taken. */
+private suspend fun AwaitPointerEventScope.waitForMoveOrUp(down: PointerInputChange, slop: Float): Boolean =
+    awaitPress(down, slop) is Press.Moved
 
 /** Waits for the release, consuming everything so no tile below launches. Returns where the finger lifted. */
 private suspend fun AwaitPointerEventScope.waitForUpConsuming(down: PointerInputChange): Offset? {

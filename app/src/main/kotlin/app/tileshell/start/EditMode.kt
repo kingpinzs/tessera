@@ -47,7 +47,8 @@ object Edit {
     /** R6 §1.2.1-§1.2.3 (HIGH): two discs 31 ± 1.5 epx across, centred on the held tile's corners. */
     const val DISC_EPX = 31f
     /** R6 §1.2.5 (MEDIUM, 14393): unpin glyph 16 × 15 epx, resize glyph (one arrow) 12 × 12 epx. */
-    const val UNPIN_GLYPH_EPX = 15f
+    const val UNPIN_GLYPH_W_EPX = 16f
+    const val UNPIN_GLYPH_H_EPX = 15f
     const val RESIZE_GLYPH_EPX = 12f
 
     /** R6 §1.3.2 (LOW, H4): tiles that must make room slide over ≈300 ms with an ease-out; never fade or jump. */

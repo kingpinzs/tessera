@@ -57,8 +57,8 @@ fun EditDisc(kind: Disc, size: TileSize, discDp: Dp, discColor: Color, glyphColo
 
 /** A push-pin 16 × 15 epx with a small slashed circle at its lower right (R6 §1.2.5). */
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawUnpin(d: Float, epx: Float, color: Color) {
-    val w = 16f * epx
-    val h = 15f * epx
+    val w = Edit.UNPIN_GLYPH_W_EPX * epx
+    val h = Edit.UNPIN_GLYPH_H_EPX * epx
     translate(left = (d - w) / 2f, top = (d - h) / 2f) {
         val stroke = Stroke(width = 1.6f * epx, cap = StrokeCap.Round)
         // Pin head: the classic tilted plate, drawn as a quadrilateral, with the needle to the lower left.
@@ -83,7 +83,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawUnpin(d: Float,
 
 /** One arrow 12 × 12 epx pointing left; the caller turns it to the cycle's direction (R6 §1.2.5-§1.2.6). */
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawArrow(d: Float, epx: Float, color: Color) {
-    val s = 12f * epx
+    val s = Edit.RESIZE_GLYPH_EPX * epx
     translate(left = (d - s) / 2f, top = (d - s) / 2f) {
         val mid = s / 2f
         val stroke = 1.8f * epx
