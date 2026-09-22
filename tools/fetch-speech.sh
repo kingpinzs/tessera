@@ -9,7 +9,7 @@
 #
 # What it produces (all git-ignored):
 #   app/libs/sherpa-onnx-1.13.8.aar                      the runtime (Apache-2.0), 4 ABIs
-#   app/src/main/assets/speech/asr/*                     streaming zipformer en 20M int8 (Apache-2.0)
+#   app/src/main/assets/speech/asr/*                     streaming zipformer en 2023-06-26 int8 + bpe.model
 #   app/src/main/assets/speech/tts/model.int8.onnx       Kokoro-82M int8 en v0.19 (Apache-2.0)
 #   app/src/main/assets/speech/tts/voices.bin            its 11 voices
 #   app/src/main/assets/speech/tts/espeak-ng-data.zip    GPL-3.0-or-later, PQ1 = A (personal use)
@@ -26,8 +26,16 @@ assets="$root/app/src/main/assets/speech"
 
 AAR_URL="https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.13.8/sherpa-onnx-1.13.8.aar"
 AAR_SHA="633c24321e06b1fe79feafa03ea16cbc0f8a286641e2da3559bac91bdb13bd96"
-ASR_URL="https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17-mobile.tar.bz2"
-ASR_SHA="753a5362538539212442efbfb8dd5748db82e35e7deaec5330f49c56e81e40fd"
+# The ASR model is fetched file by file, not as a tarball: the release tarballs of this model carry
+# every variant, and only these five files ship in the APK.
+ASR_BASE="https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-en-2023-06-26/resolve/main"
+ASR_FILES="
+encoder-epoch-99-avg-1-chunk-16-left-128.int8.onnx encoder.int8.onnx 563fde436d16cf7607cf408cd6b30909819d03162652ef389c2450ced3f45ac1
+decoder-epoch-99-avg-1-chunk-16-left-128.int8.onnx decoder.int8.onnx 98da299f471e38bb4e1a8df579b8cc9122d6039576a77e357b3c60f17dd83b02
+joiner-epoch-99-avg-1-chunk-16-left-128.int8.onnx  joiner.int8.onnx  d944208d660d67c8d72cd2acaeac971fa5ceb8c80e76c1968148846fedd6e297
+tokens.txt                                          tokens.txt        49e3c2646595fd907228b3c6787069658f67b17377c60aeb8619c4551b2316fb
+bpe.model                                           bpe.model         c53433de083c4a6ad12d034550ef22de68cec62c4f58932a7b6b8b2f1e743fa5
+"
 TTS_URL="https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-int8-en-v0_19.tar.bz2"
 TTS_SHA="c9f0dd393615805b0bab050c340834d5e684e732aec91c0e860cd30e982c08bd"
 
@@ -46,22 +54,18 @@ fetch() { # url sha dest
 mkdir -p "$work" "$libs" "$assets/asr" "$assets/tts"
 
 fetch "$AAR_URL" "$AAR_SHA" "$work/sherpa-onnx-1.13.8.aar"
-fetch "$ASR_URL" "$ASR_SHA" "$work/asr.tar.bz2"
 fetch "$TTS_URL" "$TTS_SHA" "$work/kokoro.tar.bz2"
 
 cp -f "$work/sherpa-onnx-1.13.8.aar" "$libs/sherpa-onnx-1.13.8.aar"
 
-rm -rf "$work/models"; mkdir -p "$work/models"
-tar -xjf "$work/asr.tar.bz2" -C "$work/models"
+rm -rf "$work/models"; mkdir -p "$work/models" "$work/asr"
 tar -xjf "$work/kokoro.tar.bz2" -C "$work/models"
 
-asrsrc="$work/models/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17-mobile"
-# The int8 encoder and joiner plus the fp32 decoder: the release ships no int8 decoder, and at 2 MB it is
-# not worth one (phase 03 Decisions "Model variants and budget": int8 ASR).
-cp -f "$asrsrc/encoder-epoch-99-avg-1.int8.onnx" "$assets/asr/encoder.int8.onnx"
-cp -f "$asrsrc/decoder-epoch-99-avg-1.onnx"      "$assets/asr/decoder.onnx"
-cp -f "$asrsrc/joiner-epoch-99-avg-1.int8.onnx"  "$assets/asr/joiner.int8.onnx"
-cp -f "$asrsrc/tokens.txt"                       "$assets/asr/tokens.txt"
+echo "$ASR_FILES" | while read -r remote local sha; do
+  [ -n "$remote" ] || continue
+  fetch "$ASR_BASE/$remote" "$sha" "$work/asr/$local"
+  cp -f "$work/asr/$local" "$assets/asr/$local"
+done
 
 ttssrc="$work/models/kokoro-int8-en-v0_19"
 cp -f "$ttssrc/model.int8.onnx" "$assets/tts/model.int8.onnx"
