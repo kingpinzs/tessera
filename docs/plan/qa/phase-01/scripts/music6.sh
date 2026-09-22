@@ -70,11 +70,13 @@ assert_eq "all six songs" 6 "$(count_prefix "$ROW_DIR/songs.xml" 'music_song:')"
 assert_contains "a title starting with a digit files under the hash group" "music_header:#" "$(cat "$ROW_DIR/songs.xml")"
 assert_contains "and the letters are the app list's own index" "music_header:D" "$(cat "$ROW_DIR/songs.xml")"
 
-# ---- playlists: empty, and it says so rather than showing nothing ---------------------------------
+# ---- playlists: the row that makes one, which build task 8 put there ------------------------------
+# Before task 8 this pivot drew an empty state; it now always carries "new playlist", which is both
+# Groove's arrangement and the answer to the empty case. MUSIC8 is the row that exercises the verbs.
 goto_pivot playlists "$ROW_DIR/playlists.xml"
 adb exec-out screencap -p > "$ROW_DIR/playlists.png"
-assert_contains "the playlists pivot draws its empty state" "music_empty:playlists" "$(cat "$ROW_DIR/playlists.xml")"
-assert_contains "and it is about playlists, not about the permission" "playlists" "$(node_text "$ROW_DIR/playlists.xml" music_empty:playlists)"
+assert_contains "the playlists pivot offers the row that makes one" "music_new_playlist" "$(cat "$ROW_DIR/playlists.xml")"
+assert_absent "and draws no empty state, because it is never empty" "music_empty:playlists" "$(cat "$ROW_DIR/playlists.xml")"
 
 # ---- the jump grid ---------------------------------------------------------------------------------
 goto_pivot songs "$ROW_DIR/pre_jump.xml"
