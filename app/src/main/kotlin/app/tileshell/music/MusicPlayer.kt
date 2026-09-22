@@ -61,6 +61,49 @@ object MusicPlayer {
     var queueIndex by mutableStateOf(0)
         private set
 
+    // Task 9: what the SERVICE says it is doing, read off the session's extras. The service owns the
+    // timer and the effect; this only mirrors them, so it is right about a timer set from anywhere.
+    var sleepAt by mutableStateOf(0L)
+        private set
+    var sleepEndOfTrack by mutableStateOf(false)
+        private set
+    var eqPreset by mutableStateOf(Equaliser.OFF)
+        private set
+    var eqPresets by mutableStateOf<List<String>>(emptyList())
+        private set
+    var eqAvailable by mutableStateOf(false)
+        private set
+
+    private fun readExtras(extras: android.os.Bundle) {
+        sleepAt = extras.getLong(MusicCommands.X_SLEEP_AT, 0L)
+        sleepEndOfTrack = extras.getBoolean(MusicCommands.X_SLEEP_END_OF_TRACK, false)
+        eqPreset = extras.getInt(MusicCommands.X_EQ_PRESET, Equaliser.OFF)
+        eqPresets = extras.getStringArray(MusicCommands.X_EQ_PRESETS)?.toList().orEmpty()
+        eqAvailable = extras.getBoolean(MusicCommands.X_EQ_AVAILABLE, false)
+    }
+
+    private val controllerListener = object : MediaController.Listener {
+        override fun onExtrasChanged(controller: MediaController, extras: android.os.Bundle) = readExtras(extras)
+    }
+
+    /** Minutes (> 0), [SleepTimer.END_OF_TRACK], or [SleepTimer.OFF]. The service decides; this asks. */
+    fun setSleep(minutes: Int) {
+        val c = controller ?: return
+        c.sendCustomCommand(
+            androidx.media3.session.SessionCommand(MusicCommands.SLEEP, android.os.Bundle.EMPTY),
+            android.os.Bundle().apply { putInt(MusicCommands.ARG_MINUTES, minutes) },
+        )
+    }
+
+    /** A preset index, or [Equaliser.OFF]. */
+    fun setEqualiser(preset: Int) {
+        val c = controller ?: return
+        c.sendCustomCommand(
+            androidx.media3.session.SessionCommand(MusicCommands.EQUALISER, android.os.Bundle.EMPTY),
+            android.os.Bundle().apply { putInt(MusicCommands.ARG_PRESET, preset) },
+        )
+    }
+
     /** The library is what knows about albums; a media session only ever names a track. */
     private fun albumIdOf(mediaId: String?): Long? =
         mediaId?.toLongOrNull()?.let { id -> MusicStore.library.value.firstOrNull { it.id == id }?.albumId }
@@ -165,7 +208,7 @@ object MusicPlayer {
         if (controller != null || connecting) return
         connecting = true
         val token = SessionToken(context.applicationContext, ComponentName(context.applicationContext, MusicService::class.java))
-        val future = MediaController.Builder(context.applicationContext, token).buildAsync()
+        val future = MediaController.Builder(context.applicationContext, token).setListener(controllerListener).buildAsync()
         future.addListener({
             connecting = false
             controller = runCatching { future.get() }.getOrElse {
@@ -175,6 +218,7 @@ object MusicPlayer {
             controller?.let {
                 it.addListener(listener)
                 readSession()
+                readExtras(it.sessionExtras)
                 Diagnostics.add("music", "controller connected, ${it.mediaItemCount} item(s) in the queue")
             }
         }, context.mainExecutor)

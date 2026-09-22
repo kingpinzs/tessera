@@ -20,6 +20,9 @@
     <!-- Phase 10: playback outlives Start, which is the point of the service (E7). -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <!-- Phase 10 task 9: the equaliser is an AudioEffect on the player's own session. A normal
+         permission, granted at install. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <!-- Private space apps are only visible to the default Home with this permission (Android 15+). -->
     <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />

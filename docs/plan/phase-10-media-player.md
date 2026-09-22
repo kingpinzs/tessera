@@ -276,9 +276,35 @@ one task that touches shipped code is done early enough to be re-verified rather
    reordered, trimmed and renamed, then the shell is FORCE-STOPPED and reopened before anything is
    asserted about it surviving.
 9. **Extras.** Sleep timer and equaliser (Q7).
+   **Built 2026-09-22.** Both live in the playback SERVICE, not the activity, because the activity is exactly
+   what Android reclaims after someone sets a timer and puts the phone down; the collection sends custom
+   session commands and the service publishes what it is doing in the session's extras. They are reached from
+   the now-playing `•••`, the one control R8 measured as present without establishing its contents
+   (UNMEASURED-3) — a P4 design call, recorded as such. **The equaliser** is the platform AudioEffect on the
+   player's own audio session (the service generates the session id before any audio plays), offering the
+   device's own presets plus Off, remembered across restarts. **The sleep timer** offers 15 / 30 / 45 / 60
+   minutes and the end of the track; end-of-track is ExoPlayer's own pause-at-end, so the next track never gets
+   a moment of sound. Evidence qa/phase-01/MUSIC9, 44/44: AudioFlinger shows the Equalizer effect chain on the
+   same session as the track that is actually sounding, disabled at Off and ENABLED after a preset is chosen,
+   and enabled again after a force-stop; end-of-track paused at 90 044 ms of a 90-second track on the same
+   track; and a real 15-minute timer, with repeat on so the queue could not end first, was still playing ten
+   minutes in and fired 900 001 ms after it was armed. Three defects found on the way and fixed at the producer:
+   the platform hands preset names over NUL-padded, which crashed uiautomator on the list (run 1 preserved);
+   the timer was posted with postAtTime on the uptime clock while its deadline was elapsedRealtime, which would
+   fire hours late on a phone that has slept (caught in review before it ran); and the arming log line named
+   only the deadline, which the driver misread (run 2 preserved).
 10. **Settings page + checklist rows.** The audio permission (READ_MEDIA_AUDIO), and the rows the
     onboarding checklist needs so a phone with the permission denied says so rather than showing an
     empty library.
+    **Built 2026-09-22.** Read as: the settings surface for music's permission is the Setup checklist, which
+    gains a Music row, and the music app itself offers the grant where the empty library is. The playback
+    settings (equaliser, sleep timer, and crossfade when it lands) live in the now-playing `•••` where they are
+    used, so there is no separate music settings page. The app's empty state now says it CANNOT READ the music
+    rather than that there is none, names the checklist, and carries an "allow access" link; denied for good
+    ("don't ask again"), that link opens the app's own settings page instead of doing nothing, and access is
+    re-read on every resume so coming back picks the library up without a restart. Evidence qa/phase-01/MUSIC10,
+    20/20, through Android's real permission dialog — only the last step stands pm grant in for the switch on
+    Android's own settings page.
 
 ## Acceptance criteria
 

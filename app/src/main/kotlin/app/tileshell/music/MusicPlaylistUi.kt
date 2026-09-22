@@ -53,7 +53,17 @@ import app.tileshell.ui.tokens.ShellType
  * fighting over the same finger.
  */
 @Composable
-fun MusicMenu(anchorPx: Float, items: List<MenuEntry>, onDismiss: () -> Unit) {
+fun MusicMenu(
+    anchorPx: Float,
+    items: List<MenuEntry>,
+    onDismiss: () -> Unit,
+    /**
+     * Hang the band UPWARD from this y instead of down from [anchorPx] — for a control near the bottom
+     * of the screen (the now-playing `•••`), where a band hanging down would cover the nav bar and the
+     * very row it was opened from.
+     */
+    riseFromPx: Float? = null,
+) {
     val colors = LocalShellColors.current
     Box(
         Modifier
@@ -79,7 +89,8 @@ fun MusicMenu(anchorPx: Float, items: List<MenuEntry>, onDismiss: () -> Unit) {
             val band = measurables[0].measure(constraints.copy(minWidth = constraints.maxWidth, minHeight = 0))
             layout(constraints.maxWidth, constraints.maxHeight) {
                 val room = (constraints.maxHeight - band.height).coerceAtLeast(0)
-                band.place(0, anchorPx.toInt().coerceIn(0, room))
+                val top = riseFromPx?.let { it.toInt() - band.height } ?: anchorPx.toInt()
+                band.place(0, top.coerceIn(0, room))
             }
         }
     }

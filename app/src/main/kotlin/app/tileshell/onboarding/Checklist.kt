@@ -81,6 +81,11 @@ fun ChecklistPage() {
         ChecklistRow("photos", "Photos", when (PhotosFeed.access(context)) { PhotosFeed.Access.GRANTED -> RowState.GRANTED; PhotosFeed.Access.PARTIAL -> RowState.PARTIAL; else -> RowState.MISSING }, "The Photos tile cycles your pictures") {
             requestPermissions.launch(arrayOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED))
         },
+        // Phase 10 task 10 (E18): without this the music player's library is simply empty, which looks
+        // exactly like a phone with no music on it — only one of those is fixable from here.
+        ChecklistRow("music", "Music", if (Checklist.granted(context, Manifest.permission.READ_MEDIA_AUDIO)) RowState.GRANTED else RowState.MISSING, "The music player plays the songs on this phone") {
+            requestPermissions.launch(arrayOf(Manifest.permission.READ_MEDIA_AUDIO))
+        },
         ChecklistRow("calendar", "Calendar", if (Checklist.granted(context, Manifest.permission.READ_CALENDAR)) RowState.GRANTED else RowState.MISSING, "The Calendar tile shows what's next") {
             requestPermissions.launch(arrayOf(Manifest.permission.READ_CALENDAR))
         },

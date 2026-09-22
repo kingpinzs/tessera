@@ -1,14 +1,25 @@
 package app.tileshell.music
 
 import android.content.Intent
+import android.media.audiofx.Equalizer
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
+import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
 import app.tileshell.diag.Diagnostics
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 
 /**
  * The shell's own playback (phase 10 build tasks 3 and 4).
@@ -32,10 +43,32 @@ import app.tileshell.diag.Diagnostics
 class MusicService : MediaSessionService() {
 
     private var session: MediaSession? = null
+    private var player: ExoPlayer? = null
+
+    // ---- task 9: the sleep timer ----------------------------------------------------------------
+    // Held here and not in the activity: the activity is exactly what Android reclaims after someone
+    // sets a timer and puts the phone down. In memory only — after a reboot nothing is playing, so a
+    // timer read back off disk would be a promise about music that no longer exists.
+    private val handler = Handler(Looper.getMainLooper())
+    private var sleepAt = 0L
+    private var sleepEndOfTrack = false
+    private val sleepRunnable = Runnable { sleepNow("timer reached") }
+
+    // ---- task 9: the equaliser ------------------------------------------------------------------
+    private var equalizer: Equalizer? = null
+    private var eqPreset = Equaliser.OFF
+    private val prefs by lazy { getSharedPreferences(PREFS, MODE_PRIVATE) }
+
+    private val sleepCommand = SessionCommand(MusicCommands.SLEEP, Bundle.EMPTY)
+    private val eqCommand = SessionCommand(MusicCommands.EQUALISER, Bundle.EMPTY)
 
     override fun onCreate() {
         super.onCreate()
-        val player = ExoPlayer.Builder(this)
+        // A session id of the service's own, set BEFORE any audio plays, so the equaliser can be
+        // attached to it up front. Left to ExoPlayer, the id is assigned when the first track opens its
+        // AudioTrack — after the effect would need to exist — and changes if the track is recreated.
+        val audioSession = Util.generateAudioSessionIdV21(this)
+        val exo = ExoPlayer.Builder(this)
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -45,8 +78,131 @@ class MusicService : MediaSessionService() {
             )
             .setHandleAudioBecomingNoisy(true)
             .build()
-        session = MediaSession.Builder(this, player).build()
-        Diagnostics.add("music", "playback service started")
+        exo.audioSessionId = audioSession
+        exo.addListener(object : Player.Listener {
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                // End-of-track is ExoPlayer's own pause-at-end, not a guess from a transition: pausing
+                // on the transition would let the first moments of the NEXT track through.
+                if (!playWhenReady && reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM && sleepEndOfTrack) {
+                    Diagnostics.add("music", "sleep timer: paused at the end of the track")
+                    clearSleep()
+                }
+            }
+        })
+        player = exo
+        equalizer = runCatching { Equalizer(0, audioSession) }
+            .onFailure { Diagnostics.add("music", "no equaliser on this device: ${it.javaClass.simpleName}") }
+            .getOrNull()
+        eqPreset = prefs.getInt(KEY_EQ, Equaliser.OFF)
+        applyEqualiser(eqPreset, save = false)
+        session = MediaSession.Builder(this, exo).setCallback(callback).build()
+        publishExtras()
+        Diagnostics.add("music", "playback service started (audio session $audioSession, equaliser ${if (equalizer != null) "available" else "unavailable"})")
+    }
+
+    private val callback = object : MediaSession.Callback {
+        override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult =
+            MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                .setAvailableSessionCommands(
+                    MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                        .add(sleepCommand)
+                        .add(eqCommand)
+                        .build(),
+                )
+                .build()
+
+        override fun onCustomCommand(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            customCommand: SessionCommand,
+            args: Bundle,
+        ): ListenableFuture<SessionResult> {
+            when (customCommand.customAction) {
+                MusicCommands.SLEEP -> setSleep(args.getInt(MusicCommands.ARG_MINUTES, SleepTimer.OFF))
+                MusicCommands.EQUALISER -> applyEqualiser(args.getInt(MusicCommands.ARG_PRESET, Equaliser.OFF), save = true)
+                else -> return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
+            }
+            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+        }
+    }
+
+    private fun setSleep(minutes: Int) {
+        clearSleep()
+        when {
+            minutes == SleepTimer.END_OF_TRACK -> {
+                sleepEndOfTrack = true
+                player?.pauseAtEndOfMediaItems = true
+                Diagnostics.add("music", "sleep timer: armed for the end of this track")
+            }
+            minutes > 0 -> {
+                val armedAt = SystemClock.elapsedRealtime()
+                sleepAt = SleepTimer.deadline(armedAt, minutes)
+                // postDelayed, NOT postAtTime(sleepAt): postAtTime takes the UPTIME clock, which stops in
+                // deep sleep, while sleepAt is elapsedRealtime, which does not. On a phone that has slept
+                // since boot the two differ by hours, and posting one clock's value on the other would
+                // fire the timer that much late. The emulator barely sleeps, which is why it would hide it.
+                handler.postDelayed(sleepRunnable, minutes * 60_000L)
+                // Both numbers, named: the first version logged only the deadline as "at elapsed N",
+                // which reads like the arming time, and MUSIC9's second run misread it exactly that way.
+                Diagnostics.add("music", "sleep timer: armed for $minutes minute(s) at elapsed $armedAt, fires at elapsed $sleepAt")
+            }
+            else -> Diagnostics.add("music", "sleep timer: off")
+        }
+        publishExtras()
+    }
+
+    /** The timer fired: pause, which keeps the queue and the notification so the morning can resume it. */
+    private fun sleepNow(why: String) {
+        player?.pause()
+        Diagnostics.add("music", "sleep timer: paused ($why) at elapsed ${SystemClock.elapsedRealtime()}")
+        clearSleep()
+    }
+
+    private fun clearSleep() {
+        handler.removeCallbacks(sleepRunnable)
+        sleepAt = 0L
+        if (sleepEndOfTrack) player?.pauseAtEndOfMediaItems = false
+        sleepEndOfTrack = false
+        publishExtras()
+    }
+
+    private fun applyEqualiser(preset: Int, save: Boolean) {
+        val eq = equalizer
+        eqPreset = if (eq == null || preset !in 0 until eq.numberOfPresets) Equaliser.OFF else preset
+        runCatching {
+            if (eq != null) {
+                if (eqPreset == Equaliser.OFF) {
+                    eq.enabled = false
+                } else {
+                    eq.usePreset(eqPreset.toShort())
+                    eq.enabled = true
+                }
+            }
+        }.onFailure { Diagnostics.add("music", "equaliser refused preset $preset: $it") }
+        if (save) prefs.edit().putInt(KEY_EQ, eqPreset).apply()
+        Diagnostics.add("music", "equaliser: ${presetNames().getOrNull(eqPreset) ?: "off"} (enabled=${eq?.enabled ?: false})")
+        publishExtras()
+    }
+
+    private fun presetNames(): List<String> {
+        val eq = equalizer ?: return emptyList()
+        return runCatching {
+            (0 until eq.numberOfPresets).map { Equaliser.cleanName(eq.getPresetName(it.toShort()), it) }
+        }.getOrDefault(emptyList())
+    }
+
+    /** What every connected controller is told: the collection, the notification, a second phone app. */
+    private fun publishExtras() {
+        val s = session ?: return
+        s.setSessionExtras(
+            Bundle().apply {
+                putLong(MusicCommands.X_SLEEP_AT, sleepAt)
+                putBoolean(MusicCommands.X_SLEEP_END_OF_TRACK, sleepEndOfTrack)
+                putInt(MusicCommands.X_EQ_PRESET, eqPreset)
+                putStringArray(MusicCommands.X_EQ_PRESETS, presetNames().toTypedArray())
+                putBoolean(MusicCommands.X_EQ_AVAILABLE, equalizer != null)
+            },
+        )
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
@@ -61,16 +217,23 @@ class MusicService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        handler.removeCallbacks(sleepRunnable)
+        equalizer?.release()
+        equalizer = null
         session?.run {
             player.release()
             release()
         }
         session = null
+        player = null
         Diagnostics.add("music", "playback service stopped")
         super.onDestroy()
     }
 
     companion object {
+        private const val PREFS = "music_playback"
+        private const val KEY_EQ = "equaliser_preset"
+
         /** A track as Media3 sees it: the MediaStore URI, and the metadata the notification shows. */
         fun mediaItem(track: Track): MediaItem = MediaItem.Builder()
             .setMediaId(track.id.toString())

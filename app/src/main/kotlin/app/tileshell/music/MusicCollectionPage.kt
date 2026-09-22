@@ -129,6 +129,8 @@ fun MusicCollectionPage(
     onPlay: (List<Track>, Int) -> Unit,
     onBack: () -> Unit,
     onWindows: () -> Unit,
+    /** Ask for READ_MEDIA_AUDIO, from the empty state that explains why the library is empty (E18). */
+    onGrant: () -> Unit = {},
 ) {
     val colors = LocalShellColors.current
     val locale = LocalConfiguration.current.locales[0]
@@ -227,6 +229,7 @@ fun MusicCollectionPage(
                             pivot = pivot,
                             page = page,
                             hasAccess = hasAccess,
+                            onGrant = onGrant,
                             onTap = { item ->
                                 when (item) {
                                     is SongItem -> onPlay(page.queue, page.startIndexOf(item.track))
@@ -267,7 +270,7 @@ fun MusicCollectionPage(
             }
             // The overlays, over whichever page is showing and inside the same box the anchors are
             // measured against.
-            menu?.let { open -> MusicMenu(open.anchorPx, open.entries) { menu = null } }
+            menu?.let { open -> MusicMenu(open.anchorPx, open.entries, onDismiss = { menu = null }) }
             naming?.let { open ->
                 PlaylistNameBox(open.caption, open.initial, onDone = open.onDone, onCancel = { naming = null })
             }
@@ -362,6 +365,7 @@ private fun PivotPage(
     pivot: MusicPivot,
     page: CollectionPage,
     hasAccess: Boolean,
+    onGrant: () -> Unit,
     onTap: (CollectionItem) -> Unit,
     onHold: (CollectionItem, Float) -> Unit,
 ) {
@@ -371,12 +375,24 @@ private fun PivotPage(
     var gridOpen by remember { mutableStateOf(false) }
 
     if (page.isEmpty) {
-        Box(Modifier.fillMaxSize().padding(start = MusicMetrics.SIDE, top = 12.dp)) {
+        Column(Modifier.fillMaxSize().padding(start = MusicMetrics.SIDE, top = 12.dp, end = MusicMetrics.SIDE)) {
             BasicText(
                 emptyText(hasAccess),
                 style = ShellType.body.copy(color = colors.subtleText),
                 modifier = Modifier.testTag("music_empty:${pivot.name.lowercase()}"),
             )
+            // E18: saying why is half of it; the other half is offering the grant right here, where the
+            // empty library is, instead of sending someone to find a settings page.
+            if (!hasAccess) {
+                BasicText(
+                    "allow access",
+                    style = ShellType.body.copy(color = colors.accent),
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .clickable(onClick = onGrant)
+                        .testTag("music_grant"),
+                )
+            }
         }
         return
     }
@@ -410,7 +426,7 @@ private fun PivotPage(
  */
 private fun emptyText(hasAccess: Boolean): String =
     if (hasAccess) "There is no music on this phone."
-    else "Tessera cannot read your music yet. Turn on music access in Settings."
+    else "Tessera can't read the music on this phone yet. You can allow it here, or from Music in Start settings > Setup checklist."
 
 @Composable
 private fun LetterHeaderRow(item: LetterHeader, onTap: () -> Unit) {
