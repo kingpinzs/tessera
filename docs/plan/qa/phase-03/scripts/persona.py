@@ -252,14 +252,19 @@ def main():
     print(f"listen_disc_min_epx={min(discs) / PX_PER_EPX:.2f}")
     print(f"listen_disc_max_epx={max(discs) / PX_PER_EPX:.2f}")
 
-    # The period: the mean gap between successive halo maxima.
-    peaks = [
-        i for i in range(1, len(halos) - 1)
-        if halos[i] >= halos[i - 1] and halos[i] > halos[i + 1] and halos[i] > (min(halos) + max(halos)) / 2
-    ]
-    if len(peaks) >= 2:
-        gaps = [(peaks[i + 1] - peaks[i]) / FPS * 1000 for i in range(len(peaks) - 1)]
+    # The period, read as UPWARD CROSSINGS of the halfway level rather than as maxima.
+    #
+    # R6 §3.1.8's cycle is rise, a 200 ms hold at the top, fall, a hold at the bottom — so the maximum
+    # is a PLATEAU, not a point. Measurement noise of a tenth of a pixel across that plateau gives a
+    # maxima-finder several "peaks" inside one cycle, and the mean gap collapses: this capture read
+    # 871 ms against a real 1040 ms, and a second capture of the same build read 1042, which is how a
+    # method that depends on noise looks. A crossing happens once per cycle whatever the plateau does.
+    mid = (min(halos) + max(halos)) / 2
+    crossings = [i for i in range(1, len(halos)) if halos[i - 1] < mid <= halos[i]]
+    if len(crossings) >= 2:
+        gaps = [(crossings[i + 1] - crossings[i]) / FPS * 1000 for i in range(len(crossings) - 1)]
         print(f"listen_period_ms={mean(gaps):.0f}")
+        print(f"listen_period_cycles={len(gaps)}")
     else:
         print("listen_period_ms=")
 
