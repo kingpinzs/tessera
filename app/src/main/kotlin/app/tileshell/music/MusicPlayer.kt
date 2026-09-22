@@ -73,6 +73,8 @@ object MusicPlayer {
         private set
     var eqAvailable by mutableStateOf(false)
         private set
+    var crossfadeMs by mutableStateOf(Crossfade.OFF)
+        private set
 
     private fun readExtras(extras: android.os.Bundle) {
         sleepAt = extras.getLong(MusicCommands.X_SLEEP_AT, 0L)
@@ -80,6 +82,7 @@ object MusicPlayer {
         eqPreset = extras.getInt(MusicCommands.X_EQ_PRESET, Equaliser.OFF)
         eqPresets = extras.getStringArray(MusicCommands.X_EQ_PRESETS)?.toList().orEmpty()
         eqAvailable = extras.getBoolean(MusicCommands.X_EQ_AVAILABLE, false)
+        crossfadeMs = extras.getInt(MusicCommands.X_CROSSFADE_MS, Crossfade.OFF)
     }
 
     private val controllerListener = object : MediaController.Listener {
@@ -92,6 +95,15 @@ object MusicPlayer {
         c.sendCustomCommand(
             androidx.media3.session.SessionCommand(MusicCommands.SLEEP, android.os.Bundle.EMPTY),
             android.os.Bundle().apply { putInt(MusicCommands.ARG_MINUTES, minutes) },
+        )
+    }
+
+    /** One of [Crossfade.Choice]'s lengths in ms, or [Crossfade.OFF]. The service owns the fade; this asks. */
+    fun setCrossfade(ms: Int) {
+        val c = controller ?: return
+        c.sendCustomCommand(
+            androidx.media3.session.SessionCommand(MusicCommands.CROSSFADE, android.os.Bundle.EMPTY),
+            android.os.Bundle().apply { putInt(MusicCommands.ARG_MS, ms) },
         )
     }
 

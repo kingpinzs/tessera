@@ -184,7 +184,7 @@ fun clockText(ms: Long): String {
 }
 
 /** Which level of the `•••` menu is open (task 9): the two entries, or one of their choice lists. */
-private enum class MoreMenu { ROOT, SLEEP, EQUALISER }
+private enum class MoreMenu { ROOT, SLEEP, EQUALISER, CROSSFADE }
 
 @Composable
 fun NowPlayingPage(onBack: () -> Unit, onWindows: () -> Unit) {
@@ -419,6 +419,12 @@ private fun moreEntries(level: MoreMenu, go: (MoreMenu?) -> Unit): List<MenuEntr
             if (MusicPlayer.eqAvailable) {
                 add(MenuEntry(Equaliser.menuLabel(MusicPlayer.eqPreset, MusicPlayer.eqPresets), "music_menu_eq") { go(MoreMenu.EQUALISER) })
             }
+            // E17: the crossfade sits with the other two things that change how the queue sounds.
+            add(MenuEntry(Crossfade.menuLabel(MusicPlayer.crossfadeMs), "music_menu_crossfade") { go(MoreMenu.CROSSFADE) })
+        }
+        MoreMenu.CROSSFADE -> Crossfade.Choice.entries.map { choice ->
+            val label = if (choice.ms == MusicPlayer.crossfadeMs) "${choice.label} (current)" else choice.label
+            MenuEntry(label, "music_menu_crossfade:${choice.tag}") { MusicPlayer.setCrossfade(choice.ms); go(null) }
         }
         MoreMenu.SLEEP -> buildList {
             SleepTimer.Choice.entries.forEach { choice ->

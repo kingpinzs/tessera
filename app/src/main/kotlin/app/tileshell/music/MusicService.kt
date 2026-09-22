@@ -13,6 +13,9 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.extractor.DefaultExtractorsFactory
+import androidx.media3.extractor.mp3.Mp3Extractor
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
@@ -61,6 +64,10 @@ class MusicService : MediaSessionService() {
 
     private val sleepCommand = SessionCommand(MusicCommands.SLEEP, Bundle.EMPTY)
     private val eqCommand = SessionCommand(MusicCommands.EQUALISER, Bundle.EMPTY)
+    private val crossfadeCommand = SessionCommand(MusicCommands.CROSSFADE, Bundle.EMPTY)
+
+    // ---- E17: crossfade ---------------------------------------------------------------------------
+    private var crossfade: CrossfadeFader? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -68,14 +75,20 @@ class MusicService : MediaSessionService() {
         // attached to it up front. Left to ExoPlayer, the id is assigned when the first track opens its
         // AudioTrack — after the effect would need to exist — and changes if the track is recreated.
         val audioSession = Util.generateAudioSessionIdV21(this)
-        val exo = ExoPlayer.Builder(this)
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-                    .setUsage(C.USAGE_MEDIA)
-                    .build(),
-                /* handleAudioFocus = */ true,
-            )
+        val attributes = AudioAttributes.Builder()
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+            .setUsage(C.USAGE_MEDIA)
+            .build()
+        // Accurate MP3 seeking (E17). The crossfade hands the incoming track back to this player with a
+        // seek to where the fader has got to; a VBR file without a seek table otherwise seeks to an
+        // ESTIMATE, and two copies of one song a second apart cannot be swapped without hearing it. Index
+        // seeking reads up to the target instead, which on a local file is fast.
+        val mediaSourceFactory = DefaultMediaSourceFactory(
+            this,
+            DefaultExtractorsFactory().setMp3ExtractorFlags(Mp3Extractor.FLAG_ENABLE_INDEX_SEEKING),
+        )
+        val exo = ExoPlayer.Builder(this, mediaSourceFactory)
+            .setAudioAttributes(attributes, /* handleAudioFocus = */ true)
             .setHandleAudioBecomingNoisy(true)
             .build()
         exo.audioSessionId = audioSession
@@ -90,6 +103,10 @@ class MusicService : MediaSessionService() {
             }
         })
         player = exo
+        crossfade = CrossfadeFader(this, exo, audioSession, mediaSourceFactory, attributes) { sleepEndOfTrack }.also {
+            it.settingMs = prefs.getInt(KEY_CROSSFADE, Crossfade.OFF)
+            Diagnostics.add("music", "crossfade: ${it.settingMs} ms (restored)")
+        }
         equalizer = runCatching { Equalizer(0, audioSession) }
             .onFailure { Diagnostics.add("music", "no equaliser on this device: ${it.javaClass.simpleName}") }
             .getOrNull()
@@ -107,6 +124,7 @@ class MusicService : MediaSessionService() {
                     MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
                         .add(sleepCommand)
                         .add(eqCommand)
+                        .add(crossfadeCommand)
                         .build(),
                 )
                 .build()
@@ -120,6 +138,7 @@ class MusicService : MediaSessionService() {
             when (customCommand.customAction) {
                 MusicCommands.SLEEP -> setSleep(args.getInt(MusicCommands.ARG_MINUTES, SleepTimer.OFF))
                 MusicCommands.EQUALISER -> applyEqualiser(args.getInt(MusicCommands.ARG_PRESET, Equaliser.OFF), save = true)
+                MusicCommands.CROSSFADE -> setCrossfade(args.getInt(MusicCommands.ARG_MS, Crossfade.OFF))
                 else -> return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
@@ -166,6 +185,15 @@ class MusicService : MediaSessionService() {
         publishExtras()
     }
 
+    /** Only the lengths the menu offers are accepted; anything else is off, never an arbitrary fade. */
+    private fun setCrossfade(ms: Int) {
+        val chosen = Crossfade.Choice.entries.firstOrNull { it.ms == ms }?.ms ?: Crossfade.OFF
+        crossfade?.settingMs = chosen
+        prefs.edit().putInt(KEY_CROSSFADE, chosen).apply()
+        Diagnostics.add("music", "crossfade: $chosen ms (set)")
+        publishExtras()
+    }
+
     private fun applyEqualiser(preset: Int, save: Boolean) {
         val eq = equalizer
         eqPreset = if (eq == null || preset !in 0 until eq.numberOfPresets) Equaliser.OFF else preset
@@ -201,6 +229,7 @@ class MusicService : MediaSessionService() {
                 putInt(MusicCommands.X_EQ_PRESET, eqPreset)
                 putStringArray(MusicCommands.X_EQ_PRESETS, presetNames().toTypedArray())
                 putBoolean(MusicCommands.X_EQ_AVAILABLE, equalizer != null)
+                putInt(MusicCommands.X_CROSSFADE_MS, crossfade?.settingMs ?: Crossfade.OFF)
             },
         )
     }
@@ -218,6 +247,8 @@ class MusicService : MediaSessionService() {
 
     override fun onDestroy() {
         handler.removeCallbacks(sleepRunnable)
+        crossfade?.shutdown()
+        crossfade = null
         equalizer?.release()
         equalizer = null
         session?.run {
@@ -233,6 +264,7 @@ class MusicService : MediaSessionService() {
     companion object {
         private const val PREFS = "music_playback"
         private const val KEY_EQ = "equaliser_preset"
+        private const val KEY_CROSSFADE = "crossfade_ms"
 
         /** A track as Media3 sees it: the MediaStore URI, and the metadata the notification shows. */
         fun mediaItem(track: Track): MediaItem = MediaItem.Builder()
