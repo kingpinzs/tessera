@@ -1,12 +1,29 @@
 #!/usr/bin/env bash
 # E7 capture: the settled edit-mode geometry, the entry motion, the exit motion and the hold bracket.
-# usage: e7_capture.sh <out dir> <held tile id>        e.g. e7_capture.sh qa/phase-02/E07 slot:PEOPLE
+# usage: e7_capture.sh <out dir> <held tile id> [dark|light]
 # Leaves the device as it found it (RV12): show_touches and stayon are restored.
 set -u
 source "$(dirname "$0")/gestures.sh"
-OUT=$1; TILE=$2; LOG=$OUT/e7_capture.txt
+OUT=$1; TILE=$2; THEME=${3:-dark}; LOG=$OUT/e7_capture.txt
 mkdir -p "$OUT"
-echo "# E7 capture $(date -Iseconds) held=$TILE" > "$LOG"
+echo "# E7 capture $(date -Iseconds) held=$TILE theme=$THEME" > "$LOG"
+
+# The theme is a Settings toggle; it is put back at the end of the row.
+set_theme() { # set_theme <dark|light>
+  local want=$1 have
+  have=$(adb shell run-as app.tileshell cat shared_prefs/start_theme.xml 2>/dev/null | grep -o 'name="theme">[A-Z]*' | sed 's/.*>//')
+  echo "theme is ${have:-unknown}, want ${want}" >> "$LOG"
+  [ "${have}" = "$(echo "$want" | tr a-z A-Z)" ] && return 0
+  adb shell am start -n app.tileshell/app.tileshell.settings.SettingsActivity >/dev/null; sleep 2
+  scroll_to_id "$OUT/theme_settings.xml" "settings_start_theme" >/dev/null 2>&1 && tap_id "$OUT/theme_settings.xml" "settings_start_theme"
+  sleep 1.5
+  scroll_to_id "$OUT/theme_settings.xml" "theme_mode_$want" >/dev/null 2>&1 && tap_id "$OUT/theme_settings.xml" "theme_mode_$want"
+  sleep 1.5
+  adb shell input keyevent KEYCODE_BACK; sleep 1
+  ensure_start
+  echo "theme after the toggle: $(adb shell run-as app.tileshell cat shared_prefs/start_theme.xml 2>/dev/null | grep -o 'name=\"theme\">[A-Z]*' | sed 's/.*>//')" >> "$LOG"
+}
+set_theme "$THEME"
 adb shell svc power stayon true
 ensure_start
 adb shell input swipe 540 700 540 1900 200; sleep 1   # scroll to the top so both captures share a scroll
@@ -29,10 +46,23 @@ sleep 2
 wait $REC
 adb pull /sdcard/e7_entry.mp4 "$OUT/e7_entry.mp4" >/dev/null
 
-# --- 3. edit mode, settled ------------------------------------------------------------------------------------
-sleep 1
-adb exec-out screencap -p > "$OUT/edit.png"
-dump "$OUT/edit.xml"
+# --- 3. edit mode, settled -------------------------------------------------------------------------------
+# The capture VERIFIES what it captured: a screencap taken after edit mode has ended looks exactly like plain
+# Start, and the geometry then measures 1.000 everywhere and "fails" for no product reason (seen twice).
+for attempt in 1 2 3; do
+  sleep 1
+  dump "$OUT/edit.xml"
+  if grep -q 'resource-id="edit_disc:unpin"' "$OUT/edit.xml"; then
+    adb exec-out screencap -p > "$OUT/edit.png"
+    echo "edit-mode capture verified on attempt $attempt" >> "$LOG"
+    break
+  fi
+  echo "attempt $attempt: edit mode was not on when the capture was taken; holding again" >> "$LOG"
+  down ${XY% *} ${XY#* }
+  sleep 1.3
+  up ${XY% *} ${XY#* }
+done
+grep -q 'resource-id="edit_disc:unpin"' "$OUT/edit.xml" || echo "WARNING: no edit-mode capture after 3 attempts" >> "$LOG"
 
 # --- 4. the exit, recorded, with the touch indicator marking the touch-up --------------------------------------
 TOUCHES_BEFORE=$(adb shell settings get system show_touches | tr -d '\r')
@@ -74,12 +104,14 @@ for MS in 740 830; do
   adb shell input swipe ${XY% *} ${XY#* } ${XY% *} ${XY#* } $MS
   sleep 1.4
   adb exec-out screencap -p > "$OUT/hold_$MS.png"
+  dump "$OUT/hold_$MS.xml" || true
   echo "hold ${MS}ms: top activity $(top)" >> "$LOG"
   ensure_start
   ensure_start
 done
 
-adb shell dumpsys activity service app.tileshell/.feeds.TileNotificationListener | grep "\[edit\]" | tail -40 > "$OUT/e7_edit_diag.txt"
+adb shell dumpsys activity service app.tileshell/.feeds.TileNotificationListener | grep "\[edit\]" | tail -60 > "$OUT/e7_edit_diag.txt"
+set_theme dark
 adb shell svc power stayon false
 echo "done $(date -Iseconds)" >> "$LOG"
 echo "captured into $OUT"

@@ -4,12 +4,13 @@
 # already on Start must not make a second tile, not even after the shell restarts.
 # usage: e2e6.sh <out dir>
 set -u
-source "$(dirname "$0")/gestures.sh"
-source "$(dirname "$0")/layout.sh"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+source "$HERE/gestures.sh"
+source "$HERE/layout.sh"
+source "$HERE/assert.sh"
 OUT=$1; LOG=$OUT/E02-E06.txt
 mkdir -p "$OUT"; : > "$LOG"
-say() { echo "$*" | tee -a "$LOG"; }
-APK=testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk
+APK=$HERE/../../../../testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk
 PKG=app.tileshell.testclient.a
 tiles_for() { layout_json | python3 -c "
 import json,sys
@@ -18,8 +19,9 @@ keys=[o['key'] for o in d['order']] + [m['key'] for f in d['folders'] for m in f
 print(sum(1 for k in keys if '$1' in k))"; }
 
 say "# E2 + E6 re-run $(date -Iseconds)"
+build_guard
 layout_save "$OUT/layout_before.json"
-layout_restore "$(dirname "$0")/../baseline_layout.json"
+layout_restore "$HERE/../baseline_layout.json"
 adb install -r -g "$APK" 2>&1 | tail -1 | tee -a "$LOG"
 sleep 2
 
@@ -56,33 +58,67 @@ PY
   adb shell input tap ${item% *} ${item#* }; sleep 2
 }
 
+say "--- E2a: a freshly installed app shows the New caption ---"
+ensure_start
+adb shell input swipe 900 1200 150 1200 250; sleep 2
+dump "$OUT/e2_applist_new.xml"
+if ! grep -q "applist_row:$PKG" "$OUT/e2_applist_new.xml"; then
+  scroll_to_id "$OUT/e2_applist_new.xml" "applist_row:$PKG" || true
+fi
+NEW_BEFORE=$(python3 - "$OUT/e2_applist_new.xml" "$PKG" <<'PY'
+import re, sys
+s = open(sys.argv[1]).read()
+m = re.search(r'resource-id="applist_row:' + re.escape(sys.argv[2]) + r'"(.*?)</node>', s, re.S)
+block = m.group(1) if m else ""
+print("yes" if re.search(r'text="[Nn]ew"', block) else "no")
+PY
+)
+say "New caption on the fixture's row before pinning: $NEW_BEFORE"
+check "a freshly installed app is marked New" "yes" "$NEW_BEFORE"
+adb exec-out screencap -p > "$OUT/e2_new_caption.png"
+
 say "--- E2: pin the fixture from the app list ---"
 pin_from_app_list || true
 ensure_start
 adb exec-out screencap -p > "$OUT/e2_pinned.png"
-say "tiles for $PKG on Start: $(tiles_for $PKG)"
+check "pinning added exactly one tile" 1 "$(tiles_for $PKG)"
 say "order:"; layout_order | head -1 | tee -a "$LOG"
+# and the caption is gone, persistently
+adb shell input swipe 900 1200 150 1200 250; sleep 2
+dump "$OUT/e2_applist_after_pin.xml"
+if ! grep -q "applist_row:$PKG" "$OUT/e2_applist_after_pin.xml"; then
+  scroll_to_id "$OUT/e2_applist_after_pin.xml" "applist_row:$PKG" || true
+fi
+NEW_AFTER=$(python3 - "$OUT/e2_applist_after_pin.xml" "$PKG" <<'PY'
+import re, sys
+s = open(sys.argv[1]).read()
+m = re.search(r'resource-id="applist_row:' + re.escape(sys.argv[2]) + r'"(.*?)</node>', s, re.S)
+block = m.group(1) if m else ""
+print("yes" if re.search(r'text="[Nn]ew"', block) else "no")
+PY
+)
+check "pinning cleared the New caption" "no" "$NEW_AFTER"
+adb exec-out screencap -p > "$OUT/e2_caption_cleared.png"
+ensure_start
 
 say "--- E2c: pin the same app again, then restart the shell (the defect the store fix was for) ---"
 pin_from_app_list || true
-say "tiles after the second pin (live): $(tiles_for $PKG)"
+check "the second pin added nothing (live)" 1 "$(tiles_for $PKG)"
 adb shell am force-stop app.tileshell; sleep 2; ensure_start
-say "tiles after a restart: $(tiles_for $PKG)"
-if [ "$(tiles_for $PKG)" = "1" ]; then say "PASS one tile, before and after the restart"; else say "FAIL $(tiles_for $PKG) tiles"; fi
+check "and still nothing after a restart (E2c)" 1 "$(tiles_for $PKG)"
 adb exec-out screencap -p > "$OUT/e2c_after_restart.png"
 
 say "--- E6: an update keeps the tile, an uninstall drops it ---"
 adb install -r -g "$APK" 2>&1 | tail -1 | tee -a "$LOG"
 sleep 3; ensure_start
-say "tiles after install -r (update): $(tiles_for $PKG)"
-[ "$(tiles_for $PKG)" = "1" ] && say "PASS the update kept the tile" || say "FAIL the update lost the tile"
+check "an update keeps the tile" 1 "$(tiles_for $PKG)"
 adb exec-out screencap -p > "$OUT/e6_after_update.png"
 adb uninstall "$PKG" 2>&1 | tail -1 | tee -a "$LOG"
 sleep 3; ensure_start
-say "tiles after uninstall: $(tiles_for $PKG)"
-[ "$(tiles_for $PKG)" = "0" ] && say "PASS the uninstall dropped the tile" || say "FAIL the tile survived the uninstall"
+check "an uninstall drops it" 0 "$(tiles_for $PKG)"
 adb exec-out screencap -p > "$OUT/e6_after_uninstall.png"
 
 adb shell dumpsys activity service app.tileshell/.feeds.TileNotificationListener | grep -E "\[layout\]|\[apps\]" | tail -30 > "$OUT/e2e6_diag.txt"
-layout_restore "$OUT/layout_before.json"
+layout_restore "$OUT/layout_before.json" || { QA_FAIL=$((QA_FAIL+1)); say "FAIL the layout did not restore"; }
 say "baseline layout restored"
+qa_finish

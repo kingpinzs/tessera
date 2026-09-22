@@ -77,8 +77,18 @@ class StartEditState {
         }
     }
 
-    fun requestExit() {
+    /**
+     * The touch-up that asked for the exit, on the input event's own clock. R6 §1.5.2 puts the exit 150 ± 17 ms
+     * after touch-up, and that tolerance is finer than a screenrecord can resolve here (this AVD draws no touch
+     * indicator), so the shell records the interval itself: this stamp against the frame clock at the exit's
+     * first frame, both in uptime millis.
+     */
+    var exitRequestedUptimeMs: Long = 0L
+        private set
+
+    fun requestExit(atUptimeMs: Long = android.os.SystemClock.uptimeMillis()) {
         if (!active || exiting) return
+        exitRequestedUptimeMs = atUptimeMs
         exiting = true
         motionToken++
     }

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Shared phase 02 QA measurement helpers.
 
-The edit-mode contraction is a graphicsLayer transform, and a uiautomator dump reports a Compose node's
-LAYOUT bounds, which the transform does not touch (probed 2026-09-21: every tile's bounds are identical in and
-out of edit mode). So every edit-mode geometry value is measured from screencap PIXELS; dumps are used for the
-untransformed baseline and for what tile is where.
+E7 measures the settled geometry from screencap PIXELS, because that is what proves the numbers the phase doc
+lists — a tile's drawn size and the dim factor in real pixels. (A dump taken while a tile is held DOES carry
+the graphicsLayer transform; an earlier note here claimed otherwise and was wrong. Dumps are used for layout
+facts and for addressing the discs; pixels for what the screen actually shows.)
 """
 import re
 import sys
@@ -33,6 +33,36 @@ def dump_tiles(path):
         m.group(1): tuple(int(v) for v in m.groups()[1:])
         for m in re.finditer(r'resource-id="tile:([^"]+)"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', s)
     }
+
+
+def detect_background(img):
+    """
+    The page background as it appears IN THIS CAPTURE. It cannot be assumed: in the light theme edit mode
+    dims the background too (white 255 becomes 223), and comparing against pure white then reads the whole
+    screen as one enormous tile. Taken as the modal colour among unsaturated pixels, which is the page in
+    both themes, dimmed or not — the accent is saturated and never wins.
+    """
+    flat = img.reshape(-1, 3)
+    spread = flat.max(axis=1) - flat.min(axis=1)
+    grey = flat[spread < 12]
+    if len(grey) == 0:
+        return (0, 0, 0)
+    packed = (grey[:, 0].astype(np.int32) << 16) | (grey[:, 1].astype(np.int32) << 8) | grey[:, 2].astype(np.int32)
+    values, counts = np.unique(packed, return_counts=True)
+    top = int(values[counts.argmax()])
+    return ((top >> 16) & 255, (top >> 8) & 255, top & 255)
+
+
+def dump_ids(path):
+    """Every resource-id in a dump."""
+    return set(re.findall(r'resource-id="([^"]+)"', open(path).read()))
+
+
+def dump_node(path, rid):
+    """One node's (x1, y1, x2, y2) by resource-id, or None."""
+    m = re.search(r'resource-id="' + re.escape(rid) + r'"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
+                  open(path).read())
+    return tuple(int(v) for v in m.groups()) if m else None
 
 
 def is_background(px, background):
@@ -64,6 +94,28 @@ def probe_rect(img, cx, cy, background=(0, 0, 0)):
     while y2 + 1 < h and not is_background(img[y2 + 1, mx], background):
         y2 += 1
     return (x1, y1, x2 + 1, y2 + 1)
+
+
+def probe_rect_edges(img, cx, cy, background):
+    """
+    A tile's rectangle measured along its EDGES rather than its middle: the horizontal run through the centre
+    row, then the vertical run a few pixels inside the left edge. A tile's own artwork (an icon, a label) can
+    match the page colour — an app icon's white against the light theme's dimmed white page — and a scan down
+    the middle then stops inside the tile. Nothing is drawn in the margin.
+    """
+    horizontal = probe_rect(img, cx, cy, background)
+    if horizontal is None:
+        return None
+    x1, _, x2, _ = horizontal
+    col = min(x1 + 4, x2 - 1)
+    h = img.shape[0]
+    y1 = int(cy)
+    while y1 > 0 and not is_background(img[y1 - 1, col], background):
+        y1 -= 1
+    y2 = int(cy)
+    while y2 + 1 < h and not is_background(img[y2 + 1, col], background):
+        y2 += 1
+    return (x1, y1, x2, y2 + 1)
 
 
 def rect_size(r):

@@ -10,6 +10,7 @@ Edit mode is read off the pixels, not off a dump: the transform that proves it i
 uiautomator dump does not see. A tile OTHER than the held one is both dimmed and moved in edit mode, so its
 resting centre reads page background once the grid has contracted away from it — and its plate is darker.
 """
+import os
 import re
 import sys
 
@@ -29,23 +30,44 @@ if not candidates:
     sys.exit("no other grid tile to probe")
 probe_id = max(candidates, key=lambda t: (qa.rect_centre(candidates[t])[0] - fx) ** 2 + (qa.rect_centre(candidates[t])[1] - fy) ** 2)
 pc = qa.rect_centre(bounds[probe_id])
-rest_rect = qa.probe_rect(normal, pc[0], pc[1])
+bg_normal = qa.detect_background(normal)
+rest_rect = qa.probe_rect(normal, pc[0], pc[1], bg_normal)
 rest_colour = qa.plate_colour(normal, rest_rect) if rest_rect else None
 print(f"probe tile {probe_id} at {pc}, resting plate {rest_colour}")
 
 
-def in_edit_mode(path):
-    """True when the grid has contracted and dimmed: the probe tile's plate is darker than at rest."""
+def in_edit_mode(path, dump=None):
+    """
+    Edit mode, proved POSITIVELY. The old version returned True whenever the probe point read page
+    background — which any other screen also does, so it passed on the app list, on a launched app and on a
+    black frame (a reviewer reproduced that false PASS). Absence now proves nothing:
+
+      1. the probe tile must be FOUND at its contracted position (not merely missing from its resting one),
+      2. its plate must be dimmed (ratio < 0.8),
+      3. and, when a dump of the same moment is given, the unpin disc must be in it.
+    """
     img = qa.load(path)
-    rect = qa.probe_rect(img, pc[0], pc[1])
+    shifted = (fx + (pc[0] - fx) * 0.9, fy + (pc[1] - fy) * 0.9)
+    rect = qa.probe_rect(img, shifted[0], shifted[1], qa.detect_background(img))
     if rect is None:
-        return True, "probe point is page background: the grid contracted away from it"
+        return False, f"no tile at the contracted position {tuple(round(v) for v in shifted)}: this is not edit mode"
     colour = qa.plate_colour(img, rect)
     if colour is None or rest_colour is None:
-        return False, "no plate colour"
+        return False, "no plate colour to compare"
+    # The dim makes pixels DARKER in the dark theme and LIGHTER in the light one (c' = 0.63c + 62), so the
+    # colour test is "the plate changed materially", not "it got darker".
+    changed = float(np.abs(np.asarray(colour) - np.asarray(rest_colour)).max())
     ratio = float(np.median([colour[c] / rest_colour[c] for c in range(3) if rest_colour[c] >= 40] or [1.0]))
     moved = abs(rect[0] - rest_rect[0]) > 4 or abs(rect[1] - rest_rect[1]) > 4
-    return (ratio < 0.8 or moved), f"plate ratio {ratio:.3f}, rect {rect} vs resting {rest_rect}"
+    shrunk = (rect[2] - rect[0]) < (rest_rect[2] - rest_rect[0]) * 0.95
+    disc = None
+    if dump and os.path.exists(dump):
+        disc = 'resource-id="edit_disc:unpin"' in open(dump).read()
+    why = (f"plate ratio {ratio:.3f}, changed by {changed:.0f}, rect {rect} vs resting {rest_rect}, "
+           f"moved={moved}, shrunk={shrunk}"
+           + (f", unpin disc in the dump={disc}" if disc is not None else ""))
+    ok = changed > 12 and moved and shrunk and (disc is not False)
+    return ok, why
 
 
 results = []
@@ -53,9 +75,14 @@ log = open(f"{d}/e7_capture.txt").read()
 
 
 def launched(ms):
-    """The shell's own discriminator: under the hold threshold the press is a tap and an app comes up."""
+    """
+    The shell's own discriminator: under the hold threshold the press is a TAP and something comes up. The
+    test is "Start is no longer in front", not "another package is": the held tile may be one of the shell's
+    own (Settings, Weather), and those launch an app.tileshell activity.
+    """
     m = re.search(rf"hold {ms}ms: top activity (\S+)", log)
-    return (m.group(1) if m else "?"), bool(m and not m.group(1).startswith("app.tileshell"))
+    top = m.group(1) if m else "?"
+    return top, bool(m and "StartActivity" not in top)
 
 
 # 740 ms: the press is under the threshold, so it acts as a TAP — which is itself proof that edit mode did not
@@ -68,10 +95,18 @@ results.append(("740 ms no edit mode", launched740))
 
 # 830 ms: nothing may launch, and the grid must be contracted and dimmed in the capture.
 top830, launched830 = launched(830)
-entered, why = in_edit_mode(f"{d}/hold_830.png")
+entered, why = in_edit_mode(f"{d}/hold_830.png", f"{d}/hold_830.xml")
 print(f"{'PASS' if not launched830 else 'FAIL'}  830 ms hold launches nothing (top activity after: {top830})")
 results.append(("830 ms launches nothing", not launched830))
 print(f"{'PASS' if entered else 'FAIL'}  830 ms hold enters edit mode ({why})")
 results.append(("830 ms enters edit mode", entered))
+
+# The check has to be able to say no. Feed it a capture that is definitely not edit mode and require a reject
+# — this is the control the fail-open version never had.
+control = f"{d}/normal.png"
+if os.path.exists(control):
+    rejected, why = in_edit_mode(control)
+    print(f"{'PASS' if not rejected else 'FAIL'}  control: the check REJECTS plain Start ({why})")
+    results.append(("control rejects plain Start", not rejected))
 
 qa.report(results)

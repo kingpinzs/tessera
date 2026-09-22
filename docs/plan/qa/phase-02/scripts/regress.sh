@@ -4,8 +4,9 @@
 # Start still scrolls, Home still works, and the bottom row still launches.
 # usage: regress.sh <out dir>
 set -u
-source "$(dirname "$0")/gestures.sh"
-source "$(dirname "$0")/layout.sh"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+source "$HERE/gestures.sh"
+source "$HERE/layout.sh"
 OUT=$1; LOG=$OUT/REGRESS.txt
 mkdir -p "$OUT"; : > "$LOG"
 say() { echo "$*" | tee -a "$LOG"; }
@@ -60,9 +61,54 @@ dump "$OUT/r_short.xml"
 SXY=$(center "$OUT/r_short.xml" "tile:shell:settings" || center "$OUT/r_short.xml" "tile:slot:MAPS")
 adb shell input swipe ${SXY% *} ${SXY#* } ${SXY% *} ${SXY#* } 300; sleep 2.5
 TOP=$(fg); say "after a 300 ms press the top activity is $TOP"
+# The press was a tap, so it launched something — and a tap never launches while edit mode is on. Coming back
+# to Start, there must be no disc either. (This step used to print the activity and assert nothing.)
+[ "${TOP%%/*}" != "app.tileshell" ] || [ "${TOP##*/}" = ".settings.SettingsActivity" ]
+ok "$?" "0" "a 300 ms press acted as a tap, not a hold"
 adb shell input keyevent KEYCODE_HOME; sleep 2
+ensure_start
+dump "$OUT/r_short_after.xml"
+grep -q 'edit_disc' "$OUT/r_short_after.xml" && ok no yes "no edit-mode discs after a short press" || ok yes yes "no edit-mode discs after a short press"
 
 say "--- 6. Home from another app returns to Start ---"
 TOPNOW=$(fg); ok "${TOPNOW%%/*}" "app.tileshell" "Home shows the shell"
+
+say "--- 7. the drawn Windows key returns the pivot to Start and scrolls it to the top (X20 / H28) ---"
+# The gate wrote this off as an AVD limitation because KEYCODE_HOME is not re-delivered to the resumed home
+# activity. That is true of the INTENT path only: W10mNavBar's Windows key emits the same event with no
+# intent at all, so the behaviour IS testable here. This is the check that was missing.
+layout_save "$OUT/r_layout_before2.json"
+python3 "$HERE/make_tall.py" "$OUT/r_layout_before2.json" "$OUT/r_tall2.json"
+layout_restore "$OUT/r_tall2.json"
+ensure_start
+adb shell input swipe 540 1700 540 600 250; sleep 1.5      # scroll Start down
+dump "$OUT/r_scrolled.xml"
+SCROLLED=$(python3 -c "
+import re
+s=open('$OUT/r_scrolled.xml').read()
+m=re.search(r'resource-id="tile:[^"]+"[^>]*bounds="\[(\d+),(-?\d+)\]', s)
+print(m.group(2) if m else 'none')")
+say "first tile's y after scrolling: $SCROLLED"
+adb shell input swipe 900 1200 150 1200 250; sleep 1.5     # and go to the app list
+dump "$OUT/r_on_applist.xml"
+grep -q 'resource-id="app_list"' "$OUT/r_on_applist.xml" && ok yes yes "on the app list before pressing the Windows key" || ok no yes "on the app list before pressing the Windows key"
+WK=$(center "$OUT/r_on_applist.xml" "nav_windows")
+say "tapping the drawn Windows key at $WK"
+adb shell input tap ${WK% *} ${WK#* }; sleep 2.5
+dump "$OUT/r_after_windows_key.xml"
+adb exec-out screencap -p > "$OUT/r_after_windows_key.png"
+grep -q 'resource-id="start_page"' "$OUT/r_after_windows_key.xml" && ! grep -q 'resource-id="app_list"' "$OUT/r_after_windows_key.xml"
+ok "$?" "0" "the Windows key brought the pivot back to Start"
+AFTER=$(python3 -c "
+import re
+s=open('$OUT/r_after_windows_key.xml').read()
+m=re.search(r'resource-id="tile:[^"]+"[^>]*bounds="\[(\d+),(-?\d+)\]', s)
+print(m.group(2) if m else 'none')")
+say "first tile's y after the Windows key: $AFTER (84 is the top of the grid)"
+ok "$AFTER" "84" "and scrolled Start back to the top (X20)"
+adb shell dumpsys activity service app.tileshell/.feeds.TileNotificationListener | grep "\[start\]" | tail -5 > "$OUT/r_home_diag.txt"
+say "the shell's own record: $(tail -1 "$OUT/r_home_diag.txt")"
+grep -q "home: page 0" "$OUT/r_home_diag.txt" && ok yes yes "the shell logged the home event" || ok no yes "the shell logged the home event"
+layout_restore "$OUT/r_layout_before2.json"
 say "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
