@@ -87,6 +87,28 @@ class LayoutStore private constructor(private val context: Context) {
         return added
     }
 
+    /** True when the one-shot ADD named [marker] has already run, so a caller can skip the work behind it. */
+    fun hasAdded(marker: String): Boolean = layout.value.addedOnce.contains(marker)
+
+    /**
+     * Put a folder named [name] holding [members] on Start the first time this build runs, and never
+     * again — the same contract as [addOnce], so a folder the user deletes stays deleted.
+     *
+     * @return true when the folder was created by this call
+     */
+    fun addFolderOnce(marker: String, name: String, members: List<TileKey>, size: TileSize): Boolean {
+        var added = false
+        mutate { layout ->
+            if (marker in layout.addedOnce) return@mutate layout
+            val withMarker = layout.copy(addedOnce = layout.addedOnce + marker)
+            val made = LayoutOps.folderOf(withMarker, name, members, size)
+            added = made != null
+            made?.first ?: withMarker
+        }
+        Diagnostics.add("layout", "addFolderOnce $marker \"$name\" ${members.size} members -> ${if (added) "created" else "already run or refused"}")
+        return added
+    }
+
     fun clearSlot(slot: Slot) {
         mutate { it.copy(explicitSlots = it.explicitSlots - slot) }
         Diagnostics.add("layout", "slot ${slot.name} explicit assignment cleared")

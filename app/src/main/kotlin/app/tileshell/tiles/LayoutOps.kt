@@ -88,6 +88,35 @@ object LayoutOps {
         ) to id
     }
 
+    /**
+     * A folder of [members] named [name], appended to the grid at [size]. Null when fewer than two
+     * usable members survive, because a folder holding one tile dissolves (H19).
+     *
+     * Unlike [createFolder], which turns two tiles that are already on Start into a folder, this builds
+     * one from apps that need not be on Start at all — the Games and Office folders
+     * ([CategoryFolders]). Members are still taken out of wherever they are first, so seeding cannot
+     * leave the same app in two places.
+     */
+    fun folderOf(layout: L, name: String, members: List<TileKey>, size: TileSize): Pair<L, String>? {
+        val usable = members
+            .filterNot { it is TileKey.FolderTile }
+            // An app the user has already filed in a folder is THEIRS. Taking it would empty that folder
+            // from underneath them, and a folder left holding one tile dissolves (H19) — which is exactly
+            // what happened the first time this ran on the emulator: seeding Office pulled a member out of
+            // an existing folder and destroyed it. A seeded folder only ever collects loose apps.
+            .filterNot { layout.folderHolding(it) != null }
+            .distinct()
+        if (usable.size < 2) return null
+        var work = layout
+        usable.forEach { work = without(work, it, dropFolderRecord = false) }
+        val id = nextFolderId(work.folders.keys)
+        val folder = Folder(id, name, usable.map { Sized(it, TileSize.MEDIUM) })
+        return work.copy(
+            order = work.order + Sized(TileKey.FolderTile(id), size),
+            folders = work.folders + (id to folder),
+        ) to id
+    }
+
     /** Add [key] to a folder at [index] (default last). Null when the folder is gone or a folder was dragged. */
     fun addToFolder(layout: L, folderId: String, key: TileKey, index: Int = Int.MAX_VALUE): L? {
         if (key is TileKey.FolderTile) return null
