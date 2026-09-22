@@ -79,6 +79,16 @@ class CortanaModel(
     private var eventJob: Job? = null
 
     /**
+     * The utterance the session is waiting to finish before it hides.
+     *
+     * A command that opens an app ("Opening Clock.") both speaks and closes. Emitting the close at the
+     * same moment hid the session, which stopped the speech that had just started, so the reply was
+     * never heard — E2 caught it as a reply captured at -118 dBFS while every other command's was
+     * around -32. Cortana says it, THEN gets out of the way.
+     */
+    private var closeAfterUtterance: String? = null
+
+    /**
      * Idempotent: the framework REUSES a VoiceInteractionSession across show and hide, so this runs on
      * every show, not once per session object. Binding only in the session's onCreate left the second
      * and every later open with no engine at all ("startListening dropped: not bound") — found on the
@@ -100,6 +110,7 @@ class CortanaModel(
         SpeechClient.stopListening()
         SpeechClient.stopSpeaking()
         SpeechClient.unbind(context)
+        closeAfterUtterance = null
         // "closing the session drops it too" (H12): a pending request never survives the session.
         mutable.value = CortanaState()
     }
@@ -178,12 +189,18 @@ class CortanaModel(
                 if (event.utteranceId == speakingUtteranceId) {
                     mutable.value = mutable.value.copy(persona = PersonaState.SPEAKING, level = event.level)
                 }
-            is SpeechEvent.SpeakingDone ->
+            is SpeechEvent.SpeakingDone -> {
                 if (event.utteranceId == speakingUtteranceId) {
                     speakingUtteranceId = null
                     // R6 §3.2.4: after speaking, the small persona breathes on the result page.
                     mutable.value = mutable.value.copy(persona = PersonaState.IDLE_AFTER_SPEAKING, level = 0f)
                 }
+                if (event.utteranceId == closeAfterUtterance) {
+                    closeAfterUtterance = null
+                    Diagnostics.add("cortana", "reply finished; the session closes now")
+                    closeRequests.tryEmit(Unit)
+                }
+            }
             is SpeechEvent.ProcessGone -> {
                 speakingUtteranceId = null
                 mutable.value = mutable.value.copy(
@@ -315,14 +332,33 @@ class CortanaModel(
             persona = if (outcome.spoken.isBlank()) PersonaState.IDLE_AFTER_SPEAKING else PersonaState.SPEAKING,
             listening = false,
         )
-        if (outcome.spoken.isNotBlank()) {
-            speakingUtteranceId = SpeechClient.speak(outcome.spoken, voice)
+        val utterance = if (outcome.spoken.isNotBlank()) SpeechClient.speak(outcome.spoken, voice) else null
+        speakingUtteranceId = utterance
+        if (!outcome.close) return
+        if (utterance == null) {
+            closeRequests.tryEmit(Unit)
+            return
         }
-        if (outcome.close) closeRequests.tryEmit(Unit)
+        closeAfterUtterance = utterance
+        // A speech process that dies mid-reply would otherwise strand the session on screen, so the
+        // close has a deadline as well as a trigger.
+        scope.launch {
+            kotlinx.coroutines.delay(CLOSE_DEADLINE_MS)
+            if (closeAfterUtterance == utterance) {
+                closeAfterUtterance = null
+                Diagnostics.add("cortana", "reply did not finish within ${CLOSE_DEADLINE_MS} ms; closing anyway")
+                closeRequests.tryEmit(Unit)
+            }
+        }
     }
 
     /** The session collects this and hides itself: an app has taken the screen. */
     val closeRequests = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    private companion object {
+        /** Long enough for any reply this phase produces, short enough not to strand the session. */
+        const val CLOSE_DEADLINE_MS = 8000L
+    }
 
     // ---------------- navigation ----------------
 
