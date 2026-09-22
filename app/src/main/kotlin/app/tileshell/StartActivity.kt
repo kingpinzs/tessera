@@ -54,6 +54,8 @@ import app.tileshell.start.StartEditState
 import app.tileshell.start.StartPage
 import app.tileshell.start.TileTarget
 import app.tileshell.tiles.ShellTiles
+import app.tileshell.tiles.TileKey
+import app.tileshell.tiles.UseCounts
 import app.tileshell.tiles.api.SecondaryTiles
 import app.tileshell.tiles.Slot
 import app.tileshell.ui.LocalShellColors
@@ -239,17 +241,22 @@ class StartActivity : ComponentActivity() {
             }
             else -> {
                 val bounds = Rect(tile.xPx.toInt(), tile.yPx.toInt(), (tile.xPx + tile.wPx).toInt(), (tile.yPx + tile.hPx).toInt())
-                pendingLaunch = { launchApp(target, bounds, tile.model.id) }
+                pendingLaunch = { launchApp(target, bounds, tile.model.id, tile.key) }
                 animation = StartAnimation(exitElapsedMs = 0f, exitTappedId = tile.model.id)
                 exitToken++
             }
         }
     }
 
-    private fun launchApp(target: TileTarget, bounds: Rect?, tileId: String?) {
+    private fun launchApp(target: TileTarget, bounds: Rect?, tileId: String?, key: TileKey? = null) {
         // Splash style request (N-09): the launcher can only ask for the solid-colour splash.
         val options = ActivityOptions.makeBasic().setSplashScreenStyle(SplashScreen.SPLASH_SCREEN_STYLE_SOLID_COLOR).toBundle()
         returningFromLaunch = true
+        // Auto-sizing counts opens, and this is the one place a tile opens anything (INDEX Change Log
+        // 2026-09-21 item 1). Counted here rather than in AppCatalog.launch so that a shell tile and a
+        // secondary tile count too, and so that an app opened from the app list — which is not a tile
+        // being used — does not.
+        key?.let { UseCounts.get(this).record(it) }
         when (target) {
             is TileTarget.App -> AppCatalog.get(this).launch(target.entry, bounds, options)
             is TileTarget.Shell -> when (target.name) {
@@ -300,6 +307,12 @@ class StartActivity : ComponentActivity() {
         hideSystemBars()
         // A default app (dialer, SMS, browser) may have been changed elsewhere while Start was away.
         app.tileshell.tiles.SlotDefaults.refresh()
+        // Tile size follows use (INDEX Change Log 2026-09-21 item 1). Applied as Start COMES BACK,
+        // never while it is on screen: a tile must not change size under the finger that just tapped
+        // it, and coming back from the app you just opened is exactly when the new count lands.
+        if (app.tileshell.prefs.ShellSettings.get(this).theme.value.autoSizeTiles) {
+            app.tileshell.tiles.LayoutStore.get(this).applyAutoSize(UseCounts.get(this).scores())
+        }
         if (returningFromLaunch) {
             returningFromLaunch = false
             animation = StartAnimation(entranceElapsedMs = 0f)

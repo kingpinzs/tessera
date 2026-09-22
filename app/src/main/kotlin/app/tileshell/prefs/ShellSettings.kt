@@ -22,6 +22,9 @@ data class StartTheme(
     val mediumColumns: Int = StartGrid.DEFAULT_COLUMNS,
     val pressStyle: PressStyle = PressStyle.NONE,
     val showWorkAndPrivateApps: Boolean = true,
+    /** Tile size follows use (INDEX Change Log 2026-09-21 item 1). On by default; a size set by
+     *  hand is pinned whatever this says. */
+    val autoSizeTiles: Boolean = true,
 )
 
 /** Start + theme settings (phase 01 Settings hub). SharedPreferences-backed, exposed as a StateFlow. */
@@ -38,6 +41,7 @@ class ShellSettings private constructor(context: Context) {
         mediumColumns = prefs.getInt("columns", StartGrid.DEFAULT_COLUMNS),
         pressStyle = PressStyle.valueOf(prefs.getString("press", PressStyle.NONE.name)!!),
         showWorkAndPrivateApps = prefs.getBoolean("profiles", true),
+        autoSizeTiles = prefs.getBoolean("autosize", true),
     )
 
     fun update(change: (StartTheme) -> StartTheme) {
@@ -50,6 +54,7 @@ class ShellSettings private constructor(context: Context) {
             .putInt("columns", next.mediumColumns)
             .putString("press", next.pressStyle.name)
             .putBoolean("profiles", next.showWorkAndPrivateApps)
+            .putBoolean("autosize", next.autoSizeTiles)
             .apply()
         state.value = next
         Diagnostics.add("settings", "start theme changed: $next")

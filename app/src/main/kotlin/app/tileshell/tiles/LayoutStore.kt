@@ -39,6 +39,13 @@ class LayoutStore private constructor(private val context: Context) {
          * back after a restart, reboot or update" true (review R2-m8).
          */
         val addedOnce: Set<String> = emptySet(),
+        /**
+         * Tiles whose size the user set by hand, by [TileKey.id]. Auto-sizing (INDEX Change Log
+         * 2026-09-21 item 1) never touches these: a size someone chose deliberately outranks a size
+         * derived from how often they open the thing. Read with a default of empty, so a layout file
+         * written before this existed simply has nothing pinned, which is the right starting point.
+         */
+        val manualSizes: Set<String> = emptySet(),
     ) {
         fun placements(unitsAcross: Int): List<Placement> = GridPack.pack(order, unitsAcross)
         fun folderOf(key: TileKey): Folder? = (key as? TileKey.FolderTile)?.let { folders[it.folderId] }
@@ -102,9 +109,33 @@ class LayoutStore private constructor(private val context: Context) {
     }
 
     /** Resize [key] to [size], in the grid or inside a folder. */
-    fun resize(key: TileKey, size: TileSize) {
-        mutate { LayoutOps.resize(it, key, size) }
-        Diagnostics.add("layout", "resize ${key.id} -> $size")
+    /**
+     * @param manual true when a person chose this size (edit mode), which pins it against auto-sizing.
+     *   The auto-sizer passes false, and so must anything else that sizes a tile on the user's behalf.
+     */
+    fun resize(key: TileKey, size: TileSize, manual: Boolean = true) {
+        mutate {
+            val resized = LayoutOps.resize(it, key, size)
+            if (manual) resized.copy(manualSizes = resized.manualSizes + key.id) else resized
+        }
+        Diagnostics.add("layout", "resize ${key.id} -> $size${if (manual) " (manual, pinned)" else " (auto)"}")
+    }
+
+    /** Hands [key] back to the auto-sizer after the user pinned its size. */
+    fun clearManualSize(key: TileKey) {
+        mutate { it.copy(manualSizes = it.manualSizes - key.id) }
+        Diagnostics.add("layout", "resize ${key.id} -> back to automatic")
+    }
+
+    /**
+     * Applies [AutoSize] to the grid with the use scores it is given. Nothing else in the shell may
+     * resize a tile without a person asking, so this is the one door the policy comes through.
+     */
+    fun applyAutoSize(scores: Map<String, Float>) {
+        mutate { layout ->
+            val next = AutoSize.apply(layout.order, scores, layout.manualSizes)
+            if (next == layout.order) layout else layout.copy(order = next)
+        }
     }
 
     /** Move [key] to [index] of the grid order (taking it out of a folder or the bottom row first). */
@@ -193,6 +224,7 @@ class LayoutStore private constructor(private val context: Context) {
             })
             .put("dock", JSONArray().apply { layout.dock.forEach { put(it.id) } })
             .put("addedOnce", JSONArray().apply { layout.addedOnce.forEach { put(it) } })
+            .put("manualSizes", JSONArray().apply { layout.manualSizes.forEach { put(it) } })
             .put("folders", JSONArray().apply {
                 layout.folders.values.forEach { f ->
                     put(JSONObject()
@@ -262,7 +294,11 @@ class LayoutStore private constructor(private val context: Context) {
                     // rather than drawn as an empty tile.
                     val addedJson = json.optJSONArray("addedOnce") ?: JSONArray()
                     val addedOnce = (0 until addedJson.length()).map { addedJson.getString(it) }.toSet()
-                    Layout(storedVersion, order.filter { (it.key as? TileKey.FolderTile)?.folderId?.let { id -> id in folders } ?: true }, slots, dock, folders, addedOnce)
+                    // Absent in files written before auto-sizing existed, and empty is exactly right there:
+                    // nobody had pinned a size, so every tile is the auto-sizer's to move.
+                    val manualJson = json.optJSONArray("manualSizes") ?: JSONArray()
+                    val manualSizes = (0 until manualJson.length()).map { manualJson.getString(it) }.toSet()
+                    Layout(storedVersion, order.filter { (it.key as? TileKey.FolderTile)?.folderId?.let { id -> id in folders } ?: true }, slots, dock, folders, addedOnce, manualSizes)
                 }
             }
         }.onFailure { Diagnostics.add("layout", "layout store unreadable, using default: $it") }.getOrNull()
