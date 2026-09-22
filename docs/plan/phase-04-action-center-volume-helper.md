@@ -35,6 +35,64 @@ the toggle commands. The helper's state is visible in the action center, in Sett
 - 2026-09-16: Notification swipe (R7 §4.4; 14393 A1 60 fps and A2 yi7zzB3W6Qk, ± 133 ms): dragging a notification group right moves the whole group (header and items) 1:1 with the finger, keeping the grab offset, and it follows the finger back (§4.4.1, HIGH). The group drops to 0.36–0.41 of its brightness once it is 19–28 % of the screen width from rest, and is back to full brightness under 14 % (§4.4.2, HIGH; the step point inside that bracket is Y9). Candidates (LOW, R7 §4.4.3): released at 73 % of the width it is dismissed; released at 28–30 % it snaps back. The dismiss threshold, slide-out, reflow of the groups below, and left swipe are Y9 (H12). Measured by E4 (R7, agent)
 - 2026-09-16: Volume panel motion (R7 §4.5; 14393 A1, ± 1.1 epx, ± 17 ms; 15063 UNMEASURED, Y3). Show: the panel grows down from the top edge and overshoots. Its lower edge passes its rest position (100.4 epx with one slider) to a peak 12.3 epx lower (+12 %) about 150 ms in, easing with cubic-bezier(0.06, 0.99, 0.42, 0.99) (the first frame is already at 68 % of rest), then returns to rest in 67 ms, 217 ± 17 ms in total. The app below neither moves nor dims (§4.5.1, MEDIUM). Timeout hide: instant, gone in one frame with nothing moving or fading (§4.5.3, MEDIUM); the timeout length is Y11. Leaving the page while it shows: the whole panel slides up off the top as a block in 134 ± 17 ms, close to linear, cubic-bezier(0.47, 0.25, 0.70, 1.09) (§4.5.5, MEDIUM, measured on a Start-key press; the other navigations are Y11). The slider row's entrance and the second slider's slide-down are Y10 and Y12. Measured by E4 (R7, agent)
 
+## R4 spike — results so far (2026-09-21)
+
+R4 is this phase's entry gate. Its parts are being run as they become runnable; this section is the
+record PLAN.md's item 1 asks for. Nothing here opens the phase on its own.
+
+### Part 5, the licence of the on-device ADB pairing + TLS client — PASSES (agent, 2026-09-21)
+
+R4's failure condition was "GPL = not usable". It does not bite: there are at least four non-GPL
+implementations, and the most directly on-point one does the hard part.
+
+| Library | Licence | Why it matters here |
+|---|---|---|
+| adb-kt (rhythmcache) | Apache-2.0 | Pure Kotlin, TLS 1.3, and **SPAKE2 password-authenticated wireless pairing** — the pairing half, which is the part that is awkward to write |
+| dadb (mobile-dev-inc) | Apache-2.0 | Connects to a device with no adb binary and no adb server |
+| Kadb (flyfishxu) | Apache-2.0 | Kotlin Multiplatform ADB client |
+| adblib (tananaev) | BSD-3-Clause | Java ADB network protocol |
+| libadb-android (MuntashirAkon) | **dual GPL-3.0-or-later OR Apache-2.0** | The one the spike was worried about. It can be taken under Apache-2.0, so even this is usable |
+
+The worry behind R4's wording was that the only mature on-device ADB library — the one App Manager uses
+— is GPL. It is dual-licensed, and it is not the only one. Nothing about the licence re-asks Q13.
+
+Sources: github.com/rhythmcache/adb-kt, github.com/mobile-dev-inc/dadb, github.com/MuntashirAkon/libadb-android,
+github.com/tananaev/adblib, klibs.io/project/flyfishxu/Kadb.
+
+### NEW RISK, not in the plan: Google may restrict on-device ADB entirely (agent, 2026-09-21)
+
+Found while running part 5, and it is bigger than the licence question it came from.
+
+Google's ADB maintainer has **proposed binding adbd to the Wi-Fi interface only (`wlan0`), dropping the
+loopback (`127.0.0.1`) path** that every on-device ADB app uses — including a Shizuku-style helper
+paired over Wireless debugging, which is exactly this phase's mechanism (RV1, Q13). The stated reason
+is that the localhost socket has been an escalation route, following CVE-2026-0073, a Wireless ADB
+authentication bypass.
+
+Status as of the source's publication, 2026-07-20: a **feature request under discussion**, Google
+IssueTracker #526109803. No AOSP commit, no target version, no timeline, no workaround offered. A
+second issue, #541312863, covers legacy TCP/IP mode needing persistent Wi-Fi.
+
+Why it belongs in this doc rather than a footnote: if it lands, the helper cannot start the way this
+phase says it starts, and that is R4's own "failure re-asks Jeremy (Q13)" condition — not because the
+spike failed, but because the platform moved under it. It does not block the phase today. It does mean
+R4's device parts should be run and recorded SOON, while the path still exists, and that the helper's
+design should not assume loopback ADB is permanent.
+
+Source: kitsumed.github.io/blog/posts/android-may-soon-restrict-on-device-adb (2026-07-20), citing
+Google IssueTracker #526109803 and #541312863.
+
+### Parts still to run — all need the phone on adb
+
+1. `app_process` under the shell uid on One UI 8, and daemonising
+2. the binder handoff to the app, with its uid + signature check
+3. each toggle (Wi-Fi, Bluetooth, mobile data, airplane) via the shell uid
+4. survival when Wireless debugging is switched off, and when the app is killed
+6. PQ2: T-Mobile visual voicemail (mstore API + GBA SIM auth)
+7. P5: whether a full-height accessibility overlay draws over Android's nav bar, with gesture
+   navigation (`settings get secure navigation_mode` = 2) and with 3-button (= 0), restoring the
+   setting afterwards
+
 ## Interview queue (Stage A step 4)
 1. [agent] Run R4 on the S25 Ultra first; record the result here
 2. [Jeremy] Action center everywhere (top-edge strip over all apps) or only on Start (M5)
