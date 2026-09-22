@@ -2,7 +2,22 @@ package app.tileshell.applist
 
 /**
  * Which apps head the app list (Jeremy, 2026-09-21: "the program list should have the last 5 ran
- * programs and the last 3 installed programs"). INDEX Change Log item 8.
+ * programs and the last 3 installed programs"; amended 2026-09-22: "it has the Recently added which is
+ * perfect but it also needs the last 3 running programs unless there is no running programs").
+ * INDEX Change Log item 8.
+ *
+ * ### What "running" can honestly mean here
+ *
+ * No public API tells a launcher which apps have a live task: `getRunningAppProcesses` and
+ * `getRunningTasks` return only the caller's own since Android 5, `getAppTasks` is the caller's own by
+ * definition, and /proc is hidden. The one usable signal is [android.app.usage.UsageStatsManager], and
+ * tracking ACTIVITY_RESUMED against ACTIVITY_STOPPED does NOT give "running" either — pressing Home
+ * stops the activity you just left, so that definition empties the section the moment you look at it.
+ *
+ * So running means **run since the phone last booted**, which is the strongest claim the platform
+ * actually supports and is what makes Jeremy's "unless there is no running programs" literally true: a
+ * freshly booted phone has none, and the section is not drawn. The seven-day window this replaces could
+ * never be empty on a phone anyone uses.
  *
  * Generic over the row type and holding no Android types at all, so the choosing is tested with plain
  * values — no device, no clock, no package manager, and no android.jar stub returning null for the
@@ -10,26 +25,27 @@ package app.tileshell.applist
  */
 object AppSections {
 
-    const val RECENT_COUNT = 5
+    const val RUNNING_COUNT = 3
     const val ADDED_COUNT = 3
 
     /**
-     * The [RECENT_COUNT] most recently run apps, most recent first.
+     * The [RUNNING_COUNT] apps run most recently since [sinceMs], most recent first.
      *
-     * An app with no usage record is not "recently run" and is left out entirely rather than sorted to
-     * the bottom, so a phone with two apps ever opened shows two rows, not five padded out with
-     * whatever happened to be installed. Ties break on the label so the order is stable between
-     * redraws — two apps can genuinely share a millisecond.
+     * An app with no usage record, or one whose last run predates [sinceMs], is left out entirely
+     * rather than sorted to the bottom: the section is a claim about what is running now, so it shows
+     * two rows on a phone that has run two apps and nothing at all on one that has run none. Ties break
+     * on the label so the order is stable between redraws — two apps can genuinely share a millisecond.
      */
-    fun <T> recent(
+    fun <T> running(
         apps: List<T>,
         lastUsed: Map<String, Long>,
+        sinceMs: Long,
         packageOf: (T) -> String,
         labelOf: (T) -> String,
     ): List<T> =
-        apps.mapNotNull { app -> lastUsed[packageOf(app)]?.let { app to it } }
+        apps.mapNotNull { app -> lastUsed[packageOf(app)]?.takeIf { it >= sinceMs }?.let { app to it } }
             .sortedWith(compareByDescending<Pair<T, Long>> { it.second }.thenBy { labelOf(it.first) })
-            .take(RECENT_COUNT)
+            .take(RUNNING_COUNT)
             .map { it.first }
 
     /**

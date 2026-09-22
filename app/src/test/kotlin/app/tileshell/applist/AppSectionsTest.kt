@@ -16,47 +16,71 @@ class AppSectionsTest {
 
     private data class Row(val pkg: String, val label: String = pkg, val installed: Long = 1_000L)
 
-    private fun recent(apps: List<Row>, used: Map<String, Long>) =
-        AppSections.recent(apps, used, { it.pkg }, { it.label })
+    /** BOOT is the cut-off; a usage time below it is an app that last ran before this boot. */
+    private val BOOT = 100L
+
+    private fun running(apps: List<Row>, used: Map<String, Long>, since: Long = BOOT) =
+        AppSections.running(apps, used, since, { it.pkg }, { it.label })
 
     private fun added(apps: List<Row>) = AppSections.added(apps, { it.installed }, { it.label })
 
-    // ---- recent ----
+    // ---- running ----
 
     @Test
-    fun `the five most recently run come back, most recent first`() {
+    fun `the three most recently run since boot come back, most recent first`() {
         val apps = (1..8).map { Row("p$it") }
-        val used = (1..8).associate { "p$it" to it * 100L }
-        assertEquals(listOf("p8", "p7", "p6", "p5", "p4"), recent(apps, used).map { it.pkg })
+        val used = (1..8).associate { "p$it" to BOOT + it * 100L }
+        assertEquals(listOf("p8", "p7", "p6"), running(apps, used).map { it.pkg })
+    }
+
+    @Test
+    fun `an app last run BEFORE this boot is not running`() {
+        // The whole point of the 2026-09-22 amendment: a seven-day window can never be empty on a phone
+        // anyone uses, so "unless there is no running programs" could never happen.
+        val apps = listOf(Row("before"), Row("after"))
+        val used = mapOf("before" to BOOT - 1L, "after" to BOOT + 1L)
+        assertEquals(listOf("after"), running(apps, used).map { it.pkg })
+    }
+
+    @Test
+    fun `an app run at the very instant of boot counts`() {
+        assertEquals(listOf("a"), running(listOf(Row("a")), mapOf("a" to BOOT)).map { it.pkg })
+    }
+
+    @Test
+    fun `nothing run since boot means no section at all`() {
+        val used = mapOf("a" to BOOT - 5L, "b" to BOOT - 9L)
+        assertTrue(running(listOf(Row("a"), Row("b")), used).isEmpty())
     }
 
     @Test
     fun `an app that has never been run is left out, not sorted to the bottom`() {
         val apps = listOf(Row("a"), Row("b"), Row("c"))
-        assertEquals(listOf("a"), recent(apps, mapOf("a" to 5L)).map { it.pkg })
+        assertEquals(listOf("a"), running(apps, mapOf("a" to BOOT + 5L)).map { it.pkg })
     }
 
     @Test
     fun `no usage records at all means no section`() {
-        assertTrue(recent(listOf(Row("a"), Row("b")), emptyMap()).isEmpty())
+        assertTrue(running(listOf(Row("a"), Row("b")), emptyMap()).isEmpty())
     }
 
     @Test
-    fun `fewer than five run apps gives a shorter section, never padding`() {
-        assertEquals(2, recent(listOf(Row("a"), Row("b"), Row("c")), mapOf("a" to 2L, "b" to 1L)).size)
+    fun `fewer than three running apps gives a shorter section, never padding`() {
+        val used = mapOf("a" to BOOT + 2L, "b" to BOOT + 1L)
+        assertEquals(2, running(listOf(Row("a"), Row("b"), Row("c")), used).size)
     }
 
     @Test
     fun `two apps used in the same millisecond keep a stable order`() {
         val apps = listOf(Row("z", "Zebra"), Row("a", "Apple"))
-        val used = mapOf("z" to 7L, "a" to 7L)
-        assertEquals(listOf("Apple", "Zebra"), recent(apps, used).map { it.label })
-        assertEquals(recent(apps, used).map { it.label }, recent(apps.reversed(), used).map { it.label })
+        val used = mapOf("z" to BOOT + 7L, "a" to BOOT + 7L)
+        assertEquals(listOf("Apple", "Zebra"), running(apps, used).map { it.label })
+        assertEquals(running(apps, used).map { it.label }, running(apps.reversed(), used).map { it.label })
     }
 
     @Test
     fun `a usage record for an app that is not installed is ignored`() {
-        assertEquals(listOf("a"), recent(listOf(Row("a")), mapOf("a" to 1L, "gone" to 99L)).map { it.pkg })
+        assertEquals(listOf("a"), running(listOf(Row("a")), mapOf("a" to BOOT + 1L, "gone" to BOOT + 99L)).map { it.pkg })
     }
 
     // ---- recently added ----
@@ -80,13 +104,13 @@ class AppSectionsTest {
 
     @Test
     fun `an empty list is not a special case`() {
-        assertTrue(recent(emptyList(), mapOf("a" to 1L)).isEmpty())
+        assertTrue(running(emptyList(), mapOf("a" to BOOT + 1L)).isEmpty())
         assertTrue(added(emptyList()).isEmpty())
     }
 
     @Test
     fun `the counts are the ones Jeremy asked for`() {
-        assertEquals(5, AppSections.RECENT_COUNT)
+        assertEquals(3, AppSections.RUNNING_COUNT)
         assertEquals(3, AppSections.ADDED_COUNT)
     }
 }

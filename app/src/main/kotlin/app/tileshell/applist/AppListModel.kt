@@ -45,7 +45,7 @@ data class AppRowItem(
     val tagPrefix: String get() = if (section.isEmpty()) "applist_row" else "applist_${section}_row"
 }
 
-/** A top section's header: "Recent" and "Recently added" (INDEX Change Log 2026-09-21 item 8). */
+/** A top section's header: "Running" and "Recently added" (INDEX Change Log 2026-09-21 item 8). */
 data class SectionHeaderItem(val id: String, val title: String) : ListItem {
     override val key: String get() = "shdr:$id"
     override val contentType: Int get() = 4
@@ -86,6 +86,8 @@ fun buildAppListModel(
     keyOf: (AppEntry) -> String,
     serialOf: (UserHandle) -> Long,
     lastUsed: Map<String, Long> = emptyMap(),
+    /** When the phone last booted: an app run before that is not running now (see [AppSections]). */
+    bootMs: Long = 0L,
     selfPackage: String = "",
 ): AppListModel {
     val collator = AppIndex.collator(locale)
@@ -109,10 +111,10 @@ fun buildAppListModel(
         items += AppRowItem(entry, keyOf(entry), AppIndex.normalize(entry.label), section)
     }
     val candidates = main.filter { it.component.packageName != selfPackage }
-    val recent = AppSections.recent(candidates, lastUsed, { it.component.packageName }, { it.label })
-    if (recent.isNotEmpty()) {
-        items += SectionHeaderItem("recent", "Recent")
-        recent.forEach { sectionRow(it, "recent") }
+    val running = AppSections.running(candidates, lastUsed, bootMs, { it.component.packageName }, { it.label })
+    if (running.isNotEmpty()) {
+        items += SectionHeaderItem("running", "Running")
+        running.forEach { sectionRow(it, "running") }
     }
     val added = AppSections.added(candidates, { it.firstInstallTime }, { it.label })
     if (added.isNotEmpty()) {
