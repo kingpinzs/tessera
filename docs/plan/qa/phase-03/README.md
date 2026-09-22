@@ -130,6 +130,14 @@ E2 ran the whole ruled list and drove every observable. What it has NOT closed:
    trustworthy at face value — which is precisely the kind of evidence-integrity smell phase 02's gate
    was returned for, so it is written down here rather than left for a reviewer to find.
 3. The row has not been run start-to-finish on a single build since the SET_ALARM permission landed.
+4. **The driver skips the row's own fixture setup.** E2 as written in the phase doc says: "before the
+   table runs, each slot is assigned to that app through Settings > Start (Notes through Cortana's
+   Settings page) and the dump shows the assignment, since phase 01's two fixtures per category leave
+   the slots unassigned (review R3T-m9)." The driver does not do it, so the Camera, Music, Maps and
+   Notes commands are answered with "Choose a Camera app in Start settings first." — which is the
+   action layer behaving CORRECTLY for an unassigned slot, and a driver testing nothing. The four
+   slot-app verdicts in the current log are not evidence either way until the assignment step exists
+   and the row is re-run.
 
 A device lock was added to `lib.sh` after two E2 runs overlapped and wrote to the same log: the second
 row read the first's diagnostics and recorded a verdict about an utterance it never spoke. A driver
