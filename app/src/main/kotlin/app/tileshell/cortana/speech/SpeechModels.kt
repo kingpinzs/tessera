@@ -46,12 +46,18 @@ object SpeechAssets {
     const val ESPEAK_DIR_NAME = "espeak-ng-data"
 
     /**
-     * sha256 of app/src/main/assets/speech/tts/espeak-ng-data.zip as fetched by tools/fetch-speech.sh.
+     * sha256 of app/src/main/assets/speech/tts/espeak-ng-data.zip as built by tools/fetch-speech.sh.
      * Checked before the zip is unpacked and recorded in a stamp next to the extracted directory, so a
      * truncated fetch or a half-written extraction reports [SpeechError.ESPEAK_DATA_BAD] instead of
      * producing a TTS engine that mispronounces everything.
+     *
+     * This pin is only worth checking while the zip is byte-identical on every machine that builds it,
+     * which until 2026-09-22 it was not: the script used `zip -X`, whose DOS timestamps are written in
+     * the builder's local timezone, so CI's archive hashed differently from this one and every CI APK
+     * shipped with speech dead. fetch-speech.sh now writes the archive with fixed metadata AND verifies
+     * it against this constant, so the two can no longer drift apart silently.
      */
-    const val ESPEAK_ZIP_SHA256 = "cd01895b3e35abbe1fdbc2c602dbb60605e7c612244914ad62afc4db2f0e58c3"
+    const val ESPEAK_ZIP_SHA256 = "efc829fc33ff93f44e1938b58f7725c8973ccb491c1985226454cad63b1f0e7c"
 
     /** Everything the recognizer needs, `bpe.model` included: without it there is no grammar pass. */
     val ASR_FILES = listOf(ASR_ENCODER, ASR_DECODER, ASR_JOINER, ASR_TOKENS, ASR_BPE)
