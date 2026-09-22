@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Package visibility: without this the probe cannot see the shell and reports it as missing. -->
+    <queries>
+        <package android:name="app.tileshell" />
+    </queries>
+
+    <!-- P5 draws a full-height overlay and measures whether it reaches under the nav bar. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <application
+        android:allowBackup="false"
+        android:label="R4 probe"
+        android:theme="@android:style/Theme.Material.NoActionBar">
+        <activity
+            android:name=".ProbeActivity"
+            android:exported="true"
+            android:label="R4 probe">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
