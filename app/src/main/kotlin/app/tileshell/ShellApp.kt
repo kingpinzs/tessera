@@ -3,12 +3,15 @@ package app.tileshell
 import android.app.Application
 import android.os.Handler
 import android.os.Looper
+import android.content.pm.PackageManager
 import app.tileshell.apps.AppCatalog
+import app.tileshell.apps.ProfileKind
 import app.tileshell.cortana.reminders.ReminderScheduler
 import app.tileshell.diag.Diagnostics
 import app.tileshell.feeds.CalendarFeed
 import app.tileshell.feeds.MusicFeed
 import app.tileshell.feeds.PhotosFeed
+import app.tileshell.tiles.CategoryFolders
 import app.tileshell.tiles.LayoutStore
 import app.tileshell.tiles.ShellTiles
 import app.tileshell.tiles.TileKey
@@ -22,6 +25,7 @@ class ShellApp : Application() {
         Diagnostics.add("app", "process start")
         followPackageChanges(AppCatalog.get(this))
         addCortanaTile()
+        addCategoryFolders()
         startFeeds("process start")
         startBadgeExpirySweep()
         // A reboot, an app update and `am force-stop` all cancel alarms and proximity alerts, so every
@@ -39,6 +43,56 @@ class ShellApp : Application() {
         LayoutStore.get(this).addOnce(
             ShellTiles.CORTANA_ADD,
             TileKey.ShellTile(ShellTiles.CORTANA),
+            TileSize.MEDIUM,
+        )
+    }
+
+    /**
+     * The Games and Office folders (Jeremy, 2026-09-22: "there should be games and office folders").
+     *
+     * Seeded from what each app declares about itself — `android:appCategory`, which Android returns as
+     * [android.content.pm.ApplicationInfo.category] — rather than from a list of package names this
+     * shell would have to keep up to date. [CategoryFolders] holds the rules; this reads the catalog and
+     * asks the package manager, and does neither when the ADD has already run, because the scan costs a
+     * call per installed app and the answer would be thrown away.
+     *
+     * Both folders follow the same one-shot contract as the Cortana tile: seeded once, and a folder the
+     * user deletes stays deleted. The contents are an ordinary folder afterwards — edit mode can add to
+     * it, take from it and rename it, and nothing here touches it again.
+     */
+    private fun addCategoryFolders() {
+        val store = LayoutStore.get(this)
+        if (store.hasAdded(CategoryFolders.GAMES_ADD) && store.hasAdded(CategoryFolders.OFFICE_ADD)) return
+        val catalog = AppCatalog.get(this)
+        val candidates = catalog.apps.value
+            // The main profile only. A work or private-space app belongs behind its own header in the
+            // app list, not swept into a folder on Start where it is the first thing anyone sees.
+            .filter { it.profile == ProfileKind.MAIN && it.component.packageName != packageName }
+            .distinctBy { it.component.packageName }
+            .mapNotNull { entry ->
+                val category = try {
+                    packageManager.getApplicationInfo(entry.component.packageName, 0).category
+                } catch (e: PackageManager.NameNotFoundException) {
+                    return@mapNotNull null
+                }
+                CategoryFolders.Candidate(
+                    key = TileKey.AppTile(entry.component, entry.user),
+                    label = entry.label,
+                    category = category,
+                    installedAtMs = entry.firstInstallTime,
+                )
+            }
+        Diagnostics.add("layout", "category folders: scanned ${candidates.size} apps")
+        store.addFolderOnce(
+            CategoryFolders.GAMES_ADD,
+            CategoryFolders.GAMES_NAME,
+            CategoryFolders.members(candidates, android.content.pm.ApplicationInfo.CATEGORY_GAME),
+            TileSize.MEDIUM,
+        )
+        store.addFolderOnce(
+            CategoryFolders.OFFICE_ADD,
+            CategoryFolders.OFFICE_NAME,
+            CategoryFolders.members(candidates, android.content.pm.ApplicationInfo.CATEGORY_PRODUCTIVITY),
             TileSize.MEDIUM,
         )
     }
