@@ -73,6 +73,14 @@ interface ActionHost {
 
     /** `KeyguardManager.requestDismissKeyguard` behind the "Unlock" button (H12). */
     fun requestUnlock()
+
+    /**
+     * Raise Android's own microphone prompt ABOVE the session. Tess asked for nothing before this: the
+     * listen request went to the speech process, which can only report the missing permission, so the
+     * card said "I need permission to use the microphone" and no prompt ever appeared (Jeremy,
+     * 2026-09-22, on the phone).
+     */
+    fun requestMicrophone()
 }
 
 /**

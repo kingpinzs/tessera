@@ -21,6 +21,21 @@ class CortanaPermissionActivity : ComponentActivity() {
 
     private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
         Diagnostics.add("cortana", "permission result: $result")
+        // Denied and Android will no longer ask (denied twice, or "Don't ask again"): the request came back
+        // at once and NOTHING was shown — exactly "it never popped up". Open this app's own page, where the
+        // permission is one tap away, instead of finishing silently (the music app's rule, phase 10).
+        val blocked = result.filterValues { !it }.keys.filter { !shouldShowRequestPermissionRationale(it) }
+        if (result.isNotEmpty() && result.values.all { it } && intent?.getBooleanExtra(EXTRA_REOPEN_LISTENING, false) == true) {
+            // Tess stepped aside for the prompt; now that the microphone is allowed she comes back listening.
+            val shown = CortanaService.open(applicationContext, CortanaMode.LISTENING)
+            Diagnostics.add("cortana", "microphone allowed; reopening Tess listening (shown=$shown)")
+        }
+        if (blocked.isNotEmpty()) {
+            Diagnostics.add("cortana", "permission blocked by Android (no prompt shown): $blocked; opening app info")
+            runCatching {
+                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
+            }.onFailure { Diagnostics.add("cortana", "app info page failed: $it") }
+        }
         finish()
     }
 
@@ -93,21 +108,35 @@ class CortanaPermissionActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_PERMISSIONS = "permissions"
+
+        /** Set when Tess hid herself for the prompt: reopen her listening once the permission is granted. */
+        const val EXTRA_REOPEN_LISTENING = "reopen_listening"
         const val EXTRA_ROLE = "role"
+
+        /**
+         * Always a fresh task. This page runs in its own affinity task, and anything it opened there — the
+         * app-info page for a blocked permission, the assistant settings page — stays in that task after
+         * this page finishes. A plain NEW_TASK start then only brought that old task to the front
+         * (START_TASK_TO_FRONT): onCreate never ran, no prompt was requested, and the user saw a stale
+         * settings page or nothing at all (found reproducing Jeremy's report, 2026-09-22). CLEAR_TASK
+         * drops whatever was left there, so every request really is made.
+         */
+        private const val FRESH_TASK = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+        fun intentFor(context: android.content.Context, permissions: List<String>): android.content.Intent =
+            android.content.Intent(context, CortanaPermissionActivity::class.java)
+                .addFlags(FRESH_TASK)
+                .putExtra(EXTRA_PERMISSIONS, permissions.toTypedArray())
 
         fun request(context: android.content.Context, permissions: List<String>) {
             if (permissions.isEmpty()) return
-            context.startActivity(
-                android.content.Intent(context, CortanaPermissionActivity::class.java)
-                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                    .putExtra(EXTRA_PERMISSIONS, permissions.toTypedArray())
-            )
+            context.startActivity(intentFor(context, permissions))
         }
 
         fun requestAssistantRole(context: android.content.Context) {
             context.startActivity(
                 android.content.Intent(context, CortanaPermissionActivity::class.java)
-                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .addFlags(FRESH_TASK)
                     .putExtra(EXTRA_ROLE, true)
             )
         }

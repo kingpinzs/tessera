@@ -74,6 +74,23 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
             UnlockBridge.await { unlocked -> if (unlocked) model.onUnlocked() else model.onUnlockCancelled() }
             UnlockBridge.start(context)
         }
+
+        /**
+         * The session's window sits above every activity — including Android's permission prompt, which
+         * MICPERM run 1 caught resumed but hidden UNDER Tess, even when started as an assistant activity.
+         * So Tess steps aside: the session hides, the prompt shows on its own, and the permission page
+         * brings Tess back already listening once the microphone is allowed.
+         */
+        override fun requestMicrophone() {
+            Diagnostics.add("cortana", "microphone: hiding the session and asking")
+            hide()
+            runCatching {
+                context.startActivity(
+                    CortanaPermissionActivity.intentFor(context, listOf(android.Manifest.permission.RECORD_AUDIO))
+                        .putExtra(CortanaPermissionActivity.EXTRA_REOPEN_LISTENING, true),
+                )
+            }.onFailure { Diagnostics.add("cortana", "microphone: could not start the permission page: $it") }
+        }
     }
 
     val model: CortanaModel = CortanaModel(context, scope, host)

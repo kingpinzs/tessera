@@ -84,6 +84,16 @@ object SpeechClient {
     private var appContext: Context? = null
     private var bindCount = 0
 
+    /**
+     * Requests made while the bind is still in flight, delivered in order the moment it connects.
+     *
+     * The session binds on every show, and an open that goes straight to listening (press-and-hold, and
+     * Tess coming back after the microphone prompt) asks to listen ~60 ms before the bind lands. Those
+     * requests used to be DROPPED ("startListening dropped: not bound") while the page showed Tess
+     * listening — reproduced 2026-09-22 chasing Jeremy's microphone report. Only an UNBOUND client drops.
+     */
+    private val pending = ArrayDeque<Pair<String, (ISpeech) -> Unit>>()
+
     private val callback = object : ISpeechCallback.Stub() {
         override fun onListening() = emit(SpeechEvent.Listening)
         override fun onPartial(text: String) = emit(SpeechEvent.Partial(text))
@@ -106,11 +116,19 @@ object SpeechClient {
     private val connection0 = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, binder: IBinder) {
             val speech = ISpeech.Stub.asInterface(binder)
-            service = speech
-            connectionState.value = Connection.BOUND
             runCatching { speech.register(callback) }
                 .onFailure { Diagnostics.add("speech", "register failed: $it") }
+            // Published together with the drain, so no new call can overtake the queued ones.
+            val queued = synchronized(this@SpeechClient) {
+                service = speech
+                connectionState.value = Connection.BOUND
+                pending.toList().also { pending.clear() }
+            }
             Diagnostics.add("speech", "bound to :speech")
+            for ((what, body) in queued) {
+                Diagnostics.add("speech", "$what delivered after the bind")
+                deliver(speech, what, body)
+            }
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
@@ -154,6 +172,8 @@ object SpeechClient {
         runCatching { service?.unregister(callback) }
         runCatching { context.applicationContext.unbindService(connection0) }
         service = null
+        // Closed before the bind landed: nothing asked for while it was open may start afterwards.
+        pending.clear()
         connectionState.value = Connection.UNBOUND
         Diagnostics.add("speech", "unbound from :speech")
     }
@@ -188,12 +208,22 @@ object SpeechClient {
 
     fun status(): String = service?.let { runCatching { it.status() }.getOrNull() } ?: "speech: not bound"
 
-    private inline fun call(what: String, body: (ISpeech) -> Unit) {
-        val speech = service
-        if (speech == null) {
-            Diagnostics.add("speech", "$what dropped: not bound")
-            return
-        }
+    private fun call(what: String, body: (ISpeech) -> Unit) {
+        val speech = synchronized(this) {
+            service ?: run {
+                if (connectionState.value == Connection.UNBOUND) {
+                    Diagnostics.add("speech", "$what dropped: not bound")
+                } else {
+                    pending.addLast(what to body)
+                    Diagnostics.add("speech", "$what queued until the bind lands")
+                }
+                null
+            }
+        } ?: return
+        deliver(speech, what, body)
+    }
+
+    private fun deliver(speech: ISpeech, what: String, body: (ISpeech) -> Unit) {
         runCatching { body(speech) }.onFailure {
             Diagnostics.add("speech", "$what failed: $it")
             emit(SpeechEvent.Error(SpeechError.INTERNAL, "$what: $it"))
