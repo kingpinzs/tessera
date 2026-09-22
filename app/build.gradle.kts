@@ -20,7 +20,11 @@ android {
         applicationId = "app.tileshell"
         minSdk = 34
         targetSdk = 36
-        versionCode = 1
+        // Every CI build is an UPDATE of the one before it, so the version has to move: Android treats a
+        // build whose versionCode never changes as a reinstall of the same version, and will refuse a
+        // DOWNGRADE outright. The CI run number is the only monotonic thing available; a local build
+        // stays at 1, which is what it has always been.
+        versionCode = (System.getenv("TESSERA_VERSION_CODE") ?: "1").toInt()
         versionName = "0.1.0"
         // Phase 03: the speech runtime ships native code. arm64-v8a is the S25 Ultra, x86_64 is the AVD;
         // the other two ABIs in the AAR would add ~58 MB for hardware this plan never targets.
