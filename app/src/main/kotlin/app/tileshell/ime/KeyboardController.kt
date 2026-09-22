@@ -140,7 +140,13 @@ class KeyboardController(
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                 val i = ev.actionIndex
-                tracks[ev.getPointerId(i)]?.let { up(it, ev.getX(i), ev.getY(i), ev.eventTime) }
+                tracks[ev.getPointerId(i)]?.let {
+                    // Where the finger LIFTS is part of the gesture: the last MOVE can arrive a step short
+                    // of it (E9 run 2 measured a 300-px space-bar drag landing 292 px up). The lift point is
+                    // applied as a final move — the raise, Word Flow's last sample, the popup cell — first.
+                    move(it, ev.getX(i), ev.getY(i), ev.eventTime)
+                    up(it, ev.getX(i), ev.getY(i), ev.eventTime)
+                }
             }
             MotionEvent.ACTION_CANCEL -> cancelAll()
         }
