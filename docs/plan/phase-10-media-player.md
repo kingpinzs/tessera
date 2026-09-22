@@ -1,5 +1,5 @@
 ---
-status: DRAFT   # Stage A: interview in progress; Q1, Q3 and Q4 ruled 2026-09-22, Q5 is with Jeremy
+status: DRAFT   # Stage A: interview in progress; Q1, Q3, Q4 and Q5 ruled 2026-09-22, Q6 is with Jeremy
 ---
 # Phase 10 — W10M media player
 
@@ -75,18 +75,33 @@ against this rule when it is built rather than assumed to still hold. (2) Until 
 change is nearly invisible: a local file plays in whatever app resolves the MUSIC slot today, so the
 face lands on the same tile it lands on now. The rule only starts to bite when a NON-slot app plays.
 
+**Q5 — an app, and we build it (2026-09-22, Jeremy: "Music player app we build unless there is one
+exactly like groove already open source we can add").**
+
+It is a real app inside the APK: a launcher activity with android.intent.category.APP_MUSIC, so the
+MUSIC slot resolves to it exactly as it resolves any music app and no resolver, app list or per-package
+tile rule needs a carve-out. That is also what W10M did — Groove was an app in the list.
+
+The "unless" was checked rather than assumed: research task **R9** (r9-music-player-reuse.md). Nothing
+can be added. The one credible look-alike, MetroMusic, is GPL-3.0 — which by R2's standing finding makes
+the whole APK GPL — and is styled after Windows Phone 8's panorama rather than W10M's pivot, so it was
+never "exactly like Groove". Every mature Android player is GPL-3.0, the same wall R2 hit on dialers,
+SMS apps and keyboards. What IS reusable is the UI kit underneath it, MangoTile (MIT), which R2 already
+picked as a dependency for this build.
+
+One consequence for the app list: this player appears there like any other app, where the hold menu now
+offers Uninstall. It cannot be uninstalled separately — it is part of the shell APK — so it must be
+excluded the way the shell's own package already is (AppUninstall.canUninstall), or the menu offers an
+item that cannot work.
+
 ## Interview queue (Stage A step 4)
 
 - ~~Q1 — what the player IS.~~ Ruled 2026-09-22 ("A"); see Decisions.
 - ~~Q2 — where it lives.~~ Settled by Q1: it takes over the MUSIC slot.
 - ~~Q3 — what this is measured against.~~ Ruled 2026-09-22 ("C"); see Decisions. Adds research task R8.
 - ~~Q4 — what the Music tile follows.~~ Ruled 2026-09-22; see Decisions.
-- **Q5 — is the player an app or a shell page.** With Jeremy. Everything else in the shell that owns a
-  screen (Weather, Settings, Cortana) is an internal page reached from its own tile. An app is different:
-  it declares a launcher activity and android.intent.category.APP_MUSIC, so the MUSIC slot resolves to it
-  exactly as it resolves any music app, and it appears in the app list with every other app. Q1 said it
-  takes over the MUSIC slot, and HOW it does that is this question.
-- Q6 — the library: what it indexes, a phone with no local audio at all, and whether it watches
+- ~~Q5 — an app or a shell page.~~ Ruled 2026-09-22; an app we build. Adds research task R9 (done).
+- **Q6 — the library**: what it indexes, a phone with no local audio at all, and whether it watches
   MediaStore the way PhotosFeed does.
 - Q7 — playback: the engine, headset and Bluetooth handling, and what becomes of MusicFeed.
 - Q8 — the lock-screen and glance relationship (phase 07 territory).
