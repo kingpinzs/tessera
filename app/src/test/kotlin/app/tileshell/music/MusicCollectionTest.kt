@@ -56,14 +56,40 @@ class MusicCollectionTest {
     }
 
     @Test
-    fun `the playlists pivot is empty until build task 8 fills it`() {
-        assertTrue(MusicCollection.playlists().isEmpty)
-        assertTrue(MusicCollection.playlists().queue.isEmpty())
+    fun `the playlists pivot always offers the row that makes one, even with none`() {
+        // Build task 8: the "new playlist" row is first and is always there, which is Groove's own
+        // arrangement and also the answer to the empty case — the one thing there is to do, rather
+        // than a sentence explaining that there is nothing.
+        val page = MusicCollection.playlists(emptyList(), locale)
+        assertEquals(listOf(NewPlaylistItem), page.items)
+        assertTrue(page.queue.isEmpty())
     }
 
     @Test
-    fun `an empty library gives every pivot an empty page rather than a crash`() {
-        for (pivot in MusicPivot.entries) assertTrue(MusicCollection.page(pivot, emptyList(), locale).isEmpty)
+    fun `playlists are listed A-Z under their letters, below that row`() {
+        val page = MusicCollection.playlists(
+            listOf(Playlist("b", "Zebra", listOf(1L)), Playlist("a", "Apple", emptyList())),
+            locale,
+        )
+        assertEquals(NewPlaylistItem, page.items.first())
+        assertEquals(listOf("A", "Z"), page.items.filterIsInstance<LetterHeader>().map { it.letter })
+        assertEquals(listOf("Apple", "Zebra"), page.items.filterIsInstance<PlaylistItem>().map { it.playlist.name })
+    }
+
+    @Test
+    fun `a jump target on the playlists pivot still lands on its own header`() {
+        // The "new playlist" row shifts every index by one; the indices are taken as the headers are
+        // appended, so it cannot put them out by that one row.
+        val page = MusicCollection.playlists(listOf(Playlist("a", "Zebra", emptyList())), locale)
+        val at = page.jump.first { it.letter == "Z" }.index!!
+        assertEquals("Z", (page.items[at] as LetterHeader).letter)
+    }
+
+    @Test
+    fun `an empty library gives every music pivot an empty page rather than a crash`() {
+        for (pivot in listOf(MusicPivot.ALBUMS, MusicPivot.ARTISTS, MusicPivot.SONGS)) {
+            assertTrue(MusicCollection.page(pivot, emptyList(), emptyList(), locale).isEmpty)
+        }
     }
 
     // ---- the queue a tap starts ----

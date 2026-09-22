@@ -249,11 +249,32 @@ one task that touches shipped code is done early enough to be re-verified rather
    **The route to it is a build-time call**, stated because R8 does not cover it: Groove reached this
    screen from a mini-player strip that is in no measurement, so instead a tap on a track plays it and
    opens this screen, and Back returns to the collection with the session still playing (asserted).
-   H-M1 and H-M2 remain open: the transport glyph FORMS are drawn from R8's verbal descriptions
-   ("a bar plus a hollow triangle", `⤬`, 20-epx repeat), not from measured outlines.
+   **H-M1 signed off 2026-09-22 (Jeremy: "V-2016 looks right")** — the version question is closed.
+   H-M2 remains open: the transport glyph FORMS are drawn from R8's verbal descriptions
+   ("a bar plus a hollow triangle", `⤬`, 20-epx repeat), not from measured outlines, and the motion
+   R8 could not measure at all is still Jeremy's to judge.
 8. **Playlists.** Create, rename, reorder, delete (Q7), persisted where MediaStore playlists are not
    writable on modern Android — the store is the build's own, and where it lives is a build-time call
    recorded in this doc when task 8 starts.
+   **Built 2026-09-22. The build-time call: music_playlists.json in the app's private files
+   directory**, written with a temp file and a rename, the same shape as LayoutStore's
+   start_layout.json — so a kill mid-write leaves the previous file whole rather than half a new one.
+   MediaStore.Audio.Playlists was deprecated in API 30 and is not writable under scoped storage, which
+   is what this replaces.
+   **What a playlist holds:** MediaStore track ids, not paths and not copies of the metadata. A
+   retagged file therefore shows its new tags in every playlist at once, and an id the library no
+   longer has is **skipped when drawn but not pruned from the file** — an unmounted volume or a rescan
+   in progress would otherwise quietly eat a playlist. Duplicates are allowed; someone who adds a
+   track twice meant to.
+   **The surfaces:** "new playlist" is the pivot's first row (Groove's own arrangement, and the reason
+   this pivot now has no empty state at all); rename and delete are the hold menu on a playlist;
+   move-up / move-down / remove are the hold menu on a track inside one; and add-to is the hold menu on
+   any track anywhere in the collection. Reorder is a menu rather than a drag deliberately — dragging
+   is Start's edit-mode vocabulary and means rearranging the tile grid, and a second meaning inside a
+   list is how two gestures start fighting over one finger.
+   Evidence qa/phase-01/MUSIC8, 38/38, bracketed on persistence: the playlist is made, added to,
+   reordered, trimmed and renamed, then the shell is FORCE-STOPPED and reopened before anything is
+   asserted about it surviving.
 9. **Extras.** Sleep timer and equaliser (Q7).
 10. **Settings page + checklist rows.** The audio permission (READ_MEDIA_AUDIO), and the rows the
     onboarding checklist needs so a phone with the permission denied says so rather than showing an
@@ -279,7 +300,7 @@ Every row runs on the device and captures its evidence, per the harness in qa/ph
 | E12 | Playing in an app with no tile puts the face nowhere — no tile is borrowed |
 | E13 | The tile grows while playing, white glyphs survive a bright cover, and its controls drive playback (re-verification of the 2026-09-21 item 3 findings under the new rule) |
 | E14 | The now-playing screen matches R8's measured values within its stated tolerances, built to V-2016 and anchored per §1.10 rather than to absolute y values |
-| H-M1 | NEEDS-HUMAN: Jeremy looks at the finished now-playing screen and rules V-2016 vs V-2015 (four numbers and a string) |
+| H-M1 | **SIGNED OFF 2026-09-22 (Jeremy: "V-2016 looks right").** The now-playing screen stays on V-2016: 328-epx art with 16-epx margins, the ~20-epx title, and the second line reading "Artist • Album". Ruling 1's agent call stands and the V-2015 alternative is closed |
 | H-M2 | NEEDS-HUMAN: Jeremy judges the motion, which R8 could not measure at all |
 | E15 | Playlists can be created, renamed, reordered and deleted, and survive a restart |
 | E16 | Sleep timer stops playback at its time; the equaliser changes what is heard |

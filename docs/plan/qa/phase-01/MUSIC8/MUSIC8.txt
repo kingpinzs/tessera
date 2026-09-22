@@ -1,0 +1,58 @@
+==============================================================================
+ROW MUSIC8 — playlists: create, add, reorder, remove, rename, survive a restart, delete
+at            2026-09-22T10:33:59-06:00
+driver        music8.sh blob 95f827f35162be1334ee713d68ad35c60ef200e2
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     4bf6ee9ad6383cd9 326343770 bytes
+apk installed a765f7af6e65c66d
+apk match     yes (a765f7af6e65c66d)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  the store starts with no file                               = 
+      pivot -> playlists (settled after 0s, diagnostics say [playlists])
+PASS  the playlists pivot offers 'new playlist'                   contains [music_new_playlist]
+PASS  and there are no playlists yet                              = 0
+PASS  it opens a name box                                         contains [music_name_box]
+PASS  pre-filled with the default name, so Done alone is enough   = New playlist
+PASS  one playlist now exists                                     = 1
+      created [music_playlist:pl-1790094868543]
+PASS  named what was typed                                        = Road trip
+PASS  and it starts empty                                         = 0 songs
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  there are two distinct songs to add                         != 4 Minute Warning
+PASS  and their titles were readable                              != 
+      adding [4 Minute Warning] then [An Ending]
+PASS  holding a song opens a menu                                 contains [music_menu]
+PASS  offering the playlist it could join                         contains [music_menu_add:pl-1790094868543]
+PASS  and the option to make a new one for it                     contains [music_menu_new]
+PASS  picking one closes the menu                                 does not contain [music_menu_scrim]
+PASS  the store says what it wrote                                contains [playlists add]
+      pivot -> playlists (settled after 0s, diagnostics say [playlists])
+PASS  the playlist row counts both                                = 2 songs
+PASS  the playlist opens onto its own page                        contains [music_playlist_detail]
+PASS  titled with its name                                        = Road trip
+PASS  holding both tracks                                         = 2
+      in the playlist, the first track is [4 Minute Warning] (added first: [4 Minute Warning])
+PASS  in the order they were added, not the library's             = 4 Minute Warning
+PASS  the track menu offers up                                    contains [music_menu_up]
+PASS  the track menu offers down                                  contains [music_menu_down]
+PASS  the track menu offers remove                                contains [music_menu_remove]
+      after move down, the first track is [An Ending]
+PASS  move down swaps the two                                     = An Ending
+PASS  and keeps both                                              = 2
+PASS  remove takes one out                                        = 1
+PASS  and leaves the other                                        = 4 Minute Warning
+PASS  Back leaves the playlist page                               contains [music_new_playlist]
+PASS  holding a playlist offers rename                            contains [music_menu_rename]
+PASS  and delete                                                  contains [music_menu_delete]
+PASS  the box opens on the CURRENT name, not an empty one         = Road trip
+PASS  the playlist is renamed                                     = Long drive
+PASS  and keeps its track                                         = 1 song
+PASS  the store wrote a file                                      contains [music_playlists.json]
+      pivot -> playlists (settled after 0s, diagnostics say [playlists])
+PASS  after a force-stop it is still there                        = Long drive
+PASS  with its track still in it                                  = 1 song
+PASS  delete removes it                                           = 0
+PASS  and the row that makes one is still there                   contains [music_new_playlist]
+------------------------------------------------------------------------------
+MUSIC8: 38 passed, 0 failed

@@ -4,6 +4,9 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,8 +45,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -57,11 +63,13 @@ import app.tileshell.diag.Diagnostics
 import app.tileshell.bars.W10mNavBar
 import app.tileshell.bars.W10mStatusBar
 import app.tileshell.brand.Glyph
+import app.tileshell.start.Edit
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * The collection: albums / artists / songs / playlists on a pivot (phase 10 build task 6).
@@ -115,7 +123,9 @@ object MusicMetrics {
 @Composable
 fun MusicCollectionPage(
     tracks: List<Track>,
+    playlists: List<Playlist>,
     hasAccess: Boolean,
+    store: PlaylistStore,
     onPlay: (List<Track>, Int) -> Unit,
     onBack: () -> Unit,
     onWindows: () -> Unit,
@@ -124,19 +134,73 @@ fun MusicCollectionPage(
     val locale = LocalConfiguration.current.locales[0]
     val scope = rememberCoroutineScope()
     var detail by remember { mutableStateOf<CollectionItem?>(null) }
+    var openPlaylist by remember { mutableStateOf<String?>(null) }
+    var menu by remember { mutableStateOf<MenuState?>(null) }
+    var naming by remember { mutableStateOf<NamingState?>(null) }
+    var contentTopPx by remember { mutableStateOf(0f) }
     val pager = rememberPagerState { MusicPivot.entries.size }
+    val playlist = openPlaylist?.let { id -> playlists.firstOrNull { it.id == id } }
 
-    BackHandler(enabled = detail != null) { detail = null }
+    // Innermost first: an overlay closes before the page under it does.
+    BackHandler(enabled = naming != null || menu != null || openPlaylist != null || detail != null) {
+        when {
+            naming != null -> naming = null
+            menu != null -> menu = null
+            openPlaylist != null -> openPlaylist = null
+            else -> detail = null
+        }
+    }
+
+    /** The hold menu on a track: every playlist it could join, and the option to make one for it. */
+    fun addToMenu(track: Track, anchorPx: Float): MenuState = MenuState(
+        anchorPx,
+        listOf(
+            MenuEntry("Add to new playlist", "music_menu_new") {
+                menu = null
+                naming = NamingState("Name this playlist", PlaylistRules.defaultName(playlists)) { name ->
+                    store.add(store.create(name), track.id)
+                    naming = null
+                }
+            },
+        ) + PlaylistRules.sorted(playlists).map { target ->
+            MenuEntry("Add to ${target.name}", "music_menu_add:${target.id}") {
+                store.add(target.id, track.id)
+                menu = null
+            }
+        },
+    )
 
     // The shell's own chrome, drawn by the page as every other shell-owned page draws it: the music
     // player is an app INSIDE the shell, so it gets the same status bar and the same W10M nav bar
     // rather than Android's.
     Column(Modifier.fillMaxSize().background(colors.background).testTag("music_root")) {
         W10mStatusBar()
-        Box(Modifier.fillMaxWidth().weight(1f)) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .onGloballyPositioned { contentTopPx = it.positionInWindow().y },
+        ) {
             val open = detail
-            if (open != null) {
-                DetailPage(open, onPlay)
+            if (playlist != null) {
+                PlaylistDetailPage(
+                    playlist = playlist,
+                    tracks = PlaylistRules.tracksOf(playlist, tracks),
+                    onPlay = onPlay,
+                    onHold = { index, anchorPx ->
+                        menu = MenuState(
+                            anchorPx - contentTopPx,
+                            listOf(
+                                MenuEntry("Move up", "music_menu_up") { store.move(playlist.id, index, index - 1); menu = null },
+                                MenuEntry("Move down", "music_menu_down") { store.move(playlist.id, index, index + 1); menu = null },
+                                MenuEntry("Remove from playlist", "music_menu_remove") { store.removeAt(playlist.id, index); menu = null },
+                            ),
+                        )
+                    },
+                )
+            } else if (open != null) {
+                // An album or artist page holds tracks too, so the same hold adds one to a playlist.
+                DetailPage(open, onPlay) { track, anchorPx -> menu = addToMenu(track, anchorPx - contentTopPx) }
             } else {
                 Column(Modifier.fillMaxSize()) {
                     BasicText(
@@ -158,19 +222,68 @@ fun MusicCollectionPage(
                     }
                     HorizontalPager(state = pager, modifier = Modifier.fillMaxSize().testTag("music_pivot")) { index ->
                         val pivot = MusicPivot.entries[index]
-                        val page = remember(pivot, tracks, locale) { MusicCollection.page(pivot, tracks, locale) }
-                        PivotPage(pivot, page, hasAccess) { item ->
-                            when (item) {
-                                is SongItem -> onPlay(page.queue, page.startIndexOf(item.track))
-                                is AlbumItem, is ArtistItem -> detail = item
-                                is LetterHeader -> Unit
-                            }
-                        }
+                        val page = remember(pivot, tracks, playlists, locale) { MusicCollection.page(pivot, tracks, playlists, locale) }
+                        PivotPage(
+                            pivot = pivot,
+                            page = page,
+                            hasAccess = hasAccess,
+                            onTap = { item ->
+                                when (item) {
+                                    is SongItem -> onPlay(page.queue, page.startIndexOf(item.track))
+                                    is AlbumItem, is ArtistItem -> detail = item
+                                    is PlaylistItem -> openPlaylist = item.playlist.id
+                                    NewPlaylistItem -> {
+                                        naming = NamingState("Name this playlist", PlaylistRules.defaultName(playlists)) { name ->
+                                            store.create(name)
+                                            naming = null
+                                        }
+                                    }
+                                    is LetterHeader -> Unit
+                                }
+                            },
+                            onHold = { item, anchorPx ->
+                                when (item) {
+                                    is SongItem -> menu = addToMenu(item.track, anchorPx - contentTopPx)
+                                    is PlaylistItem -> menu = MenuState(
+                                        anchorPx - contentTopPx,
+                                        listOf(
+                                            MenuEntry("Rename", "music_menu_rename") {
+                                                val target = item.playlist
+                                                menu = null
+                                                naming = NamingState("Rename this playlist", target.name) { name ->
+                                                    store.rename(target.id, name)
+                                                    naming = null
+                                                }
+                                            },
+                                            MenuEntry("Delete", "music_menu_delete") { store.delete(item.playlist.id); menu = null },
+                                        ),
+                                    )
+                                    else -> Unit
+                                }
+                            },
+                        )
                     }
                 }
             }
+            // The overlays, over whichever page is showing and inside the same box the anchors are
+            // measured against.
+            menu?.let { open -> MusicMenu(open.anchorPx, open.entries) { menu = null } }
+            naming?.let { open ->
+                PlaylistNameBox(open.caption, open.initial, onDone = open.onDone, onCancel = { naming = null })
+            }
         }
-        W10mNavBar(onBack = { if (detail != null) detail = null else onBack() }, onWindows = onWindows)
+        W10mNavBar(
+            onBack = {
+                when {
+                    naming != null -> naming = null
+                    menu != null -> menu = null
+                    openPlaylist != null -> openPlaylist = null
+                    detail != null -> detail = null
+                    else -> onBack()
+                }
+            },
+            onWindows = onWindows,
+        )
     }
 }
 
@@ -245,7 +358,13 @@ private fun PivotHeaders(pageOffset: Float, onPick: (Int) -> Unit) {
 
 /** One pivot's list, with its jump grid over it. An empty pivot says why it is empty rather than nothing. */
 @Composable
-private fun PivotPage(pivot: MusicPivot, page: CollectionPage, hasAccess: Boolean, onTap: (CollectionItem) -> Unit) {
+private fun PivotPage(
+    pivot: MusicPivot,
+    page: CollectionPage,
+    hasAccess: Boolean,
+    onTap: (CollectionItem) -> Unit,
+    onHold: (CollectionItem, Float) -> Unit,
+) {
     val colors = LocalShellColors.current
     val list = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -254,7 +373,7 @@ private fun PivotPage(pivot: MusicPivot, page: CollectionPage, hasAccess: Boolea
     if (page.isEmpty) {
         Box(Modifier.fillMaxSize().padding(start = MusicMetrics.SIDE, top = 12.dp)) {
             BasicText(
-                emptyText(pivot, hasAccess),
+                emptyText(hasAccess),
                 style = ShellType.body.copy(color = colors.subtleText),
                 modifier = Modifier.testTag("music_empty:${pivot.name.lowercase()}"),
             )
@@ -270,7 +389,9 @@ private fun PivotPage(pivot: MusicPivot, page: CollectionPage, hasAccess: Boolea
                     is LetterHeader -> LetterHeaderRow(item) { gridOpen = true }
                     is AlbumItem -> AlbumRow(item) { onTap(item) }
                     is ArtistItem -> ArtistRow(item) { onTap(item) }
-                    is SongItem -> SongRow(item) { onTap(item) }
+                    is SongItem -> SongRow(item, onTap = { onTap(item) }, onHold = { y -> onHold(item, y) })
+                    is PlaylistItem -> PlaylistRow(item, onTap = { onTap(item) }, onHold = { y -> onHold(item, y) })
+                    NewPlaylistItem -> NewPlaylistRow { onTap(item) }
                 }
             }
         }
@@ -283,11 +404,13 @@ private fun PivotPage(pivot: MusicPivot, page: CollectionPage, hasAccess: Boolea
     }
 }
 
-private fun emptyText(pivot: MusicPivot, hasAccess: Boolean): String = when {
-    !hasAccess -> "Tessera cannot read your music yet. Turn on music access in Settings."
-    pivot == MusicPivot.PLAYLISTS -> "You don't have any playlists yet."
-    else -> "There is no music on this phone."
-}
+/**
+ * There is no playlists case here: that pivot always carries its "new playlist" row (build task 8), so
+ * it is never empty and an empty state for it would be a branch that cannot run.
+ */
+private fun emptyText(hasAccess: Boolean): String =
+    if (hasAccess) "There is no music on this phone."
+    else "Tessera cannot read your music yet. Turn on music access in Settings."
 
 @Composable
 private fun LetterHeaderRow(item: LetterHeader, onTap: () -> Unit) {
@@ -339,13 +462,14 @@ private fun ArtistRow(item: ArtistItem, onTap: () -> Unit) {
 }
 
 @Composable
-private fun SongRow(item: SongItem, onTap: () -> Unit) {
+private fun SongRow(item: SongItem, onTap: () -> Unit, onHold: ((Float) -> Unit)? = null) {
     val colors = LocalShellColors.current
     val playing = MusicPlayer.nowPlayingId == item.track.id.toString()
     TwoLineRow(
         tag = "music_song:${item.track.id}",
         primary = item.track.title,
         secondary = item.track.artist,
+        onHold = onHold,
         // The row that is loaded in the session is drawn in the accent, so the collection says what the
         // player is on without a second surface having to be open.
         primaryColor = if (playing) colors.accent else colors.text,
@@ -359,6 +483,126 @@ private fun SongRow(item: SongItem, onTap: () -> Unit) {
 }
 
 private fun countText(n: Int): String = if (n == 1) "1 song" else "$n songs"
+
+/** What an open menu or name box is about; held by the page so Back can close the innermost first. */
+private data class MenuState(val anchorPx: Float, val entries: List<MenuEntry>)
+
+private data class NamingState(val caption: String, val initial: String, val onDone: (String) -> Unit)
+
+/**
+ * Tap or hold, with the app list's own 783-ms threshold ([Edit.HOLD_MS], R6 §1.1.1) and its own rule
+ * about a cancelled gesture: a list scroll must neither open the row nor the menu. Written as a
+ * modifier rather than reusing [app.tileshell.applist.HoldRow] because these rows are a Row with a
+ * leading square, not a Box wrapper — the gesture is the same one, and it is the only thing shared.
+ */
+private fun Modifier.holdable(onTap: () -> Unit, onHold: () -> Unit): Modifier = pointerInput(onTap, onHold) {
+    awaitEachGesture {
+        awaitFirstDown()
+        var cancelled = false
+        val up = withTimeoutOrNull(Edit.HOLD_MS) {
+            waitForUpOrCancellation().also { if (it == null) cancelled = true }
+        }
+        when {
+            up != null -> onTap()
+            cancelled -> Unit
+            // The finger was still down when the threshold passed: awaitEachGesture swallows the rest
+            // of the gesture, so the up that follows cannot also open the row.
+            else -> onHold()
+        }
+    }
+}
+
+@Composable
+private fun PlaylistRow(item: PlaylistItem, onTap: () -> Unit, onHold: (Float) -> Unit) {
+    val colors = LocalShellColors.current
+    TwoLineRow(
+        tag = "music_playlist:${item.playlist.id}",
+        primary = item.playlist.name,
+        secondary = countText(item.playlist.size),
+        onTap = onTap,
+        onHold = onHold,
+    ) {
+        Box(Modifier.size(MusicMetrics.ART).background(colors.accent), Alignment.Center) {
+            BasicText(Glyph.LIST, style = ShellType.body.copy(color = Color.White, fontFamily = app.tileshell.brand.Brand.iconFont))
+        }
+    }
+}
+
+/** Groove's own first row on the playlists pivot, and the only way a playlist is made. */
+@Composable
+private fun NewPlaylistRow(onTap: () -> Unit) {
+    val colors = LocalShellColors.current
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(MusicMetrics.ROW)
+            .clickable(onClick = onTap)
+            .testTag("music_new_playlist"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.width(MusicMetrics.ART_X))
+        Box(Modifier.size(MusicMetrics.ART), Alignment.Center) {
+            BasicText(Glyph.ADD, style = ShellType.body.copy(color = colors.accent, fontFamily = app.tileshell.brand.Brand.iconFont))
+        }
+        BasicText(
+            "new playlist",
+            style = ShellType.body.copy(color = colors.accent),
+            maxLines = 1,
+            modifier = Modifier.padding(start = MusicMetrics.TEXT_X - MusicMetrics.ART_X - MusicMetrics.ART),
+        )
+    }
+}
+
+/**
+ * One playlist: its tracks in its own order, a tap to play from there, a hold to move or remove.
+ *
+ * An empty one says so. A playlist is made before it has anything in it, so "you just made this and it
+ * is empty" is the state it spends its first minute in, and a blank page there reads as broken.
+ */
+@Composable
+private fun PlaylistDetailPage(
+    playlist: Playlist,
+    tracks: List<Track>,
+    onPlay: (List<Track>, Int) -> Unit,
+    onHold: (Int, Float) -> Unit,
+) {
+    val colors = LocalShellColors.current
+    Column(Modifier.fillMaxSize().testTag("music_playlist_detail")) {
+        BasicText(
+            countText(tracks.size),
+            style = ShellType.caption.copy(color = colors.subtleText),
+            maxLines = 1,
+            modifier = Modifier.padding(start = MusicMetrics.SIDE).height(MusicMetrics.TITLE_BLOCK),
+        )
+        BasicText(
+            playlist.name,
+            style = ShellType.subheader.copy(color = colors.text),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .padding(start = MusicMetrics.SIDE)
+                .height(MusicMetrics.PIVOT_BLOCK)
+                .testTag("music_playlist_title"),
+        )
+        if (tracks.isEmpty()) {
+            BasicText(
+                "This playlist is empty. Hold a song to add it.",
+                style = ShellType.body.copy(color = colors.subtleText),
+                modifier = Modifier.padding(start = MusicMetrics.SIDE).testTag("music_playlist_empty"),
+            )
+            return@Column
+        }
+        LazyColumn(Modifier.fillMaxSize()) {
+            items(tracks.size, key = { "${tracks[it].id}:$it" }) { i ->
+                SongRow(
+                    SongItem(tracks[i]),
+                    onTap = { onPlay(tracks, i) },
+                    onHold = { y -> onHold(i, y) },
+                )
+            }
+        }
+    }
+}
 
 /** A play triangle, or the two pause bars while this row is the one sounding. */
 private fun DrawScope.drawTransportMark(paused: Boolean, ink: Color) {
@@ -389,27 +633,44 @@ private fun TwoLineRow(
     secondary: String,
     onTap: () -> Unit,
     primaryColor: Color? = null,
+    onHold: ((Float) -> Unit)? = null,
     leading: @Composable () -> Unit,
 ) {
     val colors = LocalShellColors.current
+    // The hold is the app list's, so one hold means one thing everywhere in the shell, and the anchor
+    // it reports is this row's underside in the page — where the menu band hangs from.
+    var bottomInWindow by remember { mutableStateOf(0f) }
+    val press = Modifier
+        .fillMaxWidth()
+        .height(MusicMetrics.ROW)
+        .onGloballyPositioned { bottomInWindow = it.boundsInWindow().bottom }
+    val gesture =
+        if (onHold == null) press.clickable(onClick = onTap)
+        else press.holdable(onTap) { onHold(bottomInWindow) }
     Row(
-        Modifier
-            .fillMaxWidth()
-            .height(MusicMetrics.ROW)
-            .clickable(onClick = onTap)
-            .testTag(tag),
+        gesture.testTag(tag),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.width(MusicMetrics.ART_X))
         leading()
         Column(Modifier.padding(start = MusicMetrics.TEXT_X - MusicMetrics.ART_X - MusicMetrics.ART, end = AppListMetrics.TEXT_END)) {
-            BasicText(primary, style = ShellType.body.copy(color = primaryColor ?: colors.text), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            // Tagged: this is the node a device row reads the second line off. A merged
-            // contentDescription on the row was tried first and does NOT reach the node uiautomator
-            // reports on a testTagsAsResourceId window (MUSIC6 read content-desc="" off a row that had
-            // one, before and after testTag in the chain), so it was removed rather than left in place
-            // doing nothing. Each line stays its own accessible node, exactly as the app list's do.
-            // The prefix is distinct so a count of "music_artist:" rows is not doubled by it.
+            // BOTH lines carry their own tag. The row's own node has no text of its own — the text is
+            // in these children — so a device row that reads a row off the row node reads an empty
+            // string and an assertion against it passes vacuously. MUSIC8's first run did exactly
+            // that four times over.
+            BasicText(
+                primary,
+                style = ShellType.body.copy(color = primaryColor ?: colors.text),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.testTag("music_pri:$tag"),
+            )
+            // A merged contentDescription on the row was tried first and does NOT reach the node
+            // uiautomator reports on a testTagsAsResourceId window (MUSIC6 read content-desc="" off a
+            // row that had one, before and after testTag in the chain), so it was removed rather than
+            // left in place doing nothing. Each line stays its own accessible node, exactly as the
+            // app list's do. The prefixes are distinct so a count of "music_artist:" rows is not
+            // doubled by them.
             BasicText(
                 secondary,
                 style = ShellType.caption.copy(color = colors.subtleText),
@@ -478,7 +739,7 @@ private fun JumpGrid(targets: List<JumpTarget>, onDismiss: () -> Unit, onPick: (
 
 /** An album or an artist, opened from the pivot: its tracks, in the order they play. */
 @Composable
-private fun DetailPage(item: CollectionItem, onPlay: (List<Track>, Int) -> Unit) {
+private fun DetailPage(item: CollectionItem, onPlay: (List<Track>, Int) -> Unit, onHold: ((Track, Float) -> Unit)? = null) {
     val colors = LocalShellColors.current
     val queue = remember(item) { MusicCollection.tracksOf(item) }
     val title = when (item) {
@@ -510,7 +771,11 @@ private fun DetailPage(item: CollectionItem, onPlay: (List<Track>, Int) -> Unit)
         )
         LazyColumn(Modifier.fillMaxSize()) {
             items(queue.size, key = { queue[it].id }) { i ->
-                SongRow(SongItem(queue[i])) { onPlay(queue, i) }
+                SongRow(
+                    SongItem(queue[i]),
+                    onTap = { onPlay(queue, i) },
+                    onHold = onHold?.let { hold -> { y -> hold(queue[i], y) } },
+                )
             }
         }
     }

@@ -63,9 +63,13 @@ class MusicActivity : ComponentActivity() {
                             val context = LocalContext.current
                             val tracks by MusicStore.library.collectAsState()
                             val access = remember(tracks) { MusicStore.hasAccess(context) }
+                            val store = remember(context) { PlaylistStore.get(context) }
+                            val playlists by store.playlists.collectAsState()
                             MusicCollectionPage(
                                 tracks = tracks,
+                                playlists = playlists,
                                 hasAccess = access,
+                                store = store,
                                 onPlay = { queue, index ->
                                     MusicPlayer.play(queue, index)
                                     screen = Screen.NOW_PLAYING

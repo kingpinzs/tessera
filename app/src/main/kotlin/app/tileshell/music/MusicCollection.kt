@@ -50,6 +50,15 @@ data class SongItem(val track: Track) : CollectionItem {
     override val key: String get() = "msong:${track.id}"
 }
 
+data class PlaylistItem(val playlist: Playlist) : CollectionItem {
+    override val key: String get() = "mpl:${playlist.id}"
+}
+
+/** Groove's own first row on this pivot: the playlists pivot is where a playlist is made. */
+data object NewPlaylistItem : CollectionItem {
+    override val key: String get() = "mpl:new"
+}
+
 /** A jump-grid cell: the letter, and where it lands — null when the library has nothing under it. */
 data class JumpTarget(val letter: String, val index: Int?)
 
@@ -93,24 +102,41 @@ object MusicCollection {
     }
 
     /**
-     * Playlists are build task 8's, so this pivot is empty until then — and empty is a real state it
-     * has to have anyway: a phone with music and no playlists shows exactly this.
+     * The playlists pivot (build task 8), headed by the row that makes one.
+     *
+     * The "new playlist" row is FIRST and is always there, which is Groove's own arrangement and also
+     * the answer to the empty case: a phone with no playlists shows the one thing there is to do
+     * rather than a sentence explaining that there is nothing. The page is therefore never empty, so
+     * this pivot has no empty state at all.
      */
-    fun playlists(): CollectionPage = CollectionPage(emptyList(), jumpOver(emptyMap()), emptyList())
-
-    fun page(pivot: MusicPivot, tracks: List<Track>, locale: Locale): CollectionPage = when (pivot) {
-        MusicPivot.ALBUMS -> albums(tracks, locale)
-        MusicPivot.ARTISTS -> artists(tracks, locale)
-        MusicPivot.SONGS -> songs(tracks, locale)
-        MusicPivot.PLAYLISTS -> playlists()
+    fun playlists(playlists: List<Playlist>, locale: Locale): CollectionPage {
+        val items = ArrayList<CollectionItem>(playlists.size + AppIndex.JUMP_LETTERS.size + 1)
+        items += NewPlaylistItem
+        val index = HashMap<String, Int>()
+        val sorted = PlaylistRules.sorted(playlists)
+        for ((letter, group) in AppIndex.group(sorted, { it.name }, { it.id }, AppIndex.collator(locale))) {
+            index[letter] = items.size
+            items += LetterHeader(letter)
+            group.forEach { items += PlaylistItem(it) }
+        }
+        return CollectionPage(items, jumpOver(index), emptyList())
     }
+
+    fun page(pivot: MusicPivot, tracks: List<Track>, playlists: List<Playlist>, locale: Locale): CollectionPage =
+        when (pivot) {
+            MusicPivot.ALBUMS -> albums(tracks, locale)
+            MusicPivot.ARTISTS -> artists(tracks, locale)
+            MusicPivot.SONGS -> songs(tracks, locale)
+            MusicPivot.PLAYLISTS -> playlists(playlists, locale)
+        }
 
     /** An album or artist opened from the collection: its own tracks, in the order they play. */
     fun tracksOf(item: CollectionItem): List<Track> = when (item) {
         is AlbumItem -> item.album.tracks
         is ArtistItem -> item.artist.albums.flatMap { it.tracks }
         is SongItem -> listOf(item.track)
-        is LetterHeader -> emptyList()
+        // A playlist's tracks come from the library, not from the item ([PlaylistRules.tracksOf]).
+        is PlaylistItem, NewPlaylistItem, is LetterHeader -> emptyList()
     }
 
     private fun <T> build(

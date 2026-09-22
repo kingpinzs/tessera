@@ -1,11 +1,11 @@
 ==============================================================================
 ROW MUSIC6 — the music collection: four pivots, the jump grid, and a tap that plays
-at            2026-09-22T10:16:42-06:00
-driver        music6.sh blob a632343f7cf052a729ade5b697bf32fb5a764183
+at            2026-09-22T10:36:43-06:00
+driver        music6.sh blob cfd4ba921d632557390c0beb2f9067cd7d36527f
 harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     2daba19fb945d827 326224974 bytes
-apk installed 7a3b11d415d8bc8a
-apk match     yes (7a3b11d415d8bc8a)
+apk built     b4a5eacd6bc00d7b 326343678 bytes
+apk installed 6176fb72c0d512c3
+apk match     yes (6176fb72c0d512c3)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       MediaStore holds 6 audio rows
@@ -36,8 +36,8 @@ PASS  all six songs                                               = 6
 PASS  a title starting with a digit files under the hash group    contains [music_header:#]
 PASS  and the letters are the app list's own index                contains [music_header:D]
       pivot -> playlists (settled after 0s, diagnostics say [playlists])
-PASS  the playlists pivot draws its empty state                   contains [music_empty:playlists]
-PASS  and it is about playlists, not about the permission         contains [playlists]
+PASS  the playlists pivot offers the row that makes one           contains [music_new_playlist]
+PASS  and draws no empty state, because it is never empty         does not contain [music_empty:playlists]
       pivot -> songs (settled after 0s, diagnostics say [songs])
 PASS  a tap on a letter header opens the jump grid                contains [music_jump_grid]
       jump cells drawn: 27
@@ -47,7 +47,7 @@ PASS  and the list lands on that letter                           contains [musi
       tapping [music_song:32]
 PASS  there is a song row to tap                                  != 
 PASS  the shell owns a media session                              contains [app.tileshell]
-      the shell's session:       state=PlaybackState {state=PLAYING(3), position=3013, buffered position=90044, speed=1.0, updated=2611699, actions=7340027, custom actions=[], active item id=0, error=null}
+      the shell's session:       state=PlaybackState {state=PLAYING(3), position=2952, buffered position=90044, speed=1.0, updated=3812139, actions=7340027, custom actions=[], active item id=0, error=null}
 PASS  and that session is PLAYING                                 contains [PLAYING(3)]
 PASS  with the track actually advancing, not merely loaded        = ok
 PASS  the player says which track it started, and of how many     contains [ of 6)]
