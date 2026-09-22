@@ -30,9 +30,35 @@ sealed interface TileFace {
     ) : TileFace
     data class WeatherDays(val days: List<Triple<String, String, String>>, val stale: String?) : TileFace
 
-    /** X3 approximation: album art full-bleed with title / artist lines. */
-    data class NowPlaying(val art: ImageBitmap?, val title: String, val artist: String) : TileFace
+    /**
+     * X3 approximation: album art full-bleed with title / artist lines.
+     *
+     * [controls] is what turns this face into the player (Jeremy, 2026-09-21: "show what is currently
+     * playing with play pauese stop skip on it"). It is empty on the idle face, so a tile that is merely
+     * SHOWING the last track — the one that flips behind the logo when nothing is playing — has no tap
+     * targets on it and behaves like every other tile: a tap launches the app.
+     *
+     * [playing] is what the play/pause control draws, and it is carried on the face rather than derived
+     * from `controls` because a face with no controls still knows which state it is describing.
+     */
+    data class NowPlaying(
+        val art: ImageBitmap?,
+        val title: String,
+        val artist: String,
+        val playing: Boolean = false,
+        val controls: List<Transport> = emptyList(),
+    ) : TileFace
 }
+
+/**
+ * A transport command a tile can carry (INDEX Change Log 2026-09-21 item 3, Jeremy's "play pauese stop
+ * skip"). One play/pause control rather than two, because the tile always knows which state it is in and
+ * a pair of buttons where one is always dead is not what W10M did with a transport.
+ *
+ * The enum lives in the engine, next to the face that carries it: it says WHAT the tile offers. Which
+ * media session it is sent to is the feed's business ([app.tileshell.feeds.MusicFeed.send]).
+ */
+enum class Transport { PLAY_PAUSE, STOP, NEXT }
 
 /**
  * Which sky a weather face animates (Jeremy, INDEX Change Log 2026-09-21 item 2: "the main tile should be the
@@ -74,4 +100,13 @@ data class TileContent(
      * Last in the list because the feeds pass the fields before it positionally.
      */
     val front: TileFace? = null,
+    /**
+     * Advance the faces on this fixed cadence (ms) instead of R3 A8's own random timer.
+     *
+     * 0 everywhere but a running slideshow (INDEX Change Log 2026-09-21 item 4), which is the one tile
+     * content that is not a live tile showing its news: it is a slideshow, and a slideshow with a random
+     * 4.0-4.8 s period looks like a tile that cannot decide. [app.tileshell.start.TileTiming] owns the
+     * rule; this is how a feed asks for it.
+     */
+    val slideshowMs: Int = 0,
 )

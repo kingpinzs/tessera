@@ -13,12 +13,15 @@ import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -31,11 +34,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
@@ -46,6 +53,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import app.tileshell.brand.Brand
 import app.tileshell.cortana.ui.drawLensDisc
 import app.tileshell.diag.Diagnostics
@@ -54,6 +64,7 @@ import app.tileshell.tiles.TileSize
 import app.tileshell.tiles.engine.FaceTransition
 import app.tileshell.tiles.engine.TileContent
 import app.tileshell.tiles.engine.TileFace
+import app.tileshell.tiles.engine.Transport
 import app.tileshell.ui.motion.Motion
 import app.tileshell.ui.tokens.ShellType
 import app.tileshell.ui.tokens.StartGrid
@@ -117,6 +128,11 @@ fun TileView(
     folderTarget: Boolean = false,
     /** A resize hides the tile's content while the rectangle changes size, leaving the accent fill (R6 §1.4). */
     contentAlpha: Float = 1f,
+    /**
+     * A transport control on the tile was tapped (INDEX Change Log 2026-09-21 item 3). Only a face that
+     * CARRIES controls can produce one, so every other tile in the shell is untouched by this.
+     */
+    onControl: (Transport) -> Unit = {},
 ) {
     val faces = model.content?.faces.orEmpty()
     // Face 0 is the logo face; 1..n are live faces.
@@ -141,7 +157,31 @@ fun TileView(
         }
     }
 
-    LaunchedEffect(model.id, faces.size, transition) {
+    // A slideshow advances on its own fixed cadence instead of R3 A8's random band (INDEX item 4).
+    val slideshowMs = model.content?.slideshowMs ?: 0
+
+    // Battery (constraint 3), the WeatherSkyFace pattern: a slideshow runs only while Start is RESUMED and
+    // this tile's own bounds are on screen. It is the slideshow that is gated and not every tile's flip,
+    // because R3 A8's 5-second band is the measured W10M behaviour this build is judged against (E10) and
+    // the slideshow is the new, four-times-faster animation this work adds.
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var resumed by remember { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
+    var onScreen by remember { mutableStateOf(false) }
+    DisposableEffect(lifecycle, slideshowMs) {
+        if (slideshowMs <= 0) return@DisposableEffect onDispose { }
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> resumed = true
+                Lifecycle.Event.ON_PAUSE -> resumed = false
+                else -> Unit
+            }
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+    val cycling = faces.isNotEmpty() && (slideshowMs <= 0 || (resumed && onScreen))
+
+    LaunchedEffect(model.id, faces.size, transition, slideshowMs, cycling) {
         // A content change cancels any running flip / crossfade; restore full visibility first so a tile is never
         // left squashed or faded out until its next cycle.
         cycle.snapTo(0f)
@@ -150,15 +190,18 @@ fun TileView(
         fadeFrom = -1
         if (faceIndex > faces.size) faceIndex = 0
         if (faces.isEmpty()) { faceIndex = 0; return@LaunchedEffect }
+        // A paused slideshow holds the photo it stopped on; it does not rewind and it does not race
+        // through the photos it missed when the tile comes back.
+        if (!cycling) return@LaunchedEffect
         // Peek tiles run on the flip tiles' timer band (R3 A8 has no separate band for them).
         val (min, max) = if (transition == FaceTransition.CROSSFADE)
             Motion.CROSSFADE_PERIOD_MIN_MS to Motion.CROSSFADE_PERIOD_MAX_MS else Motion.FLIP_PERIOD_MIN_MS to Motion.FLIP_PERIOD_MAX_MS
-        delay(Random.nextLong(0, max)) // random start phase
+        delay(TileTiming.startPhaseMs(slideshowMs, max) { Random.nextLong(0, it) }) // random start phase (R3 A8)
         while (true) {
             // R3 A8 periods are start-to-start: the wait after an animation is the period less the animation's own time.
             val startedAt = SystemClock.uptimeMillis()
-            val period = Random.nextLong(min, max + 1)
-            val next = (faceIndex + 1) % (faces.size + 1)
+            val period = TileTiming.periodMs(slideshowMs, min, max) { lo, hi -> Random.nextLong(lo, hi) }
+            val next = TileTiming.faceAfter(faceIndex + 1, faces.size)
             Diagnostics.add("tile_anim", "tile=${model.id} kind=$transition uptime=$startedAt faceIndex=$faceIndex next=$next faces=${faces.size}")
             when (transition) {
                 FaceTransition.FLIP -> {
@@ -189,9 +232,22 @@ fun TileView(
                     slideFrom = -1
                 }
             }
-            delay((period - (SystemClock.uptimeMillis() - startedAt)).coerceAtLeast(0L))
+            delay(TileTiming.remainingMs(period, SystemClock.uptimeMillis() - startedAt))
         }
     }
+
+    // Which face is on show right now, so the tile knows whether it is carrying controls. Face 0 is the
+    // logo, or the front face for a tile whose front IS its content (Weather, Music while playing, a
+    // picture frame); 1..n are the live faces.
+    fun faceAt(index: Int): TileFace? = when {
+        model.folder != null -> null
+        index == 0 || faces.isEmpty() || index > faces.size -> model.content?.front
+        else -> faces[index - 1]
+    }
+    val shownFace = faceAt(faceIndex) as? TileFace.NowPlaying
+    // A small tile has no room for three tap targets, so it carries none and behaves like any other tile.
+    val controls = if (model.size == TileSize.SMALL || !interactive) emptyList() else shownFace?.controls.orEmpty()
+    var pressedControl by remember(model.id) { mutableIntStateOf(-1) }
 
     // Press styles (Q6).
     var pressed by remember { mutableStateOf(false) }
@@ -216,10 +272,36 @@ fun TileView(
                 scaleY = depress.value * (if (transition == FaceTransition.FLIP) kotlin.math.abs(1f - 2f * cycle.value) else 1f)
                 cameraDistance = 12f * density.density
             }
-            .pointerInput(pressStyle, model.id, interactive) {
+            .let { if (slideshowMs > 0) it.onGloballyPositioned { c -> onScreen = !c.boundsInWindow().isEmpty } else it }
+            .pointerInput(pressStyle, model.id, interactive, controls) {
                 if (!interactive) return@pointerInput
                 awaitEachGesture {
                     val down = awaitFirstDown()
+                    // A CONTROL TAP NEVER REACHES THE LAUNCH PATH. The decision is made here, in the one
+                    // handler that owns the tile's touches, against a pure function ([TileControls]) — not
+                    // by nesting a second pointerInput inside the tile and trusting consumption order. The
+                    // whole gesture returns before the press style, the Start exit and onTap are reached,
+                    // so a tap that lands on pause cannot start the music app.
+                    val hit = TileControls.hitTest(
+                        down.position.x, down.position.y, size.width.toFloat(), size.height.toFloat(), controls.size,
+                    )
+                    if (hit != null) {
+                        down.consume()
+                        pressedControl = hit
+                        val release = waitForUpOrCancellation()
+                        release?.consume()
+                        pressedControl = -1
+                        // A finger that slid off the control it started on is a change of mind, not a
+                        // command, and it must not fall through to a launch either.
+                        val stillOn = release != null && TileControls.hitTest(
+                            release.position.x, release.position.y, size.width.toFloat(), size.height.toFloat(), controls.size,
+                        ) == hit
+                        if (stillOn) {
+                            Diagnostics.add("tile_control", "tile=${model.id} ${controls[hit]} (no launch)")
+                            onControl(controls[hit])
+                        }
+                        return@awaitEachGesture
+                    }
                     pressed = true
                     touch = down.position
                     when (pressStyle) {
@@ -273,7 +355,9 @@ fun TileView(
         } else {
             Face(faceIndex)
         }
-        Badge(model)
+        // The transport strip owns the bottom of the tile while it is there, so the badge (bottom-right)
+        // does not share a corner with the skip control.
+        if (controls.isEmpty()) Badge(model) else TransportStrip(model.id, controls, shownFace?.playing == true, pressedControl)
         if (pressStyle == PressStyle.P4_PRESS && pressed) {
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = P4_PRESS_DIM)))
         }
@@ -337,6 +421,9 @@ private fun BoxScope.Badge(model: TileModel) {
 @Composable
 internal fun LiveFace(face: TileFace, model: TileModel, widthDp: Dp, heightDp: Dp) {
     val white = Color.White
+    // A face carrying a transport gives the bottom third of the tile to the strip, so the tile label
+    // would sit behind it; the track's own title is right there instead.
+    val hasControls = (face as? TileFace.NowPlaying)?.controls?.isNotEmpty() == true
     Box(Modifier.fillMaxSize()) {
         when (face) {
             is TileFace.TextLines -> Column(Modifier.padding(start = 7.5.dp, top = 6.dp, end = 8.dp)) {
@@ -384,11 +471,91 @@ internal fun LiveFace(face: TileFace, model: TileModel, widthDp: Dp, heightDp: D
                 }
             }
         }
-        if (model.size != TileSize.SMALL) {
+        if (model.size != TileSize.SMALL && !hasControls) {
             BasicText(model.label, style = ShellType.caption.copy(color = white), maxLines = 1,
                 modifier = Modifier.align(Alignment.BottomStart).padding(start = StartGrid.LABEL_INSET_EPX.dp, bottom = 5.dp))
         }
     }
+}
+
+/**
+ * The transport strip inside a tile (INDEX Change Log 2026-09-21 item 3, Jeremy's "play pauese stop skip").
+ *
+ * Its geometry is [TileControls] and nothing else — the same fractions the hit test uses, so what is drawn
+ * and what is touchable cannot drift apart. The cells take no pointer input of their own: the tile's one
+ * gesture handler decides, and these are the picture plus the test tags a device pass reads.
+ *
+ * The glyphs are drawn rather than typed: the icon font this shell ships carries no transport glyphs, and
+ * a triangle, two bars and a square scale from the cell they sit in with no asset and no new dependency —
+ * the same call [CortanaTileFace] and the weather scenes make.
+ */
+@Composable
+private fun BoxScope.TransportStrip(tileId: String, controls: List<Transport>, playing: Boolean, pressedIndex: Int) {
+    Row(
+        Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .fillMaxHeight(TileControls.STRIP_FRACTION)
+            // A scrim, because the face behind it can be any album cover at all.
+            .background(Color.Black.copy(alpha = TileControls.SCRIM_ALPHA))
+            .testTag("tile_controls:$tileId"),
+    ) {
+        controls.forEachIndexed { index, transport ->
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    // The only press feedback a control has; the tile's own press style belongs to the
+                    // tile, and a control that did nothing visible until the music reacted feels dead.
+                    .background(if (index == pressedIndex) Color.White.copy(alpha = CONTROL_PRESS_ALPHA) else Color.Transparent)
+                    .testTag("tile_control:$tileId:${transport.name}")
+                    .semantics { contentDescription = transportLabel(transport, playing) },
+            ) {
+                Canvas(Modifier.fillMaxSize()) { drawTransport(transport, playing) }
+            }
+        }
+    }
+}
+
+/** What a control is called, for the QA dump and for a screen reader. */
+private fun transportLabel(transport: Transport, playing: Boolean): String = when (transport) {
+    Transport.PLAY_PAUSE -> if (playing) "Pause" else "Play"
+    Transport.STOP -> "Stop"
+    Transport.NEXT -> "Next"
+}
+
+/** The white overlay on the control under the finger. */
+private const val CONTROL_PRESS_ALPHA = 0.22f
+
+/** One transport glyph, centred in its own cell and sized from it (never in pixels). */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawTransport(transport: Transport, playing: Boolean) {
+    val side = minOf(size.width, size.height) * TileControls.GLYPH_FRACTION
+    val half = side / 2f
+    val cx = size.width / 2f
+    val cy = size.height / 2f
+    when (transport) {
+        Transport.PLAY_PAUSE -> if (playing) {
+            val bar = side * 0.32f
+            drawRect(Color.White, topLeft = Offset(cx - half, cy - half), size = Size(bar, side))
+            drawRect(Color.White, topLeft = Offset(cx + half - bar, cy - half), size = Size(bar, side))
+        } else {
+            drawPath(rightTriangle(cx - half * 0.85f, cy - half, side), Color.White)
+        }
+        Transport.STOP -> drawRect(Color.White, topLeft = Offset(cx - half, cy - half), size = Size(side, side))
+        Transport.NEXT -> {
+            val bar = side * 0.22f
+            drawPath(rightTriangle(cx - half, cy - half, side * 0.9f), Color.White)
+            drawRect(Color.White, topLeft = Offset(cx + half - bar, cy - half), size = Size(bar, side))
+        }
+    }
+}
+
+/** A play triangle whose bounding box starts at ([left], [top]) and is [side] tall. */
+private fun rightTriangle(left: Float, top: Float, side: Float): Path = Path().apply {
+    moveTo(left, top)
+    lineTo(left, top + side)
+    lineTo(left + side * 0.87f, top + side / 2f)
+    close()
 }
 
 /**

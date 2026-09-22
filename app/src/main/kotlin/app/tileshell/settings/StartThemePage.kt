@@ -51,6 +51,14 @@ fun StartThemePage() {
             settings.update { it.copy(backgroundUri = uri.toString()) }
         }
     }
+    // The picture frame's photo, taken the same way the Start background is: a persisted read grant on the
+    // picker's URI, so the tile keeps drawing it whether or not the shell holds gallery access at all.
+    val pickFrame = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            runCatching { context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+            settings.update { it.copy(photoFrameUri = uri.toString()) }
+        }
+    }
 
     PageHeader(Glyph.PALETTE, "Start + theme")
 
@@ -92,6 +100,28 @@ fun StartThemePage() {
     SectionHeader("Start")
     ToggleRow("Show more tiles", theme.mediumColumns == 3, "theme_show_more_tiles") { on -> settings.update { it.copy(mediumColumns = if (on) 3 else 2) } }
     ToggleRow("Show work and private apps", theme.showWorkAndPrivateApps, "theme_show_profiles") { on -> settings.update { it.copy(showWorkAndPrivateApps = on) } }
+
+    // INDEX Change Log 2026-09-21 item 4. It lives here rather than behind a long-press on the tile
+    // because Start tiles have no long-press menu — a long press is how edit mode is entered (R6 §1.1) —
+    // and this is two rows next to the Start background picker that already does exactly this dance.
+    SectionHeader("Photos tile")
+    ToggleRow("Slideshow", theme.photosSlideshow, "photos_slideshow") { on ->
+        settings.update { it.copy(photosSlideshow = on) }
+    }
+    if (theme.photoFrameUri == null) {
+        PressRow({ pickFrame.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, Modifier.fillMaxWidth().height(44.dp).testTag("photos_frame_choose")) {
+            BasicText("Choose a main photo", style = ShellType.body.copy(color = colors.accent), modifier = Modifier.padding(start = 12.dp, top = 11.dp))
+        }
+    } else {
+        PressRow({ settings.update { it.copy(photoFrameUri = null) } }, Modifier.fillMaxWidth().height(44.dp).testTag("photos_frame_remove")) {
+            BasicText("Remove main photo", style = ShellType.body.copy(color = colors.accent), modifier = Modifier.padding(start = 12.dp, top = 11.dp))
+        }
+        BasicText(
+            "The Photos tile shows this photo and doesn't flip.",
+            style = ShellType.caption.copy(color = colors.subtleText),
+            modifier = Modifier.padding(start = 12.dp, bottom = 4.dp).testTag("photos_frame_note"),
+        )
+    }
 
     SectionHeader("Tile press effect")
     RadioRow("None (Windows 10 Mobile)", theme.pressStyle == PressStyle.NONE, "press_none") { settings.update { it.copy(pressStyle = PressStyle.NONE) } }
