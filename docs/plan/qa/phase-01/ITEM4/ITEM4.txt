@@ -1,0 +1,27 @@
+==============================================================================
+ROW ITEM4 — Photos tile: a slideshow grows and advances, a picture frame does neither
+at            2026-09-22T05:15:12-06:00
+driver        item4.sh blob 2c6abd279c6454ece2457e7a892b942e77dd86fe
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     66a7eb1a8ca7b9e1 327038374 bytes
+apk installed 6b7e2d07b86b37b8
+apk match     yes (6b7e2d07b86b37b8)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      images in MediaStore: 6
+PASS  the gallery has at least two photos                         = ok
+      plain tile: 343 343
+PASS  the Photos tile is on Start                                 != 
+      slideshow tile: 699 343
+      areas: plain=117649 slideshow=239757
+PASS  the tile is drawn bigger while the slideshow runs           = ok
+      median face-change period: [3000] ms
+PASS  the slideshow advances at all                               != 
+PASS  the slideshow advances on the fixed 3 s cadence             3000.00 vs 3000.00 +/- 900.0
+      picture frame uri: content://media/external/images/media/27
+      frame tile: 343 343 (area 117649)
+PASS  a picture frame does not grow                               = 117649
+      face changes seen with the frame set: before=0 after=0
+PASS  a picture frame does not flip                               = 0
+------------------------------------------------------------------------------
+ITEM4: 7 passed, 0 failed
