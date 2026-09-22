@@ -11,7 +11,9 @@ import app.tileshell.diag.Diagnostics
 import app.tileshell.feeds.CalendarFeed
 import app.tileshell.feeds.MusicFeed
 import app.tileshell.feeds.PhotosFeed
+import android.content.ComponentName
 import app.tileshell.tiles.CategoryFolders
+import app.tileshell.tiles.Slot
 import app.tileshell.tiles.LayoutStore
 import app.tileshell.tiles.ShellTiles
 import app.tileshell.tiles.TileKey
@@ -26,6 +28,7 @@ class ShellApp : Application() {
         followPackageChanges(AppCatalog.get(this))
         addCortanaTile()
         addCategoryFolders()
+        claimMusicSlot()
         startFeeds("process start")
         startBadgeExpirySweep()
         // A reboot, an app update and `am force-stop` all cancel alarms and proximity alerts, so every
@@ -98,6 +101,24 @@ class ShellApp : Application() {
     }
 
     /**
+     * Point the MUSIC slot at the shell's own player, once (phase 10 build task 1).
+     *
+     * Phase 10 Q5 said no carve-out would be needed because the player declares APP_MUSIC like any
+     * music app. That was wrong, and the correction is recorded in the phase doc: [SlotResolver]
+     * auto-assigns a category slot only when Android resolves exactly ONE handler or a user-set
+     * default, so on any phone that also has another music app the slot would sit unassigned and the
+     * tile would read "Tap to choose". Seeding the assignment is what the user would otherwise do by
+     * hand, it runs once, and re-pointing the slot at another player still works and still sticks.
+     */
+    private fun claimMusicSlot() {
+        LayoutStore.get(this).assignSlotOnce(
+            MUSIC_SLOT_CLAIM,
+            Slot.MUSIC,
+            ComponentName(this, app.tileshell.music.MusicActivity::class.java),
+        )
+    }
+
+    /**
      * Package changes drive the Start layout (phase 02 build task 5, Decisions "App uninstall/update handling is
      * in (M12)"). The wiring lives in the process, not in StartActivity, so an uninstall is followed while the
      * shell is alive with no UI at all; [AppCatalog] owns the one LauncherApps callback and reports only
@@ -150,5 +171,8 @@ class ShellApp : Application() {
     companion object {
         /** R5 rule 4: expiry is evaluated on a 15-minute timer as well as on every badge change. */
         const val BADGE_SWEEP_MS = 15L * 60 * 1000
+
+        /** The one-shot marker for phase 10's MUSIC slot claim; versioned like the folder ADDs. */
+        const val MUSIC_SLOT_CLAIM = "slot:music:v1"
     }
 }

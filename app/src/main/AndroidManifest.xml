@@ -78,6 +78,25 @@
             </intent-filter>
         </activity>
 
+        <!--
+            Phase 10: the music player is an APP, not an internal page (Q5) — a launcher activity with
+            APP_MUSIC, so it sits in the app list like any app and the MUSIC slot can point at it the way
+            it points at any music app. Groove was an app in W10M's list too.
+        -->
+        <activity
+            android:name=".music.MusicActivity"
+            android:exported="true"
+            android:label="Music"
+            android:taskAffinity="app.tileshell.music"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.APP_MUSIC" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".weather.WeatherActivity"
             android:exported="true"
