@@ -43,7 +43,7 @@ Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules
 | 07 | [phase-07-glance.md](phase-07-glance.md) | pending | — | FINAL |
 | 08 | [phase-08-cortana-llm.md](phase-08-cortana-llm.md) | pending | — | FINAL |
 | 09 | [phase-09-cortana-harness.md](phase-09-cortana-harness.md) | pending | — | FINAL; added 2026-09-16 (phase 08 interview Q3) |
-| 10 | [phase-10-media-player.md](phase-10-media-player.md) | pending | — | DRAFT; added 2026-09-22 (Jeremy: "Need a media player that feels and looks like the windows one"). Stage A interview not started — Q1 (what the player IS) is with Jeremy; nothing is built until it lands |
+| 10 | [phase-10-media-player.md](phase-10-media-player.md) | pending | — | DRAFT; added 2026-09-22 (Jeremy: "Need a media player that feels and looks like the windows one"). Stage A interview in progress: Q1 ruled "A" — a local music app in Groove's idiom with its own playback engine, taking over the MUSIC slot. Q3 (what it is measured against; nothing in R1/R3/R6/R7 covers Groove) is with Jeremy. Nothing is built until the interview and the cross-model review are done |
 
 Status values: `pending` → `building` → `QA` → `done`, or `blocked (L<n>)` / `reopened (L<n>)` pointing at the ledger below.
 A phase is `done` only when: acceptance criteria + edge cases executed with captured evidence, BOTH reviewers on the `reviewers:` line above judged pass, every NEEDS-HUMAN row has Jeremy's sign-off, and the row links the evidence. Next phase starts only after that.
