@@ -47,7 +47,8 @@ class EmojiCatalog(private val assets: AssetManager) {
     }
 
     companion object {
-        const val DIR = "keyboard/emoji"
+        /** The artwork belongs to the branding module (Decisions); the catalog only reads it. */
+        const val DIR = app.tileshell.brand.Brand.EMOJI_ARTWORK_DIR
 
         fun categoryOf(e: Emoji): EmojiCategory? = when (e.group) {
             "Smileys & Emotion" -> EmojiCategory.SMILEYS

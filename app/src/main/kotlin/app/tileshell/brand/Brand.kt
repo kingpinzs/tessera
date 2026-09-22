@@ -25,6 +25,14 @@ object Brand {
 
     val iconFont = FontFamily(Font(R.font.fluent_icons))
 
+    /**
+     * The emoji panel's artwork (phase 05 Decisions): Microsoft's MIT-licensed Fluent Emoji, Flat style,
+     * fetched by tools/fetch-keyboard.sh into this asset folder with an index.tsv beside it. It is
+     * branding like the fonts: a public build swaps the folder, and the panel inserts plain Unicode
+     * whatever artwork draws it.
+     */
+    const val EMOJI_ARTWORK_DIR = "keyboard/emoji"
+
     const val PRODUCT_NAME = "Tessera"
     const val ASSISTANT_NAME = "Tess"
 
