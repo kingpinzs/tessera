@@ -76,17 +76,17 @@ Status is what the driver's exit code says, not a judgement.
 | Row | Status | Evidence |
 |---|---|---|
 | E1 assistant role | **PASS 5/5** | `E1/E1.txt` |
-| E2 the ruled command list, spoken, offline | driver written, not yet run | `E2/` |
-| E3 unmatched speech reaches the not-understood handler | see `E3/E3.txt` | `E3/` |
+| E2 the ruled command list, spoken, offline | PARTIAL — see "what E2 still owes" below | `E2/E2.txt` |
+| E3 unmatched speech reaches the not-understood handler | **PASS 7/7** | `E3/E3.txt` |
 | E4 persona motion from screenrecord | NOT RUN | — |
 | E5 typed request, text box geometry, exported components | **PASS 12/12** | `E5/E5.txt` |
-| E6 the Cortana tile ADD runs once; reminders survive force-stop and reboot | driver written, not yet run | `E6/` |
+| E6 the tile ADD runs once; reminders survive force-stop and reboot | tile half PASS 8/8; reminder half owed a re-run | `E6/E6.txt` |
 | E7 the confirmation flow | NOT RUN | — |
 | E8 the Search key, tap and hold | NOT RUN | — |
 | E9 lock screen options and the locked session | NOT RUN | — |
 | E10 the locked commands | NOT RUN | — |
-| E11 the session's drawn bars | see `E11/E11.txt` | `E11/` |
-| E12 the speech process's death is contained | see `E12/E12.txt` | `E12/` |
+| E11 the session's drawn bars | **PASS 14/14** | `E11/E11.txt` |
+| E12 the speech process's death is contained | 9/10 on the run captured; the one failure was the driver's, fixed, re-run owed | `E12/E12.txt` |
 | E13 place reminder | NOT RUN | — |
 | E14 person reminder | NOT RUN | — |
 | E15 the pane, Reminders and Settings pages | NOT RUN | — |
@@ -101,6 +101,9 @@ Status is what the driver's exit code says, not a judgement.
 | 3 | the first spoken reply | `OfflineTts.generateWithCallback`'s JNI looks the callback up as `invoke([F)Ljava/lang/Integer;`, which neither D8's invokedynamic lambda nor a Kotlin lambda class carries; the native side called `NewFloatArray` with a pending `NoSuchMethodError` and ART aborted the process. The streaming callback is gone. |
 | 4 | the unit tests | "six forty five" parsed as 6:40 with a stray "five"; "at midnight" said in the morning became noon; "is it going to rain" was not a weather request; a contact's name was read back in the recogniser's lower case. |
 | 5 | `exported.py` | `androidx.profileinstaller.ProfileInstallReceiver` is exported (guarded by DUMP) and was not on the allow-list. The list has to be the WHOLE exported surface to be worth anything. |
+| 6 | E2 | A fixed query was exact-matched, so the device's own "AT WHAT TIME IS IT" became "Sorry, I can't do that yet."; and the recogniser spells the meridiem out ("SEVEN TWENTY A M"), which left the time unparseable. Behind the second one, reading the word just before the meridiem took the MINUTE as the hour. |
+| 7 | E2 | A command that opens an app cancelled its own spoken reply: the close was emitted at the same moment the speech started. Captured at −118 dBFS against −32 for every other command. |
+| 8 | E2 | **"Set an alarm" and "set a timer" could never have worked.** The manifest did not declare `com.android.alarm.permission.SET_ALARM`, so the platform refused both — through the voice activity and through the normal start it falls back to. |
 
 ## Questions the phase doc left open that the device answered
 
@@ -109,6 +112,28 @@ Status is what the driver's exit code says, not a judgement.
 * **`bpeVocab` works as an asset path** — no extraction needed. `status()` reports
   `asr_bpe_vocab=asset:speech/asr/bpe.vocab`.
 * **Kokoro reports 11 speakers**, matching the bundled voice table.
+
+## What E2 still owes, and one defect it left open
+
+E2 ran the whole ruled list and drove every observable. What it has NOT closed:
+
+1. **A reply spoken while a voice activity takes the screen is still cut off.** "Set an alarm for
+   seven twenty AM" now really sets the alarm — `dumpsys alarm` holds DeskClock's pending alarm, which
+   is the row's observable and it PASSES — but the spoken "Alarm set for 7:20 AM" is captured at
+   −118 dBFS. `startVoiceActivity` moves focus to the Clock's voice activity, the session hides, and
+   the reply dies with it. This is the same class as the close-after-speaking defect already fixed, on
+   a path the fix does not cover: there the shell hides the session, here the platform does. **Not
+   fixed. Not worked around.** The fix belongs with the action layer's alarm and timer path (speak,
+   then start), and it needs its own build-and-run cycle.
+2. **A duplicated verdict line.** The alarm row's "reply was audible" verdict appears twice in one
+   log. Each assertion should reach the log exactly once. Until that is explained, E2's counts are not
+   trustworthy at face value — which is precisely the kind of evidence-integrity smell phase 02's gate
+   was returned for, so it is written down here rather than left for a reviewer to find.
+3. The row has not been run start-to-finish on a single build since the SET_ALARM permission landed.
+
+A device lock was added to `lib.sh` after two E2 runs overlapped and wrote to the same log: the second
+row read the first's diagnostics and recorded a verdict about an utterance it never spoke. A driver
+that cannot take the lock now refuses to start.
 
 ## NEEDS-HUMAN
 

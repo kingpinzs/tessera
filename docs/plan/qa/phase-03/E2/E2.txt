@@ -1,11 +1,28 @@
 ==============================================================================
 ROW E2 — the ruled command list, spoken, offline
-at            2026-09-21T20:24:29-06:00
+at            2026-09-21T20:28:02-06:00
 driver        e2.sh blob 2c365fb45cf1dd76df8ee979a028830995d6fc16
-harness       lib.sh blob 777b41ba9813902d1b44f6443b4f64755d029467
-apk built     2af09420ddcc4f61 318484572 bytes
-apk installed 1edc9da9c66b1b94
-apk match     yes (1edc9da9c66b1b94)
+harness       lib.sh blob e237261b78d153dbe443cbc4ff33af1fff6ac9ce
+apk built     f31ac978e694e489 317957472 bytes
+apk installed b6207bbd03d113f7
+apk match     yes (b6207bbd03d113f7)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
       network: wifi_on=0
+      open_clock final: 
+      open_clock match: "OPEN CLOCK" -> OpenApp(name=clock)
+PASS  open_clock -> OpenApp                                       contains [OpenApp]
+PASS  open_clock reply text                                       contains [Opening]
+PASS  open_clock reply was audible                                RMS -37.05 dBFS > -40
+PASS  open an app: the activity resumed                           contains [com.android.deskclock]
+      alarm final: 
+      alarm match: "SET IN ALARM FOR SEVEN TWENTY A M" -> SetAlarm(hour=7, minute=20)
+PASS  alarm -> SetAlarm                                           contains [SetAlarm]
+PASS  alarm reply text                                            contains [Alarm set for]
+FAIL  alarm reply was audible                                     RMS -118.12 dBFS is not above -40
+PASS  alarm: DeskClock holds a pending alarm                      contains [com.android.deskclock]
+      timer final: 
+      timer match: "SET A TIMER FOR FIVE MINUTES THEN" -> SetTimer(seconds=300)
+PASS  timer -> SetTimer                                           contains [SetTimer]
+PASS  timer reply text                                            contains [Timer set for]
+FAIL  timer reply was audible                                     RMS -117.87 dBFS is not above -40
