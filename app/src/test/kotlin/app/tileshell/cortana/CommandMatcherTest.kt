@@ -145,6 +145,17 @@ class CommandMatcherTest {
     }
 
     @Test
+    fun `a stray leading word does not lose a command prefix`() {
+        // Verbatim from the device: "THE TEXT MA'AM ON MY WAY" for "Text Mom I'm on my way".
+        assertEquals(Request.TextContact("Mom", "on my way"), match("the text mom on my way"))
+        assertEquals(Request.OpenApp("clock"), match("so open Clock"))
+        assertEquals(Request.CallContact("Mom"), match("um call Mom"))
+        assertTrue(match("okay remind me to call the dentist") is Request.SetReminder)
+        // Only ONE leading word is dropped, and only from the front: a command's own words are safe.
+        assertEquals(Request.OpenApp("the settings"), match("open the settings"))
+    }
+
+    @Test
     fun `a one-word form still has to be the whole utterance`() {
         // "set a timer for 5 minutes" contains "time"; it is a timer, not the clock.
         assertEquals(Request.SetTimer(300), match("set a timer for 5 minutes"))

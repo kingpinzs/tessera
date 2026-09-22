@@ -86,14 +86,17 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
     override fun onCreate() {
         savedStateController.performRestore(null)
         super.onCreate()
-        lifecycleRegistry.currentState = Lifecycle.State.CREATED
+        // RESUMED, not CREATED: onCreateContentView runs right after this, and the ComposeView it
+        // returns takes its pointer-input pipeline from the lifecycle owner it is attached with. With a
+        // merely-CREATED owner the content composes and draws but never reacts to touch.
+        lifecycleRegistry.currentState = Lifecycle.State.RESUMED
         setUiEnabled(true)
         scope.launch { model.closeRequests.collect { hide() } }
         Diagnostics.add("cortana", "session created")
     }
 
     override fun onCreateContentView(): View {
-        val view = ComposeView(context).apply {
+        val compose = ComposeView(context).apply {
             setViewTreeLifecycleOwner(this@CortanaSession)
             setViewTreeViewModelStoreOwner(this@CortanaSession)
             setViewTreeSavedStateRegistryOwner(this@CortanaSession)
@@ -107,7 +110,31 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
                 )
             }
         }
-        return view
+        // Instrumentation, kept because it is the only thing that showed where a touch stops. Without
+        // it "the button is not tappable" and "the event never arrives" look identical from outside.
+        val host = object : android.widget.FrameLayout(context) {
+            override fun dispatchTouchEvent(event: android.view.MotionEvent): Boolean {
+                val handled = super.dispatchTouchEvent(event)
+                if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN ||
+                    event.actionMasked == android.view.MotionEvent.ACTION_UP
+                ) {
+                    Diagnostics.add(
+                        "cortana",
+                        "touch ${event.actionMasked} at ${event.x.toInt()},${event.y.toInt()} handled=$handled " +
+                            "childCount=$childCount composeAttached=${compose.isAttachedToWindow}",
+                    )
+                }
+                return handled
+            }
+        }
+        host.addView(
+            compose,
+            android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+            ),
+        )
+        return host
     }
 
     /** Place source C: saved at the spot from GPS — no internet, no Google. */
@@ -123,6 +150,9 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
     override fun onShow(args: Bundle?, showFlags: Int) {
         super.onShow(args, showFlags)
         lifecycleRegistry.currentState = Lifecycle.State.RESUMED
+        // Re-asserted per show: the window is recreated around a reused session, and a window whose UI
+        // is not enabled is not touchable.
+        setUiEnabled(true)
         // The session object outlives a hide, so the engines are bound per SHOW, not per session.
         model.start()
         hideSystemBars()
@@ -147,6 +177,22 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
         scope.cancel()
         Diagnostics.add("cortana", "session destroyed")
         super.onDestroy()
+    }
+
+    /**
+     * The whole window is touchable.
+     *
+     * A VoiceInteractionSession computes its touchable region from the content frame by default, and on
+     * this build that region came out empty: every tap inside Cortana — the microphone, the ≡ button,
+     * a card's Remind and Cancel — was treated as a touch OUTSIDE the session and dismissed it instead.
+     * The page drew perfectly and reported `clickable="true"` on every node, so nothing short of tapping
+     * one showed it. Nothing in Cortana is tappable without this.
+     */
+    override fun onComputeInsets(outInsets: Insets) {
+        super.onComputeInsets(outInsets)
+        outInsets.contentInsets.set(0, 0, 0, 0)
+        outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_FRAME
+        outInsets.touchableRegion.setEmpty()
     }
 
     @Deprecated("Deprecated in Java")

@@ -97,6 +97,19 @@ class SherpaAsr(private val context: Context) {
 
         /** With [SpeechAssets.ASR_BPE], this is what tokenizes a plain-text hotword such as a contact name. */
         const val MODELING_UNIT = "bpe"
+
+        /**
+         * How hard the grammar pass leans on its boosted phrases.
+         *
+         * sherpa-onnx defaults this to 1.5, which on the device made no difference at all: the grammar
+         * transcript came back identical to the open one, and "Text Mom I'm on my way" was heard as
+         * "THE TEXT MA'AM ON MY WAY" with "text Mom" sitting in the hotwords the whole time. The whole
+         * point of the ruled grammar pass is that a name the model has never seen should win over a
+         * common word that sounds like it, so the boost is set high enough to do that. The OPEN pass is
+         * untouched and is still what an unmatched utterance is judged on, so a wrong boost cannot make
+         * Cortana mishear free speech — it can only make a command more likely to be recognised.
+         */
+        const val HOTWORDS_SCORE = 4.0f
     }
 
     @Volatile private var recognizer: OnlineRecognizer? = null
@@ -128,6 +141,7 @@ class SherpaAsr(private val context: Context) {
         enableEndpoint = true,
         decodingMethod = DECODING_METHOD,
         maxActivePaths = MAX_ACTIVE_PATHS,
+        hotwordsScore = HOTWORDS_SCORE,
     )
 
     /**
