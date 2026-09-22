@@ -198,7 +198,7 @@ fun W10mNavBar(
     val searchHold: () -> Unit = onSearchHold ?: { CortanaService.open(context, CortanaMode.LISTENING) }
     Row(modifier.fillMaxWidth().height(BarMetrics.NAV_EPX.dp).background(Color.Black).testTag("w10m_nav_bar"), horizontalArrangement = Arrangement.SpaceEvenly) {
         NavSlot("nav_back", onBack) { BasicText(Glyph.ARROW_LEFT, style = glyphStyle(Color.White, 20)) }
-        NavSlot("nav_windows", onWindows) { WindowsGlyph() }
+        NavSlot("nav_windows", onWindows) { StartMark() }
         NavSlot("nav_search", search, searchHold) { BasicText(Glyph.SEARCH, style = glyphStyle(Color.White, 20)) }
     }
 }
@@ -226,14 +226,25 @@ private fun androidx.compose.foundation.layout.RowScope.NavSlot(
     ) { glyph() }
 }
 
-/** Windows key glyph: four panes (branding module asset, A10). 20 epx (X17). */
+/**
+ * The Start key's mark: three tiles and one empty place — a tile being laid, which is what "tessera"
+ * means (Jeremy, 2026-09-22: "go with logo B"; R10 §1).
+ *
+ * This replaced the Windows logo, the one Microsoft mark the shell drew. It keeps the old glyph's box
+ * (20 epx, X17) and its 8 % gap, so nothing about the bar's layout moves; what changed is the silhouette,
+ * which is deliberately NOT four equal panes — the empty top-right place is the whole difference, and it
+ * is what keeps the mark from reading as the flag at 20 epx.
+ */
 @Composable
-fun WindowsGlyph(sizeEpx: Int = 20, color: Color = Color.White) {
+fun StartMark(sizeEpx: Int = 20, color: Color = Color.White) {
     Box(Modifier.size(sizeEpx.dp).drawBehind {
         val gap = size.width * 0.08f
         val cell = (size.width - gap) / 2f
-        for (r in 0..1) for (c in 0..1) {
+        for ((r, c) in START_MARK_CELLS) {
             drawRect(color, topLeft = Offset(c * (cell + gap), r * (cell + gap)), size = Size(cell, cell))
         }
     })
 }
+
+/** Row and column of each filled tile in the 2 x 2 box; the top-right place stays empty. */
+val START_MARK_CELLS: List<Pair<Int, Int>> = listOf(0 to 0, 1 to 0, 1 to 1)
