@@ -84,3 +84,46 @@ Rows start from the baseline state and restore what they change (PLAN RV12); mot
 - Bottom tile row: drop onto a full row; a wide tile dragged into the row; the row's last tile dragged out (empty row); show more tiles toggled with the row full
 
 ## QA evidence
+
+Gate run 2026-09-21 on the AOSP AVD (1080 x 2340, 450 dpi), one build, evidence under `qa/phase-02/`
+(`README.md` indexes every row, the method and the drivers).
+
+| Row | Result | Evidence |
+|---|---|---|
+| Phase 01 regression (this phase's gesture layer) | PASS 6/6 | `qa/phase-02/REGRESS/REGRESS.txt` |
+| E1 hold + drag as one gesture, resize cycle, unpin | PASS | `qa/phase-02/E01/E01.txt` |
+| E2 app-list menu, Pin to Start, "New" caption | PASS | `qa/phase-02/E02/E02-E06.txt`, `qa/phase-02/agent-tasks-3-5/E2.txt` |
+| E3 folders: create, name, collapse/expand, members, dissolve | PASS | `qa/phase-02/E03/E03.txt` |
+| E4 force-stop and reboot keep the layout | PASS (identical) | `qa/phase-02/E04/E04.txt` |
+| E5 secondary tiles end to end | PASS 6/6 | `qa/phase-02/E05/E05.txt` |
+| E6 uninstall drops the tile, update keeps it | PASS | `qa/phase-02/E02/E02-E06.txt`, `qa/phase-02/agent-tasks-3-5/E6*.txt` |
+| E7 edit-mode geometry and motion | PASS 13/13 + 3/3 + 5/5 + 3/3 | `qa/phase-02/E07/E07.txt` |
+| E8 both drag paths, folder target, no nesting | PASS 5/5 | `qa/phase-02/E08/E08.txt` |
+| E9 bottom tile row editing | PASS 6/6 | `qa/phase-02/E09/E09.txt` |
+| Edge cases | PASS | `qa/phase-02/EDGE/EDGE.txt` |
+| P1, P2 (phone) | not run — no phone | — |
+| H1-H23 | waiting on Jeremy | `qa/phase-02/NEEDS-HUMAN.md` |
+
+E7's measured values, against the Decisions: held tile 1.006 (1.00 ± 0.01), other tiles 0.837 (0.835 ± 0.01),
+centre contraction 0.900 (0.90 ± 0.01), fixed point 0.499 of the width and 0.475 of the screen height
+(0.46-0.49), dark-theme tile dim x0.530 (0.53 ± 0.03), both discs 30.7 epx centred within 0.5 epx of the held
+tile's corners (31 ± 1.5); entry scale 50 % at 67.5 ms settling at 384 ms (417 ± 50), dimming 50 % at 109 ms,
+90 % at 325 ms, settled 500 ms (550 ± 50); exit returns in 193 ms (183-217), undim 90 % at 80 ms settled
+250 ms; the hold brackets at 740 ms (no edit mode, the press acts as a tap) and 830 ms (edit mode, nothing
+launches).
+
+**Not measured on the emulator, routed onward:** the 150 ± 17 ms exit latency needs the touch-up's own frame
+and this AVD's screenrecord does not contain Android's touch indicator (0 bright pixels at the tap point). It
+belongs to P2, which this doc already assigns for tolerances of 17 ms or less. Separately, "Home while Start
+is showing" (phase 01's X20 / H28) never fires on this AVD — when the shell is already the resumed home
+activity Android does not re-deliver the home intent — so the drivers return to Start with a swipe; phase 01
+did not exercise it either and it stays a phone row.
+
+**Defects the gate found, all fixed in this phase:** the gesture layer was a sibling drawn over the grid, so a
+tile tap stopped launching and Start stopped scrolling; the contraction's fixed point was a fraction of the
+page rather than the screen; the discs rode the contraction instead of keeping 31 epx on the held tile's drawn
+corner; the entry's scale curve could not hold both of R6 §1.1.8's numbers until it became a saturating
+exponential; moving a folder tile deleted its folder and lost every member; a nameless folder round-tripped
+through the store as the string "null"; opening the folder name box, and dismissing it, each swung the pivot
+over to the app list; and the store dropped a pinned app tile's profile, so pinning the same app twice made a
+second tile after a restart (found by build task 3's E2c).

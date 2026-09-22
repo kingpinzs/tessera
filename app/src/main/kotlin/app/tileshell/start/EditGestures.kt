@@ -170,7 +170,9 @@ private fun updateTarget(edit: StartEditState, geo: StartGeometry, store: Layout
     val screenCentre = Offset(drag.pointer.x + (0.5f - drag.grab.x) * w, drag.pointer.y + (0.5f - drag.grab.y) * h)
 
     // The bottom tile row is on the screen, not in the scrolling grid, so it is tested in screen coordinates.
-    if (geo.dockKeys.isNotEmpty() && screenCentre.y >= geo.dockTopPx - geo.grid.gutterPx) {
+    // The strip is a drop target even when the row is EMPTY: gating this on the row already holding a tile made
+    // an emptied row impossible to refill, a dead end (reviewer finding, 2026-09-21).
+    if (screenCentre.y >= geo.dockTopPx - geo.grid.gutterPx) {
         edit.hover = null
         edit.folderFeedback = false
         edit.dropTarget = DropTarget.Row(geo.dockIndexAt(screenCentre.x))
@@ -183,7 +185,17 @@ private fun updateTarget(edit: StartEditState, geo: StartGeometry, store: Layout
         edit.dropTarget = DropTarget.Band(geo.bandFolder, geo.bandIndexAt(centre.x, centre.y))
         return
     }
-    val cell = geo.cellAt(centre.x, centre.y) ?: return
+    val cell = geo.cellAt(centre.x, centre.y)
+    if (cell == null) {
+        // Above the grid's top row, or inside the band's own rows: there is nothing under the tile. Leaving the
+        // state as it was let a drag carried off the top keep a stale target, and a release there made a folder
+        // with a tile the finger had left long before (reviewer finding, 2026-09-21). The Decisions are explicit:
+        // leaving the tile before the dwell ends clears the feedback with no reflow.
+        edit.hover = null
+        edit.folderFeedback = false
+        edit.dropTarget = DropTarget.None
+        return
+    }
     edit.dropTarget = DropTarget.Grid(cell.first, cell.second)
     val order = edit.previewOrder ?: layout.order
     val rest = order.filterNot { it.key == drag.key }
