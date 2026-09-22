@@ -212,6 +212,15 @@ one task that touches shipped code is done early enough to be re-verified rather
 6. **Collection UI.** The pivot — albums / artists / songs / playlists — on MangoTile's pivot and
    LongListSelector with its jump grid (MIT, already a dependency, R9). Geometry approximated from R6's
    Cortana pane and phase 06's Phone tabs, each value citing the measurement it came from (Q3).
+   **Built 2026-09-22, WITHOUT MangoTile, and that sentence above is wrong on two counts.** MangoTile is
+   **not** a dependency of this build — R2 proposed it, nothing was ever added, and phase 01 wrote the
+   jump grid in-house — and R8 §0.4 found its numbers unusable: it is explicitly WP8-targeted and its
+   one motion claim carries no duration, no easing and no citation. Adding a WP8 kit to draw a W10M
+   pivot would put un-retimed motion into the screen this phase exists to get right, so the pivot is
+   built on the geometry this shell already has and every number cites its source (MusicMetrics). Phase
+   06 does not exist yet, so its Phone tabs could not be cited either; the rows are the app list's
+   (R3 C2 / R6 §5.1.4) and the pivot header is P4 design, flagged as such. Evidence
+   qa/phase-01/MUSIC6, 37/37 on the emulator against six tagged fixtures.
 7. **Now-playing screen.** Built to R8's measurements. **Gated on R8**: building it first would mean
    building it twice, which is the whole reason Q3 ruled for measuring this one screen.
 8. **Playlists.** Create, rename, reorder, delete (Q7), persisted where MediaStore playlists are not

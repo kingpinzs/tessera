@@ -1,0 +1,59 @@
+==============================================================================
+ROW MUSIC6 — the music collection: four pivots, the jump grid, and a tap that plays
+at            2026-09-22T09:51:48-06:00
+driver        music6.sh blob ac14291fccdef9474e26f3a2e2ea472be95d6616
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     54c12db8f200bc7e 326101874 bytes
+apk installed 08170cc77da9ca74
+apk match     yes (08170cc77da9ca74)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      MediaStore holds 6 audio rows
+PASS  the six fixtures scanned in                                 = ok
+PASS  with the permission denied the pivot draws an empty state   contains [music_empty:albums]
+PASS  and it says the permission is the reason                    contains [music access]
+PASS  no album row is drawn at all                                = 0
+PASS  the shell says why in its diagnostics                       contains [no audio access]
+PASS  the collection opens                                        contains [music_root]
+PASS  the albums pivot header is drawn                            contains [music_pivot_header:albums]
+PASS  the artists pivot header is drawn                           contains [music_pivot_header:artists]
+PASS  the songs pivot header is drawn                             contains [music_pivot_header:songs]
+PASS  the playlists pivot header is drawn                         contains [music_pivot_header:playlists]
+PASS  it opens on the first pivot                                 contains [music_album:]
+      album rows: 3
+PASS  three albums, one per album id                              = 3
+PASS  Achtung Baby files under A                                  contains [music_header:A]
+PASS  The King of Limbs files under T                             contains [music_header:T]
+      artist rows: 3
+PASS  three artists                                               = 3
+PASS  an artist row is there by name                              contains [music_artist:Radiohead]
+      the Radiohead row reads [3 songs]
+PASS  and it counts that artist's tracks                          = 3 songs
+      song rows: 6
+PASS  all six songs                                               = 6
+PASS  a title starting with a digit files under the hash group    contains [music_header:#]
+PASS  and the letters are the app list's own index                contains [music_header:D]
+PASS  the playlists pivot draws its empty state                   contains [music_empty:playlists]
+PASS  and it is about playlists, not about the permission         contains [playlists]
+PASS  a tap on a letter header opens the jump grid                contains [music_jump_grid]
+      jump cells drawn: 27
+PASS  every letter is a cell, present or not                      = 27
+PASS  the grid closes on a pick                                   does not contain [music_jump_grid]
+PASS  and the list lands on that letter                           contains [music_header:Z]
+      tapping [music_song:32]
+PASS  there is a song row to tap                                  != 
+PASS  the shell owns a media session                              contains [app.tileshell]
+      the shell's session:       state=PlaybackState {state=PLAYING(3), position=3096, buffered position=4048, speed=1.0, updated=1108113, actions=7340027, custom actions=[], active item id=0, error=null}
+PASS  and that session is PLAYING                                 contains [PLAYING(3)]
+PASS  with the track actually advancing, not merely loaded        = ok
+PASS  the player says which track it started, and of how many     contains [ of 6)]
+PASS  the controller was connected, not skipped                   does not contain [play ignored]
+PASS  the playback service is up                                  contains [MusicService]
+      opening [music_album:7883497573521039779]
+PASS  an album opens onto its own page                            contains [music_detail]
+      tracks on the album page: 1 · title [Achtung Baby]
+PASS  holding that album's tracks and no others                   = ok
+PASS  Back leaves the album page                                  does not contain [music_detail_title]
+PASS  and returns to the pivot it was opened from                 contains [music_pivot_header:albums]
+------------------------------------------------------------------------------
+MUSIC6: 37 passed, 0 failed
