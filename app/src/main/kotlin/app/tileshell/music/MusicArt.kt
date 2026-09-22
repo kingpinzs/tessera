@@ -37,6 +37,16 @@ object MusicArt {
         return art
     }
 
+    /**
+     * The art of whichever album a track belongs to, by album id — what the now-playing screen has,
+     * since a media session names a track and the collection is what knows about albums.
+     */
+    fun loadById(context: Context, albumId: Long, sizePx: Int): ImageBitmap? {
+        synchronized(cache) { if (cache.containsKey(albumId)) return cache[albumId] }
+        val track = MusicStore.library.value.firstOrNull { it.albumId == albumId } ?: return null
+        return load(context, Album(albumId, track.album, track.artist, listOf(track)), sizePx)
+    }
+
     fun clear() {
         synchronized(cache) { cache.clear() }
     }
