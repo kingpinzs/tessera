@@ -256,7 +256,13 @@ class StartActivity : ComponentActivity() {
         // 2026-09-21 item 1). Counted here rather than in AppCatalog.launch so that a shell tile and a
         // secondary tile count too, and so that an app opened from the app list — which is not a tile
         // being used — does not.
-        key?.let { UseCounts.get(this).record(it) }
+        key?.let {
+            UseCounts.get(this).record(it)
+            // The last app you opened is shown in the row above the bottom tile row (INDEX Change Log
+            // 2026-09-21 item 7). A dock tile is never found in the grid order, so opening one of the
+            // three bottom apps leaves the grid alone on its own, with nothing to special-case.
+            app.tileshell.tiles.RecentApp.opened(it)
+        }
         when (target) {
             is TileTarget.App -> AppCatalog.get(this).launch(target.entry, bounds, options)
             is TileTarget.Shell -> when (target.name) {

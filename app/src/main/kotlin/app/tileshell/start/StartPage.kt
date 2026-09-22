@@ -69,6 +69,8 @@ import app.tileshell.tiles.Sized
 import app.tileshell.tiles.Slot
 import app.tileshell.tiles.SlotDefaults
 import app.tileshell.tiles.SlotResolver
+import app.tileshell.tiles.RecentApp
+import app.tileshell.tiles.RecentPromotion
 import app.tileshell.tiles.TileKey
 import app.tileshell.tiles.TileSize
 import app.tileshell.tiles.engine.BadgeStore
@@ -390,7 +392,16 @@ fun StartPage(
     }
 
     val drag = edit.drag
-    val order = edit.previewOrder ?: layout.order
+    // The last app you opened is shown in the row above the bottom tile row (INDEX Change Log
+    // 2026-09-21 item 7). It is applied HERE, on the way to the screen, and never to the stored layout.
+    //
+    // Not in edit mode, and this is load-bearing rather than a nicety: EditGestures reads the grid as
+    // drawn and writes back by INDEX (moveInGrid), so a displayed order that differs from the stored
+    // one would move the wrong tile. What you edit is what is saved, always.
+    val stored = edit.previewOrder ?: layout.order
+    val order =
+        if (edit.active) stored
+        else remember(stored, RecentApp.promoted) { RecentPromotion.apply(stored, RecentApp.promoted) }
     val placements = remember(order, grid.unitsAcross) { GridPack.pack(order, grid.unitsAcross) }
     val bandFolder = shownFolder?.takeIf { it in layout.folders }
     val bandTile = bandFolder?.let { id -> placements.firstOrNull { (it.key as? TileKey.FolderTile)?.folderId == id } }
