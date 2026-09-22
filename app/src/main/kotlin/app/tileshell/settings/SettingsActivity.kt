@@ -39,7 +39,7 @@ import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.ShellRoot
 import app.tileshell.ui.motion.Motion
 
-enum class SettingsPage { HOME, START_THEME, TILE_APPS, LIVE_TILE_ACCESS, CHECKLIST, DIAGNOSTICS, ABOUT }
+enum class SettingsPage { HOME, START_THEME, TILE_APPS, LIVE_TILE_ACCESS, KEYBOARD, CHECKLIST, DIAGNOSTICS, ABOUT }
 
 /** An entry on the Settings page stack: a page, or the slot app picker opened from Tile apps (its own list, not scrolled by the page). */
 private sealed interface Route {
@@ -75,6 +75,7 @@ class SettingsActivity : ComponentActivity() {
                                             SettingsPage.START_THEME -> StartThemePage()
                                             SettingsPage.TILE_APPS -> TileAppsPage { stack += Route.Picker(it) }
                                             SettingsPage.LIVE_TILE_ACCESS -> LiveTileAccessPage()
+                                            SettingsPage.KEYBOARD -> KeyboardPage()
                                             SettingsPage.CHECKLIST -> ChecklistPage()
                                             SettingsPage.DIAGNOSTICS -> DiagnosticsPage()
                                             SettingsPage.ABOUT -> AboutPage()
@@ -136,6 +137,7 @@ private fun HomePage(open: (SettingsPage) -> Unit) {
     TwoLineItem(Glyph.PALETTE, "Start + theme", "Background, accent colour, tiles, press effect", "settings_start_theme") { open(SettingsPage.START_THEME) }
     TwoLineItem(Glyph.APPS, "Tile apps", "Choose the apps behind Mail, Music, Maps and more", "settings_tile_apps") { open(SettingsPage.TILE_APPS) }
     TwoLineItem(Glyph.APPS, "Live tile access", "Apps that update their own tiles", "settings_live_tile_access") { open(SettingsPage.LIVE_TILE_ACCESS) }
+    TwoLineItem(Glyph.KEYBOARD, "Keyboard", "Key sounds, vibration, cursor controller, emoji", "settings_keyboard") { open(SettingsPage.KEYBOARD) }
     TwoLineItem(Glyph.CHECKMARK, "Setup checklist", "Home, permissions and live tile health", "settings_checklist") { open(SettingsPage.CHECKLIST) }
     TwoLineItem(Glyph.DOCUMENT, "Diagnostics", "What the shell recorded", "settings_diagnostics") { open(SettingsPage.DIAGNOSTICS) }
     TwoLineItem(Glyph.INFO, "About", "Version and licences", "settings_about") { open(SettingsPage.ABOUT) }

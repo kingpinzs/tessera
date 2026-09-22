@@ -77,4 +77,7 @@ object Glyph {
     const val NAVIGATION = "\ueb57"
     const val NOTE = "\uecb0"
     const val SYNC = "\ue171"
+
+    // Phase 05 (keyboard). Same font, same source: Fluent UI System Icons resizable, MIT.
+    const val KEYBOARD = "\ueab1"
 }

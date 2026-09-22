@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import android.view.inputmethod.InputMethodManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -54,6 +55,17 @@ object Checklist {
     }
 
     fun granted(context: Context, permission: String) = context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
+
+    /** Phase 05: the keyboard's input-method id, as `ime list` and Settings.Secure spell it. */
+    fun keyboardId(context: Context) = ComponentName(context, app.tileshell.ime.KeyboardService::class.java).flattenToShortString()
+
+    /** Phase 05 E1: the keyboard is in Android's ENABLED input methods (`ime enable`). */
+    fun keyboardEnabled(context: Context): Boolean =
+        context.getSystemService(InputMethodManager::class.java).enabledInputMethodList.any { it.id == keyboardId(context) }
+
+    /** Phase 05 E1: the keyboard is the SELECTED input method (`ime set`). */
+    fun keyboardSelected(context: Context): Boolean =
+        Settings.Secure.getString(context.contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD) == keyboardId(context)
 }
 
 @Composable
@@ -101,6 +113,14 @@ fun ChecklistPage() {
         LegacyBadgeReceiver.lastSeen.let { seen ->
             ChecklistRow("legacy_badges", "App badge messages", if (seen != null) RowState.GRANTED else RowState.MISSING,
                 seen?.let { "Last from ${it.sender ?: it.pkg}: ${it.count}" } ?: "None received yet") {}
+        },
+        // Phase 05 build task 9: the keyboard is enabled, then selected — two steps, because Android asks
+        // for them separately (the enable page, then the switcher).
+        ChecklistRow("keyboard_enabled", "Keyboard enabled", if (Checklist.keyboardEnabled(context)) RowState.GRANTED else RowState.MISSING, "Turn on the Windows-style keyboard") {
+            context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+        },
+        ChecklistRow("keyboard_selected", "Keyboard selected", if (Checklist.keyboardSelected(context)) RowState.GRANTED else RowState.MISSING, "Use it for typing everywhere") {
+            context.getSystemService(InputMethodManager::class.java).showInputMethodPicker()
         },
         ChecklistRow("listener", "Live tiles running", if (TileNotificationListener.connected) RowState.GRANTED else RowState.MISSING, if (TileNotificationListener.connected) "Connected" else "Not connected") {
             context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))

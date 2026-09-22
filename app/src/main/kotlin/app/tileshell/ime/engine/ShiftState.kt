@@ -28,6 +28,9 @@ class ShiftState(val doubleTapMs: Long = 300L) {
     /** Touch-down time of the previous Shift tap, or [NO_TAP] when none counts. */
     private var lastTapMs = NO_TAP
 
+    /** Whether the current one-shot was armed by [autoCapitalise] rather than by a tap. */
+    private var armedByAuto = false
+
     /** Shift touched down at [downMs]. Returns the resulting mode. */
     fun tapShift(downMs: Long): Mode {
         val quick = lastTapMs != NO_TAP && downMs - lastTapMs in 0..doubleTapMs
@@ -37,6 +40,7 @@ class ShiftState(val doubleTapMs: Long = 300L) {
             else -> Mode.OFF // a second tap outside the window cancels one-shot; any tap ends caps lock
         }
         lastTapMs = if (mode == Mode.CAPS_LOCK) NO_TAP else downMs
+        armedByAuto = false
         return mode
     }
 
@@ -49,6 +53,7 @@ class ShiftState(val doubleTapMs: Long = 300L) {
         val upper = shifted
         if (mode == Mode.ONE_SHOT) mode = Mode.OFF
         lastTapMs = NO_TAP
+        armedByAuto = false
         return upper
     }
 
@@ -57,6 +62,18 @@ class ShiftState(val doubleTapMs: Long = 300L) {
         if (mode == Mode.OFF) {
             mode = Mode.ONE_SHOT
             lastTapMs = NO_TAP
+            armedByAuto = true
+        }
+    }
+
+    /**
+     * The caret is no longer at a sentence start (a backspace, a tap elsewhere in the text): take back a
+     * one-shot that [autoCapitalise] armed. A one-shot the user TAPPED stays — it is theirs.
+     */
+    fun cancelAutoCapital() {
+        if (mode == Mode.ONE_SHOT && armedByAuto) {
+            mode = Mode.OFF
+            armedByAuto = false
         }
     }
 
@@ -64,6 +81,7 @@ class ShiftState(val doubleTapMs: Long = 300L) {
     fun reset() {
         mode = Mode.OFF
         lastTapMs = NO_TAP
+        armedByAuto = false
     }
 
     companion object {
