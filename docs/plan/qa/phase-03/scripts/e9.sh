@@ -22,7 +22,9 @@ restore() {
     adb shell locksettings clear --old $PIN >/dev/null 2>&1
     note "restored: the PIN was cleared"
   fi
+  adb shell locksettings set-disabled true >/dev/null 2>&1
   adb shell input keyevent KEYCODE_WAKEUP >/dev/null 2>&1
+  adb shell wm dismiss-keyguard >/dev/null 2>&1
 }
 trap restore EXIT
 
@@ -44,10 +46,15 @@ else
   _verdict FAIL "the menu pane opens" "no cortana_pane after tapping the menu button"
 fi
 dump_ui "$ROW_DIR/e9_settings.xml"
-screencap "$ROW_DIR/e9_settings.png"
-
 assert_eq "Cortana's Settings page is on screen (H27, H28)" "yes" \
   "$(has_node "$ROW_DIR/e9_settings.xml" cortana_settings)"
+
+# Lock screen options is the fourth section, under eleven voice rows, so it starts below the fold and
+# a plain dump does not contain it. The page scrolls (verticalScroll); the row scrolls to the section
+# before it asserts, which is the difference between "the section is missing" and "I did not look".
+scroll_to_node "$ROW_DIR/e9_settings.xml" "cortana_settings_section:lock_screen_options"
+screencap "$ROW_DIR/e9_settings.png"
+
 assert_eq "it has a Lock screen options section" "yes" \
   "$(has_node "$ROW_DIR/e9_settings.xml" "cortana_settings_section:lock_screen_options")"
 wording="$(node_text "$ROW_DIR/e9_settings.xml" "cortana_settings_lock_screen:label")"
@@ -62,8 +69,16 @@ cortana_close
 ensure_start
 
 # ---- the locked session, with the toggle On ------------------------------------------------------
+# Phase 01's E20 learned this and it never reached phase 03: the AOSP AVD ships with its lock
+# screen DISABLED (`locksettings get-disabled` prints true), and provision.sh keeps it that way so
+# the drawn shell is not sitting behind a keyguard all day. A PIN alone does not bring the keyguard
+# back — `set-disabled` has to be cleared first, and restored afterwards. Without it every keyguard
+# assertion in this row fails on a device that simply has no keyguard to show.
+adb shell locksettings set-disabled false >/dev/null 2>&1
 adb shell locksettings set-pin $PIN >/dev/null 2>&1 && pin_set=yes
 assert_eq "a PIN is set" "yes" "$pin_set"
+assert_eq "and the lock screen is enabled, so there is a keyguard to test against" "false" \
+  "$(adb shell locksettings get-disabled | tr -d '\r')"
 adb shell input keyevent KEYCODE_SLEEP
 sleep 2
 adb shell input keyevent KEYCODE_WAKEUP
