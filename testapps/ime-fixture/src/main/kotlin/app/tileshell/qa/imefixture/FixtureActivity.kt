@@ -69,6 +69,16 @@ abstract class FixtureActivity(private val layout: Int) : Activity() {
     private fun applyFocusExtra(intent: Intent) {
         val name = intent.getStringExtra(EXTRA_FOCUS) ?: return
         pendingShow = mirror.focusField(name)
+        // `--ei fill N`: N characters ("abcdefghij" repeated) put straight into the focused field with the
+        // caret at the end. `adb shell input text` drops characters on long strings (phase 05 EDGE1 runs
+        // 1-2 got 481 and 555 of 1500), and the edge case is about the keyboard in a long field, not about
+        // typing speed.
+        val fill = intent.getIntExtra(EXTRA_FILL, 0)
+        pendingShow?.takeIf { fill > 0 }?.let { field ->
+            val text = buildString { while (length < fill) append("abcdefghij") }.take(fill)
+            field.setText(text)
+            field.setSelection(text.length)
+        }
         // showSoftInput before the window is focused is ignored by the IMM ("view not served"); on
         // a fresh start onWindowFocusChanged does it, on a re-delivered intent the window is already
         // focused and it can happen now.
@@ -88,6 +98,7 @@ abstract class FixtureActivity(private val layout: Int) : Activity() {
     companion object {
         const val EXTRA_FOCUS = "focus"
         const val EXTRA_TICKER = "ticker"
+        const val EXTRA_FILL = "fill"
 
         /** Keeps only ASCII lowercase letters from an insertion; the LengthFilter caps at 5. */
         val LOWERCASE_ONLY = InputFilter { source, start, end, _, _, _ ->
