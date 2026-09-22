@@ -69,6 +69,16 @@ Both were added because the first device run showed only "process gone" and noth
 | `scripts/pixel.py`, `scripts/within.py` | one captured pixel; one measured comparison |
 | `scripts/e1.sh` … | one per acceptance row |
 
+## How a fix gets verified here
+
+Jeremy, 2026-09-21: *"remember only test your current changes NOT everything."* A fix is verified by the
+narrowest thing that would have caught it — the one unit test, the one assertion, the one command — and
+its output is quoted. The full row is NOT re-run to confirm a one-line change; that is what the
+end-of-build QA pass is for, which is the same ruling he made for phase 02's owed re-runs.
+
+Every driver here takes a single row, and speak.sh takes a single utterance, so a targeted re-run is
+always possible. If it ever is not, that is a defect in the harness, not a reason to run everything.
+
 ## Rows
 
 Status is what the driver's exit code says, not a judgement.
