@@ -13,6 +13,10 @@ Subcommands (every number printed is MEASURED; nothing here knows what the answe
                                 horizontal ink runs along a band (columns with any pixel > THR),
                                 runs closer than MERGE px joined -> "x0-x1 x0-x1 ..."
   accent PNG X0 Y0 X1 Y1        bounding box of accent-blue pixels (b > 150, b - r > 60)
+  dot PNG CX CY                 the cursor dot's three diameters, from radial profiles along the four
+                                diagonals (the diagonals avoid the key gaps the ring sits on): the accent
+                                core's edge, the key-grey disc's edge (grey -> dark ring) and the ring's
+                                outer edge (dark ring -> the keys around it). -> "core disc ring" in px
 """
 import re
 import sys
@@ -99,6 +103,33 @@ def box(path, x0, y0, x1, y1, test):
         print(top, left, bottom, right, bottom - top + 1, right - left + 1)
 
 
+def dot(path, cx, cy):
+    im = Image.open(path).convert("RGB")
+    px = im.load()
+    radii = {"core": [], "disc": [], "ring": []}
+    for sx, sy in ((1, 1), (1, -1), (-1, 1), (-1, -1)):
+        state = "core"
+        for step in range(0, 200):
+            # Along a diagonal the distance is step * sqrt(2); sub-pixel edges come from the half-way crossing.
+            p = px[cx + sx * step, cy + sy * step]
+            L = lum(p)
+            blue = p[2] > 150 and p[2] - p[0] > 60
+            if state == "core" and not blue:
+                radii["core"].append((step - 0.5) * 2 ** 0.5)
+                state = "disc"
+            elif state == "disc" and L < 36.5:          # grey 48 -> dark ring (22,27,21): R6's 36.5 level
+                radii["disc"].append((step - 0.5) * 2 ** 0.5)
+                state = "ring"
+            elif state == "ring" and L > 36.5:          # dark ring -> a key (48)
+                radii["ring"].append((step - 0.5) * 2 ** 0.5)
+                break
+    out = []
+    for k in ("core", "disc", "ring"):
+        v = radii[k]
+        out.append("%.2f" % (2 * sum(v) / len(v)) if v else "nan")
+    print(" ".join(out))
+
+
 def segments(path, y0, y1, x0, x1, thr, merge):
     im = Image.open(path).convert("RGB")
     px = im.load()
@@ -136,6 +167,8 @@ def main():
     elif cmd == "px":
         im = Image.open(a[0]).convert("RGB")
         print(*im.getpixel((int(a[1]), int(a[2]))))
+    elif cmd == "dot":
+        dot(a[0], int(a[1]), int(a[2]))
     elif cmd == "segments":
         segments(a[0], int(a[1]), int(a[2]), int(a[3]), int(a[4]), float(a[5]), int(a[6]))
     else:

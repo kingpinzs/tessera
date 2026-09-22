@@ -142,4 +142,26 @@
             android:fontFamily="monospace"
             android:text="0x0" />
     </LinearLayout>
+
+    <!-- mirror_recog: the fixture's own speech-recognition request (broadcast
+         app.tileshell.qa.imefixture.RECOGNIZE): "idle", "listening", "results:<text>" or "error:<code>". -->
+    <LinearLayout
+        android:id="@+id/mirror_row_recog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/mirror_label_recog"
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:text="recog" />
+        <TextView
+            android:id="@+id/mirror_recog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:text="idle" />
+    </LinearLayout>
 </LinearLayout>

@@ -10,8 +10,10 @@
 #
 # Tolerances: a value read from the keyboard's own dump bounds is checked against R6's tolerance as
 # written. A value read off SCREEN PIXELS (ink heights, the grip, the dots, the strip text) gets R6's
-# tolerance plus one device pixel — the capture's own quantum, the same allowance RV11 gives a frame —
-# and the log says so on every such line.
+# tolerance plus one device pixel, because a threshold crossing on anti-aliased ink can land a pixel
+# either way on each edge (review m2: this is the reason, not RV11's frame allowance). The log says so on
+# every such line. The hold dots' ± 4 is this driver's own figure: R6 2.1.17 gives none (≈1 video px =
+# 4.3 phys is its resolution).
 . "$(dirname "$0")/lib.sh"
 . "$(dirname "$0")/kb.sh"
 M="$HERE/measure.py"
@@ -69,6 +71,13 @@ assert_within "R6 2.1.13 key block 865" 865 "$(g "key block")" 5
 assert_within "R6 2.2.1 strip height 46.5 epx" 46.5 "$(ep "$(g "strip height px")")" 1.3
 assert_within "R6 2.5.4 dot centre 358 from the left" 358 "$(g "dot centre x")" 3
 assert_within "R6 2.5.4 dot centre 218 above the nav bar" 218 "$(g "dot above nav bar")" 3
+# The dot's three diameters, off the screen (review M2): radial profiles along the diagonals.
+read -r dl dt dr db <<< "$(bounds "$D" kb_cursor_dot)"
+read -r dcore ddisc dring <<< "$(python3 "$HERE/measure.py" dot "$ROW_DIR/e3_letters.png" $(( (dl + dr) / 2 )) $(( (dt + db) / 2 )))"
+note "dot diameters (px): core $dcore, disc $ddisc, ring $dring"
+assert_within "R6 2.5.2 accent core 21 across (+1 px)" 21 "$(ph "$dcore")" "$(tol_px 3)"
+assert_within "R6 2.5.3 key-grey disc 56 across (+1 px)" 56 "$(ph "$ddisc")" "$(tol_px 4)"
+assert_within "R6 2.5.3 dark ring 87 outer diameter (+1 px)" 87 "$(ph "$dring")" "$(tol_px 4)"
 
 # ---- B. colours, off the screen (R6 §2.1.18, MEDIUM, ± 32 per channel) ---------------------------
 P="$ROW_DIR/e3_letters.png"
@@ -85,6 +94,19 @@ colour "R6 2.1.18 letter key (48,48,48)" 48 48 48 "$(python3 "$M" px "$P" $((ql 
 colour "R6 2.1.18 function key (73,74,72)" 73 74 72 "$(python3 "$M" px "$P" $((sl + 6)) $((st + 6)))"
 qlab="$(python3 "$M" ink "$P" $((ql + 4)) $((qt + 4)) $((qr - 4)) $((qb - 4)) 223)"
 assert_ne "R6 2.1.18 labels are white (a pixel >= 223 in q's label)" "none" "$qlab"
+# The other keys R6 names (review m14): the function keys &123, emoji and Enter, the dark comma.
+for k in sym:73:74:72 emoji:73:74:72 enter:73:74:72 comma:48:48:48 space:48:48:48 period:48:48:48 bksp:73:74:72; do
+  IFS=: read -r kid er eg eb <<< "$k"
+  read -r kl kt _ _ <<< "$(bounds "$D" "kb_key_$kid")"
+  colour "R6 2.1.18 $kid key ($er,$eg,$eb)" "$er" "$eg" "$eb" "$(python3 "$M" px "$P" $((kl + 6)) $((kt + 6)))"
+done
+# R6 2.2.2: no separator between the strip and the keys — the strip's bottom band is the panel's colour
+# across the width (sampled in the q/w, t/y and o/p gaps just above row 1).
+read -r yl0 _ _ _ <<< "$(bounds "$D" kb_key_y)"; read -r _ _ tr0 _ <<< "$(bounds "$D" kb_key_t)"
+read -r pl0 _ _ _ <<< "$(bounds "$D" kb_key_p)"; read -r _ _ or0 _ <<< "$(bounds "$D" kb_key_o)"
+for xx in $(( (qr + wl) / 2 )) $(( (tr0 + yl0) / 2 )) $(( (or0 + pl0) / 2 )); do
+  colour "R6 2.2.2 no separator above row 1 (x $xx)" 22 27 21 "$(python3 "$M" px "$P" "$xx" $((qt - 2)))"
+done
 
 # ---- C. labels, off the screen (R6 §2.1.14–2.1.17) --------------------------------------------------
 read -r xl xt xr xb <<< "$(bounds "$D" kb_key_x)"
@@ -148,6 +170,10 @@ assert_within "R6 2.3.3 popup top 25 above the row above's top" 25 "$(ph $((qt -
 pacc="$(python3 "$M" px "$ROW_DIR/e3_popup_g.png" $((ul + 5)) $((ut + 5)))"
 note "popup fill pixel: $pacc (the configured accent is 0,120,215)"
 colour "R6 2.3.1 popup is accent-filled" 0 120 215 "$pacc"
+# R6 2.3.1: square corners, no shadow (review m14): the popup's very corner pixel is already accent, and
+# the pixel just outside its left edge is the panel or the key row, not a shadow.
+colour "R6 2.3.1 square corners: the popup's top-left corner pixel is accent" 0 120 215 "$(python3 "$M" px "$ROW_DIR/e3_popup_g.png" $((ul + 1)) $((ut + 1)))"
+colour "R6 2.3.1 no shadow: the pixel left of the popup is the panel" 22 27 21 "$(python3 "$M" px "$ROW_DIR/e3_popup_g.png" $((ul - 3)) $((ut + 20)))"
 kacc="$(python3 "$M" px "$ROW_DIR/e3_popup_g.png" $((gl + 5)) $((gt + 5)))"
 colour "R6 2.3.1 the pressed key fills with the accent" 0 120 215 "$kacc"
 pink="$(python3 "$M" ink "$ROW_DIR/e3_popup_g.png" $((ul + 2)) $((ut + 2)) $((ur - 2)) $((ub - 2)) 200)"

@@ -25,6 +25,9 @@ kb_begin() {
   show="$(adb shell settings get secure show_ime_with_hard_keyboard | tr -d '\r')"
   printf '%s\n%s\n' "$prior" "$show" > "$ROW_DIR/.kb_restore"
   note "kb_begin: prior ime=$prior show_ime_with_hard_keyboard=$show"
+  # Which source this APK came from (review M7): the commit, whether app/ had uncommitted changes, and
+  # when the APK was built against when that commit was made.
+  note "tree: HEAD $(git -C "$REPO" rev-parse --short HEAD) ($(git -C "$REPO" log -1 --format=%cI)); uncommitted files under app/: $(git -C "$REPO" status --porcelain app/ | wc -l); apk built $(date -Iseconds -r "$APK")"
   adb shell pm path "$FIX" >/dev/null 2>&1 || adb install -r -t "$FIX_APK" >/dev/null
   adb shell pm path "$FIX.test" >/dev/null 2>&1 || adb install -r -t "$DRV_APK" >/dev/null
   adb shell settings put secure show_ime_with_hard_keyboard 1

@@ -1,8 +1,15 @@
 package app.tileshell.qa.imefixture
 
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.widget.TextView
 import android.text.InputFilter
 import android.view.Choreographer
 import android.view.View
@@ -35,6 +42,47 @@ abstract class FixtureActivity(private val layout: Int) : Activity() {
         mirror.attach()
         applyFocusExtra(intent)
         if (intent.getBooleanExtra(EXTRA_TICKER, false)) startTicker()
+        registerReceiver(recognizeReceiver, IntentFilter(ACTION_RECOGNIZE), Context.RECEIVER_EXPORTED)
+    }
+
+    override fun onDestroy() {
+        runCatching { unregisterReceiver(recognizeReceiver) }
+        recognizer?.destroy()
+        super.onDestroy()
+    }
+
+    /**
+     * `adb shell am broadcast -a app.tileshell.qa.imefixture.RECOGNIZE`: ask Android's DEFAULT speech
+     * recogniser for one result, mirrored into mirror_recog. A broadcast rather than an intent to the
+     * activity, so the screen's lifecycle and the keyboard showing over it are left exactly as they are
+     * (phase 05 EDGE3: the shell's keyboard holds the microphone while this second client asks, and the
+     * reverse).
+     */
+    private var recognizer: SpeechRecognizer? = null
+    private val recognizeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) = startRecognition()
+    }
+
+    private fun startRecognition() {
+        val out = findViewById<TextView>(R.id.mirror_recog)
+        recognizer?.destroy()
+        val r = SpeechRecognizer.createSpeechRecognizer(this)
+        recognizer = r
+        r.setRecognitionListener(object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) { out.text = "listening" }
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(rmsdB: Float) {}
+            override fun onBufferReceived(buffer: ByteArray?) {}
+            override fun onEndOfSpeech() {}
+            override fun onError(error: Int) { out.text = "error:$error" }
+            override fun onResults(results: Bundle?) {
+                out.text = "results:" + (results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull() ?: "")
+            }
+            override fun onPartialResults(partialResults: Bundle?) {}
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        })
+        out.text = "starting"
+        r.startListening(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM))
     }
 
     /**
@@ -103,6 +151,7 @@ abstract class FixtureActivity(private val layout: Int) : Activity() {
         const val EXTRA_FOCUS = "focus"
         const val EXTRA_TICKER = "ticker"
         const val EXTRA_FILL = "fill"
+        const val ACTION_RECOGNIZE = "app.tileshell.qa.imefixture.RECOGNIZE"
 
         /** Keeps only ASCII lowercase letters from an insertion; the LengthFilter caps at 5. */
         val LOWERCASE_ONLY = InputFilter { source, start, end, _, _, _ ->
