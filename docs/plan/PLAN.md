@@ -66,6 +66,12 @@ search at the top, live folders, and a full-screen background image showing thro
 - Shell parts (Q6): W10M action center (pull-down overlay), volume panel overlay, glance screen,
   keyboard (IME), phone dialer (default dialer role), messaging (default SMS role), privileged helper for direct toggles (Q13;
   added round 3, R3F-03; its phase is named at the split)
+- Side pane left of Start with at-a-glance cards (added 2026-09-22 from R10; name open, "Glance" is taken by phase 07)
+- W10M inbox apps inside the shell APK (added 2026-09-22 from R10): Calculator, Alarms & Clock, Calendar, Photos, Camera,
+  People, Voice Recorder, video player, Files, a W10M Settings front (partial by nature). Mail, a browser and Maps are held
+  against A11; a Store and Microsoft's cloud apps are out.
+- First-run setup wizard (added 2026-09-22 from R10) and tile quick actions from App Shortcuts (added 2026-09-22; trigger open)
+- Fluent materials on the transient surfaces — acrylic and light (R10-Q1, 2026-09-22)
 - Cortana persona (final-release look, Q12): ring states (idle / thinking / speaking) + waveform listening state (R3F-04); voice in and out, Cortana tile,
   possibly registered as Samsung's default assistant (side-key long-press)
 
@@ -180,6 +186,29 @@ SUPERSEDED older note (launcher-only framing, kept for history):
   can be closed against footage. Per R10 the actions come from Android App Shortcuts
   (LauncherApps.getShortcuts, which the Home app may call). Open: the trigger, because press-and-hold is W10M's
   measured way into edit mode (R6 §1.1.1) — the next question.
+
+- 2026-09-22 Scope add (Jeremy: "did you add ALL the apps that need to be created and that side pull out thing
+  at a glance thing"). They had been queued in R10 as questions, not added; this adds them. Read as A8 reads the
+  feature list — everything buildable is in, and build order is what gets decided:
+  - **The side pane**: a pane that pulls out to the LEFT of Start, holding at-a-glance cards (agenda, weather,
+    now playing, Tess's reminders) and optionally real Android widgets through AppWidgetHost (those draw
+    themselves and will not look Metro). W10M never had one; desktop Windows' later widgets board is the
+    continued-development analogue (R10 item 8). Its NAME is open: phase 07's "Glance screen" is W10M's own
+    name for the always-on display and is taken.
+  - **The W10M inbox apps that can be built inside the rules**, each an app in the shell APK like Music:
+    Calculator (standard / scientific / programmer), Alarms & Clock (alarm, timer, stopwatch, world clock),
+    Calendar, Photos, Camera, People, Voice Recorder, a video player (Movies & TV's role), Files, and a W10M
+    Settings front that deep-links into Android's own pages where it cannot change a setting itself (partial
+    by nature — Android limits, and phase 04's helper for the toggles it can flip).
+  - Already in the plan and not re-added: Phone and Messaging (06), Music (10), Weather (01), the Start
+    settings hub (01), the keyboard (05), Tess (03 / 08 / 09), action center and volume (04), the Glance
+    screen (07).
+  - **Held for a ruling, because they break A11** ("the launcher's only internet uses are Weather and the
+    one-time model download", plus the two narrow additions since): **Mail, a browser, Maps.** Each is
+    internet by nature, and A11 was a ruling, so it is not overridden here.
+  - **Out**: a Store (Android installs come through the Play Store or an installer the user picks; the shell
+    cannot stand in for it), and Microsoft's cloud products (Office, OneNote, OneDrive, Skype, Xbox, the MSN
+    news / money / sports apps) — cloud services and Microsoft marks both.
 
 ## Review resolutions (round 1, 2026-09-16; agent design calls, Jeremy can overrule)
 Full mapping: docs/plan/review/2026-09-16-triage.md
