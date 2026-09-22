@@ -213,14 +213,18 @@ class Suggester(
 
     // ---- the typed word itself ----
 
-    /** The source spelling when the typed word IS a word (dictionary or learned), else null. */
+    /**
+     * The spelling to keep when the typed word IS a word: the dictionary's own casing for a dictionary
+     * word, and the typed casing for a learned one — a learned word's capital came from wherever the
+     * typist first wrote it, not from its being a proper noun. Null when it is not a word.
+     */
     private fun knownSpelling(typed: String, lower: String): String? {
         val rank = lexicon.rankOf(lower)
         if (rank >= 0) {
             // "us" beside "US": the lowercase spelling is a word in its own right, so leave it as typed.
             return if (lexicon.isLowercaseInSource(rank)) typed else lexicon.wordAt(rank)
         }
-        return userDictionary?.canonical(lower)
+        return if (userDictionary?.contains(lower) == true) typed else null
     }
 
     companion object {
@@ -228,7 +232,13 @@ class Suggester(
         const val COMPLETIONS_KEPT = 12
         const val COMPLETION_COST = 0.5f
         const val FREQUENCY_WEIGHT = 0.3f
-        const val AUTO_SCORE_MAX = 2.4f
+        /**
+         * A one-typo correction may replace the typed word only when the candidate is within the
+         * commonest ~10k words (1 + 0.3·log10(10⁴) = 2.2); an adjacent-key slip (half a typo) may reach
+         * any rank, and a two-typo correction only the first handful. Past that the typed word is
+         * more likely deliberate than the candidate is likely meant.
+         */
+        const val AUTO_SCORE_MAX = 2.2f
         /** A learned word ranks as if it were the 500th commonest: the typist's own words are likely. */
         const val USER_WORD_RANK = 500
 

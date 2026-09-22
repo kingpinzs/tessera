@@ -40,10 +40,15 @@ class ShiftState(val doubleTapMs: Long = 300L) {
         return mode
     }
 
-    /** A letter is being typed: returns whether it is uppercase, and spends a one-shot shift. */
+    /**
+     * A letter is being typed: returns whether it is uppercase, and spends a one-shot shift. The
+     * letter also ends any double tap in progress: the ruling's "second tap" is the next thing after
+     * the first, not a tap after a letter.
+     */
     fun typeLetter(): Boolean {
         val upper = shifted
         if (mode == Mode.ONE_SHOT) mode = Mode.OFF
+        lastTapMs = NO_TAP
         return upper
     }
 
