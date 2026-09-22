@@ -234,16 +234,33 @@ class CortanaModel(
         handle(text, openText = event.open)
     }
 
+    /**
+     * One sentence per CAUSE, not one for the group.
+     *
+     * "My speech files are missing" used to cover three different faults — an asset that is not in the
+     * APK, a model sherpa-onnx refuses, and espeak data that failed its checksum — and on a phone that
+     * is the whole of what anyone can see. Three causes behind one sentence means the sentence tells
+     * nobody anything, including the person who has to fix it. The detail the speech process sent is
+     * put on the card too, where it can be read and copied; the spoken half stays short, because it is
+     * spoken.
+     */
     private fun onError(event: SpeechEvent.Error) {
+        val settings = "Open ${Brand.ASSISTANT_NAME}'s settings, then Diagnostics."
         val spoken = when (event.code) {
             SpeechError.NO_MICROPHONE_PERMISSION -> "I need permission to use the microphone."
-            SpeechError.MODEL_MISSING, SpeechError.MODEL_CORRUPT, SpeechError.ESPEAK_DATA_BAD ->
-                "My speech files are missing. Open ${Brand.ASSISTANT_NAME}'s settings to check."
+            SpeechError.MODEL_MISSING ->
+                "My speech files did not load. $settings"
+            SpeechError.MODEL_CORRUPT ->
+                "My speech files are here but the engine refused them. $settings"
+            SpeechError.ESPEAK_DATA_BAD ->
+                "My pronunciation data is damaged. $settings"
             SpeechError.AUDIO_UNAVAILABLE -> "I can't get to the microphone right now."
             else -> "Something went wrong."
         }
+        val shown = if (event.detail.isBlank()) spoken else "$spoken\n\n${event.detail}"
+        Diagnostics.add("cortana", "speech error ${event.code}: ${event.detail}")
         mutable.value = mutable.value.copy(listening = false, level = 0f)
-        reply(Outcome(spoken, Card(CardKind.NOT_UNDERSTOOD, spoken)))
+        reply(Outcome(spoken, Card(CardKind.NOT_UNDERSTOOD, shown)))
     }
 
     // ---------------- the request path (speech and text share it) ----------------
