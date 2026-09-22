@@ -4,6 +4,10 @@ kotlin = "2.4.20"
 composeBom = "2026.06.01"
 activityCompose = "1.13.0"
 junit = "4.13.2"
+# Phase 10: the playback engine and its media session (Q8). R9 found no permissively licensed player
+# to adopt, but Media3 itself is Apache-2.0 and is what both the one credible look-alike and Google's
+# own archived sample are built on.
+media3 = "1.8.0"
 
 [libraries]
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -12,6 +16,8 @@ compose-foundation = { group = "androidx.compose.foundation", name = "foundation
 compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
