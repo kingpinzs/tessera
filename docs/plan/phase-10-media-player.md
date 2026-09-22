@@ -1,5 +1,5 @@
 ---
-status: DRAFT   # Stage A: interview in progress; Q1 and Q3 ruled 2026-09-22, Q4 is with Jeremy
+status: DRAFT   # Stage A: interview in progress; Q1, Q3 and Q4 ruled 2026-09-22, Q5 is with Jeremy
 ---
 # Phase 10 — W10M media player
 
@@ -50,20 +50,46 @@ way R3 gated phases 01-03 and R7 gated phase 06. Every value the collection take
 measurement cites the measurement it came from; every value that is genuinely new and NOT measured is
 recorded as an approximation with a NEEDS-HUMAN row, the same discipline the default Start layout got.
 
+**Q4 — what the Music tile follows (2026-09-22, Jeremy: "So if I am playing an mp3 then the music player
+is used if its a different app then its that apps tile if there is one").**
+
+Not one of the three offered: the now-playing face belongs to THE TILE OF THE APP THAT OWNS THE SESSION.
+Playing a local file goes through this player, so it appears on the Music tile; playing something in
+another app appears on THAT app's tile, if one is pinned; and if that app has no tile, nothing shows,
+because no tile is borrowed to display another app's music.
+
+That is what W10M actually did — a live tile showed its own app's content, and Groove's tile showed
+Groove — and unlike the strict reading of it (offered as "B") it takes nothing away: the behaviour moves
+rather than disappearing.
+
+It is buildable from machinery that already exists, which is why it was accepted as given rather than
+re-offered. [LiveTileEngine.packageKey] already keys content per package, [StartPage] already falls back
+to package content for a slot tile, and [MusicFeed] already records the session owner (the controller's
+packageName). What changes is the KEY the now-playing face is published under — the owner's package
+instead of the MUSIC slot — and the tile [ActiveTiles] grows with it.
+
+Two consequences, both recorded because they touch shipped work. (1) The tile growth and the transport
+controls verified on the device (INDEX Change Log 2026-09-21 item 3; Jeremy: "it grows, glyphs do
+survive, buttons do drive the player") move to whichever tile owns the session, so they are RE-verified
+against this rule when it is built rather than assumed to still hold. (2) Until this player exists the
+change is nearly invisible: a local file plays in whatever app resolves the MUSIC slot today, so the
+face lands on the same tile it lands on now. The rule only starts to bite when a NON-slot app plays.
+
 ## Interview queue (Stage A step 4)
 
 - ~~Q1 — what the player IS.~~ Ruled 2026-09-22 ("A"); see Decisions.
 - ~~Q2 — where it lives.~~ Settled by Q1: it takes over the MUSIC slot.
 - ~~Q3 — what this is measured against.~~ Ruled 2026-09-22 ("C"); see Decisions. Adds research task R8.
-- **Q4 — what the Music tile follows once the shell has its own player.** With Jeremy. The tile reads
-  whatever media session is active today, and that is built and verified (INDEX Change Log 2026-09-21
-  item 3; Jeremy on the device: "it grows, glyphs do survive, buttons do drive the player"). Once this
-  app owns a session of its own, "the Music tile" could mean the active session whoever owns it, or this
-  player's tile specifically. It is the one question here that can take away something already working.
-- Q5 — the library: what it indexes, a phone with no local audio at all, and whether it watches
+- ~~Q4 — what the Music tile follows.~~ Ruled 2026-09-22; see Decisions.
+- **Q5 — is the player an app or a shell page.** With Jeremy. Everything else in the shell that owns a
+  screen (Weather, Settings, Cortana) is an internal page reached from its own tile. An app is different:
+  it declares a launcher activity and android.intent.category.APP_MUSIC, so the MUSIC slot resolves to it
+  exactly as it resolves any music app, and it appears in the app list with every other app. Q1 said it
+  takes over the MUSIC slot, and HOW it does that is this question.
+- Q6 — the library: what it indexes, a phone with no local audio at all, and whether it watches
   MediaStore the way PhotosFeed does.
-- Q6 — playback: the engine, headset and Bluetooth handling, and what becomes of MusicFeed.
-- Q7 — the lock-screen and glance relationship (phase 07 territory).
+- Q7 — playback: the engine, headset and Bluetooth handling, and what becomes of MusicFeed.
+- Q8 — the lock-screen and glance relationship (phase 07 territory).
 
 ## Build tasks
 
