@@ -233,6 +233,22 @@ SUPERSEDED older note (launcher-only framing, kept for history):
   are a film reference, not a mark; "Halo" was considered for the Cortana nod and rejected as a Microsoft game
   trademark.
 
+- 2026-09-22 **R10-Q3 REOPENED (agent correction).** The question put to Jeremy said a hold "enters edit mode on
+  release". That was wrong: R6 §1.1.1 measures 783 ms from touch-down to the FIRST CHANGED FRAME, and the built
+  EditGestures enters edit mode at the 783-ms timeout with the finger still down. So "hold and let go opens the
+  burst" leaves the moment between 783 ms and the release undefined. Both plan reviewers raised it (review/
+  2026-09-22-r10-triage.md); it is re-asked with the correct facts, and phase 02's Change Log line is written as
+  soon as it is re-ruled rather than when it is built.
+- 2026-09-22 Agent calls from the R10 plan review (triage in review/2026-09-22-r10-triage.md; Jeremy can overrule
+  any): blur is a device capability and its fallback is the MEASURED solid W10M fill (one permanent form; R4's
+  phone list gains the blur probe); the setup wizard shows only while a core grant is missing, walking the Setup
+  checklist's own rows; the pod bay is a pager page reached by swiping right on Start, never an edge swipe (the
+  left edge is Android's Back gesture); the shell's own apps take their slots once, following phase 10 Q5's Music
+  precedent, and Tess's actions target them; R11, a measurement pass for the inbox apps, gates each app phase's
+  FINAL; order — quick actions, wizard, in-app Fluent engine (before phase 04), pod bay, inbox apps, Files, the
+  Settings front after phase 04. The Tessera bar over every app waits on phase 04's R4 probe; a local-network
+  LLM is not raised (Q2 and A11 stand). **None of the 2026-09-22 additions is split into a phase yet.**
+
 ## Review resolutions (round 1, 2026-09-16; agent design calls, Jeremy can overrule)
 Full mapping: docs/plan/review/2026-09-16-triage.md
 - RV1. One APK holds every part; no part depends on a separately installed app. Install via adb over USB or Wireless debugging;
