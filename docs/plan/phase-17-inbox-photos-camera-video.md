@@ -45,6 +45,18 @@ Camera2 — P1 records what the S25U exposes); DRM; Files (phase 18); the pod ba
 "player-only" video build if the interview rules the fuller form (Hard Rule 16).
 
 ## Decisions
+- 2026-09-23: The video app is Movies & TV WITH its online half (Jeremy: "I want the movies & TV. microsoft has cancled theres
+  so I need a way to fake it using streaming services and other methods pluse anything local", then the A11 amendment in
+  PLAN.md). Q3 as first written assumed A11 kept it local and is superseded; its shape is re-asked (Q3b).
+- 2026-09-23: Interview Q2 — every Windows Camera mode (Jeremy: "(c)"): photo and video with automatic everything, flash /
+  timer / grid / front-back / zoom, the Lumia pro dial (manual focus, ISO, shutter, white balance, exposure), panorama, slow
+  motion and Living Images. Agent notes: a mode the phone's camera cannot do (Camera2 reports no high-speed sessions, no manual
+  sensor control) is not shown, and the diagnostics say why — no mode that silently fails; the AVD's virtual camera cannot
+  prove slow motion or manual sensor control, so those rows are phone-only (P rows); panorama stitching must be code the shell
+  may ship (licence checked at build start, P5), and is the largest single task here.
+- 2026-09-23: Interview Q1 — Photos is the full W10M Photos (Jeremy: "(c)"): collection, albums, viewer, share / delete / set
+  as, slideshow, the editor (crop, rotate, straighten, auto-enhance, light and colour, filters, red-eye, saved as a copy) AND
+  video trimming (saved as a copy, the original kept). One form, built complete (Hard Rule 16).
 - 2026-09-22: From phase 11 interview Q1 (Jeremy: "A"), a standing rule for every shell app: this phase's apps declare their
   own top-level screens as static App Shortcuts, so a hold on their tiles bursts those screens (phase 11). Which screens each app
   declares is settled at this phase's own interview; a build task and an acceptance row carry it.
@@ -163,26 +175,36 @@ Camera2 — P1 records what the S25U exposes); DRM; Files (phase 18); the pod ba
 ## Interview queue (Stage A step 4)
 Load-bearing first. Implementation mechanics are the agent's (P3) and are not asked.
 
-1. **Q1 — what Photos IS.** W10M's Photos had a collection, albums, a viewer, share / delete / set-as, a
+1. ~~Q1 — what Photos is~~ RULED 2026-09-23: C (see Decisions). Original question kept below.
+   **Q1 — what Photos IS.** W10M's Photos had a collection, albums, a viewer, share / delete / set-as, a
    slideshow and an editor. Which form is built (one form only, Hard Rule 16)?
    A. Viewer + collection + albums + share / delete / set as / slideshow — no editing.
    B. A plus W10M Photos' editor: crop, rotate, straighten, auto-enhance, light and colour, filters, red-eye,
    saved as a copy. (lean — phase 10 Q7's "EVERYTHING there is only one version built" precedent)
    C. B plus video trimming (W10M Photos could trim a video).
    D. Other / let me clarify.
-2. **Q2 — Camera modes.** Windows Camera on the final release had photo and video with automatic everything,
+2. ~~Q2 — Camera modes~~ RULED 2026-09-23: C (see Decisions). Original question kept below.
+   **Q2 — Camera modes.** Windows Camera on the final release had photo and video with automatic everything,
    plus the Lumia pro dial (manual focus, ISO, shutter, white balance, exposure), and on some phones panorama,
    slow motion and Living Images.
    A. Photo and video, automatic, with flash / timer / grid / front-back / zoom.
    B. A plus the pro dial. (lean — the dial is the part people remember)
    C. B plus panorama, slow motion and Living Images.
    D. Other / let me clarify.
-3. **Q3 — what the video app IS.** Movies & TV's local half was a Videos library plus the player; its store
+3. ~~Q3 as first written~~ SUPERSEDED 2026-09-23 by the A11 amendment (see Decisions); re-asked as Q3b below.
+   **Q3 — what the video app IS.** Movies & TV's local half was a Videos library plus the player; its store
    half is out (A11).
    A. A Videos library (all videos, by folder) plus the player. (lean)
    B. The player only, reached from Photos, Files and "open with" — no library page, no app-list entry.
    C. A plus the player also handling audio-only files as a second Music entry point.
    D. Other / let me clarify.
+3b. (added 2026-09-23) **What Movies & TV is, now that it may go online.**
+   A. A W10M-style hub: your local videos, plus an online catalogue of films and shows (info and artwork from a public film
+      database) showing where each title can be watched among the streaming apps on the phone, with "Watch on <service>"
+      opening that app at the title; plus your own media server (Jellyfin or Plex) if you have one (lean)
+   B. Local library and player, plus a "Streaming" pivot of shortcuts into the streaming apps you have (no catalogue, no search)
+   C. A without the media-server part
+   D. Other / let me clarify
 4. **Q4 — videos in Photos.** W10M's Photos showed videos in its collection and played them in place.
    A. Photos shows photos and videos together; tapping a video opens the shared player screen. (lean)
    B. Photos shows photos only; videos live only in the video app.
