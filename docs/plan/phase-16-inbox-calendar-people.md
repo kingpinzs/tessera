@@ -63,6 +63,32 @@ internet (A11) — synced calendars are other apps' sync adapters, not the shell
 - Alarms & Clock, Calculator, Voice Recorder (15), Photos / Camera / video (17), Files (18), the Settings front (19)
 
 ## Decisions
+- 2026-09-23: Interview Q3 — a Birthdays calendar (Jeremy: "(a)"): read-only, local, kept in step with contacts' birthdays, so
+  the Calendar tile and Tess's "what's on my calendar" see it. It is never offered by Sync (Q2 rule 3 applies to events the user
+  created, and a derived calendar is not one).
+- 2026-09-23: The App Shortcuts under the phase 11 Q1 standing rule (agent; Jeremy can overrule): Calendar — Agenda, Day,
+  Month, New event; People — Contacts, New contact.
+- 2026-09-23: Interview Q2 — read the Google calendars, write only to a local one, sync by choice, never to work (Jeremy: "D.
+  it can only read the google calanders BUT when something is added to the local calander I can click sync and it will ask
+  which connected calander to sync with. I dont want to add anything to my work calander from my phone ever. jsut my personal
+  calander"). Rules:
+  1. The app SHOWS every calendar in Android's CalendarProvider (the phone's Google calendars included) and never writes to
+     them directly — no edit, no delete, no new event goes into an account calendar.
+  2. Every event created in the app (and by Tess's "add ... to my calendar", an ADD to phase 03's action, INDEX Change Log when
+     built) goes into the shell's own LOCAL calendar in the provider, which the app creates.
+  3. A local event carries a "Sync" action. It asks which connected calendar to sync with and copies the event there; the local
+     event stays as the source, marked "synced to <calendar>", and a later Sync on it updates that copy (a one-way push, only
+     ever on the user's tap). This is the ONLY way the shell writes to an account calendar.
+  4. Never the work calendar (agent reading of "never", Jeremy can overrule): the Sync picker lists only calendars the user
+     has allowed in Calendar settings ("Can sync to"), and every calendar starts NOT allowed — so a calendar the user never
+     enabled, the work one included, can never be written, even by a mis-tap. Jeremy enables his personal calendar once.
+  Acceptance rows prove each rule on the AVD with a local calendar and two sync-adapter-created account calendars (one
+  allowed, one not): no write reaches the disallowed one by any path (app, Tess, Sync), read back from the provider.
+- 2026-09-23: Interview Q1 — People is a full W10M People hub over Android's Contacts provider and takes the PEOPLE slot
+  (Jeremy: "(a)"): list, card, create / edit / delete, photo, link / unlink, SIM import, share. The People tile, Phone's "Phone
+  book" and every contact hand-off inside the shell open it. Samsung Contacts stays installed and untouched; both show the same
+  contacts through the provider. Phase 06's Out line ("a W10M People app, not in the feature list") is superseded — INDEX Change
+  Log when this phase is built.
 - 2026-09-22: From phase 11 interview Q1 (Jeremy: "A"), a standing rule for every shell app: this phase's apps declare their
   own top-level screens as static App Shortcuts, so a hold on their tiles bursts those screens (phase 11). Which screens each app
   declares is settled at this phase's own interview; a build task and an acceptance row carry it.
@@ -189,7 +215,8 @@ internet (A11) — synced calendars are other apps' sync adapters, not the shell
 ## Interview queue (Stage A step 4)
 Ask one at a time, in this order.
 
-1. **What People is.** Phase 06 ruled a W10M People app OUT of its scope ("Phone book opens phase 01's People slot app") and
+1. ~~What People is~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **What People is.** Phase 06 ruled a W10M People app OUT of its scope ("Phone book opens phase 01's People slot app") and
    the 2026-09-22 scope add puts People in. Its shape:
    A. **(lean)** A full W10M People hub over Android's Contacts provider — list, card, create / edit / delete, photo, link /
       unlink, SIM import, share — and it takes the PEOPLE slot, so the People tile, Phone's "Phone book" and every contact
@@ -199,7 +226,8 @@ Ask one at a time, in this order.
    C. The full app, but it does NOT take the PEOPLE slot: reachable from the app list only; the tile and Phone book keep
       pointing at the phone's own contacts app.
    D. Other / let me clarify.
-2. **Where Calendar's events live.** The AVD has no calendar at all (R10 testability 18) and the phone has Samsung's and any
+2. ~~Where events live~~ RULED 2026-09-23: D, Jeremy's own design (see Decisions). Original question kept below.
+   **Where Calendar's events live.** The AVD has no calendar at all (R10 testability 18) and the phone has Samsung's and any
    account's; phase 01's tile and Tess's calendar commands both read CalendarProvider today.
    A. **(lean)** Android's CalendarProvider, every calendar on the phone (synced ones included — their sync is other apps'
       work, not an internet use of the shell), plus one local calendar the app creates when the phone has none.
@@ -207,7 +235,8 @@ Ask one at a time, in this order.
       seeing all of them, since they read the provider unfiltered).
    C. The shell's own store outside the provider — then the tile and Tess would NOT see its events without a second reader.
    D. Other / let me clarify.
-3. **Birthdays.** W10M's Outlook Calendar showed a Birthday calendar fed from People.
+3. ~~Birthdays~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Birthdays.** W10M's Outlook Calendar showed a Birthday calendar fed from People.
    A. **(lean)** In, as a read-only local calendar the app keeps in step with contacts' birthdays, so the Calendar tile and
       Tess's "what's on my calendar" see them too.
    B. In, shown inside the Calendar app's views only (not written to the provider; the tile and Tess do not see them).
