@@ -87,6 +87,10 @@ search at the top, live folders, and a full-screen background image showing thro
   this plan; it is not the post-plan "own updates".
 - P5. No Google unless required (Jeremy, 2026-09-16): "NO to anything google that I dont have to have". Prefer non-Google apps,
   services, models and runtimes wherever an equivalent exists; a Google dependency needs a stated reason in its phase doc.
+- P6. Deterministic first, then the LLM (Jeremy, 2026-09-23, phase 15 interview Q5): "anything deterministic can be dont with
+  out an llm and then feed the llm with better smaller info". Whatever has one right answer — arithmetic, conversions, dates,
+  a contact lookup, a device state — is computed by code, never by the model; the on-device LLM (phase 08) and its harness
+  (phase 09) receive those computed facts as small, exact inputs instead of being asked to work them out. Extends Q2's layering.
 - P2. All in one, seamless: "I want it all in one as much as possible and semless as much as possible". Tie-breaker in every
   phase interview: prefer the option with fewer separate apps, fewer manual steps and fewer visible Android seams.
 
