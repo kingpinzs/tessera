@@ -325,10 +325,28 @@ class StartGeometry(
     fun memberXPx(p: Placement): Float = grid.unitX(p.x)
     fun memberYPx(p: Placement): Float = bandMembersTopPx + grid.unitY(p.y)
 
+    /**
+     * The grid's scrolling content ends one gutter above whatever is fixed to the bottom of the page, so the
+     * last tile — and an open folder's band — can always be scrolled clear of it (phase 01, bottom tile row:
+     * "the Start grid scrolls above it and its content ends above the row so no tile hides behind it").
+     * The content used to end at its last tile, so the end of a long Start stayed behind the fixed rows and
+     * a folder opened there could not be scrolled out from under them (Jeremy, 2026-09-22, on the phone; J3).
+     */
     val contentHeightPx: Float
         get() {
             val last = placements.maxOfOrNull { yPx(it) + hPx(it.size) } ?: topPx
-            return maxOf(last, bandRuleBottomPx) + grid.gutterPx
+            return maxOf(last, bandRuleBottomPx) + grid.gutterPx + (pageHeightPx - fixedTopPx)
+        }
+
+    /**
+     * Top of what is fixed to the bottom of the page: the last-opened app's tile when one is promoted, else the
+     * bottom tile row, else the page's own end.
+     */
+    val fixedTopPx: Float
+        get() = when {
+            recentSize != null -> recentTopPx
+            dockKeys.isNotEmpty() -> dockTopPx
+            else -> pageHeightPx
         }
 
     val dockTopPx: Float get() = pageHeightPx - grid.gutterPx - dockTileHeight(grid)
@@ -488,9 +506,12 @@ fun StartPage(
         )
         // Scroll the band into view as it opens (R6 §1.6.2: a new folder is scrolled into view; §1.6.6: expanding
         // auto-scrolls so the band fits).
-        LaunchedEffect(bandFolder, geo.bandRuleBottomPx.toInt() / 16) {
+        // Keyed in 16-px steps while the band opens, plus once more when the reveal stops: the steps alone
+        // missed the last few pixels, and the band's bottom rule ended 1 px under the fixed rows (J3 run 6).
+        LaunchedEffect(bandFolder, geo.bandRuleBottomPx.toInt() / 16, bandReveal.isRunning) {
             if (bandFolder == null) return@LaunchedEffect
-            val visibleBottom = scroll.value + pageHeightPx - (if (dockKeys.isEmpty()) 0f else dockTileHeight(grid) + grid.gutterPx * 2)
+            // Clear of everything fixed to the bottom: the bottom row AND the last-opened app's tile above it.
+            val visibleBottom = scroll.value + geo.fixedTopPx - grid.gutterPx
             val overshoot = geo.bandRuleBottomPx - visibleBottom
             if (overshoot > 0) scroll.scrollTo((scroll.value + overshoot.toInt()).coerceIn(0, scroll.maxValue))
         }

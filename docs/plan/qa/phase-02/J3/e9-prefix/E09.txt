@@ -1,0 +1,92 @@
+# E9 2026-09-22T19:28:58-06:00
+build guard: built=9842ee7d086664d83562f46eaa13252c installed=9842ee7d086664d83562f46eaa13252c
+driver: e9.sh blob 1524161cded8a1a459bf3bf0fd4b785a7778c131
+row at rest:
+row: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+bottom row centre line y=2058
+--- 1. drag a grid tile into the row ---
+row now:
+row: ['slot:PHONE', 'shell:settings', 'slot:MESSAGING', 'slot:CAMERA']
+PASS  the grid tile joined the row (found [shell:settings])
+PASS  and left the grid (no [shell:settings])
+PASS  the row grew by one (= 4)
+resource-id="tile:dock:slot:PHONE"
+resource-id="tile:dock:shell:settings"
+resource-id="tile:dock:slot:MESSAGING"
+resource-id="tile:dock:slot:CAMERA"
+--- 2. drag it back out into the grid ---
+row now:
+row: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+PASS  the row tile left the row (no [shell:settings])
+PASS  and is back in the grid (found [shell:settings])
+PASS  the row is back to three (= 3)
+--- 3. reorder two row tiles (drag the first onto the third slot) ---
+row now:
+row: ['slot:MESSAGING', 'slot:CAMERA', 'slot:PHONE']
+PASS  the reordered row is not what it was (no [slot:PHONE slot:MESSAGING slot:CAMERA])
+PASS  and still holds the same three tiles (= slot:CAMERA slot:MESSAGING slot:PHONE )
+--- 4. unpin a row tile ---
+unpin disc for dock:slot:MESSAGING at 352 1935
+row now:
+row: ['slot:CAMERA', 'slot:PHONE']
+PASS  the row is one shorter (= 2)
+PASS  the unpinned row tile is gone from the layout entirely (no [slot:MESSAGING])
+--- 5. fill the row to capacity, then a further drop is refused ---
+after adding folder:f1:
+row: ['folder:f1', 'slot:CAMERA', 'slot:PHONE']
+after adding shell:cortana:
+row: ['folder:f1', 'shell:cortana', 'slot:CAMERA', 'slot:PHONE']
+after adding slot:MUSIC:
+row: ['folder:f1', 'slot:MUSIC', 'shell:cortana', 'slot:CAMERA', 'slot:PHONE']
+after adding slot:MAPS:
+row: ['folder:f1', 'slot:MUSIC', 'slot:MAPS', 'shell:cortana', 'slot:CAMERA', 'slot:PHONE']
+row now holds 6
+PASS  the row filled to its capacity of 6 (= 6)
+expect REFUSED — the row is unchanged and slot:STORE stayed in the grid:
+row: ['folder:f1', 'slot:MUSIC', 'slot:MAPS', 'shell:cortana', 'slot:CAMERA', 'slot:PHONE']
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'shell:settings/SMALL', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL']
+PASS  the full row refused the drop and is unchanged (= folder:f1 slot:MUSIC slot:MAPS shell:cortana slot:CAMERA slot:PHONE)
+PASS  and the refused tile stayed in the grid (found [slot:STORE])
+--- 6. turn 'show more tiles' off with a full row: the overflow moves to the end of the grid ---
+row before:
+row: ['folder:f1', 'slot:MUSIC', 'slot:MAPS', 'shell:cortana', 'slot:CAMERA', 'slot:PHONE']
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'shell:settings/SMALL', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL']
+dock: ['folder:f1', 'slot:MUSIC', 'slot:MAPS', 'shell:cortana', 'slot:CAMERA', 'slot:PHONE']
+folders: [{'id': 'f1', 'name': 'Office', 'members': [{'key': 'app:org.fossify.notes/org.fossify.notes.activities.SplashActivity.Green:0', 'size': 'MEDIUM'}, {'key': 'app:org.fossify.messages/org.fossify.messages.activities.SplashActivity.Green:0', 'size': 'MEDIUM'}, {'key': 'app:eu.faircode.email/eu.faircode.email.ActivityMain:0', 'size': 'MEDIUM'}]}]
+row after the column change:
+row: ['folder:f1', 'slot:MUSIC', 'slot:MAPS', 'shell:cortana']
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'shell:settings/SMALL', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:CAMERA/SMALL', 'slot:PHONE/SMALL']
+dock: ['folder:f1', 'slot:MUSIC', 'slot:MAPS', 'shell:cortana']
+folders: [{'id': 'f1', 'name': 'Office', 'members': [{'key': 'app:org.fossify.notes/org.fossify.notes.activities.SplashActivity.Green:0', 'size': 'MEDIUM'}, {'key': 'app:org.fossify.messages/org.fossify.messages.activities.SplashActivity.Green:0', 'size': 'MEDIUM'}, {'key': 'app:eu.faircode.email/eu.faircode.email.ActivityMain:0', 'size': 'MEDIUM'}]}]
+9 grid tiles; right margin at 1064px
+  slot:PEOPLE                  (9, 84, 530, 605)
+  slot:BROWSER                 (543, 84, 1064, 605)
+  slot:MAIL                    (9, 617, 530, 1138)
+  shell:settings               (543, 617, 797, 871)
+  slot:STORE                   (810, 617, 1064, 871)
+  slot:CAMERA                  (543, 884, 797, 1138)
+  slot:PHONE                   (810, 884, 1064, 1138)
+  slot:CALENDAR                (9, 1151, 1064, 1672)
+  slot:PHOTOS                  (9, 1685, 530, 2196)
+PASS: every tile is inside the 2-column grid
+PASS  every tile is inside the 2-column grid (= 0)
+PASS  the row was cut to the 2-column capacity (= 4)
+PASS  and the two overflow tiles are at the end of the grid (= slot:CAMERA slot:PHONE)
+--- 7. the row's LAST tile dragged out leaves an empty row that can be refilled ---
+no tile dock:slot:PHONE
+no tile dock:slot:PHONE
+no tile dock:slot:PHONE
+row after dragging every tile out:
+row: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+FAIL  the row is empty (expected [0], got [3])
+row after dropping a tile back in:
+row: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+FAIL  an empty row can be refilled (expected [1], got [3])
+--- 8. a WIDE tile dragged into the row becomes a small row tile ---
+row after the wide tile:
+row: ['slot:PHONE', 'slot:CALENDAR', 'slot:MESSAGING', 'slot:CAMERA']
+PASS  the wide tile is in the row (found [slot:CALENDAR])
+PASS  and it draws at the row's own size (found [tile:dock:slot:CALENDAR])
+show more tiles restored to on
+baseline layout and the column setting restored
+---- 18 passed, 2 failed ----

@@ -1,0 +1,20 @@
+==============================================================================
+ROW J3 — an open folder at the end of Start: above the fixed rows, scrolled into view
+at            2026-09-22T19:37:39-06:00
+driver        j3.sh blob df4421ab9e6b8578060fc09d5c69099455ec9ab3
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     2b1a916011b343e2 335485062 bytes
+apk installed a7e62760cf77d724
+apk match     yes (a7e62760cf77d724)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      seeded: every tile wide, folder j3 last (verified on disk after the shell restarted)
+      end of scroll: top of the fixed stack 1935 px (last-opened tile: no), folder tile bottom 1923 px
+PASS  1. at the end of the scroll the folder tile clears the fixed rows (bottom <= 1935)  = yes
+      folder open: fixed stack top 1935 px, band top 1616 px, band bottom rule 1921 px, last member bottom 1856 px
+PASS  2a. the open band's bottom rule clears the fixed rows       = yes
+PASS  2b. the band's last member tile clears the fixed rows       = yes
+PASS  3. the band's top is on screen                              = yes
+      restored: the layout from before the row (verified on disk after the shell restarted)
+------------------------------------------------------------------------------
+J3: 4 passed, 0 failed
