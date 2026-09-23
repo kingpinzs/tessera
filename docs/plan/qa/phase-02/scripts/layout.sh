@@ -29,7 +29,10 @@ layout_restore() {
 import json, sys
 want = json.load(open(sys.argv[1]))
 got = json.load(sys.stdin)
-keys = lambda d, k: [(o["key"], o["size"]) for o in d.get(k, [])]
+# Sizes are compared only for hand-set tiles: the use-based auto-sizer may legitimately resize any other tile
+# as the shell loads (a real device layout; the QA baselines mark every size hand-set, so they stay exact).
+manual = set(want.get("manualSizes", []))
+keys = lambda d, k: [(o["key"], o["size"] if o["key"] in manual else "*") for o in d.get(k, [])]
 same = (keys(want, "order") == keys(got, "order") and want.get("dock", []) == got.get("dock", [])
         and want.get("folders", []) == got.get("folders", []) and want.get("slots", {}) == got.get("slots", {}))
 sys.exit(0 if same else 1)' "$want"

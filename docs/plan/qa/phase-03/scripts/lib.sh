@@ -41,6 +41,20 @@ take_device_lock() {
   fi
 }
 
+# Every row starts on an awake, unlocked, mains-powered device (RV12's baseline). A row that taps a sleeping
+# screen records verdicts about nothing: on 2026-09-23 the AVD came back from a restart on simulated battery
+# (stay-on-while-plugged does nothing then) and asleep, and E7 / E8 / MUSIC7 failed as if the product had.
+wake_device() {
+  adb shell dumpsys battery reset >/dev/null 2>&1
+  adb emu power ac on >/dev/null 2>&1          # the AVD's power source is set from its console, not the shell
+  adb emu power status charging >/dev/null 2>&1
+  adb shell svc power stayon true >/dev/null 2>&1
+  adb shell input keyevent KEYCODE_WAKEUP >/dev/null 2>&1
+  adb shell wm dismiss-keyguard >/dev/null 2>&1
+  sleep 0.5
+  adb shell dumpsys power | grep -m1 'mWakefulness=' | tr -d '\r ' | sed 's/mWakefulness=//'
+}
+
 row_begin() { # id description
   take_device_lock
   ROW="$1"
@@ -61,6 +75,7 @@ row_begin() { # id description
     echo "apk installed $(installed_apk_id)"
     echo "apk match     $(apk_matches)"
     echo "device        $(adb shell getprop ro.build.fingerprint)"
+    echo "awake         $(wake_device)"
     echo "=============================================================================="
   } > "$LOG"
   echo "── $ROW ${2:-}"
