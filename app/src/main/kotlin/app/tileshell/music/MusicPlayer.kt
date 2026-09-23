@@ -216,6 +216,9 @@ object MusicPlayer {
     /** How far into a track "previous" means restart rather than go back one. */
     private const val RESTART_MS = 3_000L
 
+    /** A play asked for before the controller connected, done the moment it does (Tess starting music, J5). */
+    private var pendingPlay: Pair<List<Track>, Int>? = null
+
     fun connect(context: Context) {
         if (controller != null || connecting) return
         connecting = true
@@ -232,6 +235,10 @@ object MusicPlayer {
                 readSession()
                 readExtras(it.sessionExtras)
                 Diagnostics.add("music", "controller connected, ${it.mediaItemCount} item(s) in the queue")
+                pendingPlay?.let { (queue, start) ->
+                    pendingPlay = null
+                    play(queue, start)
+                }
             }
         }, context.mainExecutor)
     }
@@ -246,7 +253,9 @@ object MusicPlayer {
      */
     fun play(queue: List<Track>, startIndex: Int) {
         val c = controller ?: run {
-            Diagnostics.add("music", "play ignored: no controller yet")
+            // Kept, not dropped: whoever asked (Tess, starting the player herself) has already been told it plays.
+            pendingPlay = queue to startIndex
+            Diagnostics.add("music", "play queued until the controller connects")
             return
         }
         val track = queue.getOrNull(startIndex) ?: return

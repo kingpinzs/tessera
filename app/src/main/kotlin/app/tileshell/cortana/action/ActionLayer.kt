@@ -551,6 +551,25 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
             if (LockGate.locked(context)) return unlockCard(Request.PlayMusic(null))
             return launchSlot(Slot.MUSIC, "Playing music.")
         }
+        // The shell's own player (it holds the MUSIC slot, or its session is the active one): the name is looked
+        // up here first, by code (P6), so Tess plays the match and names it, or says she could not find it —
+        // never "Playing X" over an empty player (J5). Over the keyguard this is still a media session, never an
+        // activity, so it needs no unlock.
+        val ownSession = controller?.packageName == context.packageName
+        val ownSlot = controller == null && slotApp(Slot.MUSIC)?.component?.packageName == context.packageName
+        if (ownSession || ownSlot) {
+            if (app.tileshell.music.MusicStore.library.value.isEmpty()) app.tileshell.music.MusicStore.refresh(context, "Tess")
+            val match = app.tileshell.music.MusicSearch.resolve(query, app.tileshell.music.MusicStore.library.value)
+                ?: return answer("I couldn't find $query in your music.")
+            if (controller != null) {
+                controller.transportControls.playFromSearch(query, null)
+            } else {
+                app.tileshell.music.MusicPlayer.connect(context)
+                app.tileshell.music.MusicPlayer.play(match.queue, match.startIndex)
+            }
+            Diagnostics.add("cortana", "play \"$query\": ${match.kind.name.lowercase()} ${match.label} in the shell's player")
+            return answer("Playing ${match.label}.")
+        }
         if (controller != null) {
             controller.transportControls.playFromSearch(query, null)
             return answer("Playing $query.")
