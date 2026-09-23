@@ -277,6 +277,16 @@ SUPERSEDED older note (launcher-only framing, kept for history):
   17), and Music streaming and Radio are back in scope (they were taken out of phase 10 by A11; a new phase doc and interview
   carry them — INDEX).
 
+- 2026-09-23 Scope add (Jeremy, phase 17 interview Q3b): **TV channels** — "I miss the old tv channles thing where it plays
+  things in an order with comercials so if there is a way to put a shell or something around the other apps so it still
+  requireas me to login ect BUT it auto pauses it to play a comercial AND it will auto play something right after so I can
+  change the channels or I can go to streaming BUT this could be a seprate app thing". A separate shell app: channels that play
+  a running order, break for commercials, roll straight into the next item, and can be flipped like a TV; the programmes can
+  come from the streaming services (the user signed in inside each service's app), local videos and a media server.
+  Feasibility is NOT established — whether the shell can pause, resume and see the end of playback inside each streaming app
+  (through the media sessions Android lets a notification listener control), what each service's deep links allow, and where
+  the commercials come from — so a research item (R13) runs before its phase doc is written.
+
 ## Review resolutions (round 1, 2026-09-16; agent design calls, Jeremy can overrule)
 Full mapping: docs/plan/review/2026-09-16-triage.md
 - RV1. One APK holds every part; no part depends on a separately installed app. Install via adb over USB or Wireless debugging;
