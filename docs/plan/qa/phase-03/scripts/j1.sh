@@ -34,6 +34,8 @@ adb shell input keyevent KEYCODE_ENTER; sleep 3
 screencap "$ROW_DIR/j1_typed.png"
 cleared "typed"
 assert_eq "typed: the keyboard is put away (it would cover the card)" "false" "$(ime_shown)"
+# Jeremy, 2026-09-23: what was asked shows as one grey line above the answer.
+assert_eq "typed: the asked line shows what was typed" "what time is it" "$(node_text "$D" cortana_asked)"
 
 # ---- spoken --------------------------------------------------------------------------------------------
 # speak.sh starts the utterance the moment listening does (the recogniser endpoints on silence; run 3
@@ -43,6 +45,9 @@ note "speak.sh: $heard"
 screencap "$ROW_DIR/j1_spoken.png"
 cleared "spoken"
 assert_eq "spoken: the listening box is gone" "no" "$(has_node "$D" cortana_listening_box)"
+# The dump writes the apostrophe as &apos;, so the text is unescaped before comparing.
+assert_eq "spoken: the asked line shows what was heard, in sentence case" "What's on my calendar" \
+  "$(node_text "$D" cortana_asked | python3 -c 'import html, sys; print(html.unescape(sys.stdin.read().strip()))')"
 assert_contains "spoken: the request was heard" "calendar" "$(diag speech | grep 'final open=' | tail -1 | tr A-Z a-z)"
 
 cortana_close

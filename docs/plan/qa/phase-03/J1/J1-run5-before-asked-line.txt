@@ -1,13 +1,12 @@
 ==============================================================================
 ROW J1 — Tess's text box clears itself on send (typed and spoken)
-at            2026-09-23T17:19:07-06:00
-driver        j1.sh blob 2bff7ac73fba57cd010174c01c9d65514ed03e0b
-harness       lib.sh blob 5679a49e4bc3e933c98f48b19448424db383fa5f
-apk built     82f1619fe6772a0e 336437834 bytes
-apk installed 995742a16b9754c5
-apk match     yes (995742a16b9754c5)
+at            2026-09-22T19:00:59-06:00
+driver        j1.sh blob 11aaec1e6bb7ba9a7aa5f7e564c204b76e3580d6
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     193b9b94ee540849 334444250 bytes
+apk installed 3475e8db2b8f7c00
+apk match     yes (3475e8db2b8f7c00)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
-awake         Awake
 ==============================================================================
       keyboard up before the send: true
 PASS  typed: no query left in the bar                             = no
@@ -17,7 +16,6 @@ PASS  typed: its placeholder shows                                = yes
 PASS  typed: the answer card is on the page                       contains [cortana_card:]
 PASS  typed: Tess is still open                                   = yes
 PASS  typed: the keyboard is put away (it would cover the card)   = false
-PASS  typed: the asked line shows what was typed                  = what time is it
       speak.sh: open="WHAT'S ON MY CALENDAR" grammar="WHAT'S ON MY CALENDAR"
 PASS  spoken: no query left in the bar                            = no
 PASS  spoken: no ✕ left in the bar                              = no
@@ -26,7 +24,6 @@ PASS  spoken: its placeholder shows                               = yes
 PASS  spoken: the answer card is on the page                      contains [cortana_card:]
 PASS  spoken: Tess is still open                                  = yes
 PASS  spoken: the listening box is gone                           = no
-PASS  spoken: the asked line shows what was heard, in sentence case  = What's on my calendar
 PASS  spoken: the request was heard                               contains [calendar]
 ------------------------------------------------------------------------------
-J1: 17 passed, 0 failed
+J1: 15 passed, 0 failed

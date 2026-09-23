@@ -117,6 +117,19 @@ private fun HomeOrResult(model: CortanaModel) {
         Box(Modifier.weight(1f).fillMaxWidth().padding(top = BarMetrics.STATUS_EPX.dp)) {
             when (state.route) {
                 is CortanaRoute.Result -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                    // What was asked, one grey line above the answer (Jeremy, 2026-09-23: "(a)"). The text box clears on
+                    // send since J1, so without this nothing shows what Tess heard — which matters most when she mishears.
+                    // P4 design: W10M kept the query in the bar instead; judged in a NEEDS-HUMAN row.
+                    if (state.query.isNotBlank()) {
+                        BasicText(
+                            askedLine(state.query),
+                            style = ShellType.body.copy(color = TextBoxValues.PLACEHOLDER_COLOUR),
+                            maxLines = 2,
+                            modifier = Modifier
+                                .padding(start = CardValues.TITLE_LEFT_EPX.dp, end = CardValues.TITLE_LEFT_EPX.dp, bottom = 8.dp)
+                                .testTag("cortana_asked"),
+                        )
+                    }
                     state.card?.let { card ->
                         ResponseCardView(
                             card, state.persona, state.level, accent,
@@ -265,4 +278,15 @@ private fun CortanaDestination.toKey(): CortanaDestinationKey = when (this) {
     CortanaDestination.HOME -> CortanaDestinationKey.HOME
     CortanaDestination.REMINDERS -> CortanaDestinationKey.REMINDERS
     CortanaDestination.SETTINGS -> CortanaDestinationKey.SETTINGS
+}
+
+/**
+ * The asked line's text. The recogniser writes UPPER CASE with no punctuation; shown as heard but in sentence case, so a
+ * spoken "WHAT'S ON MY CALENDAR" reads "What's on my calendar". Typed text is shown exactly as typed.
+ */
+internal fun askedLine(query: String): String {
+    val t = query.trim()
+    if (t.any { it.isLowerCase() }) return t
+    val lower = t.lowercase()
+    return lower.replaceFirstChar { it.uppercase() }
 }
