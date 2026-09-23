@@ -304,6 +304,8 @@ class StartGeometry(
      * bottom of the PAGE, like the bottom tile row, and not off the end of the grid.
      */
     val recentSize: TileSize? = null,
+    /** The promoted tile's key, so a hold on it can enter edit mode on it (EditGestures' hit test). */
+    val recentKey: TileKey? = null,
 ) {
     val fixedPointY: Float get() = screenHeightPx * Edit.FIXED_POINT_Y
     private val pushFromRow: Int? = bandTilePlacement?.let { it.y + it.size.spanY }
@@ -502,7 +504,7 @@ fun StartPage(
         val geo = StartGeometry(
             grid, topPx, placements, bandFolder, bandTile, members,
             if (bandTile != null) Edit.bandHeight(grid, GridPack.rowCount(members)) * bandReveal.value else 0f,
-            pageHeightPx, dockKeys, dockW, screenHeightPx, recentTile?.size,
+            pageHeightPx, dockKeys, dockW, screenHeightPx, recentTile?.size, recentTile?.key,
         )
         // Scroll the band into view as it opens (R6 §1.6.2: a new folder is scrolled into view; §1.6.6: expanding
         // auto-scrolls so the band fits).
