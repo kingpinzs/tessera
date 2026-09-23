@@ -2,7 +2,7 @@
 phase: 13
 slug: fluent-materials
 status: DRAFT
-depends-on: [01, 02, 03, 10, 11]   # the in-app surfaces it dresses exist (app list, H21 band, Music menus, Tess's pane and menu, the burst); it lands BEFORE 04, which ADDs the cross-window source
+depends-on: [01, 02, 03, 10, 11]   # the in-app surfaces it dresses exist (app list, H21 band, Music menus, Tess's pane and menu) and phase 11's satellites take its lights; it lands BEFORE 12 (T12-3: order 11 -> 13 -> 12 -> 14, presets write this phase's transparencyEffects) and BEFORE 04, which ADDs the cross-window source
 ---
 
 # Phase 13 — Fluent materials: acrylic and light on the transient surfaces
@@ -10,7 +10,8 @@ depends-on: [01, 02, 03, 10, 11]   # the in-app surfaces it dresses exist (app l
 ## Goal
 One permanent in-app materials engine draws Fluent acrylic — a blurred copy of what is BEHIND a surface, tinted, with a
 2 % noise — on the shell's transient surfaces (the app-list backdrop, the app-list and Music hold menus, Tess's ≡ pane and
-reminder menu, phase 11's burst backdrop), and a Reveal light on press for the items on those surfaces. Blur is a device
+reminder menu; phase 11's burst has no backdrop, T11-8), and Reveal lights on press — a border ring and a radial light under the
+finger (Q3 B) — for the items on those surfaces and phase 11's satellites. Blur is a device
 and power state: where the shell decides acrylic is off (the Transparency effects setting, battery saver, a low-RAM device)
 every surface draws the MEASURED solid W10M fill it draws today, so there is exactly one form of each surface and its
 fallback is the original, not a v1 (Rule 16). Every measured colour and motion value on the FINAL surfaces keeps its
@@ -22,10 +23,11 @@ NEEDS-HUMAN "accept" rows.
 ## Scope
 **In:** the material (tint colour, tint opacity, Gaussian blur radius, noise) and its one fallback rule; two in-app backdrop
 sources — a pre-blurred static copy of the Start background image for pager pages (the app list; phase 14's pod bay when
-built) and a live per-frame layer for surfaces over live content (menus, the pane, the burst); the on / off rule
+built) and a live per-frame layer for surfaces over live content (menus, the pane; not the burst, T11-8); the on / off rule
 (setting, battery saver, low-RAM) with its diagnostics line; the "Transparency effects" toggle in Settings > Start + theme
 (per interview Q2); the surface table below applied to every existing transient surface, each keeping its measured fill
-in its measured setup; Reveal light on press for items on transient surfaces (per Q3); the app-list backdrop's un-blurred
+in its measured setup; Reveal lights on press for items on transient surfaces and phase 11's satellites (Q3 B: the border ring
+plus the radial light, T13-1); the app-list backdrop's un-blurred
 W10M form as its fallback (R3 A18); test tags; drivers under `qa/phase-13/scripts/` with `lib.sh` symlinked.
 **Out (explicitly):** cross-window blur-behind on overlay windows (`WindowManager.LayoutParams.setBlurBehindRadius` /
 `FLAG_BLUR_BEHIND`, gated by `WindowManager.isCrossWindowBlurEnabled()`): phase 04 ADDs it as a third backdrop source using
@@ -65,19 +67,21 @@ second material for the light theme (the same material with the light fills). Ho
   — it blurs the element's own content — and is not used. No blur, RenderEffect or cross-window call exists in
   `app/src/main/kotlin` today (checked 2026-09-22).
 - 2026-09-22 (agent): **Two in-app backdrop sources, one material.** (a) Static: the Start background image
-  (`StartTheme.backgroundUri`, decoded as `StartPage.rememberBackground` decodes it) is blurred once per image / theme
-  change, off the main thread, at screen resolution, and cached; used where what lies behind the surface IS the wallpaper —
-  the app-list pager page (R3 A18: "app-list background shows the Start wallpaper through it") and, when built, phase 14's
-  pod bay page. (b) Live: the content under a surface is recorded each frame into a `rememberGraphicsLayer()` layer
-  (`androidx.compose.ui.graphics.layer.GraphicsLayer`, `record` / `drawLayer`, Compose BOM 2026.06.01) and the surface draws
-  that layer clipped to its own bounds with `renderEffect = BlurEffect(r, r, TileMode.Clamp)` (platform `RenderEffect`,
-  API 31+; minSdk 34), then the tint and noise over it; used for surfaces over live pages — the app-list hold menu
-  (`applist/AppListMenu.kt` `PinToStartMenu`), the Music hold menus (`music/MusicCollectionPage.kt` `MenuState`), Tess's
-  ≡ pane (`cortana/ui/CortanaNavPane.kt`) and reminder long-press menu (`cortana/ui/RemindersPage.kt`, `CortanaUi.MENU_FILL`),
-  and phase 11's burst backdrop if its doc names one (the satellites are tiles and stay opaque). The live source records
-  only while its surface shows. Its cost is one recorded layer per frame at the display size while a menu is open; E9
-  records it on the AVD and P2 bounds it on the phone. Over flipping tiles (the burst) the screen never idles: RV13's
-  `UiDevice` route applies to dumps, and the burst's own diagnostics line carries its bounds (R10 testability 31).
+  (`StartTheme.backgroundUri`, decoded as `StartPage.rememberBackground` decodes it — through a `BackgroundDecoder` object both
+  call, because that function is `private` today, `start/StartPage.kt:987`; an ADD to phase 01's part, T13-5) is blurred once per
+  image / theme change, off the main thread, at screen resolution, and cached; used where what lies behind the surface IS the
+  wallpaper — the app-list pager page (R3 A18: "app-list background shows the Start wallpaper through it") and, when built, phase
+  14's pod bay page. (b) Live: the content under a surface is recorded each frame into a `rememberGraphicsLayer()` layer
+  (`androidx.compose.ui.graphics.layer.GraphicsLayer`, `record` / `drawLayer`, Compose BOM 2026.06.01) and the surface draws that
+  layer clipped to its own bounds with `renderEffect = BlurEffect(r, r, TileMode.Clamp)` (platform `RenderEffect`, API 31+; minSdk
+  34), then the tint and noise over it; used for surfaces over live pages — the app-list hold menu (`applist/AppListMenu.kt`
+  `PinToStartMenu`), the Music hold menus (`music/MusicCollectionPage.kt` `MenuState`), Tess's ≡ pane
+  (`cortana/ui/CortanaNavPane.kt`) and reminder long-press menu (`cortana/ui/RemindersPage.kt`, `CortanaUi.MENU_FILL`), ~~and phase
+  11's burst backdrop if its doc names one~~ (DROPPED 2026-09-23 by T11-8: phase 11 names none — edit mode's dim is the burst's
+  backdrop; the satellites are tiles and stay opaque). The live source records only while its surface shows. Its cost is one
+  recorded layer per frame at the display size while a menu is open; E9 records it on the AVD and P2 bounds it on the phone. ~~Over
+  flipping tiles (the burst) the screen never idles: RV13's `UiDevice` route applies to dumps, and the burst's own diagnostics line
+  carries its bounds (R10 testability 31).~~ (DROPPED 2026-09-23 by T11-8: no live source runs over the burst.)
 - 2026-09-22 (agent): **Cross-window is phase 04's ADD**, recorded here so both build one material: an overlay window
   cannot read the pixels behind it (Android limits, PLAN.md), so its backdrop is `setBlurBehindRadius` + `FLAG_BLUR_BEHIND`
   where `isCrossWindowBlurEnabled()` is true, followed through `addCrossWindowBlurEnabledListener`; false → the same
@@ -113,7 +117,7 @@ second material for the light theme (the same material with the light fills). Ho
   | Music hold menus (`music_menu_*` band) | 10 MUSIC8 | live | theme background | the collection page | (0,0,0) | theme background |
   | Tess's ≡ pane (`cortana_pane`) | 03 E15; R7 §3.1.6 | live | (14,19,13) | Cortana's Home page (0,0,0), R6 §3.1.14 | (18,24,16) | (14,19,13) |
   | Reminder long-press menu (`CortanaUi.MENU_FILL`) | 03 E15; R7 §3.6.2 | live | (40,40,40), border (71,76,70) opaque | Reminders page (14,19,13) | (47,45,47) | (40,40,40) |
-  | Burst backdrop (phase 11), if its doc names one | 11 | live | theme background | edit-mode Start | (0,0,0) | theme background |
+  | ~~Burst backdrop (phase 11), if its doc names one~~ DROPPED 2026-09-23 (T11-8: phase 11 names none) | ~~11~~ | ~~live~~ | ~~theme background~~ | ~~edit-mode Start~~ | ~~(0,0,0)~~ | ~~theme background~~ |
   | Pod bay page (phase 14, when built) | 14 | static wallpaper | its own P4 fill | wallpaper | its fill | its fill |
   | Action center, volume panel (phase 04) | 04 A19 / A20; R7 §4 | cross-window (04's ADD) | (0,0,0) / (55,55,55) | the app below | phase 04's interview | as captured |
 
@@ -132,7 +136,8 @@ second material for the light theme (the same material with the light fills). Ho
 - 2026-09-22 (agent): **"Transparency effects" setting** (per Q2; lean A): `StartTheme` gains `transparencyEffects:
   Boolean = true` (prefs key `transparency_effects`), one `ToggleRow` "Transparency effects" (Windows 10's own wording,
   Settings > Personalization > Colors) under a "Effects" header on Start + theme, tag `theme_transparency_effects`; H5.
-- 2026-09-22 (agent, R10 design finding 4): **Reveal on touch** (per Q3; lean A). Fluent's Reveal is pointer-hover; on
+- 2026-09-22 (agent, R10 design finding 4): SUPERSEDED 2026-09-23 by T13-1 (last Decisions lines; Q3 was ruled B, border light
+  plus a radial light): **Reveal on touch** (per Q3; lean A). Fluent's Reveal is pointer-hover; on
   touch it shows the pressed element's border light. Rule: the light applies ONLY to items on transient surfaces (menu items,
   pane items, satellites, pod cards later) and never to Start tiles (Q6) or to list rows on non-transient pages (X19's 15 %
   white stays). Form: a 1-epx border ring on the pressed item, white at 30 % over whatever fill is under it, present from
@@ -148,7 +153,8 @@ second material for the light theme (the same material with the light fills). Ho
   none` on every change and at process start; `[fluent] <surface> source=static|live tint=(r,g,b) alpha=0.8 blur=<r>epx`
   each time a surface is shown; `[fluent] static backdrop rebuilt for <uri> in <ms> ms` per rebuild. **Test tags:**
   `acrylic:<surface>` on each acrylic backdrop node (`acrylic:applist`, `acrylic:applist_menu`, `acrylic:music_menu`,
-  `acrylic:cortana_pane`, `acrylic:reminder_menu`, `acrylic:burst`), so a row reads the surface's bounds from the dump.
+  `acrylic:cortana_pane`, `acrylic:reminder_menu`, ~~`acrylic:burst`~~ — dropped 2026-09-23, T11-8), so a row reads the
+  surface's bounds from the dump.
 - 2026-09-22 (agent): **Memory and threads.** The static layer is one screen-sized bitmap (1080 × 2340 × 4 ≈ 10 MB at
   FHD+, ≈ 18 MB at QHD+), built on `Dispatchers.IO` from the already-sampled background decode and dropped when the image is
   removed; the launcher process is bounded in P2 against phase 03 P4's baseline + 30 MB. The live source allocates its
@@ -162,6 +168,20 @@ second material for the light theme (the same material with the light fills). Ho
   03 and 10 stay fidelity rows and are re-run unchanged in E11.
 - 2026-09-22 (agent): **No new exported component, no new permission, no network, no asset.** Phase 03 E5's allow-list is
   unchanged (E11).
+- 2026-09-23 (agent, review triage T13-1): **the two lights on touch, Q3 B, with values** (P4; H4 extended). On a pressed item of
+  a transient surface (menu rows, pane items, phase 11's satellites — T11-7 — and pod cards if a later phase makes them pressable):
+  (1) the 1-epx border ring, white at 30 % over whatever fill is under it, unchanged from the 2026-09-22 form; (2) a radial light —
+  a white radial gradient centred on the touch point, radius r = 40 epx (120 px on this AVD at 3 px/epx; it scales with px/epx like
+  every RV10 value), alpha 0.10 at the centre falling linearly to 0 at r, clipped to the item, redrawn on every MOVE so it follows
+  the finger, gone in the first frame after UP, no motion of its own. Both obey the on / off rule: acrylic off → neither. Start
+  tiles and plain pages get neither. **Sample rule** (stated once; cited by E7 and by E11's run of phase 03 E15): every measured
+  pressed-fill sample, and every ring sample, is taken ≥ r + 2 epx from the touch point or after UP, so the measured pressed fills
+  (R7 §3.6.3 (79,84,80), §3.1.6 (63,68,64)) keep their numbers. Reason: Q3 B names the light but no value, and a light that falls
+  to 0 at a stated radius is both buildable and testable while keeping every measured fill measurable (Q1 A)
+- 2026-09-23 (agent, review triage T12-3): build order **11 → 13 → 12 → 14**; phase 12's depends-on gains 13. This phase builds
+  BEFORE phase 12, so `StartTheme.transparencyEffects` (this phase's field; `prefs/ShellSettings.kt:17-24` has none today) exists
+  when phase 12's presets write it — the Midnight preset and the original W10M preset turn it off. This phase does not depend on 12.
+  Reason: phase 12 builds its presets "in their final form" (Rule 16), which needs this field; the swap costs nothing here
 
 ## Interview queue (Stage A step 4)
 Load-bearing first. Each answer lands in Decisions, dated.
@@ -197,20 +217,38 @@ Load-bearing first. Each answer lands in Decisions, dated.
    on / off rule with its two listeners, the diagnostics lines; JVM tests for the derivation (each table row, the negative
    branch), the rule (setting × battery saver × low-RAM), and the noise's range.
 2. Static source: the pre-blurred Start background, built off the main thread once per image / theme change, cached, freed
-   on removal; the app-list page draws it under its rows with the theme-background tint; the un-blurred fallback form.
+   on removal; the app-list page draws it under its rows with the theme-background tint; the un-blurred fallback form. The
+   decode goes through a `BackgroundDecoder` object that phase 01's `StartPage` and this source both call — `StartPage
+   .rememberBackground` is `private` today (`start/StartPage.kt:987`) — an ADD to phase 01's part, in task 7's Change Log line
+   (T13-5).
 3. Live source: the `GraphicsLayer` record of the content under a surface and the clipped blurred draw; one `Acrylic`
    composable that takes a surface name, its tint and its fallback fill and draws either form.
-4. Apply the table: the app-list hold menu band, the Music hold menus, Tess's ≡ pane and reminder menu, phase 11's burst
-   backdrop if named — each keeping its measured fill in its measured setup; tags `acrylic:<surface>`.
-5. Reveal on touch on transient-surface items (per Q3): the 1-epx border ring at press, never on tiles or plain pages.
+4. Apply the table: the app-list hold menu band, the Music hold menus, Tess's ≡ pane and reminder menu ~~, phase 11's burst
+   backdrop if named~~ (dropped 2026-09-23, T11-8) — each keeping its measured fill in its measured setup; tags `acrylic:<surface>`.
+5. The two lights on touch (Q3 B, T13-1): the 1-epx border ring and the radial light (r = 40 epx, alpha 0.10 → 0, following
+   MOVE, gone after UP) on transient-surface items and phase 11's satellites, never on tiles or plain pages; both off with acrylic.
 6. Settings > Start + theme: the "Transparency effects" toggle (per Q2) and the setting's flow; the Diagnostics page shows
    the `[fluent]` lines like any other.
 7. Build-start checks (Decisions) recorded; drivers under `qa/phase-13/scripts/` with `lib.sh` symlinked; the checkerboard
-   fixture and the edge-spread / variance measurement script; INDEX Change Log lines for phases 01 (app-list backdrop
-   form), 02, 03 and 10 (their surfaces now acrylic, numbers unchanged) when built.
+   fixture and the edge-spread / variance measurement script; `qa/phase-13/scripts/acrylic_expect.py` (T13-2); the
+   `[motion]` lines E8 reads for the pane slide, the reminder menu grow, the pivot settle and the app-list menu's appearance,
+   added here as logging-only ADDs where their phases do not log them yet (C-5); INDEX Change Log lines for phases 01
+   (app-list backdrop form, the `BackgroundDecoder`), 02, 03 and 10 (their surfaces now acrylic, numbers unchanged; the
+   `[motion]` lines) when built.
 
 ## Acceptance criteria
-Rows start from the baseline state and restore what they change (PLAN RV12); motion rows follow RV11; dumps follow RV13.
+Rows start from the baseline state and restore what they change (PLAN RV12); motion rows follow RV11 on the shell's own
+clock (below); dumps follow RV13. **Seeding (C-3):** rows that read Start's grid start with `layout_restore
+qa/phase-02/baseline_layout.json` (`qa/phase-02/scripts/layout.sh`) — this phase adds no `addedOnce` marker and pins no fixture,
+so phase 02's file, with its markers and hand-set sizes, is complete for this build — and assert zero `assignSlotOnce … ->
+assigned` lines after it. **Motion clock (C-5):** every motion the shell animates logs its own clock from `withFrameNanos`
+(`[motion] <name> t0=<uptime> settle=<ms>`) and the row asserts the logged numbers against RV11's tolerance; a screenrecord
+corroborates under phase 05's frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motion) and is never the primary
+clock. **Expected acrylic values (T13-2):** wherever a row expects "0.8·T + 0.2·B", B = GaussianBlur_host(σ = 0.57735·r + 0.5 px)
+of the backdrop at the same pixel, computed on the host by `qa/phase-13/scripts/acrylic_expect.py` from the pulled fixture
+(static source) or from a capture of the same screen with the surface closed or acrylic OFF (E1's control) — never read from
+the capture under judgement. **Recorded rows (C-13):** a row marked "recorded, not gated" ends its PASS/FAIL line with
+"RECORDED", so `qa/phase-03/scripts/lib.sh` `row_end` never counts it as a pass.
 AVD tileshell_fhd (1080×2340 @ 450 dpi, 3 px/epx, AOSP API 36, no Google; cross-window blur enabled:
 `supports_background_blur=1`, `mBlurEnabled=true`). "Diagnostics" is read with phase 01's command. **Controls:** acrylic
 OFF = `adb shell cmd power set-mode 1` (battery saver; restore `set-mode 0` and assert `settings get global low_power` = 0)
@@ -229,7 +267,10 @@ along a row of pixels; expected blurred width = 2.563 · σ with σ = 0.57735 ·
   app list showing) reads the un-blurred form (edges sharp, pixels = 0.2 × checker ± 3); `set-mode 0` → `acrylic=on` and the
   blurred form again; toggle off → `acrylic=off reason=setting`, same look as under battery saver; toggle on; with
   `settings put global disable_window_blurs 1` the line stays `acrylic=on` and the app list stays blurred (the switch gates
-  cross-window blur only; recorded for phase 04); `settings delete global disable_window_blurs`.
+  cross-window blur only; recorded for phase 04); `settings delete global disable_window_blurs`. Preset sub-row (T13-4; written
+  now, runs at phase 12's gate because phase 12 builds after this phase, T12-3): tap `preset:Midnight` (phase 12's presets page) →
+  `[fluent] acrylic=off reason=setting` and `run-as app.tileshell cat shared_prefs/start_theme.xml` holds
+  `transparency_effects` false; `preset:Default` → `acrylic=on reason=none`.
 - E2 The backdrop, not the element, is blurred (static source, app list): checkerboard set, swipe to the app list, screencap.
   In the app-list region between the drawn bars, in a horizontal strip through a letter-group gap (no text; strip found from
   the dump's `applist_*` bounds), the edge spread is the blurred width and the pixel values are 0.2 × (blurred checker) ± 3
@@ -238,44 +279,56 @@ along a row of pixels; expected blurred width = 2.563 · σ with σ = 0.57735 ·
   wallpaper is not blurred in place); `acrylic:applist` is in the app-list dump with the page's bounds. Acrylic off (E1's
   control): edges sharp, pixels = 0.2 × checker ± 3, `acrylic:applist` still present (the same surface, its fallback form).
   A second pass at `wm size 720x1560` (2 px/epx): the blurred width scales to r = 60 px's value ± 20 %; `wm size reset`.
-- E3 The live source keeps the measured fill in its own setup and blurs a bright backdrop (reminder menu): E15's setup
-  (Dark theme; a reminder with a photo, one for tomorrow, one Whenever), long-press the tomorrow row: the menu's interior,
-  sampled in a 10 × 10 px patch clear of text over the page fill, reads (40,40,40) ± 2 and its border (71,76,70) ± 2 —
-  E15's values unchanged; then long-press the photo row so the menu overlaps the photo (dump bounds of `acrylic:reminder_menu`
-  intersect the photo's node): inside the overlap the pixels equal 0.8·(47,45,47) + 0.2·(blurred photo) ± 4 and the photo's
-  edge under the menu has the blurred width, while the same edge outside the menu is sharp; acrylic off: the overlap reads
-  (40,40,40) ± 2. Delete the reminders (E15's own steps).
+- E3 The live source keeps the measured fill in its own setup and blurs a bright backdrop (reminder menu): E15's setup (Dark theme;
+  a reminder with a photo, one for tomorrow, one Whenever), long-press the tomorrow row: the menu's interior, sampled in a 10 × 10
+  px patch clear of text over the page fill, reads (40,40,40) ± 2 and its border (71,76,70) ± 2 — E15's values unchanged; then
+  long-press the photo row so the menu overlaps the photo (dump bounds of `acrylic:reminder_menu` intersect the photo's node):
+  inside the overlap the pixels equal 0.8·(47,45,47) + 0.2·B ± 4 (B from `acrylic_expect.py` over the Reminders page captured with
+  the menu closed, T13-2) and the photo's edge under the menu has the blurred width, while the same edge outside the menu is sharp;
+  acrylic off: the overlap reads (40,40,40) ± 2. Delete the reminders (E15's own steps).
 - E4 H21 band and Music hold menus: checkerboard set, app list, long-press a row (`input swipe x y x y 1000`): inside
-  `applist_menu` clear of its item text the pixels equal 0.2 × (blurred backdrop) ± 4 with the blurred edge width, and the
+  `applist_menu` clear of its item text the pixels equal 0.8·(0,0,0) + 0.2·B = 0.2·B ± 4 (B from `acrylic_expect.py` over the app
+  list captured with the menu closed — itself acrylic, per the edge case below; T13-2) with the blurred edge width, and the
   band's item text is sharp; acrylic off: (0,0,0) ± 1 (H21's band as built). Music: MUSIC6's fixtures, albums pivot,
   long-press a track so `music_menu_*` overlaps album art: art under the band blurred, art beside it sharp; off: the theme
   background ± 1. Restore the background key.
-- E5 The ≡ pane: E15's pane measurement setup (opened over Cortana's Home page) reads (14,19,13) ± 2 inside the pane clear
-  of text; opened over the Reminders page with rows, a patch over a row's white title reads lighter than the page fill by
-  0.2 × (blurred title) and never (14,19,13), and the title's edge under the pane has the blurred width; the pane over the
-  Reminders page's empty area reads (17,23,15) ± 2 (the table's note); acrylic off: (14,19,13) ± 1 everywhere.
+- E5 The ≡ pane: E15's pane measurement setup (opened over Cortana's Home page) reads (14,19,13) ± 2 inside the pane clear of text;
+  opened over the Reminders page with rows, a patch over a row's white title reads 0.8·(18,24,16) + 0.2·B ± 4 (B from
+  `acrylic_expect.py` over the Reminders page captured with the pane closed, T13-2) and never (14,19,13), and the title's edge under
+  the pane has the blurred width; the pane over the Reminders page's empty area reads (17,23,15) ± 2 (the table's note); acrylic
+  off: (14,19,13) ± 1 everywhere.
 - E6 Noise: in a 40 × 40 px patch of any acrylic surface over a flat backdrop (E5's pane over the Home page's black), the
   per-pixel standard deviation is between 1.5 and 4 levels and no two adjacent frames differ in the patch (deterministic
   noise: two screencaps 1 s apart are pixel-identical); acrylic off: standard deviation 0.
-- E7 Reveal on touch: `input motionevent DOWN` at a reminder-menu item's centre, screencap while held, `UP`: the item's
-  1-epx (3 px) border ring reads the pressed fill lightened by 30 % white ± 4 (Q3 A), the item's interior 2 epx inside the
-  ring reads R7 §3.6.3's (79,84,80) ± 2, the ring is gone in the first frame after `UP`; the same on a `cortana_pane` item
-  ((63,68,64) interior); a Start tile pressed with the press style None shows zero pixel change in the tile region (phase
-  01 E10's check); a Settings row pressed shows X19's flat 15 % white and no ring (a 10-px patch on the row's edge equals its
+- E7 The two lights on touch (Q3 B; T13-1's values and sample rule): `input motionevent DOWN` at a reminder-menu item's centre,
+  screencap while held: the item's 1-epx (3 px) border ring, sampled where it lies ≥ r + 2 epx (126 px) from the touch point, reads
+  the pressed fill lightened by 30 % white ± 4; the pixel at the touch point reads F + 0.10·(255 − F) ± 4 per channel with F = R7
+  §3.6.3's (79,84,80) (≈ (97,101,98)); a pixel 0.5 r (60 px) from it reads F + 0.05·(255 − F) ± 4 (≈ (88,93,89)); a pixel ≥ r + 2
+  epx from it inside the item and clear of the ring reads (79,84,80) ± 2; `input motionevent MOVE` +30 px in x, second screencap:
+  the brightest pixel inside the item moved 30 ± 3 px with the finger; `UP`, screencap: neither the ring nor the light is drawn on
+  the item (the split-time E7 released on the item the same way). The same on a `cortana_pane` item (F = (63,68,64)) and on a phase
+  11 satellite (hold a tile, press `quick_sat:0`; F = the satellite's fill; no Q6 press style under `press_tilt` — phase 11 T11-7,
+  its E5 / E7 sub-rows re-run here). Acrylic off (E1's control): no ring and no light on any of the three — the held menu and pane
+  items read their measured pressed fills (79,84,80) / (63,68,64) ± 2 everywhere, the touch point included, and the held satellite
+  reads its rest fill ± 2. A Start tile pressed with the press style None shows zero pixel change in the tile region (phase 01 E10's
+  check); a Settings row pressed shows X19's flat 15 % white and neither light (a 10-px patch on the row's edge equals its
   interior).
-- E8 Measured motion holds with acrylic on (RV11, 60-fps screenrecord, `show_touches 1` restored to 0): the pane settles
-  250 ± 17 ms after its first frame (R7 §3.1.10), the reminder menu settles 233 ms (+ one frame) after its half-height first
-  frame (R7 §3.6.4), the pivot settles in 250 ms ± one frame (X13), and the app-list menu's first frame is at full height
-  (no motion added).
-- E9 Frame cost on the AVD, recorded not gated: `dumpsys gfxinfo app.tileshell reset`; open and close the reminder menu 20
-  times and swipe Start ↔ app list 20 times with live tiles flipping; `dumpsys gfxinfo app.tileshell` janky-frame % and the
-  99th percentile recorded in the row (host GPU; the phone's P2 is the bounded row).
+- E8 Measured motion holds with acrylic on, on the shell's `[motion]` clock (C-5; T13-7): `[motion] cortana_pane` reads settle
+  250 ± 17 ms after its t0 (R7 §3.1.10), `[motion] reminder_menu` settle 233 ms + one frame after its half-height first frame
+  (R7 §3.6.4), `[motion] pivot` settle 250 ms ± one frame (X13), and `[motion] applist_menu` settle 0 (its first frame is at full
+  height; no motion added). A 60-fps screenrecord of each (`show_touches 1`, restored to 0) corroborates under phase 05's
+  frame-spacing rule and is not the clock.
+- E9 Frame cost on the AVD, recorded not gated (its PASS/FAIL line ends "RECORDED", C-13): `dumpsys gfxinfo app.tileshell reset`;
+  open and close the reminder menu 20 times and swipe Start ↔ app list 20 times with live tiles flipping; `dumpsys gfxinfo
+  app.tileshell` janky-frame % and the 99th percentile recorded in the row (host GPU; the phone's P2 is the bounded row).
 - E10 Persistence and memory: the toggle survives `am force-stop` (Settings dump after reopen shows its state); with the
   checkerboard set, `dumpsys meminfo app.tileshell` total PSS on Start vs on the app list differs by ≤ 14 MB (one screen
   layer + noise), and after "Remove picture" (`theme_background_remove`) returns to within 2 MB of the Start figure.
-- E11 Regression: phase 03 E15, phase 02 E2, phase 10 MUSIC8, phase 01 E12 and E19 re-run unchanged on this build and pass
-  with their numbers (the Q1 A promise); `qa/phase-03/scripts/exported.py` against `qa/phase-03/exported-allowlist.txt`
-  reports no new exported component.
+- E11 Regression: phase 03 E15 run — the first time if necessary, since INDEX row 03 lists it NOT RUN, so its driver
+  `qa/phase-03/scripts/e15.sh` is a dependency of this gate (T13-3) — and passing with its numbers, every pressed-fill sample taken
+  under T13-1's sample rule (≥ r + 2 epx from the touch point, or after UP); phase 02 E2, phase 10 MUSIC8, phase 01 E12 and E19
+  re-run unchanged on this build and pass with their numbers (the Q1 A promise); `qa/phase-03/scripts/exported.py` against
+  `qa/phase-03/exported-allowlist.txt` reports no new exported component.
 - E12 Diagnostics: every surface shown in E2–E5 has its `[fluent] <surface> source=… tint=… alpha=0.8 blur=30epx` line,
   and the E1 reasons appear in order.
 
@@ -297,7 +350,9 @@ along a row of pixels; expected blurred width = 2.563 · σ with σ = 0.57735 ·
 - H2 Blur radius 30 epx, tint opacity 0.8, 2 % noise, no exclusion layer (approximations from Fluent's desktop recipe).
 - H3 Fidelity row (R3 A18, MEDIUM): the app list's wallpaper-through-a-dark-layer form — blurred with acrylic on, unblurred
   off — against A18's sample; and the wallpaper moving with the pivot page (approximation).
-- H4 The border light on press (approximation of Fluent's touch Reveal), and that tiles and plain pages have none.
+- H4 The two lights on press (Q3 B; approximation of Fluent's touch Reveal): the 1-epx border ring and the radial light —
+  r = 40 epx, alpha 0.10 falling to 0, following the finger — on menu rows, pane items and phase 11's satellites; and that tiles
+  and plain pages have neither.
 - H5 The "Transparency effects" toggle: wording, placement, default On.
 - H6 Acrylic turning off under battery saver (Windows' rule).
 - H7 Any surface the derivation leaves solid (none in this phase; phase 04's action center is its own interview).
@@ -317,8 +372,8 @@ along a row of pixels; expected blurred width = 2.563 · σ with σ = 0.57735 ·
 - Light theme with a bright wallpaper: the app list stays readable (tint white at 0.8; screencap for H1).
 - Edit mode: the pivot is locked, so the app list cannot show; entering and leaving edit mode does not rebuild the static
   layer (no `rebuilt` line).
-- The live source over flipping tiles (the burst, phase 11): dumps through RV13's route; the layer records every frame —
-  E9's numbers cover it.
+- ~~The live source over flipping tiles (the burst, phase 11): dumps through RV13's route; the layer records every frame —
+  E9's numbers cover it.~~ Dropped 2026-09-23 (T11-8): no live source runs over the burst.
 - A surface over another acrylic surface (the H21 band over the acrylic app list): the live layer records the app list
   including its backdrop; the band's result is 0.2 × that, never a second blur of the wallpaper beyond the first (E4).
 - Two transient surfaces at once (the pin band over Start while the burst is open): both draw; recorded in a screencap.

@@ -2,7 +2,7 @@
 phase: 14
 slug: pod-bay
 status: DRAFT   # DRAFT → FINAL (only after Stage A step 7; changes after FINAL go through INDEX.md Change Log)
-depends-on: [01, 03, 13]
+depends-on: [01, 03, 13]   # 10 is a soft dependency (T14-4): the Now playing pod works with any media session through phase 01's MusicFeed; only its title tap opens the MUSIC slot app, which is phase 10's Music once built
 ---
 
 # Phase 14 — The pod bay: a pager page left of Start holding at-a-glance pods, and Tess's "open the pod bay doors"
@@ -22,12 +22,13 @@ existing feeds; the now-playing transport through `MusicFeed`; a "Pod bay" page 
 command (matcher rule, grammar hotwords, action, lock-gate entry, in-process route to Start, replies) with the HAL strings in the A10
 branding module; diagnostics lines and test tags; the harness change for every driver that swipes right to reach Start, and the
 phase 01 / 02 / 03 regression re-runs that change owes.
-**Out (explicitly):** real Android widgets through `AppWidgetHost` unless interview Q1 rules them in (then the interview adds the
-build task and rows named under Q1); any new feed, permission or provider (the pods read what phases 01 and 03 already read);
-reordering or editing pods by gesture (pods are configured in Settings); a pod for an app that does not exist yet (an inbox-app phase
-may ADD a pod through the same list — an ADD, not a hook); Mail, browser and Maps pods (A11, R10-Q4); a notifications pod (the action
-center's job, phase 04); an edge-swipe trigger (the left edge is Android's Back gesture); phase 07's glance screen (W10M's own
-"Glance", a different thing; the name collision is why this pane is the pod bay).
+**Out (explicitly):** real Android widgets through `AppWidgetHost` — ruled out 2026-09-23 (Q1 B) ~~unless interview Q1 rules them in
+(then the interview adds the build task and rows named under Q1)~~; any new feed, permission or provider (the pods read what phases
+01 and 03 already read); reordering or editing pods by gesture (pods are configured in Settings); a pod for an app that does not
+exist yet (an inbox-app phase may ADD a pod through the same list — an ADD, not a hook); Mail, browser and Maps pods (R10-Q4, which
+stands as a ruling under A11 as amended 2026-09-23: the shell builds no Mail, browser or Maps — C-7); a notifications pod (the
+action center's job, phase 04); an edge-swipe trigger (the left edge is Android's Back gesture); phase 07's glance screen (W10M's
+own "Glance", a different thing; the name collision is why this pane is the pod bay).
 
 ## Decisions
 - 2026-09-23: Interview Q1 — no real Android widgets in this plan (Jeremy: "(b)"). The pod bay holds the four shell-drawn pods
@@ -77,7 +78,8 @@ center's job, phase 04); an edge-swipe trigger (the left edge is Android's Back 
     the header or a row opens what the Calendar tile opens (phase 01's CALENDAR slot resolution — when phase 16's Calendar takes
     the slot, the pod follows with no change here)
   - Weather — `WeatherFeed.state.report`: place name, current temperature and condition text (`WeatherFormat`), the day's high /
-    low and precipitation, and the X22 "Updated h:mm" line once the report is older than 60 minutes; empty: "No weather yet";
+    low as "H <high> L <low>" and precipitation as "<n>%" (forms fixed 2026-09-23 so E3 can write its strings by hand, T14-2), and
+    the X22 "Updated h:mm" line once the report is older than 60 minutes; empty: "No weather yet";
     location off: "Location is off — turn it on in Setup" (tap → the checklist); tap → `WeatherActivity`
   - Now playing — `MusicFeed`'s `MusicRules.Now`: album art one small-tile unit square, title, artist, and previous / play-pause /
     next controls sent through `MusicFeed.send(Transport)` — the same session path the Music tile's controls use, no second media
@@ -86,8 +88,10 @@ center's job, phase 04); an edge-swipe trigger (the left edge is Android's Back 
     phase 10 Q5)
   - Reminders — `ReminderStore.active()`: Today's by time, then the next 3 Coming up, then Whenever, up to 6 rows; row = title and
     the Reminders page's subline wording (`ReminderText`); empty: "No reminders — ask Tess to remind you"; tap → Tess's Reminders
-    page, opened with `CortanaService.showSession` carrying a destination argument (an ADD to phase 03's session arguments,
-    in-process, nothing exported)
+    page, opened through `CortanaService.open(context, mode)` (`cortana/CortanaService.kt:74`), which calls the platform's
+    `VoiceInteractionService.showSession(args, 0)` (`:87`); the destination is a new `EXTRA_*` on that `args` bundle beside
+    `EXTRA_MODE` (`:68`) — an ADD to phase 03's session arguments, in-process, nothing exported (T14-6; the split-time text named
+    `CortanaService.showSession`, the wrong method)
   Launches from a pod go through `StartActivity`'s launch path like the app list's, so the Start exit and return are phase 01's (H11)
 - 2026-09-22: Settings (P4 design, agent; H5): Start settings gains a "Pod bay" page (`SettingsPage.POD_BAY`; hub item "Pod bay —
   Agenda, weather, now playing, reminders") with one W10M toggle per pod, default all On, persisted in the shell's settings store;
@@ -112,7 +116,10 @@ center's job, phase 04); an edge-swipe trigger (the left edge is Android's Back 
   request (as it consumes `pendingRecent`) and animates the pager to the page with `Motion.PIVOT_SETTLE_MS`. When Start is already
   under the session, the session's close resumes it and the same consumption runs. A request survives the session being dismissed
   mid-line (the request ran; the open is pending) and a new request in the same session replaces it. Phase 03's exported allow-list is
-  unchanged and its E5 row is re-run as is
+  unchanged and its E5 row is re-run as is. Added 2026-09-23 (T14-7): while phase 12's setup wizard shows, a pending request is
+  NOT consumed — `animateScrollToPage` is programmatic, so it would open the pane behind the wizard — and waits until the wizard
+  finishes, through the same gate phase 12 puts on the `SecondaryTiles` pin band (drawn only once Start is visible, phase 12's edge
+  case; `StartActivity.kt:187-190` draws the band today with no such gate)
 - 2026-09-22: Locked gate (agent; phase 03's PQ3 rule, "opens apps or reads personal data"): `LockGate.allowedWhileLocked` is false
   for OpenPodBay and ClosePodBay — the bay shows the agenda and reminders and is a Start surface; the card's caption is "Open the pod
   bay" / "Close the pod bay", Tess says "Unlock your phone to continue.", and after unlock the same request continues, so the doors
@@ -133,20 +140,28 @@ center's job, phase 04); an edge-swipe trigger (the left edge is Android's Back 
   page; a swipe that starts in Android's left gesture inset is Android's Back and never the pod bay; `systemGestureExclusionRects` is
   not used. E12 proves both on the AVD's gestural overlay; One UI's hint area is P2
 - 2026-09-22: Harness (agent; testability 3, the R10 "harness note"): every driver that reaches Start with a right swipe now opens
-  the pod bay instead. At the split that is `qa/phase-02/scripts/gestures.sh` `ensure_start` (`input swipe 200 1200 950 1200 250`);
-  the build re-greps the qa tree for right swipes at page height and lists every hit in `qa/phase-14/README.md`. The fix is in the
-  driver: `KEYCODE_HOME`, then `KEYCODE_BACK` while the dump shows `app_list` or `pod_bay`, then assert `start_page` alone. Phase 03's
-  `lib.sh` `ensure_start` (`KEYCODE_HOME` only) is already right. E13 re-runs the affected rows on this build
+  the pod bay instead. At the split that is `qa/phase-02/scripts/gestures.sh` `ensure_start` (`input swipe 200 1200 950 1200 250`,
+  `gestures.sh:28-47`); the build re-greps the qa tree for right swipes at page height and lists every hit in `qa/phase-14/README.md`.
+  The fix is in the driver: `KEYCODE_HOME`, then `KEYCODE_BACK` while the dump shows `app_list` or `pod_bay`, then assert
+  `start_page` alone. Phase 03's `lib.sh` `ensure_start` (`KEYCODE_HOME` only) is already right. The same re-grep lists every driver
+  that greps Start's home line, because this phase renames it from `home: page 0` (`StartActivity.kt:123`) to `home: page START`
+  (T11-9 / T14-5): at the split that is `qa/phase-02/scripts/regress.sh:120` (`grep -q "home: page 0"`), updated with the
+  `ensure_start` fix. Launches (T14-3, C-6): after any launch (E3's Now playing tap, E9, the E13 re-runs that open an app),
+  `am force-stop app.tileshell` + Home before the next assertion on Start's grid — RecentApp is in memory only
+  (`qa/phase-01/scripts/recent0922.sh:19-21`), so a launched app is promoted above the bottom row. E13 re-runs the affected rows on
+  this build
 - 2026-09-22: Harness contracts (agent; testability 24, 25, 33, 34): the page is inside `StartActivity`'s root, which sets
   `testTagsAsResourceId`; test tags `pod_bay` (page root), `pod_bay_scroll`, `pod:<id>` (agenda | weather | nowplaying | reminders),
   `pod_header:<id>`, `pod_subheader:<id>:<key>`, `pod_row:<id>:<n>` on the node carrying each row's text, `pod_empty:<id>` on the empty
   line, `pod_control:nowplaying:<PREVIOUS|PLAY_PAUSE|NEXT>`, `pod_bay_empty`, `settings_pod_bay`, `pod_switch:<id>`; diagnostics
   `[podbay] opened by swipe|voice|voice (doors)|settings`, `[podbay] closed by back|home|swipe|voice`, `[podbay] pod <id>: <n> rows` /
-  `[podbay] pod <id>: empty: <reason>`, `[podbay] pods enabled: <list>`, `[podbay] launch <id> -> <component>`. Rows are adb-driven
+  `[podbay] pod <id>: empty: <reason>`, `[podbay] pods enabled: <list>`, `[podbay] launch <id> -> <component>`, and (added
+  2026-09-23, T14-8) `[start] page=POD_BAY|START|APP_LIST` each time the pager settles on a page, the second source for every
+  page-absence assertion; the home line becomes `[start] home: page START[, scrolled to top]` (T11-9). Rows are adb-driven
   on phase 03's `lib.sh` (symlinked as phase 01 did), evidence under `qa/phase-14/`
 - 2026-09-22: Process, permissions, surface (agent; design 27; testability 35): launcher process; no new permission (Calendar,
   Location and the media rows are phase 01's, reminders are the shell's own); no new launcher entry, so the app list's groups are
-  untouched; no network beyond Weather's own refresh (A11)
+  untouched; no network beyond Weather's own refresh (offline preferred; A11 as amended 2026-09-23 — C-7, T14-10)
 - 2026-09-22: NEEDS-HUMAN rows here are ACCEPT rows (testability 26): the pod bay is a P4 design with no W10M original; the one
   fidelity-shaped item, Tess speaking the line on the phone, is a phone row because TTS on the phone is still unproven (INDEX, phase 03)
 
@@ -166,39 +181,58 @@ center's job, phase 04); an edge-swipe trigger (the left edge is Android's Back 
 
 ## Build tasks
 1. Pager: the third page with named indices, initial page START, the Back / Home rules, the focus guard, the `[podbay] opened by
-   swipe` / `closed by …` lines
+   swipe` / `closed by …` lines, the renamed `[start] home: page START` line and the `[start] page=<name>` line (T11-9, T14-8)
 2. Pod frame: the page on phase 13's app-list backdrop, the scroll, headers, rows, subheaders, empty lines, the layout tokens, tags
 3. The four pods on the existing feeds: Agenda, Weather, Now playing (with `MusicFeed.send` transport), Reminders; their taps
-   through `StartActivity`'s launch path and `CortanaService.showSession` with the Reminders destination
+   through `StartActivity`'s launch path and `CortanaService.open(context, mode)` → `showSession(args, 0)` with the Reminders
+   destination as a new `EXTRA_*` in `args` (T14-6)
 4. Settings: the "Pod bay" page, the hub item, the per-pod switches in the settings store, the empty-bay line
 5. Tess: `Request.OpenPodBay` / `ClosePodBay`, the matcher rule and hotwords, the `ActionLayer` branch and outcomes, the `LockGate`
-   entries and captions, `PodBayRequests` and its consumption in `StartActivity.onResume`, the Brand strings, the five utterances
-6. Harness: the `ensure_start` fix and the re-grep, the regression run (E13), evidence index `qa/phase-14/README.md`
-7. Only if Q1 is A or C: the Widgets pod kind (`AppWidgetHost`, picker, bind consent, configure, host lifecycle, persistence) —
-   added at the interview with its rows; not built otherwise
+   entries and captions, `PodBayRequests` and its consumption in `StartActivity.onResume` (held while phase 12's wizard shows,
+   T14-7), the Brand strings, the five utterances
+6. Harness: the `ensure_start` fix and the re-grep, which also lists and updates every grep of Start's home line
+   (`qa/phase-02/scripts/regress.sh:120` at the split, T11-9 / T14-5); the force-stop-after-launch rule (C-6); the regression run
+   (E13); evidence index `qa/phase-14/README.md`
+7. ~~Only if Q1 is A or C: the Widgets pod kind (`AppWidgetHost`, picker, bind consent, configure, host lifecycle, persistence) —
+   added at the interview with its rows; not built otherwise~~ Ruled out 2026-09-23 (Q1 B): no widget pod kind is built (T14-1)
 
 ## Acceptance criteria
 Rows start from the baseline state and restore what they change (PLAN RV12); motion rows follow RV11; `uiautomator dump` follows
 RV13; "diagnostics" is read with phase 01's command. Every E row runs on the AOSP AVD `tileshell_fhd` (1080×2340 @ 450 dpi, no
 Google) through adb on phase 03's driver floor (`qa/phase-03/scripts/lib.sh`); voice rows use phase 03's audio route (null-sink
 microphone, `say`, `reply_text`, `parecord`) and inherit phase 03's status: they prove the pipeline with a synthesised voice, and
-Jeremy's own voice is P1.
+Jeremy's own voice is P1. **Seeding (C-3):** rows that read Start's grid (E1, E10, E13) start with `layout_restore
+qa/phase-02/baseline_layout.json` (`qa/phase-02/scripts/layout.sh`) — this phase adds no `addedOnce` marker and pins no fixture,
+so phase 02's file, with its markers and hand-set sizes, is complete for this build — and assert zero `assignSlotOnce … ->
+assigned` lines after it. **Launches (C-6, T14-3):** after any launch (E3's Now playing title tap, E9, the E13 re-runs that open an
+app), `am force-stop app.tileshell` + Home before the next grid assertion. **Motion clock (C-5):** every motion the shell animates
+logs its own `[motion]` clock and rows assert the logged numbers, a screenrecord only corroborating; this phase adds no motion of
+its own (the pan and the request's settle are phase 01's X13, `Motion.PIVOT_SETTLE_MS`). **Page absence (T14-8):** "no
+`pod_bay`" / "no `app_list`" assertions rely on an off-screen composed page being absent from the dump; that holds today
+(`StartActivity.kt:149` `beyondViewportPageCount = 1`, and `qa/phase-02/scripts/gestures.sh:39` asserts `app_list` absent on
+Start) and is re-checked at build start, because a Compose upgrade could change it; every such assertion also reads the
+`[start] page=<name>` line as its second source.
 **Emulator:**
 - E1 Pager: from Start, `adb shell input swipe 200 1200 950 1200 250` (a pan inside the page) → dump shows `pod_bay`, diagnostics
   `[podbay] opened by swipe`; `adb shell input swipe 900 1200 150 1200 250` → `start_page` and no `pod_bay`; a second left swipe →
   `app_list` (phase 01 E12 unchanged); from the pod bay `KEYCODE_BACK` → `start_page`, `[podbay] closed by back`; on Start
   `KEYCODE_BACK` still runs phase 01 E20's rule (DeskClock resumes); from the pod bay `KEYCODE_HOME` → Start scrolled to the top
-  (`[start] home: page START, scrolled to top`)
+  (`[start] home: page START, scrolled to top`, the renamed line, T11-9); each page reached in this row is also named by its
+  `[start] page=<name>` line (T14-8)
 - E2 Bars: on the pod bay `adb shell dumpsys window` shows the status and nav bar inset sources not visible (phase 01 E19's form) and
   the screencap shows the drawn bars; `tap_node` on the drawn Back key → Start; on the Windows key → Start
 - E3 Pod content from fixtures, each asserted present and then gone: Agenda — `content insert` two events today (one all-day) and
   one tomorrow (phase 01 E7's route) → `pod_row:agenda:0..2` texts (all-day first, "h:mm title", the third under
   `pod_subheader:agenda:tomorrow`); delete → rows gone, `pod_empty:agenda` = "Nothing on your calendar today". Weather — phase 01
-  ITEM2's fixture report written into the feed's cache (`weather_fixture.py`) → `pod_row:weather:*` texts equal the report's
-  formatted values; clock + 61 minutes (phase 01 E9's commands) → the "Updated h:mm" line (X22); restore per RV12. Now playing —
+  ITEM2's fixture report written into the feed's cache (`weather_fixture.py`), expected strings written here by hand and never
+  taken from the shell's `WeatherFormat` (T14-2): `weather_fixture.py 3 day` writes place "Denver",
+  current 64.0, WMO code 3, today's high 72.0 / low 51.0 and precipitation 30 % (`qa/phase-01/scripts/weather_fixture.py:26-45`), so
+  the `pod_row:weather:*` texts contain, in this order, "Denver", "64°", "Cloudy", "H 72° L 51°" and "30%"; clock + 61 minutes
+  (phase 01 E9's commands) → the "Updated h:mm" line (X22); restore per RV12. Now playing —
   phase 01 E8's playback fixture → `pod:nowplaying` title and artist equal `dumpsys media_session`'s metadata; `tap_node
   pod_control:nowplaying:PLAY_PAUSE` → `dumpsys media_session` state PAUSED, the play glyph shown (screencap), the pod still present;
-  `NEXT` → the next track's title; stop → `pod_empty:nowplaying` = "Nothing playing". Reminders — three reminders through Tess
+  `NEXT` → the next track's title; `tap_node` on the pod's title → the MUSIC slot app resumed (`dumpsys activity activities`), then
+  `am force-stop app.tileshell` + Home (C-6); stop → `pod_empty:nowplaying` = "Nothing playing". Reminders — three reminders through Tess
   (phase 03 E15's setup) → `pod_row:reminders:*` texts are the titles with the Reminders page's sublines; delete all → the empty line
 - E4 Denied and empty states with diagnostics, both directions: `adb shell pm revoke app.tileshell android.permission.READ_CALENDAR` →
   `pod_empty:agenda` = "Calendar access is off — turn it on in Setup" and `[podbay] pod agenda: empty: no calendar access`; `tap_node
@@ -210,11 +244,13 @@ Jeremy's own voice is P1.
   `SettingsActivity` on the Pod bay page; `adb shell am force-stop app.tileshell`, Home → the switches persist (dump); restore all On
 - E6 Voice, the easter egg: from Start, `KEYCODE_ASSIST`, `say pod_bay_doors` → diagnostics `[match] "…" -> OpenPodBay(doors=true)`;
   `reply_text` equals "I'm afraid I can't do that, Dave." and the `parecord` capture's RMS over the reply window is above −40 dBFS
-  (phase 03's spoken reply pass rule); the `[podbay] opened by voice (doors)` line's wall time is after the speech ring's
-  `SpeakingDone` line for that utterance; `dumpsys window` shows no session window and the dump shows `pod_bay`. `say pod_bay_open` →
-  `OpenPodBay(doors=false)`, reply "Opening the pod bay.", `opened by voice`; `say pod_bay_close` → `ClosePodBay`, reply "Closing the
-  pod bay.", `start_page`, `[podbay] closed by voice`. Negatives: `say pod_bay_neg1` ("open the pod") → the not-understood handler
-  line (phase 03 E3) and no `pod_bay`; `say pod_bay_doors_noart` → doors=true; no match line ever contains `OpenApp` for these
+  (phase 03's spoken reply pass rule); the `[podbay] opened by voice (doors)` line's `wall=` value is after the `SpeakingDone`
+  line's `wall=` for that utterance — both read from the one diagnostics ring (`Diagnostics.dump` prints `wall=<ms>` on every line
+  and the speech client writes into the same ring), never from the host clock (T14-8); `dumpsys window` shows no session window and
+  the dump shows `pod_bay`. `say pod_bay_open` → `OpenPodBay(doors=false)`, reply "Opening the pod bay.", `opened by voice`; `say
+  pod_bay_close` → `ClosePodBay`, reply "Closing the pod bay.", `start_page`, `[podbay] closed by voice`. Negatives: `say
+  pod_bay_neg1` ("open the pod") → the not-understood handler line (phase 03 E3) and no `pod_bay`; `say pod_bay_doors_noart` →
+  doors=true; no match line ever contains `OpenApp` for these
 - E7 Typed form: `type_request "open the pod bay doors"` → the same match line, the same reply text, `pod_bay` open; phase 03 E5's
   exported-components check re-run against `qa/phase-03/exported-allowlist.txt`: unchanged
 - E8 Locked: `adb shell locksettings set-pin 1234`, `KEYCODE_SLEEP`, `KEYCODE_WAKEUP`, Tess over the keyguard (phase 03 E9's route),
@@ -223,22 +259,25 @@ Jeremy's own voice is P1.
   `KEYCODE_ENTER` → the doors line is spoken and the pod bay opens (E6's checks); restore `adb shell locksettings clear --old 1234`
 - E9 From inside another app: `adb shell am start -n com.android.deskclock/.DeskClock`, `KEYCODE_ASSIST`, `say pod_bay_doors` → after
   the reply `dumpsys activity activities` shows `StartActivity` resumed and the dump shows `pod_bay`; `KEYCODE_BACK` → Start; a second
-  `KEYCODE_BACK` → DeskClock resumes (phase 01 E20: the Back history survived the detour)
-- E10 Edit mode and the pivot: `enter_edit` on a tile (phase 02's `gestures.sh`) → `adb shell input swipe 200 1200 950 1200 250` opens
-  nothing (dump unchanged, no `[podbay] opened`); exit edit mode; on the pod bay `adb shell input swipe x y x y 1000` on a pod → dump
-  unchanged, no `edit_disc:*`, no menu; phase 02 E3's folder-name step, opened and dismissed → the pivot stays on Start (no `pod_bay`,
-  no `app_list`)
+  `KEYCODE_BACK` → DeskClock resumes (phase 01 E20: the Back history survived the detour); then `am force-stop app.tileshell` +
+  Home (C-6)
+- E10 Edit mode and the pivot: `enter_edit` on a tile (phase 02's `gestures.sh`) → `adb shell input swipe 200 1200 950 1200 250`
+  opens nothing (dump unchanged, no `[podbay] opened`, no `[start] page=POD_BAY`); exit edit mode; on the pod bay `adb shell input
+  swipe x y x y 1000` on a pod → dump unchanged, no `edit_disc:*`, no menu; phase 02 E3's folder-name step, opened and dismissed →
+  the pivot stays on Start (no `pod_bay`, no `app_list`, and the last `[start] page=` line is START)
 - E11 Screen-off and process death with the pod bay open: `KEYCODE_SLEEP`, `KEYCODE_WAKEUP`, `adb shell wm dismiss-keyguard` → `pod_bay`
   still the page; with a PIN set, sleep, wake, unlock → still the page; `adb shell am force-stop app.tileshell`, `KEYCODE_HOME` →
   `start_page`; restore the lock
 - E12 Gesture navigation: `adb shell cmd overlay enable com.android.internal.systemui.navbar.gestural`; from Start a pan from x = 200 →
   `pod_bay`; a swipe from x = 2 (inside the left gesture inset) → no `[podbay] opened` and Android's Back fires (with DeskClock in the
   history it resumes; with none, Start stays, phase 01 X12); restore with `cmd overlay disable`
-- E13 Regression on the same build, after the harness fix: `qa/phase-02/scripts/regress.sh` 6/6; a row that starts on the pod bay and
+- E13 Regression on the same build, after the harness fix: `qa/phase-02/scripts/regress.sh` with every assertion passing (12/12 on the
+  2026-09-22 suite, qa/JEREMY-QA.md P02), its home-line grep updated to `home: page START` (T14-5); a row that starts on the pod bay and
   one that starts on the app list and calls `gestures.sh` `ensure_start` → `start_page` alone; phase 01 E2 (Home shows Start), E12
   (swipe left → app list, search, jump grid), E19 (bars on all shell screens), E20 (Back on Start); phase 03 E3 (an utterance outside
   the list is still not understood), E5 (typed request and the allow-list), E10 (locked commands, now with the pod-bay phrase);
-  `utterances.py build` succeeds with the five new ids
+  `utterances.py build` succeeds with the five new ids; after every re-run that opened an app, `am force-stop app.tileshell` + Home
+  (C-6), and after every `layout_restore`, zero `assignSlotOnce … -> assigned` lines (C-3)
 - E14 Backdrop: phase 13's app-list backdrop row re-run on the pod bay with the same method and a KNOWN high-contrast Start background
   (the checkerboard through phase 01's background URI grant, `prefs_edit.py`), cited by that row's number when phase 13 is FINAL
 - E15 RV10: `wm size 1440x3120` / `720x1560`, `wm density 560`, `font_scale 1.3` leave every pod node's bounds in epx unchanged ± 1 epx
@@ -248,8 +287,8 @@ Jeremy's own voice is P1.
 **Phone-only:** P1 Jeremy's own voice on "open the pod bay doors" (the grammar hotword) and Tess SPEAKING the line on the S25 Ultra
 (TTS on the phone is unproven until a CI build is installed, INDEX 2026-09-22); P2 One UI gesture navigation: a pan opens the pod bay,
 the left-edge swipe is One UI's Back, and the hint area does not take the pan; P3 Samsung Calendar's events in the Agenda pod and a
-Samsung media session (Samsung Music, YouTube Music) in Now playing with its transport; P4 (only if Q1 is A or C) Samsung's own
-widgets bind, draw and update in the bay
+Samsung media session (Samsung Music, YouTube Music) in Now playing with its transport; ~~P4 (only if Q1 is A or C) Samsung's own
+widgets bind, draw and update in the bay~~ ruled out 2026-09-23 (Q1 B, T14-1)
 
 **NEEDS-HUMAN (all accept rows):** H1 the pod bay as a whole (P4 design, no W10M original); H2 the pod frame — type-only Metro
 cards, spacing, accent headers (P4); H3 each pod's content choices, caps and the paused-session rule for Now playing (P4); H4 the
@@ -283,7 +322,10 @@ any approximation not covered by H2–H11; H13 Tess speaking the line on the pho
 - Show more tiles toggled, theme light / dark, the accent changed (headers follow), the X5 transparency slider (pods are not tiles and
   do not follow it); RV10 (E15)
 - Pod switches all off (the empty-bay line); a pod switched off while its feed updates (nothing drawn, nothing logged for it)
-- If widgets are in (Q1 A or C): provider uninstalled, configure activity cancelled, bind refused, host `startListening` after process
-  death, widget size classes against the epx canvas, Samsung's Font size changing a widget's text (RV10 cost, recorded)
+- ~~If widgets are in (Q1 A or C): provider uninstalled, configure activity cancelled, bind refused, host `startListening` after process
+  death, widget size classes against the epx canvas, Samsung's Font size changing a widget's text (RV10 cost, recorded)~~ Ruled out
+  2026-09-23 (Q1 B, T14-1)
+- A pod-bay request (voice or typed) made while phase 12's setup wizard shows: nothing moves behind the wizard; the pane opens once
+  the wizard finishes (T14-7; assert no `[podbay] opened` until `[wizard] finished` or `[wizard] skip`, then the line)
 
 ## QA evidence
