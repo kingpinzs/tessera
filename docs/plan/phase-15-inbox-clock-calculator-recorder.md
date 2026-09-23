@@ -61,6 +61,9 @@ approximation with a NEEDS-HUMAN row; nothing here is internet-connected (A11).
 - Photos, Camera, video, Files, Calendar, People, the Settings front (phases 16–19)
 
 ## Decisions
+- 2026-09-22: From phase 11 interview Q1 (Jeremy: "A"), a standing rule for every shell app: this phase's apps declare their
+  own top-level screens as static App Shortcuts, so a hold on their tiles bursts those screens (phase 11). Which screens each app
+  declares is settled at this phase's own interview; a build task and an acceptance row carry it.
 - 2026-09-22: Scope add (Jeremy: "did you add ALL the apps that need to be created and that side pull out thing at a glance
   thing"). PLAN.md: "The W10M inbox apps that can be built inside the rules, each an app in the shell APK like Music:
   Calculator (standard / scientific / programmer), Alarms & Clock (alarm, timer, stopwatch, world clock), … Voice Recorder".

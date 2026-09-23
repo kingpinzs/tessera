@@ -259,6 +259,11 @@ SUPERSEDED older note (launcher-only framing, kept for history):
   measured R6 value and every phase 02 proof stands — the burst is ADDED on top of the hold, nothing about the hold
   changes. The motion remains Jeremy's ruling: boundsInRoot tracking, spring dampingRatio 0.65, four satellites.
 
+- 2026-09-23 Scope add (Jeremy, phase 12 interview Q3): **theme presets with the shell's own background pictures** —
+  "sort of like a theme like a Hal theme and a soft theme ect so maybe it has preset but indivudial items can still be
+  toggled". Built by phase 12 (first seen in the setup wizard) and offered on Start + theme too. Details in phase 12's
+  Decisions and interview queue.
+
 ## Review resolutions (round 1, 2026-09-16; agent design calls, Jeremy can overrule)
 Full mapping: docs/plan/review/2026-09-16-triage.md
 - RV1. One APK holds every part; no part depends on a separately installed app. Install via adb over USB or Wireless debugging;

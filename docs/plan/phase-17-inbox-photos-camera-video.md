@@ -45,6 +45,9 @@ Camera2 — P1 records what the S25U exposes); DRM; Files (phase 18); the pod ba
 "player-only" video build if the interview rules the fuller form (Hard Rule 16).
 
 ## Decisions
+- 2026-09-22: From phase 11 interview Q1 (Jeremy: "A"), a standing rule for every shell app: this phase's apps declare their
+  own top-level screens as static App Shortcuts, so a hold on their tiles bursts those screens (phase 11). Which screens each app
+  declares is settled at this phase's own interview; a build task and an acceptance row carry it.
 - 2026-09-22 Scope add (Jeremy: "did you add ALL the apps that need to be created and that side pull out
   thing at a glance thing"): Photos, Camera and "a video player (Movies & TV's role)" are in, "each an app in
   the shell APK like Music" (PLAN.md, 2026-09-22 scope add). Read as A8 reads the feature list: everything
