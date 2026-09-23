@@ -37,6 +37,20 @@ Weather, the Music collection, Tess's black page and her text box ((46–48) fil
 second material for the light theme (the same material with the light fills). Hooks for later phases.
 
 ## Decisions
+- 2026-09-23: Interview Q3 — border light AND a radial light under the finger (Jeremy: "(b)"). On the transient surfaces'
+  pressed items (menu rows, pane items, phase 11's satellites): Fluent's border light on the item's edge plus a soft radial light
+  centred on the touch point inside the item, following the finger while it is down. Start tiles get neither; their press
+  feedback stays the ruled phase 01 setting. Both lights obey the Transparency effects switch and battery saver (Q2). Values are
+  P4 (Fluent's pointer Reveal adapted to touch), judged in a NEEDS-HUMAN row.
+- 2026-09-23: Interview Q2 — a switch plus battery saver (Jeremy: "(a)"). "Transparency effects" in Settings > Start + theme,
+  default On; while battery saver is on, acrylic is off whatever the switch says; either way every surface draws its measured
+  solid W10M fill. Agent reading, cross-phase: the switch is one of the "everything visual" items a phase 12 theme preset sets
+  (phase 12 Q4), so e.g. the Midnight preset can turn it off; phase 12 carries that line.
+- 2026-09-23: Interview Q1 — both: measured colours are kept (Jeremy: "(a)"). Each measured surface keeps its captured colour
+  over the backdrop it was captured on (every FINAL row keeps its number in its own setup); only what shows through changes — the
+  blurred picture behind. A surface whose captured fill is too dark for anything to show through (phase 04's black action center
+  over a bright app) stays solid, and the build lists every such surface. Phase 04's own queue item 11 (captured black vs acrylic
+  vs re-measure) is answered by this rule unless Jeremy re-opens it there.
 - 2026-09-22 R10-Q1 Design direction (Jeremy: "B"), quoted from PLAN.md: **B. W10M plus Fluent materials.** "Square tiles,
   Metro type and every measured geometry stay; acrylic and light effects arrive on the TRANSIENT surfaces — action center,
   volume panel, menus, the app-list backdrop. Fluent is what desktop Windows 10 received in 2017, right after W10M's last
@@ -152,7 +166,8 @@ second material for the light theme (the same material with the light fills). Ho
 ## Interview queue (Stage A step 4)
 Load-bearing first. Each answer lands in Decisions, dated.
 
-1. **Acrylic against the surfaces that were already built and measured** (the reminder menu (40,40,40), Tess's ≡ pane
+1. ~~Acrylic vs measured surfaces~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Acrylic against the surfaces that were already built and measured** (the reminder menu (40,40,40), Tess's ≡ pane
    (14,19,13), phase 02's H21 band, phase 10's hold menus, phase 04's "as captured" scrim and panel colours) — which wins?
    A. Both: each measured surface keeps its captured colour over the backdrop it was captured on, so every FINAL row keeps
    its number in its own setup, and only what shows THROUGH changes — the blurred picture behind it. A surface whose captured
@@ -162,13 +177,15 @@ Load-bearing first. Each answer lands in Decisions, dated.
    C. Fluent wins: the measured fills become tints at Fluent's opacities as they are, and the affected FINAL rows (phase 03
    E15, phase 02 H21, phase 10 MUSIC8, phase 04 E4(a) / E5) are re-cut to measure the tint over black.
    D. Other / let me clarify.
-2. **The switch and battery saver.**
+2. ~~Switch and battery saver~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **The switch and battery saver.**
    A. A "Transparency effects" toggle in Settings > Start + theme (Windows 10's own setting), default On, and battery saver
    turns acrylic off while it is on — Windows' rule; the solid W10M fills return in both cases. (lean)
    B. No toggle: acrylic whenever the phone can draw it; battery saver still turns it off.
    C. A toggle only; battery saver is ignored.
    D. Other / let me clarify.
-3. **What "light" does on a phone with no pointer.**
+3. ~~Light on touch~~ RULED 2026-09-23: B (see Decisions). Original question kept below.
+   **What "light" does on a phone with no pointer.**
    A. A border light on the pressed item of a transient surface (menu rows, pane items, satellites) — Fluent's own touch
    form; nothing on Start tiles, whose press feedback is the ruled setting. (lean)
    B. The border light plus a soft radial light under the finger inside the pressed item.

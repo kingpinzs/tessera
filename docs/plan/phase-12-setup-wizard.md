@@ -34,6 +34,8 @@ W10M OOBE page the shell cannot own (region, Wi-Fi, Microsoft account, restore, 
 checklist rows (the checklist is phase 01's; the wizard reads it). Changing what a grant does. Hooks for later phases.
 
 ## Decisions
+- 2026-09-23: From phase 13 interview Q2 (agent reading): phase 13's "Transparency effects" switch is one of the visual items a
+  preset sets (Q4 "everything visual"), so a preset can turn acrylic off (e.g. Midnight, for the battery).
 - 2026-09-23: Interview Q6 — the four generated pictures are AI images (Jeremy: "(b) tell me what I need to do because I have
   both gpt and gemini personal accounts"). Jeremy generates HAL, Soft, Lumia and Midnight on his PERSONAL ChatGPT or Gemini
   account from the prompts in docs/plan/theme-art-brief.md and saves them to art/themes/; the agent crops and scales them for
