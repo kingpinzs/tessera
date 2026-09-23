@@ -46,6 +46,12 @@ checklist rows (the checklists are phase 01's and phase 03's; the wizard reads t
 picture (R12 §6 lists img5; the shell draws no lock screen, and phase 07's glance is untouched). Hooks for later phases.
 
 ## Decisions
+- 2026-09-23: Interview Q9 — the original preset keeps Tess's lens, tinted Cobalt (Jeremy: "(a)"); no Cortana-style disc is
+  built.
+- 2026-09-23: Interview Q8 — both original Start pictures, as two variants of the preset (Jeremy: "(c)"): "Windows 10 Mobile
+  (original)" offers the later rotated Hero img0 (14393 / 15063, the final release's) and the first build's light-streak img0
+  (10586), both from R12's files in the A10 branding module; every other value of the preset is the same in both. The preset
+  list shows one entry with the two pictures as its variants (agent: not two separate presets, so the list stays six).
 - 2026-09-23: Interview Q7 — Cobalt #3E65FF becomes a 49th accent everywhere accents are picked (Jeremy: "(a)"), as W10M
   phones effectively had it (R12: an OEM colour outside R3 A16's 48). It is an ADD to phase 01's accent picker, built by this
   phase and recorded in the INDEX Change Log when built; the "Windows 10 Mobile (original)" preset uses it.
@@ -380,13 +386,15 @@ Load-bearing first. Each answer lands in Decisions, dated.
    B. The original preset uses Cobalt, but the picker keeps its 48 (so choosing another accent loses Cobalt for good)
    C. Use the nearest of the 48 instead
    D. Other / let me clarify
-8. (added 2026-09-23 from R12) **Which original Start picture.** Phones on the first W10M build shipped a light-streak "img0";
+8. ~~Which original picture~~ RULED 2026-09-23: C (see Decisions). Original question kept below.
+   (added 2026-09-23 from R12) **Which original Start picture.** Phones on the first W10M build shipped a light-streak "img0";
    later builds (Anniversary / Creators Update) replaced it with the rotated "Hero" image. Both are bundled.
    A. The later Hero image, matching the final release this build follows (lean)
    B. The first light-streak image
    C. Both, as two variants of the preset
    D. Other / let me clarify
-9. (added 2026-09-23 from R12) **Tess in the original preset.** W10M's Cortana was a flat accent-coloured disc; Tess's
+9. ~~Tess in the original preset~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   (added 2026-09-23 from R12) **Tess in the original preset.** W10M's Cortana was a flat accent-coloured disc; Tess's
    default look is the HAL-style lens.
    A. The original preset keeps Tess's lens, tinted to Cobalt (lean)
    B. The original preset switches Tess to a flat Cortana-style disc (a new look, in the branding module)
