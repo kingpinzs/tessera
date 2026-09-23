@@ -62,6 +62,16 @@ sleep 0.9
 up 540 "$ROWY"; sleep 1.4
 adb shell input keyevent KEYCODE_BACK; sleep 1.2
 ensure_start
+# Whether a folder is OPEN is not layout, and it is not saved: a restart brings every folder back closed. The
+# "before" capture is taken with the folder closed, so the screen comparison is about the layout alone (the
+# 2026-09-22 suite read the open band's two member tiles as "tiles lost in the restart").
+dump "$OUT/e4_pre_close.xml"
+OPEN=$(grep -o 'resource-id="folder_band_top:[^"]*"' "$OUT/e4_pre_close.xml" | head -1 | sed 's/.*folder_band_top://; s/"$//')
+if [ -n "$OPEN" ]; then
+  FXY=$(tile_center "$OUT/e4_pre_close.xml" "folder:$OPEN")
+  say "closing the open folder $OPEN before the capture (an open band is not saved state)"
+  adb shell input tap ${FXY% *} ${FXY#* }; sleep 1.2
+fi
 
 layout_save "$OUT/e4_before.json"
 adb exec-out screencap -p > "$OUT/e4_before.png"

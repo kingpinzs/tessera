@@ -5,6 +5,7 @@
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 source "$HERE/assert.sh"
+source "$HERE/layout.sh"
 OUT=$1; TILE=$2
 mkdir -p "$OUT"
 # Absolute: the analysers are invoked from the scripts directory, so a repo-relative path would not resolve.
@@ -25,8 +26,14 @@ build_guard
   echo "which timestamps the touch-up's MotionEvent and the exit's first frame on one clock."
 } >> "$LOG"
 
+# Each theme pass starts from the baseline (PLAN RV12). This row used to run on whatever Start the device
+# showed, and the dark pass's own 740-ms tap on the held tile made that app the promoted "last opened" tile,
+# so the light pass held a tile that was no longer in the grid (2026-09-22 suite). layout_restore restarts the
+# shell, which also clears the in-memory promotion.
+layout_save "$OUT/layout_before.json"
 for THEME in dark light; do
   echo >> "$LOG"; echo "## Theme: $THEME" >> "$LOG"
+  layout_restore "$HERE/../baseline_layout.json" || say "FAIL could not seed the baseline for the $THEME pass"
   bash "$HERE/e7_capture.sh" "$OUT/$THEME" "$TILE" "$THEME" >> "$LOG" 2>&1
   # Two more entry recordings: the emulator's frame cadence moves these timings by ~20 % run to run, so the
   # row is judged on the median across runs as well as across tiles (gate finding: one run, one hand-picked
@@ -51,4 +58,5 @@ for THEME in dark light; do
   check "exit latency ($THEME)" 0 $?
 done
 
+layout_restore "$OUT/layout_before.json" && say "restored: the device's own layout from before the row"
 qa_finish

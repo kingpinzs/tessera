@@ -1,0 +1,42 @@
+# E8 2026-09-22T21:28:42-06:00
+build guard: built=2b27c7b8c1f131ed8661226ceeaa08e5 installed=2b27c7b8c1f131ed8661226ceeaa08e5
+driver: e8.sh blob 28847093616977617f7cc8764544e3091eb7edac
+A = shell:settings (last), B = slot:PEOPLE (first), untouched witness = slot:CALENDAR
+--- e8a_folder: shell:settings -> slot:PEOPLE, holding ~800 ms over it ---
+    held 1290 ms over the target before the release (dwell is 2000 ms)
+PASS  a folder was created (found [folder:])
+PASS  the folder holds the target and the dragged tile (= slot:PEOPLE shell:settings)
+PASS  it sits in the target's place (= folder:f1)
+FAIL  no other tile moved: slot:CALENDAR bounds (expected [9 439 708 782], got [85 1014 668 1301])
+--- e8b_reflow: shell:settings -> slot:PEOPLE, holding ~2600 ms over it ---
+    held 3182 ms over the target before the release (dwell is 2000 ms)
+PASS  no folder was made (= 0)
+PASS  the dragged tile took the target's cell (= shell:settings)
+PASS  every tile is still there (= 10)
+--- e8_makefolder: shell:settings -> slot:PEOPLE, holding ~800 ms over it ---
+    held 1273 ms over the target before the release (dwell is 2000 ms)
+--- e8c_addtofolder: slot:MUSIC -> folder:f1, holding ~800 ms over it ---
+    held 1308 ms over the target before the release (dwell is 2000 ms)
+PASS  the dragged tile joined the folder (= slot:PEOPLE shell:settings slot:MUSIC)
+PASS  still exactly one folder (= 1)
+--- e8d_folderreflow: slot:MUSIC -> folder:f1, holding ~2600 ms over it ---
+    held 3177 ms over the target before the release (dwell is 2000 ms)
+PASS  past the dwell the folder made room instead (= slot:PEOPLE shell:settings)
+PASS  and the dragged tile took its cell (= slot:MUSIC)
+--- e8e_nonesting: folder:f1 -> slot:BROWSER, holding ~2600 ms over it ---
+    held 3171 ms over the target before the release (dwell is 2000 ms)
+PASS  the folder survived the move with its members (= slot:PEOPLE shell:settings)
+PASS  no second folder appeared (= 1)
+--- building a SECOND folder from slot:BROWSER + slot:MAIL ---
+--- e8_makefolder2: slot:MAIL -> slot:BROWSER, holding ~800 ms over it ---
+    held 1265 ms over the target before the release (dwell is 2000 ms)
+PASS  two folders now exist (= 2)
+folders: folder:f1=[slot:PEOPLE shell:settings]  folder:f2=[slot:BROWSER slot:MAIL]
+--- e8f_folder_on_folder: folder:f2 -> folder:f1, holding ~2600 ms over it ---
+    held 3203 ms over the target before the release (dwell is 2000 ms)
+PASS  folder A kept exactly its members (= slot:PEOPLE shell:settings)
+PASS  folder B kept exactly its members (= slot:BROWSER slot:MAIL)
+PASS  still two folders, neither inside the other (= 2)
+PASS  no folder key inside any folder (no [folder:])
+baseline layout restored
+---- 17 passed, 1 failed ----

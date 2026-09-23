@@ -176,15 +176,22 @@ say "--- 6. unpin one member of a two-member folder: it dissolves into the other
 layout_restore "$(dirname "$0")/../baseline_layout.json"
 make_folder "$A_ID" "$B_ID"
 dump "$OUT/e3_dissolve_pre.xml"
-M=$(python3 -c "
-import re
-m = re.search(r'resource-id=\"tile:(member:[^\"]+)\"', open('$OUT/e3_dissolve_pre.xml').read())
-print(m.group(1) if m else '')")
-[ -n "$M" ] || die "no band member to unpin"
-say "selecting band member $M"
-MC=$(center "$OUT/e3_dissolve_pre.xml" "tile:$M")
-adb shell input tap ${MC% *} ${MC#* }; sleep 1.0
-dump "$OUT/e3_dissolve_sel.xml"
+# Unpin A (the tile that was dropped), so B — the check below — is the survivor. This used to take the
+# FIRST member in the dump, which is B, and then assert that B survived: the product dissolved the folder
+# correctly into A and the row read that as a failure (2026-09-22 suite).
+M="member:$A_ID"
+grep -q "resource-id=\"tile:$M\"" "$OUT/e3_dissolve_pre.xml" || die "no band member $M to unpin"
+# R6 §1.6.2 (H11): the dropped tile is still SELECTED when its folder is created, and a tap on a selected tile
+# deselects it — so tap only when its discs are not already showing.
+if disc_center "$OUT/e3_dissolve_pre.xml" unpin >/dev/null 2>&1; then
+  say "band member $M is already selected (the dropped tile stays selected, R6 §1.6.2)"
+  cp "$OUT/e3_dissolve_pre.xml" "$OUT/e3_dissolve_sel.xml"
+else
+  say "selecting band member $M"
+  MC=$(center "$OUT/e3_dissolve_pre.xml" "tile:$M")
+  adb shell input tap ${MC% *} ${MC#* }; sleep 1.0
+  dump "$OUT/e3_dissolve_sel.xml"
+fi
 P=$(disc_center "$OUT/e3_dissolve_sel.xml" unpin) || die "no unpin disc for the selected member"
 say "tapping its unpin disc at $P"
 adb shell input tap ${P% *} ${P#* }; sleep 1.5

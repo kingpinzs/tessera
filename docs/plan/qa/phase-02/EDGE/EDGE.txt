@@ -1,10 +1,10 @@
-# phase 02 edge cases 2026-09-22T21:05:25-06:00
+# phase 02 edge cases 2026-09-22T21:52:13-06:00
 === 1. a layout store written by an older shell build (v2 -> v3 upgrade keeps the layout) ===
 note: the v2 file is upgraded on load, so the read-back differs by design
 store after the upgrade:
-{"version":3,"order":[{"key":"slot:PEOPLE","size":"WIDE"},{"key":"slot:BROWSER","size":"WIDE"},{"key":"slot:MAIL","size":"SMALL"},{"key":"slot:CALENDAR","size":"SMALL"},{"key":"shell:weather","size":"WIDE"},{"key":"slot:STORE","size":"SMALL"},{"key":"shell:cortana","size":"MEDIUM"},{"key":"folder:f1","size":"MEDIUM"}],"slots":{"MUSIC":"app.tileshell\/app.tileshell.music.MusicActivity"},"dock":["slot:PHONE","slot:MESSAGING","slot:CAMERA"],"addedOnce":["phase03:cortana","folder:games:v1","folder:office:v1","slot:music:v1"],"manualSizes":[],"folders":[{"id":"f1","name":"Office","members":[{"key":"app:org.fossify.notes\/org.fossify.notes.activities.SplashActivity.Green:0","size":"MEDIUM"},{"key":"app:org.fossify.messages\/org.fossify.messages.activities.SplashActivity.Green:0","size":"MEDIUM"},{"key":"app:eu.faircode.email\/eu.faircode.email.ActivityMain:0","size":"MEDIUM"}]}]}
+{"version":3,"order":[{"key":"slot:PEOPLE","size":"WIDE"},{"key":"slot:BROWSER","size":"MEDIUM"},{"key":"slot:MAIL","size":"SMALL"},{"key":"slot:CALENDAR","size":"SMALL"},{"key":"shell:weather","size":"WIDE"},{"key":"slot:STORE","size":"SMALL"},{"key":"shell:cortana","size":"MEDIUM"},{"key":"folder:f1","size":"MEDIUM"}],"slots":{"MUSIC":"app.tileshell\/app.tileshell.music.MusicActivity"},"dock":["slot:PHONE","slot:MESSAGING","slot:CAMERA"],"addedOnce":["phase03:cortana","folder:games:v1","folder:office:v1","slot:music:v1"],"manualSizes":[],"folders":[{"id":"f1","name":"Office","members":[{"key":"app:org.fossify.notes\/org.fossify.notes.activities.SplashActivity.Green:0","size":"MEDIUM"},{"key":"app:org.fossify.messages\/org.fossify.messages.activities.SplashActivity.Green:0","size":"MEDIUM"},{"key":"app:eu.faircode.email\/eu.faircode.email.ActivityMain:0","size":"MEDIUM"}]}]}
 PASS  the store upgraded to version 3 (= 3)
-FAIL  the six tiles came back in READING order (expected [slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR shell:weather slot:STORE], got [slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR shell:weather slot:STORE shell:cortana folder:f1])
+PASS  the six tiles came back in READING order (= slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR shell:weather slot:STORE)
 PASS  the bottom row was kept (= slot:PHONE slot:MESSAGING slot:CAMERA)
 === 2. Back in edit mode, without and with a folder expanded (H9) ===
 expect: Back left edit mode and stayed on Start (top activity: app.tileshell/.StartActivity)
@@ -34,9 +34,10 @@ PASS  the new folder is expanded in edit mode (found [folder_band_top])
 PASS  Back left edit mode (no [edit_disc:unpin])
 PASS  and the folder stayed expanded (H9) (found [folder_band_top])
 === 8. release EXACTLY as the dwell ends (the folder-vs-reflow boundary) ===
-held 1886 ms over the target (asked for 1800); folders after = 0
-FAIL  a release at 1886 ms, inside the dwell, makes a folder (expected [1], got [0])
-held 2288 ms over the target (asked for 2200); folders after = 0
-PASS  a release at 2288 ms, past the dwell, makes no folder (= 0)
+asked for 1800 ms, host measured 1894 ms; the shell: drop: shell:settings makes a folder (over slot:PEOPLE after dwelling 1959 ms); folders after = 1
+PASS  a release after 1959 ms (shell clock), inside the dwell, makes a folder (= 1)
+the shell logged the dwell ending before the release (past the boundary)
+asked for 2200 ms, host measured 2291 ms; the shell: drop: shell:settings moves in the grid; folders after = 0
+PASS  a release after 2100 ms (shell clock), past the dwell, makes no folder (= 0)
 baseline layout restored
----- 9 passed, 2 failed ----
+---- 11 passed, 0 failed ----

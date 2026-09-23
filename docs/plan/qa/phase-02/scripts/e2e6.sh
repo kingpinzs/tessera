@@ -10,7 +10,9 @@ source "$HERE/layout.sh"
 source "$HERE/assert.sh"
 OUT=$1; LOG=$OUT/E02-E06.txt
 mkdir -p "$OUT"; : > "$LOG"
-APK=$HERE/../../../../testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk
+# Five levels up to the repo (scripts, phase-02, qa, plan, docs); four pointed into docs/ and the fixture
+# never installed (2026-09-22 suite).
+APK=$HERE/../../../../../testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk
 PKG=app.tileshell.testclient.a
 tiles_for() { layout_json | python3 -c "
 import json,sys

@@ -1,24 +1,26 @@
-# E2 + E6 re-run 2026-09-22T20:48:08-06:00
+# E2 + E6 re-run 2026-09-22T21:12:36-06:00
 build guard: built=a7e62760cf77d72488366b49e26abdc9 installed=a7e62760cf77d72488366b49e26abdc9
-driver: e2e6.sh blob b2e203dc4d1b683dbc768c54a256d3056fbe194c
-adb: failed to stat /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/scripts/../../../../testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk: No such file or directory
+driver: e2e6.sh blob b2ebd7c448353cef61c6d0a2a5942709257f5fb2
+Success
 --- E2a: a freshly installed app shows the New caption ---
-New caption on the fixture's row before pinning: no
-FAIL  a freshly installed app is marked New (expected [yes], got [no])
+New caption on the fixture's row before pinning: yes
+PASS  a freshly installed app is marked New (= yes)
 --- E2: pin the fixture from the app list ---
-FAIL the fixture is not in the app list
-FAIL  pinning added exactly one tile (expected [1], got [0])
+holding the app list row at 540 1584
+tapping Pin to Start at 540 1713
+PASS  pinning added exactly one tile (= 1)
 order:
-order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+order: ['slot:PEOPLE/WIDE', 'slot:BROWSER/WIDE', 'slot:MAIL/SMALL', 'slot:CALENDAR/SMALL', 'slot:PHOTOS/SMALL', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/MEDIUM', 'shell:settings/SMALL', 'app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0/SMALL']
 PASS  pinning cleared the New caption (= no)
 --- E2c: pin the same app again, then restart the shell (the defect the store fix was for) ---
-FAIL the fixture is not in the app list
-FAIL  the second pin added nothing (live) (expected [1], got [0])
-FAIL  and still nothing after a restart (E2c) (expected [1], got [0])
+holding the app list row at 540 1584
+tapping Pin to Start at 540 1713
+PASS  the second pin added nothing (live) (= 1)
+PASS  and still nothing after a restart (E2c) (= 1)
 --- E6: an update keeps the tile, an uninstall drops it ---
-adb: failed to stat /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/scripts/../../../../testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk: No such file or directory
-FAIL  an update keeps the tile (expected [1], got [0])
-Failure [DELETE_FAILED_INTERNAL_ERROR]
+Success
+PASS  an update keeps the tile (= 1)
+Success
 PASS  an uninstall drops it (= 0)
 baseline layout restored
----- 2 passed, 5 failed ----
+---- 7 passed, 0 failed ----

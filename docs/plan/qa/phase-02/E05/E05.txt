@@ -1,41 +1,56 @@
-# E5 2026-09-22T20:54:50-06:00
-build guard: built=a7e62760cf77d72488366b49e26abdc9 installed=a7e62760cf77d72488366b49e26abdc9
-driver: e5.sh blob 2554ba88f905a360152aca497ac44ca573f69858
-adb: failed to stat /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/scripts/../../../../testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk: No such file or directory
+# E5 2026-09-22T21:43:09-06:00
+build guard: built=3d959e31f9792579e9d86b0b7f17093c installed=3d959e31f9792579e9d86b0b7f17093c
+driver: e5.sh blob 77c8e79d8186720165096e5c6e8a497458c73ce4
+Success
 --- 1. the request is HELD while the requester is in front (never drawn over another app) ---
-the client's own read-back: 
+the client's own read-back: 21:43:15  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st1 arguments=chat=42: ok=true error=null pending=true detail=waiting for the user to confirm on Start
 PASS  nothing is drawn over the requesting app (no [secondary_pin_prompt])
-FAIL  the requester is what is on screen (no [app.tileshell.testclient] in [app.tileshell/.StartActivity])
+PASS  the requester is what is on screen (found [app.tileshell.testclient])
 --- 2. the band appears the next time Start is shown, and accepting pins the tile ---
-FAIL  the confirmation band is showing on Start (no [secondary_pin_prompt] in [])
+PASS  the band names the requesting app (H22) (= Tile client A)
+PASS  and the tile it wants to pin (= Jen)
+PASS  and shows a preview at the requested size (found [secondary_pin_preview])
+PASS  the confirmation band is showing on Start (found [secondary_pin_prompt])
+tapping Pin at 280 730
 order after accepting:
-order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL', 'secondary:app.tileshell.testclient.a:st1/MEDIUM']
 dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
 folders: []
-FAIL  accepting pinned the tile (no [secondary:app.tileshell.testclient.a:st1] in [slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR slot:PHOTOS shell:weather slot:STORE slot:MAPS slot:MUSIC shell:settings])
+PASS  accepting pinned the tile (found [secondary:app.tileshell.testclient.a:st1])
 --- 3. tapping the pinned tile launches the owner with the request's arguments ---
-FAIL no secondary tile on Start to tap
+top activity: app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity
+the app's own read-back of what it was launched with:
+TILE_ID=st1 ARGS=chat=42 ACTIVATED=-
+PASS  the owner was launched with the tile's id (found [TILE_ID=st1])
+PASS  and with the arguments the request carried (found [ARGS=chat=42])
 --- 4. declining pins nothing ---
-the client's own read-back: 
-FAIL no Cancel button in the band
+the client's own read-back: 21:43:45  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st2 arguments=chat=7: ok=true error=null pending=true detail=waiting for the user to confirm on Start
+tapping Cancel at 799 552
 order after declining:
-order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL', 'secondary:app.tileshell.testclient.a:st1/MEDIUM']
 dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
 folders: []
 PASS  declining pinned nothing (no [secondary:app.tileshell.testclient.a:st2])
 --- 5. a duplicate tileId updates the tile instead of making a second one ---
-the client's own read-back: 
+the client's own read-back: 21:44:03  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st1 arguments=chat=99: ok=true error=null pending=false detail=the tile was already pinned and was updated
 order after the duplicate request:
-order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL', 'secondary:app.tileshell.testclient.a:st1/MEDIUM']
 dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
 folders: []
-FAIL  a duplicate tileId updated the tile instead of adding one (expected [1], got [0])
+PASS  a duplicate tileId updated the tile instead of adding one (= 1)
+TILE_ID=st1 ARGS=chat=99 ACTIVATED=-
+PASS  the updated arguments reach the next launch (found [ARGS=chat=99])
 --- 6. put the tile inside a folder, then uninstall the owner ---
-Failure [DELETE_FAILED_INTERNAL_ERROR]
+layout with the secondary tile in a folder:
+order: ['folder:f1/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: [{'id': 'f1', 'name': None, 'members': [{'key': 'slot:PEOPLE', 'size': 'MEDIUM'}, {'key': 'secondary:app.tileshell.testclient.a:st1', 'size': 'WIDE'}]}]
+PASS  the secondary tile is inside a folder (found [secondary:app.tileshell.testclient.a:st1])
+Success
 order after uninstalling the owner:
 order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
 dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
 folders: []
 PASS  uninstalling the owner took its tile out of the folder too (no [secondary:app.tileshell.testclient.a])
 baseline layout restored
----- 3 passed, 6 failed ----
+---- 14 passed, 0 failed ----

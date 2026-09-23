@@ -12,7 +12,9 @@ source "$HERE/layout.sh"
 source "$HERE/assert.sh"
 OUT=$1; LOG=$OUT/E05.txt
 mkdir -p "$OUT"; : > "$LOG"
-APK=$HERE/../../../../testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk
+# Five levels up to the repo (scripts, phase-02, qa, plan, docs); four pointed into docs/ and the fixture
+# never installed (2026-09-22 suite).
+APK=$HERE/../../../../../testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk
 OWNER=app.tileshell.testclient.a
 ACT=$OWNER/app.tileshell.testclient.VerbActivity
 

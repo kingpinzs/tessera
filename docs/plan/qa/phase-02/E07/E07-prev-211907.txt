@@ -1,0 +1,160 @@
+build guard: built=a7e62760cf77d72488366b49e26abdc9 installed=
+build guard: installing the freshly built APK
+driver: e7.sh blob 48c9785938df8820676d10dafd2c085a56cc62e6
+# E7 — edit-mode geometry and motion, 2026-09-22T20:56:13-06:00
+driver blobs: e7.sh 48c9785938df8820676d10dafd2c085a56cc62e6 capture 438a728e3733358dd7e3899be803d3a71bb361e7 geometry 5ac806bbf32e3654e3f93148a494724b3e0ebb6d motion a63b2762793f160d1c47bf0a6e88dd3b515e4c4e bracket 50e5ca8a891d13d24cf55119e11db1ae319f7c7d latency 9a3c3420e3df3f54deb5e0440d6b3513ceb0a493
+
+## Method
+Geometry from screencap pixels; motion from screenrecord frames with a sub-pixel edge, measured on
+every measurable tile and judged on the median; the exit latency from the shell's own ring buffer,
+which timestamps the touch-up's MotionEvent and the exit's first frame on one clock.
+
+## Theme: dark
+/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 147.3 MB/s (1896201 bytes in 0.012s)
+/sdcard/e7_exit.mp4: 1 file pulled, 0 skipped. 198.7 MB/s (1865779 bytes in 0.009s)
+captured into /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/E07/dark
+/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 188.1 MB/s (2257571 bytes in 0.011s)
+entry recording 2 captured
+/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 172.8 MB/s (3121524 bytes in 0.017s)
+entry recording 3 captured
+
+### Geometry (dark)
+12 grid tiles in both dumps; page background: resting (0, 0, 0), in edit mode (0, 0, 0)
+  held tile: dump says (54, 170, 388, 513), pixels say (45, 169, 388, 513)
+PASS  held tile scale (width): 1.000 (expected 1.0 ± 0.01)
+PASS  held tile scale (height): 1.003 (expected 1.0 ± 0.01)
+  other-tile scale: n=22 median=0.8352 spread=0.8338..0.8367
+PASS  other tiles' scale about their own centres: 0.835 (expected 0.835 ± 0.01)
+  centre contraction: n=99 median=0.9000 spread=0.8989..0.9017
+PASS  tile centres contract to: 0.900 (expected 0.9 ± 0.01)
+  fixed point: x=538.5px (0.499 of the width), y=1111.5px
+PASS  fixed point x as a fraction of the width: 0.499 (expected 0.5 ± 0.02)
+PASS  fixed point y as a fraction of the screen height: 0.475 (expected 0.46..0.49)
+  dim samples: 9 accent tiles (0, 120, 215), dropped ['slot:PHOTOS'] (live faces)
+  dark tile dim: n=18 median factor=0.532
+PASS  other tiles' pixels ×: 0.532 (expected 0.53 ± 0.03)
+  dark wallpaper dim: the page is black here (no wallpaper set), and black × any factor is black, so §1.1.5's 0.25-0.30 is read in the light theme's page instead
+  unpin disc: node (342, 123, 435, 216) = 31.00 × 31.00 epx, centre (388.5, 169.5); the held tile's corner is (388, 170)
+PASS  unpin disc diameter: 31.000 epx (expected 31 epx ± 1.5 epx)
+PASS  unpin disc centre x off the corner: 0.167 epx (expected 0 epx ± 1.5 epx)
+PASS  unpin disc centre y off the corner: -0.167 epx (expected 0 epx ± 1.5 epx)
+    painted: 5647 px of the theme's foreground, 30.67 epx across
+PASS  unpin disc painted in the theme's foreground: 30.667 epx (expected 31 epx ± 3 epx)
+  resize disc: node (342, 466, 435, 559) = 31.00 × 31.00 epx, centre (388.5, 512.5); the held tile's corner is (388, 513)
+PASS  resize disc diameter: 31.000 epx (expected 31 epx ± 1.5 epx)
+PASS  resize disc centre x off the corner: 0.167 epx (expected 0 epx ± 1.5 epx)
+PASS  resize disc centre y off the corner: -0.167 epx (expected 0 epx ± 1.5 epx)
+    painted: 6286 px of the theme's foreground, 30.67 epx across
+PASS  resize disc painted in the theme's foreground: 30.667 epx (expected 31 epx ± 3 epx)
+
+15/15 checks passed
+PASS  geometry (dark) (= 0)
+
+### Hold bracket (dark)
+probe tile slot:MAIL at (892.5, 255.5), resting plate [  0. 120. 215.]
+PASS  740 ms hold does NOT enter edit mode: the press acted as a tap and launched com.android.contacts/.activities.PeopleActivity (a tap never launches while edit mode is on)
+PASS  830 ms hold launches nothing (top activity after: app.tileshell/.StartActivity)
+PASS  830 ms hold enters edit mode (plate ratio 0.532, changed by 101, rect (714, 198, 1001, 485) vs resting (721, 84, 1064, 427), moved=True, shrunk=True, unpin disc in the dump=True)
+PASS  control: the check REJECTS plain Start (plate ratio 1.000, changed by 0, rect (721, 84, 1064, 427) vs resting (721, 84, 1064, 427), moved=False, shrunk=False)
+
+4/4 checks passed
+PASS  hold bracket (dark) (= 0)
+
+### Entry motion (dark), median over 3 recordings
+entry: 3 recording(s), 10 tile-measurements, settle band ±2%
+  shell:cortana (run 1)            swing  63.0 px  scale 50 %   51.5  settle  333.2   dim 50 %   75.0  90 %  324.9  settle  533.7
+  shell:settings (run 1)           swing  39.9 px  scale 50 %   52.0  settle  466.9   dim 50 %   77.8  90 %  317.8  settle  483.4
+  shell:weather (run 1)            swing  38.8 px  scale 50 %   51.1  settle  299.9   dim 50 %  162.3  90 %  565.9  settle  600.4
+  slot:MAIL (run 1)                swing  63.0 px  scale 50 %   51.3  settle  333.2   dim 50 %   98.7  90 %  325.1  settle  533.7
+  slot:MAPS (run 1)                swing  57.4 px  scale 50 %   51.9  settle  383.3   dim 50 %   75.7  90 %  316.6  settle  500.3
+  slot:PHOTOS (run 1)              swing  62.9 px  scale 50 %   52.0  settle  333.2   dim 50 %   88.9  90 %  205.3  settle  433.5
+  shell:cortana (run 2)            swing  63.0 px  scale 50 %   49.5  settle  333.4   dim 50 %   71.5  90 %  325.0  settle  466.3
+  slot:MAIL (run 2)                swing  63.0 px  scale 50 %   27.4  settle  383.4   dim 50 %  103.3  90 %  363.2  settle  516.2
+  shell:cortana (run 3)            swing  63.0 px  scale 50 %   49.9  settle  349.8   dim 50 %   64.9  90 %  345.6  settle  490.9
+  slot:MAIL (run 3)                swing  62.9 px  scale 50 % 1187.3  settle 1566.6   dim 50 % 1265.7  90 % 1530.4  settle 1707.7
+  median scale settles in: 341.6 ms (tiles span 299.9..1566.6)
+FAIL  scale settles in (median of 10 tiles): 341.610 ms (expected 417 ms ± 50 ms)
+  median scale 50 % at: 51.4 ms (tiles span 27.4..1187.3)
+PASS  scale 50 % at (median of 10 tiles): 51.404 ms (expected 67 ms ± 33 ms)
+  median dimming settles in: 508.3 ms (tiles span 433.5..1707.7)
+PASS  dimming settles in (median of 10 tiles): 508.255 ms (expected 550 ms ± 50 ms)
+  median dimming 50 % at: 83.3 ms (tiles span 64.9..1265.7)
+PASS  dimming 50 % at (median of 10 tiles): 83.347 ms (expected 83 ms ± 33 ms)
+  median dimming 90 % at: 325.1 ms (tiles span 205.3..1530.4)
+PASS  dimming 90 % at (median of 10 tiles): 325.084 ms (expected 350 ms ± 60 ms)
+
+4/5 checks passed
+FAILED: scale settles in
+FAIL  entry motion (dark) (expected [0], got [1])
+
+### Exit motion (dark)
+exit: 1 recording(s), 6 tile-measurements, settle band ±2%
+  shell:cortana (run 1)            swing  63.0 px  scale 50 %   84.5  settle  183.4   dim 50 %   24.6  90 %   83.5  settle  259.5
+  shell:settings (run 1)           swing  39.9 px  scale 50 %   83.7  settle  183.4   dim 50 %   25.5  90 %  109.2  settle  259.5
+  shell:weather (run 1)            swing  38.8 px  scale 50 %   84.5  settle  183.4   dim 50 %   -0.9  90 %   17.3  settle 1617.1
+  slot:MAIL (run 1)                swing  63.0 px  scale 50 %   84.4  settle  183.4   dim 50 %   15.0  90 %   71.2  settle  259.5
+  slot:MAPS (run 1)                swing  57.4 px  scale 50 %   82.9  settle  183.4   dim 50 %   27.1  90 %  126.5  settle  259.5
+  slot:PHOTOS (run 1)              swing  62.8 px  scale 50 %   84.7  settle  183.4   dim 50 %   63.1  90 % 1545.7  settle 1567.1
+  median scale return: 183.4 ms (tiles span 183.4..183.4)
+PASS  scale and pitch return in: 183.430 ms (expected 166.33333333333334 ms..233.66666666666666 ms)
+  median undim 90 % at: 96.4 ms (tiles span 17.3..1545.7)
+PASS  undim 90 % at (median of 6 tiles): 96.371 ms (expected 100 ms ± 40 ms)
+  median undim settles at: 259.5 ms (tiles span 259.5..1617.1)
+PASS  undim settles at (median of 6 tiles): 259.510 ms (expected 300 ms ± 60 ms)
+
+3/3 checks passed
+PASS  exit motion (dark) (= 0)
+
+### Exit latency from the ring buffer (dark)
+1 touch-ups, 2 exits recorded
+  exit at uptime 134000: 157 ms after its touch-up
+  exit at uptime 163133: 152 ms after its touch-up
+PASS  exit starts after touch-up (worst of 2): 157.000 ms (expected 150 ms ± 33.66666666666667 ms)
+
+1/1 checks passed
+PASS  exit latency (dark) (= 0)
+
+## Theme: light
+/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 187.4 MB/s (1464575 bytes in 0.007s)
+/sdcard/e7_exit.mp4: 1 file pulled, 0 skipped. 5.6 MB/s (28893 bytes in 0.005s)
+Warning: Activity not started, its current task has been brought to the front
+captured into /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/E07/light
+/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 195.9 MB/s (1624423 bytes in 0.008s)
+entry recording 2 captured
+/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 174.3 MB/s (1893893 bytes in 0.010s)
+entry recording 3 captured
+
+### Geometry (light)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/E07/light/edit.xml was not taken in edit mode (no discs in it)
+FAIL  geometry (light) (expected [0], got [1])
+
+### Hold bracket (light)
+probe tile slot:BROWSER at (180.5, 255.5), resting plate None
+PASS  740 ms hold does NOT enter edit mode: the press acted as a tap and launched com.android.contacts/.activities.PeopleActivity (a tap never launches while edit mode is on)
+FAIL  830 ms hold launches nothing (top activity after: com.android.contacts/.activities.PeopleActivity)
+FAIL  830 ms hold enters edit mode (no tile at the contracted position (216, 341): this is not edit mode)
+PASS  control: the check REJECTS plain Start (no plate colour to compare)
+
+2/4 checks passed
+FAILED: 830 ms launches nothing, 830 ms enters edit mode
+FAIL  hold bracket (light) (expected [0], got [1])
+
+### Entry motion (light), median over 3 recordings
+no tile in /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/E07/light/normal.xml gave a measurable edge in ['/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/E07/light/e7_entry.mp4', '/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/E07/light/e7_entry_2.mp4', '/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/E07/light/e7_entry_3.mp4']
+FAIL  entry motion (light) (expected [0], got [1])
+
+### Exit motion (light)
+no tile in /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/E07/light/normal.xml gave a measurable edge in ['/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/E07/light/e7_exit.mp4']
+FAIL  exit motion (light) (expected [0], got [1])
+
+### Exit latency from the ring buffer (light)
+1 touch-ups, 4 exits recorded
+  exit at uptime 134000: 157 ms after its touch-up
+  exit at uptime 163133: 152 ms after its touch-up
+  exit at uptime 182667: 152 ms after its touch-up
+  exit at uptime 194717: 159 ms after its touch-up
+PASS  exit starts after touch-up (worst of 4): 159.000 ms (expected 150 ms ± 33.66666666666667 ms)
+
+1/1 checks passed
+PASS  exit latency (light) (= 0)
+---- 5 passed, 5 failed ----

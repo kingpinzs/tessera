@@ -63,6 +63,17 @@ drag() {
   adb exec-out screencap -p > "$OUT/${label}_after.png"
   dump "$OUT/${label}_after.xml"
   adb shell input keyevent KEYCODE_BACK; sleep 1
+  # Start at REST for position comparisons: the drop leaves edit mode's contraction on, and a new folder opens
+  # its band (R6 §1.6.2) and stays open after edit mode (H9). Neither is layout. The 2026-09-22 suite compared
+  # a witness tile at rest with the same tile contracted and pushed down by the band.
+  dump "$OUT/${label}_rest.xml"
+  local open fxy
+  open=$(grep -o 'resource-id="folder_band_top:[^"]*"' "$OUT/${label}_rest.xml" | head -1 | sed 's/.*folder_band_top://; s/"$//')
+  if [ -n "$open" ]; then
+    fxy=$(tile_center "$OUT/${label}_rest.xml" "folder:$open")
+    adb shell input tap ${fxy% *} ${fxy#* }; sleep 1.2
+    dump "$OUT/${label}_rest.xml"
+  fi
 }
 
 A_ID=$(layout_json | python3 -c "import json,sys; print(json.load(sys.stdin)['order'][-1]['key'])")
@@ -80,7 +91,7 @@ if [ -n "$FID" ]; then
   check "the folder holds the target and the dragged tile" "$B_ID $A_ID" "$(members_of "$FID")"
   check "it sits in the target's place" "folder:$FID" "$(keys | cut -d' ' -f1)"
 fi
-WITNESS_AFTER=$(bounds "$OUT/e8a_folder_after.xml" "tile:$UNTOUCHED")
+WITNESS_AFTER=$(bounds "$OUT/e8a_folder_rest.xml" "tile:$UNTOUCHED")
 WITNESS_START=$(bounds "$OUT/e8a_folder_start.xml" "tile:$UNTOUCHED")
 check "no other tile moved: $UNTOUCHED bounds" "$WITNESS_START" "$WITNESS_AFTER"
 

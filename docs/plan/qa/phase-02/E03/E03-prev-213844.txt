@@ -1,0 +1,32 @@
+# E3 2026-09-22T21:19:21-06:00
+build guard: built=2b27c7b8c1f131ed8661226ceeaa08e5 installed=2b27c7b8c1f131ed8661226ceeaa08e5
+driver: e3.sh blob 04fe9fc4059c7f44baaed12ddf06fbd1a866c929
+--- 1. create a folder: shell:settings dropped on slot:PEOPLE, released inside the dwell ---
+folder tile = folder:f1 (id f1); R6 §1.6.2: created in place, Start stays in edit mode, the band opens
+band rules in the dump: top=54 556 1026 558 bottom=54 988 1026 990
+members drawn in the band: resource-id="tile:member:slot:PEOPLE" resource-id="tile:member:shell:settings" 
+  folder f1 name=None members=['slot:PEOPLE', 'shell:settings']
+--- 2. name it through the 'Name folder' placeholder (R6 §1.7.1-§1.7.2) ---
+placeholder bounds: 62 568 252 619
+the name box opened: 27 477 1046 621
+PASS  the placeholder opens the name box (found [folder_name_box])
+after typing Work:
+  folder f1 name='Work' members=['slot:PEOPLE', 'shell:settings']
+PASS  the folder is named (= Work)
+--- 3. tap-and-hold on the name opens the same box (R6 §1.7.3) ---
+PASS  tap-and-hold on the name opens the same box (found [folder_name_box])
+--- 4. collapse and re-expand by tapping the folder tile (R6 §1.6.6 / §1.6.7) ---
+PASS  H9: leaving edit mode leaves the folder expanded (found [folder_band_top:f1])
+PASS  a tap folds the band away (no [folder_band_top:f1])
+PASS  another tap re-opens it (found [folder_band_top:f1])
+--- 5. a third and a fourth member, dropped on the collapsed folder tile ---
+member 3: dragging slot:MUSIC onto folder:f1
+  folder f1 name='Work' members=['slot:PEOPLE', 'shell:settings', 'slot:MUSIC']
+member 4: dragging slot:MAPS onto folder:f1
+  folder f1 name='Work' members=['slot:PEOPLE', 'shell:settings', 'slot:MUSIC', 'slot:MAPS']
+PASS  the face capture is COLLAPSED, not the band (no [folder_band_top:f1])
+PASS  the folder holds four members for the 3 + 1 face (H12) (= 4)
+--- 5b. a tile dropped on an empty cell of the EXPANDED band joins the folder there ---
+--- 6. unpin one member of a two-member folder: it dissolves into the other (H19) ---
+selecting band member member:shell:settings
+ABORT: no unpin disc for the selected member
