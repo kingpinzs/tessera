@@ -1,0 +1,24 @@
+==============================================================================
+ROW J5 — "play <name>" plays it in the shell's player; an unknown name is said, not faked
+at            2026-09-23T11:32:24-06:00
+driver        j5.sh blob 602065e82504d9668ec92fab857b24fb7b0a1786
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     24e35f06cd8bf6d9 335501914 bytes
+apk installed 458bd6f82a597464
+apk match     yes (458bd6f82a597464)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      a. Tess said: [Playing Bloom by Radiohead.]; session:       state=PlaybackState {state=PLAYING(3), position=5980, buffered position=90044, speed=1.0, updated=1049694, actions=7340027, custom actions=[], active item id=0, error=null};       metadata: size=5, description=Bloom, Radiohead, The King of Limbs
+PASS  a. the shell's session is playing                           contains [PLAYING]
+PASS  a. and it is Bloom                                          contains [Bloom]
+PASS  a. Tess names what she played                               contains [Bloom]
+      b. Tess said: [Playing Brian Eno.]; session:       state=PlaybackState {state=PLAYING(3), position=6029, buffered position=90044, speed=1.0, updated=1068661, actions=7340027, custom actions=[], active item id=0, error=null};       metadata: size=5, description=An Ending, Brian Eno, Apollo
+PASS  b. still playing                                            contains [PLAYING]
+PASS  b. a Brian Eno track replaced Bloom                         = yes
+      c. Tess said: [I couldn't find zzqx nothing in your music.]; before:       metadata: size=5, description=An Ending, Brian Eno, Apollo; after:       metadata: size=5, description=An Ending, Brian Eno, Apollo
+PASS  c. Tess does not claim to be playing it                     does not contain [Playing zzqx]
+PASS  c. she says she could not find it                           contains [couldn't find]
+PASS  c. the playing track did not change                         =       metadata: size=5, description=An Ending, Brian Eno, Apollo
+      restored: the shell restarted (music stopped); the fixtures stay (MUSIC rows share them)
+------------------------------------------------------------------------------
+J5: 8 passed, 0 failed

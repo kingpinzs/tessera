@@ -145,6 +145,58 @@ class MusicService : MediaSessionService() {
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
+
+        /**
+         * A search ("play Bloom" from Tess's playFromSearch, or any controller) resolves against the library by
+         * MusicSearch, and the queue starts at the match. This session used to answer no search at all, so Tess's
+         * "play <name>" left the player empty (J5). A search with no match FAILS rather than returning an empty
+         * list: an empty list would clear whatever is playing.
+         */
+        override fun onSetMediaItems(
+            mediaSession: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            mediaItems: MutableList<MediaItem>,
+            startIndex: Int,
+            startPositionMs: Long,
+        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+            val query = mediaItems.singleOrNull()?.requestMetadata?.searchQuery
+                ?: return super.onSetMediaItems(mediaSession, controller, mediaItems, startIndex, startPositionMs)
+            val match = MusicSearch.resolve(query, library())
+            if (match == null) {
+                Diagnostics.add("music", "search \"$query\": nothing in the library")
+                return Futures.immediateFailedFuture(UnsupportedOperationException("no match for \"$query\""))
+            }
+            Diagnostics.add("music", "search \"$query\": ${match.kind.name.lowercase()} ${match.label}, ${match.queue.size} track(s)")
+            return Futures.immediateFuture(
+                MediaSession.MediaItemsWithStartPosition(match.queue.map { mediaItem(it) }, match.startIndex, 0L),
+            )
+        }
+
+        /** Items that arrive without their URI (a controller sends ids, or a search) are rebuilt from the library. */
+        override fun onAddMediaItems(
+            mediaSession: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            mediaItems: MutableList<MediaItem>,
+        ): ListenableFuture<MutableList<MediaItem>> {
+            if (mediaItems.all { it.localConfiguration != null }) return Futures.immediateFuture(mediaItems)
+            val lib = library()
+            val out = mediaItems.flatMap { item ->
+                val query = item.requestMetadata.searchQuery
+                when {
+                    item.localConfiguration != null -> listOf(item)
+                    query != null -> MusicSearch.resolve(query, lib)?.queue.orEmpty().map { mediaItem(it) }
+                    else -> lib.firstOrNull { it.id.toString() == item.mediaId }?.let { listOf(mediaItem(it)) }.orEmpty()
+                }
+            }
+            if (out.isEmpty()) return Futures.immediateFailedFuture(UnsupportedOperationException("nothing to add"))
+            return Futures.immediateFuture(out.toMutableList())
+        }
+    }
+
+    /** The library as the Music screens see it; read now if nothing has loaded it in this process yet. */
+    private fun library(): List<Track> {
+        if (MusicStore.library.value.isEmpty()) MusicStore.refresh(this, "a search")
+        return MusicStore.library.value
     }
 
     private fun setSleep(minutes: Int) {

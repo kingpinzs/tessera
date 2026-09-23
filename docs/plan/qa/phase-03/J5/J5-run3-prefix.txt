@@ -1,0 +1,24 @@
+==============================================================================
+ROW J5 — "play <name>" plays it in the shell's player; an unknown name is said, not faked
+at            2026-09-23T11:18:46-06:00
+driver        j5.sh blob 602065e82504d9668ec92fab857b24fb7b0a1786
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     46889edb51f188d0 335485062 bytes
+apk installed 3d959e31f9792579
+apk match     yes (3d959e31f9792579)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      a. Tess said: [Playing bloom.]; session:       state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=225884, actions=7339653, custom actions=[], active item id=0, error=null};       metadata: null
+FAIL  a. the shell's session is playing                           does not contain [PLAYING]:       state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=225884, actions=7339653, custom actions=[], active item id=0, error=null}
+FAIL  a. and it is Bloom                                          does not contain [Bloom]:       metadata: null
+FAIL  a. Tess names what she played                               does not contain [Bloom]: Playing bloom.
+      b. Tess said: [Playing brian eno.]; session:       state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=225884, actions=7339653, custom actions=[], active item id=0, error=null};       metadata: null
+FAIL  b. still playing                                            does not contain [PLAYING]:       state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=225884, actions=7339653, custom actions=[], active item id=0, error=null}
+FAIL  b. a Brian Eno track replaced Bloom                         expected [yes] got [no]
+      c. Tess said: [Playing zzqx nothing.]; before:       metadata: null; after:       metadata: null
+FAIL  c. Tess does not claim to be playing it                     should NOT contain [Playing zzqx]
+FAIL  c. she says she could not find it                           does not contain [couldn't find]: Playing zzqx nothing.
+PASS  c. the playing track did not change                         =       metadata: null
+      restored: the shell restarted (music stopped); the fixtures stay (MUSIC rows share them)
+------------------------------------------------------------------------------
+J5: 1 passed, 7 failed
