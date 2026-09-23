@@ -29,6 +29,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -84,13 +86,16 @@ object TextBoxValues {
     val PAGE_BACKGROUND = Color(0xFF000000)
 }
 
-/** Which form R6 §3.3.7 says the bar takes. */
+/**
+ * Which form the bar takes (R6 §3.3.7).
+ *
+ * R6 §3.3.7 (a) measured a third form — after a send the grey bar kept the query with a "✕" — and it is
+ * deliberately NOT built: Jeremy, 2026-09-22, "It should auto clear when it gets auto sent". A sent
+ * request, typed or spoken, returns the bar to the empty box at once; the answer card stays on the page.
+ */
 enum class TextBoxMode {
-    /** The placeholder, with the accent mic button. */
+    /** The placeholder, with the accent mic button. Also the form right after a send. */
     IDLE,
-
-    /** After submit or while thinking: the grey bar shows the query and a "✕" at the right. */
-    SUBMITTED,
 
     /** A confirm card waiting for a spoken yes / no: the bar is empty, grey mic glyph, no accent fill. */
     AWAITING_ANSWER,
@@ -99,14 +104,14 @@ enum class TextBoxMode {
 @Composable
 fun CortanaTextBox(
     mode: TextBoxMode,
-    query: String,
     accent: Color,
     onSubmit: (String) -> Unit,
     onMic: () -> Unit,
-    onClear: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var typed by remember { mutableStateOf("") }
+    val focus = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
     Box(
         modifier
             .fillMaxWidth()
@@ -120,11 +125,6 @@ fun CortanaTextBox(
                 contentAlignment = Alignment.CenterStart,
             ) {
                 when (mode) {
-                    TextBoxMode.SUBMITTED -> BasicText(
-                        query,
-                        style = ShellType.body.copy(color = Color.White),
-                        modifier = Modifier.testTag("cortana_text_box_query"),
-                    )
                     TextBoxMode.AWAITING_ANSWER -> Unit
                     TextBoxMode.IDLE -> BasicTextField(
                         value = typed,
@@ -136,6 +136,10 @@ fun CortanaTextBox(
                         keyboardActions = KeyboardActions(onSend = {
                             val text = typed
                             typed = ""
+                            // The field stays on screen after a send, so the keyboard is put away here
+                            // or it would cover the answer card.
+                            keyboard?.hide()
+                            focus.clearFocus()
                             onSubmit(text)
                         }),
                         modifier = Modifier.fillMaxWidth().testTag("cortana_text_box_field"),
@@ -153,14 +157,6 @@ fun CortanaTextBox(
                 }
             }
             when (mode) {
-                TextBoxMode.SUBMITTED -> Box(
-                    Modifier.size(TextBoxValues.MIC_BUTTON_EPX.dp)
-                        .clickable(remember { MutableInteractionSource() }, indication = null, onClick = onClear)
-                        .testTag("cortana_text_box_clear"),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    BasicText(Glyph.DISMISS, style = iconStyle(Color(0xFFB0B0B0), 18))
-                }
                 TextBoxMode.AWAITING_ANSWER -> Box(
                     Modifier.size(TextBoxValues.MIC_BUTTON_EPX.dp).testTag("cortana_text_box_mic_idle"),
                     contentAlignment = Alignment.Center,

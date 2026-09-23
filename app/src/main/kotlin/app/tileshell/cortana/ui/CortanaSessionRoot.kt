@@ -141,16 +141,10 @@ private fun HomeOrResult(model: CortanaModel) {
             ListeningQueryBox(state.query, state.level, accent, onSubmit = { model.stopListening() })
         } else {
             CortanaTextBox(
-                mode = when {
-                    state.awaiting != null -> TextBoxMode.AWAITING_ANSWER
-                    state.persona == PersonaState.THINKING || state.route is CortanaRoute.Result -> TextBoxMode.SUBMITTED
-                    else -> TextBoxMode.IDLE
-                },
-                query = state.query,
+                mode = if (state.awaiting != null) TextBoxMode.AWAITING_ANSWER else TextBoxMode.IDLE,
                 accent = accent,
                 onSubmit = { model.submitTyped(it) },
                 onMic = { model.startListening() },
-                onClear = { model.clearResult() },
             )
         }
     }
