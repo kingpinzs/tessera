@@ -130,6 +130,9 @@ gesture mode, so that result decides whether the panel's bottom edge is one desi
 9. [Jeremy] Media transport controls in the volume panel while music plays: W10M showed them in a section that extends under the slider, ease-out, ≈333 ms, with the track title fading in (R7 §4.5.6, LOW, 14393)
 10. [Jeremy] Toggle commands on a locked phone (review R3-m4): phase 03's locked gate covers only phase 03's commands, and airplane mode from a locked phone matters if the phone is lost. Ask: "While the phone is locked, should Cortana (a) switch Wi-Fi, Bluetooth, mobile data and airplane mode directly; (b) show 'Unlock to continue' for them; or (c) other / let me clarify?"
 
+11. [Jeremy] Acrylic behind the action center (added 2026-09-22 at the phase 11-19 split, from phase 13's writer): A19 records the panel background "(0,0,0) as captured", which no acrylic tint can reproduce over a non-black app, yet R3's source S3 is titled "Windows 10 Mobile Action center blur effect" (10586 or later). Whether W10M's final action center was translucent is unmeasured. Ask which wins: the captured black, phase 13's acrylic, or a re-measure first.
+12. [agent] "All settings" target (added 2026-09-22 at the split, from phase 19's writer): E4(d) taps "All settings" as an app launch; once phase 19 exists its target is the W10M Settings front. Settle the row's expectation when 04 is interviewed.
+
 ## Build tasks
 1. Helper: start, daemonise, binder handoff, restart path, state reporting
 2. Accessibility service + overlay host

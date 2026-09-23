@@ -91,7 +91,7 @@ search at the top, live folders, and a full-screen background image showing thro
   phase interview: prefer the option with fewer separate apps, fewer manual steps and fewer visible Android seams.
 
 ## After the plan (Jeremy, 2026-09-16)
-Once the full W10M shell is done (all 9 phases), Jeremy's own new features ("our own updates") come as a new plan. They are out of
+Once the full W10M shell is done (every phase in INDEX.md; 19 as of 2026-09-22), Jeremy's own new features ("our own updates") come as a new plan. They are out of
 scope for this plan, so the split must not pre-build hooks for them (Hard Rule 16 / no future-proofing).
 
 ## Android limits
@@ -146,6 +146,8 @@ SUPERSEDED older note (launcher-only framing, kept for history):
   opens with a feasibility + licence check; if that fails, Jeremy is re-asked (no silent fallback). Seamless requirement: that
   phase must look for a way to restart the helper after reboot with no manual steps before settling for a one-tap restart.
   Jeremy: "I want it all in one as much as possible and semless as much as possible".
+  2026-09-22 reconfirmed (Jeremy asked "why debugging at all?", was offered keep-the-helper vs no-helper,
+  and answered "keep it"). Q13 stands unchanged.
 - 2026-09-16 Q12 Governing build: **C. The final Windows 10 Mobile release, with every update included** (Creators Update
   15063 / Fall Creators 15254 era; the Anniversary Update's Cortana waveform and customisable quick actions are in, since updates
   are cumulative). Jeremy: "so do (a) but make sure all updates are in it then we will make our own updates to it onces its fully done".
