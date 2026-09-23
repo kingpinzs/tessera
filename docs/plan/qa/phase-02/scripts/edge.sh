@@ -33,9 +33,11 @@ say "store after the upgrade:"
 layout_json > "$OUT/v2_upgraded.json"
 cat "$OUT/v2_upgraded.json" >> "$LOG"; echo >> "$LOG"
 check "the store upgraded to version 3" 3 "$(python3 -c "import json; print(json.load(open('$OUT/v2_upgraded.json'))['version'])")"
+# Only the six tiles the v2 file held: a v2 store has none of the later one-time markers, so on load the shell
+# legitimately adds Tess's tile once (phase 03) after them — the upgrade is judged on what it kept.
 check "the six tiles came back in READING order" \
   "slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR shell:weather slot:STORE" \
-  "$(python3 -c "import json; print(' '.join(o['key'] for o in json.load(open('$OUT/v2_upgraded.json'))['order']))")"
+  "$(python3 -c "import json; six={'slot:PEOPLE','slot:BROWSER','slot:MAIL','slot:CALENDAR','shell:weather','slot:STORE'}; print(' '.join(o['key'] for o in json.load(open('$OUT/v2_upgraded.json'))['order'] if o['key'] in six))")"
 check "the bottom row was kept" "slot:PHONE slot:MESSAGING slot:CAMERA" \
   "$(python3 -c "import json; print(' '.join(json.load(open('$OUT/v2_upgraded.json'))['dock']))")"
 adb exec-out screencap -p > "$OUT/edge_v2_upgrade.png"
@@ -181,11 +183,27 @@ for MS in 1800 2200; do
   up ${TO% *} ${TO#* }; sleep 1.4
   HELD=$((T1 - T0))
   FOLDERS=$(layout_json | python3 -c "import json,sys; print(len(json.load(sys.stdin)['folders']))")
-  say "held ${HELD} ms over the target (asked for ${MS}); folders after = $FOLDERS"
-  if [ "$HELD" -lt 2000 ]; then
-    check "a release at ${HELD} ms, inside the dwell, makes a folder" 1 "$FOLDERS"
+  # The verdict uses the dwell the SHELL measured (its drop line), not the host's: the host figure leaves out the
+  # adb round trips on both sides, and run 2026-09-22 read a real 2000-plus-ms dwell as "1886 ms, inside".
+  RING=$(adb shell dumpsys activity service app.tileshell/.feeds.TileNotificationListener | grep -E "\[edit\] (hover|dwell ended|drop):")
+  DROP=$(echo "$RING" | grep "\[edit\] drop:" | tail -1)
+  DWELT=$(echo "$DROP" | sed -n 's/.*after dwelling \([0-9]*\) ms.*/\1/p')
+  # A release AFTER the dwell carries no dwell of its own: once the dwell ends the tiles make room and the finger
+  # is no longer over a tile. The shell logs the end, so "dwell ended" between this drag's hover and its drop
+  # means the release came past the boundary.
+  if [ -z "$DWELT" ] && echo "$RING" | awk '/\[edit\] hover:/{h=NR} /\[edit\] dwell ended:/{e=NR} END{exit !(e>h)}'; then DWELT=2100; say "the shell logged the dwell ending before the release (past the boundary)"; fi
+  say "asked for ${MS} ms, host measured ${HELD} ms; the shell: ${DROP#*\] }; folders after = $FOLDERS"
+  if [ -z "$DWELT" ]; then
+    check "the shell recorded the drop and its dwell" yes no
+  elif [ "$DWELT" -lt 1980 ]; then
+    check "a release after ${DWELT} ms (shell clock), inside the dwell, makes a folder" 1 "$FOLDERS"
+  elif [ "$DWELT" -gt 2020 ]; then
+    check "a release after ${DWELT} ms (shell clock), past the dwell, makes no folder" 0 "$FOLDERS"
   else
-    check "a release at ${HELD} ms, past the dwell, makes no folder" 0 "$FOLDERS"
+    # Within 20 ms of the boundary either outcome is right; what must hold is that the store agrees with the
+    # outcome the shell announced.
+    check "a release ON the boundary (${DWELT} ms): the store matches the announced outcome" \
+      "$(echo "$DROP" | grep -q 'makes a folder' && echo 1 || echo 0)" "$FOLDERS"
   fi
   adb exec-out screencap -p > "$OUT/edge_boundary_$MS.png"
   adb shell input keyevent KEYCODE_BACK; sleep 1
