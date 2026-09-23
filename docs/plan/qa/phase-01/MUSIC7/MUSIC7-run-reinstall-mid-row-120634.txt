@@ -1,28 +1,29 @@
 ==============================================================================
 ROW MUSIC7 — the now-playing screen against R8's measurements, and the scrolling pivot headers
-at            2026-09-23T12:30:05-06:00
+at            2026-09-23T11:45:42-06:00
 driver        music7.sh blob 789bf2b3a6332d1237663329f44ab131ee60fb5d
-harness       lib.sh blob 5679a49e4bc3e933c98f48b19448424db383fa5f
-apk built     985eaf3b074e9a85 335501914 bytes
-apk installed a21c8d8a968ad031
-apk match     yes (a21c8d8a968ad031)
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     24e35f06cd8bf6d9 335501914 bytes
+apk installed 458bd6f82a597464
+apk match     yes (458bd6f82a597464)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
-awake         Awake
 ==============================================================================
-      pivot -> songs (settled after 0s, diagnostics say [songs])
-PASS  the pivot reaches songs                                     contains [pivot settled on songs]
+FAIL  the pivot reaches songs                                     does not contain [pivot settled on songs]:     2026-09-23 11:49:10.717 wall=1790185750717 [music] MusicActivity created
+    2026-09-23 11:49:10.723 wall=1790185750723 [music] library (start): 6 tracks
+    2026-09-23 11:49:10.958 wall=1790185750958 [music] crossfade: 0 ms (restored)
+
       on songs, the playlists header's right edge is at 1080px of a 1080px screen
 PASS  the playlists header is on the strip at all                 != 
 PASS  on songs it is still CUT OFF by the screen edge, as Jeremy has it now  = ok
-      pivot -> playlists (settled after 0s, diagnostics say [playlists])
-PASS  and reaches playlists                                       contains [pivot settled on playlists]
+FAIL  and reaches playlists                                       does not contain [pivot settled on playlists]:     2026-09-23 11:49:10.717 wall=1790185750717 [music] MusicActivity created
+    2026-09-23 11:49:10.723 wall=1790185750723 [music] library (start): 6 tracks
+    2026-09-23 11:49:10.958 wall=1790185750958 [music] crossfade: 0 ms (restored)
+
       on playlists its right edge is 1068px; the albums header's right edge went 319 -> 122
 PASS  swiping to playlists scrolls it fully into view             = ok
 PASS  and the whole strip moved to do it, taking albums off the left  = ok
-      pivot -> songs (settled after 0s, diagnostics say [songs])
       back on songs, the playlists header's right edge is 1080px again
 PASS  going back to songs puts it out of view again, not fully, exactly as before  = 1080
-      pivot -> songs (settled after 0s, diagnostics say [songs])
 PASS  there is a song to open                                     != 
 PASS  a tap on a track opens the now-playing screen               contains [nowplaying_root]
 PASS  the header title is R8's, all caps                          = NOW PLAYING
@@ -53,13 +54,19 @@ PASS  the chevron is at exactly half the width                    180.00 vs 180.
       elapsed 0:04 -> 0:16 · total 1:30 -> 1:30
 PASS  the elapsed label advances                                  != 0:04
 PASS  the right label does NOT, because it is the total duration (R8 1.5, HIGH)  = 1:30
-      after play/pause:       state=PlaybackState {state=PAUSED(2), position=17755, buffered position=90044, speed=0.0, updated=4546828, actions=7340029, custom actions=[], active item id=0, error=null}
-PASS  the play-pause control pauses the session                   contains [PAUSED(2)]
-PASS  and starts it again                                         contains [PLAYING(3)]
+      after play/pause:       state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=2033462, actions=7339653, custom actions=[], active item id=0, error=null}
+FAIL  the play-pause control pauses the session                   does not contain [PAUSED(2)]:       state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=2033462, actions=7339653, custom actions=[], active item id=0, error=null}
+FAIL  and starts it again                                         does not contain [PLAYING(3)]:       state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=2033462, actions=7339653, custom actions=[], active item id=0, error=null}
       next: [4 Minute Warning] -> [An Ending]
 PASS  next moves to another track                                 != 4 Minute Warning
-PASS  the shuffle control reaches the player                      contains [shuffle on]
-PASS  and so does repeat, which is three-state                    contains [repeat all]
+FAIL  the shuffle control reaches the player                      does not contain [shuffle on]:     2026-09-23 11:49:10.717 wall=1790185750717 [music] MusicActivity created
+    2026-09-23 11:49:10.723 wall=1790185750723 [music] library (start): 6 tracks
+    2026-09-23 11:49:10.958 wall=1790185750958 [music] crossfade: 0 ms (restored)
+
+FAIL  and so does repeat, which is three-state                    does not contain [repeat all]:     2026-09-23 11:49:10.717 wall=1790185750717 [music] MusicActivity created
+    2026-09-23 11:49:10.723 wall=1790185750723 [music] library (start): 6 tracks
+    2026-09-23 11:49:10.958 wall=1790185750958 [music] crossfade: 0 ms (restored)
+
 PASS  the chevron opens the play queue                            contains [nowplaying_queue]
 PASS  and the art is gone, because album mode removes it entirely  does not contain [resource-id="nowplaying_art"]
       expanded, the title band starts at 228px = 76.0 epx
@@ -70,6 +77,6 @@ PASS  a queue row carries Artist - dot - Album in grey            contains [ •
 PASS  and it closes again                                         does not contain [nowplaying_queue]
 PASS  with the art back                                           contains [resource-id="nowplaying_art"]
 PASS  Back returns to the collection                              contains [music_pivot_header:albums]
-PASS  and the session is still playing behind it                  contains [PLAYING(3)]
+FAIL  and the session is still playing behind it                  does not contain [PLAYING(3)]:       state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=2033462, actions=7339653, custom actions=[], active item id=0, error=null}
 ------------------------------------------------------------------------------
-MUSIC7: 46 passed, 0 failed
+MUSIC7: 39 passed, 7 failed

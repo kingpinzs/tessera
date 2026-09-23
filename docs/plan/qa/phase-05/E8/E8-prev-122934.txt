@@ -1,28 +1,27 @@
 ==============================================================================
 ROW E8 — voice typing, network off, inserts the spoken text
-at            2026-09-23T12:29:34-06:00
+at            2026-09-23T12:15:38-06:00
 driver        e8.sh blob dd5fed3a93405354f379a21ce10b9a076749068d
-harness       lib.sh blob 5679a49e4bc3e933c98f48b19448424db383fa5f
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
 apk built     985eaf3b074e9a85 335501914 bytes
 apk installed a21c8d8a968ad031
 apk match     yes (a21c8d8a968ad031)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
-awake         Awake
 ==============================================================================
       kb_begin: prior ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
-      tree: HEAD b3e8946 (2026-09-23T12:26:16-06:00); uncommitted files under app/: 9; apk built 2026-09-23T11:52:53-06:00
+      tree: HEAD f6acc21 (2026-09-23T12:14:35-06:00); uncommitted files under app/: 9; apk built 2026-09-23T11:52:53-06:00
 OK
 default source: vmic.monitor
 emulator sink:  
 dumpsys connectivity: Active default network: none
 PASS  the network is off (no active default network)              contains [none]
-PASS  the voice key leads the strip                               = yes
-      speech process: asr_listening=true mic_owner_pid=15123 clients=1
-PASS  the microphone is listening for the keyboard's own process  = 15123
-field after speaking "What time is it?": [what time is it ]
-PASS  the spoken text went into the field                         contains [hat time is it]
-PASS  the keyboard recorded the final transcript                  contains [voice final]
-      restored: Active default network: 107
+FAIL  the voice key leads the strip                               expected [yes] got [no]
+      speech process: asr_listening= mic_owner_pid= clients=
+FAIL  the microphone is listening for the keyboard's own process  expected [11119] got []
+field after speaking "What time is it?": 
+FAIL  the spoken text went into the field                         does not contain [hat time is it]: 
+FAIL  the keyboard recorded the final transcript                  does not contain [voice final]: 
+      restored: Active default network: 105
       kb_end: restored ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=1
 ------------------------------------------------------------------------------
-E8: 5 passed, 0 failed
+E8: 1 passed, 4 failed

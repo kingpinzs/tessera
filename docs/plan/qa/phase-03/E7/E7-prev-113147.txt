@@ -1,39 +1,39 @@
 ==============================================================================
 ROW E7 — the confirmation flow
-at            2026-09-23T12:07:04-06:00
+at            2026-09-21T20:41:04-06:00
 driver        e7.sh blob d455f318fe27a35d7328d32e40644be4144c3070
-harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     985eaf3b074e9a85 335501914 bytes
-apk installed a21c8d8a968ad031
-apk match     yes (a21c8d8a968ad031)
+harness       lib.sh blob e237261b78d153dbe443cbc4ff33af1fff6ac9ce
+apk built     f31ac978e694e489 317957472 bytes
+apk installed b6207bbd03d113f7
+apk match     yes (b6207bbd03d113f7)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 ==============================================================================
-      read-back reply: Okay, I'll text Mom: i'm on my way. Send it, add more, or try again?
-PASS  R6 3.4.1 read-back names the contact                        contains [I'll text Mom]
-PASS  R6 3.4.1 read-back quotes the message                       contains [on my way]
-PASS  R6 3.4.1 read-back offers the three answers                 contains [Send it, add more, or try again?]
-PASS  the text read-back card is on screen                        = yes
-PASS  with a Send button                                          = yes
-PASS  and a Cancel button                                         = yes
+      read-back reply: Sorry, I can't do that yet.
+FAIL  R6 3.4.1 read-back names the contact                        does not contain [I'll text Mom]: Sorry, I can't do that yet.
+FAIL  R6 3.4.1 read-back quotes the message                       does not contain [on my way]: Sorry, I can't do that yet.
+FAIL  R6 3.4.1 read-back offers the three answers                 does not contain [Send it, add more, or try again?]: Sorry, I can't do that yet.
+FAIL  the text read-back card is on screen                        expected [yes] got [no]
+FAIL  with a Send button                                          expected [yes] got [no]
+FAIL  and a Cancel button                                         expected [yes] got [no]
       at the read-back: listening box=no, tappable mic=no
 FAIL  a confirmation can be answered by voice                     no listening box and no tappable mic: the card can only be answered by its buttons
       answering by tap, because voice was not available at the card
 PASS  cancel sends nothing                                        = 0
-PASS  and Cortana says so                                         contains [won't send it]
-      add more reply: Okay, I'll text Mom: i'm on my way. Send it, add more, or try again?
-FAIL  R6 3.4.1 add more asks for the addition                     does not contain [what would you like to add]: Okay, I'll text Mom: i'm on my way. Send it, add more, or try again?
-      second read-back: Okay, I'll text Mom: i'm on my way. Send it, add more, or try again?
-FAIL  the next read-back starts with Okay, now I've got:          does not contain [Okay, now I've got:]: Okay, I'll text Mom: i'm on my way. Send it, add more, or try again?
-PASS  and carries the FIRST part of the message                   contains [on my way]
-FAIL  and the added part too                                      does not contain [milk]: Okay, I'll text Mom: i'm on my way. Send it, add more, or try again?
-FAIL  send it replies Message sent.                               does not contain [Message sent.]: Okay, I'll text Mom: i'm on my way. Send it, add more, or try again?
+FAIL  and Cortana says so                                         does not contain [won't send it]: Sorry, I can't do that yet.
+      add more reply: Sorry, I can't do that yet.
+FAIL  R6 3.4.1 add more asks for the addition                     does not contain [what would you like to add]: Sorry, I can't do that yet.
+      second read-back: Sorry, I can't do that yet.
+FAIL  the next read-back starts with Okay, now I've got:          does not contain [Okay, now I've got:]: Sorry, I can't do that yet.
+FAIL  and carries the FIRST part of the message                   does not contain [on my way]: Sorry, I can't do that yet.
+FAIL  and the added part too                                      does not contain [milk]: Sorry, I can't do that yet.
+FAIL  send it replies Message sent.                               does not contain [Message sent.]: Sorry, I can't do that yet.
 FAIL  and the SMS provider gained a sent row                      should not be [0]
 FAIL  whose body is the WHOLE message                             does not contain [milk]: No result found.
-PASS  try again asks for the message again                        contains [What do you want to say?]
-      call read-back: Okay, I'll call Mom, mobile. Call, or try again?
-PASS  the call is read back                                       contains [I'll call Mom]
-PASS  and asks before dialling                                    contains [Call, or try again?]
-PASS  the call confirmation card is on screen                     = yes
+FAIL  try again asks for the message again                        does not contain [What do you want to say?]: Sorry, I can't do that yet.
+      call read-back: I couldn't find Ma'am in your contacts.
+FAIL  the call is read back                                       does not contain [I'll call Mom]: I couldn't find Ma'am in your contacts.
+FAIL  and asks before dialling                                    does not contain [Call, or try again?]: I couldn't find Ma'am in your contacts.
+FAIL  the call confirmation card is on screen                     expected [yes] got [no]
 PASS  dumpsys telecom shows no call yet                           = 0
 FAIL  and the call appears only after confirm                     should not be [0]
 FAIL  the reminder confirm card is on screen                      expected [yes] got [no]
@@ -52,7 +52,7 @@ FAIL  the card's fields are measurable                            text=[] time=[
 FAIL  the card's buttons are measurable                           remind=[] cancel=[]
 PASS  no stores nothing                                           = 0
 0
-FAIL  and Cortana says so                                         does not contain [nothing saved]: Okay, I'll call Mom, mobile. Call, or try again?
+FAIL  and Cortana says so                                         does not contain [nothing saved]: I couldn't find Ma'am in your contacts.
 FAIL  a spoken yes stores the reminder                            should not be [0
 0]
 FAIL  R7 3.8.1 saved card is on screen                            expected [yes] got [no]
@@ -72,15 +72,15 @@ PASS  and its saved card has no subline either                    = no
 FAIL  the stored reminder really has no time                      does not contain ["timeMs":null]: 
 FAIL  the calendar card is on screen (H17)                        expected [yes] got [no]
 PASS  the calendar card does NOT offer add more                   = no
-PASS  no adds nothing to the calendar                             = 1
-FAIL  yes adds the event                                          should not be [1]
+PASS  no adds nothing to the calendar                             = 0
+FAIL  yes adds the event                                          should not be [0]
 FAIL  the delete card is on screen (H18)                          expected [yes] got [no]
 PASS  the delete card does NOT offer add more                     = no
-FAIL  confirming deletes the event                                should not be [1]
+FAIL  confirming deletes the event                                should not be [0]
 FAIL  the reminder delete card is on screen (H18)                 expected [yes] got [no]
 FAIL  confirming deletes the reminder                             should not be [0
 0]
       reminders left at the end: 0
 0
 ------------------------------------------------------------------------------
-E7: 21 passed, 39 failed
+E7: 9 passed, 51 failed
