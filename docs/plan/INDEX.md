@@ -14,6 +14,7 @@ Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules
 | 2 Review before split | done 2026-09-16, 3 rounds, round 3 = 0 BLOCKING from both | review/2026-09-16-{fable,codex,triage}.md, review/2026-09-16-r2-*.md, review/2026-09-16-r3-*.md |
 | 3 Split | done 2026-09-16 (Jeremy: "(a)") | the 9 phase docs below |
 | 3 Split, R10 additions | done 2026-09-22 (Jeremy: "split"): phases 11-19 written as DRAFT from PLAN.md's 2026-09-22 scope adds and the R10 plan review | phase-11 … phase-19 below |
+| 4 Per-phase interviews, 20 | DONE 2026-09-23 (5 questions) |
 | 4 Per-phase interviews, 11-19 | DONE 2026-09-23 (every question in 11-19 answered; answers in each doc's Decisions). Next: step 5, the cross-model review of 11-19 | each doc's "Interview queue" |
 | 5 Cross-model review, 11-19 | round 1 running 2026-09-23 (fable + fable) | review/2026-09-23-phases11-19-{design,testability}.md |
 | 4 Per-phase interviews | done for 01-03 and 05-09 (2026-09-16); 04 parked until R4 runs on the phone | each phase doc's "Interview queue" |
@@ -62,7 +63,7 @@ Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules
 | 17 | [phase-17-inbox-photos-camera-video.md](phase-17-inbox-photos-camera-video.md) | pending | — | DRAFT 2026-09-22 (split); interview DONE 2026-09-23 (full Photos with editor and video trim; every camera mode; Movies & TV as the online hub with streaming hand-off and media server; videos in Photos; answers capture intents). Inbox apps III: Photos, Camera, video player; R11 gates FINAL |
 | 18 | [phase-18-files.md](phase-18-files.md) | pending | — | DRAFT 2026-09-22 (split); interview DONE 2026-09-23 (all-files access; full set plus zip and Recent; a Recycle Bin for every type; shell apps open their own types). Files; R11 gates FINAL |
 | 19 | [phase-19-settings-front.md](phase-19-settings-front.md) | pending | — | DRAFT 2026-09-22 (split); interview DONE 2026-09-23 (ours is "Settings", Android's relabelled; W10M categories plus Apps; the helper gains every toggle it can flip, each proven and reviewed; unresolved links open Android settings). W10M Settings front; after phase 04; R11 gates FINAL |
-| 20 | [phase-20-music-streaming-radio.md](phase-20-music-streaming-radio.md) | pending | — | DRAFT 2026-09-23 (written after the A11 amendment); interview pending (5 questions). Music streaming and Radio as ADDs to phase 10's built player, reusing phase 17's streaming hand-off; depends on 03, 10, 17 |
+| 20 | [phase-20-music-streaming-radio.md](phase-20-music-streaming-radio.md) | pending | — | DRAFT 2026-09-23 (written after the A11 amendment); interview DONE 2026-09-23 (catalogue + "Listen on <app>" + Jellyfin music in the shell's player; internet radio from radio-browser.info as a fifth Music pivot — FM checked and impossible on the S25 Ultra; browse offline, play on any network; Tess radio and hand-off phrases; waiting on Jeremy's list of the music apps he uses). Music streaming and Radio as ADDs to phase 10's built player, reusing phase 17's streaming hand-off; depends on 03, 10, 17 |
 
 ### In scope but NOT split into a phase (updated 2026-09-22)
 

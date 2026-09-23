@@ -39,6 +39,16 @@ Radio or "shortcuts-only" streaming build if the interview rules a fuller form (
 measured now-playing geometry for local tracks (R8, H-M1 signed off).
 
 ## Decisions
+- 2026-09-23: Interview Q5 — Tess gets radio and streaming phrases (Jeremy, to the question's Spotify example: "I dont ever use
+  spotify but I do use other apps"; read as A with the hand-off naming any installed music app, Jeremy can overrule): "play
+  <station>", "play <genre> radio", "play radio" (the last favourite), resolved by code against the cached directory (P6) and
+  played through the session path phase 03 uses over the keyguard; and "listen to <x> on <app>" as a hand-off to that
+  installed music app through phase 17's StreamingHandoff. The hand-off table is seeded with the music apps Jeremy uses (asked
+  2026-09-23; his list lands here), each with its in-app search deep link and a phone row; any other installed music app gets
+  a plain open hand-off. Spotify is not a priority entry.
+- 2026-09-23: Interview Q4 — browse offline, play on any network (Jeremy: "(a)"): the station directory and favourites are
+  cached and browsable offline; a station plays on Wi-Fi or mobile data, with a "Streaming over mobile data" line while the
+  network is metered; no new setting.
 - 2026-09-23: Interview Q3 — Radio is a fifth pivot in Music, played by MusicService (Jeremy: "(a) unless there is a way to
   build an app that uses the phones antanas to pick up fm radio"). Jeremy's condition was checked and does not hold, so A
   stands: the S25 Ultra's Snapdragon SoC may carry FM silicon but Samsung has not enabled FM on the S25 series (no FM app;
@@ -229,13 +239,15 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
    C. Neither plays it: a RADIO slot chosen like the Music slot, handed to an installed radio app; the shell keeps the
       directory and favourites and opens the station there.
    D. Other / let me clarify.
-4. **Q4 — offline and data.** A11 as amended prefers offline; a station is a continuous download.
+4. ~~Q4 — offline and data~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Q4 — offline and data.** A11 as amended prefers offline; a station is a continuous download.
    A. The directory and favourites are cached and browsable offline; a station plays on any network, with a "Streaming over
       mobile data" line when the network is metered; no new setting. (lean — P6, and the person pressed play)
    B. A plus a "Stream only on Wi-Fi" setting in the Music app, default off; on mobile data a station tap asks once.
    C. Wi-Fi only, always: on mobile data stations are listed but not playable.
    D. Other / let me clarify.
-5. **Q5 — Tess.** Phase 03 ruled "play music" and "play <song / artist / playlist>". Radio and streaming phrases are new.
+5. ~~Q5 — Tess~~ RULED 2026-09-23: A, for any installed music app (see Decisions). Original question kept below.
+   **Q5 — Tess.** Phase 03 ruled "play music" and "play <song / artist / playlist>". Radio and streaming phrases are new.
    A. "play <station>", "play <genre> radio" and "play radio" (the last favourite), resolved by code against the cached
       directory (P6), spoken through the same session path phase 03 uses over the keyguard; plus "listen to <x> on
       <service>" as a hand-off when Q1 rules a catalogue. (lean — the ruled path already exists; P2)
