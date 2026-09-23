@@ -41,7 +41,7 @@ Camera use none. This phase also builds the streaming hand-off (`StreamingHandof
   track); it answers `ACTION_VIEW video/*` for `content://` and `http(s)://` sources; it takes audio focus so
   Music pauses; a media session for headset and Bluetooth buttons that never lands on a tile; the same player
   screen is what a video tapped in Photos or Files plays in; its own process (`:video`). The online half — a
-  Browse pivot over a public film database (source pending Q-A), per title the streaming apps on the phone that
+  Browse pivot over a public film database (TMDB — Q-A: A), per title the streaming apps on the phone that
   have it with "Watch on <service>" opening that app at the title, and a Media server pivot (Jellyfin / Plex,
   pending Q-B) when one is set up; a catalogue cache so the hub works offline; the `StreamingHandoff` interface
   phases 20 and 21 reuse.
@@ -70,6 +70,15 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
 "local-only" Movies & TV build (Hard Rule 16 — the interview ruled the fuller forms).
 
 ## Decisions
+- 2026-09-23: Review question Q-A — the film database is TMDB with Jeremy's personal key (Jeremy: "(a) ... personal use").
+  The key is NEVER in the repo: it lives in the gitignored local.properties (tmdb.readToken, tmdb.apiKey) and reaches the app
+  as a BuildConfig field at build time; the CI build that makes Jeremy's phone APKs reads it from a GitHub Actions secret
+  written into local.properties during the build (Jeremy adds the secret when phase 17 is built). A build without the key has
+  no catalogue: the Browse pivot says so plainly and the diagnostics log "catalogue: no TMDB key in this build" — never a
+  silent empty page. Calls use the v3 API with the read token as a bearer header. TMDB's attribution ("This product uses the
+  TMDB API but is not endorsed or certified by TMDB", with its logo) shows in Movies & TV's About, and the where-to-watch
+  data (TMDB's watch providers, sourced from JustWatch) carries JustWatch's credit where it is shown. The key was checked
+  live on 2026-09-23: /3/configuration answered 200.
 - 2026-09-23: Interview Q5 — the shell's Camera answers IMAGE_CAPTURE and VIDEO_CAPTURE and returns the result to the caller
   (Jeremy: "(a)"), so it is one of Android's camera choices beside Samsung Camera.
 - 2026-09-23: The App Shortcuts under the phase 11 Q1 standing rule (agent; Jeremy can overrule): Photos — Collection, Albums;
@@ -423,7 +432,7 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
    session through interop, else raw Camera2 for slow motion only; BS-3 the credential store's Keystore alias and file
    name (Decisions "Trust": AES-256-GCM, no security-crypto); BS-4 each streaming service's deep-link, web and search URL
    forms, verified by starting each on a phone with the app installed, recorded with the verification; BS-5 the catalogue
-   source's terms, attribution text and rate limit (pending Q-A) and the media server's API version (pending Q-B); BS-6
+   source's terms, attribution text and rate limit (Q-A: A — TMDB's terms) and the media server's API version (pending Q-B); BS-6
    whether an unclaimed Plex container answers its library API without a plex.tv token (pending Q-B B / C; decides E22's
    Plex half); the `:camera` and `:video` diagnostics dump paths.
 1. **App identities.** Three launcher activities inside the APK: `PhotosActivity` (LAUNCHER + APP_GALLERY +
@@ -489,7 +498,7 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
     QA-Flix fixture APK (`testapps/qa-flix`, phase 02's client-library test-APK pattern) declaring the table's intent-filter
     forms for a fake service (`https://qa-flix.test/title/<id>`, `https://qa-flix.test/search?q=<title>`) and showing the
     received URI in a TextView tagged `qa_flix_uri`; JVM tests for the table logic.
-12. **The catalogue (pending Q-A).** The source per the Q-A branch in Decisions; `catalogue.search` / `lookup`; the 7-day
+12. **The catalogue (Q-A: A — TMDB).** TMDB's API with Jeremy's personal read token (Decisions, Q-A); `catalogue.search` / `lookup`; the 7-day
     cache; the attribution line where the terms require one; the "no key" state; the base-URL redirect for QA — a pref
     `qa_catalogue_base` written with `qa/phase-01/scripts/prefs_edit.py`, honoured ONLY when `BuildConfig.DEBUG` (the
     release APK cannot be redirected; phase 20's rule).
@@ -710,7 +719,7 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
 - E19 **Geometry and motion against R11.** Every value `r11/photos.md`, `r11/camera.md`, `r11/movies-tv.md` measure is within
   its tolerance (dump bounds, screencap; px ÷ 3 = epx; RV11 for motion through the `[motion]` clock). Written once those
   sections land; until then this row is not runnable and the doc cannot go FINAL.
-- E20 **Catalogue (pending Q-A; host fixture, never the live network).** `prefs_edit.py` sets `qa_catalogue_base` to
+- E20 **Catalogue (Q-A: A; host fixture, never the live network).** `prefs_edit.py` sets `qa_catalogue_base` to
   `http://10.0.2.2:8090/` on the debug build; open Browse, search "Blade Runner" → exactly three `hub_result:<id>` rows whose
   title / year texts equal the fixture JSON hand-listed here — "Blade Runner" 1982, "Blade Runner 2049" 2017, "Blade Runner:
   Black Lotus" 2021 — with artwork loaded (each row's image node has non-zero bounds and the pulled fixture PNG's colour at
@@ -816,7 +825,7 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
 - P14 **Jeremy's own media server** (pending Q-B): E22's assertions against the real server on his network, including a
   wrong password and the server switched off; under Q-B B / C, Plex's plex.tv PIN sign-in on the phone. RECORDED for the
   landing form, gated for connected / unauthorised / unreachable.
-- P15 **The real catalogue** (pending Q-A; network on; the personal build with the key under A / C): search "Blade Runner"
+- P15 **The real catalogue** (Q-A: A; network on; a build carrying the key): search "Blade Runner"
   → > 0 results and the first title page draws with artwork; a failure is recorded with the HTTP status, never hidden.
   RECORDED (network-dependent by nature).
 
