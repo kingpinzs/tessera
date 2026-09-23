@@ -53,6 +53,23 @@ Program, Find my phone, Backup — PLAN: no backup); a Microsoft-account sign-in
 Windows' 15063 addition, not W10M's); any interim front that phase 04 later replaces (Rule 16).
 
 ## Decisions
+- 2026-09-23: Interview Q4 — a row whose Android page does not exist on the phone stays (Jeremy: "(a)"): its subtitle reads
+  "Change this in Android settings" and a tap opens Android's Settings home; the page keeps W10M's shape and nothing silently
+  disappears. The row and its unresolved target are logged in diagnostics.
+- 2026-09-23: The App Shortcuts under the phase 11 Q1 standing rule (agent; Jeremy can overrule): Settings — System,
+  Personalisation, Network & wireless, Apps.
+- 2026-09-23: Interview Q3 — the helper gains every toggle the shell uid can flip (Jeremy: "(c)"): battery saver, location,
+  NFC, hotspot, automatic time. Each new verb is a TRUST change, so each gets: proof on the S25 Ultra by R4's method, a named
+  verb in the allow-list (never a generic command), and the adversarial review phase 04 requires for helper changes. A verb R4
+  shows the shell uid cannot perform on One UI 8 is not faked: that row stays a deep-link into Android's page and the build
+  record says why.
+- 2026-09-23: Interview Q2 — W10M final's categories plus "Apps" (Jeremy: "(c)"): every W10M category with an Android
+  counterpart (pages with none — Kid's corner, Work access, Windows Insider — omitted), plus an "Apps" category (desktop
+  Windows 10's 2017 addition) for uninstall, default apps and per-app permissions, each a deep-link into Android's page for
+  that app where the shell cannot act itself.
+- 2026-09-23: Interview Q1 — ours is "Settings", Android's is relabelled "Android settings" in the shell's app list (Jeremy:
+  "(a)"): one "Settings", nothing hidden; the 2026-09-22 slot-label rule extended to this one app entry (the label is the
+  shell's own drawing of the list; Android's Settings itself is untouched).
 - 2026-09-22: From phase 11 interview Q1 (Jeremy: "A"), a standing rule for every shell app: this phase's apps declare their
   own top-level screens as static App Shortcuts, so a hold on their tiles bursts those screens (phase 11). Which screens each app
   declares is settled at this phase's own interview; a build task and an acceptance row carry it.
@@ -176,7 +193,8 @@ different category placement, the table follows R11 and the change is recorded h
 ## Interview queue (Stage A step 4)
 Load-bearing first. Implementation mechanics are the agent's (P3).
 
-1. **Q1 — the app-list identity.** Today the hub's launcher label is "Start settings" so it is not confused
+1. ~~Q1 — app-list identity~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Q1 — the app-list identity.** Today the hub's launcher label is "Start settings" so it is not confused
    with Android's Settings (phase 01 build-start call 7). With the W10M front that name stops being right.
    A. Ours is "Settings"; Android's Settings stays in the app list relabelled "Android settings" (the
    slot-label rule of 2026-09-22 extended to one app entry). (lean — one "Settings", nothing hidden)
@@ -184,21 +202,24 @@ Load-bearing first. Implementation mechanics are the agent's (P3).
    links and its "All Android settings" row.
    C. Keep "Start settings" and leave Android's entry alone (two entries, two names).
    D. Other / let me clarify.
-2. **Q2 — the category set.**
+2. ~~Q2 — category set~~ RULED 2026-09-23: C (see Decisions). Original question kept below.
+   **Q2 — the category set.**
    A. W10M final's categories exactly, omitting only pages with no Android counterpart (Kid's corner, Work
    access, Windows Insider, …). (lean)
    B. Only the categories holding at least one page the shell can change itself (fewer, but not W10M's list).
    C. W10M's categories plus an "Apps" category for the app list's Uninstall / defaults / permissions (desktop
    Windows 10's 2017 addition, "as if they never stopped developing it").
    D. Other / let me clarify.
-3. **Q3 — helper verbs beyond phase 04's four.** The helper's verb allow-list is a trust surface (phase 04
+3. ~~Q3 — helper verbs~~ RULED 2026-09-23: C (see Decisions). Original question kept below.
+   **Q3 — helper verbs beyond phase 04's four.** The helper's verb allow-list is a trust surface (phase 04
    Decisions: adversarial review, no generic shell); each verb is R4-proven on the phone.
    A. None: battery saver, location, NFC and hotspot are deep-links; the helper keeps its four verbs. (lean —
    no new trust surface in this phase)
    B. Add battery saver and location (two verbs, each proved by R4's method and reviewed).
    C. Add every toggle the shell uid can flip (battery saver, location, NFC, hotspot, auto-time).
    D. Other / let me clarify.
-4. **Q4 — a deep-link that resolves to nothing on this phone.**
+4. ~~Q4 — unresolved deep-link~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Q4 — a deep-link that resolves to nothing on this phone.**
    A. The row stays, its subtitle reads "Change this in Android settings", and a tap opens Android's Settings
    home. (lean — the page keeps W10M's shape; nothing is silently missing)
    B. The row is hidden on that phone.

@@ -14,7 +14,7 @@ Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules
 | 2 Review before split | done 2026-09-16, 3 rounds, round 3 = 0 BLOCKING from both | review/2026-09-16-{fable,codex,triage}.md, review/2026-09-16-r2-*.md, review/2026-09-16-r3-*.md |
 | 3 Split | done 2026-09-16 (Jeremy: "(a)") | the 9 phase docs below |
 | 3 Split, R10 additions | done 2026-09-22 (Jeremy: "split"): phases 11-19 written as DRAFT from PLAN.md's 2026-09-22 scope adds and the R10 plan review | phase-11 … phase-19 below |
-| 4 Per-phase interviews, 11-19 | in progress: 11-18 done 2026-09-23; next 19 | each doc's "Interview queue" |
+| 4 Per-phase interviews, 11-19 | DONE 2026-09-23 (every question in 11-19 answered; answers in each doc's Decisions). Next: step 5, the cross-model review of 11-19 | each doc's "Interview queue" |
 | 4 Per-phase interviews | done for 01-03 and 05-09 (2026-09-16); 04 parked until R4 runs on the phone | each phase doc's "Interview queue" |
 | 5-6 Cross-model review of phase docs | done 2026-09-17: 3 rounds (cap reached), every finding triaged and applied; owner rulings applied (review/2026-09-16-phases-r2-owner.md, review/2026-09-17-phases-r3-owner.md) | review/2026-09-16-phases-{fable,fable2,triage}.md, review/2026-09-16-phases-r2-{opus-design,opus-test,triage}.md, review/2026-09-17-phases-r3-{opus-design,opus-test,triage}.md |
 | 7 FINALIZE | done 2026-09-17 (Jeremy: "A"): phases 01-03 and 05-09 FINAL; phase 04 stays DRAFT until R4 runs on the phone and its interview is done | |
@@ -60,7 +60,7 @@ Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules
 | 16 | [phase-16-inbox-calendar-people.md](phase-16-inbox-calendar-people.md) | pending | — | DRAFT 2026-09-22 (split); interview DONE 2026-09-23 (full People hub on the PEOPLE slot; Calendar reads the Google calendars, writes only to a local one, Sync by tap to allowed calendars only, never work; Birthdays calendar). Inbox apps II: Calendar, People; R11 gates FINAL. Needs phase 17's build task 2 first. Its build task 1 fixes a phase 01 defect found at the split: LayoutStore.assignSlotOnce overwrites a user's own slot choice on upgrade (also slot:music:v1). |
 | 17 | [phase-17-inbox-photos-camera-video.md](phase-17-inbox-photos-camera-video.md) | pending | — | DRAFT 2026-09-22 (split); interview DONE 2026-09-23 (full Photos with editor and video trim; every camera mode; Movies & TV as the online hub with streaming hand-off and media server; videos in Photos; answers capture intents). Inbox apps III: Photos, Camera, video player; R11 gates FINAL |
 | 18 | [phase-18-files.md](phase-18-files.md) | pending | — | DRAFT 2026-09-22 (split); interview DONE 2026-09-23 (all-files access; full set plus zip and Recent; a Recycle Bin for every type; shell apps open their own types). Files; R11 gates FINAL |
-| 19 | [phase-19-settings-front.md](phase-19-settings-front.md) | pending | — | DRAFT 2026-09-22 (split); interview pending. W10M Settings front; after phase 04; R11 gates FINAL |
+| 19 | [phase-19-settings-front.md](phase-19-settings-front.md) | pending | — | DRAFT 2026-09-22 (split); interview DONE 2026-09-23 (ours is "Settings", Android's relabelled; W10M categories plus Apps; the helper gains every toggle it can flip, each proven and reviewed; unresolved links open Android settings). W10M Settings front; after phase 04; R11 gates FINAL |
 
 ### In scope but NOT split into a phase (updated 2026-09-22)
 
