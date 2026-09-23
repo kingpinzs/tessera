@@ -46,6 +46,9 @@ class StartEditState {
     var hover by mutableStateOf<TileKey?>(null)
     var folderFeedback by mutableStateOf(false)
 
+    /** Uptime when the current hover began, so a drop can report how long it dwelt (the boundary rows need it). */
+    var hoverSince: Long = 0L
+
     /** Where a release would drop the tile right now (the row and band cases have no hover tile). */
     var dropTarget by mutableStateOf<DropTarget>(DropTarget.None)
 
