@@ -43,7 +43,7 @@ search at the top, live folders, and a full-screen background image showing thro
 - A9. (2026-09-16) Permissions: Jeremy grants everything (notification access, accessibility, overlay, default-app roles).
 - A10. (2026-09-16) Microsoft-owned names and assets (Windows, Cortana, Segoe fonts, Microsoft icons) live in one swappable
   theme/branding module. It's fine on Jeremy's own phone, and they can be swapped out if the project ever goes public.
-- A11. (2026-09-16) The Weather tile is in. Amended the same day (phase 08 interview): the launcher's only internet uses are
+- A11. **AMENDED 2026-09-23 — internet where a feature needs it, offline preferred (see Rulings).** (2026-09-16) The Weather tile is in. Amended the same day (phase 08 interview): the launcher's only internet uses are
   Weather and the one-time download of Cortana's AI model; plus visual voicemail downloads if the R4 voicemail probe succeeds (PQ2); plus a one-time OpenStreetMap Nominatim address
   lookup when a place is saved by typing an address (2026-09-17, R3D-02 ruling).
 - A8. (2026-09-16) Every item in the feature list below is in the full plan. Build order is what gets
@@ -70,7 +70,7 @@ search at the top, live folders, and a full-screen background image showing thro
   "open the pod bay doors" (added 2026-09-22 from R10; named R10-Q5)
 - W10M inbox apps inside the shell APK (added 2026-09-22 from R10): Calculator, Alarms & Clock, Calendar, Photos, Camera,
   People, Voice Recorder, video player, Files, a W10M Settings front (partial by nature). Mail, a browser and Maps are out
-  (A11 stands, R10-Q4), as are a Store and Microsoft's cloud apps.
+  (R10-Q4: the shell builds no Mail, browser or Maps), as are a Store and Microsoft's cloud apps.
 - First-run setup wizard (added 2026-09-22 from R10) and tile quick actions from App Shortcuts (added 2026-09-22; trigger open)
 - Fluent materials on the transient surfaces — acrylic and light (R10-Q1, 2026-09-22)
 - Cortana persona (final-release look, Q12): ring states (idle / thinking / speaking) + waveform listening state (R3F-04); voice in and out, Cortana tile,
@@ -95,7 +95,7 @@ search at the top, live folders, and a full-screen background image showing thro
   phase interview: prefer the option with fewer separate apps, fewer manual steps and fewer visible Android seams.
 
 ## After the plan (Jeremy, 2026-09-16)
-Once the full W10M shell is done (every phase in INDEX.md; 19 as of 2026-09-22), Jeremy's own new features ("our own updates") come as a new plan. They are out of
+Once the full W10M shell is done (every phase in INDEX.md; 20 as of 2026-09-23; 21 (TV channels) after R13), Jeremy's own new features ("our own updates") come as a new plan. They are out of
 scope for this plan, so the split must not pre-build hooks for them (Hard Rule 16 / no future-proofing).
 
 ## Android limits
@@ -251,8 +251,9 @@ SUPERSEDED older note (launcher-only framing, kept for history):
   checklist's own rows; the pod bay is a pager page reached by swiping right on Start, never an edge swipe (the
   left edge is Android's Back gesture); the shell's own apps take their slots once, following phase 10 Q5's Music
   precedent, and Tess's actions target them; R11, a measurement pass for the inbox apps, gates each app phase's
-  FINAL; order — quick actions, wizard, in-app Fluent engine (before phase 04), pod bay, inbox apps, Files, the
-  Settings front after phase 04. The Tessera bar over every app waits on phase 04's R4 probe; a local-network
+  FINAL; order (re-cut 2026-09-23 by review triage T12-3 / C-14; INDEX's Build order line is authoritative) — quick
+  actions, the in-app Fluent engine, then the wizard (its presets set the engine's switch), pod bay, inbox apps, Files,
+  Music streaming, then phase 04 and the Settings front after it. The Tessera bar over every app waits on phase 04's R4 probe; a local-network
   LLM is not raised (Q2 and A11 stand). **None of the 2026-09-22 additions is split into a phase yet.**
 
 - 2026-09-22 **R10-Q3 re-ruled (Jeremy: "lets go with A"), superseding the first R10-Q3 entry above:** at the
