@@ -2,7 +2,7 @@
 phase: 14
 slug: pod-bay
 status: DRAFT   # DRAFT → FINAL (only after Stage A step 7; changes after FINAL go through INDEX.md Change Log)
-depends-on: [01, 03, 13]   # 10 is a soft dependency (T14-4): the Now playing pod works with any media session through phase 01's MusicFeed; only its title tap opens the MUSIC slot app, which is phase 10's Music once built
+depends-on: [01, 03, 12, 13]   # 12 for T14-7's wizard gate and E17 (C-23, T14-12); 10 is a soft dependency (T14-4): the Now playing pod works with any media session through phase 01's MusicFeed; only its title tap opens the MUSIC slot app, which is phase 10's Music once built
 ---
 
 # Phase 14 — The pod bay: a pager page left of Start holding at-a-glance pods, and Tess's "open the pod bay doors"
@@ -119,7 +119,8 @@ own "Glance", a different thing; the name collision is why this pane is the pod 
   unchanged and its E5 row is re-run as is. Added 2026-09-23 (T14-7): while phase 12's setup wizard shows, a pending request is
   NOT consumed — `animateScrollToPage` is programmatic, so it would open the pane behind the wizard — and waits until the wizard
   finishes, through the same gate phase 12 puts on the `SecondaryTiles` pin band (drawn only once Start is visible, phase 12's edge
-  case; `StartActivity.kt:187-190` draws the band today with no such gate)
+  case; `StartActivity.kt:187-190` draws the band today with no such gate). Since 2026-09-23 phase 12's build task 2 builds that
+  "Start visible" gate (its T12-14) and E17 proves the wait here (T14-12)
 - 2026-09-22: Locked gate (agent; phase 03's PQ3 rule, "opens apps or reads personal data"): `LockGate.allowedWhileLocked` is false
   for OpenPodBay and ClosePodBay — the bay shows the agenda and reminders and is a Start surface; the card's caption is "Open the pod
   bay" / "Close the pod bay", Tess says "Unlock your phone to continue.", and after unlock the same request continues, so the doors
@@ -157,13 +158,21 @@ own "Glance", a different thing; the name collision is why this pane is the pod 
   `[podbay] opened by swipe|voice|voice (doors)|settings`, `[podbay] closed by back|home|swipe|voice`, `[podbay] pod <id>: <n> rows` /
   `[podbay] pod <id>: empty: <reason>`, `[podbay] pods enabled: <list>`, `[podbay] launch <id> -> <component>`, and (added
   2026-09-23, T14-8) `[start] page=POD_BAY|START|APP_LIST` each time the pager settles on a page, the second source for every
-  page-absence assertion; the home line becomes `[start] home: page START[, scrolled to top]` (T11-9). Rows are adb-driven
+  page-absence assertion; the home line becomes `[start] home: page START[, scrolled to top]` (T11-9). Added 2026-09-23: `[podbay]
+  launch <id> failed: <why>` (`slot unassigned` | `no session: not the assistant` | `ActivityNotFoundException`), so a pod tap that
+  opens nothing is never silent (T14-13); tag `acrylic:pod_bay` on the page's backdrop node and phase 13's `[fluent] pod_bay
+  source=static tint=(0,0,0) alpha=0.8 blur=30epx` line (T14-11, last Decisions line). Rows are adb-driven
   on phase 03's `lib.sh` (symlinked as phase 01 did), evidence under `qa/phase-14/`
 - 2026-09-22: Process, permissions, surface (agent; design 27; testability 35): launcher process; no new permission (Calendar,
   Location and the media rows are phase 01's, reminders are the shell's own); no new launcher entry, so the app list's groups are
   untouched; no network beyond Weather's own refresh (offline preferred; A11 as amended 2026-09-23 — C-7, T14-10)
 - 2026-09-22: NEEDS-HUMAN rows here are ACCEPT rows (testability 26): the pod bay is a P4 design with no W10M original; the one
   fidelity-shaped item, Tess speaking the line on the phone, is a phone row because TTS on the phone is still unproven (INDEX, phase 03)
+- 2026-09-23 (agent, r2 triage T14-11): the pod bay's backdrop is phase 13's app-list backdrop material exactly — static source,
+  tint (0,0,0), α 0.8, blur 30 epx, fallback the wallpaper under the tint unblurred (A18's form), no picture → the theme background —
+  tagged `acrylic:pod_bay`, logged `[fluent] pod_bay source=static tint=(0,0,0) alpha=0.8 blur=30epx`, and phase 13's surface-table
+  row is re-cut to match (it said "its own P4 fill"); E14 carries the values. Reason: this doc's Backdrop Decision is the explicit
+  one (H10 is written for it), and two sibling pager pages share one material
 
 ## Interview queue (Stage A step 4)
 1. ~~Real widgets~~ RULED 2026-09-23: B (see Decisions). Original question kept below.
@@ -182,17 +191,19 @@ own "Glance", a different thing; the name collision is why this pane is the pod 
 ## Build tasks
 1. Pager: the third page with named indices, initial page START, the Back / Home rules, the focus guard, the `[podbay] opened by
    swipe` / `closed by …` lines, the renamed `[start] home: page START` line and the `[start] page=<name>` line (T11-9, T14-8)
-2. Pod frame: the page on phase 13's app-list backdrop, the scroll, headers, rows, subheaders, empty lines, the layout tokens, tags
+2. Pod frame: the page on phase 13's app-list backdrop (`acrylic:pod_bay`, its `[fluent] pod_bay` line, T14-11), the scroll,
+   headers, rows, subheaders, empty lines, the layout tokens, tags
 3. The four pods on the existing feeds: Agenda, Weather, Now playing (with `MusicFeed.send` transport), Reminders; their taps
    through `StartActivity`'s launch path and `CortanaService.open(context, mode)` → `showSession(args, 0)` with the Reminders
-   destination as a new `EXTRA_*` in `args` (T14-6)
+   destination as a new `EXTRA_*` in `args` (T14-6); every tap that opens nothing logs `[podbay] launch <id> failed: <why>` (T14-13)
 4. Settings: the "Pod bay" page, the hub item, the per-pod switches in the settings store, the empty-bay line
 5. Tess: `Request.OpenPodBay` / `ClosePodBay`, the matcher rule and hotwords, the `ActionLayer` branch and outcomes, the `LockGate`
    entries and captions, `PodBayRequests` and its consumption in `StartActivity.onResume` (held while phase 12's wizard shows,
    T14-7), the Brand strings, the five utterances
 6. Harness: the `ensure_start` fix and the re-grep, which also lists and updates every grep of Start's home line
    (`qa/phase-02/scripts/regress.sh:120` at the split, T11-9 / T14-5); the force-stop-after-launch rule (C-6); the regression run
-   (E13); evidence index `qa/phase-14/README.md`
+   (E13); `qa/phase-14/baseline_layout-nomusic.json` for E4's launch-failure sub-row (T14-13); E17's driver (T14-12); evidence
+   index `qa/phase-14/README.md`
 7. ~~Only if Q1 is A or C: the Widgets pod kind (`AppWidgetHost`, picker, bind consent, configure, host lifecycle, persistence) —
    added at the interview with its rows; not built otherwise~~ Ruled out 2026-09-23 (Q1 B): no widget pod kind is built (T14-1)
 
@@ -200,8 +211,18 @@ own "Glance", a different thing; the name collision is why this pane is the pod 
 Rows start from the baseline state and restore what they change (PLAN RV12); motion rows follow RV11; `uiautomator dump` follows
 RV13; "diagnostics" is read with phase 01's command. Every E row runs on the AOSP AVD `tileshell_fhd` (1080×2340 @ 450 dpi, no
 Google) through adb on phase 03's driver floor (`qa/phase-03/scripts/lib.sh`); voice rows use phase 03's audio route (null-sink
-microphone, `say`, `reply_text`, `parecord`) and inherit phase 03's status: they prove the pipeline with a synthesised voice, and
-Jeremy's own voice is P1. **Seeding (C-3):** rows that read Start's grid (E1, E10, E13) start with `layout_restore
+microphone, `say`, `reply_since`, `parecord`) and inherit phase 03's status: they prove the pipeline with a synthesised voice, and
+Jeremy's own voice is P1. **Ring reads (C-20):** every ring assertion reads `ring_since` from a MARK (`adb shell date +%s%3N`) taken
+immediately before the step's action (after any clock jump, so the MARK is on the new clock); absence assertions read the same
+slice; `reply_text` is `reply_since <MARK>` (the first reply after the MARK, empty if none — so a row whose request produced no reply
+fails instead of reading an earlier row's identical line); helpers: phase 11's build task 7. **Voice verdict (C-30):** each `say`
+step also saves `speech_dump` sliced from its MARK (`ring_since <MARK> speech`, the `:speech` process's own ring) and asserts that the
+last `asr:` line in that slice is not `asr: no speech in the capture …` (`cortana/speech/SherpaAsr.kt:418`), so a gate drop fails with
+its own reason, not as a matcher miss; the five utterances are built through `utterances.py build`. **Wake (C-25):** after any `adb
+reboot` (boot-completed poll), `dumpsys battery unplug` or `KEYCODE_SLEEP` step, the driver calls `wake_device` and asserts it printed
+`Awake` before the next tap — except where the row's point is the lock screen (E8, E11's locked half), which wakes with
+`KEYCODE_WAKEUP` alone and asserts `mWakefulness=Awake` in `dumpsys power` before its next tap, since `wake_device` dismisses the
+keyguard. **Seeding (C-3):** rows that read Start's grid (E1, E10, E13) start with `layout_restore
 qa/phase-02/baseline_layout.json` (`qa/phase-02/scripts/layout.sh`) — this phase adds no `addedOnce` marker and pins no fixture,
 so phase 02's file, with its markers and hand-set sizes, is complete for this build — and assert zero `assignSlotOnce … ->
 assigned` lines after it. **Launches (C-6, T14-3):** after any launch (E3's Now playing title tap, E9, the E13 re-runs that open an
@@ -238,25 +259,38 @@ Start) and is re-checked at build start, because a Compose upgrade could change 
   `pod_empty:agenda` = "Calendar access is off — turn it on in Setup" and `[podbay] pod agenda: empty: no calendar access`; `tap_node
   pod_empty:agenda` → `dumpsys activity activities` shows `SettingsActivity` resumed and the dump shows the checklist's Calendar row;
   `pm grant` → the rows of E3 return. `pm revoke … ACCESS_COARSE_LOCATION` → the weather line and `empty: no location`; restore. No
-  session → `empty: no session`; no reminders → `empty: none`. Each `[podbay] pod <id>: <n> rows` line matches the dump's row count
+  session → `empty: no session`; no reminders → `empty: none`. Each `[podbay] pod <id>: <n> rows` line matches the dump's row count.
+  Launch failures (T14-13), each from a MARK before the tap: `layout_restore qa/phase-14/baseline_layout-nomusic.json` (phase 02's
+  file with `slots.MUSIC` removed, `slot:music:v1` kept in `addedOnce` so the shell does not re-seed it) with phase 01 E8's playback
+  fixture playing → `tap_node` on the Now playing pod's title → the dump shows `slot_picker` or the slice holds `[podbay] launch
+  nowplaying failed: slot unassigned` — never neither; `layout_restore qa/phase-02/baseline_layout.json`. `adb shell cmd role
+  remove-role-holder android.app.role.ASSISTANT app.tileshell`, a reminder present (E3's setup) → `tap_node pod_row:reminders:0` →
+  the slice holds `[podbay] launch reminders failed: no session: not the assistant` and `dumpsys window` shows no session window;
+  restore `cmd role add-role-holder android.app.role.ASSISTANT app.tileshell` and delete the reminder
 - E5 Settings: the hub shows `settings_pod_bay`; `tap_node pod_switch:weather` → `pod:weather` absent, the other three present in the
   same order, `[podbay] pods enabled: agenda,nowplaying,reminders`; all four off → `pod_bay_empty` present, `tap_node` on it →
   `SettingsActivity` on the Pod bay page; `adb shell am force-stop app.tileshell`, Home → the switches persist (dump); restore all On
-- E6 Voice, the easter egg: from Start, `KEYCODE_ASSIST`, `say pod_bay_doors` → diagnostics `[match] "…" -> OpenPodBay(doors=true)`;
-  `reply_text` equals "I'm afraid I can't do that, Dave." and the `parecord` capture's RMS over the reply window is above −40 dBFS
-  (phase 03's spoken reply pass rule); the `[podbay] opened by voice (doors)` line's `wall=` value is after the `SpeakingDone`
-  line's `wall=` for that utterance — both read from the one diagnostics ring (`Diagnostics.dump` prints `wall=<ms>` on every line
-  and the speech client writes into the same ring), never from the host clock (T14-8); `dumpsys window` shows no session window and
-  the dump shows `pod_bay`. `say pod_bay_open` → `OpenPodBay(doors=false)`, reply "Opening the pod bay.", `opened by voice`; `say
-  pod_bay_close` → `ClosePodBay`, reply "Closing the pod bay.", `start_page`, `[podbay] closed by voice`. Negatives: `say
-  pod_bay_neg1` ("open the pod") → the not-understood handler line (phase 03 E3) and no `pod_bay`; `say pod_bay_doors_noart` →
-  doors=true; no match line ever contains `OpenApp` for these
-- E7 Typed form: `type_request "open the pod bay doors"` → the same match line, the same reply text, `pod_bay` open; phase 03 E5's
+- E6 Voice, the easter egg: from Start, `KEYCODE_ASSIST`, MARK, `say pod_bay_doors` → the slice holds `[match] "…" ->
+  OpenPodBay(doors=true)`; `reply_since` MARK equals "I'm afraid I can't do that, Dave." and the `parecord` capture's RMS over the
+  reply window is above −40 dBFS (phase 03's spoken reply pass rule); the `[podbay] opened by voice (doors)` line's `wall=` value is
+  after the `[speech] speaking done <utteranceId> cancelled=false` line's `wall=` for that utterance (the launcher-ring literal,
+  `cortana/speech/SpeechClient.kt:107`; T14-14) — both read from the launcher ring (`diag`) sliced from the MARK taken before `say`
+  (`Diagnostics.dump` prints `wall=<ms>` on every line, `diag/Diagnostics.kt:40`, and the speech client writes into that ring), never
+  from the host clock (T14-8, C-20); `dumpsys window` shows no session window and
+  the dump shows `pod_bay`. Each of the following from its own MARK: `say pod_bay_open` → `OpenPodBay(doors=false)`, reply "Opening
+  the pod bay.", `opened by voice`; `say pod_bay_close` → `ClosePodBay`, reply "Closing the pod bay.", `start_page`, `[podbay] closed
+  by voice`. Negatives: `say pod_bay_neg1` ("open the pod") → the not-understood handler line (phase 03 E3) and no `pod_bay`; `say
+  pod_bay_doors_noart` → doors=true; no match line in any of these slices contains `OpenApp`; every `say` also passes the C-30
+  voice-verdict check
+- E7 Typed form: MARK, `type_request "open the pod bay doors"` → the same match line and `reply_since` MARK = the same reply text
+  (empty fails: E6's identical line is before the MARK, C-20), `pod_bay` open; phase 03 E5's
   exported-components check re-run against `qa/phase-03/exported-allowlist.txt`: unchanged
-- E8 Locked: `adb shell locksettings set-pin 1234`, `KEYCODE_SLEEP`, `KEYCODE_WAKEUP`, Tess over the keyguard (phase 03 E9's route),
-  `say pod_bay_doors` → the "Unlock to continue" card with caption "Open the pod bay" (dump), `reply_text` = "Unlock your phone to
-  continue.", `dumpsys window` still shows the keyguard, no `[podbay] opened`; `tap_node` on "Unlock", `adb shell input text 1234`,
-  `KEYCODE_ENTER` → the doors line is spoken and the pod bay opens (E6's checks); restore `adb shell locksettings clear --old 1234`
+- E8 Locked: `adb shell locksettings set-pin 1234`, `KEYCODE_SLEEP`, `KEYCODE_WAKEUP` (the lock-screen exception to C-25:
+  `mWakefulness=Awake` asserted, keyguard kept), Tess over the keyguard (phase 03 E9's route), MARK,
+  `say pod_bay_doors` → the "Unlock to continue" card with caption "Open the pod bay" (dump), `reply_since` MARK = "Unlock your
+  phone to continue.", `dumpsys window` still shows the keyguard, no `[podbay] opened` in the slice; MARK2, `tap_node` on "Unlock",
+  `adb shell input text 1234`, `KEYCODE_ENTER` → `reply_since` MARK2 is the doors line and the pod bay opens (E6's checks on the
+  MARK2 slice); restore `adb shell locksettings clear --old 1234`
 - E9 From inside another app: `adb shell am start -n com.android.deskclock/.DeskClock`, `KEYCODE_ASSIST`, `say pod_bay_doors` → after
   the reply `dumpsys activity activities` shows `StartActivity` resumed and the dump shows `pod_bay`; `KEYCODE_BACK` → Start; a second
   `KEYCODE_BACK` → DeskClock resumes (phase 01 E20: the Back history survived the detour); then `am force-stop app.tileshell` +
@@ -278,11 +312,26 @@ Start) and is re-checked at build start, because a Compose upgrade could change 
   the list is still not understood), E5 (typed request and the allow-list), E10 (locked commands, now with the pod-bay phrase);
   `utterances.py build` succeeds with the five new ids; after every re-run that opened an app, `am force-stop app.tileshell` + Home
   (C-6), and after every `layout_restore`, zero `assignSlotOnce … -> assigned` lines (C-3)
-- E14 Backdrop: phase 13's app-list backdrop row re-run on the pod bay with the same method and a KNOWN high-contrast Start background
-  (the checkerboard through phase 01's background URI grant, `prefs_edit.py`), cited by that row's number when phase 13 is FINAL
+- E14 Backdrop (T14-11): phase 13 E2's method on the pod bay, with phase 13's checkerboard fixture as the Start background (its
+  `prefs_edit.py` route): swipe to the pod bay, screencap; in a horizontal strip between two pods (no text; strip found from the
+  dump's `pod:*` bounds), the edge spread is the blurred width (2.563 · σ, σ = 0.57735 · r + 0.5, r = 30 epx · px/epx) ± 20 % and the
+  pixels are 0.2 × (blurred checker) ± 3 (T = (0,0,0), α 0.8; B from phase 13's `acrylic_expect.py`); in the same capture a pod
+  header's and a pod row's text edges are sharp (≤ 2 px); `acrylic:pod_bay` is in the dump with the page's bounds; the ring slice
+  from a MARK before the swipe holds `[fluent] pod_bay source=static tint=(0,0,0) alpha=0.8 blur=30epx`. Acrylic off (phase 13's
+  toggle control): edges sharp and pixels 0.2 × checker ± 3, `acrylic:pod_bay` still present. Restore the background key
 - E15 RV10: `wm size 1440x3120` / `720x1560`, `wm density 560`, `font_scale 1.3` leave every pod node's bounds in epx unchanged ± 1 epx
   (phase 01 E3's method, one dump each); restore
-- E16 Every diagnostics line in Decisions is asserted by at least one row above
+- E16 Every diagnostics line in Decisions is asserted by at least one row above — grep the union of `qa/phase-14/*/ring-*.txt` saved
+  by this build's run (the rows whose log's APK id matches), each pattern at least once; never one final ring, which every `am
+  force-stop` / `layout_restore` resets (`diag/Diagnostics.kt:14-26`; C-20)
+- E17 Pod-bay request under the wizard (T14-7, T14-12; phase 12 E14 (a)'s form, C-15): `pm clear app.tileshell` →
+  `PROVISION_FINISH_WIZARD=0 qa/phase-03/scripts/provision.sh` (every grant, no finished marker) → `adb shell cmd notification
+  disallow_listener app.tileshell/app.tileshell.feeds.TileNotificationListener` → Home: the dump has `wizard_page`; `tap_node
+  nav_search` opens Tess (`cortana_session`, phase 12 E8), MARK, `type_request "open the pod bay"` → `reply_since` MARK = "Opening
+  the pod bay." and `dumpsys window` shows no session window; the slice from MARK holds no `[podbay] opened` and no `[start]
+  page=POD_BAY`, and the dump still shows `wizard_page` and no `pod_bay`; MARK2, `tap_node wizard_skip` → the slice from MARK2 holds
+  `[wizard] skip` and then `[podbay] opened by voice` with a later `wall=`, and the dump shows `pod_bay`. Restore: `pm clear` →
+  `provision.sh` → Home
 
 **Phone-only:** P1 Jeremy's own voice on "open the pod bay doors" (the grammar hotword) and Tess SPEAKING the line on the S25 Ultra
 (TTS on the phone is unproven until a CI build is installed, INDEX 2026-09-22); P2 One UI gesture navigation: a pan opens the pod bay,
@@ -326,6 +375,6 @@ any approximation not covered by H2–H11; H13 Tess speaking the line on the pho
   death, widget size classes against the epx canvas, Samsung's Font size changing a widget's text (RV10 cost, recorded)~~ Ruled out
   2026-09-23 (Q1 B, T14-1)
 - A pod-bay request (voice or typed) made while phase 12's setup wizard shows: nothing moves behind the wizard; the pane opens once
-  the wizard finishes (T14-7; assert no `[podbay] opened` until `[wizard] finished` or `[wizard] skip`, then the line)
+  the wizard finishes (T14-7; proven by E17 since 2026-09-23, T14-12)
 
 ## QA evidence

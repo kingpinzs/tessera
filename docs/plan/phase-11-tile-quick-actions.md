@@ -26,7 +26,8 @@ Music's hold menus (they keep hold-and-release = menu on the same `Edit.HOLD_MS`
 pinned shortcuts (the shell pins none); shortcuts on the bottom tile row's or the promoted tile's OWN rows beyond what the hold
 already does there; Fluent acrylic on the burst (it has no backdrop: edit mode's dim is it) — the satellites' touch lights are
 phase 13's ADD, not built here (T11-7, Decisions); pen hover or a
-swipe-on-tile trigger (R10 item 10's alternatives, superseded by R10-Q3); any network use (A11 holds: shortcuts are local).
+swipe-on-tile trigger (R10 item 10's alternatives, superseded by R10-Q3); no network (shortcuts are local; offline preferred, A11
+as amended 2026-09-23 — re-worded 2026-09-23 by r2 triage T11-11).
 
 ## Decisions
 - 2026-09-22: Interview Q2 — a disc is not "elsewhere" (Jeremy: "A"). While the burst is open, one tap on the held tile's unpin
@@ -50,7 +51,7 @@ swipe-on-tile trigger (R10 item 10's alternatives, superseded by R10-Q3); any ne
   every phase 02 proof stands — the burst is ADDED on top of the hold, nothing about the hold changes." (Jeremy)
 - 2026-09-22: Data source (R10 item 10, carried into the scope add): the actions are Android App Shortcuts read with
   `LauncherApps.getShortcuts`, which only the HOME role holder may call — the shell is it. Launch is `LauncherApps.startShortcut`.
-  A11 holds: nothing here touches the network (agent, R10)
+  No network (shortcuts are local; offline preferred, A11 as amended 2026-09-23 — re-worded 2026-09-23 by T11-11) (agent, R10)
 - 2026-09-22: Phase 02 is amended by this ruling and the INDEX Change Log line is already written (2026-09-22, "PHASE 02 IS AMENDED
   BY R10-Q3"): the hold is unchanged, phase 02's E1 / E7 / E8 keep their meaning and numbers, and only the recorded rationale "Start
   tiles have NO long-press menu" goes stale. This phase owns the burst's rows and must land before phase 02's end-of-build re-run
@@ -86,7 +87,8 @@ swipe-on-tile trigger (R10 item 10's alternatives, superseded by R10-Q3); any ne
   both axes; 16 epx is chosen so the two 31-epx edit discs centred on the right-hand corners (R6 §1.2.1–1.2.3, radius 15.5 epx) never
   overlap a satellite. LINE for tiles in the bottom tile row — four satellites in one row above the tile, centred on it, one grid
   gutter above its top edge and one gutter apart, labels above. Clamping: a satellite whose rest rectangle plus label would leave
-  the page area (above the drawn status bar's bottom edge, 28 epx, R3 C4; below the bottom tile row's top minus one gutter; past the
+  the page area (above the bottom edge of phase 01's drawn status bar, `BarMetrics.STATUS_EPX` — C-17, not a literal 28; below the
+  bottom tile row's top minus one gutter; past the
   screen's left or right edge) is moved inward along the offending axis until it fits, and may then overlap dimmed neighbours (the
   burst draws above them) but never the held tile; when a corner satellite cannot avoid the held tile (a wide tile at the right edge
   in 2-column mode, a tile at the grid's top-left corner), the whole burst takes the line arrangement above the tile, or below it
@@ -101,8 +103,10 @@ swipe-on-tile trigger (R10 item 10's alternatives, superseded by R10-Q3); any ne
   after the first frame (ωd = √k·√(1−ζ²) ≈ 29.4 rad/s), within 1 px of rest by 250 ms. Close: the same spring run back to the tile's
   centre with alpha reaching 0 at the halfway point; on a satellite launch the burst vanishes in the Start exit's first frame (H10).
   The values stand; since 2026-09-23 the clock that measures them is the shell's own `[quick] motion` line, never a screenrecord
-  (T11-5, last Decisions lines)
-- 2026-09-22: Selection rule (agent, Android's own launcher convention; testability 7): query `ShortcutQuery().setPackage(pkg)
+  (T11-5, last Decisions lines), and that line also reports `frames=<n> maxGapMs=<ms>` so jank fails on the same clock (C-31)
+- 2026-09-22: SUPERSEDED 2026-09-23 in its query by the per-activity line (last Decisions line; r2 triage T11-12): the query also
+  carries `setActivity(the tile's component)`; the order, the `isEnabled` filter and the cap of four below stand.
+  Selection rule (agent, Android's own launcher convention; testability 7): query `ShortcutQuery().setPackage(pkg)
   .setQueryFlags(FLAG_MATCH_MANIFEST or FLAG_MATCH_DYNAMIC)` under the tile's own `AppEntry.user`; keep `isEnabled`; order manifest
   before dynamic, then `getRank` ascending, then id; take the first four. Pinned shortcuts are not queried (the shell pins none).
   The rule is a pure function with JVM tests, and E3 asserts the EXACT ids it predicts. Since 2026-09-23 "manifest before dynamic"
@@ -146,20 +150,33 @@ swipe-on-tile trigger (R10 item 10's alternatives, superseded by R10-Q3); any ne
   hold-and-release = menu on the same `Edit.HOLD_MS`; E11 is the control row so the re-cut cannot leak
 - 2026-09-22: Harness contracts (agent; testability 24, 25, 31, 33, 34): the burst is inside `StartActivity`'s root, which already
   sets `testTagsAsResourceId`; test tags `quick_burst` (present only while open), `quick_sat:<i>` (0–3) on each satellite and
-  `quick_sat_label:<i>` on the node that carries its label text; diagnostics `[quick] shortcuts for <pkg>/<userId>: n (k shown:
-  id,id,…)`, `[quick] burst on <tileId>: k satellites`, `[quick] no burst on <tileId>: <reason>`, `[quick] satellite <i> rest=[l,t,r,b]`
-  (the second source RV13 needs under flipping tiles), `[quick] tap satellite <i> <pkg>/<id>: startShortcut ok|failed <exception>`,
+  `quick_sat_label:<i>` on the node that carries its label text; diagnostics `[quick] shortcuts for <pkg>/<activity>/<userId>: n (k
+  shown: id,id,…)` (re-cut 2026-09-23 by T11-12 from `<pkg>/<userId>`, which read the same for two tiles of one package; `<pkg>/<activity>`
+  is the tile component's `ComponentName.flattenToShortString()` — `app.tileshell/.music.MusicActivity`, and the full class where it lies
+  outside the package, e.g. `app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity`), `[quick] burst on <tileId>: k
+  satellites`, `[quick] no burst on <tileId>: <reason>`, `[quick] satellite <i> rest=[l,t,r,b]`
+  (the second source RV13 needs under flipping tiles), `[quick] satellite <i> icon failed <pkg>/<id>: <why>` (added 2026-09-23,
+  T11-14), `[quick] tap satellite <i> <pkg>/<id>: startShortcut ok|failed <exception>`,
   `[quick] burst closed: tap elsewhere|drag|back|home|stop|unpin|launch|shortcuts changed`. Rows are adb-driven on phase 03's
-  `lib.sh` (symlinked as phase 01 did), evidence under `qa/phase-11/`. Added 2026-09-23: `[quick] motion open|close …` (T11-5);
-  the dump route, the seeding baseline and the force-stop-after-launch rule live in the Acceptance preamble (T11-4, T11-3, C-6)
+  `lib.sh` (symlinked as phase 01 did), evidence under `qa/phase-11/`. Added 2026-09-23: `[quick] motion open|close …` (T11-5), with
+  `frames=<n> maxGapMs=<ms>` (C-31); the dump route, the seeding baseline, the force-stop-after-launch rule and the ring-slice rule
+  live in the Acceptance preamble (T11-4, T11-3, C-6, C-20)
 - 2026-09-22: Process, permissions, surface (agent; design 27): everything runs in the launcher process; no new permission; no new
   exported component, so phase 03 E5's allow-list is unchanged and its row is re-run as is
 - 2026-09-22: NEEDS-HUMAN rows here are ACCEPT rows (testability 26): P4 design or Jeremy's own values, none judged against footage
 - 2026-09-22: QA fixtures (agent; testability 8): `testapps/tileclient-a` gains `res/xml/shortcuts.xml` with FIVE static shortcuts
   (ids `qa_one`…`qa_five`, ranks 0–4, short labels "One"…"Five") all targeting a new `ShortcutActivity` in that APK that shows the
   `qa_id` extra it received in a TextView with the view id `shortcut_id`, so the row reads WHICH shortcut ran (`dumpsys activity`
-  prints only "(has extras)", the phase 02 E5 lesson); `testapps/tileclient-b` publishes ONE dynamic shortcut (`qa_dyn`, "Dyn")
-  through `ShortcutManager` on launch and disables it when started with the `disable` verb. AOSP's Open Camera / Auxio fixtures
+  prints only "(has extras)", the phase 02 E5 lesson). Added 2026-09-23 (T11-13): tileclient-a declares `res/xml/shortcuts.xml` in
+  the `<meta-data android:name="android.app.shortcuts">` of its LAUNCHER activity, `app.tileshell.testclient.VerbActivity`
+  (`testapps/tileclient-a/src/main/AndroidManifest.xml:20-28`, the component `baseline_layout.json` pins); `ShortcutActivity` is only
+  the shortcuts' target — under the per-activity query a declaration on `ShortcutActivity` yields 0 and E1 fails on a correct shell.
+  `testapps/tileclient-b` publishes ONE dynamic shortcut (`qa_dyn`, "Dyn")
+  through `ShortcutManager` on launch and disables it when started with the `disable` verb. Added 2026-09-23 (T11-14): started with
+  the `badicon` verb it also publishes a second dynamic shortcut `qa_noicon` ("No icon", rank 1) whose icon is
+  `Icon.createWithContentUri` of a URI that resolves to nothing (`content://app.tileshell.testclient.b.images/missing.png`), and the
+  `reset` verb republishes `qa_dyn` alone — so E3's icon sub-step produces the icon-failed line while E3's and E8's one-shortcut
+  states stay as written. AOSP's Open Camera / Auxio fixtures
   (when the stash is present) are extra evidence, never the only evidence. Since 2026-09-23 the two fixture tiles reach Start
   through `qa/phase-11/baseline_layout.json` and `layout_restore`, not a pin per row (T11-3, Acceptance preamble)
 - 2026-09-23 (agent, review triage T11-5; C-5): the shell-logged motion clock is the standing rule. The burst logs `[quick] motion
@@ -184,7 +201,11 @@ swipe-on-tile trigger (R10 item 10's alternatives, superseded by R10-Q3); any ne
   and removed by the app) for screens that exist only conditionally (phase 17's Media server while a server is set up, phase 18's SD
   card while one is mounted). The selection rule's "manifest before dynamic" is therefore a stated choice: a conditional screen
   ranks after the fixed ones, so the four satellites a user learns stay where they were. Reason: a static shortcut to a screen that
-  is not there would launch into nothing; phases 17 / 18 say "dynamic" and carry the rows (their T17-9 / T18-6)
+  is not there would launch into nothing; phases 17 / 18 say "dynamic" and carry the rows (their T17-9 / T18-6). Added 2026-09-23
+  (r2 triage C-21): every dynamic shortcut calls `ShortcutInfo.Builder.setActivity(<its app's launcher activity>)`. One published
+  without it attaches to the package's first MAIN / LAUNCHER activity, which in this APK is `MusicActivity`
+  (`AndroidManifest.xml:111-120`), so under the per-activity query 17's Media server / Panorama / Slow motion and 18's SD card would
+  burst on the Music tile; 17 build task 15 and 18 build task 11 say so, and their E23 / E2 assert the Music tile's burst unchanged
 
 - 2026-09-23 (agent, lead, resolving the writer's OPEN on E15): the selection query is per ACTIVITY, not per package —
   ShortcutQuery().setPackage(pkg).setActivity(the tile's component) — because Music and Start settings are both app.tileshell and
@@ -223,13 +244,19 @@ swipe-on-tile trigger (R10 item 10's alternatives, superseded by R10-Q3); any ne
    motion (open and close), drawing (fill, icon, label), test tags, the `[quick] satellite i rest=` lines
 4. Satellite launch: `startShortcut` with the satellite's bounds, the Start exit, `RecentApp.opened`, the failure path
 5. Shell apps' static shortcuts per Q1 (Music pivots, Start settings pages, and the intent extras they need — recorded as ADDs in
-   the INDEX Change Log for phases 01 and 10), plus `selected` semantics on Music's pivot headers (`music_pivot_header:<pivot>`,
+   the INDEX Change Log for phases 01 and 10), each set declared on its own launcher activity (per-activity query, T11-12): ids
+   `songs`, `albums`, `artists`, `playlists` on `MusicActivity`, and `start_theme`, `tile_apps`, `checklist`, `diagnostics` on
+   `SettingsActivity` (the `SettingsPage` names, `settings/SettingsActivity.kt:42`), plus `selected` semantics on Music's pivot headers (`music_pivot_header:<pivot>`,
    `music/MusicCollectionPage.kt:355`, which carry none today) so E15 can read which pivot a shortcut landed on — part of the
    phase 10 ADD
 6. Build-start checks recorded in Decisions: the consumed-DOWN hold on a transport control; ~~the hold on the promoted tile~~
    (settled by J4, T11-2; E16 proves it); `boundsInRoot` under the contraction
-7. QA: the two fixture APKs' shortcuts; `qa/phase-11/baseline_layout.json`, its four variant baselines and
-   `baseline_layout-pre-11.json` (T11-3, C-3); the `[quick] motion` assertions (T11-5); the managed-profile row; the phase 02
+7. QA: the two fixture APKs' shortcuts (tileclient-a's on its launcher activity, T11-13; tileclient-b's `badicon` / `reset` verbs,
+   T11-14); `qa/phase-11/baseline_layout.json`, its four variant baselines and
+   `baseline_layout-pre-11.json` (T11-3, C-3); the `[quick] motion` assertions (T11-5, C-31); `lib.sh`'s ring helpers, owned here as
+   the first phase in the Build order (C-20): `ring_mark` (`adb shell date +%s%3N`), `ring_since <mark> [launcher|speech|<service
+   component>]` (`qa/phase-03/scripts/j7.sh:13-15`'s `wall=` filter as one function), `reply_since <mark>` (the first `text=` reply after
+   the mark, empty if none), and `row_end` saving `ring_since $ROW_MARK` of each ring the row names to `<row>/ring-<name>.txt`; the managed-profile row; the phase 02
    regression re-runs (E1 / E7's bracket and geometry sub-rows / E8, `regress.sh`) and the two control rows; E15 / E16; evidence
    index `qa/phase-11/README.md`
 
@@ -261,13 +288,21 @@ of a burst is taken through phase 05's gesture-driver `UiDevice.dumpWindowHierar
 corroboration.
 **Motion clock (C-5).** Every motion the shell animates logs its own clock from `withFrameNanos` — here `[quick] motion open|close
 …` (Decisions, T11-5) — and the row asserts the logged numbers against RV11's tolerance; a screenrecord corroborates under phase 05's
-frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motion, else retaken) and is never the primary clock.
+frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motion, else retaken) and is never the primary clock. The line also
+carries `frames=<n> maxGapMs=<ms>` (consecutive frame-time gaps inside the motion) and the row asserts `maxGapMs` ≤ 33.4 ms (2 vsync)
+beside the numbers (C-31).
+**Ring reads (C-20).** Every ring assertion reads `ring_since` from a MARK taken immediately before the step's action (after any
+clock jump, so the MARK is on the new clock); absence assertions read the same slice; `reply_text` is `reply_since <MARK>`. The
+helpers are this phase's build task 7.
+**Wake (C-25).** After any `adb reboot` (boot-completed poll), `dumpsys battery unplug` or `KEYCODE_SLEEP` step, the driver calls
+`wake_device` (`qa/phase-03/scripts/lib.sh:47-56`) and asserts it printed `Awake` before the next tap.
 **Emulator:**
 - E1 Burst at the hold: `adb shell input motionevent DOWN x y` on the fixture tile's centre, sleep 1.0 with the finger still down,
   dump: `quick_burst` present, `quick_sat:0..3` present, `quick_sat_label:0..3` texts are "One", "Two", "Three", "Four" (ranks 0–3;
   "Five" absent), `edit_disc:unpin` and `edit_disc:resize` present, `dim:*` present, `adb shell dumpsys activity activities` still
-  shows `StartActivity` resumed; diagnostics has `[quick] shortcuts for app.tileshell.testclient.a/0: 5 (4 shown:
-  qa_one,qa_two,qa_three,qa_four)` and `[quick] burst on <id>: 4 satellites`; `UP` → a second dump is identical (the burst and edit
+  shows `StartActivity` resumed; the ring slice from a MARK before the DOWN has `[quick] shortcuts for
+  app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity/0: 5 (4 shown: qa_one,qa_two,qa_three,qa_four)` (T11-12) and
+  `[quick] burst on <id>: 4 satellites`; `UP` → a second dump is identical (the burst and edit
   mode both remain); screencap saved
 - E2 The fork, bracketed in time and in space (RV11; testability 11): `adb shell input swipe x y x y 740` → the press acts as a tap
   (the fixture app launches, no `quick_burst`, no `edit_disc:*`); `adb shell input swipe x y x y 830` → `quick_burst` present, edit
@@ -276,7 +311,12 @@ frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motion, else ret
   diff), `[quick] burst closed: drag`
 - E3 Selection rule and counts, three tile kinds: the fixture tile → the four ids above in the order top-left, top-right,
   bottom-left, bottom-right (satellite i's label = rank i's label); tileclient-b's tile → one satellite at top-left (`quick_sat:0`
-  present, `quick_sat:1..3` absent, `[quick] shortcuts … 1 (1 shown: qa_dyn)`); the Weather tile (shell; Q1 A: Weather declares
+  present, `quick_sat:1..3` absent, `[quick] shortcuts for app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity/0: 1 (1
+  shown: qa_dyn)`, T11-12). Icon failure (T11-14): `am start` tileclient-b with the `badicon` verb, C-6's force-stop + Home, MARK,
+  hold its tile → `quick_sat:0..1` present, `quick_sat:1`'s interior clear of its label equals the satellite fill ± 2 (no glyph drawn),
+  the slice holds `[quick] satellite 1 icon failed app.tileshell.testclient.b/qa_noicon: <why>`, and `tap_node quick_sat:1` logs
+  `[quick] tap satellite 1 app.tileshell.testclient.b/qa_noicon: startShortcut ok` (the satellite still runs); then the `reset` verb
+  and C-6. The Weather tile (shell; Q1 A: Weather declares
   none) and the folder tile `folder:qa` → no `quick_burst`, edit mode on, `[quick] no burst on <id>: no shortcuts` / `: folder`.
   When the fixture stash is present: Open Camera's five manifest shortcuts give exactly the four ids the rule predicts (`dumpsys
   shortcut` lists their ranks)
@@ -293,14 +333,19 @@ frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motion, else ret
   `quick_sat:i` sits at the new corners (bounds re-derived from the tile's new bounds ± 1 px). Tap `edit_disc:unpin` → the tile and
   the burst are gone. `KEYCODE_HOME` → Start's page (`start_page` in the dump; not "page 0" — phase 14 moves Start to pager index 1,
   T11-9), no burst, no edit mode. A drag on empty space → Start scrolls and every satellite's bounds move by the tile's Δy (dump
-  before / after). Press feedback (T11-7): `input motionevent DOWN` on `quick_sat:0`'s centre, screencap while held, then `MOVE`
+  before / after). Press feedback (T11-7; sample points T13-8): `input motionevent DOWN` at (left + 10, top + 10) px of
+  `quick_sat:0`'s `rest=` bounds — never its centre: no pixel of a 164-px satellite lies ≥ 126 px (phase 13's r + 2 epx) from its
+  centre — screencap while held, then `MOVE`
   off the satellite and `UP` (nothing runs, burst stays), once with `press_tilt` and once with `press_p4` selected in Start + theme:
   on this phase's build the satellite's pixels in the held capture equal its rest pixels ± 1 (no Q6 style); from phase 13's build
-  on (re-run at phase 13's gate, its E7 satellite sub-row) the held capture shows phase 13's 1-epx ring and radial light at its
-  values, and with Transparency effects off it again equals the rest pixels ± 1
+  on (re-run at phase 13's gate, its E7 satellite sub-row), with F = the satellite's rest fill: the ring on the satellite's right and
+  bottom edges, ≥ 126 px from the touch point, reads F + 0.30·(255 − F) ± 4; the touch-point pixel reads F + 0.10·(255 − F) ± 4; the
+  pixel 60 px from it along the diagonal toward the bottom-right reads F + 0.05·(255 − F) ± 4; the interior pixel 12 px inside the
+  bottom-right corner (≈ 200 px away) reads F ± 2; with Transparency effects off every one of those pixels equals the rest pixels ± 1
 - E6 Motion, on the shell's clock (C-5, T11-5): open a burst on the fixture tile; the `[quick] motion open <tileId>` line reads peak
   = 107 ± 17 ms, overshoot = 6.8 ± 2 % of the travel and settle ≤ 250 ms, and one line (one t0) covers all four satellites; tap
-  elsewhere: `[quick] motion close <tileId>` reads alpha0 ≤ 100 ms and settle ≤ 250 ms (the split-time bounds). Corroboration: a
+  elsewhere: `[quick] motion close <tileId>` reads alpha0 ≤ 100 ms and settle ≤ 250 ms (the split-time bounds); both lines read
+  `maxGapMs` ≤ 33.4 ms (C-31), each from the ring slice after a MARK taken just before its hold / tap (C-20). Corroboration: a
   screenrecord of the same open passes phase 05's frame-spacing rule (source frames ≤ 18.2 ms apart during the motion, else retaken)
   and its first frame with satellite pixels is the edit-mode entry's first changed frame (phase 02 E7's t0) ± 1 source frame; the
   capture is not the clock for any number above. P2 repeats the open line on the phone
@@ -308,12 +353,13 @@ frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motion, else ret
   the grid's middle, `baseline_layout.json`): each satellite 164 ± 3 px square, its inner corner 48 ± 3 px (16 epx) from the tile's
   corner on both axes, labels above the top pair and below the bottom pair (bounds); `baseline_layout-bottomrow.json` → the line
   arrangement: four satellites in one row above `bottom_tile_row`, bottoms one gutter above the row's top, above the drawn nav bar;
-  the grid's top-left tile (`slot:PEOPLE` in the main baseline) → every satellite inside the page area (below the 28-epx status bar,
-  inside the screen); `baseline_layout-wide.json` → the line arrangement; `baseline_layout-band.json` with `folder:qa` expanded →
+  the grid's top-left tile (`slot:PEOPLE` in the main baseline) → every satellite inside the page area (below phase 01's drawn status
+  bar, `BarMetrics.STATUS_EPX` epx — C-17 — inside the screen); `baseline_layout-wide.json` → the line arrangement; `baseline_layout-band.json` with `folder:qa` expanded →
   corner arrangement drawn above `folder_band_top:*` / `folder_band_bottom:*`; `baseline_layout-tall.json` scrolled 1.5 screens →
   satellite bounds relative to the tile's bounds equal the unscrolled case ± 1 px; every `[quick] satellite i rest=` line equals the
-  dump's bounds ± 1 px. From phase 13's build on, the corner-case capture repeated with `quick_sat:0` held down shows the ring and the
-  radial light inside that satellite's bounds and nowhere else (T11-7)
+  dump's bounds ± 1 px. From phase 13's build on, the corner-case capture repeated with `quick_sat:0` held down at (left + 10, top +
+  10) px shows E5's four samples at their values (T13-8), and the held tile and `quick_sat:1..3` equal the unpressed capture ± 1
+  (the lights stay inside the pressed satellite, T11-7; neighbours that flip are not compared)
 - E8 No-burst cases with reasons: (a) `adb shell cmd role remove-role-holder android.app.role.HOME app.tileshell` → hold → edit mode,
   no burst, `[quick] no burst …: not the shortcut host`; restore with `add-role-holder` and `cmd package set-home-activity`; (b) a
   disabled shortcut: `am start` tileclient-b with the `disable` verb → hold → no burst (`… 1 (0 shown)`); with a burst open on it,
@@ -321,7 +367,8 @@ frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motion, else ret
   burst go (phase 02 E6)
 - E9 Managed profile: `adb shell pm create-user --profileOf 0 --managed qa_work`, `adb shell am start-user <id>`, `adb shell pm
   install-existing --user <id> app.tileshell.testclient.a`, pin its work tile from the app list's work group (phase 02 E2), hold →
-  four satellites, `[quick] shortcuts for app.tileshell.testclient.a/<id>: 5 (4 shown: …)`, `tap_node quick_sat:0` → `dumpsys activity
+  four satellites, `[quick] shortcuts for app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity/<id>: 5 (4 shown: …)`
+  (T11-12), `tap_node quick_sat:0` → `dumpsys activity
   activities` shows `ShortcutActivity` resumed as `u<id>` with `shortcut_id` = `qa_one`; `adb shell pm set-quiet-mode true --user <id>`
   (or `am stop-user <id>` if the AVD refuses quiet mode) → hold → no burst, reason `profile quiet`; restore `pm remove-user <id>`. If
   the AVD refuses a managed profile, the row records it and moves to P4
@@ -341,19 +388,25 @@ frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motion, else ret
   `addedOnce` equal to the file's (C-3); phase 01 E10 press styles (a short press shows the style and no burst); phase 03 E5's
   exported allow-list unchanged
 - E14 Every diagnostics line in Decisions is asserted by at least one row in this list (E1–E16), and each `[quick] no burst` reason
-  appears once
+  appears at least once — read from the union of `qa/phase-11/*/ring-*.txt` saved by this build's run (the rows whose log's APK id
+  matches), never from one final ring, which every `am force-stop` / `pm clear` / `layout_restore` resets (`diag/Diagnostics.kt:14-26`;
+  C-20); each pattern at least once
 - E15 The shell's own tiles (Q1 A; T11-1): hold `tile:slot:MUSIC` (the MUSIC slot is `app.tileshell/.music.MusicActivity` in the
-  baseline's `slots`) → `quick_sat_label:0..3` texts are "Songs", "Albums", "Artists", "Playlists" (ranks 0–3) and `[quick] shortcuts
-  for app.tileshell/0: 4 (4 shown: …)` names the four ids; `tap_node quick_sat:1` → `dumpsys activity activities` shows
+  baseline's `slots`) → `quick_sat_label:0..3` texts are "Songs", "Albums", "Artists", "Playlists" (ranks 0–3) and the ring slice
+  from a MARK before the hold has `[quick] shortcuts for app.tileshell/.music.MusicActivity/0: 4 (4 shown:
+  songs,albums,artists,playlists)` and no `[quick] shortcuts for` line naming a Start settings id (T11-12); `tap_node quick_sat:1` → `dumpsys activity activities` shows
   `MusicActivity` resumed and the dump's `music_pivot_header:albums` carries `selected="true"` (the other three `selected="false"`;
-  build task 5's semantics); C-6. Hold `tile:shell:settings` → labels "Start + theme", "Tile apps", "Setup", "Diagnostics"; `tap_node
+  build task 5's semantics); C-6. Hold `tile:shell:settings` → labels "Start + theme", "Tile apps", "Setup", "Diagnostics" and the
+  slice from a MARK before the hold has `[quick] shortcuts for app.tileshell/.settings.SettingsActivity/0: 4 (4 shown:
+  start_theme,tile_apps,checklist,diagnostics)` and no line naming a Music id; `tap_node
   quick_sat:3` → `SettingsActivity` resumed on the Diagnostics page: `page_header` reads "Diagnostics" and the hub item
   `settings_diagnostics` is ABSENT (it is the hub's row, `settings/SettingsActivity.kt:142`, so its presence would mean the extra was
   ignored); C-6. Hold `tile:shell:weather` and `tile:shell:cortana` → `edit_disc:*` present, no `quick_burst`, `[quick] no burst on
-  <id>: no shortcuts` for each. (OPEN (resolved 2026-09-23 by the lead: per-activity query, see Decisions), found 2026-09-23 while applying T11-1, not decided here: Music and Start settings are both
-  `app.tileshell`, and the selection rule queries by package only, so as written each of the two tiles would get the first four of
-  all eight shell shortcuts; the counts above hold only if the query is also filtered by the tile's activity,
-  `ShortcutQuery.setActivity` — a call for the lead)
+  <id>: no shortcuts` for each. ~~(OPEN (resolved 2026-09-23 by the lead: per-activity query, see Decisions), found 2026-09-23 while
+  applying T11-1, not decided here: Music and Start settings are both `app.tileshell`, and the selection rule queries by package only,
+  so as written each of the two tiles would get the first four of all eight shell shortcuts; the counts above hold only if the query
+  is also filtered by the tile's activity, `ShortcutQuery.setActivity` — a call for the lead)~~ struck 2026-09-23 by T11-12 (resolved:
+  the per-activity query, last Decisions line; the activity-keyed lines above make the row failable)
 - E16 The promoted tile (T11-2; J4): restore the baseline, tap the fixture tile (it launches), Home (no force-stop): the fixture tile
   is in `recent_app_row`. `DOWN` on the promoted tile's centre, sleep 1.0: `recent_app_row` absent, `edit_disc:*` present, the
   fixture tile at its grid-cell bounds (the baseline dump's ± 1 px), `[quick] burst on <id>: 4 satellites`, and every satellite's
@@ -396,7 +449,8 @@ approximation not covered by H2–H11; H10 the close motion (spring back, alpha 
 - The shell not the HOME holder (no burst, reason logged); `getShortcuts` throwing for any other reason (caught, reason logged)
 - An app publishing more than four shortcuts with equal ranks (ties by id, deterministic); shortcuts with no short label (the id is
   never shown — the label line is empty and the satellite still runs); very long labels (ellipsised); an icon that fails to load
-  (the satellite draws its fill with no glyph and still runs; logged)
+  (the satellite draws its fill with no glyph and still runs; `[quick] satellite <i> icon failed <pkg>/<id>: <why>`, T11-14; E3's
+  `badicon` sub-step)
 - Theme light / dark (the satellite fill and label follow the theme like tiles); the X5 transparency slider at 0 % and 100 %
 - RV10: `wm size` / `wm density` / `font_scale` changes leave satellite bounds in epx unchanged (phase 01 E3's method, one dump each)
 
