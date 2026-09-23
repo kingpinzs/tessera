@@ -1,8 +1,8 @@
 ---
 phase: 17
 slug: inbox-photos-camera-video
-status: DRAFT   # split 2026-09-22; interview DONE 2026-09-23; review triage round 1 applied 2026-09-23 (two questions to Jeremy still open: Q-A, Q-B); r11/photos.md, r11/camera.md, r11/movies-tv.md gate FINAL
-depends-on: [01, 02, 03, 10, 15, 16]   # 15 for the live-tile routing fix (its build task 0, triage C-1); 16 for the assignSlotOnce guard (its build task 1, triage C-2); 10 for MusicFeed / Media3
+status: DRAFT   # split 2026-09-22; interview DONE 2026-09-23; review triage round 1 applied 2026-09-23; round 2 applied 2026-09-23 (review/2026-09-23-phases11-20-r2-triage.md): Q-B answered (Jellyfin); Q-A re-asked as Q-A2 (the repo and its Release APKs are public) and answered 2026-09-23 (B: the TMDB key only in builds made on Jeremy's PC); Q-D (plain-http media streams) open — affected text marked "Q-A2: B" / "Q-D: A"; r11/photos.md, r11/camera.md, r11/movies-tv.md landed and applied (T17-16; E19 written); DRAFT → FINAL after Stage A step 7, which waits on Q-D
+depends-on: [01, 02, 03, 10, 11, 12, 15, 16]   # 15 for the live-tile routing fix (its build task 0, triage C-1); 16 for the assignSlotOnce guard (its build task 1, triage C-2); 10 for MusicFeed / Media3; 11 for the E23 bursts; 12 for the E25 template and C-15's marker (C-23)
 ---
 
 # Phase 17 — W10M inbox apps III: Photos, Camera and Movies & TV
@@ -27,24 +27,30 @@ Camera use none. This phase also builds the streaming hand-off (`StreamingHandof
   changes the way PhotosFeed watches images; a collection pivot (by date) and albums (MediaStore buckets); a
   full-screen viewer (swipe, zoom); share, delete, "set as" (the shell's Start background; Android's lock-screen
   wallpaper), slideshow; the full editor (Q1 C: crop, rotate, straighten, auto-enhance, light and colour, filters,
-  red-eye, saved as a copy) and video trimming (saved as a copy); the app's own empty / denied / partial-access
+  red-eye, saved as a copy) and video trimming (saved as a copy) — straighten, light and colour, filters, red-eye and the
+  trim screen are P4 designs with NEEDS-HUMAN rows (W10M's inbox editor did crop / rotate / auto-enhance only, r11/photos.md
+  1.7.3–1.7.4; the trim screen has one LOW still, 1.11; T17-16); the app's own empty / denied / partial-access
   states naming the Setup checklist; it takes the PHOTOS slot once (marker `slot:photos:v1`) and appears in the
   app list. A video tapped in Photos opens the shared player (Q4 A, one player surface).
 - Camera: still and video capture on the back and front cameras with flash, timer, grid, tap-to-focus and
-  zoom; every Windows Camera mode (Q2 C): the Lumia pro dial, panorama, slow motion and Living Images, each
+  zoom; every Windows Camera mode (Q2 C): the Lumia pro dial (W10M's five-arc dial, measured — R11 camera.md 1.4),
+  panorama, slow motion and Living Images, each
   shown only where the phone's camera can do it (Decisions); files saved through MediaStore into DCIM/Camera so
   the Photos tile, the Photos app and every other gallery see them; the capture-intent contract (Q5 A: it answers
   `IMAGE_CAPTURE` and `VIDEO_CAPTURE` and returns the result to the caller, with the guards in Decisions); it
   takes the CAMERA slot once (marker `slot:camera:v1`); its own `android:process` (`:camera`).
-- Movies & TV (Q3b A): the local half — a My videos pivot (the phone's videos by folder, with duration) and one
-  player screen (transport, scrubber, aspect and rotation handling, subtitles when the file carries a text
-  track); it answers `ACTION_VIEW video/*` for `content://` and `http(s)://` sources; it takes audio focus so
+- Movies & TV (Q3b A), navigated by W10M's ≡ pane, not pivots (r11/movies-tv.md 1.3; T17-16): the local half — a My
+  videos page (the phone's videos as W10M's 112-epx tile grid grouped by folder, captioned with the file name; W10M's tiles
+  carried no duration, 1.4.11) and one player screen (transport, scrubber, aspect and rotation handling, subtitles when
+  the file carries a text track); it answers `ACTION_VIEW video/*` for `content://` and `http(s)://` sources (plain `http`
+  Q-D: A, Decisions C-16); it takes audio focus so
   Music pauses; a media session for headset and Bluetooth buttons that never lands on a tile; the same player
   screen is what a video tapped in Photos or Files plays in; its own process (`:video`). The online half — a
-  Browse pivot over a public film database (TMDB — Q-A: A), per title the streaming apps on the phone that
-  have it with "Watch on <service>" opening that app at the title, and a Media server pivot (Jellyfin —
-  Q-B: A) when one is set up; a catalogue cache so the hub works offline; the `StreamingHandoff` interface
-  phases 20 and 21 reuse.
+  Browse page over a public film database (TMDB — Q-A: A; the key only in builds made on Jeremy's PC — Q-A2: B), per title
+  the streaming apps on the phone that have it with "Watch on <service>" opening that app at the title where public data
+  gives the service's own id and at its search otherwise (T17-15), and a Media server page (Jellyfin only — Q-B) when one
+  is set up; a catalogue cache so the hub works offline; the `StreamingHandoff` interface phases 20 and 21 reuse; the
+  network security config every network use of the shell runs under (Decisions C-16).
 - Slot seeding under phase 16's `assignSlotOnce` guard, and the re-cut of the rows that touched these slots
   (phase 01 E4; phase 03 E2, E10); the re-run of phase 10 E10 / E13 on this build under phase 15's live-tile
   routing fix (E16). ~~and the fix for the package-keyed live-tile fallback (Decisions) with its re-run of
@@ -70,6 +76,20 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
 "local-only" Movies & TV build (Hard Rule 16 — the interview ruled the fuller forms).
 
 ## Decisions
+- 2026-09-23: Review question Q-D — plain http is allowed for MEDIA only (Jeremy: "(a)"): radio stream URLs and the user's
+  Jellyfin server may use http; the shell's own fixed endpoints (TMDB, radio-browser's directory, MusicBrainz / Cover Art
+  Archive, weather) stay https-only, enforced by Android's network security config (cleartext denied by default, permitted
+  only on the media playback path); a media-server sign-in over http to an address outside the home network (not a private /
+  link-local range) asks first. A trust change: the network security config and the per-path cleartext rule get the
+  adversarial review the project requires before done (build-prompt trust list, C-16). Every row and task written "under A"
+  is the ruled form; the B and C branches are not built.
+- 2026-09-23: Review question Q-A2 (Q-A re-asked with the fact that the repo and every CI release APK are PUBLIC) — the TMDB key
+  is built in ONLY in builds made on Jeremy's PC (Jeremy: "(b)"). The build reads tmdb.readToken from the gitignored
+  local.properties into BuildConfig when it is present; the CI workflow never has it (no Actions secret), so the public "latest"
+  download has no key and its Browse pivot says plainly that film search is off in this build (diagnostics: "catalogue: no
+  TMDB key in this build"). SUPERSEDES the Q-A line's "CI reads it from a GitHub Actions secret". Consequence recorded for
+  Jeremy: film search on the phone needs a build made on the PC and installed from there (release-signed with the same key as
+  CI, phase 01's rule, so either can update the other; installing a later CI build over it drops the key again).
 - 2026-09-23: Review question Q-B — the media server is Jellyfin (Jeremy: "(a) but I dont have it yet but I do have a server
   that I need to get back up and running"). The hub's media-server part is a Jellyfin client only: no Plex code, no plex.tv
   sign-in. It is built and proven on the AVD against a Jellyfin container on the host (E22); Jeremy does not run Jellyfin yet,
@@ -84,6 +104,14 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
   TMDB API but is not endorsed or certified by TMDB", with its logo) shows in Movies & TV's About, and the where-to-watch
   data (TMDB's watch providers, sourced from JustWatch) carries JustWatch's credit where it is shown. The key was checked
   live on 2026-09-23: /3/configuration answered 200.
+  - Note 2026-09-23 (r2 triage T17-13 / T17-14, applied under Q-A2: B above): the CI-secret route is superseded (Q-A2). One
+    credential only — `tmdb.readToken`, sent as `Authorization: Bearer`; `tmdb.apiKey` and the `api_key` query parameter are
+    used nowhere (the property may stay in local.properties, unread). The build reads the Gradle property `-Ptmdb.readToken`
+    first and local.properties second (build task 12), so a QA build can carry a dummy token and a CI-form build none. Never
+    logged: the catalogue lines carry the query and the status only. The one no-key form (T17-14): the diagnostics line
+    `[video] catalogue: no TMDB key in this build` and the page line "Film search is off in this build" (the Q-A2 ruling's
+    words). The one attribution placement (agent, T17-14): Movies & TV's About (this ruling) AND the Browse page's foot
+    (`hub_attribution`), since TMDB's terms ask for it where the data shows; E20 asserts it on Browse.
 - 2026-09-23: Interview Q5 — the shell's Camera answers IMAGE_CAPTURE and VIDEO_CAPTURE and returns the result to the caller
   (Jeremy: "(a)"), so it is one of Android's camera choices beside Samsung Camera.
 - 2026-09-23: The App Shortcuts under the phase 11 Q1 standing rule (agent; Jeremy can overrule): Photos — Collection, Albums;
@@ -111,6 +139,10 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
 - 2026-09-23: Interview Q1 — Photos is the full W10M Photos (Jeremy: "(c)"): collection, albums, viewer, share / delete / set
   as, slideshow, the editor (crop, rotate, straighten, auto-enhance, light and colour, filters, red-eye, saved as a copy) AND
   video trimming (saved as a copy, the original kept). One form, built complete (Hard Rule 16).
+  - Note 2026-09-23 (r2 triage T17-16): the ruling stands and is built as ruled; only its reading as W10M fidelity is
+    corrected. W10M's inbox editor was "Crop, Rotate, Auto-enhance" (r11/photos.md 1.7.3–1.7.4; filters and the rest lived in
+    Lumia Creative Studio, a separate app), so straighten, light and colour, filters and red-eye are P4 additions judged by
+    H13b [accept]; the trim screen has one LOW still (1.11) and is a P4 design (Y13, H13b).
 - 2026-09-22: From phase 11 interview Q1 (Jeremy: "A"), a standing rule for every shell app: this phase's apps declare their
   own top-level screens as static App Shortcuts, so a hold on their tiles bursts those screens (phase 11). Which screens each app
   declares is settled at this phase's own interview; a build task and an acceptance row carry it.
@@ -159,16 +191,19 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
   built; E16 re-runs phase 10 E10 / E13 under it. Flagged to the lead for phases 15 / 16, which meet the same
   fallback.
 - 2026-09-22 (agent): **R11 gates FINAL.** Every visual and motion value in this doc is either "from R11
-  §Photos / §Camera / §Movies & TV" (pending — R11 is now an index, docs/plan/r11-inbox-apps.md; the sections this phase
-  needs are `docs/plan/r11/photos.md`, `docs/plan/r11/camera.md`, `docs/plan/r11/movies-tv.md`, none written as of 2026-09-23
-  — C-12) or a value this build already
-  measured: status bar 28 epx (R3 C4), list rows and letter groups (R3 C2 / R6 §5.1.4), the pivot header and
+  §Photos / §Camera / §Movies & TV" (`docs/plan/r11/photos.md`, `docs/plan/r11/camera.md`, `docs/plan/r11/movies-tv.md`,
+  landed 2026-09-23 and applied by T17-16 / T17-17 below; ~~pending … none written as of 2026-09-23 — C-12~~ SUPERSEDED
+  2026-09-23 by T17-16) or a value this build already
+  measured: phase 01's drawn status bar (`BarMetrics.STATUS_EPX`, `app/src/main/kotlin/app/tileshell/bars/SystemBars.kt:77-80`;
+  its value is open at phase 01 against R11's 24 epx — C-17; Photos and Camera hide it on every page, the Movies & TV player
+  hides it, its library pages draw it), list rows and letter groups (R3 C2 / R6 §5.1.4), the pivot header and
   its 250 ms settle (phase 10 task 6's MusicMetrics, P4 for the header), the tap-launch Start exit (R3 A11),
   Settings-page rows for each app's settings (R3 C1). Anything else is an approximation (Y rows below) with its
-  own NEEDS-HUMAN row (RV9 / Q10). Motion is planned as approximations from the start (R8's video-extraction
-  blocker is expected to recur — R10 design review finding 10); if R11 measures it, the Y row closes. R11 can measure only
-  Movies & TV's LOCAL half (My videos, the player); the Browse / Watch on / Media server screens were Microsoft's Store
-  half or never existed and are P4 designs with accept rows.
+  own NEEDS-HUMAN row (RV9 / Q10). R11 measured no motion for any of the three apps (no 60-fps source; r11/photos.md §4,
+  camera.md §4, movies-tv.md §4), so every motion stays a tagged approximation (Y6, H4). R11 measured
+  Movies & TV's LOCAL half (My videos, the player; the 10586 build at native resolution); the Browse / Watch on / Media
+  server screens were Microsoft's Store half or never existed and are P4 designs with accept rows, borrowing R11's
+  store-half forms (1.5, 1.7.5, 1.7.10) where they apply (Y8).
 - 2026-09-22 (agent): **the two kinds of NEEDS-HUMAN row are labelled** (R10 testability 26): *fidelity* rows
   ("matches R11 §x within tolerance", judged on the phone) and *accept* rows (a P4 design or an approximation
   with no footage; Jeremy accepts or overrules). qa/phase-17/NEEDS-HUMAN.md follows qa/phase-03/NEEDS-HUMAN.md's
@@ -208,7 +243,9 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
   testability 27: capture and decode must not be able to take Start down), as `:speech` and `:ime` do;
   `ShellApp.onCreate` already returns early outside the main process (INDEX Change Log 2026-09-22, phase 05
   item 1), so neither process starts the feeds. Each has its own diagnostics ring with a dump path, read the way
-  phase 05 reads the `:ime` ring; the path is named in this doc at build start. Photos runs in the main process.
+  phase 05 reads the `:ime` ring (the `Diagnostics` ring is one in-memory deque per process,
+  `app/src/main/kotlin/app/tileshell/diag/Diagnostics.kt:14-27`); the path is named in this doc at build start (BS-7).
+  Photos runs in the main process.
   The hub's online code (`StreamingHandoff`, the catalogue cache, the media-server client) runs in `:video` with the
   player and the "Watch on" intent is started from there; `StreamingHandoff` itself is a plain object with no process of its
   own, so phase 20's Music calls it from the main process, and its stores (cache, server token) are files written
@@ -233,9 +270,13 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
   the build, Apache-2.0 — video trim) and OpenCV (Apache-2.0 since 4.5; the `stitching` module for panorama; arm64-v8a only,
   phone build). E17 checks the total and the OpenCV delta (≤ 20 MB) against the pre-17 APK.
 - 2026-09-22 (agent): **bars.** All three apps are shell-owned screens under phase 01's bar rule: Samsung's
-  bars hidden (`hideSystemBars()`), the drawn W10M status bar and nav bar. The viewfinder and the full-screen
-  viewer / player draw the nav bar and hide the status bar, the form W10M's Camera and Photos viewer used — a
-  candidate until R11 §Camera / §Photos confirms it (Y7).
+  bars hidden (`hideSystemBars()`), the drawn W10M status bar and nav bar. ~~The viewfinder and the full-screen
+  viewer / player draw the nav bar and hide the status bar … a candidate until R11 §Camera / §Photos confirms it (Y7).~~
+  SUPERSEDED 2026-09-23 by T17-16 (R11 measured; Y7 closed): **every Photos page** (collection, albums, viewer, editor,
+  settings) and **every Camera page** hide the status bar and draw the nav bar (r11/photos.md 1.1.1, camera.md 1.1.1, HIGH);
+  **Movies & TV's library pages** (the ≡-pane pages, My videos, Browse, Media server, settings) draw phase 01's status bar
+  (C-17) over the 48-epx #171717 header, one seamless band (movies-tv.md 1.1.1–1.1.2); **the player** hides the status bar
+  and the header and draws the nav bar (1.6.1).
 - 2026-09-23 (agent, review triage C-1): **the live-tile routing fix is phase 15's build task 0, not this phase's build
   task 2.** Reason: the inbox order stays 15 → 16 → 17, 15 meets the same package-keyed fallback (`feeds/MusicFeed.kt:159-171`
   publishes under the session owner's package and grows every tile of that package through `tiles/ActiveTiles.kt:51`;
@@ -248,17 +289,19 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
   line for phase 01 stays with 16.
 - 2026-09-23 (agent, review triage T17-1): **Movies & TV online — the design below the Q3b ruling.** Everything here is the
   agent's under P3 except the two forks §2 of the triage puts to Jeremy (Q-A the film database and its key; Q-B the media
-  server), which are written conditionally below, marked "pending Q-A" / "pending Q-B" wherever a task or row depends on
-  them, and slot in when he answers (the lead puts both and records the answers as dated Decisions). Not a split: phases
+  server), ~~which are written conditionally below, marked "pending Q-A" / "pending Q-B" …~~ SUPERSEDED 2026-09-23 by
+  T17-14: both are answered (Q-B Jellyfin; Q-A TMDB, its key route re-asked and ruled as Q-A2: B), and every block below is
+  the one ruled form. Not a split: phases
   20 (Music streaming) and 21 (TV channels) hang on one named interface, and a "17b" would only move the gate.
   - **The interface, `StreamingHandoff`** (package `app.tileshell.video.handoff`; a plain Kotlin object whose table logic has
     JVM tests; phases 20 / 21 call it and build no second one): `installedServices()` — a per-service table (id, label,
     package, the deep-link form for a title, the web URL form, the search URL form) resolved against
     `PackageManager.queryIntentActivities` at call time (never cached across launches: an app installed a minute ago
-    appears); `openTitle(service, title): Intent` — the service's title deep link where the catalogue yields that service's
+    appears); `openTitle(service, title): Intent` — the service's title deep link where ~~the catalogue yields~~ Wikidata
+    yields (T17-15, the agent line at the end of Decisions) that service's
     own id for the title, else the service's search URL with the title's name and year (the caller starts the intent);
-    `catalogue.search(query)` / `catalogue.lookup(id)` — the source per Q-A; `mediaServer` — `connect(host, user, password)`,
-    `library()`, `streamUrl(item)` — the client per Q-B. The services table's forms (Netflix, Prime Video, Disney+, Hulu, Max,
+    `catalogue.search(query)` / `catalogue.lookup(id)` — TMDB (Q-A); `mediaServer` — `connect(host, user, password)`,
+    `library()`, `streamUrl(item)` — the Jellyfin client (Q-B). The services table's forms (Netflix, Prime Video, Disney+, Hulu, Max,
     Apple TV, Paramount+, Peacock, Plex, Jellyfin, YouTube — the last is the user's own app answering an intent, not a Google
     dependency of the shell, P5) cannot be verified from this doc: they are recorded at build start with their verification
     (BS-4), the way phase 20 records its forms; the only forms this doc FIXES are the QA-Flix fixture's.
@@ -268,20 +311,29 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
     a separate module the build does not pull). The catalogue and the media-server API are fetched with `HttpURLConnection`, as
     `weather/WeatherProvider.kt:57` and `cortana/PlaceSaver.kt:102` already do; streams play through ExoPlayer's
     `DefaultHttpDataSource` (also `HttpURLConnection`-based). **No HTTP library is added.** `INTERNET` and
-    `ACCESS_NETWORK_STATE` are already held (`app/src/main/AndroidManifest.xml:32-33`).
+    `ACCESS_NETWORK_STATE` are already held (`app/src/main/AndroidManifest.xml:32-33`). Every connection runs under the
+    network security config this phase creates (the C-16 Decision below): `targetSdk = 36` (`app/build.gradle.kts:22`) with no
+    `usesCleartextTraffic` / `networkSecurityConfig` today means Android refuses every `http://` connection.
   - **Offline.** A 7-day catalogue cache in the app's files dir (`video_catalogue/`: search results and title pages as JSON,
-    artwork through the image cache), `AtomicFile` per entry as `WeatherFeed` keeps its report. No network → the Browse pivot
-    shows what was cached with one line "You're offline — showing what was saved" and the My videos pivot is untouched; nothing
+    artwork through the image cache), `AtomicFile` per entry as `WeatherFeed` keeps its report. No network → the Browse page
+    shows what was cached with one line "You're offline — showing what was saved" and the My videos page is untouched; nothing
     here ever blocks the local half. A11 as amended: offline preferred, the internet where the feature needs it.
   - **External `http(s)://` VIEW from another app now PLAYS in the shared player** (`[video] playing scheme=https`): the A11
     refusal is gone, the R10-Q4 line above is marked SUPERSEDED, E13 is re-cut. Schemes the player takes: `content`, `file`
-    (the shell's own files only — a `file://` from another app never arrives, the platform refuses it on the sender), `http`,
-    `https`. Any other scheme (`rtsp`, `ftp`, `smb`) shows "Can't play this address" with `[video] unsupported scheme=<s>` (the old
+    (the shell's own files only — a `file://` from another app never arrives, the platform refuses it on the sender), `http`
+    (Q-D: A: A plays it, B and C refuse it with `[video] cleartext refused <host>` — the C-16 Decision), `https`. Any
+    other scheme (`rtsp`, `ftp`, `smb`) shows "Can't play this address" with `[video] unsupported scheme=<s>` (the old
     `[video] refused scheme=<s>` line is retired; E18).
-  - **Pivots.** My videos / Browse / Media server. R11 §Movies & TV measures My videos and the player; Browse (a search box,
-    a result grid with artwork, the title page with its "Watch on" rows), the "Watch on" row and the server sign-in page are
-    P4 designs (Y8–Y10, H10–H12). "Media server" is drawn only when a server is set up (the dynamic shortcut mirrors it).
-  - **Trust.** The media-server token (and, under Q-A C, the catalogue key) is a credential the shell keeps. The triage named
+  - ~~**Pivots.** My videos / Browse / Media server. …~~ SUPERSEDED 2026-09-23 by T17-16: **the ≡ pane, not pivots**
+    (r11/movies-tv.md 1.3; W10M's phone app used the pane in 2015 and 2017). Pane rows My videos / Browse / Media server (the
+    last only when a server is set up; the dynamic shortcut mirrors it), the pane's bottom group → the app's settings page;
+    tags `hub_pane:<myvideos|browse|mediaserver|settings>` replace `hub_pivot:<id>`, and "pivot" in the rulings above reads
+    "page" for Movies & TV. R11 measures My videos and the player; Browse (a search box, section rows and poster strips, the
+    title page with its "Watch on" rows), the "Watch on" row and the server sign-in and library pages are P4 designs
+    (Y8–Y10, H10–H12) that borrow R11's store-half forms (Y8).
+  - **Trust.** The media-server token is a credential the shell keeps; ~~(and, under Q-A C, the catalogue key)~~ SUPERSEDED
+    2026-09-23 by Q-A2: B — the TMDB read token is a `BuildConfig` field of builds made on Jeremy's PC only, never in the
+    repo, a CI build or a published APK (build task 12). The triage named
     `EncryptedSharedPreferences` (androidx.security:security-crypto): it is not in the build (no `security` entry in
     `app/build.gradle.kts` or the resolved classpath, 2026-09-23) and the library is deprecated — its release notes, 1.1.0-alpha07
     (2025-04-09) and the 1.1.0 stable (2025-07-30): "Deprecated all APIs in favour of existing platform APIs and direct use of
@@ -289,29 +341,77 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
     with an Android Keystore AES-256-GCM key (non-exportable, alias named at build start, BS-3) and stored in the app's private
     files dir; the password is never stored; no new dependency. The sign-in / token path gets the adversarial review the
     project requires for trust changes (the rule phase 04 states for its helper) as a gate before the phase is `done`.
-  - **Pending Q-A — the catalogue source.** Written for all three forms; one is built. **A (TMDB, personal key):** the key
-    comes from `local.properties` (`tmdb.apiKey`) into `BuildConfig.TMDB_KEY` in Jeremy's personal build and never into the
-    repo; a build with no key shows the Browse pivot with "No catalogue key in this build" and `[video] catalogue: no key`
-    (the hub's local half unaffected); TMDB's terms require the attribution line on the Browse pivot ("This product uses the
-    TMDB API but is not endorsed or certified by TMDB") and "where to watch" comes from `/watch/providers` (JustWatch data
-    under TMDB's terms, attribution "JustWatch"). **B (keyless):** Wikidata's SPARQL endpoint for films / shows (labels,
-    year, poster through Commons) and TVmaze (`api.tvmaze.com/search/shows`); no provider data exists, so "Watch on" lists
-    EVERY installed service with its search URL, and the row wording is "Search on <service>". **C (TMDB, key pasted into
-    Settings):** as A, the key typed once on Movies & TV's own settings page, stored like the server token (Trust), empty →
-    A's "no key" line. Rate limits and terms are re-read at build start (BS-5) and recorded here.
-  - **Pending Q-B — the media server.** **A (Jellyfin):** REST — `POST /Users/AuthenticateByName` → `AccessToken`, sent as
-    `Authorization: MediaBrowser Token="…"`; `/Users/{id}/Items` for the library; `/Videos/{id}/stream` (direct play) — the
-    client is thin, no SDK. **B (Plex):** `X-Plex-Token` from the plex.tv PIN sign-in (`plex.tv/api/v2/pins`), the server
-    through `/library/sections`; a plex.tv account is part of the flow; whether an unclaimed Plex server answers its library
-    API on the local network without a plex.tv token (so a container can stand in for it) is build-start check BS-6. **C
-    (both):** one `MediaServer` interface with two clients, chosen on the "Add a server" page. Transcode versus direct play is
-    a build-time call recorded here.
-  - **Diagnostics** (E18): `[video] catalogue "<q>": <n> | offline | error <code> | no key`, `[video] watch-on <service>
-    "<title>" -> <intent> | not installed`, `[video] server <host>: connected | unreachable | unauthorised`, `[video]
-    playing scheme=<s>`, `[video] unsupported scheme=<s>`, `[video] cannot reach <host>`.
+  - **Credential hygiene (C-32; phase 20 cites this line).** No credential — the TMDB read token, the Jellyfin token, the
+    fixture passwords — is ever written to a diagnostics line, logcat, a logged URL (stream URLs are logged with the query
+    string removed: Jellyfin puts its token there) or an evidence file. No QA build carries Jeremy's real key: every QA debug
+    APK from this phase on is assembled with `./gradlew :app:assembleDebug -Ptmdb.readToken=qa-dummy-token` (the Gradle
+    property wins over local.properties, build task 12), and a CI-form APK with `-Ptmdb.readToken=` (empty). Every row that
+    touches a credential ends with the leak scan `qa/phase-17/scripts/leak_scan.sh <paths…>` (T17-13): it reads every
+    `tmdb.*` value from local.properties without echoing it, plus the tokens and passwords the row names, and finds zero
+    matches in `qa/phase-NN/**`, the row's saved ring slices (`ring-*.txt`, C-20) and `adb logcat -d` (gated, a match fails
+    the row and prints only the file name).
+  - ~~**Pending Q-A — the catalogue source.** Written for all three forms …~~ SUPERSEDED 2026-09-23 by T17-13 / T17-14 (Q-A
+    TMDB, Q-A2: B). **The catalogue source (TMDB).** TMDB's v3 API with the read token as `Authorization: Bearer <token>`
+    (no `api_key` parameter anywhere); the token is `BuildConfig.TMDB_READ_TOKEN`, filled from the Gradle property
+    `tmdb.readToken` first and the gitignored local.properties second, empty when neither has it — so a build made on
+    Jeremy's PC has it and a CI build (no local.properties, no secret) does not. An empty token → the one no-key form: the
+    Browse page shows "Film search is off in this build", `[video] catalogue: no TMDB key in this build`, and no request is
+    made (the hub's local half unaffected). TMDB's attribution ("This product uses the TMDB API but is not endorsed or
+    certified by TMDB", with its logo) shows in Movies & TV's About and at the Browse page's foot (`hub_attribution`);
+    "where to watch" comes from `/watch/providers` (JustWatch data under TMDB's terms, credited "JustWatch" where shown); a
+    title's per-service ids come from Wikidata (T17-15). Image URLs are built from `/3/configuration`'s
+    `images.secure_base_url`. Rate limits and terms are re-read at build start (BS-5) and recorded here.
+  - ~~**Pending Q-B — the media server.** … **B (Plex)** … **C (both)** …~~ SUPERSEDED 2026-09-23 by T17-14 (Q-B:
+    Jellyfin only; BS-6 struck). **The media server (Jellyfin).** REST — `POST /Users/AuthenticateByName` → `AccessToken`,
+    sent as `Authorization: MediaBrowser Token="…"`; `/Users/{id}/Items` for the library; `/Videos/{id}/stream` (direct
+    play) — the client is thin, no SDK, no Plex code. Transcode versus direct play is a build-time call recorded here. A
+    server at a plain `http://` address works or is refused per Q-D (pending; the C-16 Decision), and under Q-D A a sign-in
+    to a non-private `http://` address asks first.
+  - **Diagnostics** (E18): `[video] catalogue "<q>": <n> | offline | error <code>`, `[video] catalogue: no TMDB key in this
+    build`, `[video] watch-on <service> "<title>" -> <intent> | not installed`, `[video] watch-on <service> "<title>": id
+    <found|none> (wikidata)`, `[video] server <host>: connected | unreachable | unauthorised | cleartext refused | insecure,
+    asked`, `[video] server token cleared`, `[video] playing scheme=<s>`, `[video] unsupported scheme=<s>`, `[video]
+    cleartext refused <host>`, `[video] cannot reach <host>`.
   - **Stale lines struck** (T17-1): the header's "interview pending", Goal "Nothing here uses the internet (A11)", Scope Out's
     "streaming or any http source", Build task 7's "explicit refusal for non-file schemes", E13, E18's `refused scheme`, Y5 /
     H3's "the player only".
+- 2026-09-23 (r2 triage C-16, a doc update; the base policy Q-D: A): **network security — one config, https-only fixed
+  endpoints, a debug-only fixture exception, a GATE.** `targetSdk = 36` (`app/build.gradle.kts:22`) and a manifest with no
+  `usesCleartextTraffic` / `networkSecurityConfig` (`app/src/main/res/xml/` holds only `method.xml`,
+  `recognition_service.xml`, `voice_interaction_service.xml`) mean Android refuses every `http://` connection today: about
+  one in three popular radio stations (the triage's radio-browser probe), a home Jellyfin at `http://host:8096`, `http://`
+  VIEWs and every `http://10.0.2.2` fixture. This phase (the first builder) creates `app/src/main/res/xml/network_security_config.xml`
+  and the manifest's `android:networkSecurityConfig` (build task 17); phase 20 reuses it and adds no second config.
+  (1) **Fixed endpoints are https-only by the platform:** a `<domain-config cleartextTrafficPermitted="false">`
+  (`includeSubdomains="true"`) listing every host the shell itself calls — `api.open-meteo.com`,
+  `nominatim.openstreetmap.org` (the only two in `app/src/main/kotlin` today), `api.themoviedb.org`, `image.tmdb.org`,
+  `query.wikidata.org` (T17-15), `api.radio-browser.info`, `musicbrainz.org`, `coverartarchive.org` (+ its redirect host,
+  recorded at build start), and phase 08's model host when it exists; a `FixedEndpoints` constant set with a JVM test that
+  every URL in it is `https://`; at process start the shell logs `[net] cleartext permitted for <host>: <bool>`
+  (`NetworkSecurityPolicy.getInstance().isCleartextTrafficPermitted(host)`) for each fixed host — rows assert `false`.
+  (2) **Base config — Q-D: A** (the triage's lean first): **A (lean)** cleartext permitted at the base (station and
+  server hosts cannot be listed), (1) holding; **B** base permitted plus a code guard in the media data-source factory that
+  refuses `http://` except to a private address (RFC 1918, link-local, `.local`) for the media-server client — `http://`
+  stations and VIEWs are refused (`[video] cleartext refused <host>`, phase 20's `[music] stream: cleartext refused`); **C**
+  base not permitted — the platform refuses every `http://` (the same lines, from the caught
+  `CleartextNotPermittedException` / `UnknownServiceException`).
+  (3) **Debug-only QA exception:** `app/src/debug/res/xml/network_security_config.xml` (the debug source set's copy
+  replaces main's) adds `<domain-config cleartextTrafficPermitted="true"><domain>10.0.2.2</domain></domain-config>`, and B's
+  code guard honours the same host only when `BuildConfig.DEBUG`, so host fixtures run under every answer; E17 checks the
+  RELEASE APK's config holds no `10.0.2.2` (`aapt2 dump xmltree --file res/xml/network_security_config.xml <release apk>`).
+  (4) **Schemes:** the player's VIEW list (T17-1 above) and phase 20's T20-5 http / https allow-list for stations.
+  (5) **Credentials:** under A, "Add a server" at a non-private `http://` address asks first — "This server isn't secure —
+  your password would be sent unencrypted" — and sends nothing until the user taps Continue (`[video] server <host>:
+  insecure, asked`); under B it is refused, under C the platform refuses (`[video] server <host>: cleartext refused`);
+  tokens never appear in a logged URL (C-32).
+  (6) **Rows:** E13 (an `http://` VIEW plays under A / is refused with its line under B and C; the fixed-host `[net]` lines
+  read `false`), E22 (the insecure-server prompt or refusal), E17 (the release-config check).
+  (7) **GATE, specified for every branch:** the adversarial review (team-review, adversarial mode) recorded under
+  `qa/phase-17/` before this phase is `done` — under A of the base-permitted config, the fixed-host domain-config with its
+  JVM test and the insecure-server prompt; under B the same plus the private-address guard (its JVM test accepting RFC 1918 /
+  link-local / `.local` and refusing a public address, a public name and a global IPv6 address) and the debug-only bypass of
+  it; under C of the config, the debug-only exception and the release check. Phase 20 re-runs it on its station path as its
+  own gate.
 - 2026-09-23 (agent, review triage T17-2): **Q2 C per mode.** **Pro dial** through `Camera2CameraControl` (CameraX's
   Camera2 interop), each control gated by `CameraCharacteristics` — manual exposure needs `CONTROL_AE_AVAILABLE_MODES` to
   contain OFF and `REQUEST_AVAILABLE_CAPABILITIES` MANUAL_SENSOR (ISO within `SENSOR_INFO_SENSITIVITY_RANGE`, shutter within
@@ -347,10 +447,14 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
   .setDynamicShortcuts`), published when a server is set up and removed when it is not; My videos and Browse are static.
   Reason: phase 11's selection rule takes manifest shortcuts before dynamic ones, so a conditional screen ranks after the
   fixed ones by a stated choice, and a shortcut to a page that does not exist is never shown. E23 proves it (`dumpsys
-  shortcut` before / after set-up; a burst on a pinned Movies & TV tile shows 2 then 3 satellites).
+  shortcut` before / after set-up; a burst on a pinned Movies & TV tile shows 2 then 3 satellites). **Every dynamic shortcut
+  calls `ShortcutInfo.Builder.setActivity(<its app's launcher activity>)`** (C-21: without it a dynamic shortcut attaches to
+  the package's first MAIN / LAUNCHER activity, `MusicActivity`, `app/src/main/AndroidManifest.xml:111-120`, and would
+  burst on the Music tile under phase 11's per-activity query) — `video_mediaserver` → `VideoActivity`.
 - 2026-09-23 (agent, review triage C-5): **motion is timed by the shell's own clock.** Every motion here (viewer open /
   close, photo swipe, camera mode switch, the player's controls fade, the slideshow step) logs `[motion] <name> t0=<uptime>
-  peak=<ms> overshoot=<%> settle=<ms>` from `withFrameNanos`; the row asserts the logged numbers against RV11's tolerance; a
+  peak=<ms> overshoot=<%> settle=<ms> frames=<n> maxGapMs=<ms>` (the last two C-31) from `withFrameNanos`; the row asserts
+  the logged numbers against RV11's tolerance and `maxGapMs` ≤ 33.4 ms (2 vsync); a
   screenrecord corroborates under phase 05's frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motion) and is
   never the primary clock. Reason: the P02 lesson — variable-rate screenrecord cannot be the clock. Y6 and E5 follow.
 - 2026-09-23 (agent, review triage C-9 applied to Camera): **Camera's Panorama and Slow motion shortcuts are DYNAMIC too**,
@@ -359,28 +463,77 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
   2026-09-23 shortcut line leaves out a mode the phone cannot do, and a manifest shortcut cannot be withdrawn at run time —
   `ShortcutManager.disableShortcuts` throws `IllegalArgumentException` for immutable (manifest) shortcuts (AOSP
   `core/java/android/content/pm/ShortcutManager.java`, its javadoc, read 2026-09-23) — so a static entry would burst a mode
-  the viewfinder then hides.
+  the viewfinder then hides. Both call `setActivity(CameraActivity)` (C-21).
 - 2026-09-23 (review triage C-4, a doc update): **this phase's two grants join the setup wizard.** Camera (`CAMERA`) and Videos
   (`READ_MEDIA_VIDEO`) are Setup checklist rows and therefore wizard steps (phase 12 Q1 / Q2, the `wizard_step:setup:<id>`
   namespace of phase 12 T12-1) with the why lines in build task 8; `qa/phase-03/scripts/provision.sh` gains their `pm grant`
   lines so a wiped device skips the wizard; E25 is phase 12 E14's template for them. Phase 12's rule, restated: a finished or
   skipped wizard is never re-summoned on that install — a grant this phase adds goes red on the Setup checklist instead.
+  (C-15, 2026-09-23: `provision.sh` also writes the wizard's finished marker, phase 12's lead Decision; `PROVISION_FINISH_WIZARD=0`
+  skips it, and E25 is the three-part form.)
+- 2026-09-23 (agent, r2 triage T17-15): **"Watch on <service>" resolves each service's own title id from Wikidata.** TMDB's
+  `/watch/providers` returns provider names, logos and one TMDB link — never a service's own title id — so `openTitle`'s
+  deep-link branch would almost never run and Q3b A's "opening that app at the title" would mostly land on search.
+  `StreamingHandoff` looks the title up by its TMDB id through the keyless Wikidata Query Service (`query.wikidata.org`, its
+  streaming-service title-id properties, e.g. "Netflix ID"; the property list and each one's coverage recorded at build
+  start with BS-4); a found id → that service's title deep link, none → the service's search URL with title and year
+  (`[video] watch-on <service> "<title>": id <found|none> (wikidata)`). `query.wikidata.org` joins the fixed https-only
+  endpoints (C-16); QA points it at `catalogue_server.py` through the debug-only pref `qa_wikidata_base`, answering a
+  Wikidata-shaped query for QA-Flix's fixture property; E21 asserts both branches; H11 tells Jeremy many titles will land on
+  the service's search. Reason: it keeps Jeremy's ruled behaviour wherever public data allows, with no key and an honest
+  fallback.
+- 2026-09-23 (agent, r2 triage T17-16): **R11 applied; Movies & TV takes W10M's ≡ pane, not pivots.** The pane
+  (r11/movies-tv.md 1.3: a 256-epx overlay with no scrim, #171717, 48-epx rows from the 72-epx chrome bottom, glyph cx 24,
+  label x 48, the current row's label and glyph in accent with a 4 × 48-epx accent bar at x 0; the bottom group → the app's
+  settings page) holds My videos / Browse / Media server (the last only when set up); `hub_pane:<id>` replaces
+  `hub_pivot:<id>`; the library is the 112-epx tile grid, 2 across at 360 epx, with the 2-line clipped caption (1.4); the
+  player's scrubber is its own (1.6.6–1.6.10), not Groove's; Browse borrows 1.5.2 / 1.5.3 / 1.7.5 / 1.7.10 with 2 posters
+  across and 12-epx gutters. Photos: 3 columns at 360 epx, the status bar hidden on every page, the measured viewer chrome and
+  menus, the editor as a panel (LOW), P4 marks on four editor tools and the trim screen (H13a / H13b). Camera: no mode strip
+  in any version, the measured five-arc pro dial, the settings page per 1.7 / §2 minus Lenses, OneDrive and "Related
+  settings", the capture-intent accept / retake UI a P4 design (H20). E19 is written now; all motion stays UNMEASURED (Y6,
+  H4). Reason: fidelity (A4) — W10M's phone app used the pane in 2015 and 2017 (H3 judges it); every other value is R11's
+  measurement or its tagged approximation.
+- 2026-09-23 (agent, r2 triage T17-17): **three version choices on R8 H-M1's precedent — build the governing / later form,
+  a NEEDS-HUMAN row judges it.** Photos: V-2016+ for the collection (the final release's app; one native capture, G1) and
+  V-2015 geometry for the pages V-2016+ has no capture of (R11's lean) — H17. Camera: the V-2017 form (72-epx shutter disc,
+  32-epx mode discs at ±60 epx, the top toggle capsule, settings and camera-roll corner cells) rotated into portrait from
+  the one landscape capture, K11, as a tagged approximation — the final portrait viewfinder is uncaptured (camera.md
+  UNMEASURED-1) — with a fidelity note against K11, keeping the measured V-2015 pro dial — H18. Movies & TV: the 10586
+  geometry for everything measured plus the 2017 −10 / +30 skips and the 2017 "•••" menu (cast / zoom to fill / repeat)
+  (R11's lean) — H19. All three [accept], judged on the phone. Reason: R8 H-M1 built Groove's governing form under the same
+  split, and each choice is user-visible (the triage's §2b lists them for Jeremy).
+- 2026-09-23 (agent, r2 triage T17-19): **no `FOREGROUND_SERVICE_CAMERA`.** Build task 1 drops it: recording stops on
+  screen-off and CameraX runs in the activity's lifecycle, so no camera foreground service exists. Reason: no permission
+  without a user.
+- 2026-09-23 (agent, r2 triage C-17): **the status bar is cited, never hard-coded.** R3 C4 read 28 epx on Start; every in-app
+  measurement since reads 24 (Movies & TV's library, r11/movies-tv.md 1.1.1, among them). This doc cites phase 01's drawn
+  status bar (`BarMetrics.STATUS_EPX`, 28 today, `app/src/main/kotlin/app/tileshell/bars/SystemBars.kt:77-80`), so phase
+  01's re-measure (INDEX research row "R3 C4 re-check") needs no edit here. Reason: re-measure before anyone rules; stop
+  hard-coding 28 now.
 
-### Approximations (until R11 lands; each has an H-row)
-| # | Value | Status | Stand-in | H-row |
+### Approximations (R11 applied 2026-09-23, T17-16 / T17-17; each row has an H-row)
+"Value used" is R11's measurement where the status says MEASURED, else the tagged approximation. Each pre-R11 stand-in is
+SUPERSEDED 2026-09-23 by T17-16 / T17-17 (4-across grid, 48-epx viewer header class, the top control row and horizontal mode
+strip, the quarter-arc dial from the shutter, Groove's scrubber with ±10 s and app-list library rows, the 3-across 2-epx
+poster grid, the 48-epx editor tool strip).
+
+| # | Value | Status | Value used | H-row |
 |---|---|---|---|---|
-| Y1 | Photos collection: month headers, thumbnail grid pitch, album tiles | r11/photos.md pending | app-list rows (R3 C2 / R6 §5.1.4) for lists; a 4-across square grid with 2-epx gutters (agent pick) | H6 |
-| Y2 | Photos viewer chrome and bottom app bar glyph set (share, delete, edit, …) | r11/photos.md pending | 48-epx app bar (R8's 48-epx app header class) with Segoe-substitute glyphs | H6 |
-| Y3 | Camera viewfinder chrome: shutter, video / photo switch, flash / timer / front-back row, zoom, the mode strip | r11/camera.md pending | shutter 64 epx centred above the nav bar; controls in a 48-epx row at the top; modes as a horizontal strip above the shutter (agent pick) | H6 |
-| Y4 | Pro dial (Q2 C): arc, ticks, value labels | r11/camera.md pending | a quarter-arc dial from the shutter, one control at a time (agent pick from Lumia Camera's form) | H6, H15 |
-| Y5 | Video player transport and scrubber; the My videos pivot's rows | r11/movies-tv.md pending (the local half) | phase 10's now-playing scrubber (R8 §1.5 thumb and track) with play / pause, ±10 s, fullscreen; app-list rows for the library | H6 |
-| Y6 | Motion: viewer open / close, photo swipe, camera mode switch, player controls fade, slideshow step | R11 or UNMEASURED; timed by the `[motion]` clock (C-5) | 250 ms ease-out for opens (X13's settle), 3 s controls auto-hide, 5 s slideshow step (agent picks) | H4 |
-| Y7 | Which bars the viewfinder, viewer and player draw | R11 pending | nav bar drawn, status bar hidden | H6 |
-| Y8 | Browse pivot: search box, result grid, the title page | P4 design (Microsoft's Store half; no W10M capture applies) | R3 C1's search box; a 3-across poster grid (2:3) with 2-epx gutters; the title page as a scrolling card in phase 03's card idiom | H10 |
-| Y9 | The "Watch on <service>" row set on a title page | P4 design | app-list rows (R3 C2) with the service's icon at the glyph position and "Watch on" / "Search on" as the row text | H11 |
-| Y10 | Media server sign-in page and its "Add a server" entry | P4 design | R6 §3.4.2's field and button geometry (phase 03's card idiom) | H12 |
-| Y11 | The editor's tool UI (tool strip, sliders, filter thumbnails) | r11/photos.md pending | a 48-epx bottom tool strip with R6 §3.4.2 sliders (agent pick) | H13 |
-| Y12 | Panorama capture UI (guide line, progress) | r11/camera.md pending | a centre guide line with a growing preview strip (agent pick from Lumia Panorama's form) | H14 |
+| Y1 | Photos collection: pivot header, month headers, grid, video tiles, album tiles | MEASURED (r11/photos.md 1.1–1.4); version per T17-17 | V-2016+ collection form (mixed-case ≈28-epx pivot titles Collection / Albums on the black page, no header band, no underline; ≈15-epx accent month header; day row date left 12, count right-aligned 12 from the right, #999999) over the V-2015 360-epx grid: 3 columns of 111-epx squares, 2-epx gutters, left 11 / right 12 epx (HIGH; V-2016+ at 360 uncaptured); video tiles carry a ≈36-epx dark disc with an outline play triangle (1.3.14); albums as V-2015's 60-epx tiles, 2 columns of 162 epx with 12-epx margins and gutter (1.4.1) | H1, H17 |
+| Y2 | Photos viewer chrome and app bars | MEASURED (1.6, V-2015, HIGH) | 50-epx #171717 date header (15-epx long date at x ≈25); photo fitted to width, centred on the whole screen; 48-epx #171717 app bar with Share · Favorite · Edit · Delete · More at 286 / 218 / 150 / 82 / 24 epx from the right (MDL2 E72D, EB51, E70F, E74D, E712); "•••" expands the bar to 60 epx with labels; overflow Slideshow / Set as / — / File information (#2B2B2B, 44-epx pitch); library app bar 48 epx #1F1F1F; en-US strings ("Favorite", m/d dates) | H1 |
+| Y3 | Camera viewfinder chrome | APPROXIMATION: V-2017 rotated into portrait (T17-17; camera.md 1.6, UNMEASURED-1) | photo preview 4:3 fitted to width, centred above the nav bar (1.1.2, HIGH); shutter a 72-epx #666666 disc at W/2, centre 56 epx above the nav bar top; the other capture modes the phone admits (Video, Panorama) as 32-epx dark discs at ±60 epx, centres 36 above the nav bar top; flash, timer, grid and the Living Images / slow-motion toggles (V-2015 wand glyph; SlowMotionOn EA79, P4 per UNMEASURED-6) in a rounded capsule along the top (≈43 epx, 44-epx pitch) ending in a chevron that expands the manual controls; settings disc top-right; camera switch disc top-left; camera roll a 36-epx square thumbnail in the bottom-left corner cell; NO horizontal mode strip (no version had one) | H2, H18 |
+| Y4 | Pro dial (Q2 C) | MEASURED (1.4, V-2015, HIGH) | five concentric arcs centred on the nav-bar top at W/2, radii 130.5 + 65·k epx (130.5 / 195.4 / 260.3 / 325.3 / 390.2), inner → outer exposure · shutter · ISO · focus · white balance, ≈1-epx light-grey stroke; icons on their ring at the left (x ≈52–56), the exposure icon on the innermost ring's top; value labels (≈15-epx #656565) centred at W/2, 30.3 epx above each ring's top; the shutter rises to 74.75 epx above the nav bar top in the five-ring view (opened by sliding the shutter left, 1.4.9); one control alone = one 130.25-epx arc, its icon at 139° (1.4.10) | H2, H15 |
+| Y5 | Player transport and scrubber; the My videos page | MEASURED (movies-tv.md 1.4, 1.6, 10586) + 2017 skips and menu (T17-17, LOW) | a 120-epx flat scrim (≈60 % black) above the nav bar; 2-epx track at nav − 93, x 12 → 348; accent hollow ring thumb Ø 24 (thumb-travel rule of 1.6.8); played portion accent (UNMEASURED-3 approximation); HH:MM:SS labels below the track (elapsed at x 12.5, total ending at 345.5 — total per UNMEASURED-5); transport in the 2017 order captions · back 10 · play / pause · forward 30 · "•••" on the 10586 48-epx pitch centred on W/2 (centres 84 / 132 / 180 / 228 / 276 epx, INFERRED), row centre nav − 40; "•••" menu Cast to device / Zoom to fill / Repeat; the subtitle flyout of 1.6.16. My videos: 112 × 112 tiles on a 124-epx pitch from x 12, first row top chrome + 48, 2 columns at 360 epx, an accent 15-epx group header per folder at x 12, caption = the file name without extension (15 epx, max 2 lines, clipped at tile left + 100), no per-tile metadata | H3, H19 |
+| Y6 | Motion: viewer open / close, photo swipe, ≡ pane, camera mode switch, player controls fade, slideshow step | UNMEASURED in all three apps (no 60-fps source; r11 §4 of each); timed by the `[motion]` clock (C-5, C-31) | viewer open / close = R7 3.2.2's fade-in from black, ease-out, settle 250 ms (inside its 200–317-ms range); photo swipe finger-tracked, release settle ≈290 ms (R7 4.1.4); ≡ pane slide 133 ms, no scrim (R3 C5); player controls fade in 200 ms, auto-hide after 3 s; camera mode switch a cut (R7 1.8.2); slideshow step 5 s with a 250-ms settle (agent picks) | H4 |
+| Y7 | Which bars each page draws | CLOSED — MEASURED (photos.md 1.1.1, camera.md 1.1.1, movies-tv.md 1.1.1 / 1.6.1) | Photos and Camera: status bar hidden on every page, nav bar drawn; Movies & TV: library pages draw phase 01's status bar (C-17), the player hides it | H1–H3 |
+| Y8 | Browse page: search box, sections, the title page | P4 design borrowing R11's store-half forms (movies-tv.md 1.5.2 / 1.5.3 / 1.7.5 / 1.7.10) | R3 C1's search box; section rows "title + accent Show all"; horizontally scrolling strips of 112-epx art on a 124 pitch, clipped at the right margin; film posters 2:3 at 112 × 168 epx, 2 across with 12-epx gutters (UNMEASURED-4); the title page per 1.7.10 (art at the left, title, year • genre, description with More, then the "Watch on" rows) | H10 |
+| Y9 | The "Watch on <service>" row set on a title page | P4 design | app-list rows (R3 C2) with the service's icon at the glyph position and "Watch on <service>" as the row text (the "Search on" wording belonged to Q-A's struck keyless form) | H11 |
+| Y10 | Media server: sign-in page, "Add a server" entry, the library and title rows | P4 design | R6 §3.4.2's field and button geometry for the sign-in; the library and title rows in the My videos tile-grid form (Y5) | H12 |
+| Y11 | The editor's tool UI | LOW (photos.md 1.8, one landscape Fast-ring capture) + P4 where it shows nothing (UNMEASURED-2) | the F2 panel in portrait: a bottom panel with a "Crop and rotate" tile, "Enhance · Adjust" tabs with a 2.5-epx accent underline, ≈88-epx filter thumbnails 3 across, "Undo all" / "Save" 60-epx buttons (#454545) and a full-width accent "Save a copy" (60 epx); sliders per R3 C1 / R6 §3.4.2 | H13a, H13b |
+| Y12 | Panorama capture UI (guide, progress) | LOW-MEDIUM (camera.md 1.5, V-2016) | a full-width translucent guide band (≈168 epx, centred ≈427 epx), the captured strip in a white-outlined frame at the left, a white arrow → on a thin centre line; portrait, sweep left → right; progress as the frame's growing width (UNMEASURED-5) | H14 |
+| Y13 | Video trim screen | LOW (photos.md 1.11, one still) / UNMEASURED-3 — P4 | a timeline under the video with two handles (R8 §1.5 scrubber metrics: 3-epx track, 18-epx hollow ring thumbs), the time readout (mm:ss.cc) in R3's large-number style, "Save a copy" as Y11's accent button | H13b |
+| Y14 | Capture-intent accept / retake UI | P4 (camera.md UNMEASURED-7) | the Rich Capture editor's app-bar pattern (photos.md 1.7.5): a transparent bar with Accept (MDL2 CheckMark E73E) at 82, Retake at 150 and More at 24 epx from the right | H20 |
 
 ## Interview queue (Stage A step 4)
 Load-bearing first. Implementation mechanics are the agent's (P3) and are not asked.
@@ -436,17 +589,22 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
    for `Stitcher`, with the arm64 `.so` size; BS-2 whether the pinned CameraX version reaches a constrained high-speed
    session through interop, else raw Camera2 for slow motion only; BS-3 the credential store's Keystore alias and file
    name (Decisions "Trust": AES-256-GCM, no security-crypto); BS-4 each streaming service's deep-link, web and search URL
-   forms, verified by starting each on a phone with the app installed, recorded with the verification; BS-5 the catalogue
-   source's terms, attribution text and rate limit (Q-A: A — TMDB's terms) and the media server's API version (Q-B: A — Jellyfin); BS-6
-   whether an unclaimed Plex container answers its library API without a plex.tv token (not needed — Q-B is A, Jellyfin only; decides E22's
-   Plex half); the `:camera` and `:video` diagnostics dump paths.
+   forms, verified by starting each on a phone with the app installed, recorded with the verification, and the Wikidata
+   streaming-service title-id properties with each one's coverage (T17-15); BS-5 the catalogue
+   source's terms, attribution text and rate limit (TMDB's terms), the media server's API version (Jellyfin) and the
+   fixture image pinned as `jellyfin/jellyfin:<version>@sha256:<digest>` (T17-21); ~~BS-6 whether an unclaimed Plex
+   container answers its library API …~~ SUPERSEDED 2026-09-23 by T17-14 (Q-B: Jellyfin only); BS-7 the `:camera` and
+   `:video` diagnostics dump paths.
 1. **App identities.** Three launcher activities inside the APK: `PhotosActivity` (LAUNCHER + APP_GALLERY +
    VIEW image/*), `CameraActivity` (LAUNCHER + STILL_IMAGE_CAMERA + VIDEO_CAMERA; IMAGE_CAPTURE + VIDEO_CAPTURE
    with the T17-4 guards; `android:process=":camera"`), `VideoActivity` (LAUNCHER + VIEW video/* for `content` and
-   `http(s)` data; `:video`); labels, task affinities and portrait lock as MusicActivity; entries ADDed to
+   `http(s)` data — plain `http` played or refused per Q-D, task 17; `:video`); labels, task affinities and portrait lock as MusicActivity; entries ADDed to
    qa/phase-03/exported-allowlist.txt with their reasons; each root sets `testTagsAsResourceId`. Permissions: CAMERA,
-   READ_MEDIA_VIDEO, FOREGROUND_SERVICE_CAMERA (video recording continues through a screen-off only until the file is
-   finalised — the recorder stops on screen-off, edge cases). Uninstall exclusion verified (E2).
+   READ_MEDIA_VIDEO, and the install-time `SET_WALLPAPER` (Photos' "set as lock-screen wallpaper", `WallpaperManager`
+   FLAG_LOCK — this phase is its first user and ADDs it; phase 19 reuses it, T17-18). ~~FOREGROUND_SERVICE_CAMERA (video
+   recording continues through a screen-off only until the file is finalised …)~~ SUPERSEDED 2026-09-23 by T17-19: no
+   camera foreground service exists (the recorder stops on screen-off; CameraX runs in the activity's lifecycle), so the
+   permission is not declared. Uninstall exclusion verified (E2).
 2. **E16 re-run on this build** (was "The routing fix" — moved to phase 15 (C-1): it is phase 15's build task 0 since
    2026-09-23). Phase 15's tag-keyed routing is in the build this phase starts from (depends-on); this task re-runs phase 10
    E10 / E13 as E16 once the seed (task 3) is in, so the seed never puts Music's face on Photos or the Camera row tile. No
@@ -456,7 +614,8 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
    (`ShellApp.claimMusicSlot`, `ShellApp.kt:122`); precondition: phase 16's build task 1 (the guard) is in (depends-on). The
    diagnostics line `[layout] assignSlotOnce … -> assigned | already run | kept user's <component>` is what E1 reads.
 4. **Photos library and collection.** Images and videos together (Q4 A) from MediaStore with a ContentObserver;
-   grouped by month (collection) and by bucket (albums); paged so thousands of rows stay responsive; the empty,
+   grouped by month with day rows (collection) and by bucket (albums), drawn per Y1 (3 columns at 360 epx, the video-tile
+   disc, the 60-epx album tiles, no status bar); paged so thousands of rows stay responsive; the empty,
    denied and partial states (`READ_MEDIA_VISUAL_USER_SELECTED`, phase 01's edge-case rule) each with their
    line and the grant link where the empty state is (phase 10 task 10's pattern); a video row opens VideoActivity by
    explicit component (one player surface).
@@ -465,26 +624,37 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
    the same persisted grant StartThemePage takes) and as lock-screen wallpaper (`WallpaperManager`,
    FLAG_LOCK), slideshow (`[photosapp] slideshow next <id>` per step, `[motion] slideshow_step …`), and the full editor
    (Q1 C — crop, rotate, straighten, auto-enhance, light and colour, filters, red-eye, with the transforms in Decisions) plus
-   video trim through Media3 Transformer, every result a copy through `MediaStore` (IS_PENDING then cleared).
+   video trim through Media3 Transformer, every result a copy through `MediaStore` (IS_PENDING then cleared). The viewer's
+   chrome, app bar and overflow per Y2; the editor as Y11's panel, the trim screen per Y13 (the four added tools and the trim
+   screen are P4, H13b). Failures are never silent: a refused delete consent logs `[photosapp] delete <id>: refused by
+   user`, a refused or failed edit / trim write `[photosapp] edit <tool> failed: <why>` / `[photosapp] trim <id> failed:
+   <why>` (T17-23).
 6. **Camera, the automatic modes.** CameraX preview / capture / video; front / back, flash, timer (`[camera] timer <n>s ->
    shutter`), grid, tap-to-focus (`[camera] focus at x,y: <state>`), pinch zoom; files written into DCIM/Camera through
    MediaStore with IS_PENDING and cleared on completion (never a bare file write); the capture-intent form (Q5 A: returns
    RESULT_OK with the image at EXTRA_OUTPUT, or RESULT_CANCELED on Back; the T17-4 guards, whose adversarial review is a GATE
-   recorded under qa/phase-17/ before `done`); "camera in use" and "no camera"
-   states with their lines; the mode strip whose entries are gated by capability, each hidden mode logging `[camera] mode
-   <x>: unavailable (<reason>)`; the `:camera` diagnostics dump path.
-   6a. **Pro dial** — `Camera2CameraControl` interop; the four capability gates in Decisions; EXIF carries ISO, exposure time
-   and white balance so P9 can read them back.
+   recorded under qa/phase-17/ before `done`) with its accept / retake bar (Y14, P4, H20); "camera in use" and "no camera"
+   states with their lines; the viewfinder chrome per Y3 (the V-2017 shutter disc, mode discs and top capsule — ~~the mode
+   strip~~ SUPERSEDED 2026-09-23 by T17-16 / T17-17: no version had one), every mode entry gated by capability, each hidden
+   mode logging `[camera] mode <x>: unavailable (<reason>)`; the settings page per r11/camera.md 1.7 / §2 minus Lenses,
+   OneDrive and "Related settings" (no Android meaning); the `:camera` diagnostics dump path (BS-7).
+   6a. **Pro dial** — `Camera2CameraControl` interop; the four capability gates in Decisions; the measured five-arc geometry
+   and the single-control arc (Y4); EXIF carries ISO, exposure time and white balance so P9 can read them back.
    6b. **Panorama** — OpenCV `Stitcher` over a burst of frames captured while the guide line is followed; output width > the
    sensor width, EXIF present; the arm64-only native library (BS-1); hidden on x86_64 with its reason.
    6c. **Slow motion** — the constrained high-speed session (BS-2 route) at the highest `getHighSpeedVideoFpsRanges` entry;
    the file's `r_frame_rate` ≥ 120; hidden where the capability is absent.
    6d. **Living Images** — a 1-s clip buffered before the shutter and written with the still as one Motion Photo file
    (Decisions); Photos' glyph and hold-to-play.
-7. **Movies & TV, the local half.** The My videos pivot (MediaStore videos, by folder, with duration); the player:
-   ExoPlayer on a SurfaceView, its own MediaSession tagged `video`, audio focus, transport / scrubber / ±10 s,
+7. **Movies & TV, the local half.** The My videos page (MediaStore videos as Y5's tile grid, a group per folder, the file
+   name as the caption; ~~with duration~~ SUPERSEDED 2026-09-23 by T17-16: W10M's tiles carried none); the player:
+   ExoPlayer on a SurfaceView, its own MediaSession tagged `video`, audio focus, Y5's scrubber and transport (~~±10 s~~
+   SUPERSEDED 2026-09-23 by T17-17: back 10 / forward 30 s) and its "•••" menu — Cast to device (Android's own cast route,
+   `android.settings.CAST_SETTINGS` resolved at tap, no cast library — P5, r11/movies-tv.md UNMEASURED-8), Zoom to fill
+   (the fill ↔ fit toggle), Repeat —,
    aspect and rotation from the file's metadata, subtitle tracks when present, an error state for files the
-   device cannot decode, `http(s)` sources through `DefaultHttpDataSource` with the "cannot reach" and 404 states
+   device cannot decode, `http(s)` sources through `DefaultHttpDataSource` with the "cannot reach" and 404 states, plain
+   `http` played or refused per Q-D (task 17)
    (~~an explicit refusal for non-file schemes (A11) with its line~~ SUPERSEDED 2026-09-23 by T17-1; `[video] unsupported
    scheme=<s>` for `rtsp` / `ftp` / `smb` only).
 8. **Settings + checklist rows + wizard steps.** Camera row (CAMERA, id `camera`), Videos row (READ_MEDIA_VIDEO, id
@@ -496,43 +666,83 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
 9. **Re-runs and regressions.** Phase 01 E4 (Photos and Camera), phase 03 E2 / E10, phase 10 E10 / E13 (E16, under
    phase 15's fix), phase 12 E1 on this build (C-4 c), the app-list regression (phase 02 regress.sh pattern), the
    exported allow-list (phase 03 E5's method), the baseline regression (E24) and the APK size (E17).
-10. **R11 values applied.** Once `r11/photos.md`, `r11/camera.md`, `r11/movies-tv.md` land, every Y row that they measure is
-    replaced by the measured value and E19 is written; the doc goes FINAL only then (RV9).
+10. **R11 values applied** (done in this doc 2026-09-23, T17-16 / T17-17): every Y row R11 measures carries the measured
+    value, the rest are tagged approximations with H rows, and E19 is written, so R11 no longer holds the doc from FINAL
+    (RV9); the build draws those values and E19 proves them. ~~Once … land, every Y row … is replaced~~ SUPERSEDED 2026-09-23.
 11. **`StreamingHandoff` and the services table.** The interface in Decisions (T17-1); the per-service table filled from
-    BS-4; `installedServices()` over `queryIntentActivities`; `openTitle` building the deep link or the search URL; the
+    BS-4; `installedServices()` over `queryIntentActivities`; `openTitle` building the deep link from the service's own
+    title id resolved through Wikidata by the TMDB id (T17-15; `[video] watch-on … id <found|none> (wikidata)`), else the
+    search URL; the Wikidata base redirected for QA by the debug-only pref `qa_wikidata_base` (task 12's rule); the
     QA-Flix fixture APK (`testapps/qa-flix`, phase 02's client-library test-APK pattern) declaring the table's intent-filter
     forms for a fake service (`https://qa-flix.test/title/<id>`, `https://qa-flix.test/search?q=<title>`) and showing the
-    received URI in a TextView tagged `qa_flix_uri`; JVM tests for the table logic.
-12. **The catalogue (Q-A: A — TMDB).** TMDB's API with Jeremy's personal read token (Decisions, Q-A); `catalogue.search` / `lookup`; the 7-day
-    cache; the attribution line where the terms require one; the "no key" state; the base-URL redirect for QA — a pref
+    received URI in a TextView tagged `qa_flix_uri`; JVM tests for the table logic and the Wikidata response parsing.
+12. **The catalogue (TMDB — Q-A; the key route Q-A2: B).** `app/build.gradle.kts` fills `BuildConfig.TMDB_READ_TOKEN` from
+    the Gradle property `tmdb.readToken` first and the gitignored local.properties second, empty when neither has it (it
+    reads nothing else; `tmdb.apiKey` is unused), so a build made on Jeremy's PC carries the token and a CI build — no
+    local.properties, no Actions secret, `.github/workflows/apk.yml` unchanged — carries none; calls send
+    `Authorization: Bearer <token>` and no `api_key`; `catalogue.search` / `lookup`; the 7-day cache; image URLs from
+    `/3/configuration`'s `images.secure_base_url`; the attribution in About and at the Browse page's foot
+    (`hub_attribution`); the one no-key form ("Film search is off in this build", `[video] catalogue: no TMDB key in this
+    build`, no request); catalogue lines carry the query and status only (C-32); the base-URL redirect for QA — a pref
     `qa_catalogue_base` written with `qa/phase-01/scripts/prefs_edit.py`, honoured ONLY when `BuildConfig.DEBUG` (the
-    release APK cannot be redirected; phase 20's rule).
-13. **The media server (Q-B: A — Jellyfin).** A Jellyfin client; the "Add a server" page (host, user, password),
-    the token store (BS-3), the library listed as folders / titles in the hub's idiom, direct play through the shared
-    player, the connected / unreachable / unauthorised states; the same `qa_server_base` QA pref route as task 12 (debug
-    builds only). GATE: the adversarial review of the sign-in / credential path (Decisions "Trust") is recorded under
-    qa/phase-17/ before the phase is `done`.
-14. **The hub.** The three pivots with the Media server pivot and its dynamic shortcut appearing on set-up; the Browse
-    pivot's search, result grid and title page; the "Watch on" rows from `installedServices()`; the offline line; every
+    release APK cannot be redirected; phase 20's rule), which also carries the image base because the fixture's
+    `/3/configuration` answers it (T17-20).
+13. **The media server (Jellyfin — Q-B).** A Jellyfin client; the "Add a server" page (host, user, password),
+    the token store (BS-3), the library listed per Y10, direct play through the shared
+    player, the connected / unreachable / unauthorised states; plain `http://` servers per Q-D (task 17) with, under Q-D A,
+    the insecure-server prompt before a sign-in to a non-private address; stream URLs logged with the query string removed
+    (C-32); removing the server deletes the token (`[video] server token cleared`) and the dynamic shortcut; the same
+    `qa_server_base` QA pref route as task 12 (debug builds only). GATE: the adversarial review of the sign-in / credential
+    path (Decisions "Trust") is recorded under qa/phase-17/ before the phase is `done`.
+14. **The hub.** The ≡ pane (T17-16: My videos / Browse / Media server rows, the Media server row and its dynamic shortcut
+    appearing on set-up, the bottom group → settings; ~~the three pivots~~ SUPERSEDED 2026-09-23 by T17-16); the Browse
+    page's search, sections and title page (Y8); the "Watch on" rows from `installedServices()`; the offline line; every
     `[video]` line in E18.
 15. **App Shortcuts (phase 11 Q1's standing rule; C-8 / C-9).** Static `res/xml/shortcuts.xml` entries: Photos —
     `photos_collection`, `photos_albums` (ranks 0–1, targeting PhotosActivity with the page extra); Camera —
     `camera_photo`, `camera_video` (ranks 0–1, targeting CameraActivity with the mode extra) static and `camera_panorama`,
     `camera_slowmo` DYNAMIC (ranks 2–3, published by CameraActivity on start only where the mode's capability gate admits it,
     removed otherwise — a manifest shortcut cannot be disabled, Decisions); Movies & TV — `video_myvideos`, `video_browse`
-    (ranks 0–1) static and `video_mediaserver` dynamic (rank 2, published on set-up, removed on sign-out). E23.
+    (ranks 0–1) static and `video_mediaserver` dynamic (rank 2, published on set-up, removed on sign-out). Every dynamic
+    shortcut calls `ShortcutInfo.Builder.setActivity(...)` — `CameraActivity` for the two Camera modes, `VideoActivity` for
+    Media server — so it bursts on its own app's tile and never on Music's (C-21). E23.
 16. **Harness.** `qa/phase-17/baseline_layout.json` derived from `qa/phase-16/baseline_layout.json` (+ `slot:photos:v1`,
     `slot:camera:v1` in `addedOnce`, `slots` PHOTOS → PhotosActivity and CAMERA → CameraActivity, a pinned Movies & TV tile
     for E23, `manualSizes` for every tile), the previous file kept as `qa/phase-17/baseline_layout-pre-17.json` (C-3);
     `qa/phase-03/scripts/provision.sh` gains `adb shell pm grant app.tileshell android.permission.CAMERA` and `… android.permission.READ_MEDIA_VIDEO` (install
     `-g` at `provision.sh:35` grants them on a fresh install; the explicit lines re-grant after a `pm clear`, which resets
-    runtime grants — C-4 a); the pre-17 APK at `qa/phase-17/upgrade/<tag>.apk` with its git tag in the log (T16-7's form);
-    the fixture servers and APKs under Fixtures; drivers in `qa/phase-17/scripts/`.
+    runtime grants — C-4 a); the pre-17 APK at `qa/phase-17/upgrade/<tag>.apk` with its git tag in the log (T16-7's form;
+    installed through `TILESHELL_APK`, phase 16's build task 8 — C-19);
+    the fixture servers and APKs under Fixtures; drivers in `qa/phase-17/scripts/`. Also: **`lib.sh` `egress_guard_on` /
+    `egress_guard_off`** (C-29; this task owns them): `adb root`; `UID=$(adb shell pm list packages -U app.tileshell | sed
+    's/.*uid://')`; `adb shell iptables -I OUTPUT -m owner --uid-owner $UID ! -d 10.0.2.2 -j REJECT`; at row end `iptables -L
+    OUTPUT -v -n` shows 0 packets on that rule (gated), then the rule is deleted and `adb unroot`; **`qa/phase-17/scripts/leak_scan.sh`**
+    (T17-13, C-32: every `tmdb.*` value read from local.properties without echoing it, plus the tokens / passwords passed
+    to it; a match fails and prints only the file name); the QA APK assembled with `-Ptmdb.readToken=qa-dummy-token` and
+    the CI-form APK with `-Ptmdb.readToken=` (C-32).
+17. **Network security (C-16; the base policy Q-D: A).** `app/src/main/res/xml/network_security_config.xml` and the
+    manifest's `android:networkSecurityConfig`: the fixed hosts' `cleartextTrafficPermitted="false"` domain-config, the base
+    config per Q-D (A permitted; B permitted plus the media data-source factory's private-address guard; C not permitted),
+    the `FixedEndpoints` set and its JVM test, the process-start `[net] cleartext permitted for <host>: <bool>` lines, the
+    debug-only `app/src/debug/res/xml/network_security_config.xml` with the `10.0.2.2` exception (and B's guard honouring it
+    only when `BuildConfig.DEBUG`), the `[video] cleartext refused <host>` line, the insecure-server prompt (A). GATE: the
+    C-16 adversarial review for the branch built, recorded under qa/phase-17/ before `done` (Decisions C-16 (7)). Phase 20
+    reuses this file.
 
 ## Acceptance criteria
 Rows start from the baseline state and restore what they change (PLAN RV12); motion rows follow RV11 and take their clock
 from the shell's `[motion] <name> t0=<uptime> peak=<ms> overshoot=<%> settle=<ms>` lines (`withFrameNanos`; C-5), a
-screenrecord corroborating under phase 05's frame-spacing rule and never the primary clock. Dumps of the viewfinder and the player — screens that never idle — go through phase 05's gesture-driver
+screenrecord corroborating under phase 05's frame-spacing rule and never the primary clock; the `[motion]` line also carries
+`frames=<n> maxGapMs=<ms>`, and every motion row asserts `maxGapMs` ≤ 33.4 ms (2 vsync) beside its numbers (C-31). Every
+ring assertion reads `ring_since` from a MARK taken immediately before the step's action (after any clock jump, so the MARK
+is on the new clock); absence assertions read the same slice; `reply_text` is `reply_since <MARK>`; `row_end` saves each
+ring the row names to `<row>/ring-<name>.txt` (C-20; `lib.sh` `ring_mark` / `ring_since` / `reply_since`, built by phase
+11's build task 7) — this phase's three rings are the launcher's, `:camera`'s and `:video`'s (BS-7). After any `adb reboot`
+(boot-completed poll), `dumpsys battery unplug` or `KEYCODE_SLEEP` step, the driver calls `wake_device` and asserts it
+printed `Awake` before the next tap (C-25). Every QA APK is assembled with `-Ptmdb.readToken=qa-dummy-token` and never
+carries Jeremy's key (C-32); rows that touch a credential end with `qa/phase-17/scripts/leak_scan.sh`. E13 and E20–E22 run
+inside `lib.sh` `egress_guard_on` / `egress_guard_off` (C-29): zero packets from the app's uid to any address but 10.0.2.2,
+gated; offline sub-rows keep airplane mode. Dumps of the viewfinder and the player — screens that never idle — go through phase 05's gesture-driver
 `UiDevice.dumpWindowHierarchy` with `Configurator.setWaitForIdleTimeout(0)` (qa/phase-05/README.md), not `uiautomator dump`;
 every other dump follows RV13 (C-10). Every row that launches an app does `adb shell am force-stop app.tileshell` + Home
 before its next assertion on Start's grid, because the promoted tile lives in memory only
@@ -540,8 +750,10 @@ before its next assertion on Start's grid, because the promoted tile lives in me
 (`qa/phase-02/scripts/layout.sh:18`), which verifies after the shell reloads (C-3). A row that wipes the app reads "`pm clear`
 → `provision.sh` → Home" (C-4 d) — without `provision.sh` the wizard (phase 12) is on top; and phase 12's rule holds here in
 one sentence: a finished or skipped wizard is never re-summoned on that install — a grant this phase adds goes red on the
-Setup checklist instead (phase 12 H4; C-4 e). Rows or sub-rows that only RECORD a fact end their PASS/FAIL line with
-"RECORDED" so `lib.sh` `row_end` never counts them as a pass (C-13). Harness: qa/phase-17/scripts/lib.sh → symlink to
+Setup checklist instead (phase 12 H4; C-4 e). ~~Rows or sub-rows that only RECORD a fact end their PASS/FAIL line with
+"RECORDED" so `lib.sh` `row_end` never counts them as a pass (C-13).~~ SUPERSEDED 2026-09-23 by C-26: a recorded clause uses
+`lib.sh` `record <name> <value>`, never an assert; a row with only recorded facts ends `<row>: recorded only (<n> facts)`
+with exit 0 (helper built by phase 13's build task 7); "RECORDED" below means that. Harness: qa/phase-17/scripts/lib.sh → symlink to
 qa/phase-03/scripts/lib.sh; every row stamps its driver blob and the installed APK. Device: the AOSP AVD tileshell_fhd
 (1080×2340 @ 450 dpi, API 36, no Google, `sdk_phone64_x86_64` userdebug). "Diagnostics" is read with phase 01's command; the
 `:camera` and `:video` rings with the dump path task 0 names.
@@ -559,16 +771,23 @@ with a 90° rotation tag, `qa-audio-only.mp4`, `qa-truncated.mp4` = `head -c 100
 _id:_display_name:duration:relative_path` (the AVD had 0 videos and 6 images on 2026-09-22). Decoders on the
 AVD: h264 / hevc / vp8 / vp9 (`c2.goldfish.*` in /vendor/etc/media_codecs.xml, 2026-09-22). **Network fixtures** (the AVD
 reaches the host at 10.0.2.2; no row hits the live internet — the real services and the real catalogue are P rows):
-`qa/phase-17/scripts/catalogue_server.py` (`python3 -m http.server`-class, port 8090) serving recorded JSON in the Q-A
-source's shape for the query "Blade Runner" (three results hand-listed in E20) and `qa-steps.mp4` for E13, with `/500` and
-`/404` endpoints; the hub's base URL set through the `qa_catalogue_base` pref via `qa/phase-01/scripts/prefs_edit.py`
+`qa/phase-17/scripts/catalogue_server.py` (`python3 -m http.server`-class, port 8090) serving recorded JSON in TMDB's
+shape for the query "Blade Runner" (three results hand-listed in E20), `/3/configuration` with `images.secure_base_url =
+"http://10.0.2.2:8090/img/"` and the poster PNGs under `/img/` (T17-20), a Wikidata-shaped answer for QA-Flix's fixture
+property (T17-15; the base set through the `qa_wikidata_base` pref) and `qa-steps.mp4` for E13, with `/500` and
+`/404` endpoints; it checks every request's `Authorization` header and logs only `bearer ok` / `bearer missing` and whether
+an `api_key` parameter was present — never a header or parameter value (T17-13); the hub's base URL set through the
+`qa_catalogue_base` pref via `qa/phase-01/scripts/prefs_edit.py`
 (debug builds only); `testapps/qa-flix` (the "Watch on" fixture APK, task 11) and `testapps/qa-capture` (the capture-intent
 caller APK: starts IMAGE_CAPTURE / VIDEO_CAPTURE with `EXTRA_OUTPUT` aimed at its own cache through its FileProvider, once
 with a `file://` output, and logs the result code, file size and md5 to the `TileShellQa` logcat tag); a media-server
-container on the host (Q-B: A: Jellyfin `jellyfin/jellyfin` at `10.0.2.2:8096` with `qa/phase-17/fixtures/jellyfin/`
-as its config and `qa-steps.mp4` in its library, its first-run wizard pre-seeded in that config dir; Plex
-`plexinc/pms-docker` at `10.0.2.2:32400` — whether an unclaimed Plex server answers its library API on the local network
-without a plex.tv token is BS-6, and if not E22's Plex half is P14 only). Layout: `qa/phase-17/baseline_layout.json`.
+container on the host (Jellyfin, Q-B: `jellyfin/jellyfin:<version>@sha256:<digest>` pinned at BS-5, the same digest in every
+run's log (T17-21), at `10.0.2.2:8096` with `qa/phase-17/fixtures/jellyfin/`
+as its config and `qa-steps.mp4` in its library, its first-run wizard pre-seeded in that config dir, a fixture admin whose
+token the driver uses for `GET /Sessions`). ~~Plex `plexinc/pms-docker` at `10.0.2.2:32400` … BS-6 …~~ SUPERSEDED
+2026-09-23 by T17-14 (Q-B: Jellyfin only). QA APKs: the QA debug APK (`-Ptmdb.readToken=qa-dummy-token`) and, for E20's
+no-key half and E17's leak check, the CI-form APK (`-Ptmdb.readToken=`), each with its APK id in the row log (C-32).
+Layout: `qa/phase-17/baseline_layout.json`.
 Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
 
 **Emulator:**
@@ -580,9 +799,16 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
   app.tileshell` + Home before the next grid read, C-6); with three
   `STILL_IMAGE_CAMERA` fixture handlers and two `APP_GALLERY` ones still installed (`cmd package
   query-activities`, phase 01 E4's before/after lists), so the seed and not a one-handler auto-assignment did it.
-  **Upgrade half (re-cut 2026-09-23, T17-5 / C-2):** install `qa/phase-17/upgrade/<tag>.apk` (the pre-17 build, git tag
-  in the log), `provision.sh`, re-point PHOTOS to Aves (`deckers.thibault.aves.libre`, the phase 01 E4b fixture) through
-  Settings > Tile apps (phase 01 E4b's flow) and leave CAMERA untouched; `adb install -r` the phase-17 APK, Home: diagnostics
+  **Upgrade half (re-cut 2026-09-23, T17-5 / C-2; the install route re-cut by C-19):** ~~install
+  `qa/phase-17/upgrade/<tag>.apk` (the pre-17 build, git tag in the log), `provision.sh`, …~~ SUPERSEDED 2026-09-23 by C-19
+  (`provision.sh` always installed the current build, `qa/phase-03/scripts/lib.sh:24`, `provision.sh:35`, so the leg never
+  upgraded): `adb uninstall app.tileshell`; `TILESHELL_APK=qa/phase-17/upgrade/<tag>.apk qa/phase-03/scripts/provision.sh`
+  (the old build, every grant, the wizard marker — the two grant lines this phase adds fail harmlessly on the old build,
+  whose manifest lacks them; `provision.sh:18` has no `set -e`); re-point PHOTOS to Aves (`deckers.thibault.aves.libre`, the
+  phase 01 E4b fixture) through Settings > Tile apps (phase 01 E4b's flow) and leave CAMERA untouched; `adb install -r
+  app/build/outputs/apk/debug/app-debug.apk` (NOT `provision.sh`, so the upgrade path runs) — precondition asserted: the
+  install succeeds (same debug key; `INSTALL_FAILED_UPDATE_INCOMPATIBLE` fails the row loudly), and the row log records both
+  APK ids (`apk match: NO` on the first leg is expected and noted) —, Home: diagnostics
   read `[layout] assignSlotOnce slot:photos:v1 PHOTOS -> kept user's deckers.thibault.aves.libre/…` (phase 16 task 1's line
   form, as its E1 asserts for PEOPLE) and `slot:camera:v1 CAMERA -> app.tileshell/.camera.CameraActivity -> assigned`; the PHOTOS
   tile's tap still resumes Aves, `dock:slot:CAMERA` resumes CameraActivity; a second `adb install -r` of the same APK reads
@@ -600,7 +826,9 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
   android.permission.READ_MEDIA_IMAGES` → the page says it cannot read the pictures, names the Setup checklist,
   offers the grant (dump text), line `[photosapp] access=DENIED`; `pm grant … READ_MEDIA_VISUAL_USER_SELECTED`
   with IMAGES still revoked → the subset shows and the line says `access=PARTIAL`; restore `pm grant …
-  READ_MEDIA_IMAGES`. The two `qa-steps` videos count in the collection with a duration glyph (Q4 A); **tap the
+  READ_MEDIA_IMAGES`. The collection's grid is 3 columns (three `photos_item:` nodes share a row's top ± 1 px, Y1). The two
+  `qa-steps` videos count in the collection with W10M's video overlay (the ≈36-epx disc with a play triangle, Y1 —
+  ~~a duration glyph~~ SUPERSEDED 2026-09-23 by T17-16) (Q4 A); **tap the
   `qa-steps.mp4` row → `dumpsys activity activities` topResumedActivity = `app.tileshell/.video.VideoActivity`, `[video]
   playing <id>` in the `:video` ring, and Photos' own dump (taken before the tap and after Back) holds no player node
   (`video_surface` absent) — one player surface (T17-7).**
@@ -612,7 +840,9 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
 - E5 **Photos actions.** Share → `dumpsys activity activities` shows the system chooser
   (`com.android.intentresolver`) resumed with `ACTION_SEND` and a `content://media/…` stream; delete → the
   MediaProvider consent dialog is on top (`dumpsys window` / dump shows
-  `com.android.providers.media.module`), accepting it drops the `content query` count by one and the row from
+  `com.android.providers.media.module`); **Deny** first (the dialog's Deny button tapped by its dump bounds) → the `content
+  query` count unchanged, the row still in the collection and `[photosapp] delete <id>: refused by user` (T17-23); delete
+  again and accept → the count drops by one and the row leaves
   the collection; set as Start background → Start's `screencap` at a tile-free point equals the fixture colour;
   set as lock screen → `adb shell dumpsys wallpaper` shows the lock wallpaper id changed, then cleared by the
   row's restore; **slideshow: three consecutive `[photosapp] slideshow next <id>` lines whose `wall=` gaps equal the Y6
@@ -627,17 +857,23 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
   horizontal (the top and bottom rows of a 20-px-tall band about the line's centre read white); auto-enhance, light (+ one
   step), colour (+ one step) and each filter on `qa-photo-0..2` → the copy's centre pixel equals the matrix result ± 4 per
   channel; red-eye on `qa-redeye.png` → inside the disc the red channel is ≤ half its original value, a pixel 30 px outside
-  is unchanged ± 1. Every copy's `is_pending` is 0 within 2 s and `[photosapp] edit <tool> -> <uri>` is in the ring.
+  is unchanged ± 1. Every copy's `is_pending` is 0 within 2 s and `[photosapp] edit <tool> -> <uri>` is in the ring. The
+  failure line: with `qa-photo-2` edited after `adb shell rm` of its file (the write request fails) → no new row and
+  `[photosapp] edit <tool> failed: <why>` (T17-23).
 - E6b **Video trim (Q1 C).** Trim `qa-steps.mp4` to 2–5 s → a new video row; `adb pull` it: `ffprobe -show_format` duration
   3.0 ± 0.1 s, the first frame (`ffmpeg -frames:v 1`) = colour 3 ± 8 per channel (E11's pixel rule), one video and one
-  audio stream; the original's md5 unchanged; `[photosapp] trim <id> 2000..5000 -> <uri>`.
+  audio stream; the original's md5 unchanged; `[photosapp] trim <id> 2000..5000 -> <uri>`. Trimming `qa-truncated.mp4`
+  (undecodable past its first bytes) → no new row and `[photosapp] trim <id> failed: <why>` (T17-23).
 - E7 **Still capture on the virtual back camera, the automatic controls and mode availability.** Open CameraActivity
   (`dumpsys media.camera` shows device 1 opened by `app.tileshell:camera`, one device on this AVD, no front camera —
   Decisions), tap `camera_shutter` → images count +1 with `relative_path` `DCIM/Camera/` and `width:height` equal to the
   chosen resolution (`is_pending` 0 within 2 s); the Photos tile's `[photos] refresh (mediastore change)` line follows within
   2 s of the row's `date_added` (phase 01's threshold); the Camera row tile's bounds and face are unchanged (after `am
-  force-stop` + Home, C-6). **Timer:** set 3 s, tap the shutter → `[camera] timer 3s -> shutter` and the new row's
-  `date_added` ≥ the tap's uptime + 3 s, both read from the shell's ring (`wall=`), not the host clock. **Grid:** grid on → a
+  force-stop` + Home, C-6). **Timer (re-cut 2026-09-23, T17-22):** set 3 s; MARK = `adb shell date +%s%3N` immediately
+  before the `input tap` on the shutter; the `:camera` ring (`ring_since` MARK) holds `[camera] timer 3s -> shutter` and
+  `[camera] saved <uri> …` with `saved.wall − MARK` ≥ 3000 and ≤ 4500; the new row's `date_added` only corroborates
+  (≥ MARK / 1000 + 2). ~~the new row's `date_added` ≥ the tap's uptime + 3 s …~~ SUPERSEDED 2026-09-23 by T17-22 (mixed
+  clocks at 1-s resolution). **Grid:** grid on → a
   screencap of the viewfinder shows two vertical and two horizontal lines at 1/3 and 2/3 of the preview's bounds ± 2 px
   (a pixel column scan for the line colour). **Tap-to-focus:** `dumpsys media.camera` read first for the virtual camera's
   autofocus support; a tap at a known point → `[camera] focus at <x>,<y>: <state>` where state is `locked` if supported and
@@ -670,9 +906,12 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
   new component); `am force-stop` + Home (C-6); with `adb shell locksettings set-pin 1234` and Cortana over the keyguard
   (E10's setup), "take a photo" shows "Unlock to continue" and no CameraActivity starts (expectation unchanged); restore
   `locksettings clear --old 1234`.
-- E11 **My videos and the player.** `qa-steps.mp4` listed under the My videos pivot with duration `0:10` (dump `video_row:`
-  text); tap → plays; `screencap` at t = 3 s (timed from the `[video] playing` line) has the centre pixel = colour 3 ± 8 per
-  channel; a tap on the scrubber at 70 % of its measured width seeks to colour 7 ± 1 s; pause holds the pixel
+- E11 **My videos and the player.** `qa-steps.mp4` shown on the My videos page (`hub_pane:myvideos` selected) as a
+  `video_tile:<id>` whose caption node reads "qa-steps" (the file name without extension) and carries no duration (Y5, R11
+  1.4.8 / 1.4.11) ~~listed under the My videos pivot with duration `0:10` (dump `video_row:` text)~~ SUPERSEDED 2026-09-23 by
+  T17-16; tap → plays; `screencap` at t = 3 s (timed from the `[video] playing` line) has the centre pixel = colour 3 ± 8 per
+  channel; a tap on the scrubber at 70 % of the measured track (x 12 → 348 epx, so 247.2 epx = 741.6 px; T17-16) seeks to
+  colour 7 ± 1 s; pause holds the pixel
   for 2 s; the controls fade after 3 s (`[motion] controls_fade t0=… settle=…`, Y6); `adb shell dumpsys media_session`
   shows an active session for `app.tileshell` (the video's); the dump of Start afterwards (after `am force-stop` + Home)
   shows NO tile carrying a now-playing face and `[music]` logs no publish for it (Decisions: a `video` session lands nowhere).
@@ -689,9 +928,18 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
   `airplane-mode disable` (RV12); `…/404` → the error state and `[video] cannot decode 404` (the server's status in the line);
   `-d rtsp://10.0.2.2/x` → "Can't play this address", `[video] unsupported scheme=rtsp`, no ExoPlayer source created.
   ~~`http://127.0.0.1:1/x.mp4` → "Only videos on this phone play here", `[video] refused scheme=http`~~ SUPERSEDED 2026-09-23.
+  **Cleartext (C-16; the expected branch Q-D: A).** The `10.0.2.2` play above holds under every answer (the debug
+  config's exception). A host the exception does not cover: the sub-step inserts its own counted rule above the egress
+  guard's (`iptables -I OUTPUT -m owner --uid-owner $UID -d 10.0.2.3 -p tcp --dport 8090 -j REJECT`, so the guard's counter
+  stays 0) and starts the same VIEW with `-d http://10.0.2.3:8090/qa-steps.mp4` → under **A** the platform lets the attempt
+  through: that rule counts ≥ 1 packet and the line is `[video] cannot reach 10.0.2.3:8090`; under **B** and **C** it
+  counts 0 packets, the page says "This video's address isn't secure" and the line is `[video] cleartext refused 10.0.2.3`;
+  the rule is deleted. The fixed hosts: `am force-stop app.tileshell`, MARK, Home → the launcher ring holds `[net] cleartext
+  permitted for <host>: false` for every host in `FixedEndpoints` (and the JVM test of task 17 passes) — a fixed host read
+  `true` fails the row under every answer.
 - E14 **Odd files.** `qa-steps.webm` (vp9) and `qa-steps-hevc.mp4` play (pixel rule as E11) — these two sub-rows are
   RECORDED against the AVD's decoder list read from /vendor/etc/media_codecs.xml at run time (a decoder the AVD lacks is a
-  recorded fact, not a failure; C-13); `qa-rot90.mp4` draws portrait (the coloured area's aspect from `screencap` is taller
+  recorded fact, not a failure; C-26's `record`); `qa-rot90.mp4` draws portrait (the coloured area's aspect from `screencap` is taller
   than wide); `qa-audio-only.mp4` plays with a black frame and takes focus; `qa-truncated.mp4` and `qa-empty.mp4` show the
   error state ("can't play this file") with the player still resumed and `adb logcat -d -s AndroidRuntime` empty of
   `app.tileshell` — these are gated.
@@ -710,73 +958,137 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
   (600 MB, phase 03 Decisions); the OpenCV delta — `unzip -l app-debug.apk 'lib/arm64-v8a/libopencv*'` summed — ≤ 20,971,520
   bytes (20 MB, T17-2) and the whole-phase delta against `qa/phase-17/upgrade/<tag>.apk` recorded; `adb shell dumpsys package
   app.tileshell` exported components equal qa/phase-03/exported-allowlist.txt plus this phase's ADDs, exactly (phase 03 E5's
-  method).
+  method); `aapt2 dump permissions` on the APK lists `android.permission.SET_WALLPAPER` and no
+  `android.permission.FOREGROUND_SERVICE_CAMERA` (T17-18, T17-19). **Network config (C-16 (3)):** `./gradlew
+  :app:assembleRelease -Ptmdb.readToken=` (unsigned is enough), then `aapt2 dump xmltree --file
+  res/xml/network_security_config.xml <release apk>` holds no `10.0.2.2` and lists every `FixedEndpoints` host under
+  `cleartextTrafficPermitted=false`; the same dump of the debug APK holds the `10.0.2.2` exception (the control that proves
+  the check reads the right file). **No key in a CI-form build (Q-A2: B):** the CI-form APK (`-Ptmdb.readToken=`) and the
+  release APK above are unzipped and `qa/phase-17/scripts/leak_scan.sh` over both finds none of local.properties' `tmdb.*`
+  values (a build that fell back to local.properties despite the empty property fails here).
 - E18 **Diagnostics.** Each of these lines exists when its state does, and the rows above assert the line as
   well as the screen: `[photosapp] library: images=<n> videos=<n> access=<GRANTED|PARTIAL|DENIED>`, `[photosapp] slideshow
-  next <id>`, `[photosapp] edit <tool> -> <uri>`, `[photosapp] trim <id> <from>..<to> -> <uri>`,
+  next <id>`, `[photosapp] edit <tool> -> <uri>`, `[photosapp] trim <id> <from>..<to> -> <uri>`, `[photosapp] delete <id>:
+  refused by user`, `[photosapp] edit <tool> failed: <why>`, `[photosapp] trim <id> failed: <why>` (T17-23),
   `[camera] devices=<n> front=<present|absent>`, `[camera] busy: <reason>`, `[camera] saved <uri> <w>x<h>`, `[camera] timer
   <n>s -> shutter`, `[camera] focus at <x>,<y>: <state>`, `[camera] mode <x>: unavailable (<reason>)`, `[camera] refused
   output scheme=<s>`, `[video] library: <n>`, `[video] playing <id>`, `[video] playing scheme=<s>`, `[video] cannot decode
-  <name>`, `[video] cannot reach <host>`, `[video] unsupported scheme=<s>`, `[video] catalogue "<q>": <n> | offline | error
-  <code> | no key`, `[video] watch-on <service> "<title>" -> <intent> | not installed`, `[video] server <host>: connected |
-  unreachable | unauthorised`, `[video] shortcut mediaserver published | removed`, and every `[motion] <name> …` line the
-  rows time. ~~`[video] refused scheme=<s>`~~ SUPERSEDED 2026-09-23 by T17-1.
-- E19 **Geometry and motion against R11.** Every value `r11/photos.md`, `r11/camera.md`, `r11/movies-tv.md` measure is within
-  its tolerance (dump bounds, screencap; px ÷ 3 = epx; RV11 for motion through the `[motion]` clock). Written once those
-  sections land; until then this row is not runnable and the doc cannot go FINAL.
-- E20 **Catalogue (Q-A: A; host fixture, never the live network).** `prefs_edit.py` sets `qa_catalogue_base` to
-  `http://10.0.2.2:8090/` on the debug build; open Browse, search "Blade Runner" → exactly three `hub_result:<id>` rows whose
-  title / year texts equal the fixture JSON hand-listed here — "Blade Runner" 1982, "Blade Runner 2049" 2017, "Blade Runner:
-  Black Lotus" 2021 — with artwork loaded (each row's image node has non-zero bounds and the pulled fixture PNG's colour at
-  its centre ± 4), `[video] catalogue "Blade Runner": 3`; open the first → the title page (`hub_title`) with its overview text
-  from the fixture; **under Q-A A / C** the attribution line `hub_attribution` reads TMDB's text and the "Watch on" list
-  comes from the fixture's providers (E21); **under Q-A B** no attribution node and every installed service listed as "Search
-  on"; **under Q-A A** the fixture's request log (`catalogue_server.py` prints each request line) shows a non-empty `api_key`
-  parameter on the search (its value redacted in the evidence — it is Jeremy's key), and an APK assembled with
-  `tmdb.apiKey` empty shows "No catalogue key in this build", `[video] catalogue: no key` and NO request in the fixture's log;
-  **under Q-A C** with no key entered the same "no key" state, then the key typed into the Movies & TV settings field
-  (`input text qa-key`) → the search runs and the fixture's log shows `api_key=qa-key`, and after `am force-stop` the key is
-  still used (persisted in the credential store, Decisions "Trust").
+  <name>`, `[video] cannot reach <host>`, `[video] unsupported scheme=<s>`, `[video] cleartext refused <host>` (under Q-D B /
+  C), `[video] catalogue "<q>": <n> | offline | error <code>`, `[video] catalogue: no TMDB key in this build`, `[video]
+  watch-on <service> "<title>" -> <intent> | not installed`, `[video] watch-on <service> "<title>": id <found|none>
+  (wikidata)`, `[video] server <host>: connected | unreachable | unauthorised | cleartext refused | insecure, asked`,
+  `[video] server token cleared`, `[video] shortcut mediaserver published | removed`, `[net] cleartext permitted for <host>:
+  <bool>`, and every `[motion] <name> …` line the rows time. ~~`[video] refused scheme=<s>`~~ SUPERSEDED 2026-09-23 by T17-1;
+  ~~`| no key`~~ SUPERSEDED 2026-09-23 by T17-14 (the one no-key line). **How it is read (C-20):** grep the union of
+  `qa/phase-17/*/ring-*.txt` from this build's run (the rows' APK id matching — the launcher, `:camera` and `:video`
+  slices), each pattern at least once; a pattern absent from every slice fails the row.
+- E19 **Geometry and motion against R11 (written 2026-09-23, T17-16 / T17-17).** Dumps (px ÷ 3 = epx) and screencaps on
+  the AVD; tolerances: ± 1 epx for R11 HIGH values, ± 2 epx for MEDIUM, ± 3 epx for the INFERRED / rotated approximations
+  (Y3, Y5's transport centres), order and presence only for LOW; colours ± 4 per channel. **Photos** (Y1, Y2, Y7): on the
+  collection, albums, viewer and editor no drawn status-bar node and the first chrome row's top at 0; collection grid 3
+  columns, 111-epx squares, 2-epx gutters, left 11 / right 12; pivot titles "Collection" / "Albums" mixed case with no
+  header band behind them (the pixel above and below the titles = page black); a video tile's disc 36 ± 2 epx; album tiles
+  60 epx tall, 162 wide, 12-epx margins and gutter; viewer date header 0 → 50 epx, #171717; viewer app bar 48 epx,
+  #171717, glyph centres 286 / 218 / 150 / 82 / 24 epx from the right; the photo's vertical centre = the screen's centre;
+  the overflow's items Slideshow / Set as / File information at a 44-epx pitch. **Camera** (Y3, Y4, Y7, settings): no
+  drawn status-bar node; nav bar 48 epx; the photo preview 4:3 fitted to width and centred above the nav bar; shutter disc
+  72 epx at W/2, centre 56 epx above the nav bar top; the mode discs 32 epx at ±60 epx, centres 36 above; no horizontal mode
+  strip node; settings page — header cap 16.5–16.75 epx at x 12, combo boxes 32 epx tall with a 2-epx border and the
+  chevron 22.25 epx from the right, label → label pitch 80 epx, an open list's items at a 44-epx pitch with the current one
+  accent-filled, and no Lenses, OneDrive or "Related settings" row. **Pro dial** (Y4), wherever E7's derived list shows the
+  Pro dial (on the AVD this is read from E7; when the AVD's camera lacks the capabilities the sub-row runs on the phone as
+  part of P9 — never skipped silently, the row logs which): five arcs whose fitted centre is (W/2, nav top) ± 1 epx and
+  radii 130.5 / 195.4 / 260.3 / 325.3 / 390.2 ± 1 epx, inner → outer exposure / shutter / ISO / focus / WB (each ring's
+  icon node on it), value labels centred at W/2 30.3 ± 1 epx above each ring's top, the shutter at 74.75 epx above the nav
+  top in the five-ring view; one control alone = one arc of r 130.25 ± 1 epx. **Movies & TV** (Y5, Y7, the pane): library
+  pages draw phase 01's status bar (C-17) and a 48-epx #171717 header, ≡ at x 24, the title at x 60.25, search at W − 24;
+  the pane 256 epx wide from the chrome bottom, #171717, no scrim (the page pixels right of the pane unchanged, as R11 1.3.1
+  measured), rows 48 epx, glyph cx 24, label x 48, the current row's 4 × 48-epx accent bar at x 0; My videos tiles 112 ×
+  112 epx on a 124-epx pitch from x 12, first row top = chrome bottom + 48, 2 per row, captions ≤ 2 lines clipped at tile
+  left + 100 epx; the player: no status bar and no header, nav bar drawn, the scrim band 120 epx above the nav bar, the
+  track 2 epx at nav − 93 from x 12 to 348, the thumb an accent ring Ø 24, HH:MM:SS labels below the track (elapsed left at
+  12.5, total right-aligned at 345.5), the transport in the order captions · back 10 · play / pause · forward 30 · "•••" with
+  centres 84 / 132 / 180 / 228 / 276 epx on a row centred at nav − 40. **Motion:** every motion Y6 lists logs its `[motion]`
+  line with the approximation's numbers (viewer open settle 250 ± 17 ms; photo swipe settle 290 ± 17 ms after release; the
+  pane slide 133 ± 17 ms; controls fade-in 200 ± 17 ms; the mode switch a single frame) and `maxGapMs` ≤ 33.4 ms (C-31) —
+  approximations, judged by H4. ~~Written once those sections land …~~ SUPERSEDED 2026-09-23 by T17-16.
+- E20 **Catalogue (TMDB — Q-A; the key route Q-A2: B; host fixture, never the live network, inside the egress guard —
+  C-29).** On the QA APK (assembled with `-Ptmdb.readToken=qa-dummy-token`, C-32): `prefs_edit.py` sets
+  `qa_catalogue_base` to `http://10.0.2.2:8090/`; open Browse (`hub_pane:browse`), search "Blade Runner" → exactly three
+  `hub_result:<id>` rows whose title / year texts equal the fixture JSON hand-listed here — "Blade Runner" 1982, "Blade
+  Runner 2049" 2017, "Blade Runner: Black Lotus" 2021 — with artwork loaded (each row's image node has non-zero bounds and the
+  pulled fixture PNG's colour at its centre ± 4), and the fixture's log shows the `/3/configuration` request and one
+  `/img/…` request per poster (T17-20), `[video] catalogue "Blade Runner": 3`; every request in the fixture's log reads
+  `bearer ok` with no `api_key` parameter (T17-13); the Browse page's foot `hub_attribution` reads TMDB's text (T17-14);
+  open the first → the title page (`hub_title`) with its overview text from the fixture and the "Watch on" list from the
+  fixture's providers (E21). **No key — the CI form (Q-A2: B):** `adb install -r` the CI-form APK (`-Ptmdb.readToken=`),
+  MARK, open Browse → "Film search is off in this build" (dump), `[video] catalogue: no TMDB key in this build` in the
+  `:video` slice, and NO request line in the fixture's log from the MARK to the row's end; the QA APK re-installed after
+  (both APK ids in the row log). ~~under Q-A A / C … under Q-A B … the `api_key` request log … `tmdb.apiKey` empty … under
+  Q-A C … `input text qa-key` …~~ SUPERSEDED 2026-09-23 by T17-13 / T17-14 (a bearer-token build never sends `api_key`, so the
+  old assertion failed a correct build and put Jeremy's key in the fixture's log; the keyless and typed-key forms are dead).
   Offline: `cmd connectivity airplane-mode enable`, force-stop and reopen → the same three rows from the cache with the line
-  "You're offline — showing what was saved" (dump) and `[video] catalogue "Blade Runner": offline`, the My videos pivot still
-  lists `qa-steps.mp4`; a fresh install offline → the Browse pivot's empty state names the cause, not a blank; `airplane-mode
+  "You're offline — showing what was saved" (dump) and `[video] catalogue "Blade Runner": offline`, the My videos page still
+  shows `qa-steps.mp4`; a fresh install offline → the Browse page's empty state names the cause, not a blank; `airplane-mode
   disable` (RV12). Errors: base URL at `/500` → "The catalogue isn't answering" and `[video] catalogue "Blade Runner": error
   500`; a stopped fixture server → `error connect`. The cache older than 7 days (the file's mtime moved back with `touch -d`
-  under `adb root`, `adb unroot` after) → re-fetched, `[video] catalogue … : 3 (refreshed)`.
-- E21 **"Watch on" (the QA-Flix fixture).** With `testapps/qa-flix` NOT installed, a title's page shows no "Watch on QA-Flix"
-  row and `[video] watch-on qa-flix "Blade Runner" -> not installed` when the fixture catalogue names it; `adb install` the
-  fixture → the row appears on the next draw (the discovery is live); tap → `dumpsys activity activities` shows
+  under `adb root`, `adb unroot` after) → re-fetched, `[video] catalogue … : 3 (refreshed)`. **Leak scan (gated, T17-13 /
+  C-32):** `qa/phase-17/scripts/leak_scan.sh` over `qa/phase-17/**`, E20's saved launcher and `:video` ring slices and `adb
+  logcat -d` finds none of local.properties' `tmdb.*` values.
+- E21 **"Watch on" (the QA-Flix fixture; the title id through Wikidata — T17-15; inside the egress guard).**
+  `prefs_edit.py` sets `qa_wikidata_base` to the fixture as well. With `testapps/qa-flix` NOT installed, a title's page
+  shows no "Watch on QA-Flix" row and `[video] watch-on qa-flix "Blade Runner 2049" -> not installed` when the fixture
+  catalogue names it; `adb install` the fixture → the row appears on the next draw (the discovery is live); **id branch**
+  ("Blade Runner 2049", whose fixture Wikidata answer holds a QA-Flix id): tap →
+  the fixture's log shows the Wikidata-shaped query keyed on the title's TMDB id, `dumpsys activity activities` shows
   `app.tileshell.testclient.qaflix/.MainActivity` resumed and its `qa_flix_uri` text equals `https://qa-flix.test/title/
-  <the fixture's id for the title>` exactly, `[video] watch-on qa-flix "Blade Runner" -> https://qa-flix.test/title/…`;
-  a title the fixture catalogue marks as on no service → the page reads "Not on this phone" (dump) and no row; a title with a
-  provider but no id for it → the search form `https://qa-flix.test/search?q=Blade+Runner+1982` reaches the fixture; uninstall
-  the fixture → the row is gone; **under Q-A B** the same title shows "Search on QA-Flix" and the search form is the only form.
-  Every service's real deep link is P13, never asserted here.
-- E22 **Media server (Q-B: A; a container on the host).** **Under Q-B A / C (Jellyfin at `10.0.2.2:8096`):** "Add a
-  server" with host, user and password → `[video] server 10.0.2.2:8096: connected`, the Media server pivot appears
-  (`hub_pivot:mediaserver`) listing `qa-steps.mp4`, tap → it plays under E11's pixel rule with `[video] playing scheme=http`;
-  `am force-stop` and reopen → still connected (the token persisted); the credential store holds no plaintext: `adb root`,
-  then `adb shell grep -r -l qa-password /data/data/app.tileshell/` (the fixture account's password, anywhere) and `adb shell
-  grep -l -E '[0-9a-f]{32}' /data/data/app.tileshell/shared_prefs/* <the BS-3 store file>` (Jellyfin's 32-hex token form)
-  both list no file, `adb unroot` — a store that wrote either in the clear fails here; wrong password →
-  "That password isn't right" and `[video] server 10.0.2.2:8096: unauthorised`, no pivot; `docker stop` the container →
-  the pivot shows "Can't reach your media server" and `[video] server …: unreachable`, the local pivot untouched, no crash;
-  `docker start` → reconnects on the next open. NOT APPLICABLE (Q-B is A, Jellyfin only; kept for the record): **Under Q-B B / C (Plex at `10.0.2.2:32400`):** the same assertions against
-  an unclaimed container if BS-6 finds it answers without a token; otherwise this half is P14 only and the row says so.
-  **Under Q-B B** the Jellyfin half is not built and not run.
+  <that id>` exactly, `[video] watch-on qa-flix "Blade Runner 2049": id found (wikidata)` and `[video] watch-on qa-flix
+  "Blade Runner 2049" -> https://qa-flix.test/title/…`; **search branch:** a title whose Wikidata
+  answer holds no QA-Flix id ("Blade Runner" 1982 in the fixture) → `id none (wikidata)` and the search form
+  `https://qa-flix.test/search?q=Blade+Runner+1982` reaches the fixture exactly; a title the fixture catalogue marks as on
+  no service → the page reads "Not on this phone" (dump) and no row; uninstall the fixture → the row is gone. ~~**under Q-A
+  B** … "Search on QA-Flix" …~~ SUPERSEDED 2026-09-23 by T17-14. Every service's real deep link is P13, never asserted here.
+- E22 **Media server (Jellyfin — Q-B; the pinned container on the host, its digest in the row log — T17-21; inside the
+  egress guard).** "Add a server" with host `10.0.2.2:8096`, user and password → `[video] server 10.0.2.2:8096: connected`,
+  the Media server row appears in the pane (`hub_pane:mediaserver`) and its page lists `qa-steps.mp4`, tap → it plays under
+  E11's pixel rule with `[video] playing scheme=http` (10.0.2.2 is the debug config's exception, so under every Q-D answer);
+  `am force-stop` and reopen → still connected (the token persisted); the credential store holds no plaintext: the driver
+  reads the issued token from the server (`GET /Sessions` with the fixture admin's token, the session whose `Client` is the
+  shell), then `adb root`, `adb shell grep -rlF "$TOKEN" /data/data/app.tileshell/` and `adb shell grep -rl qa-password
+  /data/data/app.tileshell/` (the fixture account's password) both list no file, `adb unroot` — a store that wrote either in
+  the clear fails here; wrong password →
+  "That password isn't right" and `[video] server 10.0.2.2:8096: unauthorised`, no pane row; `docker stop` the container →
+  the page shows "Can't reach your media server" and `[video] server …: unreachable`, the My videos page untouched, no crash;
+  `docker start` → reconnects on the next open. **Insecure address (C-16 (5); expected branch Q-D: A):** "Add a server"
+  at `http://192.0.2.10:8096` (a documentation address, not private) → under **A** the page asks "This server isn't secure —
+  your password would be sent unencrypted" with `[video] server 192.0.2.10:8096: insecure, asked`, and Cancel sends nothing
+  (no `connected` / `unreachable` line after it; the egress guard's counter stays 0); under **B** and **C** it is refused
+  before any request with `[video] server 192.0.2.10:8096: cleartext refused`. **Remove the server** → `[video] server token
+  cleared`, the pane row and the dynamic shortcut gone (E23), and the exact-token grep above → no file (T17-23). **Leak scan
+  (C-32):** `qa/phase-17/scripts/leak_scan.sh "$TOKEN" qa-password` over `qa/phase-17/**`, the row's ring slices and `adb
+  logcat -d` finds none; the stream URL in the `:video` slice carries no query string. ~~`adb shell grep -l -E
+  '[0-9a-f]{32}' …`~~ SUPERSEDED 2026-09-23 by T17-21 (it matched any 32-hex value any feature stores); ~~**Under Q-B B / C
+  (Plex at `10.0.2.2:32400`)** … **Under Q-B B** …~~ SUPERSEDED 2026-09-23 by T17-14 (Jellyfin only).
 - E23 **App Shortcuts (phase 11 Q1's standing rule; C-8 / C-9).** The three apps' tiles pinned through
   `qa/phase-17/baseline_layout.json`; hold the Photos tile → `quick_sat_label:0..1` = "Collection", "Albums" in rank order
-  (phase 11 E3's method), `quick_sat:2..3` absent, `[quick] shortcuts for app.tileshell/0: 2 (2 shown: photos_collection,
-  photos_albums)`; tap each → PhotosActivity resumed with that pivot's header `selected="true"` (`photos_pivot:collection` /
+  (phase 11 E3's method), `quick_sat:2..3` absent, `[quick] shortcuts for app.tileshell/.photos.PhotosActivity/0: 2 (2
+  shown: photos_collection,photos_albums)` (the activity-keyed line, T11-12); tap each → PhotosActivity resumed with that
+  pivot's header `selected="true"` (`photos_pivot:collection` /
   `:albums`), and `dumpsys shortcut` lists `photos_collection` rank 0 and `photos_albums` rank 1 as manifest shortcuts; hold
   the Camera tile → "Photo", "Video", then the dynamic modes E7's availability row predicts for this device, in rank order
   (on the AVD "Photo", "Video" only — panorama is never on x86_64 and slow motion only with CONSTRAINED_HIGH_SPEED_VIDEO),
+  `[quick] shortcuts for app.tileshell/.camera.CameraActivity/0: 2 (2 shown: camera_photo,camera_video)` on the AVD,
   `dumpsys shortcut` lists `camera_photo` / `camera_video` as manifest ranks 0–1 and exactly the predicted dynamic ids (none on
   the AVD: `camera_panorama` / `camera_slowmo` absent), tap each → CameraActivity on that mode (`camera_mode:<id>` selected);
-  hold the Movies & TV tile with no server → "My videos", "Browse" (2 satellites), `dumpsys shortcut` lists `video_myvideos`
-  rank 0, `video_browse` rank 1 and no `video_mediaserver`; after E22's set-up → 3
-  satellites with "Media server" last, `dumpsys shortcut` lists `video_mediaserver` as a dynamic shortcut, `[video] shortcut
-  mediaserver published`; remove the server → back to 2 and `… removed`. `am force-stop` + Home between holds (C-6).
+  hold the Movies & TV tile with no server → "My videos", "Browse" (2 satellites), `[quick] shortcuts for
+  app.tileshell/.video.VideoActivity/0: 2 (2 shown: video_myvideos,video_browse)`, `dumpsys shortcut` lists `video_myvideos`
+  rank 0, `video_browse` rank 1 and no `video_mediaserver`; tap each → VideoActivity with that pane row current
+  (`hub_pane:myvideos` / `:browse`); after E22's set-up → 3
+  satellites with "Media server" last, `… VideoActivity/0: 3 (3 shown: video_myvideos,video_browse,video_mediaserver)`,
+  `dumpsys shortcut` lists `video_mediaserver` as a dynamic shortcut whose activity is `.video.VideoActivity`, `[video]
+  shortcut mediaserver published`; then hold the Music tile → `[quick] shortcuts for app.tileshell/.music.MusicActivity/0: 4
+  (4 shown: songs,albums,artists,playlists)` with no dynamic id in it (C-21: a dynamic shortcut without `setActivity` would
+  land here); remove the server → back to 2 and `… removed`. `am force-stop` + Home between holds (C-6).
 - E24 **Baseline and seeds (C-3).** `layout_restore` from `qa/phase-17/baseline_layout.json` then Home: the ring holds ZERO
   `assignSlotOnce … -> assigned` lines, the restored file's `addedOnce` equals the baseline file's exactly (as written today:
   phase 02's `phase03:cortana, folder:games:v1, folder:office:v1, slot:music:v1`, phase 16's `slot:calendar:v1,
@@ -785,14 +1097,21 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
   `slots` holds PHOTOS → PhotosActivity and CAMERA → CameraActivity; the same run against
   `qa/phase-17/baseline_layout-pre-17.json` shows exactly two `-> assigned` lines (the negative that proves the assertion can
   fail).
-- E25 **Wizard steps added (phase 12 E14's template, C-4 b).** `pm clear` + `provision.sh` minus this phase's two grants
-  (`pm revoke app.tileshell android.permission.CAMERA` and `… READ_MEDIA_VIDEO`) + Home → `wizard_step:setup:camera` and
-  `wizard_step:setup:videos` present, each with its `wizard_why` text equal to task 8's line, in the Setup rows' order;
-  `pm grant` both from adb → absent, the wizard not shown; then phase 12 E1 re-run on this build (C-4 c).
+- E25 **Wizard steps added (phase 12 E14's template, C-4 b; the three-part form, C-15).** (a) `pm clear app.tileshell` →
+  `PROVISION_FINISH_WIZARD=0 qa/phase-03/scripts/provision.sh` → `adb shell pm revoke app.tileshell
+  android.permission.CAMERA` and `… READ_MEDIA_VIDEO` → Home: `wizard_step:setup:camera` and `wizard_step:setup:videos`
+  present, each with its `wizard_why` text equal to task 8's line, in the Setup rows' order, `wizard_progress` reads "Step 1
+  of 3" (two steps and the presets page); `pm grant` both from adb and resume → both steps gone and `wizard_presets` shows.
+  (b) `pm clear` → `provision.sh` (the marker written) → Home → no `wizard_page`, `[wizard] not shown: core held` (phase 12
+  E1 re-run on this build, C-4 c). (c) The finished-install rule: with the marker set (after (b)), revoke both → Home → no
+  `wizard_page`, `[wizard] not shown: finished`, the "Camera" and "Videos" checklist rows `missing`; `pm grant` both (RV12).
+  ~~`pm clear` + `provision.sh` minus this phase's two grants … `pm grant` both from adb → absent, the wizard not shown~~
+  SUPERSEDED 2026-09-23 by C-15 (provisioning now writes the finished marker, so that form could never show a step).
 
 **Phone-only:**
-- P1 Front camera, flash, HDR / Night (CameraX Extensions as the S25U exposes them), zoom across lenses, and the mode
-  strip's full list (Photo, Video, Pro dial, Panorama, Slow motion, Living Images — T17-12): `adb shell dumpsys
+- P1 Front camera, flash, HDR / Night (CameraX Extensions as the S25U exposes them), zoom across lenses, and the full
+  mode list in Y3's discs and capsule (Photo, Video, Pro dial, Panorama, Slow motion, Living Images — T17-12; ~~the mode
+  strip~~ SUPERSEDED 2026-09-23 by T17-16): `adb shell dumpsys
   media.camera` lists the ids the public API exposes (logical multi-camera vs separate ids) and the capabilities E7's
   availability row reads, so the expected list is derived on the phone as on the AVD; each mode captures to MediaStore
   (E7's assertions), image quality judged in H5; E23's Camera half re-run on the phone, where `camera_panorama` (arm64) and
@@ -827,25 +1146,39 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
   installed service in the table, "Watch on <service>" from a title → `dumpsys activity activities` shows that app resumed
   and a screencap records whether it landed on the TITLE, on its SEARCH results or on its HOME; a signed-out service shows
   its own sign-in and nothing of ours steps around it. RECORDED per service (BS-4's forms are re-verified here).
-- P14 **Jeremy's own media server** (Q-B: A; waits on Jeremy's home server coming back up with Jellyfin on it): E22's assertions against the real server on his network, including a
-  wrong password and the server switched off; under Q-B B / C, Plex's plex.tv PIN sign-in on the phone. RECORDED for the
-  landing form, gated for connected / unauthorised / unreachable.
-- P15 **The real catalogue** (Q-A: A; network on; a build carrying the key): search "Blade Runner"
-  → > 0 results and the first title page draws with artwork; a failure is recorded with the HTTP status, never hidden.
-  RECORDED (network-dependent by nature).
+- P14 **Jeremy's own media server** (Jellyfin — Q-B; waits on Jeremy's home server coming back up with Jellyfin on it): E22's
+  assertions against the real server on his network, including a wrong password and the server switched off; a plain
+  `http://` server on his LAN connects under Q-D A / B and is refused with its line under C (Q-D: A). ~~under Q-B B / C,
+  Plex's plex.tv PIN sign-in on the phone~~ SUPERSEDED 2026-09-23 by T17-14. RECORDED for the landing form, gated for
+  connected / unauthorised / unreachable; the leak scan (C-32) over P14's evidence with the issued token.
+- P15 **The real catalogue** (TMDB — Q-A; network on; a build made on Jeremy's PC, the only kind that carries the key —
+  Q-A2: B): search "Blade Runner" → > 0 results and the first title page draws with artwork and `hub_attribution`; a
+  failure is recorded with the HTTP status, never hidden; the leak scan (T17-13, C-32) over P15's evidence and `adb logcat
+  -d` finds none of the `tmdb.*` values (gated). The public CI build on the phone shows "Film search is off in this build"
+  (the Q-A2 consequence, RECORDED). RECORDED (network-dependent by nature) apart from the leak scan.
 
-**NEEDS-HUMAN:** H1 *fidelity* — Photos matches r11/photos.md on the phone; H2 *fidelity* — Camera matches
-r11/camera.md; H3 *fidelity* — the player and the My videos pivot match r11/movies-tv.md (the hub's online screens are H10–H12);
-H4 *accept* — motion approximations (Y6) where R11 cannot measure; H5 *accept* — capture image and video quality on the S25U
-(no metric); H6 *accept* — any Y1–Y5 / Y7 value R11 does not measure; H7 *accept* — the video app's label from the branding
-module; H8 *accept* — the shell-package routing rule (Music's face on the Music tile only; a video on no tile), re-judged on
+**NEEDS-HUMAN:** H1 *fidelity* — Photos matches r11/photos.md on the phone (Y1, Y2, Y7 — the MEASURED values); H2
+*fidelity* — Camera matches r11/camera.md where it is measured (the pro dial, Y4; the bars; the settings page; the rotated
+V-2017 viewfinder is H18's); H3 *fidelity* — the player, the My videos page and the ≡ pane match r11/movies-tv.md (the
+hub's online screens are H10–H12); H4 *accept* — motion approximations (Y6; R11 measured none for these apps); H5 *accept* —
+capture image and video quality on the S25U (no metric); H6 *accept* — any Y1–Y5 / Y7 value R11 does not measure; H7
+*accept* — the video app's label from the branding module (W10M's en-US "Movies & TV", en-GB "Films & TV"); H8 *accept* —
+the shell-package routing rule (Music's face on the Music tile only; a video on no tile), re-judged on
 this build with Photos and Camera seeded (the rule is built by phase 15's task 0, C-1); H9 *accept*
-— pinch-zoom and double-tap feel (P5); H10 *accept* — the Browse pivot and the title page (Y8, P4 design), including the
-attribution line under Q-A A / C; H11 *accept* — the "Watch on" / "Search on" row set and its order when several services are
-installed (Y9); H12 *accept* — the media-server sign-in page (Y10); H13 *accept* — the editor's tool UI and each tool's look
-on real photos (Y11; the matrices are the agent's picks); H14 *accept* — the panorama UI and stitch quality (Y12, P10); H15
-*accept* — the pro dial's controls and ranges as the S25U exposes them (Y4, P9); H16 *accept* — Living Images: the glyph,
-the hold-to-play and the 1-s clip length (P12).
+— pinch-zoom and double-tap feel (P5); H10 *accept* — the Browse page and the title page (Y8, P4 design) with the
+attribution at its foot; ~~the Browse pivot … under Q-A A / C~~ SUPERSEDED 2026-09-23 by T17-14 / T17-16; H11 *accept* — the
+"Watch on" row set and its order when several services are installed (Y9), knowing that many titles will open the
+service's search rather than the title (Wikidata knows only some services' title ids, T17-15); H12 *accept* — the
+media-server sign-in page AND the Media server library and title rows (Y10, P4; T17-16 / #29); ~~H13 *accept* — the
+editor's tool UI and each tool's look …~~ SUPERSEDED 2026-09-23 by T17-16: H13a *accept* — crop / rotate / auto-enhance
+(W10M's own inbox tools) in the Y11 panel on real photos; H13b *accept* — the four P4 additions (straighten, light and
+colour, filters, red-eye; the matrices are the agent's picks) and the video-trim screen (Y13), P4 designs; H14 *accept* —
+the panorama UI and stitch quality (Y12, P10); H15 *accept* — the pro dial's controls and ranges as the S25U exposes them
+(Y4, P9); H16 *accept* — Living Images: the glyph, the hold-to-play and the 1-s clip length (P12); H17 *accept* — the Photos
+version choice (V-2016+ collection, V-2015 elsewhere; T17-17); H18 *accept* — the Camera version choice (the V-2017
+viewfinder rotated into portrait, a tagged approximation against K11, with the V-2015 pro dial; T17-17); H19 *accept* —
+the Movies & TV version choice (10586 geometry with the 2017 −10 / +30 skips and "•••" menu; T17-17); H20 *accept* — the
+capture-intent accept / retake bar (Y14, P4).
 
 ## Edge cases
 - Thousands of photos: 3,000 fixtures generated with make_photos.py's method in a loop, pushed and scanned;
@@ -859,9 +1192,11 @@ the hold-to-play and the 1-s clip length (P12).
 - Videos: a 4K fixture above the AVD decoder's capability → error state, no crash; a file with no audio track
   still takes audio focus; a file with two audio tracks plays the first; subtitles (`.srt` beside the file or an
   embedded text track) toggle.
-- Storage full while recording: `adb shell fallocate -l $(( $(adb shell df -k /sdcard | awk 'NR==2{print $4}') - 3000 ))K /sdcard/fill.bin`,
-  start recording → the recorder stops with "storage full", the partial file is finalised (`is_pending` 0) and
-  playable or removed, never left pending; restore by deleting fill.bin.
+- Storage full while recording: `lib.sh` `fill_volume 3000000` (C-27: phase 15's root route to `/data/media/0/fill.bin`,
+  asserting `adb shell df /sdcard` free ≤ leave + 5 MB after the fill — a fill that did not take fails loudly; ~~`adb shell
+  fallocate … /sdcard/fill.bin`~~ SUPERSEDED 2026-09-23 by C-27, the FUSE route was never checked), start recording → the
+  recorder stops with "storage full", the partial file is finalised (`is_pending` 0) and
+  playable or removed, never left pending; restore with `unfill_volume`.
 - Camera in use by another app: Open Camera in the foreground, then ours via `am start` → Android's camera
   service gives the foreground app the device; ours shows "camera in use" only while the other app is in front
   and re-opens on resume (`[camera] busy`, then `[camera] devices=1`); the reverse order evicts ours cleanly.
@@ -869,7 +1204,8 @@ the hold-to-play and the 1-s clip length (P12).
   process; the next open shows the grant page; `pm revoke … READ_MEDIA_IMAGES` with the viewer open → the same
   restart and the checklist state on return.
 - Screen off or an incoming call mid-recording (`input keyevent KEYCODE_SLEEP`; `adb emu gsm call 5551234`):
-  the recording stops and is finalised; the file plays. The same mid-panorama and mid-slow-motion on the phone (P): the
+  the recording stops and is finalised; the file plays (after the `KEYCODE_SLEEP`, `wake_device` and its `Awake` assert
+  before the next tap — C-25). The same mid-panorama and mid-slow-motion on the phone (P): the
   partial capture is discarded with `[camera] mode <x>: cancelled (<reason>)`, no pending row.
 - A `:camera` or `:video` process killed by the system mid-write: on the next start any `is_pending=1` row of
   the shell's is cleaned (`content query --projection _id:is_pending` shows none).
@@ -887,20 +1223,23 @@ the hold-to-play and the 1-s clip length (P12).
   has no SD slot.
 - Catalogue: a rate-limited source (429) → "The catalogue is busy, try again in a minute" and `[video] catalogue … : error
   429` with the cache shown; a title with no artwork → the poster placeholder; a query with no result → the empty line, not
-  a blank grid; the key revoked (401, Q-A A / C) → the "no key" state with `error 401`, never a crash.
+  a blank grid; the token revoked on TMDB's side (401) → "The catalogue isn't answering" with `[video] catalogue … : error
+  401` and the cache shown (the build has a token, so not the no-key form; Q-A2: B), never a crash. ~~the key revoked (401,
+  Q-A A / C) → the "no key" state~~ SUPERSEDED 2026-09-23 by T17-14.
 - "Watch on": the service uninstalled between the page draw and the tap → "That app isn't installed any more" (the entry
   gone on the next draw); the deep link answered by the service's home rather than the title → recorded by P13 as the
   service's behaviour, the entry stays (the app IS installed); a service that answers no intent at all
   (`ActivityNotFoundException`) → the search URL is tried, then the line says `not installed`.
 - Media server: the token invalid after a password change on the server → `unauthorised` and the sign-in page again with
-  the host prefilled; the server on another subnet or the phone on mobile data → `unreachable` with the local pivot intact;
+  the host prefilled; the server on another subnet or the phone on mobile data → `unreachable` with the My videos page intact;
   the server removed from the app → the token is deleted from the store (`[video] server token cleared`) and the dynamic
   shortcut removed (E23).
-- Offline preferred: with no network the hub never blocks the My videos pivot or the player; every network call has a 10-s
+- Offline preferred: with no network the hub never blocks the My videos page or the player; every network call has a 10-s
   timeout and runs off the main thread (`StrictMode` in the debug build catches a violation as a crash — the row's
   `AndroidRuntime` check covers it).
 - Liveness (N-01): reboot and Device care leave the seeds, the checklist rows, the observers, the catalogue cache and the
-  server token intact.
+  server token intact (after `adb reboot` and the boot-completed poll the driver calls `wake_device` and asserts `Awake`
+  before the first tap — C-25).
 
 ## QA evidence
 _None yet._

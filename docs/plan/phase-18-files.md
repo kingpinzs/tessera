@@ -1,8 +1,8 @@
 ---
 phase: 18
 slug: files
-status: DRAFT   # split 2026-09-22; interview DONE 2026-09-23; review triage round 1 applied 2026-09-23 (review/2026-09-23-phases11-19-triage.md); r11/files.md gates FINAL (pending on disk 2026-09-23 — docs/plan/r11-inbox-apps.md is the index)
-depends-on: [01, 02, 10, 17]
+status: DRAFT   # split 2026-09-22; interview DONE 2026-09-23; review triage round 1 applied 2026-09-23 (review/2026-09-23-phases11-19-triage.md); round 2 applied 2026-09-23 (review/2026-09-23-phases11-20-r2-triage.md); r11/files.md landed 2026-09-23 and is applied (T18-8; E11 written); DRAFT → FINAL after Stage A step 7
+depends-on: [01, 02, 10, 11, 12, 17]   # C-23: 11 for the E2 / E16 bursts (per-activity shortcut query), 12 for the E15 template and C-15's provisioning marker
 ---
 
 # Phase 18 — W10M File Explorer ("Files")
@@ -18,20 +18,32 @@ NEEDS-HUMAN row. Nothing here reaches the internet — out: offline preferred (A
 
 ## Scope
 **In:**
-- Roots: the primary shared storage (`/storage/emulated/0`, "This Device") and every mounted public volume
-  (`StorageManager.getStorageVolumes()`: an SD card or a USB OTG drive as "SD card" / "USB"), appearing and
-  disappearing with `ACTION_MEDIA_MOUNTED` / `ACTION_MEDIA_UNMOUNTED`; beside them the Recent view and the Recycle Bin
-  (Q2 C, Q3 C — the functional set is ruled; r11/files.md settles how W10M drew its root page).
-- Folder listing with W10M glyphs by type; sort by name / date / size / type; search within the current tree;
-  multi-select; copy and move (progress, conflicts, cancel) that survive leaving the app (a foreground service,
-  `FOREGROUND_SERVICE_DATA_SYNC`); rename; delete into the Recycle Bin (Q3 C; Decisions); new folder; share; properties
-  (name, size, date, path); open-with routing (Q4 A); a "cannot read" entry for `/Android/data` and `/Android/obb`
-  (Android 11+ hides them from every app, All-files access included).
+- Entry points in W10M's ≡ pane — there is no root page (r11/files.md 1.3; T18-8): Recent, This Device (the primary shared
+  storage, `/storage/emulated/0`), one row per mounted public volume (`StorageManager.getStorageVolumes()`: an SD card or a
+  USB OTG drive, named by its label, `StorageVolume.getDescription`, with no drive letter), appearing and disappearing with
+  `ACTION_MEDIA_MOUNTED` / `ACTION_MEDIA_UNMOUNTED`, and the Recycle Bin as a fourth row (P4; Q2 C, Q3 C). The app opens on
+  This Device. ~~beside them the Recent view and the Recycle Bin (Q2 C, Q3 C — the functional set is ruled; r11/files.md
+  settles how W10M drew its root page)~~ SUPERSEDED 2026-09-23 by T18-8 (R11: no root page, the ≡ pane).
+- The folder page: the location bar (≡, breadcrumb, ↑), the "Sort by" line, and folder listing with W10M-style type icons
+  (colour folder / page / type icons and thumbnails, A10 branding assets; r11/files.md 1.5.3); sort by name / date / size
+  (W10M had no type sort, r11/files.md 1.4.5; T18-8); list and Icons views; search within the current tree;
+  multi-select; "Move to" / "Copy to" (pick a folder; no cut / paste — W10M's verbs, r11/files.md 1.12.6) with progress,
+  conflicts and cancel, surviving leaving the app (a foreground service, `FOREGROUND_SERVICE_DATA_SYNC`); rename; delete into
+  the Recycle Bin (Q3 C; Decisions); new folder; share; a Properties page (name, size, date, path, per-type sections);
+  open-with routing (Q4 A); a "cannot read" entry for `/Android/data` and `/Android/obb`
+  (Android 11+ hides them from every app, All-files access included). No free-space line (W10M had none; phase 19's
+  Storage page shows space — T18-8). ~~Folder listing with W10M glyphs by type; sort by name / date / size / type~~
+  SUPERSEDED 2026-09-23 by T18-8.
 - Zip (Q2 C): open a zip as a folder, extract (through the same foreground service), create one from a selection —
-  `java.util.zip`, no new dependency (Decisions).
-- Recent (Q2 C): recently changed files across the phone from MediaStore's modified dates (Decisions).
-- The Recycle Bin (Q3 C): one bin per volume, its own entry on the root page, Restore / Delete permanently / Empty
-  (Decisions).
+  `java.util.zip`, no new dependency (Decisions). A P4 addition: W10M's File Explorer had no zip handling
+  (r11/files.md 1.12.7); H7 judges the flows.
+- Recent (Q2 C): recently changed files across the phone from MediaStore's modified dates (Decisions); W10M's Recent was
+  "recently accessed or downloaded" (r11/files.md 1.12.9), so the form is H8's call.
+- The Recycle Bin (Q3 C): one bin per volume, its own row in the ≡ pane (P4 — W10M had no bin, r11/files.md 1.12.8),
+  Restore / Delete permanently / Empty (Decisions); this phase publishes the bin index reader and an `empty(volume)` call,
+  and phase 19 builds its Storage page's bin row with them (T18-9).
+- "Open file location" in phase 15's Voice Recorder: an ADD by this phase to phase 15's part (a recording's hold menu gains
+  the entry, which opens Files at the recording's folder; T15-16, Decisions).
 - The storage grant (Q1 A: All-files access, `MANAGE_EXTERNAL_STORAGE`) with its Setup checklist row and its setup-wizard
   step (phase 12 Q1 / Q2), the app's ungranted state naming the checklist, and the grant opened from the app
   (`android.settings.MANAGE_ALL_FILES_ACCESS_PERMISSION`, which resolves to
@@ -40,7 +52,8 @@ NEEDS-HUMAN row. Nothing here reaches the internet — out: offline preferred (A
   (`MediaScannerConnection.scanFile`) so the Photos tile, Photos and Music see moves and deletes at once — belt-and-braces,
   since MediaProvider already follows renames and deletes made by path on Android 11+ (Decisions, T18-4).
 - The ADD to phase 10 that lets Files hand an audio file to the shell's Music player by explicit component
-  (Decisions); a `FileProvider` for Share (a manifest ADD, not exported); static App Shortcuts plus the dynamic "SD card"
+  (Decisions); a `FileProvider` for Share (a manifest ADD, not exported; it hands out a URI only for a file under a
+  `StorageVolume.getDirectory()` — T18-11); static App Shortcuts plus the dynamic "SD card"
   one (phase 11 Q1's standing rule as amended by C-9); diagnostics lines; the exported allow-list ADD; the app-list
   regression; the APK budget.
 **Out (explicitly):** replacing Android's file picker (DocumentsUI serves `ACTION_OPEN_DOCUMENT` /
@@ -117,31 +130,42 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
   notification with progress and cancel), so a 2 GB copy survives Home and a screen-off; the service dies with
   nothing half-written: a copy writes to a temporary name in the destination and renames on completion
   (LayoutStore's temp-and-rename shape).
-- 2026-09-22 (agent): **R11 gates FINAL.** Every visual value is "from R11 §Files" (pending — R11 is now an index,
-  docs/plan/r11-inbox-apps.md; this phase's section is `docs/plan/r11/files.md`, not written as of 2026-09-23 — C-12) or
-  already measured: status bar 28 epx (R3 C4), list rows (R3 C2 / R6 §5.1.4),
+- 2026-09-22 (agent): **R11 gates FINAL.** Every visual value is from `docs/plan/r11/files.md` (landed 2026-09-23, applied
+  by T18-8; ~~pending — … not written as of 2026-09-23 — C-12~~ SUPERSEDED 2026-09-23 by T18-8) or already measured:
+  phase 01's drawn status bar (`BarMetrics.STATUS_EPX`, `app/src/main/kotlin/app/tileshell/bars/SystemBars.kt:77-80`; its
+  value is open at phase 01 against R11's 24 epx — C-17), ~~list rows (R3 C2 / R6 §5.1.4)~~ (SUPERSEDED 2026-09-23 by T18-8:
+  File Explorer's own 64-epx two-line rows, r11/files.md 1.5.2),
   Settings-page rows for the app's settings (R3 C1), the Start exit (R3 A11), the app-list hold menu's band
-  (phase 02 H21, approximation). Anything else is a Y row with an H row (RV9 / Q10); motion is planned as
-  approximations from the start (R10 design 10).
+  (phase 02 H21, approximation). R11 files.md has no HIGH value (every phone source is a downscale or a camera photo; the
+  exact source is the same UWP app on desktop 1703): its MEDIUM values are H1 [fidelity], its LOW / UNMEASURED ones and every
+  P4 addition are [accept] rows. Anything else is a Y row with an H row (RV9 / Q10); motion is planned as
+  approximations from the start (R10 design 10; R11 found no recording, r11/files.md §4).
 - 2026-09-22 (agent): **the two kinds of NEEDS-HUMAN row are labelled** — *fidelity* (matches R11 §Files,
   judged on the phone) and *accept* (P4 design or approximation; no footage). qa/phase-18/NEEDS-HUMAN.md follows
   qa/phase-03/NEEDS-HUMAN.md's shape.
 - 2026-09-22 (agent): **harness contracts** (R10 testability 24, 25): the activity root sets
   `Modifier.semantics { testTagsAsResourceId = true }` (as MusicActivity.kt), each row's name and detail carry
-  their own tags (`files_row:<name>`, `files_detail:<name>`), every silent-empty state writes a diagnostics line
+  their own tags (`files_row:<name>`, `files_detail:<name>`), the ≡ pane's rows theirs (`files_pane:<recent|device|<volume
+  uuid>|bin>`, T18-8; the pane itself `files_pane`, the location bar `files_location`, its segments
+  `files_crumb:<n>`, ↑ `files_up`, the ≡ button `files_menu`, the sort line `files_sort`), every silent-empty state writes a
+  diagnostics line
   under `[files]` (E12). Drivers symlink qa/phase-03/scripts/lib.sh; evidence under qa/phase-18/.
 - 2026-09-22 (agent): **app list and process.** One launcher entry "Files" (LAUNCHER + APP_FILES, the category
   DocumentsUI declares on the AVD), excluded from Uninstall by `AppUninstall.canUninstall`'s self-package rule
   (E10 proves it); main process (a list over the filesystem, no decode); the copy service in the main process
   too. App-list regression (phase 02's regress.sh pattern) runs once for this phase.
 - 2026-09-22 (agent): **bars.** A shell-owned screen under phase 01's bar rule: Samsung's bars hidden, the
-  drawn W10M status and nav bars; Back walks up one folder and leaves the app at a root (approximation Y3 until
-  R11 §Files says how W10M's Back behaved in File Explorer).
+  drawn W10M status and nav bars (File Explorer drew its status bar, r11/files.md 1.1.1 — unlike Photos); ~~Back walks up
+  one folder and leaves the app at a root (approximation Y3 until R11 §Files says how W10M's Back behaved in File
+  Explorer)~~ SUPERSEDED 2026-09-23 by T18-8: Back leaves selection mode first (r11/files.md 1.8.1); ↑ and a breadcrumb
+  segment go up (1.2.7–1.2.8, 1.12.3); otherwise Back returns to the previous location in the app's history (D3's UWP rule —
+  equal to "up one level" for a straight descent) and leaves the app when the history is empty (Y3, R11 UNMEASURED-3).
 - 2026-09-22 (agent): **APK budget.** No new dependency (zip is the platform's `java.util.zip`; the `FileProvider` is
   androidx.core's, already in the build); E10 checks the size against phase 03's ≤ 600 MB.
 - 2026-09-23 (agent, review triage T18-1): **the Recycle Bin, designed below the Q3 ruling.** One bin per volume at
   `<volume root>/.Tessera/bin/` holding a `.nomedia` marker and `.index.json` (one record per binned file: bin name, original
-  path, deleted-at, size; written temp-and-rename, LayoutStore's shape). The bin is its OWN entry on the root page ("Recycle
+  path, deleted-at, size; written temp-and-rename, LayoutStore's shape). The bin is its OWN entry — ~~on the root page~~ a
+  fourth row of the ≡ pane under the volumes (SUPERSEDED 2026-09-23 by T18-8: W10M had no root page) — ("Recycle
   Bin": every volume's bin in one list, each row naming its volume), never a browsable dot-folder — dot-files are hidden by
   default (edge cases), and a bin reached by browsing would invite edits that bypass the index. **Delete** = a rename inside
   the same volume to `<bin>/<deleted-at ms>-<name>` (instant, never a copy, works on a full volume), the index write, then a
@@ -152,8 +176,13 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
   INSIDE the bin is permanent. **Damage:** a lost or unreadable index → the bin still lists its files by bin name and Restore
   puts them in `<volume>/Download/Restored/`; an index record whose file is gone is dropped on the next read; a bin folder
   deleted by another app → recreated empty on the next delete, with its line. A removable volume that is pulled takes its bin
-  with it (its rows vanish with the root). Phase 19's Storage page shows the bin's size per volume with Empty (a one-line ADD
-  there, phase 19's table). Tags `files_bin`, `files_bin_row:<name>`, `files_bin_restore`, `files_bin_delete`,
+  with it (its rows vanish with its pane row). ~~Phase 19's Storage page shows the bin's size per volume with Empty (a one-line
+  ADD there, phase 19's table).~~ SUPERSEDED 2026-09-23 by T18-9: this phase publishes the bin index reader (per volume: entry
+  count and bytes) and an `empty(volume)` call; phase 19 builds its Storage page's bin row with them (phase 19 builds after
+  this one — Build order). **Privacy (T18-10):** binned files stay readable on shared storage — `.nomedia` hides them from
+  MediaStore only, so any app with storage access and a PC over USB can read them until Empty — and the bin page says so in
+  one line under its header: "Deleted files stay on this phone until you empty the Recycle Bin" (tag `files_bin_note`; H2).
+  Tags `files_bin`, `files_bin_row:<name>`, `files_bin_restore`, `files_bin_delete`,
   `files_bin_empty`; diagnostics `[files] bin <delete|restore|purge|empty> <path>: ok | failed <why>`, `[files] bin index
   <volume>: <n> entries | rebuilt (<why>)`. Reason: Jeremy's own mechanics (same-volume rename, original path kept, nothing
   automatic) leave only these choices open, and each picks the form that cannot lose a file. User-visible, so H2 [accept].
@@ -171,7 +200,9 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
   `Files` collection ordered by `DATE_MODIFIED` descending, capped at 100, excluding `.nomedia` folders and the bins; a Files
   write's scan makes the file appear within 3 s; a file no scan has reached is absent — a rule, stated, not a gap. Tags
   `files_zip_root`, `files_extract`, `files_zip_create`, `files_recent_row:<name>`; diagnostics in E12. Reason: the ruling
-  names the features; these picks are the platform-native form and the minimum that makes extraction safe.
+  names the features; these picks are the platform-native form and the minimum that makes extraction safe. [2026-09-23, T18-8:
+  both are P4 additions — W10M's File Explorer had no zip handling (r11/files.md 1.12.7) and its Recent was "recently accessed
+  or downloaded" (1.12.9); zip's virtual root reuses the folder page unchanged; H7 judges the zip flows, H8 Recent's form.]
 - 2026-09-23 (agent, review triage T18-6 / C-9): **"SD card" is a DYNAMIC App Shortcut** (`ShortcutManager
   .setDynamicShortcuts`), published on mount and removed on unmount; This device, Recent and Recycle Bin are static (ranks
   0–2), SD card ranks 3. Reason: a shortcut to a volume that is not there must not burst; a manifest shortcut cannot be
@@ -182,17 +213,50 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
   `package:app.tileshell`; why line "Files can browse everything on this phone. Without it Files sees nothing.");
   `qa/phase-03/scripts/provision.sh` gains `adb shell appops set app.tileshell MANAGE_EXTERNAL_STORAGE allow`; E15 is phase 12
   E14's template for it; phase 12 E1 re-runs on this build. Phase 12's rule, restated: a finished or skipped wizard is never
-  re-summoned on that install — this grant goes red on the Setup checklist instead.
+  re-summoned on that install — this grant goes red on the Setup checklist instead. [2026-09-23, C-15: the lead's standing
+  decision (provisioning writes the wizard's finished marker) holds; E15 is re-cut to phase 12's three-part E14 template.]
+- 2026-09-23 (r2 triage T18-11, a doc update; a trust change): **the FileProvider's scope.** Reaching `/storage/<UUID>`
+  needs a `root-path` entry, which would also cover the app's private dirs (`/data/data/app.tileshell`, `filesDir`,
+  `cacheDir`), and with All-files access a Share could then hand out a private file. So `FileProvider.getUriForFile` is called
+  only after a canonical-path check (`File.canonicalPath`, symlinks and `..` resolved) that the file lies under one of
+  `StorageManager.getStorageVolumes()`' `StorageVolume.getDirectory()`; anything else is refused with `[files] share refused:
+  outside shared storage` and the share does not start. The provider scope joins this phase's adversarial-review list (the
+  project's rule for access-control changes): a GATE recorded under qa/phase-18/ before `done`.
+- 2026-09-23 (agent, r2 triage T18-8): **r11/files.md applied, with four calls.** (1) No root page: W10M's ≡ pane (256-epx
+  overlay, #171717, 48-epx rows from 72 epx, glyph cx 24, label x 60, the selected row the accent at 60 % over #171717;
+  r11/files.md 1.3) with rows Recent / This Device / one per mounted volume / Recycle Bin (a fourth row, P4, H2); the app opens
+  on This Device (R11 UNMEASURED-4); `files_root:*` tags become `files_pane:*`. (2) Volumes are named by their label
+  (`StorageVolume.getDescription`) with no drive letter — Android volumes have none, and "(D:)" would be pure imitation (H4).
+  (3) Sort by name / date / size only — "type" is dropped (W10M had no type sort, r11/files.md 1.4.5, and nothing ruled one).
+  (4) No free-space line in Files (W10M had none, 1.13.1; phase 19's Storage page shows space). The measured forms replace the
+  stand-ins: 64-epx two-line rows with W10M-style colour type icons and thumbnails (A10 branding assets; MDL2 Folder E8B7 /
+  Page E7C3 the monochrome fallback), the location bar with breadcrumb and ↑, the "Sort by: Name ⌄" line, the W10M app bar,
+  selection bar and menus, the verbs "Move to" / "Copy to" (no cut / paste), Properties as a PAGE, the other dialogs from R7
+  1.3.9's top-anchored W10M dialog, Back per the bars Decision above; zip and the Recycle Bin are P4 additions in full (H7, H2),
+  Recent's form is H8's; E11 is written now. Reason: R11 measured that W10M's File Explorer had no root page, zip, recycle bin
+  or type sort, so the ruled zip and bin are stated P4 additions in the pane's least-invented slot, and every other value
+  follows the measurement (A4: fidelity beats feature count).
+- 2026-09-23 (agent, r2 triage T15-16): **"Open file location" is built by this phase as an ADD to phase 15's Voice
+  Recorder.** A recording's hold menu gains `rec_menu:location` ("Open file location"), which opens FilesActivity by explicit
+  component at the recording's folder (`/storage/emulated/0/Recordings`, from its MediaStore `RELATIVE_PATH`) with the
+  recording's row shown (page extra `path`; line `[files] open at <path> (from recorder)`); recorded in the INDEX Change Log
+  for phase 15's part when built; E17 proves it. Reason: phase 18 builds Files, so the entry that opens Files belongs here as
+  an ADD when Files exists, not as a hook left in phase 15 (T15-16; Rule 16).
+- 2026-09-23 (agent, r2 triage C-17): **the status bar is cited, not hard-coded.** Every status-bar value in this doc reads
+  "phase 01's drawn status bar (`BarMetrics.STATUS_EPX`)" (today 28, `app/src/main/kotlin/app/tileshell/bars/SystemBars.kt:79`);
+  R11 measured File Explorer's at 24 epx (r11/files.md 1.1.1), and the R3 C4 re-check in INDEX's research table decides the
+  constant at phase 01 (Q-F only if Start and apps really differ). Reason: re-measure before anyone rules; the docs then need
+  no edit whichever way it lands.
 
-### Approximations (until R11 lands; each has an H-row)
+### Approximations (re-cut 2026-09-23 against r11/files.md, T18-8; each has an H-row)
 | # | Value | Status | Stand-in | H-row |
 |---|---|---|---|---|
-| Y1 | Root page layout (This Device / SD card / Recent / Recycle Bin entries, glyphs, free-space line) | r11/files.md pending | two-line rows at the R3 C1 64-epx pitch with a 30-epx glyph | H4 |
-| Y2 | Folder rows, type glyphs, the selection check, the bottom app bar's glyph set (also used by a zip's virtual root and Recent) | r11/files.md pending | app-list rows (R3 C2) with a 48-epx app bar | H4 |
-| Y3 | Back behaviour (up one folder vs leave) and the up-navigation motion | r11/files.md pending | Back goes up one level; leaves at a root; no page motion | H4 |
-| Y4 | Progress, conflict and properties dialogs | no W10M capture expected | P4 design in phase 03's card idiom (R6 §3.4.2's field and button geometry) | H5 |
-| Y5 | Motion (page push, selection mode enter) | UNMEASURED; timed by the `[motion]` clock (C-5) | 250 ms ease-out (X13's settle) | H3 |
-| Y6 | The Recycle Bin page (rows with volume and deleted-at, Restore / Delete permanently / Empty) and its confirmations | no W10M original (P4) | folder rows (Y2) with the date as the detail line; confirmations in Y4's card idiom | H2 |
+| Y1 | The ≡ pane (Recent / This Device / volumes / Recycle Bin) | MEASURED (r11/files.md 1.3, MEDIUM / LOW) — closed; only the Recycle Bin row (P4, no W10M bin) and the default landing entry (UNMEASURED-4: This Device) remain approximations. ~~Root page layout … free-space line; two-line rows at the R3 C1 64-epx pitch with a 30-epx glyph~~ SUPERSEDED 2026-09-23 by T18-8 (no root page, no free-space line) | the bin row in the pane's row form with the Delete glyph (E74D); the app opens on This Device | H2 (bin row), H4 (landing) |
+| Y2 | Folder rows, type icons, the location bar, the sort line, the selection check, the app bars and menus (also a zip's virtual root and Recent) | MEASURED (r11/files.md 1.2, 1.4–1.9; MEDIUM / LOW); the selection geometry is UNMEASURED-7 | selection: R7 1.3.9 (20.3-epx checkbox at x 22.2, content shifted 32 epx, accent row fill); the sort picker: a 242.6-epx flyout with 44-epx items (R7 2.2.5, UNMEASURED-6). ~~app-list rows (R3 C2) with a 48-epx app bar~~ SUPERSEDED 2026-09-23 by T18-8 | H1 (measured), H4 (the two stand-ins) |
+| Y3 | Back behaviour | PARTLY documented (r11/files.md 1.8.1, 1.12.3–1.12.4; UNMEASURED-3) | Back leaves selection mode; otherwise the previous location in history (= up one level on a straight descent; after a breadcrumb jump, the folder left); leaves the app when the history is empty | H4 |
+| Y4 | Progress, conflict, delete-confirmation, rename and new-folder dialogs; the Move to / Copy to picker | UNMEASURED-2 (no capture); Properties is MEASURED as a page (1.10) — ~~properties dialog~~ struck 2026-09-23 by T18-8 | R7 1.3.9's top-anchored W10M dialog (full width, (74,74,74), title / body / two side-by-side buttons); the picker = the folder page in a picker mode with a bottom confirm bar in the app-bar geometry (1.7). ~~P4 design in phase 03's card idiom (R6 §3.4.2)~~ SUPERSEDED 2026-09-23 by T18-8 | H5 |
+| Y5 | Motion: pane open / close, folder change, ••• expand, hold menu, selection mode | UNMEASURED (r11/files.md §4); timed by the `[motion]` clock (C-5) | pane open 250 ms ease-out (R7 3.1.10); pane close one frame, then the page fades in; folder change / ↑ / breadcrumb: a cut, then a 250-ms ease-out fade (R7 3.2.2); ••• expand 317 ms (R7 2.1.16); hold menu box 200–233 ms (R7 2.2.6); selection mode and list ↔ icons a one-frame cut | H3 |
+| Y6 | The Recycle Bin page (rows with volume and deleted-at, the privacy line, Restore / Delete permanently / Empty) and its confirmations | no W10M original (P4) | folder rows (Y2) with the date as the detail line; confirmations in Y4's dialog form | H2 |
 
 ## Interview queue (Stage A step 4)
 Load-bearing first. Implementation mechanics are the agent's (P3).
@@ -237,46 +301,86 @@ Load-bearing first. Implementation mechanics are the agent's (P3).
    setup-wizard step of phase 12's Settings-page kind (`wizard_step:setup:files`, its `wizard_why` line in Decisions —
    T18-3); the ungranted state in the app names the checklist and offers the same link; the exported allow-list ADD;
    `qa/phase-03/scripts/provision.sh` gains `adb shell appops set app.tileshell MANAGE_EXTERNAL_STORAGE allow` (C-4 a).
-2. **Roots and listing.** Volumes from `StorageManager`, mount / unmount broadcasts; the Recent and Recycle Bin entries on
-   the root page; folder listing by path with type glyphs, sort (name / date / size / type), search within the tree (a
-   background walk with a cancellable progress line); the unreadable `/Android/data` and `/Android/obb` entries; paging so a
-   folder of 10,000 entries lists without stalling.
-3. **Selection and operations.** Multi-select; copy / move through the foreground service with progress,
+2. **The ≡ pane, the folder page and listing** (T18-8, r11/files.md 1.1–1.7, 1.11). Volumes from `StorageManager`, mount /
+   unmount broadcasts; the ≡ pane (`files_pane`: Recent / This Device / one row per volume named by
+   `StorageVolume.getDescription`, no drive letter / Recycle Bin; opens on This Device) ~~the Recent and Recycle Bin entries on
+   the root page~~ (SUPERSEDED 2026-09-23 by T18-8); the location bar (≡, breadcrumb with collapsed middle segments and
+   tappable segments, ↑ dimmed at a volume root); the "Sort by: Name ⌄" line and its flyout; folder listing by path in 64-epx
+   two-line rows with W10M-style type icons / thumbnails (A10 assets; MDL2 Folder E8B7 / Page E7C3 as the fallback) and the
+   detail line ("date" for a folder, "size date" for a file); the Icons view; sort by name / date / size (~~/ type~~ struck
+   2026-09-23 by T18-8); search within the tree (a background walk with a cancellable progress line; the sort line reads
+   "Sort by: Relevance" while searching); the app bar Select / New folder / Icons↔List / Search / More and its overflow
+   (Refresh / Select all / Clear selection / Properties); no free-space line; the unreadable `/Android/data` and
+   `/Android/obb` entries; paging so a folder of 10,000 entries lists without stalling.
+3. **Selection and operations.** Selection mode ("<n> items selected" in the sort line's place, accent-filled rows, the bar
+   Delete / Move to / Copy to / Share, Share dim with a folder selected; Back leaves it) and the tap-and-hold flyout (Delete /
+   Move to / Copy to / Share / Rename / Properties; a folder has no Share); "Move to" / "Copy to" (Files itself in a picker
+   mode) through the foreground service with progress,
    conflict resolution (replace / keep both / skip), cancel with no partial file; rename; delete into the Recycle Bin
    (task 8); new folder; share (`ACTION_SEND` / `ACTION_SEND_MULTIPLE` with content URIs from a `FileProvider` — a
    manifest ADD, none exists today: the manifest's providers are `LiveTileProvider` (`app/src/main/AndroidManifest.xml:162`)
    and `KeyboardConfigProvider` (`:261`); it is `exported="false"` with `grantUriPermissions="true"`, so it adds nothing to
-   the exported-components allow-list — T18-5); properties; every write followed by a MediaStore scan.
+   the exported-components allow-list — T18-5); **the provider's scope guard (T18-11):** `getUriForFile` only after the
+   canonical-path check that the file lies under a `StorageVolume.getDirectory()`, else `[files] share refused: outside shared
+   storage` — a JVM test covers it, and the adversarial review of the provider scope is a GATE recorded under qa/phase-18/
+   before `done`; the Properties PAGE (breadcrumb ending in the name, thumbnail + name, grey-label / white-value rows,
+   per-type sections, no app bar; r11/files.md 1.10); the dialogs in R7 1.3.9's form (Y4); every write followed by a
+   MediaStore scan.
 4. **Open-with routing** (Q4 A), including the phase 10 ADD (a play intent on MusicActivity) and phase 17's
    explicit components.
 5. **Diagnostics and states.** `[files]` lines for every silent-empty state; error states for a vanished
    folder, a pulled volume, a full volume, a denied grant.
 6. **Regressions.** App-list regression, exported allow-list, APK size, the phase 17 / phase 10 hand-off
    rows, phase 12 E1 on this build (C-4 c), the baseline assertion (E10).
-7. **R11 values applied.** Once `r11/files.md` lands, the Y rows it measures are replaced and E11 is written; FINAL
-   only then (RV9).
+7. **R11 values applied** (r11/files.md landed 2026-09-23; T18-8). The Y rows are re-cut in the Approximations table and
+   E11 is written below against r11/files.md 1.1–1.10, so R11 no longer holds the doc from FINAL (RV9); the build draws those
+   values and E11 proves them. ~~Once `r11/files.md` lands, the Y rows it measures are replaced and E11 is written~~ SUPERSEDED 2026-09-23
+   by T18-8.
 8. **Recycle Bin** (T18-1, Decisions): the per-volume `.Tessera/bin/` with `.nomedia` and `.index.json`; delete as a
-   same-volume rename + index write + scan; the root-page entry and the bin page (Y6); Restore with the conflict dialog and
+   same-volume rename + index write + scan; the pane's fourth row and the bin page (Y6) with its privacy line (T18-10);
+   Restore with the conflict dialog and
    the recreated folder; Delete permanently and Empty with confirmations; the lost-index and gone-file rules; the
-   `files_bin*` tags and `[files] bin …` lines; the one-line ADD to phase 19's Storage page (the bin's size with Empty).
+   `files_bin*` tags and `[files] bin …` lines; the bin index reader (per volume: entry count and bytes) and the
+   `empty(volume)` call phase 19's Storage row uses (T18-9). ~~the one-line ADD to phase 19's Storage page (the bin's size
+   with Empty)~~ SUPERSEDED 2026-09-23 by T18-9 (phase 19 builds the row).
 9. **Zip** (T18-2, Decisions): the virtual root over `ZipFile`; extract and create through the copy service; the
    entry-name, free-space and bomb guards; the password-protected and corrupt states; `[files] zip …` lines.
 10. **Recent** (T18-2, Decisions): the MediaStore query (`DATE_MODIFIED` desc, cap 100, no `.nomedia` folders, no bins),
     re-read through a ContentObserver.
 11. **App Shortcuts** (phase 11 Q1's standing rule; C-8, C-9): static `res/xml/shortcuts.xml` entries `files_device`,
     `files_recent`, `files_bin` (ranks 0–2, targeting FilesActivity with the page extra) and the dynamic `files_sdcard`
-    (rank 3, published on mount, removed on unmount). E2 and E16.
+    (rank 3, published on mount, removed on unmount), built with `ShortcutInfo.Builder.setActivity(<FilesActivity's
+    component>)` — a dynamic shortcut without it attaches to the package's first MAIN / LAUNCHER activity, `MusicActivity`
+    (`app/src/main/AndroidManifest.xml:111-120`), and would burst on the Music tile under phase 11's per-activity query (C-21).
+    E2 and E16.
 12. **Harness.** `qa/phase-18/baseline_layout.json` derived from `qa/phase-17/baseline_layout.json` with a Files tile
-    pinned (for E2's and E16's bursts), `manualSizes` set, every `addedOnce` marker of the build; the previous file kept as
+    pinned (for E2's and E16's bursts), keeping phase 17's `slots` (MUSIC, CALENDAR, PEOPLE, PHOTOS, CAMERA), every `addedOnce`
+    marker of the build and `manualSizes` for every tile (C-28); the previous file kept as
     `qa/phase-18/baseline_layout-pre-18.json` (C-3's form; this phase adds no marker); the zip fixtures'
-    `qa/phase-18/scripts/make_zips.py`; drivers in `qa/phase-18/scripts/`.
+    `qa/phase-18/scripts/make_zips.py`; drivers in `qa/phase-18/scripts/`. Harness helpers this phase calls and does not own:
+    `ring_mark` / `ring_since` (C-20, phase 11's build task 7), `record` (C-26, phase 13's build task 7), `fill_volume` /
+    `unfill_volume` (C-27, phase 15's build task 8).
+13. **"Open file location" in Voice Recorder** (T15-16; an ADD to phase 15's part, INDEX Change Log when built): a
+    recording's hold menu gains `rec_menu:location` ("Open file location"), which starts FilesActivity by explicit component
+    with the recording's folder (its MediaStore `RELATIVE_PATH` under `/storage/emulated/0`) and name as page extras; Files
+    opens that folder with the recording's row shown and logs `[files] open at <path> (from recorder)`. E17.
 
 ## Acceptance criteria
 Rows start from the baseline state and restore what they change (PLAN RV12); every row starts from
 `qa/phase-18/baseline_layout.json` through `layout_restore` (`qa/phase-02/scripts/layout.sh`), and after the restore the ring
 holds zero `assignSlotOnce … -> assigned` lines (C-3). Motion rows follow RV11 and take their clock from the shell's
 `[motion] <name> t0=<uptime> peak=<ms> overshoot=<%> settle=<ms>` lines (`withFrameNanos`), a screenrecord corroborating
-under phase 05's frame-spacing rule and never the primary clock (C-5). Dumps follow RV13. Every row that launches an app
+under phase 05's frame-spacing rule and never the primary clock (C-5); the `[motion]` line also carries `frames=<n>
+maxGapMs=<ms>`, and every motion row asserts `maxGapMs` ≤ 33.4 ms (2 vsync) beside its numbers (C-31). Every ring assertion
+reads `ring_since` from a MARK taken immediately before the step's action (after any clock jump, so the MARK is on the new
+clock); absence assertions read the same slice; `reply_text` is `reply_since <MARK>`; `row_end` saves each ring the row names
+to `<row>/ring-<name>.txt` (C-20; `lib.sh` `ring_mark` / `ring_since` / `reply_since`, built by phase 11's build task 7).
+After any `adb reboot` (boot-completed poll), `dumpsys battery unplug` or `KEYCODE_SLEEP` step, the driver calls
+`wake_device` and asserts it printed `Awake` before the next tap (C-25). A recorded clause uses `lib.sh` `record <name>
+<value>`, never an assert; a row with only recorded facts ends `<row>: recorded only (<n> facts)` with exit 0 (C-26; helper
+built by phase 13's build task 7). A volume is filled only with `lib.sh` `fill_volume <leave_bytes>`, which asserts `adb
+shell df /sdcard` free ≤ leave + 5 MB after the fill (a precondition that fails loudly), and emptied with `unfill_volume`
+(C-27; helper built by phase 15's build task 8). Dumps follow RV13. Every row that launches an app
 (E6, E10's hold menu, the bursts) does `adb shell am force-stop app.tileshell` + Home before its next assertion on Start's
 grid, because the promoted tile lives in memory only (`qa/phase-01/scripts/recent0922.sh:19-21`; C-6). All-files access (Q1
 A) is granted by `provision.sh` (build task 1); a row that wipes the app reads "`pm clear` → `provision.sh` → Home" (C-4 d),
@@ -301,24 +405,43 @@ declared honestly), `qa-big.zip` (200 MB of `/dev/urandom`, stored, for progress
 
 **Emulator:**
 - E1 **Grant and checklist.** `adb shell appops set app.tileshell MANAGE_EXTERNAL_STORAGE allow` → the
-  checklist row "Files" is green (dump) and the app lists This Device; `appops set … default` → the row is red,
+  checklist row "Files" is green (dump) and the app opens on This Device (`files_crumb:0` text "This Device", the folder
+  rows of `/sdcard` listed; T18-8's landing); `appops set … default` → the row is red,
   the app shows "Files can't see this phone's storage" with a link (dump text), the link starts
   `Settings$ManageExternalStorageActivity` (`dumpsys activity activities`), diagnostics `[files] access=denied`; restore
   `appops set … allow` (RV12).
-- E2 **Removable volume and the SD card shortcut.** With the grant: the root page shows `files_root:emulated` only (`sm
-  list-volumes` = `emulated;0 mounted`), and `dumpsys shortcut` lists no `files_sdcard` for app.tileshell; hold the pinned
-  Files tile → 3 satellites "This device", "Recent", "Recycle Bin" (`quick_sat_label:0..2`, `quick_sat:3` absent);
+- E2 **Removable volume and the SD card shortcut.** With the grant: tap `files_menu` → the ≡ pane (`files_pane`) lists
+  exactly `files_pane:recent`, `files_pane:device`, `files_pane:bin` in that order and no volume row (`sm list-volumes` =
+  `emulated;0 mounted`), and `dumpsys shortcut` lists no `files_sdcard` for app.tileshell; hold the pinned
+  Files tile → 3 satellites "This device", "Recent", "Recycle Bin" (`quick_sat_label:0..2`, `quick_sat:3` absent) and the
+  ring slice holds `[quick] shortcuts for app.tileshell/.files.FilesActivity/0: 3 (3 shown:
+  files_device,files_recent,files_bin)` (T11-12);
   `am force-stop` + Home (C-6); `adb shell sm set-virtual-disk true`, `sm list-disks` → `disk:<id>`, `sm partition
-  disk:<id> public` → `sm list-volumes` shows a `public:` volume mounted and within 3 s the app shows a second
-  root (`files_root:public`) whose name is the volume's, `dumpsys shortcut` lists `files_sdcard` as a dynamic shortcut and
-  the Files tile's burst shows 4 satellites with "SD card" last (T18-6); browse it, create a folder on it (`adb shell ls
-  /storage/<UUID>` shows it); `sm unmount public:<x>,<y>` → the root disappears, `files_sdcard` is gone from `dumpsys
+  disk:<id> public` → `sm list-volumes` shows a `public:<x>,<y> mounted <UUID>` volume and, from a MARK before the partition,
+  within 3 s the pane lists a fourth row `files_pane:<UUID>` between `files_pane:device` and `files_pane:bin` whose text is
+  non-empty, matches no drive-letter form (`\([A-Z]:\)` absent — T18-8) and equals the `<name>` of `[files] volume mounted
+  <name>` (the label text recorded with `record volume_label <text>`), `dumpsys shortcut` lists `files_sdcard` as a dynamic
+  shortcut and the Files tile's burst shows 4 satellites with "SD card" last (T18-6), its line `…/.files.FilesActivity/0: 4
+  (4 shown: files_device,files_recent,files_bin,files_sdcard)`; `am force-stop` + Home, hold the Music tile (the baseline's
+  MUSIC slot) → its burst is unchanged, `[quick] shortcuts for app.tileshell/.music.MusicActivity/0: 4 (4 shown:
+  songs,albums,artists,playlists)` with no `files_sdcard` in it (C-21 — a dynamic shortcut missing `setActivity` would land
+  here); browse the volume row, create a folder on it (`adb shell ls
+  /storage/<UUID>` shows it); `sm unmount public:<x>,<y>` → the pane row disappears, `files_sdcard` is gone from `dumpsys
   shortcut` and the burst is back to 3, and, if the volume was open, the page shows "This storage was removed" (dump text),
   no crash (`logcat -d -s AndroidRuntime` empty of `app.tileshell`); restore `sm set-virtual-disk false`.
+  ~~the root page shows `files_root:emulated` … a second root (`files_root:public`) whose name is the volume's~~
+  SUPERSEDED 2026-09-23 by T18-8 (the ≡ pane, named by label).
 - E3 **Listing and sort.** The QA-Files folder lists `a.txt`, `b.bin`, `sub`, the images, the video and the
-  MP3 with type glyphs (dump `files_row:` order); sort by name / date / size / type each gives the order the
-  fixtures' names, `touch -d` dates and `dd` sizes dictate (four dumps, exact order asserted).
-- E4 **Operations.** Copy `b.bin` into `sub` → `adb shell md5sum` equal on both; move `a.txt` into `sub` →
+  MP3 in 64-epx two-line rows with their type icons / thumbnails (dump `files_row:` order; `files_detail:sub` a date only,
+  `files_detail:b.bin` "300 KB <date>" — size then date, r11/files.md 1.5.8); the sort line reads "Sort by: Name"
+  (`files_sort`); sort by name / date / size each gives the order the fixtures' names, `touch -d` dates and `dd` sizes
+  dictate (three dumps, exact order asserted), and the sort flyout offers exactly those three keys — no "Type" entry (T18-8;
+  W10M had none). ~~sort by name / date / size / type … (four dumps, exact order asserted)~~ SUPERSEDED 2026-09-23 by T18-8.
+  **Location bar:** open `sub` → `files_crumb:` texts "This Device", "QA-Files", "sub" in order; tap `files_crumb:1` →
+  QA-Files listed; tap `files_up` → `/sdcard` listed; at This Device's root `files_up` is disabled (dimmed, a tap changes
+  nothing).
+- E4 **Operations** (W10M's verbs: select, then "Copy to" / "Move to" and pick the folder in Files' picker mode —
+  T18-8). "Copy to" `sub` for `b.bin` → `adb shell md5sum` equal on both; "Move to" `sub` for `a.txt` →
   gone from the parent, present in `sub`, md5 unchanged; rename `b.bin` → `c.bin` (`ls`); new folder `n` →
   `ls -d /sdcard/QA-Files/n`; delete `c.bin` after the confirmation → it goes to the Recycle Bin (E4b's assertions); a
   conflict (copy `sub/b.bin` back over `b.bin`) offers replace / keep both / skip and each does what it says (`ls`, md5);
@@ -328,8 +451,9 @@ declared honestly), `qa-big.zip` (200 MB of `/dev/urandom`, stored, for progress
   ~~delete `c.bin` after the confirmation (Q3 A) → `ls` fails~~ SUPERSEDED 2026-09-23 by Q3 C (T18-7): the file goes to the bin.
 - E4b **Recycle Bin (T18-1).** Delete `c.bin` → `ls /sdcard/QA-Files/c.bin` fails, `ls /sdcard/.Tessera/bin/` lists
   `<ms>-c.bin` with the md5 unchanged, `/sdcard/.Tessera/bin/.nomedia` exists, `.index.json` (`adb shell cat`) holds its
-  original path, and `[files] bin delete /sdcard/QA-Files/c.bin: ok`; the Recycle Bin page lists `files_bin_row:c.bin` with
-  its volume. Delete `qa-photo-0.png` from `DCIM/Camera` → within 3 s `content query --uri
+  original path, and `[files] bin delete /sdcard/QA-Files/c.bin: ok`; the Recycle Bin page (reached by `files_pane:bin`)
+  lists `files_bin_row:c.bin` with its volume, and its `files_bin_note` text equals "Deleted files stay on this phone until
+  you empty the Recycle Bin" (T18-10). Delete `qa-photo-0.png` from `DCIM/Camera` → within 3 s `content query --uri
   content://media/external/images/media --projection _display_name` no longer lists it, the Photos tile logs its refresh
   and the file does not come back after a second scan. Restore `c.bin` → back at `/sdcard/QA-Files/c.bin` with the same md5,
   the bin row gone; restore into a deleted folder (`sub/`'s file binned, then `adb shell rm -r sub`) → `sub/` recreated with
@@ -338,8 +462,10 @@ declared honestly), `qa-big.zip` (200 MB of `/dev/urandom`, stored, for progress
   `.nomedia` and `.index.json` with zero records; a delete made on the bin page is permanent. A delete on E2's public volume
   lands in THAT volume's bin (`ls /storage/<UUID>/.Tessera/bin/`), not the primary one. Negatives: `adb shell rm
   /sdcard/QA-Files/a.txt` never appears in the bin; the bin's files never appear in Recent (E14) or in a listing of
-  `/sdcard` (dot-folders hidden). Full volume: fill with `fallocate` (phase 17's edge-case command) and delete a file → it
-  still moves to the bin (a rename needs no space), restore by deleting the fill. `adb shell rm -r /sdcard/.Tessera` →
+  `/sdcard` (dot-folders hidden). Full volume: `fill_volume 1048576` (its own assert: free ≤ 1 MB + 5 MB; C-27) and delete a
+  file → it still moves to the bin (a rename needs no space; the `bin delete …: ok` line and `ls`), then `unfill_volume`.
+  ~~fill with `fallocate` (phase 17's edge-case command) … restore by deleting the fill~~ SUPERSEDED 2026-09-23 by C-27.
+  `adb shell rm -r /sdcard/.Tessera` →
   the next delete recreates the bin and logs `[files] bin index /sdcard: rebuilt (bin folder missing)`. `adb uninstall
   app.tileshell` → `ls /sdcard/.Tessera/bin/` still lists the binned files; reinstall through `provision.sh` (RV12).
 - E5 **Negatives.** `/sdcard/Android/data` lists the fixture packages' folders as unreadable entries (dump text
@@ -353,7 +479,14 @@ declared honestly), `qa-big.zip` (200 MB of `/dev/urandom`, stored, for progress
   opens this" (dump text), diagnostics `[files] no handler for application/octet-stream`. After each launch `am
   force-stop app.tileshell` + Home before the next grid read (C-6).
 - E7 **Share.** Select two files → share → the chooser resumed with `ACTION_SEND_MULTIPLE` and two
-  `content://` URIs from the shell's FileProvider (`dumpsys activity activities` intent line).
+  `content://` URIs from the shell's FileProvider (`dumpsys activity activities` intent line). The same on E2's public
+  volume (a file under `/storage/<UUID>`) → one `content://` URI, the share starts. **Scope negative (T18-11):** the guard's
+  JVM test (`./gradlew :app:testDebugUnitTest --tests '*FileShareGuard*'`; the row gates on gradle's exit code) feeds it the
+  app's own `filesDir` file, `/storage/emulated/0/../../data/data/app.tileshell/files/x` (a `..` traversal) and a path whose
+  canonical form is private → each refused with `[files] share refused: outside shared storage` (the test reads the
+  diagnostics it wrote); `/storage/emulated/0/QA-Files/b.bin` and a `/storage/<UUID>/…` path → allowed — so a guard that
+  refuses everything and one that allows everything both fail. No UI path can offer a private file, so the JVM test is the
+  proof; the provider-scope adversarial review is the phase's GATE (build task 3).
 - E8 **Search.** "b" from the QA-Files root lists `b.bin` and `sub/b.bin` with their paths; a term with no match
   shows the empty line; searching while the walk runs shows the progress line and cancel stops it (`[files]
   search cancelled`).
@@ -370,13 +503,40 @@ declared honestly), `qa-big.zip` (200 MB of `/dev/urandom`, stored, for progress
   package app.tileshell` exported components equal qa/phase-03/exported-allowlist.txt plus this phase's ADD (FilesActivity)
   — the FileProvider is listed under Providers with `exported=false` and `grantUriPermissions=true` and is NOT an
   allow-list entry (T18-5); `stat -c%s app/build/outputs/apk/debug/app-debug.apk` ≤ 629,145,600 bytes.
-- E11 **Geometry and motion against `r11/files.md`** — written once that section lands; not runnable before, and the doc
-  cannot go FINAL without it.
-- E12 **Diagnostics.** Lines asserted by the rows above: `[files] access=<granted|denied>`, `[files] roots:
+- E11 **Geometry and motion against `r11/files.md`** (written 2026-09-23, T18-8). Dump bounds and screencap on the AVD
+  (px ÷ 3 = epx on the 360-epx canvas); tolerances per R11: ± 1 epx for MEDIUM values (the desktop-1703-exact ones), ± 2 epx
+  for LOW phone-downscale values, structure / order only for rows R11 read from a camera photo; colours ± 4 per channel.
+  **Frame (1.1):** phase 01's drawn status bar (`BarMetrics.STATUS_EPX`, C-17) present; the location bar 48 ± 1 epx directly
+  under it (its top = the status bar's bottom), fill (31,31,31); page background (0,0,0); the app bar 48 ± 1 epx, fill
+  (31,31,31), directly on the nav bar. **Location bar (1.2):** ≡ centre x 24 ± 1; breadcrumb left 60 ± 2, cap 11 ± 1, white;
+  "›" separators between segments; a path four levels deep (`/sdcard/QA-Files/sub/deep/deeper`) collapses its middle
+  segments to "…" (structure); ↑ centre 24 ± 1 epx from the right edge, (123,123,123) ± 4 at a volume root (LOW, ± 2 on
+  position). **Pane (1.3):** `files_pane` 256 ± 1 epx wide, fill (23,23,23), overlaying the page (the pixels right of it
+  unchanged ± 2 against a screencap before opening — no scrim), rows 48 ± 1 epx from 72 ± 2 epx, glyph centre x 24 ± 1, label
+  left 60 ± 1, the current row = 0.6 · accent + 0.4 · (23,23,23) ± 4; order Recent / This Device / volumes / Recycle Bin.
+  **Sort line (1.4):** "Sort by:" left 12 ± 1 (ink ≈ 13.7), cap top 16 ± 1 below the bar, "Sort by:" (160,160,160) ± 4, the
+  value white, a ChevronDown after it. **Rows (1.5):** pitch 64 ± 1 epx; icon left 20 ± 2, name left 72 ± 2; detail
+  (165,165,165) ± 4. **Icons view (1.6):** three icons per row, column centres at W/3 intervals ± 2 epx (LOW), name centred
+  under each icon. **App bar (1.7):** glyph centres Select / New folder / Icons / Search at 286 / 218 / 150 / 82 ± 1 epx from
+  the right, More at 24 ± 1, glyph centre 24 ± 1 below the bar top; ••• expanded = 60 ± 2 epx with labels; overflow
+  Refresh / Select all / Clear selection / Properties in that order (Clear selection dimmed with nothing selected, (137,137,
+  137) ± 4). **Selection (1.8):** Select → `files_sort` reads "0 items selected", then "2 items selected" after two taps;
+  the selected rows' fill equals the accent ± 4 full width; the bar reads Delete / Move to / Copy to / Share, Share dimmed
+  once `sub` is in the selection; Back leaves selection mode (the sort line returns). **Hold menu (1.9):** on a file Delete /
+  Move to / Copy to / Share / Rename / Properties, on `sub` the same without Share, item pitch 44 ± 2 epx, width 240.5 ± 2.
+  **Properties (1.10):** a page, not a dialog — no app bar node, `files_crumb:` last segment = the item's name, rows "Date
+  modified:" / "File type:" / "File size:" with values, and for `qa-steps.mp4` a "Video" section (structure). **Motion (Y5,
+  UNMEASURED):** the `[motion] files_pane_open …` settle 250 ± 17 ms, `[motion] files_folder …` a cut then a 250 ± 17-ms
+  fade, each with `maxGapMs` ≤ 33.4 (C-31) — [accept] values (H3), asserted so the build draws what H3 judges.
+  ~~written once that section lands; not runnable before~~ SUPERSEDED 2026-09-23 by T18-8 (E11 is written and runnable).
+- E12 **Diagnostics.** Coverage: grep the union of `qa/phase-18/*/ring-*.txt` from this build's run (the rows' APK id
+  matching), each pattern at least once (C-20). Lines asserted by the rows above: `[files] access=<granted|denied>`, `[files] roots:
   <n> (<names>)`, `[files] volume mounted|unmounted <name>`, `[files] list <path>: <n> entries <ms> ms`,
   `[files] unreadable <path>`, `[files] copy|move <n> files <bytes> -> <dest> done|cancelled|failed <reason>`,
   `[files] no handler for <mime>`, `[files] search cancelled`, `[files] bin <delete|restore|purge|empty> <path>: ok | failed
   <why>`, `[files] bin index <volume>: <n> entries | rebuilt (<why>)`, `[files] zip open <path>: <n> entries`, `[files] zip
+  open <path>: failed <why>` (T18-12), `[files] share refused: outside shared storage` (T18-11 — asserted by E7's JVM test,
+  so it is the one line outside the ring union), `[files] open at <path> (from <caller>)` (T15-16, E17), `[files] zip
   extract <path> -> <dest>: done | cancelled | failed <reason>`, `[files] zip: refused entry <name>`, `[files] zip: refused
   (needs <bytes>, free <bytes>)`, `[files] zip: stopped at <bytes> (declared <bytes>)`, `[files] zip: encrypted <path>`,
   `[files] zip create <n> files -> <path>: done`, `[files] recent: <n>`, `[files] shortcut sdcard published | removed`, and
@@ -386,10 +546,12 @@ declared honestly), `qa-big.zip` (200 MB of `/dev/urandom`, stored, for progress
   equal the recorded values, `ü-name.txt` named correctly; `qa-bad.zip` → `ok.txt` extracted and `[files] zip: refused entry
   ../../evil.txt` and `… /sdcard/abs.txt`, `ls /sdcard/evil.txt`, `ls /sdcard/QA-Files/evil.txt` and `ls /sdcard/abs.txt`
   all fail (and the control: `ok.txt` present — both directions); `qa-corrupt.zip` → "This zip can't be opened" (dump text),
-  no crash (`AndroidRuntime` empty); `qa-enc.zip` → "This zip is password-protected" and `[files] zip: encrypted …`, nothing
+  `[files] zip open /sdcard/QA-Files/zips/qa-corrupt.zip: failed <why>` in the slice from a MARK before the tap (T18-12), no
+  crash (`AndroidRuntime` empty); `qa-enc.zip` → "This zip is password-protected" and `[files] zip: encrypted …`, nothing
   written; `qa-bomb.zip` → extraction stops, `[files] zip: stopped at <n> (declared 1024)` with n ≤ 1,024 + 1,048,576, and
-  no temp folder or partial file remains (`ls`); `qa-huge.zip` with the volume filled to leave < 3 GB (`fallocate`) → refused
-  before any write with `[files] zip: refused (needs …, free …)`, restore the fill; `qa-big.zip` extract → the progress
+  no temp folder or partial file remains (`ls`); `qa-huge.zip` with `fill_volume 2147483648` (free ≤ 2 GB + 5 MB, below the
+  3 GB declared; C-27) → refused before any write with `[files] zip: refused (needs …, free …)`, then `unfill_volume`
+  (~~filled … (`fallocate`) … restore the fill~~ SUPERSEDED 2026-09-23 by C-27); `qa-big.zip` extract → the progress
   notification in `dumpsys notification`, cancel mid-way → no output folder and no temp folder (`ls`); `qa-nested.zip` →
   `qa.zip` listed as a file that opens as a zip again. Create a zip from `a.txt` + `b.bin` → `adb pull` it, host `unzip -l`
   lists exactly those two names and `unzip -t` passes.
@@ -398,34 +560,60 @@ declared honestly), `qa-big.zip` (200 MB of `/dev/urandom`, stored, for progress
   within 3 s; a file written with `adb shell 'echo x > /sdcard/QA-Files/recent/unscanned.txt'` and no scan is absent, and a
   file in a `.nomedia` folder (`/sdcard/QA-Files/hidden/.nomedia` + a file + scan) is absent — both absences are the stated
   rule; no bin file appears (E4b); `[files] recent: <n>` with n ≤ 100.
-- E15 **Wizard step added (phase 12 E14's template; T18-3, C-4 b).** `pm clear app.tileshell` → `provision.sh` → `adb
-  shell appops set app.tileshell MANAGE_EXTERNAL_STORAGE default` + Home → `wizard_step:setup:files` present with its
-  `wizard_why` text equal to Decisions' line; its action starts `Settings$ManageExternalStorageActivity`; `appops set …
-  allow` + Home → the step absent and the wizard not shown; then phase 12 E1 re-run on this build (C-4 c).
+- E15 **Wizard step added (phase 12 E14's three-part template; T18-3, C-4 b, C-15).** (a) `pm clear app.tileshell` →
+  `PROVISION_FINISH_WIZARD=0 qa/phase-03/scripts/provision.sh` → `adb shell appops set app.tileshell MANAGE_EXTERNAL_STORAGE
+  default` → Home: `wizard_step:setup:files` present with its `wizard_why` equal to Decisions' line, its action starts
+  `Settings$ManageExternalStorageActivity`, `wizard_progress` reads "Step 1 of 2" (the step and the presets page); `appops set
+  … allow` and resume → the step gone and `wizard_presets` shows. (b) `pm clear` → `provision.sh` (marker written) → Home →
+  no `wizard_page`, `[wizard] not shown: core held` (phase 12 E1 re-run on this build). (c) the finished-install rule: with
+  the marker set (after (b)), `appops set … default` → Home → no `wizard_page`, `[wizard] not shown: finished`, the checklist
+  row "Files" `missing`; `appops set … allow` (RV12). (Phase 12: every grant row is core; precedence "core held" before
+  "finished".) ~~`pm clear app.tileshell` → `provision.sh` → `appops set … default` + Home → `wizard_step:setup:files` …;
+  `appops set … allow` + Home → the step absent and the wizard not shown; then phase 12 E1 re-run on this build (C-4 c)~~
+  SUPERSEDED 2026-09-23 by C-15 (provisioning writes the finished marker, so the step shows only with
+  `PROVISION_FINISH_WIZARD=0`).
 - E16 **App Shortcuts (phase 11 Q1's standing rule; C-8).** From the phase baseline (Files tile pinned): hold → labels
-  "This device", "Recent", "Recycle Bin" in rank order (phase 11 E3's method), `[quick] shortcuts for app.tileshell/0: …`;
-  tap each → FilesActivity resumed on that page (`files_root:emulated`, `files_recent_row:*` / its empty line, `files_bin`
-  present); `dumpsys shortcut` lists `files_device`, `files_recent`, `files_bin` as manifest shortcuts with ranks 0, 1, 2;
-  `am force-stop` + Home between holds (C-6). The SD card half is in E2.
+  "This device", "Recent", "Recycle Bin" in rank order (phase 11 E3's method), and the ring slice from a MARK before the hold
+  holds `[quick] shortcuts for app.tileshell/.files.FilesActivity/0: 3 (3 shown: files_device,files_recent,files_bin)`
+  (the activity-keyed line, T11-12 — it names only FilesActivity's ids);
+  tap each → FilesActivity resumed on that page (This Device: `files_crumb:0` "This Device"; Recent: `files_recent_row:*` /
+  its empty line; Recycle Bin: `files_bin` present); `dumpsys shortcut` lists `files_device`, `files_recent`, `files_bin` as
+  manifest shortcuts with ranks 0, 1, 2; `am force-stop` + Home between holds (C-6). The SD card half is in E2.
+- E17 **"Open file location" from Voice Recorder (T15-16).** An `adb push` of a host-made 3-s .m4a to
+  `/sdcard/Recordings/qa-take.m4a` + the scan (or phase 15 E14's take on this build); open Voice Recorder, hold
+  `rec_row:<its id>` → `rec_menu:location` present with the text "Open file location" → tap it: `dumpsys activity
+  activities` topResumedActivity =
+  `app.tileshell/.files.FilesActivity`, the last `files_crumb:` reads "Recordings", `files_row:qa-take.m4a` present, and
+  the slice from a MARK before the tap holds `[files] open at /storage/emulated/0/Recordings (from recorder)`; Back returns to
+  Voice Recorder; `am force-stop app.tileshell` + Home (C-6).
 
 **Phone-only:**
 - P1 One UI's "All files access" page from the checklist row (`am start -a
   android.settings.MANAGE_ALL_FILES_ACCESS_PERMISSION -d package:app.tileshell`, resumed activity recorded) and
   the grant surviving a reboot and a Device care optimise; the wizard step on a phone with the grant revoked.
-- P2 A USB OTG drive: appears as a root, browse / copy / pull mid-copy (E2's assertions on real hardware);
+- P2 A USB OTG drive: appears as a ≡-pane row named by its label, no drive letter (T18-8), browse / copy / pull mid-copy
+  (E2's assertions on real hardware; the label text recorded with `record`);
   exFAT and FAT32 name rules (case-insensitive rename); a delete on it lands in the drive's own bin, and the drive pulled
   takes its bin rows away (E4b's assertions).
 - P3 Samsung Camera's DCIM at thousands of items and the S25U's Download folder: list time and scroll per
   phase 01 P4's gfxinfo method.
 - P4 Secure Folder and Private Space contents are absent (their storage is another user's), and the app says
   nothing about them rather than an error.
-- P5 One UI's "Open with" sheet for `ACTION_VIEW` from Files (which apps it lists for a `.txt`, a `.pdf`). RECORDED.
+- P5 One UI's "Open with" sheet for `ACTION_VIEW` from Files (which apps it lists for a `.txt`, a `.pdf`). RECORDED
+  (`lib.sh` `record`, C-26).
 
-**NEEDS-HUMAN:** H1 *fidelity* — Files matches r11/files.md on the phone; H2 *accept* — the Recycle Bin page and its
-wording (Y6; P4 — W10M had none), including the Delete permanently and Empty confirmations (T18-1);
-~~the delete rule (Q3) and its confirmation wording~~ SUPERSEDED 2026-09-23 by Q3 C (T18-7); H3 *accept* — motion
-approximations (Y5); H4 *accept* — any Y1–Y3 value R11 does not measure; H5 *accept* — the progress / conflict / properties
-dialogs (Y4, P4 design); H6 *accept* — the unreadable-folder wording for `/Android/data`.
+**NEEDS-HUMAN:** H1 *fidelity* — Files matches r11/files.md's MEDIUM values on the phone (the pane, location bar, sort
+line, rows' pitch, app bar positions; E11; r11/files.md has no HIGH value); H2 *accept* — the Recycle Bin (P4 — W10M had
+none, r11/files.md 1.12.8): its row in the ≡ pane, the bin page and its wording including the privacy line "Deleted files
+stay on this phone until you empty the Recycle Bin" (T18-10), and the Delete permanently and Empty confirmations (Y1, Y6;
+T18-1); ~~the delete rule (Q3) and its confirmation wording~~ SUPERSEDED 2026-09-23 by Q3 C (T18-7); H3 *accept* — motion
+approximations (Y5, R11 §4's sources); H4 *accept* — the LOW / UNMEASURED values (Y1's default landing on This Device, Y2's
+selection geometry and sort picker, Y3's Back rule) and the volume naming by label with no drive letter (T18-8); H5
+*accept* — the progress / conflict / delete / rename / new-folder dialogs and the Move to / Copy to picker (Y4: R7 1.3.9's
+W10M dialog form, UNMEASURED-2); H6 *accept* — the unreadable-folder wording for `/Android/data`; H7 *accept* — the zip
+flows (P4 — W10M had no zip handling, r11/files.md 1.12.7): a zip opened as a folder, extract destination naming, the
+"password-protected" / "can't be opened" / "storage removed" wording, create naming (T18-8); H8 *accept* — Recent as
+"recently changed, newest first, 100 max" (W10M's was "recently accessed or downloaded", r11/files.md 1.12.9; T18-8).
 
 ## Edge cases
 - 10,000 files in one folder: `adb shell 'cd /sdcard/QA-Big && for i in $(seq 1 10000); do : > f$i; done'`;
@@ -435,8 +623,12 @@ dialogs (Y4, P4 design); H6 *accept* — the unreadable-folder wording for `/And
   succeeds and lists once).
 - A folder deleted underneath an open listing (`adb shell rm -r`) → the page shows "This folder is gone" and
   Back goes up; a file deleted between list and tap → the tap shows the error line.
-- Copy onto a full volume (`fallocate` fill as phase 17's edge case) → the copy fails with "not enough space",
-  the partial temp file is removed, the source untouched; restore by deleting the fill.
+- Back after a breadcrumb jump (T18-8, Y3; r11/files.md UNMEASURED-3): open `/sdcard/QA-Files/sub/deep`, tap
+  `files_crumb:0` (This Device) → Back returns to `deep` (the folder left), not to its parent; ↑ from `deep` goes to `sub`;
+  Back with selection mode on leaves selection mode first and stays in the folder.
+- Copy onto a full volume (`fill_volume` as E4b, C-27) → the copy fails with "not enough space",
+  the partial temp file is removed, the source untouched; `unfill_volume`. ~~(`fallocate` fill as phase 17's edge case) …
+  restore by deleting the fill~~ SUPERSEDED 2026-09-23 by C-27.
 - Volume unmounted mid-copy (E2's `sm unmount`) → the copy fails with "storage removed", no partial file on
   the remaining side; the same mid-extract of a zip on that volume → "storage removed", no partial output.
 - Grant revoked mid-session (`appops set … default` with the app open): no process restart for an appop
@@ -450,9 +642,10 @@ dialogs (Y4, P4 design); H6 *accept* — the unreadable-folder wording for `/And
 - A file opened in Photos, then deleted in Files: Photos' stale row shows a placeholder until the scan lands
   (phase 17's edge case).
 - Screen off, an incoming call (`adb emu gsm call 5551234`) and a reboot during a copy: the service finishes
-  or fails cleanly; after a reboot no temp files remain (`find /sdcard -name '*.part'` empty).
+  or fails cleanly; after a reboot (boot-completed poll, then `wake_device` asserting `Awake` before the next tap — C-25; the
+  same after the `KEYCODE_SLEEP` screen-off) no temp files remain (`find /sdcard -name '*.part'` empty).
 - The app list's hold menu on Files (Pin to Start present; Uninstall absent; E10) and Files pinned to Start
-  (phase 02) opening the root page.
+  (phase 02) opening on This Device (~~the root page~~ SUPERSEDED 2026-09-23 by T18-8).
 - Recycle Bin: `.index.json` deleted by hand (`adb shell rm`) → the bin lists its files by bin name, Restore puts them in
   `/sdcard/Download/Restored/` and `[files] bin index /sdcard: rebuilt (index missing)`; an index record whose file another
   app deleted → dropped on the next read; a binned file whose original folder is now a FILE of that name → the conflict

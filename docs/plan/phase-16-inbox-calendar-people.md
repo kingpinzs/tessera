@@ -1,8 +1,8 @@
 ---
 phase: 16
 slug: inbox-calendar-people
-status: DRAFT   # Stage A step 3 (split) 2026-09-22; interview (step 4) done 2026-09-23; review round 1 triaged 2026-09-23 (review/2026-09-23-phases11-19-triage.md, applied here); R11 gates FINAL: r11/calendar.md, r11/people.md (pending on disk 2026-09-23 — docs/plan/r11-inbox-apps.md is the index; r11/src/calendar/ and r11/src/people/ are still empty)
-depends-on: [01, 02, 03, 15]   # C-1 2026-09-23: 15 for its build task 0 (the live-tile routing fix), which must land before this phase's slot seed (was "17 for its live-tile routing fix only"); C-2: this phase keeps the assignSlotOnce guard (task 1) and 17 depends on 16
+status: DRAFT   # Stage A step 3 (split) 2026-09-22; interview (step 4) done 2026-09-23; review round 1 triaged 2026-09-23 (review/2026-09-23-phases11-19-triage.md, applied here); review round 2 triaged 2026-09-23 (review/2026-09-23-phases11-20-r2-triage.md, applied here); R11 gates FINAL: r11/calendar.md, r11/people.md landed 2026-09-23 and are applied (T16-13)
+depends-on: [01, 02, 03, 11, 12, 15]   # C-23 2026-09-23: 11 for E25's bursts (phase 11's per-activity query), 12 for the wizard rows (C-4 / C-15, E26); C-1 2026-09-23: 15 for its build task 0 (the live-tile routing fix), which must land before this phase's slot seed (was "17 for its live-tile routing fix only"); C-2: this phase keeps the assignSlotOnce guard (task 1) and 17 depends on 16
 ---
 
 # Phase 16 — W10M inbox apps II: Calendar and People
@@ -12,11 +12,13 @@ Two Windows 10 Mobile (final release) inbox apps live inside the shell APK as la
 Music. **Calendar** shows every calendar in Android's CalendarProvider and writes only to the shell's own LOCAL calendar
 — the one phase 03's `LocalCalendar` already creates for Tess
 (`app/src/main/kotlin/app/tileshell/feeds/LocalCalendar.kt`, J6) — with a tapped, allow-listed Sync as the only road
-from it to an account calendar, never the work one (interview Q2 D). It shows the views r11/calendar.md records, with
+from it to an account calendar, never the work one (interview Q2 D). It shows W10M's views — Agenda, Day and Week, with
+the month as a drop-down from the header (r11/calendar.md K5, K6.1; T16-13) — with
 all-day, multi-day and recurring events, per-event reminders that notify at their time, and it takes over the CALENDAR
 slot so phase 01's Calendar tile (R3 C3, already built) opens it. **People** is the W10M People hub over Android's
-Contacts provider (Q1): an A-Z list with the jump grid, search, a contact card whose actions call, text, mail and map,
-an editor with photo, link / unlink, SIM import and vCard share; it takes over the PEOPLE slot, its tile gets W10M's
+Contacts provider (Q1): an A-Z list with People's own jump grid (r11/people.md §3; T16-13), search, a full-accent contact
+card whose titled action rows call, text, mail and map, an editor with photo, link / unlink, SIM import and vCard share, and
+W10M's Groups (T16-14); it takes over the PEOPLE slot, its tile gets W10M's
 measured photo-bubble face (R3 A9), and phase 06's "Phone book" and History contact buttons land in it. Tess's calendar
 and contact actions keep reading the same providers, and Tess's "add ... to my calendar" writes only into that same
 local calendar (J6, already in code: `ActionLayer.insertEvent`, `cortana/action/ActionLayer.kt:485-487`). Every screen
@@ -36,7 +38,9 @@ adapter uploads).
   slot after `slot:music:v1`), never over a user's explicit choice — which needs a guard `assignSlotOnce` does not have today
   (Decisions; C-2: the guard stays this phase's task 1, and phase 17's seed runs under it); re-cuts phase 01 E4 / E4b (named
   in E1); the phase baseline `qa/phase-16/baseline_layout.json` carries the two new markers (C-3)
-- Calendar: the views r11/calendar.md records; day paging; a date picker; Today; every calendar in the provider shown, every
+- Calendar: W10M's views — Agenda (a week strip over day groups), Day and Week — and the month drop-down from the header
+  (r11/calendar.md §2–§6; no standalone Month page existed, T16-13); the ≡ calendar pane that shows / hides each calendar
+  under its account's header (K6.4); day paging; a date picker; Today; every calendar in the provider shown, every
   account calendar read-only (Q2 rule 1); the event editor (title, location, start / end, all day, repeat with the
   provider's RRULE, reminder minutes, notes) whose calendar is always the shell's local calendar — no calendar picker offers
   another (Q2 rule 2); edit one occurrence / this and following / all, and delete, on local events only; the local
@@ -45,12 +49,15 @@ adapter uploads).
   T16-1 / T16-3 Decision lines); per-event reminder notifications from the provider's `ACTION_EVENT_REMINDER` broadcast (no
   scheduler of the shell's own, Rule 16); a settings page with the first day of the week and "Can sync to"; the Birthdays
   calendar (Q3)
-- People: the A-Z list with the provider's phonebook buckets and phase 01's jump grid (X8), search by name and number, the
-  contact card (photo, numbers with call / text, emails with mail, addresses with map, birthday, notes, organisation), create /
+- People: the CONTACTS pivot — the A-Z list with the provider's phonebook buckets and People's own jump grid (72-epx cells,
+  r11/people.md P2.2; was "phase 01's jump grid (X8)", SUPERSEDED 2026-09-23 by T16-13), search by name and number, the
+  contact card (a full accent page with the 124-epx photo and titled action rows: numbers with call / text, emails with
+  mail, addresses with map, birthday, notes, organisation; r11/people.md §4), create /
   edit / delete with `WRITE_CONTACTS`, photo from Android's photo picker (`MediaStore.ACTION_PICK_IMAGES`, phase 03's route),
   link / unlink through `AggregationExceptions`, share as vCard (`ACTION_SEND text/x-vcard`, phase 06's attach form), import
   from SIM (`content://icc/adn`), filter contact list by account / group, work-profile contacts through the enterprise search
-  URI where the profile allows it
+  URI where the profile allows it; the GROUPS pivot — create / rename / delete groups through `ContactsContract.Groups` and
+  "Text the group" (T16-14)
 - The People tile face (an ADD to phase 01's live tiles, Change Log when built): R3 A9's photo-bubble event with contact
   photos, the static circle pattern without; fed by a `PeopleFeed` that reads contact photos the way `PhotosFeed` reads images
 - Tess: `Contacts.byName` and the person reminders unchanged (regression row); `ActionLayer.insertEvent` already writes only
@@ -59,15 +66,17 @@ adapter uploads).
 - Phase 06 hand-off: "Phone book" opens the People slot app (already phase 06's text), History rows' contact-card button and
   Messaging's "Contact" attach pick target the shell's People component explicitly (no chooser); People's Call goes through
   `TelecomManager.placeCall` so phase 06's in-call UI shows it once it holds the role
-- Manifest ADD: `WRITE_CONTACTS`; Tess's checklist's existing `contacts` row (phase 03's, `cortana/CortanaChecklist.kt:43`;
-  corrected 2026-09-23 — it is not a Setup checklist row) asks READ and WRITE together, reads PARTIAL with READ only as the
-  `calendar` row beside it does (`:44-53`), and its detail line names editing (an ADD, Change Log); no new calendar row
-  (phase 01's `calendar` row and phase 03's calendar read / write rows already exist). C-4: that row is phase 12's Tess
-  step `wizard_step:tess:contacts` (a PARTIAL is not done — only Photos' is, phase 12's `partialIsDone`), its why line
-  names editing, and `qa/phase-03/scripts/provision.sh` gains `adb shell pm grant app.tileshell
+- Manifest ADD: `WRITE_CONTACTS`, with People's own Setup row "People" (`setup:people`: READ_CONTACTS + WRITE_CONTACTS,
+  `partialIsDone` false, why line "People shows and edits your contacts. Without it People can't see them." — approximation,
+  phase 12 H1), an ADD to phase 01's Setup checklist that phase 12's why table gains (T16-15); Tess's `contacts` row
+  (`cortana/CortanaChecklist.kt:43`) is unchanged and asks READ only (was "Tess's checklist's existing `contacts` row … asks
+  READ and WRITE together, reads PARTIAL with READ only … its detail line names editing" and its Tess wizard step — SUPERSEDED
+  2026-09-23 by T16-15); no new calendar row (phase 01's `calendar` row and phase 03's calendar read / write rows already
+  exist). C-4: the new row is the wizard step `wizard_step:setup:people` (a PARTIAL is not done — only Photos' is, phase
+  12's `partialIsDone`), and `qa/phase-03/scripts/provision.sh` gains `adb shell pm grant app.tileshell
   android.permission.WRITE_CONTACTS` (belt-and-braces beside its `install -r -g`, `provision.sh:35`). Phase 12's
-  persistence rule applies: on an install that has finished or skipped the wizard, the widened row does not summon it — it
-  shows its state on the checklist (phase 12 Decisions "Persistence", H4)
+  persistence rule applies: on an install that has finished or skipped the wizard, the new row does not summon it — it
+  shows its state on the Setup checklist (phase 12 Decisions "Persistence", H4)
 - App Shortcuts under phase 11 Q1's standing rule (Decisions 2026-09-23; build task 9, E25)
 - Diagnostics lines for every silent-empty state; `testTagsAsResourceId` on every window root; tags on every read node
 **Out (explicitly):**
@@ -87,7 +96,8 @@ adapter uploads).
   the Calendar tile and Tess's "what's on my calendar" see it. It is never offered by Sync (Q2 rule 3 applies to events the user
   created, and a derived calendar is not one).
 - 2026-09-23: The App Shortcuts under the phase 11 Q1 standing rule (agent; Jeremy can overrule): Calendar — Agenda, Day,
-  Month, New event; People — Contacts, New contact.
+  Month, New event; People — Contacts, New contact. Re-cut 2026-09-23 by review round 2: "Month" opens Agenda with the month
+  drop-down open, since W10M had no Month page (T16-13); People gains Groups at rank 2 (T16-14).
 - 2026-09-23: Interview Q2 — read the Google calendars, write only to a local one, sync by choice, never to work (Jeremy: "D.
   it can only read the google calanders BUT when something is added to the local calander I can click sync and it will ask
   which connected calander to sync with. I dont want to add anything to my work calander from my phone ever. jsut my personal
@@ -152,22 +162,25 @@ adapter uploads).
   its remaining one-handler example (Maps / OsmAnd), its 2+-handler unassigned proof keeps Mail and Store, and E4b's picker
   now lists the shell's app among the candidates. Recorded in the INDEX Change Log when built; E1 here is the re-run
 - 2026-09-22: Fidelity (agent, RV9 / Q10; R10 testability 4 and 26). Every visual and motion value is (1) "from
-  r11/calendar.md" or "from r11/people.md" (not yet written: R11 is running and neither file exists on disk 2026-09-23;
-  docs/plan/r11-inbox-apps.md is the index, C-12); (2) already measured and cited: the drawn status bar 28 epx (R3 C4,
-  `SystemBars.STATUS_EPX`) and nav bar 48 epx (X6, `SystemBars.NAV_EPX`); the Calendar tile face (R3 C3, MEDIUM: day
+  r11/calendar.md" or "from r11/people.md" (~~not yet written: R11 is running and neither file exists on disk 2026-09-23~~
+  SUPERSEDED 2026-09-23 by T16-13: both landed 2026-09-23 and are applied; docs/plan/r11-inbox-apps.md is the index, C-12);
+  (2) already measured and cited: phase 01's drawn status bar (`BarMetrics.STATUS_EPX`, `bars/SystemBars.kt:77-80`; 28 epx
+  today from R3 C4, which R11 contradicts in-app at 24.0 epx, r11/people.md P0.2 — C-17's R3 C4 re-check decides, so no row
+  here writes the literal) and nav bar (`BarMetrics.NAV_EPX`, 48 epx, X6); the Calendar tile face (R3 C3, MEDIUM: day
   name in the 15-epx body class centred with its top 33 epx below the tile top, the day number 30 epx tall centred at 50
   epx; already built in `CalendarFeed` / `TileFace.CalendarDay`); the People tile motion (R3 A9, MEDIUM/LOW, S5 14393
   camera 24 fps: a photo bubble slides out left in ≈333 ms, ≈6-frame pause, a new bubble slides in from the right
   settling in ≈583 ms, the event 1.88 s, repeating every 7.7 ± 0.2 s; the static circle pattern without photos; C3
   "circle pattern; photo bubbles as in A9"); list rows at a 44-epx pitch with a 41-epx icon and text at x 57 epx (R3 C2,
-  R6 §5.1.4; `AppListMetrics`); phase 06's History row as the contact-row stand-in (R7 §1.3, HIGH: 48-epx circular
-  avatar centred 36.2 epx from the left, text column 74–75.4 epx, 70.5-epx pitch, no separators; a grey disc with the
-  initial without a photo); the jump grid (X8, R3 C2 LOW); the type ramp (R1 §5.1); the pivot header (phase 10 task 6's
+  R6 §5.1.4; `AppListMetrics`); ~~phase 06's History row as the contact-row stand-in (R7 §1.3 …); the jump grid (X8, R3 C2
+  LOW)~~ SUPERSEDED 2026-09-23 by T16-13: People's own row (50-epx pitch, 32-epx avatar at x 12, name at x 57.75,
+  r11/people.md P1.7–P1.10) and its own jump grid (72-epx cells, P2.2); the type ramp (R1 §5.1); the pivot header (phase 10 task 6's
   P4 design, `MusicMetrics`) and settle (X13); the app bar (R7 §3.5.8); the flyout (R7 §2.2.5, §3.6.2); the dialog (R7
-  §1.3.9); the empty-list line (R7 §3.5.9); the outlined fields of the reminder page (R7 §3.7.1: 43.4 epx tall at a
-  53.6-epx pitch) as the editor-field stand-in; sliders (X23); the row press (X19); or (3) an approximation with its
-  NEEDS-HUMAN row. When R11 lands, each (2) stand-in is replaced where R11 measured and stays tagged where R11 is
-  UNMEASURED. H-row kinds: **[fidelity]** (matches R11 or R3 A9 within tolerance, judged on the phone) and **[accept]**
+  §1.3.9); the empty-list line (R7 §3.5.9); ~~the outlined fields of the reminder page (R7 §3.7.1: 43.4 epx tall at a
+  53.6-epx pitch) as the editor-field stand-in~~ (SUPERSEDED 2026-09-23 by T16-13: People's 32-epx fields with a 2-epx grey
+  border, r11/people.md P4.4, which r11/calendar.md U3 also proposes for the Calendar editor); sliders (X23); the row press
+  (X19); or (3) an approximation with its NEEDS-HUMAN row. R11 has landed: each (2) stand-in is replaced where R11 measured
+  (the T16-13 line lists them) and stays tagged where R11 is UNMEASURED. H-row kinds: **[fidelity]** (matches R11 or R3 A9 within tolerance, judged on the phone) and **[accept]**
   (P4 design or approximation, no footage to close it against) (agent)
 - 2026-09-22: Calendar data (agent, ~~pending Q2; written for its lean A~~). SUPERSEDED 2026-09-23 by Q2 D, T16-1 and T16-2
   (the lines at the end of Decisions): ~~The app reads and writes `CalendarContract` — every calendar the provider holds,
@@ -182,8 +195,8 @@ adapter uploads).
 - 2026-09-22: Event reminders (agent, Rule 16). Per-event reminders are `CalendarContract.Reminders` rows with `METHOD_ALERT`;
   the PROVIDER schedules them and broadcasts `CalendarContract.ACTION_EVENT_REMINDER` (data `content://com.android.calendar/time/
   <ms>`) to every receiver holding `READ_CALENDAR`, and re-schedules on boot. The shell registers that receiver and posts one
-  notification per alert on a calendar channel (look from r11/calendar.md if a reminder toast was captured, else approximation,
-  H7), marking the alert row in `calendar_alerts` fired and, on dismiss, dismissed. No alarm of the shell's own is armed for
+  notification per alert on a calendar channel (R11 captured no reminder toast, r11/calendar.md U5: the look is the Action
+  Center notification item's, R3 A19, an approximation, H7), marking the alert row in `calendar_alerts` fired and, on dismiss, dismissed. No alarm of the shell's own is armed for
   calendar events, so `ReminderScheduler` is untouched here. Consequence, stated: any OTHER calendar app on the phone that
   registers the same receiver also notifies — on the AVD the AOSP Calendar fixture does (E6 records the double), on the phone
   Samsung Calendar will (P1); the fix is the user turning that app's notifications off, an Android limit. Added 2026-09-23
@@ -195,10 +208,10 @@ adapter uploads).
   `ORIGINAL_INSTANCE_TIME`), "this and following" ends the series with `UNTIL` and starts a new one, "all" edits the master.
   Timed events carry `EVENT_TIMEZONE` and display in the device zone; all-day events are date-anchored (UTC midnight, `ALL_DAY`
   = 1) and keep their date across a zone change. The first day of the week defaults to the locale's (`WeekFields.of(locale)`)
-  with a setting on the app's settings page (W10M's Calendar had one; wording from r11/calendar.md if captured, else
-  approximation, H6). An event with no title shows "(No title)" (approximation, H6). Views window their queries to the
-  visible range (a month grid asks the provider for that month's instances only), which is what keeps thousands of events
-  cheap (E7)
+  with a setting on the app's settings page (W10M followed the locale, r11/calendar.md K2.2; the setting's wording is
+  UNMEASURED, U7 — approximation, H6). An event with no title shows "(No title)" (approximation, H6). Views window their
+  queries to the visible range (the week view asks the provider for its week's instances only, the agenda for the days it
+  has loaded; was "a month grid", which T16-13 removed), which is what keeps thousands of events cheap (E7)
 - 2026-09-22: Birthdays (Q3 A, ruled 2026-09-23). A read-only local "Birthdays" calendar the app keeps in step with
   contacts' birthday fields (`ContactsContract.CommonDataKinds.Event`, `TYPE_BIRTHDAY`; a yearly all-day event per contact,
   updated from a `ContentObserver` on the Contacts provider), so the Calendar tile and Tess's "what's on my calendar" see
@@ -207,8 +220,9 @@ adapter uploads).
   `LocalCalendar` finds the shell's calendar by account type LOCAL + account name `Tessera` and takes the first match
   (`feeds/LocalCalendar.kt:26-34`); its events carry no reminder rows (T16-4)
 - 2026-09-22: People over the provider (agent; Q1 A, ruled 2026-09-23). List order and letter buckets come from
-  the provider (`SORT_KEY_PRIMARY`, `PHONEBOOK_LABEL`), so non-Latin names file where Android files them, and the jump grid
-  (X8) is built from those labels rather than from phase 01's `AppIndex`; a contact with no name shows its number or e-mail
+  the provider (`SORT_KEY_PRIMARY`, `PHONEBOOK_LABEL`), so non-Latin names file where Android files them, and People's own
+  jump grid (r11/people.md §3, T16-13; was "the jump grid (X8)") is built from those labels rather than from phase 01's
+  `AppIndex`; a contact with no name shows its number or e-mail
   as its name under "#" (approximation, H8). Duplicates are the provider's aggregation: two raw contacts it merged show as one
   row; Link writes `AggregationExceptions` `TYPE_KEEP_TOGETHER`, Unlink `TYPE_KEEP_SEPARATE`. New contacts go to the account
   the "filter contact list" default names, else the local (null-account) raw contact set, as AOSP Contacts does. Card actions:
@@ -238,17 +252,29 @@ adapter uploads).
   `people_name:<lookup>`, `people_letter:<label>`, `people_card_action:<kind>:<n>`, `people_field:<name>`, `people_link_row:<raw>`,
   `people_sim_row:<n>`; added 2026-09-23 by the review triage: `cal_sync`, `cal_sync_target:<id>`, `cal_synced_marker:<id>`,
   `cal_settings_can_sync:<id>` (T16-1), `cal_event_action:<edit|delete|sync>`, `cal_delete_choice:<here|both>`,
-  `cal_view_mode:<agenda|day|month>`, `cal_editor`, `people_page:<list|editor>` (each page tag `selected="true"` on the
-  page showing; E22–E25); drivers symlink qa/phase-03/scripts/lib.sh and stay adb-driven. Diagnostics lines: `[calendar]
-  calendars: n (local created id=<id> | local present | none)`, `[calendar] view <name> <from>..<to>: n instances`, `[calendar]
+  `cal_view_mode:<agenda|day|week>` (Week added, month removed — SUPERSEDED `<agenda|day|month>` 2026-09-23 by T16-13),
+  `cal_editor`, `people_page:<list|editor>` (each page tag `selected="true"` on the
+  page showing; E22–E25); added 2026-09-23 by review round 2: `cal_month_dropdown` (the open month panel, which holds the
+  `cal_month_cell:<yyyy-mm-dd>` nodes), `cal_pane` (the ≡ calendar pane, which holds the `cal_calendar_row:<id>` rows and
+  their account headers `cal_account:<name>`), `cal_strip_day:<yyyy-mm-dd>`, `cal_event_bar:<id>` (T16-13),
+  `people_pivot:<contacts|groups>`, `people_group:<id>`, `people_group_new`, `people_group_name`,
+  `people_group_action:<rename|delete|text>` (T16-14), `people_jump_cell:<label>`, `people_card_photo` (T16-13); drivers
+  symlink qa/phase-03/scripts/lib.sh and stay adb-driven. Diagnostics lines: `[calendar]
+  calendars: n (local created id=<id> | local present | none)` and `[calendar] calendars: denied (READ_CALENDAR)` (T16-16),
+  `[calendar] view <name> <from>..<to>: n instances in <ms> ms` (`in <ms> ms` = the query plus the first composed frame,
+  from `withFrameNanos`; T16-17), `[calendar]
   write <op> event=<id>: ok|failed <err>`, `[calendar] reminder event=<id> minutes=<n>: notified|dismissed`, `[calendar]
-  birthdays: n synced`, `[people] list: n contacts read=<bool> write=<bool>`, `[people] search "<q>": n (+m enterprise)`,
+  birthdays: n synced`, `[calendar] birthdays calendar could not be created: <err>` (LocalCalendar's form, T16-19),
+  `[people] list: n contacts read=<bool> write=<bool>`, `[people] search "<q>": n (+m enterprise)`,
   `[people] write <op> raw=<id>: ok|failed <err>`, `[people] link <a>+<b>: ok|failed`, `[people] sim import: n of m`,
-  `[people] tile: n photos`, plus `LayoutStore`'s own `assignSlotOnce …` line with the new `kept user's` form; added
+  `[people] tile: n photos`, `[people] tile: photo <lookup> skipped: <why>` (T16-19), `[people] group
+  <create|rename|delete> <id>: ok | failed <err>` (T16-14), plus `LayoutStore`'s own `assignSlotOnce …` line with the new `kept user's` form; added
   2026-09-23: `LocalCalendar`'s own `[calendar] local calendar created: <uri>` / `… lookup failed: <err>` / `… could not be
   created: <err>` (`feeds/LocalCalendar.kt:34,55,57`), `[calendar] sync event=<id> -> calendar <id>: ok | updated |
-  recreated | failed <err> | refused (not allowed)` and `[calendar] sync event=<id>: no calendar allowed -> can sync to`
+  recreated | failed <err> | failed mapping stale | refused (not allowed)` (`failed mapping stale` added by T16-12) and `[calendar] sync event=<id>: no calendar allowed -> can sync to`
   (T16-1, T16-3), `[people] tile event <n> t0=<uptime>` (T16-8) and the `[motion]` clock of the Acceptance preamble (C-5).
+  Every line here is written in the main process and read from the launcher ring (`diag`, `qa/phase-03/scripts/lib.sh:141-145`;
+  C-20).
   Start while the People tile cycles never idles, so its dumps go through phase 05's gesture driver (C-10, Acceptance
   preamble)
 - 2026-09-22: APK budget (agent; phase 03's ≤ 600 MB): code only; E15 records the delta, ≤ 2 MB, no new asset ≥ 1 MB
@@ -288,9 +314,14 @@ adapter uploads).
   exception events (`ORIGINAL_ID` re-pointed at the copy's master) and their reminders. The "Can sync to" rows list the
   provider's non-LOCAL calendars, keyed on `_ID` + account name + account type and stored in `calendar_sync.json`'s
   `allowed` list, so a removed and re-added account (new ids) starts NOT allowed; the shell's own calendar and Birthdays are
-  never listed. The marker reads "synced to <calendar>" (P4 design, H14). The write layer's guard: every insert, update and
+  never listed. The marker reads "synced to <calendar>" (P4 design, H14). ~~The write layer's guard: every insert, update and
   delete refuses a calendar id other than `LocalCalendar.id`'s, except a Sync push to an allowed id (`refused (not
-  allowed)`), and a JVM test proves the refusal. Tags and lines in "Harness contracts"; rows E22–E24; P2 re-cut to the push.
+  allowed)`), and a JVM test proves the refusal.~~ SUPERSEDED 2026-09-23 by T16-11 (it refused the Birthdays writer; the
+  three-case allow set is the agent line at the end of Decisions). Hardened 2026-09-23 (r2 triage T16-12): before an
+  `updated` push or a delete-"both", the write layer re-reads the copy event's `calendar_id` and requires it to equal the
+  mapping's target and that target to be still on the `allowed` list; otherwise it refuses (`failed mapping stale`), and
+  "Delete here and from <calendar>" is never offered for a target no longer allowed; T16-11's JVM test carries the case.
+  Tags and lines in "Harness contracts"; rows E22–E24; P2 re-cut to the push.
   Reason: the sync-adapter columns are not a normal app's to write, a normal insert lets the account's own adapter do the
   upload, and "local is the source, every account write is a tap" is Jeremy's Q2 wording ("when something is added to the
   local calander I can click sync").
@@ -306,14 +337,69 @@ adapter uploads).
   already have assigned by hand.
 - 2026-09-23 (agent, review triage C-5): **the shell logs its own motion clock.** The People tile logs `[people] tile event <n>
   t0=<uptime>` for each bubble event and `[motion] people_bubble_out | people_bubble_in t0=<uptime> settle=<ms>` for its two
-  slides; every other motion (a pivot settle, a view change) logs `[motion] <name> t0=<uptime> peak=<ms> overshoot=<%>
-  settle=<ms>` from `withFrameNanos`; E11 and E19 assert those numbers against RV11's tolerance and a screenrecord only
+  slides; every other motion (People's pivot settle, the month drop-down, a day page — re-cut 2026-09-23 by T16-13, was
+  "a pivot settle, a view change") logs `[motion] <name> t0=<uptime> peak=<ms> overshoot=<%>
+  settle=<ms>` from `withFrameNanos`; every `[motion]` line also carries `frames=<n> maxGapMs=<ms>` (added by C-31); E11 and E19 assert those numbers against RV11's tolerance and a screenrecord only
   corroborates under phase 05's frame-spacing rule. Reason: the P02 lesson — the emulator's screenrecord is variable-rate
   (qa/phase-05/README.md) and cannot time a 333-ms slide.
 - 2026-09-23 (review triage C-7 / T16-10, doc update): the 2026-09-22 R10-Q4 line above gives A11 as the reason for no
   sign-in and no sync of the shell's own; A11 is amended (PLAN.md 2026-09-23: internet is fine, offline preferred), so it is
   no longer the reason — those exclusions stand as offline-preferred calls, Jeremy can ask. That line is Jeremy's ruling and
   is left as written; "synced calendars are other apps' sync adapters" stays true.
+- 2026-09-23 (agent, r2 triage T16-11): **the calendar write guard's allow set is exactly three cases.** (1) The `Tessera`
+  calendar (`LocalCalendar.id`, `feeds/LocalCalendar.kt:24`): every op. (2) The `Tessera Birthdays` calendar: the Birthdays
+  writer's path only — the sync-adapter URI under its own LOCAL account, never offered to the editor or to Sync. (3) An
+  allowed Sync target: only a push, update or delete of a copy that `calendar_sync.json` maps (and, by T16-12, only while the
+  copy's re-read `calendar_id` matches). Every other combination is refused with `[calendar] write <op> event=<id>: failed
+  refused (not allowed)` / the sync line's `refused (not allowed)`. The JVM test covers each allowed case and the refusal
+  of every other combination — the editor → Birthdays, the Birthdays writer → Tessera, Sync → an id not allowed, Sync →
+  an allowed id but an unmapped event, any op → an account calendar, and T16-12's stale mapping. Reason: Q2 D's rules 1–4
+  are about the user's events; the derived Birthdays calendar is the shell's own and must be writable by exactly one code
+  path, which the T16-1 guard as first written refused.
+- 2026-09-23 (agent, r2 triage T16-13): **R11 calendar / people applied, with two agent calls.** People (r11/people.md, all
+  10586-era, HIGH on two devices unless noted): rows at a 50-epx pitch with a 32-epx circular avatar at x 12 (a grey disc
+  with the initial without a photo) and the name at x 57.75, under accent letter headers (cap 22.25 at x 14.75) — P1.5–P1.10,
+  replacing the R7 §1.3 History-row stand-in; the card a full accent page from the status bar to the nav bar with the name in
+  caps, a 124-epx circular photo at x 12 and titled action rows ("Call Mobile" + the number, "Email Personal" + the address,
+  48 / 65.5-epx pitches) — §4; editor fields 32 epx with a 2-epx (133,133,133) border, accent type-labels and "+ field" rows
+  at a 44-epx pitch — §5; pivots CONTACTS / GROUPS (What's New stays out) in the §2 caps header. **Agent call: People's own
+  jump grid** — 72-epx cells, 4 columns at 360 epx, accent letters where contacts exist, "#" first and a globe last, a full
+  page over the list (P2.1–P2.5) — not X8; phase 01's app-list grid is phase 01's matter. H2 is [fidelity] against the 10586
+  captures with a version note (no governing-build capture, U1). Calendar (r11/calendar.md): W10M had Agenda / Day / Week
+  and a month DROP-DOWN from the header, no Month page (K5, K6.1). **Agent call: the "Month" App Shortcut opens Agenda with
+  the month drop-down open** (`cal_view_mode:agenda` selected and `cal_month_dropdown` shown); tags `cal_view_mode:<agenda |
+  day | week>` and `cal_month_dropdown`. The ≡ calendar list is W10M's show / hide pane with account group headers (K6.4:
+  48.1-epx rows, the checkbox filled with the calendar's colour), so `cal_calendar_row:` lives inside `cal_pane`, and the
+  "Can sync to" page is a checkbox list styled like it. Event rows: an 8-epx colour bar at x 0 (solid, or a 2-epx outline for
+  free / tentative, K3.8), the time or "All day" label at x 24.3 tinted with the calendar's colour, the title in white at x
+  92.5; all-day rows 40 epx on a 44-epx pitch, timed rows 56 epx (K3.5–K3.7). The page background is #1A1A1A, the status
+  and nav bars black (K1.3). The week strip and the selected day take the 15063 form — two week rows, the selected day a
+  32-epx accent square (K2.4–K2.5, LOW) — with an H1 note. Day view, event page, editor, reminder toast and settings are
+  UNMEASURED (U1–U7) and are built as r11/calendar.md §8 proposes, as [accept] rows (H6, H7, H15); H1 [fidelity] narrows
+  to Agenda, Week, the drop-down and the pane. Motion is UNMEASURED (U8): the drop-down grows from its top edge in 200 ms
+  ease-out (R7 §2.2.6), day paging settles on X13 — tagged approximations. Status bar per C-17. Reason: the measured forms
+  replace stand-ins R11 contradicts; People's grid is measured HIGH on two devices while X8 is LOW, and a shortcut that
+  opens the drop-down keeps Jeremy's "Month" satellite without building a page W10M never had.
+- 2026-09-23 (agent, r2 triage T16-14): **People's GROUPS pivot is in** (W10M People 10586: CONTACTS / WHAT'S NEW /
+  GROUPS, r11/people.md P1.1, P5.2; the triage's Scope rule — A8 + Q12 + A4; What's New stays out as offline-preferred social;
+  listed for Jeremy in the triage's §2b). Create / rename / delete through `ContactsContract.Groups` under the same account
+  rule new contacts use ("People over the provider"); a group's page lists its members in the list row form; "Text the
+  group" = `ACTION_SENDTO smsto:<n1>;<n2>…` (each member's first mobile number) to the SMS role holder, as the card's Text
+  does, so it works before phase 06 holds the role; tags `people_pivot:groups`, `people_group:<id>`; line `[people] group
+  <create | rename | delete> <id>: ok | failed <err>`; E27 proves it; H16 [accept] judges it (guide wording only, P5.2 LOW);
+  the People shortcut set gains `groups` at rank 2 under phase 11's standing rule. Reason: an in-scope W10M app's own offline
+  feature is in by the rulings the triage cites.
+- 2026-09-23 (agent, r2 triage T16-15): **People gets its own Setup row `setup:people`** (READ_CONTACTS + WRITE_CONTACTS;
+  `partialIsDone` false; why line "People shows and edits your contacts. Without it People can't see them." — approximation,
+  phase 12 H1), and Tess's `contacts` row is unchanged (READ). Scope's Manifest ADD paragraph, build task 2, E13's PARTIAL
+  clause, E18 and E26 (→ `wizard_step:setup:people`) are re-cut; phase 12's why table gains the row. Reason: phases 15, 17,
+  18 and 19 each put their app's grant on the Setup checklist; Tess never writes contacts, so her health page must not read
+  PARTIAL for People's need.
+- 2026-09-23 (agent, r2 triage C-17): **the status bar is cited, never written as a number.** R3 C4 read 28 epx on Start;
+  every in-app W10M measurement since reads 24.0 (r11/people.md P0.2, r11/clock.md 1.1, R8). The lead re-measures R3's own
+  footage first (INDEX research row "R3 C4 re-check"); meanwhile every row here reads phase 01's drawn status bar through
+  `BarMetrics.STATUS_EPX` (`bars/SystemBars.kt:77-80`; the symbol was wrongly written `SystemBars.STATUS_EPX`). Reason: the
+  re-check's outcome then needs no edit in this doc.
 
 ## Interview queue (Stage A step 4)
 Ask one at a time, in this order.
@@ -356,57 +442,87 @@ are proven before anything depends on the slots.
    `claimMusicSlot` does (`ShellApp.kt:122,185`); the phase 01 E4 / E4b re-cut and the upgrade row (E1). INDEX Change Log
    line.
 2. **App identities and contracts.** Two launcher activities with their categories and intent filters; app-list entries;
-   Uninstall exclusion; exported allow-list ADDs; `testTagsAsResourceId`; `WRITE_CONTACTS` in the manifest; Tess's
-   `contacts` checklist row (`cortana/CortanaChecklist.kt:43`) asking READ + WRITE, PARTIAL on READ only, its detail naming
-   editing (Change Log); C-4: its phase 12 why line naming editing, `qa/phase-03/scripts/provision.sh` gains `adb shell pm
-   grant app.tileshell android.permission.WRITE_CONTACTS`, phase 12 E1 re-run on this build (E26); the APK size before.
+   Uninstall exclusion; exported allow-list ADDs; `testTagsAsResourceId`; `WRITE_CONTACTS` in the manifest; People's own
+   Setup row `setup:people` (READ + WRITE, `partialIsDone` false; an ADD to phase 01's `Checklist.rows`,
+   `onboarding/Checklist.kt:89-118`, Change Log) with Tess's `contacts` row left as it is (T16-15; was "Tess's `contacts`
+   checklist row … asking READ + WRITE …", SUPERSEDED 2026-09-23); C-4: its phase 12 why line (the T16-15 line's text),
+   `qa/phase-03/scripts/provision.sh` gains `adb shell pm grant app.tileshell android.permission.WRITE_CONTACTS`, phase 12
+   E1 re-run on this build (E26); the APK size before.
 3. **Calendar data layer.** The local calendar is phase 03's `LocalCalendar.id(context)` reused
    (`feeds/LocalCalendar.kt:24`, J6) — no second creator (T16-2) — called at start; the calendar list with colours, every
    calendar but the local one read-only; windowed `Instances` queries per view; event write / edit / delete with recurrence
-   exceptions on the local calendar only, behind the write guard of the T16-1 line (with its JVM test); Sync — the
+   exceptions on the local calendar only, behind the three-case write guard of the T16-11 line with its JVM test (the
+   T16-1 guard SUPERSEDED 2026-09-23); Sync — the
    `calendar_sync.json` mapping and `allowed` list, the copy insert / update / recreate, recurring copies with exceptions and
-   reminders, the delete choice, the removed-calendar refusal — and its `[calendar] sync` lines; the `ACTION_EVENT_REMINDER`
+   reminders, the delete choice, the removed-calendar refusal, the copy's `calendar_id` re-read before an update or a
+   delete-"both" (T16-12, `failed mapping stale`) — and its `[calendar] sync` lines; the `ACTION_EVENT_REMINDER`
    receiver and its notification channel; the Birthdays calendar (Q3) under its own account name `Tessera Birthdays`, with
-   no reminder rows.
-4. **Calendar app.** The views from r11/calendar.md, day paging, the date picker, Today, the editor and its fields (its
+   no reminder rows, and `[calendar] birthdays calendar could not be created: <err>` when the provider refuses (T16-19); the
+   `[calendar] calendars: denied (READ_CALENDAR)` line (T16-16) and the `in <ms> ms` of each `view` line (T16-17).
+4. **Calendar app.** W10M's views (T16-13): the header (≡, the month and year in caps with ⌄, K1.1) opening the month
+   drop-down (K5), Agenda with the 15063 week strip over day groups (K2–K3; event rows with the 8-epx bar at x 0 and the
+   title at x 92.5), the Week view (K4.1–K4.4), the Day view (U1's approximation), all on #1A1A1A (K1.3); the ≡ calendar
+   pane with account headers and colour-filled checkboxes (K6.4); the app bar Today · New · View · … with the View list
+   Agenda / Day / Week (K1.5, K6.1–K6.2); day paging, the date picker, Today, the editor (U3's approximation: People's
+   32-epx fields) and its fields (its
    calendar is always the local one; no picker offers another), the event page's actions (`cal_event_action:*`: edit and
    delete on local events only, Sync on local events), the Sync picker and the "synced to" marker, the first Sync routed to
-   "Can sync to" when nothing is allowed (T16-3), the settings page (first day of week, "Can sync to"), every value from
-   r11/calendar.md once it lands; phase 03 E2's calendar rows re-run (E9).
+   "Can sync to" when nothing is allowed (T16-3), the settings page (first day of week, "Can sync to" as a checkbox list
+   styled like the ≡ pane, K6.4; U6's leaf-page approximation), every value from r11/calendar.md with its tolerance; phase
+   03 E2's calendar rows re-run (E9).
 5. **People data layer.** Provider reads with phonebook labels, search (plus the enterprise filter), the card's data kinds,
-   writes under `WRITE_CONTACTS`, aggregation exceptions, the SIM (`content://icc/adn`) reader, the vCard writer for share.
-6. **People app.** The list with the jump grid (X8), search, the card and its actions, the editor with the photo picker,
-   link / unlink, SIM import, filter contact list; the explicit-component hand-offs from phase 06's buttons (an ADD to phase
-   06's targets when it is built, or a targeted intent contract recorded now); values from r11/people.md once it lands.
+   writes under `WRITE_CONTACTS`, aggregation exceptions, the SIM (`content://icc/adn`) reader, the vCard writer for share;
+   groups through `ContactsContract.Groups` and `GroupMembership` data rows under the new-contact account rule (T16-14).
+6. **People app.** The CONTACTS / GROUPS pivot header (r11/people.md P1.1, less What's New); the list (50-epx rows, 32-epx
+   avatar, accent letter headers, P1.5–P1.10) with People's own jump grid (72-epx cells, P2.1–P2.5; was "the jump grid
+   (X8)", SUPERSEDED 2026-09-23 by T16-13), the search box (P1.3), the full-accent card and its titled action rows (§4),
+   the editor with 32-epx fields and "+ field" rows (§5) and the photo picker, link / unlink, SIM import, filter contact
+   list; the Groups pivot — create, rename, delete, the group's member list, "Text the group" (T16-14); the
+   explicit-component hand-offs from phase 06's buttons (an ADD to phase 06's targets when it is built, or a targeted intent
+   contract recorded now); every value from r11/people.md with its tolerance.
 7. **People tile (touches phase 01).** `PeopleFeed`, the A9 bubble face and the static pattern, published under the PEOPLE key,
-   with the `[people] tile event` and `[motion]` lines (C-5); INDEX Change Log line; E11 measures it.
+   with the `[people] tile event` and `[motion]` lines (C-5) and `[people] tile: photo <lookup> skipped: <why>` for a photo
+   that fails to decode (T16-19); INDEX Change Log line; E11 measures it.
 8. **Diagnostics, regression, evidence.** Every diagnostics line in Decisions, the app-list regression run, the APK size
    after. The phase baseline (C-3): `qa/phase-16/baseline_layout.json` derived from the newest baseline on disk at build
    (phase 15's), with `addedOnce` gaining `slot:calendar:v1` and `slot:people:v1`, `slots` gaining CALENDAR and PEOPLE → the
    shell's two activities (what the seed writes), `manualSizes` kept; the file it came from kept beside it as
    `qa/phase-16/baseline_layout-pre-16.json`. The pre-16 APK for E1's upgrade pass kept at `qa/phase-16/upgrade/<tag>.apk`
-   with its git tag in the row's log (T16-7). J6's driver lookup of the local calendar keyed on `account_name=Tessera`
-   (qa/phase-03/scripts/j6.sh reads the first `account_type=LOCAL` row, which the Birthdays calendar would also match) so E9
-   can re-run it on this build.
+   with its git tag in the row's log (T16-7). `qa/phase-03/scripts/lib.sh:24` becomes
+   `APK="${TILESHELL_APK:-$REPO/app/build/outputs/apk/debug/app-debug.apk}"`, so `provision.sh` can install the old build
+   for E1's upgrade leg (C-19; this task owns the line; the default is unchanged for every other row). J6's driver lookup
+   of the local calendar keyed on `account_name=Tessera` so E9 can re-run it on this build (already so in the driver:
+   qa/phase-03/scripts/j6.sh:40-41 finds it by name — the "reads the first `account_type=LOCAL` row" this task once named is
+   gone).
 9. **App Shortcuts (phase 11 Q1's standing rule; C-8).** A static `shortcuts.xml` per app, ranks 0–3, each targeting its
    activity with the page extra (`page`, the key `SettingsActivity.EXTRA_PAGE` already uses,
    `settings/SettingsActivity.kt:117`): Calendar — ids `agenda`, `day`, `month`, `new_event` (Agenda, Day, Month, New
-   event); People — `contacts`, `new_contact` (Contacts, New contact). E25 proves them.
+   event; `month` opens Agenda with the month drop-down open, T16-13); People — `contacts`, `new_contact`, `groups`
+   (Contacts, New contact, Groups; `groups` at rank 2, T16-14). E25 proves them.
 
 ## Acceptance criteria
 Rows start from the baseline state and restore what they change (PLAN RV12); motion rows follow RV11; dumps follow RV13,
 except Start while the People tile cycles (E1's Music negative once photos exist, E11), which never idles and is dumped
 through phase 05's gesture driver (`UiDevice.dumpWindowHierarchy` with `Configurator.setWaitForIdleTimeout(0)`,
-qa/phase-05/README.md; C-10). **Motion clock (C-5):** every motion the shell animates logs `[motion] <name> t0=<uptime>
-peak=<ms> overshoot=<%> settle=<ms>` from `withFrameNanos` (the People tile also `[people] tile event <n> t0=<uptime>`), and
-a motion row asserts the logged numbers against RV11's tolerance; a screenrecord corroborates under phase 05's
+qa/phase-05/README.md; C-10). **Motion clock (C-5, C-31):** every motion the shell animates logs `[motion] <name> t0=<uptime>
+peak=<ms> overshoot=<%> settle=<ms> frames=<n> maxGapMs=<ms>` from `withFrameNanos` (the People tile also `[people] tile
+event <n> t0=<uptime>`), and a motion row asserts the logged numbers against RV11's tolerance and `maxGapMs` ≤ 33.4 ms (two
+vsyncs, so jank fails on the shell's own clock); a screenrecord corroborates under phase 05's
 frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motion) and is never the primary clock. **Layout seeding
 (C-3):** a row that needs Start's layout starts with phase 02's verified `layout_restore qa/phase-16/baseline_layout.json`
 (qa/phase-02/scripts/layout.sh). **Wiped state (C-4):** every row that clears the shell reads `pm clear app.tileshell` →
 `qa/phase-03/scripts/provision.sh` → Home, or it meets phase 12's `wizard_page`. **After a launch (C-6):** a row that opened
 an app runs `am force-stop app.tileshell` + Home before its next assertion on Start's grid (the promoted recent app is in
-memory only, qa/phase-01/scripts/recent0922.sh:19-21). **Recorded clauses (C-13):** a clause that records without gating
-ends its PASS/FAIL line with "RECORDED", so `lib.sh`'s `row_end` never counts it as a pass.
+memory only, qa/phase-01/scripts/recent0922.sh:19-21). **Recorded clauses (C-13, C-26):** a recorded clause uses `lib.sh`
+`record <name> <value>` (prints `RECORD <name> <value>` and counts apart from PASS / FAIL; `row_end` reports "recorded only
+(<n> facts)" when a row asserted nothing else), never an assert (was "ends its PASS/FAIL line with 'RECORDED'", SUPERSEDED
+2026-09-23 by C-26). **Ring slices (C-20):** every line this phase writes is in the launcher ring (Harness contracts);
+every ring assertion reads `ring_since <MARK> launcher` from a MARK (`ring_mark`, `adb shell date +%s%3N`) taken immediately
+before the step's action (after any clock jump, so the MARK is on the new clock); absence assertions read the same slice;
+`reply_text` is `reply_since <MARK>`; `row_end` saves the slice to `<row>/ring-launcher.txt` (the helpers are phase 11's
+build task 7; the `wall=` filter is `qa/phase-03/scripts/j7.sh:13-15`'s). **Wake after sleep (C-25):** after any `adb
+reboot` (boot-completed poll), `dumpsys battery unplug` or `KEYCODE_SLEEP` step the driver calls `wake_device`
+(`lib.sh:47-56`) and asserts it printed `Awake` before the next tap.
 Drivers source docs/plan/qa/phase-03/scripts/lib.sh (symlinked into qa/phase-16/scripts as phase 01 did); contact fixtures are
 inserted as qa/phase-03/scripts/provision.sh inserts them (`content insert` on `raw_contacts` then `data`); "diagnostics" is
 read with phase 01's command. **AVD limits, stated up front:** the AVD has NO calendar and no account
@@ -424,9 +540,12 @@ restored per RV12; the time zone with `cmd alarm set-timezone <zone>` (restore t
 `pm list users` shows user 0 only, so the work-profile row creates a managed profile with phase 01 E18's commands and removes it;
 the emulated SIM's phonebook (`content://icc/adn`) may refuse inserts — E10 records that and moves the import to P4; the Sync
 rows' two account calendars are created as qa/phase-03/scripts/j6.sh's `mkcal` creates them (account type `com.google`
-through the sync-adapter URI, access 700) and deleted the same way at the row's end. Geometry rows are R11-gated: until
-r11/calendar.md / r11/people.md land they assert structure and the bars (R3 C4 / X6) and take their numeric assertions from
-R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps.md; C-12).
+through the sync-adapter URI, access 700) and deleted the same way at the row's end. Geometry rows assert R11's values with
+R11's tolerances (T16-13; was "R11-gated: until r11/calendar.md / r11/people.md land …", SUPERSEDED 2026-09-23 — R11
+landed); the AVD (1080 px) is 360 epx wide, the width r11's 360-epx captures were measured at, so r11/people.md's 4-column
+jump grid and r11/calendar.md's W/7 strip apply as measured. The bars are asserted against phase 01's
+`BarMetrics.STATUS_EPX` and `BarMetrics.NAV_EPX` (C-17), never a literal; a value R11 measured under a 24-epx status bar is
+asserted relative to the drawn bar's bottom edge.
 **Emulator:**
 - E1 Slot takeover and the guard (**re-cut of phase 01 E4 / E4b**, recorded in the INDEX Change Log when built): on a
   wiped state (`pm clear app.tileshell` → `qa/phase-03/scripts/provision.sh` → Home; C-4), the CALENDAR and PEOPLE slot
@@ -434,14 +553,19 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
   activities | grep -i resumed`; `am force-stop app.tileshell` + Home after each, C-6), diagnostics show `assignSlotOnce
   slot:calendar:v1 CALENDAR -> app.tileshell/<the Calendar activity> -> assigned` and the PEOPLE line, and `cmd package
   query-activities -a android.intent.action.MAIN -c android.intent.category.APP_CALENDAR` (and `APP_CONTACTS`) lists two
-  handlers each (the AOSP fixture and the shell), so neither auto-assigns; Settings > Start re-points CALENDAR at the
-  AOSP Calendar and it sticks across `am force-stop` and `adb reboot` (E4b's form). **Upgrade pass:** `adb uninstall
-  app.tileshell`, `adb install -g qa/phase-16/upgrade/<tag>.apk` (the last pre-phase-16 build, kept there with its git
-  tag in the log, T16-7) and the HOME / ASSISTANT roles and home activity as `provision.sh:50-54` sets them, assign
-  PEOPLE to the image's Contacts through Settings > Start (dump), `adb install -r` the phase-16 build, Home → the PEOPLE
-  tile still reads the image's Contacts and diagnostics show `assignSlotOnce slot:people:v1 PEOPLE -> kept user's
-  com.android.contacts/…`; the CALENDAR slot, never touched by the user, is seeded to the shell's Calendar in the same
-  start. Phase 01 E4's remaining proofs (Maps one-handler auto-assign; Mail and Store 2+-handler unassigned) re-run and
+  handlers each (the AOSP fixture and the shell), so neither auto-assigns; Settings > Tile apps (`settings/TileAppsPage.kt:14`;
+  was "Settings > Start") re-points CALENDAR at the AOSP Calendar and it sticks across `am force-stop` and `adb reboot`
+  (E4b's form; after the reboot's boot poll, `wake_device` asserting `Awake`, C-25). **Upgrade pass (C-19):** `adb uninstall
+  app.tileshell`; `TILESHELL_APK=qa/phase-16/upgrade/<tag>.apk qa/phase-03/scripts/provision.sh` (the last pre-phase-16
+  build, kept there with its git tag in the log, T16-7 — installed with every grant and the wizard's finished marker, C-15);
+  Home shows `start_page` and no `wizard_page` (asserted, so the leg starts where a user's phone would); assign PEOPLE to the
+  image's Contacts through Settings > Tile apps (dump); `adb install -r app/build/outputs/apk/debug/app-debug.apk` (NOT
+  `provision.sh`, so the upgrade path runs), asserted to succeed — the same debug key; `INSTALL_FAILED_UPDATE_INCOMPATIBLE`
+  fails the row loudly; Home → the PEOPLE tile still reads the image's Contacts and the launcher ring slice shows
+  `assignSlotOnce slot:people:v1 PEOPLE -> kept user's com.android.contacts/…`; the CALENDAR slot, never touched by the
+  user, is seeded to the shell's Calendar in the same start. The row log records both APK ids (`apk match: NO` on the
+  first leg is expected and noted). (Was "`adb install -g` the old build and the HOME / ASSISTANT roles … as
+  `provision.sh:50-54` sets them", which left the old build's wizard showing — SUPERSEDED 2026-09-23 by C-19.) Phase 01 E4's remaining proofs (Maps one-handler auto-assign; Mail and Store 2+-handler unassigned) re-run and
   pass on the same build. **Music negative (phase 15's build task 0 routing, Decisions):** with the shell's Music
   playing a fixture track (phase 10 E10's form), the CALENDAR tile still shows its `CalendarFeed` day face and the
   PEOPLE tile its People face (dump tags; screencap), neither tile has grown (`ActiveTiles` bounds unchanged), and only
@@ -460,7 +584,8 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
   and diagnostics hold `[calendar] local calendar created: …` (`feeds/LocalCalendar.kt:55`) and `[calendar] calendars: 1
   (local created id=<id>)`; force-stop and reopen → still one (`local present`). **Inverted (T16-2 line 4):** with Tessera
   deleted and the QA calendar inserted first, `pm clear` → `provision.sh` → Home and opening Calendar STILL creates Tessera
-  (two rows, `local created`), both list under `cal_calendar_row:`, and the QA calendar is read-only (an event on it has no
+  (two rows, `local created`), both list as `cal_calendar_row:` rows inside `cal_pane` under their account headers
+  (`cal_account:Tessera`, `cal_account:qa`; K6.4, T16-13), and the QA calendar is read-only (an event on it has no
   `cal_event_action:edit` / `:delete`). **Tess first:** with Tessera deleted, J6's typed request ("add a meeting called
   standup to my calendar at ten AM", Add tapped) creates it; opening Calendar then logs `local present` and the query still
   shows one Tessera row. The editor's calendar field reads Tessera and offers no other calendar (dump); a calendar with
@@ -469,10 +594,12 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
 - E4 Events both ways (the `ContentObserver`, no restart): an event created in the editor (title "Standup", tomorrow 09:00–
   10:00, location "Room 2") → `content query --uri content://com.android.calendar/events --projection title:dtstart:dtend:
   calendar_id:eventTimezone:eventLocation` lists it in the local calendar with the device zone, and phase 01's Calendar tile
-  shows its face within its next flip (E7's form; `CalendarFeed`'s observer); a driver `content insert` of "Dentist" today
-  14:00 → the day view lists `cal_event_title:` "Dentist" within 2 s with no restart; delete from the app → the provider row is
-  gone; `content delete` of Standup → its `cal_event:` node is gone within 2 s
-- E5 All-day, multi-day, recurring (structure now, geometry from r11/calendar.md): driver inserts an all-day event
+  shows its face within its next flip (E7's form; `CalendarFeed`'s observer); a MARK, then a driver `content insert` of
+  "Dentist" today 14:00 → the day view lists `cal_event_title:` "Dentist" with no restart, and the first `[calendar] view day
+  …: n instances in <ms> ms` line after the MARK whose n is one more than the line before the MARK has `wall=` − MARK ≤ 2000
+  (T16-17; was "within 2 s", a host-polling clock); delete from the app → the provider row is gone; a MARK, then `content
+  delete` of Standup → its `cal_event:` node is gone and the next `view` line with n one fewer has `wall=` − MARK ≤ 2000
+- E5 All-day, multi-day, recurring (structure here, geometry in E19): driver inserts an all-day event
   (`--bind allDay:i:1`, dtstart at UTC midnight, eventTimezone UTC), a 3-day timed event, and a weekly series
   (`--bind rrule:s:FREQ=WEEKLY;COUNT=10 --bind duration:s:PT1H`, no dtend) → the day view shows the all-day event in its
   all-day band and not at a time; the 3-day event appears on each of its days; the agenda lists ten `cal_event:` instances of
@@ -485,17 +612,23 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
   content://com.android.calendar/reminders --bind event_id:i:<id> --bind minutes:i:10 --bind method:i:1`; `dumpsys alarm` shows
   the alarm under `com.android.providers.calendar`, NOT under `app.tileshell`; jump the clock to 5 s before T−10 min → within
   10 s `dumpsys notification --noredact` shows the shell's notification (title "Standup", the time, on the calendar channel),
-  diagnostics `[calendar] reminder event=<id> minutes=10: notified`, and `content query --uri content://com.android.calendar/
-  calendar_alerts` shows the alert state fired; the AOSP Calendar fixture's own notification is ALSO present (recorded,
-  Decisions; that clause's line ends "RECORDED", C-13);
-  dismissing the shell's marks the alert dismissed; `adb reboot` with a reminder 3 min ahead → after boot the provider re-armed it
-  (`dumpsys alarm`) and it notifies at its time. Restore the clock per RV12
-- E7 Thousands of events: a driver loop inserts 5,000 events across 24 months into the QA calendar (recorded run time); the
-  month view of a month with 400 events renders (its dump available, `cal_month_cell:` nodes present) within 3 s of the page
-  change (screenrecord frame count), paging 12 months forward with `input swipe` shows `dumpsys gfxinfo app.tileshell` janky
-  frames ≤ 5 % over the run (phase 01's threshold, applied on the emulator as a bound not a phone measurement), a day with 200
-  events lists them scrollably, diagnostics `[calendar] view month …: 400 instances`; the Calendar tile still shows only the
-  next 24 hours' events (`CalendarFeed`'s window); delete the QA calendar afterwards (its events cascade)
+  the launcher ring slice from a MARK taken after the jump holds `[calendar] reminder event=<id> minutes=10: notified`, and
+  `content query --uri content://com.android.calendar/calendar_alerts` shows the alert state fired; the AOSP Calendar
+  fixture's own notification is ALSO present (`record`ed, Decisions; a recorded clause, C-26);
+  dismissing the shell's marks the alert dismissed; `adb reboot` with a reminder 3 min ahead, the boot poll and `wake_device`
+  asserting `Awake` (C-25) → after boot the provider re-armed it (`dumpsys alarm`) and it notifies at its time. Restore the
+  clock per RV12
+- E7 Thousands of events: a driver loop inserts 5,000 events across 24 months into the QA calendar (run time `record`ed),
+  one month holding 400 of them; from a MARK, `cal_month_dropdown` → `cal_month_cell:<that month's first day>` → Agenda at
+  that day (its dump available) and the launcher ring slice's `[calendar] view agenda <from>..<to>: n instances in <ms> ms`
+  line has ms ≤ 3000 and `wall=` − MARK ≤ 3000; the Week view of that month's busiest week, from its own MARK, the same with
+  its `view week` line and n equal to the host's `content query …/instances/when/<week start>/<week end>` count; paging 12
+  weeks forward with `input swipe` (a MARK before each swipe) gives every `view week` line ms ≤ 3000 and `wall=` − that
+  swipe's MARK ≤ 3000, and `dumpsys gfxinfo app.tileshell` janky frames ≤ 5 % over the run (phase 01's threshold, applied on
+  the emulator as a bound not a phone measurement); a day with 200 events lists them scrollably in the Day view; the
+  Calendar tile still shows only the next 24 hours' events (`CalendarFeed`'s window); delete the QA calendar afterwards (its
+  events cascade). (Was "the month view … within 3 s of the page change (screenrecord frame count)" and "view month …: 400
+  instances" — SUPERSEDED 2026-09-23 by T16-13, no Month page, and T16-17, no screenrecord clock.)
 - E8 Time zone and DST: an event at 09:00 America/Denver on a date after the next DST change; `cmd alarm set-timezone Asia/Tokyo`
   → the event shows at its Tokyo wall time (dump `cal_event_title:` with the time text) while the all-day event of E5 stays on
   its date; back to Denver; an event across a DST night (23:30–01:30 on the fall-back date) shows a 3-hour span in the day
@@ -506,8 +639,8 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
   lands in Tessera and in neither QA account calendar; re-run again with E17's Birthdays calendar present → still
   Tessera, never Birthdays (T16-2 line 2). Then, with Tessera and no fixture calendar, "add a calendar event called
   dentist tomorrow at 2 pm" → the confirmation card (phase 03 E7's form) and on "yes" `content query …/events` lists
-  "dentist" with Tessera's id (E2's observable, the id read from the `account_name=Tessera` query) and the reply "Added
-  to your calendar."; "what's on my calendar" names the events inserted for the test; the Calendar app's day view lists
+  "dentist" with Tessera's id (E2's observable, the id read from the `account_name=Tessera` query) and the reply
+  (`reply_since <MARK>`, C-20) "Added to your calendar."; "what's on my calendar" names the events inserted for the test; the Calendar app's day view lists
   the same event; phase 03 E10's gated calendar commands are unchanged and re-run passing ("Unlock to continue"). Phase
   03 E7 (text / call by name) and E14 (person reminder) re-run passing on the same fixtures — People changed nothing in
   `Contacts.byName`
@@ -515,15 +648,19 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
   张伟, a raw contact with only a number (+1 555 000 0009), and two identical raw contacts "Cara Diaz" (which the provider
   aggregates) → the list shows one Cara Diaz row (`people_row:` count), the number-only contact under "#" reading its number
   (`people_name:` text), 张伟 under the provider's phonebook label (the letter header text equals `PHONEBOOK_LABEL` from
-  `content query --uri content://com.android.contacts/contacts --projection display_name:phonebook_label`), Zoë under Z; the
-  jump grid (X8) marks only labels that exist; search "555 000 0001" and "ann" each return Ann Lee only (diagnostics
-  `[people] search …: 1`); rows at 70.5 ± 1.2 epx with the 48-epx avatar centred 36.2 epx from the left (R7 §1.3 stand-in until
-  r11/people.md), the initial on a grey disc where no photo exists
+  `content query --uri content://com.android.contacts/contacts --projection display_name:phonebook_label`), Zoë under Z; a
+  letter header tapped opens People's jump grid (`people_jump_cell:<label>`), where exactly the labels that exist are in
+  accent and the others (52,52,52) ± 4 levels, "#" first and the globe last (r11/people.md P2.4–P2.5; was "the jump grid
+  (X8)", SUPERSEDED 2026-09-23 by T16-13), and tapping `people_jump_cell:Z` lands the list on Z; search "555 000 0001" and
+  "ann" each return Ann Lee only (launcher ring slice `[people] search …: 1`); rows at a 50 ± 1-epx pitch, each a 32 ± 1-epx
+  circular avatar with its left edge at x 12 ± 1 and the name's left edge at x 57.75 ± 1, the initial on a grey disc where
+  no photo exists, under accent letter headers at x 14.75 (r11/people.md P1.5–P1.10; was "rows at 70.5 ± 1.2 epx with the
+  48-epx avatar … (R7 §1.3 stand-in until r11/people.md)", SUPERSEDED 2026-09-23 by T16-13)
 - E11 People tile (R3 A9; [fidelity] H3): after E13 gives three fixtures photos, over 40 s on Start the ring holds ≥ 4
   `[people] tile event <n> t0=<uptime>` lines spaced by the period 7.7 ± 0.2 s + one frame, and per event `[motion]
   people_bubble_out … settle=<ms>` ≈333 ms and `[motion] people_bubble_in … settle=<ms>` ≈583 ms, each within R3 A9's
   one 24-fps frame (± 42 ms) + one frame, with the event 1.88 ± 0.04 s + one frame from the out's t0 to the in's settle
-  (the shell's clock, C-5 / T16-8); a 60-fps screenrecord of the same 40 s corroborates under phase 05's frame-spacing
+  (the shell's clock, C-5 / T16-8), and every one of those `[motion]` lines with `maxGapMs` ≤ 33.4 (C-31); a 60-fps screenrecord of the same 40 s corroborates under phase 05's frame-spacing
   rule (RV11; never the clock); Start's dumps here go through phase 05's gesture driver (C-10); the bubbles show the
   fixtures' photos (pixel match against the pulled photos at tile scale); with every photo removed, 40 s of screencaps
   at 1-s intervals show no change on the tile (the static pattern) and diagnostics `[people] tile: 0 photos`. The tile's
@@ -535,15 +672,17 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
   resolver; Address (an added postal row) with OsmAnd in the Maps slot → OsmAnd resumes with a `geo:` query; `am start -a
   android.intent.action.VIEW -d content://com.android.contacts/contacts/<Ann's id>` → the shell's People card is resumed
   (`dumpsys activity activities`); on the AVD the AOSP Contacts fixture is the other handler, so Android's resolver appears
-  first and the driver taps the shell's entry and "Always" at their dump bounds, records that it was needed (that clause's
-  line ends "RECORDED", C-13), and a second `am start` then resumes the shell's card with no resolver
+  first and the driver taps the shell's entry and "Always" at their dump bounds, `record`s that it was needed (a recorded
+  clause, C-26), and a second `am start` then resumes the shell's card with no resolver
 - E13 Create, edit, photo, delete (`WRITE_CONTACTS`): New → "Dan Ford" with a mobile number → `content query --uri
   content://com.android.contacts/data --projection raw_contact_id:mimetype:data1 --where "mimetype='vnd.android.cursor.item/phone_v2'"`
   shows the number under a new raw contact; edit Ann's number → the data row changes; Photo → Android's photo picker
   (`dumpsys activity activities` shows the picker) → a pushed JPEG chosen → a `vnd.android.cursor.item/photo` data row exists
   for Ann and the card shows it; the same for Bob and Zoë (E11's fixtures); delete Dan → his contact row is gone; with
   `pm revoke app.tileshell android.permission.WRITE_CONTACTS` the editor says it cannot save and offers the grant in place
-  (phase 10 E18's form), Tess's checklist's `contacts` row reads PARTIAL (the write state), and `pm grant` restores it
+  (phase 10 E18's form), the Setup checklist shows `checklist:people:partial` (READ held, WRITE not) while Tess's `contacts`
+  row still reads granted (T16-15; was "Tess's checklist's `contacts` row reads PARTIAL", SUPERSEDED 2026-09-23), and `pm
+  grant` restores `checklist:people:granted`
 - E14 Link and unlink: fixtures "Sam Reed" (number only) and "Sam Reed" (e-mail only, different raw contacts the provider did
   not merge — asserted: two rows before) → Link from the first card picks the second → `content query --uri
   content://com.android.contacts/aggregation_exceptions --projection type:raw_contact_id1:raw_contact_id2` shows type 1
@@ -552,7 +691,7 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
 - E15 Share, SIM import, filter, APK: Share on Ann → `dumpsys activity activities` shows the resolver for `ACTION_SEND
   text/x-vcard` and `adb shell content read --uri <the stream uri>` yields text beginning `BEGIN:VCARD` with `FN:Ann Lee` and
   her `TEL`; SIM: `content insert --uri content://icc/adn --bind tag:s:Sim Bob --bind number:s:5550002` (if the emulated SIM
-  refuses, recorded, and the import moves to P4) → People's Import from SIM lists `people_sim_row:` "Sim Bob" → import → a
+  refuses, `record`ed, and the import moves to P4) → People's Import from SIM lists `people_sim_row:` "Sim Bob" → import → a
   contact row exists with that number, diagnostics `[people] sim import: 1 of 1`; filter: a raw contact inserted with
   `--bind account_type:s:com.example --bind account_name:s:x` shows an account group in "filter contact list", unticking it
   hides that contact and the row count drops by one (restore); APK: `stat -c%s` before task 2 and after task 8 differ by
@@ -561,9 +700,14 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
   "Work Wren" inserted with `content insert --user <id>` → the People A-Z list does NOT list her (`people_row:` absent), search
   "Wren" lists her with the briefcase glyph (`people_row:` present with an enterprise marker in its tag) — the provider's
   `ENTERPRISE_CONTENT_FILTER_URI`, diagnostics `[people] search "Wren": 0 (+1 enterprise)`; with cross-profile contact search
-  disabled by the profile owner (`DevicePolicyManager.setCrossProfileContactsSearchDisabled`, which needs a device-policy
-  fixture app installed as the profile owner; if none can be installed on this AVD, the row records it and the negative
-  moves to P6), search finds nothing and says so
+  disabled by the profile owner (`DevicePolicyManager.setCrossProfileContactsSearchDisabled`), search finds nothing and says
+  so, and the launcher ring slice holds `[people] search "Wren": 0 (+0 enterprise)`. **The policy fixture (T16-18):** TestDPC
+  (googlesamples/android-testdpc, Apache-2.0, no Play services) from the fixture stash `provision.sh` reads (`FIXTURES`,
+  default `$HOME/android-fixtures`, `provision.sh:66`), installed into the profile and made its owner with `adb shell dpm
+  set-profile-owner --user <id> com.afwsamples.testdpc/.DeviceAdminReceiver`; the switch for cross-profile contact search is
+  TestDPC's own, driven at its dump bounds in the profile (its label `record`ed at build start); a QA-only fixture, never
+  shipped (P5). The negative stays on the AVD (was "if none can be installed on this AVD, the row records it and the
+  negative moves to P6" — SUPERSEDED 2026-09-23 by T16-18)
 - E17 Birthdays (Q3): a birthday on Ann (`content insert … --bind mimetype:s:vnd.android.cursor.item/contact_event --bind
   data2:i:3 --bind data1:s:1990-09-23`) → within 5 s the provider has a "Birthdays" local calendar (account_name `Tessera
   Birthdays`, never `Tessera`; access 200) with a yearly
@@ -572,32 +716,72 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
   restored per RV12), and Tess's "what's on my calendar" names it; the editor refuses to edit it (read-only calendar);
   removing the birthday row removes the event; diagnostics `[calendar] birthdays: 1 synced`. The birthday event has no
   reminder rows (`content query --uri content://com.android.calendar/reminders --where "event_id=<its id>"` → "No result
-  found"; T16-4), and a Tess "add" made while Birthdays exists lands in Tessera (T16-2 line 2)
+  found"; T16-4), and a Tess "add" made while Birthdays exists lands in Tessera (T16-2 line 2). **Creation refused
+  (T16-19):** with Birthdays deleted and `pm disable-user com.android.providers.calendar`, a birthday added to Bob → the
+  launcher ring slice holds `[calendar] birthdays calendar could not be created: <err>` and no crash; `pm enable
+  com.android.providers.calendar` → the next contacts change creates `Tessera Birthdays` again
 - E18 Permission states: `pm revoke app.tileshell android.permission.READ_CALENDAR` (and WRITE_CALENDAR) → Calendar's page says
   it cannot read the calendar and offers the grant in place, the checklist's `calendar` row (phase 01's) is red, and no query
-  runs (diagnostics `calendars: none` is NOT logged — a denied read logs `read=false`); `pm grant` restores it and the views
-  load without a restart; `pm revoke … READ_CONTACTS` → People says so and offers the grant, Tess's `contacts` row is red
-- E19 Calendar geometry (R11-gated; [fidelity] H1): the views, the month grid, the day rows, the editor, the reminder
-  notification within r11/calendar.md's tolerance once R11 lands; now: the drawn status bar 28 epx (R3 C4) and nav bar 48 epx
-  (X6) on every view and the editor (dump bounds; `dumpsys window` shows the system bars not visible, phase 01 E19's form), the
-  editor fields at 43.4 epx on a 53.6-epx pitch (R7 §3.7.1 stand-in), the pivot settle 250 ± 17 ms + one frame (X13) where a
-  pivot exists, from the shell's `[motion] pivot t0=… settle=<ms>` line (C-5; a screenrecord only corroborates), the app bar
-  48.2 ± 1 epx with a 68-epx pitch (R7 §3.5.8)
-- E20 People geometry (R11-gated; [fidelity] H2): the list rows, letter headers, the card and the editor within r11/people.md's
-  tolerance once R11 lands; now the bars as E19, rows per E10's stand-in, the jump grid per X8 (5 columns, ≈50 ± 4 epx pitch)
-- E21 Diagnostics coverage: every line named in Decisions appears in the ring at least once across E1–E18 and E22–E26 (a
-  driver greps each pattern)
+  runs: the launcher ring slice from the revoke's MARK holds `[calendar] calendars: denied (READ_CALENDAR)` and no
+  `calendars: none` (T16-16; was "a denied read logs `read=false`", a form only the People line has); `pm grant` restores it,
+  the views load without a restart, and the slice from the grant's MARK holds a `[calendar] calendars: n (…)` line and no
+  `denied` line; `pm revoke … READ_CONTACTS` → People says so and offers the grant, the Setup checklist shows
+  `checklist:people:missing` (T16-15) and Tess's `contacts` row is red
+- E19 Calendar geometry ([fidelity] H1 for Agenda, Week, the drop-down and the pane; r11/calendar.md values, asserted ± 1 epx
+  unless stated, relative to the drawn status bar's bottom where R11 measured under a 24-epx bar; T16-13): the header — `≡`
+  (three 1-epx bars at a 5-epx pitch, x 16–36), the month and year in semibold caps (cap 11.0) at x 51.0 with its cap top
+  15.5 epx below the status bar, then ⌄ (⌃ while open), the band 40 epx tall (K1.1–K1.2); the page (26,26,26) ± 2 levels with
+  the status and nav bars black (K1.3); the week strip on W/7 (centres 25.0 / 76.6 / 127.5 / 178.4 / 229.0 / 280.4 / 331.3),
+  day names (151,151,151) ± 4, in the 15063 form — two week rows, the second dimmed, the selected day a 32 × 32-epx accent
+  square ± 2 (K2.1–K2.5; LOW, H1's note); Agenda day headings white semibold at x 24, today's in accent, an empty day "No
+  events today" in grey (K3.2–K3.4); event rows with `cal_event_bar:<id>` 8 epx wide at x 0 in the calendar's colour ± 4
+  levels, the time or "All day" label at x 24.3, the title at x 92.5, all-day bars 40 epx on a 44-epx pitch, timed bars 56
+  epx (K3.5–K3.8); the month drop-down `cal_month_dropdown` at x 5–355 from the header's bottom down 235 epx, a 1-epx
+  (80,80,80) ± 4 border, six date rows at a 34.25-epx pitch on the strip's W/7 columns, other-month dates (110,110,110) ± 4
+  (K5.1–K5.3); the Week view's 2 × 4 cells of 120 epx split at W/2, each labelled "23 MON"-style at x 10 inside its cell,
+  events as tinted lines at a 19-epx pitch, the mini month in the eighth cell (K4.1–K4.4); `cal_pane`'s rows at a 48.1-epx
+  pitch with account headers at x 14 and calendar names at x 62, a checked box filled with the calendar's colour (K6.4, on
+  U10's dark #1F1F1F chrome); the app bar 47 epx, fill (33,33,33) ± 4 with a 1-epx (80,80,80) top edge, Today · New · View ·
+  … at the 68-epx CommandBar's positions (K1.5–K1.6, the 15063 form); the drawn bars (`BarMetrics.STATUS_EPX`,
+  `BarMetrics.NAV_EPX`, C-17; `dumpsys window` shows the system bars not visible, phase 01 E19's form) on every view and the
+  editor. Day view, event page and editor (UNMEASURED, r11/calendar.md U1–U3; [accept] H15) assert their approximations'
+  structure: the editor's fields 32 ± 1 epx with a 2-epx (133,133,133) border (People's P4.4, U3). Motion (UNMEASURED, U8;
+  tagged approximations): the drop-down's `[motion] cal_month_dropdown … settle=<ms>` 200 ± 17 ms (R7 §2.2.6) and a day page's
+  `[motion] cal_day_page … settle=<ms>` 250 ± 17 ms (X13), each with `maxGapMs` ≤ 33.4 (C-31). (Was "R11-gated … the month
+  grid … the drawn status bar 28 epx (R3 C4) … the editor fields at 43.4 epx … the pivot settle … where a pivot exists" —
+  SUPERSEDED 2026-09-23 by T16-13 / C-17.)
+- E20 People geometry ([fidelity] H2, against the 10586 captures with the version note, U1; r11/people.md values, ± 1 epx
+  unless stated, relative to the drawn status bar's bottom; T16-13): the list per E10, the letter cap top 43.5 ± 0.5 epx above
+  the group's first avatar top (P1.6); the CONTACTS / GROUPS pivot header in semibold caps, cap 11.0, its cap top 19.5 epx
+  below the status bar, the selected pivot white and the other (156,156,156) ± 4 (P1.1–P1.2); the search box 36 epx tall
+  from 48 epx below the status bar, x 12 → W − 12, a 2-epx (133,133,133) border, "Search" at x 25 (P1.3); the jump grid's
+  72-epx cells in 4 columns (at the AVD's 360 epx), the first row's cap top 119.5 epx below the status bar, letters cap 14.4
+  (P2.2–P2.4); the card an accent page from the status bar's bottom to the nav bar's top, the name in caps at x 13.25 with
+  its cap top 26 epx below the status bar, `people_card_photo` a 124-epx circle at x 12 with its top 96 epx below the status
+  bar, action rows' labels at x 13 ± 1 on a 48-epx pitch (one line) / 65.5 ± 1 (two lines) (P3.1–P3.7); the editor's header
+  "EDIT <ACCOUNT> CONTACT" in caps at x 13, fields 32 epx (34 with an edit button) with a 2-epx (133,133,133) border from x 12
+  to W − 12, label cap top → box top 22.75, "+ field" rows at a 44-epx pitch, 1-epx (103,103,103) group rules (P4.1–P4.7);
+  every app bar's buttons at a 68-epx pitch with "…" 24 epx from the right edge (P0.4); the bars as E19. (Was "rows per E10's
+  stand-in, the jump grid per X8 (5 columns, ≈50 ± 4 epx pitch)" — SUPERSEDED 2026-09-23 by T16-13.)
+- E21 Diagnostics coverage: every line named in Decisions appears at least once in the union of this build's saved ring
+  slices, `qa/phase-16/*/ring-launcher.txt` (C-20; only rows whose logged APK id matches this build), across E1–E18 and
+  E22–E27 — each pattern grepped once; `[people] tile: photo <lookup> skipped: <why>` alone is excepted unless its edge case
+  ran, because the Contacts provider decodes a photo when it is written, so no fixture can store an undecodable one (was
+  "appears in the ring", one final ring that `am force-stop`, `pm clear` and `layout_restore` reset — SUPERSEDED 2026-09-23
+  by C-20)
 - E22 Sync rules 1–2 — no direct write to an account calendar by any path (Q2 D; T16-1): create "Personal"
   (qa.personal@example.com) and "Work" (qa.work@example.com, `isPrimary` 1) with j6.sh's `mkcal`, and driver-insert
-  "Offsite" into Work. **Rule 1:** both list under `cal_calendar_row:<id>` (dump); "Offsite" shows in the day view and its
+  "Offsite" into Work. **Rule 1:** both list as `cal_calendar_row:<id>` inside `cal_pane` (dump); "Offsite" shows in the day view and its
   event page offers no `cal_event_action:edit`, `:delete` or `:sync`; the editor's calendar field reads Tessera and no picker
   offers Personal or Work (dump). **Rule 2:** in the editor create "Standup" (tomorrow 09:00), rename it "Standup 2", create
   and delete "Scratch"; then Tess through j6.sh's typed request ("add a meeting called standup to my calendar at ten AM", Add
   tapped). After every step `content query --uri content://com.android.calendar/events --projection _id:calendar_id:title
   --where "calendar_id=<id>"` gives Personal 0 and Work 1 ("Offsite", title unchanged) while Tessera holds "Standup 2" and
-  "standup"; every `[calendar] write … event=<id>: ok` line names a Tessera event. The write guard's JVM test (refuses an
-  insert, update or delete on any id but `LocalCalendar`'s, and a Sync to an id not allowed, `refused (not allowed)`) runs
-  and passes, its output in the row's log. Restore: Personal and Work deleted through the sync-adapter URI (j6.sh's restore
+  "standup"; every `[calendar] write … event=<id>: ok` line names a Tessera event. The write guard's JVM test (T16-11's
+  three-case allow set: Tessera every op; Tessera Birthdays by the Birthdays writer only; an allowed Sync target for a
+  mapped copy only — and the refusal, `refused (not allowed)`, of the editor → Birthdays, the Birthdays writer → Tessera,
+  Sync → an id not allowed, Sync → an unmapped event, any op → an account calendar, and T16-12's stale mapping) runs and
+  passes, its output in the row's log (was "refuses … any id but `LocalCalendar`'s", SUPERSEDED 2026-09-23 by T16-11). Restore: Personal and Work deleted through the sync-adapter URI (j6.sh's restore
   form), the test events deleted
 - E23 Sync rule 4 and the first Sync (T16-1, T16-3): `pm clear app.tileshell` → `provision.sh` → Home; create Personal and
   Work (E22's form), E17's birthday fixture present, and a local event "Standup"; tap `cal_event_action:sync` → the "Can sync
@@ -619,30 +803,51 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
   10-minute reminder → Sync → Personal holds a master with the rrule and duration, one exception whose `original_id` is the
   copy's master, and a `reminders` row of 10 minutes on the copy. Deleting a synced local event shows `cal_delete_choice:here`
   (the default) and `cal_delete_choice:both`: "here" → the local event gone, the copy kept; on a second synced event "both" →
-  both gone. Personal removed from the phone (sync-adapter delete of the calendar) → Sync on a synced event → "That calendar
+  both gone. On a third synced event with Personal then un-ticked in "Can sync to", delete offers `cal_delete_choice:here`
+  and NO `cal_delete_choice:both` (T16-12); re-tick Personal. Personal removed from the phone (sync-adapter delete of the
+  calendar) → Sync on a synced event → "That calendar
   is no longer on this phone" (dump), the marker keeps a warning glyph, `failed calendar gone`. Work holds 0 of the shell's
   events after every step. Restore as E22, then `pm clear` → `provision.sh` → Home (clears `calendar_sync.json`)
 - E25 App Shortcuts (build task 9; phase 11 Q1's standing rule, C-8): `layout_restore qa/phase-16/baseline_layout.json` (the
   CALENDAR and PEOPLE slot tiles resolve to the shell's apps); hold the CALENDAR tile by phase 11 E3's method →
-  `quick_sat_label:0..3` texts equal Agenda / Day / Month / New event in rank order; the PEOPLE tile → `quick_sat_label:0..1`
-  equal Contacts / New contact, no `quick_sat_label:2`; each burst's `[quick] shortcuts for app.tileshell/0: …` line names
-  only that activity's ids; `tap_node quick_sat:<i>` for each → the app resumed (`dumpsys activity activities`) with
-  `cal_view_mode:<agenda|day|month>` selected, `cal_editor` for New event (Back discards it; Tessera's event count
-  unchanged), `people_page:list`, `people_page:editor` for New contact (Back discards it; the `raw_contacts` count
-  unchanged); `adb shell dumpsys shortcut` lists the six ids for `app.tileshell` with ranks 0–3 per activity; `am
-  force-stop app.tileshell` + Home after each launch (C-6). Restore: `layout_restore` the baseline
-- E26 Wizard step for the widened `contacts` row (phase 12 E14's template, C-4): `pm clear app.tileshell` →
-  `qa/phase-03/scripts/provision.sh` → `adb shell pm revoke app.tileshell android.permission.WRITE_CONTACTS` → Home → the dump
-  has `wizard_page` with `wizard_step:tess:contacts` and `wizard_why` equal to phase 12's why line for `contacts` (naming
-  editing); the step's action grants it (Android may grant WRITE at once, with no dialog, while READ in its group is held —
-  whichever happens is recorded) → `[wizard] step tess:contacts: granted` and the step is gone. `pm clear` → `provision.sh`
-  → Home (its new line grants WRITE) → no `wizard_page`, `[wizard] not shown: core held`; phase 12 E1 re-run passes on this
-  build. Finished-install rule: revoke → Home → "Skip setup" (`[wizard] skip`); grant, revoke again, `am force-stop
-  app.tileshell` + Home → no `wizard_page`, `[wizard] not shown: finished`, and Tess's Settings page shows `contacts`
-  PARTIAL. Restore: `pm clear` → `provision.sh` → Home
+  `quick_sat_label:0..3` texts equal Agenda / Day / Month / New event in rank order; the PEOPLE tile → `quick_sat_label:0..2`
+  equal Contacts / New contact / Groups, no `quick_sat_label:3` (T16-14); each burst's launcher ring slice holds phase 11's
+  activity-keyed line (T11-12) naming only that activity's ids — `[quick] shortcuts for app.tileshell/<the Calendar
+  activity, short form>/0: 4 (4 shown: agenda,day,month,new_event)` and `… /<the People activity>/0: 3 (3 shown:
+  contacts,new_contact,groups)` (was `[quick] shortcuts for app.tileshell/0: …`); `tap_node quick_sat:<i>` for each → the
+  app resumed (`dumpsys activity activities`) with `cal_view_mode:agenda` / `cal_view_mode:day` selected, for Month
+  `cal_view_mode:agenda` selected AND `cal_month_dropdown` shown (T16-13; was `cal_view_mode:month`), `cal_editor` for New
+  event (Back discards it; Tessera's event count unchanged), `people_page:list`, `people_page:editor` for New contact (Back
+  discards it; the `raw_contacts` count unchanged), `people_pivot:groups` selected for Groups; `adb shell dumpsys shortcut`
+  lists the seven ids for `app.tileshell` with ranks 0–3 per activity; `am force-stop app.tileshell` + Home after each
+  launch (C-6). Restore: `layout_restore` the baseline
+- E26 Wizard step "People" (phase 12 E14's template as C-15 re-cuts it; C-4; the step is `setup:people`, T16-15 — was Tess's
+  widened `contacts` row, SUPERSEDED 2026-09-23): **(a) the step:** `pm clear app.tileshell` → `PROVISION_FINISH_WIZARD=0
+  qa/phase-03/scripts/provision.sh` (every grant, no finished marker) → `adb shell pm revoke app.tileshell
+  android.permission.WRITE_CONTACTS` → Home → the dump has `wizard_page` with `wizard_step:setup:people`, `wizard_why` equal
+  to phase 12's why line for `people` (the T16-15 line's text) and "Step 1 of 2"; `pm grant … WRITE_CONTACTS` from adb, Back
+  → the step is gone, `wizard_presets` shows, and the ring slice holds `[wizard] step setup:people: granted`; the step's own
+  action is also tapped once in a repeat of (a) (Android may grant WRITE at once, with no dialog, while READ in its group is
+  held — whichever happens is `record`ed). **(b) provisioned:** `pm clear` → `provision.sh` (its new line grants WRITE; it
+  writes the finished marker, C-15) → Home → no `wizard_page`, `[wizard] not shown: core held`; phase 12 E1 re-run passes on
+  this build. **(c) the finished-install rule:** with (b)'s marker set, `pm revoke … WRITE_CONTACTS` → Home → no
+  `wizard_page`, `[wizard] not shown: finished`, the Setup checklist shows `checklist:people:partial` and Tess's `contacts`
+  row still granted; restore `pm grant` (was a "Skip setup"-based finished-install half on a provisioned install, which
+  cannot show the wizard once provisioning finishes it — SUPERSEDED 2026-09-23 by C-15). Restore: `pm clear` →
+  `provision.sh` → Home
+- E27 Groups (T16-14; H16): fixtures Ann Lee (mobile +1 555 000 0001) and Bob Stone (mobile +1 555 000 0002); `people_pivot:groups`
+  → `people_group_new`, name "Family" in `people_group_name`, add Ann and Bob → `content query --uri
+  content://com.android.contacts/groups --projection _id:title:account_type:account_name` lists "Family" under the account the
+  new-contact rule names, the two members' `vnd.android.cursor.item/group_membership` data rows point at its `_id`, and the
+  launcher ring slice holds `[people] group create <id>: ok`; `people_group:<id>` lists Ann and Bob; `people_group_action:text`
+  → the SMS role holder's compose (the Fossify Messages fixture) resumes with `smsto:` both numbers (`dumpsys activity
+  activities`; the intent's data holds both); `people_group_action:rename` to "Home" → the provider's title reads Home and
+  `group rename <id>: ok`; `people_group_action:delete` → the group row gone (or marked deleted), both contacts still present,
+  `group delete <id>: ok`; with `WRITE_CONTACTS` revoked a create is refused with the editor's notice and `group create …:
+  failed <err>`; restore the grant and the fixtures
 **Phone-only (S25 Ultra):**
 - P1 Event reminders on One UI 8: a reminder on an event in the local calendar notifies from the shell AND from Samsung
-  Calendar (recorded; that clause's line ends "RECORDED", C-13), and an event on a Samsung or Google calendar notifies from
+  Calendar (`record`ed; a recorded clause, C-26), and an event on a Samsung or Google calendar notifies from
   the shell too (T16-4); with Samsung Calendar's notifications turned off in Android's settings only the shell's remains
 - P2 Synced calendars and the push (re-cut 2026-09-23 by T16-1 / T16-2; was "an event written here to a synced calendar …",
   a direct write Q2 D forbids): every calendar Samsung Calendar shows (Samsung account, any Google or Outlook account the
@@ -653,36 +858,46 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
   after the account's own sync adapter runs; the work calendar's count is unchanged across every step; `dumpsys netstats
   --uid` for the shell's uid is unchanged across the Sync (the upload is the account's adapter, not the shell)
 - P3 The chooser: from Samsung Messages, a tap on a sender's contact shows Android's chooser with the shell's People listed
-  and "Always" remembered; Samsung Phone's contact tap the same; recorded, not judged (its line ends "RECORDED", C-13)
+  and "Always" remembered; Samsung Phone's contact tap the same; `record`ed, not judged (a recorded clause, C-26)
 - P4 SIM import with the real SIM (and E15's import if the emulated SIM refused inserts); contacts stored on the SIM appear
   and import once
 - P5 Samsung Contacts' linked contacts show as one here and a link made here shows as one there (the shared
   `AggregationExceptions`)
-- P6 Work profile: Jeremy has none (phase 01 Q5); recorded as not testable on the phone, with E16's emulator result standing
+- P6 Work profile: Jeremy has none (phase 01 Q5); `record`ed as not testable on the phone, with E16's emulator result —
+  its TestDPC policy negative included (T16-18) — standing
 - P7 Liveness (N-01): the reminder receiver and the People tile feed survive reboot, 24 h idle and a Device care optimise
   (a reminder set the day before notifies on time; the tile still cycles)
 **NEEDS-HUMAN:**
-- H1 [fidelity] Calendar matches r11/calendar.md within tolerance on the phone
-- H2 [fidelity] People matches r11/people.md
+- H1 [fidelity] Calendar against r11/calendar.md within tolerance on the phone — Agenda, Week, the month drop-down and the ≡
+  pane (K1–K6), with a note that the week strip and selected day follow the 15063-era form seen only at 450-wide
+  resolution (K2.4–K2.5, LOW); the Day view, event page and editor are H15, the reminder look H7, settings H6 (was
+  "Calendar matches r11/calendar.md", SUPERSEDED 2026-09-23 by T16-13)
+- H2 [fidelity] People against r11/people.md — the list, jump grid, card and editor — judged against the 10586 captures with
+  that version stated: no governing-build People capture exists (U1)
 - H3 [fidelity] the People tile's bubble motion matches R3 A9 (MEDIUM/LOW, one 24-fps camera source) on the phone, and the
   static circle pattern without photos looks like C3's
 - H4 [accept] the local calendar's name "Tessera" and colour #0063B1 — J6's constants (`feeds/LocalCalendar.kt:21,52`),
   which the app reuses (was "Calendar" and the accent, SUPERSEDED 2026-09-23 by T16-2) (approximation)
 - H5 [accept] the Birthdays calendar's look in the views and on the tile (approximation)
-- H6 [accept] "(No title)", the first-day-of-week default and setting wording (approximations) — [fidelity] where R11
-  captured the settings page
-- H7 [accept] the event reminder notification's look (approximation) — [fidelity] if R11 captured W10M's reminder toast
+- H6 [accept] "(No title)", the first-day-of-week default and setting wording, the settings page (approximations; R11
+  captured no settings page, r11/calendar.md U6–U7)
+- H7 [accept] the event reminder notification's look (approximation; R11 captured no reminder toast, r11/calendar.md U5)
 - H8 [accept] a contact with no name listed under "#" as its number or e-mail (approximation)
 - H9 [accept] the Android profile ("Me") left out (approximation; offline preferred, A11 as amended 2026-09-23 — Jeremy can
   ask)
 - H10 [accept] P4 design: work-profile contacts found by search only, with the briefcase glyph (phase 01 Q5's design extended)
-- H11 [accept] link / unlink, SIM import and filter pages (approximations) — [fidelity] where R11 captured them
+- H11 [accept] link / unlink, SIM import and filter pages (approximations; R11 has guide wording only, r11/people.md
+  P5.1–P5.6, U2–U4)
 - H12 [accept] the chooser seam on the phone the first time another app opens a contact or event (P3), and that the shell's
   People and Calendar are what "Always" should point at
-- H13 [accept] any approximation not covered by H4–H12 or H14
+- H13 [accept] any approximation not covered by H4–H12 or H14–H16
 - H14 [accept] the Sync design (T16-1, T16-3): the Sync picker lists only calendars enabled once in Calendar settings ("Can
   sync to"), so the work calendar can never be chosen by a mis-tap; the first Sync opening "Can sync to" directly; the
   "synced to <calendar>" marker and its warning glyph (P4 design); the delete choice for a synced event
+- H15 [accept] the Calendar Day view, event page and editor, and the "this occurrence / this and following / all" prompt,
+  built as r11/calendar.md U1–U4 propose (no capture on any build) (T16-13)
+- H16 [accept] People's Groups pivot: the group rows, the group page, create / rename / delete and "Text the group" (guide
+  wording and one camera photo only, r11/people.md P5.2, LOW) (T16-14, E27)
 
 ## Edge cases
 - Calendar with no calendar and the provider package disabled (`pm disable-user com.android.providers.calendar`, restore
@@ -699,17 +914,22 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
   calendar, so this is now the Sync failure case — an allowed calendar removed from the phone refuses the Sync with "That
   calendar is no longer on this phone" (E24); an account calendar removed while one of its events is open read-only closes
   that page with a notice and the view refreshes
-- Sync (T16-1): the allow-list cleared after a sync (the marker stays; the next Sync opens "Can sync to"); a Sync tapped twice
+- Sync (T16-1): the allow-list cleared after a sync (the marker stays; the next Sync opens "Can sync to"; deleting that event
+  offers "Delete here" only, never "Delete here and from <calendar>" for a target no longer allowed — T16-12); a copy whose
+  `calendar_id` no longer matches the mapping's target (moved on the other side) → the next Sync or delete-"both" refuses
+  with `failed mapping stale` and writes nothing (T16-12); a Sync tapped twice
   quickly (one copy, the second is `updated` or a no-op by the hash); a local event edited while its Sync runs (the next Sync
   pushes the edit); `calendar_sync.json` lost (`run-as … rm`): markers vanish and the next Sync makes a new copy — the old one
-  stays on the other side (recorded, RECORDED); a synced local event whose copy's calendar became read-only (the Sync fails
+  stays on the other side (`record`ed); a synced local event whose copy's calendar became read-only (the Sync fails
   with the provider's error, `failed <err>`)
 - The Birthdays calendar deleted by another app: recreated under `Tessera Birthdays` at the next start or contacts change,
-  and `Tessera` is untouched
+  and `Tessera` is untouched; if the provider refuses the create, `[calendar] birthdays calendar could not be created:
+  <err>` (LocalCalendar's form; T16-19, E17's sub-step) and the views simply show no Birthdays calendar
 - Sync in progress on the phone (rows changing under the observer): the views refresh without a crash; a `content insert`
   loop of 50 events over 10 s on the AVD stands in for it
 - An event whose `dtend` < `dtstart` is refused by the editor; a 10-year daily series (`FREQ=DAILY` with no COUNT) inserted by
-  the driver: the month view still renders within 3 s (windowed instances); an RRULE with BYDAY=2TU (second Tuesday) shows on
+  the driver: the Agenda and Week views still render with `view … in <ms> ms` ≤ 3000 (windowed instances; was "the month
+  view", SUPERSEDED 2026-09-23 by T16-13 / T16-17); an RRULE with BYDAY=2TU (second Tuesday) shows on
   the right days; an exception that moves an occurrence to another day shows on the new day only
 - A reminder on an event already past (never notifies; `calendar_alerts` has no scheduled row); a reminder 0 minutes before;
   two reminders on one event (two notifications); the phone off across a reminder's time (after boot the provider delivers it
@@ -733,13 +953,18 @@ R11 when it lands; this doc cannot go FINAL before R11 (docs/plan/r11-inbox-apps
   READ revoked mid-edit (the save fails cleanly)
 - SIM removed while importing (`adb emu` cannot eject; the phone row records it); a SIM contact with no number; a SIM
   contact that already exists (imported again as a second raw contact — the provider may aggregate it; either outcome is
-  recorded, no crash)
+  `record`ed, no crash)
+- Groups (T16-14): a group with no members ("Text the group" shows no compose, a notice instead — approximation, H16); a
+  member with no mobile number (left out of the `smsto:` list; none left → the notice); a group under a read-only account
+  (rename and delete refused with a notice, `group <op> <id>: failed <err>`); a group deleted by another app while its page
+  is open (the page closes with a notice, the list refreshes through the observer)
 - Share when no app receives `text/x-vcard` (the resolver's empty state, Android's); share of a contact with a photo (the
   vCard carries `PHOTO;ENCODING=b`)
 - The People tile: a contact photo removed while its bubble is on screen (the next event uses another photo; the current
   bubble finishes); every photo removed mid-cycle (the static pattern after the current event); a photo that fails to decode
-  (skipped, logged); the tile pinned small / medium / wide (the face scales per phase 01's tile rules; the bubble geometry is
-  from r11/people.md if captured, else approximation under H3)
+  (skipped, `[people] tile: photo <lookup> skipped: <why>`, T16-19); the tile pinned small / medium / wide (the face scales
+  per phase 01's tile rules; the bubble geometry is R3 A9's — r11/people.md P5.8 cites it and adds none — an approximation
+  under H3)
 - Phase 06 not yet built: People's Text action goes to the SMS role holder (the Fossify fixture); Call goes through Telecom
   to whatever dialer holds the role; both re-run when 06 lands (its E5's form)
 - Liveness (N-01): reboot, 24 h idle, Device care, force-stop (the reminder receiver is manifest-registered and needs no
