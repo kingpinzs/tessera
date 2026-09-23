@@ -3,7 +3,7 @@ MEDIA SESSION SERVICE (dumpsys media_session)
 8 sessions listeners.
 Global priority session is com.android.server.telecom/HeadsetMediaButton/1 (userId=0)
   HeadsetMediaButton com.android.server.telecom/HeadsetMediaButton/1 (userId=0)
-    ownerPid=673, ownerUid=1000, userId=0
+    ownerPid=676, ownerUid=1000, userId=0
     package=com.android.server.telecom
     launchIntent=null
     mediaButtonReceiver=null
@@ -26,10 +26,10 @@ Record for full_user=0
   OnMediaKeyEventSessionChangedListener: added 1 listener(s)
     from com.android.bluetooth
   Last MediaButtonReceiver: null
-  Media button session is app.tileshell/androidx.media3.session.id./52 (userId=0)
-  Sessions Stack - have 2 sessions:
-    androidx.media3.session.id. app.tileshell/androidx.media3.session.id./52 (userId=0)
-      ownerPid=12568, ownerUid=10150, userId=0
+  Media button session is app.tileshell/androidx.media3.session.id./24 (userId=0)
+  Sessions Stack - have 3 sessions:
+    androidx.media3.session.id. app.tileshell/androidx.media3.session.id./24 (userId=0)
+      ownerPid=10865, ownerUid=10150, userId=0
       package=app.tileshell
       launchIntent=null
       mediaButtonReceiver=null
@@ -37,15 +37,29 @@ Record for full_user=0
       flags=7
       rating type=0
       controllers: 9
-      state=PlaybackState {state=PLAYING(3), position=23085, buffered position=90044, speed=1.0, updated=8901536, actions=7340027, custom actions=[], active item id=1, error=null}
+      state=PlaybackState {state=PLAYING(3), position=23078, buffered position=90044, speed=1.0, updated=11802043, actions=7340027, custom actions=[], active item id=1, error=null}
       audioAttrs=AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
       volumeType=LOCAL, controlType=ABSOLUTE, max=0, current=0, volumeControlId=null
       metadata: size=5, description=An Ending, Brian Eno, Apollo
       queueTitle=null, size=6
     MediaPlaybackService com.android.music/MediaPlaybackService/6 (userId=0)
-      ownerPid=1493, ownerUid=10102, userId=0
+      ownerPid=1486, ownerUid=10102, userId=0
       package=com.android.music
-      launchIntent=PendingIntent{5e9e686: PendingIntentRecord{a782b47 com.android.music startActivity}}
+      launchIntent=PendingIntent{48c1216: PendingIntentRecord{2a9797 com.android.music startActivity}}
+      mediaButtonReceiver=null
+      active=false
+      flags=3
+      rating type=0
+      controllers: 0
+      state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=0, actions=516, custom actions=[], active item id=-1, error=null}
+      audioAttrs=AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
+      volumeType=LOCAL, controlType=ABSOLUTE, max=0, current=0, volumeControlId=null
+      metadata: null
+      queueTitle=null, size=0
+    MediaPlaybackService com.android.music/MediaPlaybackService/11 (userId=0)
+      ownerPid=1486, ownerUid=10102, userId=0
+      package=com.android.music
+      launchIntent=PendingIntent{21cbd84: PendingIntentRecord{2a9797 com.android.music startActivity}}
       mediaButtonReceiver=null
       active=false
       flags=3

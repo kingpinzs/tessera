@@ -1,0 +1,39 @@
+==============================================================================
+ROW J2 — now playing: the total and the scrubber, with and without an MP3 length header
+at            2026-09-22T19:09:31-06:00
+driver        j2.sh blob b96a349826fc83901146ee2fdb29e1ef406edf5a
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     a499a3fe02eed726 335485062 bytes
+apk installed b91b9da356bac656
+apk match     yes (b91b9da356bac656)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      j2_cbr_noheader.mp3: Xing/Info frames 0, 90.044063 s
+      j2_vbr_noheader.mp3: Xing/Info frames 0, 81.466629 s
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  control: the track is in the Songs pivot                    != 
+      control: total label [1:30], elapsed [0:04]
+PASS  control: the right label is the real total (90 s)           90.00 vs 90.00 +/- 1.0
+      control: after a drag to the middle, elapsed [0:46]
+PASS  control: a drag to the middle seeks to about 0:45           46.00 vs 46.00 +/- 5.0
+      control: after a tap at three quarters, elapsed [1:11]
+PASS  control: a tap at three quarters seeks to about 1:07        71.00 vs 68.00 +/- 5.0
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  cbr: the track is in the Songs pivot                        != 
+      cbr: total label [1:30], elapsed [0:04]
+PASS  cbr: the right label is the real total (90 s)               90.00 vs 90.00 +/- 1.0
+      cbr: after a drag to the middle, elapsed [0:46]
+PASS  cbr: a drag to the middle seeks to about 0:45               46.00 vs 46.00 +/- 5.0
+      cbr: after a tap at three quarters, elapsed [1:11]
+PASS  cbr: a tap at three quarters seeks to about 1:07            71.00 vs 68.00 +/- 5.0
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  vbr: the track is in the Songs pivot                        != 
+      vbr: total label [1:30], elapsed [0:04]
+PASS  vbr: the right label is the real total (90 s)               90.00 vs 90.00 +/- 1.0
+      vbr: after a drag to the middle, elapsed [0:46]
+PASS  vbr: a drag to the middle seeks to about 0:45               46.00 vs 46.00 +/- 5.0
+      vbr: after a tap at three quarters, elapsed [1:11]
+PASS  vbr: a tap at three quarters seeks to about 1:07            71.00 vs 68.00 +/- 5.0
+      restored: the J2 files removed and the library rescanned
+------------------------------------------------------------------------------
+J2: 12 passed, 0 failed

@@ -1,16 +1,16 @@
-Start begin: 09-22 09:34:24.050
-Start end:   09-22 09:34:26.450
-Now:         09-22 11:59:33.458
+Start begin: 09-22 15:56:15.791
+Start end:   09-22 15:56:17.871
+Now:         09-22 19:14:37.085
 Notification Clients:
    pid    uid  name
-   528   1041  audioserver
-   673   1000  android.uid.system
-  9962  10169  org.oxycblt.auxio
- 31599  10150  app.tileshell
+   535   1041  audioserver
+   676   1000  android.uid.system
+  1540  10169  org.oxycblt.auxio
+ 11524  10150  app.tileshell
 Global session refs:
   session  cnt     pid    uid  name
-      177    1     673   1000  android.uid.system
-      545    2   31599  10150  app.tileshell
+      129    1     676   1000  android.uid.system
+      441    2   11524  10150  app.tileshell
 Hardware status: 0
 Vibrator infos(size=1):
   - AudioVibratorInfo{id: 1, resonantFrequency: 150.000000, qFactor: 11.000000, maxAmplitude: nan}
@@ -18,7 +18,7 @@ Bluetooth latency modes are enabled
 
  ## BEGIN thread dump 
 
-Output thread 0x7f0d04c80770, name AudioOut_D, tid 606, type 0 (MIXER):
+Output thread 0x7737c43cb770, name AudioOut_D, tid 607, type 0 (MIXER):
   I/O handle: 13
   Standby: no
   Sample rate: 48000 Hz
@@ -33,86 +33,67 @@ Output thread 0x7f0d04c80770, name AudioOut_D, tid 606, type 0 (MIXER):
   Output devices: 0x2 (AUDIO_DEVICE_OUT_SPEAKER)
   Input device: 0 (AUDIO_DEVICE_NONE)
   Audio source: 0 (AUDIO_SOURCE_DEFAULT)
-  Timestamp stats: n=243047 disc=83 cold=1 nRdy=0 err=1 rate=0.999998 jitterMs(ave=0.000357249 std=0.0789759 min=-0.0215077 max=82.7563) localSR(48000, 6.77165e-11) correctedJitterMs(ave=0.000394076 std=0.0124848 min=-0.0428523 max=2.96257)
+  Timestamp stats: n=18318 disc=155 cold=0 nRdy=0 err=1 rate=1 jitterMs(ave=0.00043517 std=0.0917489 min=-0.0209193 max=20.322) localSR(48000.1, 5.73948e-11) correctedJitterMs(ave=0.000409569 std=0.0127993 min=-0.026625 max=0.485552)
   Timestamp corrected: no
-  Last write occurred (msecs): 31
-  Process time ms stats: ave=0.102321 std=0.0498956 min=0.064561 max=0.402435
-  Hal write jitter ms stats: ave=0.00133435 std=0.088711 min=-0.660209 max=0.86468
-  Threadloop write latency stats: ave=90.3207 std=1.85593 min=67.2491 max=90.5311
+  Last write occurred (msecs): 42
+  Process time ms stats: ave=0.104779 std=0.0632324 min=0.05338 max=0.511269
+  Hal write jitter ms stats: ave=-5.72792e-05 std=0.0231319 min=-0.127991 max=0.109293
+  Threadloop write latency stats: ave=90.1295 std=2.59663 min=67.9957 max=90.5379
   Master volume: 1.000000
   Master mute: off
   Mixer channel Mask: 0x3 (front-left, front-right)
   Normal frame count: 1088
-  Total writes: 238313
+  Total writes: 14578
   Delayed writes: 0
   Blocked in write: yes
   Suspend count: 0
   Fast track availMask=0xfe
   Standby delay ns=3000000000
-  AudioStreamOut: 0x7f0ad1f7f070 flags 0x2 (AUDIO_OUTPUT_FLAG_PRIMARY)
-  Frames written: 259284544
+  AudioStreamOut: 0x77366f9a4ad0 flags 0x2 (AUDIO_OUTPUT_FLAG_PRIMARY)
+  Frames written: 15860864
   Suspended frames: 0
   Hal stream dump:
       Signal power history (resolution: 1000.0 ms):
-       09-22 09:52:46.448:    -20.7  -20.9  -21.2  -21.1  -21.1  -21.2  -21.1  -21.3  -21.3  -21.3
-       09-22 09:52:56.448:    -21.2  -21.2  -21.0  -21.1  -21.1  -21.0  -21.1  -21.0  -20.9  -52.4 ] sum(41.5)
-       09-22 10:07:01.462: [  -21.1  -21.1  -21.1  -21.1  -20.8  -20.7  -20.9  -21.2  -21.1  -21.1
-       09-22 10:07:11.462:    -21.2  -21.1  -21.3  -21.3  -21.3  -21.2  -21.2  -21.0  -36.7 ] sum(41.3)
-       09-22 10:07:23.525: [  -21.1  -21.1  -21.0  -21.1  -21.0  -21.1 ] sum(36.5)
-       09-22 10:10:13.483: [  -21.6  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:10:23.467:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.7 ] sum(40.8)
-       09-22 10:10:35.475: [  -21.6  -21.5  -21.5  -21.5  -21.8  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:10:45.430:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:10:55.430:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:11:05.430:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:11:15.430:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:11:25.430:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:11:35.430:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:11:45.430:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:11:55.430:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -26.0 ] sum(47.8)
-       09-22 10:23:40.609: [  -63.3 ] sum(-13.5)
-       09-22 11:26:52.333: [  -63.3 ] sum(-13.5)
-       09-22 11:27:12.328: [  -63.3 ] sum(-13.5)
+       09-22 15:56:47.859: [  -53.6 ] sum(-3.8)
+       09-22 16:37:06.646: [  -56.7 ] sum(-6.8)
+       09-22 16:39:13.796: [  -63.3 ] sum(-13.5)
+       09-22 16:39:55.932: [  -56.7 ] sum(-6.8)
+       09-22 16:44:50.049: [  -63.3 ] sum(-13.5)
+       09-22 16:46:49.050: [  -63.3 ] sum(-13.5)
+       09-22 16:47:15.711: [  -56.7 ] sum(-6.8)
+       09-22 16:47:36.173: [  -63.3 ] sum(-13.5)
+       09-22 16:48:19.052: [  -56.7 ] sum(-6.8)
       Signal power history (resolution: 50.0 ms):
-       09-22 10:11:56.830:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:11:57.330:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:11:57.830:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:11:58.330:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:11:58.830:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:11:59.330:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:11:59.830:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:12:00.330:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:12:00.830:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:12:01.330:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:12:01.830:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:12:02.330:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:12:02.830:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:12:03.330:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:12:03.830:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5
-       09-22 10:12:04.330:    -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -21.5  -28.7 ] sum(37.3)
-       09-22 10:23:40.609: [  -50.3  -84.5 ] sum(-13.5)
-       09-22 11:26:52.333: [  -50.3  -84.5 ] sum(-13.5)
-       09-22 11:27:12.328: [  -50.3  -84.5 ] sum(-13.5)
+       09-22 15:56:47.859: [  -43.6 ] sum(-6.8)
+       09-22 15:56:47.973: [  -43.6 ] sum(-6.8)
+       09-22 16:37:06.646: [  -43.6 ] sum(-6.8)
+       09-22 16:39:13.796: [  -50.3  -84.5 ] sum(-13.5)
+       09-22 16:39:55.932: [  -43.6 ] sum(-6.8)
+       09-22 16:44:50.049: [  -50.3  -84.5 ] sum(-13.5)
+       09-22 16:46:49.050: [  -50.3  -84.5 ] sum(-13.5)
+       09-22 16:47:15.711: [  -43.6 ] sum(-6.8)
+       09-22 16:47:36.173: [  -50.3  -84.5 ] sum(-13.5)
+       09-22 16:48:19.052: [  -43.6 ] sum(-6.8)
 
-    -15.2 -|                                                                                                                                                                |  |  |
-    -21.5 -|*************************************************************************************************************************************************************** |  |  |
-    -27.8 -|                                                                                                                                                               *|  |  |
-    -34.1 -|                                                                                                                                                                |  |  |
-    -40.4 -|                                                                                                                                                                |  |  |
-    -46.7 -|                                                                                                                                                                |  |  |
-    -53.0 -|                                                                                                                                                                |* |* |*
-    -59.3 -|                                                                                                                                                                |  |  |
-    -65.6 -|                                                                                                                                                                |  |  |
-    -71.9 -|                                                                                                                                                                |  |  |
-    -78.2 -|                                                                                                                                                                |  |  |
-    -84.5 -|                                                                                                                                                                | *| *| *
-    -90.8 -|                                                                                                                                                                |  |  |
-    -97.1 -|                                                                                                                                                                |  |  |
-           |_________________________________________________________________________________________________________________________________________________________________________
+    -39.6 -| | | |  | |  |  | |  |
+    -43.6 -|*|*|*|  |*|  |  |*|  |*
+    -47.7 -| | | |  | |  |  | |  |
+    -51.8 -| | | |* | |* |* | |* |
+    -55.9 -| | | |  | |  |  | |  |
+    -60.0 -| | | |  | |  |  | |  |
+    -64.1 -| | | |  | |  |  | |  |
+    -68.2 -| | | |  | |  |  | |  |
+    -72.2 -| | | |  | |  |  | |  |
+    -76.3 -| | | |  | |  |  | |  |
+    -80.4 -| | | |  | |  |  | |  |
+    -84.5 -| | | | *| | *| *| | *|
+    -88.6 -| | | |  | |  |  | |  |
+    -92.7 -| | | |  | |  |  | |  |
+           |_______________________
 
 
-  Thread throttle time (msecs): 912
-  AudioMixer tracks: 69 109 
+  Thread throttle time (msecs): 677
+  AudioMixer tracks: 58 180 
   Master mono: off
   Master balance: 0.000000 (balance 0 channelCount 2 volumes: 1 1)
   No FastMixer
@@ -123,15 +104,15 @@ Supported latency modes: { }
   Normal mixer raw underrun counters: partial=0 empty=0
   2 Tracks of which 1 are active
     Type     Id Active Client(pid/uid) Session Port Id S  Flags   Format Chn mask  SRate ST Usg CT  G db  L dB  R dB  VS dB  PortVol dB  PortMuted   Server FrmCnt  FrmRdy F Underruns  Flushed BitPerfect InternalMute   Latency
-       S     69     no     673/   1000     177      29 S  0x600 00000001 00000003  48000  1   d  4   -17    -6    -6     0          -11      false 00004680   4512       0 f         0        0      false        false   79.30 k
-            109    yes   31599/  10150     545      69 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0001C4F1  16048   16048 A         0        0      false        false  454.38 t
+       S     58     no     676/   1000     129      18 S  0x600 00000001 00000003  48000  1   d  4   -17    -6    -6     0          -11      false 00004680   4512       0 f         0        0      false        false   79.29 k
+            180    yes   11524/  10150     441     152 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0001D490  16048   16048 A         0        0      false        false  454.35 t
   1 Effect Chains
-    1 effects for session 545
+    1 effects for session 441
 	In buffer     Out buffer                         Active tracks:
-	0x7f0d04df0000   0x7f0d05278000 -> 0x7f0c11f6bb40   1
-	Effect ID 131:
+	0x7737c453b000   0x7737c49c3000 -> 0x77353f98a020   1
+	Effect ID 99:
 		Session State Registered Internal Enabled Suspended:
-		00545   000   y          n        n       n
+		00441   000   y          n        n       n
 		Descriptor:
 		- UUID: ce772f20-847d-11df-bb17-0002a5d5c51b
 		- TYPE: 0bed4300-ddd6-11db-8f34-0002a5d5c51b
@@ -141,143 +122,143 @@ Supported latency modes: { }
 		- implementor: NXP Software Ltd.
 		1 Clients:
 			  Pid Priority Ctrl Locked client server
-			31599        0  yes    yes      0      0
+			11524        0  yes    yes      0      0
 		Status Engine:
-		000    0x7f0a61f74c30
+		000    0x77356f989f00
 		- data: float
 		- Input configuration:
 			Buffer     Frames  Smp rate Channels Format
-			0x7f0d04df0000 01088   48000    00000003      5 (AUDIO_FORMAT_PCM_FLOAT)
+			0x7737c453b000 01088   48000    00000003      5 (AUDIO_FORMAT_PCM_FLOAT)
 		- Output configuration:
 			Buffer     Frames  Smp rate Channels Format
-			0x7f0d05278000 01088   48000    00000003      5 (AUDIO_FORMAT_PCM_FLOAT)
+			0x7737c49c3000 01088   48000    00000003      5 (AUDIO_FORMAT_PCM_FLOAT)
 		- HAL buffers:
-			In(0x7f0d04df0000) InConversion(nullptr) Out(0x7f0d05278000 -> 0x7f0c11f6bb40) OutConversion(nullptr)
-	Effect ID 131 HAL dump:
+			In(0x7737c453b000) InConversion(nullptr) Out(0x7737c49c3000 -> 0x77353f98a020) OutConversion(nullptr)
+	Effect ID 99 HAL dump:
   Local log:
                                                          Type     Id Active Client(pid/uid) Session Port Id S  Flags   Format Chn mask  SRate ST Usg CT  G db  L dB  R dB  VS dB  PortVol dB  PortMuted   Server FrmCnt  FrmRdy F Underruns  Flushed BitPerfect InternalMute   Latency
-   09-22 10:19:18.955 removeTrack_l (0x7f0aa1f73258)          72     no    8725/  10150     209      32 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 003F062B  16048   15048 f         0        0      false        false  397.05 k
-   09-22 10:20:09.298 AT::add       (0x7f0aa1f73258)          73     no    9408/  10150     217      33 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 10:20:27.478 AT::remove    (0x7f0aa1f73258)          73     no    9408/  10150     217      33 P  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000C203A  16048   15048 A         0        0      false        false  420.57 k
-   09-22 10:20:31.406 AT::add       (0x7f0aa1f73258)          73     no    9408/  10150     217      33 r  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000C203A  16048   16048 f         0        0      false        false  443.25 k
-   09-22 10:20:35.622 AT::add       (0x7f0aa1f74678)          74     no    9408/  10150     217      34 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 10:20:35.737 AT::remove    (0x7f0aa1f73258)          73     no    9408/  10150     217      33 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000F0236  16048       0 f         0    15048      false        false   90.45 k
-   09-22 10:20:35.737 removeTrack_l (0x7f0aa1f73258)          73     no    9408/  10150     217      33 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000F0236  16048       0 f         0    15048      false        false   90.45 k
-   09-22 10:23:40.565 AT::add       (0x7f0aa1f72848)    S     69     no     673/   1000     177      29 A  0x200 00000001 00000003  48000  1   d  4   -17    -6    -6     0          -11      false 000011A0   4512       0 F         0        0      false        false   90.46 k
-   09-22 10:23:40.814 AT::remove    (0x7f0aa1f72848)    S     69     no     673/   1000     177      29 S  0x600 00000001 00000003  48000  1   d  4   -17    -6    -6     0          -11      false 00002340   4512       0 f         0        0      false        false   87.46 k
-   09-22 10:31:08.048 AT::remove    (0x7f0aa1f74678)          74     no    9408/  10150     217      34 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 01A97172  16048   16048 f         0        0      false        false  411.27 k
-   09-22 10:31:08.048 removeTrack_l (0x7f0aa1f74678)          74     no    9408/  10150     217      34 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 01A97172  16048   16048 f         0        0      false        false  411.27 k
-   09-22 10:37:45.544 AT::add       (0x7f0aa1f74678)          75     no   12686/  10150     273      35 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 10:38:27.708 AT::remove    (0x7f0aa1f74678)          75     no   12686/  10150     273      35 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 001C4362  16048   16048 f         0        0      false        false  440.30 k
-   09-22 10:38:27.708 removeTrack_l (0x7f0aa1f74678)          75     no   12686/  10150     273      35 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 001C4362  16048   16048 f         0        0      false        false  440.30 k
-   09-22 10:38:57.445 AT::add       (0x7f0aa1f71e38)          76     no   13316/  10150     281      36 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 10:39:15.716 AT::remove    (0x7f0aa1f71e38)          76     no   13316/  10150     281      36 P  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000C37A7  16048   15049 A         0        0      false        false  420.64 k
-   09-22 10:39:19.623 AT::add       (0x7f0aa1f71e38)          76     no   13316/  10150     281      36 r  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000C37A7  16048   16048 f         0        0      false        false  443.30 k
-   09-22 10:39:23.814 AT::add       (0x7f0aa1f74678)          77     no   13316/  10150     281      37 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 10:39:23.932 AT::remove    (0x7f0aa1f71e38)          76     no   13316/  10150     281      36 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000F15BB  16048       0 f         0    15049      false        false   90.34 k
-   09-22 10:39:23.932 removeTrack_l (0x7f0aa1f71e38)          76     no   13316/  10150     281      36 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000F15BB  16048       0 f         0    15049      false        false   90.34 k
-   09-22 10:59:30.317 AT::remove    (0x7f0aa1f74678)          77     no   13316/  10150     281      37 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 032BBF78  16048   15048 f         0        0      false        false  388.88 k
-   09-22 10:59:30.317 removeTrack_l (0x7f0aa1f74678)          77     no   13316/  10150     281      37 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 032BBF78  16048   15048 f         0        0      false        false  388.88 k
-   09-22 10:59:57.197 AT::add       (0x7f0aa1f73c68)          78     no   13878/  10150     289      38 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:02:15.294 AT::remove    (0x7f0aa1f73c68)          78     no   13878/  10150     289      38 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 005CD3ED  16048   15049 f         0        0      false        false  417.62 k
-   09-22 11:02:15.294 removeTrack_l (0x7f0aa1f73c68)          78     no   13878/  10150     289      38 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 005CD3ED  16048   15049 f         0        0      false        false  417.62 k
-   09-22 11:02:27.131 AT::add       (0x7f0aa1f73c68)          79     no   14232/  10150     305      39 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:03:15.140 AT::remove    (0x7f0aa1f73c68)          79     no   14232/  10150     305      39 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00203A9A  16048   15049 f         0        0      false        false  420.68 k
-   09-22 11:03:15.141 removeTrack_l (0x7f0aa1f73c68)          79     no   14232/  10150     305      39 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00203A9A  16048   15049 f         0        0      false        false  420.68 k
-   09-22 11:03:27.928 AT::add       (0x7f0aa1f73c68)          80     no   14674/  10150     321      40 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:04:51.061 AT::add       (0x7f0aa1f74678)          81     no   14674/  10150     321      41 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:04:51.183 AT::remove    (0x7f0aa1f73c68)          80     no   14674/  10150     321      40 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0037F264  16048       0 f         0    15049      false        false   90.40 k
-   09-22 11:04:51.183 removeTrack_l (0x7f0aa1f73c68)          80     no   14674/  10150     321      40 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0037F264  16048       0 f         0    15049      false        false   90.40 k
-   09-22 11:05:23.887 AT::remove    (0x7f0aa1f74678)          81     no   14674/  10150     321      41 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0015F6C0  16048   15048 f         0        0      false        false  375.37 k
-   09-22 11:05:23.887 removeTrack_l (0x7f0aa1f74678)          81     no   14674/  10150     321      41 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0015F6C0  16048   15048 f         0        0      false        false  375.37 k
-   09-22 11:05:47.726 AT::add       (0x7f0aa1f71e38)          82     no   15345/  10150     337      42 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:06:24.469 AT::remove    (0x7f0aa1f71e38)          82     no   15345/  10150     337      42 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00189E2A  16048   15048 f         0        0      false        false  420.52 k
-   09-22 11:06:24.469 removeTrack_l (0x7f0aa1f71e38)          82     no   15345/  10150     337      42 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00189E2A  16048   15048 f         0        0      false        false  420.52 k
-   09-22 11:06:36.261 AT::add       (0x7f0aa1f73258)          83     no   15674/  10150     353      43 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:07:04.550 AT::remove    (0x7f0aa1f73258)          83     no   15674/  10150     353      43 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0012F586  16048   15049 f         0        0      false        false  415.84 k
-   09-22 11:07:04.550 removeTrack_l (0x7f0aa1f73258)          83     no   15674/  10150     353      43 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0012F586  16048   15049 f         0        0      false        false  415.84 k
-   09-22 11:07:17.353 AT::add       (0x7f0aa1f71428)          84     no   16000/  10150     369      44 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:08:20.722 AT::add       (0x7f0aa1f75a98)          85     no   16000/  10150     369      45 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:08:20.843 AT::remove    (0x7f0aa1f71428)          84     no   16000/  10150     369      44 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 002AA581  16048       0 f         0    15049      false        false   90.45 k
-   09-22 11:08:20.843 removeTrack_l (0x7f0aa1f71428)          84     no   16000/  10150     369      44 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 002AA581  16048       0 f         0    15049      false        false   90.45 k
-   09-22 11:08:38.976 AT::remove    (0x7f0aa1f75a98)          85     no   16000/  10150     369      45 S  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000C2E80  16048       0 f         0        0      false        false   79.31 k
-   09-22 11:08:39.950 removeTrack_l (0x7f0aa1f75a98)          85     no   16000/  10150     369      45 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000C2E80  16048       0 f         0        0      false        false   79.31 k
-   09-22 11:08:50.758 AT::add       (0x7f0aa1f75a98)          86     no   16000/  10150     369      46 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048   16048 f         0        0      false        false       new
-   09-22 11:24:04.249 AT::remove    (0x7f0aa1f75a98)          86     no   16000/  10150     369      46 P  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0266AB00  16048   15048 A         0        0      false        false  420.53 k
-   09-22 11:26:17.863 removeTrack_l (0x7f0aa1f75a98)          86     no   16000/  10150     369      46 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0266AB00  16048   16048 A         0        0      false        false  443.21 k
-   09-22 11:26:52.330 AT::add       (0x7f0aa1f72848)    S     69     no     673/   1000     177      29 A  0x200 00000001 00000003  48000  1   d  4   -17    -6    -6     0          -11      false 00002340   4512       0 F         0        0      false        false   87.46 k
-   09-22 11:26:52.492 AT::remove    (0x7f0aa1f72848)    S     69     no     673/   1000     177      29 S  0x600 00000001 00000003  48000  1   d  4   -17    -6    -6     0          -11      false 000034E0   4512       0 f         0        0      false        false   79.36 k
-   09-22 11:27:12.326 AT::add       (0x7f0aa1f72848)    S     69     no     673/   1000     177      29 A  0x200 00000001 00000003  48000  1   d  4   -17    -6    -6     0          -11      false 000034E0   4512       0 F         0        0      false        false   79.36 k
-   09-22 11:27:12.487 AT::remove    (0x7f0aa1f72848)    S     69     no     673/   1000     177      29 S  0x600 00000001 00000003  48000  1   d  4   -17    -6    -6     0          -11      false 00004680   4512       0 f         0        0      false        false   79.30 k
-   09-22 11:29:58.550 AT::add       (0x7f0aa1f764a8)          87     no   17822/  10150     417      47 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:30:26.884 AT::remove    (0x7f0aa1f764a8)          87     no   17822/  10150     417      47 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0012FD56  16048   14048 f         0        0      false        false  397.75 k
-   09-22 11:30:26.884 removeTrack_l (0x7f0aa1f764a8)          87     no   17822/  10150     417      47 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0012FD56  16048   14048 f         0        0      false        false  397.75 k
-   09-22 11:30:39.706 AT::add       (0x7f0aa1f75a98)          88     no   18172/  10150     433      48 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:31:43.120 AT::add       (0x7f0aa1f71428)          89     no   18172/  10150     433      49 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:31:43.242 AT::remove    (0x7f0aa1f75a98)          88     no   18172/  10150     433      48 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 002AAD50  16048       0 f         0    15049      false        false   90.47 k
-   09-22 11:31:43.242 removeTrack_l (0x7f0aa1f75a98)          88     no   18172/  10150     433      48 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 002AAD50  16048       0 f         0    15049      false        false   90.47 k
-   09-22 11:32:01.352 AT::remove    (0x7f0aa1f71428)          89     no   18172/  10150     433      49 S  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000C2E80  16048       0 f         0        0      false        false   79.32 k
-   09-22 11:32:02.327 removeTrack_l (0x7f0aa1f71428)          89     no   18172/  10150     433      49 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000C2E80  16048       0 f         0        0      false        false   79.32 k
-   09-22 11:32:13.140 AT::add       (0x7f0aa1f71428)          90     no   18172/  10150     433      50 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048   16048 f         0        0      false        false       new
-   09-22 11:47:26.608 AT::remove    (0x7f0aa1f71428)          90     no   18172/  10150     433      50 P  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0266A718  16048   16048 A         0        0      false        false  443.30 k
-   09-22 11:48:35.351 removeTrack_l (0x7f0aa1f71428)          90     no   18172/  10150     433      50 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0266A718  16048   16048 A         0        0      false        false  443.30 k
-   09-22 11:49:26.945 AT::add       (0x7f0aa1f71428)          91     no   19268/  10150     465      51 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:52:34.392 AT::remove    (0x7f0aa1f71428)          91     no   19268/  10150     465      51 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 007E086E  16048   15049 f         0        0      false        false  397.65 k
-   09-22 11:52:34.392 removeTrack_l (0x7f0aa1f71428)          91     no   19268/  10150     465      51 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 007E086E  16048   15049 f         0        0      false        false  397.65 k
-   09-22 11:53:06.318 AT::add       (0x7f0aa1f71428)          92     no   20009/  10150     481      52 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:53:35.639 AT::add       (0x7f0aa1f75a98)          93     no   20009/  10150     481      53 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:53:35.762 AT::remove    (0x7f0aa1f71428)          92     no   20009/  10150     481      52 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0013C092  16048       0 f         0    15048      false        false   90.45 k
-   09-22 11:53:35.762 removeTrack_l (0x7f0aa1f71428)          92     no   20009/  10150     481      52 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0013C092  16048       0 f         0    15048      false        false   90.45 k
-   09-22 11:54:12.980 AT::add       (0x7f0aa1f73258)          94     no   20009/  10150     481      54 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:54:13.094 AT::remove    (0x7f0aa1f75a98)          93     no   20009/  10150     481      53 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00191F05  16048       0 f         0    15048      false        false   90.49 k
-   09-22 11:54:13.094 removeTrack_l (0x7f0aa1f75a98)          93     no   20009/  10150     481      53 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00191F05  16048       0 f         0    15048      false        false   90.49 k
-   09-22 11:54:20.691 AT::add       (0x7f0aa1f71428)          95     no   20009/  10150     481      55 A  0x000 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00000000  16048   11351 f         0        0      false        false       new
-   09-22 11:54:25.702 AT::add       (0x7f0aa1f764a8)          96     no   20009/  10150     481      56 A  0x000 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:54:25.833 AT::remove    (0x7f0aa1f73258)          94     no   20009/  10150     481      54 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00088AA0  16048       0 f         0    14048      false        false   90.44 k
-   09-22 11:54:25.833 removeTrack_l (0x7f0aa1f73258)          94     no   20009/  10150     481      54 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00088AA0  16048       0 f         0    14048      false        false   90.44 k
-   09-22 11:54:26.196 AT::remove    (0x7f0aa1f71428)          95     no   20009/  10150     481      55 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00039D69  16048       0 f         0    15048      false        false   90.50 k
-   09-22 11:54:26.196 removeTrack_l (0x7f0aa1f71428)          95     no   20009/  10150     481      55 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00039D69  16048       0 f         0    15048      false        false   90.50 k
-   09-22 11:54:32.808 AT::add       (0x7f0aa1f74678)          97     no   20009/  10150     481      57 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:54:32.928 AT::remove    (0x7f0aa1f764a8)          96     no   20009/  10150     481      56 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0004C62A  16048       0 f         0    15049      false        false   90.44 k
-   09-22 11:54:32.928 removeTrack_l (0x7f0aa1f764a8)          96     no   20009/  10150     481      56 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0004C62A  16048       0 f         0    15049      false        false   90.44 k
-   09-22 11:54:37.120 AT::add       (0x7f0aa1f73c68)          98     no   20009/  10150     481      58 A  0x000 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00000000  16048   11351 f         0        0      false        false       new
-   09-22 11:54:39.569 AT::remove    (0x7f0aa1f73c68)          98     no   20009/  10150     481      58 T  0x600 00000001 00000001  44100  3   1  2  -inf  -3.8  -3.8     0         -inf       true 0001922E  16048       0 f         0    15049      false        false   79.35 k
-   09-22 11:54:39.569 removeTrack_l (0x7f0aa1f73c68)          98     no   20009/  10150     481      58 T  0x600 00000001 00000001  44100  3   1  2  -inf  -3.8  -3.8     0         -inf       true 0001922E  16048       0 f         0    15049      false        false   79.35 k
-   09-22 11:54:39.569 AT::remove    (0x7f0aa1f74678)          97     no   20009/  10150     481      57 P  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00047043  16048   15049 A         0        0      false        false  420.60 k
-   09-22 11:54:43.039 AT::add       (0x7f0aa1f74678)          97     no   20009/  10150     481      57 r  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00047043  16048   16048 f         0        0      false        false  443.25 k
-   09-22 11:55:00.790 AT::add       (0x7f0aa1f73c68)          99     no   20009/  10150     481      59 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:55:00.924 AT::remove    (0x7f0aa1f74678)          97     no   20009/  10150     481      57 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00107140  16048       0 f         0    15048      false        false   90.52 k
-   09-22 11:55:00.924 removeTrack_l (0x7f0aa1f74678)          97     no   20009/  10150     481      57 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00107140  16048       0 f         0    15048      false        false   90.52 k
-   09-22 11:55:10.058 AT::remove    (0x7f0aa1f73c68)          99     no   20009/  10150     481      59 S  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00062280  16048       0 f         0        0      false        false   79.41 k
-   09-22 11:55:11.025 removeTrack_l (0x7f0aa1f73c68)          99     no   20009/  10150     481      59 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00062280  16048       0 f         0        0      false        false   79.41 k
-   09-22 11:55:12.511 removeTrack_l (0x7f0aa1f73c68)         100     no   20009/  10150     481      60 T  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048    2135 I         0        0      false        false       new
-   09-22 11:55:24.400 AT::add       (0x7f0aa1f73c68)         101     no   31020/  10150     513      61 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:56:49.703 AT::remove    (0x7f0aa1f73c68)         101     no   31020/  10150     513      61 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 003951D0  16048   15049 f         0        0      false        false  417.51 k
-   09-22 11:56:49.703 removeTrack_l (0x7f0aa1f73c68)         101     no   31020/  10150     513      61 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 003951D0  16048   15049 f         0        0      false        false  417.51 k
-   09-22 11:57:01.937 AT::add       (0x7f0aa1f70008)         102     no   31284/  10150     529      62 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:57:07.910 AT::add       (0x7f0aa1f73c68)         103     no   31284/  10150     529      63 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:57:08.035 AT::remove    (0x7f0aa1f70008)         102     no   31284/  10150     529      62 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000406D6  16048       0 f         0    15048      false        false   90.34 k
-   09-22 11:57:08.035 removeTrack_l (0x7f0aa1f70008)         102     no   31284/  10150     529      62 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000406D6  16048       0 f         0    15048      false        false   90.34 k
-   09-22 11:57:59.282 AT::remove    (0x7f0aa1f73c68)         103     no   31284/  10150     529      63 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 002274B0  16048   14049 f         0        0      false        false  391.27 k
-   09-22 11:57:59.282 removeTrack_l (0x7f0aa1f73c68)         103     no   31284/  10150     529      63 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 002274B0  16048   14049 f         0        0      false        false  391.27 k
-   09-22 11:58:11.033 AT::add       (0x7f0aa1f73c68)         104     no   31599/  10150     545      64 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:58:40.394 AT::add       (0x7f0aa1f70008)         105     no   31599/  10150     545      65 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:58:40.523 AT::remove    (0x7f0aa1f73c68)         104     no   31599/  10150     545      64 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0013C861  16048       0 f         0    15048      false        false   90.20 k
-   09-22 11:58:40.523 removeTrack_l (0x7f0aa1f73c68)         104     no   31599/  10150     545      64 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0013C861  16048       0 f         0    15048      false        false   90.20 k
-   09-22 11:59:17.964 AT::add       (0x7f0aa1f73c68)         106     no   31599/  10150     545      66 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:59:18.081 AT::remove    (0x7f0aa1f70008)         105     no   31599/  10150     545      65 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00194611  16048       0 f         0    15048      false        false   90.47 k
-   09-22 11:59:18.081 removeTrack_l (0x7f0aa1f70008)         105     no   31599/  10150     545      65 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00194611  16048       0 f         0    15048      false        false   90.47 k
-   09-22 11:59:25.684 AT::add       (0x7f0aa1f73258)         107     no   31599/  10150     545      67 A  0x000 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00000000  16048   11351 f         0        0      false        false       new
-   09-22 11:59:30.649 AT::add       (0x7f0aa1f70008)         108     no   31599/  10150     545      68 A  0x000 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:59:30.775 AT::remove    (0x7f0aa1f73c68)         106     no   31599/  10150     545      66 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 000886B8  16048       0 f         0    15048      false        false   90.41 k
-   09-22 11:59:30.775 removeTrack_l (0x7f0aa1f73c68)         106     no   31599/  10150     545      66 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 000886B8  16048       0 f         0    15048      false        false   90.41 k
-   09-22 11:59:30.827 AT::add       (0x7f0aa1f75a98)         109     no   31599/  10150     545      69 A  0x000 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
-   09-22 11:59:30.956 AT::remove    (0x7f0aa1f70008)         108     no   31599/  10150     545      68 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00001B55  16048       0 f         0    15048      false        false   90.40 k
-   09-22 11:59:30.956 removeTrack_l (0x7f0aa1f70008)         108     no   31599/  10150     545      68 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00001B55  16048       0 f         0    15048      false        false   90.40 k
-   09-22 11:59:31.341 AT::remove    (0x7f0aa1f73258)         107     no   31599/  10150     545      67 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 0003B8BE  16048       0 f         0    15048      false        false   90.46 k
-   09-22 11:59:31.341 removeTrack_l (0x7f0aa1f73258)         107     no   31599/  10150     545      67 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 0003B8BE  16048       0 f         0    15048      false        false   90.46 k
+   09-22 19:10:34.492 AT::add       (0x7735ef992678)         141     no   10072/  10150     393     113 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.094 AT::add       (0x7735ef9962d8)         142     no   10072/  10150     393     114 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.122 AT::add       (0x7735ef99b358)         143     no   10072/  10150     393     115 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.161 AT::add       (0x7735ef9976f8)         144     no   10072/  10150     393     116 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.191 AT::add       (0x7735ef993a98)         145     no   10072/  10150     393     117 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.202 AT::remove    (0x7735ef992678)         141     no   10072/  10150     393     113 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00047043  16048       0 f         0    15049      false        false   89.96 k
+   09-22 19:10:41.202 removeTrack_l (0x7735ef992678)         141     no   10072/  10150     393     113 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00047043  16048       0 f         0    15049      false        false   89.96 k
+   09-22 19:10:41.247 AT::remove    (0x7735ef9962d8)         142     no   10072/  10150     393     114 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   78.74 k
+   09-22 19:10:41.247 removeTrack_l (0x7735ef9962d8)         142     no   10072/  10150     393     114 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   78.74 k
+   09-22 19:10:41.261 AT::add       (0x7735ef991c68)         146     no   10072/  10150     393     118 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.270 AT::remove    (0x7735ef99b358)         143     no   10072/  10150     393     115 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   78.38 k
+   09-22 19:10:41.270 removeTrack_l (0x7735ef99b358)         143     no   10072/  10150     393     115 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   78.38 k
+   09-22 19:10:41.314 AT::add       (0x7735ef993088)         147     no   10072/  10150     393     119 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.315 AT::remove    (0x7735ef9976f8)         144     no   10072/  10150     393     116 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   79.00 k
+   09-22 19:10:41.315 removeTrack_l (0x7735ef9976f8)         144     no   10072/  10150     393     116 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   79.00 k
+   09-22 19:10:41.339 AT::remove    (0x7735ef993a98)         145     no   10072/  10150     393     117 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   89.04 k
+   09-22 19:10:41.339 removeTrack_l (0x7735ef993a98)         145     no   10072/  10150     393     117 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   89.04 k
+   09-22 19:10:41.345 AT::add       (0x7735ef996ce8)         148     no   10072/  10150     393     120 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.407 AT::remove    (0x7735ef991c68)         146     no   10072/  10150     393     118 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   89.39 k
+   09-22 19:10:41.407 removeTrack_l (0x7735ef991c68)         146     no   10072/  10150     393     118 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   89.39 k
+   09-22 19:10:41.422 AT::add       (0x7735ef9976f8)         149     no   10072/  10150     393     121 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.451 AT::remove    (0x7735ef993088)         147     no   10072/  10150     393     119 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     1928      false        false   84.44 k
+   09-22 19:10:41.451 removeTrack_l (0x7735ef993088)         147     no   10072/  10150     393     119 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     1928      false        false   84.44 k
+   09-22 19:10:41.465 AT::add       (0x7735ef991c68)         150     no   10072/  10150     393     122 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.497 AT::remove    (0x7735ef996ce8)         148     no   10072/  10150     393     120 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     7688      false        false   88.60 k
+   09-22 19:10:41.497 removeTrack_l (0x7735ef996ce8)         148     no   10072/  10150     393     120 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     7688      false        false   88.60 k
+   09-22 19:10:41.531 AT::add       (0x7735ef993a98)         151     no   10072/  10150     393     123 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.554 AT::add       (0x7735ef993088)         152     no   10072/  10150     393     124 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.582 AT::add       (0x7735ef99bd68)         153     no   10072/  10150     393     125 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.588 AT::remove    (0x7735ef9976f8)         149     no   10072/  10150     393     121 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0    12296      false        false   90.22 k
+   09-22 19:10:41.588 removeTrack_l (0x7735ef9976f8)         149     no   10072/  10150     393     121 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0    12296      false        false   90.22 k
+   09-22 19:10:41.610 AT::remove    (0x7735ef991c68)         150     no   10072/  10150     393     122 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   89.03 k
+   09-22 19:10:41.610 removeTrack_l (0x7735ef991c68)         150     no   10072/  10150     393     122 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   89.03 k
+   09-22 19:10:41.614 AT::add       (0x7735ef9962d8)         154     no   10072/  10150     393     126 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.678 AT::remove    (0x7735ef993a98)         151     no   10072/  10150     393     123 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   79.25 k
+   09-22 19:10:41.678 removeTrack_l (0x7735ef993a98)         151     no   10072/  10150     393     123 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   79.25 k
+   09-22 19:10:41.680 AT::add       (0x7735ef992678)         155     no   10072/  10150     393     127 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.701 AT::remove    (0x7735ef993088)         152     no   10072/  10150     393     124 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   87.76 k
+   09-22 19:10:41.701 removeTrack_l (0x7735ef993088)         152     no   10072/  10150     393     124 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   87.76 k
+   09-22 19:10:41.723 AT::remove    (0x7735ef99bd68)         153     no   10072/  10150     393     125 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   90.10 k
+   09-22 19:10:41.723 removeTrack_l (0x7735ef99bd68)         153     no   10072/  10150     393     125 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   90.10 k
+   09-22 19:10:41.745 AT::add       (0x7735ef999f38)         156     no   10072/  10150     393     128 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:41.770 AT::remove    (0x7735ef9962d8)         154     no   10072/  10150     393     126 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     5384      false        false   68.20 k
+   09-22 19:10:41.770 removeTrack_l (0x7735ef9962d8)         154     no   10072/  10150     393     126 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     5384      false        false   68.20 k
+   09-22 19:10:41.837 AT::remove    (0x7735ef992678)         155     no   10072/  10150     393     127 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     6536      false        false   90.44 k
+   09-22 19:10:41.837 removeTrack_l (0x7735ef992678)         155     no   10072/  10150     393     127 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     6536      false        false   90.44 k
+   09-22 19:10:45.407 AT::add       (0x7735ef996ce8)         157     no   10072/  10150     393     129 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:10:45.531 AT::remove    (0x7735ef999f38)         156     no   10072/  10150     393     128 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000274A7  16048       0 f         0    15049      false        false   90.40 k
+   09-22 19:10:45.531 removeTrack_l (0x7735ef999f38)         156     no   10072/  10150     393     128 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000274A7  16048       0 f         0    15049      false        false   90.40 k
+   09-22 19:10:49.181 AT::remove    (0x7735ef996ce8)         157     no   10072/  10150     393     129 T  0x400 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000274A7  16048   15049 f         0        0      false        false  417.67 k
+   09-22 19:10:49.181 removeTrack_l (0x7735ef996ce8)         157     no   10072/  10150     393     129 T  0x400 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000274A7  16048   15049 f         0        0      false        false  417.67 k
+   09-22 19:11:05.075 AT::add       (0x7735ef9944a8)         158     no   10356/  10150     409     130 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:11.698 AT::add       (0x7735ef99bd68)         159     no   10356/  10150     409     131 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:11.809 AT::remove    (0x7735ef9944a8)         158     no   10356/  10150     409     130 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00047812  16048       0 f         0    15049      false        false   77.64 k
+   09-22 19:11:11.809 removeTrack_l (0x7735ef9944a8)         158     no   10356/  10150     409     130 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00047812  16048       0 f         0    15049      false        false   77.64 k
+   09-22 19:11:11.811 AT::add       (0x7735ef99b358)         160     no   10356/  10150     409     132 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:11.854 AT::remove    (0x7735ef99bd68)         159     no   10356/  10150     409     131 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   90.37 k
+   09-22 19:11:11.854 removeTrack_l (0x7735ef99bd68)         159     no   10356/  10150     409     131 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   90.37 k
+   09-22 19:11:11.915 AT::add       (0x7735ef993088)         161     no   10356/  10150     409     133 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:11.942 AT::add       (0x7735ef99bd68)         162     no   10356/  10150     409     134 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:11.959 AT::add       (0x7735ef993a98)         163     no   10356/  10150     409     135 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:11.967 AT::remove    (0x7735ef99b358)         160     no   10356/  10150     409     132 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   89.31 k
+   09-22 19:11:11.967 removeTrack_l (0x7735ef99b358)         160     no   10356/  10150     409     132 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   89.31 k
+   09-22 19:11:11.980 AT::add       (0x7735ef999f38)         164     no   10356/  10150     409     136 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:12.013 AT::add       (0x7735ef991c68)         165     no   10356/  10150     409     137 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:12.048 AT::add       (0x7735ef9962d8)         166     no   10356/  10150     409     138 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:12.058 AT::remove    (0x7735ef993088)         161     no   10356/  10150     409     133 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   88.40 k
+   09-22 19:11:12.058 removeTrack_l (0x7735ef993088)         161     no   10356/  10150     409     133 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   88.40 k
+   09-22 19:11:12.083 AT::remove    (0x7735ef99bd68)         162     no   10356/  10150     409     134 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   89.74 k
+   09-22 19:11:12.083 removeTrack_l (0x7735ef99bd68)         162     no   10356/  10150     409     134 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   89.74 k
+   09-22 19:11:12.088 AT::add       (0x7735ef996ce8)         167     no   10356/  10150     409     139 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:12.103 AT::remove    (0x7735ef993a98)         163     no   10356/  10150     409     135 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   82.39 k
+   09-22 19:11:12.103 removeTrack_l (0x7735ef993a98)         163     no   10356/  10150     409     135 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   82.39 k
+   09-22 19:11:12.127 AT::remove    (0x7735ef999f38)         164     no   10356/  10150     409     136 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 0000026F  16048       0 f         0        0      false        false   89.83 k
+   09-22 19:11:12.127 removeTrack_l (0x7735ef999f38)         164     no   10356/  10150     409     136 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 0000026F  16048       0 f         0        0      false        false   89.83 k
+   09-22 19:11:12.147 AT::add       (0x7735ef998b18)         168     no   10356/  10150     409     140 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:12.172 AT::remove    (0x7735ef991c68)         165     no   10356/  10150     409     137 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   87.39 k
+   09-22 19:11:12.172 removeTrack_l (0x7735ef991c68)         165     no   10356/  10150     409     137 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   87.39 k
+   09-22 19:11:12.174 AT::add       (0x7735ef999f38)         169     no   10356/  10150     409     141 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:12.194 AT::remove    (0x7735ef9962d8)         166     no   10356/  10150     409     138 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   87.70 k
+   09-22 19:11:12.194 removeTrack_l (0x7735ef9962d8)         166     no   10356/  10150     409     138 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   87.70 k
+   09-22 19:11:12.219 AT::add       (0x7735ef9976f8)         170     no   10356/  10150     409     142 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:12.239 AT::remove    (0x7735ef996ce8)         167     no   10356/  10150     409     139 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   88.30 k
+   09-22 19:11:12.239 removeTrack_l (0x7735ef996ce8)         167     no   10356/  10150     409     139 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   88.30 k
+   09-22 19:11:12.284 AT::remove    (0x7735ef998b18)         168     no   10356/  10150     409     140 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   78.76 k
+   09-22 19:11:12.284 removeTrack_l (0x7735ef998b18)         168     no   10356/  10150     409     140 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   78.76 k
+   09-22 19:11:12.288 AT::add       (0x7735ef993088)         171     no   10356/  10150     409     143 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:12.310 AT::add       (0x7735ef998108)         172     no   10356/  10150     409     144 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:12.330 AT::remove    (0x7735ef999f38)         169     no   10356/  10150     409     141 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     7688      false        false   90.20 k
+   09-22 19:11:12.330 removeTrack_l (0x7735ef999f38)         169     no   10356/  10150     409     141 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     7688      false        false   90.20 k
+   09-22 19:11:12.375 AT::remove    (0x7735ef9976f8)         170     no   10356/  10150     409     142 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   88.78 k
+   09-22 19:11:12.375 removeTrack_l (0x7735ef9976f8)         170     no   10356/  10150     409     142 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     3080      false        false   88.78 k
+   09-22 19:11:12.443 AT::remove    (0x7735ef993088)         171     no   10356/  10150     409     143 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     7688      false        false   90.36 k
+   09-22 19:11:12.443 removeTrack_l (0x7735ef993088)         171     no   10356/  10150     409     143 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000003E7  16048       0 f         0     7688      false        false   90.36 k
+   09-22 19:11:15.987 AT::add       (0x7735ef992678)         173     no   10356/  10150     409     145 A  0x000 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:11:16.115 AT::remove    (0x7735ef998108)         172     no   10356/  10150     409     144 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 0002788F  16048       0 f         0    15048      false        false   90.45 k
+   09-22 19:11:16.115 removeTrack_l (0x7735ef998108)         172     no   10356/  10150     409     144 T  0x600 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 0002788F  16048       0 f         0    15048      false        false   90.45 k
+   09-22 19:11:19.764 AT::remove    (0x7735ef992678)         173     no   10356/  10150     409     145 T  0x400 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000274A7  16048   15049 f         0        0      false        false  420.61 k
+   09-22 19:11:19.764 removeTrack_l (0x7735ef992678)         173     no   10356/  10150     409     145 T  0x400 00000001 00000003  44100  3   1  2  -inf     0     0     0         -inf       true 000274A7  16048   15049 f         0        0      false        false  420.61 k
+   09-22 19:12:01.224 AT::add       (0x7735ef9944a8)         174     no   10865/  10150     425     146 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:12:19.290 AT::remove    (0x7735ef9944a8)         174     no   10865/  10150     425     146 P  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000C1483  16048   15048 A         0        0      false        false  420.62 k
+   09-22 19:12:23.222 AT::add       (0x7735ef9944a8)         174     no   10865/  10150     425     146 r  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000C1483  16048   16048 f         0        0      false        false  443.30 k
+   09-22 19:12:27.411 AT::add       (0x7735ef996ce8)         175     no   10865/  10150     425     147 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:12:27.530 AT::remove    (0x7735ef9944a8)         174     no   10865/  10150     425     146 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000EF297  16048       0 f         0    15049      false        false   90.46 k
+   09-22 19:12:27.530 removeTrack_l (0x7735ef9944a8)         174     no   10865/  10150     425     146 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 000EF297  16048       0 f         0    15049      false        false   90.46 k
+   09-22 19:13:02.900 AT::remove    (0x7735ef996ce8)         175     no   10865/  10150     425     147 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0017C380  16048   14049 f         0        0      false        false  377.74 k
+   09-22 19:13:02.900 removeTrack_l (0x7735ef996ce8)         175     no   10865/  10150     425     147 T  0x400 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0017C380  16048   14049 f         0        0      false        false  377.74 k
+   09-22 19:13:14.648 AT::add       (0x7735ef991c68)         176     no   11524/  10150     441     148 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:13:44.029 AT::add       (0x7735ef998108)         177     no   11524/  10150     441     149 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:13:44.138 AT::remove    (0x7735ef991c68)         176     no   11524/  10150     441     148 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0013C861  16048       0 f         0    15048      false        false   90.44 k
+   09-22 19:13:44.138 removeTrack_l (0x7735ef991c68)         176     no   11524/  10150     441     148 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 0013C861  16048       0 f         0    15048      false        false   90.44 k
+   09-22 19:14:21.628 AT::add       (0x7735ef991c68)         178     no   11524/  10150     441     150 A  0x000 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:14:21.742 AT::remove    (0x7735ef998108)         177     no   11524/  10150     441     149 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 001949F8  16048       0 f         0    15049      false        false   90.48 k
+   09-22 19:14:21.742 removeTrack_l (0x7735ef998108)         177     no   11524/  10150     441     149 T  0x600 00000001 00000001  44100  3   1  2  -inf     0     0     0         -inf       true 001949F8  16048       0 f         0    15049      false        false   90.48 k
+   09-22 19:14:29.353 AT::add       (0x7735ef996ce8)         179     no   11524/  10150     441     151 A  0x000 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00000000  16048   11351 f         0        0      false        false       new
+   09-22 19:14:34.331 AT::add       (0x7735ef9944a8)         180     no   11524/  10150     441     152 A  0x000 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00000000  16048       0 f         0        0      false        false       new
+   09-22 19:14:34.458 AT::remove    (0x7735ef991c68)         178     no   11524/  10150     441     150 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00088AA0  16048       0 f         0    15048      false        false   90.46 k
+   09-22 19:14:34.458 removeTrack_l (0x7735ef991c68)         178     no   11524/  10150     441     150 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00088AA0  16048       0 f         0    15048      false        false   90.46 k
+   09-22 19:14:34.843 AT::remove    (0x7735ef996ce8)         179     no   11524/  10150     441     151 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00039D69  16048       0 f         0    15048      false        false   90.49 k
+   09-22 19:14:34.843 removeTrack_l (0x7735ef996ce8)         179     no   11524/  10150     441     151 T  0x600 00000001 00000001  44100  3   1  2  -inf  -inf  -inf     0         -inf       true 00039D69  16048       0 f         0    15048      false        false   90.49 k
 
-Output thread 0x7f0d04ab9770, name AudioOut_15, tid 618, type 0 (MIXER):
+Output thread 0x7737c42fa770, name AudioOut_15, tid 635, type 0 (MIXER):
   I/O handle: 21
   Standby: yes
   Sample rate: 48000 Hz
@@ -304,7 +285,7 @@ Output thread 0x7f0d04ab9770, name AudioOut_15, tid 618, type 0 (MIXER):
   Suspend count: 0
   Fast track availMask=0xfe
   Standby delay ns=3000000000
-  AudioStreamOut: 0x7f0ad1f7efd0 flags 0 (AUDIO_OUTPUT_FLAG_NONE)
+  AudioStreamOut: 0x77366f9a4a80 flags 0 (AUDIO_OUTPUT_FLAG_NONE)
   Frames written: 0
   Suspended frames: 0
   Hal stream dump:
@@ -324,7 +305,7 @@ Supported latency modes: { }
   0 Effect Chains
   Local log:
                                                          Type     Id Active Client(pid/uid) Session Port Id S  Flags   Format Chn mask  SRate ST Usg CT  G db  L dB  R dB  VS dB  PortVol dB  PortMuted   Server FrmCnt  FrmRdy F Underruns  Flushed BitPerfect InternalMute   Latency
-   09-22 09:34:24.182 CFG_EVENT_CREATE_AUDIO_PATCH: old device  (Empty device types) new device 0x10000 (AUDIO_DEVICE_OUT_TELEPHONY_TX)
+   09-22 15:56:15.920 CFG_EVENT_CREATE_AUDIO_PATCH: old device  (Empty device types) new device 0x10000 (AUDIO_DEVICE_OUT_TELEPHONY_TX)
 
  ## BEGIN setParameters dump 
 
@@ -333,18 +314,18 @@ Supported latency modes: { }
   App setParameters:
 
   System setParameters:
-    09-22 09:34:26.785 UID  1000, 1 KVP received: BT_SCO=off
-    09-22 09:34:26.785 UID  1000, 1 KVP received: A2dpSuspended=false
-    09-22 09:34:26.786 UID  1000, 1 KVP received: LeAudioSuspended=false
-    09-22 09:34:26.991 UID  1000, 1 KVP received: screen_state=on
-    09-22 09:34:27.001 UID  1000, 1 KVP received: screen_state=on
-    09-22 09:34:28.867 UID  1000, 1 KVP received: screen_state=on
+    09-22 15:56:18.123 UID  1000, 1 KVP received: BT_SCO=off
+    09-22 15:56:18.124 UID  1000, 1 KVP received: A2dpSuspended=false
+    09-22 15:56:18.124 UID  1000, 1 KVP received: LeAudioSuspended=false
+    09-22 15:56:18.287 UID  1000, 1 KVP received: screen_state=on
+    09-22 15:56:18.297 UID  1000, 1 KVP received: screen_state=on
+    09-22 15:56:19.441 UID  1000, 1 KVP received: screen_state=on
 
  ## BEGIN misc af dump 
 
 Patches:
-  Patch 12: No software bridge (thread 0x0 => thread 0x0) thread 0x7f0d04cc4ff0 num sinks (1) first device type 00000002
-  Patch 20: No software bridge (thread 0x0 => thread 0x0) thread 0x7f0d04afdff0 num sinks (1) first device type 00010000
+  Patch 12: No software bridge (thread 0x0 => thread 0x0) thread 0x7737c440fff0 num sinks (1) first device type 00000002
+  Patch 20: No software bridge (thread 0x0 => thread 0x0) thread 0x7737c433eff0 num sinks (1) first device type 00010000
 
 Device Effects:
 
