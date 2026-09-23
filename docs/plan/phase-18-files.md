@@ -43,6 +43,23 @@ a recycle bin unless Q3 rules one; zip handling unless Q2 rules it; a "Files" ti
 none; pinning is phase 02's).
 
 ## Decisions
+- 2026-09-23: Interview Q4 — the shell's own app opens its types (Jeremy: "(a)"): images in Photos, video in the shared player,
+  audio in Music (the play-one-track intent is an ADD to phase 10, INDEX Change Log when built); every other type goes to
+  Android's chooser.
+- 2026-09-23: The App Shortcuts under the phase 11 Q1 standing rule (agent; Jeremy can overrule): Files — This device, Recent,
+  Recycle Bin, and SD card while one is inserted.
+- 2026-09-23: Interview Q3 — a shell-owned Recycle Bin for every file type (Jeremy: "(c)"), emptied only by the user. Agent
+  mechanics: one bin folder per storage volume (so a delete is a rename on the same volume, instant, never a copy), with the
+  original path recorded so Restore puts the file back where it was (a clash asks before overwriting); the bin shows in Files
+  with Restore, Delete permanently and Empty; nothing is ever deleted from it automatically. A file deleted by another app never
+  passes through it (the bin covers deletes made in Files).
+- 2026-09-23: Interview Q2 — the full set plus zip plus Recent (Jeremy: "(c)"): browse, sort, search, select, copy / move /
+  rename / delete, new folder, share, properties; zip (open a zip as a folder, extract, create one from a selection); and a
+  Recent view of recently changed files across the phone (read from MediaStore's modified dates, since Android keeps no
+  system-wide "recently opened" list for other apps — agent note).
+- 2026-09-23: Interview Q1 — all-files access (Jeremy: "(a)"): MANAGE_EXTERNAL_STORAGE, granted once, reaching all shared
+  storage and every removable volume. The grant is a Setup checklist row AND a setup-wizard step with its "why" line (phase 12
+  Q1 / Q2: every later phase adds its grant to the wizard).
 - 2026-09-22: From phase 11 interview Q1 (Jeremy: "A"), a standing rule for every shell app: this phase's apps declare their
   own top-level screens as static App Shortcuts, so a hold on their tiles bursts those screens (phase 11). Which screens each app
   declares is settled at this phase's own interview; a build task and an acceptance row carry it.
@@ -116,7 +133,8 @@ none; pinning is phase 02's).
 ## Interview queue (Stage A step 4)
 Load-bearing first. Implementation mechanics are the agent's (P3).
 
-1. **Q1 — the storage model.** It decides what the app can show and every acceptance row.
+1. ~~Q1 — storage model~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Q1 — the storage model.** It decides what the app can show and every acceptance row.
    A. All-files access (`MANAGE_EXTERNAL_STORAGE`): the whole shared storage and every removable volume,
    granted once through the Setup checklist, like W10M's This Device / SD card. (lean — A9: "I will grant
    anything and everything"; P2: no Android consent screen per folder)
@@ -125,20 +143,23 @@ Load-bearing first. Implementation mechanics are the agent's (P3).
    C. Media folders only, with no extra permission: DCIM, Pictures, Movies, Music, Download and Documents
    through MediaStore — no arbitrary folders, no removable volume management.
    D. Other / let me clarify.
-2. **Q2 — what File Explorer holds.** W10M's had browse, sort, select, copy / move / rename / delete, new
+2. ~~Q2 — feature set~~ RULED 2026-09-23: C (see Decisions). Original question kept below.
+   **Q2 — what File Explorer holds.** W10M's had browse, sort, select, copy / move / rename / delete, new
    folder, share and properties; later builds could open zips.
    A. Browse, sort, search, select, copy / move / rename / delete, new folder, share, properties. (lean)
    B. A plus zip: open a zip as a folder, extract, and create one from a selection.
    C. A plus zip plus a Recent view across the phone.
    D. Other / let me clarify.
-3. **Q3 — delete.** W10M deleted for good after a confirmation; Android since 11 has a 30-day trash for media
+3. ~~Q3 — delete~~ RULED 2026-09-23: C (see Decisions). Original question kept below.
+   **Q3 — delete.** W10M deleted for good after a confirmation; Android since 11 has a 30-day trash for media
    files (a system consent dialog per batch; not for other file types).
    A. Permanent after a confirmation, every file type alike (W10M). (lean)
    B. Media files go to Android's trash (recoverable for 30 days, restore offered in Files), other files are
    deleted permanently — a "continued development" P4 addition.
    C. A shell-owned recycle-bin folder for every file type, emptied by the user.
    D. Other / let me clarify.
-4. **Q4 — what opens a file.**
+4. ~~Q4 — what opens a file~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Q4 — what opens a file.**
    A. The shell's own app when it has one (Photos for images, the video player, Music for audio), Android's
    chooser for everything else. (lean — P2)
    B. Always Android's chooser, even for images / videos / audio.
