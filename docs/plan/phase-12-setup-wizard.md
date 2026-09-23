@@ -227,6 +227,25 @@ Load-bearing first. Each answer lands in Decisions, dated.
    C. Jeremy supplies his own pictures
    D. Other / let me clarify
 
+7. (added 2026-09-23 from R12) **The original W10M accent.** W10M phones shipped with "Cobalt" #3E65FF, a maker's colour
+   that is NOT one of the 48 accent swatches the shell's picker offers (R12; R3 A16).
+   A. Add Cobalt as a 49th swatch everywhere accents are picked, as W10M phones effectively had (lean)
+   B. The original preset uses Cobalt, but the picker keeps its 48 (so choosing another accent loses Cobalt for good)
+   C. Use the nearest of the 48 instead
+   D. Other / let me clarify
+8. (added 2026-09-23 from R12) **Which original Start picture.** Phones on the first W10M build shipped a light-streak "img0";
+   later builds (Anniversary / Creators Update) replaced it with the rotated "Hero" image. Both are bundled.
+   A. The later Hero image, matching the final release this build follows (lean)
+   B. The first light-streak image
+   C. Both, as two variants of the preset
+   D. Other / let me clarify
+9. (added 2026-09-23 from R12) **Tess in the original preset.** W10M's Cortana was a flat accent-coloured disc; Tess's
+   default look is the HAL-style lens.
+   A. The original preset keeps Tess's lens, tinted to Cobalt (lean)
+   B. The original preset switches Tess to a flat Cortana-style disc (a new look, in the branding module)
+   C. Tess's look is untouched by this preset
+   D. Other / let me clarify
+
 ## Build tasks
 1. Wizard model: the visibility rule, the step list derived from the checklist rows (`ChecklistRow.permissions` ADD), the
    `setup_wizard` marker store, the re-derive-on-resume rule, diagnostics lines; JVM tests on the pure rules (visibility,
