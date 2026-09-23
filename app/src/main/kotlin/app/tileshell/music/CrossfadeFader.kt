@@ -39,7 +39,7 @@ import app.tileshell.diag.Diagnostics
  */
 class CrossfadeFader(
     private val context: Context,
-    private val primary: ExoPlayer,
+    private val primary: Player,
     private val audioSession: Int,
     private val mediaSourceFactory: MediaSource.Factory,
     private val attributes: AudioAttributes,

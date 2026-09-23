@@ -103,7 +103,9 @@ class MusicService : MediaSessionService() {
             }
         })
         player = exo
-        crossfade = CrossfadeFader(this, exo, audioSession, mediaSourceFactory, attributes) { sleepEndOfTrack }.also {
+        // Everything outside this service sees the track length even when the MP3 carries no header (J2).
+        val known = KnownDurationPlayer(exo)
+        crossfade = CrossfadeFader(this, known, audioSession, mediaSourceFactory, attributes) { sleepEndOfTrack }.also {
             it.settingMs = prefs.getInt(KEY_CROSSFADE, Crossfade.OFF)
             Diagnostics.add("music", "crossfade: ${it.settingMs} ms (restored)")
         }
@@ -112,7 +114,7 @@ class MusicService : MediaSessionService() {
             .getOrNull()
         eqPreset = prefs.getInt(KEY_EQ, Equaliser.OFF)
         applyEqualiser(eqPreset, save = false)
-        session = MediaSession.Builder(this, exo).setCallback(callback).build()
+        session = MediaSession.Builder(this, known).setCallback(callback).build()
         publishExtras()
         Diagnostics.add("music", "playback service started (audio session $audioSession, equaliser ${if (equalizer != null) "available" else "unavailable"})")
     }
@@ -275,6 +277,9 @@ class MusicService : MediaSessionService() {
                     .setTitle(track.title)
                     .setArtist(track.artist)
                     .setAlbumTitle(track.album)
+                    // MediaStore's measured length: KnownDurationPlayer reports it when the file has no
+                    // length header of its own (J2).
+                    .setDurationMs(track.durationMs.takeIf { it > 0L })
                     .setIsBrowsable(false)
                     .setIsPlayable(true)
                     .build(),
