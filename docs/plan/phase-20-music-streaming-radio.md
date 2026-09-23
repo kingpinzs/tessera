@@ -57,8 +57,8 @@ measured now-playing geometry for local tracks (R8, H-M1 signed off).
 - 2026-09-22: **phase 10 Q4, the tile rule, applies unchanged**: "the now-playing face belongs to THE TILE OF THE APP THAT
   OWNS THE SESSION". A station or a media-server track played in `MusicService` lands on the Music tile (`MusicFeed`
   publishes under `LiveTileEngine.packageKey(owner)` and grows it through `ActiveTiles.setPackage`); a title handed to
-  Spotify lands on Spotify's tile if one is pinned and nowhere otherwise. No tile is borrowed. Phase 17's build task 2
-  (routing a shell-owned session by its tag) must be in first, so a station never puts its face on Photos or Camera.
+  Spotify lands on Spotify's tile if one is pinned and nowhere otherwise. No tile is borrowed. Phase 15's build task 0
+  (routing a shell-owned session by its tag; moved there from phase 17 by the 2026-09-23 review triage, C-1) must be in first, so a station never puts its face on Photos or Camera.
 - 2026-09-22: **phase 10 Q7 / Hard Rule 16** ("EVERYTHING there is only one version built"): this phase builds the final form
   of its part. Radio with no favourites, or a hand-off with no catalogue, is not a first version; if the interview rules the
   fuller form, that is what is built.
@@ -203,7 +203,7 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
    A. A fifth pivot in Music, "radio", beside albums / artists / songs / playlists, played by `MusicService` — Groove's
       arrangement, and phase 10 Q1's own name for it. (lean — one app, one player, one tile; P2)
    B. Its own app in the app list, "Radio", with its own tile and App Shortcuts, still sounding through `MusicService` (so
-      its face lands on the Radio tile under Q4's owner rule only if the routing treats it as its own app — a phase 17 task 2
+      its face lands on the Radio tile under Q4's owner rule only if the routing treats it as its own app — a phase 15 task 0
       extension).
    C. Neither plays it: a RADIO slot chosen like the Music slot, handed to an installed radio app; the shell keeps the
       directory and favourites and opens the station there.
@@ -250,7 +250,7 @@ form the interview rules, or not at all.
 6. **Radio in the app** *(Q3)*: A — the fifth pivot (`MusicPivot.RADIO`, `MusicCollection.page`, rows, hold menu, the
    header-strip re-measure) and the "Radio" App Shortcut (ADD to phase 11's part); B — a launcher activity like
    `MusicActivity` sharing `MusicPlayer` / `MusicService`, its own tile, `AppUninstall.canUninstall` exclusion, the exported
-   allow-list ADD, the phase 17 task 2 routing extension; C — a RADIO slot through `LayoutStore.assignSlotOnce` (marker
+   allow-list ADD, the phase 15 task 0 routing extension; C — a RADIO slot through `LayoutStore.assignSlotOnce` (marker
    `slot:radio:v1`, never over a user's choice — phase 16 task 1's fix applies) and an "open in <app>" hand-off.
 7. **Tess** *(Q5)*: phrases in `CommandMatcher` (ADD to phase 03's part) mapped to `Request.PlayMusic`'s query or a new
    request kind, `LockGate` treating them as phase 03 treats music; `MusicService`'s callback gains `onSetMediaItems`
