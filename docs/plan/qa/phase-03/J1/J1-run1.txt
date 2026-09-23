@@ -1,0 +1,20 @@
+==============================================================================
+ROW J1 — Tess's text box: the ✕ clears a sent request
+at            2026-09-22T18:51:12-06:00
+driver        j1.sh blob cfd05ebe0e440845956094102fbb67fab5443963
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     1fc5411aa6faf7d3 334447554 bytes
+apk installed 5f80458a1233070f
+apk match     yes (5f80458a1233070f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  sent: the bar shows the query (R6 §3.3.7)                  = yes
+PASS  sent: the ✕ is on the bar                                 = yes
+FAIL  ✕: the query is gone from the bar                         expected [no] got [yes]
+FAIL  ✕: the empty text box is back                             expected [yes] got [no]
+FAIL  ✕: its placeholder shows                                  expected [yes] got [no]
+PASS  ✕: Tess is still open (the ✕ clears, it does not close)  = yes
+PASS  Back: the query is gone from the bar                        = no
+PASS  Back: the empty text box is back                            = yes
+------------------------------------------------------------------------------
+J1: 5 passed, 3 failed

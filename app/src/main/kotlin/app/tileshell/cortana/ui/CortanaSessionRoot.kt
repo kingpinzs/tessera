@@ -150,7 +150,7 @@ private fun HomeOrResult(model: CortanaModel) {
                 accent = accent,
                 onSubmit = { model.submitTyped(it) },
                 onMic = { model.startListening() },
-                onClear = { model.goTo(CortanaDestinationKey.HOME) },
+                onClear = { model.clearResult() },
             )
         }
     }
