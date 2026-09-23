@@ -28,6 +28,14 @@ already does there; Fluent acrylic or touch light on the satellites (phase 13's 
 swipe-on-tile trigger (R10 item 10's alternatives, superseded by R10-Q3); any network use (A11 holds: shortcuts are local).
 
 ## Decisions
+- 2026-09-22: Interview Q2 — a disc is not "elsewhere" (Jeremy: "A"). While the burst is open, one tap on the held tile's unpin
+  or resize disc acts at once (unpin removes the tile and the burst with it; resize changes the size) and the burst closes. This
+  confirms the agent reading already written in the "Taps and events while a burst is open" line below; H6 judges the feel.
+- 2026-09-22: Interview Q1 — the shell's own tiles burst (Jeremy: "A"). Music declares Songs / Albums / Artists / Playlists
+  and Start settings declares Start + theme / Tile apps / Setup / Diagnostics as static App Shortcuts, each opening that page
+  through an intent extra (ADDs to phases 10 and 01, each recorded in the INDEX Change Log when built). STANDING RULE: every
+  shell app to come (phases 15-19) declares its own top-level screens the same way, and each of those phase docs carries the
+  rule. Weather (one screen) and Tess (pages inside the voice session) declare none and get edit mode with no burst, logged.
 - 2026-09-22: Scope add (Jeremy, PLAN.md): tile quick actions from Android App Shortcuts are in. The motion is Jeremy's ruling,
   verbatim: "boundsInRoot coordinate tracking" and "Spring animation (dampingRatio = 0.65f) shooting 4 satellite action tiles
   outward." No W10M original exists (the secondary spec's "MixView" was a cancelled concept and the name is unverified, R10 item 10),
@@ -147,7 +155,8 @@ swipe-on-tile trigger (R10 item 10's alternatives, superseded by R10-Q3); any ne
   (when the stash is present) are extra evidence, never the only evidence
 
 ## Interview queue (Stage A step 4)
-1. Do the shell's own tiles burst? Music (phase 10) and Start settings (phase 01) can declare static shortcuts to their own
+1. ~~Do the shell's own tiles burst?~~ RULED 2026-09-22: A (see Decisions). Original question kept below.
+   Do the shell's own tiles burst? Music (phase 10) and Start settings (phase 01) can declare static shortcuts to their own
    screens; Weather has one screen and Tess's pages live in the voice session, so neither can. Without a ruling every shell tile
    gets edit mode and no burst — on exactly the tiles the shell controls (design 22).
    A. Yes: Music declares Songs / Albums / Artists / Playlists and Start settings declares Start + theme / Tile apps / Setup /
@@ -155,6 +164,14 @@ swipe-on-tile trigger (R10 item 10's alternatives, superseded by R10-Q3); any ne
       come (phases 15–19) declares its own top-level screens the same way — a standing rule (lean)
    B. No: the shell's tiles open no burst; only third-party apps' tiles do
    C. Only the inbox apps to come declare shortcuts; Music and Start settings stay as they are
+   D. Other / let me clarify
+
+2. ~~Disc taps during a burst~~ RULED 2026-09-22: A (see Decisions). Original question kept below.
+   (added 2026-09-22 by the lead, from the writer's flag: Jeremy's R10-Q3 wording "a tap elsewhere closes the burst" could
+   make the discs cost two taps) A tap on the held tile's unpin or resize disc while the burst is open:
+   A. One tap: the disc acts at once (unpin removes the tile, resize changes its size) and the burst closes (lean)
+   B. Two taps: the first tap only closes the burst; the disc acts on the next tap
+   C. The discs are hidden while the burst is open and appear once it closes
    D. Other / let me clarify
 
 ## Build tasks

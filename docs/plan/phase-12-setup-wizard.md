@@ -34,6 +34,51 @@ W10M OOBE page the shell cannot own (region, Wi-Fi, Microsoft account, restore, 
 checklist rows (the checklist is phase 01's; the wizard reads it). Changing what a grant does. Hooks for later phases.
 
 ## Decisions
+- 2026-09-23: Interview Q6 — the four generated pictures are AI images (Jeremy: "(b) tell me what I need to do because I have
+  both gpt and gemini personal accounts"). Jeremy generates HAL, Soft, Lumia and Midnight on his PERSONAL ChatGPT or Gemini
+  account from the prompts in docs/plan/theme-art-brief.md and saves them to art/themes/; the agent crops and scales them for
+  the S25 Ultra (1440 x 3120, with Start's 1.3x parallax headroom) and bundles them. Constraints, from the brief: portrait, no
+  text, logos, faces or watermark, a calm middle so labels read through see-through tiles, and an original design (the HAL
+  picture must not copy the film). The pictures are an INPUT this doc waits on: its FINAL needs them in art/themes/, alongside
+  R12 for the original W10M preset. NEEDS-HUMAN: labels readable over each picture in its theme, judged on the phone.
+- 2026-09-23: Interview Q5 — six presets (Jeremy: "(b) and the original W10M theme that was sent with phones"): Default,
+  Windows 10 Mobile (original), HAL, Soft, Lumia, Midnight. Agent reading of the two that could sound alike (Jeremy can
+  overrule): "Default" is this shell's own out-of-box look as built and measured; "Windows 10 Mobile (original)" is the look
+  W10M phones shipped with, including Microsoft's stock pictures, which live in the A10 branding module (fine on Jeremy's phone,
+  swappable if the project goes public). What exactly W10M phones shipped with (default accent by device, Dark / Light, stock
+  Start and lock-screen pictures) is not in R1-R8, so a research item (R12, INDEX) gathers it and gates this doc's FINAL.
+- 2026-09-23: Interview Q4 — a preset sets EVERYTHING visual, and choosing one applies it at once (Jeremy: "(c) so it has x
+  amount of themes user selects one but can scroll down to change invidual items. when selecting a theme it auto changes the
+  phone so they can see what it will look like right away"). A preset sets accent, Dark / Light, background picture, tile
+  transparency, press style, Tess's look (ring and lens colours) and the keyboard's colours. The page (wizard step and Start +
+  theme alike) lists the presets at the top; tapping one APPLIES it to the whole shell immediately — the preview is the real
+  thing, no separate preview screen — and the individual items follow below it, each still changeable, after which the preset
+  reads "Custom". Part ownership (agent): the theme-able colour hooks in Tess's persona (phase 03) and the keyboard (phase 05)
+  are ADDs to those FINAL parts, built by phase 12 and recorded in the INDEX Change Log when built.
+- 2026-09-23: Interview Q3 — personalisation is accent + Dark / Light + background picture, offered as THEME PRESETS (Jeremy:
+  "(c) but it should come with its own background pictures sort of like a theme like a Hal theme and a soft theme ect so maybe it
+  has preset but indivudial items can still be toggled"). The shell bundles its own background pictures; a preset (examples
+  from Jeremy: a "HAL" theme, a "soft" theme) sets the items in one tap, and each item can still be changed on its own afterwards.
+  This is a SCOPE ADD (PLAN.md Rulings, 2026-09-23). Part ownership (agent, Hard Rule 16): phase 12 builds the theme presets in
+  their final form — the preset set, the bundled pictures, the wizard step, and the same presets on Start + theme (an ADD to
+  phase 01's page, recorded in the INDEX Change Log when built). Open, asked next: what a preset sets (Q4), and which presets
+  ship and where their pictures come from (Q5; bundled pictures must be ours to ship — A10).
+- 2026-09-23: Interview Q2 — all of Tess's grants join the walk (Jeremy: "(c) This is to make it feel like the person is setting
+  up an new phone with out rooting thier phone"). After the Setup checklist's rows, every row on Tess's own checklist
+  (`CortanaChecklist`: default assistant, microphone, contacts, calendar write, texts, calls, location all the time, call log,
+  read texts) is a wizard step with its own "why" line (Q1), walked through `CortanaPermissionActivity`'s existing paths, and a
+  missing Tess row also summons the wizard (Q1's rule). THE INTENT, recorded because it governs later answers: the wizard is
+  the shell's out-of-box experience — it should feel like setting up a new phone, with no root. Agent reading of that intent
+  (Jeremy can overrule): every later phase that adds a grant (phase 04's accessibility, overlay and helper pairing, phase 06's
+  dialer and SMS roles, phase 07's overlay reuse, the inbox apps' permissions) adds its step to the wizard the same way each
+  phase adds its checklist row — one list, walked in order, each step with its why.
+- 2026-09-23: Interview Q1 — every grant row is core, and every step says why (Jeremy: "(B) with somehing about the why"). The
+  wizard appears while ANY Setup checklist row with a grant action is missing (Home, Notification access, Photos, Music,
+  Calendar, Location, Usage access, Keyboard enabled, Keyboard selected) until each is granted or a run is finished (the
+  finish / skip rules below decide what "finished" leaves). Each step carries a short "why" line in plain words: what the grant
+  makes work in the shell and what stops working without it (e.g. Notification access: "Live tiles and unread counts come from
+  your notifications. Without it the tiles stay still."). The lines are agent-written P4 copy and are judged in a NEEDS-HUMAN
+  row; the acceptance rows check that every step shows one.
 - 2026-09-22: Scope add (Jeremy: "do we have MetroSetupWizardScreen in our plan if not have to add it"): **a first-run setup
   wizard.** "MetroSetupWizardScreen" is the secondary spec's name, not this build's (PLAN.md Rulings; R10 item 16 ADAPT).
 - 2026-09-22 (agent, R10 plan review; PLAN.md "Agent calls", triage): **the wizard shows only while a core grant is missing.**
@@ -134,7 +179,8 @@ checklist rows (the checklist is phase 01's; the wizard reads it). Changing what
 ## Interview queue (Stage A step 4)
 Load-bearing first. Each answer lands in Decisions, dated.
 
-1. **What counts as a "core" grant — the rows whose absence makes the wizard appear at all?** (The run walks every missing
+1. ~~Core grants~~ RULED 2026-09-23: B, with a "why" on every step (see Decisions). Original question kept below.
+   **What counts as a "core" grant — the rows whose absence makes the wizard appear at all?** (The run walks every missing
    row whichever way this goes; this decides only when a phone sees the wizard.)
    A. Default Home and Notification access — without them Start is not the phone's Start and the tiles are not live; a phone
    missing only Location or Usage access never sees the wizard and fixes those on the checklist. (lean)
@@ -142,7 +188,8 @@ Load-bearing first. Each answer lands in Decisions, dated.
    enabled, Keyboard selected — the wizard appears until each one is granted or the run is finished.
    C. Default Home only — the wizard is really the "become Home" flow, everything else is the checklist.
    D. Other / let me clarify.
-2. **Do Tess's grants join the walk?** Her rows live on her own Settings page (phase 03), and she asks for the microphone
+2. ~~Tess's grants~~ RULED 2026-09-23: C (see Decisions). Original question kept below.
+   **Do Tess's grants join the walk?** Her rows live on her own Settings page (phase 03), and she asks for the microphone
    herself the first time she listens.
    A. No — the Setup checklist's rows only; Tess keeps her own page. (lean, the R10 agent call: one source of truth)
    B. Yes, two of them: a "Tess" step after the checklist rows for the default assistant role and the microphone (walking
@@ -150,11 +197,33 @@ Load-bearing first. Each answer lands in Decisions, dated.
    C. Yes, all of them: every row on Tess's checklist becomes a step (contacts, calendar write, texts, calls, location all
    the time, call log, read texts, plus the two above).
    D. Other / let me clarify.
-3. **What does the personalisation step at the end hold?**
+3. ~~Personalisation step~~ RULED 2026-09-23: C plus bundled theme presets (see Decisions). Original question kept below.
+   **What does the personalisation step at the end hold?**
    A. The accent colour only, on the R3 A16 grid. (lean, the R10 agent call: "then the accent")
    B. The accent plus Dark / Light.
    C. The accent, Dark / Light, and "Choose a picture" for the Start background.
    D. Other / let me clarify.
+
+4. ~~What a preset sets~~ RULED 2026-09-23: C, applied live (see Decisions). Original question kept below.
+   (added 2026-09-23 from Q3's answer) **What does a theme preset set?**
+   A. The three personalisation items only: accent, Dark / Light, background picture; each can still be changed on its own
+   afterwards, and the page then shows "Custom" (lean)
+   B. Those three plus Tess's look matching the theme (her ring and lens colours)
+   C. Everything visual: the three, tile transparency, press style, Tess's look and the keyboard's colours
+   D. Other / let me clarify
+5. ~~Which presets~~ RULED 2026-09-23: B plus the original W10M theme (see Decisions). Original question kept below.
+   (added 2026-09-23 from Q3's answer) **Which presets ship?**
+   A. Three: Default (W10M as measured: dark, the default accent, no picture), HAL, Soft (lean)
+   B. Five: those three plus Lumia (the Lumia phone colours) and Midnight (pure black, easiest on the battery)
+   C. Jeremy names the list
+   D. Other / let me clarify
+6. ~~Picture source~~ RULED 2026-09-23: B (see Decisions). Original question kept below.
+   (added 2026-09-23) **Where do the bundled pictures come from** (for HAL, Soft, Lumia and Midnight; the original W10M theme
+   uses the stock pictures, see Decisions)?
+   A. Drawn by the agent as vector or procedural art inside the APK: ours to ship, sharp at any size, small (lean)
+   B. AI-generated images committed to the repo
+   C. Jeremy supplies his own pictures
+   D. Other / let me clarify
 
 ## Build tasks
 1. Wizard model: the visibility rule, the step list derived from the checklist rows (`ChecklistRow.permissions` ADD), the
