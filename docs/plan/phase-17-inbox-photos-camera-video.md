@@ -42,8 +42,8 @@ Camera use none. This phase also builds the streaming hand-off (`StreamingHandof
   Music pauses; a media session for headset and Bluetooth buttons that never lands on a tile; the same player
   screen is what a video tapped in Photos or Files plays in; its own process (`:video`). The online half — a
   Browse pivot over a public film database (TMDB — Q-A: A), per title the streaming apps on the phone that
-  have it with "Watch on <service>" opening that app at the title, and a Media server pivot (Jellyfin / Plex,
-  pending Q-B) when one is set up; a catalogue cache so the hub works offline; the `StreamingHandoff` interface
+  have it with "Watch on <service>" opening that app at the title, and a Media server pivot (Jellyfin —
+  Q-B: A) when one is set up; a catalogue cache so the hub works offline; the `StreamingHandoff` interface
   phases 20 and 21 reuse.
 - Slot seeding under phase 16's `assignSlotOnce` guard, and the re-cut of the rows that touched these slots
   (phase 01 E4; phase 03 E2, E10); the re-run of phase 10 E10 / E13 on this build under phase 15's live-tile
@@ -70,6 +70,11 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
 "local-only" Movies & TV build (Hard Rule 16 — the interview ruled the fuller forms).
 
 ## Decisions
+- 2026-09-23: Review question Q-B — the media server is Jellyfin (Jeremy: "(a) but I dont have it yet but I do have a server
+  that I need to get back up and running"). The hub's media-server part is a Jellyfin client only: no Plex code, no plex.tv
+  sign-in. It is built and proven on the AVD against a Jellyfin container on the host (E22); Jeremy does not run Jellyfin yet,
+  so the phone row P14 waits on his home server coming back up with Jellyfin installed, and until a server is added the Media
+  server pivot and its dynamic shortcut do not appear (nothing half-configured shows).
 - 2026-09-23: Review question Q-A — the film database is TMDB with Jeremy's personal key (Jeremy: "(a) ... personal use").
   The key is NEVER in the repo: it lives in the gitignored local.properties (tmdb.readToken, tmdb.apiKey) and reaches the app
   as a BuildConfig field at build time; the CI build that makes Jeremy's phone APKs reads it from a GitHub Actions secret
@@ -432,8 +437,8 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
    session through interop, else raw Camera2 for slow motion only; BS-3 the credential store's Keystore alias and file
    name (Decisions "Trust": AES-256-GCM, no security-crypto); BS-4 each streaming service's deep-link, web and search URL
    forms, verified by starting each on a phone with the app installed, recorded with the verification; BS-5 the catalogue
-   source's terms, attribution text and rate limit (Q-A: A — TMDB's terms) and the media server's API version (pending Q-B); BS-6
-   whether an unclaimed Plex container answers its library API without a plex.tv token (pending Q-B B / C; decides E22's
+   source's terms, attribution text and rate limit (Q-A: A — TMDB's terms) and the media server's API version (Q-B: A — Jellyfin); BS-6
+   whether an unclaimed Plex container answers its library API without a plex.tv token (not needed — Q-B is A, Jellyfin only; decides E22's
    Plex half); the `:camera` and `:video` diagnostics dump paths.
 1. **App identities.** Three launcher activities inside the APK: `PhotosActivity` (LAUNCHER + APP_GALLERY +
    VIEW image/*), `CameraActivity` (LAUNCHER + STILL_IMAGE_CAMERA + VIDEO_CAMERA; IMAGE_CAPTURE + VIDEO_CAPTURE
@@ -502,7 +507,7 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
     cache; the attribution line where the terms require one; the "no key" state; the base-URL redirect for QA — a pref
     `qa_catalogue_base` written with `qa/phase-01/scripts/prefs_edit.py`, honoured ONLY when `BuildConfig.DEBUG` (the
     release APK cannot be redirected; phase 20's rule).
-13. **The media server (pending Q-B).** The client(s) per the Q-B branch; the "Add a server" page (host, user, password),
+13. **The media server (Q-B: A — Jellyfin).** A Jellyfin client; the "Add a server" page (host, user, password),
     the token store (BS-3), the library listed as folders / titles in the hub's idiom, direct play through the shared
     player, the connected / unreachable / unauthorised states; the same `qa_server_base` QA pref route as task 12 (debug
     builds only). GATE: the adversarial review of the sign-in / credential path (Decisions "Trust") is recorded under
@@ -560,7 +565,7 @@ source's shape for the query "Blade Runner" (three results hand-listed in E20) a
 (debug builds only); `testapps/qa-flix` (the "Watch on" fixture APK, task 11) and `testapps/qa-capture` (the capture-intent
 caller APK: starts IMAGE_CAPTURE / VIDEO_CAPTURE with `EXTRA_OUTPUT` aimed at its own cache through its FileProvider, once
 with a `file://` output, and logs the result code, file size and md5 to the `TileShellQa` logcat tag); a media-server
-container on the host (pending Q-B: Jellyfin `jellyfin/jellyfin` at `10.0.2.2:8096` with `qa/phase-17/fixtures/jellyfin/`
+container on the host (Q-B: A: Jellyfin `jellyfin/jellyfin` at `10.0.2.2:8096` with `qa/phase-17/fixtures/jellyfin/`
 as its config and `qa-steps.mp4` in its library, its first-run wizard pre-seeded in that config dir; Plex
 `plexinc/pms-docker` at `10.0.2.2:32400` — whether an unclaimed Plex server answers its library API on the local network
 without a plex.tv token is BS-6, and if not E22's Plex half is P14 only). Layout: `qa/phase-17/baseline_layout.json`.
@@ -747,7 +752,7 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
   provider but no id for it → the search form `https://qa-flix.test/search?q=Blade+Runner+1982` reaches the fixture; uninstall
   the fixture → the row is gone; **under Q-A B** the same title shows "Search on QA-Flix" and the search form is the only form.
   Every service's real deep link is P13, never asserted here.
-- E22 **Media server (pending Q-B; a container on the host).** **Under Q-B A / C (Jellyfin at `10.0.2.2:8096`):** "Add a
+- E22 **Media server (Q-B: A; a container on the host).** **Under Q-B A / C (Jellyfin at `10.0.2.2:8096`):** "Add a
   server" with host, user and password → `[video] server 10.0.2.2:8096: connected`, the Media server pivot appears
   (`hub_pivot:mediaserver`) listing `qa-steps.mp4`, tap → it plays under E11's pixel rule with `[video] playing scheme=http`;
   `am force-stop` and reopen → still connected (the token persisted); the credential store holds no plaintext: `adb root`,
@@ -756,7 +761,7 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
   both list no file, `adb unroot` — a store that wrote either in the clear fails here; wrong password →
   "That password isn't right" and `[video] server 10.0.2.2:8096: unauthorised`, no pivot; `docker stop` the container →
   the pivot shows "Can't reach your media server" and `[video] server …: unreachable`, the local pivot untouched, no crash;
-  `docker start` → reconnects on the next open. **Under Q-B B / C (Plex at `10.0.2.2:32400`):** the same assertions against
+  `docker start` → reconnects on the next open. NOT APPLICABLE (Q-B is A, Jellyfin only; kept for the record): **Under Q-B B / C (Plex at `10.0.2.2:32400`):** the same assertions against
   an unclaimed container if BS-6 finds it answers without a token; otherwise this half is P14 only and the row says so.
   **Under Q-B B** the Jellyfin half is not built and not run.
 - E23 **App Shortcuts (phase 11 Q1's standing rule; C-8 / C-9).** The three apps' tiles pinned through
@@ -822,7 +827,7 @@ Upgrade: `qa/phase-17/upgrade/<tag>.apk`, the last pre-17 build.
   installed service in the table, "Watch on <service>" from a title → `dumpsys activity activities` shows that app resumed
   and a screencap records whether it landed on the TITLE, on its SEARCH results or on its HOME; a signed-out service shows
   its own sign-in and nothing of ours steps around it. RECORDED per service (BS-4's forms are re-verified here).
-- P14 **Jeremy's own media server** (pending Q-B): E22's assertions against the real server on his network, including a
+- P14 **Jeremy's own media server** (Q-B: A; waits on Jeremy's home server coming back up with Jellyfin on it): E22's assertions against the real server on his network, including a
   wrong password and the server switched off; under Q-B B / C, Plex's plex.tv PIN sign-in on the phone. RECORDED for the
   landing form, gated for connected / unauthorised / unreachable.
 - P15 **The real catalogue** (Q-A: A; network on; a build carrying the key): search "Blade Runner"
