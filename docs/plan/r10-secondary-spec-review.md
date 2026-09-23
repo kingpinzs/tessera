@@ -89,7 +89,7 @@ Everything else in the spec either exists here already or conflicts with a rulin
 2. The Start mark — A / B / C, lean B (drawn in `r10/`). **RULED 2026-09-22: B.** Also ruled the same
    day without a question: the first-run setup wizard (item 16) is added, and tile quick actions
    (item 10) are added with Jeremy's own motion values. The quick actions' trigger is question 3.
-3. Tile quick actions: the trigger (press-and-hold is edit mode). **RULED 2026-09-22: A — hold and let go opens
+3. Tile quick actions: the trigger (press-and-hold is edit mode). **(SUPERSEDED the same day: R10-Q3 was reopened and re-ruled, see PLAN.md "R10-Q3 re-ruled": the burst appears at the 783-ms hold alongside edit mode, four shortcut satellites, no Edit satellite.)** First ruling, kept for history: **RULED 2026-09-22: A — hold and let go opens
    the burst, hold and drag moves the tile, one satellite is Edit.**
 4. A third pane left of Start — and its name. **ADDED 2026-09-22** (Jeremy: "that side pull out thing at a
    glance thing"). **Named 2026-09-22: the "pod bay", its cards "pods"**, with Tess's "open the pod bay doors"

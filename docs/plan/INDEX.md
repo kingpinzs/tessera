@@ -13,6 +13,8 @@ Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules
 | 1 Plan iteration | done 2026-09-16 | PLAN.md Rulings Q1-Q14, principles P1-P5 |
 | 2 Review before split | done 2026-09-16, 3 rounds, round 3 = 0 BLOCKING from both | review/2026-09-16-{fable,codex,triage}.md, review/2026-09-16-r2-*.md, review/2026-09-16-r3-*.md |
 | 3 Split | done 2026-09-16 (Jeremy: "(a)") | the 9 phase docs below |
+| 3 Split, R10 additions | done 2026-09-22 (Jeremy: "split"): phases 11-19 written as DRAFT from PLAN.md's 2026-09-22 scope adds and the R10 plan review | phase-11 … phase-19 below |
+| 4 Per-phase interviews, 11-19 | in progress 2026-09-22, starting with 11 | each doc's "Interview queue" |
 | 4 Per-phase interviews | done for 01-03 and 05-09 (2026-09-16); 04 parked until R4 runs on the phone | each phase doc's "Interview queue" |
 | 5-6 Cross-model review of phase docs | done 2026-09-17: 3 rounds (cap reached), every finding triaged and applied; owner rulings applied (review/2026-09-16-phases-r2-owner.md, review/2026-09-17-phases-r3-owner.md) | review/2026-09-16-phases-{fable,fable2,triage}.md, review/2026-09-16-phases-r2-{opus-design,opus-test,triage}.md, review/2026-09-17-phases-r3-{opus-design,opus-test,triage}.md |
 | 7 FINALIZE | done 2026-09-17 (Jeremy: "A"): phases 01-03 and 05-09 FINAL; phase 04 stays DRAFT until R4 runs on the phone and its interview is done | |
@@ -48,6 +50,23 @@ Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules
 | 08 | [phase-08-cortana-llm.md](phase-08-cortana-llm.md) | pending | — | FINAL |
 | 09 | [phase-09-cortana-harness.md](phase-09-cortana-harness.md) | pending | — | FINAL; added 2026-09-16 (phase 08 interview Q3) |
 | 10 | [phase-10-media-player.md](phase-10-media-player.md) | built — QA gate owes phone rows + reviewers | [qa/phase-01/](qa/phase-01/) (MUSIC6-10, MUSIC17) | FINAL 2026-09-22. ALL TEN BUILD TASKS AND CROSSFADE ARE BUILT and verified on the emulator: MUSIC6 39/39 (collection), MUSIC7 46/46 (now-playing to R8 V-2016; H-M1 signed off), MUSIC8 38/38 (playlists), MUSIC9 44/44 (equaliser in AudioFlinger; real 15-minute sleep timer), MUSIC10 20/20 (permission), MUSIC17 26/26 (crossfade: two tracks on one session for the fade). 504 unit tests. The gate still owes: the phone rows (E7 survives Start being killed, E9 headset/Bluetooth buttons, E10-E13 the tile rule, and screen-off playback, since ExoPlayer runs without WAKE_MODE_LOCAL), H-M2 (Jeremy judges the motion), and the two-reviewer QA gate, which has not run |
+| 11 | [phase-11-tile-quick-actions.md](phase-11-tile-quick-actions.md) | pending | — | DRAFT 2026-09-22 (split); interview pending. Tile quick actions: the four-satellite burst at the 783-ms hold, on top of edit mode |
+| 12 | [phase-12-setup-wizard.md](phase-12-setup-wizard.md) | pending | — | DRAFT 2026-09-22 (split); interview pending. First-run setup wizard, walking the Setup checklist's own rows |
+| 13 | [phase-13-fluent-materials.md](phase-13-fluent-materials.md) | pending | — | DRAFT 2026-09-22 (split); interview pending. Fluent materials engine (acrylic, light); lands before phase 04 |
+| 14 | [phase-14-pod-bay.md](phase-14-pod-bay.md) | pending | — | DRAFT 2026-09-22 (split); interview pending. Pod bay, plus Tess's "open the pod bay doors" |
+| 15 | [phase-15-inbox-clock-calculator-recorder.md](phase-15-inbox-clock-calculator-recorder.md) | pending | — | DRAFT 2026-09-22 (split); interview pending. Inbox apps I: Alarms & Clock, Calculator, Voice Recorder; R11 gates FINAL. Needs phase 17's build task 2 (live-tile routing by session tag) before its slots are seeded. |
+| 16 | [phase-16-inbox-calendar-people.md](phase-16-inbox-calendar-people.md) | pending | — | DRAFT 2026-09-22 (split); interview pending. Inbox apps II: Calendar, People; R11 gates FINAL. Needs phase 17's build task 2 first. Its build task 1 fixes a phase 01 defect found at the split: LayoutStore.assignSlotOnce overwrites a user's own slot choice on upgrade (also slot:music:v1). |
+| 17 | [phase-17-inbox-photos-camera-video.md](phase-17-inbox-photos-camera-video.md) | pending | — | DRAFT 2026-09-22 (split); interview pending. Inbox apps III: Photos, Camera, video player; R11 gates FINAL |
+| 18 | [phase-18-files.md](phase-18-files.md) | pending | — | DRAFT 2026-09-22 (split); interview pending. Files; R11 gates FINAL |
+| 19 | [phase-19-settings-front.md](phase-19-settings-front.md) | pending | — | DRAFT 2026-09-22 (split); interview pending. W10M Settings front; after phase 04; R11 gates FINAL |
+
+### In scope but NOT split into a phase (updated 2026-09-22)
+
+Phases 11-19 were split on 2026-09-22 (Jeremy: "split") and have rows above. One carried R10 item has no ruling yet and so no phase:
+
+| Part | Source | Gate |
+|---|---|---|
+| Tessera bar over every app (opt-in) | R10 item 6, carried, not ruled | R4's nav-bar probe on the phone, then a question to Jeremy |
 
 Status values: `pending` → `building` → `QA` → `done`, or `blocked (L<n>)` / `reopened (L<n>)` pointing at the ledger below.
 A phase is `done` only when: acceptance criteria + edge cases executed with captured evidence, BOTH reviewers on the `reviewers:` line above judged pass, every NEEDS-HUMAN row has Jeremy's sign-off, and the row links the evidence. Next phase starts only after that.
