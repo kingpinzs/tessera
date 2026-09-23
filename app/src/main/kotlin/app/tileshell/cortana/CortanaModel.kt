@@ -469,12 +469,7 @@ class CortanaModel(
         }
     }
 
-    /**
-     * Take a typed or spoken request's answer off the page and give the text box back (R6 §3.3.7: after a
-     * send the bar shows the query with a ✕, and the ✕ is how it is cleared). The ✕ and Back both come
-     * here. The ✕ used to call goTo(HOME), which returns early because a result is already shown on the
-     * Home destination, so it did nothing and only Back cleared the bar (Jeremy, 2026-09-22, on the phone).
-     */
+    /** Back from an answer: take the card off the page and return to Home. */
     fun clearResult() {
         mutable.value = mutable.value.copy(route = CortanaRoute.Home, card = null, pending = null, awaiting = null)
         Diagnostics.add("cortana", "result cleared")
