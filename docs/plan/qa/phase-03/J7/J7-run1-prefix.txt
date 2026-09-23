@@ -1,0 +1,21 @@
+==============================================================================
+ROW J7 — silence after a confirm card leaves the card (no phantom "AND")
+at            2026-09-23T11:31:47-06:00
+driver        j7.sh blob e3e419035548338bd15cd6ce845ebe4b4acaecc8
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     46889edb51f188d0 335485062 bytes
+apk installed 3d959e31f9792579
+apk match     yes (3d959e31f9792579)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      ring since the request: 635 [cortana] question spoken; listening for the answer|365 [speech] final open="I AM" grammar="I AM" audioMs=4650|365 [cortana] a new request replaced the pending AddEvent|
+PASS  Tess listened for the answer                                contains [question spoken; listening for the answer]
+FAIL  silence did not replace the card                            should NOT contain [a new request replaced the pending]
+FAIL  the speech process reported no speech-level audio           does not contain [no speech-level audio]:     2026-09-23 11:31:53.629 wall=1790184713629 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=995968 faceIndex=1 next=0 faces=1
+    2026-09-23 11:31:55.621 wall=1790184715621 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=997961 faceInd
+FAIL  Tess kept the card                                          does not contain [silence at a pending card]:     2026-09-23 11:31:53.629 wall=1790184713629 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=995968 faceIndex=1 next=0 faces=1
+    2026-09-23 11:31:55.621 wall=1790184715621 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=997961 faceInd
+FAIL  the card's Add button is still on screen                    expected [yes] got [no]
+      restored: the card was cancelled, nothing was written
+------------------------------------------------------------------------------
+J7: 1 passed, 4 failed

@@ -86,4 +86,35 @@ class AudioLevelTest {
         assertEquals(1f, AudioLevel.ofBlock(chunk, 4, offset = 4), 1e-6f)
         assertEquals(0f, AudioLevel.ofBlock(chunk, 4, offset = 0), 0f)
     }
+
+    @Test
+    fun `digital silence is never speech`() {
+        assertEquals(false, AudioLevel.heardSpeech(List(40) { -120f }, 50))
+    }
+
+    @Test
+    fun `a steady quiet room is not speech`() {
+        val room = List(40) { if (it % 3 == 0) -52f else -55f }
+        assertEquals(false, AudioLevel.heardSpeech(room, 50))
+    }
+
+    @Test
+    fun `quiet speech over silence is speech even far below -40 dBFS`() {
+        // The AVD case that the fixed -40 dBFS gate got wrong: speech at -48 dBFS over digital silence.
+        val capture = List(10) { -120f } + List(8) { -48f } + List(20) { -120f }
+        assertEquals(true, AudioLevel.heardSpeech(capture, 50))
+    }
+
+    @Test
+    fun `speech in a noisy room rises over its background`() {
+        val capture = List(10) { -50f } + List(6) { -30f } + List(20) { -50f }
+        assertEquals(true, AudioLevel.heardSpeech(capture, 50))
+        assertEquals(300, AudioLevel.speechMs(capture, 50))
+    }
+
+    @Test
+    fun `under 120 ms of speech does not count`() {
+        val capture = List(10) { -120f } + List(2) { -30f } + List(20) { -120f }
+        assertEquals(false, AudioLevel.heardSpeech(capture, 50))
+    }
 }

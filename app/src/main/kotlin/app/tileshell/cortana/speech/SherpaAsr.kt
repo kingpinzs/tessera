@@ -50,6 +50,43 @@ object AudioLevel {
 
     fun ofBlock(samples: FloatArray, count: Int, offset: Int = 0): Float =
         fromRms(rms(samples, count, offset))
+
+    /** A block's level in dBFS; digital silence is -120, below anything a microphone produces. */
+    fun blockDb(samples: FloatArray, count: Int): Float {
+        val r = rms(samples, count)
+        return if (r <= 0f) -120f else 20f * log10(r)
+    }
+
+    /**
+     * The silence gate. The recogniser decodes silence too, and on silence this model says "AND": after a
+     * confirm card, 1.75 s of nothing came back as the request "AND" and replaced the card (J7, 2026-09-23).
+     *
+     * Speech is judged RELATIVE to the capture itself, not against a fixed level: the first version gated at
+     * -40 dBFS and dropped real answers that reached the AVD's microphone quieter than that (E7 fell to 10 of 60),
+     * and a fixed line would drop a quiet speaker on a phone the same way. A block counts as speech when it is
+     * [SPEECH_RISE_DB] above the capture's own background (its quietest tenth) and above [SIGNAL_FLOOR_DB], which
+     * only digital silence and a dead microphone fall under. Speech rises 15-30 dB over a room; a room with nobody
+     * speaking, and silence, do not. Values are approximations (agent, 2026-09-23), logged per capture.
+     */
+    const val SPEECH_RISE_DB = 12f
+    const val SIGNAL_FLOOR_DB = -70f
+
+    /** How much speech a capture needs before its transcript counts. Approximation, as above. */
+    const val MIN_SPEECH_MS = 120
+
+    /** The capture's background level: its quietest tenth of blocks. */
+    fun backgroundDb(blockDbs: List<Float>): Float {
+        if (blockDbs.isEmpty()) return -120f
+        val sorted = blockDbs.sorted()
+        return sorted[(sorted.size / 10).coerceAtMost(sorted.size - 1)]
+    }
+
+    fun speechMs(blockDbs: List<Float>, blockMs: Int): Int {
+        val gate = maxOf(backgroundDb(blockDbs) + SPEECH_RISE_DB, SIGNAL_FLOOR_DB)
+        return blockDbs.count { it >= gate } * blockMs
+    }
+
+    fun heardSpeech(blockDbs: List<Float>, blockMs: Int): Boolean = speechMs(blockDbs, blockMs) >= MIN_SPEECH_MS
 }
 
 /** What a capture reports while it runs. Implemented by the service, which forwards over the Binder. */
@@ -316,6 +353,7 @@ class SherpaAsr(private val context: Context) {
             val floats = FloatArray(BLOCK_SAMPLES)
             var totalSamples = 0
             var lastPartial = ""
+            val blockDbs = ArrayList<Float>(MAX_SAMPLES / BLOCK_SAMPLES + 1)
             var endpointed = false
             var readError: String? = null
 
@@ -341,6 +379,7 @@ class SherpaAsr(private val context: Context) {
                     events.onPartial(partial)
                 }
                 events.onLevel(AudioLevel.ofBlock(floats, read))
+                blockDbs += AudioLevel.blockDb(floats, read)
 
                 if (engine.isEndpoint(open)) {
                     endpointed = true
@@ -364,8 +403,22 @@ class SherpaAsr(private val context: Context) {
             }
             // Verbatim, both passes. This model emits UPPERCASE with no punctuation; normalising it here
             // would hide that from the matcher in the launcher process, which is what owns normalisation.
-            val openText = engine.getResult(open).text
-            val grammarText = grammar?.let { engine.getResult(it).text } ?: ""
+            val blockMs = BLOCK_SAMPLES * 1000 / SAMPLE_RATE
+            val heard = AudioLevel.heardSpeech(blockDbs, blockMs)
+            val decodedOpen = engine.getResult(open).text
+            val decodedGrammar = grammar?.let { engine.getResult(it).text } ?: ""
+            Diagnostics.add(
+                "speech",
+                "asr: levels background %.1f dBFS peak %.1f dBFS, speech %d ms (heard=%s)".format(
+                    AudioLevel.backgroundDb(blockDbs), blockDbs.maxOrNull() ?: -120f,
+                    AudioLevel.speechMs(blockDbs, blockMs), heard,
+                ),
+            )
+            if (!heard && (decodedOpen.isNotBlank() || decodedGrammar.isNotBlank())) {
+                Diagnostics.add("speech", "asr: no speech in the capture; the decoded \"$decodedOpen\" is dropped and reported as silence")
+            }
+            val openText = if (heard) decodedOpen else ""
+            val grammarText = if (heard) decodedGrammar else ""
             val audioMs = (totalSamples.toLong() * 1000L / SAMPLE_RATE).toInt()
             val ending = when {
                 endpointed -> "endpoint"

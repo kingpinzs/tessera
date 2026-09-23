@@ -1,0 +1,21 @@
+==============================================================================
+ROW J7 — silence after a confirm card leaves the card (no phantom "AND")
+at            2026-09-23T12:33:01-06:00
+driver        j7.sh blob 23df583fa2d4617b981b7202d97a3ed369b3a4ec
+harness       lib.sh blob 5679a49e4bc3e933c98f48b19448424db383fa5f
+apk built     985eaf3b074e9a85 335501914 bytes
+apk installed a21c8d8a968ad031
+apk match     yes (a21c8d8a968ad031)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      ring since the request: 345 [cortana] question spoken; listening for the answer|546 [speech] final open="" grammar="" audioMs=2100|554 [cortana] silence at a pending card (audioMs=2100): the card stays|
+PASS  Tess listened for the answer                                contains [question spoken; listening for the answer]
+PASS  silence did not replace the card                            does not contain [a new request replaced the pending]
+      the capture after the question: final open="" grammar="" audioMs=2100
+PASS  the capture after the question came back empty              contains [open=""]
+PASS  Tess kept the card                                          contains [silence at a pending card]
+PASS  the card's Add button is still on screen                    = yes
+      restored: the card was cancelled, nothing was written
+------------------------------------------------------------------------------
+J7: 5 passed, 0 failed

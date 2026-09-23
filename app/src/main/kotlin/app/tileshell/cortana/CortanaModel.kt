@@ -237,6 +237,13 @@ class CortanaModel(
         // what phase 08 is handed.
         val text = event.grammar.ifBlank { event.open }
         if (text.isBlank()) {
+            // Silence while a card waits for yes / no is not an answer: the card and its buttons stay (phase 03
+            // edge case "silence at a reminder or calendar card"). It used to be replaced by "I didn't catch that".
+            if (mutable.value.pending != null) {
+                Diagnostics.add("cortana", "silence at a pending card (audioMs=${event.audioMs}): the card stays")
+                mutable.value = mutable.value.copy(persona = PersonaState.IDLE_AFTER_SPEAKING)
+                return
+            }
             Diagnostics.add("cortana", "final was silence (audioMs=${event.audioMs})")
             reply(actions.run(Request.Silence))
             return
