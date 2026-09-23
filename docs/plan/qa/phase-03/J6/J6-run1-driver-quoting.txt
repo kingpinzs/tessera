@@ -1,0 +1,24 @@
+==============================================================================
+ROW J6 — Tess's calendar events go to the shell's local calendar, never an account calendar
+at            2026-09-23T11:21:13-06:00
+driver        j6.sh blob df2d14b1d7a4d187716293524dea1e7c302187af
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     46889edb51f188d0 335485062 bytes
+apk installed 3d959e31f9792579
+apk match     yes (3d959e31f9792579)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+      calendars before: No result found. 
+FAIL  the QA work calendar exists                                 should not be []
+FAIL  Tess shows the confirm card                                 expected [yes] got [no]
+      Tess said: [Sorry, I can't do that yet.]
+      calendars after: No result found. 
+      work= personal= local=
+PASS  nothing was written to the account calendar marked primary (QA Work)  = 0
+PASS  nothing was written to the other account calendar (QA Personal)  = 0
+FAIL  the shell has a local calendar                              should not be []
+FAIL  the event is in the shell's local calendar                  expected [1] got [0]
+FAIL  the diagnostics name the local calendar                     does not contain [local]: 
+      restored: QA calendars and the test event deleted; the shell's local calendar stays (it is the shell's own)
+------------------------------------------------------------------------------
+J6: 2 passed, 5 failed

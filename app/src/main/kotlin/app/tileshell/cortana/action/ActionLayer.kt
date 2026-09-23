@@ -483,7 +483,8 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
     }
 
     private fun insertEvent(pending: Pending.AddEvent): Outcome {
-        val calendarId = writableCalendarId() ?: return answer("I don't have a calendar to add that to.")
+        // Only ever the shell's own local calendar: never an account calendar, so never a work one (J6).
+        val calendarId = app.tileshell.feeds.LocalCalendar.id(context) ?: return answer("I don't have a calendar to add that to.")
         return runCatching {
             val values = ContentValues().apply {
                 put(CalendarContract.Events.CALENDAR_ID, calendarId)
@@ -493,7 +494,7 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
                 put(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
             }
             val uri = context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)
-            Diagnostics.add("cortana", "calendar event inserted: $uri")
+            Diagnostics.add("cortana", "calendar event inserted into the shell's local calendar ($calendarId): $uri")
             answer("Added to your calendar.")
         }.getOrElse {
             Diagnostics.add("cortana", "calendar insert failed: $it")
@@ -643,24 +644,6 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
         host.launchApp(entry)
         return Outcome(spoken, null, close = true)
     }
-
-    private fun writableCalendarId(): Long? = runCatching {
-        context.contentResolver.query(
-            CalendarContract.Calendars.CONTENT_URI,
-            arrayOf(CalendarContract.Calendars._ID, CalendarContract.Calendars.IS_PRIMARY),
-            "${CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL} >= ?",
-            arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString()),
-            null,
-        )?.use { cursor ->
-            var first: Long? = null
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(0)
-                if (first == null) first = id
-                if (cursor.getInt(1) == 1) return@use id
-            }
-            first
-        }
-    }.onFailure { Diagnostics.add("cortana", "calendar query failed: $it") }.getOrNull()
 
     /** (event id, title) for events starting inside [windowMs] from [fromMs]. */
     private fun calendarEvents(fromMs: Long, windowMs: Long): List<Pair<Long, String>> = runCatching {
