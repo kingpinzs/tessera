@@ -45,6 +45,13 @@ Camera2 — P1 records what the S25U exposes); DRM; Files (phase 18); the pod ba
 "player-only" video build if the interview rules the fuller form (Hard Rule 16).
 
 ## Decisions
+- 2026-09-23: Interview Q5 — the shell's Camera answers IMAGE_CAPTURE and VIDEO_CAPTURE and returns the result to the caller
+  (Jeremy: "(a)"), so it is one of Android's camera choices beside Samsung Camera.
+- 2026-09-23: The App Shortcuts under the phase 11 Q1 standing rule (agent; Jeremy can overrule): Photos — Collection, Albums;
+  Camera — Photo, Video, Panorama, Slow motion (a mode the phone cannot do is left out, as in Q2); Movies & TV — My videos,
+  Browse, Media server (the last only when one is set up).
+- 2026-09-23: Interview Q4 — Photos shows photos and videos together (Jeremy: "(a)"); tapping a video opens the one shared player
+  screen, the same one Movies & TV uses (one player surface, Hard Rule 16).
 - 2026-09-23: Interview Q3b — Movies & TV is the full hub (Jeremy: "(a)"): local videos; an online catalogue of films and shows
   from a public film database; per title, which streaming apps on the phone have it, with "Watch on <service>" opening that app
   at the title (the user still signs in inside each service's own app); and the user's own media server (Jellyfin or Plex) when
@@ -212,12 +219,14 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
    B. Local library and player, plus a "Streaming" pivot of shortcuts into the streaming apps you have (no catalogue, no search)
    C. A without the media-server part
    D. Other / let me clarify
-4. **Q4 — videos in Photos.** W10M's Photos showed videos in its collection and played them in place.
+4. ~~Q4 — videos in Photos~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Q4 — videos in Photos.** W10M's Photos showed videos in its collection and played them in place.
    A. Photos shows photos and videos together; tapping a video opens the shared player screen. (lean)
    B. Photos shows photos only; videos live only in the video app.
    C. Photos shows both but plays videos inline in the viewer (a second player surface).
    D. Other / let me clarify.
-5. **Q5 — the capture-intent contract.** Other apps ask for a photo with `IMAGE_CAPTURE` / `VIDEO_CAPTURE`;
+5. ~~Q5 — capture intents~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Q5 — the capture-intent contract.** Other apps ask for a photo with `IMAGE_CAPTURE` / `VIDEO_CAPTURE`;
    answering them makes the shell's Camera one of the choices (with Samsung Camera) and lets a caller get its
    picture from it.
    A. Yes: the shell's Camera answers both and returns the result to the caller. (lean — P2, fewer seams)
