@@ -118,7 +118,7 @@ second material for the light theme (the same material with the light fills). Ho
   | Tess's ≡ pane (`cortana_pane`) | 03 E15; R7 §3.1.6 | live | (14,19,13) | Cortana's Home page (0,0,0), R6 §3.1.14 | (18,24,16) | (14,19,13) |
   | Reminder long-press menu (`CortanaUi.MENU_FILL`) | 03 E15; R7 §3.6.2 | live | (40,40,40), border (71,76,70) opaque | Reminders page (14,19,13) | (47,45,47) | (40,40,40) |
   | ~~Burst backdrop (phase 11), if its doc names one~~ DROPPED 2026-09-23 (T11-8: phase 11 names none) | ~~11~~ | ~~live~~ | ~~theme background~~ | ~~edit-mode Start~~ | ~~(0,0,0)~~ | ~~theme background~~ |
-  | Pod bay page (phase 14, when built) | 14 | static wallpaper | its own P4 fill | wallpaper | its fill | its fill |
+  | Pod bay page (phase 14, when built; tag `acrylic:pod_bay`) — re-cut 2026-09-23 by T14-11 (was "its own P4 fill") | 14 | static wallpaper | as the app-list backdrop | wallpaper | (0,0,0) | wallpaper under the tint, unblurred (A18's form); no picture → theme background |
   | Action center, volume panel (phase 04) | 04 A19 / A20; R7 §4 | cross-window (04's ADD) | (0,0,0) / (55,55,55) | the app below | phase 04's interview | as captured |
 
   Over the ≡ pane's other pages ((14,19,13), R7 §3.5) the pane reads (17,23,15): a 3-level shift the E15 tolerance note
@@ -128,8 +128,13 @@ second material for the light theme (the same material with the light fills). Ho
   ¬ActivityManager.isLowRamDevice()`, followed live through `ACTION_POWER_SAVE_MODE_CHANGED` and the setting's flow, so a
   menu that is open when battery saver turns on redraws to its fallback in the next frame. In-app acrylic does NOT follow
   `isCrossWindowBlurEnabled()` (that gates only the cross-window source in phase 04): a phone whose One UI blur reports
-  false still gets in-app acrylic. Verified on the AVD 2026-09-22: `cmd power set-mode 1` sets `low_power=1` and the
-  platform flips `mBlurEnabled` to false; `set-mode 0` restores both; `settings put global disable_window_blurs 1` flips
+  false still gets in-app acrylic. Verified on the AVD 2026-09-22 (before `wake_device` forced AC power at every row,
+  `qa/phase-03/scripts/lib.sh:47-56`): `cmd power set-mode 1` sets `low_power=1` and the platform flips `mBlurEnabled` to false;
+  `set-mode 0` restores both — SUPERSEDED 2026-09-23 by C-18: AOSP refuses low-power mode while powered, and the AVD now reads
+  `mIsPowered=true`. Build-start probe, result recorded here when built: "after `wake_device`: `cmd power set-mode 1`; `settings
+  get global low_power` → (expected) 0; `dumpsys battery unplug`; `cmd power set-mode 1` → 1" (if it reads 1 on AC, C-18 drops to a
+  NOTE). Every row turns battery saver on and off only through `lib.sh` `battery_saver_on` / `battery_saver_off` (build task 7).
+  Still valid from the 2026-09-22 probe: `settings put global disable_window_blurs 1` flips
   `mBlurEnabled` alone (the cross-window switch; `settings delete global disable_window_blurs` restores); `wm disable-blur
   1` exists on API 36 but throws `SecurityException: Package android does not belong to 2000` from the adb shell, so no row
   uses it. `ro.config.low_ram` is unset on the AVD; the low-RAM branch is a JVM test on the rule, not a device row.
@@ -151,10 +156,12 @@ second material for the light theme (the same material with the light fills). Ho
   wallpaper stayed fixed under the pivot was never measured (S1 / S2 contain the swipe; A18 sampled the colour only).
 - 2026-09-22 (agent): **Diagnostics** (R10 testability 25): `[fluent] acrylic=on|off reason=setting|battery-saver|low-ram|
   none` on every change and at process start; `[fluent] <surface> source=static|live tint=(r,g,b) alpha=0.8 blur=<r>epx`
-  each time a surface is shown; `[fluent] static backdrop rebuilt for <uri> in <ms> ms` per rebuild. **Test tags:**
+  each time a surface is shown; `[fluent] static backdrop rebuilt for <uri> in <ms> ms` per rebuild. Added 2026-09-23:
+  `[fluent] <surface> form=acrylic|fallback` each time a shown surface changes form (T13-9); `[fluent] static backdrop failed for
+  <uri>: <why> (fallback)` when the static layer cannot be built — file gone, decode failure, grant revoked (T13-10). **Test tags:**
   `acrylic:<surface>` on each acrylic backdrop node (`acrylic:applist`, `acrylic:applist_menu`, `acrylic:music_menu`,
-  `acrylic:cortana_pane`, `acrylic:reminder_menu`, ~~`acrylic:burst`~~ — dropped 2026-09-23, T11-8), so a row reads the
-  surface's bounds from the dump.
+  `acrylic:cortana_pane`, `acrylic:reminder_menu`, ~~`acrylic:burst`~~ — dropped 2026-09-23, T11-8; `acrylic:pod_bay`, built by phase
+  14, T14-11), so a row reads the surface's bounds from the dump.
 - 2026-09-22 (agent): **Memory and threads.** The static layer is one screen-sized bitmap (1080 × 2340 × 4 ≈ 10 MB at
   FHD+, ≈ 18 MB at QHD+), built on `Dispatchers.IO` from the already-sampled background decode and dropped when the image is
   removed; the launcher process is bounded in P2 against phase 03 P4's baseline + 30 MB. The live source allocates its
@@ -182,6 +189,11 @@ second material for the light theme (the same material with the light fills). Ho
   BEFORE phase 12, so `StartTheme.transparencyEffects` (this phase's field; `prefs/ShellSettings.kt:17-24` has none today) exists
   when phase 12's presets write it — the Midnight preset and the original W10M preset turn it off. This phase does not depend on 12.
   Reason: phase 12 builds its presets "in their final form" (Rule 16), which needs this field; the swap costs nothing here
+- 2026-09-23 (agent, r2 triage T14-11): the pod bay page takes the app-list backdrop's material exactly — static source, T = (0,0,0),
+  α 0.8, blur 30 epx, fallback the wallpaper under the tint unblurred (A18's form), no picture → theme background — with tag
+  `acrylic:pod_bay` and line `[fluent] pod_bay source=static tint=(0,0,0) alpha=0.8 blur=30epx`; the surface table's row is re-cut to
+  match and phase 14 E14 measures it with E2's method. Reason: phase 14's Decision ("the same material — phase 13's app-list backdrop,
+  same engine, same parameters") is the explicit one, H10 is written for it, and two sibling pager pages share one material
 
 ## Interview queue (Stage A step 4)
 Load-bearing first. Each answer lands in Decisions, dated.
@@ -217,12 +229,14 @@ Load-bearing first. Each answer lands in Decisions, dated.
    on / off rule with its two listeners, the diagnostics lines; JVM tests for the derivation (each table row, the negative
    branch), the rule (setting × battery saver × low-RAM), and the noise's range.
 2. Static source: the pre-blurred Start background, built off the main thread once per image / theme change, cached, freed
-   on removal; the app-list page draws it under its rows with the theme-background tint; the un-blurred fallback form. The
+   on removal; the app-list page draws it under its rows with the theme-background tint; the un-blurred fallback form; a build
+   that fails falls back and logs `[fluent] static backdrop failed for <uri>: <why> (fallback)` (T13-10). The
    decode goes through a `BackgroundDecoder` object that phase 01's `StartPage` and this source both call — `StartPage
    .rememberBackground` is `private` today (`start/StartPage.kt:987`) — an ADD to phase 01's part, in task 7's Change Log line
    (T13-5).
 3. Live source: the `GraphicsLayer` record of the content under a surface and the clipped blurred draw; one `Acrylic`
-   composable that takes a surface name, its tint and its fallback fill and draws either form.
+   composable that takes a surface name, its tint and its fallback fill and draws either form, logging `[fluent] <surface>
+   form=acrylic|fallback` when a shown surface changes form (T13-9).
 4. Apply the table: the app-list hold menu band, the Music hold menus, Tess's ≡ pane and reminder menu ~~, phase 11's burst
    backdrop if named~~ (dropped 2026-09-23, T11-8) — each keeping its measured fill in its measured setup; tags `acrylic:<surface>`.
 5. The two lights on touch (Q3 B, T13-1): the 1-epx border ring and the radial light (r = 40 epx, alpha 0.10 → 0, following
@@ -232,7 +246,15 @@ Load-bearing first. Each answer lands in Decisions, dated.
 7. Build-start checks (Decisions) recorded; drivers under `qa/phase-13/scripts/` with `lib.sh` symlinked; the checkerboard
    fixture and the edge-spread / variance measurement script; `qa/phase-13/scripts/acrylic_expect.py` (T13-2); the
    `[motion]` lines E8 reads for the pane slide, the reminder menu grow, the pivot settle and the app-list menu's appearance,
-   added here as logging-only ADDs where their phases do not log them yet (C-5); INDEX Change Log lines for phases 01
+   added here as logging-only ADDs where their phases do not log them yet (C-5), each carrying `frames=<n> maxGapMs=<ms>` (C-31);
+   two `lib.sh` additions owned here (13 is their first user in the Build order): `battery_saver_on` (`adb shell dumpsys battery
+   unplug`; save `screen_off_timeout` and raise it to 1800000 so the screen stays on once stay-on-while-plugged stops; export
+   `BS_MARK=$(adb shell date +%s%3N)`; `adb shell cmd power set-mode 1`; ASSERT `settings get global low_power` = 1 — a
+   precondition that fails loudly) and `battery_saver_off`
+   (`set-mode 0`, restore the timeout, `wake_device`) (C-18); and `record <name> <value>` (prints `RECORD <name> <value>`,
+   increments a RECORDED counter, never PASS / FAIL) with `row_end` reporting `<row>: recorded only (<n> facts)` and exiting 0 when
+   PASS + FAIL = 0 and RECORDED > 0 (C-26; `lib.sh:87-91` and `:125-137` today count only PASS / FAIL and fail a zero-assertion row);
+   INDEX Change Log lines for phases 01
    (app-list backdrop form, the `BackgroundDecoder`), 02, 03 and 10 (their surfaces now acrylic, numbers unchanged; the
    `[motion]` lines) when built.
 
@@ -242,17 +264,25 @@ clock (below); dumps follow RV13. **Seeding (C-3):** rows that read Start's grid
 qa/phase-02/baseline_layout.json` (`qa/phase-02/scripts/layout.sh`) — this phase adds no `addedOnce` marker and pins no fixture,
 so phase 02's file, with its markers and hand-set sizes, is complete for this build — and assert zero `assignSlotOnce … ->
 assigned` lines after it. **Motion clock (C-5):** every motion the shell animates logs its own clock from `withFrameNanos`
-(`[motion] <name> t0=<uptime> settle=<ms>`) and the row asserts the logged numbers against RV11's tolerance; a screenrecord
+(`[motion] <name> t0=<uptime> settle=<ms> frames=<n> maxGapMs=<ms>`) and the row asserts the logged numbers against RV11's
+tolerance, and `maxGapMs` ≤ 33.4 ms (2 vsync, C-31); a screenrecord
 corroborates under phase 05's frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motion) and is never the primary
-clock. **Expected acrylic values (T13-2):** wherever a row expects "0.8·T + 0.2·B", B = GaussianBlur_host(σ = 0.57735·r + 0.5 px)
+clock. **Ring reads (C-20):** every ring assertion reads `ring_since` from a MARK taken immediately before the step's action (after
+any clock jump, so the MARK is on the new clock); absence assertions read the same slice; `reply_text` is `reply_since <MARK>`
+(helpers: phase 11's build task 7). **Wake (C-25):** after any `adb reboot` (boot-completed poll), `dumpsys battery unplug` or
+`KEYCODE_SLEEP` step, the driver calls `wake_device` and asserts it printed `Awake` before the next tap — except inside
+`battery_saver_on` … `battery_saver_off`, where the helper's raised `screen_off_timeout` keeps the screen on and `wake_device` (which
+resets the battery and so ends battery saver) runs in `battery_saver_off`. **Expected acrylic values (T13-2):** wherever a row expects "0.8·T + 0.2·B", B = GaussianBlur_host(σ = 0.57735·r + 0.5 px)
 of the backdrop at the same pixel, computed on the host by `qa/phase-13/scripts/acrylic_expect.py` from the pulled fixture
 (static source) or from a capture of the same screen with the surface closed or acrylic OFF (E1's control) — never read from
-the capture under judgement. **Recorded rows (C-13):** a row marked "recorded, not gated" ends its PASS/FAIL line with
-"RECORDED", so `qa/phase-03/scripts/lib.sh` `row_end` never counts it as a pass.
+the capture under judgement. **Recorded rows (C-13, re-cut 2026-09-23 by C-26):** a recorded clause uses `lib.sh` `record`,
+never an assert, so it is never counted as a PASS or a FAIL; a row with only recorded clauses ends `<row>: recorded only (<n>
+facts)` (build task 7).
 AVD tileshell_fhd (1080×2340 @ 450 dpi, 3 px/epx, AOSP API 36, no Google; cross-window blur enabled:
 `supports_background_blur=1`, `mBlurEnabled=true`). "Diagnostics" is read with phase 01's command. **Controls:** acrylic
-OFF = `adb shell cmd power set-mode 1` (battery saver; restore `set-mode 0` and assert `settings get global low_power` = 0)
-or the toggle off (tap `theme_transparency_effects`, restore to On); `settings put global disable_window_blurs 1` is NOT a
+OFF = `battery_saver_on` (`lib.sh`, C-18: it unplugs the simulated battery, because `wake_device` forces AC power and AOSP refuses
+low-power mode while powered, and it asserts `low_power` = 1 before the row goes on; restore `battery_saver_off`, then assert
+`settings get global low_power` = 0) or the toggle off (tap `theme_transparency_effects`, restore to On); `settings put global disable_window_blurs 1` is NOT a
 control for this phase (cross-window only; E1 records that) and `wm disable-blur` is not usable from adb (Decisions).
 **Checkerboard fixture:** an 8-square-across black / white PNG at the display size, pushed to
 `/sdcard/Android/data/app.tileshell/files/qa/checker.png` and set as the Start background by rewriting
@@ -262,15 +292,19 @@ removing the key. **Edge spread** = the 10–90 % width, in px, of the intensity
 along a row of pixels; expected blurred width = 2.563 · σ with σ = 0.57735 · r + 0.5 and r = 30 epx · px/epx (≈ 135 px at
 3 px/epx), pass = within ± 20 %; "sharp" = width ≤ 2 px.
 **Emulator:**
-- E1 The rule and its controls, both directions: after provisioning, diagnostics carry `[fluent] acrylic=on reason=none`;
-  `cmd power set-mode 1` → within 1 s `[fluent] acrylic=off reason=battery-saver` and the app-list backdrop (E2's fixture,
-  app list showing) reads the un-blurred form (edges sharp, pixels = 0.2 × checker ± 3); `set-mode 0` → `acrylic=on` and the
-  blurred form again; toggle off → `acrylic=off reason=setting`, same look as under battery saver; toggle on; with
-  `settings put global disable_window_blurs 1` the line stays `acrylic=on` and the app list stays blurred (the switch gates
+- E1 The rule and its controls, both directions, every step read from `ring_since` a MARK (`adb shell date +%s%3N`) taken just
+  before its action, so no step is satisfied by an earlier step's line (C-20): after provisioning, diagnostics carry `[fluent]
+  acrylic=on reason=none`; `battery_saver_on` (C-18; its `low_power` = 1 assertion is the precondition; its `BS_MARK` is taken
+  immediately before its `cmd power set-mode 1`, T13-9) → the slice from `BS_MARK` holds `[fluent] acrylic=off
+  reason=battery-saver` with `wall=` − `BS_MARK` ≤ 1000 and the app-list backdrop (E2's fixture,
+  app list showing) reads the un-blurred form (edges sharp, pixels = 0.2 × checker ± 3); MARK, `battery_saver_off` → the slice holds
+  `acrylic=on` and the blurred form again; MARK, toggle off → `acrylic=off reason=setting` with `wall=` − MARK ≤ 1000, same look as
+  under battery saver; MARK, toggle on → `acrylic=on`; MARK, `settings put global disable_window_blurs 1` → the slice holds no
+  `acrylic=off` line and the app list stays blurred (the switch gates
   cross-window blur only; recorded for phase 04); `settings delete global disable_window_blurs`. Preset sub-row (T13-4; written
-  now, runs at phase 12's gate because phase 12 builds after this phase, T12-3): tap `preset:Midnight` (phase 12's presets page) →
-  `[fluent] acrylic=off reason=setting` and `run-as app.tileshell cat shared_prefs/start_theme.xml` holds
-  `transparency_effects` false; `preset:Default` → `acrylic=on reason=none`.
+  now, runs at phase 12's gate because phase 12 builds after this phase, T12-3): MARK, tap `preset:Midnight` (phase 12's presets
+  page) → the slice holds `[fluent] acrylic=off reason=setting` and `run-as app.tileshell cat shared_prefs/start_theme.xml` holds
+  `transparency_effects` false; MARK, `preset:Default` → the slice holds `acrylic=on reason=none`.
 - E2 The backdrop, not the element, is blurred (static source, app list): checkerboard set, swipe to the app list, screencap.
   In the app-list region between the drawn bars, in a horizontal strip through a letter-group gap (no text; strip found from
   the dump's `applist_*` bounds), the edge spread is the blurred width and the pixel values are 0.2 × (blurred checker) ± 3
@@ -308,7 +342,10 @@ along a row of pixels; expected blurred width = 2.563 · σ with σ = 0.57735 ·
   the brightest pixel inside the item moved 30 ± 3 px with the finger; `UP`, screencap: neither the ring nor the light is drawn on
   the item (the split-time E7 released on the item the same way). The same on a `cortana_pane` item (F = (63,68,64)) and on a phase
   11 satellite (hold a tile, press `quick_sat:0`; F = the satellite's fill; no Q6 press style under `press_tilt` — phase 11 T11-7,
-  its E5 / E7 sub-rows re-run here). Acrylic off (E1's control): no ring and no light on any of the three — the held menu and pane
+  its E5 / E7 sub-rows re-run here) — pressed at (left + 10, top + 10) px of `quick_sat:0`, never its centre, because no pixel of a
+  164-px satellite lies ≥ r + 2 epx (126 px) from its centre (T13-8): the ring on the satellite's right and bottom edges ≥ 126 px
+  from the touch point reads F + 0.30·(255 − F) ± 4, the touch-point pixel F + 0.10·(255 − F) ± 4, the pixel 60 px along the diagonal
+  F + 0.05·(255 − F) ± 4, and the interior pixel 12 px inside the bottom-right corner (≈ 200 px away) F ± 2. Acrylic off (E1's control): no ring and no light on any of the three — the held menu and pane
   items read their measured pressed fills (79,84,80) / (63,68,64) ± 2 everywhere, the touch point included, and the held satellite
   reads its rest fill ± 2. A Start tile pressed with the press style None shows zero pixel change in the tile region (phase 01 E10's
   check); a Settings row pressed shows X19's flat 15 % white and neither light (a 10-px patch on the row's edge equals its
@@ -316,11 +353,13 @@ along a row of pixels; expected blurred width = 2.563 · σ with σ = 0.57735 ·
 - E8 Measured motion holds with acrylic on, on the shell's `[motion]` clock (C-5; T13-7): `[motion] cortana_pane` reads settle
   250 ± 17 ms after its t0 (R7 §3.1.10), `[motion] reminder_menu` settle 233 ms + one frame after its half-height first frame
   (R7 §3.6.4), `[motion] pivot` settle 250 ms ± one frame (X13), and `[motion] applist_menu` settle 0 (its first frame is at full
-  height; no motion added). A 60-fps screenrecord of each (`show_touches 1`, restored to 0) corroborates under phase 05's
+  height; no motion added); every one of those lines reads `maxGapMs` ≤ 33.4 ms (C-31), each read from the ring slice after a MARK
+  taken just before its open / swipe (C-20). A 60-fps screenrecord of each (`show_touches 1`, restored to 0) corroborates under phase 05's
   frame-spacing rule and is not the clock.
-- E9 Frame cost on the AVD, recorded not gated (its PASS/FAIL line ends "RECORDED", C-13): `dumpsys gfxinfo app.tileshell reset`;
+- E9 Frame cost on the AVD, recorded not gated (C-13 through `lib.sh` `record`, C-26 — never an assert; the row ends `E9: recorded
+  only (<n> facts)`): `dumpsys gfxinfo app.tileshell reset`;
   open and close the reminder menu 20 times and swipe Start ↔ app list 20 times with live tiles flipping; `dumpsys gfxinfo
-  app.tileshell` janky-frame % and the 99th percentile recorded in the row (host GPU; the phone's P2 is the bounded row).
+  app.tileshell` janky-frame % and the 99th percentile each written with `record` (host GPU; the phone's P2 is the bounded row).
 - E10 Persistence and memory: the toggle survives `am force-stop` (Settings dump after reopen shows its state); with the
   checkerboard set, `dumpsys meminfo app.tileshell` total PSS on Start vs on the app list differs by ≤ 14 MB (one screen
   layer + noise), and after "Remove picture" (`theme_background_remove`) returns to within 2 MB of the Start figure.
@@ -331,6 +370,13 @@ along a row of pixels; expected blurred width = 2.563 · σ with σ = 0.57735 ·
   `qa/phase-03/exported-allowlist.txt` reports no new exported component.
 - E12 Diagnostics: every surface shown in E2–E5 has its `[fluent] <surface> source=… tint=… alpha=0.8 blur=30epx` line,
   and the E1 reasons appear in order.
+- E13 Static backdrop failure (T13-10): with the checkerboard set as the Start background (the fixture route above), `adb shell rm
+  /sdcard/Android/data/app.tileshell/files/qa/checker.png`, `am force-stop app.tileshell` + Home (so no cached layer survives), MARK,
+  swipe to the app list: the slice holds `[fluent] static backdrop failed for <the checker's file:// URI>: <why> (fallback)` and no
+  `static backdrop rebuilt` line, and the app-list region reads the fallback form with no picture — the solid theme background
+  (0,0,0) ± 2 in E2's strip, no checker edge anywhere in it (after the restart no decode of the picture exists anywhere, so this is
+  the no-image fallback; without the restart the static source may still build from Start's in-memory decode, which would make the
+  row unable to fail); restore by removing the `background` key (the fixture's restore).
 
 **Phone-only (S25 Ultra):**
 - P1 R4's blur probe result attached (INDEX R4 row: `supports_background_blur`, `mBlurEnabled`, both under power saving,
@@ -339,7 +385,9 @@ along a row of pixels; expected blurred width = 2.563 · σ with σ = 0.57735 ·
 - P2 Frame pacing and memory on the 1440 × 3120 panel: E9's script with `dumpsys display` showing the same mode before and
   after; janky ≤ 5 % and 99th percentile ≤ 2 vsync periods (phase 01 P4's thresholds); launcher PSS ≤ phase 03 P4's baseline
   + 30 MB with the app-list layer built.
-- P3 Samsung Power saving on and off turns acrylic off and on (`[fluent]` lines), and One UI's Accessibility > Visibility
+- P3 Samsung Power saving on and off turns acrylic off and on (`[fluent]` lines), run over Wireless debugging with the phone
+  unplugged, or with the charging state and One UI's behaviour written with `record` (C-18: a phone on USB is powered, as the AVD
+  is), and One UI's Accessibility > Visibility
   enhancements > "Reduce transparency and blur" is probed: `settings list global/system/secure` diffed across the toggle;
   if a key changes, it is recorded here and H8 asks whether the shell should follow it (an ADD to the rule); if none does,
   recorded as not readable.
@@ -360,9 +408,13 @@ along a row of pixels; expected blurred width = 2.563 · σ with σ = 0.57735 ·
 - H9 The feel with acrylic on the phone (P2's numbers, P4's captures).
 
 ## Edge cases
-- Battery saver toggled while a menu is open (`cmd power set-mode 1` with the reminder menu showing): the surface shows its
-  fallback in the next frame (screencap ≤ 100 ms later reads (40,40,40)); toggled back: acrylic returns without closing the
-  menu.
+- Battery saver toggled while a menu is open (`battery_saver_on`, C-18, with the reminder menu showing): the surface redraws to its
+  fallback in the next frame — in the slice from the helper's `BS_MARK`, the `[fluent] reminder_menu form=fallback` line's `wall=`
+  − the `[fluent] acrylic=off reason=battery-saver` line's `wall=` ≤ 34 ms (2 frames; T13-9), a screencap reading (40,40,40) only
+  corroborating (a host screencap cannot be placed within 100 ms); toggled back (MARK, `battery_saver_off`): the slice holds
+  `[fluent] reminder_menu form=acrylic` and the menu is still open (`acrylic:reminder_menu` in the dump).
+- The Start background's file deleted under the shell: the fallback and `[fluent] static backdrop failed for <uri>: <why>
+  (fallback)` (E13, T13-10).
 - The Transparency toggle changed while the app list shows (Settings opened over it and Back): the backdrop switches form.
 - Start background removed or changed while the app list shows: the static layer is rebuilt or dropped (`[fluent] static
   backdrop rebuilt` / no line and the theme background shown), no stale blur (screencap).

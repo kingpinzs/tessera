@@ -1,7 +1,7 @@
 ---
 phase: 12
 slug: setup-wizard
-status: DRAFT
+status: DRAFT   # FINAL gates (T12-13): Jeremy's four pictures in art/themes/ (Q6) AND his ruling on committing / shipping R12's Microsoft wallpapers (asked separately 2026-09-23); which build carries the original pictures follows that ruling; with none, T12-7's no-picture form ships
 depends-on: [01, 03, 05, 10, 13]   # it walks rows those phases put on the Setup checklist and Tess's checklist (phase 03), reuses phase 01's theme settings and phase 03's blocked-permission rule; 13 because a preset writes phase 13's StartTheme.transparencyEffects (T12-3: build order 11 -> 13 -> 12 -> 14)
 ---
 
@@ -16,8 +16,10 @@ sources, never a third list — showing only the rows that are not yet granted, 
 row's real grant (Android's role sheet or the Settings page that owns it, the runtime-permission dialog, the app's location
 page); advances on its own when the grant comes back; and ends on the theme presets page: six presets, each applied to the
 whole shell the moment it is tapped, with the individual items below them (Q3–Q6). A phone that already holds every grant
-never sees it, which is also why no existing QA driver needs a bypass: the harness provisions the grants, and the wizard has
-nothing to do. Every look value is a P4 design: W10M's out-of-box experience was never measured (no R3 / R6 / R7 row), so
+never sees it. The QA harness provisions every grant and then finishes the wizard once through the marker the wizard's own finish
+writes, as a user who completed setup would (Decisions, lead 2026-09-23; re-cut 2026-09-23 by r2 triage C-15 — the split-time text
+said no driver needed a bypass because the wizard had nothing to do, which a force-stop that deselects the keyboard makes false).
+Every look value is a P4 design: W10M's out-of-box experience was never measured (no R3 / R6 / R7 row), so
 the look is judged in NEEDS-HUMAN "accept" rows, not measured — except the "Windows 10 Mobile (original)" preset, whose
 values R12 measured. (Re-cut 2026-09-23 from the split-time Goal, which ended "with the accent step", by T12-1 / T12-2.)
 
@@ -31,7 +33,8 @@ individual items below them, the bundled pictures, and the same presets on Start
 T12-2); "Not now" per step and "Skip setup" for the run; the finished / skipped marker and its store; resume after process death
 by re-deriving from live grant state; the blocked-permission branch (Android will no longer ask → the app's own info page, phase
 03's 2026-09-22 rule); diagnostics lines; test tags; the harness change that keeps every earlier driver off the wizard
-(`qa/phase-03/scripts/provision.sh` grants the Setup rows and Tess's nine; each later phase appends its line, C-4) plus one
+(`qa/phase-03/scripts/provision.sh` grants the Setup rows and Tess's nine and writes the finished marker, `PROVISION_FINISH_WIZARD=0`
+skipping the marker, C-15; each later phase appends its line, C-4) plus one
 regression run; the "wizard step added" template row later phases cite (E14).
 **Out (explicitly):** ~~Tess's own checklist rows (`cortana/CortanaChecklist.kt`: assistant role, microphone, contacts, texts,
 calls, locations, call log) — they live on her Settings page by phase 03's decision, and the microphone is asked for the
@@ -43,9 +46,14 @@ walks whatever rows exist — no placeholder step (Rule 16); phase 04 runs E14 f
 for the wizard (the shell's only launcher icons are Start settings, Music and Weather; Start is reached through the Home role).
 Any W10M OOBE page the shell cannot own (region, Wi-Fi, Microsoft account, restore, Cortana sign-in). Reordering or renaming
 checklist rows (the checklists are phase 01's and phase 03's; the wizard reads them). Changing what a grant does. A lock-screen
-picture (R12 §6 lists img5; the shell draws no lock screen, and phase 07's glance is untouched). Hooks for later phases.
+picture (R12 §6 lists img5): a preset must not rewrite Android's lock-screen wallpaper as a side effect of a preview (phase 17's
+"set as" and phase 19's Lock screen page are the user's routes); phase 07's glance is untouched (reason re-cut 2026-09-23 by T12-15
+(b); the split-time reason, "the shell draws no lock screen", missed that the shell can set Android's lock wallpaper). Hooks for later phases.
 
 ## Decisions
+- 2026-09-23: From phase 15's review question Q-E (Jeremy: "(a)" — alarms ring as W10M's banner everywhere): the
+  setup:overlay step ("Display over other apps", with its why line) EXISTS; phase 15 ADDs it to this walk and to the Setup
+  checklist. The Q-E B / C branches in the rows are not applicable.
 - 2026-09-23: Interview Q9 — the original preset keeps Tess's lens, tinted Cobalt (Jeremy: "(a)"); no Cortana-style disc is
   built.
 - 2026-09-23: Interview Q8 — both original Start pictures, as two variants of the preset (Jeremy: "(c)"): "Windows 10 Mobile
@@ -106,7 +114,8 @@ picture (R12 §6 lists img5; the shell draws no lock screen, and phase 07's glan
   wizard.** "MetroSetupWizardScreen" is the secondary spec's name, not this build's (PLAN.md Rulings; R10 item 16 ADAPT).
 - 2026-09-22 (agent, R10 plan review; PLAN.md "Agent calls", triage): **the wizard shows only while a core grant is missing.**
   A phone that already holds every grant never sees it — which is also why no existing driver needs a test-only bypass: the
-  harness provisions every grant. It walks the Setup checklist's own rows in order (one source of truth), then the accent.
+  harness provisions every grant (SUPERSEDED in part 2026-09-23 (lead; r2 triage C-15): provisioning also writes the finished marker,
+  because a force-stop deselects the keyboard). It walks the Setup checklist's own rows in order (one source of truth), then the accent.
 - 2026-09-22 (agent): **P4 design throughout.** R3, R6 and R7 contain no W10M OOBE frame (R6 §4.2.1's "first-run page" is
   Cortana's sign-in page, not the phone's setup). Every look value here is an approximation; every NEEDS-HUMAN row is an
   "accept this design" row, never a fidelity row (R10 testability finding 26).
@@ -157,7 +166,11 @@ picture (R12 §6 lists img5; the shell draws no lock screen, and phase 07's glan
   now" is the way on. Runtime-permission step returned MISSING with `shouldShowRequestPermissionRationale` false for a requested
   permission (Android will no longer ask — denied twice or "Don't ask again"): the button relabels to "Open app info" and starts
   `Settings.ACTION_APPLICATION_DETAILS_SETTINGS` for the shell, the rule `CortanaPermissionActivity` and phase 10's Music row
-  already follow (INDEX Change Log 2026-09-22 "THE MICROPHONE PROMPT NOW APPEARS"). Denied for good is never silent.
+  already follow (INDEX Change Log 2026-09-22 "THE MICROPHONE PROMPT NOW APPEARS"). Denied for good is never silent. Added
+  2026-09-23 (T12-17): a grant action whose intent cannot start (`ActivityNotFoundException` — One UI resolves Settings actions
+  differently, and phase 19's table found three that resolve to nothing even on AOSP) logs `[wizard] step <ns>:<id>: action failed
+  <intent action>: <exception>` and the button relabels to "Open Android settings", which opens Android's Settings home
+  (`Settings.ACTION_SETTINGS`, phase 19's fallback form); the step then advances on resume like any other.
 - 2026-09-22 (agent): **Persistence.** No step index is ever stored: a run killed half-way resumes at the first row still
   missing because the steps are re-derived from live grant state (E4). The only stored state is the finished / skipped
   marker, kept in its own `SharedPreferences` file `setup_wizard` (key `finished`): not in `ShellSettings`, whose
@@ -184,13 +197,18 @@ picture (R12 §6 lists img5; the shell draws no lock screen, and phase 07's glan
   with phase 01's diagnostics command (`adb shell dumpsys activity service app.tileshell/.feeds.TileNotificationListener`,
   `diag wizard` in the driver floor). Re-cut 2026-09-23: row ids are namespaced `setup:<id>` / `tess:<id>` in every line
   (T12-1); `[wizard] accent <name>` is replaced by `[wizard] preset <name>` and `[theme] preset <name> applied` (T12-2); E10
-  reads `[motion] wizard_page t0=<uptime> settle=<ms>` (C-5).
+  reads `[motion] wizard_page t0=<uptime> settle=<ms> frames=<n> maxGapMs=<ms>` (C-5, C-31). **Precedence** (2026-09-23, r2
+  triage C-15; every provisioned AVD holds every core row AND the marker): `[wizard] not shown: core held` when every core row is
+  held (marker or not); else `[wizard] not shown: finished` when the marker is set; else the run shows. Added 2026-09-23: `[wizard]
+  step <ns>:<id>: action failed <intent action>: <exception>` (T12-17); `[theme] preset w10m variant <v> applied` (T12-10);
+  `[theme] preset Custom restored` (T12-12).
 - 2026-09-22 (agent): **Test tags:** `wizard_page` (root), `wizard_step:<row id>`, `wizard_progress`, `wizard_title`, `wizard_body`,
   `wizard_action`, `wizard_not_now`, `wizard_skip`, ~~`wizard_accent` (the personalisation step's root, with the shared grid's
   `accent:<name>` swatches inside it)~~, `wizard_done`. Re-cut 2026-09-23: `wizard_step:setup:<id>` / `wizard_step:tess:<id>`
   (T12-1); `wizard_why` (T12-4); `wizard_presets` replaces `wizard_accent` as the last page's root, with `preset:<name>`,
-  `preset:Custom` and the items below them — the shared grid's `accent:<name>` swatches among them (T12-2). Every text a row reads
-  sits on the node that carries the tag (the MUSIC8 lesson, testability 24).
+  `preset:Custom` and the items below them — the shared grid's `accent:<name>` swatches among them (T12-2); the original preset's
+  variant chips `preset_variant:hero` / `preset_variant:streaks` on the wizard's page and `theme_preset_variant:<v>` on Start +
+  theme (T12-10). Every text a row reads sits on the node that carries the tag (the MUSIC8 lesson, testability 24).
 - 2026-09-22 (agent): **Harness** (R10 testability 3, 12, 24). `qa/phase-03/scripts/provision.sh` today grants the roles and
   installs with `-g` but does not grant notification access or Usage access (phase 01's own rows grant those inside
   `final_rows.sh`, `edge_liveness.sh`, `e20_part3.sh`); after this phase it also runs `cmd notification allow_listener
@@ -202,7 +220,9 @@ picture (R12 §6 lists img5; the shell draws no lock screen, and phase 07's glan
   granted by `provision.sh` — `adb install -r -g` grants RECORD_AUDIO, READ_CONTACTS, READ / WRITE_CALENDAR, SEND_SMS,
   CALL_PHONE, ACCESS_FINE / BACKGROUND_LOCATION, READ_CALL_LOG and READ_SMS, and the ASSISTANT role line holds `tess:assistant`
   (`qa/phase-03/scripts/provision.sh:35,50-51`) — so the provisioned AVD holds all eighteen rows, which E1(a) proves; each later
-  phase appends its own line (the C-4 line below).
+  phase appends its own line (the C-4 line below). Extended 2026-09-23 (r2 triage C-15): after the grants, `provision.sh` writes the
+  finished marker by the one mechanism in the lead's line below, and `PROVISION_FINISH_WIZARD=0` skips it for rows that test the
+  wizard itself.
 - 2026-09-22 (agent): **Route in on the phone, recorded so the HOME step is understood.** `StartActivity` carries the HOME
   intent filter and no LAUNCHER category, so a freshly sideloaded Tessera is first opened through Settings > Default apps
   (or the Start settings icon's checklist row, which raises `RoleManager.createRequestRoleIntent(ROLE_HOME)`), and Start
@@ -229,6 +249,8 @@ picture (R12 §6 lists img5; the shell draws no lock screen, and phase 07's glan
   | `setup:usage` | Back on Start returns to the app you were using. Without it Back stays on Start. |
   | `setup:keyboard_enabled` | This turns on the Windows-style keyboard. Without it the keyboard cannot be chosen. |
   | `setup:keyboard_selected` | This makes it the keyboard wherever you type. Without it your old keyboard stays. |
+  | `setup:people` (phase 16's row, added at its build; r2 triage T16-15; walked at its `Checklist.kt` position) | People shows and edits your contacts. Without it People can't see them. |
+  | `setup:overlay` — Q-E: A (T15-14) | Under Q-E A only: phase 15 ADDs this step and writes its line here (the ring surface over other apps needs "Display over other apps"); under Q-E B or C no such step exists and this row is removed |
   | `tess:assistant` | The side key and the assist gesture open Tess. Without it they open another assistant. |
   | `tess:microphone` | Tess hears what you ask. Without it you can only type to her. |
   | `tess:contacts` | Tess calls and texts people by name. Without it she cannot find them. |
@@ -251,10 +273,15 @@ picture (R12 §6 lists img5; the shell draws no lock screen, and phase 07's glan
   finished-install rule stands (Persistence; H4): a phone that finished or skipped the wizard is not re-summoned by a later phase's
   new row — that row goes red on its checklist instead. Each of phases 15–19 restates that rule in one sentence.
 - 2026-09-23 (review triage T12-9, R12): **The original preset's values come from R12** (`r12-w10m-stock-theme.md`, landed
-  2026-09-23): Dark, accent Cobalt #3E65FF (outside the 48 swatches), full-screen picture img0 with accent tiles at α 0.40, press
-  style none, acrylic off. The three choices R12 raised are this doc's queue Q7–Q9, UNANSWERED at this writing, so the preset table
-  and E13 are written conditionally on them; the doc cannot go FINAL before they are answered and the four pictures are in
-  art/themes/.
+  2026-09-23): Dark, accent Cobalt #3E65FF (outside R3 A16's 48; the 49th swatch here by Q7 A), full-screen picture img0 with
+  accent tiles at α 0.40, press style none, acrylic off. Q7–Q9 answered 2026-09-23 (A, C, A; Decisions above), and the preset
+  table and E13 are written to those answers (re-cut 2026-09-23 by r2 triage T12-10; the split-time "UNANSWERED … written
+  conditionally" is struck). FINAL gates (T12-13): the four pictures in art/themes/ (Q6) AND Jeremy's ruling on committing /
+  shipping R12's Microsoft wallpapers (asked separately 2026-09-23, because every `main` CI APK is a public download,
+  `.github/workflows/apk.yml:3-8`; the repo has tracked them since commit 9888f2c, whose `.gitignore` note cites an owner answer —
+  the lead confirms and records the ruling here); which build carries the original pictures follows that ruling; with none,
+  T12-7's no-picture form ships. This doc does not assume them committed: the host script (build task 5) reads them into the A10
+  branding module at build time, and E12 / E13 branch on the APK, so either answer is testable without a re-cut.
 - 2026-09-23 (agent, review triage T12-1): **Q2 applied — which rows, the tags, location, the order.** (a) Tess's steps are her
   nine rows with a grant action — `assistant`, `microphone`, `contacts`, `calendar`, `sms_send`, `call_phone`,
   `background_location`, `call_log`, `sms_read` (`cortana/CortanaChecklist.kt:37-122`); `exact_alarms` (granted at install,
@@ -277,36 +304,39 @@ picture (R12 §6 lists img5; the shell draws no lock screen, and phase 07's glan
 - 2026-09-23 (agent, review triage T12-2): **the preset model** (Q3–Q6 designed below the rulings; every value is an H6 accept
   except the R12-marked cells). Keys in `start_theme.xml` (`ShellSettings`): `accent`, `theme`, `background`, `transparency` and
   `press` exist (`prefs/ShellSettings.kt:72-82`); `transparency_effects` is phase 13's; this phase ADDs `theme_preset`,
-  `tess_lens`, `tess_ring` and `keyboard_palette`. A tile's alpha over a picture is 1 − 0.8 · `transparency`
-  (`start/StartPage.kt:413`).
+  `tess_lens`, `tess_ring` and `keyboard_palette`, and `theme_preset_variant` (added 2026-09-23 by T12-10, last Decisions lines).
+  A tile's alpha over a picture is 1 − 0.8 · `transparency` (`start/StartPage.kt:413`).
 
   | Preset | `accent` | `theme` | `background` | `transparency` (tile α over the picture) | `press` | `tess_lens` / `tess_ring` | `keyboard_palette` | `transparency_effects` |
   |---|---|---|---|---|---|---|---|---|
   | Default | Default Blue #0078D7 (X26) | DARK | none | 0.5 (as built) | NONE | HAL lens (`Brand.LENS_*`) / the accent | DARK (the built keyboard, R6) | true |
-  | Windows 10 Mobile (original) | Cobalt #3E65FF (R12 §1, HIGH), by Q7: A (lean) a 49th named swatch `Cobalt`; B set but not in the picker; C Purple Shadow Dark #6B69D6 instead (nearest of the 48 by RGB distance, 61.0) | DARK (R12 §2) | img0 by Q8: A (lean) the Hero, `img0_w10m_1607-1709.jpg`; B the light streaks, `img0_w10m_1507-1511.jpg`; C both, as two variants (R12 §4.2) | 0.75 → α 0.40 (R12 §5.1) | NONE (R12 §5.2) | by Q9: A (lean) the lens on Cobalt's hue line / Cobalt; B the pre-HAL drawing — the lens at reveal = 1, the accent ring, already built (`cortana/ui/Lens.kt:21-24`); C untouched (Default's) | DARK, the cursor dot in the accent (R12 §5.2) | false (R12 §5.2, approximation) |
-  | HAL | `Brand.LENS_IRIS` #D81810 — off the 48 like Cobalt, so it follows Q7's answer the same way (C: Red #E81123, RGB distance 25.8) | DARK | `preset_hal` | 0.35 (α 0.72) | NONE | HAL lens / the accent | DARK | true |
+  | Windows 10 Mobile (original) | Cobalt #3E65FF (R12 §1, HIGH): the 49th named swatch `Cobalt`, after the 48 (Q7 A) | DARK (R12 §2) | img0, one of two variants (Q8 C; `theme_preset_variant`, T12-10): `hero` (default) = the later rotated Hero, the final release's, `img0_w10m_1607-1709.jpg` → `preset_w10m_hero`; `streaks` = the first build's light streaks, `img0_w10m_1507-1511.jpg` → `preset_w10m_streaks` (R12 §4.2); a variant whose asset the build lacks is not offered, and with neither the preset applies with no picture (T12-7) | 0.75 → α 0.40 (R12 §5.1) | NONE (R12 §5.2) | the lens on Cobalt's hue line / Cobalt (Q9 A) | DARK, the cursor dot in the accent (R12 §5.2) | false (R12 §5.2, approximation) |
+  | HAL | Red #E81123 — the A16 swatch nearest the lens red `Brand.LENS_IRIS` #D81810 (`brand/Brand.kt:46`; RGB distance 25.8), agent call T12-11 | DARK | `preset_hal` | 0.35 (α 0.72) | NONE | the exact HAL lens (`Brand.LENS_*`) / the accent | DARK | true |
   | Soft | the A16 swatch nearest the Soft picture's dominant colour, picked when the picture is in art/themes/ | LIGHT | `preset_soft` | 0.6 (α 0.52) | P4_PRESS | the lens on the accent's hue line / the accent | LIGHT (new, P4: panel `Palette.lightChromeLow` #F2F2F2, keys `lightChromeMedium` #E6E6E6, labels #000000 — R1 §6.2's light chrome, `ui/tokens/Palette.kt:27-32`) | true |
   | Lumia | Seafoam #00B7C3 — the A16 swatch nearest WP8.1 Cyan #1BA1E2 (R12 §1) by RGB distance, 46.6; no swatch is named "Cyan" (`ui/tokens/Palette.kt:11-18`) | DARK | `preset_lumia` | 0.5 (α 0.6) | WP8_TILT | the lens on the accent's hue line / the accent | DARK | true |
   | Midnight | the A16 swatch nearest the Midnight picture's dominant colour, picked as Soft's is (T12-2 named none) | DARK | `preset_midnight` | 0.0 (opaque tiles) | NONE | HAL lens dimmed (each tone × 0.5 on its hue line) / the accent | DARK | false |
 
   **Custom rule:** `theme_preset` holds the preset's id (`default`, `w10m`, `hal`, `soft`, `lumia`, `midnight`) and becomes
   `custom` on any single item change (phase 13's Transparency effects switch included); re-tapping a preset restores every item it
-  sets. **Live apply:** tapping a preset IS the change — the whole shell restyles at once (Jeremy: "auto changes the phone so they
-  can see"); "Not now", Back or "Skip setup" after a tap leave it applied. A preset replaces a picture the user chose; the user's
-  picture is NOT kept anywhere (re-chosen from Start + theme). **The items below the presets** (Q4: each still changeable): Start +
+  sets; choosing the original preset's picture variant is not an item change (T12-10). **Live apply:** tapping a preset IS the change — the whole shell restyles at once (Jeremy: "auto changes the phone so they
+  can see"); "Not now", Back or "Skip setup" after a tap leave it applied. ~~A preset replaces a picture the user chose; the user's
+  picture is NOT kept anywhere (re-chosen from Start + theme).~~ SUPERSEDED 2026-09-23 by T12-12 (last Decisions lines): Custom
+  remembers the last custom set, the user's picture and its grant included. **The items below the presets** (Q4: each still changeable): Start +
   theme's existing rows (the accent grid — pulled out of `StartThemePage` into one shared composable, as the 2026-09-22 line
   planned — Dark / Light, choose / remove picture, tile transparency, press style), phase 13's Transparency effects switch, and two
   new rows, "Tess's look" (lens: HAL red or the accent) and "Keyboard" (Dark / Light) (P4, H6). **Pictures:**
   `art/themes/<name>.png` (Jeremy's, Q6) → cropped and scaled on the host to 1872 × 4056 (1440 × 3120 × 1.3 parallax headroom,
   portrait) → bundled WebP in the branding module (A10) as `preset_<name>`; `background` holds its
   `android.resource://app.tileshell/drawable/preset_<name>` URI; the pictures add ≤ 8 MB to the APK in total and none is ≥ 2.5 MB
-  (E12). **ADDs to FINAL parts** (INDEX Change Log lines when built): phase 01's Start + theme gains the presets row and
+  (E12). The original preset's two variants are `preset_w10m_hero` and `preset_w10m_streaks`, made the same way from R12's two img0
+  files at build time (T12-10; never assumed committed, T12-13). **ADDs to FINAL parts** (INDEX Change Log lines when built): phase 01's Start + theme gains the presets row and
   `theme_preset`; phase 03's persona reads `tess_lens` / `tess_ring` from `ShellSettings`; phase 05's keyboard reads
   `keyboard_palette` through the existing `KeyboardConfigProvider` (`AndroidManifest.xml:261`), and phase 05 E3's ± 32-level
   colour check is stated to run on the Default preset. **Tags:** `preset:<name>` on the wizard's presets page (`preset:Custom` for
   the Custom entry), `theme_preset:<name>` on Start + theme's copy (one composable, two tag prefixes); page roots `wizard_presets`
-  and `theme_presets`. **Diagnostics:** `[wizard] preset <name>` (a tap on the wizard's page), `[theme] preset <name> applied`
-  (every apply, either surface). Reason: Q3–Q6 rule what a preset sets, that it applies live and which six ship; the model above is
+  and `theme_presets`; the variant chips `preset_variant:<v>` / `theme_preset_variant:<v>` (T12-10). **Diagnostics:** `[wizard]
+  preset <name>` (a tap on the wizard's page), `[theme] preset <name> applied` (every apply, either surface), `[theme] preset w10m
+  variant <v> applied` (T12-10), `[theme] preset Custom restored` (T12-12). Reason: Q3–Q6 rule what a preset sets, that it applies live and which six ship; the model above is
   what makes those rulings buildable and each value checkable
 - 2026-09-23 (agent, review triage T12-3): build order **11 → 13 → 12 → 14**, and this phase's depends-on becomes `[01, 03, 05,
   10, 13]`. Reason: a preset writes `StartTheme.transparencyEffects`, a field only phase 13 adds (`prefs/ShellSettings.kt:17-24`
@@ -317,18 +347,52 @@ picture (R12 §6 lists img5; the shell draws no lock screen, and phase 07's glan
   the X7 page motion. E2's "no `start_page` node" then holds as written. Reason: a covered-but-composed Start would be in the dump,
   and a z-order assertion by bounds is weaker than absence
 - 2026-09-23 (agent, review triage T12-7): "Lumia" and "Windows 10 Mobile (original)" are `Brand` strings (`brand/Brand.kt`), and
-  the stock pictures live in the A10 branding module like the Segoe substitute. If a build has no shippable stock picture (R12's
-  files stay local and gitignored until Jeremy rules on committing them — INDEX R12 row), the original preset ships with R12's
+  the stock pictures live in the A10 branding module like the Segoe substitute. If a build has no shippable stock picture (whether
+  R12's files are committed / shipped is Jeremy's ruling, pending per T12-13 — the parenthetical "stay local and gitignored" was
+  stale by 2026-09-23, the repo tracking them since commit 9888f2c), the original preset ships with R12's
   accent, mode, transparency, press style and acrylic values and NO picture — still a preset, stated, not a placeholder (no v1 →
   v2) — and logs `[theme] preset Windows 10 Mobile (original) applied: no picture`. Reason: A10 keeps every Microsoft name and
   asset swappable, and a preset without its picture is still the measured look minus one item
 
 - 2026-09-23 (agent, lead, resolving the writer's flag on force-stop): QA provisioning FINISHES the wizard once, through the
-  wizard's own finish path (provision.sh taps through, or writes the same done marker the finish writes), exactly like a user who
-  completed setup. After that, a missing row goes to the checklist per this doc's finish rule — so am force-stop app.tileshell,
+  wizard's own finish marker, exactly like a user who completed setup — ONE mechanism (re-cut 2026-09-23 by r2 triage C-15 from
+  "provision.sh taps through, or writes the same done marker the finish writes"; "taps through" is impossible — with every grant
+  held the wizard never shows): `provision.sh` writes the marker with the shell stopped — `adb shell am force-stop app.tileshell`,
+  `adb push qa/phase-12/fixtures/setup_wizard.xml /data/local/tmp/` (the file is `<map><boolean name="finished" value="true" /></map>`),
+  `adb shell 'run-as app.tileshell sh -c "mkdir -p shared_prefs && cat /data/local/tmp/setup_wizard.xml >
+  shared_prefs/setup_wizard.xml"'` (`layout_restore`'s push-then-cat form, `qa/phase-02/scripts/layout.sh:21-23`; SharedPreferences
+  is cached in-process, hence the stop), then `ime enable` + `ime set app.tileshell/.ime.KeyboardService` (the stop deselected it),
+  then Home; `PROVISION_FINISH_WIZARD=0` skips the marker step. After that, a missing row goes to the checklist per this doc's finish rule — so am force-stop app.tileshell,
   which makes Android deselect the keyboard (qa/phase-05/README.md), sends "Keyboard selected" to the checklist instead of
   summoning the wizard in every driver that restarts the shell (phase 12 E1(a), layout_restore, phase 14's force-stop + Home).
-  Rows that test the wizard itself clear the marker first and restore it after (RV12); E1(a) runs on a fresh pm clear.
+  Rows that test the wizard itself provision with `PROVISION_FINISH_WIZARD=0` (no marker) or start from `pm clear` alone, and end
+  "`pm clear` → `provision.sh` → Home", which restores the marker (RV12); E1(a) runs on a fresh `pm clear` → `provision.sh`
+  (marker written) and asserts both "not shown" lines under the precedence rule (Diagnostics).
+- 2026-09-23 (agent, r2 triage T12-10): **the original preset is one id with one variant key.** `theme_preset` = `w10m`; new key
+  `theme_preset_variant` = `hero` (default: `img0_w10m_1607-1709.jpg`, the final release's, PLAN Q12) | `streaks`
+  (`img0_w10m_1507-1511.jpg`); the preset entry shows the Hero, and under it two small picture chips pick the variant (P4, H9),
+  tagged `preset_variant:<v>` on the wizard's page and `theme_preset_variant:<v>` on Start + theme; a chip is drawn only for a
+  variant whose asset the build carries (none → no chips, and T12-7's no-picture form); each choice logs `[theme] preset w10m
+  variant <v> applied`; changing the variant is not a Custom change, and re-tapping the preset applies the last-chosen variant.
+  Cobalt is added as the 49th named swatch (`accent:Cobalt`, after the 48; R12 §6 places it last row, first column) in the one
+  shared grid, so both surfaces show 49. Reason: Q8's Decision says "one entry … so the list stays six", which rules out a second
+  preset id (review F3's two-id form rejected); one key keeps the Custom rule and every other key identical across the variants
+- 2026-09-23 (agent, r2 triage T12-11): **HAL's `accent` is Red #E81123** (4293398819), the A16 swatch nearest the lens red
+  `Brand.LENS_IRIS` #D81810 (`brand/Brand.kt:46`; RGB distance 25.8); `tess_lens` stays the exact HAL lens, so the lens look is
+  unchanged, and `tess_ring` is the accent. Reason: Q7 A added Cobalt for a fidelity reason ("as W10M phones effectively had it")
+  that HAL red does not have; the grid stays one-off (49), HAL's accent is pickable and shows selected in the grid, and the red that
+  matters (the lens) is its own key. H6 judges
+- 2026-09-23 (agent, r2 triage T12-12): **Custom remembers the last custom set.** When a preset tap replaces a state whose
+  `theme_preset` is `custom` (every user item change makes it so), the full item set — `background` included, with its persisted
+  URI grant kept, not released, while the snapshot references it — is saved as the Custom snapshot; `preset:Custom` /
+  `theme_preset:Custom` is tappable when a snapshot exists and restores it (`[theme] preset Custom restored`); a newer snapshot
+  replaces the older and releases a grant no longer referenced. Reason: live apply makes every preset tap a preview, and a preview
+  must never cost the user their own picture (P1); the snapshot costs one saved key set. H6 judges
+- 2026-09-23 (agent, r2 triage T16-15, from phase 16): **People gets its own Setup row `setup:people`** (READ_CONTACTS +
+  WRITE_CONTACTS; `partialIsDone` false), ADDed by phase 16 at its build with its step and the why line now in the Why-lines table
+  ("People shows and edits your contacts. Without it People can't see them." — approximation, H1); Tess's `tess:contacts` row is
+  unchanged (READ only). Reason: phases 15 / 17 / 18 / 19 each put their app's grant on the Setup checklist, and Tess never writes
+  contacts, so widening her row would read PARTIAL on her health page for a need that is People's
 
 ## Interview queue (Stage A step 4)
 Load-bearing first. Each answer lands in Decisions, dated.
@@ -406,30 +470,59 @@ Load-bearing first. Each answer lands in Decisions, dated.
 1. Wizard model: the visibility rule over both checklists (core = the eighteen grant rows); the step list — the Setup rows in
    `Checklist.kt` order, then Tess's nine in `CortanaChecklist` order, then the presets page — with namespaced ids (T12-1);
    `ChecklistRow.permissions` and `partialIsDone` on both row types (ADDs to phase 01's and phase 03's data classes); the
-   `setup_wizard` marker store; the re-derive-on-resume rule; diagnostics lines; JVM tests on the pure rules (visibility, step
-   derivation and order, namespacing, `partialIsDone` per row, blocked detection).
+   `setup_wizard` marker store; the re-derive-on-resume rule; diagnostics lines with the "not shown" precedence (C-15); JVM tests on
+   the pure rules (visibility, step derivation and order, namespacing, `partialIsDone` per row, blocked detection, the precedence
+   of the two "not shown" lines, and the step runner driven with an unresolvable intent → the action-failed line and the "Open
+   Android settings" fallback, T12-17).
 2. Wizard pages inside `StartActivity`: the host above the pager, the burst layer, the pin band and the picker (T12-8), with the
    pager not composed while it shows (T12-6); the step page with its `wizard_why` line from the Why-lines table (T12-4); "Not
-   now" / "Skip setup" / progress; auto-advance on resume; the blocked-permission branch to the app-info page; Tess's steps through
+   now" / "Skip setup" / progress; auto-advance on resume; the blocked-permission branch to the app-info page; the action-failed
+   branch to Android's Settings home (T12-17); Tess's steps through
    `CortanaPermissionActivity`'s existing paths; the drawn bars and the Back / Windows / Search rules; the `[motion] wizard_page`
-   line (C-5); test tags.
+   line (C-5, with C-31's `frames` / `maxGapMs`); test tags. The "Start visible" gate (T12-14): the `SecondaryTiles` pin band (drawn
+   ungated today, `StartActivity.kt:187-190`) and phase 14's `PodBayRequests` consumption both wait until Start is visible — after
+   `[wizard] finished`, `[wizard] skip` or a `[wizard] not shown` line — so neither draws or moves behind the wizard.
 3. Presets (T12-2): one shared presets composable drawn by the wizard's last page and by Start + theme (the ADD to phase 01's
    page), the item rows below it (the accent grid pulled out of `StartThemePage`, the other existing rows, phase 13's switch,
    "Tess's look", "Keyboard"), `theme_preset` and the Custom rule, live apply, the new keys and their readers — phase 03's persona
    (`tess_lens`, `tess_ring`) and phase 05's keyboard (`keyboard_palette` through `KeyboardConfigProvider`) — the `Brand` names
-   (T12-7), diagnostics; INDEX Change Log lines for phases 01, 03 and 05 when built.
+   (T12-7), diagnostics; Cobalt as the 49th swatch of the shared grid (Q7 A, `ui/tokens/Palette.kt:10-19` gains it); the original
+   preset's `theme_preset_variant` and its chips (T12-10); HAL's accent Red (T12-11); the Custom snapshot with its grant handling
+   (T12-12); INDEX Change Log lines for phases 01, 03 and 05 when built, and, when this phase lands, the line R12 §7.1 asks for: R3's
+   accent-coloured readings (A19 action-center active tile, A20 volume fill, A22 Cortana ring, the keyboard cursor dot) are
+   renditions of Cobalt #3E65FF, not "#0078D7 plus a capture offset"; phase 04's DRAFT (its A19 / A20 derivations) is re-read before
+   its interview, and phases 03 / 05's FINAL colour rows are re-checked at their re-runs (T12-15 (a)).
 4. Harness (C-4): `provision.sh` grants the Setup rows (`cmd notification allow_listener …`, `appops set app.tileshell
    GET_USAGE_STATS allow`, `ime enable` / `ime set`) on top of what it already grants — Tess's nine through `adb install -r -g`
-   and the ASSISTANT role line — and each later phase appends its line; `qa/phase-12/scripts/` with `lib.sh` symlinked; the
+   and the ASSISTANT role line — and each later phase appends its line; then the finished-marker step by the one mechanism in the
+   lead's Decision (force-stop, push `qa/phase-12/fixtures/setup_wizard.xml`, `run-as` cat into `shared_prefs/`, `ime enable` +
+   `ime set`, Home), skipped when `PROVISION_FINISH_WIZARD=0` (C-15); the fixture file itself; `qa/phase-12/scripts/` with `lib.sh` symlinked; the
    regression run (one row per earlier phase, `regress.sh` pattern) proving no driver meets the wizard; E14's template proven on
    `setup:usage`; INDEX Change Log lines for phase 01 (the `ChecklistRow` ADDs, the shared accent grid) when built.
-5. Pictures (T12-2, T12-7): a host script under `tools/` crops and scales `art/themes/<name>.png` — and, per Q8, R12's local img0
-   file — to 1872 × 4056 WebP in the branding module; the no-picture fallback and its line; E12's size bounds.
+5. Pictures (T12-2, T12-7): a host script under `tools/` crops and scales `art/themes/<name>.png` — and, per Q8 C, R12's two img0
+   files (`docs/plan/r12/img0_w10m_1607-1709.jpg` → `preset_w10m_hero`, `img0_w10m_1507-1511.jpg` → `preset_w10m_streaks`), read
+   at build time wherever they are present and never assumed committed (T12-13) — to 1872 × 4056 WebP in the branding module (A10);
+   the no-picture fallback and its line; E12's size bounds.
 
 ## Acceptance criteria
 Rows start from the baseline state and restore what they change (PLAN RV12); motion rows follow RV11 on the shell's own clock
 (below); dumps follow RV13. "Provisioned" means `qa/phase-03/scripts/provision.sh` (with this phase's lines, Build task 4) on a
-wiped AVD (tileshell_fhd, 1080×2340 @ 450 dpi, AOSP API 36, no Google). "Diagnostics" is read with phase 01's command.
+wiped AVD (tileshell_fhd, 1080×2340 @ 450 dpi, AOSP API 36, no Google); it ends by writing the finished marker, and
+`PROVISION_FINISH_WIZARD=0 qa/phase-03/scripts/provision.sh` provisions every grant without it (C-15). "Diagnostics" is read with
+phase 01's command.
+**Ring reads (C-20):** every ring assertion reads `ring_since` from a MARK (`adb shell date +%s%3N`) taken immediately before the
+step's action (after any clock jump, so the MARK is on the new clock); absence assertions read the same slice; `reply_text` is
+`reply_since <MARK>` (helpers: phase 11's build task 7). **Wake (C-25):** after any `adb reboot` (boot-completed poll), `dumpsys
+battery unplug` or `KEYCODE_SLEEP` step, the driver calls `wake_device` and asserts it printed `Awake` before the next tap (battery
+saver goes on and off only through phase 13's `battery_saver_on` / `battery_saver_off`, C-18). **Recorded clauses (C-26):** a
+recorded clause uses `lib.sh` `record`, never an assert (phase 13's build task 7). **After a force-stop (C-15, phase 05 N-01):** a
+row that asserts a full-green checklist after an `am force-stop` runs `ime set app.tileshell/.ime.KeyboardService` first, since
+the stop deselects the keyboard.
+**Tile-over-picture pixels — the gutter-pair rule (T12-16):** wherever a row reads the `slot:PEOPLE` tile band T against the
+picture (E3, E11, E13), T and G come from one capture (phase 01's `e13_pixels.py` over a dump and screencap of Start), and G = the
+mean of the two gutter pixels at the same y immediately left and right of the band (≤ 12 px from T's column); the sample row is where
+those two gutters differ by ≤ 3 levels per channel (the picture locally flat), searched down the band in 8-px steps; the chosen y and
+both gutter values are logged. A second assertion, T ≠ the accent ± 4, fails the row if the picture is missing (then α = 1).
 `pm clear app.tileshell` is the fresh-install state; every row that needs a grant absent also revokes it explicitly (`cmd
 notification disallow_listener …`, `appops set … GET_USAGE_STATS ignore`, `pm revoke app.tileshell <permission>`, `cmd role
 remove-role-holder android.app.role.ASSISTANT app.tileshell`, `ime disable …`) so no row depends on what `pm clear` resets
@@ -445,17 +538,24 @@ READ_CONTACTS, SEND_SMS, CALL_PHONE, READ_CALL_LOG, READ_SMS; the Home role is k
 (`qa/phase-02/scripts/layout.sh`) — this phase adds no `addedOnce` marker and pins no fixture, so phase 02's file, with its
 markers and hand-set sizes, is complete for this build — and assert zero `assignSlotOnce … -> assigned` lines after it.
 **Motion clock (C-5):** every motion the shell animates logs its own clock from `withFrameNanos` (`[motion] <name>
-t0=<uptime> settle=<ms>`) and the row asserts the logged numbers against RV11's tolerance; a screenrecord corroborates under
+t0=<uptime> settle=<ms> frames=<n> maxGapMs=<ms>`) and the row asserts the logged numbers against RV11's tolerance, and `maxGapMs`
+≤ 33.4 ms (2 vsync, C-31); a screenrecord corroborates under
 phase 05's frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motion) and is never the primary clock.
 **Emulator:**
-- E1 Absence, both provisioning routes, so no driver needs a bypass: (a) provisioned AVD, `adb shell am force-stop
-  app.tileshell`, `adb shell input keyevent KEYCODE_HOME`: `uiautomator dump` has `start_page` and no `wizard_page`;
-  diagnostics carry `[wizard] not shown: core held`. (b) `pm clear app.tileshell`, then every grant made from adb alone — roles
+- E1 Absence, both provisioning routes (re-cut 2026-09-23 by r2 triage C-15): (a) provisioned AVD (`pm clear` → `provision.sh`,
+  marker written), MARK, `adb shell am start -n com.android.deskclock/.DeskClock`, `adb shell input keyevent KEYCODE_HOME` (a
+  resume, where the Visibility rule is evaluated and its line written): `uiautomator dump` has `start_page` and no `wizard_page`; the
+  slice carries `[wizard] not shown: core held` (precedence: every core row held, marker or not); then MARK, `adb shell am
+  force-stop app.tileshell` + `KEYCODE_HOME` → still no `wizard_page`, the slice carries `[wizard] not shown: finished`, `adb shell
+  settings get secure default_input_method` ≠ `app.tileshell/.ime.KeyboardService` and the Setup page shows
+  `checklist:keyboard_selected:missing` (the force-stop deselected the keyboard, phase 05 N-01 — the case the marker exists for);
+  `adb shell ime set app.tileshell/.ime.KeyboardService` restores. (b) `pm clear app.tileshell`, then every grant made from adb alone — roles
   with `cmd role add-role-holder android.app.role.HOME app.tileshell` and `cmd role add-role-holder android.app.role.ASSISTANT
   app.tileshell`, `cmd package set-home-activity`, `allow_listener`, `appops set app.tileshell GET_USAGE_STATS allow`, `pm grant`
   for READ_MEDIA_IMAGES / READ_MEDIA_AUDIO / READ_CALENDAR / ACCESS_COARSE_LOCATION (Setup) and RECORD_AUDIO, READ_CONTACTS,
   WRITE_CALENDAR, SEND_SMS, READ_SMS, CALL_PHONE, READ_CALL_LOG, ACCESS_FINE_LOCATION, ACCESS_BACKGROUND_LOCATION (Tess, T12-1),
-  `ime enable` + `ime set` — then Home: the same two assertions — a device provisioned by adb that never ran the wizard never
+  `ime enable` + `ime set` — then Home: (a)'s first two assertions (`start_page`, no `wizard_page`; `[wizard] not shown: core
+  held`) — a device provisioned by adb that never ran the wizard never
   sees it — and the `setup_wizard` file does not exist (`run-as app.tileshell ls shared_prefs`). Every later phase that adds a
   grant re-runs E1 on its build with its grant in both routes (C-4 (c)).
 - E2 Appearance, order and why, against a hand-written list (T12-1, T12-4): the E2 state, Home: the dump has `wizard_page`,
@@ -467,7 +567,8 @@ phase 05's frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motio
   `tess:call_phone`, `tess:background_location`, `tess:call_log`, `tess:sms_read` (17 + the presets page = 18). Tapping
   `wizard_not_now` through the run records the step ids in exactly that ORDER and then `wizard_presets`, and on every step page
   the `wizard_why` text equals the Why-lines table's line for that id; a swipe left on the wizard page (`input swipe 950 1200 200
-  1200 250`) changes nothing in the dump. Then `pm clear` → `provision.sh` → Home.
+  1200 250`) changes nothing in the dump. Then `pm clear` → `provision.sh` → Home. The id list is extended by each later phase's
+  C-4 line (the id at its `Checklist.kt` position, its N with it), and E2 is re-run with the full list at the end-of-build pass (T12-18).
 - E3 The real grants through the real pages and dialogs, then a preset: the E2 state after `layout_restore
   qa/phase-02/baseline_layout.json`; walk every step with `wizard_action`. Setup: Notification access → `dumpsys activity
   activities` shows `com.android.settings` resumed (the listener detail page); tap its toggle by dump bounds and Back → the next
@@ -486,17 +587,18 @@ phase 05's frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motio
   its table line. The presets page: `wizard_presets` holds `preset:Default`, `preset:Windows 10 Mobile (original)`,
   `preset:HAL`, `preset:Soft`, `preset:Lumia`, `preset:Midnight` in that order with `preset:Default` `selected="true"`; tap
   `preset:HAL`, then `wizard_done`: `start_page` is back; `run-as app.tileshell cat shared_prefs/start_theme.xml` holds
-  `theme_preset` = `hal` and `accent` = 4292352016 (0xFFD81810; the Q7-C form, Red 4293398819, if Q7 is answered C); phase 01's
-  `e13_pixels.py` over a dump and screencap of Start reads the `slot:PEOPLE` tile band T and the gutter G beside it, and T =
-  0.72 · accent + 0.28 · G ± 4 (α = 1 − 0.8 · 0.35; R12 §0's two-sample method, both samples from one capture); diagnostics end
-  with `[wizard] preset HAL`, `[theme] preset HAL applied`, `[wizard] finished`; Settings > Setup checklist shows
+  `theme_preset` = `hal` and `accent` = 4293398819 (Red 0xFFE81123, T12-11); T and G by the gutter-pair rule (T12-16), T =
+  0.72 · accent + 0.28 · G ± 4 with accent = Red (α = 1 − 0.8 · 0.35; R12 §0's method), and T ≠ Red ± 4 (the picture is there);
+  the ring slice from a MARK before the HAL tap holds, in this order, `[wizard] preset HAL`, `[theme] preset HAL applied`, `[wizard]
+  finished`; Settings > Setup checklist shows
   `checklist:<id>:granted` for all nine Setup rows and Tess's Settings page shows `cortana_check:<id>:granted` for her nine.
   Restore: Settings > Start + theme, tap `theme_preset:Default` (selected; `theme_preset` = `default`), then `pm clear` →
   `provision.sh` → Home.
 - E4 Persistence and resume: from the E2 state grant the Photos step through the dialog, then `adb shell am force-stop
   app.tileshell`, Home: `wizard_page` again, `wizard_step:setup:notifications` first, `wizard_progress` reads one fewer N, no
   `wizard_step:setup:photos` anywhere in the run (tap `wizard_not_now` through to the end and record every step id seen); the
-  same after `adb reboot` + `adb wait-for-device` + boot-completed poll + `wm dismiss-keyguard` in place of the force-stop.
+  same after `adb reboot` + `adb wait-for-device` + boot-completed poll + `wake_device` (asserting it printed `Awake`; it also
+  dismisses the keyguard, C-25) in place of the force-stop.
 - E5 Skip, and the marker's rules: from the E2 state tap `wizard_skip`: `start_page` in the dump, diagnostics `[wizard] skip`,
   `checklist:notifications:missing` on the Settings page and `cortana_check:microphone:missing` on Tess's (Skip covers both
   lists), `shared_prefs/setup_wizard.xml` holds `finished` true; `am force-stop` + Home → no `wizard_page`, `[wizard] not
@@ -518,59 +620,98 @@ phase 05's frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motio
 - E8 Keys and the pivot while the wizard shows: on the first step `input tap` on `nav_back` bounds changes nothing (dump
   identical); on step 2 it returns to step 1; `nav_windows` changes nothing; `input keyevent KEYCODE_HOME` leaves the wizard in
   place; `nav_search` opens Tess (`cortana_session` in the dump) and Back returns to the wizard at the same step; `dumpsys window`
-  shows the system status and nav bars not visible (phase 01 E19's form) and the drawn bars measure (28 epx status, 48-epx nav,
-  X17 slots).
+  shows the system status and nav bars not visible (phase 01 E19's form) and the drawn bars measure (phase 01's drawn status bar
+  at `BarMetrics.STATUS_EPX` epx — C-17, never a literal 28 — 48-epx nav, X17 slots). Pin band under the wizard (T12-14; the
+  split-time edge case): with tileclient-a installed from its debug APK (as `qa/phase-02/scripts/e5.sh:17,25` installs it), from the
+  E2 state with the wizard showing, `adb shell am start -n
+  app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity --es verb secondary.requestCreate --es tileId st1 --es
+  displayName Jen --es arguments chat=42 --es size medium --ez logo true` (phase 02 E5's request, `e5.sh:32-33`, `:58`), then Home →
+  the dump has `wizard_page` and no `secondary_pin_prompt`; MARK, `tap_node wizard_skip` → the slice holds `[wizard] skip` and the
+  dump shows `secondary_pin_prompt` over `start_page`; cancel the band (its cancel button, `e5.sh`'s `button … cancel`), then `pm
+  clear` → `provision.sh` → Home.
 - E9 Regression, the `regress.sh` pattern: on a freshly provisioned AVD run, unchanged, phase 01 E2, phase 02 E1 (hold + drag),
   phase 03 E1 and E5, phase 05 E1 and phase 10 E2; every one passes, no dump any of them saved contains `wizard_page` (grep the
   row directories), the ring holds zero `assignSlotOnce … -> assigned` lines after each of their `layout_restore` calls (C-3), and
   `qa/phase-03/scripts/exported.py` against `qa/phase-03/exported-allowlist.txt` reports no new exported component.
 - E10 Motion, on the shell's clock (C-5): each step-to-step transition logs `[motion] wizard_page t0=<uptime> settle=<ms>`; three
   consecutive transitions read settle = 217 ms ± one frame (16.7 ms), phase 01 X7's Start entrance form, alpha complete in 217
-  ms (RV11); `wizard_done` → Start logs the same line with the same settle (Start composes under the X7 motion, T12-6); a 60-fps
+  ms (RV11), and `maxGapMs` ≤ 33.4 ms on each (C-31), each line from the slice after a MARK taken just before its tap (C-20); `wizard_done` → Start logs the same line with the same settle (Start composes under the X7 motion, T12-6); a 60-fps
   screenrecord corroborates under phase 05's frame-spacing rule and is not the clock; the feel is judged in H1.
 - E11 Presets, on both surfaces (T12-2): (a) the wizard's presets page (the E2 state, `wizard_not_now` through the steps) and (b)
-  Settings > Start + theme after a run (`theme_presets`, tags `theme_preset:<name>`), the same assertions on each. Control first:
-  from `pm clear` → `provision.sh` → Home, save `start_theme.xml` (the out-of-box values). For each of the six in turn, tap it and
-  read back: `start_theme.xml` holds that preset's row of the table — `theme_preset`, `accent`, `theme`, `background` (absent, or
-  `android.resource://app.tileshell/drawable/preset_<name>`), `transparency`, `press`, `tess_lens`, `tess_ring`,
+  Settings > Start + theme after a run (`theme_presets`, tags `theme_preset:<name>`), the same assertions on each, every ring
+  read-back from a MARK taken just before that tap on that surface, so (b) is never satisfied by (a)'s lines (C-20). Control first:
+  from `pm clear` → `provision.sh` → Home, save `start_theme.xml` (the out-of-box values) and assert `theme_preset` is absent or
+  `default` (provisioning writes the wizard marker but must never apply a preset; C-15). For each of the six in turn, tap it and
+  read back the item keys: `start_theme.xml` holds that preset's row of the table — `theme_preset`, `accent`, `theme`, `background`
+  (absent, or `android.resource://app.tileshell/drawable/preset_<name>`; for the original `…/preset_w10m_hero` with
+  `theme_preset_variant` = `hero`, E13 covering the variant and the no-picture branch), `transparency`, `press`, `tess_lens`, `tess_ring`,
   `keyboard_palette`, `transparency_effects` (false for Midnight and the original; phase 13's key, its E1 sub-row reads the
-  `[fluent]` line) — and diagnostics `[theme] preset <name> applied` (plus `[wizard] preset <name>` on (a)). Start, seeded with
-  `layout_restore qa/phase-02/baseline_layout.json`: `e13_pixels.py` reads the `slot:PEOPLE` band T and the gutter G — Default (no
+  `[fluent]` line) — and the slice holds `[theme] preset <name> applied` (plus `[wizard] preset <name>` on (a)). Start, seeded with
+  `layout_restore qa/phase-02/baseline_layout.json`, T and G by the gutter-pair rule (T12-16) — Default (no
   picture): T = the accent ± 2 and G = (0,0,0) ± 2; Midnight (transparency 0.0, α = 1): T = the accent ± 2; every other preset
-  with a picture: T = α · accent + (1 − α) · G ± 4 with α = 1 − 0.8 · `transparency` (`start/StartPage.kt:413`), which fails if the
-  picture is missing (then α = 1). Tess: `KEYCODE_ASSIST`, screencap, phase 03's `qa/phase-03/scripts/persona.py` colour search
-  finds the lens on the preset's `tess_lens` hue (HAL red for Default and HAL, the accent's hue for Soft and Lumia, the dimmed red
-  for Midnight). Keyboard: phase 05's `kb_begin` + `kb_dump` (`qa/phase-05/scripts/kb.sh`) over its fixture field; a letter key's
-  fill reads the palette's key colour ± 4 (DARK: R6's keys, luminance ≈ 48; LIGHT: #E6E6E6). Custom: tap `accent:Red` among the
+  with a picture: T = α · accent + (1 − α) · G ± 4 with α = 1 − 0.8 · `transparency` (`start/StartPage.kt:413`), and T ≠ the accent
+  ± 4 (fails if the picture is missing, then α = 1); the original follows E13's APK branch. Tess: `KEYCODE_ASSIST`, screencap, phase
+  03's `qa/phase-03/scripts/persona.py` colour search finds the lens on the preset's `tess_lens` hue (HAL red for Default and HAL,
+  Cobalt's hue for the original, the accent's hue for Soft and Lumia, the dimmed red for Midnight) and its ring colour = the
+  preset's `tess_ring` ± 8 per channel (T12-19). Keyboard: phase 05's `kb_begin` + `kb_dump` (`qa/phase-05/scripts/kb.sh`) over its
+  fixture field; a letter key's fill reads DARK (48,48,48) ± 4 — phase 05 E3's letter-key fill (phase 05 Decisions, R6 §2.1.18) —
+  or LIGHT #E6E6E6 = (230,230,230) ± 4 (T12-19). Custom: tap `preset:Lumia` (accent Seafoam — not Red; HAL's accent is Red since
+  T12-11, so a Red tap from HAL would change nothing), then `accent:Red` among the
   items → `preset:Custom` (`theme_preset:Custom` on (b)) `selected="true"`, `theme_preset` = `custom`, `accent` = 4293398819,
-  and every OTHER key unchanged from the preset's; after re-tapping a preset, toggling `theme_transparency_effects` gives Custom
-  the same way. Tapping `preset:Default` makes every key equal the control's. Persistence, on (b) after the run finished: `am
+  and every OTHER item key unchanged from Lumia's; after re-tapping a preset, toggling `theme_transparency_effects` gives Custom
+  the same way. Custom snapshot (T12-12), on (b): with the shell stopped, `qa/phase-01/scripts/prefs_edit.py` writes `background` =
+  phase 13's checkerboard fixture's `file://` URI (pushed as phase 13 pushes it) and `theme_preset` = `custom` (the route
+  `qa/phase-01/scripts/item4.sh` uses), Home, save `start_theme.xml` (the pre-HAL state); MARK, tap `theme_preset:HAL` →
+  `background` = `…/drawable/preset_hal`; MARK2, tap `theme_preset:Custom` → the slice from MARK2 holds `[theme] preset Custom
+  restored`, `background` = the checkerboard URI again and every item key equals the saved pre-HAL state; the checker shows on Start
+  (a checker edge in a gutter column, sharp). Tapping `preset:Default` makes every item key equal the control's. Persistence, on (b) after the run finished: `am
   force-stop app.tileshell`, reopen Start + theme → the keys and the selected preset unchanged. Restore: `preset:Default`, then
   `pm clear` → `provision.sh` → Home.
 - E12 Pictures (T12-2): on the host, `art/themes/{hal,soft,lumia,midnight}.png` are each ≥ 1024 px wide (`identify`) — Jeremy's
   four inputs (Q6); in the built APK, `unzip -p <apk> 'res/drawable-nodpi*/preset_<name>.webp' | identify -` reads 1872 × 4056
-  for every bundled preset picture (the original's too, per Q8, when the build carries it); `unzip -l` shows no preset asset ≥
+  for every bundled preset picture (the original's two variants `preset_w10m_hero` / `preset_w10m_streaks` too, whichever the build
+  carries — T12-10, T12-13); `unzip -l` shows no preset asset ≥
   2.5 MB and their sum ≤ 8 MB, and the APK is ≤ 8 MB larger than the same commit built without them; with phase 13 present (it is,
   T12-3), each preset tap that changes the picture is followed by `[fluent] static backdrop rebuilt for <uri>` naming that
-  preset's URI.
-- E13 The "Windows 10 Mobile (original)" preset against R12 (T12-9; R12 landed 2026-09-23): tap it → `start_theme.xml` holds
-  `theme` DARK, `transparency` 0.75, `press` NONE, `transparency_effects` false, `keyboard_palette` DARK; the `slot:PEOPLE` band
-  T = 0.40 · accent + 0.60 · G ± 4 (R12 §5.1's α by R12's own method). The accent, picture and Tess sub-assertions follow Q7–Q9:
-  Q7 A or B → `accent` = 4282279423 (0xFF3E65FF), with Q7 A also `accent:Cobalt` present as the 49th swatch and selected; Q7 C →
-  `accent` = 4285229526 (Purple Shadow Dark 0xFF6B69D6); Q8 → `background` names the chosen img0's asset (C: two presets, one per
-  picture, each asserted); Q9 A → `persona.py` finds the lens on Cobalt's hue, B → it finds the flat accent ring (the reveal = 1
-  drawing), C → the HAL red lens. Until Q7–Q9 are answered this row is not runnable in full and the doc cannot go FINAL.
+  preset's URI, read from the ring slice after a MARK taken just before that tap (C-20).
+- E13 The "Windows 10 Mobile (original)" preset against R12 (T12-9, T12-10; Q7 A, Q8 C, Q9 A; re-cut 2026-09-23 from the
+  conditional split-time row), on each surface in turn — (a) the wizard's presets page reached as E11 (a) reaches it (tags
+  `preset:*`, `preset_variant:*`), (b) Start + theme after the run (`theme_preset:*`, `theme_preset_variant:*`) — every ring read
+  from a MARK taken just before that tap (C-20). Tap the original preset → `start_theme.xml` holds `theme_preset` = `w10m`,
+  `theme_preset_variant` = `hero`, `accent` = 4282279423 (0xFF3E65FF), `theme` DARK, `transparency` 0.75, `press` NONE,
+  `transparency_effects` false, `keyboard_palette` DARK; `accent:Cobalt` is present with `selected="true"`, and the accent grid
+  holds exactly 49 `accent:*` nodes (the 48 plus Cobalt, Q7 A — counted over the dumps that lay out the whole grid, `scroll_to_node`
+  to `accent:Cobalt`, de-duplicated by tag); on (a) `wizard_presets` holds exactly six `preset:*` entries (the variant is not a
+  seventh preset, Q8); `KEYCODE_ASSIST`, screencap: `persona.py` finds the lens on Cobalt's hue line and the ring colour = Cobalt ±
+  8 (Q9 A). **Picture branch, chosen from the APK, never skipped** (T12-10, T12-13): `unzip -l <apk>` lists
+  `preset_w10m_hero.webp` → `background` = `android.resource://app.tileshell/drawable/preset_w10m_hero`, the slice holds `[theme]
+  preset Windows 10 Mobile (original) applied`, and T = 0.40 · accent + 0.60 · G ± 4 by the gutter-pair rule (T12-16; R12 §5.1's
+  α) with T ≠ Cobalt ± 4; not listed → `background` absent, the slice holds `[theme] preset Windows 10 Mobile (original) applied: no
+  picture` (T12-7), T = Cobalt ± 2, and no `preset_variant:hero` chip is in the dump. **The variant**, run only when `unzip -l`
+  lists `preset_w10m_streaks.webp` (else the dump has no `preset_variant:streaks` chip, asserted): MARK, tap `preset_variant:streaks`
+  (`theme_preset_variant:streaks` on (b)) → `background` = `…/drawable/preset_w10m_streaks`, `theme_preset_variant` = `streaks`,
+  the slice holds `[theme] preset w10m variant streaks applied`, `theme_preset` is still `w10m` (a variant change is not Custom)
+  and every other item key is unchanged, T by the same rule; tap `preset:Default`, then the original preset again →
+  `theme_preset_variant` = `streaks` (the last-chosen variant); tap `preset_variant:hero` → `background` names the Hero again.
+  Restore: `preset:Default`, then `pm clear` → `provision.sh` → Home.
 - E14 "Wizard step added" — the template every later phase that adds a grant runs for its own step, cited as "phase 12 E14"
-  (T12-5, C-4): `pm clear` → `provision.sh` → revoke <grant> (its adb form) → Home: the dump has `wizard_step:<ns>:<id>`, its
-  `wizard_why` equals that step's line in the Why-lines table, and `wizard_progress` reads "Step 1 of 2" (the step and the presets
-  page); grant it from adb and resume (`am start` the Settings hub, Back) → the step is gone and `wizard_presets` shows;
-  `provision.sh` carries that grant's line, so `pm clear` → `provision.sh` → Home shows no `wizard_page` (E1 re-run on that
-  build). Known instances, each run in its own doc on its build with the `provision.sh` line C-4 (a) gives it: phase 15 `appops
-  set app.tileshell USE_FULL_SCREEN_INTENT allow`; phase 16 `pm grant app.tileshell android.permission.WRITE_CONTACTS`; phase 17
+  (T12-5, C-4; three parts since the 2026-09-23 re-cut by r2 triage C-15, because `provision.sh` now writes the finished marker):
+  (a) `pm clear` → `PROVISION_FINISH_WIZARD=0 qa/phase-03/scripts/provision.sh` → revoke <grant> (its adb form) → Home: the dump
+  has `wizard_step:<ns>:<id>`, its `wizard_why` equals that step's line in the Why-lines table, and `wizard_progress` reads "Step 1
+  of 2" (the step and the presets page); grant it from adb and resume (`am start` the Settings hub, Back) → the step is gone and
+  `wizard_presets` shows. (b) `pm clear` → `provision.sh` (it carries that grant's line, C-4 (a), and writes the marker) → Home: no
+  `wizard_page` and, after MARK and a resume (`am start` the Settings hub, Home), `[wizard] not shown: core held` in the slice (E1
+  re-run on that build). (c) The finished-install rule: from (b)'s state (marker set), revoke <grant> → MARK, a resume as in (b): no
+  `wizard_page`, the slice holds `[wizard] not shown: finished`,
+  and the grant's checklist row reads `missing`; restore the grant. Every instance runs all three parts (a Skip-based
+  finished-install half is not used). Known instances, each run in its own doc on its build with the `provision.sh` line C-4 (a) gives it: phase 15 `appops
+  set app.tileshell USE_FULL_SCREEN_INTENT allow` — and, Q-E: A (T15-14), `appops set app.tileshell
+  SYSTEM_ALERT_WINDOW allow` (step `setup:overlay`); phase 16 `pm grant app.tileshell android.permission.WRITE_CONTACTS` (step
+  `setup:people`, T16-15); phase 17
   `pm grant … CAMERA` and `pm grant … READ_MEDIA_VIDEO`; phase 18 `appops set app.tileshell MANAGE_EXTERNAL_STORAGE allow` (step
   `setup:files`); phase 19 `appops set app.tileshell WRITE_SETTINGS allow` and `cmd notification allow_dnd app.tileshell`. On this
-  phase's own build the template runs once on `setup:usage` (revoke = `appops set app.tileshell GET_USAGE_STATS ignore`), so it is
-  proven before any later phase leans on it.
+  phase's own build the template runs once on `setup:usage` (revoke = `appops set app.tileshell GET_USAGE_STATS ignore`; restore
+  `… allow`; (c)'s row is `checklist:usage:missing`), so it is proven before any later phase leans on it.
 
 **Phone-only (S25 Ultra):**
 - P1 From a fresh sideload (release-signed, `debuggable=false`): the route in is recorded (Settings > Default apps > Home
@@ -578,8 +719,9 @@ phase 05's frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motio
   tapped once with the resumed activity recorded from `dumpsys activity activities` (Samsung's notification-access page,
   Usage data access, Samsung's permission controller for Photos / Music / Calendar / Location, Samsung's "Manage keyboards"
   and its picker; then Tess's: One UI's assist page for the digital assistant, the permission controller's dialogs for her
-  runtime rows and its location page for "Allow all the time") and the step advancing on return; the preset chosen shows on
-  Start, on Tess and on the keyboard (screencaps for H6 / H7).
+  runtime rows and its location page for "Allow all the time") and the step advancing on return; any step whose action logs
+  `[wizard] step <ns>:<id>: action failed …` is recorded with its intent action and the "Open Android settings" page it fell back
+  to (T12-17); the preset chosen shows on Start, on Tess and on the keyboard (screencaps for H6 / H7).
 - P2 The marker survives a reboot, a Device care optimise and an update install (`adb install -r`): no wizard afterwards;
   a Samsung-side revocation (Notification access turned off in One UI Settings) reddens the checklist row and shows no wizard.
 
@@ -591,12 +733,13 @@ phase 05's frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motio
 - H4 The rule that a finished or skipped wizard never returns on that install (a revoked or newly added core grant goes to
   the checklist instead).
 - H5 The Samsung sheets inside the flow (P1) do not break the feel.
-- H6 Each preset's look, the table's values as built (T12-2), on the phone.
+- H6 Each preset's look, the table's values as built (T12-2), on the phone — including HAL's accent Red beside the exact HAL lens
+  (T12-11) and Custom bringing back the user's own set and picture after trying presets (T12-12).
 - H7 Labels readable over each picture in its theme, judged on the phone (the NEEDS-HUMAN row Q6 promised).
 - H8 The four pictures themselves: an original design with no text, logo, face or watermark (theme-art-brief.md); no metric
   exists.
 - H9 [fidelity] The "Windows 10 Mobile (original)" preset against R12's evidence (its screenshots beside the phone's), including
-  the Cobalt swatch's placement if Q7 is A.
+  the Cobalt swatch's placement (the 49th, Q7 A), and the two picture variants and how one is chosen (Q8 C; the chips, T12-10).
 
 ## Edge cases
 - A core grant revoked from adb or from Android's Settings while a later step shows (E7); a grant made from adb while its
@@ -619,18 +762,21 @@ phase 05's frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motio
   sheet is Android's on the AVD and Samsung's on the phone; choosing another launcher there leaves the step (Start stays
   behind the wizard until Home is pressed).
 - The wizard while Tess's session is open over Start (E8); while a Live Tile secondary-pin band is pending (the band waits,
-  R5 §1.9, until Start is visible — assert `SecondaryTiles` shows it only after the wizard finishes); while a phase 14 pod-bay
+  R5 §1.9, until Start is visible — now E8's pin-band sub-row, built by build task 2's "Start visible" gate, T12-14); while a phase 14 pod-bay
   request is pending (it waits the same way, T12-8 / phase 14 T14-7); a burst cannot be open (edit mode is under the wizard).
 - Light theme and a Start background set before the run: the wizard follows the theme (screencap recorded).
 - ~~The accent step with an accent already changed on the same install (a run started after Settings were used): the grid
   shows that accent selected and "Done" leaves it.~~ Re-cut 2026-09-23 (T12-2): the presets page on an install whose items were
   already changed in Settings: `preset:Custom` selected, and "Done" leaves every item as it was.
-- A preset applied under battery saver (`cmd power set-mode 1`): phase 13's rule wins — `[fluent] acrylic=off
-  reason=battery-saver` — while `transparency_effects` is still written as the preset says (E11's read-back); `set-mode 0` →
-  acrylic follows the preset's value.
+- A preset applied under battery saver (`battery_saver_on`, phase 13's `lib.sh` helper, C-18 — a bare `cmd power set-mode 1`
+  does nothing while `wake_device` holds the AVD on AC power, and the helper asserts `low_power` = 1): phase 13's rule wins —
+  `[fluent] acrylic=off reason=battery-saver` — while `transparency_effects` is still written as the preset says (E11's read-back);
+  `battery_saver_off` → acrylic follows the preset's value.
 - A preset whose picture asset is missing from the build (a QA build with `preset_hal.webp` removed): the preset applies with no
   picture, `background` absent, and `[theme] preset HAL applied: no picture` (the same line T12-7 gives the original preset).
-- A preset tapped over a picture the user chose themself: the preset's picture replaces it and the user's is NOT kept (T12-2);
+- ~~A preset tapped over a picture the user chose themself: the preset's picture replaces it and the user's is NOT kept (T12-2);~~
+  SUPERSEDED 2026-09-23 by T12-12: a preset tapped over a picture the user chose themself replaces it on screen, and the user's
+  set, picture and grant included, is kept as the Custom snapshot and comes back on `preset:Custom` (E11's snapshot sub-row);
   "Remove picture" / "Choose picture" in the items still work afterwards and make the preset read Custom.
 - Transparency effects toggled after a preset (E11): `theme_preset` = `custom`, every other key unchanged.
 - Work / private profile present: no profile grant is a checklist row, so nothing changes (assert the step list against
