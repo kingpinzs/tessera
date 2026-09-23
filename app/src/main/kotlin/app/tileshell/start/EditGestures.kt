@@ -312,6 +312,22 @@ private fun hitTest(edit: StartEditState, geo: StartGeometry, coords: Coords, sc
             if (near(screen, right, geo.dockTopPx + dockTileHeight(geo.grid), plain)) return Hit.DiscHit(Disc.RESIZE)
         }
     }
+    // The last-opened app's tile, fixed above the bottom row. It is not in the grid's placements, so a hold on
+    // it used to find nothing: the edit layer let the gesture go and the tile's own click launched the app on
+    // release — a hold that launched (found 2026-09-22 by phase 02's E7 light pass; the phase 11 writer saw it
+    // in the code). Now it is a tile like any other. Edit mode suspends the promotion (StartPage), so the held
+    // tile is then shown, and edited, in its own grid place.
+    val recentKey = geo.recentKey
+    val recentSize = geo.recentSize
+    if (!edit.active && recentKey != null && recentSize != null) {
+        val x = geo.grid.leftMarginPx
+        val y = geo.recentTopPx
+        val w = geo.wPx(recentSize)
+        val h = geo.hPx(recentSize)
+        if (screen.x in x..(x + w) && screen.y in y..(y + h)) {
+            return Hit.Tile(recentKey, Offset((screen.x - x) / w, (screen.y - y) / h), inRow = false)
+        }
+    }
     if (geo.dockKeys.isNotEmpty() && screen.y >= geo.dockTopPx && screen.y <= geo.dockTopPx + dockTileHeight(geo.grid)) {
         val i = geo.dockIndexAt(screen.x)
         val key = geo.dockKeys.getOrNull(i)

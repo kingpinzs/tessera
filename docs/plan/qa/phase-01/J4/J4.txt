@@ -1,0 +1,23 @@
+==============================================================================
+ROW J4 — a hold on the promoted (last-opened) tile enters edit mode and launches nothing
+at            2026-09-22T21:38:54-06:00
+driver        j4.sh blob dcb559ec11d0d27de7fad25aa289a36d558a178c
+harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
+apk built     46889edb51f188d0 335485062 bytes
+apk installed 3d959e31f9792579
+apk match     yes (3d959e31f9792579)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+==============================================================================
+PASS  the tap left Start (Browser opened)                         does not contain [app.tileshell/.StartActivity]
+      the promoted tile: [tile:slot:BROWSER]
+PASS  Browser is promoted above the bottom row                    = tile:slot:BROWSER
+after a 1000-ms hold on the promoted tile:       topResumedActivity=ActivityRecord{229499596 u0 app.tileshell/.StartActivity t941}
+PASS  the hold launched nothing (Start is still in front)         contains [app.tileshell/.StartActivity]
+PASS  edit mode is on: the held tile's unpin disc is drawn        = yes
+PASS  the shell says the hold was on Browser                      contains [hold 783ms on slot:BROWSER: edit mode on]
+PASS  edit mode suspends the promotion: the tile is back in its grid place  = no
+PASS  control: a hold on a grid tile launches nothing             contains [app.tileshell/.StartActivity]
+PASS  control: and enters edit mode                               = yes
+      restored: the shell restarted, so nothing is promoted (RecentApp is in memory only)
+------------------------------------------------------------------------------
+J4: 8 passed, 0 failed
