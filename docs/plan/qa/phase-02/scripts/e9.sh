@@ -141,7 +141,17 @@ done
 say "row after dragging every tile out:"; row | tee -a "$LOG"
 check "the row is empty" 0 "$(row_len)"
 adb exec-out screencap -p > "$OUT/e9_empty_row.png"
-G=$(layout_json | python3 -c "import json,sys; print(json.load(sys.stdin)['order'][-1]['key'])")
+# A grid tile that is ON SCREEN: part 6 left Start in the 4-across setting, where the grid's last tile
+# (order[-1]) is below the fold, and the drag found nothing to pick up ("no tile shell:settings",
+# 2026-09-22). The first grid tile in a fresh dump is always visible.
+dump "$OUT/e9_refill_pre.xml"
+G=$(python3 - "$OUT/e9_refill_pre.xml" <<'PY'
+import re, sys
+ids = re.findall(r'resource-id="tile:([^"]+)"', open(sys.argv[1]).read())
+print(next((i for i in ids if not i.startswith(("dock:", "member:", "folder:"))), ""))
+PY
+)
+say "refilling with the on-screen grid tile $G"
 drag_to "$G" 540 "$ROWY"
 say "row after dropping a tile back in:"; row | tee -a "$LOG"
 check "an empty row can be refilled" 1 "$(row_len)"
