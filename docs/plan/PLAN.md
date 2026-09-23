@@ -268,6 +268,15 @@ SUPERSEDED older note (launcher-only framing, kept for history):
   toggled". Built by phase 12 (first seen in the setup wizard) and offered on Start + theme too. Details in phase 12's
   Decisions and interview queue.
 
+- 2026-09-23 **A11 AMENDED — internet is fine, offline preferred; media may go online** (Jeremy, phase 17 interview, after
+  the agent cited A11 and R10-Q4: "oh I thought you meant build your own mail and browser which is a no BUT internet is fine
+  but prefer offline so probubly (c)"). (1) R10-Q4 is clarified, not reversed: its "(a)" meant the shell builds no Mail and no
+  browser (and no Maps) — that stands. (2) A11's "only internet uses are Weather and the model download" is replaced by: the
+  shell may use the internet where a feature needs it, and offline is preferred wherever an offline way exists (with P6). (3)
+  The scope opened now is MEDIA: Movies & TV may look up films and shows online and hand off to streaming services (phase
+  17), and Music streaming and Radio are back in scope (they were taken out of phase 10 by A11; a new phase doc and interview
+  carry them — INDEX).
+
 ## Review resolutions (round 1, 2026-09-16; agent design calls, Jeremy can overrule)
 Full mapping: docs/plan/review/2026-09-16-triage.md
 - RV1. One APK holds every part; no part depends on a separately installed app. Install via adb over USB or Wireless debugging;
