@@ -5,7 +5,9 @@
 # usage: run_all.sh [row ...]     (default: all of them, in order)
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
-ROOT="$(cd "$HERE/../../../.." && pwd)"
+# Five levels: scripts, phase-02, qa, plan, docs. Four landed in docs/, so ./gradlew was not found and the
+# unit-test line read "gradle exit 127" (2026-09-21 run).
+ROOT="$(cd "$HERE/../../../../.." && pwd)"
 OUTROOT="$HERE/.."
 SUMMARY=$OUTROOT/SUITE.txt
 : > "$SUMMARY"

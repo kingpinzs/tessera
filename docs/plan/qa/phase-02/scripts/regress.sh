@@ -14,6 +14,22 @@ fg() { adb shell dumpsys activity activities | grep -m1 "topResumedActivity" | s
 say "# phase 01 regression $(date -Iseconds)"
 PASS=0; FAIL=0
 ok() { if [ "$1" = "$2" ]; then say "PASS  $3 (got $1)"; PASS=$((PASS+1)); else say "FAIL  $3 (expected $2, got $1)"; FAIL=$((FAIL+1)); fi; }
+# The y of the first tile in a dump. The regex holds double quotes, so it cannot sit inside a double-quoted
+# python -c: the shell ended the string early, redirected to a stray file and printed nothing, so step 7's
+# "scrolled back to the top" could never pass (2026-09-22). The path goes in as an argument.
+first_tile_y() {
+  python3 - "$1" <<'PY'
+import re, sys
+s = open(sys.argv[1]).read()
+m = re.search(r'resource-id="tile:[^"]+"[^>]*bounds="\[(\d+),(-?\d+)\]', s)
+print(m.group(2) if m else "none")
+PY
+}
+
+# Rows start from the baseline and restore what they change (PLAN RV12). This script used to run on whatever
+# Start the device happened to show, and step 5's press target was not on it (2026-09-22).
+layout_save "$OUT/r_layout_device.json"
+layout_restore "$HERE/../baseline_layout.json" || { say "FAIL could not seed the baseline"; exit 1; }
 
 adb shell input keyevent KEYCODE_HOME; sleep 2.5
 dump "$OUT/r_start.xml"
@@ -59,6 +75,7 @@ layout_restore "$OUT/r_layout_before.json"
 say "--- 5. a short press does NOT enter edit mode (under the 783 ms hold) ---"
 dump "$OUT/r_short.xml"
 SXY=$(center "$OUT/r_short.xml" "tile:shell:settings" || center "$OUT/r_short.xml" "tile:slot:MAPS")
+[ -n "$SXY" ] || say "FAIL no Start settings or Maps tile on screen to press"
 adb shell input swipe ${SXY% *} ${SXY#* } ${SXY% *} ${SXY#* } 300; sleep 2.5
 TOP=$(fg); say "after a 300 ms press the top activity is $TOP"
 # The press was a tap, so it launched something — and a tap never launches while edit mode is on. Coming back
@@ -83,11 +100,7 @@ layout_restore "$OUT/r_tall2.json"
 ensure_start
 adb shell input swipe 540 1700 540 600 250; sleep 1.5      # scroll Start down
 dump "$OUT/r_scrolled.xml"
-SCROLLED=$(python3 -c "
-import re
-s=open('$OUT/r_scrolled.xml').read()
-m=re.search(r'resource-id="tile:[^"]+"[^>]*bounds="\[(\d+),(-?\d+)\]', s)
-print(m.group(2) if m else 'none')")
+SCROLLED=$(first_tile_y "$OUT/r_scrolled.xml")
 say "first tile's y after scrolling: $SCROLLED"
 adb shell input swipe 900 1200 150 1200 250; sleep 1.5     # and go to the app list
 dump "$OUT/r_on_applist.xml"
@@ -99,16 +112,13 @@ dump "$OUT/r_after_windows_key.xml"
 adb exec-out screencap -p > "$OUT/r_after_windows_key.png"
 grep -q 'resource-id="start_page"' "$OUT/r_after_windows_key.xml" && ! grep -q 'resource-id="app_list"' "$OUT/r_after_windows_key.xml"
 ok "$?" "0" "the Windows key brought the pivot back to Start"
-AFTER=$(python3 -c "
-import re
-s=open('$OUT/r_after_windows_key.xml').read()
-m=re.search(r'resource-id="tile:[^"]+"[^>]*bounds="\[(\d+),(-?\d+)\]', s)
-print(m.group(2) if m else 'none')")
+AFTER=$(first_tile_y "$OUT/r_after_windows_key.xml")
 say "first tile's y after the Windows key: $AFTER (84 is the top of the grid)"
 ok "$AFTER" "84" "and scrolled Start back to the top (X20)"
 adb shell dumpsys activity service app.tileshell/.feeds.TileNotificationListener | grep "\[start\]" | tail -5 > "$OUT/r_home_diag.txt"
 say "the shell's own record: $(tail -1 "$OUT/r_home_diag.txt")"
 grep -q "home: page 0" "$OUT/r_home_diag.txt" && ok yes yes "the shell logged the home event" || ok no yes "the shell logged the home event"
 layout_restore "$OUT/r_layout_before2.json"
+layout_restore "$OUT/r_layout_device.json" && say "restored: the device's own layout from before the run"
 say "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
