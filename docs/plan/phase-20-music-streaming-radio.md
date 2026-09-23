@@ -39,6 +39,10 @@ Radio or "shortcuts-only" streaming build if the interview rules a fuller form (
 measured now-playing geometry for local tracks (R8, H-M1 signed off).
 
 ## Decisions
+- 2026-09-23: Interview Q5 follow-up — the hand-off table's first full entry is Pandora (Jeremy: "(c)"; asked which music
+  apps he uses). Pandora gets its in-app search deep link (the exact URI form is verified against the installed app at build
+  start and recorded; if Pandora exposes no search link, "Listen on Pandora" opens Pandora and the diagnostics say the search
+  could not be passed) and a phone row on the S25 Ultra. Every other installed music app gets a plain open hand-off.
 - 2026-09-23: Interview Q5 — Tess gets radio and streaming phrases (Jeremy, to the question's Spotify example: "I dont ever use
   spotify but I do use other apps"; read as A with the hand-off naming any installed music app, Jeremy can overrule): "play
   <station>", "play <genre> radio", "play radio" (the last favourite), resolved by code against the cached directory (P6) and
