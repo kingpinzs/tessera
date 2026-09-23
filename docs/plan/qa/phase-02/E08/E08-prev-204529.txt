@@ -1,0 +1,23 @@
+# E8 2026-09-21T19:14:29-06:00
+build guard: built= installed=8d3f14f1eb374ee2a0abb431cec8b19a
+driver: e8.sh blob 28847093616977617f7cc8764544e3091eb7edac
+A = shell:settings (last), B = slot:PEOPLE (first), untouched witness = slot:CALENDAR
+--- e8a_folder: shell:settings -> slot:PEOPLE, holding ~800 ms over it ---
+    held 1277 ms over the target before the release (dwell is 2000 ms)
+PASS  a folder was created (found [folder:])
+PASS  the folder holds the target and the dragged tile (= slot:PEOPLE shell:settings)
+PASS  it sits in the target's place (= folder:f1)
+FAIL  no other tile moved: slot:CALENDAR bounds (expected [9 439 708 782], got [85 1014 668 1301])
+FAIL e8b_reflow: no tile shell:settings
+PASS  no folder was made (= 0)
+FAIL  the dragged tile took the target's cell (expected [shell:settings], got [slot:PEOPLE])
+PASS  every tile is still there (= 10)
+--- e8_makefolder: shell:settings -> slot:PEOPLE, holding ~800 ms over it ---
+    held 1264 ms over the target before the release (dwell is 2000 ms)
+--- e8c_addtofolder: slot:MUSIC -> folder:f1, holding ~800 ms over it ---
+    held 1301 ms over the target before the release (dwell is 2000 ms)
+PASS  the dragged tile joined the folder (= slot:PEOPLE shell:settings slot:MUSIC)
+PASS  still exactly one folder (= 1)
+FAIL e8d_folderreflow: no tile slot:MUSIC
+PASS  past the dwell the folder made room instead (= slot:PEOPLE shell:settings)
+FAIL  and the dragged tile took its cell (expected [slot:MUSIC], got [folder:f1])

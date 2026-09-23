@@ -1,25 +1,42 @@
-# phase 02 edge cases 2026-09-21T18:06:34-06:00
+# phase 02 edge cases 2026-09-22T21:05:25-06:00
 === 1. a layout store written by an older shell build (v2 -> v3 upgrade keeps the layout) ===
-store after the upgrade (expect version 3, the six tiles in READING order, the row kept):
-{"version":3,"order":[{"key":"slot:PEOPLE","size":"MEDIUM"},{"key":"slot:BROWSER","size":"MEDIUM"},{"key":"slot:MAIL","size":"MEDIUM"},{"key":"slot:CALENDAR","size":"WIDE"},{"key":"shell:weather","size":"WIDE"},{"key":"slot:STORE","size":"SMALL"}],"slots":{},"dock":["slot:PHONE","slot:MESSAGING","slot:CAMERA"],"folders":[]}=== 2. Back in edit mode, without and with a folder expanded (H9) ===
+note: the v2 file is upgraded on load, so the read-back differs by design
+store after the upgrade:
+{"version":3,"order":[{"key":"slot:PEOPLE","size":"WIDE"},{"key":"slot:BROWSER","size":"WIDE"},{"key":"slot:MAIL","size":"SMALL"},{"key":"slot:CALENDAR","size":"SMALL"},{"key":"shell:weather","size":"WIDE"},{"key":"slot:STORE","size":"SMALL"},{"key":"shell:cortana","size":"MEDIUM"},{"key":"folder:f1","size":"MEDIUM"}],"slots":{"MUSIC":"app.tileshell\/app.tileshell.music.MusicActivity"},"dock":["slot:PHONE","slot:MESSAGING","slot:CAMERA"],"addedOnce":["phase03:cortana","folder:games:v1","folder:office:v1","slot:music:v1"],"manualSizes":[],"folders":[{"id":"f1","name":"Office","members":[{"key":"app:org.fossify.notes\/org.fossify.notes.activities.SplashActivity.Green:0","size":"MEDIUM"},{"key":"app:org.fossify.messages\/org.fossify.messages.activities.SplashActivity.Green:0","size":"MEDIUM"},{"key":"app:eu.faircode.email\/eu.faircode.email.ActivityMain:0","size":"MEDIUM"}]}]}
+PASS  the store upgraded to version 3 (= 3)
+FAIL  the six tiles came back in READING order (expected [slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR shell:weather slot:STORE], got [slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR shell:weather slot:STORE shell:cortana folder:f1])
+PASS  the bottom row was kept (= slot:PHONE slot:MESSAGING slot:CAMERA)
+=== 2. Back in edit mode, without and with a folder expanded (H9) ===
 expect: Back left edit mode and stayed on Start (top activity: app.tileshell/.StartActivity)
 === 3. drag across several occupied cells without stopping: no reflow, no feedback left behind ===
-order after the sweep (the tile lands where it was dropped; nothing else should have been folded):
-order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+order after the sweep:
+order: ['slot:PEOPLE/WIDE', 'slot:BROWSER/WIDE', 'slot:MAIL/SMALL', 'slot:CALENDAR/SMALL', 'slot:PHOTOS/SMALL', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/MEDIUM', 'shell:settings/SMALL']
 dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
 folders: []
+PASS  sweeping across occupied cells made no folder (= 0)
+PASS  and lost no tile (= 10)
 === 4. process death mid-drag ===
 store after the process died mid-drag (expect the layout from before the drag: an uncommitted drag writes nothing):
-PASS: unchanged
+PASS  a drag that never committed wrote nothing (= slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR slot:PHOTOS shell:weather slot:STORE slot:MAPS slot:MUSIC shell:settings)
 === 5. a wide dragged tile whose centre sits over a small tile ===
-wide slot:CALENDAR onto small slot:STORE
+wide slot:PEOPLE onto small slot:MAIL
 order after (a folder at the small tile's place, holding both, is the expected result):
-order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'folder:f1/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+order: ['slot:BROWSER/WIDE', 'folder:f1/SMALL', 'slot:CALENDAR/SMALL', 'slot:PHOTOS/SMALL', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/MEDIUM', 'shell:settings/SMALL']
 dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
-folders: [{'id': 'f1', 'name': None, 'members': [{'key': 'slot:STORE', 'size': 'SMALL'}, {'key': 'slot:CALENDAR', 'size': 'WIDE'}]}]
+folders: [{'id': 'f1', 'name': None, 'members': [{'key': 'slot:MAIL', 'size': 'SMALL'}, {'key': 'slot:PEOPLE', 'size': 'WIDE'}]}]
 === 6. drag during a live flip ===
-recorded a drag of a live tile (slot:CALENDAR) to docs/plan/qa/phase-02/EDGE/edge_flip.mp4; order after:
-order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL', 'slot:CALENDAR/WIDE']
+recorded a drag of a live tile (slot:CALENDAR) to /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/scripts/../EDGE/edge_flip.mp4; order after:
+order: ['slot:PEOPLE/WIDE', 'slot:BROWSER/WIDE', 'slot:MAIL/SMALL', 'slot:PHOTOS/SMALL', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/MEDIUM', 'shell:settings/SMALL', 'slot:CALENDAR/SMALL']
 dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
 folders: []
+=== 7. Back in edit mode WITH a folder expanded (H9's other half) ===
+PASS  the new folder is expanded in edit mode (found [folder_band_top])
+PASS  Back left edit mode (no [edit_disc:unpin])
+PASS  and the folder stayed expanded (H9) (found [folder_band_top])
+=== 8. release EXACTLY as the dwell ends (the folder-vs-reflow boundary) ===
+held 1886 ms over the target (asked for 1800); folders after = 0
+FAIL  a release at 1886 ms, inside the dwell, makes a folder (expected [1], got [0])
+held 2288 ms over the target (asked for 2200); folders after = 0
+PASS  a release at 2288 ms, past the dwell, makes no folder (= 0)
 baseline layout restored
+---- 9 passed, 2 failed ----

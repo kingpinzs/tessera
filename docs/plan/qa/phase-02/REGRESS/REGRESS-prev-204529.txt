@@ -1,0 +1,30 @@
+# phase 01 regression 2026-09-22T20:33:26-06:00
+top activity on Start: app.tileshell/.StartActivity
+--- 1. a tap on a grid tile launches its app ---
+after the tap the top activity is org.chromium.webview_shell/.WebViewBrowserActivity
+PASS  a tile tap launched another app (got yes)
+--- 2. a tap on a bottom-row tile launches its app ---
+after the row tap the top activity is com.android.dialer/.main.impl.MainActivity
+PASS  a row tile tap launched another app (got yes)
+--- 3. the pivot still swipes to the app list and back ---
+PASS  swipe opened the app list (got yes)
+PASS  Back returned to Start (got yes)
+--- 4. Start still scrolls (with a layout taller than the screen: the default ten tiles are not) ---
+PASS  a swipe scrolled the grid (got yes)
+--- 5. a short press does NOT enter edit mode (under the 783 ms hold) ---
+after a 300 ms press the top activity is app.tileshell/.settings.SettingsActivity
+PASS  a 300 ms press acted as a tap, not a hold (got 0)
+PASS  no edit-mode discs after a short press (got yes)
+--- 6. Home from another app returns to Start ---
+PASS  Home shows the shell (got app.tileshell)
+--- 7. the drawn Windows key returns the pivot to Start and scrolls it to the top (X20 / H28) ---
+first tile's y after scrolling: 0
+PASS  on the app list before pressing the Windows key (got yes)
+tapping the drawn Windows key at 540 2268
+PASS  the Windows key brought the pivot back to Start (got 0)
+first tile's y after the Windows key: 84 (84 is the top of the grid)
+PASS  and scrolled Start back to the top (X20) (got 84)
+the shell's own record:     2026-09-22 20:34:46.520 wall=1790130886520 [start] home: page 0, scrolled to top
+PASS  the shell logged the home event (got yes)
+restored: the device's own layout from before the run
+12 passed, 0 failed

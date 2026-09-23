@@ -1,5 +1,5 @@
-# E3 2026-09-21T19:06:36-06:00
-build guard: built= installed=8d3f14f1eb374ee2a0abb431cec8b19a
+# E3 2026-09-22T20:51:16-06:00
+build guard: built=a7e62760cf77d72488366b49e26abdc9 installed=a7e62760cf77d72488366b49e26abdc9
 driver: e3.sh blob fdc95a6b69d83ddb484011ea8f85409e18587c14
 --- 1. create a folder: shell:settings dropped on slot:PEOPLE, released inside the dwell ---
 folder tile = folder:f1 (id f1); R6 §1.6.2: created in place, Start stays in edit mode, the band opens
@@ -28,4 +28,13 @@ PASS  the face capture is COLLAPSED, not the band (no [folder_band_top:f1])
 PASS  the folder holds four members for the 3 + 1 face (H12) (= 4)
 --- 5b. a tile dropped on an empty cell of the EXPANDED band joins the folder there ---
 --- 6. unpin one member of a two-member folder: it dissolves into the other (H19) ---
-ABORT: no tile shell:settings
+selecting band member member:slot:PEOPLE
+tapping its unpin disc at 388 607
+order after:
+order: ['shell:settings/SMALL', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: []
+PASS  the folder dissolved (H19) (= 0)
+FAIL  the surviving member is back in the grid (no [slot:PEOPLE] in [shell:settings slot:BROWSER slot:MAIL slot:CALENDAR slot:PHOTOS shell:weather slot:STORE slot:MAPS slot:MUSIC])
+baseline layout restored
+---- 9 passed, 1 failed ----

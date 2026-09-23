@@ -1,0 +1,41 @@
+# E5 2026-09-21T19:09:40-06:00
+build guard: built= installed=8d3f14f1eb374ee2a0abb431cec8b19a
+driver: e5.sh blob 2554ba88f905a360152aca497ac44ca573f69858
+adb: failed to stat /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/scripts/../../../../testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk: No such file or directory
+--- 1. the request is HELD while the requester is in front (never drawn over another app) ---
+the client's own read-back: 
+PASS  nothing is drawn over the requesting app (no [secondary_pin_prompt])
+FAIL  the requester is what is on screen (no [app.tileshell.testclient] in [app.tileshell/.StartActivity])
+--- 2. the band appears the next time Start is shown, and accepting pins the tile ---
+FAIL  the confirmation band is showing on Start (no [secondary_pin_prompt] in [])
+order after accepting:
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: []
+FAIL  accepting pinned the tile (no [secondary:app.tileshell.testclient.a:st1] in [slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR slot:PHOTOS shell:weather slot:STORE slot:MAPS slot:MUSIC shell:settings])
+--- 3. tapping the pinned tile launches the owner with the request's arguments ---
+FAIL no secondary tile on Start to tap
+--- 4. declining pins nothing ---
+the client's own read-back: 
+FAIL no Cancel button in the band
+order after declining:
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: []
+PASS  declining pinned nothing (no [secondary:app.tileshell.testclient.a:st2])
+--- 5. a duplicate tileId updates the tile instead of making a second one ---
+the client's own read-back: 
+order after the duplicate request:
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: []
+FAIL  a duplicate tileId updated the tile instead of adding one (expected [1], got [0])
+--- 6. put the tile inside a folder, then uninstall the owner ---
+Failure [DELETE_FAILED_INTERNAL_ERROR]
+order after uninstalling the owner:
+order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL']
+dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
+folders: []
+PASS  uninstalling the owner took its tile out of the folder too (no [secondary:app.tileshell.testclient.a])
+baseline layout restored
+---- 3 passed, 6 failed ----
