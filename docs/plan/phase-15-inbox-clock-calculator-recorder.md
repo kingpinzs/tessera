@@ -61,6 +61,28 @@ approximation with a NEEDS-HUMAN row; nothing here is internet-connected (A11).
 - Photos, Camera, video, Files, Calendar, People, the Settings front (phases 16–19)
 
 ## Decisions
+- 2026-09-23: Interview Q5 — Tess does arithmetic offline through the Calculator engine (Jeremy: "(a) so anything
+  deterministic can be dont with out an llm and then feed the llm with better smaller info"). Spoken and typed ("15 % of 80 is
+  12."), an ADD to phase 03's matcher and action layer (INDEX Change Log when built). Jeremy's reason is recorded as standing
+  principle P6 in PLAN.md.
+- 2026-09-23: The App Shortcuts each app declares under the phase 11 Q1 standing rule (agent; Jeremy can overrule): Alarms &
+  Clock — Alarm, Timer, Stopwatch, World clock; Calculator — Standard, Scientific, Programmer, Converter; Voice Recorder — New
+  recording, Recordings. Each is its app's top-level screen, and phase 11's four-satellite limit is met by every app.
+- 2026-09-23: Interview Q4 — Calculator includes W10M's Converter, every category except Currency (Jeremy: "(a)"): Volume,
+  Length, Weight, Temperature, Energy, Area, Speed, Time, Power, Data, Pressure, Angle. Currency is out because live rates are
+  internet (A11).
+- 2026-09-23: Interview Q3 — recordings are .m4a (AAC) in the shared Recordings folder (Jeremy: "(a)"), written through
+  MediaStore with IS_RECORDING set: other apps, a PC over USB and file managers see them, and they survive uninstalling the shell.
+- 2026-09-23: Interview Q2 — recordings stay out of Music, because Voice Recorder plays them (Jeremy: "(c) unless there is
+  another way to play them"). There is: Voice Recorder's own list plays, pauses and scrubs recordings (W10M's did). So by Jeremy's
+  condition the answer is A — Music skips anything MediaStore marks IS_RECORDING (one predicate in phase 10's MusicStore, INDEX
+  Change Log when built) and there is no "Show voice recordings" switch. To make Voice Recorder truly "the other way", it lists
+  EVERY recording on the phone that MediaStore marks IS_RECORDING, whichever app made it (Samsung's recorder included), not only
+  its own (agent, following the condition). Jeremy can still ask for the Music switch.
+- 2026-09-23: Interview Q1 — Tess's clock is the shell's Alarms & Clock, always (Jeremy: "(a)"). Tess sets alarms and timers
+  in-process with no intent and no chooser, so it also works over the keyguard (E10's PQ3 fallback becomes moot). Samsung
+  Clock's existing alarms are untouched and keep ringing there; they cannot be read or imported (no API), so the user recreates
+  the ones they want. An ADD to phase 03's action layer, recorded in the INDEX Change Log when built.
 - 2026-09-22: From phase 11 interview Q1 (Jeremy: "A"), a standing rule for every shell app: this phase's apps declare their
   own top-level screens as static App Shortcuts, so a hold on their tiles bursts those screens (phase 11). Which screens each app
   declares is settled at this phase's own interview; a build task and an acceptance row carry it.
@@ -195,7 +217,8 @@ approximation with a NEEDS-HUMAN row; nothing here is internet-connected (A11).
 ## Interview queue (Stage A step 4)
 Ask one at a time, in this order.
 
-1. **Where Tess sets alarms and timers.** Today "set an alarm for 7" starts `AlarmClock.ACTION_SET_ALARM` with `EXTRA_SKIP_UI`
+1. ~~Tess's clock~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Where Tess sets alarms and timers.** Today "set an alarm for 7" starts `AlarmClock.ACTION_SET_ALARM` with `EXTRA_SKIP_UI`
    as a voice activity, and whichever clock app handles it (DeskClock on the AVD, Samsung Clock on the phone) takes it; once
    the shell's Alarms & Clock declares the same intent there are two handlers and Android shows a chooser (R10 design 13,
    testability 5). Which clock is Tess's?
@@ -206,27 +229,31 @@ Ask one at a time, in this order.
       `ACTION_SET_ALARM` path and its chooser-free explicit target.
    C. Keep the implicit intent as built and let Android's chooser / "Always" choice decide the target.
    D. Other / let me clarify.
-2. **Recordings and Music.** Phase 10 Q6 admits everything MediaStore calls audio into Music's library, recordings included,
+2. ~~Recordings in Music~~ RULED 2026-09-23: A by Jeremy's own condition (see Decisions). Original question kept below.
+   **Recordings and Music.** Phase 10 Q6 admits everything MediaStore calls audio into Music's library, recordings included,
    as a NEEDS-HUMAN row; R10 design 14 asks this phase to re-ask rather than inherit it. Once the shell records its own audio:
    A. **(lean)** Recordings are left out of Music (the `IS_RECORDING` flag, API 31+) and live only in Voice Recorder — an ADD
       of one predicate to phase 10's `MusicStore`, Change Log when built.
    B. Keep Q6 as ruled: recordings also appear in Music's songs pivot and can be queued and playlisted there.
    C. A Music setting "Show voice recordings", default off.
    D. Other / let me clarify.
-3. **Where recordings live.**
+3. ~~Where recordings live~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Where recordings live.**
    A. **(lean)** `.m4a` (AAC) in the phone's shared Recordings folder through MediaStore with `IS_RECORDING` set — any app, a
       PC over USB and a file manager see them, and they survive uninstalling the shell (W10M kept its .m4a in Documents\Sound
       recordings).
    B. App-private storage: only the shell's Voice Recorder sees them; uninstalling the shell deletes them.
    C. `.wav` (PCM) in the Recordings folder — lossless, about ten times the size, playable anywhere.
    D. Other / let me clarify.
-4. **The converter.** PLAN.md names Calculator's three modes; W10M's Calculator also had a Converter (Volume, Length, Weight,
+4. ~~Converter~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **The converter.** PLAN.md names Calculator's three modes; W10M's Calculator also had a Converter (Volume, Length, Weight,
    Temperature, Energy, Area, Speed, Time, Power, Data, Pressure, Angle, Currency).
    A. **(lean)** In, every unit converter except Currency (live rates are internet, A11).
    B. Out: Standard, Scientific and Programmer only.
    C. In, Currency included with a bundled fixed rate table (stale by design, no network).
    D. Other / let me clarify.
-5. **Tess and arithmetic** (R10 design 15: "what's 15 % of 80" is outside phase 03's ruled command list).
+5. ~~Tess and arithmetic~~ RULED 2026-09-23: A, and a standing principle (see Decisions). Original question kept below.
+   **Tess and arithmetic** (R10 design 15: "what's 15 % of 80" is outside phase 03's ruled command list).
    A. **(lean)** In: Tess answers spoken and typed arithmetic offline through the Calculator engine ("15 % of 80 is 12."),
       an ADD to phase 03's matcher and action layer, Change Log when built.
    B. Out: arithmetic goes to the not-understood handler as today (phase 08's LLM layer may pick it up later).
