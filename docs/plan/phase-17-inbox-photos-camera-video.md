@@ -45,6 +45,12 @@ Camera2 — P1 records what the S25U exposes); DRM; Files (phase 18); the pod ba
 "player-only" video build if the interview rules the fuller form (Hard Rule 16).
 
 ## Decisions
+- 2026-09-23: Interview Q3b — Movies & TV is the full hub (Jeremy: "(a)"): local videos; an online catalogue of films and shows
+  from a public film database; per title, which streaming apps on the phone have it, with "Watch on <service>" opening that app
+  at the title (the user still signs in inside each service's own app); and the user's own media server (Jellyfin or Plex) when
+  there is one. The same answer asked for a TV-channels experience and said it "could be a seprate app thing": that is recorded
+  as its own scope add (PLAN.md 2026-09-23) and its own phase, not part of this one. This phase builds the streaming hand-off
+  (catalogue lookup and "open this title in that app") that the channels app and Music's streaming side reuse.
 - 2026-09-23: The video app is Movies & TV WITH its online half (Jeremy: "I want the movies & TV. microsoft has cancled theres
   so I need a way to fake it using streaming services and other methods pluse anything local", then the A11 amendment in
   PLAN.md). Q3 as first written assumed A11 kept it local and is superseded; its shape is re-asked (Q3b).
@@ -198,7 +204,8 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
    B. The player only, reached from Photos, Files and "open with" — no library page, no app-list entry.
    C. A plus the player also handling audio-only files as a second Music entry point.
    D. Other / let me clarify.
-3b. (added 2026-09-23) **What Movies & TV is, now that it may go online.**
+3b. ~~What Movies & TV is~~ RULED 2026-09-23: A, and a TV-channels app split out (see Decisions). Original question kept below.
+   (added 2026-09-23) **What Movies & TV is, now that it may go online.**
    A. A W10M-style hub: your local videos, plus an online catalogue of films and shows (info and artwork from a public film
       database) showing where each title can be watched among the streaming apps on the phone, with "Watch on <service>"
       opening that app at the title; plus your own media server (Jellyfin or Plex) if you have one (lean)
