@@ -30,6 +30,9 @@ center's job, phase 04); an edge-swipe trigger (the left edge is Android's Back 
 "Glance", a different thing; the name collision is why this pane is the pod bay).
 
 ## Decisions
+- 2026-09-23: Interview Q1 — no real Android widgets in this plan (Jeremy: "(b)"). The pod bay holds the four shell-drawn pods
+  (agenda, weather, now playing, Tess's reminders) only. A widget pod, if ever, is an ADD in Jeremy's post-plan updates; nothing
+  in this phase pre-builds for it (Hard Rule 16). A8's "optionally real Android widgets" is resolved: out.
 - 2026-09-22: Scope add (Jeremy: "did you add ALL the apps that need to be created and that side pull out thing at a glance thing").
   PLAN.md feature list: "The 'pod bay': a side pane left of Start whose at-a-glance cards are 'pods', opened by a swipe or by telling
   Tess 'open the pod bay doors'." Its content, from the same scope add: "at-a-glance cards (agenda, weather, now playing, Tess's
@@ -148,7 +151,8 @@ center's job, phase 04); an edge-swipe trigger (the left edge is Android's Back 
   fidelity-shaped item, Tess speaking the line on the phone, is a phone row because TTS on the phone is still unproven (INDEX, phase 03)
 
 ## Interview queue (Stage A step 4)
-1. Real Android widgets in the pod bay — in or out? A8 needs a ruling, not "optionally". Costs if in, recorded now so the choice is
+1. ~~Real widgets~~ RULED 2026-09-23: B (see Decisions). Original question kept below.
+   Real Android widgets in the pod bay — in or out? A8 needs a ruling, not "optionally". Costs if in, recorded now so the choice is
    made with them in view (design 7): a widget inflates at the system density and follows Samsung's Font size, so RV10 (nothing
    Samsung's Screen zoom or Font size resizes) is broken inside every widget; a non-privileged host gets Android's bind-consent
    dialog per widget (a P2 seam); widgets draw themselves and will not look Metro.
