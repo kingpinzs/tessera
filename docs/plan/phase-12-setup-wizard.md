@@ -46,6 +46,9 @@ checklist rows (the checklists are phase 01's and phase 03's; the wizard reads t
 picture (R12 §6 lists img5; the shell draws no lock screen, and phase 07's glance is untouched). Hooks for later phases.
 
 ## Decisions
+- 2026-09-23: Interview Q7 — Cobalt #3E65FF becomes a 49th accent everywhere accents are picked (Jeremy: "(a)"), as W10M
+  phones effectively had it (R12: an OEM colour outside R3 A16's 48). It is an ADD to phase 01's accent picker, built by this
+  phase and recorded in the INDEX Change Log when built; the "Windows 10 Mobile (original)" preset uses it.
 - 2026-09-23: From phase 13 interview Q2 (agent reading): phase 13's "Transparency effects" switch is one of the visual items a
   preset sets (Q4 "everything visual"), so a preset can turn acrylic off (e.g. Midnight, for the battery).
 - 2026-09-23: Interview Q6 — the four generated pictures are AI images (Jeremy: "(b) tell me what I need to do because I have
@@ -370,7 +373,8 @@ Load-bearing first. Each answer lands in Decisions, dated.
    C. Jeremy supplies his own pictures
    D. Other / let me clarify
 
-7. (added 2026-09-23 from R12) **The original W10M accent.** W10M phones shipped with "Cobalt" #3E65FF, a maker's colour
+7. ~~Original accent~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   (added 2026-09-23 from R12) **The original W10M accent.** W10M phones shipped with "Cobalt" #3E65FF, a maker's colour
    that is NOT one of the 48 accent swatches the shell's picker offers (R12; R3 A16).
    A. Add Cobalt as a 49th swatch everywhere accents are picked, as W10M phones effectively had (lean)
    B. The original preset uses Cobalt, but the picker keeps its 48 (so choosing another accent loses Cobalt for good)
