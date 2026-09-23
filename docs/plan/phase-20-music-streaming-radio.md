@@ -39,6 +39,24 @@ Radio or "shortcuts-only" streaming build if the interview rules a fuller form (
 measured now-playing geometry for local tracks (R8, H-M1 signed off).
 
 ## Decisions
+- 2026-09-23: Interview Q3 — Radio is a fifth pivot in Music, played by MusicService (Jeremy: "(a) unless there is a way to
+  build an app that uses the phones antanas to pick up fm radio"). Jeremy's condition was checked and does not hold, so A
+  stands: the S25 Ultra's Snapdragon SoC may carry FM silicon but Samsung has not enabled FM on the S25 series (no FM app;
+  NextRadio does not work — Samsung Community and Best Buy Q&A, 2025), and Android's broadcast-radio stack (RadioManager /
+  the Broadcast Radio HAL) is reachable only by system-privileged apps, which the shell cannot be on a locked One UI 8
+  phone (source.android.com, automotive broadcast radio). Sources: https://eu.community.samsung.com/t5/galaxy-s25-series/nextradio-en-galaxy-s25/td-p/11681296 ,
+  https://www.bestbuy.com/site/questions/samsung-galaxy-s25-ultra-512gb-unlocked-titanium-black/6612728/question/87a0770c-8711-3503-8a7a-ca5c6460f745 ,
+  https://source.android.com/docs/automotive/broadcast-radio
+- 2026-09-23: Interview Q2 — Radio is internet radio (Jeremy: "(a)"): stations from the open radio-browser.info directory,
+  browsed by genre / country / search, with favourites, played live in the shell's own player (MusicService). No account; the
+  directory is cached so browsing works offline.
+- 2026-09-23: Interview Q1 — Music's streaming side is phase 17's pattern plus the media server played in the shell's own
+  player (Jeremy: "(c)"). A search over a public music database (artist / album / track, info and artwork) with "Listen on
+  <service>" opening the installed service's app at the title, the user signed in there; AND the user's Jellyfin server's music
+  (phase 17 Q-B: Jellyfin only) browsed as albums / artists / songs and played through MusicService, with the equaliser,
+  sleep timer, crossfade and the Music tile. Agent call for the database (P5, P6, no key): MusicBrainz for the catalogue and
+  the Cover Art Archive for artwork, both keyless and open; since neither says where a title streams, "Listen on <service>"
+  opens each installed service's own search for the title (its search deep link), through phase 17's StreamingHandoff.
 - 2026-09-23: **A11 AMENDED** (Jeremy, phase 17 interview: "oh I thought you meant build your own mail and browser which is a
   no BUT internet is fine but prefer offline so probubly (c)"; PLAN.md, INDEX Change Log). Option (c) was "open it for all
   media: Movies & TV, plus streaming and Radio for Music, which reopens phase 10's no-streaming ruling". The shell may use the
@@ -177,7 +195,8 @@ measured now-playing geometry for local tracks (R8, H-M1 signed off).
 ## Interview queue (Stage A step 4)
 Load-bearing first. Implementation mechanics are the agent's (P3) and are not asked.
 
-1. **Q1 — what "streaming" means for Music.** Phase 17 Q3b ruled Movies & TV a hub: catalogue, "Watch on <service>" hand-off,
+1. ~~Q1 — streaming~~ RULED 2026-09-23: C (see Decisions). Original question kept below.
+   **Q1 — what "streaming" means for Music.** Phase 17 Q3b ruled Movies & TV a hub: catalogue, "Watch on <service>" hand-off,
    media server. Music's streaming side can take the same shape or less. Nothing here plays a streaming service's audio
    inside the shell (Out).
    A. Hand-off only: a "streaming" entry listing the music apps on the phone as shortcuts; their now-playing already lands on
@@ -189,7 +208,8 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
       equaliser, sleep timer, crossfade and the Music tile. (lean — the shape Q3b ruled for Movies & TV, one pattern reused;
       P2 fewer seams)
    D. Other / let me clarify.
-2. **Q2 — what Radio is now.** Groove's Radio was Microsoft's own artist-based streaming service and is gone with Groove; the
+2. ~~Q2 — Radio~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Q2 — what Radio is now.** Groove's Radio was Microsoft's own artist-based streaming service and is gone with Groove; the
    word has to mean something the shell can actually do.
    A. Internet radio: stations from an open directory (radio-browser.info), browsed by genre / country / search, favourites,
       played live in the shell's own player. (lean — the only form that is Radio with no account, works with a cached list
@@ -198,7 +218,8 @@ Load-bearing first. Implementation mechanics are the agent's (P3) and are not as
       radio or mix; the shell keeps no directory and plays nothing itself.
    C. The media server's radio: Jellyfin's instant mix / Plex's station feature, played in the shell's player — only with Q1 C.
    D. Other / let me clarify.
-3. **Q3 — where Radio lives and what plays it.** Groove kept Radio inside Music; W10M also shipped a separate FM Radio app on
+3. ~~Q3 — where Radio lives~~ RULED 2026-09-23: A (see Decisions). Original question kept below.
+   **Q3 — where Radio lives and what plays it.** Groove kept Radio inside Music; W10M also shipped a separate FM Radio app on
    Lumias with a receiver (the S25 Ultra exposes none).
    A. A fifth pivot in Music, "radio", beside albums / artists / songs / playlists, played by `MusicService` — Groove's
       arrangement, and phase 10 Q1's own name for it. (lean — one app, one player, one tile; P2)
