@@ -228,6 +228,17 @@ private fun commitDrop(edit: StartEditState, geo: StartGeometry, store: LayoutSt
     val key = drag.key
     val hover = edit.hover
     val target = edit.dropTarget
+    // The drop's outcome and, over a tile, how long it dwelt — measured here, on the shell's own clock, because
+    // a driver's host-side timing carries the adb round trips and cannot place a release on the 2000-ms
+    // boundary (EDGE part 8, 2026-09-22).
+    val dwelt = if (hover != null) android.os.SystemClock.uptimeMillis() - edit.hoverSince else -1L
+    val outcome = when {
+        edit.folderFeedback && hover != null -> if (hover is TileKey.FolderTile) "joins the folder" else "makes a folder"
+        target is DropTarget.Row -> "goes to the bottom row"
+        target is DropTarget.Band -> "joins the open folder"
+        else -> "moves in the grid"
+    }
+    Diagnostics.add("edit", "drop: ${key.id} ${outcome}" + if (hover != null) " (over ${hover.id} after dwelling ${dwelt} ms)" else "")
     when {
         // A release while the folder feedback is showing makes a folder, or joins the folder it is showing on.
         edit.folderFeedback && hover != null -> {

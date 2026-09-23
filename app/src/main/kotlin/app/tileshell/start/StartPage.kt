@@ -720,8 +720,11 @@ private fun DwellTimer(edit: StartEditState, store: LayoutStore, layout: LayoutS
         if (hover == null) return@LaunchedEffect
         // Folders never nest (H23): a dragged folder, or a drop on a folder holding a folder, gets no feedback.
         edit.folderFeedback = dragged !is TileKey.FolderTile
+        edit.hoverSince = android.os.SystemClock.uptimeMillis()
+        Diagnostics.add("edit", "hover: ${dragged.id} over ${hover.id}, dwell starts at uptime=${edit.hoverSince}")
         delay(Edit.DWELL_MS)
         edit.folderFeedback = false
+        Diagnostics.add("edit", "dwell ended: ${dragged.id} over ${hover.id} for ${Edit.DWELL_MS} ms, the tiles make room")
         // The dwell ran out: the target and the tiles after it make room (the reflow preview). A tile carried
         // FORWARD takes the target's place (the target moves back); carried BACKWARD it lands in front of it —
         // otherwise dropping a tile on the one right after it would move nothing at all.
