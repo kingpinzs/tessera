@@ -658,3 +658,37 @@ approximation not covered by H2–H11; H10 the close motion (spring back, alpha 
 - RV10: `wm size` / `wm density` / `font_scale` changes leave satellite bounds in epx unchanged (phase 01 E3's method, one dump each)
 
 ## QA evidence
+
+Gate run 2026-09-24 (pass 6) on the AOSP AVD `tileshell_fhd` (1080 x 2340, 450 dpi, emulator-5554), one APK (50129ec4, code
+9f790b7) and one driver set (f8cd00a), `qa/phase-11/scripts/run_all.sh` end to end with E14 last, E13 and E14 re-run in
+its appended sections after a driver fix (E13's short press had raced the hold; last on 1477e75); `qa/phase-11/README.md` indexes
+every row, the method, the drivers and the findings. Written by the Opus re-judge's R2-8 (INDEX Change Log 2026-09-24).
+
+| Row | Result | Evidence |
+|---|---|---|
+| Unit (JVM) | PASS 651/651 | `qa/phase-11/UNIT.txt`, `qa/phase-11/UNIT-results/` |
+| E1 the burst at the 783-ms hold; labels; edit mode | PASS 18/18 | `qa/phase-11/E1/E1.txt` |
+| E2 the hold brackets; the wobble; the glide drags | PASS 17/17 | `qa/phase-11/E2/E2.txt` |
+| E3 the satellites per tile kind; the failed icon; the no-burst reasons | PASS 30/30 | `qa/phase-11/E3/E3.txt` |
+| E4 launches from the tile launch path | PASS 42/42 | `qa/phase-11/E4/E4.txt` |
+| E5 every tap and event while open | PASS 70/70 | `qa/phase-11/E5/E5.txt` |
+| E6 the motion on the shell's clock | PASS 35/35 | `qa/phase-11/E6/E6.txt` |
+| E7 geometry | PASS 58/58 | `qa/phase-11/E7/E7.txt` |
+| E8 not a host; disabled; changed; uninstalled; unstartable | PASS 29/29 | `qa/phase-11/E8/E8.txt` |
+| E9 managed profile; quiet; private space | PASS 20/20 | `qa/phase-11/E9/E9.txt` |
+| E10 transport controls; the art hold over a showing strip | PASS 19/19 | `qa/phase-11/E10/E10.txt` |
+| E11 the app list's and Music's menus unchanged | PASS 7/7 | `qa/phase-11/E11/E11.txt` |
+| E12 gesture navigation | PASS 8/8 | `qa/phase-11/E12/E12.txt` |
+| E13 phase 02 on this build; exports | PASS 45/45 | `qa/phase-11/E13/E13.txt` |
+| E14 diagnostics coverage | PASS 28/28 | `qa/phase-11/E14/E14.txt` |
+| E15 the shell apps' shortcuts | PASS 19/19 | `qa/phase-11/E15/E15.txt` |
+| E16 the promoted tile; off screen | PASS 18/18 | `qa/phase-11/E16/E16.txt` |
+| L11-1 the L11-1 fix's own row (phases 01 / 10's part) | PASS 69/69 | `qa/phase-11/L11-1/L11-1.txt` |
+| Edge cases (every bullet, indexed) | PASS 61/61 | `qa/phase-11/EDGE/EDGE.txt` |
+| Suite | SUITE PASSED | `qa/phase-11/SUITE.txt` (earlier passes kept beside it) |
+| P1-P3, P5, P6 (phone) | not run — Jeremy's phone | — |
+| H1-H11 | waiting on Jeremy | `qa/phase-11/README.md` (NEEDS-HUMAN) |
+
+Reviewers: fable + fable on pass 3 (review/2026-09-23-phase11-gate-design.md, review/2026-09-24-phase11-gate-evidence.md); opus +
+opus on pass 5 by Jeremy's ruling (review/2026-09-24-phase11-rejudge-design.md, -evidence.md; triage -triage.md), fixed before
+pass 6.
