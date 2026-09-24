@@ -1,7 +1,7 @@
 # Phase 11 re-judge (pass 5) — triage
 
 Reports: review/2026-09-24-phase11-rejudge-design.md (Opus, R1: 0 BLOCKING · 1 SHOULD-FIX · 5 NOTE) and
-review/2026-09-24-phase11-rejudge-evidence.md (Opus, R2: 2 BLOCKING · 6 SHOULD-FIX · 8 NOTE). Roster: Jeremy, 2026-09-24,
+review/2026-09-24-phase11-rejudge-evidence.md (Opus, R2: 2 BLOCKING · 6 SHOULD-FIX · 7 NOTE; this triage first said 8 and listed an R2-16 the report does not have — corrected by the round-2 re-judge, EV-14). Roster: Jeremy, 2026-09-24,
 "use opus for the re-judge" (Fable at its usage limit; codex out). Every finding below was checked against the code, the
 doc or the evidence before it was accepted.
 
@@ -27,7 +27,6 @@ doc or the evidence before it was accepted.
 | R2-13 | NOTE | accept: assert no quick_burst / edit_disc on E10's control dump | e10.sh |
 | R2-14 | NOTE | accept: the two README / INDEX wordings re-cut against COLDJANK.txt and the smoke log | README |
 | R2-15 | NOTE | accept: phase 01 driver blobs stamped in the L11-1 log; E13's Contacts dump filtered to its package | l11_1.sh, e13.sh |
-| R2-16 | NOTE | covered by R2-3 / R2-5 | — |
 
 ## Recorded, not fixed
 
