@@ -136,8 +136,9 @@ MARK="$(ring_mark)"
 # plan), which the dump against the capture before would show.
 tap_node "$ROW_DIR/rec_list.xml" "rec_row:$other"; sleep 0.4
 s0="$(session_state app.tileshell androidx.media3.session.id.recorder)"
-dump_ui "$ROW_DIR/rec_playing.xml"
-tap_node "$ROW_DIR/rec_playing.xml" rec_play; sleep 0.5
+# Paused through its session at once (a UI tap needs a dump first, and by then the 3-s file has ended and the tap
+# plays it again: E0 run 3). The session that last played is the one the dispatch reaches.
+adb shell cmd media_session dispatch pause >/dev/null 2>&1; sleep 0.5
 note "recorder session right after the tap: $s0"
 assert_eq "the recorder session played" PLAYING "$s0"
 adb shell input keyevent KEYCODE_HOME; sleep 1
@@ -149,7 +150,9 @@ assert_eq "the recorder session is alive (paused) before and after the Start dum
 ring_since "$MARK" > "$ROW_DIR/ring_rec.txt"
 assert_contains "the recorder session routes to no tile" "[music] session app.tileshell id=recorder -> none" "$(cat "$ROW_DIR/ring_rec.txt")"
 assert_absent "no tile grew for it" " grew " "$(grep -F '[tile_size]' "$ROW_DIR/ring_rec.txt")"
-assert_absent "nothing was published for it" "source=music:app.tileshell" "$(grep -F '[engine] publish' "$ROW_DIR/ring_rec.txt")"
+# The feed's face lines name their track: the recording's ("Other recording", the fixture's title tag) must never be one.
+# (The paused Music and Auxio sessions re-publish their own idle faces on their own keys as the sessions change.)
+assert_absent "no face was made of the recording" "title=Other recording" "$(grep -F '[music]' "$ROW_DIR/ring_rec.txt")"
 assert_eq "every tile's bounds and tags equal the capture before" "$(cut -f1-5 "$ROW_DIR/start_before_rec.tiles.txt")" "$(cut -f1-5 "$ROW_DIR/start_rec.tiles.txt")"
 sleep 4
 
