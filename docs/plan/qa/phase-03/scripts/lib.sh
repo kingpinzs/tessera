@@ -29,6 +29,7 @@ ROW_MARK=""   # the device's wall clock (ms) when the row began: ring_save keeps
 LOG=""
 PASS=0
 FAIL=0
+RECORDED=0
 
 # Only one driver may drive the device at a time. Two E2 runs overlapped once and wrote to the same
 # log: the second row read the first's diagnostics and recorded a verdict about an utterance it never
@@ -64,6 +65,7 @@ row_begin() { # id description
   LOG="$ROW_DIR/$ROW.txt"
   PASS=0
   FAIL=0
+  RECORDED=0
   {
     echo "=============================================================================="
     echo "ROW $ROW — ${2:-}"
@@ -132,11 +134,16 @@ row_end() {
   for ring in ${RINGS:-launcher}; do ring_save "$ring"; done
   {
     echo "------------------------------------------------------------------------------"
-    echo "$ROW: $PASS passed, $FAIL failed"
+    echo "$ROW: $PASS passed, $FAIL failed, ${RECORDED:-0} recorded"
   } >> "$LOG"
-  echo "   $ROW: $PASS passed, $FAIL failed"
-  # A row that asserted nothing is a row that tested nothing.
+  echo "   $ROW: $PASS passed, $FAIL failed, ${RECORDED:-0} recorded"
+  # A row that asserted nothing is a row that tested nothing — unless it exists to RECORD facts (C-26): then it
+  # says so and passes, and its facts are in the log as RECORD lines, never counted as passes.
   if [ $((PASS + FAIL)) -eq 0 ]; then
+    if [ "${RECORDED:-0}" -gt 0 ]; then
+      echo "$ROW: recorded only (${RECORDED} facts)" | tee -a "$LOG"
+      return 0
+    fi
     echo "FAIL  $ROW made no assertions at all" | tee -a "$LOG"
     return 1
   fi
@@ -374,4 +381,69 @@ tap_node() { # dump.xml resource-id
   # shellcheck disable=SC2086
   set -- $b
   adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))
+}
+
+# ---------------------------------------------------------------- phase 15 (build task 8) helpers
+
+# A recorded clause (C-13, C-26): a fact the row writes down and does NOT grade — an image's behaviour, a phone's
+# setting, a value the doc says to record. Printed as RECORD, counted apart from PASS / FAIL (phase 15 owns this
+# helper, T15-21 / C-33: it is the first phase in time to need it).
+record() { # name value
+  local name="$1" value="$2"
+  printf '%-6s  %-58s  %s\n' "RECORD" "$name" "$value" | tee -a "$LOG"
+  RECORDED=$(( ${RECORDED:-0} + 1 ))
+}
+
+# Fill the shared volume until LEAVE bytes are free as df reports them (C-27; phase 15 E19, phase 17's storage-full
+# edge case, phase 18 E4b / E13). As root, one fallocate'd file under /data/media/0, the shell's view of /sdcard.
+# It ASSERTS its own precondition — free space at most LEAVE + 5 MB — and fails loudly otherwise: a row that thinks it
+# filled the disk and did not would record a pass about nothing. A caller that tests an app-side floor built on
+# StorageManager.getAllocatableBytes adds the low-storage reserve itself (dumpsys devicestoragemonitor lowBytes;
+# T15-27). Leaves root off (RV12).
+fill_volume() { # leave_bytes
+  local leave="$1" avail fill after
+  # Measured as the SHELL user on /sdcard — the FUSE view the app itself sees. As root /sdcard resolves to the raw
+  # /data/media view, which on this AVD reports ~170 MB more free (reserved blocks), and the app's StorageManager
+  # answers from its own view; so only the fallocate itself runs as root.
+  avail=$(( $(adb shell df -k /sdcard | awk 'NR==2 {print $4}' | tr -d '\r') * 1024 ))
+  fill=$(( avail - leave ))
+  if [ "$fill" -gt 0 ]; then
+    adb root >/dev/null 2>&1; adb wait-for-device
+    adb shell fallocate -l "$fill" /data/media/0/fill.bin
+    adb unroot >/dev/null 2>&1; adb wait-for-device
+  fi
+  after=$(( $(adb shell df -k /sdcard | awk 'NR==2 {print $4}' | tr -d '\r') * 1024 ))
+  if [ "$after" -gt $(( leave + 5 * 1024 * 1024 )) ]; then
+    echo "FAIL  fill_volume: $after bytes free after filling, wanted <= $((leave + 5*1024*1024))" | tee -a "${LOG:-/dev/null}"
+    return 1
+  fi
+  echo "      fill_volume: $after bytes free on /sdcard (asked for $leave)" >> "${LOG:-/dev/null}"
+}
+
+unfill_volume() {
+  adb root >/dev/null 2>&1; adb wait-for-device
+  adb shell rm -f /data/media/0/fill.bin
+  adb unroot >/dev/null 2>&1; adb wait-for-device
+  adb shell content call --uri content://media --method scan_volume --arg external_primary >/dev/null 2>&1
+}
+
+# Two host-made files for the recorder rows (T15-46): another app's recording in Recordings/ (MediaStore marks files
+# there IS_RECORDING) and a plain song in Music/. Every row that needs them pushes at its start and removes at its
+# restore, so no row depends on another having run.
+FIXTURE_RECORDINGS_DIR="$REPO/docs/plan/qa/phase-15/fixtures"
+push_fixture_recordings() {
+  mkdir -p "$FIXTURE_RECORDINGS_DIR"
+  [ -f "$FIXTURE_RECORDINGS_DIR/other.m4a" ] || ffmpeg -loglevel error -f lavfi -i "sine=frequency=330:duration=3" \
+    -ac 1 -c:a aac -b:a 64k -metadata title="Other recording" "$FIXTURE_RECORDINGS_DIR/other.m4a"
+  [ -f "$FIXTURE_RECORDINGS_DIR/song.m4a" ] || ffmpeg -loglevel error -f lavfi -i "sine=frequency=550:duration=3" \
+    -ac 1 -c:a aac -b:a 64k -metadata title="Fixture song" -metadata artist="Fixture" "$FIXTURE_RECORDINGS_DIR/song.m4a"
+  adb shell mkdir -p /sdcard/Recordings /sdcard/Music >/dev/null 2>&1
+  adb push "$FIXTURE_RECORDINGS_DIR/other.m4a" /sdcard/Recordings/other.m4a >/dev/null
+  adb push "$FIXTURE_RECORDINGS_DIR/song.m4a" /sdcard/Music/song.m4a >/dev/null
+  adb shell content call --uri content://media --method scan_volume --arg external_primary >/dev/null 2>&1
+}
+
+remove_fixture_recordings() {
+  adb shell rm -f /sdcard/Recordings/other.m4a /sdcard/Music/song.m4a
+  adb shell content call --uri content://media --method scan_volume --arg external_primary >/dev/null 2>&1
 }
