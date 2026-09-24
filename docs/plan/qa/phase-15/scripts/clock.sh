@@ -552,3 +552,32 @@ stopwatch_baseline() { # label
 
 # The shell's own secondary tiles (timer / stopwatch pins) in start_layout.json, one key per line.
 clock_tile_keys() { adb shell "run-as app.tileshell cat files/start_layout.json" < /dev/null 2>/dev/null | tr -d '\r' | grep -oE 'secondary:app\.tileshell:(timer\.[a-z0-9]+|stopwatch)' | sort -u; }
+
+# A gesture-driver dump of a screen the row EXPECTS to hold NODE (a ringing toast): p15.sh's gdump falls back to a plain
+# `uiautomator dump` — which never sees the ring's overlay window — after the gesture driver returns 20 empty
+# hierarchies in a row, and it does so in bursts: UiDevice reads getWindows() ~2 ms after its UiAutomation connects
+# and logs "Active window root not found" when the window list is not delivered yet (probe on 5558, 2026-09-24:
+# attempts 7–12 of 12 empty, then all 30 of the next probe fine). EDGE_ALARMS run 5's seven3 toast went undismissed
+# that way and the next section's taps landed on it. Up to TRIES gdumps, 3 s apart; returns 1 when NODE never shows,
+# so an absent toast still fails the clause that reads the dump. Never used where the row asserts an ABSENCE.
+gdump_for() { # out.xml node [tries]
+  local i n="${3:-3}"
+  for i in $(seq 1 "$n"); do
+    gdump "$1"
+    if [ "$(has_node "$1" "$2")" = yes ]; then [ "$i" -gt 1 ] && note "gdump_for $2: in dump $i of $n"; return 0; fi
+    [ "$i" -lt "$n" ] && sleep 3
+  done
+  note "gdump_for $2: not in any of $n dumps"; return 1
+}
+# The same for a screen whose OTHER windows matter (SystemUI's heads-up or shade): up to TRIES gdumps until one came
+# from the gesture driver itself (its window report beside the dump is non-empty; the plain-dump fallback leaves it empty
+# and holds the focused window only).
+gdump_windows() { # out.xml [tries]
+  local i n="${2:-3}"
+  for i in $(seq 1 "$n"); do
+    gdump "$1"
+    if [ -s "$1.windows" ]; then [ "$i" -gt 1 ] && note "gdump_windows $(basename "$1"): gesture dump $i of $n"; return 0; fi
+    [ "$i" -lt "$n" ] && sleep 3
+  done
+  note "gdump_windows $(basename "$1"): no gesture-driver dump in $n tries"; return 1
+}

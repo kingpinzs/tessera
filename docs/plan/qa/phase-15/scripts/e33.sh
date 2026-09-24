@@ -98,7 +98,8 @@ print(next((b for b in blocks if "name=app.tileshell.clock.AlarmApiActivity" in 
 assert_ne "the resolver lists the handler (ActivityInfo name=app.tileshell.clock.AlarmApiActivity)" "" "$HANDLER_BLOCK"
 assert_contains "… guarded by permission=com.android.alarm.permission.SET_ALARM" "permission=com.android.alarm.permission.SET_ALARM" "$HANDLER_BLOCK"
 assert_contains "… and DeskClock" "com.android.deskclock" "$RESOLVE"
-record "an implicit SET_ALARM would raise Android's chooser (two handlers; the P2 seam H25 judges)" "$(printf '%s\n' "$RESOLVE" | grep -cE 'AlarmApiActivity|deskclock') handlers"
+# Distinct packages among the resolved activities (the first form counted every line naming either — 12 for two).
+record "an implicit SET_ALARM would raise Android's chooser (two handlers; the P2 seam H25 judges)" "$(printf '%s\n' "$RESOLVE" | grep -oE 'packageName=[A-Za-z0-9._]+' | sort -u | wc -l) handlers: $(printf '%s\n' "$RESOLVE" | grep -oE 'packageName=[A-Za-z0-9._]+' | sort -u | cut -d= -f2 | paste -sd,)"
 
 # ---- restore ---------------------------------------------------------------------------------------------------------------------------
 app_delete_alarm "$ID"; app_delete_alarm "$ID2"; app_delete_timer "$TID"

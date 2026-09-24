@@ -9,7 +9,7 @@ row_begin EDGE_STOPWATCH "stopwatch: 1,000 laps; killed between laps"
 assert_clock_empty "baseline"
 stopwatch_baseline "baseline"
 open_clock stopwatch
-gdump "$ROW_DIR/sw0.xml"
+gdump_for "$ROW_DIR/sw0.xml" stopwatch_play
 gtap "$ROW_DIR/sw0.xml" stopwatch_play; sleep 1
 LB=""
 for _ in 1 2 3; do gdump "$ROW_DIR/sw_run.xml"; LB="$(bounds "$ROW_DIR/sw_run.xml" stopwatch_lap)"; [ -n "$LB" ] && break; sleep 1; done
@@ -42,11 +42,11 @@ tap_burst 4; sleep 1
 assert_eq "five laps taken" 5 "$(laps_now)"
 kill9_shell >/dev/null
 open_clock stopwatch; sleep 1
-gdump "$ROW_DIR/after_kill.xml"
+gdump_for "$ROW_DIR/after_kill.xml" 'stopwatch_lap:5'
 assert_eq "after the kill the five laps are listed (stopwatch_lap:5)" yes "$(has_node "$ROW_DIR/after_kill.xml" 'stopwatch_lap:5')"
 gtap "$ROW_DIR/after_kill.xml" stopwatch_lap; sleep 1
 assert_eq "the next lap after the kill is lap 6" 6 "$(laps_now)"
-gdump "$ROW_DIR/lap6.xml"
+gdump_for "$ROW_DIR/lap6.xml" 'stopwatch_lap:6'
 assert_eq "… listed on top as stopwatch_lap:6" yes "$(has_node "$ROW_DIR/lap6.xml" 'stopwatch_lap:6')"
 assert_eq "the laps are strictly increasing splits" yes "$(store_stopwatch | python3 -c 'import json,sys; l=json.load(sys.stdin)["laps"]; print("yes" if all(b > a for a, b in zip(l, l[1:])) else "no")')"
 
@@ -58,22 +58,27 @@ while [ "$(laps_now)" -lt 1000 ]; do
 done
 N="$(laps_now)"
 assert_eq "1,000 laps (or more) are in the store" yes "$([ "$N" -ge 1000 ] && echo yes || echo "no ($N)")"
+# The dump's own time is the gesture driver's `dump.elapsed_ms` of the attempt that returned nodes (E7's reading): the
+# whole gdump call also counts the driver's empty-hierarchy retries (a tooling race, clock.sh gdump_for) and ~0.4 s of
+# `am instrument` start-up per attempt, neither of which is the list. A plain-dump fallback has no timing and fails.
 D0="$(date +%s%3N)"
-gdump "$ROW_DIR/thousand.xml"; screencap "$ROW_DIR/thousand.png"
+gdump_for "$ROW_DIR/thousand.xml" "stopwatch_lap:$N"; screencap "$ROW_DIR/thousand.png"
 D1="$(date +%s%3N)"
-assert_eq "a gesture-driver dump of the list is available within 3 s ($(( D1 - D0 )) ms)" yes "$([ $(( D1 - D0 )) -le 3000 ] && echo yes || echo no)"
+DE="$(grep -q 'falling back' "$ROW_DIR/thousand.xml.drv" && echo fallback || grep -o 'gesture.dump.elapsed_ms=[0-9]*' "$ROW_DIR/thousand.xml.drv" | tail -1 | cut -d= -f2)"
+note "thousand.xml: the dump took ${DE} ms; the whole gdump call $(( D1 - D0 )) ms with $(grep -c 'read no nodes' "$ROW_DIR/thousand.xml.drv") empty attempts"
+assert_eq "a gesture-driver dump of the list is available within 3 s (its dump.elapsed_ms = ${DE:-none})" yes "$(case "$DE" in ''|fallback) echo "no (${DE:-no timing})" ;; *) [ "$DE" -le 3000 ] && echo yes || echo no ;; esac)"
 assert_eq "the top row is the newest lap (stopwatch_lap:$N)" yes "$(has_node "$ROW_DIR/thousand.xml" "stopwatch_lap:$N")"
 TOP1="$(top_of() { echo "$1" | cut -d' ' -f2; }; top_of "$(bounds "$ROW_DIR/thousand.xml" "stopwatch_lap:$N")")"
 adb shell input swipe 540 1900 540 700 300; sleep 1
-gdump "$ROW_DIR/thousand_scrolled.xml"
+gdump_for "$ROW_DIR/thousand_scrolled.xml" "stopwatch_lap:$(( N - 12 ))"
 assert_eq "the list scrolls (the newest lap left the top / older laps came in)" yes "$([ "$(has_node "$ROW_DIR/thousand_scrolled.xml" "stopwatch_lap:$(( N - 12 ))")" = yes ] && echo yes || echo no)"
 assert_eq "the store still reads as valid JSON with $N laps" "$N" "$(laps_now)"
 
 # ---- restore ---------------------------------------------------------------------------------------------------------------------------------
 open_clock stopwatch
-gdump "$ROW_DIR/restore.xml"
+gdump_for "$ROW_DIR/restore.xml" stopwatch_play
 gtap "$ROW_DIR/restore.xml" stopwatch_play; sleep 1
-gdump "$ROW_DIR/restore2.xml"
+gdump_for "$ROW_DIR/restore2.xml" stopwatch_reset
 gtap "$ROW_DIR/restore2.xml" stopwatch_reset; sleep 1.5
 assert_eq "restore: the stopwatch is reset" "false []" "$(store_stopwatch | python3 -c 'import json,sys; s=json.load(sys.stdin); print(str(s["running"]).lower(), s["laps"])')"
 adb shell input keyevent KEYCODE_HOME; sleep 1
