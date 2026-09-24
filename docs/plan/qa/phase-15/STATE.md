@@ -104,3 +104,14 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   date-picker drag). Committed through 52fdb9c. OPEN for Jeremy, one at a time: (1) EasyEffects blocklist (audio rows
   E9 E14 E15 E17 E18 E19 E26-spoken E30); (2) E0-run2: MusicFeed vs TileNotificationListener share pkg keys (phase
   01/10 parts); (3) doc-vs-Windows corrections (Lsh, BYTE HEX FF+1, add/subtract weeks, converter source; + paste).
+- 2026-09-24 ~13:xx: HOST AUDIO BLOCKER CLEARED (Jeremy: "A, edit the EasyEffects config", then "A, restart it now").
+  ~/.var/app/com.github.wwmm.easyeffects/config/easyeffects/db/easyeffectsrc [StreamInputs] blocklist=ee-calib-raw ->
+  ee-calib-raw,qemu-system-x86_64 (backup scratchpad/p15/easyeffectsrc.before); service restarted with flatpak kill +
+  the autostart's own command (flatpak run ... --service-mode --hide-window); the line survived. FOUND: the desktop's
+  default source had been vmic.monitor since 2026-09-23 17:47 (phase 03's audio.sh setup with SINK=vmic, run by
+  provision.sh). Restored to the BRIO (alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo — Jeremy's documented
+  default; the saved .audio-state.prevsource named a node that no longer exists, rewritten to the BRIO). The default
+  change dragged every qemu capture stream onto the BRIO; moved back: 5554 -> vmic.monitor (its phase 03 route),
+  5556 -> vmic5556, 5558 -> vmic5558, 5560 -> vmic.monitor. p15.sh now exports AUDIO_SINK=vmic<port> (T15-30: my
+  drivers had been using the shared vmic). HAZARD for future provision.sh runs: audio.sh setup with SINK=vmic sets the
+  desktop default source to vmic.monitor again — restore the BRIO afterwards.

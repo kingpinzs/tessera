@@ -7,6 +7,10 @@ QROOT="$REPO/docs/plan/qa"
 P15="$QROOT/phase-15"
 DRV_RUNNER="app.tileshell.qa.imefixture.test/androidx.test.runner.AndroidJUnitRunner"
 
+# Each emulator's own microphone sink (T15-30): emulator-5556 -> vmic5556, so an utterance for this session's AVD is never
+# heard by another session's (phase 03's default "vmic" is emulator-5554's route). audio.sh and speak.sh read it.
+export AUDIO_SINK="${AUDIO_SINK:-vmic${ANDROID_SERIAL#emulator-}}"
+
 # The phase 05 gesture driver's dump (C-10): windows that never idle — a running timer or stopwatch, the ring toast,
 # the in-use overlay (a separate, unfocused window) — are dumped with setWaitForIdleTimeout(0). The window report
 # (dump.windows) is kept beside the dump as <out>.windows.
