@@ -1,7 +1,7 @@
 ==============================================================================
 ROW E13 — regression: phase 02 hold+drag, E7 bracket+geometry, E8, regress.sh; phase 01 press styles; phase 03 exports
-at            2026-09-24T15:23:17-06:00
-driver        e13.sh blob a31f2943235d065bb3c362f9d8afec2b44d7bab9
+at            2026-09-24T16:19:09-06:00
+driver        e13.sh blob 24e39627c2be0a5c63beeb41421413d4d75b3b85
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
 apk built     736ce3543e0caf05 335518185 bytes
 apk installed 50129ec4bf4de7f8
@@ -42,21 +42,35 @@ PASS  restore baseline_layout-pre-11.json: addedOnce as the file's (C-3)  = fold
 PASS  830 ms: quick_burst present                                 = yes
 PASS  830 ms: quick_sat:0 only                                    = yes no no no
 --- phase 01 E10 press styles: a short press shows the style and opens no burst ---
+      show_touches was 1; 0 for this sub-step
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
       scroll_to_node press_none: 1 swipe(s), found=yes
+      press_none attempt 1: pressed 649 ms (the capture started at 300 ms)
+PASS  press_none: the press was short (under 700 ms on the device clock)  = yes
+      press_none: rest vs held over the tile: EQUAL 0
 PASS  press_none: the held tile looks as at rest                  = EQUAL
 PASS  press_none: no burst                                        does not contain [[quick] burst on]
-FAIL  press_none: no hold                                         should NOT contain [[edit] hold]
-      scroll_to_node press_tilt: 0 swipe(s), found=yes
+PASS  press_none: no hold                                         does not contain [[edit] hold]
+PASS  press_none: nothing launched (the press ended in a scroll)  does not contain [[launch]]
+      scroll_to_node press_tilt: 1 swipe(s), found=yes
+      press_tilt attempt 1: pressed 727 ms (the capture started at 300 ms)
+      press_tilt attempt 2: pressed 652 ms (the capture started at 300 ms)
+PASS  press_tilt: the press was short (under 700 ms on the device clock)  = yes
+      press_tilt: rest vs held over the tile: DIFF 255
 PASS  press_tilt: the held tile shows the press style             = DIFF
 PASS  press_tilt: no burst                                        does not contain [[quick] burst on]
 PASS  press_tilt: no hold                                         does not contain [[edit] hold]
-      scroll_to_node press_p4: 1 swipe(s), found=yes
+PASS  press_tilt: nothing launched (the press ended in a scroll)  does not contain [[launch]]
+      scroll_to_node press_p4: 2 swipe(s), found=yes
+      press_p4 attempt 1: pressed 696 ms (the capture started at 300 ms)
+PASS  press_p4: the press was short (under 700 ms on the device clock)  = yes
+      press_p4: rest vs held over the tile: DIFF 255
 PASS  press_p4: the held tile shows the press style               = DIFF
 PASS  press_p4: no burst                                          does not contain [[quick] burst on]
 PASS  press_p4: no hold                                           does not contain [[edit] hold]
-      scroll_to_node press_none: 0 swipe(s), found=yes
+PASS  press_p4: nothing launched (the press ended in a scroll)    does not contain [[launch]]
+      scroll_to_node press_none: 1 swipe(s), found=yes
 --- phase 03 E5's exported allow-list, on this APK ---
       exported.py exit 1: 13 exported in app.tileshell, 11 on the allow-list
 PASS  phase 11's manifest diff adds no exported component         does not contain [android:exported]
@@ -65,4 +79,4 @@ PASS  nothing on the allow-list went missing                      does not conta
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 ------------------------------------------------------------------------------
-E13: 38 passed, 1 failed
+E13: 45 passed, 0 failed
