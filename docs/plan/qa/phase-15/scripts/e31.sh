@@ -30,6 +30,22 @@ import sys
 a = [int(x) for x in sys.argv[1].split(",")]; b = [int(x) for x in sys.argv[2].split(",")]; t = int(sys.argv[3])
 print("yes" if all(abs(x - y) <= t for x, y in zip(a, b)) else "no (%s vs %s)" % (sys.argv[1], sys.argv[2]))' "$1" "$2" "$3"; }
 selected_of() { grep -o "<node[^>]*resource-id=\"$2\"[^>]*>" "$1" | grep -o 'selected="[a-z]*"' | cut -d'"' -f2; }
+unpin() { # key
+  local d="$ROW_DIR/unpin_$(printf '%s' "$1" | tr -c 'A-Za-z0-9' '_').xml"
+  adb shell input keyevent KEYCODE_HOME; sleep 2
+  dump_ui "$d"; scroll_to_node "$d" "tile:$1" 6 || return 1
+  hold_node "$d" "tile:$1" 1000; sleep 1.5
+  dump_ui "$d"
+  [ "$(has_node "$d" 'edit_disc:unpin')" = yes ] || { note "unpin $1: no unpin disc"; adb shell input keyevent KEYCODE_BACK; return 1; }
+  tap_node "$d" 'edit_disc:unpin'; sleep 1.5
+  adb shell input keyevent KEYCODE_BACK; sleep 1
+}
+# The pinned-tile and stopwatch baselines: the gate pass on 5558 found a stopwatch tile left pinned by an earlier
+# E31 that stopped at the lap crash ("pin_stopwatch: already pinned"). A leftover clock tile is unpinned through
+# Start's edit mode (the same route as the restore) and the log says so; then no clock tile may be pinned.
+for k in $(clock_tile_keys); do note "baseline: a leftover clock tile $k is unpinned through Start's edit mode"; unpin "$k"; done
+assert_eq "baseline: no clock tile (timer / stopwatch) is pinned on Start" "" "$(clock_tile_keys | paste -sd,)"
+stopwatch_baseline "baseline"
 
 # ---- compare ------------------------------------------------------------------------------------------------------------
 open_clock world_clock
@@ -135,16 +151,6 @@ pin_check() { # label tag-on-clock-tab page tile-key expected-pivot expected-nod
 }
 pin_check "pin_timer" "timer_pin:$TID" timer "secondary:app.tileshell:timer.$TID" timer "timer_block:$TID"
 pin_check "pin_stopwatch" stopwatch_pin stopwatch "secondary:app.tileshell:stopwatch" stopwatch stopwatch_elapsed
-unpin() { # key
-  local d="$ROW_DIR/unpin_$(printf '%s' "$1" | tr -c 'A-Za-z0-9' '_').xml"
-  adb shell input keyevent KEYCODE_HOME; sleep 2
-  dump_ui "$d"; scroll_to_node "$d" "tile:$1" 6 || return 1
-  hold_node "$d" "tile:$1" 1000; sleep 1.5
-  dump_ui "$d"
-  [ "$(has_node "$d" 'edit_disc:unpin')" = yes ] || { note "unpin $1: no unpin disc"; adb shell input keyevent KEYCODE_BACK; return 1; }
-  tap_node "$d" 'edit_disc:unpin'; sleep 1.5
-  adb shell input keyevent KEYCODE_BACK; sleep 1
-}
 unpin "secondary:app.tileshell:timer.$TID"
 unpin "secondary:app.tileshell:stopwatch"
 assert_absent "unpin: the timer tile is out of start_layout.json" "secondary:app.tileshell:timer.$TID" "$(layout_json)"

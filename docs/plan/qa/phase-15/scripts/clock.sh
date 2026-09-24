@@ -518,3 +518,37 @@ dump_ui() { # out.xml
   echo "(dump failed)" > "$out"
   return 1
 }
+
+# ---------------------------------------------------------------- the stopwatch and pinned-tile baselines (RV12)
+
+# The stored stopwatch as "reset" (no file, or RESET: not running, nothing accumulated, no laps) or
+# "running=<bool> accumulated=<ms> laps=<n>".
+stopwatch_state() { store_stopwatch | python3 -c '
+import json, sys
+t = sys.stdin.read().strip()
+if not t: print("reset"); sys.exit()
+try: s = json.loads(t)
+except Exception: print("unreadable"); sys.exit()
+if not s.get("running") and not s.get("accumulatedMs") and not s.get("laps"): print("reset")
+else: print("running=%s accumulated=%s laps=%d" % (str(s.get("running")).lower(), s.get("accumulatedMs"), len(s.get("laps") or [])))'; }
+
+# The stopwatch baseline (T15-44: no running stopwatch; a row that reads the digits needs them at 00:00:00.00). The
+# gate pass on 5558 found E7 starting on a stopwatch an earlier row had stopped at 00:09:13.40 without resetting: a
+# leftover (running or stopped) is brought to RESET through the app — Stop, then Reset — the log says so, and the state
+# the row then starts from is ASSERTED.
+stopwatch_baseline() { # label
+  local st d="$ROW_DIR/.sw_baseline.xml"
+  st="$(stopwatch_state)"
+  if [ "$st" != reset ]; then
+    note "$1: a leftover stopwatch ($st) is brought to RESET through the app"
+    open_clock stopwatch
+    gdump "$d"
+    case "$st" in running=true*) gtap "$d" stopwatch_play; sleep 1; gdump "$d" ;; esac
+    gtap "$d" stopwatch_reset; sleep 1.5
+    adb shell input keyevent KEYCODE_HOME; sleep 1
+  fi
+  assert_eq "$1: the stopwatch is at RESET (not running, 0 elapsed, no laps)" reset "$(stopwatch_state)"
+}
+
+# The shell's own secondary tiles (timer / stopwatch pins) in start_layout.json, one key per line.
+clock_tile_keys() { adb shell "run-as app.tileshell cat files/start_layout.json" < /dev/null 2>/dev/null | tr -d '\r' | grep -oE 'secondary:app\.tileshell:(timer\.[a-z0-9]+|stopwatch)' | sort -u; }
