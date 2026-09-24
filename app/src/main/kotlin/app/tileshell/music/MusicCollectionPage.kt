@@ -54,6 +54,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -131,6 +133,9 @@ fun MusicCollectionPage(
     onWindows: () -> Unit,
     /** Ask for READ_MEDIA_AUDIO, from the empty state that explains why the library is empty (E18). */
     onGrant: () -> Unit = {},
+    /** Phase 11: a pivot an App Shortcut asked for; [openPivotToken] changes with every request. */
+    openPivot: MusicPivot? = null,
+    openPivotToken: Any? = null,
 ) {
     val colors = LocalShellColors.current
     val locale = LocalConfiguration.current.locales[0]
@@ -141,6 +146,12 @@ fun MusicCollectionPage(
     var naming by remember { mutableStateOf<NamingState?>(null) }
     var contentTopPx by remember { mutableStateOf(0f) }
     val pager = rememberPagerState { MusicPivot.entries.size }
+    LaunchedEffect(openPivotToken) {
+        val target = openPivot ?: return@LaunchedEffect
+        detail = null
+        openPlaylist = null
+        pager.scrollToPage(target.ordinal)
+    }
     val playlist = openPlaylist?.let { id -> playlists.firstOrNull { it.id == id } }
 
     // Innermost first: an overlay closes before the page under it does.
@@ -352,6 +363,8 @@ private fun PivotHeaders(pageOffset: Float, onPick: (Int) -> Unit) {
                     modifier = Modifier
                         .onGloballyPositioned { widths[i] = it.size.width }
                         .clickable { onPick(i) }
+                        // Phase 11 (build task 5): which pivot is showing, so a shortcut's landing can be read.
+                        .semantics { selected = i == current }
                         .testTag("music_pivot_header:${pivot.name.lowercase()}"),
                 )
             }

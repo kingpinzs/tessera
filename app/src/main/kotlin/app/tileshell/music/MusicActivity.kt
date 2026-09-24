@@ -54,12 +54,33 @@ class MusicActivity : ComponentActivity() {
 
     private enum class Screen { COLLECTION, NOW_PLAYING }
 
+    /**
+     * Phase 11 (interview Q1 A, an ADD to phase 10): the pivot a Music App Shortcut asked for. Each request is a new
+     * object, so the same pivot asked for twice still swings the pager.
+     */
+    private var pivotRequest by mutableStateOf<PivotRequest?>(null)
+
+    private class PivotRequest(val pivot: MusicPivot)
+
+    private fun takePivot(intent: Intent?) {
+        val name = intent?.getStringExtra(EXTRA_PIVOT) ?: return
+        val pivot = runCatching { MusicPivot.valueOf(name) }.getOrNull() ?: return
+        Diagnostics.add("music", "opened on pivot ${pivot.name.lowercase()} (shortcut)")
+        pivotRequest = PivotRequest(pivot)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        takePivot(intent)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Diagnostics.add("music", "MusicActivity created")
         hideSystemBars()
         MusicStore.start(this)
         MusicPlayer.connect(this)
+        takePivot(intent)
         setContent {
             ShellRoot {
                 Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
@@ -111,6 +132,8 @@ class MusicActivity : ComponentActivity() {
                                 onBack = { finish() },
                                 onWindows = { goHome() },
                                 onGrant = { grant.launch(Manifest.permission.READ_MEDIA_AUDIO) },
+                                openPivot = pivotRequest?.pivot,
+                                openPivotToken = pivotRequest,
                             )
                         }
                         Screen.NOW_PLAYING -> NowPlayingPage(
@@ -140,5 +163,10 @@ class MusicActivity : ComponentActivity() {
         // The SESSION outlives this (E7) — only this activity's handle on it goes.
         if (isFinishing) MusicPlayer.release()
         super.onDestroy()
+    }
+
+    companion object {
+        /** Phase 11: a [MusicPivot] name; the pivot the activity opens on (Music's App Shortcuts carry it). */
+        const val EXTRA_PIVOT = "pivot"
     }
 }
