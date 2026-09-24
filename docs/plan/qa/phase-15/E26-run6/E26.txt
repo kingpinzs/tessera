@@ -1,0 +1,142 @@
+==============================================================================
+ROW E26 — Tess answers arithmetic and conversions, typed and spoken, locked and not
+at            2026-09-24T13:39:53-06:00
+driver        e26.sh blob b40bc783abfbfecbd71af3fd2a157269c7ea42e8
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 7b1306f3e567a24b
+apk match     yes (7b1306f3e567a24b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  every tess line of the oracle is listed                     = 19
+PASS  tess-001 has an utterance and a reply in the oracle         != 
+PASS  tess-001 typed "what is fifteen percent of eighty"          = 15 % of 80 is 12.
+PASS  tess-001 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-001 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  the answer card is up                                       = yes
+PASS  its caption is Calculator                                   = Calculator
+PASS  its body shows the expression and the result                contains [= 12]
+PASS  the log carries the canonical expression                    contains [[calc] tess "15 % of 80" -> 12]
+PASS  tess-002 has an utterance and a reply in the oracle         != 
+PASS  tess-002 typed "what is one divided by zero"                = Cannot divide by zero.
+PASS  tess-002 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-002 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  division by zero is logged as an error                      contains [[calc] tess "1 / 0" -> error]
+PASS  tess-003 has an utterance and a reply in the oracle         != 
+PASS  tess-003 typed "what is five miles in kilometers"           = 5 miles is 8.04672 kilometers.
+PASS  tess-003 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-003 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-004 has an utterance and a reply in the oracle         != 
+PASS  tess-004 typed "what is five miles in kilometres"           = 5 miles is 8.04672 kilometers.
+PASS  tess-004 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-004 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-005 has an utterance and a reply in the oracle         != 
+PASS  tess-005 typed "what is the square root of eighty one"      = √81 is 9.
+PASS  tess-005 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-005 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-006 has an utterance and a reply in the oracle         != 
+PASS  tess-006 typed "what is 2 plus 2"                           = 2 plus 2 is 4.
+PASS  tess-006 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-006 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-007 has an utterance and a reply in the oracle         != 
+PASS  tess-007 typed "what is 2 plus 3 times 4"                   = 2 plus 3 times 4 is 14.
+PASS  tess-007 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-007 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-008 has an utterance and a reply in the oracle         != 
+PASS  tess-008 typed "what is point five times four"              = 0.5 times 4 is 2.
+PASS  tess-008 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-008 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-009 has an utterance and a reply in the oracle         != 
+PASS  tess-009 typed "what is negative three times four"          = -3 times 4 is -12.
+PASS  tess-009 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-009 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-010 has an utterance and a reply in the oracle         != 
+PASS  tess-010 typed "what is 10 to the power of 10000"           = Overflow.
+PASS  tess-010 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-010 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-011 has an utterance and a reply in the oracle         != 
+PASS  tess-011 typed "what is 2 to the power of 200"              = 2 to the power of 200 is 1.6069380442589902755419620923412e+60.
+PASS  tess-011 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-011 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-012 has an utterance and a reply in the oracle         != 
+PASS  tess-012 typed "what is 10 minus 25"                        = 10 minus 25 is -15.
+PASS  tess-012 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-012 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-013 has an utterance and a reply in the oracle         != 
+PASS  tess-013 typed "what is 1 divided by 3"                     = 1 divided by 3 is 0.33333333333333333333333333333333.
+PASS  tess-013 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-013 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-014 has an utterance and a reply in the oracle         != 
+PASS  tess-014 typed "calculate 7 times 6"                        = 7 times 6 is 42.
+PASS  tess-014 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-014 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-015 has an utterance and a reply in the oracle         != 
+PASS  tess-015 typed "how much is 100 divided by 8"               = 100 divided by 8 is 12.5.
+PASS  tess-015 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-015 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-016 has an utterance and a reply in the oracle         != 
+PASS  tess-016 typed "what is 25 times 40"                        = 25 times 40 is 1,000.
+PASS  tess-016 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-016 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-017 has an utterance and a reply in the oracle         != 
+PASS  tess-017 typed "what is the square root of two"             = √2 is 1.4142135623730950488016887242097.
+PASS  tess-017 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-017 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-018 has an utterance and a reply in the oracle         != 
+PASS  tess-018 typed "what is zero divided by zero"               = Result is undefined.
+PASS  tess-018 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-018 logged its [calc] tess line                        contains [[calc] tess "]
+PASS  tess-019 has an utterance and a reply in the oracle         != 
+PASS  tess-019 typed "what is 3 feet in meters"                   = 3 feet is 0.9144 meters.
+PASS  tess-019 matched Arithmetic                                 contains [-> Arithmetic(]
+PASS  tess-019 logged its [calc] tess line                        contains [[calc] tess "]
+      media volume before: 0
+      audio.sh check: capture source: vmic5556.monitor (want vmic5556.monitor); output stream: 3186 (rc=0)
+      calc_percent final: open="WHAT'S FIFTEEN PER CENT OF EIGHTY" grammar="WHAT'S FIFTEEN PER CENT OF EIGHTY"
+PASS  calc_percent: the capture was heard (C-30)                  does not contain [asr: no speech]
+PASS  calc_percent reply                                          = 15 % of 80 is 12.
+PASS  calc_percent launcher ring                                  contains [[calc] tess "15 % of 80" -> 12]
+FAIL  calc_percent reply was audible                              RMS -115.46 dBFS is not above -40
+PASS  calc_percent matched Arithmetic                             contains [-> Arithmetic(]
+      calc_divzero final: open="WHAT'S ONE DIVIDED BY ZERO" grammar="WHAT'S ONE DIVIDED BY ZERO"
+PASS  calc_divzero: the capture was heard (C-30)                  does not contain [asr: no speech]
+PASS  calc_divzero reply                                          = Cannot divide by zero.
+PASS  calc_divzero launcher ring                                  contains [[calc] tess "1 / 0" -> error]
+FAIL  calc_divzero reply was audible                              RMS -116.16 dBFS is not above -40
+      calc_convert final: open="WHAT IS FIVE MILES IN KILOMETERS" grammar="WHAT IS FIVE MILES IN KILOMETERS"
+PASS  calc_convert: the capture was heard (C-30)                  does not contain [asr: no speech]
+PASS  calc_convert reply                                          = 5 miles is 8.04672 kilometers.
+PASS  calc_convert launcher ring                                  contains [[calc] tess ]
+FAIL  calc_convert reply was audible                              RMS -113.96 dBFS is not above -40
+      calc_root final: open="WHAT IS THE SQUARE ROOT OF EIGHTY ONE" grammar="WHAT IS THE SQUARE ROOT OF EIGHTY ONE"
+PASS  calc_root: the capture was heard (C-30)                     does not contain [asr: no speech]
+PASS  calc_root reply                                             = √81 is 9.
+PASS  calc_root launcher ring                                     contains [[calc] tess ]
+FAIL  calc_root reply was audible                                 RMS -115.24 dBFS is not above -40
+      calc_percent final: open="WHAT'S FIFTEEN PER CENT OF EIGHTY" grammar="WHAT'S FIFTEEN PER CENT OF EIGHTY"
+PASS  calc_percent: the capture was heard (C-30)                  does not contain [asr: no speech]
+PASS  calc_percent reply                                          = 15 % of 80 is 12.
+PASS  calc_percent launcher ring                                  contains [[calc] tess "15 % of 80" -> 12]
+FAIL  calc_percent reply was audible                              RMS -113.27 dBFS is not above -40
+PASS  the keyguard was still showing                              contains [isKeyguardShowing=true]
+PASS  no Unlock to continue card                                  = no
+      weather_like final: open="WHAT'S THE WEATHER LIKE" grammar="WHAT'S THE WEATHER LIKE"
+PASS  weather_like: the capture was heard (C-30)                  does not contain [asr: no speech]
+FAIL  weather_like reply was audible                              RMS -115.01 dBFS is not above -40
+PASS  weather_like reached the weather action                     contains [-> Weather]
+PASS  weather_like: no [calc] tess line in its slice              does not contain [[calc] tess]
+      unmatched final: open="WHAT IS THE CAPITAL OF PERU" grammar="WHAT IS THE CAPITAL OF PERU"
+PASS  unmatched: the capture was heard (C-30)                     does not contain [asr: no speech]
+FAIL  unmatched reply was audible                                 RMS -116.05 dBFS is not above -40
+PASS  unmatched matched nothing                                   contains [-> NotUnderstood(]
+PASS  unmatched reached the not-understood handler (phase 03 E3's line)  contains [transcript=]
+PASS  unmatched: no [calc] tess line in its slice                 does not contain [[calc] tess]
+      calc_life final: open="CALCULATE MY LIFE" grammar="CALCULATE MY LIFE"
+PASS  calc_life: the capture was heard (C-30)                     does not contain [asr: no speech]
+FAIL  calc_life reply was audible                                 RMS -115.92 dBFS is not above -40
+PASS  calc_life matched nothing                                   contains [-> NotUnderstood(]
+PASS  calc_life reached the not-understood handler (phase 03 E3's line)  contains [transcript=]
+PASS  calc_life: no [calc] tess line in its slice                 does not contain [[calc] tess]
+------------------------------------------------------------------------------
+E26: 111 passed, 8 failed, 0 recorded
