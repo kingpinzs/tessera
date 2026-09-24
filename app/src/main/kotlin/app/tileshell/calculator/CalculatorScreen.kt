@@ -47,6 +47,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,9 +57,6 @@ import app.tileshell.bars.W10mStatusBar
 import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
 import app.tileshell.calc.convert.ConverterUnit
-import app.tileshell.cortana.ui.CapCentreText
-import app.tileshell.cortana.ui.CapTopText
-import app.tileshell.cortana.ui.CortanaIcons
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.MotionClock
 import app.tileshell.ui.components.PressRow
@@ -226,17 +225,11 @@ fun CalcHeader(title: String, showHistory: Boolean, historyOn: Boolean, onMenu: 
     val colors = LocalShellColors.current
     Box(Modifier.fillMaxWidth().height(CalcMetrics.HEADER.dp).testTag("calc_header")) {
         MenuGlyphButton(onMenu, Modifier.testTag("calc_menu"))
-        CapCentreText(
-            text = title,
-            style = ShellType.base.copy(fontSize = CalcMetrics.TITLE_FONT.sp, color = colors.text),
-            capCentreEpx = CalcMetrics.TITLE_CAP_CENTRE,
-            leftEpx = CalcMetrics.TITLE_LEFT,
-            modifier = Modifier.testTag("calc_title"),
-        )
+        CalcTitle(title, Modifier.testTag("calc_title"))
         if (showHistory) {
-            // A 48-epx touch cell flush right; the glyph inside it lands with its right edge 15 epx from the screen's.
+            // A 48-epx touch cell flush right; the glyph's INK lands 16 × 16 with its right edge 15 epx from the screen's,
+            // centred on the header (1.7).
             val cell = CalcMetrics.HEADER
-            val glyphRight = cell - CalcMetrics.HISTORY_RIGHT_INSET
             PressRow(
                 onHistory,
                 Modifier
@@ -245,17 +238,36 @@ fun CalcHeader(title: String, showHistory: Boolean, historyOn: Boolean, onMenu: 
                     .testTag("calc_history_toggle")
                     .semantics { role = Role.Button; selected = historyOn },
             ) {
-                CortanaIcons.Font(
-                    Glyph.HISTORY,
-                    if (historyOn) colors.accent else colors.text,
-                    CalcMetrics.HISTORY_GLYPH,
-                    Modifier
-                        .offset(x = (glyphRight - CalcMetrics.HISTORY_GLYPH).dp, y = ((cell - CalcMetrics.HISTORY_GLYPH) / 2f).dp)
-                        .size(CalcMetrics.HISTORY_GLYPH.dp),
+                InkGlyph(
+                    code = Glyph.HISTORY,
+                    color = if (historyOn) colors.accent else colors.text,
+                    inkHeightEpx = CalcMetrics.HISTORY_GLYPH,
+                    inkCentreEpx = cell / 2f,
+                    inkRightEpx = cell - CalcMetrics.HISTORY_RIGHT_INSET,
                 )
             }
         }
     }
+}
+
+/**
+ * 1.5 / 3.8: the title style — semibold caps at the size that gives r11's "STANDARD" 11.0 epx of ink in the shell's
+ * font — placed by ink: the text's own left edge at 60.5, "STANDARD"'s centre 26 epx into the header, or its top at
+ * [inkTopEpx] (the pane's CONVERTER row).
+ */
+@Composable
+fun CalcTitle(text: String, modifier: Modifier = Modifier, inkTopEpx: Float? = null) {
+    val colors = LocalShellColors.current
+    val size = rememberInkFontSize(ShellType.base.fontFamily, FontWeight.SemiBold, CalcMetrics.TITLE_INK_REFERENCE, CalcMetrics.TITLE_INK, colors.text)
+    InkText(
+        text = text,
+        style = ShellType.base.copy(fontSize = size.sp, color = colors.text),
+        reference = CalcMetrics.TITLE_INK_REFERENCE,
+        modifier = modifier,
+        inkLeftEpx = CalcMetrics.TITLE_LEFT,
+        inkCentreEpx = if (inkTopEpx == null) CalcMetrics.TITLE_CAP_CENTRE else null,
+        inkTopEpx = inkTopEpx,
+    )
 }
 
 /** 1.3: three bars 20 epx long and 1.25 thick at a 5-epx pitch, x 13.5–33.5, the top bar 19 epx into the header, in a 48-epx cell. */
@@ -307,13 +319,7 @@ fun CalcPane(model: CalcModel, onSettings: () -> Unit, onDismiss: () -> Unit) {
         ) {
             val h = maxHeight.value
             MenuGlyphButton(onDismiss, Modifier.testTag("calc_pane_menu"))
-            CapCentreText(
-                text = "CALCULATOR",
-                style = ShellType.base.copy(fontSize = CalcMetrics.TITLE_FONT.sp, color = colors.text),
-                capCentreEpx = CalcMetrics.TITLE_CAP_CENTRE,
-                leftEpx = CalcMetrics.TITLE_LEFT,
-                modifier = Modifier.testTag("calc_pane_title"),
-            )
+            CalcTitle("CALCULATOR", Modifier.testTag("calc_pane_title"))
             val listHeight = (h - CalcMetrics.HEADER - CalcMetrics.PANE_ROW).coerceAtLeast(0f)
             Column(
                 Modifier
@@ -339,15 +345,10 @@ fun CalcPane(model: CalcModel, onSettings: () -> Unit, onDismiss: () -> Unit) {
                                 .fillMaxWidth()
                                 .height(CalcMetrics.PANE_ROW.dp)
                                 .testTag("calc_mode:converter")
-                                .semantics { selected = model.page == CalcPage.CONVERTER },
+                                .semantics { selected = model.page == CalcPage.CONVERTER; text = AnnotatedString(row.label) },
                         ) {
                             // 3.8: the group header in the title style — semibold caps, cap 11, at x 60.5.
-                            CapTopText(
-                                text = row.label,
-                                style = ShellType.base.copy(fontSize = CalcMetrics.TITLE_FONT.sp, color = colors.text),
-                                capTopEpx = CalcMetrics.PANE_LABEL_CAP_TOP,
-                                leftEpx = CalcMetrics.TITLE_LEFT,
-                            )
+                            CalcTitle(row.label, inkTopEpx = CalcMetrics.PANE_LABEL_CAP_TOP)
                         }
                         is PaneRow.Category -> {
                             categoryIndex++
@@ -380,18 +381,15 @@ fun CalcPane(model: CalcModel, onSettings: () -> Unit, onDismiss: () -> Unit) {
                     .testTag("calc_pane_settings")
                     .semantics { role = Role.Button },
             ) {
-                CortanaIcons.Font(
-                    Glyph.SETTINGS, colors.text, CalcMetrics.PANE_GEAR,
-                    Modifier
-                        .offset(x = CalcMetrics.PANE_GEAR_LEFT.dp, y = ((CalcMetrics.PANE_ROW - CalcMetrics.PANE_GEAR) / 2f).dp)
-                        .size(CalcMetrics.PANE_GEAR.dp),
+                // 3.12: the gear's ink 20 tall, centred in r11's 20-wide slot at x 14–34 (the shipped glyph is narrower than square).
+                InkGlyph(
+                    code = Glyph.SETTINGS,
+                    color = colors.text,
+                    inkHeightEpx = CalcMetrics.PANE_GEAR,
+                    inkCentreEpx = CalcMetrics.PANE_ROW / 2f,
+                    inkCentreXEpx = CalcMetrics.PANE_GEAR_LEFT + CalcMetrics.PANE_GEAR / 2f,
                 )
-                CapTopText(
-                    text = "Settings",
-                    style = ShellType.body.copy(color = colors.text),
-                    capTopEpx = CalcMetrics.PANE_LABEL_CAP_TOP,
-                    leftEpx = CalcMetrics.PANE_SETTINGS_LABEL_LEFT,
-                )
+                PaneLabel("Settings", CalcMetrics.PANE_SETTINGS_LABEL_LEFT)
             }
         }
     }
@@ -404,10 +402,12 @@ private fun Color.compositeOverPane(): Color {
     return Color(red * a + p.red * (1 - a), green * a + p.green * (1 - a), blue * a + p.blue * (1 - a), 1f)
 }
 
-/** One pane row (3.4–3.7): a 48-epx fill across the pane, the label at x 60 with its cap top 19 epx below the row top. */
+/**
+ * One pane row (3.4–3.7): a 48-epx fill across the pane, the label at x 60 with its cap top 19 epx below the row top.
+ * The tagged row carries the label as its own text (Harness contracts: never a parent whose text lives in its children).
+ */
 @Composable
 private fun PaneItem(label: String, tag: String, selected: Boolean, selectedFill: Color, onClick: () -> Unit) {
-    val colors = LocalShellColors.current
     PressRow(
         onClick,
         Modifier
@@ -415,15 +415,23 @@ private fun PaneItem(label: String, tag: String, selected: Boolean, selectedFill
             .height(CalcMetrics.PANE_ROW.dp)
             .background(if (selected) selectedFill else Color.Transparent)
             .testTag(tag)
-            .semantics { role = Role.Tab; this.selected = selected },
+            .semantics { role = Role.Tab; this.selected = selected; text = AnnotatedString(label) },
     ) {
-        CapTopText(
-            text = label,
-            style = ShellType.body.copy(color = colors.text),
-            capTopEpx = CalcMetrics.PANE_LABEL_CAP_TOP,
-            leftEpx = CalcMetrics.PANE_LABEL_LEFT,
-        )
+        PaneLabel(label, CalcMetrics.PANE_LABEL_LEFT)
     }
+}
+
+/** 3.6: a label in body type, its box at [leftEpx] (r11's origin) and its cap top — a flat capital's measured ink — 19 epx below the row top. */
+@Composable
+private fun PaneLabel(text: String, leftEpx: Float) {
+    val colors = LocalShellColors.current
+    InkText(
+        text = text,
+        style = ShellType.body.copy(color = colors.text),
+        reference = CalcMetrics.PANE_LABEL_CAP_REFERENCE,
+        leftEpx = leftEpx,
+        inkTopEpx = CalcMetrics.PANE_LABEL_CAP_TOP,
+    )
 }
 
 /**
@@ -554,7 +562,7 @@ fun UnitPickerFlyout(units: List<ConverterUnit>, current: ConverterUnit, maxHeig
                             .fillMaxWidth()
                             .height(CalcMetrics.FLYOUT_ITEM.dp)
                             .testTag("calc_unit:${unit.id}")
-                            .semantics { role = Role.Button; selected = unit == current },
+                            .semantics { role = Role.Button; selected = unit == current; text = AnnotatedString(unit.name) },
                     ) {
                         BasicText(
                             unit.name,
