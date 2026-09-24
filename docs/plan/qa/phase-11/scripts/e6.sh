@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # E6 — the motion, on the shell's own clock (C-5, T11-5, T11-29, C-31). The clock is never read while the recorder
-# runs: pass 4 logged an 83-ms frame gap on the shell's own clock in a warm open recorded under screenrecord, where ten
-# unrecorded-era opens had stayed ≤ 33.3 — the corroborating instrument perturbed what it corroborates. So part 1
-# asserts five warm opens with nothing recording, and part 2 records separate opens for frame spacing only, their
-# shell-clock numbers noted, not asserted (method re-cut 2026-09-24, INDEX Change Log). Every part-1 open is asserted:
+# runs: pass 4 logged an 83-ms frame gap on the shell's own clock in a recorded warm open whose input landed ~2 s late
+# and whose 4-s recording ended mid-motion — the host stalled (E6-pass4-83ms/). Every warm open the earlier passes kept
+# was a recorded one, so there was no unrecorded baseline to compare against (the re-judge, R2-7, corrected the reason
+# first recorded). So part 1 asserts five warm opens with nothing recording, keeping the recorder out of the measured
+# path, and part 2 records separate opens for frame spacing only, their shell-clock numbers noted, not asserted (method
+# re-cut 2026-09-24, INDEX Change Log). A recording whose motion window is clipped (fewer than 19 frame gaps from the
+# entry) is retaken, not accepted (R2-7). Every part-1 open is asserted:
 # peak, overshoot, maxGapMs, and settle ≤ 249.1 ms (the spring's own settle for this travel) + that open's largest
 # frame gap — the settle frame is the first frame at or after 249.1 ms, so its bound follows the spacing C-31 already
 # bounds (gate review G-E6-2; INDEX Change Log). The alignment is on the same clock: the burst's t0 against the edit
@@ -91,7 +94,8 @@ for attempt in 1 2 3 4 5 6 7 8 9 10; do
   rm -rf "$ROW_DIR/frames"
   gap="$(awk '/max_gap_ms/{print $2}' "$ROW_DIR/recording-$attempt.txt")"
   note "attempt $attempt recording: $(tr '\n' ' ' < "$ROW_DIR/recording-$attempt.txt")"
-  if python3 -c "import sys; sys.exit(0 if float(sys.argv[1]) <= 18.2 else 1)" "$gap" 2>/dev/null; then ACCEPT="$attempt"; break; fi
+  wg="$(awk '/window_gaps/{print $2}' "$ROW_DIR/recording-$attempt.txt")"
+  if [ "${wg:-0}" -ge 19 ] && python3 -c "import sys; sys.exit(0 if float(sys.argv[1]) <= 18.2 else 1)" "$gap" 2>/dev/null; then ACCEPT="$attempt"; break; fi
   exit_edit
 done
 assert_ne "a recording within phase 05's spacing rule (source frames ≤ 18.2 ms apart during the motion)" "" "$ACCEPT"
@@ -104,7 +108,9 @@ CLOSE="$(quick_since "$MARK" | grep "motion close $A_KEY")"
 note "close line: ${CLOSE#*\[quick\] }"
 a0="$(num alpha0 "$CLOSE")"
 assert_within "close alpha0 36 ± 17 ms (the halfway at 36.0 ms)" 36 "$a0" 17
-assert_within "close settle = alpha0 ± 17 ms (gone at alpha 0)" "${a0:-0}" "$(num settle "$CLOSE")" 17
+# The close's settle is logged as alpha0 by construction (the satellites are gone at alpha 0), so a settle bound cannot
+# fail and is not asserted; the "a fade that ends on arrival fails" rule is carried by the alpha0 bound (the re-judge, R2-9).
+note "close settle (= alpha0 by construction, not asserted): $(num settle "$CLOSE")"
 assert_within "close maxGapMs ≤ 33.4 (C-31)" 16.7 "$(num maxGapMs "$CLOSE")" 16.7
 c6
 row_end
