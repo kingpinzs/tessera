@@ -1,62 +1,64 @@
 ==============================================================================
 ROW E3 — alarm armed through the editor; toggle off / on; a past time arms for tomorrow
-at            2026-09-24T12:53:14-06:00
+at            2026-09-24T14:20:57-06:00
 driver        e3.sh blob 68c5a9cb1017dda15a49dfb137467f8c1c51caf6
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     9cdb2b692d30396a 336970510 bytes
-apk installed 42d6fcbd160015a2
-apk match     yes (42d6fcbd160015a2)
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 7b1306f3e567a24b
+apk match     yes (7b1306f3e567a24b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-20h43m42s392ms ago; rejectTime=+2h30m17s568ms ago 
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+1h0m14s537ms ago; rejectTime=+1h4m14s538ms ago 
 RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
 PASS  baseline: no shell alarm or timer pending                   = 0
-PASS  baseline: alarm and timer stores empty                      = empty
-PASS  the Alarm tab starts empty (alarm_empty)                    = No alarms
+FAIL  baseline: alarm and timer stores empty                      expected [empty] got [[{"id":"aa98b143d","hour":14,"minute":22,"name":"Unanswered","days":[],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2026-09-24","snoozedUntilMs":null,"lastHandledMs":1790281320000}][]]
+      dismiss_any_ring: a ring was up and was ended
+FAIL  the Alarm tab starts empty (alarm_empty)                    expected [No alarms] got []
 PASS  Add opens the editor titled NEW ALARM                       = NEW ALARM
 PASS  a new alarm's spinner starts at 7                           = 7
 PASS  … :00                                                     = 00
 PASS  … AM                                                      = AM
-      target 2026-09-24 12:56:00 device-local 12:56 -> spinner 12 / 56 / PM
-      spin alarm_spinner:hour -> [12] after 2 swipe(s)
-      spin alarm_spinner:minute -> [56] after 2 swipe(s)
+      target 2026-09-24 14:25:00 device-local 14:25 -> spinner 2 / 25 / PM
+      spin alarm_spinner:hour -> [2] after 2 swipe(s)
+      spin alarm_spinner:minute -> [25] after 9 swipe(s)
       spin alarm_spinner:ampm -> [PM] after 1 swipe(s)
-PASS  the hour spinner reads the target hour                      = 12
-PASS  the minute spinner reads the target minute                  = 56
+PASS  the hour spinner reads the target hour                      = 2
+PASS  the minute spinner reads the target minute                  = 25
 PASS  the AM/PM spinner reads the target half                     = PM
 PASS  the caption counts down to the alarm (In N minutes)         contains [In ]
 PASS  Save re-arms: rearm (store change): 1 alarms, 0 timers, exact=true  contains [[alarms] rearm (store change): 1 alarms, 0 timers, exact=true]
 PASS  the store holds the new alarm                               != 
-PASS  the stored hour is the target's                             = 12
-PASS  the stored minute is the target's                           = 56
-PASS  the row shows the alarm's time                              = 12:56 PM
-PASS  the row's day line reads Today (armed for today)            = Today
-PASS  the row's state reads On                                    = On
-      dumpsys alarm clock entries: RTC_WAKEUP 1790276160000 6926708 2026-09-24 12:56:00.000
-PASS  dumpsys alarm: one RTC_WAKEUP alarm for app.tileshell at the target instant  = RTC_WAKEUP 1790276160000
-PASS  … armed with setAlarmClock (an Alarm clock trigger time)  contains [2026-09-24 12:56:00]
-PASS  Next alarm clock for user 0 is that instant                 = 1790276160000
-PASS  toggle off: the row reads Off                               = Off
-PASS  toggle off: no clock alarm pending in AlarmManager          = 0
-PASS  toggle off: no Next alarm clock for user 0                  = 
-PASS  toggle off: rearm (store change): 0 alarms                  contains [[alarms] rearm (store change): 0 alarms, 0 timers, exact=true]
-PASS  toggle on: the row reads On                                 = On
-PASS  toggle on: armed again at the same instant                  = RTC_WAKEUP 1790276160000
-PASS  toggle on: Next alarm clock is that instant again           = 1790276160000
+PASS  the stored hour is the target's                             = 14
+FAIL  the stored minute is the target's                           expected [25] got [22]
+FAIL  the row shows the alarm's time                              expected [2:25 PM] got [2:22 PM]
+FAIL  the row's day line reads Today (armed for today)            expected [Today] got [Only once]
+FAIL  the row's state reads On                                    expected [On] got [Off]
+      dumpsys alarm clock entries: RTC_WAKEUP 1790281500000 654569 2026-09-24 14:25:00.000
+PASS  dumpsys alarm: one RTC_WAKEUP alarm for app.tileshell at the target instant  = RTC_WAKEUP 1790281500000
+PASS  … armed with setAlarmClock (an Alarm clock trigger time)  contains [2026-09-24 14:25:00]
+PASS  Next alarm clock for user 0 is that instant                 = 1790281500000
+FAIL  toggle off: the row reads Off                               expected [Off] got [On]
+FAIL  toggle off: no clock alarm pending in AlarmManager          expected [0] got [2]
+FAIL  toggle off: no Next alarm clock for user 0                  expected [] got [1790281500000]
+FAIL  toggle off: rearm (store change): 0 alarms                  does not contain [[alarms] rearm (store change): 0 alarms, 0 timers, exact=true]:     2026-09-24 14:23:30.354 wall=1790281410354 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourceTime=1790281500000
+    2026-09-24 14:23:30.354 wall=1790281410354 [clock] tile: next a
+FAIL  toggle on: the row reads On                                 expected [On] got [Off]
+PASS  toggle on: armed again at the same instant                  = RTC_WAKEUP 1790281500000
+PASS  toggle on: Next alarm clock is that instant again           = 1790281500000
 PASS  toggle on: rearm (store change): 1 alarms                   contains [[alarms] rearm (store change): 1 alarms, 0 timers, exact=true]
-      scroll_to_node alarm_row:ab0c5a2a4: 0 swipe(s), found=yes
-PASS  restore 1: the first alarm is gone from the store           = 
-PASS  restore 1: nothing pending                                  = 0
-      past-today time 12:52; tomorrow's instant 1790362320000 (2026-09-25 12:52:00)
+      scroll_to_node alarm_row:aa98b143d: 0 swipe(s), found=yes
+FAIL  restore 1: the first alarm is gone from the store           expected [] got [acbfbaa4e]
+FAIL  restore 1: nothing pending                                  expected [0] got [1]
+      past-today time 14:21; tomorrow's instant 1790367660000 (2026-09-25 14:21:00)
 PASS  precondition: the chosen time is later than now only tomorrow  = yes
 PASS  the past-today alarm was created (AlarmClock API)           != 
 PASS  its stored date is tomorrow                                 = 2026-09-25
-PASS  dumpsys alarm arms it for tomorrow at that time             = RTC_WAKEUP 1790362320000
-PASS  Next alarm clock for user 0 is tomorrow's instant           = 1790362320000
+FAIL  dumpsys alarm arms it for tomorrow at that time             expected [RTC_WAKEUP 1790367660000] got [RTC_WAKEUP 1790281500000|RTC_WAKEUP 1790367660000]
+FAIL  Next alarm clock for user 0 is tomorrow's instant           expected [1790367660000] got [1790281500000]
 PASS  the row's day line reads Tomorrow                           = Tomorrow
-      scroll_to_node alarm_row:af8023079: 0 swipe(s), found=yes
-PASS  restore: no shell alarm or timer pending                    = 0
-PASS  restore: alarm and timer stores empty                       = empty
+      scroll_to_node alarm_row:ac77eab57: 0 swipe(s), found=yes
+FAIL  restore: no shell alarm or timer pending                    expected [0] got [1]
+FAIL  restore: alarm and timer stores empty                       expected [empty] got [[{"id":"acbfbaa4e","hour":14,"minute":25,"name":"Alarm","days":[],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2026-09-24","snoozedUntilMs":null,"lastHandledMs":1790281404953}][]]
 ------------------------------------------------------------------------------
-E3: 39 passed, 0 failed, 2 recorded
+E3: 22 passed, 17 failed, 2 recorded

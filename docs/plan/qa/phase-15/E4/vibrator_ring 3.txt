@@ -5,7 +5,7 @@ VibratorManagerService:
     batterySaverMode = false
     ringerMode = normal
     onWirelessCharger = false
-    processStateCache size = 36
+    processStateCache size = 37
     VibrationIntensities:
       UNKNOWN = MEDIUM, default: MEDIUM
       ALARM = MEDIUM, default: MEDIUM
@@ -38,8 +38,8 @@ VibratorManagerService:
   
   Vibrators:
     Vibrator (id=1):
-      currentState = IDLE
-      currentAmplitude = 0.0
+      currentState = VIBRATING
+      currentAmplitude = 1.0
       vibratorInfoLoadSuccessful = true
       vibratorStateListener size = 0
       VibratorInfo:
@@ -64,8 +64,8 @@ VibratorManagerService:
     Vibration:
       status = running
       durationMs = -1
-      createTime = 09-25 09:35:15.735
-      startTime = 09-25 09:35:15.735
+      createTime = 09-25 09:05:00.023
+      startTime = 09-25 09:05:00.023
       endTime = null
       playedEffect = Mono{mEffect=Composed{segments=[Step{amplitude=0.0, frequencyHz=0.0, duration=0}, Step{amplitude=1.0, frequencyHz=0.0, duration=500}, Step{amplitude=0.0, frequencyHz=0.0, duration=500}], repeat=0}}
       originalEffect = Mono{mEffect=Composed{segments=[Step{amplitude=0.0, frequencyHz=0.0, duration=0}, Step{amplitude=-1.0, frequencyHz=0.0, duration=500}, Step{amplitude=0.0, frequencyHz=0.0, duration=500}], repeat=0}}
@@ -79,9 +79,19 @@ VibratorManagerService:
   
   Recent vibrations:
     ALARM:
-      09-24 13:09:00.143 |   effect |    cancelled_by_user | duration:  4923ms | start: 13:09:00.144 | end: 13:09:05.067 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
-      09-25 09:05:00.062 |   effect |    cancelled_by_user | duration:  7180ms | start: 09:05:00.062 | end: 09:05:07.242 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
-      09-25 09:15:07.246 |   effect |    cancelled_by_user | duration:  8477ms | start: 09:15:07.250 | end: 09:15:15.724 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
+      09-24 14:13:15.992 |   effect |    cancelled_by_user | duration:    87ms | start: 14:13:15.992 | end: 14:13:16.079 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
+      09-24 14:13:16.097 |   effect |    cancelled_by_user | duration:    49ms | start: 14:13:16.097 | end: 14:13:16.146 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
+      09-24 14:13:16.161 |   effect |    cancelled_by_user | duration:    53ms | start: 14:13:16.161 | end: 14:13:16.213 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
+      09-24 14:13:16.226 |   effect |    cancelled_by_user | duration:    63ms | start: 14:13:16.226 | end: 14:13:16.290 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
+      09-24 14:13:16.310 |   effect |    cancelled_by_user | duration:    68ms | start: 14:13:16.310 | end: 14:13:16.377 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
+      09-24 14:13:16.391 |   effect |    cancelled_by_user | duration:    57ms | start: 14:13:16.391 | end: 14:13:16.447 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
+      09-24 14:13:16.463 |   effect |    cancelled_by_user | duration:    48ms | start: 14:13:16.463 | end: 14:13:16.512 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
+      09-24 14:13:16.533 |   effect |    cancelled_by_user | duration:    49ms | start: 14:13:16.533 | end: 14:13:16.583 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
+      09-24 14:13:16.603 |   effect |    cancelled_by_user | duration: 13926ms | start: 14:13:16.603 | end: 14:13:30.529 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
+      09-24 14:22:00.027 |   effect |    cancelled_by_user | duration: 15228ms | start: 14:22:00.028 | end: 14:22:15.255 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: ALARM | app.tileshell (uid=10150, deviceId=0) | reason: null | played: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=1.00),Step=500ms(amplitude=0.00)], repeat=0 | original: [Step=0ms(amplitude=0.00),Step=500ms(amplitude=-1.00),Step=500ms(amplitude=0.00)], repeat=0
+    
+    HARDWARE_FEEDBACK:
+      09-24 14:13:10.551 |   effect |             finished | duration:   731ms | start: 14:13:10.614 | end: 14:13:11.283 | scale:     NONE (adaptive=1.00) | flags:    0 | usage: HARDWARE_FEEDBACK | android (uid=1000, deviceId=0) | reason: Charging started | played: [Step=40ms(amplitude=0.00),Step=40ms(amplitude=0.02),Step=40ms(amplitude=0.04),Step=40ms(amplitude=0.10),Step=40ms(amplitude=0.17),Step=40ms(amplitude=0.26),Step=40ms(amplitude=0.36),Step=40ms(amplitude=0.45),Step=40ms(amplitude=0.48),Step=40ms(amplitude=0.40),Step=40ms(amplitude=0.31),Step=40ms(amplitude=0.22),Step=40ms(amplitude=0.13),Step=40ms(amplitude=0.07),Step=40ms(amplitude=0.03),Step=40ms(amplitude=0.01)] | original: null
     
   
   

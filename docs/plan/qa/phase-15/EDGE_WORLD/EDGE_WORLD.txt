@@ -26,3 +26,15 @@ PASS  … the process is the same                                 = 13869
 PASS  restore: the label is English again                         = Vienna
       time_12_24 before: [null]
 PASS  24-hour: the alarm row reads 19:05 (H:mm)                   = 19:05
+PASS  24-hour: the local row's time is H:mm (no AM/PM)            = yes
+PASS  24-hour: the city row's time is H:mm                        = yes
+PASS  24-hour: the editor's spinner has no AM/PM column           = no
+PASS  24-hour: the hour column reads 19                           = 19
+PASS  restore: the alarm row reads 7:05 PM again                  = 7:05 PM
+PASS  restore: no city rows left                                  = 
+      scroll_to_node alarm_row:ae53f4064: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t4af1ed68: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+EDGE_WORLD: 20 passed, 0 failed, 3 recorded

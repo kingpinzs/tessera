@@ -1,0 +1,845 @@
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=java.lang.IllegalStateException: UiAutomationService android.accessibilityservice.IAccessibilityServiceClient$Stub$Proxy@2c0a881already registered!
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3348)
+	at android.os.Parcel.createException(Parcel.java:3324)
+	at android.os.Parcel.readException(Parcel.java:3307)
+	at android.os.Parcel.readException(Parcel.java:3249)
+	at android.app.IUiAutomationConnection$Stub$Proxy.connect(IUiAutomationConnection.java:555)
+	at android.app.UiAutomation.connectWithTimeout(UiAutomation.java:386)
+	at android.app.Instrumentation.getUiAutomation(Instrumentation.java:2557)
+	at androidx.test.uiautomator.UiDevice$Api24Impl.getUiAutomationWithRetry(UiDevice.java:1624)
+	at androidx.test.uiautomator.UiDevice.getUiAutomation(UiDevice.java:1548)
+	at androidx.test.uiautomator.QueryController.<init>(QueryController.java:95)
+	at androidx.test.uiautomator.UiDevice.<init>(UiDevice.java:118)
+	at androidx.test.uiautomator.UiDevice.getInstance(UiDevice.java:361)
+	at app.tileshell.qa.imefixture.Gesture.run(Gesture.kt:43)
+
+INSTRUMENTATION_STATUS: stream=
+Error in run(app.tileshell.qa.imefixture.Gesture):
+java.lang.IllegalStateException: UiAutomationService android.accessibilityservice.IAccessibilityServiceClient$Stub$Proxy@2c0a881already registered!
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3348)
+	at android.os.Parcel.createException(Parcel.java:3324)
+	at android.os.Parcel.readException(Parcel.java:3307)
+	at android.os.Parcel.readException(Parcel.java:3249)
+	at android.app.IUiAutomationConnection$Stub$Proxy.connect(IUiAutomationConnection.java:555)
+	at android.app.UiAutomation.connectWithTimeout(UiAutomation.java:386)
+	at android.app.Instrumentation.getUiAutomation(Instrumentation.java:2557)
+	at androidx.test.uiautomator.UiDevice$Api24Impl.getUiAutomationWithRetry(UiDevice.java:1624)
+	at androidx.test.uiautomator.UiDevice.getUiAutomation(UiDevice.java:1548)
+	at androidx.test.uiautomator.QueryController.<init>(QueryController.java:95)
+	at androidx.test.uiautomator.UiDevice.<init>(UiDevice.java:118)
+	at androidx.test.uiautomator.UiDevice.getInstance(UiDevice.java:361)
+	at app.tileshell.qa.imefixture.Gesture.run(Gesture.kt:43)
+
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_STATUS: gesture.error=IllegalStateException: UiAutomation not connected, UiAutomation@9aae48b[id=-1, displayId=0, flags=0]
+INSTRUMENTATION_STATUS: gesture.ok=false
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 5.012
+There was 1 failure:
+1) run(app.tileshell.qa.imefixture.Gesture)
+java.lang.IllegalStateException: UiAutomation not connected, UiAutomation@9aae48b[id=-1, displayId=0, flags=0]
+	at android.app.UiAutomation.throwIfNotConnectedLocked(UiAutomation.java:1801)
+	at android.app.UiAutomation.getWindows(UiAutomation.java:878)
+	at app.tileshell.qa.imefixture.Gesture.windowsWithRetry(Gesture.kt:209)
+	at app.tileshell.qa.imefixture.Gesture.dump(Gesture.kt:152)
+	at app.tileshell.qa.imefixture.Gesture.run(Gesture.kt:50)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 1 read no nodes from p15_1790278286146269529_1.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1615332
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5004
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278289117936103_2.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.062
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 2 read no nodes from p15_1790278289117936103_2.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1625867
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5004
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278299629337939_3.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.063
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 3 read no nodes from p15_1790278299629337939_3.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1636392
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5004
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278310161857080_4.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.06
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 4 read no nodes from p15_1790278310161857080_4.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1646917
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5003
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278320685284325_5.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.06
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 5 read no nodes from p15_1790278320685284325_5.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1657438
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5003
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278331209653989_6.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.06
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 6 read no nodes from p15_1790278331209653989_6.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1667970
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5005
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278341729678710_7.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.063
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 7 read no nodes from p15_1790278341729678710_7.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1678507
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5004
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278352274418959_8.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.062
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 8 read no nodes from p15_1790278352274418959_8.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1689038
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5004
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278362804407152_9.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.06
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 9 read no nodes from p15_1790278362804407152_9.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1699559
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5004
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278373330821461_10.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.061
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 10 read no nodes from p15_1790278373330821461_10.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1710081
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5003
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278383856019348_11.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.06
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 11 read no nodes from p15_1790278383856019348_11.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1720604
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5004
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278394373780173_12.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.06
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 12 read no nodes from p15_1790278394373780173_12.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1731135
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5004
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278404897066384_13.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.062
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 13 read no nodes from p15_1790278404897066384_13.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1741662
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5004
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278415427531602_14.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.061
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 14 read no nodes from p15_1790278415427531602_14.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1752203
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5004
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278425959176413_15.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.062
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 15 read no nodes from p15_1790278425959176413_15.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1762724
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5003
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278436496184165_16.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.063
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 16 read no nodes from p15_1790278436496184165_16.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1773240
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5004
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278447017832082_17.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.06
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 17 read no nodes from p15_1790278447017832082_17.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1783763
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=5003
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278457533840791_18.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=0
+INSTRUMENTATION_STATUS: gesture.dump.windows=
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 10.061
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 18 read no nodes from p15_1790278457533840791_18.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1794287
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=false
+INSTRUMENTATION_STATUS: gesture.dump.bytes=84
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=4345
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278468056242723_19.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=
+INSTRUMENTATION_STATUS: gesture.dump.roots=0
+INSTRUMENTATION_STATUS: gesture.dump.window_count=1
+INSTRUMENTATION_STATUS: gesture.dump.windows=APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 4.459
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1
+(attempt 19 read no nodes from p15_1790278468056242723_19.xml)
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+app.tileshell.qa.imefixture.Gesture:
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: gesture.op=dump
+INSTRUMENTATION_STATUS: gesture.uptime=1799246
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.dump.all_windows=true
+INSTRUMENTATION_STATUS: gesture.dump.bytes=28238
+INSTRUMENTATION_STATUS: gesture.dump.elapsed_ms=27
+INSTRUMENTATION_STATUS: gesture.dump.ime_nodes=0
+INSTRUMENTATION_STATUS: gesture.dump.ime_windows=
+INSTRUMENTATION_STATUS: gesture.dump.nodes=67
+INSTRUMENTATION_STATUS: gesture.dump.out=/sdcard/Download/p15_1790278472985817955_20.xml
+INSTRUMENTATION_STATUS: gesture.dump.packages=app.tileshell=67
+INSTRUMENTATION_STATUS: gesture.dump.roots=1
+INSTRUMENTATION_STATUS: gesture.dump.window_count=1
+INSTRUMENTATION_STATUS: gesture.dump.windows=APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: gesture.ok=true
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: class=app.tileshell.qa.imefixture.Gesture
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=.
+INSTRUMENTATION_STATUS: test=run
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_RESULT: stream=
+
+Time: 0.036
+
+OK (1 test)
+
+
+INSTRUMENTATION_CODE: -1

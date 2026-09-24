@@ -1,26 +1,34 @@
 ==============================================================================
 ROW E27 — the three apps' App Shortcuts: declared, ranked, iconed, and each opens its page
-at            2026-09-24T09:48:32-06:00
-driver        e27.sh blob 64bf60ce8bd76e1434cc135418a885a551566ab5
+at            2026-09-24T13:24:49-06:00
+driver        e27.sh blob 7873495a346620235022de602436f5535e4051bf
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     7823e507b9004fd6 337843127 bytes
-apk installed 544474ed84bc0b4f
-apk match     NO (device 544474ed84bc0b4f, built 2e22a614794f9a05)
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 7b1306f3e567a24b
+apk match     yes (7b1306f3e567a24b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  baseline layout restored                                    = 0
-      10 shortcuts for app.tileshell:
+      18 shortcuts for app.tileshell:
         stopwatch	app.tileshell/app.tileshell.clock.ClockActivity	2	drawable/ic_clock_glyph	android.intent.action.VIEW	app.tileshell/.clock.ClockActivity	stopwatch
         scientific	app.tileshell/app.tileshell.calculator.CalculatorActivity	1	drawable/ic_calculator_glyph	android.intent.action.VIEW	app.tileshell/.calculator.CalculatorActivity	scientific
         standard	app.tileshell/app.tileshell.calculator.CalculatorActivity	0	drawable/ic_calculator_glyph	android.intent.action.VIEW	app.tileshell/.calculator.CalculatorActivity	standard
         world_clock	app.tileshell/app.tileshell.clock.ClockActivity	3	drawable/ic_clock_glyph	android.intent.action.VIEW	app.tileshell/.clock.ClockActivity	world_clock
         recordings	app.tileshell/app.tileshell.recorder.RecorderActivity	1	drawable/ic_recorder_glyph	android.intent.action.VIEW	app.tileshell/.recorder.RecorderActivity	list
+        checklist	app.tileshell/app.tileshell.settings.SettingsActivity	2	drawable/ic_shortcut_checklist	android.intent.action.VIEW	app.tileshell/.settings.SettingsActivity	CHECKLIST
         timer	app.tileshell/app.tileshell.clock.ClockActivity	1	drawable/ic_clock_glyph	android.intent.action.VIEW	app.tileshell/.clock.ClockActivity	timer
+        songs	app.tileshell/app.tileshell.music.MusicActivity	0	drawable/ic_shortcut_songs	android.intent.action.VIEW	app.tileshell/.music.MusicActivity	
         alarm	app.tileshell/app.tileshell.clock.ClockActivity	0	drawable/ic_clock_glyph	android.intent.action.VIEW	app.tileshell/.clock.ClockActivity	alarm
         programmer	app.tileshell/app.tileshell.calculator.CalculatorActivity	2	drawable/ic_calculator_glyph	android.intent.action.VIEW	app.tileshell/.calculator.CalculatorActivity	programmer
         converter	app.tileshell/app.tileshell.calculator.CalculatorActivity	3	drawable/ic_calculator_glyph	android.intent.action.VIEW	app.tileshell/.calculator.CalculatorActivity	converter
+        artists	app.tileshell/app.tileshell.music.MusicActivity	2	drawable/ic_shortcut_artists	android.intent.action.VIEW	app.tileshell/.music.MusicActivity	
+        diagnostics	app.tileshell/app.tileshell.settings.SettingsActivity	3	drawable/ic_shortcut_diagnostics	android.intent.action.VIEW	app.tileshell/.settings.SettingsActivity	DIAGNOSTICS
+        tile_apps	app.tileshell/app.tileshell.settings.SettingsActivity	1	drawable/ic_shortcut_tile_apps	android.intent.action.VIEW	app.tileshell/.settings.SettingsActivity	TILE_APPS
+        albums	app.tileshell/app.tileshell.music.MusicActivity	1	drawable/ic_shortcut_albums	android.intent.action.VIEW	app.tileshell/.music.MusicActivity	
+        start_theme	app.tileshell/app.tileshell.settings.SettingsActivity	0	drawable/ic_shortcut_start_theme	android.intent.action.VIEW	app.tileshell/.settings.SettingsActivity	START_THEME
         new_recording	app.tileshell/app.tileshell.recorder.RecorderActivity	0	drawable/ic_recorder_glyph	android.intent.action.VIEW	app.tileshell/.recorder.RecorderActivity	record
+        playlists	app.tileshell/app.tileshell.music.MusicActivity	3	drawable/ic_shortcut_playlists	android.intent.action.VIEW	app.tileshell/.music.MusicActivity	
 PASS  ClockActivity: its shortcuts in rank order                  = alarm timer stopwatch world_clock
 PASS  ClockActivity: ranks 0..3                                   = 0 1 2 3
 PASS  alarm carries its app's glyph                               contains [_glyph]
@@ -61,13 +69,47 @@ PASS  new_recording: rec_page:record is the page shown            = yes
 PASS  new_recording: and rec_page:list is not                     = no
 PASS  new_recording opened the record page without starting a take (is_recording count unchanged)  = 0
       converter opened on: VOLUME
-      Length's pane row: 
+      Length's pane row: calc_converter_category:2
       Length conversion: 5 -> 1.968504
 PASS  converter reopens on the last-used category                 = LENGTH
 PASS  provision.sh after pm clear                                 = 0
 PASS  after pm clear the converter opens on Volume                = VOLUME
-FAIL  Alarms & Clock: burst satellites and the [quick] shortcuts line  NOT RUN: this build has no phase 11 burst (T15-21: the burst half runs on the rebased main)
-FAIL  Calculator: burst satellites and the [quick] shortcuts line  NOT RUN: this build has no phase 11 burst (T15-21: the burst half runs on the rebased main)
-FAIL  Voice Recorder: burst satellites and the [quick] shortcuts line  NOT RUN: this build has no phase 11 burst (T15-21: the burst half runs on the rebased main)
+PASS  clock: satellites' labels in rank order                     = Alarm,Timer,Stopwatch,World Clock,
+PASS  clock: the activity-keyed shortcuts line (T11-12)           contains [[quick] shortcuts for app.tileshell/.clock.ClockActivity/0: 4 (4 shown: alarm,timer,stopwatch,world_clock)]
+PASS  clock: its burst names no calc shortcut                     does not contain [shortcuts for app.tileshell/.calculator.CalculatorActivity]
+PASS  clock: its burst names no rec shortcut                      does not contain [shortcuts for app.tileshell/.recorder.RecorderActivity]
+PASS  clock: its burst names no music shortcut                    does not contain [shortcuts for app.tileshell/.music.MusicActivity]
+PASS  alarm: the satellite resumed its app                        contains [app.tileshell/.clock.ClockActivity]
+PASS  alarm: clock_pivot:alarm selected                           = yes
+PASS  timer: the satellite resumed its app                        contains [app.tileshell/.clock.ClockActivity]
+PASS  timer: clock_pivot:timer selected                           = yes
+PASS  stopwatch: the satellite resumed its app                    contains [app.tileshell/.clock.ClockActivity]
+PASS  stopwatch: clock_pivot:stopwatch selected                   = yes
+PASS  world_clock: the satellite resumed its app                  contains [app.tileshell/.clock.ClockActivity]
+PASS  world_clock: clock_pivot:world_clock selected               = yes
+PASS  calc: satellites' labels in rank order                      = Standard,Scientific,Programmer,Converter,
+PASS  calc: the activity-keyed shortcuts line (T11-12)            contains [[quick] shortcuts for app.tileshell/.calculator.CalculatorActivity/0: 4 (4 shown: standard,scientific,programmer,converter)]
+PASS  calc: its burst names no clock shortcut                     does not contain [shortcuts for app.tileshell/.clock.ClockActivity]
+PASS  calc: its burst names no rec shortcut                       does not contain [shortcuts for app.tileshell/.recorder.RecorderActivity]
+PASS  calc: its burst names no music shortcut                     does not contain [shortcuts for app.tileshell/.music.MusicActivity]
+PASS  standard: the satellite resumed its app                     contains [app.tileshell/.calculator.CalculatorActivity]
+PASS  standard: calc_mode:standard selected                       = yes
+PASS  scientific: the satellite resumed its app                   contains [app.tileshell/.calculator.CalculatorActivity]
+PASS  scientific: calc_mode:scientific selected                   = yes
+PASS  programmer: the satellite resumed its app                   contains [app.tileshell/.calculator.CalculatorActivity]
+PASS  programmer: calc_mode:programmer selected                   = yes
+PASS  converter: the satellite resumed its app                    contains [app.tileshell/.calculator.CalculatorActivity]
+PASS  converter: calc_mode:converter selected                     = yes
+PASS  rec: satellites' labels in rank order                       = New recording,Recordings,
+PASS  rec: no third satellite                                     = no
+PASS  rec: the activity-keyed shortcuts line (T11-12)             contains [[quick] shortcuts for app.tileshell/.recorder.RecorderActivity/0: 2 (2 shown: new_recording,recordings)]
+PASS  rec: its burst names no clock shortcut                      does not contain [shortcuts for app.tileshell/.clock.ClockActivity]
+PASS  rec: its burst names no calc shortcut                       does not contain [shortcuts for app.tileshell/.calculator.CalculatorActivity]
+PASS  rec: its burst names no music shortcut                      does not contain [shortcuts for app.tileshell/.music.MusicActivity]
+PASS  new_recording: the satellite resumed its app                contains [app.tileshell/.recorder.RecorderActivity]
+PASS  new_recording: rec_page:record is the page shown            = yes
+PASS  new_recording started no take (is_recording count unchanged)  = 0
+PASS  recordings: the satellite resumed its app                   contains [app.tileshell/.recorder.RecorderActivity]
+PASS  recordings: rec_page:list is the page shown                 = yes
 ------------------------------------------------------------------------------
-E27: 43 passed, 3 failed, 0 recorded
+E27: 80 passed, 0 failed, 0 recorded

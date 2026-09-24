@@ -1,55 +1,59 @@
 ==============================================================================
 ROW E23 — the ring surface's bars: locked (covers the status bar) and in use (below it); taps below leave it ringing
-at            2026-09-24T12:58:31-06:00
+at            2026-09-24T14:42:08-06:00
 driver        e23.sh blob 54155a7af0891dd36a74976844f7bc6b76c66156
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     9cdb2b692d30396a 336970510 bytes
-apk installed 42d6fcbd160015a2
-apk match     yes (42d6fcbd160015a2)
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 7b1306f3e567a24b
+apk match     yes (7b1306f3e567a24b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-1h1m24s838ms ago; rejectTime=+2h35m35s180ms ago 
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+170d12h27m38s734ms ago; rejectTime=+170d13h48m38s725ms ago 
 RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
 PASS  baseline: no shell alarm or timer pending                   = 0
-PASS  baseline: alarm and timer stores empty                      = empty
+FAIL  baseline: alarm and timer stores empty                      expected [empty] got [[{"id":"ab764ede3","hour":2,"minute":30,"name":"Spring","days":[],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2027-03-14","snoozedUntilMs":null,"lastHandledMs":1805014800000}][]]
 PASS  the alarm was created                                       != 
 PASS  the keyguard shows after sleep + wake                       = true
 PASS  locked: the alarm fired                                     != 
-PASS  locked: surface: toast-locked ad94c0de4                     contains [[alarms] surface: toast-locked ad94c0de4]
+PASS  locked: surface: toast-locked acfd292fa                     contains [[alarms] surface: toast-locked acfd292fa]
       locked ring_surface: 0 0 1080 744
 PASS  locked: the toast starts at y 0 (covers the status bar)     = 0
 PASS  locked: the toast is 248 epx tall ± 3 %                    744.00 vs 744.00 +/- 22.0
 PASS  locked: the status-bar strip (y 4–24, x 700–1000) reads the toast fill (57,57,57) ± 4  = yes
-RECORD  locked: the gesture driver's window list                    SYSTEM:com.android.launcher3:[0,2205][1080,2340]:focused=false:active=false;SYSTEM:com.android.systemui:[0,0][1080,170]:focused=true:active=true;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=false:active=false
+RECORD  locked: the gesture driver's window list                    SYSTEM:com.android.launcher3:[0,2205][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
 PASS  locked: after a tap at y = 400 epx the ALARM player is still started  != 0
 PASS  locked: … and ring_surface is still up                    = yes
 PASS  locked: after a tap at y = 500 epx the ALARM player is still started  != 0
 PASS  locked: … and ring_surface is still up                    = yes
 PASS  locked: after a tap at y = 600 epx the ALARM player is still started  != 0
 PASS  locked: … and ring_surface is still up                    = yes
-PASS  locked: Dismiss ends it                                     contains [[alarms] ring ended ad94c0de4: dismiss]
-PASS  device clock back within 2 s of the host (RV12)             1790276351.00 vs 1790276351.00 +/- 2.0
+PASS  locked: Dismiss ends it                                     contains [[alarms] ring ended acfd292fa: dismiss]
+PASS  device clock back within 2 s of the host (RV12)             1790282567.00 vs 1790282568.00 +/- 2.0
 PASS  wake_device printed Awake (C-25)                            = Awake
 PASS  the in-use alarm was created                                != 
-PASS  in use: the alarm fired                                     != 
-PASS  in use: surface: toast-overlay af7a38e09                    contains [[alarms] surface: toast-overlay af7a38e09]
-      overlay ring_surface: 0 136 1080 880
+FAIL  in use: the alarm fired                                     should not be []
+FAIL  in use: surface: toast-overlay a1781bba2                    does not contain [[alarms] surface: toast-overlay a1781bba2]:     2026-09-24 14:43:53.059 wall=1790282633059 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790282633059
+    2026-09-24 14:43:53.059 wall=1790282633059 [calendar] refresh (minute): access=true faces=1
+    2
+      overlay ring_surface: 
       the system status bar window is 136 px tall
-PASS  in use: the toast's top edge sits at the system status bar's bottom (the recorded seam)  = 136
-RECORD  the recorded seam (px): the overlay toast's top edge        136
-PASS  in use: the toast is 248 epx tall ± 3 %                    744.00 vs 744.00 +/- 22.0
+FAIL  in use: the toast's top edge sits at the system status bar's bottom (the recorded seam)  expected [136] got []
+RECORD  the recorded seam (px): the overlay toast's top edge        
 PASS  in use: after a tap at y = 400 epx the ALARM player is still started  != 0
-PASS  in use: … and ring_surface is still up                    = yes
+FAIL  in use: … and ring_surface is still up                    expected [yes] got [no]
 PASS  in use: after a tap at y = 500 epx the ALARM player is still started  != 0
-PASS  in use: … and ring_surface is still up                    = yes
+FAIL  in use: … and ring_surface is still up                    expected [yes] got [no]
 PASS  in use: after a tap at y = 600 epx the ALARM player is still started  != 0
-PASS  in use: … and ring_surface is still up                    = yes
-PASS  in use: Dismiss ends it                                     contains [[alarms] ring ended af7a38e09: dismiss]
-PASS  device clock back within 2 s of the host (RV12)             1790276386.00 vs 1790276386.00 +/- 2.0
-      scroll_to_node alarm_row:ad94c0de4: 0 swipe(s), found=yes
-      scroll_to_node alarm_row:af7a38e09: 0 swipe(s), found=yes
-PASS  restore: no shell alarm or timer pending                    = 0
-PASS  restore: alarm and timer stores empty                       = empty
+FAIL  in use: … and ring_surface is still up                    expected [yes] got [no]
+      gtap: no ring_dismiss in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/E23/overlay_end.xml
+FAIL  in use: Dismiss ends it                                     does not contain [[alarms] ring ended a1781bba2: dismiss]: 
+PASS  device clock back within 2 s of the host (RV12)             1790282633.00 vs 1790282633.00 +/- 2.0
+      scroll_to_node alarm_row:acfd292fa: 6 swipe(s), found=no
+      app_delete_alarm: no row alarm_row:acfd292fa
+      scroll_to_node alarm_row:a1781bba2: 6 swipe(s), found=no
+      app_delete_alarm: no row alarm_row:a1781bba2
+FAIL  restore: no shell alarm or timer pending                    expected [0] got [2]
+FAIL  restore: alarm and timer stores empty                       expected [empty] got [[{"id":"ab764ede3","hour":2,"minute":30,"name":"Spring","days":[],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2027-03-14","snoozedUntilMs":null,"lastHandledMs":1805014800000},{"id":"acfd292fa","hour":3,"minute":8,"name":"Bars","days":[],"enabled":false,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2027-03-14","snoozedUntilMs":null,"lastHandledMs":1805015280000},{"id":"a1781bba2","hour":14,"minute":44,"name":"Bars2","days":[],"enabled":false,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2026-09-24","snoozedUntilMs":null,"lastHandledMs":1790282640000},{"id":"a64eefbc4","hour":1,"minute":30,"name":"Fall","days":["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":null,"snoozedUntilMs":null,"lastHandledMs":1825572600000}][]]
 ------------------------------------------------------------------------------
-E23: 33 passed, 0 failed, 4 recorded
+E23: 22 passed, 10 failed, 4 recorded

@@ -1,22 +1,89 @@
 Current Notification Manager state:
   Notification List:
-    NotificationRecord(0x05f810b4: pkg=app.tileshell user=UserHandle{0} id=15003 tag=null importance=4 key=0|app.tileshell|15003|null|10150: Notification(channel=clock_ringing shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONGOING_EVENT|NO_CLEAR|FOREGROUND_SERVICE|HIGH_PRIORITY color=0x00000000 category=alarm actions=2 vis=PUBLIC))
+    NotificationRecord(0x03ad02d0: pkg=app.tileshell user=UserHandle{0} id=0 tag=0|app.tileshell|g:Aggregate_AlertingSection importance=4 key=0|app.tileshell|0|0|app.tileshell|g:Aggregate_AlertingSection|10150|0|app.tileshell|g:Aggregate_AlertingSection: Notification(channel=clock_ringing shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONGOING_EVENT|NO_CLEAR|LOCAL_ONLY|GROUP_SUMMARY|AUTOGROUP_SUMMARY color=0x00000000 groupKey=0|app.tileshell|g:Aggregate_AlertingSection vis=PUBLIC))
       uid=10150 userId=0
       opPkg=app.tileshell
       icon=Icon(typ=RESOURCE pkg=app.tileshell id=0x7f040000)
-      flags=ONGOING_EVENT|NO_CLEAR|FOREGROUND_SERVICE|HIGH_PRIORITY
+      flags=ONGOING_EVENT|NO_CLEAR|LOCAL_ONLY|GROUP_SUMMARY|AUTOGROUP_SUMMARY
+      originalFlags=ONGOING_EVENT|NO_CLEAR|LOCAL_ONLY|GROUP_SUMMARY|AUTOGROUP_SUMMARY
+      pri=0
+      key=0|app.tileshell|0|0|app.tileshell|g:Aggregate_AlertingSection|10150|0|app.tileshell|g:Aggregate_AlertingSection
+      seen=false
+      groupKey=0|app.tileshell|g:Aggregate_AlertingSection
+      notification=
+            fullscreenIntent=null
+            contentIntent=PendingIntent{465c2c9: PendingIntentRecord{3eea634 app.tileshell startActivity}}
+            deleteIntent=null
+            number=0
+            groupAlertBehavior=2
+            when=1790348700228/1790348700228
+            tickerText=null
+            vis=1
+            contentView=null
+            bigContentView=null
+            headsUpContentView=null
+            color=0x00000000
+            timeout=PT0S
+            extras={
+                android.reduced.images=Boolean (true)
+                android.appInfo=ApplicationInfo (ApplicationInfo{1235dce app.tileshell})
+                android.showWhen=Boolean (true)
+            }
+      publicNotification=
+            None
+      stats=SingleNotificationStats{posttimeElapsedMs=618796, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=0, airtimeMs=0, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=4, isNoisy=false}
+      mContactAffinity=0.0
+      mRecentlyIntrusive=false
+      mPackagePriority=0
+      mPackageVisibility=-1000
+      mSystemImportance=UNSPECIFIED
+      mAsstImportance=UNSPECIFIED
+      mImportance=HIGH
+      mImportanceExplanation=app
+      mProposedImportance=UNSPECIFIED
+      mIsAppImportanceLocked=false
+      mSensitiveContent=false
+      mCanceledAfterLifetimeExtension=false
+      mIntercept=false
+      mHidden==false
+      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0001:gsmry=0:nsk:rnk=0x0000
+      mRankingTimeMs=1790348700228
+      mCreationTimeMs=1790348700228
+      mVisibleSinceMs=0
+      mUpdateTimeMs=1790348700228
+      mInterruptionTimeMs=1790348700228
+      mSuppressedVisualEffects= 0
+      mSound= null
+      mVibration= null
+      mAttributes= AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
+      mLight= null
+      mShowBadge=true
+      mColorized=false
+      mAllowBubble=false
+      isBubble=false
+      mIsInterruptive=false
+      effectiveNotificationChannel=NotificationChannel{mId='clock_ringing', mName=Alarms and timers ringing, mDescription=, mImportance=4, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=null, mLights=false, mLightColor=0, mVibrationPattern=null, mVibrationEffect=null, mUserLockedFields=0, mUserVisibleTaskShown=true, mVibrationEnabled=false, mShowBadge=true, mDeleted=false, mDeletedTimeMs=-1, mGroup='null', mAudioAttributes=AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null, mBlockableSystem=false, mAllowBubbles=-1, mImportanceLockedDefaultApp=false, mOriginalImp=4, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false, mLastNotificationUpdateTimeMs=0}
+      mAdjustments=[]
+      shortcut=null found valid? false
+      mUserVisOverride=-1000
+      hasSummarization=false
+    NotificationRecord(0x0df7e4ef: pkg=app.tileshell user=UserHandle{0} id=15003 tag=null importance=4 key=0|app.tileshell|15003|null|10150: Notification(channel=clock_ringing shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONGOING_EVENT|NO_CLEAR|FOREGROUND_SERVICE|HIGH_PRIORITY|SILENT color=0x00000000 category=alarm actions=2 vis=PUBLIC))
+      uid=10150 userId=0
+      opPkg=app.tileshell
+      icon=Icon(typ=RESOURCE pkg=app.tileshell id=0x7f040000)
+      flags=ONGOING_EVENT|NO_CLEAR|FOREGROUND_SERVICE|HIGH_PRIORITY|SILENT
       originalFlags=ONGOING_EVENT|FOREGROUND_SERVICE|HIGH_PRIORITY
       pri=2
       key=0|app.tileshell|15003|null|10150
       seen=false
-      groupKey=0|app.tileshell|15003|null|10150
+      groupKey=0|app.tileshell|g:Aggregate_AlertingSection
       notification=
-            fullscreenIntent=PendingIntent{eee24dd: PendingIntentRecord{c38b4df app.tileshell startActivity (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
-            contentIntent=PendingIntent{a8f3852: PendingIntentRecord{c38b4df app.tileshell startActivity (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            fullscreenIntent=PendingIntent{a277bfc: PendingIntentRecord{ec80496 app.tileshell startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            contentIntent=PendingIntent{b7ec285: PendingIntentRecord{ec80496 app.tileshell startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
             deleteIntent=null
             number=0
             groupAlertBehavior=0
-            when=1790348700064/1790348700064
+            when=1790348700023/1790348700023
             tickerText=null
             vis=1
             contentView=null
@@ -25,19 +92,19 @@ Current Notification Manager state:
             color=0x00000000
             timeout=PT72H
             actions={
-                [0] "Snooze" -> PendingIntent{3902723: PendingIntentRecord{70a6bf5 app.tileshell startService (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
-                [1] "Dismiss" -> PendingIntent{85f8420: PendingIntentRecord{ebb252c app.tileshell startService (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                [0] "Snooze" -> PendingIntent{c1b88da: PendingIntentRecord{6c97a71 app.tileshell startService (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                [1] "Dismiss" -> PendingIntent{e07e10b: PendingIntentRecord{653148b app.tileshell startService (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
               }
             extras={
                 android.title=String (Alarm)
                 android.reduced.images=Boolean (true)
                 android.text=String (Wake · 9:05 AM)
-                android.appInfo=ApplicationInfo (ApplicationInfo{bad31d9 app.tileshell})
+                android.appInfo=ApplicationInfo (ApplicationInfo{1235dce app.tileshell})
                 android.showWhen=Boolean (false)
             }
       publicNotification=
             None
-      stats=SingleNotificationStats{posttimeElapsedMs=101886, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=0, airtimeMs=0, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=4, naturalImportance=4, isNoisy=false}
+      stats=SingleNotificationStats{posttimeElapsedMs=618594, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=0, airtimeMs=0, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=4, naturalImportance=4, isNoisy=false}
       mContactAffinity=0.0
       mRecentlyIntrusive=true
       mPackagePriority=0
@@ -52,12 +119,12 @@ Current Notification Manager state:
       mCanceledAfterLifetimeExtension=false
       mIntercept=false
       mHidden==false
-      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0000:gsmry=1:nsk:rnk=0x0000
-      mRankingTimeMs=1790348700066
-      mCreationTimeMs=1790348700066
+      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0001:gsmry=1:nsk:rnk=0x0001
+      mRankingTimeMs=1790348700026
+      mCreationTimeMs=1790348700026
       mVisibleSinceMs=0
-      mUpdateTimeMs=1790348700066
-      mInterruptionTimeMs=1790348700267
+      mUpdateTimeMs=1790348700026
+      mInterruptionTimeMs=1790348700227
       mSuppressedVisualEffects= 0
       mSound= null
       mVibration= null
@@ -73,7 +140,76 @@ Current Notification Manager state:
       shortcut=null found valid? false
       mUserVisOverride=-1000
       hasSummarization=false
-    NotificationRecord(0x04c4879e: pkg=com.android.systemui user=UserHandle{0} id=1397773634 tag=public:253,80 importance=2 key=0|com.android.systemui|1397773634|public:253,80|10124: Notification(channel=DSK shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=LOCAL_ONLY color=0x00000000 category=sys actions=2 vis=PUBLIC))
+    NotificationRecord(0x096e5be8: pkg=app.tileshell user=UserHandle{0} id=-2059939363 tag=null importance=3 key=0|app.tileshell|-2059939363|null|10150: Notification(channel=clock_missed shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=AUTO_CANCEL|SILENT color=0x00000000 vis=PRIVATE))
+      uid=10150 userId=0
+      opPkg=app.tileshell
+      icon=Icon(typ=RESOURCE pkg=app.tileshell id=0x7f040000)
+      flags=AUTO_CANCEL|SILENT
+      originalFlags=AUTO_CANCEL
+      pri=0
+      key=0|app.tileshell|-2059939363|null|10150
+      seen=false
+      groupKey=0|app.tileshell|g:Aggregate_AlertingSection
+      notification=
+            fullscreenIntent=null
+            contentIntent=PendingIntent{16e0201: PendingIntentRecord{4168c90 app.tileshell startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            deleteIntent=null
+            number=0
+            groupAlertBehavior=0
+            when=1790348690008/1790348690008
+            tickerText=null
+            vis=0
+            contentView=null
+            bigContentView=null
+            headsUpContentView=null
+            color=0x00000000
+            timeout=PT72H
+            extras={
+                android.title=String (Missed alarm 2:25 PM)
+                android.reduced.images=Boolean (true)
+                android.text=String (Alarm)
+                android.appInfo=ApplicationInfo (ApplicationInfo{e3958a6 app.tileshell})
+                android.showWhen=Boolean (true)
+            }
+      publicNotification=
+            None
+      stats=SingleNotificationStats{posttimeElapsedMs=608594, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=0, airtimeMs=0, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=3, isNoisy=false}
+      mContactAffinity=0.0
+      mRecentlyIntrusive=false
+      mPackagePriority=0
+      mPackageVisibility=-1000
+      mSystemImportance=UNSPECIFIED
+      mAsstImportance=UNSPECIFIED
+      mImportance=DEFAULT
+      mImportanceExplanation=app
+      mProposedImportance=UNSPECIFIED
+      mIsAppImportanceLocked=false
+      mSensitiveContent=false
+      mCanceledAfterLifetimeExtension=false
+      mIntercept=false
+      mHidden==false
+      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0001:gsmry=1:nsk:rnk=0x0002
+      mRankingTimeMs=1790348690021
+      mCreationTimeMs=1790348690021
+      mVisibleSinceMs=0
+      mUpdateTimeMs=1790348690021
+      mInterruptionTimeMs=1790348690227
+      mSuppressedVisualEffects= 0
+      mSound= null
+      mVibration= null
+      mAttributes= AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
+      mLight= null
+      mShowBadge=true
+      mColorized=false
+      mAllowBubble=false
+      isBubble=false
+      mIsInterruptive=true
+      effectiveNotificationChannel=NotificationChannel{mId='clock_missed', mName=Missed alarms, mDescription=, mImportance=3, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=null, mLights=false, mLightColor=0, mVibrationPattern=null, mVibrationEffect=null, mUserLockedFields=0, mUserVisibleTaskShown=false, mVibrationEnabled=false, mShowBadge=true, mDeleted=false, mDeletedTimeMs=-1, mGroup='null', mAudioAttributes=AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null, mBlockableSystem=false, mAllowBubbles=-1, mImportanceLockedDefaultApp=false, mOriginalImp=3, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false, mLastNotificationUpdateTimeMs=0}
+      mAdjustments=[]
+      shortcut=null found valid? false
+      mUserVisOverride=-1000
+      hasSummarization=false
+    NotificationRecord(0x0dd182e7: pkg=com.android.systemui user=UserHandle{0} id=1397773634 tag=public:253,80 importance=2 key=0|com.android.systemui|1397773634|public:253,80|10124: Notification(channel=DSK shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=LOCAL_ONLY color=0x00000000 category=sys actions=2 vis=PUBLIC))
       uid=10124 userId=0
       opPkg=com.android.systemui
       icon=Icon(typ=RESOURCE pkg=com.android.systemui id=0x010805c8)
@@ -85,11 +221,11 @@ Current Notification Manager state:
       groupKey=0|com.android.systemui|1397773634|public:253,80|10124
       notification=
             fullscreenIntent=null
-            contentIntent=PendingIntent{b34127f: PendingIntentRecord{edac74d com.android.systemui startActivity (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
-            deleteIntent=PendingIntent{8c24c: PendingIntentRecord{a60f6e4 com.android.systemui broadcastIntent (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            contentIntent=PendingIntent{dc14e94: PendingIntentRecord{16cd798 com.android.systemui startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            deleteIntent=PendingIntent{bb7bd3d: PendingIntentRecord{3293d7b com.android.systemui broadcastIntent (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
             number=0
             groupAlertBehavior=0
-            when=1790276950643/1790276950643
+            when=1790280789379/1790280789379
             tickerText=null
             vis=1
             contentView=null
@@ -98,15 +234,15 @@ Current Notification Manager state:
             color=0x00000000
             timeout=PT72H
             actions={
-                [0] "Explore" -> PendingIntent{1b61295: PendingIntentRecord{edac74d com.android.systemui startActivity (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
-                [1] "Eject" -> PendingIntent{86d7faa: PendingIntentRecord{e6e8202 com.android.systemui broadcastIntent (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                [0] "Explore" -> PendingIntent{3125932: PendingIntentRecord{16cd798 com.android.systemui startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                [1] "Eject" -> PendingIntent{4a96683: PendingIntentRecord{f0fd10a com.android.systemui broadcastIntent (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
               }
             extras={
                 android.title=String (Virtual SD card)
                 android.reduced.images=Boolean (true)
                 android.template=String (android.app.Notification$BigTextStyle)
                 android.text=String (For storing photos, videos, music and more)
-                android.appInfo=ApplicationInfo (ApplicationInfo{b01579b com.android.systemui})
+                android.appInfo=ApplicationInfo (ApplicationInfo{5aec000 com.android.systemui})
                 android.showWhen=Boolean (true)
                 android.substName=String (Settings)
                 android.bigText=String (For storing photos, videos, music and more)
@@ -114,7 +250,7 @@ Current Notification Manager state:
             }
       publicNotification=
             None
-      stats=SingleNotificationStats{posttimeElapsedMs=41776, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=0, airtimeMs=0, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=2, isNoisy=true}
+      stats=SingleNotificationStats{posttimeElapsedMs=18664, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=0, airtimeMs=0, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=2, isNoisy=true}
       mContactAffinity=0.0
       mRecentlyIntrusive=false
       mPackagePriority=0
@@ -129,12 +265,12 @@ Current Notification Manager state:
       mCanceledAfterLifetimeExtension=false
       mIntercept=false
       mHidden==false
-      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0001:gsmry=1:nsk:rnk=0x0001
-      mRankingTimeMs=1790276950644
-      mCreationTimeMs=1790276950644
+      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0004:gsmry=1:nsk:rnk=0x0004
+      mRankingTimeMs=1790280789380
+      mCreationTimeMs=1790280789380
       mVisibleSinceMs=0
-      mUpdateTimeMs=1790276950644
-      mInterruptionTimeMs=1790276950644
+      mUpdateTimeMs=1790280789380
+      mInterruptionTimeMs=1790280789380
       mSuppressedVisualEffects= 0
       mSound= content://settings/system/notification_sound
       mVibration= null
@@ -150,7 +286,7 @@ Current Notification Manager state:
       shortcut=null found valid? false
       mUserVisOverride=-1000
       hasSummarization=false
-    NotificationRecord(0x0525b738: pkg=android user=UserHandle{-1} id=55 tag=null importance=2 key=-1|android|55|null|1000: Notification(channel=DEVELOPER shortcut=null contentView=null vibrate=null sound=null tick defaults=0 flags=ONGOING_EVENT|CAN_COLORIZE color=0x00000000 vis=PUBLIC))
+    NotificationRecord(0x09e7f039: pkg=android user=UserHandle{-1} id=55 tag=null importance=2 key=-1|android|55|null|1000: Notification(channel=DEVELOPER shortcut=null contentView=null vibrate=null sound=null tick defaults=0 flags=ONGOING_EVENT|CAN_COLORIZE color=0x00000000 vis=PUBLIC))
       uid=1000 userId=-1
       opPkg=android
       icon=Icon(typ=RESOURCE pkg=android id=0x010809ab)
@@ -166,7 +302,7 @@ Current Notification Manager state:
             deleteIntent=null
             number=0
             groupAlertBehavior=0
-            when=0/1790276684729
+            when=0/1790280788268
             tickerText=Serial console enabled
             vis=1
             contentView=null
@@ -178,12 +314,12 @@ Current Notification Manager state:
                 android.title=String (Serial console enabled)
                 android.reduced.images=Boolean (true)
                 android.text=String (Performance is impacted. To disable, check bootloader.)
-                android.appInfo=ApplicationInfo (ApplicationInfo{c324311 android})
+                android.appInfo=ApplicationInfo (ApplicationInfo{808d67e android})
                 android.showWhen=Boolean (true)
             }
       publicNotification=
             None
-      stats=SingleNotificationStats{posttimeElapsedMs=11253, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=0, airtimeMs=0, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=2, isNoisy=true}
+      stats=SingleNotificationStats{posttimeElapsedMs=16786, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=0, airtimeMs=0, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=2, isNoisy=true}
       mContactAffinity=0.0
       mRecentlyIntrusive=false
       mPackagePriority=0
@@ -198,12 +334,12 @@ Current Notification Manager state:
       mCanceledAfterLifetimeExtension=false
       mIntercept=false
       mHidden==false
-      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0003:gsmry=1:nsk:rnk=0x0003
-      mRankingTimeMs=1790276684730
-      mCreationTimeMs=1790276684730
+      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0005:gsmry=1:nsk:rnk=0x0005
+      mRankingTimeMs=1790280788269
+      mCreationTimeMs=1790280788269
       mVisibleSinceMs=0
-      mUpdateTimeMs=1790276684730
-      mInterruptionTimeMs=1790276684731
+      mUpdateTimeMs=1790280788269
+      mInterruptionTimeMs=1790280788278
       mSuppressedVisualEffects= 0
       mSound= content://settings/system/notification_sound
       mVibration= null
@@ -219,7 +355,7 @@ Current Notification Manager state:
       shortcut=null found valid? false
       mUserVisOverride=-1000
       hasSummarization=false
-    NotificationRecord(0x01fbec76: pkg=com.android.dialer user=UserHandle{0} id=1 tag=GroupSummary_MissedCall importance=3 key=0|com.android.dialer|1|GroupSummary_MissedCall|10101: Notification(channel=phone_missed_call shortcut=null contentView=null vibrate=default sound=null defaults=VIBRATE|LIGHTS flags=SHOW_LIGHTS|ONLY_ALERT_ONCE|AUTO_CANCEL|GROUP_SUMMARY color=0xff2a56c6 groupKey=MissedCallGroup vis=PRIVATE publicVersion=Notification(channel=null shortcut=null contentView=null vibrate=default sound=null defaults=VIBRATE flags=ONLY_ALERT_ONCE|AUTO_CANCEL color=0xff2a56c6 groupKey=MissedCallGroup vis=PRIVATE)))
+    NotificationRecord(0x0091e7df: pkg=com.android.dialer user=UserHandle{0} id=1 tag=GroupSummary_MissedCall importance=3 key=0|com.android.dialer|1|GroupSummary_MissedCall|10101: Notification(channel=phone_missed_call shortcut=null contentView=null vibrate=default sound=null defaults=VIBRATE|LIGHTS flags=SHOW_LIGHTS|ONLY_ALERT_ONCE|AUTO_CANCEL|GROUP_SUMMARY color=0xff2a56c6 groupKey=MissedCallGroup vis=PRIVATE publicVersion=Notification(channel=null shortcut=null contentView=null vibrate=default sound=null defaults=VIBRATE flags=ONLY_ALERT_ONCE|AUTO_CANCEL color=0xff2a56c6 groupKey=MissedCallGroup vis=PRIVATE)))
       uid=10101 userId=0
       opPkg=com.android.dialer
       icon=Icon(typ=RESOURCE pkg=com.android.dialer id=0x0108007f)
@@ -227,15 +363,15 @@ Current Notification Manager state:
       originalFlags=SHOW_LIGHTS|ONLY_ALERT_ONCE|AUTO_CANCEL|GROUP_SUMMARY
       pri=0
       key=0|com.android.dialer|1|GroupSummary_MissedCall|10101
-      seen=true
+      seen=false
       groupKey=0|com.android.dialer|g:MissedCallGroup
       notification=
             fullscreenIntent=null
-            contentIntent=PendingIntent{393d277: PendingIntentRecord{9efe5ea com.android.dialer startActivity (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
-            deleteIntent=PendingIntent{f1b0ee4: PendingIntentRecord{24529d5 com.android.dialer startService (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            contentIntent=PendingIntent{83fdc2c: PendingIntentRecord{96830a5 com.android.dialer startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            deleteIntent=PendingIntent{e4e56f5: PendingIntentRecord{4774e9c com.android.dialer startService (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
             number=0
             groupAlertBehavior=0
-            when=1790276950221/1790276950221
+            when=1790280789195/1790280789195
             tickerText=null
             vis=0
             contentView=null
@@ -247,16 +383,16 @@ Current Notification Manager state:
                 android.title=String (Missed calls)
                 android.reduced.images=Boolean (true)
                 android.text=String (2 missed calls)
-                android.appInfo=ApplicationInfo (ApplicationInfo{566ff4d com.android.dialer})
+                android.appInfo=ApplicationInfo (ApplicationInfo{c57dc8a com.android.dialer})
                 android.showWhen=Boolean (true)
             }
       publicNotification=
             fullscreenIntent=null
-            contentIntent=PendingIntent{1325a02: PendingIntentRecord{9efe5ea com.android.dialer startActivity (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
-            deleteIntent=PendingIntent{9691f13: PendingIntentRecord{24529d5 com.android.dialer startService (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            contentIntent=PendingIntent{35722fb: PendingIntentRecord{96830a5 com.android.dialer startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            deleteIntent=PendingIntent{1e48f18: PendingIntentRecord{4774e9c com.android.dialer startService (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
             number=0
             groupAlertBehavior=0
-            when=1790276950221/1790276950221
+            when=1790280789196/1790280789196
             tickerText=null
             vis=0
             contentView=null
@@ -267,10 +403,10 @@ Current Notification Manager state:
             extras={
                 android.title=String (Missed calls)
                 android.reduced.images=Boolean (true)
-                android.appInfo=ApplicationInfo (ApplicationInfo{4ec3550 com.android.dialer})
+                android.appInfo=ApplicationInfo (ApplicationInfo{67a6d71 com.android.dialer})
                 android.showWhen=Boolean (true)
             }
-      stats=SingleNotificationStats{posttimeElapsedMs=41350, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=1, airtimeMs=2652, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=3, isNoisy=true}
+      stats=SingleNotificationStats{posttimeElapsedMs=18278, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=0, airtimeMs=0, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=3, isNoisy=true}
       mContactAffinity=0.0
       mRecentlyIntrusive=false
       mPackagePriority=0
@@ -285,12 +421,12 @@ Current Notification Manager state:
       mCanceledAfterLifetimeExtension=false
       mIntercept=false
       mHidden==false
-      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0004:gsmry=0:nsk:rnk=0x0002
-      mRankingTimeMs=1790276950226
-      mCreationTimeMs=1790276950226
-      mVisibleSinceMs=1790276760214
-      mUpdateTimeMs=1790276950226
-      mInterruptionTimeMs=1790276950226
+      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0006:gsmry=0:nsk:rnk=0x0003
+      mRankingTimeMs=1790280789559
+      mCreationTimeMs=1790280789559
+      mVisibleSinceMs=0
+      mUpdateTimeMs=1790280789196
+      mInterruptionTimeMs=1790280789196
       mSuppressedVisualEffects= 0
       mSound= null
       mVibration= Composed{segments=[Step{amplitude=0.0, frequencyHz=0.0, duration=0}, Step{amplitude=-1.0, frequencyHz=0.0, duration=350}, Step{amplitude=0.0, frequencyHz=0.0, duration=250}, Step{amplitude=-1.0, frequencyHz=0.0, duration=350}], repeat=-1}
@@ -306,7 +442,7 @@ Current Notification Manager state:
       shortcut=null found valid? false
       mUserVisOverride=-1000
       hasSummarization=false
-    NotificationRecord(0x0cb14349: pkg=com.android.dialer user=UserHandle{0} id=1 tag=MissedCall_content://call_log/calls/3?allow_voicemails=true importance=3 key=0|com.android.dialer|1|MissedCall_content://call_log/calls/3?allow_voicemails=true|10101: Notification(channel=phone_missed_call shortcut=null contentView=null vibrate=default sound=null defaults=VIBRATE|LIGHTS flags=SHOW_LIGHTS|ONLY_ALERT_ONCE|AUTO_CANCEL color=0xff2a56c6 groupKey=MissedCallGroup actions=2 vis=PRIVATE publicVersion=Notification(channel=phone_missed_call shortcut=null contentView=null vibrate=default sound=null defaults=VIBRATE flags=ONLY_ALERT_ONCE|AUTO_CANCEL color=0xff2a56c6 groupKey=MissedCallGroup vis=PRIVATE)))
+    NotificationRecord(0x05df3756: pkg=com.android.dialer user=UserHandle{0} id=1 tag=MissedCall_content://call_log/calls/3?allow_voicemails=true importance=3 key=0|com.android.dialer|1|MissedCall_content://call_log/calls/3?allow_voicemails=true|10101: Notification(channel=phone_missed_call shortcut=null contentView=null vibrate=default sound=null defaults=VIBRATE|LIGHTS flags=SHOW_LIGHTS|ONLY_ALERT_ONCE|AUTO_CANCEL color=0xff2a56c6 groupKey=MissedCallGroup actions=2 vis=PRIVATE publicVersion=Notification(channel=phone_missed_call shortcut=null contentView=null vibrate=default sound=null defaults=VIBRATE flags=ONLY_ALERT_ONCE|AUTO_CANCEL color=0xff2a56c6 groupKey=MissedCallGroup vis=PRIVATE)))
       uid=10101 userId=0
       opPkg=com.android.dialer
       icon=Icon(typ=RESOURCE pkg=com.android.dialer id=0x0108007f)
@@ -314,12 +450,12 @@ Current Notification Manager state:
       originalFlags=SHOW_LIGHTS|ONLY_ALERT_ONCE|AUTO_CANCEL
       pri=0
       key=0|com.android.dialer|1|MissedCall_content://call_log/calls/3?allow_voicemails=true|10101
-      seen=true
+      seen=false
       groupKey=0|com.android.dialer|g:MissedCallGroup
       notification=
             fullscreenIntent=null
-            contentIntent=PendingIntent{d70144e: PendingIntentRecord{409e08f com.android.dialer startActivity (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
-            deleteIntent=PendingIntent{13c996f: PendingIntentRecord{ed783ee com.android.dialer startService (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            contentIntent=PendingIntent{56af3d7: PendingIntentRecord{7b8b1cf com.android.dialer startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            deleteIntent=PendingIntent{41f84c4: PendingIntentRecord{425d22e com.android.dialer startService (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
             number=0
             groupAlertBehavior=0
             when=1790273112205/1790273112205
@@ -331,21 +467,21 @@ Current Notification Manager state:
             color=0xff2a56c6
             timeout=PT72H
             actions={
-                [0] "Call back" -> PendingIntent{867567c: PendingIntentRecord{83a5f1c com.android.dialer startService (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
-                [1] "Message" -> PendingIntent{41cb05: PendingIntentRecord{57d3725 com.android.dialer startActivity (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                [0] "Call back" -> PendingIntent{f776fad: PendingIntentRecord{4eaf75c com.android.dialer startService (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                [1] "Message" -> PendingIntent{6af72e2: PendingIntentRecord{c918a65 com.android.dialer startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
               }
             extras={
                 android.title=String (Missed call)
                 android.reduced.images=Boolean (true)
                 android.text=SpannableString (555-1234)
-                android.appInfo=ApplicationInfo (ApplicationInfo{2bd275a com.android.dialer})
+                android.appInfo=ApplicationInfo (ApplicationInfo{a80f673 com.android.dialer})
                 android.showWhen=Boolean (true)
                 android.largeIcon=Icon (Icon(typ=BITMAP size=135x135))
             }
       publicNotification=
             fullscreenIntent=null
-            contentIntent=PendingIntent{6235d8b: PendingIntentRecord{409e08f com.android.dialer startActivity (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
-            deleteIntent=PendingIntent{8115e68: PendingIntentRecord{ed783ee com.android.dialer startService (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            contentIntent=PendingIntent{3f22930: PendingIntentRecord{7b8b1cf com.android.dialer startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            deleteIntent=PendingIntent{1c859a9: PendingIntentRecord{425d22e com.android.dialer startService (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
             number=0
             groupAlertBehavior=0
             when=1790273112205/1790273112205
@@ -359,10 +495,10 @@ Current Notification Manager state:
             extras={
                 android.title=String (Missed call)
                 android.reduced.images=Boolean (true)
-                android.appInfo=ApplicationInfo (ApplicationInfo{6991281 com.android.dialer})
+                android.appInfo=ApplicationInfo (ApplicationInfo{f55db2e com.android.dialer})
                 android.showWhen=Boolean (true)
             }
-      stats=SingleNotificationStats{posttimeElapsedMs=41374, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=1, airtimeMs=2652, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=3, isNoisy=true}
+      stats=SingleNotificationStats{posttimeElapsedMs=18356, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=0, airtimeMs=0, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=3, isNoisy=true}
       mContactAffinity=0.0
       mRecentlyIntrusive=false
       mPackagePriority=0
@@ -377,12 +513,12 @@ Current Notification Manager state:
       mCanceledAfterLifetimeExtension=false
       mIntercept=false
       mHidden==false
-      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0004:gsmry=1:nsk:rnk=0x0004
+      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0006:gsmry=1:nsk:rnk=0x0006
       mRankingTimeMs=1790273112205
-      mCreationTimeMs=1790276950190
-      mVisibleSinceMs=1790276760214
-      mUpdateTimeMs=1790276950190
-      mInterruptionTimeMs=1790276760214
+      mCreationTimeMs=1790280789064
+      mVisibleSinceMs=0
+      mUpdateTimeMs=1790280789064
+      mInterruptionTimeMs=1790280789267
       mSuppressedVisualEffects= 0
       mSound= null
       mVibration= Composed{segments=[Step{amplitude=0.0, frequencyHz=0.0, duration=0}, Step{amplitude=-1.0, frequencyHz=0.0, duration=350}, Step{amplitude=0.0, frequencyHz=0.0, duration=250}, Step{amplitude=-1.0, frequencyHz=0.0, duration=350}], repeat=-1}
@@ -398,7 +534,7 @@ Current Notification Manager state:
       shortcut=null found valid? false
       mUserVisOverride=-1000
       hasSummarization=false
-    NotificationRecord(0x03965f26: pkg=com.android.dialer user=UserHandle{0} id=1 tag=MissedCall_content://call_log/calls/1?allow_voicemails=true importance=3 key=0|com.android.dialer|1|MissedCall_content://call_log/calls/1?allow_voicemails=true|10101: Notification(channel=phone_missed_call shortcut=null contentView=null vibrate=default sound=null defaults=VIBRATE|LIGHTS flags=SHOW_LIGHTS|ONLY_ALERT_ONCE|AUTO_CANCEL color=0xff2a56c6 groupKey=MissedCallGroup actions=2 vis=PRIVATE publicVersion=Notification(channel=phone_missed_call shortcut=null contentView=null vibrate=default sound=null defaults=VIBRATE flags=ONLY_ALERT_ONCE|AUTO_CANCEL color=0xff2a56c6 groupKey=MissedCallGroup vis=PRIVATE)))
+    NotificationRecord(0x03ea86cf: pkg=com.android.dialer user=UserHandle{0} id=1 tag=MissedCall_content://call_log/calls/1?allow_voicemails=true importance=3 key=0|com.android.dialer|1|MissedCall_content://call_log/calls/1?allow_voicemails=true|10101: Notification(channel=phone_missed_call shortcut=null contentView=null vibrate=default sound=null defaults=VIBRATE|LIGHTS flags=SHOW_LIGHTS|ONLY_ALERT_ONCE|AUTO_CANCEL color=0xff2a56c6 groupKey=MissedCallGroup actions=2 vis=PRIVATE publicVersion=Notification(channel=phone_missed_call shortcut=null contentView=null vibrate=default sound=null defaults=VIBRATE flags=ONLY_ALERT_ONCE|AUTO_CANCEL color=0xff2a56c6 groupKey=MissedCallGroup vis=PRIVATE)))
       uid=10101 userId=0
       opPkg=com.android.dialer
       icon=Icon(typ=RESOURCE pkg=com.android.dialer id=0x0108007f)
@@ -406,12 +542,12 @@ Current Notification Manager state:
       originalFlags=SHOW_LIGHTS|ONLY_ALERT_ONCE|AUTO_CANCEL
       pri=0
       key=0|com.android.dialer|1|MissedCall_content://call_log/calls/1?allow_voicemails=true|10101
-      seen=true
+      seen=false
       groupKey=0|com.android.dialer|g:MissedCallGroup
       notification=
             fullscreenIntent=null
-            contentIntent=PendingIntent{5684767: PendingIntentRecord{7a33395 com.android.dialer startActivity (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
-            deleteIntent=PendingIntent{3d1f914: PendingIntentRecord{ce1c74c com.android.dialer startService (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            contentIntent=PendingIntent{308a85c: PendingIntentRecord{64122de com.android.dialer startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            deleteIntent=PendingIntent{123e765: PendingIntentRecord{80facbf com.android.dialer startService (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
             number=0
             groupAlertBehavior=0
             when=1790262274214/1790262274214
@@ -423,21 +559,21 @@ Current Notification Manager state:
             color=0xff2a56c6
             timeout=PT72H
             actions={
-                [0] "Call back" -> PendingIntent{3c355bd: PendingIntentRecord{11de09b com.android.dialer startService (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
-                [1] "Message" -> PendingIntent{b7947b2: PendingIntentRecord{4728caa com.android.dialer startActivity (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                [0] "Call back" -> PendingIntent{9e87c3a: PendingIntentRecord{f12d6d5 com.android.dialer startService (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                [1] "Message" -> PendingIntent{cb2c0eb: PendingIntentRecord{8ef8c com.android.dialer startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
               }
             extras={
                 android.title=String (Missed call)
                 android.reduced.images=Boolean (true)
                 android.text=SpannableString (555-1234)
-                android.appInfo=ApplicationInfo (ApplicationInfo{c27f303 com.android.dialer})
+                android.appInfo=ApplicationInfo (ApplicationInfo{fa5ee48 com.android.dialer})
                 android.showWhen=Boolean (true)
                 android.largeIcon=Icon (Icon(typ=BITMAP size=135x135))
             }
       publicNotification=
             fullscreenIntent=null
-            contentIntent=PendingIntent{5f9280: PendingIntentRecord{7a33395 com.android.dialer startActivity (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
-            deleteIntent=PendingIntent{65490b9: PendingIntentRecord{ce1c74c com.android.dialer startService (allowlist: da86e07:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            contentIntent=PendingIntent{bf094e1: PendingIntentRecord{64122de com.android.dialer startActivity (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            deleteIntent=PendingIntent{9d22206: PendingIntentRecord{80facbf com.android.dialer startService (allowlist: 4cd2c7a:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
             number=0
             groupAlertBehavior=0
             when=1790262274214/1790262274214
@@ -451,10 +587,10 @@ Current Notification Manager state:
             extras={
                 android.title=String (Missed call)
                 android.reduced.images=Boolean (true)
-                android.appInfo=ApplicationInfo (ApplicationInfo{e302cfe com.android.dialer})
+                android.appInfo=ApplicationInfo (ApplicationInfo{b7a80c7 com.android.dialer})
                 android.showWhen=Boolean (true)
             }
-      stats=SingleNotificationStats{posttimeElapsedMs=41384, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=1, airtimeMs=2652, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=3, isNoisy=true}
+      stats=SingleNotificationStats{posttimeElapsedMs=18370, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=0, airtimeMs=0, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=3, isNoisy=true}
       mContactAffinity=0.0
       mRecentlyIntrusive=false
       mPackagePriority=0
@@ -469,12 +605,12 @@ Current Notification Manager state:
       mCanceledAfterLifetimeExtension=false
       mIntercept=false
       mHidden==false
-      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0004:gsmry=1:nsk:rnk=0x0005
+      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0006:gsmry=1:nsk:rnk=0x0007
       mRankingTimeMs=1790262274214
-      mCreationTimeMs=1790276950202
-      mVisibleSinceMs=1790276760213
-      mUpdateTimeMs=1790276950202
-      mInterruptionTimeMs=1790276760213
+      mCreationTimeMs=1790280789078
+      mVisibleSinceMs=0
+      mUpdateTimeMs=1790280789078
+      mInterruptionTimeMs=1790280789281
       mSuppressedVisualEffects= 0
       mSound= null
       mVibration= Composed{segments=[Step{amplitude=0.0, frequencyHz=0.0, duration=0}, Step{amplitude=-1.0, frequencyHz=0.0, duration=350}, Step{amplitude=0.0, frequencyHz=0.0, duration=250}, Step{amplitude=-1.0, frequencyHz=0.0, duration=350}], repeat=-1}
@@ -587,7 +723,7 @@ PackagePreferences:
       AppSettings: com.android.calllogbackup (10062)
       AppSettings: android (1000) importance=DEFAULT userSet=false fixedImportance=true
         NotificationChannel{mId='ABUSIVE_BACKGROUND_APPS', mName=Background Activity, mDescription=, mImportance=2, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=content://settings/system/notification_sound, mLights=false, mLightColor=0, mVibrationPattern=null, mVibrationEffect=null, mUserLockedFields=0, mUserVisibleTaskShown=false, mVibrationEnabled=false, mShowBadge=true, mDeleted=false, mDeletedTimeMs=-1, mGroup='null', mAudioAttributes=AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null, mBlockableSystem=false, mAllowBubbles=-1, mImportanceLockedDefaultApp=true, mOriginalImp=2, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false, mLastNotificationUpdateTimeMs=0}
-        NotificationChannel{mId='com.android.server.wm.AlertWindowNotification - app.tileshell', mName=Tessera displaying over other apps, mDescription=, mImportance=1, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=content://settings/system/notification_sound, mLights=false, mLightColor=0, mVibrationPattern=null, mVibrationEffect=null, mUserLockedFields=0, mUserVisibleTaskShown=false, mVibrationEnabled=false, mShowBadge=true, mDeleted=true, mDeletedTimeMs=1790276639285, mGroup='com.android.server.wm.AlertWindowNotification - ', mAudioAttributes=AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null, mBlockableSystem=true, mAllowBubbles=-1, mImportanceLockedDefaultApp=true, mOriginalImp=1, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false, mLastNotificationUpdateTimeMs=0}
+        NotificationChannel{mId='com.android.server.wm.AlertWindowNotification - app.tileshell', mName=Tessera displaying over other apps, mDescription=, mImportance=1, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=content://settings/system/notification_sound, mLights=false, mLightColor=0, mVibrationPattern=null, mVibrationEffect=null, mUserLockedFields=0, mUserVisibleTaskShown=false, mVibrationEnabled=false, mShowBadge=true, mDeleted=true, mDeletedTimeMs=1790281335264, mGroup='com.android.server.wm.AlertWindowNotification - ', mAudioAttributes=AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null, mBlockableSystem=true, mAllowBubbles=-1, mImportanceLockedDefaultApp=true, mOriginalImp=1, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false, mLastNotificationUpdateTimeMs=0}
         NotificationChannel{mId='NETWORK_ALERTS', mName=Network alerts, mDescription=, mImportance=4, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=content://settings/system/notification_sound, mLights=false, mLightColor=0, mVibrationPattern=null, mVibrationEffect=null, mUserLockedFields=0, mUserVisibleTaskShown=false, mVibrationEnabled=false, mShowBadge=true, mDeleted=false, mDeletedTimeMs=-1, mGroup='null', mAudioAttributes=AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null, mBlockableSystem=true, mAllowBubbles=-1, mImportanceLockedDefaultApp=true, mOriginalImp=4, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false, mLastNotificationUpdateTimeMs=0}
         NotificationChannel{mId='DEVELOPER', mName=Developer messages, mDescription=, mImportance=2, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=content://settings/system/notification_sound, mLights=false, mLightColor=0, mVibrationPattern=null, mVibrationEffect=null, mUserLockedFields=0, mUserVisibleTaskShown=false, mVibrationEnabled=false, mShowBadge=true, mDeleted=false, mDeletedTimeMs=-1, mGroup='null', mAudioAttributes=AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null, mBlockableSystem=true, mAllowBubbles=-1, mImportanceLockedDefaultApp=true, mOriginalImp=2, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false, mLastNotificationUpdateTimeMs=0}
         NotificationChannel{mId='APM_ALERTS', mName=APM alerts, mDescription=, mImportance=4, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=content://settings/system/notification_sound, mLights=false, mLightColor=0, mVibrationPattern=null, mVibrationEffect=null, mUserLockedFields=0, mUserVisibleTaskShown=false, mVibrationEnabled=false, mShowBadge=true, mDeleted=false, mDeletedTimeMs=-1, mGroup='null', mAudioAttributes=AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null, mBlockableSystem=true, mAllowBubbles=-1, mImportanceLockedDefaultApp=true, mOriginalImp=4, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false, mLastNotificationUpdateTimeMs=0}
@@ -665,7 +801,7 @@ PackagePreferences:
       AppSettings: com.android.DeviceAsWebcam (1000) importance=DEFAULT userSet=false fixedImportance=true
       AppSettings: com.looker.droidify (10154) importance=DEFAULT userSet=false
       AppSettings: com.android.internal.display.cutout.emulation.tall (10015)
-      AppSettings: com.android.deskclock (10104) importance=NONE userSet=false
+      AppSettings: com.android.deskclock (10104) importance=DEFAULT userSet=false
       AppSettings: com.android.camera2 (10106) importance=NONE userSet=false
       AppSettings: com.android.musicfx (10076)
       AppSettings: app.organicmaps (10151) importance=DEFAULT userSet=false
@@ -819,14 +955,14 @@ Restored without uid:
     All notification listeners (1) enabled for current profiles:
       ComponentInfo{app.tileshell/app.tileshell.feeds.TileNotificationListener}
     Live notification listeners (8):
-      ComponentInfo{android/com.android.server.biometrics.BiometricNotificationLogger} (user -1): android.service.notification.NotificationListenerService$NotificationListenerWrapper@d6e880c SYSTEM
-      ComponentInfo{android/com.android.server.am.AppFGSTracker$NotificationListener} (user -1): android.service.notification.NotificationListenerService$NotificationListenerWrapper@acbc555 SYSTEM
-      ComponentInfo{com.android.server.telecom.callsequencing.voip/com.android.server.telecom.callsequencing.voip.VoipCallMonitor} (user 0): android.service.notification.NotificationListenerService$NotificationListenerWrapper@3a11b6a SYSTEM
-      ComponentInfo{com.android.systemui/com.android.systemui.statusbar.NotificationListener} (user -1): android.service.notification.INotificationListener$Stub$Proxy@fef285b SYSTEM
-      ComponentInfo{android/com.android.server.SensitiveContentProtectionManagerService$NotificationListener} (user -1): android.service.notification.NotificationListenerService$NotificationListenerWrapper@88218f8 SYSTEM
-      ComponentInfo{android/com.android.server.people.data.DataManager} (user 0): android.service.notification.NotificationListenerService$NotificationListenerWrapper@bed7f91 SYSTEM
-      ComponentInfo{android.ext.services/android.ext.services.notification.Assistant} (user 0): android.service.notification.INotificationListener$Stub$Proxy@9a42778 GUEST
-      ComponentInfo{app.tileshell/app.tileshell.feeds.TileNotificationListener} (user 0): android.service.notification.INotificationListener$Stub$Proxy@e3c39e1
+      ComponentInfo{android/com.android.server.biometrics.BiometricNotificationLogger} (user -1): android.service.notification.NotificationListenerService$NotificationListenerWrapper@5731237 SYSTEM
+      ComponentInfo{android/com.android.server.am.AppFGSTracker$NotificationListener} (user -1): android.service.notification.NotificationListenerService$NotificationListenerWrapper@f15b3a4 SYSTEM
+      ComponentInfo{com.android.server.telecom.callsequencing.voip/com.android.server.telecom.callsequencing.voip.VoipCallMonitor} (user 0): android.service.notification.NotificationListenerService$NotificationListenerWrapper@dd1a50d SYSTEM
+      ComponentInfo{com.android.systemui/com.android.systemui.statusbar.NotificationListener} (user -1): android.service.notification.INotificationListener$Stub$Proxy@79b6cc2 SYSTEM
+      ComponentInfo{android/com.android.server.SensitiveContentProtectionManagerService$NotificationListener} (user -1): android.service.notification.NotificationListenerService$NotificationListenerWrapper@85c9ad3 SYSTEM
+      ComponentInfo{android/com.android.server.people.data.DataManager} (user 0): android.service.notification.NotificationListenerService$NotificationListenerWrapper@f9b683e SYSTEM
+      ComponentInfo{android.ext.services/android.ext.services.notification.Assistant} (user 0): android.service.notification.INotificationListener$Stub$Proxy@7f19646 GUEST
+      ComponentInfo{app.tileshell/app.tileshell.feeds.TileNotificationListener} (user 0): android.service.notification.INotificationListener$Stub$Proxy@f882f56
     Snoozed notification listeners (0):
     mListenerHints: 0
     mListenersDisablingEffects: ()
@@ -838,7 +974,7 @@ Restored without uid:
     All notification assistants (1) enabled for current profiles:
       ComponentInfo{android.ext.services/android.ext.services.notification.Assistant}
     Live notification assistants (1):
-      ComponentInfo{android.ext.services/android.ext.services.notification.Assistant} (user 0): android.service.notification.INotificationListener$Stub$Proxy@9a42778
+      ComponentInfo{android.ext.services/android.ext.services.notification.Assistant} (user 0): android.service.notification.INotificationListener$Stub$Proxy@7f19646
     Snoozed notification assistants (0):
 
   Zen Mode:
@@ -866,7 +1002,7 @@ deletedRules={}]
   Zen Log:
     Interception Events:
     State Changes:
-    2026-09-24T13:04:43.234550 - config: readXml (ORIGIN_INIT) from uid 1000,
+    2026-09-24T14:13:05.409540 - config: readXml (ORIGIN_INIT) from uid 1000,
 ZenModeConfig[user=0
 hasPriorityChannels=false,allowPriorityChannels=true,
 automaticRules={
@@ -874,28 +1010,40 @@ ZenRule[id=EVERY_NIGHT_DEFAULT_RULE,state=STATE_FALSE,enabled=FALSE,conditionOve
 manualRule=ZenRule[id=null,state=STATE_FALSE,enabled=TRUE,conditionOverride=OVERRIDE_NONE,name=null,zenMode=ZEN_MODE_OFF,conditionId=,pkg=android,component=null,configActivity=null,creationTime=0,enabler=null,zenPolicy=ZenPolicy{priorityCategories=[reminders=disallow events=disallow messages=allow calls=allow repeatCallers=allow alarms=allow media=allow system=disallow convs=allow ], visualEffects=[fullScreenIntent=disallow lights=disallow peek=disallow statusBar=allow badge=allow ambient=disallow notificationList=allow ], priorityCallsSenders=starred_contacts, priorityMessagesSenders=starred_contacts, priorityConversationSenders=important, allowChannels=priority},condition=null,deviceEffects=null,allowManualInvocation=true,iconResName=null,triggerDescription=null,type=0,disabledOrigin=0,legacySuppressedEffects=0,lastActivation=null],
 deletedRules={}],
 Diff[automaticRule[EVERY_NIGHT_DEFAULT_RULE]:ZenRuleDiff{condition:null->Condition[state=STATE_FALSE,id=condition://android/schedule?days=1.2.3.4.5.6.7&start=22.0&end=7.0&exitAtAlarm=true,summary=...,line1=...,line2=...,icon=0,source=SOURCE_UNKNOWN,flags=2]}]
-    2026-09-24T13:04:43.234900 - set_zen_mode: off,readXml
-    2026-09-24T13:04:43.234934 - set_zen_mode: off,updated setting
-    2026-09-24T13:04:43.235138 - subscribe: condition://android/schedule?days=1.2.3.4.5.6.7&start=22.0&end=7.0&exitAtAlarm=true,ok
-    2026-09-24T13:04:43.242350 - set_zen_mode: off,init
-    2026-09-24T13:04:43.242368 - set_zen_mode: off,updated setting
+    2026-09-24T14:13:05.409860 - set_zen_mode: off,readXml
+    2026-09-24T14:13:05.409879 - set_zen_mode: off,updated setting
+    2026-09-24T14:13:05.410026 - subscribe: condition://android/schedule?days=1.2.3.4.5.6.7&start=22.0&end=7.0&exitAtAlarm=true,ok
+    2026-09-24T14:13:05.420636 - set_zen_mode: off,init
+    2026-09-24T14:13:05.420655 - set_zen_mode: off,updated setting
 
   Condition providers:
     Allowed condition providers:
       com.android.camera2 (user: 0 isPrimary: true)
       app.tileshell:android.ext.services (user: 0 isPrimary: false)
     Has user set:
-      userId=0 value={android.ext.services/android.ext.services.notification.Assistant, app.tileshell, com.android.camera2, android.ext.services}
+      userId=0 value={android.ext.services/android.ext.services.notification.Assistant, app.tileshell, com.android.camera2, app.tileshell/app.tileshell.feeds.TileNotificationListener, android.ext.services}
     All condition providers (0) enabled for current profiles:
     Live condition providers (4):
-      ComponentInfo{android/com.android.server.notification.CountdownConditionProvider} (user 0): android.service.notification.ConditionProviderService$Provider@2acbc5f SYSTEM
-      ComponentInfo{android/com.android.server.notification.ScheduleConditionProvider} (user 0): android.service.notification.ConditionProviderService$Provider@56b56ac SYSTEM
-      ComponentInfo{android/com.android.server.notification.EventConditionProvider} (user 0): android.service.notification.ConditionProviderService$Provider@8247f75 SYSTEM
-      ComponentInfo{android/com.android.server.notification.CustomManualConditionProvider} (user 0): android.service.notification.ConditionProviderService$Provider@fde1b0a SYSTEM
+      ComponentInfo{android/com.android.server.notification.CountdownConditionProvider} (user 0): android.service.notification.ConditionProviderService$Provider@74fa6f4 SYSTEM
+      ComponentInfo{android/com.android.server.notification.ScheduleConditionProvider} (user 0): android.service.notification.ConditionProviderService$Provider@6809e1d SYSTEM
+      ComponentInfo{android/com.android.server.notification.EventConditionProvider} (user 0): android.service.notification.ConditionProviderService$Provider@c5e5892 SYSTEM
+      ComponentInfo{android/com.android.server.notification.CustomManualConditionProvider} (user 0): android.service.notification.ConditionProviderService$Provider@6146263 SYSTEM
     Snoozed condition providers (0):
     mRecords(1):
       ConditionRecord[id=condition://android/schedule?days=1.2.3.4.5.6.7&start=22.0&end=7.0&exitAtAlarm=true,component=ComponentInfo{android/com.android.server.notification.ScheduleConditionProvider},subscribed=true]
     mSystemConditionProviders: {schedule, event, custom_manual, countdown}
+    CustomManualConditionProvider: ENABLED
+    ScheduleConditionProvider:
+      mConnected=true
+      mRegistered=true
+      mSubscriptions=
+          condition://android/schedule?days=1.2.3.4.5.6.7&start=22.0&end=7.0&exitAtAlarm=true
+            ScheduleCalendar[mDays={1, 2, 3, 4, 5, 6, 7}, mSchedule=ScheduleInfo{days=[1, 2, 3, 4, 5, 6, 7], startHour=22, startMinute=0, endHour=7, endMinute=0, exitAtAlarm=true, nextAlarm=Wed Dec 31 17:00:00 MST 1969 (0)}]
+      snoozed due to alarm: 
+      mNextAlarmTime=Fri Sep 25 22:00:00 MDT 2026 (1790395200000), in +12h54m56s35ms, now=Fri Sep 25 09:05:03 MDT 2026 (1790348703965)
+    CountdownConditionProvider:
+      mConnected=true
+      mTime=0
     EventConditionProvider:
       mConnected=true
       mRegistered=false
@@ -907,21 +1055,10 @@ Diff[automaticRule[EVERY_NIGHT_DEFAULT_RULE]:ZenRuleDiff{condition:null->Conditi
           mCallback=null
           mRegistered=false
           u=0
-    CountdownConditionProvider:
-      mConnected=true
-      mTime=0
-    CustomManualConditionProvider: ENABLED
-    ScheduleConditionProvider:
-      mConnected=true
-      mRegistered=true
-      mSubscriptions=
-          condition://android/schedule?days=1.2.3.4.5.6.7&start=22.0&end=7.0&exitAtAlarm=true
-            ScheduleCalendar[mDays={1, 2, 3, 4, 5, 6, 7}, mSchedule=ScheduleInfo{days=[1, 2, 3, 4, 5, 6, 7], startHour=22, startMinute=0, endHour=7, endMinute=0, exitAtAlarm=true, nextAlarm=Wed Dec 31 17:00:00 MST 1969 (0)}]
-      snoozed due to alarm: 
-      mNextAlarmTime=Fri Sep 25 22:00:00 MDT 2026 (1790395200000), in +12h54m56s366ms, now=Fri Sep 25 09:05:03 MDT 2026 (1790348703634)
 
   Group summaries:
     0|com.android.dialer|g:MissedCallGroup -> 0|com.android.dialer|1|GroupSummary_MissedCall|10101
+    0|app.tileshell|g:Aggregate_AlertingSection -> 0|app.tileshell|0|0|app.tileshell|g:Aggregate_AlertingSection|10150|0|app.tileshell|g:Aggregate_AlertingSection
 
   Usage Stats:
     AggregatedStats{
@@ -930,7 +1067,7 @@ Diff[automaticRule[EVERY_NIGHT_DEFAULT_RULE]:ZenRuleDiff{condition:null->Conditi
       numPostedByApp=1,
       numUpdatedByApp=1,
       numRemovedByApp=0,
-      numPeopleCacheHit=2,
+      numPeopleCacheHit=6,
       numWithStaredPeople=0,
       numWithValidPeople=0,
       numPeopleCacheMiss=0,
@@ -965,31 +1102,31 @@ Diff[automaticRule[EVERY_NIGHT_DEFAULT_RULE]:ZenRuleDiff{condition:null->Conditi
     }
     AggregatedStats{
       key='android',
-      numEnqueuedByApp=1,
-      numPostedByApp=1,
+      numEnqueuedByApp=3,
+      numPostedByApp=3,
       numUpdatedByApp=0,
-      numRemovedByApp=0,
-      numPeopleCacheHit=0,
+      numRemovedByApp=2,
+      numPeopleCacheHit=2,
       numWithStaredPeople=0,
       numWithValidPeople=0,
       numPeopleCacheMiss=0,
       numBlocked=0,
       numSuspendedByAdmin=0,
       numWithActions=0,
-      numPrivate=0,
+      numPrivate=2,
       numSecret=0,
       numInterrupt=0,
-      numWithBigText=0,
+      numWithBigText=2,
       numWithBigPicture=0
       numForegroundService=0
       numUserInitiatedJob=0
-      numOngoing=1
+      numOngoing=3
       numAutoCancel=0
-      numWithLargeIcon=0
+      numWithLargeIcon=2
       numWithInbox=0
       numWithMediaSession=0
-      numWithTitle=1
-      numWithText=1
+      numWithTitle=3
+      numWithText=3
       numWithSubText=0
       numWithInfoText=0
       numRateViolations=0
@@ -997,38 +1134,38 @@ Diff[automaticRule[EVERY_NIGHT_DEFAULT_RULE]:ZenRuleDiff{condition:null->Conditi
       numQuotaViolations=0
       numImagesRemoved=0
       numTooOld=0
-      note_imp_noisy_: [0, 0, 0, 1, 0, 0]
+      note_imp_noisy_: [0, 0, 0, 3, 0, 0]
       note_imp_quiet_: [0, 0, 0, 0, 0, 0]
-      note_importance_: [0, 0, 1, 0, 0, 0]
+      note_importance_: [0, 2, 1, 0, 0, 0]
       numUndecorateRVs=0
     }
     AggregatedStats{
       key='__global',
-      numEnqueuedByApp=9,
-      numPostedByApp=7,
-      numUpdatedByApp=2,
-      numRemovedByApp=1,
-      numPeopleCacheHit=8,
+      numEnqueuedByApp=94,
+      numPostedByApp=29,
+      numUpdatedByApp=54,
+      numRemovedByApp=22,
+      numPeopleCacheHit=113,
       numWithStaredPeople=0,
       numWithValidPeople=0,
       numPeopleCacheMiss=0,
       numBlocked=0,
       numSuspendedByAdmin=0,
-      numWithActions=5,
-      numPrivate=4,
+      numWithActions=12,
+      numPrivate=68,
       numSecret=0,
       numInterrupt=4,
-      numWithBigText=2,
+      numWithBigText=4,
       numWithBigPicture=0
-      numForegroundService=2
+      numForegroundService=9
       numUserInitiatedJob=0
-      numOngoing=4
-      numAutoCancel=4
-      numWithLargeIcon=2
+      numOngoing=77
+      numAutoCancel=5
+      numWithLargeIcon=4
       numWithInbox=0
       numWithMediaSession=0
-      numWithTitle=9
-      numWithText=9
+      numWithTitle=75
+      numWithText=19
       numWithSubText=0
       numWithInfoText=0
       numRateViolations=0
@@ -1036,9 +1173,9 @@ Diff[automaticRule[EVERY_NIGHT_DEFAULT_RULE]:ZenRuleDiff{condition:null->Conditi
       numQuotaViolations=0
       numImagesRemoved=0
       numTooOld=0
-      note_imp_noisy_: [0, 0, 0, 7, 0, 0]
-      note_imp_quiet_: [0, 0, 0, 0, 2, 0]
-      note_importance_: [0, 0, 3, 4, 2, 0]
+      note_imp_noisy_: [0, 0, 0, 9, 0, 0]
+      note_imp_quiet_: [0, 0, 0, 73, 1, 0]
+      note_importance_: [0, 2, 74, 5, 2, 0]
       numUndecorateRVs=0
     }
     AggregatedStats{
@@ -1047,7 +1184,7 @@ Diff[automaticRule[EVERY_NIGHT_DEFAULT_RULE]:ZenRuleDiff{condition:null->Conditi
       numPostedByApp=3,
       numUpdatedByApp=1,
       numRemovedByApp=0,
-      numPeopleCacheHit=4,
+      numPeopleCacheHit=16,
       numWithStaredPeople=0,
       numWithValidPeople=0,
       numPeopleCacheMiss=0,
@@ -1082,31 +1219,31 @@ Diff[automaticRule[EVERY_NIGHT_DEFAULT_RULE]:ZenRuleDiff{condition:null->Conditi
     }
     AggregatedStats{
       key='app.tileshell',
-      numEnqueuedByApp=2,
-      numPostedByApp=2,
-      numUpdatedByApp=0,
-      numRemovedByApp=1,
-      numPeopleCacheHit=2,
+      numEnqueuedByApp=85,
+      numPostedByApp=22,
+      numUpdatedByApp=52,
+      numRemovedByApp=20,
+      numPeopleCacheHit=89,
       numWithStaredPeople=0,
       numWithValidPeople=0,
       numPeopleCacheMiss=0,
       numBlocked=0,
       numSuspendedByAdmin=0,
-      numWithActions=2,
-      numPrivate=0,
+      numWithActions=9,
+      numPrivate=62,
       numSecret=0,
       numInterrupt=0,
       numWithBigText=0,
       numWithBigPicture=0
-      numForegroundService=2
+      numForegroundService=9
       numUserInitiatedJob=0
-      numOngoing=2
-      numAutoCancel=0
+      numOngoing=73
+      numAutoCancel=1
       numWithLargeIcon=0
       numWithInbox=0
       numWithMediaSession=0
-      numWithTitle=2
-      numWithText=2
+      numWithTitle=66
+      numWithText=10
       numWithSubText=0
       numWithInfoText=0
       numRateViolations=0
@@ -1115,15 +1252,15 @@ Diff[automaticRule[EVERY_NIGHT_DEFAULT_RULE]:ZenRuleDiff{condition:null->Conditi
       numImagesRemoved=0
       numTooOld=0
       note_imp_noisy_: [0, 0, 0, 0, 0, 0]
-      note_imp_quiet_: [0, 0, 0, 0, 2, 0]
-      note_importance_: [0, 0, 0, 0, 2, 0]
+      note_imp_quiet_: [0, 0, 0, 73, 1, 0]
+      note_importance_: [0, 0, 71, 1, 2, 0]
       numUndecorateRVs=0
     }
     mStatsArrays.size(): 1
     mStats.size(): 5
 
   TimeToLive alarms:
-    mKeys [Pair{259211252 -1|android|55|null|1000}, Pair{259241172 0|com.android.dialer|1|MissedCall_content://call_log/calls/3?allow_voicemails=true|10101}, Pair{259241184 0|com.android.dialer|1|MissedCall_content://call_log/calls/1?allow_voicemails=true|10101}, Pair{259241209 0|com.android.dialer|1|GroupSummary_MissedCall|10101}, Pair{259241626 0|com.android.systemui|1397773634|public:253,80|10124}, Pair{259301685 0|app.tileshell|15003|null|10150}]
+    mKeys [Pair{259216780 -1|android|55|null|1000}, Pair{259218153 0|com.android.dialer|1|MissedCall_content://call_log/calls/3?allow_voicemails=true|10101}, Pair{259218167 0|com.android.dialer|1|MissedCall_content://call_log/calls/1?allow_voicemails=true|10101}, Pair{259218285 0|com.android.dialer|1|GroupSummary_MissedCall|10101}, Pair{259218469 0|com.android.systemui|1397773634|public:253,80|10124}, Pair{259808389 0|app.tileshell|-2059939363|null|10150}, Pair{259818393 0|app.tileshell|15003|null|10150}]
 
   GroupHelper:
     Ungrouped notifications:
@@ -1131,6 +1268,9 @@ Diff[automaticRule[EVERY_NIGHT_DEFAULT_RULE]:ZenRuleDiff{condition:null->Conditi
             -1|android|55|null|1000
         0|com.android.systemui|g:Aggregate_SilentSection
             0|com.android.systemui|1397773634|public:253,80|10124
+
+    Autogrouped notifications:
         0|app.tileshell|g:Aggregate_AlertingSection
+            0|app.tileshell|-2059939363|null|10150
             0|app.tileshell|15003|null|10150
 

@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E0 — live-tile routing: Music to its slot tile, Auxio to its tile, recordings and shell notifications to none
-at            2026-09-24T09:56:13-06:00
+at            2026-09-24T13:29:34-06:00
 driver        e0.sh blob 8e52a568a41a81fd6a52c1289121308636c17316
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     7823e507b9004fd6 337843127 bytes
-apk installed 2e22a614794f9a05
-apk match     yes (2e22a614794f9a05)
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 7b1306f3e567a24b
+apk match     yes (7b1306f3e567a24b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -42,14 +42,12 @@ PASS  the tile's play/pause paused the shell's Music              = PAUSED
 PASS  paused: the MUSIC tile carries no transport (phase 10's paused plan)  = controls=no
 PASS  paused: the MUSIC tile is back at its stored size           = w=165 h=165
 PASS  Auxio is playing                                            = PLAYING
-FAIL  the face moved to Auxio's tile                              expected [controls=yes] got [controls=no]
+PASS  the face moved to Auxio's tile                              = controls=yes
 PASS  and left the MUSIC tile                                     = controls=no
 PASS  app:app.tileshell/app.tileshell.clock.ClockActivity:0 carries no transport while Auxio plays  = controls=no
 PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 carries no transport while Auxio plays  = controls=no
 PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 carries no transport while Auxio plays  = controls=no
-      gtap: no tile_control:app:org.oxycblt.auxio/org.oxycblt.auxio.MainActivity:0:PLAY_PAUSE in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/E0/start_auxio.xml
-FAIL  Auxio paused from its tile                                  expected [PAUSED] got [PLAYING]
-      Auxio still playing (no control on its tile): paused through its session for step 3's capture
+PASS  Auxio paused from its tile                                  = PAUSED
       MediaStore id of other.m4a: 40
       recorder session right after the tap: PLAYING
 PASS  the recorder session played                                 = PLAYING
@@ -87,9 +85,9 @@ PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 shows no c
 PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 shows no timer content  does not contain [E0timer]
 PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 shows no count  = badge=no
 PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 shows no timer content  does not contain [E0timer]
-      the take(s): Row: 0 _id=130, _display_name=Recording.m4a, owner_package_name=app.tileshell
-      gscroll_to_node timer_name:t027da01a: 0 swipe(s), found=yes
+      the take(s): Row: 0 _id=1167, _display_name=Recording.m4a, owner_package_name=app.tileshell
+      gscroll_to_node timer_name:t526f9d41: 0 swipe(s), found=yes
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------
-E0: 51 passed, 2 failed, 0 recorded
+E0: 53 passed, 0 failed, 0 recorded

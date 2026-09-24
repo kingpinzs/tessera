@@ -1,0 +1,51 @@
+==============================================================================
+ROW E4b — alarm fires while in use: overlay toast, touches consumed, snooze, sleep mid-ring, heads-up fallback, timer toast
+at            2026-09-24T13:29:21-06:00
+driver        e4b.sh blob bdbe0c117f5a5b2daa53c1b3b14d3cebd4722639
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 7b1306f3e567a24b
+apk match     yes (7b1306f3e567a24b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-19h47m34s893ms ago; rejectTime=+11m25s122ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+FAIL  baseline: no shell alarm or timer pending                   expected [0] got [12]
+FAIL  baseline: alarm and timer stores empty                      expected [empty] got [[{"id":"a9d356878","hour":13,"minute":24,"name":"Past","days":[],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2026-09-25","snoozedUntilMs":null,"lastHandledMs":1790277965110},{"id":"a682afc9c","hour":9,"minute":5,"name":"Wake","days":[],"enabled":false,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2026-09-25","snoozedUntilMs":null,"lastHandledMs":1790349307160},{"id":"a739f6f41","hour":9,"minute":17,"name":"Daily","days":["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":null,"snoozedUntilMs":null,"lastHandledMs":1790349420000}][{"id":"t0dae0665","name":"T1","lengthMs":1860000,"state":"RUNNING","remainingMs":1860000,"deadlineElapsedMs":3099713,"deadlineWallMs":1790279773414,"bootCount":12},{"id":"t6f145380","name":"T2","lengthMs":1920000,"state":"RUNNING","remainingMs":1920000,"deadlineElapsedMs":3160876,"deadlineWallMs":1790279834577,"bootCount":12},{"id":"t5da73b66","name":"T3","lengthMs":1980000,"state":"RUNNING","remainingMs":1980000,"deadlineElapsedMs":3222032,"deadlineWallMs":1790279895733,"bootCount":12},{"id":"tb87c64ca","name":"T4","lengthMs":2040000,"state":"RUNNING","remainingMs":2040000,"deadlineElapsedMs":3283183,"deadlineWallMs":1790279956884,"bootCount":12},{"id":"t8e1d4c53","name":"T5","lengthMs":2100000,"state":"RUNNING","remainingMs":2100000,"deadlineElapsedMs":3344341,"deadlineWallMs":1790280018042,"bootCount":12},{"id":"t72831ae8","name":"T6","lengthMs":2160000,"state":"RUNNING","remainingMs":2160000,"deadlineElapsedMs":3405497,"deadlineWallMs":1790280079198,"bootCount":12},{"id":"tee77931e","name":"T7","lengthMs":2220000,"state":"RUNNING","remainingMs":2220000,"deadlineElapsedMs":3466648,"deadlineWallMs":1790280140349,"bootCount":12},{"id":"td087e43b","name":"T8","lengthMs":2280000,"state":"RUNNING","remainingMs":2280000,"deadlineElapsedMs":3527810,"deadlineWallMs":1790280201511,"bootCount":12},{"id":"t1000e381","name":"T9","lengthMs":2340000,"state":"RUNNING","remainingMs":2340000,"deadlineElapsedMs":3588970,"deadlineWallMs":1790280262671,"bootCount":12},{"id":"tc3221b98","name":"T10","lengthMs":2400000,"state":"RUNNING","remainingMs":2400000,"deadlineElapsedMs":3650139,"deadlineWallMs":1790280323840,"bootCount":12}]]
+PASS  DeskClock is the resumed activity                           contains [com.android.deskclock]
+PASS  the alarm was created                                       != 
+PASS  … and armed                                               != 
+FAIL  the alarm fired within 30 s                                 should not be []
+PASS  an ALARM player of the shell is started                     != 0
+FAIL  DeskClock is still the resumed activity                     does not contain [com.android.deskclock]:     topResumedActivity=ActivityRecord{27533207 u0 app.tileshell/.clock.ClockActivity t514}
+      overlay window: Window #5 Window{ccc863f u0 TesseraRing}: type=APPLICATION_OVERLAY package=app.tileshell
+PASS  the shell has a window of type APPLICATION_OVERLAY (TesseraRing)  contains [type=APPLICATION_OVERLAY]
+FAIL  notification a2d52383b: quiet                               does not contain [[alarms] notification a2d52383b: quiet]:     2026-09-25 13:23:54.820 wall=1790364234820 [timer] t0dae0665 remaining=1597277 uptime=1502436
+    2026-09-25 13:23:54.820 wall=1790364234820 [timer] t6f145380 remaining=1658440 uptime=1502436
+    2026-09-25 13:23:54.820 wall=17903642348
+FAIL  surface: toast-overlay a2d52383b                            does not contain [[alarms] surface: toast-overlay a2d52383b]:     2026-09-25 13:23:54.820 wall=1790364234820 [timer] t0dae0665 remaining=1597277 uptime=1502436
+    2026-09-25 13:23:54.820 wall=1790364234820 [timer] t6f145380 remaining=1658440 uptime=1502436
+    2026-09-25 13:23:54.820 wall=17903642348
+      motion: ring_toast t0=1507748 peak=223 overshoot=0 settle=223 frames=15 maxGapMs=17
+PASS  [motion] ring_toast settle = 217 ± 17 ms                   223.00 vs 217.00 +/- 17.0
+PASS  [motion] ring_toast maxGapMs <= 33.4                        = yes
+PASS  the ring notification is on the quiet channel               != 
+PASS  … with NO full-screen intent                              = 
+PASS  … and none on the alarm channel                           = 
+PASS  the overlay dump holds ring_surface                         = yes
+PASS  … ring_snooze_for                                         = yes
+PASS  … ring_snooze                                             = yes
+PASS  … ring_dismiss                                            = yes
+PASS  no SystemUI node carries the alarm's name (no heads-up over the toast)  = 
+      overlay ring_surface bounds: 0 0 1080 744
+RECORD  the overlay toast's top edge (px) — the recorded seam against 8.1 (T15-32)  0
+PASS  tap at (540,1500): the toast is still up                    = yes
+PASS  tap at (540,1500): the player is still started              != 0
+FAIL  tap at (540,1500): DeskClock still resumed                  does not contain [com.android.deskclock]:     topResumedActivity=ActivityRecord{27533207 u0 app.tileshell/.clock.ClockActivity t514}
+PASS  tap at (540,1500): DeskClock's nodes unchanged              = 
+FAIL  snooze: ring ended a2d52383b: snooze                        does not contain [[alarms] ring ended a2d52383b: snooze]:     2026-09-25 13:24:35.133 wall=1790364275133 [alarms] store: alarm a9d356878 snoozed
+    2026-09-25 13:24:35.134 wall=1790364275134 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourc
+PASS  snooze: the overlay window is gone                          = 
+FAIL  snooze: DeskClock still resumed                             does not contain [com.android.deskclock]:     topResumedActivity=ActivityRecord{27533207 u0 app.tileshell/.clock.ClockActivity t514}
+PASS  snooze: dumpsys alarm shows the alarm 10 min ahead          1790364875133.00 vs 1790364875017.00 +/- 5000.0

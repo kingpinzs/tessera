@@ -120,3 +120,29 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   moved; dumpsys audio shows Tess's USAGE_ASSISTANT track for every reply; the reply TEXT checks all pass). Asked whether to
   add qemu-system-x86_64 to EasyEffects' [StreamOutputs] blocklist; Jeremy: "we are good here move on". Output side left
   unchanged; the audibility assertions stay as FAILs with this reason (not bent).
+- 2026-09-24 ~12:30: REBASED onto main (Jeremy: "if you had anything waiting on phase 11 they are done"; main's INDEX still
+  shows row 11 "blocked (L11-1)" and the phase 11 session is still committing its gate — went on Jeremy's word). Backup ref:
+  branch phase-15-prerebase-2026-09-24 (6b4a023). Conflicts resolved: INDEX Change Log lines (union, main's first);
+  MusicFeed.kt (main's L11-1 arbiter + my component routing: publishRoute() sends another app's slot through
+  LiveTileEngine.publishPackage(pkg, PackageSource.MUSIC, …) and a shell app's component key straight to publish();
+  main's forget listener follows publishedRoute); StartPage.kt (main's entryOf + my growthKeyOf/componentOf); the
+  linearised merges re-resolved (Glyph.kt duplicates dropped, strings.xml, exported-allowlist union). The cherry-picked
+  ring helpers were skipped as already applied. HEAD 3e04aa3 on main 4769695; app unit tests 796/0 (:calc up to date,
+  98/0). Main then gained aefe4b9 (phase 11 QA only). My open E0 question is settled by main's L11-1 fix (Jeremy ruled
+  "(a)" there). GATE started: 5556 rows E2 E27 E0 E1 E9 E26 E11 (scratchpad/p15/gate5556.sh), then E25 (clean archives:
+  main aefe4b9 333,308,001 vs HEAD 335,763,998 = +2,455,997) and E22 last. Agents resumed on the rebased build: clock rows
+  (5558, re-run everything on this build), recorder rows (5560, E15 onward + E14 re-run).
+- 2026-09-24 afternoon: both Fable QA agents hit the Fable usage limit. Recorder rows continue with an Opus agent on 5560
+  (from recorder-qa-state.md); clock rows run by scratchpad/p15/runner.sh on 5558 (the clock agent's drivers). Found and
+  fixed: the recorder list stayed stale after background changes (807a664); the rebase dropped merge-resolution content
+  (the allow-list's calculator/recorder lines, a Glyph.kt comment) — restored from phase-15-prerebase-2026-09-24 after a
+  full per-file comparison (ae5fd76); E27 burst detection (pipefail + grep -q) and E9's timer format (driver).
+  Pass 2 on 5556, build 7b1306f3: E2 12/0, E27 80/0 (burst half included), E0 53/0, E1 47/0, E9 32/0, E11 241/0/2,
+  E26 111/8 (audibility, host). E25 2/0 (+2,455,997). emulator-5558 powered itself off at ~13:34 (cause not found;
+  nothing in the harness shuts an emulator down); relaunched with -allow-host-audio, capture moved to vmic5558, the
+  clock agent's leftover "Dead" timer deleted. gdump unified in p15.sh (the clock pass's new-file + fallback fixes,
+  no --no-restart, the right windows key) — 341e94b. Main moved again (9f790b7: the L11-1 forget race, app code):
+  a final rebase is due before the final gate pass.
+- 2026-09-24: Jeremy: "mute the emulators". Every qemu-system-x86_64 output stream muted on the host (pactl
+  set-sink-input-mute <id> 1; streams 1366=5554, 3186=5556, 3299=5560, 5839=5558). Undo: the same with 0. Inside the
+  AVDs nothing changes (rings still start; rows read dumpsys audio). Reply-audibility captures were already silent.

@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E26 — Tess answers arithmetic and conversions, typed and spoken, locked and not
-at            2026-09-24T11:25:59-06:00
+at            2026-09-24T13:39:53-06:00
 driver        e26.sh blob b40bc783abfbfecbd71af3fd2a157269c7ea42e8
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     16c10b6344743056 337843239 bytes
-apk installed 2a698d187ca2ab08
-apk match     yes (2a698d187ca2ab08)
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 7b1306f3e567a24b
+apk match     yes (7b1306f3e567a24b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -97,44 +97,44 @@ PASS  tess-019 logged its [calc] tess line                        contains [[cal
 PASS  calc_percent: the capture was heard (C-30)                  does not contain [asr: no speech]
 PASS  calc_percent reply                                          = 15 % of 80 is 12.
 PASS  calc_percent launcher ring                                  contains [[calc] tess "15 % of 80" -> 12]
-FAIL  calc_percent reply was audible                              RMS -115.48 dBFS is not above -40
+FAIL  calc_percent reply was audible                              RMS -115.46 dBFS is not above -40
 PASS  calc_percent matched Arithmetic                             contains [-> Arithmetic(]
       calc_divzero final: open="WHAT'S ONE DIVIDED BY ZERO" grammar="WHAT'S ONE DIVIDED BY ZERO"
 PASS  calc_divzero: the capture was heard (C-30)                  does not contain [asr: no speech]
 PASS  calc_divzero reply                                          = Cannot divide by zero.
 PASS  calc_divzero launcher ring                                  contains [[calc] tess "1 / 0" -> error]
-FAIL  calc_divzero reply was audible                              RMS -116.33 dBFS is not above -40
+FAIL  calc_divzero reply was audible                              RMS -116.16 dBFS is not above -40
       calc_convert final: open="WHAT IS FIVE MILES IN KILOMETERS" grammar="WHAT IS FIVE MILES IN KILOMETERS"
 PASS  calc_convert: the capture was heard (C-30)                  does not contain [asr: no speech]
 PASS  calc_convert reply                                          = 5 miles is 8.04672 kilometers.
 PASS  calc_convert launcher ring                                  contains [[calc] tess ]
-FAIL  calc_convert reply was audible                              RMS -114.23 dBFS is not above -40
+FAIL  calc_convert reply was audible                              RMS -113.96 dBFS is not above -40
       calc_root final: open="WHAT IS THE SQUARE ROOT OF EIGHTY ONE" grammar="WHAT IS THE SQUARE ROOT OF EIGHTY ONE"
 PASS  calc_root: the capture was heard (C-30)                     does not contain [asr: no speech]
 PASS  calc_root reply                                             = √81 is 9.
 PASS  calc_root launcher ring                                     contains [[calc] tess ]
-FAIL  calc_root reply was audible                                 RMS -115.52 dBFS is not above -40
+FAIL  calc_root reply was audible                                 RMS -115.24 dBFS is not above -40
       calc_percent final: open="WHAT'S FIFTEEN PER CENT OF EIGHTY" grammar="WHAT'S FIFTEEN PER CENT OF EIGHTY"
 PASS  calc_percent: the capture was heard (C-30)                  does not contain [asr: no speech]
 PASS  calc_percent reply                                          = 15 % of 80 is 12.
 PASS  calc_percent launcher ring                                  contains [[calc] tess "15 % of 80" -> 12]
-FAIL  calc_percent reply was audible                              RMS -113.14 dBFS is not above -40
+FAIL  calc_percent reply was audible                              RMS -113.27 dBFS is not above -40
 PASS  the keyguard was still showing                              contains [isKeyguardShowing=true]
 PASS  no Unlock to continue card                                  = no
       weather_like final: open="WHAT'S THE WEATHER LIKE" grammar="WHAT'S THE WEATHER LIKE"
 PASS  weather_like: the capture was heard (C-30)                  does not contain [asr: no speech]
-FAIL  weather_like reply was audible                              RMS -114.82 dBFS is not above -40
+FAIL  weather_like reply was audible                              RMS -115.01 dBFS is not above -40
 PASS  weather_like reached the weather action                     contains [-> Weather]
 PASS  weather_like: no [calc] tess line in its slice              does not contain [[calc] tess]
       unmatched final: open="WHAT IS THE CAPITAL OF PERU" grammar="WHAT IS THE CAPITAL OF PERU"
 PASS  unmatched: the capture was heard (C-30)                     does not contain [asr: no speech]
-FAIL  unmatched reply was audible                                 RMS -115.87 dBFS is not above -40
+FAIL  unmatched reply was audible                                 RMS -116.05 dBFS is not above -40
 PASS  unmatched matched nothing                                   contains [-> NotUnderstood(]
 PASS  unmatched reached the not-understood handler (phase 03 E3's line)  contains [transcript=]
 PASS  unmatched: no [calc] tess line in its slice                 does not contain [[calc] tess]
       calc_life final: open="CALCULATE MY LIFE" grammar="CALCULATE MY LIFE"
 PASS  calc_life: the capture was heard (C-30)                     does not contain [asr: no speech]
-FAIL  calc_life reply was audible                                 RMS -115.94 dBFS is not above -40
+FAIL  calc_life reply was audible                                 RMS -115.92 dBFS is not above -40
 PASS  calc_life matched nothing                                   contains [-> NotUnderstood(]
 PASS  calc_life reached the not-understood handler (phase 03 E3's line)  contains [transcript=]
 PASS  calc_life: no [calc] tess line in its slice                 does not contain [[calc] tess]

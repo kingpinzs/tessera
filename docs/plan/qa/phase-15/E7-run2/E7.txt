@@ -1,0 +1,32 @@
+==============================================================================
+ROW E7 — stopwatch: ring clock vs dump, lap, kill -9, reboot, reset
+at            2026-09-24T13:10:39-06:00
+driver        e7.sh blob d0b4b05df101c16ec327294ce5a33954ad97997c
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 42d6fcbd160015a2
+apk match     NO (device 42d6fcbd160015a2, built 7b1306f3e567a24b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  baseline: the stopwatch is not running                      != true
+PASS  the stopwatch starts at 00:00:00.00                         = 00:00:00.00
+PASS  start is logged: [stopwatch] start elapsed=                 contains [[stopwatch] start elapsed=]
+PASS  the store says running                                      = true
+      moment1: line [elapsed=10032 uptime=382005] dump [00:00:26.38] dump window 1790277055930..1790277073145 (17215 ms; 20 empty gesture dumps, plain-dump fallback)
+PASS  moment 1: the dump's elapsed = the line's + the time from the line to the dump (± 100 ms + half the dump window)  16348.00 vs 8874.00 +/- 8707.0
+FAIL  moment 1: the dump's own latency <= 1 s (the gesture driver; a fallback plain dump fails this)  expected [yes] got [no (17215 ms)]
+      moment2: line [elapsed=40083 uptime=412056] dump [00:00:56.78] dump window 1790277086426..1790277103529 (17103 ms; 20 empty gesture dumps, plain-dump fallback)
+PASS  moment 2: the dump's elapsed = the line's + the time from the line to the dump (± 100 ms + half the dump window)  16697.00 vs 9263.00 +/- 8651.0
+FAIL  moment 2: the dump's own latency <= 1 s (the gesture driver; a fallback plain dump fails this)  expected [yes] got [no (17103 ms)]
+PASS  the two moments are >= 10 s apart                           = yes
+PASS  Δelapsed = Δuptime ± 100 ms between the two lines        30051.00 vs 30051.00 +/- 100.0
+FAIL  Lap: the app did not crash (DEFECT.md: java.lang.IllegalStateException: lap row text must equal the shared line)  expected [0] got [1]
+      ROW STOPPED at the lap-row crash (E7/DEFECT.md); the kill -9 / reboot / Reset clauses were not run in this pass
+      stopwatch.json removed and the process restarted: the baseline restore around the lap-row crash (E7/DEFECT.md)
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E7: 12 passed, 3 failed, 0 recorded
