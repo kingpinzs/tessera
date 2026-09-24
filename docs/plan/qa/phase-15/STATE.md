@@ -154,3 +154,17 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   (1544a1b). e21.sh gained the Voice Recorder permission parts (the recorder pass had left them to e21.sh's owner).
   FINAL GATE started on 2356b99f: 5556 (E2 E27 E0 E1 E9 E26 E11), 5558 (clock rows, scratchpad/p15/clock_reset.sh
   before each row), 5560 (E12 E13 E29 EDGE-CALC, then the recorder rows, E14b last); then E25 and E22, the reviewers.
+- 2026-09-24 evening: gate pass on 2356b99f. 5556: E2 12/0, E27 80/0, E0 53/0, E1 47/0, E9 32/0, E11 241/0/2,
+  E26 111/8 (the reply-audibility checks, host side, accepted). 5560: E12 91/0, E13 145/0, E29 54/0, EDGE-CALC 51/1
+  (the paste item; settled below), E14-E20, E24, E30, E14b all pass. 5558: E4 89/1, E6 40/1, E7 12/3, E8 33/1, E10
+  127/5, E31 60/3, E21 42/2, EDGE_ALARMS and EDGE_STOPWATCH fail. Three clock product defects fixed (70a3612 lap text,
+  c019ad4 list padding, 8e821d7 "Timer ended while the phone was off"); build 33cc71c1. The clock continuation agent
+  (Opus, briefs/qa-clock-2.md) re-runs every clock row on 5558 against 33cc71c1 and triages the rest.
+- 2026-09-24: Jeremy's ruling on the doc-vs-Windows differences: "what ever is right and gives the right answer. dont
+  includ flaws in anything". Shifts of at least the word size now give 0, and an arithmetic Rsh of a negative gives -1;
+  "Result not defined" is no longer reachable. Thirteen converter factors changed to their units' exact definitions;
+  an exact-rational audit (scratchpad/p15/conv/audit.py) found the other 116 real-unit factors already exact. BYTE
+  255, weeks as 7 days and the "Invalid input" paste stay as Windows (Windows is right there). The Pyeong "400.0" was
+  my own misreading of an extraction; the port already had 400.0 / 121.0. calc-cases.tsv regenerated (314 cases);
+  :calc 99/0, app 800/0; the new build is c45e7a28 (calculator-only changes). The E11, EDGE-CALC and E12 (converter)
+  rows must re-run on the final build. INDEX Change Log line "WHERE WINDOWS IS WRONG".
