@@ -1,21 +1,182 @@
 ── E6 motion on the shell's clock: open peak 107±17 ms, overshoot 6.8±2 %, settle ≤ 267; close alpha0 36±17
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 46.0 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 35.3 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- cold (recorded, not asserted): the first hold after the shell started ---
 --- warm: the measured open, recorded; retaken (up to 5) until the recording's spacing passes phase 05's rule ---
-[image2 @ 0x61ad1da37e40] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 155 >= 155
-[image2 @ 0x61ad1da37e40] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 159 >= 159
-PASS  one open line covers all four satellites (one t0)           = 1
-PASS  open peak 107 ± 17 ms                                      100.00 vs 107.00 +/- 17.0
-PASS  open overshoot 6.8 ± 2 %                                   6.50 vs 6.80 +/- 2.0
-PASS  open settle ≤ 250 + 17 ms (T11-29)                        266.00 vs 133.50 +/- 133.5
-PASS  open maxGapMs ≤ 33.4 (C-31)                               16.70 vs 16.70 +/- 16.7
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 1 >= 1
+    Last message repeated 2 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 2 >= 2
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 3 >= 3
+    Last message repeated 2 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 4 >= 4
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 5 >= 5
+    Last message repeated 2 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 6 >= 6
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 7 >= 7
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 32 >= 32
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 33 >= 33
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 34 >= 34
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 35 >= 35
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 36 >= 36
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 37 >= 37
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 38 >= 38
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 39 >= 39
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 40 >= 40
+    Last message repeated 2 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 41 >= 41
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 42 >= 42
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 43 >= 43
+    Last message repeated 1 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 44 >= 44
+    Last message repeated 2 times
+[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 45 >= 45
+    Last message repeated 1 times
+Traceback (most recent call last):
+  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 66, in <module>
+    main()
+  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 30, in main
+    tl, tt, tr, tb = map(int, sys.argv[3].split(","))
+    ^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 1 >= 1
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 2 >= 2
+    Last message repeated 1 times
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 3 >= 3
+    Last message repeated 1 times
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 4 >= 4
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 5 >= 5
+    Last message repeated 1 times
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 6 >= 6
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 7 >= 7
+    Last message repeated 1 times
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 8 >= 8
+    Last message repeated 1 times
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 9 >= 9
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 10 >= 10
+    Last message repeated 1 times
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 11 >= 11
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 12 >= 12
+    Last message repeated 1 times
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 13 >= 13
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 14 >= 14
+    Last message repeated 1 times
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 15 >= 15
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 16 >= 16
+    Last message repeated 1 times
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 17 >= 17
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 18 >= 18
+    Last message repeated 1 times
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 19 >= 19
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 56 >= 56
+    Last message repeated 1 times
+[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 57 >= 57
+Traceback (most recent call last):
+  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 66, in <module>
+    main()
+  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 30, in main
+    tl, tt, tr, tb = map(int, sys.argv[3].split(","))
+    ^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 1 >= 1
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 2 >= 2
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 3 >= 3
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 5 >= 5
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 7 >= 7
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 8 >= 8
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 9 >= 9
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 11 >= 11
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 13 >= 13
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 14 >= 14
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 16 >= 16
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 17 >= 17
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 19 >= 19
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 21 >= 21
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 22 >= 22
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 24 >= 24
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 26 >= 26
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 27 >= 27
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 29 >= 29
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 30 >= 30
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 32 >= 32
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 34 >= 34
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 35 >= 35
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 37 >= 37
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 39 >= 39
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 40 >= 40
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 42 >= 42
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 43 >= 43
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 45 >= 45
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 47 >= 47
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 48 >= 48
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 50 >= 50
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 51 >= 51
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 53 >= 53
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 55 >= 55
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 56 >= 56
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 58 >= 58
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 59 >= 59
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 61 >= 61
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 63 >= 63
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 64 >= 64
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 66 >= 66
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 68 >= 68
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 69 >= 69
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 71 >= 71
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 72 >= 72
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 74 >= 74
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 76 >= 76
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 77 >= 77
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 79 >= 79
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 81 >= 81
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 82 >= 82
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 84 >= 84
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 142 >= 142
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 144 >= 144
+[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 145 >= 145
+Traceback (most recent call last):
+  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 66, in <module>
+    main()
+  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 30, in main
+    tl, tt, tr, tb = map(int, sys.argv[3].split(","))
+    ^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''
+[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 8 >= 8
+[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 24 >= 24
+[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 27 >= 27
+[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 37 >= 37
+[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 42 >= 42
+[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 45 >= 45
+[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 47 >= 47
+Traceback (most recent call last):
+  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 66, in <module>
+    main()
+  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 30, in main
+    tl, tt, tr, tb = map(int, sys.argv[3].split(","))
+    ^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''
+FAIL  one open line covers all four satellites (one t0)           expected [1] got [0]
+FAIL  open peak 107 ± 17 ms                                      could not be measured (actual=[])
+FAIL  open overshoot 6.8 ± 2 %                                   could not be measured (actual=[])
+FAIL  open settle ≤ 250 + 17 ms (T11-29)                        could not be measured (actual=[])
+FAIL  open maxGapMs ≤ 33.4 (C-31)                               could not be measured (actual=[])
 --- the close: tap elsewhere ---
-PASS  close alpha0 36 ± 17 ms (the halfway at 36.0 ms)           50.00 vs 36.00 +/- 17.0
-PASS  close settle = alpha0 ± 17 ms (gone at alpha 0)            50.00 vs 50.00 +/- 17.0
-PASS  close maxGapMs ≤ 33.4 (C-31)                              16.70 vs 16.70 +/- 16.7
+FAIL  close alpha0 36 ± 17 ms (the halfway at 36.0 ms)           could not be measured (actual=[])
+FAIL  close settle = alpha0 ± 17 ms (gone at alpha 0)            could not be measured (actual=[])
+FAIL  close maxGapMs ≤ 33.4 (C-31)                              could not be measured (actual=[])
 --- corroboration: the accepted recording (frame spacing; first satellite pixels vs the entry's first changed frame) ---
-PASS  recording: source frames ≤ 18.2 ms apart during the motion (phase 05's rule)  17.50 vs 9.10 +/- 9.1
-PASS  recording: first satellite pixels outside the tile vs the entry's first changed frame (frames)  0.00 vs 0.00 +/- 1.0
-   E6: 12 passed, 0 failed
+FAIL  recording: source frames ≤ 18.2 ms apart during the motion (phase 05's rule)  could not be measured (actual=[])
+FAIL  recording: first satellite pixels outside the tile vs the entry's first changed frame (frames)  could not be measured (actual=[])
+   E6: 2 passed, 10 failed

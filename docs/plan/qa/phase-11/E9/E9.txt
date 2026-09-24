@@ -1,39 +1,39 @@
 ==============================================================================
 ROW E9 — work profile bursts as its own user; quiet work and locked private space give profile quiet
-at            2026-09-23T23:21:42-06:00
+at            2026-09-24T08:10:30-06:00
 driver        e9.sh blob 9c208214d57ca09b18f8b25549cc5ae03f7b2700
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     6188406aa186a2df 336439365 bytes
-apk installed 66299036790d6fc1
-apk match     yes (66299036790d6fc1)
+apk built     b4c1ca12e166b21d 336439365 bytes
+apk installed 24a6fcef79bb96df
+apk match     yes (24a6fcef79bb96df)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- a managed profile with tileclient-a in it ---
-      work user 12
+      work user 14
 PASS  the AVD created a managed profile                           != 
       work row at [540 1998]
 PASS  four satellites on the work tile                            = yes yes yes yes
-PASS  shortcuts line names the work user (T11-12)                 contains [[quick] shortcuts for app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity/12: 5 (4 shown: qa_one,qa_two,qa_three,qa_four)]
-      resumed:     topResumedActivity=ActivityRecord{99582540 u12 app.tileshell.testclient.a/app.tileshell.testclient.ShortcutActivity t1500}
-PASS  ShortcutActivity resumed as u12                             contains [u12 app.tileshell.testclient.a/app.tileshell.testclient.ShortcutActivity]
+PASS  shortcuts line names the work user (T11-12)                 contains [[quick] shortcuts for app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity/14: 5 (4 shown: qa_one,qa_two,qa_three,qa_four)]
+      resumed:     topResumedActivity=ActivityRecord{225897575 u14 app.tileshell.testclient.a/app.tileshell.testclient.ShortcutActivity t1755}
+PASS  ShortcutActivity resumed as u14                             contains [u14 app.tileshell.testclient.a/app.tileshell.testclient.ShortcutActivity]
 PASS  shortcut_id = qa_one                                        = qa_one
 --- the work profile locked through the shell's own group action: profile quiet ---
 PASS  dumpsys user: the work profile is QUIET_MODE                contains [QUIET_MODE]
 PASS  the work tile is still on Start                             = yes
 PASS  quiet: edit mode on                                         = yes
 PASS  quiet: no quick_burst                                       = no
-PASS  quiet: reason                                               contains [[quick] no burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:12: profile quiet]
+PASS  quiet: reason                                               contains [[quick] no burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:14: profile quiet]
 PASS  unlocked: the burst is back                                 = yes
 --- a private space, locked: profile quiet ---
-      private user 13
+      private user 15
 PASS  the AVD created a private space                             != 
       private row at [540 1998]
 PASS  dumpsys user: the private space is QUIET_MODE               contains [QUIET_MODE]
 PASS  private: no quick_burst                                     = no
-PASS  private: reason                                             contains [[quick] no burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:13: profile quiet]
+PASS  private: reason                                             contains [[quick] no burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:15: profile quiet]
 --- restore: remove both profiles, the baseline back ---
 PASS  only the owner is left                                      = 1
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]

@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E10 — a hold on a transport control fires the control; a hold on the art bursts with Music's four
-at            2026-09-23T23:24:41-06:00
+at            2026-09-24T08:13:29-06:00
 driver        e10.sh blob 29b080942a7c48917a36b5bc045a43629a86a76d
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     6188406aa186a2df 336439365 bytes
-apk installed 66299036790d6fc1
-apk match     yes (66299036790d6fc1)
+apk built     b4c1ca12e166b21d 336439365 bytes
+apk installed 24a6fcef79bb96df
+apk match     yes (24a6fcef79bb96df)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -13,13 +13,14 @@ PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not 
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
       playing music_song:32
 FAIL  the Music tile shows its controls                           expected [yes] got [no]
-      session before:       state=PlaybackState {state=PLAYING(3), position=11990, buffered position=90044, speed=1.0, updated=43804825, actions=7340027, custom actions=[], active item id=0, error=null}
+      session before:       state=PlaybackState {state=PLAYING(3), position=11976, buffered position=90044, speed=1.0, updated=75533892, actions=7340027, custom actions=[], active item id=0, error=null}
 PASS  no quick_burst                                              = no
 PASS  no edit mode                                                = no
-FAIL  the control fired (no launch)                               does not contain [[tile_control] tile=slot:MUSIC PLAY_PAUSE (no launch)]:     2026-09-23 23:25:23.389 wall=1790227523389 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=43805728 faceIndex=0 next=1 faces=1
+FAIL  the control fired (no launch)                               does not contain [[tile_control] tile=slot:MUSIC PLAY_PAUSE (no launch)]:     2026-09-24 08:14:12.508 wall=1790259252508 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75534848 faceIndex=1 next=0 faces=1
+    2026-09-24 08:14:14.493 wall=1790259254493 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75536832 
 PASS  no hold line                                                does not contain [[edit] hold]
-      session after:       state=PlaybackState {state=PLAYING(3), position=11990, buffered position=90044, speed=1.0, updated=43804825, actions=7340027, custom actions=[], active item id=0, error=null}
-FAIL  the shell's session is PAUSED                               does not contain [state=PAUSED(2)]:       state=PlaybackState {state=PLAYING(3), position=11990, buffered position=90044, speed=1.0, updated=43804825, actions=7340027, custom actions=[], active item id=0, error=null}
+      session after:       state=PlaybackState {state=PLAYING(3), position=14974, buffered position=90044, speed=1.0, updated=75536893, actions=7340027, custom actions=[], active item id=0, error=null}
+FAIL  the shell's session is PAUSED                               does not contain [state=PAUSED(2)]:       state=PlaybackState {state=PLAYING(3), position=14974, buffered position=90044, speed=1.0, updated=75536893, actions=7340027, custom actions=[], active item id=0, error=null}
 PASS  StartActivity still in front (nothing launched)             contains [app.tileshell/.StartActivity]
 PASS  the art: edit mode on                                       = yes
 PASS  the art: Music's four satellites                            = Songs,Albums,Artists,Playlists,

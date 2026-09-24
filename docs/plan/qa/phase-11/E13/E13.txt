@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E13 — regression: phase 02 hold+drag, E7 bracket+geometry, E8, regress.sh; phase 01 press styles; phase 03 exports
-at            2026-09-23T23:27:02-06:00
+at            2026-09-24T08:15:55-06:00
 driver        e13.sh blob 8c41d4e4b15498733923f3c03a5ef0b3471614be
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     6188406aa186a2df 336439365 bytes
-apk installed 66299036790d6fc1
-apk match     yes (66299036790d6fc1)
+apk built     b4c1ca12e166b21d 336439365 bytes
+apk installed 24a6fcef79bb96df
+apk match     yes (24a6fcef79bb96df)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -18,7 +18,7 @@ PASS  phase 02 regress: addedOnce as phase 02's file (C-3)        = folder:games
 PASS  phase 02 e1 exits 0                                         = 0
 PASS  phase 02 e1: no slot re-assigned on load (C-3)              does not contain [-> assigned]
 PASS  phase 02 e1: addedOnce as phase 02's file (C-3)             = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-      phase 02 e7 exit 1; verdict: ---- 6 passed, 4 failed ----
+      phase 02 e7 exit 1; verdict: ---- 7 passed, 3 failed ----
 PASS  phase 02 E7 geometry (dark)                                 PASS  geometry (dark) (= 0)
 PASS  phase 02 E7 hold bracket (dark)                             PASS  hold bracket (dark) (= 0)
 PASS  phase 02 E7 geometry (light)                                PASS  geometry (light) (= 0)
@@ -48,11 +48,11 @@ PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:game
 PASS  press_none: the held tile looks as at rest                  = EQUAL
 PASS  press_none: no burst                                        does not contain [[quick] burst on]
 PASS  press_none: no hold                                         does not contain [[edit] hold]
-      scroll_to_node press_tilt: 0 swipe(s), found=yes
+      scroll_to_node press_tilt: 1 swipe(s), found=yes
 PASS  press_tilt: the held tile shows the press style             = DIFF
 PASS  press_tilt: no burst                                        does not contain [[quick] burst on]
 PASS  press_tilt: no hold                                         does not contain [[edit] hold]
-      scroll_to_node press_p4: 1 swipe(s), found=yes
+      scroll_to_node press_p4: 0 swipe(s), found=yes
 PASS  press_p4: the held tile shows the press style               = DIFF
 PASS  press_p4: no burst                                          does not contain [[quick] burst on]
 PASS  press_p4: no hold                                           does not contain [[edit] hold]
