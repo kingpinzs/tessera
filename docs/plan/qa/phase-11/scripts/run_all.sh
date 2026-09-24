@@ -16,7 +16,7 @@ if [ "${1:-}" = "--append" ]; then
   say "## re-run $(date -Iseconds): commit $(git -C "$ROOT" rev-parse --short HEAD); apk $(md5sum "$ROOT/app/build/outputs/apk/debug/app-debug.apk" | cut -c1-16); rows: $*"
   for r in "$@"; do say "   $r.sh blob $(git -C "$ROOT" hash-object "$HERE/$r.sh")"; done
   for r in "$@"; do
-    R="$(echo "$r" | tr 'e' 'E')"; rm -rf "$OUT/$R"; START=$(date +%s)
+    R="$(case "$r" in l11_1) echo L11-1 ;; *) echo "$r" | tr 'e' 'E' ;; esac)"; rm -rf "$OUT/$R"; START=$(date +%s)
     bash "$HERE/$r.sh" > "$OUT/.$r.console" 2>&1; RC=$?
     say "$R exit $RC after $(( $(date +%s) - START ))s — $(grep -h "^$R: " "$OUT/$R/$R.txt" 2>/dev/null | tail -1)"
   done
@@ -26,7 +26,7 @@ latest = {}
 for l in open(sys.argv[1]):
     m = re.match(r"(E\d+) exit (\d+)", l)
     if m: latest[m.group(1)] = int(m.group(2))
-bad = sorted((r for r, rc in latest.items() if rc), key=lambda r: int(r[1:]))
+bad = sorted(r for r, rc in latest.items() if rc)
 print("VERDICT (latest line per row): " + ("SUITE PASSED" if not bad else "SUITE FAILED: " + " ".join(bad)))
 PY
   exit 0
@@ -47,9 +47,10 @@ print(f"TOTAL {t} tests, {f} failures, {e} errors")
 PY
 say "unit: $(tail -1 "$OUT/UNIT.txt") (gradle exit $URC)"
 FAILED=(); [ "$URC" -eq 0 ] || FAILED+=(unit)
-ROWS=${*:-"e1 e2 e3 e4 e5 e6 e7 e8 e9 e10 e11 e12 e13 e15 e16 e14"}
+ROWS=${*:-"e1 e2 e3 e4 e5 e6 e7 e8 e9 e10 e11 e12 e13 e15 e16 l11_1 e14"}
+rowid() { case "$1" in l11_1) echo L11-1 ;; *) echo "$1" | tr 'e' 'E' ;; esac; }
 for r in $ROWS; do
-  R="$(echo "$r" | tr 'e' 'E')"
+  R="$(rowid "$r")"
   rm -rf "$OUT/$R"
   START=$(date +%s)
   bash "$HERE/$r.sh" > "$OUT/.$r.console" 2>&1
