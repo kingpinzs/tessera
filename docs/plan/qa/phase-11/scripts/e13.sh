@@ -57,7 +57,8 @@ c6
 
 log "--- phase 02 E7's 830-ms line with the burst: slot:PEOPLE (Contacts, one manifest shortcut) ---"
 restore baseline_layout-pre-11.json
-adb shell dumpsys shortcut com.android.contacts > "$ROW_DIR/contacts-shortcuts.txt" 2>&1
+# Contacts' own section of the dump (`dumpsys shortcut <pkg>` prints every package; the re-judge, R2-15), as E8 filters b's.
+adb shell dumpsys shortcut | awk '/Package: com.android.contacts /{f=1; print; next} f && /Package: /{f=0} f' > "$ROW_DIR/contacts-shortcuts.txt" 2>&1
 note "Contacts' shortcuts: $(grep -oE 'ShortcutInfo \{id=[^,]*' "$ROW_DIR/contacts-shortcuts.txt" | sort -u | tr '\n' ' ')"
 qdump "$ROW_DIR/p830-rest.xml"
 read -r X Y <<< "$(center "$ROW_DIR/p830-rest.xml" tile:slot:PEOPLE)"
