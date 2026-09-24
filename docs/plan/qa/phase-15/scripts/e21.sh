@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# E21 — Permission states, the Alarms & Clock parts only (phase 15; the recorder parts are another driver's).
+# E21 — Permission states: the Alarms & Clock parts (below) and the Voice Recorder parts (the last section: RECORD_AUDIO
+# revoked, then READ_MEDIA_AUDIO revoked hiding other apps' recordings, T15-19, T15-57).
 # Full-screen intent denied: `appops set app.tileshell USE_FULL_SCREEN_INTENT deny` → E4's alarm (PIN, asleep, the
 #   clock jumped) still sounds and notifies, no ring surface appears over the keyguard (the keyguard on top, no
 #   activity of app.tileshell in focus), the ring slice holds `surface: lockscreen-notification <id>` and
@@ -11,9 +12,9 @@
 #   does not govern a USE_EXACT_ALARM holder) and an alarm still arms with setAlarmClock — asserted through the Next
 #   alarm clock line; restore `default`.
 # Restore: the alarms deleted through the app, RV12's clock restore, force-stop + Home.
-. "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"
+. "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"; . "$(dirname "$0")/rec.sh"
 
-row_begin E21 "permission states (clock): full-screen intent denied, overlay denied, SCHEDULE_EXACT_ALARM denied"
+row_begin E21 "permission states: full-screen intent, overlay, SCHEDULE_EXACT_ALARM; the recorder's microphone and audio access"
 record_fsi
 assert_clock_empty "baseline"
 dismiss_any_ring
@@ -138,10 +139,57 @@ assert_contains "… and the rearm line says exact=true" "exact=true" "$(ring_si
 adb shell appops set app.tileshell SCHEDULE_EXACT_ALARM default
 record "appops SCHEDULE_EXACT_ALARM after restore" "$(adb shell appops get app.tileshell SCHEDULE_EXACT_ALARM | tr -d '\r' | head -1)"
 
+# ---- Voice Recorder: RECORD_AUDIO revoked (a revoke kills the app's processes: the page is reopened after it, T15-57)
+audio_route "E21 recorder"
+purge_own_takes
+adb shell pm revoke app.tileshell android.permission.RECORD_AUDIO; sleep 2
+rec_open record
+dump_ui "$ROW_DIR/rec_mic_denied.xml"; screencap "$ROW_DIR/rec_mic_denied.png"
+assert_eq "RECORD_AUDIO revoked: the page says it cannot record (rec_mic_notice)" yes "$(has_node "$ROW_DIR/rec_mic_denied.xml" rec_mic_notice)"
+assert_eq "… and offers the grant in place (rec_mic_grant)" yes "$(has_node "$ROW_DIR/rec_mic_denied.xml" rec_mic_grant)"
+n0="$(own_count)"; MARK="$(ring_mark)"
+gtap "$ROW_DIR/rec_mic_denied.xml" rec_button; sleep 3
+assert_eq "rec_button starts nothing (no new take)" "$n0" "$(own_count)"
+assert_absent "… and no take started in the :recorder ring" "[recorder] start " "$(rec_ring "$MARK")"
+open_checklist
+assert_eq "the checklist's microphone row is red (missing)" yes "$(has_node "$ROW_DIR/.checklist_open.xml" checklist:microphone:missing)"
+cp "$ROW_DIR/.checklist_open.xml" "$ROW_DIR/checklist_mic_denied.xml"
+adb shell pm grant app.tileshell android.permission.RECORD_AUDIO; sleep 2
+rec_open record
+dump_ui "$ROW_DIR/rec_mic_granted.xml"
+assert_eq "granted again: no microphone notice" no "$(has_node "$ROW_DIR/rec_mic_granted.xml" rec_mic_notice)"
+# ---- Voice Recorder: other apps' recordings hidden without READ_MEDIA_AUDIO (T15-19)
+TAKE="$(make_take 3)"
+assert_ne "its own take is made first" "" "$TAKE"
+push_fixture_recordings
+OTHER="$(id_by_name other.m4a)"; note "other.m4a: ${OTHER:-?}"
+adb shell pm revoke app.tileshell android.permission.READ_MEDIA_AUDIO; sleep 2
+MARK="$(ring_mark)"
+rec_open list; sleep 1
+dump_ui "$ROW_DIR/rec_list_hidden.xml"; screencap "$ROW_DIR/rec_list_hidden.png"
+assert_eq "READ_MEDIA_AUDIO revoked: the list shows its own take" yes "$(has_node "$ROW_DIR/rec_list_hidden.xml" "rec_row:$TAKE")"
+assert_eq "… and NOT other.m4a" no "$(has_node "$ROW_DIR/rec_list_hidden.xml" "rec_row:$OTHER")"
+assert_eq "… with the notice naming the Music grant (rec_list_notice)" yes "$(has_node "$ROW_DIR/rec_list_hidden.xml" rec_list_notice)"
+note "rec_list_notice text: $(node_text "$ROW_DIR/rec_list_hidden.xml" rec_list_notice)"
+assert_contains "the ring says other apps' recordings are hidden" "(other apps: hidden, READ_MEDIA_AUDIO denied)" "$(ring_since "$MARK" | grep -F '[recorder] list:')"
+adb shell pm grant app.tileshell android.permission.READ_MEDIA_AUDIO; sleep 2
+MARK="$(ring_mark)"
+rec_open list; sleep 1
+dump_ui "$ROW_DIR/rec_list_back.xml"
+assert_eq "granted again: other.m4a is back" yes "$(has_node "$ROW_DIR/rec_list_back.xml" "rec_row:$OTHER")"
+assert_eq "… and the notice is gone" no "$(has_node "$ROW_DIR/rec_list_back.xml" rec_list_notice)"
+assert_contains "… and the list line counts it again" "(1 by other apps)" "$(ring_since "$MARK" | grep -F '[recorder] list:')"
+app_delete_take "$TAKE" || note "restore: the take $TAKE could not be deleted in the app"
+purge_own_takes
+remove_fixture_recordings
+adb shell input keyevent KEYCODE_HOME; sleep 1
+
 # ---- restore -----------------------------------------------------------------------------------------------------------------------
 app_delete_alarm "$ID"; app_delete_alarm "$ID2"
 adb shell am force-stop app.tileshell; adb shell input keyevent KEYCODE_HOME; sleep 3
 assert_contains "restore: USE_FULL_SCREEN_INTENT allow" "allow" "$(adb shell appops get app.tileshell USE_FULL_SCREEN_INTENT | tr -d '\r' | head -1)"
 assert_contains "restore: SYSTEM_ALERT_WINDOW allow" "allow" "$(adb shell appops get app.tileshell SYSTEM_ALERT_WINDOW | tr -d '\r' | head -1)"
 assert_clock_empty "restore"
+assert_contains "restore: RECORD_AUDIO granted" "RECORD_AUDIO: granted=true" "$(adb shell dumpsys package app.tileshell | tr -d '\r' | grep 'android.permission.RECORD_AUDIO: granted')"
+assert_contains "restore: READ_MEDIA_AUDIO granted" "READ_MEDIA_AUDIO: granted=true" "$(adb shell dumpsys package app.tileshell | tr -d '\r' | grep 'android.permission.READ_MEDIA_AUDIO: granted')"
 row_end
