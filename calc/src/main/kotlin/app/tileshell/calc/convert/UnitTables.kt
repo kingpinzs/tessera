@@ -24,8 +24,8 @@ data class ConversionData(val ratio: Double, val offset: Double, val offsetFirst
  * Per category: the units sorted by the loader's order number (LINQ `OrderBy`, stable, so equal order numbers keep
  * insertion order — Data's whimsicals share 13/14/15 with Gibibits/Gigabyte/Gibibytes), each unit's default
  * conversion-source/-target flag, and the ratio table: `sourceFactor / targetFactor` in doubles for factor categories,
- * and the explicit (ratio, offset, offsetFirst) triples for Temperature. The factor literals are copied verbatim; a
- * Kotlin double literal rounds to nearest exactly as Roslyn does for the C# literal.
+ * and the explicit (ratio, offset, offsetFirst) triples for Temperature. The factor literals are copied verbatim, except
+ * the thirteen listed at [factors]; a Kotlin double literal rounds to nearest exactly as Roslyn does for the C# literal.
  */
 object UnitTables {
     private const val REGION = "US"
@@ -242,7 +242,20 @@ object UnitTables {
         add(angle, 136, "Gradians", "grad", 3)
     }
 
-    /** Factor per unit id, "matches GetConversionData in C++" (loader comment); ratio = source / target. */
+    /**
+     * Factor per unit id, "matches GetConversionData in C++" (loader comment); ratio = source / target.
+     *
+     * Thirteen factors are not the loader's literals, which are rounded, truncated or out of date there: each is its
+     * unit's exact definition, written in full or as the nearest double (INDEX.md Change Log, 2026-09-24: where
+     * Windows is wrong, the right answer wins). The loader's value is in brackets.
+     * BTU = 1055.05585262 J, the International Table BTU [1055.056]; eV = 1.602176634e-19 J, exact in the 2019 SI
+     * [CODATA 2010's 1.602176565e-19]; ft·lb = 0.3048 m × 0.45359237 kg × 9.80665 m/s² [cut to 14 digits]; BTU/min
+     * and ft·lb/min = those ÷ 60 [1055.056 / 60; cut to 15 digits]; cup (US) = 1/16 US gallon of 231 in³ [236.588237];
+     * knot = 1852 m/h [51.44]; mph = 1609.344 m/h [44.7]; Mach = 340.294 m/s, the ISA sea-level speed of sound
+     * (ICAO Doc 7488) [340.3]; radian = 180/π degrees [one ulp high]; kPa = 1000/101325 atm [cut to 14 digits];
+     * mmHg = 133.322387415 Pa [133.3 Pa]; psi = 0.45359237 × 9.80665 N / 0.0254² m² [wrong from the 8th digit].
+     * Every other real unit's literal already equals its definition to the last bit; the whimsical units keep theirs.
+     */
     private val factors: Map<ConverterCategory, Map<Int, Double>> = mapOf(
         ConverterCategory.AREA to mapOf(
             1 to 4046.8564224, 7 to 1.0, 4 to 0.09290304, 10 to 0.83612736, 9 to 0.000001, 3 to 0.0001,
@@ -261,8 +274,8 @@ object UnitTables {
             158 to 1208925819614629174.706176, 100 to 1.474560, 101 to 700.0, 102 to 4700.0,
         ),
         ConverterCategory.ENERGY to mapOf(
-            24 to 4.184, 28 to 4184.0, 23 to 1055.056, 29 to 1000.0, 166 to 3600000.0,
-            25 to 0.0000000000000000001602176565, 27 to 1.0, 26 to 1.3558179483314, 103 to 9000.0,
+            24 to 4.184, 28 to 4184.0, 23 to 1055.05585262, 29 to 1000.0, 166 to 3600000.0,
+            25 to 1.602176634e-19, 27 to 1.0, 26 to 1.3558179483314004, 103 to 9000.0,
             129 to 439614.0, 130 to 1046700.0,
         ),
         ConverterCategory.LENGTH to mapOf(
@@ -271,7 +284,7 @@ object UnitTables {
             105 to 0.035052, 131 to 0.18669, 107 to 76.0,
         ),
         ConverterCategory.POWER to mapOf(
-            41 to 17.58426666666667, 42 to 0.0225969658055233, 45 to 1.0, 44 to 1000.0,
+            41 to 17.584264210333334, 42 to 0.02259696580552334, 45 to 1.0, 44 to 1000.0,
             43 to 745.69987158227022, 108 to 60.0, 109 to 745.7, 132 to 2982799.486329081,
         ),
         ConverterCategory.TIME to mapOf(
@@ -279,7 +292,7 @@ object UnitTables {
             53 to 60.0, 50 to 3600.0,
         ),
         ConverterCategory.VOLUME to mapOf(
-            69 to 236.588237, 77 to 473.176473, 76 to 568.26125, 81 to 946.352946, 80 to 1136.5225,
+            69 to 236.5882365, 77 to 473.176473, 76 to 568.26125, 81 to 946.352946, 80 to 1136.5225,
             73 to 3785.411784, 72 to 4546.09, 74 to 1000.0, 79 to 4.92892159375, 78 to 14.78676478125,
             64 to 1.0, 68 to 764554.857984, 67 to 1000000.0, 75 to 1.0, 66 to 16.387064, 65 to 28316.846592,
             71 to 29.5735295625, 70 to 28.4130625, 115 to 5.91938802083333333333, 116 to 17.7581640625,
@@ -291,13 +304,13 @@ object UnitTables {
             82 to 0.0002, 93 to 907.18474, 113 to 0.000002, 133 to 0.4325, 114 to 4000.0, 123 to 90000.0,
         ),
         ConverterCategory.SPEED to mapOf(
-            57 to 1.0, 58 to 30.48, 59 to 27.777777777777777777778, 60 to 51.44, 61 to 34030.0, 62 to 100.0,
-            63 to 44.7, 121 to 8.94, 126 to 2011.5, 122 to 24585.0,
+            57 to 1.0, 58 to 30.48, 59 to 27.777777777777777777778, 60 to 51.44444444444444, 61 to 34029.4, 62 to 100.0,
+            63 to 44.704, 121 to 8.94, 126 to 2011.5, 122 to 24585.0,
         ),
-        ConverterCategory.ANGLE to mapOf(134 to 1.0, 135 to 57.29577951308233, 136 to 0.9),
+        ConverterCategory.ANGLE to mapOf(134 to 1.0, 135 to 57.29577951308232, 136 to 0.9),
         ConverterCategory.PRESSURE to mapOf(
-            137 to 1.0, 138 to 0.9869232667160128, 139 to 0.0098692326671601, 140 to 0.0013155687145324,
-            141 to 9.869232667160128e-6, 142 to 0.068045961016531,
+            137 to 1.0, 138 to 0.9869232667160128, 139 to 0.009869232667160128, 140 to 0.0013157896611398965,
+            141 to 9.869232667160128e-6, 142 to 0.06804596390987773,
         ),
     )
 

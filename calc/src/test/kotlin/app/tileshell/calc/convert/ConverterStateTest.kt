@@ -85,7 +85,7 @@ class ConverterStateTest {
         assertConversion(ConverterCategory.ENERGY, "Joules", "Food calories", "4184", "4,184", "1")
         assertConversion(ConverterCategory.ENERGY, "Kilowatt-hours", "Joules", "1", "1", "3,600,000")
         // Below 1e-14 the result switches to printf's %e, shown with its six decimals.
-        assertConversion(ConverterCategory.ENERGY, "Electron volts", "Kilowatt-hours", "1", "1", "4.450490e-26")
+        assertConversion(ConverterCategory.ENERGY, "Electron volts", "Kilowatt-hours", "1", "1", "4.450491e-26")
     }
 
     @Test fun area() {
@@ -93,10 +93,11 @@ class ConverterStateTest {
         assertConversion(ConverterCategory.AREA, "Acres", "Hectares", "1", "1", "0.404686")
     }
 
-    @Test fun speedMatchesTheW10mCaptures() {
-        // r11/calculator.md 5.6 (C4) and 5.10 (C5).
-        assertConversion(ConverterCategory.SPEED, "Kilometers per hour", "Miles per hour", "523", "523", "325.0062")
-        assertConversion(ConverterCategory.SPEED, "Kilometers per hour", "Miles per hour", "523535", "523,535", "325,338.7")
+    @Test fun speedAtTheW10mCapturesInputs() {
+        // r11/calculator.md 5.6 (C4) and 5.10 (C5) show 325.0062 and 325,338.7, from Windows' mph of 44.7 cm/s; the
+        // shell's mph is exactly 44.704 cm/s (2026-09-24), so 523 km/h is 324.9771 mph.
+        assertConversion(ConverterCategory.SPEED, "Kilometers per hour", "Miles per hour", "523", "523", "324.9771")
+        assertConversion(ConverterCategory.SPEED, "Kilometers per hour", "Miles per hour", "523535", "523,535", "325,309.6")
     }
 
     @Test fun time() {
@@ -226,13 +227,13 @@ class ConverterStateTest {
         assertFalse(state.value1Active)
         // Nothing changes until the next key.
         assertEquals("523", state.value1)
-        assertEquals("325.0062", state.value2)
+        assertEquals("324.9771", state.value2)
         assertEquals("Miles per hour", state.fromUnit.name)
         state.press("1")
         state.press("0")
         state.press("0")
         assertEquals("100", state.value2)
-        assertEquals("160.92", state.value1)
+        assertEquals("160.9344", state.value1)
         assertEquals(listOf("0.13 M", "44.7 m/s", "86.9 kn", "146.7 ft/s", "4,470 cm/s", "2.22 horses"), suggestions(state))
     }
 
@@ -287,13 +288,14 @@ class ConverterStateTest {
 
     // ---- "About equal to" ----
 
-    @Test fun suggestionsMatchTheW10mCaptures() {
+    @Test fun suggestionsAtTheW10mCapturesInputs() {
         // C4 "0.43 M · 145.3 m/s · 282.4 kn · ✈ 0.59 jets" and C5 "427.3 M · 145,426 m/s · ✈ 591.5 jets" are the
         // leading items that fit the phone's one line, with the whimsical item kept last (r11/calculator.md 5.9).
+        // C5's Mach comes from Windows' 340.3 m/s; the shell's is ISA's 340.294 m/s (2026-09-24), so 427.4 M.
         val c4 = convert(ConverterCategory.SPEED, "Kilometers per hour", "Miles per hour", "523")
         assertEquals(listOf("0.43 M", "145.3 m/s", "282.4 kn", "476.6 ft/s", "14,528 cm/s", "0.59 jets"), suggestions(c4))
         val c5 = convert(ConverterCategory.SPEED, "Kilometers per hour", "Miles per hour", "523535")
-        assertEquals(listOf("427.3 M", "145,426 m/s", "282,711 kn", "477,121 ft/s", "14,542,639 cm/s", "591.5 jets"), suggestions(c5))
+        assertEquals(listOf("427.4 M", "145,426 m/s", "282,686 kn", "477,121 ft/s", "14,542,639 cm/s", "591.5 jets"), suggestions(c5))
         assertTrue(c5.supplementaryResults.last().unit.isWhimsical)
     }
 
@@ -343,10 +345,10 @@ class ConverterStateTest {
             suggestions(convert(ConverterCategory.DATA, "Gigabytes", "Megabytes", "1")),
         )
         assertEquals(
-            listOf("3.97 BTU", "4.18 kJ", "1,000 cal", "3,086 ft•lb", "26,114,475,092,200,589,885,440 eV", "0.46 batteries"),
+            listOf("3.97 BTU", "4.18 kJ", "1,000 cal", "3,086 ft•lb", "26,114,473,967,543,832,805,376 eV", "0.46 batteries"),
             suggestions(convert(ConverterCategory.ENERGY, "Joules", "Food calories", "4184")),
         )
-        assertEquals(listOf("14.7 psi", "101.3 kPa", "760.1 mmHg", "101,325 Pa"),
+        assertEquals(listOf("14.7 psi", "101.3 kPa", "760 mmHg", "101,325 Pa"),
             suggestions(convert(ConverterCategory.PRESSURE, "Atmospheres", "Bars", "1")))
         assertEquals(listOf("200 grad"), suggestions(convert(ConverterCategory.ANGLE, "Degrees", "Radians", "180")))
         assertEquals(listOf("0.06 d", "0.01 wk", "5,400 s", "5,400,000 ms", "5,400,000,000 µs"),
