@@ -93,6 +93,18 @@ class QuickRulesTest {
         assertTrue("no shortcuts line when the query never answered", lines.isEmpty())
     }
 
+    /** G-D1: the background load always completes; only cancellation escapes. */
+    @Test fun guardTurnsAnyExceptionIntoItsFailureValue() {
+        assertEquals("ok", QuickRule.guard({ "ok" }) { "failed $it" })
+        assertEquals("failed java.lang.NullPointerException: x", QuickRule.guard({ throw NullPointerException("x") }) { "failed $it" })
+        assertEquals("failed", QuickRule.guard({ mapOf<String, String>().getValue("y") }) { "failed" })
+    }
+
+    @Test(expected = kotlinx.coroutines.CancellationException::class)
+    fun guardLetsCancellationThrough() {
+        QuickRule.guard({ throw kotlinx.coroutines.CancellationException("stop") }) { "swallowed" }
+    }
+
     // ---- geometry (this AVD: 1080 px wide, 3 epx per epx-unit)
 
     private val s = 164.8f          // one small tile

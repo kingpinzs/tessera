@@ -82,6 +82,19 @@ object QuickRule {
         return if (shown.isEmpty()) QuickDecision.None(NoBurstReason.NO_SHORTCUTS) else QuickDecision.Show(shown, all.size)
     }
 
+    /**
+     * The whole background load runs inside this, so its Deferred always completes normally: an exception that
+     * escaped it would fail an `async` child and cancel Start's composition scope with it (gate review G-D1).
+     * Cancellation still propagates.
+     */
+    fun <T> guard(block: () -> T, onFailure: (Exception) -> T): T = try {
+        block()
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        onFailure(e)
+    }
+
     fun shortcutsLine(described: String, total: Int, shownIds: List<String>): String =
         "shortcuts for $described: $total (${shownIds.size} shown" +
             (if (shownIds.isEmpty()) ")" else ": ${shownIds.joinToString(",")})")
