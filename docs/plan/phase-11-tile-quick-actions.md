@@ -51,7 +51,8 @@ as amended 2026-09-23 — re-worded 2026-09-23 by r2 triage T11-11).
   four satellites are App Shortcuts; there is no 'Edit' satellite, because edit mode has already begun. Every measured R6 value and
   every phase 02 proof stands — the burst is ADDED on top of the hold, nothing about the hold changes." (Jeremy)
 - 2026-09-22: Data source (R10 item 10, carried into the scope add): the actions are Android App Shortcuts read with
-  `LauncherApps.getShortcuts`, which only the HOME role holder may call — the shell is it. Launch is `LauncherApps.startShortcut`.
+  `LauncherApps.getShortcuts`, which only a shortcut host may call — the HOME role holder and (found 2026-09-23 at build) the
+  assistant / voice-interaction holder too; the shell is both. Launch is `LauncherApps.startShortcut`.
   No network (shortcuts are local; offline preferred, A11 as amended 2026-09-23 — re-worded 2026-09-23 by T11-11) (agent, R10).
   Added 2026-09-23 (agent, r3 triage T11-32): the source runs OFF the main thread (`Dispatchers.IO`, icons decoded there too). It
   starts at the DOWN of every press on a tile outside edit mode (the hold race, `EditGestures.kt:74-79`) and is cancelled when the
@@ -105,15 +106,17 @@ as amended 2026-09-23 — re-worded 2026-09-23 by r2 triage T11-11).
   bottom tile row's top minus one gutter; past the grid's left or right margin, `StartGrid.leftMarginPx` / `rightMarginPx` —
   re-cut 2026-09-23 from "the screen's left or right edge" by r3 triage T11-27) is moved inward along the offending axis until it
   fits, and may then overlap dimmed neighbours (the
-  burst draws above them) but never the held tile; when a corner satellite cannot avoid the held tile (a wide tile at the right edge
-  in 2-column mode, a tile at the grid's top-left corner), the whole burst takes the line arrangement above the tile, or below it
+  burst draws above them) but never the held tile; when a corner satellite cannot avoid the held tile (a tile at the grid's top-left corner; a WIDE
+  tile in the 2-column grid's first row — corrected 2026-09-23 at build: a full-width WIDE tile further down keeps a clamped
+  corner, its satellites slid in to the margins above and below it, never on it; INDEX Change Log), the whole burst takes the line arrangement above the tile, or below it
   when above does not fit (a line below draws its labels below the satellites). Fewer than four shortcuts fill the slots in that
   same order, first k (H5). Added 2026-09-23 (agent, T11-27): the arrangement and its clamping are decided ONCE, when the burst
   opens, against the held tile's edit-mode rest rectangle (its centre contracted to 0.90 about R6 §1.1.3's fixed point, its size
   unchanged — the numbers `StartPage` draws with); afterwards each satellite keeps its offset from the tracked tile and rides it
   through the contraction and a scroll, and the page edge and the drawn bars cover a satellite carried past them as they cover the
-  tile — a burst never re-clamps or switches arrangement mid-motion (it would jump with no spring). A held tile whose rest
-  rectangle lies wholly outside the page area opens no burst (`off screen`); since J4 only the promoted tile's grid cell can be
+  tile — a burst never re-clamps or switches arrangement mid-motion (it would jump with no spring). A held grid or band tile whose rest
+  rectangle lies wholly outside the page area opens no burst (`off screen`; a bottom-row tile is always on screen — it lies below
+  the clamp area by design, found by E7 at build 2026-09-23); since J4 only the promoted tile's grid cell can be
   there
 - 2026-09-22: Motion (Jeremy: dampingRatio 0.65, four satellites; stiffness and the rest agent, H2): each satellite's centre starts
   at the held tile's centre and moves to its rest centre on one Compose `spring(dampingRatio = 0.65f, stiffness = 1500f)`
@@ -453,7 +456,8 @@ helpers are this phase's build task 7.
   `folder:qa` expanded and the burst on a member: tap `folder_name_placeholder:qa` → burst closed, no `folder_name_box`.
   `tap_node quick_sat_label:0` → satellite 0 runs (`shortcut_id` = `qa_one`), then C-6 (T11-26). `KEYCODE_BACK` → burst gone
   (`back`), edit mode on; a second `KEYCODE_BACK` → edit mode off. Tap `edit_disc:resize` → the tile's size cycles (`[edit] resize
-  <id> MEDIUM -> WIDE`), `quick_burst` absent, `edit_disc:*` on the tile's new corners, edit mode on, and the slice has `[quick]
+  <id> MEDIUM -> SMALL`, phase 02's `TileSize.next()` — corrected 2026-09-23 at build from `-> WIDE`, INDEX Change Log),
+  `quick_burst` absent, `edit_disc:*` on the tile's new corners, edit mode on, and the slice has `[quick]
   burst closed: resize` (Q2 A; re-cut 2026-09-23 by r3 triage T11-17 from "`quick_burst` present … at the new corners"). Tap
   `edit_disc:unpin` → the tile and the burst are gone (`unpin`). Tap the drawn Windows key (`tap_node nav_windows`; this AVD does
   not re-deliver the HOME intent to the resumed home activity, phase 02 `qa/phase-02/README.md:73-75`, so `KEYCODE_HOME` is phone
@@ -476,7 +480,9 @@ helpers are this phase's build task 7.
   3-px ring — reads F + 0.05·(255 − F) ± 4 (re-cut 2026-09-23 by T11-31 from "along the diagonal", which lands on the glyph); the
   interior pixel 12 px inside the bottom-right corner (≈ 200 px away) reads F ± 2; with Transparency effects off every one of
   those pixels equals the rest pixels ± 2 (one tolerance with phase 13 E7, T11-31)
-- E6 Motion, on the shell's clock (C-5, T11-5): open a burst on the fixture tile; the `[quick] motion open <tileId>` line reads peak
+- E6 Motion, on the shell's clock (C-5, T11-5): open a burst on the fixture tile on a WARM process — one warm-up hold first
+  (added 2026-09-23 at build: the first hold after the shell starts janks in phase 02's own edit-mode entry on the AVD's debug
+  build, a burst or not, so it is recorded, not asserted; P2 reads the cold open on the phone's release build); the `[quick] motion open <tileId>` line reads peak
   = 107 ± 17 ms, overshoot = 6.8 ± 2 % of the travel and settle ≤ 250 + 17 ms (settle = the first frame from which every later
   frame is within 1 px of rest, ≈ 249 ms for the fixture's ≈ 427-px travel, plus RV11's one frame — re-cut 2026-09-23 by r3 triage
   T11-29 from "≤ 250 ms"), and one line (one t0) covers all four satellites; tap elsewhere: `[quick] motion close <tileId>` reads
@@ -510,7 +516,8 @@ helpers are this phase's build task 7.
 - E8 No-burst and close cases driven by the fixture (re-cut 2026-09-23 by r3 triage T11-15 / T11-21: Android deletes a disabled
   unpinned dynamic shortcut, so the `isEnabled` filter is proved by the selection rule's JVM test, not here; every verb sent with a
   burst open goes through `ShortcutVerbReceiver`, so no window comes over Start): (a) `adb shell cmd role remove-role-holder
-  android.app.role.HOME app.tileshell` → hold → edit mode, no burst, `[quick] no burst …: not the shortcut host`; restore with
+  android.app.role.HOME app.tileshell` and the same for `android.app.role.ASSISTANT` (the assistant holder is a shortcut host too:
+  HOME alone left the query working — corrected 2026-09-23 at build) → hold → edit mode, no burst, `[quick] no burst …: not the shortcut host`; restore both with
   `add-role-holder` and `cmd package set-home-activity`; (b) `reset` + C-6, then `adb shell am broadcast -n
   app.tileshell.testclient.b/app.tileshell.testclient.ShortcutVerbReceiver --es verb disable`, MARK, hold its tile → no burst, the
   slice has `[quick] shortcuts for app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity/0: 0 (0 shown)` and `[quick] no
@@ -626,8 +633,8 @@ approximation not covered by H2–H11; H10 the close motion (spring back, alpha 
   (nothing runs, burst stays); a tap on a satellite's label (counts as the satellite)
 - A folder tile (no burst); a tile inside an expanded band (corner arrangement above the rules); the bottom-row tiles (line
   arrangement; a full row of six — each satellite row clamped inside the grid margins); the promoted tile (since J4: edit mode, the
-  promotion suspended, the burst around the tile's grid cell; E16, T11-2); a wide tile at the right edge in 2-column mode (line
-  arrangement); the grid's top-left tile (clamped)
+  promotion suspended, the burst around the tile's grid cell; E16, T11-2); a WIDE tile in the 2-column grid's first row (line
+  arrangement; further down it keeps a clamped corner, corrected at build); the grid's top-left tile (clamped)
 - Show more tiles toggled (it lives on Start + theme, another activity, so Start stops first: the burst closes with `stop`, and edit
   mode is as phase 02 left it — re-cut 2026-09-23 by T11-40 from "the reflow closes edit mode per phase 02", which phase 02 has no
   rule for); a resize with the burst open (the tile resizes and the burst closes, `resize`, Q2 A — T11-17); unpin of the last tile
