@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Alarms & Clock's launcher icon, as Calculator's and Voice Recorder's are made: its glyph (the bell) on the accent.
+  Start draws an app's monochrome layer white on the accent tile where no live face is published (start/TileIcons.kt);
+  the pinned tile's live face is ClockTiles'. The background is the out-of-box accent (Palette.DEFAULT_ACCENT) for places
+  that draw the full-colour icon, like the app list.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/clock_icon_background" />
+    <foreground>
+        <inset android:drawable="@drawable/ic_clock_glyph" android:inset="33%" />
+    </foreground>
+    <monochrome>
+        <inset android:drawable="@drawable/ic_clock_glyph" android:inset="33%" />
+    </monochrome>
+</adaptive-icon>
