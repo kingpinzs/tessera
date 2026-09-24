@@ -55,11 +55,15 @@ object ArithmeticWords {
 
     private val ROOT = listOf("the square root of", "square root of").map { it.split(' ') }
 
+    private val PER_CENT = Regex("\\bper cent\\b")
+
     /** The arithmetic in [text] (the matcher's normalised text), or null when it is not wholly arithmetic. */
     fun parse(text: String): CalcRequest? {
         var body = text
         PREFIXES.firstOrNull { body.startsWith(it) }?.let { body = body.removePrefix(it) }
         body = body.removeSuffix(" equal").removeSuffix(" equals").trim()
+        // The recogniser writes "per cent" as two words (E26 run 3: "WHAT'S FIFTEEN PER CENT OF EIGHTY"); it is "percent".
+        body = PER_CENT.replace(body, "percent")
         val words = body.split(' ').filter { it.isNotEmpty() }
         if (words.isEmpty()) return null
         conversion(words)?.let { return it }
