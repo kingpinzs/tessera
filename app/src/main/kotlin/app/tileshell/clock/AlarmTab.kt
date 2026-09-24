@@ -458,7 +458,7 @@ fun SoundsScreen(nav: ClockNav, onBack: () -> Unit, onWindows: () -> Unit) {
             BasicText("Use default", Modifier.align(Alignment.CenterStart).offset(x = 24.2.dp), style = ShellType.title.copy(color = if (draft.sound.kind == AlarmSound.Kind.DEFAULT) colors.accent else colors.text))
         }
         Box(Modifier.offset(x = 22.4.dp, y = 161.8.dp).width(313.1.dp).height(1.dp).background(Color(129, 129, 129)))
-        LazyColumn(Modifier.offset(y = 170.dp).fillMaxSize().testTag("sounds_list"), contentPadding = PaddingValues(bottom = 24.dp)) {
+        LazyColumn(Modifier.fillMaxSize().padding(top = 170.dp).testTag("sounds_list"), contentPadding = PaddingValues(bottom = 24.dp)) {
             items(rows, key = { it.id }) { row ->
                 val selected = row.uri == selectedUri && draft.sound.kind != AlarmSound.Kind.DEFAULT
                 Box(Modifier.fillMaxWidth().height(60.4.dp)) {
@@ -520,7 +520,7 @@ fun MusicPickerScreen(nav: ClockNav, onBack: () -> Unit, onWindows: () -> Unit) 
                 }
             }
             rows?.isEmpty() == true -> EmptyLineR7("No music on this phone", "alarm_sound_pick_empty", capTop = 140f)
-            else -> LazyColumn(Modifier.offset(y = 106.dp).fillMaxSize().testTag("alarm_sound_pick_list"), contentPadding = PaddingValues(bottom = 24.dp)) {
+            else -> LazyColumn(Modifier.fillMaxSize().padding(top = 106.dp).testTag("alarm_sound_pick_list"), contentPadding = PaddingValues(bottom = 24.dp)) {
                 items(rows.orEmpty(), key = { it.id }) { row ->
                     val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, row.id).toString()
                     PressBox(Modifier.fillMaxWidth().height(64.dp), onClick = {
