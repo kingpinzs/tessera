@@ -26,6 +26,10 @@ import android.graphics.drawable.Icon
  *               resolves to nothing — TestImageProvider throws FileNotFoundException for missing.png (T11-14, T11-33)
  *   deadtarget  setDynamicShortcuts([qa_dyn, qa_dead]): qa_dead ("Dead", rank 1) opens a component declared nowhere,
  *               so startShortcut fails with ActivityNotFoundException (T11-21)
+ *   labels      setDynamicShortcuts([qa_dyn, qa_blank, qa_long]): qa_blank (rank 1) has a whitespace short label — the
+ *               nearest a publisher can come to none, since setShortLabel rejects an empty one and the manifest parser
+ *               drops a shortcut without shortcutShortLabel; qa_long (rank 2) has a label far wider than a satellite's
+ *               (the phase 11 EDGE row: "no short label" and "very long labels")
  * qa_dyn is "Dyn", rank 0, with a resource icon (res/drawable/ic_qa_dyn, T11-33). Every intent is ACTION_VIEW to an
  * explicit component with qa_id = the shortcut's id, and every shortcut calls setActivity(tileclient-b's launcher
  * activity) (C-21), so the shell's per-activity query finds them on tileclient-b's tile.
@@ -45,9 +49,12 @@ object ShortcutVerbs {
     const val DYN = "qa_dyn"
     const val NO_ICON = "qa_noicon"
     const val DEAD = "qa_dead"
+    const val BLANK = "qa_blank"
+    const val LONG = "qa_long"
+    const val LONG_LABEL = "An unusually long shortcut label for the QA row"
     const val MISSING_ICON_URI = "content://app.tileshell.testclient.b.images/missing.png"
     const val MISSING_CLASS = "app.tileshell.testclient.Missing"
-    val VERBS = setOf("reset", "disable", "badicon", "deadtarget")
+    val VERBS = setOf("reset", "disable", "badicon", "deadtarget", "labels")
 
     fun perform(context: Context, verb: String): String {
         if (context.packageName != PACKAGE) {
@@ -62,6 +69,7 @@ object ShortcutVerbs {
             }
             "badicon" -> publish(sm, verb, listOf(dyn(context), noIcon(context)))
             "deadtarget" -> publish(sm, verb, listOf(dyn(context), dead(context)))
+            "labels" -> publish(sm, verb, listOf(dyn(context), labelled(context, BLANK, " ", 1), labelled(context, LONG, LONG_LABEL, 2)))
             else -> "unknown verb $verb"
         }
     }
@@ -96,6 +104,13 @@ object ShortcutVerbs {
         .setRank(1)
         .setIcon(Icon.createWithContentUri(MISSING_ICON_URI))
         .setIntent(open(launcher(context), NO_ICON))
+        .setActivity(launcher(context))
+        .build()
+
+    private fun labelled(context: Context, id: String, label: String, rank: Int): ShortcutInfo = ShortcutInfo.Builder(context, id)
+        .setShortLabel(label)
+        .setRank(rank)
+        .setIntent(open(launcher(context), id))
         .setActivity(launcher(context))
         .build()
 
