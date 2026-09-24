@@ -77,6 +77,12 @@ class AppCatalog private constructor(private val context: Context) {
                 refresh("available")
             }
 
+            override fun onShortcutsChanged(packageName: String, shortcuts: MutableList<android.content.pm.ShortcutInfo>, user: UserHandle) {
+                // Phase 11: an open burst for this package closes (Decisions "Satellite tap").
+                Diagnostics.add("apps", "LauncherApps.onShortcutsChanged $packageName user=${user.hashCode()} n=${shortcuts.size}")
+                shortcutsChangedListeners.forEach { it(packageName, user) }
+            }
+
             override fun onPackagesUnavailable(packageNames: Array<out String>, user: UserHandle, replacing: Boolean) {
                 // Unavailable is not gone (external storage, a stopped profile): the tiles stay.
                 Diagnostics.add("apps", "LauncherApps.onPackagesUnavailable ${packageNames.toList()} replacing=$replacing")
@@ -86,6 +92,11 @@ class AppCatalog private constructor(private val context: Context) {
     }
 
     private val packageRemovedListeners = java.util.concurrent.CopyOnWriteArrayList<(Set<String>, UserHandle) -> Unit>()
+    private val shortcutsChangedListeners = java.util.concurrent.CopyOnWriteArrayList<(String, UserHandle) -> Unit>()
+
+    /** Phase 11: LauncherApps' onShortcutsChanged, forwarded (the one callback lives here). */
+    fun addShortcutsChangedListener(listener: (String, UserHandle) -> Unit) { shortcutsChangedListeners += listener }
+    fun removeShortcutsChangedListener(listener: (String, UserHandle) -> Unit) { shortcutsChangedListeners -= listener }
 
     /** Called for an uninstall only (never for an update, a disable or an unavailable package). */
     fun addPackageRemovedListener(listener: (Set<String>, UserHandle) -> Unit) { packageRemovedListeners += listener }
