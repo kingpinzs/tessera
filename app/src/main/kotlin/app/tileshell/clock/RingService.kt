@@ -54,9 +54,11 @@ class RingService : Service() {
         val timeText: String,
         val snoozeMinutes: Int,
         val surface: Surface,
+        /** A timer whose deadline passed while the phone was off (Decisions "Clock rules"; T15-53): its notification says so. */
+        val endedOff: Boolean = false,
     ) {
         val title: String get() = if (timer) "Timer finished" else "Alarm"
-        val body: String get() = (names + timeText).filter { it.isNotBlank() }.joinToString(" · ")
+        val body: String get() = (names + timeText + (if (endedOff) ENDED_OFF else "")).filter { it.isNotBlank() }.joinToString(" · ")
         val logId: String get() = ids.joinToString(",")
     }
 
@@ -122,13 +124,12 @@ class RingService : Service() {
         val current = _state.value
         val next: Ring = if (timer) {
             val t = store.timer(id) ?: return
-            if (intent.getBooleanExtra(ReminderScheduler.EXTRA_CLOCK_ENDED_OFF, false)) {
-                Diagnostics.add("alarms", "timer $id ended while the phone was off")
-            }
+            val endedOff = intent.getBooleanExtra(ReminderScheduler.EXTRA_CLOCK_ENDED_OFF, false)
+            if (endedOff) Diagnostics.add("alarms", "timer $id ended while the phone was off")
             // A finished timer goes back to its full length, so a re-arm never rings it twice.
             store.updateTimer(id, "timer $id finished") { ClockRules.resetTimer(it) }
             current?.let { superseded(it) }
-            Ring(true, listOf(id), mapOf(id to at), listOf(t.name.ifBlank { "Timer" }), length(t.lengthMs), 0, Surface.NOTIFICATION)
+            Ring(true, listOf(id), mapOf(id to at), listOf(t.name.ifBlank { "Timer" }), length(t.lengthMs), 0, Surface.NOTIFICATION, endedOff)
         } else {
             val a = store.alarm(id) ?: return
             store.alarmHandled(id, at, ClockStore.Outcome.RINGING)
@@ -380,6 +381,8 @@ class RingService : Service() {
     }
 
     companion object {
+        /** The overdue timer's line on its ring notification (Decisions "Clock rules": "timer ended while the phone was off"). */
+        const val ENDED_OFF = "Timer ended while the phone was off"
         const val ACTION_RING = "app.tileshell.clock.RING"
         const val ACTION_SNOOZE = "app.tileshell.clock.SNOOZE"
         const val ACTION_DISMISS = "app.tileshell.clock.DISMISS"
