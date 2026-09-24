@@ -1,0 +1,59 @@
+$ bash docs/plan/qa/phase-11/scripts/test_ring_helpers.sh
+at       2026-09-23T18:48:07-06:00
+test     test_ring_helpers.sh blob 3bdd134d1a4730db2ceaeedc4821f50a4dafd5e9
+harness  phase-03 lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+device   none (adb is stubbed by the test)
+------------------------------------------------------------------------------
+== ring_mark
+PASS  ring_mark prints the device clock in ms, CR stripped
+== ring_since (launcher, the default)
+PASS  ring_since MARK = exactly the six lines stamped >= MARK, in ring order
+PASS  ring_since MARK launcher = the same slice
+PASS  no CR left in the slice
+PASS  the line stamped MARK itself is in (>=)
+PASS  the line stamped MARK - 1 is out
+PASS  dump header lines (no wall=) are out
+PASS  a mark after every line gives an empty slice
+PASS  ring_since read the listener's dump
+PASS  an empty mark is refused (non-zero)
+PASS  an empty mark says why on stderr
+PASS  an empty mark prints no ring line on stdout
+== ring_since speech
+PASS  ring_since MARK speech = the :speech ring's lines >= MARK
+PASS  ring_since speech read SpeechService's dump
+== ring_since <service component>
+PASS  ring_since MARK app.tileshell/.ime.KeyboardService = that dump's lines >= MARK
+PASS  ring_since <component> ran dumpsys activity service <component>
+== reply_since
+PASS  the first [speech] text= after MARK (skips the earlier reply and the [reminders] text=)
+PASS  a later mark gives the next reply
+PASS  no reply after the mark gives empty (the :speech ring's text= is not a reply)
+== ring_save
+PASS  ring_save writes ring-launcher.txt = ring_since ROW_MARK
+PASS  a second ring_save appends (the slice twice; duplicates are harmless)
+PASS  ring_save speech writes ring-speech.txt
+PASS  ring_save <component> writes ring-<sanitised component>.txt
+PASS  the row dir holds exactly those three files
+PASS  ring_save with no ROW_MARK refuses (non-zero)
+PASS  ... and writes nothing
+== row_begin sets ROW_MARK after the lock and the wake
+PASS  ROW_MARK = the device clock when the row began
+PASS  ROW_DIR is the row's own dir
+PASS  the lock, then the wake, then the mark (adb call order)
+== row_end saves RINGS (default launcher) first, keeps its pass/fail rule
+PASS  row_end with one PASS returns 0
+PASS  row_end saved ring-launcher.txt (RINGS default) = ring_since ROW_MARK
+PASS  and no other ring
+PASS  the ring was read before the summary was written
+PASS  row_end with a FAIL returns non-zero
+PASS  row_end saved every ring in RINGS
+PASS  ring-speech.txt = ring_since ROW_MARK speech
+PASS  the summary line is unchanged
+PASS  row_end with zero assertions still fails
+PASS  ... and says so in the log
+PASS  ... after saving the ring
+== no real adb
+PASS  nothing reached a real adb binary
+------------------------------------------------------------------------------
+test_ring_helpers: 41 passed, 0 failed
+exit code: 0
