@@ -24,7 +24,7 @@ if [ "${1:-}" = "--append" ]; then
 import re, sys
 latest = {}
 for l in open(sys.argv[1]):
-    m = re.match(r"(E\d+) exit (\d+)", l)
+    m = re.match(r"(E\d+|L11-1) exit (\d+)", l)
     if m: latest[m.group(1)] = int(m.group(2))
 bad = sorted(r for r, rc in latest.items() if rc)
 print("VERDICT (latest line per row): " + ("SUITE PASSED" if not bad else "SUITE FAILED: " + " ".join(bad)))
