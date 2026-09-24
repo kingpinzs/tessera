@@ -30,6 +30,8 @@ object LockGate {
         is Request.TimeQuery, is Request.DateQuery, is Request.Weather -> true
         is Request.SetAlarm, is Request.SetTimer -> true
         is Request.PlayMusic -> true
+        // Phase 15 T15-2: deterministic, no personal data, opens nothing.
+        is Request.Arithmetic -> true
         // Answers to a card that is already showing are not themselves requests to gate.
         is Request.Answer -> true
         is Request.NotUnderstood, is Request.Silence -> true
