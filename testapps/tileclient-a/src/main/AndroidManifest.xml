@@ -25,7 +25,18 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Phase 11 (T11-13): the five static App Shortcuts belong to this LAUNCHER activity, the component the
+                 tile is; the shell's per-activity query reads them here. ShortcutActivity is only their target. -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
+
+        <!-- Phase 11 (T11-47): the static shortcuts' target; shows the qa_id extra in @id/shortcut_id. Not exported:
+             LauncherApps.startShortcut starts it as this app, the shortcuts' publisher. -->
+        <activity
+            android:name="app.tileshell.testclient.ShortcutActivity"
+            android:exported="false" />
 
         <provider
             android:name="app.tileshell.testclient.TestImageProvider"
