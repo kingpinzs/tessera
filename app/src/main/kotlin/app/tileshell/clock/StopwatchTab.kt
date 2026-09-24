@@ -93,18 +93,20 @@ private fun stopwatchDigits(text: String, dim: Color, bright: Color, scale: Floa
 }
 
 /** One lap row's text with its spans (7.4, U6): the dim index, the lap time (hh:mm grey, ss.cc bright), the split in grey caption. */
-@Composable
-private fun lapText(n: Int, lapMs: Long, splitMs: Long, dim: Color, bright: Color): AnnotatedString {
+internal fun lapText(n: Int, lapMs: Long, splitMs: Long, dim: Color, bright: Color): AnnotatedString {
     val line = ClockText.lapLine(n, lapMs, splitMs)
     val lap = ClockText.stopwatch(lapMs)
     val split = ClockText.stopwatch(splitMs)
-    return buildAnnotatedString {
+    val row = buildAnnotatedString {
         withStyle(SpanStyle(color = dim, fontSize = 12.sp)) { append("$n  ") }
         withStyle(SpanStyle(color = dim, fontSize = 20.sp)) { append(lap.substring(0, lap.length - 5)) }
         withStyle(SpanStyle(color = bright, fontSize = 20.sp, fontWeight = FontWeight.Bold)) { append(lap.takeLast(5)) }
         withStyle(SpanStyle(color = dim, fontSize = 12.sp)) { append("  $split") }
-        check(toString() == line) { "lap row text must equal the shared line" }
     }
+    // Checked on the text the builder made: inside the builder `toString()` is the builder object, which never equals
+    // the line, and every lap crashed the app (qa/phase-15/E7-run2/DEFECT.md).
+    check(row.text == line) { "lap row text must equal the shared line" }
+    return row
 }
 
 /**
@@ -136,7 +138,7 @@ fun BoxScope.StopwatchTab(nav: ClockNav, store: ClockStore) {
     ) { if (sw.running) store.stopStopwatch() else store.startStopwatch() }
     GlyphButton(Glyph.EXPAND, "stopwatch_expand", true, Modifier.offset(x = (274.7f - 22f).dp, y = (125.8f - 22f).dp)) { nav.page = ClockPage.StopwatchExpanded }
     // 7.4: "Laps" (semibold) over "Splits" (grey), then the laps at R3 A15's 64-epx pitch, newest on top.
-    Column(Modifier.offset(y = 172.dp).fillMaxSize()) {
+    Column(Modifier.fillMaxSize().padding(top = 172.dp)) {
         if (sw.laps.isNotEmpty()) {
             BasicText("Laps", Modifier.padding(start = 12.dp).testTag("stopwatch_laps_header"), style = ShellType.base.copy(color = colors.text))
             BasicText("Splits", Modifier.padding(start = 12.dp).testTag("stopwatch_splits_header"), style = ShellType.caption.copy(color = colors.text.copy(alpha = 0.49f)))
