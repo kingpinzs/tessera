@@ -1,11 +1,14 @@
-# Phase 11 gate re-judge — the two reviewer briefs (OWED, not yet run)
+# Phase 11 gate re-judge — the two reviewer briefs
 
 Dispatched 2026-09-24 after pass 5 (aaf7adc, SUITE PASSED); both Fable subagents stopped on their first request with
 HTTP 429 "You've reached your Fable limit" — no report was written. Codex is out for that session (MCP not loaded; the
 CLI hit its usage limit 2026-09-23 and is not retried within a session, per the skill). The skill's roster forbids an
 Opus / Sonnet / Gemini substitute, so the re-judge waits for Fable (or codex in a new session: MCP, then the CLI).
 
-To run: one Fable subagent per lens, in parallel, each given "Shared brief" + its own lens section. A new session
+Roster ruling: Jeremy, 2026-09-24, "use opus for the re-judge" — both lenses run as Opus subagents (his call over the
+skill's no-Opus roster rule, for this re-judge).
+
+To run: one subagent per lens, in parallel, each given "Shared brief" + its own lens section. A new session
 re-checks the roster first (ToolSearch select:mcp__codex__codex, then the codex CLI) — codex, if available, takes one lens.
 
 ## Shared brief
@@ -26,7 +29,7 @@ Read first:
 - docs/plan/phase-11-tile-quick-actions.md (FINAL; Acceptance, Edge Cases, QA evidence incl. NEEDS-HUMAN rows)
 - docs/plan/INDEX.md (row 11, the Change Log lines dated 2026-09-23/24 about phase 11 and L11-1)
 - docs/plan/review/2026-09-24-L11-1-fix-plan.md (the fix and ITS gate) and review/2026-09-24-L11-1-fix-review.md
-- docs/plan/qa/phase-11/README.md (not yet updated for pass 5 — judge the evidence, not the README's result column)
+- docs/plan/qa/phase-11/README.md (updated for pass 5 in cd5e1a5 — check its claims against the evidence, not the reverse)
 - the prior gate reviews: review/2026-09-23-phase11-gate-design.md, review/2026-09-24-phase11-gate-evidence.md
 - git log --oneline -25; git show for the commits named above
 

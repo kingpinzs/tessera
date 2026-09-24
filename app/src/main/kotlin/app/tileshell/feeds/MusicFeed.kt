@@ -53,14 +53,19 @@ object MusicFeed {
      */
     private var publishedPkg: String? = null
 
+    private val forgetRegistered = java.util.concurrent.atomic.AtomicBoolean(false)
+
     /** The art belonging to [published]'s track: kept so an unchanged track is not re-read over a Binder. */
     private var publishedArt: ImageBitmap? = null
 
     fun start(context: Context) {
         val app = context.applicationContext
         // A package forgotten by the engine (gone, or reinstalled as another identity) is not republished from the
-        // track remembered here when its session dies (the L11-1 fix review, F-2).
-        LiveTileEngine.addForgetListener { pkg -> Handler(Looper.getMainLooper()).post { forget(pkg) } }
+        // track remembered here when its session dies (the L11-1 fix review, F-2). Once per process: start runs again
+        // on every checklist resume, and a late duplicate forget could clear a new track (the re-judge, R1-2).
+        if (forgetRegistered.compareAndSet(false, true)) {
+            LiveTileEngine.addForgetListener { pkg -> Handler(Looper.getMainLooper()).post { forget(pkg) } }
+        }
         val listener = ComponentName(app, TileNotificationListener::class.java)
         val msm = app.getSystemService(MediaSessionManager::class.java) ?: return
         runCatching {
@@ -191,6 +196,9 @@ object MusicFeed {
 
     private fun forget(pkg: String) {
         if (publishedPkg != pkg) return
+        // The engine forgot the package on the wipe's thread; a publish of ours that ran on main in between (a session
+        // dying mid-uninstall) re-created the slot. Main has the last word on our own slot (the re-judge, R1-1).
+        LiveTileEngine.publishPackage(pkg, PackageSource.MUSIC, null)
         published = null
         publishedArt = null
         publishedPkg = null

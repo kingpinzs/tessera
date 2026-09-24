@@ -46,6 +46,9 @@ object LiveTileEngine {
     const val MUSIC = "feed:music"
     const val WEATHER = "feed:weather"
 
+    /** Each package's content per producer; touched only by publishPackage / packages / forgetPackage, under the engine's lock. */
+    private val packageSources = HashMap<String, MutableMap<PackageSource, TileContent>>()
+
     /**
      * Content with neither live faces nor a [TileContent.front] is nothing to show, so it clears the tile.
      * A front face on its own IS content, and has to survive: the Music tile while a song is playing and
@@ -53,8 +56,6 @@ object LiveTileEngine {
      * logo — and no flip faces at all, because neither of them may flip (INDEX Change Log 2026-09-21
      * items 3 and 4). Before this, a faces-less publish silently cleared the tile back to its logo.
      */
-    private val packageSources = HashMap<String, MutableMap<PackageSource, TileContent>>()
-
     private fun empty(content: TileContent?) = content == null || (content.faces.isEmpty() && content.front == null)
 
     /** The packages that have content from any producer — what a producer that rescans may revisit (F-1). */
