@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E5 — taps while open: elsewhere, another tile, the held tile, the name strip, a label, Back, the discs, Home, sleep, scroll, press
-at            2026-09-23T19:15:57-06:00
-driver        e5.sh blob f4b713f166fef4453e87b50c5d2a97f7ae198f5b
+at            2026-09-23T23:11:12-06:00
+driver        e5.sh blob 269cdc539b1be3db8569245fe5379ef23e155fa5
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     fcd8bba1e3fe390a 336439365 bytes
-apk installed 3bea06a7cc6ae0e7
-apk match     yes (3bea06a7cc6ae0e7)
+apk built     6188406aa186a2df 336439365 bytes
+apk installed 66299036790d6fc1
+apk match     yes (66299036790d6fc1)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -38,9 +38,7 @@ PASS  Back: edit mode stays                                       = yes
 PASS  ring: back                                                  contains [[quick] burst closed: back]
 PASS  second Back: edit mode off                                  = no
 --- the resize disc: the tile resizes AND the burst closes (Q2 A, T11-17) ---
-FAIL  ring: the size cycled                                       does not contain [[edit] resize app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 MEDIUM -> WIDE]:     2026-09-23 19:17:27.143 wall=1790212647143 [quick] burst closed: resize
-    2026-09-23 19:17:27.144 wall=1790212647144 [layout] resize app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 -> SMALL (manual, pinned)
-    
+PASS  ring: the size cycled                                       contains [[edit] resize app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 MEDIUM -> SMALL]
 PASS  no quick_burst                                              = no
 PASS  edit mode stays                                             = yes
       unpin disc centre off the new top-right corner by (dx dy) = 0 0
@@ -99,4 +97,4 @@ PASS  press_p4: the held satellite equals its rest pixels ± 1 (no Q6 style)  = 
 PASS  press_p4: sliding off ran nothing, the burst stays          = yes
       scroll_to_node press_none: 1 swipe(s), found=yes
 ------------------------------------------------------------------------------
-E5: 66 passed, 1 failed
+E5: 67 passed, 0 failed

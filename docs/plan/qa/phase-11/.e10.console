@@ -1,0 +1,29 @@
+── E10 a hold on a transport control fires the control; a hold on the art bursts with Music's four
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 43.0 MB/s (1390 bytes in 0.000s)
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+FAIL  the Music tile shows its controls                           expected [yes] got [no]
+
+Exception occurred while executing 'swipe':
+java.lang.IllegalArgumentException: Argument expected after "1000"
+	at com.android.modules.utils.BasicShellCommandHandler.getNextArgRequired(BasicShellCommandHandler.java:295)
+	at com.android.server.input.InputShellCommand.sendSwipe(InputShellCommand.java:508)
+	at com.android.server.input.InputShellCommand.runSwipe(InputShellCommand.java:502)
+	at com.android.server.input.InputShellCommand.onCommand(InputShellCommand.java:296)
+	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+	at android.os.ShellCommand.exec(ShellCommand.java:38)
+	at com.android.server.input.InputManagerService.onShellCommand(InputManagerService.java:3887)
+	at android.os.Binder.shellCommand(Binder.java:1151)
+	at android.os.Binder.onTransact(Binder.java:953)
+	at android.hardware.input.IInputManager$Stub.onTransact(IInputManager.java:1576)
+	at android.os.Binder.execTransactInternal(Binder.java:1426)
+	at android.os.Binder.execTransact(Binder.java:1365)
+PASS  no quick_burst                                              = no
+PASS  no edit mode                                                = no
+FAIL  the control fired (no launch)                               does not contain [[tile_control] tile=slot:MUSIC PLAY_PAUSE (no launch)]:     2026-09-23 23:25:23.389 wall=1790227523389 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=43805728 faceIndex=0 next=1 faces=1
+PASS  no hold line                                                does not contain [[edit] hold]
+FAIL  the shell's session is PAUSED                               does not contain [state=PAUSED(2)]:       state=PlaybackState {state=PLAYING(3), position=11990, buffered position=90044, speed=1.0, updated=43804825, actions=7340027, custom actions=[], active item id=0, error=null}
+PASS  StartActivity still in front (nothing launched)             contains [app.tileshell/.StartActivity]
+PASS  the art: edit mode on                                       = yes
+PASS  the art: Music's four satellites                            = Songs,Albums,Artists,Playlists,
+   E10: 8 passed, 3 failed

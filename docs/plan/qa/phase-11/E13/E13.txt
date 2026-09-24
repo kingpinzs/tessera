@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E13 — regression: phase 02 hold+drag, E7 bracket+geometry, E8, regress.sh; phase 01 press styles; phase 03 exports
-at            2026-09-23T22:35:42-06:00
-driver        e13.sh blob 0bc9c80995e0b2c56aaff53ee00cfe0bdcdf5acd
+at            2026-09-23T23:27:02-06:00
+driver        e13.sh blob 8c41d4e4b15498733923f3c03a5ef0b3471614be
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     454d10d0b480d049 336439365 bytes
-apk installed b9b01ff31690d987
-apk match     yes (b9b01ff31690d987)
+apk built     6188406aa186a2df 336439365 bytes
+apk installed 66299036790d6fc1
+apk match     yes (66299036790d6fc1)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -18,7 +18,7 @@ PASS  phase 02 regress: addedOnce as phase 02's file (C-3)        = folder:games
 PASS  phase 02 e1 exits 0                                         = 0
 PASS  phase 02 e1: no slot re-assigned on load (C-3)              does not contain [-> assigned]
 PASS  phase 02 e1: addedOnce as phase 02's file (C-3)             = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-      phase 02 e7 exit 1; verdict: ---- 7 passed, 3 failed ----
+      phase 02 e7 exit 1; verdict: ---- 6 passed, 4 failed ----
 PASS  phase 02 E7 geometry (dark)                                 PASS  geometry (dark) (= 0)
 PASS  phase 02 E7 hold bracket (dark)                             PASS  hold bracket (dark) (= 0)
 PASS  phase 02 E7 geometry (light)                                PASS  geometry (light) (= 0)
@@ -58,9 +58,11 @@ PASS  press_p4: no burst                                          does not conta
 PASS  press_p4: no hold                                           does not contain [[edit] hold]
       scroll_to_node press_none: 0 swipe(s), found=yes
 --- phase 03 E5's exported allow-list, on this APK ---
-      13 exported in app.tileshell, 11 on the allow-list   receiver       androidx.profileinstaller.ProfileInstallReceiver                  manifest permission: android.permission.DUMP 
-FAIL  exported components match phase 03's allow-list exactly     expected [0] got [1]
+      exported.py exit 1: 13 exported in app.tileshell, 11 on the allow-list
+PASS  phase 11's manifest diff adds no exported component         does not contain [android:exported]
+PASS  outside the allow-list: exactly phase 10's Music activity and service (pre-existing)  = app.tileshell.music.MusicActivity app.tileshell.music.MusicService
+PASS  nothing on the allow-list went missing                      does not contain [ON THE LIST BUT NOT EXPORTED]
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 ------------------------------------------------------------------------------
-E13: 36 passed, 1 failed
+E13: 39 passed, 0 failed

@@ -1,6 +1,6 @@
-build guard: built= installed=b9b01ff31690d987fa97b65353a3f736
+build guard: built=66299036790d6fc1af6c45162243e674 installed=66299036790d6fc1af6c45162243e674
 driver: e7.sh blob 3c865695abf641a96f98091f817b1942a3d5ce02
-# E7 — edit-mode geometry and motion, 2026-09-23T22:38:30-06:00
+# E7 — edit-mode geometry and motion, 2026-09-23T23:29:51-06:00
 driver blobs: e7.sh 3c865695abf641a96f98091f817b1942a3d5ce02 capture 438a728e3733358dd7e3899be803d3a71bb361e7 geometry 5ac806bbf32e3654e3f93148a494724b3e0ebb6d motion a63b2762793f160d1c47bf0a6e88dd3b515e4c4e bracket 50e5ca8a891d13d24cf55119e11db1ae319f7c7d latency 9a3c3420e3df3f54deb5e0440d6b3513ceb0a493
 
 ## Method
@@ -9,12 +9,12 @@ every measurable tile and judged on the median; the exit latency from the shell'
 which timestamps the touch-up's MotionEvent and the exit's first frame on one clock.
 
 ## Theme: dark
-/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 170.6 MB/s (1604606 bytes in 0.009s)
-/sdcard/e7_exit.mp4: 1 file pulled, 0 skipped. 123.1 MB/s (317907 bytes in 0.002s)
+/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 193.9 MB/s (1642082 bytes in 0.008s)
+/sdcard/e7_exit.mp4: 1 file pulled, 0 skipped. 151.0 MB/s (686251 bytes in 0.004s)
 captured into /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-E07/dark
-/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 167.4 MB/s (2006349 bytes in 0.011s)
+/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 169.9 MB/s (1763888 bytes in 0.010s)
 entry recording 2 captured
-/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 200.9 MB/s (2669282 bytes in 0.013s)
+/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 22.0 MB/s (2627089 bytes in 0.114s)
 entry recording 3 captured
 
 ### Geometry (dark)
@@ -29,8 +29,8 @@ PASS  tile centres contract to: 0.900 (expected 0.9 ± 0.01)
   fixed point: x=538.2px (0.498 of the width), y=1110.4px
 PASS  fixed point x as a fraction of the width: 0.498 (expected 0.5 ± 0.02)
 PASS  fixed point y as a fraction of the screen height: 0.475 (expected 0.46..0.49)
-  dim samples: 6 accent tiles (0, 120, 215), dropped ['slot:PHOTOS', 'shell:weather', 'slot:MUSIC'] (live faces)
-  dark tile dim: n=12 median factor=0.532
+  dim samples: 7 accent tiles (0, 120, 215), dropped ['slot:PHOTOS', 'slot:MUSIC'] (live faces)
+  dark tile dim: n=14 median factor=0.532
 PASS  other tiles' pixels ×: 0.532 (expected 0.53 ± 0.03)
   dark wallpaper dim: the page is black here (no wallpaper set), and black × any factor is black, so §1.1.5's 0.25-0.30 is read in the light theme's page instead
   unpin disc: node (342, 123, 435, 216) = 31.00 × 31.00 epx, centre (388.5, 169.5); the held tile's corner is (388, 170)
@@ -61,26 +61,27 @@ PASS  hold bracket (dark) (= 0)
 
 ### Entry motion (dark), median over 3 recordings
 entry: 3 recording(s), 7 tile-measurements, settle band ±2%
-  shell:settings (run 1)           swing  57.4 px  scale 50 %   67.4  settle  375.2   dim 50 %   79.8  90 %  326.5  settle  483.8
-  shell:weather (run 1)            swing  38.8 px  scale 50 %   66.0  settle  317.4   dim 50 %  161.0  90 % 2341.0  settle 2366.8
-  slot:MAIL (run 1)                swing  63.0 px  scale 50 %   66.4  settle  333.7   dim 50 %   96.6  90 %  328.4  settle  483.8
-  slot:MAPS (run 1)                swing  57.4 px  scale 50 %   67.4  settle  375.2   dim 50 %   78.8  90 %  328.2  settle  483.8
-  slot:PHOTOS (run 1)              swing  63.0 px  scale 50 %   66.3  settle  333.7   dim 50 %   87.4  90 %  417.2  settle 2216.7
-  slot:MAIL (run 2)                swing  63.0 px  scale 50 %   19.9  settle  409.9   dim 50 %  109.4  90 %  375.1  settle  532.8
-  slot:MAIL (run 3)                swing  62.9 px  scale 50 % 1087.5  settle 1467.0   dim 50 % 1161.4  90 % 1430.2  settle 1599.9
-  median scale settles in: 375.2 ms (tiles span 317.4..1467.0)
-PASS  scale settles in (median of 7 tiles): 375.160 ms (expected 417 ms ± 50 ms)
-  median scale 50 % at: 66.4 ms (tiles span 19.9..1087.5)
-PASS  scale 50 % at (median of 7 tiles): 66.393 ms (expected 67 ms ± 33 ms)
-  median dimming settles in: 532.8 ms (tiles span 483.8..2366.8)
-PASS  dimming settles in (median of 7 tiles): 532.800 ms (expected 550 ms ± 50 ms)
-  median dimming 50 % at: 96.6 ms (tiles span 78.8..1161.4)
-PASS  dimming 50 % at (median of 7 tiles): 96.633 ms (expected 83 ms ± 33 ms)
-  median dimming 90 % at: 375.1 ms (tiles span 326.5..2341.0)
-PASS  dimming 90 % at (median of 7 tiles): 375.105 ms (expected 350 ms ± 60 ms)
+  shell:settings (run 1)           swing  57.4 px  scale 50 %   51.1  settle  366.7   dim 50 %   77.1  90 %  327.6  settle  467.8
+  shell:weather (run 1)            swing  38.8 px  scale 50 %   49.8  settle  299.8   dim 50 %  160.0  90 % 1773.9  settle 1799.9
+  slot:MAIL (run 1)                swing  63.0 px  scale 50 %   49.9  settle  349.8   dim 50 %   99.1  90 %  341.7  settle  516.7
+  slot:MAPS (run 1)                swing  57.4 px  scale 50 %   51.3  settle  366.7   dim 50 %   74.2  90 %  334.2  settle  467.8
+  slot:PHOTOS (run 1)              swing  63.0 px  scale 50 %   49.8  settle  349.8   dim 50 %   89.1  90 %  400.0  settle 1649.7
+  slot:MAIL (run 2)                swing  63.0 px  scale 50 %   33.4  settle  445.3   dim 50 %  101.8  90 %  399.5  settle  565.9
+  slot:MAIL (run 3)                swing  62.9 px  scale 50 %  743.2  settle 1123.3   dim 50 %  816.8  90 % 1104.5  settle 1255.8
+  median scale settles in: 366.7 ms (tiles span 299.8..1123.3)
+FAIL  scale settles in (median of 7 tiles): 366.730 ms (expected 417 ms ± 50 ms)
+  median scale 50 % at: 49.9 ms (tiles span 33.4..743.2)
+PASS  scale 50 % at (median of 7 tiles): 49.893 ms (expected 67 ms ± 33 ms)
+  median dimming settles in: 565.9 ms (tiles span 467.8..1799.9)
+PASS  dimming settles in (median of 7 tiles): 565.940 ms (expected 550 ms ± 50 ms)
+  median dimming 50 % at: 99.1 ms (tiles span 74.2..816.8)
+PASS  dimming 50 % at (median of 7 tiles): 99.086 ms (expected 83 ms ± 33 ms)
+  median dimming 90 % at: 399.5 ms (tiles span 327.6..1773.9)
+PASS  dimming 90 % at (median of 7 tiles): 399.470 ms (expected 350 ms ± 60 ms)
 
-5/5 checks passed
-PASS  entry motion (dark) (= 0)
+4/5 checks passed
+FAILED: scale settles in
+FAIL  entry motion (dark) (expected [0], got [1])
 
 ### Exit motion (dark)
 no tile in /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-E07/dark/normal.xml gave a measurable edge in ['/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-E07/dark/e7_exit.mp4']
@@ -88,21 +89,21 @@ FAIL  exit motion (dark) (expected [0], got [1])
 
 ### Exit latency from the ring buffer (dark)
 0 touch-ups, 2 exits recorded
-  exit at uptime 41024607: 162 ms after its touch-up
-  exit at uptime 41048540: 166 ms after its touch-up
-PASS  exit starts after touch-up (worst of 2): 166.000 ms (expected 150 ms ± 33.66666666666667 ms)
+  exit at uptime 44104223: 162 ms after its touch-up
+  exit at uptime 44128357: 159 ms after its touch-up
+PASS  exit starts after touch-up (worst of 2): 162.000 ms (expected 150 ms ± 33.66666666666667 ms)
 
 1/1 checks passed
 PASS  exit latency (dark) (= 0)
 
 ## Theme: light
-/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 149.7 MB/s (1956691 bytes in 0.012s)
-/sdcard/e7_exit.mp4: 1 file pulled, 0 skipped. 142.9 MB/s (716997 bytes in 0.005s)
+/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 189.6 MB/s (1867741 bytes in 0.009s)
+/sdcard/e7_exit.mp4: 1 file pulled, 0 skipped. 121.5 MB/s (701660 bytes in 0.006s)
 Warning: Activity not started, its current task has been brought to the front
 captured into /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-E07/light
-/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 181.3 MB/s (2570839 bytes in 0.014s)
+/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 171.1 MB/s (2274881 bytes in 0.013s)
 entry recording 2 captured
-/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 180.6 MB/s (1780774 bytes in 0.009s)
+/sdcard/e7_entry.mp4: 1 file pulled, 0 skipped. 170.1 MB/s (1805079 bytes in 0.010s)
 entry recording 3 captured
 
 ### Geometry (light)
@@ -151,21 +152,21 @@ PASS  hold bracket (light) (= 0)
 
 ### Entry motion (light), median over 3 recordings
 entry: 3 recording(s), 2 tile-measurements, settle band ±2%
-  slot:MAIL (run 2)                swing  62.9 px  scale 50 % 2224.4  settle 2588.1   dim 50 % 2553.7  90 % 2679.6  settle 2770.6
-  slot:MAIL (run 3)                swing  62.9 px  scale 50 %   20.0  settle  424.1   dim 50 %  116.7  90 %  380.2  settle  549.5
-  median scale settles in: 1506.1 ms (tiles span 424.1..2588.1)
-FAIL  scale settles in (median of 2 tiles): 1506.098 ms (expected 417 ms ± 50 ms)
-  median scale 50 % at: 1122.2 ms (tiles span 20.0..2224.4)
-FAIL  scale 50 % at (median of 2 tiles): 1122.183 ms (expected 67 ms ± 33 ms)
-  median dimming settles in: 1660.1 ms (tiles span 549.5..2770.6)
-FAIL  dimming settles in (median of 2 tiles): 1660.098 ms (expected 550 ms ± 50 ms)
-  median dimming 50 % at: 1335.2 ms (tiles span 116.7..2553.7)
-FAIL  dimming 50 % at (median of 2 tiles): 1335.168 ms (expected 83 ms ± 33 ms)
-  median dimming 90 % at: 1529.9 ms (tiles span 380.2..2679.6)
-FAIL  dimming 90 % at (median of 2 tiles): 1529.908 ms (expected 350 ms ± 60 ms)
+  slot:MAIL (run 2)                swing  62.9 px  scale 50 %   20.6  settle  399.3   dim 50 %  228.5  90 %  460.5  settle  582.3
+  slot:MAIL (run 3)                swing  62.9 px  scale 50 %   20.6  settle  405.2   dim 50 %  100.8  90 %  363.3  settle  532.9
+  median scale settles in: 402.3 ms (tiles span 399.3..405.2)
+PASS  scale settles in (median of 2 tiles): 402.255 ms (expected 417 ms ± 50 ms)
+  median scale 50 % at: 20.6 ms (tiles span 20.6..20.6)
+FAIL  scale 50 % at (median of 2 tiles): 20.567 ms (expected 67 ms ± 33 ms)
+  median dimming settles in: 557.6 ms (tiles span 532.9..582.3)
+PASS  dimming settles in (median of 2 tiles): 557.585 ms (expected 550 ms ± 50 ms)
+  median dimming 50 % at: 164.6 ms (tiles span 100.8..228.5)
+FAIL  dimming 50 % at (median of 2 tiles): 164.643 ms (expected 83 ms ± 33 ms)
+  median dimming 90 % at: 411.9 ms (tiles span 363.3..460.5)
+FAIL  dimming 90 % at (median of 2 tiles): 411.931 ms (expected 350 ms ± 60 ms)
 
-0/5 checks passed
-FAILED: scale settles in, scale 50 % at, dimming settles in, dimming 50 % at, dimming 90 % at
+2/5 checks passed
+FAILED: scale 50 % at, dimming 50 % at, dimming 90 % at
 FAIL  entry motion (light) (expected [0], got [1])
 
 ### Exit motion (light)
@@ -174,11 +175,11 @@ FAIL  exit motion (light) (expected [0], got [1])
 
 ### Exit latency from the ring buffer (light)
 0 touch-ups, 2 exits recorded
-  exit at uptime 41148273: 162 ms after its touch-up
-  exit at uptime 41172240: 154 ms after its touch-up
-PASS  exit starts after touch-up (worst of 2): 162.000 ms (expected 150 ms ± 33.66666666666667 ms)
+  exit at uptime 44233307: 163 ms after its touch-up
+  exit at uptime 44257373: 156 ms after its touch-up
+PASS  exit starts after touch-up (worst of 2): 163.000 ms (expected 150 ms ± 33.66666666666667 ms)
 
 1/1 checks passed
 PASS  exit latency (light) (= 0)
 restored: the device's own layout from before the row
----- 7 passed, 3 failed ----
+---- 6 passed, 4 failed ----
