@@ -43,3 +43,27 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   record; E25's gate value is taken on the rebased main).
 - Gate = full run on rebased main (the lead). On the branch: development checks only. Phase 11's lib.sh helpers: cherry-pick
   from local main when that commit exists (git log main -- docs/plan/qa/phase-03/scripts/lib.sh), never copy.
+- Commits so far on phase-15: 14a8ac5 (r3 reports), 36d3d2a (triage + FINAL), 371a789 (task 0 routing), b90b2c7 (tasks 2-3
+  clock back end + ring), 0c5016f (task 5 part 1 Tess alarm/timer in-process), 94d5973 (cherry-pick of main's ea37bb0:
+  phase 11 ring helpers), 6970aff (task 1 part: applist_name tag, phase 10 allow-list lines).
+- Parallel agents (background): calc engine (:calc, app.tileshell.calc.engine), converter+date (:calc .convert/.date),
+  calc-cases.tsv oracle (host Python, independent), Voice Recorder (worktree ~/projects/metro-launcher-p15-rec, branch
+  phase-15-rec), Alarms & Clock UI (worktree ~/projects/metro-launcher-p15-clock, branch phase-15-clock). Briefs in
+  docs/plan/qa/phase-15/briefs/. Calculator UI agent: dispatch once the engine lands. The app does NOT depend on :calc yet
+  (re-add implementation(project(":calc")) at the Calculator merge).
+- emulator-5556 baseline additions made by hand: notification listener allowed (phase 01's final_rows.sh:8 form;
+  provision.sh does not grant it); USE_FULL_SCREEN_INTENT + SYSTEM_ALERT_WINDOW allow (now in provision.sh).
+- Dev-check facts: ring path verified in use (overlay) and locked (occluded keyguard, wallpaper beneath); status bar now
+  hidden by RingActivity (re-verify at E4). After am force-stop, the first launch gets LOCKED_BOOT_COMPLETED + BOOT_COMPLETED.
+- 19:3x HOST AUDIO BLOCKER for microphone rows (E14 E15 E17 E18 E19 E26-spoken E30): EasyEffects (flatpak, service mode,
+  config dir created 2026-09-23 09:26) processes ALL input streams; its StreamInputs blocklist holds only ee-calib-raw, so
+  both emulators' qemu capture streams are pulled onto easyeffects_source (the BRIO "Mic-Clean-Voice" chain) and a
+  pactl move-source-output is undone within seconds. audio.sh check now detects it (rc=1). Fix needs the owner's OK:
+  add qemu-system-x86_64 to EasyEffects' input blocklist (~/.var/app/com.github.wwmm.easyeffects/config/easyeffects/db/
+  easyeffectsrc [StreamInputs] blocklist=ee-calib-raw,qemu-system-x86_64, or its UI). Not changed. Ask before the audio rows.
+- 19:4x Opus weekly limit hit (resets 2026-09-27 07:00 Boise) — engine, recorder and clock-UI agents stopped mid-work.
+  Re-dispatched all three on Fable as continuations. Engine: ~5k lines in :calc engine, not compiling at stop. Recorder:
+  3 commits on phase-15-rec + uncommitted files. Clock UI: nothing written.
+- Committed 42111f6 (converter + date), ca74032 (calc-cases oracle, 312 cases). lib.sh gains record / fill_volume /
+  unfill_volume / push_ + remove_fixture_recordings (fill measured on the unrooted /sdcard FUSE view: ~170 MB less than
+  /data/media); audio.sh per-emulator (AUDIO_SINK, move, check, per-stream record).
