@@ -67,3 +67,10 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
 - Committed 42111f6 (converter + date), ca74032 (calc-cases oracle, 312 cases). lib.sh gains record / fill_volume /
   unfill_volume / push_ + remove_fixture_recordings (fill measured on the unrooted /sdcard FUSE view: ~170 MB less than
   /data/media); audio.sh per-emulator (AUDIO_SINK, move, check, per-stream record).
+- 2026-09-23 night: ALL BUILD TASKS IN. Branches merged into phase-15: phase-15-rec (eee51a5), phase-15-clock (d0e4d8c),
+  phase-15-calc (6e62d4a); engine 28ac69f; Tess arithmetic da1d23f. 752 app + 98 :calc unit tests; exported.py 17/17.
+- QA (development checks, T15-21): E11 driver (calc_drive.py + e11.sh) running on 5556; E2 and E22 drivers written.
+  QA agents: clock rows on emulator-5558 (AVD tileshell_fhd3), calculator rows E12/E13/E29 on emulator-5560 (AVD
+  tileshell_fhd4); briefs in docs/plan/qa/phase-15/briefs/qa-*.md. Recorder rows wait on the EasyEffects question.
+- Found while driving: Compose reports selected semantics as checked="true" on non-Tab nodes (drivers read either);
+  Windows' paste of "12+3" enters 12 + 3 and needs = (OnPaste :1601-1718) — E11 asserts both halves.
