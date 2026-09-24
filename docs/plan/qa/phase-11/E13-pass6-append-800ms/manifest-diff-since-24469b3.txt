@@ -1,0 +1,22 @@
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+index b2a9c02a..1d7ce13b 100644
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -120,6 +120,8 @@
+                 <category android:name="android.intent.category.LAUNCHER" />
+                 <category android:name="android.intent.category.APP_MUSIC" />
+             </intent-filter>
++            <!-- Phase 11: Music's pivots as static App Shortcuts (interview Q1 A), on this activity for the per-activity query. -->
++            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_music" />
+         </activity>
+ 
+         <activity
+@@ -146,6 +148,8 @@
+                 <action android:name="android.intent.action.MAIN" />
+                 <category android:name="android.intent.category.LAUNCHER" />
+             </intent-filter>
++            <!-- Phase 11: Start settings' pages as static App Shortcuts (interview Q1 A), on this activity for the per-activity query. -->
++            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_settings" />
+         </activity>
+ 
+         <service

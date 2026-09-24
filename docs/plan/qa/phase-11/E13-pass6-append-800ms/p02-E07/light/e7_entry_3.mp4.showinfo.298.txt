@@ -1,0 +1,249 @@
+ffmpeg version 4.4.2-0ubuntu0.22.04.1 Copyright (c) 2000-2021 the FFmpeg developers
+  built with gcc 11 (Ubuntu 11.2.0-19ubuntu1)
+  configuration: --prefix=/usr --extra-version=0ubuntu0.22.04.1 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --enable-gnutls --enable-ladspa --enable-libaom --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libjack --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-libpulse --enable-librabbitmq --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libsrt --enable-libssh --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-libzmq --enable-libzvbi --enable-lv2 --enable-omx --enable-openal --enable-opencl --enable-opengl --enable-sdl2 --enable-pocketsphinx --enable-librsvg --enable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-libx264 --enable-shared
+  libavutil      56. 70.100 / 56. 70.100
+  libavcodec     58.134.100 / 58.134.100
+  libavformat    58. 76.100 / 58. 76.100
+  libavdevice    58. 13.100 / 58. 13.100
+  libavfilter     7.110.100 /  7.110.100
+  libswscale      5.  9.100 /  5.  9.100
+  libswresample   3.  9.100 /  3.  9.100
+  libpostproc    55.  9.100 / 55.  9.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-E07/light/e7_entry_3.mp4':
+  Metadata:
+    major_brand     : mp42
+    minor_version   : 0
+    compatible_brands: isommp42
+    creation_time   : 2026-09-24T22:07:24.000000Z
+    com.android.version: 16
+  Duration: 00:00:04.72, start: 0.000000, bitrate: 2781 kb/s
+  Stream #0:0(eng): Video: h264 (Constrained Baseline) (avc1 / 0x31637661), yuv420p(tv, bt709), 1080x2340, 2774 kb/s, 15.68 fps, 90k tbr, 90k tbn, 180k tbc (default)
+    Metadata:
+      creation_time   : 2026-09-24T22:07:24.000000Z
+      handler_name    : VideoHandle
+      vendor_id       : [0][0][0][0]
+  Stream #0:1(eng): Data: none (mett / 0x7474656D) (default)
+    Metadata:
+      creation_time   : 2026-09-24T22:07:24.000000Z
+      handler_name    : MetadHandle
+  Stream #0:2(eng): Data: none (mett / 0x7474656D) (default)
+    Metadata:
+      creation_time   : 2026-09-24T22:07:24.000000Z
+      handler_name    : MetadHandle
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> rawvideo (native))
+Press [q] to stop, [?] for help
+[Parsed_showinfo_0 @ 0x56171d919580] config in time_base: 1/90000, frame_rate: 6660000/424631
+[Parsed_showinfo_0 @ 0x56171d919580] config out time_base: 0/0, frame_rate: 0/0
+[Parsed_showinfo_0 @ 0x56171d919580] n:   0 pts:      0 pts_time:0       pos:     3232 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:1 type:I checksum:907DB99F plane_checksum:[6F7C5CD1 BCDF7F64 7858DD5B] mean:[69 152 102 ] stdev:[57.6 26.4 28.3 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+Output #0, rawvideo, to 'pipe:':
+  Metadata:
+    major_brand     : mp42
+    minor_version   : 0
+    compatible_brands: isommp42
+    com.android.version: 16
+    encoder         : Lavf58.76.100
+  Stream #0:0(eng): Video: rawvideo (RGB[24] / 0x18424752), rgb24(pc, gbr/bt709/bt709, progressive), 1080x8, q=2-31, 3252 kb/s, 15.68 fps, 15.68 tbn (default)
+    Metadata:
+      creation_time   : 2026-09-24T22:07:24.000000Z
+      handler_name    : VideoHandle
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc58.134.100 rawvideo
+frame=    1 fps=0.0 q=-0.0 size=      25kB time=00:00:00.06 bitrate=3252.3kbits/s speed=1.22x    [Parsed_showinfo_0 @ 0x56171d919580] n:   1 pts: 139566 pts_time:1.55073 pos:    56565 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:EA14A392 plane_checksum:[44ADBF37 952F2744 F372BD08] mean:[68 151 103 ] stdev:[57.7 26.4 28.2 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:   2 pts: 140980 pts_time:1.56644 pos:    59658 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:24A5BE57 plane_checksum:[CBFBCEF2 8A941F1D A45BD039] mean:[65 150 104 ] stdev:[57.9 26.1 28.0 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:   3 pts: 142450 pts_time:1.58278 pos:    65532 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:5372E137 plane_checksum:[FACB416D B5E7D0B3 123ACF08] mean:[61 148 107 ] stdev:[57.9 25.6 27.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 25 >= 25
+[Parsed_showinfo_0 @ 0x56171d919580] n:   4 pts: 144045 pts_time:1.6005  pos:    69406 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:69E0EC0C plane_checksum:[7B709360 755F7825 518FE078] mean:[63 149 105 ] stdev:[58.0 26.0 27.8 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 25 >= 25
+[Parsed_showinfo_0 @ 0x56171d919580] n:   5 pts: 145439 pts_time:1.61599 pos:    77527 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:A2B59A69 plane_checksum:[6FEFDBAF 9C7F5D96 CF256115] mean:[67 151 103 ] stdev:[58.0 26.5 28.1 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 25 >= 25
+[Parsed_showinfo_0 @ 0x56171d919580] n:   6 pts: 146954 pts_time:1.63282 pos:    98980 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:0EE5C962 plane_checksum:[97580F61 5DF05E06 5F595BFB] mean:[69 152 102 ] stdev:[57.8 26.6 28.3 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:   7 pts: 148435 pts_time:1.64928 pos:   132105 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:022CB254 plane_checksum:[22A01139 5C447169 4C2B2FB2] mean:[69 152 102 ] stdev:[57.8 26.7 28.3 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 26 >= 26
+[Parsed_showinfo_0 @ 0x56171d919580] n:   8 pts: 172572 pts_time:1.91747 pos:   138278 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:A8AEB244 plane_checksum:[359310E6 DCC2718F A38A2FCF] mean:[69 152 102 ] stdev:[57.8 26.7 28.3 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:   9 pts: 175049 pts_time:1.94499 pos:   139916 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:EA31B96E plane_checksum:[D2623124 C9213D12 98B44B38] mean:[69 152 102 ] stdev:[56.6 26.5 28.2 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  10 pts: 175569 pts_time:1.95077 pos:   144090 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:FF961DD1 plane_checksum:[1515ED3D 1B4D776C 788EB90A] mean:[68 152 102 ] stdev:[55.2 26.4 28.3 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 31 >= 31
+[Parsed_showinfo_0 @ 0x56171d919580] n:  11 pts: 178090 pts_time:1.97878 pos:   148577 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:EBC75ED4 plane_checksum:[E1C0D249 D4424230 1ED04A4C] mean:[67 152 102 ] stdev:[54.2 26.3 28.2 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 31 >= 31
+[Parsed_showinfo_0 @ 0x56171d919580] n:  12 pts: 178505 pts_time:1.98339 pos:   153243 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:21A512E3 plane_checksum:[1373BF77 019A0B39 AF534824] mean:[67 153 102 ] stdev:[53.3 26.2 28.2 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 31 >= 31
+[Parsed_showinfo_0 @ 0x56171d919580] n:  13 pts: 180189 pts_time:2.0021  pos:   158202 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:4B5ABEF0 plane_checksum:[7AB3A1EF 632CD5BC D32C4736] mean:[67 153 102 ] stdev:[52.4 26.1 28.2 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 31 >= 31
+[Parsed_showinfo_0 @ 0x56171d919580] n:  14 pts: 181630 pts_time:2.01811 pos:   163155 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:309F6EF2 plane_checksum:[2CA68E6A F5A52D08 0E12B371] mean:[66 153 102 ] stdev:[51.6 26.1 28.2 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  15 pts: 183050 pts_time:2.03389 pos:   168119 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:6AC77C4D plane_checksum:[B9BD444A 0B538549 0766B2AB] mean:[66 153 102 ] stdev:[50.9 26.1 28.2 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 32 >= 32
+[Parsed_showinfo_0 @ 0x56171d919580] n:  16 pts: 184546 pts_time:2.05051 pos:   173040 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:EDF98B1C plane_checksum:[CF968BBB 60B7DAC5 031F248D] mean:[66 153 102 ] stdev:[50.4 26.2 28.3 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 32 >= 32
+[Parsed_showinfo_0 @ 0x56171d919580] n:  17 pts: 185983 pts_time:2.06648 pos:   177958 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:9255EFF6 plane_checksum:[B46243BA AD5BA2A2 FDD5099A] mean:[65 153 102 ] stdev:[49.8 26.2 28.4 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 32 >= 32
+[Parsed_showinfo_0 @ 0x56171d919580] n:  18 pts: 187492 pts_time:2.08324 pos:   182993 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:6CF69197 plane_checksum:[8CAF905B 54B586C6 125C7A67] mean:[65 153 102 ] stdev:[49.4 26.2 28.4 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  19 pts: 189064 pts_time:2.10071 pos:   187977 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:8F3E4C0A plane_checksum:[AFEF0F94 341ADD03 86C35F64] mean:[65 154 102 ] stdev:[49.0 26.3 28.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 33 >= 33
+[Parsed_showinfo_0 @ 0x56171d919580] n:  20 pts: 190482 pts_time:2.11647 pos:   193017 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:35D12C0B plane_checksum:[EE5D26F3 9AC0C2FC 3DBA420D] mean:[64 154 102 ] stdev:[48.7 26.4 28.6 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 33 >= 33
+[Parsed_showinfo_0 @ 0x56171d919580] n:  21 pts: 191966 pts_time:2.13296 pos:   197911 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:BFF49B84 plane_checksum:[C3D54071 A4C6A55B 3663B5A9] mean:[64 154 103 ] stdev:[48.4 26.4 28.7 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 33 >= 33
+[Parsed_showinfo_0 @ 0x56171d919580] n:  22 pts: 193483 pts_time:2.14981 pos:   202756 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:695B7EF1 plane_checksum:[26A25CB8 9DE716C0 C5E10B79] mean:[64 154 103 ] stdev:[48.2 26.4 28.8 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  23 pts: 194977 pts_time:2.16641 pos:   207677 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:F5072BC7 plane_checksum:[017D3D99 AB85FD7C C23CF094] mean:[64 154 103 ] stdev:[48.0 26.5 29.0 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 34 >= 34
+[Parsed_showinfo_0 @ 0x56171d919580] n:  24 pts: 196737 pts_time:2.18597 pos:   212577 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:990BA018 plane_checksum:[D142ED3D 0F026B76 5C6C4756] mean:[64 154 103 ] stdev:[47.9 26.5 29.2 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 34 >= 34
+[Parsed_showinfo_0 @ 0x56171d919580] n:  25 pts: 200968 pts_time:2.23298 pos:   217259 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:E5E973E7 plane_checksum:[D761C21A 583688A7 45B22917] mean:[59 150 104 ] stdev:[51.1 26.4 28.0 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  26 pts: 202431 pts_time:2.24923 pos:   299525 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:BD1971F9 plane_checksum:[BDB3C092 C73F88AA BC5528AE] mean:[59 150 104 ] stdev:[51.1 26.4 28.0 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 35 >= 35
+[Parsed_showinfo_0 @ 0x56171d919580] n:  27 pts: 204020 pts_time:2.26689 pos:   299626 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:32E847BF plane_checksum:[CB4A7D61 B8F2D37B E201F6C5] mean:[54 147 107 ] stdev:[50.7 25.7 27.3 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  28 pts: 205488 pts_time:2.2832  pos:   361349 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:99876EFE plane_checksum:[6C0A926E 0C3D363E 3510A643] mean:[47 144 111 ] stdev:[45.8 23.8 25.1 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 36 >= 36
+[Parsed_showinfo_0 @ 0x56171d919580] n:  29 pts: 206989 pts_time:2.29988 pos:   425938 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:77F278A3 plane_checksum:[170539BB 70588C09 356AB2D0] mean:[43 142 113 ] stdev:[43.5 21.8 23.3 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 36 >= 36
+[Parsed_showinfo_0 @ 0x56171d919580] n:  30 pts: 208528 pts_time:2.31698 pos:   473954 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:0A239B38 plane_checksum:[0418AB8B ECFA66A5 641788F9] mean:[41 140 115 ] stdev:[41.0 20.7 21.8 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 36 >= 36
+[Parsed_showinfo_0 @ 0x56171d919580] n:  31 pts: 209997 pts_time:2.3333  pos:   514479 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:FB4907CB plane_checksum:[0FC0CAC3 5E2DB801 67F884E9] mean:[40 140 115 ] stdev:[39.2 19.4 20.6 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  32 pts: 211466 pts_time:2.34962 pos:   554906 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:465A1244 plane_checksum:[11B1B846 2DDFFACC 13415F14] mean:[39 139 116 ] stdev:[37.8 18.3 19.7 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 37 >= 37
+[Parsed_showinfo_0 @ 0x56171d919580] n:  33 pts: 214525 pts_time:2.38361 pos:   593982 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:7BB0C12A plane_checksum:[4836BF99 A5D7CE62 0D453320] mean:[40 139 116 ] stdev:[38.2 18.3 19.4 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 37 >= 37
+[Parsed_showinfo_0 @ 0x56171d919580] n:  34 pts: 216043 pts_time:2.40048 pos:   628136 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:84175C6D plane_checksum:[AA85B0A1 7E05EC3B A36ABF73] mean:[40 139 116 ] stdev:[38.5 18.0 19.1 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  35 pts: 217552 pts_time:2.41724 pos:   668752 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:1FBC1980 plane_checksum:[BD1D0F9B 4EBD4B8D 2BD4BE49] mean:[42 140 115 ] stdev:[39.2 18.4 19.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 38 >= 38
+[Parsed_showinfo_0 @ 0x56171d919580] n:  36 pts: 219025 pts_time:2.43361 pos:   708942 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:6BA6C159 plane_checksum:[E92DE10B F18554B5 12688B8A] mean:[42 140 115 ] stdev:[38.8 17.8 18.9 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 38 >= 38
+[Parsed_showinfo_0 @ 0x56171d919580] n:  37 pts: 221633 pts_time:2.46259 pos:   748995 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:0823FAB5 plane_checksum:[1C004EF2 38B229C6 392F81FD] mean:[42 140 115 ] stdev:[38.8 17.8 18.6 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  38 pts: 222002 pts_time:2.46669 pos:   783847 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:14AEA9EA plane_checksum:[77F25157 C1C99066 2385C81E] mean:[42 140 115 ] stdev:[38.7 17.6 18.7 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 39 >= 39
+[Parsed_showinfo_0 @ 0x56171d919580] n:  39 pts: 223623 pts_time:2.4847  pos:   820178 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:ACF81AA7 plane_checksum:[92A3A850 2CC43815 5DCC3A33] mean:[42 140 115 ] stdev:[38.5 17.6 18.4 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 39 >= 39
+[Parsed_showinfo_0 @ 0x56171d919580] n:  40 pts: 225344 pts_time:2.50382 pos:   867574 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:D3CC5789 plane_checksum:[8C92A0F7 870281A6 E83934DD] mean:[42 140 115 ] stdev:[38.3 17.4 18.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 39 >= 39
+[Parsed_showinfo_0 @ 0x56171d919580] n:  41 pts: 227405 pts_time:2.52672 pos:   909611 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:60E284FD plane_checksum:[943ADAD4 A8A3202B 32DF89EF] mean:[42 139 115 ] stdev:[38.1 17.0 18.1 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  42 pts: 229545 pts_time:2.5505  pos:   949770 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:8F860E18 plane_checksum:[8977FD6A C9950336 98540D69] mean:[42 139 116 ] stdev:[37.8 17.0 17.8 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 40 >= 40
+[Parsed_showinfo_0 @ 0x56171d919580] n:  43 pts: 231088 pts_time:2.56764 pos:   984533 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:00FF10FA plane_checksum:[34295359 369E7360 7FE54A32] mean:[42 139 116 ] stdev:[37.6 16.7 17.8 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 40 >= 40
+[Parsed_showinfo_0 @ 0x56171d919580] n:  44 pts: 232631 pts_time:2.58479 pos:  1039424 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:82A829F9 plane_checksum:[4E6D7CAC A918F61A 1123B715] mean:[41 139 116 ] stdev:[37.4 16.7 17.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  45 pts: 234005 pts_time:2.60006 pos:  1071660 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:F62E73EF plane_checksum:[7BED3F12 533AB71E CDCD7DB0] mean:[41 139 116 ] stdev:[37.0 16.4 17.2 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 41 >= 41
+[Parsed_showinfo_0 @ 0x56171d919580] n:  46 pts: 236246 pts_time:2.62496 pos:  1126151 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:0C993310 plane_checksum:[07E44E1E E68EEFC3 64EAF511] mean:[41 139 116 ] stdev:[37.0 16.1 17.2 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 41 >= 41
+[Parsed_showinfo_0 @ 0x56171d919580] n:  47 pts: 236967 pts_time:2.63297 pos:  1156706 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:965646E4 plane_checksum:[6CDB4A4C 89A5075F 24ABF52A] mean:[41 138 117 ] stdev:[36.7 15.9 16.9 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 41 >= 41
+[Parsed_showinfo_0 @ 0x56171d919580] n:  48 pts: 239476 pts_time:2.66084 pos:  1210896 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:23B0BA84 plane_checksum:[E42D0524 4FF16B8D 96D449D3] mean:[40 138 117 ] stdev:[36.6 15.9 16.7 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  49 pts: 240092 pts_time:2.66769 pos:  1235735 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:FAAA88FF plane_checksum:[793376AA E2A91E95 5B58F3B1] mean:[41 138 117 ] stdev:[36.8 15.9 16.7 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 42 >= 42
+[Parsed_showinfo_0 @ 0x56171d919580] n:  50 pts: 241771 pts_time:2.68634 pos:  1269440 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:7285F30B plane_checksum:[CFB27575 D4A4F673 4C4E8714] mean:[40 138 117 ] stdev:[36.8 15.9 16.7 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 42 >= 42
+[Parsed_showinfo_0 @ 0x56171d919580] n:  51 pts: 242987 pts_time:2.69986 pos:  1308543 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:E8BCDE5D plane_checksum:[BFE683CB A6F9D423 12C78660] mean:[40 138 117 ] stdev:[36.7 15.6 16.7 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 42 >= 42
+[Parsed_showinfo_0 @ 0x56171d919580] n:  52 pts: 245653 pts_time:2.72948 pos:  1342532 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:34C5846D plane_checksum:[FEB0E7E2 0686243A 98387842] mean:[40 138 117 ] stdev:[36.4 15.6 16.4 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  53 pts: 246126 pts_time:2.73473 pos:  1388074 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:DAAC90E2 plane_checksum:[3F328256 BF0BC4CC CF8D49B1] mean:[39 137 118 ] stdev:[36.1 15.5 16.3 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 43 >= 43
+[Parsed_showinfo_0 @ 0x56171d919580] n:  54 pts: 248440 pts_time:2.76044 pos:  1419549 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:EDBCB7A8 plane_checksum:[90BAFEC8 C6EBF3CB 2F13C4F7] mean:[37 137 119 ] stdev:[35.8 15.4 16.2 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 43 >= 43
+[Parsed_showinfo_0 @ 0x56171d919580] n:  55 pts: 250480 pts_time:2.78311 pos:  1440941 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:46CD9BCB plane_checksum:[857279FF 341094E5 6CF28CD8] mean:[38 137 118 ] stdev:[35.8 15.3 16.4 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  56 pts: 252505 pts_time:2.80561 pos:  1469475 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:A44A59CF plane_checksum:[FF5ABA0A 2716E39B 4CA6BC0C] mean:[39 138 117 ] stdev:[35.7 15.9 16.8 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 44 >= 44
+[Parsed_showinfo_0 @ 0x56171d919580] n:  57 pts: 253544 pts_time:2.81716 pos:  1509147 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:9C697DD9 plane_checksum:[3266D029 DEB8B535 20BCF85D] mean:[39 138 117 ] stdev:[35.6 15.6 16.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 44 >= 44
+[Parsed_showinfo_0 @ 0x56171d919580] n:  58 pts: 255063 pts_time:2.83403 pos:  1543982 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:F16D738C plane_checksum:[E162C5BC 6A6FB289 A149FB29] mean:[39 138 117 ] stdev:[35.6 15.6 16.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 44 >= 44
+[Parsed_showinfo_0 @ 0x56171d919580] n:  59 pts: 256509 pts_time:2.8501  pos:  1552927 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:B17B6A5A plane_checksum:[C5E5BC8E 41ADB6C3 F8AFF6EB] mean:[39 138 117 ] stdev:[35.6 15.6 16.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  60 pts: 258076 pts_time:2.86751 pos:  1561435 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:322230AA plane_checksum:[5B7C827A 1564B1F8 4AA8FC1A] mean:[39 138 117 ] stdev:[35.6 15.6 16.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 45 >= 45
+[Parsed_showinfo_0 @ 0x56171d919580] n:  61 pts: 259542 pts_time:2.8838  pos:  1569368 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:CF254021 plane_checksum:[8F4E91AE 0C0BAE57 F64F000D] mean:[39 138 117 ] stdev:[35.6 15.6 16.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 45 >= 45
+[Parsed_showinfo_0 @ 0x56171d919580] n:  62 pts: 261189 pts_time:2.9021  pos:  1576607 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:4B1728E2 plane_checksum:[731A7CD1 7C90AF42 8207FCB1] mean:[39 138 117 ] stdev:[35.6 15.6 16.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  63 pts: 263560 pts_time:2.92844 pos:  1582733 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:FF292649 plane_checksum:[9045789F 37DEADF9 5BCAFF93] mean:[39 138 117 ] stdev:[35.6 15.6 16.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 46 >= 46
+[Parsed_showinfo_0 @ 0x56171d919580] n:  64 pts: 264086 pts_time:2.93429 pos:  1589405 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:20BC1D8F plane_checksum:[09D870F1 9A2EAF10 733AFD70] mean:[39 138 117 ] stdev:[35.6 15.6 16.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 46 >= 46
+[Parsed_showinfo_0 @ 0x56171d919580] n:  65 pts: 265553 pts_time:2.95059 pos:  1595472 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:A49B15EE plane_checksum:[F4ED6552 6B7AAF5D DD690130] mean:[39 138 117 ] stdev:[35.6 15.6 16.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 46 >= 46
+[Parsed_showinfo_0 @ 0x56171d919580] n:  66 pts: 267020 pts_time:2.96689 pos:  1600288 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:D9F964A5 plane_checksum:[0697B6B7 33D2B9F3 2ED1F3DD] mean:[39 138 117 ] stdev:[35.5 15.6 16.5 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  67 pts: 414026 pts_time:4.60029 pos:  1610180 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:AF3B95D8 plane_checksum:[1782D8F1 90F0FE19 04B0BEB0] mean:[39 138 117 ] stdev:[35.5 15.6 16.4 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  68 pts: 415557 pts_time:4.6173  pos:  1613060 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:7B8D50EA plane_checksum:[2F4667AC F5AF0D24 376ADC0B] mean:[39 138 117 ] stdev:[35.5 15.5 16.4 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 72 >= 72
+[Parsed_showinfo_0 @ 0x56171d919580] n:  69 pts: 417063 pts_time:4.63403 pos:  1616351 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:EE12B128 plane_checksum:[1F7C8BB5 8D2B39A3 0698EBC1] mean:[38 138 118 ] stdev:[35.5 15.5 16.3 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[Parsed_showinfo_0 @ 0x56171d919580] n:  70 pts: 418569 pts_time:4.65077 pos:  1619248 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:2C374124 plane_checksum:[7E5532D3 E367AF75 96815ECD] mean:[39 138 117 ] stdev:[35.5 15.5 16.3 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 73 >= 73
+[Parsed_showinfo_0 @ 0x56171d919580] n:  71 pts: 420144 pts_time:4.66827 pos:  1623950 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:85FFF48E plane_checksum:[67A3130A 43501A3A 905FC74A] mean:[39 138 117 ] stdev:[35.6 15.6 16.4 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 73 >= 73
+[Parsed_showinfo_0 @ 0x56171d919580] n:  72 pts: 421565 pts_time:4.68406 pos:  1629762 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:3A145413 plane_checksum:[EB748ACA 1F687EE5 C7B84A55] mean:[39 138 117 ] stdev:[35.6 15.6 16.4 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+[rawvideo @ 0x56171c813f00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 73 >= 73
+[Parsed_showinfo_0 @ 0x56171d919580] n:  73 pts: 423098 pts_time:4.70109 pos:  1635249 fmt:yuv420p sar:0/1 s:1080x2340 i:P iskey:0 type:P checksum:0CC5827D plane_checksum:[E69FBCF9 FAF79E40 F0F22735] mean:[39 138 117 ] stdev:[35.6 15.6 16.4 ]
+[Parsed_showinfo_0 @ 0x56171d919580] color_range:tv color_space:bt709 color_primaries:bt709 color_trc:bt709
+frame=   74 fps=0.0 q=-0.0 Lsize=    1873kB time=00:00:04.78 bitrate=3208.9kbits/s speed=18.7x    
+video:1873kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 0.000000%

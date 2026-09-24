@@ -1,0 +1,83 @@
+==============================================================================
+ROW E13 — regression: phase 02 hold+drag, E7 bracket+geometry, E8, regress.sh; phase 01 press styles; phase 03 exports
+at            2026-09-24T16:00:25-06:00
+driver        e13.sh blob f1312983cccf6660e27d2f49dce2fdcbe1c5c108
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     736ce3543e0caf05 335518185 bytes
+apk installed 50129ec4bf4de7f8
+apk match     yes (50129ec4bf4de7f8)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+--- phase 02 drivers on this build (exit codes gate) ---
+      phase 02 regress exit 0; verdict: 
+PASS  phase 02 regress exits 0                                    = 0
+PASS  phase 02 regress: no slot re-assigned on load (C-3)         does not contain [-> assigned]
+PASS  phase 02 regress: addedOnce as phase 02's file (C-3)        = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      phase 02 e1 exit 0; verdict: ---- 12 passed, 0 failed ----
+PASS  phase 02 e1 exits 0                                         = 0
+PASS  phase 02 e1: no slot re-assigned on load (C-3)              does not contain [-> assigned]
+PASS  phase 02 e1: addedOnce as phase 02's file (C-3)             = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      phase 02 e7 exit 1; verdict: ---- 7 passed, 3 failed ----
+PASS  phase 02 E7 geometry (dark)                                 PASS  geometry (dark) (= 0)
+PASS  phase 02 E7 hold bracket (dark)                             PASS  hold bracket (dark) (= 0)
+PASS  phase 02 E7 geometry (light)                                PASS  geometry (light) (= 0)
+PASS  phase 02 E7 hold bracket (light)                            PASS  hold bracket (light) (= 0)
+PASS  phase 02 e7: no slot re-assigned on load (C-3)              does not contain [-> assigned]
+PASS  phase 02 e7: addedOnce as phase 02's file (C-3)             = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      phase 02 e8 exit 0; verdict: ---- 18 passed, 0 failed ----
+PASS  phase 02 e8 exits 0                                         = 0
+PASS  phase 02 e8: no slot re-assigned on load (C-3)              does not contain [-> assigned]
+PASS  phase 02 e8: addedOnce as phase 02's file (C-3)             = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      regress: 12 passed, 0 failed
+--- phase 02's hold and drag as one gesture: no burst during the drag, burst closed: drag ---
+PASS  restore baseline_layout-pre-11.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-pre-11.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  no quick_burst during the drag                              = no
+PASS  ring: burst closed: drag                                    contains [[quick] burst closed: drag]
+--- phase 02 E7's 830-ms line with the burst: slot:PEOPLE (Contacts, one manifest shortcut) ---
+PASS  restore baseline_layout-pre-11.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-pre-11.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      Contacts' shortcuts: ShortcutInfo {id=shortcut-add-contact 
+PASS  830 ms: quick_burst present                                 = yes
+PASS  830 ms: quick_sat:0 only                                    = yes no no no
+--- phase 01 E10 press styles: a short press shows the style and opens no burst ---
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      scroll_to_node press_none: 1 swipe(s), found=yes
+      press_none attempt 1: pressed 991 ms up to the end of the capture
+      press_none attempt 2: pressed 943 ms up to the end of the capture
+      press_none attempt 3: pressed 791 ms up to the end of the capture
+FAIL  press_none: the press was short (under 700 ms on the device clock, capture included)  expected [yes] got [no (791 ms)]
+FAIL  press_none: the held tile looks as at rest                  expected [EQUAL] got [DIFF]
+PASS  press_none: no burst                                        does not contain [[quick] burst on]
+PASS  press_none: no hold                                         does not contain [[edit] hold]
+PASS  press_none: nothing launched (the press ended in a scroll)  does not contain [[launch]]
+      scroll_to_node press_tilt: 1 swipe(s), found=yes
+      press_tilt attempt 1: pressed 807 ms up to the end of the capture
+      press_tilt attempt 2: pressed 810 ms up to the end of the capture
+      press_tilt attempt 3: pressed 803 ms up to the end of the capture
+FAIL  press_tilt: the press was short (under 700 ms on the device clock, capture included)  expected [yes] got [no (803 ms)]
+PASS  press_tilt: the held tile shows the press style             = DIFF
+PASS  press_tilt: no burst                                        does not contain [[quick] burst on]
+PASS  press_tilt: no hold                                         does not contain [[edit] hold]
+PASS  press_tilt: nothing launched (the press ended in a scroll)  does not contain [[launch]]
+      scroll_to_node press_p4: 2 swipe(s), found=yes
+      press_p4 attempt 1: pressed 826 ms up to the end of the capture
+      press_p4 attempt 2: pressed 797 ms up to the end of the capture
+      press_p4 attempt 3: pressed 794 ms up to the end of the capture
+FAIL  press_p4: the press was short (under 700 ms on the device clock, capture included)  expected [yes] got [no (794 ms)]
+PASS  press_p4: the held tile shows the press style               = DIFF
+PASS  press_p4: no burst                                          does not contain [[quick] burst on]
+PASS  press_p4: no hold                                           does not contain [[edit] hold]
+PASS  press_p4: nothing launched (the press ended in a scroll)    does not contain [[launch]]
+      scroll_to_node press_none: 1 swipe(s), found=yes
+--- phase 03 E5's exported allow-list, on this APK ---
+      exported.py exit 1: 13 exported in app.tileshell, 11 on the allow-list
+PASS  phase 11's manifest diff adds no exported component         does not contain [android:exported]
+PASS  outside the allow-list: exactly phase 10's Music activity and service (pre-existing)  = app.tileshell.music.MusicActivity app.tileshell.music.MusicService
+PASS  nothing on the allow-list went missing                      does not contain [ON THE LIST BUT NOT EXPORTED]
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+------------------------------------------------------------------------------
+E13: 41 passed, 4 failed
