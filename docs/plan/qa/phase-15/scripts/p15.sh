@@ -13,21 +13,35 @@ export AUDIO_SINK="${AUDIO_SINK:-vmic${ANDROID_SERIAL#emulator-}}"
 
 # The phase 05 gesture driver's dump (C-10): windows that never idle — a running timer or stopwatch, the ring toast,
 # the in-use overlay (a separate, unfocused window) — are dumped with setWaitForIdleTimeout(0). The window report
-# (dump.windows) is kept beside the dump as <out>.windows.
+# (gesture.dump.windows) is kept beside the dump as <out>.windows.
+# - No --no-restart: it attaches to a RUNNING fixture process, fails (NPE in setActiveInstrumentation) when the fixture
+#   was stopped, and hangs behind another instrumentation still holding it (E1 run 1; 5558, 2026-09-24). A dump needs
+#   no fixture state, so the instrumentation starts the fixture itself.
+# - A NEW file per attempt, removed after reading: a name the shell deletes and the fixture's uid re-creates reads back
+#   EMPTY for a minute on this image's FUSE /sdcard (the clock pass, E7 run 1: eight ok dumps with zero nodes).
+# - While a stopwatch's hundredths tick every frame the driver can report an empty hierarchy for seconds (E7, E31):
+#   after 20 tries the plain uiautomator dump (it waits its idle timeout, ≤ 10 s) is the fallback, said in the .drv.
 gdump() { # out.xml
-  local out="$1" i
+  local out="$1" i name
   : > "$out.drv"
-  for i in 1 2 3 4 5 6 7 8; do
-    # No --no-restart: that attaches to a RUNNING fixture process and fails (NPE in setActiveInstrumentation) when the
-    # fixture has been stopped or trimmed (E1 run 1). A dump needs no fixture state, so the instrumentation restarts it.
-    adb shell am instrument -r -w -e op dump -e out /sdcard/Download/p15.xml "$DRV_RUNNER" >> "$out.drv" 2>&1
-    adb shell cat /sdcard/Download/p15.xml > "$out" 2>/dev/null
+  for i in $(seq 1 20); do
+    name="p15_$(date +%s%N)_$i.xml"
+    adb shell am instrument -r -w -e op dump -e out "/sdcard/Download/$name" "$DRV_RUNNER" >> "$out.drv" 2>&1
+    adb shell cat "/sdcard/Download/$name" > "$out" 2>/dev/null
+    adb shell rm -f "/sdcard/Download/$name" >/dev/null 2>&1
     if grep -q '<node' "$out"; then
-      grep -o 'gesture.windows=.*' "$out.drv" | tail -1 | tr -d '\r' > "$out.windows"
+      grep -o 'gesture.dump.windows=.*' "$out.drv" | tail -1 | tr -d '\r' > "$out.windows"
       return 0
     fi
-    sleep 0.7
+    echo "(attempt $i read no nodes from $name)" >> "$out.drv"
+    sleep 0.25
   done
+  echo "(falling back to uiautomator dump)" >> "$out.drv"
+  if adb shell uiautomator dump /sdcard/Download/p15_fallback.xml >/dev/null 2>&1; then
+    adb shell cat /sdcard/Download/p15_fallback.xml > "$out" 2>/dev/null
+    adb shell rm -f /sdcard/Download/p15_fallback.xml >/dev/null 2>&1
+    if grep -q '<node' "$out"; then : > "$out.windows"; return 0; fi
+  fi
   echo "(dump failed)" > "$out"
   return 1
 }

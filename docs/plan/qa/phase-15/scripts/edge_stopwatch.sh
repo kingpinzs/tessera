@@ -20,7 +20,7 @@ laps_now() { store_stopwatch | python3 -c 'import json,sys; print(len(json.load(
 tap_burst() { # n taps 60 ms apart through the gesture driver
   local script="" i
   for i in $(seq 1 "$1"); do script="${script}tap $LX $LY; sleep 60; "; done
-  adb shell am instrument --no-restart -r -w -e op script -e script "\"${script%; }\"" "$DRV_RUNNER" > "$ROW_DIR/.burst.txt" 2>&1
+  adb shell am instrument -r -w -e op script -e script "\"${script%; }\"" "$DRV_RUNNER" > "$ROW_DIR/.burst.txt" 2>&1
   grep -q 'gesture.ok=true' "$ROW_DIR/.burst.txt"
 }
 
