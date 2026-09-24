@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E12 — Calculator modes: pane order, categories, display across modes, converter lines, history, About
-at            2026-09-24T15:18:27-06:00
+at            2026-09-24T17:11:46-06:00
 driver        e12.sh blob d7163653d12eae69c36b588b9abb1c1e7f7ff466
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     e9d870364a6c00fc 338459898 bytes
-apk installed 2356b99f4933214b
-apk match     yes (2356b99f4933214b)
+apk built     ba42e00bac9f14cf 338459898 bytes
+apk installed c45e7a2838aae3b0
+apk match     yes (c45e7a2838aae3b0)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -18,7 +18,7 @@ PASS  the category tags are calc_converter_category:1..12 in that order  = 1 2 3
 PASS  no node reads Currency (pane dump texts)                    = 0
       the category label is the text of an untagged child TextView under calc_converter_category:<n> (the tag's own text is empty)
 PASS  the pane's open logs [motion] calc_pane                     contains [[motion] calc_pane]
-PASS  calc_pane settle = 167 ± 50 ms (r11 M.1, LOW, tagged)      169.00 vs 167.00 +/- 50.0
+PASS  calc_pane settle = 167 ± 50 ms (r11 M.1, LOW, tagged)      184.00 vs 167.00 +/- 50.0
 PASS  calc_pane maxGapMs ≤ 33.4 (got 17)                        = yes
 PASS  Standard shows 123 typed                                    = 123
 PASS  Scientific is the page showing                              = yes
@@ -49,15 +49,15 @@ PASS  converter-018 [2] ENERGY: British thermal units [2] -> Joules  = 2,110.112
 PASS  converter-019 [1] AREA: Acres [1] -> Square meters          = 4,046.856
 PASS  converter-020 [1] AREA: Hectares [1] -> Acres               = 2.471054
 PASS  converter-021 [1] AREA: Square miles [1] -> Square kilometers  = 2.589988
-PASS  converter-022 [1 0 0] SPEED: Kilometers per hour [100] -> Miles per hour  = 62.14268
+PASS  converter-022 [1 0 0] SPEED: Kilometers per hour [100] -> Miles per hour  = 62.13712
 PASS  converter-023 [1 0] SPEED: Meters per second [10] -> Kilometers per hour  = 36
-PASS  converter-024 [1] SPEED: Knots [1] -> Kilometers per hour   = 1.85184
+PASS  converter-024 [1] SPEED: Knots [1] -> Kilometers per hour   = 1.852
 PASS  converter-025 [1] TIME: Days [1] -> Hours                   = 24
 PASS  converter-026 [9 0] TIME: Minutes [90] -> Hours             = 1.5
 PASS  converter-027 [1] TIME: Years [1] -> Days                   = 365.25
 PASS  converter-028 [1] POWER: Horsepower (US) [1] -> Watts       = 745.6999
 PASS  converter-029 [1] POWER: Kilowatts [1] -> Watts             = 1,000
-PASS  converter-030 [1 0 0] POWER: Watts [100] -> BTUs/minute     = 5.686902
+PASS  converter-030 [1 0 0] POWER: Watts [100] -> BTUs/minute     = 5.686903
 PASS  converter-031 [1] DATA: Gigabytes [1] -> Megabytes          = 1,000
 PASS  converter-032 [1] DATA: Gibibytes [1] -> Mebibytes          = 1,024
 PASS  converter-033 [1] DATA: Bytes [1] -> Bits                   = 8
@@ -86,8 +86,8 @@ PASS  100 °C → 212 °F (converter-012)                         contains [conv
 PASS  7 − 2 = shows 5                                           = 5
 PASS  Standard history lists the three expressions, newest first (calc_history:<n>; Windows' token join)  = 1:7   -   2 ==5|2:10   ×   4 ==40|3:2   +   3 ==5
 PASS  Scientific history lists its two expressions, newest first  = 1:9   -   4 ==5|2:4   ×   5 ==20
-      kill -9 app.tileshell pid 18877
-PASS  the shell's process is a new one after kill -9              != 18877
+      kill -9 app.tileshell pid 24575
+PASS  the shell's process is a new one after kill -9              != 24575
 PASS  after kill -9 the Calculator opens on Standard              = yes
 PASS  Standard history survives kill -9                           = 1:7   -   2 ==5|2:10   ×   4 ==40|3:2   +   3 ==5
 PASS  Clear history empties Standard's list (calc_history_empty)  = yes

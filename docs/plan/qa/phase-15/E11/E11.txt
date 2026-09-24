@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E11 — Calculator answers equal Windows' for every oracle line; paste of 12+3 evaluates
-at            2026-09-24T15:43:58-06:00
-driver        e11.sh blob 3040300329c10c5955fa681b5fbef6ad5b3c4f1b
+at            2026-09-24T16:53:23-06:00
+driver        e11.sh blob 36d45983cf245d1759939c16ed3d9f8f5f848cdd
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     e9d870364a6c00fc 338459898 bytes
-apk installed 2356b99f4933214b
-apk match     yes (2356b99f4933214b)
+apk built     ba42e00bac9f14cf 338459898 bytes
+apk installed c45e7a2838aae3b0
+apk match     yes (c45e7a2838aae3b0)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -225,32 +225,34 @@ PASS  programmer-041 [1 7 negate mod 5 equals]                    = -2
 PASS  programmer-042 [5 mod 0 equals]                             = Result is undefined
 PASS  programmer-043 [1 lsh 4 equals]                             = 16
 PASS  programmer-044 [1 lsh 6 3 equals]                           = -9,223,372,036,854,775,808
-PASS  programmer-045 [1 lsh 6 4 equals]                           = Result not defined
+PASS  programmer-045 [1 lsh 6 4 equals]                           = 0
 PASS  programmer-046 [1 lsh 7 equals]                             = -128
-PASS  programmer-047 [1 lsh 8 equals]                             = Result not defined
+PASS  programmer-047 [1 lsh 8 equals]                             = 0
 PASS  programmer-048 [1 6 rsh 2 equals]                           = 4
 PASS  programmer-049 [1 6 negate rsh 2 equals]                    = -4
 PASS  programmer-050 [8 0 0 0 rsh 4 equals]                       = F800
-PASS  programmer-051 [2 5 6 rsh 6 4 equals]                       = Result not defined
-PASS  programmer-052 [5 inv lsh]                                  = 10
-PASS  programmer-053 [8 1 inv lsh]                                = 3
-PASS  programmer-054 [1 inv rsh]                                  = 80
-PASS  programmer-055 [3 0 0 word word word]                       = 44
-PASS  programmer-056 [6 5 5 3 5 word word]                        = -1
-PASS  programmer-057 [1 2 8 word word word]                       = -128
-PASS  programmer-058 [8 0 word]                                   = FFFF FFFF FFFF FF80
-PASS  programmer-059 [5 decimal 5]                                = 55
-PASS  programmer-060 [9 2 2 3 3 7 2 0 3 6 8 5 4 7 7 5 8 0 7 add 1 equals]  = -9,223,372,036,854,775,808
-PASS  programmer-061 [F F backspace]                              = F
-PASS  programmer-062 [F F radix_oct]                              = 377
-PASS  programmer-063 [A add 1 equals]                             = B
-PASS  programmer-064 [1 negate radix_bin]                         = 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111
-PASS  programmer: every oracle line was driven                    = 64
+PASS  programmer-051 [2 5 6 rsh 6 4 equals]                       = 0
+PASS  programmer-052 [2 5 6 negate rsh 6 4 equals]                = -1
+PASS  programmer-053 [8 0 0 0 rsh 1 0 equals]                     = FFFF
+PASS  programmer-054 [5 inv lsh]                                  = 10
+PASS  programmer-055 [8 1 inv lsh]                                = 3
+PASS  programmer-056 [1 inv rsh]                                  = 80
+PASS  programmer-057 [3 0 0 word word word]                       = 44
+PASS  programmer-058 [6 5 5 3 5 word word]                        = -1
+PASS  programmer-059 [1 2 8 word word word]                       = -128
+PASS  programmer-060 [8 0 word]                                   = FFFF FFFF FFFF FF80
+PASS  programmer-061 [5 decimal 5]                                = 55
+PASS  programmer-062 [9 2 2 3 3 7 2 0 3 6 8 5 4 7 7 5 8 0 7 add 1 equals]  = -9,223,372,036,854,775,808
+PASS  programmer-063 [F F backspace]                              = F
+PASS  programmer-064 [F F radix_oct]                              = 377
+PASS  programmer-065 [A add 1 equals]                             = B
+PASS  programmer-066 [1 negate radix_bin]                         = 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111
+PASS  programmer: every oracle line was driven                    = 66
 PASS  the display's hold menu offers Paste (calc_paste)           = yes
 PASS  after the paste the display shows the last operand          = 3
 PASS  after the paste 12 + is pending                             contains [12 +]
 PASS  12+3 pasted, then =, is 15                                  = 15
-RECORD  Result not defined                                          produced by Programmer 1 lsh 64 = (QWORD), scioper.cpp:73-77 (oracle programmer lines)
+RECORD  Result not defined                                          not reachable by a fixture: its only producer, a Lsh / Rsh of the word size or more (scioper.cpp:41-44, 65-68, 74-77), gives the right answer instead (0, or -1 for an arithmetic Rsh of a negative; ruling 2026-09-24)
 RECORD  Not enough memory                                           not reachable by a fixture: thrown only when allocation fails (conv.cpp:204-207, 237-240)
 ------------------------------------------------------------------------------
-E11: 241 passed, 0 failed, 2 recorded
+E11: 243 passed, 0 failed, 2 recorded
