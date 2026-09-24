@@ -8,7 +8,6 @@ import android.content.Intent
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.net.Uri
-import android.provider.AlarmClock
 import android.provider.CalendarContract
 import android.telecom.TelecomManager
 import android.telephony.SmsManager
@@ -30,6 +29,9 @@ import app.tileshell.cortana.reminders.Reminder
 import app.tileshell.cortana.reminders.ReminderKind
 import app.tileshell.cortana.reminders.ReminderStore
 import app.tileshell.cortana.reminders.ReminderText
+import app.tileshell.clock.Alarm
+import app.tileshell.clock.AlarmSound
+import app.tileshell.clock.ClockStore
 import app.tileshell.diag.Diagnostics
 import app.tileshell.feeds.TileNotificationListener
 import app.tileshell.tiles.LayoutStore
@@ -57,15 +59,8 @@ data class Outcome(
     val openPlaces: String? = null,
 )
 
-/** Activity starts the action layer cannot do for itself: only the session can start a voice activity. */
+/** Activity starts the action layer cannot do for itself. */
 interface ActionHost {
-    /**
-     * `VoiceInteractionSession.startVoiceActivity`. Alarms and timers go through this with
-     * `EXTRA_SKIP_UI` so they can be set over the keyguard without showing anything (E10).
-     * @return false when the platform refuses it (which E10 records, and PQ3 re-asks Jeremy about)
-     */
-    fun startVoiceActivity(intent: Intent): Boolean
-
     /** A normal launch: the app takes the screen and the session hides. */
     fun launch(intent: Intent)
 
@@ -308,35 +303,27 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
         answer("I couldn't place that call.")
     }
 
+    /**
+     * Tess's alarms and timers land in the shell's own Alarms & Clock, set in-process (phase 15 interview Q1 A):
+     * no intent, no chooser, nothing started — so it works over the keyguard with nothing to show, and Samsung
+     * Clock (or DeskClock) arms nothing. A new alarm rings once, at the next [hour]:[minute].
+     */
     private fun alarm(hour: Int, minute: Int): Outcome {
-        val intent = Intent(AlarmClock.ACTION_SET_ALARM)
-            .putExtra(AlarmClock.EXTRA_HOUR, hour)
-            .putExtra(AlarmClock.EXTRA_MINUTES, minute)
-            // EXTRA_SKIP_UI is what lets this run over the keyguard with nothing shown (E10).
-            .putExtra(AlarmClock.EXTRA_SKIP_UI, true)
+        val store = ClockStore.get(context)
+        val alarm = store.newAlarm(hour, minute, Alarm.DEFAULT_NAME, emptySet(), AlarmSound.DEFAULT, Alarm.DEFAULT_SNOOZE)
+        store.putAlarm(alarm, "tess set alarm ${alarm.id}")
+        Diagnostics.add("cortana", "alarm set in-process ${alarm.id} at %02d:%02d".format(hour, minute))
         val time = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, hour); set(Calendar.MINUTE, minute)
         }.timeInMillis
-        return startClock(intent, "Alarm set for ${ReminderText.time(context, time)}.")
+        return answer("Alarm set for ${ReminderText.time(context, time)}.")
     }
 
     private fun timer(seconds: Int): Outcome {
-        val intent = Intent(AlarmClock.ACTION_SET_TIMER)
-            .putExtra(AlarmClock.EXTRA_LENGTH, seconds)
-            .putExtra(AlarmClock.EXTRA_SKIP_UI, true)
-        return startClock(intent, "Timer set for ${durationWords(seconds)}.")
-    }
-
-    private fun startClock(intent: Intent, spoken: String): Outcome {
-        val started = host.startVoiceActivity(intent)
-        if (started) return answer(spoken)
-        // If the platform refuses a voice activity here, the fallback is a normal start, and over the
-        // keyguard that is exactly the case PQ3 says to re-ask Jeremy about rather than gate silently.
-        Diagnostics.add("cortana", "startVoiceActivity refused for ${intent.action}; falling back to a normal start")
-        return runCatching {
-            host.launch(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            Outcome(spoken, null, close = true)
-        }.getOrElse { answer("I couldn't set that.") }
+        val timer = ClockStore.get(context).addTimer("", seconds * 1000L, start = true)
+            ?: return answer("I couldn't set that.")
+        Diagnostics.add("cortana", "timer set in-process ${timer.id} for ${seconds}s")
+        return answer("Timer set for ${durationWords(seconds)}.")
     }
 
     private fun reminder(request: Request.SetReminder): Outcome {

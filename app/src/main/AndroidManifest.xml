@@ -46,13 +46,6 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <!-- Reminders fire at the exact time. A sideloaded app gets this at install; no Play policy applies (F1-m7). -->
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
-    <!--
-      "Set an alarm" / "set a timer" start ACTION_SET_ALARM and ACTION_SET_TIMER on the Clock app, and
-      the platform refuses both without this. E2 caught it: every alarm and timer died with
-      "Permission Denial: ... requires com.android.alarm.permission.SET_ALARM", through the voice
-      activity AND through the normal start it falls back to.
-    -->
-    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!--
       Phase 15, Alarms & Clock (build tasks 1-3): the ring plays on the alarm stream, vibrates and holds a wake lock
