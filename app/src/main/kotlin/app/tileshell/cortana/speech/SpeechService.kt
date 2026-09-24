@@ -135,21 +135,39 @@ class SpeechService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder {
+        if (isHoldOnly(intent)) {
+            Diagnostics.add("speech", "onBind (microphone hold only: no model load)")
+            return binder
+        }
         Diagnostics.add("speech", "onBind")
         clientPresent()
         return binder
     }
 
     override fun onRebind(intent: Intent?) {
+        if (isHoldOnly(intent)) {
+            Diagnostics.add("speech", "onRebind (microphone hold only: no model load)")
+            return
+        }
         Diagnostics.add("speech", "onRebind")
         clientPresent()
     }
 
     /** True so [onRebind] is delivered: a client that comes back inside the idle window keeps the models. */
     override fun onUnbind(intent: Intent?): Boolean {
-        clientGone()
+        // The hold-only binding never loaded anything, so its going away starts no idle release: the engine
+        // clients' own binding (a different Intent, so Android reports it separately) decides that.
+        if (!isHoldOnly(intent)) clientGone()
         return true
     }
+
+    /**
+     * Voice Recorder binds only to hold the microphone (phase 15, T15-4): it captures in its own process and
+     * never asks for a model, so a take must not pull both engines into RAM for its whole length. Its bind
+     * uses [ACTION_MIC_HOLD], a different Intent from the engine clients', which Android keeps as a separate
+     * binding with its own onBind / onUnbind.
+     */
+    private fun isHoldOnly(intent: Intent?): Boolean = intent?.action == ACTION_MIC_HOLD
 
     override fun onDestroy() {
         Diagnostics.add("speech", "service destroyed; releasing engines")
@@ -344,21 +362,24 @@ class SpeechService : Service() {
             Diagnostics.add("speech", "client unregistered pid=${Binder.getCallingPid()} (${clients.registeredCallbackCount} registered)")
         }
 
-        override fun startListening(owner: ISpeechCallback?, hotwords: String?) {
+        override fun startListening(owner: ISpeechCallback?, hotwords: String?, who: String?) {
             owner ?: return
             val pid = Binder.getCallingPid()
+            val name = who.orEmpty()
             // One engine, one microphone (phase 05 edge case): a second client is refused with a notice,
             // never allowed to take the microphone from the one using it. The same client starting again
             // replaces its own capture, as it always has.
             // Bumped inside acquire, on the Binder thread: a capture already running sees it and unwinds,
             // so there is never a second AudioRecord.
-            val generation = mic.acquire(owner.asBinder(), pid) { asr.interrupt() }
+            val generation = mic.acquire(owner.asBinder(), pid, name) { asr.interrupt() }
             if (generation == null) {
-                Diagnostics.add("speech", "startListening from pid=$pid refused: the microphone is listening for pid=${mic.ownerPid}")
-                report(SpeechError.MICROPHONE_BUSY, "the microphone is in use by another part of the shell", owner)
+                // Every refusal names the holder (T15-28): the refused side words its notice from it.
+                val holder = mic.holderName()
+                Diagnostics.add("speech", "startListening from pid=$pid refused: held by $holder")
+                report(SpeechError.MICROPHONE_BUSY, MicHolders.busyDetail(holder), owner)
                 return
             }
-            Diagnostics.add("speech", "listening for pid=$pid")
+            Diagnostics.add("speech", "listening for pid=$pid ($name)")
             loadAsr()
             val phrases = hotwords.orEmpty()
             asrWorker.execute {
@@ -372,6 +393,37 @@ class SpeechService : Service() {
                 // newer capture by the same owner has already claimed it.
                 mic.finished(generation)
             }
+        }
+
+        override fun holdMicrophone(cb: ISpeechCallback?, who: String?): String? {
+            val pid = Binder.getCallingPid()
+            val name = who.orEmpty()
+            if (cb == null || !isRegistered(cb)) {
+                // Only a registered callback's death reaches onCallbackDied, which is what frees a killed
+                // holder's microphone (E18) — so a hold nobody could ever release is not granted.
+                Diagnostics.add("speech", "holdMicrophone from pid=$pid ($name) refused: not registered")
+                return UNREGISTERED
+            }
+            // The same generation sequence the captures use, so a hold's generation can never be mistaken
+            // for a capture's when that capture finishes. Nothing of anyone else's is running when this
+            // succeeds: the arbiter refuses while another client holds the microphone.
+            val generation = mic.acquire(cb.asBinder(), pid, name) { asr.interrupt() }
+            if (generation == null) {
+                val holder = mic.holderName().orEmpty()
+                Diagnostics.add("speech", "holdMicrophone from pid=$pid ($name) refused: held by $holder")
+                return holder
+            }
+            Diagnostics.add("speech", "microphone held for pid=$pid ($name)")
+            return null
+        }
+
+        override fun releaseMicrophone(cb: ISpeechCallback?) {
+            cb ?: return
+            if (!mic.isHolder(cb.asBinder())) {
+                Diagnostics.add("speech", "releaseMicrophone from a non-holder ignored (pid=${Binder.getCallingPid()})")
+                return
+            }
+            releaseMicIf(cb.asBinder(), "released by its holder")
         }
 
         override fun stopListening(owner: ISpeechCallback?) {
@@ -479,6 +531,7 @@ class SpeechService : Service() {
         lines += "process=app.tileshell:speech"
         lines += "asr_listening=${asr.listening}"
         lines += "mic_owner_pid=${mic.ownerPid}"
+        lines += "mic_owner=${mic.holderName().orEmpty()}"
         lines += "clients=${clients.registeredCallbackCount}"
         lines += "asr_error=${asrFailure?.let { "code ${it.first}: ${it.second}" }.orEmpty().replace('\n', ' ')}"
         lines += "asr_bpe_vocab=${asr.bpeVocabSource}"
@@ -514,7 +567,22 @@ class SpeechService : Service() {
         FALLBACK_PAGE_SIZE
     }
 
-    private companion object {
-        const val FALLBACK_PAGE_SIZE = 4096L
+    /** Whether [cb] is one of the registered clients (RemoteCallbackList has no lookup of its own). */
+    private fun isRegistered(cb: ISpeechCallback): Boolean {
+        val binder = cb.asBinder()
+        for (i in 0 until clients.registeredCallbackCount) {
+            if (clients.getRegisteredCallbackItem(i)?.asBinder() == binder) return true
+        }
+        return false
+    }
+
+    companion object {
+        /** The Intent action of a microphone-hold-only bind (Voice Recorder, phase 15): no model is loaded for it. */
+        const val ACTION_MIC_HOLD = "app.tileshell.speech.action.MIC_HOLD"
+
+        /** What [ISpeech.holdMicrophone] answers a callback that never registered. */
+        const val UNREGISTERED = "unregistered"
+
+        private const val FALLBACK_PAGE_SIZE = 4096L
     }
 }
