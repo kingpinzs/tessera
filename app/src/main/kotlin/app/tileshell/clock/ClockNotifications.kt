@@ -126,9 +126,14 @@ object ClockNotifications {
         val elapsed = SystemClock.elapsedRealtime()
         val boot = store.bootCount()
         val running = store.timers.value.filter { it.state == ClockTimer.State.RUNNING }
-        for (t in store.timers.value) {
+        // Cleared from what is POSTED, not from the store: a deleted timer is no longer in the store, and walking the
+        // store left its countdown up for good (E0 run 1: "timer:t13a91e43" posted with both stores empty).
+        val keep = running.map { "timer:${it.id}".hashCode() }.toSet()
+        for (sbn in nm.activeNotifications) {
+            if (sbn.notification.channelId == CH_TIMERS && sbn.id !in keep) nm.cancel(sbn.tag, sbn.id)
+        }
+        for (t in running) {
             val id = "timer:${t.id}".hashCode()
-            if (t !in running) { nm.cancel(id); continue }
             val remaining = ClockRules.timerRemaining(t, elapsed, now, boot)
             val n = Notification.Builder(context, CH_TIMERS)
                 .setSmallIcon(R.drawable.ic_timer)
