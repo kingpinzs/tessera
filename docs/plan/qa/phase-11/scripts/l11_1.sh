@@ -20,7 +20,7 @@ tile_texts() { python3 "$QROOT/phase-01/scripts/nodes.py" "$1" "$2" 2>/dev/null;
 log "--- the fix's JVM tests, from this run's unit results (run_all keeps them in UNIT-results/ before any row) ---"
 TSP="$QA11/UNIT-results/TEST-app.tileshell.tiles.engine.TileSourcePrecedenceTest.xml"
 cp "$TSP" "$ROW_DIR/" 2>/dev/null
-note "results file: $(ls -l --time-style=+%FT%T "$TSP" 2>/dev/null | awk '{print $6}')"
+note "results: the XML's own timestamp $(grep -oE 'timestamp="[^"]*"' "$TSP" 2>/dev/null | head -1) (run_all cleans the results before its unit run)"
 assert_contains "TileSourcePrecedenceTest: 12 tests, 0 failures, 0 errors" 'tests="12" skipped="0" failures="0" errors="0"' "$(head -3 "$TSP" 2>/dev/null)"
 for t in notificationNullsNoLongerWipeAPlayingFace aSecondaryTilesKeyIsNeverClearedByTheArbiter aForgottenPackageKeepsNothing; do
   assert_contains "JVM: $t ran" "testcase name=\"$t\"" "$(cat "$TSP" 2>/dev/null)"
@@ -100,8 +100,14 @@ assert_contains "the engine forgot the package, every source" "[engine] forget p
 assert_contains "MusicFeed dropped its remembered track" "[music] forgot org.fossify.musicplayer's track" "$S"
 echo "$S" | grep -E "\[engine\] (publish|forget) pkg:org\.fossify\.musicplayer |\[music\].*fossify" > "$ROW_DIR/uninstall-sequence.txt"
 note "the player's engine lines across the uninstall: $(grep -c . "$ROW_DIR/uninstall-sequence.txt") (uninstall-sequence.txt)"
-assert_absent "after the forget, the player's key ends with nothing shown (R1-1)" "-> shows music" \
+assert_absent "after the forget, the player's key ends with nothing shown" "-> shows music" \
   "$(grep '\[engine\] ' "$ROW_DIR/uninstall-sequence.txt" | tail -1)"
+# 9f790b7 (the re-judge's R1-1): MusicFeed's forget publishes its own null for the package on main, AFTER the engine's forget;
+# only that commit writes this line, so the row fails without it. Whether a session died INSIDE the window between the two
+# (the race itself) depends on timing adb cannot force: recorded from uninstall-sequence.txt, not asserted (round 2, EV-2).
+assert_contains "9f790b7's own null publish follows the engine's forget" "from=music faces=0" \
+  "$(awk '/\[engine\] forget pkg:org.fossify.musicplayer/{f=1; next} f' "$ROW_DIR/uninstall-sequence.txt" | grep '\[engine\] publish')"
+note "the race window itself: $(awk '/\[engine\] forget/{f=1; next} f && /from=music faces=1/{x=1} END{print (x ? "a music face was published inside it" : "not produced in this run (the session died before the forget)")}' "$ROW_DIR/uninstall-sequence.txt")"
 adb install -r -t "$APKDIR/fossify.apk" >/dev/null 2>&1; sleep 3
 rm -rf "$APKDIR"
 assert_contains "the player is installed again" "package:" "$(adb shell pm path org.fossify.musicplayer 2>/dev/null)"

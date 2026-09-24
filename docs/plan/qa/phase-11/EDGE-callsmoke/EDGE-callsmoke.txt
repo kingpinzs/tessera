@@ -1,0 +1,23 @@
+==============================================================================
+ROW EDGE-callsmoke — the call sub-step only (smoke of the answer retry): the Edge Cases list: flip, fling, call, keyguard, listener restart, process death, second finger, show more tiles, folder dissolve, labels, theme, transparency, RV10
+at            2026-09-24T17:13:16-06:00
+driver        .edge_call_smoke.sh blob e1d41b85235feefa37d86f11f4eec75eb83570d1
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     736ce3543e0caf05 335518185 bytes
+apk installed 50129ec4bf4de7f8
+apk match     yes (50129ec4bf4de7f8)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- the burst open at an incoming call: ringing is a heads-up over Start; answering brings the call in front (stop) ---
+PASS  ringing: a heads-up (its Answer button is on screen)        contains [ANSWER]
+PASS  ringing: Start is still the resumed activity                contains [app.tileshell/.StartActivity]
+PASS  ringing: nothing closed the burst                           does not contain [burst closed]
+      answer try 1 at (581,456): top com.android.dialer/com.android.incallui.InCallActivity
+      answered: top activity com.android.dialer/com.android.incallui.InCallActivity
+PASS  answered: the call's window is in front of Start            does not contain [app.tileshell/.StartActivity]
+PASS  answered: Start stopped, the burst closed (stop)            contains [burst closed: stop]
+------------------------------------------------------------------------------
+EDGE-callsmoke: 7 passed, 0 failed

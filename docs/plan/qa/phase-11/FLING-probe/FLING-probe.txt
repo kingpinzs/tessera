@@ -1,0 +1,27 @@
+==============================================================================
+ROW FLING-probe — does Start fling: folder:qa's travel after swipes of different speeds (tall baseline)
+at            2026-09-24T16:53:13-06:00
+driver        .fling_probe.sh blob b2bdc260a2939cfb4886a06fa34720142ad17222
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     736ce3543e0caf05 335518185 bytes
+apk installed 50129ec4bf4de7f8
+apk match     yes (50129ec4bf4de7f8)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      input swipe 540 1900 540 1500 40: folder:qa top 1507 -> 512 (moved 995; the finger travelled 400)
+PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      input swipe 540 1900 540 1500 80: folder:qa top 1507 -> 512 (moved 995; the finger travelled 400)
+PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      input swipe 540 1900 540 1500 150: folder:qa top 1507 -> 658 (moved 849; the finger travelled 400)
+PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      input swipe 540 1900 540 1500 400: folder:qa top 1507 -> 1047 (moved 460; the finger travelled 400)
+PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+------------------------------------------------------------------------------
+FLING-probe: 10 passed, 0 failed

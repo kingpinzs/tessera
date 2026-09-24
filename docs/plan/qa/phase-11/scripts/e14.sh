@@ -7,8 +7,9 @@
 row_begin E14 "every [quick] line, reason and close appears in this build's saved rings; query failed by its JVM test"
 BUILT="$(md5sum "$APK" | cut -c1-16)"
 FILES=""
-for d in "$QA11"/E*/; do
-  r="$(basename "$d")"; [ "$r" = E14 ] && continue
+# Only the gate rows run_all names (the round-2 re-judge, EV-10: smoke directories whose logs showed the same APK were counted).
+for r in E1 E2 E3 E4 E5 E6 E7 E8 E9 E10 E11 E12 E13 E15 E16 L11-1 EDGE; do
+  d="$QA11/$r/"
   log="$d$r.txt"; [ -f "$log" ] || continue
   if grep -q "apk installed $BUILT" "$log"; then FILES="$FILES $(ls "$d"ring-*.txt 2>/dev/null | tr '\n' ' ')"; note "counted $r"; else note "skipped $r (another APK)"; fi
 done

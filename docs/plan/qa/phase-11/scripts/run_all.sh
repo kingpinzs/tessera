@@ -16,17 +16,21 @@ if [ "${1:-}" = "--append" ]; then
   say "## re-run $(date -Iseconds): commit $(git -C "$ROOT" rev-parse --short HEAD); apk $(md5sum "$ROOT/app/build/outputs/apk/debug/app-debug.apk" | cut -c1-16); rows: $*"
   for r in "$@"; do say "   $r.sh blob $(git -C "$ROOT" hash-object "$HERE/$r.sh")"; done
   for r in "$@"; do
-    R="$(case "$r" in l11_1) echo L11-1 ;; edge) echo EDGE ;; *) echo "$r" | tr 'e' 'E' ;; esac)"; rm -rf "$OUT/$R"; START=$(date +%s)
+    R="$(case "$r" in l11_1) echo L11-1 ;; edge) echo EDGE ;; *) echo "$r" | tr 'e' 'E' ;; esac)"
+    # The run being replaced is kept beside it, not deleted (the round-2 re-judge, EV-15).
+    [ -d "$OUT/$R" ] && mv "$OUT/$R" "$OUT/$R-before-rerun-$(date +%H%M%S)"; START=$(date +%s)
     bash "$HERE/$r.sh" > "$OUT/.$r.console" 2>&1; RC=$?
     say "$R exit $RC after $(( $(date +%s) - START ))s — $(grep -h "^$R: " "$OUT/$R/$R.txt" 2>/dev/null | tail -1)"
   done
   python3 - "$SUMMARY" <<'PY' | tee -a "$SUMMARY"
 import re, sys
 latest = {}
+unit_ok = False
 for l in open(sys.argv[1]):
+    if l.startswith("unit: "): unit_ok = bool(re.search(r"TOTAL \d+ tests, 0 failures, 0 errors \(gradle exit 0\)", l))
     m = re.match(r"(E\d+|L11-1|EDGE) exit (\d+)", l)
     if m: latest[m.group(1)] = int(m.group(2))
-bad = sorted(r for r, rc in latest.items() if rc)
+bad = sorted(r for r, rc in latest.items() if rc) + ([] if unit_ok else ["unit"])
 print("VERDICT (latest line per row): " + ("SUITE PASSED" if not bad else "SUITE FAILED: " + " ".join(bad)))
 PY
   exit 0
@@ -35,7 +39,8 @@ fi
 say "# Phase 11 gate suite — $(date -Iseconds)"
 say "commit $(git -C "$ROOT" rev-parse --short HEAD); uncommitted files under app/: $(git -C "$ROOT" status --porcelain app/ | wc -l)"
 say "apk $(md5sum "$ROOT/app/build/outputs/apk/debug/app-debug.apk" | cut -c1-16); device $ANDROID_SERIAL"
-( cd "$ROOT" && ./gradlew :app:testDebugUnitTest -q ) > "$OUT/UNIT.txt" 2>&1
+# Cleaned first, so the results are this run's own and not an up-to-date task's cache (the round-2 re-judge, EV-11).
+( cd "$ROOT" && ./gradlew :app:cleanTestDebugUnitTest :app:testDebugUnitTest -q ) > "$OUT/UNIT.txt" 2>&1
 URC=$?
 python3 - "$ROOT" >> "$OUT/UNIT.txt" <<'PY'
 import glob, re, sys
