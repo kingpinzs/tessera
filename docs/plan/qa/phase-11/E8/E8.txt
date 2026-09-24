@@ -1,0 +1,50 @@
+==============================================================================
+ROW E8 — no burst when not HOME; disabled / removed / unstartable shortcuts
+at            2026-09-23T21:56:11-06:00
+driver        e8.sh blob a7d87338ddf1adde51abf2ba4842e2a0c08daf67
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     2c4dc5991d15aa37 336439365 bytes
+apk installed fb4980a56f074c7b
+apk match     yes (fb4980a56f074c7b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- (a) the shell is not a shortcut host: edit mode, no burst ---
+      HOME holders now: [] ASSISTANT holders now: []
+PASS  (a) edit mode on                                            = yes
+PASS  (a) no quick_burst                                          = no
+PASS  (a) reason                                                  contains [[quick] no burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: not the shortcut host]
+PASS  (a) restored: the shell is HOME again                       contains [app.tileshell]
+PASS  (a) restored: the shell is the assistant again              contains [app.tileshell]
+--- (b) disabled: Android deletes an unpinned dynamic shortcut, so the hold finds none ---
+      disable (receiver): Broadcast completed: result=0, data="disable: ok=true disabled=[qa_dyn] dynamic=[]"
+PASS  (b) no quick_burst                                          = no
+PASS  (b) the query found none                                    contains [[quick] shortcuts for app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity/0: 0 (0 shown)]
+PASS  (b) reason                                                  contains [[quick] no burst on app:app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity:0: no shortcuts]
+PASS  (b) cmd shortcut lists nothing for tileclient-b             = 0
+--- (b) disable while a burst is open (no window comes to front): shortcuts changed ---
+PASS  (b) burst open on tileclient-b                              = yes
+      disable (receiver): Broadcast completed: result=0, data="disable: ok=true disabled=[qa_dyn] dynamic=[]"
+PASS  (b) StartActivity still resumed                             contains [app.tileshell/.StartActivity]
+PASS  (b) no quick_burst                                          = no
+PASS  (b) edit mode stays                                         = yes
+PASS  (b) ring: shortcuts changed                                 contains [[quick] burst closed: shortcuts changed]
+--- (c) uninstall tileclient-b with its burst open: the tile and the burst go (removed) ---
+PASS  (c) burst open                                              = yes
+PASS  (c) the tile is gone                                        = no
+PASS  (c) no quick_burst                                          = no
+PASS  (c) exactly one close line, removed                         = 1 [quick] burst closed: removed
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- (d) a shortcut whose target cannot start: nothing launches, Start plays its entrance, no edit mode ---
+      deadtarget (receiver): Broadcast completed: result=0, data="deadtarget: ok=true dynamic=[qa_dyn, qa_dead]"
+PASS  (d) two satellites                                          = yes
+PASS  (d) nothing else resumed                                    contains [app.tileshell/.StartActivity]
+PASS  (d) back on start_page                                      = yes
+PASS  (d) no edit mode                                            = no
+PASS  (d) startShortcut failed, ActivityNotFoundException         contains [[quick] tap satellite 1 app.tileshell.testclient.b/qa_dead: startShortcut failed android.content.ActivityNotFoundException]
+PASS  (d) Start played its entrance                               contains [[motion] start entrance]
+------------------------------------------------------------------------------
+E8: 28 passed, 0 failed
