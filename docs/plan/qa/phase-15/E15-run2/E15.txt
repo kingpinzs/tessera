@@ -1,0 +1,51 @@
+==============================================================================
+ROW E15 — the recorder keeps recording in the background and stops from its notification
+at            2026-09-24T12:33:03-06:00
+driver        e15.sh blob 096d5c4cb525c7a6b9f78370bc13547fdddbe7e4
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     9cdb2b692d30396a 336970510 bytes
+apk installed 42d6fcbd160015a2
+apk match     yes (42d6fcbd160015a2)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: MediaStore holds no take of the shell's           = 0
+      E15: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
+PASS  E15: the audio route is up (audio.sh check rc)              = 0
+      tone loop pid 1562498
+      the take runs: elapsed_ms=1509
+PASS  the take is recording                                       = recording
+PASS  the :recorder ring holds [recorder] start                   contains [[recorder] start Recording free=]
+PASS  Start is in front                                           contains [app.tileshell/.StartActivity]
+      service block:  processName=app.tileshell:recorder| isForeground=true foregroundId=1507 types=0x00000080 foregroundNoti=Notification(channel=recorder_take shortcut=null contentView=null vibrate=null sound=null d
+PASS  the recorder service is foreground                          contains [isForeground=true]
+PASS  its types carry the microphone bit 0x00000080               contains [types=0x00000080]
+PASS  its process is app.tileshell:recorder                       contains [processName=app.tileshell:recorder]
+      pidof app.tileshell:recorder = 14452
+PASS  pidof app.tileshell:recorder finds the process              != 
+PASS  the ongoing notification is posted (ONGOING_EVENT)          contains [ONGOING_EVENT]
+PASS  it carries a Stop action                                    contains ["Stop" -> PendingIntent]
+PASS  its title is Recording                                      contains [android.title=String (Recording)]
+      after KEYCODE_SLEEP: mWakefulness=Asleep
+PASS  the take is still recording after 20 s asleep               = recording
+PASS  wake_device prints Awake (C-25)                             = Awake
+      elapsed_ms before the shade: 26633
+      shade_tap_action: dump 1 is not SystemUI's (package="app.tileshell"); expanding again
+      shade_tap_action: dump 2 is not SystemUI's (package="app.tileshell"); expanding again
+      shade_tap_action: dump 3 is not SystemUI's (package="app.tileshell"); expanding again
+      shade_tap_action: dump 4 is not SystemUI's (package="app.tileshell"); expanding again
+FAIL  the notification's Stop was found and tapped in the shade   expected [yes] got [no]
+      the take is still recording after the shade step; stopping it through the app for the restore
+PASS  after Stop the notification is gone                         = 
+PASS  after Stop no recorder service is running                   = 
+      the take's MediaStore id: 43; wall time since the record tap: 93 s
+PASS  the take is in MediaStore                                   != 
+      take: 88.560900 s, aac,44100,1
+PASS  the file is at least 25 s long                              = yes
+      overall RMS: -11.681916 dBFS
+PASS  the tone is in the whole file (overall RMS > -40 dBFS)      = yes
+      RMS over 22-27 s: -9.486674 dBFS
+PASS  the 5-s window at 22 s (recorded while the screen was off) has the tone (RMS > -40 dBFS)  = yes
+PASS  restore: the take is deleted                                = 0
+------------------------------------------------------------------------------
+E15: 21 passed, 1 failed, 0 recorded
