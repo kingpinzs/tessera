@@ -65,7 +65,6 @@ import app.tileshell.brand.Glyph
 import app.tileshell.calc.engine.CalcMode
 import app.tileshell.calc.engine.Radix
 import app.tileshell.cortana.ui.CortanaIcons
-import app.tileshell.recorder.capPad
 import app.tileshell.start.Edit
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.components.PressRow
@@ -143,9 +142,10 @@ private fun ExpressionLine(text: String, modifier: Modifier) {
 }
 
 /**
- * 2.14 / 7.5: the result at 46 epx semibold, right-aligned at a 16-epx inset with its cap top 17.4 epx into the
- * row, shrinking to fit the row's width down to 12 epx (H11) — never scrolling or truncating. A hold offers Paste
- * (`calc_paste`, T15-57).
+ * 2.14 / 7.5: the result in semibold with 33.0 epx of digit INK — the size the shell's font needs for r11's "5,512"
+ * (S1's 46 is Segoe's) — the ink's right edge at a 16-epx inset and the digit top 17.4 epx into the row, shrinking to
+ * fit the row's width down to 12 epx (H11) — never scrolling or truncating. The tagged node IS the ink box (r11's
+ * measurement frame). A hold offers Paste (`calc_paste`, T15-57).
  */
 @Composable
 fun ResultDisplay(text: String, host: CalcPageHost, modifier: Modifier) {
@@ -154,6 +154,7 @@ fun ResultDisplay(text: String, host: CalcPageHost, modifier: Modifier) {
     val density = LocalDensity.current
     var bottomPx by remember { mutableStateOf(0f) }
     var centreXPx by remember { mutableStateOf(0f) }
+    val maxFont = rememberInkFontSize(ShellType.base.fontFamily, FontWeight.SemiBold, CalcMetrics.RESULT_INK_REFERENCE, CalcMetrics.RESULT_INK, colors.text)
     BoxWithConstraints(
         modifier
             .onGloballyPositioned { bottomPx = it.boundsInWindow().bottom; centreXPx = it.boundsInWindow().center.x }
@@ -168,17 +169,21 @@ fun ResultDisplay(text: String, host: CalcPageHost, modifier: Modifier) {
             },
     ) {
         val available = maxWidth.value - CalcMetrics.RESULT_RIGHT_INSET - 4f
-        val base = ShellType.base.copy(fontSize = CalcDisplayFit.MAX_FONT.sp, lineHeight = (CalcDisplayFit.MAX_FONT * 1.25f).sp, color = colors.text)
-        val widthAtMax = remember(text, density) { with(density) { measurer.measure(AnnotatedString(text), base, maxLines = 1, softWrap = false).size.width.toDp().value } }
-        val size = CalcDisplayFit.fontSize(widthAtMax, available)
-        val style = base.copy(fontSize = size.sp, lineHeight = (size * 1.25f).sp, textAlign = TextAlign.End)
+        val base = ShellType.base.copy(fontSize = maxFont.sp, lineHeight = (maxFont * 1.25f).sp, color = colors.text)
+        val widthAtMax = remember(text, density, base) { with(density) { measurer.measure(AnnotatedString(text), base, maxLines = 1, softWrap = false).size.width.toDp().value } }
+        val size = CalcDisplayFit.fontSize(widthAtMax, available, maxFont)
+        val style = base.copy(fontSize = size.sp, lineHeight = (size * 1.25f).sp)
+        // The node is the ink: "5,512"'s rows at this size (one baseline for every result) and the text's own columns,
+        // so the node's right edge is the digits' right edge at the inset and its top the digit top 17.4 epx into the row.
+        val reference = rememberInkLayout(style, CalcMetrics.RESULT_INK_REFERENCE)
+        val own = rememberInkLayout(style, text)
         Box(
             Modifier
                 .fillMaxSize()
-                .padding(end = CalcMetrics.RESULT_RIGHT_INSET.dp, top = capPad(CalcMetrics.RESULT_CAP_TOP, base).dp),
+                .padding(end = CalcMetrics.RESULT_RIGHT_INSET.dp, top = CalcMetrics.RESULT_CAP_TOP.dp),
             contentAlignment = Alignment.TopEnd,
         ) {
-            BasicText(text, style = style, maxLines = 1, softWrap = false, modifier = Modifier.testTag("calc_display"))
+            BasicText(text, style = style, maxLines = 1, softWrap = false, modifier = Modifier.testTag("calc_display").inkBox(reference, own.ink))
         }
     }
 }

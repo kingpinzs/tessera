@@ -24,10 +24,10 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +39,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -220,28 +222,40 @@ fun DatePickerPanel(request: DatePickerRequest, widthEpx: Float, onDone: () -> U
     }
 }
 
-/** One picker column: seven 40-epx rows around the chosen value; a tap picks, a vertical drag scrolls one row per 40 epx. */
+/**
+ * One picker column: seven 40-epx rows around the chosen value; a tap picks, a vertical drag scrolls one row per
+ * 40 epx of finger travel for as long as the finger moves. The drag handler is keyed on the values only and reads the
+ * selection as it is NOW: keyed on the selection too, it was relaunched by its own first step and lost the rest of the
+ * gesture — a 3-row swipe moved one row (E29 run 1's RECORD).
+ */
 @Composable
 private fun PickerColumn(values: List<Int>, selected: Int, label: (Int) -> String, tag: String, modifier: Modifier, onSelect: (Int) -> Unit) {
     val colors = LocalShellColors.current
     val index = values.indexOf(selected).coerceAtLeast(0)
-    var drag by remember { mutableFloatStateOf(0f) }
     val half = CalcMetrics.PICKER_VISIBLE / 2
+    val current by rememberUpdatedState(selected)
+    val select by rememberUpdatedState(onSelect)
     Column(
         modifier
             .fillMaxHeight()
-            .pointerInput(values, index) {
+            .pointerInput(values) {
                 val step = CalcMetrics.PICKER_ROW * density
-                detectVerticalDragGestures(onDragEnd = { drag = 0f }, onDragCancel = { drag = 0f }) { change, dy ->
+                var drag = 0f
+                var at = current
+                detectVerticalDragGestures(
+                    onDragStart = { drag = 0f; at = current },
+                    onDragEnd = { drag = 0f },
+                    onDragCancel = { drag = 0f },
+                ) { change, dy ->
                     change.consume()
                     drag += dy
                     while (drag <= -step) {
                         drag += step
-                        values.getOrNull(values.indexOf(selected) + 1)?.let(onSelect)
+                        values.getOrNull(values.indexOf(at) + 1)?.let { at = it; select(it) }
                     }
                     while (drag >= step) {
                         drag -= step
-                        values.getOrNull(values.indexOf(selected) - 1)?.let(onSelect)
+                        values.getOrNull(values.indexOf(at) - 1)?.let { at = it; select(it) }
                     }
                 }
             }
@@ -265,7 +279,7 @@ private fun PickerColumn(values: List<Int>, selected: Int, label: (Int) -> Strin
                                 }
                             }
                             .testTag("calc_date_pick:$tag:$value")
-                            .semantics { role = Role.Button; this.selected = centre }
+                            .semantics { role = Role.Button; this.selected = centre; text = AnnotatedString(label(value)) }
                         else m
                     },
                 contentAlignment = Alignment.Center,

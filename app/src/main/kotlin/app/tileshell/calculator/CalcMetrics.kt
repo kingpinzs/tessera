@@ -24,13 +24,18 @@ object CalcMetrics {
     const val MENU_BARS_TOP = 19f
     const val MENU_TOUCH = 48f
 
-    /** 1.5: the title in semibold caps, left 60.5, cap 11.0 (≈15.7-epx semibold), cap centre 26 epx into the header. */
+    /**
+     * 1.5: the title in semibold caps — its INK 11.0 epx tall, the ink's left edge at 60.5, its centre 26 epx into the
+     * header. r11 read those off the glyphs of "STANDARD" (C1), so the size is whatever makes that string's ink 11.0 epx
+     * in the font the shell ships (CalcInk measures it; a table ratio put the box, not the ink, on the numbers — E13
+     * run 1).
+     */
     const val TITLE_LEFT = 60.5f
-    const val TITLE_CAP = 11f
-    val TITLE_FONT = TITLE_CAP / CapMetrics.CAP_RATIO
+    const val TITLE_INK = 11f
+    const val TITLE_INK_REFERENCE = "STANDARD"
     const val TITLE_CAP_CENTRE = 26f
 
-    /** 1.7: the History glyph 16 × 16 epx, its right edge 15 epx from the screen edge, centred on the header. */
+    /** 1.7: the History glyph's INK 16 × 16 epx, its right edge 15 epx from the screen edge, centred on the header. */
     const val HISTORY_GLYPH = 16f
     const val HISTORY_RIGHT_INSET = 15f
 
@@ -66,8 +71,15 @@ object CalcMetrics {
     /** 2.12: `⌫` 20.5 × 15.5 epx of ink; the icon font's backspace is ≈0.9 em wide. */
     const val BACKSPACE_FONT = 23f
 
-    /** 2.14: result digits 33 epx tall — S1's 46-epx semibold (7.5) — at a 16-epx right inset, cap top 17.4 epx into the row. */
+    /**
+     * 2.14: the result's digits 33.0 epx of INK — r11 read the digits of "5,512" (C1); its comma hangs 0.14 em below
+     * them and is no part of the 33.0 — the ink's right edge at a 16-epx inset, the digit top 17.4 epx into the row.
+     * S1's 46-epx semibold (7.5) is the size that gives Segoe that ink; the shell's font gets the size that gives ITS
+     * "5512" 33.0 epx (CalcInk), and the display shrinks from there (H11).
+     */
     const val RESULT_RIGHT_INSET = 16f
+    const val RESULT_INK = 33f
+    const val RESULT_INK_REFERENCE = "5512"
     const val RESULT_CAP_TOP = 17.4f
 
     /** 2.19 (LOW): the expression line small and grey above the result, right-aligned. */
@@ -90,10 +102,14 @@ object CalcMetrics {
     const val PANE_WIDTH = 256f
     val PANE_FILL = Color(0xFF2B2B2B)
 
-    /** 3.4–3.6: 48-epx rows from the header's bottom; labels at x 60, ≈15-epx regular, cap top 19 epx below the row top. */
+    /**
+     * 3.4–3.6: 48-epx rows from the header's bottom; labels' box origin at x 60, ≈15-epx regular, cap top 19 epx below
+     * the row top — the cap top being a flat capital's ink top ("H"), measured from the shell's font (CalcInk).
+     */
     const val PANE_ROW = 48f
     const val PANE_LABEL_LEFT = 60f
     const val PANE_LABEL_CAP_TOP = 19f
+    const val PANE_LABEL_CAP_REFERENCE = "H"
 
     /** 3.7: the selected row is the accent at 60 % over the pane fill; the label stays white. */
     const val PANE_SELECTED_ALPHA = 0.6f
@@ -102,7 +118,11 @@ object CalcMetrics {
     val PANE_RULE_COLOR = Color(0xFF404040)
     const val PANE_RULE_INSET = 12f
 
-    /** 3.12: the Settings row's gear 20 × 20 at x 14, centred 24 epx above the nav bar; label at x 60.75. */
+    /**
+     * 3.12: the Settings row's gear — INK 20 epx tall in a 20-wide slot at x 14–34 (cx 24), centred 24 epx above the
+     * nav bar; label at x 60.75. The shipped icon font's gear is 0.81 : 0.85 (fontTools on fluent_icons.ttf), so 20
+     * tall makes it ≈19.3 wide; it sits centred in the slot.
+     */
     const val PANE_GEAR = 20f
     const val PANE_GEAR_LEFT = 14f
     const val PANE_SETTINGS_LABEL_LEFT = 60.75f

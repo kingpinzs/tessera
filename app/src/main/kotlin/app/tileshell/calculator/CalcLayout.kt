@@ -196,18 +196,19 @@ object CalcLayout {
 }
 
 /**
- * 7.4–7.5 (H11): the result is drawn at 46 epx and shrinks to fit its row's width, never scrolling or truncating,
- * down to a 12-epx floor (S1 Calculator.xaml MinFontSize 12).
+ * 7.4–7.5 (H11): the result is drawn at its full face — S1's 46 epx, or whatever size gives the shell's font r11's
+ * 33.0 epx of digit ink (2.14) — and shrinks to fit its row's width, never scrolling or truncating, down to a 12-epx
+ * floor (S1 Calculator.xaml MinFontSize 12).
  */
 object CalcDisplayFit {
     const val MAX_FONT = 46f
     const val MIN_FONT = 12f
 
-    /** The font size for a result whose width at [MAX_FONT] is [widthAtMax] inside [available] epx. */
-    fun fontSize(widthAtMax: Float, available: Float): Float {
-        if (widthAtMax <= 0f || available <= 0f) return MAX_FONT
-        if (widthAtMax <= available) return MAX_FONT
-        return (MAX_FONT * available / widthAtMax).coerceIn(MIN_FONT, MAX_FONT)
+    /** The font size for a result whose width at [maxFont] is [widthAtMax] inside [available] epx. */
+    fun fontSize(widthAtMax: Float, available: Float, maxFont: Float = MAX_FONT): Float {
+        if (widthAtMax <= 0f || available <= 0f) return maxFont
+        if (widthAtMax <= available) return maxFont
+        return (maxFont * available / widthAtMax).coerceIn(MIN_FONT, maxFont)
     }
 }
 
