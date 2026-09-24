@@ -52,8 +52,9 @@ picture (R12 §6 lists img5): a preset must not rewrite Android's lock-screen wa
 
 ## Decisions
 - 2026-09-23: From phase 15's review question Q-E (Jeremy: "(a)" — alarms ring as W10M's banner everywhere): the
-  setup:overlay step ("Display over other apps", with its why line) EXISTS; phase 15 ADDs it to this walk and to the Setup
-  checklist. The Q-E B / C branches in the rows are not applicable.
+  setup:overlay step ("Display over other apps", with its why line) EXISTS; phase 15 ADDs its row to the Setup
+  checklist and its why line to this doc's table, and this phase builds the step (C-34, 2026-09-23: phase 15 was built
+  first, beside phase 11). The Q-E B / C branches in the rows are not applicable.
 - 2026-09-23: Interview Q9 — the original preset keeps Tess's lens, tinted Cobalt (Jeremy: "(a)"); no Cortana-style disc is
   built.
 - 2026-09-23: Interview Q8 — both original Start pictures, as two variants of the preset (Jeremy: "(c)"): "Windows 10 Mobile
@@ -250,7 +251,8 @@ picture (R12 §6 lists img5): a preset must not rewrite Android's lock-screen wa
   | `setup:keyboard_enabled` | This turns on the Windows-style keyboard. Without it the keyboard cannot be chosen. |
   | `setup:keyboard_selected` | This makes it the keyboard wherever you type. Without it your old keyboard stays. |
   | `setup:people` (phase 16's row, added at its build; r2 triage T16-15; walked at its `Checklist.kt` position) | People shows and edits your contacts. Without it People can't see them. |
-  | `setup:overlay` — Q-E: A (T15-14) | Under Q-E A only: phase 15 ADDs this step and writes its line here (the ring surface over other apps needs "Display over other apps"); under Q-E B or C no such step exists and this row is removed |
+  | `setup:full_screen_alarms` (phase 15's row, walked at its `Checklist.kt` position; C-4, C-34 2026-09-23) | Alarms ring over the lock screen. Without it an alarm still sounds, but shows only as a notification. |
+  | `setup:overlay` (phase 15's row, Q-E A, T15-14; C-34 2026-09-23) | Alarms ring over the app you're using. Without it an alarm shows as a notification. |
   | `tess:assistant` | The side key and the assist gesture open Tess. Without it they open another assistant. |
   | `tess:microphone` | Tess hears what you ask. Without it you can only type to her. |
   | `tess:contacts` | Tess calls and texts people by name. Without it she cannot find them. |
@@ -704,9 +706,11 @@ phase 05's frame-spacing rule (source-frame spacing ≤ 18.2 ms during the motio
   re-run on that build). (c) The finished-install rule: from (b)'s state (marker set), revoke <grant> → MARK, a resume as in (b): no
   `wizard_page`, the slice holds `[wizard] not shown: finished`,
   and the grant's checklist row reads `missing`; restore the grant. Every instance runs all three parts (a Skip-based
-  finished-install half is not used). Known instances, each run in its own doc on its build with the `provision.sh` line C-4 (a) gives it: phase 15 `appops
-  set app.tileshell USE_FULL_SCREEN_INTENT allow` — and, Q-E: A (T15-14), `appops set app.tileshell
-  SYSTEM_ALERT_WINDOW allow` (step `setup:overlay`); phase 16 `pm grant app.tileshell android.permission.WRITE_CONTACTS` (step
+  finished-install half is not used). Known instances, each run in its own doc on its build with the `provision.sh` line C-4 (a) gives it — except
+  phase 15's two, which run HERE, at this phase's build, because phase 15 was built before the wizard existed (C-34,
+  2026-09-23; phase 15 E28 points here): `appops set app.tileshell USE_FULL_SCREEN_INTENT allow` (step
+  `setup:full_screen_alarms`, checklist row `full_screen_alarms`) and `appops set app.tileshell SYSTEM_ALERT_WINDOW allow`
+  (step `setup:overlay`, Q-E A); phase 16 `pm grant app.tileshell android.permission.WRITE_CONTACTS` (step
   `setup:people`, T16-15); phase 17
   `pm grant … CAMERA` and `pm grant … READ_MEDIA_VIDEO`; phase 18 `appops set app.tileshell MANAGE_EXTERNAL_STORAGE allow` (step
   `setup:files`); phase 19 `appops set app.tileshell WRITE_SETTINGS allow` and `cmd notification allow_dnd app.tileshell`. On this
