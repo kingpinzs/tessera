@@ -55,6 +55,10 @@ assert_eq "dumpsys alarm holds it at 09:05 on its date" "$TARGET" "$(alarm_trigg
 # ---- the keyguard: PIN, sleep, wake (the lock screen), reference screencap, sleep again --------------------------
 set_pin
 assert_eq "with the PIN set, sleep + wake shows the keyguard" "true" "$(lock_and_wake)"
+# The lock screen's own hierarchy, dumped just before its reference capture: the clock and notification-stack masks
+# below come from these bounds (run 7 on 5558: the gate pass's fixed masks were run 1's clock block, but a missed-call
+# group on the lock screen moved the clock to the top and put its card at y 513–821, outside every fixed mask).
+dump_ui "$ROW_DIR/locked_ref.xml"
 screencap "$ROW_DIR/locked_ref.png"
 adb shell input keyevent KEYCODE_SLEEP; sleep 2
 assert_ne "the phone is asleep before the jump" "Awake" "$(wakefulness)"
@@ -102,11 +106,33 @@ DIFF_ROWS="$(python3 "$HERE/pixcmp.py" diffrows "$ROW_DIR/ring_locked.png" "$ROW
 note "rows differing by > 10 % of pixels between the ring capture and locked_ref: ${DIFF_ROWS:-none}"
 RAW="$(python3 "$HERE/pixcmp.py" region "$ROW_DIR/ring_locked.png" "$ROW_DIR/locked_ref.png" "$Y0" "$Y1" 8)"
 record "fraction of the region 260 epx→nav bar within ±8 of locked_ref, no mask" "$RAW"
-# The masks (device px, from run 1's diff rows): the lock screen's clock block (y 860–1720) and its lock glyph +
-# "Charged" hint (y 1980–2196); the notification stack is empty on this image and sits inside the clock block.
-MASKED="$(python3 "$HERE/pixcmp.py" region "$ROW_DIR/ring_locked.png" "$ROW_DIR/locked_ref.png" "$Y0" "$Y1" 8 "0,860,1080,1720" "0,1980,1080,$Y1")"
-record "fraction with the clock block and the lock glyph / hint masked" "$MASKED"
-assert_eq "below the toast: the wallpaper (locked_ref with the clock / notification stack and lock hint masked) matches ± 8 levels in >= 90 %" yes "$(python3 -c 'import sys; print("yes" if float(sys.argv[1]) >= 0.9 else "no (%s)" % sys.argv[1])' "$MASKED")"
+# The masks are what the doc names — the lock screen's clock and its notification stack — plus its lock glyph and
+# indication line, each read from locked_ref.xml (SystemUI's own nodes: lockscreen_clock_view and any keyguard
+# clock / date / smartspace view, every top-level expandableNotificationRow and the shelf, device_entry_icon_view /
+# lock_icon_view, keyguard_indication_area), padded 16 px for the cards' shadows and rounded corners. They are
+# recorded; a lock screen whose dump yields none of them fails below rather than comparing against nothing.
+MASKS="$(python3 - "$ROW_DIR/locked_ref.xml" <<'PY'
+import re, sys
+xml = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+want = re.compile(r"com\.android\.systemui:id/(lockscreen_clock_view\w*|keyguard_clock\w*|keyguard_status_view|keyguard_slice_view|date_smartspace_view|bc_smartspace_view|expandableNotificationRow|notification_shelf|device_entry_icon_view|lock_icon_view|keyguard_indication_area)$")
+out = []
+for n in re.finditer(r"<node[^>]*>", xml):
+    s = n.group(0)
+    rid = re.search(r'resource-id="([^"]*)"', s)
+    b = re.search(r'bounds="\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]"', s)
+    if not rid or not b or not want.match(rid.group(1)): continue
+    x0, y0, x1, y1 = map(int, b.groups())
+    if x1 <= x0 or y1 <= y0: continue
+    out.append("%d,%d,%d,%d" % (max(0, x0 - 16), max(0, y0 - 16), min(1080, x1 + 16), min(2340, y1 + 16)))
+print(" ".join(dict.fromkeys(out)))
+PY
+)"
+record "the lock screen's clock / notification stack / lock glyph masks (from locked_ref.xml, +16 px)" "${MASKS:-none}"
+assert_ne "the lock screen's dump yields the masks" "" "$MASKS"
+# shellcheck disable=SC2086
+MASKED="$(python3 "$HERE/pixcmp.py" region "$ROW_DIR/ring_locked.png" "$ROW_DIR/locked_ref.png" "$Y0" "$Y1" 8 $MASKS)"
+record "fraction with the lock screen's clock, notification stack and lock glyph / hint masked" "$MASKED"
+assert_eq "below the toast: the wallpaper (locked_ref with its clock / notification stack / lock glyph masked) matches ± 8 levels in >= 90 %" yes "$(python3 -c 'import sys; print("yes" if float(sys.argv[1]) >= 0.9 else "no (%s)" % sys.argv[1])' "$MASKED")"
 
 # ---- Snooze → 10 min ahead ------------------------------------------------------------------------------------
 MARK="$(ring_mark)"

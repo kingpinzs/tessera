@@ -95,6 +95,12 @@ ring_save launcher
 clock_restore
 clear_pin
 assert_eq "wake_device printed Awake (C-25)" "Awake" "$(wake_device)"
+# The Nofsi alarm is a one-shot that rang and was never dismissed (the lock screen shows no Dismiss): the restore's
+# force-stop re-arms it, and after the backward clock restore its time (2 min ahead of the pre-jump clock) is ahead
+# again. Left in place it rings over the checklist steps and holds the Next alarm clock line the exact-alarm clause
+# below reads (the gate pass on 5558: expected the 06:30 alarm, got Nofsi's 15:58). It is deleted through the app here.
+app_delete_alarm "$ID"; adb shell input keyevent KEYCODE_HOME; sleep 1
+assert_absent "the rung Nofsi alarm is deleted through the app before the next clause" "$ID" "$(store_alarms)"
 # The checklist row while still denied.
 open_checklist
 scroll_to_node "$ROW_DIR/checklist_fsi_denied.xml" 'checklist:full_screen_alarms:missing' 8
@@ -190,7 +196,7 @@ remove_fixture_recordings
 adb shell input keyevent KEYCODE_HOME; sleep 1
 
 # ---- restore -----------------------------------------------------------------------------------------------------------------------
-app_delete_alarm "$ID"; app_delete_alarm "$ID2"
+[ -n "$(alarm_field "$ID" id)" ] && app_delete_alarm "$ID"; app_delete_alarm "$ID2"
 adb shell am force-stop app.tileshell; adb shell input keyevent KEYCODE_HOME; sleep 3
 assert_contains "restore: USE_FULL_SCREEN_INTENT allow" "allow" "$(adb shell appops get app.tileshell USE_FULL_SCREEN_INTENT | tr -d '\r' | head -1)"
 assert_contains "restore: SYSTEM_ALERT_WINDOW allow" "allow" "$(adb shell appops get app.tileshell SYSTEM_ALERT_WINDOW | tr -d '\r' | head -1)"

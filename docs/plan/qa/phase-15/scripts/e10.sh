@@ -14,6 +14,7 @@
 row_begin E10 "Alarms & Clock geometry against r11/clock.md (± 0.9 epx; pixels + 1 px)"
 assert_clock_empty "baseline"
 dismiss_any_ring
+stopwatch_baseline "baseline"
 INK="$HERE/ink.py"; PIX="$HERE/pixcmp.py"
 TOL=3        # ± 0.9 epx as device px (3 px = 1 epx; the doc's ± 1 px at CK1's scale)
 PTOL=4       # a pixel-read value: ± 0.9 epx + 1 device px

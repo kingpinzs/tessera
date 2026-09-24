@@ -9,28 +9,40 @@
 
 row_begin E7 "stopwatch: ring clock vs dump, lap, kill -9, reboot, reset"
 assert_clock_empty "baseline"
-assert_ne "baseline: the stopwatch is not running" "true" "$(store_stopwatch | python3 -c 'import json,sys
-try: print(str(json.load(sys.stdin)["running"]).lower())
-except Exception: print("absent")')"
+stopwatch_baseline "baseline"
 
 sw_lines() { printf '%s\n' "$1" | grep -F '[stopwatch]' | grep -F 'elapsed='; }
-# Wait for a NEW [stopwatch] line after MARK, then dump at once. The dump's elapsed must be the line's plus the time
-# between the line and the dump — measured on the device clock around the dump itself (t0..t1), since the gesture
-# driver returns empty hierarchies for seconds on end while the hundredths tick (run 2: 12 empty dumps at each
-# moment, then the plain-dump fallback, whose idle wait is 10 s). The latency is asserted against the doc's ≤ 1 s
-# separately, so a slow dump fails as a tooling fact and not as a disagreement between the line and the screen.
-moment() { # label mark -> "line_elapsed dump_elapsed line_uptime line_wall t0 t1"
-  local line l d t0 t1
-  line="$(wait_ring "$2" "[stopwatch]" 12 | grep -F 'elapsed=' | head -1)"
+# The periodic line only ("[stopwatch] elapsed=… uptime=…", StopwatchTab.logStopwatch): the store's own lines carry a
+# verb first ("start elapsed=", "lap elapsed=", "reset elapsed=0") and are not the running clock's reading (run 4 on
+# 5558 compared a dump against "reset elapsed=0").
+tick_line() { printf '%s\n' "$1" | grep -E '\[stopwatch\] elapsed=[0-9]+ uptime=[0-9]+' | head -1; }
+# One moment: wait for a NEW periodic line after MARK, then dump at once. The dump that is compared is the gesture
+# driver's attempt that returned nodes — gdump retries while the driver returns an EMPTY hierarchy (roots=0; the gate
+# pass's moment 2: 20 such attempts, then the plain-dump fallback), and those empty attempts are separate dumps that
+# read nothing. That attempt's own clock comes from its status lines in the .drv: `gesture.uptime` (its start, on
+# SystemClock.uptimeMillis — the same clock as the line's uptime=) and `gesture.dump.elapsed_ms` (its dump's own
+# latency). So the dump's elapsed must equal the line's plus (dump start + half its latency − the line's uptime),
+# ± 100 ms + half its latency; the latency itself is asserted ≤ 1 s, and a plain-dump fallback (no timing of its own,
+# ≈ 10 s idle wait) fails it. The number of empty attempts before it and the whole retry window are logged as the
+# tooling fact they are.
+moment() { # label mark -> "line_elapsed dump_elapsed line_uptime dump_uptime dump_latency|fallback"
+  local line l d t0 t1 u e
+  line="$(tick_line "$(wait_ring "$2" "[stopwatch] elapsed=" 12)")"
   t0="$(device_ms)"; gdump "$ROW_DIR/$1.xml"; t1="$(device_ms)"
   l="$(field_of "$line" elapsed)"; d="$(hms_to_ms "$(node_text "$ROW_DIR/$1.xml" stopwatch_elapsed)")"
-  note "$1: line [${line#*] }] dump [$(node_text "$ROW_DIR/$1.xml" stopwatch_elapsed)] dump window $t0..$t1 ($(( t1 - t0 )) ms; $(grep -c 'read no nodes' "$ROW_DIR/$1.xml.drv") empty gesture dumps$(grep -q 'falling back' "$ROW_DIR/$1.xml.drv" && echo ', plain-dump fallback'))"
-  printf '%s %s %s %s %s %s\n' "${l:-0}" "${d:-0}" "$(field_of "$line" uptime)" "$(field_of "$line" wall)" "$t0" "$t1"
+  if grep -q 'falling back' "$ROW_DIR/$1.xml.drv"; then u=0; e=fallback
+  else u="$(grep -o 'gesture.uptime=[0-9]*' "$ROW_DIR/$1.xml.drv" | tail -1 | cut -d= -f2)"; e="$(grep -o 'gesture.dump.elapsed_ms=[0-9]*' "$ROW_DIR/$1.xml.drv" | tail -1 | cut -d= -f2)"; fi
+  note "$1: line [${line#*] }] dump [$(node_text "$ROW_DIR/$1.xml" stopwatch_elapsed)] by the attempt at uptime ${u} taking ${e} ms; $(grep -c 'read no nodes' "$ROW_DIR/$1.xml.drv") empty gesture dumps before it, the whole retry window $(( t1 - t0 )) ms"
+  printf '%s %s %s %s %s\n' "${l:-0}" "${d:-0}" "$(field_of "$line" uptime)" "${u:-0}" "${e:-fallback}"
 }
-moment_checks() { # label line_elapsed dump_elapsed line_wall t0 t1
-  local lat=$(( $6 - $5 )) mid=$(( ($5 + $6) / 2 ))
-  assert_within "$1: the dump's elapsed = the line's + the time from the line to the dump (± 100 ms + half the dump window)" $(( mid - $4 )) $(( $3 - $2 )) $(( lat / 2 + 100 ))
-  assert_eq "$1: the dump's own latency <= 1 s (the gesture driver; a fallback plain dump fails this)" yes "$([ "$lat" -le 1000 ] && echo yes || echo "no ($lat ms)")"
+moment_checks() { # label line_elapsed dump_elapsed line_uptime dump_uptime dump_latency
+  if [ "$6" = fallback ] || [ -z "$6" ]; then
+    _verdict FAIL "$1: the dump's elapsed = the line's + (dump − line) on the uptime clock (± 100 ms + half the dump's latency)" "no gesture-driver dump returned nodes; the plain-dump fallback has no timing of its own"
+    assert_eq "$1: the dump's own latency <= 1 s (the gesture driver's dump.elapsed_ms)" yes "no (plain-dump fallback)"
+    return
+  fi
+  assert_within "$1: the dump's elapsed = the line's + (dump − line) on the uptime clock (± 100 ms + half the dump's latency)" $(( $5 + $6 / 2 - $4 )) $(( $3 - $2 )) $(( $6 / 2 + 100 ))
+  assert_eq "$1: the dump's own latency <= 1 s (the gesture driver's dump.elapsed_ms = $6)" yes "$([ "$6" -le 1000 ] && echo yes || echo no)"
 }
 
 open_clock stopwatch
@@ -43,11 +55,11 @@ assert_eq "the store says running" "true" "$(store_stopwatch | python3 -c 'impor
 
 # ---- two moments >= 10 s apart -----------------------------------------------------------------------------------------
 sleep 4; MARK="$(ring_mark)"
-read -r L1 D1 U1 W1 T01 T11 <<< "$(moment moment1 "$MARK")"
-moment_checks "moment 1" "$L1" "$D1" "$W1" "$T01" "$T11"
+read -r L1 D1 U1 DU1 E1 <<< "$(moment moment1 "$MARK")"
+moment_checks "moment 1" "$L1" "$D1" "$U1" "$DU1" "$E1"
 sleep 9; MARK="$(ring_mark)"
-read -r L2 D2 U2 W2 T02 T12 <<< "$(moment moment2 "$MARK")"
-moment_checks "moment 2" "$L2" "$D2" "$W2" "$T02" "$T12"
+read -r L2 D2 U2 DU2 E2 <<< "$(moment moment2 "$MARK")"
+moment_checks "moment 2" "$L2" "$D2" "$U2" "$DU2" "$E2"
 assert_eq "the two moments are >= 10 s apart" yes "$([ $(( L2 - L1 )) -ge 10000 ] && echo yes || echo no)"
 assert_within "Δelapsed = Δuptime ± 100 ms between the two lines" $(( U2 - U1 )) $(( L2 - L1 )) 100
 

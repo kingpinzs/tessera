@@ -7,6 +7,7 @@
 
 row_begin EDGE_STOPWATCH "stopwatch: 1,000 laps; killed between laps"
 assert_clock_empty "baseline"
+stopwatch_baseline "baseline"
 open_clock stopwatch
 gdump "$ROW_DIR/sw0.xml"
 gtap "$ROW_DIR/sw0.xml" stopwatch_play; sleep 1

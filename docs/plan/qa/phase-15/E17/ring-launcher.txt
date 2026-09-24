@@ -1,112 +1,103 @@
-    2026-09-24 14:46:54.040 wall=1790282814040 [tile_anim] tile=shell:weather kind=FLIP uptime=55737292 faceIndex=0 next=1 faces=1
-    2026-09-24 14:46:54.654 wall=1790282814654 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
-    2026-09-24 14:46:54.655 wall=1790282814655 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
-    2026-09-24 14:46:55.846 wall=1790282815846 [weather] fetch ok provider=open-meteo ms=1192 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/80.6 hourly=240 daily=10 place=true
-    2026-09-24 14:46:55.856 wall=1790282815856 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790282815844
-    2026-09-24 14:46:55.856 wall=1790282815856 [weather] publish tile faces=1 temp=81° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790282815844
-    2026-09-24 14:46:55.877 wall=1790282815877 [render] tile=shell:weather sourceTime=1790282815844 renderedAt=1790282815877 faces=1
-    2026-09-24 14:46:57.814 wall=1790282817814 [bars] RecorderActivity: system bars hidden (transient by swipe)
-    2026-09-24 14:46:57.820 wall=1790282817820 [recorder] list: 0 recordings (0 by other apps)
-    2026-09-24 14:46:57.820 wall=1790282817820 [recorder] list refreshed (open)
-    2026-09-24 14:46:57.820 wall=1790282817820 [recorder] RecorderActivity created page=record
-    2026-09-24 14:46:57.822 wall=1790282817822 [recorder] bind :recorder -> true
-    2026-09-24 14:46:57.823 wall=1790282817823 [bars] RecorderActivity: system bars hidden (transient by swipe)
-    2026-09-24 14:46:57.932 wall=1790282817932 [recorder] bound to :recorder
-    2026-09-24 14:46:58.293 wall=1790282818293 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=55741545 faceIndex=1 next=0 faces=1
-    2026-09-24 14:46:59.000 wall=1790282819000 [tile_anim] tile=shell:weather kind=FLIP uptime=55742252 faceIndex=1 next=0 faces=1
-    2026-09-24 14:47:00.005 wall=1790282820005 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790282820004
-    2026-09-24 14:47:00.005 wall=1790282820005 [calendar] refresh (minute): access=true faces=1
-    2026-09-24 14:47:00.029 wall=1790282820029 [render] tile=slot:CALENDAR sourceTime=1790282820004 renderedAt=1790282820029 faces=1
-    2026-09-24 14:47:02.703 wall=1790282822703 [motion] rec_state t0=55745796 peak=159 overshoot=0 settle=159 frames=9 maxGapMs=17
-    2026-09-24 14:47:02.765 wall=1790282822765 [notif] posted app.tileshell key=0|app.tileshell|1507|null|10172 postTime=1790282822551
-    2026-09-24 14:47:02.766 wall=1790282822766 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
-    2026-09-24 14:47:02.766 wall=1790282822766 [engine] publish pkg:app.tileshell from=notifications faces=1 front=false source=notification sourceTime=1790282822551 -> shows notifications
-    2026-09-24 14:47:02.888 wall=1790282822888 [notif] posted app.tileshell key=0|app.tileshell|1507|null|10172 postTime=1790282822684
-    2026-09-24 14:47:02.888 wall=1790282822888 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
-    2026-09-24 14:47:02.888 wall=1790282822888 [engine] publish pkg:app.tileshell from=notifications faces=1 front=false source=notification sourceTime=1790282822684 -> shows notifications
-    2026-09-24 14:47:04.398 wall=1790282824398 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 14:47:04.399 wall=1790282824399 [applist] no Usage access: the app list has no recent section
-    2026-09-24 14:47:04.399 wall=1790282824399 [start] home: page 0
-    2026-09-24 14:47:04.977 wall=1790282824977 [recorder] unbound from :recorder
-    2026-09-24 14:47:05.983 wall=1790282825983 [cortana] session created
-    2026-09-24 14:47:05.991 wall=1790282825991 [cortana] session window type=2031 flags=0x8d810120 softInputMode=0x0
-    2026-09-24 14:47:05.991 wall=1790282825991 [cortana] session window now flags=0x8d810100 softInputMode=0x0
-    2026-09-24 14:47:05.994 wall=1790282825994 [speech] bind requested -> true
-    2026-09-24 14:47:05.994 wall=1790282825994 [speech] preload queued until the bind lands
-    2026-09-24 14:47:05.994 wall=1790282825994 [cortana] session bars: system bars hidden=true (E11 / H1)
-    2026-09-24 14:47:05.996 wall=1790282825996 [cortana] session opened mode=HOME locked=false
-    2026-09-24 14:47:06.068 wall=1790282826068 [speech] bound to :speech
-    2026-09-24 14:47:06.068 wall=1790282826068 [speech] preload delivered after the bind
-    2026-09-24 14:47:08.210 wall=1790282828210 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=55751462 faceIndex=0 next=1 faces=1
-    2026-09-24 14:47:08.925 wall=1790282828925 [tile_anim] tile=shell:weather kind=FLIP uptime=55752177 faceIndex=0 next=1 faces=1
-    2026-09-24 14:47:11.717 wall=1790282831717 [cortana] touch 0 at 1008,2124 handled=true childCount=1 composeAttached=true
-    2026-09-24 14:47:11.724 wall=1790282831724 [speech] error code=7 held by recorder
-    2026-09-24 14:47:11.724 wall=1790282831724 [cortana] touch 1 at 1008,2124 handled=true childCount=1 composeAttached=true
-    2026-09-24 14:47:11.733 wall=1790282831733 [cortana] speech error 7: held by recorder
-    2026-09-24 14:47:11.734 wall=1790282831734 [speech] speak[395508a0-ba95-41cc-8dac-577bc4a66f96] voice=2 text="The voice recorder is using the microphone right now."
-    2026-09-24 14:47:13.170 wall=1790282833170 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=55756422 faceIndex=1 next=0 faces=1
-    2026-09-24 14:47:13.879 wall=1790282833879 [tile_anim] tile=shell:weather kind=FLIP uptime=55757131 faceIndex=1 next=0 faces=1
-    2026-09-24 14:47:18.023 wall=1790282838023 [cortana] result cleared
-    2026-09-24 14:47:18.131 wall=1790282838131 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=55761383 faceIndex=0 next=1 faces=1
-    2026-09-24 14:47:18.840 wall=1790282838840 [tile_anim] tile=shell:weather kind=FLIP uptime=55762092 faceIndex=0 next=1 faces=1
-    2026-09-24 14:47:19.052 wall=1790282839052 [speech] unbound from :speech
-    2026-09-24 14:47:19.052 wall=1790282839052 [cortana] session hidden
-    2026-09-24 14:47:19.056 wall=1790282839056 [speech] speaking done 395508a0-ba95-41cc-8dac-577bc4a66f96 cancelled=true
-    2026-09-24 14:47:19.060 wall=1790282839060 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 14:47:19.061 wall=1790282839061 [applist] no Usage access: the app list has no recent section
-    2026-09-24 14:47:19.078 wall=1790282839078 [start] home: page 0, scrolled to top
-    2026-09-24 14:47:23.091 wall=1790282843091 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=55766343 faceIndex=1 next=0 faces=1
-    2026-09-24 14:47:23.799 wall=1790282843799 [tile_anim] tile=shell:weather kind=FLIP uptime=55767051 faceIndex=1 next=0 faces=1
-    2026-09-24 14:47:27.971 wall=1790282847971 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 14:47:27.972 wall=1790282847972 [applist] no Usage access: the app list has no recent section
-    2026-09-24 14:47:27.973 wall=1790282847973 [start] home: page 0
-    2026-09-24 14:47:28.760 wall=1790282848760 [tile_anim] tile=shell:weather kind=FLIP uptime=55772012 faceIndex=0 next=1 faces=1
-    2026-09-24 14:47:28.982 wall=1790282848982 [recorder] bind :recorder -> true
-    2026-09-24 14:47:28.983 wall=1790282848983 [bars] RecorderActivity: system bars hidden (transient by swipe)
-    2026-09-24 14:47:29.044 wall=1790282849044 [recorder] bound to :recorder
-    2026-09-24 14:47:29.242 wall=1790282849242 [recorder] list: 0 recordings (0 by other apps)
-    2026-09-24 14:47:29.242 wall=1790282849242 [recorder] list refreshed (back in view)
-    2026-09-24 14:47:32.232 wall=1790282852232 [recorder] saved 124 (Recording): showing the list
-    2026-09-24 14:47:32.235 wall=1790282852235 [notif] removed app.tileshell key=0|app.tileshell|1507|null|10172
-    2026-09-24 14:47:32.235 wall=1790282852235 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
-    2026-09-24 14:47:32.235 wall=1790282852235 [engine] publish pkg:app.tileshell from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
-    2026-09-24 14:47:32.237 wall=1790282852237 [recorder] list: 1 recordings (0 by other apps)
-    2026-09-24 14:47:32.237 wall=1790282852237 [recorder] list refreshed (take saved)
-    2026-09-24 14:47:32.482 wall=1790282852482 [recorder] list: 1 recordings (0 by other apps)
-    2026-09-24 14:47:32.482 wall=1790282852482 [recorder] list refreshed (media change)
-    2026-09-24 14:47:33.011 wall=1790282853011 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=55776263 faceIndex=0 next=1 faces=1
-    2026-09-24 14:47:33.719 wall=1790282853719 [tile_anim] tile=shell:weather kind=FLIP uptime=55776971 faceIndex=1 next=0 faces=1
-    2026-09-24 14:47:36.626 wall=1790282856626 [bars] RecorderActivity: system bars hidden (transient by swipe)
-    2026-09-24 14:47:42.270 wall=1790282862270 [motion] flyout t0=55785263 peak=242 overshoot=0 settle=242 frames=17 maxGapMs=17
-    2026-09-24 14:47:48.374 wall=1790282868374 [recorder] delete 124 (Recording)
-    2026-09-24 14:47:48.375 wall=1790282868375 [recorder] list: 0 recordings (0 by other apps)
-    2026-09-24 14:47:48.375 wall=1790282868375 [recorder] list refreshed (deleted)
-    2026-09-24 14:47:48.626 wall=1790282868626 [recorder] list: 0 recordings (0 by other apps)
-    2026-09-24 14:47:48.626 wall=1790282868626 [recorder] list refreshed (media change)
-    2026-09-24 14:47:52.309 wall=1790282872309 [bars] RecorderActivity: system bars hidden (transient by swipe)
-    2026-09-24 14:47:57.664 wall=1790282877664 [recorder] unbound from :recorder
-    2026-09-24 14:48:00.027 wall=1790282880027 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790282880026
-    2026-09-24 14:48:00.027 wall=1790282880027 [calendar] refresh (minute): access=true faces=1
-    2026-09-24 14:48:00.042 wall=1790282880042 [render] tile=slot:CALENDAR sourceTime=1790282880026 renderedAt=1790282880042 faces=1
-    2026-09-24 14:48:01.548 wall=1790282881548 [recorder] bind :recorder -> true
-    2026-09-24 14:48:01.549 wall=1790282881549 [bars] RecorderActivity: system bars hidden (transient by swipe)
-    2026-09-24 14:48:01.609 wall=1790282881609 [recorder] bound to :recorder
-    2026-09-24 14:48:01.650 wall=1790282881650 [recognition] service created
-    2026-09-24 14:48:01.655 wall=1790282881655 [speech] bind requested -> true
-    2026-09-24 14:48:01.656 wall=1790282881656 [recognition] startListening hotwords=1 lines
-    2026-09-24 14:48:01.656 wall=1790282881656 [speech] startListening queued until the bind lands
-    2026-09-24 14:48:01.658 wall=1790282881658 [speech] bound to :speech
-    2026-09-24 14:48:01.658 wall=1790282881658 [speech] startListening delivered after the bind
-    2026-09-24 14:48:01.801 wall=1790282881801 [recorder] list: 0 recordings (0 by other apps)
-    2026-09-24 14:48:01.801 wall=1790282881801 [recorder] list refreshed (back in view)
-    2026-09-24 14:48:03.543 wall=1790282883543 [recognition] cancel
-    2026-09-24 14:48:03.544 wall=1790282883544 [speech] unbound from :speech
-    2026-09-24 14:48:03.545 wall=1790282883545 [recognition] service destroyed
-    2026-09-24 14:48:03.590 wall=1790282883590 [speech] final open="" grammar="" audioMs=800
-    2026-09-24 14:48:29.933 wall=1790282909933 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 14:48:29.934 wall=1790282909934 [applist] no Usage access: the app list has no recent section
-    2026-09-24 14:48:29.934 wall=1790282909934 [start] home: page 0
-    2026-09-24 14:48:30.556 wall=1790282910556 [recorder] unbound from :recorder
-    2026-09-24 14:48:30.972 wall=1790282910972 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 14:48:30.973 wall=1790282910973 [applist] no Usage access: the app list has no recent section
-    2026-09-24 14:48:30.994 wall=1790282910994 [start] home: page 0, scrolled to top
+    2026-09-24 16:09:52.897 wall=1790287792897 [recorder] bind :recorder -> true
+    2026-09-24 16:09:52.899 wall=1790287792899 [bars] RecorderActivity: system bars hidden (transient by swipe)
+    2026-09-24 16:09:52.962 wall=1790287792962 [recorder] bound to :recorder
+    2026-09-24 16:09:53.151 wall=1790287793151 [recorder] list: 0 recordings (0 by other apps)
+    2026-09-24 16:09:53.151 wall=1790287793151 [recorder] list refreshed (back in view)
+    2026-09-24 16:09:53.170 wall=1790287793170 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=60716422 faceIndex=0 next=1 faces=1
+    2026-09-24 16:09:53.879 wall=1790287793879 [tile_anim] tile=shell:weather kind=FLIP uptime=60717132 faceIndex=1 next=0 faces=1
+    2026-09-24 16:09:57.686 wall=1790287797686 [motion] rec_state t0=60720833 peak=105 overshoot=0 settle=105 frames=6 maxGapMs=17
+    2026-09-24 16:09:57.821 wall=1790287797821 [notif] posted app.tileshell key=0|app.tileshell|1507|null|10172 postTime=1790287797600
+    2026-09-24 16:09:57.821 wall=1790287797821 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-09-24 16:09:57.821 wall=1790287797821 [engine] publish pkg:app.tileshell from=notifications faces=1 front=false source=notification sourceTime=1790287797600 -> shows notifications
+    2026-09-24 16:09:57.867 wall=1790287797867 [notif] posted app.tileshell key=0|app.tileshell|1507|null|10172 postTime=1790287797665
+    2026-09-24 16:09:57.867 wall=1790287797867 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-09-24 16:09:57.867 wall=1790287797867 [engine] publish pkg:app.tileshell from=notifications faces=1 front=false source=notification sourceTime=1790287797665 -> shows notifications
+    2026-09-24 16:09:58.130 wall=1790287798130 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=60721382 faceIndex=1 next=0 faces=1
+    2026-09-24 16:09:59.388 wall=1790287799388 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 16:09:59.389 wall=1790287799389 [applist] no Usage access: the app list has no recent section
+    2026-09-24 16:09:59.389 wall=1790287799389 [start] home: page 0
+    2026-09-24 16:09:59.989 wall=1790287799989 [recorder] unbound from :recorder
+    2026-09-24 16:10:00.007 wall=1790287800007 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790287800006
+    2026-09-24 16:10:00.007 wall=1790287800007 [calendar] refresh (minute): access=true faces=1
+    2026-09-24 16:10:00.025 wall=1790287800025 [render] tile=slot:CALENDAR sourceTime=1790287800006 renderedAt=1790287800025 faces=1
+    2026-09-24 16:10:00.951 wall=1790287800951 [cortana] session created
+    2026-09-24 16:10:00.956 wall=1790287800956 [cortana] session window type=2031 flags=0x8d810120 softInputMode=0x0
+    2026-09-24 16:10:00.956 wall=1790287800956 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-24 16:10:00.957 wall=1790287800957 [speech] bind requested -> true
+    2026-09-24 16:10:00.957 wall=1790287800957 [speech] preload queued until the bind lands
+    2026-09-24 16:10:00.957 wall=1790287800957 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-24 16:10:00.958 wall=1790287800958 [cortana] session opened mode=HOME locked=false
+    2026-09-24 16:10:01.007 wall=1790287801007 [speech] bound to :speech
+    2026-09-24 16:10:01.008 wall=1790287801008 [speech] preload delivered after the bind
+    2026-09-24 16:10:03.104 wall=1790287803104 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=60726356 faceIndex=0 next=1 faces=1
+    2026-09-24 16:10:03.804 wall=1790287803804 [tile_anim] tile=shell:weather kind=FLIP uptime=60727056 faceIndex=0 next=1 faces=1
+    2026-09-24 16:10:06.531 wall=1790287806531 [cortana] touch 0 at 1008,2124 handled=true childCount=1 composeAttached=true
+    2026-09-24 16:10:06.542 wall=1790287806542 [speech] error code=7 held by recorder
+    2026-09-24 16:10:06.542 wall=1790287806542 [cortana] touch 1 at 1008,2124 handled=true childCount=1 composeAttached=true
+    2026-09-24 16:10:06.549 wall=1790287806549 [cortana] speech error 7: held by recorder
+    2026-09-24 16:10:06.550 wall=1790287806550 [speech] speak[74264edc-6fe7-4436-a1d0-549c8637d833] voice=2 text="The voice recorder is using the microphone right now."
+    2026-09-24 16:10:08.050 wall=1790287808050 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=60731302 faceIndex=1 next=0 faces=1
+    2026-09-24 16:10:08.760 wall=1790287808760 [tile_anim] tile=shell:weather kind=FLIP uptime=60732013 faceIndex=1 next=0 faces=1
+    2026-09-24 16:10:13.011 wall=1790287813011 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=60736264 faceIndex=0 next=1 faces=1
+    2026-09-24 16:10:13.727 wall=1790287813727 [tile_anim] tile=shell:weather kind=FLIP uptime=60736979 faceIndex=0 next=1 faces=1
+    2026-09-24 16:10:13.757 wall=1790287813757 [cortana] result cleared
+    2026-09-24 16:10:14.826 wall=1790287814826 [speech] unbound from :speech
+    2026-09-24 16:10:14.827 wall=1790287814827 [cortana] session hidden
+    2026-09-24 16:10:14.848 wall=1790287814848 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 16:10:14.849 wall=1790287814849 [applist] no Usage access: the app list has no recent section
+    2026-09-24 16:10:14.878 wall=1790287814878 [start] home: page 0, scrolled to top
+    2026-09-24 16:10:15.351 wall=1790287815351 [speech] speaking done 74264edc-6fe7-4436-a1d0-549c8637d833 cancelled=true
+    2026-09-24 16:10:17.971 wall=1790287817971 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=60741224 faceIndex=1 next=0 faces=1
+    2026-09-24 16:10:18.679 wall=1790287818679 [tile_anim] tile=shell:weather kind=FLIP uptime=60741931 faceIndex=1 next=0 faces=1
+    2026-09-24 16:10:25.120 wall=1790287825120 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 16:10:25.124 wall=1790287825124 [applist] no Usage access: the app list has no recent section
+    2026-09-24 16:10:25.125 wall=1790287825125 [start] home: page 0
+    2026-09-24 16:10:26.188 wall=1790287826188 [recorder] bind :recorder -> true
+    2026-09-24 16:10:26.190 wall=1790287826190 [bars] RecorderActivity: system bars hidden (transient by swipe)
+    2026-09-24 16:10:26.290 wall=1790287826290 [recorder] bound to :recorder
+    2026-09-24 16:10:26.445 wall=1790287826445 [recorder] list: 0 recordings (0 by other apps)
+    2026-09-24 16:10:26.445 wall=1790287826445 [recorder] list refreshed (back in view)
+    2026-09-24 16:10:27.890 wall=1790287827890 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=60751142 faceIndex=0 next=1 faces=1
+    2026-09-24 16:10:28.599 wall=1790287828599 [tile_anim] tile=shell:weather kind=FLIP uptime=60751851 faceIndex=0 next=1 faces=1
+    2026-09-24 16:10:30.117 wall=1790287830117 [recorder] saved 148 (Recording): showing the list
+    2026-09-24 16:10:30.119 wall=1790287830119 [recorder] list: 1 recordings (0 by other apps)
+    2026-09-24 16:10:30.120 wall=1790287830120 [recorder] list refreshed (take saved)
+    2026-09-24 16:10:30.127 wall=1790287830127 [notif] removed app.tileshell key=0|app.tileshell|1507|null|10172
+    2026-09-24 16:10:30.128 wall=1790287830128 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
+    2026-09-24 16:10:30.128 wall=1790287830128 [engine] publish pkg:app.tileshell from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-24 16:10:30.371 wall=1790287830371 [recorder] list: 1 recordings (0 by other apps)
+    2026-09-24 16:10:30.371 wall=1790287830371 [recorder] list refreshed (media change)
+    2026-09-24 16:10:34.637 wall=1790287834637 [bars] RecorderActivity: system bars hidden (transient by swipe)
+    2026-09-24 16:10:40.269 wall=1790287840269 [motion] flyout t0=60763260 peak=245 overshoot=0 settle=245 frames=17 maxGapMs=17
+    2026-09-24 16:10:46.361 wall=1790287846361 [recorder] delete 148 (Recording)
+    2026-09-24 16:10:46.362 wall=1790287846362 [recorder] list: 0 recordings (0 by other apps)
+    2026-09-24 16:10:46.362 wall=1790287846362 [recorder] list refreshed (deleted)
+    2026-09-24 16:10:46.613 wall=1790287846613 [recorder] list: 0 recordings (0 by other apps)
+    2026-09-24 16:10:46.613 wall=1790287846613 [recorder] list refreshed (media change)
+    2026-09-24 16:10:50.286 wall=1790287850286 [bars] RecorderActivity: system bars hidden (transient by swipe)
+    2026-09-24 16:10:55.564 wall=1790287855564 [recorder] unbound from :recorder
+    2026-09-24 16:10:59.473 wall=1790287859473 [recorder] bind :recorder -> true
+    2026-09-24 16:10:59.475 wall=1790287859475 [bars] RecorderActivity: system bars hidden (transient by swipe)
+    2026-09-24 16:10:59.568 wall=1790287859568 [recorder] bound to :recorder
+    2026-09-24 16:10:59.598 wall=1790287859598 [recognition] service created
+    2026-09-24 16:10:59.607 wall=1790287859607 [speech] bind requested -> true
+    2026-09-24 16:10:59.607 wall=1790287859607 [recognition] startListening hotwords=1 lines
+    2026-09-24 16:10:59.607 wall=1790287859607 [speech] startListening queued until the bind lands
+    2026-09-24 16:10:59.614 wall=1790287859614 [speech] bound to :speech
+    2026-09-24 16:10:59.614 wall=1790287859614 [speech] startListening delivered after the bind
+    2026-09-24 16:10:59.733 wall=1790287859733 [recorder] list: 0 recordings (0 by other apps)
+    2026-09-24 16:10:59.733 wall=1790287859733 [recorder] list refreshed (back in view)
+    2026-09-24 16:11:00.008 wall=1790287860008 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790287860008
+    2026-09-24 16:11:00.008 wall=1790287860008 [calendar] refresh (minute): access=true faces=1
+    2026-09-24 16:11:00.027 wall=1790287860027 [render] tile=slot:CALENDAR sourceTime=1790287860008 renderedAt=1790287860027 faces=1
+    2026-09-24 16:11:01.451 wall=1790287861451 [recognition] cancel
+    2026-09-24 16:11:01.452 wall=1790287861452 [speech] unbound from :speech
+    2026-09-24 16:11:01.452 wall=1790287861452 [recognition] service destroyed
+    2026-09-24 16:11:01.566 wall=1790287861566 [speech] final open="" grammar="" audioMs=800
+    2026-09-24 16:11:28.907 wall=1790287888907 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 16:11:28.909 wall=1790287888909 [applist] no Usage access: the app list has no recent section
+    2026-09-24 16:11:28.912 wall=1790287888912 [start] home: page 0
+    2026-09-24 16:11:29.560 wall=1790287889560 [recorder] unbound from :recorder
+    2026-09-24 16:11:29.972 wall=1790287889972 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 16:11:29.975 wall=1790287889975 [applist] no Usage access: the app list has no recent section
+    2026-09-24 16:11:30.004 wall=1790287890004 [start] home: page 0, scrolled to top

@@ -1,63 +1,63 @@
 ==============================================================================
 ROW E16 — playback, trim, rename, delete and share of the shell's own takes
-at            2026-09-24T13:31:03-06:00
+at            2026-09-24T16:07:18-06:00
 driver        e16.sh blob 3c0f8d2a166b9a4fba16100eeb51d917cbf36b42
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     a82ba032ca435575 338459654 bytes
-apk installed 7b1306f3e567a24b
-apk match     yes (7b1306f3e567a24b)
+apk built     187619129c54956c 338459898 bytes
+apk installed 2356b99f4933214b
+apk match     NO (device 2356b99f4933214b, built 33cc71c192190cc9)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  baseline: MediaStore holds no take of the shell's           = 0
       E16: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
 PASS  E16: the audio route is up (audio.sh check rc)              = 0
-      make_take 12s: stop tapped at elapsed_ms=11795 -> id 58 (Recording.m4a, 12005 ms)
+      make_take 12s: stop tapped at elapsed_ms=11842 -> id 135 (Recording.m4a, 12028 ms)
 PASS  take A (12 s) is in MediaStore                              != 
-      make_take 5s: stop tapped at elapsed_ms=4829 -> id 59 (Recording (2).m4a, 4992 ms)
+      make_take 5s: stop tapped at elapsed_ms=4852 -> id 137 (Recording (2).m4a, 5039 ms)
 PASS  take B (5 s) is in MediaStore                               != 
-      A=58 (Recording.m4a) B=59 (Recording (2).m4a)
-      dumpsys audio:   AudioPlaybackConfiguration piid:487 deviceIds:[2] type:android.media.AudioTrack u/pid:10150/21156 state:started attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_SPEECH flags=0xA00 tags= bundle=null sessionId:353 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+      A=135 (Recording.m4a) B=137 (Recording (2).m4a)
+      dumpsys audio:   AudioPlaybackConfiguration piid:975 deviceIds:[2] type:android.media.AudioTrack u/pid:10172/10539 state:started attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_SPEECH flags=0xA00 tags= bundle=null sessionId:865 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
 PASS  a row tap starts a player of the shell's on USAGE_MEDIA     != 
 PASS  dumpsys media_session shows the shell's session tagged with id recorder (T15-34)  contains [app.tileshell/androidx.media3.session.id.recorder]
 PASS  and that session is PLAYING                                 = PLAYING
-      rec_position: [0:00] then [0:03] 2 s later; rec_total [0:12]
+      rec_position: [0:00] then [0:04] 2 s later; rec_total [0:12]
 PASS  rec_position advances between two dumps 2 s apart           = yes
       rec_scrubber bounds: 164 1790 916 1862
-      scrubber band: fraction of pixels equal between the two screencaps (labels masked): 0.9291
+      scrubber band: fraction of pixels equal between the two screencaps (labels masked): 0.9263
 PASS  the thumb moved between the two screencaps (the scrubber band differs)  = yes
-PASS  the launcher ring loaded A into the recorder session        contains [[recorder] playback loaded 58 (session id recorder)]
+PASS  the launcher ring loaded A into the recorder session        contains [[recorder] playback loaded 135 (session id recorder)]
 PASS  the rename dialog is up                                     = yes
 PASS  rec_bar:rename → _display_name Standup.m4a in MediaStore  = Standup.m4a
-      top after share:     topResumedActivity=ActivityRecord{170467436 u0 com.android.intentresolver/.ChooserActivityLauncher t56}
+      top after share:     topResumedActivity=ActivityRecord{136943148 u0 com.android.intentresolver/.ChooserActivityLauncher t99}
       chooser intent:       Intent { act=android.intent.action.CHOOSER flg=0x800001 xflg=0x4 cmp=com.android.intentresolver/.ChooserActivityLauncher clip={text/uri-list hasLabel(7) {U(content)}} (has extras) }
 PASS  Android's chooser (com.android.intentresolver) is in front  contains [com.android.intentresolver]
 PASS  its intent is ACTION_CHOOSER carrying a content URI clip    contains [clip={text/uri-list]
 PASS  the clip is a content URI                                   contains [{U(content)}]
-PASS  the launcher ring: share sent ACTION_SEND audio/mp4 with the take's content URI  contains [[recorder] share 58 type=audio/mp4 uri=content://media/external/audio/media/58 (own)]
+PASS  the launcher ring: share sent ACTION_SEND audio/mp4 with the take's content URI  contains [[recorder] share 135 type=audio/mp4 uri=content://media/external/audio/media/135 (own)]
       content read first bytes: 00000018667479706d703432
 PASS  the shared content URI reads back as an MP4 (ftyp box at offset 4)  = ftyp
 PASS  Back closes the chooser and returns to Voice Recorder       contains [recorder.RecorderActivity]
 PASS  the trim page is up (rec_trim)                              = yes
-      B's MediaStore duration: 4992 ms
-      handles: start 998 ms ([0:00]), end 3003 ms ([0:03])
-PASS  the in handle stands at 1.0 s (± 0.1)                      998.00 vs 1000.00 +/- 100.0
-PASS  the out handle stands at 3.0 s (± 0.1)                     3003.00 vs 3000.00 +/- 100.0
+      B's MediaStore duration: 5039 ms
+      handles: start 1000 ms ([0:00]), end 3001 ms ([0:02])
+PASS  the in handle stands at 1.0 s (± 0.1)                      1000.00 vs 1000.00 +/- 100.0
+PASS  the out handle stands at 3.0 s (± 0.1)                     3001.00 vs 3000.00 +/- 100.0
 PASS  before Save MediaStore shows only the original (no new file yet)  = 2
 PASS  before Save no working file is in MediaStore                = 
 PASS  before Save the original is still there                     != 
-      trim line: 8344962 [recorder] trim Recording (2) 997-3000 -> 60 ms=2020 name=Recording (2).m4a
-      the trimmed file's id: 60 (Recording (2).m4a)
+      trim line: 7723484 [recorder] trim Recording (2) 999-2998 -> 145 ms=1996 name=Recording (2).m4a
+      the trimmed file's id: 145 (Recording (2).m4a)
 PASS  after Save a new file is in MediaStore                      != 
 PASS  after Save the untrimmed file is gone from MediaStore       = 
 PASS  MediaStore holds the same number of the shell's takes as before the trim  = 2
-      trimmed: 2.020100 s, RMS -6.074512 dBFS, aac,44100,1
-PASS  the saved file's ffprobe duration is 2.0 ± 0.1 s           2.02 vs 2.00 +/- 0.1
+      trimmed: 1.996900 s, RMS -6.068398 dBFS, aac,44100,1
+PASS  the saved file's ffprobe duration is 2.0 ± 0.1 s           2.00 vs 2.00 +/- 0.1
 PASS  and its RMS is still > -40 dBFS                             = yes
 PASS  the trimmed file kept the original's name                   = Recording (2).m4a
 PASS  the rename dialog is up                                     = yes
 PASS  rec_menu:rename → _display_name Retro.m4a in MediaStore   = Retro.m4a
-PASS  the list shows Retro.m4a's row                              contains [rec_row:60]
+PASS  the list shows Retro.m4a's row                              contains [rec_row:145]
 PASS  the delete confirmation is up (U5)                          = yes
 PASS  rec_bar:delete → the row is gone                          = no
 PASS  MediaStore count − 1                                      = 1

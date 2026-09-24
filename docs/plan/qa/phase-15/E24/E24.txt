@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E24 — recorder geometry: the list, record and playback pages, the bars, and the one-frame cut
-at            2026-09-24T14:32:42-06:00
+at            2026-09-24T16:23:51-06:00
 driver        e24.sh blob 4bfb24adf3d02a8c6b3ea5ddb78cd0f6a50c9d98
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     a82ba032ca435575 338459654 bytes
-apk installed 7b1306f3e567a24b
-apk match     yes (7b1306f3e567a24b)
+apk built     187619129c54956c 338459898 bytes
+apk installed 2356b99f4933214b
+apk match     NO (device 2356b99f4933214b, built 33cc71c192190cc9)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -30,14 +30,21 @@ PASS  record state: the drawn status bar is STATUS_EPX tall       = 84
 PASS  record state: the drawn status bar sits at the top          = 0
 PASS  record state: the drawn nav bar is NAV_EPX tall             = 144
 PASS  record state: the drawn nav bar sits at the bottom          = 2340
-[image2 @ 0x65347de36ec0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 247 >= 247
-      cut capture: 36 source frames
-      cut: first differing frame #2 of 36 (its match to the still 0.0600); first frame equal to the still #4; frames between 2; gap before the change 1250.6 ms
+[image2 @ 0x5fd9bd189800] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 11 >= 11
+    Last message repeated 4 times
+[image2 @ 0x5fd9bd189800] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 12 >= 12
+    Last message repeated 8 times
+[image2 @ 0x5fd9bd189800] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 13 >= 13
+    Last message repeated 8 times
+[image2 @ 0x5fd9bd189800] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 14 >= 14
+    Last message repeated 1 times
+      cut capture: 35 source frames
+      cut: first differing frame #1 of 35 (its match to the still 0.0598); first frame equal to the still #4; frames between 3; gap before the change 1516.8 ms
 PASS  7.1 a source frame differs from the pre-tap frame in the disc  != none
 PASS  7.1 a source frame equals the stop state of the still taken 1 s later (± 8 levels in >= 99 % of the disc)  != none
-RECORD  7.1 (LOW) frames between the first change and the stop state (the grey start-up interval)  2
-RECORD  7.1 (LOW) the source-frame gap before the change, ms        1250.6
-      motion line: rec_state t0=54904743 peak=112 overshoot=0 settle=112 frames=6 maxGapMs=17
+RECORD  7.1 (LOW) frames between the first change and the stop state (the grey start-up interval)  3
+RECORD  7.1 (LOW) the source-frame gap before the change, ms        1516.8
+      motion line: rec_state t0=61574969 peak=202 overshoot=0 settle=202 frames=12 maxGapMs=17
 PASS  the shell logged [motion] rec_state (secondary)             contains [[motion] rec_state]
 PASS  2.8 rec_elapsed shows hh:mm:ss while recording              = yes
 PASS  2.2 the stop disc keeps the record disc's place and size    1140.00 vs 1140.00 +/- 2.0
@@ -45,13 +52,13 @@ RECORD  2.9 (LOW) the timer text box height, epx (digits 24 tall in a 34-epx sub
 RECORD  2.10 (LOW) the timer's centre above the disc centre, epx (141.5)  145.7
 RECORD  2.12 (LOW) pause / flag centres from W/2, epx (± 46.7)     -46.7 46.7
 RECORD  2.12 (LOW) pause / flag row below the disc centre, epx (139)  139.0
-      rings: inner [377 977 704 1304 327 327 540.5 1140.5] outer [356 956 725 1325 369 369 540.5 1140.5]; recorder level frames=309
+      rings: inner [377 977 704 1304 327 327 540.5 1140.5] outer [356 956 725 1325 369 369 540.5 1140.5]; recorder level frames=445
 PASS  2.7 the two level rings are drawn while recording (rec_ring_inner, rec_ring_outer)  = yes yes
 RECORD  2.7 (LOW) inner / outer ring diameters under the tone, epx (109–122 / 123–150)  109.0 123.0
 PASS  2.7 the rings are concentric with the disc (inner)          540.50 vs 540.00 +/- 2.0
 PASS  2.7 the rings are concentric with the disc (outer)          540.50 vs 540.00 +/- 2.0
-      make_take 3s: stop tapped at elapsed_ms=2809 -> id 98 (Recording (2).m4a, 2972 ms)
-      takes: 96, 98
+      make_take 3s: stop tapped at elapsed_ms=2763 -> id 159 (Recording (2).m4a, 2949 ms)
+      takes: 157, 159
       search 36 96 1044 240 1008 144 540.0 168.0 / showing 36 234 219 288 183 54 127.5 261.0
       rec_search's drawn border: rows 120..216 (the node's touch bounds 96..240)
 PASS  3.1 rec_search's drawn box is 32 epx tall                   96.00 vs 96.00 +/- 3.0

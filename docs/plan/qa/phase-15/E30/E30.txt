@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E30 — pause, markers, search and filter
-at            2026-09-24T14:38:13-06:00
+at            2026-09-24T16:25:27-06:00
 driver        e30.sh blob bdf6ccb4189bd01272b6ebd12a79b35a85340e7e
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     a82ba032ca435575 338459654 bytes
-apk installed 7b1306f3e567a24b
-apk match     yes (7b1306f3e567a24b)
+apk built     187619129c54956c 338459898 bytes
+apk installed 2356b99f4933214b
+apk match     NO (device 2356b99f4933214b, built 33cc71c192190cc9)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -13,45 +13,45 @@ PASS  baseline: MediaStore holds no take of the shell's           = 0
       E30: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
 PASS  E30: the audio route is up (audio.sh check rc)              = 0
 PASS  the record state shows rec_pause and rec_flag               = yes yes
-      pause tapped at elapsed_ms=2763; paused at 2879 ms (phase paused, paused=user)
+      pause tapped at elapsed_ms=2786; paused at 2902 ms (phase paused, paused=user)
 PASS  the take is paused                                          = paused
-PASS  paused at 3 s of take time (± 300 ms)                      2879.00 vs 3000.00 +/- 300.0
+PASS  paused at 3 s of take time (± 300 ms)                      2902.00 vs 3000.00 +/- 300.0
       rec_elapsed while paused: [00:00:02] then [00:00:02] 3 s later
 PASS  rec_elapsed is equal in two dumps 3 s apart (T15-57)        = 00:00:02
 PASS  rec_elapsed reads something                                 != 
 PASS  the :recorder ring holds [recorder] paused: user            contains [[recorder] paused: user]
-PASS  the take clock did not move while paused                    = 2879
+PASS  the take clock did not move while paused                    = 2902
 PASS  the take is recording again                                 = recording
-      flag 1 tapped at elapsed_ms=3691
-      flag 2 tapped at elapsed_ms=4713; stop tapped at elapsed_ms=5735
+      flag 1 tapped at elapsed_ms=3668
+      flag 2 tapped at elapsed_ms=4736; stop tapped at elapsed_ms=5828
 PASS  rec_marker:1 is on the record page                          = yes
 PASS  rec_marker:2 is on the record page                          = yes
       record-page markers: [00:03] [00:04]
-      marker lines: at=3784, at=4852
-PASS  marker 1 at 4000 ± 300 ms of take time (the pause excluded)  3784.00 vs 4000.00 +/- 300.0
-PASS  marker 2 at 5000 ± 300 ms                                  4852.00 vs 5000.00 +/- 300.0
-      the take: 114
+      marker lines: at=3808, at=4829
+PASS  marker 1 at 4000 ± 300 ms of take time (the pause excluded)  3808.00 vs 4000.00 +/- 300.0
+PASS  marker 2 at 5000 ± 300 ms                                  4829.00 vs 5000.00 +/- 300.0
+      the take: 165
 PASS  the take is in MediaStore                                   != 
-      file: 5.944300 s, RMS -7.875617 dBFS
-PASS  ffprobe: 6 ± 0.5 s (the 4 s paused are not in it)          5.94 vs 6.00 +/- 0.5
+      file: 6.014000 s, RMS -8.050637 dBFS
+PASS  ffprobe: 6 ± 0.5 s (the 4 s paused are not in it)          6.01 vs 6.00 +/- 0.5
 PASS  RMS > -40 dBFS                                              = yes
-PASS  recordings.json holds both markers under the take's id      = 3784,4852
+PASS  recordings.json holds both markers under the take's id      = 3808,4829
 PASS  the playback page lists rec_marker:1 and :2                 = yes yes
       playback markers: [0:03] [0:04]; rec_total [0:06]
-      track dots read as 3785 ms and 4851 ms of 5944
-PASS  rec_track_marker:1 sits at at/duration ± 2 % of the track  3785.00 vs 3784.00 +/- 118.0
-PASS  rec_track_marker:2 sits at at/duration ± 2 % of the track  4851.00 vs 4852.00 +/- 118.0
-      sha256 before a871c5880d6c484e177e3afd57334b1c8ce802c28676bfab69951b01b95b7eab / after a871c5880d6c484e177e3afd57334b1c8ce802c28676bfab69951b01b95b7eab
-PASS  a marker added on playback leaves the file's bytes unchanged (sha256 before = after)  = a871c5880d6c484e177e3afd57334b1c8ce802c28676bfab69951b01b95b7eab
-      recordings.json markers now: 3784,3920,4852
+      track dots read as 3812 ms and 4829 ms of 6014
+PASS  rec_track_marker:1 sits at at/duration ± 2 % of the track  3812.00 vs 3808.00 +/- 120.0
+PASS  rec_track_marker:2 sits at at/duration ± 2 % of the track  4829.00 vs 4829.00 +/- 120.0
+      sha256 before 69f43efe3f610be6ffc9f81199e7b3cadf68fdbf438cecdebd5932c3aec396f5 / after 69f43efe3f610be6ffc9f81199e7b3cadf68fdbf438cecdebd5932c3aec396f5
+PASS  a marker added on playback leaves the file's bytes unchanged (sha256 before = after)  = 69f43efe3f610be6ffc9f81199e7b3cadf68fdbf438cecdebd5932c3aec396f5
+      recordings.json markers now: 3808,4829,5490
 PASS  recordings.json now holds three markers                     = 3
 PASS  the rename dialog is up                                     = yes
 PASS  the take is now Standup.m4a                                 = Standup.m4a
-      make_take 3s: stop tapped at elapsed_ms=2763 -> id 117 (Recording.m4a, 2972 ms)
-      make_take 3s: stop tapped at elapsed_ms=2809 -> id 119 (Recording (2).m4a, 3065 ms)
+      make_take 3s: stop tapped at elapsed_ms=2786 -> id 168 (Recording.m4a, 2972 ms)
+      make_take 3s: stop tapped at elapsed_ms=2856 -> id 170 (Recording (2).m4a, 3181 ms)
 PASS  two more takes are in MediaStore                            != 
-      takes: Standup 114, 117, 119
-      rows with 'Stand': rec_row:114
+      takes: Standup 165, 168, 170
+      rows with 'Stand': rec_row:165
 PASS  search Stand: Standup's row is listed                       = yes
 PASS  search Stand: only that row                                 = 1
 PASS  search cleared: all three takes listed                      = 3

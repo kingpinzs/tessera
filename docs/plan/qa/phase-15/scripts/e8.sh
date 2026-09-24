@@ -89,18 +89,42 @@ sleep 2
 C1="$(shell_bytes)"
 assert_ne "positive control: the counters MOVED across the Weather fetch ($C0 -> $C1)" "$C0" "$C1"
 
-# The positive control's connection lingers (keep-alive, then FIN packets on the shell's uid — run 1 read +104 / +80
-# bytes with no [weather] line), so the window opens only once two counter reads 10 s apart are equal (up to 2 min).
+# The positive control's connection lingers: HttpURLConnection returns the Weather fetch's socket to its keep-alive pool
+# (WeatherProvider reads the body to the end before disconnect()), and its close — the server's idle timeout or the
+# pool's eviction — moves the uid's counters with no [weather] line (run 1: +104 / +80; the gate pass on 5558:
+# +104 / +40 inside the window, after the counters had read equal 10 s apart with the socket still ESTABLISHED). So the
+# window opens only once the uid holds NO open TCP socket (/proc/net/tcp{,6}, the uid column) AND two counter reads
+# 10 s apart are equal, up to 7.5 min (the pool keeps an idle connection 5 min). Every counter move while waiting is
+# logged with the sockets then open, which is the evidence of whose bytes they were.
+shell_sockets() { # the uid's non-LISTEN TCP sockets as "a.b.c.d:port/STATE" (IPv4 and IPv4-mapped IPv6), one per line
+  adb shell cat /proc/net/tcp6 /proc/net/tcp 2>/dev/null | tr -d '\r' | python3 -c '
+import sys
+uid = sys.argv[1]
+names = {"01": "ESTABLISHED", "02": "SYN_SENT", "03": "SYN_RECV", "04": "FIN_WAIT1", "05": "FIN_WAIT2", "06": "TIME_WAIT",
+         "07": "CLOSE", "08": "CLOSE_WAIT", "09": "LAST_ACK", "0B": "CLOSING"}
+for l in sys.stdin:
+    f = l.split()
+    if len(f) < 8 or f[7] != uid or f[3] == "0A": continue
+    addr, port = f[2].split(":"); h = addr[-8:]
+    print("%s:%d/%s" % (".".join(str(int(h[i:i + 2], 16)) for i in (6, 4, 2, 0)), int(port, 16), names.get(f[3], f[3])))' "$SHELL_UID"
+}
 settle_bytes() {
-  local a b i
-  a="$(shell_bytes)"
-  for i in $(seq 1 12); do sleep 10; b="$(shell_bytes)"; [ "$a" = "$b" ] && { note "counters settled at $b after $((i * 10)) s"; return 0; }; a="$b"; done
-  note "counters never settled: $a"; return 1
+  local a b i s t0
+  t0="$(date +%s)"; a="$(shell_bytes)"; s="$(shell_sockets | paste -sd,)"
+  note "settle: start counters $a, sockets [$s]"
+  for i in $(seq 1 45); do
+    sleep 10; b="$(shell_bytes)"; s="$(shell_sockets | paste -sd,)"
+    [ "$a" != "$b" ] && note "settle: counters moved $a -> $b at +$(( $(date +%s) - t0 )) s; sockets now [$s]"
+    if [ "$a" = "$b" ] && [ -z "$s" ]; then note "settle: counters settled at $b with no socket of the uid open, after $(( $(date +%s) - t0 )) s"; return 0; fi
+    a="$b"
+  done
+  note "settle: never settled in 7.5 min: counters $a, sockets [$s]"; return 1
 }
 online_pass() { # -> 0 when the window was clean
   local d0 d1 mark w
   settle_bytes
   d0="$(shell_bytes)"
+  record "online window start: the shell uid's open sockets" "[$(shell_sockets | paste -sd,)]"
   mark="$(ring_mark)"
   local t0; t0="$(date +%s)"
   open_clock world_clock
@@ -121,6 +145,7 @@ online_pass() { # -> 0 when the window was clean
   local took=$(( $(date +%s) - t0 ))
   assert_eq "online: search, add and remove took <= 20 s ($took s)" yes "$([ "$took" -le 20 ] && echo yes || echo no)"
   d1="$(shell_bytes)"
+  record "online window end: the shell uid's open sockets" "[$(shell_sockets | paste -sd,)]"
   w="$(ring_since "$mark" | grep -F '[weather]')"
   if [ -n "$w" ]; then record "online pass VOID: a [weather] line fell in the window" "$(printf '%s\n' "$w" | head -1 | sed 's/.*\] //')"; return 1; fi
   assert_eq "online: the shell uid's byte counters are unchanged across the world-clock steps ($d0 -> $d1)" "$d0" "$d1"

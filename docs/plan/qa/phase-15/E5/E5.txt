@@ -1,18 +1,18 @@
 ==============================================================================
 ROW E5 — doze and offline: the alarm still rings on time
-at            2026-09-24T14:28:16-06:00
+at            2026-09-24T16:22:10-06:00
 driver        e5.sh blob 6e11a69521ed68ee5824bccab6f3e43f13a70c06
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     a82ba032ca435575 338459654 bytes
-apk installed 7b1306f3e567a24b
-apk match     yes (7b1306f3e567a24b)
+apk built     187619129c54956c 338459898 bytes
+apk installed 33cc71c192190cc9
+apk match     yes (33cc71c192190cc9)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-10m39s891ms ago; rejectTime=+1h10m20s100ms ago 
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-10m41s116ms ago; rejectTime=+24m18s858ms ago 
 RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
 PASS  baseline: no shell alarm or timer pending                   = 0
-FAIL  baseline: alarm and timer stores empty                      expected [empty] got [[{"id":"acbfbaa4e","hour":14,"minute":25,"name":"Alarm","days":[],"enabled":false,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2026-09-24","snoozedUntilMs":null,"lastHandledMs":1790281500000}][]]
+PASS  baseline: alarm and timer stores empty                      = empty
 RECORD  deviceidle min_time_to_alarm (the alarm is set 5 min past it, not the doc's 2 min ahead)  min_time_to_alarm=+1h0m0s0ms
 PASS  the alarm was created                                       != 
 PASS  … and armed                                               != 0
@@ -22,19 +22,19 @@ PASS  the device is forced into deep idle                         contains [deep
 PASS  deviceidle get deep reads IDLE                              = IDLE
 PASS  the screen is off                                           != Awake
 PASS  the alarm fired within 30 s of the jump                     != 
-PASS  late <= 1000 ms                                             13.00 vs 0.00 +/- 1000.0
+PASS  late <= 1000 ms                                             14.00 vs 0.00 +/- 1000.0
 PASS  an ALARM player of the shell is started                     != 0
 PASS  the display is on (Awake)                                   = Awake
 RECORD  deviceidle state at the ring                                INACTIVE
-RECORD  surface line                                                [alarms] surface: toast-locked aad7b92a8
+RECORD  surface line                                                [alarms] surface: toast-locked af4e77658
 PASS  the toast is up (ring_dismiss)                              = yes
-PASS  dismiss: ring ended aad7b92a8: dismiss                      contains [[alarms] ring ended aad7b92a8: dismiss]
+PASS  dismiss: ring ended af4e77658: dismiss                      contains [[alarms] ring ended af4e77658: dismiss]
 PASS  dismiss: the player stopped                                 = 0
 PASS  restore: airplane mode off                                  = 0
-PASS  device clock back within 2 s of the host (RV12)             1790281724.00 vs 1790281725.00 +/- 2.0
+PASS  device clock back within 2 s of the host (RV12)             1790288564.00 vs 1790288565.00 +/- 2.0
 PASS  restore: wake_device printed Awake (C-25)                   = Awake
-      scroll_to_node alarm_row:aad7b92a8: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:af4e77658: 0 swipe(s), found=yes
 PASS  restore: no shell alarm or timer pending                    = 0
-FAIL  restore: alarm and timer stores empty                       expected [empty] got [[{"id":"acbfbaa4e","hour":14,"minute":25,"name":"Alarm","days":[],"enabled":false,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2026-09-24","snoozedUntilMs":null,"lastHandledMs":1790281500000}][]]
+PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------
-E5: 18 passed, 2 failed, 5 recorded
+E5: 20 passed, 0 failed, 5 recorded

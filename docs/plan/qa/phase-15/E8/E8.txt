@@ -1,54 +1,54 @@
 ==============================================================================
 ROW E8 — world clock: offline (Tokyo, zone change, no bytes) and online (positive control, no bytes)
-at            2026-09-24T14:36:34-06:00
+at            2026-09-24T15:32:14-06:00
 driver        e8.sh blob 1f03f923692cb8bfb3cac8a6fe259bd2dfa145e0
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     a82ba032ca435575 338459654 bytes
-apk installed 7b1306f3e567a24b
-apk match     yes (7b1306f3e567a24b)
+apk built     e9d870364a6c00fc 338459898 bytes
+apk installed 2356b99f4933214b
+apk match     yes (2356b99f4933214b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  baseline: no shell alarm or timer pending                   = 0
-FAIL  baseline: alarm and timer stores empty                      expected [empty] got [[{"id":"ab764ede3","hour":2,"minute":30,"name":"Spring","days":[],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2027-03-14","snoozedUntilMs":null,"lastHandledMs":1805014800000}][]]
+PASS  baseline: alarm and timer stores empty                      = empty
       zone at start: America/Boise
 PASS  precondition: the device's zone is America/Boise (the host expectations below use it)  = America/Boise
 PASS  an alarm at 07:00 is armed                                  != 
 PASS  a running timer is armed                                    != 
 PASS  airplane mode is on                                         = 1
-      shell bytes at the start of the offline pass: 5154 1055
+      shell bytes at the start of the offline pass: 29907 7240
 PASS  the World Clock tab shows the Local time row                = Local time
 PASS  search Tok lists Tokyo (clock_search_result:Asia/Tokyo)     = Tokyo
-FAIL  clock_time:Asia/Tokyo equals the host's Tokyo time ± 1 min  does not contain [|6:01 PM|]: |5:35 AM|5:36 AM|5:37 AM|
-FAIL  clock_diff:Asia/Tokyo is W10M's line, host-computed against America/Boise  expected [Friday, 15 hours ahead] got [Today, 15 hours ahead]
+PASS  clock_time:Asia/Tokyo equals the host's Tokyo time ± 1 min  contains [|6:32 AM|]
+PASS  clock_diff:Asia/Tokyo is W10M's line, host-computed against America/Boise  = Friday, 15 hours ahead
 PASS  the Local time row sits above the city row                  = yes
 PASS  the zone is Europe/London                                   = Europe/London
 PASS  the ring re-armed on the zone change                        contains [[alarms] rearm (time zone changed)]
-FAIL  the local row now shows London's time ± 1 min              does not contain [|9:01 AM|]: |9:36 PM|9:37 PM|9:38 PM|
-PASS  … and it changed from before                              != 3:01 AM
-FAIL  Tokyo's difference line changed to the London form          expected [Friday, 8 hours ahead] got [Today, 9 hours ahead]
+PASS  the local row now shows London's time ± 1 min              contains [|10:32 PM|]
+PASS  … and it changed from before                              != 3:32 PM
+PASS  Tokyo's difference line changed to the London form          = Friday, 8 hours ahead
 PASS  the 07:00 alarm still reads 7:00 AM after the zone change   = 7:00 AM
-FAIL  … while its dumpsys alarm instant moved to London's 07:00 on its date  expected [1805007600000] got []
-RECORD  the alarm's instant moved by (ms)                           1805029200000
-PASS  the running timer's instant did not move                    = 1839488
-PASS  offline: the shell uid's byte counters are unchanged        = 5154 1055
+PASS  … while its dumpsys alarm instant moved to London's 07:00 on its date  = 1790316000000
+RECORD  the alarm's instant moved by (ms)                           25200000
+PASS  the running timer's instant did not move                    = 1946122
+PASS  offline: the shell uid's byte counters are unchanged        = 29907 7240
 PASS  the zone is restored                                        = America/Boise
 PASS  airplane mode is off                                        = 0
 PASS  dumpsys connectivity shows an active default network        != 
-      weather: fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitud|fetch error network SSLHandshakeException: Chain validation failed
+      weather: fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitud
 PASS  positive control: the process start ran a Weather fetch     contains [[weather] fetch]
-PASS  positive control: the counters MOVED across the Weather fetch (10308 2110 -> 15268 3037)  != 10308 2110
-      counters settled at 15268 3037 after 10 s
+PASS  positive control: the counters MOVED across the Weather fetch (29907 7240 -> 37503 9101)  != 29907 7240
+      counters settled at 37503 9101 after 10 s
 PASS  online: search Par lists Paris                              = Paris
 PASS  online: Paris was added                                     = yes
 PASS  online: the hold menu offers Remove                         = yes
 PASS  online: Paris was removed                                   = no
 PASS  online: search, add and remove took <= 20 s (18 s)          = yes
-PASS  online: the shell uid's byte counters are unchanged across the world-clock steps (15268 3037 -> 15268 3037)  = 15268 3037
+FAIL  online: the shell uid's byte counters are unchanged across the world-clock steps (37503 9101 -> 37607 9141)  expected [37503 9101] got [37607 9141]
 PASS  restore: Tokyo removed                                      = no
-      scroll_to_node alarm_row:a9515c94f: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:tf0836e3b: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a7dc7782b: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:tfaaa8fd3: 0 swipe(s), found=yes
 PASS  restore: no shell alarm or timer pending                    = 0
-FAIL  restore: alarm and timer stores empty                       expected [empty] got [[{"id":"ab764ede3","hour":2,"minute":30,"name":"Spring","days":[],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2027-03-14","snoozedUntilMs":null,"lastHandledMs":1805014800000}][]]
+PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------
-E8: 27 passed, 7 failed, 1 recorded
+E8: 33 passed, 1 failed, 1 recorded
