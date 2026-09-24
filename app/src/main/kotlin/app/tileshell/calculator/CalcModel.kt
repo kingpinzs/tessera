@@ -19,21 +19,27 @@ enum class ProgrammerTab { KEYPAD, BITS }
 /**
  * The one state behind the Calculator's screens: ONE [Calculator] for the app (modes switched on it, so the display
  * value carries across modes — E12), one [ConverterState] and one [DateCalculatorState]. The engine objects are not
- * observable, so every change to them bumps [tick], which the composables read; nothing here computes — every answer
- * is the engine's (the brief: "the UI never computes").
+ * observable, so every change to them bumps [tick] and every read of them through [calc], [converter] or [date] is a
+ * read of [tick]: a composable that draws engine state re-runs after each change however deep it sits and however its
+ * parameters compare (a row taking only `model` is otherwise skipped). Nothing here computes — every answer is the
+ * engine's (the brief: "the UI never computes").
  *
  * Diagnostics (Harness contracts): `[calc] error <kind>` on each error the engine shows (its `errorKind`), and
  * `[calc] date <op> <from> <to|amount> -> <result>` per date computation. Memory and history are written to
  * [CalcStore] after every change that moves them (H11: they persist until cleared).
  */
 class CalcModel(private val store: CalcStore, today: LocalDate) {
-    val calc = Calculator(CalcMode.STANDARD)
-    val converter: ConverterState
-    val date = DateCalculatorState(today)
-
-    /** Bumped after every engine change so the composables that read it recompose. */
+    /** Bumped after every engine change; the engine getters read it, so every reader of engine state recomposes. */
     var tick by mutableIntStateOf(0)
         private set
+
+    private val calcEngine = Calculator(CalcMode.STANDARD)
+    private val converterEngine: ConverterState
+    private val dateEngine = DateCalculatorState(today)
+
+    val calc: Calculator get() = calcEngine.also { tick }
+    val converter: ConverterState get() = converterEngine.also { tick }
+    val date: DateCalculatorState get() = dateEngine.also { tick }
 
     var page by mutableStateOf(CalcLayout.DEFAULT_PAGE)
         private set
@@ -53,7 +59,7 @@ class CalcModel(private val store: CalcStore, today: LocalDate) {
     init {
         store.readMemory()?.let { if (!calc.restoreMemory(it)) Diagnostics.add("calc", "memory file ignored (malformed)") }
         store.readHistory()?.let { if (!calc.restoreHistory(it)) Diagnostics.add("calc", "history file ignored (malformed)") }
-        converter = ConverterState(store.readConverter())
+        converterEngine = ConverterState(store.readConverter())
         Diagnostics.add("calc", "restored memory=${calc.memory.size} history=${calc.history.size} converter=${converter.category.label}")
         lastErrorCount = calc.errorCount
     }
