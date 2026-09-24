@@ -59,11 +59,41 @@ promote
 for _ in 1 2 3 4 5 6; do adb shell input swipe 540 1500 540 700 600; sleep 1; done
 qdump "$ROW_DIR/offscreen-pre.xml"; screencap "$ROW_DIR/offscreen-pre.png"
 assert_eq "the fixture is still promoted" yes "$(has_node "$ROW_DIR/offscreen-pre.xml" recent_app_row)"
-# Photos keeps its row-2 cell before the fixture's (it precedes it in the order), so its top gives the scroll; the
-# fixture's cell (content y 439-782) contracted about the fixed point (0.90 about y 1111.5) must end above the 84-px bar.
-pt="$(bounds "$ROW_DIR/offscreen-pre.xml" tile:slot:PHOTOS | awk '{print $2}')"
-cellb="$(python3 -c 'import sys; s=439-int(sys.argv[1]); c=1111.5+(610.5-s-1111.5)*0.9; print(int(c+171.4))' "${pt:-439}")"
-note "Photos top $pt -> the fixture cell's edit-mode bottom at $cellb px"
+# The scroll, from any grid tile still on screen: GridPack's first fit over the tall layout WITHOUT the promoted fixture
+# gives each tile's content y (84 + unitY x 177.94), and its dump top is that minus the scroll. The fixture's cell in
+# edit mode (content y 439.9-782.6, the grid re-packed WITH it) contracted 0.90 about y 1111.5 must end above the bar.
+cellb="$(python3 - "$QA11/baseline_layout-tall.json" "$ROW_DIR/offscreen-pre.xml" "$A_KEY" <<'PY'
+import json, re, sys
+d = json.load(open(sys.argv[1])); dump = open(sys.argv[2]).read(); A = sys.argv[3]
+span = {"SMALL": (1, 1), "MEDIUM": (2, 2), "WIDE": (4, 2)}
+def pack(items, across=6):
+    rows, out = [], {}
+    def row(y):
+        while len(rows) <= y: rows.append([False] * across)
+        return rows[y]
+    for key, size in items:
+        w, h = span[size]; y = 0
+        while True:
+            x = next((x for x in range(across - w + 1) if all(not row(y + dy)[x + dx] for dy in range(h) for dx in range(w))), None)
+            if x is not None:
+                for dy in range(h):
+                    for dx in range(w): row(y + dy)[x + dx] = True
+                out[key] = y; break
+            y += 1
+    return out
+promoted = pack([(o["key"], o["size"]) for o in d["order"] if o["key"] != A])
+s = None
+for key, uy in promoted.items():
+    m = re.search(r'resource-id="tile:%s"[^>]*bounds="\[(-?\d+),(-?\d+)\]' % re.escape(key), dump)
+    if m and int(m.group(2)) > 84:
+        s = 84 + uy * 177.9375 - int(m.group(2)); break
+if s is None: print("unknown"); sys.exit()
+c = 1111.5 + (439.9 + 171.4 - s - 1111.5) * 0.9
+print(int(c + 171.4), int(s))
+PY
+)"
+note "scroll ${cellb#* } px -> the fixture cell's edit-mode bottom at ${cellb% *} px"
+cellb="${cellb% *}"
 assert_eq "precondition: the fixture's grid cell lies wholly above the page area ($cellb < 84)" ok "$([ "$cellb" -lt 84 ] && echo ok || echo no)"
 read -r X Y <<< "$(center "$ROW_DIR/offscreen-pre.xml" "tile:$A_KEY")"
 MARK="$(ring_mark)"
