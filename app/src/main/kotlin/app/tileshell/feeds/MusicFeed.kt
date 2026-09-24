@@ -16,6 +16,7 @@ import app.tileshell.diag.Diagnostics
 import app.tileshell.tiles.ActiveTiles
 import app.tileshell.tiles.engine.FaceTransition
 import app.tileshell.tiles.engine.LiveTileEngine
+import app.tileshell.tiles.engine.PackageSource
 import app.tileshell.tiles.engine.TileContent
 import app.tileshell.tiles.engine.TileFace
 import app.tileshell.tiles.engine.Transport
@@ -156,7 +157,7 @@ object MusicFeed {
         // under that package's key and the tiles standing for that package are the ones that grow. A tile
         // is never borrowed: an app with nothing on Start simply shows nowhere.
         if (publishedPkg != null && publishedPkg != pkg) {
-            LiveTileEngine.publish(LiveTileEngine.packageKey(publishedPkg!!), null)
+            LiveTileEngine.publishPackage(publishedPkg!!, PackageSource.MUSIC, null)
             ActiveTiles.setPackage(publishedPkg!!, false, "the session moved to ${pkg ?: "nothing"}")
         }
         publishedPkg = pkg
@@ -167,8 +168,9 @@ object MusicFeed {
             return
         }
         val face = TileFace.NowPlaying(art, next.track.title, next.track.artist, next.playing, plan.controls)
-        LiveTileEngine.publish(
-            LiveTileEngine.packageKey(pkg),
+        LiveTileEngine.publishPackage(
+            pkg,
+            PackageSource.MUSIC,
             TileContent(
                 faces = if (plan.flip) listOf(face) else emptyList(),
                 transition = FaceTransition.FLIP,
@@ -191,7 +193,7 @@ object MusicFeed {
         publishedArt = null
         publishedPkg?.let {
             ActiveTiles.setPackage(it, false, reason)
-            LiveTileEngine.publish(LiveTileEngine.packageKey(it), null)
+            LiveTileEngine.publishPackage(it, PackageSource.MUSIC, null)
         }
         publishedPkg = null
     }

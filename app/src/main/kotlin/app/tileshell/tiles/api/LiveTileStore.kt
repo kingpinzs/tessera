@@ -13,6 +13,7 @@ import app.tileshell.tiles.TileSize
 import app.tileshell.tiles.engine.BadgeStore
 import app.tileshell.tiles.engine.FaceTransition
 import app.tileshell.tiles.engine.LiveTileEngine
+import app.tileshell.tiles.engine.PackageSource
 import app.tileshell.tiles.engine.TileContent
 import app.tileshell.tiles.engine.TileFace
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -93,10 +94,6 @@ class LiveTileStore private constructor(private val context: Context) {
     private val thread = HandlerThread("livetile").apply { start() }
     val handler = Handler(thread.looper)
     private val sweepRunnable = Runnable { sweep("timer") }
-
-    /** Packages whose Start preview currently comes from the API queue (read by the notification feed). */
-    @Volatile var previewOwners: Set<String> = emptySet()
-        private set
 
     private val secondaryState = MutableStateFlow<Map<String, List<SecondaryRecord>>>(emptyMap())
 
@@ -197,10 +194,8 @@ class LiveTileStore private constructor(private val context: Context) {
         val dir = ownerDir(pkg)
         val existed = dir.exists()
         dir.deleteRecursively()
-        if (pkg in previewOwners) {
-            previewOwners = previewOwners - pkg
-            LiveTileEngine.publish(LiveTileEngine.packageKey(pkg), null)
-        }
+        // The API's own slot only: notifications or a playing session keep showing (L11-1).
+        LiveTileEngine.publishPackage(pkg, PackageSource.API, null)
         BadgeStore.set(pkg, BadgeStore.Source.API, 0)
         // A secondary tile's content and badge hang off their own keys; the owner's tiles go with the owner (R5 §1.9).
         for (tileId in secondaryIds) {
@@ -471,19 +466,11 @@ class LiveTileStore private constructor(private val context: Context) {
         val owner = owners[pkg]
         val state = owner?.let { stateLocked(it, tileId) }
         val disabled = LiveTileSettings.isDisabled(context, pkg) || !LiveTileSettings.isApiEnabled(context)
-        val key = if (tileId == null) LiveTileEngine.packageKey(pkg) else secondaryContentKey(pkg, tileId)
         val content = if (state == null || disabled) null else render(pkg, state)
-        if (tileId == null) {
-            if (content != null) {
-                previewOwners = previewOwners + pkg
-                LiveTileEngine.publish(key, content)
-            } else if (pkg in previewOwners) {
-                previewOwners = previewOwners - pkg
-                LiveTileEngine.publish(key, null)
-            }
-        } else {
-            LiveTileEngine.publish(key, content)
-        }
+        // A primary tile's queue is one of three producers of the app's tile (L11-1): it publishes its own slot, and the
+        // engine's precedence puts it above notifications and below a playing session. A cleared queue clears only it.
+        if (tileId == null) LiveTileEngine.publishPackage(pkg, PackageSource.API, content)
+        else LiveTileEngine.publish(secondaryContentKey(pkg, tileId), content)
         if (state != null) publishBadgeLocked(pkg, tileId, state) else BadgeStore.set(badgeKeyFor(pkg, tileId), BadgeStore.Source.API, 0)
     }
 
