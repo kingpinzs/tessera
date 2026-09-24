@@ -17,10 +17,16 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * The music library, read from MediaStore and kept current (phase 10 build task 2).
  *
- * **Everything MediaStore calls audio** (Q6), with no IS_MUSIC predicate: ringtones, alarms,
- * notification sounds and voice recordings are audio and are in the library by ruling. [MusicGrouping]
- * is what copes with their missing metadata, and it is tested on the JVM; this file is the part that
- * has to talk to the platform.
+ * **Everything MediaStore calls audio** (Q6), with no IS_MUSIC predicate: ringtones, alarms and
+ * notification sounds are audio and are in the library by ruling. [MusicGrouping] is what copes with
+ * their missing metadata, and it is tested on the JVM; this file is the part that has to talk to the
+ * platform.
+ *
+ * **Except recordings (phase 15 Q2 A).** Anything MediaStore marks `IS_RECORDING` — the shell's own Voice
+ * Recorder takes and every other app's (Samsung's recorder included) — is skipped, because Voice Recorder
+ * lists and plays them all; this one predicate is the whole of the rule, and each skip is said
+ * (`skipped recording <id>`) so a recording missing from Music is never mistaken for a file the scan
+ * never saw.
  *
  * **Observed, not scanned once.** A file copied onto the phone while the shell is running appears
  * without a restart — the same contract PhotosFeed has for images, and acceptance row E4. The observer
@@ -45,6 +51,7 @@ object MusicStore {
         MediaStore.Audio.Media.ALBUM_ID,
         MediaStore.Audio.Media.DURATION,
         MediaStore.Audio.Media.DATE_ADDED,
+        MediaStore.Audio.Media.IS_RECORDING,
     )
 
     /** Whether the library can be read at all. Acceptance row E18 is what a denial must look like. */
@@ -87,7 +94,14 @@ object MusicStore {
             val albumId = c.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
             val duration = c.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
             val added = c.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
+            val recording = c.getColumnIndexOrThrow(MediaStore.Audio.Media.IS_RECORDING)
             while (c.moveToNext()) {
+                // Phase 15 Q2 A: recordings live in Voice Recorder, never in Music. Said per file, every
+                // refresh, so a row that looks for the skip finds it after its own mark.
+                if (c.getInt(recording) == 1) {
+                    Diagnostics.add("music", "skipped recording ${c.getLong(id)}")
+                    continue
+                }
                 out += Track(
                     id = c.getLong(id),
                     title = Track.clean(c.getString(title), Track.UNKNOWN_TITLE),
