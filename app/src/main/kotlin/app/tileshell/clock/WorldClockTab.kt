@@ -229,7 +229,7 @@ private fun BoxScope.CitySearch(entries: List<WorldClockRules.Entry>, onPick: (W
         if (query.isNotBlank() && results.isEmpty()) {
             EmptyLineR7("No results", "clock_search_empty", capTop = 8f + 43.4f + 40f)
         } else {
-            LazyColumn(Modifier.offset(y = 60.dp).fillMaxSize().testTag("clock_search_results"), contentPadding = PaddingValues(bottom = ClockMetrics.APP_BAR)) {
+            LazyColumn(Modifier.fillMaxSize().padding(top = 60.dp).testTag("clock_search_results"), contentPadding = PaddingValues(bottom = ClockMetrics.APP_BAR)) {
                 items(results, key = { it.id }) { e ->
                     PressBox(Modifier.fillMaxWidth().height(44.dp), onClick = { onPick(e) }) {
                         BasicText(e.label, Modifier.align(Alignment.CenterStart).offset(x = 12.dp).testTag("clock_search_result:${e.id}"), style = ShellType.body.copy(color = colors.text), maxLines = 1)
