@@ -18,11 +18,11 @@ note "cold: $(quick_since "$MARK" | grep 'motion open' | sed 's/.*\[quick\]/[qui
 empty="$(empty_point "$ROW_DIR/rest.xml" 1300 1850)"; read -r EX EY <<< "$empty"
 tap_xy "$EX" "$EY"; sleep 0.8; tap_xy "$EX" "$EY"; sleep 1.5
 
-log "--- warm: the measured open, recorded; retaken (up to 5) until the recording's spacing passes phase 05's rule ---"
+log "--- warm: the measured open, recorded; retaken (up to 10; the host also runs a second session's emulator) until the recording's spacing passes phase 05's rule ---"
 PROBE="$(bounds "$ROW_DIR/rest.xml" tile:dock:slot:MESSAGING | awk '{printf "%d,%d,%d,%d", $1+60, $2+60, $3-60, $4-60}')"
 OPEN=""; TILE=""
-for attempt in 1 2 3 4 5; do
-  adb shell screenrecord --bit-rate 6000000 --time-limit 4 /sdcard/Download/e6.mp4 & REC=$!
+for attempt in 1 2 3 4 5 6 7 8 9 10; do
+  adb shell screenrecord --bit-rate 4000000 --time-limit 4 /sdcard/Download/e6.mp4 & REC=$!
   sleep 1.0
   MARK="$(ring_mark)"; hold "$X" "$Y" 1.0
   wait "$REC"; adb pull /sdcard/Download/e6.mp4 "$ROW_DIR/open-$attempt.mp4" >/dev/null 2>&1
@@ -36,8 +36,8 @@ for attempt in 1 2 3 4 5; do
   python3 "$(dirname "$0")/e6_frames.py" "$ROW_DIR/frames" "$ROW_DIR/open-$attempt.pts" "$TILE" "$PROBE" > "$ROW_DIR/corroboration-$attempt.txt"
   gap="$(awk '/max_gap_ms/{print $2}' "$ROW_DIR/corroboration-$attempt.txt")"
   note "attempt $attempt: ${OPEN#*\[quick\] } | recording: $(tr '\n' ' ' < "$ROW_DIR/corroboration-$attempt.txt")"
-  [ "$attempt" -lt 5 ] && python3 -c "import sys; sys.exit(0 if float(sys.argv[1]) <= 18.2 else 1)" "$gap" 2>/dev/null && break
-  [ "$attempt" -lt 5 ] && { tap_xy "$EX" "$EY"; sleep 0.8; tap_xy "$EX" "$EY"; sleep 1.5; }
+  [ "$attempt" -lt 10 ] && python3 -c "import sys; sys.exit(0 if float(sys.argv[1]) <= 18.2 else 1)" "$gap" 2>/dev/null && break
+  [ "$attempt" -lt 10 ] && { tap_xy "$EX" "$EY"; sleep 0.8; tap_xy "$EX" "$EY"; sleep 1.5; }
 done
 cp "$ROW_DIR/corroboration-$attempt.txt" "$ROW_DIR/corroboration.txt"
 note "accepted attempt $attempt"
