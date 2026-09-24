@@ -88,9 +88,15 @@ if [ "$AUDIO_OK" = yes ]; then
   gtap "$ROW_DIR/paused2.xml" rec_pause; sleep 0.3
   assert_eq "the take is recording again" recording "$(rec_status phase)"
   E="$(wait_elapsed $(( P_AT + 750 )) 10)"; gtap "$ROW_DIR/recording.xml" rec_flag; note "flag 1 tapped at elapsed_ms=$E"
-  E="$(wait_elapsed $(( P_AT + 1750 )) 10)"; gtap "$ROW_DIR/recording.xml" rec_flag; note "flag 2 tapped at elapsed_ms=$E"
-  sleep 0.5
+  E="$(wait_elapsed $(( P_AT + 1750 )) 10)"; gtap "$ROW_DIR/recording.xml" rec_flag; F2="$E"
+  # The record page's dump goes FIRST and alone: run 1 slept, dumped, screencapped and read the ring before the stop,
+  # and its stop landed at 6617 ms of take time (file 6.78 s against 6 ± 0.5). The ring slice is by MARK, so it is read
+  # after the stop.
   rdump "$ROW_DIR/flagged.xml"; screencap "$ROW_DIR/flagged.png"
+  # ---- stop 3 s after the resume ------------------------------------------------------------------------------------------
+  E="$(wait_elapsed $(( P_AT + 2850 )) 10)"; gtap "$ROW_DIR/recording.xml" rec_button
+  note "flag 2 tapped at elapsed_ms=$F2; stop tapped at elapsed_ms=$E"
+  tone_loop_stop "$TONE_PID"; TONE_PID=""
   assert_eq "rec_marker:1 is on the record page" yes "$(has_node "$ROW_DIR/flagged.xml" 'rec_marker:1')"
   assert_eq "rec_marker:2 is on the record page" yes "$(has_node "$ROW_DIR/flagged.xml" 'rec_marker:2')"
   note "record-page markers: [$(node_text "$ROW_DIR/flagged.xml" 'rec_marker:1')] [$(node_text "$ROW_DIR/flagged.xml" 'rec_marker:2')]"
@@ -100,9 +106,6 @@ if [ "$AUDIO_OK" = yes ]; then
   note "marker lines: at=$M1, at=$M2"
   assert_within "marker 1 at 4000 ± 300 ms of take time (the pause excluded)" 4000 "$M1" 300
   assert_within "marker 2 at 5000 ± 300 ms" 5000 "$M2" 300
-  # ---- stop 3 s after the resume ------------------------------------------------------------------------------------------
-  E="$(wait_elapsed $(( P_AT + 2750 )) 10)"; gtap "$ROW_DIR/recording.xml" rec_button; note "stop tapped at elapsed_ms=$E"
-  tone_loop_stop "$TONE_PID"; TONE_PID=""
   wait_phase idle 15 >/dev/null; sleep 1.5
   rec_ring "$MARK" > "$ROW_DIR/ring_take.txt"
   TAKE="$(new_own_id "$BEFORE")"; note "the take: ${TAKE:-none}"

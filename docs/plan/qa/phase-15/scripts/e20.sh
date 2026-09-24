@@ -96,7 +96,9 @@ if [ "$HAD_FIX" = 0 ]; then
   adb shell content call --uri content://media --method scan_volume --arg external_primary >/dev/null 2>&1
   note "restore: the Music fixtures removed (they were absent before)"
 fi
-[ -n "$VOL0" ] && adb shell cmd media_session volume --stream 3 --set "$VOL0" >/dev/null 2>&1
-note "restore: media volume $(adb shell cmd media_session volume --stream 3 --get 2>/dev/null | tr -d '\r' | grep -oE 'volume is [0-9]+')"
+# `cmd media_session volume --set` left the stream at 0 (run 1: music_mute's twenty VOLUME_DOWNs leave STREAM_MUSIC muted
+# on the speaker, and that route did not lift it); AudioManager.setStreamVolume through `cmd audio` does, and is read back.
+[ -n "$VOL0" ] && adb shell cmd audio set-volume 3 "$VOL0" >/dev/null 2>&1
+assert_eq "restore: the media volume is back" "${VOL0:-?}" "$(adb shell cmd media_session volume --stream 3 --get 2>/dev/null | tr -d '\r' | grep -oE 'volume is [0-9]+' | grep -oE '[0-9]+')"
 adb shell input keyevent KEYCODE_HOME; sleep 1
 row_end
