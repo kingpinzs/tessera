@@ -323,6 +323,19 @@ class Calculator(initialMode: CalcMode = CalcMode.STANDARD) {
         }
     }
 
+    /**
+     * The Programmer bit-toggle keypad (r11/calculator.md 4.7–4.8): flips bit [bit] (0 = least significant) of the
+     * value on display, IDC_BINEDITSTART + bit (CalcEngine::ProcessCommand's "tiny binary edit windows"). A bit at
+     * or past the word size is refused, as the engine refuses it. An error on display is cleared first, as the
+     * ViewModel does for every recoverable command. Returns false when nothing was sent.
+     */
+    fun toggleBit(bit: Int): Boolean {
+        if (mode != CalcMode.PROGRAMMER || bit !in 0 until wordSize.bits) return false
+        if (display.inError) sendCommand(Op.CLEAR)
+        sendCommand(Op.BINEDITSTART + bit)
+        return true
+    }
+
     // ------------------------------------------------------------------ Programmer radix rows
 
     /**

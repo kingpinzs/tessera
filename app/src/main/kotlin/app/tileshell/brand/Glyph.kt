@@ -105,4 +105,14 @@ object Glyph {
     const val BELL = "\ue02b"                // Ringer EA8F \u2014 the Sound value, the tile badge
     const val GLOBE_CLOCK = "\ue9a3"         // the World Clock tab (no public MDL2 name \u2014 "globe with clock")
     const val HOURGLASS = "\uea48"           // the Timer tab (approximation: W10M drew a crowned clock face, which is [TIMER]'s shape and the Stopwatch tab's)
+
+    // Phase 15 (Calculator). Same font, same source; the MDL2 glyph each stands in for is r11/calculator.md's
+    // glyph table (History E81C, CalculatorBackspace E94F / BackSpaceQWERTY E750, UpArrowShiftKey E752, Dialpad
+    // E75F, Airplane E709, Setting E713, Delete E74D). The operators, \u221a and the bit-toggle icon are drawn.
+    const val HISTORY = "\uea2e"
+    const val BACKSPACE = "\ue1cd"
+    const val ARROW_UP = "\ue1a7"
+    const val DIALPAD = "\ue6c3"
+    const val AIRPLANE = "\ue01f"
+    const val CALCULATOR = "\ue328"
 }
