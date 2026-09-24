@@ -67,6 +67,9 @@ class QuickSource(private val context: Context) {
         is TileKey.SlotTile -> resolveSlot(key.slot)?.let { QuickTarget.Query(it.component, it.user) }
             ?: QuickTarget.None(NoBurstReason.NO_APP)
         is TileKey.AppTile -> catalog.find(key.component, key.user)?.let { QuickTarget.Query(it.component, it.user) }
+            // A quiet profile's (or a locked private space's) activities are hidden from the catalog, but the tile
+            // still names its app and user: ask anyway, so the decision says `profile quiet`, not `no app`.
+            ?: key.user?.takeIf { catalog.isQuietMode(it) }?.let { QuickTarget.Query(key.component, it) }
             ?: QuickTarget.None(NoBurstReason.NO_APP)
         is TileKey.ShellTile -> when (key.name) {
             ShellTiles.WEATHER -> QuickTarget.Query(ComponentName(context, app.tileshell.weather.WeatherActivity::class.java), Process.myUserHandle())
