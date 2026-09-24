@@ -3,7 +3,7 @@
 # its `[calc] error <kind>` ring line; 200 !; a 1,000-digit result (e-notation, r11 8.3–8.4); a display wider than the
 # screen (the result shrinks to fit, 7.4–7.5, H11); repeated = and % semantics; Programmer negatives in BIN (two's
 # complement at the word size); shifts past the word size; switching word size with a value that no longer fits; paste
-# of a non-numeric string (the doc says "ignored" — asserted as written, the build's behaviour recorded); memory across
+# of a non-numeric string (Windows' "Invalid input", kept over the doc's "ignored" on 2026-09-24); memory across
 # kill -9; the keypad under `wm size 1080x1920`. Expectations are the oracle's: gen_calc_cases.run_keys (the host port
 # of Windows' rules that produced calc-cases.tsv), never the app. Launcher ring.
 . "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"
@@ -135,7 +135,9 @@ read -r il it ir ib iw ih <<< "$(python3 "$HERE/calc_geo.py" ink "$D/floor.png" 
 record "79-character BIN result: ink height epx / ink left px" "$(python3 -c "print(round($ih/3.0, 2))") / $il"
 set_radix dec; keys clear
 
-# ---- 5. paste of a non-numeric string: the doc says ignored; the build (Windows' DisplayPasteError) may say Invalid input
+# ---- 5. paste of a non-numeric string: Windows' DisplayPasteError shows "Invalid input" (StandardCalculatorViewModel.cs
+# :1255-1261, :1601-1606). The doc's "ignored" was superseded by the INDEX Change Log line of 2026-09-24: the refusal is
+# shown rather than swallowed.
 adb shell am start -S -W -n app.tileshell.qa.imefixture/.MainActivity -e focus field_text >/dev/null 2>&1
 sleep 2
 adb shell input text "abc"
@@ -156,8 +158,7 @@ MARK="$(ring_mark)"
 tap_node "$D/paste_menu.xml" calc_paste; sleep 1
 dump_ui "$D/after_paste.xml"
 pasted="$(node_text "$D/after_paste.xml" calc_display)"
-assert_eq "paste of \"abc\" is ignored — the display still reads 512 (the edge-case line as written)" 512 "$pasted"
-record "what the build shows after pasting \"abc\"" "$pasted"
+assert_eq "paste of \"abc\" is refused with \"Invalid input\" (Windows' DisplayPasteError)" "Invalid input" "$pasted"
 record "the ring's paste line" "$(ring_since "$MARK" | grep -F '[calc] paste' | head -1 | sed 's/.*\[calc\]/[calc]/')"
 keys clear
 
