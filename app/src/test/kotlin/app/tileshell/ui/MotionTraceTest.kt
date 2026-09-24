@@ -1,4 +1,4 @@
-package app.tileshell.recorder
+package app.tileshell.ui
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

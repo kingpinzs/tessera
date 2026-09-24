@@ -4,8 +4,6 @@ import android.os.SystemClock
 import androidx.compose.animation.core.Easing
 import androidx.compose.runtime.withFrameNanos
 import app.tileshell.diag.Diagnostics
-import kotlin.math.max
-import kotlin.math.roundToInt
 
 /**
  * The shell's own motion clock (phase 15 Decisions C-5 and C-31; Acceptance preamble "Motion clock").
@@ -21,37 +19,31 @@ import kotlin.math.roundToInt
  * between two of them — so a janky motion fails on the shell's own clock (≤ 33.4 ms, two vsyncs).
  */
 object MotionClock {
+    /** Drives [onValue] from 0 to 1 over [durationMs] on [easing], one value per drawn frame, and logs the frames. */
     suspend fun animate(name: String, durationMs: Int, easing: Easing, onValue: (Float) -> Unit) {
-        val t0Uptime = SystemClock.uptimeMillis()
-        val t0 = withFrameNanos { it }
-        onValue(easing.transform(0f))
-        var last = t0
-        var frames = 0
-        var maxGap = 0.0
-        var peak = 0f
-        var peakAt = 0L
-        var settle: Long
+        val trace = MotionTrace(name, SystemClock.uptimeMillis())
+        val start = withFrameNanos { it }
+        val first = easing.transform(0f)
+        onValue(first)
+        trace.frame(start, first)
         while (true) {
             val now = withFrameNanos { it }
-            frames++
-            maxGap = max(maxGap, (now - last) / 1_000_000.0)
-            last = now
-            val elapsed = (now - t0) / 1_000_000
-            val fraction = (elapsed.toFloat() / durationMs).coerceAtMost(1f)
+            val fraction = ((now - start) / 1_000_000f / durationMs).coerceAtMost(1f)
             val v = easing.transform(fraction)
             onValue(v)
-            if (v > peak) { peak = v; peakAt = elapsed }
-            if (fraction >= 1f) { settle = elapsed; break }
+            trace.frame(now, v)
+            if (fraction >= 1f) break
         }
-        val overshoot = ((peak - 1f).coerceAtLeast(0f) * 100).roundToInt()
-        Diagnostics.add("motion", "$name t0=$t0Uptime peak=$peakAt overshoot=$overshoot% settle=$settle frames=$frames maxGapMs=${"%.1f".format(maxGap)}")
+        Diagnostics.add("motion", trace.message())
     }
 
     /**
-     * A change drawn in one frame (a tab tap's jump, the record button's cut): [settle] is the time from the input
-     * to the first frame that shows the new state, measured by the caller with [SystemClock.uptimeMillis].
+     * A change drawn in one frame (a tab tap's jump): the input at [inputUptime], the first frame showing the new
+     * state at [firstFrameUptime] — so `settle` is input-to-frame on the uptime clock.
      */
     fun jump(name: String, inputUptime: Long, firstFrameUptime: Long) {
-        Diagnostics.add("motion", "$name t0=$inputUptime peak=0 overshoot=0% settle=${firstFrameUptime - inputUptime} frames=1 maxGapMs=0.0")
+        val trace = MotionTrace(name, inputUptime)
+        trace.frame(firstFrameUptime * 1_000_000L, 1f)
+        Diagnostics.add("motion", trace.message())
     }
 }

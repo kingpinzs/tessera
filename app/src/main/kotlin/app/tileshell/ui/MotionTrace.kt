@@ -1,13 +1,12 @@
-package app.tileshell.recorder
+package app.tileshell.ui
 
 /**
- * The shell's own motion clock for Voice Recorder's motions (phase 15 C-5 / C-31 / T15-32): the frames a motion
- * was drawn on, as `withFrameNanos` reported them, turned into the one line rows assert against —
- * `[motion] <name> t0=<uptime> peak=<ms> overshoot=<%> settle=<ms> frames=<n> maxGapMs=<ms>`.
- *
- * Voice Recorder animates one thing (its flyouts' 233-ms grow, R7 §3.6.4) and cuts one (the record → recording
- * change, a one-frame cut, 7.1, whose line is secondary to E24's pixel grading). Pure, so the arithmetic is
- * proven on the host JVM.
+ * The shell's one motion clock (phase 15 C-5 / C-31 / T15-32): the frames a motion was drawn on, as
+ * `withFrameNanos` reported them, turned into the one line rows assert against —
+ * `[motion] <name> t0=<uptime> peak=<ms> overshoot=<%> settle=<ms> frames=<n> maxGapMs=<ms>` — every time measured
+ * from t0, the input's or the motion's start on the uptime clock. [MotionClock] drives animations through it, and a
+ * one-frame cut (the record → recording change) records its frames here directly. Pure, so the arithmetic is proven
+ * on the host JVM (MotionTraceTest). (Written for Voice Recorder; made the shell's single clock at its merge, Rule 16.)
  */
 class MotionTrace(val name: String, val t0UptimeMs: Long) {
 

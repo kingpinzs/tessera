@@ -1,6 +1,7 @@
 package app.tileshell.recorder
 
 import androidx.compose.animation.core.Animatable
+import app.tileshell.ui.MotionTrace
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
