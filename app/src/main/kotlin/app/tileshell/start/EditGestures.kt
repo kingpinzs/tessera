@@ -73,6 +73,10 @@ fun Modifier.startEditGestures(
         val hit = hitTest(edit, geo, coords, down.position, pitchScale)
         if (!edit.active) {
             if (hit !is Hit.Tile) return@awaitEachGesture
+            // A DOWN the tile's own handler already took — a press on a Music tile's transport control
+            // (TileView / TileControls) — is the control's, never a hold: a still finger on pause used to enter
+            // edit mode at 783 ms, and the control never fired (found by phase 11's build-start check, T11-38).
+            if (down.isConsumed) return@awaitEachGesture
             // The hold race: a move past the touch slop, a consumption (the scroll or the pager taking the
             // gesture) or a release before 783 ms all mean this was not a hold.
             val broke = withTimeoutOrNull(Edit.HOLD_MS) { waitForMoveOrUp(down, viewConfiguration.touchSlop) }
