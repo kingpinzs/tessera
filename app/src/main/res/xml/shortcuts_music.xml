@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Phase 11 (interview Q1 A): Music's four pivots as static App Shortcuts, declared on MusicActivity (per-activity query, T11-12). Ranks follow this order. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="songs"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_songs"
+        android:shortcutShortLabel="@string/shortcut_songs">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.music.MusicActivity">
+            <extra android:name="pivot" android:value="SONGS" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="albums"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_albums"
+        android:shortcutShortLabel="@string/shortcut_albums">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.music.MusicActivity">
+            <extra android:name="pivot" android:value="ALBUMS" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="artists"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_artists"
+        android:shortcutShortLabel="@string/shortcut_artists">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.music.MusicActivity">
+            <extra android:name="pivot" android:value="ARTISTS" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="playlists"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_playlists"
+        android:shortcutShortLabel="@string/shortcut_playlists">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.music.MusicActivity">
+            <extra android:name="pivot" android:value="PLAYLISTS" />
+        </intent>
+    </shortcut>
+</shortcuts>

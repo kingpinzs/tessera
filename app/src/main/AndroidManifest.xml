@@ -120,6 +120,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.APP_MUSIC" />
             </intent-filter>
+            <!-- Phase 11: Music's pivots as static App Shortcuts (interview Q1 A), on this activity for the per-activity query. -->
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_music" />
         </activity>
 
         <activity
@@ -146,6 +148,8 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Phase 11: Start settings' pages as static App Shortcuts (interview Q1 A), on this activity for the per-activity query. -->
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_settings" />
         </activity>
 
         <service
