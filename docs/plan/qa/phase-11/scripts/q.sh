@@ -163,8 +163,10 @@ import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
 for n in root.iter("node"):
     if n.get("resource-id") == sys.argv[2]:
+        # The first text that is not an icon-font glyph (Private Use Area): a page header draws its glyph first.
         for d in n.iter("node"):
-            if d.get("text"): print(d.get("text")); sys.exit(0)
+            t = d.get("text") or ""
+            if t and not all(0xE000 <= ord(c) <= 0xF8FF for c in t): print(t); sys.exit(0)
         print(""); sys.exit(0)
 PY
 }

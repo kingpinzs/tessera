@@ -1,0 +1,36 @@
+# phase 01 regression 2026-09-23T22:35:53-06:00
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/scripts/../baseline_layout.json: 1 file pushed, 0 skipped. 5.6 MB/s (841 bytes in 0.000s)
+top activity on Start: app.tileshell/.StartActivity
+--- 1. a tap on a grid tile launches its app ---
+after the tap the top activity is org.chromium.webview_shell/.WebViewBrowserActivity
+PASS  a tile tap launched another app (got yes)
+--- 2. a tap on a bottom-row tile launches its app ---
+after the row tap the top activity is com.android.dialer/.main.impl.MainActivity
+PASS  a row tile tap launched another app (got yes)
+--- 3. the pivot still swipes to the app list and back ---
+PASS  swipe opened the app list (got yes)
+PASS  Back returned to Start (got yes)
+--- 4. Start still scrolls (with a layout taller than the screen: the default ten tiles are not) ---
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-REGRESS/r_tall.json: 1 file pushed, 0 skipped. 29.8 MB/s (829 bytes in 0.000s)
+PASS  a swipe scrolled the grid (got yes)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-REGRESS/r_layout_before.json: 1 file pushed, 0 skipped. 30.1 MB/s (841 bytes in 0.000s)
+--- 5. a short press does NOT enter edit mode (under the 783 ms hold) ---
+after a 300 ms press the top activity is app.tileshell/.settings.SettingsActivity
+PASS  a 300 ms press acted as a tap, not a hold (got 0)
+PASS  no edit-mode discs after a short press (got yes)
+--- 6. Home from another app returns to Start ---
+PASS  Home shows the shell (got app.tileshell)
+--- 7. the drawn Windows key returns the pivot to Start and scrolls it to the top (X20 / H28) ---
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-REGRESS/r_tall2.json: 1 file pushed, 0 skipped. 19.8 MB/s (829 bytes in 0.000s)
+first tile's y after scrolling: 0
+PASS  on the app list before pressing the Windows key (got yes)
+tapping the drawn Windows key at 540 2268
+PASS  the Windows key brought the pivot back to Start (got 0)
+first tile's y after the Windows key: 84 (84 is the top of the grid)
+PASS  and scrolled Start back to the top (X20) (got 84)
+the shell's own record:     2026-09-23 22:37:13.751 wall=1790224633751 [start] home: page 0, scrolled to top
+PASS  the shell logged the home event (got yes)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-REGRESS/r_layout_before2.json: 1 file pushed, 0 skipped. 26.3 MB/s (841 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-REGRESS/r_layout_device.json: 1 file pushed, 0 skipped. 50.5 MB/s (1390 bytes in 0.000s)
+restored: the device's own layout from before the run
+12 passed, 0 failed
