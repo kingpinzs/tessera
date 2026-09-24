@@ -21,21 +21,25 @@ internal object CopyPaste {
     private const val VALID_SCIENTIFIC = "$VALID_STANDARD()^%"
     private const val VALID_PROGRAMMER = "$VALID_STANDARD()%abcdfABCDEF"
 
-    private const val WSPC = "[\\s\\x85]*"
+    // .NET's \d and \s are Unicode-aware: \d = \p{Nd}, \s = [\f\n\r\t\v\x85\p{Z}]. They are spelled out so the pattern
+    // means the same on the JVM and on Android, whose ICU regex rejects Pattern.UNICODE_CHARACTER_CLASS at compile time.
+    private const val DIGIT = "\\p{Nd}"
+    private const val SPACE = "[\\f\\n\\r\\t\\x0B\\x85\\p{Z}]"
+    private const val WSPC = "$SPACE*"
     private const val WSPC_LPARENS = "$WSPC[(]*$WSPC"
     private const val WSPC_LPAREN_SIGNED = "$WSPC([-+]?[(])*$WSPC"
     private const val WSPC_RPARENS = "$WSPC[)]*$WSPC"
     private const val SIGNED_DEC_FLOAT = "(?:[-+]?(?:[0-9]+(\\.[0-9]*)?|\\.[0-9]+))"
     private const val OPTIONAL_E_NOTATION = "(?:e[+-]?[0-9]+)?"
 
-    private const val HEX_CHARS = "([a-f]|[A-F]|\\d)+((_|'|`)([a-f]|[A-F]|\\d)+)*"
-    private const val DEC_CHARS = "\\d+((_|'|`)\\d+)*"
+    private const val HEX_CHARS = "([a-f]|[A-F]|$DIGIT)+((_|'|`)([a-f]|[A-F]|$DIGIT)+)*"
+    private const val DEC_CHARS = "$DIGIT+((_|'|`)$DIGIT+)*"
     private const val OCT_CHARS = "[0-7]+((_|'|`)[0-7]+)*"
     private const val BIN_CHARS = "[0-1]+((_|'|`)[0-1]+)*"
     private const val UINT_SUFFIXES = "[uU]?[lL]{0,2}"
 
-    /** .NET Regex semantics for \s and \d are Unicode-aware; FullMatch wraps in \A(?:...)\z. */
-    private fun fullMatch(p: String): Pattern = Pattern.compile("\\A(?:$p)\\z", Pattern.UNICODE_CHARACTER_CLASS)
+    /** FullMatch wraps in \A(?:...)\z; the Unicode-aware classes are spelled out above ([DIGIT], [SPACE]). */
+    private fun fullMatch(p: String): Pattern = Pattern.compile("\\A(?:$p)\\z")
 
     private val standardPatterns = listOf(fullMatch(WSPC + SIGNED_DEC_FLOAT + OPTIONAL_E_NOTATION + WSPC))
     private val scientificPatterns = listOf(
