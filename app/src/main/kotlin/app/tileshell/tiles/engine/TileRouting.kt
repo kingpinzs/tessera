@@ -67,4 +67,21 @@ object TileRouting {
 
     /** The badge-store key whose count the tile shows, or null for a shell app's tile (no count from the shell's own notifications). */
     fun tileBadgeKey(pkg: String, shellPackage: String): String? = pkg.takeIf { it != shellPackage }
+
+    // --- Phase 15 build task 4 (T15-40): the shell's own secondary tiles ------------------------------------------
+
+    /** Alarms & Clock's activity: the owner of the shell's `timer.<id>` and `stopwatch` secondary tiles. */
+    const val CLOCK_ACTIVITY = "app.tileshell.clock.ClockActivity"
+
+    /** A pinned timer's tile id, and the stopwatch's (`LiveTileProtocol.TILE_ID_PATTERN` fits both). */
+    const val TIMER_TILE_PREFIX = "timer."
+    const val STOPWATCH_TILE_ID = "stopwatch"
+
+    /**
+     * The activity a tap on one of the SHELL'S OWN secondary tiles opens, by tile id — never "whichever in-APK app
+     * sorts first" (`AppCatalog.firstForPackage`, the rule every other owner keeps: one package, one launcher
+     * activity). Null for a shell tile id no shell app claims; the caller then falls back to the package rule.
+     */
+    fun shellSecondaryActivity(tileId: String): String? =
+        if (tileId.startsWith(TIMER_TILE_PREFIX) || tileId == STOPWATCH_TILE_ID) CLOCK_ACTIVITY else null
 }

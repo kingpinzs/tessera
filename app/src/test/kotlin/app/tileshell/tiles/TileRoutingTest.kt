@@ -31,6 +31,15 @@ class TileRoutingTest {
         assertEquals(musicKey, TileRouting.sessionGrowthKey(shell, musicTag, shell))
     }
 
+    @Test fun theShellsOwnSecondaryTilesOpenAlarmsAndClock() {
+        // Phase 15 T15-40: a pinned timer or the stopwatch opens the clock's component, never "whichever in-APK app sorts first".
+        assertEquals("app.tileshell.clock.ClockActivity", TileRouting.shellSecondaryActivity("timer.ta1b2c3d4"))
+        assertEquals("app.tileshell.clock.ClockActivity", TileRouting.shellSecondaryActivity("stopwatch"))
+        assertNull(TileRouting.shellSecondaryActivity("stopwatch2"))
+        assertNull(TileRouting.shellSecondaryActivity("timer"))
+        assertNull(TileRouting.shellSecondaryActivity("recorder.take1"))
+    }
+
     @Test fun everyOtherShellSessionGoesToNoTile() {
         for (tag in listOf("androidx.media3.session.id.recorder", "androidx.media3.session.id.video", "androidx.media3.session.id.", "x", null)) {
             assertNull(tag, TileRouting.sessionContentKey(shell, tag, shell))
