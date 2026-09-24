@@ -69,16 +69,40 @@ assert_eq "830 ms: quick_sat:0 only" "yes no no no" "$(for i in 0 1 2 3; do has_
 c6
 
 log "--- phase 01 E10 press styles: a short press shows the style and opens no burst ---"
+# The press is SHORT by construction and measured (pass 6 found the old one racing the hold: DOWN, 0.3 s, then a PNG
+# capture that took long enough on a loaded host to pass 783 ms). One device shell does it all: a raw touch down (the
+# emulator's multi-touch device, with a pressure), 0.3 s, a raw capture to /data/local/tmp (no PNG encoding inside the
+# press), the press's own duration read on the device clock, then the finger slides 400 px down and lifts — a scroll,
+# never a tap, so nothing launches. A press that reached 700 ms is retaken (up to 3), and its duration is asserted.
+TS=/dev/input/event2
+mt() { echo "sendevent $TS 3 47 0; sendevent $TS 3 57 ${1}; sendevent $TS 3 53 $(( $2 * 32767 / 1080 )); sendevent $TS 3 54 $(( $3 * 32767 / 2340 )); sendevent $TS 3 58 512; sendevent $TS 3 48 8; sendevent $TS 0 0 0;"; }
+raw_png() { # device raw capture -> png
+  adb pull "$1" "$2.raw" >/dev/null 2>&1
+  python3 - "$2.raw" "$2" <<'PY'
+import struct, sys
+from PIL import Image
+b = open(sys.argv[1], "rb").read(); w, h, _ = struct.unpack("<III", b[:12]); hdr = len(b) - w * h * 4
+Image.frombytes("RGBA", (w, h), b[hdr:]).convert("RGB").save(sys.argv[2])
+PY
+}
 restore baseline_layout.json
 for style in none tilt p4; do
   set_press "$style"
   qdump "$ROW_DIR/press-$style.xml"
   read -r l t r b <<< "$(bounds "$ROW_DIR/press-$style.xml" tile:slot:BROWSER)"
-  screencap "$ROW_DIR/press-$style-rest.png"
-  MARK="$(ring_mark)"
-  hold_down $((l + 40)) $((t + 40)); sleep 0.3
-  screencap "$ROW_DIR/press-$style-held.png"
-  adb shell input motionevent CANCEL $((l + 40)) $((t + 40)); sleep 1
+  px=$((l + 40)); py=$((t + 40))
+  adb shell screencap /data/local/tmp/qa-rest.raw; raw_png /data/local/tmp/qa-rest.raw "$ROW_DIR/press-$style-rest.png"
+  ms=""
+  for attempt in 1 2 3; do
+    MARK="$(ring_mark)"
+    ms="$(adb shell "t0=\$(date +%s%N); $(mt 100 $px $py) sleep 0.3; screencap /data/local/tmp/qa-held.raw; t1=\$(date +%s%N); $(mt 100 $px $((py + 400))) sendevent $TS 3 47 0; sendevent $TS 3 57 4294967295; sendevent $TS 0 0 0; echo \$(( (t1 - t0) / 1000000 ))" | tr -d '\r' | tail -1)"
+    sleep 1
+    note "press_$style attempt $attempt: pressed ${ms} ms up to the end of the capture"
+    [ -n "$ms" ] && [ "$ms" -lt 700 ] && break
+    c6; ensure_start_page
+  done
+  raw_png /data/local/tmp/qa-held.raw "$ROW_DIR/press-$style-held.png"
+  assert_eq "press_$style: the press was short (under 700 ms on the device clock, capture included)" yes "$([ -n "$ms" ] && [ "$ms" -lt 700 ] && echo yes || echo "no ($ms ms)")"
   # shellcheck disable=SC2086
   eq="$(python3 "$(dirname "$0")/qpix.py" equal "$ROW_DIR/press-$style-rest.png" "$ROW_DIR/press-$style-held.png" $((l + 4)) $((t + 4)) $((r - 4)) $((b - 4)) 2)"
   if [ "$style" = none ]; then want=EQUAL; else want=DIFF; fi
@@ -86,6 +110,8 @@ for style in none tilt p4; do
   S="$(ring_since "$MARK")"
   assert_absent "press_$style: no burst" "[quick] burst on" "$S"
   assert_absent "press_$style: no hold" "[edit] hold" "$S"
+  assert_absent "press_$style: nothing launched (the press ended in a scroll)" "[launch]" "$S"
+  c6
 done
 set_press none
 
