@@ -1,0 +1,356 @@
+Activity Resolver Table:
+  Non-Data Actions:
+      android.intent.action.MAIN:
+        fc0f174 app.tileshell/.StartActivity filter 270569d
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.HOME"
+          Category: "android.intent.category.DEFAULT"
+        ea6e712 app.tileshell/.music.MusicActivity filter 1640ee3
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.LAUNCHER"
+          Category: "android.intent.category.APP_MUSIC"
+        ab5b0e0 app.tileshell/.clock.ClockActivity filter 880bf99
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.LAUNCHER"
+        474fb0c app.tileshell/.weather.WeatherActivity filter 194bc55
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.LAUNCHER"
+        c74466a app.tileshell/.settings.SettingsActivity filter af2775b
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.LAUNCHER"
+        4fcbbf8 app.tileshell/.recorder.RecorderActivity filter ab1c8d1
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.LAUNCHER"
+        b885f36 app.tileshell/.calculator.CalculatorActivity filter fd72e37
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.LAUNCHER"
+          Category: "android.intent.category.APP_CALCULATOR"
+      android.intent.action.SET_ALARM:
+        288625e app.tileshell/.clock.AlarmApiActivity filter 4beb63f
+          Action: "android.intent.action.SET_ALARM"
+          Action: "android.intent.action.SET_TIMER"
+          Action: "android.intent.action.SHOW_ALARMS"
+          Action: "android.intent.action.SHOW_TIMERS"
+          Category: "android.intent.category.DEFAULT"
+      android.intent.action.SET_TIMER:
+        288625e app.tileshell/.clock.AlarmApiActivity filter 4beb63f
+          Action: "android.intent.action.SET_ALARM"
+          Action: "android.intent.action.SET_TIMER"
+          Action: "android.intent.action.SHOW_ALARMS"
+          Action: "android.intent.action.SHOW_TIMERS"
+          Category: "android.intent.category.DEFAULT"
+      android.intent.action.SHOW_ALARMS:
+        288625e app.tileshell/.clock.AlarmApiActivity filter 4beb63f
+          Action: "android.intent.action.SET_ALARM"
+          Action: "android.intent.action.SET_TIMER"
+          Action: "android.intent.action.SHOW_ALARMS"
+          Action: "android.intent.action.SHOW_TIMERS"
+          Category: "android.intent.category.DEFAULT"
+      android.intent.action.SHOW_TIMERS:
+        288625e app.tileshell/.clock.AlarmApiActivity filter 4beb63f
+          Action: "android.intent.action.SET_ALARM"
+          Action: "android.intent.action.SET_TIMER"
+          Action: "android.intent.action.SHOW_ALARMS"
+          Action: "android.intent.action.SHOW_TIMERS"
+          Category: "android.intent.category.DEFAULT"
+
+Receiver Resolver Table:
+  Schemes:
+      package:
+        f338c2 app.tileshell/.tiles.api.LiveTileSystemReceiver filter ae676d3
+          Action: "android.intent.action.PACKAGE_FULLY_REMOVED"
+          Scheme: "package"
+
+  Non-Data Actions:
+      me.leolin.shortcutbadger.BADGE_COUNT_UPDATE:
+        43d9fa4 app.tileshell/.tiles.api.LegacyBadgeReceiver filter 1b9210d
+          Action: "me.leolin.shortcutbadger.BADGE_COUNT_UPDATE"
+          Action: "android.intent.action.BADGE_COUNT_UPDATE"
+      android.intent.action.BADGE_COUNT_UPDATE:
+        43d9fa4 app.tileshell/.tiles.api.LegacyBadgeReceiver filter 1b9210d
+          Action: "me.leolin.shortcutbadger.BADGE_COUNT_UPDATE"
+          Action: "android.intent.action.BADGE_COUNT_UPDATE"
+      androidx.profileinstaller.action.SAVE_PROFILE:
+        401f0e app.tileshell/androidx.profileinstaller.ProfileInstallReceiver filter 4fe64c5
+          Action: "androidx.profileinstaller.action.SAVE_PROFILE"
+      android.intent.action.LOCKED_BOOT_COMPLETED:
+        6871210 app.tileshell/.cortana.reminders.ReminderReceiver filter 763c109
+          Action: "android.intent.action.LOCKED_BOOT_COMPLETED"
+          Action: "android.intent.action.TIMEZONE_CHANGED"
+          Action: "android.intent.action.TIME_SET"
+          Action: "android.intent.action.BOOT_COMPLETED"
+          Action: "android.intent.action.MY_PACKAGE_REPLACED"
+      androidx.profileinstaller.action.INSTALL_PROFILE:
+        401f0e app.tileshell/androidx.profileinstaller.ProfileInstallReceiver filter 797ad2f
+          Action: "androidx.profileinstaller.action.INSTALL_PROFILE"
+      android.intent.action.TIMEZONE_CHANGED:
+        6871210 app.tileshell/.cortana.reminders.ReminderReceiver filter 763c109
+          Action: "android.intent.action.LOCKED_BOOT_COMPLETED"
+          Action: "android.intent.action.TIMEZONE_CHANGED"
+          Action: "android.intent.action.TIME_SET"
+          Action: "android.intent.action.BOOT_COMPLETED"
+          Action: "android.intent.action.MY_PACKAGE_REPLACED"
+      android.intent.action.TIME_SET:
+        6871210 app.tileshell/.cortana.reminders.ReminderReceiver filter 763c109
+          Action: "android.intent.action.LOCKED_BOOT_COMPLETED"
+          Action: "android.intent.action.TIMEZONE_CHANGED"
+          Action: "android.intent.action.TIME_SET"
+          Action: "android.intent.action.BOOT_COMPLETED"
+          Action: "android.intent.action.MY_PACKAGE_REPLACED"
+      androidx.profileinstaller.action.SKIP_FILE:
+        401f0e app.tileshell/androidx.profileinstaller.ProfileInstallReceiver filter 3b33f3c
+          Action: "androidx.profileinstaller.action.SKIP_FILE"
+      androidx.profileinstaller.action.BENCHMARK_OPERATION:
+        401f0e app.tileshell/androidx.profileinstaller.ProfileInstallReceiver filter 8631e1a
+          Action: "androidx.profileinstaller.action.BENCHMARK_OPERATION"
+      android.intent.action.BOOT_COMPLETED:
+        6871210 app.tileshell/.cortana.reminders.ReminderReceiver filter 763c109
+          Action: "android.intent.action.LOCKED_BOOT_COMPLETED"
+          Action: "android.intent.action.TIMEZONE_CHANGED"
+          Action: "android.intent.action.TIME_SET"
+          Action: "android.intent.action.BOOT_COMPLETED"
+          Action: "android.intent.action.MY_PACKAGE_REPLACED"
+      android.intent.action.MY_PACKAGE_REPLACED:
+        6871210 app.tileshell/.cortana.reminders.ReminderReceiver filter 763c109
+          Action: "android.intent.action.LOCKED_BOOT_COMPLETED"
+          Action: "android.intent.action.TIMEZONE_CHANGED"
+          Action: "android.intent.action.TIME_SET"
+          Action: "android.intent.action.BOOT_COMPLETED"
+          Action: "android.intent.action.MY_PACKAGE_REPLACED"
+
+Service Resolver Table:
+  Non-Data Actions:
+      androidx.media3.session.MediaSessionService:
+        77bed4b app.tileshell/.music.MusicService filter 5131328
+          Action: "androidx.media3.session.MediaSessionService"
+          Action: "android.media.browse.MediaBrowserService"
+      android.speech.RecognitionService:
+        4c1677d app.tileshell/.cortana.CortanaRecognitionService filter b8f5672 permission android.permission.BIND_VOICE_INTERACTION
+          Action: "android.speech.RecognitionService"
+          Category: "android.intent.category.DEFAULT"
+      android.view.InputMethod:
+        68abac3 app.tileshell/.ime.KeyboardService filter 3cb1f40 permission android.permission.BIND_INPUT_METHOD
+          Action: "android.view.InputMethod"
+      android.service.voice.VoiceInteractionService:
+        a1a1327 app.tileshell/.cortana.CortanaService filter 61a39d4 permission android.permission.BIND_VOICE_INTERACTION
+          Action: "android.service.voice.VoiceInteractionService"
+      android.service.notification.NotificationListenerService:
+        1e58841 app.tileshell/.feeds.TileNotificationListener filter 18501e6 permission android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
+          Action: "android.service.notification.NotificationListenerService"
+      android.media.browse.MediaBrowserService:
+        77bed4b app.tileshell/.music.MusicService filter 5131328
+          Action: "androidx.media3.session.MediaSessionService"
+          Action: "android.media.browse.MediaBrowserService"
+
+Preferred Activities User 0:
+  Non-Data Actions:
+      android.intent.action.MAIN:
+        a757e1 app.tileshell/.StartActivity
+         mMatch=0x100000 mAlways=true
+          Selected from:
+            com.android.launcher3/.uioverrides.QuickstepLauncher
+            app.tileshell/.StartActivity
+            com.android.settings/.FallbackHome
+          Action: "android.intent.action.MAIN"
+          Category: "android.intent.category.HOME"
+          Category: "android.intent.category.DEFAULT"
+
+Domain verification status:
+
+Permissions:
+  Permission [app.tileshell.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION] (39cc5b):
+    sourcePackage=app.tileshell
+    uid=10150 gids=[] type=0 prot=signature
+    perm=PermissionInfo{e41ecf8 app.tileshell.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION}
+    flags=0x0
+
+Registered ContentProviders:
+  app.tileshell/.ime.KeyboardConfigProvider:
+    Provider{815a5d1 app.tileshell/.ime.KeyboardConfigProvider}
+  app.tileshell/androidx.startup.InitializationProvider:
+    Provider{a637836 app.tileshell/androidx.startup.InitializationProvider}
+  app.tileshell/.tiles.api.LiveTileProvider:
+    Provider{abed337 app.tileshell/.tiles.api.LiveTileProvider}
+
+ContentProvider Authorities:
+  [app.tileshell.keyboardconfig]:
+    Provider{815a5d1 app.tileshell/.ime.KeyboardConfigProvider}
+      applicationInfo=ApplicationInfo{b24e0a4 app.tileshell}
+  [app.tileshell.livetile]:
+    Provider{abed337 app.tileshell/.tiles.api.LiveTileProvider}
+      applicationInfo=ApplicationInfo{dfdce0d app.tileshell}
+  [app.tileshell.androidx-startup]:
+    Provider{a637836 app.tileshell/androidx.startup.InitializationProvider}
+      applicationInfo=ApplicationInfo{4e6e1c2 app.tileshell}
+
+Key Set Manager:
+  [app.tileshell]
+      Signing KeySets: 20
+
+Packages:
+  Package [app.tileshell] (329c004):
+    appId=10150
+    pkg=Package{d236bd3 app.tileshell}
+    codePath=/data/app/~~5xRW-DsRvfoin3fhzTL76g==/app.tileshell-WGgTHjTWcCmQwvIVcX8DWQ==
+    resourcePath=/data/app/~~5xRW-DsRvfoin3fhzTL76g==/app.tileshell-WGgTHjTWcCmQwvIVcX8DWQ==
+    legacyNativeLibraryDir=/data/app/~~5xRW-DsRvfoin3fhzTL76g==/app.tileshell-WGgTHjTWcCmQwvIVcX8DWQ==/lib
+    extractNativeLibs=false
+    primaryCpuAbi=x86_64
+    secondaryCpuAbi=null
+    cpuAbiOverride=null
+    versionCode=1 minSdk=34 targetSdk=36
+    minExtensionVersions=[]
+    versionName=0.1.0
+    hiddenApiEnforcementPolicy=2
+    usesNonSdkApi=false
+    splits=[base]
+    apkSigningVersion=2
+    flags=[ DEBUGGABLE HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    privateFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PARTIALLY_DIRECT_BOOT_AWARE PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+    forceQueryable=false
+    pageSizeCompat=0
+    scannedAsStoppedSystemApp=false
+    supportsScreens=[small, medium, large, xlarge, resizeable, anyDensity]
+    usesOptionalLibraries:
+      androidx.window.extensions
+      androidx.window.sidecar
+    usesLibraryFiles:
+      /system_ext/framework/androidx.window.extensions.jar
+      /system_ext/framework/androidx.window.sidecar.jar
+    timeStamp=2026-09-24 08:06:40
+    lastUpdateTime=2026-09-24 08:06:40
+    installerPackageName=null
+    installerPackageUid=-1
+    initiatingPackageName=com.android.shell
+    originatingPackageName=null
+    packageSource=1
+    appMetadataFilePath=null
+    appMetadataSource=0
+    signatures=PackageSignatures{2abd157 version:2, signatures:[444c5917], past signatures:[]}
+    installPermissionsFixed=false
+    pkgFlags=[ DEBUGGABLE HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    privatePkgFlags=[ PRIVATE_FLAG_ACTIVITIES_RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION ALLOW_AUDIO_PLAYBACK_CAPTURE PARTIALLY_DIRECT_BOOT_AWARE PRIVATE_FLAG_ALLOW_NATIVE_HEAP_POINTER_TAGGING ]
+    apexModuleName=null
+    declared permissions:
+      app.tileshell.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: prot=signature
+    requested permissions:
+      android.permission.READ_SMS
+      android.permission.READ_CALENDAR
+      android.permission.POST_NOTIFICATIONS
+      android.permission.READ_CALL_LOG
+      android.permission.ACCESS_FINE_LOCATION
+      android.permission.MODIFY_AUDIO_SETTINGS
+      android.permission.ACCESS_HIDDEN_PROFILES
+      android.permission.SYSTEM_ALERT_WINDOW
+      com.sec.android.provider.badge.permission.READ
+      android.permission.FOREGROUND_SERVICE
+      android.permission.READ_MEDIA_VISUAL_USER_SELECTED
+      android.permission.RECEIVE_BOOT_COMPLETED
+      android.permission.INTERNET
+      android.permission.USE_EXACT_ALARM
+      android.permission.PACKAGE_USAGE_STATS
+      android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED
+      android.permission.ACCESS_COARSE_LOCATION
+      android.permission.USE_FULL_SCREEN_INTENT
+      android.permission.SEND_SMS
+      android.permission.CALL_PHONE
+      android.permission.READ_MEDIA_IMAGES
+      app.tileshell.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+      android.permission.ACCESS_NETWORK_STATE
+      android.permission.WRITE_CALENDAR
+      android.permission.READ_MEDIA_AUDIO
+      android.permission.FOREGROUND_SERVICE_MICROPHONE
+      android.permission.REQUEST_DELETE_PACKAGES
+      android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK
+      android.permission.VIBRATE
+      android.permission.QUERY_ALL_PACKAGES
+      android.permission.RECORD_AUDIO
+      android.permission.WAKE_LOCK
+      android.permission.READ_CONTACTS
+      android.permission.ACCESS_BACKGROUND_LOCATION
+    install permissions:
+      android.permission.MODIFY_AUDIO_SETTINGS: granted=true
+      android.permission.ACCESS_HIDDEN_PROFILES: granted=true
+      android.permission.SYSTEM_ALERT_WINDOW: granted=true, flags=[ GRANTED_BY_ROLE]
+      android.permission.FOREGROUND_SERVICE: granted=true
+      android.permission.RECEIVE_BOOT_COMPLETED: granted=true
+      android.permission.INTERNET: granted=true
+      android.permission.USE_EXACT_ALARM: granted=true
+      android.permission.PACKAGE_USAGE_STATS: granted=true
+      android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED: granted=true
+      android.permission.USE_FULL_SCREEN_INTENT: granted=true
+      app.tileshell.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: granted=true
+      android.permission.ACCESS_NETWORK_STATE: granted=true
+      android.permission.FOREGROUND_SERVICE_MICROPHONE: granted=true
+      android.permission.REQUEST_DELETE_PACKAGES: granted=true
+      android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK: granted=true
+      android.permission.VIBRATE: granted=true
+      android.permission.QUERY_ALL_PACKAGES: granted=true
+      android.permission.WAKE_LOCK: granted=true
+    User 0: ceDataInode=1007875 deDataInode=802970 installed=true hidden=false suspended=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false quarantined=false
+      installReason=0
+      dataDir=/data/user/0/app.tileshell
+      firstInstallTime=2026-09-23 17:49:11
+      uninstallReason=0
+      overlay paths:
+        /product/overlay/EmulationPixel7/EmulationPixel7Overlay.apk
+      legacy overlay paths:
+        /product/overlay/EmulationPixel7/EmulationPixel7Overlay.apk
+      gids=[3003]
+      runtime permissions:
+        android.permission.READ_SMS: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT|RESTRICTION_SYSTEM_EXEMPT]
+        android.permission.READ_CALENDAR: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.POST_NOTIFICATIONS: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.READ_CALL_LOG: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT|RESTRICTION_SYSTEM_EXEMPT]
+        android.permission.ACCESS_FINE_LOCATION: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.READ_MEDIA_VISUAL_USER_SELECTED: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.ACCESS_COARSE_LOCATION: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.SEND_SMS: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT|RESTRICTION_SYSTEM_EXEMPT]
+        android.permission.CALL_PHONE: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.READ_MEDIA_IMAGES: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.WRITE_CALENDAR: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.READ_MEDIA_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.RECORD_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.READ_CONTACTS: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+        android.permission.ACCESS_BACKGROUND_LOCATION: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT]
+
+Queries:
+  system apps queryable: false
+  queries via forceQueryable:
+  queries via package name:
+  queries via component:
+    com.android.settings.intelligence:
+      app.tileshell
+    com.android.inputmethod.latin:
+      app.tileshell
+    com.android.wallpaper:
+      app.tileshell
+    com.android.permissioncontroller:
+      app.tileshell
+    deckers.thibault.aves.libre:
+      app.tileshell
+    eu.faircode.email:
+      app.tileshell
+  queryable via interaction:
+    User 0:
+      [com.android.settings,com.android.localtransport,com.android.dynsystem,com.android.server.telecom,com.android.keychain,com.android.location.fused,com.android.providers.settings,com.android.emulator.multidisplay,com.android.inputdevices,com.android.DeviceAsWebcam,android]:
+        app.tileshell
+      com.android.providers.calendar:
+        app.tileshell
+      com.android.inputmethod.latin:
+        app.tileshell
+      com.android.providers.media.module:
+        app.tileshell
+      app.tileshell:
+        [com.android.settings,com.android.localtransport,com.android.dynsystem,com.android.server.telecom,com.android.keychain,com.android.location.fused,com.android.providers.settings,com.android.emulator.multidisplay,com.android.inputdevices,com.android.DeviceAsWebcam,android]
+  queryable via uses-library:
+
+Dexopt state:
+  [app.tileshell]
+    path: /data/app/~~5xRW-DsRvfoin3fhzTL76g==/app.tileshell-WGgTHjTWcCmQwvIVcX8DWQ==/base.apk
+      x86_64: [status=verify] [reason=install] [primary-abi]
+        [location is /data/app/~~5xRW-DsRvfoin3fhzTL76g==/app.tileshell-WGgTHjTWcCmQwvIVcX8DWQ==/oat/x86_64/base.odex]
+
+Compiler stats:
+  [app.tileshell]
+     base.apk - 381
