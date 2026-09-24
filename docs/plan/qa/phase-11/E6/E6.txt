@@ -1,0 +1,35 @@
+==============================================================================
+ROW E6 — motion on the shell's clock: open peak 107±17 ms, overshoot 6.8±2 %, settle ≤ 267; close alpha0 36±17
+at            2026-09-23T19:30:02-06:00
+driver        e6.sh blob d6769100afb7f3c06bf1481c805083f078456b6c
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     fcd8bba1e3fe390a 336439365 bytes
+apk installed 3bea06a7cc6ae0e7
+apk match     yes (3bea06a7cc6ae0e7)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- cold (recorded, not asserted): the first hold after the shell started ---
+      cold: [quick] motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=29703241 peak=100 overshoot=6.5 settle=283 frames=12 maxGapMs=50.0
+--- warm: the measured open, recorded; retaken (up to 5) until the recording's spacing passes phase 05's rule ---
+      attempt 1: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=29709324 peak=100 overshoot=6.5 settle=266 frames=19 maxGapMs=33.3 | recording: frames 72 accent 0 119 212 entry_ms 1828.3 sat_ms 1828.3 sat_minus_entry_frames 0 max_gap_ms 33.7 
+      attempt 2: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=29719491 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | recording: frames 82 accent 0 119 212 entry_ms 1814.5 sat_ms 1814.5 sat_minus_entry_frames 0 max_gap_ms 17.3 
+      accepted attempt 2
+      open line: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=29719491 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7
+PASS  one open line covers all four satellites (one t0)           = 1
+PASS  open peak 107 ± 17 ms                                      100.00 vs 107.00 +/- 17.0
+PASS  open overshoot 6.8 ± 2 %                                   6.50 vs 6.80 +/- 2.0
+PASS  open settle ≤ 250 + 17 ms (T11-29)                        266.00 vs 133.50 +/- 133.5
+PASS  open maxGapMs ≤ 33.4 (C-31)                               16.70 vs 16.70 +/- 16.7
+--- the close: tap elsewhere ---
+      close line: motion close app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=29731024 alpha0=50 settle=50 frames=4 maxGapMs=16.7
+PASS  close alpha0 36 ± 17 ms (the halfway at 36.0 ms)           50.00 vs 36.00 +/- 17.0
+PASS  close settle = alpha0 ± 17 ms (gone at alpha 0)            50.00 vs 50.00 +/- 17.0
+PASS  close maxGapMs ≤ 33.4 (C-31)                              16.70 vs 16.70 +/- 16.7
+--- corroboration: the accepted recording (frame spacing; first satellite pixels vs the entry's first changed frame) ---
+PASS  recording: source frames ≤ 18.2 ms apart during the motion (phase 05's rule)  17.30 vs 9.10 +/- 9.1
+PASS  recording: first satellite pixels outside the tile vs the entry's first changed frame (frames)  0.00 vs 0.00 +/- 1.0
+------------------------------------------------------------------------------
+E6: 12 passed, 0 failed

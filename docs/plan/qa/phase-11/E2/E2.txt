@@ -1,0 +1,37 @@
+==============================================================================
+ROW E2 — the fork: 740 ms taps, 830 ms bursts; a 4-px wobble keeps it, a 40-px glide drags and closes it
+at            2026-09-23T19:07:36-06:00
+driver        e2.sh blob b50c3f7dc1c59123727001c7f66173c57f46fa41
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     fcd8bba1e3fe390a 336439365 bytes
+apk installed 3bea06a7cc6ae0e7
+apk match     yes (3bea06a7cc6ae0e7)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- 740 ms: a tap (the fixture app launches, no hold, no burst) ---
+PASS  the fixture app launched                                    contains [app.tileshell.testclient.a/]
+PASS  no quick_burst                                              = no
+PASS  no edit_disc                                                = no
+PASS  ring: no [quick] burst on (T11-45)                          does not contain [[quick] burst on]
+PASS  ring: no [edit] hold (T11-45)                               does not contain [[edit] hold]
+--- 830 ms: a hold (edit mode and the burst, nothing launched) ---
+PASS  quick_burst present                                         = yes
+PASS  edit mode on (edit_disc:unpin)                              = yes
+PASS  nothing launched: StartActivity resumed                     contains [app.tileshell/.StartActivity]
+PASS  ring: burst on                                              contains [[quick] burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: 4 satellites]
+--- DOWN; 0.9 s; MOVE +4 px; UP: under touchSlop (≈22 px), the burst stays and the tile does not move ---
+PASS  quick_burst still present after the wobble                  = yes
+PASS  tile bounds unchanged by the wobble                         = 365 489 708 832
+PASS  ring: no drag                                               does not contain [[quick] burst closed: drag]
+--- DOWN; 0.9 s; glide +40 px (asserted BEFORE the UP): a drag, the burst closes; after UP the tile is home ---
+PASS  no quick_burst while dragging                               = no
+      held 365 489 708 832, dragged copy 405 440 748 783
+PASS  the dragged tile follows the finger (≥ 30 px from its held bounds)  40.00 vs 40.00 +/- 10.0
+PASS  ring: [edit] drag start                                     contains [[edit] drag start app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0]
+PASS  ring: burst closed: drag                                    contains [[quick] burst closed: drag]
+PASS  after UP the fixture is back in its own cell (± 1 px)      held 365 489 708 832 -> after UP 365 489 708 832
+------------------------------------------------------------------------------
+E2: 19 passed, 0 failed

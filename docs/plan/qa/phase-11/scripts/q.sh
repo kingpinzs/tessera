@@ -171,3 +171,50 @@ PY
 
 # Whether the activity on top is the given component ("pkg/cls"), from dumpsys (resumed activity line).
 resumed() { adb shell dumpsys activity activities | grep -E 'topResumedActivity|mResumedActivity' | head -1 | tr -d '\r'; }
+
+# ------------------------------------------------------------------ Start + theme (phase 01's settings page)
+
+# settings_tap <test tag>: open Start + theme on its own page (the shortcut's own extra), scroll to the control, tap it.
+settings_tap() {
+  adb shell am start -W -n app.tileshell/.settings.SettingsActivity --es page START_THEME >/dev/null 2>&1; sleep 2
+  scroll_to_node "$ROW_DIR/.settings.xml" "$1" 10 || { note "settings_tap: no $1"; return 1; }
+  tap_node "$ROW_DIR/.settings.xml" "$1"; sleep 1
+  dump_ui "$ROW_DIR/.settings-after.xml"
+}
+
+# set_press none|tilt|p4 (RV12: a row that changes it ends by selecting none again).
+set_press() { settings_tap "press_$1"; adb shell input keyevent KEYCODE_HOME; sleep 2.5; ensure_start_page; }
+
+# set_more_tiles on|off: the Show more tiles switch (3 medium columns on, 2 off).
+set_more_tiles() {
+  adb shell am start -W -n app.tileshell/.settings.SettingsActivity --es page START_THEME >/dev/null 2>&1; sleep 2
+  scroll_to_node "$ROW_DIR/.settings.xml" theme_show_more_tiles 10 || return 1
+  local now
+  now="$(grep -oE 'resource-id="theme_show_more_tiles"[^>]*' "$ROW_DIR/.settings.xml" | grep -oE 'checked="(true|false)"' | head -1)"
+  note "show more tiles before: $now; want $1"
+  if { [ "$1" = on ] && [ "$now" = 'checked="false"' ]; } || { [ "$1" = off ] && [ "$now" = 'checked="true"' ]; }; then
+    tap_node "$ROW_DIR/.settings.xml" theme_show_more_tiles; sleep 1
+  fi
+  adb shell input keyevent KEYCODE_HOME; sleep 2.5; ensure_start_page
+}
+
+# A point of the page that no tile, satellite, label or disc covers, between the given y bounds (for "empty space").
+empty_point() { # dump.xml ymin ymax
+  python3 - "$1" "$2" "$3" <<'PY'
+import re, sys
+s = open(sys.argv[1]).read()
+ymin, ymax = int(sys.argv[2]), int(sys.argv[3])
+rects = []
+for n in re.finditer(r"<node[^>]*>", s):
+    n = n.group(0)
+    i = re.search(r'resource-id="((?:tile:|quick_sat|edit_disc|folder_)[^"]*)"', n)
+    b = re.search(r'bounds="\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]"', n)
+    if i and b: rects.append(tuple(map(int, b.groups())))
+pad = 30
+for y in range(ymax, ymin, -20):
+    for x in range(60, 1020, 20):
+        if all(not (l - pad <= x <= r + pad and t - pad <= y <= b + pad) for l, t, r, b in rects):
+            print(x, y); sys.exit(0)
+sys.exit(1)
+PY
+}

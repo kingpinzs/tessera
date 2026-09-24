@@ -1,0 +1,49 @@
+==============================================================================
+ROW E3 — selection and counts: the fixture's four in order, b's one, a failed icon, and every no-burst kind
+at            2026-09-23T19:09:17-06:00
+driver        e3.sh blob f6b95bb95379089d9c916c34e3530754d0557b16
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     fcd8bba1e3fe390a 336439365 bytes
+apk installed 3bea06a7cc6ae0e7
+apk match     yes (3bea06a7cc6ae0e7)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- the fixture: qa_one..qa_four at top-left, top-right, bottom-left, bottom-right ---
+PASS  satellites 0-3 diagonally outside TL, TR, BL, BR            = ok,ok,ok,ok
+PASS  satellite i's label = rank i's label                        = One,Two,Three,Four,
+--- tileclient-b: one dynamic shortcut, one satellite at top-left ---
+PASS  quick_sat:0 present                                         = yes
+PASS  quick_sat:1 absent                                          = no
+PASS  quick_sat:2 absent                                          = no
+PASS  quick_sat:3 absent                                          = no
+PASS  shortcuts line (T11-12)                                     contains [[quick] shortcuts for app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity/0: 1 (1 shown: qa_dyn)]
+--- a failed icon (T11-14 / T11-33): drawn with its fill and no glyph, and it still runs ---
+PASS  quick_sat:0 present                                         = yes
+PASS  quick_sat:1 present                                         = yes
+      quick_sat:1 892 285 1057 450 -> UNIFORM 0; quick_sat:0 481 285 646 450 -> VARIED 255
+PASS  quick_sat:1's interior is its fill only (± 2): no glyph    = UNIFORM
+PASS  quick_sat:0's interior is NOT uniform: its glyph is drawn   = VARIED
+PASS  icon failed line                                            contains [[quick] satellite 1 icon failed app.tileshell.testclient.b/qa_noicon: ]
+PASS  the no-icon satellite still runs                            contains [[quick] tap satellite 1 app.tileshell.testclient.b/qa_noicon: startShortcut ok]
+--- no burst: Weather (shell, declares none), folder:qa, the Unassigned MAIL slot, a secondary tile ---
+PASS  weather: edit mode on                                       = yes
+PASS  weather: no quick_burst                                     = no
+PASS  weather: reason                                             contains [[quick] no burst on shell:weather: no shortcuts]
+PASS  weather: its activity was asked (T11-22)                    contains [[quick] shortcuts for app.tileshell/.weather.WeatherActivity/0: 0 (0 shown)]
+PASS  folder: edit mode on                                        = yes
+PASS  folder: no quick_burst                                      = no
+PASS  folder: reason                                              contains [[quick] no burst on folder:qa: folder]
+PASS  unassigned: edit mode on                                    = yes
+PASS  unassigned: no quick_burst                                  = no
+PASS  unassigned: reason                                          contains [[quick] no burst on slot:MAIL: no app]
+      pin prompt accept at [280 730]
+PASS  secondary: edit mode on                                     = yes
+PASS  secondary: no quick_burst                                   = no
+PASS  secondary: reason                                           contains [[quick] no burst on secondary:app.tileshell.testclient.a:qa11: secondary tile]
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+------------------------------------------------------------------------------
+E3: 30 passed, 0 failed
