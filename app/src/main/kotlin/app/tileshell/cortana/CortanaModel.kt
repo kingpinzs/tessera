@@ -278,7 +278,9 @@ class CortanaModel(
             SpeechError.MICROPHONE_BUSY -> MicHolders.busySentence(MicHolders.holderOf(event.detail), Brand.ASSISTANT_NAME)
             else -> "Something went wrong."
         }
-        val shown = if (event.detail.isBlank()) spoken else "$spoken\n\n${event.detail}"
+        // A busy microphone is a state, not a fault to diagnose: its detail is the holder token the sentence is already
+        // worded from ("held by recorder"), so the card shows the sentence alone; the token stays in the log below.
+        val shown = if (event.detail.isBlank() || event.code == SpeechError.MICROPHONE_BUSY) spoken else "$spoken\n\n${event.detail}"
         val speakable = SpeechError.isSpeakable(event.code)
         Diagnostics.add(
             "cortana",

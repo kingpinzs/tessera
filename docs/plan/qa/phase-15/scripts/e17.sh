@@ -49,6 +49,8 @@ if [ "$AUDIO_OK" = yes ]; then
   CARD="$(node_text "$ROW_DIR/tess_card.xml" cortana_card_title) $(node_text "$ROW_DIR/tess_card.xml" cortana_card_body)"; note "Tess's card title+body: [$CARD]"
   assert_eq "Tess's card is up" yes "$(has_node "$ROW_DIR/tess_card.xml" 'cortana_card:not_understood')"
   assert_contains "Tess's card names the voice recorder" "$BUSY" "$CARD"
+  # The sentence alone: MICROPHONE_BUSY's holder token ("held by recorder") is a log detail, not card text.
+  assert_eq "Tess's card title is the sentence alone" "$BUSY" "$(node_text "$ROW_DIR/tess_card.xml" cortana_card_title | python3 -c 'import html,sys; print(html.unescape(sys.stdin.read().strip()))')"
   assert_eq "speech_status mic_owner_pid is the recorder process" "$RPID" "$(speech_status mic_owner_pid)"
   assert_contains "the :speech ring holds the refusal, named" "startListening from pid=$LPID refused: held by recorder" "$(cat "$ROW_DIR/ring_tess_speech.txt")"
   assert_eq "the take is still recording" recording "$(rec_status phase)"
