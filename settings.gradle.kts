@@ -15,6 +15,8 @@ dependencyResolutionManagement {
 rootProject.name = "tessera"
 include(":app")
 include(":livetile-client")
+// Phase 15: Calculator's engine, converter and date calculation — pure Kotlin, JVM-tested, used by the app and Tess.
+include(":calc")
 // R4, the helper feasibility spike: phone-only and standalone (PLAN.md R4).
 include(":r4probe")
 include(":testapps:tileclient-a", ":testapps:tileclient-b", ":testapps:tileclient-b2")
