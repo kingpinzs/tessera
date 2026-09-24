@@ -74,3 +74,25 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   tileshell_fhd4); briefs in docs/plan/qa/phase-15/briefs/qa-*.md. Recorder rows wait on the EasyEffects question.
 - Found while driving: Compose reports selected semantics as checked="true" on non-Tab nodes (drivers read either);
   Windows' paste of "12+3" enters 12 + 3 and needs = (OnPaste :1601-1718) — E11 asserts both halves.
+- 23:2x E11 run 1 (kept as E11-run1, DEFECT.md): the Calculator's angle / HYP / memory rows never redrew after a key
+  (Compose skipped rows taking only `model`); MR stayed disabled after MS and its taps were dropped. Fixed at the producer:
+  CalcModel's engine getters read `tick` (0cb5c76, CalcModelObservableTest red 5/5 -> green). E11 run 2 on the rebuilt APK:
+  standard 79/80 (standard-076 "mc 5 mminus mr" shows 5, engine and sequential JVM oracle say -5: a dropped UI tap,
+  suspected KeyCell's composed `live` gate lagging the engine by a frame — to measure by hand when 5556 is free),
+  scientific 87/87, programmer running. Calc QA agent told to reinstall the rebuilt APK.
+- Drivers written, not yet run: e0.sh (+ tiles.py), e1.sh, e26.sh (typed half runs now; spoken steps FAIL as NOT RUN while
+  audio.sh check fails). E26's six utterance wavs built with a private venv (scratchpad/p15/venv: sherpa-onnx 1.13.8,
+  soundfile 0.14.0, numpy 2.4.6 — the versions phase 03's venv used).
+- 2026-09-24 (after a login expiry that stopped both QA agents; both resumed by SendMessage):
+  E11 run 2 (kept, E11-run2/DEFECT.md): paste crashed the shell process (CopyPaste's UNICODE_CHARACTER_CLASS rejected by
+  Android's regex; fd9745d) and MR's tap was dropped one frame after M- enabled it (KeyCell's composed gate; 15/30 -> 0/30;
+  01e0f11). E11 run 3: 241/0/2 recorded. E2 12/12. E25 (clean git-archive builds of 298a9d7 and HEAD): +2,405,333 bytes,
+  dex +2,401,352, no new entry >= 1 MB (dex shards aggregated; run 1 kept). The earlier "+4.68 MB" was incremental-packaging
+  holes in the working APK. All in 4c5347b.
+  E0 run 1 (kept, E0-run1/DEFECT.md): Voice Recorder ignored a page request while running (no launchMode; bf1b2a5), a
+  deleted timer's notification stayed posted (22f9209); driver faults fixed (paused plan per phase 10, api_timer name with
+  a space — clock.sh's owner told). Alarms & Clock had no icon (app list drew the shell's; shortcuts iconless, phase 11
+  satellites would be blank): ic_clock / ic_clock_glyph = the tile's bell, Fluent alert_20_regular (05e9169).
+  AVD 5556 baseline additions: Auxio music source = System (set once in Auxio's dialog, Music sources -> System -> Save).
+  Drivers written: e0.sh, e1.sh, e26.sh, e27.sh (burst half FAIL/NOT RUN until the rebase; at the gate its burst steps
+  must be written — the driver says NOT WRITTEN if phase 11's burst is in the APK), tiles.py, e25.sh.
