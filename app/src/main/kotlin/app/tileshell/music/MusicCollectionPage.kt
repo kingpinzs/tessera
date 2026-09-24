@@ -54,6 +54,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -364,7 +366,9 @@ private fun PivotHeaders(pageOffset: Float, onPick: (Int) -> Unit) {
                         .onGloballyPositioned { widths[i] = it.size.width }
                         .clickable { onPick(i) }
                         // Phase 11 (build task 5): which pivot is showing, so a shortcut's landing can be read.
-                        .semantics { selected = i == current }
+                        // Role.Tab: Compose reports `selected` as checked on any other node (E15's first run read
+                        // checked="true" on the right header and selected="false" on all four).
+                        .semantics { role = Role.Tab; selected = i == current }
                         .testTag("music_pivot_header:${pivot.name.lowercase()}"),
                 )
             }
