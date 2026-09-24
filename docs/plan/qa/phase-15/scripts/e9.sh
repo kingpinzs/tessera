@@ -30,6 +30,11 @@ spoken() {
   assert_absent "$1: the capture was heard (C-30)" "asr: no speech" "$(grep -F 'asr:' "$ROW_DIR/ring_${1}_speech.txt" | tail -1)"
 }
 
+# Tess speaks on USAGE_ASSISTANT, which follows the media volume on this AVD; the pass rule's RMS needs it audible
+# (E26 run 3: media volume 0, every reply -115 dBFS). Raised for the spoken steps, put back as found at the end (RV12).
+MEDIA_VOL0="$(adb shell cmd media_session volume --stream 3 --get 2>/dev/null | tr -d '\r' | grep -oE 'volume is [0-9]+' | grep -oE '[0-9]+')"
+note "media volume before: ${MEDIA_VOL0:-?}"
+adb shell cmd media_session volume --stream 3 --set 10 >/dev/null 2>&1
 assert_clock_empty "baseline"
 dk0="$(deskclock_alarms)"
 note "DeskClock alarms before: $dk0"
@@ -85,4 +90,5 @@ assert_eq "LockGate.allowedWhileLocked lists SetTimer as allowed" yes "$(printf 
 clear_pin; wake_device
 app_delete_all
 assert_clock_empty "restore"
+[ -n "${MEDIA_VOL0:-}" ] && adb shell cmd media_session volume --stream 3 --set "$MEDIA_VOL0" >/dev/null 2>&1
 row_end
