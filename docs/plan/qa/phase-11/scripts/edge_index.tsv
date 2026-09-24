@@ -3,8 +3,8 @@
 1	a hold on a Music tile's transport control: no burst, no edit mode, the control fires	E10 control sub-step (Fossify's playing tile: [tile_control] PLAY_PAUSE (no launch), no [edit] hold, no burst, PAUSED; control dump: no quick_burst / edit_disc)
 1	a hold on the tile's art: edit mode and Music's four (Q1 A)	E10 art sub-step (the Music tile showing its strip, the hold above it, on no control) · E15 (Music's pivots as satellites)
 1	a hold during a live flip: the satellites stay still, the flip continues (T11-41)	EDGE "a hold during a live flip"
-1	a hold while Start is flinging: no hold, no burst	EDGE "a hold while Start is flinging"
-1	a press in edit mode has no hold timer (T11-23), taps / drags as re-cut	E5 "no hold timer in edit mode (T11-23)" · E5 "tap another tile" / "tap the held tile" · E2 (the 40-px glide drags and closes)
+1	a hold while Start is flinging: no hold, no burst	EDGE "a hold while Start is flinging" (a control fling; the press stops it past the finger's travel; a positive control)
+1	a press in edit mode has no hold timer (T11-23), taps / drags as re-cut	EDGE "in edit mode no press is a hold" (a 1.0-s still press on another tile with a burst open only closes it; on the held tile with none open, exits edit mode) · E5 "no hold timer in edit mode (T11-23)" (burst closed first) · E2 (the 40-px glide drags and closes)
 2	a shortcut disabled between open and tap	E8 "(b) disabled" · E8 "(b) disable while a burst is open: shortcuts changed"
 2	a shortcut removed between open and tap	E8 "(b) disable while a burst is open" (Android deletes the unpinned disabled dynamic shortcut: shortcuts changed)
 2	its app uninstalled between open and tap	E8 "(c) uninstall tileclient-b with its burst open: removed"
@@ -13,16 +13,16 @@
 2	a private-space tile while the space is locked: profile quiet	E9 "a private space, locked: profile quiet"
 3	the burst open at screen-off: closes (stop)	E5 "screen off: Start stops, the burst closes (stop)"
 3	the burst open at Home: closes	E5 "Home (the drawn Windows key …)"
-3	the burst open at an incoming call: closes	EDGE "the burst open at an incoming call"
-3	the burst open at the keyguard: closes	EDGE "the burst open at the keyguard"
-3	the burst open at a notification-listener restart: closes	EDGE "the burst open at a notification-listener restart" (the user's path, Settings, stops Start: stop; a rebind with Start in front is recorded as seen)
+3	the burst open at an incoming call: closes	EDGE "the burst open at an incoming call" — reading (a): a ringing heads-up keeps it, answering closes it (stop); Jeremy's call pending (INDEX Change Log "PHASE 11 EDGE ROW ADDED")
+3	the burst open at the keyguard: closes	EDGE "the burst open at the keyguard" (a PIN set for the sub-step; the keyguard asserted showing after the wake)
+3	the burst open at a notification-listener restart: closes	EDGE "the burst open at a notification-listener restart" (the user's path, Settings, stops Start: stop) — reading (b): a rebind with Start in front keeps it, recorded; Jeremy's call pending
 3	process death with a burst open: no state persists, Start restarts plain	EDGE "process death with a burst open"
-4	a second finger while a burst is open: ignored	EDGE "a second finger while a burst is open"
-4	a tap on a satellite that slides off before release: nothing runs, the burst stays	E5 "press feedback (T11-7)": "sliding off ran nothing, the burst stays" under every press style
+4	a second finger while a burst is open: ignored	EDGE "a second finger while a burst is open" (the control: the same contact alone closes it)
+4	a tap on a satellite that slides off before release: nothing runs, the burst stays	E5 "press feedback (T11-7)": "sliding off ran nothing, the burst stays" under the tilt and P4 press styles
 4	a tap on a satellite's label: counts as the satellite	E5 "a label counts as its satellite (T11-26)"
 5	a folder tile: no burst	E3 "no burst: … folder:qa …"
 5	a tile inside an expanded band: corner arrangement	E7 "band: the fixture inside folder:qa's expanded band"
-5	the bottom-row tiles: line arrangement; a full row of six, each satellite row clamped inside the grid margins	E7 "line above: the fixture in the bottom tile row" · E12 · JVM QuickRulesTest aBottomRowTileAlwaysTakesTheLineAboveInsideTheMargins
+5	the bottom-row tiles: line arrangement; a full row of six, each satellite row clamped inside the grid margins	E7 "line above: the fixture in the bottom tile row" · E12 · JVM QuickRulesTest aBottomRowTileAlwaysTakesTheLineAboveInsideTheMargins (clamping at both row ends: E7 at the right, the JVM test at the left; a row of six is not run)
 5	the promoted tile: edit mode, the promotion suspended, the burst around its grid cell (J4, T11-2)	E16 (recent_app_row gone while held; the burst in the cell; still promoted after)
 5	a WIDE tile in the 2-column grid's first row: a line; further down a clamped corner	E7 "the 2-column grid, the fixture WIDE in the first row" · JVM aFullWidthWideTileInTheFirstRowTakesALine, aFullWidthWideTileMidGridKeepsAClampedCorner
 5	the grid's top-left tile: clamped	E7 "line below: the fixture at the grid's top-left (T11-35)"
@@ -36,9 +36,9 @@
 7	a secondary tile: secondary tile	E3 "no burst: … a secondary tile"
 8	more than four shortcuts with equal ranks: ties by id	JVM QuickRulesTest equalRanksBreakTiesById
 8	shortcuts with no short label: the id is never shown, the label line is empty, the satellite runs	EDGE "a shortcut with a blank short label" (qa_blank, a whitespace label: an empty or absent one cannot be published — setShortLabel rejects it, the manifest parser drops the shortcut)
-8	very long labels: ellipsised	EDGE "…and a very long one" (qa_long keeps the label box's one-line size; EDGE/labels.png shows the ellipsis — H9's approximations)
+8	very long labels: ellipsised	EDGE "…and a very long one" (qa_long's node carries the full text; its drawn line, ellipsised, is EDGE/labels.png — H9)
 8	an icon that fails to load: fill, no glyph, still runs	E3 "a failed icon (T11-14 / T11-33)"
 8	a shortcut whose target cannot start	E8 "(d) a shortcut whose target cannot start"
 9	theme Light / Dark: fill = the accent as on a tile; label in the theme's text colour (T11-25)	EDGE "theme Light / Dark"
 9	the X5 transparency slider at 0 % and 100 %	EDGE "the X5 transparency slider at 0 % and 100 %"
-10	RV10: wm size / wm density / font_scale leave satellite bounds in epx unchanged	EDGE "RV10"
+10	RV10: wm size / wm density / font_scale leave satellite bounds in epx unchanged	EDGE "RV10" (each change read back, and seen in the global configuration or the size)

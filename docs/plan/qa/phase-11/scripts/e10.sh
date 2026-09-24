@@ -7,7 +7,7 @@
 # four — is proved on the shell's Music tile WHILE it shows its strip (its player playing), above the strip: the
 # consumed-DOWN fix is exactly what could swallow it (the re-judge, R2-2 / R1-5).
 . "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/q.sh"
-row_begin E10 "a hold on a playing player's transport control fires it; the art hold bursts (L11-1 blocks the strip)"
+row_begin E10 "a hold on a playing player's transport control fires it; the art hold over a showing strip bursts"
 seed_fixtures
 music_fixtures_in
 restore baseline_layout-player.json

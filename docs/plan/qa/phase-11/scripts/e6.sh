@@ -77,8 +77,8 @@ log "--- part 2: recorded opens (540x1170) for frame spacing only, retaken up to
 ACCEPT=""
 for attempt in 1 2 3 4 5 6 7 8 9 10; do
   front_ok "attempt$attempt" || { exit_edit; continue; }
-  # Half resolution: at full size the AVD's encoder dropped frames (19-34 ms gaps) in opens whose own frame clock read
-  # 16.7 ms throughout — the recorder, not the app (probe 2026-09-24, README).
+  # Half resolution: at full size the AVD's encoder dropped frames (19-34 ms gaps) in recorded opens whose own frame clock
+  # read 16.7 ms (two read 33.3 ms; E6-smoke-fullsize-recording/E6.txt) — the recorder, not the app (probe 2026-09-24, README).
   adb shell screenrecord --size 540x1170 --bit-rate 4000000 --time-limit 4 /sdcard/Download/e6.mp4 & REC=$!
   sleep 1.0
   MARK="$(ring_mark)"; hold "$X" "$Y" 1.0
@@ -95,7 +95,8 @@ for attempt in 1 2 3 4 5 6 7 8 9 10; do
   gap="$(awk '/max_gap_ms/{print $2}' "$ROW_DIR/recording-$attempt.txt")"
   note "attempt $attempt recording: $(tr '\n' ' ' < "$ROW_DIR/recording-$attempt.txt")"
   wg="$(awk '/window_gaps/{print $2}' "$ROW_DIR/recording-$attempt.txt")"
-  if [ "${wg:-0}" -ge 19 ] && python3 -c "import sys; sys.exit(0 if float(sys.argv[1]) <= 18.2 else 1)" "$gap" 2>/dev/null; then ACCEPT="$attempt"; break; fi
+  en="$(awk '/entry_ms/{print $2}' "$ROW_DIR/recording-$attempt.txt")"
+  if [ -n "$en" ] && [ "$en" != none ] && [ "${wg:-0}" -ge 19 ] && python3 -c "import sys; sys.exit(0 if float(sys.argv[1]) <= 18.2 else 1)" "$gap" 2>/dev/null; then ACCEPT="$attempt"; break; fi
   exit_edit
 done
 assert_ne "a recording within phase 05's spacing rule (source frames ≤ 18.2 ms apart during the motion)" "" "$ACCEPT"

@@ -94,7 +94,8 @@ restore baseline_layout.json
 for style in none tilt p4; do
   set_press "$style"
   qdump "$ROW_DIR/press-$style.xml"
-  read -r l t r b <<< "$(bounds "$ROW_DIR/press-$style.xml" tile:slot:BROWSER)"
+  # tileclient-b's tile: it has a shortcut, so "no burst" can fail (Browser has none; the round-2 re-judge, EV-12).
+  read -r l t r b <<< "$(bounds "$ROW_DIR/press-$style.xml" "tile:$B_KEY")"
   px=$((l + 40)); py=$((t + 40))
   ms=""
   for attempt in 1 2 3; do
@@ -102,13 +103,13 @@ for style in none tilt p4; do
     MARK="$(ring_mark)"
     ms="$(adb shell "t0=\$(date +%s%N); $(mt 100 $px $py) sleep 0.3; screencap /data/local/tmp/qa-held.raw & sleep 0.15; t1=\$(date +%s%N); $(mt 100 $px $((py + 400))) sendevent $TS 3 47 0; sendevent $TS 3 57 4294967295; sendevent $TS 0 0 0; wait; echo \$(( (t1 - t0) / 1000000 ))" | tr -d '\r' | tail -1)"
     sleep 1
-    note "press_$style attempt $attempt: pressed ${ms} ms (the capture started at 300 ms)"
+    note "press_$style attempt $attempt: t1 - t0 = ${ms} ms (from the DOWN's sendevent chain to the slide's start; the capture started 300 ms in)"
     [ -n "$ms" ] && [ "$ms" -lt 700 ] && break
     c6; ensure_start_page
   done
   raw_png /data/local/tmp/qa-rest.raw "$ROW_DIR/press-$style-rest.png"
   raw_png /data/local/tmp/qa-held.raw "$ROW_DIR/press-$style-held.png"
-  assert_eq "press_$style: the press was short (under 700 ms on the device clock)" yes "$([ -n "$ms" ] && [ "$ms" -lt 700 ] && echo yes || echo "no ($ms ms)")"
+  assert_eq "press_$style: the press was short (t1 - t0 under 700 ms on the device clock)" yes "$([ -n "$ms" ] && [ "$ms" -lt 700 ] && echo yes || echo "no ($ms ms)")"
   # shellcheck disable=SC2086
   eq="$(python3 "$(dirname "$0")/qpix.py" equal "$ROW_DIR/press-$style-rest.png" "$ROW_DIR/press-$style-held.png" $((l + 4)) $((t + 4)) $((r - 4)) $((b - 4)) 2)"
   note "press_$style: rest vs held over the tile: $eq"
