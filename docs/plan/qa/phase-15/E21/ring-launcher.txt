@@ -1,64 +1,85 @@
-    2026-09-24 15:56:04.875 wall=1790286964875 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourceTime=1790287080000
-    2026-09-24 15:56:04.875 wall=1790286964875 [alarms] store: alarm a813974dd created by the AlarmClock API (com.android.shell)
-    2026-09-24 15:56:04.875 wall=1790286964875 [clock] tile: next alarm a813974dd at 1790287080000 -> "3:58 PM" [Nofsi, Today]
-    2026-09-24 15:56:04.876 wall=1790286964876 [alarms] rearm (store change): 1 alarms, 0 timers, exact=true
-    2026-09-24 15:56:04.877 wall=1790286964877 [alarms] api android.intent.action.SET_ALARM from com.android.shell -> created a813974dd
-    2026-09-24 15:57:50.004 wall=1790287070004 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourceTime=1790287080000
-    2026-09-24 15:57:50.004 wall=1790287070004 [clock] tile: next alarm a813974dd at 1790287080000 -> "3:58 PM" [Nofsi, Today]
-    2026-09-24 15:57:50.009 wall=1790287070009 [alarms] rearm (time set): 1 alarms, 0 timers, exact=true
-    2026-09-24 15:58:00.004 wall=1790287080004 [alarms] fired a813974dd kind=alarm late=4
-    2026-09-24 15:58:00.005 wall=1790287080005 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null sourceTime=null
-    2026-09-24 15:58:00.005 wall=1790287080005 [clock] tile: no next alarm, face cleared
-    2026-09-24 15:58:00.006 wall=1790287080006 [alarms] store: alarm a813974dd ringing
-    2026-09-24 15:58:00.007 wall=1790287080007 [alarms] rearm (store change): 0 alarms, 0 timers, exact=true
-    2026-09-24 15:58:00.038 wall=1790287080038 [alarms] ring a813974dd sound=default
-    2026-09-24 15:58:00.047 wall=1790287080047 [alarms] ring level full
-    2026-09-24 15:58:00.049 wall=1790287080049 [alarms] full-screen intent: deny
-    2026-09-24 15:58:00.050 wall=1790287080050 [alarms] notification a813974dd: fullscreen
-    2026-09-24 15:58:00.051 wall=1790287080051 [alarms] surface: lockscreen-notification a813974dd
-    2026-09-24 15:58:00.254 wall=1790287080254 [notif] posted app.tileshell key=0|app.tileshell|15003|null|10150 postTime=1790287080052
-    2026-09-24 15:58:00.255 wall=1790287080255 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
-    2026-09-24 15:58:00.255 wall=1790287080255 [engine] publish pkg:app.tileshell from=notifications faces=1 front=false source=notification sourceTime=1790287080052 -> shows notifications
-    2026-09-24 15:58:58.967 wall=1790287138967 [livetile] store loaded 1 owners
-    2026-09-24 15:58:58.967 wall=1790287138967 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
-    2026-09-24 15:58:58.980 wall=1790287138980 [engine] publish pkg:app.tileshell from=api faces=0 front=false source=null sourceTime=null -> shows nothing
-    2026-09-24 15:58:58.980 wall=1790287138980 [badge] set app.tileshell API=0 -> effective 0
-    2026-09-24 15:58:58.982 wall=1790287138982 [app] process start
-    2026-09-24 15:58:58.982 wall=1790287138982 [livetile] samsung badge provider probe: not present
-    2026-09-24 15:58:59.053 wall=1790287139053 [apps] catalog refreshed (init): 38 activities
-    2026-09-24 15:58:59.053 wall=1790287139053 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
-    2026-09-24 15:58:59.054 wall=1790287139054 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
-    2026-09-24 15:58:59.060 wall=1790287139060 [weather] feed start provider=open-meteo
-    2026-09-24 15:58:59.061 wall=1790287139061 [engine] publish feed:photos faces=0 front=false source=null sourceTime=null
-    2026-09-24 15:58:59.061 wall=1790287139061 [photos] refresh (start): access=GRANTED photos=0 slideshow=0 grow=false
-    2026-09-24 15:58:59.090 wall=1790287139090 [app] feeds started (process start)
-    2026-09-24 15:58:59.092 wall=1790287139092 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790287139092
-    2026-09-24 15:58:59.092 wall=1790287139092 [calendar] refresh (start): access=true faces=1
-    2026-09-24 15:58:59.092 wall=1790287139092 [clock] tiles: publisher started under cmp:app.tileshell/app.tileshell.clock.ClockActivity
-    2026-09-24 15:58:59.097 wall=1790287139097 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null sourceTime=null
-    2026-09-24 15:58:59.097 wall=1790287139097 [clock] tile: no next alarm, face cleared
-    2026-09-24 15:58:59.099 wall=1790287139099 [alarms] rearm (process start): 0 alarms, 0 timers, exact=true
-    2026-09-24 15:58:59.099 wall=1790287139099 [reminders] rearm (process start): 0 timed alarms, exact=true
-    2026-09-24 15:58:59.099 wall=1790287139099 [places] rearm: no place reminders
-    2026-09-24 15:58:59.099 wall=1790287139099 [person] rearm: no person reminders, observers off
-    2026-09-24 15:58:59.101 wall=1790287139101 [alarms] rearm (locked boot): 0 alarms, 0 timers, exact=true
-    2026-09-24 15:58:59.102 wall=1790287139102 [cortana] VoiceInteractionService created
-    2026-09-24 15:58:59.103 wall=1790287139103 [alarms] rearm (boot): 0 alarms, 0 timers, exact=true
-    2026-09-24 15:58:59.103 wall=1790287139103 [reminders] rearm (boot): 0 timed alarms, exact=true
-    2026-09-24 15:58:59.103 wall=1790287139103 [places] rearm: no place reminders
-    2026-09-24 15:58:59.103 wall=1790287139103 [person] rearm: no person reminders, observers off
-    2026-09-24 15:58:59.103 wall=1790287139103 [notif] listener connected
-2026-09-24 15:58:59.119 wall=1790287139119 [weather] cache loaded fetchedAt=1790287090775 provider=open-meteo units=IMPERIAL
-    2026-09-24 15:58:59.122 wall=1790287139122 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790287090775
-    2026-09-24 15:58:59.122 wall=1790287139122 [weather] publish tile faces=1 temp=82° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790287090775
-    2026-09-24 15:58:59.122 wall=1790287139122 [weather] refresh start reason=start units=IMPERIAL
-    2026-09-24 15:58:59.132 wall=1790287139132 [badge] set com.android.systemui NOTIFICATIONS=1 -> effective 1
-    2026-09-24 15:58:59.132 wall=1790287139132 [engine] publish pkg:com.android.systemui from=notifications faces=1 front=false source=notification sourceTime=1790285650781 -> shows notifications
-    2026-09-24 15:58:59.133 wall=1790287139133 [badge] set android NOTIFICATIONS=0 -> effective 0
-    2026-09-24 15:58:59.133 wall=1790287139133 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
-    2026-09-24 15:58:59.134 wall=1790287139134 [badge] set com.android.dialer NOTIFICATIONS=3 -> effective 3
-    2026-09-24 15:58:59.134 wall=1790287139134 [engine] publish pkg:com.android.dialer from=notifications faces=3 front=false source=notification sourceTime=1790285650338 -> shows notifications
-    2026-09-24 15:58:59.134 wall=1790287139134 [notif] rescan (connected): 3 packages with notifications
-    2026-09-24 15:58:59.135 wall=1790287139135 [cortana] VoiceInteractionService ready
-    2026-09-24 15:59:00.002 wall=1790287140002 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790287140002
-    2026-09-24 15:59:00.002 wall=1790287140002 [calendar] refresh (minute): access=true faces=1
+    2026-09-24 17:12:59.301 wall=1790291579301 [alarms] store: alarm abaecf8cf created by the AlarmClock API (com.android.shell)
+    2026-09-24 17:12:59.302 wall=1790291579302 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourceTime=1790291640000
+    2026-09-24 17:12:59.302 wall=1790291579302 [clock] tile: next alarm abaecf8cf at 1790291640000 -> "5:14 PM" [Nofsi, Today]
+    2026-09-24 17:12:59.303 wall=1790291579303 [alarms] rearm (store change): 1 alarms, 0 timers, exact=true
+    2026-09-24 17:12:59.304 wall=1790291579304 [alarms] api android.intent.action.SET_ALARM from com.android.shell -> created abaecf8cf
+    2026-09-24 17:12:59.307 wall=1790291579307 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 17:12:59.308 wall=1790291579308 [applist] no Usage access: the app list has no recent section
+    2026-09-24 17:12:59.527 wall=1790291579527 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=2399578 faceIndex=0 next=1 faces=3
+    2026-09-24 17:13:00.019 wall=1790291580019 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790291580019
+    2026-09-24 17:13:00.019 wall=1790291580019 [calendar] refresh (minute): access=true faces=1
+    2026-09-24 17:13:00.033 wall=1790291580033 [render] tile=slot:CALENDAR sourceTime=1790291580019 renderedAt=1790291580033 faces=1
+    2026-09-24 17:13:00.549 wall=1790291580549 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 17:13:00.549 wall=1790291580549 [applist] no Usage access: the app list has no recent section
+    2026-09-24 17:13:00.564 wall=1790291580564 [start] home: page 0, scrolled to top
+    2026-09-24 17:13:01.651 wall=1790291581651 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2401702 faceIndex=1 next=0 faces=1
+    2026-09-24 17:13:02.360 wall=1790291582360 [tile_anim] tile=shell:weather kind=FLIP uptime=2402411 faceIndex=1 next=0 faces=1
+    2026-09-24 17:13:04.486 wall=1790291584486 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=2404537 faceIndex=1 next=2 faces=3
+    2026-09-24 17:13:06.611 wall=1790291586611 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2406662 faceIndex=0 next=1 faces=1
+    2026-09-24 17:13:50.004 wall=1790291630004 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourceTime=1790291640000
+    2026-09-24 17:13:50.004 wall=1790291630004 [clock] tile: next alarm abaecf8cf at 1790291640000 -> "5:14 PM" [Nofsi, Today]
+    2026-09-24 17:13:50.007 wall=1790291630007 [alarms] rearm (time set): 1 alarms, 0 timers, exact=true
+    2026-09-24 17:14:00.003 wall=1790291640003 [alarms] fired abaecf8cf kind=alarm late=3
+    2026-09-24 17:14:00.004 wall=1790291640004 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null sourceTime=null
+    2026-09-24 17:14:00.004 wall=1790291640004 [clock] tile: no next alarm, face cleared
+    2026-09-24 17:14:00.004 wall=1790291640004 [alarms] store: alarm abaecf8cf ringing
+    2026-09-24 17:14:00.004 wall=1790291640004 [alarms] rearm (store change): 0 alarms, 0 timers, exact=true
+    2026-09-24 17:14:00.033 wall=1790291640033 [alarms] ring abaecf8cf sound=default
+    2026-09-24 17:14:00.044 wall=1790291640044 [alarms] ring level full
+    2026-09-24 17:14:00.045 wall=1790291640045 [alarms] full-screen intent: deny
+    2026-09-24 17:14:00.048 wall=1790291640048 [alarms] notification abaecf8cf: fullscreen
+    2026-09-24 17:14:00.048 wall=1790291640048 [alarms] surface: lockscreen-notification abaecf8cf
+    2026-09-24 17:14:00.251 wall=1790291640251 [notif] posted app.tileshell key=0|app.tileshell|15003|null|10150 postTime=1790291640048
+    2026-09-24 17:14:00.252 wall=1790291640252 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-09-24 17:14:00.252 wall=1790291640252 [engine] publish pkg:app.tileshell from=notifications faces=1 front=false source=notification sourceTime=1790291640048 -> shows notifications
+    2026-09-24 17:16:11.491 wall=1790291771491 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+    2026-09-24 17:16:11.492 wall=1790291771492 [livetile] store loaded 1 owners
+    2026-09-24 17:16:11.498 wall=1790291771498 [app] process start
+    2026-09-24 17:16:11.502 wall=1790291771502 [engine] publish pkg:app.tileshell from=api faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-24 17:16:11.502 wall=1790291771502 [badge] set app.tileshell API=0 -> effective 0
+    2026-09-24 17:16:11.506 wall=1790291771506 [livetile] samsung badge provider probe: not present
+    2026-09-24 17:16:11.546 wall=1790291771546 [apps] catalog refreshed (init): 38 activities
+    2026-09-24 17:16:11.547 wall=1790291771547 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
+    2026-09-24 17:16:11.547 wall=1790291771547 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-09-24 17:16:11.550 wall=1790291771550 [weather] feed start provider=open-meteo
+    2026-09-24 17:16:11.553 wall=1790291771553 [app] feeds started (process start)
+    2026-09-24 17:16:11.555 wall=1790291771555 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790291771555
+    2026-09-24 17:16:11.555 wall=1790291771555 [calendar] refresh (start): access=true faces=1
+    2026-09-24 17:16:11.555 wall=1790291771555 [clock] tiles: publisher started under cmp:app.tileshell/app.tileshell.clock.ClockActivity
+    2026-09-24 17:16:11.561 wall=1790291771561 [engine] publish feed:photos faces=0 front=false source=null sourceTime=null
+    2026-09-24 17:16:11.561 wall=1790291771561 [photos] refresh (start): access=GRANTED photos=0 slideshow=0 grow=false
+    2026-09-24 17:16:11.562 wall=1790291771562 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null sourceTime=null
+    2026-09-24 17:16:11.562 wall=1790291771562 [clock] tile: no next alarm, face cleared
+    2026-09-24 17:16:11.564 wall=1790291771564 [alarms] rearm (process start): 0 alarms, 0 timers, exact=true
+    2026-09-24 17:16:11.564 wall=1790291771564 [reminders] rearm (process start): 0 timed alarms, exact=true
+    2026-09-24 17:16:11.564 wall=1790291771564 [places] rearm: no place reminders
+    2026-09-24 17:16:11.564 wall=1790291771564 [person] rearm: no person reminders, observers off
+    2026-09-24 17:16:11.567 wall=1790291771567 [alarms] rearm (locked boot): 0 alarms, 0 timers, exact=true
+    2026-09-24 17:16:11.591 wall=1790291771591 [weather] cache loaded fetchedAt=1790291732665 provider=open-meteo units=IMPERIAL
+    2026-09-24 17:16:11.592 wall=1790291771592 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790291732665
+    2026-09-24 17:16:11.592 wall=1790291771592 [weather] publish tile faces=1 temp=79° condition=3 sky=CLOUDY/day/0.85 stale=false fetchedAt=1790291732665
+    2026-09-24 17:16:11.592 wall=1790291771592 [weather] refresh start reason=start units=IMPERIAL
+    2026-09-24 17:16:11.603 wall=1790291771603 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 17:16:11.604 wall=1790291771604 [start] StartActivity created
+    2026-09-24 17:16:11.609 wall=1790291771609 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 17:16:11.808 wall=1790291771808 [cortana] VoiceInteractionService created
+    2026-09-24 17:16:11.809 wall=1790291771809 [alarms] rearm (boot): 0 alarms, 0 timers, exact=true
+    2026-09-24 17:16:11.809 wall=1790291771809 [reminders] rearm (boot): 0 timed alarms, exact=true
+    2026-09-24 17:16:11.810 wall=1790291771810 [places] rearm: no place reminders
+    2026-09-24 17:16:11.810 wall=1790291771810 [person] rearm: no person reminders, observers off
+    2026-09-24 17:16:11.971 wall=1790291771971 [render] tile=slot:CALENDAR sourceTime=1790291771555 renderedAt=1790291771971 faces=1
+    2026-09-24 17:16:11.971 wall=1790291771971 [render] tile=shell:weather sourceTime=1790291732665 renderedAt=1790291771971 faces=1
+    2026-09-24 17:16:12.013 wall=1790291772013 [applist] no Usage access: the app list has no recent section
+    2026-09-24 17:16:12.185 wall=1790291772185 [cortana] VoiceInteractionService ready
+    2026-09-24 17:16:12.185 wall=1790291772185 [notif] listener connected
+    2026-09-24 17:16:12.194 wall=1790291772194 [badge] set com.android.systemui NOTIFICATIONS=1 -> effective 1
+    2026-09-24 17:16:12.194 wall=1790291772194 [engine] publish pkg:com.android.systemui from=notifications faces=1 front=false source=notification sourceTime=1790289192836 -> shows notifications
+    2026-09-24 17:16:12.195 wall=1790291772195 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-24 17:16:12.195 wall=1790291772195 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-24 17:16:12.196 wall=1790291772196 [badge] set com.android.dialer NOTIFICATIONS=3 -> effective 3
+    2026-09-24 17:16:12.196 wall=1790291772196 [engine] publish pkg:com.android.dialer from=notifications faces=3 front=false source=notification sourceTime=1790289192706 -> shows notifications
+    2026-09-24 17:16:12.196 wall=1790291772196 [notif] rescan (connected): 3 packages with notifications
+    2026-09-24 17:16:12.208 wall=1790291772208 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,S,T,V,W
+    2026-09-24 17:16:12.209 wall=1790291772209 [applist] no Usage access: the app list has no recent section
+    2026-09-24 17:16:12.227 wall=1790291772227 [render] tile=dock:slot:PHONE sourceTime=1790289192706 renderedAt=1790291772227 faces=3
+    2026-09-24 17:16:13.088 wall=1790291773088 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=2593018 faceIndex=0 next=1 faces=3

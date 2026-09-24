@@ -31,7 +31,7 @@ ring_at() { # id at -> prints the mark
 }
 dismiss_toast() { # label
   local d="$ROW_DIR/${1}_ring.xml" m
-  gdump "$d"; screencap "$ROW_DIR/${1}_ring.png"
+  gdump_for "$d" ring_dismiss; screencap "$ROW_DIR/${1}_ring.png"
   m="$(ring_mark)"
   gtap "$d" ring_dismiss; sleep 2.5
   [ -n "$(ring_since "$m" | grep -F 'ring ended')" ] || note "dismiss_toast $1: no ring ended line"
@@ -57,7 +57,7 @@ M="$(ring_at "$ID" "$(utc_ms 2027-03-14T09:00:00)")"
 FIRED="$(ring_since "$M" | grep -F "[alarms] fired $ID")"
 assert_ne "it rang" "" "$FIRED"
 assert_eq "… no earlier than 09:00:00Z" yes "$([ "$(field_of "$FIRED" wall)" -ge "$(utc_ms 2027-03-14T09:00:00)" ] && echo yes || echo no)"
-gdump "$ROW_DIR/spring.xml"
+gdump_for "$ROW_DIR/spring.xml" ring_surface
 assert_eq "the toast's time reads 3:00 AM (diagnostics of the skipped hour)" "3:00 AM" "$(node_text "$ROW_DIR/spring.xml" ring_time)"
 dismiss_toast spring
 section_clear "section"
@@ -82,7 +82,7 @@ T2="$(alarm_trigger_ms | head -1)"
 assert_eq "next: 2027-03-14 07:00 MDT (13:00Z) — a 23-hour gap" "$(utc_ms 2027-03-14T13:00:00)" "$T2"
 assert_eq "… the gap in dumpsys alarm is 23 h" 23 "$(( (T2 - T1) / 3600000 ))"
 M="$(ring_at "$ID" "$T2")"; assert_ne "it rang on the 14th at 07:00 wall-clock" "" "$(ring_since "$M" | grep -F "[alarms] fired $ID")"
-gdump "$ROW_DIR/seven2.xml"; assert_eq "… the toast reads 7:00 AM" "7:00 AM" "$(node_text "$ROW_DIR/seven2.xml" ring_time)"; dismiss_toast seven2
+gdump_for "$ROW_DIR/seven2.xml" ring_surface; assert_eq "… the toast reads 7:00 AM" "7:00 AM" "$(node_text "$ROW_DIR/seven2.xml" ring_time)"; dismiss_toast seven2
 jump_clock "$(utc_ms 2027-11-06T12:00:00)" >/dev/null       # 06:00 MDT, the day before the fall change
 sleep 2
 T3="$(alarm_trigger_ms | head -1)"
@@ -100,6 +100,7 @@ adb shell cmd alarm set-timezone "$TZ0"; sleep 2
 ID="$(api_alarm 7 0 "Zone")"
 AT0="$(alarm_trigger_ms | head -1)"; ADATE="$(alarm_field "$ID" date)"
 adb shell input keyevent KEYCODE_HOME; sleep 1
+ring_save launcher
 kill9_shell >/dev/null
 MARK="$(ring_mark)"
 adb shell cmd alarm set-timezone Europe/London; sleep 5
@@ -119,11 +120,12 @@ MARK="$(ring_mark)"
 adb shell cmd alarm set-timezone Asia/Tokyo; sleep 4
 assert_ne "zone change while ringing: the re-arm line" "" "$(ring_since "$MARK" | grep -F '[alarms] rearm (time zone changed)')"
 assert_ne "… the ring continues (player started)" 0 "$(alarm_player_started)"
-gdump "$ROW_DIR/zone_ringing.xml"
+gdump_for "$ROW_DIR/zone_ringing.xml" ring_surface
 assert_eq "… the toast is still up" yes "$(has_node "$ROW_DIR/zone_ringing.xml" ring_surface)"
 assert_absent "… and the ring was not ended by the zone change" "ring ended $ID" "$(ring_since "$MARK")"
 dismiss_toast zone_ringing
 adb shell cmd alarm set-timezone "$TZ0"; sleep 2
+ring_save launcher
 clock_restore
 section_clear "section"
 
@@ -140,6 +142,7 @@ dismiss_toast back
 jump_clock $(( T - 2 * 86400000 )) >/dev/null; sleep 2
 assert_eq "clock back again: a rung one-shot is not re-armed (it never rings twice)" "" "$(alarm_trigger_ms | paste -sd,)"
 assert_eq "… it is off in the store" false "$(alarm_field "$ID" enabled)"
+ring_save launcher
 clock_restore
 section_clear "section"
 
@@ -160,13 +163,14 @@ assert_eq "forward past three: they fired in order" "$A1 $A2 $A3" "$ORDER"
 assert_contains "the first was superseded" "[alarms] ring ended $A1: superseded" "$SLICE"
 assert_contains "the second was superseded" "[alarms] ring ended $A2: superseded" "$SLICE"
 assert_contains "the first counts as missed" "[alarms] ring ended $A1: missed" "$SLICE"
-gdump "$ROW_DIR/forward.xml"; screencap "$ROW_DIR/forward.png"
+gdump_for "$ROW_DIR/forward.xml" ring_surface; screencap "$ROW_DIR/forward.png"
 assert_eq "one ring surface" 1 "$(grep -c 'resource-id="ring_surface"' "$ROW_DIR/forward.xml")"
 assert_eq "… showing the last alarm" "Third" "$(node_text "$ROW_DIR/forward.xml" ring_name)"
 MN="$(notification_on_channel clock_missed)"; printf '%s\n' "$(shell_notifications)" > "$ROW_DIR/notifications_forward.txt"
 assert_contains "a Missed alarm notification for the first" "Missed alarm $(time_12h "$H1" "$M1")" "$(shell_notifications)"
 assert_contains "… and for the second" "Missed alarm $(time_12h "$H2" "$M2")" "$(shell_notifications)"
 dismiss_toast forward
+ring_save launcher
 clock_restore
 section_clear "forward"
 
@@ -185,9 +189,10 @@ SLICE="$(ring_since "$MARK")"
 assert_contains "the later alarm takes the surface: ring ended $A1: superseded" "[alarms] ring ended $A1: superseded" "$SLICE"
 assert_contains "… and the first is missed" "[alarms] ring ended $A1: missed" "$SLICE"
 assert_contains "… with a Missed alarm notification" "Missed alarm $(time_12h "$H1" "$M1")" "$(shell_notifications)"
-gdump "$ROW_DIR/later.xml"
+gdump_for "$ROW_DIR/later.xml" ring_surface
 assert_eq "the toast now shows the later alarm" "Later" "$(node_text "$ROW_DIR/later.xml" ring_name)"
 dismiss_toast later
+ring_save launcher
 clock_restore
 section_clear "section"
 
@@ -199,7 +204,7 @@ adb shell input keyevent KEYCODE_HOME; sleep 1
 jump_clock $(( T - 10000 )) >/dev/null
 MARK="$(ring_mark)"
 wait_ring "$MARK" "[alarms] fired $A2 kind=alarm" 30 >/dev/null; wait_ring "$MARK" "[alarms] fired $A1 kind=alarm" 10 >/dev/null; sleep 3
-gdump "$ROW_DIR/same_minute.xml"; screencap "$ROW_DIR/same_minute.png"
+gdump_for "$ROW_DIR/same_minute.xml" ring_surface; screencap "$ROW_DIR/same_minute.png"
 assert_eq "same minute: one toast" 1 "$(grep -c 'resource-id="ring_surface"' "$ROW_DIR/same_minute.xml")"
 RN="$(node_text "$ROW_DIR/same_minute.xml" ring_name)"; note "ring_name: $RN"
 assert_contains "… ring_name lists Ann" "Ann" "$RN"; assert_contains "… and Bob" "Bob" "$RN"
@@ -213,12 +218,13 @@ assert_ne "both hold a snooze instant" "null" "$S1$S2"
 jump_clock $(( S1 - 10000 )) >/dev/null
 MARK="$(ring_mark)"
 wait_ring "$MARK" "[alarms] fired $A2 kind=alarm" 30 >/dev/null; wait_ring "$MARK" "[alarms] fired $A1 kind=alarm" 10 >/dev/null; sleep 3
-gdump "$ROW_DIR/same_minute2.xml"
+gdump_for "$ROW_DIR/same_minute2.xml" ring_surface
 assert_eq "both ring together again after the snooze (one toast)" 1 "$(grep -c 'resource-id="ring_surface"' "$ROW_DIR/same_minute2.xml")"
 MARK="$(ring_mark)"
 gtap "$ROW_DIR/same_minute2.xml" ring_dismiss; sleep 3
 assert_contains "Dismiss acts on Ann" "[alarms] ring ended $A1: dismiss" "$(ring_since "$MARK")"
 assert_contains "… and on Bob" "[alarms] ring ended $A2: dismiss" "$(ring_since "$MARK")"
+ring_save launcher
 clock_restore
 section_clear "section"
 
@@ -230,8 +236,20 @@ T="$(alarm_trigger_ms | head -1)"
 adb shell input keyevent KEYCODE_HOME; sleep 1
 M="$(ring_at "$ID" "$T")"
 assert_contains "it rings as a heads-up (no overlay grant)" "[alarms] surface: heads-up $ID" "$(ring_since "$M")"
-sleep 8   # the heads-up retracts into the status bar; a tap meant for the alarm row must not land on it
-open_clock alarm; dump_ui "$ROW_DIR/edit_list.xml"
+# The alarm's heads-up is STICKY on this image (a ringing alarm notification carrying a full-screen intent stays pinned
+# while the phone is in use): it still covers y ≈ 158–538 px after 8 s, and the row tap at the row's centre (y 421)
+# landed on its DISMISS — runs 2–5 "failed" the edit that way (the probe of 2026-09-24 logged `ring ended <id>:
+# dismiss` for the row tap). A swipe up on the card un-pins it into the shade — the notification and the ring stay,
+# asserted — and then the row is tapped.
+open_clock alarm
+gdump_windows "$ROW_DIR/edit_hun.xml"
+HB="$(bounds_by_text "$ROW_DIR/edit_hun.xml" com.android.systemui Dismiss)"; note "the heads-up's Dismiss at [$HB]"
+# shellcheck disable=SC2086
+if [ -n "$HB" ]; then set -- $HB; adb shell input swipe 540 $(( $2 - 150 )) 540 20 250; sleep 1.5; fi
+gdump_windows "$ROW_DIR/edit_hun_up.xml"
+assert_eq "the heads-up no longer covers the list (no SystemUI Dismiss on screen)" "" "$(bounds_by_text "$ROW_DIR/edit_hun_up.xml" com.android.systemui Dismiss)"
+assert_ne "… and the ring goes on (player started)" 0 "$(alarm_player_started)"
+dump_ui "$ROW_DIR/edit_list.xml"
 tap_node "$ROW_DIR/edit_list.xml" "alarm_row:$ID"; sleep 1.5
 dump_ui "$ROW_DIR/edit_editor.xml"
 tap_node "$ROW_DIR/edit_editor.xml" 'alarm_editor_field:snooze'; sleep 1.2
@@ -245,13 +263,14 @@ assert_ne "the ring continues (player still started)" 0 "$(alarm_player_started)
 assert_absent "… and the edit did not end the ring" "ring ended $ID" "$(ring_since "$MARK")"
 assert_contains "… the edit re-armed the store" "[alarms] store: alarm $ID edited in the editor" "$(ring_since "$MARK")"
 adb shell cmd statusbar expand-notifications; sleep 2
-gdump "$ROW_DIR/edit_shade.xml"; screencap "$ROW_DIR/edit_shade.png"
+gdump_windows "$ROW_DIR/edit_shade.xml"; screencap "$ROW_DIR/edit_shade.png"
 MARK="$(ring_mark)"
 tap_by_text "$ROW_DIR/edit_shade.xml" com.android.systemui Dismiss && sleep 3
 assert_contains "the notification's Dismiss ends it" "[alarms] ring ended $ID: dismiss" "$(ring_since "$MARK")"
 adb shell cmd statusbar collapse; sleep 1
 dismiss_any_ring
 adb shell appops set app.tileshell SYSTEM_ALERT_WINDOW allow
+ring_save launcher
 clock_restore
 section_clear "section"
 
@@ -281,15 +300,22 @@ REF="$(track_line ref)"; note "out-of-call track: $(echo "$REF" | tr -s ' ' | cu
 REFC="$(track_cols "$REF")"; record "out-of-call G / L / R / VS / PortVol (dB)" "$REFC"
 assert_contains "out of call the ring level is full" "[alarms] ring level full" "$(ring_since "$M")"
 dismiss_toast quiet_ref
+ring_save launcher
 clock_restore
+# The in-call alarm is seeded BEFORE the call: the AlarmClock API's activity, started during the call, brought the
+# shell's task (Start) in front of the in-call UI, so runs 1–5 rang "over the in-call UI" with Start resumed under the
+# toast (their recorded resumed activity). Seeded first, then the call answered, the in-call UI is what the toast covers
+# — asserted before the ring and read again under it.
+NOW="$(device_ms)"; read -r H Mi <<< "$(device_hm $(( NOW + 150000 )))"
+ID2="$(api_alarm "$H" "$Mi" "Incall")"
+T2="$(alarm_trigger_ms | head -1)"
+adb shell input keyevent KEYCODE_HOME; sleep 1
 adb emu gsm call 5551234 >/dev/null 2>&1; sleep 3
 adb shell input keyevent KEYCODE_CALL; sleep 4
 MODE="$(adb shell dumpsys audio | tr -d '\r' | grep -oE 'MODE_IN_CALL|MODE_IN_COMMUNICATION' | head -1)"
 record "dumpsys audio mode during the call" "${MODE:-$(adb shell dumpsys audio | tr -d '\r' | grep -m1 -iE 'mode' | sed 's/^ *//')}"
 assert_contains "the audio mode reads IN_CALL" "MODE_IN_CALL" "$MODE"
-NOW="$(device_ms)"; read -r H Mi <<< "$(device_hm $(( NOW + 120000 )))"
-ID2="$(api_alarm "$H" "$Mi" "Incall")"
-T2="$(alarm_trigger_ms | head -1)"
+assert_contains "the in-call UI is the resumed activity before the alarm" "com.android.dialer" "$(resumed)"
 M="$(ring_at "$ID2" "$T2")"
 assert_ne "during the call an ALARM player of the shell exists" "" "$(alarm_players)"
 assert_contains "the ring level line says 1/8 (in call)" "[alarms] ring level 1/8 (in call" "$(ring_since "$M")"
@@ -306,11 +332,13 @@ print("yes" if any(abs(v + 18.06) <= 2 for v in d) else "no (%s)" % d)' "$REFC" 
 assert_contains "the toast shows over the in-call UI (overlay)" "[alarms] surface: toast-overlay $ID2" "$(ring_since "$M")"
 OVL="$(overlay_window)"; assert_contains "… an APPLICATION_OVERLAY window" "type=APPLICATION_OVERLAY" "$OVL"
 record "the resumed activity under the toast" "$(resumed | sed 's/^ *//')"
+assert_contains "… over the in-call UI (still the resumed activity under the toast)" "com.android.dialer" "$(resumed)"
 assert_ne "vibration runs (a vibration of uid $SHELL_UID in vibrator_manager)" "" "$(adb shell dumpsys vibrator_manager | tr -d '\r' | grep -m1 "uid=$SHELL_UID")"
 dismiss_toast incall
 adb emu gsm cancel 5551234 >/dev/null 2>&1; sleep 2
 # (no KEYCODE_ENDCALL: with no call left it is the sleep key — run 3's screen went dark here and stayed so)
 assert_eq "after gsm cancel wake_device prints Awake (C-25)" "Awake" "$(wake_device)"
+ring_save launcher
 clock_restore
 section_clear "in-call"
 
@@ -347,6 +375,7 @@ NOW="$(device_ms)"; read -r H Mi <<< "$(device_hm $(( NOW + 120000 )))"
 ID="$(api_alarm "$H" "$Mi" "Missed")"
 T="$(alarm_trigger_ms | head -1)"
 adb shell input keyevent KEYCODE_HOME; sleep 1
+ring_save launcher
 kill9_shell >/dev/null
 MARK="$(ring_mark)"
 jump_clock $(( T + 15 * 60000 )) >/dev/null
@@ -354,6 +383,7 @@ L="$(wait_ring "$MARK" "passed while not running: missed" 20)"
 assert_contains "past the timeout (15 min later at the re-arm) it is missed" "alarm $ID due at $T passed while not running: missed" "$L"
 assert_contains "… with a Missed alarm notification" "Missed alarm $(time_12h "$H" "$Mi")" "$(shell_notifications)"
 assert_eq "… and no ring" 0 "$(alarm_player_started)"
+ring_save launcher
 clock_restore
 section_clear "section"
 
@@ -362,10 +392,20 @@ NOW="$(device_ms)"; read -r H Mi <<< "$(device_hm $(( NOW + 75000 )))"
 ID="$(api_alarm "$H" "$Mi" "Update")"
 T="$(alarm_trigger_ms | head -1)"
 adb shell input keyevent KEYCODE_HOME; sleep 1
+# The update reinstalls the build that is INSTALLED (its base.apk pulled off the device), never the APK on disk: the
+# disk build can be newer than the one under test (2026-09-24: rebuilt for a calculator-only change while 5558 kept
+# 33cc71c1), and `adb install -r` of it would swap the build mid-pass. Same package, same version: Android still
+# replaces it and sends MY_PACKAGE_REPLACED, which is the clause. The installed md5 is asserted unchanged.
+UPD_APK="${TMPDIR:-/tmp}/edge_alarms_installed.apk"
+MD5_BEFORE="$(installed_apk_id)"
+adb pull "$(adb shell pm path app.tileshell | head -1 | tr -d '\r' | sed 's/^package://')" "$UPD_APK" >/dev/null 2>&1
+record "the update reinstalls the installed build" "$MD5_BEFORE (pulled: $(md5sum "$UPD_APK" 2>/dev/null | cut -c1-16))"
 MARK="$(ring_mark)"
-adb install -r "$APK" >/dev/null 2>&1
+adb install -r "$UPD_APK" >/dev/null 2>&1
+rm -f "$UPD_APK"
 assert_ne "MY_PACKAGE_REPLACED re-arms it: rearm (package replaced): 1 alarms" "" "$(wait_ring "$MARK" "[alarms] rearm (package replaced): 1 alarms" 30)"
 assert_eq "… at the same instant" "$T" "$(alarm_trigger_ms | paste -sd,)"
+assert_eq "the update left the same build installed" "$MD5_BEFORE" "$(installed_apk_id)"
 FIRED="$(wait_ring "$MARK" "[alarms] fired $ID kind=alarm" 120)"
 assert_ne "… and it rings at its time" "" "$FIRED"
 assert_within "… on time (late <= 1000 ms)" 0 "$(field_of "$FIRED" late)" 1000

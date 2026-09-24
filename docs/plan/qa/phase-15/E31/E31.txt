@@ -1,18 +1,20 @@
 ==============================================================================
 ROW E31 — clock extras: compare strip, expanded views, pinned tiles, share laps, pick from my music
-at            2026-09-24T15:40:02-06:00
-driver        e31.sh blob 5da8ed8ed4d0120a5d9e3a48e6913082f06f07ff
+at            2026-09-24T16:47:27-06:00
+driver        e31.sh blob 9f61a19f485b867db313e0905898e62428b89005
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     e9d870364a6c00fc 338459898 bytes
-apk installed 2356b99f4933214b
-apk match     yes (2356b99f4933214b)
+apk built     187619129c54956c 338459898 bytes
+apk installed 33cc71c192190cc9
+apk match     yes (33cc71c192190cc9)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+7s254ms ago; rejectTime=+2h22m7s256ms ago 
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+31s401ms ago; rejectTime=+49m31s378ms ago 
 RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
 PASS  baseline: no shell alarm or timer pending                   = 0
 PASS  baseline: alarm and timer stores empty                      = empty
+PASS  baseline: no clock tile (timer / stopwatch) is pinned on Start  = 
+PASS  baseline: the stopwatch is at RESET (not running, 0 elapsed, no laps)  = reset
 PASS  Tokyo is listed                                             = yes
       accent (from the tab underline): 0,120,215
       compare strip: 0 2052 1080 2196 (the app bar was 0 2052 1080 2196)
@@ -21,20 +23,20 @@ PASS  compare: the app bar is gone                                = no
 PASS  compare: the strip is 48 epx tall (± 1 epx)                144.00 vs 144.00 +/- 3.0
 PASS  compare: the strip sits where the app bar was (same bottom edge)  = 2196
 PASS  compare: the strip is filled with the accent (± 8 levels, sampled between the hour labels)  = yes
-PASS  one step right: Tokyo's time is one hour later than the host's Tokyo time ± 1 min  contains [|7:40 AM|]
-PASS  one step right: the local row is one hour later too         contains [|4:40 PM|]
-PASS  … and both moved from the compare start                   != 6:40 AM|3:40 PM
+PASS  one step right: Tokyo's time is one hour later than the host's Tokyo time ± 1 min  contains [|8:47 AM|]
+PASS  one step right: the local row is one hour later too         contains [|5:47 PM|]
+PASS  … and both moved from the compare start                   != 7:47 AM|4:47 PM
 PASS  Back: the app bar returns                                   = yes
 PASS  Back: the strip is gone                                     = no
 PASS  a running timer                                             != 
       timer_expanded: 0 84 1080 2196
-PASS  expand: timer_expanded:t0a10f080 is up                      != 
+PASS  expand: timer_expanded:tfaf8e8af is up                      != 
 PASS  expand: no tab band                                         = no
 PASS  expand: no app bar                                          = no
 PASS  expand: it fills the width                                  = 0 1080
 PASS  expand: it spans from the status bar's bottom to the nav bar's top  = 84 2196
 PASS  expand: the page is filled with the accent (± 8, sampled at x 60–200, y 500–600)  = yes
-      expanded [timer] lines: t0a10f080 remaining=591764 uptime=644463|t0a10f080 remaining=586763 uptime=649464
+      expanded [timer] lines: tfaf8e8af remaining=591738 uptime=904852|tfaf8e8af remaining=586738 uptime=909852
 PASS  expand: two [timer] lines fell while expanded, remaining decreasing  = yes
 PASS  collapse: the tab band is back                              = yes
 PASS  collapse: timer_expanded gone                               = no
@@ -46,51 +48,60 @@ PASS  stopwatch collapse: the tab band is back                    = yes
 PASS  pin_timer: the pin request is queued for Start              contains [-> queued]
 PASS  pin_timer: Start's pin band shows the request               = yes
 RECORD  pin_timer: the prompt names                                 Tessera / Ten
-PASS  pin_timer: start_layout.json holds secondary:app.tileshell:timer.t0a10f080  contains [secondary:app.tileshell:timer.t0a10f080]
-      scroll_to_node tile:secondary:app.tileshell:timer.t0a10f080: 0 swipe(s), found=yes
-PASS  pin_timer: the tile is on Start (tile:secondary:app.tileshell:timer.t0a10f080)  = yes
-RECORD  pin_timer: the tile face's texts (U10's approximation; screencap pin_timer_pinned.png)  00:09:16 |  text=""
+PASS  pin_timer: start_layout.json holds secondary:app.tileshell:timer.tfaf8e8af  contains [secondary:app.tileshell:timer.tfaf8e8af]
+      scroll_to_node tile:secondary:app.tileshell:timer.tfaf8e8af: 0 swipe(s), found=yes
+PASS  pin_timer: the tile is on Start (tile:secondary:app.tileshell:timer.tfaf8e8af)  = yes
+RECORD  pin_timer: the tile face's texts (U10's approximation; screencap pin_timer_pinned.png)  00:09:17 |  text=""
 PASS  pin_timer: a tap resumes the Alarms & Clock component itself  contains [app.tileshell/.clock.ClockActivity]
 PASS  pin_timer: … on clock_pivot:timer                         = true
-PASS  pin_timer: … with timer_block:t0a10f080 on screen         = yes
-FAIL  pin_stopwatch: the pin request is queued for Start          does not contain [-> queued]:     2026-09-24 15:41:23.061 wall=1790286083061 [clock] pin stopwatch -> already pinned
-FAIL  pin_stopwatch: Start's pin band shows the request           expected [yes] got [no]
-RECORD  pin_stopwatch: the prompt names                              / 
+PASS  pin_timer: … with timer_block:tfaf8e8af on screen         = yes
+PASS  pin_stopwatch: the pin request is queued for Start          contains [-> queued]
+PASS  pin_stopwatch: Start's pin band shows the request           = yes
+RECORD  pin_stopwatch: the prompt names                             Tessera / Stopwatch
 PASS  pin_stopwatch: start_layout.json holds secondary:app.tileshell:stopwatch  contains [secondary:app.tileshell:stopwatch]
       scroll_to_node tile:secondary:app.tileshell:stopwatch: 0 swipe(s), found=yes
 PASS  pin_stopwatch: the tile is on Start (tile:secondary:app.tileshell:stopwatch)  = yes
-RECORD  pin_stopwatch: the tile face's texts (U10's approximation; screencap pin_stopwatch_pinned.png)  00:00:42 |  text=""
+RECORD  pin_stopwatch: the tile face's texts (U10's approximation; screencap pin_stopwatch_pinned.png)  00:00:40 |  text=""
 PASS  pin_stopwatch: a tap resumes the Alarms & Clock component itself  contains [app.tileshell/.clock.ClockActivity]
 PASS  pin_stopwatch: … on clock_pivot:stopwatch                 = true
 PASS  pin_stopwatch: … with stopwatch_elapsed on screen         = yes
-      scroll_to_node tile:secondary:app.tileshell:timer.t0a10f080: 0 swipe(s), found=yes
+      scroll_to_node tile:secondary:app.tileshell:timer.tfaf8e8af: 0 swipe(s), found=yes
       scroll_to_node tile:secondary:app.tileshell:stopwatch: 0 swipe(s), found=yes
-PASS  unpin: the timer tile is out of start_layout.json           does not contain [secondary:app.tileshell:timer.t0a10f080]
+PASS  unpin: the timer tile is out of start_layout.json           does not contain [secondary:app.tileshell:timer.tfaf8e8af]
 PASS  unpin: the stopwatch tile is out of start_layout.json       does not contain [secondary:app.tileshell:stopwatch]
-FAIL  Share: the first lap did not crash the app (E7/DEFECT.md: java.lang.IllegalStateException: lap row text must equal the shared line)  expected [1] got [2]
-      SUB-ROW STOPPED (Share, three laps) at the lap-row crash; see E7/DEFECT.md
-      stopwatch.json removed and the process restarted: the baseline restore around the lap-row crash (E7/DEFECT.md)
-      song.m4a MediaStore id: 1712
+      laps: 1  00:01:14.87  00:01:14.87|2  00:00:01.62  00:01:16.49|3  00:00:01.31  00:01:17.80
+PASS  three laps are listed                                       = 3
+      resumed:     topResumedActivity=ActivityRecord{42034380 u0 com.android.intentresolver/.ChooserActivityLauncher t803}
+PASS  Share opens the system resolver (intent resolver / chooser)  contains [resolver]
+RECORD  the chooser's intent (dumpsys activity activities)          act=android.intent.action.CHOOSER flg=0x10800000 xflg=0x4 cmp=com.android.intentresolver/.ChooserActivityLauncher (has extras) 
+      Messages in the chooser: [443 2090 637 2136] (package com.android.intentresolver)
+PASS  the chooser lists Messages (the Fossify fixture)            != 
+PASS  Fossify Messages is in front                                contains [org.fossify.messages]
+      Messages opened its recipient picker first (a share with no thread); choosing Mom
+      compose body: 1  00:01:14.87  00:01:14.87|2  00:00:01.62  00:01:16.49|3  00:00:01.31  00:01:17.80
+PASS  the compose body holds the three lap lines exactly as stopwatch_lap:1..3 show them  = 1  00:01:14.87  00:01:14.87
+2  00:00:01.62  00:01:16.49
+3  00:00:01.31  00:01:17.80
+      song.m4a MediaStore id: 1994
 PASS  the fixture song is in MediaStore                           != 
 PASS  the alarm was created                                       != 
 PASS  the Sound flyout offers Pick from my music                  = yes
-PASS  the picker lists the song (alarm_sound_pick:1712)           = yes
+PASS  the picker lists the song (alarm_sound_pick:1994)           = yes
 PASS  the Sound value names the song                              = Fixture song
-PASS  the store holds the song's URI                              = content://media/external/audio/media/1712
+PASS  the store holds the song's URI                              = content://media/external/audio/media/1994
 PASS  song: the alarm fired                                       != 
-PASS  song: ring a38064d10 sound=content://media/external/audio/media/1712  contains [[alarms] ring a38064d10 sound=content://media/external/audio/media/1712]
+PASS  song: ring ab4217368 sound=content://media/external/audio/media/1994  contains [[alarms] ring ab4217368 sound=content://media/external/audio/media/1994]
 PASS  song: an ALARM player is started                            != 0
 PASS  after rm + rescan the song is gone from MediaStore          = 
 PASS  the alarm is armed again                                    != 0
 PASS  missing: the alarm fired                                    != 
-PASS  missing: sound content://media/external/audio/media/1712 missing -> default  contains [[alarms] sound content://media/external/audio/media/1712 missing -> default]
+PASS  missing: sound content://media/external/audio/media/1994 missing -> default  contains [[alarms] sound content://media/external/audio/media/1994 missing -> default]
 PASS  missing: the default sound plays (an ALARM player is started)  != 0
-PASS  device clock back within 2 s of the host (RV12)             1790286211.00 vs 1790286211.00 +/- 2.0
-      stopwatch.json removed and the process restarted: the baseline restore around the lap-row crash (E7/DEFECT.md)
-      scroll_to_node alarm_row:a38064d10: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:t0a10f080: 0 swipe(s), found=yes
+PASS  device clock back within 2 s of the host (RV12)             1790290267.00 vs 1790290267.00 +/- 2.0
+      scroll_to_node alarm_row:ab4217368: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:tfaf8e8af: 0 swipe(s), found=yes
 PASS  restore: the stopwatch is reset (not running, no laps; or no file)  = false []
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------
-E31: 60 passed, 3 failed, 6 recorded
+E31: 69 passed, 0 failed, 7 recorded

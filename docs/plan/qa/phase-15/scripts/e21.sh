@@ -34,11 +34,20 @@ open_checklist() {
   return 1
 }
 # The checklist row's glyph colour (TwoLineItem's left glyph): red (232,17,35) for MISSING, green (16,137,62) for GRANTED.
+# The glyph sits at the TOP of the row's box (the two text lines' height), not at the box's vertical centre — this pass's
+# first run on 5558 sampled the centre band and read 0,0,0 beside a red ✕ at y +25…+80. So the colour is the most
+# common non-background colour (any channel > 60) in the row's left 150 px, over the whole row height: the glyph's own
+# ink, not its anti-aliased edge and not the text to its right.
 row_glyph_rgb() { # dump.xml tag png
   local b; b="$(bounds "$1" "$2")"; [ -n "$b" ] || { echo ""; return; }
-  # shellcheck disable=SC2086
-  set -- $b "$3"
-  python3 "$HERE/pixcmp.py" mean "$5" $(( $1 + 20 )) $(( ($2 + $4) / 2 - 18 )) $(( $1 + 70 )) $(( ($2 + $4) / 2 + 18 ))
+  python3 - "$3" $b <<'PY'
+import collections, sys
+from PIL import Image
+x0, y0, x1, y1 = (int(v) for v in sys.argv[2:6])
+im = Image.open(sys.argv[1]).convert("RGB").crop((x0, y0, min(x1, x0 + 150), y1))
+c = collections.Counter(p for p in im.getdata() if max(p) > 60)
+print(",".join(str(v) for v in c.most_common(1)[0][0]) if c else "")
+PY
 }
 glyph_is() { # rgb-triplet "r,g,b" tolerance -> yes/no
   python3 -c '
@@ -108,6 +117,7 @@ screencap "$ROW_DIR/checklist_fsi_denied.png"
 assert_eq "the Full-screen alarms row reads missing" yes "$(has_node "$ROW_DIR/checklist_fsi_denied.xml" 'checklist:full_screen_alarms:missing')"
 RGB="$(row_glyph_rgb "$ROW_DIR/checklist_fsi_denied.xml" 'checklist:full_screen_alarms:missing' "$ROW_DIR/checklist_fsi_denied.png")"
 record "the missing row's glyph colour (red is 232,17,35)" "$RGB"
+assert_eq "… its glyph is red (232,17,35 ± 16)" yes "$(glyph_is "${RGB:-0,0,0}" 232,17,35 16)"
 tap_node "$ROW_DIR/checklist_fsi_denied.xml" 'checklist:full_screen_alarms:missing'; sleep 2.5
 assert_contains "its tap resumes com.android.settings" "com.android.settings" "$(resumed)"
 adb shell input keyevent KEYCODE_BACK; sleep 1.5; adb shell input keyevent KEYCODE_HOME; sleep 1
@@ -162,8 +172,16 @@ assert_absent "… and no take started in the :recorder ring" "[recorder] start 
 adb shell input keyevent KEYCODE_HOME; sleep 1; cortana_assist; sleep 5
 dump_ui "$ROW_DIR/tess_home.xml"; tap_node "$ROW_DIR/tess_home.xml" cortana_menu_button; sleep 2
 dump_ui "$ROW_DIR/tess_pane.xml"; tap_node "$ROW_DIR/tess_pane.xml" cortana_pane_item_settings; sleep 3
-dump_ui "$ROW_DIR/tess_checklist_mic_denied.xml"; screencap "$ROW_DIR/tess_checklist_mic_denied.png"
-assert_eq "Tess's checklist microphone row is red (missing)" yes "$(has_node "$ROW_DIR/tess_checklist_mic_denied.xml" cortana_check:microphone:missing)"
+# The checklist sits BELOW the Voice section's eleven rows, Notes and Places on this scrolling page: a dump without
+# scrolling holds no cortana_check row at all (this pass's first run on 5558). Scrolled until the microphone row —
+# in whatever state — is laid out, then its state read from its own tag.
+D="$ROW_DIR/tess_checklist_mic_denied.xml"; dump_ui "$D"; i=0
+while ! grep -q 'resource-id="cortana_check:microphone:' "$D" && [ "$i" -lt 10 ]; do
+  adb shell input swipe 540 1700 540 800 320; sleep 1; i=$((i + 1)); dump_ui "$D"
+done
+note "Tess's settings scrolled $i swipe(s) to the microphone row: $(grep -o 'resource-id="cortana_check:microphone:[a-z]*"' "$D" | head -1)"
+screencap "$ROW_DIR/tess_checklist_mic_denied.png"
+assert_eq "Tess's checklist microphone row is red (missing)" yes "$(has_node "$D" cortana_check:microphone:missing)"
 cortana_close; adb shell input keyevent KEYCODE_HOME; sleep 1
 adb shell pm grant app.tileshell android.permission.RECORD_AUDIO; sleep 2
 rec_open record

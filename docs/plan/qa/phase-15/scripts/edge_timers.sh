@@ -23,7 +23,7 @@ assert_within "… on time (late <= 1500 ms; a cold process)" 0 "$(field_of "$FI
 sleep 3
 assert_ne "… and it rings (an ALARM player of the shell)" 0 "$(alarm_player_started)"
 assert_ne "the process that rings is a new one" "$PID0" "$(adb shell pidof app.tileshell | tr -d '\r')"
-gdump "$ROW_DIR/dead_ring.xml"; screencap "$ROW_DIR/dead_ring.png"
+gdump_for "$ROW_DIR/dead_ring.xml" ring_dismiss; screencap "$ROW_DIR/dead_ring.png"
 gtap "$ROW_DIR/dead_ring.xml" ring_dismiss; sleep 2
 assert_eq "dismissed" 0 "$(alarm_player_started)"
 app_delete_timer "$TID"
@@ -96,13 +96,13 @@ TID3="$(api_timer 600 "Paused")"
 assert_ne "a 10-min timer is running" "" "$TID3"
 open_clock timer
 sleep 3
-gdump "$ROW_DIR/pause_a.xml"
+gdump_for "$ROW_DIR/pause_a.xml" "timer_play:$TID3"
 gtap "$ROW_DIR/pause_a.xml" "timer_play:$TID3"; sleep 1.5
 assert_eq "paused in the store" PAUSED "$(timer_field "$TID3" state)"
 REM0="$(timer_field "$TID3" remainingMs)"
 assert_eq "a paused timer holds no deadline" "null null" "$(timer_field "$TID3" deadlineElapsedMs) $(timer_field "$TID3" deadlineWallMs)"
 assert_eq "… and no alarm is armed for it" "" "$(timer_trigger_elapsed | paste -sd,)"
-gdump "$ROW_DIR/pause_b.xml"
+gdump_for "$ROW_DIR/pause_b.xml" "timer_remaining:$TID3"
 SHOWN0="$(node_text "$ROW_DIR/pause_b.xml" "timer_remaining:$TID3")"
 NOW="$(device_ms)"
 jump_clock $(( NOW + 3600000 )) >/dev/null
@@ -110,7 +110,7 @@ sleep 2
 assert_eq "after a +1 h clock jump it is still PAUSED" PAUSED "$(timer_field "$TID3" state)"
 assert_eq "… holding the same remaining" "$REM0" "$(timer_field "$TID3" remainingMs)"
 open_clock timer
-gdump "$ROW_DIR/pause_c.xml"; screencap "$ROW_DIR/pause_c.png"
+gdump_for "$ROW_DIR/pause_c.xml" "timer_remaining:$TID3"; screencap "$ROW_DIR/pause_c.png"
 assert_eq "… and the tab shows the same digits" "$SHOWN0" "$(node_text "$ROW_DIR/pause_c.xml" "timer_remaining:$TID3")"
 assert_eq "… with nothing armed" "" "$(timer_trigger_elapsed | paste -sd,)"
 gtap "$ROW_DIR/pause_c.xml" "timer_play:$TID3"; sleep 1.5

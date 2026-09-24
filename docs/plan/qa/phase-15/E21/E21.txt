@@ -1,38 +1,41 @@
 ==============================================================================
 ROW E21 — permission states: full-screen intent, overlay, SCHEDULE_EXACT_ALARM; the recorder's microphone and audio access
-at            2026-09-24T15:55:59-06:00
-driver        e21.sh blob 42ad2eed99540ac92497c7c6a836e644d4377217
+at            2026-09-24T17:12:54-06:00
+driver        e21.sh blob aee6acab5cb4403c2dc9bbf005331eb14f5f6371
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     e9d870364a6c00fc 338459898 bytes
-apk installed 2356b99f4933214b
-apk match     yes (2356b99f4933214b)
+apk built     ba42e00bac9f14cf 338459898 bytes
+apk installed 33cc71c192190cc9
+apk match     NO (device 33cc71c192190cc9, built c45e7a2838aae3b0)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+16m4s335ms ago; rejectTime=+2h38m4s337ms ago 
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+25m58s788ms ago; rejectTime=+2m58s754ms ago 
 RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
 PASS  baseline: no shell alarm or timer pending                   = 0
 PASS  baseline: alarm and timer stores empty                      = empty
-RECORD  appops after the doc's package-level deny (both modes)      Uid mode: USE_FULL_SCREEN_INTENT: allow|USE_FULL_SCREEN_INTENT: deny; time=+16m4s672ms ago; rejectTime=+2h38m4s674ms ago
-RECORD  appops after the uid-level deny (both modes)                Uid mode: USE_FULL_SCREEN_INTENT: deny|USE_FULL_SCREEN_INTENT: deny; time=+16m4s695ms ago; rejectTime=+2h38m4s697ms ago
+RECORD  appops after the doc's package-level deny (both modes)      Uid mode: USE_FULL_SCREEN_INTENT: allow|USE_FULL_SCREEN_INTENT: deny; time=+25m59s80ms ago; rejectTime=+2m59s46ms ago
+RECORD  appops after the uid-level deny (both modes)                Uid mode: USE_FULL_SCREEN_INTENT: deny|USE_FULL_SCREEN_INTENT: deny; time=+25m59s109ms ago; rejectTime=+2m59s75ms ago
 PASS  the alarm was created                                       != 
 PASS  the keyguard shows after sleep + wake                       = true
 PASS  FSI denied: the alarm fired                                 != 
 PASS  FSI denied: it still sounds (an ALARM player of the shell is started)  != 0
 PASS  FSI denied: it still notifies (the alarm-channel notification is posted)  != 
 PASS  FSI denied: the keyguard is on top                          = true
-      focus: mCurrentFocus=Window{cc09d69 u0 NotificationShade}
+      focus: mCurrentFocus=Window{9b6dee9 u0 NotificationShade}
 PASS  FSI denied: no activity of app.tileshell over the keyguard  does not contain [app.tileshell]
 PASS  FSI denied: the keyguard is not occluded                    = false
-PASS  FSI denied: surface: lockscreen-notification a813974dd      contains [[alarms] surface: lockscreen-notification a813974dd]
+PASS  FSI denied: surface: lockscreen-notification abaecf8cf      contains [[alarms] surface: lockscreen-notification abaecf8cf]
 PASS  FSI denied: full-screen intent: deny                        contains [[alarms] full-screen intent: deny]
-RECORD  the lock screen's SystemUI nodes naming the alarm           android:id/title|Alarm|android:id/text|Nofsi · 3:58 PM
+RECORD  the lock screen's SystemUI nodes naming the alarm           android:id/title|Alarm|android:id/text|Nofsi · 5:14 PM
       no Dismiss action visible on the lock screen; the ring is ended by the restore's force-stop
-PASS  device clock back within 2 s of the host (RV12)             1790286995.00 vs 1790286995.00 +/- 2.0
+PASS  device clock back within 2 s of the host (RV12)             1790291610.00 vs 1790291610.00 +/- 2.0
 PASS  wake_device printed Awake (C-25)                            = Awake
+      scroll_to_node alarm_row:abaecf8cf: 0 swipe(s), found=yes
+PASS  the rung Nofsi alarm is deleted through the app before the next clause  does not contain [abaecf8cf]
       scroll_to_node checklist:full_screen_alarms:missing: 1 swipe(s), found=yes
 PASS  the Full-screen alarms row reads missing                    = yes
-RECORD  the missing row's glyph colour (red is 232,17,35)           0,0,0
+RECORD  the missing row's glyph colour (red is 232,17,35)           232,17,35
+PASS  … its glyph is red (232,17,35 ± 16)                      = yes
 PASS  its tap resumes com.android.settings                        contains [com.android.settings]
       scroll_to_node checklist:full_screen_alarms:granted: 0 swipe(s), found=yes
 PASS  restore allow: the row reads granted                        = yes
@@ -44,7 +47,7 @@ PASS  restore allow: checklist:overlay:granted                    = yes
 RECORD  appops SCHEDULE_EXACT_ALARM after deny                      SCHEDULE_EXACT_ALARM: default
 RECORD  USE_EXACT_ALARM grant                                       android.permission.USE_EXACT_ALARM: granted=true
 PASS  the alarm was created                                       != 
-FAIL  it still arms with setAlarmClock: the Next alarm clock line holds it  expected [1790339400000] got [1790287080000]
+PASS  it still arms with setAlarmClock: the Next alarm clock line holds it  = 1790339400000
 PASS  … and the rearm line says exact=true                      contains [exact=true]
 RECORD  appops SCHEDULE_EXACT_ALARM after restore                   SCHEDULE_EXACT_ALARM: default
       E21 recorder: audio.sh check: capture source: vmic5558.monitor (want vmic5558.monitor); output stream: 5839 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
@@ -54,11 +57,12 @@ PASS  RECORD_AUDIO revoked: the page says it cannot record (rec_mic_notice)  = y
 PASS  … and offers the grant in place (rec_mic_grant)           = yes
 PASS  rec_button starts nothing (no new take)                     = 0
 PASS  … and no take started in the :recorder ring               does not contain [[recorder] start ]
-FAIL  the checklist's microphone row is red (missing)             expected [yes] got [no]
+      Tess's settings scrolled 1 swipe(s) to the microphone row: resource-id="cortana_check:microphone:missing"
+PASS  Tess's checklist microphone row is red (missing)            = yes
 PASS  granted again: no microphone notice                         = no
-      make_take 3s: stop tapped at elapsed_ms=2832 -> id 1832 (Recording.m4a, 3019 ms)
+      make_take 3s: stop tapped at elapsed_ms=2856 -> id 2008 (Recording.m4a, 3065 ms)
 PASS  its own take is made first                                  != 
-      other.m4a: 1711
+      other.m4a: 1993
 PASS  READ_MEDIA_AUDIO revoked: the list shows its own take       = yes
 PASS  … and NOT other.m4a                                       = no
 PASS  … with the notice naming the Music grant (rec_list_notice)  = yes
@@ -68,8 +72,7 @@ PASS  granted again: other.m4a is back                            = yes
 PASS  … and the notice is gone                                  = no
 PASS  … and the list line counts it again                       contains [(1 by other apps)]
       purge_own_takes: 0 of the shell's takes remain in MediaStore
-      scroll_to_node alarm_row:a813974dd: 0 swipe(s), found=yes
-      scroll_to_node alarm_row:add758c15: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a75ee08e3: 0 swipe(s), found=yes
 PASS  restore: USE_FULL_SCREEN_INTENT allow                       contains [allow]
 PASS  restore: SYSTEM_ALERT_WINDOW allow                          contains [allow]
 PASS  restore: no shell alarm or timer pending                    = 0
@@ -77,4 +80,4 @@ PASS  restore: alarm and timer stores empty                       = empty
 PASS  restore: RECORD_AUDIO granted                               contains [RECORD_AUDIO: granted=true]
 PASS  restore: READ_MEDIA_AUDIO granted                           contains [READ_MEDIA_AUDIO: granted=true]
 ------------------------------------------------------------------------------
-E21: 42 passed, 2 failed, 9 recorded
+E21: 46 passed, 0 failed, 9 recorded
