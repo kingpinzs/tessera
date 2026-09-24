@@ -22,6 +22,13 @@ assert_ne "lowBytes was read" "" "$LOW"
 TONE_PID=""
 FILLED=no
 if [ "$AUDIO_OK" = yes ] && [ -n "$LOW" ]; then
+  # Run 1: the take ran 632 s, wrote 5.25 MB from free=54 and never met the floor — Android trimmed other apps' caches
+  # while the volume sat under 1.5 x lowBytes (DeviceStorageMonitorService frees cache back towards 2 x lowBytes),
+  # handing the take more than 1 MiB mid-run; a probe right after (the caches already trimmed) stopped at the floor on
+  # the byte (free=51 -> `storage floor` at 1.1 MB). So the caches are trimmed BEFORE the fill, and the fill measured
+  # after it: the take then writes against a volume nothing else frees.
+  note "pm trim-caches (all app caches, before the fill): $(adb shell pm trim-caches 999G 2>&1 | tr -d '\r')"
+  sleep 2
   fill_volume $(( LOW + 54 * 1024 * 1024 )); FRC=$?
   FREE1="$(df_free)"
   assert_eq "fill_volume left LOW + 54 MB (<= LOW + 59 MB) free on /sdcard (its own precondition, rc)" 0 "$FRC"
@@ -44,11 +51,12 @@ if [ "$AUDIO_OK" = yes ] && [ -n "$LOW" ]; then
   LIMIT=$(( ( ${FREE_MB:-54} - 50 ) * 1024 * 1024 / 8192 + 60 ))
   [ "$LIMIT" -lt 600 ] && LIMIT=600
   note "waiting up to $LIMIT s for the floor"
-  PHASE=recording; LAST_E=0
+  PHASE=recording; LAST_E=0; N=0
   while [ $(( $(date +%s) - T0 )) -lt "$LIMIT" ]; do
     PHASE="$(rec_status phase)"
     E="$(rec_status elapsed_ms)"; [ -n "$E" ] && LAST_E="$E"
     case "$PHASE" in recording|paused|saving) ;; *) break ;; esac
+    N=$((N + 1)); [ $((N % 30)) -eq 1 ] && note "t=$(( $(date +%s) - T0 ))s elapsed_ms=$E $(rec_status file | grep -oE 'bytes=[0-9]+') df free $(df_free) bytes"
     sleep 2
   done
   STOPPED_AT=$(( $(date +%s) - T0 ))
@@ -72,6 +80,14 @@ if [ "$AUDIO_OK" = yes ] && [ -n "$LOW" ]; then
   sleep 1.5; adb shell input keyevent KEYCODE_BACK; sleep 1
   rec_ring_save
   # ---- restore ----------------------------------------------------------------------------------------------------
+  # RV12 (run 1 left its take running): a take the floor never stopped is stopped and deleted through the app here,
+  # after the verdicts above, so no assertion reads a hand-stopped take as the floor's.
+  if [ "$(rec_status phase)" = recording ]; then
+    B2="$(own_ids | tr '\n' ' ')"
+    rec_open record; tap_rec_button "$ROW_DIR/stray_stop.xml"; wait_phase idle 15 >/dev/null; sleep 1.5
+    STRAY="$(new_own_id "$B2")"; note "restore: the take the floor never stopped was stopped by hand: ${STRAY:-none}"
+    [ -n "$STRAY" ] && app_delete_take "$STRAY"
+  fi
   unfill_volume
   FILLED=no
   FREE2="$(df_free)"; note "free on /sdcard after unfill: $FREE2 bytes (before the row: $FREE0)"

@@ -1,19 +1,19 @@
 ==============================================================================
 ROW E15 — the recorder keeps recording in the background and stops from its notification
-at            2026-09-24T12:42:06-06:00
+at            2026-09-24T13:29:42-06:00
 driver        e15.sh blob e3fc35d1ace089c89d7ed30b48dcc404557e3086
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     9cdb2b692d30396a 336970510 bytes
-apk installed 42d6fcbd160015a2
-apk match     yes (42d6fcbd160015a2)
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 7b1306f3e567a24b
+apk match     yes (7b1306f3e567a24b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  baseline: MediaStore holds no take of the shell's           = 0
       E15: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
 PASS  E15: the audio route is up (audio.sh check rc)              = 0
-      tone loop pid 1687261
-      the take runs: elapsed_ms=1532
+      tone loop pid 2521966
+      the take runs: elapsed_ms=1555
 PASS  the take is recording                                       = recording
 PASS  the :recorder ring holds [recorder] start                   contains [[recorder] start Recording free=]
 PASS  Start is in front                                           contains [app.tileshell/.StartActivity]
@@ -21,7 +21,7 @@ PASS  Start is in front                                           contains [app.
 PASS  the recorder service is foreground                          contains [isForeground=true]
 PASS  its types carry the microphone bit 0x00000080               contains [types=0x00000080]
 PASS  its process is app.tileshell:recorder                       contains [processName=app.tileshell:recorder]
-      pidof app.tileshell:recorder = 15818
+      pidof app.tileshell:recorder = 21382
 PASS  pidof app.tileshell:recorder finds the process              != 
 PASS  the ongoing notification is posted (ONGOING_EVENT)          contains [ONGOING_EVENT]
 PASS  it carries a Stop action                                    contains ["Stop" -> PendingIntent]
@@ -29,24 +29,21 @@ PASS  its title is Recording                                      contains [andr
       after KEYCODE_SLEEP: mWakefulness=Asleep
 PASS  the take is still recording after 20 s asleep               = recording
 PASS  wake_device prints Awake (C-25)                             = Awake
-      elapsed_ms before the shade: 26563
+      elapsed_ms before the shade: 26633
       shade_tap_action: tapping [Stop] at 240,1110
 PASS  the notification's Stop was found and tapped in the shade   = yes
 PASS  after Stop the notification is gone                         = 
 PASS  after Stop no recorder service is running                   = 
-      the take's MediaStore id: 45; wall time since the record tap: 37 s
+      the take's MediaStore id: 57; wall time since the record tap: 37 s
 PASS  the take is in MediaStore                                   != 
-      take: 29.628700 s, aac,44100,1
+      take: 29.814400 s, aac,44100,1
 PASS  the file is at least 25 s long                              = yes
-      overall RMS: -6.091427 dBFS
+      overall RMS: -6.112062 dBFS
 PASS  the tone is in the whole file (overall RMS > -40 dBFS)      = yes
-      RMS over 22-27 s: -6.012242 dBFS
+      RMS over 22-27 s: -6.014920 dBFS
 PASS  the 5-s window at 22 s (recorded while the screen was off) has the tone (RMS > -40 dBFS)  = yes
-      the reopened page: rec_button rec_empty rec_list rec_more rec_page:list rec_root
-FAIL  reopened after the notification stop, the list shows the take's row  expected [yes] got [no]
-      app_delete_take: no rec_row:45 on the list
-      purge_own_takes: 0 of the shell's takes remain in MediaStore
-      restore: the app did not list the take, so it is removed with adb (rm + scan) -> 0 remain
+      the reopened page: rec_button rec_date:57 rec_duration:57 rec_filter rec_group:Today rec_list rec_more rec_name:57 rec_page:list rec_root rec_row:57 rec_search rec_showing
+PASS  reopened after the notification stop, the list shows the take's row  = yes
 PASS  restore: the take is gone from MediaStore                   = 0
 ------------------------------------------------------------------------------
-E15: 22 passed, 1 failed, 0 recorded
+E15: 23 passed, 0 failed, 0 recorded

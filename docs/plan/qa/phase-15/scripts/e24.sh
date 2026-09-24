@@ -154,11 +154,26 @@ if [ -n "$A" ] && [ -n "$B" ]; then
   SB="$(nb "$ROW_DIR/list.xml" w10m_status_bar)"; NB="$(nb "$ROW_DIR/list.xml" w10m_nav_bar)"
   S="$(nb "$ROW_DIR/list.xml" rec_search)"; SH="$(nb "$ROW_DIR/list.xml" rec_showing)"
   note "search $S / showing $SH"
-  assert_within "3.1 rec_search is 32 epx tall" "$(( 32 * PX ))" "$(f "$S" 6)" "$PX"
+  # The text field's NODE reports its touch bounds — Compose widens an interactive node to the 48-epx minimum touch
+  # target around the drawn 32-epx box (run 1: 144 px tall, centred on the box) — so the box's height and top are read
+  # from its own drawn 1-epx border (white at 60 % over black, 153 grey) in the screencap, down the node's centre column
+  # inside its touch bounds; the margins are the node's (the widening is vertical only).
+  read -r BTOP BBOT <<< "$(python3 - "$ROW_DIR/list.png" "$(f "$S" 7)" "$(f "$S" 2)" "$(f "$S" 4)" <<'PY2'
+import sys
+import numpy as np
+from PIL import Image
+a = np.asarray(Image.open(sys.argv[1]).convert("RGB")).astype(np.int16)
+x, y0, y1 = int(float(sys.argv[2])), int(sys.argv[3]), int(sys.argv[4])
+rows = [y for y in range(y0, y1) if (np.abs(a[y, x] - np.array([153, 153, 153])) <= 10).all()]
+print(rows[0], rows[-1] + 1) if rows else print("0 0")
+PY2
+)"
+  note "rec_search's drawn border: rows $BTOP..$BBOT (the node's touch bounds $(f "$S" 2)..$(f "$S" 4))"
+  assert_within "3.1 rec_search's drawn box is 32 epx tall" "$(( 32 * PX ))" "$(( BBOT - BTOP ))" "$PX"
   assert_within "3.1 rec_search has a 12-epx left margin" "$(( 12 * PX ))" "$(f "$S" 1)" "$PX"
   assert_within "3.1 rec_search has a 12-epx right margin" "$(( 1080 - 12 * PX ))" "$(f "$S" 3)" "$PX"
-  assert_within "3.1 rec_search is the first element, 12 epx under the status bar" "$(( $(f "$SB" 4) + 12 * PX ))" "$(f "$S" 2)" "$PX"
-  assert_eq "3.2 the Showing line sits under the search box" yes "$([ "$(f "$SH" 2)" -ge "$(f "$S" 4)" ] && echo yes || echo "no ($(f "$SH" 2) < $(f "$S" 4))")"
+  assert_within "3.1 rec_search is the first element, its box 12 epx under the status bar" "$(( $(f "$SB" 4) + 12 * PX ))" "$BTOP" "$PX"
+  assert_eq "3.2 the Showing line sits under the search box" yes "$([ "$(f "$SH" 2)" -ge "$BBOT" ] && echo yes || echo "no ($(f "$SH" 2) < $BBOT)")"
   assert_contains "3.2 the Showing line reads its kind" "All recordings" "$(node_text "$ROW_DIR/list.xml" rec_filter)"
   H="$(nb "$ROW_DIR/list.xml" 'rec_group:Today')"; note "header Today: $H"
   assert_within "3.3 the group header sits at x 12 epx" "$(( 12 * PX ))" "$(f "$H" 1)" "$PX"

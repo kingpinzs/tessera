@@ -100,17 +100,27 @@ fi
 # ---- conversely: Tess's recogniser holds the microphone; the record tap is refused ---------------------------------
 adb shell pm grant "$FIX" android.permission.RECORD_AUDIO >/dev/null 2>&1
 note "default recogniser: $(adb shell settings get secure voice_recognition_service | tr -d '\r')"
+# The fixture asks from the BACKGROUND (the Voice Recorder page is in front), and its RECORD_AUDIO is a while-in-use
+# grant: AppOps keeps treating it as foreground for only ~5 s after it leaves the top, after which
+# RecognitionService.dispatchStartListening's data-delivery check fails, cancels at once and answers
+# ERROR_INSUFFICIENT_PERMISSIONS (run 2: `[recognition] startListening` then `cancel` in the same ms, and a take started
+# instead; a probe reproduced error:9 with the broadcast 9.6 s after the page opened and a held microphone at 2.6 s; the
+# uid mode cannot be set to allow on this image — the permission policy keeps it `foreground`). So the record state's
+# dump is taken FIRST, and the broadcast goes out the moment the reopened page is resumed, its delay logged.
+rec_open record
+dump_ui "$ROW_DIR/record2.xml"              # the record state's disc, for the tap below
 open_field field_text                       # the fixture's receiver lives in its activity
 adb shell input keyevent KEYCODE_BACK; sleep 0.5   # the keyboard down; the activity stays
-rec_open record
-dump_ui "$ROW_DIR/record2.xml"
-assert_contains "the Voice Recorder page is in front" "recorder.RecorderActivity" "$(resumed)"
 N0="$(own_count)"
 CMARK="$(ring_mark)"
+T_LEAVE="$(date +%s%3N)"
+adb shell am start -W -n "$REC_ACT" --es page record >/dev/null 2>&1
 adb shell am broadcast -a "$FIX.RECOGNIZE" -p "$FIX" >/dev/null 2>&1
+note "RECOGNIZE broadcast $(( $(date +%s%3N) - T_LEAVE )) ms after the recorder page was asked for (the fixture's grace ~5 s)"
 OWNER=""
 for _ in $(seq 1 30); do OWNER="$(speech_status mic_owner_pid)"; [ "$OWNER" = "$LPID" ] && break; sleep 0.1; done
 note "microphone owner after the RECOGNIZE broadcast: [$OWNER] (launcher $LPID)"
+assert_contains "the Voice Recorder page is in front" "recorder.RecorderActivity" "$(resumed)"
 assert_eq "the recognition service (launcher process) holds the microphone" "$LPID" "$OWNER"
 RMARK="$(ring_mark)"
 gtap "$ROW_DIR/record2.xml" rec_button; sleep 1.5
@@ -127,6 +137,13 @@ assert_ne "no take is running" recording "$(rec_status phase)"
 for _ in $(seq 1 40); do [ -z "$(speech_status mic_owner_pid)" ] || [ "$(speech_status mic_owner_pid)" = 0 ] && break; sleep 0.5; done
 note "microphone owner after the recogniser finished: [$(speech_status mic_owner_pid)]"
 rec_ring_save
+# RV12: a take the tap started anyway (the refusal failed) is stopped and deleted through the app; the verdicts stand.
+if [ "$(rec_status phase)" = recording ]; then
+  B2="$(own_ids | tr '\n' ' ')"
+  tap_rec_button "$ROW_DIR/stray_stop.xml"; wait_phase idle 15 >/dev/null; sleep 1.5
+  STRAY="$(new_own_id "$B2")"; note "restore: the take the refused tap started anyway was stopped: ${STRAY:-none}"
+  [ -n "$STRAY" ] && app_delete_take "$STRAY"
+fi
 adb shell input keyevent KEYCODE_HOME; sleep 1
 
 # ---- restore ------------------------------------------------------------------------------------------------------
