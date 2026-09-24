@@ -1,0 +1,33 @@
+==============================================================================
+ROW E1 — burst at the hold: four satellites One..Four, edit mode on, both stay after UP
+at            2026-09-23T19:03:52-06:00
+driver        e1.sh blob 28247758bc78cb0d61ea0e68d3b034052ae582fd
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     fcd8bba1e3fe390a 336439365 bytes
+apk installed 3bea06a7cc6ae0e7
+apk match     yes (3bea06a7cc6ae0e7)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  fixture tile at its middle-column cell at rest (T11-18)     want ['365', '439', '708', '782'] ± 1, got ['365', '439', '708', '782']
+      fixture centre 536 610
+PASS  quick_burst present while held                              = yes
+PASS  quick_sat:0 present                                         = yes
+PASS  quick_sat:1 present                                         = yes
+PASS  quick_sat:2 present                                         = yes
+PASS  quick_sat:3 present                                         = yes
+PASS  labels are ranks 0-3, Five absent                           = One,Two,Three,Four,
+PASS  no label Five                                               does not contain [text="Five"]
+PASS  edit_disc:unpin present                                     = yes
+PASS  edit_disc:resize present                                    = yes
+PASS  dim:* present (edit mode dims the others)                   contains [resource-id="dim:]
+PASS  StartActivity still resumed                                 contains [app.tileshell/.StartActivity]
+PASS  shortcuts line (T11-12)                                     contains [[quick] shortcuts for app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity/0: 5 (4 shown: qa_one,qa_two,qa_three,qa_four)]
+PASS  burst line                                                  contains [[quick] burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: 4 satellites]
+      dumpdiff held -> after_up: IDENTICAL
+PASS  tile rectangles unchanged by the UP (dumpdiff)              = IDENTICAL
+PASS  burst and discs unchanged by the UP (± 1 px, same labels)  = SAME
+------------------------------------------------------------------------------
+E1: 18 passed, 0 failed
