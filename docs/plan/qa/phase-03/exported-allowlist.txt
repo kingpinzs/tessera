@@ -37,3 +37,5 @@ app.tileshell.ime.KeyboardService	android.permission.BIND_INPUT_METHOD	The keybo
 # ---- phase 10 (owed by phase 10's gate, INDEX Change Log 2026-09-22 phase 05 entry (3); added by phase 15's task 1) ----
 app.tileshell.music.MusicActivity	guard: none (LAUNCHER intent filter)	Music's own launcher entry (phase 10 build task 1).
 app.tileshell.music.MusicService	guard: none (MediaSessionService / MediaBrowserService filters)	The playback session other apps' media controllers bind; Media3 decides per controller what it may do.
+# ---- phase 15 (build task 4's share of task 1) ----
+app.tileshell.clock.ClockActivity	guard: none (LAUNCHER intent filter)	The Alarms & Clock app's own launcher entry (phase 15 build task 4). The `page` and tile-id extras only choose a tab; nothing they carry creates, edits or deletes an alarm.

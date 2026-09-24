@@ -136,6 +136,27 @@
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_music" />
         </activity>
 
+        <!--
+            Phase 15 build task 4: Alarms & Clock is an APP in the shell APK exactly as Music is — a launcher
+            activity with its own task. singleTask, so a notification, the lock screen's next alarm, a pinned
+            timer's tile, an App Shortcut or the AlarmClock handler re-routes the running app (onNewIntent) instead
+            of stacking a second one. Its static App Shortcuts are build task 9's.
+        -->
+        <activity
+            android:name=".clock.ClockActivity"
+            android:exported="true"
+            android:label="@string/clock_name"
+            android:taskAffinity="app.tileshell.clock"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_clock" />
+        </activity>
+
         <activity
             android:name=".weather.WeatherActivity"
             android:exported="true"
