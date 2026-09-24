@@ -4,7 +4,6 @@ import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import app.tileshell.diag.Diagnostics
-import app.tileshell.tiles.api.LiveTileStore
 import app.tileshell.tiles.engine.BadgeStore
 import app.tileshell.tiles.engine.FaceTransition
 import app.tileshell.tiles.engine.LiveTileEngine
@@ -51,7 +50,9 @@ class TileNotificationListener : NotificationListenerService() {
 
     private fun rescan(reason: String) {
         val byPkg = active().groupBy { it.packageName }
-        val known = LiveTileEngine.content.value.keys.filter { it.startsWith("pkg:") }.map { it.removePrefix("pkg:") }
+        // The packages the engine holds content for — never names parsed out of its keys, where a secondary tile's
+        // `pkg:<owner>#<id>` reads as a package and its content was cleared on every rescan (the L11-1 fix review, F-1).
+        val known = LiveTileEngine.packages()
         (byPkg.keys + known).toSet().forEach { rebuild(it, byPkg[it]?.maxOf { n -> n.postTime } ?: System.currentTimeMillis()) }
         Diagnostics.add("notif", "rescan ($reason): ${byPkg.size} packages with notifications")
     }

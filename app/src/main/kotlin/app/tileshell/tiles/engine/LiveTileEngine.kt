@@ -16,6 +16,7 @@ enum class PackageSource(val tag: String) { MUSIC("music"), API("api"), NOTIFICA
  * why a notification update can no longer wipe a playing tile's face and its transport strip.
  */
 object TileSourcePrecedence {
+    /** A playing session: a front NowPlaying face whose `playing` is true (MusicRules.plan sets both from one state). */
     fun playing(content: TileContent?): Boolean = (content?.front as? TileFace.NowPlaying)?.playing == true
 
     fun resolve(sources: Map<PackageSource, TileContent>): Pair<PackageSource, TileContent>? {
@@ -56,16 +57,42 @@ object LiveTileEngine {
 
     private fun empty(content: TileContent?) = content == null || (content.faces.isEmpty() && content.front == null)
 
+    /** The packages that have content from any producer — what a producer that rescans may revisit (F-1). */
+    @Synchronized
+    fun packages(): Set<String> = packageSources.keys.toSet()
+
+    private val forgetListeners = java.util.concurrent.CopyOnWriteArrayList<(String) -> Unit>()
+
+    /** Told when a package is forgotten, so a producer that remembers its content drops it too (MusicFeed; F-2). */
+    fun addForgetListener(listener: (String) -> Unit) { forgetListeners += listener }
+
+    /**
+     * The package as the shell knew it is gone (uninstalled, or reinstalled under another identity): every producer's
+     * content for it goes, so a reinstall inherits nothing (phase 01's trust edge; the L11-1 fix review, F-2).
+     */
+    fun forgetPackage(pkg: String) {
+        synchronized(this) {
+            packageSources.remove(pkg)
+            val key = packageKey(pkg)
+            if (key in state.value) state.value = state.value - key
+            Diagnostics.add("engine", "forget $key (every source)")
+        }
+        forgetListeners.forEach { it(pkg) }
+    }
+
     /** One producer's content for an app's own tile; what shows is decided by [TileSourcePrecedence] (L11-1). */
     @Synchronized
     fun publishPackage(pkg: String, source: PackageSource, content: TileContent?) {
+        // A key this arbiter never held (a secondary tile's `pkg:<owner>#<id>`, written by publish()) is never
+        // removed by it: only a package that HAD slots loses its entry when they empty (the fix review, F-1).
+        val had = packageSources.containsKey(pkg)
         val slots = packageSources.getOrPut(pkg) { mutableMapOf() }
         if (empty(content)) slots.remove(source) else slots[source] = content!!
         if (slots.isEmpty()) packageSources.remove(pkg)
         val winner = TileSourcePrecedence.resolve(slots)
         val key = packageKey(pkg)
         val next = state.value.toMutableMap()
-        if (winner == null) next.remove(key) else next[key] = winner.second
+        if (winner == null) { if (had) next.remove(key) } else next[key] = winner.second
         state.value = next
         val shows = winner?.let { (s, c) -> s.tag + if (s == PackageSource.MUSIC) (if (TileSourcePrecedence.playing(c)) " (playing)" else " (paused)") else "" } ?: "nothing"
         Diagnostics.add(

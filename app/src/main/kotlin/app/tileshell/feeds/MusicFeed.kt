@@ -58,6 +58,9 @@ object MusicFeed {
 
     fun start(context: Context) {
         val app = context.applicationContext
+        // A package forgotten by the engine (gone, or reinstalled as another identity) is not republished from the
+        // track remembered here when its session dies (the L11-1 fix review, F-2).
+        LiveTileEngine.addForgetListener { pkg -> Handler(Looper.getMainLooper()).post { forget(pkg) } }
         val listener = ComponentName(app, TileNotificationListener::class.java)
         val msm = app.getSystemService(MediaSessionManager::class.java) ?: return
         runCatching {
@@ -184,6 +187,15 @@ object MusicFeed {
             "${if (next.playing) "now playing" else "idle"} ${next.track.pkg} title=${next.track.title} " +
                 "front=${plan.front} flip=${plan.flip} grow=${plan.grow} ($reason)",
         )
+    }
+
+    private fun forget(pkg: String) {
+        if (publishedPkg != pkg) return
+        published = null
+        publishedArt = null
+        publishedPkg = null
+        ActiveTiles.setPackage(pkg, false, "package forgotten")
+        Diagnostics.add("music", "forgot $pkg's track (package gone)")
     }
 
     /** Back to nothing: no tile content, no growth, no remembered track. */
