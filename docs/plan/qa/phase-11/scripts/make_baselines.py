@@ -61,6 +61,11 @@ variants["baseline_layout-tall.json"] = finish(v)
 v = copy.deepcopy(main); v["order"] = [t(A, "MEDIUM")] + [o for o in v["order"] if o["key"] != A]
 variants["baseline_layout-topleft.json"] = finish(v)
 
+# Phase 01 E8's playback fixture (Fossify Music Player) in the fixture's middle-column cell, for E10 (G-E10-1).
+FOSSIFY = "app:org.fossify.musicplayer/org.fossify.musicplayer.activities.SplashActivity.Green:0"
+v = copy.deepcopy(main); v["order"] = [t(FOSSIFY, "MEDIUM") if o["key"] == A else o for o in v["order"]]
+variants["baseline_layout-player.json"] = finish(v)
+
 for name, d in variants.items():
     json.dump(d, open(os.path.join(OUT, name), "w"))
     print(name, [o["key"].split("/")[0].replace("app:app.tileshell.testclient.", "fixture-") + "/" + o["size"][0] for o in d["order"]], "dock", len(d["dock"]))

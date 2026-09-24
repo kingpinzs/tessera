@@ -105,6 +105,7 @@ assert_eq "edit mode stays" yes "$(edit_on "$ROW_DIR/resize.xml")"
 corner="$(python3 -c 'import sys; t=list(map(int,sys.argv[1].split())); d=list(map(int,sys.argv[2].split())); print(abs((d[0]+d[2])//2-t[2]), abs((d[1]+d[3])//2-t[1]))' "$(bounds "$ROW_DIR/resize.xml" "tile:$A_KEY")" "$(disc_of "$ROW_DIR/resize.xml")")"
 note "unpin disc centre off the new top-right corner by (dx dy) = $corner"
 assert_within "the unpin disc on the new top-right corner (x)" 0 "${corner% *}" 3
+assert_within "the unpin disc on the new top-right corner (y)" 0 "${corner#* }" 3
 assert_contains "ring: resize" "[quick] burst closed: resize" "$S"
 restore baseline_layout.json
 
@@ -153,6 +154,11 @@ qdump "$ROW_DIR/nohold-up.xml"
 S="$(ring_since "$MARK")"
 assert_absent "ring: no burst on" "[quick] burst on" "$S"
 assert_contains "the release moved the selection to Start settings" "[edit] selection moves to shell:settings" "$S"
+sleep 0.5; qdump "$ROW_DIR/nohold-after.xml"
+dd="$(python3 -c 'import sys; t=list(map(int,sys.argv[1].split())); d=list(map(int,sys.argv[2].split())); print(abs((d[0]+d[2])//2-t[2]), abs((d[1]+d[3])//2-t[1]))' "$(bounds "$ROW_DIR/nohold-after.xml" tile:shell:settings)" "$(bounds "$ROW_DIR/nohold-after.xml" edit_disc:unpin)")"
+note "unpin disc centre off Start settings' top-right corner by $dd"
+assert_within "the discs moved to Start settings (x)" 0 "${dd% *}" 3
+assert_within "the discs moved to Start settings (y)" 0 "${dd#* }" 3
 c6
 
 log "--- a scroll on empty space: Start scrolls, the satellites ride the tile, fresh rest= lines (T11-28) ---"

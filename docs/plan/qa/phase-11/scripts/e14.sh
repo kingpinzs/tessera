@@ -19,7 +19,7 @@ check() { # name regex
   local n; n="$(echo "$UNION" | grep -cE "$2")"
   if [ "$n" -ge 1 ]; then _verdict PASS "$1" "$n line(s)"; else _verdict FAIL "$1" "no line matches /$2/"; fi
 }
-check "shortcuts for …: n (k shown …)"        '\[quick\] shortcuts for [^ ]+/[0-9]+: [0-9]+ \([0-9]+ shown'
+check "shortcuts for <pkg>/<activity>/<user>: n (k shown …)" '\[quick\] shortcuts for [^ /]+/[^ /]+/[0-9]+: [0-9]+ \([0-9]+ shown'
 check "burst on …: k satellites"               '\[quick\] burst on .*: [1-4] satellites'
 check "satellite i rest=[…]"                   '\[quick\] satellite [0-3] rest=\[-?[0-9]+,-?[0-9]+,-?[0-9]+,-?[0-9]+\]'
 check "satellite i icon failed"                '\[quick\] satellite [0-3] icon failed [^ ]+: '

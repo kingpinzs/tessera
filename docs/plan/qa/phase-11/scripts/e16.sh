@@ -59,6 +59,12 @@ promote
 for _ in 1 2 3 4 5 6; do adb shell input swipe 540 1500 540 700 600; sleep 1; done
 qdump "$ROW_DIR/offscreen-pre.xml"; screencap "$ROW_DIR/offscreen-pre.png"
 assert_eq "the fixture is still promoted" yes "$(has_node "$ROW_DIR/offscreen-pre.xml" recent_app_row)"
+# Photos keeps its row-2 cell before the fixture's (it precedes it in the order), so its top gives the scroll; the
+# fixture's cell (content y 439-782) contracted about the fixed point (0.90 about y 1111.5) must end above the 84-px bar.
+pt="$(bounds "$ROW_DIR/offscreen-pre.xml" tile:slot:PHOTOS | awk '{print $2}')"
+cellb="$(python3 -c 'import sys; s=439-int(sys.argv[1]); c=1111.5+(610.5-s-1111.5)*0.9; print(int(c+171.4))' "${pt:-439}")"
+note "Photos top $pt -> the fixture cell's edit-mode bottom at $cellb px"
+assert_eq "precondition: the fixture's grid cell lies wholly above the page area ($cellb < 84)" ok "$([ "$cellb" -lt 84 ] && echo ok || echo no)"
 read -r X Y <<< "$(center "$ROW_DIR/offscreen-pre.xml" "tile:$A_KEY")"
 MARK="$(ring_mark)"
 hold_down "$X" "$Y"; sleep 1.0; qdump "$ROW_DIR/offscreen.xml"; hold_up "$X" "$Y"; sleep 0.8

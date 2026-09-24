@@ -66,7 +66,7 @@ note "quick_sat:1 $s1 -> $u1; quick_sat:0 $s0 -> $u0"
 assert_eq "quick_sat:1's interior is its fill only (± 2): no glyph" UNIFORM "${u1%% *}"
 assert_eq "quick_sat:0's interior is NOT uniform: its glyph is drawn" VARIED "${u0%% *}"
 S="$(quick_since "$MARK")"
-assert_contains "icon failed line" "[quick] satellite 1 icon failed app.tileshell.testclient.b/qa_noicon: " "$S"
+assert_contains "icon failed line (null drawable)" "[quick] satellite 1 icon failed app.tileshell.testclient.b/qa_noicon: null drawable" "$S"
 MARK="$(ring_mark)"
 tap_node "$ROW_DIR/b-badicon.xml" quick_sat:1; sleep 3
 assert_contains "the no-icon satellite still runs" "[quick] tap satellite 1 app.tileshell.testclient.b/qa_noicon: startShortcut ok" "$(quick_since "$MARK")"

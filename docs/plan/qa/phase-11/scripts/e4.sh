@@ -17,7 +17,7 @@ for i in 2 0 1 3; do
   [ "$i" = 2 ] && { adb shell screenrecord --time-limit 4 /sdcard/Download/e4_exit.mp4 & REC=$!; sleep 0.8; }
   MARK="$(ring_mark)"
   tap_node "$ROW_DIR/burst-$i.xml" "quick_sat:$i"; sleep 3.5
-  [ "$i" = 2 ] && { wait "$REC"; adb pull /sdcard/Download/e4_exit.mp4 "$ROW_DIR/exit-sat2.mp4" >/dev/null 2>&1; }
+  [ "$i" = 2 ] && { wait "$REC"; adb pull /sdcard/Download/e4_exit.mp4 "$ROW_DIR/exit-sat2.mp4" >/dev/null 2>&1; note "exit-sat2.mp4 is KEPT, not asserted: the exit is proved on the shell's clock below (C-5; G-E4-1)"; }
   assert_contains "sat $i: ShortcutActivity resumed" "$A_PKG/app.tileshell.testclient.ShortcutActivity" "$(resumed)"
   qdump "$ROW_DIR/launched-$i.xml"
   assert_eq "sat $i: shortcut_id reads ${ids[$i]}" "${ids[$i]}" "$(node_text "$ROW_DIR/launched-$i.xml" "$A_PKG:id/shortcut_id")"

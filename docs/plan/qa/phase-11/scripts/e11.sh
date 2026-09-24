@@ -25,7 +25,7 @@ MARK="$(ring_mark)"
 adb shell input swipe "$X" "$Y" "$X" "$Y" 1200; sleep 1.2
 qdump "$ROW_DIR/music-menu.xml"
 assert_eq "Music: music_menu present" yes "$(has_node "$ROW_DIR/music-menu.xml" music_menu)"
-assert_eq "Music: no quick_burst" no "$(has_node "$ROW_DIR/music-menu.xml" quick_burst)"
+assert_absent "Music: no [quick] line (MusicActivity shares the launcher's ring)" "[quick]" "$(ring_since "$MARK")"
 adb shell input keyevent KEYCODE_BACK; sleep 1
 c6
 row_end
