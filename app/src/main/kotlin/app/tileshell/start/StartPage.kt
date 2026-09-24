@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -87,6 +88,7 @@ import app.tileshell.ui.tokens.Scale
 import app.tileshell.ui.tokens.ShellType
 import app.tileshell.ui.tokens.StartGrid
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
@@ -130,6 +132,9 @@ class TileFactory(
      * all a media session tells it, and the question "which tiles stand for that package" belongs to
      * whatever holds the layout and the slot resolver — which is this.
      */
+    /** The app a slot resolves to right now, or null (phase 11: what a slot tile's burst asks about). */
+    fun entryOf(slot: Slot): AppEntry? = resolver.resolve(slot, layout.explicitSlots)
+
     fun packageOf(key: TileKey): String? = when (key) {
         is TileKey.AppTile -> key.component.packageName
         is TileKey.SlotTile -> resolver.resolve(key.slot, layout.explicitSlots)?.component?.packageName
@@ -522,7 +527,25 @@ fun StartPage(
         val cycleCount = placements.size + dockKeys.size + (if (recentTile != null) 1 else 0)
         val geoState = rememberUpdatedState(geo)
         val pitchState = rememberUpdatedState(pitchScale)
-        Box(Modifier.fillMaxSize().startEditGestures(edit, geoState, store, scroll, scope, pitchState)) {
+        // Phase 11: the burst. The shortcuts are read from the first touch, off the main thread (T11-32).
+        val quickSource = remember { QuickSource(context) }
+        val factoryState = rememberUpdatedState(factory)
+        val satellitePx = grid.smallPx
+        val prefetch: (TileKey) -> kotlinx.coroutines.Deferred<QuickLoad> = remember(quickSource) {
+            { key ->
+                scope.async(Dispatchers.IO) {
+                    val target = quickSource.targetOf(key) { factoryState.value.entryOf(it) }
+                    quickSource.load(key.id, target, (satellitePx * 0.52f).toInt().coerceAtLeast(24))
+                }
+            }
+        }
+        QuickOpener(edit, geoState, scroll, widthPx)
+        Box(
+            Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { edit.quick.pageCoords = it }
+                .startEditGestures(edit, geoState, store, scroll, scope, pitchState, prefetch),
+        ) {
         if (background != null) {
             Image(
                 background, contentDescription = null, contentScale = ContentScale.Crop,
@@ -659,13 +682,122 @@ fun StartPage(
             }
         }
 
+        // Phase 11: the burst, above the grid, the promoted row, the bottom tile row and an expanded band, in this
+        // page's own root (never a Popup: its window root would be another coordinate system). Draw-only.
+        QuickBurstLayer(
+            edit = edit,
+            accent = colors.accent,
+            tileAlpha = tileAlpha,
+            textColor = colors.text,
+            satellitePx = satellitePx,
+            gutterPx = grid.gutterPx,
+            labelHeightPx = Edit.px(QUICK_LABEL_LINE_EPX, widthPx),
+        )
+
         }
 
         // Edit mode's drivers: the entry/exit motion, the dwell, and the edge auto-scroll while dragging.
         EditMotion(edit)
+        // The held tile leaving the layout (its app uninstalled) closes the burst (`removed`, T11-17).
+        LaunchedEffect(layout, edit.quick.burst) {
+            val open = edit.quick.burst ?: return@LaunchedEffect
+            if (!layout.contains(open.key)) edit.quick.close(CloseReason.REMOVED)
+        }
         DwellTimer(edit, store, layout)
         DragAutoScroll(edit, geo, scroll)
     }
+}
+
+/** The satellite label's box height: the caption class's 16-epx line (R3 A15; ShellType.caption). */
+const val QUICK_LABEL_LINE_EPX = 16f
+
+/** Phase 11 (Decisions "Arrangement"): the corner stand-off, 16 epx, clear of the 31-epx discs. */
+const val QUICK_STANDOFF_EPX = 16f
+
+/**
+ * Opens the burst a hold asked for (phase 11 build task 3) in the first frame its shortcuts are in hand —
+ * normally the entry's first changed frame, because they were read from the first touch (T11-32). Its arrangement
+ * and clamping are decided here, once, against the held tile's edit-mode rest rectangle (T11-27).
+ */
+@Composable
+private fun QuickOpener(edit: StartEditState, geoState: androidx.compose.runtime.State<StartGeometry>, scroll: ScrollState, widthPx: Float) {
+    val pending = edit.quick.pending
+    LaunchedEffect(pending) {
+        val p = pending ?: return@LaunchedEffect
+        val result = try {
+            p.load.await()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            QuickLoad.None(NoBurstReason.queryFailed(e))
+        }
+        if (edit.quick.pending !== p) return@LaunchedEffect
+        edit.quick.pending = null
+        result.lines.forEach { Diagnostics.add("quick", it) }
+        if (!edit.active || edit.exiting || edit.selected != p.key || edit.drag != null) return@LaunchedEffect
+        when (result) {
+            is QuickLoad.None -> Diagnostics.add("quick", "no burst on ${p.key.id}: ${result.reason}")
+            is QuickLoad.Ready -> {
+                val geo = geoState.value
+                val page = quickPageArea(geo, widthPx)
+                val rest = quickRestRect(p.key, geo, scroll.value, widthPx)
+                if (rest == null || !rest.intersects(page)) {
+                    // Since J4 only the promoted tile can be held with its grid cell off the page (T11-27).
+                    Diagnostics.add("quick", "no burst on ${p.key.id}: ${NoBurstReason.OFF_SCREEN}")
+                    return@LaunchedEffect
+                }
+                val layout = QuickGeometry.layout(
+                    tile = rest,
+                    page = page,
+                    count = result.satellites.size,
+                    satellitePx = geo.grid.smallPx,
+                    standOffPx = Edit.px(QUICK_STANDOFF_EPX, widthPx),
+                    gutterPx = geo.grid.gutterPx,
+                    labelHeightPx = Edit.px(QUICK_LABEL_LINE_EPX, widthPx),
+                    inBottomRow = p.key in geo.dockKeys,
+                )
+                edit.quick.open(OpenBurst(p.key, result.satellites, layout, rest))
+                Diagnostics.add("quick", "burst on ${p.key.id}: ${result.satellites.size} satellites")
+            }
+        }
+    }
+}
+
+/**
+ * Where satellites and labels may rest: below phase 01's drawn status bar (BarMetrics.STATUS_EPX, C-17), above the
+ * bottom tile row's top minus one gutter, inside the grid margins (T11-27).
+ */
+private fun quickPageArea(geo: StartGeometry, widthPx: Float): QRect {
+    val bottom = (if (geo.dockKeys.isNotEmpty()) geo.dockTopPx else geo.pageHeightPx) - geo.grid.gutterPx
+    return QRect(
+        geo.grid.leftMarginPx,
+        Edit.px(app.tileshell.bars.BarMetrics.STATUS_EPX.toFloat(), widthPx),
+        widthPx - geo.grid.rightMarginPx,
+        bottom,
+    )
+}
+
+/**
+ * The held tile's drawn rectangle at rest in edit mode, in page px — the numbers StartPage draws it with: in the
+ * grid or a band its centre contracted to [Edit.PITCH_SCALE] about the fixed point (R6 §1.1.3) and its size
+ * unchanged (the held tile counter-scales); in the bottom tile row exactly where the row places it.
+ */
+private fun quickRestRect(key: TileKey, geo: StartGeometry, scrollValue: Int, widthPx: Float): QRect? {
+    val fx = widthPx * Edit.FIXED_POINT_X
+    val fy = geo.fixedPointY
+    fun contracted(x: Float, y: Float, w: Float, h: Float): QRect {
+        val cx = fx + (x + w / 2f - fx) * Edit.PITCH_SCALE
+        val cy = fy + (y + h / 2f - scrollValue - fy) * Edit.PITCH_SCALE
+        return QRect(cx - w / 2f, cy - h / 2f, cx + w / 2f, cy + h / 2f)
+    }
+    geo.placements.firstOrNull { it.key == key }?.let { return contracted(geo.xPx(it), geo.yPx(it), geo.wPx(it.size), geo.hPx(it.size)) }
+    geo.members.firstOrNull { it.key == key }?.let { return contracted(geo.memberXPx(it), geo.memberYPx(it), geo.wPx(it.size), geo.hPx(it.size)) }
+    val i = geo.dockKeys.indexOf(key)
+    if (i >= 0) {
+        val l = geo.grid.leftMarginPx + i * (geo.dockWidthPx + geo.grid.gutterPx)
+        return QRect(l, geo.dockTopPx, l + geo.dockWidthPx, geo.dockTopPx + dockTileHeight(geo.grid))
+    }
+    return null
 }
 
 /** R6 §1.1.8 / §1.1.9 and §1.5.2 / §1.5.3: the entry and exit run on the frame clock, not on guesswork. */
@@ -838,7 +970,10 @@ private fun GridTile(
                 this.alpha = alpha
                 val s = otherScale + (heldScale - otherScale) * heldness
                 scaleX = s; scaleY = s
-            },
+            }
+            // Phase 11 (Decisions "Tracking", T11-41): the held tile's slot as placed here, outside TileView's own
+            // face layer, so a flip or a press never moves a satellite.
+            .let { m -> if (held) m.onGloballyPositioned { edit.quick.heldCoords = it } else m },
     )
 }
 
