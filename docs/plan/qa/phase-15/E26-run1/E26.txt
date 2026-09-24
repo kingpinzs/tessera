@@ -1,0 +1,41 @@
+==============================================================================
+ROW E26 — Tess answers arithmetic and conversions, typed and spoken, locked and not
+at            2026-09-24T09:37:50-06:00
+driver        e26.sh blob e3184313c62d312fbec6db0c1fb852473c550242
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     c26639f6e793f9b6 337843127 bytes
+apk installed 544474ed84bc0b4f
+apk match     NO (device 544474ed84bc0b4f, built 0321862f4dd058ce)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  tess-001 typed "docs/plan/phase-15-inbox-clock-calculator-recorder.md:436-452 (T15-2) + docs/plan/review/2026-09-23-phase15-r3-triage.md:62 (T15-52); engine: src/CalcManager/CalculatorManager.cpp:183 (Scientific precedence, precision 32)"  = 
+FAIL  tess-001 matched Arithmetic                                 does not contain [-> Arithmetic(]: 
+FAIL  tess-001 logged its [calc] tess line                        does not contain [[calc] tess "]:     2026-09-24 09:38:01.638 wall=1790264281638 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=56996236 faceIndex=1 next=0 faces=1
+    2026-09-24 09:38:02.221 wall=1790264282221 [tile_anim] tile=shell:weather kind=FLIP uptime=56996818 faceI
+FAIL  the answer card is up                                       expected [yes] got [no]
+FAIL  its caption is Calculator                                   expected [Calculator] got []
+FAIL  its body shows the expression and the result                does not contain [= 12]: text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="What's on your mind?" text="" text="" text="Ask me anything" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" text="" t
+FAIL  the log carries the canonical expression                    does not contain [[calc] tess "15 % of 80" -> 12]:     2026-09-24 09:38:01.638 wall=1790264281638 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=56996236 faceIndex=1 next=0 faces=1
+    2026-09-24 09:38:02.221 wall=1790264282221 [tile_anim] tile=shell:weather kind=FLIP uptime=56996818 faceI
+      audio.sh check: capture source: easyeffects_source (want vmic.monitor); output stream: 3186 (rc=1)
+FAIL  calc_percent spoken                                         NOT RUN: audio.sh check failed (capture source: easyeffects_source (want vmic.monitor); output stream: 3186)
+FAIL  calc_divzero spoken                                         NOT RUN: audio.sh check failed (capture source: easyeffects_source (want vmic.monitor); output stream: 3186)
+FAIL  calc_convert spoken                                         NOT RUN: audio.sh check failed (capture source: easyeffects_source (want vmic.monitor); output stream: 3186)
+FAIL  calc_root spoken                                            NOT RUN: audio.sh check failed (capture source: easyeffects_source (want vmic.monitor); output stream: 3186)
+FAIL  calc_percent spoken                                         NOT RUN: audio.sh check failed (capture source: easyeffects_source (want vmic.monitor); output stream: 3186)
+PASS  the keyguard was still showing                              contains [isKeyguardShowing=true]
+PASS  no Unlock to continue card                                  = no
+FAIL  weather_like spoken                                         NOT RUN: audio.sh check failed (capture source: easyeffects_source (want vmic.monitor); output stream: 3186)
+FAIL  unmatched spoken                                            NOT RUN: audio.sh check failed (capture source: easyeffects_source (want vmic.monitor); output stream: 3186)
+FAIL  calc_life spoken                                            NOT RUN: audio.sh check failed (capture source: easyeffects_source (want vmic.monitor); output stream: 3186)
+FAIL  weather_like reached the weather action                     does not contain [-> Weather]: 
+FAIL  unmatched matched nothing                                   does not contain [-> NotUnderstood(]: 
+FAIL  unmatched reached the not-understood handler (phase 03 E3's line)  does not contain [transcript=]: 
+FAIL  calc_life matched nothing                                   does not contain [-> NotUnderstood(]: 
+FAIL  calc_life reached the not-understood handler (phase 03 E3's line)  does not contain [transcript=]: 
+PASS  weather_like: no [calc] tess line in its slice              does not contain [[calc] tess]
+PASS  unmatched: no [calc] tess line in its slice                 does not contain [[calc] tess]
+PASS  calc_life: no [calc] tess line in its slice                 does not contain [[calc] tess]
+------------------------------------------------------------------------------
+E26: 6 passed, 19 failed, 0 recorded
