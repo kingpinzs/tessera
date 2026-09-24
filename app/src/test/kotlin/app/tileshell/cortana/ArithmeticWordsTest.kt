@@ -34,6 +34,8 @@ class ArithmeticWordsTest {
 
     @Test fun theE26Utterances() {
         assertEquals(CalcRequest.Percent(Num("15"), Num("80")), parse("What's fifteen percent of eighty?"))
+        // What the recogniser actually writes for calc_percent (E26 run 3's ring: "WHAT'S FIFTEEN PER CENT OF EIGHTY").
+        assertEquals(CalcRequest.Percent(Num("15"), Num("80")), parse("WHAT'S FIFTEEN PER CENT OF EIGHTY"))
         assertEquals(chain(Num("1"), Op.DIVIDE to "divided by", Num("0")), parse("What's one divided by zero?"))
         assertEquals(chain(Root(Num("81"))), parse("What is the square root of eighty one?"))
         assertEquals(chain(Num("2"), Op.PLUS to "plus", Num("2")), parse("what is 2 plus 2"))
