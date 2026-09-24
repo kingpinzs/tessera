@@ -151,9 +151,14 @@ n0="$(own_count)"; MARK="$(ring_mark)"
 gtap "$ROW_DIR/rec_mic_denied.xml" rec_button; sleep 3
 assert_eq "rec_button starts nothing (no new take)" "$n0" "$(own_count)"
 assert_absent "… and no take started in the :recorder ring" "[recorder] start " "$(rec_ring "$MARK")"
-open_checklist
-assert_eq "the checklist's microphone row is red (missing)" yes "$(has_node "$ROW_DIR/.checklist_open.xml" checklist:microphone:missing)"
-cp "$ROW_DIR/.checklist_open.xml" "$ROW_DIR/checklist_mic_denied.xml"
+# The microphone row is Tess's checklist's (cortana/CortanaChecklist.kt:42), on Tess's Settings page: the ≡ pane's Settings
+# (phase 03 E9's route), not the Setup checklist.
+adb shell input keyevent KEYCODE_HOME; sleep 1; cortana_assist; sleep 5
+dump_ui "$ROW_DIR/tess_home.xml"; tap_node "$ROW_DIR/tess_home.xml" cortana_menu_button; sleep 2
+dump_ui "$ROW_DIR/tess_pane.xml"; tap_node "$ROW_DIR/tess_pane.xml" cortana_pane_item_settings; sleep 3
+dump_ui "$ROW_DIR/tess_checklist_mic_denied.xml"; screencap "$ROW_DIR/tess_checklist_mic_denied.png"
+assert_eq "Tess's checklist microphone row is red (missing)" yes "$(has_node "$ROW_DIR/tess_checklist_mic_denied.xml" cortana_check:microphone:missing)"
+cortana_close; adb shell input keyevent KEYCODE_HOME; sleep 1
 adb shell pm grant app.tileshell android.permission.RECORD_AUDIO; sleep 2
 rec_open record
 dump_ui "$ROW_DIR/rec_mic_granted.xml"
