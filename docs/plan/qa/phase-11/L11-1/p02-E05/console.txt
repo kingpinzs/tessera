@@ -1,10 +1,10 @@
-# E5 2026-09-24T13:18:41-06:00
-build guard: built=114511e7de8bb2e08b13c908fd9a3386 installed=114511e7de8bb2e08b13c908fd9a3386
+# E5 2026-09-24T14:12:42-06:00
+build guard: built=50129ec4bf4de7f87da2b63c482d25f0 installed=50129ec4bf4de7f87da2b63c482d25f0
 driver: e5.sh blob 77c8e79d8186720165096e5c6e8a497458c73ce4
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/scripts/../baseline_layout.json: 1 file pushed, 0 skipped. 5.0 MB/s (841 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/scripts/../baseline_layout.json: 1 file pushed, 0 skipped. 5.4 MB/s (841 bytes in 0.000s)
 Success
 --- 1. the request is HELD while the requester is in front (never drawn over another app) ---
-the client's own read-back: 13:18:47  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st1 arguments=chat=42: ok=true error=null pending=true detail=waiting for the user to confirm on Start
+the client's own read-back: 14:12:49  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st1 arguments=chat=42: ok=true error=null pending=true detail=waiting for the user to confirm on Start
 PASS  nothing is drawn over the requesting app (no [secondary_pin_prompt])
 PASS  the requester is what is on screen (found [app.tileshell.testclient])
 --- 2. the band appears the next time Start is shown, and accepting pins the tile ---
@@ -26,7 +26,7 @@ PASS  the owner was launched with the tile's id (found [TILE_ID=st1])
 PASS  and with the arguments the request carried (found [ARGS=chat=42])
 --- 4. declining pins nothing ---
 Warning: Activity not started, its current task has been brought to the front
-the client's own read-back: 13:19:18  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st2 arguments=chat=7: ok=true error=null pending=true detail=waiting for the user to confirm on Start
+the client's own read-back: 14:13:19  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st2 arguments=chat=7: ok=true error=null pending=true detail=waiting for the user to confirm on Start
 tapping Cancel at 799 552
 order after declining:
 order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL', 'secondary:app.tileshell.testclient.a:st1/WIDE']
@@ -35,7 +35,7 @@ folders: []
 PASS  declining pinned nothing (no [secondary:app.tileshell.testclient.a:st2])
 --- 5. a duplicate tileId updates the tile instead of making a second one ---
 Warning: Activity not started, its current task has been brought to the front
-the client's own read-back: 13:19:36  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st1 arguments=chat=99: ok=true error=null pending=false detail=the tile was already pinned and was updated
+the client's own read-back: 14:13:36  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st1 arguments=chat=99: ok=true error=null pending=false detail=the tile was already pinned and was updated
 order after the duplicate request:
 order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL', 'secondary:app.tileshell.testclient.a:st1/WIDE']
 dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
@@ -55,6 +55,6 @@ order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:C
 dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
 folders: []
 PASS  uninstalling the owner took its tile out of the folder too (no [secondary:app.tileshell.testclient.a])
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/L11-1/p02-E05/layout_before.json: 1 file pushed, 0 skipped. 0.2 MB/s (841 bytes in 0.005s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/L11-1/p02-E05/layout_before.json: 1 file pushed, 0 skipped. 22.0 MB/s (841 bytes in 0.000s)
 baseline layout restored
 ---- 14 passed, 0 failed ----
