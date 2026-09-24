@@ -38,18 +38,21 @@ assert_contains "(a) restored: the shell is the assistant again" "app.tileshell"
 c6
 
 log "--- (b) disabled: Android deletes an unpinned dynamic shortcut, so the hold finds none ---"
+# tileclient-b's own section of dumpsys shortcut (`cmd shortcut get-shortcuts` printed only "Success" here, even with
+# qa_dyn published — pass 3's positive control caught it).
+b_shortcuts() { adb shell dumpsys shortcut | awk '/Package: app.tileshell.testclient.b /{f=1; print; next} f && /Package: /{f=0} f' | grep -E 'Package:|ShortcutInfo \{id='; }
 verb_b_start reset
-adb shell cmd shortcut get-shortcuts --flags 9 "$B_PKG" > "$ROW_DIR/b-after-reset-shortcuts.txt" 2>&1
-assert_contains "(b) positive control: after reset the listing shows qa_dyn" "id=qa_dyn" "$(cat "$ROW_DIR/b-after-reset-shortcuts.txt")"
+b_shortcuts > "$ROW_DIR/b-after-reset-shortcuts.txt" 2>&1
+assert_contains "(b) positive control: after reset tileclient-b's section lists qa_dyn" "ShortcutInfo {id=qa_dyn" "$(cat "$ROW_DIR/b-after-reset-shortcuts.txt")"
 note "disable (receiver): $(verb_b disable)"
-adb shell cmd shortcut get-shortcuts --flags 9 "$B_PKG" > "$ROW_DIR/b-after-disable-shortcuts.txt" 2>&1
+b_shortcuts > "$ROW_DIR/b-after-disable-shortcuts.txt" 2>&1
 MARK="$(ring_mark)"
 hold_b disabled
 assert_eq "(b) no quick_burst" no "$(has_node "$ROW_DIR/disabled.xml" quick_burst)"
 S="$(quick_since "$MARK")"
 assert_contains "(b) the query found none" "[quick] shortcuts for $B_PKG/app.tileshell.testclient.VerbActivity/0: 0 (0 shown)" "$S"
 assert_contains "(b) reason" "[quick] no burst on $B_KEY: no shortcuts" "$S"
-assert_eq "(b) cmd shortcut lists nothing for tileclient-b" 0 "$(grep -c 'ShortcutInfo' "$ROW_DIR/b-after-disable-shortcuts.txt")"
+assert_eq "(b) tileclient-b's section lists no shortcut after the disable" 0 "$(grep -c 'ShortcutInfo' "$ROW_DIR/b-after-disable-shortcuts.txt")"
 c6
 
 log "--- (b) disable while a burst is open (no window comes to front): shortcuts changed ---"

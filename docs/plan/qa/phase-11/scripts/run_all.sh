@@ -7,8 +7,31 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../../../../.." && pwd)"
 OUT="$HERE/.."
 SUMMARY="$OUT/SUITE.txt"
-: > "$SUMMARY"
 say() { echo "$*" | tee -a "$SUMMARY"; }
+# --append <rows>: re-run named rows on the SAME APK into a dated section of the same SUITE.txt (a harness fix after a
+# full pass), with the drivers' blobs recorded; the verdict is then recomputed from each row's LATEST line.
+if [ "${1:-}" = "--append" ]; then
+  shift
+  say ""
+  say "## re-run $(date -Iseconds): commit $(git -C "$ROOT" rev-parse --short HEAD); apk $(md5sum "$ROOT/app/build/outputs/apk/debug/app-debug.apk" | cut -c1-16); rows: $*"
+  for r in "$@"; do say "   $r.sh blob $(git -C "$ROOT" hash-object "$HERE/$r.sh")"; done
+  for r in "$@"; do
+    R="$(echo "$r" | tr 'e' 'E')"; rm -rf "$OUT/$R"; START=$(date +%s)
+    bash "$HERE/$r.sh" > "$OUT/.$r.console" 2>&1; RC=$?
+    say "$R exit $RC after $(( $(date +%s) - START ))s — $(grep -h "^$R: " "$OUT/$R/$R.txt" 2>/dev/null | tail -1)"
+  done
+  python3 - "$SUMMARY" <<'PY' | tee -a "$SUMMARY"
+import re, sys
+latest = {}
+for l in open(sys.argv[1]):
+    m = re.match(r"(E\d+) exit (\d+)", l)
+    if m: latest[m.group(1)] = int(m.group(2))
+bad = sorted((r for r, rc in latest.items() if rc), key=lambda r: int(r[1:]))
+print("VERDICT (latest line per row): " + ("SUITE PASSED" if not bad else "SUITE FAILED: " + " ".join(bad)))
+PY
+  exit 0
+fi
+: > "$SUMMARY"
 say "# Phase 11 gate suite — $(date -Iseconds)"
 say "commit $(git -C "$ROOT" rev-parse --short HEAD); uncommitted files under app/: $(git -C "$ROOT" status --porcelain app/ | wc -l)"
 say "apk $(md5sum "$ROOT/app/build/outputs/apk/debug/app-debug.apk" | cut -c1-16); device $ANDROID_SERIAL"
