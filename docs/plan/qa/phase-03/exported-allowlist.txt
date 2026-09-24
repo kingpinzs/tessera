@@ -33,3 +33,7 @@ app.tileshell.cortana.CortanaRecognitionService	android.permission.BIND_VOICE_IN
 
 # ---- phase 05 ----
 app.tileshell.ime.KeyboardService	android.permission.BIND_INPUT_METHOD	The keyboard (input method). Only the system holds the permission; nothing outside Android's input-method framework can bind it.
+
+# ---- phase 10 (owed by phase 10's gate, INDEX Change Log 2026-09-22 phase 05 entry (3); added by phase 15's task 1) ----
+app.tileshell.music.MusicActivity	guard: none (LAUNCHER intent filter)	Music's own launcher entry (phase 10 build task 1).
+app.tileshell.music.MusicService	guard: none (MediaSessionService / MediaBrowserService filters)	The playback session other apps' media controllers bind; Media3 decides per controller what it may do.
