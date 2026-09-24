@@ -750,29 +750,31 @@ internal class CalcEngine(
                 Op.XOR -> result = rm.xor(result, rhs)
                 Op.NAND -> result = rm.xor(rm.and(result, rhs), getChopNumber())
                 Op.NOR -> result = rm.xor(rm.or(result, rhs), getChopNumber())
+                // A shift by the word size or more moves every bit out. Windows throws "Result not defined" here although
+                // its own comment says the result "is always 0" (scioper.cpp:41, 65, 74); the shell gives the right answer
+                // (INDEX.md Change Log, 2026-09-24): 0, and for an arithmetic right shift of a negative value every bit is
+                // a copy of the sign bit, all ones, which is -1.
                 Op.RSHF -> {
-                    if (fIntegerMode && rm.ge(result, Rational.of(dwWordBitWidth))) {
-                        // Lsh/Rsh >= than current word size is always 0
-                        ratpakError(CalcErr.NORESULT)
-                    }
                     val w64Bits = rm.toUInt64(rhs)
                     val fMsb = ((w64Bits ushr (dwWordBitWidth - 1)) and 1L) == 1L
-                    val holdVal = result
-                    result = rm.shr(rhs, holdVal)
-                    if (fMsb) {
-                        result = rm.integer(result)
-                        var tempRat = rm.shr(getChopNumber(), holdVal)
-                        tempRat = rm.integer(tempRat)
-                        result = rm.or(result, rm.xor(tempRat, getChopNumber()))
+                    if (fIntegerMode && rm.ge(result, Rational.of(dwWordBitWidth))) {
+                        result = if (fMsb) getChopNumber() else Rational.of(0)
+                    } else {
+                        val holdVal = result
+                        result = rm.shr(rhs, holdVal)
+                        if (fMsb) {
+                            result = rm.integer(result)
+                            var tempRat = rm.shr(getChopNumber(), holdVal)
+                            tempRat = rm.integer(tempRat)
+                            result = rm.or(result, rm.xor(tempRat, getChopNumber()))
+                        }
                     }
                 }
                 Op.RSHFL -> {
-                    if (fIntegerMode && rm.ge(result, Rational.of(dwWordBitWidth))) ratpakError(CalcErr.NORESULT)
-                    result = rm.shr(rhs, result)
+                    result = if (fIntegerMode && rm.ge(result, Rational.of(dwWordBitWidth))) Rational.of(0) else rm.shr(rhs, result)
                 }
                 Op.LSHF -> {
-                    if (fIntegerMode && rm.ge(result, Rational.of(dwWordBitWidth))) ratpakError(CalcErr.NORESULT)
-                    result = rm.shl(rhs, result)
+                    result = if (fIntegerMode && rm.ge(result, Rational.of(dwWordBitWidth))) Rational.of(0) else rm.shl(rhs, result)
                 }
                 Op.ADD -> result = rm.add(result, rhs)
                 Op.SUB -> result = rm.sub(rhs, result)

@@ -85,16 +85,20 @@ class CalculatorTest {
         assertEquals("Overflow", c.displayText)
         assertEquals(CalcErrorKind.OVERFLOW, c.errorKind)
 
-        c = calc(CalcMode.PROGRAMMER, "1 lsh 6 4 equals")
-        assertEquals("Result not defined", c.displayText)
-        assertEquals(CalcErrorKind.NO_RESULT, c.errorKind)
-
         // The kind of the last error is kept after it clears (the `[calc] error <kind>` line); the current one is not.
         c.press("clear")
         assertFalse(c.isError)
         assertNull(c.errorKind)
-        assertEquals(CalcErrorKind.NO_RESULT, c.lastErrorKind)
+        assertEquals(CalcErrorKind.OVERFLOW, c.lastErrorKind)
         assertEquals("0", c.displayText)
+    }
+
+    @Test fun shiftsPastTheWordSizeMoveEveryBitOut() {
+        // Windows shows "Result not defined" here; the shell gives the answer its source comment states (2026-09-24).
+        assertEquals("0", calc(CalcMode.PROGRAMMER, "1 lsh 6 4 equals").displayText)
+        assertEquals("0", calc(CalcMode.PROGRAMMER, "2 5 6 rsh 6 4 equals").displayText)
+        assertEquals("-1", calc(CalcMode.PROGRAMMER, "2 5 6 negate rsh 6 4 equals").displayText)
+        assertEquals("-9,223,372,036,854,775,808", calc(CalcMode.PROGRAMMER, "1 lsh 6 3 equals").displayText)
     }
 
     @Test fun errorRecoveryFollowsTheViewModel() {
