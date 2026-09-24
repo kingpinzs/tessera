@@ -12,7 +12,9 @@ Context. Round 1 of this re-judge (on pass 5) returned: design lens 0 BLOCKING �
 (review/2026-09-24-phase11-rejudge-evidence.md). The lead's triage, with a decision per finding:
 review/2026-09-24-phase11-rejudge-triage.md. Fix commits since pass 5 (git log aaf7adc..HEAD): 9f790b7 (product: R1-1 / R1-2 /
 R1-6), c78f488 (fixture: tileclient-b's labels verb), 50e0f30 (E10), 585e6c3 (L11-1 row), 19a9ffa (E6), 239e74e (the NEW EDGE
-row), f8cd00a (E13), then pass 6 and the docs commit. Pass 6 is the full gate on ONE APK after all of that:
+row), f8cd00a (E13), then pass 6 (b2eafb8: E13 failed 38/39 on a driver race — its short press ran past the hold while a PNG
+capture was taken inside it), the E13 fix in two cuts (a45b2ad: still ~800 ms, re-run kept in E13-pass6-append-800ms;
+1477e75: passes) re-run with E14 in SUITE.txt's appended sections (6d75888), and the docs commit (8ff76de). Pass 6 is the full gate on ONE APK after all of that:
 docs/plan/qa/phase-11/SUITE.txt (SUITE-pass5-aaf7adc.txt is the previous one), the row directories, UNIT.txt, UNIT-results/.
 
 Read first:
@@ -47,7 +49,7 @@ Write your report to ~/projects/metro-launcher/docs/plan/review/2026-09-24-phase
    "What it proves" column and the doc's QA evidence section claim. Any assertion that cannot fail, or passes on a
    precondition that did not hold — look hardest at the NEW and rewritten sub-steps: scripts/edge.sh (every sub-step; raw
    touches via sendevent; the call via ANSWER; X5 via the photo picker and the backdrop model), l11_1.sh (d) and (e), e10.sh's
-   art sub-step, e6.sh's retake rule. The smokes that found the driver's own defects are kept (EDGE-smoke1-nopressure,
+   art sub-step, e6.sh's retake rule, e13.sh's press-style sub-step (its press built short and measured on the device clock). The smokes that found the driver's own defects are kept (EDGE-smoke1-nopressure,
    EDGE-smoke2-picker, EDGE-x5smoke..4, L11-1-smoke5-pinid, E10-smoke-artstrip-7cb3742-apk): did each fix close its hole?
 2. The EDGE index (EDGE/EDGE.txt's index; scripts/edge_index.tsv) against the doc's Edge Cases :627-658: is every case
    there, and does each cited row / test actually prove it (open the cited evidence)?
