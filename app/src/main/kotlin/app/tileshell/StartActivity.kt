@@ -319,7 +319,7 @@ class StartActivity : ComponentActivity() {
         edit.requestExit()
         val bounds = Rect(square.l.toInt(), square.t.toInt(), square.r.toInt(), square.b.toInt())
         pendingLaunch = { launchShortcut(burst.key, sat, bounds) }
-        animation = StartAnimation(exitElapsedMs = 0f, exitTappedId = burst.key.id)
+        animation = StartAnimation(exitElapsedMs = 0f, exitTappedId = burst.drawnId)
         exitToken++
     }
 
@@ -333,6 +333,8 @@ class StartActivity : ComponentActivity() {
                 UseCounts.get(this).record(key)
                 // Applied on the way back, in onResume, never now: the tile must not leave the grid under the exit.
                 pendingRecent = key
+                // The app was opened by the shell: its "New" caption clears as on any shell launch (X11; G-D4).
+                AppCatalog.get(this).notifyLaunched(sat.pkg, sat.user)
             }
             is app.tileshell.start.QuickLaunchOutcome.Failed -> {
                 Diagnostics.add("quick", "tap satellite ${sat.index} ${sat.pkg}/${sat.id}: startShortcut failed ${outcome.error}")

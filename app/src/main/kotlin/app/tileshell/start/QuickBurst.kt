@@ -48,6 +48,8 @@ class OpenBurst(
     val layout: BurstLayout,
     /** The held tile's edit-mode rest rectangle the layout was computed against. */
     val restTile: QRect,
+    /** The id the held tile is drawn with (`dock:` in the bottom row): the Start exit's tapped tile (G-D3). */
+    val drawnId: String = key.id,
 ) {
     /** Satellite i's rest, placed against the tile's CURRENT drawn rectangle. */
     fun restAt(i: Int, tile: QRect): SatelliteRest {
@@ -118,9 +120,14 @@ class QuickBurstState {
         pending?.let { p ->
             pending = null
             // A hold whose shortcuts were in hand but not yet drawn IS a burst: say it closed.
-            val ready = p.load.isCompleted && runCatching { p.load.getCompleted() }.getOrNull() is QuickLoad.Ready
+            val ready = if (p.load.isCompleted) runCatching { p.load.getCompleted() }.getOrNull() as? QuickLoad.Ready else null
             p.load.cancel()
-            if (ready) Diagnostics.add("quick", "burst closed: $reason")
+            if (ready != null) {
+                // Its held-back lines and its `burst on` first, so every `burst closed` has its pair (gate review G-D6).
+                ready.lines.forEach { Diagnostics.add("quick", it) }
+                Diagnostics.add("quick", "burst on ${p.key.id}: ${ready.satellites.size} satellites")
+                Diagnostics.add("quick", "burst closed: $reason")
+            }
             return
         }
         if (burst == null || closing != null) return

@@ -202,6 +202,12 @@ class AppCatalog private constructor(private val context: Context) {
     /** Called after every shell launch of an app (the app list's "New" caption clears on first launch, X11). */
     fun addLaunchListener(listener: (AppEntry) -> Unit) { launchListeners += listener }
 
+    /** An app opened by the shell some other way (phase 11: a satellite's shortcut) tells the launch listeners too. */
+    fun notifyLaunched(packageName: String, user: UserHandle) {
+        val entry = state.value.firstOrNull { it.component.packageName == packageName && it.user == user } ?: return
+        launchListeners.forEach { it(entry) }
+    }
+
     fun launch(entry: AppEntry, sourceBounds: android.graphics.Rect?, options: android.os.Bundle?) {
         launcherApps.startMainActivity(entry.component, entry.user, sourceBounds, options)
         Diagnostics.add("launch", "startMainActivity ${entry.component.flattenToShortString()} user=${entry.user.hashCode()}")

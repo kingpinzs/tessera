@@ -534,8 +534,10 @@ fun StartPage(
         val prefetch: (TileKey) -> kotlinx.coroutines.Deferred<QuickLoad> = remember(quickSource) {
             { key ->
                 scope.async(Dispatchers.IO) {
-                    val target = quickSource.targetOf(key) { factoryState.value.entryOf(it) }
-                    quickSource.load(key.id, target, (satellitePx * 0.52f).toInt().coerceAtLeast(24))
+                    QuickRule.guard({
+                        val target = quickSource.targetOf(key) { factoryState.value.entryOf(it) }
+                        quickSource.load(key.id, target, (satellitePx * 0.52f).toInt().coerceAtLeast(24))
+                    }) { e -> QuickLoad.None(NoBurstReason.queryFailed(e)) }
                 }
             }
         }
@@ -759,7 +761,9 @@ private fun QuickOpener(edit: StartEditState, geoState: androidx.compose.runtime
                     labelHeightPx = Edit.px(QUICK_LABEL_LINE_EPX, widthPx),
                     inBottomRow = inRow,
                 )
-                edit.quick.open(OpenBurst(p.key, result.satellites, layout, rest))
+                // The id the held tile is drawn with, so a satellite launch fades it last as a tile tap would.
+                val drawnId = if (inRow) "dock:${p.key.id}" else p.key.id
+                edit.quick.open(OpenBurst(p.key, result.satellites, layout, rest, drawnId))
                 Diagnostics.add("quick", "burst on ${p.key.id}: ${result.satellites.size} satellites")
             }
         }
