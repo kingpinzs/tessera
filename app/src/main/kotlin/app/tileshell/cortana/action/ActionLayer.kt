@@ -21,6 +21,7 @@ import app.tileshell.cortana.CardField
 import app.tileshell.cortana.CardKind
 import app.tileshell.cortana.ContactChip
 import app.tileshell.cortana.CortanaPrefs
+import app.tileshell.cortana.match.CalcRequest
 import app.tileshell.cortana.match.CommandMatcher
 import app.tileshell.cortana.match.Request
 import app.tileshell.cortana.reminders.Place
@@ -115,6 +116,7 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
             is Request.TakePhoto -> takePhoto()
             is Request.TakeNote -> takeNote(request.text)
             is Request.Weather -> weather()
+            is Request.Arithmetic -> arithmetic(request.expr)
             is Request.SavePlaceHere -> Outcome(
                 "Where would you like to save ${request.name}?", null, openPlaces = request.name,
             )
@@ -637,6 +639,16 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
     // ---------------- helpers ----------------
 
     private fun answer(spoken: String) = Outcome(spoken, Card(CardKind.ANSWER, spoken))
+
+    /**
+     * Phase 15 T15-2: arithmetic and conversions answered offline by the Calculator's engine, in-process — no activity
+     * opens. The card is phase 03's answer card with the restated expression and its result.
+     */
+    private fun arithmetic(expr: CalcRequest): Outcome {
+        val a = TessArithmetic.answer(expr)
+        Diagnostics.add("calc", "tess \"${a.logExpr}\" -> ${a.logResult}")
+        return Outcome(a.spoken, Card(CardKind.ANSWER, a.spoken, caption = "Calculator", body = listOfNotNull(a.said, a.result?.let { "= $it" })))
+    }
 
     private fun notUnderstoodCard(title: String) = Card(CardKind.NOT_UNDERSTOOD, title)
 

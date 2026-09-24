@@ -1,5 +1,9 @@
 package app.tileshell.cortana.match
 
+import app.tileshell.calc.convert.ConverterCategory
+import app.tileshell.calc.convert.ConverterUnit
+import app.tileshell.calc.convert.UnitTables
+
 /**
  * Tess's arithmetic, as words (phase 15 T15-2, interview Q5 A, principle P6: anything deterministic is computed by
  * code). "what's / what is / calculate / how much is <expr>", a bare "<a> plus | minus | times | divided by |
@@ -16,8 +20,11 @@ sealed interface CalcRequest {
     /** "<a> percent of <b>": b × a / 100 (T15-2). */
     data class Percent(val percent: Term, val of: Term) : CalcRequest
 
-    /** "<n> <unit> in | to <unit>", through the Converter (Q4 A); the unit names as the user said them. */
-    data class Convert(val value: String, val from: String, val to: String) : CalcRequest
+    /**
+     * "<n> <unit> in | to <unit>", through the Converter (Q4 A): [from] and [to] are the converter's own units (one
+     * category), [value] the number as the user said it.
+     */
+    data class Convert(val value: String, val from: ConverterUnit, val to: ConverterUnit) : CalcRequest
 
     sealed interface Term
     /** A decimal literal: "-3", "0.5", "81". */
@@ -55,6 +62,7 @@ object ArithmeticWords {
         body = body.removeSuffix(" equal").removeSuffix(" equals").trim()
         val words = body.split(' ').filter { it.isNotEmpty() }
         if (words.isEmpty()) return null
+        conversion(words)?.let { return it }
         // "<a> percent of <b>" is the whole expression or nothing.
         val pct = words.indexOf("percent")
         if (pct > 0 && words.getOrNull(pct + 1) == "of") {
@@ -81,6 +89,71 @@ object ArithmeticWords {
         // A bare number is not a sum ("what is five"): there must be an operator or a root.
         if (ops.isEmpty() && terms.single() !is CalcRequest.Root) return null
         return CalcRequest.Chain(terms, ops)
+    }
+
+    /**
+     * "<number> <unit> in | to | into <unit>", both units from the converter's own tables and of one category. A unit
+     * the converter lacks ("5 parsecs in miles") or two categories ("5 miles in kilograms") is not a conversion, so the
+     * request reaches the not-understood handler (edge cases).
+     */
+    private fun conversion(words: List<String>): CalcRequest.Convert? {
+        val n = NumberWords.read(words, 0, setOf("negative", "minus")) ?: return null
+        var i = n.used
+        val from = unitAt(words, i) ?: return null
+        i += from.second
+        if (words.getOrNull(i) !in CONNECTORS) return null
+        i++
+        val to = unitAt(words, i) ?: return null
+        if (i + to.second != words.size) return null
+        val pair = from.first.flatMap { f -> to.first.filter { it.category == f.category && it.id != f.id }.map { f to it } }.firstOrNull()
+            ?: return null
+        return CalcRequest.Convert(n.literal, pair.first, pair.second)
+    }
+
+    private val CONNECTORS = setOf("in", "to", "into")
+
+    /** The longest unit phrase at [from]: the units it can name (a phrase may name units in more than one category). */
+    private fun unitAt(words: List<String>, from: Int): Pair<List<ConverterUnit>, Int>? {
+        for (len in minOf(4, words.size - from) downTo 1) {
+            val phrase = words.subList(from, from + len).joinToString(" ")
+            UNIT_PHRASES[phrase]?.let { return it to len }
+        }
+        return null
+    }
+
+    /**
+     * Every phrase that names a converter unit: its en-US name in lower case (the table's plural, "kilometers"), without
+     * a parenthetical ("teaspoons (us)" → "teaspoons"), its singular ("kilometer", "foot", "inch") and the British
+     * spellings ("kilometres", "litres"). From the converter's own tables, so Tess and Calculator never disagree.
+     */
+    private val UNIT_PHRASES: Map<String, List<ConverterUnit>> by lazy {
+        val map = HashMap<String, MutableList<ConverterUnit>>()
+        for (category in ConverterCategory.entries) {
+            for (unit in UnitTables.pickerUnits(category)) {
+                val base = unit.name.lowercase().replace(Regex("\\s*\\(.*?\\)"), "").replace("-", " ").trim()
+                val forms = LinkedHashSet<String>()
+                forms += base
+                forms += singular(base)
+                for (f in forms.toList()) {
+                    forms += f.replace("meter", "metre").replace("liter", "litre")
+                }
+                for (f in forms) map.getOrPut(f) { mutableListOf() }.let { if (unit !in it) it += unit }
+            }
+        }
+        map
+    }
+
+    private fun singular(plural: String): String {
+        val words = plural.split(' ')
+        val last = words.last()
+        val one = when {
+            last == "feet" -> "foot"
+            last.endsWith("inches") -> last.removeSuffix("es")
+            last.endsWith("ches") || last.endsWith("shes") -> last.removeSuffix("es")
+            last.endsWith("s") && !last.endsWith("ss") -> last.removeSuffix("s")
+            else -> last
+        }
+        return (words.dropLast(1) + one).joinToString(" ")
     }
 
     /** A term at [from]: a number, or "square root of" a term. [first]: a leading "minus" is a sign there. */
