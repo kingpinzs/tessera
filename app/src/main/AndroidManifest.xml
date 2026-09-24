@@ -54,6 +54,21 @@
     -->
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--
+      Phase 15, Alarms & Clock (build tasks 1-3): the ring plays on the alarm stream, vibrates and holds a wake lock
+      for its ten minutes; its full-screen intent shows the toast over the keyguard (a special app access on API 34+,
+      the "Full-screen alarms" Setup row); "Display over other apps" draws the toast over the app in use (Q-E A, the
+      "Display over other apps" Setup row); RECEIVE_BOOT_COMPLETED re-arms alarms and timers at LOCKED_BOOT_COMPLETED,
+      before the first unlock (T15-22 — the manifest held none, so BOOT_COMPLETED never reached ReminderReceiver);
+      the ring service is a systemExempted foreground service, which an app holding USE_EXACT_ALARM may run to ring an
+      alarm (the Decisions' build-start check).
+    -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
     <!-- Place reminders: Android's own proximity alerts, no Google Play services (P5). -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
@@ -268,14 +283,49 @@
             android:exported="false" />
 
         <!-- Reminder alarms, proximity alerts, and the re-registration a reboot or an update needs. -->
+        <!--
+          Also Alarms & Clock's alarms and timers (phase 15): their fire broadcasts, the re-arm before the first unlock
+          (directBootAware; LOCKED_BOOT_COMPLETED), and a zone or clock change moving an alarm's wall-clock instant.
+        -->
         <receiver
             android:name=".cortana.reminders.ReminderReceiver"
+            android:directBootAware="true"
             android:exported="false">
             <intent-filter>
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
             </intent-filter>
         </receiver>
+
+        <!--
+          Phase 15: the ring. Started only from an alarm's broadcast; not exported (nothing outside the shell may make
+          it ring). Direct-boot aware so an alarm rings before the first unlock (T15-22).
+        -->
+        <service
+            android:name=".clock.RingService"
+            android:directBootAware="true"
+            android:exported="false"
+            android:foregroundServiceType="systemExempted" />
+
+        <!--
+          Phase 15: the ring toast over the keyguard (Q-E A). Started only by the ring's own full-screen intent; not
+          exported; draws only the toast and never dismisses the keyguard (T15-33 (b)).
+        -->
+        <activity
+            android:name=".clock.RingActivity"
+            android:directBootAware="true"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity="app.tileshell.clock.ring"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode" />
 
         <!--
           Shown when another app holds the assistant role: a session cannot open without the role, so the
