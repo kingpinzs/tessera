@@ -209,7 +209,7 @@ gscroll_to_node() { # out.xml resource-id [max-swipes]
     gdump "$out" || return 1
     after="$(grep -o 'resource-id="[^"]*"[^>]*bounds="[^"]*"' "$out" | md5sum)"
     if [ "$before" = "$after" ]; then
-      adb shell am instrument --no-restart -r -w -e op swipe -e points "60,1900;60,900" -e steps 30 "$DRV_RUNNER" >/dev/null 2>&1
+      adb shell am instrument -r -w -e op swipe -e points "60,1900;60,900" -e steps 30 "$DRV_RUNNER" >/dev/null 2>&1
       sleep 1
       gdump "$out" || return 1
       after="$(grep -o 'resource-id="[^"]*"[^>]*bounds="[^"]*"' "$out" | md5sum)"
@@ -293,43 +293,7 @@ dismiss_any_ring() {
   fi
 }
 
-# p15.sh's gdump always passes --no-restart, which `am instrument` refuses with a NullPointerException in
-# setActiveInstrumentation when the fixture process is not running — and on a fresh AVD it never is. This wrapper
-# (the same dump otherwise) drops the flag then, as qa/phase-05/TOOLING.md says to. It also writes every dump to a
-# NEW file name: p15.sh reuses one name, and a name deleted by the shell and re-created by the fixture's uid read
-# back EMPTY for a minute on this image's FUSE /sdcard (E7 run 1: eight `gesture.ok=true` dumps, zero nodes each).
-# Reported to the lead for p15.sh (E4 run 1, E7 run 1).
-gdump() { # out.xml
-  local out="$1" i flag name
-  : > "$out.drv"
-  for i in $(seq 1 20); do
-    flag="--no-restart"
-    [ -n "$(adb shell pidof app.tileshell.qa.imefixture 2>/dev/null | tr -d '\r')" ] || flag=""
-    name="p15_$(date +%s%N)_$i.xml"
-    # shellcheck disable=SC2086
-    adb shell am instrument $flag -r -w -e op dump -e out "/sdcard/Download/$name" "$DRV_RUNNER" >> "$out.drv" 2>&1
-    adb shell cat "/sdcard/Download/$name" > "$out" 2>/dev/null
-    adb shell rm -f "/sdcard/Download/$name" >/dev/null 2>&1
-    if grep -q '<node' "$out"; then
-      grep -o 'gesture.dump.windows=.*' "$out.drv" | tail -1 | tr -d '\r' > "$out.windows"
-      return 0
-    fi
-    echo "(attempt $i read no nodes from $name)" >> "$out.drv"
-    sleep 0.25
-  done
-  # The driver itself sometimes reports gesture.dump.nodes=0 (an 84-byte empty hierarchy) for seconds on end while
-  # a stopwatch's hundredths tick every frame (E7 run 1, E31 run 1) — the accessibility tree is invalidated faster
-  # than the dumper can walk it. The fallback is the plain uiautomator dump, which waits its idle timeout (≤ 10 s)
-  # and then dumps whatever is laid out; the .drv says when it was used, and the overlay is never read this way.
-  echo "(falling back to uiautomator dump)" >> "$out.drv"
-  if adb shell uiautomator dump /sdcard/Download/p15_fallback.xml >/dev/null 2>&1; then
-    adb shell cat /sdcard/Download/p15_fallback.xml > "$out" 2>/dev/null
-    adb shell rm -f /sdcard/Download/p15_fallback.xml >/dev/null 2>&1
-    if grep -q '<node' "$out"; then : > "$out.windows"; return 0; fi
-  fi
-  echo "(dump failed)" > "$out"
-  return 1
-}
+# (clock.sh's own gdump, with its new-file-per-dump and fallback fixes, moved into p15.sh's gdump, 2026-09-24.)
 
 # The full-screen-intent facts every alarm row records at its top (Acceptance preamble, V24).
 record_fsi() {
