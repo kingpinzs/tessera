@@ -1,0 +1,125 @@
+==============================================================================
+ROW EDGE_TIMERS — timers: dead process at the deadline; 10 at once; 0:00 refused; paused then clock jump
+at            2026-09-24T09:55:15-06:00
+driver        edge_timers.sh blob ac83394ab3b7e46c4a7694d4ee713e6b94ea09aa
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     7823e507b9004fd6 337843127 bytes
+apk installed 39402722396d9129
+apk match     NO (device 39402722396d9129, built 2e22a614794f9a05)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  a 20-s timer is running                                     != 
+      killed 28507 with ~15 s left
+PASS  the timer fired after the kill (the receiver started the ring service)  != 
+PASS  … on time (late <= 1500 ms; a cold process)               3.00 vs 0.00 +/- 1500.0
+PASS  … and it rings (an ALARM player of the shell)             != 0
+PASS  the process that rings is a new one                         != 28507
+PASS  dismissed                                                   = 0
+      gscroll_to_node timer_name:tf0c5ed34: 0 swipe(s), found=yes
+      ten timers:  td98e7a0e t0472bbce tf255c5f4 ta5b0ab81 t11444e54 t51ff7c8b t009f410e t2952de1d t05ccc55d t71a4a396
+PASS  ten timers were created                                     = 10
+PASS  all ten are RUNNING in the store                            = 10
+PASS  all ten are armed in AlarmManager (ELAPSED_WAKEUP entries)  = 10
+PASS  … and none is the phone's next alarm clock                = 
+      gscroll_to_node timer_remaining:td98e7a0e: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t0472bbce: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:tf255c5f4: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:ta5b0ab81: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t11444e54: 1 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t51ff7c8b: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t009f410e: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t2952de1d: 1 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t05ccc55d: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t71a4a396: 1 swipe(s), found=yes
+PASS  every one of the ten is listed on the Timer tab             = 10
+PASS  … and every one is counting down                          = 10
+FAIL  ten running-timer notifications are posted                  expected [10] got [11]
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node timer_name:td98e7a0e: 6 swipe(s), found=no
+      app_delete_timer: no timer_name:td98e7a0e
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node timer_name:t0472bbce: 6 swipe(s), found=no
+      app_delete_timer: no timer_name:t0472bbce
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node timer_name:tf255c5f4: 6 swipe(s), found=no
+      app_delete_timer: no timer_name:tf255c5f4
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node timer_name:ta5b0ab81: 6 swipe(s), found=no
+      app_delete_timer: no timer_name:ta5b0ab81
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node timer_name:t11444e54: 6 swipe(s), found=no
+      app_delete_timer: no timer_name:t11444e54
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node timer_name:t51ff7c8b: 6 swipe(s), found=no
+      app_delete_timer: no timer_name:t51ff7c8b
+      gscroll_to_node timer_name:t009f410e: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t2952de1d: 2 swipe(s), found=yes
+      gscroll_to_node timer_name:t05ccc55d: 2 swipe(s), found=yes
+      gscroll_to_node timer_name:t71a4a396: 2 swipe(s), found=yes
+FAIL  the ten are gone                                            expected [] got [td98e7a0e,t0472bbce,tf255c5f4,ta5b0ab81,t11444e54,t51ff7c8b]
+PASS  the API refuses LENGTH 0                                    contains [api android.intent.action.SET_TIMER from com.android.shell -> refused: length out of range]
+FAIL  … and created nothing                                     expected [] got [td98e7a0e,t0472bbce,tf255c5f4,ta5b0ab81,t11444e54,t51ff7c8b]
+PASS  the editor opens at 00:05:00                                = 00 05 00
+      spin timer_editor_field:minutes -> [00] after 2 swipe(s)
+PASS  the minutes read 00 (a 0:00:00 length)                      = 00
+RECORD  the Save button's enabled flag at 0:00:00 (the build dims it; TimerTab.kt:198)  false
+FAIL  Save at 0:00:00 creates nothing                             expected [] got [td98e7a0e,t0472bbce,tf255c5f4,ta5b0ab81,t11444e54,t51ff7c8b]
+PASS  … and logs no timer created                               does not contain [timer created]
+PASS  … the editor is still open (Save refused)                 = NEW TIMER
+PASS  a 10-min timer is running                                   != 
+      gtap: no timer_play:t1d19a736 in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/EDGE_TIMERS/pause_a.xml
+FAIL  paused in the store                                         expected [PAUSED] got [RUNNING]
+FAIL  a paused timer holds no deadline                            expected [null null] got [5192126 1790266424556]
+FAIL  … and no alarm is armed for it                            expected [] got [5192126,5999283,6060447,6121593,6182749,6243911,6305067]
+FAIL  after a +1 h clock jump it is still PAUSED                  expected [PAUSED] got [RUNNING]
+PASS  … holding the same remaining                              = 600000
+PASS  … and the tab shows the same digits                       = 
+FAIL  … with nothing armed                                      expected [] got [5192126,5999283,6060447,6121593,6182749,6243911,6305067]
+      gtap: no timer_play:t1d19a736 in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/EDGE_TIMERS/pause_c.xml
+PASS  resumed: RUNNING again                                      = RUNNING
+FAIL  resumed: armed for its remaining on the elapsed clock       5192126.00 vs 5208610.00 +/- 3000.0
+PASS  device clock back within 2 s of the host (RV12)             1790265843.00 vs 1790265843.00 +/- 2.0
+      gscroll_to_node timer_name:td98e7a0e: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t0472bbce: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:tf255c5f4: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:ta5b0ab81: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t11444e54: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t51ff7c8b: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t1d19a736: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+EDGE_TIMERS: 26 passed, 10 failed, 1 recorded

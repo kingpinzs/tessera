@@ -1,0 +1,58 @@
+==============================================================================
+ROW E4 — alarm fires over the keyguard: locked toast, snooze, snooze-for, dismiss, daily re-arm
+at            2026-09-23T23:28:40-06:00
+driver        e4.sh blob d671c90b767b7e64e31f9b0307339c30b2878a98
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     594be092df44e7da 337842979 bytes
+apk installed 73c780cae9e12da8
+apk match     NO (device 73c780cae9e12da8, built 65d494998eca0f14)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  the alarm was created                                       != 
+PASS  its snooze time is 10 minutes                               = 10
+      alarm ae83c27d0 armed for 2026-09-24 09:05 = 1790262300000
+PASS  dumpsys alarm holds it at 09:05 on its date                 = 1790262300000
+PASS  with the PIN set, sleep + wake shows the keyguard           = true
+PASS  the phone is asleep before the jump                         != Awake
+PASS  ring 1: the alarm fired within 30 s of the jump             != 
+FAIL  ring 1: late <= 1000 ms                                     could not be measured (actual=[5])
+PASS  ring 1: the keyguard is showing                             = true
+PASS  ring 1: … and occluded by the ring activity               = true
+PASS  ring 1: the ring activity has the focus                     contains [clock.RingActivity]
+PASS  ring 1: the display is on (Awake)                           = Awake
+PASS  ring 1: a player of the shell on usage ALARM is started     != 0
+PASS  ring 1: vibrator_manager lists a vibration request from the shell (uid 10150)  contains [uid=10150]
+PASS  ring 1: notification ae83c27d0: fullscreen                  contains [[alarms] notification ae83c27d0: fullscreen]
+PASS  ring 1: surface: toast-locked ae83c27d0                     contains [[alarms] surface: toast-locked ae83c27d0]
+PASS  the alarm channel's notification is posted                  != 
+PASS  … category alarm                                          contains [category=alarm]
+PASS  … with a full-screen intent                               != 
+PASS  … and a Snooze action                                     contains [Snooze]
+PASS  … and a Dismiss action                                    contains [Dismiss]
+      ring_surface bounds: 
+FAIL  ring_surface spans the full width from the top              expected [0 0 1080] got []
+FAIL  ring_surface is 248 epx tall (± 3 %)                       could not be measured (actual=[])
+FAIL  ring_title reads Alarm                                      expected [Alarm] got []
+FAIL  ring_name is the alarm's name                               expected [Wake] got []
+FAIL  ring_time is the alarm's time                               expected [9:05 AM] got []
+FAIL  ring_snooze_for reads 10 minutes                            expected [10 minutes] got []
+FAIL  ring_snooze is on the toast                                 expected [yes] got [no]
+FAIL  ring_dismiss is on the toast                                expected [yes] got [no]
+      windows: 
+PASS  no window of any package but the shell and SystemUI is up   = 
+      rows differing by > 10 % of pixels between the ring capture and locked_ref: 780-833 879-984 1305-1711 2178-2183 2194-2196
+RECORD  fraction of the region 260 epx→nav bar within ±8 of locked_ref, no mask  0.8962
+PASS  below the toast: the wallpaper (locked_ref with the clock / notification stack and lock hint masked) matches ± 8 levels in >= 90 %  = yes
+      gtap: no ring_snooze in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/E4/ring_locked.xml
+FAIL  snooze: ring ended ae83c27d0: snooze                        does not contain [[alarms] ring ended ae83c27d0: snooze]: 
+FAIL  snooze: the ring activity left the focus                    should NOT contain [clock.RingActivity]
+PASS  snooze: the surface closed (no ring_surface)                = no
+FAIL  snooze: the ALARM player stopped                            expected [0] got [1]
+FAIL  snooze: the store's snoozedUntil is 10 min after the tap    could not be measured (actual=[null])
+FAIL  snooze: dumpsys alarm shows the alarm re-armed at the snooze instant  expected [null] got []
+FAIL  snooze: the notification reads Snoozed until h:mm           does not contain [Snoozed until ]: 

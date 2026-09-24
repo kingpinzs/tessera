@@ -65,7 +65,15 @@ if spoken timer; then
   cortana_close; adb shell input keyevent KEYCODE_HOME; sleep 1
   open_clock timer
   gdump "$ROW_DIR/timer_tab.xml"
-  assert_contains "the Timer tab shows a timer counting from 5:00" "4:5" "$(grep -o 'resource-id="timer_remaining:[^"]*"[^>]*' "$ROW_DIR/timer_tab.xml" | head -1; grep -o 'text="[^"]*"[^>]*resource-id="timer_remaining:[^"]*"' "$ROW_DIR/timer_tab.xml" | head -1)"
+  # The remaining time reads HH:MM:SS ("00:04:44" in run 2, 16 s after the reply): a 5-minute timer counting.
+  rem="$(python3 -c '
+import re, sys
+x = open(sys.argv[1]).read()
+m = re.search(r"<node [^>]*resource-id=\"timer_remaining:[^\"]*\"[^>]*>", x)
+t = re.search(r"text=\"(\d+):(\d+):(\d+)\"", m.group(0)) if m else None
+print(int(t.group(1)) * 3600 + int(t.group(2)) * 60 + int(t.group(3)) if t else "")' "$ROW_DIR/timer_tab.xml")"
+  note "timer remaining: ${rem:-?} s"
+  assert_eq "the Timer tab shows the 5-minute timer counting down (240-299 s left)" yes "$([ -n "$rem" ] && [ "$rem" -ge 240 ] && [ "$rem" -lt 300 ] && echo yes || echo "no: ${rem:-unread}")"
   # Deleted at once: a 5-minute timer left running rings before the row ends (E9 run 1 rang for minutes).
   for t in $(timer_ids); do app_delete_timer "$t"; done
 fi

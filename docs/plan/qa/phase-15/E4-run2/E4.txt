@@ -1,0 +1,112 @@
+==============================================================================
+ROW E4 — alarm fires over the keyguard: locked toast, snooze, snooze-for, dismiss, daily re-arm
+at            2026-09-23T23:32:41-06:00
+driver        e4.sh blob e4d83b18b0154599bd8aa4d900dd942fcf6a39ee
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     594be092df44e7da 337842979 bytes
+apk installed 73c780cae9e12da8
+apk match     NO (device 73c780cae9e12da8, built 65d494998eca0f14)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-9h32m15s627ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+FAIL  baseline: no shell alarm or timer pending                   expected [0] got [1]
+FAIL  baseline: alarm and timer stores empty                      expected [empty] got [[{"id":"ae83c27d0","hour":9,"minute":5,"name":"Wake","days":[],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2026-09-24","snoozedUntilMs":null,"lastHandledMs":1790262300000}]]
+PASS  the alarm was created                                       != 
+PASS  its snooze time is 10 minutes                               = 10
+      alarm a3f22ba2f armed for 2026-09-24 09:05 = 1790262300000
+FAIL  dumpsys alarm holds it at 09:05 on its date                 expected [1790262300000] got [1790262300000,1790262300000]
+PASS  with the PIN set, sleep + wake shows the keyguard           = true
+PASS  the phone is asleep before the jump                         != Awake
+PASS  ring 1: the alarm fired within 30 s of the jump             != 
+PASS  ring 1: late <= 1000 ms                                     4.00 vs 0.00 +/- 1000.0
+PASS  ring 1: the keyguard is showing                             = true
+PASS  ring 1: … and occluded by the ring activity               = true
+PASS  ring 1: the ring activity has the focus                     contains [clock.RingActivity]
+PASS  ring 1: the display is on (Awake)                           = Awake
+PASS  ring 1: a player of the shell on usage ALARM is started     != 0
+PASS  ring 1: vibrator_manager lists a vibration request from the shell (uid 10150)  contains [uid=10150]
+PASS  ring 1: notification a3f22ba2f: fullscreen                  contains [[alarms] notification a3f22ba2f: fullscreen]
+PASS  ring 1: surface: toast-locked a3f22ba2f                     contains [[alarms] surface: toast-locked a3f22ba2f]
+PASS  the alarm channel's notification is posted                  != 
+PASS  … category alarm                                          contains [category=alarm]
+PASS  … with a full-screen intent                               != 
+PASS  … and a Snooze action                                     contains [Snooze]
+PASS  … and a Dismiss action                                    contains [Dismiss]
+      ring_surface bounds: 0 0 1080 744
+PASS  ring_surface spans the full width from the top              = 0 0 1080
+PASS  ring_surface is 248 epx tall (± 3 %)                       744.00 vs 744.00 +/- 22.0
+PASS  ring_title reads Alarm                                      = Alarm
+PASS  ring_name is the alarm's name                               = Wake
+PASS  ring_time is the alarm's time                               = 9:05 AM
+FAIL  ring_snooze_for reads 10 minutes                            expected [10 minutes] got []
+PASS  ring_snooze is on the toast                                 = yes
+PASS  ring_dismiss is on the toast                                = yes
+      windows: 
+PASS  no window of any package but the shell and SystemUI is up   = 
+      rows differing by > 10 % of pixels between the ring capture and locked_ref: 780-833 879-984 1305-1385 1458-1713 2178-2183 2194-2196
+RECORD  fraction of the region 260 epx→nav bar within ±8 of locked_ref, no mask  0.9035
+RECORD  fraction with the clock block and the lock glyph / hint masked  0.9592
+PASS  below the toast: the wallpaper (locked_ref with the clock / notification stack and lock hint masked) matches ± 8 levels in >= 90 %  = yes
+PASS  snooze: ring ended a3f22ba2f: snooze                        contains [[alarms] ring ended a3f22ba2f: snooze]
+PASS  snooze: the ring activity left the focus                    does not contain [clock.RingActivity]
+PASS  snooze: the surface closed (no ring_surface)                = no
+PASS  snooze: the ALARM player stopped                            = 0
+PASS  snooze: the store's snoozedUntil is 10 min after the tap    1790262906900.00 vs 1790262906776.00 +/- 5000.0
+PASS  snooze: dumpsys alarm shows the alarm re-armed at the snooze instant  = 1790262906900
+PASS  snooze: the notification reads Snoozed until h:mm           contains [Snoozed until 9:15 AM]
+PASS  ring 2: the alarm fired within 30 s of the jump             != 
+PASS  ring 2: late <= 1000 ms                                     2.00 vs 0.00 +/- 1000.0
+PASS  ring 2: the keyguard is showing                             = true
+PASS  ring 2: … and occluded by the ring activity               = true
+PASS  ring 2: the ring activity has the focus                     contains [clock.RingActivity]
+PASS  ring 2: the display is on (Awake)                           = Awake
+PASS  ring 2: a player of the shell on usage ALARM is started     != 0
+PASS  ring 2: vibrator_manager lists a vibration request from the shell (uid 10150)  contains [uid=10150]
+PASS  ring 2: notification a3f22ba2f: fullscreen                  contains [[alarms] notification a3f22ba2f: fullscreen]
+PASS  ring 2: surface: toast-locked a3f22ba2f                     contains [[alarms] surface: toast-locked a3f22ba2f]
+PASS  Snooze for opens the choices (ring_snooze_choice:20)        = yes
+FAIL  ring_snooze_for now reads 20 minutes                        expected [20 minutes] got []
+PASS  snooze for 20: ring ended a3f22ba2f: snooze                 contains [[alarms] ring ended a3f22ba2f: snooze]
+PASS  snooze for 20: the next alarm is 20 min ahead               1790264115457.00 vs 1790264115345.00 +/- 5000.0
+PASS  snooze for 20: dumpsys alarm holds that instant             = 1790264115457
+PASS  ring 3: the alarm fired within 30 s of the jump             != 
+PASS  ring 3: late <= 1000 ms                                     2.00 vs 0.00 +/- 1000.0
+PASS  ring 3: the keyguard is showing                             = true
+PASS  ring 3: … and occluded by the ring activity               = true
+PASS  ring 3: the ring activity has the focus                     contains [clock.RingActivity]
+PASS  ring 3: the display is on (Awake)                           = Awake
+PASS  ring 3: a player of the shell on usage ALARM is started     != 0
+PASS  ring 3: vibrator_manager lists a vibration request from the shell (uid 10150)  contains [uid=10150]
+PASS  ring 3: notification a3f22ba2f: fullscreen                  contains [[alarms] notification a3f22ba2f: fullscreen]
+PASS  ring 3: surface: toast-locked a3f22ba2f                     contains [[alarms] surface: toast-locked a3f22ba2f]
+PASS  dismiss: ring ended a3f22ba2f: dismiss                      contains [[alarms] ring ended a3f22ba2f: dismiss]
+PASS  dismiss: nothing left in dumpsys alarm for the one-shot     = 
+PASS  dismiss: the one-shot is switched off in the store          = false
+PASS  dismiss: the ALARM player stopped                           = 0
+PASS  the missed count over the whole row is 0 (no 'ring ended a3f22ba2f: missed')  = 0
+PASS  … and no Missed alarm notification                        = 
+PASS  a daily alarm was created                                   != 
+PASS  … and armed                                               != 0
+PASS  daily: the alarm fired within 30 s of the jump              != 
+PASS  daily: late <= 1000 ms                                      3.00 vs 0.00 +/- 1000.0
+PASS  daily: the keyguard is showing                              = true
+PASS  daily: … and occluded by the ring activity                = true
+PASS  daily: the ring activity has the focus                      contains [clock.RingActivity]
+PASS  daily: the display is on (Awake)                            = Awake
+PASS  daily: a player of the shell on usage ALARM is started      != 0
+PASS  daily: vibrator_manager lists a vibration request from the shell (uid 10150)  contains [uid=10150]
+PASS  daily: notification a689601ec: fullscreen                   contains [[alarms] notification a689601ec: fullscreen]
+PASS  daily: surface: toast-locked a689601ec                      contains [[alarms] surface: toast-locked a689601ec]
+PASS  daily dismiss: ring ended a689601ec: dismiss                contains [[alarms] ring ended a689601ec: dismiss]
+PASS  daily dismiss: re-armed for the next day (+24 h)            = 1790350620000
+PASS  daily dismiss: still enabled in the store                   = true
+PASS  device clock back within 2 s of the host (RV12)             1790228055.00 vs 1790228056.00 +/- 2.0
+PASS  restore: wake_device printed Awake (C-25)                   = Awake
+      scroll_to_node alarm_row:a3f22ba2f: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a689601ec: 0 swipe(s), found=yes
+FAIL  restore: no shell alarm or timer pending                    expected [0] got [1]
+FAIL  restore: alarm and timer stores empty                       expected [empty] got [[{"id":"ae83c27d0","hour":9,"minute":5,"name":"Wake","days":[],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2026-09-24","snoozedUntilMs":null,"lastHandledMs":1790262300000}]]
+------------------------------------------------------------------------------
+E4: 82 passed, 7 failed, 4 recorded

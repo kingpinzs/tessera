@@ -1,0 +1,55 @@
+==============================================================================
+ROW E23 — the ring surface's bars: locked (covers the status bar) and in use (below it); taps below leave it ringing
+at            2026-09-24T08:25:22-06:00
+driver        e23.sh blob 54155a7af0891dd36a74976844f7bc6b76c66156
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     d8dcea502fac2b21 337842979 bytes
+apk installed 39402722396d9129
+apk match     yes (39402722396d9129)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+26s374ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  the alarm was created                                       != 
+PASS  the keyguard shows after sleep + wake                       = true
+PASS  locked: the alarm fired                                     != 
+PASS  locked: surface: toast-locked ae50b1838                     contains [[alarms] surface: toast-locked ae50b1838]
+      locked ring_surface: 0 0 1080 744
+PASS  locked: the toast starts at y 0 (covers the status bar)     = 0
+PASS  locked: the toast is 248 epx tall ± 3 %                    744.00 vs 744.00 +/- 22.0
+PASS  locked: the status-bar strip (y 4–24, x 700–1000) reads the toast fill (57,57,57) ± 4  = yes
+RECORD  locked: the gesture driver's window list                    SYSTEM:com.android.launcher3:[0,2205][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+PASS  locked: after a tap at y = 400 epx the ALARM player is still started  != 0
+PASS  locked: … and ring_surface is still up                    = yes
+PASS  locked: after a tap at y = 500 epx the ALARM player is still started  != 0
+PASS  locked: … and ring_surface is still up                    = yes
+PASS  locked: after a tap at y = 600 epx the ALARM player is still started  != 0
+PASS  locked: … and ring_surface is still up                    = yes
+PASS  locked: Dismiss ends it                                     contains [[alarms] ring ended ae50b1838: dismiss]
+PASS  device clock back within 2 s of the host (RV12)             1790259961.00 vs 1790259961.00 +/- 2.0
+PASS  wake_device printed Awake (C-25)                            = Awake
+PASS  the in-use alarm was created                                != 
+PASS  in use: the alarm fired                                     != 
+PASS  in use: surface: toast-overlay a531f404c                    contains [[alarms] surface: toast-overlay a531f404c]
+      overlay ring_surface: 0 136 1080 880
+      the system status bar window is 136 px tall
+PASS  in use: the toast's top edge sits at the system status bar's bottom (the recorded seam)  = 136
+RECORD  the recorded seam (px): the overlay toast's top edge        136
+PASS  in use: the toast is 248 epx tall ± 3 %                    744.00 vs 744.00 +/- 22.0
+PASS  in use: after a tap at y = 400 epx the ALARM player is still started  != 0
+PASS  in use: … and ring_surface is still up                    = yes
+PASS  in use: after a tap at y = 500 epx the ALARM player is still started  != 0
+PASS  in use: … and ring_surface is still up                    = yes
+PASS  in use: after a tap at y = 600 epx the ALARM player is still started  != 0
+PASS  in use: … and ring_surface is still up                    = yes
+PASS  in use: Dismiss ends it                                     contains [[alarms] ring ended a531f404c: dismiss]
+PASS  device clock back within 2 s of the host (RV12)             1790259996.00 vs 1790259996.00 +/- 2.0
+      scroll_to_node alarm_row:ae50b1838: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a531f404c: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E23: 33 passed, 0 failed, 4 recorded

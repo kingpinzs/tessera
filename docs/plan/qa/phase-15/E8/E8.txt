@@ -1,0 +1,54 @@
+==============================================================================
+ROW E8 — world clock: offline (Tokyo, zone change, no bytes) and online (positive control, no bytes)
+at            2026-09-24T12:56:37-06:00
+driver        e8.sh blob 1f03f923692cb8bfb3cac8a6fe259bd2dfa145e0
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     9cdb2b692d30396a 336970510 bytes
+apk installed 42d6fcbd160015a2
+apk match     yes (42d6fcbd160015a2)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      zone at start: America/Boise
+PASS  precondition: the device's zone is America/Boise (the host expectations below use it)  = America/Boise
+PASS  an alarm at 07:00 is armed                                  != 
+PASS  a running timer is armed                                    != 
+PASS  airplane mode is on                                         = 1
+      shell bytes at the start of the offline pass: 323535 84460
+PASS  the World Clock tab shows the Local time row                = Local time
+PASS  search Tok lists Tokyo (clock_search_result:Asia/Tokyo)     = Tokyo
+PASS  clock_time:Asia/Tokyo equals the host's Tokyo time ± 1 min  contains [|3:57 AM|]
+PASS  clock_diff:Asia/Tokyo is W10M's line, host-computed against America/Boise  = Friday, 15 hours ahead
+PASS  the Local time row sits above the city row                  = yes
+PASS  the zone is Europe/London                                   = Europe/London
+PASS  the ring re-armed on the zone change                        contains [[alarms] rearm (time zone changed)]
+PASS  the local row now shows London's time ± 1 min              contains [|7:57 PM|]
+PASS  … and it changed from before                              != 12:57 PM
+PASS  Tokyo's difference line changed to the London form          = Friday, 8 hours ahead
+PASS  the 07:00 alarm still reads 7:00 AM after the zone change   = 7:00 AM
+PASS  … while its dumpsys alarm instant moved to London's 07:00 on its date  = 1790316000000
+RECORD  the alarm's instant moved by (ms)                           25200000
+PASS  the running timer's instant did not move                    = 8768991
+PASS  offline: the shell uid's byte counters are unchanged        = 323535 84460
+PASS  the zone is restored                                        = America/Boise
+PASS  airplane mode is off                                        = 0
+PASS  dumpsys connectivity shows an active default network        != 
+      weather: fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitud
+PASS  positive control: the process start ran a Weather fetch     contains [[weather] fetch]
+PASS  positive control: the counters MOVED across the Weather fetch (323535 84460 -> 330217 86281)  != 323535 84460
+      counters settled at 330217 86281 after 10 s
+PASS  online: search Par lists Paris                              = Paris
+PASS  online: Paris was added                                     = yes
+PASS  online: the hold menu offers Remove                         = yes
+PASS  online: Paris was removed                                   = no
+PASS  online: search, add and remove took <= 20 s (18 s)          = yes
+PASS  online: the shell uid's byte counters are unchanged across the world-clock steps (330217 86281 -> 330217 86281)  = 330217 86281
+PASS  restore: Tokyo removed                                      = no
+      scroll_to_node alarm_row:adc5c8e22: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t54a8e712: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E8: 34 passed, 0 failed, 1 recorded

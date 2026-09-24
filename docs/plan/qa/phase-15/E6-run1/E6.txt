@@ -1,0 +1,73 @@
+==============================================================================
+ROW E6 — timer across kill -9 and reboot; rings on the elapsed clock; ended-while-off
+at            2026-09-23T23:46:40-06:00
+driver        e6.sh blob 76d1a4f6bac9f3396c5b42d82440c8edb262953c
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     594be092df44e7da 337842979 bytes
+apk installed 73c780cae9e12da8
+apk match     NO (device 73c780cae9e12da8, built 65d494998eca0f14)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-16s548ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  a 90-s timer was created                                    != 
+PASS  dumpsys alarm: an ELAPSED_WAKEUP alarm of the shell due 90 s ± 1 s after the start  2210849.00 vs 2210820.00 +/- 1000.0
+PASS  … and NOT in the Next alarm clock line                    = 
+      last pre-kill: tc1a6a392 remaining=84947 uptime=2125902
+PASS  the Timer tab logs [timer] tc1a6a392 lines before the kill  != 
+      killed pid 12908
+PASS  the process is gone after kill -9                           != 12908
+      timer_remaining after the kill: [00:01:12] at host +17120 ms
+PASS  reopen: timer_remaining reads 90 − elapsed ± 2 s (host clock)  72000.00 vs 72880.00 +/- 2000.0
+PASS  reopen: the alarm is still armed at the same elapsed instant  = 2210849
+      first post-kill: tc1a6a392 remaining=75422 uptime=2135427
+      two lines 5 s apart: tc1a6a392 remaining=70421 uptime=2140428|tc1a6a392 remaining=65421 uptime=2145428
+PASS  two [timer] lines 5 s apart: Δremaining = −Δuptime ± 100 ms  -5000.00 vs -5000.00 +/- 100.0
+PASS  the first post-kill remaining = the last pre-kill remaining − their wall difference ± 1 s  75422.00 vs 75421.00 +/- 1000.0
+PASS  the timer fired at its deadline                             != 
+PASS  timer: late <= 1000 ms                                      4.00 vs 0.00 +/- 1000.0
+PASS  timer: an ALARM player of the shell is started              != 0
+PASS  timer: surface: toast-overlay tc1a6a392                     contains [[alarms] surface: toast-overlay tc1a6a392]
+PASS  timer: the ring notification (quiet channel, in use) has category alarm  contains [category=alarm]
+PASS  timer: … a Dismiss action                                 contains [Dismiss]
+PASS  timer: … and no Snooze action                             does not contain [Snooze]
+PASS  timer toast: ring_dismiss                                   = yes
+PASS  timer toast: no ring_snooze                                 = no
+PASS  timer dismiss: ring ended tc1a6a392: dismiss                contains [[alarms] ring ended tc1a6a392: dismiss]
+PASS  timer dismiss: the player stopped                           = 0
+      gscroll_to_node timer_name:tc1a6a392: 0 swipe(s), found=yes
+PASS  pass 1 cleared: no timer in the store                       = 
+PASS  a 10-min timer was created                                  != 
+      wall-clock deadline 1790229509906
+      booted at 1790228929837
+PASS  after the reboot wake_device prints Awake (C-25)            = Awake
+      first rearm after boot: rearm (time set): 0 alarms, 1 timers, exact=true
+FAIL  the boot's first rearm line is (locked boot) or (boot)      does not contain [rearm (]: 
+PASS  … with 0 alarms, 1 timers                                 contains [0 alarms, 1 timers]
+PASS  re-armed for its original wall-clock deadline (elapsed trigger − now = deadline − now ± 3 s)  575378.00 vs 575368.00 +/- 3000.0
+PASS  its remaining is right after the reboot (± 3 s)            573000.00 vs 573642.00 +/- 3000.0
+      gscroll_to_node timer_name:t8e71c235: 0 swipe(s), found=yes
+PASS  a 1-min timer was created                                   != 
+      rebooting at remaining=9964
+PASS  the [timer] line read remaining <= 10 000 before the reboot  = yes
+PASS  the first post-boot clock is later than start + 60 s (precondition, else void)  = yes
+PASS  after the reboot wake_device prints Awake (C-25)            = Awake
+PASS  it fired at once after the boot                             != 
+PASS  the ring says the timer ended while the phone was off       contains [timer t4f8c6bab ended while the phone was off]
+FAIL  the notification text says it ended while the phone was off (Decisions 'Ringing'; T15-53)  does not contain [ended while the phone was off]: NotificationRecord(0x05625985: pkg=app.tileshell user=UserHandle{0} id=15003 tag=null importance=2 key=0|app.tileshell|15003|null|10150: Notification(channel=clock_ringing_quiet shortcut=null contentView=null vibrate=null sound=null default
+RECORD  the ended-while-off notification's title / text             android.title=String (Timer finished)|android.text=String (Minute · 0:01:00)
+PASS  a running 5-min timer for the force-stop check              != 
+FAIL  force-stop cancels the timer's alarm until the next start   expected [] got [324633]
+FAIL  Home restarts the process and re-arms: rearm (process start): 0 alarms, 1 timers  does not contain [[alarms] rearm (process start): 0 alarms, 1 timers]:     2026-09-23 23:50:27.441 wall=1790229027441 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-23 23:50:27.442 wall=1790229027442 [applist] no Usage access: the app list has no recent section
+    2026-09-23 23:50:2
+PASS  … and the ELAPSED_WAKEUP entry is back                    != 
+      gscroll_to_node timer_name:t4f8c6bab: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t0cf59a3a: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E6: 38 passed, 4 failed, 3 recorded

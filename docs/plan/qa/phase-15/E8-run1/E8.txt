@@ -1,0 +1,53 @@
+==============================================================================
+ROW E8 — world clock: offline (Tokyo, zone change, no bytes) and online (positive control, no bytes)
+at            2026-09-24T08:21:21-06:00
+driver        e8.sh blob 3bdc0db0903284852bee2dec50e92831fc48139f
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     d8dcea502fac2b21 337842979 bytes
+apk installed 39402722396d9129
+apk match     yes (39402722396d9129)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      zone at start: America/Boise
+PASS  precondition: the device's zone is America/Boise (the host expectations below use it)  = America/Boise
+PASS  an alarm at 07:00 is armed                                  != 
+PASS  a running timer is armed                                    != 
+PASS  airplane mode is on                                         = 1
+      shell bytes at the start of the offline pass: 22576 5527
+PASS  the World Clock tab shows the Local time row                = Local time
+PASS  search Tok lists Tokyo (clock_search_result:Asia/Tokyo)     = Tokyo
+PASS  clock_time:Asia/Tokyo equals the host's Tokyo time ± 1 min  contains [|11:21 PM|]
+PASS  clock_diff:Asia/Tokyo is W10M's line, host-computed against America/Boise  = Today, 15 hours ahead
+PASS  the Local time row sits above the city row                  = yes
+PASS  the zone is Europe/London                                   = Europe/London
+PASS  the ring re-armed on the zone change                        contains [[alarms] rearm (time zone changed)]
+PASS  the local row now shows London's time ± 1 min              contains [|3:21 PM|]
+PASS  … and it changed from before                              != 8:21 AM
+PASS  Tokyo's difference line changed to the London form          = Today, 8 hours ahead
+PASS  the 07:00 alarm still reads 7:00 AM after the zone change   = 7:00 AM
+PASS  … while its dumpsys alarm instant moved to London's 07:00 on its date  = 1790316000000
+RECORD  the alarm's instant moved by (ms)                           25200000
+PASS  the running timer's instant did not move                    = 1884029
+PASS  offline: the shell uid's byte counters are unchanged        = 22576 5527
+PASS  the zone is restored                                        = America/Boise
+PASS  airplane mode is off                                        = 0
+PASS  dumpsys connectivity shows an active default network        != 
+      weather: fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitud
+PASS  positive control: the process start ran a Weather fetch     contains [[weather] fetch]
+PASS  positive control: the counters MOVED across the Weather fetch (22576 5527 -> 30191 7388)  != 22576 5527
+PASS  online: search Par lists Paris                              = Paris
+PASS  online: Paris was added                                     = yes
+PASS  online: the hold menu offers Remove                         = yes
+PASS  online: Paris was removed                                   = no
+PASS  online: search, add and remove took <= 20 s (19 s)          = yes
+FAIL  online: the shell uid's byte counters are unchanged across the world-clock steps (30191 7388 -> 30295 7468)  expected [30191 7388] got [30295 7468]
+PASS  restore: Tokyo removed                                      = no
+      scroll_to_node alarm_row:a99a638cb: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t89d878f4: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E8: 33 passed, 1 failed, 1 recorded

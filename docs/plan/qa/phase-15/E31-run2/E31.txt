@@ -1,0 +1,96 @@
+==============================================================================
+ROW E31 — clock extras: compare strip, expanded views, pinned tiles, share laps, pick from my music
+at            2026-09-24T09:42:50-06:00
+driver        e31.sh blob 5a11e48975e101e3cbba9dfdc9ff999d410b18bf
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     7823e507b9004fd6 337843127 bytes
+apk installed 39402722396d9129
+apk match     NO (device 39402722396d9129, built 2e22a614794f9a05)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-10m6s123ms ago; rejectTime=+49m53s878ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  Tokyo is listed                                             = yes
+      accent (from the tab underline): 0,120,215
+      compare strip: 0 2052 1080 2196 (the app bar was 0 2052 1080 2196)
+PASS  compare: clock_compare_strip is up                          != 
+PASS  compare: the app bar is gone                                = no
+PASS  compare: the strip is 48 epx tall (± 1 epx)                144.00 vs 144.00 +/- 3.0
+PASS  compare: the strip sits where the app bar was (same bottom edge)  = 2196
+PASS  compare: the strip is filled with the accent (± 8 levels, sampled between the hour labels)  = yes
+PASS  one step right: Tokyo's time is one hour later than the host's Tokyo time ± 1 min  contains [|1:44 AM|]
+PASS  one step right: the local row is one hour later too         contains [|10:44 AM|]
+PASS  … and both moved from the compare start                   != 12:44 AM|9:44 AM
+PASS  Back: the app bar returns                                   = yes
+PASS  Back: the strip is gone                                     = no
+PASS  a running timer                                             != 
+      timer_expanded: 0 84 1080 2196
+PASS  expand: timer_expanded:ta266392f is up                      != 
+PASS  expand: no tab band                                         = no
+PASS  expand: no app bar                                          = no
+PASS  expand: it fills the width                                  = 0 1080
+PASS  expand: it spans from the status bar's bottom to the nav bar's top  = 84 2196
+PASS  expand: the page is filled with the accent (± 8, sampled at x 60–200, y 500–600)  = yes
+      expanded [timer] lines: ta266392f remaining=591708 uptime=3470170|ta266392f remaining=586708 uptime=3475170
+PASS  expand: two [timer] lines fell while expanded, remaining decreasing  = yes
+PASS  collapse: the tab band is back                              = yes
+PASS  collapse: timer_expanded gone                               = no
+PASS  stopwatch expand: stopwatch_expanded is up                  = yes
+PASS  stopwatch expand: no tab band                               = no
+PASS  stopwatch expand: no app bar                                = no
+PASS  stopwatch expand: the page is filled with the accent (± 8)  = yes
+PASS  stopwatch collapse: the tab band is back                    = yes
+PASS  pin_timer: the pin request is queued for Start              contains [-> queued]
+PASS  pin_timer: Start's pin band shows the request               = yes
+RECORD  pin_timer: the prompt names                                 Tessera / Ten
+PASS  pin_timer: start_layout.json holds secondary:app.tileshell:timer.ta266392f  contains [secondary:app.tileshell:timer.ta266392f]
+      scroll_to_node tile:secondary:app.tileshell:timer.ta266392f: 0 swipe(s), found=yes
+PASS  pin_timer: the tile is on Start (tile:secondary:app.tileshell:timer.ta266392f)  = yes
+RECORD  pin_timer: the tile face's texts (U10's approximation; screencap pin_timer_pinned.png)  00:08:27 |  text=""
+PASS  pin_timer: a tap resumes the Alarms & Clock component itself  contains [app.tileshell/.clock.ClockActivity]
+PASS  pin_timer: … on clock_pivot:timer                         = true
+PASS  pin_timer: … with timer_block:ta266392f on screen         = yes
+PASS  pin_stopwatch: the pin request is queued for Start          contains [-> queued]
+PASS  pin_stopwatch: Start's pin band shows the request           = yes
+RECORD  pin_stopwatch: the prompt names                             Tessera / Stopwatch
+PASS  pin_stopwatch: start_layout.json holds secondary:app.tileshell:stopwatch  contains [secondary:app.tileshell:stopwatch]
+      scroll_to_node tile:secondary:app.tileshell:stopwatch: 0 swipe(s), found=yes
+PASS  pin_stopwatch: the tile is on Start (tile:secondary:app.tileshell:stopwatch)  = yes
+RECORD  pin_stopwatch: the tile face's texts (U10's approximation; screencap pin_stopwatch_pinned.png)  00:02:18 |  text=""
+PASS  pin_stopwatch: a tap resumes the Alarms & Clock component itself  contains [app.tileshell/.clock.ClockActivity]
+PASS  pin_stopwatch: … on clock_pivot:stopwatch                 = true
+PASS  pin_stopwatch: … with stopwatch_elapsed on screen         = yes
+      scroll_to_node tile:secondary:app.tileshell:timer.ta266392f: 0 swipe(s), found=yes
+      scroll_to_node tile:secondary:app.tileshell:stopwatch: 0 swipe(s), found=yes
+PASS  unpin: the timer tile is out of start_layout.json           does not contain [secondary:app.tileshell:timer.ta266392f]
+PASS  unpin: the stopwatch tile is out of start_layout.json       does not contain [secondary:app.tileshell:stopwatch]
+FAIL  Share: the first lap did not crash the app (E7/DEFECT.md: java.lang.IllegalStateException: lap row text must equal the shared line)  expected [0] got [1]
+      SUB-ROW STOPPED (Share, three laps) at the lap-row crash; see E7/DEFECT.md
+      stopwatch.json removed and the process restarted: the baseline restore around the lap-row crash (E7/DEFECT.md)
+      song.m4a MediaStore id: 410
+PASS  the fixture song is in MediaStore                           != 
+PASS  the alarm was created                                       != 
+PASS  the Sound flyout offers Pick from my music                  = yes
+PASS  the picker lists the song (alarm_sound_pick:410)            = yes
+PASS  the Sound value names the song                              = Fixture song
+PASS  the store holds the song's URI                              = content://media/external/audio/media/410
+PASS  song: the alarm fired                                       != 
+PASS  song: ring afab1927c sound=content://media/external/audio/media/410  contains [[alarms] ring afab1927c sound=content://media/external/audio/media/410]
+PASS  song: an ALARM player is started                            != 0
+PASS  after rm + rescan the song is gone from MediaStore          = 
+PASS  the alarm is armed again                                    != 0
+PASS  missing: the alarm fired                                    != 
+PASS  missing: sound content://media/external/audio/media/410 missing -> default  contains [[alarms] sound content://media/external/audio/media/410 missing -> default]
+PASS  missing: the default sound plays (an ALARM player is started)  != 0
+PASS  device clock back within 2 s of the host (RV12)             1790265181.00 vs 1790265181.00 +/- 2.0
+      stopwatch.json removed and the process restarted: the baseline restore around the lap-row crash (E7/DEFECT.md)
+      scroll_to_node alarm_row:afab1927c: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:ta266392f: 0 swipe(s), found=yes
+FAIL  restore: the stopwatch is reset                             expected [false []] got []
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E31: 61 passed, 2 failed, 6 recorded
