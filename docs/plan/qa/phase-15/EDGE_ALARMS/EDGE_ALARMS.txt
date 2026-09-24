@@ -174,3 +174,13 @@ PASS  device clock back within 2 s of the host (RV12)             1790283519.00 
 PASS  section: the section left no alarm behind                   = 
 PASS  MY_PACKAGE_REPLACED re-arms it: rearm (package replaced): 1 alarms  != 
 PASS  … at the same instant                                     = 1790283600000
+PASS  … and it rings at its time                                != 
+PASS  … on time (late <= 1000 ms)                               18.00 vs 0.00 +/- 1000.0
+      scroll_to_node alarm_row:a3f901691: 0 swipe(s), found=yes
+PASS  section: the section left no alarm behind                   = 
+PASS  restore: the zone is America/Boise                          = America/Boise
+PASS  restore: the overlay grant is allow                         contains [allow]
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+EDGE_ALARMS: 98 passed, 17 failed, 7 recorded
