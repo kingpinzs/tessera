@@ -1,0 +1,66 @@
+==============================================================================
+ROW L11-1 — one arbiter: the API beats notifications; a playing face survives notification updates
+at            2026-09-24T12:13:25-06:00
+driver        l11_1.sh blob b0810c801b3db3eb0a50c47e28a39a7af1d58dea
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     a982b1894cd5600b 335517953 bytes
+apk installed 114511e7de8bb2e0
+apk match     yes (114511e7de8bb2e0)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- (a) the Live Tile API queue over notifications ---
+      tile texts over 8 samples:  | Tile client A / 2 | APIqueue / Tile client A / 2 | Tile client A / 2 | Tile client A / 2 | Tile client A / 2 | Tile client A / 2 | APIqueue / Tile client A / 2 | Tile client A / 2
+PASS  the notification's publish leaves the API showing           contains [publish pkg:app.tileshell.testclient.a from=notifications]
+PASS  the tile shows the API text                                 contains [APIqueue]
+PASS  …not the notification                                     does not contain [Note title]
+PASS  clearing the queue lets the notification show               contains [-> shows notifications]
+--- (b) Fossify playing: the strip survives notification updates ---
+PASS  restore baseline_layout-player.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-player.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+FAIL  Fossify is playing                                          does not contain [state=PLAYING(3)]: 
+FAIL  strip present, dump 1 (+0 s)                                expected [yes] got [no]
+FAIL  strip present, dump 2 (+3 s)                                expected [yes] got [no]
+FAIL  strip present, dump 3 (+6 s)                                expected [yes] got [no]
+      publishes after the face: 0 (0 from notifications)
+FAIL  the notification feed published while it played (the race is exercised)  should not be [0]
+PASS  every publish after the face still shows the playing session  = 0
+FAIL  Fossify paused                                              does not contain [state=PAUSED(2)]: 
+PASS  paused: the strip goes (item 3's ruling)                    = no
+PASS  paused: nothing shows the playing session any more          does not contain [-> shows music (playing)]
+--- (d) the fix review's F-2: an uninstalled player keeps nothing; a reinstall inherits no face ---
+FAIL  the engine forgot the package, every source                 does not contain [[engine] forget pkg:org.fossify.musicplayer (every source)]:     2026-09-24 12:15:39.014 wall=1790273739014 [tile_anim] tile=shell:weather kind=FLIP uptime=90021354 faceIndex=0 next=1 faces=1
+    2026-09-24 12:15:40.669 wall=1790273740669 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=90023008 fac
+FAIL  MusicFeed dropped its remembered track                      does not contain [[music] forgot org.fossify.musicplayer's track]:     2026-09-24 12:15:39.014 wall=1790273739014 [tile_anim] tile=shell:weather kind=FLIP uptime=90021354 faceIndex=0 next=1 faces=1
+    2026-09-24 12:15:40.669 wall=1790273740669 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=90023008 fac
+PASS  restore baseline_layout-player.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-player.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      the re-pinned player's tile over 6 samples:  |  / org.fossify.musicplayer · Tap to choose |  / org.fossify.musicplayer · Tap to choose |  / org.fossify.musicplayer · Tap to choose |  / org.fossify.musicplayer · Tap to choose |  / org.fossify.musicplayer · Tap to choose |  / org.fossify.musicplayer · Tap to choose
+PASS  the reinstalled player's tile shows no inherited track face  does not contain [An Ending]
+--- (c) the shell's own player on the Music tile ---
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  Music tile strip present, dump 1 (+0 s)                     = yes
+PASS  Music tile strip present, dump 2 (+3 s)                     = yes
+PASS  Music tile strip present, dump 3 (+6 s)                     = yes
+      publishes after the face: 8 (7 from notifications)
+PASS  the shell's own media notification published while it played  != 0
+PASS  every publish after the face still shows the playing session  = 8
+PASS  paused: the Music tile's strip goes                         = no
+--- phase 01 E15 / E17 captures on this build (their parts changed: the API and the notification feed) ---
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      phase 01 e15.sh exit 0
+      phase 01 e17.sh exit 0
+PASS  E15: the API's own text reached the tile                    contains [Meeting at 4]
+--- the fix review's F-1: phase 02 E5, secondary tiles, on this build (the rescan no longer clears their content) ---
+PASS  restore baseline_layout-pre-11.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-pre-11.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      phase 02 e5.sh exit 0; verdict: ---- 14 passed, 0 failed ----
+PASS  phase 02 E5 (secondary tiles) exits 0 on this build         = 0
+------------------------------------------------------------------------------
+L11-1: 30 passed, 8 failed
