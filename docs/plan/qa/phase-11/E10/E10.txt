@@ -1,24 +1,28 @@
 ==============================================================================
 ROW E10 — a hold on a playing player's transport control fires it; the art hold bursts (L11-1 blocks the strip)
-at            2026-09-24T09:32:37-06:00
-driver        e10.sh blob 15a244ca6a1079bdeedc53900b03291b77c4677a
+at            2026-09-24T11:33:30-06:00
+driver        e10.sh blob 547ffd95eaab13ae2bcca607361656a0cda2ccdb
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     c3bd9015808af960 336439365 bytes
-apk installed 8e2f64795bb72956
-apk match     yes (8e2f64795bb72956)
+apk built     62b480a0f0dec298 335517541 bytes
+apk installed 48968f67ed8d903b
+apk match     yes (48968f67ed8d903b)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  restore baseline_layout-player.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-player.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-      Fossify session:       state=PlaybackState {state=PLAYING(3), position=2955, buffered position=90044, speed=1.0, updated=80278886, actions=7340027, custom actions=[Action:mName='Close, mIcon=2131230912, mExtras=Bundle[EMPTY_PARCEL]], active item id=1, error=null}
+      Fossify session:       state=PlaybackState {state=PLAYING(3), position=2943, buffered position=90044, speed=1.0, updated=87532209, actions=7340027, custom actions=[Action:mName='Close, mIcon=2131230912, mExtras=Bundle[EMPTY_PARCEL]], active item id=1, error=null}
 PASS  the fixture is playing (phase 01 E8's player)               contains [state=PLAYING(3)]
-      publishes for the player's key: 6 (front=true: 4, null: 4)
-FAIL  the playing player's tile shows its transport strip — BLOCKED by L11-1 (the key republished as null)  front=true 4 then null 4 (l11-1-sequence.txt)
-      the control-hold sub-step is NOT run without the strip (no vacuous pass, G-E10-2); resume point: here, once L11-1 is fixed
+      publishes for the player's key: 15 (front=true: 4, null: 10)
+PASS  the playing player's tile shows its transport strip         tile_control:…:PLAY_PAUSE present
+PASS  control centre found                                        != 
+PASS  the control fired (no launch)                               contains [[tile_control] tile=app:org.fossify.musicplayer/org.fossify.musicplayer.activities.SplashActivity.Green:0 PLAY_PAUSE (no launch)]
+PASS  no hold (edit mode not entered)                             does not contain [[edit] hold]
+PASS  no burst                                                    does not contain [[quick] burst on]
+PASS  the player's session is PAUSED                              contains [state=PAUSED(2)]
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  the Music tile's art: edit mode on                          = yes
 PASS  the Music tile's art: Music's four satellites               = Songs,Albums,Artists,Playlists,
 ------------------------------------------------------------------------------
-E10: 7 passed, 1 failed
+E10: 13 passed, 0 failed

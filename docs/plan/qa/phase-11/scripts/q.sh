@@ -220,3 +220,42 @@ for y in range(ymax, ymin, -20):
 sys.exit(1)
 PY
 }
+
+# ------------------------------------------------------------------ the players (E10, L11-1)
+
+FOSSIFY="app:org.fossify.musicplayer/org.fossify.musicplayer.activities.SplashActivity.Green:0"
+
+# The phase 01 MP3 fixtures, pushed and scanned; the media stream muted.
+music_fixtures_in() {
+  for _ in $(seq 1 20); do adb shell input keyevent 25 >/dev/null 2>&1; done
+  adb shell mkdir -p /sdcard/Music/tessera-qa >/dev/null 2>&1
+  for f in "$QROOT"/phase-01/MUSIC6-fixtures/*.mp3; do adb push "$f" /sdcard/Music/tessera-qa/ >/dev/null 2>&1; done
+  adb shell content call --uri content://media --method scan_volume --arg external_primary >/dev/null 2>&1; sleep 3
+}
+
+# text_xy <dump> <text>: the centre of the first node with exactly that text.
+text_xy() {
+  python3 - "$1" "$2" <<'PY'
+import re, sys
+s = open(sys.argv[1]).read()
+for n in re.finditer(r"<node[^>]*>", s):
+    n = n.group(0)
+    if 'text="%s"' % sys.argv[2] in n:
+        x1, y1, x2, y2 = map(int, re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', n).groups()); print((x1 + x2) // 2, (y1 + y2) // 2); break
+PY
+}
+
+# fossify_play: phase 01 E8's playback fixture plays "An Ending", then Home.
+fossify_play() {
+  adb shell pm grant org.fossify.musicplayer android.permission.READ_MEDIA_AUDIO >/dev/null 2>&1
+  adb shell pm grant org.fossify.musicplayer android.permission.POST_NOTIFICATIONS >/dev/null 2>&1
+  adb shell am force-stop org.fossify.musicplayer
+  adb shell am start -W -n org.fossify.musicplayer/.activities.SplashActivity.Green >/dev/null 2>&1; sleep 5
+  dump_ui "$ROW_DIR/fossify.xml"
+  read -r TX TY <<< "$(text_xy "$ROW_DIR/fossify.xml" Tracks)"; tap_xy "$TX" "$TY"; sleep 2
+  dump_ui "$ROW_DIR/fossify-tracks.xml"
+  read -r TX TY <<< "$(text_xy "$ROW_DIR/fossify-tracks.xml" "An Ending")"; tap_xy "$TX" "$TY"; sleep 4
+}
+
+# session_state <package>: that package's PlaybackState line from dumpsys media_session.
+session_state() { adb shell dumpsys media_session | awk -v p="package=$1" '$0 ~ p { f = 1 } f && /state=PlaybackState/ { print; exit }' | tr -d '\r'; }

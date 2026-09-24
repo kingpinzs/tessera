@@ -1,0 +1,52 @@
+==============================================================================
+ROW L11-1 — one arbiter: the API beats notifications; a playing face survives notification updates
+at            2026-09-24T11:26:19-06:00
+driver        l11_1.sh blob aa99babc5dfad65a343a8a492c7e985668216c50
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     62b480a0f0dec298 335517541 bytes
+apk installed 48968f67ed8d903b
+apk match     yes (48968f67ed8d903b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- (a) the Live Tile API queue over notifications ---
+      tile texts over 8 samples:  | Tile client A / 2 | Tile client A / 2 | Tile client A / 2 | Tile client A / 2 | Tile client A / 2 | APIqueue / Tile client A / 2 | Tile client A / 2 | Tile client A / 2
+PASS  the notification's publish leaves the API showing           contains [publish pkg:app.tileshell.testclient.a from=notifications]
+PASS  the tile shows the API text                                 contains [APIqueue]
+PASS  …not the notification                                     does not contain [Note title]
+PASS  clearing the queue lets the notification show               contains [-> shows notifications]
+--- (b) Fossify playing: the strip survives notification updates ---
+PASS  restore baseline_layout-player.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-player.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  Fossify is playing                                          contains [state=PLAYING(3)]
+PASS  strip present, dump 1 (+0 s)                                = yes
+PASS  strip present, dump 2 (+3 s)                                = yes
+PASS  strip present, dump 3 (+6 s)                                = yes
+      publishes after the face: 5 (3 from notifications)
+PASS  the notification feed published while it played (the race is exercised)  != 0
+PASS  every publish after the face still shows the playing session  = 5
+PASS  Fossify paused                                              contains [state=PAUSED(2)]
+PASS  paused: the strip goes (item 3's ruling)                    = no
+PASS  paused: nothing shows the playing session any more          does not contain [-> shows music (playing)]
+--- (c) the shell's own player on the Music tile ---
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  Music tile strip present, dump 1 (+0 s)                     = yes
+PASS  Music tile strip present, dump 2 (+3 s)                     = yes
+PASS  Music tile strip present, dump 3 (+6 s)                     = yes
+      publishes after the face: 9 (8 from notifications)
+PASS  the shell's own media notification published while it played  != 0
+PASS  every publish after the face still shows the playing session  = 9
+PASS  paused: the Music tile's strip goes                         = no
+--- phase 01 E15 / E17 captures on this build (their parts changed: the API and the notification feed) ---
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      phase 01 e15.sh exit 0
+      phase 01 e17.sh exit 0
+PASS  E15: the API's own text reached the tile                    contains [Meeting at 4]
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+------------------------------------------------------------------------------
+L11-1: 30 passed, 0 failed
