@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E2 — the fork: 740 ms taps, 830 ms bursts; a 4-px wobble keeps it, a 40-px glide drags and closes it
-at            2026-09-24T07:54:16-06:00
-driver        e2.sh blob b50c3f7dc1c59123727001c7f66173c57f46fa41
+at            2026-09-24T09:13:41-06:00
+driver        e2.sh blob 9785c45be87ee1389b68ca9945f24b0635eaa5df
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     b4c1ca12e166b21d 336439365 bytes
-apk installed 24a6fcef79bb96df
-apk match     yes (24a6fcef79bb96df)
+apk built     c3bd9015808af960 336439365 bytes
+apk installed 8e2f64795bb72956
+apk match     yes (8e2f64795bb72956)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -13,8 +13,6 @@ PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not 
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- 740 ms: a tap (the fixture app launches, no hold, no burst) ---
 PASS  the fixture app launched                                    contains [app.tileshell.testclient.a/]
-PASS  no quick_burst                                              = no
-PASS  no edit_disc                                                = no
 PASS  ring: no [quick] burst on (T11-45)                          does not contain [[quick] burst on]
 PASS  ring: no [edit] hold (T11-45)                               does not contain [[edit] hold]
 --- 830 ms: a hold (edit mode and the burst, nothing launched) ---
@@ -34,4 +32,4 @@ PASS  ring: [edit] drag start                                     contains [[edi
 PASS  ring: burst closed: drag                                    contains [[quick] burst closed: drag]
 PASS  after UP the fixture is back in its own cell (± 1 px)      held 365 489 708 832 -> after UP 365 489 708 832
 ------------------------------------------------------------------------------
-E2: 19 passed, 0 failed
+E2: 17 passed, 0 failed

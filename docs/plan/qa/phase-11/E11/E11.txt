@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E11 — the app list's and Music's hold menus are unchanged; no burst there
-at            2026-09-24T08:14:28-06:00
-driver        e11.sh blob 24bf80f7ab8caec0f834796b0f69ea073550d6ff
+at            2026-09-24T09:33:44-06:00
+driver        e11.sh blob 9ee7f77f1810821be999433e9c2f484e517c672d
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     b4c1ca12e166b21d 336439365 bytes
-apk installed 24a6fcef79bb96df
-apk match     yes (24a6fcef79bb96df)
+apk built     c3bd9015808af960 336439365 bytes
+apk installed 8e2f64795bb72956
+apk match     yes (8e2f64795bb72956)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -16,6 +16,6 @@ PASS  app list: applist_menu present                              = yes
 PASS  app list: no quick_burst                                    = no
 PASS  app list: no [quick] line                                   does not contain [[quick]]
 PASS  Music: music_menu present                                   = yes
-PASS  Music: no quick_burst                                       = no
+PASS  Music: no [quick] line (MusicActivity shares the launcher's ring)  does not contain [[quick]]
 ------------------------------------------------------------------------------
 E11: 7 passed, 0 failed

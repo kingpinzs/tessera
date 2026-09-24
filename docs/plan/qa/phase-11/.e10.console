@@ -1,30 +1,12 @@
-── E10 a hold on a transport control fires the control; a hold on the art bursts with Music's four
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 37.6 MB/s (1390 bytes in 0.000s)
+── E10 a hold on a playing player's transport control fires it; the art hold bursts (L11-1 blocks the strip)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-player.json: 1 file pushed, 0 skipped. 9.8 MB/s (1420 bytes in 0.000s)
+PASS  restore baseline_layout-player.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-player.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  the fixture is playing (phase 01 E8's player)               contains [state=PLAYING(3)]
+FAIL  the playing player's tile shows its transport strip — BLOCKED by L11-1 (the key republished as null)  front=true 4 then null 4 (l11-1-sequence.txt)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 7.1 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-FAIL  the Music tile shows its controls                           expected [yes] got [no]
-
-Exception occurred while executing 'swipe':
-java.lang.IllegalArgumentException: Argument expected after "1000"
-	at com.android.modules.utils.BasicShellCommandHandler.getNextArgRequired(BasicShellCommandHandler.java:295)
-	at com.android.server.input.InputShellCommand.sendSwipe(InputShellCommand.java:508)
-	at com.android.server.input.InputShellCommand.runSwipe(InputShellCommand.java:502)
-	at com.android.server.input.InputShellCommand.onCommand(InputShellCommand.java:296)
-	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
-	at android.os.ShellCommand.exec(ShellCommand.java:38)
-	at com.android.server.input.InputManagerService.onShellCommand(InputManagerService.java:3887)
-	at android.os.Binder.shellCommand(Binder.java:1151)
-	at android.os.Binder.onTransact(Binder.java:953)
-	at android.hardware.input.IInputManager$Stub.onTransact(IInputManager.java:1576)
-	at android.os.Binder.execTransactInternal(Binder.java:1426)
-	at android.os.Binder.execTransact(Binder.java:1365)
-PASS  no quick_burst                                              = no
-PASS  no edit mode                                                = no
-FAIL  the control fired (no launch)                               does not contain [[tile_control] tile=slot:MUSIC PLAY_PAUSE (no launch)]:     2026-09-24 08:14:12.508 wall=1790259252508 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75534848 faceIndex=1 next=0 faces=1
-    2026-09-24 08:14:14.493 wall=1790259254493 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75536832 
-PASS  no hold line                                                does not contain [[edit] hold]
-FAIL  the shell's session is PAUSED                               does not contain [state=PAUSED(2)]:       state=PlaybackState {state=PLAYING(3), position=14974, buffered position=90044, speed=1.0, updated=75536893, actions=7340027, custom actions=[], active item id=0, error=null}
-PASS  StartActivity still in front (nothing launched)             contains [app.tileshell/.StartActivity]
-PASS  the art: edit mode on                                       = yes
-PASS  the art: Music's four satellites                            = Songs,Albums,Artists,Playlists,
-   E10: 8 passed, 3 failed
+PASS  the Music tile's art: edit mode on                          = yes
+PASS  the Music tile's art: Music's four satellites               = Songs,Albums,Artists,Playlists,
+   E10: 7 passed, 1 failed

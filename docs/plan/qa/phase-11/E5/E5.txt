@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E5 — taps while open: elsewhere, another tile, the held tile, the name strip, a label, Back, the discs, Home, sleep, scroll, press
-at            2026-09-24T07:59:25-06:00
-driver        e5.sh blob 269cdc539b1be3db8569245fe5379ef23e155fa5
+at            2026-09-24T09:18:28-06:00
+driver        e5.sh blob 5ae49f4fe1a69b1cf2dbebb4a9bc32a0e9c7651a
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     b4c1ca12e166b21d 336439365 bytes
-apk installed 24a6fcef79bb96df
-apk match     yes (24a6fcef79bb96df)
+apk built     c3bd9015808af960 336439365 bytes
+apk installed 8e2f64795bb72956
+apk match     yes (8e2f64795bb72956)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -43,6 +43,7 @@ PASS  no quick_burst                                              = no
 PASS  edit mode stays                                             = yes
       unpin disc centre off the new top-right corner by (dx dy) = 0 0
 PASS  the unpin disc on the new top-right corner (x)              0.00 vs 0.00 +/- 3.0
+PASS  the unpin disc on the new top-right corner (y)              0.00 vs 0.00 +/- 3.0
 PASS  ring: resize                                                contains [[quick] burst closed: resize]
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
@@ -66,6 +67,9 @@ PASS  ring: stop                                                  contains [[qui
 PASS  no quick_burst while the finger rests                       = no
 PASS  ring: no burst on                                           does not contain [[quick] burst on]
 PASS  the release moved the selection to Start settings           contains [[edit] selection moves to shell:settings]
+      unpin disc centre off Start settings' top-right corner by 1 0
+PASS  the discs moved to Start settings (x)                       1.00 vs 0.00 +/- 3.0
+PASS  the discs moved to Start settings (y)                       0.00 vs 0.00 +/- 3.0
 --- a scroll on empty space: Start scrolls, the satellites ride the tile, fresh rest= lines (T11-28) ---
 PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
@@ -97,4 +101,4 @@ PASS  press_p4: the held satellite equals its rest pixels ± 1 (no Q6 style)  = 
 PASS  press_p4: sliding off ran nothing, the burst stays          = yes
       scroll_to_node press_none: 1 swipe(s), found=yes
 ------------------------------------------------------------------------------
-E5: 67 passed, 0 failed
+E5: 70 passed, 0 failed

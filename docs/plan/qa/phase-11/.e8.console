@@ -1,5 +1,5 @@
 ── E8 no burst when not HOME; disabled / removed / unstartable shortcuts
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 31.4 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 42.7 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- (a) the shell is not a shortcut host: edit mode, no burst ---
@@ -9,6 +9,7 @@ PASS  (a) reason                                                  contains [[qui
 PASS  (a) restored: the shell is HOME again                       contains [app.tileshell]
 PASS  (a) restored: the shell is the assistant again              contains [app.tileshell]
 --- (b) disabled: Android deletes an unpinned dynamic shortcut, so the hold finds none ---
+FAIL  (b) positive control: after reset the listing shows qa_dyn  does not contain [id=qa_dyn]: Success
 PASS  (b) no quick_burst                                          = no
 PASS  (b) the query found none                                    contains [[quick] shortcuts for app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity/0: 0 (0 shown)]
 PASS  (b) reason                                                  contains [[quick] no burst on app:app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity:0: no shortcuts]
@@ -24,7 +25,7 @@ PASS  (c) burst open                                              = yes
 PASS  (c) the tile is gone                                        = no
 PASS  (c) no quick_burst                                          = no
 PASS  (c) exactly one close line, removed                         = 1 [quick] burst closed: removed
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 25.3 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 36.7 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- (d) a shortcut whose target cannot start: nothing launches, Start plays its entrance, no edit mode ---
@@ -34,4 +35,4 @@ PASS  (d) back on start_page                                      = yes
 PASS  (d) no edit mode                                            = no
 PASS  (d) startShortcut failed, ActivityNotFoundException         contains [[quick] tap satellite 1 app.tileshell.testclient.b/qa_dead: startShortcut failed android.content.ActivityNotFoundException]
 PASS  (d) Start played its entrance                               contains [[motion] start entrance]
-   E8: 28 passed, 0 failed
+   E8: 28 passed, 1 failed

@@ -1,235 +1,314 @@
-    2026-09-24 08:13:33.248 wall=1790259213248 [apps] LauncherApps.onPackageChanged app.tileshell.testclient.a user=0
-    2026-09-24 08:13:33.271 wall=1790259213271 [apps] catalog refreshed (changed app.tileshell.testclient.a): 38 activities
-    2026-09-24 08:13:33.277 wall=1790259213277 [livetile] package added app.tileshell.testclient.a replacing=true
-    2026-09-24 08:13:33.288 wall=1790259213288 [badge] set app.tileshell.testclient.a API=0 -> effective 0
-    2026-09-24 08:13:33.288 wall=1790259213288 [badge] set app.tileshell.testclient.a API=0 -> effective 0
-    2026-09-24 08:13:33.359 wall=1790259213359 [apps] LauncherApps.onPackageChanged app.tileshell.testclient.b user=0
-    2026-09-24 08:13:33.378 wall=1790259213378 [apps] catalog refreshed (changed app.tileshell.testclient.b): 38 activities
-    2026-09-24 08:13:33.481 wall=1790259213481 [livetile] package added app.tileshell.testclient.b replacing=true
-    2026-09-24 08:13:33.499 wall=1790259213499 [apps] LauncherApps.onShortcutsChanged app.tileshell.testclient.a user=0 n=5
-    2026-09-24 08:13:33.525 wall=1790259213525 [apps] LauncherApps.onShortcutsChanged app.tileshell.testclient.b user=0 n=1
-    2026-09-24 08:13:33.740 wall=1790259213740 [apps] LauncherApps.onShortcutsChanged app.tileshell.testclient.b user=0 n=1
-    2026-09-24 08:13:34.813 wall=1790259214813 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75497153 faceIndex=2 next=3 faces=6
-    2026-09-24 08:13:35.550 wall=1790259215550 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
-    2026-09-24 08:13:35.550 wall=1790259215550 [livetile] store loaded 1 owners
-    2026-09-24 08:13:35.557 wall=1790259215557 [badge] set app.tileshell.testclient.a API=0 -> effective 0
-    2026-09-24 08:13:35.560 wall=1790259215560 [livetile] samsung badge provider probe: not present
-    2026-09-24 08:13:35.562 wall=1790259215562 [app] process start
-    2026-09-24 08:13:35.609 wall=1790259215609 [apps] catalog refreshed (init): 38 activities
-    2026-09-24 08:13:35.609 wall=1790259215609 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
-    2026-09-24 08:13:35.610 wall=1790259215610 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
-    2026-09-24 08:13:35.614 wall=1790259215614 [weather] feed start provider=open-meteo
-    2026-09-24 08:13:35.616 wall=1790259215616 [app] feeds started (process start)
-    2026-09-24 08:13:35.619 wall=1790259215619 [reminders] rearm (process start): 0 timed alarms, exact=true
-    2026-09-24 08:13:35.620 wall=1790259215620 [places] rearm: no place reminders
-    2026-09-24 08:13:35.620 wall=1790259215620 [person] rearm: no person reminders, observers off
-    2026-09-24 08:13:35.620 wall=1790259215620 [engine] publish feed:calendar faces=2 front=false source=calendar sourceTime=1790259215620
-    2026-09-24 08:13:35.620 wall=1790259215620 [calendar] refresh (start): access=true faces=2
-    2026-09-24 08:13:35.624 wall=1790259215624 [cortana] VoiceInteractionService created
-    2026-09-24 08:13:35.626 wall=1790259215626 [cortana] VoiceInteractionService ready
-    2026-09-24 08:13:35.626 wall=1790259215626 [notif] listener connected
-    2026-09-24 08:13:35.649 wall=1790259215649 [badge] set android NOTIFICATIONS=0 -> effective 0
-    2026-09-24 08:13:35.649 wall=1790259215649 [engine] publish pkg:android faces=0 front=false source=null sourceTime=null
-    2026-09-24 08:13:35.650 wall=1790259215650 [badge] set com.android.dialer NOTIFICATIONS=1 -> effective 1
-    2026-09-24 08:13:35.651 wall=1790259215651 [engine] publish pkg:com.android.dialer faces=1 front=false source=notification sourceTime=1790183740084
-    2026-09-24 08:13:35.651 wall=1790259215651 [notif] rescan (connected): 2 packages with notifications
-    2026-09-24 08:13:35.653 wall=1790259215653 [weather] cache loaded fetchedAt=1790259205096 provider=open-meteo units=IMPERIAL
-    2026-09-24 08:13:35.654 wall=1790259215654 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790259205096
-    2026-09-24 08:13:35.654 wall=1790259215654 [weather] publish tile faces=1 temp=58° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790259205096
-    2026-09-24 08:13:35.654 wall=1790259215654 [weather] refresh start reason=start units=IMPERIAL
-    2026-09-24 08:13:35.659 wall=1790259215659 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
-    2026-09-24 08:13:35.660 wall=1790259215660 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
-    2026-09-24 08:13:35.660 wall=1790259215660 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790259215660
-    2026-09-24 08:13:35.660 wall=1790259215660 [photos] refresh (start): access=GRANTED photos=6 slideshow=0 grow=false
-    2026-09-24 08:13:35.964 wall=1790259215964 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 08:13:35.966 wall=1790259215966 [start] StartActivity created
-    2026-09-24 08:13:35.977 wall=1790259215977 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 08:13:36.349 wall=1790259216349 [render] tile=slot:PHOTOS sourceTime=1790259215660 renderedAt=1790259216349 faces=6
-    2026-09-24 08:13:36.349 wall=1790259216349 [render] tile=slot:CALENDAR sourceTime=1790259215620 renderedAt=1790259216349 faces=2
-    2026-09-24 08:13:36.349 wall=1790259216349 [render] tile=shell:weather sourceTime=1790259205096 renderedAt=1790259216349 faces=1
-    2026-09-24 08:13:36.349 wall=1790259216349 [render] tile=dock:slot:PHONE sourceTime=1790183740084 renderedAt=1790259216349 faces=1
-    2026-09-24 08:13:36.511 wall=1790259216511 [weather] fetch ok provider=open-meteo ms=851 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/58.3 hourly=240 daily=10 place=true
-    2026-09-24 08:13:36.520 wall=1790259216520 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790259216509
-    2026-09-24 08:13:36.520 wall=1790259216520 [weather] publish tile faces=1 temp=58° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790259216509
-    2026-09-24 08:13:36.541 wall=1790259216541 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
-    2026-09-24 08:13:36.572 wall=1790259216572 [render] tile=shell:weather sourceTime=1790259216509 renderedAt=1790259216572 faces=1
-    2026-09-24 08:13:36.583 wall=1790259216583 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
-    2026-09-24 08:13:37.789 wall=1790259217789 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75500129 faceIndex=0 next=1 faces=1
-    2026-09-24 08:13:39.773 wall=1790259219773 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75502113 faceIndex=0 next=1 faces=6
-    2026-09-24 08:13:40.764 wall=1790259220764 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=75503104 faceIndex=0 next=1 faces=2
-    2026-09-24 08:13:41.338 wall=1790259221338 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
-    2026-09-24 08:13:41.339 wall=1790259221339 [livetile] store loaded 1 owners
-    2026-09-24 08:13:41.344 wall=1790259221344 [app] process start
-    2026-09-24 08:13:41.346 wall=1790259221346 [badge] set app.tileshell.testclient.a API=0 -> effective 0
-    2026-09-24 08:13:41.346 wall=1790259221346 [livetile] samsung badge provider probe: not present
-    2026-09-24 08:13:41.379 wall=1790259221379 [apps] catalog refreshed (init): 38 activities
-    2026-09-24 08:13:41.379 wall=1790259221379 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
-    2026-09-24 08:13:41.380 wall=1790259221380 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
-    2026-09-24 08:13:41.385 wall=1790259221385 [weather] feed start provider=open-meteo
-    2026-09-24 08:13:41.386 wall=1790259221386 [app] feeds started (process start)
-    2026-09-24 08:13:41.388 wall=1790259221388 [reminders] rearm (process start): 0 timed alarms, exact=true
-    2026-09-24 08:13:41.388 wall=1790259221388 [places] rearm: no place reminders
-    2026-09-24 08:13:41.389 wall=1790259221389 [person] rearm: no person reminders, observers off
-    2026-09-24 08:13:41.389 wall=1790259221389 [engine] publish feed:calendar faces=2 front=false source=calendar sourceTime=1790259221389
-    2026-09-24 08:13:41.389 wall=1790259221389 [calendar] refresh (start): access=true faces=2
-    2026-09-24 08:13:41.415 wall=1790259221415 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 08:13:41.418 wall=1790259221418 [start] StartActivity created
-    2026-09-24 08:13:41.422 wall=1790259221422 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 08:13:41.425 wall=1790259221425 [weather] cache loaded fetchedAt=1790259216509 provider=open-meteo units=IMPERIAL
-    2026-09-24 08:13:41.465 wall=1790259221465 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790259216509
-    2026-09-24 08:13:41.465 wall=1790259221465 [weather] publish tile faces=1 temp=58° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790259216509
-    2026-09-24 08:13:41.465 wall=1790259221465 [weather] refresh start reason=start units=IMPERIAL
-    2026-09-24 08:13:41.467 wall=1790259221467 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790259221467
-    2026-09-24 08:13:41.467 wall=1790259221467 [photos] refresh (start): access=GRANTED photos=6 slideshow=0 grow=false
-    2026-09-24 08:13:41.593 wall=1790259221593 [cortana] VoiceInteractionService created
-    2026-09-24 08:13:41.595 wall=1790259221595 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
-    2026-09-24 08:13:41.596 wall=1790259221596 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
-    2026-09-24 08:13:41.772 wall=1790259221772 [render] tile=slot:PHOTOS sourceTime=1790259221467 renderedAt=1790259221772 faces=6
-    2026-09-24 08:13:41.772 wall=1790259221772 [render] tile=slot:CALENDAR sourceTime=1790259221389 renderedAt=1790259221772 faces=2
-    2026-09-24 08:13:41.772 wall=1790259221772 [render] tile=shell:weather sourceTime=1790259216509 renderedAt=1790259221772 faces=1
-    2026-09-24 08:13:41.965 wall=1790259221965 [cortana] VoiceInteractionService ready
-    2026-09-24 08:13:41.965 wall=1790259221965 [notif] listener connected
-    2026-09-24 08:13:41.968 wall=1790259221968 [badge] set android NOTIFICATIONS=0 -> effective 0
-    2026-09-24 08:13:41.968 wall=1790259221968 [engine] publish pkg:android faces=0 front=false source=null sourceTime=null
-    2026-09-24 08:13:41.969 wall=1790259221969 [badge] set com.android.dialer NOTIFICATIONS=1 -> effective 1
-    2026-09-24 08:13:41.969 wall=1790259221969 [engine] publish pkg:com.android.dialer faces=1 front=false source=notification sourceTime=1790183740084
-    2026-09-24 08:13:41.969 wall=1790259221969 [notif] rescan (connected): 2 packages with notifications
-    2026-09-24 08:13:41.982 wall=1790259221982 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
-    2026-09-24 08:13:42.020 wall=1790259222020 [render] tile=dock:slot:PHONE sourceTime=1790183740084 renderedAt=1790259222020 faces=1
-    2026-09-24 08:13:42.035 wall=1790259222035 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
-    2026-09-24 08:13:42.335 wall=1790259222335 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 08:13:42.357 wall=1790259222357 [start] home: page 0, scrolled to top
-    2026-09-24 08:13:42.705 wall=1790259222705 [weather] fetch ok provider=open-meteo ms=1109 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/58.3 hourly=240 daily=10 place=true
-    2026-09-24 08:13:42.714 wall=1790259222714 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790259222703
-    2026-09-24 08:13:42.714 wall=1790259222714 [weather] publish tile faces=1 temp=58° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790259222703
-    2026-09-24 08:13:42.724 wall=1790259222724 [render] tile=shell:weather sourceTime=1790259222703 renderedAt=1790259222724 faces=1
-    2026-09-24 08:13:42.750 wall=1790259222750 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75505089 faceIndex=0 next=1 faces=1
-    2026-09-24 08:13:44.734 wall=1790259224734 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75507074 faceIndex=0 next=1 faces=6
-    2026-09-24 08:13:45.724 wall=1790259225724 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=75508064 faceIndex=0 next=1 faces=2
-    2026-09-24 08:13:46.055 wall=1790259226055 [tile_anim] tile=shell:weather kind=FLIP uptime=75508395 faceIndex=0 next=1 faces=1
-    2026-09-24 08:13:47.709 wall=1790259227709 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75510049 faceIndex=1 next=0 faces=1
-    2026-09-24 08:13:49.692 wall=1790259229692 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75512032 faceIndex=1 next=2 faces=6
-    2026-09-24 08:13:50.685 wall=1790259230685 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=75513024 faceIndex=1 next=2 faces=2
-    2026-09-24 08:13:50.796 wall=1790259230796 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790259230795
-    2026-09-24 08:13:50.796 wall=1790259230796 [photos] refresh (mediastore change): access=GRANTED photos=6 slideshow=0 grow=false
-    2026-09-24 08:13:50.809 wall=1790259230809 [render] tile=slot:PHOTOS sourceTime=1790259230795 renderedAt=1790259230809 faces=6
-    2026-09-24 08:13:51.014 wall=1790259231014 [tile_anim] tile=shell:weather kind=FLIP uptime=75513354 faceIndex=1 next=0 faces=1
-    2026-09-24 08:13:52.668 wall=1790259232668 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75515008 faceIndex=0 next=1 faces=1
-    2026-09-24 08:13:54.654 wall=1790259234654 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75516993 faceIndex=2 next=3 faces=6
-    2026-09-24 08:13:54.688 wall=1790259234688 [music] MusicActivity created
-    2026-09-24 08:13:54.689 wall=1790259234689 [bars] MusicActivity: system bars hidden (transient by swipe)
-    2026-09-24 08:13:54.692 wall=1790259234692 [music] library (start): 6 tracks
-    2026-09-24 08:13:54.697 wall=1790259234697 [music] opened on pivot songs (shortcut)
-    2026-09-24 08:13:54.698 wall=1790259234698 [bars] MusicActivity: system bars hidden (transient by swipe)
-    2026-09-24 08:13:54.711 wall=1790259234711 [music] crossfade: 0 ms (restored)
-    2026-09-24 08:13:54.714 wall=1790259234714 [music] equaliser: off (enabled=false)
-    2026-09-24 08:13:54.724 wall=1790259234724 [music] playback service started (audio session 1161, equaliser available)
-    2026-09-24 08:13:54.845 wall=1790259234845 [music] pivot settled on songs
-    2026-09-24 08:13:54.867 wall=1790259234867 [music] pivot settled on songs
-    2026-09-24 08:13:54.869 wall=1790259234869 [music] controller connected, 0 item(s) in the queue
-    2026-09-24 08:13:55.644 wall=1790259235644 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=75517984 faceIndex=2 next=0 faces=2
-    2026-09-24 08:13:55.975 wall=1790259235975 [tile_anim] tile=shell:weather kind=FLIP uptime=75518314 faceIndex=0 next=1 faces=1
-    2026-09-24 08:13:57.629 wall=1790259237629 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75519969 faceIndex=1 next=0 faces=1
-    2026-09-24 08:13:59.343 wall=1790259239343 [music] play 4 Minute Warning (1 of 6)
-    2026-09-24 08:13:59.361 wall=1790259239361 [tile_size] tiles for app.tileshell grew (music playing)
-    2026-09-24 08:13:59.361 wall=1790259239361 [engine] publish pkg:app.tileshell faces=0 front=true source=music:app.tileshell sourceTime=1790259239361
-    2026-09-24 08:13:59.361 wall=1790259239361 [music] now playing app.tileshell title=4 Minute Warning front=true flip=false grow=true (metadata app.tileshell)
-    2026-09-24 08:13:59.392 wall=1790259239392 [render] tile=slot:MUSIC sourceTime=1790259239361 renderedAt=1790259239392 faces=0
-    2026-09-24 08:13:59.563 wall=1790259239563 [notif] posted app.tileshell key=0|app.tileshell|1001|null|10150 postTime=1790259239360
-    2026-09-24 08:13:59.563 wall=1790259239563 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
-    2026-09-24 08:13:59.563 wall=1790259239563 [engine] publish pkg:app.tileshell faces=0 front=false source=null sourceTime=null
-    2026-09-24 08:13:59.612 wall=1790259239612 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75521952 faceIndex=3 next=4 faces=6
-    2026-09-24 08:13:59.637 wall=1790259239637 [notif] posted app.tileshell key=0|app.tileshell|1001|null|10150 postTime=1790259239435
-    2026-09-24 08:13:59.638 wall=1790259239638 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
-    2026-09-24 08:13:59.638 wall=1790259239638 [engine] publish pkg:app.tileshell faces=0 front=false source=null sourceTime=null
-    2026-09-24 08:13:59.649 wall=1790259239649 [notif] posted app.tileshell key=0|app.tileshell|1001|null|10150 postTime=1790259239446
-    2026-09-24 08:13:59.650 wall=1790259239650 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
-    2026-09-24 08:13:59.650 wall=1790259239650 [engine] publish pkg:app.tileshell faces=0 front=false source=null sourceTime=null
-    2026-09-24 08:13:59.668 wall=1790259239668 [notif] posted app.tileshell key=0|app.tileshell|1001|null|10150 postTime=1790259239466
-    2026-09-24 08:13:59.669 wall=1790259239669 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
-    2026-09-24 08:13:59.669 wall=1790259239669 [engine] publish pkg:app.tileshell faces=0 front=false source=null sourceTime=null
-    2026-09-24 08:13:59.706 wall=1790259239706 [notif] posted app.tileshell key=0|app.tileshell|1001|null|10150 postTime=1790259239505
-    2026-09-24 08:13:59.707 wall=1790259239707 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
-    2026-09-24 08:13:59.707 wall=1790259239707 [engine] publish pkg:app.tileshell faces=0 front=false source=null sourceTime=null
-    2026-09-24 08:13:59.712 wall=1790259239712 [notif] posted app.tileshell key=0|app.tileshell|1001|null|10150 postTime=1790259239511
-    2026-09-24 08:13:59.713 wall=1790259239713 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
-    2026-09-24 08:13:59.713 wall=1790259239713 [engine] publish pkg:app.tileshell faces=0 front=false source=null sourceTime=null
-    2026-09-24 08:13:59.746 wall=1790259239746 [notif] posted app.tileshell key=0|app.tileshell|1001|null|10150 postTime=1790259239544
-    2026-09-24 08:13:59.747 wall=1790259239747 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
-    2026-09-24 08:13:59.747 wall=1790259239747 [engine] publish pkg:app.tileshell faces=0 front=false source=null sourceTime=null
-    2026-09-24 08:14:00.003 wall=1790259240003 [engine] publish feed:calendar faces=2 front=false source=calendar sourceTime=1790259240003
-    2026-09-24 08:14:00.003 wall=1790259240003 [calendar] refresh (minute): access=true faces=2
-    2026-09-24 08:14:00.025 wall=1790259240025 [render] tile=slot:CALENDAR sourceTime=1790259240003 renderedAt=1790259240025 faces=2
-    2026-09-24 08:14:03.364 wall=1790259243364 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 08:14:03.365 wall=1790259243365 [start] home: page 0
-    2026-09-24 08:14:03.422 wall=1790259243422 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
-    2026-09-24 08:14:04.573 wall=1790259244573 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75526913 faceIndex=4 next=5 faces=6
-    2026-09-24 08:14:05.565 wall=1790259245565 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=75527905 faceIndex=0 next=1 faces=2
-    2026-09-24 08:14:05.895 wall=1790259245895 [tile_anim] tile=shell:weather kind=FLIP uptime=75528235 faceIndex=1 next=0 faces=1
-    2026-09-24 08:14:07.549 wall=1790259247549 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75529889 faceIndex=0 next=1 faces=1
-    2026-09-24 08:14:09.533 wall=1790259249533 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75531873 faceIndex=5 next=6 faces=6
-    2026-09-24 08:14:10.527 wall=1790259250527 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=75532867 faceIndex=1 next=2 faces=2
-    2026-09-24 08:14:10.854 wall=1790259250854 [tile_anim] tile=shell:weather kind=FLIP uptime=75533194 faceIndex=0 next=1 faces=1
-    2026-09-24 08:14:12.508 wall=1790259252508 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75534848 faceIndex=1 next=0 faces=1
-    2026-09-24 08:14:14.493 wall=1790259254493 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75536832 faceIndex=6 next=0 faces=6
-    2026-09-24 08:14:15.485 wall=1790259255485 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=75537825 faceIndex=2 next=0 faces=2
-    2026-09-24 08:14:15.589 wall=1790259255589 [edit] hold 783ms on slot:MUSIC: edit mode on
-    2026-09-24 08:14:15.629 wall=1790259255629 [quick] shortcuts for app.tileshell/.music.MusicActivity/0: 4 (4 shown: songs,albums,artists,playlists)
-    2026-09-24 08:14:15.630 wall=1790259255630 [quick] burst on slot:MUSIC: 4 satellites
-    2026-09-24 08:14:15.827 wall=1790259255827 [tile_anim] tile=shell:weather kind=FLIP uptime=75538166 faceIndex=1 next=0 faces=1
-    2026-09-24 08:14:15.983 wall=1790259255983 [quick] motion open slot:MUSIC: t0=75537989 peak=116 overshoot=6.4 settle=249 frames=12 maxGapMs=33.3
-    2026-09-24 08:14:16.388 wall=1790259256388 [quick] satellite 0 rest=[642,285,806,450]
-    2026-09-24 08:14:16.388 wall=1790259256388 [quick] satellite 1 rest=[892,285,1057,450]
-    2026-09-24 08:14:16.388 wall=1790259256388 [quick] satellite 2 rest=[642,710,806,875]
-    2026-09-24 08:14:16.388 wall=1790259256388 [quick] satellite 3 rest=[892,710,1057,875]
-    2026-09-24 08:14:17.469 wall=1790259257469 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75539809 faceIndex=0 next=1 faces=1
-    2026-09-24 08:14:19.452 wall=1790259259452 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75541792 faceIndex=0 next=1 faces=6
-    2026-09-24 08:14:20.444 wall=1790259260444 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=75542784 faceIndex=0 next=1 faces=2
-    2026-09-24 08:14:20.774 wall=1790259260774 [tile_anim] tile=shell:weather kind=FLIP uptime=75543114 faceIndex=0 next=1 faces=1
-    2026-09-24 08:14:22.429 wall=1790259262429 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75544769 faceIndex=1 next=0 faces=1
-    2026-09-24 08:14:23.559 wall=1790259263559 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
-    2026-09-24 08:14:23.560 wall=1790259263560 [livetile] store loaded 1 owners
-    2026-09-24 08:14:23.567 wall=1790259263567 [app] process start
-    2026-09-24 08:14:23.570 wall=1790259263570 [badge] set app.tileshell.testclient.a API=0 -> effective 0
-    2026-09-24 08:14:23.570 wall=1790259263570 [livetile] samsung badge provider probe: not present
-    2026-09-24 08:14:23.615 wall=1790259263615 [apps] catalog refreshed (init): 38 activities
-    2026-09-24 08:14:23.615 wall=1790259263615 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
-    2026-09-24 08:14:23.616 wall=1790259263616 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
-    2026-09-24 08:14:23.621 wall=1790259263621 [weather] feed start provider=open-meteo
-    2026-09-24 08:14:23.623 wall=1790259263623 [app] feeds started (process start)
-    2026-09-24 08:14:23.624 wall=1790259263624 [reminders] rearm (process start): 0 timed alarms, exact=true
-    2026-09-24 08:14:23.624 wall=1790259263624 [places] rearm: no place reminders
-    2026-09-24 08:14:23.624 wall=1790259263624 [person] rearm: no person reminders, observers off
-    2026-09-24 08:14:23.629 wall=1790259263629 [engine] publish feed:calendar faces=2 front=false source=calendar sourceTime=1790259263629
-    2026-09-24 08:14:23.629 wall=1790259263629 [calendar] refresh (start): access=true faces=2
-    2026-09-24 08:14:23.651 wall=1790259263651 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 08:14:23.653 wall=1790259263653 [start] StartActivity created
-    2026-09-24 08:14:23.657 wall=1790259263657 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 08:14:23.729 wall=1790259263729 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790259263729
-    2026-09-24 08:14:23.730 wall=1790259263730 [photos] refresh (start): access=GRANTED photos=6 slideshow=0 grow=false
-    2026-09-24 08:14:23.763 wall=1790259263763 [weather] cache loaded fetchedAt=1790259222703 provider=open-meteo units=IMPERIAL
-    2026-09-24 08:14:23.765 wall=1790259263765 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790259222703
-    2026-09-24 08:14:23.766 wall=1790259263766 [weather] publish tile faces=1 temp=58° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790259222703
-    2026-09-24 08:14:23.766 wall=1790259263766 [weather] refresh start reason=start units=IMPERIAL
-    2026-09-24 08:14:24.032 wall=1790259264032 [render] tile=slot:PHOTOS sourceTime=1790259263729 renderedAt=1790259264032 faces=6
-    2026-09-24 08:14:24.032 wall=1790259264032 [render] tile=slot:CALENDAR sourceTime=1790259263629 renderedAt=1790259264032 faces=2
-    2026-09-24 08:14:24.032 wall=1790259264032 [render] tile=shell:weather sourceTime=1790259222703 renderedAt=1790259264032 faces=1
-    2026-09-24 08:14:24.238 wall=1790259264238 [cortana] VoiceInteractionService created
-    2026-09-24 08:14:24.253 wall=1790259264253 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
-    2026-09-24 08:14:24.296 wall=1790259264296 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-24 08:14:24.298 wall=1790259264298 [notif] listener connected
-    2026-09-24 08:14:24.301 wall=1790259264301 [badge] set android NOTIFICATIONS=0 -> effective 0
-    2026-09-24 08:14:24.301 wall=1790259264301 [engine] publish pkg:android faces=0 front=false source=null sourceTime=null
-    2026-09-24 08:14:24.301 wall=1790259264301 [badge] set com.android.dialer NOTIFICATIONS=1 -> effective 1
-    2026-09-24 08:14:24.301 wall=1790259264301 [engine] publish pkg:com.android.dialer faces=1 front=false source=notification sourceTime=1790183740084
-    2026-09-24 08:14:24.301 wall=1790259264301 [notif] rescan (connected): 2 packages with notifications
-    2026-09-24 08:14:24.301 wall=1790259264301 [cortana] VoiceInteractionService ready
-    2026-09-24 08:14:24.303 wall=1790259264303 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
-    2026-09-24 08:14:24.320 wall=1790259264320 [render] tile=dock:slot:PHONE sourceTime=1790183740084 renderedAt=1790259264320 faces=1
-    2026-09-24 08:14:24.331 wall=1790259264331 [start] home: page 0, scrolled to top
-    2026-09-24 08:14:24.413 wall=1790259264413 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75546752 faceIndex=0 next=1 faces=6
-    2026-09-24 08:14:25.405 wall=1790259265405 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=75547745 faceIndex=0 next=1 faces=2
-    2026-09-24 08:14:25.735 wall=1790259265735 [tile_anim] tile=shell:weather kind=FLIP uptime=75548074 faceIndex=0 next=1 faces=1
-    2026-09-24 08:14:27.389 wall=1790259267389 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75549729 faceIndex=0 next=1 faces=1
-    2026-09-24 08:14:28.208 wall=1790259268208 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
-    2026-09-24 08:14:28.208 wall=1790259268208 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-24 09:32:40.843 wall=1790263960843 [apps] LauncherApps.onPackageChanged app.tileshell.testclient.a user=0
+    2026-09-24 09:32:40.866 wall=1790263960866 [apps] catalog refreshed (changed app.tileshell.testclient.a): 38 activities
+    2026-09-24 09:32:40.868 wall=1790263960868 [livetile] package added app.tileshell.testclient.a replacing=true
+    2026-09-24 09:32:40.872 wall=1790263960872 [badge] set app.tileshell.testclient.a API=0 -> effective 0
+    2026-09-24 09:32:40.872 wall=1790263960872 [badge] set app.tileshell.testclient.a API=0 -> effective 0
+    2026-09-24 09:32:41.013 wall=1790263961013 [livetile] package added app.tileshell.testclient.b replacing=true
+    2026-09-24 09:32:41.014 wall=1790263961014 [apps] LauncherApps.onPackageChanged app.tileshell.testclient.b user=0
+    2026-09-24 09:32:41.025 wall=1790263961025 [apps] catalog refreshed (changed app.tileshell.testclient.b): 38 activities
+    2026-09-24 09:32:41.031 wall=1790263961031 [apps] LauncherApps.onShortcutsChanged app.tileshell.testclient.a user=0 n=5
+    2026-09-24 09:32:41.056 wall=1790263961056 [apps] LauncherApps.onShortcutsChanged app.tileshell.testclient.b user=0 n=1
+    2026-09-24 09:32:41.331 wall=1790263961331 [apps] LauncherApps.onShortcutsChanged app.tileshell.testclient.b user=0 n=1
+    2026-09-24 09:32:41.535 wall=1790263961535 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=80243875 faceIndex=1 next=2 faces=6
+    2026-09-24 09:32:42.525 wall=1790263962525 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=80244865 faceIndex=2 next=0 faces=2
+    2026-09-24 09:32:42.855 wall=1790263962855 [tile_anim] tile=shell:weather kind=FLIP uptime=80245194 faceIndex=0 next=1 faces=1
+    2026-09-24 09:32:43.111 wall=1790263963111 [livetile] store loaded 1 owners
+    2026-09-24 09:32:43.112 wall=1790263963112 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+    2026-09-24 09:32:43.118 wall=1790263963118 [app] process start
+    2026-09-24 09:32:43.119 wall=1790263963119 [badge] set app.tileshell.testclient.a API=0 -> effective 0
+    2026-09-24 09:32:43.119 wall=1790263963119 [livetile] samsung badge provider probe: not present
+    2026-09-24 09:32:43.160 wall=1790263963160 [apps] catalog refreshed (init): 38 activities
+    2026-09-24 09:32:43.161 wall=1790263963161 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
+    2026-09-24 09:32:43.161 wall=1790263963161 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-09-24 09:32:43.166 wall=1790263963166 [weather] feed start provider=open-meteo
+    2026-09-24 09:32:43.169 wall=1790263963169 [app] feeds started (process start)
+    2026-09-24 09:32:43.170 wall=1790263963170 [reminders] rearm (process start): 0 timed alarms, exact=true
+    2026-09-24 09:32:43.171 wall=1790263963171 [places] rearm: no place reminders
+    2026-09-24 09:32:43.172 wall=1790263963172 [person] rearm: no person reminders, observers off
+    2026-09-24 09:32:43.172 wall=1790263963172 [engine] publish feed:calendar faces=2 front=false source=calendar sourceTime=1790263963172
+    2026-09-24 09:32:43.172 wall=1790263963172 [calendar] refresh (start): access=true faces=2
+    2026-09-24 09:32:43.174 wall=1790263963174 [cortana] VoiceInteractionService created
+    2026-09-24 09:32:43.176 wall=1790263963176 [cortana] VoiceInteractionService ready
+    2026-09-24 09:32:43.176 wall=1790263963176 [notif] listener connected
+    2026-09-24 09:32:43.192 wall=1790263963192 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790263963192
+    2026-09-24 09:32:43.192 wall=1790263963192 [photos] refresh (start): access=GRANTED photos=6 slideshow=0 grow=false
+    2026-09-24 09:32:43.193 wall=1790263963193 [badge] set com.android.permissioncontroller NOTIFICATIONS=1 -> effective 1
+    2026-09-24 09:32:43.194 wall=1790263963194 [engine] publish pkg:com.android.permissioncontroller faces=1 front=false source=notification sourceTime=1790261924720
+    2026-09-24 09:32:43.195 wall=1790263963195 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:32:43.195 wall=1790263963195 [engine] publish pkg:android faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:32:43.196 wall=1790263963196 [badge] set com.android.dialer NOTIFICATIONS=1 -> effective 1
+    2026-09-24 09:32:43.196 wall=1790263963196 [engine] publish pkg:com.android.dialer faces=1 front=false source=notification sourceTime=1790183740084
+    2026-09-24 09:32:43.196 wall=1790263963196 [notif] rescan (connected): 3 packages with notifications
+    2026-09-24 09:32:43.200 wall=1790263963200 [weather] cache loaded fetchedAt=1790263952387 provider=open-meteo units=IMPERIAL
+    2026-09-24 09:32:43.201 wall=1790263963201 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790263952387
+    2026-09-24 09:32:43.201 wall=1790263963201 [weather] publish tile faces=1 temp=63° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790263952387
+    2026-09-24 09:32:43.201 wall=1790263963201 [weather] refresh start reason=start units=IMPERIAL
+    2026-09-24 09:32:43.204 wall=1790263963204 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-09-24 09:32:43.205 wall=1790263963205 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-24 09:32:43.526 wall=1790263963526 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 09:32:43.527 wall=1790263963527 [start] StartActivity created
+    2026-09-24 09:32:43.530 wall=1790263963530 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 09:32:43.871 wall=1790263963871 [render] tile=slot:PHOTOS sourceTime=1790263963192 renderedAt=1790263963871 faces=6
+    2026-09-24 09:32:43.871 wall=1790263963871 [render] tile=slot:CALENDAR sourceTime=1790263963172 renderedAt=1790263963871 faces=2
+    2026-09-24 09:32:43.871 wall=1790263963871 [render] tile=shell:weather sourceTime=1790263952387 renderedAt=1790263963871 faces=1
+    2026-09-24 09:32:43.871 wall=1790263963871 [render] tile=dock:slot:PHONE sourceTime=1790183740084 renderedAt=1790263963871 faces=1
+    2026-09-24 09:32:44.078 wall=1790263964078 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
+    2026-09-24 09:32:44.120 wall=1790263964120 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
+    2026-09-24 09:32:44.137 wall=1790263964137 [weather] fetch ok provider=open-meteo ms=932 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/62.9 hourly=240 daily=10 place=true
+    2026-09-24 09:32:44.148 wall=1790263964148 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790263964135
+    2026-09-24 09:32:44.148 wall=1790263964148 [weather] publish tile faces=1 temp=63° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790263964135
+    2026-09-24 09:32:44.160 wall=1790263964160 [render] tile=shell:weather sourceTime=1790263964135 renderedAt=1790263964160 faces=1
+    2026-09-24 09:32:44.509 wall=1790263964509 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=80246848 faceIndex=0 next=1 faces=1
+    2026-09-24 09:32:46.493 wall=1790263966493 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=80248832 faceIndex=0 next=1 faces=6
+    2026-09-24 09:32:47.484 wall=1790263967484 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=80249824 faceIndex=0 next=1 faces=2
+    2026-09-24 09:32:47.815 wall=1790263967815 [tile_anim] tile=shell:weather kind=FLIP uptime=80250155 faceIndex=0 next=1 faces=1
+    2026-09-24 09:32:49.469 wall=1790263969469 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=80251809 faceIndex=1 next=0 faces=1
+    2026-09-24 09:32:51.453 wall=1790263971453 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=80253792 faceIndex=1 next=2 faces=6
+    2026-09-24 09:32:51.607 wall=1790263971607 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790263971607
+    2026-09-24 09:32:51.607 wall=1790263971607 [photos] refresh (mediastore change): access=GRANTED photos=6 slideshow=0 grow=false
+    2026-09-24 09:32:51.625 wall=1790263971625 [render] tile=slot:PHOTOS sourceTime=1790263971607 renderedAt=1790263971625 faces=6
+    2026-09-24 09:32:52.445 wall=1790263972445 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=80254785 faceIndex=1 next=2 faces=2
+    2026-09-24 09:32:52.774 wall=1790263972774 [tile_anim] tile=shell:weather kind=FLIP uptime=80255114 faceIndex=1 next=0 faces=1
+    2026-09-24 09:32:53.000 wall=1790263973000 [notif] listener disconnected
+    2026-09-24 09:32:53.016 wall=1790263973016 [notif] listener connected
+    2026-09-24 09:32:53.018 wall=1790263973018 [badge] set com.android.permissioncontroller NOTIFICATIONS=1 -> effective 1
+    2026-09-24 09:32:53.018 wall=1790263973018 [engine] publish pkg:com.android.permissioncontroller faces=1 front=false source=notification sourceTime=1790261924720
+    2026-09-24 09:32:53.018 wall=1790263973018 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:32:53.018 wall=1790263973018 [engine] publish pkg:android faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:32:53.019 wall=1790263973019 [badge] set com.android.dialer NOTIFICATIONS=1 -> effective 1
+    2026-09-24 09:32:53.019 wall=1790263973019 [engine] publish pkg:com.android.dialer faces=1 front=false source=notification sourceTime=1790183740084
+    2026-09-24 09:32:53.019 wall=1790263973019 [notif] rescan (connected): 3 packages with notifications
+    2026-09-24 09:32:54.429 wall=1790263974429 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=80256768 faceIndex=0 next=1 faces=1
+    2026-09-24 09:32:55.762 wall=1790263975762 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+    2026-09-24 09:32:55.763 wall=1790263975763 [livetile] store loaded 1 owners
+    2026-09-24 09:32:55.767 wall=1790263975767 [badge] set app.tileshell.testclient.a API=0 -> effective 0
+    2026-09-24 09:32:55.768 wall=1790263975768 [livetile] samsung badge provider probe: not present
+    2026-09-24 09:32:55.769 wall=1790263975769 [app] process start
+    2026-09-24 09:32:55.819 wall=1790263975819 [apps] catalog refreshed (init): 38 activities
+    2026-09-24 09:32:55.820 wall=1790263975820 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
+    2026-09-24 09:32:55.820 wall=1790263975820 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-09-24 09:32:55.825 wall=1790263975825 [weather] feed start provider=open-meteo
+    2026-09-24 09:32:55.827 wall=1790263975827 [app] feeds started (process start)
+    2026-09-24 09:32:55.828 wall=1790263975828 [reminders] rearm (process start): 0 timed alarms, exact=true
+    2026-09-24 09:32:55.828 wall=1790263975828 [places] rearm: no place reminders
+    2026-09-24 09:32:55.828 wall=1790263975828 [person] rearm: no person reminders, observers off
+    2026-09-24 09:32:55.834 wall=1790263975834 [engine] publish feed:calendar faces=2 front=false source=calendar sourceTime=1790263975834
+    2026-09-24 09:32:55.835 wall=1790263975835 [calendar] refresh (start): access=true faces=2
+    2026-09-24 09:32:55.861 wall=1790263975861 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 09:32:55.864 wall=1790263975864 [weather] cache loaded fetchedAt=1790263964135 provider=open-meteo units=IMPERIAL
+    2026-09-24 09:32:55.865 wall=1790263975865 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790263964135
+    2026-09-24 09:32:55.865 wall=1790263975865 [weather] publish tile faces=1 temp=63° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790263964135
+    2026-09-24 09:32:55.865 wall=1790263975865 [weather] refresh start reason=start units=IMPERIAL
+    2026-09-24 09:32:55.865 wall=1790263975865 [start] StartActivity created
+    2026-09-24 09:32:55.868 wall=1790263975868 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790263975868
+    2026-09-24 09:32:55.868 wall=1790263975868 [photos] refresh (start): access=GRANTED photos=6 slideshow=0 grow=false
+    2026-09-24 09:32:55.871 wall=1790263975871 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 09:32:56.065 wall=1790263976065 [cortana] VoiceInteractionService created
+    2026-09-24 09:32:56.071 wall=1790263976071 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-09-24 09:32:56.072 wall=1790263976072 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-24 09:32:56.243 wall=1790263976243 [render] tile=slot:PHOTOS sourceTime=1790263975868 renderedAt=1790263976243 faces=6
+    2026-09-24 09:32:56.243 wall=1790263976243 [render] tile=slot:CALENDAR sourceTime=1790263975834 renderedAt=1790263976243 faces=2
+    2026-09-24 09:32:56.243 wall=1790263976243 [render] tile=shell:weather sourceTime=1790263964135 renderedAt=1790263976243 faces=1
+    2026-09-24 09:32:56.458 wall=1790263976458 [cortana] VoiceInteractionService ready
+    2026-09-24 09:32:56.458 wall=1790263976458 [notif] listener connected
+    2026-09-24 09:32:56.461 wall=1790263976461 [badge] set com.android.permissioncontroller NOTIFICATIONS=1 -> effective 1
+    2026-09-24 09:32:56.461 wall=1790263976461 [engine] publish pkg:com.android.permissioncontroller faces=1 front=false source=notification sourceTime=1790261924720
+    2026-09-24 09:32:56.462 wall=1790263976462 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:32:56.462 wall=1790263976462 [engine] publish pkg:android faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:32:56.463 wall=1790263976463 [badge] set com.android.dialer NOTIFICATIONS=1 -> effective 1
+    2026-09-24 09:32:56.463 wall=1790263976463 [engine] publish pkg:com.android.dialer faces=1 front=false source=notification sourceTime=1790183740084
+    2026-09-24 09:32:56.463 wall=1790263976463 [notif] rescan (connected): 3 packages with notifications
+    2026-09-24 09:32:56.475 wall=1790263976475 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
+    2026-09-24 09:32:56.513 wall=1790263976513 [render] tile=dock:slot:PHONE sourceTime=1790183740084 renderedAt=1790263976513 faces=1
+    2026-09-24 09:32:56.526 wall=1790263976526 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
+    2026-09-24 09:32:56.736 wall=1790263976736 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 09:32:56.757 wall=1790263976757 [start] home: page 0, scrolled to top
+    2026-09-24 09:32:56.990 wall=1790263976990 [weather] fetch ok provider=open-meteo ms=918 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/62.9 hourly=240 daily=10 place=true
+    2026-09-24 09:32:57.000 wall=1790263977000 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790263976988
+    2026-09-24 09:32:57.000 wall=1790263977000 [weather] publish tile faces=1 temp=63° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790263976988
+    2026-09-24 09:32:57.024 wall=1790263977024 [render] tile=shell:weather sourceTime=1790263976988 renderedAt=1790263977024 faces=1
+    2026-09-24 09:32:57.405 wall=1790263977405 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=80259744 faceIndex=0 next=1 faces=2
+    2026-09-24 09:32:57.734 wall=1790263977734 [tile_anim] tile=shell:weather kind=FLIP uptime=80260074 faceIndex=0 next=1 faces=1
+    2026-09-24 09:32:59.388 wall=1790263979388 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=80261728 faceIndex=0 next=1 faces=1
+    2026-09-24 09:33:00.004 wall=1790263980004 [engine] publish feed:calendar faces=2 front=false source=calendar sourceTime=1790263980004
+    2026-09-24 09:33:00.004 wall=1790263980004 [calendar] refresh (minute): access=true faces=2
+    2026-09-24 09:33:00.024 wall=1790263980024 [render] tile=slot:CALENDAR sourceTime=1790263980004 renderedAt=1790263980024 faces=2
+    2026-09-24 09:33:01.373 wall=1790263981373 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=80263713 faceIndex=0 next=1 faces=6
+    2026-09-24 09:33:02.065 wall=1790263982065 [engine] publish pkg:org.fossify.musicplayer faces=1 front=false source=music:org.fossify.musicplayer sourceTime=1790263982064
+    2026-09-24 09:33:02.065 wall=1790263982065 [music] idle org.fossify.musicplayer title=An Ending front=false flip=true grow=false (metadata org.fossify.musicplayer)
+    2026-09-24 09:33:02.088 wall=1790263982088 [render] tile=app:org.fossify.musicplayer/org.fossify.musicplayer.activities.SplashActivity.Green:0 sourceTime=1790263982064 renderedAt=1790263982088 faces=1
+    2026-09-24 09:33:02.158 wall=1790263982158 [engine] publish pkg:org.fossify.musicplayer faces=1 front=false source=music:org.fossify.musicplayer sourceTime=1790263982158
+    2026-09-24 09:33:02.158 wall=1790263982158 [music] idle org.fossify.musicplayer title=An Ending front=false flip=true grow=false (metadata org.fossify.musicplayer)
+    2026-09-24 09:33:02.175 wall=1790263982175 [render] tile=app:org.fossify.musicplayer/org.fossify.musicplayer.activities.SplashActivity.Green:0 sourceTime=1790263982158 renderedAt=1790263982175 faces=1
+    2026-09-24 09:33:02.328 wall=1790263982328 [notif] posted org.fossify.musicplayer key=0|org.fossify.musicplayer|1001|null|10167 postTime=1790263982101
+    2026-09-24 09:33:02.329 wall=1790263982329 [badge] set org.fossify.musicplayer NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:33:02.329 wall=1790263982329 [engine] publish pkg:org.fossify.musicplayer faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:33:02.329 wall=1790263982329 [notif] posted org.fossify.musicplayer key=0|org.fossify.musicplayer|1001|null|10167 postTime=1790263982107
+    2026-09-24 09:33:02.329 wall=1790263982329 [badge] set org.fossify.musicplayer NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:33:02.329 wall=1790263982329 [engine] publish pkg:org.fossify.musicplayer faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:33:02.329 wall=1790263982329 [notif] posted org.fossify.musicplayer key=0|org.fossify.musicplayer|1001|null|10167 postTime=1790263982114
+    2026-09-24 09:33:02.330 wall=1790263982330 [badge] set org.fossify.musicplayer NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:33:02.330 wall=1790263982330 [engine] publish pkg:org.fossify.musicplayer faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:33:02.364 wall=1790263982364 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=80264704 faceIndex=1 next=2 faces=2
+    2026-09-24 09:33:02.372 wall=1790263982372 [notif] posted org.fossify.musicplayer key=0|org.fossify.musicplayer|1001|null|10167 postTime=1790263982170
+    2026-09-24 09:33:02.373 wall=1790263982373 [badge] set org.fossify.musicplayer NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:33:02.373 wall=1790263982373 [engine] publish pkg:org.fossify.musicplayer faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:33:02.388 wall=1790263982388 [notif] posted org.fossify.musicplayer key=0|org.fossify.musicplayer|1001|null|10167 postTime=1790263982186
+    2026-09-24 09:33:02.388 wall=1790263982388 [badge] set org.fossify.musicplayer NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:33:02.388 wall=1790263982388 [engine] publish pkg:org.fossify.musicplayer faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:33:02.695 wall=1790263982695 [tile_anim] tile=shell:weather kind=FLIP uptime=80265035 faceIndex=1 next=0 faces=1
+    2026-09-24 09:33:04.349 wall=1790263984349 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=80266689 faceIndex=1 next=0 faces=1
+    2026-09-24 09:33:06.332 wall=1790263986332 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=80268672 faceIndex=1 next=2 faces=6
+    2026-09-24 09:33:13.489 wall=1790263993489 [tile_size] tiles for org.fossify.musicplayer grew (music playing)
+    2026-09-24 09:33:13.489 wall=1790263993489 [engine] publish pkg:org.fossify.musicplayer faces=0 front=true source=music:org.fossify.musicplayer sourceTime=1790263993489
+    2026-09-24 09:33:13.489 wall=1790263993489 [music] now playing org.fossify.musicplayer title=An Ending front=true flip=false grow=true (metadata org.fossify.musicplayer)
+    2026-09-24 09:33:13.496 wall=1790263993496 [engine] publish pkg:org.fossify.musicplayer faces=0 front=true source=music:org.fossify.musicplayer sourceTime=1790263993496
+    2026-09-24 09:33:13.496 wall=1790263993496 [music] now playing org.fossify.musicplayer title=An Ending front=true flip=false grow=true (metadata org.fossify.musicplayer)
+    2026-09-24 09:33:13.547 wall=1790263993547 [render] tile=app:org.fossify.musicplayer/org.fossify.musicplayer.activities.SplashActivity.Green:0 sourceTime=1790263993496 renderedAt=1790263993547 faces=0
+    2026-09-24 09:33:13.694 wall=1790263993694 [notif] posted org.fossify.musicplayer key=0|org.fossify.musicplayer|1001|null|10167 postTime=1790263993491
+    2026-09-24 09:33:13.694 wall=1790263993694 [badge] set org.fossify.musicplayer NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:33:13.694 wall=1790263993694 [engine] publish pkg:org.fossify.musicplayer faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:33:13.720 wall=1790263993720 [notif] posted org.fossify.musicplayer key=0|org.fossify.musicplayer|1001|null|10167 postTime=1790263993518
+    2026-09-24 09:33:13.721 wall=1790263993721 [badge] set org.fossify.musicplayer NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:33:13.721 wall=1790263993721 [engine] publish pkg:org.fossify.musicplayer faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:33:13.742 wall=1790263993742 [notif] posted org.fossify.musicplayer key=0|org.fossify.musicplayer|1001|null|10167 postTime=1790263993539
+    2026-09-24 09:33:13.743 wall=1790263993743 [badge] set org.fossify.musicplayer NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:33:13.743 wall=1790263993743 [engine] publish pkg:org.fossify.musicplayer faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:33:13.756 wall=1790263993756 [notif] posted org.fossify.musicplayer key=0|org.fossify.musicplayer|1001|null|10167 postTime=1790263993553
+    2026-09-24 09:33:13.757 wall=1790263993757 [badge] set org.fossify.musicplayer NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:33:13.757 wall=1790263993757 [engine] publish pkg:org.fossify.musicplayer faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:33:17.421 wall=1790263997421 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 09:33:17.423 wall=1790263997423 [start] home: page 0
+    2026-09-24 09:33:17.490 wall=1790263997490 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
+    2026-09-24 09:33:17.576 wall=1790263997576 [tile_anim] tile=shell:weather kind=FLIP uptime=80279916 faceIndex=0 next=1 faces=1
+    2026-09-24 09:33:19.228 wall=1790263999228 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=80281568 faceIndex=0 next=1 faces=1
+    2026-09-24 09:33:21.213 wall=1790264001213 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=80283553 faceIndex=2 next=3 faces=6
+    2026-09-24 09:33:22.205 wall=1790264002205 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=80284545 faceIndex=2 next=0 faces=2
+    2026-09-24 09:33:22.535 wall=1790264002535 [tile_anim] tile=shell:weather kind=FLIP uptime=80284874 faceIndex=1 next=0 faces=1
+    2026-09-24 09:33:23.053 wall=1790264003053 [notif] removed org.fossify.musicplayer key=0|org.fossify.musicplayer|1001|null|10167
+    2026-09-24 09:33:23.054 wall=1790264003054 [badge] set org.fossify.musicplayer NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:33:23.054 wall=1790264003054 [engine] publish pkg:org.fossify.musicplayer faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:33:23.058 wall=1790264003058 [tile_size] tiles for org.fossify.musicplayer returned to their stored size (music idle)
+    2026-09-24 09:33:23.059 wall=1790264003059 [engine] publish pkg:org.fossify.musicplayer faces=1 front=false source=music:org.fossify.musicplayer sourceTime=1790264003058
+    2026-09-24 09:33:23.059 wall=1790264003059 [music] idle org.fossify.musicplayer title=An Ending front=false flip=true grow=false (destroyed org.fossify.musicplayer)
+    2026-09-24 09:33:23.535 wall=1790264003535 [livetile] store loaded 1 owners
+    2026-09-24 09:33:23.535 wall=1790264003535 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+    2026-09-24 09:33:23.541 wall=1790264003541 [app] process start
+    2026-09-24 09:33:23.542 wall=1790264003542 [badge] set app.tileshell.testclient.a API=0 -> effective 0
+    2026-09-24 09:33:23.543 wall=1790264003543 [livetile] samsung badge provider probe: not present
+    2026-09-24 09:33:23.581 wall=1790264003581 [apps] catalog refreshed (init): 38 activities
+    2026-09-24 09:33:23.582 wall=1790264003582 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
+    2026-09-24 09:33:23.582 wall=1790264003582 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-09-24 09:33:23.588 wall=1790264003588 [weather] feed start provider=open-meteo
+    2026-09-24 09:33:23.590 wall=1790264003590 [app] feeds started (process start)
+    2026-09-24 09:33:23.591 wall=1790264003591 [reminders] rearm (process start): 0 timed alarms, exact=true
+    2026-09-24 09:33:23.592 wall=1790264003592 [places] rearm: no place reminders
+    2026-09-24 09:33:23.592 wall=1790264003592 [person] rearm: no person reminders, observers off
+    2026-09-24 09:33:23.599 wall=1790264003599 [engine] publish feed:calendar faces=2 front=false source=calendar sourceTime=1790264003598
+    2026-09-24 09:33:23.599 wall=1790264003599 [calendar] refresh (start): access=true faces=2
+    2026-09-24 09:33:23.628 wall=1790264003628 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 09:33:23.630 wall=1790264003630 [start] StartActivity created
+    2026-09-24 09:33:23.635 wall=1790264003635 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 09:33:23.656 wall=1790264003656 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790264003656
+    2026-09-24 09:33:23.656 wall=1790264003656 [photos] refresh (start): access=GRANTED photos=6 slideshow=0 grow=false
+    2026-09-24 09:33:23.660 wall=1790264003660 [weather] cache loaded fetchedAt=1790263976988 provider=open-meteo units=IMPERIAL
+    2026-09-24 09:33:23.664 wall=1790264003664 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790263976988
+    2026-09-24 09:33:23.664 wall=1790264003664 [weather] publish tile faces=1 temp=63° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790263976988
+    2026-09-24 09:33:23.665 wall=1790264003665 [weather] refresh start reason=start units=IMPERIAL
+    2026-09-24 09:33:23.796 wall=1790264003796 [cortana] VoiceInteractionService created
+    2026-09-24 09:33:23.993 wall=1790264003993 [render] tile=slot:PHOTOS sourceTime=1790264003656 renderedAt=1790264003993 faces=6
+    2026-09-24 09:33:23.993 wall=1790264003993 [render] tile=slot:CALENDAR sourceTime=1790264003598 renderedAt=1790264003993 faces=2
+    2026-09-24 09:33:23.993 wall=1790264003993 [render] tile=shell:weather sourceTime=1790263976988 renderedAt=1790264003993 faces=1
+    2026-09-24 09:33:24.203 wall=1790264004203 [cortana] VoiceInteractionService ready
+    2026-09-24 09:33:24.203 wall=1790264004203 [notif] listener connected
+    2026-09-24 09:33:24.206 wall=1790264004206 [badge] set com.android.permissioncontroller NOTIFICATIONS=1 -> effective 1
+    2026-09-24 09:33:24.206 wall=1790264004206 [engine] publish pkg:com.android.permissioncontroller faces=1 front=false source=notification sourceTime=1790261924720
+    2026-09-24 09:33:24.207 wall=1790264004207 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:33:24.207 wall=1790264004207 [engine] publish pkg:android faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:33:24.208 wall=1790264004208 [badge] set com.android.dialer NOTIFICATIONS=1 -> effective 1
+    2026-09-24 09:33:24.208 wall=1790264004208 [engine] publish pkg:com.android.dialer faces=1 front=false source=notification sourceTime=1790183740084
+    2026-09-24 09:33:24.208 wall=1790264004208 [notif] rescan (connected): 3 packages with notifications
+    2026-09-24 09:33:24.226 wall=1790264004226 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
+    2026-09-24 09:33:24.271 wall=1790264004271 [render] tile=dock:slot:PHONE sourceTime=1790183740084 renderedAt=1790264004271 faces=1
+    2026-09-24 09:33:24.285 wall=1790264004285 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
+    2026-09-24 09:33:24.518 wall=1790264004518 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 09:33:24.541 wall=1790264004541 [start] home: page 0, scrolled to top
+    2026-09-24 09:33:26.188 wall=1790264006188 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=80288527 faceIndex=0 next=1 faces=6
+    2026-09-24 09:33:27.170 wall=1790264007170 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=80289510 faceIndex=0 next=1 faces=2
+    2026-09-24 09:33:27.495 wall=1790264007495 [tile_anim] tile=shell:weather kind=FLIP uptime=80289835 faceIndex=0 next=1 faces=1
+    2026-09-24 09:33:27.594 wall=1790264007594 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-09-24 09:33:27.595 wall=1790264007595 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-24 09:33:28.645 wall=1790264008645 [weather] fetch ok provider=open-meteo ms=1049 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/62.9 hourly=240 daily=10 place=true
+    2026-09-24 09:33:28.654 wall=1790264008654 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790264008643
+    2026-09-24 09:33:28.654 wall=1790264008654 [weather] publish tile faces=1 temp=63° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790264008643
+    2026-09-24 09:33:28.674 wall=1790264008674 [render] tile=shell:weather sourceTime=1790264008643 renderedAt=1790264008674 faces=1
+    2026-09-24 09:33:29.148 wall=1790264009148 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=80291488 faceIndex=0 next=1 faces=1
+    2026-09-24 09:33:31.038 wall=1790264011038 [edit] hold 783ms on slot:MUSIC: edit mode on
+    2026-09-24 09:33:31.089 wall=1790264011089 [quick] shortcuts for app.tileshell/.music.MusicActivity/0: 4 (4 shown: songs,albums,artists,playlists)
+    2026-09-24 09:33:31.089 wall=1790264011089 [quick] burst on slot:MUSIC: 4 satellites
+    2026-09-24 09:33:31.115 wall=1790264011115 [edit] entry first frame at uptime=80293422
+    2026-09-24 09:33:31.187 wall=1790264011187 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=80293526 faceIndex=1 next=2 faces=6
+    2026-09-24 09:33:31.442 wall=1790264011442 [quick] motion open slot:MUSIC: t0=80293455 peak=116 overshoot=6.4 settle=266 frames=9 maxGapMs=50.0
+    2026-09-24 09:33:31.852 wall=1790264011852 [quick] satellite 0 rest=[642,285,806,450]
+    2026-09-24 09:33:31.852 wall=1790264011852 [quick] satellite 1 rest=[892,285,1057,450]
+    2026-09-24 09:33:31.852 wall=1790264011852 [quick] satellite 2 rest=[642,710,806,875]
+    2026-09-24 09:33:31.852 wall=1790264011852 [quick] satellite 3 rest=[892,710,1057,875]
+    2026-09-24 09:33:32.125 wall=1790264012125 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=80294465 faceIndex=1 next=2 faces=2
+    2026-09-24 09:33:32.455 wall=1790264012455 [tile_anim] tile=shell:weather kind=FLIP uptime=80294795 faceIndex=1 next=0 faces=1
+    2026-09-24 09:33:34.108 wall=1790264014108 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=80296448 faceIndex=1 next=0 faces=1
+    2026-09-24 09:33:36.101 wall=1790264016101 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=80298440 faceIndex=2 next=3 faces=6
+    2026-09-24 09:33:37.085 wall=1790264017085 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=80299424 faceIndex=2 next=0 faces=2
+    2026-09-24 09:33:37.420 wall=1790264017420 [tile_anim] tile=shell:weather kind=FLIP uptime=80299760 faceIndex=0 next=1 faces=1
+    2026-09-24 09:33:39.068 wall=1790264019068 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=80301408 faceIndex=0 next=1 faces=1
+    2026-09-24 09:33:39.329 wall=1790264019329 [livetile] store loaded 1 owners
+    2026-09-24 09:33:39.329 wall=1790264019329 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+    2026-09-24 09:33:39.337 wall=1790264019337 [badge] set app.tileshell.testclient.a API=0 -> effective 0
+    2026-09-24 09:33:39.338 wall=1790264019338 [app] process start
+    2026-09-24 09:33:39.339 wall=1790264019339 [livetile] samsung badge provider probe: not present
+    2026-09-24 09:33:39.390 wall=1790264019390 [apps] catalog refreshed (init): 38 activities
+    2026-09-24 09:33:39.390 wall=1790264019390 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
+    2026-09-24 09:33:39.391 wall=1790264019391 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-09-24 09:33:39.395 wall=1790264019395 [weather] feed start provider=open-meteo
+    2026-09-24 09:33:39.397 wall=1790264019397 [app] feeds started (process start)
+    2026-09-24 09:33:39.398 wall=1790264019398 [reminders] rearm (process start): 0 timed alarms, exact=true
+    2026-09-24 09:33:39.400 wall=1790264019400 [places] rearm: no place reminders
+    2026-09-24 09:33:39.400 wall=1790264019400 [person] rearm: no person reminders, observers off
+    2026-09-24 09:33:39.405 wall=1790264019405 [engine] publish feed:calendar faces=2 front=false source=calendar sourceTime=1790264019405
+    2026-09-24 09:33:39.405 wall=1790264019405 [calendar] refresh (start): access=true faces=2
+    2026-09-24 09:33:39.430 wall=1790264019430 [weather] cache loaded fetchedAt=1790264008643 provider=open-meteo units=IMPERIAL
+    2026-09-24 09:33:39.431 wall=1790264019431 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790264008643
+    2026-09-24 09:33:39.431 wall=1790264019431 [weather] publish tile faces=1 temp=63° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790264008643
+    2026-09-24 09:33:39.432 wall=1790264019432 [weather] refresh start reason=start units=IMPERIAL
+    2026-09-24 09:33:39.436 wall=1790264019436 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 09:33:39.437 wall=1790264019437 [start] StartActivity created
+    2026-09-24 09:33:39.441 wall=1790264019441 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 09:33:39.448 wall=1790264019448 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790264019448
+    2026-09-24 09:33:39.448 wall=1790264019448 [photos] refresh (start): access=GRANTED photos=6 slideshow=0 grow=false
+    2026-09-24 09:33:39.812 wall=1790264019812 [render] tile=slot:PHOTOS sourceTime=1790264019448 renderedAt=1790264019812 faces=6
+    2026-09-24 09:33:39.812 wall=1790264019812 [render] tile=slot:CALENDAR sourceTime=1790264019405 renderedAt=1790264019812 faces=2
+    2026-09-24 09:33:39.812 wall=1790264019812 [render] tile=shell:weather sourceTime=1790264008643 renderedAt=1790264019812 faces=1
+    2026-09-24 09:33:40.005 wall=1790264020005 [cortana] VoiceInteractionService created
+    2026-09-24 09:33:40.008 wall=1790264020008 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-09-24 09:33:40.011 wall=1790264020011 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-24 09:33:40.023 wall=1790264020023 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
+    2026-09-24 09:33:40.061 wall=1790264020061 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 09:33:40.063 wall=1790264020063 [cortana] VoiceInteractionService ready
+    2026-09-24 09:33:40.063 wall=1790264020063 [notif] listener connected
+    2026-09-24 09:33:40.065 wall=1790264020065 [badge] set com.android.permissioncontroller NOTIFICATIONS=1 -> effective 1
+    2026-09-24 09:33:40.065 wall=1790264020065 [engine] publish pkg:com.android.permissioncontroller faces=1 front=false source=notification sourceTime=1790261924720
+    2026-09-24 09:33:40.066 wall=1790264020066 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-24 09:33:40.066 wall=1790264020066 [engine] publish pkg:android faces=0 front=false source=null sourceTime=null
+    2026-09-24 09:33:40.066 wall=1790264020066 [badge] set com.android.dialer NOTIFICATIONS=1 -> effective 1
+    2026-09-24 09:33:40.067 wall=1790264020067 [engine] publish pkg:com.android.dialer faces=1 front=false source=notification sourceTime=1790183740084
+    2026-09-24 09:33:40.067 wall=1790264020067 [notif] rescan (connected): 3 packages with notifications
+    2026-09-24 09:33:40.068 wall=1790264020068 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,W
+    2026-09-24 09:33:40.086 wall=1790264020086 [render] tile=dock:slot:PHONE sourceTime=1790183740084 renderedAt=1790264020086 faces=1
+    2026-09-24 09:33:40.097 wall=1790264020097 [start] home: page 0, scrolled to top
+    2026-09-24 09:33:40.943 wall=1790264020943 [weather] fetch ok provider=open-meteo ms=932 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/62.9 hourly=240 daily=10 place=true
+    2026-09-24 09:33:40.952 wall=1790264020952 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790264020941
+    2026-09-24 09:33:40.952 wall=1790264020952 [weather] publish tile faces=1 temp=63° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790264020941
+    2026-09-24 09:33:40.975 wall=1790264020975 [render] tile=shell:weather sourceTime=1790264020941 renderedAt=1790264020975 faces=1
+    2026-09-24 09:33:41.053 wall=1790264021053 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=80303392 faceIndex=0 next=1 faces=6
+    2026-09-24 09:33:42.045 wall=1790264022045 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=80304385 faceIndex=0 next=1 faces=2
+    2026-09-24 09:33:42.374 wall=1790264022374 [tile_anim] tile=shell:weather kind=FLIP uptime=80304714 faceIndex=0 next=1 faces=1
+    2026-09-24 09:33:44.029 wall=1790264024029 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=80306369 faceIndex=0 next=1 faces=1

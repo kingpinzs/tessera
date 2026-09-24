@@ -1,0 +1,23 @@
+==============================================================================
+ROW COLDJANK — gfxinfo of the first hold after the shell starts: folder (no burst) vs the fixture (burst)
+at            2026-09-24T09:12:07-06:00
+driver        cold_jank.sh blob de67bd23338c1ebb5259975f24af99cc1d1634a8
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     c3bd9015808af960 336439365 bytes
+apk installed 8e2f64795bb72956
+apk match     yes (8e2f64795bb72956)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      folder run 1: Total frames rendered: 55;Janky frames: 14 (25.45%);90th percentile: 48ms;99th percentile: 81ms;
+PASS  folder run 1: gfxinfo captured                              != 0
+      fixture run 1: Total frames rendered: 36;Janky frames: 15 (41.67%);90th percentile: 65ms;99th percentile: 81ms;
+PASS  fixture run 1: gfxinfo captured                             != 0
+      folder run 2: Total frames rendered: 66;Janky frames: 18 (27.27%);90th percentile: 65ms;99th percentile: 81ms;
+PASS  folder run 2: gfxinfo captured                              != 0
+      fixture run 2: Total frames rendered: 40;Janky frames: 15 (37.50%);90th percentile: 65ms;99th percentile: 81ms;
+PASS  fixture run 2: gfxinfo captured                             != 0
+------------------------------------------------------------------------------
+COLDJANK: 6 passed, 0 failed

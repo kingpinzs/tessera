@@ -1,182 +1,73 @@
-── E6 motion on the shell's clock: open peak 107±17 ms, overshoot 6.8±2 %, settle ≤ 267; close alpha0 36±17
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 35.3 MB/s (1390 bytes in 0.000s)
+── E6 motion on the shell's clock, every warm open asserted; alignment on the same clock; recording spacing
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 0.5 MB/s (1390 bytes in 0.003s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- cold (recorded, not asserted): the first hold after the shell started ---
---- warm: the measured open, recorded; retaken (up to 5) until the recording's spacing passes phase 05's rule ---
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 1 >= 1
-    Last message repeated 2 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 2 >= 2
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 3 >= 3
-    Last message repeated 2 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 4 >= 4
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 5 >= 5
-    Last message repeated 2 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 6 >= 6
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 7 >= 7
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 32 >= 32
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 33 >= 33
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 34 >= 34
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 35 >= 35
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 36 >= 36
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 37 >= 37
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 38 >= 38
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 39 >= 39
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 40 >= 40
-    Last message repeated 2 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 41 >= 41
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 42 >= 42
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 43 >= 43
-    Last message repeated 1 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 44 >= 44
-    Last message repeated 2 times
-[image2 @ 0x5ba5423803c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 45 >= 45
-    Last message repeated 1 times
-Traceback (most recent call last):
-  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 66, in <module>
-    main()
-  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 30, in main
-    tl, tt, tr, tb = map(int, sys.argv[3].split(","))
-    ^^^^^^^^^^^^^^
-ValueError: invalid literal for int() with base 10: ''
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 1 >= 1
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 2 >= 2
-    Last message repeated 1 times
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 3 >= 3
-    Last message repeated 1 times
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 4 >= 4
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 5 >= 5
-    Last message repeated 1 times
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 6 >= 6
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 7 >= 7
-    Last message repeated 1 times
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 8 >= 8
-    Last message repeated 1 times
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 9 >= 9
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 10 >= 10
-    Last message repeated 1 times
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 11 >= 11
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 12 >= 12
-    Last message repeated 1 times
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 13 >= 13
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 14 >= 14
-    Last message repeated 1 times
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 15 >= 15
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 16 >= 16
-    Last message repeated 1 times
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 17 >= 17
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 18 >= 18
-    Last message repeated 1 times
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 19 >= 19
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 56 >= 56
-    Last message repeated 1 times
-[image2 @ 0x5f2e443af8c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 57 >= 57
-Traceback (most recent call last):
-  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 66, in <module>
-    main()
-  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 30, in main
-    tl, tt, tr, tb = map(int, sys.argv[3].split(","))
-    ^^^^^^^^^^^^^^
-ValueError: invalid literal for int() with base 10: ''
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 1 >= 1
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 2 >= 2
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 3 >= 3
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 5 >= 5
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 7 >= 7
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 8 >= 8
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 9 >= 9
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 11 >= 11
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 13 >= 13
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 14 >= 14
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 16 >= 16
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 17 >= 17
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 19 >= 19
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 21 >= 21
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 22 >= 22
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 24 >= 24
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 26 >= 26
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 27 >= 27
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 29 >= 29
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 30 >= 30
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 32 >= 32
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 34 >= 34
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 35 >= 35
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 37 >= 37
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 39 >= 39
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 40 >= 40
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 42 >= 42
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 43 >= 43
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 45 >= 45
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 47 >= 47
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 48 >= 48
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 50 >= 50
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 51 >= 51
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 53 >= 53
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 55 >= 55
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 56 >= 56
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 58 >= 58
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 59 >= 59
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 61 >= 61
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 63 >= 63
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 64 >= 64
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 66 >= 66
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 68 >= 68
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 69 >= 69
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 71 >= 71
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 72 >= 72
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 74 >= 74
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 76 >= 76
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 77 >= 77
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 79 >= 79
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 81 >= 81
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 82 >= 82
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 84 >= 84
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 142 >= 142
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 144 >= 144
-[image2 @ 0x5b4019ee5400] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 145 >= 145
-Traceback (most recent call last):
-  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 66, in <module>
-    main()
-  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 30, in main
-    tl, tt, tr, tb = map(int, sys.argv[3].split(","))
-    ^^^^^^^^^^^^^^
-ValueError: invalid literal for int() with base 10: ''
-[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 8 >= 8
-[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 24 >= 24
-[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 27 >= 27
-[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 37 >= 37
-[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 42 >= 42
-[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 45 >= 45
-[image2 @ 0x5fab963488c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 47 >= 47
-Traceback (most recent call last):
-  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 66, in <module>
-    main()
-  File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 30, in main
-    tl, tt, tr, tb = map(int, sys.argv[3].split(","))
-    ^^^^^^^^^^^^^^
-ValueError: invalid literal for int() with base 10: ''
-FAIL  one open line covers all four satellites (one t0)           expected [1] got [0]
-FAIL  open peak 107 ± 17 ms                                      could not be measured (actual=[])
-FAIL  open overshoot 6.8 ± 2 %                                   could not be measured (actual=[])
-FAIL  open settle ≤ 250 + 17 ms (T11-29)                        could not be measured (actual=[])
-FAIL  open maxGapMs ≤ 33.4 (C-31)                               could not be measured (actual=[])
---- the close: tap elsewhere ---
-FAIL  close alpha0 36 ± 17 ms (the halfway at 36.0 ms)           could not be measured (actual=[])
-FAIL  close settle = alpha0 ± 17 ms (gone at alpha 0)            could not be measured (actual=[])
-FAIL  close maxGapMs ≤ 33.4 (C-31)                              could not be measured (actual=[])
---- corroboration: the accepted recording (frame spacing; first satellite pixels vs the entry's first changed frame) ---
-FAIL  recording: source frames ≤ 18.2 ms apart during the motion (phase 05's rule)  could not be measured (actual=[])
-FAIL  recording: first satellite pixels outside the tile vs the entry's first changed frame (frames)  could not be measured (actual=[])
-   E6: 2 passed, 10 failed
+--- warm opens: every one asserted; the recording retaken (up to 10) until its spacing passes ---
+PASS  attempt 1: one open line                                    = 1
+PASS  attempt 1: peak 107 ± 17 ms                                116.00 vs 107.00 +/- 17.0
+PASS  attempt 1: overshoot 6.8 ± 2 %                             6.40 vs 6.80 +/- 2.0
+PASS  attempt 1: maxGapMs ≤ 33.4 (C-31)                         33.30 vs 16.70 +/- 16.7
+PASS  attempt 1: settle ≤ 249.1 + maxGapMs + 1 = 283.4 ms (T11-29, G-E6-2)  266.00 vs 141.70 +/- 141.7
+PASS  attempt 1: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
+PASS  attempt 2: one open line                                    = 1
+PASS  attempt 2: peak 107 ± 17 ms                                100.00 vs 107.00 +/- 17.0
+PASS  attempt 2: overshoot 6.8 ± 2 %                             6.50 vs 6.80 +/- 2.0
+PASS  attempt 2: maxGapMs ≤ 33.4 (C-31)                         16.70 vs 16.70 +/- 16.7
+PASS  attempt 2: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  attempt 2: burst t0 within one frame of the entry's first frame (C-5)  16.00 vs 0.00 +/- 17.0
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 16 >= 16
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 19 >= 19
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 34 >= 34
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 42 >= 42
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 44 >= 44
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 46 >= 46
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 48 >= 48
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 52 >= 52
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 54 >= 54
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 59 >= 59
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 67 >= 67
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 79 >= 79
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 85 >= 85
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 91 >= 91
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 97 >= 97
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 99 >= 99
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 109 >= 109
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 115 >= 115
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 121 >= 121
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 123 >= 123
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 139 >= 139
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 145 >= 145
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 151 >= 151
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 157 >= 157
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 169 >= 169
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 175 >= 175
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 181 >= 181
+[image2 @ 0x62b7dcaede80] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 187 >= 187
+PASS  attempt 3: one open line                                    = 1
+PASS  attempt 3: peak 107 ± 17 ms                                100.00 vs 107.00 +/- 17.0
+PASS  attempt 3: overshoot 6.8 ± 2 %                             6.50 vs 6.80 +/- 2.0
+PASS  attempt 3: maxGapMs ≤ 33.4 (C-31)                         16.70 vs 16.70 +/- 16.7
+PASS  attempt 3: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  attempt 3: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
+[image2 @ 0x5707f8ead1c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 2 >= 2
+[image2 @ 0x5707f8ead1c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 75 >= 75
+[image2 @ 0x5707f8ead1c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 135 >= 135
+PASS  attempt 4: one open line                                    = 1
+PASS  attempt 4: peak 107 ± 17 ms                                100.00 vs 107.00 +/- 17.0
+PASS  attempt 4: overshoot 6.8 ± 2 %                             6.50 vs 6.80 +/- 2.0
+PASS  attempt 4: maxGapMs ≤ 33.4 (C-31)                         16.70 vs 16.70 +/- 16.7
+PASS  attempt 4: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  attempt 4: burst t0 within one frame of the entry's first frame (C-5)  16.00 vs 0.00 +/- 17.0
+PASS  attempt 5: one open line                                    = 1
+PASS  attempt 5: peak 107 ± 17 ms                                100.00 vs 107.00 +/- 17.0
+PASS  attempt 5: overshoot 6.8 ± 2 %                             6.50 vs 6.80 +/- 2.0
+PASS  attempt 5: maxGapMs ≤ 33.4 (C-31)                         16.70 vs 16.70 +/- 16.7
+PASS  attempt 5: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  attempt 5: burst t0 within one frame of the entry's first frame (C-5)  16.00 vs 0.00 +/- 17.0
+PASS  a recording within phase 05's spacing rule (source frames ≤ 18.2 ms apart during the motion)  != 
+--- the close: a fresh burst, then a tap elsewhere ---
+PASS  close alpha0 36 ± 17 ms (the halfway at 36.0 ms)           50.00 vs 36.00 +/- 17.0
+PASS  close settle = alpha0 ± 17 ms (gone at alpha 0)            50.00 vs 50.00 +/- 17.0
+PASS  close maxGapMs ≤ 33.4 (C-31)                              16.70 vs 16.70 +/- 16.7
+   E6: 36 passed, 0 failed

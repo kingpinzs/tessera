@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E16 — the promoted tile bursts in its grid cell; a cell off the page opens none (off screen)
-at            2026-09-24T08:29:34-06:00
-driver        e16.sh blob ec21c166b38d0aaf919acab83a391d30eee78652
+at            2026-09-24T09:48:41-06:00
+driver        e16.sh blob db661f34830b6dc97abada9e5efe33fc0cf822ad
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     b4c1ca12e166b21d 336439365 bytes
-apk installed 24a6fcef79bb96df
-apk match     yes (24a6fcef79bb96df)
+apk built     c3bd9015808af960 336439365 bytes
+apk installed 8e2f64795bb72956
+apk match     yes (8e2f64795bb72956)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -22,10 +22,12 @@ PASS  satellites relative to the tile equal E7's corner case (± 1 px)  0.00 vs 
 PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  the fixture is still promoted                               = yes
+      Photos top  -> the fixture cell's edit-mode bottom at 831 px
+FAIL  precondition: the fixture's grid cell lies wholly above the page area (831 < 84)  expected [ok] got [no]
 PASS  edit mode entered                                           contains [[edit] hold 783ms on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: edit mode on]
 PASS  no quick_burst                                              = no
 PASS  reason: off screen                                          contains [[quick] no burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: off screen]
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 ------------------------------------------------------------------------------
-E16: 17 passed, 0 failed
+E16: 17 passed, 1 failed

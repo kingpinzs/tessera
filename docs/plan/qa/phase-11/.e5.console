@@ -1,5 +1,5 @@
 ── E5 taps while open: elsewhere, another tile, the held tile, the name strip, a label, Back, the discs, Home, sleep, scroll, press
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 33.5 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 27.7 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- tap empty grid space: the burst closes, edit mode stays; a second tap exits (R6 §1.5.1) ---
@@ -32,15 +32,16 @@ PASS  ring: the size cycled                                       contains [[edi
 PASS  no quick_burst                                              = no
 PASS  edit mode stays                                             = yes
 PASS  the unpin disc on the new top-right corner (x)              0.00 vs 0.00 +/- 3.0
+PASS  the unpin disc on the new top-right corner (y)              0.00 vs 0.00 +/- 3.0
 PASS  ring: resize                                                contains [[quick] burst closed: resize]
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 27.6 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 34.5 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- the unpin disc: the tile and the burst go ---
 PASS  the fixture tile is gone                                    = no
 PASS  no quick_burst                                              = no
 PASS  ring: unpin                                                 contains [[quick] burst closed: unpin]
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 37.1 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 34.4 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- Home (the drawn Windows key; this AVD never re-delivers KEYCODE_HOME to a resumed Start — P6) ---
@@ -57,8 +58,10 @@ PASS  ring: stop                                                  contains [[qui
 PASS  no quick_burst while the finger rests                       = no
 PASS  ring: no burst on                                           does not contain [[quick] burst on]
 PASS  the release moved the selection to Start settings           contains [[edit] selection moves to shell:settings]
+PASS  the discs moved to Start settings (x)                       1.00 vs 0.00 +/- 3.0
+PASS  the discs moved to Start settings (y)                       0.00 vs 0.00 +/- 3.0
 --- a scroll on empty space: Start scrolls, the satellites ride the tile, fresh rest= lines (T11-28) ---
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-tall.json: 1 file pushed, 0 skipped. 0.3 MB/s (1384 bytes in 0.005s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-tall.json: 1 file pushed, 0 skipped. 8.2 MB/s (1384 bytes in 0.000s)
 PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  Start scrolled: the tile moved (|dy| ≥ 60 px)             91.00 vs 110.00 +/- 50.0
@@ -67,18 +70,18 @@ PASS  quick_sat:1 moved with the tile (± 1 px)                   0.00 vs 0.00 +
 PASS  quick_sat:2 moved with the tile (± 1 px)                   0.00 vs 0.00 +/- 1.0
 PASS  quick_sat:3 moved with the tile (± 1 px)                   0.00 vs 0.00 +/- 1.0
 PASS  fresh rest= lines after the scroll (T11-28)                 contains [[quick] satellite 0 rest=]
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 30.3 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 30.8 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- the folder-name strip (band variant): the burst on a member closes, no name box ---
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-band.json: 1 file pushed, 0 skipped. 0.3 MB/s (1390 bytes in 0.005s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-band.json: 1 file pushed, 0 skipped. 8.8 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout-band.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-band.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  burst on the member                                         = yes
 PASS  no quick_burst                                              = no
 PASS  no folder_name_box                                          = no
 PASS  ring: tap elsewhere                                         contains [[quick] burst closed: tap elsewhere]
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 28.5 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 29.4 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- press feedback (T11-7): on this build a pressed satellite looks exactly as at rest, under every press style ---
@@ -86,4 +89,4 @@ PASS  press_tilt: the held satellite equals its rest pixels ± 1 (no Q6 style)  
 PASS  press_tilt: sliding off ran nothing, the burst stays        = yes
 PASS  press_p4: the held satellite equals its rest pixels ± 1 (no Q6 style)  = EQUAL
 PASS  press_p4: sliding off ran nothing, the burst stays          = yes
-   E5: 67 passed, 0 failed
+   E5: 70 passed, 0 failed

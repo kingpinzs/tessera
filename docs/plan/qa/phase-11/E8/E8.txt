@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E8 — no burst when not HOME; disabled / removed / unstartable shortcuts
-at            2026-09-24T08:08:21-06:00
-driver        e8.sh blob a7d87338ddf1adde51abf2ba4842e2a0c08daf67
+at            2026-09-24T09:27:27-06:00
+driver        e8.sh blob 19ef6b56dbf92021db2cdab4a708efb41661143a
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     b4c1ca12e166b21d 336439365 bytes
-apk installed 24a6fcef79bb96df
-apk match     yes (24a6fcef79bb96df)
+apk built     c3bd9015808af960 336439365 bytes
+apk installed 8e2f64795bb72956
+apk match     yes (8e2f64795bb72956)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -19,6 +19,7 @@ PASS  (a) reason                                                  contains [[qui
 PASS  (a) restored: the shell is HOME again                       contains [app.tileshell]
 PASS  (a) restored: the shell is the assistant again              contains [app.tileshell]
 --- (b) disabled: Android deletes an unpinned dynamic shortcut, so the hold finds none ---
+FAIL  (b) positive control: after reset the listing shows qa_dyn  does not contain [id=qa_dyn]: Success
       disable (receiver): Broadcast completed: result=0, data="disable: ok=true disabled=[qa_dyn] dynamic=[]"
 PASS  (b) no quick_burst                                          = no
 PASS  (b) the query found none                                    contains [[quick] shortcuts for app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity/0: 0 (0 shown)]
@@ -47,4 +48,4 @@ PASS  (d) no edit mode                                            = no
 PASS  (d) startShortcut failed, ActivityNotFoundException         contains [[quick] tap satellite 1 app.tileshell.testclient.b/qa_dead: startShortcut failed android.content.ActivityNotFoundException]
 PASS  (d) Start played its entrance                               contains [[motion] start entrance]
 ------------------------------------------------------------------------------
-E8: 28 passed, 0 failed
+E8: 28 passed, 1 failed

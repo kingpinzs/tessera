@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E3 — selection and counts: the fixture's four in order, b's one, a failed icon, and every no-burst kind
-at            2026-09-24T07:55:26-06:00
-driver        e3.sh blob f6b95bb95379089d9c916c34e3530754d0557b16
+at            2026-09-24T09:14:42-06:00
+driver        e3.sh blob 5ea7e9db9697a74daa70b678bec80b5985f4ca89
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     b4c1ca12e166b21d 336439365 bytes
-apk installed 24a6fcef79bb96df
-apk match     yes (24a6fcef79bb96df)
+apk built     c3bd9015808af960 336439365 bytes
+apk installed 8e2f64795bb72956
+apk match     yes (8e2f64795bb72956)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -26,7 +26,7 @@ PASS  quick_sat:1 present                                         = yes
       quick_sat:1 892 285 1057 450 -> UNIFORM 0; quick_sat:0 481 285 646 450 -> VARIED 255
 PASS  quick_sat:1's interior is its fill only (± 2): no glyph    = UNIFORM
 PASS  quick_sat:0's interior is NOT uniform: its glyph is drawn   = VARIED
-PASS  icon failed line                                            contains [[quick] satellite 1 icon failed app.tileshell.testclient.b/qa_noicon: ]
+PASS  icon failed line (null drawable)                            contains [[quick] satellite 1 icon failed app.tileshell.testclient.b/qa_noicon: null drawable]
 PASS  the no-icon satellite still runs                            contains [[quick] tap satellite 1 app.tileshell.testclient.b/qa_noicon: startShortcut ok]
 --- no burst: Weather (shell, declares none), folder:qa, the Unassigned MAIL slot, a secondary tile ---
 PASS  weather: edit mode on                                       = yes

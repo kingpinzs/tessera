@@ -1,28 +1,24 @@
 ==============================================================================
-ROW E10 — a hold on a transport control fires the control; a hold on the art bursts with Music's four
-at            2026-09-24T08:13:29-06:00
-driver        e10.sh blob 29b080942a7c48917a36b5bc045a43629a86a76d
+ROW E10 — a hold on a playing player's transport control fires it; the art hold bursts (L11-1 blocks the strip)
+at            2026-09-24T09:32:37-06:00
+driver        e10.sh blob 15a244ca6a1079bdeedc53900b03291b77c4677a
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     b4c1ca12e166b21d 336439365 bytes
-apk installed 24a6fcef79bb96df
-apk match     yes (24a6fcef79bb96df)
+apk built     c3bd9015808af960 336439365 bytes
+apk installed 8e2f64795bb72956
+apk match     yes (8e2f64795bb72956)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
+PASS  restore baseline_layout-player.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-player.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      Fossify session:       state=PlaybackState {state=PLAYING(3), position=2955, buffered position=90044, speed=1.0, updated=80278886, actions=7340027, custom actions=[Action:mName='Close, mIcon=2131230912, mExtras=Bundle[EMPTY_PARCEL]], active item id=1, error=null}
+PASS  the fixture is playing (phase 01 E8's player)               contains [state=PLAYING(3)]
+      publishes for the player's key: 6 (front=true: 4, null: 4)
+FAIL  the playing player's tile shows its transport strip — BLOCKED by L11-1 (the key republished as null)  front=true 4 then null 4 (l11-1-sequence.txt)
+      the control-hold sub-step is NOT run without the strip (no vacuous pass, G-E10-2); resume point: here, once L11-1 is fixed
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-      playing music_song:32
-FAIL  the Music tile shows its controls                           expected [yes] got [no]
-      session before:       state=PlaybackState {state=PLAYING(3), position=11976, buffered position=90044, speed=1.0, updated=75533892, actions=7340027, custom actions=[], active item id=0, error=null}
-PASS  no quick_burst                                              = no
-PASS  no edit mode                                                = no
-FAIL  the control fired (no launch)                               does not contain [[tile_control] tile=slot:MUSIC PLAY_PAUSE (no launch)]:     2026-09-24 08:14:12.508 wall=1790259252508 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=75534848 faceIndex=1 next=0 faces=1
-    2026-09-24 08:14:14.493 wall=1790259254493 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=75536832 
-PASS  no hold line                                                does not contain [[edit] hold]
-      session after:       state=PlaybackState {state=PLAYING(3), position=14974, buffered position=90044, speed=1.0, updated=75536893, actions=7340027, custom actions=[], active item id=0, error=null}
-FAIL  the shell's session is PAUSED                               does not contain [state=PAUSED(2)]:       state=PlaybackState {state=PLAYING(3), position=14974, buffered position=90044, speed=1.0, updated=75536893, actions=7340027, custom actions=[], active item id=0, error=null}
-PASS  StartActivity still in front (nothing launched)             contains [app.tileshell/.StartActivity]
-PASS  the art: edit mode on                                       = yes
-PASS  the art: Music's four satellites                            = Songs,Albums,Artists,Playlists,
+PASS  the Music tile's art: edit mode on                          = yes
+PASS  the Music tile's art: Music's four satellites               = Songs,Albums,Artists,Playlists,
 ------------------------------------------------------------------------------
-E10: 8 passed, 3 failed
+E10: 7 passed, 1 failed
