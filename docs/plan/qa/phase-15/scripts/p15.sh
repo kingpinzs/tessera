@@ -14,7 +14,9 @@ gdump() { # out.xml
   local out="$1" i
   : > "$out.drv"
   for i in 1 2 3 4 5 6 7 8; do
-    adb shell am instrument --no-restart -r -w -e op dump -e out /sdcard/Download/p15.xml "$DRV_RUNNER" >> "$out.drv" 2>&1
+    # No --no-restart: that attaches to a RUNNING fixture process and fails (NPE in setActiveInstrumentation) when the
+    # fixture has been stopped or trimmed (E1 run 1). A dump needs no fixture state, so the instrumentation restarts it.
+    adb shell am instrument -r -w -e op dump -e out /sdcard/Download/p15.xml "$DRV_RUNNER" >> "$out.drv" 2>&1
     adb shell cat /sdcard/Download/p15.xml > "$out" 2>/dev/null
     if grep -q '<node' "$out"; then
       grep -o 'gesture.windows=.*' "$out.drv" | tail -1 | tr -d '\r' > "$out.windows"
