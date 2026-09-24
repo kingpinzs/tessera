@@ -485,13 +485,17 @@ helpers are this phase's build task 7.
   build, a burst or not, so it is recorded, not asserted; P2 reads the cold open on the phone's release build); the `[quick] motion open <tileId>` line reads peak
   = 107 ± 17 ms, overshoot = 6.8 ± 2 % of the travel and settle ≤ 250 + 17 ms (settle = the first frame from which every later
   frame is within 1 px of rest, ≈ 249 ms for the fixture's ≈ 427-px travel, plus RV11's one frame — re-cut 2026-09-23 by r3 triage
-  T11-29 from "≤ 250 ms"), and one line (one t0) covers all four satellites; tap elsewhere: `[quick] motion close <tileId>` reads
+  T11-29 from "≤ 250 ms"; re-cut 2026-09-24 by the gate's evidence review G-E6-2 to ≤ 249.1 ms + that open's `maxGapMs` (+1), since
+  the settle frame is the first frame at or after 249.1 ms and C-31 already allows one dropped frame; EVERY warm open is asserted,
+  not only the recorded one), and one line (one t0) covers all four satellites, its t0 within one frame of the edit entry's first
+  frame on the same clock (`[edit] entry first frame at uptime=`; G-E6-4, C-5); tap elsewhere: `[quick] motion close <tileId>` reads
   alpha0 = 36 ± 17 ms (the travel fraction passes 0.5 at 36.0 ms) and settle = alpha0 ± 17 ms (the satellites are gone at alpha 0),
   so a fade that ends on arrival fails (T11-29, from the split-time "alpha0 ≤ 100 ms, settle ≤ 250 ms", which no close could
   fail); both lines read `maxGapMs` ≤ 33.4 ms (C-31), each from the ring slice after a MARK taken just before its hold / tap (C-20).
-  Corroboration: a screenrecord of the same open passes phase 05's frame-spacing rule (source frames ≤ 18.2 ms apart during the
-  motion, else retaken) and its first frame with satellite pixels is the edit-mode entry's first changed frame (phase 02 E7's t0)
-  ± 1 source frame (T11-32: the result is in hand by then); the capture is not the clock for any number above. P2 repeats the open
+  Corroboration: a screenrecord of the same open (540x1170: at full size the AVD's encoder drops frames the app's own clock does
+  not) passes phase 05's frame-spacing rule (source frames ≤ 18.2 ms apart during the motion, else retaken); its satellite-pixel
+  lag is printed, not asserted (re-cut 2026-09-24, G-E6-4: the pixel detector counted the neighbours' contraction and could not
+  fail — the alignment is asserted on the shell's clock above); the capture is not the clock for any number above. P2 repeats the open
   line on the phone
 - E7 Geometry, `rest=` lines primary and the dump route's bounds as corroboration. In EVERY case below no `quick_sat:i` or
   `quick_sat_label:i` rectangle intersects the held tile's drawn bounds (T11-27), and every `[quick] satellite i rest=` line equals

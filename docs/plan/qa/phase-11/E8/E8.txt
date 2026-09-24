@@ -1,7 +1,7 @@
 ==============================================================================
 ROW E8 — no burst when not HOME; disabled / removed / unstartable shortcuts
-at            2026-09-24T09:27:27-06:00
-driver        e8.sh blob 19ef6b56dbf92021db2cdab4a708efb41661143a
+at            2026-09-24T09:55:07-06:00
+driver        e8.sh blob 7a77bf6735a741c9b122ba38d64d687f8c407826
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
 apk built     c3bd9015808af960 336439365 bytes
 apk installed 8e2f64795bb72956
@@ -19,12 +19,12 @@ PASS  (a) reason                                                  contains [[qui
 PASS  (a) restored: the shell is HOME again                       contains [app.tileshell]
 PASS  (a) restored: the shell is the assistant again              contains [app.tileshell]
 --- (b) disabled: Android deletes an unpinned dynamic shortcut, so the hold finds none ---
-FAIL  (b) positive control: after reset the listing shows qa_dyn  does not contain [id=qa_dyn]: Success
+PASS  (b) positive control: after reset tileclient-b's section lists qa_dyn  contains [ShortcutInfo {id=qa_dyn]
       disable (receiver): Broadcast completed: result=0, data="disable: ok=true disabled=[qa_dyn] dynamic=[]"
 PASS  (b) no quick_burst                                          = no
 PASS  (b) the query found none                                    contains [[quick] shortcuts for app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity/0: 0 (0 shown)]
 PASS  (b) reason                                                  contains [[quick] no burst on app:app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity:0: no shortcuts]
-PASS  (b) cmd shortcut lists nothing for tileclient-b             = 0
+PASS  (b) tileclient-b's section lists no shortcut after the disable  = 0
 --- (b) disable while a burst is open (no window comes to front): shortcuts changed ---
 PASS  (b) burst open on tileclient-b                              = yes
       disable (receiver): Broadcast completed: result=0, data="disable: ok=true disabled=[qa_dyn] dynamic=[]"
@@ -48,4 +48,4 @@ PASS  (d) no edit mode                                            = no
 PASS  (d) startShortcut failed, ActivityNotFoundException         contains [[quick] tap satellite 1 app.tileshell.testclient.b/qa_dead: startShortcut failed android.content.ActivityNotFoundException]
 PASS  (d) Start played its entrance                               contains [[motion] start entrance]
 ------------------------------------------------------------------------------
-E8: 28 passed, 1 failed
+E8: 29 passed, 0 failed

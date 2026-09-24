@@ -1,7 +1,7 @@
 ==============================================================================
 ROW E16 — the promoted tile bursts in its grid cell; a cell off the page opens none (off screen)
-at            2026-09-24T09:48:41-06:00
-driver        e16.sh blob db661f34830b6dc97abada9e5efe33fc0cf822ad
+at            2026-09-24T09:57:19-06:00
+driver        e16.sh blob e5a4d26f48aa475cdaf55a45c779514753f61bf6
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
 apk built     c3bd9015808af960 336439365 bytes
 apk installed 8e2f64795bb72956
@@ -22,12 +22,12 @@ PASS  satellites relative to the tile equal E7's corner case (± 1 px)  0.00 vs 
 PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  the fixture is still promoted                               = yes
-      Photos top  -> the fixture cell's edit-mode bottom at 831 px
-FAIL  precondition: the fixture's grid cell lies wholly above the page area (831 < 84)  expected [ok] got [no]
+      scroll 1173 px -> the fixture cell's edit-mode bottom at -223 px
+PASS  precondition: the fixture's grid cell lies wholly above the page area (-223 < 84)  = ok
 PASS  edit mode entered                                           contains [[edit] hold 783ms on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: edit mode on]
 PASS  no quick_burst                                              = no
 PASS  reason: off screen                                          contains [[quick] no burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: off screen]
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 ------------------------------------------------------------------------------
-E16: 17 passed, 1 failed
+E16: 18 passed, 0 failed
