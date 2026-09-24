@@ -146,3 +146,11 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
 - 2026-09-24: Jeremy: "mute the emulators". Every qemu-system-x86_64 output stream muted on the host (pactl
   set-sink-input-mute <id> 1; streams 1366=5554, 3186=5556, 3299=5560, 5839=5558). Undo: the same with 0. Inside the
   AVDs nothing changes (rings still start; rows read dumpsys audio). Reply-audibility captures were already silent.
+- 2026-09-24 ~15:20: FINAL REBASE onto main 9f790b7 (backup phase-15-prerebase2-2026-09-24): one conflict (MusicFeed:
+  main's once-per-process forget registration + the forget's republish-null kept, on my publishedRoute); a full
+  per-file comparison with the backup found no dropped content. 796 app / 98 :calc unit tests pass; build 2356b99f.
+  Found since pass 2: the clock pass's EDGE_ALARMS ran on as an ORPHAN after its agent died and drove 5558 alongside
+  my runners (the source of the leftover alarms; committed with NOTES.md). Busy card shows the sentence alone
+  (1544a1b). e21.sh gained the Voice Recorder permission parts (the recorder pass had left them to e21.sh's owner).
+  FINAL GATE started on 2356b99f: 5556 (E2 E27 E0 E1 E9 E26 E11), 5558 (clock rows, scratchpad/p15/clock_reset.sh
+  before each row), 5560 (E12 E13 E29 EDGE-CALC, then the recorder rows, E14b last); then E25 and E22, the reviewers.
