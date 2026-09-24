@@ -835,6 +835,9 @@ private fun EditMotion(edit: StartEditState) {
             edit.finishExit()
         } else {
             val start = androidx.compose.runtime.withFrameMillis { it }
+            // Phase 11 E6 (C-5): the entry's first frame on the shell's own clock, so a burst's `motion open` t0 can
+            // be placed against it without a screenrecord.
+            Diagnostics.add("edit", "entry first frame at uptime=$start")
             while (true) {
                 val t = (androidx.compose.runtime.withFrameMillis { it } - start).toFloat()
                 edit.scaleProgress = Edit.easeOutProgress(t, Edit.SCALE_MS, Edit.SCALE_HALF_MS)
