@@ -488,11 +488,13 @@ helpers are this phase's build task 7.
   T11-29 from "≤ 250 ms"; re-cut 2026-09-24 by the gate's evidence review G-E6-2 to ≤ 249.1 ms + that open's `maxGapMs` (+1), since
   the settle frame is the first frame at or after 249.1 ms and C-31 already allows one dropped frame; EVERY warm open is asserted,
   not only the recorded one), and one line (one t0) covers all four satellites, its t0 within one frame of the edit entry's first
-  frame on the same clock (`[edit] entry first frame at uptime=`; G-E6-4, C-5); tap elsewhere: `[quick] motion close <tileId>` reads
+  frame on the same clock (`[edit] entry first frame at uptime=`; G-E6-4, C-5) — asserted on five warm opens with NOTHING recording
+  (re-cut 2026-09-24: a warm open recorded under screenrecord logged an 83-ms gap on the shell's own clock, the recorder perturbing
+  what it corroborates); tap elsewhere: `[quick] motion close <tileId>` reads
   alpha0 = 36 ± 17 ms (the travel fraction passes 0.5 at 36.0 ms) and settle = alpha0 ± 17 ms (the satellites are gone at alpha 0),
   so a fade that ends on arrival fails (T11-29, from the split-time "alpha0 ≤ 100 ms, settle ≤ 250 ms", which no close could
   fail); both lines read `maxGapMs` ≤ 33.4 ms (C-31), each from the ring slice after a MARK taken just before its hold / tap (C-20).
-  Corroboration: a screenrecord of the same open (540x1170: at full size the AVD's encoder drops frames the app's own clock does
+  Corroboration: a screenrecord of a SEPARATE open, its shell-clock numbers noted, not asserted (540x1170: at full size the AVD's encoder drops frames the app's own clock does
   not) passes phase 05's frame-spacing rule (source frames ≤ 18.2 ms apart during the motion, else retaken); its satellite-pixel
   lag is printed, not asserted (re-cut 2026-09-24, G-E6-4: the pixel detector counted the neighbours' contraction and could not
   fail — the alignment is asserted on the shell's clock above); the capture is not the clock for any number above. P2 repeats the open
