@@ -113,11 +113,12 @@ case_check "BIN WORD: 1 ± is 16 ones" programmer "1 negate" "radix=bin word=wor
 set_word BYTE
 case_check "BIN BYTE: 101 ± is 1111 1011" programmer "1 0 1 negate" "radix=bin word=byte"
 set_radix dec
-error_check "BYTE: 1 Lsh 8 = (a shift of the whole word) → Result not defined (oracle; Decisions say 0)" programmer "1 lsh 8 equals" no_result "radix=dec word=byte"
+case_check "BYTE: 1 Lsh 8 = (every bit shifted out) → 0" programmer "1 lsh 8 equals" "radix=dec word=byte"
 case_check "BYTE: 1 Lsh 7 = wraps to −128" programmer "1 lsh 7 equals" "radix=dec word=byte"
-case_check "BYTE: 1 Lsh 9 = (past the word size) → Result not defined" programmer "1 lsh 9 equals" "radix=dec word=byte"
+case_check "BYTE: 1 Lsh 9 = (past the word size) → 0" programmer "1 lsh 9 equals" "radix=dec word=byte"
 set_word QWORD
-case_check "QWORD: 1 Lsh 64 = → Result not defined" programmer "1 lsh 6 4 equals" "radix=dec word=qword"
+case_check "QWORD: 1 Lsh 64 = → 0" programmer "1 lsh 6 4 equals" "radix=dec word=qword"
+case_check "QWORD: −256 Rsh 64 = → −1 (the sign fills every bit)" programmer "2 5 6 negate rsh 6 4 equals" "radix=dec word=qword"
 case_check "300 → DWORD → WORD → BYTE truncates to 44" programmer "3 0 0 word word word" "radix=dec word=qword"
 set_word QWORD
 case_check "200 → BYTE reads −56 (signed at the word size)" programmer "2 0 0 word word word" "radix=dec word=qword"
