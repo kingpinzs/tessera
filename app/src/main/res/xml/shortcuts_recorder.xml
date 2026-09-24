@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Voice Recorder's static App Shortcuts (phase 15 build task 9, phase 11 Q1's standing rule): its two
+  top-level screens, the one page's record and list states (r11/voice-recorder.md 1.1). Declaration order is
+  the rank (0, 1). Each opens RecorderActivity with the extra "page" (the key SettingsActivity.EXTRA_PAGE
+  uses): "record" shows the record state and starts NO take (T15-33 (i)); "list" shows the list state.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="new_recording"
+        android:enabled="true"
+        android:icon="@drawable/ic_recorder_glyph"
+        android:shortcutShortLabel="@string/recorder_shortcut_new"
+        android:shortcutLongLabel="@string/recorder_shortcut_new">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.recorder.RecorderActivity">
+            <extra android:name="page" android:value="record" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="recordings"
+        android:enabled="true"
+        android:icon="@drawable/ic_recorder_glyph"
+        android:shortcutShortLabel="@string/recorder_shortcut_list"
+        android:shortcutLongLabel="@string/recorder_shortcut_list">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.recorder.RecorderActivity">
+            <extra android:name="page" android:value="list" />
+        </intent>
+    </shortcut>
+</shortcuts>

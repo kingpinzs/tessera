@@ -74,6 +74,10 @@
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.READ_SMS" />
 
+    <!-- ===== Phase 15: Voice Recorder ===== -->
+    <!-- The take is a foreground service of type microphone in its own :recorder process (build task 7). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+
     <application
         android:name=".ShellApp"
         android:allowBackup="false"
@@ -356,5 +360,39 @@
             android:taskAffinity="app.tileshell.cortana"
             android:screenOrientation="portrait"
             android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode" />
+
+        <!-- ===== Phase 15: Voice Recorder (build task 7) ===== -->
+
+        <!--
+          Voice Recorder: an app in the app list like Music, with its own task. Exported only because it is a
+          launcher activity. Its icon's monochrome layer is its static Start tile (U12: the Microphone glyph).
+          The App Shortcuts' "page" extra only picks the record or list state; it never starts a take.
+        -->
+        <activity
+            android:name=".recorder.RecorderActivity"
+            android:exported="true"
+            android:label="@string/recorder_name"
+            android:icon="@drawable/ic_recorder"
+            android:taskAffinity="app.tileshell.recorder"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts_recorder" />
+        </activity>
+
+        <!--
+          The take: a microphone foreground service in its own process, so a crash of Start or of the page
+          cannot end it. Not exported: only the shell starts, binds and stops it.
+        -->
+        <service
+            android:name=".recorder.RecorderService"
+            android:process=":recorder"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
     </application>
 </manifest>

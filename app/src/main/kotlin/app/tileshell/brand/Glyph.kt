@@ -80,4 +80,14 @@ object Glyph {
 
     // Phase 05 (keyboard). Same font, same source: Fluent UI System Icons resizable, MIT.
     const val KEYBOARD = "\ueab1"
+
+    // Phase 15 (Voice Recorder). Same font, same source; the MDL2 glyph each stands in for is
+    // r11/voice-recorder.md's glyph table (Stop E71A, Pause E769, Play E768, Flag E7C1, Share E72D, Trim E78A).
+    const val STOP = "\uf188"
+    const val PAUSE = "\ued5b"
+    const val PLAY = "\uee8d"
+    const val FLAG = "\ue8b7"
+    const val FLAG_FILLED = "\ue8b6"
+    const val SHARE = "\uf023"
+    const val CUT = "\ue617"
 }
