@@ -28,6 +28,9 @@ object RecorderLibrary {
     val snapshot: StateFlow<Snapshot> = state.asStateFlow()
 
     private var observer: ContentObserver? = null
+
+    /** Set when observing stops, so the next start reads what changed in between. */
+    private var missed = false
     private val main = Handler(Looper.getMainLooper())
     private var pending: Runnable? = null
 
@@ -39,12 +42,23 @@ object RecorderLibrary {
             override fun onChange(selfChange: Boolean, uri: Uri?) = refreshSoon(app, "media change")
         }
         runCatching { app.contentResolver.registerContentObserver(RecordingStore.COLLECTION, true, watcher) }
-            .onSuccess { observer = watcher }
+            .onSuccess {
+                observer = watcher
+                // What changed while nothing observed (a take saved after a notification Stop, a file added or deleted
+                // outside the app) is read now, or the page comes back showing the list it left with (E15's DEFECT).
+                if (missed) {
+                    missed = false
+                    refreshSoon(app, "back in view")
+                }
+            }
             .onFailure { Diagnostics.add("recorder", "could not observe the audio collection: $it") }
     }
 
     fun stop(context: Context) {
-        observer?.let { runCatching { context.applicationContext.contentResolver.unregisterContentObserver(it) } }
+        observer?.let {
+            runCatching { context.applicationContext.contentResolver.unregisterContentObserver(it) }
+            missed = true
+        }
         observer = null
         pending?.let { main.removeCallbacks(it) }
         pending = null
