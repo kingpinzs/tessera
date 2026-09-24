@@ -96,3 +96,11 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   AVD 5556 baseline additions: Auxio music source = System (set once in Auxio's dialog, Music sources -> System -> Save).
   Drivers written: e0.sh, e1.sh, e26.sh, e27.sh (burst half FAIL/NOT RUN until the rebase; at the gate its burst steps
   must be written — the driver says NOT WRITTEN if phase 11's burst is in the APK), tiles.py, e25.sh.
+- 2026-09-24 later: E1 run 4 47/0 (runs 1-3 driver faults, kept; phase 01's e12_part1.sh walk now swipes slowly — a
+  300-ms swipe flung 1562 px and skipped a row; p15.sh gdump dropped --no-restart). E26 run 2 82/8 (all 19 typed tess
+  lines pass; the 8 FAILs are the spoken steps, NOT RUN on the audio route). Calc QA agent done: E12 91/0, E29 54/0/1,
+  EDGE-CALC 51/1/6 (paste "abc": Windows' "Invalid input" vs the doc's "ignored" — doc-vs-Windows item for Jeremy),
+  E13 136/9/7 (ink vs box) -> builder agent dispatched (briefs/calc-fix.md, emulator-5560: E13 ink, tagged-node text,
+  date-picker drag). Committed through 52fdb9c. OPEN for Jeremy, one at a time: (1) EasyEffects blocklist (audio rows
+  E9 E14 E15 E17 E18 E19 E26-spoken E30); (2) E0-run2: MusicFeed vs TileNotificationListener share pkg keys (phase
+  01/10 parts); (3) doc-vs-Windows corrections (Lsh, BYTE HEX FF+1, add/subtract weeks, converter source; + paste).
