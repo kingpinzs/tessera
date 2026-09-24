@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""make_baselines.py: phase 11's six baselines, derived from phase 02's (T11-3, C-3, T11-18, T11-35).
+"""make_baselines.py: phase 11's baselines, derived from phase 02's (T11-3, C-3, T11-18, T11-35).
 
 Every file keeps phase 02's slots, dock and addedOnce markers (this phase adds none), and marks EVERY tile's size
 hand-set (manualSizes) so the use-based auto-sizer cannot reshape it. The fixture tile (tileclient-a, MEDIUM) sits
@@ -48,6 +48,12 @@ variants["baseline_layout-wide.json"] = finish(v)
 v = copy.deepcopy(main); v["order"] = [o for o in v["order"] if o["key"] != A]
 v["folders"] = [{"id": "qa", "name": "QA", "members": folder_qa["members"] + [t(A, "MEDIUM")]}]
 variants["baseline_layout-band.json"] = finish(v)
+
+# A two-tile folder: MAPS and the fixture (the EDGE row: unpinning the fixture from its burst inside the expanded band
+# leaves one member, so the folder dissolves — phase 02 H19 — and the burst closes).
+v = copy.deepcopy(main); v["order"] = [o for o in v["order"] if o["key"] != A]
+v["folders"] = [{"id": "qa", "name": "QA", "members": [t("slot:MAPS", "SMALL"), t(A, "MEDIUM")]}]
+variants["baseline_layout-folder2.json"] = finish(v)
 
 # Tall: every tile AFTER the fixture set made WIDE, so the fixture keeps its cell and Start scrolls (T11-18).
 v = copy.deepcopy(main)
