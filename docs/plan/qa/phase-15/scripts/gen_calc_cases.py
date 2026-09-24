@@ -1330,6 +1330,16 @@ class Calc:
             "rparen": IDC_CLOSEP, "fe": IDC_FE, "or": IDC_OR, "xor": IDC_XOR, "not": IDC_COM, "and": IDC_AND,
             "radix_hex": IDM_HEX, "radix_dec": IDM_DEC, "radix_oct": IDM_OCT, "radix_bin": IDM_BIN,
         }
+        # The APP's layer over the engine (StandardCalculatorViewModel.cs:1409-1420, IsRecoverableCommand :1997-2012):
+        # a key pressed while an error shows first sends CLEAR, and only a recoverable key — a digit, '.', A-F —
+        # then goes on to the engine; any other key is spent on the clear. (The engine alone, scicomm.cpp:131-147,
+        # would ignore everything but C / CE; a person presses the app's keys, and the app recovers. Corrected
+        # 2026-09-23 after the engine port and this oracle disagreed on standard-067 — settled by this source.)
+        if self.bError and k not in ("clear", "clear_entry", "mc", "mr", "ms", "mplus", "mminus", "inv", "hyp", "angle", "word",
+                                     "radix_hex", "radix_dec", "radix_oct", "radix_bin", "fe"):
+            self.process(IDC_CLEAR)
+            if not ((len(k) == 1 and k in HEXDIGITS) or k == "decimal"):
+                return
         if len(k) == 1 and k in HEXDIGITS:
             self.process(IDC_0 + HEXDIGITS.index(k))
         elif k in simple:
@@ -1739,7 +1749,7 @@ STANDARD = [
     ("a function right after an operator uses the first operand: 9 + sqrt = 12", "", K("9 add sqrt equals"), S + "CEngine/scicomm.cpp:351-359"),
     ("E11: `1 ÷ 0` -> Cannot divide by zero", "", K("1 divide 0 equals"), C_DIV0),
     ("E11: `0 ÷ 0` -> Result is undefined", "", K("0 divide 0 equals"), C_INDEF),
-    ("keys after an error are ignored", "", K("1 divide 0 equals 5 add"), C_ERRSTATE),
+    ("a digit after an error clears it and starts a number (the app recovers)", "", K("1 divide 0 equals 5 add"), C_ERRSTATE + "; Calculator.ViewModels/StandardCalculatorViewModel.cs:1409-1420,1997-2012"),
     ("C leaves the error state", "", K("1 divide 0 equals clear 5"), C_ERRSTATE),
     ("CE acts as C in the error state", "", K("1 divide 0 equals clear_entry"), C_ERRSTATE),
     ("Overflow in Standard: (10^15)^(2^10)", "", K("1000000000000000 " + "square " * 10), C_OVF),

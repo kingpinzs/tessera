@@ -136,8 +136,8 @@ standard-064	standard		9 add sqrt equals	12			src/CalcManager/CEngine/scicomm.cp
 standard-065	standard		1 divide 0 equals	Cannot divide by zero			src/CalcManager/Ratpack/rat.cpp:144-148 CALC_E_DIVIDEBYZERO -> src/Calculator/Resources/en-US/CEngineStrings.resw:416-418
 # E11: `0 ÷ 0` -> Result is undefined
 standard-066	standard		0 divide 0 equals	Result is undefined			src/CalcManager/Ratpack/rat.cpp:152-159 CALC_E_INDEFINITE -> src/Calculator/Resources/en-US/CEngineStrings.resw:128-130
-# keys after an error are ignored
-standard-067	standard		1 divide 0 equals 5 add	Cannot divide by zero			src/CalcManager/CEngine/scicomm.cpp:131-147 (in error only C / CE act)
+# a digit after an error clears it and starts a number (the app recovers)
+standard-067	standard		1 divide 0 equals 5 add	5			src/CalcManager/CEngine/scicomm.cpp:131-147 (in error only C / CE act); Calculator.ViewModels/StandardCalculatorViewModel.cs:1409-1420,1997-2012
 # C leaves the error state
 standard-068	standard		1 divide 0 equals clear 5	5			src/CalcManager/CEngine/scicomm.cpp:131-147 (in error only C / CE act)
 # CE acts as C in the error state
