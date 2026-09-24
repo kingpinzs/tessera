@@ -115,3 +115,8 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   5556 -> vmic5556, 5558 -> vmic5558, 5560 -> vmic.monitor. p15.sh now exports AUDIO_SINK=vmic<port> (T15-30: my
   drivers had been using the shared vmic). HAZARD for future provision.sh runs: audio.sh setup with SINK=vmic sets the
   desktop default source to vmic.monitor again — restore the BRIO afterwards.
+- 2026-09-24: E26's 8 remaining FAILs are the reply-AUDIBILITY half of phase 03's pass rule (capture of the emulator's own
+  output stream reads ~-115 dBFS; that stream is routed through EasyEffects' output processing, which re-routes it back if
+  moved; dumpsys audio shows Tess's USAGE_ASSISTANT track for every reply; the reply TEXT checks all pass). Asked whether to
+  add qemu-system-x86_64 to EasyEffects' [StreamOutputs] blocklist; Jeremy: "we are good here move on". Output side left
+  unchanged; the audibility assertions stay as FAILs with this reason (not bent).

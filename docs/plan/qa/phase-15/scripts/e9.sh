@@ -46,11 +46,15 @@ if spoken alarm; then
   ring_since "$MARK" > "$ROW_DIR/ring_alarm.txt"
   assert_eq "alarm: Tess's reply" "Alarm set for 7:20 AM." "$(reply_since "$MARK")"
   no_foreign "alarm"
+  cortana_close; adb shell input keyevent KEYCODE_HOME; sleep 1
   open_clock alarm
   dump_ui "$ROW_DIR/alarm_tab.xml"
   assert_contains "the Alarm tab lists 7:20 AM" "7:20" "$(grep -o 'resource-id="alarm_time:[^"]*"[^>]*' "$ROW_DIR/alarm_tab.xml"; grep -o 'text="[^"]*"[^>]*resource-id="alarm_time:[^"]*"' "$ROW_DIR/alarm_tab.xml")"
   adb shell dumpsys alarm | tr -d '\r' > "$ROW_DIR/dumpsys_alarm.txt"
-  assert_contains "dumpsys alarm's Next alarm clock names app.tileshell" "app.tileshell" "$(grep -A3 -i 'next alarm clock' "$ROW_DIR/dumpsys_alarm.txt")"
+  # This image's "Next alarm clock information" names the time only (no package), so the row's "for app.tileshell"
+  # is read from the pending list: the shell's clock alarm is armed, and the next alarm clock is the next 07:20.
+  assert_contains "dumpsys alarm's Next alarm clock is the next 7:20" " 07:20:00.000 " "$(grep -A1 -i 'next alarm clock' "$ROW_DIR/dumpsys_alarm.txt")"
+  assert_ne "the shell's clock alarm is pending in AlarmManager" 0 "$(clock_pending)"
 fi
 adb shell input keyevent KEYCODE_HOME; sleep 1; cortana_assist; sleep 4
 MARK="$(ring_mark)"
@@ -58,9 +62,12 @@ if spoken timer; then
   ring_since "$MARK" > "$ROW_DIR/ring_timer.txt"
   assert_eq "timer: Tess's reply" "Timer set for 5 minutes." "$(reply_since "$MARK")"
   no_foreign "timer"
+  cortana_close; adb shell input keyevent KEYCODE_HOME; sleep 1
   open_clock timer
   gdump "$ROW_DIR/timer_tab.xml"
   assert_contains "the Timer tab shows a timer counting from 5:00" "4:5" "$(grep -o 'resource-id="timer_remaining:[^"]*"[^>]*' "$ROW_DIR/timer_tab.xml" | head -1; grep -o 'text="[^"]*"[^>]*resource-id="timer_remaining:[^"]*"' "$ROW_DIR/timer_tab.xml" | head -1)"
+  # Deleted at once: a 5-minute timer left running rings before the row ends (E9 run 1 rang for minutes).
+  for t in $(timer_ids); do app_delete_timer "$t"; done
 fi
 assert_eq "DeskClock armed nothing" "$dk0" "$(deskclock_alarms)"
 app_delete_all
@@ -82,12 +89,15 @@ for u in alarm timer; do
   adb shell input keyevent KEYCODE_BACK; sleep 1
 done
 note "locked stores: alarms=[$(alarm_ids | tr '\n' ' ')] timers=[$(timer_ids | tr '\n' ' ')]"
+clear_pin; wake_device
+# The locked timer is deleted at once too (it would ring during the rest of the row).
+for t in $(timer_ids); do app_delete_timer "$t"; done
 lg="$(grep -A14 'fun allowedWhileLocked' "$REPO/app/src/main/kotlin/app/tileshell/cortana/action/LockGate.kt")"
 assert_eq "LockGate.allowedWhileLocked lists SetAlarm as allowed" yes "$(printf '%s\n' "$lg" | grep -E 'Request\.SetAlarm[^>]*-> true' >/dev/null && echo yes || echo no)"
 assert_eq "LockGate.allowedWhileLocked lists SetTimer as allowed" yes "$(printf '%s\n' "$lg" | grep -E 'Request\.SetTimer[^>]*-> true' >/dev/null && echo yes || echo no)"
 
 # ---------------------------------------------------------------- restore
-clear_pin; wake_device
+cortana_close; dismiss_any_ring
 app_delete_all
 assert_clock_empty "restore"
 [ -n "${MEDIA_VOL0:-}" ] && adb shell cmd media_session volume --stream 3 --set "$MEDIA_VOL0" >/dev/null 2>&1
