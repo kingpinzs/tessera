@@ -37,10 +37,14 @@ HOW THE EXPECTATIONS ARE MADE
     "<Windows string>.").
 
 FINDINGS THE TABLE ENCODES (they differ from phase-15 text; the source wins for what a key computes)
-  * "Result not defined" (CEngineStrings.resw:140-142, id 108 = IDS_ERRORS_FIRST 99 + SCODE_CODE(CALC_E_NORESULT 9),
-    CalcErr.h:87, scifunc.cpp:298) is produced by exactly one input family: a Programmer Lsh / Rsh whose shift count
-    is >= the word size (scioper.cpp:41-44, 65-68, 74-77). So E11's "1 Lsh 64 (QWORD) -> 0" is NOT what Windows
-    shows: it shows "Result not defined" (programmer lines below). A shift of 63 is the largest that gives a number.
+  * A Programmer Lsh / Rsh whose shift count is >= the word size moves every bit out. Windows throws CALC_E_NORESULT
+    there ("Result not defined") although the same lines say the result "is always 0" (scioper.cpp:41-44, 65-68,
+    74-77). The table gives the right answer, as E11 wrote it ("1 Lsh 64 (QWORD) -> 0"; ruling 2026-09-24, "what
+    ever is right and gives the right answer"): 0, and for an arithmetic Rsh of a negative value the sign fills every
+    bit, so -1. Those shifts were the only producer of "Result not defined" (CEngineStrings.resw:140-142, id 108 =
+    IDS_ERRORS_FIRST 99 + SCODE_CODE(CALC_E_NORESULT 9), CalcErr.h:87), so it is now unreachable by a fixture.
+  * Thirteen of the loader's converter factors are rounded, truncated or out of date (UnitConverterDataLoader.cs).
+    CONV below derives those from each unit's exact definition instead (same ruling).
   * "Not enough memory" (id 105) is unreachable by a fixture: CALC_E_OUTOFMEMORY is thrown only when zmalloc fails
     (Ratpack/conv.cpp:204-207, 237-240). It is left out.
   * In DEC BYTE the digits 2 5 5 cannot be typed (the third digit is refused: CalcInput.cpp:124-160 against
@@ -915,10 +919,10 @@ class Calc:
             elif op == IDC_XOR:
                 result = Fraction(int(trunc(result)) ^ int(trunc(rhs)))
             elif op == IDC_RSHF:
-                if self.fInt and result >= self.bits:
-                    raise CalcErr("NORESULT")
                 w = int(rhs)
                 msb = (w >> (self.bits - 1)) & 1
+                if self.fInt and result >= self.bits:  # every bit shifted out: the sign fills them
+                    return Fraction(self.chop) if msb else Fraction(0)
                 hold = result
                 result = trunc(rhs) / Fraction(2) ** int(hold)
                 if msb:
@@ -926,8 +930,8 @@ class Calc:
                     temp = trunc(Fraction(self.chop) / Fraction(2) ** int(hold))
                     result = Fraction(int(result) | (int(temp) ^ self.chop))
             elif op == IDC_LSHF:
-                if self.fInt and result >= self.bits:
-                    raise CalcErr("NORESULT")
+                if self.fInt and result >= self.bits:  # every bit shifted out
+                    return Fraction(0)
                 result = trunc(rhs) * Fraction(2) ** int(result)
             elif op == IDC_ADD:
                 result = M.add(result, rhs)
@@ -1403,33 +1407,43 @@ def run_keys(mode, keys, setup=""):
 # 5. Unit converter (CalcManager/UnitConverter.cpp, UnitConverterDataLoader.cs, UnitConverterViewModel.cs)
 # ----------------------------------------------------------------------------------------------------------------
 
+# Thirteen of the loader's literals are rounded, truncated or out of date; those entries are the units' exact
+# definitions, taken to the nearest double (ruling 2026-09-24). Mach is the ISA sea-level speed of sound, 340.294 m/s.
+_X = lambda s: Fraction(Decimal(s))
+_IN, _FT, _LB, _G0, _ATM = _X("0.0254"), _X("0.3048"), _X("0.45359237"), _X("9.80665"), Fraction(101325)
+_BTU = _X("1055.05585262")  # International Table BTU, J
+_FTLBF = _FT * _LB * _G0  # foot-pound force, J
+_RAD = float(mpmath.mpf(180) / mpmath.pi)  # degrees per radian, at mp.dps = 120
+EXACT_DEF = {"Cups (US)", "British thermal units", "Foot-pounds", "Knots", "Mach", "Miles per hour", "BTUs/minute",
+             "Foot-pounds/minute", "Kilopascals", "Millimeters of mercury", "Pounds per square inch", "Radians"}
+
 # name (Resources.resw en-US UnitName_*) -> factor (UnitConverterDataLoader.cs:476-667), per category
 CONV = {
     "Volume": {"Milliliters": 1, "Cubic centimeters": 1, "Liters": 1000, "Cubic meters": 1000000, "Teaspoons (US)": 4.92892159375,
-               "Tablespoons (US)": 14.78676478125, "Fluid ounces (US)": 29.5735295625, "Cups (US)": 236.588237,
+               "Tablespoons (US)": 14.78676478125, "Fluid ounces (US)": 29.5735295625, "Cups (US)": float(231 * (_IN * 100) ** 3 / 16),
                "Pints (US)": 473.176473, "Quarts (US)": 946.352946, "Gallons (US)": 3785.411784,
                "Cubic inches": 16.387064, "Cubic feet": 28316.846592, "Gallons (UK)": 4546.09},
     "Length": {"Inches": 0.0254, "Feet": 0.3048, "Yards": 0.9144, "Miles": 1609.344, "Millimeters": 0.001,
                "Centimeters": 0.01, "Meters": 1, "Kilometers": 1000, "Nautical miles": 1852},
     "Weight and Mass": {"Kilograms": 1, "Grams": 0.001, "Pounds": 0.45359237, "Ounces": 0.028349523125,
                         "Stone": 6.35029318, "Metric tonnes": 1000, "Carats": 0.0002},
-    "Energy": {"Thermal calories": 4.184, "Food calories": 4184, "British thermal units": 1055.056, "Kilojoules": 1000,
-               "Kilowatt-hours": 3600000, "Joules": 1, "Foot-pounds": 1.3558179483314},
+    "Energy": {"Thermal calories": 4.184, "Food calories": 4184, "British thermal units": float(_BTU), "Kilojoules": 1000,
+               "Kilowatt-hours": 3600000, "Joules": 1, "Foot-pounds": float(_FTLBF)},
     "Area": {"Acres": 4046.8564224, "Square meters": 1, "Square feet": 0.09290304, "Square yards": 0.83612736,
              "Square miles": 2589988.110336, "Square kilometers": 1000000, "Hectares": 10000},
     "Speed": {"Centimeters per second": 1, "Feet per second": 30.48, "Kilometers per hour": 27.777777777777777777778,
-              "Knots": 51.44, "Mach": 34030, "Meters per second": 100, "Miles per hour": 44.7},
+              "Knots": float(Fraction(185200, 3600)), "Mach": 34029.4, "Meters per second": 100, "Miles per hour": float(_X("1609.344") * 100 / 3600)},
     "Time": {"Days": 86400, "Seconds": 1, "Weeks": 604800, "Years": 31557600, "Milliseconds": 0.001,
              "Minutes": 60, "Hours": 3600},
-    "Power": {"BTUs/minute": 17.58426666666667, "Foot-pounds/minute": 0.0225969658055233, "Watts": 1, "Kilowatts": 1000,
+    "Power": {"BTUs/minute": float(_BTU / 60), "Foot-pounds/minute": float(_FTLBF / 60), "Watts": 1, "Kilowatts": 1000,
               "Horsepower (US)": 745.69987158227022},
     "Data": {"Bits": 0.000000125, "Nibble": 0.0000005, "Bytes": 0.000001, "Kilobytes": 0.001, "Megabytes": 1,
              "Gigabytes": 1000, "Terabytes": 1000000, "Kilobits": 0.000125, "Megabits": 0.125, "Gigabits": 125,
              "Kibibytes": 0.001024, "Mebibytes": 1.048576, "Gibibytes": 1073.741824},
-    "Pressure": {"Atmospheres": 1, "Bars": 0.9869232667160128, "Kilopascals": 0.0098692326671601,
-                 "Millimeters of mercury": 0.0013155687145324, "Pascals": 9.869232667160128e-6,
-                 "Pounds per square inch": 0.068045961016531},
-    "Angle": {"Degrees": 1, "Radians": 57.29577951308233, "Gradians": 0.9},
+    "Pressure": {"Atmospheres": 1, "Bars": 0.9869232667160128, "Kilopascals": float(1000 / _ATM),
+                 "Millimeters of mercury": float(_X("133.322387415") / _ATM), "Pascals": 9.869232667160128e-6,
+                 "Pounds per square inch": float(_LB * _G0 / _IN ** 2 / _ATM)},
+    "Angle": {"Degrees": 1, "Radians": _RAD, "Gradians": 0.9},
 }
 # Temperature: explicit (ratio, offset, offsetFirst) (UnitConverterDataLoader.cs:669-689)
 TEMP = {
@@ -1658,7 +1672,7 @@ C_WRAP = S + "CEngine/scidisp.cpp:54-76,106-110 (results wrap to the word size) 
 C_BITS = S + "CEngine/scioper.cpp:19-29 + Ratpack/logic.cpp:74-135"
 C_NOT = S + "CEngine/scifunc.cpp:38-48 (NOT = x XOR word mask)"
 C_SHIFT = S + "CEngine/scioper.cpp:39-80 + Ratpack/logic.cpp:20-62"
-C_NORES = S + "CEngine/scioper.cpp:73-77 CALC_E_NORESULT (Ratpack/CalcErr.h:87) -> src/Calculator/Resources/en-US/CEngineStrings.resw:140-142"
+C_SHIFTOUT = S + "CEngine/scioper.cpp:41,65,74 ('Lsh/Rsh >= than current word size is always 0'; the code throws CALC_E_NORESULT) + ruling 2026-09-24"
 C_ROT = S + "CEngine/scifunc.cpp:50-96 (RoL / RoR by one bit within the word)"
 C_PDIV = S + "CEngine/scioper.cpp:94-131 + CEngine/scidisp.cpp:106-110 (integer truncation)"
 C_PMOD = S + "CEngine/scioper.cpp:132-143 + Ratpack/logic.cpp:192-222 (remainder, sign of the dividend)"
@@ -1900,13 +1914,15 @@ PROGRAMMER = [
     ("5 Mod 0 -> Result is undefined", "radix=dec word=qword", K("5 mod 0 equals"), S + "Ratpack/logic.cpp:192-198 CALC_E_INDEFINITE -> src/Calculator/Resources/en-US/CEngineStrings.resw:128-130"),
     ("1 Lsh 4 = 16", "radix=dec word=qword", K("1 lsh 4 equals"), C_SHIFT),
     ("1 Lsh 63 sets the sign bit", "radix=dec word=qword", K("1 lsh 63 equals"), C_SHIFT + "; " + C_PROGFMT),
-    ("E11 wrote '1 Lsh 64 (QWORD) -> 0'; the source gives Result not defined (shift >= word size)", "radix=dec word=qword", K("1 lsh 64 equals"), C_NORES),
+    ("1 Lsh 64 (QWORD) -> 0 (E11)", "radix=dec word=qword", K("1 lsh 64 equals"), C_SHIFTOUT),
     ("BYTE 1 Lsh 7 = -128", "radix=dec word=byte", K("1 lsh 7 equals"), C_SHIFT + "; " + C_WRAP),
-    ("BYTE 1 Lsh 8 -> Result not defined", "radix=dec word=byte", K("1 lsh 8 equals"), C_NORES),
+    ("BYTE 1 Lsh 8 -> 0", "radix=dec word=byte", K("1 lsh 8 equals"), C_SHIFTOUT),
     ("16 Rsh 2 = 4", "radix=dec word=qword", K("16 rsh 2 equals"), C_SHIFT),
     ("Rsh is arithmetic: -16 Rsh 2 = -4", "radix=dec word=qword", K("16 negate rsh 2 equals"), C_SHIFT),
     ("WORD 8000 Rsh 4 = F800 (sign extended)", "radix=hex word=word", K("8000 rsh 4 equals"), C_SHIFT),
-    ("256 Rsh 64 -> Result not defined", "radix=dec word=qword", K("256 rsh 64 equals"), S + "CEngine/scioper.cpp:39-44 CALC_E_NORESULT -> src/Calculator/Resources/en-US/CEngineStrings.resw:140-142"),
+    ("256 Rsh 64 -> 0", "radix=dec word=qword", K("256 rsh 64 equals"), C_SHIFTOUT),
+    ("-256 Rsh 64 -> -1 (the sign fills every bit)", "radix=dec word=qword", K("256 negate rsh 64 equals"), C_SHIFTOUT),
+    ("WORD 8000 Rsh 10 (hex 16) -> FFFF", "radix=hex word=word", K("8000 rsh 10 equals"), C_SHIFTOUT),
     ("RoL (inv Lsh) 5 = 10", "radix=dec word=qword", K("5 inv lsh"), C_ROT),
     ("RoL in BYTE carries the top bit round: 81 -> 3", "radix=hex word=byte", K("81 inv lsh"), C_ROT),
     ("RoR (inv Rsh) in BYTE: 1 -> 80", "radix=hex word=byte", K("1 inv rsh"), C_ROT),
@@ -1946,7 +1962,7 @@ CONVERTER = [
     ("Area", "Acres", "Square meters", K("1"), ""),
     ("Area", "Hectares", "Acres", K("1"), ""),
     ("Area", "Square miles", "Square kilometers", K("1"), ""),
-    ("Speed", "Kilometers per hour", "Miles per hour", K("100"), "Windows' mph factor is 44.7 cm/s"),
+    ("Speed", "Kilometers per hour", "Miles per hour", K("100"), "mph is exactly 44.704 cm/s (Windows' 44.7 is rounded)"),
     ("Speed", "Meters per second", "Kilometers per hour", K("10"), ""),
     ("Speed", "Knots", "Kilometers per hour", K("1"), ""),
     ("Time", "Days", "Hours", K("1"), ""),
@@ -2093,6 +2109,9 @@ def build():
             cite = C_UC + "; " + C_UCT + ":669-689 (explicit ratio/offset)"
         else:
             cite = C_UC + "; " + C_UCT + ":%d (ratio = from / to factor, :740-757)" % FACTOR_LINE[cat]
+            fixed = [u for u in (frm, to) if u in EXACT_DEF]
+            if fixed:
+                cite += "; %s: exact definition, not the loader's literal (ruling 2026-09-24)" % " and ".join(fixed)
         setup = "category=%s from=%s to=%s" % (cat, frm, to)
         assert all(k in VOCAB["converter"] for k in keys.split()), keys
         add("converter", setup, keys, converter_display(cat, frm, to, keys), cite, note or "%s -> %s" % (frm, to))
@@ -2151,7 +2170,8 @@ def self_check(rows):
     chk("programmer", "radix=hex word=byte", K("FF add 1 equals"), "0")
     chk("programmer", "radix=dec word=qword", K("1 negate radix_hex"), "FFFF FFFF FFFF FFFF")
     chk("programmer", "radix=hex word=word", K("0 not"), "FFFF")
-    chk("programmer", "radix=dec word=qword", K("1 lsh 64 equals"), "Result not defined")  # E11 says 0; source wins
+    chk("programmer", "radix=dec word=qword", K("1 lsh 64 equals"), "0")
+    chk("programmer", "radix=dec word=qword", K("256 negate rsh 64 equals"), "-1")
     chk("converter", "category=Length from=Miles to=Kilometers", "1", "1.609344")
     chk("converter", "category=Temperature from=Celsius to=Fahrenheit", K("100"), "212")
     assert tess["what is fifteen percent of eighty"] == "15 % of 80 is 12.", tess["what is fifteen percent of eighty"]
@@ -2203,7 +2223,7 @@ def main():
     print("wrote %s" % OUT)
     print("cases: %d total -- %s" % (len(rows), ", ".join("%s %d" % (m, counts.get(m, 0)) for m in
                                                              ("standard", "scientific", "programmer", "converter", "date", "tess"))))
-    print("self-checks: E11/E12/E26 named expectations pass (E11 '1 Lsh 64 -> 0' asserted as the source's 'Result not defined')")
+    print("self-checks: E11/E12/E26 named expectations pass")
     return 0
 
 

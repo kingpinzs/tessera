@@ -52,7 +52,7 @@ sleep 1
 dump_ui "$ROW_DIR/after_equals.xml"
 assert_eq "12+3 pasted, then =, is 15" 15 "$(node_text "$ROW_DIR/after_equals.xml" calc_display)"
 
-record "Result not defined" "produced by Programmer 1 lsh 64 = (QWORD), scioper.cpp:73-77 (oracle programmer lines)"
+record "Result not defined" "not reachable by a fixture: its only producer, a Lsh / Rsh of the word size or more (scioper.cpp:41-44, 65-68, 74-77), gives the right answer instead (0, or -1 for an arithmetic Rsh of a negative; ruling 2026-09-24)"
 record "Not enough memory" "not reachable by a fixture: thrown only when allocation fails (conv.cpp:204-207, 237-240)"
 
 # Restore (RV12): memory and history cleared, the fixture app stopped, Home.
