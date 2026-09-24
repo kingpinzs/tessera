@@ -112,13 +112,70 @@ dump_ui "$ROW_DIR/conv_first.xml"
 assert_eq "after pm clear the converter opens on Volume" VOLUME "$(node_text "$ROW_DIR/conv_first.xml" calc_title)"
 
 # ---------------------------------------------------------------- the burst half (phase 11)
-if unzip -p "$APK" 'classes*.dex' 2>/dev/null | grep -aq 'quick_sat_label'; then
-  note "this build has phase 11's burst: run the burst half here (rebased main)"
-  _verdict FAIL "burst half" "NOT WRITTEN: this driver's burst steps are added when the branch is rebased onto phase 11"
-else
+# Phase 11 E3's method through its own helpers (q.sh: the no-idle dump, the hold, the [quick] slice, C-6's force-stop
+# and Home after a launch). Each pinned tile bursts its app's shortcuts in rank order with the activity-keyed line
+# naming only that activity's ids (T11-12), and each satellite opens its page.
+# Counted, not grep -q: under pipefail a grep that stops at its first match kills unzip with SIGPIPE, and the pipeline
+# then "fails" on a build that HAS the burst (E27's first rebased run said NOT RUN).
+if [ "$(unzip -p "$APK" 'classes*.dex' 2>/dev/null | grep -ac 'quick_sat_label')" = 0 ]; then
   for t in "Alarms & Clock" Calculator "Voice Recorder"; do
     _verdict FAIL "$t: burst satellites and the [quick] shortcuts line" "NOT RUN: this build has no phase 11 burst (T15-21: the burst half runs on the rebased main)"
   done
+else
+  . "$QROOT/phase-11/scripts/q.sh"
+  layout_restore "$P15/baseline_layout.json"
+  burst() { # tile-id tag -> held dump at $ROW_DIR/burst_<tag>.xml
+    local X Y
+    adb shell am force-stop app.tileshell; adb shell input keyevent KEYCODE_HOME; sleep 3
+    qdump "$ROW_DIR/burst_$2-rest.xml"
+    read -r X Y <<< "$(center "$ROW_DIR/burst_$2-rest.xml" "tile:$1")"
+    hold_down "$X" "$Y"; sleep 1.0; qdump "$ROW_DIR/burst_$2.xml"; hold_up "$X" "$Y"; sleep 0.8
+  }
+  declare -A TILE=( [clock]="app:app.tileshell/app.tileshell.clock.ClockActivity:0" [calc]="app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0" [rec]="app:app.tileshell/app.tileshell.recorder.RecorderActivity:0" )
+  declare -A LABELS=( [clock]="Alarm,Timer,Stopwatch,World Clock," [calc]="Standard,Scientific,Programmer,Converter," [rec]="New recording,Recordings," )
+  declare -A LINE=( [clock]="[quick] shortcuts for app.tileshell/.clock.ClockActivity/0: 4 (4 shown: alarm,timer,stopwatch,world_clock)"
+    [calc]="[quick] shortcuts for app.tileshell/.calculator.CalculatorActivity/0: 4 (4 shown: standard,scientific,programmer,converter)"
+    [rec]="[quick] shortcuts for app.tileshell/.recorder.RecorderActivity/0: 2 (2 shown: new_recording,recordings)" )
+  declare -A IDS=( [clock]="alarm timer stopwatch world_clock" [calc]="standard scientific programmer converter" [rec]="new_recording recordings" )
+  for k in clock calc rec; do
+    n=$(echo "${IDS[$k]}" | wc -w)
+    MARK="$(ring_mark)"; burst "${TILE[$k]}" "$k"
+    got="$(for i in $(seq 0 $((n - 1))); do node_text "$ROW_DIR/burst_$k.xml" "quick_sat_label:$i"; done | tr '\n' ',')"
+    assert_eq "$k: satellites' labels in rank order" "${LABELS[$k]}" "$got"
+    [ "$k" = rec ] && assert_eq "rec: no third satellite" no "$(has_node "$ROW_DIR/burst_$k.xml" quick_sat_label:2)"
+    S="$(quick_since "$MARK")"
+    assert_contains "$k: the activity-keyed shortcuts line (T11-12)" "${LINE[$k]}" "$S"
+    for other in clock calc rec music; do
+      [ "$other" = "$k" ] && continue
+      case "$other" in clock) a=.clock.ClockActivity ;; calc) a=.calculator.CalculatorActivity ;; rec) a=.recorder.RecorderActivity ;; music) a=.music.MusicActivity ;; esac
+      assert_absent "$k: its burst names no $other shortcut" "shortcuts for app.tileshell/$a" "$S"
+    done
+    i=0
+    for id in ${IDS[$k]}; do
+      [ "$i" -gt 0 ] && burst "${TILE[$k]}" "$k-$i"
+      d="$ROW_DIR/burst_$k.xml"; [ "$i" -gt 0 ] && d="$ROW_DIR/burst_$k-$i.xml"
+      [ "$id" = new_recording ] && rb="$(adb shell content query --uri content://media/external/audio/media --projection _id --where "\"is_recording=1\"" | tr -d '\r' | grep -c '_id=')"
+      tap_node "$d" "quick_sat:$i"; sleep 3.5
+      qdump "$ROW_DIR/landed_$id.xml"
+      tag="${PAGE_TAG[$id]}"
+      case "$k" in clock) act=.clock.ClockActivity ;; calc) act=.calculator.CalculatorActivity ;; rec) act=.recorder.RecorderActivity ;; esac
+      assert_contains "$id: the satellite resumed its app" "app.tileshell/$act" "$(resumed)"
+      if [ "$k" = rec ]; then
+        assert_eq "$id: $tag is the page shown" yes "$(has_node "$ROW_DIR/landed_$id.xml" "$tag")"
+      else
+        assert_eq "$id: $tag selected" yes "$(python3 -c '
+import re, sys
+x = open(sys.argv[1]).read()
+m = re.search(r"<node [^>]*resource-id=\"%s\"[^>]*>" % re.escape(sys.argv[2]), x)
+print("yes" if m and re.search(r"(selected|checked)=\"true\"", m.group(0)) else "no")' "$ROW_DIR/landed_$id.xml" "$tag")"
+      fi
+      if [ "$id" = new_recording ]; then
+        assert_eq "new_recording started no take (is_recording count unchanged)" "$rb" "$(adb shell content query --uri content://media/external/audio/media --projection _id --where "\"is_recording=1\"" | tr -d '\r' | grep -c '_id=')"
+      fi
+      i=$((i + 1))
+    done
+  done
+  adb shell am force-stop app.tileshell; adb shell input keyevent KEYCODE_HOME; sleep 2
 fi
 
 # ---------------------------------------------------------------- restore
