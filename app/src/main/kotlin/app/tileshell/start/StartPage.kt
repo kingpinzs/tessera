@@ -741,7 +741,10 @@ private fun QuickOpener(edit: StartEditState, geoState: androidx.compose.runtime
                 val geo = geoState.value
                 val page = quickPageArea(geo, widthPx)
                 val rest = quickRestRect(p.key, geo, scroll.value, widthPx)
-                if (rest == null || !rest.intersects(page)) {
+                val inRow = p.key in geo.dockKeys
+                // The bottom tile row is always on screen; it lies below the satellites' clamp area by design, so
+                // only a grid or band tile is tested against it (E7 found every row tile read "off screen").
+                if (rest == null || (!inRow && !rest.intersects(page))) {
                     // Since J4 only the promoted tile can be held with its grid cell off the page (T11-27).
                     Diagnostics.add("quick", "no burst on ${p.key.id}: ${NoBurstReason.OFF_SCREEN}")
                     return@LaunchedEffect
@@ -754,7 +757,7 @@ private fun QuickOpener(edit: StartEditState, geoState: androidx.compose.runtime
                     standOffPx = Edit.px(QUICK_STANDOFF_EPX, widthPx),
                     gutterPx = geo.grid.gutterPx,
                     labelHeightPx = Edit.px(QUICK_LABEL_LINE_EPX, widthPx),
-                    inBottomRow = p.key in geo.dockKeys,
+                    inBottomRow = inRow,
                 )
                 edit.quick.open(OpenBurst(p.key, result.satellites, layout, rest))
                 Diagnostics.add("quick", "burst on ${p.key.id}: ${result.satellites.size} satellites")
