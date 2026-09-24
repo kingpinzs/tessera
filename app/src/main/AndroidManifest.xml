@@ -438,5 +438,31 @@
             android:process=":recorder"
             android:exported="false"
             android:foregroundServiceType="microphone" />
+
+        <!-- ===== Phase 15: Calculator (build task 6) ===== -->
+
+        <!--
+          Calculator: an app in the app list like Music, with its own task. Exported only because it is a
+          launcher activity. Its icon's monochrome layer is its static Start tile (the Calculator glyph).
+          The App Shortcuts' "page" extra (build task 9) only picks the page shown.
+        -->
+        <activity
+            android:name=".calculator.CalculatorActivity"
+            android:exported="true"
+            android:label="@string/calculator_name"
+            android:icon="@drawable/ic_calculator"
+            android:taskAffinity="app.tileshell.calculator"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.APP_CALCULATOR" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts_calculator" />
+        </activity>
     </application>
 </manifest>
