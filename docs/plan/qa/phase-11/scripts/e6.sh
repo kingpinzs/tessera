@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# E6 — the motion, on the shell's own clock (C-5, T11-5, T11-29, C-31). Every warm open is asserted as it is taken:
+# E6 — the motion, on the shell's own clock (C-5, T11-5, T11-29, C-31). The clock is never read while the recorder
+# runs: pass 4 logged an 83-ms frame gap on the shell's own clock in a warm open recorded under screenrecord, where ten
+# unrecorded-era opens had stayed ≤ 33.3 — the corroborating instrument perturbed what it corroborates. So part 1
+# asserts five warm opens with nothing recording, and part 2 records separate opens for frame spacing only, their
+# shell-clock numbers noted, not asserted (method re-cut 2026-09-24, INDEX Change Log). Every part-1 open is asserted:
 # peak, overshoot, maxGapMs, and settle ≤ 249.1 ms (the spring's own settle for this travel) + that open's largest
 # frame gap — the settle frame is the first frame at or after 249.1 ms, so its bound follows the spacing C-31 already
 # bounds (gate review G-E6-2; INDEX Change Log). The alignment is on the same clock: the burst's t0 against the edit
@@ -10,7 +14,7 @@
 # on the phone. Before every attempt Start must be in front: an "isn't responding" dialog fails the attempt and its
 # trace is saved (G-E6-3; L11-2).
 . "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/q.sh"
-row_begin E6 "motion on the shell's clock, every warm open asserted; alignment on the same clock; recording spacing"
+row_begin E6 "motion on the shell's clock (5 warm opens, nothing recording, all asserted); a recorded open's spacing"
 seed_fixtures
 restore baseline_layout.json
 qdump "$ROW_DIR/rest.xml"
@@ -53,7 +57,20 @@ MARK="$(ring_mark)"; hold "$X" "$Y" 1.0; sleep 0.8
 note "cold: $(quick_since "$MARK" | grep 'motion open' | sed 's/.*\[quick\]/[quick]/')"
 exit_edit
 
-log "--- warm opens: every one asserted; the recording retaken (up to 10) until its spacing passes ---"
+log "--- part 1: five warm opens on the shell's clock, nothing recording; every one asserted ---"
+for n in 1 2 3 4 5; do
+  front_ok "open$n" || { exit_edit; continue; }
+  MARK="$(ring_mark)"; hold "$X" "$Y" 1.0; sleep 0.6
+  S="$(ring_since "$MARK")"
+  OPEN="$(echo "$S" | grep "\[quick\] motion open $A_KEY")"
+  ENTRY="$(echo "$S" | sed -n 's/.*\[edit\] entry first frame at uptime=\([0-9]*\).*/\1/p' | head -1)"
+  note "open $n: ${OPEN#*\[quick\] } | entry first frame $ENTRY"
+  assert_eq "open $n: one open line" 1 "$(printf '%s\n' "$OPEN" | grep -c 'motion open')"
+  check_open "open $n" "$OPEN" "$ENTRY"
+  exit_edit
+done
+
+log "--- part 2: recorded opens (540x1170) for frame spacing only, retaken up to 10; their clock numbers noted ---"
 ACCEPT=""
 for attempt in 1 2 3 4 5 6 7 8 9 10; do
   front_ok "attempt$attempt" || { exit_edit; continue; }
@@ -64,12 +81,7 @@ for attempt in 1 2 3 4 5 6 7 8 9 10; do
   MARK="$(ring_mark)"; hold "$X" "$Y" 1.0
   wait "$REC"; adb pull /sdcard/Download/e6.mp4 "$ROW_DIR/open-$attempt.mp4" >/dev/null 2>&1
   sleep 0.5
-  S="$(ring_since "$MARK")"
-  OPEN="$(echo "$S" | grep "\[quick\] motion open $A_KEY")"
-  ENTRY="$(echo "$S" | sed -n 's/.*\[edit\] entry first frame at uptime=\([0-9]*\).*/\1/p' | head -1)"
-  note "attempt $attempt: ${OPEN#*\[quick\] } | entry first frame $ENTRY"
-  assert_eq "attempt $attempt: one open line" 1 "$(printf '%s\n' "$OPEN" | grep -c 'motion open')"
-  check_open "attempt $attempt" "$OPEN" "$ENTRY"
+  note "recorded attempt $attempt (not asserted): $(ring_since "$MARK" | grep "motion open $A_KEY" | sed 's/.*\[quick\] //')"
   qdump "$ROW_DIR/burst-$attempt.xml"
   TILE="$(bounds "$ROW_DIR/burst-$attempt.xml" "tile:$A_KEY" | tr ' ' ',')"
   ffprobe -v error -select_streams v:0 -show_entries frame=best_effort_timestamp_time -of csv=p=0 "$ROW_DIR/open-$attempt.mp4" | tr -d ',' > "$ROW_DIR/open-$attempt.pts"
