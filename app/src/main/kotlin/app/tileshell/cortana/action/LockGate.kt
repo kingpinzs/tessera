@@ -23,7 +23,7 @@ object LockGate {
      *
      * The rule is what the command touches, not how harmless it sounds: anything that opens an app or
      * reads or writes personal data is gated. Alarms and timers are allowed because they are set
-     * without any UI (`EXTRA_SKIP_UI` on a voice activity from the session), and music because it goes
+     * in-process in the shell's own Alarms & Clock (phase 15 Q1 A, T15-6), and music because it goes
      * to a media session, so neither has to show an activity over the keyguard.
      */
     fun allowedWhileLocked(request: Request): Boolean = when (request) {
