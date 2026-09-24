@@ -90,4 +90,19 @@ object Glyph {
     const val FLAG_FILLED = "\ue8b6"
     const val SHARE = "\uf023"
     const val CUT = "\ue617"
+
+    // Phase 15 (Alarms & Clock, build task 4). Same font, same source: Fluent UI System Icons resizable, MIT;
+    // code points read from the shipped TTF's cmap (ic_fluent_<name>_20_regular). Each stands in for the Segoe
+    // MDL2 glyph r11/clock.md's "Segoe MDL2 glyphs" table names.
+    const val PIN = "\uee75"                 // Pin E718 \u2014 the Timer / Stopwatch app bars
+    const val MULTISELECT = "\uec8a"         // MultiSelect E762 \u2014 Select on the Alarm / Timer app bars
+    const val CHECKBOX_CHECKED = "\ue454"    // CheckboxComposite E73A \u2014 the days flyout, Select rows
+    const val EXPAND = "\ue951"              // FullScreen E740 \u2014 the expanded timer / stopwatch view
+    const val COLLAPSE = "\ue953"            // BackToWindow E73F \u2014 collapse on the expanded page
+    const val RESET = "\ue13f"               // Refresh E72C's closest match \u2014 timer / stopwatch reset
+    const val CHEVRON_LEFT = "\ue48c"        // ChevronLeft E76B \u2014 the compare strip
+    const val VIBRATE = "\uee67"             // Vibrate E877 \u2014 "Vibrate only"
+    const val BELL = "\ue02b"                // Ringer EA8F \u2014 the Sound value, the tile badge
+    const val GLOBE_CLOCK = "\ue9a3"         // the World Clock tab (no public MDL2 name \u2014 "globe with clock")
+    const val HOURGLASS = "\uea48"           // the Timer tab (approximation: W10M drew a crowned clock face, which is [TIMER]'s shape and the Stopwatch tab's)
 }
