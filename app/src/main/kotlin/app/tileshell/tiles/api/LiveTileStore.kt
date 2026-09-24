@@ -194,8 +194,9 @@ class LiveTileStore private constructor(private val context: Context) {
         val dir = ownerDir(pkg)
         val existed = dir.exists()
         dir.deleteRecursively()
-        // The API's own slot only: notifications or a playing session keep showing (L11-1).
-        LiveTileEngine.publishPackage(pkg, PackageSource.API, null)
+        // A wipe means the package as we knew it is gone (uninstalled, or its install identity changed): nothing of it
+        // keeps showing, from any producer, so a reinstall inherits nothing (the L11-1 fix review, F-2).
+        LiveTileEngine.forgetPackage(pkg)
         BadgeStore.set(pkg, BadgeStore.Source.API, 0)
         // A secondary tile's content and badge hang off their own keys; the owner's tiles go with the owner (R5 §1.9).
         for (tileId in secondaryIds) {

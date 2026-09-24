@@ -1,7 +1,9 @@
 package app.tileshell.tiles.engine
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** L11-1 (Jeremy "(a)", 2026-09-24): a playing session > the API queue > notifications > a paused track. */
@@ -51,6 +53,57 @@ class TileSourcePrecedenceTest {
         LiveTileEngine.publishPackage(pkg, PackageSource.NOTIFICATIONS, null)    // the message goes: the paused track
         assertEquals(paused, LiveTileEngine.content.value[LiveTileEngine.packageKey(pkg)])
         LiveTileEngine.publishPackage(pkg, PackageSource.MUSIC, null)
+        assertNull(LiveTileEngine.content.value[LiveTileEngine.packageKey(pkg)])
+    }
+
+    /** F-4: "playing" is a front NowPlaying face whose playing is true — a front face alone is not. */
+    @Test fun aFrontFaceThatIsNotPlayingIsNotPlaying() {
+        assertFalse(TileSourcePrecedence.playing(TileContent(emptyList(), front = TileFace.NowPlaying(null, "S", "A", playing = false))))
+        assertFalse(TileSourcePrecedence.playing(paused))
+        assertTrue(TileSourcePrecedence.playing(playing))
+    }
+
+    /** F-5 (i): the API queue clearing lets the notification show again (row (a) of the device gate, on the JVM). */
+    @Test fun theApiClearingFallsBackToNotifications() {
+        val pkg = "test.l11_1.apiclear"
+        LiveTileEngine.publishPackage(pkg, PackageSource.NOTIFICATIONS, notif)
+        LiveTileEngine.publishPackage(pkg, PackageSource.API, api)
+        assertEquals(api, LiveTileEngine.content.value[LiveTileEngine.packageKey(pkg)])
+        LiveTileEngine.publishPackage(pkg, PackageSource.API, null)
+        assertEquals(notif, LiveTileEngine.content.value[LiveTileEngine.packageKey(pkg)])
+    }
+
+    /** F-5 (ii): content with no faces and no front clears that source, as a null does. */
+    @Test fun emptyContentClearsItsSource() {
+        val pkg = "test.l11_1.empty"
+        LiveTileEngine.publishPackage(pkg, PackageSource.NOTIFICATIONS, notif)
+        LiveTileEngine.publishPackage(pkg, PackageSource.API, api)
+        LiveTileEngine.publishPackage(pkg, PackageSource.API, TileContent(emptyList()))
+        assertEquals(notif, LiveTileEngine.content.value[LiveTileEngine.packageKey(pkg)])
+    }
+
+    /** F-1: a key the arbiter never held — a secondary tile's — survives a producer clearing that "package". */
+    @Test fun aSecondaryTilesKeyIsNeverClearedByTheArbiter() {
+        LiveTileEngine.publish("pkg:test.owner#t1", api)
+        LiveTileEngine.publishPackage("test.owner#t1", PackageSource.NOTIFICATIONS, null)
+        assertEquals(api, LiveTileEngine.content.value["pkg:test.owner#t1"])
+        assertFalse("test.owner#t1" in LiveTileEngine.packages())
+    }
+
+    /** F-2: a forgotten package keeps nothing from any source, and its producers are told. */
+    @Test fun aForgottenPackageKeepsNothing() {
+        val pkg = "test.l11_1.gone"
+        val told = ArrayList<String>()
+        LiveTileEngine.addForgetListener { told += it }
+        LiveTileEngine.publishPackage(pkg, PackageSource.MUSIC, paused)
+        LiveTileEngine.publishPackage(pkg, PackageSource.NOTIFICATIONS, notif)
+        LiveTileEngine.forgetPackage(pkg)
+        assertNull(LiveTileEngine.content.value[LiveTileEngine.packageKey(pkg)])
+        assertFalse(pkg in LiveTileEngine.packages())
+        assertTrue(pkg in told)
+        // A later notification for a reinstalled package starts from nothing: the old paused face does not come back.
+        LiveTileEngine.publishPackage(pkg, PackageSource.NOTIFICATIONS, notif)
+        LiveTileEngine.publishPackage(pkg, PackageSource.NOTIFICATIONS, null)
         assertNull(LiveTileEngine.content.value[LiveTileEngine.packageKey(pkg)])
     }
 }
