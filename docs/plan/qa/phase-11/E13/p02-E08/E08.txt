@@ -1,39 +1,39 @@
-# E8 2026-09-24T09:42:25-06:00
-build guard: built=8e2f64795bb72956e06a6281d2459402 installed=8e2f64795bb72956e06a6281d2459402
+# E8 2026-09-24T13:03:39-06:00
+build guard: built=114511e7de8bb2e08b13c908fd9a3386 installed=114511e7de8bb2e08b13c908fd9a3386
 driver: e8.sh blob 90a30e618c6fdc5026f2b96e6574fd016cfc0210
 A = shell:settings (last), B = slot:PEOPLE (first), untouched witness = slot:CALENDAR
 --- e8a_folder: shell:settings -> slot:PEOPLE, holding ~800 ms over it ---
-    held 1324 ms over the target before the release (dwell is 2000 ms)
+    held 1289 ms over the target before the release (dwell is 2000 ms)
 PASS  a folder was created (found [folder:])
 PASS  the folder holds the target and the dragged tile (= slot:PEOPLE shell:settings)
 PASS  it sits in the target's place (= folder:f1)
 PASS  no other tile moved: slot:CALENDAR bounds (= 9 439 708 782)
 --- e8b_reflow: shell:settings -> slot:PEOPLE, holding ~2600 ms over it ---
-    held 3285 ms over the target before the release (dwell is 2000 ms)
+    held 3243 ms over the target before the release (dwell is 2000 ms)
 PASS  no folder was made (= 0)
 PASS  the dragged tile took the target's cell (= shell:settings)
 PASS  every tile is still there (= 10)
 --- e8_makefolder: shell:settings -> slot:PEOPLE, holding ~800 ms over it ---
-    held 1336 ms over the target before the release (dwell is 2000 ms)
+    held 1324 ms over the target before the release (dwell is 2000 ms)
 --- e8c_addtofolder: slot:MUSIC -> folder:f1, holding ~800 ms over it ---
-    held 1322 ms over the target before the release (dwell is 2000 ms)
+    held 1323 ms over the target before the release (dwell is 2000 ms)
 PASS  the dragged tile joined the folder (= slot:PEOPLE shell:settings slot:MUSIC)
 PASS  still exactly one folder (= 1)
 --- e8d_folderreflow: slot:MUSIC -> folder:f1, holding ~2600 ms over it ---
-    held 3253 ms over the target before the release (dwell is 2000 ms)
+    held 3277 ms over the target before the release (dwell is 2000 ms)
 PASS  past the dwell the folder made room instead (= slot:PEOPLE shell:settings)
 PASS  and the dragged tile took its cell (= slot:MUSIC)
 --- e8e_nonesting: folder:f1 -> slot:BROWSER, holding ~2600 ms over it ---
-    held 3242 ms over the target before the release (dwell is 2000 ms)
+    held 3238 ms over the target before the release (dwell is 2000 ms)
 PASS  the folder survived the move with its members (= slot:PEOPLE shell:settings)
 PASS  no second folder appeared (= 1)
 --- building a SECOND folder from slot:BROWSER + slot:MAIL ---
 --- e8_makefolder2: slot:MAIL -> slot:BROWSER, holding ~800 ms over it ---
-    held 1302 ms over the target before the release (dwell is 2000 ms)
+    held 1313 ms over the target before the release (dwell is 2000 ms)
 PASS  two folders now exist (= 2)
 folders: folder:f1=[slot:PEOPLE shell:settings]  folder:f2=[slot:BROWSER slot:MAIL]
 --- e8f_folder_on_folder: folder:f2 -> folder:f1, holding ~2600 ms over it ---
-    held 3266 ms over the target before the release (dwell is 2000 ms)
+    held 3245 ms over the target before the release (dwell is 2000 ms)
 PASS  folder A kept exactly its members (= slot:PEOPLE shell:settings)
 PASS  folder B kept exactly its members (= slot:BROWSER slot:MAIL)
 PASS  still two folders, neither inside the other (= 2)

@@ -1,55 +1,46 @@
-── E6 motion on the shell's clock, every warm open asserted; alignment on the same clock; recording spacing
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 39.7 MB/s (1390 bytes in 0.000s)
+── E6 motion on the shell's clock (5 warm opens, nothing recording, all asserted); a recorded open's spacing
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 8.1 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- cold (recorded, not asserted): the first hold after the shell started ---
---- warm opens: every one asserted; the recording retaken (up to 10) until its spacing passes ---
-PASS  attempt 1: one open line                                    = 1
-PASS  attempt 1: peak 107 ± 17 ms                                100.00 vs 107.00 +/- 17.0
-PASS  attempt 1: overshoot 6.8 ± 2 %                             6.50 vs 6.80 +/- 2.0
-PASS  attempt 1: maxGapMs ≤ 33.4 (C-31)                         33.30 vs 16.70 +/- 16.7
-PASS  attempt 1: settle ≤ 249.1 + maxGapMs + 1 = 283.4 ms (T11-29, G-E6-2)  266.00 vs 141.70 +/- 141.7
-PASS  attempt 1: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
-[image2 @ 0x588f96d9dfc0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 122 >= 122
-[image2 @ 0x588f96d9dfc0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 181 >= 181
-PASS  attempt 2: one open line                                    = 1
-PASS  attempt 2: peak 107 ± 17 ms                                100.00 vs 107.00 +/- 17.0
-PASS  attempt 2: overshoot 6.8 ± 2 %                             6.50 vs 6.80 +/- 2.0
-FAIL  attempt 2: maxGapMs ≤ 33.4 (C-31)                         83.30 vs 16.70 +/- 16.7
-PASS  attempt 2: settle ≤ 249.1 + maxGapMs + 1 = 333.4 ms (T11-29, G-E6-2)  266.00 vs 166.70 +/- 166.7
-PASS  attempt 2: burst t0 within one frame of the entry's first frame (C-5)  16.00 vs 0.00 +/- 17.0
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 10 >= 10
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 16 >= 16
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 22 >= 22
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 28 >= 28
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 40 >= 40
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 42 >= 42
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 52 >= 52
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 172 >= 172
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 188 >= 188
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 190 >= 190
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 197 >= 197
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 214 >= 214
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 222 >= 222
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 228 >= 228
-[image2 @ 0x613a3ea805c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 232 >= 232
-PASS  attempt 3: one open line                                    = 1
-PASS  attempt 3: peak 107 ± 17 ms                                100.00 vs 107.00 +/- 17.0
-PASS  attempt 3: overshoot 6.8 ± 2 %                             6.50 vs 6.80 +/- 2.0
-PASS  attempt 3: maxGapMs ≤ 33.4 (C-31)                         16.70 vs 16.70 +/- 16.7
-PASS  attempt 3: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
-PASS  attempt 3: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
-[image2 @ 0x58672700de00] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 21 >= 21
-PASS  attempt 4: one open line                                    = 1
-PASS  attempt 4: peak 107 ± 17 ms                                100.00 vs 107.00 +/- 17.0
-PASS  attempt 4: overshoot 6.8 ± 2 %                             6.50 vs 6.80 +/- 2.0
-PASS  attempt 4: maxGapMs ≤ 33.4 (C-31)                         16.70 vs 16.70 +/- 16.7
-PASS  attempt 4: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
-PASS  attempt 4: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
-[image2 @ 0x5ee32786b280] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 2 >= 2
+--- part 1: five warm opens on the shell's clock, nothing recording; every one asserted ---
+PASS  open 1: one open line                                       = 1
+PASS  open 1: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
+PASS  open 1: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
+PASS  open 1: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
+PASS  open 1: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  open 1: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
+PASS  open 2: one open line                                       = 1
+PASS  open 2: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
+PASS  open 2: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
+PASS  open 2: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
+PASS  open 2: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  open 2: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
+PASS  open 3: one open line                                       = 1
+PASS  open 3: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
+PASS  open 3: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
+PASS  open 3: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
+PASS  open 3: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  open 3: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
+PASS  open 4: one open line                                       = 1
+PASS  open 4: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
+PASS  open 4: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
+PASS  open 4: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
+PASS  open 4: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  open 4: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
+PASS  open 5: one open line                                       = 1
+PASS  open 5: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
+PASS  open 5: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
+PASS  open 5: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
+PASS  open 5: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  open 5: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
+--- part 2: recorded opens (540x1170) for frame spacing only, retaken up to 10; their clock numbers noted ---
+[image2 @ 0x5a63e32daec0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 134 >= 134
+[image2 @ 0x5af863574100] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 1 >= 1
+[image2 @ 0x64b340ed1800] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 1 >= 1
 PASS  a recording within phase 05's spacing rule (source frames ≤ 18.2 ms apart during the motion)  != 
 --- the close: a fresh burst, then a tap elsewhere ---
 PASS  close alpha0 36 ± 17 ms (the halfway at 36.0 ms)           50.00 vs 36.00 +/- 17.0
 PASS  close settle = alpha0 ± 17 ms (gone at alpha 0)            50.00 vs 50.00 +/- 17.0
 PASS  close maxGapMs ≤ 33.4 (C-31)                              16.70 vs 16.70 +/- 16.7
-   E6: 29 passed, 1 failed
+   E6: 36 passed, 0 failed
