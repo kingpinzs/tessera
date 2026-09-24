@@ -12,9 +12,7 @@ log "--- 740 ms: a tap (the fixture app launches, no hold, no burst) ---"
 MARK="$(ring_mark)"
 adb shell input swipe "$cx" "$cy" "$cx" "$cy" 740; sleep 2.5
 assert_contains "the fixture app launched" "$A_PKG/" "$(resumed)"
-qdump "$ROW_DIR/t740.xml"
-assert_eq "no quick_burst" no "$(has_node "$ROW_DIR/t740.xml" quick_burst)"
-assert_eq "no edit_disc" no "$(grep -q 'resource-id="edit_disc' "$ROW_DIR/t740.xml" && echo yes || echo no)"
+# (A dump here would show the fixture app, so it could not fail: the ring slice carries this sub-step, G-E2-1.)
 S="$(ring_since "$MARK")"
 assert_absent "ring: no [quick] burst on (T11-45)" "[quick] burst on" "$S"
 assert_absent "ring: no [edit] hold (T11-45)" "[edit] hold" "$S"

@@ -39,6 +39,8 @@ c6
 
 log "--- (b) disabled: Android deletes an unpinned dynamic shortcut, so the hold finds none ---"
 verb_b_start reset
+adb shell cmd shortcut get-shortcuts --flags 9 "$B_PKG" > "$ROW_DIR/b-after-reset-shortcuts.txt" 2>&1
+assert_contains "(b) positive control: after reset the listing shows qa_dyn" "id=qa_dyn" "$(cat "$ROW_DIR/b-after-reset-shortcuts.txt")"
 note "disable (receiver): $(verb_b disable)"
 adb shell cmd shortcut get-shortcuts --flags 9 "$B_PKG" > "$ROW_DIR/b-after-disable-shortcuts.txt" 2>&1
 MARK="$(ring_mark)"
