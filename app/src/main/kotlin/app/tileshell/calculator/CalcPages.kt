@@ -212,8 +212,10 @@ fun MemoryListKey(model: CalcModel, modifier: Modifier) {
         enabled = enabled,
         selected = model.memoryOpen,
         onPress = {
-            model.historyOpen = false
-            model.memoryOpen = !model.memoryOpen
+            if (!model.calc.isError) {
+                model.historyOpen = false
+                model.memoryOpen = !model.memoryOpen
+            }
         },
         modifier = modifier,
     ) {
@@ -370,7 +372,9 @@ private fun ShiftMark(modifier: Modifier) {
 fun KeyCell(tag: String, enabled: Boolean, onPress: () -> Unit, modifier: Modifier, selected: Boolean = false, content: @Composable BoxScope.() -> Unit) {
     var pressed by remember { mutableStateOf(false) }
     val press by rememberUpdatedState(onPress)
-    val live by rememberUpdatedState(enabled)
+    // Every completed tap reaches [onPress], which decides against the state as it is NOW (the engine refuses a
+    // disabled key in `Calculator.press`). [enabled] is what the last frame drew, and a tap landing before the next
+    // frame would be judged on it: E11 run 2 lost MR's tap 15 ms after M- had enabled it (qa/phase-15/E11-run2).
     Box(
         modifier
             .pointerInput(Unit) {
@@ -379,7 +383,7 @@ fun KeyCell(tag: String, enabled: Boolean, onPress: () -> Unit, modifier: Modifi
                     pressed = true
                     val up = waitForUpOrCancellation()
                     pressed = false
-                    if (up != null && live) press()
+                    if (up != null) press()
                 }
             }
             .background(if (pressed && enabled) CalcMetrics.PRESSED else Color.Transparent)

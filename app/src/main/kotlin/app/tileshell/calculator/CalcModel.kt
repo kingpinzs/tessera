@@ -69,7 +69,8 @@ class CalcModel(private val store: CalcStore, today: LocalDate) {
     /** Presses one vocabulary key on the engine. */
     fun press(key: String): Boolean {
         val ok = calc.press(key)
-        afterEngine()
+        // A refused key (disabled now, whatever the last frame drew) changed nothing: no save, no redraw.
+        if (ok) afterEngine()
         return ok
     }
 
@@ -84,12 +85,15 @@ class CalcModel(private val store: CalcStore, today: LocalDate) {
         afterEngine()
     }
 
+    /** The flyouts' Delete: judged on the engine as the tap lands (the drawn Delete can be a frame behind, KeyCell). */
     fun memoryClearAll() {
+        if (calc.memory.isEmpty()) return
         calc.memoryClearAll()
         afterEngine()
     }
 
     fun clearHistory() {
+        if (calc.history.isEmpty()) return
         calc.clearHistory()
         Diagnostics.add("calc", "history cleared (${calc.mode.name.lowercase()})")
         afterEngine()
