@@ -197,14 +197,18 @@ private fun RecorderScreen(
     val snapshot by RecorderLibrary.snapshot.collectAsState()
 
     var page by remember { mutableStateOf(if (snapshot.recordings.isEmpty()) RecorderActivity.Page.RECORD else RecorderActivity.Page.LIST) }
+    var playingId by remember { mutableStateOf<Long?>(null) }
+    var trimming by remember { mutableStateOf(false) }
+    // A requested page (an App Shortcut, `page` extra) is the page shown: a recording's playback or trim page open at
+    // the time is closed, or it would stay on top of the page asked for (E0 run 1: "New recording" stayed on playback).
     LaunchedEffect(requestedPage) {
         if (requestedPage != null) {
+            trimming = false
+            playingId = null
             page = requestedPage
             onPageShown()
         }
     }
-    var playingId by remember { mutableStateOf<Long?>(null) }
-    var trimming by remember { mutableStateOf(false) }
     var about by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     var kind by remember { mutableStateOf(ShowingKind.ALL) }
