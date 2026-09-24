@@ -57,7 +57,9 @@ log "--- warm opens: every one asserted; the recording retaken (up to 10) until 
 ACCEPT=""
 for attempt in 1 2 3 4 5 6 7 8 9 10; do
   front_ok "attempt$attempt" || { exit_edit; continue; }
-  adb shell screenrecord --bit-rate 4000000 --time-limit 4 /sdcard/Download/e6.mp4 & REC=$!
+  # Half resolution: at full size the AVD's encoder dropped frames (19-34 ms gaps) in opens whose own frame clock read
+  # 16.7 ms throughout — the recorder, not the app (probe 2026-09-24, README).
+  adb shell screenrecord --size 540x1170 --bit-rate 4000000 --time-limit 4 /sdcard/Download/e6.mp4 & REC=$!
   sleep 1.0
   MARK="$(ring_mark)"; hold "$X" "$Y" 1.0
   wait "$REC"; adb pull /sdcard/Download/e6.mp4 "$ROW_DIR/open-$attempt.mp4" >/dev/null 2>&1
@@ -73,7 +75,7 @@ for attempt in 1 2 3 4 5 6 7 8 9 10; do
   ffprobe -v error -select_streams v:0 -show_entries frame=best_effort_timestamp_time -of csv=p=0 "$ROW_DIR/open-$attempt.mp4" | tr -d ',' > "$ROW_DIR/open-$attempt.pts"
   rm -rf "$ROW_DIR/frames"; mkdir -p "$ROW_DIR/frames"
   ffmpeg -v error -i "$ROW_DIR/open-$attempt.mp4" -vsync 0 "$ROW_DIR/frames/f_%05d.png"
-  python3 "$(dirname "$0")/e6_frames.py" "$ROW_DIR/frames" "$ROW_DIR/open-$attempt.pts" "$TILE" "$PROBE" > "$ROW_DIR/recording-$attempt.txt" 2>&1
+  python3 "$(dirname "$0")/e6_frames.py" "$ROW_DIR/frames" "$ROW_DIR/open-$attempt.pts" "$TILE" "$PROBE" 0.5 > "$ROW_DIR/recording-$attempt.txt" 2>&1
   rm -rf "$ROW_DIR/frames"
   gap="$(awk '/max_gap_ms/{print $2}' "$ROW_DIR/recording-$attempt.txt")"
   note "attempt $attempt recording: $(tr '\n' ' ' < "$ROW_DIR/recording-$attempt.txt")"
@@ -83,7 +85,8 @@ done
 assert_ne "a recording within phase 05's spacing rule (source frames ≤ 18.2 ms apart during the motion)" "" "$ACCEPT"
 note "accepted recording: attempt ${ACCEPT:-none} (its satellite-pixel lag is printed, not asserted: G-E6-4)"
 
-log "--- the close: tap elsewhere ---"
+log "--- the close: a fresh burst, then a tap elsewhere ---"
+[ -n "$ACCEPT" ] || { front_ok close || true; hold "$X" "$Y" 1.0; sleep 1; }
 MARK="$(ring_mark)"; tap_xy "$EX" "$EY"; sleep 1.2
 CLOSE="$(quick_since "$MARK" | grep "motion close $A_KEY")"
 note "close line: ${CLOSE#*\[quick\] }"

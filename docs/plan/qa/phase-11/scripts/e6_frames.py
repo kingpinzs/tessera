@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""e6_frames.py FRAMES_DIR PTS_FILE TILE(l,t,r,b) PROBE(l,t,r,b)
+"""e6_frames.py FRAMES_DIR PTS_FILE TILE(l,t,r,b) PROBE(l,t,r,b) [SCALE]  (SCALE: recording px per device px, e.g. 0.5)
 
 E6's corroboration from a screenrecord (never the clock — the shell's own [quick] motion line is, C-5):
 
@@ -27,8 +27,9 @@ def load(p):
 
 def main():
     d, pts_file = sys.argv[1], sys.argv[2]
-    tl, tt, tr, tb = map(int, sys.argv[3].split(","))
-    pl, pt, pr, pb = map(int, sys.argv[4].split(","))
+    sc = float(sys.argv[5]) if len(sys.argv) > 5 else 1.0
+    tl, tt, tr, tb = (int(int(v) * sc) for v in sys.argv[3].split(","))
+    pl, pt, pr, pb = (int(int(v) * sc) for v in sys.argv[4].split(","))
     fs = sorted(glob.glob(os.path.join(d, "f_*.png")))
     pts = [float(x) * 1000 for x in open(pts_file).read().split() if x.strip()]
     n = min(len(fs), len(pts))
@@ -37,8 +38,9 @@ def main():
     near0 = np.abs(first - accent).max(axis=2) <= 40
     h, w = first.shape[:2]
     band = np.zeros((h, w), bool)
-    band[max(0, tt - 260):min(h, tb + 260), max(0, tl - 260):min(w, tr + 260)] = True
-    band[tt - 4:tb + 4, tl - 4:tr + 4] = False
+    m = int(260 * sc); e = max(1, int(4 * sc))
+    band[max(0, tt - m):min(h, tb + m), max(0, tl - m):min(w, tr + m)] = True
+    band[tt - e:tb + e, tl - e:tr + e] = False
     base_probe = first[pt:pb, pl:pr].mean(axis=(0, 1))
     entry = sat = None
     for i in range(1, n):
@@ -47,7 +49,7 @@ def main():
             entry = i
         if entry is not None and sat is None:
             new = (np.abs(img - accent).max(axis=2) <= 40) & ~near0 & band
-            if new.sum() > 60:
+            if new.sum() > 60 * sc * sc:
                 sat = i
         if entry is not None and sat is not None:
             break
