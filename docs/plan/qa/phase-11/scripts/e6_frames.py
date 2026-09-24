@@ -62,6 +62,7 @@ def main():
     print("sat_ms", round(pts[sat] - pts[0], 1) if sat else "none")
     print("sat_minus_entry_frames", (sat - entry) if entry and sat else "none")
     print("max_gap_ms", round(max(gaps), 1) if gaps else "none")
+    print("window_gaps", len(gaps))   # 19 when the recording holds the whole window (entry - 1 .. entry + 18)
 
 
 if __name__ == "__main__":
