@@ -1,7 +1,7 @@
 ==============================================================================
 ROW L11-1 — one arbiter: the API beats notifications; a playing face survives notification updates
-at            2026-09-24T14:02:42-06:00
-driver        l11_1.sh blob fd8b093478fc13a6f9d5fc95144989b6ec653f91
+at            2026-09-24T15:38:20-06:00
+driver        l11_1.sh blob 12ba0352931800eb1c449e09b8dbadc13410d97b
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
 apk built     736ce3543e0caf05 335518185 bytes
 apk installed 50129ec4bf4de7f8
@@ -12,17 +12,17 @@ awake         Awake
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- the fix's JVM tests, from this run's unit results (run_all keeps them in UNIT-results/ before any row) ---
-      results file: 2026-09-24T13:49:21
+      results file: 2026-09-24T15:00:29
 PASS  TileSourcePrecedenceTest: 12 tests, 0 failures, 0 errors    contains [tests="12" skipped="0" failures="0" errors="0"]
 PASS  JVM: notificationNullsNoLongerWipeAPlayingFace ran          contains [testcase name="notificationNullsNoLongerWipeAPlayingFace"]
 PASS  JVM: aSecondaryTilesKeyIsNeverClearedByTheArbiter ran       contains [testcase name="aSecondaryTilesKeyIsNeverClearedByTheArbiter"]
 PASS  JVM: aForgottenPackageKeepsNothing ran                      contains [testcase name="aForgottenPackageKeepsNothing"]
 --- (a) the Live Tile API queue over notifications ---
-      tile texts over 8 samples:  | APIqueue / Tile client A / 2 | APIqueue / Tile client A / 2 | Tile client A / 2 | APIqueue / Tile client A / 2 | APIqueue / Tile client A / 2 | Tile client A / 2 | APIqueue / Tile client A / 2 | APIqueue / Tile client A / 2
+      tile texts over 8 samples:  | Tile client A / 2 | APIqueue / Tile client A / 2 | Tile client A / 2 | Tile client A / 2 | Tile client A / 2 | Tile client A / 2 | APIqueue / Tile client A / 2 | Tile client A / 2
 PASS  the notification's publish leaves the API showing           contains [publish pkg:app.tileshell.testclient.a from=notifications]
 PASS  the tile shows the API text                                 contains [APIqueue]
 PASS  …not the notification                                     does not contain [NoteTitle]
-      tile texts after the clear over 6 samples:  | NoteTitle / NoteText / Tile client A / 2 | NoteTitle / NoteText / Tile client A / 2 | NoteTitle / NoteText / Tile client A / 2 | NoteTitle / NoteText / Tile client A / 2 | Tile client A / 2 | NoteTitle / NoteText / Tile client A / 2
+      tile texts after the clear over 6 samples:  | Tile client A / 2 | Tile client A / 2 | NoteTitle / NoteText / Tile client A / 2 | Tile client A / 2 | Tile client A / 2 | Tile client A / 2
 PASS  clearing the queue lets the notification show               contains [-> shows notifications]
 PASS  …and the tile shows the notification (the control for the absence above)  contains [NoteTitle]
 --- (b) Fossify playing: the strip survives notification updates ---
@@ -33,9 +33,9 @@ PASS  strip present, dump 1 (+0 s)                                = yes
 PASS  strip present, dump 2 (+3 s)                                = yes
 PASS  strip present, dump 3 (+6 s)                                = yes
 PASS  the playing face shows the track (phase 01 E8's playback face)  contains [An Ending]
-      publishes after the face: 5 (3 from notifications)
+      publishes after the face: 7 (5 from notifications)
 PASS  the notification feed published while it played (the race is exercised)  != 0
-PASS  every publish after the face still shows the playing session  = 5
+PASS  every publish after the face still shows the playing session  = 7
 PASS  Fossify paused                                              contains [state=PAUSED(2)]
 PASS  paused: the strip goes (item 3's ruling)                    = no
 PASS  paused: nothing shows the playing session any more          does not contain [-> shows music (playing)]
@@ -52,7 +52,7 @@ PASS  after the forget, the player's key ends with nothing shown (R1-1)  does no
 PASS  the player is installed again                               contains [package:]
 PASS  the reinstalled player is in the app list                   != 
       the re-pinned player's tile over 6 samples:  | Music Player | Music Player | Music Player | Music Player | Music Player | Music Player
-PASS  one shell process from the uninstall to the read            = 24299
+PASS  one shell process from the uninstall to the read            = 7681
 PASS  the re-pinned tile shows the reinstalled player             contains [Music Player]
 PASS  the reinstalled player's tile shows no inherited track face  does not contain [An Ending]
 --- (c) the shell's own player on the Music tile ---
@@ -84,11 +84,11 @@ PASS  E17: badge order 7, 3, 5, 3, 7, none                        = 7 3 5 3 7 -
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  the secondary tile is pinned                                contains [secondary:app.tileshell.testclient.a:l111]
-      the secondary tile before the rescan:  | SecContent |  | SecContent | SecContent |  | SecContent
+      the secondary tile before the rescan:  | SecContent |  | SecContent |  |  | SecContent
 PASS  the secondary tile shows its API content (the control)      contains [SecContent]
 PASS  the listener reconnected and rescanned                      contains [[notif] rescan (connected)]
-      the secondary tile after the rescan:  | SecContent |  |  | SecContent |  | SecContent
-PASS  one shell process across the rescan                         = 27217
+      the secondary tile after the rescan:  | SecContent |  | SecContent |  |  | SecContent
+PASS  one shell process across the rescan                         = 10393
 PASS  the secondary tile still shows its API content after the rescan (F-1)  contains [SecContent]
 --- phase 02 E5 (secondary tiles) re-run on this build: a regression check, not F-1's proof ((e) is) ---
 PASS  restore baseline_layout-pre-11.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
@@ -98,4 +98,4 @@ PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:game
       phase 02 e5.sh exit 0; verdict: ---- 14 passed, 0 failed ----
 PASS  phase 02 E5 (secondary tiles) exits 0 on this build         = 0
 ------------------------------------------------------------------------------
-540 1295: 69 passed, 0 failed
+L11-1: 69 passed, 0 failed

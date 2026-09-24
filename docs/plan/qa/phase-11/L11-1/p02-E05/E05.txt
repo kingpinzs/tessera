@@ -1,9 +1,9 @@
-# E5 2026-09-24T14:12:42-06:00
+# E5 2026-09-24T15:48:16-06:00
 build guard: built=50129ec4bf4de7f87da2b63c482d25f0 installed=50129ec4bf4de7f87da2b63c482d25f0
 driver: e5.sh blob 77c8e79d8186720165096e5c6e8a497458c73ce4
 Success
 --- 1. the request is HELD while the requester is in front (never drawn over another app) ---
-the client's own read-back: 14:12:49  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st1 arguments=chat=42: ok=true error=null pending=true detail=waiting for the user to confirm on Start
+the client's own read-back: 15:48:23  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st1 arguments=chat=42: ok=true error=null pending=true detail=waiting for the user to confirm on Start
 PASS  nothing is drawn over the requesting app (no [secondary_pin_prompt])
 PASS  the requester is what is on screen (found [app.tileshell.testclient])
 --- 2. the band appears the next time Start is shown, and accepting pins the tile ---
@@ -24,7 +24,7 @@ TILE_ID=st1 ARGS=chat=42 ACTIVATED=-
 PASS  the owner was launched with the tile's id (found [TILE_ID=st1])
 PASS  and with the arguments the request carried (found [ARGS=chat=42])
 --- 4. declining pins nothing ---
-the client's own read-back: 14:13:19  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st2 arguments=chat=7: ok=true error=null pending=true detail=waiting for the user to confirm on Start
+the client's own read-back: 15:48:54  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st2 arguments=chat=7: ok=true error=null pending=true detail=waiting for the user to confirm on Start
 tapping Cancel at 799 552
 order after declining:
 order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL', 'secondary:app.tileshell.testclient.a:st1/WIDE']
@@ -32,7 +32,7 @@ dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']
 folders: []
 PASS  declining pinned nothing (no [secondary:app.tileshell.testclient.a:st2])
 --- 5. a duplicate tileId updates the tile instead of making a second one ---
-the client's own read-back: 14:13:36  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st1 arguments=chat=99: ok=true error=null pending=false detail=the tile was already pinned and was updated
+the client's own read-back: 15:49:11  app.tileshell.testclient.a&#10;secondary.requestCreate tileId=st1 arguments=chat=99: ok=true error=null pending=false detail=the tile was already pinned and was updated
 order after the duplicate request:
 order: ['slot:PEOPLE/MEDIUM', 'slot:BROWSER/MEDIUM', 'slot:MAIL/MEDIUM', 'slot:CALENDAR/WIDE', 'slot:PHOTOS/MEDIUM', 'shell:weather/WIDE', 'slot:STORE/SMALL', 'slot:MAPS/SMALL', 'slot:MUSIC/SMALL', 'shell:settings/SMALL', 'secondary:app.tileshell.testclient.a:st1/WIDE']
 dock: ['slot:PHONE', 'slot:MESSAGING', 'slot:CAMERA']

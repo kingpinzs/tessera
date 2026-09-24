@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E13 — regression: phase 02 hold+drag, E7 bracket+geometry, E8, regress.sh; phase 01 press styles; phase 03 exports
-at            2026-09-24T12:56:32-06:00
-driver        e13.sh blob 8c41d4e4b15498733923f3c03a5ef0b3471614be
+at            2026-09-24T15:23:17-06:00
+driver        e13.sh blob a31f2943235d065bb3c362f9d8afec2b44d7bab9
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     a982b1894cd5600b 335517953 bytes
-apk installed 114511e7de8bb2e0
-apk match     yes (114511e7de8bb2e0)
+apk built     736ce3543e0caf05 335518185 bytes
+apk installed 50129ec4bf4de7f8
+apk match     yes (50129ec4bf4de7f8)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -18,7 +18,7 @@ PASS  phase 02 regress: addedOnce as phase 02's file (C-3)        = folder:games
 PASS  phase 02 e1 exits 0                                         = 0
 PASS  phase 02 e1: no slot re-assigned on load (C-3)              does not contain [-> assigned]
 PASS  phase 02 e1: addedOnce as phase 02's file (C-3)             = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-      phase 02 e7 exit 1; verdict: ---- 7 passed, 3 failed ----
+      phase 02 e7 exit 1; verdict: ---- 6 passed, 4 failed ----
 PASS  phase 02 E7 geometry (dark)                                 PASS  geometry (dark) (= 0)
 PASS  phase 02 E7 hold bracket (dark)                             PASS  hold bracket (dark) (= 0)
 PASS  phase 02 E7 geometry (light)                                PASS  geometry (light) (= 0)
@@ -38,7 +38,7 @@ PASS  ring: burst closed: drag                                    contains [[qui
 --- phase 02 E7's 830-ms line with the burst: slot:PEOPLE (Contacts, one manifest shortcut) ---
 PASS  restore baseline_layout-pre-11.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-pre-11.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-      Contacts' shortcuts: ShortcutInfo {id=1 ShortcutInfo {id=albums ShortcutInfo {id=artists ShortcutInfo {id=camera ShortcutInfo {id=checklist ShortcutInfo {id=compose ShortcutInfo {id=content://com.android.providers.media.documents/root/images_root ShortcutInfo {id=diagnostics ShortcutInfo {id=gallery ShortcutInfo {id=manifest-shortcut-battery ShortcutInfo {id=manifest-shortcut-wifi ShortcutInfo {id=my_places ShortcutInfo {id=navigate_to ShortcutInfo {id=new_conversation ShortcutInfo {id=playlists ShortcutInfo {id=qa_dyn ShortcutInfo {id=qa_five ShortcutInfo {id=qa_four ShortcutInfo {id=qa_one ShortcutInfo {id=qa_three ShortcutInfo {id=qa_two ShortcutInfo {id=search ShortcutInfo {id=selfie ShortcutInfo {id=settings ShortcutInfo {id=shortcut-add-contact ShortcutInfo {id=shortcut_new_checklist ShortcutInfo {id=shortcut_new_text_note ShortcutInfo {id=shortcut_shuffle ShortcutInfo {id=shuffle_all ShortcutInfo {id=songs ShortcutInfo {id=start_theme ShortcutInfo {id=tile_apps ShortcutInfo {id=video 
+      Contacts' shortcuts: ShortcutInfo {id=shortcut-add-contact 
 PASS  830 ms: quick_burst present                                 = yes
 PASS  830 ms: quick_sat:0 only                                    = yes no no no
 --- phase 01 E10 press styles: a short press shows the style and opens no burst ---
@@ -47,7 +47,7 @@ PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:game
       scroll_to_node press_none: 1 swipe(s), found=yes
 PASS  press_none: the held tile looks as at rest                  = EQUAL
 PASS  press_none: no burst                                        does not contain [[quick] burst on]
-PASS  press_none: no hold                                         does not contain [[edit] hold]
+FAIL  press_none: no hold                                         should NOT contain [[edit] hold]
       scroll_to_node press_tilt: 0 swipe(s), found=yes
 PASS  press_tilt: the held tile shows the press style             = DIFF
 PASS  press_tilt: no burst                                        does not contain [[quick] burst on]
@@ -65,4 +65,4 @@ PASS  nothing on the allow-list went missing                      does not conta
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 ------------------------------------------------------------------------------
-E13: 39 passed, 0 failed
+E13: 38 passed, 1 failed

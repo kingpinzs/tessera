@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E14 — every [quick] line, reason and close appears in this build's saved rings; query failed by its JVM test
-at            2026-09-24T13:20:34-06:00
+at            2026-09-24T15:59:33-06:00
 driver        e14.sh blob 135026e42377b7c604db66313af8108dd2f8ad53
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     a982b1894cd5600b 335517953 bytes
-apk installed 114511e7de8bb2e0
-apk match     yes (114511e7de8bb2e0)
+apk built     736ce3543e0caf05 335518185 bytes
+apk installed 50129ec4bf4de7f8
+apk match     yes (50129ec4bf4de7f8)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -24,34 +24,39 @@ awake         Awake
       counted E7
       counted E8
       counted E9
-      union: 8169 lines from 15 files
-PASS  shortcuts for <pkg>/<activity>/<user>: n (k shown …)      57 line(s)
-PASS  burst on …: k satellites                                  53 line(s)
-PASS  satellite i rest=[…]                                      196 line(s)
-PASS  satellite i icon failed                                     2 line(s)
-PASS  tap satellite … startShortcut ok                          10 line(s)
+      counted EDGE
+      counted EDGE-x5smoke
+      counted EDGE-x5smoke2
+      counted EDGE-x5smoke3
+      counted EDGE-x5smoke4
+      union: 12377 lines from 20 files
+PASS  shortcuts for <pkg>/<activity>/<user>: n (k shown …)      80 line(s)
+PASS  burst on …: k satellites                                  75 line(s)
+PASS  satellite i rest=[…]                                      283 line(s)
+PASS  satellite i icon failed                                     4 line(s)
+PASS  tap satellite … startShortcut ok                          11 line(s)
 PASS  tap satellite … startShortcut failed                      1 line(s)
-PASS  motion open (frames, maxGapMs)                              52 line(s)
-PASS  motion close (frames, maxGapMs)                             23 line(s)
+PASS  motion open (frames, maxGapMs)                              74 line(s)
+PASS  motion close (frames, maxGapMs)                             25 line(s)
 PASS  no burst: folder                                            1 line(s)
 PASS  no burst: no app                                            1 line(s)
 PASS  no burst: secondary tile                                    1 line(s)
 PASS  no burst: off screen                                        1 line(s)
 PASS  no burst: not the shortcut host                             1 line(s)
 PASS  no burst: profile quiet                                     2 line(s)
-PASS  no burst: no shortcuts                                      4 line(s)
-PASS  burst closed: tap elsewhere                                 15 line(s)
+PASS  no burst: no shortcuts                                      5 line(s)
+PASS  burst closed: tap elsewhere                                 16 line(s)
 PASS  burst closed: drag                                          2 line(s)
 PASS  burst closed: back                                          1 line(s)
 PASS  burst closed: home                                          1 line(s)
-PASS  burst closed: stop                                          1 line(s)
-PASS  burst closed: unpin                                         1 line(s)
+PASS  burst closed: stop                                          6 line(s)
+PASS  burst closed: unpin                                         2 line(s)
 PASS  burst closed: resize                                        1 line(s)
 PASS  burst closed: removed                                       1 line(s)
-PASS  burst closed: launch                                        11 line(s)
+PASS  burst closed: launch                                        12 line(s)
 PASS  burst closed: shortcuts changed                             1 line(s)
 --- no burst: query failed — the JVM test (the one reason the AVD cannot provoke) ---
-      <testsuite name="app.tileshell.start.QuickRulesTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-09-24T19:20:41.182Z" hostname="pop-os" time="0.06"
+      <testsuite name="app.tileshell.start.QuickRulesTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-09-24T21:59:40.929Z" hostname="pop-os" time="0.057"
 PASS  QuickRulesTest passes (gradle exit)                         = 0
 PASS  the query-failed test ran and passed                        contains [testcase name="aThrowingQueryIsCaughtAndBecomesTheReason"]
 PASS  …with no failure recorded against it                      does not contain [<failure]

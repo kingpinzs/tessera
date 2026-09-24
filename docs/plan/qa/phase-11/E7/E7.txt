@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E7 — geometry: corner, line above, line below, band, scrolled; rest= equals the dump; nothing on the held tile
-at            2026-09-24T12:46:17-06:00
+at            2026-09-24T15:12:23-06:00
 driver        e7.sh blob b0d04188fbd407374cea70554109dd59c7dab084
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     a982b1894cd5600b 335517953 bytes
-apk installed 114511e7de8bb2e0
-apk match     yes (114511e7de8bb2e0)
+apk built     736ce3543e0caf05 335518185 bytes
+apk installed 50129ec4bf4de7f8
+apk match     yes (50129ec4bf4de7f8)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -77,11 +77,11 @@ PASS  band: the band's rules are there                            = yes
 --- scrolled: the tall baseline scrolled by a slow drag, then the hold (T11-18) ---
 PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-PASS  tall: Start scrolled by the slow drag (60-120 px)           97.00 vs 90.00 +/- 30.0
-      tall: tile 365 402 708 745;sat_0 152 188 317 353;size_0 165 165;label_side_0 above;sat_1 756 188 921 353;size_1 165 165;label_side_1 above;sat_2 152 792 317 957;size_2 165 165;label_side_2 below;sat_3 756 792 921 957;size_3 165 165;label_side_3 below;rest_vs_dump 1;on_tile 0;arrangement corner;diagonal yes;standoff_0 48 49;standoff_1 48 49;standoff_2 48 47;standoff_3 48 47;extent 145 140 927 1005;
+PASS  tall: Start scrolled by the slow drag (60-120 px)           98.00 vs 90.00 +/- 30.0
+      tall: tile 365 401 708 744;sat_0 152 188 317 353;size_0 165 165;label_side_0 above;sat_1 756 188 921 353;size_1 165 165;label_side_1 above;sat_2 152 791 317 956;size_2 165 165;label_side_2 below;sat_3 756 791 921 956;size_3 165 165;label_side_3 below;rest_vs_dump 1;on_tile 0;arrangement corner;diagonal yes;standoff_0 48 48;standoff_1 48 48;standoff_2 48 47;standoff_3 48 47;extent 145 140 927 1004;
 PASS  tall: every rest= line equals the dump (± 1 px)            = ok
 PASS  tall: no satellite or label on the held tile                = 0
-PASS  tall: satellites relative to the tile equal the corner case (± 1 px)  1.00 vs 0.00 +/- 1.0
+PASS  tall: satellites relative to the tile equal the corner case (± 1 px)  0.00 vs 0.00 +/- 1.0
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 ------------------------------------------------------------------------------

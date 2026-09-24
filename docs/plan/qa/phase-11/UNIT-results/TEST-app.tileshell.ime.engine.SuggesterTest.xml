@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.tileshell.ime.engine.SuggesterTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-09-24T19:44:46.747Z" hostname="pop-os" time="0.232">
+  <properties/>
+  <testcase name="an empty composing word has nothing to say" classname="app.tileshell.ime.engine.SuggesterTest" time="0.001"/>
+  <testcase name="the typist's capitalisation pattern is kept" classname="app.tileshell.ime.engine.SuggesterTest" time="0.001"/>
+  <testcase name="a dropped letter autocorrects" classname="app.tileshell.ime.engine.SuggesterTest" time="0.001"/>
+  <testcase name="a common completion outranks an obscure correction" classname="app.tileshell.ime.engine.SuggesterTest" time="0.0"/>
+  <testcase name="no autocorrect in URL and email fields, no suggestions at all in password and no-suggestions fields" classname="app.tileshell.ime.engine.SuggesterTest" time="0.001"/>
+  <testcase name="an adjacent-key slip is cheaper than any other substitution" classname="app.tileshell.ime.engine.SuggesterTest" time="0.0"/>
+  <testcase name="adjacency comes from the layout, not a table" classname="app.tileshell.ime.engine.SuggesterTest" time="0.0"/>
+  <testcase name="one or two letters are never replaced" classname="app.tileshell.ime.engine.SuggesterTest" time="0.001"/>
+  <testcase name="a lowercase spelling of a capitalised word is corrected to the source casing" classname="app.tileshell.ime.engine.SuggesterTest" time="0.006"/>
+  <testcase name="a keystroke answers in well under 20 ms on a 150k lexicon" classname="app.tileshell.ime.engine.SuggesterTest" time="0.213"/>
+  <testcase name="a transposition is one typo and autocorrects" classname="app.tileshell.ime.engine.SuggesterTest" time="0.0"/>
+  <testcase name="a word the source spells in lowercase too is not re-cased" classname="app.tileshell.ime.engine.SuggesterTest" time="0.002"/>
+  <testcase name="a word in the lexicon is never replaced" classname="app.tileshell.ime.engine.SuggesterTest" time="0.0"/>
+  <testcase name="gibberish is left alone" classname="app.tileshell.ime.engine.SuggesterTest" time="0.0"/>
+  <testcase name="a prefix completes to the commonest words first" classname="app.tileshell.ime.engine.SuggesterTest" time="0.005"/>
+  <testcase name="a learned word is offered and never replaced, nor re-cased" classname="app.tileshell.ime.engine.SuggesterTest" time="0.001"/>
+  <system-out><![CDATA[TIMING suggest 150k: worst 0.87 ms, per probe [0.05, 0.01, 0.03, 0.10, 0.10, 0.00, 0.16, 0.08, 0.24, 0.87]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

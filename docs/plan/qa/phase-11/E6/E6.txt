@@ -1,48 +1,48 @@
 ==============================================================================
 ROW E6 — motion on the shell's clock (5 warm opens, nothing recording, all asserted); a recorded open's spacing
-at            2026-09-24T12:44:20-06:00
-driver        e6.sh blob 966b80c93c8fa6f7ed54d809ecba03cf3855e14c
+at            2026-09-24T15:10:57-06:00
+driver        e6.sh blob bd2910f2f680a38b6f5d58d3ff8e4ae87c523c15
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
-apk built     a982b1894cd5600b 335517953 bytes
-apk installed 114511e7de8bb2e0
-apk match     yes (114511e7de8bb2e0)
+apk built     736ce3543e0caf05 335518185 bytes
+apk installed 50129ec4bf4de7f8
+apk match     yes (50129ec4bf4de7f8)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- cold (recorded, not asserted): the first hold after the shell started ---
-      cold: [quick] motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=91761955 peak=100 overshoot=6.5 settle=266 frames=11 maxGapMs=50.0
+      cold: [quick] motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=100560004 peak=100 overshoot=6.5 settle=266 frames=11 maxGapMs=50.0
 --- part 1: five warm opens on the shell's clock, nothing recording; every one asserted ---
-      open 1: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=91768455 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 91768438
+      open 1: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=100567704 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 100567688
 PASS  open 1: one open line                                       = 1
 PASS  open 1: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
 PASS  open 1: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
 PASS  open 1: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
 PASS  open 1: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
-PASS  open 1: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
-      open 2: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=91774805 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 91774788
+PASS  open 1: burst t0 within one frame of the entry's first frame (C-5)  16.00 vs 0.00 +/- 17.0
+      open 2: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=100574154 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 100574138
 PASS  open 2: one open line                                       = 1
 PASS  open 2: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
 PASS  open 2: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
 PASS  open 2: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
 PASS  open 2: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
-PASS  open 2: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
-      open 3: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=91780705 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 91780688
+PASS  open 2: burst t0 within one frame of the entry's first frame (C-5)  16.00 vs 0.00 +/- 17.0
+      open 3: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=100580054 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 100580038
 PASS  open 3: one open line                                       = 1
 PASS  open 3: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
 PASS  open 3: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
 PASS  open 3: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
 PASS  open 3: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
-PASS  open 3: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
-      open 4: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=91788905 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 91788888
+PASS  open 3: burst t0 within one frame of the entry's first frame (C-5)  16.00 vs 0.00 +/- 17.0
+      open 4: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=100586554 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 100586538
 PASS  open 4: one open line                                       = 1
 PASS  open 4: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
 PASS  open 4: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
 PASS  open 4: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
 PASS  open 4: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
-PASS  open 4: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
-      open 5: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=91798238 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 91798221
+PASS  open 4: burst t0 within one frame of the entry's first frame (C-5)  16.00 vs 0.00 +/- 17.0
+      open 5: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=100597171 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 100597154
 PASS  open 5: one open line                                       = 1
 PASS  open 5: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
 PASS  open 5: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
@@ -50,20 +50,14 @@ PASS  open 5: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70
 PASS  open 5: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
 PASS  open 5: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
 --- part 2: recorded opens (540x1170) for frame spacing only, retaken up to 10; their clock numbers noted ---
-      recorded attempt 1 (not asserted): motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=91809871 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7
-      attempt 1 recording: frames 84 accent 0 119 212 entry_ms 1810.9 sat_ms 1810.9 sat_minus_entry_frames 0 max_gap_ms 19.3 
-      recorded attempt 2 (not asserted): motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=91822788 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7
-      attempt 2 recording: frames 194 accent 0 119 212 entry_ms 1764.8 sat_ms 1764.8 sat_minus_entry_frames 0 max_gap_ms 24.8 
-      recorded attempt 3 (not asserted): motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=91833355 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7
-      attempt 3 recording: frames 227 accent 0 119 212 entry_ms 1813.5 sat_ms 1813.5 sat_minus_entry_frames 0 max_gap_ms 18.4 
-      recorded attempt 4 (not asserted): motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=91848088 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7
-      attempt 4 recording: frames 75 accent 0 119 212 entry_ms 1784.9 sat_ms 1784.9 sat_minus_entry_frames 0 max_gap_ms 18.2 
+      recorded attempt 1 (not asserted): motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=100608771 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7
+      attempt 1 recording: frames 88 accent 0 119 212 entry_ms 1827.2 sat_ms 1827.2 sat_minus_entry_frames 0 max_gap_ms 17.4 window_gaps 19 
 PASS  a recording within phase 05's spacing rule (source frames ≤ 18.2 ms apart during the motion)  != 
-      accepted recording: attempt 4 (its satellite-pixel lag is printed, not asserted: G-E6-4)
+      accepted recording: attempt 1 (its satellite-pixel lag is printed, not asserted: G-E6-4)
 --- the close: a fresh burst, then a tap elsewhere ---
-      close line: motion close app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=91852588 alpha0=50 settle=50 frames=4 maxGapMs=16.7
+      close line: motion close app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=100618354 alpha0=50 settle=50 frames=4 maxGapMs=16.7
 PASS  close alpha0 36 ± 17 ms (the halfway at 36.0 ms)           50.00 vs 36.00 +/- 17.0
-PASS  close settle = alpha0 ± 17 ms (gone at alpha 0)            50.00 vs 50.00 +/- 17.0
+      close settle (= alpha0 by construction, not asserted): 50
 PASS  close maxGapMs ≤ 33.4 (C-31)                              16.70 vs 16.70 +/- 16.7
 ------------------------------------------------------------------------------
-E6: 36 passed, 0 failed
+E6: 35 passed, 0 failed
