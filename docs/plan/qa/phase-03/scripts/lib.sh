@@ -25,6 +25,7 @@ APK="$REPO/app/build/outputs/apk/debug/app-debug.apk"
 
 ROW=""
 ROW_DIR=""
+ROW_MARK=""   # the device's wall clock (ms) when the row began: ring_save keeps the ring lines since it
 LOG=""
 PASS=0
 FAIL=0
@@ -78,6 +79,8 @@ row_begin() { # id description
     echo "awake         $(wake_device)"
     echo "=============================================================================="
   } > "$LOG"
+  # Taken after the lock and the wake, so the row's ring slice starts on the clock the row runs on (C-20).
+  ROW_MARK="$(ring_mark)"
   echo "── $ROW ${2:-}"
 }
 
@@ -123,6 +126,10 @@ assert_within() { # name expected actual tolerance
 }
 
 row_end() {
+  # Keep the row's ring lines first, before anything can reset the ring: one file per ring the row names in
+  # RINGS (default the launcher's), appended to whatever the row's own ring_save calls already kept (T11-21).
+  local ring
+  for ring in ${RINGS:-launcher}; do ring_save "$ring"; done
   {
     echo "------------------------------------------------------------------------------"
     echo "$ROW: $PASS passed, $FAIL failed"
@@ -150,6 +157,59 @@ speech_dump() {
 
 speech_status() { # key
   speech_dump | sed -n "s/^ *$1=//p" | head -1 | tr -d '\r'
+}
+
+# ---------------------------------------------------------------- ring slices (phase 11 build task 7, C-20)
+# The rings are fixed-size buffers, so "the lines after line N" goes empty once one is full (j7.sh, run 3), and
+# every `am force-stop app.tileshell`, `pm clear` or layout_restore empties the launcher's. A row therefore slices
+# a ring by the wall= stamp each line carries, from a MARK taken on the device's own clock just before the step:
+#   MARK="$(ring_mark)"; <the step>; assert_contains "..." "[quick] burst on" "$(ring_since "$MARK")"
+# and keeps what it read with ring_save before anything resets the ring (row_end saves the rings named in RINGS).
+
+# The device's wall clock in ms: the clock Diagnostics stamps wall= with.
+ring_mark() {
+  adb shell date +%s%3N | tr -d '\r'
+}
+
+# The ring lines stamped wall >= mark, in ring order. The ring: launcher (default: the diag() dump), speech (the
+# :speech process's own ring, speech_dump()), or any service component whose dump carries Diagnostics lines.
+ring_since() { # mark [launcher|speech|<service component>]
+  local mark="$1" ring="${2:-launcher}" out
+  case "$ring" in
+    launcher) out="$(diag)" ;;
+    speech) out="$(speech_dump)" ;;
+    *) out="$(adb shell dumpsys activity service "$ring" 2>/dev/null)" ;;
+  esac
+  printf '%s\n' "$out" | python3 -c '
+import re, sys
+mark = sys.argv[1]
+if not mark.isdigit():
+    sys.exit("ring_since: mark must be the ms value ring_mark printed, got [%s]" % mark)
+for line in sys.stdin:
+    m = re.search(r"\bwall=(\d+)", line)
+    if m and int(m.group(1)) >= int(mark):
+        print(line.rstrip("\r\n"))
+' "$mark"
+}
+
+# The first reply Tess spoke after the mark (text only), empty if none. Replies are the [speech] lines of the
+# LAUNCHER's ring, where SpeechClient records each utterance it hands the engine — the lines reply_text reads —
+# because SpeechClient runs in the launcher's process; the :speech process's own ring carries no reply text.
+reply_since() { # mark
+  ring_since "$1" launcher | grep -F '[speech]' | grep -oE 'text="[^"]*"' | sed -n '1{s/^text="//;s/"$//;p;q;}'
+}
+
+# Append the ring's lines since ROW_MARK to $ROW_DIR/ring-<name>.txt (name: launcher, speech, or the component with
+# every character outside [A-Za-z0-9._-] made _). Called before every in-row force-stop, pm clear or layout_restore,
+# and by row_end; a line kept twice is harmless (E14 reads the union of these files).
+ring_save() { # [launcher|speech|<service component>]
+  local ring="${1:-launcher}" name
+  if [ -z "$ROW_MARK" ] || [ -z "$ROW_DIR" ]; then
+    echo "ring_save: no ROW_MARK / ROW_DIR (row_begin has not run); nothing saved" >&2
+    return 1
+  fi
+  name="$(printf '%s' "$ring" | tr -c 'A-Za-z0-9._-' '_')"
+  ring_since "$ROW_MARK" "$ring" >> "$ROW_DIR/ring-$name.txt"
 }
 
 # uiautomator only dumps what is LAID OUT. On a scrolling page every row below the fold is simply
