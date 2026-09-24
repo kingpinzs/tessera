@@ -11,6 +11,7 @@ import app.tileshell.cortana.action.Outcome
 import app.tileshell.cortana.action.Pending
 import app.tileshell.cortana.match.CommandMatcher
 import app.tileshell.cortana.match.Request
+import app.tileshell.cortana.speech.MicHolders
 import app.tileshell.cortana.speech.SpeechClient
 import app.tileshell.cortana.speech.SpeechError
 import app.tileshell.cortana.speech.SpeechEvent
@@ -273,7 +274,8 @@ class CortanaModel(
             SpeechError.ESPEAK_DATA_BAD ->
                 "My pronunciation data is damaged. $settings"
             SpeechError.AUDIO_UNAVAILABLE -> "I can't get to the microphone right now."
-            SpeechError.MICROPHONE_BUSY -> "The keyboard is using the microphone right now."
+            // Worded from the holder the speech process named (T15-28): the keyboard or the voice recorder.
+            SpeechError.MICROPHONE_BUSY -> MicHolders.busySentence(MicHolders.holderOf(event.detail), Brand.ASSISTANT_NAME)
             else -> "Something went wrong."
         }
         val shown = if (event.detail.isBlank()) spoken else "$spoken\n\n${event.detail}"

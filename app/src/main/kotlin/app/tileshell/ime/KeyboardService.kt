@@ -32,6 +32,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import app.tileshell.R
 import app.tileshell.brand.Brand
 import app.tileshell.cortana.CortanaPermissionActivity
+import app.tileshell.cortana.speech.MicHolders
 import app.tileshell.cortana.speech.SpeechClient
 import app.tileshell.cortana.speech.SpeechError
 import app.tileshell.cortana.speech.SpeechEvent
@@ -404,7 +405,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
                 pendingListen = false
                 state.voice = VoiceState.Idle
                 state.notice = when (event.code) {
-                    SpeechError.MICROPHONE_BUSY -> "${Brand.ASSISTANT_NAME} is using the microphone."
+                    // Worded from the holder the speech process named (T15-28): Tess or the voice recorder.
+                    SpeechError.MICROPHONE_BUSY -> MicHolders.busySentence(MicHolders.holderOf(event.detail), Brand.ASSISTANT_NAME)
                     SpeechError.NO_MICROPHONE_PERMISSION -> "Microphone access is off."
                     SpeechError.AUDIO_UNAVAILABLE -> "The microphone is in use (a call?)."
                     else -> "Voice typing isn't available right now."
