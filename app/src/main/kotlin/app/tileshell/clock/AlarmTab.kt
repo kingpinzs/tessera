@@ -35,6 +35,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,8 +47,11 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -91,7 +95,8 @@ private fun rememberMinuteNow(): Long {
 /**
  * The Alarm tab: rows at an 88-epx pitch (U3) — time / name / repeat line left, the toggle and its On / Off label
  * right (§2) — or "No alarms" (2.1). Select puts a checkbox on each row and fills the checked rows with accent
- * (R7 §1.3.9); the app bar's Delete removes them (T15-43).
+ * (R7 §1.3.9); the app bar's Delete removes them (T15-43). A hold on a row opens its menu, Delete (the owner's ruling
+ * 2026-09-25, as World Clock's Remove and Voice Recorder's hold menu).
  */
 @Composable
 fun BoxScope.AlarmTab(nav: ClockNav, store: ClockStore) {
@@ -105,17 +110,35 @@ fun BoxScope.AlarmTab(nav: ClockNav, store: ClockStore) {
         EmptyLine("No alarms", "alarm_empty")
         return
     }
-    LazyColumn(Modifier.fillMaxSize().testTag("alarm_list"), contentPadding = PaddingValues(bottom = ClockMetrics.APP_BAR)) {
-        items(sorted, key = { it.id }) { a ->
-            AlarmRow(
-                alarm = a,
-                dayLine = ClockText.rowDayLine(a, today, locale),
-                timeText = ClockText.time(a.hour, a.minute, is24h, locale),
-                select = nav.alarmSelect,
-                checked = a.id in nav.alarmSelected,
-                onToggle = { on -> store.setAlarmEnabled(a.id, on) },
-                onTap = { nav.openAlarmEditor(AlarmDraft.of(a)) },
-                onCheck = { c -> nav.alarmSelected = if (c) nav.alarmSelected + a.id else nav.alarmSelected - a.id },
+    var rootTop by remember { mutableFloatStateOf(0f) }
+    var menuAnchor by remember { mutableFloatStateOf(0f) }
+    var menuAlarm by remember { mutableStateOf<String?>(null) }
+    val density = LocalDensity.current
+    Box(Modifier.fillMaxSize().onGloballyPositioned { rootTop = it.positionInRoot().y }) {
+        LazyColumn(Modifier.fillMaxSize().testTag("alarm_list"), contentPadding = PaddingValues(bottom = ClockMetrics.APP_BAR)) {
+            items(sorted, key = { it.id }) { a ->
+                AlarmRow(
+                    alarm = a,
+                    dayLine = ClockText.rowDayLine(a, today, locale),
+                    timeText = ClockText.time(a.hour, a.minute, is24h, locale),
+                    select = nav.alarmSelect,
+                    checked = a.id in nav.alarmSelected,
+                    onToggle = { on -> store.setAlarmEnabled(a.id, on) },
+                    onTap = { nav.openAlarmEditor(AlarmDraft.of(a)) },
+                    onCheck = { c -> nav.alarmSelected = if (c) nav.alarmSelected + a.id else nav.alarmSelected - a.id },
+                    onHold = { y -> menuAnchor = y - rootTop; menuAlarm = a.id },
+                )
+            }
+        }
+        menuAlarm?.let { id ->
+            RowHoldMenu(
+                anchorY = with(density) { menuAnchor.toDp() }, verb = "Delete", tag = "alarm_row_menu", verbTag = "alarm_delete:$id",
+                onVerb = {
+                    Diagnostics.add("clock", "hold delete alarm $id")
+                    store.deleteAlarms(listOf(id))
+                    menuAlarm = null
+                },
+                onDismiss = { menuAlarm = null },
             )
         }
     }
@@ -124,16 +147,21 @@ fun BoxScope.AlarmTab(nav: ClockNav, store: ClockStore) {
 @Composable
 private fun AlarmRow(
     alarm: Alarm, dayLine: String, timeText: String, select: Boolean, checked: Boolean,
-    onToggle: (Boolean) -> Unit, onTap: () -> Unit, onCheck: (Boolean) -> Unit,
+    onToggle: (Boolean) -> Unit, onTap: () -> Unit, onCheck: (Boolean) -> Unit, onHold: (Float) -> Unit,
 ) {
     val colors = LocalShellColors.current
     // R7 §1.3.9: in Select the content shifts 32 epx right and a checked row is filled with accent, full width.
     val shift = if (select) 32.dp else 0.dp
+    var top by remember { mutableFloatStateOf(0f) }
     Box(
         Modifier.fillMaxWidth().height(88.dp)
             .background(if (select && checked) colors.accent else Color.Transparent)
             .testTag("alarm_row:${alarm.id}")
-            .pointerInput(select, checked) { detectTapGestures { if (select) onCheck(!checked) else onTap() } },
+            .onGloballyPositioned { top = it.positionInRoot().y }
+            .pointerInput(select, checked) {
+                // In Select a tap checks the row; otherwise a tap edits it and a hold opens its menu.
+                if (select) detectTapGestures { onCheck(!checked) } else detectTapOrHold(onTap = onTap, onHold = { onHold(top) })
+            },
     ) {
         if (select) {
             // R7 §1.3.9: the checkbox centred at x 22.2, level with the toggle's centre (2.9: 41.8 below the row top).

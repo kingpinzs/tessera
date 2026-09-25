@@ -227,3 +227,9 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   EDGE_ALARM_CONTEXT 26/0/7 and EDGE_EXACT 35/0/13 (the QA build d07daf07 from 0d74245 without USE_EXACT_ALARM; the
   alarm rang inside its window and sounded, ring foreground: mediaPlayback, no new crash). mic_guard showed no capture.
   EDGE_EXACT now reads the final build's md5 from the APK instead of pinning it. 5556 and 5558 still hold 61c5b610.
+- 2026-09-25 (late): Jeremy: "I cant delete a timer and I dont think I can delete anything else". Probe on 5560: Select,
+  tick, trash deletes a timer (the store was emptied), so the route worked. What was missing was the hold users try first.
+  Jeremy "(a)": a hold on an alarm row or a timer block now opens a Delete menu (the shared detectTapOrHold and
+  RowHoldMenu in ClockWidgets). EDGE_HOLD_DELETE passes 20/0 on build c4a45bcf (5560). World Clock's own hold detector
+  cannot tell a scroll-cancelled press from a hold (both give null); that is not changed here, and a long city list is
+  the case to watch.
