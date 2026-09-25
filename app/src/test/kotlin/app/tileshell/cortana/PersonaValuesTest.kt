@@ -164,7 +164,7 @@ class PersonaValuesTest {
         assertTrue(CapMetrics.capTopWithinBox(15f) > 0f)
         assertEquals(0f, CapMetrics.topPaddingForCapTop(0f, 15f), 0.001f)
         // The cap top is the ascent less the cap height, whatever the line height (Compose trims the first line's
-        // leading): at 25.4 epx, 7.35 epx into the box, as the phone showed (qa/phase-15/E10/DEFECT.md: 7.36).
+        // leading): at 25.4 epx, 7.35 epx into the box, as the phone showed (qa/phase-15/E10-run7/DEFECT.md: 7.36).
         assertEquals(7.35f, CapMetrics.capTopWithinBox(25.4f), 0.01f)
     }
 
