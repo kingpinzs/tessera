@@ -24,7 +24,8 @@
 # asserted installed), the home activity set, force-stop + Home, USE_EXACT_ALARM granted and exact=true again.
 . "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"; . "$(dirname "$0")/mic_guard.sh"
 
-FINAL_MD5=61c5b610716197e3
+# The FINAL build is the worktree's own APK: its md5 is read, not pinned, so a rebuild cannot leave the restore checking an old one.
+FINAL_MD5="$(md5sum "$APK" | cut -c1-16)"
 QA_APK="${EDGE_EXACT_APK:-/tmp/claude-1000/-home-jeremyking/5d5ffc39-5a2a-4c33-953f-07d71da27a45/scratchpad/p15/edgeC2-noexact/app/build/outputs/apk/debug/app-debug.apk}"
 AAPT2="$(ls -d "$HOME"/Android/Sdk/build-tools/*/ | tail -1)aapt2"
 row_begin EDGE_EXACT "USE_EXACT_ALARM removed and SCHEDULE_EXACT_ALARM denied (QA build): red row, inexact arm, notice, rings in the window"
