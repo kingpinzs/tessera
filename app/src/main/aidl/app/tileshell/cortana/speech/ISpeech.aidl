@@ -26,8 +26,27 @@ interface ISpeech {
      *
      * @param hotwords one boosted phrase per line, in the recognizer's token form (the grammar pass);
      *                 an empty string runs the open pass alone
+     * @param who      the owner's name (MicHolders: "cortana" or "keyboard"), kept beside the hold so a
+     *                 refusal of anyone else names who has the microphone (phase 15, T15-28)
      */
-    void startListening(ISpeechCallback owner, String hotwords);
+    void startListening(ISpeechCallback owner, String hotwords, String who);
+
+    /**
+     * Hold the microphone for [cb] without opening it here (phase 15, T15-4 / T15-28): Voice Recorder's
+     * `:recorder` process captures with its own AudioRecord for a whole take, and holds the shell's one
+     * microphone through this so Tess and the keyboard's voice key are refused while it records, and so it
+     * is refused while either of them listens. [cb] must already be `register`ed — a callback that is not
+     * is refused, because only a registered callback's death reaches onCallbackDied, and that is what
+     * frees the hold of a killed `:recorder` (E18).
+     *
+     * @param who the holder's name (MicHolders.RECORDER)
+     * @return null when [cb] now holds the microphone, else the current holder's name (or "unregistered"
+     *         when [cb] was never registered)
+     */
+    String holdMicrophone(ISpeechCallback cb, String who);
+
+    /** Let go of a hold taken with holdMicrophone. A non-holder's release does nothing. */
+    void releaseMicrophone(ISpeechCallback cb);
 
     /** End [owner]'s utterance now and deliver onFinal with what has been decoded. A non-owner's stop does nothing. */
     void stopListening(ISpeechCallback owner);

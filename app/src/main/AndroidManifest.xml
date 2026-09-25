@@ -46,14 +46,22 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <!-- Reminders fire at the exact time. A sideloaded app gets this at install; no Play policy applies (F1-m7). -->
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
-    <!--
-      "Set an alarm" / "set a timer" start ACTION_SET_ALARM and ACTION_SET_TIMER on the Clock app, and
-      the platform refuses both without this. E2 caught it: every alarm and timer died with
-      "Permission Denial: ... requires com.android.alarm.permission.SET_ALARM", through the voice
-      activity AND through the normal start it falls back to.
-    -->
-    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--
+      Phase 15, Alarms & Clock (build tasks 1-3): the ring plays on the alarm stream, vibrates and holds a wake lock
+      for its ten minutes; its full-screen intent shows the toast over the keyguard (a special app access on API 34+,
+      the "Full-screen alarms" Setup row); "Display over other apps" draws the toast over the app in use (Q-E A, the
+      "Display over other apps" Setup row); RECEIVE_BOOT_COMPLETED re-arms alarms and timers at LOCKED_BOOT_COMPLETED,
+      before the first unlock (T15-22 — the manifest held none, so BOOT_COMPLETED never reached ReminderReceiver);
+      the ring service is a systemExempted foreground service, which an app holding USE_EXACT_ALARM may run to ring an
+      alarm (the Decisions' build-start check).
+    -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
     <!-- Place reminders: Android's own proximity alerts, no Google Play services (P5). -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
@@ -65,6 +73,10 @@
     -->
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.READ_SMS" />
+
+    <!-- ===== Phase 15: Voice Recorder ===== -->
+    <!-- The take is a foreground service of type microphone in its own :recorder process (build task 7). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
 
     <application
         android:name=".ShellApp"
@@ -120,6 +132,53 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.APP_MUSIC" />
             </intent-filter>
+            <!-- Phase 11: Music's pivots as static App Shortcuts (interview Q1 A), on this activity for the per-activity query. -->
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_music" />
+        </activity>
+
+        <!--
+            Phase 15 build task 4: Alarms & Clock is an APP in the shell APK exactly as Music is — a launcher
+            activity with its own task. singleTask, so a notification, the lock screen's next alarm, a pinned
+            timer's tile, an App Shortcut or the AlarmClock handler re-routes the running app (onNewIntent) instead
+            of stacking a second one. Its static App Shortcuts are build task 9's.
+        -->
+        <activity
+            android:name=".clock.ClockActivity"
+            android:exported="true"
+            android:label="@string/clock_name"
+            android:icon="@drawable/ic_clock"
+            android:taskAffinity="app.tileshell.clock"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_clock" />
+        </activity>
+
+        <!--
+            Phase 15 T15-37: the AlarmClock API handler — a translucent trampoline other apps' SET_ALARM / SET_TIMER /
+            SHOW_ALARMS / SHOW_TIMERS reach, guarded by com.android.alarm.permission.SET_ALARM as AOSP DeskClock's is.
+            It validates every request (AlarmApiRules), creates the item or opens the editor filled in, and never
+            edits or deletes an existing alarm (trust item (j)). Listed in qa/phase-03/exported-allowlist.txt.
+        -->
+        <activity
+            android:name=".clock.AlarmApiActivity"
+            android:exported="true"
+            android:permission="com.android.alarm.permission.SET_ALARM"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity="app.tileshell.clock.api">
+            <intent-filter>
+                <action android:name="android.intent.action.SET_ALARM" />
+                <action android:name="android.intent.action.SET_TIMER" />
+                <action android:name="android.intent.action.SHOW_ALARMS" />
+                <action android:name="android.intent.action.SHOW_TIMERS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <activity
@@ -146,6 +205,8 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Phase 11: Start settings' pages as static App Shortcuts (interview Q1 A), on this activity for the per-activity query. -->
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_settings" />
         </activity>
 
         <service
@@ -264,14 +325,49 @@
             android:exported="false" />
 
         <!-- Reminder alarms, proximity alerts, and the re-registration a reboot or an update needs. -->
+        <!--
+          Also Alarms & Clock's alarms and timers (phase 15): their fire broadcasts, the re-arm before the first unlock
+          (directBootAware; LOCKED_BOOT_COMPLETED), and a zone or clock change moving an alarm's wall-clock instant.
+        -->
         <receiver
             android:name=".cortana.reminders.ReminderReceiver"
+            android:directBootAware="true"
             android:exported="false">
             <intent-filter>
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
             </intent-filter>
         </receiver>
+
+        <!--
+          Phase 15: the ring. Started only from an alarm's broadcast; not exported (nothing outside the shell may make
+          it ring). Direct-boot aware so an alarm rings before the first unlock (T15-22).
+        -->
+        <service
+            android:name=".clock.RingService"
+            android:directBootAware="true"
+            android:exported="false"
+            android:foregroundServiceType="systemExempted" />
+
+        <!--
+          Phase 15: the ring toast over the keyguard (Q-E A). Started only by the ring's own full-screen intent; not
+          exported; draws only the toast and never dismisses the keyguard (T15-33 (b)).
+        -->
+        <activity
+            android:name=".clock.RingActivity"
+            android:directBootAware="true"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity="app.tileshell.clock.ring"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode" />
 
         <!--
           Shown when another app holds the assistant role: a session cannot open without the role, so the
@@ -309,5 +405,66 @@
             android:taskAffinity="app.tileshell.cortana"
             android:screenOrientation="portrait"
             android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode" />
+
+        <!-- ===== Phase 15: Voice Recorder (build task 7) ===== -->
+
+        <!--
+          Voice Recorder: an app in the app list like Music, with its own task. Exported only because it is a
+          launcher activity. Its icon's monochrome layer is its static Start tile (U12: the Microphone glyph).
+          The App Shortcuts' "page" extra only picks the record or list state; it never starts a take.
+        -->
+        <activity
+            android:name=".recorder.RecorderActivity"
+            android:exported="true"
+            android:label="@string/recorder_name"
+            android:icon="@drawable/ic_recorder"
+            android:taskAffinity="app.tileshell.recorder"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts_recorder" />
+        </activity>
+
+        <!--
+          The take: a microphone foreground service in its own process, so a crash of Start or of the page
+          cannot end it. Not exported: only the shell starts, binds and stops it.
+        -->
+        <service
+            android:name=".recorder.RecorderService"
+            android:process=":recorder"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
+        <!-- ===== Phase 15: Calculator (build task 6) ===== -->
+
+        <!--
+          Calculator: an app in the app list like Music, with its own task. Exported only because it is a
+          launcher activity. Its icon's monochrome layer is its static Start tile (the Calculator glyph).
+          The App Shortcuts' "page" extra (build task 9) only picks the page shown.
+        -->
+        <activity
+            android:name=".calculator.CalculatorActivity"
+            android:exported="true"
+            android:label="@string/calculator_name"
+            android:icon="@drawable/ic_calculator"
+            android:taskAffinity="app.tileshell.calculator"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.APP_CALCULATOR" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts_calculator" />
+        </activity>
     </application>
 </manifest>

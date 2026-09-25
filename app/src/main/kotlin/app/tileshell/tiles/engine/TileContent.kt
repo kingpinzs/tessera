@@ -48,6 +48,52 @@ sealed interface TileFace {
         val playing: Boolean = false,
         val controls: List<Transport> = emptyList(),
     ) : TileFace
+
+    /**
+     * Alarms & Clock's faces (phase 15 build task 4, r11/clock.md §9's 2015 form — approximation, U10 / H14): the
+     * next alarm on the app's own tile, and a pinned timer or the stopwatch on its secondary tile.
+     *
+     * Wide and medium: [headline] large at the top-left (the alarm's time, a timer's remaining time), the
+     * [lines] under it in caption (the alarm's name and repeat days; a timer's name), the tile's label
+     * bottom-left and [glyph] bottom-right (the bell; 9.3). Small: the tile's own glyph with [glyph] as a small
+     * badge at its lower right (9.2).
+     *
+     * [tick] makes the headline a running clock drawn by the tile itself: a pinned timer or stopwatch face is
+     * published ONCE per state change (start, pause, reset) and never every second, because every publish is
+     * a diagnostics line and a face republished each second would flood the ring. The tile computes the
+     * headline from the elapsed clock at draw time ([headlineAt]).
+     */
+    data class Clock(
+        val headline: String,
+        val lines: List<String>,
+        val glyph: String,
+        val tick: Tick? = null,
+    ) : TileFace {
+        /**
+         * A headline that runs: [baseMs] was the value at instant [atMs] on the elapsed clock (or on the wall
+         * clock when [wall] is set — a timer or stopwatch that started before a reboot, whose elapsed-clock
+         * instants no longer mean anything); it counts down to zero or up, rolling over at [rolloverMs] when
+         * that is set (the stopwatch's 100 h). Built from the store's own stored instants, never from "now", so
+         * the same state always gives an equal face.
+         */
+        data class Tick(val baseMs: Long, val atMs: Long, val countDown: Boolean, val rolloverMs: Long? = null, val wall: Boolean = false)
+
+        fun headlineAt(elapsedNow: Long, wallNow: Long): String {
+            val t = tick ?: return headline
+            val delta = ((if (t.wall) wallNow else elapsedNow) - t.atMs).coerceAtLeast(0L)
+            var ms = if (t.countDown) (t.baseMs - delta).coerceAtLeast(0L) else t.baseMs + delta
+            t.rolloverMs?.let { ms %= it }
+            return hms(ms)
+        }
+
+        companion object {
+            /** "hh:mm:ss" — the timer and stopwatch faces' form (a running face shows no hundredths). */
+            fun hms(ms: Long): String {
+                val s = ms / 1000
+                return "%02d:%02d:%02d".format(s / 3600, (s / 60) % 60, s % 60)
+            }
+        }
+    }
 }
 
 /**

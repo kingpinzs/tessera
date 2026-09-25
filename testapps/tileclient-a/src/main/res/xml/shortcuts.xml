@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Phase 11 QA fixture (Decisions "QA fixtures"; T11-13): FIVE static App Shortcuts, ranks 0-4 in declaration
+     order, so the selection rule's first four (qa_one..qa_four) are exact and "Five" is the one it drops (E1).
+     Declared in the meta-data of the LAUNCHER activity VerbActivity, the component the tile is: the shell's query is
+     per activity, so a declaration on ShortcutActivity would give the tile none. Every intent opens ShortcutActivity
+     with qa_id = the shortcut's id, which it shows in @id/shortcut_id (E4 reads which one ran). -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="qa_one"
+        android:enabled="true"
+        android:icon="@drawable/ic_qa_shortcut"
+        android:shortcutShortLabel="@string/qa_one">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell.testclient.a"
+            android:targetClass="app.tileshell.testclient.ShortcutActivity">
+            <extra android:name="qa_id" android:value="qa_one" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="qa_two"
+        android:enabled="true"
+        android:icon="@drawable/ic_qa_shortcut"
+        android:shortcutShortLabel="@string/qa_two">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell.testclient.a"
+            android:targetClass="app.tileshell.testclient.ShortcutActivity">
+            <extra android:name="qa_id" android:value="qa_two" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="qa_three"
+        android:enabled="true"
+        android:icon="@drawable/ic_qa_shortcut"
+        android:shortcutShortLabel="@string/qa_three">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell.testclient.a"
+            android:targetClass="app.tileshell.testclient.ShortcutActivity">
+            <extra android:name="qa_id" android:value="qa_three" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="qa_four"
+        android:enabled="true"
+        android:icon="@drawable/ic_qa_shortcut"
+        android:shortcutShortLabel="@string/qa_four">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell.testclient.a"
+            android:targetClass="app.tileshell.testclient.ShortcutActivity">
+            <extra android:name="qa_id" android:value="qa_four" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="qa_five"
+        android:enabled="true"
+        android:icon="@drawable/ic_qa_shortcut"
+        android:shortcutShortLabel="@string/qa_five">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell.testclient.a"
+            android:targetClass="app.tileshell.testclient.ShortcutActivity">
+            <extra android:name="qa_id" android:value="qa_five" />
+        </intent>
+    </shortcut>
+</shortcuts>

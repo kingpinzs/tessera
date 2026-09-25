@@ -486,11 +486,72 @@ internal fun LiveFace(face: TileFace, model: TileModel, widthDp: Dp, heightDp: D
                     BasicText(face.artist, style = ShellType.caption.copy(color = white), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
+            is TileFace.Clock -> ClockFace(face, model, widthDp, heightDp)
         }
         if (model.size != TileSize.SMALL && !hasControls) {
             BasicText(model.label, style = ShellType.caption.copy(color = white), maxLines = 1,
                 modifier = Modifier.align(Alignment.BottomStart).padding(start = StartGrid.LABEL_INSET_EPX.dp, bottom = 5.dp))
         }
+    }
+}
+
+/**
+ * Alarms & Clock's face (phase 15 build task 4; [TileFace.Clock], r11/clock.md §9's 2015 form, U10 — approximation,
+ * H14). Wide / medium: the headline large at the top-left (its cap ≈ 0.14 × the tile height, 9.3), the lines under it
+ * in caption, the glyph bottom-right where a count would sit; the tile's label is drawn by [LiveFace]. Small: the
+ * tile's own icon, as the logo face draws it, with the glyph as a small badge at its lower right (9.2). A ticking
+ * headline is recomputed once a second from the elapsed clock, so a pinned timer counts on the tile.
+ */
+@Composable
+private fun ClockFace(face: TileFace.Clock, model: TileModel, widthDp: Dp, heightDp: Dp) {
+    val white = Color.White
+    var headline by remember(face) { mutableStateOf(face.headlineAt(SystemClock.elapsedRealtime(), System.currentTimeMillis())) }
+    if (face.tick != null) {
+        LaunchedEffect(face) {
+            while (true) {
+                headline = face.headlineAt(SystemClock.elapsedRealtime(), System.currentTimeMillis())
+                delay(1000L - SystemClock.elapsedRealtime() % 1000L)
+            }
+        }
+    }
+    if (model.size == TileSize.SMALL) {
+        val iconSize = minOf(widthDp, heightDp) * 0.52f
+        Box(Modifier.fillMaxSize()) {
+            Box(Modifier.align(Alignment.Center).size(iconSize), contentAlignment = Alignment.Center) {
+                val icon = model.icon
+                if (icon != null) {
+                    Image(icon.bitmap, contentDescription = null, modifier = Modifier.fillMaxSize().let { if (icon.monochrome) it else it.padding(iconSize * 0.08f) })
+                } else {
+                    BasicText(face.glyph, style = ShellType.body.copy(fontFamily = Brand.iconFont, fontSize = (iconSize.value * 0.8f).sp, color = white, textAlign = TextAlign.Center))
+                }
+            }
+            // 9.2: the bell badge at the glyph's lower right.
+            BasicText(
+                face.glyph,
+                style = ShellType.body.copy(fontFamily = Brand.iconFont, fontSize = 11.sp, color = white),
+                modifier = Modifier.align(Alignment.Center).padding(start = iconSize * 0.9f, top = iconSize * 0.7f).testTag("tile_clock_badge:${model.id}"),
+            )
+        }
+        return
+    }
+    val headlineSize = (heightDp.value * 0.2f).coerceIn(16f, 30f)
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.padding(start = 7.5.dp, top = 6.dp, end = 8.dp)) {
+            BasicText(
+                headline,
+                style = ShellType.title.copy(fontSize = headlineSize.sp, lineHeight = (headlineSize * 1.2f).sp, color = white),
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.testTag("tile_clock_headline:${model.id}"),
+            )
+            face.lines.take(((heightDp.value - headlineSize * 1.2f - 24f) / 16f).toInt().coerceIn(0, 3)).forEach {
+                BasicText(it, style = ShellType.caption.copy(color = white, lineHeight = 16.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        BasicText(
+            face.glyph,
+            style = ShellType.body.copy(fontFamily = Brand.iconFont, fontSize = 14.sp, color = white),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(end = StartGrid.LABEL_INSET_EPX.dp, bottom = 5.dp),
+        )
     }
 }
 

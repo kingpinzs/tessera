@@ -84,12 +84,28 @@ class StartActivity : ComponentActivity() {
     private val backEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     /** Phase 02 edit mode: held here so Back, Home and the pivot can see it. */
     private val edit = StartEditState()
+    /** Phase 11: runs a satellite's App Shortcut. */
+    private val quickSource by lazy { app.tileshell.start.QuickSource(this) }
+
+    /**
+     * Phase 11: `onShortcutsChanged` for the held app while its burst is open closes the burst — `removed` when the
+     * app is gone (an uninstall sends this too), else `shortcuts changed`.
+     */
+    private val shortcutsChanged: (String, android.os.UserHandle) -> Unit = { pkg, user ->
+        val open = edit.quick.burst
+        val held = open?.satellites?.firstOrNull()
+        if (held != null && held.pkg == pkg && held.user == user) {
+            val gone = AppCatalog.get(this).packageState(pkg) == AppCatalog.PackageState.GONE
+            edit.quick.close(if (gone) app.tileshell.start.CloseReason.REMOVED else app.tileshell.start.CloseReason.SHORTCUTS_CHANGED)
+        }
+    }
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         hideSystemBars()
-        AppCatalog.get(this)
+        AppCatalog.get(this).addShortcutsChangedListener(shortcutsChanged)
+        edit.quick.onSatelliteTap = { burst, index, square -> launchSatellite(burst, index, square) }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() { backEvents.tryEmit(Unit) }
         })
@@ -113,6 +129,9 @@ class StartActivity : ComponentActivity() {
         LaunchedEffect(Unit) {
             homeEvents.collect { alreadyInFront ->
                 pickerSlot = null
+                // Phase 11: Home closes an open burst and edit mode with it (the HOME intent and the drawn
+                // Windows key both arrive here, T11-16).
+                edit.quick.close(app.tileshell.start.CloseReason.HOME)
                 // Windows leaves edit mode when Start is re-entered (X20's sibling; agent).
                 if (edit.active) edit.requestExit()
                 pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
@@ -126,6 +145,8 @@ class StartActivity : ComponentActivity() {
         LaunchedEffect(Unit) {
             backEvents.collect {
                 when {
+                    // Phase 11: Back closes an open burst only; the next Back exits edit mode (R6 §4.1.7).
+                    edit.quick.active -> edit.quick.close(app.tileshell.start.CloseReason.BACK)
                     // R6 §4.1.7 (H9): Back exits edit mode like a tap, and an expanded folder stays expanded.
                     edit.active -> edit.requestExit()
                     edit.expandedFolder != null -> edit.expandedFolder = null
@@ -287,6 +308,45 @@ class StartActivity : ComponentActivity() {
         Diagnostics.add("launch", "tile=$tileId target=$target")
     }
 
+    /**
+     * Phase 11 (Decisions "Satellite tap", T11-24): a satellite runs where a tile's launch runs. The burst goes in
+     * the Start exit's first frame, edit mode exits with R6 §1.5's exit, the Start exit plays as for a tile tap, and
+     * `startShortcut` runs from [pendingLaunch] after the exit's last frame.
+     */
+    private fun launchSatellite(burst: app.tileshell.start.OpenBurst, index: Int, square: app.tileshell.start.QRect) {
+        val sat = burst.satellites[index]
+        edit.quick.close(app.tileshell.start.CloseReason.LAUNCH, animate = false)
+        edit.requestExit()
+        val bounds = Rect(square.l.toInt(), square.t.toInt(), square.r.toInt(), square.b.toInt())
+        pendingLaunch = { launchShortcut(burst.key, sat, bounds) }
+        animation = StartAnimation(exitElapsedMs = 0f, exitTappedId = burst.drawnId)
+        exitToken++
+    }
+
+    /** launchApp's options and bookkeeping for a shortcut; a shortcut that cannot start plays the entrance at once. */
+    private fun launchShortcut(key: app.tileshell.tiles.TileKey, sat: app.tileshell.start.SatelliteSpec, bounds: Rect) {
+        val options = ActivityOptions.makeBasic().setSplashScreenStyle(SplashScreen.SPLASH_SCREEN_STYLE_SOLID_COLOR).toBundle()
+        when (val outcome = app.tileshell.start.QuickLaunch.run { quickSource.start(sat, bounds, options) }) {
+            app.tileshell.start.QuickLaunchOutcome.Ok -> {
+                Diagnostics.add("quick", "tap satellite ${sat.index} ${sat.pkg}/${sat.id}: startShortcut ok")
+                returningFromLaunch = true
+                UseCounts.get(this).record(key)
+                // Applied on the way back, in onResume, never now: the tile must not leave the grid under the exit.
+                pendingRecent = key
+                // The app was opened by the shell: its "New" caption clears as on any shell launch (X11; G-D4).
+                AppCatalog.get(this).notifyLaunched(sat.pkg, sat.user)
+            }
+            is app.tileshell.start.QuickLaunchOutcome.Failed -> {
+                Diagnostics.add("quick", "tap satellite ${sat.index} ${sat.pkg}/${sat.id}: startShortcut failed ${outcome.error}")
+                // Nothing opened, so nothing pauses Start: it would stay on the exit's last frame. Come back now.
+                returningFromLaunch = false
+                animation = StartAnimation(entranceElapsedMs = 0f)
+                entranceToken++
+                Diagnostics.add("motion", "start entrance")
+            }
+        }
+    }
+
     private fun backOnStart() {
         val entry = BackHistory.findTarget(this, AppCatalog.get(this))
         if (entry == null) return // X12: nothing happens
@@ -302,7 +362,14 @@ class StartActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
+        // Phase 11: Start stopping (screen off, a call, any window in front) closes an open burst at once.
+        edit.quick.close(app.tileshell.start.CloseReason.STOP, animate = false)
         inFront = false
+    }
+
+    override fun onDestroy() {
+        AppCatalog.get(this).removeShortcutsChangedListener(shortcutsChanged)
+        super.onDestroy()
     }
 
     override fun onNewIntent(intent: Intent) {

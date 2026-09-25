@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Voice Recorder's launcher icon: a static glyph tile (phase 15 Decisions "Tiles"; r11/voice-recorder.md U12,
+  the Microphone glyph on the accent). Start draws an app's monochrome layer white on the accent tile
+  (start/TileIcons.kt), so the monochrome layer IS the tile's face and nothing is published to it. The
+  background is the out-of-box accent (Palette.DEFAULT_ACCENT) for places that draw the full-colour icon.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/recorder_icon_background" />
+    <foreground>
+        <inset android:drawable="@drawable/ic_recorder_glyph" android:inset="33%" />
+    </foreground>
+    <monochrome>
+        <inset android:drawable="@drawable/ic_recorder_glyph" android:inset="33%" />
+    </monochrome>
+</adaptive-icon>

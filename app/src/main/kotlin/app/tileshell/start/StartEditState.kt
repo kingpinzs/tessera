@@ -63,6 +63,9 @@ class StartEditState {
      */
     var nameBoxYPx by mutableStateOf(0f)
 
+    /** Phase 11: the burst of App Shortcut satellites opened by the hold that starts edit mode. */
+    val quick = QuickBurstState()
+
     /** Entry/exit progress, driven by the frame clock: 0 = plain Start, 1 = fully in edit mode. */
     var scaleProgress by mutableStateOf(0f)
     var dimProgress by mutableStateOf(0f)
@@ -108,6 +111,7 @@ class StartEditState {
         naming = false
         scaleProgress = 0f
         dimProgress = 0f
+        quick.clear()
     }
 
     fun clearDrag() {
