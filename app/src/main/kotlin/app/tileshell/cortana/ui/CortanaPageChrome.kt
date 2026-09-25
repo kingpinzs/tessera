@@ -382,12 +382,11 @@ fun CapTopText(
     modifier: Modifier = Modifier,
 ) {
     val sizeEpx = style.fontSize.value
-    val lineHeightEpx = if (style.lineHeight.isSpecified) style.lineHeight.value else CapMetrics.lineHeightFor(sizeEpx)
     BasicText(
         text = text,
         modifier = modifier.offset(
             x = leftEpx.dp,
-            y = CapMetrics.topPaddingForCapTop(capTopEpx, sizeEpx, lineHeightEpx).dp,
+            y = CapMetrics.topPaddingForCapTop(capTopEpx, sizeEpx).dp,
         ),
         style = style,
         maxLines = 1,

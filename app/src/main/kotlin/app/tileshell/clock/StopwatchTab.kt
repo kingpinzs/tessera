@@ -45,7 +45,7 @@ import app.tileshell.ui.tokens.CapMetrics
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.delay
 
-private fun capPad(capTop: Float, size: Float, line: Float): Dp = CapMetrics.topPaddingForCapTop(capTop, size, line).dp
+private fun capPad(capTop: Float, size: Float): Dp = CapMetrics.topPaddingForCapTop(capTop, size).dp
 
 /** `[stopwatch] elapsed=<ms> uptime=<ms>` (T15-9): the tab's resume and every 5 s while running (the store logs start / stop / lap / reset). */
 private fun logStopwatch(store: ClockStore) {
@@ -123,7 +123,7 @@ fun BoxScope.StopwatchTab(nav: ClockNav, store: ClockStore) {
     // 7.1: cap top 39.2 below the band, the block's centre 180.7 (0.7 right of centre).
     BasicText(
         stopwatchDigits(ClockText.stopwatch(elapsed), colors.text.copy(alpha = 0.36f), colors.text),
-        Modifier.offset(x = 0.7.dp, y = capPad(39.2f, 45.7f, 56f)).fillMaxWidth().testTag("stopwatch_elapsed"),
+        Modifier.offset(x = 0.7.dp, y = capPad(39.2f, 45.7f)).fillMaxWidth().testTag("stopwatch_elapsed"),
         style = ShellType.body.copy(fontSize = 45.7.sp, lineHeight = 56.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), maxLines = 1,
     )
     // 7.2–7.3: the control row's centre 125.8 below the band; reset (Flag while running) at x 83.2, the ring at 179, expand at 274.7.

@@ -55,7 +55,7 @@ import app.tileshell.ui.tokens.CapMetrics
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.delay
 
-private fun capPad(capTop: Float, size: Float, line: Float): Dp = CapMetrics.topPaddingForCapTop(capTop, size, line).dp
+private fun capPad(capTop: Float, size: Float): Dp = CapMetrics.topPaddingForCapTop(capTop, size).dp
 
 /** `[timer] <id> remaining=<ms> uptime=<ms>` (T15-9): on start, stop, pause, resume, the tab's resume and every 5 s on screen. */
 fun logTimer(store: ClockStore, t: ClockTimer) {
@@ -155,7 +155,7 @@ private fun TimerBlock(
         // 6.2: digit height 30.2 epx (≈ 43-epx heavy), cap top 21.4 below the block top, centred on the screen.
         BasicText(
             timerDigits(ClockText.hms(remaining), colors.text.copy(alpha = 0.36f), colors.text),
-            Modifier.offset(y = capPad(21.4f, 43f, 48f)).fillMaxWidth().testTag("timer_remaining:${t.id}"),
+            Modifier.offset(y = capPad(21.4f, 43f)).fillMaxWidth().testTag("timer_remaining:${t.id}"),
             style = ShellType.body.copy(fontSize = 43.sp, lineHeight = 48.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center), maxLines = 1,
         )
         // 6.3–6.4: the control row's centre 104.5 below the block top; reset at x 75.1, the ring at 179, expand at 282.7.
@@ -168,7 +168,7 @@ private fun TimerBlock(
         GlyphButton(Glyph.EXPAND, "timer_expand:${t.id}", enabled = !select, Modifier.offset(x = (282.7f - 22f).dp, y = (104.5f - 22f).dp)) { onExpand() }
         // 6.6: the name (cap 11.5 ≈ 16.4-epx, ≈ 45 % ink) and the duration (semibold, ≈ 58 %), centred; a tap edits.
         Column(
-            Modifier.offset(y = capPad(148.5f, 16.4f, 20f)).fillMaxWidth().let { m -> if (select) m else m.pointerInput(t.id) { detectTapGestures { onEdit() } } },
+            Modifier.offset(y = capPad(148.5f, 16.4f)).fillMaxWidth().let { m -> if (select) m else m.pointerInput(t.id) { detectTapGestures { onEdit() } } },
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             BasicText(t.name.ifBlank { "Timer" }, Modifier.testTag("timer_name:${t.id}"), style = ShellType.body.copy(fontSize = 16.4.sp, color = colors.text.copy(alpha = 0.45f), textAlign = TextAlign.Center), maxLines = 1)
@@ -239,7 +239,7 @@ fun TimerEditorScreen(nav: ClockNav, store: ClockStore, menu: List<ClockMenuEntr
             }
         }
         // 4.8: the column captions at cap top 306.7, ≈ 65 % ink, centred per column.
-        Row(Modifier.offset(y = capPad(306.7f, 15f, 20f)).fillMaxWidth()) {
+        Row(Modifier.offset(y = capPad(306.7f, 15f)).fillMaxWidth()) {
             // Each caption centred on its column's span, split to split.
             listOf("Hours" to 117.7f, "Minutes" to 121.7f, "Seconds" to 120.6f).forEach { (c, w) ->
                 BasicText(c, Modifier.weight(w), style = ShellType.body.copy(color = colors.text.copy(alpha = 0.65f), textAlign = TextAlign.Center))
@@ -247,14 +247,14 @@ fun TimerEditorScreen(nav: ClockNav, store: ClockStore, menu: List<ClockMenuEntr
         }
         // 4.8: "Timer name" at cap top 350.2, the value in accent at 383.1.
         Box(Modifier.offset(y = (350.2f - 10f).dp).fillMaxWidth().height(64.dp).pointerInput(Unit) { detectTapGestures { editingName = true } }) {
-            BasicText("Timer name", Modifier.offset(x = 10.7.dp, y = capPad(10f, 15f, 20f)), style = ShellType.body.copy(color = colors.text.copy(alpha = 0.78f)))
+            BasicText("Timer name", Modifier.offset(x = 10.7.dp, y = capPad(10f, 15f)), style = ShellType.body.copy(color = colors.text.copy(alpha = 0.78f)))
             if (editingName) {
                 val focus = remember { FocusRequester() }
                 LaunchedEffect(Unit) { focus.requestFocus() }
                 BasicTextField(
                     value = draft.name,
                     onValueChange = { v -> update { d -> d.copy(name = v.take(64).replace("\n", "")) } },
-                    modifier = Modifier.offset(x = 10.7.dp, y = capPad(10f + 32.9f, 15f, 20f)).fillMaxWidth().padding(end = 12.dp).focusRequester(focus).testTag("timer_editor_name_field"),
+                    modifier = Modifier.offset(x = 10.7.dp, y = capPad(10f + 32.9f, 15f)).fillMaxWidth().padding(end = 12.dp).focusRequester(focus).testTag("timer_editor_name_field"),
                     textStyle = ShellType.body.copy(color = colors.accent),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -262,7 +262,7 @@ fun TimerEditorScreen(nav: ClockNav, store: ClockStore, menu: List<ClockMenuEntr
                     cursorBrush = SolidColor(colors.accent),
                 )
             } else {
-                BasicText(draft.name.ifBlank { "Timer" }, Modifier.offset(x = 10.7.dp, y = capPad(10f + 32.9f, 15f, 20f)).testTag("timer_editor_field:name"), style = ShellType.body.copy(color = colors.accent), maxLines = 1)
+                BasicText(draft.name.ifBlank { "Timer" }, Modifier.offset(x = 10.7.dp, y = capPad(10f + 32.9f, 15f)).testTag("timer_editor_field:name"), style = ShellType.body.copy(color = colors.accent), maxLines = 1)
             }
         }
     }
