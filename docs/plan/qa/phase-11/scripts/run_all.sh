@@ -16,7 +16,7 @@ if [ "${1:-}" = "--append" ]; then
   say "## re-run $(date -Iseconds): commit $(git -C "$ROOT" rev-parse --short HEAD); apk $(md5sum "$ROOT/app/build/outputs/apk/debug/app-debug.apk" | cut -c1-16); rows: $*"
   for r in "$@"; do say "   $r.sh blob $(git -C "$ROOT" hash-object "$HERE/$r.sh")"; done
   for r in "$@"; do
-    R="$(case "$r" in l11_1) echo L11-1 ;; edge) echo EDGE ;; *) echo "$r" | tr 'e' 'E' ;; esac)"
+    R="$(case "$r" in l11_1) echo L11-1 ;; edge) echo EDGE ;; drag) echo DRAG ;; *) echo "$r" | tr 'e' 'E' ;; esac)"
     # The run being replaced is kept beside it, not deleted (the round-2 re-judge, EV-15).
     [ -d "$OUT/$R" ] && mv "$OUT/$R" "$OUT/$R-before-rerun-$(date +%H%M%S)"; START=$(date +%s)
     bash "$HERE/$r.sh" > "$OUT/.$r.console" 2>&1; RC=$?
@@ -28,7 +28,7 @@ latest = {}
 unit_ok = False
 for l in open(sys.argv[1]):
     if l.startswith("unit: "): unit_ok = bool(re.search(r"TOTAL \d+ tests, 0 failures, 0 errors \(gradle exit 0\)", l))
-    m = re.match(r"(E\d+|L11-1|EDGE) exit (\d+)", l)
+    m = re.match(r"(E\d+|L11-1|EDGE|DRAG) exit (\d+)", l)
     if m: latest[m.group(1)] = int(m.group(2))
 bad = sorted(r for r, rc in latest.items() if rc) + ([] if unit_ok else ["unit"])
 print("VERDICT (latest line per row): " + ("SUITE PASSED" if not bad else "SUITE FAILED: " + " ".join(bad)))
@@ -56,8 +56,8 @@ say "unit: $(tail -1 "$OUT/UNIT.txt") (gradle exit $URC)"
 mkdir -p "$OUT/UNIT-results"; cp -f "$ROOT"/app/build/test-results/testDebugUnitTest/TEST-*.xml "$OUT/UNIT-results/"
 say "unit results kept: $(ls "$OUT/UNIT-results" | wc -l) files in UNIT-results/"
 FAILED=(); [ "$URC" -eq 0 ] || FAILED+=(unit)
-ROWS=${*:-"e1 e2 e3 e4 e5 e6 e7 e8 e9 e10 e11 e12 e13 e15 e16 l11_1 edge e14"}
-rowid() { case "$1" in l11_1) echo L11-1 ;; edge) echo EDGE ;; *) echo "$1" | tr 'e' 'E' ;; esac; }
+ROWS=${*:-"e1 e2 e3 e4 e5 e6 e7 e8 e9 e10 e11 e12 e13 e15 e16 l11_1 edge drag e14"}
+rowid() { case "$1" in l11_1) echo L11-1 ;; edge) echo EDGE ;; drag) echo DRAG ;; *) echo "$1" | tr 'e' 'E' ;; esac; }
 for r in $ROWS; do
   R="$(rowid "$r")"
   rm -rf "$OUT/$R"

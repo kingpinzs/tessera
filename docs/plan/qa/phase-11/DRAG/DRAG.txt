@@ -1,0 +1,38 @@
+==============================================================================
+ROW DRAG — the burst hides while its tile is dragged and comes back where it is dropped; another tile's drag closes it
+at            2026-09-25T11:31:02-06:00
+driver        drag.sh blob c5bfc3d353155115e7e3c83910606ae965a3e568
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     5315a8be03b89f57 336078178 bytes
+apk installed 749be3b2217a7ce8
+apk match     yes (749be3b2217a7ce8)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- (a) the held tile dragged to a blank spot: hidden during the drag, back around its new cell after the drop ---
+PASS  the hold opened the burst                                   = yes
+      the blank spot: (60,1800); the fixture from (536,610)
+PASS  while dragging: no satellites                               = no
+PASS  ring: burst hidden: drag                                    contains [[quick] burst hidden: drag app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0]
+      drop: [edit] drop: app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 moves in the grid
+PASS  the fixture moved to a new cell                             != 365 489 708 832
+PASS  after the drop: the satellites are back                     = yes
+PASS  …around the fixture at its new cell                       = ok
+PASS  …with the discs (edit mode, the fixture held)             = yes
+PASS  ring: burst back after the drop                             contains [[quick] burst back after the drop: app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0]
+PASS  ring: it opened again (burst on)                            contains [[quick] burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0]
+PASS  ring: the open motion played again                          contains [[quick] motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0]
+PASS  ring: nothing closed it                                     does not contain [burst closed]
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- (b) another tile dragged while the burst is open: the burst closes (drag) and does not come back ---
+PASS  the hold opened the burst                                   = yes
+PASS  ring: burst closed: drag                                    contains [burst closed: drag]
+PASS  ring: not hidden (it was not its own tile)                  does not contain [burst hidden]
+PASS  after the drop: no satellites                               = no
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+------------------------------------------------------------------------------
+DRAG: 21 passed, 0 failed, 0 recorded

@@ -1,0 +1,20 @@
+==============================================================================
+ROW E13-dragsmoke — E13's hold-and-drag sub-step only (the 2026-09-25 drag ruling)
+at            2026-09-25T11:33:05-06:00
+driver        .e13_drag_smoke.sh blob 171037847602d0e0183f2226bc5bc9475e57ba5f
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     5315a8be03b89f57 336078178 bytes
+apk installed 749be3b2217a7ce8
+apk match     yes (749be3b2217a7ce8)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+--- phase 02's hold and drag as one gesture: no burst during the drag (hidden), back after the drop ---
+PASS  restore baseline_layout-pre-11.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-pre-11.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  no quick_burst during the drag                              = no
+PASS  ring: burst hidden: drag                                    contains [[quick] burst hidden: drag slot:PEOPLE]
+PASS  ring: burst back after the drop                             contains [[quick] burst back after the drop: slot:PEOPLE]
+PASS  after the drop the burst is back around PEOPLE              = yes
+------------------------------------------------------------------------------
+E13-dragsmoke: 6 passed, 0 failed, 0 recorded
