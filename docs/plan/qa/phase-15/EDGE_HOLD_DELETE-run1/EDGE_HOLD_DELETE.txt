@@ -1,0 +1,36 @@
+==============================================================================
+ROW EDGE_HOLD_DELETE — a hold on an alarm or a timer offers Delete; taps, buttons and Select unchanged
+at            2026-09-25T15:00:59-06:00
+driver        edge_hold_delete.sh blob fdce50297ba24993e336a0ef0c72c7f89feeb9d3
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     3571b9516e89c9c5 338459026 bytes
+apk installed c4a45bcf8e826a62
+apk match     yes (c4a45bcf8e826a62)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      at the start: 0 alarm(s), 0 timer(s)
+PASS  an alarm was made for the row                               != 
+PASS  a timer was made for the row                                != 
+PASS  a tap on an alarm row still opens its editor                = yes
+PASS  a hold on an alarm row opens its menu                       = yes
+PASS  … offering Delete                                         = yes
+PASS  … and the hold did not open the editor                    = no
+PASS  Delete removes the alarm from the store                     = no
+PASS  … and the ring says so                                    contains [hold delete alarm a2146034e]
+PASS  … and it is gone from the list                            = no
+PASS  the timer's play / pause button still works (state RUNNING -> PAUSED)  != RUNNING
+PASS  in Select a hold opens no menu                              = no
+FAIL  … and a tap still checks the block (Delete enabled)       does not contain [enabled="true"]: <node index="0" text="" resource-id="timer_select_delete" class="android.view.View" package="app.tileshell" content-desc="" checkable="false" checked="false" clickable="true" enabled="false" focusable="false" focused="false" scrollable="fal
+PASS  Back leaves Select with the timer kept                      = yes
+FAIL  a hold on the timer's play button opens the menu            expected [yes] got [no]
+FAIL  … and does not also press the button (state unchanged)    expected [PAUSED] got [RUNNING]
+PASS  a hold on a timer's name opens its menu                     = yes
+PASS  … and not the timer editor                                = no
+PASS  … offering Delete                                         = yes
+PASS  Delete removes the timer from the store                     = no
+PASS  … and the ring says so                                    contains [hold delete timer t14d63cd1]
+PASS  restore: the alarm count is as it began                     = 0
+PASS  restore: the timer count is as it began                     = 0
+------------------------------------------------------------------------------
+EDGE_HOLD_DELETE: 19 passed, 3 failed, 0 recorded
