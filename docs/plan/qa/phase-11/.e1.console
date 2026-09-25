@@ -1,0 +1,21 @@
+── E1 burst at the hold: four satellites One..Four, edit mode on, both stay after UP
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 4.0 MB/s (1390 bytes in 0.000s)
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  fixture tile at its middle-column cell at rest (T11-18)     want ['365', '439', '708', '782'] ± 1, got ['365', '439', '708', '782']
+PASS  quick_burst present while held                              = yes
+PASS  quick_sat:0 present                                         = yes
+PASS  quick_sat:1 present                                         = yes
+PASS  quick_sat:2 present                                         = yes
+PASS  quick_sat:3 present                                         = yes
+PASS  labels are ranks 0-3, Five absent                           = One,Two,Three,Four,
+PASS  no label Five                                               does not contain [text="Five"]
+PASS  edit_disc:unpin present                                     = yes
+PASS  edit_disc:resize present                                    = yes
+PASS  dim:* present (edit mode dims the others)                   contains [resource-id="dim:]
+PASS  StartActivity still resumed                                 contains [app.tileshell/.StartActivity]
+PASS  shortcuts line (T11-12)                                     contains [[quick] shortcuts for app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity/0: 5 (4 shown: qa_one,qa_two,qa_three,qa_four)]
+PASS  burst line                                                  contains [[quick] burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: 4 satellites]
+PASS  tile rectangles unchanged by the UP (dumpdiff)              = IDENTICAL
+PASS  burst and discs unchanged by the UP (± 1 px, same labels)  = SAME
+   E1: 18 passed, 0 failed

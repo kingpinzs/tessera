@@ -66,6 +66,10 @@ import java.util.Locale
  * The PIN TILE button runs secondary.requestCreate with those same extras, so E5 can drive it by hand as Windows
  * requires ("The user must explicitly click a Pin button within your app").
  *
+ * App Shortcuts (phase 11; tileclient-b only, a package check — see ShortcutVerbs, which also runs them from the
+ * windowless ShortcutVerbReceiver):
+ *   reset / disable / badicon / deadtarget   tileclient-b's dynamic shortcuts qa_dyn, qa_noicon, qa_dead
+ *
  * When the shell launches this app from a secondary tile, the top line of the screen shows what the tile sent:
  * `TILE_ID=... ARGS=... ACTIVATED=...`, which `uiautomator dump` reads (dumpsys activity prints only "(has extras)").
  *
@@ -278,6 +282,7 @@ class VerbActivity : Activity() {
                 "$verb tileId=${tile.tileId}: ${tile.exists()}"
             }
             "secondary.findAll" -> "secondary.findAll: ${SecondaryTile.findAll(this)}"
+            in ShortcutVerbs.VERBS -> ShortcutVerbs.perform(this, verb)
             else -> "unknown verb $verb"
         }
     }

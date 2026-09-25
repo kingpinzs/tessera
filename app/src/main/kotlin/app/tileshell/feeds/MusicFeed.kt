@@ -16,6 +16,8 @@ import app.tileshell.diag.Diagnostics
 import app.tileshell.tiles.ActiveTiles
 import app.tileshell.tiles.engine.FaceTransition
 import app.tileshell.tiles.engine.LiveTileEngine
+import app.tileshell.tiles.engine.PackageSource
+import app.tileshell.tiles.engine.TileRouting
 import app.tileshell.tiles.engine.TileContent
 import app.tileshell.tiles.engine.TileFace
 import app.tileshell.tiles.engine.Transport
@@ -46,17 +48,37 @@ object MusicFeed {
     private var published: MusicRules.Now? = null
 
     /**
-     * The package whose tile currently carries the face, so it can be cleared when the session moves to
-     * another app (phase 10 Q4). Without this, stopping Spotify and starting the shell's own player
-     * would leave Spotify's tile showing a track that is no longer playing anywhere.
+     * Where the face currently is — its content key and its growth key — so it can be cleared when the
+     * session moves to another app (phase 10 Q4). Without this, stopping Spotify and starting the shell's own
+     * player would leave Spotify's tile showing a track that is no longer playing anywhere. Both keys come
+     * from [TileRouting]: a package for another app, Music's component for the shell's own player (phase 15
+     * build task 0).
      */
-    private var publishedPkg: String? = null
+    private var publishedRoute: Route? = null
+
+    /** A face's destination: the content key it is published under and the key whose tiles grow with it. */
+    private data class Route(val contentKey: String, val growthKey: String)
+
+    /** The shell sessions already reported as going to no tile, so the line is written once per session. */
+    private val reportedNone = HashSet<MediaSession.Token>()
+
+    /** The shell's own package, read once at [start]. */
+    @Volatile private var shellPackage: String = ""
+
+    private val forgetRegistered = java.util.concurrent.atomic.AtomicBoolean(false)
 
     /** The art belonging to [published]'s track: kept so an unchanged track is not re-read over a Binder. */
     private var publishedArt: ImageBitmap? = null
 
     fun start(context: Context) {
         val app = context.applicationContext
+        // A package forgotten by the engine (gone, or reinstalled as another identity) is not republished from the
+        // track remembered here when its session dies (the L11-1 fix review, F-2). Once per process: start runs again
+        // on every checklist resume, and a late duplicate forget could clear a new track (the re-judge, R1-2).
+        if (forgetRegistered.compareAndSet(false, true)) {
+            LiveTileEngine.addForgetListener { pkg -> Handler(Looper.getMainLooper()).post { forget(pkg) } }
+        }
+        shellPackage = app.packageName
         val listener = ComponentName(app, TileNotificationListener::class.java)
         val msm = app.getSystemService(MediaSessionManager::class.java) ?: return
         runCatching {
@@ -115,7 +137,17 @@ object MusicFeed {
         Diagnostics.add("music", "control $transport -> ${controller.packageName} (was ${if (playing) "playing" else "idle"})")
     }
 
-    private fun publish(controllers: List<MediaController>, reason: String) {
+    private fun publish(all: List<MediaController>, reason: String) {
+        // A shell session routed to no tile (Voice Recorder's playback; phase 15 build task 0) is not one this
+        // feed follows at all: were it picked, a recording playing would take the face off Music's or another
+        // app's tile, and the tile's controls would drive the recorder.
+        val controllers = all.filter { c ->
+            val routed = c.packageName != shellPackage || route(c) != null
+            if (!routed && reportedNone.add(c.sessionToken)) {
+                Diagnostics.add("music", "session ${c.packageName} id=${TileRouting.sessionId(c.tag) ?: "?"} -> none")
+            }
+            routed
+        }
         val controller = MusicRules.pick(controllers) { MusicRules.isPlaying(it.playbackState?.state ?: PlaybackState.STATE_NONE) }
         current = controller
         val now = controller?.let { c ->
@@ -151,24 +183,31 @@ object MusicFeed {
         publishedArt = art
         val plan = MusicRules.plan(next)
         val pkg = next?.track?.pkg
+        // A live controller gives the route; a session that went away keeps the route its face already had.
+        val route = if (now != null) controller?.let { route(it) } else publishedRoute
 
         // Phase 10 Q4: the face belongs to the tile of the app that OWNS the session, so it is published
-        // under that package's key and the tiles standing for that package are the ones that grow. A tile
-        // is never borrowed: an app with nothing on Start simply shows nowhere.
-        if (publishedPkg != null && publishedPkg != pkg) {
-            LiveTileEngine.publish(LiveTileEngine.packageKey(publishedPkg!!), null)
-            ActiveTiles.setPackage(publishedPkg!!, false, "the session moved to ${pkg ?: "nothing"}")
+        // under that app's key and the tiles standing for that app are the ones that grow. A tile is never
+        // borrowed: an app with nothing on Start simply shows nowhere. "That app" is a package for everyone
+        // but the shell, whose apps share one package and are told apart by component (TileRouting).
+        val previous = publishedRoute
+        if (previous != null && previous != route) {
+            publishRoute(previous, null)
+            ActiveTiles.setPackage(previous.growthKey, false, "the session moved to ${route?.growthKey ?: "nothing"}")
         }
-        publishedPkg = pkg
-        pkg?.let { ActiveTiles.setPackage(it, plan.grow, "music ${if (plan.grow) "playing" else "idle"}") }
+        if (route != previous && route != null && pkg == shellPackage) {
+            Diagnostics.add("music", "session $pkg id=${controller?.let { TileRouting.sessionId(it.tag) } ?: "?"} -> ${route.contentKey}")
+        }
+        publishedRoute = route
+        route?.let { ActiveTiles.setPackage(it.growthKey, plan.grow, "music ${if (plan.grow) "playing" else "idle"}") }
 
-        if (next == null || pkg == null) {
+        if (next == null || pkg == null || route == null) {
             Diagnostics.add("music", "idle, nothing known ($reason)")
             return
         }
         val face = TileFace.NowPlaying(art, next.track.title, next.track.artist, next.playing, plan.controls)
-        LiveTileEngine.publish(
-            LiveTileEngine.packageKey(pkg),
+        publishRoute(
+            route,
             TileContent(
                 faces = if (plan.flip) listOf(face) else emptyList(),
                 transition = FaceTransition.FLIP,
@@ -184,16 +223,48 @@ object MusicFeed {
         )
     }
 
+    private fun forget(pkg: String) {
+        if (publishedRoute?.growthKey != pkg) return
+        // The engine forgot the package on the wipe's thread; a publish of ours that ran on main in between (a session
+        // dying mid-uninstall) re-created the slot. Main has the last word on our own slot (the re-judge, R1-1).
+        LiveTileEngine.publishPackage(pkg, PackageSource.MUSIC, null)
+        published = null
+        publishedArt = null
+        publishedRoute = null
+        ActiveTiles.setPackage(pkg, false, "package forgotten")
+        Diagnostics.add("music", "forgot $pkg's track (package gone)")
+    }
+
     /** Back to nothing: no tile content, no growth, no remembered track. */
     private fun clear(reason: String) {
         current = null
         published = null
         publishedArt = null
-        publishedPkg?.let {
-            ActiveTiles.setPackage(it, false, reason)
-            LiveTileEngine.publish(LiveTileEngine.packageKey(it), null)
+        publishedRoute?.let {
+            ActiveTiles.setPackage(it.growthKey, false, reason)
+            publishRoute(it, null)
         }
-        publishedPkg = null
+        publishedRoute = null
+    }
+
+    /** The route of a live session, or null when it goes to no tile (TileRouting). */
+    /**
+     * A route's content: another app's slot goes through the engine's arbiter (the L11-1 fix: its now-playing face, its
+     * Live Tile queue and its notification previews share that one slot), a shell app's component key straight to
+     * the engine, where nothing else publishes (TileRouting; the listener's own-package previews are keyed by package).
+     */
+    private fun publishRoute(route: Route, content: TileContent?) {
+        if (route.contentKey == LiveTileEngine.packageKey(route.growthKey)) {
+            LiveTileEngine.publishPackage(route.growthKey, PackageSource.MUSIC, content)
+        } else {
+            LiveTileEngine.publish(route.contentKey, content)
+        }
+    }
+
+    private fun route(c: MediaController): Route? {
+        val content = TileRouting.sessionContentKey(c.packageName, c.tag, shellPackage) ?: return null
+        val growth = TileRouting.sessionGrowthKey(c.packageName, c.tag, shellPackage) ?: return null
+        return Route(content, growth)
     }
 
 }

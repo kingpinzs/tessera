@@ -1,0 +1,119 @@
+==============================================================================
+ROW E15 — the recorder keeps recording in the background and stops from its notification
+at            2026-09-24T12:12:06-06:00
+driver        e15.sh blob e93f2a1a9a0f29f6d9bbccb97ab78081fc77a5f0
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     16c10b6344743056 337843239 bytes
+apk installed 2a698d187ca2ab08
+apk match     yes (2a698d187ca2ab08)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: MediaStore holds no take of the shell's           = 0
+      E15: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
+PASS  E15: the audio route is up (audio.sh check rc)              = 0
+      tone loop pid 1349330
+      the take runs: elapsed_ms=1555
+PASS  the take is recording                                       = recording
+PASS  the :recorder ring holds [recorder] start                   contains [[recorder] start Recording free=]
+PASS  Start is in front                                           contains [app.tileshell/.StartActivity]
+      service block:  processName=app.tileshell:recorder| isForeground=true foregroundId=1507 types=0x00000080 foregroundNoti=Notification(channel=recorder_take shortcut=null contentView=null vibrate=null sound=null d
+PASS  the recorder service is foreground                          contains [isForeground=true]
+PASS  its types carry the microphone bit 0x00000080               contains [types=0x00000080]
+PASS  its process is app.tileshell:recorder                       contains [processName=app.tileshell:recorder]
+      pidof app.tileshell:recorder = 10470
+PASS  pidof app.tileshell:recorder finds the process              != 
+PASS  the ongoing notification is posted (ONGOING_EVENT)          contains [ONGOING_EVENT]
+PASS  it carries a Stop action                                    contains ["Stop" -> PendingIntent]
+PASS  its title is Recording                                      contains [android.title=String (Recording)]
+      after KEYCODE_SLEEP: mWakefulness=Asleep
+PASS  the take is still recording after 20 s asleep               = recording
+PASS  wake_device prints Awake (C-25)                             = Awake
+      elapsed_ms before the shade: 26633
+FAIL  the notification's Stop was found and tapped in the shade   expected [yes] got [no]
+FAIL  after Stop the notification is gone                         expected [] got [    NotificationRecord(0x0071e618: pkg=app.tileshell user=UserHandle{0} id=1507 tag=null importance=2 key=0|app.tileshell|1507|null|10150: Notification(channel=recorder_take shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONGOING_EVENT|NO_CLEAR|FOREGROUND_SERVICE color=0x00000000 category=service actions=1 vis=PRIVATE))
+      uid=10150 userId=0
+      opPkg=app.tileshell
+      icon=Icon(typ=RESOURCE pkg=app.tileshell id=0x7f04000c)
+      flags=ONGOING_EVENT|NO_CLEAR|FOREGROUND_SERVICE
+      originalFlags=ONGOING_EVENT|FOREGROUND_SERVICE
+      pri=0
+      key=0|app.tileshell|1507|null|10150
+      seen=true
+      groupKey=0|app.tileshell|1507|null|10150
+      notification=
+            fullscreenIntent=null
+            contentIntent=PendingIntent{32a7871: PendingIntentRecord{dd3571b app.tileshell startActivity (allowlist: 66602bb:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+            deleteIntent=null
+            number=0
+            groupAlertBehavior=0
+            when=1790273538084/1790273538084
+            tickerText=null
+            vis=0
+            contentView=null
+            bigContentView=null
+            headsUpContentView=null
+            color=0x00000000
+            timeout=PT72H
+            actions={
+                [0] "Stop" -> PendingIntent{22de656: PendingIntentRecord{e51cd2a app.tileshell startService (allowlist: 66602bb:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+              }
+            extras={
+                android.title=String (Recording)
+                android.reduced.images=Boolean (true)
+                android.showChronometer=Boolean (true)
+                android.text=String (Recording)
+                android.appInfo=ApplicationInfo (ApplicationInfo{63d76d7 app.tileshell})
+                android.showWhen=Boolean (true)
+            }
+      publicNotification=
+            None
+      stats=SingleNotificationStats{posttimeElapsedMs=46461503, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=1, airtimeMs=14867, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=14866, posttimeToFirstVisibleExpansionMs=27022, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=2, isNoisy=true}
+      mContactAffinity=0.0
+      mRecentlyIntrusive=false
+      mPackagePriority=0
+      mPackageVisibility=-1000
+      mSystemImportance=UNSPECIFIED
+      mAsstImportance=UNSPECIFIED
+      mImportance=LOW
+      mImportanceExplanation=app
+      mProposedImportance=UNSPECIFIED
+      mIsAppImportanceLocked=false
+      mSensitiveContent=false
+      mCanceledAfterLifetimeExtension=false
+      mIntercept=false
+      mHidden==false
+      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0000:gsmry=1:nsk:rnk=0x0000
+      mRankingTimeMs=1790273538085
+      mCreationTimeMs=1790273538085
+      mVisibleSinceMs=1790273565272
+      mUpdateTimeMs=1790273538085
+      mInterruptionTimeMs=1790273538085
+      mSuppressedVisualEffects= 0
+      mSound= content://settings/system/notification_sound
+      mVibration= null
+      mAttributes= AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
+      mLight= null
+      mShowBadge=true
+      mColorized=false
+      mAllowBubble=false
+      isBubble=false
+      mIsInterruptive=false
+      effectiveNotificationChannel=NotificationChannel{mId='recorder_take', mName=Voice Recorder, mDescription=, mImportance=2, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=content://settings/system/notification_sound, mLights=false, mLightColor=0, mVibrationPattern=null, mVibrationEffect=null, mUserLockedFields=0, mUserVisibleTaskShown=true, mVibrationEnabled=false, mShowBadge=true, mDeleted=false, mDeletedTimeMs=-1, mGroup='null', mAudioAttributes=AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null, mBlockableSystem=false, mAllowBubbles=-1, mImportanceLockedDefaultApp=false, mOriginalImp=2, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false, mLastNotificationUpdateTimeMs=0}
+      mAdjustments=[]
+      shortcut=null found valid? false
+      mUserVisOverride=-1000
+      hasSummarization=false]
+FAIL  after Stop no recorder service is running                   expected [] got [    isForeground=true foregroundId=1507 types=0x00000080 foregroundNoti=Notification(channel=recorder_take shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONGOING_EVENT|NO_CLEAR|FOREGROUND_SERVICE color=0x00000000 category=service actions=1 vis=PRIVATE)]
+      the take's MediaStore id: none; wall time since the record tap: 48 s
+FAIL  the take is in MediaStore                                   should not be []
+      pull_take: no _data for 
+      take:  s, 
+FAIL  the file is at least 25 s long                              expected [yes] got [no (0)]
+      overall RMS:  dBFS
+FAIL  the tone is in the whole file (overall RMS > -40 dBFS)      expected [yes] got [no]
+      RMS over 22-27 s:  dBFS
+FAIL  the 5-s window at 22 s (recorded while the screen was off) has the tone (RMS > -40 dBFS)  expected [yes] got [no]
+PASS  restore: the take is deleted                                = 0
+------------------------------------------------------------------------------
+E15: 15 passed, 7 failed, 0 recorded

@@ -52,15 +52,6 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
     override val savedStateRegistry: SavedStateRegistry get() = savedStateController.savedStateRegistry
 
     private val host = object : ActionHost {
-        override fun startVoiceActivity(intent: Intent): Boolean = runCatching {
-            this@CortanaSession.startVoiceActivity(intent)
-            Diagnostics.add("cortana", "startVoiceActivity ${intent.action}")
-            true
-        }.getOrElse {
-            Diagnostics.add("cortana", "startVoiceActivity refused: $it")
-            false
-        }
-
         override fun launch(intent: Intent) {
             runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
                 .onFailure { Diagnostics.add("cortana", "launch failed: $it") }

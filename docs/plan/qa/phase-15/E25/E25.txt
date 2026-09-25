@@ -1,0 +1,30 @@
+==============================================================================
+ROW E25 — the APK grows by at most 3 MB and gains no entry of 1 MB or more
+at            2026-09-24T14:10:49-06:00
+driver        e25.sh blob 810b2bb6d3c3c45ec96a53540021f221ff8887aa
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 7b1306f3e567a24b
+apk match     yes (7b1306f3e567a24b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      without: /tmp/claude-1000/-home-jeremyking/5d5ffc39-5a2a-4c33-953f-07d71da27a45/scratchpad/p15/gate-without/app/build/outputs/apk/debug/app-debug.apk 333308001 bytes (sha256 442f76c6b9edd042)
+      with:    /tmp/claude-1000/-home-jeremyking/5d5ffc39-5a2a-4c33-953f-07d71da27a45/scratchpad/p15/gate-with2/app/build/outputs/apk/debug/app-debug.apk 335763998 bytes (sha256 32117176fe453def)
+RECORD  APK size delta                                              2455997 bytes (333308001 -> 335763998)
+PASS  the APK grew by at most 3,000,000 bytes                     = yes
+      entries changed: 22; the ten largest compressed deltas:
+        2435160	2435160	classes*.dex	changed
+        6516	6516	resources.arsc	changed
+        935	5784	AndroidManifest.xml	changed
+        833	2012	res/drawable/ic_calculator_glyph.xml	new
+        697	1332	res/drawable/ic_clock_glyph.xml	new
+        634	2176	res/xml/shortcuts_calculator.xml	new
+        630	2160	res/xml/shortcuts_clock.xml	new
+        611	1300	res/drawable/ic_recorder_glyph.xml	new
+        547	1408	res/xml/shortcuts_recorder.xml	new
+        404	736	res/drawable/ic_alarm.xml	new
+RECORD  dex (classes*.dex, all shards)                              2435160 2435160 bytes (compressed uncompressed delta)
+PASS  no new entry of 1,000,000 bytes or more (unzip -l; dex shards as one)  = 
+------------------------------------------------------------------------------
+E25: 2 passed, 0 failed, 2 recorded

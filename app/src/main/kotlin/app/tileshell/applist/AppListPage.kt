@@ -478,7 +478,12 @@ private fun AppRow(
         RowLayout(
             icon = { AppIcon(item.entry, icons, generation) },
             name = {
-                BasicText(item.entry.label, style = ShellType.body.copy(color = colors.text), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                // The label's own tag names the COMPONENT (phase 15 T15-47): the shell's in-APK apps all share one
+                // package, so the row tag alone cannot tell Music, Alarms & Clock or Calculator apart.
+                BasicText(
+                    item.entry.label, style = ShellType.body.copy(color = colors.text), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.testTag("applist_name:${item.entry.component.flattenToShortString()}"),
+                )
             },
             caption = if (isNew) {
                 { BasicText("New", style = ShellType.caption.copy(color = colors.accent), maxLines = 1, modifier = Modifier.testTag("applist_new:$pkg")) }

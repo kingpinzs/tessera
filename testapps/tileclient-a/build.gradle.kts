@@ -25,6 +25,8 @@ android {
         getByName("main") {
             // VerbActivity and TestImageProvider are shared by the three test APKs.
             kotlin.directories.add(rootProject.file("testapps/common/src/main/kotlin").path)
+            // So are the resources the shared sources look up by name (phase 11: id/shortcut_id).
+            res.directories.add(rootProject.file("testapps/common/src/main/res").path)
         }
     }
 }

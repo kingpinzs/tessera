@@ -1,0 +1,33 @@
+==============================================================================
+ROW E16 — the promoted tile bursts in its grid cell; a cell off the page opens none (off screen)
+at            2026-09-24T13:09:43-06:00
+driver        e16.sh blob e5a4d26f48aa475cdaf55a45c779514753f61bf6
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     a982b1894cd5600b 335517953 bytes
+apk installed 114511e7de8bb2e0
+apk match     yes (114511e7de8bb2e0)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  the fixture is promoted (recent_app_row)                    = yes
+PASS  recent_app_row gone (edit mode suspends the promotion)      = no
+PASS  edit mode on                                                = yes
+PASS  the fixture at its grid cell as E1's held dump gives it (± 1 px, T11-36)  E1 held 365 489 708 832 vs now 365 489 708 832
+PASS  burst on the fixture                                        contains [[quick] burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: 4 satellites]
+PASS  no satellite or label on the held tile                      = 0
+PASS  satellites relative to the tile equal E7's corner case (± 1 px)  0.00 vs 0.00 +/- 1.0
+--- off screen: the tall layout scrolled until the fixture's grid cell is off the page ---
+PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  the fixture is still promoted                               = yes
+      scroll 1173 px -> the fixture cell's edit-mode bottom at -223 px
+PASS  precondition: the fixture's grid cell lies wholly above the page area (-223 < 84)  = ok
+PASS  edit mode entered                                           contains [[edit] hold 783ms on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: edit mode on]
+PASS  no quick_burst                                              = no
+PASS  reason: off screen                                          contains [[quick] no burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: off screen]
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+------------------------------------------------------------------------------
+E16: 18 passed, 0 failed

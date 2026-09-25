@@ -34,5 +34,12 @@
             android:authorities="${applicationId}.images"
             android:exported="false"
             android:grantUriPermissions="true" />
+
+        <!-- Phase 11 (T11-15): the shortcut verbs (reset, disable, badicon, deadtarget) with no window, so a verb sent
+             while a burst is open leaves Start resumed: am broadcast -n with this component and the string extra
+             verb. Exported for the adb shell; tileclient-b only (the verbs act only in this package, T11-30). -->
+        <receiver
+            android:name="app.tileshell.testclient.ShortcutVerbReceiver"
+            android:exported="true" />
     </application>
 </manifest>

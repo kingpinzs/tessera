@@ -1,0 +1,262 @@
+==============================================================================
+Phase 11 fixtures: static check of the three test APKs (no device)
+at        2026-09-23T18:50:09-06:00
+HEAD      d62ad4d52df97f7f7330a4b848df99674d37ef3d
+testapps  0 uncommitted path(s) under testapps/
+driver    fixtures_static_check.sh blob 147acc47ab7be857cc81c345cbaf07576a380ac2
+aapt2     Android/Sdk/build-tools/36.0.0/aapt2 (Android Asset Packaging Tool (aapt) 2.20-13193326)
+==============================================================================
+
+$ ./gradlew :testapps:tileclient-a:assembleDebug :testapps:tileclient-b:assembleDebug :testapps:tileclient-b2:assembleDebug
+BUILD SUCCESSFUL in 593ms
+120 actionable tasks: 120 up-to-date
+exit code: 0
+testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk  2869528 bytes  sha256 d319d10e6e6163b2
+testapps/tileclient-b/build/outputs/apk/debug/tileclient-b-debug.apk  2867599 bytes  sha256 94daada56ffb8040
+testapps/tileclient-b2/build/outputs/apk/debug/tileclient-b2-debug.apk  2865785 bytes  sha256 03e1cb79d6e5f26e
+
+------------------------------------------------------------------------------ tileclient-a: manifest
+$ aapt2 dump xmltree --file AndroidManifest.xml testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk   (from the application element on)
+      E: application (line=25)
+        A: http://schemas.android.com/apk/res/android:label(0x01010001)="Tile client A" (Raw: "Tile client A")
+        A: http://schemas.android.com/apk/res/android:icon(0x01010002)=@0x01080093
+        A: http://schemas.android.com/apk/res/android:debuggable(0x0101000f)=true
+        A: http://schemas.android.com/apk/res/android:extractNativeLibs(0x010104ea)=false
+          E: activity (line=30)
+            A: http://schemas.android.com/apk/res/android:name(0x01010003)="app.tileshell.testclient.VerbActivity" (Raw: "app.tileshell.testclient.VerbActivity")
+            A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true
+            A: http://schemas.android.com/apk/res/android:launchMode(0x0101001d)=1
+              E: intent-filter (line=34)
+                  E: action (line=35)
+                    A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.intent.action.MAIN" (Raw: "android.intent.action.MAIN")
+                  E: category (line=37)
+                    A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.intent.category.LAUNCHER" (Raw: "android.intent.category.LAUNCHER")
+              E: meta-data (line=43)
+                A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.app.shortcuts" (Raw: "android.app.shortcuts")
+                A: http://schemas.android.com/apk/res/android:resource(0x01010025)=@0x7f050000
+          E: activity (line=52)
+            A: http://schemas.android.com/apk/res/android:name(0x01010003)="app.tileshell.testclient.ShortcutActivity" (Raw: "app.tileshell.testclient.ShortcutActivity")
+            A: http://schemas.android.com/apk/res/android:exported(0x01010010)=false
+          E: provider (line=56)
+            A: http://schemas.android.com/apk/res/android:name(0x01010003)="app.tileshell.testclient.TestImageProvider" (Raw: "app.tileshell.testclient.TestImageProvider")
+            A: http://schemas.android.com/apk/res/android:exported(0x01010010)=false
+            A: http://schemas.android.com/apk/res/android:authorities(0x01010018)="app.tileshell.testclient.a.images" (Raw: "app.tileshell.testclient.a.images")
+            A: http://schemas.android.com/apk/res/android:grantUriPermissions(0x0101001b)=true
+
+------------------------------------------------------------------------------ tileclient-a: resources
+$ aapt2 dump resources testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk
+Binary APK
+Package name=app.tileshell.testclient.a id=7f
+  type color id=01 entryCount=1
+    resource 0x7f010000 color/qa_shortcut_background
+      () #ff0078d7
+  type drawable id=02 entryCount=2
+    resource 0x7f020000 drawable/ic_qa_shortcut
+      () (file) res/drawable/ic_qa_shortcut.xml type=XML
+    resource 0x7f020001 drawable/ic_qa_shortcut_glyph
+      () (file) res/drawable/ic_qa_shortcut_glyph.xml type=XML
+  type id id=03 entryCount=1
+    resource 0x7f030000 id/shortcut_id
+      () (id)
+  type string id=04 entryCount=5
+    resource 0x7f040000 string/qa_five
+      () "Five"
+    resource 0x7f040001 string/qa_four
+      () "Four"
+    resource 0x7f040002 string/qa_one
+      () "One"
+    resource 0x7f040003 string/qa_three
+      () "Three"
+    resource 0x7f040004 string/qa_two
+      () "Two"
+  type xml id=05 entryCount=1
+    resource 0x7f050000 xml/shortcuts
+      () (file) res/xml/shortcuts.xml type=XML
+
+------------------------------------------------------------------------------ tileclient-b: manifest
+$ aapt2 dump xmltree --file AndroidManifest.xml testapps/tileclient-b/build/outputs/apk/debug/tileclient-b-debug.apk   (from the application element on)
+      E: application (line=27)
+        A: http://schemas.android.com/apk/res/android:label(0x01010001)="Tile client B" (Raw: "Tile client B")
+        A: http://schemas.android.com/apk/res/android:icon(0x01010002)=@0x01080093
+        A: http://schemas.android.com/apk/res/android:debuggable(0x0101000f)=true
+        A: http://schemas.android.com/apk/res/android:extractNativeLibs(0x010104ea)=false
+          E: activity (line=32)
+            A: http://schemas.android.com/apk/res/android:name(0x01010003)="app.tileshell.testclient.VerbActivity" (Raw: "app.tileshell.testclient.VerbActivity")
+            A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true
+            A: http://schemas.android.com/apk/res/android:launchMode(0x0101001d)=1
+              E: intent-filter (line=36)
+                  E: action (line=37)
+                    A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.intent.action.MAIN" (Raw: "android.intent.action.MAIN")
+                  E: category (line=39)
+                    A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.intent.category.LAUNCHER" (Raw: "android.intent.category.LAUNCHER")
+          E: provider (line=43)
+            A: http://schemas.android.com/apk/res/android:name(0x01010003)="app.tileshell.testclient.TestImageProvider" (Raw: "app.tileshell.testclient.TestImageProvider")
+            A: http://schemas.android.com/apk/res/android:exported(0x01010010)=false
+            A: http://schemas.android.com/apk/res/android:authorities(0x01010018)="app.tileshell.testclient.b.images" (Raw: "app.tileshell.testclient.b.images")
+            A: http://schemas.android.com/apk/res/android:grantUriPermissions(0x0101001b)=true
+          E: receiver (line=54)
+            A: http://schemas.android.com/apk/res/android:name(0x01010003)="app.tileshell.testclient.ShortcutVerbReceiver" (Raw: "app.tileshell.testclient.ShortcutVerbReceiver")
+            A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true
+
+------------------------------------------------------------------------------ tileclient-b: resources
+$ aapt2 dump resources testapps/tileclient-b/build/outputs/apk/debug/tileclient-b-debug.apk
+Binary APK
+Package name=app.tileshell.testclient.b id=7f
+  type color id=01 entryCount=1
+    resource 0x7f010000 color/qa_dyn_background
+      () #ff603cba
+  type drawable id=02 entryCount=2
+    resource 0x7f020000 drawable/ic_qa_dyn
+      () (file) res/drawable/ic_qa_dyn.xml type=XML
+    resource 0x7f020001 drawable/ic_qa_dyn_glyph
+      () (file) res/drawable/ic_qa_dyn_glyph.xml type=XML
+  type id id=03 entryCount=1
+    resource 0x7f030000 id/shortcut_id
+      () (id)
+
+------------------------------------------------------------------------------ tileclient-b2: manifest
+$ aapt2 dump xmltree --file AndroidManifest.xml testapps/tileclient-b2/build/outputs/apk/debug/tileclient-b2-debug.apk   (from the application element on)
+      E: application (line=27)
+        A: http://schemas.android.com/apk/res/android:label(0x01010001)="Tile client B2" (Raw: "Tile client B2")
+        A: http://schemas.android.com/apk/res/android:icon(0x01010002)=@0x01080093
+        A: http://schemas.android.com/apk/res/android:debuggable(0x0101000f)=true
+        A: http://schemas.android.com/apk/res/android:extractNativeLibs(0x010104ea)=false
+          E: activity (line=32)
+            A: http://schemas.android.com/apk/res/android:name(0x01010003)="app.tileshell.testclient.VerbActivity" (Raw: "app.tileshell.testclient.VerbActivity")
+            A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true
+            A: http://schemas.android.com/apk/res/android:launchMode(0x0101001d)=1
+              E: intent-filter (line=36)
+                  E: action (line=37)
+                    A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.intent.action.MAIN" (Raw: "android.intent.action.MAIN")
+                  E: category (line=39)
+                    A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.intent.category.LAUNCHER" (Raw: "android.intent.category.LAUNCHER")
+          E: provider (line=43)
+            A: http://schemas.android.com/apk/res/android:name(0x01010003)="app.tileshell.testclient.TestImageProvider" (Raw: "app.tileshell.testclient.TestImageProvider")
+            A: http://schemas.android.com/apk/res/android:exported(0x01010010)=false
+            A: http://schemas.android.com/apk/res/android:authorities(0x01010018)="app.tileshell.testclient.b2.images" (Raw: "app.tileshell.testclient.b2.images")
+            A: http://schemas.android.com/apk/res/android:grantUriPermissions(0x0101001b)=true
+
+------------------------------------------------------------------------------ tileclient-b2: resources
+$ aapt2 dump resources testapps/tileclient-b2/build/outputs/apk/debug/tileclient-b2-debug.apk
+Binary APK
+Package name=app.tileshell.testclient.b2 id=7f
+  type id id=01 entryCount=1
+    resource 0x7f010000 id/shortcut_id
+      () (id)
+
+------------------------------------------------------------------------------ tileclient-a: xml/shortcuts
+$ aapt2 dump xmltree --file res/xml/shortcuts.xml testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk
+N: android=http://schemas.android.com/apk/res/android (line=7)
+  E: shortcuts (line=7)
+      E: shortcut (line=12)
+        A: http://schemas.android.com/apk/res/android:icon(0x01010002)=@0x7f020000
+        A: http://schemas.android.com/apk/res/android:enabled(0x0101000e)=true
+        A: http://schemas.android.com/apk/res/android:shortcutId(0x01010528)="qa_one" (Raw: "qa_one")
+        A: http://schemas.android.com/apk/res/android:shortcutShortLabel(0x01010529)=@0x7f040002
+          E: intent (line=16)
+            A: http://schemas.android.com/apk/res/android:targetPackage(0x01010021)="app.tileshell.testclient.a" (Raw: "app.tileshell.testclient.a")
+            A: http://schemas.android.com/apk/res/android:action(0x0101002d)="android.intent.action.VIEW" (Raw: "android.intent.action.VIEW")
+            A: http://schemas.android.com/apk/res/android:targetClass(0x0101002f)="app.tileshell.testclient.ShortcutActivity" (Raw: "app.tileshell.testclient.ShortcutActivity")
+              E: extra (line=17)
+                A: http://schemas.android.com/apk/res/android:name(0x01010003)="qa_id" (Raw: "qa_id")
+                A: http://schemas.android.com/apk/res/android:value(0x01010024)="qa_one" (Raw: "qa_one")
+      E: shortcut (line=24)
+        A: http://schemas.android.com/apk/res/android:icon(0x01010002)=@0x7f020000
+        A: http://schemas.android.com/apk/res/android:enabled(0x0101000e)=true
+        A: http://schemas.android.com/apk/res/android:shortcutId(0x01010528)="qa_two" (Raw: "qa_two")
+        A: http://schemas.android.com/apk/res/android:shortcutShortLabel(0x01010529)=@0x7f040004
+          E: intent (line=28)
+            A: http://schemas.android.com/apk/res/android:targetPackage(0x01010021)="app.tileshell.testclient.a" (Raw: "app.tileshell.testclient.a")
+            A: http://schemas.android.com/apk/res/android:action(0x0101002d)="android.intent.action.VIEW" (Raw: "android.intent.action.VIEW")
+            A: http://schemas.android.com/apk/res/android:targetClass(0x0101002f)="app.tileshell.testclient.ShortcutActivity" (Raw: "app.tileshell.testclient.ShortcutActivity")
+              E: extra (line=29)
+                A: http://schemas.android.com/apk/res/android:name(0x01010003)="qa_id" (Raw: "qa_id")
+                A: http://schemas.android.com/apk/res/android:value(0x01010024)="qa_two" (Raw: "qa_two")
+      E: shortcut (line=36)
+        A: http://schemas.android.com/apk/res/android:icon(0x01010002)=@0x7f020000
+        A: http://schemas.android.com/apk/res/android:enabled(0x0101000e)=true
+        A: http://schemas.android.com/apk/res/android:shortcutId(0x01010528)="qa_three" (Raw: "qa_three")
+        A: http://schemas.android.com/apk/res/android:shortcutShortLabel(0x01010529)=@0x7f040003
+          E: intent (line=40)
+            A: http://schemas.android.com/apk/res/android:targetPackage(0x01010021)="app.tileshell.testclient.a" (Raw: "app.tileshell.testclient.a")
+            A: http://schemas.android.com/apk/res/android:action(0x0101002d)="android.intent.action.VIEW" (Raw: "android.intent.action.VIEW")
+            A: http://schemas.android.com/apk/res/android:targetClass(0x0101002f)="app.tileshell.testclient.ShortcutActivity" (Raw: "app.tileshell.testclient.ShortcutActivity")
+              E: extra (line=41)
+                A: http://schemas.android.com/apk/res/android:name(0x01010003)="qa_id" (Raw: "qa_id")
+                A: http://schemas.android.com/apk/res/android:value(0x01010024)="qa_three" (Raw: "qa_three")
+      E: shortcut (line=48)
+        A: http://schemas.android.com/apk/res/android:icon(0x01010002)=@0x7f020000
+        A: http://schemas.android.com/apk/res/android:enabled(0x0101000e)=true
+        A: http://schemas.android.com/apk/res/android:shortcutId(0x01010528)="qa_four" (Raw: "qa_four")
+        A: http://schemas.android.com/apk/res/android:shortcutShortLabel(0x01010529)=@0x7f040001
+          E: intent (line=52)
+            A: http://schemas.android.com/apk/res/android:targetPackage(0x01010021)="app.tileshell.testclient.a" (Raw: "app.tileshell.testclient.a")
+            A: http://schemas.android.com/apk/res/android:action(0x0101002d)="android.intent.action.VIEW" (Raw: "android.intent.action.VIEW")
+            A: http://schemas.android.com/apk/res/android:targetClass(0x0101002f)="app.tileshell.testclient.ShortcutActivity" (Raw: "app.tileshell.testclient.ShortcutActivity")
+              E: extra (line=53)
+                A: http://schemas.android.com/apk/res/android:name(0x01010003)="qa_id" (Raw: "qa_id")
+                A: http://schemas.android.com/apk/res/android:value(0x01010024)="qa_four" (Raw: "qa_four")
+      E: shortcut (line=60)
+        A: http://schemas.android.com/apk/res/android:icon(0x01010002)=@0x7f020000
+        A: http://schemas.android.com/apk/res/android:enabled(0x0101000e)=true
+        A: http://schemas.android.com/apk/res/android:shortcutId(0x01010528)="qa_five" (Raw: "qa_five")
+        A: http://schemas.android.com/apk/res/android:shortcutShortLabel(0x01010529)=@0x7f040000
+          E: intent (line=64)
+            A: http://schemas.android.com/apk/res/android:targetPackage(0x01010021)="app.tileshell.testclient.a" (Raw: "app.tileshell.testclient.a")
+            A: http://schemas.android.com/apk/res/android:action(0x0101002d)="android.intent.action.VIEW" (Raw: "android.intent.action.VIEW")
+            A: http://schemas.android.com/apk/res/android:targetClass(0x0101002f)="app.tileshell.testclient.ShortcutActivity" (Raw: "app.tileshell.testclient.ShortcutActivity")
+              E: extra (line=65)
+                A: http://schemas.android.com/apk/res/android:name(0x01010003)="qa_id" (Raw: "qa_id")
+                A: http://schemas.android.com/apk/res/android:value(0x01010024)="qa_five" (Raw: "qa_five")
+
+------------------------------------------------------------------------------ tileclient-a: the shortcuts' icon
+$ aapt2 dump xmltree --file res/drawable/ic_qa_shortcut.xml testapps/tileclient-a/build/outputs/apk/debug/tileclient-a-debug.apk
+N: android=http://schemas.android.com/apk/res/android (line=4)
+  E: adaptive-icon (line=4)
+      E: background (line=5)
+        A: http://schemas.android.com/apk/res/android:drawable(0x01010199)=@0x7f010000
+      E: foreground (line=6)
+        A: http://schemas.android.com/apk/res/android:drawable(0x01010199)=@0x7f020001
+      E: monochrome (line=7)
+        A: http://schemas.android.com/apk/res/android:drawable(0x01010199)=@0x7f020001
+
+------------------------------------------------------------------------------ tileclient-b: qa_dyn's icon
+$ aapt2 dump xmltree --file res/drawable/ic_qa_dyn.xml testapps/tileclient-b/build/outputs/apk/debug/tileclient-b-debug.apk
+N: android=http://schemas.android.com/apk/res/android (line=4)
+  E: adaptive-icon (line=4)
+      E: background (line=5)
+        A: http://schemas.android.com/apk/res/android:drawable(0x01010199)=@0x7f010000
+      E: foreground (line=6)
+        A: http://schemas.android.com/apk/res/android:drawable(0x01010199)=@0x7f020001
+      E: monochrome (line=7)
+        A: http://schemas.android.com/apk/res/android:drawable(0x01010199)=@0x7f020001
+
+------------------------------------------------------------------------------ checks (computed from the dumps above)
+PASS  the three APKs built (gradle exit code 0)                                    exit 0
+PASS  a: VerbActivity is the LAUNCHER activity                                     
+PASS  a: VerbActivity carries meta-data android.app.shortcuts -> xml/shortcuts     resource=xml/shortcuts
+PASS  a: that is the APK's only android.app.shortcuts meta-data                    1 found
+PASS  a: declares ShortcutActivity (exported=false)                                exported=false
+PASS  a: declares no ShortcutVerbReceiver                                          
+PASS  b: declares ShortcutVerbReceiver, exported=true                              exported=true
+PASS  b: declares no ShortcutActivity                                              
+PASS  b: carries no android.app.shortcuts meta-data (its shortcuts are dynamic)    
+PASS  b2: declares no ShortcutActivity                                             
+PASS  b2: declares no ShortcutVerbReceiver                                         
+PASS  b2: carries no android.app.shortcuts meta-data                               
+PASS  a: id/shortcut_id is in the resource table                                   
+PASS  b: id/shortcut_id is in the resource table                                   
+PASS  b2: id/shortcut_id is in the resource table                                  
+PASS  a: xml/shortcuts holds exactly five shortcuts                                5 found
+PASS  a: their ids in declaration (rank) order are qa_one..qa_five                 qa_one,qa_two,qa_three,qa_four,qa_five
+PASS  a: their short labels are One..Five                                          One,Two,Three,Four,Five
+PASS  a: every shortcut has android:icon = drawable/ic_qa_shortcut                 drawable/ic_qa_shortcut,drawable/ic_qa_shortcut,drawable/ic_qa_shortcut,drawable/ic_qa_shortcut,drawable/ic_qa_shortcut
+PASS  a: each intent is VIEW -> a/ShortcutActivity with qa_id = its own id         yyyyy
+PASS  a: no shortcut is disabled                                                   
+PASS  a: drawable/ic_qa_shortcut is an adaptive-icon                               
+PASS  a: ... with background, foreground and a monochrome layer                    {'background': 'color/qa_shortcut_background', 'foreground': 'drawable/ic_qa_shortcut_glyph', 'monochrome': 'drawable/ic_qa_shortcut_glyph'}
+PASS  b: drawable/ic_qa_dyn (qa_dyn's icon) is an adaptive-icon                    
+PASS  b: ... with background, foreground and a monochrome layer                    {'background': 'color/qa_dyn_background', 'foreground': 'drawable/ic_qa_dyn_glyph', 'monochrome': 'drawable/ic_qa_dyn_glyph'}
+------------------------------------------------------------------------------
+fixtures static check: 25 passed, 0 failed
+exit code: 0

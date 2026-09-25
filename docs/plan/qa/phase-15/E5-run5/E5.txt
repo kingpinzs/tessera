@@ -1,0 +1,35 @@
+==============================================================================
+ROW E5 — doze and offline: the alarm still rings on time
+at            2026-09-24T13:30:20-06:00
+driver        e5.sh blob 6e11a69521ed68ee5824bccab6f3e43f13a70c06
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 7b1306f3e567a24b
+apk match     yes (7b1306f3e567a24b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+4h7m42s382ms ago; rejectTime=+1d0h6m42s397ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+FAIL  baseline: no shell alarm or timer pending                   expected [0] got [11]
+FAIL  baseline: alarm and timer stores empty                      expected [empty] got [[{"id":"a9d356878","hour":13,"minute":24,"name":"Past","days":[],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2026-09-25","snoozedUntilMs":1790364875133,"lastHandledMs":1790364275133},{"id":"a682afc9c","hour":9,"minute":5,"name":"Wake","days":[],"enabled":false,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2026-09-25","snoozedUntilMs":null,"lastHandledMs":1790349307160},{"id":"a739f6f41","hour":9,"minute":17,"name":"Daily","days":["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"],"enabled":true,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":null,"snoozedUntilMs":null,"lastHandledMs":1790349420000},{"id":"a2d52383b","hour":13,"minute":31,"name":"Desk","days":[],"enabled":false,"sound":{"kind":"DEFAULT","uri":null,"title":null},"snoozeMinutes":10,"date":"2026-09-24","snoozedUntilMs":null,"lastHandledMs":1790278260000}][{"id":"t0dae0665","name":"T1","lengthMs":1860000,"state":"RUNNING","remainingMs":1860000,"deadlineElapsedMs":3099713,"deadlineWallMs":1790279773414,"bootCount":12},{"id":"t6f145380","name":"T2","lengthMs":1920000,"state":"RUNNING","remainingMs":1920000,"deadlineElapsedMs":3160876,"deadlineWallMs":1790279834577,"bootCount":12},{"id":"t5da73b66","name":"T3","lengthMs":1980000,"state":"RUNNING","remainingMs":1980000,"deadlineElapsedMs":3222032,"deadlineWallMs":1790279895733,"bootCount":12},{"id":"t8e1d4c53","name":"T5","lengthMs":2100000,"state":"RUNNING","remainingMs":2100000,"deadlineElapsedMs":3344341,"deadlineWallMs":1790280018042,"bootCount":12},{"id":"t72831ae8","name":"T6","lengthMs":2160000,"state":"RUNNING","remainingMs":2160000,"deadlineElapsedMs":3405497,"deadlineWallMs":1790280079198,"bootCount":12},{"id":"tee77931e","name":"T7","lengthMs":2220000,"state":"RUNNING","remainingMs":2220000,"deadlineElapsedMs":3466648,"deadlineWallMs":1790280140349,"bootCount":12},{"id":"td087e43b","name":"T8","lengthMs":2280000,"state":"RUNNING","remainingMs":2280000,"deadlineElapsedMs":3527810,"deadlineWallMs":1790280201511,"bootCount":12},{"id":"t1000e381","name":"T9","lengthMs":2340000,"state":"RUNNING","remainingMs":2340000,"deadlineElapsedMs":3588970,"deadlineWallMs":1790280262671,"bootCount":12},{"id":"tc3221b98","name":"T10","lengthMs":2400000,"state":"RUNNING","remainingMs":2400000,"deadlineElapsedMs":3650139,"deadlineWallMs":1790280323840,"bootCount":12}]]
+RECORD  deviceidle min_time_to_alarm (the alarm is set 5 min past it, not the doc's 2 min ahead)  min_time_to_alarm=+1h0m0s0ms
+PASS  the alarm was created                                       != 
+PASS  … and armed                                               != 0
+PASS  airplane mode is on                                         = 1
+      force-idle: Unable to go deep idle; stopped at INACTIVE; mScreenOn=false mCharging=false
+PASS  the device is forced into deep idle                         contains [deep idle]
+FAIL  deviceidle get deep reads IDLE                              expected [IDLE] got [INACTIVE]
+PASS  the screen is off                                           != Awake
+FAIL  the alarm fired within 30 s of the jump                     should not be []
+FAIL  late <= 1000 ms                                             could not be measured (actual=[])
+PASS  an ALARM player of the shell is started                     != 0
+FAIL  the display is on (Awake)                                   expected [Awake] got [Asleep]
+RECORD  deviceidle state at the ring                                INACTIVE
+RECORD  surface line                                                [alarms] surface: toast-locked a9d356878
+FAIL  the toast is up (ring_dismiss)                              expected [yes] got [no]
+      gtap: no ring_dismiss in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/E5/ring.xml
+FAIL  dismiss: ring ended a45c2d366: dismiss                      does not contain [[alarms] ring ended a45c2d366: dismiss]:     2026-09-25 13:38:21.521 wall=1790365101521 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=1801542 faceIndex=1 next=0 faces=1
+    2026-09-25 13:38:22.230 wall=1790365102230 [tile_anim] tile=shell:weather kind=FLIP uptime=1802251 faceInd
+FAIL  dismiss: the player stopped                                 expected [0] got [1]
+PASS  restore: airplane mode off                                  = 0

@@ -1,0 +1,82 @@
+==============================================================================
+ROW E21 — permission states: full-screen intent, overlay, SCHEDULE_EXACT_ALARM; the recorder's microphone and audio access
+at            2026-09-24T17:08:39-06:00
+driver        e21.sh blob c2f18ea12d3b40a07b958d39d86f8bea4f9edf3a
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     ba42e00bac9f14cf 338459898 bytes
+apk installed 33cc71c192190cc9
+apk match     NO (device 33cc71c192190cc9, built c45e7a2838aae3b0)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+21m43s235ms ago; rejectTime=+2m43s218ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+RECORD  appops after the doc's package-level deny (both modes)      Uid mode: USE_FULL_SCREEN_INTENT: allow|USE_FULL_SCREEN_INTENT: deny; time=+21m43s499ms ago; rejectTime=+2m43s482ms ago
+RECORD  appops after the uid-level deny (both modes)                Uid mode: USE_FULL_SCREEN_INTENT: deny|USE_FULL_SCREEN_INTENT: deny; time=+21m43s527ms ago; rejectTime=+2m43s510ms ago
+PASS  the alarm was created                                       != 
+PASS  the keyguard shows after sleep + wake                       = true
+PASS  FSI denied: the alarm fired                                 != 
+PASS  FSI denied: it still sounds (an ALARM player of the shell is started)  != 0
+PASS  FSI denied: it still notifies (the alarm-channel notification is posted)  != 
+PASS  FSI denied: the keyguard is on top                          = true
+      focus: mCurrentFocus=Window{9b6dee9 u0 NotificationShade}
+PASS  FSI denied: no activity of app.tileshell over the keyguard  does not contain [app.tileshell]
+PASS  FSI denied: the keyguard is not occluded                    = false
+PASS  FSI denied: surface: lockscreen-notification a40e99318      contains [[alarms] surface: lockscreen-notification a40e99318]
+PASS  FSI denied: full-screen intent: deny                        contains [[alarms] full-screen intent: deny]
+RECORD  the lock screen's SystemUI nodes naming the alarm           android:id/title|Alarm|android:id/text|Nofsi · 5:10 PM
+      no Dismiss action visible on the lock screen; the ring is ended by the restore's force-stop
+PASS  device clock back within 2 s of the host (RV12)             1790291354.00 vs 1790291354.00 +/- 2.0
+PASS  wake_device printed Awake (C-25)                            = Awake
+      scroll_to_node alarm_row:a40e99318: 0 swipe(s), found=yes
+PASS  the rung Nofsi alarm is deleted through the app before the next clause  does not contain [a40e99318]
+      scroll_to_node checklist:full_screen_alarms:missing: 1 swipe(s), found=yes
+PASS  the Full-screen alarms row reads missing                    = yes
+RECORD  the missing row's glyph colour (red is 232,17,35)           0,0,0
+PASS  its tap resumes com.android.settings                        contains [com.android.settings]
+      scroll_to_node checklist:full_screen_alarms:granted: 0 swipe(s), found=yes
+PASS  restore allow: the row reads granted                        = yes
+      scroll_to_node checklist:overlay:missing: 0 swipe(s), found=yes
+PASS  overlay denied: checklist:overlay:missing                   = yes
+PASS  its tap resumes com.android.settings                        contains [com.android.settings]
+      scroll_to_node checklist:overlay:granted: 0 swipe(s), found=yes
+PASS  restore allow: checklist:overlay:granted                    = yes
+RECORD  appops SCHEDULE_EXACT_ALARM after deny                      SCHEDULE_EXACT_ALARM: default
+RECORD  USE_EXACT_ALARM grant                                       android.permission.USE_EXACT_ALARM: granted=true
+PASS  the alarm was created                                       != 
+PASS  it still arms with setAlarmClock: the Next alarm clock line holds it  = 1790339400000
+PASS  … and the rearm line says exact=true                      contains [exact=true]
+RECORD  appops SCHEDULE_EXACT_ALARM after restore                   SCHEDULE_EXACT_ALARM: default
+      E21 recorder: audio.sh check: capture source: vmic5558.monitor (want vmic5558.monitor); output stream: 5839 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
+PASS  E21 recorder: the audio route is up (audio.sh check rc)     = 0
+      purge_own_takes: 0 of the shell's takes remain in MediaStore
+PASS  RECORD_AUDIO revoked: the page says it cannot record (rec_mic_notice)  = yes
+PASS  … and offers the grant in place (rec_mic_grant)           = yes
+PASS  rec_button starts nothing (no new take)                     = 0
+PASS  … and no take started in the :recorder ring               does not contain [[recorder] start ]
+      Tess's settings scrolled 1 swipe(s) to the microphone row: resource-id="cortana_check:microphone:missing"
+PASS  Tess's checklist microphone row is red (missing)            = yes
+PASS  granted again: no microphone notice                         = no
+      make_take 3s: stop tapped at elapsed_ms=2856 -> id 2006 (Recording.m4a, 3019 ms)
+PASS  its own take is made first                                  != 
+      other.m4a: 1993
+PASS  READ_MEDIA_AUDIO revoked: the list shows its own take       = yes
+PASS  … and NOT other.m4a                                       = no
+PASS  … with the notice naming the Music grant (rec_list_notice)  = yes
+      rec_list_notice text: Other apps' recordings are hidden. Turn on Music in the Setup checklist to see them.
+PASS  the ring says other apps' recordings are hidden             contains [(other apps: hidden, READ_MEDIA_AUDIO denied)]
+PASS  granted again: other.m4a is back                            = yes
+PASS  … and the notice is gone                                  = no
+PASS  … and the list line counts it again                       contains [(1 by other apps)]
+      purge_own_takes: 0 of the shell's takes remain in MediaStore
+      scroll_to_node alarm_row:af3286562: 0 swipe(s), found=yes
+PASS  restore: USE_FULL_SCREEN_INTENT allow                       contains [allow]
+PASS  restore: SYSTEM_ALERT_WINDOW allow                          contains [allow]
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+PASS  restore: RECORD_AUDIO granted                               contains [RECORD_AUDIO: granted=true]
+PASS  restore: READ_MEDIA_AUDIO granted                           contains [READ_MEDIA_AUDIO: granted=true]
+------------------------------------------------------------------------------
+E21: 45 passed, 0 failed, 9 recorded

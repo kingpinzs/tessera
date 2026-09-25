@@ -24,7 +24,9 @@ for i in $(seq 1 30); do
   grep -o 'resource-id="applist_\(row\|new\|header\):[^"]*"' "$OUT/walk.xml" | sed 's/resource-id="//; s/"$//' >> "$OUT/rows_all.txt"
   last=$(grep -o 'resource-id="applist_row:[^"]*"' "$OUT/walk.xml" | tail -1)
   [ "$last" = "$prev" ] && break; prev=$last
-  adb shell input swipe 540 1900 540 700 300; sleep 1.2
+  # A slow swipe: 1200 px in 300 ms flings on (1562 px measured, 2026-09-24), leaving one row of overlap between dumps,
+  # so a slightly longer fling skipped org.fossify.contacts (phase 15 E1 run 3). At 1.5 s it scrolls ~1220 px, 4 rows overlap.
+  adb shell input swipe 540 1900 540 700 1500; sleep 1.2
 done
 rm -f "$OUT/walk.xml"
 sort -u "$OUT/rows_all.txt" -o "$OUT/rows_all.txt"

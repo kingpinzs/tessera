@@ -1,0 +1,49 @@
+# E8 2026-09-24T13:03:39-06:00
+build guard: built=114511e7de8bb2e08b13c908fd9a3386 installed=114511e7de8bb2e08b13c908fd9a3386
+driver: e8.sh blob 90a30e618c6fdc5026f2b96e6574fd016cfc0210
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/scripts/../baseline_layout.json: 1 file pushed, 0 skipped. 6.5 MB/s (841 bytes in 0.000s)
+A = shell:settings (last), B = slot:PEOPLE (first), untouched witness = slot:CALENDAR
+--- e8a_folder: shell:settings -> slot:PEOPLE, holding ~800 ms over it ---
+    held 1289 ms over the target before the release (dwell is 2000 ms)
+PASS  a folder was created (found [folder:])
+PASS  the folder holds the target and the dragged tile (= slot:PEOPLE shell:settings)
+PASS  it sits in the target's place (= folder:f1)
+PASS  no other tile moved: slot:CALENDAR bounds (= 9 439 708 782)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-E08/e8_base.json: 1 file pushed, 0 skipped. 29.1 MB/s (841 bytes in 0.000s)
+--- e8b_reflow: shell:settings -> slot:PEOPLE, holding ~2600 ms over it ---
+    held 3243 ms over the target before the release (dwell is 2000 ms)
+PASS  no folder was made (= 0)
+PASS  the dragged tile took the target's cell (= shell:settings)
+PASS  every tile is still there (= 10)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-E08/e8_base.json: 1 file pushed, 0 skipped. 6.6 MB/s (841 bytes in 0.000s)
+--- e8_makefolder: shell:settings -> slot:PEOPLE, holding ~800 ms over it ---
+    held 1324 ms over the target before the release (dwell is 2000 ms)
+--- e8c_addtofolder: slot:MUSIC -> folder:f1, holding ~800 ms over it ---
+    held 1323 ms over the target before the release (dwell is 2000 ms)
+PASS  the dragged tile joined the folder (= slot:PEOPLE shell:settings slot:MUSIC)
+PASS  still exactly one folder (= 1)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-E08/e8_with_folder.json: 1 file pushed, 0 skipped. 22.3 MB/s (846 bytes in 0.000s)
+--- e8d_folderreflow: slot:MUSIC -> folder:f1, holding ~2600 ms over it ---
+    held 3277 ms over the target before the release (dwell is 2000 ms)
+PASS  past the dwell the folder made room instead (= slot:PEOPLE shell:settings)
+PASS  and the dragged tile took its cell (= slot:MUSIC)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-E08/e8_with_folder.json: 1 file pushed, 0 skipped. 22.8 MB/s (846 bytes in 0.000s)
+--- e8e_nonesting: folder:f1 -> slot:BROWSER, holding ~2600 ms over it ---
+    held 3238 ms over the target before the release (dwell is 2000 ms)
+PASS  the folder survived the move with its members (= slot:PEOPLE shell:settings)
+PASS  no second folder appeared (= 1)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-E08/e8_with_folder.json: 1 file pushed, 0 skipped. 21.1 MB/s (846 bytes in 0.000s)
+--- building a SECOND folder from slot:BROWSER + slot:MAIL ---
+--- e8_makefolder2: slot:MAIL -> slot:BROWSER, holding ~800 ms over it ---
+    held 1313 ms over the target before the release (dwell is 2000 ms)
+PASS  two folders now exist (= 2)
+folders: folder:f1=[slot:PEOPLE shell:settings]  folder:f2=[slot:BROWSER slot:MAIL]
+--- e8f_folder_on_folder: folder:f2 -> folder:f1, holding ~2600 ms over it ---
+    held 3245 ms over the target before the release (dwell is 2000 ms)
+PASS  folder A kept exactly its members (= slot:PEOPLE shell:settings)
+PASS  folder B kept exactly its members (= slot:BROWSER slot:MAIL)
+PASS  still two folders, neither inside the other (= 2)
+PASS  no folder key inside any folder (no [folder:])
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/E13/p02-E08/layout_before.json: 1 file pushed, 0 skipped. 8.3 MB/s (1390 bytes in 0.000s)
+baseline layout restored
+---- 18 passed, 0 failed ----

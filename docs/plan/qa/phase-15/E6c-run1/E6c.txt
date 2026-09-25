@@ -1,0 +1,48 @@
+==============================================================================
+ROW E6c — alarm rings after a reboot before the first unlock (direct boot)
+at            2026-09-24T08:19:55-06:00
+driver        e6c.sh blob b5d533bb49e1e0a064128d3993af57d3076762be
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     d8dcea502fac2b21 337842979 bytes
+apk installed 39402722396d9129
+apk match     yes (39402722396d9129)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+8h23m58s787ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  the alarm was created                                       != 
+PASS  … and armed                                               != 0
+      booted at 1790259618042
+PASS  after the boot the keyguard is showing                      = true
+      dumpsys user, user 0:     State: RUNNING_LOCKED
+PASS  user 0 is still locked (RUNNING_LOCKED)                     contains [RUNNING_LOCKED]
+RECORD  getprop sys.user.0.ce_available before the unlock           []
+PASS  dumpsys alarm's Next alarm clock holds the alarm for user 0 (re-armed at the locked boot)  = 1790259840000
+PASS  … as an RTC_WAKEUP entry of the shell                     = 1790259840000
+PASS  an ALARM player of the shell started within 30 s (still locked)  != 0
+PASS  the ring activity is on top                                 contains [clock.RingActivity]
+PASS  … with the keyguard showing                               = true
+RECORD  keyguard occluded by the ring activity                      true
+FAIL  the locked toast is up (ring_dismiss in the dump)           expected [yes] got [no]
+FAIL  dismiss: the player stopped                                 expected [0] got [1]
+FAIL  dismiss: the ring activity left                             should NOT contain [clock.RingActivity]
+PASS  the PIN unlocked the phone                                  = false
+PASS  the ring holds rearm (locked boot): 1 alarms, 0 timers      contains [[alarms] rearm (locked boot): 1 alarms, 0 timers]
+PASS  … and fired ac50eee83 from the locked boot                contains [[alarms] fired ac50eee83 kind=alarm]
+FAIL  … and ring ended ac50eee83: dismiss                       does not contain [[alarms] ring ended ac50eee83: dismiss]: SERVICE app.tileshell/.feeds.TileNotificationListener 7022174 pid=1374 user=0
+  Client:
+    listener connected=true
+    badges={com.android.systemui=1, app.tileshell=1}
+    tileshell diagnostics: 74 entries
+    2026-09-24 08:20:13.960 wall=
+PASS  Start comes up normally after the unlock (start_page)       = yes
+PASS  device clock back within 2 s of the host (RV12)             1790259665.00 vs 1790259665.00 +/- 2.0
+PASS  restore: wake_device printed Awake (C-25)                   = Awake
+      scroll_to_node alarm_row:ac50eee83: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E6c: 19 passed, 4 failed, 4 recorded

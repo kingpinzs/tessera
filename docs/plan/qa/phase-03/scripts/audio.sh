@@ -19,8 +19,11 @@ set -uo pipefail
 export PATH="$HOME/Android/Sdk/platform-tools:$PATH"
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-state="$here/../.audio-state"
-SINK=vmic
+# Per emulator (phase 15, T15-30): two emulators share this host's PipeWire. Each names its own null sink with
+# AUDIO_SINK (default vmic, the phase 03 route; phase 15's emulator-5556 uses vmic5556), so one session's utterance is
+# never heard by the other's AVD.
+SINK="${AUDIO_SINK:-vmic}"
+if [ "$SINK" = vmic ]; then state="$here/../.audio-state"; else state="$here/../.audio-state-$SINK"; fi
 
 setup() {
   mkdir -p "$(dirname "$state")"
@@ -30,12 +33,49 @@ setup() {
         rate=16000 channels=1 format=s16le \
         sink_properties=device.description=tileshell-mic > "$state.module"
   fi
-  # Remember what the default source was, so teardown really restores it.
-  [ -f "$state.prevsource" ] || pactl get-default-source > "$state.prevsource"
-  pactl set-default-source $SINK.monitor
+  if [ "$SINK" = vmic ]; then
+    # The phase 03 route: the host default source. Remember what it was, so teardown really restores it.
+    [ -f "$state.prevsource" ] || pactl get-default-source > "$state.prevsource"
+    pactl set-default-source $SINK.monitor
+  fi
   adb emu avd hostmicon
+  # The default source alone does not move a capture stream the emulator already opened (on this host both AVDs'
+  # streams were found on the desk microphone chain): move THIS emulator's stream onto the sink's monitor.
+  local so
+  so="$(emulator_source_output)"
+  if [ -n "$so" ]; then pactl move-source-output "$so" "$SINK.monitor"; fi
   echo "default source: $(pactl get-default-source)"
+  echo "capture stream: ${so:-none} -> $(emulator_capture_source)"
   echo "emulator sink:  $(emulator_sink)"
+}
+
+# The emulator this script drives: ANDROID_SERIAL (emulator-<port>) -> its AVD name -> its qemu process id.
+emulator_pid() {
+  local name
+  name="$(adb emu avd name 2>/dev/null | head -1 | tr -d '\r')"
+  [ -n "$name" ] || return 1
+  pgrep -f "qemu-system.*-avd $name( |\$)" | head -1
+}
+
+# The PipeWire stream id of this emulator's microphone capture (a source-output) / audio output (a sink-input).
+emulator_source_output() {
+  local pid; pid="$(emulator_pid)" || return 0
+  pactl list source-outputs | awk -v pid="$pid" '/^Source Output #/ { id = substr($3, 2) } /application.process.id = / { gsub(/"/, "", $3); if ($3 == pid) print id }' | head -1
+}
+emulator_capture_source() {
+  local pid so src; so="$(emulator_source_output)"; [ -n "$so" ] || { echo none; return; }
+  src="$(pactl list short source-outputs | awk -v id="$so" '$1 == id { print $2 }')"
+  pactl list short sources | awk -v id="$src" '$1 == id { print $2 }'
+}
+
+# Asserts the route before a microphone or reply-audio step: this emulator's capture stream is on the sink's monitor
+# and its output stream exists. Exit 1 (with the reason) otherwise — a precondition, never a silent pass.
+check() {
+  local cap out
+  cap="$(emulator_capture_source)"
+  out="$(emulator_sink)"
+  echo "capture source: $cap (want $SINK.monitor); output stream: ${out:-none}"
+  [ "$cap" = "$SINK.monitor" ] && [ -n "$out" ]
 }
 
 teardown() {
@@ -58,7 +98,8 @@ teardown() {
 # The emulator's own output sink input, so a reply is captured from what the AVD plays, not from the
 # whole desktop.
 emulator_sink() {
-  pactl list short sink-inputs | grep -i qemu | awk '{print $1}' | head -1
+  local pid; pid="$(emulator_pid)" || return 0
+  pactl list sink-inputs | awk -v pid="$pid" '/^Sink Input #/ { id = substr($3, 2) } /application.process.id = / { gsub(/"/, "", $3); if ($3 == pid) print id }' | head -1
 }
 
 say() {
@@ -68,10 +109,11 @@ say() {
 }
 
 record() {
-  local out="$1" secs="$2"
-  local monitor
-  monitor="$(pactl get-default-sink).monitor"
-  timeout "$secs" parecord --device="$monitor" --file-format=wav --rate=16000 --channels=1 "$out"
+  local out="$1" secs="$2" stream
+  # THIS emulator's own output stream, never the default sink's monitor (which carries both AVDs and the desktop).
+  stream="$(emulator_sink)"
+  if [ -z "$stream" ]; then echo "no output stream for this emulator" >&2; return 1; fi
+  timeout "$secs" parecord --monitor-stream="$stream" --file-format=wav --rate=16000 --channels=1 "$out"
   # parecord is killed by the timeout, which is the intended end of the capture, not a failure.
   return 0
 }
@@ -94,6 +136,7 @@ PY
 
 case "${1:-}" in
   setup) setup ;;
+  check) check ;;
   teardown) teardown ;;
   say) say "$2" ;;
   record) record "$2" "${3:-5}" ;;

@@ -1,0 +1,73 @@
+==============================================================================
+ROW EDGE-CALC — Calculator edge cases: errors, 200 !, e-notation, display fit, = and %, BIN negatives, shifts, word size, paste, memory across kill -9, wm size
+at            2026-09-24T17:37:30-06:00
+driver        edge_calc.sh blob 13f44342994a620e685fdd27a980babed1f4ddae
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     ba42e00bac9f14cf 338459898 bytes
+apk installed c45e7a2838aae3b0
+apk match     yes (c45e7a2838aae3b0)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: Standard is the page showing                      = yes
+      calc_display node height with '0' at the full 46-epx face: 99 px
+PASS  1 ÷ 0 = → Cannot divide by zero [1 divide 0 equals]      = Cannot divide by zero
+PASS  1 ÷ 0 = → Cannot divide by zero: ring [calc] error divide_by_zero  contains [[calc] error divide_by_zero]
+PASS  0 ÷ 0 = → Result is undefined [0 divide 0 equals]        = Result is undefined
+PASS  0 ÷ 0 = → Result is undefined: ring [calc] error undefined  contains [[calc] error undefined]
+PASS  √−1 (Standard) → Invalid input [1 negate sqrt]        = Invalid input
+PASS  √−1 (Standard) → Invalid input: ring [calc] error invalid_input  contains [[calc] error invalid_input]
+PASS  2 × = = repeats the last operation [2 multiply equals equals]  = 8
+PASS  5 + 3 = = = repeats the last operation [5 add 3 equals equals equals]  = 14
+PASS  5 + = uses the display as the second operand [5 add equals]  = 10
+PASS  80 + 15 % = (Windows' percent) [8 0 add 1 5 percent equals]  = 92
+PASS  80 + 15 % % (percent of the percent) [8 0 add 1 5 percent percent]  = 9.6
+PASS  80 + 15 % % = [8 0 add 1 5 percent percent equals]          = 89.6
+PASS  10 xʸ 10000 = → Overflow [1 0 pow 1 0 0 0 0 equals]      = Overflow
+PASS  10 xʸ 10000 = → Overflow: ring [calc] error overflow     contains [[calc] error overflow]
+PASS  200 ! (32 significant digits, e-notation; r11 8.4) [2 0 0 factorial]  = 7.8865786736479050355236321393219e+374
+PASS  10 xʸ 999 = : a 1,000-digit result shows in e-notation (r11 8.3) [1 0 pow 9 9 9 equals]  = 1.e+999
+PASS  10 xʸ 1000 = (4-digit exponent, still within Overflow's 9999) [1 0 pow 1 0 0 0 equals]  = 1.e+1000
+PASS  1 ÷ 3 = : 32 digits, wider than the row at 46 epx [1 divide 3 equals]  = 0.33333333333333333333333333333333
+PASS  the shrunk result keeps the 16-epx right inset (7.4–7.5, H11)  344.00 vs 344.00 +/- 0.5
+PASS  the shrunk result fits: its left edge is on screen          = yes
+PASS  the result shrank (node shorter than the 46-epx face's 99 px)  = yes
+RECORD  32-digit result: node 35-1032 x 371-411 px; digit ink height (epx, 33.0 at the full face)  13.33
+PASS  BIN QWORD: 1 ± is 64 ones (two's complement, r11 4.5 grouping) [1 negate]  = 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111
+PASS  BIN WORD: 1 ± is 16 ones [1 negate]                        = 1111 1111 1111 1111
+PASS  BIN BYTE: 101 ± is 1111 1011 [1 0 1 negate]                = 1111 1011
+PASS  BYTE: 1 Lsh 8 = (every bit shifted out) → 0 [1 lsh 8 equals]  = 0
+PASS  BYTE: 1 Lsh 7 = wraps to −128 [1 lsh 7 equals]            = -128
+PASS  BYTE: 1 Lsh 9 = (past the word size) → 0 [1 lsh 9 equals]  = 0
+PASS  QWORD: 1 Lsh 64 = → 0 [1 lsh 6 4 equals]                  = 0
+PASS  QWORD: −256 Rsh 64 = → −1 (the sign fills every bit) [2 5 6 negate rsh 6 4 equals]  = -1
+PASS  300 → DWORD → WORD → BYTE truncates to 44 [3 0 0 word word word]  = 44
+PASS  200 → BYTE reads −56 (signed at the word size) [2 0 0 word word word]  = -56
+PASS  65535 → WORD reads −1 [6 5 5 3 5 word word]             = -1
+PASS  HEX BYTE 80 → QWORD sign-extends to FFFF FFFF FFFF FF80 [8 0 word]  = FFFF FFFF FFFF FF80
+PASS  HEX FFFFFFFFFFFFFFFF → BIN is 64 ones in nibbles (79 characters) [F F F F F F F F F F F F F F F F radix_bin]  = 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111
+RECORD  79-character BIN result at the 12-epx floor (7.5, H11): calc_display node px  x 0-1080 y 361-387 (left < 0 means the text is clipped, never scrolled)
+RECORD  79-character BIN result: ink height epx / ink left px       8.67 / 6
+PASS  512 typed before the paste                                  = 512
+PASS  the display's hold menu offers Paste                        = yes
+PASS  paste of "abc" is refused with "Invalid input" (Windows' DisplayPasteError)  = Invalid input
+RECORD  the ring's paste line                                       [calc] paste "abc" -> refused: Invalid input
+PASS  MS stores 42 (calc_memory:1)                                = 42
+      kill -9 app.tileshell pid 22547
+PASS  the shell's process is a new one after kill -9              != 22547
+PASS  memory survives kill -9 (calc_memory:1 = 42)                = 42
+PASS  MR recalls 42 after the restart                             = 42
+PASS  MC empties memory (calc_memory_empty)                       = yes
+PASS  under 1080x1920 the nav bar ends at 1920                    = 1920
+PASS  the keypad ends at the nav bar                              = 1776
+PASS  all 24 Standard keys are laid out under 1080x1920           = 24
+PASS  no key is clipped by the screen or the nav bar              = 0
+      key row heights under 1080x1920 (px): 184 184 184 184 184 184; predicted 183.94
+PASS  key rows stretch to 308/432 of the smaller content over 6 rows  61.33 vs 61.31 +/- 1.0
+PASS  the six rows are equal within 1 px                          = yes
+PASS  wm size reset leaves no override                            does not contain [Override]
+PASS  after wm size reset the nav bar ends at 2340 again          = 2340
+RECORD  Not enough memory                                           not reachable by a fixture: thrown only when allocation fails (conv.cpp:204-207, 237-240; E11)
+PASS  restore: the history store is empty (run-as cat calc_history.txt)  = empty
+------------------------------------------------------------------------------
+EDGE-CALC: 52 passed, 0 failed, 5 recorded

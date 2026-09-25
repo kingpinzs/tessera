@@ -1,0 +1,72 @@
+==============================================================================
+ROW E6 — timer across kill -9 and reboot; rings on the elapsed clock; ended-while-off
+at            2026-09-24T08:13:10-06:00
+driver        e6.sh blob ece035a24d7a1b11b422c10443fe9fcc1e62d0b1
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     d8dcea502fac2b21 337842979 bytes
+apk installed 39402722396d9129
+apk match     yes (39402722396d9129)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-46s503ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  a 90-s timer was created                                    != 
+PASS  dumpsys alarm: an ELAPSED_WAKEUP alarm of the shell due 90 s ± 1 s after the start  30286337.00 vs 30286300.00 +/- 1000.0
+PASS  … and NOT in the Next alarm clock line                    = 
+      last pre-kill: t135bf2e6 remaining=84964 uptime=30201373
+PASS  the Timer tab logs [timer] t135bf2e6 lines before the kill  != 
+      killed pid 3725
+PASS  the process is gone after kill -9                           != 3725
+      timer_remaining after the kill: [00:01:12] at host +17255 ms
+PASS  reopen: timer_remaining reads 90 − elapsed ± 2 s (host clock)  72000.00 vs 72745.00 +/- 2000.0
+PASS  reopen: the alarm is still armed at the same elapsed instant  = 30286337
+      first post-kill: t135bf2e6 remaining=75287 uptime=30211050
+      two lines 5 s apart: t135bf2e6 remaining=70286 uptime=30216051|t135bf2e6 remaining=65286 uptime=30221051
+PASS  two [timer] lines 5 s apart: Δremaining = −Δuptime ± 100 ms  -5000.00 vs -5000.00 +/- 100.0
+PASS  the first post-kill remaining = the last pre-kill remaining − their wall difference ± 1 s  75287.00 vs 75287.00 +/- 1000.0
+PASS  the timer fired at its deadline                             != 
+PASS  timer: late <= 1000 ms                                      3.00 vs 0.00 +/- 1000.0
+PASS  timer: an ALARM player of the shell is started              != 0
+PASS  timer: surface: toast-overlay t135bf2e6                     contains [[alarms] surface: toast-overlay t135bf2e6]
+PASS  timer: the ring notification (quiet channel, in use) has category alarm  contains [category=alarm]
+PASS  timer: … a Dismiss action                                 contains [Dismiss]
+PASS  timer: … and no Snooze action                             does not contain [Snooze]
+PASS  timer toast: ring_dismiss                                   = yes
+PASS  timer toast: no ring_snooze                                 = no
+PASS  timer dismiss: ring ended t135bf2e6: dismiss                contains [[alarms] ring ended t135bf2e6: dismiss]
+PASS  timer dismiss: the player stopped                           = 0
+      gscroll_to_node timer_name:t135bf2e6: 0 swipe(s), found=yes
+PASS  pass 1 cleared: no timer in the store                       = 
+PASS  a 10-min timer was created                                  != 
+      wall-clock deadline 1790259900512
+      booted at 1790259322517
+PASS  after the reboot wake_device prints Awake (C-25)            = Awake
+      first rearm after boot: rearm (time set): 0 alarms, 1 timers, exact=true
+RECORD  the boot's first rearm line (doc: locked boot or boot)      rearm (time set): 0 alarms, 1 timers, exact=true
+PASS  the boot's ring holds rearm (locked boot): 0 alarms, 1 timers  contains [[alarms] rearm (locked boot): 0 alarms, 1 timers]
+PASS  … and rearm (boot): 0 alarms, 1 timers                    contains [[alarms] rearm (boot): 0 alarms, 1 timers]
+PASS  re-armed for its original wall-clock deadline (elapsed trigger − now = deadline − now ± 3 s)  572752.00 vs 572741.00 +/- 3000.0
+PASS  its remaining is right after the reboot (± 3 s)            570000.00 vs 571015.00 +/- 3000.0
+      gscroll_to_node timer_name:t6bdfc4c1: 0 swipe(s), found=yes
+PASS  a 1-min timer was created                                   != 
+      rebooting at remaining=9970
+PASS  the [timer] line read remaining <= 10 000 before the reboot  = yes
+PASS  the first post-boot clock is later than start + 60 s (precondition, else void)  = yes
+PASS  after the reboot wake_device prints Awake (C-25)            = Awake
+PASS  it fired at once after the boot                             != 
+PASS  the ring says the timer ended while the phone was off       contains [timer ta2859065 ended while the phone was off]
+FAIL  the notification text says it ended while the phone was off (Decisions 'Ringing'; T15-53)  does not contain [ended while the phone was off]: NotificationRecord(0x0709b7a8: pkg=app.tileshell user=UserHandle{0} id=15003 tag=null importance=2 key=0|app.tileshell|15003|null|10150: Notification(channel=clock_ringing_quiet shortcut=null contentView=null vibrate=null sound=null default
+RECORD  the ended-while-off notification's title / text             android.title=String (Timer finished)|android.text=String (Minute · 0:01:00)
+PASS  a running 5-min timer for the force-stop check              != 
+RECORD  the timer's alarm right after the force-stop (polled 2 s; the home app restarts at once)  absent
+PASS  the restart re-arms it: rearm (process start): 0 alarms, 1 timers  != 
+PASS  … and the ELAPSED_WAKEUP entry is back at the same instant  = 328429
+      gscroll_to_node timer_name:ta2859065: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t357e643d: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E6: 40 passed, 1 failed, 5 recorded

@@ -1,0 +1,31 @@
+==============================================================================
+ROW EDGE-x5smoke2 — X5 only (smoke of the picker fix): the Edge Cases list: flip, fling, call, keyguard, listener restart, process death, second finger, show more tiles, folder dissolve, labels, theme, transparency, RV10
+at            2026-09-24T14:48:26-06:00
+driver        .edge_x5_smoke.sh blob 1440cd41362dc75e50e108bdccb03524c6644e5c
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     736ce3543e0caf05 335518185 bytes
+apk installed 50129ec4bf4de7f8
+apk match     yes (50129ec4bf4de7f8)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- the X5 transparency slider at 0 % and 100 %: the satellite fill follows the tile's ---
+      scroll_to_node theme_background_choose: 10 swipe(s), found=no
+      picker: the newest photo: [177 862 Photo taken on Sep 24, 2026, 2:36:48 PM]
+      scroll_to_node theme_transparency: 10 swipe(s), found=no
+FAIL  a background picture is set: the transparency slider is there  should not be []
+      transparency at the start: %
+      scroll_to_node theme_transparency: 10 swipe(s), found=no
+FAIL  the slider reads 0 %                                        expected [0] got []
+      X5 0%: fill=[0, 120, 215] tile=[0, 120, 215] accent=[0, 120, 215] -> PASS
+PASS  X5 0%: the satellite fill matches the held tile's (0: the accent)  fill=[0, 120, 215] tile=[0, 120, 215] accent=[0, 120, 215] -> PASS
+      scroll_to_node theme_transparency: 10 swipe(s), found=no
+FAIL  the slider reads 100 %                                      expected [100] got []
+      X5 100%: fill=[0, 120, 215] tile=[0, 120, 215] accent=[0, 120, 215] -> FAIL
+FAIL  X5 100%: the satellite fill matches the held tile's         fill=[0, 120, 215] tile=[0, 120, 215] accent=[0, 120, 215] -> FAIL
+      scroll_to_node theme_transparency: 10 swipe(s), found=no
+      scroll_to_node theme_background_remove: 10 swipe(s), found=no
+------------------------------------------------------------------------------
+EDGE-x5smoke2: 3 passed, 4 failed

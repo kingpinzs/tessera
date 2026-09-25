@@ -1,0 +1,134 @@
+==============================================================================
+ROW EDGE_ALARMS — alarm edge cases: DST, zone changes, clock back / forward, supersede, same minute, edit while ringing, in-call, reboot straddle, update
+at            2026-09-24T08:54:15-06:00
+driver        edge_alarms.sh blob 6287aa67b88f9490fa22a579ac46479d6ccd210e
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     d84e62728766ce7f 337843127 bytes
+apk installed 39402722396d9129
+apk match     NO (device 39402722396d9129, built 544474ed84bc0b4f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-58m40s913ms ago; rejectTime=+1m19s88ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+RECORD  USE_EXACT_ALARM-removed QA build (SCHEDULE_EXACT_ALARM denied on a manifest without USE_EXACT_ALARM)  NOT RUN: this pass builds nothing (the brief), so the QA build does not exist
+PASS  the zone is America/Denver                                  = America/Denver
+PASS  the 02:30 alarm was created                                 != 
+PASS  it is armed for 2027-03-14                                  = 2027-03-14
+PASS  dumpsys alarm arms it at 03:00:00 MDT = 09:00:00Z (the skipped hour)  = 1805014800000
+PASS  it rang                                                     != 
+PASS  … no earlier than 09:00:00Z                               = yes
+PASS  the toast's time reads 3:00 AM (diagnostics of the skipped hour)  = 3:00 AM
+      gtap: no ring_dismiss in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/EDGE_ALARMS/spring_ring.xml
+      dismiss_toast spring: no ring ended line
+      scroll_to_node alarm_row:a34e3f557: 0 swipe(s), found=yes
+PASS  the daily 01:30 alarm was created                           != 
+PASS  it is armed at the first 01:30 (MDT, 07:30Z), not the second (MST, 08:30Z)  = 1825572600000
+PASS  it rang at the first 01:30                                  != 
+      gtap: no ring_dismiss in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/EDGE_ALARMS/fall_ring.xml
+      dismiss_toast fall: no ring ended line
+PASS  after Dismiss it re-arms for the NEXT day's 01:30 (MST, 2027-11-08 08:30Z), not the same night's second 01:30  = 1825662600000
+      scroll_to_node alarm_row:ab4e1ee33: 0 swipe(s), found=yes
+PASS  the daily 07:00 alarm was created                           != 
+PASS  armed for 2027-03-13 07:00 MST (14:00Z)                     = 1804946400000
+PASS  it rang on the 13th                                         != 
+FAIL  next: 2027-03-14 07:00 MDT (13:00Z) — a 23-hour gap       expected [1805029200000] got [1805013000000]
+FAIL  … the gap in dumpsys alarm is 23 h                        expected [23] got [18]
+      ring_at: ae194e183 did not fire within 30 s of the jump to 1805013000000
+FAIL  it rang on the 14th at 07:00 wall-clock                     should not be []
+FAIL  … the toast reads 7:00 AM                                 expected [7:00 AM] got []
+      gtap: no ring_dismiss in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/EDGE_ALARMS/seven2_ring.xml
+PASS  on 2027-11-06 the daily is armed at 07:00 MDT (13:00Z)      = 1825506000000
+PASS  it rang on the 6th                                          != 
+FAIL  next: 2027-11-07 07:00 MST (14:00Z) — a 25-hour gap       expected [1825596000000] got [1825572600000]
+FAIL  … the gap in dumpsys alarm is 25 h                        expected [25] got [18]
+      scroll_to_node alarm_row:ae194e183: 0 swipe(s), found=yes
+PASS  device clock back within 2 s of the host (RV12)             1790261841.00 vs 1790261841.00 +/- 2.0
+PASS  zone change with the app closed: the receiver re-armed in a fresh process  != 
+FAIL  … the alarm's instant moved to London's 07:00             expected [1790316000000] got [1790296200000,1790316000000]
+PASS  … and the row still reads 7:00 AM                         = 7:00 AM
+      scroll_to_node alarm_row:a74e27748: 0 swipe(s), found=yes
+PASS  an alarm is ringing                                         != 0
+PASS  zone change while ringing: the re-arm line                  != 
+PASS  … the ring continues (player started)                     != 0
+PASS  … the toast is still up                                   = yes
+PASS  … and the ring was not ended by the zone change           does not contain [ring ended ad9f13eea]
+PASS  device clock back within 2 s of the host (RV12)             1790261899.00 vs 1790261899.00 +/- 2.0
+      scroll_to_node alarm_row:ad9f13eea: 0 swipe(s), found=yes
+PASS  clock back two days: the one-shot stays armed for its stored date  = 2026-09-24
+FAIL  … at the same instant in dumpsys alarm                    expected [1790262060000] got [1790148600000,1790262060000]
+PASS  it rings once, at its instant                               != 
+FAIL  clock back again: a rung one-shot is not re-armed (it never rings twice)  expected [] got [1790148600000]
+PASS  … it is off in the store                                  = false
+PASS  device clock back within 2 s of the host (RV12)             1790261936.00 vs 1790261937.00 +/- 2.0
+      scroll_to_node alarm_row:a35e59ba2: 0 swipe(s), found=yes
+FAIL  three one-shots armed a minute apart                        expected [3] got [4]
+FAIL  forward past three: they fired in order                     expected [a3f0580f0 a2544e896 a1c1b524a] got []
+FAIL  the first was superseded                                    does not contain [[alarms] ring ended a3f0580f0: superseded]:     2026-09-24 09:04:12.100 wall=1790262252100 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=725223 faceIndex=1 next=0 faces=1
+    2026-09-24 09:04:12.809 wall=1790262252809 [tile_anim] tile=shell:weather kind=FLIP uptime=725931 faceIndex
+FAIL  the second was superseded                                   does not contain [[alarms] ring ended a2544e896: superseded]:     2026-09-24 09:04:12.100 wall=1790262252100 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=725223 faceIndex=1 next=0 faces=1
+    2026-09-24 09:04:12.809 wall=1790262252809 [tile_anim] tile=shell:weather kind=FLIP uptime=725931 faceIndex
+FAIL  the first counts as missed                                  does not contain [[alarms] ring ended a3f0580f0: missed]:     2026-09-24 09:04:12.100 wall=1790262252100 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=725223 faceIndex=1 next=0 faces=1
+    2026-09-24 09:04:12.809 wall=1790262252809 [tile_anim] tile=shell:weather kind=FLIP uptime=725931 faceIndex
+PASS  one ring surface                                            = 1
+PASS  … showing the last alarm                                  = Third
+PASS  a Missed alarm notification for the first                   contains [Missed alarm 9:01 AM]
+PASS  … and for the second                                      contains [Missed alarm 9:02 AM]
+PASS  device clock back within 2 s of the host (RV12)             1790262015.00 vs 1790262016.00 +/- 2.0
+      scroll_to_node alarm_row:a3f0580f0: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a2544e896: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a1c1b524a: 0 swipe(s), found=yes
+PASS  the early alarm rings                                       != 0
+FAIL  the later alarm takes the surface: ring ended a81de54f1: superseded  does not contain [[alarms] ring ended a81de54f1: superseded]:     2026-09-25 01:29:50.002 wall=1790321390002 [weather] refresh start reason=interval (broadcast android.intent.action.TIME_SET) units=IMPERIAL
+    2026-09-25 01:29:50.002 wall=1790321390002 [engine] publish cmp:app.tileshell/app.tileshell
+FAIL  … and the first is missed                                 does not contain [[alarms] ring ended a81de54f1: missed]:     2026-09-25 01:29:50.002 wall=1790321390002 [weather] refresh start reason=interval (broadcast android.intent.action.TIME_SET) units=IMPERIAL
+    2026-09-25 01:29:50.002 wall=1790321390002 [engine] publish cmp:app.tileshell/app.tileshell
+FAIL  … with a Missed alarm notification                        does not contain [Missed alarm 9:02 AM]: NotificationRecord(0x07adf5b3: pkg=app.tileshell user=UserHandle{0} id=-185932346 tag=null importance=3 key=0|app.tileshell|-185932346|null|10150: Notification(channel=clock_missed shortcut=null contentView=null vibrate=null sound=null defa
+FAIL  the toast now shows the later alarm                         expected [Later] got [Early]
+PASS  device clock back within 2 s of the host (RV12)             1790262112.00 vs 1790262112.00 +/- 2.0
+      scroll_to_node alarm_row:a81de54f1: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:aa602f588: 0 swipe(s), found=yes
+PASS  same minute: one toast                                      = 1
+      ring_name: Bob, Ann
+PASS  … ring_name lists Ann                                     contains [Ann]
+PASS  … and Bob                                                 contains [Bob]
+PASS  … neither was superseded                                  does not contain [superseded]
+PASS  Snooze acts on Ann                                          contains [[alarms] ring ended a47bc1da3: snooze]
+PASS  … and on Bob                                              contains [[alarms] ring ended abafa605e: snooze]
+PASS  both hold a snooze instant                                  != null
+PASS  both ring together again after the snooze (one toast)       = 1
+PASS  Dismiss acts on Ann                                         contains [[alarms] ring ended a47bc1da3: dismiss]
+PASS  … and on Bob                                              contains [[alarms] ring ended abafa605e: dismiss]
+PASS  device clock back within 2 s of the host (RV12)             1790262179.00 vs 1790262179.00 +/- 2.0
+      scroll_to_node alarm_row:a47bc1da3: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:abafa605e: 0 swipe(s), found=yes
+PASS  it rings as a heads-up (no overlay grant)                   contains [[alarms] surface: heads-up a6601a3b3]
+PASS  the store took the edit (snooze 20)                         = 20
+PASS  the ring continues (player still started)                   != 0
+PASS  … and the edit did not end the ring                       does not contain [ring ended a6601a3b3]
+PASS  … the edit re-armed the store                             contains [[alarms] store: alarm a6601a3b3 edited in the editor]
+PASS  the notification's Dismiss ends it                          contains [[alarms] ring ended a6601a3b3: dismiss]
+PASS  device clock back within 2 s of the host (RV12)             1790262238.00 vs 1790262239.00 +/- 2.0
+      scroll_to_node alarm_row:a6601a3b3: 0 swipe(s), found=yes
+      out-of-call track: 
+RECORD  out-of-call G / L / R / VS (dB)                             
+PASS  out of call the ring level is full                          contains [[alarms] ring level full]
+PASS  device clock back within 2 s of the host (RV12)             1790262271.00 vs 1790262271.00 +/- 2.0
+RECORD  dumpsys audio mode during the call                          MODE_IN_CALL
+PASS  the audio mode reads IN_CALL                                contains [MODE_IN_CALL]
+PASS  during the call an ALARM player of the shell exists         != 
+FAIL  the ring level line says 1/8 (in call)                      does not contain [[alarms] ring level 1/8 (in call]:     2026-09-24 09:05:51.908 wall=1790262351908 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=1052582 faceIndex=0 next=1 faces=1
+    2026-09-24 09:05:52.617 wall=1790262352617 [tile_anim] tile=shell:weather kind=FLIP uptime=1053292 faceInd
+RECORD  in-call G / L / R / VS (dB)                                 
+FAIL  the track's gain is ≈ 1/8 of the out-of-call ring's (−18.1 dB ± 2 on one of G / L / R / VS)  expected [yes] got [no ([])]
+PASS  the toast shows over the in-call UI (overlay)               contains [[alarms] surface: toast-overlay a7b6e7b95]
+PASS  … an APPLICATION_OVERLAY window                           contains [type=APPLICATION_OVERLAY]
+RECORD  the resumed activity under the toast                        topResumedActivity=ActivityRecord{111735802 u0 app.tileshell/.StartActivity t206}
+PASS  vibration runs (a vibration of uid 10150 in vibrator_manager)  != 
+PASS  device clock back within 2 s of the host (RV12)             1790262305.00 vs 1790262305.00 +/- 2.0
+      scroll_to_node alarm_row:a378c5263: 6 swipe(s), found=no
+      app_delete_alarm: no row alarm_row:a378c5263
+      scroll_to_node alarm_row:a7b6e7b95: 6 swipe(s), found=no
+      app_delete_alarm: no row alarm_row:a7b6e7b95

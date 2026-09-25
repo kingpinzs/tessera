@@ -4,10 +4,10 @@ import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import app.tileshell.diag.Diagnostics
-import app.tileshell.tiles.api.LiveTileStore
 import app.tileshell.tiles.engine.BadgeStore
 import app.tileshell.tiles.engine.FaceTransition
 import app.tileshell.tiles.engine.LiveTileEngine
+import app.tileshell.tiles.engine.PackageSource
 import app.tileshell.tiles.engine.TileContent
 import app.tileshell.tiles.engine.TileFace
 import java.io.FileDescriptor
@@ -50,7 +50,9 @@ class TileNotificationListener : NotificationListenerService() {
 
     private fun rescan(reason: String) {
         val byPkg = active().groupBy { it.packageName }
-        val known = LiveTileEngine.content.value.keys.filter { it.startsWith("pkg:") }.map { it.removePrefix("pkg:") }
+        // The packages the engine holds content for — never names parsed out of its keys, where a secondary tile's
+        // `pkg:<owner>#<id>` reads as a package and its content was cleared on every rescan (the L11-1 fix review, F-1).
+        val known = LiveTileEngine.packages()
         (byPkg.keys + known).toSet().forEach { rebuild(it, byPkg[it]?.maxOf { n -> n.postTime } ?: System.currentTimeMillis()) }
         Diagnostics.add("notif", "rescan ($reason): ${byPkg.size} packages with notifications")
     }
@@ -71,16 +73,17 @@ class TileNotificationListener : NotificationListenerService() {
         val mine = active().filter { it.packageName == pkg && eligible(it) }.sortedByDescending { it.postTime }
         val count = mine.sumOf { maxOf(1, it.notification.number) }
         BadgeStore.set(pkg, BadgeStore.Source.NOTIFICATIONS, count)
-        // Preview precedence (phase 01 Decisions): an app's Live Tile API queue owns its preview; notifications still count.
-        if (pkg in LiveTileStore.get(this).previewOwners) return
+        // Preview precedence (phase 01 Decisions; L11-1) is the engine's: this publishes the notifications' own slot, and an
+        // app's Live Tile API queue or its playing session wins over it there. Notifications still count (the badge above).
         val faces = mine.take(3).map { sbn ->
             val extras = sbn.notification.extras
             val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty()
             val text = (extras.getCharSequence(Notification.EXTRA_BIG_TEXT) ?: extras.getCharSequence(Notification.EXTRA_TEXT))?.toString().orEmpty()
             TileFace.TextLines(listOf(title, text).filter { it.isNotBlank() })
         }
-        LiveTileEngine.publish(
-            LiveTileEngine.packageKey(pkg),
+        LiveTileEngine.publishPackage(
+            pkg,
+            PackageSource.NOTIFICATIONS,
             if (faces.isEmpty()) null else TileContent(faces, FaceTransition.FLIP, sourceTimeMs = sourceTime, sourceTag = "notification"),
         )
     }

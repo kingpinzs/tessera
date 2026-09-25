@@ -68,6 +68,9 @@ object Checklist {
      * manager (API 34, the shell's minSdk), not read out of Settings.Secure: E1 caught the secure
      * setting coming back empty to the app while `ime set` had plainly selected the keyboard.
      */
+    /** Phase 15: the special app access behind ringing over the keyguard (USE_FULL_SCREEN_INTENT, API 34+). */
+    fun fullScreenAlarms(context: Context): Boolean = context.getSystemService(NotificationManager::class.java).canUseFullScreenIntent()
+
     fun keyboardSelected(context: Context): Boolean =
         context.getSystemService(InputMethodManager::class.java).currentInputMethodInfo?.id == keyboardId(context)
 }
@@ -125,6 +128,15 @@ fun ChecklistPage() {
         },
         ChecklistRow("keyboard_selected", "Keyboard selected", if (Checklist.keyboardSelected(context)) RowState.GRANTED else RowState.MISSING, "Use it for typing everywhere") {
             context.getSystemService(InputMethodManager::class.java).showInputMethodPicker()
+        },
+        // Phase 15 (Q-E A, T15-14): alarms ring as W10M's toast — over the lock screen through a full-screen intent
+        // (special app access on API 34+), over the app in use through "Display over other apps". Without either the
+        // alarm still sounds and shows as Android's own notification, never silently.
+        ChecklistRow("full_screen_alarms", "Full-screen alarms", if (Checklist.fullScreenAlarms(context)) RowState.GRANTED else RowState.MISSING, "Alarms ring over the lock screen") {
+            context.startActivity(Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).setData(Uri.parse("package:${context.packageName}")))
+        },
+        ChecklistRow("overlay", "Display over other apps", if (Settings.canDrawOverlays(context)) RowState.GRANTED else RowState.MISSING, "Alarms ring over the app you're using") {
+            context.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).setData(Uri.parse("package:${context.packageName}")))
         },
         ChecklistRow("listener", "Live tiles running", if (TileNotificationListener.connected) RowState.GRANTED else RowState.MISSING, if (TileNotificationListener.connected) "Connected" else "Not connected") {
             context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))

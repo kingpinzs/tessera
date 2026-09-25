@@ -76,6 +76,9 @@ object CommandMatcher {
         deleteReminder(text)?.let { return it }
         calendar(text, words, context)?.let { return it }
         alarmOrTimer(text, words, context)?.let { return it }
+        // Phase 15 T15-2: only when the WHOLE request is numbers and operator words (or a conversion between two of
+        // the Converter's units), so "what is the capital of Peru" still falls through.
+        ArithmeticWords.parse(text)?.let { return Request.Arithmetic(it) }
         message(text)?.let { return it }
         call(text)?.let { return it }
         savePlace(text)?.let { return it }
@@ -225,6 +228,9 @@ object CommandMatcher {
         "play music", "play", "directions to", "navigate to",
         "take a photo", "take a picture", "take a note",
         "send it", "add more", "try again", "cancel", "yes", "no", "whenever",
+        // Phase 15 (T15-2): Tess's arithmetic and conversions.
+        "what's", "calculate", "how much is", "plus", "minus", "times", "multiplied by", "divided by",
+        "percent of", "to the power of", "square root of", "point", "negative", "in kilometers", "in miles",
     )
 
     // ---------------- helpers ----------------

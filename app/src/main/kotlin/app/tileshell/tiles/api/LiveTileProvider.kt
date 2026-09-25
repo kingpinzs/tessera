@@ -245,6 +245,12 @@ class LiveTileProvider : ContentProvider() {
                 logo?.let { store.ownerDir(pkg).resolve(it.file).delete() }
                 reject(pkg, uid, method, Error.QUOTA, "too many pin requests are waiting for the user")
             }
+            // Cannot happen here (the fields passed validateSecondary above); the seam checks them again for its
+            // in-process callers (phase 15 T15-40), and a second refusal is still a refusal.
+            is SecondaryTiles.RequestResult.Invalid -> {
+                logo?.let { store.ownerDir(pkg).resolve(it.file).delete() }
+                reject(pkg, uid, method, offered.reason, offered.detail)
+            }
         }
     }
 

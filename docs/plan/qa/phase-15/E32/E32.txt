@@ -1,0 +1,35 @@
+==============================================================================
+ROW E32 — ring timeout: an unanswered alarm ends at 600 s as timeout + missed
+at            2026-09-24T16:52:21-06:00
+driver        e32.sh blob 9a6a8815e4771c11d30993289c0055ae7954d766
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     ba42e00bac9f14cf 338459898 bytes
+apk installed 33cc71c192190cc9
+apk match     NO (device 33cc71c192190cc9, built c45e7a2838aae3b0)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+5m24s617ms ago; rejectTime=+54m24s594ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  the alarm was created                                       != 
+PASS  the alarm fired                                             != 
+PASS  it rings on the in-use overlay                              contains [[alarms] surface: toast-overlay ab41798ff]
+PASS  the player is started                                       != 0
+RECORD  UI activity during the wait (this driver sends none after the jump)  none
+PASS  the ring ended with timeout (within 660 s)                  != 
+PASS  the timeout came 600 ± 5 s after the fired line (wall= of both lines)  600059.00 vs 600000.00 +/- 5000.0
+PASS  … then missed                                             contains [[alarms] ring ended ab41798ff: missed]
+PASS  the timeout line comes before the missed line               = yes
+PASS  the ALARM player is gone                                    = 0
+PASS  the overlay window is gone                                  = 
+PASS  a Missed alarm notification with the alarm's time           contains [Missed alarm 4:54 PM]
+PASS  the one-shot is off after the miss                          = false
+PASS  device clock back within 2 s of the host (RV12)             1790290968.00 vs 1790290968.00 +/- 2.0
+      scroll_to_node alarm_row:ab41798ff: 0 swipe(s), found=yes
+PASS  restore: the missed notification is cleared                 = 
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E32: 18 passed, 0 failed, 3 recorded

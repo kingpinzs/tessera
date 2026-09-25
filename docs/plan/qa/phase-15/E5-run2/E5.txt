@@ -1,0 +1,39 @@
+==============================================================================
+ROW E5 — doze and offline: the alarm still rings on time
+at            2026-09-24T08:12:11-06:00
+driver        e5.sh blob 6c81124bcde097865077f1ab0eb0f0e0e9d2df48
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     d8dcea502fac2b21 337842979 bytes
+apk installed 39402722396d9129
+apk match     yes (39402722396d9129)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+8h16m15s468ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  the alarm was created                                       != 
+PASS  … and armed                                               != 0
+PASS  airplane mode is on                                         = 1
+      force-idle: Unable to go deep idle; stopped at INACTIVE; mScreenOn=false mCharging=false
+PASS  the device is forced into deep idle                         contains [deep idle]
+FAIL  deviceidle get deep reads IDLE                              expected [IDLE] got [INACTIVE]
+PASS  the screen is off                                           != Awake
+PASS  the alarm fired within 30 s of the jump                     != 
+PASS  late <= 1000 ms                                             13.00 vs 0.00 +/- 1000.0
+PASS  an ALARM player of the shell is started                     != 0
+PASS  the display is on (Awake)                                   = Awake
+RECORD  deviceidle state at the ring                                ACTIVE
+RECORD  surface line                                                [alarms] surface: toast-locked aa022b056
+PASS  the toast is up (ring_dismiss)                              = yes
+PASS  dismiss: ring ended aa022b056: dismiss                      contains [[alarms] ring ended aa022b056: dismiss]
+PASS  dismiss: the player stopped                                 = 0
+PASS  restore: airplane mode off                                  = 0
+PASS  device clock back within 2 s of the host (RV12)             1790259173.00 vs 1790259173.00 +/- 2.0
+PASS  restore: wake_device printed Awake (C-25)                   = Awake
+      scroll_to_node alarm_row:aa022b056: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E5: 19 passed, 1 failed, 4 recorded

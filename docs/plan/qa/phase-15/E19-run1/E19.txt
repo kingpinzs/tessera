@@ -1,0 +1,46 @@
+==============================================================================
+ROW E19 — the storage floor stops a take by itself with Not enough space
+at            2026-09-24T14:00:06-06:00
+driver        e19.sh blob c765c693bb0aded124a585ef58cea84ee3d3fa12
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 7b1306f3e567a24b
+apk match     yes (7b1306f3e567a24b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: MediaStore holds no take of the shell's           = 0
+      E19: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
+PASS  E19: the audio route is up (audio.sh check rc)              = 0
+RECORD  devicestoragemonitor lowBytes (the reserve getAllocatableBytes excludes)  524288000
+      free on /sdcard before: 15113756672 bytes
+PASS  lowBytes was read                                           != 
+      fill_volume: 580902912 bytes free on /sdcard (asked for 580911104)
+PASS  fill_volume left LOW + 54 MB (<= LOW + 59 MB) free on /sdcard (its own precondition, rc)  = 0
+RECORD  free on /sdcard after the fill (bytes)                      580902912
+      start line: start Recording free=54
+PASS  the take started ([recorder] start … free=<MB>)           != 
+RECORD  getAllocatableBytes at the start, MB (the floor is 50)      54
+PASS  the take is recording                                       = recording
+      waiting up to 600 s for the floor
+      the take's phase after 600s of wall time: [recording] (last elapsed_ms 597983)
+FAIL  the take stopped by itself within the bound                 expected [yes] got [no (600 s, phase recording)]
+FAIL  the notice Not enough space shows (rec_notice)              expected [Not enough space] got []
+FAIL  the :recorder ring holds [recorder] storage floor           does not contain [[recorder] storage floor]:     2026-09-24 14:00:20.347 wall=1790280020347 [recorder] bind :speech (microphone hold) -> true
+    2026-09-24 14:00:20.350 wall=1790280020350 [recorder] bound to :speech (microphone hold)
+    2026-09-24 14:00:20.395 wall=1790280020395 [re
+FAIL  and the take's stop line                                    does not contain [[recorder] stop Recording ms=]:     2026-09-24 14:00:20.347 wall=1790280020347 [recorder] bind :speech (microphone hold) -> true
+    2026-09-24 14:00:20.350 wall=1790280020350 [recorder] bound to :speech (microphone hold)
+    2026-09-24 14:00:20.395 wall=1790280020395 [re
+      stop line: 
+      the partial take: none ( ms,  bytes)
+FAIL  the partial take is in MediaStore                           should not be []
+FAIL  the partial take is listed                                  expected [yes] got [no]
+      gtap: no rec_row: in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/E19/list.xml
+      player: none
+FAIL  and it plays (a started player on USAGE_MEDIA)              should not be []
+      free on /sdcard after unfill: 15115755520 bytes (before the row: 15113756672)
+PASS  restore: the fill file is gone (free space back above LOW + 1 GB)  = yes
+PASS  restore: the partial take is deleted                        = 0
+------------------------------------------------------------------------------
+E19: 8 passed, 7 failed, 3 recorded

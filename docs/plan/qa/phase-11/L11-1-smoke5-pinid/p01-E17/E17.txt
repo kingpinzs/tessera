@@ -1,0 +1,14 @@
+# E17 2026-09-24T13:57:01-06:00
+notification listener connected: SERVICE app.tileshell/.feeds.TileNotificationListener 410b9d6 pid=17583 user=0
+## notification with setNumber(7)
+notification_7: dump badge node [7]; set app.tileshell.testclient.a NOTIFICATIONS=7 -> effective 7
+## legacy badge broadcast (count 3)
+legacy_3: dump badge node [3]; set app.tileshell.testclient.a LEGACY_BROADCAST=3 -> effective 3
+## badge.update 5 through the API
+api_5: dump badge node [5]; set app.tileshell.testclient.a API=5 -> effective 5
+## badge.clear (falls back to the legacy broadcast, then the notification)
+after_api_clear: dump badge node [3]; set app.tileshell.testclient.a API=0 -> effective 3
+## legacy broadcast cleared (count 0)
+after_legacy_clear: dump badge node [7]; set app.tileshell.testclient.a LEGACY_BROADCAST=0 -> effective 7
+## notification cancelled
+after_notification_cancel: dump badge node []; set app.tileshell.testclient.a NOTIFICATIONS=0 -> effective 0

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Phase 11 (interview Q1 A): Start settings' four pages as static App Shortcuts, declared on SettingsActivity, carrying the existing EXTRA_PAGE (T11-39). -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="start_theme"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_start_theme"
+        android:shortcutShortLabel="@string/shortcut_start_theme">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.settings.SettingsActivity">
+            <extra android:name="page" android:value="START_THEME" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="tile_apps"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_tile_apps"
+        android:shortcutShortLabel="@string/shortcut_tile_apps">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.settings.SettingsActivity">
+            <extra android:name="page" android:value="TILE_APPS" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="checklist"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_checklist"
+        android:shortcutShortLabel="@string/shortcut_checklist">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.settings.SettingsActivity">
+            <extra android:name="page" android:value="CHECKLIST" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="diagnostics"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_diagnostics"
+        android:shortcutShortLabel="@string/shortcut_diagnostics">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.settings.SettingsActivity">
+            <extra android:name="page" android:value="DIAGNOSTICS" />
+        </intent>
+    </shortcut>
+</shortcuts>

@@ -46,6 +46,14 @@ echo "immersive cling: $(adb shell settings get secure immersive_mode_confirmati
 adb shell locksettings set-disabled true >/dev/null 2>&1
 adb shell wm dismiss-keyguard >/dev/null 2>&1
 
+say "the ring's special app accesses (phase 15, Q-E A)"
+# Alarms ring over the keyguard through a full-screen intent and over the app in use through an overlay window;
+# both are special app accesses the Setup checklist asks for on a phone (its full_screen_alarms and overlay rows).
+adb shell appops set app.tileshell USE_FULL_SCREEN_INTENT allow
+adb shell appops set app.tileshell SYSTEM_ALERT_WINDOW allow
+echo "full-screen intent: $(adb shell appops get app.tileshell USE_FULL_SCREEN_INTENT | tr -d '\r')"
+echo "overlay: $(adb shell appops get app.tileshell SYSTEM_ALERT_WINDOW | tr -d '\r')"
+
 say "roles"
 adb shell cmd role add-role-holder android.app.role.HOME app.tileshell
 adb shell cmd role add-role-holder android.app.role.ASSISTANT app.tileshell

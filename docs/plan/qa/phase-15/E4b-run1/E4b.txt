@@ -1,0 +1,165 @@
+==============================================================================
+ROW E4b — alarm fires while in use: overlay toast, touches consumed, snooze, sleep mid-ring, heads-up fallback, timer toast
+at            2026-09-23T23:38:36-06:00
+driver        e4b.sh blob bdbe0c117f5a5b2daa53c1b3b14d3cebd4722639
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     594be092df44e7da 337842979 bytes
+apk installed 73c780cae9e12da8
+apk match     NO (device 73c780cae9e12da8, built 65d494998eca0f14)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-9h58m20s870ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  DeskClock is the resumed activity                           contains [com.android.deskclock]
+PASS  the alarm was created                                       != 
+PASS  … and armed                                               != 
+PASS  the alarm fired within 30 s                                 != 
+PASS  an ALARM player of the shell is started                     != 0
+PASS  DeskClock is still the resumed activity                     contains [com.android.deskclock]
+      overlay window: Window #5 Window{d588bde u0 TesseraRing}: type=APPLICATION_OVERLAY package=app.tileshell
+PASS  the shell has a window of type APPLICATION_OVERLAY (TesseraRing)  contains [type=APPLICATION_OVERLAY]
+PASS  notification ae1530aac: quiet                               contains [[alarms] notification ae1530aac: quiet]
+PASS  surface: toast-overlay ae1530aac                            contains [[alarms] surface: toast-overlay ae1530aac]
+      motion: ring_toast t0=1651046 peak=235 overshoot=0 settle=235 frames=15 maxGapMs=17
+FAIL  [motion] ring_toast settle = 217 ± 17 ms                   235.00 vs 217.00 +/- 17.0
+PASS  [motion] ring_toast maxGapMs <= 33.4                        = yes
+PASS  the ring notification is on the quiet channel               != 
+PASS  … with NO full-screen intent                              = 
+FAIL  … and none on the alarm channel                           expected [] got [NotificationRecord(0x080d49ba: pkg=app.tileshell user=UserHandle{0} id=15003 tag=null importance=2 key=0|app.tileshell|15003|null|10150: Notification(channel=clock_ringing_quiet shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONGOING_EVENT|NO_CLEAR|FOREGROUND_SERVICE color=0x00000000 category=alarm actions=2 vis=PUBLIC))
+      uid=10150 userId=0
+      opPkg=app.tileshell
+      icon=Icon(typ=RESOURCE pkg=app.tileshell id=0x7f040000)
+      flags=ONGOING_EVENT|NO_CLEAR|FOREGROUND_SERVICE
+      originalFlags=ONGOING_EVENT|FOREGROUND_SERVICE
+      pri=0
+      key=0|app.tileshell|15003|null|10150
+      seen=false
+      groupKey=0|app.tileshell|15003|null|10150
+      notification=
+            fullscreenIntent=null
+            contentIntent=null
+            deleteIntent=null
+            number=0
+            groupAlertBehavior=0
+            when=1790228400057/1790228400057
+            tickerText=null
+            vis=1
+            contentView=null
+            bigContentView=null
+            headsUpContentView=null
+            color=0x00000000
+            timeout=PT72H
+            actions={
+                [0] "Snooze" -> PendingIntent{9fb406b: PendingIntentRecord{ec834e1 app.tileshell startService (allowlist: 212078d:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+                [1] "Dismiss" -> PendingIntent{b5d37c8: PendingIntentRecord{2614206 app.tileshell startService (allowlist: 212078d:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}}
+              }
+            extras={
+                android.title=String (Alarm)
+                android.reduced.images=Boolean (true)
+                android.text=String (Desk · 11:40 PM)
+                android.appInfo=ApplicationInfo (ApplicationInfo{a5fe061 app.tileshell})
+                android.showWhen=Boolean (false)
+            }
+      publicNotification=
+            None
+      stats=SingleNotificationStats{posttimeElapsedMs=1651194, posttimeToFirstClickMs=-1, posttimeToDismissMs=-1, airtimeCount=0, airtimeMs=0, currentAirtimeStartElapsedMs=-1, airtimeExpandedMs=0, posttimeToFirstVisibleExpansionMs=-1, currentAirtimeExpandedStartElapsedMs=-1, requestedImportance=3, naturalImportance=2, isNoisy=false}
+      mContactAffinity=0.0
+      mRecentlyIntrusive=false
+      mPackagePriority=0
+      mPackageVisibility=-1000
+      mSystemImportance=UNSPECIFIED
+      mAsstImportance=UNSPECIFIED
+      mImportance=LOW
+      mImportanceExplanation=app
+      mProposedImportance=UNSPECIFIED
+      mIsAppImportanceLocked=false
+      mSensitiveContent=false
+      mCanceledAfterLifetimeExtension=false
+      mIntercept=false
+      mHidden==false
+      mGlobalSortKey=crtcl=0x0002:intrsv=2:grnk=0x0001:gsmry=1:nsk:rnk=0x0001
+      mRankingTimeMs=1790228400059
+      mCreationTimeMs=1790228400059
+      mVisibleSinceMs=0
+      mUpdateTimeMs=1790228400059
+      mInterruptionTimeMs=1790228400261
+      mSuppressedVisualEffects= 0
+      mSound= null
+      mVibration= null
+      mAttributes= AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
+      mLight= null
+      mShowBadge=true
+      mColorized=false
+      mAllowBubble=false
+      isBubble=false
+      mIsInterruptive=true
+      effectiveNotificationChannel=NotificationChannel{mId='clock_ringing_quiet', mName=Alarms and timers ringing while you use the phone, mDescription=, mImportance=2, mBypassDnd=false, mLockscreenVisibility=-1000, mSound=null, mLights=false, mLightColor=0, mVibrationPattern=null, mVibrationEffect=null, mUserLockedFields=0, mUserVisibleTaskShown=true, mVibrationEnabled=false, mShowBadge=true, mDeleted=false, mDeletedTimeMs=-1, mGroup='null', mAudioAttributes=null, mBlockableSystem=false, mAllowBubbles=-1, mImportanceLockedDefaultApp=false, mOriginalImp=2, mParent=null, mConversationId=null, mDemoted=false, mImportantConvo=false, mLastNotificationUpdateTimeMs=0}
+      mAdjustments=[]
+      shortcut=null found valid? false
+      mUserVisOverride=-1000
+      hasSummarization=false]
+PASS  the overlay dump holds ring_surface                         = yes
+PASS  … ring_snooze_for                                         = yes
+PASS  … ring_snooze                                             = yes
+PASS  … ring_dismiss                                            = yes
+PASS  no SystemUI node carries the alarm's name (no heads-up over the toast)  = 
+      overlay ring_surface bounds: 0 136 1080 880
+RECORD  the overlay toast's top edge (px) — the recorded seam against 8.1 (T15-32)  136
+PASS  tap at (540,1500): the toast is still up                    = yes
+PASS  tap at (540,1500): the player is still started              != 0
+PASS  tap at (540,1500): DeskClock still resumed                  contains [com.android.deskclock]
+PASS  tap at (540,1500): DeskClock's nodes unchanged              = |
+PASS  snooze: ring ended ae1530aac: snooze                        contains [[alarms] ring ended ae1530aac: snooze]
+PASS  snooze: the overlay window is gone                          = 
+PASS  snooze: DeskClock still resumed                             contains [com.android.deskclock]
+PASS  snooze: dumpsys alarm shows the alarm 10 min ahead          1790229007426.00 vs 1790229007314.00 +/- 5000.0
+PASS  ring 2: fired                                               != 
+PASS  ring 2: surface: toast-overlay                              contains [[alarms] surface: toast-overlay ae1530aac]
+PASS  sleep mid-ring: the overlay window is gone                  = 
+PASS  sleep mid-ring: notification ae1530aac: fullscreen          contains [[alarms] notification ae1530aac: fullscreen]
+PASS  sleep mid-ring: surface: toast-locked ae1530aac             contains [[alarms] surface: toast-locked ae1530aac]
+PASS  sleep mid-ring: the ring activity has the focus             contains [clock.RingActivity]
+RECORD  sleep mid-ring: isKeyguardShowing (no PIN in this row; the keyguard is disabled by provision.sh)  false
+PASS  sleep mid-ring: the player is still started                 != 0
+PASS  wake_device prints Awake (C-25)                             = Awake
+PASS  dismiss: ring ended ae1530aac: dismiss                      contains [[alarms] ring ended ae1530aac: dismiss]
+PASS  dismiss: no ring_surface left                               = no
+PASS  dismiss: the player stopped                                 = 0
+PASS  heads-up: the second alarm was created                      != 
+PASS  heads-up: fired                                             != 
+PASS  heads-up: no overlay window of the shell                    = 
+PASS  heads-up: notification ac51d2ecf: fullscreen                contains [[alarms] notification ac51d2ecf: fullscreen]
+PASS  heads-up: surface: heads-up ac51d2ecf                       contains [[alarms] surface: heads-up ac51d2ecf]
+PASS  heads-up: the alarm notification has a Snooze action        contains [Snooze]
+PASS  heads-up: … and a Dismiss action                          contains [Dismiss]
+PASS  heads-up: no shell toast (no ring_surface)                  = no
+      SystemUI Dismiss bounds: 
+FAIL  heads-up: SystemUI shows a Dismiss action                   should not be []
+      tap_by_text: no [Dismiss] of com.android.systemui in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/E4b/headsup.xml
+FAIL  heads-up Dismiss: ring ended ac51d2ecf: dismiss             does not contain [[alarms] ring ended ac51d2ecf: dismiss]: 
+FAIL  heads-up Dismiss: the player stopped                        expected [0] got [1]
+PASS  overlay grant restored                                      contains [allow]
+PASS  a 30-s timer was created (running)                          != 
+PASS  the timer fired (waited on the elapsed clock)               != 
+PASS  timer: late <= 1000 ms                                      1.00 vs 0.00 +/- 1000.0
+PASS  timer: an ALARM player of the shell is started              != 0
+PASS  timer: surface: toast-overlay t2dc7486b                     contains [[alarms] surface: toast-overlay t2dc7486b]
+PASS  timer: notification t2dc7486b: quiet                        contains [[alarms] notification t2dc7486b: quiet]
+PASS  timer toast: ring_title reads Timer finished                = Timer finished
+PASS  timer toast: ring_dismiss                                   = yes
+PASS  timer toast: NO ring_snooze                                 = no
+PASS  timer toast: NO ring_snooze_for                             = no
+      timer ring_surface bounds: 0 136 1080 784
+PASS  timer dismiss: ring ended t2dc7486b: dismiss                contains [[alarms] ring ended t2dc7486b: dismiss]
+PASS  timer dismiss: the player stopped                           = 0
+PASS  device clock back within 2 s of the host (RV12)             1790228438.00 vs 1790228439.00 +/- 2.0
+      scroll_to_node alarm_row:ae1530aac: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:ac51d2ecf: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t2dc7486b: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E4b: 62 passed, 5 failed, 4 recorded

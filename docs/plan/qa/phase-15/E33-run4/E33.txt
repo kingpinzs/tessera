@@ -1,0 +1,55 @@
+==============================================================================
+ROW E33 — the AlarmClock API: set alarm / timer, show, refusals, the guard
+at            2026-09-24T15:54:53-06:00
+driver        e33.sh blob 55eee7f252b6f68519f9d2dfb0c9b515915cdcdc
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     e9d870364a6c00fc 338459898 bytes
+apk installed 2356b99f4933214b
+apk match     yes (2356b99f4933214b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      api android.intent.action.SET_ALARM from com.android.shell -> created a46c1a7a6
+PASS  the ring holds api SET_ALARM from … -> created <id>       contains [api android.intent.action.SET_ALARM from com.android.shell -> created ]
+PASS  dumpsys alarm's Next alarm clock holds 06:45                = 1790340300000
+PASS  … as the shell's RTC_WAKEUP entry                         = 1790340300000
+PASS  the Alarm tab lists Gym                                     = Gym
+PASS  … at 6:45 AM                                              = 6:45 AM
+PASS  the ring says the request opened the editor                 contains [api android.intent.action.SET_ALARM from com.android.shell -> opened]
+PASS  the editor is open (NEW ALARM)                              = NEW ALARM
+PASS  … filled in with the name Gym                             = Gym
+PASS  … at 8                                                    = 8
+PASS  … :15                                                     = 15
+PASS  nothing new is armed before Save (still only the 6:45 alarm)  = 1790340300000
+PASS  … and the store still holds one alarm                     = a46c1a7a6
+PASS  Save arms it (a second alarm in the store)                  != 
+PASS  … at 8:15                                                 = 8 15
+PASS  … and dumpsys alarm now holds two entries                 = 2
+PASS  the ring holds api SET_TIMER -> created <id>                contains [api android.intent.action.SET_TIMER from com.android.shell -> created ]
+PASS  the timer is RUNNING in the store                           = RUNNING
+PASS  … with a 2:00 length                                      = 120000
+PASS  … armed on the elapsed clock 120 s ahead                  1636923.00 vs 1636890.00 +/- 3000.0
+      timer_remaining: 00:01:56
+PASS  the Timer tab shows it counting down under 2:00             = yes
+PASS  SHOW_ALARMS resumes Alarms & Clock                          contains [clock.ClockActivity]
+PASS  … on the Alarm tab (clock_pivot:alarm selected)           = true
+PASS  SHOW_TIMERS resumes Alarms & Clock                          contains [clock.ClockActivity]
+PASS  … on the Timer tab (clock_pivot:timer selected)           = true
+PASS  HOUR 25 -> refused: hour out of range                       contains [api android.intent.action.SET_ALARM from com.android.shell -> refused: hour out of range]
+PASS  … and nothing armed                                       = 2
+PASS  … nothing added to the store                              = 2
+PASS  LENGTH past 99:59:59 -> refused                             contains [api android.intent.action.SET_TIMER from com.android.shell -> refused: length past 99:59:59]
+PASS  … and only the one timer exists                           = t110e3638
+PASS  the resolver lists the handler (ActivityInfo name=app.tileshell.clock.AlarmApiActivity)  != 
+PASS  … guarded by permission=com.android.alarm.permission.SET_ALARM  contains [permission=com.android.alarm.permission.SET_ALARM]
+PASS  … and DeskClock                                           contains [com.android.deskclock]
+RECORD  an implicit SET_ALARM would raise Android's chooser (two handlers; the P2 seam H25 judges)  12 handlers
+      scroll_to_node alarm_row:a46c1a7a6: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:ac279f33d: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t110e3638: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E33: 36 passed, 0 failed, 1 recorded

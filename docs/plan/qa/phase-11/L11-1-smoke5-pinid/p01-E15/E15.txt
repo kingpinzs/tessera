@@ -1,0 +1,33 @@
+# E15 2026-09-24T13:54:26-06:00
+## tile.update with text
+09-24 13:54:25.955 13498 17688 I TileClient: app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+update faces seen:
+    Meeting at 4 / Room 12 / With the team / Tile client A
+## badge.update 3
+09-24 13:54:52.680 13498 17785 I TileClient: app.tileshell.testclient.a badge.update: ok=true error=null detail=null
+badge node: badge:app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 | desc= | texts=3
+## queue of 5 (demo.queue: enableQueue then q1..q5)
+09-24 13:54:59.454 13498 17818 I TileClient: tile.update q5: ok=true error=null detail=null
+queue faces seen:
+    Queue item 5 / 13:54:59 / Tile client A / 3
+## tile.clear
+09-24 13:55:57.956 13498 18033 I TileClient: app.tileshell.testclient.a tile.clear: ok=true error=null detail=null
+cleared faces seen:
+    Tile client A / 3
+## badge.clear
+09-24 13:56:15.420 13498 18099 I TileClient: app.tileshell.testclient.a badge.clear: ok=true error=null detail=null
+badge node after clear: 
+## expiry: tile.update with expiresInMs 8000
+09-24 13:56:21.750 13498 18133 I TileClient: app.tileshell.testclient.a tile.update: ok=true error=null detail=null
+expiring faces seen:
+    Expires in 8 s / Tile client A
+expired faces seen:
+    Tile client A
+    2026-09-24 13:54:59.446 wall=1790279699446 [livetile] accept app.tileshell.testclient.a uid=10185 tile.update tileId=null bindings=TileSmall,TileMedium,TileWide images=0 tag=q2 expiresAt=null xmlBytes=312
+    2026-09-24 13:54:59.448 wall=1790279699448 [livetile] accept app.tileshell.testclient.a uid=10185 tile.update tileId=null bindings=TileSmall,TileMedium,TileWide images=0 tag=q3 expiresAt=null xmlBytes=312
+    2026-09-24 13:54:59.451 wall=1790279699451 [livetile] accept app.tileshell.testclient.a uid=10185 tile.update tileId=null bindings=TileSmall,TileMedium,TileWide images=0 tag=q4 expiresAt=null xmlBytes=312
+    2026-09-24 13:54:59.454 wall=1790279699454 [livetile] accept app.tileshell.testclient.a uid=10185 tile.update tileId=null bindings=TileSmall,TileMedium,TileWide images=0 tag=q5 expiresAt=null xmlBytes=312
+    2026-09-24 13:55:57.955 wall=1790279757955 [livetile] accept app.tileshell.testclient.a uid=10185 tile.clear queue cleared tileId=null
+    2026-09-24 13:56:15.419 wall=1790279775419 [livetile] accept app.tileshell.testclient.a uid=10185 badge.clear badge cleared tileId=null
+    2026-09-24 13:56:21.750 wall=1790279781750 [livetile] accept app.tileshell.testclient.a uid=10185 tile.update tileId=null bindings=TileSmall,TileMedium,TileWide images=0 tag=null expiresAt=1790279789747 xmlBytes=249
+    2026-09-24 13:56:29.749 wall=1790279789749 [livetile] expire app.tileshell.testclient.a 1 queued ([8]) (alarm)

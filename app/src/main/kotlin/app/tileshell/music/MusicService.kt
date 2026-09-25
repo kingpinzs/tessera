@@ -20,6 +20,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
+import app.tileshell.tiles.engine.TileRouting
 import app.tileshell.diag.Diagnostics
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -114,7 +115,10 @@ class MusicService : MediaSessionService() {
             .getOrNull()
         eqPreset = prefs.getInt(KEY_EQ, Equaliser.OFF)
         applyEqualiser(eqPreset, save = false)
-        session = MediaSession.Builder(this, known).setCallback(callback).build()
+        // The id is how Start tells this session from the shell's other players (Voice Recorder's playback, later
+        // the video player): they share this package, and only Music's tile carries a now-playing face
+        // (TileRouting, phase 15 build task 0). Media3 writes it into the platform session's tag.
+        session = MediaSession.Builder(this, known).setId(TileRouting.MUSIC_SESSION_ID).setCallback(callback).build()
         publishExtras()
         Diagnostics.add("music", "playback service started (audio session $audioSession, equaliser ${if (equalizer != null) "available" else "unavailable"})")
     }

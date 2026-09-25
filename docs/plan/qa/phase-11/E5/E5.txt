@@ -1,0 +1,104 @@
+==============================================================================
+ROW E5 — taps while open: elsewhere, another tile, the held tile, the name strip, a label, Back, the discs, Home, sleep, scroll, press
+at            2026-09-24T12:39:20-06:00
+driver        e5.sh blob 5ae49f4fe1a69b1cf2dbebb4a9bc32a0e9c7651a
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     a982b1894cd5600b 335517953 bytes
+apk installed 114511e7de8bb2e0
+apk match     yes (114511e7de8bb2e0)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- tap empty grid space: the burst closes, edit mode stays; a second tap exits (R6 §1.5.1) ---
+      empty point 60 1850
+PASS  no quick_burst                                              = no
+PASS  edit mode stays                                             = yes
+PASS  the held tile unchanged                                     = 365 489 708 832
+PASS  ring: tap elsewhere                                         contains [[quick] burst closed: tap elsewhere]
+PASS  a second tap on empty space exits edit mode                 = no
+--- tap another tile (Tess, outside every satellite): the burst closes, the selection stays ---
+PASS  Tess's centre is outside every satellite and label          != covered
+PASS  no quick_burst                                              = no
+PASS  the discs are still on the fixture                          = 661 443 754 536
+PASS  ring: tap elsewhere                                         contains [[quick] burst closed: tap elsewhere]
+PASS  ring: the selection did not move                            does not contain [[edit] selection moves to]
+--- tap the held tile: the burst closes, edit mode stays (not today's exit) ---
+PASS  no quick_burst                                              = no
+PASS  the discs still on it                                       = yes
+PASS  ring: tap elsewhere                                         contains [[quick] burst closed: tap elsewhere]
+PASS  ring: no exit                                               does not contain [[edit] tap on the held tile]
+--- a label counts as its satellite (T11-26) ---
+PASS  tapping label 0 ran qa_one                                  = qa_one
+PASS  ring: satellite 0 ran                                       contains [[quick] tap satellite 0 app.tileshell.testclient.a/qa_one: startShortcut ok]
+--- Back closes the burst only; a second Back exits edit mode ---
+PASS  Back: no quick_burst                                        = no
+PASS  Back: edit mode stays                                       = yes
+PASS  ring: back                                                  contains [[quick] burst closed: back]
+PASS  second Back: edit mode off                                  = no
+--- the resize disc: the tile resizes AND the burst closes (Q2 A, T11-17) ---
+PASS  ring: the size cycled                                       contains [[edit] resize app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 MEDIUM -> SMALL]
+PASS  no quick_burst                                              = no
+PASS  edit mode stays                                             = yes
+      unpin disc centre off the new top-right corner by (dx dy) = 0 0
+PASS  the unpin disc on the new top-right corner (x)              0.00 vs 0.00 +/- 3.0
+PASS  the unpin disc on the new top-right corner (y)              0.00 vs 0.00 +/- 3.0
+PASS  ring: resize                                                contains [[quick] burst closed: resize]
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- the unpin disc: the tile and the burst go ---
+PASS  the fixture tile is gone                                    = no
+PASS  no quick_burst                                              = no
+PASS  ring: unpin                                                 contains [[quick] burst closed: unpin]
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- Home (the drawn Windows key; this AVD never re-delivers KEYCODE_HOME to a resumed Start — P6) ---
+PASS  start_page                                                  = yes
+PASS  no quick_burst                                              = no
+PASS  no edit mode                                                = no
+PASS  ring: home                                                  contains [[quick] burst closed: home]
+PASS  ring: [start] home:                                         contains [[start] home:]
+--- screen off: Start stops, the burst closes (stop) ---
+PASS  wake_device after the screen-off (C-25)                     = Awake
+PASS  no quick_burst                                              = no
+PASS  ring: stop                                                  contains [[quick] burst closed: stop]
+--- no hold timer in edit mode (T11-23): a 1.0-s still press on another tile opens no burst ---
+PASS  no quick_burst while the finger rests                       = no
+PASS  ring: no burst on                                           does not contain [[quick] burst on]
+PASS  the release moved the selection to Start settings           contains [[edit] selection moves to shell:settings]
+      unpin disc centre off Start settings' top-right corner by 1 0
+PASS  the discs moved to Start settings (x)                       1.00 vs 0.00 +/- 3.0
+PASS  the discs moved to Start settings (y)                       0.00 vs 0.00 +/- 3.0
+--- a scroll on empty space: Start scrolls, the satellites ride the tile, fresh rest= lines (T11-28) ---
+PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      tall: empty point 700 1850
+      tile_dy -90 quick_sat:0 0 quick_sat:1 0 quick_sat:2 0 quick_sat:3 0 
+PASS  Start scrolled: the tile moved (|dy| ≥ 60 px)             90.00 vs 110.00 +/- 50.0
+PASS  quick_sat:0 moved with the tile (± 1 px)                   0.00 vs 0.00 +/- 1.0
+PASS  quick_sat:1 moved with the tile (± 1 px)                   0.00 vs 0.00 +/- 1.0
+PASS  quick_sat:2 moved with the tile (± 1 px)                   0.00 vs 0.00 +/- 1.0
+PASS  quick_sat:3 moved with the tile (± 1 px)                   0.00 vs 0.00 +/- 1.0
+PASS  fresh rest= lines after the scroll (T11-28)                 contains [[quick] satellite 0 rest=]
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- the folder-name strip (band variant): the burst on a member closes, no name box ---
+PASS  restore baseline_layout-band.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-band.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  burst on the member                                         = yes
+PASS  no quick_burst                                              = no
+PASS  no folder_name_box                                          = no
+PASS  ring: tap elsewhere                                         contains [[quick] burst closed: tap elsewhere]
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- press feedback (T11-7): on this build a pressed satellite looks exactly as at rest, under every press style ---
+      scroll_to_node press_tilt: 1 swipe(s), found=yes
+PASS  press_tilt: the held satellite equals its rest pixels ± 1 (no Q6 style)  = EQUAL
+PASS  press_tilt: sliding off ran nothing, the burst stays        = yes
+      scroll_to_node press_p4: 2 swipe(s), found=yes
+PASS  press_p4: the held satellite equals its rest pixels ± 1 (no Q6 style)  = EQUAL
+PASS  press_p4: sliding off ran nothing, the burst stays          = yes
+      scroll_to_node press_none: 1 swipe(s), found=yes
+------------------------------------------------------------------------------
+E5: 70 passed, 0 failed

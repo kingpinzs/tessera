@@ -13,6 +13,7 @@ import app.tileshell.diag.Diagnostics
 import app.tileshell.tiles.LayoutStore
 import app.tileshell.tiles.TileKey
 import app.tileshell.tiles.TileSize
+import app.tileshell.tiles.engine.TileRouting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -68,6 +69,8 @@ object SecondaryTiles {
     sealed interface RequestResult {
         data class Queued(val waiting: Int) : RequestResult
         data object Full : RequestResult
+        /** The record failed the provider's own checks (tile id, name, arguments, size) — nothing was queued. */
+        data class Invalid(val reason: String, val detail: String) : RequestResult
     }
 
     private val queue = SecondaryPinQueue<PendingRequest>({ it.key.id })
@@ -125,13 +128,30 @@ object SecondaryTiles {
     // ---------- the API side ----------
 
     /**
-     * Takes a `secondary.requestCreate` (the provider has already validated it and copied the logo). The request is
-     * held until Start is next shown — it is never drawn over the app that asked, and never dropped.
+     * Takes a `secondary.requestCreate` (the provider has validated it and copied the logo). The request is held
+     * until Start is next shown — it is never drawn over the app that asked, and never dropped.
+     *
+     * The provider's checks — the tile-id pattern, the name, the arguments, the size ([SecondaryTileRules]) — are
+     * applied HERE as well, because the shell's own apps reach this seam in-process and skip [LiveTileProvider]
+     * (phase 15 T15-40: a pinned timer or stopwatch). For a request that came through the provider they run a
+     * second time on fields that already passed, which changes nothing.
      */
     @Synchronized
     fun request(context: Context, record: LiveTileStore.SecondaryRecord): RequestResult {
         val app = context.applicationContext ?: context
         appContext = app
+        val sizeName = when (record.size) {
+            TileSize.SMALL -> LiveTileProtocol.SIZE_SMALL
+            TileSize.MEDIUM -> LiveTileProtocol.SIZE_MEDIUM
+            TileSize.WIDE -> LiveTileProtocol.SIZE_WIDE
+        }
+        when (val v = SecondaryTileRules.validate(record.tileId, record.displayName, record.arguments, null, sizeName, record.showName)) {
+            is SecondaryFieldsResult.Invalid -> {
+                Diagnostics.add("livetile", "pin request ${record.owner}/${record.tileId} refused in-process: ${v.reason} ${v.detail}")
+                return RequestResult.Invalid(v.reason, v.detail)
+            }
+            is SecondaryFieldsResult.Ok -> Unit
+        }
         val pending = PendingRequest(
             owner = record.owner,
             ownerLabel = appLabel(app, record.owner),
@@ -310,6 +330,11 @@ object SecondaryTiles {
      * (the `arguments` of the notifications on the tile right now — Windows' chaseable tiles). The API never accepts
      * an intent from an app, so this is built here from the resolved launcher component and nothing else.
      *
+     * The shell's own package holds several launcher activities (Music, Alarms & Clock, …), so for a tile the shell
+     * itself owns the component comes from the tile id ([TileRouting.shellSecondaryActivity]: `timer.<id>` and
+     * `stopwatch` open Alarms & Clock, which reads `EXTRA_LAUNCH_TILE_ID`) instead of whichever in-APK app sorts
+     * first (phase 15 T15-40, an ADD to phases 01 / 02's part).
+     *
      * Returns false when the tile or the owner's launcher activity is gone; the caller logs and does nothing.
      */
     fun launch(context: Context, owner: String, tileId: String, sourceBounds: Rect? = null, options: Bundle? = null): Boolean {
@@ -317,7 +342,8 @@ object SecondaryTiles {
             Diagnostics.add("launch", "secondary tile $owner/$tileId is not pinned")
             return false
         }
-        val component: ComponentName = AppCatalog.get(context).firstForPackage(owner)?.component ?: run {
+        val shellComponent = if (owner == context.packageName) TileRouting.shellSecondaryActivity(tileId)?.let { ComponentName(owner, it) } else null
+        val component: ComponentName = shellComponent ?: AppCatalog.get(context).firstForPackage(owner)?.component ?: run {
             Diagnostics.add("launch", "secondary tile $owner/$tileId: the owner has no launcher activity")
             return false
         }

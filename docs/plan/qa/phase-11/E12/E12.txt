@@ -1,0 +1,24 @@
+==============================================================================
+ROW E12 — gesture navigation: the bottom-row line clears the gesture area; a satellite runs
+at            2026-09-24T12:55:46-06:00
+driver        e12.sh blob 327be66bd9df7ff9a51b402c71573916a90984a6
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     a982b1894cd5600b 335517953 bytes
+apk installed 114511e7de8bb2e0
+apk match     yes (114511e7de8bb2e0)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      overlay: [x] com.android.internal.systemui.navbar.gestural
+PASS  restore baseline_layout-bottomrow.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-bottomrow.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      gesture area top: 2250
+PASS  the gesture area was read from dumpsys window               != 
+PASS  the line above the row                                      = line_above
+PASS  every satellite's bottom above the gesture area (1922 < 2250)  = ok
+PASS  satellite 1 ran qa_two                                      = qa_two
+      overlay restored: [ ] com.android.internal.systemui.navbar.gestural
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+------------------------------------------------------------------------------
+E12: 8 passed, 0 failed

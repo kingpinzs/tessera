@@ -43,6 +43,11 @@ sealed interface Request {
     data object Weather : Action
     /** Place source C: "this is home" saves the spot the phone is standing on. */
     data class SavePlaceHere(val name: String) : Action
+    /**
+     * Phase 15 (interview Q5 A, P6): arithmetic or a unit conversion, answered offline through the Calculator's own
+     * engine — never left for a model to work out.
+     */
+    data class Arithmetic(val expr: CalcRequest) : Action
 
     // ---- confirmation answers (R6 §3.4.1 / §3.4.2) ----
     /** "send it", "yes", or the card's confirm button. */

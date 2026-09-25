@@ -16,6 +16,7 @@ import app.tileshell.tiles.Sized
 import app.tileshell.tiles.TileKey
 import app.tileshell.tiles.TileSize
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -23,6 +24,8 @@ import kotlinx.coroutines.withTimeoutOrNull
 private sealed interface Hit {
     data class Tile(val key: TileKey, val grabFrac: Offset, val inRow: Boolean) : Hit
     data class DiscHit(val kind: Disc) : Hit
+    /** A satellite of the open burst, its label included (phase 11, T11-26). Tested before the discs. */
+    data class Satellite(val index: Int) : Hit
     /** The strip at the top of an expanded band: the "Name folder" placeholder, or the folder's name. */
     data class FolderName(val folderId: String) : Hit
     data object Empty : Hit
@@ -62,6 +65,8 @@ fun Modifier.startEditGestures(
     scroll: ScrollState,
     scope: CoroutineScope,
     pitchScaleState: State<Float>,
+    /** Phase 11: starts reading a tile's shortcuts off the main thread (T11-32). */
+    prefetch: (TileKey) -> Deferred<QuickLoad>,
 ): Modifier = this.pointerInput(Unit) {
     // Keyed on Unit on purpose: entering edit mode, the contraction and every reflow change this state, and a
     // pointerInput keyed on any of them would cancel the very gesture that caused the change mid-drag.
@@ -73,20 +78,47 @@ fun Modifier.startEditGestures(
         val hit = hitTest(edit, geo, coords, down.position, pitchScale)
         if (!edit.active) {
             if (hit !is Hit.Tile) return@awaitEachGesture
+            // A DOWN the tile's own handler already took — a press on a Music tile's transport control
+            // (TileView / TileControls) — is the control's, never a hold: before phase 11 a still finger on
+            // pause entered edit mode at 783 ms and the control never fired (T11-38, a phase 02 defect fixed here).
+            if (down.isConsumed) return@awaitEachGesture
+            // The shortcuts are read from the first touch, off the main thread, so the hold's frame carries none
+            // of that work (T11-32); a press that ends before the hold throws the answer away unread.
+            val load = prefetch(hit.key)
             // The hold race: a move past the touch slop, a consumption (the scroll or the pager taking the
             // gesture) or a release before 783 ms all mean this was not a hold.
             val broke = withTimeoutOrNull(Edit.HOLD_MS) { waitForMoveOrUp(down, viewConfiguration.touchSlop) }
-            if (broke != null) return@awaitEachGesture
+            if (broke != null) {
+                load.cancel()
+                return@awaitEachGesture
+            }
             Diagnostics.add("edit", "hold ${Edit.HOLD_MS}ms on ${hit.key.id}: edit mode on")
             edit.enter(hit.key)
+            // Phase 11: the burst opens around the held tile in the same moment (R10-Q3); StartPage draws it as
+            // soon as the answer is in hand.
+            edit.quick.pending = PendingBurst(hit.key, load)
             // The discs appear now and ride the entry contraction (R6 §1.2.7). The same gesture only becomes a
-            // drag if the finger moves; lifting it leaves the tile held with its two discs.
+            // drag if the finger moves; lifting it leaves the tile held with its two discs (and the burst).
             if (waitForMoveOrUp(down, viewConfiguration.touchSlop)) {
+                edit.quick.close(CloseReason.DRAG)
                 edit.drag = Drag(hit.key, down.position, hit.grabFrac, hit.inRow)
                 dragLoop(edit, geoState, store, scroll, down, pitchScaleState)
             }
         } else {
+            // While a burst is open, a tap anywhere but a satellite or a disc only closes it (Decisions "Taps and
+            // events"): edit mode stays, the selection stays, and the NEXT tap does what R6 §1.5.1 says.
+            val burstOpen = edit.quick.active
             when (hit) {
+                is Hit.Satellite -> {
+                    // Like a disc: acts on the release, and only if the finger lifted on the same satellite; one that
+                    // slides off runs nothing and the burst stays.
+                    val up = waitForUpConsuming(down)
+                    val landed = up?.let { edit.quick.satelliteAt(it) }
+                    val open = edit.quick.burst
+                    if (landed == hit.index && open != null) {
+                        edit.quick.onSatelliteTap(open, hit.index, open.restAt(hit.index, edit.quick.heldBounds ?: open.restTile).square)
+                    }
+                }
                 is Hit.DiscHit -> {
                     val selected = edit.selected
                     val up = waitForUpConsuming(down)
@@ -96,11 +128,14 @@ fun Modifier.startEditGestures(
                 }
                 is Hit.Tile -> when (val press = awaitPress(down, viewConfiguration.touchSlop)) {
                     Press.Moved -> {
+                        if (burstOpen) edit.quick.close(CloseReason.DRAG)
                         edit.selected = hit.key
                         edit.drag = Drag(hit.key, down.position, hit.grabFrac, hit.inRow)
                         dragLoop(edit, geoState, store, scroll, down, pitchScaleState)
                     }
-                    is Press.Tap -> if (hit.key == edit.selected) {
+                    is Press.Tap -> if (burstOpen) {
+                        edit.quick.close(CloseReason.TAP_ELSEWHERE)
+                    } else if (hit.key == edit.selected) {
                         Diagnostics.add("edit", "tap on the held tile ${hit.key.id}: exit, touch-up uptime=${press.uptimeMs}")
                         edit.requestExit(press.uptimeMs)
                     } else {
@@ -112,14 +147,19 @@ fun Modifier.startEditGestures(
                 is Hit.FolderName -> {
                     // A tap, and Microsoft's documented tap-and-hold, both open the name box (R6 §1.7.2-§1.7.3).
                     val moved = waitForMoveOrUp(down, viewConfiguration.touchSlop)
-                    if (!moved) {
+                    if (!moved && burstOpen) {
+                        edit.quick.close(CloseReason.TAP_ELSEWHERE)
+                    } else if (!moved) {
                         Diagnostics.add("edit", "folder ${hit.folderId}: name box opened")
                         edit.naming = true
                     }
                 }
                 Hit.Empty -> when (val press = awaitPress(down, viewConfiguration.touchSlop)) {
+                    // A press on empty space that moves scrolls Start; an open burst rides the tile.
                     Press.Moved -> scrollLoop(down, scroll, scope)
-                    is Press.Tap -> {
+                    is Press.Tap -> if (burstOpen) {
+                        edit.quick.close(CloseReason.TAP_ELSEWHERE)
+                    } else {
                         Diagnostics.add("edit", "tap on empty space: exit, touch-up uptime=${press.uptimeMs}")
                         edit.requestExit(press.uptimeMs)
                     }
@@ -271,6 +311,8 @@ private fun commitDrop(edit: StartEditState, geo: StartGeometry, store: LayoutSt
 }
 
 private fun onDisc(kind: Disc, selected: TileKey, edit: StartEditState, store: LayoutStore) {
+    // Jeremy's Q2 A: a disc is ON the held tile, so it is not "elsewhere" — it acts at once, and the burst closes.
+    edit.quick.close(if (kind == Disc.UNPIN) CloseReason.UNPIN else CloseReason.RESIZE)
     when (kind) {
         Disc.UNPIN -> {
             // R6 §1.2.8 approximation (H3): the tile goes at once, the tiles after it fill the gap, and Start
@@ -298,6 +340,11 @@ private fun hitTest(edit: StartEditState, geo: StartGeometry, coords: Coords, sc
     val discPx = Edit.px(Edit.DISC_EPX, geo.grid.widthPx) * counter
     val selected = edit.selected
     val content = coords.toContent(screen)
+    // Phase 11: the open burst's satellites sit above everything, so they are tested first (Decisions "Where
+    // the burst lives"). The satellites and the pointer are both in the page's own coordinates.
+    if (edit.active && edit.drag == null) {
+        edit.quick.satelliteAt(screen)?.let { return Hit.Satellite(it) }
+    }
     if (edit.active && selected != null && edit.drag == null) {
         val p = geo.placements.firstOrNull { it.key == selected }
         if (p != null) {

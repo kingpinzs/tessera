@@ -1,0 +1,70 @@
+==============================================================================
+ROW E29 — Date calculation: every oracle date line through the pickers; ring lines; zone switch
+at            2026-09-23T23:57:02-06:00
+driver        e29.sh blob a52fa38dbd904f69e630586370efa9542027dc6d
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     594be092df44e7da 337842979 bytes
+apk installed 65d494998eca0f14
+apk match     yes (65d494998eca0f14)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      time zone before the row: America/Denver
+PASS  date driver ran to the end                                  = 0
+PASS  calc_mode:date is the page showing                          = yes
+PASS  date-001 [difference 2024-02-28 2024-03-01] (fields: Wednesday, February 28, 2024 / Friday, March 1, 2024)  = 2 days
+PASS  date-001 ring: [calc] date difference 2024-02-28 2024-03-01 -> 2 days  contains [[calc] date difference 2024-02-28 2024-03-01 -> 2 days]
+PASS  date-002 [difference 2023-02-28 2023-03-01] (fields: Tuesday, February 28, 2023 / Wednesday, March 1, 2023)  = 1 day
+PASS  date-002 ring: [calc] date difference 2023-02-28 2023-03-01 -> 1 day  contains [[calc] date difference 2023-02-28 2023-03-01 -> 1 day]
+PASS  date-003 [difference 2024-01-15 2024-03-15] (fields: Monday, January 15, 2024 / Friday, March 15, 2024)  = 2 months | 60 days
+PASS  date-003 ring: [calc] date difference 2024-01-15 2024-03-15 -> 2 months | 60 days  contains [[calc] date difference 2024-01-15 2024-03-15 -> 2 months | 60 days]
+PASS  date-004 [difference 2024-01-31 2024-02-29] (fields: Wednesday, January 31, 2024 / Thursday, February 29, 2024)  = 1 month | 29 days
+PASS  date-004 ring: [calc] date difference 2024-01-31 2024-02-29 -> 1 month | 29 days  contains [[calc] date difference 2024-01-31 2024-02-29 -> 1 month | 29 days]
+PASS  date-005 [difference 2008-02-29 2008-03-31] (fields: Friday, February 29, 2008 / Monday, March 31, 2008)  = 1 month, 2 days | 31 days
+PASS  date-005 ring: [calc] date difference 2008-02-29 2008-03-31 -> 1 month, 2 days | 31 days  contains [[calc] date difference 2008-02-29 2008-03-31 -> 1 month, 2 days | 31 days]
+PASS  date-006 [difference 2023-12-25 2024-01-08] (fields: Monday, December 25, 2023 / Monday, January 8, 2024)  = 2 weeks | 14 days
+PASS  date-006 ring: [calc] date difference 2023-12-25 2024-01-08 -> 2 weeks | 14 days  contains [[calc] date difference 2023-12-25 2024-01-08 -> 2 weeks | 14 days]
+PASS  date-007 [difference 2023-12-31 2024-01-01] (fields: Sunday, December 31, 2023 / Monday, January 1, 2024)  = 1 day
+PASS  date-007 ring: [calc] date difference 2023-12-31 2024-01-01 -> 1 day  contains [[calc] date difference 2023-12-31 2024-01-01 -> 1 day]
+PASS  date-008 [difference 2023-06-15 2024-06-15] (fields: Thursday, June 15, 2023 / Saturday, June 15, 2024)  = 1 year | 366 days
+PASS  date-008 ring: [calc] date difference 2023-06-15 2024-06-15 -> 1 year | 366 days  contains [[calc] date difference 2023-06-15 2024-06-15 -> 1 year | 366 days]
+PASS  date-009 [difference 2020-02-29 2021-02-28] (fields: Saturday, February 29, 2020 / Sunday, February 28, 2021)  = 1 year | 365 days
+PASS  date-009 ring: [calc] date difference 2020-02-29 2021-02-28 -> 1 year | 365 days  contains [[calc] date difference 2020-02-29 2021-02-28 -> 1 year | 365 days]
+PASS  date-010 [difference 2024-05-05 2024-05-05] (fields: Sunday, May 5, 2024 / Sunday, May 5, 2024)  = Same dates
+PASS  date-010 ring: [calc] date difference 2024-05-05 2024-05-05 -> Same dates  contains [[calc] date difference 2024-05-05 2024-05-05 -> Same dates]
+PASS  date-011 [difference 2008-03-10 2007-05-10] (fields: Monday, March 10, 2008 / Thursday, May 10, 2007)  = 10 months | 305 days
+PASS  date-011 ring: [calc] date difference 2008-03-10 2007-05-10 -> 10 months | 305 days  contains [[calc] date difference 2008-03-10 2007-05-10 -> 10 months | 305 days]
+PASS  date-012 [difference 2019-01-01 2024-09-23] (fields: Tuesday, January 1, 2019 / Monday, September 23, 2024)  = 5 years, 8 months, 3 weeks, 1 day | 2092 days
+PASS  date-012 ring: [calc] date difference 2019-01-01 2024-09-23 -> 5 years, 8 months, 3 weeks, 1 day | 2092 days  contains [[calc] date difference 2019-01-01 2024-09-23 -> 5 years, 8 months, 3 weeks, 1 day | 2092 days]
+PASS  date-013 [add 2024-01-31 years=0 months=1 days=0] (fields: Wednesday, January 31, 2024 / 0 years, 1 month, 0 days)  = Thursday, February 29, 2024
+PASS  date-013 ring: [calc] date add 2024-01-31 years=0 months=1 days=0 -> Thursday, February 29, 2024  contains [[calc] date add 2024-01-31 years=0 months=1 days=0 -> Thursday, February 29, 2024]
+PASS  date-014 [add 2023-01-31 years=0 months=1 days=0] (fields: Tuesday, January 31, 2023 / 0 years, 1 month, 0 days)  = Tuesday, February 28, 2023
+PASS  date-014 ring: [calc] date add 2023-01-31 years=0 months=1 days=0 -> Tuesday, February 28, 2023  contains [[calc] date add 2023-01-31 years=0 months=1 days=0 -> Tuesday, February 28, 2023]
+PASS  date-015 [add 2024-02-29 years=1 months=0 days=0] (fields: Thursday, February 29, 2024 / 1 year, 0 months, 0 days)  = Friday, February 28, 2025
+PASS  date-015 ring: [calc] date add 2024-02-29 years=1 months=0 days=0 -> Friday, February 28, 2025  contains [[calc] date add 2024-02-29 years=1 months=0 days=0 -> Friday, February 28, 2025]
+PASS  date-016 [add 2024-12-25 years=0 months=0 days=14] (fields: Wednesday, December 25, 2024 / 0 years, 0 months, 14 days)  = Wednesday, January 8, 2025
+PASS  date-016 ring: [calc] date add 2024-12-25 years=0 months=0 days=14 -> Wednesday, January 8, 2025  contains [[calc] date add 2024-12-25 years=0 months=0 days=14 -> Wednesday, January 8, 2025]
+PASS  date-017 [add 2024-01-31 years=1 months=1 days=1] (fields: Wednesday, January 31, 2024 / 1 year, 1 month, 1 day)  = Saturday, March 1, 2025
+PASS  date-017 ring: [calc] date add 2024-01-31 years=1 months=1 days=1 -> Saturday, March 1, 2025  contains [[calc] date add 2024-01-31 years=1 months=1 days=1 -> Saturday, March 1, 2025]
+PASS  date-018 [add 2023-12-31 years=0 months=0 days=1] (fields: Sunday, December 31, 2023 / 0 years, 0 months, 1 day)  = Monday, January 1, 2024
+PASS  date-018 ring: [calc] date add 2023-12-31 years=0 months=0 days=1 -> Monday, January 1, 2024  contains [[calc] date add 2023-12-31 years=0 months=0 days=1 -> Monday, January 1, 2024]
+PASS  date-019 [subtract 2024-03-31 years=0 months=1 days=0] (fields: Sunday, March 31, 2024 / 0 years, 1 month, 0 days)  = Thursday, February 29, 2024
+PASS  date-019 ring: [calc] date subtract 2024-03-31 years=0 months=1 days=0 -> Thursday, February 29, 2024  contains [[calc] date subtract 2024-03-31 years=0 months=1 days=0 -> Thursday, February 29, 2024]
+PASS  date-020 [subtract 2024-03-10 years=0 months=1 days=10] (fields: Sunday, March 10, 2024 / 0 years, 1 month, 10 days)  = Monday, January 29, 2024
+PASS  date-020 ring: [calc] date subtract 2024-03-10 years=0 months=1 days=10 -> Monday, January 29, 2024  contains [[calc] date subtract 2024-03-10 years=0 months=1 days=10 -> Monday, January 29, 2024]
+PASS  date-021 [subtract 2025-03-01 years=1 months=1 days=1] (fields: Saturday, March 1, 2025 / 1 year, 1 month, 1 day)  = Sunday, January 28, 2024
+PASS  date-021 ring: [calc] date subtract 2025-03-01 years=1 months=1 days=1 -> Sunday, January 28, 2024  contains [[calc] date subtract 2025-03-01 years=1 months=1 days=1 -> Sunday, January 28, 2024]
+PASS  date-022 [subtract 2024-01-01 years=0 months=0 days=14] (fields: Monday, January 1, 2024 / 0 years, 0 months, 14 days)  = Monday, December 18, 2023
+PASS  date-022 ring: [calc] date subtract 2024-01-01 years=0 months=0 days=14 -> Monday, December 18, 2023  contains [[calc] date subtract 2024-01-01 years=0 months=0 days=14 -> Monday, December 18, 2023]
+PASS  every date oracle line was driven                           = 22
+PASS  at least 10 date lines (the row's floor)                    = yes
+      difference before the zone switch: Monday, January 1, 2024 -> Monday, September 23, 2024 = 8 months, 3 weeks, 1 day | 266 days
+PASS  a difference is showing before the zone switch              != 
+PASS  the device's zone is Asia/Tokyo                             = Asia/Tokyo
+PASS  From is unchanged under Asia/Tokyo                          = Monday, January 1, 2024
+PASS  To is unchanged under Asia/Tokyo                            = Monday, September 23, 2024
+PASS  the difference is the same under Asia/Tokyo                 = 8 months, 3 weeks, 1 day | 266 days
+PASS  the zone is restored (RV12)                                 = America/Denver
+RECORD  picker drag (3 rows) on the day column                      day column: 1 -> 2 after a 3-row upward drag (1 rows moved)
+------------------------------------------------------------------------------
+E29: 54 passed, 0 failed, 1 recorded

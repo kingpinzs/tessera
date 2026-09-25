@@ -1,0 +1,38 @@
+==============================================================================
+ROW E6 — motion on the shell's clock: open peak 107±17 ms, overshoot 6.8±2 %, settle ≤ 267; close alpha0 36±17
+at            2026-09-24T08:04:12-06:00
+driver        e6.sh blob d6769100afb7f3c06bf1481c805083f078456b6c
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     b4c1ca12e166b21d 336439365 bytes
+apk installed 24a6fcef79bb96df
+apk match     yes (24a6fcef79bb96df)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- cold (recorded, not asserted): the first hold after the shell started ---
+      cold: [quick] motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=74953205 peak=100 overshoot=6.5 settle=266 frames=11 maxGapMs=50.0
+--- warm: the measured open, recorded; retaken (up to 5) until the recording's spacing passes phase 05's rule ---
+      attempt 1: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=74959305 peak=100 overshoot=6.5 settle=266 frames=17 maxGapMs=33.3 | recording: frames 72 accent 0 119 212 entry_ms 1802.2 sat_ms 1802.2 sat_minus_entry_frames 0 max_gap_ms 33.8 
+      attempt 2:  | recording: 
+      attempt 3:  | recording: 
+      attempt 4:  | recording: 
+      attempt 5:  | recording: 
+      accepted attempt 5
+      open line: 
+FAIL  one open line covers all four satellites (one t0)           expected [1] got [0]
+FAIL  open peak 107 ± 17 ms                                      could not be measured (actual=[])
+FAIL  open overshoot 6.8 ± 2 %                                   could not be measured (actual=[])
+FAIL  open settle ≤ 250 + 17 ms (T11-29)                        could not be measured (actual=[])
+FAIL  open maxGapMs ≤ 33.4 (C-31)                               could not be measured (actual=[])
+--- the close: tap elsewhere ---
+      close line: 
+FAIL  close alpha0 36 ± 17 ms (the halfway at 36.0 ms)           could not be measured (actual=[])
+FAIL  close settle = alpha0 ± 17 ms (gone at alpha 0)            could not be measured (actual=[])
+FAIL  close maxGapMs ≤ 33.4 (C-31)                              could not be measured (actual=[])
+--- corroboration: the accepted recording (frame spacing; first satellite pixels vs the entry's first changed frame) ---
+FAIL  recording: source frames ≤ 18.2 ms apart during the motion (phase 05's rule)  could not be measured (actual=[])
+FAIL  recording: first satellite pixels outside the tile vs the entry's first changed frame (frames)  could not be measured (actual=[])
+------------------------------------------------------------------------------
+E6: 2 passed, 10 failed

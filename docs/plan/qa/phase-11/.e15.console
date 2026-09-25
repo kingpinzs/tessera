@@ -1,0 +1,25 @@
+── E15 the shell's own tiles: Music's pivots, Start settings' pages; Weather and Tess none
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 0.3 MB/s (1390 bytes in 0.005s)
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- Music ---
+PASS  Music's labels (ranks 0-3)                                  = Songs,Albums,Artists,Playlists,
+PASS  Music's line (T11-12)                                       contains [[quick] shortcuts for app.tileshell/.music.MusicActivity/0: 4 (4 shown: songs,albums,artists,playlists)]
+PASS  no line naming Start settings                               does not contain [app.tileshell/.settings.SettingsActivity]
+PASS  MusicActivity resumed                                       contains [app.tileshell/.music.MusicActivity]
+PASS  the albums pivot is the selected one                        = selected="true" selected="false" selected="false" selected="false" 
+--- Start settings ---
+PASS  Start settings' labels                                      = Start + theme,Tile apps,Setup,Diagnostics,
+PASS  Start settings' line (T11-12)                               contains [[quick] shortcuts for app.tileshell/.settings.SettingsActivity/0: 4 (4 shown: start_theme,tile_apps,checklist,diagnostics)]
+PASS  no line naming Music                                        does not contain [app.tileshell/.music.MusicActivity]
+PASS  SettingsActivity resumed                                    contains [app.tileshell/.settings.SettingsActivity]
+PASS  the page header reads DIAGNOSTICS (T11-37)                  = DIAGNOSTICS
+PASS  the hub's own Diagnostics row is absent (the extra was honoured)  = no
+--- Weather and Tess: none ---
+PASS  weather: edit mode on                                       = yes
+PASS  weather: no quick_burst                                     = no
+PASS  weather: no shortcuts                                       contains [[quick] no burst on shell:weather: no shortcuts]
+PASS  cortana: edit mode on                                       = yes
+PASS  cortana: no quick_burst                                     = no
+PASS  cortana: no shortcuts                                       contains [[quick] no burst on shell:cortana: no shortcuts]
+   E15: 19 passed, 0 failed

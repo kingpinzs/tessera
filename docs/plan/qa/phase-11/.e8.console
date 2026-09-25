@@ -1,0 +1,38 @@
+── E8 no burst when not HOME; disabled / removed / unstartable shortcuts
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 0.3 MB/s (1390 bytes in 0.005s)
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- (a) the shell is not a shortcut host: edit mode, no burst ---
+PASS  (a) edit mode on                                            = yes
+PASS  (a) no quick_burst                                          = no
+PASS  (a) reason                                                  contains [[quick] no burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: not the shortcut host]
+PASS  (a) restored: the shell is HOME again                       contains [app.tileshell]
+PASS  (a) restored: the shell is the assistant again              contains [app.tileshell]
+--- (b) disabled: Android deletes an unpinned dynamic shortcut, so the hold finds none ---
+PASS  (b) positive control: after reset tileclient-b's section lists qa_dyn  contains [ShortcutInfo {id=qa_dyn]
+PASS  (b) no quick_burst                                          = no
+PASS  (b) the query found none                                    contains [[quick] shortcuts for app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity/0: 0 (0 shown)]
+PASS  (b) reason                                                  contains [[quick] no burst on app:app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity:0: no shortcuts]
+PASS  (b) tileclient-b's section lists no shortcut after the disable  = 0
+--- (b) disable while a burst is open (no window comes to front): shortcuts changed ---
+PASS  (b) burst open on tileclient-b                              = yes
+PASS  (b) StartActivity still resumed                             contains [app.tileshell/.StartActivity]
+PASS  (b) no quick_burst                                          = no
+PASS  (b) edit mode stays                                         = yes
+PASS  (b) ring: shortcuts changed                                 contains [[quick] burst closed: shortcuts changed]
+--- (c) uninstall tileclient-b with its burst open: the tile and the burst go (removed) ---
+PASS  (c) burst open                                              = yes
+PASS  (c) the tile is gone                                        = no
+PASS  (c) no quick_burst                                          = no
+PASS  (c) exactly one close line, removed                         = 1 [quick] burst closed: removed
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 0.3 MB/s (1390 bytes in 0.005s)
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- (d) a shortcut whose target cannot start: nothing launches, Start plays its entrance, no edit mode ---
+PASS  (d) two satellites                                          = yes
+PASS  (d) nothing else resumed                                    contains [app.tileshell/.StartActivity]
+PASS  (d) back on start_page                                      = yes
+PASS  (d) no edit mode                                            = no
+PASS  (d) startShortcut failed, ActivityNotFoundException         contains [[quick] tap satellite 1 app.tileshell.testclient.b/qa_dead: startShortcut failed android.content.ActivityNotFoundException]
+PASS  (d) Start played its entrance                               contains [[motion] start entrance]
+   E8: 29 passed, 0 failed

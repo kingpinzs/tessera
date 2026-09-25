@@ -182,9 +182,16 @@ object SpeechClient {
 
     fun preload() = call("preload") { it.preload() }
 
+    /**
+     * The name this process listens as ([MicHolders.forProcess]): the keyboard in `:ime`, Tess everywhere
+     * else. The speech process keeps it beside the hold, so a refusal of another owner names who has the
+     * microphone (phase 15, T15-28).
+     */
+    private val owner: String by lazy { MicHolders.forProcess(android.app.Application.getProcessName()) }
+
     /** @param hotwords one boosted phrase per line for the grammar pass; empty runs the open pass alone */
     /** This process's callback is its identity to the speech process: it owns the microphone while listening. */
-    fun listen(hotwords: String) = call("startListening") { it.startListening(callback, hotwords) }
+    fun listen(hotwords: String) = call("startListening") { it.startListening(callback, hotwords, owner) }
 
     fun stopListening() = call("stopListening") { it.stopListening(callback) }
 

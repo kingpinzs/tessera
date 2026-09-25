@@ -1,0 +1,28 @@
+── E9 work profile bursts as its own user; quiet work and locked private space give profile quiet
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 8.1 MB/s (1390 bytes in 0.000s)
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- a managed profile with tileclient-a in it ---
+PASS  the AVD created a managed profile                           != 
+PASS  four satellites on the work tile                            = yes yes yes yes
+PASS  shortcuts line names the work user (T11-12)                 contains [[quick] shortcuts for app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity/18: 5 (4 shown: qa_one,qa_two,qa_three,qa_four)]
+PASS  ShortcutActivity resumed as u18                             contains [u18 app.tileshell.testclient.a/app.tileshell.testclient.ShortcutActivity]
+PASS  shortcut_id = qa_one                                        = qa_one
+--- the work profile locked through the shell's own group action: profile quiet ---
+PASS  dumpsys user: the work profile is QUIET_MODE                contains [QUIET_MODE]
+PASS  the work tile is still on Start                             = yes
+PASS  quiet: edit mode on                                         = yes
+PASS  quiet: no quick_burst                                       = no
+PASS  quiet: reason                                               contains [[quick] no burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:18: profile quiet]
+PASS  unlocked: the burst is back                                 = yes
+--- a private space, locked: profile quiet ---
+PASS  the AVD created a private space                             != 
+PASS  dumpsys user: the private space is QUIET_MODE               contains [QUIET_MODE]
+PASS  private: no quick_burst                                     = no
+PASS  private: reason                                             contains [[quick] no burst on app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:19: profile quiet]
+--- restore: remove both profiles, the baseline back ---
+PASS  only the owner is left                                      = 1
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 9.1 MB/s (1390 bytes in 0.000s)
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+   E9: 20 passed, 0 failed

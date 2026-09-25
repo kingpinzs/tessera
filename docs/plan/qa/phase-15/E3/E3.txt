@@ -1,0 +1,62 @@
+==============================================================================
+ROW E3 — alarm armed through the editor; toggle off / on; a past time arms for tomorrow
+at            2026-09-24T16:13:32-06:00
+driver        e3.sh blob 68c5a9cb1017dda15a49dfb137467f8c1c51caf6
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     187619129c54956c 338459898 bytes
+apk installed 33cc71c192190cc9
+apk match     yes (33cc71c192190cc9)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+33m38s646ms ago; rejectTime=+15m38s629ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  the Alarm tab starts empty (alarm_empty)                    = No alarms
+PASS  Add opens the editor titled NEW ALARM                       = NEW ALARM
+PASS  a new alarm's spinner starts at 7                           = 7
+PASS  … :00                                                     = 00
+PASS  … AM                                                      = AM
+      target 2026-09-24 16:16:00 device-local 16:16 -> spinner 4 / 16 / PM
+      spin alarm_spinner:hour -> [4] after 1 swipe(s)
+      spin alarm_spinner:minute -> [16] after 6 swipe(s)
+      spin alarm_spinner:ampm -> [PM] after 1 swipe(s)
+PASS  the hour spinner reads the target hour                      = 4
+PASS  the minute spinner reads the target minute                  = 16
+PASS  the AM/PM spinner reads the target half                     = PM
+PASS  the caption counts down to the alarm (In N minutes)         contains [In ]
+PASS  Save re-arms: rearm (store change): 1 alarms, 0 timers, exact=true  contains [[alarms] rearm (store change): 1 alarms, 0 timers, exact=true]
+PASS  the store holds the new alarm                               != 
+PASS  the stored hour is the target's                             = 16
+PASS  the stored minute is the target's                           = 16
+PASS  the row shows the alarm's time                              = 4:16 PM
+PASS  the row's day line reads Today (armed for today)            = Today
+PASS  the row's state reads On                                    = On
+      dumpsys alarm clock entries: RTC_WAKEUP 1790288160000 2764136 2026-09-24 16:16:00.000
+PASS  dumpsys alarm: one RTC_WAKEUP alarm for app.tileshell at the target instant  = RTC_WAKEUP 1790288160000
+PASS  … armed with setAlarmClock (an Alarm clock trigger time)  contains [2026-09-24 16:16:00]
+PASS  Next alarm clock for user 0 is that instant                 = 1790288160000
+PASS  toggle off: the row reads Off                               = Off
+PASS  toggle off: no clock alarm pending in AlarmManager          = 0
+PASS  toggle off: no Next alarm clock for user 0                  = 
+PASS  toggle off: rearm (store change): 0 alarms                  contains [[alarms] rearm (store change): 0 alarms, 0 timers, exact=true]
+PASS  toggle on: the row reads On                                 = On
+PASS  toggle on: armed again at the same instant                  = RTC_WAKEUP 1790288160000
+PASS  toggle on: Next alarm clock is that instant again           = 1790288160000
+PASS  toggle on: rearm (store change): 1 alarms                   contains [[alarms] rearm (store change): 1 alarms, 0 timers, exact=true]
+      scroll_to_node alarm_row:ad63997ab: 0 swipe(s), found=yes
+PASS  restore 1: the first alarm is gone from the store           = 
+PASS  restore 1: nothing pending                                  = 0
+      past-today time 16:12; tomorrow's instant 1790374320000 (2026-09-25 16:12:00)
+PASS  precondition: the chosen time is later than now only tomorrow  = yes
+PASS  the past-today alarm was created (AlarmClock API)           != 
+PASS  its stored date is tomorrow                                 = 2026-09-25
+PASS  dumpsys alarm arms it for tomorrow at that time             = RTC_WAKEUP 1790374320000
+PASS  Next alarm clock for user 0 is tomorrow's instant           = 1790374320000
+PASS  the row's day line reads Tomorrow                           = Tomorrow
+      scroll_to_node alarm_row:a4c5af063: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E3: 39 passed, 0 failed, 2 recorded

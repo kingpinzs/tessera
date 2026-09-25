@@ -1,0 +1,168 @@
+==============================================================================
+ROW EDGE — the Edge Cases list: flip, fling, call, keyguard, listener restart, process death, second finger, show more tiles, folder dissolve, labels, theme, transparency, RV10
+at            2026-09-24T14:17:05-06:00
+driver        edge.sh blob 2ecbc33a8f7a6e455877344ebc899da4467f3efd
+harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
+apk built     736ce3543e0caf05 335518185 bytes
+apk installed 50129ec4bf4de7f8
+apk match     yes (50129ec4bf4de7f8)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- a hold during a live flip: the satellites stay still, the flip continues (T11-41) ---
+PASS  the fixture's tile flips on its own (the precondition)      contains [[tile_anim] tile=app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 kind=FLIP]
+PASS  the tile flipped under the open burst                       contains [[tile_anim] tile=app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0 kind=FLIP]
+PASS  the burst is still open after the flip                      = yes
+PASS  …and nothing closed it                                    does not contain [burst closed]
+PASS  the satellites stayed still (every square and label, before and after the flip)  = quick_sat:0 152 276 317 441
+quick_sat_label:0 145 228 323 276
+quick_sat:1 756 276 921 441
+quick_sat_label:1 749 228 927 276
+quick_sat:2 152 879 317 1044
+quick_sat_label:2 145 1044 323 1092
+quick_sat:3 756 879 921 1044
+quick_sat_label:3 749 1044 927 1092
+PASS  (there were satellites to compare)                          != 
+--- a hold while Start is flinging: the scroll consumes the press — no hold, no burst (phase 02's rule) ---
+PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+FAIL  the page moved (the fling ran)                              should not be [9 84 352 427]
+PASS  no hold                                                     does not contain [[edit] hold]
+PASS  no burst                                                    does not contain [[quick] burst on]
+PASS  no edit mode, no burst on the page                          = no no
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- a second finger while a burst is open: ignored (as phase 02 ignores it) ---
+FAIL  the first finger's hold opened the burst                    does not contain [burst on]: 
+FAIL  the burst is open while the first finger holds              expected [yes] got [no]
+FAIL  a second finger down and up elsewhere: the burst stays      expected [yes] got [no]
+FAIL  …and after the first finger lifts                         expected [yes] got [no]
+PASS  nothing closed it                                           does not contain [burst closed]
+--- the burst open at an incoming call ---
+      ringing: Start resumed?       topResumedActivity=ActivityRecord{82230694 u0 app.tileshell/.StartActivity t2868} · quick_burst on Start's dump: no
+      answered: top activity app.tileshell/.StartActivity
+FAIL  the call's window in front stops Start: the burst closes (stop)  does not contain [burst closed: stop]: 
+--- the burst open at the keyguard: screen off, wake, the keyguard, dismissed ---
+      keyguard showing:  mShowingDream=false mDreamingLockscreen=false
+PASS  the burst closed (stop)                                     contains [burst closed: stop]
+PASS  Start after the keyguard: no burst                          = no
+      edit mode after the keyguard (phase 02's): yes
+--- the burst open at a notification-listener restart ---
+PASS  Settings in front stopped Start: the burst closed (stop)    contains [burst closed: stop]
+PASS  the listener restarted (connected again)                    contains [[notif] listener connected]
+PASS  Start after the restart: no burst                           = no
+      a rebind with Start in front: listener connected 1; burst still open: yes; close lines: 0
+--- process death with a burst open: no state persists; Start restarts plain ---
+      pid 454 -> 1006
+PASS  a new shell process                                         != 454
+PASS  Start restarted plain: page, no burst, no edit mode         = yes no no
+--- Show more tiles toggled with a burst open: Start stops first (the burst closes, stop) ---
+      scroll_to_node theme_show_more_tiles: 1 swipe(s), found=yes
+      show more tiles at the start: checked="true"
+      scroll_to_node theme_show_more_tiles: 0 swipe(s), found=yes
+      show more tiles before: checked="true"; want off
+PASS  the burst closed when Start stopped (stop)                  contains [burst closed: stop]
+PASS  Start after the toggle: no burst                            = no
+      edit mode after the toggle (phase 02's): no
+      scroll_to_node theme_show_more_tiles: 0 swipe(s), found=yes
+      show more tiles before: checked="false"; want on
+--- unpin of the last tile in a two-tile folder, from its burst: the folder dissolves (phase 02 H19), the burst closes ---
+PASS  restore baseline_layout-folder2.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-folder2.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+      fresh_burst: no burst on tile:app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0
+FAIL  the fixture bursts inside the expanded band                 expected [yes] got [no]
+FAIL  the burst closed (unpin)                                    does not contain [burst closed: unpin]: 
+FAIL  the folder dissolved                                        expected [[]] got [['qa']]
+FAIL  its other tile is on Start                                  does not contain [slot:MAPS]: slot:PEOPLE slot:BROWSER slot:MAIL slot:PHOTOS app:app.tileshell.testclient.b/app.tileshell.testclient.VerbActivity:0 slot:CALENDAR shell:weather folder:qa slot:MUSIC shell:settings shell:cortana
+FAIL  the fixture is unpinned                                     should NOT contain [app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0]
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- a shortcut with a blank short label, and a very long one (tileclient-b's labels verb) ---
+      tileclient-b: ShortcutInfo {id= ShortcutInfo {id=albums ShortcutInfo {id=artists ShortcutInfo {id=camera ShortcutInfo {id=checklist ShortcutInfo {id=compose ShortcutInfo {id=content ShortcutInfo {id=diagnostics ShortcutInfo {id=gallery ShortcutInfo {id=manifest ShortcutInfo {id=my_places ShortcutInfo {id=navigate_to ShortcutInfo {id=new_conversation ShortcutInfo {id=playlists ShortcutInfo {id=qa_blank ShortcutInfo {id=qa_dyn ShortcutInfo {id=qa_five ShortcutInfo {id=qa_four ShortcutInfo {id=qa_long ShortcutInfo {id=qa_one ShortcutInfo {id=qa_three ShortcutInfo {id=qa_two ShortcutInfo {id=search ShortcutInfo {id=selfie ShortcutInfo {id=settings ShortcutInfo {id=shortcut ShortcutInfo {id=shortcut_new_checklist ShortcutInfo {id=shortcut_new_text_note ShortcutInfo {id=shortcut_shuffle ShortcutInfo {id=shuffle_all ShortcutInfo {id=songs ShortcutInfo {id=start_theme ShortcutInfo {id=tile_apps ShortcutInfo {id=video 
+      labels: [Dyn] [ ] [An unusually long shortcut label for the QA row]
+PASS  three satellites (Dyn, the blank one, the long one)         = yes yes yes no
+PASS  the blank label's line shows nothing (never the id)         = 
+PASS  …the id is never shown                                    does not contain [qa_blank]
+PASS  the long label keeps the label box's size (one line, clipped with an ellipsis)  = 178x48
+PASS  the blank-labelled satellite still runs                     contains [qa_blank]
+--- theme Light / Dark: the satellite fill is the accent (as on a tile); the label takes the theme's text colour ---
+      scroll_to_node theme_mode_light: 0 swipe(s), found=yes
+      light mode selected at the start: selected="false"
+      scroll_to_node theme_mode_light: 0 swipe(s), found=yes
+      light: fill=[0, 120, 215] tile=[0, 120, 215] label ink min=0 bg=122 -> FAIL
+FAIL  theme light: satellite fill = the tile's accent; label in the theme's text colour  fill=[0, 120, 215] tile=[0, 120, 215] label ink min=0 bg=122 -> FAIL
+      scroll_to_node theme_mode_dark: 0 swipe(s), found=yes
+      dark: fill=[0, 120, 215] tile=[0, 120, 215] label ink max=255 bg=51 -> PASS
+PASS  theme dark: satellite fill = the tile's accent; label in the theme's text colour  fill=[0, 120, 215] tile=[0, 120, 215] label ink max=255 bg=51 -> PASS
+      scroll_to_node theme_mode_dark: 0 swipe(s), found=yes
+--- the X5 transparency slider at 0 % and 100 %: the satellite fill follows the tile's ---
+      scroll_to_node theme_transparency: 10 swipe(s), found=no
+      transparency at the start: %
+      scroll_to_node theme_transparency: 10 swipe(s), found=no
+      transparency now: 
+      X5 0%: fill=[0, 120, 215] tile=[0, 120, 215] -> PASS
+PASS  X5 0%: the satellite fill matches the held tile's           fill=[0, 120, 215] tile=[0, 120, 215] -> PASS
+      scroll_to_node theme_transparency: 10 swipe(s), found=no
+      transparency now: 
+      X5 100%: fill=[0, 120, 215] tile=[0, 120, 215] -> PASS
+PASS  X5 100%: the satellite fill matches the held tile's         fill=[0, 120, 215] tile=[0, 120, 215] -> PASS
+      scroll_to_node theme_transparency: 10 swipe(s), found=no
+      transparency now: 
+--- RV10: wm size / wm density / font_scale leave the satellites' bounds in epx unchanged (phase 01 E3's method) ---
+      RV10 size720: PASS max |d| = 0.50 epx over 8 rects
+PASS  RV10 size720: satellites unchanged in epx                   PASS max |d| = 0.50 epx over 8 rects
+      RV10 d560: PASS max |d| = 0.00 epx over 8 rects
+PASS  RV10 d560: satellites unchanged in epx                      PASS max |d| = 0.00 epx over 8 rects
+      RV10 font13: PASS max |d| = 0.00 epx over 8 rects
+PASS  RV10 font13: satellites unchanged in epx                    PASS max |d| = 0.00 epx over 8 rects
+--- the index: every Edge Cases bullet and where it is proved ---
+
+## Edge Cases index (phase-11 doc :627-658) — bullet · case · where it is proved
+1 · a hold on a Music tile's transport control: no burst, no edit mode, the control fires · E10 control sub-step (Fossify's playing tile: [tile_control] PLAY_PAUSE (no launch), no [edit] hold, no burst, PAUSED; control dump: no quick_burst / edit_disc)
+1 · a hold on the tile's art: edit mode and Music's four (Q1 A) · E10 art sub-step (the Music tile showing its strip, the hold above it, on no control) · E15 (Music's pivots as satellites)
+1 · a hold during a live flip: the satellites stay still, the flip continues (T11-41) · EDGE "a hold during a live flip"
+1 · a hold while Start is flinging: no hold, no burst · EDGE "a hold while Start is flinging"
+1 · a press in edit mode has no hold timer (T11-23), taps / drags as re-cut · E5 "no hold timer in edit mode (T11-23)" · E5 "tap another tile" / "tap the held tile" · E2 (the 40-px glide drags and closes)
+2 · a shortcut disabled between open and tap · E8 "(b) disabled" · E8 "(b) disable while a burst is open: shortcuts changed"
+2 · a shortcut removed between open and tap · E8 "(b) disable while a burst is open" (Android deletes the unpinned disabled dynamic shortcut: shortcuts changed)
+2 · its app uninstalled between open and tap · E8 "(c) uninstall tileclient-b with its burst open: removed"
+2 · onShortcutsChanged while open: closes · E8 "(b) disable while a burst is open (no window comes to front): shortcuts changed"
+2 · a work-profile tile, profile quiet then unquieted: bursts again · E9 "the work profile locked … profile quiet" and its "unlocked: the burst is back"
+2 · a private-space tile while the space is locked: profile quiet · E9 "a private space, locked: profile quiet"
+3 · the burst open at screen-off: closes (stop) · E5 "screen off: Start stops, the burst closes (stop)"
+3 · the burst open at Home: closes · E5 "Home (the drawn Windows key …)"
+3 · the burst open at an incoming call: closes · EDGE "the burst open at an incoming call"
+3 · the burst open at the keyguard: closes · EDGE "the burst open at the keyguard"
+3 · the burst open at a notification-listener restart: closes · EDGE "the burst open at a notification-listener restart" (the user's path, Settings, stops Start: stop; a rebind with Start in front is recorded as seen)
+3 · process death with a burst open: no state persists, Start restarts plain · EDGE "process death with a burst open"
+4 · a second finger while a burst is open: ignored · EDGE "a second finger while a burst is open"
+4 · a tap on a satellite that slides off before release: nothing runs, the burst stays · E5 "press feedback (T11-7)": "sliding off ran nothing, the burst stays" under every press style
+4 · a tap on a satellite's label: counts as the satellite · E5 "a label counts as its satellite (T11-26)"
+5 · a folder tile: no burst · E3 "no burst: … folder:qa …"
+5 · a tile inside an expanded band: corner arrangement · E7 "band: the fixture inside folder:qa's expanded band"
+5 · the bottom-row tiles: line arrangement; a full row of six, each satellite row clamped inside the grid margins · E7 "line above: the fixture in the bottom tile row" · E12 · JVM QuickRulesTest aBottomRowTileAlwaysTakesTheLineAboveInsideTheMargins
+5 · the promoted tile: edit mode, the promotion suspended, the burst around its grid cell (J4, T11-2) · E16 (recent_app_row gone while held; the burst in the cell; still promoted after)
+5 · a WIDE tile in the 2-column grid's first row: a line; further down a clamped corner · E7 "the 2-column grid, the fixture WIDE in the first row" · JVM aFullWidthWideTileInTheFirstRowTakesALine, aFullWidthWideTileMidGridKeepsAClampedCorner
+5 · the grid's top-left tile: clamped · E7 "line below: the fixture at the grid's top-left (T11-35)"
+6 · Show more tiles toggled: Start stops first, the burst closes (stop) · EDGE "Show more tiles toggled with a burst open"
+6 · a resize with the burst open: the tile resizes, the burst closes (resize) · E5 "the resize disc: the tile resizes AND the burst closes"
+6 · unpin of the last tile in a two-tile folder with the burst open: the folder dissolves, the burst closes · EDGE "unpin of the last tile in a two-tile folder"
+7 · the shell not the HOME holder: no burst, reason logged · E8 "(a) the shell is not a shortcut host"
+7 · getShortcuts throwing: caught, query failed logged · JVM QuickRulesTest aThrowingQueryIsCaughtAndBecomesTheReason (E14 reads it from the unit results)
+7 · the held tile's cell wholly off the page: off screen · E16 "off screen"
+7 · an Unassigned slot tile: no app · E3 "no burst: … the Unassigned MAIL slot …"
+7 · a secondary tile: secondary tile · E3 "no burst: … a secondary tile"
+8 · more than four shortcuts with equal ranks: ties by id · JVM QuickRulesTest equalRanksBreakTiesById
+8 · shortcuts with no short label: the id is never shown, the label line is empty, the satellite runs · EDGE "a shortcut with a blank short label" (qa_blank, a whitespace label: an empty or absent one cannot be published — setShortLabel rejects it, the manifest parser drops the shortcut)
+8 · very long labels: ellipsised · EDGE "…and a very long one" (qa_long keeps the label box's one-line size; EDGE/labels.png shows the ellipsis — H9's approximations)
+8 · an icon that fails to load: fill, no glyph, still runs · E3 "a failed icon (T11-14 / T11-33)"
+8 · a shortcut whose target cannot start · E8 "(d) a shortcut whose target cannot start"
+9 · theme Light / Dark: fill = the accent as on a tile; label in the theme's text colour (T11-25) · EDGE "theme Light / Dark"
+9 · the X5 transparency slider at 0 % and 100 % · EDGE "the X5 transparency slider at 0 % and 100 %"
+10 · RV10: wm size / wm density / font_scale leave satellite bounds in epx unchanged · EDGE "RV10"
+(42 cases)
+      the index is appended to EDGE.txt from scripts/edge_index.tsv
+------------------------------------------------------------------------------
+EDGE: 40 passed, 12 failed

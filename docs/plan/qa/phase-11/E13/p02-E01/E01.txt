@@ -1,0 +1,32 @@
+# E1 2026-09-24T12:58:21-06:00
+build guard: built=114511e7de8bb2e08b13c908fd9a3386 installed=114511e7de8bb2e08b13c908fd9a3386
+driver: e1.sh blob ef27b48a3eaceb7326bed34eb74ebae6191324de
+order at rest: slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR slot:PHOTOS shell:weather slot:STORE slot:MAPS slot:MUSIC shell:settings
+--- 1. hold shell:settings past 783 ms, drag onto slot:PEOPLE, release past the dwell (a move, not a folder) ---
+order after the move: shell:settings slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR slot:PHOTOS shell:weather slot:STORE slot:MAPS slot:MUSIC
+PASS  the dragged tile took the first cell (= shell:settings)
+PASS  no tile gained or lost (= 10)
+PASS  no folder (the release was past the dwell) (no [folder:])
+--- 2. tapping a different tile moves the selection (H8) ---
+unpin disc on the held tile: 173 132 266 225
+tapping slot:BROWSER at 697 341
+unpin disc after the tap: 822 123 915 216
+PASS  the discs moved to the newly selected tile (no [173 132 266 225])
+PASS  edit mode is still on (found [edit_disc:unpin])
+--- 3. resize disc: the cycle in R6 §1.2.6 ---
+slot:PEOPLE starts at MEDIUM
+step 1: tapping the resize disc at 547 512, expecting MEDIUM -> SMALL
+PASS  resize step 1 (= SMALL)
+step 2: tapping the resize disc at 379 342, expecting SMALL -> WIDE
+PASS  resize step 2 (= WIDE)
+step 3: tapping the resize disc at 886 512, expecting WIDE -> MEDIUM
+PASS  resize step 3 (= MEDIUM)
+PASS  the cycle returned to its starting size (= MEDIUM)
+--- 4. unpin disc: the tile goes and the gap closes ---
+tapping the unpin disc at 547 169
+order after the unpin: shell:settings slot:BROWSER slot:MAIL slot:CALENDAR slot:PHOTOS shell:weather slot:STORE slot:MAPS slot:MUSIC
+PASS  the unpinned tile is out of the store (no [slot:PEOPLE])
+PASS  exactly one tile was removed (= 9)
+PASS  and off the screen (no [tile:slot:PEOPLE"])
+baseline layout restored
+---- 12 passed, 0 failed ----

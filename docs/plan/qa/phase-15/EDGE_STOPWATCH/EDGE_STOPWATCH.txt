@@ -1,0 +1,21 @@
+==============================================================================
+ROW EDGE_STOPWATCH — stopwatch: 1,000 laps; killed between laps
+at            2026-09-24T16:07:14-06:00
+driver        edge_stopwatch.sh blob 11dca21ca1f7deb413f6051f6a9251055b5518e3
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     187619129c54956c 338459898 bytes
+apk installed 2356b99f4933214b
+apk match     NO (device 2356b99f4933214b, built 33cc71c192190cc9)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  the running stopwatch shows the Flag button (stopwatch_lap in the dump)  != 
+FAIL  the first lap did not crash the app (E7/DEFECT.md: java.lang.IllegalStateException: lap row text must equal the shared line)  expected [0] got [1]
+      ROW STOPPED at the lap-row crash (E7/DEFECT.md): 1,000 laps and killed-between-laps not run in this pass
+      stopwatch.json removed and the process restarted: the baseline restore around the lap-row crash (E7/DEFECT.md)
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+EDGE_STOPWATCH: 5 passed, 1 failed, 0 recorded
