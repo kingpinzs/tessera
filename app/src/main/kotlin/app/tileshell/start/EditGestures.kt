@@ -110,8 +110,8 @@ fun Modifier.startEditGestures(
                 }
             }
         } else {
-            // While a burst is open, a tap anywhere but a satellite or a disc only closes it (Decisions "Taps and
-            // events"): edit mode stays, the selection stays, and the NEXT tap does what R6 §1.5.1 says.
+            // While a burst is open, a tap anywhere but a satellite or a disc closes it and leaves edit mode in one
+            // (Jeremy 2026-09-25, superseding "edit mode stays"); a satellite runs, a disc acts.
             val burstOpen = edit.quick.active
             when (hit) {
                 is Hit.Satellite -> {
@@ -144,7 +144,7 @@ fun Modifier.startEditGestures(
                         }
                     }
                     is Press.Tap -> if (burstOpen) {
-                        edit.quick.close(CloseReason.TAP_ELSEWHERE)
+                        tapElsewhere(edit, press.uptimeMs)
                     } else if (hit.key == edit.selected) {
                         Diagnostics.add("edit", "tap on the held tile ${hit.key.id}: exit, touch-up uptime=${press.uptimeMs}")
                         edit.requestExit(press.uptimeMs)
@@ -158,7 +158,7 @@ fun Modifier.startEditGestures(
                     // A tap, and Microsoft's documented tap-and-hold, both open the name box (R6 §1.7.2-§1.7.3).
                     val moved = waitForMoveOrUp(down, viewConfiguration.touchSlop)
                     if (!moved && burstOpen) {
-                        edit.quick.close(CloseReason.TAP_ELSEWHERE)
+                        tapElsewhere(edit, android.os.SystemClock.uptimeMillis())
                     } else if (!moved) {
                         Diagnostics.add("edit", "folder ${hit.folderId}: name box opened")
                         edit.naming = true
@@ -168,7 +168,7 @@ fun Modifier.startEditGestures(
                     // A press on empty space that moves scrolls Start; an open burst rides the tile.
                     Press.Moved -> scrollLoop(down, scroll, scope)
                     is Press.Tap -> if (burstOpen) {
-                        edit.quick.close(CloseReason.TAP_ELSEWHERE)
+                        tapElsewhere(edit, press.uptimeMs)
                     } else {
                         Diagnostics.add("edit", "tap on empty space: exit, touch-up uptime=${press.uptimeMs}")
                         edit.requestExit(press.uptimeMs)
@@ -178,6 +178,17 @@ fun Modifier.startEditGestures(
             }
         }
     }
+}
+
+/**
+ * With a burst open, one tap anywhere but a satellite or a disc closes the burst AND leaves edit mode (Jeremy
+ * 2026-09-25, "(a)": no second tap to close them; the discs stay on while the burst shows). The burst's close motion
+ * (alpha 0 by ~36 ms) plays inside phase 02's exit, which clears the burst only when it finishes.
+ */
+private fun tapElsewhere(edit: StartEditState, uptimeMs: Long) {
+    edit.quick.close(CloseReason.TAP_ELSEWHERE)
+    Diagnostics.add("edit", "tap elsewhere with a burst open: exit, touch-up uptime=$uptimeMs")
+    edit.requestExit(uptimeMs)
 }
 
 /** Follow the finger, keep the drop target current, and commit on release. */
