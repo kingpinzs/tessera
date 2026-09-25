@@ -200,7 +200,9 @@ assert_eq "READ_MEDIA_AUDIO revoked: the list shows its own take" yes "$(has_nod
 assert_eq "… and NOT other.m4a" no "$(has_node "$ROW_DIR/rec_list_hidden.xml" "rec_row:$OTHER")"
 assert_eq "… with the notice naming the Music grant (rec_list_notice)" yes "$(has_node "$ROW_DIR/rec_list_hidden.xml" rec_list_notice)"
 note "rec_list_notice text: $(node_text "$ROW_DIR/rec_list_hidden.xml" rec_list_notice)"
-assert_contains "the ring says other apps' recordings are hidden" "(other apps: hidden, READ_MEDIA_AUDIO denied)" "$(ring_since "$MARK" | grep -F '[recorder] list:')"
+# Kept as a slice now: the ring is bounded, and by row_end this line has scrolled out of it (E22 found it in no slice).
+ring_since "$MARK" > "$ROW_DIR/ring_media_denied_launcher.txt"
+assert_contains "the ring says other apps' recordings are hidden" "(other apps: hidden, READ_MEDIA_AUDIO denied)" "$(grep -F '[recorder] list:' "$ROW_DIR/ring_media_denied_launcher.txt")"
 adb shell pm grant app.tileshell android.permission.READ_MEDIA_AUDIO; sleep 2
 MARK="$(ring_mark)"
 rec_open list; sleep 1
