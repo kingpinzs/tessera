@@ -13,7 +13,7 @@ was re-run in appended sections); SUITE.txt is pass 7 (9805f5e), after round 2, 
 | Row | Driver | What it proves | Result: pass 7 on apk 50129ec4 (code 9f790b7, drivers 9805f5e; SUITE.txt: SUITE PASSED) |
 |---|---|---|---|
 | E1 | e1.sh | the burst at the 783-ms hold; labels One–Four; edit mode; both stay after UP | PASS 18/18 |
-| E2 | e2.sh | 740 ms taps / 830 ms bursts; a 4-px wobble keeps it; a 40-px glide drags and closes it | PASS 17/17 |
+| E2 | e2.sh | 740 ms taps / 830 ms bursts; a 4-px wobble keeps it; a 40-px glide drags and HIDES it, and after UP it is back (2026-09-25) | PASS 20/20 (re-run 2026-09-25 on the drag ruling) |
 | E3 | e3.sh | the four in corner order; tileclient-b's one; a failed icon (no glyph, still runs); Weather / folder / Unassigned / secondary give their reasons | PASS 30/30 |
 | E4 | e4.sh | each satellite launches its shortcut from the tile launch path (≥ 250 ms after the close); tile promoted on return | PASS 42/42 |
 | E5 | e5.sh | every tap and event while open (elsewhere, another tile, the held tile, label, Back, resize, unpin, Home, sleep, scroll, name strip, press styles, no hold in edit mode) | PASS 70/70 |
@@ -24,12 +24,13 @@ was re-run in appended sections); SUITE.txt is pass 7 (9805f5e), after round 2, 
 | E10 | e10.sh | on phase 01 E8's player (Fossify): a hold on a transport control fires it (no burst, no edit mode, the control dump clean); on the Music tile SHOWING its strip (the shell's player playing), a hold on the art above the strip, on no control, enters edit mode with Music's four | PASS 19/19 |
 | E11 | e11.sh | the app list's and Music's hold menus unchanged, no burst | PASS 7/7 |
 | E12 | e12.sh | gesture navigation: the row's line clears the gesture area; a satellite runs | PASS 8/8 |
-| E13 | e13.sh | phase 02 regress / E1 / E7 bracket+geometry / E8 on this build; hold+drag; 830 ms on Contacts; press styles; exports | PASS 45/45 (phase 02 E7's motion sub-rows excluded, T11-6) |
+| E13 | e13.sh | phase 02 regress / E1 / E7 bracket+geometry / E8 on this build; hold+drag; 830 ms on Contacts; press styles; exports | PASS 45/45 (phase 02 E7's motion sub-rows excluded, T11-6); its hold-and-drag sub-step re-run 6/6 on the drag ruling (E13-dragsmoke, 2026-09-25) |
 | E14 | e14.sh | every `[quick]` line, reason and close in this build's saved rings; `query failed` by its JVM test | PASS 28/28 |
 | E15 | e15.sh | Music's pivots and Start settings' pages as satellites, landing on the right pivot / page; Weather and Tess none | PASS 19/19 |
 | E16 | e16.sh | the promoted tile bursts in its grid cell (E1's held bounds, E7's offsets); a cell off the page → off screen | PASS 18/18 |
 | L11-1 | l11_1.sh | the fix's own row: TileSourcePrecedenceTest's own results (12, three cases by name); the API queue over a notification, and clearing it shows the notification (a positive control); Fossify (phase 01 E8's player, its face asserted) and the shell's player (session state asserted) keep the strip across notification updates, every publish after the face `-> shows music (playing)`, a pause drops it; (d) a player uninstalled WHILE PLAYING ends with nothing shown — 9f790b7's own null publish seen after the engine's forget; the R1-1 race window itself is not produced on demand (uninstall-sequence.txt) — and, in ONE shell process, its reinstall re-pinned from the app list inherits no face (F-2); (e) a secondary tile's API content survives a listener rescan (F-1); phase 01 E15 / E17 asserted; phase 02 E5 as a regression | PASS 70/70 |
 | EDGE | edge.sh | the doc's Edge Cases list as a list: each bullet no other row carried is a sub-step (a hold during a live flip, during a fling, a second finger, an incoming call, the keyguard, a listener restart, process death, Show more tiles, a two-tile folder dissolving, a blank and a long label, theme Light / Dark, X5 at 0 / 100 %, RV10 size / density / font scale); EDGE.txt's index maps all 42 cases (scripts/edge_index.tsv) | PASS 84/84 |
+| DRAG | drag.sh | Jeremy's 2026-09-25 drag ruling: the held tile dragged to a blank spot — no satellites during the drag, back around its new cell after the drop (with the discs; the open motion again); another tile's drag closes the burst | PASS 21/21 (2026-09-25, apk 749be3b2) |
 
 Unit: 651/651 in the suite, kept in UNIT-results/ (`TileSourcePrecedenceTest` 12, the L11-1 fix's, asserted by the L11-1 row); `QuickRulesTest` (23) — the selection rule, the decision and its reasons (`query failed` included), the
 geometry, Compose's own `spring(0.65, 1500)` against the doc's fingerprint, the launch outcome.
