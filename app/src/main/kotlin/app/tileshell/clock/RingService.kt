@@ -179,7 +179,16 @@ class RingService : Service() {
         // A new id each time the form changes: a full-screen intent launches when a notification is POSTED.
         val previous = notificationId
         notificationId = if (previous == ClockNotifications.RING_ID) ClockNotifications.RING_ID + 2 else ClockNotifications.RING_ID
-        startForeground(notificationId, ClockNotifications.ring(this, shown, fullScreen), ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED)
+        // systemExempted is Android's for a holder of an exact-alarm grant only; without one (a system revoked it, and the
+        // alarm was armed inexactly) Android refuses that type and the ring would crash unheard, so it runs as
+        // mediaPlayback, which the manifest also holds (Decisions "Ring surface"; qa/phase-15/EDGE_EXACT/DEFECT.md).
+        val type = if (getSystemService(android.app.AlarmManager::class.java).canScheduleExactAlarms()) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
+        } else {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+        }
+        startForeground(notificationId, ClockNotifications.ring(this, shown, fullScreen), type)
+        Diagnostics.add("alarms", "ring foreground: ${if (type == ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED) "systemExempted" else "mediaPlayback"}")
         nm.cancel(previous)
         Diagnostics.add("alarms", "notification ${shown.logId}: ${if (fullScreen) "fullscreen" else "quiet"}")
         if (surface == Surface.OVERLAY) {
