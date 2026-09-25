@@ -1,0 +1,73 @@
+==============================================================================
+ROW E6 — motion on the shell's clock (5 warm opens, nothing recording, all asserted); a recorded open's spacing
+at            2026-09-25T12:09:31-06:00
+driver        e6.sh blob a2fee354af21f77b68900bc1a7308593dfd9988e
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     6fa766f085aa09ee 336872430 bytes
+apk installed fdc76d9fc40dcc2f
+apk match     yes (fdc76d9fc40dcc2f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- cold (recorded, not asserted): the first hold after the shell started ---
+      cold: [quick] motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=176072118 peak=100 overshoot=6.5 settle=266 frames=11 maxGapMs=50.0
+--- part 1: five warm opens on the shell's clock, nothing recording; every one asserted ---
+      open 1: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=176078601 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 176078585
+PASS  open 1: one open line                                       = 1
+PASS  open 1: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
+PASS  open 1: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
+PASS  open 1: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
+PASS  open 1: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  open 1: burst t0 within one frame of the entry's first frame (C-5)  16.00 vs 0.00 +/- 17.0
+      open 2: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=176086251 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 176086235
+PASS  open 2: one open line                                       = 1
+PASS  open 2: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
+PASS  open 2: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
+PASS  open 2: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
+PASS  open 2: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  open 2: burst t0 within one frame of the entry's first frame (C-5)  16.00 vs 0.00 +/- 17.0
+      open 3: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=176092101 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 176092085
+PASS  open 3: one open line                                       = 1
+PASS  open 3: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
+PASS  open 3: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
+PASS  open 3: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
+PASS  open 3: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  open 3: burst t0 within one frame of the entry's first frame (C-5)  16.00 vs 0.00 +/- 17.0
+      open 4: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=176099185 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 176099168
+PASS  open 4: one open line                                       = 1
+PASS  open 4: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
+PASS  open 4: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
+PASS  open 4: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
+PASS  open 4: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  open 4: burst t0 within one frame of the entry's first frame (C-5)  17.00 vs 0.00 +/- 17.0
+      open 5: motion open app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0: t0=176107951 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7 | entry first frame 176107935
+PASS  open 5: one open line                                       = 1
+PASS  open 5: peak 107 ± 17 ms                                   100.00 vs 107.00 +/- 17.0
+PASS  open 5: overshoot 6.8 ± 2 %                                6.50 vs 6.80 +/- 2.0
+PASS  open 5: maxGapMs ≤ 33.4 (C-31)                            16.70 vs 16.70 +/- 16.7
+PASS  open 5: settle ≤ 249.1 + maxGapMs + 1 = 266.8 ms (T11-29, G-E6-2)  266.00 vs 133.40 +/- 133.4
+PASS  open 5: burst t0 within one frame of the entry's first frame (C-5)  16.00 vs 0.00 +/- 17.0
+--- part 2: recorded opens (540x1170) for frame spacing only, retaken up to 10; their clock numbers noted ---
+      recorded attempt 1 (not asserted): 
+      attempt 1 recording: Traceback (most recent call last):   File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 69, in <module>     main()   File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 31, in main     tl, tt, tr, tb = (int(int(v) * sc) for v in sys.argv[3].split(","))     ^^^^^^^^^^^^^^   File "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/scripts/e6_frames.py", line 31, in <genexpr>     tl, tt, tr, tb = (int(int(v) * sc) for v in sys.argv[3].split(","))                           ^^^^^^ ValueError: invalid literal for int() with base 10: '' 
+FAIL  attempt2: Start in front (an app-error dialog is up; trace kept)  text="Tessera isn't responding"
+FAIL  attempt3: Start in front (an app-error dialog is up; trace kept)  text="Tessera isn't responding"
+FAIL  attempt4: Start in front (an app-error dialog is up; trace kept)  text="Tessera isn't responding"
+FAIL  attempt5: Start in front (an app-error dialog is up; trace kept)  text="Tessera isn't responding"
+FAIL  attempt6: Start in front (an app-error dialog is up; trace kept)  text="Tessera isn't responding"
+FAIL  attempt7: Start in front (an app-error dialog is up; trace kept)  text="Tessera isn't responding"
+FAIL  attempt8: Start in front (an app-error dialog is up; trace kept)  text="Tessera isn't responding"
+FAIL  attempt9: Start in front (an app-error dialog is up; trace kept)  text="Tessera isn't responding"
+FAIL  attempt10: Start in front (an app-error dialog is up; trace kept)  text="Tessera isn't responding"
+FAIL  a recording within phase 05's spacing rule (source frames ≤ 18.2 ms apart during the motion)  should not be []
+      accepted recording: attempt none (its satellite-pixel lag is printed, not asserted: G-E6-4)
+--- the close: a fresh burst, then a tap elsewhere ---
+FAIL  close: Start in front (an app-error dialog is up; trace kept)  text="Tessera isn't responding"
+      close line: 
+FAIL  close alpha0 36 ± 17 ms (the halfway at 36.0 ms)           could not be measured (actual=[])
+      close settle (= alpha0 by construction, not asserted): 
+FAIL  close maxGapMs ≤ 33.4 (C-31)                              could not be measured (actual=[])
+------------------------------------------------------------------------------
+E6: 32 passed, 13 failed, 0 recorded

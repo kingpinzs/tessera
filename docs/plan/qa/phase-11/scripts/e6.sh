@@ -25,7 +25,8 @@ read -r X Y <<< "$(center "$ROW_DIR/rest.xml" "tile:$A_KEY")"
 read -r EX EY <<< "$(empty_point "$ROW_DIR/rest.xml" 1300 1850)"
 num() { sed -n "s/.*[ :]$1=\([-0-9.]*\).*/\1/p" <<< "$2" | head -1; }
 PROBE="$(bounds "$ROW_DIR/rest.xml" tile:dock:slot:MESSAGING | awk '{printf "%d,%d,%d,%d", $1+60, $2+60, $3-60, $4-60}')"
-exit_edit() { tap_xy "$EX" "$EY"; sleep 0.8; tap_xy "$EX" "$EY"; sleep 1.5; }
+# One tap closes the burst and leaves edit mode (Jeremy 2026-09-25); it took two before.
+exit_edit() { tap_xy "$EX" "$EY"; sleep 1.5; }
 
 # front_ok <tag>: Start in front and no app-error dialog, else the attempt fails and the ANR trace is kept.
 front_ok() {

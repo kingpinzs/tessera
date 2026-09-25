@@ -18,22 +18,19 @@ fresh_burst() {
 disc_of() { bounds "$1" edit_disc:unpin; }
 edit_on() { grep -q 'resource-id="edit_disc' "$1" && echo yes || echo no; }
 
-log "--- tap empty grid space: the burst closes, edit mode stays; a second tap exits (R6 §1.5.1) ---"
+log "--- tap empty grid space: one tap closes the burst AND leaves edit mode (Jeremy 2026-09-25) ---"
 fresh_burst
 read -r EX EY <<< "$(empty_point "$ROW_DIR/B.xml" 300 1850)"; note "empty point $EX $EY"
 tileb="$(bounds "$ROW_DIR/B.xml" "tile:$A_KEY")"
 MARK="$(ring_mark)"; tap_xy "$EX" "$EY"; sleep 1
 qdump "$ROW_DIR/elsewhere1.xml"
 assert_eq "no quick_burst" no "$(has_node "$ROW_DIR/elsewhere1.xml" quick_burst)"
-assert_eq "edit mode stays" yes "$(edit_on "$ROW_DIR/elsewhere1.xml")"
-assert_eq "the held tile unchanged" "$tileb" "$(bounds "$ROW_DIR/elsewhere1.xml" "tile:$A_KEY")"
+assert_eq "edit mode is off after the one tap" no "$(edit_on "$ROW_DIR/elsewhere1.xml")"
 assert_contains "ring: tap elsewhere" "[quick] burst closed: tap elsewhere" "$(quick_since "$MARK")"
-tap_xy "$EX" "$EY"; sleep 1.5
-qdump "$ROW_DIR/elsewhere2.xml"
-assert_eq "a second tap on empty space exits edit mode" no "$(edit_on "$ROW_DIR/elsewhere2.xml")"
+assert_contains "ring: the same tap exits edit mode" "[edit] tap elsewhere with a burst open: exit" "$(ring_since "$MARK")"
 c6
 
-log "--- tap another tile (Tess, outside every satellite): the burst closes, the selection stays ---"
+log "--- tap another tile (Tess, outside every satellite): one tap closes the burst and leaves edit mode; Tess does not launch ---"
 fresh_burst
 free="$(python3 - "$ROW_DIR/B.xml" <<'PY'
 import re, sys
@@ -57,21 +54,24 @@ read -r TX TY <<< "$free"
 MARK="$(ring_mark)"; tap_xy "$TX" "$TY"; sleep 1
 qdump "$ROW_DIR/another.xml"
 assert_eq "no quick_burst" no "$(has_node "$ROW_DIR/another.xml" quick_burst)"
-assert_eq "the discs are still on the fixture" "$disc0" "$(disc_of "$ROW_DIR/another.xml")"
+assert_eq "edit mode is off after the one tap" no "$(edit_on "$ROW_DIR/another.xml")"
 S="$(ring_since "$MARK")"
 assert_contains "ring: tap elsewhere" "[quick] burst closed: tap elsewhere" "$S"
+assert_contains "ring: the same tap exits edit mode" "[edit] tap elsewhere with a burst open: exit" "$S"
 assert_absent "ring: the selection did not move" "[edit] selection moves to" "$S"
+assert_absent "ring: nothing launched" "[launch]" "$S"
 c6
 
-log "--- tap the held tile: the burst closes, edit mode stays (not today's exit) ---"
+log "--- tap the held tile: one tap closes the burst and leaves edit mode; nothing launches ---"
 fresh_burst
 MARK="$(ring_mark)"; tap_xy "$FX" "$FY"; sleep 1
 qdump "$ROW_DIR/heldtap.xml"
 assert_eq "no quick_burst" no "$(has_node "$ROW_DIR/heldtap.xml" quick_burst)"
-assert_eq "the discs still on it" yes "$(edit_on "$ROW_DIR/heldtap.xml")"
+assert_eq "edit mode is off after the one tap" no "$(edit_on "$ROW_DIR/heldtap.xml")"
 S="$(ring_since "$MARK")"
 assert_contains "ring: tap elsewhere" "[quick] burst closed: tap elsewhere" "$S"
-assert_absent "ring: no exit" "[edit] tap on the held tile" "$S"
+assert_contains "ring: the same tap exits edit mode" "[edit] tap elsewhere with a burst open: exit" "$S"
+assert_absent "ring: nothing launched" "[launch]" "$S"
 c6
 
 log "--- a label counts as its satellite (T11-26) ---"
@@ -143,7 +143,7 @@ c6
 log "--- no hold timer in edit mode (T11-23): a 1.0-s still press on another tile opens no burst ---"
 fresh_burst
 read -r EX EY <<< "$(empty_point "$ROW_DIR/B.xml" 300 1850)"
-tap_xy "$EX" "$EY"; sleep 1          # close the burst; edit mode stays
+adb shell input keyevent KEYCODE_BACK; sleep 1          # Back closes the burst only; edit mode stays (a tap now leaves edit mode too)
 qdump "$ROW_DIR/nohold-pre.xml"
 read -r SX SY <<< "$(center "$ROW_DIR/nohold-pre.xml" tile:shell:settings)"
 MARK="$(ring_mark)"; hold_down "$SX" "$SY"; sleep 1.0
@@ -202,7 +202,9 @@ MARK="$(ring_mark)"; tap_node "$ROW_DIR/B.xml" folder_name_placeholder:qa; sleep
 qdump "$ROW_DIR/namestrip.xml"
 assert_eq "no quick_burst" no "$(has_node "$ROW_DIR/namestrip.xml" quick_burst)"
 assert_eq "no folder_name_box" no "$(has_node "$ROW_DIR/namestrip.xml" folder_name_box)"
+assert_eq "edit mode is off after the one tap" no "$(edit_on "$ROW_DIR/namestrip.xml")"
 assert_contains "ring: tap elsewhere" "[quick] burst closed: tap elsewhere" "$(quick_since "$MARK")"
+assert_contains "ring: the same tap exits edit mode" "[edit] tap elsewhere with a burst open: exit" "$(ring_since "$MARK")"
 restore baseline_layout.json
 
 log "--- press feedback (T11-7): on this build a pressed satellite looks exactly as at rest, under every press style ---"

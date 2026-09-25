@@ -1,0 +1,52 @@
+==============================================================================
+ROW EDGE-tapsmoke — the one-tap ruling's EDGE sub-steps only (second finger, still press, X5): the Edge Cases list: flip, fling, call, keyguard, listener restart, process death, second finger, show more tiles, folder dissolve, labels, theme, transparency, RV10
+at            2026-09-25T12:11:45-06:00
+driver        .edge_tap_smoke.sh blob 4fb75f880e20351f0eb2d571573497492c32c062
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     6fa766f085aa09ee 336872430 bytes
+apk installed fdc76d9fc40dcc2f
+apk match     yes (fdc76d9fc40dcc2f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+--- a second finger while a burst is open: ignored (as phase 02 ignores it) ---
+PASS  the first finger's hold opened the burst                    contains [burst on]
+PASS  the burst is open while the first finger holds              = yes
+PASS  a second finger down and up elsewhere: the burst stays      = yes
+PASS  …and after the first finger lifts                         = yes
+PASS  nothing closed it                                           does not contain [burst closed]
+PASS  control: the same contact alone closes the burst (tap elsewhere)  contains [burst closed: tap elsewhere]
+--- in edit mode no press is a hold (T11-23): a 1.0-s still press on another tile with a burst open closes it and leaves edit mode ---
+PASS  Tess's centre is outside every satellite                    = none
+PASS  a 1.0-s still press on another tile closed the burst (tap elsewhere)  contains [burst closed: tap elsewhere]
+PASS  …and was no hold                                          does not contain [[edit] hold]
+PASS  …and opened no second burst                               = 0
+PASS  …and leaves edit mode in the same tap (Jeremy 2026-09-25)  = no
+      (the fixture's discs before: 661 443 754 536)
+PASS  Weather held: edit mode, no burst                           = yes no
+PASS  a 1.0-s still press on the held tile, no burst open, exits edit mode  = no
+PASS  …and was no hold                                          does not contain [[edit] hold]
+--- the X5 transparency slider at 0 % and 100 %: the satellite fill follows the tile's ---
+      scroll_to_node theme_background_choose: 0 swipe(s), found=yes
+      picker: the newest photo: [177 862 Photo taken on Sep 25, 2026, 12:12:48 PM]
+      scroll_to_node theme_transparency: 0 swipe(s), found=yes
+PASS  a background picture is set: the transparency slider is there  != 
+      transparency at the start: 50%
+      scroll_to_node theme_transparency: 0 swipe(s), found=yes
+PASS  the slider reads 0 %                                        = 0
+PASS  the stored transparency is at the 0 % end (the round-2 re-judge, EV-13: 9.920635E-4)  = yes
+PASS  X5 0%: the backdrop capture has edit mode and no burst      = yes no
+      X5 0%: alpha=1.00 sat0 fill=[0, 120, 215] behind=[0, 64, 114] want=[0, 120, 215]; sat1 fill=[0, 120, 215] behind=[0, 64, 114] want=[0, 120, 215]; sat2 fill=[0, 120, 215] behind=[0, 64, 114] want=[0, 120, 215]; sat3 fill=[0, 120, 215] behind=[0, 64, 114] want=[0, 120, 215] | max |d|=0.0 -> PASS
+PASS  X5 0%: every satellite is the accent at the tile's alpha over what lies behind it  want=[0, 120, 215] | max |d|=0.0 -> PASS
+      scroll_to_node theme_transparency: 0 swipe(s), found=yes
+PASS  the slider reads 100 %                                      = 100
+PASS  the stored transparency is at the 100 % end (the round-2 re-judge, EV-13: 0.9980159)  = yes
+PASS  X5 100%: the backdrop capture has edit mode and no burst    = yes no
+      X5 100%: alpha=0.20 sat0 fill=[18, 40, 65] behind=[23, 20, 28] want=[18, 40, 65]; sat1 fill=[18, 40, 65] behind=[23, 20, 28] want=[18, 40, 65]; sat2 fill=[18, 40, 65] behind=[23, 20, 28] want=[18, 40, 65]; sat3 fill=[18, 40, 65] behind=[23, 20, 28] want=[18, 40, 65] | max |d|=0.4 -> PASS
+PASS  X5 100%: every satellite is the accent at the tile's alpha over what lies behind it   want=[18, 40, 65] | max |d|=0.4 -> PASS
+      scroll_to_node theme_transparency: 0 swipe(s), found=yes
+      scroll_to_node theme_background_remove: 0 swipe(s), found=yes
+------------------------------------------------------------------------------
+EDGE-tapsmoke: 25 passed, 0 failed, 0 recorded

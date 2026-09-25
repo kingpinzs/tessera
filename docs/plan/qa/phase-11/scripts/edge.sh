@@ -143,7 +143,7 @@ adb shell "$(mt_down 1 "$EX" "$EY") sleep 0.15; $(mt_up 1)"; sleep 1
 assert_contains "control: the same contact alone closes the burst (tap elsewhere)" "burst closed: tap elsewhere" "$(quick_since "$MARK")"
 c6
 
-log "--- in edit mode no press is a hold (T11-23): a 1.0-s still press on another tile with a burst open only closes it ---"
+log "--- in edit mode no press is a hold (T11-23): a 1.0-s still press on another tile with a burst open closes it and leaves edit mode ---"
 # The round-2 re-judge, EV-4 (i): E5 ran its long press after closing the burst; here the burst is open. Then the held tile
 # with no burst open: a 1.0-s still press is a tap, and exits edit mode.
 fresh_burst
@@ -164,8 +164,16 @@ S="$(quick_since "$MARK")"
 assert_contains "a 1.0-s still press on another tile closed the burst (tap elsewhere)" "burst closed: tap elsewhere" "$S"
 assert_absent "…and was no hold" "[edit] hold" "$(ring_since "$MARK")"
 assert_eq "…and opened no second burst" 0 "$(echo "$S" | grep -c 'burst on')"
-assert_eq "…and the selection stays on the fixture (its discs unchanged)" "$disc0" "$(bounds "$ROW_DIR/press-other.xml" edit_disc:unpin)"
-read -r HX HY <<< "$(center "$ROW_DIR/press-other.xml" "tile:$A_KEY")"
+assert_eq "…and leaves edit mode in the same tap (Jeremy 2026-09-25)" no "$(has_node "$ROW_DIR/press-other.xml" edit_disc:unpin)"
+note "(the fixture's discs before: $disc0)"
+# The held tile with no burst open: Weather declares no shortcuts, so its hold enters edit mode with no burst.
+c6
+qdump "$ROW_DIR/press-held-rest.xml"
+read -r WX WY <<< "$(center "$ROW_DIR/press-held-rest.xml" tile:shell:weather)"
+hold "$WX" "$WY" 1.0; sleep 0.5
+qdump "$ROW_DIR/press-held-pre.xml"
+assert_eq "Weather held: edit mode, no burst" "yes no" "$(has_node "$ROW_DIR/press-held-pre.xml" edit_disc:unpin) $(has_node "$ROW_DIR/press-held-pre.xml" quick_burst)"
+HX=$WX; HY=$WY
 MARK="$(ring_mark)"
 hold "$HX" "$HY" 1.0; sleep 1
 qdump "$ROW_DIR/press-held.xml"
@@ -411,10 +419,9 @@ for pct in 0 100; do
   assert_eq "the stored transparency is at the ${pct} % end (the round-2 re-judge, EV-13: $stored)" yes \
     "$(python3 -c "import sys; v=float(sys.argv[1]); print('yes' if (v <= 0.01 if $pct == 0 else v >= 0.99) else 'no')" "${stored:-nan}")"
   fresh_burst "tile:$A_KEY" "x5-$pct"; screencap "$ROW_DIR/x5-$pct.png"
-  # The same screen without the satellites: a tap on empty space closes the burst and edit mode stays (E5), so what lies
-  # behind each satellite square (a neighbouring tile, or the picture) is read from the second capture.
-  read -r EX EY <<< "$(empty_point "$ROW_DIR/x5-$pct.xml" 300 1850)"
-  tap_xy "$EX" "$EY"; sleep 1.2
+  # The same screen without the satellites: Back closes the burst and edit mode stays (E5; a tap now leaves edit mode
+  # too, 2026-09-25), so what lies behind each satellite square is read from the second capture.
+  adb shell input keyevent KEYCODE_BACK; sleep 1.2
   qdump "$ROW_DIR/x5-$pct-closed.xml"; screencap "$ROW_DIR/x5-$pct-closed.png"
   assert_eq "X5 ${pct}%: the backdrop capture has edit mode and no burst" "yes no" \
     "$(has_node "$ROW_DIR/x5-$pct-closed.xml" edit_disc:unpin) $(has_node "$ROW_DIR/x5-$pct-closed.xml" quick_burst)"
