@@ -11,7 +11,8 @@ depends-on: [01, 02, 03, 05, 10]   # 03: lib.sh, shell:cortana, E5 re-run; 05: t
 Holding a Start tile for 783 ms enters edit mode exactly as phase 02 built and measured it (R6 §1.1.1: the contraction, the dim,
 the held tile's discs) and, in the same frame, up to four "satellite" tiles spring outward from the held tile, one per Android App
 Shortcut the held app publishes (`LauncherApps.getShortcuts`, which the HOME app may call). Letting go leaves both on screen: a tap
-on a satellite runs that shortcut, a drag moves the tile and closes the burst, a tap elsewhere closes the burst and leaves edit mode
+on a satellite runs that shortcut, a drag moves the tile and the burst hides until it comes back around the tile where it is
+dropped (Jeremy 2026-09-25, INDEX Change Log), a tap elsewhere closes the burst and leaves edit mode
 on. The satellites track the held tile's `boundsInRoot` every frame, so they ride the entry contraction and a scroll (a resize
 closes the burst, Q2 A — T11-17).
 Nothing about the hold, the drag or any phase 02 number changes; the burst is ADDED on top. A tile whose app publishes no shortcut
@@ -172,8 +173,10 @@ as amended 2026-09-23 — re-worded 2026-09-23 by r2 triage T11-11).
   next such tap does what R6 §1.5.1 says; Back → closes the burst only, the next Back exits edit mode (R6 §4.1.7, H9 in phase 02);
   Home → `StartActivity`'s existing exit closes both — the HOME intent (`onNewIntent`) and the drawn Windows key (`nav_windows`)
   both reach the one `homeEvents` collector (`StartActivity.kt:112-122`, `:198-201`; T11-16); a press on empty space that moves
-  scrolls Start with the burst tracking the tile; a press on the held tile that moves drags it and closes the burst (`[quick] burst
-  closed: drag`); Start stopping (screen off, an incoming call, any window in front) closes the burst (`stop`); the held tile
+  scrolls Start with the burst tracking the tile; a press on the held tile that moves drags it and the burst hides for the drag
+  (`[quick] burst hidden: drag <id>`) and comes back around the tile where it is dropped (`[quick] burst back after the drop: <id>`,
+  then the ordinary open: arrangement, clamping and the open spring at the new cell — Jeremy 2026-09-25); a drag of another tile
+  while a burst is open closes it (`[quick] burst closed: drag`), and so does a drop that leaves another tile held; Start stopping (screen off, an incoming call, any window in front) closes the burst (`stop`); the held tile
   leaving the layout (its app uninstalled) closes it (`removed`); a live flip under the burst changes nothing. Close reasons,
   exactly: `tap elsewhere` · `drag` · `back` · `home` · `stop` · `unpin` · `resize` · `removed` · `launch` · `shortcuts changed`
 - 2026-09-22: The Music tile's transport controls (agent; design 28): a hold on a control opens no burst and enters no edit mode —
@@ -199,7 +202,7 @@ as amended 2026-09-23 — re-worded 2026-09-23 by r2 triage T11-11).
   shown: id,id,…)` (re-cut 2026-09-23 by T11-12 from `<pkg>/<userId>`, which read the same for two tiles of one package; `<pkg>/<activity>`
   is the tile component's `ComponentName.flattenToShortString()` — `app.tileshell/.music.MusicActivity`, and the full class where it lies
   outside the package, e.g. `app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity`), `[quick] burst on <tileId>: k
-  satellites`, `[quick] no burst on <tileId>: <reason>`, `[quick] satellite <i> rest=[l,t,r,b]`
+  satellites`, `[quick] burst hidden: drag <tileId>`, `[quick] burst back after the drop: <tileId>` (2026-09-25), `[quick] no burst on <tileId>: <reason>`, `[quick] satellite <i> rest=[l,t,r,b]`
   (the second source RV13 needs under flipping tiles; written once per satellite each time the burst comes to rest — the first
   frame where the open spring has settled AND the held tile's tracked bounds equal the previous frame's — and again at each
   scroll's end, never per frame: r3 triage T11-28), `[quick] satellite <i> icon failed <pkg>/<id>: <why>` (added 2026-09-23,
