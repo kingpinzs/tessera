@@ -12,8 +12,8 @@ Holding a Start tile for 783 ms enters edit mode exactly as phase 02 built and m
 the held tile's discs) and, in the same frame, up to four "satellite" tiles spring outward from the held tile, one per Android App
 Shortcut the held app publishes (`LauncherApps.getShortcuts`, which the HOME app may call). Letting go leaves both on screen: a tap
 on a satellite runs that shortcut, a drag moves the tile and the burst hides until it comes back around the tile where it is
-dropped (Jeremy 2026-09-25, INDEX Change Log), a tap elsewhere closes the burst and leaves edit mode
-on. The satellites track the held tile's `boundsInRoot` every frame, so they ride the entry contraction and a scroll (a resize
+dropped (Jeremy 2026-09-25, INDEX Change Log), a tap elsewhere closes the burst and ends edit mode in the same tap
+(Jeremy 2026-09-25). The satellites track the held tile's `boundsInRoot` every frame, so they ride the entry contraction and a scroll (a resize
 closes the burst, Q2 A — T11-17).
 Nothing about the hold, the drag or any phase 02 number changes; the burst is ADDED on top. A tile whose app publishes no shortcut
 (a folder, a shell tile with none) gets edit mode and no burst, and says why in diagnostics.
@@ -169,8 +169,9 @@ as amended 2026-09-23 — re-worded 2026-09-23 by r2 triage T11-11).
   T11-26) → runs it; a disc → the disc acts (unpin removes the tile and the burst with it, `unpin`; resize cycles the size, `resize`)
   and the burst closes — a disc is ON the held tile, so it is not read as "elsewhere" (Q2 A; re-cut 2026-09-23 by r3 triage T11-17,
   which struck "the satellites follow the new corners": Q2 A closes the burst on a resize); any other tap (another tile, the held
-  tile, empty space, the folder-name strip) → closes the burst and does nothing else: edit mode stays, the selection stays, and the
-  next such tap does what R6 §1.5.1 says; Back → closes the burst only, the next Back exits edit mode (R6 §4.1.7, H9 in phase 02);
+  tile, empty space, the folder-name strip) → closes the burst and leaves edit mode in the same tap (Jeremy 2026-09-25, superseding
+  "edit mode stays … the next such tap does what R6 §1.5.1 says"; `[edit] tap elsewhere with a burst open: exit`): nothing launches
+  and the selection does not move; the discs stay on while the burst shows; Back → closes the burst only, the next Back exits edit mode (R6 §4.1.7, H9 in phase 02);
   Home → `StartActivity`'s existing exit closes both — the HOME intent (`onNewIntent`) and the drawn Windows key (`nav_windows`)
   both reach the one `homeEvents` collector (`StartActivity.kt:112-122`, `:198-201`; T11-16); a press on empty space that moves
   scrolls Start with the burst tracking the tile; a press on the held tile that moves drags it and the burst hides for the drag
