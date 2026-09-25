@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # E2 — the fork, bracketed in time (740 / 830 ms around Edit.HOLD_MS = 783) and in space (a 4-px wobble keeps the
-# burst; a 40-px glide is a drag that closes it). Phase doc E2 (RV11; T11-19, T11-45).
+# burst; a 40-px glide is a drag that hides it until the drop — Jeremy 2026-09-25 "(a)"). Phase doc E2 (RV11; T11-19, T11-45).
 . "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/q.sh"
-row_begin E2 "the fork: 740 ms taps, 830 ms bursts; a 4-px wobble keeps it, a 40-px glide drags and closes it"
+row_begin E2 "the fork: 740 ms taps, 830 ms bursts; a 4-px wobble keeps it, a 40-px glide drags and hides it until the drop"
 seed_fixtures
 restore baseline_layout.json
 qdump "$ROW_DIR/rest.xml"
@@ -40,7 +40,7 @@ assert_eq "tile bounds unchanged by the wobble" "$(bounds "$ROW_DIR/wobble_pre.x
 assert_absent "ring: no drag" "[quick] burst closed: drag" "$(ring_since "$MARK")"
 c6
 
-log "--- DOWN; 0.9 s; glide +40 px (asserted BEFORE the UP): a drag, the burst closes; after UP the tile is home ---"
+log "--- DOWN; 0.9 s; glide +40 px (asserted BEFORE the UP): a drag hides the burst; after UP the tile is home and the burst is back ---"
 MARK="$(ring_mark)"
 hold_down "$cx" "$cy"; sleep 0.9
 qdump "$ROW_DIR/glide_pre.xml"
@@ -55,7 +55,8 @@ note "held $held, dragged copy $dragged"
 assert_within "the dragged tile follows the finger (≥ 30 px from its held bounds)" 40 "$moved" 10
 S="$(ring_since "$MARK")"
 assert_contains "ring: [edit] drag start" "[edit] drag start $A_KEY" "$S"
-assert_contains "ring: burst closed: drag" "[quick] burst closed: drag" "$S"
+assert_contains "ring: burst hidden: drag" "[quick] burst hidden: drag $A_KEY" "$S"
+assert_absent "ring: not closed" "burst closed" "$(quick_since "$MARK")"
 hold_up $((cx + 40)) "$cy"; sleep 1.2
 qdump "$ROW_DIR/glide_post.xml"
 r="$(python3 -c '
@@ -64,5 +65,7 @@ a=sys.argv[1].split(); b=sys.argv[2].split()
 ok=len(a)==4 and len(b)==4 and all(abs(int(x)-int(y))<=1 for x,y in zip(a,b))
 print(("PASS" if ok else "FAIL")+"|held "+" ".join(a)+" -> after UP "+" ".join(b))' "$held" "$(bounds "$ROW_DIR/glide_post.xml" "tile:$A_KEY")")"
 _verdict "${r%%|*}" "after UP the fixture is back in its own cell (± 1 px)" "${r##*|}"
+assert_eq "after UP the burst is back around it" yes "$(has_node "$ROW_DIR/glide_post.xml" quick_burst)"
+assert_contains "ring: burst back after the drop" "[quick] burst back after the drop: $A_KEY" "$(quick_since "$MARK")"
 c6
 row_end

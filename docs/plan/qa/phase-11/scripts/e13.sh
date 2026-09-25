@@ -42,7 +42,7 @@ for d in regress e1 e7 e8; do
 done
 cat "$ROW_DIR"/p02-REGRESS/*.txt 2>/dev/null | grep -E 'passed|failed' | tail -2 | while read -r l; do note "regress: $l"; done
 
-log "--- phase 02's hold and drag as one gesture: no burst during the drag, burst closed: drag ---"
+log "--- phase 02's hold and drag as one gesture: no burst during the drag (hidden), back after the drop ---"
 restore baseline_layout-pre-11.json
 qdump "$ROW_DIR/p02-rest.xml"
 read -r X Y <<< "$(center "$ROW_DIR/p02-rest.xml" tile:slot:PEOPLE)"
@@ -52,7 +52,10 @@ for dy in 60 120 180 240 300; do hold_move "$X" $((Y + dy)); sleep 0.1; done
 sleep 0.4; qdump "$ROW_DIR/p02-dragging.xml"
 assert_eq "no quick_burst during the drag" no "$(has_node "$ROW_DIR/p02-dragging.xml" quick_burst)"
 hold_up "$X" $((Y + 300)); sleep 1.5
-assert_contains "ring: burst closed: drag" "[quick] burst closed: drag" "$(quick_since "$MARK")"
+qdump "$ROW_DIR/p02-dropped.xml"
+assert_contains "ring: burst hidden: drag" "[quick] burst hidden: drag slot:PEOPLE" "$(quick_since "$MARK")"
+assert_contains "ring: burst back after the drop" "[quick] burst back after the drop: slot:PEOPLE" "$(quick_since "$MARK")"
+assert_eq "after the drop the burst is back around PEOPLE" yes "$(has_node "$ROW_DIR/p02-dropped.xml" quick_burst)"
 c6
 
 log "--- phase 02 E7's 830-ms line with the burst: slot:PEOPLE (Contacts, one manifest shortcut) ---"

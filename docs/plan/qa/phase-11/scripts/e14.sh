@@ -8,7 +8,7 @@ row_begin E14 "every [quick] line, reason and close appears in this build's save
 BUILT="$(md5sum "$APK" | cut -c1-16)"
 FILES=""
 # Only the gate rows run_all names (the round-2 re-judge, EV-10: smoke directories whose logs showed the same APK were counted).
-for r in E1 E2 E3 E4 E5 E6 E7 E8 E9 E10 E11 E12 E13 E15 E16 L11-1 EDGE; do
+for r in E1 E2 E3 E4 E5 E6 E7 E8 E9 E10 E11 E12 E13 E15 E16 L11-1 EDGE DRAG; do
   d="$QA11/$r/"
   log="$d$r.txt"; [ -f "$log" ] || continue
   if grep -q "apk installed $BUILT" "$log"; then FILES="$FILES $(ls "$d"ring-*.txt 2>/dev/null | tr '\n' ' ')"; note "counted $r"; else note "skipped $r (another APK)"; fi
@@ -22,6 +22,8 @@ check() { # name regex
 }
 check "shortcuts for <pkg>/<activity>/<user>: n (k shown …)" '\[quick\] shortcuts for [^ /]+/[^ /]+/[0-9]+: [0-9]+ \([0-9]+ shown'
 check "burst on …: k satellites"               '\[quick\] burst on .*: [1-4] satellites'
+check "burst hidden: drag <id> (2026-09-25)"    '\[quick\] burst hidden: drag [^ ]+$'
+check "burst back after the drop: <id>"         '\[quick\] burst back after the drop: [^ ]+$'
 check "satellite i rest=[…]"                   '\[quick\] satellite [0-3] rest=\[-?[0-9]+,-?[0-9]+,-?[0-9]+,-?[0-9]+\]'
 check "satellite i icon failed"                '\[quick\] satellite [0-3] icon failed [^ ]+: '
 check "tap satellite … startShortcut ok"       '\[quick\] tap satellite [0-3] [^ ]+: startShortcut ok'
