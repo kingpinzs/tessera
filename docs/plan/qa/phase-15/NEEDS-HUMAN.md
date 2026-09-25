@@ -52,7 +52,7 @@ P6 was superseded on 2026-09-23 (no motion value with a tolerance of 17 ms or le
 | H23 | accept | The expanded timer and stopwatch views, the pinned timer / stopwatch tiles, the stopwatch Share text. | `E31/pin_timer_pinned.png`, `E31/pin_stopwatch_pinned.png`, `E31/messages_thread.png` | |
 | H24 | fidelity + accept | The Sound flyout with "Pick from my music" (4.3) [fidelity]; the music picker page [accept]. | `E10/sound_flyout.png`, `E31/music_flyout.png`, `E31/music_picker.png` | |
 | H25 | accept | Alarms & Clock answering other apps' set-alarm / set-timer / show requests, and Android's one-time "which clock" prompt while Samsung Clock is installed. | `E33/`, `E31/chooser.png` | |
-| H26 | accept | The Clock bars' Select and More (About; Notification settings → Setup; no Send feedback), the About pages, and the `converter` shortcut's last-used category. | `E10/more.png`, `E10/select.png`, `E27/`, `E12/` | |
+| H26 | accept | A hold on an alarm or a timer opens Delete (added 2026-09-25, EDGE_HOLD_DELETE). The Clock bars' Select and More (About; Notification settings → Setup; no Send feedback), the About pages, and the `converter` shortcut's last-used category. | `E10/more.png`, `E10/select.png`, `E27/`, `E12/` | |
 | H27 | fidelity + accept | The Sounds page (4.6) and the timer editor (4.8) [fidelity]; Voice Recorder's level rings [accept]. | `E10/sounds.png`, `E10/timer_editor.png`, `E24/recording.png` | |
 
 ## Already ruled (for reference; not for sign-off)
