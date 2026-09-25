@@ -1,38 +1,39 @@
 ==============================================================================
 ROW EDGE_LOCKED_SOUND — a Pick-from-my-music alarm before the first unlock rings the default; force-stop re-arms an armed alarm
-at            2026-09-24T22:13:16-06:00
-driver        edge_locked_sound.sh blob a75cf437fb39eb688276daf72d7fa70c2c55da77
+at            2026-09-25T11:31:51-06:00
+driver        edge_locked_sound.sh blob 5df9f28d59387733c1cde20a61c0acf3bfcfec24
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     a437acd58d2ca8ac 338459026 bytes
-apk installed 4b7ac321ce4d0ede
-apk match     yes (4b7ac321ce4d0ede)
+apk built     51c18d8d11c140bd 338459026 bytes
+apk installed 61c5b610716197e3
+apk match     yes (61c5b610716197e3)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+57m24s303ms ago; rejectTime=+1h36m24s308ms ago 
+      no-microphone rule: 50 recording-activity event(s) in dumpsys audio at the row's start (mic_events_begin.txt)
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow 
 RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
 PASS  baseline: no shell alarm or timer pending                   = 0
 PASS  baseline: alarm and timer stores empty                      = empty
 RECORD  keyguard before the row (locksettings get-disabled)         true
-      song.m4a MediaStore id: 3161
+      song.m4a MediaStore id: 39
 PASS  the fixture song is in MediaStore                           != 
 PASS  the alarm was created                                       != 
-PASS  the picker lists the song (alarm_sound_pick:3161)           = yes
+PASS  the picker lists the song (alarm_sound_pick:39)             = yes
 PASS  the Sound value names the song                              = Fixture song
-PASS  the store holds the song's URI as the alarm's sound         = content://media/external/audio/media/3161
+PASS  the store holds the song's URI as the alarm's sound         = content://media/external/audio/media/39
 PASS  … and it is armed                                         != 0
 RECORD  the alarm's entry right after the force-stop (polled 2 s; the home app restarts at once)  absent
-      re-arm after the force-stop:     2026-09-24 22:13:49.678 wall=1790309629678 [alarms] rearm (process start): 1 alarms, 0 timers, exact=true
+      re-arm after the force-stop:     2026-09-25 11:32:20.354 wall=1790357540354 [alarms] rearm (process start): 1 alarms, 0 timers, exact=true
 PASS  force-stop: the next start re-arms the alarm ([alarms] rearm (…): 1 alarms, 0 timers, exact=true)  != 
 RECORD  … the re-arm's reason                                     rearm (process start)
-PASS  … at the same instant in dumpsys alarm                    = 1790309880000
-PASS  … and the Next alarm clock line holds it again            = 1790309880000
-      booted at 1790309648814 (mark before the reboot 1790309630967)
+PASS  … at the same instant in dumpsys alarm                    = 1790357760000
+PASS  … and the Next alarm clock line holds it again            = 1790357760000
+      booted at 1790357562742 (mark before the reboot 1790357541668)
 PASS  after the boot the keyguard is showing                      = true
       dumpsys user, user 0:     State: RUNNING_LOCKED
 PASS  user 0 is still locked (RUNNING_LOCKED)                     contains [RUNNING_LOCKED]
 RECORD  getprop sys.user.0.ce_available before the unlock           []
-PASS  dumpsys alarm's Next alarm clock holds the alarm (re-armed at the locked boot)  = 1790309880000
+PASS  dumpsys alarm's Next alarm clock holds the alarm (re-armed at the locked boot)  = 1790357760000
 PASS  locked: an ALARM player of the shell started within 30 s (the ring sounds before the first unlock)  != 0
 PASS  locked: the ring activity is on top                         contains [clock.RingActivity]
 PASS  locked: … with the keyguard showing                       = true
@@ -41,17 +42,19 @@ PASS  locked: the toast is up (ring_dismiss in the dump)          = yes
 PASS  locked: Dismiss stopped the player                          = 0
 PASS  the PIN unlocked the phone                                  = false
 PASS  the ring holds rearm (locked boot): 1 alarms, 0 timers      contains [[alarms] rearm (locked boot): 1 alarms, 0 timers]
-PASS  … fired ab8ad200f from the locked boot                    contains [[alarms] fired ab8ad200f kind=alarm]
-PASS  … [alarms] sound content://media/external/audio/media/3161 locked -> default (the song cannot be read before the unlock)  contains [[alarms] sound content://media/external/audio/media/3161 locked -> default]
-PASS  … and NOT ring ab8ad200f sound=content://media/external/audio/media/3161 (the song did not play)  does not contain [[alarms] ring ab8ad200f sound=content://media/external/audio/media/3161]
-PASS  … and ring ended ab8ad200f: dismiss                       contains [[alarms] ring ended ab8ad200f: dismiss]
+PASS  … fired ad2eb1986 from the locked boot                    contains [[alarms] fired ad2eb1986 kind=alarm]
+PASS  … [alarms] sound content://media/external/audio/media/39 locked -> default (the song cannot be read before the unlock)  contains [[alarms] sound content://media/external/audio/media/39 locked -> default]
+PASS  … and NOT ring ad2eb1986 sound=content://media/external/audio/media/39 (the song did not play)  does not contain [[alarms] ring ad2eb1986 sound=content://media/external/audio/media/39]
+PASS  … and ring ended ad2eb1986: dismiss                       contains [[alarms] ring ended ad2eb1986: dismiss]
       E31 proves the unlocked counterpart: the same Pick-from-my-music alarm rings the song ([alarms] ring <id> sound=content://…)
-PASS  device clock back within 2 s of the host (RV12)             1790309683.00 vs 1790309683.00 +/- 2.0
+PASS  device clock back within 2 s of the host (RV12)             1790357597.00 vs 1790357597.00 +/- 2.0
 PASS  restore: wake_device printed Awake (C-25)                   = Awake
-      scroll_to_node alarm_row:ab8ad200f: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:ad2eb1986: 0 swipe(s), found=yes
 RECORD  restore: locksettings get-disabled                          true
 PASS  restore: the fixture song is gone from MediaStore           = 
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
+PASS  no-microphone rule: dumpsys audio's recording-activity log is read (positive control: its header)  contains [Events log: recording activity]
+PASS  no-microphone rule: no audio capture on the device during the row (the recording-activity log gained no event)  = 
 ------------------------------------------------------------------------------
-EDGE_LOCKED_SOUND: 31 passed, 0 failed, 7 recorded
+EDGE_LOCKED_SOUND: 33 passed, 0 failed, 7 recorded
