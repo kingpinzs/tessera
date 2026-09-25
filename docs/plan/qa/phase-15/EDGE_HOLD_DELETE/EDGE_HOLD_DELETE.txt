@@ -1,0 +1,34 @@
+==============================================================================
+ROW EDGE_HOLD_DELETE — a hold on an alarm or a timer offers Delete; taps, buttons and Select unchanged
+at            2026-09-25T15:02:31-06:00
+driver        edge_hold_delete.sh blob 2a50127c389def5d0c94ca17c1e84066d1a78926
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     3571b9516e89c9c5 338459026 bytes
+apk installed c4a45bcf8e826a62
+apk match     yes (c4a45bcf8e826a62)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      at the start: 0 alarm(s), 0 timer(s)
+PASS  an alarm was made for the row                               != 
+PASS  a timer was made for the row                                != 
+PASS  a tap on an alarm row still opens its editor                = yes
+PASS  a hold on an alarm row opens its menu                       = yes
+PASS  … offering Delete                                         = yes
+PASS  … and the hold did not open the editor                    = no
+PASS  Delete removes the alarm from the store                     = no
+PASS  … and the ring says so                                    contains [hold delete alarm a3a014b25]
+PASS  … and it is gone from the list                            = no
+PASS  the timer's play / pause button still works (state RUNNING -> PAUSED)  != RUNNING
+PASS  in Select a hold opens no menu                              = no
+PASS  … and a tap still checks or unchecks the block (Delete was enabled="true")  != enabled="true"
+PASS  Back leaves Select with the timer kept                      = yes
+PASS  a hold on a timer's name opens its menu                     = yes
+PASS  … and not the timer editor                                = no
+PASS  … offering Delete                                         = yes
+PASS  Delete removes the timer from the store                     = no
+PASS  … and the ring says so                                    contains [hold delete timer t58dc7d54]
+PASS  restore: the alarm count is as it began                     = 0
+PASS  restore: the timer count is as it began                     = 0
+------------------------------------------------------------------------------
+EDGE_HOLD_DELETE: 20 passed, 0 failed, 0 recorded
