@@ -194,6 +194,16 @@ drop-down (`OptionList`, H25, which shares `CortanaUi.MENU_FILL`), and the name 
   sub-step's backdrop before the gate); `GraphicsLayer.renderEffect` availability on the pinned BOM; that
   a `screencap` of an in-app RenderEffect blur contains the blur (it is the app's own frame, so it must); `isLowRamDevice()`
   on the AVD (false); the per-frame cost of the live source on the AVD (`dumpsys gfxinfo`).
+- 2026-09-25 (build start; Change Log 2026-09-25): **build-start results.** C-18's probe, after `wake_device`: `cmd power set-mode 1`
+  → `low_power` 0 (AC refuses it); `dumpsys battery unplug`; `set-mode 1` → 1, `mBlurEnabled=false`; `set-mode 0` → 0 — C-18 stands
+  and `battery_saver_on` / `_off` are in `lib.sh`. `ro.config.low_ram` unset on the AVD (`isLowRamDevice()` false; the branch is the
+  JVM test). `GraphicsLayer.renderEffect` and `RuntimeShader` effects work on BOM 2026.06.01 / API 36. A `screencap` contains the
+  in-app blur (E2 measures it). HWUI's σ = 0.57735·r + 0.5: the static route's edge spread on the 4-across checker reads 130.2 px
+  at FHD+ (band 107.6–161.4) and 94.4 px at 720 wide (72.1–108.1), and its strip profiles sit within 2.7 levels of the host Gaussian
+  at that σ (E2, qa/phase-13/E2). The tint + noise shader mixes in encoded sRGB, as the derivation assumes: the ≡ pane over Home
+  reads (14.1,19.1,13.1) against (14,19,13), noise σ 3.11 levels. Not yet run when L13-1 stopped the build: the isolated-step
+  (half / half) check, the live route's σ (E3–E5's oracle rows carry it), Tess's pane while she listens (E5's live sub-step), and
+  the live source's `gfxinfo` cost (E9).
 - 2026-09-22 (agent): **Two kinds of NEEDS-HUMAN rows** (R10 testability 26): every acrylic and Reveal row is an "accept
   this Fluent design" row; H3 alone is a fidelity row (against R3 A18, MEDIUM); the measured fills' own rows in phases 02,
   03 and 10 stay fidelity rows and are re-run unchanged in E11.
@@ -337,12 +347,13 @@ OFF = `battery_saver_on` (`lib.sh`, C-18: it unplugs the simulated battery, beca
 low-power mode while powered, and it asserts `low_power` = 1 before the row goes on; restore `battery_saver_off`, then assert
 `settings get global low_power` = 0) or the toggle off (tap `theme_transparency_effects`, restore to On); `settings put global disable_window_blurs 1` is NOT a
 control for this phase (cross-window only; E1 records that) and `wm disable-blur` is not usable from adb (Decisions).
-**Checkerboard fixture (re-cut 2026-09-25 by T13-12):** a 4-square-across black / white PNG at the display size (270-px squares
-at FHD+, 180 px after `wm size 720x1560`), pushed to
-`/sdcard/Android/data/app.tileshell/files/qa/checker.png` and set as the Start background by rewriting
-`shared_prefs/start_theme.xml` key `background` to its `file://` URI through `run-as app.tileshell` with phase 01's
-`prefs_edit.py` while the shell is stopped — the route `qa/phase-01/scripts/item4.sh` uses for the frame photo; restore by
-removing the key. **Edge spread** = the 10–90 % width, in px, of the step between the values at the two adjacent square CENTRES
+**Checkerboard fixture (re-cut 2026-09-25 by T13-12; route re-cut at build, Change Log 2026-09-25):** a 4-square-across black /
+white PNG at the display size (270-px squares at FHD+, 180 px after `wm size 720x1560`), pushed to
+`/sdcard/Pictures/qa13-checker.png`, media-scanned, and set as the Start background by rewriting `shared_prefs/start_theme.xml`
+key `background` to its `content://media/external/images/media/<id>` URI through `run-as app.tileshell` with phase 01's
+`prefs_edit.py` while the shell is stopped — the route `qa/phase-01/scripts/item4.sh` uses for the frame photo (the shell holds
+READ_MEDIA_IMAGES); restore by removing the key and the picture. (A file adb pushes under `/sdcard/Android/data/app.tileshell/`
+lands in a directory adb creates as root, which the app cannot read: EACCES, observed at build.) **Edge spread** = the 10–90 % width, in px, of the step between the values at the two adjacent square CENTRES
 on the same row (the row's own plateaus, not 0 and 255), read on the column mean of ≥ 8 strip rows clear of text; expected
 blurred width = 2.563 · σ with σ = 0.57735 · r + 0.5 and r = 30 epx · px/epx (r = 90 px, σ = 52.46 px, width ≈ 134.5 px at
 3 px/epx), pass = within ± 20 %; "sharp" = width ≤ 2 px. (Host check 2026-09-25: 4-across gives 131 px at FHD+ and 87 px at 720
@@ -367,15 +378,21 @@ wide, both inside their bands at every strip offset; the former 8-across gave 88
   the dump's `applist_*` bounds), the edge spread is the blurred width and the pixel values (column means) are 0.2 × (blurred checker) ± 3
   (T = black, α = 0.8: white-square centres ≈ 50, black ≈ 1; T13-12); in the same capture the "A" letter header's
   glyph edge and an app-name row's text edge are sharp; a screencap of Start (page 0) shows the checker's edges sharp (the
-  wallpaper is not blurred in place); `acrylic:applist` is in the app-list dump with the page's bounds. Acrylic off (E1's
+  wallpaper is not blurred in place); `acrylic:applist` is in the app-list dump, inside `app_list`'s bounds (Compose hands
+  accessibility a covered node's uncovered part only, so under the rows it reports the strip they leave open; the page's
+  rectangle, which the backdrop fills, is `app_list`'s — re-cut at build, Change Log 2026-09-25). Acrylic off (E1's
   control): edges sharp, pixels = 0.2 × checker ± 3, `acrylic:applist` still present (the same surface, its fallback form).
   A second pass at `wm size 720x1560` (2 px/epx): the blurred width scales to r = 60 px's value ± 20 %; `wm size reset`.
 - E3 The live source keeps the measured fill in its own setup and blurs a bright backdrop (reminder menu). Setup (T13-21):
   Dark theme; `qa/phase-13/scripts/reminders_fixture.sh` (not e15.sh, which makes two reminders and no photo) makes, through the
-  product path with `lib.sh` `type_request` and `type_request yes`, "remind me tomorrow at 9 am to QA13 tomorrow" and "remind me to
-  QA13 photo" (Whenever), then attaches to the Whenever one, on its page's "Add a photo", through the system photo picker, a
-  generated 1080 × 1080 black / white split PNG pushed to `/sdcard/Pictures/qa13-split.png` and media-scanned (phase 11 EDGE's X5
-  picker route); it asserts both rows and the photo node before any sample. Long-press the tomorrow row: the menu's interior, a
+  product path, "remind me to check the QA13 tomorrow list tomorrow at 9 am" typed with `lib.sh` `type_request` and confirmed with
+  the card's Confirm (`cortana_card_button:confirm` — the confirm card replaces the text box, so a typed "yes" has nowhere to go;
+  re-cut at build), and the Whenever reminder "check the QA13 photo" on the Reminders page's own new page (`reminders_appbar_add`:
+  text, the camera button, the system photo picker, Save — a typed request with no time gets the "When would you like to be
+  reminded?" card, whose answer can only be spoken), attaching a generated 1080 × 1080 black / white split PNG pushed to
+  `/sdcard/Pictures/qa13-split.png` and media-scanned (phase 11 EDGE's X5 picker route); it asserts both rows and the photo node
+  before any sample. BLOCKED at build by L13-1 (INDEX ledger): inside Tess's session a reminder's page crashes the launcher and the
+  card's "Add a photo" is a no-op, so no product route attaches the photo. Long-press the tomorrow row: the menu's interior, a
   10 × 10 px patch clear of text placed by the measured-fill precondition (preamble), reads (40,40,40) ± 2 and its border (71,76,70)
   ± 2 — E15's values unchanged. Then long-press the photo row at the photo's horizontal centre, 10 px above its bottom, so the menu
   overlaps the photo (dump bounds of `acrylic:reminder_menu` intersect the photo's node, asserted before sampling): a profile across
@@ -465,7 +482,7 @@ wide, both inside their bands at every strip offset; the former 8-across gave 88
   holds its own `[fluent] <surface> source=… tint=… alpha=0.8 blur=30epx` line, and E1's reasons appear in its saved step order; a
   missing slice fails the row, and nothing is read from an unsliced ring or an earlier build's evidence.
 - E13 Static backdrop failure (T13-10): with the checkerboard set as the Start background (the fixture route above), `adb shell rm
-  /sdcard/Android/data/app.tileshell/files/qa/checker.png`, `ring_save`, MARK, `am force-stop app.tileshell` + Home (so no cached
+  /sdcard/Pictures/qa13-checker.png` (the fixture's route, re-cut at build), `ring_save`, MARK, `am force-stop app.tileshell` + Home (so no cached
   layer survives; the new process builds the layer at start, T13-15, so its failure may be stamped before the swipe), swipe to the
   app list: the new process's slice from MARK holds `[fluent] static backdrop failed for <the checker's file:// URI>: <why> (fallback)` and no
   `static backdrop rebuilt` line, and the app-list region reads the fallback form with no picture — the solid theme background
