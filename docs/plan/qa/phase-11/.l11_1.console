@@ -1,5 +1,5 @@
 ── L11-1 one arbiter: the API beats notifications; a playing face survives notification updates
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 9.0 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 9.6 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- the fix's JVM tests, from this run's unit results (run_all keeps them in UNIT-results/ before any row) ---
@@ -14,7 +14,7 @@ PASS  …not the notification                                     does not conta
 PASS  clearing the queue lets the notification show               contains [-> shows notifications]
 PASS  …and the tile shows the notification (the control for the absence above)  contains [NoteTitle]
 --- (b) Fossify playing: the strip survives notification updates ---
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-player.json: 1 file pushed, 0 skipped. 8.4 MB/s (1420 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-player.json: 1 file pushed, 0 skipped. 2.9 MB/s (1420 bytes in 0.000s)
 PASS  restore baseline_layout-player.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-player.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  Fossify is playing                                          contains [state=PLAYING(3)]
@@ -23,27 +23,28 @@ PASS  strip present, dump 2 (+3 s)                                = yes
 PASS  strip present, dump 3 (+6 s)                                = yes
 PASS  the playing face shows the track (phase 01 E8's playback face)  contains [An Ending]
 PASS  the notification feed published while it played (the race is exercised)  != 0
-PASS  every publish after the face still shows the playing session  = 7
+PASS  every publish after the face still shows the playing session  = 5
 PASS  Fossify paused                                              contains [state=PAUSED(2)]
 PASS  paused: the strip goes (item 3's ruling)                    = no
 PASS  paused: nothing shows the playing session any more          does not contain [-> shows music (playing)]
 --- (d) F-2 and R1-1: a player uninstalled WHILE PLAYING keeps nothing; its reinstall inherits no face ---
 PASS  the player's APK is phase 01 E04's fixture (copied off the device to reinstall it)  = b5d0ce367544df1ac162adf71d642878c5b963a304ca0ddf8f8556f07bbba79b
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-player.json: 1 file pushed, 0 skipped. 7.7 MB/s (1420 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-player.json: 1 file pushed, 0 skipped. 4.1 MB/s (1420 bytes in 0.000s)
 PASS  restore baseline_layout-player.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-player.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  Fossify is playing when it is uninstalled                   contains [state=PLAYING(3)]
 PASS  the player is uninstalled                                   = 
 PASS  the engine forgot the package, every source                 contains [[engine] forget pkg:org.fossify.musicplayer (every source)]
 PASS  MusicFeed dropped its remembered track                      contains [[music] forgot org.fossify.musicplayer's track]
-PASS  after the forget, the player's key ends with nothing shown (R1-1)  does not contain [-> shows music]
+PASS  after the forget, the player's key ends with nothing shown  does not contain [-> shows music]
+PASS  9f790b7's own null publish follows the engine's forget      contains [from=music faces=0]
 PASS  the player is installed again                               contains [package:]
 PASS  the reinstalled player is in the app list                   != 
-PASS  one shell process from the uninstall to the read            = 7681
+PASS  one shell process from the uninstall to the read            = 14193
 PASS  the re-pinned tile shows the reinstalled player             contains [Music Player]
 PASS  the reinstalled player's tile shows no inherited track face  does not contain [An Ending]
 --- (c) the shell's own player on the Music tile ---
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 7.2 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 10.1 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  the shell's player is playing                               contains [state=PLAYING(3)]
@@ -55,7 +56,7 @@ PASS  every publish after the face still shows the playing session  = 9
 PASS  the shell's player paused                                   contains [state=PAUSED(2)]
 PASS  paused: the Music tile's strip goes                         = no
 --- phase 01 E15 / E17 captures on this build (their parts changed: the API and the notification feed) ---
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 9.6 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 8.9 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  phase 01 e15.sh exits 0                                     = 0
@@ -68,20 +69,20 @@ PASS  E15: the update is gone once it expires                     does not conta
 PASS  E15: the expiry was the alarm's                             contains [[livetile] expire app.tileshell.testclient.a]
 PASS  E17: badge order 7, 3, 5, 3, 7, none                        = 7 3 5 3 7 -
 --- (e) F-1: a secondary tile's API content survives a notification-listener rescan ---
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 2.3 MB/s (1390 bytes in 0.001s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 8.5 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  the secondary tile is pinned                                contains [secondary:app.tileshell.testclient.a:l111]
 PASS  the secondary tile shows its API content (the control)      contains [SecContent]
 PASS  the listener reconnected and rescanned                      contains [[notif] rescan (connected)]
-PASS  one shell process across the rescan                         = 10393
+PASS  one shell process across the rescan                         = 17236
 PASS  the secondary tile still shows its API content after the rescan (F-1)  contains [SecContent]
 --- phase 02 E5 (secondary tiles) re-run on this build: a regression check, not F-1's proof ((e) is) ---
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-pre-11.json: 1 file pushed, 0 skipped. 5.7 MB/s (841 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-pre-11.json: 1 file pushed, 0 skipped. 5.8 MB/s (841 bytes in 0.000s)
 PASS  restore baseline_layout-pre-11.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-pre-11.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 7.7 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 9.0 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  phase 02 E5 (secondary tiles) exits 0 on this build         = 0
-   L11-1: 69 passed, 0 failed
+   L11-1: 70 passed, 0 failed

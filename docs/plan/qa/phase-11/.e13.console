@@ -16,32 +16,32 @@ PASS  phase 02 e8 exits 0                                         = 0
 PASS  phase 02 e8: no slot re-assigned on load (C-3)              does not contain [-> assigned]
 PASS  phase 02 e8: addedOnce as phase 02's file (C-3)             = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- phase 02's hold and drag as one gesture: no burst during the drag, burst closed: drag ---
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-pre-11.json: 1 file pushed, 0 skipped. 1.8 MB/s (841 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-pre-11.json: 1 file pushed, 0 skipped. 6.1 MB/s (841 bytes in 0.000s)
 PASS  restore baseline_layout-pre-11.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-pre-11.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  no quick_burst during the drag                              = no
 PASS  ring: burst closed: drag                                    contains [[quick] burst closed: drag]
 --- phase 02 E7's 830-ms line with the burst: slot:PEOPLE (Contacts, one manifest shortcut) ---
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-pre-11.json: 1 file pushed, 0 skipped. 6.0 MB/s (841 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-pre-11.json: 1 file pushed, 0 skipped. 28.1 MB/s (841 bytes in 0.000s)
 PASS  restore baseline_layout-pre-11.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-pre-11.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  830 ms: quick_burst present                                 = yes
 PASS  830 ms: quick_sat:0 only                                    = yes no no no
 --- phase 01 E10 press styles: a short press shows the style and opens no burst ---
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 9.5 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 10.3 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-PASS  press_none: the press was short (under 700 ms on the device clock)  = yes
+PASS  press_none: the press was short (t1 - t0 under 700 ms on the device clock)  = yes
 PASS  press_none: the held tile looks as at rest                  = EQUAL
 PASS  press_none: no burst                                        does not contain [[quick] burst on]
 PASS  press_none: no hold                                         does not contain [[edit] hold]
 PASS  press_none: nothing launched (the press ended in a scroll)  does not contain [[launch]]
-PASS  press_tilt: the press was short (under 700 ms on the device clock)  = yes
+PASS  press_tilt: the press was short (t1 - t0 under 700 ms on the device clock)  = yes
 PASS  press_tilt: the held tile shows the press style             = DIFF
 PASS  press_tilt: no burst                                        does not contain [[quick] burst on]
 PASS  press_tilt: no hold                                         does not contain [[edit] hold]
 PASS  press_tilt: nothing launched (the press ended in a scroll)  does not contain [[launch]]
-PASS  press_p4: the press was short (under 700 ms on the device clock)  = yes
+PASS  press_p4: the press was short (t1 - t0 under 700 ms on the device clock)  = yes
 PASS  press_p4: the held tile shows the press style               = DIFF
 PASS  press_p4: no burst                                          does not contain [[quick] burst on]
 PASS  press_p4: no hold                                           does not contain [[edit] hold]
@@ -50,7 +50,7 @@ PASS  press_p4: nothing launched (the press ended in a scroll)    does not conta
 PASS  phase 11's manifest diff adds no exported component         does not contain [android:exported]
 PASS  outside the allow-list: exactly phase 10's Music activity and service (pre-existing)  = app.tileshell.music.MusicActivity app.tileshell.music.MusicService
 PASS  nothing on the allow-list went missing                      does not contain [ON THE LIST BUT NOT EXPORTED]
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 4.2 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 10.4 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
    E13: 45 passed, 0 failed

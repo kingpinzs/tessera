@@ -1,5 +1,5 @@
 ── EDGE the Edge Cases list: flip, fling, call, keyguard, listener restart, process death, second finger, show more tiles, folder dissolve, labels, theme, transparency, RV10
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 2.4 MB/s (1390 bytes in 0.001s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 9.8 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- a hold during a live flip: the satellites stay still, the flip continues (T11-41) ---
@@ -16,15 +16,22 @@ quick_sat_label:2 145 1044 323 1092
 quick_sat:3 756 879 921 1044
 quick_sat_label:3 749 1044 927 1092
 PASS  (there were satellites to compare)                          != 
+PASS  no satellite re-rested across the flip (the tracked slot never moved, T11-41)  = 
 --- a hold while Start is flinging: the scroll consumes the press — no hold, no burst (phase 02's rule) ---
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-tall.json: 1 file pushed, 0 skipped. 6.6 MB/s (1384 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-tall.json: 1 file pushed, 0 skipped. 8.5 MB/s (1384 bytes in 0.000s)
 PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-PASS  the page moved (the fling ran)                              != 9 84 352 427
+PASS  control: the swipe flings (travel past the finger's 400 px + 100)  = yes
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-tall.json: 1 file pushed, 0 skipped. 37.8 MB/s (1384 bytes in 0.000s)
+PASS  restore baseline_layout-tall.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout-tall.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  the press landed while Start was flinging and stopped it (400 + 40 < travel < control − 30)  = yes
 PASS  no hold                                                     does not contain [[edit] hold]
 PASS  no burst                                                    does not contain [[quick] burst on]
+PASS  nothing launched                                            does not contain [[launch]]
 PASS  no edit mode, no burst on the page                          = no no
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 9.5 MB/s (1390 bytes in 0.000s)
+PASS  positive control: the same press with the page at rest is a hold (folder:qa)  contains [[edit] hold 783ms on folder:qa]
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 8.8 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- a second finger while a burst is open: ignored (as phase 02 ignores it) ---
@@ -33,13 +40,24 @@ PASS  the burst is open while the first finger holds              = yes
 PASS  a second finger down and up elsewhere: the burst stays      = yes
 PASS  …and after the first finger lifts                         = yes
 PASS  nothing closed it                                           does not contain [burst closed]
+PASS  control: the same contact alone closes the burst (tap elsewhere)  contains [burst closed: tap elsewhere]
+--- in edit mode no press is a hold (T11-23): a 1.0-s still press on another tile with a burst open only closes it ---
+PASS  Tess's centre is outside every satellite                    = none
+PASS  a 1.0-s still press on another tile closed the burst (tap elsewhere)  contains [burst closed: tap elsewhere]
+PASS  …and was no hold                                          does not contain [[edit] hold]
+PASS  …and opened no second burst                               = 0
+PASS  …and the selection stays on the fixture (its discs unchanged)  = 661 443 754 536
+PASS  a 1.0-s still press on the held tile, no burst open, exits edit mode  = no
+PASS  …and was no hold                                          does not contain [[edit] hold]
 --- the burst open at an incoming call: ringing is a heads-up over Start; answering brings the call in front (stop) ---
 PASS  ringing: a heads-up (its Answer button is on screen)        contains [ANSWER]
 PASS  ringing: Start is still the resumed activity                contains [app.tileshell/.StartActivity]
 PASS  ringing: nothing closed the burst                           does not contain [burst closed]
 PASS  answered: the call's window is in front of Start            does not contain [app.tileshell/.StartActivity]
 PASS  answered: Start stopped, the burst closed (stop)            contains [burst closed: stop]
---- the burst open at the keyguard: screen off, wake, the keyguard, dismissed ---
+--- the burst open at the keyguard: a PIN for this sub-step, screen off, wake onto the keyguard, unlock ---
+PASS  the keyguard is showing after the wake                      = isKeyguardShowing=true
+PASS  the PIN unlocked it                                         = isKeyguardShowing=false
 PASS  the burst closed (stop)                                     contains [burst closed: stop]
 PASS  Start after the keyguard: no burst                          = no
 --- the burst open at a notification-listener restart ---
@@ -47,13 +65,14 @@ PASS  Settings in front stopped Start: the burst closed (stop)    contains [burs
 PASS  the listener restarted (connected again)                    contains [[notif] listener connected]
 PASS  Start after the restart: no burst                           = no
 --- process death with a burst open: no state persists; Start restarts plain ---
-PASS  a new shell process                                         != 15881
+PASS  a burst is open before the kill                             = yes
+PASS  a new shell process                                         != 23711
 PASS  Start restarted plain: page, no burst, no edit mode         = yes no no
 --- Show more tiles toggled with a burst open: Start stops first (the burst closes, stop) ---
 PASS  the burst closed when Start stopped (stop)                  contains [burst closed: stop]
 PASS  Start after the toggle: no burst                            = no
 --- unpin of the last tile in a two-tile folder, from its burst: the folder dissolves (phase 02 H19), the burst closes ---
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-folder2.json: 1 file pushed, 0 skipped. 3.7 MB/s (1336 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout-folder2.json: 1 file pushed, 0 skipped. 7.8 MB/s (1336 bytes in 0.000s)
 PASS  restore baseline_layout-folder2.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-folder2.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 PASS  the fixture bursts inside the expanded band                 = yes
@@ -61,29 +80,35 @@ PASS  the burst closed (unpin)                                    contains [burs
 PASS  the folder dissolved                                        = []
 PASS  its other tile is on Start                                  contains [slot:MAPS]
 PASS  the fixture is unpinned                                     does not contain [app:app.tileshell.testclient.a/app.tileshell.testclient.VerbActivity:0]
-/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 6.9 MB/s (1390 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 9.5 MB/s (1390 bytes in 0.000s)
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
 --- a shortcut with a blank short label, and a very long one (tileclient-b's labels verb) ---
 PASS  three satellites (Dyn, the blank one, the long one)         = yes yes yes no
 PASS  the blank label's line shows nothing (never the id)         = 
 PASS  …the id is never shown                                    does not contain [qa_blank]
-PASS  the long label keeps the label box's size (one line, clipped with an ellipsis)  = 178x48
-PASS  the blank-labelled satellite still runs                     contains [qa_blank]
+PASS  the blank-labelled satellite still runs                     contains [qa_blank: startShortcut ok]
 --- theme Light / Dark: the satellite fill is the accent (as on a tile); the label takes the theme's text colour ---
-PASS  theme light: satellite fill = the tile's accent; label in the theme's text colour  fill=[0, 120, 215] tile=[0, 120, 215] label ink min=0 bg=122 -> PASS
-PASS  theme dark: satellite fill = the tile's accent; label in the theme's text colour  fill=[0, 120, 215] tile=[0, 120, 215] label ink max=255 bg=51 -> PASS
+PASS  theme light: the ring shows the change to LIGHT             = 1
+PASS  theme light: satellite fill = the tile's accent; label in the theme's text colour  page=223 fill=[0, 120, 215] tile=[0, 120, 215] label ground=122 ink min=0 -> PASS
+PASS  theme dark: the ring shows the change to DARK               = 1
+PASS  theme dark: satellite fill = the tile's accent; label in the theme's text colour  page=0 fill=[0, 120, 215] tile=[0, 120, 215] label ground=51 ink max=255 -> PASS
 --- the X5 transparency slider at 0 % and 100 %: the satellite fill follows the tile's ---
 PASS  a background picture is set: the transparency slider is there  != 
 PASS  the slider reads 0 %                                        = 0
+PASS  the stored transparency is at the 0 % end (the round-2 re-judge, EV-13: 9.920635E-4)  = yes
 PASS  X5 0%: the backdrop capture has edit mode and no burst      = yes no
 PASS  X5 0%: every satellite is the accent at the tile's alpha over what lies behind it  want=[0, 120, 215] | max |d|=0.0 -> PASS
 PASS  the slider reads 100 %                                      = 100
+PASS  the stored transparency is at the 100 % end (the round-2 re-judge, EV-13: 0.9980159)  = yes
 PASS  X5 100%: the backdrop capture has edit mode and no burst    = yes no
 PASS  X5 100%: every satellite is the accent at the tile's alpha over what lies behind it   want=[18, 40, 65] | max |d|=0.4 -> PASS
 --- RV10: wm size / wm density / font_scale leave the satellites' bounds in epx unchanged (phase 01 E3's method) ---
+PASS  RV10 size720: the change applied                            contains [Override size: 720x1560]
 PASS  RV10 size720: satellites unchanged in epx                   PASS max |d| = 0.50 epx over 8 rects
+PASS  RV10 d560: the change applied                               contains [560dpi]
 PASS  RV10 d560: satellites unchanged in epx                      PASS max |d| = 0.00 epx over 8 rects
+PASS  RV10 font13: the change applied                             contains [1.3 ]
 PASS  RV10 font13: satellites unchanged in epx                    PASS max |d| = 0.00 epx over 8 rects
 --- the index: every Edge Cases bullet and where it is proved ---
-   EDGE: 61 passed, 0 failed
+   EDGE: 84 passed, 0 failed

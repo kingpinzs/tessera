@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="app.tileshell.cortana.speech.AudioLevelTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-24T19:44:46.130Z" hostname="pop-os" time="0.004">
+<testsuite name="app.tileshell.cortana.speech.AudioLevelTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-24T23:14:36.295Z" hostname="pop-os" time="0.004">
   <properties/>
-  <testcase name="rms honours the offset, so a level can be taken from the middle of a chunk" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.0"/>
+  <testcase name="rms honours the offset, so a level can be taken from the middle of a chunk" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.001"/>
   <testcase name="quiet speech over silence is speech even far below -40 dBFS" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.0"/>
-  <testcase name="full scale is one" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.001"/>
+  <testcase name="full scale is one" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.0"/>
   <testcase name="the floor sits exactly at -60 dBFS" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.0"/>
   <testcase name="half scale lands where the dBFS window says it should" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.0"/>
   <testcase name="speech in a noisy room rises over its background" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.0"/>
   <testcase name="rms is the root mean square of the samples that were actually read" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.0"/>
   <testcase name="anything quieter than the floor is zero, and nothing exceeds one" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.0"/>
   <testcase name="a steady quiet room is not speech" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.0"/>
-  <testcase name="the mapping is monotonic across the whole range" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.003"/>
+  <testcase name="the mapping is monotonic across the whole range" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.002"/>
   <testcase name="digital silence is zero" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.0"/>
   <testcase name="digital silence is never speech" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.0"/>
   <testcase name="under 120 ms of speech does not count" classname="app.tileshell.cortana.speech.AudioLevelTest" time="0.0"/>
