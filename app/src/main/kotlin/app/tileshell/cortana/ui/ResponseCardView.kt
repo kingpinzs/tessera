@@ -1,5 +1,6 @@
 package app.tileshell.cortana.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,6 +24,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import app.tileshell.brand.Glyph
@@ -188,7 +193,26 @@ fun ResponseCardView(
             }
         }
 
-        if (card.photoRow) {
+        val photoUri = card.photoUri
+        if (card.photoRow && photoUri != null) {
+            // L13-1, Jeremy's Q3 "(a)" (P4 design, no R6 source; NEEDS-HUMAN): the picked photo takes the row's place,
+            // full card width at the reminder page's proportions; a tap picks a different one.
+            Spacer(Modifier.height(10.dp))
+            val photo = rememberReminderPhoto(LocalContext.current, photoUri)
+            Box(
+                Modifier
+                    .padding(horizontal = CardValues.TITLE_LEFT_EPX.dp)
+                    .fillMaxWidth()
+                    .aspectRatio(CortanaUi.DETAIL_PHOTO_ASPECT)
+                    .background(CardValues.FIELD_FILL)
+                    .clickable(remember { MutableInteractionSource() }, indication = null) {
+                        onAction(CardAction.PICK_PHOTO)
+                    }
+                    .testTag("cortana_card_photo"),
+            ) {
+                if (photo != null) Image(photo, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            }
+        } else if (card.photoRow) {
             Spacer(Modifier.height(10.dp))
             Row(
                 Modifier

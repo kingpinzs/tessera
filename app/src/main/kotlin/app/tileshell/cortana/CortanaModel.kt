@@ -1,6 +1,7 @@
 package app.tileshell.cortana
 
 import android.content.Context
+import android.net.Uri
 import app.tileshell.apps.AppCatalog
 import app.tileshell.brand.Brand
 import app.tileshell.cortana.action.ActionHost
@@ -11,6 +12,9 @@ import app.tileshell.cortana.action.Outcome
 import app.tileshell.cortana.action.Pending
 import app.tileshell.cortana.match.CommandMatcher
 import app.tileshell.cortana.match.Request
+import app.tileshell.cortana.reminders.Reminder
+import app.tileshell.cortana.reminders.ReminderPhotos
+import app.tileshell.cortana.reminders.ReminderStore
 import app.tileshell.cortana.speech.MicHolders
 import app.tileshell.cortana.speech.SpeechClient
 import app.tileshell.cortana.speech.SpeechError
@@ -114,6 +118,7 @@ class CortanaModel(
         SpeechClient.unbind(context)
         closeAfterUtterance = null
         // "closing the session drops it too" (H12): a pending request never survives the session.
+        releaseDroppedPhoto(null)
         mutable.value = CortanaState()
     }
 
@@ -121,6 +126,7 @@ class CortanaModel(
 
     fun open(mode: CortanaMode) {
         val locked = LockGate.locked(context)
+        releaseDroppedPhoto(null)
         mutable.value = CortanaState(
             locked = locked,
             // R6 §3.5.5: a session over the keyguard opens on the black page with the non-personalised
@@ -316,6 +322,7 @@ class CortanaModel(
         // the Unlock card, applied to every card so there is one rule rather than two).
         if (pending != null) {
             Diagnostics.add("cortana", "a new request replaced the pending ${pending.javaClass.simpleName}")
+            releaseDroppedPhoto(null)
             mutable.value = mutable.value.copy(pending = null, awaiting = null)
         }
 
@@ -348,8 +355,31 @@ class CortanaModel(
             CardAction.ADD_MORE -> (pending as? Pending.SendText)?.let { reply(actions.addMore(it)) }
             CardAction.TRY_AGAIN -> pending?.let { reply(actions.tryAgain(it)) }
             CardAction.UNLOCK -> pending?.let { reply(actions.confirm(it)) }
-            CardAction.SET_DEFAULT_ASSISTANT, CardAction.PICK_PHOTO -> Unit // the session handles these
+            // The role notice's activity handles SET_DEFAULT_ASSISTANT; PICK_PHOTO is launched by the card's host
+            // through Tess's window's registry, and its photo comes back to [attachPhoto] (L13-1).
+            CardAction.SET_DEFAULT_ASSISTANT, CardAction.PICK_PHOTO -> Unit
         }
+    }
+
+    /**
+     * The photo picked from a reminder card's "Add a photo" (L13-1): copied into the launcher's storage (Q2) and put
+     * on the pending reminder and on the card, where it takes the row's place (Q3). A photo picked again replaces it.
+     */
+    fun attachPhoto(picked: Uri) {
+        val pending = mutable.value.pending
+        if (pending.reminderDraft == null) {
+            Diagnostics.add("cortana", "photo picked with no reminder pending (${pending?.javaClass?.simpleName}); dropped")
+            return
+        }
+        val copy = ReminderPhotos.adopt(context, picked) ?: return
+        val next = when (pending) {
+            is Pending.SaveReminder -> pending.copy(draft = pending.draft.copy(photoUri = copy))
+            is Pending.AwaitReminderTime -> pending.copy(draft = pending.draft.copy(photoUri = copy))
+            else -> return
+        }
+        releaseDroppedPhoto(next)
+        mutable.value = mutable.value.copy(pending = next, card = mutable.value.card?.copy(photoUri = copy))
+        Diagnostics.add("cortana", "photo attached to the pending ${pending.javaClass.simpleName}")
     }
 
     /**
@@ -364,6 +394,24 @@ class CortanaModel(
         if (mutable.value.listening) SpeechClient.stopListening()
         mutable.value = mutable.value.copy(listening = false, level = 0f, persona = PersonaState.IDLE_AFTER_SPEAKING)
     }
+
+    /**
+     * A photo picked on a card is a private copy (Q2): when the pending reminder holding it is replaced by [next] —
+     * cancelled, a new request, the session closing — and neither [next] nor a saved reminder holds it, it is deleted.
+     */
+    private fun releaseDroppedPhoto(next: Pending?) {
+        val photo = mutable.value.pending.reminderDraft?.photoUri ?: return
+        if (next.reminderDraft?.photoUri == photo) return
+        if (ReminderStore.get(context).reminders.value.any { it.photoUri == photo }) return
+        ReminderPhotos.release(context, photo)
+    }
+
+    private val Pending?.reminderDraft: Reminder?
+        get() = when (this) {
+            is Pending.SaveReminder -> draft
+            is Pending.AwaitReminderTime -> draft
+            else -> null
+        }
 
     /** The gated request the "Unlock" button was raised for, run now that the keyguard is gone. */
     fun onUnlocked() {
@@ -386,6 +434,7 @@ class CortanaModel(
 
     private fun reply(outcome: Outcome) {
         val voice = CortanaPrefs.get(context).settings.value.voiceId
+        releaseDroppedPhoto(outcome.pending)
         mutable.value = mutable.value.copy(
             card = outcome.card,
             pending = outcome.pending,
@@ -495,6 +544,7 @@ class CortanaModel(
 
     /** Back from an answer: take the card off the page and return to Home. */
     fun clearResult() {
+        releaseDroppedPhoto(null)
         mutable.value = mutable.value.copy(route = CortanaRoute.Home, card = null, pending = null, awaiting = null)
         Diagnostics.add("cortana", "result cleared")
     }
