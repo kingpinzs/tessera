@@ -1,0 +1,18 @@
+==============================================================================
+ROW FIXPROBE — probe the reminders fixture
+at            2026-09-25T15:21:50-06:00
+driver        bash blob 
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c2ac10ea0f3532fc 337942814 bytes
+apk installed 4a161c949c3492ed
+apk match     yes (4a161c949c3492ed)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  restore: no QA13 reminder left                              = 
+      picker: newest photo at []
+PASS  fixture: the tomorrow reminder's row                        != 
+FAIL  fixture: the photo reminder's row                           should not be []
+FAIL  fixture: the photo reminder shows its photo                 expected [yes] got [no]
+------------------------------------------------------------------------------
+FIXPROBE: 2 passed, 2 failed, 0 recorded

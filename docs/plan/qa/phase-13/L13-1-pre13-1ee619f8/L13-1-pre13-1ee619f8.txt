@@ -1,0 +1,24 @@
+==============================================================================
+ROW L13-1-pre13-1ee619f8 — L13-1 repro on pre13-1ee619f8: a reminder's page crashes inside Tess; the card's Add a photo is a no-op
+at            2026-09-25T15:27:42-06:00
+driver        l13_1_repro.sh blob 25ae49f6a0436b3da99f76353e0f42c23985303a
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c2ac10ea0f3532fc 337942814 bytes
+apk installed 4a161c949c3492ed
+apk match     yes (4a161c949c3492ed)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      repro apk: 2fe882069e3e8052 (/tmp/claude-1000/-home-jeremyking/fb6edbba-17ac-4883-a3b6-0cf474f9cea0/scratchpad/pre13/app/build/outputs/apk/debug/app-debug.apk)
+      installed: be080299fda6f9b6
+PASS  the Reminders page is showing                               = yes
+      crash count 2 -> 3; pid 21798 -> 21962
+PASS  (1) + on the Reminders page: a new 'No ActivityResultRegistryOwner' crash  = 3
+PASS  (1) the launcher's process died (its pid changed)           != 21798
+PASS  (2) the confirm card offers Add a photo                     = yes
+      focus before:   mCurrentFocus=Window{d6a0de4 u0 VoiceInteractionSession}
+      focus after:    mCurrentFocus=Window{d6a0de4 u0 VoiceInteractionSession}
+PASS  (2) Add a photo opens no photo picker (focus stays on the session)  does not contain [photopicker]
+PASS  (2) the card is still showing, unchanged                    = yes
+------------------------------------------------------------------------------
+L13-1-pre13-1ee619f8: 6 passed, 0 failed, 0 recorded
