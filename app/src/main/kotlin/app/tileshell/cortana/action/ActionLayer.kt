@@ -378,6 +378,7 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
                     ),
                     recurrence = Recurrence.ONCE,
                     photoRow = true,
+                    photoUri = draft.photoUri,
                     callout = "try 10th of every month at 5 PM",
                     buttons = listOf(CardButton("Remind", CardAction.CONFIRM), CardButton("Cancel", CardAction.CANCEL)),
                 ),
@@ -413,6 +414,8 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
                 fields = fields,
                 recurrence = if (draft.kind == ReminderKind.TIME) draft.recurrence else null,
                 photoRow = true,
+                // L13-1: a photo already picked on the card stays on the card that replaces it (a time supplied).
+                photoUri = draft.photoUri,
                 callout = "you can say Yes, No, or Cancel",
                 buttons = listOf(CardButton("Remind", CardAction.CONFIRM), CardButton("Cancel", CardAction.CANCEL)),
             ),

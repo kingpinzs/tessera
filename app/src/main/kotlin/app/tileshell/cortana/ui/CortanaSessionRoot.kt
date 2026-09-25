@@ -4,6 +4,9 @@ import app.tileshell.ui.fluent.LocalAcrylicBackdrop
 import app.tileshell.ui.fluent.acrylicBackdropSource
 import app.tileshell.ui.fluent.rememberAcrylicBackdrop
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -36,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import app.tileshell.bars.BarMetrics
 import app.tileshell.bars.W10mNavBar
 import app.tileshell.bars.W10mStatusBar
+import app.tileshell.cortana.CardAction
 import app.tileshell.cortana.CortanaDestinationKey
 import app.tileshell.cortana.CortanaModel
 import app.tileshell.cortana.CortanaRoute
@@ -128,6 +132,11 @@ fun CortanaSessionRoot(
 private fun HomeOrResult(model: CortanaModel) {
     val state by model.state.collectAsState()
     val accent = LocalShellColors.current.accent
+    // A reminder card's "Add a photo" (R6 §3.4.2): the system photo picker, launched through Tess's window's own
+    // registry (L13-1); the photo goes onto the pending reminder and the card.
+    val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) model.attachPhoto(uri)
+    }
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(1f).fillMaxWidth().padding(top = BarMetrics.STATUS_EPX.dp)) {
             when (state.route) {
@@ -148,7 +157,12 @@ private fun HomeOrResult(model: CortanaModel) {
                     state.card?.let { card ->
                         ResponseCardView(
                             card, state.persona, state.level, accent,
-                            onAction = { action -> model.onCardAction(action) },
+                            onAction = { action ->
+                                model.onCardAction(action)
+                                if (action == CardAction.PICK_PHOTO) {
+                                    pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                }
+                            },
                         )
                     }
                 }
