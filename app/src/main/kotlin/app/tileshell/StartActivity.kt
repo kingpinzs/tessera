@@ -156,6 +156,16 @@ class StartActivity : ComponentActivity() {
                 }
             }
         }
+        LaunchedEffect(Unit) {
+            // A ring ends edit mode (phase 15 Edge cases: "while Start is in edit mode (edit mode ends)"). The ring toast
+            // is an overlay, so Start stays resumed beneath it and hears no Home or Back to leave by.
+            app.tileshell.clock.RingService.state.collect { ring ->
+                if (ring != null && edit.active) {
+                    edit.requestExit()
+                    Diagnostics.add("start", "edit mode ends: a ring started")
+                }
+            }
+        }
         LaunchedEffect(pager.currentPage) { page = pager.currentPage }
 
         Box(Modifier.fillMaxSize()) {

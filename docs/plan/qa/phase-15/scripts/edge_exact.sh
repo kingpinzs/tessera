@@ -3,8 +3,9 @@
 # app.tileshell SCHEDULE_EXACT_ALARM deny` on a build with USE_EXACT_ALARM temporarily removed from the manifest, QA build
 # only): the exact_alarms row is red, alarms arm inexactly, the notice is shown and spoken, and the alarm still rings
 # within Android's inexact window."
-# The QA build: a `git archive` of HEAD built in the scratchpad with the one manifest line removed (edgeC-build.sh; its
-# path in EDGE_EXACT_APK), signed with the same debug key, installed with `adb install -r` (data kept). Then:
+# The QA build: a `git archive` of HEAD (whose app/ is the FINAL build 61c5b610's source) built in the scratchpad with the
+# one manifest line removed (scratchpad/p15/edgeC2-build.sh; its path in EDGE_EXACT_APK), signed with the same debug key,
+# installed with `adb install -r` (data kept). Then:
 #   - the op denied; the process restarted → its re-arm line reads exact=false;
 #   - Tess's checklist row `cortana_check:exact_alarms:missing` with a red glyph (Decisions: the row is Tess's checklist's,
 #     cortana/CortanaChecklist.kt:56-57, "not the Setup checklist; T15-6" — the Setup checklist's rows are recorded);
@@ -15,14 +16,20 @@
 #     `exactAllowReason` and a non-zero `window=` on its dumpsys alarm entry;
 #   - it rings in real time (no clock jump) inside that window: `fired <id> late=<ms>` with 0 ≤ late ≤ window + 1 s, an
 #     ALARM player of the shell started.
-# Restore: the alarm deleted through the app, the op back to default, the FINAL APK reinstalled (its md5 4b7ac321ce4d0ede
+# The owner's no-microphone rule (2026-09-25): Tess is opened only to read her checklist and to take a TYPED request, which
+# opens no microphone — but a reply that asks a question makes Tess listen for the answer (CortanaModel.listenAfter), so
+# RECORD_AUDIO is revoked for the Tess steps (SherpaAsr checks it before it builds its AudioRecord) and granted back right
+# after, the permission line asserted as found; mic_guard.sh asserts no capture happened on the device during the row.
+# Restore: the alarm deleted through the app, the op back to default, the FINAL APK reinstalled (its md5 61c5b610716197e3
 # asserted installed), the home activity set, force-stop + Home, USE_EXACT_ALARM granted and exact=true again.
-. "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"
+. "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"; . "$(dirname "$0")/mic_guard.sh"
 
-FINAL_MD5=4b7ac321ce4d0ede
-QA_APK="${EDGE_EXACT_APK:-/tmp/claude-1000/-home-jeremyking/5d5ffc39-5a2a-4c33-953f-07d71da27a45/scratchpad/p15/edgeC-noexact/app/build/outputs/apk/debug/app-debug.apk}"
+# The FINAL build is the worktree's own APK: its md5 is read, not pinned, so a rebuild cannot leave the restore checking an old one.
+FINAL_MD5="$(md5sum "$APK" | cut -c1-16)"
+QA_APK="${EDGE_EXACT_APK:-/tmp/claude-1000/-home-jeremyking/5d5ffc39-5a2a-4c33-953f-07d71da27a45/scratchpad/p15/edgeC2-noexact/app/build/outputs/apk/debug/app-debug.apk}"
 AAPT2="$(ls -d "$HOME"/Android/Sdk/build-tools/*/ | tail -1)aapt2"
 row_begin EDGE_EXACT "USE_EXACT_ALARM removed and SCHEDULE_EXACT_ALARM denied (QA build): red row, inexact arm, notice, rings in the window"
+mic_guard_begin
 record_fsi
 assert_clock_empty "baseline"
 dismiss_any_ring
@@ -71,6 +78,11 @@ adb shell cmd package set-home-activity app.tileshell/app.tileshell.StartActivit
 adb shell appops set app.tileshell SCHEDULE_EXACT_ALARM deny
 record "appops SCHEDULE_EXACT_ALARM after deny" "$(adb shell appops get app.tileshell SCHEDULE_EXACT_ALARM | tr -d '\r' | paste -sd'|')"
 record "dumpsys package: exact-alarm permissions of the QA build" "[$(adb shell dumpsys package app.tileshell | tr -d '\r' | grep -E 'EXACT_ALARM' | sed 's/^ *//' | paste -sd'|')]"
+# The no-microphone guard for the Tess steps (header): revoked here, before the restart below (a revoke stops the process).
+ra_line() { adb shell dumpsys package app.tileshell | tr -d '\r' | grep -m1 'android.permission.RECORD_AUDIO: granted' | sed 's/^ *//'; }
+RA0="$(ra_line)"; note "RECORD_AUDIO before the Tess steps: $RA0"
+adb shell pm revoke app.tileshell android.permission.RECORD_AUDIO
+assert_contains "no-microphone rule: RECORD_AUDIO is revoked for the Tess steps" "RECORD_AUDIO: granted=false" "$(ra_line)"
 MARK="$(ring_mark)"
 adb shell am force-stop app.tileshell; adb shell input keyevent KEYCODE_HOME; sleep 4
 REARM="$(wait_ring "$MARK" "[alarms] rearm (" 20 | head -1)"
@@ -141,6 +153,8 @@ assert_contains "the reply confirms it" "Alarm set for" "$REPLY"
 assert_contains "the notice is SPOKEN (the reply carries 'Exact alarms are off')" "Exact alarms are off" "$REPLY"
 assert_contains "the notice is SHOWN (the session's text carries 'Exact alarms are off')" "Exact alarms are off" "$SHOWN"
 cortana_close; adb shell input keyevent KEYCODE_HOME; sleep 1
+adb shell pm grant app.tileshell android.permission.RECORD_AUDIO
+assert_eq "no-microphone rule: RECORD_AUDIO granted back as found after the Tess steps" "$RA0" "$(ra_line)"
 open_clock alarm; dump_ui "$ROW_DIR/alarm_tab.xml"
 record "the Alarm tab's texts mentioning exact alarms or lateness" "[$(grep -o ' text="[^"]*"' "$ROW_DIR/alarm_tab.xml" | cut -d'"' -f2 | grep -iE 'exact|late' | paste -sd'|')]"
 adb shell input keyevent KEYCODE_HOME; sleep 1
@@ -194,4 +208,5 @@ assert_contains "restore: the home activity is the shell's Start" "app.tileshell
 assert_contains "restore: USE_EXACT_ALARM is granted again" "USE_EXACT_ALARM: granted=true" "$(adb shell dumpsys package app.tileshell | tr -d '\r' | grep 'android.permission.USE_EXACT_ALARM')"
 assert_contains "restore: the restarted process arms exactly again (exact=true)" "exact=true" "$(wait_ring "$MARK" "[alarms] rearm (" 20 | head -1)"
 assert_clock_empty "restore"
+mic_guard_end
 row_end

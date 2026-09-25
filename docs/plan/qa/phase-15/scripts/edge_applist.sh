@@ -15,10 +15,11 @@
 #     the snooze time — no source says, H14); after the alarm is deleted the face is cleared again.
 # Restore: RV12's clock restore, the alarm deleted through the app, the three unpinned, `wm size reset`, the Start layout
 # as found (layout_restore of the file saved at the start), the baseline re-asserted.
-. "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"
+. "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"; . "$(dirname "$0")/mic_guard.sh"
 . "$QROOT/phase-02/scripts/layout.sh"
 
 row_begin EDGE_APPLIST "the three apps under wm size 720x1560; pin and unpin each; the Clock tile's static and snoozed faces"
+mic_guard_begin
 assert_clock_empty "baseline"
 dismiss_any_ring
 TILES="$(dirname "$0")/tiles.py"
@@ -219,4 +220,5 @@ ring_save launcher
 layout_restore "$ROW_DIR/layout_before.json"
 assert_eq "restore: the Start layout as found (layout_restore proved it)" 0 $?
 assert_clock_empty "restore"
+mic_guard_end
 row_end

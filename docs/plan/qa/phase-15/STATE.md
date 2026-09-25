@@ -200,3 +200,30 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   5560, b466469e on 5556. INDEX row 15 is QA PAUSED, not done. To resume: build the final APK in the worktree, install
   it on all three, finish the four clock edge rows and the two recorder edge rows, run the whole gate on that one build,
   then E25 and E22 last, the two reviewers (review/2026-09-24-phase15-gate-brief.md), and NEEDS-HUMAN sign-offs.
+- 2026-09-25: Jeremy: "DO NOT re run the whole gate just the specific tests" (saved to memory), then "kill all testing".
+  Built the final APK 61c5b610 (HEAD f785c8b plus nothing; spinner fix in; unit tests pass) and installed it on 5556,
+  5558 and 5560. The planned specific rows were E3 E10 E31 E33 EDGE_ALARMS EDGE_TIMERS EDGE_WORLD (the rows that drive
+  LoopSpinner), EDGE_SPINNER, the six unfinished edge rows, E21 and E22. Of those, only EDGE_SPINNER was started. Its
+  runs on 61c5b610 did not complete: 5556's system_server restarted mid-run (cause not found in its logs; the emulator
+  had been up about 39 h). After that its display froze (screencaps hung, BACK did nothing), and an orphaned screencap
+  held the harness's device lock. The runs were stopped by pid and 5556 was rebooted. EDGE_SPINNER's driver now sets
+  its baseline (the Clock reopens on the page it was left on) and asserts its restore. ALL TESTING STOPPED at
+  Jeremy's request; nothing is running. The spinner fix is proved on test build b466469e (EDGE_SPINNER-run2 / -run3:
+  11/0), not yet on 61c5b610.
+- 2026-09-25 (afternoon): Jeremy: "do not do the full gate qa just the individual ones then push", "DO NOT use the mic
+  for anything". The specific tests ran on the final build 61c5b610. EDGE_SPINNER 12/0 (5556, after a reboot that
+  cleared its system_server restart). On 5558, the spinner rows E3 39/0, E33 36/0, EDGE_WORLD 20/0 and E21 46/0. Its
+  first pass of E10 / E31 / EDGE_ALARMS / EDGE_TIMERS failed on the environment: the stopped agent had left "Display
+  over other apps" off, so every ring used the heads-up fallback (the app logged surface: heads-up). E21 restored the
+  grant at its end, and the re-run gave E10 132/1 (the secondary tab-settle timing, 41 ms), E31 69/0, EDGE_ALARMS
+  123/0, EDGE_TIMERS 36/0. On 5560, an Opus agent finished EDGE_APPLIST 62/0, EDGE_LOCKED_SOUND 33/0,
+  EDGE_ALARM_CONTEXT 24/2 and EDGE_EXACT 29/6, and the failures are product defects with DEFECT.md. mic_guard.sh proved
+  no recording in any of them. E22 56/0/2, the 2 NOT RUN under the no-microphone rule. Open: the defects (exact-alarm
+  silent crash, the missing notice, edit mode surviving an alarm, Tess not hidden), the recorder edge rows (no-mic),
+  the reviewers, and NEEDS-HUMAN.
+- 2026-09-25 (evening): Jeremy "(a)": fix defects 1-3, re-run only their tests, no microphone. Fixed d7c89d4 (the ring's
+  foreground type follows the exact-alarm grant: mediaPlayback without one), 8833614 (Tess's alarm and timer replies
+  carry the exact-alarms notice), 0d74245 (a ring ends Start's edit mode). Final build 6c8ebb18, on 5560 only. Results:
+  EDGE_ALARM_CONTEXT 26/0/7 and EDGE_EXACT 35/0/13 (the QA build d07daf07 from 0d74245 without USE_EXACT_ALARM; the
+  alarm rang inside its window and sounded, ring foreground: mediaPlayback, no new crash). mic_guard showed no capture.
+  EDGE_EXACT now reads the final build's md5 from the APK instead of pinning it. 5556 and 5558 still hold 61c5b610.
