@@ -168,3 +168,9 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   my own misreading of an extraction; the port already had 400.0 / 121.0. calc-cases.tsv regenerated (314 cases);
   :calc 99/0, app 800/0; the new build is c45e7a28 (calculator-only changes). The E11, EDGE-CALC and E12 (converter)
   rows must re-run on the final build. INDEX Change Log line "WHERE WINDOWS IS WRONG".
+- 2026-09-24 ~17:30: Jeremy asked for everything to go up before the week's tokens run out, and created the push flag.
+  Branch phase-15 went to origin (github.com/kingpinzs/tessera) at 8d78ff3 as a new branch; the remote head was
+  verified equal to local. main was NOT sent (54 ahead of origin, the phase 11 session's). 8d78ff3 carries the clock
+  pass as an in-progress snapshot (it was on EDGE_ALARMS). Calculator rows on c45e7a28 (5560): E11 243/0/2, E12 91/0,
+  EDGE-CALC 52/0/5. Next: the clock agent's report, then the final gate on one build, the reviewers, NEEDS-HUMAN.md
+  and row 15.
