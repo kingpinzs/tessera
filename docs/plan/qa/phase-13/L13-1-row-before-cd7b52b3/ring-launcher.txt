@@ -1,0 +1,161 @@
+    2026-09-25 16:20:43.596 wall=1790374843596 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+    2026-09-25 16:20:43.598 wall=1790374843598 [livetile] store loaded 1 owners
+    2026-09-25 16:20:43.605 wall=1790374843605 [engine] publish pkg:app.tileshell.testclient.a from=api faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-25 16:20:43.605 wall=1790374843605 [badge] set app.tileshell.testclient.a API=0 -> effective 0
+    2026-09-25 16:20:43.606 wall=1790374843606 [livetile] samsung badge provider probe: not present
+    2026-09-25 16:20:43.607 wall=1790374843607 [app] process start
+    2026-09-25 16:20:43.657 wall=1790374843657 [apps] catalog refreshed (init): 41 activities
+    2026-09-25 16:20:43.658 wall=1790374843658 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
+    2026-09-25 16:20:43.659 wall=1790374843659 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-09-25 16:20:43.665 wall=1790374843665 [weather] feed start provider=open-meteo
+    2026-09-25 16:20:43.667 wall=1790374843667 [app] feeds started (process start)
+    2026-09-25 16:20:43.668 wall=1790374843668 [fluent] acrylic=on reason=none
+    2026-09-25 16:20:43.669 wall=1790374843669 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790374843668
+    2026-09-25 16:20:43.669 wall=1790374843669 [calendar] refresh (start): access=true faces=1
+    2026-09-25 16:20:43.670 wall=1790374843670 [clock] tiles: publisher started under cmp:app.tileshell/app.tileshell.clock.ClockActivity
+    2026-09-25 16:20:43.677 wall=1790374843677 [alarms] rearm (process start): 0 alarms, 0 timers, exact=true
+    2026-09-25 16:20:43.678 wall=1790374843678 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null sourceTime=null
+    2026-09-25 16:20:43.678 wall=1790374843678 [clock] tile: no next alarm, face cleared
+    2026-09-25 16:20:43.679 wall=1790374843679 [reminders] loaded 0 reminders, 0 places
+    2026-09-25 16:20:43.679 wall=1790374843679 [reminders] rearm (process start): 0 timed alarms, exact=true
+    2026-09-25 16:20:43.680 wall=1790374843680 [places] rearm: no place reminders
+    2026-09-25 16:20:43.680 wall=1790374843680 [person] rearm: no person reminders, observers off
+    2026-09-25 16:20:43.703 wall=1790374843703 [weather] cache loaded fetchedAt=1790374653097 provider=open-meteo units=IMPERIAL
+    2026-09-25 16:20:43.705 wall=1790374843705 [engine] publish feed:photos faces=7 front=false source=photos sourceTime=1790374843705
+    2026-09-25 16:20:43.705 wall=1790374843705 [photos] refresh (start): access=GRANTED photos=7 slideshow=0 grow=false
+    2026-09-25 16:20:43.705 wall=1790374843705 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790374653097
+    2026-09-25 16:20:43.705 wall=1790374843705 [weather] publish tile faces=1 temp=76° condition=3 sky=CLOUDY/day/0.85 stale=false fetchedAt=1790374653097
+    2026-09-25 16:20:43.705 wall=1790374843705 [weather] refresh start reason=start units=IMPERIAL
+    2026-09-25 16:20:43.708 wall=1790374843708 [cortana] session created
+    2026-09-25 16:20:43.722 wall=1790374843722 [cortana] session window type=2031 flags=0x8d810120 softInputMode=0x0
+    2026-09-25 16:20:43.722 wall=1790374843722 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 16:20:43.723 wall=1790374843723 [speech] bind requested -> true
+    2026-09-25 16:20:43.723 wall=1790374843723 [speech] preload queued until the bind lands
+    2026-09-25 16:20:43.724 wall=1790374843724 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 16:20:43.724 wall=1790374843724 [cortana] session opened mode=HOME locked=false
+    2026-09-25 16:20:44.130 wall=1790374844130 [speech] bound to :speech
+    2026-09-25 16:20:44.130 wall=1790374844130 [speech] preload delivered after the bind
+    2026-09-25 16:20:46.931 wall=1790374846931 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:20:46.933 wall=1790374846933 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:20:46.956 wall=1790374846956 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 16:20:47.250 wall=1790374847250 [motion] cortana_pane t0=191129294 peak=241 overshoot=0 settle=241 frames=19 maxGapMs=17
+    2026-09-25 16:20:48.197 wall=1790374848197 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-09-25 16:20:48.198 wall=1790374848198 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-25 16:20:49.487 wall=1790374849487 [weather] fetch ok provider=open-meteo ms=1288 grid=37.4162,-122.0803 tz=America/Los_Angeles current=3/76.0 hourly=240 daily=10 place=true
+    2026-09-25 16:20:49.496 wall=1790374849496 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790374849484
+    2026-09-25 16:20:49.496 wall=1790374849496 [weather] publish tile faces=1 temp=76° condition=3 sky=CLOUDY/day/0.85 stale=false fetchedAt=1790374849484
+    2026-09-25 16:20:50.531 wall=1790374850531 [cortana] destination REMINDERS
+    2026-09-25 16:20:50.532 wall=1790374850532 [cortana] touch 0 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:20:50.533 wall=1790374850533 [cortana] touch 1 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:20:52.506 wall=1790374852506 [notif] listener connected
+    2026-09-25 16:20:52.508 wall=1790374852508 [badge] set com.android.systemui NOTIFICATIONS=1 -> effective 1
+    2026-09-25 16:20:52.509 wall=1790374852509 [engine] publish pkg:com.android.systemui from=notifications faces=1 front=false source=notification sourceTime=1790308978004 -> shows notifications
+    2026-09-25 16:20:52.509 wall=1790374852509 [badge] set com.android.dialer NOTIFICATIONS=2 -> effective 2
+    2026-09-25 16:20:52.509 wall=1790374852509 [engine] publish pkg:com.android.dialer from=notifications faces=2 front=false source=notification sourceTime=1790291074618 -> shows notifications
+    2026-09-25 16:20:52.510 wall=1790374852510 [badge] set com.android.permissioncontroller NOTIFICATIONS=1 -> effective 1
+    2026-09-25 16:20:52.510 wall=1790374852510 [engine] publish pkg:com.android.permissioncontroller from=notifications faces=1 front=false source=notification sourceTime=1790261924720 -> shows notifications
+    2026-09-25 16:20:52.510 wall=1790374852510 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-25 16:20:52.510 wall=1790374852510 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-25 16:20:52.510 wall=1790374852510 [notif] rescan (connected): 4 packages with notifications
+    2026-09-25 16:20:59.816 wall=1790374859816 [cortana] destination HOME
+    2026-09-25 16:21:00.004 wall=1790374860004 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790374860004
+    2026-09-25 16:21:00.004 wall=1790374860004 [calendar] refresh (minute): access=true faces=1
+    2026-09-25 16:21:00.834 wall=1790374860834 [speech] unbound from :speech
+    2026-09-25 16:21:00.834 wall=1790374860834 [cortana] session hidden
+    2026-09-25 16:21:02.883 wall=1790374862883 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 16:21:02.883 wall=1790374862883 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 16:21:02.885 wall=1790374862885 [speech] bind requested -> true
+    2026-09-25 16:21:02.885 wall=1790374862885 [speech] preload queued until the bind lands
+    2026-09-25 16:21:02.885 wall=1790374862885 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 16:21:02.885 wall=1790374862885 [cortana] session opened mode=HOME locked=false
+    2026-09-25 16:21:02.972 wall=1790374862972 [speech] bound to :speech
+    2026-09-25 16:21:02.972 wall=1790374862972 [speech] preload delivered after the bind
+    2026-09-25 16:21:08.270 wall=1790374868270 [cortana] touch 0 at 486,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:21:08.274 wall=1790374868274 [cortana] touch 1 at 486,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:21:10.359 wall=1790374870359 [cortana] typed request: "remind me to check the L13 card photo tomorrow at 9 am"
+    2026-09-25 16:21:10.360 wall=1790374870360 [match] "remind me to check the L13 card photo tomorrow at 9 am" -> SetReminder(text=check the l13 card photo, timeMs=1790434800000, recurrence=ONCE, placeName=null, personName=null)
+    2026-09-25 16:21:10.361 wall=1790374870361 [speech] speak[657f1b38-6f5b-4765-a152-f9dca9b31ec1] voice=2 text="Remind you to check the l13 card photo at 9:00 AM tomorrow. Sound good?"
+    2026-09-25 16:21:20.505 wall=1790374880505 [cortana] touch 0 at 540,1272 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:21:20.506 wall=1790374880506 [cortana] card action PICK_PHOTO pending=SaveReminder
+    2026-09-25 16:21:20.507 wall=1790374880507 [cortana] touch 1 at 540,1272 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:21:23.049 wall=1790374883049 [cortana] result cleared
+    2026-09-25 16:21:27.886 wall=1790374887886 [speech] speaking done 657f1b38-6f5b-4765-a152-f9dca9b31ec1 cancelled=false
+    2026-09-25 16:21:27.898 wall=1790374887898 [cortana] question spoken; listening for the answer
+    2026-09-25 16:21:30.166 wall=1790374890166 [speech] final open="" grammar="" audioMs=2100
+    2026-09-25 16:21:30.168 wall=1790374890168 [cortana] final was silence (audioMs=2100)
+    2026-09-25 16:21:30.168 wall=1790374890168 [speech] speak[a7055ccf-a26c-4044-8263-e23e146ad3df] voice=2 text="I didn't catch that."
+    2026-09-25 16:21:30.896 wall=1790374890896 [cortana] touch 0 at 540,850 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:21:31.297 wall=1790374891297 [cortana] touch 1 at 540,150 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:21:33.797 wall=1790374893797 [speech] speaking done a7055ccf-a26c-4044-8263-e23e146ad3df cancelled=false
+    2026-09-25 16:21:46.413 wall=1790374906413 [cortana] result cleared
+    2026-09-25 16:21:47.540 wall=1790374907540 [speech] unbound from :speech
+    2026-09-25 16:21:47.540 wall=1790374907540 [cortana] session hidden
+    2026-09-25 16:21:48.572 wall=1790374908572 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 16:21:48.572 wall=1790374908572 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 16:21:48.573 wall=1790374908573 [speech] bind requested -> true
+    2026-09-25 16:21:48.573 wall=1790374908573 [speech] preload queued until the bind lands
+    2026-09-25 16:21:48.573 wall=1790374908573 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 16:21:48.573 wall=1790374908573 [cortana] session opened mode=HOME locked=false
+    2026-09-25 16:21:48.788 wall=1790374908788 [speech] bound to :speech
+    2026-09-25 16:21:48.788 wall=1790374908788 [speech] preload delivered after the bind
+    2026-09-25 16:21:51.861 wall=1790374911861 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:21:51.862 wall=1790374911862 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:21:51.876 wall=1790374911876 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 16:21:52.162 wall=1790374912162 [motion] cortana_pane t0=191194215 peak=253 overshoot=0 settle=253 frames=19 maxGapMs=17
+    2026-09-25 16:21:55.537 wall=1790374915537 [cortana] destination REMINDERS
+    2026-09-25 16:21:55.537 wall=1790374915537 [cortana] touch 0 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:21:55.538 wall=1790374915538 [cortana] touch 1 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:21:59.735 wall=1790374919735 [cortana] destination HOME
+    2026-09-25 16:22:00.004 wall=1790374920004 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790374920004
+    2026-09-25 16:22:00.004 wall=1790374920004 [calendar] refresh (minute): access=true faces=1
+    2026-09-25 16:22:00.756 wall=1790374920756 [speech] unbound from :speech
+    2026-09-25 16:22:00.757 wall=1790374920757 [cortana] session hidden
+    2026-09-25 16:22:01.795 wall=1790374921795 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 16:22:01.795 wall=1790374921795 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 16:22:01.795 wall=1790374921795 [speech] bind requested -> true
+    2026-09-25 16:22:01.796 wall=1790374921796 [speech] preload queued until the bind lands
+    2026-09-25 16:22:01.796 wall=1790374921796 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 16:22:01.796 wall=1790374921796 [cortana] session opened mode=HOME locked=false
+    2026-09-25 16:22:01.860 wall=1790374921860 [speech] bound to :speech
+    2026-09-25 16:22:01.860 wall=1790374921860 [speech] preload delivered after the bind
+    2026-09-25 16:22:07.183 wall=1790374927183 [cortana] touch 0 at 486,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:22:07.186 wall=1790374927186 [cortana] touch 1 at 486,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:22:11.649 wall=1790374931649 [cortana] typed request: "remind me to check the L13 cancel photo tomorrow at 9 am"
+    2026-09-25 16:22:11.650 wall=1790374931650 [match] "remind me to check the L13 cancel photo tomorrow at 9 am" -> SetReminder(text=check the l13 cancel photo, timeMs=1790434800000, recurrence=ONCE, placeName=null, personName=null)
+    2026-09-25 16:22:11.650 wall=1790374931650 [speech] speak[1077be2c-bc30-476f-86ab-512cc5c5d359] voice=2 text="Remind you to check the l13 cancel photo at 9:00 AM tomorrow. Sound good?"
+    2026-09-25 16:22:21.881 wall=1790374941881 [cortana] touch 0 at 540,1272 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:22:21.882 wall=1790374941882 [cortana] card action PICK_PHOTO pending=SaveReminder
+    2026-09-25 16:22:21.883 wall=1790374941883 [cortana] touch 1 at 540,1272 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:22:24.402 wall=1790374944402 [cortana] touch 0 at 540,850 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:22:24.812 wall=1790374944812 [cortana] touch 1 at 540,150 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:22:29.678 wall=1790374949678 [speech] speaking done 1077be2c-bc30-476f-86ab-512cc5c5d359 cancelled=false
+    2026-09-25 16:22:29.679 wall=1790374949679 [cortana] question spoken; listening for the answer
+    2026-09-25 16:22:31.885 wall=1790374951885 [speech] final open="" grammar="" audioMs=2100
+    2026-09-25 16:22:31.885 wall=1790374951885 [cortana] silence at a pending card (audioMs=2100): the card stays
+    2026-09-25 16:22:34.453 wall=1790374954453 [cortana] touch 0 at 793,1437 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:22:34.454 wall=1790374954454 [cortana] card action CANCEL pending=SaveReminder
+    2026-09-25 16:22:34.454 wall=1790374954454 [speech] speak[2862ef16-0ae2-4e7c-9617-3cc2aea76a36] voice=2 text="Okay, nothing saved."
+    2026-09-25 16:22:34.454 wall=1790374954454 [cortana] touch 1 at 793,1437 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:22:36.584 wall=1790374956584 [cortana] result cleared
+    2026-09-25 16:22:37.604 wall=1790374957604 [speech] unbound from :speech
+    2026-09-25 16:22:37.604 wall=1790374957604 [speech] speaking done 2862ef16-0ae2-4e7c-9617-3cc2aea76a36 cancelled=true
+    2026-09-25 16:22:37.604 wall=1790374957604 [cortana] session hidden
+    2026-09-25 16:22:38.643 wall=1790374958643 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 16:22:38.643 wall=1790374958643 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 16:22:38.644 wall=1790374958644 [speech] bind requested -> true
+    2026-09-25 16:22:38.644 wall=1790374958644 [speech] preload queued until the bind lands
+    2026-09-25 16:22:38.644 wall=1790374958644 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 16:22:38.644 wall=1790374958644 [cortana] session opened mode=HOME locked=false
+    2026-09-25 16:22:38.724 wall=1790374958724 [speech] bound to :speech
+    2026-09-25 16:22:38.724 wall=1790374958724 [speech] preload delivered after the bind
+    2026-09-25 16:22:41.869 wall=1790374961869 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:22:41.870 wall=1790374961870 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:22:41.890 wall=1790374961890 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 16:22:42.179 wall=1790374962179 [motion] cortana_pane t0=191244229 peak=256 overshoot=0 settle=256 frames=19 maxGapMs=17
+    2026-09-25 16:22:45.455 wall=1790374965455 [cortana] destination REMINDERS
+    2026-09-25 16:22:45.455 wall=1790374965455 [cortana] touch 0 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:22:45.456 wall=1790374965456 [cortana] touch 1 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 16:22:49.916 wall=1790374969916 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790374969916
+    2026-09-25 16:22:49.916 wall=1790374969916 [photos] refresh (mediastore change): access=GRANTED photos=6 slideshow=0 grow=false
+    2026-09-25 16:22:50.733 wall=1790374970733 [speech] unbound from :speech
+    2026-09-25 16:22:50.733 wall=1790374970733 [cortana] session hidden

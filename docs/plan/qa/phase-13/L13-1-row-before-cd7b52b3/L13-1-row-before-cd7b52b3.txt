@@ -1,0 +1,57 @@
+==============================================================================
+ROW L13-1-row-before-cd7b52b3 — L13-1 regression row on before-cd7b52b3: a photo picked from inside Tess reaches the page and the card
+at            2026-09-25T16:17:21-06:00
+driver        l13_1_row.sh blob 75249e0d477fcfdf936cb9998dc7d0d28b225b6f
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     31a1adafcea04602 338852658 bytes
+apk installed 50459f61c117faa0
+apk match     yes (50459f61c117faa0)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      crash-buffer entries for app.tileshell at the start: 6; private copies: 0
+FAIL  (1) + opens the reminder page (its text field is on screen)  expected [yes] got [no]
+FAIL  (1) + crashes nothing                                       expected [6] got [7]
+      focus after the camera:   mCurrentFocus=Window{cc4ab2d u0 VoiceInteractionSession}
+FAIL  (2) the page's camera shows the system photo picker         does not contain [photopicker]:   mCurrentFocus=Window{cc4ab2d u0 VoiceInteractionSession}
+      picker (page): newest photo at []
+      focus after the pick:   mCurrentFocus=Window{cc4ab2d u0 VoiceInteractionSession}
+FAIL  (2) the picked photo shows on the page                      expected [yes] got [no]
+FAIL  (2) the typed text survived the picker (Tess stepped aside, not closed)  does not contain [text="L13 page photo"]: <?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0"><node index="0" text="" resource-id="" class="android.widget.FrameLayout" package="app.tileshell" content-desc="" checkable="false" checked="false" clickable="f
+      stored photoUri (page): 
+FAIL  (2) the saved reminder's photo is a private copy on disk    expected [yes] got [no]
+FAIL  (2) one private copy more                                   expected [1] got [0]
+FAIL  (3) the Reminders row shows the photo                       expected [yes] got [no]
+FAIL  (3) a row tap opens the reminder page with its photo        expected [yes] got [no]
+PASS  (3) the row tap crashes nothing                             = 7
+PASS  (4) the confirm card offers Add a photo                     = yes
+      focus after Add a photo:   mCurrentFocus=Window{c542556 u0 VoiceInteractionSession}
+FAIL  (4) Add a photo shows the system photo picker               does not contain [photopicker]:   mCurrentFocus=Window{c542556 u0 VoiceInteractionSession}
+      focus after Back:   mCurrentFocus=Window{c542556 u0 VoiceInteractionSession}
+FAIL  (4) Back from the picker: the same card, Add a photo still there  expected [yes] got [no]
+FAIL  (4) Back from the picker: the card keeps its reminder text  does not contain [check the l13 card photo]: <?xml version='1.0' encoding='utf-8' standalone='yes' ?><hierarchy rotation="0"><node index="0" text="" resource-id="" class="android.widget.framelayout" package="app.tileshell" content-desc="" checkable="false" checked="false" clickable="f
+PASS  (4) Back from the picker: no photo on the card              = no
+      picker (card): newest photo at []
+FAIL  (5) the picked photo shows on the card                      expected [yes] got [no]
+PASS  (5) the photo takes the Add a photo row's place             = no
+FAIL  (5) one private copy more on the card                       expected [2] got [0]
+FAIL  (5) Remind shows the saved card                             expected [yes] got [no]
+      stored photoUri (card): 
+FAIL  (5) the card's reminder was saved with a private copy on disk  expected [yes] got [no]
+FAIL  (5) its Reminders row shows the photo                       expected [yes] got [no]
+      picker (cancel): newest photo at []
+FAIL  (6) the photo is on the card before Cancel                  expected [yes] got [no]
+FAIL  (6) its copy exists before Cancel                           expected [3] got [0]
+FAIL  (6) Cancel deletes the unsaved copy                         expected [2] got [0]
+PASS  (6) Cancel stores no reminder                               = 
+PASS  (7) no L13 reminder is left                                 = 
+PASS  (7) deleting the reminders deleted their copies             = 0
+      am start from the shell uid: Starting: Intent { cmp=app.tileshell/.cortana.CortanaResultActivity }
+Error type 3
+Error: Activity class {app.tileshell/app.tileshell.cortana.CortanaResultActivity} does not exist.
+FAIL  (8) the pass-through refuses a start from another uid (not exported)  does not contain [not exported]: Starting: Intent { cmp=app.tileshell/.cortana.CortanaResultActivity }
+Error type 3
+Error: Activity class {app.tileshell/app.tileshell.cortana.CortanaResultActivity} does not exist.
+FAIL  no crash anywhere in the row                                expected [6] got [7]
+------------------------------------------------------------------------------
+L13-1-row-before-cd7b52b3: 7 passed, 22 failed, 0 recorded

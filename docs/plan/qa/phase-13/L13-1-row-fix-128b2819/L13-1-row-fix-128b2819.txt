@@ -1,0 +1,75 @@
+==============================================================================
+ROW L13-1-row-fix-128b2819 — L13-1 regression row on fix-128b2819: a photo picked from inside Tess reaches the page and the card
+at            2026-09-25T16:28:59-06:00
+driver        l13_1_row.sh blob 4bdd2fd9d1dad41221f0d661c5809726b82e345f
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     128b281946e1f53a 338852658 bytes
+apk installed 5c4400f3c59c903b
+apk match     yes (5c4400f3c59c903b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      crash-buffer entries for app.tileshell at the start: 7; private copies: 0
+PASS  (1) + opens the reminder page (its text field is on screen)  = yes
+PASS  (1) + crashes nothing                                       = 7
+      focus after the camera:   mCurrentFocus=Window{5a2b29 u0 com.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerActivity}
+PASS  (2) the page's camera shows the system photo picker         contains [photopicker]
+      picker (page): newest photo at [177 862]
+      focus after the pick:   mCurrentFocus=Window{5cbeaef u0 VoiceInteractionSession}
+PASS  (2) the picked photo shows on the page                      = yes
+PASS  (2) the typed text survived the picker (Tess stepped aside, not closed)  contains [text="L13 page photo"]
+      stored photoUri (page): file:///data/user/0/app.tileshell/files/reminder_photos/815f0a9a-ad0e-48f8-9cd9-1abd629e75b9
+PASS  (2) the saved reminder's photo is a private copy on disk    = yes
+PASS  (2) one private copy more                                   = 1
+PASS  (3) the Reminders row shows the photo                       = yes
+PASS  (3) a row tap opens the reminder page with its photo        = yes
+PASS  (3) the row tap crashes nothing                             = 7
+PASS  (4) the confirm card offers Add a photo                     = yes
+      focus after Add a photo:   mCurrentFocus=Window{4a70c8d u0 com.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerActivity}
+PASS  (4) Add a photo shows the system photo picker               contains [photopicker]
+      focus after Back:   mCurrentFocus=Window{5cbeaef u0 VoiceInteractionSession}
+PASS  (4) Back from the picker: the same card, Add a photo still there  = yes
+PASS  (4) Back from the picker: the card keeps its reminder text  contains [check the l13 card photo]
+PASS  (4) Back from the picker: no photo on the card              = no
+      focus after the second Add a photo:   mCurrentFocus=Window{9c28537 u0 com.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerActivity}
+PASS  (5) Add a photo shows the picker again after a Back         contains [photopicker]
+      picker (card): newest photo at [177 862]
+PASS  (5) the picked photo shows on the card                      = yes
+PASS  (5) the photo takes the Add a photo row's place             = no
+PASS  (5) one private copy more on the card                       = 2
+PASS  (5) Remind shows the saved card                             = yes
+      stored photoUri (card): file:///data/user/0/app.tileshell/files/reminder_photos/59d38520-2b7b-45bd-9cfc-9e4091d47319
+PASS  (5) the card's reminder was saved with a private copy on disk  = yes
+PASS  (5) its Reminders row shows the photo                       = yes
+      picker (cancel): newest photo at [177 862]
+PASS  (6) the photo is on the card before Cancel                  = yes
+PASS  (6) its copy exists before Cancel                           = 3
+PASS  (6) Cancel deletes the unsaved copy                         = 2
+PASS  (6) Cancel stores no reminder                               = 
+PASS  (7) no L13 reminder is left                                 = 
+PASS  (7) deleting the reminders deleted their copies             = 0
+      am start as the shell uid 2000: Starting: Intent { cmp=app.tileshell/.cortana.CortanaResultActivity }
+
+Exception occurred while executing 'start':
+java.lang.SecurityException: Permission Denial: starting Intent { flg=0x10000000 xflg=0x4 cmp=app.tileshell/.cortana.CortanaResultActivity } from null (pid=27456, uid=2000) not exported from uid 10150
+	at com.android.server.wm.ActivityTaskSupervisor.checkStartAnyActivityPermission(ActivityTaskSupervisor.java:1211)
+	at com.android.server.wm.ActivityStarter.executeRequest(ActivityStarter.java:1231)
+	at com.android.server.wm.ActivityStarter.execute(ActivityStarter.java:870)
+	at com.android.server.wm.ActivityTaskManagerService.startActivityAsUser(ActivityTaskManagerService.java:1315)
+	at com.android.server.wm.ActivityTaskManagerService.startActivityAsUser(ActivityTaskManagerService.java:1259)
+	at com.android.server.am.ActivityManagerService.startActivityAsUserWithFeature(ActivityManagerService.java:3259)
+	at com.android.server.am.ActivityManagerShellCommand.runStartActivity(ActivityManagerShellCommand.java:869)
+	at com.android.server.am.ActivityManagerShellCommand.onCommand(ActivityManagerShellCommand.java:250)
+	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+	at android.os.ShellCommand.exec(ShellCommand.java:38)
+	at com.android.server.am.ActivityManagerService.onShellCommand(ActivityManagerService.java:10418)
+	at android.os.Binder.shellCommand(Binder.java:1151)
+	at android.os.Binder.onTransact(Binder.java:953)
+	at android.app.IActivityManager$Stub.onTransact(IActivityManager.java:5739)
+	at com.android.server.am.ActivityManagerService.onTransact(ActivityManagerService.java:2735)
+	at android.os.Binder.execTransactInternal(Binder.java:1426)
+	at android.os.Binder.execTransact(Binder.java:1365)
+PASS  (8) the pass-through refuses a start from another uid (not exported)  contains [not exported]
+PASS  no crash anywhere in the row                                = 7
+------------------------------------------------------------------------------
+L13-1-row-fix-128b2819: 30 passed, 0 failed, 0 recorded

@@ -1,0 +1,24 @@
+==============================================================================
+ROW L13-1-after-fix-128b2819 — L13-1 repro on after-fix-128b2819: a reminder's page crashes inside Tess; the card's Add a photo is a no-op
+at            2026-09-25T16:32:53-06:00
+driver        l13_1_repro.sh blob 25ae49f6a0436b3da99f76353e0f42c23985303a
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     128b281946e1f53a 338852658 bytes
+apk installed 5c4400f3c59c903b
+apk match     yes (5c4400f3c59c903b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      repro apk: 128b281946e1f53a (/tmp/claude-1000/-home-jeremyking/aa6796ad-e2ab-469e-ac35-81da4433d443/scratchpad/l13/fix-128b2819.apk)
+      installed: 5c4400f3c59c903b
+PASS  the Reminders page is showing                               = yes
+      crash count 7 -> 7; pid 27607 -> 27607
+FAIL  (1) + on the Reminders page: a new 'No ActivityResultRegistryOwner' crash  expected [8] got [7]
+FAIL  (1) the launcher's process died (its pid changed)           should not be [27607]
+PASS  (2) the confirm card offers Add a photo                     = yes
+      focus before:   mCurrentFocus=Window{e84d280 u0 VoiceInteractionSession}
+      focus after:    mCurrentFocus=Window{57b35d3 u0 com.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerActivity}
+FAIL  (2) Add a photo opens no photo picker (focus stays on the session)  should NOT contain [photopicker]
+FAIL  (2) the card is still showing, unchanged                    expected [yes] got [no]
+------------------------------------------------------------------------------
+L13-1-after-fix-128b2819: 2 passed, 4 failed, 0 recorded
