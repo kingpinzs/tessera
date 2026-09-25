@@ -1,31 +1,31 @@
 ==============================================================================
 ROW EDGE_EXACT — USE_EXACT_ALARM removed and SCHEDULE_EXACT_ALARM denied (QA build): red row, inexact arm, notice, rings in the window
-at            2026-09-25T11:33:38-06:00
-driver        edge_exact.sh blob 5e853ef6bf16474b8576c07faf565812954be6f8
+at            2026-09-25T12:25:34-06:00
+driver        edge_exact.sh blob 3783ccb36d38581ba170fdb2f22894297912c883
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     51c18d8d11c140bd 338459026 bytes
-apk installed 61c5b610716197e3
-apk match     yes (61c5b610716197e3)
+apk built     4f51108673183d42 338459026 bytes
+apk installed 6c8ebb1805a84a31
+apk match     yes (6c8ebb1805a84a31)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
       no-microphone rule: 0 recording-activity event(s) in dumpsys audio at the row's start (mic_events_begin.txt)
-RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-2m18s147ms ago 
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+49m37s275ms ago 
 RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
 PASS  baseline: no shell alarm or timer pending                   = 0
 PASS  baseline: alarm and timer stores empty                      = empty
-PASS  baseline: the FINAL build is installed                      = 61c5b610716197e3
-RECORD  the QA build                                                /tmp/claude-1000/-home-jeremyking/5d5ffc39-5a2a-4c33-953f-07d71da27a45/scratchpad/p15/edgeC2-noexact/app/build/outputs/apk/debug/app-debug.apk md5 3ea9a820bfc02063 335763966 bytes
+PASS  baseline: the FINAL build is installed                      = 6c8ebb1805a84a31
+RECORD  the QA build                                                /tmp/claude-1000/-home-jeremyking/5d5ffc39-5a2a-4c33-953f-07d71da27a45/scratchpad/p15/edgeC2-noexact/app/build/outputs/apk/debug/app-debug.apk md5 d07daf07b8ac0482 335763966 bytes
 PASS  the QA build requests no USE_EXACT_ALARM (aapt2 dump permissions)  does not contain [USE_EXACT_ALARM]
 PASS  … while the FINAL build does (positive control)           contains [USE_EXACT_ALARM]
-      app.tileshell crashes in dropbox before the row's install: 0
+      app.tileshell crashes in dropbox before the row's install: 2
 PASS  the QA build installs over the FINAL one (adb install -r rc)  = 0
-PASS  … and is the installed build now                          = 3ea9a820bfc02063
+PASS  … and is the installed build now                          = d07daf07b8ac0482
 RECORD  appops SCHEDULE_EXACT_ALARM after deny                      SCHEDULE_EXACT_ALARM: default
 RECORD  dumpsys package: exact-alarm permissions of the QA build    []
       RECORD_AUDIO before the Tess steps: android.permission.RECORD_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
 PASS  no-microphone rule: RECORD_AUDIO is revoked for the Tess steps  contains [RECORD_AUDIO: granted=false]
-      the re-arm at the restart:     2026-09-25 11:33:45.518 wall=1790357625518 [alarms] rearm (process start): 0 alarms, 0 timers, exact=false
+      the re-arm at the restart:     2026-09-25 12:25:40.758 wall=1790360740758 [alarms] rearm (process start): 0 alarms, 0 timers, exact=false
 PASS  the restarted process arms inexactly (its re-arm line reads exact=false)  contains [exact=false]
       Tess's settings scrolled 2 swipe(s) to: resource-id="cortana_check:exact_alarms:missing"
 PASS  Tess's checklist: the exact_alarms row reads missing        = yes
@@ -33,36 +33,34 @@ RECORD  the exact_alarms row's glyph colour (red is 232,17,35)      232,17,35
 PASS  … its glyph is red (232,17,35 ± 16)                      = yes
 RECORD  the row's texts                                             |Exact alarms|Off · Reminders will be a few minutes late|
 RECORD  the Setup checklist's rows on screen (the Decisions keep exact_alarms in Tess's checklist, T15-6)  checklist:home:granted checklist:notifications:granted checklist:photos:granted checklist:music:granted checklist:calendar:granted checklist:location:granted checklist:usage:missing checklist:samsung_badges:missing checklist:legacy_badges:missing checklist:keyboard_enabled:granted checklist:keyboard_selected:missing
-      typed request: [set an alarm for 11:36 am]
-      reply spoken: [Alarm set for 11:36 AM.]; session texts: [|||||||||set an alarm for 11:36 am|||Alarm set for 11:36 AM.|||Ask me anything||||||||||||||11:34 AM]
+      typed request: [set an alarm for 12:28 pm]
+      reply spoken: [Alarm set for 12:28 PM. Exact alarms are off, so it may be a few minutes late.]; session texts: [|||||||||set an alarm for 12:28 pm|||Alarm set for 12:28 PM. Exact alarms are off, so it may be a few minutes late.|||Ask me anything||||||||||||||12:26 PM]
 PASS  Tess set an alarm in-process                                != 
-PASS  … at the typed time                                       = 11:36
+PASS  … at the typed time                                       = 12:28
 PASS  the reply confirms it                                       contains [Alarm set for]
-FAIL  the notice is SPOKEN (the reply carries 'Exact alarms are off')  does not contain [Exact alarms are off]: Alarm set for 11:36 AM.
-FAIL  the notice is SHOWN (the session's text carries 'Exact alarms are off')  does not contain [Exact alarms are off]: |||||||||set an alarm for 11:36 am|||Alarm set for 11:36 AM.|||Ask me anything||||||||||||||11:34 AM
+PASS  the notice is SPOKEN (the reply carries 'Exact alarms are off')  contains [Exact alarms are off]
+PASS  the notice is SHOWN (the session's text carries 'Exact alarms are off')  contains [Exact alarms are off]
 PASS  no-microphone rule: RECORD_AUDIO granted back as found after the Tess steps  = android.permission.RECORD_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
 RECORD  the Alarm tab's texts mentioning exact alarms or lateness   []
 PASS  it arms inexactly: rearm (store change): 1 alarms, 0 timers, exact=false  contains [[alarms] rearm (store change): 1 alarms, 0 timers, exact=false]
-      the entry:  RTC_WAKEUP #2: Alarm{76de2dc type 0 origWhen 1790357760000 whenElapsed 215554 app.tileshell}| tag=*walarm*:app.tileshell.clock.FIRE| type=RTC_WAKEUP origWhen=2026-09-25 11:36:00.000 window=+1m5s480ms repeatInterval=0 count=0 flags=0x20| policyWhenElapsed: requester=+1m9s487ms app_standby=-17s820ms device_idle=-- battery_saver=-17s820ms| whenElapsed=+1m9s487ms maxWhenElapsed=+2m14s967ms| operation=PendingIntent{710cfe5: PendingIntentRecord{19e7aba app.tileshell broadcastIntent}}| idle-options=Bundle[{android.pendingIntent.backgroundActivityAllowed=2, android:broadcast.temporaryAppAllowlistReas
+      the entry:  RTC_WAKEUP #2: Alarm{b961df9 type 0 origWhen 1790360880000 whenElapsed 3336262 app.tileshell}| tag=*walarm*:app.tileshell.clock.FIRE| type=RTC_WAKEUP origWhen=2026-09-25 12:28:00.000 window=+1m9s174ms repeatInterval=0 count=0 flags=0x20| policyWhenElapsed: requester=+1m14s711ms app_standby=-17s521ms device_idle=-- battery_saver=-17s521ms| whenElapsed=+1m14s711ms maxWhenElapsed=+2m23s885ms| operation=PendingIntent{3a2d13e: PendingIntentRecord{c082b9f app.tileshell broadcastIntent}}| idle-options=Bundle[{android.pendingIntent.backgroundActivityAllowed=2, android:broadcast.temporaryAppAllowlistR
 PASS  … its dumpsys alarm entry exists (RTC_WAKEUP, clock.FIRE)  != 
 PASS  … with no Next alarm clock (not setAlarmClock)            = 
 PASS  … and no exact-allow reason on the entry                  does not contain [exactAllowReason]
-RECORD  the entry's window (ms) and origWhen                        window=65480 origWhen=1790357760000
+RECORD  the entry's window (ms) and origWhen                        window=69174 origWhen=1790360880000
 PASS  … a non-zero inexact window                               = yes
-      waiting up to 194 s for the fire (origWhen 1790357760000, window 65480 ms)
-      fired: none
-FAIL  the alarm rings (fired acdaa1ef9)                           should not be []
-FAIL  … inside Android's inexact window (0 ≤ late ≤ window + 1000 ms)  expected [yes] got [no (late= window=65480)]
-FAIL  … and sounds (an ALARM player of the shell is started)    should not be [0]
-RECORD  the ring's surface line                                     
-FAIL  … with no crash of app.tileshell while it was due (dropbox data_app_crash count unchanged)  expected [0] got [2]
+      waiting up to 203 s for the fire (origWhen 1790360880000, window 69174 ms)
+      fired:     2026-09-25 12:29:09.185 wall=1790360949185 [alarms] fired aedec15c9 kind=alarm late=69185
+PASS  the alarm rings (fired aedec15c9)                           != 
+PASS  … inside Android's inexact window (0 ≤ late ≤ window + 1000 ms)  = yes
+PASS  … and sounds (an ALARM player of the shell is started)    != 0
+RECORD  the ring's surface line                                     [alarms] surface: toast-overlay aedec15c9
+PASS  … with no crash of app.tileshell while it was due (dropbox data_app_crash count unchanged)  = 2
 RECORD  the newest app.tileshell crash's cause                      Caused by: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{686b54e 4397:app.tileshell/u0a174} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
-      gdump_for ring_dismiss: not in any of 3 dumps
-      no ring ended line after Dismiss; dismiss_any_ring
-      scroll_to_node alarm_row:acdaa1ef9: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:aedec15c9: 0 swipe(s), found=yes
 RECORD  appops SCHEDULE_EXACT_ALARM after restore                   SCHEDULE_EXACT_ALARM: default
 PASS  restore: the FINAL APK reinstalls (adb install -r rc)       = 0
-PASS  restore: the FINAL build (61c5b610716197e3) is installed again  = 61c5b610716197e3
+PASS  restore: the FINAL build (6c8ebb1805a84a31) is installed again  = 6c8ebb1805a84a31
 PASS  restore: the home activity is the shell's Start             contains [app.tileshell.StartActivity]
 PASS  restore: USE_EXACT_ALARM is granted again                   contains [USE_EXACT_ALARM: granted=true]
 PASS  restore: the restarted process arms exactly again (exact=true)  contains [exact=true]
@@ -71,4 +69,4 @@ PASS  restore: alarm and timer stores empty                       = empty
 PASS  no-microphone rule: dumpsys audio's recording-activity log is read (positive control: its header)  contains [Events log: recording activity]
 PASS  no-microphone rule: no audio capture on the device during the row (the recording-activity log gained no event)  = 
 ------------------------------------------------------------------------------
-EDGE_EXACT: 29 passed, 6 failed, 13 recorded
+EDGE_EXACT: 35 passed, 0 failed, 13 recorded

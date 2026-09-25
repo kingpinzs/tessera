@@ -1,0 +1,56 @@
+==============================================================================
+ROW EDGE_ALARM_CONTEXT — an alarm firing while Tess listens, Start is in edit mode, Music plays, the recorder runs; glance
+at            2026-09-25T11:29:55-06:00
+driver        edge_alarm_context.sh blob c3d8ecb4e57e0d24cb6a19dcfc342d9938434610
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     51c18d8d11c140bd 338459026 bytes
+apk installed 61c5b610716197e3
+apk match     yes (61c5b610716197e3)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      no-microphone rule: 50 recording-activity event(s) in dumpsys audio at the row's start (mic_events_begin.txt)
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  baseline: the overlay grant is allow (the in-use toast is the overlay)  contains [allow]
+RECORD  1. an alarm firing while Tess is listening                  NOT RUN: the owner's no-microphone rule (2026-09-25)
+PASS  Edit: the alarm was created and armed                       != 
+      the tile held: tile:slot:PEOPLE
+PASS  Edit: Start is in edit mode before the alarm (edit_disc:unpin on screen)  = yes
+PASS  Edit: … and the ring says edit mode on                    contains [edit mode on]
+PASS  Edit: the alarm fired                                       != 
+      windows at the ring: SYSTEM:app.tileshell:[0,0][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+PASS  Edit: the toast is up (ring_surface in the all-windows dump)  = yes
+      edit exit line: none
+FAIL  Edit: edit mode ends — [edit] exit first frame at or after the fired line  expected [yes] got [no (no line)]
+FAIL  Edit: … and no edit disc is on Start in the all-windows dump  expected [no] got [yes]
+      Start was still in edit mode after the ring; left with Back
+PASS  device clock back within 2 s of the host (RV12)             1790357432.00 vs 1790357432.00 +/- 2.0
+      scroll_to_node alarm_row:a352db0b2: 0 swipe(s), found=yes
+PASS  edit: the section left no alarm behind                      = 
+      media volume before: 5; Music fixtures present before: 0
+PASS  Music: the alarm was created and armed                      != 
+      MediaStore id of the fixture track Bloom: 80
+PASS  Music: the shell's Music session is playing before the alarm  = PLAYING
+PASS  Music: … a USAGE_MEDIA player of the shell is started     != 
+PASS  Music: the alarm fired                                      != 
+PASS  Music: the player pauses on the transient focus loss (session PAUSED)  = PAUSED
+PASS  Music: … no USAGE_MEDIA player of the shell is started    = 
+PASS  Music: … while the alarm plays (an ALARM player of the shell is started)  != 0
+RECORD  Music: the focus events in dumpsys audio                    09-25 11:31:02:082 requestAudioFocus() from uid/pid 10174/6939 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@9ea6a6c callingPack=app.tileshell req=2 flags=0x0 sdk=36|09-25 11:31:07:816 abandonAudioFocus() from uid/pid 10174/6939 clientId=android.media.AudioManager@9ea6a6c callingPack=app.tileshell|09-25 11:31:07:142 requestAudioFocus() from uid/pid 10174/7489 AA=USAG
+RECORD  Music: 6 s after the ring ended the player is (phase 10 E9: it does not resume by itself)  PLAYING; a USAGE_MEDIA player started: yes
+PASS  device clock back within 2 s of the host (RV12)             1790357491.00 vs 1790357491.00 +/- 2.0
+      scroll_to_node alarm_row:ae532ba39: 0 swipe(s), found=yes
+PASS  music: the section left no alarm behind                     = 
+      restore: media volume volume is 0; fixtures present: 0
+RECORD  4. an alarm firing while the recorder runs                  NOT RUN: the owner's no-microphone rule (2026-09-25)
+RECORD  glance (phase 07): NOT RUN                                  phase 07 is not built — INDEX row 07:  pending ; components of app.tileshell naming glance (dumpsys package): 0
+PASS  restore: the overlay grant is allow                         contains [allow]
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+PASS  no-microphone rule: dumpsys audio's recording-activity log is read (positive control: its header)  contains [Events log: recording activity]
+PASS  no-microphone rule: no audio capture on the device during the row (the recording-activity log gained no event)  = 
+------------------------------------------------------------------------------
+EDGE_ALARM_CONTEXT: 24 passed, 2 failed, 7 recorded

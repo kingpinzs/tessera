@@ -221,3 +221,9 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   no recording in any of them. E22 56/0/2, the 2 NOT RUN under the no-microphone rule. Open: the defects (exact-alarm
   silent crash, the missing notice, edit mode surviving an alarm, Tess not hidden), the recorder edge rows (no-mic),
   the reviewers, and NEEDS-HUMAN.
+- 2026-09-25 (evening): Jeremy "(a)": fix defects 1-3, re-run only their tests, no microphone. Fixed d7c89d4 (the ring's
+  foreground type follows the exact-alarm grant: mediaPlayback without one), 8833614 (Tess's alarm and timer replies
+  carry the exact-alarms notice), 0d74245 (a ring ends Start's edit mode). Final build 6c8ebb18, on 5560 only. Results:
+  EDGE_ALARM_CONTEXT 26/0/7 and EDGE_EXACT 35/0/13 (the QA build d07daf07 from 0d74245 without USE_EXACT_ALARM; the
+  alarm rang inside its window and sounded, ring foreground: mediaPlayback, no new crash). mic_guard showed no capture.
+  EDGE_EXACT now reads the final build's md5 from the APK instead of pinning it. 5556 and 5558 still hold 61c5b610.
