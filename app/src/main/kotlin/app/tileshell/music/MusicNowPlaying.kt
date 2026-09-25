@@ -1,5 +1,9 @@
 package app.tileshell.music
 
+import app.tileshell.ui.fluent.LocalAcrylicBackdrop
+import app.tileshell.ui.fluent.acrylicBackdropSource
+import app.tileshell.ui.fluent.rememberAcrylicBackdrop
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -199,7 +203,10 @@ fun NowPlayingPage(onBack: () -> Unit, onWindows: () -> Unit) {
             delay(250)
         }
     }
-    BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black).testTag("nowplaying_root")) {
+    // Phase 13: the page's picture, text and controls are recorded into one backdrop layer (T13-11); the `•••` band
+    // is drawn above it and blurs it; the nav bar stays on top of both, as before.
+    val backdrop = rememberAcrylicBackdrop()
+    BoxWithConstraints(Modifier.fillMaxSize().testTag("nowplaying_root")) {
         val chromeBottom = NowPlayingMetrics.STATUS + NowPlayingMetrics.HEADER
         val navTop = maxHeight - NowPlayingMetrics.NAV
         val scrubCy =
@@ -208,9 +215,11 @@ fun NowPlayingPage(onBack: () -> Unit, onWindows: () -> Unit) {
         val transportCy = scrubCy + (NowPlayingMetrics.SCRUB_CY_ABOVE_NAV - NowPlayingMetrics.TRANSPORT_CY_ABOVE_NAV)
         val chevronCy = scrubCy + (NowPlayingMetrics.SCRUB_CY_ABOVE_NAV - NowPlayingMetrics.CHEVRON_CY_ABOVE_NAV)
 
+        val pageWidth = maxWidth
+        BoxWithConstraints(Modifier.fillMaxSize().acrylicBackdropSource(backdrop).background(Color.Black)) {
         // R8 §1.3 / §1.9: the art is flush under the chrome and square, and in the expanded state the
         // album-art mode removes it entirely — the page is plain black behind the queue.
-        if (!expanded) AlbumArt(top = chromeBottom, side = NowPlayingMetrics.ART_SIDE, width = maxWidth)
+        if (!expanded) AlbumArt(top = chromeBottom, side = NowPlayingMetrics.ART_SIDE, width = pageWidth)
 
         Metadata(cy = scrubCy - NowPlayingMetrics.TITLE_CY_ABOVE_SCRUB, style = MetaLine.TITLE)
         Metadata(cy = scrubCy - NowPlayingMetrics.ARTIST_CY_ABOVE_SCRUB, style = MetaLine.ARTIST)
@@ -227,17 +236,20 @@ fun NowPlayingPage(onBack: () -> Unit, onWindows: () -> Unit) {
 
         // The chrome last, so nothing can draw over it.
         Chrome(onBack)
+        }
         more?.let { level ->
             val density = LocalDensity.current
             // The band rises from just above the transport row, so it covers neither the nav bar nor
             // the row the `•••` sits in.
             val rise = with(density) { (transportCy - NowPlayingMetrics.TOGGLE_PILL / 2).toPx() }
-            MusicMenu(
-                anchorPx = 0f,
-                riseFromPx = rise,
-                items = moreEntries(level) { more = it },
-                onDismiss = { more = null },
-            )
+            CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop) {
+                MusicMenu(
+                    anchorPx = 0f,
+                    riseFromPx = rise,
+                    items = moreEntries(level) { more = it },
+                    onDismiss = { more = null },
+                )
+            }
         }
         Box(Modifier.align(Alignment.BottomStart)) {
             app.tileshell.bars.W10mNavBar(onBack = onBack, onWindows = onWindows)

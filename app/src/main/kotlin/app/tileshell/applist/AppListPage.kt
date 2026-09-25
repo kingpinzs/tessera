@@ -77,6 +77,18 @@ import app.tileshell.tiles.LayoutStore
 import app.tileshell.tiles.TileKey
 import app.tileshell.tiles.TileSize
 import app.tileshell.ui.LocalShellColors
+import app.tileshell.ui.MotionClock
+import app.tileshell.ui.fluent.AppListBackdrop
+import app.tileshell.ui.fluent.LocalAcrylicBackdrop
+import app.tileshell.ui.fluent.acrylicBackdropSource
+import app.tileshell.ui.fluent.rememberAcrylicBackdrop
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.round
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import app.tileshell.ui.LocalStartTheme
 import app.tileshell.ui.components.PressRow
 import app.tileshell.ui.tokens.ShellType
@@ -178,6 +190,14 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
     var menu by remember { mutableStateOf<AppMenuTarget?>(null) }
     var listTopPx by remember { mutableStateOf(0f) }
     var visible by remember { mutableStateOf(false) }
+    // Phase 13: the page's background and rows are recorded into one backdrop layer (T13-11); the hold menu and the
+    // jump grid are drawn as a sibling above it, over the list's own rectangle, so the menu never records itself.
+    val backdrop = rememberAcrylicBackdrop()
+    var pageInWindow by remember { mutableStateOf(Offset.Zero) }
+    var listInWindow by remember { mutableStateOf(Offset.Zero) }
+    var listSize by remember { mutableStateOf(IntSize.Zero) }
+    var menuHoldUptime by remember { mutableStateOf(0L) }
+    val colors = LocalShellColors.current
     val listState = rememberLazyListState()
     val searchState = rememberLazyListState()
     val iconPx = with(LocalDensity.current) { AppListMetrics.ICON.roundToPx() }
@@ -235,6 +255,7 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
     // A hold of Edit.HOLD_MS opens the context menu under the row that was held (H21).
     val hold: (AppEntry, Rect?) -> Unit = { entry, bounds ->
         focusManager.clearFocus()
+        menuHoldUptime = android.os.SystemClock.uptimeMillis()
         menu = AppMenuTarget(entry, (bounds?.bottom?.toFloat() ?: listTopPx) - listTopPx)
         Diagnostics.add("applist", "context menu on ${entry.component.flattenToShortString()}")
     }
@@ -256,11 +277,15 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
             .fillMaxSize()
             .testTag("app_list")
             .onGloballyPositioned { c ->
+                pageInWindow = c.positionInWindow()
                 val width = c.size.width
                 val now = width > 0 && c.boundsInWindow().width >= width * 0.5f
                 if (now != visible) visible = now
             },
     ) {
+      Box(Modifier.fillMaxSize().acrylicBackdropSource(backdrop)) {
+        // R3 A18: the Start picture shows through the app list — blurred with acrylic on, unblurred off (phase 13).
+        AppListBackdrop(theme.backgroundUri, colors.background, visible)
         Column(Modifier.fillMaxSize().padding(top = AppListMetrics.TOP)) {
             SearchBox(query) {
                 query = it
@@ -271,7 +296,11 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .onGloballyPositioned { listTopPx = it.positionInWindow().y },
+                    .onGloballyPositioned {
+                        listTopPx = it.positionInWindow().y
+                        listInWindow = it.positionInWindow()
+                        listSize = it.size
+                    },
             ) {
                 if (query.isBlank()) {
                     AzList(model, listState, newKeys, icons, generation, launch, hold, openGrid, tracker)
@@ -287,6 +316,16 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
                         }
                     }
                 }
+            }
+        }
+      }
+        // The overlays, over the list's own rectangle (the anchors are measured against it), above the backdrop.
+        Box(
+            Modifier
+                .offset { (listInWindow - pageInWindow).round() }
+                .size(with(LocalDensity.current) { DpSize(listSize.width.toDp(), listSize.height.toDp()) }),
+        ) {
+            CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop) {
                 menu?.let { target ->
                     PinToStartMenu(
                         target.anchorPx,
@@ -300,18 +339,19 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
                         } else {
                             null
                         },
+                        onFirstFrame = { drawnAt -> MotionClock.jump("applist_menu", menuHoldUptime, drawnAt) },
                     )
                 }
-                if (gridOpen) {
-                    JumpGrid(model.cells, onPick = { cell ->
-                        val index = cell.targetIndex
-                        gridOpen = false
-                        if (index != null) {
-                            scope.launch { listState.scrollToItem(index) }
-                            Diagnostics.add("applist", "jump to ${cell.id} (item $index)")
-                        }
-                    }, onDismiss = { gridOpen = false })
-                }
+            }
+            if (gridOpen) {
+                JumpGrid(model.cells, onPick = { cell ->
+                    val index = cell.targetIndex
+                    gridOpen = false
+                    if (index != null) {
+                        scope.launch { listState.scrollToItem(index) }
+                        Diagnostics.add("applist", "jump to ${cell.id} (item $index)")
+                    }
+                }, onDismiss = { gridOpen = false })
             }
         }
     }

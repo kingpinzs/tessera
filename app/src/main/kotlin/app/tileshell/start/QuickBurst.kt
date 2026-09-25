@@ -1,5 +1,10 @@
 package app.tileshell.start
 
+import app.tileshell.ui.fluent.Fluent
+import app.tileshell.ui.fluent.RevealLight
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.unit.dp
 import androidx.compose.animation.core.TargetBasedAnimation
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.spring
@@ -102,6 +107,30 @@ class QuickBurstState {
 
     /** The open spring's progress, 0 at the held tile's centre, 1 at rest. */
     var progress by mutableFloatStateOf(0f)
+
+    /**
+     * Phase 13 (T13-25): the satellite the finger is on and where, in the gestures' coordinates — set by
+     * [startEditGestures]' satellite branch at DOWN and each MOVE, cleared at UP, at cancel, or when the finger leaves
+     * the satellite — so [QuickBurstLayer] draws the two lights on it. Satellites are draw-only; this is their press.
+     */
+    var pressedSatellite by mutableStateOf<Int?>(null)
+        private set
+    var pressPoint by mutableStateOf(Offset.Zero)
+        private set
+
+    fun pressSatellite(index: Int, at: Offset) {
+        pressedSatellite = index
+        pressPoint = at
+    }
+
+    fun movePress(index: Int, at: Offset) {
+        if (pressedSatellite != index) return
+        if (satelliteAt(at) == index) pressPoint = at else pressedSatellite = null
+    }
+
+    fun endPress() {
+        pressedSatellite = null
+    }
 
     /** Set by the activity: runs satellite i of the open burst from the given page rectangle (T11-24). */
     var onSatelliteTap: (OpenBurst, Int, QRect) -> Unit = { _, _, _ -> }
@@ -238,6 +267,9 @@ fun QuickBurstLayer(
     val quick = edit.quick
     val burst = quick.burst ?: return
     val density = LocalDensity.current
+    val fluent by Fluent.state.collectAsState()
+    val lightRadiusPx = with(density) { RevealLight.RADIUS_EPX.dp.toPx() }
+    val ringPx = with(density) { RevealLight.RING_EPX.dp.toPx() }
     val tileNow by rememberUpdatedState(quick.heldBounds ?: burst.restTile)
     val scaleSettled by rememberUpdatedState(edit.scaleProgress >= 1f)
     val closing = quick.closing
@@ -344,7 +376,15 @@ fun QuickBurstLayer(
                     .size(satDp)
                     .graphicsLayer { this.alpha = alpha; scaleX = scale; scaleY = scale }
                     .let { if (open) it.testTag("quick_sat:$i") else it }
-                    .background(accent.copy(alpha = accent.alpha * tileAlpha)),
+                    .background(accent.copy(alpha = accent.alpha * tileAlpha))
+                    // Phase 13 (Q3 B, T11-7): the two lights on the pressed satellite, over its face, under its glyph;
+                    // off with acrylic, and never a Q6 press style.
+                    .drawBehind {
+                        if (open && fluent.on && quick.pressedSatellite == i) {
+                            val origin = Offset(rest.square.l + dx, rest.square.t + dy)
+                            RevealLight.draw(this, quick.pressPoint - origin, lightRadiusPx, ringPx)
+                        }
+                    },
                 contentAlignment = Alignment.Center,
             ) {
                 // The small tile's glyph size: 0.52 of the side (TileView's rule).

@@ -1,5 +1,13 @@
 package app.tileshell.music
 
+import app.tileshell.ui.fluent.LocalAcrylicBackdrop
+import app.tileshell.ui.fluent.acrylicBackdropSource
+import app.tileshell.ui.fluent.rememberAcrylicBackdrop
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.round
+import androidx.compose.foundation.layout.offset
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
@@ -188,13 +196,24 @@ fun MusicCollectionPage(
     // The shell's own chrome, drawn by the page as every other shell-owned page draws it: the music
     // player is an app INSIDE the shell, so it gets the same status bar and the same W10M nav bar
     // rather than Android's.
-    Column(Modifier.fillMaxSize().background(colors.background).testTag("music_root")) {
+    // Phase 13: the page (its background, bars and rows) is recorded into one backdrop layer (T13-11) and the overlays
+    // are drawn as a sibling above it, over the content box's own rectangle, so the menu never records itself.
+    val backdrop = rememberAcrylicBackdrop()
+    var rootInWindow by remember { mutableStateOf(Offset.Zero) }
+    var contentInWindow by remember { mutableStateOf(Offset.Zero) }
+    var contentSize by remember { mutableStateOf(IntSize.Zero) }
+    Box(Modifier.fillMaxSize().testTag("music_root").onGloballyPositioned { rootInWindow = it.positionInWindow() }) {
+    Column(Modifier.fillMaxSize().acrylicBackdropSource(backdrop).background(colors.background)) {
         W10mStatusBar()
         Box(
             Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .onGloballyPositioned { contentTopPx = it.positionInWindow().y },
+                .onGloballyPositioned {
+                    contentTopPx = it.positionInWindow().y
+                    contentInWindow = it.positionInWindow()
+                    contentSize = it.size
+                },
         ) {
             val open = detail
             if (playlist != null) {
@@ -281,12 +300,6 @@ fun MusicCollectionPage(
                     }
                 }
             }
-            // The overlays, over whichever page is showing and inside the same box the anchors are
-            // measured against.
-            menu?.let { open -> MusicMenu(open.anchorPx, open.entries, onDismiss = { menu = null }) }
-            naming?.let { open ->
-                PlaylistNameBox(open.caption, open.initial, onDone = open.onDone, onCancel = { naming = null })
-            }
         }
         W10mNavBar(
             onBack = {
@@ -300,6 +313,20 @@ fun MusicCollectionPage(
             },
             onWindows = onWindows,
         )
+    }
+    // The overlays, over whichever page is showing and over the same box the anchors are measured against.
+    Box(
+        Modifier
+            .offset { (contentInWindow - rootInWindow).round() }
+            .size(with(LocalDensity.current) { DpSize(contentSize.width.toDp(), contentSize.height.toDp()) }),
+    ) {
+        CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop) {
+            menu?.let { open -> MusicMenu(open.anchorPx, open.entries, onDismiss = { menu = null }) }
+        }
+        naming?.let { open ->
+            PlaylistNameBox(open.caption, open.initial, onDone = open.onDone, onCancel = { naming = null })
+        }
+    }
     }
 }
 

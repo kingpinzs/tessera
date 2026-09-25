@@ -1,5 +1,9 @@
 package app.tileshell
 
+import androidx.compose.foundation.interaction.DragInteraction
+import android.os.SystemClock
+import androidx.compose.runtime.withFrameNanos
+import app.tileshell.ui.MotionTrace
 import android.app.ActivityOptions
 import android.content.Intent
 import android.graphics.Rect
@@ -157,6 +161,26 @@ class StartActivity : ComponentActivity() {
             }
         }
         LaunchedEffect(pager.currentPage) { page = pager.currentPage }
+        // Phase 13 (C-5, T13-27, E8): the pivot's settle after a swipe is released, on the shell's own clock —
+        // `[motion] pivot`, value = how far the pager has gone from where the finger let go to where it settles.
+        LaunchedEffect(pager) {
+            pager.interactionSource.interactions.collect { interaction ->
+                if (interaction !is DragInteraction.Stop && interaction !is DragInteraction.Cancel) return@collect
+                val t0 = SystemClock.uptimeMillis()
+                val from = pager.currentPage + pager.currentPageOffsetFraction
+                val frames = ArrayList<Pair<Long, Float>>()
+                do {
+                    val nanos = withFrameNanos { it }
+                    frames += nanos to (pager.currentPage + pager.currentPageOffsetFraction)
+                } while (pager.isScrollInProgress)
+                val to = frames.last().second
+                val trace = MotionTrace("pivot", t0)
+                frames.forEach { (nanos, at) ->
+                    trace.frame(nanos, if (to == from) 1f else ((at - from) / (to - from)).coerceAtMost(1f))
+                }
+                Diagnostics.add("motion", trace.message())
+            }
+        }
 
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {

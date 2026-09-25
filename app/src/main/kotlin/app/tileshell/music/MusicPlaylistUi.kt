@@ -1,5 +1,9 @@
 package app.tileshell.music
 
+import app.tileshell.ui.fluent.AcrylicLayer
+import app.tileshell.ui.fluent.FluentSurface
+import app.tileshell.ui.fluent.Rgb
+import app.tileshell.ui.fluent.revealLights
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -78,8 +82,19 @@ fun MusicMenu(
     ) {
         Layout(
             content = {
-                Column(Modifier.fillMaxWidth().background(colors.background).testTag("music_menu")) {
-                    items.forEach { entry -> MenuItem(entry) }
+                // Phase 13: the band is acrylic over the page under it (surface table: T = the theme background,
+                // also its fallback fill). One composable, so both call sites — the collection's holds and
+                // now-playing's `•••` — are the one surface (T13-19).
+                Box(Modifier.fillMaxWidth().testTag("music_menu")) {
+                    AcrylicLayer(
+                        FluentSurface.MUSIC_MENU,
+                        fill = colors.background,
+                        tint = Rgb.of(colors.background),
+                        modifier = Modifier.matchParentSize(),
+                    )
+                    Column(Modifier.fillMaxWidth()) {
+                        items.forEach { entry -> MenuItem(entry) }
+                    }
                 }
             },
             modifier = Modifier.fillMaxSize(),
@@ -119,6 +134,8 @@ private fun MenuItem(entry: MenuEntry) {
                 }
             }
             .background(if (pressed) Color.White.copy(alpha = ROW_PRESS_ALPHA) else Color.Transparent)
+            // Phase 13 (Q3 B): the ring and the radial light over the pressed fill, under the label.
+            .revealLights()
             .testTag(entry.tag),
     ) {
         BasicText(entry.label, style = ShellType.body.copy(color = colors.text), modifier = Modifier.padding(AppMenuMetrics.INSET))
