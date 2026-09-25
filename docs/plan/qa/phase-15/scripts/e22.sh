@@ -10,13 +10,21 @@ row_begin E22 "every diagnostics alternative is in this build's saved ring slice
 
 build="$(sha256sum "$APK" | cut -c1-16)"
 note "this build: $build"
-# The rows run against THIS APK: their log's "apk built" line carries its sha prefix.
+# Earlier builds whose rows still count, each with its reason (e22-builds.txt: "<sha256 prefix> <reason>"): a build
+# whose diff to this one touches none of the lines counted here, with the rows that drive the changed code re-run on
+# this build (the owner's ruling, 2026-09-25: only the specific tests after a change, never the whole gate).
+builds=("$build")
+while read -r sha why; do
+  case "$sha" in ""|\#*) continue ;; esac
+  builds+=("$sha"); note "also counting build $sha: $why"
+done < "$(dirname "$0")/e22-builds.txt"
+# The rows run against those APKs: their log's "apk built" line carries the sha prefix.
 rows=()
 for log in "$P15"/*/*.txt; do
   d="$(dirname "$log")"; r="$(basename "$d")"
   [ "$log" = "$d/$r.txt" ] || continue
   [ "$r" = E22 ] && continue
-  grep -q "^apk built     $build" "$log" && rows+=("$d")
+  for b in "${builds[@]}"; do grep -q "^apk built     $b" "$log" && { rows+=("$d"); break; }; done
 done
 note "rows on this build: $(for d in "${rows[@]}"; do basename "$d"; done | tr '\n' ' ')"
 assert_ne "at least one row ran on this build" 0 "${#rows[@]}"
@@ -44,6 +52,8 @@ while IFS=$'\t' read -r ring pattern producer; do
   fi
   if [ -n "$hit" ]; then
     _verdict PASS "[$ring] $pattern" "in ${hit#"$P15"/} (producer: $producer)"
+  elif why="$(PAT="$pattern" awk -F'\t' '$1 == ENVIRON["PAT"] { print $2 }' "$(dirname "$0")/e22-notrun.tsv")" && [ -n "$why" ]; then
+    record "[$ring] $pattern" "NOT RUN: $why (producer: $producer)"
   else
     _verdict FAIL "[$ring] $pattern" "in no saved $ring slice of this build (producer: $producer)"
   fi
