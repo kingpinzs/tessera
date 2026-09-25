@@ -224,9 +224,7 @@ fun RecorderGlyph(glyph: String, sizeEpx: Float, color: Color, modifier: Modifie
 
 /** Top padding that puts [style]'s cap top [capTopEpx] below its box's top (the shell's Selawik metrics). */
 fun capPad(capTopEpx: Float, style: TextStyle): Float {
-    val size = style.fontSize.value
-    val line = if (style.lineHeight.isSpecified) style.lineHeight.value else CapMetrics.lineHeightFor(size)
-    return CapMetrics.topPaddingForCapTop(capTopEpx, size, line)
+    return CapMetrics.topPaddingForCapTop(capTopEpx, style.fontSize.value)
 }
 
 /** One item of a [RecorderFlyout]. */

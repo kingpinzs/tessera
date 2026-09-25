@@ -317,7 +317,7 @@ fun LoopSpinner(values: List<String>, selected: Int, visibleRows: Float, tag: St
 @Composable
 fun EditorTitle(text: String, tag: String) {
     val colors = LocalShellColors.current
-    val top = CapMetrics.topPaddingForCapTop(16.9f, 16.5f, 20f)
+    val top = CapMetrics.topPaddingForCapTop(16.9f, 16.5f)
     BasicText(text, Modifier.offset(x = 10.7.dp, y = top.dp).testTag(tag), style = ShellType.base.copy(fontSize = 16.5.sp, color = colors.text), maxLines = 1)
 }
 
@@ -340,7 +340,7 @@ fun BoxScope.EmptyLine(text: String, tag: String) {
 @Composable
 fun BoxScope.EmptyLineR7(text: String, tag: String, capTop: Float = 70.4f) {
     val colors = LocalShellColors.current
-    val top = CapMetrics.topPaddingForCapTop(capTop, 20f, 24f)
+    val top = CapMetrics.topPaddingForCapTop(capTop, 20f)
     BasicText(text, Modifier.offset(x = 11.7.dp, y = top.dp).testTag(tag), style = ShellType.subtitle.copy(color = colors.text))
 }
 
