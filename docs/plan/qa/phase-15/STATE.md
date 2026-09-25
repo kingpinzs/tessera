@@ -174,3 +174,11 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   pass as an in-progress snapshot (it was on EDGE_ALARMS). Calculator rows on c45e7a28 (5560): E11 243/0/2, E12 91/0,
   EDGE-CALC 52/0/5. Next: the clock agent's report, then the final gate on one build, the reviewers, NEEDS-HUMAN.md
   and row 15.
+- 2026-09-24 ~19:40: the clock continuation pass (Opus) reported: every clock row passes on 33cc71c1 except two product
+  defects, and I fixed both. EDGE_STOPWATCH: a new lap landed above the viewport once the list was full (6865208). E10:
+  the timer editor's splits (cbc15ea), and three texts placed by box where r11 measured ink (ed2bba8). The last needed
+  two fixes to the Calculator's ink placement: the node reports the drawn box, and translucent text is measured opaque
+  (0e3695a). E7's lap line was 1 ms off the stored lap (5fe3741). On 87ddb3ef / 4ffe58a7: E10 133/0/1, E7 31/0,
+  EDGE_STOPWATCH 17/0, E13 145/0/7. Found: CapMetrics' cap-top model is wrong shell-wide (Compose trims the first line's
+  leading, so text sits 0.7-2.6 epx high by style). Asked Jeremy A (fix now, shell-wide) / B (plan after) / C (leave);
+  waiting. The final gate waits on the answer. NEEDS-HUMAN.md written (P1-P7, H1-H27 with evidence pointers).
