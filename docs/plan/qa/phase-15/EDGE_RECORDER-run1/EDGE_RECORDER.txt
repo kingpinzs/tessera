@@ -1,0 +1,240 @@
+==============================================================================
+ROW EDGE_RECORDER — Voice Recorder edge cases: call, revoke, silenced, rename/trim refusals, share, kill, deletes, foreign files
+at            2026-09-24T22:16:45-06:00
+driver        edge_recorder.sh blob 8a33c9e0435f903bdb95ceb36067d80d3ded1cf6
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      baseline grants: android.permission.READ_MEDIA_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.RECORD_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+      baseline appops: Uid mode: RECORD_AUDIO: foreground RECORD_AUDIO: allow; time=+9m48s177ms ago; duration=+3s0ms
+PASS  baseline: MediaStore holds no take of the shell's           = 0
+PASS  baseline: no IS_RECORDING file of another app's (no fixture left)  = 
+PASS  baseline: no take left on disk by a dead :recorder (files/recorder empty)  = 
+RECORD  Storage full is E19's (cited, not repeated)                 E19 on 4b7ac321: 15 passed, 0 failed (rec_notice 'Not enough space', [recorder] storage floor)
+RECORD  The microphone taken by Tess is E17's (cited, not repeated)  E17 on 4b7ac321: 26 passed, 0 failed (Tess refused: 'The voice recorder is using the microphone right now.')
+      EDGE_RECORDER: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
+PASS  EDGE_RECORDER: the audio route is up (audio.sh check rc)    = 0
+      launcher pid at start: 4156
+── 1. a call arriving mid-take
+PASS  1: the record state shows (rec_page:record)                 = yes
+PASS  1: the audio mode is MODE_NORMAL before the call            = MODE_NORMAL
+PASS  1: the take is recording                                    = recording
+      ringing: mode=MODE_RINGTONE phase=paused paused=call elapsed_ms=4156 notice=[The recording is paused for the call.]
+PASS  1: dumpsys audio reads MODE_RINGTONE while it rings         = MODE_RINGTONE
+PASS  1: the take is paused for the call (status paused=call)     = call
+PASS  1: the page says so (rec_notice)                            = The recording is paused for the call.
+PASS  1: the :recorder ring saw the mode become RINGTONE ([recorder] audio mode 1)  != 
+PASS  1: the :recorder ring holds [recorder] paused: call         != 
+PASS  1: the pause came at RINGTONE, before any IN_CALL (no audio mode 2 yet)  does not contain [[recorder] audio mode 2]
+PASS  1: paused within 500 ms of the RINGTONE mode line           = yes
+      in call: mode=MODE_IN_CALL phase=paused paused=call elapsed_ms=4156
+PASS  1: after gsm accept dumpsys audio reads MODE_IN_CALL        = MODE_IN_CALL
+PASS  1: still paused through IN_CALL (paused=call)               = call
+PASS  1: the take's clock stood still through the ring and the call  = 4156
+PASS  1: Resume during the call is refused (:recorder ring)       contains [[recorder] resume refused: a call is on]
+PASS  1: and the page says to resume after the call (rec_notice)  = Resume the recording after the call.
+PASS  1: the take is still paused for the call                    = call
+PASS  1: after gsm cancel the mode is MODE_NORMAL again           = MODE_NORMAL
+PASS  1: the call's end does not resume the take by itself (paused=call)  = call
+PASS  1: the take's clock still stands at the pause               = 4156
+PASS  1: Resume after the call records again (phase recording)    = recording
+      take clock 3 s after resuming: 7267
+PASS  1: the :recorder ring holds [recorder] resumed at <the pause's take time>  contains [[recorder] resumed at 4156 ms]
+      take 1 (the call take): id 259 (Recording.m4a)
+PASS  1: the take is saved in MediaStore                          != 
+      call take: 8.103800 s, stop line ms=8103, aac,44100,1
+PASS  1: the file's duration is the take's own clock (stop ms, ± 0.15 s)  8.10 vs 8.10 +/- 0.15
+      wall(start..stop) - file duration - wall(paused..resumed) = 0.00 s
+PASS  1: the paused span is absent from the file (wall - file - pause, ± 1 s)  0.00 vs 0.00 +/- 1.0
+      gap analysis at the pause (take time 4156 ms): GAP=2042 LEVEL_BEFORE=-3.0 LEVEL_AFTER=-3.0 DIPS20=[(4.0108, 103), (4.2028, 1405), (4.2752, 2787), (4.3565, 225), (4.3828, 492)] CONTROL20=[] SECONDS=8.104
+PASS  1: the tone is in the file before the pause (envelope > -20 dBFS)  = yes
+PASS  1: and after the resume                                     = yes
+FAIL  1: no gap at the pause point beyond one AAC frame (longest run < -40 dBFS <= 1024 samples)  expected [yes] got [no (2042 samples)]
+RECORD  1: dips below -20 dBFS within ±300 ms of the pause (start s, samples)  [(4.0108, 103), (4.2028, 1405), (4.2752, 2787), (4.3565, 225), (4.3828, 492)]; control window 1 s earlier: []
+── 2. RECORD_AUDIO revoked mid-take
+PASS  2: RECORD_AUDIO is granted before the revoke                contains [RECORD_AUDIO: granted=true]
+      appops before: Uid mode: RECORD_AUDIO: foreground
+PASS  2: the take is recording                                    = recording
+      pm revoke rc=0 at take time 5642 ms (recorder pid 4263, launcher pid 4156)
+PASS  2: pm revoke RECORD_AUDIO rc                                = 0
+      after the revoke: launcher pid 7992, recorder pid [], speech pid []
+PASS  2: the take stopped: no app.tileshell:recorder process      = 
+PASS  2: no recorder service left (dumpsys activity services)     = 
+PASS  2: the ongoing notification is gone                         = 
+RECORD  2: the revoke killed the launcher too (pm revoke kills the app's uid)  launcher pid 4156 -> 7992
+      left on disk by the killed process: 46841 take-1790309858060.aac 64 take-1790309858060.json
+PASS  2: the take is on disk as its kill-safe stream (take-*.aac)  contains [.aac]
+PASS  2: RECORD_AUDIO now reads granted=false                     contains [RECORD_AUDIO: granted=false]
+      recovery: recovered Recording (2) ms=5642
+PASS  2: the take is saved: [recorder] recovered Recording (2) ms=<n> in the new :recorder ring  contains [[recorder] recovered Recording (2) ms=]
+PASS  2: recovered ms = the take time at the revoke (+ the revoke's own latency, 750 ± 1000 ms)  5642.00 vs 6392.00 +/- 1000.0
+      take 2 (the revoked take): id 261 (Recording (2).m4a)
+PASS  2: the recovered take is in MediaStore                      != 
+PASS  2: the list shows it (rec_row)                              = yes
+PASS  2: its rec_duration reads the take's length (± 1 s)        6.00 vs 6.00 +/- 1.0
+      revoked take: 5.642400 s, RMS -14.387508 dBFS
+PASS  2: the pulled file plays: ffprobe duration = recovered ms (± 0.15 s)  5.64 vs 5.64 +/- 0.15
+PASS  2: and holds the tone (RMS > -40 dBFS)                      = yes
+PASS  2: the list's record button is disabled without the grant   = false
+PASS  2: the record page shows the permission state (rec_mic_notice)  contains [Voice Recorder can't use the microphone yet.]
+PASS  2: and offers the grant (rec_mic_grant)                     = allow access
+PASS  2: its record button is disabled                            = false
+PASS  2: restore: RECORD_AUDIO granted=true again                 contains [RECORD_AUDIO: granted=true]
+PASS  2: restore: the appops uid mode is back to its value before  = Uid mode: RECORD_AUDIO: foreground
+PASS  2: restore: the page no longer shows the notice             = no
+PASS  2: restore: the record button is enabled                    = true
+── 3. a third-party app captures on top (Open Camera records video)
+      Open Camera (third-party, versionName=1.56.2): android.permission.CAMERA: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.RECORD_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+PASS  3: Open Camera holds RECORD_AUDIO (it can capture)          contains [RECORD_AUDIO: granted=true]
+      Open Camera running before: [2465]
+      DCIM/OpenCamera before: exists=no []
+PASS  3: the take is recording                                    = recording
+      the take's AudioRecord session: 1689
+PASS  3: Open Camera is on top in video mode (its shutter says Start recording video)  = Start recording video
+      Open Camera recording: shutter [Stop recording video]; take phase=paused paused=silenced elapsed_ms=9961; notification android.title=String (Recording)
+PASS  3: Open Camera is recording video (its shutter says Stop recording video)  = Stop recording video
+PASS  3: dumpsys audio: Open Camera's capture is active and not silenced  contains [pack:net.sourceforge.opencamera -- format]
+PASS  3: dumpsys audio reports the shell's client (its session) silenced  contains [silenced]
+PASS  3: the take is paused, reason silenced (status)             = silenced
+PASS  3: the :recorder ring holds [recorder] paused: silenced     contains [[recorder] paused: silenced]
+PASS  3: no package named in the silenced line (T15-38)           does not contain [paused: silenced by]
+FAIL  3: the ongoing notification says Paused while the other app records  does not contain [Paused]: android.title=String (Recording)
+PASS  3: the take's clock stands still while silenced             = 9961
+PASS  3: back on the page the take is still paused (silenced)     = silenced
+PASS  3: Resume records again                                     = recording
+PASS  3: [recorder] resumed at <the silenced pause's take time>   contains [[recorder] resumed at 9961 ms]
+      take 3 (the silenced take): id 267 (Recording (3).m4a)
+PASS  3: the take is saved                                        != 
+      gap analysis at the silenced pause (take time 9961 ms): GAP=16467 LEVEL_BEFORE=-77.6 LEVEL_AFTER=-3.0 DIPS20=[(9.661, 16672), (10.0798, 2087), (10.1454, 256)] CONTROL20=[(8.6672, 26186)] SECONDS=13.282
+FAIL  3: the tone is in the file before the pause                 expected [yes] got [no]
+FAIL  3: the pause wrote no silence (longest run < -40 dBFS at the pause <= 1024 samples)  expected [yes] got [no (16467 samples)]
+      restore: Open Camera's videos removed: VID_20260924_221821.mp4
+PASS  3: Open Camera had written a video (its capture was real)   != 
+PASS  3: restore: DCIM/OpenCamera as it was                       = 
+PASS  3: restore: Open Camera's running state as before           = 2465
+── 4. rename to an existing name, rename refused, trim to zero length
+      names now: T1=Recording.m4a T2=Recording (2).m4a T3=Recording (3).m4a
+PASS  4: T1 is named Recording.m4a (the existing name)            = Recording.m4a
+PASS  4: the rename dialog is up                                  = yes
+PASS  4: rename to an existing name: MediaStore appends (1)       = Recording (1).m4a
+PASS  4: the other take keeps its name                            = Recording.m4a
+PASS  4: the list shows Recording (1) (rec_name)                  = Recording (1)
+PASS  4: the launcher ring: rename -> Recording (1).m4a           contains [[recorder] rename 267 -> Recording (1).m4a]
+PASS  4: the field holds [Bad:Name]                               = Bad:Name
+PASS  4: [Bad:Name] is refused with a notice (rec_rename_notice)  = A name can't contain any of these: " * / : < > ? \ |
+PASS  4: the dialog stays open on the refusal                     = yes
+PASS  4: MediaStore's name unchanged after [Bad:Name]             = Recording (1).m4a
+PASS  4: the launcher ring: rename refused                        contains [[recorder] rename 267 refused: A name can't contain]
+PASS  4: the field holds [Bad*Name]                               = Bad*Name
+PASS  4: [Bad*Name] is refused with a notice (rec_rename_notice)  = A name can't contain any of these: " * / : < > ? \ |
+PASS  4: the dialog stays open on the refusal                     = yes
+PASS  4: MediaStore's name unchanged after [Bad*Name]             = Recording (1).m4a
+PASS  4: the launcher ring: rename refused                        contains [[recorder] rename 267 refused: A name can't contain]
+      trim handles: 5634 ms [0:05] .. 5642 ms [0:05] on a 5642-ms take
+PASS  4: the trim handles stand together (kept part < 20 ms, zero at the track's resolution)  = yes
+PASS  4: trim to zero length is refused (rec_notice)              = Choose a longer part of the recording to keep.
+PASS  4: the launcher ring: trim refused                          contains [[recorder] trim 261 refused: Choose a longer part]
+PASS  4: MediaStore unchanged: the take is still there, same duration  = 5642
+PASS  4: MediaStore unchanged: the shell's take count             = 3
+PASS  4: no working file was made                                 = 
+── 5. share with no app able to receive audio
+RECORD  5: the ACTION_SEND audio/mp4 receivers disabled for the test (component, its state before)  com.android.bluetooth/com.android.bluetooth.opp.BluetoothOppLauncherActivity enabled;com.android.messaging/com.android.messaging.ui.conversationlist.ShareIntentActivity default;eu.faircode.email/eu.faircode.email.ActivityCompose default;org.fossify.messages/org.fossify.messages.activities.NewConversationActivity default
+PASS  5: there are receivers to disable (the empty state is made, not found)  != 
+Component {com.android.bluetooth/com.android.bluetooth.opp.BluetoothOppLauncherActivity} new state: disabled
+Component {com.android.messaging/com.android.messaging.ui.conversationlist.ShareIntentActivity} new state: disabled
+Component {eu.faircode.email/eu.faircode.email.ActivityCompose} new state: disabled
+Component {org.fossify.messages/org.fossify.messages.activities.NewConversationActivity} new state: disabled
+PASS  5: no activity resolves ACTION_SEND audio/mp4 now           = 
+PASS  5: the launcher ring: share sent ACTION_SEND audio/mp4 with the take's URI  contains [[recorder] share 259 type=audio/mp4 uri=content://media/external/audio/media/259 (own)]
+PASS  5: Android's chooser is in front                            contains [com.android.intentresolver]
+PASS  5: its empty state shows (android:id/resolver_empty_state)  = yes
+PASS  5: reading No apps can perform this action.                 contains [text="No apps can perform this action."]
+PASS  5: Back returns to Voice Recorder                           contains [recorder.RecorderActivity]
+Component {com.android.bluetooth/com.android.bluetooth.opp.BluetoothOppLauncherActivity} new state: enabled
+Component {com.android.messaging/com.android.messaging.ui.conversationlist.ShareIntentActivity} new state: default
+Component {eu.faircode.email/eu.faircode.email.ActivityCompose} new state: default
+Component {org.fossify.messages/org.fossify.messages.activities.NewConversationActivity} new state: default
+PASS  5: restore: the same receivers resolve again                = com.android.bluetooth/.opp.BluetoothOppLauncherActivity com.android.messaging/.ui.conversationlist.ShareIntentActivity eu.faircode.email/.ActivityCompose org.fossify.messages/.activities.NewConversationActivity
+PASS  5: restore: each receiver's component state as before       = com.android.bluetooth/com.android.bluetooth.opp.BluetoothOppLauncherActivity enabled;com.android.messaging/com.android.messaging.ui.conversationlist.ShareIntentActivity default;eu.faircode.email/eu.faircode.email.ActivityCompose default;org.fossify.messages/org.fossify.messages.activities.NewConversationActivity default
+── 6. the :recorder process low-memory-killed between takes
+PASS  6: no take is running (phase idle)                          = idle
+PASS  6: the page's :recorder process is alive between takes      != 
+      :recorder pid 8067 killed; now [10672]; launcher pid 7992 -> 7992
+PASS  6: the page's binding brought up a new :recorder process    != 
+PASS  6: not the killed one                                       != 8067
+PASS  6: the launcher (the page) was not restarted                = 7992
+PASS  6: the new :recorder process's ring starts it               contains [[recorder] service created pid=10672]
+PASS  6: nothing recovered (no [recorder] recovered)              does not contain [[recorder] recovered]
+PASS  6: no recovery run at all (no [recorder] recovery:)         does not contain [[recorder] recovery:]
+PASS  6: the page saw the process go and re-bound (launcher ring)  contains [[recorder] :recorder process gone; awaiting re-bind]
+PASS  6: nothing lost: MediaStore's rows of the shell's takes unchanged  = Row: 0 _id=259, _display_name=Recording.m4a, duration=8104, is_recording=1, relative_path=Recordings/, owner_package_name=app.tileshell, _data=/storage/emulated/0/Recordings/Recording.m4a
+Row: 1 _id=261, _display_name=Recording (2).m4a, duration=5642, is_recording=1, relative_path=Recordings/, owner_package_name=app.tileshell, _data=/storage/emulated/0/Recordings/Recording (2).m4a
+Row: 2 _id=267, _display_name=Recording (1).m4a, duration=13282, is_recording=1, relative_path=Recordings/, owner_package_name=app.tileshell, _data=/storage/emulated/0/Recordings/Recording (1).m4a
+PASS  6: nothing lost: every take's file byte-identical (md5)     = /storage/emulated/0/Recordings/Recording.m4a b8f1bb989ddf80e535517ea55cbc24af
+/storage/emulated/0/Recordings/Recording (2).m4a 3902e884d9951bc65f7964257f3c789b
+/storage/emulated/0/Recordings/Recording (1).m4a 9a6e6d80f6a05167e435fd30afe0c1cf
+PASS  6: nothing left to recover (files/recorder empty)           = 
+PASS  6: the list shows the same rows                             = rec_row:259
+rec_row:261
+rec_row:267
+      make_take 3s: stop tapped at elapsed_ms=2763 -> id 282 (Recording (3).m4a, 2949 ms)
+PASS  6: the next take is saved                                   != 
+PASS  6: the next take's stop line in the new process's ring      contains [[recorder] stop Recording (3) ms=]
+PASS  6: its name is the next free one                            = Recording (3).m4a
+PASS  6: it was recorded by the new process (same pid)            = 10672
+── 7. a recording deleted outside the app (adb shell rm + rescan)
+PASS  7: T4 is listed before the rm                               = yes
+PASS  7: MediaStore dropped the row                               = 
+PASS  7: its row left the list                                    = no
+PASS  7: through the ContentObserver (list refreshed (media change))  contains [[recorder] list refreshed (media change)]
+PASS  7: the refresh counts one fewer                             contains [[recorder] list: 3 recordings (0 by other apps)]
+PASS  7: no restart: the launcher pid unchanged                   = 7992
+PASS  7: no restart: the page was not re-created                  does not contain [[recorder] RecorderActivity created]
+PASS  7: the page is still the one in front                       contains [recorder.RecorderActivity]
+── 8. other apps' recordings
+RECORD  8: an existing row that proves either case                  none: E14 lists other.m4a in Recordings/ read-only and E30 proves a foreign file JOINING through the ContentObserver; neither deletes one nor lists one outside Recordings/
+      other.m4a: Row: 0 _id=38, _display_name=other.m4a, duration=3000, is_recording=1, relative_path=Recordings/, owner_package_name=com.android.shell, _data=/storage/emulated/0/Recordings/other.m4a
+PASS  8a: other.m4a is IS_RECORDING                               = 1
+RECORD  8a: other.m4a's owner (the app that made it, adb push through the shell)  com.android.shell
+PASS  8a: it is another app's (owner not app.tileshell)           != app.tileshell
+PASS  8a: other.m4a is listed                                     = yes
+PASS  8a: the owner's MediaStore delete rc                        = 0
+PASS  8a: MediaStore dropped the row                              = 
+PASS  8a: and the file with it                                    contains [No such file]
+PASS  8a: its row left the list                                   = no
+PASS  8a: through the ContentObserver (list refreshed (media change))  contains [[recorder] list refreshed (media change)]
+PASS  8a: the refresh counts it gone                              contains [[recorder] list: 3 recordings (0 by other apps)]
+PASS  8a: no restart: the launcher pid unchanged                  = 7992
+PASS  8a: restore: the fixtures are gone from MediaStore          = 
+      edgeR_foreign.m4a: Row: 0 _id=284, _display_name=edgeR_foreign.m4a, duration=3000, is_recording=1, relative_path=Download/Recordings/, owner_package_name=com.android.shell, _data=/storage/emulated/0/Download/Recordings/edgeR_foreign.m4a
+PASS  8b: MediaStore marks it is_recording 1                      = 1
+PASS  8b: outside Recordings/ (relative_path Download/Recordings/)  = Download/Recordings/
+PASS  8b: another app's (owner not app.tileshell)                 != app.tileshell
+PASS  8b: it is listed (rec_row)                                  = yes
+PASS  8b: under its name                                          = edgeR_foreign
+PASS  8b: the launcher ring counts it as another app's            contains [[recorder] list: 4 recordings (1 by other apps)]
+      hold menu: rec_menu rec_menu_scrim rec_menu:share
+PASS  8b: read-only: its hold menu offers Share                   = yes
+PASS  8b: read-only: no Delete                                    = no
+PASS  8b: read-only: no Rename                                    = no
+      player:   AudioPlaybackConfiguration piid:1631 deviceIds:[2] type:android.media.AudioTrack u/pid:10174/7992 state:started attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_SPEECH flags=0xA00 tags= bundle=null sessionId:1721 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+PASS  8b: a row tap plays it (a started player of the shell's)    != 
+      app bar: rec_bar:more rec_bar:share
+PASS  8b: its app bar holds Share                                 = yes
+PASS  8b: its app bar has no trim                                 = no
+PASS  8b: its app bar has no delete                               = no
+PASS  8b: its app bar has no rename                               = no
+PASS  8b: no consent dialog (no providers.media activity)         does not contain [providers.media]
+PASS  8b: restore: the foreign file is gone from MediaStore       = 
+PASS  8b: restore: Download/Recordings/ as it was                 = no
+── restore
+PASS  restore: every take deleted through the app                 = 0
+PASS  restore: no IS_RECORDING file of another app's left         = 
+PASS  restore: RECORD_AUDIO granted                               contains [RECORD_AUDIO: granted=true]
+      recordings.json keeps the metadata of the take deleted outside the app (id 282; no product path prunes it): {"version":1,"recordings":{"226":{"recordedAt":1790308726193,"durationMs":9032,"markers":[]},"229":{"recordedAt":1790308823427,"durationMs":7825,"markers":[]},"282":{"recordedAt":1790310055628,"durationMs":2948,"markers":[]}}}
+------------------------------------------------------------------------------
+EDGE_RECORDER: 157 passed, 4 failed, 7 recorded

@@ -1,0 +1,119 @@
+==============================================================================
+ROW EDGE_RECORDER — Voice Recorder edge cases: call, revoke, silenced, rename/trim refusals, share, kill, deletes, foreign files
+at            2026-09-24T22:34:46-06:00
+driver        edge_recorder.sh blob fbbd1ae17a9f004280c313cf622e640b26a663f1
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      baseline grants: android.permission.READ_MEDIA_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.RECORD_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+      baseline appops: Uid mode: RECORD_AUDIO: foreground RECORD_AUDIO: allow; time=+5m32s271ms ago; duration=+5s254ms
+PASS  baseline: MediaStore holds no take of the shell's           = 0
+PASS  baseline: no IS_RECORDING file of another app's (no fixture left)  = 
+PASS  baseline: no take left on disk by a dead :recorder (files/recorder empty)  = 
+RECORD  Storage full is E19's (cited, not repeated)                 E19 on 4b7ac321: 15 passed, 0 failed (rec_notice 'Not enough space', [recorder] storage floor)
+RECORD  The microphone taken by Tess is E17's (cited, not repeated)  E17 on 4b7ac321: 26 passed, 0 failed (Tess refused: 'The voice recorder is using the microphone right now.')
+      EDGE_RECORDER: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
+PASS  EDGE_RECORDER: the audio route is up (audio.sh check rc)    = 0
+      launcher pid at start: 7992
+── 1. a call arriving mid-take (four call pauses in one take)
+PASS  1: the record state shows (rec_page:record)                 = yes
+PASS  1: the audio mode is MODE_NORMAL before the call            = MODE_NORMAL
+PASS  1: the take is recording                                    = recording
+      ringing: mode=MODE_RINGTONE phase=paused paused=call elapsed_ms=4156 notice=[The recording is paused for the call.] notification android.title=String (Paused)
+PASS  1: dumpsys audio reads MODE_RINGTONE while it rings         = MODE_RINGTONE
+PASS  1: the take is paused for the call (status paused=call)     = call
+PASS  1: the page says so (rec_notice)                            = The recording is paused for the call.
+PASS  1: the :recorder ring saw the mode become RINGTONE ([recorder] audio mode 1)  != 
+PASS  1: the :recorder ring holds [recorder] paused: call         != 
+PASS  1: the pause came at RINGTONE, before any IN_CALL (no audio mode 2 yet)  does not contain [[recorder] audio mode 2]
+PASS  1: paused within 500 ms of the RINGTONE mode line           = yes
+      in call: mode=MODE_IN_CALL phase=paused paused=call elapsed_ms=4156
+PASS  1: after gsm accept dumpsys audio reads MODE_IN_CALL        = MODE_IN_CALL
+PASS  1: still paused through IN_CALL (paused=call)               = call
+PASS  1: the take's clock stood still through the ring and the call  = 4156
+PASS  1: Resume during the call is refused (:recorder ring)       contains [[recorder] resume refused: a call is on]
+PASS  1: and the page says to resume after the call (rec_notice)  = Resume the recording after the call.
+PASS  1: the take is still paused for the call                    = call
+PASS  1: the ongoing notification says Paused during the call     contains [Paused]
+PASS  1: after gsm cancel the mode is MODE_NORMAL again           = MODE_NORMAL
+PASS  1: the call's end does not resume the take by itself (paused=call)  = call
+PASS  1: the take's clock still stands at the pause               = 4156
+PASS  1: Resume after the call records again (phase recording)    = recording
+      take clock 3 s after resuming: 7198
+PASS  1: the :recorder ring holds [recorder] resumed at <the pause's take time>  contains [[recorder] resumed at 4156 ms]
+      call 2: paused=call at take time 7383; mode after accept MODE_IN_CALL
+PASS  1: call 2 pauses the take (paused=call)                     = call
+PASS  1: call 2: [recorder] paused: call then resumed at its take time  contains [[recorder] resumed at 7383 ms]
+      call 3: paused=call at take time 10216; mode after accept MODE_IN_CALL
+PASS  1: call 3 pauses the take (paused=call)                     = call
+PASS  1: call 3: [recorder] paused: call then resumed at its take time  contains [[recorder] resumed at 10216 ms]
+      call 4: paused=call at take time 12956; mode after accept MODE_IN_CALL
+PASS  1: call 4 pauses the take (paused=call)                     = call
+PASS  1: call 4: [recorder] paused: call then resumed at its take time  contains [[recorder] resumed at 12956 ms]
+      take 1 (the call take): id 337 (Recording.m4a)
+PASS  1: the take is saved in MediaStore                          != 
+      call take: 16.230700 s, stop line ms=16230, aac,44100,1
+PASS  1: the file's duration is the take's own clock (stop ms, ± 0.15 s)  16.23 vs 16.23 +/- 0.15
+      wall(start..stop) - file duration - the four paused spans = 0.15 s
+PASS  1: the four paused spans are absent from the file (wall - file - pauses, ± 1 s)  0.15 vs 0.00 +/- 1.0
+PASS  1: the tone is in the file around the call pause at 4156 ms (before and after, > -20 dBFS)  = yes yes
+PASS  1: the tone is in the file around the call pause at 7383 ms (before and after, > -20 dBFS)  = yes yes
+FAIL  1: the tone is in the file around the call pause at 10216 ms (before and after, > -20 dBFS)  expected [yes yes] got [no yes]
+PASS  1: the tone is in the file around the call pause at 12956 ms (before and after, > -20 dBFS)  = yes yes
+      gaps at the four call pauses (take ms:samples below -40 dBFS): 4156:903 7383:4715 10216:15600 12956:3810; the take's start (tone already playing): 455 samples
+RECORD  1: longest run below -40 dBFS at each call pause (take ms:samples), and at the take's own start (the AVD's open loss)   4156:903 7383:4715 10216:15600 12956:3810; start: 455
+PASS  1: no gap at the pause point beyond one AAC frame (best of the four call pauses <= 1024 samples)  = yes
+── 2. RECORD_AUDIO revoked mid-take
+PASS  2: RECORD_AUDIO is granted before the revoke                contains [RECORD_AUDIO: granted=true]
+      appops before: Uid mode: RECORD_AUDIO: foreground
+PASS  2: the take is recording                                    = recording
+      pm revoke rc=0 at take time 5735 ms (recorder pid 10672, launcher pid 7992)
+PASS  2: pm revoke RECORD_AUDIO rc                                = 0
+      after the revoke: launcher pid 18219, recorder pid [], speech pid []
+PASS  2: the take stopped: no app.tileshell:recorder process      = 
+PASS  2: no recorder service left (dumpsys activity services)     = 
+PASS  2: the ongoing notification is gone                         = 
+RECORD  2: the revoke killed the launcher too (pm revoke kills the app's uid)  launcher pid 7992 -> 18219
+      left on disk by the killed process: 47688 take-1790310969029.aac 64 take-1790310969029.json
+PASS  2: the take is on disk as its kill-safe stream (take-*.aac)  contains [.aac]
+PASS  2: RECORD_AUDIO now reads granted=false                     contains [RECORD_AUDIO: granted=false]
+      recovery: recovered Recording (2) ms=5735
+PASS  2: the take is saved: [recorder] recovered Recording (2) ms=<n> in the new :recorder ring  contains [[recorder] recovered Recording (2) ms=]
+PASS  2: recovered ms = the take time at the revoke (+ the revoke's own latency, 750 ± 1000 ms)  5735.00 vs 6485.00 +/- 1000.0
+      take 2 (the revoked take): id 339 (Recording (2).m4a)
+PASS  2: the recovered take is in MediaStore                      != 
+PASS  2: the list shows it (rec_row)                              = yes
+PASS  2: its rec_duration reads the take's length (± 1 s)        6.00 vs 6.00 +/- 1.0
+      revoked take: 5.735300 s, RMS -6.159925 dBFS
+PASS  2: the pulled file plays: ffprobe duration = recovered ms (± 0.15 s)  5.74 vs 5.74 +/- 0.15
+PASS  2: and holds the tone (RMS > -40 dBFS)                      = yes
+PASS  2: the list's record button is disabled without the grant   = false
+PASS  2: the record page shows the permission state (rec_mic_notice)  contains [Voice Recorder can't use the microphone yet.]
+PASS  2: and offers the grant (rec_mic_grant)                     = allow access
+PASS  2: its record button is disabled                            = false
+PASS  2: restore: RECORD_AUDIO granted=true again                 contains [RECORD_AUDIO: granted=true]
+PASS  2: restore: the appops uid mode is back to its value before  = Uid mode: RECORD_AUDIO: foreground
+PASS  2: restore: the page no longer shows the notice             = no
+PASS  2: restore: the record button is enabled                    = true
+── 3. a third-party app captures on top (Open Camera records video)
+      Open Camera (third-party, versionName=1.56.2): android.permission.CAMERA: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.RECORD_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]
+PASS  3: Open Camera holds RECORD_AUDIO (it can capture)          contains [RECORD_AUDIO: granted=true]
+      Open Camera running before: []
+      DCIM/OpenCamera before: exists=no []
+PASS  3: the take is recording                                    = recording
+      the take's AudioRecord session: 2121
+PASS  3: Open Camera is on top in video mode (its shutter says Start recording video)  = Start recording video
+      Open Camera recording: shutter [Stop recording video]; take phase=paused paused=silenced elapsed_ms=9891; notification android.title=String (Paused)
+PASS  3: Open Camera is recording video (its shutter says Stop recording video)  = Stop recording video
+PASS  3: dumpsys audio: Open Camera's capture is active and not silenced  contains [pack:net.sourceforge.opencamera -- format]
+PASS  3: dumpsys audio reports the shell's client (its session) silenced  contains [silenced]
+PASS  3: the take is paused, reason silenced (status)             = silenced
+PASS  3: the :recorder ring holds [recorder] paused: silenced     contains [[recorder] paused: silenced]
+PASS  3: no package named in the silenced line (T15-38)           does not contain [paused: silenced by]
+PASS  3: the ongoing notification says Paused while the other app records (read within 3 s)  contains [Paused]
+      Android's silenced event: [09-24 22:36:53:453 rec update riid:1879 uid:10174 session:2121 src:MIC silenced pack:app.tileshell] = 1790311013453; the pause line: paused: silenced (wall 1790311013462)
+PASS  3: the take paused within 200 ms of Android reporting the client silenced  = yes

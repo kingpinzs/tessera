@@ -1,0 +1,66 @@
+==============================================================================
+ROW EDGE_EXACT — USE_EXACT_ALARM removed and SCHEDULE_EXACT_ALARM denied (QA build): red row, inexact arm, notice, rings in the window
+at            2026-09-24T22:15:05-06:00
+driver        edge_exact.sh blob 758f269d60428b4f155f3f0640847890655c9137
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-2m48s461ms ago; rejectTime=+1h38m11s587ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  baseline: the FINAL build is installed                      = 4b7ac321ce4d0ede
+RECORD  the QA build                                                /tmp/claude-1000/-home-jeremyking/5d5ffc39-5a2a-4c33-953f-07d71da27a45/scratchpad/p15/edgeC-noexact/app/build/outputs/apk/debug/app-debug.apk md5 c4b231592b5139f3 335763966 bytes
+PASS  the QA build requests no USE_EXACT_ALARM (aapt2 dump permissions)  does not contain [USE_EXACT_ALARM]
+PASS  … while the FINAL build does (positive control)           contains [USE_EXACT_ALARM]
+PASS  the QA build installs over the FINAL one (adb install -r rc)  = 0
+PASS  … and is the installed build now                          = c4b231592b5139f3
+RECORD  appops SCHEDULE_EXACT_ALARM after deny                      SCHEDULE_EXACT_ALARM: default
+RECORD  dumpsys package: exact-alarm permissions of the QA build    []
+      the re-arm at the restart:     2026-09-24 22:15:17.255 wall=1790309717255 [alarms] rearm (process start): 0 alarms, 0 timers, exact=false
+PASS  the restarted process arms inexactly (its re-arm line reads exact=false)  contains [exact=false]
+      Tess's settings scrolled 2 swipe(s) to: resource-id="cortana_check:exact_alarms:missing"
+PASS  Tess's checklist: the exact_alarms row reads missing        = yes
+RECORD  the exact_alarms row's glyph colour (red is 232,17,35)      232,17,35
+PASS  … its glyph is red (232,17,35 ± 16)                      = yes
+RECORD  the row's texts                                             |Exact alarms|Off · Reminders will be a few minutes late|
+RECORD  the Setup checklist's rows on screen (the Decisions keep exact_alarms in Tess's checklist, T15-6)  checklist:home:granted checklist:notifications:granted checklist:photos:granted checklist:music:granted checklist:calendar:granted checklist:location:granted checklist:usage:missing checklist:samsung_badges:missing checklist:legacy_badges:missing checklist:keyboard_enabled:missing checklist:keyboard_selected:missing
+      typed request: [set an alarm for 10:18 pm]
+      reply spoken: [Alarm set for 10:18 PM.]; session texts: [|||||||||set an alarm for 10:18 pm|||Alarm set for 10:18 PM.|||Ask me anything||||||||||||||10:16 PM]
+PASS  Tess set an alarm in-process                                != 
+PASS  … at the typed time                                       = 22:18
+PASS  the reply confirms it                                       contains [Alarm set for]
+FAIL  the notice is SPOKEN (the reply carries 'Exact alarms are off')  does not contain [Exact alarms are off]: Alarm set for 10:18 PM.
+FAIL  the notice is SHOWN (the session's text carries 'Exact alarms are off')  does not contain [Exact alarms are off]: |||||||||set an alarm for 10:18 pm|||Alarm set for 10:18 PM.|||Ask me anything||||||||||||||10:16 PM
+RECORD  the Alarm tab's texts mentioning exact alarms or lateness   []
+PASS  it arms inexactly: rearm (store change): 1 alarms, 0 timers, exact=false  contains [[alarms] rearm (store change): 1 alarms, 0 timers, exact=false]
+      the entry:  RTC_WAKEUP #2: Alarm{ab0e2d5 type 0 origWhen 1790309880000 whenElapsed 247079 app.tileshell}| tag=*walarm*:app.tileshell.clock.FIRE| type=RTC_WAKEUP origWhen=2026-09-24 22:18:00.000 window=+1m25s459ms repeatInterval=0 count=0 flags=0x20| policyWhenElapsed: requester=+1m36s206ms app_standby=-17s740ms device_idle=-- battery_saver=-17s740ms| whenElapsed=+1m36s206ms maxWhenElapsed=+3m1s665ms| operation=PendingIntent{82baaea: PendingIntentRecord{3a741db app.tileshell broadcastIntent}}| idle-options=Bundle[{android.pendingIntent.backgroundActivityAllowed=2, android:broadcast.temporaryAppAllowlistRe
+PASS  … its dumpsys alarm entry exists (RTC_WAKEUP, clock.FIRE)  != 
+PASS  … with no Next alarm clock (not setAlarmClock)            = 
+PASS  … and no exact-allow reason on the entry                  does not contain [exactAllowReason]
+RECORD  the entry's window (ms) and origWhen                        window=85459 origWhen=1790309880000
+PASS  … a non-zero inexact window                               = yes
+      waiting up to 241 s for the fire (origWhen 1790309880000, window 85459 ms)
+      fired: none
+FAIL  the alarm rings (fired adf4371f9)                           should not be []
+FAIL  … inside Android's inexact window (0 ≤ late ≤ window + 1000 ms)  expected [yes] got [no (late= window=85459)]
+FAIL  … and sounds (an ALARM player of the shell is started)    should not be [0]
+RECORD  the ring's surface line                                     
+RECORD  crashes of app.tileshell in dropbox (count, newest exception)  2 · 	at android.os.Parcel.readException(Parcel.java:3249)
+      gdump_for ring_dismiss: not in any of 3 dumps
+      no ring ended line after Dismiss; dismiss_any_ring
+      scroll_to_node alarm_row:adf4371f9: 0 swipe(s), found=yes
+RECORD  appops SCHEDULE_EXACT_ALARM after restore                   SCHEDULE_EXACT_ALARM: default
+PASS  restore: the FINAL APK reinstalls (adb install -r rc)       = 0
+PASS  restore: the FINAL build (4b7ac321ce4d0ede) is installed again  = 4b7ac321ce4d0ede
+PASS  restore: the home activity is the shell's Start             contains [app.tileshell.StartActivity]
+PASS  restore: USE_EXACT_ALARM is granted again                   contains [USE_EXACT_ALARM: granted=true]
+PASS  restore: the restarted process arms exactly again (exact=true)  contains [exact=true]
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+EDGE_EXACT: 25 passed, 5 failed, 13 recorded
