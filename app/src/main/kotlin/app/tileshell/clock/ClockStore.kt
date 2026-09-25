@@ -147,16 +147,24 @@ class ClockStore private constructor(private val app: Context) {
     // --- The stopwatch ------------------------------------------------------------------------------------------
 
     @Synchronized
-    fun updateStopwatch(why: String, change: (Stopwatch) -> Stopwatch) {
-        _stopwatch.value = change(_stopwatch.value)
+    /**
+     * Applies [change] at one instant and logs the elapsed time at that same instant, so the line names exactly what
+     * was stored: a second clock read after the save could log a lap 1 ms later than the lap kept (E7).
+     */
+    fun updateStopwatch(why: String, change: (Stopwatch, Long, Long, Int) -> Stopwatch) {
+        val real = SystemClock.elapsedRealtime()
+        val uptime = SystemClock.uptimeMillis()
+        val wall = System.currentTimeMillis()
+        val boot = bootCount()
+        _stopwatch.value = change(_stopwatch.value, real, wall, boot)
         saveStopwatch()
-        Diagnostics.add("stopwatch", "$why elapsed=${stopwatchElapsed()} uptime=${SystemClock.uptimeMillis()}")
+        Diagnostics.add("stopwatch", "$why elapsed=${ClockRules.stopwatchElapsed(_stopwatch.value, real, wall, boot)} uptime=$uptime")
     }
 
-    fun startStopwatch() = updateStopwatch("start") { ClockRules.startStopwatch(it, SystemClock.elapsedRealtime(), System.currentTimeMillis(), bootCount()) }
-    fun stopStopwatch() = updateStopwatch("stop") { ClockRules.stopStopwatch(it, SystemClock.elapsedRealtime(), System.currentTimeMillis(), bootCount()) }
-    fun lapStopwatch() = updateStopwatch("lap") { ClockRules.lap(it, SystemClock.elapsedRealtime(), System.currentTimeMillis(), bootCount()) }
-    fun resetStopwatch() = updateStopwatch("reset") { Stopwatch.RESET }
+    fun startStopwatch() = updateStopwatch("start") { s, real, wall, boot -> ClockRules.startStopwatch(s, real, wall, boot) }
+    fun stopStopwatch() = updateStopwatch("stop") { s, real, wall, boot -> ClockRules.stopStopwatch(s, real, wall, boot) }
+    fun lapStopwatch() = updateStopwatch("lap") { s, real, wall, boot -> ClockRules.lap(s, real, wall, boot) }
+    fun resetStopwatch() = updateStopwatch("reset") { _, _, _, _ -> Stopwatch.RESET }
     fun stopwatchElapsed(): Long = ClockRules.stopwatchElapsed(_stopwatch.value, SystemClock.elapsedRealtime(), System.currentTimeMillis(), bootCount())
 
     // --- Plumbing -------------------------------------------------------------------------------------------------
