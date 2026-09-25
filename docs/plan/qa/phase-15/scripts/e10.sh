@@ -41,7 +41,14 @@ bars_on() { # dump label
 
 # ---- 1. the tab header ------------------------------------------------------------------------------------------------------
 open_clock alarm
-dump_ui "$ROW_DIR/tabs.xml"; screencap "$ROW_DIR/tabs.png"
+# The underline is placed from the tabs' measured positions, a frame after they are laid out: a dump taken in that frame
+# holds no underline, so the row dumps until it is there (up to 5 tries, each retry noted).
+for i in 1 2 3 4 5; do
+  dump_ui "$ROW_DIR/tabs.xml"
+  [ "$(has_node "$ROW_DIR/tabs.xml" clock_tab_underline)" = yes ] && break
+  note "tabs dump $i of 5 has no clock_tab_underline yet"; sleep 1
+done
+screencap "$ROW_DIR/tabs.png"
 TB="$(bounds "$ROW_DIR/tabs.xml" clock_tabs)"; note "clock_tabs $TB"
 assert_within "1.2 the band starts at the drawn status bar's bottom (28 epx)" "$BAND_TOP" "$(top_of "$TB")" $TOL
 assert_within "1.2 the band is 68.4 epx tall" 205 "$(height_of "$TB")" $TOL

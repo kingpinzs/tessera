@@ -104,7 +104,6 @@ fun ResponseCardView(
                 CapMetrics.topPaddingForCapTop(
                     94.6f - CardValues.PERSONA_CENTRE_Y_EPX - PersonaValues.AWAIT_HALO_MAX_EPX / 2f,
                     CardValues.TITLE_SIZE_EPX,
-                    CapMetrics.lineHeightFor(CardValues.TITLE_SIZE_EPX),
                 ).dp
             )
         )
@@ -295,13 +294,12 @@ private fun CardButtons(card: Card, accent: Color, onAction: (CardAction) -> Uni
  */
 @Composable
 private fun SavedReminderBody(card: Card, accent: Color) {
-    val titleLine = CapMetrics.lineHeightFor(CardValues.SAVED_TITLE_SIZE_EPX)
     val personaBottom = CardValues.PERSONA_CENTRE_Y_EPX + PersonaValues.AWAIT_HALO_MAX_EPX / 2f
     Spacer(
         Modifier.height(
             CapMetrics.topPaddingForCapTop(
                 CardValues.SAVED_TITLE_CAP_TOP_EPX - personaBottom,
-                CardValues.SAVED_TITLE_SIZE_EPX, titleLine,
+                CardValues.SAVED_TITLE_SIZE_EPX,
             ).dp
         )
     )

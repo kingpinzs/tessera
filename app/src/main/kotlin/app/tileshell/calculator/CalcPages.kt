@@ -154,7 +154,7 @@ fun ResultDisplay(text: String, host: CalcPageHost, modifier: Modifier) {
     val density = LocalDensity.current
     var bottomPx by remember { mutableStateOf(0f) }
     var centreXPx by remember { mutableStateOf(0f) }
-    val maxFont = rememberInkFontSize(ShellType.base.fontFamily, FontWeight.SemiBold, CalcMetrics.RESULT_INK_REFERENCE, CalcMetrics.RESULT_INK, colors.text)
+    val maxFont = rememberInkFontSize(ShellType.base.fontFamily, FontWeight.SemiBold, CalcMetrics.RESULT_INK_REFERENCE, CalcMetrics.RESULT_INK)
     BoxWithConstraints(
         modifier
             .onGloballyPositioned { bottomPx = it.boundsInWindow().bottom; centreXPx = it.boundsInWindow().center.x }

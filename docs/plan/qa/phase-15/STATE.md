@@ -168,3 +168,35 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   my own misreading of an extraction; the port already had 400.0 / 121.0. calc-cases.tsv regenerated (314 cases);
   :calc 99/0, app 800/0; the new build is c45e7a28 (calculator-only changes). The E11, EDGE-CALC and E12 (converter)
   rows must re-run on the final build. INDEX Change Log line "WHERE WINDOWS IS WRONG".
+- 2026-09-24 ~17:30: Jeremy asked for everything to go up before the week's tokens run out, and created the push flag.
+  Branch phase-15 went to origin (github.com/kingpinzs/tessera) at 8d78ff3 as a new branch; the remote head was
+  verified equal to local. main was NOT sent (54 ahead of origin, the phase 11 session's). 8d78ff3 carries the clock
+  pass as an in-progress snapshot (it was on EDGE_ALARMS). Calculator rows on c45e7a28 (5560): E11 243/0/2, E12 91/0,
+  EDGE-CALC 52/0/5. Next: the clock agent's report, then the final gate on one build, the reviewers, NEEDS-HUMAN.md
+  and row 15.
+- 2026-09-24 ~19:40: the clock continuation pass (Opus) reported: every clock row passes on 33cc71c1 except two product
+  defects, and I fixed both. EDGE_STOPWATCH: a new lap landed above the viewport once the list was full (6865208). E10:
+  the timer editor's splits (cbc15ea), and three texts placed by box where r11 measured ink (ed2bba8). The last needed
+  two fixes to the Calculator's ink placement: the node reports the drawn box, and translucent text is measured opaque
+  (0e3695a). E7's lap line was 1 ms off the stored lap (5fe3741). On 87ddb3ef / 4ffe58a7: E10 133/0/1, E7 31/0,
+  EDGE_STOPWATCH 17/0, E13 145/0/7. Found: CapMetrics' cap-top model is wrong shell-wide (Compose trims the first line's
+  leading, so text sits 0.7-2.6 epx high by style). Asked Jeremy A (fix now, shell-wide) / B (plan after) / C (leave);
+  waiting. The final gate waits on the answer. NEEDS-HUMAN.md written (P1-P7, H1-H27 with evidence pointers).
+- 2026-09-24 ~20:10-22:00: Jeremy "(A) fix then push". CapMetrics fixed shell-wide (4e25ffa), and phase-15 was pushed at
+  6d7ce85 (origin had deleted the branch after PR #1 merged it into main at 8d78ff3). FINAL GATE on build 4b7ac321: 5556
+  all pass except E26's accepted 8; 5558 all pass (E4b, E23, EDGE_ALARMS and EDGE_STOPWATCH failed under three-emulator
+  load and passed alone); 5560 all 14 pass; phase 03 E7 / E15 failures predate the fix; E25 +2,455,997 bytes. E22 had
+  never checked anything: its table sat in its own evidence dir, which the runner rotates. Fixed (c2b4125), it found
+  real gaps: about 25 of the doc's Edge cases have no driver (the recorder's, alarm-while-X, USE_EXACT_ALARM, the
+  locked picked sound, the app list at HD+, 4 Tess cases). Three edge agents were dispatched (briefs/qa-edge-*.md): R on
+  5560, C on 5558, T on 5556. The Fable dispatch hit its limit at once; they were re-dispatched on Opus. Next: their
+  reports, fixes for any defects, E22 on the final build, the two gate reviewers, INDEX row 15, then the push (flag).
+- 2026-09-24 ~23:00: Jeremy reported the timer numbers do not scroll correctly: LoopSpinner fixed (9a34ae1; blank
+  rows on a long drag, taps from a stale value, a roll that could not be caught), proved by EDGE_SPINNER (the old build
+  fails exactly there, the test build b466469e passes 11/0). EDGE_TESS passes 57/0/5 (4b7ac321). Then Jeremy: "this
+  takes hours and hours so lets cut the testing for now and push the changes". The clock (5558) and recorder (5560)
+  edge agents were stopped mid-work; their drivers and evidence are committed as an unverified snapshot. The emulators
+  were checked afterwards: no stray process, no alarm or timer armed, default wm size and appops, 4b7ac321 on 5558 and
+  5560, b466469e on 5556. INDEX row 15 is QA PAUSED, not done. To resume: build the final APK in the worktree, install
+  it on all three, finish the four clock edge rows and the two recorder edge rows, run the whole gate on that one build,
+  then E25 and E22 last, the two reviewers (review/2026-09-24-phase15-gate-brief.md), and NEEDS-HUMAN sign-offs.

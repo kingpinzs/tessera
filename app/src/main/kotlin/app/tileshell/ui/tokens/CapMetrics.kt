@@ -31,27 +31,22 @@ object CapMetrics {
     fun capHeight(fontSizeEpx: Float): Float = fontSizeEpx * CAP_RATIO
 
     /**
-     * How far the cap top sits below the top of the text's layout box.
-     *
-     * Compose spreads the difference between the declared line height and the font's natural line height
-     * proportionally over ascent and descent, so the baseline — and with it the cap top — moves with the
-     * line height, not just the size.
+     * How far the cap top sits below the top of the text's layout box: the ascent less the cap height, whatever the
+     * line height. Compose's default LineHeightStyle trims the extra a declared line height adds above the first line
+     * (and below the last), so the first baseline sits the font's own ascent below the box top. On the phone at
+     * 25.4 epx with a 32-epx line the box is the natural 30.3 epx tall and the baseline 25.0 epx into it
+     * (qa/phase-15/E10-run7/DEFECT.md). The model this replaces spread that extra over ascent and descent, which put every
+     * text placed through it 0.7-2.6 epx high, by style.
      */
-    fun capTopWithinBox(fontSizeEpx: Float, lineHeightEpx: Float): Float {
-        val natural = fontSizeEpx * NATURAL_LINE_RATIO
-        val extra = lineHeightEpx - natural
-        val topExtra = extra * (ASCENT / (ASCENT + DESCENT))
-        val baseline = topExtra + fontSizeEpx * ASCENT_RATIO
-        return baseline - capHeight(fontSizeEpx)
-    }
+    fun capTopWithinBox(fontSizeEpx: Float): Float = fontSizeEpx * ASCENT_RATIO - capHeight(fontSizeEpx)
 
     /**
      * The top padding that puts a run of text's cap top exactly [capTopEpx] below the container's top.
      * Never negative: a value that would need the box above the container is clamped and the caller's
      * own comment has to say so.
      */
-    fun topPaddingForCapTop(capTopEpx: Float, fontSizeEpx: Float, lineHeightEpx: Float): Float =
-        (capTopEpx - capTopWithinBox(fontSizeEpx, lineHeightEpx)).coerceAtLeast(0f)
+    fun topPaddingForCapTop(capTopEpx: Float, fontSizeEpx: Float): Float =
+        (capTopEpx - capTopWithinBox(fontSizeEpx)).coerceAtLeast(0f)
 
     /** The line height [ShellType] gives a size: 125 % of it, rounded to the nearest 4 epx (R1 §5.1). */
     fun lineHeightFor(fontSizeEpx: Float): Float =

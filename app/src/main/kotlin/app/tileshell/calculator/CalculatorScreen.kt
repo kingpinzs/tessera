@@ -258,7 +258,7 @@ fun CalcHeader(title: String, showHistory: Boolean, historyOn: Boolean, onMenu: 
 @Composable
 fun CalcTitle(text: String, modifier: Modifier = Modifier, inkTopEpx: Float? = null) {
     val colors = LocalShellColors.current
-    val size = rememberInkFontSize(ShellType.base.fontFamily, FontWeight.SemiBold, CalcMetrics.TITLE_INK_REFERENCE, CalcMetrics.TITLE_INK, colors.text)
+    val size = rememberInkFontSize(ShellType.base.fontFamily, FontWeight.SemiBold, CalcMetrics.TITLE_INK_REFERENCE, CalcMetrics.TITLE_INK)
     InkText(
         text = text,
         style = ShellType.base.copy(fontSize = size.sp, color = colors.text),
