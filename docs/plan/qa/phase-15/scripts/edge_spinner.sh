@@ -11,7 +11,7 @@
 . "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"
 row_begin EDGE_SPINNER "the looping spinner: taps roll from the value shown, a long drag stays full, a drag catches a roll"
 
-ROW=96 # one 32-epx row at 3 px/epx
+ROWPX=96 # one 32-epx row at 3 px/epx
 desc_of() { # dump.xml resource-id -> the node's content-desc (the column's selected value)
   python3 - "$1" "$2" <<'PY'
 import re, sys
@@ -58,18 +58,18 @@ assert_ne "the minutes column names its value" "" "$V0"
 v() { printf '%02d' $(( (10#$V0 + $1) % 60 )); }
 
 # ---- 1. taps roll from the value shown
-adb shell input tap "$X" $(( CY + 2 * ROW )); sleep 1.2
+adb shell input tap "$X" $(( CY + 2 * ROWPX )); sleep 1.2
 dump_ui "$ROW_DIR/tap1.xml"
 assert_eq "1. a tap two rows below the centre rolls to $(v 2)" "$(v 2)" "$(desc_of "$ROW_DIR/tap1.xml" 'timer_editor_field:minutes')"
-adb shell input tap "$X" $(( CY + ROW )); sleep 1.2
+adb shell input tap "$X" $(( CY + ROWPX )); sleep 1.2
 dump_ui "$ROW_DIR/tap2.xml"
 assert_eq "1. then a tap one row below rolls on to $(v 3) (from the value shown, not the one the editor opened with)" "$(v 3)" "$(desc_of "$ROW_DIR/tap2.xml" 'timer_editor_field:minutes')"
-adb shell input tap "$X" $(( CY - ROW )); sleep 1.2
+adb shell input tap "$X" $(( CY - ROWPX )); sleep 1.2
 dump_ui "$ROW_DIR/tap3.xml"
 assert_eq "1. and a tap one row above rolls back to $(v 2)" "$(v 2)" "$(desc_of "$ROW_DIR/tap3.xml" 'timer_editor_field:minutes')"
 
 # ---- 2. a long drag keeps the column full (the finger held while the dump is taken)
-Y=$(( CY + 3 * ROW ))
+Y=$(( CY + 3 * ROWPX ))
 adb shell input motionevent DOWN "$X" "$Y"
 for _ in $(seq 1 21); do Y=$(( Y - 32 )); adb shell input motionevent MOVE "$X" "$Y"; done # 7 rows up, slowly
 dump_ui "$ROW_DIR/held.xml"; screencap "$ROW_DIR/held.png"
@@ -85,7 +85,7 @@ assert_within "2. and the settled frame is full" 8 "$(rows_in "$ROW_DIR/after_dr
 CAUGHT=""
 for attempt in 1 2 3; do
   MARK="$(ring_mark)"
-  adb shell "t0=\$(date +%s%3N); input swipe $X $(( CY + 3 * ROW )) $X $(( CY - 3 * ROW )) 30; t1=\$(date +%s%3N); input motionevent DOWN $X $CY; t2=\$(date +%s%3N); input motionevent MOVE $X $(( CY - 40 )); input motionevent MOVE $X $(( CY - ROW )); input motionevent UP $X $(( CY - ROW )); echo \$t0 \$t1 \$t2" > "$ROW_DIR/catch$attempt.times" 2>&1
+  adb shell "t0=\$(date +%s%3N); input swipe $X $(( CY + 3 * ROWPX )) $X $(( CY - 3 * ROWPX )) 30; t1=\$(date +%s%3N); input motionevent DOWN $X $CY; t2=\$(date +%s%3N); input motionevent MOVE $X $(( CY - 40 )); input motionevent MOVE $X $(( CY - ROWPX )); input motionevent UP $X $(( CY - ROWPX )); echo \$t0 \$t1 \$t2" > "$ROW_DIR/catch$attempt.times" 2>&1
   sleep 1.5
   ring_since "$MARK" > "$ROW_DIR/ring_catch${attempt}_launcher.txt"
   read -r t0 t1 t2 < "$ROW_DIR/catch$attempt.times"
