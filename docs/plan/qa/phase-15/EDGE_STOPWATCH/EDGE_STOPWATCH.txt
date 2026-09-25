@@ -1,11 +1,11 @@
 ==============================================================================
 ROW EDGE_STOPWATCH — stopwatch: 1,000 laps; killed between laps
-at            2026-09-24T18:38:45-06:00
+at            2026-09-24T19:17:47-06:00
 driver        edge_stopwatch.sh blob ba8093b95b9d06c0e93fe77ca395662d85ef909d
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     ba42e00bac9f14cf 338459898 bytes
-apk installed 33cc71c192190cc9
-apk match     NO (device 33cc71c192190cc9, built c45e7a2838aae3b0)
+apk built     64d242a9caa47c97 338459898 bytes
+apk installed 4ffe58a73c2ddf7a
+apk match     yes (4ffe58a73c2ddf7a)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -26,18 +26,16 @@ PASS  the laps are strictly increasing splits                     = yes
       laps: 606 at +63 s
       laps: 706 at +73 s
       laps: 806 at +84 s
-      laps: 906 at +94 s
+      laps: 906 at +95 s
       laps: 1006 at +105 s
 PASS  1,000 laps (or more) are in the store                       = yes
-      gdump_for stopwatch_lap:1006: not in any of 3 dumps
-      thousand.xml: the dump took 34 ms; the whole gdump call 7624 ms with 0 empty attempts
-PASS  a gesture-driver dump of the list is available within 3 s (its dump.elapsed_ms = 34)  = yes
-FAIL  the top row is the newest lap (stopwatch_lap:1006)          expected [yes] got [no]
-      gdump_for stopwatch_lap:994: not in any of 3 dumps
-FAIL  the list scrolls (the newest lap left the top / older laps came in)  expected [yes] got [no]
+      thousand.xml: the dump took 37 ms; the whole gdump call 777 ms with 0 empty attempts
+PASS  a gesture-driver dump of the list is available within 3 s (its dump.elapsed_ms = 37)  = yes
+PASS  the top row is the newest lap (stopwatch_lap:1006)          = yes
+PASS  the list scrolls (the newest lap left the top / older laps came in)  = yes
 PASS  the store still reads as valid JSON with 1006 laps          = 1006
 PASS  restore: the stopwatch is reset                             = false []
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------
-EDGE_STOPWATCH: 15 passed, 2 failed, 0 recorded
+EDGE_STOPWATCH: 17 passed, 0 failed, 0 recorded
