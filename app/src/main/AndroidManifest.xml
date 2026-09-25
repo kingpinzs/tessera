@@ -399,6 +399,18 @@
             android:showWhenLocked="true"
             android:taskAffinity="app.tileshell.cortana.permission" />
 
+        <!--
+          Starts one page for a result on behalf of Tess's window (the photo picker for a reminder) and hands the
+          result back (L13-1). A session cannot start an activity for a result; this is the smallest thing that can.
+          Draws nothing. Not exported: only the launcher's own registry hands it an intent.
+        -->
+        <activity
+            android:name=".cortana.CortanaResultActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:taskAffinity="app.tileshell.cortana.result" />
+
         <activity
             android:name=".cortana.CortanaRoleNoticeActivity"
             android:exported="false"

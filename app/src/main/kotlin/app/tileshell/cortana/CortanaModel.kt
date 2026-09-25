@@ -352,6 +352,19 @@ class CortanaModel(
         }
     }
 
+    /**
+     * Tess steps aside for a page launched from her window (L13-1): she stops talking and does not listen while she
+     * is off screen — a question finishing under the photo picker would otherwise open the microphone behind it (seen
+     * on the emulator: "question spoken; listening for the answer" 5 s after the picker closed, and the listening
+     * layout took the next tap). The card and whatever is pending stay; she comes back quiet.
+     */
+    fun onSteppedAside() {
+        listenAfterUtterance = null
+        SpeechClient.stopSpeaking()
+        if (mutable.value.listening) SpeechClient.stopListening()
+        mutable.value = mutable.value.copy(listening = false, level = 0f, persona = PersonaState.IDLE_AFTER_SPEAKING)
+    }
+
     /** The gated request the "Unlock" button was raised for, run now that the keyguard is gone. */
     fun onUnlocked() {
         val pending = mutable.value.pending as? Pending.Locked
