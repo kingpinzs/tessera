@@ -191,3 +191,12 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   locked picked sound, the app list at HD+, 4 Tess cases). Three edge agents were dispatched (briefs/qa-edge-*.md): R on
   5560, C on 5558, T on 5556. The Fable dispatch hit its limit at once; they were re-dispatched on Opus. Next: their
   reports, fixes for any defects, E22 on the final build, the two gate reviewers, INDEX row 15, then the push (flag).
+- 2026-09-24 ~23:00: Jeremy reported the timer numbers do not scroll correctly: LoopSpinner fixed (9a34ae1; blank
+  rows on a long drag, taps from a stale value, a roll that could not be caught), proved by EDGE_SPINNER (the old build
+  fails exactly there, the test build b466469e passes 11/0). EDGE_TESS passes 57/0/5 (4b7ac321). Then Jeremy: "this
+  takes hours and hours so lets cut the testing for now and push the changes". The clock (5558) and recorder (5560)
+  edge agents were stopped mid-work; their drivers and evidence are committed as an unverified snapshot. The emulators
+  were checked afterwards: no stray process, no alarm or timer armed, default wm size and appops, 4b7ac321 on 5558 and
+  5560, b466469e on 5556. INDEX row 15 is QA PAUSED, not done. To resume: build the final APK in the worktree, install
+  it on all three, finish the four clock edge rows and the two recorder edge rows, run the whole gate on that one build,
+  then E25 and E22 last, the two reviewers (review/2026-09-24-phase15-gate-brief.md), and NEEDS-HUMAN sign-offs.
