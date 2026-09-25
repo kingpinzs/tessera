@@ -1,0 +1,81 @@
+==============================================================================
+ROW EDGE_TIMERS — timers: dead process at the deadline; 10 at once; 0:00 refused; paused then clock jump
+at            2026-09-24T18:42:25-06:00
+driver        edge_timers.sh blob 22d664e94b82cfe9e19b771798885d9d7f8fa0fc
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     ba42e00bac9f14cf 338459898 bytes
+apk installed 33cc71c192190cc9
+apk match     NO (device 33cc71c192190cc9, built c45e7a2838aae3b0)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  a 20-s timer is running                                     != 
+      killed 4458 with ~15 s left
+PASS  the timer fired after the kill (the receiver started the ring service)  != 
+PASS  … on time (late <= 1500 ms; a cold process)               3.00 vs 0.00 +/- 1500.0
+PASS  … and it rings (an ALARM player of the shell)             != 0
+PASS  the process that rings is a new one                         != 4458
+PASS  dismissed                                                   = 0
+      gscroll_to_node timer_name:tf2a33637: 0 swipe(s), found=yes
+RECORD  clock_timers notifications left after the Dead timer rang and was deleted (title|when)  0 — 
+      ten timers:  t7fe9f2c3 ta0232a55 t32f02fcb ta5e12dfc tca923940 t05df3f3d t8754c457 tc3a1524e t53005a2d t28a520ce
+PASS  ten timers were created                                     = 10
+PASS  all ten are RUNNING in the store                            = 10
+PASS  all ten are armed in AlarmManager (ELAPSED_WAKEUP entries)  = 10
+PASS  … and none is the phone's next alarm clock                = 
+      gscroll_to_node timer_remaining:t7fe9f2c3: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:ta0232a55: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t32f02fcb: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:ta5e12dfc: 0 swipe(s), found=yes
+      gscroll_to_node: rewound to the top in 1 drag(s)
+      gscroll_to_node timer_remaining:tca923940: 1 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t05df3f3d: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t8754c457: 0 swipe(s), found=yes
+      gscroll_to_node: rewound to the top in 2 drag(s)
+      gscroll_to_node timer_remaining:tc3a1524e: 2 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t53005a2d: 0 swipe(s), found=yes
+      gscroll_to_node: rewound to the top in 4 drag(s)
+      gscroll_to_node timer_remaining:t28a520ce: 3 swipe(s), found=yes
+PASS  every one of the ten is listed on the Timer tab             = 10
+PASS  … and every one is counting down                          = 10
+      running-timer notifications (title | when): ?|1790296988686 T10|1790299397720 T9|1790299336552 T8|1790299275390 T7|1790299214233 T6|1790299153080 T5|1790299091931 T4|1790299030781 T3|1790298969631 T2|1790298908483 T1|1790298847317
+FAIL  ten running-timer notifications are posted                  expected [10] got [11]
+      gscroll_to_node: rewound to the top in 4 drag(s)
+      gscroll_to_node timer_name:t7fe9f2c3: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:ta0232a55: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t32f02fcb: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:ta5e12dfc: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:tca923940: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t05df3f3d: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t8754c457: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:tc3a1524e: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t53005a2d: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t28a520ce: 0 swipe(s), found=yes
+PASS  the ten are gone                                            = 
+PASS  the API refuses LENGTH 0                                    contains [api android.intent.action.SET_TIMER from com.android.shell -> refused: length out of range]
+PASS  … and created nothing                                     = 
+PASS  the editor opens at 00:05:00                                = 00 05 00
+      spin timer_editor_field:minutes -> [00] after 2 swipe(s)
+PASS  the minutes read 00 (a 0:00:00 length)                      = 00
+RECORD  the Save button's enabled flag at 0:00:00 (the build dims it; TimerTab.kt:198)  false
+PASS  Save at 0:00:00 creates nothing                             = 
+PASS  … and logs no timer created                               does not contain [timer created]
+PASS  … the editor is still open (Save refused)                 = NEW TIMER
+PASS  a 10-min timer is running                                   != 
+PASS  paused in the store                                         = PAUSED
+PASS  a paused timer holds no deadline                            = null null
+PASS  … and no alarm is armed for it                            = 
+PASS  after a +1 h clock jump it is still PAUSED                  = PAUSED
+PASS  … holding the same remaining                              = 593772
+PASS  … and the tab shows the same digits                       = 00:09:53
+PASS  … with nothing armed                                      = 
+PASS  resumed: RUNNING again                                      = RUNNING
+PASS  resumed: armed for its remaining on the elapsed clock       1262663.00 vs 1264272.00 +/- 3000.0
+PASS  device clock back within 2 s of the host (RV12)             1790297168.00 vs 1790297169.00 +/- 2.0
+      gscroll_to_node timer_name:tb42537ea: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+EDGE_TIMERS: 35 passed, 1 failed, 2 recorded

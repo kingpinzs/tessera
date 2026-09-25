@@ -1,21 +1,43 @@
 ==============================================================================
 ROW EDGE_STOPWATCH — stopwatch: 1,000 laps; killed between laps
-at            2026-09-24T16:07:14-06:00
-driver        edge_stopwatch.sh blob 11dca21ca1f7deb413f6051f6a9251055b5518e3
+at            2026-09-24T18:38:45-06:00
+driver        edge_stopwatch.sh blob ba8093b95b9d06c0e93fe77ca395662d85ef909d
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     187619129c54956c 338459898 bytes
-apk installed 2356b99f4933214b
-apk match     NO (device 2356b99f4933214b, built 33cc71c192190cc9)
+apk built     ba42e00bac9f14cf 338459898 bytes
+apk installed 33cc71c192190cc9
+apk match     NO (device 33cc71c192190cc9, built c45e7a2838aae3b0)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  baseline: no shell alarm or timer pending                   = 0
 PASS  baseline: alarm and timer stores empty                      = empty
+PASS  baseline: the stopwatch is at RESET (not running, 0 elapsed, no laps)  = reset
 PASS  the running stopwatch shows the Flag button (stopwatch_lap in the dump)  != 
-FAIL  the first lap did not crash the app (E7/DEFECT.md: java.lang.IllegalStateException: lap row text must equal the shared line)  expected [0] got [1]
-      ROW STOPPED at the lap-row crash (E7/DEFECT.md): 1,000 laps and killed-between-laps not run in this pass
-      stopwatch.json removed and the process restarted: the baseline restore around the lap-row crash (E7/DEFECT.md)
+PASS  five laps taken                                             = 5
+PASS  after the kill the five laps are listed (stopwatch_lap:5)   = yes
+PASS  the next lap after the kill is lap 6                        = 6
+PASS  … listed on top as stopwatch_lap:6                        = yes
+PASS  the laps are strictly increasing splits                     = yes
+      laps: 106 at +10 s
+      laps: 206 at +21 s
+      laps: 306 at +31 s
+      laps: 406 at +42 s
+      laps: 506 at +52 s
+      laps: 606 at +63 s
+      laps: 706 at +73 s
+      laps: 806 at +84 s
+      laps: 906 at +94 s
+      laps: 1006 at +105 s
+PASS  1,000 laps (or more) are in the store                       = yes
+      gdump_for stopwatch_lap:1006: not in any of 3 dumps
+      thousand.xml: the dump took 34 ms; the whole gdump call 7624 ms with 0 empty attempts
+PASS  a gesture-driver dump of the list is available within 3 s (its dump.elapsed_ms = 34)  = yes
+FAIL  the top row is the newest lap (stopwatch_lap:1006)          expected [yes] got [no]
+      gdump_for stopwatch_lap:994: not in any of 3 dumps
+FAIL  the list scrolls (the newest lap left the top / older laps came in)  expected [yes] got [no]
+PASS  the store still reads as valid JSON with 1006 laps          = 1006
+PASS  restore: the stopwatch is reset                             = false []
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------
-EDGE_STOPWATCH: 5 passed, 1 failed, 0 recorded
+EDGE_STOPWATCH: 15 passed, 2 failed, 0 recorded

@@ -1,11 +1,11 @@
 ==============================================================================
 ROW EDGE_WORLD — world clock: no-exemplar zone, duplicate names, no match, locale change; the 24-hour setting
-at            2026-09-24T13:22:02-06:00
+at            2026-09-24T18:46:24-06:00
 driver        edge_world.sh blob a567b6e202cb0c45654e97104b20680b3953b5cd
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     a82ba032ca435575 338459654 bytes
-apk installed 42d6fcbd160015a2
-apk match     NO (device 42d6fcbd160015a2, built 7b1306f3e567a24b)
+apk built     ba42e00bac9f14cf 338459898 bytes
+apk installed 33cc71c192190cc9
+apk match     NO (device 33cc71c192190cc9, built c45e7a2838aae3b0)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -22,7 +22,7 @@ PASS  Vienna is listed (en)                                       = Vienna
 RECORD  app locales before                                          Locales for app.tileshell for user 0 are []
 RECORD  app locales after the change                                Locales for app.tileshell for user 0 are [de-DE]
 PASS  the city is re-labelled in German (Wien) with no restart of the process  = Wien
-PASS  … the process is the same                                 = 13869
+PASS  … the process is the same                                 = 11363
 PASS  restore: the label is English again                         = Vienna
       time_12_24 before: [null]
 PASS  24-hour: the alarm row reads 19:05 (H:mm)                   = 19:05
@@ -32,8 +32,8 @@ PASS  24-hour: the editor's spinner has no AM/PM column           = no
 PASS  24-hour: the hour column reads 19                           = 19
 PASS  restore: the alarm row reads 7:05 PM again                  = 7:05 PM
 PASS  restore: no city rows left                                  = 
-      scroll_to_node alarm_row:ae53f4064: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:t4af1ed68: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a94a5db1b: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t4ea19e49: 0 swipe(s), found=yes
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------

@@ -30,11 +30,26 @@ ring_at() { # id at -> prints the mark
   echo "$m"
 }
 dismiss_toast() { # label
-  local d="$ROW_DIR/${1}_ring.xml" m
-  gdump_for "$d" ring_dismiss; screencap "$ROW_DIR/${1}_ring.png"
+  local label="$1" d="$ROW_DIR/${1}_ring.xml" m b
+  gdump_for "$d" ring_dismiss; screencap "$ROW_DIR/${label}_ring.png"
   m="$(ring_mark)"
-  gtap "$d" ring_dismiss; sleep 2.5
-  [ -n "$(ring_since "$m" | grep -F 'ring ended')" ] || note "dismiss_toast $1: no ring ended line"
+  if [ "$(has_node "$d" ring_dismiss)" = yes ]; then
+    LAST_DISMISS="$(bounds "$d" ring_dismiss)"
+    gtap "$d" ring_dismiss
+  elif [ -n "${LAST_DISMISS:-}" ] && [ -n "$(overlay_window)" ]; then
+    # Runs 6 and 8 on 5558: at the seven3 ring (the jump from 2027-03-14 to 2027-11-06) every gesture-driver dump for a
+    # minute came back empty (clock.sh gdump_for), the toast stayed up and the next section's taps landed on it. The
+    # overlay toast's Dismiss is where this row's own last dump of the same toast put it; the tap is logged and its
+    # outcome is read from the ring line below.
+    note "dismiss_toast $label: no gesture-driver dump held the toast; tapping ring_dismiss at this row's last dump of the same overlay toast ($LAST_DISMISS)"
+    # shellcheck disable=SC2086
+    set -- $LAST_DISMISS; adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))
+  fi
+  sleep 2.5
+  if [ -z "$(ring_since "$m" | grep -F 'ring ended')" ]; then
+    note "dismiss_toast $label: no ring ended line; the ring is ended by dismiss_any_ring so the next section starts clean"
+    dismiss_any_ring
+  fi
 }
 # Every section ends here: everything deleted through the app and the store ASSERTED empty (run 1: a daily alarm one
 # section failed to delete was armed under every later section's reads).
@@ -238,16 +253,22 @@ M="$(ring_at "$ID" "$T")"
 assert_contains "it rings as a heads-up (no overlay grant)" "[alarms] surface: heads-up $ID" "$(ring_since "$M")"
 # The alarm's heads-up is STICKY on this image (a ringing alarm notification carrying a full-screen intent stays pinned
 # while the phone is in use): it still covers y ≈ 158–538 px after 8 s, and the row tap at the row's centre (y 421)
-# landed on its DISMISS — runs 2–5 "failed" the edit that way (the probe of 2026-09-24 logged `ring ended <id>:
+# landed on its DISMISS — runs 2–6 "failed" the edit that way (the probe of 2026-09-24 logged `ring ended <id>:
 # dismiss` for the row tap). A swipe up on the card un-pins it into the shade — the notification and the ring stay,
 # asserted — and then the row is tapped.
 open_clock alarm
+# The heads-up is found by its WINDOW in the gesture driver's window list (a SystemUI window other than the status bar's
+# [0,0][1080,136]), not by its "Dismiss" node: run 9's dump listed the heads-up window but returned only the app's root
+# (dump.all_windows=false, the same connect race as gdump_for's), so the text search found nothing and nothing was
+# swiped. The swipe starts at the window's vertical middle — above its action row.
 gdump_windows "$ROW_DIR/edit_hun.xml"
-HB="$(bounds_by_text "$ROW_DIR/edit_hun.xml" com.android.systemui Dismiss)"; note "the heads-up's Dismiss at [$HB]"
-# shellcheck disable=SC2086
-if [ -n "$HB" ]; then set -- $HB; adb shell input swipe 540 $(( $2 - 150 )) 540 20 250; sleep 1.5; fi
+hun_window() { gwindows "$1" | tr ';' '\n' | grep -E '^SYSTEM:com\.android\.systemui:\[' | grep -v ':\[0,0\]\[1080,136\]:' | head -1; }
+HUNW="$(hun_window "$ROW_DIR/edit_hun.xml")"; note "the heads-up's window: [$HUNW]"
+assert_ne "the heads-up is up (a SystemUI window below the status bar in the window list)" "" "$HUNW"
+# shellcheck disable=SC2046
+[ -n "$HUNW" ] && set -- $(printf '%s' "$HUNW" | sed -E 's/^[^[]*\[([0-9]+),([0-9]+)\]\[([0-9]+),([0-9]+)\].*/\1 \2 \3 \4/') && { adb shell input swipe 540 $(( ($2 + $4) / 2 )) 540 20 250; sleep 1.5; }
 gdump_windows "$ROW_DIR/edit_hun_up.xml"
-assert_eq "the heads-up no longer covers the list (no SystemUI Dismiss on screen)" "" "$(bounds_by_text "$ROW_DIR/edit_hun_up.xml" com.android.systemui Dismiss)"
+assert_eq "the heads-up no longer covers the list (no such window left)" "" "$(hun_window "$ROW_DIR/edit_hun_up.xml")"
 assert_ne "… and the ring goes on (player started)" 0 "$(alarm_player_started)"
 dump_ui "$ROW_DIR/edit_list.xml"
 tap_node "$ROW_DIR/edit_list.xml" "alarm_row:$ID"; sleep 1.5
@@ -263,7 +284,10 @@ assert_ne "the ring continues (player still started)" 0 "$(alarm_player_started)
 assert_absent "… and the edit did not end the ring" "ring ended $ID" "$(ring_since "$MARK")"
 assert_contains "… the edit re-armed the store" "[alarms] store: alarm $ID edited in the editor" "$(ring_since "$MARK")"
 adb shell cmd statusbar expand-notifications; sleep 2
-gdump_windows "$ROW_DIR/edit_shade.xml"; screencap "$ROW_DIR/edit_shade.png"
+# The expanded shade is dumped until its Dismiss is in the dump (the connect race again; the shade is the focused
+# window, so even the plain-dump fallback holds it).
+for i in 1 2 3; do gdump "$ROW_DIR/edit_shade.xml"; [ -n "$(bounds_by_text "$ROW_DIR/edit_shade.xml" com.android.systemui Dismiss)" ] && break; sleep 2; done
+screencap "$ROW_DIR/edit_shade.png"
 MARK="$(ring_mark)"
 tap_by_text "$ROW_DIR/edit_shade.xml" com.android.systemui Dismiss && sleep 3
 assert_contains "the notification's Dismiss ends it" "[alarms] ring ended $ID: dismiss" "$(ring_since "$MARK")"
@@ -303,19 +327,30 @@ dismiss_toast quiet_ref
 ring_save launcher
 clock_restore
 # The in-call alarm is seeded BEFORE the call: the AlarmClock API's activity, started during the call, brought the
-# shell's task (Start) in front of the in-call UI, so runs 1–5 rang "over the in-call UI" with Start resumed under the
-# toast (their recorded resumed activity). Seeded first, then the call answered, the in-call UI is what the toast covers
-# — asserted before the ring and read again under it.
+# shell's task (Start) in front, so runs 1–5 rang with Start resumed under the toast (their recorded resumed activity).
+# The call arrives on a SLEEPING screen, so the dialer brings its full-screen in-call UI (InCallActivity) up, and is
+# answered with KEYCODE_CALL until telephony reports OFFHOOK: with the phone in use the dialer shows the incoming call
+# as a heads-up only, and a single KEYCODE_CALL left 4 of the AVD's 7 test calls MISSED (its call log; run 6's among
+# them — its ring then logged "ring level full"). The audio mode is dumpsys audio's CURRENT one ("- Actual mode"):
+# the first form grepped the whole dump, whose setMode history kept an older call's MODE_IN_CALL.
 NOW="$(device_ms)"; read -r H Mi <<< "$(device_hm $(( NOW + 150000 )))"
 ID2="$(api_alarm "$H" "$Mi" "Incall")"
 T2="$(alarm_trigger_ms | head -1)"
 adb shell input keyevent KEYCODE_HOME; sleep 1
-adb emu gsm call 5551234 >/dev/null 2>&1; sleep 3
-adb shell input keyevent KEYCODE_CALL; sleep 4
-MODE="$(adb shell dumpsys audio | tr -d '\r' | grep -oE 'MODE_IN_CALL|MODE_IN_COMMUNICATION' | head -1)"
-record "dumpsys audio mode during the call" "${MODE:-$(adb shell dumpsys audio | tr -d '\r' | grep -m1 -iE 'mode' | sed 's/^ *//')}"
-assert_contains "the audio mode reads IN_CALL" "MODE_IN_CALL" "$MODE"
-assert_contains "the in-call UI is the resumed activity before the alarm" "com.android.dialer" "$(resumed)"
+adb shell input keyevent KEYCODE_SLEEP; sleep 2
+adb emu gsm call 5551234 >/dev/null 2>&1; sleep 4
+call_state() { adb shell dumpsys telephony.registry | tr -d '\r' | grep -m1 -oE 'mCallState=[0-9]' | cut -d= -f2; }
+for i in 1 2 3; do
+  [ "$(call_state)" = 2 ] && break
+  adb shell input keyevent KEYCODE_CALL; sleep 3
+done
+note "answered after $i KEYCODE_CALL press(es)"
+assert_eq "the call is answered (telephony.registry mCallState=2, OFFHOOK)" 2 "$(call_state)"
+assert_eq "after the sleep, wake_device prints Awake (C-25)" "Awake" "$(wake_device)"
+MODE="$(adb shell dumpsys audio | tr -d '\r' | sed -n 's/^- Actual mode = //p' | head -1)"
+record "dumpsys audio mode during the call (Actual mode)" "$MODE"
+assert_eq "the audio mode reads IN_CALL" "MODE_IN_CALL" "$MODE"
+assert_contains "the in-call UI is the resumed activity before the alarm" "com.android.dialer/com.android.incallui.InCallActivity" "$(resumed)"
 M="$(ring_at "$ID2" "$T2")"
 assert_ne "during the call an ALARM player of the shell exists" "" "$(alarm_players)"
 assert_contains "the ring level line says 1/8 (in call)" "[alarms] ring level 1/8 (in call" "$(ring_since "$M")"
@@ -332,7 +367,7 @@ print("yes" if any(abs(v + 18.06) <= 2 for v in d) else "no (%s)" % d)' "$REFC" 
 assert_contains "the toast shows over the in-call UI (overlay)" "[alarms] surface: toast-overlay $ID2" "$(ring_since "$M")"
 OVL="$(overlay_window)"; assert_contains "… an APPLICATION_OVERLAY window" "type=APPLICATION_OVERLAY" "$OVL"
 record "the resumed activity under the toast" "$(resumed | sed 's/^ *//')"
-assert_contains "… over the in-call UI (still the resumed activity under the toast)" "com.android.dialer" "$(resumed)"
+assert_contains "… over the in-call UI (still the resumed activity under the toast)" "com.android.dialer/com.android.incallui.InCallActivity" "$(resumed)"
 assert_ne "vibration runs (a vibration of uid $SHELL_UID in vibrator_manager)" "" "$(adb shell dumpsys vibrator_manager | tr -d '\r' | grep -m1 "uid=$SHELL_UID")"
 dismiss_toast incall
 adb emu gsm cancel 5551234 >/dev/null 2>&1; sleep 2
