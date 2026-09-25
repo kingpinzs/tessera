@@ -228,18 +228,21 @@ fun TimerEditorScreen(nav: ClockNav, store: ClockStore, menu: List<ClockMenuEntr
             Box(Modifier.align(Alignment.Center).fillMaxWidth().height(ClockMetrics.SPINNER_ROW).background(colors.accent.copy(alpha = 0.6f)))
             val hours = remember { (0..99).map { "%02d".format(it) } }
             val sixty = remember { (0..59).map { "%02d".format(it) } }
+            // 4.8: r11 measured the splits at 117.7 and 239.4 epx (columns 117.7 / 121.7 / 120.6), not thirds; each 1-epx
+            // divider is centred on its split.
             Row(Modifier.fillMaxSize()) {
-                LoopSpinner(hours, draft.hours, 7.97f, "timer_editor_field:hours", Modifier.weight(1f)) { update { d -> d.copy(hours = it) } }
+                LoopSpinner(hours, draft.hours, 7.97f, "timer_editor_field:hours", Modifier.weight(117.2f)) { update { d -> d.copy(hours = it) } }
                 Box(Modifier.width(1.dp).height(frameH).background(Color(40, 40, 40)))
-                LoopSpinner(sixty, draft.minutes, 7.97f, "timer_editor_field:minutes", Modifier.weight(1f)) { update { d -> d.copy(minutes = it) } }
+                LoopSpinner(sixty, draft.minutes, 7.97f, "timer_editor_field:minutes", Modifier.weight(120.7f)) { update { d -> d.copy(minutes = it) } }
                 Box(Modifier.width(1.dp).height(frameH).background(Color(40, 40, 40)))
-                LoopSpinner(sixty, draft.seconds, 7.97f, "timer_editor_field:seconds", Modifier.weight(1f)) { update { d -> d.copy(seconds = it) } }
+                LoopSpinner(sixty, draft.seconds, 7.97f, "timer_editor_field:seconds", Modifier.weight(120.1f)) { update { d -> d.copy(seconds = it) } }
             }
         }
         // 4.8: the column captions at cap top 306.7, ≈ 65 % ink, centred per column.
         Row(Modifier.offset(y = capPad(306.7f, 15f, 20f)).fillMaxWidth()) {
-            listOf("Hours", "Minutes", "Seconds").forEach { c ->
-                BasicText(c, Modifier.weight(1f), style = ShellType.body.copy(color = colors.text.copy(alpha = 0.65f), textAlign = TextAlign.Center))
+            // Each caption centred on its column's span, split to split.
+            listOf("Hours" to 117.7f, "Minutes" to 121.7f, "Seconds" to 120.6f).forEach { (c, w) ->
+                BasicText(c, Modifier.weight(w), style = ShellType.body.copy(color = colors.text.copy(alpha = 0.65f), textAlign = TextAlign.Center))
             }
         }
         // 4.8: "Timer name" at cap top 350.2, the value in accent at 383.1.
