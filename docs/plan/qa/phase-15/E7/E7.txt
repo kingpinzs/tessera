@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E7 — stopwatch: ring clock vs dump, lap, kill -9, reboot, reset
-at            2026-09-24T19:16:22-06:00
+at            2026-09-24T20:04:53-06:00
 driver        e7.sh blob 04f74314f384f9f6a68a696d71a9100de13f3215
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     64d242a9caa47c97 338459898 bytes
-apk installed 4ffe58a73c2ddf7a
-apk match     yes (4ffe58a73c2ddf7a)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -15,29 +15,29 @@ PASS  baseline: the stopwatch is at RESET (not running, 0 elapsed, no laps)  = r
 PASS  the stopwatch starts at 00:00:00.00                         = 00:00:00.00
 PASS  start is logged: [stopwatch] start elapsed=                 contains [[stopwatch] start elapsed=]
 PASS  the store says running                                      = true
-      moment1: line [elapsed=10020 uptime=416626] dump [00:00:10.68] by the attempt at uptime 417290 taking 22 ms; 0 empty gesture dumps before it, the whole retry window 425 ms
-PASS  moment 1: the dump's elapsed = the line's + (dump − line) on the uptime clock (± 100 ms + half the dump's latency)  660.00 vs 675.00 +/- 111.0
-PASS  moment 1: the dump's own latency <= 1 s (the gesture driver's dump.elapsed_ms = 22)  = yes
-      moment2: line [elapsed=25021 uptime=431627] dump [00:00:25.61] by the attempt at uptime 432231 taking 27 ms; 0 empty gesture dumps before it, the whole retry window 418 ms
-PASS  moment 2: the dump's elapsed = the line's + (dump − line) on the uptime clock (± 100 ms + half the dump's latency)  589.00 vs 617.00 +/- 113.0
-PASS  moment 2: the dump's own latency <= 1 s (the gesture driver's dump.elapsed_ms = 27)  = yes
+      moment1: line [elapsed=10008 uptime=92165] dump [00:00:10.63] by the attempt at uptime 92797 taking 41 ms; 0 empty gesture dumps before it, the whole retry window 439 ms
+PASS  moment 1: the dump's elapsed = the line's + (dump − line) on the uptime clock (± 100 ms + half the dump's latency)  622.00 vs 652.00 +/- 120.0
+PASS  moment 1: the dump's own latency <= 1 s (the gesture driver's dump.elapsed_ms = 41)  = yes
+      moment2: line [elapsed=25009 uptime=107166] dump [00:00:25.50] by the attempt at uptime 107657 taking 32 ms; 0 empty gesture dumps before it, the whole retry window 415 ms
+PASS  moment 2: the dump's elapsed = the line's + (dump − line) on the uptime clock (± 100 ms + half the dump's latency)  491.00 vs 507.00 +/- 116.0
+PASS  moment 2: the dump's own latency <= 1 s (the gesture driver's dump.elapsed_ms = 32)  = yes
 PASS  the two moments are >= 10 s apart                           = yes
 PASS  Δelapsed = Δuptime ± 100 ms between the two lines        15001.00 vs 15001.00 +/- 100.0
 PASS  Lap is logged: [stopwatch] lap elapsed=                     != 
-      stopwatch_lap:1 = [1  00:00:26.34  00:00:26.34]
+      stopwatch_lap:1 = [1  00:00:26.21  00:00:26.21]
 PASS  stopwatch_lap:1 is listed                                   != 
-PASS  the lap row shows the split (index, lap time, split — equal for lap 1)  = 1  00:00:26.34
-PASS  the store holds one lap at that elapsed                     = 26340
-      last pre-kill [lap elapsed=26340 uptime=432946] first post-kill [elapsed=33723 uptime=440329]
+PASS  the lap row shows the split (index, lap time, split — equal for lap 1)  = 1  00:00:26.21
+PASS  the store holds one lap at that elapsed                     = 26210
+      last pre-kill [lap elapsed=26210 uptime=108367] first post-kill [elapsed=32572 uptime=114729]
 PASS  after the kill the tab logs a [stopwatch] line              != 
-PASS  kill -9: first post-kill elapsed − last pre-kill elapsed = their wall difference ± 1 s  7383.00 vs 7384.00 +/- 1000.0
-PASS  kill -9: still running (the digits advance between two dumps)  != 00:00:37.43
+PASS  kill -9: first post-kill elapsed − last pre-kill elapsed = their wall difference ± 1 s  6362.00 vs 6362.00 +/- 1000.0
+PASS  kill -9: still running (the digits advance between two dumps)  != 00:00:36.24
 PASS  kill -9: the lap survived                                   = yes
 PASS  after the reboot wake_device prints Awake (C-25)            = Awake
-      last pre-reboot [elapsed=38724 uptime=445330] first post-boot [elapsed=63311 uptime=19512]
+      last pre-reboot [elapsed=37572 uptime=119729] first post-boot [elapsed=60930 uptime=19534]
 PASS  after the reboot the tab logs a [stopwatch] line            != 
-PASS  reboot: first post-boot elapsed − last pre-reboot elapsed = their wall difference ± 2 s  24587.00 vs 24587.00 +/- 2000.0
-PASS  reboot: still running (the digits advance)                  != 00:01:06.93
+PASS  reboot: first post-boot elapsed − last pre-reboot elapsed = their wall difference ± 2 s  23358.00 vs 23358.00 +/- 2000.0
+PASS  reboot: still running (the digits advance)                  != 00:01:04.53
 PASS  stopped: the Reset button is offered                        = yes
 PASS  reset is logged                                             contains [[stopwatch] reset elapsed=0]
 PASS  reset: the digits read 00:00:00.00                          = 00:00:00.00

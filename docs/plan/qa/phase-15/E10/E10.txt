@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E10 — Alarms & Clock geometry against r11/clock.md (± 0.9 epx; pixels + 1 px)
-at            2026-09-24T19:23:27-06:00
+at            2026-09-24T20:13:30-06:00
 driver        e10.sh blob 74f6a943950fdcc52ee09ac4704fb309646bb238
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     41c60c70f50c4c3a 338459898 bytes
-apk installed 87ddb3ef911a0afa
-apk match     yes (87ddb3ef911a0afa)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -30,29 +30,29 @@ PASS  1.8 the underline is centred under the selected tab         247.00 vs 247.
       selected icon ink (accent): 223 142 271 187
 PASS  1.7 the selected tab's icon is drawn in accent              != 
 PASS  1.5 the icon's centre is 27.2 epx below the band top (pixels)  164.00 vs 166.00 +/- 4.0
-      selected label ink (accent): 201 210 291 236
+      selected label ink (accent): 201 214 291 240
 PASS  1.7 the selected tab's label is drawn in accent             != 
-PASS  1.6 the label's ink top is 42.7 epx below the band top (pixels)  210.00 vs 212.00 +/- 4.0
-      Stopwatch label ink (accent): 747 210 909 244
-PASS  1.6 the label's ink bottom (with a descender: 'Stopwatch') is 54.2 epx below the band top (pixels)  244.00 vs 247.00 +/- 4.0
+PASS  1.6 the label's ink top is 42.7 epx below the band top (pixels)  214.00 vs 212.00 +/- 4.0
+      Stopwatch label ink (accent): 747 214 909 248
+PASS  1.6 the label's ink bottom (with a descender: 'Stopwatch') is 54.2 epx below the band top (pixels)  248.00 vs 247.00 +/- 4.0
 PASS  1.7 an unselected tab has no accent ink                     = 
 PASS  Alarm tab: the drawn status bar is on the page              = yes
 PASS  Alarm tab: the drawn nav bar is on the page                 = yes
-      tap capture: 7 source frames
-      tap: first differing source frame #1 of 7; its match to the still (±8): 0.9909; gap before it 1532.5 ms
+      tap capture: 8 source frames
+      tap: first differing source frame #1 of 8; its match to the still (±8): 0.9906; gap before it 1518.4 ms
 PASS  M1 a source frame differs from the pre-tap frame in the content region  != none
 PASS  M1 the first differing frame equals the still taken 1 s later (± 8 levels in >= 99 % of the content region)  = yes
-RECORD  M1 the source-frame gap before the changed frame (ms; a jump has no intermediate frame to space)  1532.5
-      clock_tab t0=397724 peak=33 overshoot=0 settle=33 frames=1 maxGapMs=0
+RECORD  M1 the source-frame gap before the changed frame (ms; a jump has no intermediate frame to space)  1518.4
+      clock_tab t0=491963 peak=32 overshoot=0 settle=32 frames=1 maxGapMs=0
 PASS  [motion] clock_tab was logged for the tap                   != 
 PASS  [motion] clock_tab settle <= 33.4 ms (secondary)            = yes
 PASS  no [motion] clock_swipe for a tap                           does not contain [[motion] clock_swipe]
 PASS  the tap landed on the World Clock tab                       = true
 PASS  World Clock tab: the drawn status bar is on the page        = yes
 PASS  World Clock tab: the drawn nav bar is on the page           = yes
-      clock_swipe t0=406162 peak=264 overshoot=0 settle=264 frames=17 maxGapMs=17
+      clock_swipe t0=499478 peak=266 overshoot=0 settle=266 frames=17 maxGapMs=17
 PASS  [motion] clock_swipe was logged for the swipe               != 
-PASS  X13 clock_swipe settle = 250 ± 17 ms                       264.00 vs 250.00 +/- 17.0
+PASS  X13 clock_swipe settle = 250 ± 17 ms                       266.00 vs 250.00 +/- 17.0
 PASS  clock_swipe maxGapMs <= 33.4                                = yes
 PASS  the swipe settled on the Timer tab                          = true
       'N' of No alarms: 29 353 69 406
@@ -82,12 +82,12 @@ PASS  1.12 the app bar is 48.2 epx tall (± 1 epx)                144.00 vs 145.
 PASS  1.12 the app bar sits on the drawn nav bar                  = 2196
 PASS  1.12 the buttons are on a 68-epx pitch                      204.00 vs 204.00 +/- 3.0
 PASS  1.13 Alarm tab buttons: Add, Select, More                   = alarm_select,clock_bar:add,clock_more
-PASS  Select puts a checkbox on each row                          = alarm_check:a206fb423,alarm_check:a528aee51
+PASS  Select puts a checkbox on each row                          = alarm_check:a4656cc13,alarm_check:affe04aaf
 PASS  … and offers Delete (alarm_select_delete)                 = yes
 PASS  Delete removed the checked alarm from the list              = no
 PASS  … and kept the other                                      = yes
 PASS  … and from dumpsys alarm (one entry left)                 = 1
-PASS  … and from the store                                      = a528aee51
+PASS  … and from the store                                      = a4656cc13
 PASS  More lists About and Notification settings                  = clock_more:about,clock_more:notifications
 PASS  … and no Send feedback                                    = 
 PASS  About opens about_page                                      = yes
@@ -110,11 +110,11 @@ PASS  3.10 the snooze value is in accent                          !=
 PASS  4.5 a new alarm's snooze time is 10 minutes                 = 10 minutes
 PASS  4.4 the Snooze time list is exactly 5 / 10 / 20 / 30 minutes / 1 hour  = alarm_snooze:10,alarm_snooze:20,alarm_snooze:30,alarm_snooze:5,alarm_snooze:60
 PASS  4.4 10 minutes is the selected item (fill = 0.68 × accent over the (40,40,40) flyout fill, ± 8)  = yes
-      snooze dropdown: flyout t0=463658 peak=235 overshoot=0 settle=235 frames=15 maxGapMs=17
-PASS  the Snooze dropdown logs [motion] flyout settle = 233 ± 17 ms  235.00 vs 233.00 +/- 17.0
+      snooze dropdown: flyout t0=557736 peak=241 overshoot=0 settle=241 frames=15 maxGapMs=17
+PASS  the Snooze dropdown logs [motion] flyout settle = 233 ± 17 ms  241.00 vs 233.00 +/- 17.0
 PASS  4.3 the Sound flyout is exactly Vibrate only / Pick from my music / Pick from ringtones  = alarm_sound:music,alarm_sound:ringtones,alarm_sound:vibrate
-      sound flyout: flyout t0=471158 peak=235 overshoot=0 settle=235 frames=15 maxGapMs=17
-PASS  the Sound flyout logs [motion] flyout settle = 233 ± 17 ms  235.00 vs 233.00 +/- 17.0
+      sound flyout: flyout t0=565218 peak=242 overshoot=0 settle=242 frames=15 maxGapMs=17
+PASS  the Sound flyout logs [motion] flyout settle = 233 ± 17 ms  242.00 vs 233.00 +/- 17.0
 PASS  4.6 the Sounds page is titled Sounds                        = Sounds
 PASS  4.6 the title's ink starts at x 24.2 epx (pixels)           72.00 vs 73.00 +/- 4.0
 PASS  4.6 Use default is offered                                  = yes
@@ -139,17 +139,17 @@ PASS  5.5 city rows at a 96.9-epx pitch                           291.00 vs 291.
 PASS  World Clock tab: the drawn status bar is on the page        = yes
 PASS  World Clock tab: the drawn nav bar is on the page           = yes
 PASS  a running timer for the Timer tab measurements              != 
-      timer first digit: 289 361 351 455
+      timer first digit: 289 352 351 446
 PASS  6.2 the timer's digits are 30.2 epx tall (pixels)           94.00 vs 91.00 +/- 4.0
 PASS  6.4 the ring button is Ø 59.6 epx                          179.00 vs 179.00 +/- 3.0
 PASS  6.3 reset sits 104 epx left of the centre                   225.00 vs 225.00 +/- 3.0
 PASS  6.3 expand sits 104 epx right of the centre                 848.00 vs 849.00 +/- 3.0
-PASS  1.13 Timer buttons: Add, Select, Pin, More                  = clock_bar:add,clock_more,timer_pin:t4e4ddd34,timer_select
+PASS  1.13 Timer buttons: Add, Select, Pin, More                  = clock_bar:add,clock_more,timer_pin:tb72b09d7,timer_select
 PASS  Timer tab: the drawn status bar is on the page              = yes
 PASS  Timer tab: the drawn nav bar is on the page                 = yes
-      stopwatch first digit: 221 402 286 502
+      stopwatch first digit: 221 405 286 505
 PASS  7.1 the stopwatch's digits are 32.0 epx tall (pixels)       100.00 vs 96.00 +/- 4.0
-      last hundredths digit: 830 446 867 501
+      last hundredths digit: 830 449 867 504
 PASS  7.1 the hundredths are 17.7 epx tall (pixels)               55.00 vs 53.00 +/- 4.0
 PASS  7.2 reset sits 96 epx left of the centre                    250.00 vs 249.00 +/- 3.0
 PASS  7.2 expand sits 96 epx right of the centre                  824.00 vs 825.00 +/- 3.0
@@ -167,9 +167,9 @@ PASS  8.10 the tile is 48 epx wide (pixels)                       144.00 vs 144.
 PASS  8.10 the tile is 48 epx tall (pixels)                       144.00 vs 144.00 +/- 4.0
 PASS  8.11 the one ✕ button is centred at x 42.0 epx            126.00 vs 126.00 +/- 3.0
 PASS  8.11 no Snooze on the timer toast                           = no
-      scroll_to_node alarm_row:a528aee51: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:t4e4ddd34: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:tbe5aee38: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a4656cc13: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:tb72b09d7: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t87366264: 0 swipe(s), found=yes
 PASS  restore: the cities are removed                             = 
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty

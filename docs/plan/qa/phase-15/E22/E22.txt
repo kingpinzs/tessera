@@ -1,0 +1,73 @@
+==============================================================================
+ROW E22 — every diagnostics alternative is in this build's saved ring slices
+at            2026-09-24T21:45:42-06:00
+driver        e22.sh blob dde9b446af817f2dffe69bffdffdf769293eb916
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      this build: a437acd58d2ca8ac
+      rows on this build: E0 E10 E11 E12 E13 E14b E14 E15 E16 E17 E18 E19 E1 E20 E21 E23 E24 E25 E26 E27 E29 E2 E30 E31 E32 E33 E3 E4b E4 E5 E6c E6 E7 E8 E9 EDGE_ALARMS EDGE-CALC EDGE_STOPWATCH EDGE_TIMERS EDGE_WORLD 
+PASS  at least one row ran on this build                          != 0
+PASS  [launcher] \[alarms\] rearm \(store change\): [0-9]+ alarms, [0-9]+ timers, exact=(true|false)  in E0/ring-launcher.txt (producer: E3)
+PASS  [launcher] \[alarms\] rearm \(boot\): [0-9]+ alarms, [0-9]+ timers  in E0/ring-launcher.txt (producer: E6)
+PASS  [launcher] \[alarms\] rearm \(locked boot\): [0-9]+ alarms, [0-9]+ timers  in E0/ring-launcher.txt (producer: E6c)
+PASS  [launcher] \[alarms\] fired [^ ]+ kind=alarm late=-?[0-9]+  in E21/ring-launcher.txt (producer: E4)
+PASS  [launcher] \[alarms\] fired [^ ]+ kind=timer late=-?[0-9]+  in E10/ring-launcher.txt (producer: E6)
+PASS  [launcher] \[alarms\] ring ended [^ ]+: dismiss             in E10/ring-launcher.txt (producer: E4)
+PASS  [launcher] \[alarms\] ring ended [^ ]+: snooze              in E4b/ring-launcher.txt (producer: E4)
+PASS  [launcher] \[alarms\] ring ended [^ ]+: timeout             in E32/ring-launcher.txt (producer: E32)
+PASS  [launcher] \[alarms\] ring ended [^ ]+: missed              in E32/ring-launcher.txt (producer: E32)
+PASS  [launcher] \[alarms\] ring ended [^ ]+: superseded          in EDGE_ALARMS/ring-launcher-prekill.txt (producer: edge: a later alarm while one rings)
+PASS  [launcher] \[alarms\] full-screen intent: allow             in E10/ring-launcher.txt (producer: E4)
+PASS  [launcher] \[alarms\] full-screen intent: deny              in E21/ring-launcher.txt (producer: E21)
+PASS  [launcher] \[alarms\] surface: toast-locked [^ ]+           in E23/ring-launcher.txt (producer: E4)
+PASS  [launcher] \[alarms\] surface: toast-overlay [^ ]+          in E10/ring-launcher.txt (producer: E4b)
+PASS  [launcher] \[alarms\] surface: heads-up [^ ]+               in E4b/ring-launcher.txt (producer: E4b)
+PASS  [launcher] \[alarms\] surface: lockscreen-notification [^ ]+  in E21/ring-launcher.txt (producer: E21)
+PASS  [launcher] \[alarms\] notification [^ ]+: fullscreen        in E21/ring-launcher.txt (producer: E4)
+PASS  [launcher] \[alarms\] notification [^ ]+: quiet             in E10/ring-launcher.txt (producer: E4b)
+PASS  [launcher] \[alarms\] ring [^ ]+ sound=default              in E10/ring-launcher.txt (producer: E4)
+PASS  [launcher] \[alarms\] ring [^ ]+ sound=content://           in E31/ring-launcher.txt (producer: E31)
+PASS  [launcher] \[alarms\] sound [^ ]+ missing -> default        in E31/ring-launcher.txt (producer: E31)
+FAIL  [launcher] \[alarms\] sound [^ ]+ locked -> default         in no saved launcher slice of this build (producer: edge: Pick from my music before the first unlock)
+PASS  [launcher] \[alarms\] api [^ ]+ from [^ ]+ -> created       in E0/ring-launcher.txt (producer: E33)
+PASS  [launcher] \[alarms\] api [^ ]+ from [^ ]+ -> opened        in E33/ring-launcher.txt (producer: E33)
+PASS  [launcher] \[alarms\] api [^ ]+ from [^ ]+ -> refused       in E33/ring-launcher.txt (producer: E33)
+PASS  [launcher] \[timer\] [^ ]+ remaining=[0-9]+ uptime=[0-9]+   in E0/ring-launcher.txt (producer: E6)
+PASS  [launcher] \[stopwatch\] elapsed=[0-9]+ uptime=[0-9]+       in E10/ring-launcher.txt (producer: E7)
+PASS  [launcher] \[music\] session app\.tileshell id=music -> cmp:app\.tileshell/app\.tileshell\.music\.MusicActivity  in E0/ring-launcher.txt (producer: E0)
+PASS  [launcher] \[music\] session app\.tileshell id=recorder -> none  in E0/ring-launcher.txt (producer: E0)
+PASS  [launcher] \[music\] skipped recording [0-9]+               in E0/ring-launcher.txt (producer: E20)
+PASS  [launcher] \[recorder\] list: [0-9]+ recordings \([0-9]+ by other apps\)  in E0/ring-launcher.txt (producer: E14)
+FAIL  [launcher] \[recorder\] list: [0-9]+ recordings \(other apps: hidden, READ_MEDIA_AUDIO denied\)  in no saved launcher slice of this build (producer: E21)
+PASS  [launcher] \[calc\] engine port                             in E11/ring-launcher.txt (producer: E11)
+PASS  [launcher] \[calc\] error [a-z_]+                           in E11/ring-launcher.txt (producer: E11)
+PASS  [launcher] \[calc\] tess "[^"]+" ->                         in E26/ring-launcher.txt (producer: E26)
+PASS  [launcher] \[calc\] date difference                         in E29/ring-launcher.txt (producer: E29)
+PASS  [launcher] \[calc\] date add                                in E29/ring-launcher.txt (producer: E29)
+PASS  [launcher] \[calc\] date subtract                           in E29/ring-launcher.txt (producer: E29)
+PASS  [launcher] \[motion\] ring_toast t0=                        in E10/ring-launcher.txt (producer: E4b)
+PASS  [launcher] \[motion\] flyout t0=                            in E10/ring-launcher.txt (producer: E10)
+PASS  [launcher] \[motion\] clock_tab t0=                         in E10/ring-launcher.txt (producer: E10)
+PASS  [launcher] \[motion\] clock_swipe t0=                       in E10/ring-launcher.txt (producer: E10)
+PASS  [launcher] \[motion\] calc_pane t0=                         in E12/ring-launcher-prekill.txt (producer: E12)
+PASS  [launcher] \[motion\] rec_state t0=                         in E0/ring-launcher.txt (producer: E24)
+PASS  [recorder] \[recorder\] start [^ ].* free=[0-9]+            in E14b/ring-app.tileshell_.recorder.RecorderService.txt (producer: E14)
+FAIL  [recorder] \[recorder\] paused: call                        in no saved recorder slice of this build (producer: edge: a call arriving mid-take)
+FAIL  [recorder] \[recorder\] paused: silenced                    in no saved recorder slice of this build (producer: edge: another app starts capture on top)
+PASS  [recorder] \[recorder\] paused: user                        in E30/ring-app.tileshell_.recorder.RecorderService.txt (producer: E30)
+PASS  [recorder] \[recorder\] stop [^ ].* ms=[0-9]+ bytes=[0-9]+  in E14b/ring-app.tileshell_.recorder.RecorderService.txt (producer: E14)
+PASS  [recorder] \[recorder\] recovered [^ ].* ms=[0-9]+          in E18/ring-app.tileshell_.recorder.RecorderService.txt (producer: E18)
+PASS  [recorder] \[recorder\] refused: microphone busy held by [a-z]+  in E17/ring-app.tileshell_.recorder.RecorderService.txt (producer: E17)
+PASS  [recorder] \[recorder\] storage floor                       in E19/ring-app.tileshell_.recorder.RecorderService.txt (producer: E19)
+PASS  [recorder] \[recorder\] marker [^ ].* at=[0-9]+             in E30/ring-app.tileshell_.recorder.RecorderService.txt (producer: E30)
+FAIL  [speech] refused: held by recorder                          in no saved speech slice of this build (producer: E17)
+FAIL  [speech] a client died                                      in no saved speech slice of this build (producer: E18)
+FAIL  [speech] microphone released: owner died                    in no saved speech slice of this build (producer: E18)
+PASS  the pattern table was read (./e22-producers.tsv)            != 0
+------------------------------------------------------------------------------
+E22: 51 passed, 7 failed, 0 recorded

@@ -1,22 +1,22 @@
 ==============================================================================
 ROW E23 — the ring surface's bars: locked (covers the status bar) and in use (below it); taps below leave it ringing
-at            2026-09-24T16:45:40-06:00
+at            2026-09-24T21:05:20-06:00
 driver        e23.sh blob 54155a7af0891dd36a74976844f7bc6b76c66156
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     187619129c54956c 338459898 bytes
-apk installed 33cc71c192190cc9
-apk match     yes (33cc71c192190cc9)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+12m44s209ms ago; rejectTime=+47m44s183ms ago 
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-10m35s530ms ago; rejectTime=+28m24s449ms ago 
 RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
 PASS  baseline: no shell alarm or timer pending                   = 0
 PASS  baseline: alarm and timer stores empty                      = empty
 PASS  the alarm was created                                       != 
 PASS  the keyguard shows after sleep + wake                       = true
 PASS  locked: the alarm fired                                     != 
-PASS  locked: surface: toast-locked ad53ba6e4                     contains [[alarms] surface: toast-locked ad53ba6e4]
+PASS  locked: surface: toast-locked a4d048b6a                     contains [[alarms] surface: toast-locked a4d048b6a]
       locked ring_surface: 0 0 1080 744
 PASS  locked: the toast starts at y 0 (covers the status bar)     = 0
 PASS  locked: the toast is 248 epx tall ± 3 %                    744.00 vs 744.00 +/- 22.0
@@ -28,12 +28,12 @@ PASS  locked: after a tap at y = 500 epx the ALARM player is still started  != 0
 PASS  locked: … and ring_surface is still up                    = yes
 PASS  locked: after a tap at y = 600 epx the ALARM player is still started  != 0
 PASS  locked: … and ring_surface is still up                    = yes
-PASS  locked: Dismiss ends it                                     contains [[alarms] ring ended ad53ba6e4: dismiss]
-PASS  device clock back within 2 s of the host (RV12)             1790289979.00 vs 1790289980.00 +/- 2.0
+PASS  locked: Dismiss ends it                                     contains [[alarms] ring ended a4d048b6a: dismiss]
+PASS  device clock back within 2 s of the host (RV12)             1790305560.00 vs 1790305560.00 +/- 2.0
 PASS  wake_device printed Awake (C-25)                            = Awake
 PASS  the in-use alarm was created                                != 
 PASS  in use: the alarm fired                                     != 
-PASS  in use: surface: toast-overlay ab3f6012f                    contains [[alarms] surface: toast-overlay ab3f6012f]
+PASS  in use: surface: toast-overlay ae571dc1e                    contains [[alarms] surface: toast-overlay ae571dc1e]
       overlay ring_surface: 0 136 1080 880
       the system status bar window is 136 px tall
 PASS  in use: the toast's top edge sits at the system status bar's bottom (the recorded seam)  = 136
@@ -45,10 +45,10 @@ PASS  in use: after a tap at y = 500 epx the ALARM player is still started  != 0
 PASS  in use: … and ring_surface is still up                    = yes
 PASS  in use: after a tap at y = 600 epx the ALARM player is still started  != 0
 PASS  in use: … and ring_surface is still up                    = yes
-PASS  in use: Dismiss ends it                                     contains [[alarms] ring ended ab3f6012f: dismiss]
-PASS  device clock back within 2 s of the host (RV12)             1790290014.00 vs 1790290015.00 +/- 2.0
-      scroll_to_node alarm_row:ad53ba6e4: 0 swipe(s), found=yes
-      scroll_to_node alarm_row:ab3f6012f: 0 swipe(s), found=yes
+PASS  in use: Dismiss ends it                                     contains [[alarms] ring ended ae571dc1e: dismiss]
+PASS  device clock back within 2 s of the host (RV12)             1790305595.00 vs 1790305595.00 +/- 2.0
+      scroll_to_node alarm_row:a4d048b6a: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:ae571dc1e: 0 swipe(s), found=yes
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------

@@ -1,11 +1,11 @@
 ==============================================================================
 ROW EDGE-CALC — Calculator edge cases: errors, 200 !, e-notation, display fit, = and %, BIN negatives, shifts, word size, paste, memory across kill -9, wm size
-at            2026-09-24T17:37:30-06:00
+at            2026-09-24T20:31:02-06:00
 driver        edge_calc.sh blob 13f44342994a620e685fdd27a980babed1f4ddae
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     ba42e00bac9f14cf 338459898 bytes
-apk installed c45e7a2838aae3b0
-apk match     yes (c45e7a2838aae3b0)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -53,8 +53,8 @@ PASS  the display's hold menu offers Paste                        = yes
 PASS  paste of "abc" is refused with "Invalid input" (Windows' DisplayPasteError)  = Invalid input
 RECORD  the ring's paste line                                       [calc] paste "abc" -> refused: Invalid input
 PASS  MS stores 42 (calc_memory:1)                                = 42
-      kill -9 app.tileshell pid 22547
-PASS  the shell's process is a new one after kill -9              != 22547
+      kill -9 app.tileshell pid 5161
+PASS  the shell's process is a new one after kill -9              != 5161
 PASS  memory survives kill -9 (calc_memory:1 = 42)                = 42
 PASS  MR recalls 42 after the restart                             = 42
 PASS  MC empties memory (calc_memory_empty)                       = yes

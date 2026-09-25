@@ -1,71 +1,71 @@
 ==============================================================================
 ROW E6 — timer across kill -9 and reboot; rings on the elapsed clock; ended-while-off
-at            2026-09-24T16:23:25-06:00
+at            2026-09-24T19:59:24-06:00
 driver        e6.sh blob ece035a24d7a1b11b422c10443fe9fcc1e62d0b1
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     187619129c54956c 338459898 bytes
-apk installed 33cc71c192190cc9
-apk match     yes (33cc71c192190cc9)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-1h3m31s14ms ago; rejectTime=+25m28s998ms ago 
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-1h3m32s493ms ago; rejectTime=+2h45m27s521ms ago 
 RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
 PASS  baseline: no shell alarm or timer pending                   = 0
 PASS  baseline: alarm and timer stores empty                      = empty
 PASS  a 90-s timer was created                                    != 
-PASS  dumpsys alarm: an ELAPSED_WAKEUP alarm of the shell due 90 s ± 1 s after the start  3305408.00 vs 3305360.00 +/- 1000.0
+PASS  dumpsys alarm: an ELAPSED_WAKEUP alarm of the shell due 90 s ± 1 s after the start  2627602.00 vs 2627570.00 +/- 1000.0
 PASS  … and NOT in the Next alarm clock line                    = 
-      last pre-kill: tcf2d6640 remaining=79959 uptime=3225449
-PASS  the Timer tab logs [timer] tcf2d6640 lines before the kill  != 
-      killed pid 25596
-PASS  the process is gone after kill -9                           != 25596
-      timer_remaining after the kill: [00:01:12] at host +16743 ms
-PASS  reopen: timer_remaining reads 90 − elapsed ± 2 s (host clock)  72000.00 vs 73257.00 +/- 2000.0
-PASS  reopen: the alarm is still armed at the same elapsed instant  = 3305408
-      first post-kill: tcf2d6640 remaining=75810 uptime=3229598
-      two lines 5 s apart: tcf2d6640 remaining=70810 uptime=3234598|tcf2d6640 remaining=65810 uptime=3239598
-PASS  two [timer] lines 5 s apart: Δremaining = −Δuptime ± 100 ms  -5000.00 vs -5000.00 +/- 100.0
-PASS  the first post-kill remaining = the last pre-kill remaining − their wall difference ± 1 s  75810.00 vs 75810.00 +/- 1000.0
+      last pre-kill: t0bf6b217 remaining=84962 uptime=2542640
+PASS  the Timer tab logs [timer] t0bf6b217 lines before the kill  != 
+      killed pid 11382
+PASS  the process is gone after kill -9                           != 11382
+      timer_remaining after the kill: [00:01:12] at host +17239 ms
+PASS  reopen: timer_remaining reads 90 − elapsed ± 2 s (host clock)  72000.00 vs 72761.00 +/- 2000.0
+PASS  reopen: the alarm is still armed at the same elapsed instant  = 2627602
+      first post-kill: t0bf6b217 remaining=75304 uptime=2552298
+      two lines 5 s apart: t0bf6b217 remaining=70303 uptime=2557299|t0bf6b217 remaining=65303 uptime=2562300
+PASS  two [timer] lines 5 s apart: Δremaining = −Δuptime ± 100 ms  -5000.00 vs -5001.00 +/- 100.0
+PASS  the first post-kill remaining = the last pre-kill remaining − their wall difference ± 1 s  75304.00 vs 75304.00 +/- 1000.0
 PASS  the timer fired at its deadline                             != 
-PASS  timer: late <= 1000 ms                                      4.00 vs 0.00 +/- 1000.0
+PASS  timer: late <= 1000 ms                                      3.00 vs 0.00 +/- 1000.0
 PASS  timer: an ALARM player of the shell is started              != 0
-PASS  timer: surface: toast-overlay tcf2d6640                     contains [[alarms] surface: toast-overlay tcf2d6640]
+PASS  timer: surface: toast-overlay t0bf6b217                     contains [[alarms] surface: toast-overlay t0bf6b217]
 PASS  timer: the ring notification (quiet channel, in use) has category alarm  contains [category=alarm]
 PASS  timer: … a Dismiss action                                 contains [Dismiss]
 PASS  timer: … and no Snooze action                             does not contain [Snooze]
 PASS  timer toast: ring_dismiss                                   = yes
 PASS  timer toast: no ring_snooze                                 = no
-PASS  timer dismiss: ring ended tcf2d6640: dismiss                contains [[alarms] ring ended tcf2d6640: dismiss]
+PASS  timer dismiss: ring ended t0bf6b217: dismiss                contains [[alarms] ring ended t0bf6b217: dismiss]
 PASS  timer dismiss: the player stopped                           = 0
-      gscroll_to_node timer_name:tcf2d6640: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t0bf6b217: 0 swipe(s), found=yes
 PASS  pass 1 cleared: no timer in the store                       = 
 PASS  a 10-min timer was created                                  != 
-      wall-clock deadline 1790289315617
-      booted at 1790288739884
+      wall-clock deadline 1790302274035
+      booted at 1790301694045
 PASS  after the reboot wake_device prints Awake (C-25)            = Awake
       first rearm after boot: rearm (time set): 0 alarms, 1 timers, exact=true
 RECORD  the boot's first rearm line (doc: locked boot or boot)      rearm (time set): 0 alarms, 1 timers, exact=true
 PASS  the boot's ring holds rearm (locked boot): 0 alarms, 1 timers  contains [[alarms] rearm (locked boot): 0 alarms, 1 timers]
 PASS  … and rearm (boot): 0 alarms, 1 timers                    contains [[alarms] rearm (boot): 0 alarms, 1 timers]
-PASS  re-armed for its original wall-clock deadline (elapsed trigger − now = deadline − now ± 3 s)  570921.00 vs 570906.00 +/- 3000.0
-PASS  its remaining is right after the reboot (± 3 s)            568000.00 vs 569068.00 +/- 3000.0
-      gscroll_to_node timer_name:t873a2d56: 0 swipe(s), found=yes
+PASS  re-armed for its original wall-clock deadline (elapsed trigger − now = deadline − now ± 3 s)  575266.00 vs 575249.00 +/- 3000.0
+PASS  its remaining is right after the reboot (± 3 s)            573000.00 vs 573499.00 +/- 3000.0
+      gscroll_to_node timer_name:t19d5a40f: 0 swipe(s), found=yes
 PASS  a 1-min timer was created                                   != 
-      rebooting at remaining=9966
+      rebooting at remaining=9971
 PASS  the [timer] line read remaining <= 10 000 before the reboot  = yes
 PASS  the first post-boot clock is later than start + 60 s (precondition, else void)  = yes
 PASS  after the reboot wake_device prints Awake (C-25)            = Awake
 PASS  it fired at once after the boot                             != 
-PASS  the ring says the timer ended while the phone was off       contains [timer ta1eadf71 ended while the phone was off]
+PASS  the ring says the timer ended while the phone was off       contains [timer td50489ff ended while the phone was off]
 PASS  the notification text says it ended while the phone was off (Decisions 'Ringing'; T15-53)  contains [ended while the phone was off]
 RECORD  the ended-while-off notification's title / text             android.title=String (Timer finished)|android.text=String (Minute · 0:01:00 · Timer ended while the phone was off)
 PASS  a running 5-min timer for the force-stop check              != 
 RECORD  the timer's alarm right after the force-stop (polled 2 s; the home app restarts at once)  absent
 PASS  the restart re-arms it: rearm (process start): 0 alarms, 1 timers  != 
-PASS  … and the ELAPSED_WAKEUP entry is back at the same instant  = 326405
-      gscroll_to_node timer_name:ta1eadf71: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:tdc96c2c1: 0 swipe(s), found=yes
+PASS  … and the ELAPSED_WAKEUP entry is back at the same instant  = 326364
+      gscroll_to_node timer_name:td50489ff: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t6f3aba73: 0 swipe(s), found=yes
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------

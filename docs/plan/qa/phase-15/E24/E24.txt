@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E24 — recorder geometry: the list, record and playback pages, the bars, and the one-frame cut
-at            2026-09-24T16:23:51-06:00
+at            2026-09-24T20:56:28-06:00
 driver        e24.sh blob 4bfb24adf3d02a8c6b3ea5ddb78cd0f6a50c9d98
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     187619129c54956c 338459898 bytes
-apk installed 2356b99f4933214b
-apk match     NO (device 2356b99f4933214b, built 33cc71c192190cc9)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -30,36 +30,36 @@ PASS  record state: the drawn status bar is STATUS_EPX tall       = 84
 PASS  record state: the drawn status bar sits at the top          = 0
 PASS  record state: the drawn nav bar is NAV_EPX tall             = 144
 PASS  record state: the drawn nav bar sits at the bottom          = 2340
-[image2 @ 0x5fd9bd189800] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 11 >= 11
-    Last message repeated 4 times
-[image2 @ 0x5fd9bd189800] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 12 >= 12
+[image2 @ 0x5d0690bbc2c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 11 >= 11
+    Last message repeated 3 times
+[image2 @ 0x5d0690bbc2c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 12 >= 12
     Last message repeated 8 times
-[image2 @ 0x5fd9bd189800] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 13 >= 13
+[image2 @ 0x5d0690bbc2c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 13 >= 13
     Last message repeated 8 times
-[image2 @ 0x5fd9bd189800] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 14 >= 14
-    Last message repeated 1 times
+[image2 @ 0x5d0690bbc2c0] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 14 >= 14
+    Last message repeated 2 times
       cut capture: 35 source frames
-      cut: first differing frame #1 of 35 (its match to the still 0.0598); first frame equal to the still #4; frames between 3; gap before the change 1516.8 ms
+      cut: first differing frame #1 of 35 (its match to the still 0.0598); first frame equal to the still #4; frames between 3; gap before the change 1510.2 ms
 PASS  7.1 a source frame differs from the pre-tap frame in the disc  != none
 PASS  7.1 a source frame equals the stop state of the still taken 1 s later (± 8 levels in >= 99 % of the disc)  != none
 RECORD  7.1 (LOW) frames between the first change and the stop state (the grey start-up interval)  3
-RECORD  7.1 (LOW) the source-frame gap before the change, ms        1516.8
-      motion line: rec_state t0=61574969 peak=202 overshoot=0 settle=202 frames=12 maxGapMs=17
+RECORD  7.1 (LOW) the source-frame gap before the change, ms        1510.2
+      motion line: rec_state t0=77930966 peak=188 overshoot=0 settle=188 frames=11 maxGapMs=17
 PASS  the shell logged [motion] rec_state (secondary)             contains [[motion] rec_state]
 PASS  2.8 rec_elapsed shows hh:mm:ss while recording              = yes
 PASS  2.2 the stop disc keeps the record disc's place and size    1140.00 vs 1140.00 +/- 2.0
 RECORD  2.9 (LOW) the timer text box height, epx (digits 24 tall in a 34-epx subheader)  40.7
-RECORD  2.10 (LOW) the timer's centre above the disc centre, epx (141.5)  145.7
+RECORD  2.10 (LOW) the timer's centre above the disc centre, epx (141.5)  143.0
 RECORD  2.12 (LOW) pause / flag centres from W/2, epx (± 46.7)     -46.7 46.7
 RECORD  2.12 (LOW) pause / flag row below the disc centre, epx (139)  139.0
-      rings: inner [377 977 704 1304 327 327 540.5 1140.5] outer [356 956 725 1325 369 369 540.5 1140.5]; recorder level frames=445
+      rings: inner [377 977 704 1304 327 327 540.5 1140.5] outer [356 956 725 1325 369 369 540.5 1140.5]; recorder level frames=355
 PASS  2.7 the two level rings are drawn while recording (rec_ring_inner, rec_ring_outer)  = yes yes
 RECORD  2.7 (LOW) inner / outer ring diameters under the tone, epx (109–122 / 123–150)  109.0 123.0
 PASS  2.7 the rings are concentric with the disc (inner)          540.50 vs 540.00 +/- 2.0
 PASS  2.7 the rings are concentric with the disc (outer)          540.50 vs 540.00 +/- 2.0
-      make_take 3s: stop tapped at elapsed_ms=2763 -> id 159 (Recording (2).m4a, 2949 ms)
-      takes: 157, 159
-      search 36 96 1044 240 1008 144 540.0 168.0 / showing 36 234 219 288 183 54 127.5 261.0
+      make_take 3s: stop tapped at elapsed_ms=2763 -> id 207 (Recording (2).m4a, 2949 ms)
+      takes: 205, 207
+      search 36 96 1044 240 1008 144 540.0 168.0 / showing 36 239 219 293 183 54 127.5 266.0
       rec_search's drawn border: rows 120..216 (the node's touch bounds 96..240)
 PASS  3.1 rec_search's drawn box is 32 epx tall                   96.00 vs 96.00 +/- 3.0
 PASS  3.1 rec_search has a 12-epx left margin                     36.00 vs 36.00 +/- 3.0
@@ -67,17 +67,17 @@ PASS  3.1 rec_search has a 12-epx right margin                    1044.00 vs 104
 PASS  3.1 rec_search is the first element, its box 12 epx under the status bar  120.00 vs 120.00 +/- 3.0
 PASS  3.2 the Showing line sits under the search box              = yes
 PASS  3.2 the Showing line reads its kind                         contains [All recordings]
-      header Today: 36 354 162 408 126 54 99.0 381.0
+      header Today: 36 359 162 413 126 54 99.0 386.0
 PASS  3.3 the group header sits at x 12 epx                       36.00 vs 36.00 +/- 3.0
       rule rows under the header (y px): [429 430 431]
 PASS  3.3 a rule is drawn under the group header (rows of white-20% across x 36..1044)  != 
 PASS  3.3 the rule is 1 epx (3 px) thick                          = 3
-RECORD  3.3 (derived) the rule's top below the header's text-box top, epx  25.0
+RECORD  3.3 (derived) the rule's top below the header's text-box top, epx  23.3
       rows: 0 444 1080 612 1080 168 540.0 528.0 / 0 612 1080 780 1080 168 540.0 696.0
 PASS  3.4 rows are on a 56 ± 1-epx pitch                         168.00 vs 168.00 +/- 3.0
 PASS  3.4 a row is 56 epx tall                                    168.00 vs 168.00 +/- 3.0
 PASS  3.4 line 1 is the name, line 2 the date, below it           = yes
-RECORD  3.4 (derived) line 2's text-box top below line 1's, epx (cap tops 22 apart)  23.3
+RECORD  3.4 (derived) line 2's text-box top below line 1's, epx (cap tops 22 apart)  23.0
 PASS  3.4 the duration is right-aligned at a 12-epx inset         1044.00 vs 1044.00 +/- 3.0
 PASS  3.4 the duration sits on line 2                             = yes
       docked button: 426 1893 654 2121 228 228 540.0 2007.0
@@ -88,7 +88,7 @@ PASS  list state: the drawn status bar is STATUS_EPX tall         = 84
 PASS  list state: the drawn status bar sits at the top            = 0
 PASS  list state: the drawn nav bar is NAV_EPX tall               = 144
 PASS  list state: the drawn nav bar sits at the bottom            = 2340
-      name 435 126 646 180 211 54 540.5 153.0 / date 410 196 670 240 260 44 540.0 218.0 / disc 396 890 684 1178 288 288 540.0 1034.0 / scrubber 164 1790 916 1862 752 72 540.0 1826.0 / appbar 0 2051 1080 2196 1080 145 540.0 2123.5
+      name 435 131 646 185 211 54 540.5 158.0 / date 410 200 670 244 260 44 540.0 222.0 / disc 396 890 684 1178 288 288 540.0 1034.0 / scrubber 164 1790 916 1862 752 72 540.0 1826.0 / appbar 0 2051 1080 2196 1080 145 540.0 2123.5
 PASS  4.1 the name is centred                                     540.50 vs 540.00 +/- 3.0
 PASS  4.1 the date is centred                                     540.00 vs 540.00 +/- 3.0
 PASS  4.1 the date is under the name                              = yes

@@ -1,37 +1,37 @@
 ==============================================================================
 ROW E21 — permission states: full-screen intent, overlay, SCHEDULE_EXACT_ALARM; the recorder's microphone and audio access
-at            2026-09-24T17:12:54-06:00
+at            2026-09-24T20:35:14-06:00
 driver        e21.sh blob aee6acab5cb4403c2dc9bbf005331eb14f5f6371
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     ba42e00bac9f14cf 338459898 bytes
-apk installed 33cc71c192190cc9
-apk match     NO (device 33cc71c192190cc9, built c45e7a2838aae3b0)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+25m58s788ms ago; rejectTime=+2m58s754ms ago 
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+16m17s615ms ago; rejectTime=+3h21m17s589ms ago 
 RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
 PASS  baseline: no shell alarm or timer pending                   = 0
 PASS  baseline: alarm and timer stores empty                      = empty
-RECORD  appops after the doc's package-level deny (both modes)      Uid mode: USE_FULL_SCREEN_INTENT: allow|USE_FULL_SCREEN_INTENT: deny; time=+25m59s80ms ago; rejectTime=+2m59s46ms ago
-RECORD  appops after the uid-level deny (both modes)                Uid mode: USE_FULL_SCREEN_INTENT: deny|USE_FULL_SCREEN_INTENT: deny; time=+25m59s109ms ago; rejectTime=+2m59s75ms ago
+RECORD  appops after the doc's package-level deny (both modes)      Uid mode: USE_FULL_SCREEN_INTENT: allow|USE_FULL_SCREEN_INTENT: deny; time=+16m17s943ms ago; rejectTime=+3h21m17s917ms ago
+RECORD  appops after the uid-level deny (both modes)                Uid mode: USE_FULL_SCREEN_INTENT: deny|USE_FULL_SCREEN_INTENT: deny; time=+16m17s967ms ago; rejectTime=+3h21m17s941ms ago
 PASS  the alarm was created                                       != 
 PASS  the keyguard shows after sleep + wake                       = true
 PASS  FSI denied: the alarm fired                                 != 
 PASS  FSI denied: it still sounds (an ALARM player of the shell is started)  != 0
 PASS  FSI denied: it still notifies (the alarm-channel notification is posted)  != 
 PASS  FSI denied: the keyguard is on top                          = true
-      focus: mCurrentFocus=Window{9b6dee9 u0 NotificationShade}
+      focus: mCurrentFocus=Window{50f533d u0 NotificationShade}
 PASS  FSI denied: no activity of app.tileshell over the keyguard  does not contain [app.tileshell]
 PASS  FSI denied: the keyguard is not occluded                    = false
-PASS  FSI denied: surface: lockscreen-notification abaecf8cf      contains [[alarms] surface: lockscreen-notification abaecf8cf]
+PASS  FSI denied: surface: lockscreen-notification a592b7023      contains [[alarms] surface: lockscreen-notification a592b7023]
 PASS  FSI denied: full-screen intent: deny                        contains [[alarms] full-screen intent: deny]
-RECORD  the lock screen's SystemUI nodes naming the alarm           android:id/title|Alarm|android:id/text|Nofsi · 5:14 PM
+RECORD  the lock screen's SystemUI nodes naming the alarm           android:id/title|Alarm|android:id/text|Nofsi · 8:37 PM
       no Dismiss action visible on the lock screen; the ring is ended by the restore's force-stop
-PASS  device clock back within 2 s of the host (RV12)             1790291610.00 vs 1790291610.00 +/- 2.0
+PASS  device clock back within 2 s of the host (RV12)             1790303748.00 vs 1790303749.00 +/- 2.0
 PASS  wake_device printed Awake (C-25)                            = Awake
-      scroll_to_node alarm_row:abaecf8cf: 0 swipe(s), found=yes
-PASS  the rung Nofsi alarm is deleted through the app before the next clause  does not contain [abaecf8cf]
+      scroll_to_node alarm_row:a592b7023: 0 swipe(s), found=yes
+PASS  the rung Nofsi alarm is deleted through the app before the next clause  does not contain [a592b7023]
       scroll_to_node checklist:full_screen_alarms:missing: 1 swipe(s), found=yes
 PASS  the Full-screen alarms row reads missing                    = yes
 RECORD  the missing row's glyph colour (red is 232,17,35)           232,17,35
@@ -60,9 +60,9 @@ PASS  … and no take started in the :recorder ring               does not conta
       Tess's settings scrolled 1 swipe(s) to the microphone row: resource-id="cortana_check:microphone:missing"
 PASS  Tess's checklist microphone row is red (missing)            = yes
 PASS  granted again: no microphone notice                         = no
-      make_take 3s: stop tapped at elapsed_ms=2856 -> id 2008 (Recording.m4a, 3065 ms)
+      make_take 3s: stop tapped at elapsed_ms=2786 -> id 2841 (Recording.m4a, 2972 ms)
 PASS  its own take is made first                                  != 
-      other.m4a: 1993
+      other.m4a: 2830
 PASS  READ_MEDIA_AUDIO revoked: the list shows its own take       = yes
 PASS  … and NOT other.m4a                                       = no
 PASS  … with the notice naming the Music grant (rec_list_notice)  = yes
@@ -72,7 +72,7 @@ PASS  granted again: other.m4a is back                            = yes
 PASS  … and the notice is gone                                  = no
 PASS  … and the list line counts it again                       contains [(1 by other apps)]
       purge_own_takes: 0 of the shell's takes remain in MediaStore
-      scroll_to_node alarm_row:a75ee08e3: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a92bd3f3e: 0 swipe(s), found=yes
 PASS  restore: USE_FULL_SCREEN_INTENT allow                       contains [allow]
 PASS  restore: SYSTEM_ALERT_WINDOW allow                          contains [allow]
 PASS  restore: no shell alarm or timer pending                    = 0

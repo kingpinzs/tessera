@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E14b — an uninstall keeps recordings; reinstalled, the shell lists its old take as another app's
-at            2026-09-24T16:28:19-06:00
+at            2026-09-24T21:00:40-06:00
 driver        e14b.sh blob eba25083ab0d34f50260defade7420373ab4f69e
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     187619129c54956c 338459898 bytes
-apk installed 2356b99f4933214b
-apk match     NO (device 2356b99f4933214b, built 33cc71c192190cc9)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -15,7 +15,7 @@ PASS  E14b: the audio route is up (audio.sh check rc)             = 0
       layout saved: 11 tiles, 3 docked
       before: listeners=[app.tileshell/app.tileshell.feeds.TileNotificationListener] imes=[com.android.inputmethod.latin/.LatinIME app.tileshell/.ime.KeyboardService] default ime=[com.android.inputmethod.latin/.LatinIME] assistant=[app.tileshell] default source=[alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo]
 PASS  precondition: AUDIO_SINK names this emulator's own sink, so provision.sh's audio setup is safe  = vmic5560
-      make_take 3s: stop tapped at elapsed_ms=2832 -> id 172 (Recording.m4a, 3019 ms)
+      make_take 3s: stop tapped at elapsed_ms=2856 -> id 220 (Recording.m4a, 3019 ms)
 PASS  the throwaway take is in MediaStore                         != 
 PASS  the take is named Orphan.m4a                                = Orphan.m4a
 PASS  and owned by the shell                                      = app.tileshell
@@ -24,18 +24,18 @@ PASS  the shell is uninstalled                                    contains [Succ
 PASS  the package is gone                                         = 
       ls /sdcard/Recordings after the uninstall: [Orphan.m4a]
 PASS  ls /sdcard/Recordings still lists Orphan.m4a                contains [Orphan.m4a]
-      query after the uninstall: [Row: 0 _id=172, _display_name=Orphan.m4a, owner_package_name=NULL]
+      query after the uninstall: [Row: 0 _id=220, _display_name=Orphan.m4a, owner_package_name=NULL]
 PASS  MediaStore still finds Orphan.m4a                           contains [_display_name=Orphan.m4a]
 RECORD  owner_package_name right after the uninstall (before any reinstall)  NULL
       provision.sh with AUDIO_SINK=vmic5560 (output in provision.txt)
       provision.sh rc=0; last lines: |== checking that a tap actually activates something|OK: a tap opens Cortana. The device is ready.
 PASS  provision.sh completed (rc 0: the shell installed with -g, roles, home activity, audio route, a tap works)  = 0
 PASS  the shell is back                                           = yes
-PASS  the installed APK is the built one                          = 33cc71c192190cc9
+PASS  the installed APK is the built one                          = 4b7ac321ce4d0ede
 PASS  the desktop's default source is still the BRIO after provision.sh  = alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
       after provision.sh: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
 PASS  after provision.sh: the audio route is up (audio.sh check rc)  = 0
-      query after the reinstall: [Row: 0 _id=172, _display_name=Orphan.m4a, owner_package_name=NULL, is_recording=1]
+      query after the reinstall: [Row: 0 _id=220, _display_name=Orphan.m4a, owner_package_name=NULL, is_recording=1]
 PASS  after the reinstall owner_package_name is NULL (T15-26)     = NULL
 PASS  and it is still IS_RECORDING                                = 1
 PASS  Voice Recorder lists the orphan                             = yes

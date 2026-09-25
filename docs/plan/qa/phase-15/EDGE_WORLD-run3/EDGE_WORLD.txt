@@ -1,0 +1,40 @@
+==============================================================================
+ROW EDGE_WORLD — world clock: no-exemplar zone, duplicate names, no match, locale change; the 24-hour setting
+at            2026-09-24T18:46:24-06:00
+driver        edge_world.sh blob a567b6e202cb0c45654e97104b20680b3953b5cd
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     ba42e00bac9f14cf 338459898 bytes
+apk installed 33cc71c192190cc9
+apk match     NO (device 33cc71c192190cc9, built c45e7a2838aae3b0)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  search GMT+5 lists Etc/GMT+5 as GMT+5 (the id's last segment)  = GMT+5
+PASS  its row is labelled GMT+5                                   = GMT+5
+PASS  its difference line is computed (Today/…, N hours …)    = Today, 1 hour ahead
+      labels holding ', ': 
+RECORD  duplicate exemplar names: NOT RUN                           this image's ICU canonical zone list labels no two zones alike (the search for ', ' lists nothing)
+PASS  a query nothing matches reads No results                    = No results
+PASS  … and lists nothing                                       = 
+PASS  Vienna is listed (en)                                       = Vienna
+RECORD  app locales before                                          Locales for app.tileshell for user 0 are []
+RECORD  app locales after the change                                Locales for app.tileshell for user 0 are [de-DE]
+PASS  the city is re-labelled in German (Wien) with no restart of the process  = Wien
+PASS  … the process is the same                                 = 11363
+PASS  restore: the label is English again                         = Vienna
+      time_12_24 before: [null]
+PASS  24-hour: the alarm row reads 19:05 (H:mm)                   = 19:05
+PASS  24-hour: the local row's time is H:mm (no AM/PM)            = yes
+PASS  24-hour: the city row's time is H:mm                        = yes
+PASS  24-hour: the editor's spinner has no AM/PM column           = no
+PASS  24-hour: the hour column reads 19                           = 19
+PASS  restore: the alarm row reads 7:05 PM again                  = 7:05 PM
+PASS  restore: no city rows left                                  = 
+      scroll_to_node alarm_row:a94a5db1b: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t4ea19e49: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+EDGE_WORLD: 20 passed, 0 failed, 3 recorded

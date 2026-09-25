@@ -1,12 +1,13 @@
 ==============================================================================
 ROW E7 — the confirmation flow
-at            2026-09-23T12:07:04-06:00
+at            2026-09-24T20:36:42-06:00
 driver        e7.sh blob d455f318fe27a35d7328d32e40644be4144c3070
-harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     985eaf3b074e9a85 335501914 bytes
-apk installed a21c8d8a968ad031
-apk match     yes (a21c8d8a968ad031)
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
 ==============================================================================
       read-back reply: Okay, I'll text Mom: i'm on my way. Send it, add more, or try again?
 PASS  R6 3.4.1 read-back names the contact                        contains [I'll text Mom]
@@ -29,7 +30,7 @@ FAIL  and the added part too                                      does not conta
 FAIL  send it replies Message sent.                               does not contain [Message sent.]: Okay, I'll text Mom: i'm on my way. Send it, add more, or try again?
 FAIL  and the SMS provider gained a sent row                      should not be [0]
 FAIL  whose body is the WHOLE message                             does not contain [milk]: No result found.
-PASS  try again asks for the message again                        contains [What do you want to say?]
+FAIL  try again asks for the message again                        does not contain [What do you want to say?]: Okay, I'll text Mom: i'm on my way. Send it, add more, or try again?
       call read-back: Okay, I'll call Mom, mobile. Call, or try again?
 PASS  the call is read back                                       contains [I'll call Mom]
 PASS  and asks before dialling                                    contains [Call, or try again?]
@@ -72,15 +73,15 @@ PASS  and its saved card has no subline either                    = no
 FAIL  the stored reminder really has no time                      does not contain ["timeMs":null]: 
 FAIL  the calendar card is on screen (H17)                        expected [yes] got [no]
 PASS  the calendar card does NOT offer add more                   = no
-PASS  no adds nothing to the calendar                             = 1
-FAIL  yes adds the event                                          should not be [1]
+PASS  no adds nothing to the calendar                             = 0
+FAIL  yes adds the event                                          should not be [0]
 FAIL  the delete card is on screen (H18)                          expected [yes] got [no]
 PASS  the delete card does NOT offer add more                     = no
-FAIL  confirming deletes the event                                should not be [1]
+FAIL  confirming deletes the event                                should not be [0]
 FAIL  the reminder delete card is on screen (H18)                 expected [yes] got [no]
 FAIL  confirming deletes the reminder                             should not be [0
 0]
       reminders left at the end: 0
 0
 ------------------------------------------------------------------------------
-E7: 21 passed, 39 failed
+E7: 20 passed, 40 failed, 0 recorded
