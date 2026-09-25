@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import app.tileshell.brand.AlarmSounds
 import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
+import app.tileshell.calculator.InkText
 import app.tileshell.diag.Diagnostics
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.tokens.CapMetrics
@@ -138,10 +139,12 @@ private fun AlarmRow(
             // R7 §1.3.9: the checkbox centred at x 22.2, level with the toggle's centre (2.9: 41.8 below the row top).
             ClockCheckbox(checked, "alarm_check:${alarm.id}", Modifier.offset(x = (22.2f - 10.2f).dp, y = (41.8f - 10.2f).dp)) { onCheck(it) }
         }
-        // 2.3: digit height 17.8 epx (≈ 25.4-epx Light), ink x 9.8, cap top 14.3 below the row top.
-        BasicText(
-            timeText, Modifier.offset(x = 9.8.dp + shift, y = capPad(14.3f, 25.4f, 32f)).testTag("alarm_time:${alarm.id}"),
-            style = ShellType.title.copy(fontSize = 25.4.sp, lineHeight = 32.sp, fontWeight = FontWeight.Light, color = colors.text), maxLines = 1,
+        // 2.3: digit height 17.8 epx (≈ 25.4-epx Light), ink x 9.8, cap top 14.3 below the row top (2.7). The cap top is
+        // placed by the font's measured ink (a capital's, so every time shares one baseline): the line-height model
+        // put it 1.25 epx high (qa/phase-15/E10/DEFECT.md).
+        InkText(
+            timeText, ShellType.title.copy(fontSize = 25.4.sp, lineHeight = 32.sp, fontWeight = FontWeight.Light, color = colors.text),
+            reference = "H", modifier = Modifier.testTag("alarm_time:${alarm.id}"), leftEpx = 9.8f + shift.value, inkTopEpx = 14.3f,
         )
         // 2.4: the name in semibold body, accent while the alarm is on; cap top 27.5 below the time's.
         BasicText(
@@ -453,7 +456,8 @@ fun SoundsScreen(nav: ClockNav, onBack: () -> Unit, onWindows: () -> Unit) {
     val selectedUri = draft.sound.uri
     ClockScaffold(onBack, onWindows) {
         // 4.6: the title's ascender top 36.4 below the status bar (subheader 34 Light), "Use default" ≈ 24-epx at 109.3, the rule at 161.8.
-        BasicText("Sounds", Modifier.offset(x = 24.2.dp, y = 33.8.dp).testTag("sounds_title"), style = ShellType.subheader.copy(color = colors.text))
+        // Its ink starts at x 24.2 (placed by the measured ink: the "S" sits 1.8 epx inside its box).
+        InkText("Sounds", ShellType.subheader.copy(color = colors.text), reference = "Sounds", modifier = Modifier.offset(y = 33.8.dp).testTag("sounds_title"), inkLeftEpx = 24.2f)
         PressBox(Modifier.offset(y = 97.dp).fillMaxWidth().height(48.dp).testTag("sounds_default"), onClick = { pick(AlarmSound.DEFAULT) }) {
             BasicText("Use default", Modifier.align(Alignment.CenterStart).offset(x = 24.2.dp), style = ShellType.title.copy(color = if (draft.sound.kind == AlarmSound.Kind.DEFAULT) colors.accent else colors.text))
         }

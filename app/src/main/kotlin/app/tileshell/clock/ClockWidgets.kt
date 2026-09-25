@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
+import app.tileshell.calculator.InkText
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.MotionClock
 import app.tileshell.ui.components.ROW_PRESS_ALPHA
@@ -322,13 +323,17 @@ fun EditorTitle(text: String, tag: String) {
 
 /**
  * 2.1: the Alarm tab's empty line — "No alarms" in Light type, cap 17.8 epx (≈ 25.4-epx), ink x 9.8, cap top 21.4
- * below the band, grey ≈ 37 % of the text colour. The Timer tab borrows it for "No timers" (approximation).
+ * below the band, grey ≈ 37 % of the text colour. The Timer tab borrows it for "No timers" (approximation). r11
+ * measured INK, so the line is placed by the shipped font's measured ink, as the Calculator is: a box offset left the
+ * "N"'s 2.3-epx side bearing in (qa/phase-15/E10/DEFECT.md).
  */
 @Composable
 fun BoxScope.EmptyLine(text: String, tag: String) {
     val colors = LocalShellColors.current
-    val top = CapMetrics.topPaddingForCapTop(21.4f, 25.4f, 32f)
-    BasicText(text, Modifier.offset(x = 9.8.dp, y = top.dp).testTag(tag), style = ShellType.title.copy(fontSize = 25.4.sp, lineHeight = 32.sp, fontWeight = FontWeight.Light, color = colors.text.copy(alpha = 0.37f)))
+    InkText(
+        text, ShellType.title.copy(fontSize = 25.4.sp, lineHeight = 32.sp, fontWeight = FontWeight.Light, color = colors.text.copy(alpha = 0.37f)),
+        reference = "H", modifier = Modifier.testTag(tag), inkLeftEpx = 9.8f, inkTopEpx = 21.4f,
+    )
 }
 
 /** R7 §3.5.9: an empty-list line in the text colour, subtitle class, left 11.7 epx, cap top 70.4 below the page top. */
