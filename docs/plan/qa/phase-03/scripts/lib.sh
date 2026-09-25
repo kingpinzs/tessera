@@ -447,3 +447,31 @@ remove_fixture_recordings() {
   adb shell rm -f /sdcard/Recordings/other.m4a /sdcard/Music/song.m4a
   adb shell content call --uri content://media --method scan_volume --arg external_primary >/dev/null 2>&1
 }
+
+# ---------------------------------------------------------------- phase 13 (build task 7) helpers
+
+# Battery saver ON for a row (C-18). wake_device forces AC power, and AOSP refuses low-power mode while powered, so
+# this unplugs the simulated battery first; with the phone on battery, stay-on-while-plugged stops, so the screen
+# timeout is raised (and restored by battery_saver_off). BS_MARK is the device clock just before set-mode 1: a row
+# reads the saver's effects from ring_since "$BS_MARK". The low_power read-back is the row's precondition and fails
+# loudly: a row that thinks battery saver is on and it is not would grade the product on nothing.
+battery_saver_on() {
+  adb shell dumpsys battery unplug >/dev/null 2>&1
+  BS_TIMEOUT_SAVED="$(adb shell settings get system screen_off_timeout | tr -d '\r')"
+  adb shell settings put system screen_off_timeout 1800000 >/dev/null 2>&1
+  BS_MARK="$(ring_mark)"
+  export BS_MARK
+  adb shell cmd power set-mode 1 >/dev/null 2>&1
+  sleep 0.5
+  assert_eq "battery saver precondition: low_power" "1" "$(adb shell settings get global low_power | tr -d '\r')"
+}
+
+# Battery saver OFF and the device back to RV12's baseline: set-mode 0, the saved screen timeout, then wake_device
+# (which resets the battery to AC). Prints wake_device's wakefulness; the row asserts it and low_power = 0.
+battery_saver_off() {
+  adb shell cmd power set-mode 0 >/dev/null 2>&1
+  if [ -n "${BS_TIMEOUT_SAVED:-}" ] && [ "$BS_TIMEOUT_SAVED" != null ]; then
+    adb shell settings put system screen_off_timeout "$BS_TIMEOUT_SAVED" >/dev/null 2>&1
+  fi
+  wake_device
+}
