@@ -27,6 +27,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +54,7 @@ import app.tileshell.brand.Glyph
 import app.tileshell.cortana.reminders.Place
 import app.tileshell.cortana.reminders.Recurrence
 import app.tileshell.cortana.reminders.Reminder
+import app.tileshell.cortana.reminders.ReminderPhotos
 import app.tileshell.cortana.reminders.ReminderKind
 import app.tileshell.cortana.reminders.ReminderStore
 import app.tileshell.ui.LocalShellColors
@@ -91,14 +93,23 @@ fun ReminderDetailPage(
     var edited by remember(reminderId) { mutableStateOf(false) }
     var picker by remember(reminderId) { mutableStateOf(DetailPicker.NONE) }
     var moreLabels by remember(reminderId) { mutableStateOf(false) }
+    var saved by remember(reminderId) { mutableStateOf(false) }
 
     fun edit(change: (Reminder) -> Reminder) {
         draft = change(draft)
         edited = true
     }
 
+    // Launched through Tess's window's own registry (L13-1). The picked photo is copied into the launcher's storage
+    // here, while the picker's read grant is live, and the reminder keeps the copy (Q2).
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) edit { it.copy(photoUri = uri.toString()) }
+        if (uri != null) ReminderPhotos.adopt(context, uri)?.let { copy -> edit { it.copy(photoUri = copy) } }
+    }
+    // A photo picked here and never saved is deleted when the page goes — Back, the ≡ pane, delete, Tess closing.
+    DisposableEffect(reminderId) {
+        onDispose {
+            if (!saved && draft.photoUri != original?.photoUri) ReminderPhotos.release(context, draft.photoUri)
+        }
     }
 
     // H25: save enables after any field changes; on the empty page it also needs text to save.
@@ -174,8 +185,9 @@ fun ReminderDetailPage(
                         onDone()
                     }) { c, m -> CortanaIcons.Font(Glyph.DELETE, c, CortanaUi.APPBAR_GLYPH_EPX, m) },
                     AppBarButton("reminder_appbar_save", "save", canSave, {
-                        val saved = draft.copy(completed = completeChecked)
-                        if (original == null) store.add(saved) else store.update(saved)
+                        val toSave = draft.copy(completed = completeChecked)
+                        if (original == null) store.add(toSave) else store.update(toSave)
+                        saved = true
                         onDone()
                     }) { c, m -> CortanaIcons.Font(Glyph.SAVE, c, CortanaUi.APPBAR_GLYPH_EPX, m) },
                     AppBarButton("reminder_appbar_more", "more", true, { moreLabels = !moreLabels }) { c, m ->
