@@ -1,5 +1,9 @@
 package app.tileshell.cortana.ui
 
+import app.tileshell.ui.fluent.LocalAcrylicBackdrop
+import app.tileshell.ui.fluent.acrylicBackdropSource
+import app.tileshell.ui.fluent.rememberAcrylicBackdrop
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -67,14 +71,22 @@ fun CortanaSessionRoot(
             route is CortanaRoute.History || route is CortanaRoute.ReminderDetail ||
             route is CortanaRoute.ReminderNew || route is CortanaRoute.Places
 
+        // Phase 13: the session's page (background, content, bars) is recorded into one backdrop layer (T13-11); the ≡
+        // pane is drawn as a sibling above it, so it never records itself.
+        val backdrop = rememberAcrylicBackdrop()
         Box(
             Modifier
                 .fillMaxSize()
-                // R6 §3.1.14 (MEDIUM, 15063): the page background is black.
-                .background(TextBoxValues.PAGE_BACKGROUND)
                 .semantics { testTagsAsResourceId = true }
                 .testTag("cortana_session"),
         ) {
+          Box(
+              Modifier
+                  .fillMaxSize()
+                  .acrylicBackdropSource(backdrop)
+                  // R6 §3.1.14 (MEDIUM, 15063): the page background is black.
+                  .background(TextBoxValues.PAGE_BACKGROUND),
+          ) {
             Column(Modifier.fillMaxSize()) {
                 Box(Modifier.weight(1f).fillMaxWidth()) {
                     if (destination) {
@@ -95,15 +107,18 @@ fun CortanaSessionRoot(
                 )
             }
             if (!destination) W10mStatusBar(Modifier.align(Alignment.TopCenter))
+          }
 
             // R7 §3.1.6: the page beside the open pane is NOT dimmed.
             if (state.paneOpen) {
-                CortanaNavPane(
-                    open = true,
-                    current = state.destination.toPaneDestination(),
-                    onSelect = { model.goTo(it.toKey()) },
-                    onDismiss = { model.openPane(false) },
-                )
+                CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop) {
+                    CortanaNavPane(
+                        open = true,
+                        current = state.destination.toPaneDestination(),
+                        onSelect = { model.goTo(it.toKey()) },
+                        onDismiss = { model.openPane(false) },
+                    )
+                }
             }
         }
     }

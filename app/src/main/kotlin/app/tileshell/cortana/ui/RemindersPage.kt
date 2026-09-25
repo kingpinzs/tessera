@@ -1,5 +1,19 @@
 package app.tileshell.cortana.ui
 
+import app.tileshell.ui.fluent.AcrylicLayer
+import app.tileshell.ui.fluent.FluentMaterial
+import app.tileshell.ui.fluent.FluentSurface
+import app.tileshell.ui.fluent.Rgb
+import app.tileshell.ui.fluent.revealLights
+import app.tileshell.ui.fluent.LocalAcrylicBackdrop
+import app.tileshell.ui.fluent.acrylicBackdropSource
+import app.tileshell.ui.fluent.rememberAcrylicBackdrop
+import androidx.compose.runtime.CompositionLocalProvider
+import app.tileshell.ui.MotionTrace
+import app.tileshell.diag.Diagnostics
+import android.os.SystemClock
+import kotlinx.coroutines.coroutineScope
+import androidx.compose.runtime.withFrameNanos
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -328,13 +342,15 @@ private fun ReminderListScaffold(
     var pageCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     var moreLabels by remember { mutableStateOf(false) }
 
+    // Phase 13: the page (its background and rows) is recorded into one backdrop layer (T13-11); the long-press menu
+    // is drawn as a sibling above it, so it never records itself.
+    val backdrop = rememberAcrylicBackdrop()
     Box(
         modifier
             .fillMaxSize()
-            .background(CortanaUi.PAGE_BG)
             .onGloballyPositioned { pageCoords = it },
     ) {
-        Column(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().acrylicBackdropSource(backdrop).background(CortanaUi.PAGE_BG)) {
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 BoxWithConstraints(Modifier.fillMaxSize()) {
                     val screenWidthEpx = maxWidth.value
@@ -406,11 +422,13 @@ private fun ReminderListScaffold(
         }
 
         if (menuRect != null && menuReminderId != null) {
-            LongPressMenu(
-                rect = menuRect,
-                onChoose = { complete -> onMenuChoice(menuReminderId, complete) },
-                onGone = onMenuGone,
-            )
+            CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop) {
+                LongPressMenu(
+                    rect = menuRect,
+                    onChoose = { complete -> onMenuChoice(menuReminderId, complete) },
+                    onGone = onMenuGone,
+                )
+            }
         }
     }
 }
@@ -587,9 +605,17 @@ private fun LongPressMenu(rect: EpxRect, onChoose: (complete: Boolean) -> Unit, 
     val grow = remember(rect) { Animatable(CortanaUi.MENU_FIRST_FRAME_HEIGHT) }
     val fade = remember(rect) { Animatable(1f) }
 
-    // R7 §3.6.4: grows upward from a fixed bottom edge, first frame at half height, ease-out over 233 ms.
+    // R7 §3.6.4: grows upward from a fixed bottom edge, first frame at half height, ease-out over 233 ms. Phase 13
+    // (C-5, T13-27): the grow is logged on the shell's own clock, `[motion] reminder_menu`, one value per drawn frame.
     LaunchedEffect(rect) {
-        grow.animateTo(1f, tween(CortanaUi.MENU_GROW_MS, easing = CortanaEaseOut))
+        val trace = MotionTrace("reminder_menu", SystemClock.uptimeMillis())
+        coroutineScope {
+            val frames = launch { while (true) withFrameNanos { trace.frame(it, grow.value) } }
+            grow.animateTo(1f, tween(CortanaUi.MENU_GROW_MS, easing = CortanaEaseOut))
+            withFrameNanos { trace.frame(it, grow.value) }
+            frames.cancel()
+        }
+        Diagnostics.add("motion", trace.message())
     }
 
     // R7 §3.6.6: the pressed item shows for 5 frames (≈83 ms), then the menu fades out over 67–83 ms.
@@ -611,16 +637,27 @@ private fun LongPressMenu(rect: EpxRect, onChoose: (complete: Boolean) -> Unit, 
                 .width(CortanaUi.MENU_W_EPX.dp)
                 .height(height.dp)
                 .alpha(fade.value)
-                .background(CortanaUi.MENU_FILL)
                 .border(CortanaUi.MENU_BORDER_EPX.dp, CortanaUi.MENU_BORDER_COLOR)
                 .pointerInput(rect) { detectTapGestures { } }
                 .testTag("reminder_menu"),
         ) {
+            // Phase 13: the menu's measured (40,40,40) as acrylic over the Reminders page — T = (47,45,47) reads
+            // exactly (40,40,40) over the page's (14,19,13) (surface table); the border stays opaque, drawn over it.
+            AcrylicLayer(
+                FluentSurface.REMINDER_MENU,
+                fill = CortanaUi.MENU_FILL,
+                tint = REMINDER_MENU_TINT,
+                modifier = Modifier.matchParentSize(),
+            )
             MenuItem("Complete", "reminder_menu_complete", 0, rise, chosen == true) { chosen = true; onChoose(true) }
             MenuItem("Delete", "reminder_menu_delete", 1, rise, chosen == false) { chosen = false; onChoose(false) }
         }
     }
 }
+
+/** Phase 13's surface table: the reminder menu's tint, derived from its measured fill over the page it was measured on. */
+private val REMINDER_MENU_TINT: Rgb =
+    requireNotNull(FluentMaterial.deriveTint(Rgb.of(CortanaUi.MENU_FILL), Rgb.of(CortanaUi.PAGE_BG)))
 
 /** R7 §3.6.2: two items at a 44-epx pitch inside the menu's padding, text body class inset ≈11 epx. */
 @Composable
@@ -632,6 +669,9 @@ private fun MenuItem(label: String, tag: String, index: Int, riseEpx: Float, pre
             .width((CortanaUi.MENU_W_EPX - 2 * CortanaUi.MENU_BORDER_EPX).dp)
             .height(CortanaUi.MENU_ITEM_PITCH_EPX.dp)
             .background(if (pressed) CortanaUi.MENU_PRESSED_FILL else Color.Transparent)
+            // Phase 13 (Q3 B): the two lights while held, over what the item draws while held (nothing: its
+            // (79,84,80) is drawn only after a choice, R7 §3.6.6), under its label.
+            .revealLights()
             .pointerInput(tag) { detectTapGestures { onClick() } }
             .testTag(tag)
             .semantics { role = Role.Button },

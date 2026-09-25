@@ -23,6 +23,12 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import app.tileshell.start.Edit
+import app.tileshell.ui.fluent.AcrylicLayer
+import app.tileshell.ui.fluent.FluentSurface
+import app.tileshell.ui.fluent.Rgb
+import app.tileshell.ui.fluent.revealLights
+import androidx.compose.ui.draw.drawWithContent
+import android.os.SystemClock
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.components.ROW_PRESS_ALPHA
 import app.tileshell.ui.tokens.ShellType
@@ -105,8 +111,11 @@ fun PinToStartMenu(
      * worse than no item.
      */
     onUninstall: (() -> Unit)? = null,
+    /** Phase 13 E8: called once, from the band's first drawn frame, with its uptime (`[motion] applist_menu`). */
+    onFirstFrame: (Long) -> Unit = {},
 ) {
     val colors = LocalShellColors.current
+    val firstFrame = remember { booleanArrayOf(false) }
     Box(
         Modifier
             .fillMaxSize()
@@ -120,9 +129,30 @@ fun PinToStartMenu(
     ) {
         Layout(
             content = {
-                Column(Modifier.fillMaxWidth().background(colors.background).testTag("applist_menu")) {
-                    MenuItem("Pin to Start", "applist_menu_pin", onPin)
-                    onUninstall?.let { MenuItem("Uninstall", "applist_menu_uninstall", it) }
+                // Phase 13: the band is acrylic over the app list (surface table: T = the theme background, which is
+                // also its fallback fill — H21's band as built).
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .drawWithContent {
+                            drawContent()
+                            if (!firstFrame[0]) {
+                                firstFrame[0] = true
+                                onFirstFrame(SystemClock.uptimeMillis())
+                            }
+                        }
+                        .testTag("applist_menu"),
+                ) {
+                    AcrylicLayer(
+                        FluentSurface.APPLIST_MENU,
+                        fill = colors.background,
+                        tint = Rgb.of(colors.background),
+                        modifier = Modifier.matchParentSize(),
+                    )
+                    Column(Modifier.fillMaxWidth()) {
+                        MenuItem("Pin to Start", "applist_menu_pin", onPin)
+                        onUninstall?.let { MenuItem("Uninstall", "applist_menu_uninstall", it) }
+                    }
                 }
             },
             modifier = Modifier.fillMaxSize(),
@@ -159,6 +189,8 @@ private fun MenuItem(label: String, tag: String, onClick: () -> Unit) {
                 }
             }
             .background(if (pressed) Color.White.copy(alpha = ROW_PRESS_ALPHA) else Color.Transparent)
+            // Phase 13 (Q3 B): the ring and the radial light over the pressed fill, under the label.
+            .revealLights()
             .testTag(tag),
     ) {
         BasicText(label, style = ShellType.body.copy(color = colors.text), modifier = Modifier.padding(AppMenuMetrics.INSET))

@@ -116,8 +116,14 @@ fun Modifier.startEditGestures(
             when (hit) {
                 is Hit.Satellite -> {
                     // Like a disc: acts on the release, and only if the finger lifted on the same satellite; one that
-                    // slides off runs nothing and the burst stays.
-                    val up = waitForUpConsuming(down)
+                    // slides off runs nothing and the burst stays. Phase 13 (T13-25): the press point feeds the
+                    // satellite's two lights while the finger is on it.
+                    edit.quick.pressSatellite(hit.index, down.position)
+                    val up = try {
+                        waitForUpConsuming(down) { at -> edit.quick.movePress(hit.index, at) }
+                    } finally {
+                        edit.quick.endPress()
+                    }
                     val landed = up?.let { edit.quick.satelliteAt(it) }
                     val open = edit.quick.burst
                     if (landed == hit.index && open != null) {
@@ -466,13 +472,20 @@ private suspend fun AwaitPointerEventScope.awaitPress(down: PointerInputChange, 
 private suspend fun AwaitPointerEventScope.waitForMoveOrUp(down: PointerInputChange, slop: Float): Boolean =
     awaitPress(down, slop) is Press.Moved
 
-/** Waits for the release, consuming everything so no tile below launches. Returns where the finger lifted. */
-private suspend fun AwaitPointerEventScope.waitForUpConsuming(down: PointerInputChange): Offset? {
+/**
+ * Waits for the release, consuming everything so no tile below launches. Returns where the finger lifted; [onMove]
+ * sees each position while the finger is down.
+ */
+private suspend fun AwaitPointerEventScope.waitForUpConsuming(
+    down: PointerInputChange,
+    onMove: (Offset) -> Unit = {},
+): Offset? {
     while (true) {
         val event = awaitPointerEvent()
         val change = event.changes.firstOrNull { it.id == down.id } ?: return null
         change.consume()
         if (!change.pressed) return change.position
+        onMove(change.position)
     }
 }
 

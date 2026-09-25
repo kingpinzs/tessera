@@ -1,5 +1,16 @@
 package app.tileshell.cortana.ui
 
+import app.tileshell.ui.fluent.AcrylicLayer
+import app.tileshell.ui.fluent.FluentMaterial
+import app.tileshell.ui.fluent.FluentSurface
+import app.tileshell.ui.fluent.Rgb
+import app.tileshell.ui.fluent.revealLights
+import app.tileshell.ui.MotionTrace
+import app.tileshell.diag.Diagnostics
+import android.os.SystemClock
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -76,10 +87,19 @@ fun CortanaNavPane(
     var chosen by remember { mutableStateOf<CortanaDestination?>(null) }
     var pressed by remember { mutableStateOf<CortanaDestination?>(null) }
 
-    // R7 §3.1.10: slides in from the left, ease-out, settling 250 ms after its first frame.
+    // R7 §3.1.10: slides in from the left, ease-out, settling 250 ms after its first frame. Phase 13 (C-5, T13-27): the
+    // slide is logged on the shell's own clock, `[motion] cortana_pane`, one value per drawn frame.
     val slide = remember { Animatable(-CortanaUi.PANE_WIDTH_EPX) }
     LaunchedEffect(Unit) {
-        slide.animateTo(0f, tween(CortanaUi.PANE_SLIDE_MS, easing = LinearOutSlowInEasing))
+        val trace = MotionTrace("cortana_pane", SystemClock.uptimeMillis())
+        val progress = { 1f + slide.value / CortanaUi.PANE_WIDTH_EPX }
+        coroutineScope {
+            val frames = launch { while (true) withFrameNanos { trace.frame(it, progress()) } }
+            slide.animateTo(0f, tween(CortanaUi.PANE_SLIDE_MS, easing = LinearOutSlowInEasing))
+            withFrameNanos { trace.frame(it, progress()) }
+            frames.cancel()
+        }
+        Diagnostics.add("motion", trace.message())
     }
 
     Box(modifier.fillMaxSize()) {
@@ -91,11 +111,18 @@ fun CortanaNavPane(
                 .offset(x = slide.value.dp)
                 .width(CortanaUi.PANE_WIDTH_EPX.dp)
                 .fillMaxHeight()
-                .background(CortanaUi.PAGE_BG)
                 // The pane is modal over its own strip: a tap inside it must not reach the dismiss catcher.
                 .pointerInput(Unit) { detectTapGestures { } }
                 .testTag("cortana_pane"),
         ) {
+            // Phase 13: the pane's measured (14,19,13) as acrylic over the page beside it — T = (18,24,16) reads exactly
+            // (14,19,13) over Cortana's Home page's black (surface table).
+            AcrylicLayer(
+                FluentSurface.CORTANA_PANE,
+                fill = CortanaUi.PAGE_BG,
+                tint = PANE_TINT,
+                modifier = Modifier.matchParentSize(),
+            )
             val paneHeightEpx = maxHeight.value
 
             // ---- header band: the ≡ button and the assistant name in caps (R7 §3.1.7)
@@ -155,6 +182,10 @@ fun CortanaNavPane(
     }
 }
 
+/** Phase 13's surface table: the pane's tint, its measured fill over the Home page's black (R6 §3.1.14). */
+private val PANE_TINT: Rgb =
+    requireNotNull(FluentMaterial.deriveTint(Rgb.of(CortanaUi.PAGE_BG), Rgb(0, 0, 0)))
+
 /**
  * One pane row: a 48-epx fill across the whole pane (R7 §3.1.8), a ≈16-epx icon from x 17–18 and a
  * label whose **cap top** sits at [capTopEpx] from the pane's top (R7 §3.1.8, §3.1.9).
@@ -205,6 +236,8 @@ private fun PaneItem(
             .fillMaxWidth()
             .height(CortanaUi.PANE_ITEM_FILL_EPX.dp)
             .background(fill)
+            // Phase 13 (Q3 B): the two lights while held, over the item's fill, under its icon and label.
+            .revealLights()
             .pointerInput(destination) {
                 awaitEachGesture {
                     awaitFirstDown(requireUnconsumed = false)
