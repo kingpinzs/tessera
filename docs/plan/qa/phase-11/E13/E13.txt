@@ -1,7 +1,7 @@
 ==============================================================================
 ROW E13 — regression: phase 02 hold+drag, E7 bracket+geometry, E8, regress.sh; phase 01 press styles; phase 03 exports
-at            2026-09-24T16:19:09-06:00
-driver        e13.sh blob 24e39627c2be0a5c63beeb41421413d4d75b3b85
+at            2026-09-24T17:37:44-06:00
+driver        e13.sh blob 4266eadbbe8a7535b09ec7b30513d66a32a8c1ee
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
 apk built     736ce3543e0caf05 335518185 bytes
 apk installed 50129ec4bf4de7f8
@@ -18,7 +18,7 @@ PASS  phase 02 regress: addedOnce as phase 02's file (C-3)        = folder:games
 PASS  phase 02 e1 exits 0                                         = 0
 PASS  phase 02 e1: no slot re-assigned on load (C-3)              does not contain [-> assigned]
 PASS  phase 02 e1: addedOnce as phase 02's file (C-3)             = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-      phase 02 e7 exit 1; verdict: ---- 6 passed, 4 failed ----
+      phase 02 e7 exit 1; verdict: ---- 7 passed, 3 failed ----
 PASS  phase 02 E7 geometry (dark)                                 PASS  geometry (dark) (= 0)
 PASS  phase 02 E7 hold bracket (dark)                             PASS  hold bracket (dark) (= 0)
 PASS  phase 02 E7 geometry (light)                                PASS  geometry (light) (= 0)
@@ -46,26 +46,25 @@ PASS  830 ms: quick_sat:0 only                                    = yes no no no
 PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
       scroll_to_node press_none: 1 swipe(s), found=yes
-      press_none attempt 1: pressed 649 ms (the capture started at 300 ms)
-PASS  press_none: the press was short (under 700 ms on the device clock)  = yes
+      press_none attempt 1: t1 - t0 = 697 ms (from the DOWN's sendevent chain to the slide's start; the capture started 300 ms in)
+PASS  press_none: the press was short (t1 - t0 under 700 ms on the device clock)  = yes
       press_none: rest vs held over the tile: EQUAL 0
 PASS  press_none: the held tile looks as at rest                  = EQUAL
 PASS  press_none: no burst                                        does not contain [[quick] burst on]
 PASS  press_none: no hold                                         does not contain [[edit] hold]
 PASS  press_none: nothing launched (the press ended in a scroll)  does not contain [[launch]]
       scroll_to_node press_tilt: 1 swipe(s), found=yes
-      press_tilt attempt 1: pressed 727 ms (the capture started at 300 ms)
-      press_tilt attempt 2: pressed 652 ms (the capture started at 300 ms)
-PASS  press_tilt: the press was short (under 700 ms on the device clock)  = yes
-      press_tilt: rest vs held over the tile: DIFF 255
+      press_tilt attempt 1: t1 - t0 = 650 ms (from the DOWN's sendevent chain to the slide's start; the capture started 300 ms in)
+PASS  press_tilt: the press was short (t1 - t0 under 700 ms on the device clock)  = yes
+      press_tilt: rest vs held over the tile: DIFF 215
 PASS  press_tilt: the held tile shows the press style             = DIFF
 PASS  press_tilt: no burst                                        does not contain [[quick] burst on]
 PASS  press_tilt: no hold                                         does not contain [[edit] hold]
 PASS  press_tilt: nothing launched (the press ended in a scroll)  does not contain [[launch]]
       scroll_to_node press_p4: 2 swipe(s), found=yes
-      press_p4 attempt 1: pressed 696 ms (the capture started at 300 ms)
-PASS  press_p4: the press was short (under 700 ms on the device clock)  = yes
-      press_p4: rest vs held over the tile: DIFF 255
+      press_p4 attempt 1: t1 - t0 = 665 ms (from the DOWN's sendevent chain to the slide's start; the capture started 300 ms in)
+PASS  press_p4: the press was short (t1 - t0 under 700 ms on the device clock)  = yes
+      press_p4: rest vs held over the tile: DIFF 142
 PASS  press_p4: the held tile shows the press style               = DIFF
 PASS  press_p4: no burst                                          does not contain [[quick] burst on]
 PASS  press_p4: no hold                                           does not contain [[edit] hold]

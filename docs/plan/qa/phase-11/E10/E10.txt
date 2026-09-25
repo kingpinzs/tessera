@@ -1,7 +1,7 @@
 ==============================================================================
-ROW E10 — a hold on a playing player's transport control fires it; the art hold bursts (L11-1 blocks the strip)
-at            2026-09-24T15:20:23-06:00
-driver        e10.sh blob 52a3420fb796de0fe8579775a7a4792ab0e251f7
+ROW E10 — a hold on a playing player's transport control fires it; the art hold over a showing strip bursts
+at            2026-09-24T17:34:49-06:00
+driver        e10.sh blob 1d42325f413e44292126450db6fe246326695b8e
 harness       lib.sh blob f296b3dde4b9ac16abc6f9a4cd0b355153d2459d
 apk built     736ce3543e0caf05 335518185 bytes
 apk installed 50129ec4bf4de7f8
@@ -11,9 +11,9 @@ awake         Awake
 ==============================================================================
 PASS  restore baseline_layout-player.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
 PASS  restore baseline_layout-player.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
-      Fossify session:       state=PlaybackState {state=PLAYING(3), position=2947, buffered position=90044, speed=1.0, updated=101145999, actions=7340027, custom actions=[Action:mName='Close, mIcon=2131230912, mExtras=Bundle[EMPTY_PARCEL]], active item id=1, error=null}
+      Fossify session:       state=PlaybackState {state=PLAYING(3), position=2951, buffered position=90044, speed=1.0, updated=109212131, actions=7340027, custom actions=[Action:mName='Close, mIcon=2131230912, mExtras=Bundle[EMPTY_PARCEL]], active item id=1, error=null}
 PASS  the fixture is playing (phase 01 E8's player)               contains [state=PLAYING(3)]
-      publishes for the player's key: 16 (front=true: 4, null: 11)
+      publishes for the player's key: 14 (front=true: 4, null: 9)
 PASS  the playing player's tile shows its transport strip         tile_control:…:PLAY_PAUSE present
 PASS  control centre found                                        != 
 PASS  the control fired (no launch)                               contains [[tile_control] tile=app:org.fossify.musicplayer/org.fossify.musicplayer.activities.SplashActivity.Green:0 PLAY_PAUSE (no launch)]
