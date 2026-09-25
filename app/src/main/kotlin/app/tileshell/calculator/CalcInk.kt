@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFontFamilyResolver
@@ -36,7 +35,9 @@ import kotlin.math.roundToInt
  * box placed by a table ratio — missing by 0.7–3.3 epx on nine rows (qa/phase-15/E13/DEFECT.md).
  *
  * The ink here is what E13 reads off the screen with calc_geo.py: the pixels at least half covered (min(r,g,b) ≥ 128
- * for white on black), measured by rasterising the run with the same Typeface, size and colour Compose draws it with.
+ * for white on black), measured by rasterising the run with the same Typeface and size Compose draws it with. It is
+ * rasterised opaque whatever the text's colour: coverage is a property of the glyphs, and a translucent colour (the
+ * Clock's 37 % grey empty line) would leave no pixel over the threshold and so no ink at all.
  */
 
 /** A run's ink in px relative to its pen origin: x from the run's start, y from the baseline (up is negative). */
@@ -86,7 +87,7 @@ object InkMath {
     }
 }
 
-/** Rasterises runs to find their ink; one Paint per call, results cached by face, size, text and colour. */
+/** Rasterises runs to find their ink; one Paint per call, results cached by face, size and text. */
 object CalcInk {
     /** A pixel at least half covered is ink (calc_geo.py's threshold, 128 of 255). */
     const val INK_ALPHA = 128
@@ -100,15 +101,15 @@ object CalcInk {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<List<Any>, InkBox>?): Boolean = size > CACHE_SIZE
     }
 
-    fun measure(face: Typeface, sizePx: Float, text: String, colorArgb: Int): InkBox = synchronized(cache) {
-        cache.getOrPut(listOf(face, sizePx, text, colorArgb)) { rasterize(face, sizePx, text, colorArgb) }
+    fun measure(face: Typeface, sizePx: Float, text: String): InkBox = synchronized(cache) {
+        cache.getOrPut(listOf(face, sizePx, text)) { rasterize(face, sizePx, text) }
     }
 
-    private fun rasterize(face: Typeface, sizePx: Float, text: String, colorArgb: Int): InkBox {
+    private fun rasterize(face: Typeface, sizePx: Float, text: String): InkBox {
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = face
             textSize = sizePx
-            color = colorArgb
+            color = android.graphics.Color.WHITE
         }
         val advance = paint.measureText(text)
         if (text.isEmpty()) return InkBox(0, 0, 0, 0, advance)
@@ -152,16 +153,15 @@ private fun rememberTypeface(family: FontFamily?, weight: FontWeight): Typeface 
     }
 }
 
-/** The font size (epx) at which [reference]'s ink is [inkHeightEpx] tall in [family] at [weight], drawn in [color]. */
+/** The font size (epx) at which [reference]'s ink is [inkHeightEpx] tall in [family] at [weight]. */
 @Composable
-fun rememberInkFontSize(family: FontFamily?, weight: FontWeight, reference: String, inkHeightEpx: Float, color: Color): Float {
+fun rememberInkFontSize(family: FontFamily?, weight: FontWeight, reference: String, inkHeightEpx: Float): Float {
     val density = LocalDensity.current
     val face = rememberTypeface(family, weight)
-    val argb = color.toArgb()
-    return remember(density, face, reference, inkHeightEpx, argb) {
+    return remember(density, face, reference, inkHeightEpx) {
         val targetPx = (inkHeightEpx * density.density).roundToInt()
         val px = InkMath.sizeForInkHeight(targetPx, start = targetPx / 0.7f, stepPx = 0.125f, maxSteps = 64) { size ->
-            CalcInk.measure(face, size, reference, argb).height
+            CalcInk.measure(face, size, reference).height
         }
         px / density.density
     }
@@ -176,7 +176,7 @@ fun rememberInkLayout(style: TextStyle, reference: String): InkLayout {
     return remember(density, measurer, face, style, reference) {
         val laid = measurer.measure(AnnotatedString(reference), style, maxLines = 1, softWrap = false)
         val sizePx = with(density) { style.fontSize.toPx() }
-        InkLayout(laid.size.width, laid.size.height, laid.firstBaseline, CalcInk.measure(face, sizePx, reference, style.color.toArgb()))
+        InkLayout(laid.size.width, laid.size.height, laid.firstBaseline, CalcInk.measure(face, sizePx, reference))
     }
 }
 
@@ -212,7 +212,8 @@ fun InkText(
     }
     BasicText(
         text = text,
-        modifier = modifier.offset { IntOffset(x.roundToInt(), y.roundToInt()) },
+        // The offset first, so the caller's tag reports the box the text is drawn in, not where it would sit unplaced.
+        modifier = Modifier.offset { IntOffset(x.roundToInt(), y.roundToInt()) }.then(modifier),
         style = style,
         maxLines = 1,
         softWrap = false,
@@ -236,7 +237,7 @@ fun InkGlyph(
     inkCentreXEpx: Float? = null,
 ) {
     val d = LocalDensity.current.density
-    val size = rememberInkFontSize(Brand.iconFont, FontWeight.Normal, code, inkHeightEpx, color)
+    val size = rememberInkFontSize(Brand.iconFont, FontWeight.Normal, code, inkHeightEpx)
     val style = TextStyle(fontFamily = Brand.iconFont, fontSize = size.sp, lineHeight = size.sp, color = color)
     val laid = rememberInkLayout(style, code)
     val x = when {
@@ -248,7 +249,8 @@ fun InkGlyph(
     val y = inkCentreEpx * d - laid.inkCentre
     BasicText(
         text = code,
-        modifier = modifier.offset { IntOffset(x.roundToInt(), y.roundToInt()) },
+        // The offset first, so the caller's tag reports the box the text is drawn in, not where it would sit unplaced.
+        modifier = Modifier.offset { IntOffset(x.roundToInt(), y.roundToInt()) }.then(modifier),
         style = style,
         maxLines = 1,
         softWrap = false,
