@@ -89,6 +89,9 @@ geometry, Compose's own `spring(0.65, 1500)` against the doc's fingerprint, the 
 
 ## NEEDS-HUMAN (all accept rows, Jeremy)
 
+**2026-09-25: H2-H11 ACCEPTED by Jeremy** ("yes everything else seemed good"). H1 rejected twice on the phone — the satellites
+vanished on a drag (fixed, 548082c) and closing took two taps (one tap now, b3fe189) — and waits on his look at the new APK.
+
 H1 the burst as a whole (dampingRatio 0.65, boundsInRoot tracking) · H2 stiffness 1500: ≈ 107-ms peak, ≈ 249-ms settle,
 ≈ 36-ms close · H3 the satellite (small-tile square, icon rule, label outside in the theme's text colour, both themes;
 press feedback judged once phase 13 is built; at X5 100 % with a background picture a satellite is a fifth of the accent over the dimmed tile behind it, and that tile's glyph shows through it (People under One, Mail under Two) — EDGE-pass6/x5-100.png; an opaque satellite would be a product change to a FINAL Decision (doc :86-87)); on a full grid every corner label lies on a dimmed neighbouring tile and can cross that tile's own text (round 3, D3-3) · H4 the 16-epx stand-off, the line arrangements and the clamping (note: a line sits one gutter from the tile, so its end
