@@ -1,0 +1,41 @@
+==============================================================================
+ROW E21 — permission states: full-screen intent, overlay, SCHEDULE_EXACT_ALARM; the recorder's microphone and audio access
+at            2026-09-24T22:58:11-06:00
+driver        e21.sh blob 58b31d017656ae99b69655a67395d261435c2976
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+40m17s166ms ago; rejectTime=+2h21m17s214ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+RECORD  appops after the doc's package-level deny (both modes)      Uid mode: USE_FULL_SCREEN_INTENT: allow|USE_FULL_SCREEN_INTENT: deny; time=+40m17s502ms ago; rejectTime=+2h21m17s550ms ago
+RECORD  appops after the uid-level deny (both modes)                Uid mode: USE_FULL_SCREEN_INTENT: deny|USE_FULL_SCREEN_INTENT: deny; time=+40m17s533ms ago; rejectTime=+2h21m17s581ms ago
+PASS  the alarm was created                                       != 
+PASS  the keyguard shows after sleep + wake                       = true
+PASS  FSI denied: the alarm fired                                 != 
+PASS  FSI denied: it still sounds (an ALARM player of the shell is started)  != 0
+PASS  FSI denied: it still notifies (the alarm-channel notification is posted)  != 
+PASS  FSI denied: the keyguard is on top                          = true
+      focus: mCurrentFocus=Window{3e25f8b u0 NotificationShade}
+PASS  FSI denied: no activity of app.tileshell over the keyguard  does not contain [app.tileshell]
+PASS  FSI denied: the keyguard is not occluded                    = false
+PASS  FSI denied: surface: lockscreen-notification ac6aa9b93      contains [[alarms] surface: lockscreen-notification ac6aa9b93]
+PASS  FSI denied: full-screen intent: deny                        contains [[alarms] full-screen intent: deny]
+RECORD  the lock screen's SystemUI nodes naming the alarm           android:id/title|Alarm|android:id/text|Nofsi · 11:00 PM
+      no Dismiss action visible on the lock screen; the ring is ended by the restore's force-stop
+PASS  device clock back within 2 s of the host (RV12)             1790312329.00 vs 1790312329.00 +/- 2.0
+PASS  wake_device printed Awake (C-25)                            = Awake
+      scroll_to_node alarm_row:ac6aa9b93: 0 swipe(s), found=yes
+PASS  the rung Nofsi alarm is deleted through the app before the next clause  does not contain [ac6aa9b93]
+      scroll_to_node checklist:full_screen_alarms:missing: 1 swipe(s), found=yes
+PASS  the Full-screen alarms row reads missing                    = yes
+RECORD  the missing row's glyph colour (red is 232,17,35)           232,17,35
+PASS  … its glyph is red (232,17,35 ± 16)                      = yes
+PASS  its tap resumes com.android.settings                        contains [com.android.settings]
+      scroll_to_node checklist:full_screen_alarms:granted: 0 swipe(s), found=yes
+PASS  restore allow: the row reads granted                        = yes

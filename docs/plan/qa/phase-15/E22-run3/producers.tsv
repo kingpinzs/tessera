@@ -1,0 +1,59 @@
+# E22's pattern table (T15-48): every alternative of every diagnostics line phase 15 names, the ring it is written in
+# (Harness contracts, T15-17), an extended regex for it, and the row or edge case that produces it.
+# ring	pattern	producer
+launcher	\[alarms\] rearm \(store change\): [0-9]+ alarms, [0-9]+ timers, exact=(true|false)	E3
+launcher	\[alarms\] rearm \(boot\): [0-9]+ alarms, [0-9]+ timers	E6
+launcher	\[alarms\] rearm \(locked boot\): [0-9]+ alarms, [0-9]+ timers	E6c
+launcher	\[alarms\] fired [^ ]+ kind=alarm late=-?[0-9]+	E4
+launcher	\[alarms\] fired [^ ]+ kind=timer late=-?[0-9]+	E6
+launcher	\[alarms\] ring ended [^ ]+: dismiss	E4
+launcher	\[alarms\] ring ended [^ ]+: snooze	E4
+launcher	\[alarms\] ring ended [^ ]+: timeout	E32
+launcher	\[alarms\] ring ended [^ ]+: missed	E32
+launcher	\[alarms\] ring ended [^ ]+: superseded	edge: a later alarm while one rings
+launcher	\[alarms\] full-screen intent: allow	E4
+launcher	\[alarms\] full-screen intent: deny	E21
+launcher	\[alarms\] surface: toast-locked [^ ]+	E4
+launcher	\[alarms\] surface: toast-overlay [^ ]+	E4b
+launcher	\[alarms\] surface: heads-up [^ ]+	E4b
+launcher	\[alarms\] surface: lockscreen-notification [^ ]+	E21
+launcher	\[alarms\] notification [^ ]+: fullscreen	E4
+launcher	\[alarms\] notification [^ ]+: quiet	E4b
+launcher	\[alarms\] ring [^ ]+ sound=default	E4
+launcher	\[alarms\] ring [^ ]+ sound=content://	E31
+launcher	\[alarms\] sound [^ ]+ missing -> default	E31
+launcher	\[alarms\] sound [^ ]+ locked -> default	edge: Pick from my music before the first unlock
+launcher	\[alarms\] api [^ ]+ from [^ ]+ -> created	E33
+launcher	\[alarms\] api [^ ]+ from [^ ]+ -> opened	E33
+launcher	\[alarms\] api [^ ]+ from [^ ]+ -> refused	E33
+launcher	\[timer\] [^ ]+ remaining=[0-9]+ uptime=[0-9]+	E6
+launcher	\[stopwatch\] elapsed=[0-9]+ uptime=[0-9]+	E7
+launcher	\[music\] session app\.tileshell id=music -> cmp:app\.tileshell/app\.tileshell\.music\.MusicActivity	E0
+launcher	\[music\] session app\.tileshell id=recorder -> none	E0
+launcher	\[music\] skipped recording [0-9]+	E20
+launcher	\[recorder\] list: [0-9]+ recordings \([0-9]+ by other apps\)	E14
+launcher	\[recorder\] list: [0-9]+ recordings \(other apps: hidden, READ_MEDIA_AUDIO denied\)	E21
+launcher	\[calc\] engine port	E11
+launcher	\[calc\] error [a-z_]+	E11
+launcher	\[calc\] tess "[^"]+" -> 	E26
+launcher	\[calc\] date difference 	E29
+launcher	\[calc\] date add 	E29
+launcher	\[calc\] date subtract 	E29
+launcher	\[motion\] ring_toast t0=	E4b
+launcher	\[motion\] flyout t0=	E10
+launcher	\[motion\] clock_tab t0=	E10
+launcher	\[motion\] clock_swipe t0=	E10
+launcher	\[motion\] calc_pane t0=	E12
+launcher	\[motion\] rec_state t0=	E24
+recorder	\[recorder\] start [^ ].* free=[0-9]+	E14
+recorder	\[recorder\] paused: call	edge: a call arriving mid-take
+recorder	\[recorder\] paused: silenced	edge: another app starts capture on top
+recorder	\[recorder\] paused: user	E30
+recorder	\[recorder\] stop [^ ].* ms=[0-9]+ bytes=[0-9]+	E14
+recorder	\[recorder\] recovered [^ ].* ms=[0-9]+	E18
+recorder	\[recorder\] refused: microphone busy held by [a-z]+	E17
+recorder	\[recorder\] storage floor	E19
+recorder	\[recorder\] marker [^ ].* at=[0-9]+	E30
+speech	refused: held by recorder	E17
+speech	a client died	E18
+speech	microphone released: owner died	E18

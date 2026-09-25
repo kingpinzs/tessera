@@ -1,0 +1,84 @@
+==============================================================================
+ROW EDGE_TIMERS — timers: dead process at the deadline; 10 at once; 0:00 refused; paused then clock jump
+at            2026-09-25T11:36:49-06:00
+driver        edge_timers.sh blob 3b62a6cd66084deddbfc63675e8e9eac352569f4
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     51c18d8d11c140bd 338459026 bytes
+apk installed 61c5b610716197e3
+apk match     yes (61c5b610716197e3)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  a 20-s timer is running                                     != 
+      killed 5602 with ~15 s left
+PASS  the timer fired after the kill (the receiver started the ring service)  != 
+PASS  … on time (late <= 1500 ms; a cold process)               2.00 vs 0.00 +/- 1500.0
+PASS  … and it rings (an ALARM player of the shell)             != 0
+PASS  the process that rings is a new one                         != 5602
+      gdump_for ring_dismiss: not in any of 3 dumps
+      gtap: no ring_dismiss in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/EDGE_TIMERS/dead_ring.xml
+FAIL  dismissed                                                   expected [0] got [1]
+      gscroll_to_node timer_name:t0f79cf30: 0 swipe(s), found=yes
+RECORD  clock_timers notifications left after the Dead timer rang and was deleted (title|when)  0 — 
+      ten timers:  tcdc04163 t57bc5d36 t8da8eb4a t80c83826 t2ad52f59 t70bbe633 t5200c263 t7cc31698 t8d303383 t1ffb70fd
+PASS  ten timers were created                                     = 10
+PASS  all ten are RUNNING in the store                            = 10
+PASS  all ten are armed in AlarmManager (ELAPSED_WAKEUP entries)  = 10
+PASS  … and none is the phone's next alarm clock                = 
+      gscroll_to_node timer_remaining:tcdc04163: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t57bc5d36: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t8da8eb4a: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t80c83826: 0 swipe(s), found=yes
+      gscroll_to_node: rewound to the top in 1 drag(s)
+      gscroll_to_node timer_remaining:t2ad52f59: 1 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t70bbe633: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t5200c263: 0 swipe(s), found=yes
+      gscroll_to_node: rewound to the top in 3 drag(s)
+      gscroll_to_node timer_remaining:t7cc31698: 2 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t8d303383: 0 swipe(s), found=yes
+      gscroll_to_node: rewound to the top in 3 drag(s)
+      gscroll_to_node timer_remaining:t1ffb70fd: 3 swipe(s), found=yes
+PASS  every one of the ten is listed on the Timer tab             = 10
+PASS  … and every one is counting down                          = 10
+RECORD  Android's autogroup summary records beside the timers' own (key |g:Aggregate…)  1
+      running-timer notifications (title | when): ?|1790357855968 T10|1790360264979 T9|1790360203804 T8|1790360142650 T7|1790360081499 T6|1790360020358 T5|1790359959209 T4|1790359898063 T3|1790359836912 T2|1790359775765 T1|1790359714604
+PASS  ten running-timer notifications are posted                  = 10
+      gscroll_to_node: rewound to the top in 4 drag(s)
+      gscroll_to_node timer_name:tcdc04163: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t57bc5d36: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t8da8eb4a: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t80c83826: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t2ad52f59: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t70bbe633: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t5200c263: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t7cc31698: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t8d303383: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t1ffb70fd: 0 swipe(s), found=yes
+PASS  the ten are gone                                            = 
+PASS  the API refuses LENGTH 0                                    contains [api android.intent.action.SET_TIMER from com.android.shell -> refused: length out of range]
+PASS  … and created nothing                                     = 
+PASS  the editor opens at 00:05:00                                = 00 05 00
+      spin timer_editor_field:minutes -> [00] after 2 swipe(s)
+PASS  the minutes read 00 (a 0:00:00 length)                      = 00
+RECORD  the Save button's enabled flag at 0:00:00 (the build dims it; TimerTab.kt:198)  false
+PASS  Save at 0:00:00 creates nothing                             = 
+PASS  … and logs no timer created                               does not contain [timer created]
+PASS  … the editor is still open (Save refused)                 = NEW TIMER
+PASS  a 10-min timer is running                                   != 
+PASS  paused in the store                                         = PAUSED
+PASS  a paused timer holds no deadline                            = null null
+PASS  … and no alarm is armed for it                            = 
+PASS  after a +1 h clock jump it is still PAUSED                  = PAUSED
+PASS  … holding the same remaining                              = 593725
+PASS  … and the tab shows the same digits                       = 00:09:53
+PASS  … with nothing armed                                      = 
+PASS  resumed: RUNNING again                                      = RUNNING
+PASS  resumed: armed for its remaining on the elapsed clock       48993134.00 vs 48994745.00 +/- 3000.0
+PASS  device clock back within 2 s of the host (RV12)             1790358037.00 vs 1790358037.00 +/- 2.0
+      gscroll_to_node timer_name:te551634e: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+EDGE_TIMERS: 35 passed, 1 failed, 3 recorded

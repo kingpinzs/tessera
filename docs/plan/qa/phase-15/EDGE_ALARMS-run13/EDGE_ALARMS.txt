@@ -1,0 +1,133 @@
+==============================================================================
+ROW EDGE_ALARMS — alarm edge cases: DST, zone changes, clock back / forward, supersede, same minute, edit while ringing, in-call, reboot straddle, update
+at            2026-09-25T11:27:24-06:00
+driver        edge_alarms.sh blob 6e033ed6f8dc77606cc26531d19520197de10d53
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     51c18d8d11c140bd 338459026 bytes
+apk installed 61c5b610716197e3
+apk match     yes (61c5b610716197e3)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+28s119ms ago; rejectTime=+12h27m28s106ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+RECORD  USE_EXACT_ALARM-removed QA build (SCHEDULE_EXACT_ALARM denied on a manifest without USE_EXACT_ALARM)  NOT RUN: this pass builds nothing (the brief), so the QA build does not exist
+PASS  the zone is America/Denver                                  = America/Denver
+PASS  the 02:30 alarm was created                                 != 
+PASS  it is armed for 2027-03-14                                  = 2027-03-14
+PASS  dumpsys alarm arms it at 03:00:00 MDT = 09:00:00Z (the skipped hour)  = 1805014800000
+PASS  it rang                                                     != 
+PASS  … no earlier than 09:00:00Z                               = yes
+      gdump_for ring_surface: not in any of 3 dumps
+FAIL  the toast's time reads 3:00 AM (diagnostics of the skipped hour)  expected [3:00 AM] got []
+      gdump_for ring_dismiss: not in any of 3 dumps
+      dismiss_toast spring: no ring ended line; the ring is ended by dismiss_any_ring so the next section starts clean
+      dismiss_any_ring: a ring was up and was ended
+      scroll_to_node alarm_row:af6d2d4ac: 0 swipe(s), found=yes
+PASS  section: the section left no alarm behind                   = 
+PASS  the daily 01:30 alarm was created                           != 
+PASS  it is armed at the first 01:30 (MDT, 07:30Z), not the second (MST, 08:30Z)  = 1825572600000
+PASS  it rang at the first 01:30                                  != 
+      gdump_for ring_dismiss: not in any of 3 dumps
+      dismiss_toast fall: no ring ended line; the ring is ended by dismiss_any_ring so the next section starts clean
+      dismiss_any_ring: a ring was up and was ended
+PASS  after Dismiss it re-arms for the NEXT day's 01:30 (MST, 2027-11-08 08:30Z), not the same night's second 01:30  = 1825662600000
+      scroll_to_node alarm_row:a6400c429: 0 swipe(s), found=yes
+PASS  section: the section left no alarm behind                   = 
+PASS  the daily 07:00 alarm was created                           != 
+PASS  armed for 2027-03-13 07:00 MST (14:00Z)                     = 1804946400000
+PASS  it rang on the 13th                                         != 
+      gdump_for ring_dismiss: not in any of 3 dumps
+      dismiss_toast seven1: no ring ended line; the ring is ended by dismiss_any_ring so the next section starts clean
+      dismiss_any_ring: a ring was up and was ended
+PASS  next: 2027-03-14 07:00 MDT (13:00Z) — a 23-hour gap       = 1805029200000
+PASS  … the gap in dumpsys alarm is 23 h                        = 23
+PASS  it rang on the 14th at 07:00 wall-clock                     != 
+      gdump_for ring_surface: not in any of 3 dumps
+FAIL  … the toast reads 7:00 AM                                 expected [7:00 AM] got []
+      gdump_for ring_dismiss: not in any of 3 dumps
+      dismiss_toast seven2: no ring ended line; the ring is ended by dismiss_any_ring so the next section starts clean
+      dismiss_any_ring: a ring was up and was ended
+PASS  on 2027-11-06 the daily is armed at 07:00 MDT (13:00Z)      = 1825506000000
+PASS  it rang on the 6th                                          != 
+      gdump_for ring_dismiss: not in any of 3 dumps
+      dismiss_toast seven3: no ring ended line; the ring is ended by dismiss_any_ring so the next section starts clean
+      dismiss_any_ring: a ring was up and was ended
+PASS  next: 2027-11-07 07:00 MST (14:00Z) — a 25-hour gap       = 1825596000000
+PASS  … the gap in dumpsys alarm is 25 h                        = 25
+      scroll_to_node alarm_row:a87cea9db: 0 swipe(s), found=yes
+PASS  section: the section left no alarm behind                   = 
+PASS  device clock back within 2 s of the host (RV12)             1790357475.00 vs 1790357476.00 +/- 2.0
+PASS  zone change with the app closed: the receiver re-armed in a fresh process  != 
+PASS  … the alarm's instant moved to London's 07:00             = 1790402400000
+PASS  … and the row still reads 7:00 AM                         = 7:00 AM
+      scroll_to_node alarm_row:a9065d730: 0 swipe(s), found=yes
+PASS  section: the section left no alarm behind                   = 
+PASS  an alarm is ringing                                         != 0
+PASS  zone change while ringing: the re-arm line                  != 
+PASS  … the ring continues (player started)                     != 0
+      gdump_for ring_surface: not in any of 3 dumps
+FAIL  … the toast is still up                                   expected [yes] got [no]
+PASS  … and the ring was not ended by the zone change           does not contain [ring ended ad82f6719]
+      gdump_for ring_dismiss: not in any of 3 dumps
+      dismiss_toast zone_ringing: no ring ended line; the ring is ended by dismiss_any_ring so the next section starts clean
+      dismiss_any_ring: a ring was up and was ended
+PASS  device clock back within 2 s of the host (RV12)             1790357551.00 vs 1790357552.00 +/- 2.0
+      scroll_to_node alarm_row:ad82f6719: 0 swipe(s), found=yes
+PASS  section: the section left no alarm behind                   = 
+PASS  clock back two days: the one-shot stays armed for its stored date  = 2026-09-25
+PASS  … at the same instant in dumpsys alarm                    = 1790357700000
+PASS  it rings once, at its instant                               != 
+      gdump_for ring_dismiss: not in any of 3 dumps
+      dismiss_toast back: no ring ended line; the ring is ended by dismiss_any_ring so the next section starts clean
+      dismiss_any_ring: a ring was up and was ended
+FAIL  clock back again: a rung one-shot is not re-armed (it never rings twice)  expected [] got [1790357700000]
+FAIL  … it is off in the store                                  expected [false] got [true]
+PASS  device clock back within 2 s of the host (RV12)             1790357602.00 vs 1790357602.00 +/- 2.0
+      scroll_to_node alarm_row:aa2dd6025: 0 swipe(s), found=yes
+PASS  section: the section left no alarm behind                   = 
+PASS  three one-shots armed a minute apart                        = 3
+PASS  forward past three: they fired in order                     = a12d96787 a31d3430e aca734bbb
+PASS  the first was superseded                                    contains [[alarms] ring ended a12d96787: superseded]
+PASS  the second was superseded                                   contains [[alarms] ring ended a31d3430e: superseded]
+PASS  the first counts as missed                                  contains [[alarms] ring ended a12d96787: missed]
+      gdump_for ring_surface: not in any of 3 dumps
+FAIL  one ring surface                                            expected [1] got [0]
+FAIL  … showing the last alarm                                  expected [Third] got []
+PASS  a Missed alarm notification for the first                   contains [Missed alarm 11:35 AM]
+PASS  … and for the second                                      contains [Missed alarm 11:36 AM]
+      gdump_for ring_dismiss: not in any of 3 dumps
+      dismiss_toast forward: no ring ended line; the ring is ended by dismiss_any_ring so the next section starts clean
+      dismiss_any_ring: a ring was up and was ended
+PASS  device clock back within 2 s of the host (RV12)             1790357647.00 vs 1790357647.00 +/- 2.0
+      scroll_to_node alarm_row:a12d96787: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a31d3430e: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:aca734bbb: 0 swipe(s), found=yes
+PASS  forward: the section left no alarm behind                   = 
+PASS  the early alarm rings                                       != 0
+PASS  the later alarm takes the surface: ring ended acf300e1e: superseded  contains [[alarms] ring ended acf300e1e: superseded]
+PASS  … and the first is missed                                 contains [[alarms] ring ended acf300e1e: missed]
+PASS  … with a Missed alarm notification                        contains [Missed alarm 11:36 AM]
+      gdump_for ring_surface: not in any of 3 dumps
+FAIL  the toast now shows the later alarm                         expected [Later] got []
+      gdump_for ring_dismiss: not in any of 3 dumps
+      dismiss_toast later: no ring ended line; the ring is ended by dismiss_any_ring so the next section starts clean
+      dismiss_any_ring: a ring was up and was ended
+PASS  device clock back within 2 s of the host (RV12)             1790357737.00 vs 1790357737.00 +/- 2.0
+      scroll_to_node alarm_row:acf300e1e: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:aa7496eeb: 0 swipe(s), found=yes
+PASS  section: the section left no alarm behind                   = 
+      gdump_for ring_surface: not in any of 3 dumps
+FAIL  same minute: one toast                                      expected [1] got [0]
+      ring_name: 
+FAIL  … ring_name lists Ann                                     does not contain [Ann]: 
+FAIL  … and Bob                                                 does not contain [Bob]: 
+PASS  … neither was superseded                                  does not contain [superseded]
+      gtap: no ring_snooze in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/EDGE_ALARMS/same_minute.xml
+FAIL  Snooze acts on Ann                                          does not contain [[alarms] ring ended aebf25faf: snooze]:     2026-09-25 11:37:12.234 wall=1790357832234 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=48150629 faceIndex=3 next=0 faces=3
+    2026-09-25 11:37:14.350 wall=1790357834350 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=48152746 fac
+FAIL  … and on Bob                                              does not contain [[alarms] ring ended a9f3f26a6: snooze]:     2026-09-25 11:37:12.234 wall=1790357832234 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=48150629 faceIndex=3 next=0 faces=3
+    2026-09-25 11:37:14.350 wall=1790357834350 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=48152746 fac
+PASS  both hold a snooze instant                                  != null

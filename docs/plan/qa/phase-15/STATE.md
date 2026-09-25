@@ -210,3 +210,14 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   its baseline (the Clock reopens on the page it was left on) and asserts its restore. ALL TESTING STOPPED at
   Jeremy's request; nothing is running. The spinner fix is proved on test build b466469e (EDGE_SPINNER-run2 / -run3:
   11/0), not yet on 61c5b610.
+- 2026-09-25 (afternoon): Jeremy: "do not do the full gate qa just the individual ones then push", "DO NOT use the mic
+  for anything". The specific tests ran on the final build 61c5b610. EDGE_SPINNER 12/0 (5556, after a reboot that
+  cleared its system_server restart). On 5558, the spinner rows E3 39/0, E33 36/0, EDGE_WORLD 20/0 and E21 46/0. Its
+  first pass of E10 / E31 / EDGE_ALARMS / EDGE_TIMERS failed on the environment: the stopped agent had left "Display
+  over other apps" off, so every ring used the heads-up fallback (the app logged surface: heads-up). E21 restored the
+  grant at its end, and the re-run gave E10 132/1 (the secondary tab-settle timing, 41 ms), E31 69/0, EDGE_ALARMS
+  123/0, EDGE_TIMERS 36/0. On 5560, an Opus agent finished EDGE_APPLIST 62/0, EDGE_LOCKED_SOUND 33/0,
+  EDGE_ALARM_CONTEXT 24/2 and EDGE_EXACT 29/6, and the failures are product defects with DEFECT.md. mic_guard.sh proved
+  no recording in any of them. E22 56/0/2, the 2 NOT RUN under the no-microphone rule. Open: the defects (exact-alarm
+  silent crash, the missing notice, edit mode surviving an alarm, Tess not hidden), the recorder edge rows (no-mic),
+  the reviewers, and NEEDS-HUMAN.
