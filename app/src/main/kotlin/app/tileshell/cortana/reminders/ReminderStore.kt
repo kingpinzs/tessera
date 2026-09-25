@@ -32,7 +32,10 @@ class ReminderStore private constructor(private val context: Context) {
     val places: StateFlow<List<Place>> = placesState.asStateFlow()
 
     init {
-        load()
+        // L13-1 (Q2): a photo picked for a reminder that was never saved (the process died between the pick and the
+        // save) is swept here. ReminderPhotos.adopt loads this store before it copies, so no live pick is ever swept.
+        // An unreadable store sweeps nothing: its reminders' photos are still theirs.
+        if (load()) ReminderPhotos.sweep(context, remindersState.value.mapNotNull { it.photoUri })
     }
 
     // ---------------- reminders ----------------
@@ -59,8 +62,11 @@ class ReminderStore private constructor(private val context: Context) {
 
     /** R7 §3.6: Delete removes it and cancels its trigger, at once, with no card. */
     fun delete(id: String) {
+        val gone = find(id)
         mutate { list -> list.filterNot { it.id == id } }
         Diagnostics.add("reminders", "deleted $id")
+        // L13-1 (Q2): the reminder's photo is its own copy, and goes with it.
+        ReminderPhotos.release(context, gone?.photoUri)
     }
 
     /** R7 §3.6: Complete moves it to History and cancels its trigger. */
@@ -179,9 +185,10 @@ class ReminderStore private constructor(private val context: Context) {
         if (!tmp.renameTo(file)) error("reminder store rename failed")
     }
 
-    private fun load() {
-        if (!file.exists()) return
-        runCatching {
+    /** False only when the file exists and could not be read. */
+    private fun load(): Boolean {
+        if (!file.exists()) return true
+        return runCatching {
             val json = JSONObject(file.readText())
             val arr = json.optJSONArray("reminders") ?: JSONArray()
             remindersState.value = (0 until arr.length()).map { i ->
@@ -211,7 +218,7 @@ class ReminderStore private constructor(private val context: Context) {
                 )
             }
             Diagnostics.add("reminders", "loaded ${remindersState.value.size} reminders, ${placesState.value.size} places")
-        }.onFailure { Diagnostics.add("reminders", "store unreadable, starting empty: $it") }
+        }.onFailure { Diagnostics.add("reminders", "store unreadable, starting empty: $it") }.isSuccess
     }
 
     companion object {
