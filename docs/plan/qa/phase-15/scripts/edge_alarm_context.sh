@@ -1,27 +1,28 @@
 #!/usr/bin/env bash
 # EDGE_ALARM_CONTEXT — the phase doc's "Alarm firing while …" edge-case bullet: an alarm firing
-#   1. while Tess is listening → the session hides (`[cortana] session hidden` after the fired line, no cortana_session
-#      node in the gesture driver's all-windows dump). The fire is timed INTO the listen: the mic tap and the clock jump
-#      go in one `adb shell` string, and the precondition — the :speech ring's `listening for pid=… (cortana)` before
-#      the fired line and its `asr: final` after it — is ASSERTED; a void attempt is retried (up to three), recorded;
+#   1. while Tess is listening → NOT RUN (2026-09-25): the owner's no-microphone rule. Tess listening IS an open
+#      microphone, and these AVDs run with -allow-host-audio (a guest capture opens the host's). Runs 1-3 (4b7ac321,
+#      emulator-5558; EDGE_ALARM_CONTEXT-run1..3, the method in git da848a06) drove it; run 3's DEFECT.md holds what they
+#      found. Recorded, not driven;
 #   2. while Start is in edit mode (a tile held, `edit_disc:unpin` on screen) → edit mode ends (`[edit] exit first
 #      frame` after the fired line, no edit disc in the dump);
 #   3. while the shell's Music plays (phase 10's player, the MUSIC6 fixtures) → the player pauses on the transient focus
 #      loss (its Media3 session PAUSED, no started USAGE_MEDIA player) and, per phase 10's E9, does not resume by itself
 #      after the ring ends — RECORDED, not asserted;
-#   4. while the recorder runs → the take continues (phase recording, elapsed_ms advancing across the ring, no
-#      `[recorder] paused` line in the :recorder ring, the saved take as long as its clock), and the alarm sound is on
-#      another stream (the shell's player on USAGE_ALARM while the take captures);
+#   4. while the recorder runs → NOT RUN (2026-09-25): the owner's no-microphone rule (a take IS a microphone capture).
+#      Runs 2-3 drove it (all its clauses passed on 4b7ac321); recorded, not driven;
 #   5. while glance (phase 07) shows → NOT RUN: phase 07 is not built (INDEX row 07 pending), the build has no glance
 #      component — both recorded.
-# Every section: an alarm 2 min ahead through the AlarmClock API, the ring's slices saved as ring_<what>_<ring>.txt right
-# after the fire, the toast dismissed, RV12's clock restore, the alarm deleted through the app and the store asserted
-# empty. Restore: the Music fixtures / volume as found, the take deleted through the app, the overlay grant allow.
-. "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"; . "$(dirname "$0")/rec.sh"
+# The row ASSERTS the no-microphone rule itself (mic_guard.sh: dumpsys audio's recording-activity log gains no event).
+# Every driven section: an alarm 2 min ahead through the AlarmClock API, the ring's slices saved as ring_<what>_<ring>.txt
+# right after the fire, the toast dismissed, RV12's clock restore, the alarm deleted through the app and the store asserted
+# empty. Restore: the Music fixtures / volume as found, the overlay grant allow.
+. "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"; . "$(dirname "$0")/rec.sh"; . "$(dirname "$0")/mic_guard.sh"
 MUSIC_FIXDIR="$QROOT/phase-01/MUSIC6-fixtures"
 . "$QROOT/phase-01/scripts/music_lib.sh"
 
 row_begin EDGE_ALARM_CONTEXT "an alarm firing while Tess listens, Start is in edit mode, Music plays, the recorder runs; glance"
+mic_guard_begin
 record_fsi
 assert_clock_empty "baseline"
 dismiss_any_ring
@@ -59,57 +60,8 @@ section_restore() { # label
 }
 
 # ================================================================== 1. while Tess is listening ==========================================
-TESS_OK=no
-for attempt in 1 2 3; do
-  seed "Tess"
-  adb shell input keyevent KEYCODE_HOME; sleep 1.5
-  cortana_assist; sleep 4
-  dump_ui "$ROW_DIR/tess_open_$attempt.xml"
-  MB="$(bounds "$ROW_DIR/tess_open_$attempt.xml" cortana_text_box_mic)"
-  note "attempt $attempt: session open=$(has_node "$ROW_DIR/tess_open_$attempt.xml" cortana_session), mic button [$MB]"
-  [ -n "$MB" ] || { note "attempt $attempt: no mic button in the dump"; cortana_close; adb shell input keyevent KEYCODE_HOME; section_restore "tess attempt $attempt"; continue; }
-  read -r x1 y1 x2 y2 <<< "$MB"
-  # The clock goes to 8 s before the alarm first, then a loop ON THE DEVICE waits for its own clock to reach 1 s before
-  # it and taps the mic — so the listen, which with nothing said ends by endpoint ~2.2 s after it starts (probe on 5558:
-  # 45.586 → 47.829), is open when the alarm fires. (Run 1 tapped and set the clock in one string: the alarm was
-  # delivered 4.2 s after the clock change, 2.8 s after the listen had ended — AlarmManager's re-batch after a time
-  # change, so the change now comes first.)
-  jump_clock $(( AT - 8000 )) >/dev/null
-  MARK="$(ring_mark)"
-  adb shell "while [ \$(date +%s%3N) -lt $(( AT - 1000 )) ]; do :; done; input tap $(( (x1 + x2) / 2 )) $(( (y1 + y2) / 2 ))" >/dev/null 2>&1
-  FIRED="$(wait_ring "$MARK" "[alarms] fired $ID kind=alarm" 20)"
-  sleep 3
-  ring_since "$MARK" speech > "$ROW_DIR/ring_tess_speech.txt"
-  ring_since "$MARK" launcher > "$ROW_DIR/ring_tess_launcher.txt"
-  LSTART="$(grep -F "[speech] listening for pid=" "$ROW_DIR/ring_tess_speech.txt" | grep -F '(cortana)' | head -1)"
-  LEND="$(grep -F '[speech] asr: final gen=' "$ROW_DIR/ring_tess_speech.txt" | head -1)"
-  FW="$(wall_of "$FIRED")"; SW="$(wall_of "$LSTART")"; EW="$(wall_of "$LEND")"
-  note "attempt $attempt: listen start wall=${SW:-none}, fired wall=${FW:-none}, listen end wall=${EW:-none (still open)}"
-  if [ -n "$FW" ] && [ -n "$SW" ] && [ "$SW" -lt "$FW" ] && { [ -z "$EW" ] || [ "$EW" -gt "$FW" ]; }; then
-    TESS_OK=yes; break
-  fi
-  record "Tess attempt $attempt void" "the alarm did not fire inside the listen (start ${SW:-none}, fired ${FW:-none}, end ${EW:-none}); re-seeded"
-  end_ring "tess_void_$attempt"
-  adb shell input keyevent KEYCODE_HOME; sleep 1
-  section_restore "tess attempt $attempt"
-done
-assert_eq "Tess: the alarm fired while Tess was listening (listen start < fired < listen end, :speech + launcher rings)" yes "$TESS_OK"
-if [ "$TESS_OK" = yes ]; then
-  gdump_windows "$ROW_DIR/tess_ring.xml"; screencap "$ROW_DIR/tess_ring.png"
-  note "windows at the ring: $(gwindows "$ROW_DIR/tess_ring.xml")"
-  HID="$(grep -F '[cortana] session hidden' "$ROW_DIR/ring_tess_launcher.txt" | head -1)"
-  note "session hidden line: ${HID:-none}"
-  assert_eq "Tess: the session hides — [cortana] session hidden at or after the fired line" yes "$([ -n "$HID" ] && [ "$(wall_of "$HID")" -ge "$FW" ] && echo yes || echo "no (${HID:-no line})")"
-  assert_eq "Tess: … and no cortana_session node is in the all-windows dump" no "$(has_node "$ROW_DIR/tess_ring.xml" cortana_session)"
-  assert_ne "Tess: the alarm rings (an ALARM player of the shell is started)" 0 "$(alarm_player_started)"
-  record "Tess: the ring's surface line" "$(grep -oE '\[alarms\] surface: [a-z-]+ [^ ]+' "$ROW_DIR/ring_tess_launcher.txt" | head -1)"
-  end_ring tess
-  # A session that did not hide is closed so the next section starts on Start.
-  dump_ui "$ROW_DIR/tess_after.xml"
-  [ "$(has_node "$ROW_DIR/tess_after.xml" cortana_session)" = yes ] && { note "the session was still up after the ring; closed with Home"; adb shell input keyevent KEYCODE_HOME; sleep 2; }
-fi
-adb shell input keyevent KEYCODE_HOME; sleep 1
-section_restore "tess"
+# Not driven: the owner's no-microphone rule (2026-09-25). Nothing in this row opens Tess.
+record "1. an alarm firing while Tess is listening" "NOT RUN: the owner's no-microphone rule (2026-09-25)"
 
 # ================================================================== 2. while Start is in edit mode ======================================
 seed "Edit"
@@ -199,56 +151,8 @@ fi
 note "restore: media volume $(adb shell cmd media_session volume --stream 3 --get 2>/dev/null | tr -d '\r' | grep -oE 'volume is [0-9]+'); fixtures present: $(adb shell ls /sdcard/Music/tessera-qa 2>/dev/null | grep -c mp3)"
 
 # ================================================================== 4. while the recorder runs ==========================================
-OWN0="$(own_count)"; note "the shell's takes before: $OWN0"
-seed "Rec"
-adb shell input keyevent KEYCODE_HOME; sleep 1
-BEFORE="$(own_ids | tr '\n' ' ')"
-rec_open record
-rdump "$ROW_DIR/rec_open.xml"
-# The :recorder slice runs from BEFORE the take's start, so its own `[recorder] start` line is the positive control that
-# the ring was read (run 2's slice from the fire alone was empty, and "no paused line" passed on nothing).
-RMARK="$(ring_mark)"
-gtap "$ROW_DIR/rec_open.xml" rec_button
-assert_eq "Rec: the take is recording before the alarm" recording "$(wait_phase recording 15)"
-wait_elapsed 3000 20 >/dev/null
-E0="$(rec_status elapsed_ms)"
-MARK="$(ring_mark)"
-jump_clock $(( AT - 3000 )) >/dev/null
-FIRED="$(wait_ring "$MARK" "[alarms] fired $ID kind=alarm" 20)"
-assert_ne "Rec: the alarm fired" "" "$FIRED"
-sleep 3
-rec_ring "$RMARK" > "$ROW_DIR/ring_rec_recorder.txt"
-ring_since "$MARK" launcher > "$ROW_DIR/ring_rec_launcher.txt"
-adb shell dumpsys audio | tr -d '\r' > "$ROW_DIR/audio_rec_ring.txt"
-E1="$(rec_status elapsed_ms)"; sleep 2; E2="$(rec_status elapsed_ms)"
-note "elapsed_ms: before the fire $E0, 3 s after it $E1, 2 s later $E2"
-assert_eq "Rec: the take continues through the ring (phase recording)" recording "$(rec_status phase)"
-assert_eq "Rec: … its clock advances during the ring (Δelapsed over 2 s ≥ 1500 ms)" yes "$([ -n "$E1" ] && [ -n "$E2" ] && [ $(( E2 - E1 )) -ge 1500 ] && echo yes || echo "no ($E1 -> $E2)")"
-assert_contains "Rec: the :recorder slice was read (positive control: its [recorder] start line)" "[recorder] start " "$(cat "$ROW_DIR/ring_rec_recorder.txt")"
-assert_absent "Rec: … and it holds no paused line from the take's start through the ring" "[recorder] paused" "$(cat "$ROW_DIR/ring_rec_recorder.txt")"
-AP="$(alarm_players | grep 'state:started' | head -1)"
-note "the shell's started ALARM player: $AP"
-assert_contains "Rec: the alarm sound is on another stream — the shell's player is on USAGE_ALARM" "usage=USAGE_ALARM" "$AP"
-CAP="$(grep -E 'source client=MIC' "$ROW_DIR/audio_rec_ring.txt" | grep -F 'pack:app.tileshell' | head -1 | sed 's/^ *//')"
-note "the shell's active capture while the alarm plays: $CAP"
-assert_contains "Rec: … while the take's microphone capture stays active and unsilenced (dumpsys audio's recording configuration)" "silenced:false" "$CAP"
-end_ring rec
-E3="$(rec_status elapsed_ms)"
-tap_rec_button "$ROW_DIR/rec_stop.xml"
-wait_phase idle 15 >/dev/null; sleep 1.5
-rec_ring "$RMARK" > "$ROW_DIR/ring_rec_stop_recorder.txt"
-TAKE="$(new_own_id "$BEFORE")"
-DUR="$(ms_field "$(row_by_id "$TAKE")" duration)"
-note "the take: id ${TAKE:-none}, MediaStore duration ${DUR:-?} ms; elapsed at the ring's end $E3"
-assert_ne "Rec: the take was saved" "" "$TAKE"
-assert_contains "Rec: … with its stop line in the :recorder ring" "[recorder] stop " "$(cat "$ROW_DIR/ring_rec_stop_recorder.txt")"
-assert_eq "Rec: … and it is as long as its clock through the ring (MediaStore duration ≥ elapsed at the ring's end − 1 s)" yes "$([ -n "$DUR" ] && [ -n "$E3" ] && [ "$DUR" -ge $(( E3 - 1000 )) ] && echo yes || echo "no ($DUR vs $E3)")"
-adb shell input keyevent KEYCODE_HOME; sleep 1
-[ -n "$TAKE" ] && { app_delete_take "$TAKE" || note "restore: the take $TAKE could not be deleted in the app"; }
-[ "$(own_count)" != "$OWN0" ] && note "sweeping leftovers -> $(purge_own_takes) remain"
-assert_eq "Rec restore: the shell's takes are back to $OWN0" "$OWN0" "$(own_count)"
-adb shell input keyevent KEYCODE_HOME; sleep 1
-section_restore "rec"
+# Not driven: the owner's no-microphone rule (2026-09-25). Nothing in this row opens the recorder.
+record "4. an alarm firing while the recorder runs" "NOT RUN: the owner's no-microphone rule (2026-09-25)"
 
 # ================================================================== 5. while glance shows =================================================
 GL="$(adb shell dumpsys package app.tileshell | tr -d '\r' | grep -ci glance)"
@@ -259,4 +163,5 @@ adb shell cmd notification cancel-all >/dev/null 2>&1
 adb shell am force-stop app.tileshell; adb shell input keyevent KEYCODE_HOME; sleep 3
 assert_contains "restore: the overlay grant is allow" "allow" "$(adb shell appops get app.tileshell SYSTEM_ALERT_WINDOW | tr -d '\r' | head -1)"
 assert_clock_empty "restore"
+mic_guard_end
 row_end

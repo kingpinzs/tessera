@@ -1,54 +1,42 @@
-# EDGE_ALARM_CONTEXT — product defects (build 4b7ac321ce4d0ede, emulator-5558, 2026-09-24)
+# EDGE_ALARM_CONTEXT — product defects (build 61c5b610716197e3, emulator-5560, 2026-09-25)
 
-Row log: `EDGE_ALARM_CONTEXT.txt` (42 passed, 4 failed, 6 recorded). The same four clauses failed in run 2
-(`EDGE_ALARM_CONTEXT-run2/`); run 1 (`-run1/`) was stopped by hand after its fire missed the listen (a driver timing
-fault, fixed: the clock now jumps first and a device-side loop taps the mic 1 s before the alarm). In every failing
-clause the precondition is asserted and passes; the product does not do what the edge case says.
+Row log: `EDGE_ALARM_CONTEXT.txt` (24 passed, 2 failed, 7 recorded). Cases 1 (Tess listening) and 4 (recorder running)
+are NOT RUN under the owner's no-microphone rule (2026-09-25); case 5 (glance) is NOT RUN, phase 07 unbuilt. The two
+failing clauses are case 2's, and the same two failed in runs 2 and 3 on 4b7ac321 (emulator-5558,
+`EDGE_ALARM_CONTEXT-run2/`, `-run3/`). The only app change between the builds is the LoopSpinner fix (9a34ae17,
+`clock/ClockWidgets.kt`), which does not touch the ring or Start.
 
-## 1. An alarm firing while Tess is listening does not hide the session — the toast is drawn UNDER it
+## 1. An alarm firing while Start is in edit mode does not end edit mode
 
-Repro: an alarm 2 min ahead (AlarmClock API); Tess open (KEYCODE_ASSIST); the clock jumped to 8 s before the alarm; the
-mic tapped 1 s before it (a loop on the device's own clock).
+Repro: an alarm 2 min ahead (AlarmClock API); Home; a hold on the first Start tile (`tile:slot:PEOPLE`); the clock
+jumped to 3 s before the alarm.
 
-- The fire is inside the listen (`ring_tess_speech.txt`, `ring_tess_launcher.txt`):
-  `22:54:59.053 [speech] listening for pid=14814 (cortana)` → `22:55:00.019 [alarms] fired a9b8bad4c kind=alarm late=19`
-  → `22:55:00.085 [alarms] surface: toast-overlay a9b8bad4c` → `22:55:01.319 [speech] asr: final gen=1 via endpoint`.
-- No `[cortana] session hidden` line follows; the gesture driver's all-windows dump at the ring (`tess_ring.xml`) holds
-  `cortana_session`, and its window list is the session's window alone
-  (`TYPE_-1:app.tileshell:[0,0][1080,2340]:focused=true`). The screencap (`tess_ring.png`) shows Tess's page
-  ("I didn't catch that.") and NO toast: the alarm sounds (an ALARM player started — asserted) with Snooze / Dismiss
-  hidden under the voice-interaction window.
+- Precondition asserted and passing: `edit_disc:unpin` on screen (`edit_on.xml`, `edit_on.png`) and
+  `11:30:06.734 [edit] hold 783ms on slot:PEOPLE: edit mode on`.
+- The fire: `11:31:02.041 [alarms] fired a352db0b2 kind=alarm late=2041`, `11:31:02.108 [alarms] surface: toast-overlay
+  a352db0b2` (`ring_edit_launcher.txt`). No `[edit] exit first frame` line follows the fire in that slice.
+- The all-windows dump at the ring (`edit_ring.xml`; windows `SYSTEM:app.tileshell` = the overlay toast, not focused,
+  and `APPLICATION:app.tileshell` = Start, focused) still holds `edit_disc:unpin`. `edit_ring.png`: the toast over Start
+  with its tiles still dimmed in edit mode. After Dismiss, `edit_after.xml` still holds the disc; the driver leaves edit
+  mode with Back, and only then `11:31:14.723 [edit] exit first frame …` is logged (`ring-launcher.txt`).
 
-Cause: `RingService.present()` adds the in-use toast as a `TYPE_APPLICATION_OVERLAY` window
-(`clock/RingOverlay.kt`), which sits below the voice-interaction window, and nothing asks `CortanaSession` to hide
-(`cortana/CortanaSession.kt` `onHide` is reached only through Back / Home / `closeRequests`).
-Failing clauses: "Tess: the session hides — [cortana] session hidden …", "… no cortana_session node …".
+Cause (read from the source, unchanged since run 3's DEFECT.md): the in-use toast is a `TYPE_APPLICATION_OVERLAY`
+window with `FLAG_NOT_FOCUSABLE` (`clock/RingOverlay.kt`), so StartActivity stays resumed and focused, and nothing on the
+ring path asks Start to leave edit mode; edit mode exits only on Home, Back, a tap or a launch (`StartActivity.kt`
+`homeEvents` / `backEvents` / `launchSatellite`).
+Failing clauses: "Edit: edit mode ends — [edit] exit first frame …", "Edit: … and no edit disc is on Start …".
 
-## 2. An alarm firing while Start is in edit mode does not end edit mode
+## 2. (Recorded, not a failing assertion) Music resumes by itself after the ring
 
-Repro: an alarm 2 min ahead; Home; a hold on `tile:slot:PEOPLE` → `edit_disc:unpin` on screen and `[edit] hold 783ms …:
-edit mode on` (both asserted); the clock jumped to 3 s before the alarm.
+The edge case: phase 10's player "pauses on the transient focus loss and, per its E9, does not resume by itself —
+recorded, not hidden". The pause is asserted and passes (session PAUSED, no USAGE_MEDIA player while the ALARM player
+plays). The RECORD 6 s after Dismiss reads `PLAYING; a USAGE_MEDIA player started: yes`, as in runs 2 and 3: the player
+resumed by itself when the ring abandoned its AUDIOFOCUS_GAIN_TRANSIENT (`audio_music_ring.txt`: `requestAudioFocus() …
+USAGE_ALARM … req=2`, then `abandonAudioFocus()`). That contradicts phase 10's rule — for the lead to rule on; no
+assertion added.
 
-- `[alarms] fired a9d21dea0` and the overlay toast (`ring_surface` in `edit_ring.xml`) — but no `[edit] exit first frame`
-  line in `ring_edit_launcher.txt`, and `edit_disc:unpin` is still in the all-windows dump (`edit_ring.png`: the toast
-  over Start still in edit mode). The driver leaves edit mode with Back after the ring.
+## Not driven this run (owner's no-microphone rule)
 
-Cause: the overlay window is `FLAG_NOT_FOCUSABLE`, so StartActivity stays resumed and focused; edit mode exits only on
-Home, Back, a tap or a launch (`StartActivity.kt:136,151,319`, `start/EditGestures.kt:140,164`).
-Failing clauses: "Edit: edit mode ends — [edit] exit first frame …", "… no edit disc is on Start …".
-
-## 3. (Recorded clause, not a failing assertion) Music resumes by itself after the ring
-
-The edge case reads "phase 10's player pauses on the transient focus loss and, per its E9, does not resume by itself —
-recorded, not hidden". The pause is asserted and passes (session PAUSED, no USAGE_MEDIA player while the alarm plays).
-The RECORD 6 s after Dismiss reads `PLAYING; a USAGE_MEDIA player started: yes` in both runs: the player RESUMED by
-itself when the ring abandoned its AUDIOFOCUS_GAIN_TRANSIENT (`audio_music_ring.txt`: `requestAudioFocus() … USAGE_ALARM
-… req=2`, then `abandonAudioFocus()`). That contradicts phase 10's rule ("not resuming after a transient loss the user
-did not ask to resume", phase-10 build task 4; its E9) — for the lead to rule on; no assertion was added.
-
-## What passes
-
-Recorder: the take continues through the ring (phase recording, elapsed advancing, the :recorder slice from the take's
-start holds its `[recorder] start` and no `paused` line), the alarm plays on USAGE_ALARM while the shell's MIC capture is
-active with `silenced:false`, and the saved take is as long as its clock. Glance: NOT RUN (phase 07 unbuilt, no glance
-component). Restore: overlay grant allow, store empty, the take deleted, fixtures and volume as found.
+Case 1's defect (the session is not hidden; the toast is drawn under the voice-interaction window) and case 4's passes
+are run 3's evidence on 4b7ac321 (`EDGE_ALARM_CONTEXT-run3/DEFECT.md`, `-run3/EDGE_ALARM_CONTEXT.txt`); neither was
+re-driven on 61c5b610. The row asserts that no audio capture happened on the device while it ran (`mic_events_*.txt`).

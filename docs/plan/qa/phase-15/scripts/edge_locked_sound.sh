@@ -12,9 +12,10 @@
 #   asserts this for a running TIMER only (e6.sh:140-153) and E21 not at all, so the alarm case is driven here.
 # Restore: RV12's clock restore, the PIN cleared, wake_device, the alarm deleted through the app,
 # remove_fixture_recordings, force-stop + Home, the baseline re-asserted.
-. "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"
+. "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"; . "$(dirname "$0")/mic_guard.sh"
 
 row_begin EDGE_LOCKED_SOUND "a Pick-from-my-music alarm before the first unlock rings the default; force-stop re-arms an armed alarm"
+mic_guard_begin
 record_fsi
 assert_clock_empty "baseline"
 dismiss_any_ring
@@ -128,4 +129,5 @@ adb shell am force-stop app.tileshell; adb shell input keyevent KEYCODE_HOME; sl
 record "restore: locksettings get-disabled" "$(adb shell locksettings get-disabled | tr -d '\r')"
 assert_eq "restore: the fixture song is gone from MediaStore" "" "$(adb shell content query --uri content://media/external/audio/media --projection _id --where "\"_display_name='song.m4a'\"" | tr -d '\r' | grep -oE '_id=[0-9]+')"
 assert_clock_empty "restore"
+mic_guard_end
 row_end
