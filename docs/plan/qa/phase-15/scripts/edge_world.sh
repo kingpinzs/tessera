@@ -35,18 +35,37 @@ assert_eq "its difference line is computed (Today/…, N hours …)" "$(world_ex
 # WorldClockRules.entries labels a shared name "<name>, <Region>", so every disambiguated entry contains ", ": the search
 # for "," lists exactly those. Which names collide is the device's own ICU data; none → the case cannot be produced here.
 search "," "$ROW_DIR/comma.xml"; screencap "$ROW_DIR/comma.png"
-PAIR="$(python3 - "$ROW_DIR/comma.xml" <<'PY'
+# The search results as "zone-id<TAB>label", one per node, whatever the order of a node's attributes (uiautomator writes
+# text= BEFORE resource-id=: this row's first form matched resource-id…text= and read NO result from a list of eleven,
+# then recorded "the search for ', ' lists nothing" — EDGE_WORLD run 4 re-read the kept dumps).
+results() { # dump.xml
+  python3 - "$1" <<'PY'
 import re, sys
 xml = open(sys.argv[1], encoding='utf-8', errors='replace').read()
-rows = [(m.group(1), m.group(2)) for m in re.finditer(r'resource-id="clock_search_result:([^"]+)"[^>]*text="([^"]*)"', xml)]
+for node in re.finditer(r'<node[^>]*>', xml):
+    n = node.group(0)
+    rid = re.search(r'resource-id="clock_search_result:([^"]+)"', n)
+    if not rid: continue
+    t = re.search(r' text="([^"]*)"', n)
+    print("%s\t%s" % (rid.group(1), t.group(1) if t else ""))
+PY
+}
+results "$ROW_DIR/comma.xml" > "$ROW_DIR/comma_results.tsv"
+note "the search for ',' lists $(wc -l < "$ROW_DIR/comma_results.tsv") labels: $(cut -f2 "$ROW_DIR/comma_results.tsv" | paste -sd'|')"
+# A disambiguated pair is WorldClockRules.entries' form: two labels "<name>, <Region>" with one <name>, each <Region> its
+# own zone id's first segment. (ICU's own exemplar names can hold a comma — "Knox, Indiana" — and are not pairs.)
+PAIR="$(python3 - "$ROW_DIR/comma_results.tsv" <<'PY'
+import sys
 base = {}
-for zid, label in rows:
-    if ", " in label: base.setdefault(label.rsplit(", ", 1)[0], []).append((zid, label))
+for line in open(sys.argv[1]):
+    zid, label = line.rstrip("\n").split("\t", 1)
+    if ", " not in label: continue
+    name, region = label.rsplit(", ", 1)
+    if "/" in zid and region == zid.split("/", 1)[0]: base.setdefault(name, []).append((zid, label))
 for b, l in base.items():
     if len(l) >= 2: print(l[0][0], l[0][1], "|", l[1][0], l[1][1]); break
 PY
 )"
-note "labels holding ', ': $(grep -o 'resource-id="clock_search_result:[^"]*"[^>]*text="[^"]*"' "$ROW_DIR/comma.xml" | grep -o 'text="[^"]*"' | head -6 | paste -sd'|')"
 if [ -n "$PAIR" ]; then
   record "a duplicate-name pair" "$PAIR"
   assert_eq "two zones sharing one exemplar name are both listed with their region" yes "$(echo "$PAIR" | python3 -c '
@@ -55,7 +74,18 @@ a, b = sys.stdin.read().split("|"); print("yes" if ", " in a and ", " in b else 
   Z1="$(echo "$PAIR" | awk '{print $1}')"; Z2="$(echo "$PAIR" | awk -F'|' '{print $2}' | awk '{print $1}')"
   assert_ne "… and they are two different zone ids" "$Z1" "$Z2"
 else
-  record "duplicate exemplar names: NOT RUN" "this image's ICU canonical zone list labels no two zones alike (the search for ', ' lists nothing)"
+  # One more try (the edge brief, 2026-09-24): a link zone and its canonical zone share one exemplar name
+  # (America/Indianapolis and America/Indiana/Indianapolis). The list is ICU's CANONICAL set (WorldClockTab.kt:83), so
+  # only one of the two is expected; the search result's zone ids are the evidence either way.
+  search "Indianapolis" "$ROW_DIR/indianapolis.xml"; screencap "$ROW_DIR/indianapolis.png"
+  results "$ROW_DIR/indianapolis.xml" > "$ROW_DIR/indianapolis_results.tsv"
+  INDY="$(sed 's/\t/ = /' "$ROW_DIR/indianapolis_results.tsv" | paste -sd'|')"
+  record "search 'Indianapolis' lists (zone id = label)" "[$INDY]"
+  if [ "$(wc -l < "$ROW_DIR/indianapolis_results.tsv")" -ge 2 ]; then
+    assert_eq "a link zone and its canonical zone are both listed with their region" yes "$(cut -f2 "$ROW_DIR/indianapolis_results.tsv" | grep -c ', ' | awk '{print ($1 >= 2) ? "yes" : "no"}')"
+  else
+    record "duplicate exemplar names: NOT RUN" "no two zones of this image's ICU canonical list share a name: the search for ',' lists $(wc -l < "$ROW_DIR/comma_results.tsv") labels, all ICU exemplar names holding a comma (e.g. $(cut -f2 "$ROW_DIR/comma_results.tsv" | head -1)), none a '<name>, <Region>' pair; and 'Indianapolis' lists one zone only [$INDY] — the link and its canonical id are one entry"
+  fi
 fi
 
 # ---- no match ------------------------------------------------------------------------------------------------------------------------------------
