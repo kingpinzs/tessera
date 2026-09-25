@@ -46,6 +46,11 @@ data class StartTheme(
      * per-tile key to invent and nothing to clean up when a tile is unpinned.
      */
     val photoFrameUri: String? = null,
+    /**
+     * Phase 13 (interview Q2 A): Windows 10's "Transparency effects" switch. On by default; off, every transient
+     * surface draws its measured solid W10M fill instead of acrylic (and phase 12's presets set it).
+     */
+    val transparencyEffects: Boolean = true,
 )
 
 /** Start + theme settings (phase 01 Settings hub). SharedPreferences-backed, exposed as a StateFlow. */
@@ -65,6 +70,7 @@ class ShellSettings private constructor(context: Context) {
         autoSizeTiles = prefs.getBoolean("autosize", true),
         photosSlideshow = prefs.getBoolean("photos_slideshow", false),
         photoFrameUri = prefs.getString("photo_frame", null),
+        transparencyEffects = prefs.getBoolean("transparency_effects", true),
     )
 
     fun update(change: (StartTheme) -> StartTheme) {
@@ -80,6 +86,7 @@ class ShellSettings private constructor(context: Context) {
             .putBoolean("autosize", next.autoSizeTiles)
             .putBoolean("photos_slideshow", next.photosSlideshow)
             .putString("photo_frame", next.photoFrameUri)
+            .putBoolean("transparency_effects", next.transparencyEffects)
             .apply()
         state.value = next
         Diagnostics.add("settings", "start theme changed: $next")

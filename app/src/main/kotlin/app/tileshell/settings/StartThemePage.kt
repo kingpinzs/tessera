@@ -97,6 +97,12 @@ fun StartThemePage() {
         }
     }
 
+    // Phase 13 (interview Q2 A): Windows 10's own wording, from Settings > Personalization > Colors (H5).
+    SectionHeader("Effects")
+    ToggleRow("Transparency effects", theme.transparencyEffects, "theme_transparency_effects") { on ->
+        settings.update { it.copy(transparencyEffects = on) }
+    }
+
     SectionHeader("Start")
     ToggleRow("Show more tiles", theme.mediumColumns == 3, "theme_show_more_tiles") { on -> settings.update { it.copy(mediumColumns = if (on) 3 else 2) } }
     ToggleRow("Show work and private apps", theme.showWorkAndPrivateApps, "theme_show_profiles") { on -> settings.update { it.copy(showWorkAndPrivateApps = on) } }

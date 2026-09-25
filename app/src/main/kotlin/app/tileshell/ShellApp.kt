@@ -63,6 +63,9 @@ class ShellApp : Application() {
         addCategoryFolders()
         claimMusicSlot()
         startFeeds("process start")
+        // Phase 13: the acrylic on / off rule, followed from here for the life of the launcher's process; it writes
+        // its first `[fluent] acrylic=… reason=…` line now.
+        app.tileshell.ui.fluent.Fluent.start(this)
         // Phase 15 build task 4: the next-alarm face on the Alarms & Clock tile and the pinned timer / stopwatch faces.
         app.tileshell.clock.ClockTiles.start(this)
         startBadgeExpirySweep()
