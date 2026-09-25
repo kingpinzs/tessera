@@ -36,6 +36,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,6 +64,7 @@ import app.tileshell.ui.MotionClock
 import app.tileshell.ui.components.ROW_PRESS_ALPHA
 import app.tileshell.ui.tokens.CapMetrics
 import app.tileshell.ui.tokens.ShellType
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -257,21 +259,28 @@ fun LoopSpinner(values: List<String>, selected: Int, visibleRows: Float, tag: St
     val density = LocalDensity.current
     val rowPx = with(density) { ClockMetrics.SPINNER_ROW.toPx() }
     var offset by remember { mutableFloatStateOf(0f) } // rows scrolled away from [selected]; positive = later values
-    var settling by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    // The gesture handlers outlive recompositions: they must read the value and callback of now, not of the
+    // composition they started in (a tap after the first change rolled from the value the editor opened with).
+    val current by rememberUpdatedState(selected)
+    val select by rememberUpdatedState(onSelect)
+    var settleJob by remember { mutableStateOf<Job?>(null) }
     val n = values.size
     fun wrap(i: Int) = ((i % n) + n) % n
 
-    suspend fun settle(target: Float) {
-        settling = true
-        val from = offset
-        val steps = target.roundToInt()
-        val duration = (150 + abs(steps - from) * 30).roundToInt().coerceIn(150, 400)
-        MotionClock.animate("spinner", duration, ClockMetrics.easeOut) { f -> offset = from + (steps - from) * f }
-        val next = wrap(selected + steps)
-        offset = 0f
-        settling = false
-        if (next != selected) onSelect(next)
+    // Rolls to the row nearest [target] (rows from [current]); the value changes only when the roll completes, so a
+    // drag or tap that cancels it mid-way carries on from where the column is.
+    fun settle(target: Float) {
+        settleJob?.cancel()
+        settleJob = scope.launch {
+            val from = offset
+            val steps = target.roundToInt()
+            val duration = (150 + abs(steps - from) * 30).roundToInt().coerceIn(150, 400)
+            MotionClock.animate("spinner", duration, ClockMetrics.easeOut) { f -> offset = from + (steps - from) * f }
+            val next = wrap(current + steps)
+            offset = 0f
+            if (next != current) select(next)
+        }
     }
 
     val height = ClockMetrics.SPINNER_ROW * visibleRows
@@ -279,8 +288,10 @@ fun LoopSpinner(values: List<String>, selected: Int, visibleRows: Float, tag: St
         modifier.height(height).clipToBounds().testTag(tag)
             .semantics { contentDescription = values[selected] }
             .draggable(
-                state = rememberDraggableState { delta -> if (!settling) offset -= delta / rowPx },
+                state = rememberDraggableState { delta -> offset -= delta / rowPx },
                 orientation = Orientation.Vertical,
+                // A drag catches a rolling column where it is.
+                onDragStarted = { settleJob?.cancel() },
                 onDragStopped = { velocity ->
                     // A fling carries on a few rows: ≈ 0.15 rows per row-height of velocity, at most 20 rows.
                     val carry = (-velocity / rowPx * 0.15f).coerceIn(-20f, 20f)
@@ -289,16 +300,18 @@ fun LoopSpinner(values: List<String>, selected: Int, visibleRows: Float, tag: St
             )
             .pointerInput(n) {
                 detectTapGestures { tap ->
-                    if (settling) return@detectTapGestures
                     val centreY = size.height / 2f
                     val k = ((tap.y - centreY) / rowPx + offset).roundToInt()
-                    if (k != 0) scope.launch { settle(k.toFloat()) }
+                    if (k != 0 || offset != 0f) settle(k.toFloat())
                 }
             },
     ) {
+        // The rows around the one now nearest the centre, so a drag of any length keeps the column full; a window
+        // fixed on [selected] ran out two rows past the frame and left blank rows.
         val half = (visibleRows / 2f).toInt() + 2
         val centre = height / 2
-        for (k in -half..half) {
+        val nearest = offset.roundToInt()
+        for (k in nearest - half..nearest + half) {
             val index = wrap(selected + k)
             val y = centre + ClockMetrics.SPINNER_ROW * (k - offset) - ClockMetrics.SPINNER_ROW / 2
             val isCentre = abs(k - offset) < 0.5f
