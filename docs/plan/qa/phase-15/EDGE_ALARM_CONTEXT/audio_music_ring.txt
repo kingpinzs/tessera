@@ -1,12 +1,12 @@
 Events log: audio services lifecycle
-09-24 22:15:34:392 AudioService()
-09-24 22:15:34:397 Controller start task complete
+09-25 11:33:21:234 AudioService()
+09-25 11:33:21:244 Controller start task complete
 
 Message handler (watch for unhandled messages):
-  Handler (com.android.server.audio.AudioService$AudioHandler) {156c581} @ 2561967
-    Looper (AudioService, tid 133) {64926f8}
+  Handler (com.android.server.audio.AudioService$AudioHandler) {2041383} @ 3155927
+    Looper (AudioService, tid 135) {7ec8ee1}
       (MessageQueue is using Concurrent implementation)
-      State: android.os.MessageQueue$StateNode@7052f56
+      State: android.os.MessageQueue$StateNode@7f4ef6d
       PriorityQueue Messages: 
       AsyncPriorityQueue Messages: 
       (Total messages: 1, polling=true, quitting=false)
@@ -33,15 +33,14 @@ Fun with Flags:
 	android.media.audio.Flags.cacheGetStreamVolume:false
 	com.android.media.audio.optimizeBtDeviceSwitch:false
 Events log: Hardening enforcement
-09-24 22:18:00:071 AudioHardening focus request for req 2 would be ignored for app.tileshell (10150), android.media.AudioManager@990918d, level: full
-09-24 22:18:00:131 AudioHardening background playback would be muted for app.tileshell (10150), level: full
-09-24 22:55:56:123 AudioHardening background playback would be muted for app.tileshell (10150), level: partial
+09-25 11:36:00:078 AudioHardening focus request for req 2 would be ignored for app.tileshell (10174), android.media.AudioManager@3d6cae8, level: full
+09-25 11:36:00:163 AudioHardening background playback would be muted for app.tileshell (10174), level: full
 
-MediaFocusControl dump time: 10:58:02 PM
+MediaFocusControl dump time: 12:26:02 PM
 
 Audio Focus stack entries (last is top of stack):
-  source:android.os.BinderProxy@276c928 -- pack: app.tileshell -- client: android.media.AudioManager@3bd2f0androidx.media3.exoplayer.AudioFocusManager$$ExternalSyntheticLambda0@95e2069 -- gain: GAIN -- flags:  -- loss: LOSS_TRANSIENT -- notified: true -- limbofalse -- uid: 10150 -- attr: AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_MUSIC flags=0x800 tags= bundle=null -- sdk:36
-  source:android.os.BinderProxy@206fa89 -- pack: app.tileshell -- client: android.media.AudioManager@6b8b516 -- gain: GAIN_TRANSIENT -- flags:  -- loss: none -- notified: true -- limbofalse -- uid: 10150 -- attr: AudioAttributes: usage=USAGE_ALARM content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null -- sdk:36
+  source:android.os.BinderProxy@3802716 -- pack: app.tileshell -- client: android.media.AudioManager@5fbc4f0androidx.media3.exoplayer.AudioFocusManager$$ExternalSyntheticLambda0@3d42a69 -- gain: GAIN -- flags:  -- loss: LOSS_TRANSIENT -- notified: true -- limbofalse -- uid: 10174 -- attr: AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_MUSIC flags=0x800 tags= bundle=null -- sdk:36
+  source:android.os.BinderProxy@6978c64 -- pack: app.tileshell -- client: android.media.AudioManager@40a95b9 -- gain: GAIN_TRANSIENT -- flags:  -- loss: none -- notified: true -- limbofalse -- uid: 10174 -- attr: AudioAttributes: usage=USAGE_ALARM content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null -- sdk:36
 
 
 No external focus policy
@@ -55,35 +54,19 @@ No external focus policy
 
 
 Events log: focus commands as seen by MediaFocusControl
-09-24 22:18:00:071 requestAudioFocus() from uid/pid 10150/1347 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@990918d callingPack=app.tileshell req=2 flags=0x0 sdk=36
-09-24 22:18:05:091 abandonAudioFocus() from uid/pid 10150/1347 clientId=android.media.AudioManager@990918d callingPack=app.tileshell
-09-24 22:16:06:066 requestAudioFocus() from uid/pid 10150/3099 AA=USAGE_ASSISTANT/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@a630fa7 callingPack=app.tileshell req=3 flags=0x0 sdk=36
-09-24 22:16:12:228 abandonAudioFocus() from uid/pid 10150/3099 clientId=android.media.AudioManager@a630fa7 callingPack=app.tileshell
-09-24 22:19:25:510 requestAudioFocus() from uid/pid 10150/3005 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@5165178 callingPack=app.tileshell req=2 flags=0x0 sdk=36
-09-24 22:19:25:538 focus owner: android.media.AudioManager@5165178 in uid: 10150 pack: app.tileshell event:  died
-09-24 22:19:26:054 requestAudioFocus() from uid/pid 10150/4626 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@36bcd1 callingPack=app.tileshell req=2 flags=0x0 sdk=36
-09-24 22:24:26:098 focus owner: android.media.AudioManager@36bcd1 in uid: 10150 pack: app.tileshell event:  died
-09-24 22:31:02:050 requestAudioFocus() from uid/pid 10150/6238 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@baef00c callingPack=app.tileshell req=2 flags=0x0 sdk=36
-09-24 22:31:05:421 abandonAudioFocus() from uid/pid 10150/6238 clientId=android.media.AudioManager@baef00c callingPack=app.tileshell
-09-24 22:36:33:022 requestAudioFocus() from uid/pid 10150/9913 AA=USAGE_ASSISTANT/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@69a2066 callingPack=app.tileshell req=3 flags=0x0 sdk=36
-09-24 22:36:39:918 abandonAudioFocus() from uid/pid 10150/9913 clientId=android.media.AudioManager@69a2066 callingPack=app.tileshell
-09-24 22:39:05:295 requestAudioFocus() from uid/pid 10150/9826 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@c963200 callingPack=app.tileshell req=2 flags=0x0 sdk=36
-09-24 22:39:05:331 focus owner: android.media.AudioManager@c963200 in uid: 10150 pack: app.tileshell event:  died
-09-24 22:39:05:865 requestAudioFocus() from uid/pid 10150/11124 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@26cfff8 callingPack=app.tileshell req=2 flags=0x0 sdk=36
-09-24 22:44:05:915 focus owner: android.media.AudioManager@26cfff8 in uid: 10150 pack: app.tileshell event:  died
-09-24 22:51:02:078 requestAudioFocus() from uid/pid 10150/12662 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@9df6637 callingPack=app.tileshell req=2 flags=0x0 sdk=36
-09-24 22:51:05:803 abandonAudioFocus() from uid/pid 10150/12662 clientId=android.media.AudioManager@9df6637 callingPack=app.tileshell
-09-24 22:55:00:060 requestAudioFocus() from uid/pid 10150/14814 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@f5f89d7 callingPack=app.tileshell req=2 flags=0x0 sdk=36
-09-24 22:55:01:336 requestAudioFocus() from uid/pid 10150/16247 AA=USAGE_ASSISTANT/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@36207cf callingPack=app.tileshell req=3 flags=0x0 sdk=36
-09-24 22:55:01:336 focus owner: android.media.AudioManager@f5f89d7 in uid: 10150 pack: app.tileshell code: -3 event: handleLoss
-09-24 22:55:05:101 abandonAudioFocus() from uid/pid 10150/16247 clientId=android.media.AudioManager@36207cf callingPack=app.tileshell
-09-24 22:55:05:102 focus owner: android.media.AudioManager@f5f89d7 in uid: 10150 pack: app.tileshell code: 1 event: handleGain
-09-24 22:55:56:110 focus owner: android.media.AudioManager@f5f89d7 in uid: 10150 pack: app.tileshell event:  died
-09-24 22:57:02:074 requestAudioFocus() from uid/pid 10150/20004 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@54aee4d callingPack=app.tileshell req=2 flags=0x0 sdk=36
-09-24 22:57:08:537 abandonAudioFocus() from uid/pid 10150/20004 clientId=android.media.AudioManager@54aee4d callingPack=app.tileshell
-09-24 22:56:23:925 requestAudioFocus() from uid/pid 10150/20436 AA=USAGE_MEDIA/CONTENT_TYPE_MUSIC clientId=android.media.AudioManager@3bd2f0androidx.media3.exoplayer.AudioFocusManager$$ExternalSyntheticLambda0@95e2069 callingPack=app.tileshell req=1 flags=0x0 sdk=36
-09-24 22:58:02:056 requestAudioFocus() from uid/pid 10150/20436 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@6b8b516 callingPack=app.tileshell req=2 flags=0x0 sdk=36
-09-24 22:58:02:057 focus owner: android.media.AudioManager@3bd2f0androidx.media3.exoplayer.AudioFocusManager$$ExternalSyntheticLambda0@95e2069 in uid: 10150 pack: app.tileshell code: -2 event: handleLoss
+09-25 11:36:00:079 requestAudioFocus() from uid/pid 10174/1355 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@3d6cae8 callingPack=app.tileshell req=2 flags=0x0 sdk=36
+09-25 11:36:05:076 abandonAudioFocus() from uid/pid 10174/1355 clientId=android.media.AudioManager@3d6cae8 callingPack=app.tileshell
+09-25 11:34:32:701 requestAudioFocus() from uid/pid 10174/3148 AA=USAGE_ASSISTANT/CONTENT_TYPE_SPEECH clientId=android.media.AudioManager@cb8adfb callingPack=app.tileshell req=3 flags=0x0 sdk=36
+09-25 11:34:40:179 abandonAudioFocus() from uid/pid 10174/3148 clientId=android.media.AudioManager@cb8adfb callingPack=app.tileshell
+09-25 11:37:05:523 requestAudioFocus() from uid/pid 10174/3054 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@46d2a95 callingPack=app.tileshell req=2 flags=0x0 sdk=36
+09-25 11:37:05:563 focus owner: android.media.AudioManager@46d2a95 in uid: 10174 pack: app.tileshell event:  died
+09-25 11:37:06:109 requestAudioFocus() from uid/pid 10174/4397 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@93f7d4d callingPack=app.tileshell req=2 flags=0x0 sdk=36
+09-25 11:42:06:150 focus owner: android.media.AudioManager@93f7d4d in uid: 10174 pack: app.tileshell event:  died
+09-25 12:25:02:073 requestAudioFocus() from uid/pid 10174/6216 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@5015008 callingPack=app.tileshell req=2 flags=0x0 sdk=36
+09-25 12:25:07:272 abandonAudioFocus() from uid/pid 10174/6216 clientId=android.media.AudioManager@5015008 callingPack=app.tileshell
+09-25 12:24:49:233 requestAudioFocus() from uid/pid 10174/6789 AA=USAGE_MEDIA/CONTENT_TYPE_MUSIC clientId=android.media.AudioManager@5fbc4f0androidx.media3.exoplayer.AudioFocusManager$$ExternalSyntheticLambda0@3d42a69 callingPack=app.tileshell req=1 flags=0x0 sdk=36
+09-25 12:26:02:040 requestAudioFocus() from uid/pid 10174/6789 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@40a95b9 callingPack=app.tileshell req=2 flags=0x0 sdk=36
+09-25 12:26:02:040 focus owner: android.media.AudioManager@5fbc4f0androidx.media3.exoplayer.AudioFocusManager$$ExternalSyntheticLambda0@3d42a69 in uid: 10174 pack: app.tileshell code: -2 event: handleLoss
 Multi Audio Focus enabled :false
 
 Stream volumes (device: index)
@@ -235,14 +218,14 @@ Volume Groups (device: index)
    Muted: false
    Min: 0
    Max: 15
-   Current: 2 (speaker): 11, 40000000 (default): 11
+   Current: 2 (speaker): 5, 40000000 (default): 11
    Devices: speaker
    Streams: STREAM_DTMF 
 - VOLUME GROUP AUDIO_STREAM_ENFORCED_AUDIBLE:
    Muted: false
    Min: 0
    Max: 7
-   Current: 40000000 (default): 5
+   Current: 2 (speaker): 5, 40000000 (default): 5
    Devices: speaker
    Streams: STREAM_SYSTEM_ENFORCED 
 - VOLUME GROUP AUDIO_STREAM_MUSIC:
@@ -277,14 +260,14 @@ Volume Groups (device: index)
    Muted: false
    Min: 0
    Max: 7
-   Current: 40000000 (default): 5
+   Current: 2 (speaker): 5, 40000000 (default): 5
    Devices: speaker
    Streams: STREAM_RING 
 - VOLUME GROUP AUDIO_STREAM_SYSTEM:
    Muted: false
    Min: 0
    Max: 7
-   Current: 40000000 (default): 5
+   Current: 2 (speaker): 5, 40000000 (default): 5
    Devices: speaker
    Streams: STREAM_SYSTEM 
 - VOLUME GROUP AUDIO_STREAM_TTS:
@@ -331,7 +314,7 @@ Audio routes:
 
 Other state:
   mUseVolumeGroupAliases=false
-  mVolumeController=VolumeController(android.os.BinderProxy@e4b267,mVisible=false)
+  mVolumeController=VolumeController(android.os.BinderProxy@a2ae539,mVisible=false)
   mEnableCsd=false
   mSafeMediaVolumeState=SAFE_MEDIA_VOLUME_DISABLED
   mSafeMediaVolumeIndex=100
@@ -387,23 +370,23 @@ android.media.audiopolicy.AudioPolicyConfig:
    media projection= null
 
 Events log: dynamic policy events (logged when command received by AudioService)
-09-24 22:15:34:585 registerAudioPolicy for android.media.audiopolicy.AudioPolicy$1@91853da u/pid:1000/692 with config:reg:32:ap:0
+09-25 11:33:21:517 registerAudioPolicy for android.media.audiopolicy.AudioPolicy$1@85bf725 u/pid:1000/688 with config:reg:32:ap:0
 
-PlaybackActivityMonitor dump time: 10:58:02 PM
+PlaybackActivityMonitor dump time: 12:26:02 PM
 
   playback listeners:
- PlayMonitorClient:S uid:1000 pid:692
- PlayMonitorClient:S uid:1000 pid:692
- PlayMonitorClient:S uid:1000 pid:692
- PlayMonitorClient:S uid:1002 pid:1022
+ PlayMonitorClient:S uid:1000 pid:688
+ PlayMonitorClient:S uid:1000 pid:688
+ PlayMonitorClient:S uid:1000 pid:688
+ PlayMonitorClient:S uid:1002 pid:1012
 
 
 
   players:
-(not logged)  AudioPlaybackConfiguration piid:63 deviceIds:[] type:android.media.SoundPool u/pid:1000/692 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:0 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x0, sampleRate=0}
-  AudioPlaybackConfiguration piid:71 deviceIds:[] type:android.media.SoundPool u/pid:10124/941 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:0 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x0, sampleRate=0}
-  AudioPlaybackConfiguration piid:183 deviceIds:[2] type:android.media.AudioTrack u/pid:10150/20436 state:paused attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_MUSIC flags=0xA00 tags= bundle=null sessionId:233 mutedState:streamVolume portVolume  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-  AudioPlaybackConfiguration piid:191 deviceIds:[2] type:android.media.MediaPlayer u/pid:10150/20436 state:started attr:AudioAttributes: usage=USAGE_ALARM content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:249 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+(not logged)  AudioPlaybackConfiguration piid:63 deviceIds:[] type:android.media.SoundPool u/pid:1000/688 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:0 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x0, sampleRate=0}
+  AudioPlaybackConfiguration piid:71 deviceIds:[] type:android.media.SoundPool u/pid:10124/932 state:idle attr:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:0 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x0, sampleRate=0}
+  AudioPlaybackConfiguration piid:119 deviceIds:[2] type:android.media.AudioTrack u/pid:10174/6789 state:paused attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_MUSIC flags=0xA00 tags= bundle=null sessionId:185 mutedState:streamVolume portVolume  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+  AudioPlaybackConfiguration piid:127 deviceIds:[2] type:android.media.MediaPlayer u/pid:10174/6789 state:started attr:AudioAttributes: usage=USAGE_ALARM content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:201 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
 
   ducked players piids:
 
@@ -418,127 +401,125 @@ PlaybackActivityMonitor dump time: 10:58:02 PM
 
 
   current piid to portId map:
-  piid: 183 portId: 35
-  piid: 191 portId: 36
+  piid: 119 portId: 25
+  piid: 127 portId: 26
 
 
 Events log: playback activity as reported through PlayerBase
-09-24 22:55:06:924 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:06:949 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:08:605 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:08:650 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:10:328 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:10:370 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:10:398 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:12:050 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:12:092 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:13:772 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:13:814 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:13:832 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:15:497 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:15:538 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:17:218 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:17:260 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:17:281 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:18:941 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:18:983 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:20:663 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:20:705 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:20:733 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:22:386 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:22:427 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:24:108 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:24:150 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:24:182 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:25:832 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:25:873 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:27:554 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:27:595 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:29:277 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:29:319 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:29:348 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:30:999 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:31:041 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:32:722 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:32:765 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:32:782 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:34:444 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:34:486 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:36:167 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:36:209 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:36:234 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:37:890 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:37:931 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:39:613 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:39:654 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:39:683 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:41:335 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:41:377 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:43:058 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:43:099 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:43:131 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:44:781 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:44:822 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:46:504 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:46:547 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:46:565 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:48:226 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:48:267 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:49:949 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:49:990 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:50:014 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:51:671 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:51:713 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:53:394 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:53:436 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:53:465 player piid:159 event:device updated deviceIds:[2]
-09-24 22:55:55:118 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:55:159 player piid:159 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:55:56:109 releasing player piid:159, uid:0
-09-24 22:57:02:076 new player piid:175 uid/pid:10150/20004 package:app.tileshell type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:225
-09-24 22:57:02:076 player piid:175 new AudioAttributes:AudioAttributes: usage=USAGE_ALARM content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
-09-24 22:57:02:085 player piid:175 event:started
-09-24 22:57:02:102 port updated portId:[34] mapped to player piid:175
-09-24 22:57:02:104 player piid:175 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:57:02:150 player piid:175 event:device updated deviceIds:[2]
-09-24 22:57:03:731 player piid:175 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:57:03:772 player piid:175 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:57:05:453 player piid:175 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:57:05:495 player piid:175 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:57:05:510 player piid:175 event:device updated deviceIds:[2]
-09-24 22:57:07:177 player piid:175 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:57:07:218 player piid:175 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:57:08:512 player piid:175 event:stopped
-09-24 22:57:08:533 releasing player piid:175, uid:10150
-09-24 22:56:24:043 new player piid:183 uid/pid:10150/20436 package:app.tileshell type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_MUSIC flags=0xA00 tags= bundle=null session:233
-09-24 22:56:24:043 port updated portId:[35] mapped to player piid:183
-09-24 22:56:24:044 player piid:183 event:started
-09-24 22:56:24:045 player piid:183 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:56:24:047 player piid:183 event:device updated deviceIds:[2]
-09-24 22:56:24:079 player piid:183 event:muted updated source:streamVolume portVolume 
-09-24 22:58:02:057 new player piid:191 uid/pid:10150/20436 package:app.tileshell type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:249
-09-24 22:58:02:057 player piid:191 new AudioAttributes:AudioAttributes: usage=USAGE_ALARM content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
-09-24 22:58:02:057 player piid:183 event:paused
-09-24 22:58:02:062 player piid:191 event:started
-09-24 22:58:02:075 port updated portId:[36] mapped to player piid:191
-09-24 22:58:02:076 player piid:191 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
-09-24 22:58:02:133 player piid:191 event:device updated deviceIds:[2]
+09-25 11:41:05:583 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:07:264 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:07:306 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:08:987 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:09:028 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:10:710 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:10:752 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:12:432 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:12:474 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:14:155 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:14:197 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:15:878 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:15:919 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:17:600 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:17:642 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:19:323 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:19:364 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:21:046 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:21:087 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:22:768 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:22:810 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:24:491 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:24:533 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:26:214 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:26:255 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:27:937 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:27:978 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:29:659 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:29:700 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:31:382 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:31:424 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:33:104 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:33:146 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:34:827 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:34:869 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:36:550 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:36:591 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:38:272 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:38:314 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:39:995 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:40:036 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:41:718 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:41:759 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:43:440 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:43:482 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:45:163 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:45:205 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:46:886 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:46:927 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:48:608 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:48:650 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:50:331 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:50:372 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:52:054 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:52:095 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:53:776 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:53:818 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:55:499 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:55:540 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:57:222 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:57:263 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:58:944 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:41:58:986 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:42:00:667 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:42:00:708 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:42:02:390 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:42:02:431 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:42:04:112 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:42:04:154 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:42:05:835 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:42:05:876 player piid:103 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 11:42:06:150 releasing player piid:103, uid:0
+09-25 12:25:02:076 new player piid:111 uid/pid:10174/6216 package:app.tileshell type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:177
+09-25 12:25:02:076 player piid:111 new AudioAttributes:AudioAttributes: usage=USAGE_ALARM content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
+09-25 12:25:02:091 player piid:111 event:started
+09-25 12:25:02:122 port updated portId:[24] mapped to player piid:111
+09-25 12:25:02:122 player piid:111 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 12:25:02:198 player piid:111 event:device updated deviceIds:[2]
+09-25 12:25:03:739 player piid:111 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 12:25:03:780 player piid:111 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 12:25:05:461 player piid:111 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 12:25:05:504 player piid:111 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 12:25:05:516 player piid:111 event:device updated deviceIds:[2]
+09-25 12:25:07:186 player piid:111 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 12:25:07:219 player piid:111 event:stopped
+09-25 12:25:07:228 player piid:111 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 12:25:07:229 releasing player piid:111, uid:10174
+09-25 12:24:49:353 new player piid:119 uid/pid:10174/6789 package:app.tileshell type:android.media.AudioTrack attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_MUSIC flags=0xA00 tags= bundle=null session:185
+09-25 12:24:49:353 port updated portId:[25] mapped to player piid:119
+09-25 12:24:49:355 player piid:119 event:started
+09-25 12:24:49:358 player piid:119 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 12:24:49:358 player piid:119 event:device updated deviceIds:[2]
+09-25 12:24:49:391 player piid:119 event:muted updated source:streamVolume portVolume 
+09-25 12:26:02:041 new player piid:127 uid/pid:10174/6789 package:app.tileshell type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null session:201
+09-25 12:26:02:041 player piid:127 new AudioAttributes:AudioAttributes: usage=USAGE_ALARM content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
+09-25 12:26:02:041 player piid:119 event:paused
+09-25 12:26:02:045 player piid:127 event:started
+09-25 12:26:02:056 port updated portId:[26] mapped to player piid:127
+09-25 12:26:02:057 player piid:127 format update:FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+09-25 12:26:02:112 player piid:127 event:device updated deviceIds:[2]
 
   allowed capture policies:
 
-RecordActivityMonitor dump time: 10:58:02 PM
+RecordActivityMonitor dump time: 12:26:02 PM
 
 
 Events log: recording activity received by AudioService
-09-24 22:54:59:116 rec start riid:151 uid:10150 session:201 src:VOICE_RECOGNITION not silenced pack:app.tileshell
-09-24 22:55:01:318 rec stop riid:151 uid:10150 session:201 src:VOICE_RECOGNITION not silenced pack:app.tileshell
 
 AudioDeviceBroker:
   Message handler (watch for unhandled messages):
-    Handler (com.android.server.audio.AudioDeviceBroker$BrokerHandler) {2658814} @ 2561969
-      Looper (AudioDeviceBroker, tid 130) {680d6b}
+    Handler (com.android.server.audio.AudioDeviceBroker$BrokerHandler) {931277e} @ 3155929
+      Looper (AudioDeviceBroker, tid 132) {501ed85}
         (MessageQueue is using Concurrent implementation)
-        State: android.os.MessageQueue$StateNode@7052f56
+        State: android.os.MessageQueue$StateNode@7f4ef6d
         PriorityQueue Messages: 
         AsyncPriorityQueue Messages: 
         (Total messages: 1, polling=true, quitting=false)
@@ -585,36 +566,36 @@ devices:
 
   Bluetooth LE Audio suspended, requested ext: false, requested int: false, applied false
 
-  mBluetoothHeadset: android.bluetooth.BluetoothHeadset@284f7b
+  mBluetoothHeadset: android.bluetooth.BluetoothHeadset@bf07a82
   mBluetoothHeadsetDevice: null
   mScoAudioState: SCO_STATE_INACTIVE
   mScoAudioMode: SCO_MODE_VIRTUAL_CALL
 
-  mHearingAid: android.bluetooth.BluetoothHearingAid@cf1add6
+  mHearingAid: android.bluetooth.BluetoothHearingAid@37c3dc9
 
   mLeAudio: null
-  mA2dp: android.bluetooth.BluetoothA2dp@d838198
+  mA2dp: android.bluetooth.BluetoothA2dp@d43f593
   mAvrcpAbsVolSupported: false
 
 SoundEffects:
   Message handler (watch for unhandled messages):
-  Handler (com.android.server.audio.SoundEffectsHelper$SfxHandler) {82938bd} @ 2561969
-    Looper (AS.SfxWorker, tid 132) {804eeb2}
+  Handler (com.android.server.audio.SoundEffectsHelper$SfxHandler) {d6a64df} @ 3155929
+    Looper (AS.SfxWorker, tid 134) {483152c}
       (MessageQueue is using Concurrent implementation)
-      State: android.os.MessageQueue$StateNode@7052f56
+      State: android.os.MessageQueue$StateNode@7f4ef6d
       PriorityQueue Messages: 
       AsyncPriorityQueue Messages: 
       (Total messages: 1, polling=true, quitting=false)
   Default attenuation (dB): -6
 Events log: Sound Effects Loading
-09-24 22:15:34:693 effects loading started
-09-24 22:15:34:727 effect Effect_Tick.ogg loaded
-09-24 22:15:34:739 effect KeypressStandard.ogg loaded
-09-24 22:15:34:749 effect KeypressSpacebar.ogg loaded
-09-24 22:15:34:750 effect KeypressDelete.ogg loaded
-09-24 22:15:34:777 effect KeypressReturn.ogg loaded
-09-24 22:15:34:780 effect KeypressInvalid.ogg loaded
-09-24 22:15:34:780 effects loading completed
+09-25 11:33:21:696 effects loading started
+09-25 11:33:21:745 effect KeypressStandard.ogg loaded
+09-25 11:33:21:747 effect Effect_Tick.ogg loaded
+09-25 11:33:21:774 effect KeypressDelete.ogg loaded
+09-25 11:33:21:781 effect KeypressSpacebar.ogg loaded
+09-25 11:33:21:806 effect KeypressReturn.ogg loaded
+09-25 11:33:21:810 effect KeypressInvalid.ogg loaded
+09-25 11:33:21:810 effects loading completed
 
 
 
@@ -623,67 +604,68 @@ Events log: phone state (logged after successful call to AudioSystem.setPhoneSta
 
 
 Events log: wired/A2DP/hearing aid device connection
-09-24 22:15:34:687 updateCommunicationRoute, preferredCommunicationDevice: null eventSource: resetBluetoothSco
-09-24 22:15:35:319 BT profile service: connecting HEADSET profile
-09-24 22:15:35:319 BT profile HEADSET connected to proxy android.bluetooth.BluetoothHeadset@284f7b
-09-24 22:15:35:319 BT profile service: connecting HEARING_AID profile
-09-24 22:15:35:319 BT profile service: connecting A2DP profile
-09-24 22:15:35:320 BT profile HEARING_AID connected to proxy android.bluetooth.BluetoothHearingAid@cf1add6
-09-24 22:15:35:321 BT profile A2DP connected to proxy android.bluetooth.BluetoothA2dp@d838198
-09-24 22:15:35:516 removePreferredDevicesForStrategy strat:5
+09-25 11:33:21:695 updateCommunicationRoute, preferredCommunicationDevice: null eventSource: resetBluetoothSco
+09-25 11:33:22:931 BT profile service: connecting A2DP profile
+09-25 11:33:22:931 BT profile service: connecting HEADSET profile
+09-25 11:33:22:931 BT profile service: connecting HEARING_AID profile
+09-25 11:33:22:933 BT profile A2DP connected to proxy android.bluetooth.BluetoothA2dp@d43f593
+09-25 11:33:22:937 BT profile HEADSET connected to proxy android.bluetooth.BluetoothHeadset@bf07a82
+09-25 11:33:22:938 BT profile HEARING_AID connected to proxy android.bluetooth.BluetoothHearingAid@37c3dc9
+09-25 11:33:23:112 removePreferredDevicesForStrategy strat:5
 
 
 Events log: force use (logged before setForceUse() is executed)
-09-24 22:15:34:401 setForceUse(FOR_ENCODED_SURROUND, FORCE_NONE) due to readPersistedSettings
-09-24 22:15:34:401 setForceUse(FOR_DOCK, FORCE_DIGITAL_DOCK) due to readDockAudioSettings
-09-24 22:15:34:412 setForceUse(FOR_SYSTEM, FORCE_NONE) due to AudioService ctor
-09-24 22:15:34:425 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/692
-09-24 22:15:34:693 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/692
-09-24 22:15:34:984 setForceUse(FOR_ENCODED_SURROUND, FORCE_NONE) due to readPersistedSettings
-09-24 22:15:34:985 setForceUse(FOR_DOCK, FORCE_DIGITAL_DOCK) due to readDockAudioSettings
-09-24 22:15:35:024 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/692
+09-25 11:33:21:254 setForceUse(FOR_DOCK, FORCE_DIGITAL_DOCK) due to readDockAudioSettings
+09-25 11:33:21:254 setForceUse(FOR_ENCODED_SURROUND, FORCE_NONE) due to readPersistedSettings
+09-25 11:33:21:283 setForceUse(FOR_SYSTEM, FORCE_NONE) due to AudioService ctor
+09-25 11:33:21:306 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/688
+09-25 11:33:21:307 setForceUse(FOR_DOCK, FORCE_DIGITAL_DOCK) due to readDockAudioSettings
+09-25 11:33:21:696 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/688
+09-25 11:33:22:162 setForceUse(FOR_DOCK, FORCE_DIGITAL_DOCK) due to readDockAudioSettings
+09-25 11:33:22:163 setForceUse(FOR_ENCODED_SURROUND, FORCE_NONE) due to readPersistedSettings
+09-25 11:33:22:179 setForceUse(FOR_VIBRATE_RINGING, FORCE_NONE) due to muteRingerModeStreams() from u/pid:1000/688
 
 
 Events log: volume changes (logged when command received by AudioService)
-09-24 22:15:34:403 updateIndexFactors() stream:0 index min/max:1/15 indexStepFactor:3.5
-09-24 22:15:34:404 updateIndexFactors() stream:1 index min/max:0/7 indexStepFactor:1.0
-09-24 22:15:34:405 updateIndexFactors() stream:2 index min/max:0/7 indexStepFactor:1.0
-09-24 22:15:34:405 updateIndexFactors() stream:3 index min/max:0/15 indexStepFactor:1.0
-09-24 22:15:34:405 updateIndexFactors() stream:4 index min/max:1/7 indexStepFactor:1.0
-09-24 22:15:34:406 updateIndexFactors() stream:5 index min/max:0/7 indexStepFactor:1.0
-09-24 22:15:34:406 updateIndexFactors() stream:7 index min/max:0/7 indexStepFactor:1.0
-09-24 22:15:34:406 updateIndexFactors() stream:8 index min/max:0/15 indexStepFactor:1.0
-09-24 22:15:34:406 updateIndexFactors() stream:9 index min/max:0/15 indexStepFactor:1.0
-09-24 22:15:34:406 updateIndexFactors() stream:10 index min/max:1/15 indexStepFactor:1.0
-09-24 22:15:34:406 updateIndexFactors() stream:11 index min/max:0/15 indexStepFactor:1.0
-09-24 22:56:01:732 setStreamVolume(stream:STREAM_MUSIC index:0 flags:0x0 oldIndex:0) from com.android.server.media
-09-24 22:56:01:898 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:02:063 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:02:228 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:02:392 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:02:559 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:02:726 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:02:889 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:03:055 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:03:220 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:03:385 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:03:550 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:03:716 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:03:880 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:04:047 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:04:214 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:04:381 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:04:546 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:04:711 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:04:878 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
-09-24 22:56:05:044 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 11:33:21:259 updateIndexFactors() stream:0 index min/max:1/15 indexStepFactor:3.5
+09-25 11:33:21:261 updateIndexFactors() stream:1 index min/max:0/7 indexStepFactor:1.0
+09-25 11:33:21:261 updateIndexFactors() stream:2 index min/max:0/7 indexStepFactor:1.0
+09-25 11:33:21:264 updateIndexFactors() stream:3 index min/max:0/15 indexStepFactor:1.0
+09-25 11:33:21:265 updateIndexFactors() stream:4 index min/max:1/7 indexStepFactor:1.0
+09-25 11:33:21:265 updateIndexFactors() stream:5 index min/max:0/7 indexStepFactor:1.0
+09-25 11:33:21:265 updateIndexFactors() stream:7 index min/max:0/7 indexStepFactor:1.0
+09-25 11:33:21:265 updateIndexFactors() stream:8 index min/max:0/15 indexStepFactor:1.0
+09-25 11:33:21:266 updateIndexFactors() stream:9 index min/max:0/15 indexStepFactor:1.0
+09-25 11:33:21:266 updateIndexFactors() stream:10 index min/max:1/15 indexStepFactor:1.0
+09-25 11:33:21:266 updateIndexFactors() stream:11 index min/max:0/15 indexStepFactor:1.0
+09-25 12:24:27:073 setStreamVolume(stream:STREAM_MUSIC index:0 flags:0x0 oldIndex:0) from com.android.server.media
+09-25 12:24:27:236 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:27:402 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:27:566 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:27:730 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:27:894 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:28:056 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:28:222 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:28:385 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:28:551 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:28:716 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:28:880 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:29:046 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:29:211 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:29:375 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:29:539 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:29:702 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:29:869 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:30:032 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:30:195 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
+09-25 12:24:30:358 adjustSuggestedStreamVolume(sugg:USE_DEFAULT_STREAM_TYPE dir:ADJUST_LOWER flags:0x1011) from android/android uid:1000
 
 
 Events log: mute commands
-09-24 22:15:34:411 RingerZenMutedStreams 0x0 from onInitStreamsAndVolumes
-09-24 22:15:34:411 RingerZenMutedStreams 0x0 from muteRingerModeStreams
-09-24 22:15:34:693 RingerZenMutedStreams 0x0 from muteRingerModeStreams
-09-24 22:15:35:023 RingerZenMutedStreams 0x0 from muteRingerModeStreams
+09-25 11:33:21:276 RingerZenMutedStreams 0x0 from onInitStreamsAndVolumes
+09-25 11:33:21:276 RingerZenMutedStreams 0x0 from muteRingerModeStreams
+09-25 11:33:21:696 RingerZenMutedStreams 0x0 from muteRingerModeStreams
+09-25 11:33:22:178 RingerZenMutedStreams 0x0 from muteRingerModeStreams
 
 
 Supported System Usages:
@@ -708,9 +690,9 @@ SpatializerHelper:
 	mSpatOutput:0
 	has FEATURE_AUDIO_SPATIAL_HEADTRACKING_LOW_LATENCY:false
 Events log: spatial audio
-09-24 22:15:34:412 init effectExpected=false
-09-24 22:15:34:412 init(): setting state to STATE_NOT_SUPPORTED due to effect not expected
-09-24 22:15:34:412 setFeatureEnabled(false) was featureEnabled:false
+09-25 11:33:21:285 init effectExpected=false
+09-25 11:33:21:285 init(): setting state to STATE_NOT_SUPPORTED due to effect not expected
+09-25 11:33:21:285 setFeatureEnabled(false) was featureEnabled:false
 
 
 
@@ -718,11 +700,11 @@ Loudness alignment:
 
 Registered clients:
 
-Player piid 183 pid -1 active codec types 
+Player piid 119 pid -1 active codec types 
 
 
 Events log: Loudness updates
-09-24 22:14:43:254 Loudness client with pid 1347 died
+09-25 11:33:17:157 Loudness client with pid 1355 died
 
 
 Absolute volume devices with their volume driving streams:
@@ -732,13 +714,13 @@ Device type: 0x20000001, driving stream 3
 Device type: 0x20000002, driving stream 3
 
 AudioSystemAdapter:
- last cache clear time: 09-24 22:15:35:024
+ last cache clear time: 09-25 11:33:22:179
  mDevicesForAttrCache:
 	AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null forVolume: true stream: STREAM_SYSTEM(1)
 		AudioDeviceAttributes: role:output type:speaker addr: name: profiles:[] descriptors:[]
-	AudioAttributes: usage=USAGE_ASSISTANCE_ACCESSIBILITY content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null forVolume: true stream: STREAM_ACCESSIBILITY(10)
-		AudioDeviceAttributes: role:output type:speaker addr: name: profiles:[] descriptors:[]
 	AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x801 tags= bundle=null forVolume: true stream: STREAM_SYSTEM(1)
+		AudioDeviceAttributes: role:output type:speaker addr: name: profiles:[] descriptors:[]
+	AudioAttributes: usage=USAGE_ASSISTANCE_ACCESSIBILITY content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null forVolume: true stream: STREAM_ACCESSIBILITY(10)
 		AudioDeviceAttributes: role:output type:speaker addr: name: profiles:[] descriptors:[]
 	AudioAttributes: usage=USAGE_NOTIFICATION_RINGTONE content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null forVolume: true stream: STREAM_RING(2)
 		AudioDeviceAttributes: role:output type:speaker addr: name: profiles:[] descriptors:[]
