@@ -1,16 +1,18 @@
 ==============================================================================
 ROW EDGE_APPLIST — the three apps under wm size 720x1560; pin and unpin each; the Clock tile's static and snoozed faces
-at            2026-09-24T22:45:51-06:00
-driver        edge_applist.sh blob a199e2522d322b61f5b2272cb3c85a03dc7b1706
+at            2026-09-25T11:25:32-06:00
+driver        edge_applist.sh blob 956795ce102c017080c6456f065dd589fa8e05e3
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     a437acd58d2ca8ac 338459026 bytes
-apk installed 4b7ac321ce4d0ede
-apk match     yes (4b7ac321ce4d0ede)
+apk built     51c18d8d11c140bd 338459026 bytes
+apk installed 61c5b610716197e3
+apk match     yes (61c5b610716197e3)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
+      no-microphone rule: 50 recording-activity event(s) in dumpsys audio at the row's start (mic_events_begin.txt)
 PASS  baseline: no shell alarm or timer pending                   = 0
 PASS  baseline: alarm and timer stores empty                      = empty
+PASS  baseline: the layout file is read (positive control: its MUSIC slot)  contains ["slot:MUSIC"]
 PASS  baseline: none of the three is pinned on Start (the pin can be seen)  = 
       wm size before: Physical size: 1080x2340
 PASS  baseline: no wm size override                               does not contain [Override size]
@@ -23,7 +25,7 @@ PASS  1080: Calculator's row is found by its label's tag          !=
       find_down applist_name:app.tileshell/.recorder.RecorderActivity: 0 swipe(s), found=yes
       1080: Voice Recorder label bounds [168 1695 471 1749] -> epx (left width height) 56.0 101.0 18.0
 PASS  1080: Voice Recorder's row is found by its label's tag      != 
-      1080: the MEDIUM tile slot:CALENDAR bounds [543 84 886 427] -> epx 181.0 114.3 114.3
+      1080: the MEDIUM tile slot:PEOPLE bounds [9 84 352 427] -> epx 3.0 114.3 114.3
 PASS  wm size override 720x1560 is in force                       contains [Override size: 720x1560]
       find_down applist_name:app.tileshell/.clock.ClockActivity: 0 swipe(s), found=yes
       720: Alarms & Clock label bounds [112 250 315 286] -> epx 56.0 101.5 18.0
@@ -32,7 +34,7 @@ PASS  720: … its label measures the same in epx as at 1080 (left, width, heigh
 PASS  720: … and lies inside the 720-px screen                  = yes
 PASS  720: Alarms & Clock's hold menu offers Pin to Start         = yes
 PASS  720: pin Alarms & Clock → [applist] pin to Start … -> pinned  contains [pin to Start app.tileshell/.clock.ClockActivity -> pinned]
-FAIL  720: … its key is in start_layout.json (polled 10 s)      does not contain ["app:app.tileshell/app.tileshell.clock.ClockActivity:0"]: {"version":3,"order":[{"key":"slot:PEOPLE","size":"SMALL"},{"key":"slot:BROWSER","size":"SMALL"},{"key":"slot:MAIL","size":"SMALL"},{"key":"slot:CALENDAR","size":"MEDIUM"},{"key":"slot:PHOTOS","size":"SMALL"},{"key":"shell:weather","size":"
+PASS  720: … its key is in start_layout.json (polled 10 s)      contains ["app:app.tileshell/app.tileshell.clock.ClockActivity:0"]
       find_down applist_name:app.tileshell/.calculator.CalculatorActivity: 0 swipe(s), found=yes
       720: Calculator label bounds [112 250 244 286] -> epx 56.0 66.0 18.0
 PASS  720: Calculator's row is found by applist_name and reads its label  = Calculator
@@ -40,7 +42,7 @@ PASS  720: … its label measures the same in epx as at 1080 (left, width, heigh
 PASS  720: … and lies inside the 720-px screen                  = yes
 PASS  720: Calculator's hold menu offers Pin to Start             = yes
 PASS  720: pin Calculator → [applist] pin to Start … -> pinned  contains [pin to Start app.tileshell/.calculator.CalculatorActivity -> pinned]
-FAIL  720: … its key is in start_layout.json (polled 10 s)      does not contain ["app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0"]: {"version":3,"order":[{"key":"slot:PEOPLE","size":"SMALL"},{"key":"slot:BROWSER","size":"SMALL"},{"key":"slot:MAIL","size":"SMALL"},{"key":"slot:CALENDAR","size":"MEDIUM"},{"key":"slot:PHOTOS","size":"SMALL"},{"key":"shell:weather","size":"
+PASS  720: … its key is in start_layout.json (polled 10 s)      contains ["app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0"]
       find_down applist_name:app.tileshell/.recorder.RecorderActivity: 0 swipe(s), found=yes
       720: Voice Recorder label bounds [112 1130 314 1166] -> epx 56.0 101.0 18.0
 PASS  720: Voice Recorder's row is found by applist_name and reads its label  = Voice Recorder
@@ -48,38 +50,38 @@ PASS  720: … its label measures the same in epx as at 1080 (left, width, heigh
 PASS  720: … and lies inside the 720-px screen                  = yes
 PASS  720: Voice Recorder's hold menu offers Pin to Start         = yes
 PASS  720: pin Voice Recorder → [applist] pin to Start … -> pinned  contains [pin to Start app.tileshell/.recorder.RecorderActivity -> pinned]
-FAIL  720: … its key is in start_layout.json (polled 10 s)      does not contain ["app:app.tileshell/app.tileshell.recorder.RecorderActivity:0"]: {"version":3,"order":[{"key":"slot:PEOPLE","size":"SMALL"},{"key":"slot:BROWSER","size":"SMALL"},{"key":"slot:MAIL","size":"SMALL"},{"key":"slot:CALENDAR","size":"MEDIUM"},{"key":"slot:PHOTOS","size":"SMALL"},{"key":"shell:weather","size":"
+PASS  720: … its key is in start_layout.json (polled 10 s)      contains ["app:app.tileshell/app.tileshell.recorder.RecorderActivity:0"]
       find_down tile:app:app.tileshell/app.tileshell.clock.ClockActivity:0: 0 swipe(s), found=yes
-      720: the Alarms & Clock tile [6 530 235 759] -> epx 3.0 114.5 114.5
+      720: the Alarms & Clock tile [243 767 472 996] -> epx 121.5 114.5 114.5
 PASS  720: the Alarms & Clock tile is on Start                    != 
 PASS  720: … at the MEDIUM size in epx (the 1080 MEDIUM tile's width and height ± 1 epx)  = yes
       find_down tile:app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0: 0 swipe(s), found=yes
-      720: the Calculator tile [243 530 472 759] -> epx 121.5 114.5 114.5
+      720: the Calculator tile [481 767 710 996] -> epx 240.5 114.5 114.5
 PASS  720: the Calculator tile is on Start                        != 
 PASS  720: … at the MEDIUM size in epx (the 1080 MEDIUM tile's width and height ± 1 epx)  = yes
       find_down tile:app:app.tileshell/app.tileshell.recorder.RecorderActivity:0: 0 swipe(s), found=yes
-      720: the Voice Recorder tile [481 530 710 759] -> epx 240.5 114.5 114.5
+      720: the Voice Recorder tile [6 1005 235 1234] -> epx 3.0 114.5 114.5
 PASS  720: the Voice Recorder tile is on Start                    != 
 PASS  720: … at the MEDIUM size in epx (the 1080 MEDIUM tile's width and height ± 1 epx)  = yes
       find_down tile:app:app.tileshell/app.tileshell.clock.ClockActivity:0: 0 swipe(s), found=yes
-      the Clock tile with no alarm: app:app.tileshell/app.tileshell.clock.ClockActivity:0	6,530,235,759	w=229 h=229	controls=no	badge=no	texts=Alarms & Clock
+      the Clock tile with no alarm: app:app.tileshell/app.tileshell.clock.ClockActivity:0	243,767,472,996	w=229 h=229	controls=no	badge=no	texts=Alarms & Clock
 PASS  no alarm: the Clock tile is in the dump                     != 
 PASS  no alarm: the static face — no tile_clock_headline        = no
 PASS  no alarm: … the tile carries its label (tiles.py reads the tile's own subtree)  contains [Alarms & Clock]
 PASS  an alarm 2 min ahead was created                            != 
 PASS  it rings                                                    != 
-PASS  Snooze on the toast: ring ended a036ddb20: snooze           contains [[alarms] ring ended a036ddb20: snooze]
-      snoozedUntilMs=1790312465779 (set time 10:51 PM, snooze time 11:01 PM)
+PASS  Snooze on the toast: ring ended a2b8ae8bd: snooze           contains [[alarms] ring ended a2b8ae8bd: snooze]
+      snoozedUntilMs=1790358005548 (set time 11:30 AM, snooze time 11:40 AM)
 PASS  the alarm holds a snooze instant                            != null
-PASS  the next alarm is the snoozed one (Next alarm clock = the snooze instant)  = 1790312465779
-PASS  the tile publisher took it: [clock] tile: next alarm a036ddb20 at <the snooze instant>  contains [[clock] tile: next alarm a036ddb20 at 1790312465779]
+PASS  the next alarm is the snoozed one (Next alarm clock = the snooze instant)  = 1790358005548
+PASS  the tile publisher took it: [clock] tile: next alarm a2b8ae8bd at <the snooze instant>  contains [[clock] tile: next alarm a2b8ae8bd at 1790358005548]
       find_down tile:app:app.tileshell/app.tileshell.clock.ClockActivity:0: 0 swipe(s), found=yes
-      the Clock tile with the snoozed alarm next: app:app.tileshell/app.tileshell.clock.ClockActivity:0	6,530,235,759	w=229 h=229	controls=no	badge=no	texts=Alarms & Clock|10:51 PM|Snoozy|Today|
+      the Clock tile with the snoozed alarm next: app:app.tileshell/app.tileshell.clock.ClockActivity:0	243,767,472,996	w=229 h=229	controls=no	badge=no	texts=Alarms & Clock|11:30 AM|Snoozy|Today|
 PASS  snoozed: the tile shows the live face (tile_clock_headline)  = yes
 PASS  snoozed: … naming the alarm                               contains [Snoozy]
-RECORD  snoozed: the headline reads (set time / snooze time)        [10:51 PM] (10:51 PM / 11:01 PM)
-PASS  device clock back within 2 s of the host (RV12)             1790311776.00 vs 1790311776.00 +/- 2.0
-      scroll_to_node alarm_row:a036ddb20: 0 swipe(s), found=yes
+RECORD  snoozed: the headline reads (set time / snooze time)        [11:30 AM] (11:30 AM / 11:40 AM)
+PASS  device clock back within 2 s of the host (RV12)             1790357319.00 vs 1790357319.00 +/- 2.0
+      scroll_to_node alarm_row:a2b8ae8bd: 0 swipe(s), found=yes
 PASS  the snoozed alarm is deleted through the app                = 
       find_down tile:app:app.tileshell/app.tileshell.clock.ClockActivity:0: 0 swipe(s), found=yes
 PASS  after the delete the face is cleared again (no tile_clock_headline)  = no
@@ -99,5 +101,7 @@ PASS  restore: wm size reset (no override)                        does not conta
 PASS  restore: the Start layout as found (layout_restore proved it)  = 0
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
+PASS  no-microphone rule: dumpsys audio's recording-activity log is read (positive control: its header)  contains [Events log: recording activity]
+PASS  no-microphone rule: no audio capture on the device during the row (the recording-activity log gained no event)  = 
 ------------------------------------------------------------------------------
-EDGE_APPLIST: 56 passed, 3 failed, 1 recorded
+EDGE_APPLIST: 62 passed, 0 failed, 1 recorded

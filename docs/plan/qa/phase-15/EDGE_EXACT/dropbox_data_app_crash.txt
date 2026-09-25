@@ -1,27 +1,27 @@
-Drop box contents: 129 entries
+Drop box contents: 135 entries
 Max entries: 1000
 Low priority rate limit period: 2000 ms
 Low priority tags: {data_app_wtf, keymaster, system_server_wtf, system_app_strictmode, system_app_wtf, system_server_strictmode, data_app_strictmode, netstats}
 Searching for: data_app_crash
 
 ========================================
-2026-09-24 22:19:25 data_app_crash (text, 3230 bytes)
-SystemUptimeMs: 332603
+2026-09-25 11:37:05 data_app_crash (text, 3230 bytes)
+SystemUptimeMs: 281098
 Process: app.tileshell
-PID: 3005
-UID: 10150
+PID: 3054
+UID: 10174
 Frozen: false
-Flags: 0x20a83e46
+Flags: 0x20883e46
 Package: app.tileshell v1 (0.1.0)
 Foreground: Yes
-Process-Runtime: 248404
-Timestamp: 2026-09-24 22:19:25.523-0600
+Process-Runtime: 200175
+Timestamp: 2026-09-25 11:37:05.544-0600
 Build: Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 Crash-Handler: com.android.internal.os.RuntimeInit$KillApplicationHandler
 Loading-Progress: 1.0
 Dropped-Count: 0
 
-java.lang.RuntimeException: Unable to start service app.tileshell.clock.RingService@217b79a with Intent { act=app.tileshell.clock.RING xflg=0x4 cmp=app.tileshell/.clock.RingService (has extras) }: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{529f89e 3005:app.tileshell/u0a150} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
+java.lang.RuntimeException: Unable to start service app.tileshell.clock.RingService@cedf16f with Intent { act=app.tileshell.clock.RING xflg=0x4 cmp=app.tileshell/.clock.RingService (has extras) }: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{725aacc 3054:app.tileshell/u0a174} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
 	at android.app.ActivityThread.handleServiceArgs(ActivityThread.java:5471)
 	at android.app.ActivityThread.-$$Nest$mhandleServiceArgs(Unknown Source:0)
 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2647)
@@ -32,7 +32,7 @@ java.lang.RuntimeException: Unable to start service app.tileshell.clock.RingServ
 	at java.lang.reflect.Method.invoke(Native Method)
 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
-Caused by: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{529f89e 3005:app.tileshell/u0a150} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
+Caused by: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{725aacc 3054:app.tileshell/u0a174} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3340)
 	at android.os.Parcel.createException(Parcel.java:3324)
 	at android.os.Parcel.readException(Parcel.java:3307)
@@ -53,23 +53,23 @@ Caused by: android.os.RemoteException: Remote stack trace:
 
 
 ========================================
-2026-09-24 22:19:26 data_app_crash (text, 2694 bytes)
-SystemUptimeMs: 333153
+2026-09-25 11:37:06 data_app_crash (text, 2695 bytes)
+SystemUptimeMs: 281682
 Process: app.tileshell
-PID: 4626
-UID: 10150
+PID: 4397
+UID: 10174
 Frozen: false
 Flags: 0x20a83e46
 Package: app.tileshell v1 (0.1.0)
 Foreground: Yes
-Process-Runtime: 528
-Timestamp: 2026-09-24 22:19:26.073-0600
+Process-Runtime: 562
+Timestamp: 2026-09-25 11:37:06.128-0600
 Build: Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 Crash-Handler: com.android.internal.os.RuntimeInit$KillApplicationHandler
 Loading-Progress: 1.0
 Dropped-Count: 0
 
-java.lang.RuntimeException: Unable to start service app.tileshell.clock.RingService@d1c21a with Intent { act=app.tileshell.clock.RING xflg=0x4 cmp=app.tileshell/.clock.RingService (has extras) }: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{9083265 4626:app.tileshell/u0a150} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
+java.lang.RuntimeException: Unable to start service app.tileshell.clock.RingService@d972526 with Intent { act=app.tileshell.clock.RING xflg=0x4 cmp=app.tileshell/.clock.RingService (has extras) }: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{686b54e 4397:app.tileshell/u0a174} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
 	at android.app.ActivityThread.handleServiceArgs(ActivityThread.java:5471)
 	at android.app.ActivityThread.-$$Nest$mhandleServiceArgs(Unknown Source:0)
 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2647)
@@ -80,96 +80,7 @@ java.lang.RuntimeException: Unable to start service app.tileshell.clock.RingServ
 	at java.lang.reflect.Method.invoke(Native Method)
 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
-Caused by: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{9083265 4626:app.tileshell/u0a150} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
-	at android.os.Parcel.createExceptionOrNull(Parcel.java:3340)
-	at android.os.Parcel.createException(Parcel.java:3324)
-	at android.os.Parcel.readException(Parcel.java:3307)
-	at android.os.Parcel.readException(Parcel.java:3249)
-	at android.app.IActivityManager$Stub$Proxy.setServiceForeground(IActivityManager.java:7274)
-	at android.app.Service.startForeground(Service.java:863)
-	at app.tileshell.clock.RingService.present(RingService.kt:182)
-	at app.tileshell.clock.RingService.ring(RingService.kt:148)
-	at app.tileshell.clock.RingService.onStartCommand(RingService.kt:101)
-	at android.app.ActivityThread.handleServiceArgs(ActivityThread.java:5453)
-	... 9 more
-
-========================================
-2026-09-24 22:39:05 data_app_crash (text, 3231 bytes)
-SystemUptimeMs: 1511979
-Process: app.tileshell
-PID: 9826
-UID: 10150
-Frozen: false
-Flags: 0x20a83e46
-Package: app.tileshell v1 (0.1.0)
-Foreground: Yes
-Process-Runtime: 199659
-Timestamp: 2026-09-24 22:39:05.315-0600
-Build: Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
-Crash-Handler: com.android.internal.os.RuntimeInit$KillApplicationHandler
-Loading-Progress: 1.0
-Dropped-Count: 0
-
-java.lang.RuntimeException: Unable to start service app.tileshell.clock.RingService@ce594e2 with Intent { act=app.tileshell.clock.RING xflg=0x4 cmp=app.tileshell/.clock.RingService (has extras) }: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{9a8a271 9826:app.tileshell/u0a150} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
-	at android.app.ActivityThread.handleServiceArgs(ActivityThread.java:5471)
-	at android.app.ActivityThread.-$$Nest$mhandleServiceArgs(Unknown Source:0)
-	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2647)
-	at android.os.Handler.dispatchMessage(Handler.java:110)
-	at android.os.Looper.loopOnce(Looper.java:248)
-	at android.os.Looper.loop(Looper.java:338)
-	at android.app.ActivityThread.main(ActivityThread.java:9067)
-	at java.lang.reflect.Method.invoke(Native Method)
-	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
-	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
-Caused by: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{9a8a271 9826:app.tileshell/u0a150} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
-	at android.os.Parcel.createExceptionOrNull(Parcel.java:3340)
-	at android.os.Parcel.createException(Parcel.java:3324)
-	at android.os.Parcel.readException(Parcel.java:3307)
-	at android.os.Parcel.readException(Parcel.java:3249)
-	at android.app.IActivityManager$Stub$Proxy.setServiceForeground(IActivityManager.java:7274)
-	at android.app.Service.startForeground(Service.java:863)
-	at app.tileshell.clock.RingService.present(RingService.kt:182)
-	at app.tileshell.clock.RingService.ring(RingService.kt:148)
-	at app.tileshell.clock.RingService.onStartCommand(RingService.kt:101)
-	at android.app.ActivityThread.handleServiceArgs(ActivityThread.java:5453)
-	... 9 more
-Caused by: android.os.RemoteException: Remote stack trace:
-	at com.android.server.am.ActiveServices.validateForegroundServiceType(ActiveServices.java:2920)
-	at com.android.server.am.ActiveServices.setServiceForegroundInnerLocked(ActiveServices.java:2596)
-	at com.android.server.am.ActiveServices.setServiceForegroundLocked(ActiveServices.java:1850)
-	at com.android.server.am.ActivityManagerService.setServiceForeground(ActivityManagerService.java:13842)
-	at android.app.IActivityManager$Stub.onTransact(IActivityManager.java:3640)
-
-
-========================================
-2026-09-24 22:39:05 data_app_crash (text, 2699 bytes)
-SystemUptimeMs: 1512551
-Process: app.tileshell
-PID: 11124
-UID: 10150
-Frozen: false
-Flags: 0x20a83e46
-Package: app.tileshell v1 (0.1.0)
-Foreground: Yes
-Process-Runtime: 550
-Timestamp: 2026-09-24 22:39:05.886-0600
-Build: Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
-Crash-Handler: com.android.internal.os.RuntimeInit$KillApplicationHandler
-Loading-Progress: 1.0
-Dropped-Count: 0
-
-java.lang.RuntimeException: Unable to start service app.tileshell.clock.RingService@d3118c5 with Intent { act=app.tileshell.clock.RING xflg=0x4 cmp=app.tileshell/.clock.RingService (has extras) }: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{b05de03 11124:app.tileshell/u0a150} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
-	at android.app.ActivityThread.handleServiceArgs(ActivityThread.java:5471)
-	at android.app.ActivityThread.-$$Nest$mhandleServiceArgs(Unknown Source:0)
-	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2647)
-	at android.os.Handler.dispatchMessage(Handler.java:110)
-	at android.os.Looper.loopOnce(Looper.java:248)
-	at android.os.Looper.loop(Looper.java:338)
-	at android.app.ActivityThread.main(ActivityThread.java:9067)
-	at java.lang.reflect.Method.invoke(Native Method)
-	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:593)
-	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:932)
-Caused by: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{b05de03 11124:app.tileshell/u0a150} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
+Caused by: java.lang.SecurityException: Starting FGS with type systemExempted callerApp=ProcessRecord{686b54e 4397:app.tileshell/u0a174} targetSDK=36 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED] any of the permissions allOf=false [android.permission.SCHEDULE_EXACT_ALARM, android.permission.USE_EXACT_ALARM, android:activate_vpn] 
 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3340)
 	at android.os.Parcel.createException(Parcel.java:3324)
 	at android.os.Parcel.readException(Parcel.java:3307)

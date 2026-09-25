@@ -1,15 +1,16 @@
 ==============================================================================
 ROW EDGE_SPINNER — the looping spinner: taps roll from the value shown, a long drag stays full, a drag catches a roll
-at            2026-09-24T22:21:36-06:00
-driver        edge_spinner.sh blob be603814d3687b0496af53d39f260dee976dfd3c
+at            2026-09-25T11:15:54-06:00
+driver        edge_spinner.sh blob 161e8fa854b45bdad62dfeabc75df65d8410c694
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     a437acd58d2ca8ac 338459026 bytes
-apk installed b466469e72f87819
-apk match     NO (device b466469e72f87819, built 4b7ac321ce4d0ede)
+apk built     51c18d8d11c140bd 338459026 bytes
+apk installed 61c5b610716197e3
+apk match     yes (61c5b610716197e3)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
       timers before: 0
+PASS  baseline: the Timer tab shows its add button                = yes
 PASS  the timer editor is open (NEW TIMER)                        = NEW TIMER
       minutes column 355 204 717 969
       minutes at the start: 05
@@ -20,8 +21,9 @@ PASS  1. and a tap one row above rolls back to 07                 = 07
 PASS  2. held 7 rows into a drag, the frame still shows a row in every slot (7.97 rows: 7 or 8 drawn rows)  8.00 vs 8.00 +/- 1.0
 PASS  2. released, it settles 7 rows on (14)                      = 14
 PASS  2. and the settled frame is full                            7.00 vs 8.00 +/- 1.0
-      catch 1: fling ended at +51 ms, the catch's DOWN 13 ms later; [motion] spinner lines: 1
+      catch 1: fling ended at +52 ms, the catch's DOWN 14 ms later; [motion] spinner lines: 1
 PASS  3. a drag during the roll catches it: the fling's roll never completes, one [motion] spinner line (the catch's)  = 1
+PASS  restore: the timer editor is closed                         = no
 PASS  restore: no timer was created                               = 0
 ------------------------------------------------------------------------------
-96: 10 passed, 0 failed, 0 recorded
+EDGE_SPINNER: 12 passed, 0 failed, 0 recorded

@@ -318,14 +318,18 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
         val time = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, hour); set(Calendar.MINUTE, minute)
         }.timeInMillis
-        return answer("Alarm set for ${ReminderText.time(context, time)}.")
+        return answer("Alarm set for ${ReminderText.time(context, time)}.${exactNotice()}")
     }
+
+    /** Alarms and timers fall back to inexact arming when a system revokes the exact-alarm grant, so they say so as reminders do. */
+    private fun exactNotice(): String =
+        if (app.tileshell.cortana.reminders.ReminderScheduler.exactAlarmsDenied) " Exact alarms are off, so it may be a few minutes late." else ""
 
     private fun timer(seconds: Int): Outcome {
         val timer = ClockStore.get(context).addTimer("", seconds * 1000L, start = true)
             ?: return answer("I couldn't set that.")
         Diagnostics.add("cortana", "timer set in-process ${timer.id} for ${seconds}s")
-        return answer("Timer set for ${durationWords(seconds)}.")
+        return answer("Timer set for ${durationWords(seconds)}.${exactNotice()}")
     }
 
     private fun reminder(request: Request.SetReminder): Outcome {

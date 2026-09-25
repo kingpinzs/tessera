@@ -1,59 +1,59 @@
 ==============================================================================
 ROW EDGE_TIMERS — timers: dead process at the deadline; 10 at once; 0:00 refused; paused then clock jump
-at            2026-09-24T20:54:58-06:00
+at            2026-09-25T12:09:23-06:00
 driver        edge_timers.sh blob 3b62a6cd66084deddbfc63675e8e9eac352569f4
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     a437acd58d2ca8ac 338459026 bytes
-apk installed 4b7ac321ce4d0ede
-apk match     yes (4b7ac321ce4d0ede)
+apk built     51c18d8d11c140bd 338459026 bytes
+apk installed 61c5b610716197e3
+apk match     yes (61c5b610716197e3)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  baseline: no shell alarm or timer pending                   = 0
 PASS  baseline: alarm and timer stores empty                      = empty
 PASS  a 20-s timer is running                                     != 
-      killed 3779 with ~15 s left
+      killed 3401 with ~15 s left
 PASS  the timer fired after the kill (the receiver started the ring service)  != 
-PASS  … on time (late <= 1500 ms; a cold process)               2.00 vs 0.00 +/- 1500.0
+PASS  … on time (late <= 1500 ms; a cold process)               14.00 vs 0.00 +/- 1500.0
 PASS  … and it rings (an ALARM player of the shell)             != 0
-PASS  the process that rings is a new one                         != 3779
+PASS  the process that rings is a new one                         != 3401
 PASS  dismissed                                                   = 0
-      gscroll_to_node timer_name:t7e91a20e: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:tc706b907: 0 swipe(s), found=yes
 RECORD  clock_timers notifications left after the Dead timer rang and was deleted (title|when)  0 — 
-      ten timers:  t251598eb t30f8a049 t9e7b3efc t885c8fc2 te7b50b50 t85ea310d tfa2d2684 tc10ef687 tdd548eea t0b43f389
+      ten timers:  te70e99e3 tbcdad344 t8a7d0860 t2436c79f t653e1686 t9e0b8b8f t47442421 t2415b3f3 tb3020e7c tca18e3aa
 PASS  ten timers were created                                     = 10
 PASS  all ten are RUNNING in the store                            = 10
 PASS  all ten are armed in AlarmManager (ELAPSED_WAKEUP entries)  = 10
 PASS  … and none is the phone's next alarm clock                = 
-      gscroll_to_node timer_remaining:t251598eb: 0 swipe(s), found=yes
-      gscroll_to_node timer_remaining:t30f8a049: 0 swipe(s), found=yes
-      gscroll_to_node timer_remaining:t9e7b3efc: 0 swipe(s), found=yes
-      gscroll_to_node timer_remaining:t885c8fc2: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:te70e99e3: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:tbcdad344: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t8a7d0860: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t2436c79f: 0 swipe(s), found=yes
       gscroll_to_node: rewound to the top in 1 drag(s)
-      gscroll_to_node timer_remaining:te7b50b50: 1 swipe(s), found=yes
-      gscroll_to_node timer_remaining:t85ea310d: 0 swipe(s), found=yes
-      gscroll_to_node timer_remaining:tfa2d2684: 0 swipe(s), found=yes
-      gscroll_to_node: rewound to the top in 2 drag(s)
-      gscroll_to_node timer_remaining:tc10ef687: 2 swipe(s), found=yes
-      gscroll_to_node timer_remaining:tdd548eea: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t653e1686: 1 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t9e0b8b8f: 0 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t47442421: 0 swipe(s), found=yes
       gscroll_to_node: rewound to the top in 3 drag(s)
-      gscroll_to_node timer_remaining:t0b43f389: 3 swipe(s), found=yes
+      gscroll_to_node timer_remaining:t2415b3f3: 2 swipe(s), found=yes
+      gscroll_to_node timer_remaining:tb3020e7c: 0 swipe(s), found=yes
+      gscroll_to_node: rewound to the top in 4 drag(s)
+      gscroll_to_node timer_remaining:tca18e3aa: 3 swipe(s), found=yes
 PASS  every one of the ten is listed on the Timer tab             = 10
 PASS  … and every one is counting down                          = 10
 RECORD  Android's autogroup summary records beside the timers' own (key |g:Aggregate…)  1
-      running-timer notifications (title | when): ?|1790304942473 T10|1790307351512 T9|1790307290344 T8|1790307229188 T7|1790307168034 T6|1790307106873 T5|1790307045717 T4|1790306984567 T3|1790306923417 T2|1790306862269 T1|1790306801112
+      running-timer notifications (title | when): ?|1790359803087 T10|1790362212124 T9|1790362150962 T8|1790362089798 T7|1790362028633 T6|1790361967488 T5|1790361906341 T4|1790361845186 T3|1790361784036 T2|1790361722884 T1|1790361661730
 PASS  ten running-timer notifications are posted                  = 10
       gscroll_to_node: rewound to the top in 4 drag(s)
-      gscroll_to_node timer_name:t251598eb: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:t30f8a049: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:t9e7b3efc: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:t885c8fc2: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:te7b50b50: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:t85ea310d: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:tfa2d2684: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:tc10ef687: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:tdd548eea: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:t0b43f389: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:te70e99e3: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:tbcdad344: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t8a7d0860: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t2436c79f: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t653e1686: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t9e0b8b8f: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t47442421: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t2415b3f3: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:tb3020e7c: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:tca18e3aa: 0 swipe(s), found=yes
 PASS  the ten are gone                                            = 
 PASS  the API refuses LENGTH 0                                    contains [api android.intent.action.SET_TIMER from com.android.shell -> refused: length out of range]
 PASS  … and created nothing                                     = 
@@ -69,13 +69,13 @@ PASS  paused in the store                                         = PAUSED
 PASS  a paused timer holds no deadline                            = null null
 PASS  … and no alarm is armed for it                            = 
 PASS  after a +1 h clock jump it is still PAUSED                  = PAUSED
-PASS  … holding the same remaining                              = 593801
+PASS  … holding the same remaining                              = 593795
 PASS  … and the tab shows the same digits                       = 00:09:53
 PASS  … with nothing armed                                      = 
 PASS  resumed: RUNNING again                                      = RUNNING
-PASS  resumed: armed for its remaining on the elapsed clock       1115632.00 vs 1117251.00 +/- 3000.0
-PASS  device clock back within 2 s of the host (RV12)             1790305121.00 vs 1790305121.00 +/- 2.0
-      gscroll_to_node timer_name:t31591230: 0 swipe(s), found=yes
+PASS  resumed: armed for its remaining on the elapsed clock       958991.00 vs 960605.00 +/- 3000.0
+PASS  device clock back within 2 s of the host (RV12)             1790359984.00 vs 1790359985.00 +/- 2.0
+      gscroll_to_node timer_name:t08c605cd: 0 swipe(s), found=yes
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------
