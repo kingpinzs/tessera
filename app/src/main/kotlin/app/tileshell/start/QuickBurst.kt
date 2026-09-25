@@ -32,11 +32,15 @@ import androidx.compose.ui.unit.IntOffset
 import app.tileshell.diag.Diagnostics
 import app.tileshell.tiles.TileKey
 import app.tileshell.ui.tokens.ShellType
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /** A hold that has entered edit mode and whose shortcuts are still being read (they normally are already). */
 class PendingBurst(val key: TileKey, val load: Deferred<QuickLoad>)
+
+/** A burst hidden while its tile is dragged: the open's satellites, or the load it was still waiting on. */
+class HiddenBurst(val key: TileKey, val satellites: List<SatelliteSpec>?, val load: Deferred<QuickLoad>?)
 
 /**
  * An open burst: its satellites and where each rests RELATIVE to the held tile, decided once at open
@@ -102,8 +106,59 @@ class QuickBurstState {
     /** Set by the activity: runs satellite i of the open burst from the given page rectangle (T11-24). */
     var onSatelliteTap: (OpenBurst, Int, QRect) -> Unit = { _, _, _ -> }
 
+    /**
+     * A burst put away while its own tile is dragged (Jeremy 2026-09-25, "(a)": the satellites hide during the drag and
+     * come back around the tile where it is dropped, as the discs do). Holds what the open had — its satellites, or a
+     * load still in flight — so the drop reopens it through [QuickOpener] against the tile's new cell.
+     */
+    var hiddenForDrag: HiddenBurst? = null
+        private set
+
     /** Open or about to open: what the tap / Back rules treat as "a burst is open". */
     val active: Boolean get() = pending != null || (burst != null && closing == null)
+
+    /**
+     * A drag starts on [dragged]. Its own burst (open, or still loading) is hidden, not closed: `[quick] burst hidden:
+     * drag <id>`. A burst on any other tile closes (`drag`), since the selection moves to the dragged tile and only the
+     * hold that enters edit mode opens a burst (T11-23).
+     */
+    fun hideForDrag(dragged: TileKey) {
+        val p = pending
+        val b = burst
+        when {
+            p != null && p.key == dragged -> {
+                pending = null
+                hiddenForDrag = HiddenBurst(dragged, null, p.load)
+            }
+            b != null && closing == null && b.key == dragged -> {
+                hiddenForDrag = HiddenBurst(dragged, b.satellites, null)
+                burst = null
+                progress = 0f
+                heldBounds = null
+            }
+            else -> {
+                if (active) close(CloseReason.DRAG)
+                return
+            }
+        }
+        Diagnostics.add("quick", "burst hidden: drag ${dragged.id}")
+    }
+
+    /**
+     * The drag has ended with [selected] held (a drop, or a cancelled drag putting the tile back). A hidden burst on
+     * that tile comes back through the ordinary open — arrangement and clamping decided afresh at its new cell, the
+     * open spring played again; if the tile is no longer the held one it closes (`drag`).
+     */
+    fun showAfterDrop(selected: TileKey?) {
+        val h = hiddenForDrag ?: return
+        hiddenForDrag = null
+        if (selected != h.key) {
+            Diagnostics.add("quick", "burst closed: ${CloseReason.DRAG}")
+            return
+        }
+        Diagnostics.add("quick", "burst back after the drop: ${h.key.id}")
+        pending = PendingBurst(h.key, h.load ?: CompletableDeferred(QuickLoad.Ready(h.satellites.orEmpty(), emptyList())))
+    }
 
     fun open(b: OpenBurst) {
         closing = null
@@ -130,6 +185,12 @@ class QuickBurstState {
             }
             return
         }
+        // Hidden for a drag and closed before the drop (Back, Home, Start stopping): every `burst on` keeps its close.
+        if (hiddenForDrag != null) {
+            hiddenForDrag = null
+            Diagnostics.add("quick", "burst closed: $reason")
+            return
+        }
         if (burst == null || closing != null) return
         Diagnostics.add("quick", "burst closed: $reason")
         if (animate) closing = reason else clear()
@@ -139,6 +200,8 @@ class QuickBurstState {
     fun clear() {
         pending?.load?.cancel()
         pending = null
+        hiddenForDrag?.load?.cancel()
+        hiddenForDrag = null
         burst = null
         closing = null
         progress = 0f

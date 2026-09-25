@@ -100,9 +100,14 @@ fun Modifier.startEditGestures(
             // The discs appear now and ride the entry contraction (R6 §1.2.7). The same gesture only becomes a
             // drag if the finger moves; lifting it leaves the tile held with its two discs (and the burst).
             if (waitForMoveOrUp(down, viewConfiguration.touchSlop)) {
-                edit.quick.close(CloseReason.DRAG)
+                // The burst hides for the drag and comes back where the tile is dropped (Jeremy 2026-09-25, "(a)").
+                edit.quick.hideForDrag(hit.key)
                 edit.drag = Drag(hit.key, down.position, hit.grabFrac, hit.inRow)
-                dragLoop(edit, geoState, store, scroll, down, pitchScaleState)
+                try {
+                    dragLoop(edit, geoState, store, scroll, down, pitchScaleState)
+                } finally {
+                    edit.quick.showAfterDrop(edit.selected)
+                }
             }
         } else {
             // While a burst is open, a tap anywhere but a satellite or a disc only closes it (Decisions "Taps and
@@ -128,10 +133,15 @@ fun Modifier.startEditGestures(
                 }
                 is Hit.Tile -> when (val press = awaitPress(down, viewConfiguration.touchSlop)) {
                     Press.Moved -> {
-                        if (burstOpen) edit.quick.close(CloseReason.DRAG)
+                        // The held tile's own burst hides and comes back at the drop; one on another tile closes (drag).
+                        if (burstOpen) edit.quick.hideForDrag(hit.key)
                         edit.selected = hit.key
                         edit.drag = Drag(hit.key, down.position, hit.grabFrac, hit.inRow)
-                        dragLoop(edit, geoState, store, scroll, down, pitchScaleState)
+                        try {
+                            dragLoop(edit, geoState, store, scroll, down, pitchScaleState)
+                        } finally {
+                            edit.quick.showAfterDrop(edit.selected)
+                        }
                     }
                     is Press.Tap -> if (burstOpen) {
                         edit.quick.close(CloseReason.TAP_ELSEWHERE)
