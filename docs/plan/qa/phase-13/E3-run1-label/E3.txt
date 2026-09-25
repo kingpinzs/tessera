@@ -1,0 +1,54 @@
+==============================================================================
+ROW E3 — the reminder menu: (40,40,40) over the page it was measured on, the photo's edge blurred under it
+at            2026-09-25T17:24:22-06:00
+driver        e3.sh blob 73cc5f4eafef47c24da71617214b34027e81e3b0
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     15aa7f5f3bd76f7d 337942814 bytes
+apk installed d3ee8663458ce94b
+apk match     yes (d3ee8663458ce94b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  Dark theme (the theme key; absent = the default, DARK)      = DARK
+      picker: newest photo at [177 862]
+PASS  fixture: the tomorrow reminder's row                        != 
+PASS  fixture: the photo reminder's row                           != 
+PASS  fixture: the photo reminder shows its photo                 = yes
+PASS  the backdrop child's bounds are in the dump                 contains [bounds="[0,0][1080,2196]"]
+      L = 0,0,1080,2196
+PASS  (1) acrylic:reminder_menu is in the dump                    != 
+PASS  (1) the show line                                           contains [[fluent] reminder_menu source=live tint=(47,45,47) alpha=0.8 blur=30epx]
+PASS  (1) the tap outside dismissed the menu                      = no
+PASS  (1) closed capture: the held row reads (63,68,64) (worst channel)  0.00 vs 0.00 +/- 0.0
+PASS  (1) precondition: a 10x10 patch whose oracle B is (14,19,13) +- 1 at every pixel  != 
+      (1) patch (668,3) 10x10, oracle max |B - Bm| = 0.00
+PASS  (1) interior patch mean R = 40 +- 2                         39.90 vs 40.00 +/- 2.0
+PASS  (1) interior patch mean G = 40 +- 2                         39.90 vs 40.00 +/- 2.0
+PASS  (1) interior patch mean B = 40 +- 2                         39.90 vs 40.00 +/- 2.0
+PASS  (1) border, left edge (worst px of a 1x100 strip)           0.00 vs 0.00 +/- 2.0
+PASS  (1) border, bottom edge (worst px of a 100x1 strip)         0.00 vs 0.00 +/- 2.0
+PASS  (2) acrylic:reminder_menu is in the dump                    != 
+PASS  (2) the show line                                           contains [[fluent] reminder_menu source=live tint=(47,45,47) alpha=0.8 blur=30epx]
+PASS  (2) the menu's bounds intersect the photo's                 = yes
+      (2) photo [166 706 1043 1151], menu [239 750 969 1071], edge x=604
+PASS  (2) the tap outside dismissed the menu                      = no
+PASS  (2) closed capture: the held row reads (63,68,64) (worst channel)  0.00 vs 0.00 +/- 0.0
+PASS  (2) the profile has >= 8 rows clear of text inside the overlap  = yes
+      (2) profile rows 1012..1067, x 404..804; worst at x=634 judged=(72.2,70.6,72.2) expected=(73.6,72.0,73.6)
+PASS  (2) the edge under the menu = 0.8*(47,45,47) + 0.2*B (worst column-mean |diff|)  1.40 vs 0.00 +/- 4.0
+RECORD  (2) the step's 10-90 % width under the menu (px)            133.3
+PASS  (2) a row of the photo lies below the menu                  = yes
+      (2) outside the menu: y=1111 steepest step at x=604
+PASS  (2) the same edge outside the menu is sharp (<= 2 px)       1.60 vs 1.00 +/- 1.0
+PASS  battery saver precondition: low_power                       = 1
+PASS  (3) battery saver: acrylic=off reason=battery-saver         contains [[fluent] acrylic=off reason=battery-saver]
+PASS  (3) the menu opened at the same place                       = 239 750 969 1071
+PASS  (3) off: over the photo's black half (worst px, 20x20)      0.00 vs 0.00 +/- 2.0
+PASS  (3) off: over the photo's white half (worst px, 20x20)      0.00 vs 0.00 +/- 2.0
+PASS  (3) off: across the edge itself (worst px, 40x8)            0.00 vs 0.00 +/- 2.0
+PASS  battery saver off: awake                                    = Awake
+PASS  battery saver off: low_power = 0                            = 0
+PASS  restore: no QA13 reminder left                              = 
+------------------------------------------------------------------------------
+E3: 34 passed, 0 failed, 1 recorded
