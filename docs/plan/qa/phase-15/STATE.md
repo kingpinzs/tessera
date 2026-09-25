@@ -182,3 +182,12 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   EDGE_STOPWATCH 17/0, E13 145/0/7. Found: CapMetrics' cap-top model is wrong shell-wide (Compose trims the first line's
   leading, so text sits 0.7-2.6 epx high by style). Asked Jeremy A (fix now, shell-wide) / B (plan after) / C (leave);
   waiting. The final gate waits on the answer. NEEDS-HUMAN.md written (P1-P7, H1-H27 with evidence pointers).
+- 2026-09-24 ~20:10-22:00: Jeremy "(A) fix then push". CapMetrics fixed shell-wide (4e25ffa), and phase-15 was pushed at
+  6d7ce85 (origin had deleted the branch after PR #1 merged it into main at 8d78ff3). FINAL GATE on build 4b7ac321: 5556
+  all pass except E26's accepted 8; 5558 all pass (E4b, E23, EDGE_ALARMS and EDGE_STOPWATCH failed under three-emulator
+  load and passed alone); 5560 all 14 pass; phase 03 E7 / E15 failures predate the fix; E25 +2,455,997 bytes. E22 had
+  never checked anything: its table sat in its own evidence dir, which the runner rotates. Fixed (c2b4125), it found
+  real gaps: about 25 of the doc's Edge cases have no driver (the recorder's, alarm-while-X, USE_EXACT_ALARM, the
+  locked picked sound, the app list at HD+, 4 Tess cases). Three edge agents were dispatched (briefs/qa-edge-*.md): R on
+  5560, C on 5558, T on 5556. The Fable dispatch hit its limit at once; they were re-dispatched on Opus. Next: their
+  reports, fixes for any defects, E22 on the final build, the two gate reviewers, INDEX row 15, then the push (flag).
