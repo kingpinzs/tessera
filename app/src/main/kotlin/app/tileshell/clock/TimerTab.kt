@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -119,16 +123,34 @@ fun BoxScope.TimerTab(nav: ClockNav, store: ClockStore) {
         EmptyLine("No timers", "timer_empty")
         return
     }
-    LazyColumn(Modifier.fillMaxSize().testTag("timer_list"), state = list, contentPadding = PaddingValues(bottom = ClockMetrics.APP_BAR)) {
-        items(timers, key = { it.id }) { t ->
-            @Suppress("UNUSED_VARIABLE") val tick = now
-            TimerBlock(
-                t = t, remaining = store.timerRemaining(t), select = nav.timerSelect, checked = t.id in nav.timerSelected,
-                onCheck = { c -> nav.timerSelected = if (c) nav.timerSelected + t.id else nav.timerSelected - t.id },
-                onPlay = { nav.focusedTimer = t.id; togglePlay(store, t) },
-                onReset = { nav.focusedTimer = t.id; store.resetTimer(t.id); store.timer(t.id)?.let { logTimer(store, it) }; Diagnostics.add("clock", "timer ${t.id} stop") },
-                onExpand = { nav.focusedTimer = t.id; nav.page = ClockPage.TimerExpanded(t.id) },
-                onEdit = { nav.focusedTimer = t.id; nav.openTimerEditor(TimerDraft.of(t)) },
+    var rootTop by remember { mutableFloatStateOf(0f) }
+    var menuAnchor by remember { mutableFloatStateOf(0f) }
+    var menuTimer by remember { mutableStateOf<String?>(null) }
+    val density = LocalDensity.current
+    Box(Modifier.fillMaxSize().onGloballyPositioned { rootTop = it.positionInRoot().y }) {
+        LazyColumn(Modifier.fillMaxSize().testTag("timer_list"), state = list, contentPadding = PaddingValues(bottom = ClockMetrics.APP_BAR)) {
+            items(timers, key = { it.id }) { t ->
+                @Suppress("UNUSED_VARIABLE") val tick = now
+                TimerBlock(
+                    t = t, remaining = store.timerRemaining(t), select = nav.timerSelect, checked = t.id in nav.timerSelected,
+                    onCheck = { c -> nav.timerSelected = if (c) nav.timerSelected + t.id else nav.timerSelected - t.id },
+                    onPlay = { nav.focusedTimer = t.id; togglePlay(store, t) },
+                    onReset = { nav.focusedTimer = t.id; store.resetTimer(t.id); store.timer(t.id)?.let { logTimer(store, it) }; Diagnostics.add("clock", "timer ${t.id} stop") },
+                    onExpand = { nav.focusedTimer = t.id; nav.page = ClockPage.TimerExpanded(t.id) },
+                    onEdit = { nav.focusedTimer = t.id; nav.openTimerEditor(TimerDraft.of(t)) },
+                    onHold = { y -> menuAnchor = y - rootTop; menuTimer = t.id },
+                )
+            }
+        }
+        menuTimer?.let { id ->
+            RowHoldMenu(
+                anchorY = with(density) { menuAnchor.toDp() }, verb = "Delete", tag = "timer_row_menu", verbTag = "timer_delete:$id",
+                onVerb = {
+                    Diagnostics.add("clock", "hold delete timer $id")
+                    store.deleteTimers(listOf(id))
+                    menuTimer = null
+                },
+                onDismiss = { menuTimer = null },
             )
         }
     }
@@ -143,13 +165,20 @@ private fun togglePlay(store: ClockStore, t: ClockTimer) {
 private fun TimerBlock(
     t: ClockTimer, remaining: Long, select: Boolean, checked: Boolean,
     onCheck: (Boolean) -> Unit, onPlay: () -> Unit, onReset: () -> Unit, onExpand: () -> Unit, onEdit: () -> Unit,
+    onHold: (Float) -> Unit,
 ) {
     val colors = LocalShellColors.current
     val running = t.state == ClockTimer.State.RUNNING
     val finished = t.state == ClockTimer.State.IDLE && remaining == t.lengthMs
+    var top by remember { mutableFloatStateOf(0f) }
     Box(
         Modifier.fillMaxWidth().height(175.dp).background(if (select && checked) colors.accent else Color.Transparent).testTag("timer_block:${t.id}")
-            .let { m -> if (select) m.pointerInput(checked) { detectTapGestures { onCheck(!checked) } } else m },
+            .onGloballyPositioned { top = it.positionInRoot().y }
+            // In Select a tap checks the block; otherwise a hold opens its menu (the owner's ruling 2026-09-25) and a tap
+            // is left to the block's own buttons and name.
+            .pointerInput(select, checked) {
+                if (select) detectTapGestures { onCheck(!checked) } else detectTapOrHold(onTap = {}, onHold = { onHold(top) })
+            },
     ) {
         if (select) ClockCheckbox(checked, "timer_check:${t.id}", Modifier.offset(x = 12.dp, y = 21.dp))
         // 6.2: digit height 30.2 epx (≈ 43-epx heavy), cap top 21.4 below the block top, centred on the screen.

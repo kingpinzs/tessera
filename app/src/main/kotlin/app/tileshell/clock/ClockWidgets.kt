@@ -42,6 +42,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -59,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
 import app.tileshell.calculator.InkText
+import app.tileshell.start.Edit
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.MotionClock
 import app.tileshell.ui.components.ROW_PRESS_ALPHA
@@ -68,6 +71,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * The Alarms & Clock app's shared drawing (phase 15 build task 4). Every value cites its r11/clock.md row or the
@@ -355,6 +359,45 @@ fun BoxScope.EmptyLineR7(text: String, tag: String, capTop: Float = 70.4f) {
     val colors = LocalShellColors.current
     val top = CapMetrics.topPaddingForCapTop(capTop, 20f)
     BasicText(text, Modifier.offset(x = 11.7.dp, y = top.dp).testTag(tag), style = ShellType.subtitle.copy(color = colors.text))
+}
+
+/**
+ * A tap, or a hold of [Edit.HOLD_MS] (the shell's one hold, R6 §1.1.1). A press that a scroll takes over is neither: it is
+ * told apart from a hold by whether the wait ended by itself, not by a null result, which both give. After a hold the
+ * release is consumed before any child sees it, so it lands as no tap anywhere.
+ */
+suspend fun PointerInputScope.detectTapOrHold(onTap: () -> Unit, onHold: () -> Unit) {
+    awaitEachGesture {
+        awaitFirstDown()
+        var ended = false
+        val up = withTimeoutOrNull(Edit.HOLD_MS) { waitForUpOrCancellation().also { ended = true } }
+        when {
+            up != null -> { up.consume(); onTap() }
+            !ended -> {
+                onHold()
+                // The release is taken in the Initial pass, before the children see it, so a held button or name is
+                // not also tapped when the finger lifts.
+                do {
+                    val e = awaitPointerEvent(PointerEventPass.Initial)
+                    e.changes.forEach { it.consume() }
+                } while (e.changes.any { it.pressed })
+            }
+        }
+    }
+}
+
+/**
+ * A row's hold menu with its one verb, under the held row: R7 §3.6.2's flyout, the form World Clock's Remove takes.
+ * [anchorY] is the held row's top inside the [BoxScope] the menu is drawn in.
+ */
+@Composable
+fun BoxScope.RowHoldMenu(anchorY: Dp, verb: String, tag: String, verbTag: String, onVerb: () -> Unit, onDismiss: () -> Unit) {
+    ClockFlyout(x = 11.6.dp, top = anchorY + 60.dp, width = 335.5.dp, height = 60.dp, tag = tag, onDismiss = onDismiss) {
+        Box(Modifier.height(8.dp))
+        PressBox(Modifier.fillMaxWidth().height(ClockMetrics.MENU_ROW).testTag(verbTag), onClick = onVerb) {
+            BasicText(verb, Modifier.align(Alignment.CenterStart).offset(x = 11.7.dp), style = ShellType.body.copy(color = Color.White))
+        }
+    }
 }
 
 /** The 59.6-epx ring button of the timer and stopwatch tabs (6.4–6.5, 7.2–7.3): a 1.8-epx very dark ring, an accent arc while running. */
