@@ -16,8 +16,8 @@ was re-run in appended sections); SUITE.txt is pass 7 (9805f5e), after round 2, 
 | E2 | e2.sh | 740 ms taps / 830 ms bursts; a 4-px wobble keeps it; a 40-px glide drags and HIDES it, and after UP it is back (2026-09-25) | PASS 20/20 (re-run 2026-09-25 on the drag ruling) |
 | E3 | e3.sh | the four in corner order; tileclient-b's one; a failed icon (no glyph, still runs); Weather / folder / Unassigned / secondary give their reasons | PASS 30/30 |
 | E4 | e4.sh | each satellite launches its shortcut from the tile launch path (≥ 250 ms after the close); tile promoted on return | PASS 42/42 |
-| E5 | e5.sh | every tap and event while open (elsewhere, another tile, the held tile, label, Back, resize, unpin, Home, sleep, scroll, name strip, press styles, no hold in edit mode) | PASS 70/70 |
-| E6 | e6.sh | five warm opens with nothing recording, each asserted on the shell's clock (peak, overshoot, maxGapMs, settle ≤ 249.1 + maxGap), the burst's t0 within one frame of the entry's first frame; separate half-size recordings retaken until their spacing passes (their shell-clock numbers noted, not asserted: E6-pass4-83ms/; a clipped window is retaken). The clock numbers are the spring's own values at frame times, so the DRAWN motion rests on H1 / H2 (R2-10) | PASS 35/35 |
+| E5 | e5.sh | every tap and event while open — a tap elsewhere (another tile, the held tile, empty space, the name strip) now closes the burst AND leaves edit mode in one tap (2026-09-25); label, Back, the discs, Home, sleep, scroll, press styles, no hold in edit mode | PASS 74/74 (re-run 2026-09-25 on the one-tap ruling) |
+| E6 | e6.sh | five warm opens with nothing recording, each asserted on the shell's clock (peak, overshoot, maxGapMs, settle ≤ 249.1 + maxGap), the burst's t0 within one frame of the entry's first frame; separate half-size recordings retaken until their spacing passes (their shell-clock numbers noted, not asserted: E6-pass4-83ms/; a clipped window is retaken). The clock numbers are the spring's own values at frame times, so the DRAWN motion rests on H1 / H2 (R2-10) | PASS 35/35 (re-run 2026-09-25 on the one-tap ruling; the first try hit L11-2's ANR again, E6-tapruling-anr) |
 | E7 | e7.sh | geometry: corner, line above (row), line below (top-left), 2-column WIDE in row 1, band (clamped corner), scrolled | PASS 58/58 |
 | E8 | e8.sh | not a shortcut host; disabled; disable while open; uninstall while open; unstartable shortcut | PASS 29/29 |
 | E9 | e9.sh | managed profile bursts and launches as its user; quiet / locked private space → profile quiet | PASS 20/20 |
@@ -68,6 +68,8 @@ geometry, Compose's own `spring(0.65, 1500)` against the doc's fingerprint, the 
   framework's own frame draw (`ViewRootImpl.performDraw` → `DrawFrameTask::drawFrame`, no app frame on the stack) while
   `screenrecord` encoded on a host running two emulators. Not reproduced in the 30+ recorded opens since; E6 now fails an
   attempt when an app-error dialog is up and keeps its trace.
+  Seen again 2026-09-25 (E6-tapruling-anr/: the same frame-draw stall during a recorded open, four emulators on the host;
+  the re-run passed).
 - **Phase 03's exported allow-list lacks phase 10's `MusicActivity` and `MusicService`** (exported since phase 10). Phase
   11 adds no export (E13 proves the manifest diff is meta-data only); phase 03 E5 as written fails today.
 - **Cold first hold janks** on this debug build: phase 02's own edit-mode entry with no burst (folder:qa: 25.45 % and
