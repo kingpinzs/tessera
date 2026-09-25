@@ -7,6 +7,10 @@ import android.service.voice.VoiceInteractionSession
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import androidx.activity.compose.LocalActivityResultRegistryOwner
+import androidx.activity.result.ActivityResultRegistry
+import androidx.activity.result.ActivityResultRegistryOwner
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -40,7 +44,7 @@ import kotlinx.coroutines.launch
  * what E11 and H1 read.
  */
 class CortanaSession(context: Context) : VoiceInteractionSession(context),
-    LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
+    LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner, ActivityResultRegistryOwner {
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val savedStateController = SavedStateRegistryController.create(this)
@@ -50,6 +54,25 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
     override val lifecycle: Lifecycle get() = lifecycleRegistry
     override val viewModelStore: ViewModelStore get() = store
     override val savedStateRegistry: SavedStateRegistry get() = savedStateController.savedStateRegistry
+
+    /**
+     * L13-1: what `rememberLauncherForActivityResult` inside Tess launches through (the reminder page's camera, the
+     * card's Add a photo). Tess steps aside with the UI switched off rather than hidden: a hide runs onHide, which
+     * drops the pending card (H12), and the card or page the launch came from must be there when the result lands.
+     */
+    override val activityResultRegistry: ActivityResultRegistry = SessionResultRegistry(
+        context = context,
+        start = { requestCode, target, onResult -> CortanaResults.start(context, requestCode, target, onResult) },
+        stepAside = {
+            Diagnostics.add("cortana", "stepping aside for a launched page")
+            model.onSteppedAside()
+            setUiEnabled(false)
+        },
+        comeBack = {
+            Diagnostics.add("cortana", "back from a launched page")
+            setUiEnabled(true)
+        },
+    )
 
     private val host = object : ActionHost {
         override fun launch(intent: Intent) {
@@ -109,13 +132,17 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
             setViewTreeViewModelStoreOwner(this@CortanaSession)
             setViewTreeSavedStateRegistryOwner(this@CortanaSession)
             setContent {
-                CortanaSessionRoot(
-                    model = model,
-                    onDrawnBack = { onDrawnBack() },
-                    onWindowsKey = { goHome() },
-                    onSavePlaceHere = { name -> savePlaceHere(name) },
-                    onLookUpAddress = { name, address -> lookUpAddress(name, address) },
-                )
+                // activity-compose finds the owner in this local or by walking LocalContext, and the context here
+                // is the session service, never an owner — so the session provides itself (L13-1).
+                CompositionLocalProvider(LocalActivityResultRegistryOwner provides this@CortanaSession) {
+                    CortanaSessionRoot(
+                        model = model,
+                        onDrawnBack = { onDrawnBack() },
+                        onWindowsKey = { goHome() },
+                        onSavePlaceHere = { name -> savePlaceHere(name) },
+                        onLookUpAddress = { name, address -> lookUpAddress(name, address) },
+                    )
+                }
             }
         }
         // Instrumentation, kept because it is the only thing that showed where a touch stops. Without
@@ -193,6 +220,7 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
         store.clear()
         scope.cancel()
+        CortanaResults.forgetAll()
         Diagnostics.add("cortana", "session destroyed")
         super.onDestroy()
     }
