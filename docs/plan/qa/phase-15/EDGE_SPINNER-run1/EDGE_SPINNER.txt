@@ -1,0 +1,27 @@
+==============================================================================
+ROW EDGE_SPINNER — the looping spinner: taps roll from the value shown, a long drag stays full, a drag catches a roll
+at            2026-09-24T22:20:42-06:00
+driver        edge_spinner.sh blob be603814d3687b0496af53d39f260dee976dfd3c
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      timers before: 0
+PASS  the timer editor is open (NEW TIMER)                        = NEW TIMER
+      minutes column 355 204 717 969
+      minutes at the start: 05
+PASS  the minutes column names its value                          != 
+PASS  1. a tap two rows below the centre rolls to 07              = 07
+FAIL  1. then a tap one row below rolls on to 08 (from the value shown, not the one the editor opened with)  expected [08] got [06]
+FAIL  1. and a tap one row above rolls back to 07                 expected [07] got [04]
+FAIL  2. held 7 rows into a drag, the frame still shows a row in every slot (7.97 rows: 7 or 8 drawn rows)  3.00 vs 8.00 +/- 1.0
+FAIL  2. released, it settles 7 rows on (14)                      expected [14] got [11]
+PASS  2. and the settled frame is full                            7.00 vs 8.00 +/- 1.0
+      catch 1: fling ended at +49 ms, the catch's DOWN 12 ms later; [motion] spinner lines: 2
+FAIL  3. a drag during the roll catches it: the fling's roll never completes, one [motion] spinner line (the catch's)  expected [1] got [2]
+PASS  restore: no timer was created                               = 0
+------------------------------------------------------------------------------
+96: 5 passed, 5 failed, 0 recorded

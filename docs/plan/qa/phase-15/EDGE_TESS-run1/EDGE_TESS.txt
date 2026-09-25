@@ -1,0 +1,82 @@
+==============================================================================
+ROW EDGE_TESS — Tess arithmetic edge cases: a 1,000-digit result, a unit the Converter lacks, units across categories, the Calculator's display untouched
+at            2026-09-24T22:06:56-06:00
+driver        edge_tess.sh blob 48728cd32e3ec422873964d40d08329d7f5f159b
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: the installed APK is the final build              = 4b7ac321ce4d0ede
+PASS  baseline: the shell's uid is known                          != 
+PASS  baseline: no Tess session on screen                         = no
+PASS  baseline: Home is the resumed activity                      contains [app.tileshell/.StartActivity]
+      cited from E26 on this build (4b7ac321, E26/E26.txt): tess-008 "what is point five times four" -> "0.5 times 4 is 2."; tess-009 "what is negative three times four" -> "-3 times 4 is -12."; tess-010 "what is 10 to the power of 10000" -> "Overflow." (not repeated here)
+      oracle: what is 9 to the power of 1047 -> display [1.23568388514619681188536264835e+999] reply [9 to the power of 1,047 is 1.23568388514619681188536264835e+999.]
+PASS  1: the exact result 9^1047 has 1,000 digits (host integer)  = 1000
+PASS  1: the oracle's display is the engine's e-notation (e+999)  contains [e+999]
+PASS  1 typed: the reply                                          = 9 to the power of 1,047 is 1.23568388514619681188536264835e+999.
+PASS  1 typed: [match] -> Arithmetic                              contains [-> Arithmetic(]
+PASS  1 typed: its [calc] tess line                               contains [[calc] tess "9 ^ 1047" -> 1.23568388514619681188536264835e+999]
+PASS  1 typed: the reply was spoken to the end (speaking done, not cancelled)  contains [speaking done 223d164a-bc1f-4786-a05a-7afb08249c5e cancelled=false]
+PASS  1 typed: a player of the shell's on USAGE_ASSISTANT started (dumpsys audio)  contains [state:started]
+PASS  1 typed: the answer card is up                              = yes
+PASS  1 typed: the card's title is the reply                      = 9 to the power of 1,047 is 1.23568388514619681188536264835e+999.
+PASS  1 typed: the card's caption is Calculator                   = Calculator
+PASS  1 typed: the card's body is the expression and = the e-notation result  = 9 to the power of 1,047 | = 1.23568388514619681188536264835e+999
+RECORD  1 typed: the reply's synthesised length (speech ring tts line)  frames=397387 (16557 ms) in 40000 ms cancelled=false
+      audio.sh check: capture source: vmic5556.monitor (want vmic5556.monitor); output stream: 3186 (rc=0); prompt synthesis rc=0: /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/EDGE_TESS/utt_pow1047.wav: 6.44 s
+      this emulator's host output stream: 3186 Mute: yes
+      1 spoken final: open="" grammar="" audioMs=2100
+PASS  1 spoken: the recogniser produced a new final               != 29
+PASS  1 spoken: the capture was heard (C-30)                      does not contain [asr: no speech]
+FAIL  1 spoken: the reply                                         expected [9 to the power of 1,047 is 1.23568388514619681188536264835e+999.] got [I didn't catch that.]
+FAIL  1 spoken: [match] -> Arithmetic                             does not contain [-> Arithmetic(]: 
+FAIL  1 spoken: its [calc] tess line                              does not contain [[calc] tess "9 ^ 1047" -> 1.23568388514619681188536264835e+999]: 
+PASS  1 spoken: the reply was spoken to the end (speaking done, not cancelled)  contains [speaking done 4a0bd1ad-16ee-400f-87fb-61f5665dd22e cancelled=false]
+FAIL  1 spoken: a player of the shell's on USAGE_ASSISTANT started (dumpsys audio)  does not contain [state:started]: 
+RECORD  1 spoken: the reply's synthesised length (speech ring tts line)  frames=32141 (1339 ms) in 3816 ms cancelled=false
+RECORD  NOT RUN 1 spoken: reply audibility (phase 03's RMS > -40 dBFS)  the host mutes this emulator's output stream (pactl sink-input #3186 Mute: yes; Jeremy 2026-09-24 "mute the emulators"), so a capture reads silence — E26's same 8 checks are accepted on that reason (H17). The reply's playback is asserted from dumpsys audio (a started USAGE_ASSISTANT player) and the speak line finishing uncancelled.
+PASS  parsecs: "5 parsecs in miles" matched nothing               contains ["5 parsecs in miles" -> NotUnderstood(]
+PASS  parsecs: it reached the not-understood handler              contains [[not_understood] transcript="5 parsecs in miles"]
+PASS  parsecs: no [calc] tess line in its slice                   does not contain [[calc] tess]
+RECORD  parsecs: the reply                                          Sorry, I can't do that yet.
+PASS  crosscat: "5 miles in kilograms" matched nothing            contains ["5 miles in kilograms" -> NotUnderstood(]
+PASS  crosscat: it reached the not-understood handler             contains [[not_understood] transcript="5 miles in kilograms"]
+PASS  crosscat: no [calc] tess line in its slice                  does not contain [[calc] tess]
+RECORD  crosscat: the reply                                         Sorry, I can't do that yet.
+PASS  control (same bare form, one category): the reply           = 5 miles is 8.04672 kilometers.
+PASS  control (same bare form, one category): [match] -> Arithmetic  contains [-> Arithmetic(]
+PASS  control (same bare form, one category): its [calc] tess line  contains [[calc] tess "5 Miles -> Kilometers" -> 8.04672 Kilometers]
+PASS  control (same bare form, one category): the reply was spoken to the end (speaking done, not cancelled)  contains [speaking done 21aa75b5-1284-44ba-8aba-b729aed022d7 cancelled=false]
+PASS  control (same bare form, one category): a player of the shell's on USAGE_ASSISTANT started (dumpsys audio)  contains [state:started]
+PASS  restore: Tess closed after the typed cases                  = no
+      the Calculator's history store as found: sha256 497b9bf9b24025593da5953a087888600138643d4ab8b700dd2b6e1d9330d957
+      the Calculator as found: page calc_mode:standard, calc_display [0], calc_expr []
+PASS  4: the Calculator is the resumed activity                   contains [app.tileshell/.calculator.CalculatorActivity]
+PASS  4 baseline: the Calculator shows 0 (RV12)                   = 0
+PASS  4: the Calculator shows another value (123 + 456 pending)   = 456
+PASS  4: its expression line shows the pending 123 +              = 123 +
+PASS  4: Tess's session is up over the Calculator                 = yes
+PASS  4: the Calculator is still the resumed activity beneath Tess  contains [app.tileshell/.calculator.CalculatorActivity]
+PASS  4: the reply                                                = 6 times 7 minus 5 is 37.
+PASS  4: [match] -> Arithmetic                                    contains [-> Arithmetic(]
+PASS  4: its [calc] tess line                                     contains [[calc] tess "6 * 7 - 5" -> 37]
+PASS  4: the reply was spoken to the end (speaking done, not cancelled)  contains [speaking done dc85b8db-884c-481b-b9a1-4f0f0d2260f7 cancelled=false]
+PASS  4: a player of the shell's on USAGE_ASSISTANT started (dumpsys audio)  contains [state:started]
+PASS  4: Tess closed with Back                                    = no
+PASS  4: the Calculator is resumed again                          contains [app.tileshell/.calculator.CalculatorActivity]
+PASS  4: calc_display unchanged by Tess's request                 = 456
+PASS  4: calc_expr unchanged by Tess's request                    = 123 +
+PASS  4: the Calculator's history store unchanged by Tess's request  = 497b9bf9b24025593da5953a087888600138643d4ab8b700dd2b6e1d9330d957
+PASS  restore: the Calculator's display as found                  = 0
+PASS  restore: the Calculator's expression line empty             = 
+PASS  restore: the Calculator's page as found                     = calc_mode:standard
+PASS  restore: the Calculator's history as found (sha256)         = 497b9bf9b24025593da5953a087888600138643d4ab8b700dd2b6e1d9330d957
+PASS  restore: no Tess session on screen                          = no
+PASS  restore: Home is the resumed activity                       contains [app.tileshell/.StartActivity]
+PASS  restore: Tess idle (no started USAGE_ASSISTANT player of the shell's)  = 0
+------------------------------------------------------------------------------
+EDGE_TESS: 53 passed, 4 failed, 5 recorded

@@ -70,7 +70,9 @@ spoken() {
   ring_since "$MARK" > "$ROW_DIR/ring_$u.txt"
   ring_since "$MARK" speech > "$ROW_DIR/ring_${u}_speech.txt"
   note "$u final: $final"
-  assert_absent "$u: the capture was heard (C-30)" "asr: no speech" "$(grep -F 'asr:' "$ROW_DIR/ring_${u}_speech.txt" | tail -1)"
+  # The levels line says whether the capture was heard; the slice's last asr: line is the final result, which never
+  # carries "no speech", so a check on it could not fail.
+  assert_contains "$u: the capture was heard (C-30)" "heard=true" "$(grep -oE 'asr: levels .*' "$ROW_DIR/ring_${u}_speech.txt" | tail -1)"
   [ -n "$want" ] && assert_eq "$u reply" "$want" "$(reply_since "$MARK")"
   [ -n "$needle" ] && assert_contains "$u launcher ring" "$needle" "$(cat "$ROW_DIR/ring_$u.txt")"
   rms="$("$AUDIO" rms "$ROW_DIR/${u}_reply.wav" 2>/dev/null)"
