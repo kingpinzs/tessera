@@ -88,7 +88,7 @@ geometry, Compose's own `spring(0.65, 1500)` against the doc's fingerprint, the 
 
 H1 the burst as a whole (dampingRatio 0.65, boundsInRoot tracking) · H2 stiffness 1500: ≈ 107-ms peak, ≈ 249-ms settle,
 ≈ 36-ms close · H3 the satellite (small-tile square, icon rule, label outside in the theme's text colour, both themes;
-press feedback judged once phase 13 is built; at X5 100 % with a background picture a satellite is a fifth of the accent over the dimmed tile behind it, and that tile's glyph shows through it (People under One, Mail under Two) — EDGE-pass6/x5-100.png; an opaque satellite would be a product change to a FINAL Decision (doc :86-87)) · H4 the 16-epx stand-off, the line arrangements and the clamping (note: a line sits one gutter from the tile, so its end
+press feedback judged once phase 13 is built; at X5 100 % with a background picture a satellite is a fifth of the accent over the dimmed tile behind it, and that tile's glyph shows through it (People under One, Mail under Two) — EDGE-pass6/x5-100.png; an opaque satellite would be a product change to a FINAL Decision (doc :86-87)); on a full grid every corner label lies on a dimmed neighbouring tile and can cross that tile's own text (round 3, D3-3) · H4 the 16-epx stand-off, the line arrangements and the clamping (note: a line sits one gutter from the tile, so its end
 satellite covers ≈ 33 px of the unpin or resize disc and a tap there runs the satellite — built as the doc words it; gate
 review G-D5 suggests the 16-epx stand-off for lines if Jeremy dislikes it) · H5
 fewer than four fill top-left first · H6 a disc tap acts and closes the burst · H7 a satellite launch leaves edit mode
