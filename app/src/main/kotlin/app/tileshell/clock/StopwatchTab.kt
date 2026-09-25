@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -144,7 +145,11 @@ fun BoxScope.StopwatchTab(nav: ClockNav, store: ClockStore) {
             BasicText("Splits", Modifier.padding(start = 12.dp).testTag("stopwatch_splits_header"), style = ShellType.caption.copy(color = colors.text.copy(alpha = 0.49f)))
         }
         val durations = remember(sw.laps) { ClockText.lapDurations(sw.laps) }
-        LazyColumn(Modifier.fillMaxSize().testTag("stopwatch_laps"), contentPadding = PaddingValues(bottom = ClockMetrics.APP_BAR)) {
+        // A keyed list keeps its top row in place when rows are inserted above it, so once the laps outgrow the list
+        // every new lap would land above the viewport (qa/phase-15/EDGE_STOPWATCH/DEFECT.md): bring the newest into view.
+        val lapsState = rememberLazyListState()
+        LaunchedEffect(sw.laps.size) { if (sw.laps.isNotEmpty()) lapsState.scrollToItem(0) }
+        LazyColumn(Modifier.fillMaxSize().testTag("stopwatch_laps"), state = lapsState, contentPadding = PaddingValues(bottom = ClockMetrics.APP_BAR)) {
             itemsIndexed(sw.laps.asReversed(), key = { i, _ -> sw.laps.size - i }) { i, split ->
                 val n = sw.laps.size - i
                 Box(Modifier.fillMaxWidth().height(64.dp)) {
