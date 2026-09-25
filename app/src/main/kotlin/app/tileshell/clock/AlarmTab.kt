@@ -141,7 +141,7 @@ private fun AlarmRow(
         }
         // 2.3: digit height 17.8 epx (≈ 25.4-epx Light), ink x 9.8, cap top 14.3 below the row top (2.7). The cap top is
         // placed by the font's measured ink (a capital's, so every time shares one baseline): the line-height model
-        // put it 1.25 epx high (qa/phase-15/E10/DEFECT.md).
+        // put it 1.25 epx high (qa/phase-15/E10-run7/DEFECT.md).
         InkText(
             timeText, ShellType.title.copy(fontSize = 25.4.sp, lineHeight = 32.sp, fontWeight = FontWeight.Light, color = colors.text),
             reference = "H", modifier = Modifier.testTag("alarm_time:${alarm.id}"), leftEpx = 9.8f + shift.value, inkTopEpx = 14.3f,

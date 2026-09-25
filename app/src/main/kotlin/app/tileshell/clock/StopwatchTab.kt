@@ -146,7 +146,7 @@ fun BoxScope.StopwatchTab(nav: ClockNav, store: ClockStore) {
         }
         val durations = remember(sw.laps) { ClockText.lapDurations(sw.laps) }
         // A keyed list keeps its top row in place when rows are inserted above it, so once the laps outgrow the list
-        // every new lap would land above the viewport (qa/phase-15/EDGE_STOPWATCH/DEFECT.md): bring the newest into view.
+        // every new lap would land above the viewport (qa/phase-15/EDGE_STOPWATCH-run5/DEFECT.md): bring the newest into view.
         val lapsState = rememberLazyListState()
         LaunchedEffect(sw.laps.size) { if (sw.laps.isNotEmpty()) lapsState.scrollToItem(0) }
         LazyColumn(Modifier.fillMaxSize().testTag("stopwatch_laps"), state = lapsState, contentPadding = PaddingValues(bottom = ClockMetrics.APP_BAR)) {

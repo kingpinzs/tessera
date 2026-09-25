@@ -325,7 +325,7 @@ fun EditorTitle(text: String, tag: String) {
  * 2.1: the Alarm tab's empty line — "No alarms" in Light type, cap 17.8 epx (≈ 25.4-epx), ink x 9.8, cap top 21.4
  * below the band, grey ≈ 37 % of the text colour. The Timer tab borrows it for "No timers" (approximation). r11
  * measured INK, so the line is placed by the shipped font's measured ink, as the Calculator is: a box offset left the
- * "N"'s 2.3-epx side bearing in (qa/phase-15/E10/DEFECT.md).
+ * "N"'s 2.3-epx side bearing in (qa/phase-15/E10-run7/DEFECT.md).
  */
 @Composable
 fun BoxScope.EmptyLine(text: String, tag: String) {

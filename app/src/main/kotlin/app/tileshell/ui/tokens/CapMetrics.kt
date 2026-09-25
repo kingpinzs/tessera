@@ -35,7 +35,7 @@ object CapMetrics {
      * line height. Compose's default LineHeightStyle trims the extra a declared line height adds above the first line
      * (and below the last), so the first baseline sits the font's own ascent below the box top. On the phone at
      * 25.4 epx with a 32-epx line the box is the natural 30.3 epx tall and the baseline 25.0 epx into it
-     * (qa/phase-15/E10/DEFECT.md). The model this replaces spread that extra over ascent and descent, which put every
+     * (qa/phase-15/E10-run7/DEFECT.md). The model this replaces spread that extra over ascent and descent, which put every
      * text placed through it 0.7-2.6 epx high, by style.
      */
     fun capTopWithinBox(fontSizeEpx: Float): Float = fontSizeEpx * ASCENT_RATIO - capHeight(fontSizeEpx)
