@@ -5,12 +5,12 @@ Spec: [phase-11-tile-quick-actions.md](../../phase-11-tile-quick-actions.md) (FI
 (`lib.sh`, symlinked) with `q.sh`. The whole gate on one APK and one driver set: `scripts/run_all.sh` → `SUITE.txt`.
 Earlier passes are kept: `SUITE-pass1-be98994.txt` (commit a7af265), `SUITE-pass2-f0284db.txt` (97697c8), `SUITE-pass3-e26d4fe.txt`,
 `SUITE-pass4-stopped-ca73663.txt` (stopped at E7 for the L11-1 fix review's changes), `SUITE-pass5-aaf7adc.txt` (the first after
-the L11-1 fix); SUITE.txt is pass 6 (f8cd00a), after the Opus re-judge's fixes and with the EDGE row; E13 failed there on a driver race (its short press ran past the hold); the fix's
-first cut (a45b2ad) still pressed ~800 ms, the second (1477e75) passes — both re-runs appended with E14.
+the L11-1 fix), `SUITE-pass6-f8cd00a.txt` (after the Opus re-judge round 1, with the EDGE row; E13 raced the hold there and
+was re-run in appended sections); SUITE.txt is pass 7 (9805f5e), after round 2, end to end on one driver set.
 
 ## Rows
 
-| Row | Driver | What it proves | Result: pass 6 on apk 50129ec4 (code 9f790b7, drivers f8cd00a; SUITE.txt: SUITE PASSED, the latest line per row: E13 / E14 re-run twice in its appended sections, last on 1477e75) |
+| Row | Driver | What it proves | Result: pass 7 on apk 50129ec4 (code 9f790b7, drivers 9805f5e; SUITE.txt: SUITE PASSED) |
 |---|---|---|---|
 | E1 | e1.sh | the burst at the 783-ms hold; labels One–Four; edit mode; both stay after UP | PASS 18/18 |
 | E2 | e2.sh | 740 ms taps / 830 ms bursts; a 4-px wobble keeps it; a 40-px glide drags and closes it | PASS 17/17 |
@@ -28,8 +28,8 @@ first cut (a45b2ad) still pressed ~800 ms, the second (1477e75) passes — both 
 | E14 | e14.sh | every `[quick]` line, reason and close in this build's saved rings; `query failed` by its JVM test | PASS 28/28 |
 | E15 | e15.sh | Music's pivots and Start settings' pages as satellites, landing on the right pivot / page; Weather and Tess none | PASS 19/19 |
 | E16 | e16.sh | the promoted tile bursts in its grid cell (E1's held bounds, E7's offsets); a cell off the page → off screen | PASS 18/18 |
-| L11-1 | l11_1.sh | the fix's own row: TileSourcePrecedenceTest's own results (12, three cases by name); the API queue over a notification, and clearing it shows the notification (a positive control); Fossify (phase 01 E8's player, its face asserted) and the shell's player (session state asserted) keep the strip across notification updates, every publish after the face `-> shows music (playing)`, a pause drops it; (d) a player uninstalled WHILE PLAYING ends with nothing shown — 9f790b7's own null publish seen after the engine's forget; the R1-1 race window itself is not produced on demand (uninstall-sequence.txt) — and, in ONE shell process, its reinstall re-pinned from the app list inherits no face (F-2); (e) a secondary tile's API content survives a listener rescan (F-1); phase 01 E15 / E17 asserted; phase 02 E5 as a regression | PASS 69/69 |
-| EDGE | edge.sh | the doc's Edge Cases list as a list: each bullet no other row carried is a sub-step (a hold during a live flip, during a fling, a second finger, an incoming call, the keyguard, a listener restart, process death, Show more tiles, a two-tile folder dissolving, a blank and a long label, theme Light / Dark, X5 at 0 / 100 %, RV10 size / density / font scale); EDGE.txt's index maps all 42 cases (scripts/edge_index.tsv) | PASS 61/61 |
+| L11-1 | l11_1.sh | the fix's own row: TileSourcePrecedenceTest's own results (12, three cases by name); the API queue over a notification, and clearing it shows the notification (a positive control); Fossify (phase 01 E8's player, its face asserted) and the shell's player (session state asserted) keep the strip across notification updates, every publish after the face `-> shows music (playing)`, a pause drops it; (d) a player uninstalled WHILE PLAYING ends with nothing shown — 9f790b7's own null publish seen after the engine's forget; the R1-1 race window itself is not produced on demand (uninstall-sequence.txt) — and, in ONE shell process, its reinstall re-pinned from the app list inherits no face (F-2); (e) a secondary tile's API content survives a listener rescan (F-1); phase 01 E15 / E17 asserted; phase 02 E5 as a regression | PASS 70/70 |
+| EDGE | edge.sh | the doc's Edge Cases list as a list: each bullet no other row carried is a sub-step (a hold during a live flip, during a fling, a second finger, an incoming call, the keyguard, a listener restart, process death, Show more tiles, a two-tile folder dissolving, a blank and a long label, theme Light / Dark, X5 at 0 / 100 %, RV10 size / density / font scale); EDGE.txt's index maps all 42 cases (scripts/edge_index.tsv) | PASS 84/84 |
 
 Unit: 651/651 in the suite, kept in UNIT-results/ (`TileSourcePrecedenceTest` 12, the L11-1 fix's, asserted by the L11-1 row); `QuickRulesTest` (23) — the selection rule, the decision and its reasons (`query failed` included), the
 geometry, Compose's own `spring(0.65, 1500)` against the doc's fingerprint, the launch outcome.
