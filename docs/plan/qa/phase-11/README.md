@@ -89,7 +89,8 @@ geometry, Compose's own `spring(0.65, 1500)` against the doc's fingerprint, the 
 
 ## NEEDS-HUMAN (all accept rows, Jeremy)
 
-**2026-09-25: H2-H11 ACCEPTED by Jeremy** ("yes everything else seemed good"). H1 rejected twice on the phone — the satellites
+**2026-09-25: H1-H11 ACCEPTED by Jeremy** (H2-H11: "yes everything else seemed good"; H1, after the drag and one-tap fixes,
+and the phone rows P1-P3, P5, P6: "yes looks good"). Phase 11 is done. H1 rejected twice on the phone — the satellites
 vanished on a drag (fixed, 548082c) and closing took two taps (one tap now, b3fe189) — and waits on his look at the new APK.
 
 H1 the burst as a whole (dampingRatio 0.65, boundsInRoot tracking) · H2 stiffness 1500: ≈ 107-ms peak, ≈ 249-ms settle,

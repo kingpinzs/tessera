@@ -690,8 +690,8 @@ Change Log 2026-09-24).
 | L11-1 the L11-1 fix's own row (phases 01 / 10's part) | PASS 70/70 | `qa/phase-11/L11-1/L11-1.txt` |
 | Edge cases (all 42, indexed; two readings wait on Jeremy) | PASS 84/84 | `qa/phase-11/EDGE/EDGE.txt` |
 | Suite | SUITE PASSED | `qa/phase-11/SUITE.txt` (earlier passes kept beside it) |
-| P1-P3, P5, P6 (phone) | not run — Jeremy's phone | — |
-| H1-H11 | waiting on Jeremy | `qa/phase-11/README.md` (NEEDS-HUMAN) |
+| P1-P3, P5, P6 (phone) | PASS — Jeremy on the S25 Ultra, 2026-09-25 | INDEX Change Log "PHASE 11 DONE" |
+| H1-H11 | ACCEPTED — Jeremy, 2026-09-25 (H1 after the drag and one-tap rulings) | `qa/phase-11/README.md` (NEEDS-HUMAN) |
 
 Reviewers: fable + fable on pass 3 (review/2026-09-23-phase11-gate-design.md, review/2026-09-24-phase11-gate-evidence.md); opus +
 opus by Jeremy's ruling on pass 5 (review/2026-09-24-phase11-rejudge-*.md) and pass 6 (review/2026-09-24-phase11-rejudge2-*.md),
