@@ -53,6 +53,13 @@ UTTERANCES = {
     "weather": "What's the weather?",
     # E3, an utterance outside the list
     "unmatched": "What is the capital of Peru?",
+    # Phase 15 E26: Tess's arithmetic and conversions (T15-2), and the negatives beside them
+    "calc_percent": "What's fifteen percent of eighty?",
+    "calc_divzero": "What's one divided by zero?",
+    "calc_convert": "What is five miles in kilometers?",
+    "calc_root": "What is the square root of eighty one?",
+    "calc_life": "Calculate my life.",
+    "weather_like": "What's the weather like?",
     # E7, the confirmation flow
     "send_it": "Send it.",
     "add_more": "Add more.",

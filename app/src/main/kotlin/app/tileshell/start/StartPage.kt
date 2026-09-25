@@ -1,6 +1,8 @@
 package app.tileshell.start
 
 import android.content.Context
+import android.content.ComponentName
+import app.tileshell.tiles.engine.TileRouting
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -125,21 +127,34 @@ class TileFactory(
     private val expandedFolder: String?,
     private val secondaries: Map<String, SecondaryTiles.SecondaryTileInfo>,
 ) {
-    /**
-     * The package a tile stands for, or null when it stands for no app (a shell page, a folder).
-     *
-     * Phase 10 Q4 needs this: the music feed knows only which package owns the session, because that is
-     * all a media session tells it, and the question "which tiles stand for that package" belongs to
-     * whatever holds the layout and the slot resolver — which is this.
-     */
     /** The app a slot resolves to right now, or null (phase 11: what a slot tile's burst asks about). */
     fun entryOf(slot: Slot): AppEntry? = resolver.resolve(slot, layout.explicitSlots)
 
-    fun packageOf(key: TileKey): String? = when (key) {
-        is TileKey.AppTile -> key.component.packageName
-        is TileKey.SlotTile -> resolver.resolve(key.slot, layout.explicitSlots)?.component?.packageName
+    /**
+     * The growth key a tile answers to, or null when it stands for no app (a shell page, a folder).
+     *
+     * Phase 10 Q4 needs this: the music feed knows only which app owns the session, and the question
+     * "which tiles stand for that app" belongs to whatever holds the layout and the slot resolver — which
+     * is this. "That app" is a package for everyone but the shell, whose apps share one package and are told
+     * apart by component (TileRouting; phase 15 build task 0).
+     */
+    fun growthKeyOf(key: TileKey): String? = componentOf(key)?.let { TileRouting.tileGrowthKey(it.packageName, it.className, shellPackage) }
+
+    private fun componentOf(key: TileKey): ComponentName? = when (key) {
+        is TileKey.AppTile -> key.component
+        is TileKey.SlotTile -> resolver.resolve(key.slot, layout.explicitSlots)?.component
         else -> null
     }
+
+    private val shellPackage: String = context.packageName
+
+    /** The live content of the app a tile stands for (TileRouting: a package's, or a shell app's own). */
+    private fun appContent(component: ComponentName): TileContent? =
+        content[TileRouting.tileContentKey(component.packageName, component.className, shellPackage)]
+
+    /** The notification count a tile shows: none on a shell app's tile (TileRouting.tileBadgeKey). */
+    private fun appBadge(component: ComponentName): Int =
+        TileRouting.tileBadgeKey(component.packageName, shellPackage)?.let { badges[it] } ?: 0
 
     fun place(key: TileKey, size: TileSize, x: Float, y: Float, wPx: Float, hPx: Float, idPrefix: String = "", live: Boolean = true): PlacedTile {
         val iconPx = (minOf(wPx, hPx) * 0.52f).toInt().coerceAtLeast(24)
@@ -152,7 +167,7 @@ class TileFactory(
                     Slot.MUSIC -> LiveTileEngine.MUSIC
                     else -> null
                 }
-                val pkgContent = entry?.let { content[LiveTileEngine.packageKey(it.component.packageName)] }
+                val pkgContent = entry?.let { appContent(it.component) }
                 val model = TileModel(
                     id = idPrefix + key.id,
                     // The SLOT's name, not the resolved app's. A slot IS the W10M tile — People, Mail,
@@ -166,7 +181,7 @@ class TileFactory(
                     icon = entry?.let { TileIcons.load(context, it, iconPx) },
                     fallbackGlyph = slotGlyph(key.slot),
                     content = if (live) feedKey?.let { content[it] } ?: pkgContent else null,
-                    badge = entry?.let { badges[it.component.packageName] } ?: 0,
+                    badge = entry?.let { appBadge(it.component) } ?: 0,
                     unassigned = entry == null,
                 )
                 PlacedTile(key, model, entry?.let { TileTarget.App(it) } ?: TileTarget.Unassigned(key.slot), x, y, wPx, hPx)
@@ -175,8 +190,8 @@ class TileFactory(
                 val entry = catalog.find(key.component)
                 val model = TileModel(idPrefix + key.id, entry?.label ?: key.component.packageName, size,
                     entry?.let { TileIcons.load(context, it, iconPx) }, Glyph.APPS,
-                    if (live) content[LiveTileEngine.packageKey(key.component.packageName)] else null,
-                    badges[key.component.packageName] ?: 0, entry == null)
+                    if (live) appContent(key.component) else null,
+                    appBadge(key.component), entry == null)
                 PlacedTile(key, model, entry?.let { TileTarget.App(it) } ?: TileTarget.Shell("missing"), x, y, wPx, hPx)
             }
             is TileKey.FolderTile -> {
@@ -232,9 +247,9 @@ class TileFactory(
             Slot.PHOTOS -> content[LiveTileEngine.PHOTOS]
             Slot.CALENDAR -> content[LiveTileEngine.CALENDAR]
             Slot.MUSIC -> content[LiveTileEngine.MUSIC]
-            else -> resolver.resolve(key.slot, layout.explicitSlots)?.let { content[LiveTileEngine.packageKey(it.component.packageName)] }
+            else -> resolver.resolve(key.slot, layout.explicitSlots)?.let { appContent(it.component) }
         }
-        is TileKey.AppTile -> content[LiveTileEngine.packageKey(key.component.packageName)]
+        is TileKey.AppTile -> appContent(key.component)
         is TileKey.ShellTile -> if (key.name == ShellTiles.WEATHER) content[LiveTileEngine.WEATHER] else null
         else -> null
     }
@@ -462,16 +477,17 @@ fun StartPage(
     // drawn and writes back by INDEX (moveInGrid), so a displayed order that differs from the stored
     // one would move the wrong tile. What you edit is what is saved, always.
     val stored = edit.previewOrder ?: layout.order
-    // Phase 10 Q4: the music feed knows only which PACKAGE owns the session, because that is all a media
-    // session tells it. Which tiles stand for that package — a slot tile, a pinned tile, both, or none —
-    // is a question about the layout, and this is where the layout and the slot resolver are both in
-    // hand. Expanding here keeps TileGrowth pure and keeps the feed out of the layout's business.
+    // Phase 10 Q4: the music feed knows only which APP owns the session — a package, or for the shell's own
+    // apps a component (TileRouting, phase 15 build task 0). Which tiles stand for that app — a slot tile, a
+    // pinned tile, both, or none — is a question about the layout, and this is where the layout and the slot
+    // resolver are both in hand. Expanding here keeps TileGrowth pure and keeps the feed out of the layout's
+    // business.
     val grownKeys =
         if (ActiveTiles.grownPackages.isEmpty()) {
             ActiveTiles.grown
         } else {
             ActiveTiles.grown + stored.mapNotNull { sized ->
-                sized.key.takeIf { factory.packageOf(it) in ActiveTiles.grownPackages }
+                sized.key.takeIf { factory.growthKeyOf(it) in ActiveTiles.grownPackages }
             }
         }
     // Two transforms, both on the way to the screen and neither of them stored: where the last opened

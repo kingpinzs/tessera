@@ -251,9 +251,10 @@ Load-bearing first. Each answer lands in Decisions, dated.
    unplug`; save `screen_off_timeout` and raise it to 1800000 so the screen stays on once stay-on-while-plugged stops; export
    `BS_MARK=$(adb shell date +%s%3N)`; `adb shell cmd power set-mode 1`; ASSERT `settings get global low_power` = 1 — a
    precondition that fails loudly) and `battery_saver_off`
-   (`set-mode 0`, restore the timeout, `wake_device`) (C-18); and `record <name> <value>` (prints `RECORD <name> <value>`,
-   increments a RECORDED counter, never PASS / FAIL) with `row_end` reporting `<row>: recorded only (<n> facts)` and exiting 0 when
-   PASS + FAIL = 0 and RECORDED > 0 (C-26; `lib.sh:87-91` and `:125-137` today count only PASS / FAIL and fail a zero-assertion row);
+   (`set-mode 0`, restore the timeout, `wake_device`) (C-18); `record <name> <value>` (C-26) is NOT built here: phase 15,
+   built beside phase 11 and so its first user in time, builds it in its task 8 (phase 15 r3 triage T15-21 / C-33,
+   2026-09-23) — this phase uses it; if this phase is built before phase 15's branch merges, the lead keeps one copy at the
+   merge (Rule 16);
    INDEX Change Log lines for phases 01
    (app-list backdrop form, the `BackgroundDecoder`), 02, 03 and 10 (their surfaces now acrylic, numbers unchanged; the
    `[motion]` lines) when built.
