@@ -3,8 +3,6 @@ package app.tileshell.start
 import android.content.Context
 import android.content.ComponentName
 import app.tileshell.tiles.engine.TileRouting
-import android.graphics.BitmapFactory
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -46,7 +44,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -92,7 +89,6 @@ import app.tileshell.ui.tokens.StartGrid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 
 /** What a tap on a tile resolves to. */
 sealed interface TileTarget {
@@ -1146,19 +1142,9 @@ fun FolderNameBox(initial: String, yPx: Float, onDone: (String) -> Unit) {
 
 @Composable
 private fun rememberBackground(context: Context, uri: String?): ImageBitmap? {
-    val state = produceState<ImageBitmap?>(null, uri) {
-        value = if (uri == null) null else withContext(Dispatchers.IO) {
-            runCatching {
-                val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                context.contentResolver.openInputStream(Uri.parse(uri))?.use { BitmapFactory.decodeStream(it, null, opts) }
-                val target = 2400
-                var sample = 1
-                while (opts.outHeight / sample > target * 2) sample *= 2
-                context.contentResolver.openInputStream(Uri.parse(uri))?.use {
-                    BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample })
-                }?.asImageBitmap()
-            }.getOrNull()
-        }
+    // Through the one decode phase 13's static acrylic source shares (T13-5): same sampling, decoded once.
+    val state = produceState(uri?.let { BackgroundDecoder.cached(it) }, uri) {
+        value = if (uri == null) null else BackgroundDecoder.decode(context, uri).getOrNull()
     }
     return state.value
 }
