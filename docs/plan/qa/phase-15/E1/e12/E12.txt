@@ -1,9 +1,9 @@
-# E12 2026-09-24T15:27:28-06:00
+# E12 2026-09-24T20:01:33-06:00
 ## method: the fixtures were installed after this AVD's shell first became Home, so the row's precondition
 ## ("fixture APKs installed before onboarding") is recreated by deleting only the caption store (shared_prefs/applist_new.xml,
 ## run-as on the debug build) with the shell stopped: its next start is the shell first seeing itself as Home with every fixture present.
 $ run-as app.tileshell ls shared_prefs: applist_new.xml 
-    2026-09-24 15:27:29.187 wall=1790285249187 [applist] new-caption baseline taken at 1790285249186: 33 installed apps carry no caption
+    2026-09-24 20:01:33.582 wall=1790301693582 [applist] new-caption baseline taken at 1790301693581: 33 installed apps carry no caption
 ## swipe left on Start
 app_list=1 applist_search=1
 rows seen: 33; headers: A C D F G I K L M N O P S T V W ; New captions: 0
@@ -15,5 +15,5 @@ installed labels containing Fossify (package org.fossify.*): org.fossify.camera 
 tap first header: applist_header:P
 jump_grid=1 cells: # A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 
 after jump to O: jump_grid=0; first header on screen: resource-id="applist_header:O" class="android.view.View" package="app.tileshell" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,180][1080,330]"
-    2026-09-24 15:28:29.012 wall=1790285309012 [applist] jump grid opened
-    2026-09-24 15:28:33.474 wall=1790285313474 [applist] jump to O (item 40)
+    2026-09-24 20:02:33.192 wall=1790301753192 [applist] jump grid opened
+    2026-09-24 20:02:37.654 wall=1790301757654 [applist] jump to O (item 40)

@@ -1,21 +1,21 @@
 ==============================================================================
 ROW E4 — alarm fires over the keyguard: locked toast, snooze, snooze-for, dismiss, daily re-arm
-at            2026-09-24T16:16:54-06:00
+at            2026-09-24T19:53:52-06:00
 driver        e4.sh blob 082d5c5cf6a09c09c9dec4a8b7ac4a4512a29d23
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     187619129c54956c 338459898 bytes
-apk installed 33cc71c192190cc9
-apk match     yes (33cc71c192190cc9)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+36m58s360ms ago; rejectTime=+18m58s343ms ago 
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+1h21m56s681ms ago; rejectTime=+2h39m56s687ms ago 
 RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
 PASS  baseline: no shell alarm or timer pending                   = 0
 PASS  baseline: alarm and timer stores empty                      = empty
 PASS  the alarm was created                                       != 
 PASS  its snooze time is 10 minutes                               = 10
-      alarm a2aa0169a armed for 2026-09-25 09:05 = 1790348700000
+      alarm ac290ffc3 armed for 2026-09-25 09:05 = 1790348700000
 PASS  dumpsys alarm holds it at 09:05 on its date                 = 1790348700000
 PASS  with the PIN set, sleep + wake shows the keyguard           = true
 PASS  the phone is asleep before the jump                         != Awake
@@ -27,8 +27,8 @@ PASS  ring 1: the ring activity has the focus                     contains [cloc
 PASS  ring 1: the display is on (Awake)                           = Awake
 PASS  ring 1: a player of the shell on usage ALARM is started     != 0
 PASS  ring 1: vibrator_manager lists a vibration request from the shell (uid 10150)  contains [uid=10150]
-PASS  ring 1: notification a2aa0169a: fullscreen                  contains [[alarms] notification a2aa0169a: fullscreen]
-PASS  ring 1: surface: toast-locked a2aa0169a                     contains [[alarms] surface: toast-locked a2aa0169a]
+PASS  ring 1: notification ac290ffc3: fullscreen                  contains [[alarms] notification ac290ffc3: fullscreen]
+PASS  ring 1: surface: toast-locked ac290ffc3                     contains [[alarms] surface: toast-locked ac290ffc3]
 PASS  the alarm channel's notification is posted                  != 
 PASS  … category alarm                                          contains [category=alarm]
 PASS  … with a full-screen intent                               != 
@@ -49,17 +49,17 @@ PASS  the gesture driver's window list names the shell's ring window  contains [
 RECORD  Launcher3's nav-strip window (gesture navigation) in the list  SYSTEM:com.android.launcher3:[0,2205][1080,2340]:focused=false:active=false
 PASS  no window of any package but the shell and SystemUI is up (Launcher3's nav-strip window excepted, recorded)  = 
       rows differing by > 10 % of pixels between the ring capture and locked_ref: 780-833
-RECORD  fraction of the region 260 epx→nav bar within ±8 of locked_ref, no mask  0.9672
+RECORD  fraction of the region 260 epx→nav bar within ±8 of locked_ref, no mask  0.9665
 RECORD  the lock screen's clock / notification stack / lock glyph masks (from locked_ref.xml, +16 px)  29,497,1051,837 29,632,1051,717 29,707,1051,792 63,120,675,473 0,2099,1080,2266 423,1914,657,2148
 PASS  the lock screen's dump yields the masks                     != 
-RECORD  fraction with the lock screen's clock, notification stack and lock glyph / hint masked  0.9957
+RECORD  fraction with the lock screen's clock, notification stack and lock glyph / hint masked  0.9951
 PASS  below the toast: the wallpaper (locked_ref with its clock / notification stack / lock glyph masked) matches ± 8 levels in >= 90 %  = yes
-PASS  snooze: ring ended a2aa0169a: snooze                        contains [[alarms] ring ended a2aa0169a: snooze]
+PASS  snooze: ring ended ac290ffc3: snooze                        contains [[alarms] ring ended ac290ffc3: snooze]
 PASS  snooze: the ring activity left the focus                    does not contain [clock.RingActivity]
 PASS  snooze: the surface closed (no ring_surface)                = no
 PASS  snooze: the ALARM player stopped                            = 0
-PASS  snooze: the store's snoozedUntil is 10 min after the tap    1790349307401.00 vs 1790349307289.00 +/- 5000.0
-PASS  snooze: dumpsys alarm shows the alarm re-armed at the snooze instant  = 1790349307401
+PASS  snooze: the store's snoozedUntil is 10 min after the tap    1790349307069.00 vs 1790349306951.00 +/- 5000.0
+PASS  snooze: dumpsys alarm shows the alarm re-armed at the snooze instant  = 1790349307069
 PASS  snooze: the notification reads Snoozed until h:mm           contains [Snoozed until 9:15 AM]
 PASS  ring 2: the alarm fired within 30 s of the jump             != 
 PASS  ring 2: late <= 1000 ms                                     2.00 vs 0.00 +/- 1000.0
@@ -69,13 +69,13 @@ PASS  ring 2: the ring activity has the focus                     contains [cloc
 PASS  ring 2: the display is on (Awake)                           = Awake
 PASS  ring 2: a player of the shell on usage ALARM is started     != 0
 PASS  ring 2: vibrator_manager lists a vibration request from the shell (uid 10150)  contains [uid=10150]
-PASS  ring 2: notification a2aa0169a: fullscreen                  contains [[alarms] notification a2aa0169a: fullscreen]
-PASS  ring 2: surface: toast-locked a2aa0169a                     contains [[alarms] surface: toast-locked a2aa0169a]
+PASS  ring 2: notification ac290ffc3: fullscreen                  contains [[alarms] notification ac290ffc3: fullscreen]
+PASS  ring 2: surface: toast-locked ac290ffc3                     contains [[alarms] surface: toast-locked ac290ffc3]
 PASS  Snooze for opens the choices (ring_snooze_choice:20)        = yes
 PASS  ring_snooze_for now reads 20 minutes (its child label)      = 20 minutes
-PASS  snooze for 20: ring ended a2aa0169a: snooze                 contains [[alarms] ring ended a2aa0169a: snooze]
-PASS  snooze for 20: the next alarm is 20 min ahead               1790350515924.00 vs 1790350515815.00 +/- 5000.0
-PASS  snooze for 20: dumpsys alarm holds that instant             = 1790350515924
+PASS  snooze for 20: ring ended ac290ffc3: snooze                 contains [[alarms] ring ended ac290ffc3: snooze]
+PASS  snooze for 20: the next alarm is 20 min ahead               1790350515581.00 vs 1790350515468.00 +/- 5000.0
+PASS  snooze for 20: dumpsys alarm holds that instant             = 1790350515581
 PASS  ring 3: the alarm fired within 30 s of the jump             != 
 PASS  ring 3: late <= 1000 ms                                     2.00 vs 0.00 +/- 1000.0
 PASS  ring 3: the keyguard is showing                             = true
@@ -84,33 +84,33 @@ PASS  ring 3: the ring activity has the focus                     contains [cloc
 PASS  ring 3: the display is on (Awake)                           = Awake
 PASS  ring 3: a player of the shell on usage ALARM is started     != 0
 PASS  ring 3: vibrator_manager lists a vibration request from the shell (uid 10150)  contains [uid=10150]
-PASS  ring 3: notification a2aa0169a: fullscreen                  contains [[alarms] notification a2aa0169a: fullscreen]
-PASS  ring 3: surface: toast-locked a2aa0169a                     contains [[alarms] surface: toast-locked a2aa0169a]
-PASS  dismiss: ring ended a2aa0169a: dismiss                      contains [[alarms] ring ended a2aa0169a: dismiss]
+PASS  ring 3: notification ac290ffc3: fullscreen                  contains [[alarms] notification ac290ffc3: fullscreen]
+PASS  ring 3: surface: toast-locked ac290ffc3                     contains [[alarms] surface: toast-locked ac290ffc3]
+PASS  dismiss: ring ended ac290ffc3: dismiss                      contains [[alarms] ring ended ac290ffc3: dismiss]
 PASS  dismiss: nothing left in dumpsys alarm for the one-shot     = 
 PASS  dismiss: the one-shot is switched off in the store          = false
 PASS  dismiss: the ALARM player stopped                           = 0
-PASS  the missed count over the whole row is 0 (no 'ring ended a2aa0169a: missed')  = 0
+PASS  the missed count over the whole row is 0 (no 'ring ended ac290ffc3: missed')  = 0
 PASS  … and no Missed alarm notification                        = 
 PASS  a daily alarm was created                                   != 
 PASS  … and armed                                               != 0
 PASS  daily: the alarm fired within 30 s of the jump              != 
-PASS  daily: late <= 1000 ms                                      3.00 vs 0.00 +/- 1000.0
+PASS  daily: late <= 1000 ms                                      2.00 vs 0.00 +/- 1000.0
 PASS  daily: the keyguard is showing                              = true
 PASS  daily: … and occluded by the ring activity                = true
 PASS  daily: the ring activity has the focus                      contains [clock.RingActivity]
 PASS  daily: the display is on (Awake)                            = Awake
 PASS  daily: a player of the shell on usage ALARM is started      != 0
 PASS  daily: vibrator_manager lists a vibration request from the shell (uid 10150)  contains [uid=10150]
-PASS  daily: notification a96251b00: fullscreen                   contains [[alarms] notification a96251b00: fullscreen]
-PASS  daily: surface: toast-locked a96251b00                      contains [[alarms] surface: toast-locked a96251b00]
-PASS  daily dismiss: ring ended a96251b00: dismiss                contains [[alarms] ring ended a96251b00: dismiss]
+PASS  daily: notification a8b7740d1: fullscreen                   contains [[alarms] notification a8b7740d1: fullscreen]
+PASS  daily: surface: toast-locked a8b7740d1                      contains [[alarms] surface: toast-locked a8b7740d1]
+PASS  daily dismiss: ring ended a8b7740d1: dismiss                contains [[alarms] ring ended a8b7740d1: dismiss]
 PASS  daily dismiss: re-armed for the next day (+24 h)            = 1790437020000
 PASS  daily dismiss: still enabled in the store                   = true
-PASS  device clock back within 2 s of the host (RV12)             1790288316.00 vs 1790288316.00 +/- 2.0
+PASS  device clock back within 2 s of the host (RV12)             1790301330.00 vs 1790301330.00 +/- 2.0
 PASS  restore: wake_device printed Awake (C-25)                   = Awake
-      scroll_to_node alarm_row:a2aa0169a: 0 swipe(s), found=yes
-      scroll_to_node alarm_row:a96251b00: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:ac290ffc3: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a8b7740d1: 0 swipe(s), found=yes
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------

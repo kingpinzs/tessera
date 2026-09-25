@@ -203,7 +203,7 @@ fun TabHeader(nav: ClockNav) {
                 // 1.6: caption class, centred under the icon, cap top ≈ 43.5 epx below the band top.
                 BasicText(
                     t.label,
-                    Modifier.align(Alignment.TopCenter).offset(y = CapMetrics.topPaddingForCapTop(ClockMetrics.TAB_LABEL_CAP_TOP, 12f, 16f).dp),
+                    Modifier.align(Alignment.TopCenter).offset(y = CapMetrics.topPaddingForCapTop(ClockMetrics.TAB_LABEL_CAP_TOP, 12f).dp),
                     style = ShellType.caption.copy(color = ink, textAlign = TextAlign.Center),
                     maxLines = 1,
                 )

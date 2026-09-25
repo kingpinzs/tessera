@@ -1,12 +1,13 @@
 ==============================================================================
 ROW E15 — the pane, the Reminders page and the Settings page
-at            2026-09-21T22:55:52-06:00
+at            2026-09-24T20:45:07-06:00
 driver        e15.sh blob 92ae488302874d27856d55035448bfb85bd20d16
-harness       lib.sh blob 53041127e3dc939b18b939d3bcc65adc98486cfe
-apk built     c52d65d2a29826c6 317969716 bytes
-apk installed ef8897d441c9b258
-apk match     yes (ef8897d441c9b258)
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
 ==============================================================================
 PASS  the shell theme is Dark (X21 default)                       does not contain [name="theme">LIGHT]
 PASS  R7 3.1: the pane is open                                    = yes
@@ -17,12 +18,14 @@ PASS  R7 3.1.1 Reminders item                                     = yes
 PASS  R7 3.1.9 Settings item                                      = yes
 PASS  R7 3.1.9 no Feedback item, and no node in its slot (H23)    = no
 FAIL  R7 3.1.9 Settings sits 172 epx above the screen bottom      192.00 vs 172.00 +/- 2.0
-black_ms=283
-first_frame_alpha=0.455
+/home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-03/scripts/fade.py:25: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  pixels = list(small.getdata())
+black_ms=317
+first_frame_alpha=0.452
 fade_ms=233
-PASS  R7 3.2.1 black for 283-300 ms                               283.00 vs 291.50 +/- 25.0
+FAIL  R7 3.2.1 black for 283-300 ms                               317.00 vs 291.50 +/- 25.0
 PASS  R7 3.2.2 the page fades up over 200-317 ms                  233.00 vs 258.00 +/- 75.0
-PASS  R7 3.2.2 its first frame is already 40-60 % bright          0.46 vs 0.50 +/- 0.12
+PASS  R7 3.2.2 its first frame is already 40-60 % bright          0.45 vs 0.50 +/- 0.12
 PASS  R7 3.3.2 the Reminders page is showing                      = yes
 PASS  R7 3.1.13 no status bar on a destination page               = no
 PASS  R7 3.1.13 and no text box                                   = no
@@ -41,4 +44,4 @@ PASS  with no status bar                                          = no
 PASS  and no text box                                             = no
       H23-H28 are judged, not measured: the empty Feedback slot, the final-release stand-ins, + / History / '...', the place and person rows, and the Settings structure and look
 ------------------------------------------------------------------------------
-E15: 21 passed, 6 failed
+E15: 20 passed, 7 failed, 0 recorded

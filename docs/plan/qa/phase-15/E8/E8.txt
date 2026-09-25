@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E8 — world clock: offline (Tokyo, zone change, no bytes) and online (positive control, no bytes)
-at            2026-09-24T16:33:40-06:00
+at            2026-09-24T20:06:33-06:00
 driver        e8.sh blob 7ed54053c142ebfb7cfff3be68caab34f9e2f424
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     187619129c54956c 338459898 bytes
-apk installed 33cc71c192190cc9
-apk match     yes (33cc71c192190cc9)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -16,33 +16,32 @@ PASS  precondition: the device's zone is America/Boise (the host expectations be
 PASS  an alarm at 07:00 is armed                                  != 
 PASS  a running timer is armed                                    != 
 PASS  airplane mode is on                                         = 1
-      shell bytes at the start of the offline pass: 6674 1861
+      shell bytes at the start of the offline pass: 6735 1861
 PASS  the World Clock tab shows the Local time row                = Local time
 PASS  search Tok lists Tokyo (clock_search_result:Asia/Tokyo)     = Tokyo
-PASS  clock_time:Asia/Tokyo equals the host's Tokyo time ± 1 min  contains [|7:34 AM|]
+PASS  clock_time:Asia/Tokyo equals the host's Tokyo time ± 1 min  contains [|11:06 AM|]
 PASS  clock_diff:Asia/Tokyo is W10M's line, host-computed against America/Boise  = Friday, 15 hours ahead
 PASS  the Local time row sits above the city row                  = yes
 PASS  the zone is Europe/London                                   = Europe/London
 PASS  the ring re-armed on the zone change                        contains [[alarms] rearm (time zone changed)]
-PASS  the local row now shows London's time ± 1 min              contains [|11:34 PM|]
-PASS  … and it changed from before                              != 4:34 PM
-PASS  Tokyo's difference line changed to the London form          = Friday, 8 hours ahead
+PASS  the local row now shows London's time ± 1 min              contains [|3:07 AM|]
+PASS  … and it changed from before                              != 8:06 PM
+PASS  Tokyo's difference line changed to the London form          = Today, 8 hours ahead
 PASS  the 07:00 alarm still reads 7:00 AM after the zone change   = 7:00 AM
 PASS  … while its dumpsys alarm instant moved to London's 07:00 on its date  = 1790316000000
 RECORD  the alarm's instant moved by (ms)                           25200000
-PASS  the running timer's instant did not move                    = 1845899
-PASS  offline: the shell uid's byte counters are unchanged        = 6674 1861
+PASS  the running timer's instant did not move                    = 1856930
+PASS  offline: the shell uid's byte counters are unchanged        = 6735 1861
 PASS  the zone is restored                                        = America/Boise
 PASS  airplane mode is off                                        = 0
 PASS  dumpsys connectivity shows an active default network        != 
       weather: fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitud
 PASS  positive control: the process start ran a Weather fetch     contains [[weather] fetch]
-PASS  positive control: the counters MOVED across the Weather fetch (6674 1861 -> 11170 3642)  != 6674 1861
-      settle: start counters 11170 3642, sockets [167.114.211.86:443/ESTABLISHED]
-      settle: counters moved 11170 3642 -> 13386 3722 at +11 s; sockets now [167.114.211.86:443/ESTABLISHED]
-      settle: counters moved 13386 3722 -> 13490 3802 at +82 s; sockets now [167.114.211.86:443/CLOSE_WAIT]
-      settle: counters moved 13490 3802 -> 13490 3906 at +307 s; sockets now []
-      settle: counters settled at 13490 3906 with no socket of the uid open, after 317 s
+PASS  positive control: the counters MOVED across the Weather fetch (6735 1861 -> 13472 3682)  != 6735 1861
+      settle: start counters 13472 3682, sockets [167.114.211.86:443/ESTABLISHED]
+      settle: counters moved 13472 3682 -> 13576 3762 at +82 s; sockets now [167.114.211.86:443/CLOSE_WAIT]
+      settle: counters moved 13576 3762 -> 13576 3866 at +307 s; sockets now []
+      settle: counters settled at 13576 3866 with no socket of the uid open, after 317 s
 RECORD  online window start: the shell uid's open sockets           []
 PASS  online: search Par lists Paris                              = Paris
 PASS  online: Paris was added                                     = yes
@@ -50,10 +49,10 @@ PASS  online: the hold menu offers Remove                         = yes
 PASS  online: Paris was removed                                   = no
 PASS  online: search, add and remove took <= 20 s (18 s)          = yes
 RECORD  online window end: the shell uid's open sockets             []
-PASS  online: the shell uid's byte counters are unchanged across the world-clock steps (13490 3906 -> 13490 3906)  = 13490 3906
+PASS  online: the shell uid's byte counters are unchanged across the world-clock steps (13576 3866 -> 13576 3866)  = 13576 3866
 PASS  restore: Tokyo removed                                      = no
-      scroll_to_node alarm_row:ae6a83210: 0 swipe(s), found=yes
-      gscroll_to_node timer_name:tef274b6a: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a4aa74725: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t8c521190: 0 swipe(s), found=yes
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------

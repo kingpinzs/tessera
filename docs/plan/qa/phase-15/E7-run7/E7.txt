@@ -1,0 +1,49 @@
+==============================================================================
+ROW E7 — stopwatch: ring clock vs dump, lap, kill -9, reboot, reset
+at            2026-09-24T19:08:53-06:00
+driver        e7.sh blob 04f74314f384f9f6a68a696d71a9100de13f3215
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     99d46f98656e7819 338459898 bytes
+apk installed 82b84992db5eb361
+apk match     yes (82b84992db5eb361)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  baseline: the stopwatch is at RESET (not running, 0 elapsed, no laps)  = reset
+PASS  the stopwatch starts at 00:00:00.00                         = 00:00:00.00
+PASS  start is logged: [stopwatch] start elapsed=                 contains [[stopwatch] start elapsed=]
+PASS  the store says running                                      = true
+      moment1: line [elapsed=10009 uptime=2054138] dump [00:00:10.87] by the attempt at uptime 2055008 taking 22 ms; 0 empty gesture dumps before it, the whole retry window 427 ms
+PASS  moment 1: the dump's elapsed = the line's + (dump − line) on the uptime clock (± 100 ms + half the dump's latency)  861.00 vs 881.00 +/- 111.0
+PASS  moment 1: the dump's own latency <= 1 s (the gesture driver's dump.elapsed_ms = 22)  = yes
+      moment2: line [elapsed=25009 uptime=2069138] dump [00:00:25.99] by the attempt at uptime 2070129 taking 26 ms; 0 empty gesture dumps before it, the whole retry window 434 ms
+PASS  moment 2: the dump's elapsed = the line's + (dump − line) on the uptime clock (± 100 ms + half the dump's latency)  981.00 vs 1004.00 +/- 113.0
+PASS  moment 2: the dump's own latency <= 1 s (the gesture driver's dump.elapsed_ms = 26)  = yes
+PASS  the two moments are >= 10 s apart                           = yes
+PASS  Δelapsed = Δuptime ± 100 ms between the two lines        15000.00 vs 15000.00 +/- 100.0
+PASS  Lap is logged: [stopwatch] lap elapsed=                     != 
+      stopwatch_lap:1 = [1  00:00:26.70  00:00:26.70]
+PASS  stopwatch_lap:1 is listed                                   != 
+PASS  the lap row shows the split (index, lap time, split — equal for lap 1)  = 1  00:00:26.70
+FAIL  the store holds one lap at that elapsed                     expected [26701] got [26700]
+      last pre-kill [lap elapsed=26701 uptime=2070830] first post-kill [elapsed=34058 uptime=2078187]
+PASS  after the kill the tab logs a [stopwatch] line              != 
+PASS  kill -9: first post-kill elapsed − last pre-kill elapsed = their wall difference ± 1 s  7357.00 vs 7358.00 +/- 1000.0
+PASS  kill -9: still running (the digits advance between two dumps)  != 00:00:37.76
+PASS  kill -9: the lap survived                                   = yes
+PASS  after the reboot wake_device prints Awake (C-25)            = Awake
+      last pre-reboot [elapsed=39058 uptime=2083187] first post-boot [elapsed=61719 uptime=19522]
+PASS  after the reboot the tab logs a [stopwatch] line            != 
+PASS  reboot: first post-boot elapsed − last pre-reboot elapsed = their wall difference ± 2 s  22661.00 vs 22661.00 +/- 2000.0
+PASS  reboot: still running (the digits advance)                  != 00:01:05.35
+PASS  stopped: the Reset button is offered                        = yes
+PASS  reset is logged                                             contains [[stopwatch] reset elapsed=0]
+PASS  reset: the digits read 00:00:00.00                          = 00:00:00.00
+PASS  reset: no lap listed                                        = no
+PASS  reset: the store is back at RESET (not running, no laps)    = false []
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E7: 30 passed, 1 failed, 0 recorded

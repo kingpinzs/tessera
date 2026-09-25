@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E20 — recordings stay out of Music: the IS_RECORDING skip, and MUSIC6's counts hold beside them
-at            2026-09-24T16:22:09-06:00
+at            2026-09-24T20:54:52-06:00
 driver        e20.sh blob abf15e7c0a7860abdbbe43e6015dbc905c37423e
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     187619129c54956c 338459898 bytes
-apk installed 2356b99f4933214b
-apk match     NO (device 2356b99f4933214b, built 33cc71c192190cc9)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -13,16 +13,16 @@ PASS  baseline: MediaStore holds no take of the shell's           = 0
       E20: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
 PASS  E20: the audio route is up (audio.sh check rc)              = 0
       media volume before: 5; Music fixtures present before: 0
-      make_take 5s: stop tapped at elapsed_ms=4829 -> id 154 (Recording.m4a, 5016 ms)
+      make_take 5s: stop tapped at elapsed_ms=4829 -> id 202 (Recording.m4a, 5016 ms)
 PASS  the shell's own take is in MediaStore                       != 
-      ids: take 154, other.m4a 38 (is_recording 1), song.m4a 39 (is_recording 0)
+      ids: take 202, other.m4a 38 (is_recording 1), song.m4a 39 (is_recording 0)
 PASS  song.m4a is not a recording                                 = 0
       pivot -> songs (diagnostics say [songs])
       song rows: 7 — music_song:39 music_song:80 music_song:81 music_song:82 music_song:83 music_song:84 music_song:85
 PASS  the songs pivot does NOT list the take                      = no
 PASS  the songs pivot does NOT list other.m4a                     = no
 PASS  the songs pivot DOES list song.m4a (is_recording 0: the skip is the flag, not the file type)  = yes
-PASS  the launcher ring skipped the take                          contains [[music] skipped recording 154]
+PASS  the launcher ring skipped the take                          contains [[music] skipped recording 202]
 PASS  the launcher ring skipped other.m4a                         contains [[music] skipped recording 38]
 PASS  and never skipped song.m4a                                  does not contain [[music] skipped recording 39]
 PASS  seven songs listed (MUSIC6's six + song.m4a)                = 7
@@ -39,7 +39,7 @@ PASS  MUSIC6: all six songs (music6.sh:70)                        = 6
 PASS  MUSIC6: a title starting with a digit files under #         contains [music_header:#]
 PASS  still no take on the songs pivot                            = no
 PASS  still no other.m4a on the songs pivot                       = no
-PASS  the skip lines again for the take                           contains [[music] skipped recording 154]
+PASS  the skip lines again for the take                           contains [[music] skipped recording 202]
 PASS  and for other.m4a                                           contains [[music] skipped recording 38]
 PASS  restore: the take is deleted                                = 0
       restore: the Music fixtures removed (they were absent before)

@@ -1,0 +1,86 @@
+==============================================================================
+ROW EDGE_ALARM_CONTEXT — an alarm firing while Tess listens, Start is in edit mode, Music plays, the recorder runs; glance
+at            2026-09-24T22:08:09-06:00
+driver        edge_alarm_context.sh blob ac800017fc1740c6c7c6c9fc8469512d73b53534
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+52m16s449ms ago; rejectTime=+1h31m16s454ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  baseline: the overlay grant is allow (the in-use toast is the overlay)  contains [allow]
+PASS  Tess: the alarm was created and armed                       != 
+      attempt 1: session open=yes, mic button [936 2052 1080 2196]
+      attempt 1: listen start wall=1790309399052, fired wall=1790309400051, listen end wall=1790309400892
+PASS  Tess: the alarm fired while Tess was listening (listen start < fired < listen end, :speech + launcher rings)  = yes
+      windows at the ring: TYPE_-1:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+      session hidden line: none
+FAIL  Tess: the session hides — [cortana] session hidden at or after the fired line  expected [yes] got [no (no line)]
+FAIL  Tess: … and no cortana_session node is in the all-windows dump  expected [no] got [yes]
+PASS  Tess: the alarm rings (an ALARM player of the shell is started)  != 0
+RECORD  Tess: the ring's surface line                               [alarms] surface: toast-overlay a53a11ceb
+      gdump_for ring_dismiss: not in any of 3 dumps
+      end_ring tess: no ring ended line after the Dismiss tap; the ring is ended by dismiss_any_ring
+      dismiss_any_ring: a ring was up and was ended
+PASS  device clock back within 2 s of the host (RV12)             1790309356.00 vs 1790309356.00 +/- 2.0
+      scroll_to_node alarm_row:a53a11ceb: 0 swipe(s), found=yes
+PASS  tess: the section left no alarm behind                      = 
+PASS  Edit: the alarm was created and armed                       != 
+      the tile held: tile:slot:PEOPLE
+PASS  Edit: Start is in edit mode before the alarm (edit_disc:unpin on screen)  = yes
+PASS  Edit: … and the ring says edit mode on                    contains [edit mode on]
+PASS  Edit: the alarm fired                                       != 
+      windows at the ring: SYSTEM:app.tileshell:[0,0][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+PASS  Edit: the toast is up (ring_surface in the all-windows dump)  = yes
+      edit exit line: none
+FAIL  Edit: edit mode ends — [edit] exit first frame at or after the fired line  expected [yes] got [no (no line)]
+FAIL  Edit: … and no edit disc is on Start in the all-windows dump  expected [no] got [yes]
+      Start was still in edit mode after the ring; left with Back
+PASS  device clock back within 2 s of the host (RV12)             1790309401.00 vs 1790309402.00 +/- 2.0
+      scroll_to_node alarm_row:a800378eb: 0 swipe(s), found=yes
+PASS  edit: the section left no alarm behind                      = 
+      media volume before: 5; Music fixtures present before: 0
+PASS  Music: the alarm was created and armed                      != 
+      MediaStore id of the fixture track Bloom: 3149
+PASS  Music: the shell's Music session is playing before the alarm  = PLAYING
+PASS  Music: … a USAGE_MEDIA player of the shell is started     != 
+PASS  Music: the alarm fired                                      != 
+PASS  Music: the player pauses on the transient focus loss (session PAUSED)  = PAUSED
+PASS  Music: … no USAGE_MEDIA player of the shell is started    = 
+PASS  Music: … while the alarm plays (an ALARM player of the shell is started)  != 0
+RECORD  Music: the focus events in dumpsys audio                    09-24 22:11:02:071 requestAudioFocus() from uid/pid 10150/11261 AA=USAGE_ALARM/CONTENT_TYPE_SONIFICATION clientId=android.media.AudioManager@d154512 callingPack=app.tileshell req=2 flags=0x0 sdk=36|09-24 22:11:09:481 abandonAudioFocus() from uid/pid 10150/11261 clientId=android.media.AudioManager@d154512 callingPack=app.tileshell|09-24 22:10:36:929 requestAudioFocus() from uid/pid 10150/11798 AA=U
+RECORD  Music: 6 s after the ring ended the player is (phase 10 E9: it does not resume by itself)  PLAYING; a USAGE_MEDIA player started: yes
+PASS  device clock back within 2 s of the host (RV12)             1790309460.00 vs 1790309461.00 +/- 2.0
+      scroll_to_node alarm_row:a6045d825: 0 swipe(s), found=yes
+PASS  music: the section left no alarm behind                     = 
+      restore: media volume volume is 0; fixtures present: 0
+      the shell's takes before: 0
+PASS  Rec: the alarm was created and armed                        != 
+PASS  Rec: the take is recording before the alarm                 = recording
+PASS  Rec: the alarm fired                                        != 
+      elapsed_ms: before the fire 3111, 3 s after it 11888, 2 s later 13908
+PASS  Rec: the take continues through the ring (phase recording)  = recording
+PASS  Rec: … its clock advances during the ring (Δelapsed over 2 s ≥ 1500 ms)  = yes
+PASS  Rec: … and the :recorder ring holds no paused line since the fire  does not contain [[recorder] paused]
+      the shell's started ALARM player:   AudioPlaybackConfiguration piid:215 deviceIds:[2] type:android.media.MediaPlayer u/pid:10150/12425 state:started attr:AudioAttributes: usage=USAGE_ALARM content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null sessionId:233 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+PASS  Rec: the alarm sound is on another stream — the shell's player is on USAGE_ALARM  contains [usage=USAGE_ALARM]
+RECORD  Rec: the shell's capture in dumpsys audio while the alarm plays  session:225 -- source client=MIC, dev=1ch 44100Hz ENCODING_PCM_16BIT -- uid:10150 -- patch:41 -- pack:app.tileshell -- format client=1ch 44100Hz ENCODING_PCM_16BIT, dev=1ch 44100Hz ENCODING_PCM_16BIT -- silenced:false -- effects client=, dev=|09-24 21:59:45:650 rec update riid:95 uid:10150 session:105 src:VOICE_RECOGNITION not silenced pack:app.tileshell|09-24 21:59:47:828 rec stop riid:95 uid:101
+      the take: id 3159, MediaStore duration 18135 ms; elapsed at the ring's end 17461
+PASS  Rec: the take was saved                                     != 
+PASS  Rec: … with its stop line in the :recorder ring           contains [[recorder] stop ]
+PASS  Rec: … and it is as long as its clock through the ring (MediaStore duration ≥ elapsed at the ring's end − 1 s)  = yes
+PASS  Rec restore: the shell's takes are back to 0                = 0
+PASS  device clock back within 2 s of the host (RV12)             1790309525.00 vs 1790309525.00 +/- 2.0
+      scroll_to_node alarm_row:a2ca34218: 0 swipe(s), found=yes
+PASS  rec: the section left no alarm behind                       = 
+RECORD  glance (phase 07): NOT RUN                                  phase 07 is not built — INDEX row 07:  pending ; components of app.tileshell naming glance (dumpsys package): 0
+PASS  restore: the overlay grant is allow                         contains [allow]
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+EDGE_ALARM_CONTEXT: 40 passed, 4 failed, 7 recorded

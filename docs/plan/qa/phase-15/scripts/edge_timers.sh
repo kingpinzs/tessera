@@ -56,7 +56,11 @@ for id in $IDS; do
 done
 assert_eq "every one of the ten is listed on the Timer tab" 10 "$SEEN"
 assert_eq "… and every one is counting down" 10 "$COUNTING"
-NOTIFS="$(shell_notifications | grep -c 'channel=clock_timers')"
+# The app's own records only: with four or more notifications Android adds its autogroup SUMMARY on the app's behalf
+# (key "…|g:Aggregate_…", on the first child's channel) — the "11th" of runs 1–3 and of this pass's first run on 5558
+# (its when= is the oldest child's). It is Android's, not a timer's, and is left out and recorded.
+NOTIFS="$(shell_notifications | grep -E '^ *NotificationRecord\(' | grep -F 'channel=clock_timers' | grep -vcE '\|g:(Aggregate|ranker)')"
+record "Android's autogroup summary records beside the timers' own (key |g:Aggregate…)" "$(shell_notifications | grep -E '^ *NotificationRecord\(' | grep -F 'channel=clock_timers' | grep -cE '\|g:(Aggregate|ranker)')"
 note "running-timer notifications (title | when): $(shell_notifications | python3 -c '
 import re, sys
 for b in sys.stdin.read().split("----"):

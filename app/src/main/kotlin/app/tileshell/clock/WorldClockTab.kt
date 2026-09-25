@@ -71,7 +71,7 @@ import java.time.ZoneId
 import java.util.Locale
 import java.util.TimeZone
 
-private fun capPad(capTop: Float, size: Float, line: Float): Dp = CapMetrics.topPaddingForCapTop(capTop, size, line).dp
+private fun capPad(capTop: Float, size: Float): Dp = CapMetrics.topPaddingForCapTop(capTop, size).dp
 
 /**
  * The device's own zone list with ICU's exemplar location names (Decisions "World clock": no bundled asset, no
@@ -161,10 +161,10 @@ fun BoxScope.WorldClockTab(nav: ClockNav, world: WorldClockStore) {
 private fun LocalRow(ms: Long, local: ZoneId, is24h: Boolean, locale: Locale) {
     val colors = LocalShellColors.current
     Box(Modifier.fillMaxWidth().height(84.9.dp).background(colors.accent.copy(alpha = 0.6f)).testTag("clock_local_row")) {
-        BasicText(ClockText.timeAt(ms, local, is24h, locale), Modifier.offset(x = 18.8.dp, y = capPad(15.6f, 25.4f, 32f)).testTag("clock_local_time"),
+        BasicText(ClockText.timeAt(ms, local, is24h, locale), Modifier.offset(x = 18.8.dp, y = capPad(15.6f, 25.4f)).testTag("clock_local_time"),
             style = ShellType.title.copy(fontSize = 25.4.sp, lineHeight = 32.sp, fontWeight = FontWeight.Light, color = Color.White), maxLines = 1)
-        BasicText("Local time", Modifier.offset(x = 18.8.dp, y = capPad(15.6f + 30.3f, 15f, 20f)).testTag("clock_local_label"), style = ShellType.base.copy(color = Color.White))
-        BasicText(WorldClockRules.localDate(ms, local, locale), Modifier.offset(x = 18.8.dp, y = capPad(15.6f + 30.3f + 19.5f, 15f, 20f)).testTag("clock_local_date"),
+        BasicText("Local time", Modifier.offset(x = 18.8.dp, y = capPad(15.6f + 30.3f, 15f)).testTag("clock_local_label"), style = ShellType.base.copy(color = Color.White))
+        BasicText(WorldClockRules.localDate(ms, local, locale), Modifier.offset(x = 18.8.dp, y = capPad(15.6f + 30.3f + 19.5f, 15f)).testTag("clock_local_date"),
             style = ShellType.body.copy(color = Color.White), maxLines = 1)
     }
 }
@@ -186,14 +186,14 @@ private fun CityRow(id: String, zone: ZoneId, label: String, displayMs: Long, lo
                 }
             },
     ) {
-        BasicText(ClockText.timeAt(displayMs, zone, is24h, locale), Modifier.offset(x = 18.8.dp, y = capPad(27.5f, 25.4f, 32f)).testTag("clock_time:$id"),
+        BasicText(ClockText.timeAt(displayMs, zone, is24h, locale), Modifier.offset(x = 18.8.dp, y = capPad(27.5f, 25.4f)).testTag("clock_time:$id"),
             style = ShellType.title.copy(fontSize = 25.4.sp, lineHeight = 32.sp, fontWeight = FontWeight.Light, color = colors.text), maxLines = 1)
-        BasicText(label, Modifier.offset(x = 18.8.dp, y = capPad(27.5f + 30.3f, 15f, 20f)).testTag("clock_name:$id"), style = ShellType.base.copy(color = colors.text), maxLines = 1)
+        BasicText(label, Modifier.offset(x = 18.8.dp, y = capPad(27.5f + 30.3f, 15f)).testTag("clock_name:$id"), style = ShellType.base.copy(color = colors.text), maxLines = 1)
         if (compare) {
-            BasicText(WorldClockRules.fullDate(displayMs, zone, locale), Modifier.offset(x = 18.8.dp, y = capPad(27.5f + 30.3f + 19.5f, 15f, 20f)).testTag("clock_date:$id"),
+            BasicText(WorldClockRules.fullDate(displayMs, zone, locale), Modifier.offset(x = 18.8.dp, y = capPad(27.5f + 30.3f + 19.5f, 15f)).testTag("clock_date:$id"),
                 style = ShellType.body.copy(color = colors.text.copy(alpha = 0.51f)), maxLines = 1)
         } else {
-            BasicText(WorldClockRules.difference(zone, local, displayMs, locale), Modifier.offset(x = 18.8.dp, y = capPad(27.5f + 30.3f + 19.5f, 15f, 20f)).testTag("clock_diff:$id"),
+            BasicText(WorldClockRules.difference(zone, local, displayMs, locale), Modifier.offset(x = 18.8.dp, y = capPad(27.5f + 30.3f + 19.5f, 15f)).testTag("clock_diff:$id"),
                 style = ShellType.body.copy(color = colors.text.copy(alpha = 0.51f)), maxLines = 1)
         }
     }

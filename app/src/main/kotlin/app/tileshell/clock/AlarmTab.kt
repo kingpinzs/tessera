@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import app.tileshell.brand.AlarmSounds
 import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
+import app.tileshell.calculator.InkText
 import app.tileshell.diag.Diagnostics
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.tokens.CapMetrics
@@ -70,7 +71,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 /** The top padding that puts a run of text's cap top at [capTop] epx inside its box. */
-private fun capPad(capTop: Float, size: Float, line: Float): Dp = CapMetrics.topPaddingForCapTop(capTop, size, line).dp
+private fun capPad(capTop: Float, size: Float): Dp = CapMetrics.topPaddingForCapTop(capTop, size).dp
 
 /** A ticking "now" for the tab's day words, once a minute. */
 @Composable
@@ -138,19 +139,21 @@ private fun AlarmRow(
             // R7 §1.3.9: the checkbox centred at x 22.2, level with the toggle's centre (2.9: 41.8 below the row top).
             ClockCheckbox(checked, "alarm_check:${alarm.id}", Modifier.offset(x = (22.2f - 10.2f).dp, y = (41.8f - 10.2f).dp)) { onCheck(it) }
         }
-        // 2.3: digit height 17.8 epx (≈ 25.4-epx Light), ink x 9.8, cap top 14.3 below the row top.
-        BasicText(
-            timeText, Modifier.offset(x = 9.8.dp + shift, y = capPad(14.3f, 25.4f, 32f)).testTag("alarm_time:${alarm.id}"),
-            style = ShellType.title.copy(fontSize = 25.4.sp, lineHeight = 32.sp, fontWeight = FontWeight.Light, color = colors.text), maxLines = 1,
+        // 2.3: digit height 17.8 epx (≈ 25.4-epx Light), ink x 9.8, cap top 14.3 below the row top (2.7). The cap top is
+        // placed by the font's measured ink (a capital's, so every time shares one baseline): the line-height model
+        // put it 1.25 epx high (qa/phase-15/E10-run7/DEFECT.md).
+        InkText(
+            timeText, ShellType.title.copy(fontSize = 25.4.sp, lineHeight = 32.sp, fontWeight = FontWeight.Light, color = colors.text),
+            reference = "H", modifier = Modifier.testTag("alarm_time:${alarm.id}"), leftEpx = 9.8f + shift.value, inkTopEpx = 14.3f,
         )
         // 2.4: the name in semibold body, accent while the alarm is on; cap top 27.5 below the time's.
         BasicText(
-            alarm.name, Modifier.offset(x = 9.8.dp + shift, y = capPad(41.8f, 15f, 20f)).testTag("alarm_name:${alarm.id}"),
+            alarm.name, Modifier.offset(x = 9.8.dp + shift, y = capPad(41.8f, 15f)).testTag("alarm_name:${alarm.id}"),
             style = ShellType.base.copy(color = if (alarm.enabled) colors.accent else colors.text), maxLines = 1,
         )
         // 2.5–2.6: the repeat line in body at ≈ 49 % ink, 20.5 epx under the name.
         BasicText(
-            dayLine, Modifier.offset(x = 9.8.dp + shift, y = capPad(62.3f, 15f, 20f)).testTag("alarm_repeat:${alarm.id}"),
+            dayLine, Modifier.offset(x = 9.8.dp + shift, y = capPad(62.3f, 15f)).testTag("alarm_repeat:${alarm.id}"),
             style = ShellType.body.copy(color = colors.text.copy(alpha = 0.49f)), maxLines = 1,
         )
         if (!select) {
@@ -158,7 +161,7 @@ private fun AlarmRow(
             // the state label 13.4 epx after it (x 320.3), cap 10.7 level with the toggle's centre.
             ClockToggle(alarm.enabled, "alarm_toggle:${alarm.id}", Modifier.offset(x = 263.1.dp, y = (41.8f - 9.8f).dp)) { onToggle(it) }
             BasicText(
-                if (alarm.enabled) "On" else "Off", Modifier.offset(x = 320.3.dp, y = capPad(41.8f - 5.35f, 15f, 20f)).testTag("alarm_state:${alarm.id}"),
+                if (alarm.enabled) "On" else "Off", Modifier.offset(x = 320.3.dp, y = capPad(41.8f - 5.35f, 15f)).testTag("alarm_state:${alarm.id}"),
                 style = ShellType.body.copy(color = colors.text),
             )
         }
@@ -259,7 +262,7 @@ fun AlarmEditorScreen(nav: ClockNav, store: ClockStore, menu: List<ClockMenuEntr
             ClockText.countdownCaption((ClockRules.nextTrigger(probe, now, zone) ?: now) - now)
         }
         BasicText(
-            caption, Modifier.offset(y = capPad(242.7f, 15f, 20f)).fillMaxWidth().testTag("alarm_editor_caption"),
+            caption, Modifier.offset(y = capPad(242.7f, 15f)).fillMaxWidth().testTag("alarm_editor_caption"),
             style = ShellType.body.copy(color = colors.text.copy(alpha = 0.62f), textAlign = TextAlign.Center),
         )
 
@@ -300,9 +303,9 @@ fun AlarmEditorScreen(nav: ClockNav, store: ClockStore, menu: List<ClockMenuEntr
 private fun BoxScope.FieldRow(label: String, value: String?, labelCapTop: Float, valueTag: String, glyph: String? = null, extra: @Composable BoxScope.() -> Unit = {}, onTap: () -> Unit) {
     val colors = LocalShellColors.current
     Box(Modifier.offset(y = (labelCapTop - 10f).dp).fillMaxWidth().height(64.dp).pointerInput(onTap) { detectTapGestures { onTap() } }) {
-        BasicText(label, Modifier.offset(x = 10.7.dp, y = capPad(10f, 15f, 20f)), style = ShellType.body.copy(color = colors.text.copy(alpha = 0.78f)))
+        BasicText(label, Modifier.offset(x = 10.7.dp, y = capPad(10f, 15f)), style = ShellType.body.copy(color = colors.text.copy(alpha = 0.78f)))
         if (value != null) {
-            Row(Modifier.offset(x = 10.7.dp, y = capPad(10f + 26.6f, 15f, 20f))) {
+            Row(Modifier.offset(x = 10.7.dp, y = capPad(10f + 26.6f, 15f))) {
                 if (glyph != null) {
                     BasicText(glyph, Modifier.padding(end = 6.dp), style = ShellType.body.copy(fontFamily = Brand.iconFont, fontSize = 15.sp, color = colors.accent))
                 }
@@ -322,7 +325,7 @@ private fun BoxScope.NameField(value: String, tag: String, onChange: (String) ->
     BasicTextField(
         value = value,
         onValueChange = { onChange(it.take(64).replace("\n", "")) },
-        modifier = Modifier.offset(x = 10.7.dp, y = capPad(10f + 26.6f, 15f, 20f)).fillMaxWidth().padding(end = 12.dp).focusRequester(focus).testTag(tag),
+        modifier = Modifier.offset(x = 10.7.dp, y = capPad(10f + 26.6f, 15f)).fillMaxWidth().padding(end = 12.dp).focusRequester(focus).testTag(tag),
         textStyle = ShellType.body.copy(color = colors.accent),
         singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -453,7 +456,8 @@ fun SoundsScreen(nav: ClockNav, onBack: () -> Unit, onWindows: () -> Unit) {
     val selectedUri = draft.sound.uri
     ClockScaffold(onBack, onWindows) {
         // 4.6: the title's ascender top 36.4 below the status bar (subheader 34 Light), "Use default" ≈ 24-epx at 109.3, the rule at 161.8.
-        BasicText("Sounds", Modifier.offset(x = 24.2.dp, y = 33.8.dp).testTag("sounds_title"), style = ShellType.subheader.copy(color = colors.text))
+        // Its ink starts at x 24.2 (placed by the measured ink: the "S" sits 1.8 epx inside its box).
+        InkText("Sounds", ShellType.subheader.copy(color = colors.text), reference = "Sounds", modifier = Modifier.offset(y = 33.8.dp).testTag("sounds_title"), inkLeftEpx = 24.2f)
         PressBox(Modifier.offset(y = 97.dp).fillMaxWidth().height(48.dp).testTag("sounds_default"), onClick = { pick(AlarmSound.DEFAULT) }) {
             BasicText("Use default", Modifier.align(Alignment.CenterStart).offset(x = 24.2.dp), style = ShellType.title.copy(color = if (draft.sound.kind == AlarmSound.Kind.DEFAULT) colors.accent else colors.text))
         }

@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E18 — recorder process death: the take is recovered, the microphone freed, nothing restarted
-at            2026-09-24T16:11:32-06:00
+at            2026-09-24T20:44:23-06:00
 driver        e18.sh blob 9c8f9373ffa77de2c53cde312dbb14cab02337a2
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     187619129c54956c 338459898 bytes
-apk installed 2356b99f4933214b
-apk match     NO (device 2356b99f4933214b, built 33cc71c192190cc9)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -13,38 +13,38 @@ PASS  baseline: MediaStore holds no take of the shell's           = 0
       E18: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
 PASS  E18: the audio route is up (audio.sh check rc)              = 0
 PASS  the take is recording                                       = recording
-      recorder pid 11249, launcher pid 10539
+      recorder pid 20084, launcher pid 19381
 PASS  Start is in front (the page unbound)                        contains [app.tileshell/.StartActivity]
-      take elapsed_ms read just before the kill: 8034
+      take elapsed_ms read just before the kill: 7964
 PASS  no restarted recorder service (START_NOT_STICKY)            = 
 PASS  no app.tileshell:recorder process                           = 
 PASS  the ongoing notification went with the process              = 
-      :speech pid after the kill: 11303
-PASS  Start and the live tiles never restarted (pidof app.tileshell unchanged)  = 10539
-      new recorder pid 16661
+      :speech pid after the kill: 20137
+PASS  Start and the live tiles never restarted (pidof app.tileshell unchanged)  = 19381
+      new recorder pid 25437
 PASS  a new recorder process is bound by the page                 != 
-PASS  and it is not the killed one                                != 11249
-      the recovered take: 150
+PASS  and it is not the killed one                                != 20084
+      the recovered take: 198
 PASS  the recovered take is in MediaStore                         != 
 PASS  the reopened list shows the recovered rec_row               = yes
 PASS  its rec_duration reads 8 ± 1 s                             8.00 vs 8.00 +/- 1.0
-      recovery line: recovered Recording ms=8034
+      recovery line: recovered Recording ms=7964
 PASS  the new process's ring holds [recorder] recovered <name> ms=<n>  contains [[recorder] recovered Recording ms=]
-PASS  recovered ms is 8000 ± 1000                                8034.00 vs 8000.00 +/- 1000.0
-      recovered file: 8.034100 s, RMS -6.127058 dBFS, aac,44100,1
-PASS  the pulled file plays: ffprobe duration 8 ± 1 s            8.03 vs 8.00 +/- 1.0
+PASS  recovered ms is 8000 ± 1000                                7964.00 vs 8000.00 +/- 1000.0
+      recovered file: 7.964400 s, RMS -6.117329 dBFS, aac,44100,1
+PASS  the pulled file plays: ffprobe duration 8 ± 1 s            7.96 vs 8.00 +/- 1.0
 PASS  and holds the tone (RMS > -40 dBFS)                         = yes
-      :speech pid now: 11303 (after the kill: 11303; the ring survives only in the same process)
-      speech:     2026-09-24 16:11:58.707 wall=1790287918707 [speech] a client died /     2026-09-24 16:11:58.707 wall=1790287918707 [speech] microphone released: owner died
+      :speech pid now: 20137 (after the kill: 20137; the ring survives only in the same process)
+      speech:     2026-09-24 20:44:43.126 wall=1790304283126 [speech] a client died /     2026-09-24 20:44:43.126 wall=1790304283126 [speech] microphone released: owner died
 PASS  the :speech ring holds [speech] a client died               != 
 PASS  then [speech] microphone released: owner died               != 
 PASS  a client died within 2000 ms of the kill (wall - MARK)      = yes
 PASS  microphone released within 2000 ms of the kill (wall - MARK)  = yes
 PASS  the arbiter shows no owner before Tess listens              = yes
-      Tess: mic_owner_pid=10539 asr_listening=true; card body []
+      Tess: mic_owner_pid=-1 asr_listening=false; card body []
 PASS  no busy notice on Tess's card                               does not contain [using the microphone]
 PASS  no MICROPHONE_BUSY refusal in the :speech ring              does not contain [refused: held by]
-PASS  Tess's listen was accepted: the :speech ring gave the launcher process the microphone  contains [listening for pid=10539 (cortana)]
+PASS  Tess's listen was accepted: the :speech ring gave the launcher process the microphone  contains [listening for pid=19381 (cortana)]
 PASS  restore: the recovered take is deleted                      = 0
       leftover take files in the recorder's files dir: []
 ------------------------------------------------------------------------------

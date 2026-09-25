@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E19 — the storage floor stops a take by itself with Not enough space
-at            2026-09-24T16:12:49-06:00
+at            2026-09-24T20:45:30-06:00
 driver        e19.sh blob 6a49bfd14d716b7cf81067f4b7aff4033dfef00f
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     187619129c54956c 338459898 bytes
-apk installed 2356b99f4933214b
-apk match     NO (device 2356b99f4933214b, built 33cc71c192190cc9)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -13,7 +13,7 @@ PASS  baseline: MediaStore holds no take of the shell's           = 0
       E19: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
 PASS  E19: the audio route is up (audio.sh check rc)              = 0
 RECORD  devicestoragemonitor lowBytes (the reserve getAllocatableBytes excludes)  524288000
-      free on /sdcard before: 15120220160 bytes
+      free on /sdcard before: 15119642624 bytes
 PASS  lowBytes was read                                           != 
       pm trim-caches (all app caches, before the fill): 
       fill_volume: 580902912 bytes free on /sdcard (asked for 580911104)
@@ -24,27 +24,27 @@ PASS  the take started ([recorder] start … free=<MB>)           !=
 RECORD  getAllocatableBytes at the start, MB (the floor is 50)      54
 PASS  the take is recording                                       = recording
       waiting up to 600 s for the floor
-      t=2s elapsed_ms=1787 bytes=14650 df free 580960256 bytes
-      t=63s elapsed_ms=63018 bytes=523150 df free 580452352 bytes
-      t=125s elapsed_ms=124691 bytes=1035120 df free 579940352 bytes
-      t=186s elapsed_ms=185666 bytes=1541307 df free 579432448 bytes
-      t=247s elapsed_ms=247037 bytes=2050770 df free 578924544 bytes
-      t=309s elapsed_ms=308221 bytes=2558885 df free 578400256 bytes
-      t=370s elapsed_ms=369475 bytes=3066999 df free 577884160 bytes
-      t=431s elapsed_ms=430846 bytes=3576848 df free 577372160 bytes
-      t=492s elapsed_ms=491821 bytes=4082842 df free 576868352 bytes
-      the take's phase after 513s of wall time: [idle] (last elapsed_ms 510328)
+      t=2s elapsed_ms=1695 bytes=14072 df free 580960256 bytes
+      t=63s elapsed_ms=62577 bytes=519295 df free 580456448 bytes
+      t=124s elapsed_ms=123460 bytes=1024903 df free 579948544 bytes
+      t=185s elapsed_ms=184343 bytes=1530319 df free 579416064 bytes
+      t=246s elapsed_ms=245202 bytes=2035350 df free 578912256 bytes
+      t=306s elapsed_ms=306062 bytes=2540765 df free 578404352 bytes
+      t=367s elapsed_ms=366921 bytes=3045895 df free 577900544 bytes
+      t=428s elapsed_ms=427758 bytes=3551019 df free 577392640 bytes
+      t=489s elapsed_ms=488640 bytes=4056434 df free 576888832 bytes
+      the take's phase after 513s of wall time: [idle] (last elapsed_ms 510902)
 PASS  the take stopped by itself within the bound                 = yes
 PASS  the notice Not enough space shows (rec_notice)              = Not enough space
 PASS  the :recorder ring holds [recorder] storage floor           contains [[recorder] storage floor]
 PASS  and the take's stop line                                    contains [[recorder] stop Recording ms=]
-      stop line: 8496465 [recorder] stop Recording ms=511256 bytes=4182033
-      the partial take: 151 (511257 ms,  bytes)
+      stop line: 4858235 [recorder] stop Recording ms=510955 bytes=4179637
+      the partial take: 199 (510955 ms,  bytes)
 PASS  the partial take is in MediaStore                           != 
 PASS  the partial take is listed                                  = yes
-      player:   AudioPlaybackConfiguration piid:1079 deviceIds:[2] type:android.media.AudioTrack u/pid:10172/10539 state:started attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_SPEECH flags=0xA00 tags= bundle=null sessionId:865 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
+      player:   AudioPlaybackConfiguration piid:1327 deviceIds:[2] type:android.media.AudioTrack u/pid:10173/19381 state:started attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_SPEECH flags=0xA00 tags= bundle=null sessionId:1081 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
 PASS  and it plays (a started player on USAGE_MEDIA)              != 
-      free on /sdcard after unfill: 15116046336 bytes (before the row: 15120220160)
+      free on /sdcard after unfill: 15115763712 bytes (before the row: 15119642624)
 PASS  restore: the fill file is gone (free space back above LOW + 1 GB)  = yes
 PASS  restore: the partial take is deleted                        = 0
 ------------------------------------------------------------------------------

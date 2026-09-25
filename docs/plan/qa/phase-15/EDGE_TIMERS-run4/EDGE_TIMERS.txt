@@ -1,0 +1,23 @@
+==============================================================================
+ROW EDGE_TIMERS — timers: dead process at the deadline; 10 at once; 0:00 refused; paused then clock jump
+at            2026-09-24T16:07:32-06:00
+driver        edge_timers.sh blob bb9835b3d9eedd74cc904c4c158162e78c926643
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     187619129c54956c 338459898 bytes
+apk installed 2356b99f4933214b
+apk match     NO (device 2356b99f4933214b, built 33cc71c192190cc9)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  a 20-s timer is running                                     != 
+      killed 19613 with ~15 s left
+PASS  the timer fired after the kill (the receiver started the ring service)  != 
+PASS  … on time (late <= 1500 ms; a cold process)               2.00 vs 0.00 +/- 1500.0
+PASS  … and it rings (an ALARM player of the shell)             != 0
+PASS  the process that rings is a new one                         != 19613
+      gtap: no ring_dismiss in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/EDGE_TIMERS/dead_ring.xml
+FAIL  dismissed                                                   expected [0] got [1]
+      gscroll_to_node timer_name:te87cb441: 0 swipe(s), found=yes
+RECORD  clock_timers notifications left after the Dead timer rang and was deleted (title|when)  0 — 

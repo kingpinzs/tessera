@@ -1,0 +1,92 @@
+==============================================================================
+ROW E4b — alarm fires while in use: overlay toast, touches consumed, snooze, sleep mid-ring, heads-up fallback, timer toast
+at            2026-09-24T19:55:58-06:00
+driver        e4b.sh blob bdbe0c117f5a5b2daa53c1b3b14d3cebd4722639
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-13h40m57s891ms ago; rejectTime=+2h42m2s80ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  DeskClock is the resumed activity                           contains [com.android.deskclock]
+PASS  the alarm was created                                       != 
+PASS  … and armed                                               != 
+PASS  the alarm fired within 30 s                                 != 
+PASS  an ALARM player of the shell is started                     != 0
+PASS  DeskClock is still the resumed activity                     contains [com.android.deskclock]
+      overlay window: Window #5 Window{c275d42 u0 TesseraRing}: type=APPLICATION_OVERLAY package=app.tileshell
+PASS  the shell has a window of type APPLICATION_OVERLAY (TesseraRing)  contains [type=APPLICATION_OVERLAY]
+PASS  notification a306a7a98: quiet                               contains [[alarms] notification a306a7a98: quiet]
+PASS  surface: toast-overlay a306a7a98                            contains [[alarms] surface: toast-overlay a306a7a98]
+      motion: ring_toast t0=2346158 peak=235 overshoot=0 settle=235 frames=15 maxGapMs=17
+FAIL  [motion] ring_toast settle = 217 ± 17 ms                   235.00 vs 217.00 +/- 17.0
+PASS  [motion] ring_toast maxGapMs <= 33.4                        = yes
+PASS  the ring notification is on the quiet channel               != 
+PASS  … with NO full-screen intent                              = 
+PASS  … and none on the alarm channel                           = 
+PASS  the overlay dump holds ring_surface                         = yes
+PASS  … ring_snooze_for                                         = yes
+PASS  … ring_snooze                                             = yes
+PASS  … ring_dismiss                                            = yes
+PASS  no SystemUI node carries the alarm's name (no heads-up over the toast)  = 
+      overlay ring_surface bounds: 0 136 1080 880
+RECORD  the overlay toast's top edge (px) — the recorded seam against 8.1 (T15-32)  136
+PASS  tap at (540,1500): the toast is still up                    = yes
+PASS  tap at (540,1500): the player is still started              != 0
+PASS  tap at (540,1500): DeskClock still resumed                  contains [com.android.deskclock]
+PASS  tap at (540,1500): DeskClock's nodes unchanged              = |
+PASS  snooze: ring ended a306a7a98: snooze                        contains [[alarms] ring ended a306a7a98: snooze]
+PASS  snooze: the overlay window is gone                          = 
+PASS  snooze: DeskClock still resumed                             contains [com.android.deskclock]
+PASS  snooze: dumpsys alarm shows the alarm 10 min ahead          1790302087345.00 vs 1790302087232.00 +/- 5000.0
+PASS  ring 2: fired                                               != 
+PASS  ring 2: surface: toast-overlay                              contains [[alarms] surface: toast-overlay a306a7a98]
+PASS  sleep mid-ring: the overlay window is gone                  = 
+PASS  sleep mid-ring: notification a306a7a98: fullscreen          contains [[alarms] notification a306a7a98: fullscreen]
+PASS  sleep mid-ring: surface: toast-locked a306a7a98             contains [[alarms] surface: toast-locked a306a7a98]
+PASS  sleep mid-ring: the ring activity has the focus             contains [clock.RingActivity]
+RECORD  sleep mid-ring: isKeyguardShowing (no PIN in this row; the keyguard is disabled by provision.sh)  false
+PASS  sleep mid-ring: the player is still started                 != 0
+PASS  wake_device prints Awake (C-25)                             = Awake
+PASS  dismiss: ring ended a306a7a98: dismiss                      contains [[alarms] ring ended a306a7a98: dismiss]
+PASS  dismiss: no ring_surface left                               = no
+PASS  dismiss: the player stopped                                 = 0
+PASS  heads-up: the second alarm was created                      != 
+PASS  heads-up: fired                                             != 
+PASS  heads-up: no overlay window of the shell                    = 
+PASS  heads-up: notification a17498e40: fullscreen                contains [[alarms] notification a17498e40: fullscreen]
+PASS  heads-up: surface: heads-up a17498e40                       contains [[alarms] surface: heads-up a17498e40]
+PASS  heads-up: the alarm notification has a Snooze action        contains [Snooze]
+PASS  heads-up: … and a Dismiss action                          contains [Dismiss]
+PASS  heads-up: no shell toast (no ring_surface)                  = no
+      SystemUI Dismiss bounds: 444 375 709 510
+PASS  heads-up: SystemUI shows a Dismiss action                   != 
+PASS  heads-up Dismiss: ring ended a17498e40: dismiss             contains [[alarms] ring ended a17498e40: dismiss]
+PASS  heads-up Dismiss: the player stopped                        = 0
+PASS  overlay grant restored                                      contains [allow]
+PASS  a 30-s timer was created (running)                          != 
+PASS  the timer fired (waited on the elapsed clock)               != 
+PASS  timer: late <= 1000 ms                                      2.00 vs 0.00 +/- 1000.0
+PASS  timer: an ALARM player of the shell is started              != 0
+PASS  timer: surface: toast-overlay t03a816e3                     contains [[alarms] surface: toast-overlay t03a816e3]
+PASS  timer: notification t03a816e3: quiet                        contains [[alarms] notification t03a816e3: quiet]
+PASS  timer toast: ring_title reads Timer finished                = Timer finished
+PASS  timer toast: ring_dismiss                                   = yes
+PASS  timer toast: NO ring_snooze                                 = no
+PASS  timer toast: NO ring_snooze_for                             = no
+      timer ring_surface bounds: 0 136 1080 784
+PASS  timer dismiss: ring ended t03a816e3: dismiss                contains [[alarms] ring ended t03a816e3: dismiss]
+PASS  timer dismiss: the player stopped                           = 0
+PASS  device clock back within 2 s of the host (RV12)             1790301480.00 vs 1790301481.00 +/- 2.0
+      scroll_to_node alarm_row:a306a7a98: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a17498e40: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t03a816e3: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E4b: 66 passed, 1 failed, 4 recorded

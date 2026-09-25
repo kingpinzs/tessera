@@ -1,43 +1,43 @@
 ==============================================================================
 ROW E14 — the recorder records real audio both ways; other apps' recordings list read-only
-at            2026-09-24T16:03:55-06:00
+at            2026-09-24T20:37:16-06:00
 driver        e14.sh blob 8560019bb0398ae1406e4083c562408c2e9aa502
 harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
-apk built     e9d870364a6c00fc 338459898 bytes
-apk installed 2356b99f4933214b
-apk match     yes (2356b99f4933214b)
+apk built     a437acd58d2ca8ac 338459026 bytes
+apk installed 4b7ac321ce4d0ede
+apk match     yes (4b7ac321ce4d0ede)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  baseline: MediaStore holds no take of the shell's           = 0
       E14: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
 PASS  E14: the audio route is up (audio.sh check rc)              = 0
-      tone: /tmp/claude-1000/-home-jeremyking/5d5ffc39-5a2a-4c33-953f-07d71da27a45/scratchpad/p15/tmp5560/p15-tones/tone440_5s.wav rms=-12.01 dBFS, 5.000000 s
+      tone: /tmp/claude-1000/-home-jeremyking/5d5ffc39-5a2a-4c33-953f-07d71da27a45/scratchpad/p15/tmpf5560/p15-tones/tone440_5s.wav rms=-12.01 dBFS, 5.000000 s
 PASS  the record state is showing (rec_page:record)               = yes
-      take 1: elapsed_ms=4829 at the stop tap
+      take 1: elapsed_ms=4760 at the stop tap
 PASS  the take ran: the record state showed rec_elapsed           = yes
-      take 1 MediaStore id: 127
+      take 1 MediaStore id: 175
 PASS  a new take of the shell's is in MediaStore                  != 
 PASS  after stop the page shows the list (rec_page:list)          = yes
 PASS  the new rec_row is listed                                   = yes
-      rec_duration:127 reads [0:05]
+      rec_duration:175 reads [0:05]
 PASS  rec_duration shows 5 ± 0.5 s                               5.00 vs 5.00 +/- 0.5
-      MediaStore row: Row: 0 _id=127, _display_name=Recording.m4a, duration=5016, is_recording=1, relative_path=Recordings/, owner_package_name=app.tileshell, _data=/storage/emulated/0/Recordings/Recording.m4a
+      MediaStore row: Row: 0 _id=175, _display_name=Recording.m4a, duration=4946, is_recording=1, relative_path=Recordings/, owner_package_name=app.tileshell, _data=/storage/emulated/0/Recordings/Recording.m4a
 PASS  MediaStore: relative_path Recordings/                       = Recordings/
 PASS  MediaStore: owner_package_name app.tileshell                = app.tileshell
 PASS  MediaStore: is_recording 1                                  = 1
-PASS  MediaStore: duration 5000 ± 500 ms                         5016.00 vs 5000.00 +/- 500.0
-      take 1 pulled: 43357 bytes; stream aac,44100,1
-PASS  ffprobe: duration 5 ± 0.5 s                                5.02 vs 5.00 +/- 0.5
+PASS  MediaStore: duration 5000 ± 500 ms                         4946.00 vs 5000.00 +/- 500.0
+      take 1 pulled: 42799 bytes; stream aac,44100,1
+PASS  ffprobe: duration 5 ± 0.5 s                                4.95 vs 5.00 +/- 0.5
 PASS  ffprobe: AAC, 44100 Hz, 1 channel (T15-27)                  = aac,44100,1
-      take 1 overall RMS: -11.831167 dBFS
+      take 1 overall RMS: -11.632998 dBFS
 PASS  astats: the tone was recorded (RMS > -40 dBFS)              = yes
 PASS  the :recorder ring holds [recorder] start                   contains [[recorder] start Recording free=]
-PASS  the :recorder ring holds [recorder] stop … ms=5000 ± 500  5015.00 vs 5000.00 +/- 500.0
-      take 2: elapsed_ms=4806 at the stop tap
-      take 2 MediaStore id: 129
+PASS  the :recorder ring holds [recorder] stop … ms=5000 ± 500  4945.00 vs 5000.00 +/- 500.0
+      take 2: elapsed_ms=4783 at the stop tap
+      take 2 MediaStore id: 177
 PASS  the silent take is in MediaStore                            != 
-      take 2 overall RMS: -inf dBFS (4.992300 s)
+      take 2 overall RMS: -112.457580 dBFS (4.969100 s)
 PASS  nothing played: RMS < -60 dBFS                              = yes
       fixtures: other.m4a id=38 is_recording=1; song.m4a id=39 is_recording=0
 RECORD  other.m4a marked IS_RECORDING by the scan itself            is_recording=1
@@ -53,7 +53,7 @@ PASS  other.m4a hold menu has NO rec_menu:rename                  = no
 PASS  the take's hold menu offers rec_menu:share                  = yes
 PASS  the take's hold menu offers rec_menu:delete                 = yes
 PASS  the take's hold menu offers rec_menu:rename                 = yes
-      dumpsys audio player after the tap:   AudioPlaybackConfiguration piid:935 deviceIds:[] type:android.media.AudioTrack u/pid:10172/10539 state:started attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_SPEECH flags=0xA00 tags= bundle=null sessionId:865 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x0, sampleRate=0}
+      dumpsys audio player after the tap:   AudioPlaybackConfiguration piid:1183 deviceIds:[2] type:android.media.AudioTrack u/pid:10173/19381 state:started attr:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_SPEECH flags=0xA00 tags= bundle=null sessionId:1081 mutedState:none  FormatInfo{isSpatialized=false, channelMask=0x1, sampleRate=44100}
 PASS  a row tap on other.m4a starts a player of the shell's on USAGE_MEDIA (dumpsys audio)  != 
 PASS  no consent dialog: no providers.media activity              does not contain [providers.media]
       other.m4a app bar: rec_bar:more rec_bar:share
