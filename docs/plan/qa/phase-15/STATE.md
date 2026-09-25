@@ -200,3 +200,13 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   5560, b466469e on 5556. INDEX row 15 is QA PAUSED, not done. To resume: build the final APK in the worktree, install
   it on all three, finish the four clock edge rows and the two recorder edge rows, run the whole gate on that one build,
   then E25 and E22 last, the two reviewers (review/2026-09-24-phase15-gate-brief.md), and NEEDS-HUMAN sign-offs.
+- 2026-09-25: Jeremy: "DO NOT re run the whole gate just the specific tests" (saved to memory), then "kill all testing".
+  Built the final APK 61c5b610 (HEAD f785c8b plus nothing; spinner fix in; unit tests pass) and installed it on 5556,
+  5558 and 5560. The planned specific rows were E3 E10 E31 E33 EDGE_ALARMS EDGE_TIMERS EDGE_WORLD (the rows that drive
+  LoopSpinner), EDGE_SPINNER, the six unfinished edge rows, E21 and E22. Of those, only EDGE_SPINNER was started. Its
+  runs on 61c5b610 did not complete: 5556's system_server restarted mid-run (cause not found in its logs; the emulator
+  had been up about 39 h). After that its display froze (screencaps hung, BACK did nothing), and an orphaned screencap
+  held the harness's device lock. The runs were stopped by pid and 5556 was rebooted. EDGE_SPINNER's driver now sets
+  its baseline (the Clock reopens on the page it was left on) and asserts its restore. ALL TESTING STOPPED at
+  Jeremy's request; nothing is running. The spinner fix is proved on test build b466469e (EDGE_SPINNER-run2 / -run3:
+  11/0), not yet on 61c5b610.

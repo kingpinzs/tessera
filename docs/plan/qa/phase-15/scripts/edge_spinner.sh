@@ -46,11 +46,19 @@ PY
 TIMERS_BEFORE="$(store_timers | python3 -c 'import json,sys; print(len(json.load(sys.stdin)))' 2>/dev/null || echo "?")"
 note "timers before: $TIMERS_BEFORE"
 open_clock timer
-dump_ui "$ROW_DIR/t_list.xml"
+# Baseline: the Timer tab itself. The Clock reopens on the page it was left on, so an editor left open by an earlier
+# run is closed first.
+for _ in 1 2 3; do
+  dump_ui "$ROW_DIR/t_list.xml"
+  [ "$(has_node "$ROW_DIR/t_list.xml" 'clock_bar:add')" = yes ] && break
+  adb shell input keyevent KEYCODE_BACK; sleep 1; open_clock timer
+done
+assert_eq "baseline: the Timer tab shows its add button" yes "$(has_node "$ROW_DIR/t_list.xml" 'clock_bar:add')"
 tap_node "$ROW_DIR/t_list.xml" 'clock_bar:add'; sleep 1.5
 dump_ui "$ROW_DIR/editor.xml"; screencap "$ROW_DIR/editor.png"
 assert_eq "the timer editor is open (NEW TIMER)" "NEW TIMER" "$(node_text "$ROW_DIR/editor.xml" timer_editor_title)"
 M="$(bounds "$ROW_DIR/editor.xml" 'timer_editor_field:minutes')"; note "minutes column $M"
+if [ -z "$M" ]; then row_end; exit $?; fi
 set -- $M; L=$1; T=$2; R=$3; B=$4
 X=$(( (L + R) / 2 )); CY=$(( (T + B) / 2 ))
 V0="$(desc_of "$ROW_DIR/editor.xml" 'timer_editor_field:minutes')"; note "minutes at the start: $V0"
@@ -101,8 +109,13 @@ else
   record "3. a drag during the roll" "NOT RUN: in 3 attempts the catch's DOWN came more than 300 ms after the fling (adb input latency)"
 fi
 
-# ---- restore: leave without saving
-adb shell input keyevent KEYCODE_BACK; sleep 1
+# ---- restore: leave the editor without saving, until it is gone
+for _ in 1 2 3; do
+  adb shell input keyevent KEYCODE_BACK; sleep 1
+  dump_ui "$ROW_DIR/restore.xml"
+  [ "$(has_node "$ROW_DIR/restore.xml" timer_editor_title)" = no ] && break
+done
+assert_eq "restore: the timer editor is closed" no "$(has_node "$ROW_DIR/restore.xml" timer_editor_title)"
 TIMERS_AFTER="$(store_timers | python3 -c 'import json,sys; print(len(json.load(sys.stdin)))' 2>/dev/null || echo "?")"
 assert_eq "restore: no timer was created" "$TIMERS_BEFORE" "$TIMERS_AFTER"
 adb shell input keyevent KEYCODE_HOME
