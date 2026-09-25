@@ -1,0 +1,48 @@
+==============================================================================
+ROW E7 — stopwatch: ring clock vs dump, lap, kill -9, reboot, reset
+at            2026-09-24T08:18:16-06:00
+driver        e7.sh blob 8bd7ae34b7b0cfc4010827ee7e90d4d32c995cae
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     d8dcea502fac2b21 337842979 bytes
+apk installed 39402722396d9129
+apk match     yes (39402722396d9129)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  baseline: the stopwatch is not running                      != true
+PASS  the stopwatch starts at 00:00:00.00                         = 00:00:00.00
+PASS  start is logged: [stopwatch] start elapsed=                 contains [[stopwatch] start elapsed=]
+PASS  the store says running                                      = true
+      moment1: line [elapsed=10022 uptime=120112] dump [00:00:10.70]
+PASS  moment 1: the dump's elapsed is the line's + latency (within −100…+1100 ms)  = yes
+      moment2: line [elapsed=25033 uptime=135123] dump []
+FAIL  moment 2: the dump's elapsed is the line's + latency (within −100…+1100 ms)  expected [yes] got [no (-25033 ms)]
+PASS  the two moments are >= 10 s apart                           = yes
+PASS  Δelapsed = Δuptime ± 100 ms between the two lines        15011.00 vs 15011.00 +/- 100.0
+      gtap: no stopwatch_lap in /home/jeremyking/projects/metro-launcher-p15/docs/plan/qa/phase-15/E7/moment2.xml
+FAIL  Lap is logged: [stopwatch] lap elapsed=                     should not be []
+      stopwatch_lap:1 = []
+FAIL  stopwatch_lap:1 is listed                                   should not be []
+FAIL  the lap row shows the split (index, lap time, split — equal for lap 1)  expected [1  ] got []
+FAIL  the store holds one lap at that elapsed                     expected [] got [[]]
+      last pre-kill [elapsed=45050 uptime=155140] first post-kill [elapsed=51957 uptime=162047]
+PASS  after the kill the tab logs a [stopwatch] line              != 
+PASS  kill -9: first post-kill elapsed − last pre-kill elapsed = their wall difference ± 1 s  6907.00 vs 6906.00 +/- 1000.0
+PASS  kill -9: still running (the digits advance between two dumps)  != 00:00:55.67
+FAIL  kill -9: the lap survived                                   expected [yes] got [no]
+PASS  after the reboot wake_device prints Awake (C-25)            = Awake
+      last pre-reboot [elapsed=56957 uptime=167047] first post-boot [elapsed=80206 uptime=19308]
+PASS  after the reboot the tab logs a [stopwatch] line            != 
+PASS  reboot: first post-boot elapsed − last pre-reboot elapsed = their wall difference ± 2 s  23249.00 vs 23249.00 +/- 2000.0
+PASS  reboot: still running (the digits advance)                  != 00:01:23.84
+PASS  stopped: the Reset button is offered                        = yes
+PASS  reset is logged                                             contains [[stopwatch] reset elapsed=0]
+PASS  reset: the digits read 00:00:00.00                          = 00:00:00.00
+PASS  reset: no lap listed                                        = no
+PASS  reset: the store is back at RESET (not running, no laps)    = false []
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E7: 23 passed, 6 failed, 0 recorded

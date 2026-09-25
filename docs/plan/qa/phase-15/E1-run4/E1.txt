@@ -1,0 +1,64 @@
+==============================================================================
+ROW E1 — the three apps in the app list, their windows, the layout baseline and the Music negative
+at            2026-09-24T09:24:34-06:00
+driver        e1.sh blob 9cdfec5a984b4f0ae6abf972bb2b0ad28d14d1de
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     d84e62728766ce7f 337843127 bytes
+apk installed 544474ed84bc0b4f
+apk match     yes (544474ed84bc0b4f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline layout restored                                    = 0
+PASS  no assignSlotOnce ... -> assigned after the restore         = 0
+PASS  positive control: the Music slot's one-time assignment reports already run  contains [assignSlotOnce slot:music:v1 MUSIC -> ]
+PASS  the restored addedOnce equals the file's                    = ['folder:games:v1', 'folder:office:v1', 'phase03:cortana', 'slot:music:v1']
+PASS  Alarms & Clock sits under A                                 = A
+PASS  Calculator sits under C                                     = C
+PASS  Voice Recorder sits under V                                 = V
+PASS  no New caption on any in-APK row                            = 0
+      scroll_to_node applist_name:app.tileshell/.clock.ClockActivity: 0 swipe(s), found=yes
+PASS  Alarms & Clock row found by applist_name                    = Alarms & Clock
+PASS  Alarms & Clock hold menu offers Pin to Start                = yes
+PASS  Alarms & Clock hold menu does NOT offer Uninstall           = no
+      scroll_to_node applist_name:app.tileshell/.calculator.CalculatorActivity: 0 swipe(s), found=yes
+PASS  Calculator row found by applist_name                        = Calculator
+PASS  Calculator hold menu offers Pin to Start                    = yes
+PASS  Calculator hold menu does NOT offer Uninstall               = no
+      scroll_to_node applist_name:app.tileshell/.recorder.RecorderActivity: 0 swipe(s), found=yes
+PASS  Voice Recorder row found by applist_name                    = Voice Recorder
+PASS  Voice Recorder hold menu offers Pin to Start                = yes
+PASS  Voice Recorder hold menu does NOT offer Uninstall           = no
+PASS  the jump grid's V cell is available (a tap jumps to V)      contains [jump to V]
+PASS  after the jump, Voice Recorder's row is on screen           = yes
+PASS  phase 01 E12 part 1 ran to the end                          = 0
+PASS  E12: the list is up with its search box                     contains [app_list=1 applist_search=1]
+PASS  E12: no New captions right after the baseline               contains [New captions: 0]
+PASS  E12: every fixture row is present                           = 17
+PASS  E12: the search for fossify gives what phase 01's E12 recorded  = results for 'fossify':
+PASS  E12: the jump to O lands on O                               contains [first header on screen: resource-id="applist_header:O"]
+PASS  Alarms & Clock's window dump carries resource-id clock_pivot:alarm  = yes
+PASS  Calculator's window dump carries resource-id calc_display   = yes
+PASS  Voice Recorder's window dump carries resource-id rec_button  = yes
+PASS  before the seeded alarm: no shell alarm or timer pending    = 0
+PASS  before the seeded alarm: alarm and timer stores empty       = empty
+PASS  an alarm is seeded for the Clock tile's face                != 
+PASS  idle: the Clock tile shows its live face (headline)         = yes
+PASS  only the MUSIC tile carries the now-playing face            = controls=yes
+PASS  app:app.tileshell/app.tileshell.clock.ClockActivity:0 has not grown  = w=699 h=343
+PASS  app:app.tileshell/app.tileshell.clock.ClockActivity:0 carries no transport  = controls=no
+PASS  app:app.tileshell/app.tileshell.clock.ClockActivity:0 shows no now-playing text  does not contain [Bloom]
+PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 has not grown  = w=165 h=165
+PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 carries no transport  = controls=no
+PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 shows no now-playing text  does not contain [Bloom]
+PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 has not grown  = w=165 h=165
+PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 carries no transport  = controls=no
+PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 shows no now-playing text  does not contain [Bloom]
+PASS  the Clock tile keeps its own face                           = yes
+PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 keeps its own face (its texts)  = texts=Calculator
+PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 keeps its own face (its texts)  = texts=Voice Recorder
+      scroll_to_node alarm_row:a86049c14: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E1: 47 passed, 0 failed, 0 recorded

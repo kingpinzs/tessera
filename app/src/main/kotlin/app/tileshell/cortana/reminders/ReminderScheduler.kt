@@ -9,8 +9,14 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.SystemClock
+import android.os.UserManager
 import app.tileshell.R
 import app.tileshell.brand.Brand
+import app.tileshell.clock.ClockNotifications
+import app.tileshell.clock.ClockRules
+import app.tileshell.clock.ClockStore
+import app.tileshell.clock.RingService
 import app.tileshell.diag.Diagnostics
 
 /**
@@ -37,6 +43,14 @@ object ReminderScheduler {
 
     fun rearm(context: Context, why: String) {
         val app = context.applicationContext
+        // Alarms and timers first: they live in device-protected storage and are armed even before the first
+        // unlock (phase 15, T15-22). Reminders live in credential storage, which a locked user cannot read — a
+        // re-arm then would read an empty store and cancel every reminder, so it waits for the unlock.
+        rearmClock(app, why)
+        if (!app.getSystemService(UserManager::class.java).isUserUnlocked) {
+            Diagnostics.add("reminders", "rearm ($why) deferred: the user is not unlocked yet")
+            return
+        }
         val store = ReminderStore.get(app)
         val alarms = app.getSystemService(AlarmManager::class.java)
         exactAlarmsDenied = !alarms.canScheduleExactAlarms()
@@ -65,6 +79,103 @@ object ReminderScheduler {
         PlaceTriggers.rearm(app)
         PersonTriggers.rearm(app)
     }
+
+    // --- Phase 15: Alarms & Clock's two kinds (Decisions "One exact-alarm scheduler", T15-22, T15-55) -----------
+
+    const val ACTION_CLOCK_FIRE = "app.tileshell.clock.FIRE"
+    const val CLOCK_ALARM = "alarm"
+    const val CLOCK_TIMER = "timer"
+    const val EXTRA_CLOCK_KIND = "clock_kind"
+    const val EXTRA_CLOCK_ID = "clock_id"
+    /** The occurrence being rung: a wall-clock instant for an alarm, an elapsed-clock instant for a timer. */
+    const val EXTRA_CLOCK_AT = "clock_at"
+    /** A timer whose deadline passed while the phone was off ("timer ended while the phone was off"). */
+    const val EXTRA_CLOCK_ENDED_OFF = "clock_ended_off"
+
+    /** Alarms & Clock's own activity, named rather than referenced so this file does not depend on its UI. */
+    const val CLOCK_ACTIVITY = "app.tileshell.clock.ClockActivity"
+
+    /**
+     * Arms every alarm and running timer the clock store holds. Alarms through `setAlarmClock` (Doze-exempt, and
+     * what the lock screen's "next alarm" reads), timers through `setExactAndAllowWhileIdle(ELAPSED_REALTIME_WAKEUP)`
+     * (a timer is not the phone's next alarm, and no wall-clock change moves it). An occurrence found already past
+     * — the phone was off, the process force-stopped, the clock jumped — rings at once inside the ring timeout and
+     * is missed after it (Decisions "Ringing").
+     */
+    fun rearmClock(context: Context, why: String) {
+        val app = context.applicationContext
+        val store = ClockStore.get(app)
+        val alarms = app.getSystemService(AlarmManager::class.java)
+        val exact = alarms.canScheduleExactAlarms()
+        if (!exact) exactAlarmsDenied = true
+        val now = System.currentTimeMillis()
+        val zone = store.zone()
+        var armedAlarms = 0
+        for (alarm in store.alarms.value) {
+            alarms.cancel(clockFirePendingIntent(app, CLOCK_ALARM, alarm.id, 0L))
+            if (!alarm.enabled) continue
+            val from = ClockRules.armFrom(alarm.lastHandledMs, now)
+            var at = ClockRules.nextTrigger(alarm, from, zone) ?: continue
+            if (at <= now && ClockRules.overdue(at, now) == ClockRules.Overdue.MISSED) {
+                Diagnostics.add("alarms", "alarm ${alarm.id} due at $at passed while not running: missed")
+                ClockNotifications.missed(app, alarm, at)
+                store.alarmHandled(alarm.id, at, ClockStore.Outcome.MISSED, rearm = false)
+                val after = store.alarm(alarm.id) ?: continue
+                at = ClockRules.nextTrigger(after, maxOf(at, now), zone) ?: continue
+            }
+            val trigger = maxOf(at, now)
+            val pi = clockFirePendingIntent(app, CLOCK_ALARM, alarm.id, at)
+            if (exact) {
+                alarms.setAlarmClock(AlarmManager.AlarmClockInfo(trigger, clockShowPendingIntent(app)), pi)
+            } else {
+                alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pi)
+            }
+            armedAlarms++
+        }
+        var armedTimers = 0
+        val nowElapsed = SystemClock.elapsedRealtime()
+        val boot = store.bootCount()
+        for (timer in store.timers.value) {
+            alarms.cancel(clockFirePendingIntent(app, CLOCK_TIMER, timer.id, 0L))
+            val deadline = ClockRules.timerDeadlineElapsed(timer, nowElapsed, now, boot) ?: continue
+            val endedOff = ClockRules.endedWhileOff(timer, now, boot)
+            val pi = clockFirePendingIntent(app, CLOCK_TIMER, timer.id, deadline, endedOff)
+            val trigger = maxOf(deadline, nowElapsed)
+            if (exact) {
+                alarms.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, trigger, pi)
+            } else {
+                alarms.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, trigger, pi)
+            }
+            armedTimers++
+        }
+        ClockNotifications.runningTimers(app)
+        Diagnostics.add("alarms", "rearm ($why): $armedAlarms alarms, $armedTimers timers, exact=$exact")
+    }
+
+    /** Cancels one item's alarm (a delete); the request code and data URI are the arm's own. */
+    fun cancelClock(context: Context, kind: String, id: String) {
+        context.getSystemService(AlarmManager::class.java).cancel(clockFirePendingIntent(context.applicationContext, kind, id, 0L))
+    }
+
+    fun clockFirePendingIntent(context: Context, kind: String, id: String, at: Long, endedOff: Boolean = false): PendingIntent =
+        PendingIntent.getBroadcast(
+            context,
+            "$kind:$id".hashCode(),
+            Intent(context, ReminderReceiver::class.java).setAction(ACTION_CLOCK_FIRE)
+                .setData(Uri.parse("tileshell://clock/$kind/$id"))
+                .putExtra(EXTRA_CLOCK_KIND, kind).putExtra(EXTRA_CLOCK_ID, id)
+                .putExtra(EXTRA_CLOCK_AT, at).putExtra(EXTRA_CLOCK_ENDED_OFF, endedOff),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+    /** What the lock screen's "next alarm" opens: Alarms & Clock on its Alarm tab. */
+    private fun clockShowPendingIntent(context: Context): PendingIntent = PendingIntent.getActivity(
+        context,
+        "clock:show".hashCode(),
+        Intent().setClassName(context.packageName, CLOCK_ACTIVITY).putExtra("page", "alarm")
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
 
     fun firePendingIntent(context: Context, id: String): PendingIntent = PendingIntent.getBroadcast(
         context,
@@ -119,8 +230,14 @@ class ReminderReceiver : BroadcastReceiver() {
             ReminderScheduler.ACTION_FIRE ->
                 intent.getStringExtra(ReminderScheduler.EXTRA_ID)?.let { ReminderScheduler.fire(context, it, "alarm") }
             ReminderScheduler.ACTION_PROXIMITY -> PlaceTriggers.onProximity(context, intent)
+            ReminderScheduler.ACTION_CLOCK_FIRE -> RingService.fire(context, intent)
+            // Before the first unlock only the clock can be read (device-protected storage, T15-22).
+            Intent.ACTION_LOCKED_BOOT_COMPLETED -> ReminderScheduler.rearmClock(context, "locked boot")
             Intent.ACTION_BOOT_COMPLETED -> ReminderScheduler.rearm(context, "boot")
             Intent.ACTION_MY_PACKAGE_REPLACED -> ReminderScheduler.rearm(context, "package replaced")
+            // An alarm is wall-clock: a zone or clock change moves the instant its 07:00 happens at.
+            Intent.ACTION_TIMEZONE_CHANGED -> ReminderScheduler.rearmClock(context, "time zone changed")
+            Intent.ACTION_TIME_CHANGED -> ReminderScheduler.rearmClock(context, "time set")
             else -> Diagnostics.add("reminders", "receiver ignored ${intent.action}")
         }
     }

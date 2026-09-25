@@ -1,0 +1,106 @@
+==============================================================================
+ROW E12 — Calculator modes: pane order, categories, display across modes, converter lines, history, About
+at            2026-09-24T09:44:13-06:00
+driver        e12.sh blob d7163653d12eae69c36b588b9abb1c1e7f7ff466
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     7823e507b9004fd6 337843127 bytes
+apk installed 2e22a614794f9a05
+apk match     yes (2e22a614794f9a05)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: calc_mode:standard is the page showing            = yes
+PASS  pane-order ran (pane opened, scrolled to the end, closed)   = 0
+PASS  pane rows 1–5 are Standard / Scientific / Programmer / Date calculation / CONVERTER (calc_mode:<id>)  = calc_mode:standard calc_mode:scientific calc_mode:programmer calc_mode:date calc_mode:converter
+PASS  pane labels 1–5                                           = Standard|Scientific|Programmer|Date calculation|CONVERTER
+PASS  the category list equals W10M's twelve, in order (Weight and Mass, no Currency)  = Volume|Length|Weight and Mass|Temperature|Energy|Area|Speed|Time|Power|Data|Pressure|Angle
+PASS  the category tags are calc_converter_category:1..12 in that order  = 1 2 3 4 5 6 7 8 9 10 11 12
+PASS  no node reads Currency (pane dump texts)                    = 0
+      the category label is the text of an untagged child TextView under calc_converter_category:<n> (the tag's own text is empty)
+PASS  the pane's open logs [motion] calc_pane                     contains [[motion] calc_pane]
+PASS  calc_pane settle = 167 ± 50 ms (r11 M.1, LOW, tagged)      179.00 vs 167.00 +/- 50.0
+PASS  calc_pane maxGapMs ≤ 33.4 (got 17)                        = yes
+PASS  Standard shows 123 typed                                    = 123
+PASS  Scientific is the page showing                              = yes
+PASS  Standard → Scientific keeps 123 on the display            = 123
+PASS  Programmer is the page showing                              = yes
+PASS  Scientific → Programmer keeps 123 on the display          = 123
+PASS  Programmer's DEC radix row reads 123                        = 123
+PASS  Programmer → Standard keeps 123 on the display            = 123
+PASS  converter driver ran to the end                             = 0
+PASS  converter-001 [1] VOLUME: Liters [1] -> Milliliters         = 1,000
+PASS  converter-002 [1] VOLUME: Gallons (US) [1] -> Liters        = 3.785412
+PASS  converter-003 [2] VOLUME: Cups (US) [2] -> Milliliters      = 473.1765
+PASS  converter-004 [1] LENGTH: Miles [1] -> Kilometers           = 1.609344
+PASS  converter-005 [5] LENGTH: Miles [5] -> Kilometers           = 8.04672
+PASS  converter-006 [1 2] LENGTH: Inches [12] -> Centimeters      = 30.48
+PASS  converter-007 [3] LENGTH: Feet [3] -> Meters                = 0.9144
+PASS  converter-008 [1 0] LENGTH: Kilometers [10] -> Miles        = 6.213712
+PASS  converter-009 [1] WEIGHT AND MASS: Kilograms [1] -> Pounds  = 2.204623
+PASS  converter-010 [1 6] WEIGHT AND MASS: Ounces [16] -> Pounds  = 1
+PASS  converter-011 [1] WEIGHT AND MASS: Stone [1] -> Kilograms   = 6.350293
+PASS  converter-012 [1 0 0] TEMPERATURE: Celsius [100] -> Fahrenheit  = 212
+PASS  converter-013 [3 2] TEMPERATURE: Fahrenheit [32] -> Celsius  = 0
+PASS  converter-014 [0] TEMPERATURE: Celsius [0] -> Kelvin        = 273.15
+PASS  converter-015 [9 8 decimal 6] TEMPERATURE: Fahrenheit [98.6] -> Celsius  = 37
+PASS  converter-016 [1] ENERGY: Food calories [1] -> Kilojoules   = 4.184
+PASS  converter-017 [1] ENERGY: Kilowatt-hours [1] -> Joules      = 3,600,000
+PASS  converter-018 [2] ENERGY: British thermal units [2] -> Joules  = 2,110.112
+PASS  converter-019 [1] AREA: Acres [1] -> Square meters          = 4,046.856
+PASS  converter-020 [1] AREA: Hectares [1] -> Acres               = 2.471054
+PASS  converter-021 [1] AREA: Square miles [1] -> Square kilometers  = 2.589988
+PASS  converter-022 [1 0 0] SPEED: Kilometers per hour [100] -> Miles per hour  = 62.14268
+PASS  converter-023 [1 0] SPEED: Meters per second [10] -> Kilometers per hour  = 36
+PASS  converter-024 [1] SPEED: Knots [1] -> Kilometers per hour   = 1.85184
+PASS  converter-025 [1] TIME: Days [1] -> Hours                   = 24
+PASS  converter-026 [9 0] TIME: Minutes [90] -> Hours             = 1.5
+PASS  converter-027 [1] TIME: Years [1] -> Days                   = 365.25
+PASS  converter-028 [1] POWER: Horsepower (US) [1] -> Watts       = 745.6999
+PASS  converter-029 [1] POWER: Kilowatts [1] -> Watts             = 1,000
+PASS  converter-030 [1 0 0] POWER: Watts [100] -> BTUs/minute     = 5.686902
+PASS  converter-031 [1] DATA: Gigabytes [1] -> Megabytes          = 1,000
+PASS  converter-032 [1] DATA: Gibibytes [1] -> Mebibytes          = 1,024
+PASS  converter-033 [1] DATA: Bytes [1] -> Bits                   = 8
+PASS  converter-034 [1] DATA: Megabits [1] -> Kilobytes           = 125
+PASS  converter-035 [1] PRESSURE: Atmospheres [1] -> Bars         = 1.01325
+PASS  converter-036 [1] PRESSURE: Atmospheres [1] -> Pounds per square inch  = 14.69595
+PASS  converter-037 [1] PRESSURE: Bars [1] -> Kilopascals         = 100
+PASS  converter-038 [1 8 0] ANGLE: Degrees [180] -> Radians       = 3.141593
+PASS  converter-039 [1 0 0] ANGLE: Gradians [100] -> Degrees      = 90
+PASS  converter-040 [1] ANGLE: Radians [1] -> Degrees             = 57.29578
+PASS  every converter oracle line was driven                      = 40
+PASS  VOLUME: at least 2 oracle lines driven (got 3)              = yes
+PASS  LENGTH: at least 2 oracle lines driven (got 5)              = yes
+PASS  WEIGHT AND MASS: at least 2 oracle lines driven (got 3)     = yes
+PASS  TEMPERATURE: at least 2 oracle lines driven (got 4)         = yes
+PASS  ENERGY: at least 2 oracle lines driven (got 3)              = yes
+PASS  AREA: at least 2 oracle lines driven (got 3)                = yes
+PASS  SPEED: at least 2 oracle lines driven (got 3)               = yes
+PASS  TIME: at least 2 oracle lines driven (got 3)                = yes
+PASS  POWER: at least 2 oracle lines driven (got 3)               = yes
+PASS  DATA: at least 2 oracle lines driven (got 4)                = yes
+PASS  PRESSURE: at least 2 oracle lines driven (got 3)            = yes
+PASS  ANGLE: at least 2 oracle lines driven (got 3)               = yes
+PASS  1 mile → 1.609344 kilometers exactly (converter-004)      contains [converter-004	1.609344	1.609344]
+PASS  100 °C → 212 °F (converter-012)                         contains [converter-012	212	212]
+PASS  7 − 2 = shows 5                                           = 5
+PASS  Standard history lists the three expressions, newest first (calc_history:<n>; Windows' token join)  = 1:7   -   2 ==5|2:10   ×   4 ==40|3:2   +   3 ==5
+PASS  Scientific history lists its two expressions, newest first  = 1:9   -   4 ==5|2:4   ×   5 ==20
+      kill -9 app.tileshell pid 21104
+PASS  the shell's process is a new one after kill -9              != 21104
+PASS  after kill -9 the Calculator opens on Standard              = yes
+PASS  Standard history survives kill -9                           = 1:7   -   2 ==5|2:10   ×   4 ==40|3:2   +   3 ==5
+PASS  Clear history empties Standard's list (calc_history_empty)  = yes
+PASS  no calc_history:<n> node after Clear (Standard)             = 0
+PASS  Scientific history survives kill -9                         = 1:9   -   4 ==5|2:4   ×   5 ==20
+PASS  Clear history empties Scientific's list                     = yes
+PASS  Programmer's header has no History glyph (calc_history_toggle absent)  = no
+PASS  5 + 5 = shows 10 in Programmer                              = 10
+PASS  after five Programmer calculations the dump holds no calc_history:* node  = 0
+PASS  Standard's history is still empty after the Programmer calculations (no leak)  = yes
+PASS  Settings opens about_page                                   = yes
+PASS  the About page's title                                      = ABOUT
+PASS  no Feedback entry on the About page                         = 0
+PASS  Back from About returns to the Standard page                = yes
+------------------------------------------------------------------------------
+E12: 91 passed, 0 failed, 0 recorded

@@ -1,0 +1,54 @@
+==============================================================================
+ROW E17 — microphone arbitration: the recorder refuses Tess and the keyboard, and is refused by Tess
+at            2026-09-24T13:41:07-06:00
+driver        e17.sh blob 4931d547cec6d89d1d8a0b3f3cfd595b4668f8ed
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     a82ba032ca435575 338459654 bytes
+apk installed 7b1306f3e567a24b
+apk match     yes (7b1306f3e567a24b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: MediaStore holds no take of the shell's           = 0
+      E17: audio.sh check: capture source: vmic5560.monitor (want vmic5560.monitor); output stream: 3299 (rc=0); default source alsa_input.usb-046d_Logitech_BRIO_9130DEA5-03.analog-stereo
+PASS  E17: the audio route is up (audio.sh check rc)              = 0
+      launcher pid 21156
+      kb_begin: prior ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=0
+      tree: HEAD bb506eb (2026-09-24T13:24:02-06:00); uncommitted files under app/: 0; apk built 2026-09-24T13:06:21-06:00
+PASS  the take is recording                                       = recording
+      recorder pid 21382
+      Tess's card title+body: [The voice recorder is using the microphone right now.&#10;&#10;held by recorder ]
+PASS  Tess's card is up                                           = yes
+PASS  Tess's card names the voice recorder                        contains [The voice recorder is using the microphone right now.]
+PASS  speech_status mic_owner_pid is the recorder process         = 21382
+PASS  the :speech ring holds the refusal, named                   contains [startListening from pid=21156 refused: held by recorder]
+PASS  the take is still recording                                 = recording
+      after Home: 
+PASS  the fixture's field is in front for the keyboard            contains [imefixture]
+      keyboard notice: [The voice recorder is using the microphone right now.]
+PASS  the keyboard's notice names the voice recorder              contains [The voice recorder is using the microphone right now.]
+PASS  the :speech ring refused the keyboard, naming the recorder  contains [refused: held by recorder]
+PASS  the recorder still holds the microphone                     = 21382
+      the take: 63, 27887 ms; Tess's window 6780-14280 ms
+PASS  the take is in MediaStore                                   != 
+      take RMS over Tess's window: -6.175108 dBFS; overall -9.185088 dBFS; 28.537300 s
+PASS  the take's RMS over Tess's window is still > -40 dBFS (the recorder kept the microphone)  = yes
+PASS  the :recorder ring holds the take's start                   contains [[recorder] start Recording free=]
+PASS  and its stop                                                contains [[recorder] stop Recording ms=]
+PASS  the take is deleted                                         = 0
+      default recogniser: app.tileshell/.cortana.CortanaRecognitionService
+      RECOGNIZE broadcast 120 ms after the recorder page was asked for (the fixture's grace ~5 s)
+      microphone owner after the RECOGNIZE broadcast: [21156] (launcher 21156)
+PASS  the Voice Recorder page is in front                         contains [recorder.RecorderActivity]
+PASS  the recognition service (launcher process) holds the microphone  = 21156
+      recorder notice: [Tess is listening]
+PASS  the recorder's notice reads "Tess is listening"             = Tess is listening
+PASS  the :recorder ring holds the named refusal                  contains [[recorder] refused: microphone busy held by cortana]
+PASS  the :speech ring refused the recorder's hold, naming Tess   contains [refused: held by cortana]
+PASS  no file was created (MediaStore count unchanged)            = 0
+PASS  no take is running                                          != recording
+      microphone owner after the recogniser finished: [-1]
+      kb_end: restored ime=com.android.inputmethod.latin/.LatinIME show_ime_with_hard_keyboard=0
+PASS  restore: MediaStore holds no take of the shell's            = 0
+------------------------------------------------------------------------------
+E17: 25 passed, 0 failed, 0 recorded

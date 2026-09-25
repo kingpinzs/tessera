@@ -1,0 +1,64 @@
+programmer-001	FF	FF	2 5 5 radix_hex
+programmer-002	377	377	2 5 5 radix_oct
+programmer-003	1111 1111	1111 1111	2 5 5 radix_bin
+programmer-004	255	255	F F radix_dec
+programmer-005	AB CDEF	AB CDEF	A B C D E F
+programmer-006	1 234 567	1 234 567	1 2 3 4 5 6 7
+programmer-007	511	511	7 7 7 radix_dec
+programmer-008	0101	0101	1 0 1
+programmer-009	5	5	1 0 1 radix_dec
+programmer-010	0001 0000 0000	0001 0000 0000	1 1 1 1 1 1 1 1 add 1 equals
+programmer-011	1,234,567	1,234,567	1 2 3 4 5 6 7
+programmer-012	0	0	F F add 1 equals
+programmer-013	-128	-128	1 2 7 add 1 equals
+programmer-014	25	25	2 5 5
+programmer-015	FFFF FFFF FFFF FFFF	FFFF FFFF FFFF FFFF	1 negate radix_hex
+programmer-016	-1	-1	1 negate
+programmer-017	FFFF FFFF FFFF FFFF	FFFF FFFF FFFF FFFF	1 negate
+programmer-018	0	0	F F F F F F F F F F F F F F F F add 1 equals
+programmer-019	8000 0000	8000 0000	7 F F F F F F F add 1 equals
+programmer-020	-2,147,483,648	-2,147,483,648	2 1 4 7 4 8 3 6 4 7 add 1 equals
+programmer-021	-32,768	-32,768	3 2 7 6 7 add 1 equals
+programmer-022	FFFF	FFFF	0 not
+programmer-023	-1	-1	0 not
+programmer-024	F	F	F 0 not
+programmer-025	FFFF FFFF FFFF FFFF	FFFF FFFF FFFF FFFF	0 not
+programmer-026	8	8	C and A equals
+programmer-027	E	E	C or A equals
+programmer-028	6	6	C xor A equals
+programmer-029	8	8	1 2 and 1 0 equals
+programmer-030	15	15	1 2 or 3 equals
+programmer-031	9	9	1 2 xor 5 equals
+programmer-032	3	3	1 or 2 and 3 equals
+programmer-033	0	0	5 add 3 and 6 equals
+programmer-034	14	14	2 add 3 multiply 4 equals
+programmer-035	20	20	lparen 2 add 3 rparen multiply 4 equals
+programmer-036	3	3	7 divide 2 equals
+programmer-037	-3	-3	7 negate divide 2 equals
+programmer-038	4	4	5 divide 2 multiply 2 equals
+programmer-039	Cannot divide by zero	Cannot divide by zero	1 divide 0 equals
+programmer-040	2	2	1 7 mod 5 equals
+programmer-041	-2	-2	1 7 negate mod 5 equals
+programmer-042	Result is undefined	Result is undefined	5 mod 0 equals
+programmer-043	16	16	1 lsh 4 equals
+programmer-044	-9,223,372,036,854,775,808	-9,223,372,036,854,775,808	1 lsh 6 3 equals
+programmer-045	Result not defined	Result not defined	1 lsh 6 4 equals
+programmer-046	-128	-128	1 lsh 7 equals
+programmer-047	Result not defined	Result not defined	1 lsh 8 equals
+programmer-048	4	4	1 6 rsh 2 equals
+programmer-049	-4	-4	1 6 negate rsh 2 equals
+programmer-050	F800	F800	8 0 0 0 rsh 4 equals
+programmer-051	Result not defined	Result not defined	2 5 6 rsh 6 4 equals
+programmer-052	10	10	5 inv lsh
+programmer-053	3	3	8 1 inv lsh
+programmer-054	80	80	1 inv rsh
+programmer-055	44	44	3 0 0 word word word
+programmer-056	-1	-1	6 5 5 3 5 word word
+programmer-057	-128	-128	1 2 8 word word word
+programmer-058	FFFF FFFF FFFF FF80	FFFF FFFF FFFF FF80	8 0 word
+programmer-059	55	55	5 decimal 5
+programmer-060	-9,223,372,036,854,775,808	-9,223,372,036,854,775,808	9 2 2 3 3 7 2 0 3 6 8 5 4 7 7 5 8 0 7 add 1 equals
+programmer-061	F	F	F F backspace
+programmer-062	377	377	F F radix_oct
+programmer-063	B	B	A add 1 equals
+programmer-064	1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111	1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111	1 negate radix_bin

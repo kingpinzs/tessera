@@ -1,0 +1,19 @@
+# E12 2026-09-24T09:18:51-06:00
+## method: the fixtures were installed after this AVD's shell first became Home, so the row's precondition
+## ("fixture APKs installed before onboarding") is recreated by deleting only the caption store (shared_prefs/applist_new.xml,
+## run-as on the debug build) with the shell stopped: its next start is the shell first seeing itself as Home with every fixture present.
+$ run-as app.tileshell ls shared_prefs: applist_new.xml 
+    2026-09-24 09:18:51.721 wall=1790263131721 [applist] new-caption baseline taken at 1790263131720: 33 installed apps carry no caption
+## swipe left on Start
+app_list=1 applist_search=1
+rows seen: 32; headers: A C D F G I K L M N O P S T V W ; New captions: 0
+fixture rows present: com.fsck.k9 eu.faircode.email org.oxycblt.auxio org.akanework.gramophone org.fossify.musicplayer net.osmand.plus app.organicmaps org.fdroid.fdroid org.fdroid.basic com.looker.droidify deckers.thibault.aves.libre org.fossify.gallery opencontacts.open.com.opencontacts net.sourceforge.opencamera org.fossify.camera org.fossify.messages 
+## search
+results for 'fossify': 
+installed labels containing Fossify (package org.fossify.*): org.fossify.camera org.fossify.contacts org.fossify.gallery org.fossify.messages org.fossify.musicplayer org.fossify.notes 
+## jump grid
+tap first header: applist_header:P
+jump_grid=1 cells: # A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 
+after jump to O: jump_grid=0; first header on screen: resource-id="applist_header:O" class="android.view.View" package="app.tileshell" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[0,180][1080,330]"
+    2026-09-24 09:19:37.180 wall=1790263177180 [applist] jump grid opened
+    2026-09-24 09:19:41.659 wall=1790263181659 [applist] jump to O (item 40)

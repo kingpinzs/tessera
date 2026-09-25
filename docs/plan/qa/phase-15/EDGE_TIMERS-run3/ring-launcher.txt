@@ -1,0 +1,896 @@
+    2026-09-24 11:40:16.444 wall=1790271616444 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+    2026-09-24 11:40:16.444 wall=1790271616444 [livetile] store loaded 1 owners
+    2026-09-24 11:40:16.452 wall=1790271616452 [badge] set app.tileshell API=0 -> effective 0
+    2026-09-24 11:40:16.452 wall=1790271616452 [app] process start
+    2026-09-24 11:40:16.452 wall=1790271616452 [livetile] samsung badge provider probe: not present
+    2026-09-24 11:40:16.491 wall=1790271616491 [apps] catalog refreshed (init): 38 activities
+    2026-09-24 11:40:16.491 wall=1790271616491 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
+    2026-09-24 11:40:16.492 wall=1790271616492 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-09-24 11:40:16.495 wall=1790271616495 [weather] feed start provider=open-meteo
+    2026-09-24 11:40:16.496 wall=1790271616496 [app] feeds started (process start)
+    2026-09-24 11:40:16.503 wall=1790271616503 [clock] tiles: publisher started under cmp:app.tileshell/app.tileshell.clock.ClockActivity
+    2026-09-24 11:40:16.507 wall=1790271616507 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790271616507
+    2026-09-24 11:40:16.507 wall=1790271616507 [calendar] refresh (start): access=true faces=1
+    2026-09-24 11:40:16.508 wall=1790271616508 [engine] publish feed:photos faces=0 front=false source=null sourceTime=null
+    2026-09-24 11:40:16.508 wall=1790271616508 [photos] refresh (start): access=GRANTED photos=0 slideshow=0 grow=false
+    2026-09-24 11:40:16.509 wall=1790271616509 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null sourceTime=null
+    2026-09-24 11:40:16.509 wall=1790271616509 [clock] tile: no next alarm, face cleared
+    2026-09-24 11:40:16.515 wall=1790271616515 [alarms] rearm (process start): 0 alarms, 1 timers, exact=true
+    2026-09-24 11:40:16.515 wall=1790271616515 [reminders] rearm (process start): 0 timed alarms, exact=true
+    2026-09-24 11:40:16.515 wall=1790271616515 [places] rearm: no place reminders
+    2026-09-24 11:40:16.515 wall=1790271616515 [person] rearm: no person reminders, observers off
+    2026-09-24 11:40:16.533 wall=1790271616533 [weather] cache loaded fetchedAt=1790271598828 provider=open-meteo units=IMPERIAL
+    2026-09-24 11:40:16.534 wall=1790271616534 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790271598828
+    2026-09-24 11:40:16.534 wall=1790271616534 [weather] publish tile faces=1 temp=69° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790271598828
+    2026-09-24 11:40:16.535 wall=1790271616535 [weather] refresh start reason=start units=IMPERIAL
+    2026-09-24 11:40:16.552 wall=1790271616552 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:40:16.554 wall=1790271616554 [start] StartActivity created
+    2026-09-24 11:40:16.557 wall=1790271616557 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:40:16.764 wall=1790271616764 [cortana] VoiceInteractionService created
+    2026-09-24 11:40:16.767 wall=1790271616767 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-09-24 11:40:16.768 wall=1790271616768 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-24 11:40:16.931 wall=1790271616931 [render] tile=slot:CALENDAR sourceTime=1790271616507 renderedAt=1790271616931 faces=1
+    2026-09-24 11:40:16.931 wall=1790271616931 [render] tile=shell:weather sourceTime=1790271598828 renderedAt=1790271616931 faces=1
+    2026-09-24 11:40:16.977 wall=1790271616977 [applist] no Usage access: the app list has no recent section
+    2026-09-24 11:40:17.128 wall=1790271617128 [notif] listener connected
+    2026-09-24 11:40:17.131 wall=1790271617131 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:40:17.132 wall=1790271617132 [engine] publish pkg:app.tileshell faces=1 front=false source=notification sourceTime=1790271616514
+    2026-09-24 11:40:17.133 wall=1790271617133 [badge] set com.android.systemui NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:40:17.133 wall=1790271617133 [engine] publish pkg:com.android.systemui faces=1 front=false source=notification sourceTime=1790269246644
+    2026-09-24 11:40:17.134 wall=1790271617134 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-24 11:40:17.134 wall=1790271617134 [engine] publish pkg:android faces=0 front=false source=null sourceTime=null
+    2026-09-24 11:40:17.135 wall=1790271617135 [badge] set com.android.dialer NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:40:17.135 wall=1790271617135 [engine] publish pkg:com.android.dialer faces=1 front=false source=notification sourceTime=1790269246654
+    2026-09-24 11:40:17.135 wall=1790271617135 [notif] rescan (connected): 4 packages with notifications
+    2026-09-24 11:40:17.135 wall=1790271617135 [cortana] VoiceInteractionService ready
+    2026-09-24 11:40:17.146 wall=1790271617146 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,S,T,V,W
+    2026-09-24 11:40:17.147 wall=1790271617147 [applist] no Usage access: the app list has no recent section
+    2026-09-24 11:40:17.165 wall=1790271617165 [render] tile=dock:slot:PHONE sourceTime=1790269246654 renderedAt=1790271617165 faces=1
+    2026-09-24 11:40:17.805 wall=1790271617805 [weather] fetch ok provider=open-meteo ms=1036 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/69.3 hourly=240 daily=10 place=true
+    2026-09-24 11:40:17.815 wall=1790271617815 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790271617803
+    2026-09-24 11:40:17.815 wall=1790271617815 [weather] publish tile faces=1 temp=69° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790271617803
+    2026-09-24 11:40:17.840 wall=1790271617840 [render] tile=shell:weather sourceTime=1790271617803 renderedAt=1790271617840 faces=1
+    2026-09-24 11:40:18.280 wall=1790271618280 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=2384697 faceIndex=0 next=1 faces=1
+    2026-09-24 11:40:20.404 wall=1790271620404 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2386822 faceIndex=0 next=1 faces=1
+    2026-09-24 11:40:21.114 wall=1790271621114 [tile_anim] tile=shell:weather kind=FLIP uptime=2387531 faceIndex=0 next=1 faces=1
+    2026-09-24 11:40:23.239 wall=1790271623239 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=2389657 faceIndex=1 next=0 faces=1
+    2026-09-24 11:40:25.365 wall=1790271625365 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2391783 faceIndex=1 next=0 faces=1
+    2026-09-24 11:40:26.073 wall=1790271626073 [tile_anim] tile=shell:weather kind=FLIP uptime=2392491 faceIndex=1 next=0 faces=1
+    2026-09-24 11:40:28.199 wall=1790271628199 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=2394617 faceIndex=0 next=1 faces=1
+    2026-09-24 11:40:30.325 wall=1790271630325 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2396743 faceIndex=0 next=1 faces=1
+    2026-09-24 11:40:31.034 wall=1790271631034 [tile_anim] tile=shell:weather kind=FLIP uptime=2397452 faceIndex=0 next=1 faces=1
+    2026-09-24 11:40:32.879 wall=1790271632879 [alarms] fired t7d68ed59 kind=timer late=4
+    2026-09-24 11:40:32.879 wall=1790271632879 [alarms] store: timer t7d68ed59 finished
+    2026-09-24 11:40:32.881 wall=1790271632881 [alarms] rearm (store change): 0 alarms, 0 timers, exact=true
+    2026-09-24 11:40:32.911 wall=1790271632911 [alarms] ring t7d68ed59 sound=default
+    2026-09-24 11:40:32.925 wall=1790271632925 [alarms] ring level full
+    2026-09-24 11:40:32.927 wall=1790271632927 [alarms] full-screen intent: allow
+    2026-09-24 11:40:32.929 wall=1790271632929 [alarms] notification t7d68ed59: quiet
+    2026-09-24 11:40:32.934 wall=1790271632934 [alarms] overlay shown
+    2026-09-24 11:40:32.934 wall=1790271632934 [alarms] surface: toast-overlay t7d68ed59
+    2026-09-24 11:40:32.935 wall=1790271632935 [notif] removed app.tileshell key=0|app.tileshell|578513169|null|10150
+    2026-09-24 11:40:32.935 wall=1790271632935 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
+    2026-09-24 11:40:32.935 wall=1790271632935 [engine] publish pkg:app.tileshell faces=0 front=false source=null sourceTime=null
+    2026-09-24 11:40:33.150 wall=1790271633150 [notif] posted app.tileshell key=0|app.tileshell|15003|null|10150 postTime=1790271632931
+    2026-09-24 11:40:33.151 wall=1790271633151 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:40:33.151 wall=1790271633151 [engine] publish pkg:app.tileshell faces=1 front=false source=notification sourceTime=1790271632931
+    2026-09-24 11:40:33.159 wall=1790271633159 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=2399577 faceIndex=1 next=0 faces=1
+    2026-09-24 11:40:33.238 wall=1790271633238 [notif] posted android key=0|android|0|com.android.server.wm.AlertWindowNotification - app.tileshell|1000 postTime=1790271633018
+    2026-09-24 11:40:33.239 wall=1790271633239 [badge] set android NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:40:33.239 wall=1790271633239 [engine] publish pkg:android faces=1 front=false source=notification sourceTime=1790271633018
+    2026-09-24 11:40:33.256 wall=1790271633256 [motion] ring_toast t0=2399431 peak=234 overshoot=0 settle=234 frames=15 maxGapMs=17
+    2026-09-24 11:40:35.284 wall=1790271635284 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2401702 faceIndex=1 next=0 faces=1
+    2026-09-24 11:40:35.993 wall=1790271635993 [tile_anim] tile=shell:weather kind=FLIP uptime=2402411 faceIndex=1 next=0 faces=1
+    2026-09-24 11:40:38.119 wall=1790271638119 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=2404537 faceIndex=0 next=1 faces=1
+    2026-09-24 11:40:38.332 wall=1790271638332 [alarms] ring ended t7d68ed59: dismiss
+    2026-09-24 11:40:38.352 wall=1790271638352 [alarms] overlay removed
+    2026-09-24 11:40:38.365 wall=1790271638365 [notif] removed app.tileshell key=0|app.tileshell|15003|null|10150
+    2026-09-24 11:40:38.366 wall=1790271638366 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
+    2026-09-24 11:40:38.366 wall=1790271638366 [engine] publish pkg:app.tileshell faces=0 front=false source=null sourceTime=null
+    2026-09-24 11:40:38.376 wall=1790271638376 [notif] removed android key=0|android|0|com.android.server.wm.AlertWindowNotification - app.tileshell|1000
+    2026-09-24 11:40:38.377 wall=1790271638377 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-24 11:40:38.377 wall=1790271638377 [engine] publish pkg:android faces=0 front=false source=null sourceTime=null
+    2026-09-24 11:40:40.244 wall=1790271640244 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2406662 faceIndex=0 next=1 faces=1
+    2026-09-24 11:40:40.373 wall=1790271640373 [clock] ClockActivity created
+    2026-09-24 11:40:40.374 wall=1790271640374 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:40:40.375 wall=1790271640375 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:40:40.376 wall=1790271640376 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:40:40.953 wall=1790271640953 [tile_anim] tile=shell:weather kind=FLIP uptime=2407371 faceIndex=0 next=1 faces=1
+    2026-09-24 11:40:43.079 wall=1790271643079 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=2409497 faceIndex=1 next=0 faces=1
+    2026-09-24 11:40:45.205 wall=1790271645205 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2411623 faceIndex=1 next=0 faces=1
+    2026-09-24 11:40:52.318 wall=1790271652318 [alarms] store: deleted 1 timer(s)
+    2026-09-24 11:40:52.319 wall=1790271652319 [alarms] rearm (store change): 0 alarms, 0 timers, exact=true
+    2026-09-24 11:40:53.552 wall=1790271653552 [alarms] store: timer t50897f7b added
+    2026-09-24 11:40:53.553 wall=1790271653553 [alarms] rearm (store change): 0 alarms, 1 timers, exact=true
+    2026-09-24 11:40:53.554 wall=1790271653554 [alarms] api android.intent.action.SET_TIMER from com.android.shell -> created t50897f7b
+    2026-09-24 11:40:53.559 wall=1790271653559 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:40:53.580 wall=1790271653580 [timer] t50897f7b remaining=1859971 uptime=2419998
+    2026-09-24 11:40:53.756 wall=1790271653756 [notif] posted app.tileshell key=0|app.tileshell|-1755845195|null|10150 postTime=1790271653553
+    2026-09-24 11:40:53.757 wall=1790271653757 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:40:53.757 wall=1790271653757 [engine] publish pkg:app.tileshell faces=1 front=false source=notification sourceTime=1790271653553
+    2026-09-24 11:40:54.707 wall=1790271654707 [alarms] store: timer t73ec5c1b added
+    2026-09-24 11:40:54.708 wall=1790271654708 [alarms] rearm (store change): 0 alarms, 2 timers, exact=true
+    2026-09-24 11:40:54.709 wall=1790271654709 [alarms] api android.intent.action.SET_TIMER from com.android.shell -> created t73ec5c1b
+    2026-09-24 11:40:54.725 wall=1790271654725 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:40:54.725 wall=1790271654725 [timer] t50897f7b remaining=1858826 uptime=2421143
+    2026-09-24 11:40:54.725 wall=1790271654725 [timer] t73ec5c1b remaining=1919981 uptime=2421143
+    2026-09-24 11:40:54.911 wall=1790271654911 [notif] posted app.tileshell key=0|app.tileshell|-1755845195|null|10150 postTime=1790271654708
+    2026-09-24 11:40:54.912 wall=1790271654912 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-24 11:40:54.912 wall=1790271654912 [engine] publish pkg:app.tileshell faces=2 front=false source=notification sourceTime=1790271654708
+    2026-09-24 11:40:54.912 wall=1790271654912 [notif] posted app.tileshell key=0|app.tileshell|1424356248|null|10150 postTime=1790271654708
+    2026-09-24 11:40:54.912 wall=1790271654912 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-24 11:40:54.913 wall=1790271654913 [engine] publish pkg:app.tileshell faces=2 front=false source=notification sourceTime=1790271654708
+    2026-09-24 11:40:54.913 wall=1790271654913 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-24 11:40:54.913 wall=1790271654913 [engine] publish pkg:app.tileshell faces=2 front=false source=notification sourceTime=1790271654708
+    2026-09-24 11:40:54.914 wall=1790271654914 [badge] set com.android.systemui NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:40:54.914 wall=1790271654914 [engine] publish pkg:com.android.systemui faces=1 front=false source=notification sourceTime=1790269246644
+    2026-09-24 11:40:54.914 wall=1790271654914 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-24 11:40:54.914 wall=1790271654914 [engine] publish pkg:android faces=0 front=false source=null sourceTime=null
+    2026-09-24 11:40:54.915 wall=1790271654915 [badge] set com.android.dialer NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:40:54.915 wall=1790271654915 [engine] publish pkg:com.android.dialer faces=1 front=false source=notification sourceTime=1790269246654
+    2026-09-24 11:40:54.915 wall=1790271654915 [notif] rescan (ranking): 4 packages with notifications
+    2026-09-24 11:40:55.113 wall=1790271655113 [notif] posted app.tileshell key=0|app.tileshell|1|0|app.tileshell|g:Aggregate_SilentSection|10150|0|app.tileshell|g:Aggregate_SilentSection postTime=1790271654910
+    2026-09-24 11:40:55.114 wall=1790271655114 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-24 11:40:55.114 wall=1790271655114 [engine] publish pkg:app.tileshell faces=2 front=false source=notification sourceTime=1790271654910
+    2026-09-24 11:40:55.849 wall=1790271655849 [alarms] store: timer t8f7b0ee7 added
+    2026-09-24 11:40:55.852 wall=1790271655852 [alarms] rearm (store change): 0 alarms, 3 timers, exact=true
+    2026-09-24 11:40:55.852 wall=1790271655852 [alarms] api android.intent.action.SET_TIMER from com.android.shell -> created t8f7b0ee7
+    2026-09-24 11:40:55.875 wall=1790271655875 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:40:55.876 wall=1790271655876 [timer] t50897f7b remaining=1857675 uptime=2422294
+    2026-09-24 11:40:55.876 wall=1790271655876 [timer] t73ec5c1b remaining=1918830 uptime=2422294
+    2026-09-24 11:40:55.876 wall=1790271655876 [timer] t8f7b0ee7 remaining=1979973 uptime=2422294
+    2026-09-24 11:40:56.053 wall=1790271656053 [notif] posted app.tileshell key=0|app.tileshell|-1755845195|null|10150 postTime=1790271655851
+    2026-09-24 11:40:56.054 wall=1790271656054 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-24 11:40:56.054 wall=1790271656054 [engine] publish pkg:app.tileshell faces=2 front=false source=notification sourceTime=1790271655851
+    2026-09-24 11:40:56.054 wall=1790271656054 [notif] posted app.tileshell key=0|app.tileshell|1424356248|null|10150 postTime=1790271655851
+    2026-09-24 11:40:56.055 wall=1790271656055 [badge] set app.tileshell NOTIFICATIONS=3 -> effective 3
+    2026-09-24 11:40:56.055 wall=1790271656055 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271655851
+    2026-09-24 11:40:56.055 wall=1790271656055 [notif] posted app.tileshell key=0|app.tileshell|-132795873|null|10150 postTime=1790271655852
+    2026-09-24 11:40:56.055 wall=1790271656055 [badge] set app.tileshell NOTIFICATIONS=3 -> effective 3
+    2026-09-24 11:40:56.055 wall=1790271656055 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271655852
+    2026-09-24 11:40:56.997 wall=1790271656997 [alarms] store: timer t9138530b added
+    2026-09-24 11:40:57.000 wall=1790271657000 [alarms] rearm (store change): 0 alarms, 4 timers, exact=true
+    2026-09-24 11:40:57.001 wall=1790271657001 [alarms] api android.intent.action.SET_TIMER from com.android.shell -> created t9138530b
+    2026-09-24 11:40:57.019 wall=1790271657019 [timer] t50897f7b remaining=1856532 uptime=2423437
+    2026-09-24 11:40:57.019 wall=1790271657019 [timer] t73ec5c1b remaining=1917687 uptime=2423437
+    2026-09-24 11:40:57.019 wall=1790271657019 [timer] t8f7b0ee7 remaining=1978830 uptime=2423437
+    2026-09-24 11:40:57.019 wall=1790271657019 [timer] t9138530b remaining=2039977 uptime=2423437
+    2026-09-24 11:40:57.020 wall=1790271657020 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:40:57.204 wall=1790271657204 [notif] posted app.tileshell key=0|app.tileshell|-1755845195|null|10150 postTime=1790271656999
+    2026-09-24 11:40:57.204 wall=1790271657204 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:40:57.205 wall=1790271657205 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271656999
+    2026-09-24 11:40:57.205 wall=1790271657205 [notif] posted app.tileshell key=0|app.tileshell|1424356248|null|10150 postTime=1790271656999
+    2026-09-24 11:40:57.205 wall=1790271657205 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:40:57.205 wall=1790271657205 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271656999
+    2026-09-24 11:40:57.205 wall=1790271657205 [notif] posted app.tileshell key=0|app.tileshell|-132795873|null|10150 postTime=1790271656999
+    2026-09-24 11:40:57.205 wall=1790271657205 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:40:57.205 wall=1790271657205 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271656999
+    2026-09-24 11:40:57.206 wall=1790271657206 [notif] posted app.tileshell key=0|app.tileshell|1663754444|null|10150 postTime=1790271657000
+    2026-09-24 11:40:57.206 wall=1790271657206 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:40:57.206 wall=1790271657206 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271657000
+    2026-09-24 11:40:57.403 wall=1790271657403 [notif] posted app.tileshell key=0|app.tileshell|1|0|app.tileshell|g:Aggregate_SilentSection|10150|0|app.tileshell|g:Aggregate_SilentSection postTime=1790271654910
+    2026-09-24 11:40:57.404 wall=1790271657404 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:40:57.404 wall=1790271657404 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271654910
+    2026-09-24 11:40:58.146 wall=1790271658146 [alarms] store: timer t38dcb591 added
+    2026-09-24 11:40:58.150 wall=1790271658150 [alarms] rearm (store change): 0 alarms, 5 timers, exact=true
+    2026-09-24 11:40:58.150 wall=1790271658150 [alarms] api android.intent.action.SET_TIMER from com.android.shell -> created t38dcb591
+    2026-09-24 11:40:58.160 wall=1790271658160 [timer] t50897f7b remaining=1855391 uptime=2424578
+    2026-09-24 11:40:58.160 wall=1790271658160 [timer] t73ec5c1b remaining=1916546 uptime=2424578
+    2026-09-24 11:40:58.160 wall=1790271658160 [timer] t8f7b0ee7 remaining=1977689 uptime=2424578
+    2026-09-24 11:40:58.160 wall=1790271658160 [timer] t9138530b remaining=2038836 uptime=2424578
+    2026-09-24 11:40:58.160 wall=1790271658160 [timer] t38dcb591 remaining=2099986 uptime=2424578
+    2026-09-24 11:40:58.161 wall=1790271658161 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:40:58.352 wall=1790271658352 [notif] posted app.tileshell key=0|app.tileshell|-1755845195|null|10150 postTime=1790271658148
+    2026-09-24 11:40:58.353 wall=1790271658353 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:40:58.353 wall=1790271658353 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271658148
+    2026-09-24 11:40:58.353 wall=1790271658353 [notif] posted app.tileshell key=0|app.tileshell|1424356248|null|10150 postTime=1790271658149
+    2026-09-24 11:40:58.353 wall=1790271658353 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:40:58.353 wall=1790271658353 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271658149
+    2026-09-24 11:40:58.354 wall=1790271658354 [notif] posted app.tileshell key=0|app.tileshell|-132795873|null|10150 postTime=1790271658149
+    2026-09-24 11:40:58.354 wall=1790271658354 [badge] set app.tileshell NOTIFICATIONS=5 -> effective 5
+    2026-09-24 11:40:58.354 wall=1790271658354 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271658149
+    2026-09-24 11:40:58.354 wall=1790271658354 [notif] posted app.tileshell key=0|app.tileshell|1663754444|null|10150 postTime=1790271658150
+    2026-09-24 11:40:58.355 wall=1790271658355 [badge] set app.tileshell NOTIFICATIONS=5 -> effective 5
+    2026-09-24 11:40:58.355 wall=1790271658355 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271658150
+    2026-09-24 11:40:58.355 wall=1790271658355 [notif] posted app.tileshell key=0|app.tileshell|-1136699250|null|10150 postTime=1790271658150
+    2026-09-24 11:40:58.355 wall=1790271658355 [badge] set app.tileshell NOTIFICATIONS=5 -> effective 5
+    2026-09-24 11:40:58.355 wall=1790271658355 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271658150
+    2026-09-24 11:40:59.303 wall=1790271659303 [alarms] store: timer t01b8c588 added
+    2026-09-24 11:40:59.307 wall=1790271659307 [alarms] rearm (store change): 0 alarms, 6 timers, exact=true
+    2026-09-24 11:40:59.308 wall=1790271659308 [alarms] api android.intent.action.SET_TIMER from com.android.shell -> created t01b8c588
+    2026-09-24 11:40:59.320 wall=1790271659320 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:40:59.320 wall=1790271659320 [timer] t50897f7b remaining=1854231 uptime=2425738
+    2026-09-24 11:40:59.320 wall=1790271659320 [timer] t73ec5c1b remaining=1915386 uptime=2425738
+    2026-09-24 11:40:59.320 wall=1790271659320 [timer] t8f7b0ee7 remaining=1976529 uptime=2425738
+    2026-09-24 11:40:59.320 wall=1790271659320 [timer] t9138530b remaining=2037676 uptime=2425738
+    2026-09-24 11:40:59.320 wall=1790271659320 [timer] t38dcb591 remaining=2098826 uptime=2425738
+    2026-09-24 11:40:59.320 wall=1790271659320 [timer] t01b8c588 remaining=2159983 uptime=2425738
+    2026-09-24 11:40:59.509 wall=1790271659509 [notif] posted app.tileshell key=0|app.tileshell|-1755845195|null|10150 postTime=1790271659305
+    2026-09-24 11:40:59.511 wall=1790271659511 [badge] set app.tileshell NOTIFICATIONS=5 -> effective 5
+    2026-09-24 11:40:59.511 wall=1790271659511 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271659305
+    2026-09-24 11:40:59.511 wall=1790271659511 [notif] posted app.tileshell key=0|app.tileshell|1424356248|null|10150 postTime=1790271659306
+    2026-09-24 11:40:59.512 wall=1790271659512 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:40:59.512 wall=1790271659512 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271659306
+    2026-09-24 11:40:59.512 wall=1790271659512 [notif] posted app.tileshell key=0|app.tileshell|-132795873|null|10150 postTime=1790271659306
+    2026-09-24 11:40:59.513 wall=1790271659513 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:40:59.513 wall=1790271659513 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271659306
+    2026-09-24 11:40:59.513 wall=1790271659513 [notif] posted app.tileshell key=0|app.tileshell|1663754444|null|10150 postTime=1790271659307
+    2026-09-24 11:40:59.530 wall=1790271659530 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:40:59.530 wall=1790271659530 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271659307
+    2026-09-24 11:40:59.530 wall=1790271659530 [notif] posted app.tileshell key=0|app.tileshell|-1136699250|null|10150 postTime=1790271659307
+    2026-09-24 11:40:59.531 wall=1790271659531 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:40:59.531 wall=1790271659531 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271659307
+    2026-09-24 11:40:59.531 wall=1790271659531 [notif] posted app.tileshell key=0|app.tileshell|210305928|null|10150 postTime=1790271659307
+    2026-09-24 11:40:59.532 wall=1790271659532 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:40:59.532 wall=1790271659532 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271659307
+    2026-09-24 11:40:59.712 wall=1790271659712 [notif] posted app.tileshell key=0|app.tileshell|1|0|app.tileshell|g:Aggregate_SilentSection|10150|0|app.tileshell|g:Aggregate_SilentSection postTime=1790271654910
+    2026-09-24 11:40:59.713 wall=1790271659713 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:40:59.713 wall=1790271659713 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271654910
+    2026-09-24 11:41:00.004 wall=1790271660004 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790271660004
+    2026-09-24 11:41:00.004 wall=1790271660004 [calendar] refresh (minute): access=true faces=1
+    2026-09-24 11:41:00.020 wall=1790271660020 [render] tile=slot:CALENDAR sourceTime=1790271660004 renderedAt=1790271660020 faces=1
+    2026-09-24 11:41:00.462 wall=1790271660462 [alarms] store: timer tf2e365d2 added
+    2026-09-24 11:41:00.468 wall=1790271660468 [alarms] rearm (store change): 0 alarms, 7 timers, exact=true
+    2026-09-24 11:41:00.469 wall=1790271660469 [alarms] api android.intent.action.SET_TIMER from com.android.shell -> created tf2e365d2
+    2026-09-24 11:41:00.479 wall=1790271660479 [timer] t50897f7b remaining=1853072 uptime=2426897
+    2026-09-24 11:41:00.479 wall=1790271660479 [timer] t73ec5c1b remaining=1914227 uptime=2426897
+    2026-09-24 11:41:00.479 wall=1790271660479 [timer] t8f7b0ee7 remaining=1975370 uptime=2426897
+    2026-09-24 11:41:00.479 wall=1790271660479 [timer] t9138530b remaining=2036517 uptime=2426897
+    2026-09-24 11:41:00.479 wall=1790271660479 [timer] t38dcb591 remaining=2097667 uptime=2426897
+    2026-09-24 11:41:00.479 wall=1790271660479 [timer] t01b8c588 remaining=2158824 uptime=2426897
+    2026-09-24 11:41:00.479 wall=1790271660479 [timer] tf2e365d2 remaining=2219982 uptime=2426897
+    2026-09-24 11:41:00.479 wall=1790271660479 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:41:00.670 wall=1790271660670 [notif] posted app.tileshell key=0|app.tileshell|-1755845195|null|10150 postTime=1790271660465
+    2026-09-24 11:41:00.671 wall=1790271660671 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:41:00.672 wall=1790271660672 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271660465
+    2026-09-24 11:41:00.672 wall=1790271660672 [notif] posted app.tileshell key=0|app.tileshell|1424356248|null|10150 postTime=1790271660466
+    2026-09-24 11:41:00.673 wall=1790271660673 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:41:00.673 wall=1790271660673 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271660466
+    2026-09-24 11:41:00.673 wall=1790271660673 [notif] posted app.tileshell key=0|app.tileshell|-132795873|null|10150 postTime=1790271660466
+    2026-09-24 11:41:00.674 wall=1790271660674 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:41:00.674 wall=1790271660674 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271660466
+    2026-09-24 11:41:00.675 wall=1790271660675 [notif] posted app.tileshell key=0|app.tileshell|1663754444|null|10150 postTime=1790271660467
+    2026-09-24 11:41:00.675 wall=1790271660675 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:41:00.676 wall=1790271660676 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271660467
+    2026-09-24 11:41:00.676 wall=1790271660676 [notif] posted app.tileshell key=0|app.tileshell|-1136699250|null|10150 postTime=1790271660467
+    2026-09-24 11:41:00.676 wall=1790271660676 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:41:00.676 wall=1790271660676 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271660467
+    2026-09-24 11:41:00.676 wall=1790271660676 [notif] posted app.tileshell key=0|app.tileshell|210305928|null|10150 postTime=1790271660468
+    2026-09-24 11:41:00.677 wall=1790271660677 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:41:00.677 wall=1790271660677 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271660468
+    2026-09-24 11:41:00.677 wall=1790271660677 [notif] posted app.tileshell key=0|app.tileshell|800217798|null|10150 postTime=1790271660468
+    2026-09-24 11:41:00.678 wall=1790271660678 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:41:00.678 wall=1790271660678 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271660468
+    2026-09-24 11:41:01.626 wall=1790271661626 [alarms] store: timer tbe5fc952 added
+    2026-09-24 11:41:01.635 wall=1790271661635 [alarms] rearm (store change): 0 alarms, 8 timers, exact=true
+    2026-09-24 11:41:01.636 wall=1790271661636 [alarms] api android.intent.action.SET_TIMER from com.android.shell -> created tbe5fc952
+    2026-09-24 11:41:01.652 wall=1790271661652 [timer] t50897f7b remaining=1851899 uptime=2428070
+    2026-09-24 11:41:01.652 wall=1790271661652 [timer] t73ec5c1b remaining=1913054 uptime=2428070
+    2026-09-24 11:41:01.652 wall=1790271661652 [timer] t8f7b0ee7 remaining=1974197 uptime=2428070
+    2026-09-24 11:41:01.652 wall=1790271661652 [timer] t9138530b remaining=2035344 uptime=2428070
+    2026-09-24 11:41:01.652 wall=1790271661652 [timer] t38dcb591 remaining=2096494 uptime=2428070
+    2026-09-24 11:41:01.652 wall=1790271661652 [timer] t01b8c588 remaining=2157651 uptime=2428070
+    2026-09-24 11:41:01.652 wall=1790271661652 [timer] tf2e365d2 remaining=2218809 uptime=2428070
+    2026-09-24 11:41:01.652 wall=1790271661652 [timer] tbe5fc952 remaining=2279974 uptime=2428070
+    2026-09-24 11:41:01.653 wall=1790271661653 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:41:01.834 wall=1790271661834 [notif] posted app.tileshell key=0|app.tileshell|-1755845195|null|10150 postTime=1790271661631
+    2026-09-24 11:41:01.835 wall=1790271661835 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:41:01.836 wall=1790271661836 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271661631
+    2026-09-24 11:41:01.836 wall=1790271661836 [notif] posted app.tileshell key=0|app.tileshell|1424356248|null|10150 postTime=1790271661632
+    2026-09-24 11:41:01.836 wall=1790271661836 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:41:01.836 wall=1790271661836 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271661632
+    2026-09-24 11:41:01.837 wall=1790271661837 [notif] posted app.tileshell key=0|app.tileshell|-132795873|null|10150 postTime=1790271661632
+    2026-09-24 11:41:01.837 wall=1790271661837 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:41:01.837 wall=1790271661837 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271661632
+    2026-09-24 11:41:01.837 wall=1790271661837 [notif] posted app.tileshell key=0|app.tileshell|1663754444|null|10150 postTime=1790271661633
+    2026-09-24 11:41:01.838 wall=1790271661838 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:41:01.838 wall=1790271661838 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271661633
+    2026-09-24 11:41:01.838 wall=1790271661838 [notif] posted app.tileshell key=0|app.tileshell|-1136699250|null|10150 postTime=1790271661634
+    2026-09-24 11:41:01.839 wall=1790271661839 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:41:01.839 wall=1790271661839 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271661634
+    2026-09-24 11:41:01.839 wall=1790271661839 [notif] posted app.tileshell key=0|app.tileshell|210305928|null|10150 postTime=1790271661634
+    2026-09-24 11:41:01.839 wall=1790271661839 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:41:01.839 wall=1790271661839 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271661634
+    2026-09-24 11:41:01.840 wall=1790271661840 [notif] posted app.tileshell key=0|app.tileshell|800217798|null|10150 postTime=1790271661634
+    2026-09-24 11:41:01.840 wall=1790271661840 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:41:01.840 wall=1790271661840 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271661634
+    2026-09-24 11:41:01.841 wall=1790271661841 [notif] posted app.tileshell key=0|app.tileshell|-888798170|null|10150 postTime=1790271661635
+    2026-09-24 11:41:01.841 wall=1790271661841 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:41:01.841 wall=1790271661841 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271661635
+    2026-09-24 11:41:02.039 wall=1790271662039 [notif] posted app.tileshell key=0|app.tileshell|1|0|app.tileshell|g:Aggregate_SilentSection|10150|0|app.tileshell|g:Aggregate_SilentSection postTime=1790271654910
+    2026-09-24 11:41:02.040 wall=1790271662040 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:41:02.040 wall=1790271662040 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271654910
+    2026-09-24 11:41:02.792 wall=1790271662792 [alarms] store: timer t8524c9f5 added
+    2026-09-24 11:41:02.799 wall=1790271662799 [alarms] rearm (store change): 0 alarms, 9 timers, exact=true
+    2026-09-24 11:41:02.799 wall=1790271662799 [alarms] api android.intent.action.SET_TIMER from com.android.shell -> created t8524c9f5
+    2026-09-24 11:41:02.810 wall=1790271662810 [timer] t50897f7b remaining=1850741 uptime=2429228
+    2026-09-24 11:41:02.810 wall=1790271662810 [timer] t73ec5c1b remaining=1911896 uptime=2429228
+    2026-09-24 11:41:02.810 wall=1790271662810 [timer] t8f7b0ee7 remaining=1973039 uptime=2429228
+    2026-09-24 11:41:02.810 wall=1790271662810 [timer] t9138530b remaining=2034186 uptime=2429228
+    2026-09-24 11:41:02.810 wall=1790271662810 [timer] t38dcb591 remaining=2095336 uptime=2429228
+    2026-09-24 11:41:02.810 wall=1790271662810 [timer] t01b8c588 remaining=2156493 uptime=2429228
+    2026-09-24 11:41:02.810 wall=1790271662810 [timer] tf2e365d2 remaining=2217651 uptime=2429228
+    2026-09-24 11:41:02.810 wall=1790271662810 [timer] tbe5fc952 remaining=2278816 uptime=2429228
+    2026-09-24 11:41:02.810 wall=1790271662810 [timer] t8524c9f5 remaining=2339981 uptime=2429228
+    2026-09-24 11:41:02.810 wall=1790271662810 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:41:02.997 wall=1790271662997 [notif] posted app.tileshell key=0|app.tileshell|-1755845195|null|10150 postTime=1790271662794
+    2026-09-24 11:41:02.998 wall=1790271662998 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:41:02.998 wall=1790271662998 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271662794
+    2026-09-24 11:41:02.998 wall=1790271662998 [notif] posted app.tileshell key=0|app.tileshell|1424356248|null|10150 postTime=1790271662794
+    2026-09-24 11:41:02.999 wall=1790271662999 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:41:02.999 wall=1790271662999 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271662794
+    2026-09-24 11:41:02.999 wall=1790271662999 [notif] posted app.tileshell key=0|app.tileshell|-132795873|null|10150 postTime=1790271662795
+    2026-09-24 11:41:02.999 wall=1790271662999 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:41:03.000 wall=1790271663000 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271662795
+    2026-09-24 11:41:03.000 wall=1790271663000 [notif] posted app.tileshell key=0|app.tileshell|1663754444|null|10150 postTime=1790271662795
+    2026-09-24 11:41:03.001 wall=1790271663001 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:41:03.001 wall=1790271663001 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271662795
+    2026-09-24 11:41:03.001 wall=1790271663001 [notif] posted app.tileshell key=0|app.tileshell|-1136699250|null|10150 postTime=1790271662796
+    2026-09-24 11:41:03.002 wall=1790271663002 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:41:03.002 wall=1790271663002 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271662796
+    2026-09-24 11:41:03.002 wall=1790271663002 [notif] posted app.tileshell key=0|app.tileshell|210305928|null|10150 postTime=1790271662796
+    2026-09-24 11:41:03.003 wall=1790271663003 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:41:03.003 wall=1790271663003 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271662796
+    2026-09-24 11:41:03.003 wall=1790271663003 [notif] posted app.tileshell key=0|app.tileshell|800217798|null|10150 postTime=1790271662797
+    2026-09-24 11:41:03.003 wall=1790271663003 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:41:03.003 wall=1790271663003 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271662797
+    2026-09-24 11:41:03.004 wall=1790271663004 [notif] posted app.tileshell key=0|app.tileshell|-888798170|null|10150 postTime=1790271662798
+    2026-09-24 11:41:03.004 wall=1790271663004 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:41:03.004 wall=1790271663004 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271662798
+    2026-09-24 11:41:03.004 wall=1790271663004 [notif] posted app.tileshell key=0|app.tileshell|-854953917|null|10150 postTime=1790271662799
+    2026-09-24 11:41:03.005 wall=1790271663005 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:41:03.005 wall=1790271663005 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271662799
+    2026-09-24 11:41:03.970 wall=1790271663970 [alarms] store: timer t7a2ff131 added
+    2026-09-24 11:41:03.977 wall=1790271663977 [alarms] rearm (store change): 0 alarms, 10 timers, exact=true
+    2026-09-24 11:41:03.977 wall=1790271663977 [alarms] api android.intent.action.SET_TIMER from com.android.shell -> created t7a2ff131
+    2026-09-24 11:41:03.990 wall=1790271663990 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:41:03.991 wall=1790271663991 [timer] t50897f7b remaining=1849560 uptime=2430409
+    2026-09-24 11:41:03.991 wall=1790271663991 [timer] t73ec5c1b remaining=1910715 uptime=2430409
+    2026-09-24 11:41:03.991 wall=1790271663991 [timer] t8f7b0ee7 remaining=1971858 uptime=2430409
+    2026-09-24 11:41:03.991 wall=1790271663991 [timer] t9138530b remaining=2033005 uptime=2430409
+    2026-09-24 11:41:03.991 wall=1790271663991 [timer] t38dcb591 remaining=2094155 uptime=2430409
+    2026-09-24 11:41:03.991 wall=1790271663991 [timer] t01b8c588 remaining=2155312 uptime=2430409
+    2026-09-24 11:41:03.991 wall=1790271663991 [timer] tf2e365d2 remaining=2216470 uptime=2430409
+    2026-09-24 11:41:03.991 wall=1790271663991 [timer] tbe5fc952 remaining=2277635 uptime=2430409
+    2026-09-24 11:41:03.991 wall=1790271663991 [timer] t8524c9f5 remaining=2338800 uptime=2430409
+    2026-09-24 11:41:03.991 wall=1790271663991 [timer] t7a2ff131 remaining=2399979 uptime=2430409
+    2026-09-24 11:41:04.175 wall=1790271664175 [notif] posted app.tileshell key=0|app.tileshell|-1755845195|null|10150 postTime=1790271663973
+    2026-09-24 11:41:04.176 wall=1790271664176 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:41:04.176 wall=1790271664176 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271663973
+    2026-09-24 11:41:04.176 wall=1790271664176 [notif] posted app.tileshell key=0|app.tileshell|1424356248|null|10150 postTime=1790271663973
+    2026-09-24 11:41:04.177 wall=1790271664177 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:41:04.177 wall=1790271664177 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271663973
+    2026-09-24 11:41:04.178 wall=1790271664178 [notif] posted app.tileshell key=0|app.tileshell|-132795873|null|10150 postTime=1790271663974
+    2026-09-24 11:41:04.179 wall=1790271664179 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:41:04.179 wall=1790271664179 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271663974
+    2026-09-24 11:41:04.179 wall=1790271664179 [notif] posted app.tileshell key=0|app.tileshell|1663754444|null|10150 postTime=1790271663974
+    2026-09-24 11:41:04.180 wall=1790271664180 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:41:04.180 wall=1790271664180 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271663974
+    2026-09-24 11:41:04.180 wall=1790271664180 [notif] posted app.tileshell key=0|app.tileshell|-1136699250|null|10150 postTime=1790271663975
+    2026-09-24 11:41:04.181 wall=1790271664181 [badge] set app.tileshell NOTIFICATIONS=10 -> effective 10
+    2026-09-24 11:41:04.181 wall=1790271664181 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271663975
+    2026-09-24 11:41:04.181 wall=1790271664181 [notif] posted app.tileshell key=0|app.tileshell|210305928|null|10150 postTime=1790271663975
+    2026-09-24 11:41:04.182 wall=1790271664182 [badge] set app.tileshell NOTIFICATIONS=10 -> effective 10
+    2026-09-24 11:41:04.182 wall=1790271664182 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271663975
+    2026-09-24 11:41:04.182 wall=1790271664182 [notif] posted app.tileshell key=0|app.tileshell|800217798|null|10150 postTime=1790271663976
+    2026-09-24 11:41:04.183 wall=1790271664183 [badge] set app.tileshell NOTIFICATIONS=10 -> effective 10
+    2026-09-24 11:41:04.183 wall=1790271664183 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271663976
+    2026-09-24 11:41:04.183 wall=1790271664183 [notif] posted app.tileshell key=0|app.tileshell|-888798170|null|10150 postTime=1790271663976
+    2026-09-24 11:41:04.184 wall=1790271664184 [badge] set app.tileshell NOTIFICATIONS=10 -> effective 10
+    2026-09-24 11:41:04.184 wall=1790271664184 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271663976
+    2026-09-24 11:41:04.184 wall=1790271664184 [notif] posted app.tileshell key=0|app.tileshell|-854953917|null|10150 postTime=1790271663976
+    2026-09-24 11:41:04.185 wall=1790271664185 [badge] set app.tileshell NOTIFICATIONS=10 -> effective 10
+    2026-09-24 11:41:04.185 wall=1790271664185 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271663976
+    2026-09-24 11:41:04.189 wall=1790271664189 [notif] posted app.tileshell key=0|app.tileshell|2138915494|null|10150 postTime=1790271663977
+    2026-09-24 11:41:04.190 wall=1790271664190 [badge] set app.tileshell NOTIFICATIONS=10 -> effective 10
+    2026-09-24 11:41:04.190 wall=1790271664190 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271663977
+    2026-09-24 11:41:04.382 wall=1790271664382 [notif] posted app.tileshell key=0|app.tileshell|1|0|app.tileshell|g:Aggregate_SilentSection|10150|0|app.tileshell|g:Aggregate_SilentSection postTime=1790271654910
+    2026-09-24 11:41:04.383 wall=1790271664383 [badge] set app.tileshell NOTIFICATIONS=10 -> effective 10
+    2026-09-24 11:41:04.384 wall=1790271664384 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271654910
+    2026-09-24 11:41:05.342 wall=1790271665342 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:41:05.342 wall=1790271665342 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:41:08.991 wall=1790271668991 [timer] t50897f7b remaining=1844560 uptime=2435409
+    2026-09-24 11:41:08.991 wall=1790271668991 [timer] t73ec5c1b remaining=1905715 uptime=2435409
+    2026-09-24 11:41:08.991 wall=1790271668991 [timer] t8f7b0ee7 remaining=1966858 uptime=2435409
+    2026-09-24 11:41:08.991 wall=1790271668991 [timer] t9138530b remaining=2028005 uptime=2435409
+    2026-09-24 11:41:08.991 wall=1790271668991 [timer] t38dcb591 remaining=2089155 uptime=2435409
+    2026-09-24 11:41:08.991 wall=1790271668991 [timer] t01b8c588 remaining=2150312 uptime=2435409
+    2026-09-24 11:41:08.991 wall=1790271668991 [timer] tf2e365d2 remaining=2211470 uptime=2435409
+    2026-09-24 11:41:08.991 wall=1790271668991 [timer] tbe5fc952 remaining=2272635 uptime=2435409
+    2026-09-24 11:41:08.991 wall=1790271668991 [timer] t8524c9f5 remaining=2333800 uptime=2435409
+    2026-09-24 11:41:08.991 wall=1790271668991 [timer] t7a2ff131 remaining=2394979 uptime=2435409
+    2026-09-24 11:41:13.992 wall=1790271673992 [timer] t50897f7b remaining=1839559 uptime=2440410
+    2026-09-24 11:41:13.992 wall=1790271673992 [timer] t73ec5c1b remaining=1900714 uptime=2440410
+    2026-09-24 11:41:13.992 wall=1790271673992 [timer] t8f7b0ee7 remaining=1961857 uptime=2440410
+    2026-09-24 11:41:13.992 wall=1790271673992 [timer] t9138530b remaining=2023004 uptime=2440410
+    2026-09-24 11:41:13.992 wall=1790271673992 [timer] t38dcb591 remaining=2084154 uptime=2440410
+    2026-09-24 11:41:13.992 wall=1790271673992 [timer] t01b8c588 remaining=2145311 uptime=2440410
+    2026-09-24 11:41:13.992 wall=1790271673992 [timer] tf2e365d2 remaining=2206469 uptime=2440410
+    2026-09-24 11:41:13.992 wall=1790271673992 [timer] tbe5fc952 remaining=2267634 uptime=2440410
+    2026-09-24 11:41:13.992 wall=1790271673992 [timer] t8524c9f5 remaining=2328799 uptime=2440410
+    2026-09-24 11:41:13.992 wall=1790271673992 [timer] t7a2ff131 remaining=2389978 uptime=2440410
+    2026-09-24 11:41:18.992 wall=1790271678992 [timer] t50897f7b remaining=1834559 uptime=2445410
+    2026-09-24 11:41:18.992 wall=1790271678992 [timer] t73ec5c1b remaining=1895714 uptime=2445410
+    2026-09-24 11:41:18.992 wall=1790271678992 [timer] t8f7b0ee7 remaining=1956857 uptime=2445410
+    2026-09-24 11:41:18.992 wall=1790271678992 [timer] t9138530b remaining=2018004 uptime=2445410
+    2026-09-24 11:41:18.992 wall=1790271678992 [timer] t38dcb591 remaining=2079154 uptime=2445410
+    2026-09-24 11:41:18.992 wall=1790271678992 [timer] t01b8c588 remaining=2140311 uptime=2445410
+    2026-09-24 11:41:18.992 wall=1790271678992 [timer] tf2e365d2 remaining=2201469 uptime=2445410
+    2026-09-24 11:41:18.992 wall=1790271678992 [timer] tbe5fc952 remaining=2262634 uptime=2445410
+    2026-09-24 11:41:18.992 wall=1790271678992 [timer] t8524c9f5 remaining=2323799 uptime=2445410
+    2026-09-24 11:41:18.992 wall=1790271678992 [timer] t7a2ff131 remaining=2384978 uptime=2445410
+    2026-09-24 11:41:23.993 wall=1790271683993 [timer] t50897f7b remaining=1829558 uptime=2450411
+    2026-09-24 11:41:23.993 wall=1790271683993 [timer] t73ec5c1b remaining=1890713 uptime=2450411
+    2026-09-24 11:41:23.993 wall=1790271683993 [timer] t8f7b0ee7 remaining=1951856 uptime=2450411
+    2026-09-24 11:41:23.993 wall=1790271683993 [timer] t9138530b remaining=2013003 uptime=2450411
+    2026-09-24 11:41:23.993 wall=1790271683993 [timer] t38dcb591 remaining=2074153 uptime=2450411
+    2026-09-24 11:41:23.993 wall=1790271683993 [timer] t01b8c588 remaining=2135310 uptime=2450411
+    2026-09-24 11:41:23.993 wall=1790271683993 [timer] tf2e365d2 remaining=2196468 uptime=2450411
+    2026-09-24 11:41:23.993 wall=1790271683993 [timer] tbe5fc952 remaining=2257633 uptime=2450411
+    2026-09-24 11:41:23.993 wall=1790271683993 [timer] t8524c9f5 remaining=2318798 uptime=2450411
+    2026-09-24 11:41:23.993 wall=1790271683993 [timer] t7a2ff131 remaining=2379977 uptime=2450411
+    2026-09-24 11:41:28.994 wall=1790271688994 [timer] t50897f7b remaining=1824557 uptime=2455412
+    2026-09-24 11:41:28.994 wall=1790271688994 [timer] t73ec5c1b remaining=1885712 uptime=2455412
+    2026-09-24 11:41:28.994 wall=1790271688994 [timer] t8f7b0ee7 remaining=1946855 uptime=2455412
+    2026-09-24 11:41:28.994 wall=1790271688994 [timer] t9138530b remaining=2008002 uptime=2455412
+    2026-09-24 11:41:28.994 wall=1790271688994 [timer] t38dcb591 remaining=2069152 uptime=2455412
+    2026-09-24 11:41:28.994 wall=1790271688994 [timer] t01b8c588 remaining=2130309 uptime=2455412
+    2026-09-24 11:41:28.994 wall=1790271688994 [timer] tf2e365d2 remaining=2191467 uptime=2455412
+    2026-09-24 11:41:28.994 wall=1790271688994 [timer] tbe5fc952 remaining=2252632 uptime=2455412
+    2026-09-24 11:41:28.994 wall=1790271688994 [timer] t8524c9f5 remaining=2313797 uptime=2455412
+    2026-09-24 11:41:28.994 wall=1790271688994 [timer] t7a2ff131 remaining=2374976 uptime=2455412
+    2026-09-24 11:41:33.994 wall=1790271693994 [timer] t50897f7b remaining=1819557 uptime=2460412
+    2026-09-24 11:41:33.994 wall=1790271693994 [timer] t73ec5c1b remaining=1880712 uptime=2460412
+    2026-09-24 11:41:33.994 wall=1790271693994 [timer] t8f7b0ee7 remaining=1941855 uptime=2460412
+    2026-09-24 11:41:33.994 wall=1790271693994 [timer] t9138530b remaining=2003002 uptime=2460412
+    2026-09-24 11:41:33.994 wall=1790271693994 [timer] t38dcb591 remaining=2064152 uptime=2460412
+    2026-09-24 11:41:33.994 wall=1790271693994 [timer] t01b8c588 remaining=2125309 uptime=2460412
+    2026-09-24 11:41:33.994 wall=1790271693994 [timer] tf2e365d2 remaining=2186467 uptime=2460412
+    2026-09-24 11:41:33.994 wall=1790271693994 [timer] tbe5fc952 remaining=2247632 uptime=2460412
+    2026-09-24 11:41:33.994 wall=1790271693994 [timer] t8524c9f5 remaining=2308797 uptime=2460412
+    2026-09-24 11:41:33.994 wall=1790271693994 [timer] t7a2ff131 remaining=2369976 uptime=2460412
+    2026-09-24 11:41:38.995 wall=1790271698995 [timer] t50897f7b remaining=1814556 uptime=2465413
+    2026-09-24 11:41:38.995 wall=1790271698995 [timer] t73ec5c1b remaining=1875711 uptime=2465413
+    2026-09-24 11:41:38.995 wall=1790271698995 [timer] t8f7b0ee7 remaining=1936854 uptime=2465413
+    2026-09-24 11:41:38.995 wall=1790271698995 [timer] t9138530b remaining=1998001 uptime=2465413
+    2026-09-24 11:41:38.995 wall=1790271698995 [timer] t38dcb591 remaining=2059151 uptime=2465413
+    2026-09-24 11:41:38.995 wall=1790271698995 [timer] t01b8c588 remaining=2120308 uptime=2465413
+    2026-09-24 11:41:38.995 wall=1790271698995 [timer] tf2e365d2 remaining=2181466 uptime=2465413
+    2026-09-24 11:41:38.995 wall=1790271698995 [timer] tbe5fc952 remaining=2242631 uptime=2465413
+    2026-09-24 11:41:38.995 wall=1790271698995 [timer] t8524c9f5 remaining=2303796 uptime=2465413
+    2026-09-24 11:41:38.995 wall=1790271698995 [timer] t7a2ff131 remaining=2364975 uptime=2465413
+    2026-09-24 11:41:43.995 wall=1790271703995 [timer] t50897f7b remaining=1809556 uptime=2470413
+    2026-09-24 11:41:43.995 wall=1790271703995 [timer] t73ec5c1b remaining=1870711 uptime=2470413
+    2026-09-24 11:41:43.995 wall=1790271703995 [timer] t8f7b0ee7 remaining=1931854 uptime=2470413
+    2026-09-24 11:41:43.995 wall=1790271703995 [timer] t9138530b remaining=1993001 uptime=2470413
+    2026-09-24 11:41:43.995 wall=1790271703995 [timer] t38dcb591 remaining=2054151 uptime=2470413
+    2026-09-24 11:41:43.995 wall=1790271703995 [timer] t01b8c588 remaining=2115308 uptime=2470413
+    2026-09-24 11:41:43.995 wall=1790271703995 [timer] tf2e365d2 remaining=2176466 uptime=2470413
+    2026-09-24 11:41:43.995 wall=1790271703995 [timer] tbe5fc952 remaining=2237631 uptime=2470413
+    2026-09-24 11:41:43.995 wall=1790271703995 [timer] t8524c9f5 remaining=2298796 uptime=2470413
+    2026-09-24 11:41:43.995 wall=1790271703995 [timer] t7a2ff131 remaining=2359975 uptime=2470413
+    2026-09-24 11:41:48.996 wall=1790271708996 [timer] t50897f7b remaining=1804555 uptime=2475414
+    2026-09-24 11:41:48.996 wall=1790271708996 [timer] t73ec5c1b remaining=1865710 uptime=2475414
+    2026-09-24 11:41:48.996 wall=1790271708996 [timer] t8f7b0ee7 remaining=1926853 uptime=2475414
+    2026-09-24 11:41:48.996 wall=1790271708996 [timer] t9138530b remaining=1988000 uptime=2475414
+    2026-09-24 11:41:48.996 wall=1790271708996 [timer] t38dcb591 remaining=2049150 uptime=2475414
+    2026-09-24 11:41:48.996 wall=1790271708996 [timer] t01b8c588 remaining=2110307 uptime=2475414
+    2026-09-24 11:41:48.996 wall=1790271708996 [timer] tf2e365d2 remaining=2171465 uptime=2475414
+    2026-09-24 11:41:48.996 wall=1790271708996 [timer] tbe5fc952 remaining=2232630 uptime=2475414
+    2026-09-24 11:41:48.996 wall=1790271708996 [timer] t8524c9f5 remaining=2293795 uptime=2475414
+    2026-09-24 11:41:48.996 wall=1790271708996 [timer] t7a2ff131 remaining=2354974 uptime=2475414
+    2026-09-24 11:41:53.996 wall=1790271713996 [timer] t50897f7b remaining=1799555 uptime=2480414
+    2026-09-24 11:41:53.996 wall=1790271713996 [timer] t73ec5c1b remaining=1860710 uptime=2480414
+    2026-09-24 11:41:53.996 wall=1790271713996 [timer] t8f7b0ee7 remaining=1921853 uptime=2480414
+    2026-09-24 11:41:53.996 wall=1790271713996 [timer] t9138530b remaining=1983000 uptime=2480414
+    2026-09-24 11:41:53.996 wall=1790271713996 [timer] t38dcb591 remaining=2044150 uptime=2480414
+    2026-09-24 11:41:53.996 wall=1790271713996 [timer] t01b8c588 remaining=2105307 uptime=2480414
+    2026-09-24 11:41:53.996 wall=1790271713996 [timer] tf2e365d2 remaining=2166465 uptime=2480414
+    2026-09-24 11:41:53.996 wall=1790271713996 [timer] tbe5fc952 remaining=2227630 uptime=2480414
+    2026-09-24 11:41:53.996 wall=1790271713996 [timer] t8524c9f5 remaining=2288795 uptime=2480414
+    2026-09-24 11:41:53.996 wall=1790271713996 [timer] t7a2ff131 remaining=2349974 uptime=2480414
+    2026-09-24 11:41:58.997 wall=1790271718997 [timer] t50897f7b remaining=1794554 uptime=2485415
+    2026-09-24 11:41:58.997 wall=1790271718997 [timer] t73ec5c1b remaining=1855709 uptime=2485415
+    2026-09-24 11:41:58.997 wall=1790271718997 [timer] t8f7b0ee7 remaining=1916852 uptime=2485415
+    2026-09-24 11:41:58.997 wall=1790271718997 [timer] t9138530b remaining=1977999 uptime=2485415
+    2026-09-24 11:41:58.997 wall=1790271718997 [timer] t38dcb591 remaining=2039149 uptime=2485415
+    2026-09-24 11:41:58.997 wall=1790271718997 [timer] t01b8c588 remaining=2100306 uptime=2485415
+    2026-09-24 11:41:58.997 wall=1790271718997 [timer] tf2e365d2 remaining=2161464 uptime=2485415
+    2026-09-24 11:41:58.997 wall=1790271718997 [timer] tbe5fc952 remaining=2222629 uptime=2485415
+    2026-09-24 11:41:58.997 wall=1790271718997 [timer] t8524c9f5 remaining=2283794 uptime=2485415
+    2026-09-24 11:41:58.997 wall=1790271718997 [timer] t7a2ff131 remaining=2344973 uptime=2485415
+    2026-09-24 11:41:59.365 wall=1790271719365 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:41:59.365 wall=1790271719365 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:42:00.004 wall=1790271720004 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790271720004
+    2026-09-24 11:42:00.004 wall=1790271720004 [calendar] refresh (minute): access=true faces=1
+    2026-09-24 11:42:00.018 wall=1790271720018 [render] tile=slot:CALENDAR sourceTime=1790271720004 renderedAt=1790271720018 faces=1
+    2026-09-24 11:42:03.998 wall=1790271723998 [timer] t50897f7b remaining=1789553 uptime=2490416
+    2026-09-24 11:42:03.998 wall=1790271723998 [timer] t73ec5c1b remaining=1850708 uptime=2490416
+    2026-09-24 11:42:03.998 wall=1790271723998 [timer] t8f7b0ee7 remaining=1911851 uptime=2490416
+    2026-09-24 11:42:03.998 wall=1790271723998 [timer] t9138530b remaining=1972998 uptime=2490416
+    2026-09-24 11:42:03.998 wall=1790271723998 [timer] t38dcb591 remaining=2034148 uptime=2490416
+    2026-09-24 11:42:03.998 wall=1790271723998 [timer] t01b8c588 remaining=2095305 uptime=2490416
+    2026-09-24 11:42:03.998 wall=1790271723998 [timer] tf2e365d2 remaining=2156463 uptime=2490416
+    2026-09-24 11:42:03.998 wall=1790271723998 [timer] tbe5fc952 remaining=2217628 uptime=2490416
+    2026-09-24 11:42:03.998 wall=1790271723998 [timer] t8524c9f5 remaining=2278793 uptime=2490416
+    2026-09-24 11:42:03.998 wall=1790271723998 [timer] t7a2ff131 remaining=2339972 uptime=2490416
+    2026-09-24 11:42:18.037 wall=1790271738037 [alarms] store: deleted 1 timer(s)
+    2026-09-24 11:42:18.044 wall=1790271738044 [alarms] rearm (store change): 0 alarms, 9 timers, exact=true
+    2026-09-24 11:42:18.044 wall=1790271738044 [notif] removed app.tileshell key=0|app.tileshell|-1755845195|null|10150
+    2026-09-24 11:42:18.045 wall=1790271738045 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:42:18.045 wall=1790271738045 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271738044
+    2026-09-24 11:42:18.087 wall=1790271738087 [timer] t73ec5c1b remaining=1836619 uptime=2504505
+    2026-09-24 11:42:18.087 wall=1790271738087 [timer] t8f7b0ee7 remaining=1897762 uptime=2504505
+    2026-09-24 11:42:18.087 wall=1790271738087 [timer] t9138530b remaining=1958909 uptime=2504505
+    2026-09-24 11:42:18.087 wall=1790271738087 [timer] t38dcb591 remaining=2020059 uptime=2504505
+    2026-09-24 11:42:18.087 wall=1790271738087 [timer] t01b8c588 remaining=2081216 uptime=2504505
+    2026-09-24 11:42:18.087 wall=1790271738087 [timer] tf2e365d2 remaining=2142374 uptime=2504505
+    2026-09-24 11:42:18.087 wall=1790271738087 [timer] tbe5fc952 remaining=2203539 uptime=2504505
+    2026-09-24 11:42:18.087 wall=1790271738087 [timer] t8524c9f5 remaining=2264704 uptime=2504505
+    2026-09-24 11:42:18.087 wall=1790271738087 [timer] t7a2ff131 remaining=2325883 uptime=2504505
+    2026-09-24 11:42:18.245 wall=1790271738245 [notif] posted app.tileshell key=0|app.tileshell|1424356248|null|10150 postTime=1790271738040
+    2026-09-24 11:42:18.246 wall=1790271738246 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:42:18.246 wall=1790271738246 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271738040
+    2026-09-24 11:42:18.246 wall=1790271738246 [notif] posted app.tileshell key=0|app.tileshell|-132795873|null|10150 postTime=1790271738041
+    2026-09-24 11:42:18.248 wall=1790271738248 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:42:18.248 wall=1790271738248 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271738041
+    2026-09-24 11:42:18.248 wall=1790271738248 [notif] posted app.tileshell key=0|app.tileshell|1663754444|null|10150 postTime=1790271738042
+    2026-09-24 11:42:18.249 wall=1790271738249 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:42:18.249 wall=1790271738249 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271738042
+    2026-09-24 11:42:18.254 wall=1790271738254 [notif] posted app.tileshell key=0|app.tileshell|-1136699250|null|10150 postTime=1790271738042
+    2026-09-24 11:42:18.254 wall=1790271738254 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:42:18.255 wall=1790271738255 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271738042
+    2026-09-24 11:42:18.255 wall=1790271738255 [notif] posted app.tileshell key=0|app.tileshell|210305928|null|10150 postTime=1790271738042
+    2026-09-24 11:42:18.255 wall=1790271738255 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:42:18.255 wall=1790271738255 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271738042
+    2026-09-24 11:42:18.255 wall=1790271738255 [notif] posted app.tileshell key=0|app.tileshell|800217798|null|10150 postTime=1790271738043
+    2026-09-24 11:42:18.256 wall=1790271738256 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:42:18.256 wall=1790271738256 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271738043
+    2026-09-24 11:42:18.256 wall=1790271738256 [notif] posted app.tileshell key=0|app.tileshell|-888798170|null|10150 postTime=1790271738043
+    2026-09-24 11:42:18.257 wall=1790271738257 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:42:18.257 wall=1790271738257 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271738043
+    2026-09-24 11:42:18.257 wall=1790271738257 [notif] posted app.tileshell key=0|app.tileshell|-854953917|null|10150 postTime=1790271738043
+    2026-09-24 11:42:18.257 wall=1790271738257 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:42:18.257 wall=1790271738257 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271738043
+    2026-09-24 11:42:18.257 wall=1790271738257 [notif] posted app.tileshell key=0|app.tileshell|2138915494|null|10150 postTime=1790271738044
+    2026-09-24 11:42:18.258 wall=1790271738258 [badge] set app.tileshell NOTIFICATIONS=9 -> effective 9
+    2026-09-24 11:42:18.258 wall=1790271738258 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271738044
+    2026-09-24 11:42:19.261 wall=1790271739261 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:42:19.261 wall=1790271739261 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:42:31.078 wall=1790271751078 [alarms] store: deleted 1 timer(s)
+    2026-09-24 11:42:31.085 wall=1790271751085 [alarms] rearm (store change): 0 alarms, 8 timers, exact=true
+    2026-09-24 11:42:31.122 wall=1790271751122 [notif] removed app.tileshell key=0|app.tileshell|1424356248|null|10150
+    2026-09-24 11:42:31.123 wall=1790271751123 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:42:31.123 wall=1790271751123 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271751122
+    2026-09-24 11:42:31.124 wall=1790271751124 [timer] t8f7b0ee7 remaining=1884725 uptime=2517542
+    2026-09-24 11:42:31.124 wall=1790271751124 [timer] t9138530b remaining=1945872 uptime=2517542
+    2026-09-24 11:42:31.124 wall=1790271751124 [timer] t38dcb591 remaining=2007022 uptime=2517542
+    2026-09-24 11:42:31.124 wall=1790271751124 [timer] t01b8c588 remaining=2068179 uptime=2517542
+    2026-09-24 11:42:31.124 wall=1790271751124 [timer] tf2e365d2 remaining=2129337 uptime=2517542
+    2026-09-24 11:42:31.124 wall=1790271751124 [timer] tbe5fc952 remaining=2190502 uptime=2517542
+    2026-09-24 11:42:31.124 wall=1790271751124 [timer] t8524c9f5 remaining=2251667 uptime=2517542
+    2026-09-24 11:42:31.124 wall=1790271751124 [timer] t7a2ff131 remaining=2312846 uptime=2517542
+    2026-09-24 11:42:31.286 wall=1790271751286 [notif] posted app.tileshell key=0|app.tileshell|-132795873|null|10150 postTime=1790271751082
+    2026-09-24 11:42:31.287 wall=1790271751287 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:42:31.287 wall=1790271751287 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271751082
+    2026-09-24 11:42:31.287 wall=1790271751287 [notif] posted app.tileshell key=0|app.tileshell|1|0|app.tileshell|g:Aggregate_SilentSection|10150|0|app.tileshell|g:Aggregate_SilentSection postTime=1790271654910
+    2026-09-24 11:42:31.288 wall=1790271751288 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:42:31.288 wall=1790271751288 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271654910
+    2026-09-24 11:42:31.288 wall=1790271751288 [notif] posted app.tileshell key=0|app.tileshell|1663754444|null|10150 postTime=1790271751082
+    2026-09-24 11:42:31.289 wall=1790271751289 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:42:31.289 wall=1790271751289 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271751082
+    2026-09-24 11:42:31.289 wall=1790271751289 [notif] posted app.tileshell key=0|app.tileshell|-1136699250|null|10150 postTime=1790271751083
+    2026-09-24 11:42:31.290 wall=1790271751290 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:42:31.290 wall=1790271751290 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271751083
+    2026-09-24 11:42:31.290 wall=1790271751290 [notif] posted app.tileshell key=0|app.tileshell|210305928|null|10150 postTime=1790271751083
+    2026-09-24 11:42:31.291 wall=1790271751291 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:42:31.291 wall=1790271751291 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271751083
+    2026-09-24 11:42:31.291 wall=1790271751291 [notif] posted app.tileshell key=0|app.tileshell|800217798|null|10150 postTime=1790271751084
+    2026-09-24 11:42:31.291 wall=1790271751291 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:42:31.291 wall=1790271751291 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271751084
+    2026-09-24 11:42:31.291 wall=1790271751291 [notif] posted app.tileshell key=0|app.tileshell|-888798170|null|10150 postTime=1790271751084
+    2026-09-24 11:42:31.292 wall=1790271751292 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:42:31.292 wall=1790271751292 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271751084
+    2026-09-24 11:42:31.292 wall=1790271751292 [notif] posted app.tileshell key=0|app.tileshell|-854953917|null|10150 postTime=1790271751085
+    2026-09-24 11:42:31.293 wall=1790271751293 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:42:31.293 wall=1790271751293 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271751085
+    2026-09-24 11:42:31.293 wall=1790271751293 [notif] posted app.tileshell key=0|app.tileshell|2138915494|null|10150 postTime=1790271751085
+    2026-09-24 11:42:31.293 wall=1790271751293 [badge] set app.tileshell NOTIFICATIONS=8 -> effective 8
+    2026-09-24 11:42:31.293 wall=1790271751293 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271751085
+    2026-09-24 11:42:32.303 wall=1790271752303 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:42:32.303 wall=1790271752303 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:42:44.011 wall=1790271764011 [alarms] store: deleted 1 timer(s)
+    2026-09-24 11:42:44.018 wall=1790271764018 [alarms] rearm (store change): 0 alarms, 7 timers, exact=true
+    2026-09-24 11:42:44.056 wall=1790271764056 [notif] removed app.tileshell key=0|app.tileshell|-132795873|null|10150
+    2026-09-24 11:42:44.058 wall=1790271764058 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:42:44.058 wall=1790271764058 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271764056
+    2026-09-24 11:42:44.059 wall=1790271764059 [timer] t9138530b remaining=1932937 uptime=2530477
+    2026-09-24 11:42:44.059 wall=1790271764059 [timer] t38dcb591 remaining=1994087 uptime=2530477
+    2026-09-24 11:42:44.059 wall=1790271764059 [timer] t01b8c588 remaining=2055244 uptime=2530477
+    2026-09-24 11:42:44.059 wall=1790271764059 [timer] tf2e365d2 remaining=2116402 uptime=2530477
+    2026-09-24 11:42:44.059 wall=1790271764059 [timer] tbe5fc952 remaining=2177567 uptime=2530477
+    2026-09-24 11:42:44.059 wall=1790271764059 [timer] t8524c9f5 remaining=2238732 uptime=2530477
+    2026-09-24 11:42:44.059 wall=1790271764059 [timer] t7a2ff131 remaining=2299911 uptime=2530477
+    2026-09-24 11:42:44.218 wall=1790271764218 [notif] posted app.tileshell key=0|app.tileshell|1663754444|null|10150 postTime=1790271764015
+    2026-09-24 11:42:44.219 wall=1790271764219 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:42:44.219 wall=1790271764219 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271764015
+    2026-09-24 11:42:44.219 wall=1790271764219 [notif] posted app.tileshell key=0|app.tileshell|-1136699250|null|10150 postTime=1790271764015
+    2026-09-24 11:42:44.220 wall=1790271764220 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:42:44.220 wall=1790271764220 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271764015
+    2026-09-24 11:42:44.220 wall=1790271764220 [notif] posted app.tileshell key=0|app.tileshell|210305928|null|10150 postTime=1790271764016
+    2026-09-24 11:42:44.221 wall=1790271764221 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:42:44.221 wall=1790271764221 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271764016
+    2026-09-24 11:42:44.222 wall=1790271764222 [notif] posted app.tileshell key=0|app.tileshell|800217798|null|10150 postTime=1790271764016
+    2026-09-24 11:42:44.222 wall=1790271764222 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:42:44.222 wall=1790271764222 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271764016
+    2026-09-24 11:42:44.222 wall=1790271764222 [notif] posted app.tileshell key=0|app.tileshell|-888798170|null|10150 postTime=1790271764017
+    2026-09-24 11:42:44.223 wall=1790271764223 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:42:44.223 wall=1790271764223 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271764017
+    2026-09-24 11:42:44.223 wall=1790271764223 [notif] posted app.tileshell key=0|app.tileshell|-854953917|null|10150 postTime=1790271764017
+    2026-09-24 11:42:44.223 wall=1790271764223 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:42:44.223 wall=1790271764223 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271764017
+    2026-09-24 11:42:44.223 wall=1790271764223 [notif] posted app.tileshell key=0|app.tileshell|2138915494|null|10150 postTime=1790271764018
+    2026-09-24 11:42:44.224 wall=1790271764224 [badge] set app.tileshell NOTIFICATIONS=7 -> effective 7
+    2026-09-24 11:42:44.224 wall=1790271764224 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271764018
+    2026-09-24 11:42:45.236 wall=1790271765236 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:42:45.236 wall=1790271765236 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:42:57.022 wall=1790271777022 [alarms] store: deleted 1 timer(s)
+    2026-09-24 11:42:57.027 wall=1790271777027 [alarms] rearm (store change): 0 alarms, 6 timers, exact=true
+    2026-09-24 11:42:57.027 wall=1790271777027 [notif] removed app.tileshell key=0|app.tileshell|1663754444|null|10150
+    2026-09-24 11:42:57.027 wall=1790271777027 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:42:57.028 wall=1790271777028 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271777027
+    2026-09-24 11:42:57.065 wall=1790271777065 [timer] t38dcb591 remaining=1981081 uptime=2543483
+    2026-09-24 11:42:57.065 wall=1790271777065 [timer] t01b8c588 remaining=2042238 uptime=2543483
+    2026-09-24 11:42:57.065 wall=1790271777065 [timer] tf2e365d2 remaining=2103396 uptime=2543483
+    2026-09-24 11:42:57.065 wall=1790271777065 [timer] tbe5fc952 remaining=2164561 uptime=2543483
+    2026-09-24 11:42:57.065 wall=1790271777065 [timer] t8524c9f5 remaining=2225726 uptime=2543483
+    2026-09-24 11:42:57.065 wall=1790271777065 [timer] t7a2ff131 remaining=2286905 uptime=2543483
+    2026-09-24 11:42:57.229 wall=1790271777229 [notif] posted app.tileshell key=0|app.tileshell|-1136699250|null|10150 postTime=1790271777025
+    2026-09-24 11:42:57.230 wall=1790271777230 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:42:57.230 wall=1790271777230 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271777025
+    2026-09-24 11:42:57.230 wall=1790271777230 [notif] posted app.tileshell key=0|app.tileshell|1|0|app.tileshell|g:Aggregate_SilentSection|10150|0|app.tileshell|g:Aggregate_SilentSection postTime=1790271654910
+    2026-09-24 11:42:57.231 wall=1790271777231 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:42:57.231 wall=1790271777231 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271654910
+    2026-09-24 11:42:57.231 wall=1790271777231 [notif] posted app.tileshell key=0|app.tileshell|210305928|null|10150 postTime=1790271777025
+    2026-09-24 11:42:57.232 wall=1790271777232 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:42:57.232 wall=1790271777232 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271777025
+    2026-09-24 11:42:57.232 wall=1790271777232 [notif] posted app.tileshell key=0|app.tileshell|800217798|null|10150 postTime=1790271777026
+    2026-09-24 11:42:57.232 wall=1790271777232 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:42:57.232 wall=1790271777232 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271777026
+    2026-09-24 11:42:57.232 wall=1790271777232 [notif] posted app.tileshell key=0|app.tileshell|-888798170|null|10150 postTime=1790271777026
+    2026-09-24 11:42:57.233 wall=1790271777233 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:42:57.233 wall=1790271777233 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271777026
+    2026-09-24 11:42:57.233 wall=1790271777233 [notif] posted app.tileshell key=0|app.tileshell|-854953917|null|10150 postTime=1790271777026
+    2026-09-24 11:42:57.233 wall=1790271777233 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:42:57.234 wall=1790271777234 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271777026
+    2026-09-24 11:42:57.234 wall=1790271777234 [notif] posted app.tileshell key=0|app.tileshell|2138915494|null|10150 postTime=1790271777026
+    2026-09-24 11:42:57.234 wall=1790271777234 [badge] set app.tileshell NOTIFICATIONS=6 -> effective 6
+    2026-09-24 11:42:57.234 wall=1790271777234 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271777026
+    2026-09-24 11:42:58.246 wall=1790271778246 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:42:58.246 wall=1790271778246 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:43:00.006 wall=1790271780006 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790271780006
+    2026-09-24 11:43:00.006 wall=1790271780006 [calendar] refresh (minute): access=true faces=1
+    2026-09-24 11:43:00.019 wall=1790271780019 [render] tile=slot:CALENDAR sourceTime=1790271780006 renderedAt=1790271780019 faces=1
+    2026-09-24 11:43:10.053 wall=1790271790053 [alarms] store: deleted 1 timer(s)
+    2026-09-24 11:43:10.058 wall=1790271790058 [alarms] rearm (store change): 0 alarms, 5 timers, exact=true
+    2026-09-24 11:43:10.058 wall=1790271790058 [notif] removed app.tileshell key=0|app.tileshell|-1136699250|null|10150
+    2026-09-24 11:43:10.059 wall=1790271790059 [badge] set app.tileshell NOTIFICATIONS=5 -> effective 5
+    2026-09-24 11:43:10.059 wall=1790271790059 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271790058
+    2026-09-24 11:43:10.105 wall=1790271790105 [timer] t01b8c588 remaining=2029198 uptime=2556523
+    2026-09-24 11:43:10.105 wall=1790271790105 [timer] tf2e365d2 remaining=2090356 uptime=2556523
+    2026-09-24 11:43:10.105 wall=1790271790105 [timer] tbe5fc952 remaining=2151521 uptime=2556523
+    2026-09-24 11:43:10.105 wall=1790271790105 [timer] t8524c9f5 remaining=2212686 uptime=2556523
+    2026-09-24 11:43:10.105 wall=1790271790105 [timer] t7a2ff131 remaining=2273865 uptime=2556523
+    2026-09-24 11:43:10.259 wall=1790271790259 [notif] posted app.tileshell key=0|app.tileshell|210305928|null|10150 postTime=1790271790055
+    2026-09-24 11:43:10.260 wall=1790271790260 [badge] set app.tileshell NOTIFICATIONS=5 -> effective 5
+    2026-09-24 11:43:10.261 wall=1790271790261 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271790055
+    2026-09-24 11:43:10.261 wall=1790271790261 [notif] posted app.tileshell key=0|app.tileshell|800217798|null|10150 postTime=1790271790056
+    2026-09-24 11:43:10.262 wall=1790271790262 [badge] set app.tileshell NOTIFICATIONS=5 -> effective 5
+    2026-09-24 11:43:10.262 wall=1790271790262 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271790056
+    2026-09-24 11:43:10.262 wall=1790271790262 [notif] posted app.tileshell key=0|app.tileshell|-888798170|null|10150 postTime=1790271790057
+    2026-09-24 11:43:10.264 wall=1790271790264 [badge] set app.tileshell NOTIFICATIONS=5 -> effective 5
+    2026-09-24 11:43:10.264 wall=1790271790264 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271790057
+    2026-09-24 11:43:10.264 wall=1790271790264 [notif] posted app.tileshell key=0|app.tileshell|-854953917|null|10150 postTime=1790271790057
+    2026-09-24 11:43:10.264 wall=1790271790264 [badge] set app.tileshell NOTIFICATIONS=5 -> effective 5
+    2026-09-24 11:43:10.264 wall=1790271790264 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271790057
+    2026-09-24 11:43:10.264 wall=1790271790264 [notif] posted app.tileshell key=0|app.tileshell|2138915494|null|10150 postTime=1790271790057
+    2026-09-24 11:43:10.265 wall=1790271790265 [badge] set app.tileshell NOTIFICATIONS=5 -> effective 5
+    2026-09-24 11:43:10.265 wall=1790271790265 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271790057
+    2026-09-24 11:43:11.275 wall=1790271791275 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:43:11.275 wall=1790271791275 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:43:23.041 wall=1790271803041 [alarms] store: deleted 1 timer(s)
+    2026-09-24 11:43:23.045 wall=1790271803045 [alarms] rearm (store change): 0 alarms, 4 timers, exact=true
+    2026-09-24 11:43:23.046 wall=1790271803046 [notif] removed app.tileshell key=0|app.tileshell|210305928|null|10150
+    2026-09-24 11:43:23.046 wall=1790271803046 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:43:23.046 wall=1790271803046 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271803046
+    2026-09-24 11:43:23.084 wall=1790271803084 [timer] tf2e365d2 remaining=2077377 uptime=2569502
+    2026-09-24 11:43:23.084 wall=1790271803084 [timer] tbe5fc952 remaining=2138542 uptime=2569502
+    2026-09-24 11:43:23.084 wall=1790271803084 [timer] t8524c9f5 remaining=2199707 uptime=2569502
+    2026-09-24 11:43:23.084 wall=1790271803084 [timer] t7a2ff131 remaining=2260886 uptime=2569502
+    2026-09-24 11:43:23.247 wall=1790271803247 [notif] posted app.tileshell key=0|app.tileshell|800217798|null|10150 postTime=1790271803043
+    2026-09-24 11:43:23.249 wall=1790271803249 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:43:23.249 wall=1790271803249 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271803043
+    2026-09-24 11:43:23.249 wall=1790271803249 [notif] posted app.tileshell key=0|app.tileshell|1|0|app.tileshell|g:Aggregate_SilentSection|10150|0|app.tileshell|g:Aggregate_SilentSection postTime=1790271654910
+    2026-09-24 11:43:23.249 wall=1790271803249 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:43:23.249 wall=1790271803249 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271654910
+    2026-09-24 11:43:23.249 wall=1790271803249 [notif] posted app.tileshell key=0|app.tileshell|-888798170|null|10150 postTime=1790271803044
+    2026-09-24 11:43:23.250 wall=1790271803250 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:43:23.250 wall=1790271803250 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271803044
+    2026-09-24 11:43:23.250 wall=1790271803250 [notif] posted app.tileshell key=0|app.tileshell|-854953917|null|10150 postTime=1790271803045
+    2026-09-24 11:43:23.250 wall=1790271803250 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:43:23.251 wall=1790271803251 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271803045
+    2026-09-24 11:43:23.251 wall=1790271803251 [notif] posted app.tileshell key=0|app.tileshell|2138915494|null|10150 postTime=1790271803045
+    2026-09-24 11:43:23.251 wall=1790271803251 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-24 11:43:23.251 wall=1790271803251 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271803045
+    2026-09-24 11:43:24.265 wall=1790271804265 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:43:24.265 wall=1790271804265 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:43:36.010 wall=1790271816010 [alarms] store: deleted 1 timer(s)
+    2026-09-24 11:43:36.013 wall=1790271816013 [alarms] rearm (store change): 0 alarms, 3 timers, exact=true
+    2026-09-24 11:43:36.013 wall=1790271816013 [notif] removed app.tileshell key=0|app.tileshell|800217798|null|10150
+    2026-09-24 11:43:36.014 wall=1790271816014 [badge] set app.tileshell NOTIFICATIONS=3 -> effective 3
+    2026-09-24 11:43:36.014 wall=1790271816014 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271816013
+    2026-09-24 11:43:36.052 wall=1790271816052 [timer] tbe5fc952 remaining=2125574 uptime=2582470
+    2026-09-24 11:43:36.052 wall=1790271816052 [timer] t8524c9f5 remaining=2186739 uptime=2582470
+    2026-09-24 11:43:36.052 wall=1790271816052 [timer] t7a2ff131 remaining=2247918 uptime=2582470
+    2026-09-24 11:43:36.214 wall=1790271816214 [notif] posted app.tileshell key=0|app.tileshell|-888798170|null|10150 postTime=1790271816012
+    2026-09-24 11:43:36.215 wall=1790271816215 [badge] set app.tileshell NOTIFICATIONS=3 -> effective 3
+    2026-09-24 11:43:36.215 wall=1790271816215 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271816012
+    2026-09-24 11:43:36.215 wall=1790271816215 [notif] posted app.tileshell key=0|app.tileshell|-854953917|null|10150 postTime=1790271816012
+    2026-09-24 11:43:36.215 wall=1790271816215 [badge] set app.tileshell NOTIFICATIONS=3 -> effective 3
+    2026-09-24 11:43:36.215 wall=1790271816215 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271816012
+    2026-09-24 11:43:36.215 wall=1790271816215 [notif] posted app.tileshell key=0|app.tileshell|2138915494|null|10150 postTime=1790271816013
+    2026-09-24 11:43:36.216 wall=1790271816216 [badge] set app.tileshell NOTIFICATIONS=3 -> effective 3
+    2026-09-24 11:43:36.216 wall=1790271816216 [engine] publish pkg:app.tileshell faces=3 front=false source=notification sourceTime=1790271816013
+    2026-09-24 11:43:37.231 wall=1790271817231 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:43:37.231 wall=1790271817231 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:43:49.041 wall=1790271829041 [alarms] store: deleted 1 timer(s)
+    2026-09-24 11:43:49.044 wall=1790271829044 [alarms] rearm (store change): 0 alarms, 2 timers, exact=true
+    2026-09-24 11:43:49.044 wall=1790271829044 [notif] removed app.tileshell key=0|app.tileshell|-888798170|null|10150
+    2026-09-24 11:43:49.045 wall=1790271829045 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-24 11:43:49.045 wall=1790271829045 [engine] publish pkg:app.tileshell faces=2 front=false source=notification sourceTime=1790271829044
+    2026-09-24 11:43:49.078 wall=1790271829078 [timer] t8524c9f5 remaining=2173713 uptime=2595496
+    2026-09-24 11:43:49.078 wall=1790271829078 [timer] t7a2ff131 remaining=2234892 uptime=2595496
+    2026-09-24 11:43:49.246 wall=1790271829246 [notif] posted app.tileshell key=0|app.tileshell|-854953917|null|10150 postTime=1790271829043
+    2026-09-24 11:43:49.247 wall=1790271829247 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-24 11:43:49.247 wall=1790271829247 [engine] publish pkg:app.tileshell faces=2 front=false source=notification sourceTime=1790271829043
+    2026-09-24 11:43:49.247 wall=1790271829247 [notif] posted app.tileshell key=0|app.tileshell|1|0|app.tileshell|g:Aggregate_SilentSection|10150|0|app.tileshell|g:Aggregate_SilentSection postTime=1790271654910
+    2026-09-24 11:43:49.247 wall=1790271829247 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-24 11:43:49.247 wall=1790271829247 [engine] publish pkg:app.tileshell faces=2 front=false source=notification sourceTime=1790271654910
+    2026-09-24 11:43:49.247 wall=1790271829247 [notif] posted app.tileshell key=0|app.tileshell|2138915494|null|10150 postTime=1790271829044
+    2026-09-24 11:43:49.248 wall=1790271829248 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-24 11:43:49.248 wall=1790271829248 [engine] publish pkg:app.tileshell faces=2 front=false source=notification sourceTime=1790271829044
+    2026-09-24 11:43:50.262 wall=1790271830262 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:43:50.262 wall=1790271830262 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:44:00.019 wall=1790271840019 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790271840019
+    2026-09-24 11:44:00.019 wall=1790271840019 [calendar] refresh (minute): access=true faces=1
+    2026-09-24 11:44:00.034 wall=1790271840034 [render] tile=slot:CALENDAR sourceTime=1790271840019 renderedAt=1790271840034 faces=1
+    2026-09-24 11:44:02.035 wall=1790271842035 [alarms] store: deleted 1 timer(s)
+    2026-09-24 11:44:02.037 wall=1790271842037 [alarms] rearm (store change): 0 alarms, 1 timers, exact=true
+    2026-09-24 11:44:02.038 wall=1790271842038 [notif] removed app.tileshell key=0|app.tileshell|-854953917|null|10150
+    2026-09-24 11:44:02.038 wall=1790271842038 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:44:02.038 wall=1790271842038 [engine] publish pkg:app.tileshell faces=1 front=false source=notification sourceTime=1790271842038
+    2026-09-24 11:44:02.078 wall=1790271842078 [timer] t7a2ff131 remaining=2221892 uptime=2608496
+    2026-09-24 11:44:02.239 wall=1790271842239 [notif] posted app.tileshell key=0|app.tileshell|2138915494|null|10150 postTime=1790271842037
+    2026-09-24 11:44:02.239 wall=1790271842239 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:44:02.240 wall=1790271842240 [engine] publish pkg:app.tileshell faces=1 front=false source=notification sourceTime=1790271842037
+    2026-09-24 11:44:03.254 wall=1790271843254 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:44:03.254 wall=1790271843254 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:44:14.954 wall=1790271854954 [alarms] store: deleted 1 timer(s)
+    2026-09-24 11:44:14.954 wall=1790271854954 [alarms] rearm (store change): 0 alarms, 0 timers, exact=true
+    2026-09-24 11:44:14.956 wall=1790271854956 [notif] removed app.tileshell key=0|app.tileshell|2138915494|null|10150
+    2026-09-24 11:44:14.957 wall=1790271854957 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
+    2026-09-24 11:44:14.957 wall=1790271854957 [engine] publish pkg:app.tileshell faces=0 front=false source=null sourceTime=null
+    2026-09-24 11:44:14.957 wall=1790271854957 [notif] removed app.tileshell key=0|app.tileshell|1|0|app.tileshell|g:Aggregate_SilentSection|10150|0|app.tileshell|g:Aggregate_SilentSection
+    2026-09-24 11:44:14.957 wall=1790271854957 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
+    2026-09-24 11:44:14.957 wall=1790271854957 [engine] publish pkg:app.tileshell faces=0 front=false source=null sourceTime=null
+    2026-09-24 11:44:16.177 wall=1790271856177 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:44:16.177 wall=1790271856177 [applist] no Usage access: the app list has no recent section
+    2026-09-24 11:44:16.178 wall=1790271856178 [start] home: page 0
+    2026-09-24 11:44:16.359 wall=1790271856359 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=2622777 faceIndex=0 next=1 faces=1
+    2026-09-24 11:44:17.305 wall=1790271857305 [alarms] api android.intent.action.SET_TIMER from com.android.shell -> refused: length out of range
+    2026-09-24 11:44:17.308 wall=1790271857308 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:44:17.309 wall=1790271857309 [applist] no Usage access: the app list has no recent section
+    2026-09-24 11:44:18.485 wall=1790271858485 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2624903 faceIndex=0 next=1 faces=1
+    2026-09-24 11:44:19.064 wall=1790271859064 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:44:19.064 wall=1790271859064 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:44:19.194 wall=1790271859194 [tile_anim] tile=shell:weather kind=FLIP uptime=2625612 faceIndex=1 next=0 faces=1
+    2026-09-24 11:44:21.319 wall=1790271861319 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=2627737 faceIndex=1 next=0 faces=1
+    2026-09-24 11:44:23.444 wall=1790271863444 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2629862 faceIndex=1 next=0 faces=1
+    2026-09-24 11:44:24.154 wall=1790271864154 [tile_anim] tile=shell:weather kind=FLIP uptime=2630572 faceIndex=0 next=1 faces=1
+    2026-09-24 11:44:49.398 wall=1790271889398 [motion] spinner t0=2655633 peak=182 overshoot=0 settle=182 frames=11 maxGapMs=17
+    2026-09-24 11:44:59.797 wall=1790271899797 [motion] spinner t0=2666034 peak=181 overshoot=0 settle=181 frames=11 maxGapMs=17
+    2026-09-24 11:45:00.016 wall=1790271900016 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790271900016
+    2026-09-24 11:45:00.016 wall=1790271900016 [calendar] refresh (minute): access=true faces=1
+    2026-09-24 11:45:00.035 wall=1790271900035 [render] tile=slot:CALENDAR sourceTime=1790271900016 renderedAt=1790271900035 faces=1
+    2026-09-24 11:45:29.235 wall=1790271929235 [alarms] store: timer t3772fa38 added
+    2026-09-24 11:45:29.238 wall=1790271929238 [alarms] rearm (store change): 0 alarms, 1 timers, exact=true
+    2026-09-24 11:45:29.238 wall=1790271929238 [alarms] api android.intent.action.SET_TIMER from com.android.shell -> created t3772fa38
+    2026-09-24 11:45:29.242 wall=1790271929242 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:45:29.256 wall=1790271929256 [timer] t3772fa38 remaining=599979 uptime=2695674
+    2026-09-24 11:45:29.441 wall=1790271929441 [notif] posted app.tileshell key=0|app.tileshell|937361310|null|10150 postTime=1790271929237
+    2026-09-24 11:45:29.442 wall=1790271929442 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:45:29.442 wall=1790271929442 [engine] publish pkg:app.tileshell faces=1 front=false source=notification sourceTime=1790271929237
+    2026-09-24 11:45:30.394 wall=1790271930394 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 11:45:30.394 wall=1790271930394 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:45:34.257 wall=1790271934257 [timer] t3772fa38 remaining=594978 uptime=2700675
+    2026-09-24 11:45:35.449 wall=1790271935449 [alarms] store: timer t3772fa38 pause
+    2026-09-24 11:45:35.450 wall=1790271935450 [alarms] rearm (store change): 0 alarms, 0 timers, exact=true
+    2026-09-24 11:45:35.450 wall=1790271935450 [timer] t3772fa38 remaining=593786 uptime=2701868
+    2026-09-24 11:45:35.466 wall=1790271935466 [notif] removed app.tileshell key=0|app.tileshell|937361310|null|10150
+    2026-09-24 11:45:35.467 wall=1790271935467 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
+    2026-09-24 11:45:35.467 wall=1790271935467 [engine] publish pkg:app.tileshell faces=0 front=false source=null sourceTime=null
+    2026-09-24 12:45:38.012 wall=1790275538012 [weather] refresh start reason=interval (broadcast android.intent.action.TIME_SET) units=IMPERIAL
+    2026-09-24 12:45:38.013 wall=1790275538013 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null sourceTime=null
+    2026-09-24 12:45:38.013 wall=1790275538013 [clock] tile: no next alarm, face cleared
+    2026-09-24 12:45:38.018 wall=1790275538018 [alarms] rearm (time set): 0 alarms, 0 timers, exact=true
+    2026-09-24 12:45:41.224 wall=1790275541224 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-24 12:45:41.224 wall=1790275541224 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-24 12:45:42.037 wall=1790275542037 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-09-24 12:45:42.038 wall=1790275542038 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-24 12:45:43.322 wall=1790275543322 [weather] fetch ok provider=open-meteo ms=1284 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/70.2 hourly=240 daily=10 place=true
+    2026-09-24 12:45:43.330 wall=1790275543330 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790275543319
+    2026-09-24 12:45:43.330 wall=1790275543330 [weather] publish tile faces=1 temp=70° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790275543319
+    2026-09-24 12:45:43.352 wall=1790275543352 [render] tile=shell:weather sourceTime=1790275543319 renderedAt=1790275543352 faces=1
+    2026-09-24 12:45:43.854 wall=1790275543854 [alarms] store: timer t3772fa38 start
+    2026-09-24 12:45:43.859 wall=1790275543859 [alarms] rearm (store change): 0 alarms, 1 timers, exact=true
+    2026-09-24 12:45:43.859 wall=1790275543859 [timer] t3772fa38 remaining=593780 uptime=2710302
+    2026-09-24 12:45:43.864 wall=1790275543864 [timer] t3772fa38 remaining=593775 uptime=2710307
+    2026-09-24 12:45:44.063 wall=1790275544063 [notif] posted app.tileshell key=0|app.tileshell|937361310|null|10150 postTime=1790275543858
+    2026-09-24 12:45:44.064 wall=1790275544064 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-09-24 12:45:44.064 wall=1790275544064 [engine] publish pkg:app.tileshell faces=1 front=false source=notification sourceTime=1790275543858
+    2026-09-24 11:46:05.801 wall=1790271965801 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+    2026-09-24 11:46:05.801 wall=1790271965801 [livetile] store loaded 1 owners
+    2026-09-24 11:46:05.807 wall=1790271965807 [app] process start
+    2026-09-24 11:46:05.810 wall=1790271965810 [badge] set app.tileshell API=0 -> effective 0
+    2026-09-24 11:46:05.811 wall=1790271965811 [livetile] samsung badge provider probe: not present
+    2026-09-24 11:46:05.851 wall=1790271965851 [apps] catalog refreshed (init): 38 activities
+    2026-09-24 11:46:05.851 wall=1790271965851 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
+    2026-09-24 11:46:05.852 wall=1790271965852 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-09-24 11:46:05.855 wall=1790271965855 [weather] feed start provider=open-meteo
+    2026-09-24 11:46:05.857 wall=1790271965857 [app] feeds started (process start)
+    2026-09-24 11:46:05.859 wall=1790271965859 [clock] tiles: publisher started under cmp:app.tileshell/app.tileshell.clock.ClockActivity
+    2026-09-24 11:46:05.863 wall=1790271965863 [engine] publish feed:photos faces=0 front=false source=null sourceTime=null
+    2026-09-24 11:46:05.863 wall=1790271965863 [photos] refresh (start): access=GRANTED photos=0 slideshow=0 grow=false
+    2026-09-24 11:46:05.866 wall=1790271965866 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790271965866
+    2026-09-24 11:46:05.866 wall=1790271965866 [calendar] refresh (start): access=true faces=1
+    2026-09-24 11:46:05.867 wall=1790271965867 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null sourceTime=null
+    2026-09-24 11:46:05.867 wall=1790271965867 [clock] tile: no next alarm, face cleared
+    2026-09-24 11:46:05.871 wall=1790271965871 [alarms] rearm (process start): 0 alarms, 0 timers, exact=true
+    2026-09-24 11:46:05.871 wall=1790271965871 [reminders] rearm (process start): 0 timed alarms, exact=true
+    2026-09-24 11:46:05.871 wall=1790271965871 [places] rearm: no place reminders
+    2026-09-24 11:46:05.871 wall=1790271965871 [person] rearm: no person reminders, observers off
+    2026-09-24 11:46:05.874 wall=1790271965874 [alarms] rearm (locked boot): 0 alarms, 0 timers, exact=true
+    2026-09-24 11:46:05.892 wall=1790271965892 [weather] cache loaded fetchedAt=1790271949476 provider=open-meteo units=IMPERIAL
+    2026-09-24 11:46:05.893 wall=1790271965893 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790271949476
+    2026-09-24 11:46:05.893 wall=1790271965893 [weather] publish tile faces=1 temp=70° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790271949476
+    2026-09-24 11:46:05.894 wall=1790271965894 [weather] refresh start reason=start units=IMPERIAL
+    2026-09-24 11:46:05.907 wall=1790271965907 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:46:05.908 wall=1790271965908 [start] StartActivity created
+    2026-09-24 11:46:05.912 wall=1790271965912 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-24 11:46:06.072 wall=1790271966072 [cortana] VoiceInteractionService created
+    2026-09-24 11:46:06.074 wall=1790271966074 [alarms] rearm (boot): 0 alarms, 0 timers, exact=true
+    2026-09-24 11:46:06.074 wall=1790271966074 [reminders] rearm (boot): 0 timed alarms, exact=true
+    2026-09-24 11:46:06.074 wall=1790271966074 [places] rearm: no place reminders
+    2026-09-24 11:46:06.074 wall=1790271966074 [person] rearm: no person reminders, observers off
+    2026-09-24 11:46:06.075 wall=1790271966075 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-09-24 11:46:06.077 wall=1790271966077 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-24 11:46:06.236 wall=1790271966236 [render] tile=slot:CALENDAR sourceTime=1790271965866 renderedAt=1790271966236 faces=1
+    2026-09-24 11:46:06.236 wall=1790271966236 [render] tile=shell:weather sourceTime=1790271949476 renderedAt=1790271966236 faces=1
+    2026-09-24 11:46:06.285 wall=1790271966285 [applist] no Usage access: the app list has no recent section
+    2026-09-24 11:46:06.441 wall=1790271966441 [cortana] VoiceInteractionService ready
+    2026-09-24 11:46:06.441 wall=1790271966441 [notif] listener connected
+    2026-09-24 11:46:06.444 wall=1790271966444 [badge] set com.android.systemui NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:46:06.444 wall=1790271966444 [engine] publish pkg:com.android.systemui faces=1 front=false source=notification sourceTime=1790269246644
+    2026-09-24 11:46:06.445 wall=1790271966445 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-24 11:46:06.445 wall=1790271966445 [engine] publish pkg:android faces=0 front=false source=null sourceTime=null
+    2026-09-24 11:46:06.445 wall=1790271966445 [badge] set com.android.dialer NOTIFICATIONS=1 -> effective 1
+    2026-09-24 11:46:06.446 wall=1790271966446 [engine] publish pkg:com.android.dialer faces=1 front=false source=notification sourceTime=1790269246654
+    2026-09-24 11:46:06.446 wall=1790271966446 [notif] rescan (connected): 3 packages with notifications
+    2026-09-24 11:46:06.458 wall=1790271966458 [applist] model: 38 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,S,T,V,W
+    2026-09-24 11:46:06.459 wall=1790271966459 [applist] no Usage access: the app list has no recent section
+    2026-09-24 11:46:06.476 wall=1790271966476 [render] tile=dock:slot:PHONE sourceTime=1790269246654 renderedAt=1790271966476 faces=1
+    2026-09-24 11:46:07.254 wall=1790271967254 [weather] fetch ok provider=open-meteo ms=1177 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/70.2 hourly=240 daily=10 place=true
+    2026-09-24 11:46:07.266 wall=1790271967266 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790271967252
+    2026-09-24 11:46:07.266 wall=1790271967266 [weather] publish tile faces=1 temp=70° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790271967252
+    2026-09-24 11:46:07.288 wall=1790271967288 [render] tile=shell:weather sourceTime=1790271967252 renderedAt=1790271967288 faces=1
+    2026-09-24 11:46:07.522 wall=1790271967522 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2734022 faceIndex=0 next=1 faces=1

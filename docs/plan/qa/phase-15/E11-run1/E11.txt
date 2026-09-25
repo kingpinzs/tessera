@@ -1,0 +1,93 @@
+==============================================================================
+ROW E11 — Calculator answers equal Windows' for every oracle line; paste of 12+3 evaluates
+at            2026-09-23T23:16:35-06:00
+driver        e11.sh blob 3040300329c10c5955fa681b5fbef6ad5b3c4f1b
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     49fef3ba06ce020c 337842979 bytes
+apk installed 73c780cae9e12da8
+apk match     yes (73c780cae9e12da8)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  standard driver ran to the end                              = 0
+PASS  standard-001 [2 add 3 multiply 4 equals]                    = 20
+PASS  standard-002 [2 add 3 multiply]                             = 5
+PASS  standard-003 [1 0 subtract 4 divide 2 equals]               = 3
+PASS  standard-004 [3 add 4 add 5 equals]                         = 12
+PASS  standard-005 [0 decimal 1 add 0 decimal 2 equals]           = 0.3
+PASS  standard-006 [decimal 5 add decimal 2 5 equals]             = 0.75
+PASS  standard-007 [1 decimal 5 multiply 2 equals]                = 3
+PASS  standard-008 [9 subtract 1 2 equals]                        = -3
+PASS  standard-009 [1 divide 3 equals]                            = 0.3333333333333333
+PASS  standard-010 [2 divide 3 equals]                            = 0.6666666666666667
+PASS  standard-011 [1 divide 3 multiply 3 equals]                 = 1
+PASS  standard-012 [1 divide 7 equals]                            = 0.1428571428571429
+PASS  standard-013 [1 divide 8 equals]                            = 0.125
+PASS  standard-014 [1 divide 3 0 0 equals]                        = 0.0033333333333333
+PASS  standard-015 [1 divide 3 0 0 0 equals]                      = 3.333333333333333e-4
+PASS  standard-016 [8 0 add 1 5 percent equals]                   = 92
+PASS  standard-017 [8 0 add 1 5 percent]                          = 12
+PASS  standard-018 [8 0 subtract 1 5 percent equals]              = 68
+PASS  standard-019 [2 0 0 multiply 1 0 percent equals]            = 20
+PASS  standard-020 [5 0 divide 2 5 percent equals]                = 200
+PASS  standard-021 [1 5 percent]                                  = 0
+PASS  standard-022 [2 multiply equals equals]                     = 8
+PASS  standard-023 [5 add 3 equals equals equals]                 = 14
+PASS  standard-024 [1 0 subtract 2 equals equals]                 = 6
+PASS  standard-025 [2 multiply 3 equals equals]                   = 18
+PASS  standard-026 [5 add equals]                                 = 10
+PASS  standard-027 [2 add 3 multiply 4 equals equals]             = 80
+PASS  standard-028 [5 add multiply 3 equals]                      = 15
+PASS  standard-029 [1 2 3 4 5 6 7]                                = 1,234,567
+PASS  standard-030 [1 2 3 4 decimal 5 6 7 8]                      = 1,234.5678
+PASS  standard-031 [1 2 3 4 5 6 7 negate]                         = -1,234,567
+PASS  standard-032 [1 2 3 4 decimal 5 0 add]                      = 1,234.5
+PASS  standard-033 [1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7]            = 1,234,567,890,123,456
+PASS  standard-034 [0 decimal 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7]  = 0.1234567890123456
+PASS  standard-035 [0 0 5]                                        = 5
+PASS  standard-036 [1 decimal 2 decimal 3]                        = 1.23
+PASS  standard-037 [9 9 9 9 9 9 9 9 multiply 9 9 9 9 9 9 9 9 equals]  = 9,999,999,800,000,001
+PASS  standard-038 [9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 9 add 1 equals]  = 1.e+16
+PASS  standard-039 [9 9 9 9 9 9 9 9 9 multiply 9 9 9 9 9 9 9 9 9 equals]  = 9.99999998e+17
+PASS  standard-040 [1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 multiply 1 0 0 0 equals]  = 1.234567890123456e+18
+PASS  standard-041 [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 add 0 decimal 0 0 0 0 1 subtract 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 equals]  = 0
+PASS  standard-042 [1 2 3 backspace]                              = 12
+PASS  standard-043 [1 2 3 backspace backspace backspace]          = 0
+PASS  standard-044 [1 decimal 5 backspace]                        = 1.
+PASS  standard-045 [1 decimal backspace]                          = 1
+PASS  standard-046 [2 add 3 equals backspace]                     = 5
+PASS  standard-047 [5 add 3 clear_entry 2 equals]                 = 7
+PASS  standard-048 [1 2 3 clear_entry]                            = 0
+PASS  standard-049 [5 add 3 clear 2 equals]                       = 2
+PASS  standard-050 [5 negate]                                     = -5
+PASS  standard-051 [5 negate negate]                              = 5
+PASS  standard-052 [2 add 3 equals negate]                        = -5
+PASS  standard-053 [0 negate]                                     = 0
+PASS  standard-054 [5 negate add 3 equals]                        = -2
+PASS  standard-055 [1 decimal 5 negate]                           = -1.5
+PASS  standard-056 [8 1 sqrt]                                     = 9
+PASS  standard-057 [2 sqrt]                                       = 1.414213562373095
+PASS  standard-058 [1 negate sqrt]                                = Invalid input
+PASS  standard-059 [1 2 square]                                   = 144
+PASS  standard-060 [0 decimal 5 square]                           = 0.25
+PASS  standard-061 [4 reciprocal]                                 = 0.25
+PASS  standard-062 [3 reciprocal]                                 = 0.3333333333333333
+PASS  standard-063 [0 reciprocal]                                 = Cannot divide by zero
+PASS  standard-064 [9 add sqrt equals]                            = 12
+PASS  standard-065 [1 divide 0 equals]                            = Cannot divide by zero
+PASS  standard-066 [0 divide 0 equals]                            = Result is undefined
+PASS  standard-067 [1 divide 0 equals 5 add]                      = 5
+PASS  standard-068 [1 divide 0 equals clear 5]                    = 5
+PASS  standard-069 [1 divide 0 equals clear_entry]                = 0
+PASS  standard-070 [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 square square square square square square square square square square]  = Overflow
+FAIL  standard-071 [mc 5 ms clear mr]                             expected [5] got [0]
+PASS  standard-072 [mc 5 ms 3]                                    = 3
+FAIL  standard-073 [mc 5 ms 3 mplus mr]                           expected [8] got [3]
+FAIL  standard-074 [mc 5 ms 3 mminus mr]                          expected [2] got [3]
+FAIL  standard-075 [mc 5 mplus mplus mr]                          expected [10] got [5]
+FAIL  standard-076 [mc 5 mminus mr]                               expected [-5] got [5]
+PASS  standard-077 [mc 5 ms 7 ms mr]                              = 7
+FAIL  standard-078 [mc 5 ms 3 mr]                                 expected [5] got [3]
+FAIL  standard-079 [mc 5 ms 7 mc 3]                               expected [3] got [73]
+FAIL  standard-080 [mc 2 add 3 equals ms clear mr multiply 2 equals]  expected [10] got [0]
+PASS  standard: every oracle line was driven                      = 80

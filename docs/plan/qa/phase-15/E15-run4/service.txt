@@ -1,0 +1,50 @@
+  * ServiceRecord{8fe241 u0 app.tileshell/.recorder.RecorderService c:app.tileshell}
+    intent={cmp=app.tileshell/.recorder.RecorderService}
+    packageName=app.tileshell
+    processName=app.tileshell:recorder
+    targetSdkVersion=36
+    baseDir=/data/app/~~CNfpda9wuya7vWHH2HhtLA==/app.tileshell-suR0S5FpwUVEoow1OOZdrg==/base.apk
+    dataDir=/data/user/0/app.tileshell
+    app=ProcessRecord{74c3f3a 15818:app.tileshell:recorder/u0a150}
+    useNewWiuLogic_forCapabilities()=true
+    useNewWiuLogic_forStart()=true
+    useNewBfslLogic()=true
+    mAllowWiu_noBinding=PROC_STATE_TOP
+    mAllowWiu_inBindService=PROC_STATE_TOP
+    mAllowWiu_byBindings=PROC_STATE_TOP
+    getFgsAllowWiu_legacy=PROC_STATE_TOP
+    getFgsAllowWiu_new=PROC_STATE_TOP
+    getFgsAllowWiu_forStart=PROC_STATE_TOP
+    getFgsAllowWiu_forCapabilities=PROC_STATE_TOP
+    allowUiJobScheduling=true
+    recentCallingPackage=app.tileshell
+    recentCallingUid=10150
+    mAllowStart_noBinding=PROC_STATE_TOP
+    mAllowStart_inBindService=PROC_STATE_TOP
+    mAllowStart_byBindings=PROC_STATE_TOP
+    getFgsAllowStart_legacy=PROC_STATE_TOP
+    getFgsAllowStart_new=PROC_STATE_TOP
+    getFgsAllowStart=PROC_STATE_TOP
+    startForegroundCount=1
+    infoAllowStartForeground=[callingPackage: app.tileshell; callingUid: 10150; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=app.tileshell.recorder.action.START xflg=0x4 cmp=app.tileshell/.recorder.RecorderService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:36; callerTargetSdkVersion:36; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+    isForeground=true foregroundId=1507 types=0x00000080 foregroundNoti=Notification(channel=recorder_take shortcut=null contentView=null vibrate=null sound=null defaults=0 flags=ONGOING_EVENT|NO_CLEAR|FOREGROUND_SERVICE color=0x00000000 category=service actions=1 vis=PRIVATE)
+    createTime=-8s562ms startingBgTimeout=--
+    lastActivity=-3s921ms restartTime=-8s561ms createdFromFg=true
+    startRequested=true delayedStop=false stopIfKilled=true callStart=true lastStartId=1
+ startCommandResult=2
+    Bindings:
+    * IntentBindRecord{f7d09fe}:
+      intent={xflg=0x4 cmp=app.tileshell/.recorder.RecorderService}
+      binder=android.os.BinderProxy@9bcd55f
+      requested=true received=true hasBound=false doRebind=false
+
+  Connection bindings to services:
+  * ConnectionRecord{7aa9ccd u0 CR app.tileshell/.cortana.speech.SpeechService:@6dcb264 flags=0x1}
+    binding=AppBindRecord{d86c1b9 app.tileshell/.cortana.speech.SpeechService:app.tileshell:recorder}
+    conn=android.os.BinderProxy@6dcb264 flags=0x1
+  * ConnectionRecord{90133fe u0 CR FGS CAPS app.tileshell/.cortana.CortanaService:@b3953b9 flags=0x4101001}
+    binding=AppBindRecord{cc254b2 app.tileshell/.cortana.CortanaService:system}
+    conn=android.app.LoadedApk$ServiceDispatcher$InnerConnection@b3953b9 flags=0x4101001
+  * ConnectionRecord{55e8e44 u0 CR FGS !PRCP app.tileshell/.feeds.TileNotificationListener:@e823357 flags=0x5000101}
+    binding=AppBindRecord{a524067 app.tileshell/.feeds.TileNotificationListener:system}
+    conn=android.app.LoadedApk$ServiceDispatcher$InnerConnection@e823357 flags=0x5000101

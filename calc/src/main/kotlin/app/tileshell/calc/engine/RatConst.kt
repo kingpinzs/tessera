@@ -1,0 +1,92 @@
+package app.tileshell.calc.engine
+
+import java.math.BigInteger
+
+/**
+ * Port of microsoft/calculator src/CalcManager/Ratpack/ratconst.h: the precomputed ratpak constants that
+ * `_readconstants` (support.cpp) loads whenever `ChangeConstants` does not need to recompute them (always the case in
+ * Standard and Scientific). Each entry is a raw NUMBER {sign, cdigit, exp, mant[] in base 2^31, least significant first}
+ * exactly as the header lists it, so the port computes with the same (about 44-digit) pi, e, ln 10 and ln 2 that
+ * Windows does.
+ */
+internal object RatConst {
+    private fun n(sign: Int, cdigit: Int, exp: Int, vararg digits: Long): Num {
+        var m = BigInteger.ZERO
+        for (i in digits.indices.reversed()) m = m.shiftLeft(BASEXPWR).add(BigInteger.valueOf(digits[i]))
+        return Num(sign, exp, m, cdigit)
+    }
+
+    val numOne: Num = n(1, 1, 0, 1L)
+    val numTwo: Num = n(1, 1, 0, 2L)
+    val numFive: Num = n(1, 1, 0, 5L)
+    val numSix: Num = n(1, 1, 0, 6L)
+    val numTen: Num = n(1, 1, 0, 10L)
+    val pRatSmallest: Num = n(1, 1, 0, 1L)
+    val qRatSmallest: Num = n(1, 4, 0, 0L, 190439170L, 901055854L, 10097L)
+    val pRatNegsmallest: Num = n(-1, 1, 0, 1L)
+    val qRatNegsmallest: Num = n(1, 4, 0, 0L, 190439170L, 901055854L, 10097L)
+    val pPtEightFive: Num = n(1, 1, 0, 85L)
+    val qPtEightFive: Num = n(1, 1, 0, 100L)
+    val pRatSix: Num = n(1, 1, 0, 6L)
+    val qRatSix: Num = n(1, 1, 0, 1L)
+    val pRatTwo: Num = n(1, 1, 0, 2L)
+    val qRatTwo: Num = n(1, 1, 0, 1L)
+    val pRatZero: Num = n(1, 1, 0, 0L)
+    val qRatZero: Num = n(1, 1, 0, 1L)
+    val pRatOne: Num = n(1, 1, 0, 1L)
+    val qRatOne: Num = n(1, 1, 0, 1L)
+    val pRatNegOne: Num = n(-1, 1, 0, 1L)
+    val qRatNegOne: Num = n(1, 1, 0, 1L)
+    val pRatHalf: Num = n(1, 1, 0, 1L)
+    val qRatHalf: Num = n(1, 1, 0, 2L)
+    val pRatTen: Num = n(1, 1, 0, 10L)
+    val qRatTen: Num = n(1, 1, 0, 1L)
+    val pPi: Num = n(1, 6, 0, 125527896L, 283898350L, 1960493936L, 1672850762L, 1288168272L, 8L)
+    val qPi: Num = n(1, 6, 0, 1288380402L, 1120116153L, 1860424692L, 1944118326L, 1583591604L, 2L)
+    val pTwoPi: Num = n(1, 6, 0, 251055792L, 567796700L, 1773504224L, 1198217877L, 428852897L, 17L)
+    val qTwoPi: Num = n(1, 6, 0, 1288380402L, 1120116153L, 1860424692L, 1944118326L, 1583591604L, 2L)
+    val pPiOverTwo: Num = n(1, 6, 0, 125527896L, 283898350L, 1960493936L, 1672850762L, 1288168272L, 8L)
+    val qPiOverTwo: Num = n(1, 6, 0, 429277156L, 92748659L, 1573365737L, 1740753005L, 1019699561L, 5L)
+    val pOnePtFivePi: Num = n(1, 6, 0, 1241201312L, 270061909L, 1051574664L, 1924965045L, 1340320627L, 70L)
+    val qOnePtFivePi: Num = n(1, 6, 0, 1579671539L, 1837970263L, 1067644340L, 523549916L, 2119366659L, 14L)
+    val pEToOneHalf: Num = n(1, 6, 0, 256945612L, 216219427L, 223516738L, 477442596L, 581063757L, 23L)
+    val qEToOneHalf: Num = n(1, 6, 0, 1536828363L, 698484484L, 1127331835L, 224219346L, 245499408L, 14L)
+    val pRatExp: Num = n(1, 6, 0, 943665199L, 1606559160L, 1094967530L, 1759391384L, 1671799163L, 1123581L)
+    val qRatExp: Num = n(1, 6, 0, 879242208L, 2022880100L, 617392930L, 1374929092L, 1367479163L, 413342L)
+    val pLnTen: Num = n(1, 6, 0, 2086268922L, 165794492L, 1416063951L, 1851428830L, 1893239400L, 65366841L)
+    val qLnTen: Num = n(1, 6, 0, 26790652L, 564532679L, 783998273L, 216030448L, 1564709968L, 28388458L)
+    val pLnTwo: Num = n(1, 6, 0, 1789230241L, 1057927868L, 715399197L, 908801241L, 1411265331L, 3L)
+    val qLnTwo: Num = n(1, 6, 0, 1559869847L, 1930657510L, 1228561531L, 219003871L, 593099283L, 5L)
+    val pRadToDeg: Num = n(1, 6, 0, 2127722024L, 1904928383L, 2016479213L, 2048947859L, 1578647346L, 492L)
+    val qRadToDeg: Num = n(1, 6, 0, 125527896L, 283898350L, 1960493936L, 1672850762L, 1288168272L, 8L)
+    val pRadToGrad: Num = n(1, 6, 0, 2125526288L, 684931327L, 570267400L, 129125085L, 1038224725L, 547L)
+    val qRadToGrad: Num = n(1, 6, 0, 125527896L, 283898350L, 1960493936L, 1672850762L, 1288168272L, 8L)
+    val pRatQword: Num = n(1, 3, 0, 2147483647L, 2147483647L, 3L)
+    val qRatQword: Num = n(1, 1, 0, 1L)
+    val pRatDword: Num = n(1, 2, 0, 2147483647L, 1L)
+    val qRatDword: Num = n(1, 1, 0, 1L)
+    val pRatMaxI32: Num = n(1, 1, 0, 2147483647L)
+    val qRatMaxI32: Num = n(1, 1, 0, 1L)
+    val pRatMinI32: Num = n(-1, 2, 0, 0L, 1L)
+    val qRatMinI32: Num = n(1, 1, 0, 1L)
+    val pRatWord: Num = n(1, 1, 0, 65535L)
+    val qRatWord: Num = n(1, 1, 0, 1L)
+    val pRatByte: Num = n(1, 1, 0, 255L)
+    val qRatByte: Num = n(1, 1, 0, 1L)
+    val pRat400: Num = n(1, 1, 0, 400L)
+    val qRat400: Num = n(1, 1, 0, 1L)
+    val pRat360: Num = n(1, 1, 0, 360L)
+    val qRat360: Num = n(1, 1, 0, 1L)
+    val pRat200: Num = n(1, 1, 0, 200L)
+    val qRat200: Num = n(1, 1, 0, 1L)
+    val pRat180: Num = n(1, 1, 0, 180L)
+    val qRat180: Num = n(1, 1, 0, 1L)
+    val pRatMaxExp: Num = n(1, 1, 0, 100000L)
+    val qRatMaxExp: Num = n(1, 1, 0, 1L)
+    val pRatMinExp: Num = n(-1, 1, 0, 100000L)
+    val qRatMinExp: Num = n(1, 1, 0, 1L)
+    val pRatMaxFact: Num = n(1, 1, 0, 3249L)
+    val qRatMaxFact: Num = n(1, 1, 0, 1L)
+    val pRatMinFact: Num = n(-1, 1, 0, 1000L)
+    val qRatMinFact: Num = n(1, 1, 0, 1L)
+}

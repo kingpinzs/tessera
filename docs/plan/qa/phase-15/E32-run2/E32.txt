@@ -1,0 +1,36 @@
+==============================================================================
+ROW E32 — ring timeout: an unanswered alarm ends at 600 s as timeout + missed
+at            2026-09-24T11:08:26-06:00
+driver        e32.sh blob 9a6a8815e4771c11d30993289c0055ae7954d766
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     2aa4cc50adde86ea 337843127 bytes
+apk installed eb926ef4ac922726
+apk match     yes (eb926ef4ac922726)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=+15m29s914ms ago; rejectTime=+45m29s917ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  the alarm was created                                       != 
+PASS  the alarm fired                                             != 
+PASS  it rings on the in-use overlay                              contains [[alarms] surface: toast-overlay a34c65111]
+PASS  the player is started                                       != 0
+RECORD  UI activity during the wait (this driver sends none after the jump)  2026-09-24 11:15:51.716 wall=1790270151716 [alarms] ring ended a34c65111: snooze
+FAIL  the ring ended with timeout (within 660 s)                  should not be []
+FAIL  the timeout came 600 ± 5 s after the fired line (wall= of both lines)  -1790269800004.00 vs 600000.00 +/- 5000.0
+FAIL  … then missed                                             does not contain [[alarms] ring ended a34c65111: missed]:     2026-09-24 11:10:00.004 wall=1790269800004 [alarms] fired a34c65111 kind=alarm late=4
+    2026-09-24 11:10:00.004 wall=1790269800004 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null so
+FAIL  the timeout line comes before the missed line               expected [yes] got [no]
+PASS  the ALARM player is gone                                    = 0
+PASS  the overlay window is gone                                  = 
+FAIL  a Missed alarm notification with the alarm's time           does not contain [Missed alarm 11:10 AM]: 
+FAIL  the one-shot is off after the miss                          expected [false] got [true]
+PASS  device clock back within 2 s of the host (RV12)             1790270410.00 vs 1790270410.00 +/- 2.0
+      scroll_to_node alarm_row:a34c65111: 0 swipe(s), found=yes
+PASS  restore: the missed notification is cleared                 = 
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E32: 12 passed, 6 failed, 3 recorded

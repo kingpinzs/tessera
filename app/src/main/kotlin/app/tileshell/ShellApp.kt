@@ -1,6 +1,11 @@
 package app.tileshell
 
 import android.app.Application
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.UserManager
 import android.os.Handler
 import android.os.Looper
 import android.content.pm.PackageManager
@@ -33,12 +38,33 @@ class ShellApp : Application() {
             Diagnostics.add("app", "process start: $process (no launcher start-up work here)")
             return
         }
+        // Direct boot (phase 15, T15-22): an alarm can start this process before the first unlock after a reboot,
+        // when credential storage — the catalog, the layout, the theme, every feed's data — cannot be read. The
+        // clock's receiver, ring service and ring activity work from device-protected storage on their own; the
+        // launcher's start-up waits for the unlock.
+        if (!getSystemService(UserManager::class.java).isUserUnlocked) {
+            Diagnostics.add("app", "process start before the first unlock: launcher start-up waits for it")
+            registerReceiver(object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    runCatching { unregisterReceiver(this) }
+                    Diagnostics.add("app", "user unlocked: launcher start-up")
+                    startLauncher()
+                }
+            }, IntentFilter(Intent.ACTION_USER_UNLOCKED), RECEIVER_NOT_EXPORTED)
+            return
+        }
         Diagnostics.add("app", "process start")
+        startLauncher()
+    }
+
+    private fun startLauncher() {
         followPackageChanges(AppCatalog.get(this))
         addCortanaTile()
         addCategoryFolders()
         claimMusicSlot()
         startFeeds("process start")
+        // Phase 15 build task 4: the next-alarm face on the Alarms & Clock tile and the pinned timer / stopwatch faces.
+        app.tileshell.clock.ClockTiles.start(this)
         startBadgeExpirySweep()
         // A reboot, an app update and `am force-stop` all cancel alarms and proximity alerts, so every
         // process start re-arms what the reminder store holds (phase 03 Decisions; E6).

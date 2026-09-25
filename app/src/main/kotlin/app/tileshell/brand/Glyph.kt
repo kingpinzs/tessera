@@ -80,4 +80,40 @@ object Glyph {
 
     // Phase 05 (keyboard). Same font, same source: Fluent UI System Icons resizable, MIT.
     const val KEYBOARD = "\ueab1"
+
+    // Phase 15 (Voice Recorder). Same font, same source; the MDL2 glyph each stands in for is
+    // r11/voice-recorder.md's glyph table (Stop E71A, Pause E769, Play E768, Flag E7C1, Share E72D, Trim E78A).
+    const val STOP = "\uf188"
+    const val PAUSE = "\ued5b"
+    const val PLAY = "\uee8d"
+    const val FLAG = "\ue8b7"
+    const val FLAG_FILLED = "\ue8b6"
+    const val SHARE = "\uf023"
+    const val CUT = "\ue617"
+
+    // Phase 15 (Alarms & Clock, build task 4). Same font, same source: Fluent UI System Icons resizable, MIT;
+    // code points read from the shipped TTF's cmap (ic_fluent_<name>_20_regular). Each stands in for the Segoe
+    // MDL2 glyph r11/clock.md's "Segoe MDL2 glyphs" table names. SHARE, FLAG, PLAY and PAUSE are above (Voice
+    // Recorder's, the same code points).
+    const val PIN = "\uee75"                 // Pin E718 — the Timer / Stopwatch app bars
+    const val MULTISELECT = "\uec8a"         // MultiSelect E762 — Select on the Alarm / Timer app bars
+    const val CHECKBOX_CHECKED = "\ue454"    // CheckboxComposite E73A — the days flyout, Select rows
+    const val EXPAND = "\ue951"              // FullScreen E740 — the expanded timer / stopwatch view
+    const val COLLAPSE = "\ue953"            // BackToWindow E73F — collapse on the expanded page
+    const val RESET = "\ue13f"               // Refresh E72C's closest match — timer / stopwatch reset
+    const val CHEVRON_LEFT = "\ue48c"        // ChevronLeft E76B — the compare strip
+    const val VIBRATE = "\uee67"             // Vibrate E877 — "Vibrate only"
+    const val BELL = "\ue02b"                // Ringer EA8F — the Sound value, the tile badge
+    const val GLOBE_CLOCK = "\ue9a3"         // the World Clock tab (no public MDL2 name — "globe with clock")
+    const val HOURGLASS = "\uea48"           // the Timer tab (approximation: W10M drew a crowned clock face, which is [TIMER]'s shape and the Stopwatch tab's)
+
+    // Phase 15 (Calculator). Same font, same source; the MDL2 glyph each stands in for is r11/calculator.md's
+    // glyph table (History E81C, CalculatorBackspace E94F / BackSpaceQWERTY E750, UpArrowShiftKey E752, Dialpad
+    // E75F, Airplane E709, Setting E713, Delete E74D). The operators, \u221a and the bit-toggle icon are drawn.
+    const val HISTORY = "\uea2e"
+    const val BACKSPACE = "\ue1cd"
+    const val ARROW_UP = "\ue1a7"
+    const val DIALPAD = "\ue6c3"
+    const val AIRPLANE = "\ue01f"
+    const val CALCULATOR = "\ue328"
 }

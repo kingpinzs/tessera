@@ -1,0 +1,65 @@
+==============================================================================
+ROW E9 — Tess sets alarms and timers in the shell, unlocked and locked
+at            2026-09-24T12:47:48-06:00
+driver        e9.sh blob 913485cda8b616e1e2aa3fd5b2abbd8d90dff282
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     9cdb2b692d30396a 336970510 bytes
+apk installed 42d6fcbd160015a2
+apk match     yes (42d6fcbd160015a2)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      media volume before: 0
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      DeskClock alarms before: 0
+      alarm final: open="STEAD IN ALARM FOR SEVEN TWENTY A M" grammar="STEAD IN ALARM FOR SEVEN TWENTY A M"
+PASS  alarm: the capture was heard (C-30)                         does not contain [asr: no speech]
+PASS  alarm: Tess's reply                                         = Alarm set for 7:20 AM.
+PASS  alarm: no DeskClock activity                                does not contain [com.android.deskclock]
+PASS  alarm: no chooser                                           does not contain [ChooserActivity]
+PASS  the Alarm tab lists 7:20 AM                                 contains [7:20]
+PASS  dumpsys alarm's Next alarm clock is the next 7:20           contains [ 07:20:00.000 ]
+PASS  the shell's clock alarm is pending in AlarmManager          != 0
+      timer final: open="SET A TIMER FOR FIVE MINUTES THEN" grammar="SET A TIMER FOR FIVE MINUTES THEN"
+PASS  timer: the capture was heard (C-30)                         does not contain [asr: no speech]
+PASS  timer: Tess's reply                                         = Timer set for 5 minutes.
+PASS  timer: no DeskClock activity                                does not contain [com.android.deskclock]
+PASS  timer: no chooser                                           does not contain [ChooserActivity]
+FAIL  the Timer tab shows a timer counting from 5:00              does not contain [4:5]: resource-id="timer_remaining:te58e744c" class="android.widget.TextView" package="app.tileshell" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-cli
+      gscroll_to_node timer_name:te58e744c: 0 swipe(s), found=yes
+PASS  DeskClock armed nothing                                     = 0
+      scroll_to_node alarm_row:ad5795077: 0 swipe(s), found=yes
+PASS  the keyguard is showing                                     = true
+      alarm final: open="SET IN ALARM FOR SEVEN TWENTY A M" grammar="SET IN ALARM FOR SEVEN TWENTY A M"
+PASS  alarm: the capture was heard (C-30)                         does not contain [asr: no speech]
+PASS  locked alarm: still behind the keyguard                     = true
+PASS  locked alarm: in-process (no startVoiceActivity)            does not contain [startVoiceActivity]
+PASS  locked alarm: no Unlock card                                does not contain [cortana_card:unlock]
+PASS  locked alarm: no DeskClock activity                         does not contain [com.android.deskclock]
+PASS  locked alarm: no chooser                                    does not contain [ChooserActivity]
+      timer final: open="SET A TIMER FOR FIVE MINUTES THEN" grammar="SET A TIMER FOR FIVE MINUTES THEN"
+PASS  timer: the capture was heard (C-30)                         does not contain [asr: no speech]
+PASS  locked timer: still behind the keyguard                     = true
+PASS  locked timer: in-process (no startVoiceActivity)            does not contain [startVoiceActivity]
+PASS  locked timer: no Unlock card                                does not contain [cortana_card:unlock]
+PASS  locked timer: no DeskClock activity                         does not contain [com.android.deskclock]
+PASS  locked timer: no chooser                                    does not contain [ChooserActivity]
+      locked stores: alarms=[a556129f7 ] timers=[t7b66fe31 ]
+      gscroll_to_node: rewound to the top in 1 drag(s)
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node: input swipe moved nothing; UiDevice.swipe moved nothing either
+      gscroll_to_node timer_name:t7b66fe31: 6 swipe(s), found=no
+      app_delete_timer: no timer_name:t7b66fe31
+PASS  LockGate.allowedWhileLocked lists SetAlarm as allowed       = yes
+PASS  LockGate.allowedWhileLocked lists SetTimer as allowed       = yes
+      scroll_to_node alarm_row:a556129f7: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t7b66fe31: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E9: 31 passed, 1 failed, 0 recorded

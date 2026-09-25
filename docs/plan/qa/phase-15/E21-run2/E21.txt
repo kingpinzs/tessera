@@ -1,0 +1,57 @@
+==============================================================================
+ROW E21 — permission states (clock): full-screen intent denied, overlay denied, SCHEDULE_EXACT_ALARM denied
+at            2026-09-24T08:51:17-06:00
+driver        e21.sh blob 12b58cbfd2a4d36b961ded35fb43c00b47d50eab
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     3b675b7994c5076b 337842979 bytes
+apk installed 39402722396d9129
+apk match     NO (device 39402722396d9129, built bb4b8f86f2dd56ac)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow USE_FULL_SCREEN_INTENT: allow; time=-1h1m38s955ms ago 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+RECORD  appops after the doc's package-level deny (both modes)      Uid mode: USE_FULL_SCREEN_INTENT: allow|USE_FULL_SCREEN_INTENT: deny; time=-1h1m38s614ms ago
+RECORD  appops after the uid-level deny (both modes)                Uid mode: USE_FULL_SCREEN_INTENT: deny|USE_FULL_SCREEN_INTENT: deny; time=-1h1m38s585ms ago
+PASS  the alarm was created                                       != 
+PASS  the keyguard shows after sleep + wake                       = true
+PASS  FSI denied: the alarm fired                                 != 
+PASS  FSI denied: it still sounds (an ALARM player of the shell is started)  != 0
+PASS  FSI denied: it still notifies (the alarm-channel notification is posted)  != 
+PASS  FSI denied: the keyguard is on top                          = true
+      focus: mCurrentFocus=Window{10e2680 u0 NotificationShade}
+PASS  FSI denied: no activity of app.tileshell over the keyguard  does not contain [app.tileshell]
+PASS  FSI denied: the keyguard is not occluded                    = false
+PASS  FSI denied: surface: lockscreen-notification a55bcca0e      contains [[alarms] surface: lockscreen-notification a55bcca0e]
+PASS  FSI denied: full-screen intent: deny                        contains [[alarms] full-screen intent: deny]
+RECORD  the lock screen's SystemUI nodes naming the alarm           android:id/title|Alarm|android:id/text|Nofsi · 8:53 AM
+      no Dismiss action visible on the lock screen; the ring is ended by the restore's force-stop
+PASS  device clock back within 2 s of the host (RV12)             1790261512.00 vs 1790261512.00 +/- 2.0
+PASS  wake_device printed Awake (C-25)                            = Awake
+      scroll_to_node checklist:full_screen_alarms:missing: 1 swipe(s), found=yes
+PASS  the Full-screen alarms row reads missing                    = yes
+RECORD  the missing row's glyph colour (red is 232,17,35)           0,0,0
+PASS  its tap resumes com.android.settings                        contains [com.android.settings]
+      scroll_to_node checklist:full_screen_alarms:granted: 8 swipe(s), found=no
+FAIL  restore allow: the row reads granted                        expected [yes] got [no]
+      scroll_to_node checklist:overlay:missing: 8 swipe(s), found=no
+FAIL  overlay denied: checklist:overlay:missing                   expected [yes] got [no]
+PASS  its tap resumes com.android.settings                        contains [com.android.settings]
+      scroll_to_node checklist:overlay:granted: 8 swipe(s), found=no
+FAIL  restore allow: checklist:overlay:granted                    expected [yes] got [no]
+RECORD  appops SCHEDULE_EXACT_ALARM after deny                      SCHEDULE_EXACT_ALARM: default
+RECORD  USE_EXACT_ALARM grant                                       android.permission.USE_EXACT_ALARM: granted=true
+PASS  the alarm was created                                       != 
+PASS  it still arms with setAlarmClock: the Next alarm clock line holds it  = 1790339400000
+PASS  … and the rearm line says exact=true                      contains [exact=true]
+RECORD  appops SCHEDULE_EXACT_ALARM after restore                   SCHEDULE_EXACT_ALARM: default
+      scroll_to_node alarm_row:a55bcca0e: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a35784757: 0 swipe(s), found=yes
+PASS  restore: USE_FULL_SCREEN_INTENT allow                       contains [allow]
+PASS  restore: SYSTEM_ALERT_WINDOW allow                          contains [allow]
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E21: 24 passed, 3 failed, 9 recorded

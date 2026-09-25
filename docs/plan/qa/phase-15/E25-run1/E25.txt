@@ -1,0 +1,30 @@
+==============================================================================
+ROW E25 — the APK grows by at most 3 MB and gains no entry of 1 MB or more
+at            2026-09-24T08:37:39-06:00
+driver        e25.sh blob 577882e0df09883da3ec2d086d9855592f267a4a
+harness       lib.sh blob a5fa9cf25c1835f6e4f836518279861224a02658
+apk built     d8dcea502fac2b21 337842979 bytes
+apk installed 39402722396d9129
+apk match     yes (39402722396d9129)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      without: /tmp/claude-1000/-home-jeremyking/5d5ffc39-5a2a-4c33-953f-07d71da27a45/scratchpad/p15/pre15/app/build/outputs/apk/debug/app-debug.apk 333162850 bytes (sha256 5eb35461e2d0aef0)
+      with:    /tmp/claude-1000/-home-jeremyking/5d5ffc39-5a2a-4c33-953f-07d71da27a45/scratchpad/p15/post15/app/build/outputs/apk/debug/app-debug.apk 335568183 bytes (sha256 a2287b14669ca6e3)
+RECORD  APK size delta                                              2405333 bytes (333162850 -> 335568183)
+PASS  the APK grew by at most 3,000,000 bytes                     = yes
+      entries changed: 32; the ten largest compressed deltas:
+        11139004	11139004	classes19.dex	new
+        2763252	2763252	classes20.dex	new
+        1454184	1454184	classes8.dex	changed
+        667392	667392	classes12.dex	changed
+        598520	598520	classes13.dex	changed
+        284500	284500	classes6.dex	changed
+        151844	151844	classes2.dex	changed
+        125752	125752	classes14.dex	changed
+        78656	78656	classes17.dex	new
+        62776	62776	classes3.dex	changed
+FAIL  no new entry of 1,000,000 bytes or more (unzip -l)          expected [] got [classes19.dex	11139004
+classes20.dex	2763252]
+------------------------------------------------------------------------------
+E25: 1 passed, 1 failed, 1 recorded
