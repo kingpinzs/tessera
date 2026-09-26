@@ -1,0 +1,17 @@
+── L13-2-audit-current-15aa7f5f L13-2 audit on current-15aa7f5f: Music's jump grid and Start's quick burst under a sideways drag
+PASS  wake: the device is awake                                   = Awake
+PASS  (3) an on-screen letter header on the songs pivot           != 
+PASS  (3) Music's jump grid is open                               = yes
+PASS  music-grid: the page's bounds are in the dump               != 
+RECORD  music-grid: LEAK (the page moved with the finger down)      yes
+RECORD  (3) Music's jump grid after UP                              yes
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-11/baseline_layout.json: 1 file pushed, 0 skipped. 25.3 MB/s (1390 bytes in 0.000s)
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  (4) the burst is open                                       = yes
+PASS  burst: the page's bounds are in the dump                    != 
+RECORD  burst: LEAK (the page moved with the finger down)           no
+RECORD  (4) the burst after UP                                      yes
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/baseline_layout.json: 1 file pushed, 0 skipped. 23.7 MB/s (841 bytes in 0.000s)
+PASS  phase 02's baseline restored: no slot re-assigned (C-3)     does not contain [-> assigned]
+   L13-2-audit-current-15aa7f5f: 9 passed, 0 failed, 4 recorded

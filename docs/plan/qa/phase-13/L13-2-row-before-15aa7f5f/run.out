@@ -1,0 +1,92 @@
+── L13-2-row-before-15aa7f5f L13-2 row on before-15aa7f5f: an open overlay inside a pivot page holds the pivot still; its items keep one press rule
+PASS  wake: the device is awake                                   = Awake
+--- (B1) the band's item: a 60-px move within it, then off it; the page holds, the press holds then ends ---
+PASS  b1: the hold band is open                                   = yes
+FAIL  (B1) the page holds still with the finger moved on the item  expected [0 0 1080 2196] got [37 0 1080 2196]
+PASS  (B1) and after UP                                           = 0 0 1080 2196
+FAIL  (B1) no pivot settle logged                                 expected [0] got [1]
+FAIL  (B1) the press holds through the move within the item (M = U + 0.15 x (255 - U) at the far pixel)  37.50 vs 0.00 +/- 4.0
+PASS  (B1) the press ends when the finger leaves the item (A = U at the far pixel)  0.00 vs 0.00 +/- 2.0
+PASS  (B1) the lift off the item pins nothing                     = 0
+PASS  (B1) the band is still open after UP                        = yes
+--- (B2) the band's item: a fast diagonal swipe that leaves the item ---
+FAIL  (B2) the page is where it was                               expected [0 0 1080 2196] got []
+FAIL  (B2) no pivot settle logged                                 expected [0] got [1]
+PASS  (B2) nothing pinned                                         = 0
+FAIL  (B2) the band is still open                                 expected [yes] got [no]
+--- (B3) the band's scrim: a 60-px move, then a fast swipe ---
+FAIL  (B3) the page holds still with the finger moved on the scrim  expected [0 0 1080 2196] got []
+FAIL  (B3) a drag on the scrim leaves the band open               expected [yes] got [no]
+FAIL  (B3) after a fast swipe on the scrim the page is where it was  expected [0 0 1080 2196] got []
+FAIL  (B3) no pivot settle logged                                 expected [0] got [2]
+FAIL  (B3) the band is still open                                 expected [yes] got [no]
+--- (B4) the other half: a tap off the band closes it, then the pivot moves ---
+PASS  b4: the hold band is open                                   = yes
+PASS  (B4) a tap off the band closes it                           = no
+PASS  b4: the swipe moves the pivot to Start                      = 0 0 1080 2196
+PASS  b4: the pivot logged its settle                             != 0
+--- (B5) the other half: Back closes the band, then the pivot moves ---
+PASS  b5: the hold band is open                                   = yes
+PASS  (B5) Back closes the band                                   = no
+PASS  b5: the swipe moves the pivot to Start                      = 0 0 1080 2196
+PASS  b5: the pivot logged its settle                             != 0
+--- (J1) a cell: a 30-px move within it, lifted on it, picks the letter; the page holds ---
+PASS  j1: the jump grid is open                                   = yes
+PASS  (J1) a second letter group exists to jump to                != 
+FAIL  (J1) the page holds still with the finger moved on the cell  expected [0 0 1080 2196] got [7 0 1080 2196]
+FAIL  (J1) the lift on the cell picks: the grid closes            expected [no] got [yes]
+FAIL  (J1) and the list jumps to the letter                       does not contain [jump to C]:     2026-09-25 22:10:53.426 wall=1790395853426 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=212135766 faceIndex=3 next=4 faces=6
+    2026-09-25 22:10:53.807 wall=1790395853807 [tile_anim] tile=shell:weather kind=FLIP uptime=212136147 
+FAIL  (J1) no pivot settle logged                                 expected [0] got [1]
+--- (J2) a cell: the finger leaves it, the lift picks nothing ---
+PASS  j2: the jump grid is open                                   = yes
+FAIL  (J2) the page holds still                                   expected [0 0 1080 2196] got [227 0 1080 2196]
+PASS  (J2) nothing picked: the grid stays open                    = yes
+PASS  (J2) no jump                                                does not contain [jump to]
+--- (J3) a cell: a fast diagonal swipe that leaves it ---
+FAIL  (J3) the page is where it was                               expected [0 0 1080 2196] got []
+FAIL  (J3) no pivot settle logged                                 expected [0] got [1]
+FAIL  (J3) the grid is still open                                 expected [yes] got [no]
+--- (J4) the grid's scrim: a 60-px move, then a fast swipe ---
+FAIL  (J4) the page holds still with the finger moved on the scrim  expected [0 0 1080 2196] got []
+FAIL  (J4) a drag on the scrim leaves the grid open               expected [yes] got [no]
+FAIL  (J4) after a fast swipe on the scrim the page is where it was  expected [0 0 1080 2196] got []
+FAIL  (J4) no pivot settle logged                                 expected [0] got [2]
+FAIL  (J4) the grid is still open                                 expected [yes] got [no]
+--- (J5) the other half: a tap off the cells closes the grid, then the pivot moves ---
+PASS  j5: the jump grid is open                                   = yes
+PASS  (J5) a tap on the scrim closes the grid                     = no
+PASS  j5: the swipe moves the pivot to Start                      = 0 0 1080 2196
+PASS  j5: the pivot logged its settle                             != 0
+--- (J6) the other half: Back closes the grid, then the pivot moves ---
+PASS  j6: the jump grid is open                                   = yes
+PASS  (J6) Back closes the grid                                   = no
+PASS  j6: the swipe moves the pivot to Start                      = 0 0 1080 2196
+PASS  j6: the pivot logged its settle                             != 0
+--- (M1) a Music cell: a 30-px move within it, lifted on it, picks; the page holds ---
+PASS  m1: Music's jump grid is open                               = yes
+PASS  (M1) a second letter group exists to jump to                != 
+FAIL  (M1) the page holds still with the finger moved on the cell  expected [0 330 1080 2196] got [7 330 1080 2196]
+FAIL  (M1) the lift on the cell picks: the grid closes            expected [no] got [yes]
+PASS  (M1) no pivot settle logged                                 = 0
+--- (M2) a Music cell: the finger leaves it, the lift picks nothing ---
+PASS  m2: Music's jump grid is open                               = yes
+FAIL  (M2) the page holds still                                   expected [0 330 1080 2196] got [227 330 1080 2196]
+PASS  (M2) nothing picked: the grid stays open                    = yes
+--- (M3) a Music cell: a fast diagonal swipe that leaves it ---
+FAIL  (M3) the page is where it was                               expected [0 330 1080 2196] got []
+FAIL  (M3) no pivot settle logged                                 expected [0] got [1]
+--- (M4) Music's grid scrim: a 60-px move, then a fast swipe ---
+FAIL  (M4) the page holds still with the finger moved on the scrim  expected [0 330 1080 2196] got []
+FAIL  (M4) a drag on the scrim leaves the grid open               expected [yes] got [no]
+FAIL  (M4) after a fast swipe on the scrim the page is where it was  expected [0 330 1080 2196] got []
+FAIL  (M4) no pivot settle logged                                 expected [0] got [1]
+--- (M5) the other half: a tap off the cells closes the grid, then the pivot moves ---
+PASS  m5: Music's jump grid is open                               = yes
+PASS  (M5) a tap on the scrim closes the grid                     = no
+PASS  m5: the swipe settles Music's pivot on playlists            contains [pivot settled on playlists]
+--- (M6) the other half: Back closes the grid, then the pivot moves ---
+PASS  m6: Music's jump grid is open                               = yes
+PASS  (M6) Back closes the grid                                   = no
+PASS  m6: the swipe settles Music's pivot on playlists            contains [pivot settled on playlists]
+   L13-2-row-before-15aa7f5f: 39 passed, 33 failed, 0 recorded

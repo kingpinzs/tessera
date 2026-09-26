@@ -1,0 +1,23 @@
+==============================================================================
+ROW L13-2-scope-current-15aa7f5f — L13-2 scope on current-15aa7f5f: the band's scrim and the jump grid under a sideways drag
+at            2026-09-25T21:15:48-06:00
+driver        l13_2_scope.sh blob d5ad0d57464948a7abdeed2bc81fbc6c3867649e
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     15aa7f5f3bd76f7d 337942814 bytes
+apk installed d3ee8663458ce94b
+apk match     yes (d3ee8663458ce94b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      repro apk: 15aa7f5f = app-debug.apk built from c73c32cf (installed 2026-09-25 20:01) (the header's 'apk built' is the repo's own build, not necessarily this one)
+PASS  wake: the device is awake                                   = Awake
+PASS  the hold band is open                                       = yes
+      band-scrim: app_list open [0 0 1080 2196], finger moved 60 px [37 0 1080 2196], after UP [0 0 1080 2196]
+RECORD  band-scrim: LEAK (the page moved with the finger down)      yes
+RECORD  band-scrim: the band after UP                               yes
+PASS  the jump grid is open                                       = yes
+      jump-grid: app_list open [0 0 1080 2196], finger moved 60 px [37 0 1080 2196], after UP [0 0 1080 2196]
+RECORD  jump-grid: LEAK (the page moved with the finger down)       yes
+RECORD  jump-grid: the grid after UP                                yes
+------------------------------------------------------------------------------
+L13-2-scope-current-15aa7f5f: 3 passed, 0 failed, 4 recorded

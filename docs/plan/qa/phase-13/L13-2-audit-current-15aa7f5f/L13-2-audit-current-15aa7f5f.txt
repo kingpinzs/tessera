@@ -1,0 +1,30 @@
+==============================================================================
+ROW L13-2-audit-current-15aa7f5f — L13-2 audit on current-15aa7f5f: Music's jump grid and Start's quick burst under a sideways drag
+at            2026-09-25T21:48:47-06:00
+driver        l13_2_audit.sh blob f148ed95d98e1befacaacb91ab29699e25635a28
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     15aa7f5f3bd76f7d 337942814 bytes
+apk installed d3ee8663458ce94b
+apk match     yes (d3ee8663458ce94b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      repro apk: 15aa7f5f = app-debug.apk built from c73c32cf (installed 2026-09-25 20:01) (the header's 'apk built' is the repo's own build, not necessarily this one)
+PASS  wake: the device is awake                                   = Awake
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  (3) an on-screen letter header on the songs pivot           != 
+PASS  (3) Music's jump grid is open                               = yes
+      music-grid: music_jump_grid open [0 330 1080 2196], finger moved -60 px [0 330 1043 2196], after UP [0 330 1080 2196]
+PASS  music-grid: the page's bounds are in the dump               != 
+RECORD  music-grid: LEAK (the page moved with the finger down)      yes
+RECORD  (3) Music's jump grid after UP                              yes
+PASS  restore baseline_layout.json: no slot re-assigned on load (C-3)  does not contain [-> assigned]
+PASS  restore baseline_layout.json: addedOnce as the file's (C-3)  = folder:games:v1,folder:office:v1,phase03:cortana,slot:music:v1
+PASS  (4) the burst is open                                       = yes
+      burst: start_page open [0 0 1080 2196], finger moved -60 px [0 0 1080 2196], after UP [0 0 1080 2196]
+PASS  burst: the page's bounds are in the dump                    != 
+RECORD  burst: LEAK (the page moved with the finger down)           no
+RECORD  (4) the burst after UP                                      yes
+PASS  phase 02's baseline restored: no slot re-assigned (C-3)     does not contain [-> assigned]
+------------------------------------------------------------------------------
+L13-2-audit-current-15aa7f5f: 9 passed, 0 failed, 4 recorded
