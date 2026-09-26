@@ -50,12 +50,31 @@ one() { # tag key(4 Back | 3 Home | drawn) interrupt(yes|no)
   done
 }
 
+# The order: two Backs at once from the app list. The second waits for the pivot the first started, then runs as Back
+# on Start (backOnStart always writes a [back] line); it never cuts the pivot short. The fix's first form (b2d44b7d) ran
+# each pivot in a child of the collector, so the second Back came in mid-pivot, restarted it, and Back on Start never
+# ran (review/2026-09-26-L13-345-fix-review-a.md, note 3).
+twice() {
+  adb shell am force-stop $PKG; sleep 1
+  show_start 5
+  to_app_list 2
+  assert_eq "twice: on the app list before the keys" "applist" "$(page twice-0)"
+  local mark; mark="$(ring_mark)"
+  adb shell "input keyevent 4 4"
+  sleep 2
+  ring_since "$mark" > "$ROW_DIR/twice-slice.txt"
+  assert_contains "twice: the second Back ran as Back on Start, after the pivot" "[back] " "$(cat "$ROW_DIR/twice-slice.txt")"
+  assert_absent "twice: no pivot was cut short" "interrupted" "$(cat "$ROW_DIR/twice-slice.txt")"
+  show_start 3
+}
+
 one back-control 4 no
 one back-press 4 yes
 one home-control 3 no
 one home-press 3 yes
 one drawn-control drawn no
 one drawn-tap drawn yes
+twice
 ring_save
 show_start 3
 row_end

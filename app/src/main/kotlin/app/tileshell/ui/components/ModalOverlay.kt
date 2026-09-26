@@ -122,7 +122,8 @@ fun Modifier.overlayItem(onPressedChange: (Boolean) -> Unit, onRun: () -> Unit):
                         // L13-5: Compose ends a gesture whose node leaves (the overlay removed under the finger) with a
                         // synthetic up that arrives already consumed; a real lift reaches the item unconsumed (the root
                         // consumes after its items, in the same Main pass). Only a real lift runs the item, and only
-                        // while its overlay is open: a lift that beats the removal comes after the dismissal.
+                        // while its overlay is open (L13-3): once the OverlayLayer unplaces the overlay the item gets no
+                        // events at all, but a dismissal whose write has not reached layout yet leaves it placed.
                         val lifted = !change.isConsumed
                         change.consume()
                         if (press.lift(onItem, lifted, open = active())) {
@@ -154,7 +155,8 @@ class OverlayItemPress {
     /**
      * The lift: true when it runs the item — the press never ended, the finger is on the item, it is a real lift
      * ([lifted] false: the synthetic end of a gesture whose overlay was removed under the finger, L13-5), and the
-     * overlay is still open ([open] false: it was dismissed under the finger, and the lift came before it left).
+     * overlay is still open ([open] false: it was dismissed under the finger and is still placed, because the write has
+     * not reached layout when the lift is dispatched, L13-3).
      */
     fun lift(onItem: Boolean, lifted: Boolean = true, open: Boolean = true): Boolean {
         val runs = pressed && onItem && lifted && open

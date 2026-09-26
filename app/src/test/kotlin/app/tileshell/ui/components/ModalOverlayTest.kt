@@ -98,8 +98,8 @@ class ModalOverlayTest {
         assertTrue(OverlayItemPress().lift(onItem = true, lifted = true))
     }
 
-    // L13-3: a dismissed overlay stops being placed at once but leaves the composition a frame later; a real lift in
-    // that frame reaches the item it was pressed on. The overlay is closed, so the lift runs nothing.
+    // L13-3: a dismissal whose write has not reached layout yet leaves the overlay placed, so a real lift still reaches
+    // the item it was pressed on. The overlay is closed, so the lift runs nothing.
     @Test
     fun aLiftAfterTheOverlayWasDismissedRunsNothing() {
         val press = OverlayItemPress()
