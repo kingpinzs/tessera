@@ -607,16 +607,26 @@ private fun LongPressMenu(rect: EpxRect, onChoose: (complete: Boolean) -> Unit, 
 
     // R7 §3.6.4: grows upward from a fixed bottom edge, first frame at half height, ease-out over 233 ms. Phase 13
     // (C-5, T13-27): the grow is logged on the shell's own clock, `[motion] reminder_menu`, one value per drawn frame.
-    // t0 is the menu's first frame (drawn at half height), read from the frame clock like every other frame of the trace,
-    // so settle reads R7's "233 ms + one frame" exactly. It used to be the effect's start on the uptime clock, anywhere
-    // inside that frame, and read up to a frame short (phase 13 gate round 2, B-N1; Jeremy's ruling 2026-09-26). The
-    // recorder starts undispatched, so its first frame is the menu's first; the menu's timing is unchanged.
+    // t0 is the frame after the menu's first (half-height) frame — where R7's 233-ms grow counts from — read from the
+    // frame clock like every other frame of the trace, so settle reads 233. It used to be the effect's start on the uptime
+    // clock, anywhere inside the half-height frame (230-246 ms; phase 13 gate round 2, B-N1). Jeremy's ruling 2026-09-26.
+    // The recorder starts undispatched, so its first frame is the menu's first; the half-height frame stays in the trace
+    // (before t0, so it counts for maxGapMs only). The menu's timing is unchanged.
     LaunchedEffect(rect) {
         var trace: MotionTrace? = null
         coroutineScope {
             val frames = launch(start = CoroutineStart.UNDISPATCHED) {
+                var halfHeight: Pair<Long, Float>? = null
                 while (true) withFrameNanos { t ->
-                    (trace ?: MotionTrace("reminder_menu", t / 1_000_000).also { trace = it }).frame(t, grow.value)
+                    val first = halfHeight
+                    if (first == null) {
+                        halfHeight = t to grow.value
+                    } else {
+                        (trace ?: MotionTrace("reminder_menu", t / 1_000_000).also {
+                            trace = it
+                            it.frame(first.first, first.second)
+                        }).frame(t, grow.value)
+                    }
                 }
             }
             grow.animateTo(1f, tween(CortanaUi.MENU_GROW_MS, easing = CortanaEaseOut))

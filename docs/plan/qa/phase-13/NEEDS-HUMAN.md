@@ -52,3 +52,4 @@ effects.
 | 2026-09-26 08:04 MDT | P2, P3, P4, H8, H9 | WAITING FOR PHONE (Jeremy: "B", later) | — |
 | 2026-09-26 09:48 MDT | Open question 1 (E8 reminder-menu timer) | RULED "A": start the timer on the first moving frame, expect 233 ms; the menu unchanged | INDEX Change Log |
 | 2026-09-26 09:55 MDT | Open question 2 (Back-then-hold) | RULED "A, in the background": investigate as its own tracked fix, L13-3 | INDEX ledger |
+| 2026-09-26 10:29 MDT | Open question 1, follow-up | RE-RULED: "233ms or close so less than 250ms" — t0 one frame later, E8 expects 233 +- 17 | INDEX Change Log |
