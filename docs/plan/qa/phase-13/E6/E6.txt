@@ -1,0 +1,27 @@
+==============================================================================
+ROW E6 — the material's noise: 1.5..4 levels, deterministic, gone when acrylic is off
+at            2026-09-25T19:43:37-06:00
+driver        e6.sh blob 4adc6d1516abd49ee6d9a0e9906b392e20b7f67c
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     15aa7f5f3bd76f7d 337942814 bytes
+apk installed d3ee8663458ce94b
+apk match     yes (d3ee8663458ce94b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  Tess's Home page is showing                                 = yes
+PASS  the pane is open                                            = yes
+PASS  precondition: a 40x40 patch whose oracle B is (0,0,0) +- 1 at every pixel (flat backdrop)  != 
+      patch (10,450) 40x40, oracle max |B - Bm| = 0.00
+PASS  on: per-pixel standard deviation in 1.5..4 levels           3.21 vs 2.75 +/- 1.25
+      two captures 1 s apart: mean |diff| 0.00, max 0
+PASS  on: two screencaps 1 s apart are pixel-identical in the patch (max |diff|)  = 0
+RECORD  on: the patch's mean (the noise is centred on the fill)     (14.0,19.0,13.0)
+PASS  battery saver precondition: low_power                       = 1
+PASS  off: acrylic=off reason=battery-saver                       contains [[fluent] acrylic=off reason=battery-saver]
+PASS  off: standard deviation 0 in the same patch                 0.00 vs 0.00 +/- 0.0
+PASS  battery saver off: awake                                    = Awake
+PASS  battery saver off: low_power = 0                            = 0
+------------------------------------------------------------------------------
+E6: 11 passed, 0 failed, 1 recorded

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Phase 13's acrylic-on comparisons against the host oracle (acrylic_expect.py's B), on real captures (T13-2, T13-17).
 
-  flat <closed.png> <Bm:r,g,b> <radius_px> <L:l,t,r,b> <region:l,t,r,b> [<exclude:l,t,r,b> ...]
-      The measured-fill precondition (preamble, Q1 A): the 10 x 10 px patch inside <region>, clear of every <exclude>
+  flat [--size=N] <closed.png> <Bm:r,g,b> <radius_px> <L:l,t,r,b> <region:l,t,r,b> [<exclude:l,t,r,b> ...]
+      The measured-fill precondition (preamble, Q1 A): the N x N px patch (default 10) inside <region>, clear of every <exclude>
       box, whose oracle B (the live backdrop: <closed.png> masked to L, blurred at HWUI's sigma) is within +-1 of Bm in
       every channel at EVERY pixel. Prints "x y maxdev" (the patch's top-left and its worst per-pixel |B - Bm|) of the
       qualifying patch with the smallest maxdev, or nothing when no patch qualifies (the row fails loudly on that).
@@ -45,17 +45,21 @@ def load(path):
 def main():
     cmd = sys.argv[1]
     if cmd == "flat":
-        closed, bm, r, L, region = sys.argv[2], rgb(sys.argv[3]), float(sys.argv[4]), box(sys.argv[5]), box(sys.argv[6])
-        excl = [box(a) for a in sys.argv[7:]]
+        args = sys.argv[2:]
+        n = 10
+        if args[0].startswith("--size="):
+            n = int(args.pop(0).split("=")[1])
+        closed, bm, r, L, region = args[0], rgb(args[1]), float(args[2]), box(args[3]), box(args[4])
+        excl = [box(a) for a in args[5:]]
         B = live_backdrop(closed, L, r)
         dev = np.abs(B - bm).max(axis=2)
         l, t, rr, b = region
         best = None
-        for y in range(t, b - 10 + 1, 2):
-            for x in range(l, rr - 10 + 1, 2):
-                if any(not (x + 10 <= e[0] or x >= e[2] or y + 10 <= e[1] or y >= e[3]) for e in excl):
+        for y in range(t, b - n + 1, 2):
+            for x in range(l, rr - n + 1, 2):
+                if any(not (x + n <= e[0] or x >= e[2] or y + n <= e[1] or y >= e[3]) for e in excl):
                     continue
-                m = dev[y:y + 10, x:x + 10].max()
+                m = dev[y:y + n, x:x + n].max()
                 if m <= 1.0 and (best is None or m < best[2]):
                     best = (x, y, m)
         if best:
