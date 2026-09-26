@@ -65,6 +65,7 @@ import app.tileshell.tiles.Slot
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.ShellRoot
 import app.tileshell.ui.motion.Motion
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
@@ -130,6 +131,9 @@ class StartActivity : ComponentActivity() {
         val pager = rememberPagerState(pageCount = { 2 })
         val scope = rememberCoroutineScope()
 
+        // L13-4: the pivot (and Home's scroll to the top) run in a child of the effect, never inside the collect: a touch
+        // that lands during them cancels the animation, and that cancellation used to end the collect with it, so every
+        // later Back and Home — the drawn keys included — did nothing until the activity was recreated.
         LaunchedEffect(Unit) {
             homeEvents.collect { alreadyInFront ->
                 pickerSlot = null
@@ -138,12 +142,19 @@ class StartActivity : ComponentActivity() {
                 edit.quick.close(app.tileshell.start.CloseReason.HOME)
                 // Windows leaves edit mode when Start is re-entered (X20's sibling; agent).
                 if (edit.active) edit.requestExit()
-                pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
-                if (alreadyInFront) {
-                    // X20 approximation: Home while Start is showing scrolls Start to the top.
-                    scroll.animateScrollTo(0)
+                launch {
+                    try {
+                        pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
+                        if (alreadyInFront) {
+                            // X20 approximation: Home while Start is showing scrolls Start to the top.
+                            scroll.animateScrollTo(0)
+                        }
+                        Diagnostics.add("start", "home: page 0" + if (alreadyInFront) ", scrolled to top" else "")
+                    } catch (interrupted: CancellationException) {
+                        Diagnostics.add("start", "home: pivot interrupted by a touch")
+                        throw interrupted
+                    }
                 }
-                Diagnostics.add("start", "home: page 0" + if (alreadyInFront) ", scrolled to top" else "")
             }
         }
         LaunchedEffect(Unit) {
@@ -155,7 +166,14 @@ class StartActivity : ComponentActivity() {
                     edit.active -> edit.requestExit()
                     edit.expandedFolder != null -> edit.expandedFolder = null
                     pickerSlot != null -> pickerSlot = null
-                    pager.currentPage == 1 -> pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
+                    pager.currentPage == 1 -> launch {
+                        try {
+                            pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
+                        } catch (interrupted: CancellationException) {
+                            Diagnostics.add("start", "back: pivot interrupted by a touch")
+                            throw interrupted
+                        }
+                    }
                     else -> backOnStart()
                 }
             }

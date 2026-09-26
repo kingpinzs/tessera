@@ -88,7 +88,9 @@ import androidx.compose.foundation.layout.size
 import app.tileshell.ui.LocalStartTheme
 import app.tileshell.ui.components.PressRow
 import app.tileshell.ui.components.ROW_PRESS_ALPHA
+import app.tileshell.ui.components.LocalOverlayActive
 import app.tileshell.ui.components.modalOverlay
+import app.tileshell.ui.components.releaseInputWhenDismissed
 import app.tileshell.ui.components.overlayItem
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.Dispatchers
@@ -319,12 +321,15 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
         }
       }
         // The overlays, over the list's own rectangle (the anchors are measured against it), above the backdrop.
+        // L13-3: the box lets input through to the list the moment its overlay is dismissed (a Back writes the state; the
+        // overlay leaves a frame later), and each overlay reads its own open state through LocalOverlayActive.
         Box(
             Modifier
                 .offset { (listInWindow - pageInWindow).round() }
-                .size(with(LocalDensity.current) { DpSize(listSize.width.toDp(), listSize.height.toDp()) }),
+                .size(with(LocalDensity.current) { DpSize(listSize.width.toDp(), listSize.height.toDp()) })
+                .releaseInputWhenDismissed { menu != null || gridOpen },
         ) {
-            CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop) {
+            CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop, LocalOverlayActive provides { menu != null }) {
                 menu?.let { target ->
                     PinToStartMenu(
                         target.anchorPx,
@@ -343,14 +348,16 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
                 }
             }
             if (gridOpen) {
-                JumpGrid(model.cells, onPick = { cell ->
-                    val index = cell.targetIndex
-                    gridOpen = false
-                    if (index != null) {
-                        scope.launch { listState.scrollToItem(index) }
-                        Diagnostics.add("applist", "jump to ${cell.id} (item $index)")
-                    }
-                }, onDismiss = { gridOpen = false })
+                CompositionLocalProvider(LocalOverlayActive provides { gridOpen }) {
+                    JumpGrid(model.cells, onPick = { cell ->
+                        val index = cell.targetIndex
+                        gridOpen = false
+                        if (index != null) {
+                            scope.launch { listState.scrollToItem(index) }
+                            Diagnostics.add("applist", "jump to ${cell.id} (item $index)")
+                        }
+                    }, onDismiss = { gridOpen = false })
+                }
             }
         }
     }

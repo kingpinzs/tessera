@@ -5,10 +5,48 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.isOutOfBounds
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.node.PointerInputModifierNode
+import androidx.compose.ui.unit.IntSize
+
+/**
+ * L13-3: whether the overlay around this point of the tree is still open, read from the state its dismissal writes (the
+ * band's `menu`, a grid's `gridOpen`). A Back only writes that state; the overlay stays placed until the next frame, and a
+ * down in that frame used to land on its stale scrim and be lost. Read at event time, so it is false the moment the state
+ * is written. Provided at each overlay's call site; outside one it is always true (the overlay behaves as before).
+ */
+val LocalOverlayActive = staticCompositionLocalOf<() -> Boolean> { { true } }
+
+/**
+ * L13-3: on the overlay's layout node that is a sibling of the page beneath it (the app list's overlay box, Music's jump
+ * grid), shares pointer input with the siblings below while [active] is false. Compose hit-tests siblings top-down and
+ * stops at the first one hit unless that child shares with its siblings; so in the frame between a dismissal and the
+ * overlay leaving, a down reaches the page beneath too — and the stale scrim and items let it go ([modalOverlay],
+ * [overlayItem]). While the overlay is open it shares nothing: it stays modal (L13-2).
+ */
+fun Modifier.releaseInputWhenDismissed(active: () -> Boolean): Modifier = this then ReleaseWhenDismissedElement(active)
+
+private class ReleaseWhenDismissedElement(val active: () -> Boolean) : ModifierNodeElement<ReleaseWhenDismissedNode>() {
+    override fun create() = ReleaseWhenDismissedNode(active)
+    override fun update(node: ReleaseWhenDismissedNode) {
+        node.active = active
+    }
+    override fun equals(other: Any?) = other is ReleaseWhenDismissedElement && other.active === active
+    override fun hashCode() = System.identityHashCode(active)
+}
+
+private class ReleaseWhenDismissedNode(var active: () -> Boolean) : Modifier.Node(), PointerInputModifierNode {
+    override fun onPointerEvent(pointerEvent: PointerEvent, pass: PointerEventPass, bounds: IntSize) = Unit
+    override fun onCancelPointerInput() = Unit
+    override fun sharePointerInputWithSiblings(): Boolean = !active()
+}
 
 /**
  * L13-2 (review/2026-09-25-L13-2-fix-plan.md, Jeremy's Q1 (A)): an overlay drawn inside a pivot's page — the app list's
@@ -23,9 +61,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 @Composable
 fun Modifier.modalOverlay(onTapOff: () -> Unit): Modifier {
     val tapOff by rememberUpdatedState(onTapOff)
+    val active by rememberUpdatedState(LocalOverlayActive.current)
     return pointerInput(Unit) {
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
+            // L13-3: dismissed but not yet removed — the down is the page's, not this stale overlay's.
+            if (!active()) return@awaitEachGesture
             // An item consumes its own down ([overlayItem]), so a down that arrives consumed is a gesture on an item.
             val tap = OverlayRootTap(downTakenByItem = down.isConsumed, slopPx = viewConfiguration.touchSlop)
             down.consume()
@@ -56,9 +97,12 @@ fun Modifier.modalOverlay(onTapOff: () -> Unit): Modifier {
 fun Modifier.overlayItem(onPressedChange: (Boolean) -> Unit, onRun: () -> Unit): Modifier {
     val pressedChange by rememberUpdatedState(onPressedChange)
     val run by rememberUpdatedState(onRun)
+    val active by rememberUpdatedState(LocalOverlayActive.current)
     return pointerInput(Unit) {
         awaitEachGesture {
             val down = awaitFirstDown()
+            // L13-3: dismissed but not yet removed — leave the down unconsumed for the page beneath.
+            if (!active()) return@awaitEachGesture
             down.consume()
             val press = OverlayItemPress()
             pressedChange(true)
@@ -68,8 +112,12 @@ fun Modifier.overlayItem(onPressedChange: (Boolean) -> Unit, onRun: () -> Unit):
                     val change = event.changes.firstOrNull { it.id == down.id } ?: break
                     val onItem = !change.isOutOfBounds(size, extendedTouchPadding)
                     if (change.changedToUpIgnoreConsumed()) {
+                        // L13-5: Compose ends a gesture whose node leaves (the overlay removed under the finger) with a
+                        // synthetic up that arrives already consumed; a real lift reaches the item unconsumed (the root
+                        // consumes after its items, in the same Main pass). Only a real lift runs the item.
+                        val lifted = !change.isConsumed
                         change.consume()
-                        if (press.lift(onItem)) {
+                        if (press.lift(onItem, lifted)) {
                             pressedChange(false)
                             run()
                         }
@@ -95,9 +143,12 @@ class OverlayItemPress {
         if (!onItem) pressed = false
     }
 
-    /** The lift: true when it runs the item — the press never ended and the finger is on the item. */
-    fun lift(onItem: Boolean): Boolean {
-        val runs = pressed && onItem
+    /**
+     * The lift: true when it runs the item — the press never ended, the finger is on the item, and it is a real lift
+     * ([lifted] false: the synthetic end of a gesture whose overlay was removed under the finger, L13-5).
+     */
+    fun lift(onItem: Boolean, lifted: Boolean = true): Boolean {
+        val runs = pressed && onItem && lifted
         pressed = false
         return runs
     }

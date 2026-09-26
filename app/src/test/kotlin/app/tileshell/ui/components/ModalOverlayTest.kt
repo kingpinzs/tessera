@@ -83,4 +83,18 @@ class ModalOverlayTest {
         val tap = OverlayRootTap(downTakenByItem = true, slopPx = 20f)
         assertFalse(tap.lift())
     }
+
+    // L13-5: Compose ends a gesture whose node leaves (the overlay removed under the finger, e.g. by Back) with a
+    // synthetic, consumed up. It is not a lift: holding Pin to Start and pressing Back pinned the app.
+    @Test
+    fun theOverlayRemovedUnderTheFingerRunsNothing() {
+        val press = OverlayItemPress()
+        assertFalse("the removal's synthetic up is not a lift", press.lift(onItem = true, lifted = false))
+        assertFalse(press.pressed)
+    }
+
+    @Test
+    fun aRealLiftStillRunsTheItem() {
+        assertTrue(OverlayItemPress().lift(onItem = true, lifted = true))
+    }
 }
