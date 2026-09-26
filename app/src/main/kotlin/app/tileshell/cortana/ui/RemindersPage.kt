@@ -11,7 +11,6 @@ import app.tileshell.ui.fluent.rememberAcrylicBackdrop
 import androidx.compose.runtime.CompositionLocalProvider
 import app.tileshell.ui.MotionTrace
 import app.tileshell.diag.Diagnostics
-import android.os.SystemClock
 import kotlinx.coroutines.coroutineScope
 import androidx.compose.runtime.withFrameNanos
 import android.content.Context
@@ -80,6 +79,7 @@ import app.tileshell.cortana.reminders.ReminderText
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -607,15 +607,23 @@ private fun LongPressMenu(rect: EpxRect, onChoose: (complete: Boolean) -> Unit, 
 
     // R7 §3.6.4: grows upward from a fixed bottom edge, first frame at half height, ease-out over 233 ms. Phase 13
     // (C-5, T13-27): the grow is logged on the shell's own clock, `[motion] reminder_menu`, one value per drawn frame.
+    // t0 is the menu's first frame (drawn at half height), read from the frame clock like every other frame of the trace,
+    // so settle reads R7's "233 ms + one frame" exactly. It used to be the effect's start on the uptime clock, anywhere
+    // inside that frame, and read up to a frame short (phase 13 gate round 2, B-N1; Jeremy's ruling 2026-09-26). The
+    // recorder starts undispatched, so its first frame is the menu's first; the menu's timing is unchanged.
     LaunchedEffect(rect) {
-        val trace = MotionTrace("reminder_menu", SystemClock.uptimeMillis())
+        var trace: MotionTrace? = null
         coroutineScope {
-            val frames = launch { while (true) withFrameNanos { trace.frame(it, grow.value) } }
+            val frames = launch(start = CoroutineStart.UNDISPATCHED) {
+                while (true) withFrameNanos { t ->
+                    (trace ?: MotionTrace("reminder_menu", t / 1_000_000).also { trace = it }).frame(t, grow.value)
+                }
+            }
             grow.animateTo(1f, tween(CortanaUi.MENU_GROW_MS, easing = CortanaEaseOut))
-            withFrameNanos { trace.frame(it, grow.value) }
+            withFrameNanos { t -> trace?.frame(t, grow.value) }
             frames.cancel()
         }
-        Diagnostics.add("motion", trace.message())
+        trace?.let { Diagnostics.add("motion", it.message()) }
     }
 
     // R7 §3.6.6: the pressed item shows for 5 frames (≈83 ms), then the menu fades out over 67–83 ms.
