@@ -464,11 +464,10 @@ private fun PivotPage(
                 }
             }
         }
-        // L13-3: the grid is drawn in an OverlayLayer, which stops placing it the moment it is dismissed; its dismissal
-        // (Back, a tap off the cells) is applied at once, so a touch right after it reaches the list.
+        // L13-3: the grid is drawn in an OverlayLayer, which stops placing it the moment it is dismissed.
         OverlayLayer(active = { gridOpen }) {
             if (gridOpen) {
-                JumpGrid(page.jump, onDismiss = { dismissOverlay { gridOpen = false } }) { index ->
+                JumpGrid(page.jump, onDismiss = { gridOpen = false }) { index ->
                     gridOpen = false
                     scope.launch { list.scrollToItem(index) }
                 }
@@ -775,7 +774,8 @@ private fun AlbumArt(art: ImageBitmap?) {
 @Composable
 private fun JumpGrid(targets: List<JumpTarget>, onDismiss: () -> Unit, onPick: (Int) -> Unit) {
     val colors = LocalShellColors.current
-    BackHandler(enabled = true, onBack = onDismiss)
+    // L13-3: a Back is applied at once, so a touch right after it is not hit-tested against the grid it closed.
+    BackHandler(enabled = true) { dismissOverlay(onDismiss) }
     Box(
         Modifier
             .fillMaxSize()
