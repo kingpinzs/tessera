@@ -31,6 +31,8 @@ import androidx.compose.ui.draw.drawWithContent
 import android.os.SystemClock
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.components.ROW_PRESS_ALPHA
+import app.tileshell.ui.components.modalOverlay
+import app.tileshell.ui.components.overlayItem
 import app.tileshell.ui.tokens.ShellType
 import kotlin.math.roundToInt
 
@@ -94,7 +96,8 @@ fun HoldRow(
  * that was held ([anchorPx], in this overlay's coordinates) and kept inside the overlay.
  *
  * A tap anywhere off the band dismisses it; the band's own items consume their taps, so picking one does not
- * also read as a tap outside. Back is handled by the caller.
+ * also read as a tap outside. Back is handled by the caller. The band is modal ([modalOverlay], L13-2): a drag that
+ * starts on it or off it moves nothing under it — not the list, not Start's pivot around the app list's page.
  */
 @Composable
 fun PinToStartMenu(
@@ -120,12 +123,7 @@ fun PinToStartMenu(
         Modifier
             .fillMaxSize()
             .testTag("applist_menu_scrim")
-            .pointerInput(onDismiss) {
-                awaitEachGesture {
-                    awaitFirstDown()
-                    if (waitForUpOrCancellation() != null) onDismiss()
-                }
-            },
+            .modalOverlay(onTapOff = onDismiss),
     ) {
         Layout(
             content = {
@@ -175,19 +173,9 @@ private fun MenuItem(label: String, tag: String, onClick: () -> Unit) {
     Box(
         Modifier
             .fillMaxWidth()
-            .pointerInput(onClick) {
-                awaitEachGesture {
-                    // Consumed so the scrim behind the band does not read this tap as a tap outside.
-                    awaitFirstDown().consume()
-                    pressed = true
-                    val up = waitForUpOrCancellation()
-                    pressed = false
-                    if (up != null) {
-                        up.consume()
-                        onClick()
-                    }
-                }
-            }
+            // L13-2: held while the finger stays on the item, ended when it leaves, run by a lift on it; its consumed
+            // down keeps the scrim behind the band from reading this tap as a tap outside.
+            .overlayItem(onPressedChange = { pressed = it }, onRun = onClick)
             .background(if (pressed) Color.White.copy(alpha = ROW_PRESS_ALPHA) else Color.Transparent)
             // Phase 13 (Q3 B): the ring and the radial light over the pressed fill, under the label.
             .revealLights()
