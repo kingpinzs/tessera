@@ -5,9 +5,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,7 +41,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -91,6 +87,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import app.tileshell.ui.LocalStartTheme
 import app.tileshell.ui.components.PressRow
+import app.tileshell.ui.components.ROW_PRESS_ALPHA
+import app.tileshell.ui.components.modalOverlay
+import app.tileshell.ui.components.overlayItem
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -611,12 +610,9 @@ private fun JumpGrid(cells: List<JumpCell>, onPick: (JumpCell) -> Unit, onDismis
             .fillMaxSize()
             .background(colors.background.copy(alpha = AppListMetrics.GRID_SCRIM_ALPHA))
             .testTag("jump_grid")
-            .pointerInput(Unit) {
-                awaitEachGesture {
-                    awaitFirstDown()
-                    if (waitForUpOrCancellation() != null) onDismiss()
-                }
-            },
+            // L13-2: modal inside Start's pivot page — a drag on the grid never moves the pivot; a tap off the cells
+            // dismisses it.
+            .modalOverlay(onTapOff = onDismiss),
     ) {
         Column(Modifier.padding(start = AppListMetrics.ICON_X)) {
             for (row in cells.chunked(AppListMetrics.GRID_COLUMNS)) {
@@ -646,7 +642,18 @@ private fun JumpCellView(cell: JumpCell, onPick: (JumpCell) -> Unit) {
             )
         }
     }
-    if (enabled) PressRow({ onPick(cell) }, modifier) { content() } else Box(modifier) { content() }
+    if (enabled) {
+        // L13-2: the band item's press rule (held on the cell, ended when the finger leaves, picked by a lift on it),
+        // with PressRow's X19 highlight.
+        var pressed by remember { mutableStateOf(false) }
+        Box(
+            modifier
+                .overlayItem(onPressedChange = { pressed = it }, onRun = { onPick(cell) })
+                .background(if (pressed) Color.White.copy(alpha = ROW_PRESS_ALPHA) else Color.Transparent),
+        ) { content() }
+    } else {
+        Box(modifier) { content() }
+    }
 }
 
 /**
