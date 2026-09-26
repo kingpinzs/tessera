@@ -56,3 +56,13 @@ captures it needs attached.
 Write your report to `docs/plan/review/2026-09-26-phase13-gate-<a|b>.md` (the letter you were given). Findings are
 BLOCKING (a criterion unmet or unproven, a product defect) or NON-BLOCKING, each with the file and line or row and
 check that shows it. End with one line: `VERDICT: PASS` or `VERDICT: FAIL`. Do not edit any other file.
+
+## Round 2 (added 2026-09-26, after round 1's triage)
+
+Round 1's reports (`2026-09-26-phase13-gate-a.md`, `-b.md`) and the triage (`2026-09-26-phase13-gate-triage.md`) are
+inputs now: read the triage and both round-1 reports. The builds changed: apk **509f6e49** = the build of **a7ef430b**
+(the cancellation fix) is the current build; E1, E2, E4, E8, E9, E10, E12, E13, EDGE_RAPID, EDGE_NO_IMAGE,
+EDGE_LIGHT and the B1_PROBE rows ran on it; the rest stand where the INDEX Change Log's "PHASE 13 GATE ROUND 1" line says.
+For each round-1 BLOCKING finding, judge whether it is resolved by the evidence, not by the triage's word. Then re-judge
+the gate as a whole under your lens: anything the fixes broke, anything round 1 missed. Report to
+`2026-09-26-phase13-gate-r2-<a|b>.md`, same format, same last line.
