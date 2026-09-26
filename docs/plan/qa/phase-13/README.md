@@ -12,7 +12,7 @@ here). All rows on AVD tileshell_fhd, emulator-5554.
 | E2 | PASS 22/22 (+2 recorded) | `E2/E2.txt`, `E2/profile-*.txt` | edge spread 130.2 px (FHD+) / 94.4 px (720 wide); profiles within 2.7 / 1.5 levels of the host oracle |
 | E3 | PASS 34/0 (+1 recorded) | `E3/E3.txt` | apk 15aa7f5f; the fixture attaches the photo through the product (L13-1 fixed); `E3-run1-label/` = the first run (two assertion labels differed) |
 | E4 | PASS 48/0 | `E4/E4.txt` | apk 15aa7f5f; adds a noise discriminator to (1) and (3), whose 0.2*B sits within +-4 of the solid fill; `E4-run1-nodiscriminator/` = the run before it |
-| E5 | PASS 28/0, live sub-step NOT RUN | `E5/E5.txt` | apk 15aa7f5f; the live sub-step needs Tess listening = the host microphone on these AVDs: waiting on Jeremy |
+| E5 | PASS 45/0 (+1 recorded) | `E5/E5.txt` | apk 15aa7f5f; live sub-step run (Jeremy allowed the mic), threshold re-cut to max per-pixel change >= 1 (INDEX Change Log); earlier runs kept: E5-run1-nolive/, E5-run2-driver-abort/, E5-run3-dump-late/, E5-run4-threshold/ |
 | E6 | PASS 11/0 (+1 recorded) | `E6/E6.txt` | noise std 3.21 levels, pixel-identical 1 s apart, 0 when off |
 | E7 | 139/5 — BLOCKED (L13-2) | `E7/E7.txt` | (d): the sideways MOVE drags Start's pivot under the open band (L13-2, INDEX ledger); 1 FAIL was a driver fault (the Settings-row control's patch lay on its subtitle), fixed in `e7.sh`, not re-run |
 | L13-2 repro | defect present on both | `L13-2-pre13-1ee619f8/`, `L13-2-current-15aa7f5f/` | `scripts/l13_2_repro.sh`; `L13-2-runs-unlabelled/` = the same runs before the repro APK was named in the log |
