@@ -1,0 +1,19 @@
+==============================================================================
+ROW EDGE_NO_IMAGE — phase 13 edge case: no_image
+at            2026-09-26T00:40:28-06:00
+driver        edge.sh blob 59eaa5f53d99712b58367f1a025c09de41826067
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  the app list shows                                          = yes
+PASS  no static layer: no static backdrop rebuilt line            does not contain [static backdrop rebuilt]
+PASS  and no failure line (there is no picture to fail)           does not contain [static backdrop failed]
+PASS  the solid theme background (0,0,0) (worst px, E2's strip x 675..945, 9 rows)  0.00 vs 0.00 +/- 2.0
+RECORD  E10's memory figure for this state is its A (qa/phase-13/E10)  see E10
+------------------------------------------------------------------------------
+EDGE_NO_IMAGE: 5 passed, 0 failed, 1 recorded

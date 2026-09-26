@@ -1,0 +1,62 @@
+==============================================================================
+ROW E12 — diagnostics: every surface's show line in its own saved slice, E1's reasons in step order
+at            2026-09-26T00:35:33-06:00
+driver        e12.sh blob 44109f5f8ec8a73565dedc3146c90c31f8062595
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  E1 ran on the current build                                 = db078d6a
+PASS  E1's own run had no FAIL                                    = 0
+PASS  E2 ran on the current build                                 = db078d6a
+PASS  E2's own run had no FAIL                                    = 0
+PASS  E4 ran on the current build                                 = db078d6a
+PASS  E4's own run had no FAIL                                    = 0
+PASS  E3 ran on 15aa7f5f (the diff below does not touch it)       = 15aa7f5f
+PASS  E3's own run had no FAIL                                    = 0
+PASS  E5 ran on 15aa7f5f (the diff below does not touch it)       = 15aa7f5f
+PASS  E5's own run had no FAIL                                    = 0
+      app files changed c73c32cf..3448c92f: app/src/main/kotlin/app/tileshell/applist/AppListMenu.kt app/src/main/kotlin/app/tileshell/applist/AppListPage.kt app/src/main/kotlin/app/tileshell/music/MusicCollectionPage.kt app/src/main/kotlin/app/tileshell/ui/components/ModalOverlay.kt app/src/main/kotlin/app/tileshell/ui/fluent/StaticBackdrop.kt app/src/test/kotlin/app/tileshell/ui/components/ModalOverlayTest.kt 
+PASS  the 15aa7f5f -> db078d6a diff is L13-2's five files and StaticBackdrop.kt only (no pane or reminder-menu code)  = app/src/main/kotlin/app/tileshell/applist/AppListMenu.kt app/src/main/kotlin/app/tileshell/applist/AppListPage.kt app/src/main/kotlin/app/tileshell/music/MusicCollectionPage.kt app/src/main/kotlin/app/tileshell/ui/components/ModalOverlay.kt app/src/main/kotlin/app/tileshell/ui/fluent/StaticBackdrop.kt app/src/test/kotlin/app/tileshell/ui/components/ModalOverlayTest.kt 
+PASS  E1 slice-1b-applist-show.txt is saved                       = yes
+PASS  E1 slice-1b-applist-show.txt: the applist show line         contains [[fluent] applist source=static tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  E2 slice-applist-show-fhd.txt is saved                      = yes
+PASS  E2 slice-applist-show-fhd.txt: the applist show line        contains [[fluent] applist source=static tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  E2 slice-applist-show-hd.txt is saved                       = yes
+PASS  E2 slice-applist-show-hd.txt: the applist show line         contains [[fluent] applist source=static tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  E3 slice-menu-tomorrow.txt is saved                         = yes
+PASS  E3 slice-menu-tomorrow.txt: the reminder_menu show line     contains [[fluent] reminder_menu source=live tint=(47,45,47) alpha=0.8 blur=30epx]
+PASS  E3 slice-menu-photo.txt is saved                            = yes
+PASS  E3 slice-menu-photo.txt: the reminder_menu show line        contains [[fluent] reminder_menu source=live tint=(47,45,47) alpha=0.8 blur=30epx]
+PASS  E4 slice-applist-menu.txt is saved                          = yes
+PASS  E4 slice-applist-menu.txt: the applist_menu show line       contains [[fluent] applist_menu source=live tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  E4 slice-music-menu-pivot.txt is saved                      = yes
+PASS  E4 slice-music-menu-pivot.txt: the music_menu show line     contains [[fluent] music_menu source=live tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  E4 slice-music-menu-nowplaying.txt is saved                 = yes
+PASS  E4 slice-music-menu-nowplaying.txt: the music_menu show line  contains [[fluent] music_menu source=live tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  E5 slice-pane-home.txt is saved                             = yes
+PASS  E5 slice-pane-home.txt: the cortana_pane show line          contains [[fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx]
+PASS  E5 slice-pane-reminders.txt is saved                        = yes
+PASS  E5 slice-pane-reminders.txt: the cortana_pane show line     contains [[fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx]
+PASS  E1 slice-1-start is saved                                   = yes
+PASS  E1 step 1-start: acrylic=on reason=none                     contains [[fluent] acrylic=on reason=none]
+PASS  E1 step 1-start comes after the step before it              = yes
+PASS  E1 slice-2-battery-saver is saved                           = yes
+PASS  E1 step 2-battery-saver: acrylic=off reason=battery-saver   contains [[fluent] acrylic=off reason=battery-saver]
+PASS  E1 step 2-battery-saver comes after the step before it      = yes
+PASS  E1 slice-3-saver-off is saved                               = yes
+PASS  E1 step 3-saver-off: acrylic=on reason=none                 contains [[fluent] acrylic=on reason=none]
+PASS  E1 step 3-saver-off comes after the step before it          = yes
+PASS  E1 slice-4-switch-off is saved                              = yes
+PASS  E1 step 4-switch-off: acrylic=off reason=setting            contains [[fluent] acrylic=off reason=setting]
+PASS  E1 step 4-switch-off comes after the step before it         = yes
+PASS  E1 slice-5-switch-on is saved                               = yes
+PASS  E1 step 5-switch-on: acrylic=on reason=none                 contains [[fluent] acrylic=on reason=none]
+PASS  E1 step 5-switch-on comes after the step before it          = yes
+PASS  E1 slice-6-disable-window-blurs is saved                    = yes
+PASS  E1 step 6 (disable_window_blurs): no acrylic=off line       does not contain [acrylic=off]
+------------------------------------------------------------------------------
+E12: 48 passed, 0 failed, 0 recorded

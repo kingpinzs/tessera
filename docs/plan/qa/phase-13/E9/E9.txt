@@ -1,18 +1,21 @@
 ==============================================================================
 ROW E9 — frame cost: the live source (reminder menu x20) and the static source (pivot x20), recorded
-at            2026-09-25T23:57:09-06:00
-driver        e9.sh blob 4bfbd397199f247fa64d3149b9cf574439f79a20
+at            2026-09-26T02:03:03-06:00
+driver        e9.sh blob 335222f8506f671a9456f1db5f00f94d7878f91a
 harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
-apk built     120e52ecee4c7ae7 337942814 bytes
-apk installed 52fac1c5ca0f29d1
-apk match     yes (52fac1c5ca0f29d1)
+apk built     509f6e49387ec9c9 337595086 bytes
+apk installed e972d54629b943bc
+apk match     yes (e972d54629b943bc)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-RECORD  total frames rendered                                       3540
-RECORD  janky frames                                                116 (3.28%)
+RECORD  total frames rendered                                       3551
+RECORD  janky frames                                                112 (3.15%)
 RECORD  99th percentile                                             24ms
-RECORD  90th percentile                                             18ms
+RECORD  90th percentile                                             19ms
+RECORD  reminder_menu show lines (the 20 opens)                     20
+RECORD  [motion] pivot lines (the 20 swipes)                        20
+RECORD  the fixture reminder's id                                   012cd77c-9e20-4496-b7e2-2e3485c6572d
 ------------------------------------------------------------------------------
-E9: 0 passed, 0 failed, 4 recorded
-E9: recorded only (4 facts)
+E9: 0 passed, 0 failed, 7 recorded
+E9: recorded only (7 facts)

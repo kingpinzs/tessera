@@ -1,0 +1,70 @@
+==============================================================================
+ROW E4 — the app-list hold band and the Music menus: 0.2 x the blurred page under them, text sharp, solid when off
+at            2026-09-26T00:13:35-06:00
+driver        e4.sh blob 51980ed83e2820f44b41cd10cacadbf1a1608602
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  (1) app_list is in the dump                                 != 
+PASS  (1) an app row to hold                                      != 
+      (1) holding applist_row:deckers.thibault.aves.libre at (540,1206)
+PASS  (1) applist_menu is in the dump                             != 
+PASS  (1) acrylic:applist_menu has the band's bounds              = 0 1272 1080 1524
+PASS  (1) the show line                                           contains [[fluent] applist_menu source=live tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  (1) Back closed the band                                    = no
+PASS  (1) the band's labels end left of x = 400                   = yes
+      (1) profile rows 1282..1514, x 400..1070: worst at x=1063 judged=(2.8,2.8,2.8) expected=(1.9,1.9,1.9)
+PASS  (1) band profile = 0.2*B (worst column-mean |diff|)         1.00 vs 0.00 +/- 4.0
+      (1) patches: worst at 850,1504 judged=(4.9,4.9,4.9) expected=(4.1,4.1,4.1)
+PASS  (1) band patch means = 0.2*B (worst |diff|, 12 patches)     0.80 vs 0.00 +/- 4.0
+PASS  (1) the band carries the material's noise (std of 40x40, 1..4; solid = 0)  3.12 vs 2.50 +/- 1.5
+PASS  (1) the band's 'Pin to Start' text edge is sharp            0.80 vs 1.00 +/- 1.0
+PASS  battery saver precondition: low_power                       = 1
+PASS  (1) off: the band opened at the same place                  = 0 1272 1080 1524
+PASS  (1) off: the band reads (0,0,0) right of its labels (worst px)  0.00 vs 0.00 +/- 1.0
+PASS  (1) battery saver off: awake                                = Awake
+PASS  (1) battery saver off: low_power = 0                        = 0
+      pivot -> playlists (settled after 0s, diagnostics say [playlists])
+PASS  (2) the playlists pivot starts with no playlists            = 0
+PASS  (2) three playlists made                                    = 3
+PASS  (2) music_root (the backdrop child's bounds) is in the dump  != 
+PASS  (2) music_menu is in the dump                               != 
+PASS  (2) acrylic:music_menu has the band's bounds                = 0 744 1080 996
+PASS  (2) the show line                                           contains [[fluent] music_menu source=live tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  (2) Back closed the menu                                    = no
+      (2) squares from the closed capture: held row [15 617 138 740], next row [15 749 138 872]; menu [0 744 1080 996]
+PASS  (2) the next row's square intersects the menu               = yes
+PASS  (2) >= 8 rows inside the square under the menu, clear of its labels  = yes
+      (2) profile rows 841..869 across the square's right edge x=138 (x 0..298): worst at x=58 judged=(2.8,18.0,31.0) expected=(0.7,16.7,29.4)
+PASS  (2) the square's edge under the menu = 0.2*B (worst column-mean |diff|)  2.10 vs 0.00 +/- 4.0
+      (2) held row's square: steepest step at x=137 (its right edge is 138)
+PASS  (2) the held row's own square, outside the menu, is sharp   0.80 vs 1.00 +/- 1.0
+PASS  battery saver precondition: low_power                       = 1
+PASS  (2) off: the menu opened at the same place                  = 0 744 1080 996
+PASS  (2) off: over the square, the theme background (worst px)   0.00 vs 0.00 +/- 1.0
+PASS  (2) off: right of the labels, the theme background (worst px)  0.00 vs 0.00 +/- 1.0
+PASS  (2) battery saver off: awake                                = Awake
+PASS  (2) battery saver off: low_power = 0                        = 0
+PASS  (2) restore: the three playlists are deleted                = 0
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  (3) there is a song to open                                 != 
+PASS  (3) the now-playing screen is open                          = yes
+PASS  (3) music_menu is in the dump                               != 
+PASS  (3) acrylic:music_menu has music_menu's bounds              = 0 1597 1080 1975
+PASS  (3) the show line                                           contains [[fluent] music_menu source=live tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  (3) Back closed the band, now-playing stays                 = no yes
+      (3) patches: worst at 800,1629 judged=(1.5,1.5,1.5) expected=(0.0,0.0,0.0)
+PASS  (3) band patch means = 0.2*B (worst |diff|, 10 patches)     1.50 vs 0.00 +/- 4.0
+PASS  (3) the band carries the material's noise (std of 40x40, 1..4; solid = 0)  1.77 vs 2.50 +/- 1.5
+PASS  battery saver precondition: low_power                       = 1
+PASS  (3) off: the band opened at the same place                  = 0 1597 1080 1975
+PASS  (3) off: the band reads the theme background right of its labels (worst px)  0.00 vs 0.00 +/- 1.0
+PASS  (3) battery saver off: awake                                = Awake
+PASS  (3) battery saver off: low_power = 0                        = 0
+------------------------------------------------------------------------------
+E4: 48 passed, 0 failed, 0 recorded

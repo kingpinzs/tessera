@@ -1,0 +1,28 @@
+==============================================================================
+ROW B1_PROBE-after-509f6e49-1 — a cancelled static build is not a failure: off / on / off in ~60 ms, then on
+at            2026-09-26T01:42:14-06:00
+driver        b1_probe.sh blob a7adcf4b34a0deae5df317f59897560a76c5046c
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     509f6e49387ec9c9 337595086 bytes
+apk installed e972d54629b943bc
+apk match     yes (e972d54629b943bc)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+      scroll_to_node theme_transparency_effects: 1 swipe(s), found=yes
+PASS  the switch is on screen                                     != 
+2026-09-26 01:42:48.656 wall=1790408568656 [fluent] acrylic=off reason=setting
+2026-09-26 01:42:48.731 wall=1790408568731 [fluent] acrylic=on reason=none
+2026-09-26 01:42:48.800 wall=1790408568800 [fluent] acrylic=off reason=setting
+2026-09-26 01:42:50.824 wall=1790408570824 [fluent] acrylic=on reason=none
+2026-09-26 01:42:50.908 wall=1790408570908 [fluent] static backdrop rebuilt for content://media/external/images/media/155 in 34 ms
+RECORD  acrylic lines after the MARK                                4
+PASS  the switch ends On                                          = true
+PASS  no static backdrop failed line (a cancel is not a failure)  does not contain [static backdrop failed]
+      last acrylic=on wall=1790408570824, last rebuilt wall=1790408570908
+PASS  a rebuilt line after the last on                            = yes
+PASS  back on the app list                                        = yes
+PASS  the app list is blurred (E1's band)                         134.00 vs 134.50 +/- 26.9
+------------------------------------------------------------------------------
+B1_PROBE-after-509f6e49-1: 7 passed, 0 failed, 1 recorded
