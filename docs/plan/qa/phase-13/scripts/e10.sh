@@ -51,14 +51,28 @@ toggle_to true
 assert_eq "(1) back On" "true" "$(transparency_state)"
 
 # ---- (2) memory, one process
+# The checker goes into MediaStore BEFORE A: phase 01's Photos tile shows the newest pictures, so a picture pushed
+# after A adds a Photos face that stays until the file is deleted — memory that is not the Start background's. The
+# first two runs measured it into A2 (+12.7 MB; E10_DIAG: `[photos] refresh (mediastore change) photos=7` at the push,
+# 6 again only when the file went), so A, B, C and A2 now differ only in the Start background and the switch.
+python3 "$P13/make_fixtures.py" checker "$ROW_DIR/checker.png" 1080 2340 >/dev/null
+push_picture "$ROW_DIR/checker.png" "$CHECKER_PATH" >/dev/null
 adb shell am force-stop $PKG; sleep 2
 show_start 7
 P0="$(pid)"
+# A takes the same Settings route B, C and A2 take (Start + theme opened, the picker opened and cancelled, Back), so the
+# code those pages load is in every figure and only the Start background differs (the Settings round trip alone
+# costs 1.8 MB: E10_DIAG M0 -> M1; the run before this one measured it into A2 - A = 4.4 MB).
+theme_tap theme_background_choose
+sleep 2.5
+adb shell input keyevent KEYCODE_BACK; sleep 1.5
+leave_settings
+assert_absent "(2) the cancelled picker set no background" 'name="background"' "$(adb shell run-as $PKG cat shared_prefs/start_theme.xml)"
 warm
-A="$(pss)"; record "(2) A: no picture (KB)" "$A"
+assert_contains "(2) the Photos tile already counts the checker (MediaStore holds it before A)" "photos=" "$(diag photos | tail -1)"
+record "(2) the Photos feed before A" "$(diag photos | tail -1 | sed 's/.*\[photos\] //')"
+A="$(pss)"; record "(2) A: no picture as the Start background (KB)" "$A"
 toggle_to false
-python3 "$P13/make_fixtures.py" checker "$ROW_DIR/checker.png" 1080 2340 >/dev/null
-push_picture "$ROW_DIR/checker.png" "$CHECKER_PATH" >/dev/null
 theme_tap theme_background_choose
 sleep 2.5
 adb shell input swipe 540 850 540 150 400; sleep 2

@@ -35,8 +35,10 @@ assert_absent "no static backdrop rebuilt line" "static backdrop rebuilt" "$(cat
 dump_ui "$ROW_DIR/applist-after.xml"
 assert_eq "the app list shows" "yes" "$(has_node "$ROW_DIR/applist-after.xml" app_list)"
 screencap "$ROW_DIR/after.png"
-assert_within "after: E2's strip reads the theme background (0,0,0) (worst px over the full width, 9 rows)" 0 \
-  "$(python3 "$P13/acrylic_check.py" opaque "$ROW_DIR/after.png" 0 $(( Y - 4 )) 1080 9 0,0,0)" 2
+# E2's strip is x 675..945 (the text-free span applist_strip found): the full width crosses the rows' icons at x 15..137
+# (the first run's FAIL, 202 = an icon, kept in E13-run1-fullwidth-120e52ec/).
+assert_within "after: E2's strip reads the theme background (0,0,0) (worst px, x 675..945, 9 rows)" 0 \
+  "$(python3 "$P13/acrylic_check.py" opaque "$ROW_DIR/after.png" 675 $(( Y - 4 )) 271 9 0,0,0)" 2
 read -r W A B <<< "$(python3 "$P13/edge.py" edge "$ROW_DIR/after.png" $(( Y - 4 )) $(( Y + 4 )) 675 945)"
 note "after: edge probe across x=810: width=$W plateaus=$A/$B"
 assert_eq "after: no checker edge in the strip (flat: plateaus within 1 level)" yes "$(python3 -c "print('yes' if abs($A-$B) <= 1 else 'no')")"
