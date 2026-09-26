@@ -1,0 +1,41 @@
+==============================================================================
+ROW E2 — the app list's backdrop is blurred, its rows are not; the wallpaper on Start stays sharp
+at            2026-09-26T01:53:44-06:00
+driver        e2.sh blob 961a94e1012996ae210e199c1e11ac6543d9dda3
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     509f6e49387ec9c9 337595086 bytes
+apk installed e972d54629b943bc
+apk match     yes (e972d54629b943bc)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      fhd Start gap y=1536 steepest step at x=188
+PASS  fhd: the wallpaper on Start is not blurred in place (edge <= 2 px)  1.30 vs 1.00 +/- 1.0
+PASS  fhd: acrylic:applist is in the dump                         != 
+RECORD  fhd: acrylic:applist reported bounds (uncovered part) / app_list  0 0 1080 180 / 0 0 1080 2196
+PASS  fhd: acrylic:applist lies inside the page                   = yes
+PASS  fhd: a text-free strip on a square-centre row               != 
+      fhd strip y=333 x=675..945 width=130.2 plateaus=52.7/2.1 expected=134.5
+PASS  fhd: edge spread = 2.563 sigma(r=90 px) +- 20 %             130.20 vs 134.50 +/- 26.9
+PASS  fhd: the strip's profile = 0.2 x the host-blurred checker (worst |diff|)  2.70 vs 0.00 +/- 3.0
+PASS  fhd: the A header's glyph edge is sharp                     1.60 vs 1.00 +/- 1.0
+PASS  fhd: an app name's text edge is sharp                       0.70 vs 1.00 +/- 1.0
+PASS  off: acrylic:applist still present                          = yes
+PASS  off: the edge is sharp                                      0.80 vs 1.00 +/- 1.0
+PASS  off: x=675 reads 0.2 x the fixture (51)                     51.00 vs 51.00 +/- 3.0
+PASS  off: x=945 reads 0.2 x the fixture (0)                      0.00 vs 0.00 +/- 3.0
+      hd Start gap y=1024 steepest step at x=125
+PASS  hd: the wallpaper on Start is not blurred in place (edge <= 2 px)  1.30 vs 1.00 +/- 1.0
+PASS  hd: acrylic:applist is in the dump                          != 
+RECORD  hd: acrylic:applist reported bounds (uncovered part) / app_list  0 0 720 120 / 0 0 720 1464
+PASS  hd: acrylic:applist lies inside the page                    = yes
+PASS  hd: a text-free strip on a square-centre row                != 
+      hd strip y=222 x=450..630 width=94.4 plateaus=50.3/1.4 expected=90.1
+PASS  hd: edge spread = 2.563 sigma(r=60 px) +- 20 %              94.40 vs 90.10 +/- 18.0
+PASS  hd: the strip's profile = 0.2 x the host-blurred checker (worst |diff|)  1.50 vs 0.00 +/- 3.0
+PASS  hd: the A header's glyph edge is sharp                      1.50 vs 1.00 +/- 1.0
+PASS  hd: an app name's text edge is sharp                        0.90 vs 1.00 +/- 1.0
+PASS  wm size restored                                            contains [Physical size: 1080x2340]
+PASS  wm size override gone                                       does not contain [Override size]
+------------------------------------------------------------------------------
+E2: 22 passed, 0 failed, 2 recorded

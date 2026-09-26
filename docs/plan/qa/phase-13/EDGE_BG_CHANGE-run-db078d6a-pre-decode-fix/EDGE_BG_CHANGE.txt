@@ -1,0 +1,32 @@
+==============================================================================
+ROW EDGE_BG_CHANGE — phase 13 edge case: bg_change
+at            2026-09-26T00:55:26-06:00
+driver        edge.sh blob 5938186d3be01d0bdffdd9ff85555aa3f8107755
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  a text-free strip on a square-centre row                    != 
+PASS  control: the checker shows blurred on the app list          134.00 vs 134.50 +/- 26.9
+PASS  the grey picture is in MediaStore                           != 
+      scroll_to_node theme_background_choose: 0 swipe(s), found=yes
+PASS  the picker shows the pushed picture (newest)                != 
+PASS  changed: back on the app list                               = yes
+PASS  changed: the static layer is rebuilt for the new picture (media 149)  contains [/media/149 in ]
+PASS  changed: patch at x=685 reads 0.2 x 128 (no stale checker)  26.20 vs 25.60 +/- 3.0
+PASS  changed: patch at x=760 reads 0.2 x 128 (no stale checker)  26.60 vs 25.60 +/- 3.0
+PASS  changed: patch at x=850 reads 0.2 x 128 (no stale checker)  26.30 vs 25.60 +/- 3.0
+PASS  changed: patch at x=925 reads 0.2 x 128 (no stale checker)  26.10 vs 25.60 +/- 3.0
+      changed: probe across x=810: width=none plateaus=24.6/24.8
+PASS  changed: no checker edge left at x=810 (plateaus within 1 level)  = yes
+      scroll_to_node theme_background_remove: 0 swipe(s), found=yes
+PASS  removed: back on the app list                               = yes
+PASS  removed: no static backdrop rebuilt line                    does not contain [static backdrop rebuilt]
+PASS  removed: the background key is gone                         does not contain [name="background"]
+PASS  removed: the strip reads the theme background (0,0,0) (worst px, E2's strip x 675..945, 9 rows)  0.00 vs 0.00 +/- 2.0
+------------------------------------------------------------------------------
+EDGE_BG_CHANGE: 16 passed, 0 failed, 0 recorded

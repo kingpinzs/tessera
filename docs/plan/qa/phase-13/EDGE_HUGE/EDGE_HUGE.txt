@@ -1,11 +1,11 @@
 ==============================================================================
 ROW EDGE_HUGE — phase 13 edge case: huge
-at            2026-09-26T00:56:45-06:00
-driver        edge.sh blob 5938186d3be01d0bdffdd9ff85555aa3f8107755
+at            2026-09-26T02:39:59-06:00
+driver        edge.sh blob 7b0578f73c10b2b2702db3746fb11b669fc07d2e
 harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
-apk built     db078d6af2f0653c 337594086 bytes
-apk installed 2add1dece7f82d35
-apk match     yes (2add1dece7f82d35)
+apk built     0eb36905c5ca8082 337598910 bytes
+apk installed 44b46cc9529a265e
+apk match     yes (44b46cc9529a265e)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -14,14 +14,14 @@ PASS  wake: the device is awake                                   = Awake
 PASS  the 8000 x 8000 picture is in MediaStore                    != 
       scroll_to_node theme_background_choose: 0 swipe(s), found=yes
 PASS  the picker shows the pushed picture (newest)                != 
-PASS  the Start background is the huge picture                    contains [150]
-RECORD  B: the huge picture, acrylic off (KB)                       212180
+PASS  the Start background is the huge picture                    contains [174]
+RECORD  B: the huge picture, acrylic off (KB)                       150443
       scroll_to_node theme_transparency_effects: 1 swipe(s), found=yes
-PASS  the pre-blur ran: static backdrop rebuilt for the huge picture (media 150, the picker's URI)  contains [/media/150 in ]
-RECORD  rebuild time                                                87 ms
-RECORD  C: acrylic on (KB)                                          221438
-PASS  C - B <= 14 MB (E10's C bound): 9258 KB                     = yes
-PASS  the launcher's pid is unchanged (no crash, no restart)      = 7576
+PASS  the pre-blur ran: static backdrop rebuilt for the huge picture (media 174, the picker's URI)  contains [/media/174 in ]
+RECORD  rebuild time                                                43 ms
+RECORD  C: acrylic on (KB)                                          159515
+PASS  C - B <= 14 MB (E10's C bound): 9072 KB                     = yes
+PASS  the launcher's pid is unchanged (no crash, no restart)      = 12904
       scroll_to_node theme_background_remove: 0 swipe(s), found=yes
 ------------------------------------------------------------------------------
 EDGE_HUGE: 7 passed, 0 failed, 3 recorded

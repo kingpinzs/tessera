@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E10 — the toggle persists; the static layer costs <= 14 MB and is freed with the picture
-at            2026-09-26T01:48:26-06:00
-driver        e10.sh blob 0f08353a7099450b7c738927a29e2a281605cc74
+at            2026-09-26T02:27:44-06:00
+driver        e10.sh blob 0f94f096d659af3092546f4093c3ff062db27390
 harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
-apk built     509f6e49387ec9c9 337595086 bytes
-apk installed e972d54629b943bc
-apk match     yes (e972d54629b943bc)
+apk built     0eb36905c5ca8082 337598910 bytes
+apk installed 44b46cc9529a265e
+apk match     yes (44b46cc9529a265e)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -20,20 +20,21 @@ PASS  (1) back On                                                 = true
 PASS  (2) the cancelled picker set no background                  does not contain [name="background"]
 PASS  (2) the Photos tile already counts the checker (one more photo than before the push)  = 7
 RECORD  (2) the Photos feed before A                                refresh (start): access=GRANTED photos=7 slideshow=0 grow=false
-RECORD  (2) A: no picture as the Start background (KB)              78325
+RECORD  (2) A: no picture as the Start background (KB)              78539
       scroll_to_node theme_transparency_effects: 1 swipe(s), found=yes
       scroll_to_node theme_background_choose: 0 swipe(s), found=yes
 PASS  (2) the picker shows the checker (newest)                   != 
 PASS  (2) the Start background is set                             contains [name="background"]
-RECORD  (2) B: the checker, acrylic off (KB)                        98877
+RECORD  (2) B: the checker, acrylic off (KB)                        89518
+PASS  (2) the picture is held once: B - A <= one decode (9871 KB) + 3 MB: 10979 KB  = yes
       scroll_to_node theme_transparency_effects: 1 swipe(s), found=yes
 PASS  (2) C: its static backdrop rebuilt line                     contains [static backdrop rebuilt]
-RECORD  (2) C: the checker, acrylic on (KB)                         108391
-PASS  (2) C - B <= 14 MB (one screen layer + noise): 9514 KB      = yes
+RECORD  (2) C: the checker, acrylic on (KB)                         98757
+PASS  (2) C - B <= 14 MB (one screen layer + noise): 9239 KB      = yes
       scroll_to_node theme_background_remove: 0 swipe(s), found=yes
 PASS  (2) the background key is gone                              does not contain [name="background"]
-RECORD  (2) after Remove picture (KB)                               79639
-PASS  (2) after Remove picture PSS is within 2 MB of A, KB        1314.00 vs 0.00 +/- 2048.0
-PASS  (2) one process throughout (pid unchanged)                  = 23166
+RECORD  (2) after Remove picture (KB)                               79525
+PASS  (2) after Remove picture PSS is within 2 MB of A, KB        986.00 vs 0.00 +/- 2048.0
+PASS  (2) one process throughout (pid unchanged)                  = 5832
 ------------------------------------------------------------------------------
-E10: 13 passed, 0 failed, 5 recorded
+E10: 14 passed, 0 failed, 5 recorded

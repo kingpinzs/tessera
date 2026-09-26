@@ -1,0 +1,42 @@
+==============================================================================
+ROW E1 — the acrylic rule and its controls: battery saver, the switch, disable_window_blurs
+at            2026-09-26T01:52:28-06:00
+driver        e1.sh blob dd7509c19fc079912587521f1ff44b8423ba0a45
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     509f6e49387ec9c9 337595086 bytes
+apk installed e972d54629b943bc
+apk match     yes (e972d54629b943bc)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  process start: acrylic=on reason=none                       contains [[fluent] acrylic=on reason=none]
+PASS  a text-free strip on a square-centre row exists             != 
+      strip y=603 (x 675..945, the x = 810 boundary)
+PASS  acrylic on: edge spread in the blurred band                 134.00 vs 134.50 +/- 26.9
+      on-0: width=134.0 plateaus=1.1/48.8
+PASS  battery saver precondition: low_power                       = 1
+PASS  battery saver: acrylic=off reason=battery-saver             contains [[fluent] acrylic=off reason=battery-saver]
+PASS  battery saver: the line within 1000 ms of BS_MARK           13.00 vs 500.00 +/- 500.0
+PASS  battery saver: the edge is sharp (<= 2 px)                  0.80 vs 1.00 +/- 1.0
+PASS  battery saver: black square reads 0.2 x 0                   0.00 vs 0.00 +/- 3.0
+PASS  battery saver: white square reads 0.2 x 255                 51.00 vs 51.00 +/- 3.0
+PASS  battery_saver_off wakes the device                          = Awake
+PASS  battery saver off: low_power                                = 0
+PASS  saver off: acrylic=on                                       contains [[fluent] acrylic=on reason=none]
+PASS  saver off: blurred again                                    134.00 vs 134.50 +/- 26.9
+      scroll_to_node theme_transparency_effects: 1 swipe(s), found=yes
+PASS  switch off: acrylic=off reason=setting                      contains [[fluent] acrylic=off reason=setting]
+PASS  switch off: the line within 1000 ms of the tap's MARK       107.00 vs 500.00 +/- 500.0
+PASS  switch off: saved                                           = false
+PASS  back on the app list                                        = yes
+PASS  switch off: the edge is sharp, as under battery saver       0.80 vs 1.00 +/- 1.0
+PASS  switch off: black square reads 0                            0.00 vs 0.00 +/- 3.0
+PASS  switch off: white square reads 51                           51.00 vs 51.00 +/- 3.0
+      scroll_to_node theme_transparency_effects: 1 swipe(s), found=yes
+PASS  switch on: acrylic=on                                       contains [[fluent] acrylic=on reason=none]
+PASS  switch on: saved                                            = true
+RECORD  mBlurEnabled with disable_window_blurs 1                    mBlurEnabled=false
+PASS  disable_window_blurs: no acrylic=off line                   does not contain [acrylic=off]
+PASS  disable_window_blurs: the app list stays blurred            134.00 vs 134.50 +/- 26.9
+------------------------------------------------------------------------------
+E1: 24 passed, 0 failed, 1 recorded
