@@ -22,7 +22,10 @@ pass() {
   note "$tag Start gap y=$gap steepest step at x=$SX"
   assert_within "$tag: the wallpaper on Start is not blurred in place (edge <= 2 px)" 1 "$SW" 1
 
+  local mark
+  mark="$(ring_mark)"
   to_app_list 3
+  ring_since "$mark" > "$ROW_DIR/slice-applist-show-$tag.txt"   # E12 (T13-22): the show action's own slice
   dump_ui "$ROW_DIR/applist-$tag.xml"
   screencap "$ROW_DIR/applist-$tag.png"
   local page
