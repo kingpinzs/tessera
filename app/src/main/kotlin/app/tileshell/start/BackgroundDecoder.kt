@@ -5,12 +5,14 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.SupervisorJob
 
 /**
  * The Start background's one decode (phase 13 T13-5, an ADD to phase 01's part): Start's page and phase 13's static
- * acrylic source both call it, so the picture is sampled and decoded once per process and URI, exactly as Start
+ * acrylic source both call it, so the picture is sampled and decoded once per process and URI — concurrent calls share
+ * one decode in flight — exactly as Start
  * decoded it before — the sample size keeps the decoded height at most twice [TARGET].
  */
 object BackgroundDecoder {
@@ -22,12 +24,17 @@ object BackgroundDecoder {
     @Synchronized
     fun cached(uri: String): ImageBitmap? = cached?.takeIf { it.first == uri }?.second
 
-    /** Decodes [uri] off the main thread, or returns the decode already in hand; the failure carries why. */
+    // One decode per URI in flight: Start's page, the app list's backdrop and the static layer ask in the same frame,
+    // and before this each missed the finished-decode cache and kept its own copy (phase 13 gate round 2, A).
+    private val flights = SingleFlight<String, Result<ImageBitmap>>(CoroutineScope(SupervisorJob() + Dispatchers.IO))
+
+    /** Decodes [uri] off the main thread, or returns the decode already in hand or in flight; the failure carries why. */
     suspend fun decode(context: Context, uri: String): Result<ImageBitmap> {
         cached(uri)?.let { return Result.success(it) }
-        return withContext(Dispatchers.IO) {
+        val resolver = context.applicationContext.contentResolver
+        return flights.run(uri) {
+            cached(uri)?.let { return@run Result.success(it) }
             runCatching {
-                val resolver = context.contentResolver
                 val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                 val stream = resolver.openInputStream(Uri.parse(uri)) ?: error("cannot open")
                 // A bounds-only decode returns null by design; the bounds land in opts.
