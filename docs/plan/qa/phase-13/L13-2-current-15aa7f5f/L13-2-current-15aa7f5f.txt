@@ -1,0 +1,19 @@
+==============================================================================
+ROW L13-2-current-15aa7f5f — L13-2 repro on current-15aa7f5f: a sideways move on the open hold band's item drags the pivot under it
+at            2026-09-25T20:01:45-06:00
+driver        l13_2_repro.sh blob 8e90040369b640a449880443ee0f75230a934958
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     15aa7f5f3bd76f7d 337942814 bytes
+apk installed d3ee8663458ce94b
+apk match     yes (d3ee8663458ce94b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      repro apk: 15aa7f5f = app-debug.apk built from c73c32cf (phase 13 + L13-1 fix) (the header's 'apk built' is the repo's own build, not necessarily this one)
+PASS  wake: the device is awake                                   = Awake
+PASS  the hold band is open                                       = yes
+      app_list before [0 0 1080 2196], with the finger moved 60 px [37 0 1080 2196]
+PASS  DEFECT: the app list's page moved while the band was open (bounds changed)  != 0 0 1080 2196
+RECORD  the pivot's [motion] line after UP (phase 13's builds only)  pivot t0=204412502 peak=232 overshoot=0 settle=232 frames=18 maxGapMs=17
+------------------------------------------------------------------------------
+L13-2-current-15aa7f5f: 3 passed, 0 failed, 1 recorded
