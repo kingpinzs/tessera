@@ -26,6 +26,12 @@ here). All rows on AVD tileshell_fhd, emulator-5554.
 | B1_PROBE | before: FAIL (the false line); after: 7/0 x3 | `B1_PROBE-before-db078d6a/`, `B1_PROBE-after-509f6e49-{1,2,3}/` | the switch off / on / off ~65 ms apart, then on: db078d6a logs `static backdrop failed … LeftCompositionCancellationException`; 509f6e49 never does and rebuilds after the final on |
 | phase 03 E15 (E11's dependency) | 21/6 | `../phase-03/E15/E15.txt` | apk db078d6a; the same 6 clauses fail on the pre-13 build (`../phase-03/E15-run2-a437acd5/`), phase 03's own gate |
 
+**Why the rows on earlier builds stand** (gate round 3, B-N5; each diff is `git diff --name-only <from>..9c4d049f -- app`):
+- E3, E5, E6 on 15aa7f5f (c73c32cf): since then L13-2 (the band, the two jump grids, ModalOverlay), StaticBackdrop.kt, BackgroundDecoder.kt and SingleFlight.kt changed — no reminder-menu, pane, noise or show-line code; E12 asserts that file list.
+- E7 on 120e52ec (f1b05c0b): since then StaticBackdrop.kt, BackgroundDecoder.kt, SingleFlight.kt — when the static layer exists and how its picture is decoded, not what an acrylic-on frame draws; E7 compares every pixel with its own U.
+- E8, E9 on 509f6e49 (a7ef430b): since then BackgroundDecoder.kt, SingleFlight.kt — E8 sets no picture; E9 is recorded only.
+- E11, E11_MENU and EDGE saver_menu / edit_mode / screen_off / process_death / rv10 / a11y / many_apps on db078d6a (3448c92f): since then StaticBackdrop.kt (a cancel is not a failure) and the shared decode; none of their rings holds a `static backdrop failed` line, and the ones that set a picture draw the same decoded bitmap.
+
 **Edge cases** (`scripts/edge.sh <case>` -> `EDGE_<CASE>/`; the others are executed by rows: file deleted = E13, toggle while
 the app list shows = E1, surface over acrylic = E4 (1), disable_window_blurs = E1, low-RAM = the unit test, burst = dropped):
 
