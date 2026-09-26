@@ -37,3 +37,18 @@ effects.
   first draws) or re-cut E8's band (a FINAL-doc change)?
 - The Back race: holds pressed right after the Back that closed the app-list band opened 1 of 10 twice on 0eb36905 and
   10 of 10 on 509f6e49 at the same cadence. The cause is not isolated (host load, or L13-2's ModalOverlay).
+
+## Sign-off log (Jeremy)
+
+| When | Row | Answer | Shown |
+|---|---|---|---|
+| 2026-09-26 06:46 MDT | H1 | ACCEPTED ("A") | E2/applist-fhd.png, E3/menu-photo.png, E5/pane-rem.png (AVD, test pattern) |
+| 2026-09-26 06:57 MDT | H2 | ACCEPTED ("A") | step2 on/off comparison of E3/menu-photo.png vs E3/menu-photo-off.png |
+| 2026-09-26 07:03 MDT | H3 | ACCEPTED ("A": the look, and the wallpaper sliding with the page) | E2/applist-fhd.png, E2/applist-off.png, NEEDS-HUMAN-captures/h3-midswipe-0eb36905.png |
+| 2026-09-26 07:15 MDT | H4 | ACCEPTED ("A") | NEEDS-HUMAN-captures/h4-lights-pane-and-band.png (crops of E7/b-U,D,M and d-U,D,M) |
+| 2026-09-26 08:01 MDT | H5 | ACCEPTED ("A": wording, place, On by default) | NEEDS-HUMAN-captures/h5-settings-effects-0eb36905.png |
+| 2026-09-26 08:02 MDT | H6 | ACCEPTED ("A") | NEEDS-HUMAN-captures/h6-battery-saver-on-off.png (E1/on-0.png, E1/saver.png) |
+| 2026-09-26 08:02 MDT | H7 | NOTHING TO SIGN: no surface is left solid in this phase (phase 04 owns its own) | — |
+| 2026-09-26 08:04 MDT | P2, P3, P4, H8, H9 | WAITING FOR PHONE (Jeremy: "B", later) | — |
+| 2026-09-26 09:48 MDT | Open question 1 (E8 reminder-menu timer) | RULED "A": start the timer on the first moving frame, expect 233 ms; the menu unchanged | INDEX Change Log |
+| 2026-09-26 09:55 MDT | Open question 2 (Back-then-hold) | RULED "A, in the background": investigate as its own tracked fix, L13-3 | INDEX ledger |
