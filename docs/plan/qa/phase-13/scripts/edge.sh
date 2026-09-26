@@ -249,19 +249,26 @@ light)
   note "theme before: ${THEME0:-(unset, DARK)}"
   make_png "$ROW_DIR/bright.png" 1080 2340 checker:190:255
   BRIGHT="$(push_picture "$ROW_DIR/bright.png" /sdcard/Pictures/qa13-bright.png)"
+  # The MARK goes before set_pref: its force-stop restarts the Home app, which builds the layer (gate round 2 B, N2).
+  MARK="$(ring_mark)"
   set_pref background string "$BRIGHT"
   set_pref theme string LIGHT
-  MARK="$(ring_mark)"
   show_start 7
   to_app_list 3
   ring_since "$MARK" > "$ROW_DIR/slice.txt"
   SHOW="$(grep -F '[fluent] applist source=' "$ROW_DIR/slice.txt" | tail -1)"
   note "show line: ${SHOW#*\[fluent\] }"
   assert_contains "the app list is acrylic (static, alpha 0.8, 30 epx)" "alpha=0.8 blur=30epx" "$SHOW"
+  # The show line is written whatever form the page draws (gate round 2 B, N2), so the form is proven by the layer
+  # being built for this picture and by the blur in the capture.
+  assert_contains "the layer is built for the bright picture" "static backdrop rebuilt for $BRIGHT in " "$(cat "$ROW_DIR/slice.txt")"
   assert_contains "the light theme's tint is its background, white (Palette.lightBackground; T = F for the app list)" "tint=(255,255,255)" "$SHOW"
   dump_ui "$ROW_DIR/applist.xml"
   screencap "$ROW_DIR/applist.png"
   Y="$(strip_y "$ROW_DIR/applist.xml")"
+  read -r LW LA LB <<< "$(applist_edge "$ROW_DIR/applist.png" "$Y")"
+  note "the checker's x = 810 edge in the light backdrop: width=$LW plateaus=$LA/$LB"
+  assert_within "the backdrop is blurred (the checker's edge spread, E1's band)" 134.5 "$LW" 26.9
   for x in 685 760 850 925; do
     assert_eq "the backdrop is light at x=$x (patch mean >= 200)" yes "$(python3 -c "print('yes' if $(patch_mean "$ROW_DIR/applist.png" $x $(( Y - 5 )) 10 10) >= 200 else 'no')")"
   done
@@ -502,14 +509,23 @@ rapid)
   set -- $(bounds "$ROW_DIR/applist.xml" "$ROWID"); HX=$(( ($1 + $3) / 2 )); HY=$(( ($2 + $4) / 2 ))
   to_start 2
   C="$(pss)"; record "C: the checker, acrylic on (KB)" "$C"
+  # PSS does not see GPU render targets on this AVD (Graphics: 0 in every meminfo; gate round 2 B, N3); gfxinfo's GPU
+  # figure does, so it is recorded before and after the holds.
+  record "GPU memory before the holds (gfxinfo)" "$(adb shell dumpsys gfxinfo $PKG | grep -A1 -m1 'Total GPU memory usage' | tail -1 | tr -d '\r' | sed 's/^ *//')"
   to_app_list 2
   # Each hold must be shown to open the band (gate review B, B1: the first cut asserted only time and PSS, which pass
   # just as well if no live layer was ever allocated). The slice is saved before anything force-stops the shell.
   MARK="$(ring_mark)"
   T0="$(date +%s%3N)"
+  # A hold whose touch-down lands within ~0.15 s of the Back that closed the band is sometimes not taken as a hold
+  # (runs on 0eb36905 opened 1 of 10, then 3 of 4 and 4 of 4 by hand: a timing race in the band / Back handling,
+  # recorded for Jeremy in the INDEX Change Log, not this case's subject). Each cycle leaves 0.2 s after Back, which
+  # keeps ten cycles inside the doc's 15 s.
   for _ in $(seq 1 10); do
     adb shell input swipe $HX $HY $HX $HY 850
+    sleep 0.1
     adb shell input keyevent KEYCODE_BACK
+    sleep 0.2
   done
   T1="$(date +%s%3N)"
   ring_since "$MARK" > "$ROW_DIR/slice-holds.txt"
@@ -520,6 +536,7 @@ rapid)
   to_start 2
   sleep 2
   A="$(pss)"; record "after the 10 holds (KB)" "$A"
+  record "GPU memory after the holds (gfxinfo)" "$(adb shell dumpsys gfxinfo $PKG | grep -A1 -m1 'Total GPU memory usage' | tail -1 | tr -d '\r' | sed 's/^ *//')"
   assert_within "PSS returns within 2 MB of C (KB)" 0 "$(( A - C ))" 2048
   assert_eq "one process throughout" "$P0" "$(pid)"
   clear_background
