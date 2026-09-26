@@ -51,7 +51,8 @@ import kotlin.math.max
  * [ImageReader], and kept as one screen-sized bitmap until the picture, the tint or the page size changes.
  *
  * It is built when the app-list page first composes with its size — the pager composes that page beside Start, so
- * the layer exists before the first swipe — and dropped when the picture is removed.
+ * the layer exists before the first swipe — and dropped when the picture is removed or acrylic turns off (it is
+ * rebuilt when acrylic turns on again).
  */
 object StaticBackdrop {
     data class Key(val uri: String, val size: IntSize, val tint: Rgb, val radiusPx: Float)
@@ -87,7 +88,7 @@ object StaticBackdrop {
         )
     }
 
-    /** Frees the layer (the picture was removed). */
+    /** Frees the layer (the picture was removed, or acrylic turned off). */
     fun drop() {
         mutable.value = null
     }
@@ -175,8 +176,12 @@ fun AppListBackdrop(backgroundUri: String?, background: Color, visible: Boolean,
             picture = BackgroundDecoder.decode(context, backgroundUri).getOrNull()
         }
     }
-    LaunchedEffect(backgroundUri, size, tint, radiusPx) {
-        if (backgroundUri != null && size.width > 0 && size.height > 0) {
+    // The layer exists only while acrylic is on: with it off (the switch, battery saver, a low-RAM device) the page
+    // draws the fallback, so a blurred copy would be memory nothing draws (E10's B holds no layer; C builds it).
+    LaunchedEffect(backgroundUri, size, tint, radiusPx, state.on) {
+        if (!state.on) {
+            StaticBackdrop.drop()
+        } else if (backgroundUri != null && size.width > 0 && size.height > 0) {
             StaticBackdrop.ensure(context, StaticBackdrop.Key(backgroundUri, size, tint, radiusPx))
         }
     }
@@ -192,8 +197,9 @@ fun AppListBackdrop(backgroundUri: String?, background: Color, visible: Boolean,
             .onSizeChanged { size = it }
             .testTag("acrylic:${FluentSurface.APPLIST.id}")
             .drawBehind {
-                if (visible && holder.drawn != null && holder.drawn != state.on) Fluent.logForm(FluentSurface.APPLIST, state.on)
-                holder.drawn = state.on
+                // The form this frame draws: acrylic needs the layer, which is built after acrylic turns on.
+                if (visible && holder.drawn != null && holder.drawn != acrylic) Fluent.logForm(FluentSurface.APPLIST, acrylic)
+                holder.drawn = acrylic
             },
     ) {
         val shown = picture
