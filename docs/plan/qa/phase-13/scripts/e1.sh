@@ -7,15 +7,20 @@
 
 row_begin E1 "the acrylic rule and its controls: battery saver, the switch, disable_window_blurs"
 BAND_LO=107.6; BAND_HI=161.4   # 2.563 * sigma(90 px) +- 20 %
+# E12 reads E1's reasons from these files, in step order (T13-22): each step's ring slice, saved before anything can
+# reset the ring, one file per step.
+keep() { ring_since "$2" | tee "$ROW_DIR/slice-$1.txt"; }
 
 # ---- process start
 set_pref transparency_effects boolean true
 MARK="$(ring_mark)"
 set_checker
 show_start 7
-SLICE="$(ring_since "$MARK")"
+SLICE="$(keep 1-start "$MARK")"
 assert_contains "process start: acrylic=on reason=none" "[fluent] acrylic=on reason=none" "$SLICE"
+MARK="$(ring_mark)"
 to_app_list 3
+keep 1b-applist-show "$MARK" >/dev/null
 dump_ui "$ROW_DIR/applist.xml"
 Y="$(applist_strip "$ROW_DIR/applist.xml")"
 assert_ne "a text-free strip on a square-centre row exists" "" "$Y"
@@ -28,7 +33,7 @@ note "on-0: width=$W plateaus=$A/$B"
 # ---- battery saver on (its low_power = 1 assertion is the precondition)
 battery_saver_on
 sleep 1.5
-SLICE="$(ring_since "$BS_MARK")"
+SLICE="$(keep 2-battery-saver "$BS_MARK")"
 assert_contains "battery saver: acrylic=off reason=battery-saver" "[fluent] acrylic=off reason=battery-saver" "$SLICE"
 WALL="$(printf '%s\n' "$SLICE" | wall_of "acrylic=off reason=battery-saver")"
 assert_within "battery saver: the line within 1000 ms of BS_MARK" 500 "$(( ${WALL:-99999999999999} - BS_MARK ))" 500
@@ -43,7 +48,7 @@ MARK="$(ring_mark)"
 assert_eq "battery_saver_off wakes the device" "Awake" "$(battery_saver_off)"
 assert_eq "battery saver off: low_power" "0" "$(adb shell settings get global low_power | tr -d '\r')"
 sleep 1.5
-assert_contains "saver off: acrylic=on" "[fluent] acrylic=on reason=none" "$(ring_since "$MARK")"
+assert_contains "saver off: acrylic=on" "[fluent] acrylic=on reason=none" "$(keep 3-saver-off "$MARK")"
 screencap "$ROW_DIR/on-1.png"
 read -r W A B <<< "$(applist_edge "$ROW_DIR/on-1.png" "$Y")"
 assert_within "saver off: blurred again" 134.5 "$W" 26.9
@@ -52,7 +57,7 @@ assert_within "saver off: blurred again" 134.5 "$W" 26.9
 open_transparency
 MARK="$(ring_mark)"
 tap_transparency
-SLICE="$(ring_since "$MARK")"
+SLICE="$(keep 4-switch-off "$MARK")"
 assert_contains "switch off: acrylic=off reason=setting" "[fluent] acrylic=off reason=setting" "$SLICE"
 WALL="$(printf '%s\n' "$SLICE" | wall_of "acrylic=off reason=setting")"
 assert_within "switch off: the line within 1000 ms of the tap's MARK" 500 "$(( ${WALL:-99999999999999} - MARK ))" 500
@@ -70,7 +75,7 @@ assert_within "switch off: white square reads 51" 51 "$B" 3
 open_transparency
 MARK="$(ring_mark)"
 tap_transparency
-assert_contains "switch on: acrylic=on" "[fluent] acrylic=on reason=none" "$(ring_since "$MARK")"
+assert_contains "switch on: acrylic=on" "[fluent] acrylic=on reason=none" "$(keep 5-switch-on "$MARK")"
 assert_eq "switch on: saved" "true" "$(transparency_state)"
 leave_settings
 
@@ -79,7 +84,7 @@ MARK="$(ring_mark)"
 adb shell settings put global disable_window_blurs 1
 sleep 2
 record "mBlurEnabled with disable_window_blurs 1" "$(adb shell dumpsys window | grep -m1 -o 'mBlurEnabled=[a-z]*')"
-assert_absent "disable_window_blurs: no acrylic=off line" "acrylic=off" "$(ring_since "$MARK")"
+assert_absent "disable_window_blurs: no acrylic=off line" "acrylic=off" "$(keep 6-disable-window-blurs "$MARK")"
 screencap "$ROW_DIR/disable-blurs.png"
 read -r W A B <<< "$(applist_edge "$ROW_DIR/disable-blurs.png" "$Y")"
 assert_within "disable_window_blurs: the app list stays blurred" 134.5 "$W" 26.9
