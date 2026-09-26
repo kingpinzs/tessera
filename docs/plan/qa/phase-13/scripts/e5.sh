@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# E5 The ≡ pane (phase 13 Acceptance E5, T13-2, T13-17): over Cortana's Home page it reads its measured (14,19,13); over
+# E5 The ≡ pane (phase 13 Acceptance E5, T13-2, T13-17, T13-24): over Cortana's Home page it reads its measured (14,19,13); over
 # the Reminders page a row's white title shows through (0.8*(18,24,16) + 0.2*B, never (14,19,13)); over that page's empty
 # area it reads (17,23,15); acrylic off (battery saver) it is (14,19,13) everywhere. B is the host oracle over the same
 # page captured with the pane closed. Fixture: two typed reminders (the second row lies below the pane's accent item).
@@ -60,6 +60,121 @@ assert_within "(a) over Home: patch mean B = 13 +- 2" 13 "$A3" 2
 adb shell input keyevent KEYCODE_BACK
 sleep 1
 cortana_close
+
+# ================================================================ (e) live: the pane over Tess listening (T13-24)
+# Jeremy allowed the microphone for this (2026-09-25, "You can use the mic now"). Listening with nothing said lasts about
+# 2 s before Tess ends it as silence, so each sequence runs on the device in ONE shell, every step stamped with the device
+# clock, and the row asserts the captures ended before the ring's `[speech] final` line (she was still listening).
+PERSONA_C=""
+tl() { grep -m1 "^$2=" "$ROW_DIR/live-$1-timeline.txt" | cut -d= -f2 | tr -d '\r'; }
+final_wall() { grep -F '[speech] final' "$ROW_DIR/slice-live-$1.txt" | grep -oE 'wall=[0-9]+' | head -1 | cut -d= -f2; }
+fetch_raw() { # device name -> png
+  adb pull "/sdcard/$1.raw" "$ROW_DIR/.$1.raw" >/dev/null 2>&1
+  python3 "$P13/acrylic_check.py" raw2png "$ROW_DIR/.$1.raw" "$2"
+  rm -f "$ROW_DIR/.$1.raw"; adb shell rm -f "/sdcard/$1.raw"
+}
+tess_home() { # out.xml; sets MX MY BX BY
+  local out="$1"
+  ensure_start; cortana_assist; sleep 3
+  dump_ui "$out"
+  set -- $(bounds "$out" cortana_text_box_mic); MX=$(( ($1 + $3) / 2 )); MY=$(( ($2 + $4) / 2 ))
+  set -- $(bounds "$out" cortana_menu_button); BX=$(( ($1 + $3) / 2 )); BY=$(( ($2 + $4) / 2 ))
+}
+# (e1) the persona pulses while she listens, and its bounds lie under the pane. Two listens: a dump 0.3 s after the mic
+# tap (a dump takes ~2 s, so it must start first), then two raw captures ~200 ms apart without the pane.
+tess_home "$ROW_DIR/live-home.xml"
+LMARK="$(ring_mark)"
+adb shell "echo mic=\$(date +%s%3N); input tap $MX $MY; sleep 0.3; echo dump=\$(date +%s%3N); uiautomator dump /sdcard/qa13-listen.xml >/dev/null; echo dumped=\$(date +%s%3N)" > "$ROW_DIR/live-dump-timeline.txt"
+adb shell cat /sdcard/qa13-listen.xml > "$ROW_DIR/live-persona.xml"
+sleep 4
+cortana_close
+PERS="$(bounds "$ROW_DIR/live-persona.xml" cortana_persona_large_listening)"
+note "(e1) dump timeline: $(tr '\n' ' ' < "$ROW_DIR/live-dump-timeline.txt"); listening persona [$PERS]"
+assert_ne "(e1) the dump caught the listening persona" "" "$PERS"
+set -- $(bounds "$ROW_DIR/pane-home.xml" cortana_pane); PANE_R=$3
+set -- ${PERS:-0 0 0 0}
+assert_eq "(e1) the listening persona's bounds [$PERS] lie under the pane (x 0..$PANE_R)" yes "$( [ -n "$PERS" ] && [ $1 -ge 0 ] && [ $3 -le $PANE_R ] && echo yes || echo no)"
+PERSONA_C="$(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))"
+PBOX="$1 $2 $3 $4"
+tess_home "$ROW_DIR/live-home2.xml"
+LMARK="$(ring_mark)"
+adb shell "echo mic=\$(date +%s%3N); input tap $MX $MY; sleep 0.3; echo c1=\$(date +%s%3N); screencap /sdcard/qa13-p1.raw; echo c1done=\$(date +%s%3N); sleep 0.2; echo c2=\$(date +%s%3N); screencap /sdcard/qa13-p2.raw; echo c2done=\$(date +%s%3N)" > "$ROW_DIR/live-persona-timeline.txt"
+sleep 3
+ring_since "$LMARK" > "$ROW_DIR/slice-live-persona.txt"
+fetch_raw qa13-p1 "$ROW_DIR/live-persona-1.png"; fetch_raw qa13-p2 "$ROW_DIR/live-persona-2.png"
+cortana_close
+F="$(final_wall persona)"
+note "(e1) capture timeline: $(tr '\n' ' ' < "$ROW_DIR/live-persona-timeline.txt"); final at ${F:-none}"
+assert_eq "(e1) the captures ended while she listened (c2done < the [speech] final line)" yes "$( [ -n "$F" ] && [ "$(tl persona c2done)" -lt "$F" ] && echo yes || echo no)"
+PMAX="$(python3 -c "
+import numpy as np; from PIL import Image
+a=np.asarray(Image.open('$ROW_DIR/live-persona-1.png').convert('RGB'),float); b=np.asarray(Image.open('$ROW_DIR/live-persona-2.png').convert('RGB'),float)
+l,t,r,bb=map(int,'$PBOX'.split()); print(int(np.abs(a[t:bb,l:r]-b[t:bb,l:r]).max()) if r > l else -1)")"
+assert_eq "(e1) the persona pulses: its box differs between the two captures (max per-pixel |d| = $PMAX >= 20)" yes "$( [ "$PMAX" -ge 20 ] && echo yes || echo no)"
+
+# (e2) acrylic on: the pane opened over her while she listens; two captures ~200 ms apart differ inside the pane over the
+# persona (patch-mean |d| >= 2 levels in some channel, the 10x10 patch at the persona's centre, fixed before the run).
+live_pane() { # tag — up to 3 attempts; an attempt whose second capture ends after listening ended (a host stall) is
+  # recorded and retaken (the method's timing, not the product's); the first attempt inside the window is the one judged.
+  local tag="$1" try f
+  LIVE_OK=""
+  for try in 1 2 3; do
+    tess_home "$ROW_DIR/live-$tag-home.xml"
+    LMARK="$(ring_mark)"
+    adb shell "echo mic=\$(date +%s%3N); input tap $MX $MY; input tap $BX $BY; echo tapped=\$(date +%s%3N); sleep 0.35; echo c1=\$(date +%s%3N); screencap /sdcard/qa13-l1.raw; echo c1done=\$(date +%s%3N); sleep 0.2; echo c2=\$(date +%s%3N); screencap /sdcard/qa13-l2.raw; echo c2done=\$(date +%s%3N)" > "$ROW_DIR/live-$tag-timeline.txt"
+    dump_ui "$ROW_DIR/live-$tag-after.xml"
+    sleep 3
+    ring_since "$LMARK" > "$ROW_DIR/slice-live-$tag.txt"
+    fetch_raw qa13-l1 "$ROW_DIR/live-$tag-1.png"; fetch_raw qa13-l2 "$ROW_DIR/live-$tag-2.png"
+    adb shell input keyevent KEYCODE_BACK; sleep 1; cortana_close
+    f="$(final_wall "$tag")"
+    note "($tag try $try) timeline: $(tr '\n' ' ' < "$ROW_DIR/live-$tag-timeline.txt"); final at ${f:-none}"
+    if [ -n "$f" ] && [ "$(tl "$tag" c2done)" -lt "$f" ]; then LIVE_OK=yes; break; fi
+    record "($tag try $try) retaken: the second capture ended after listening ended (host stall)" "c2done $(tl "$tag" c2done) vs final ${f:-none}"
+    mkdir -p "$ROW_DIR/live-$tag-try$try" && mv "$ROW_DIR"/live-$tag-*.png "$ROW_DIR"/live-$tag-*.txt "$ROW_DIR"/live-$tag-*.xml "$ROW_DIR/slice-live-$tag.txt" "$ROW_DIR/live-$tag-try$try/" 2>/dev/null
+  done
+  assert_eq "($tag) both captures ended while she listened (c2done < the [speech] final line)" yes "$LIVE_OK"
+  assert_eq "($tag) the pane opened over her (cortana_pane in the dump after)" yes "$(has_node "$ROW_DIR/live-$tag-after.xml" cortana_pane)"
+  local mw
+  mw="$(grep -F '[motion] cortana_pane' "$ROW_DIR/slice-live-$tag.txt" | grep -oE 'wall=[0-9]+' | head -1 | cut -d= -f2)"
+  assert_eq "($tag) the pane's slide logged its settle (wall ${mw:-none}) before the first capture (c1 $(tl "$tag" c1))" yes "$( [ -n "$mw" ] && [ "$mw" -lt "$(tl "$tag" c1)" ] && echo yes || echo no)"
+}
+# inside the pane over the persona's box: the largest per-pixel |d| between the two captures
+pane_persona_max() { # tag
+  python3 -c "
+import numpy as np; from PIL import Image
+a=np.asarray(Image.open('$ROW_DIR/live-$1-1.png').convert('RGB'),int); b=np.asarray(Image.open('$ROW_DIR/live-$1-2.png').convert('RGB'),int)
+l,t,r,bb=map(int,'$PBOX'.split()); r=min(r,$PANE_R); print(int(np.abs(a[t:bb,l:r]-b[t:bb,l:r]).max()))"
+}
+live_pane e2
+read -r CX CY <<< "$PERSONA_C"
+record "(e2) the 10x10 patch at the persona's centre ($CX,$CY), capture 1 -> 2" "$(python3 -c "
+import numpy as np; from PIL import Image
+a=np.asarray(Image.open('$ROW_DIR/live-e2-1.png').convert('RGB'),float)[$CY-5:$CY+5,$CX-5:$CX+5].reshape(-1,3).mean(0)
+b=np.asarray(Image.open('$ROW_DIR/live-e2-2.png').convert('RGB'),float)[$CY-5:$CY+5,$CX-5:$CX+5].reshape(-1,3).mean(0)
+print('(%.1f,%.1f,%.1f) -> (%.1f,%.1f,%.1f), max |d| %.1f' % (*a, *b, np.abs(a-b).max()))")"
+# Re-cut 2026-09-25 (Change Log): the material's noise is deterministic (E6: a static backdrop is pixel-identical 1 s
+# apart; (e3): the opaque pane is exactly 0), so ANY changed pixel inside the pane over the persona is the backdrop being
+# re-recorded; a copy frozen at open would read 0. The doc's patch-mean >= 2 exceeds what the pulse shows through the blur
+# (the host oracle over (e1)'s two unpaned captures predicts 0.14 levels; the device shows 1-2).
+M2="$(pane_persona_max e2)"
+assert_eq "(e2) on: the backdrop is re-recorded under the open pane (max per-pixel |d| over the persona = $M2 >= 1)" yes "$( [ "$M2" -ge 1 ] && echo yes || echo no)"
+assert_eq "(e2) nothing right of the pane moved in the same captures (the difference is the persona under the pane)" 0 \
+  "$(python3 -c "
+import numpy as np; from PIL import Image
+a=np.asarray(Image.open('$ROW_DIR/live-e2-1.png').convert('RGB'),int); b=np.asarray(Image.open('$ROW_DIR/live-e2-2.png').convert('RGB'),int)
+print(int(np.abs(a[900:1700,$PANE_R+120:]-b[900:1700,$PANE_R+120:]).max()))")"
+
+# (e3) acrylic off (battery saver): the same two captures are identical inside the pane (+- 0).
+battery_saver_on
+live_pane e3
+assert_contains "(e3) acrylic=off reason=battery-saver" "[fluent] acrylic=off reason=battery-saver" "$(ring_since "$BS_MARK")"
+assert_eq "(e3) off: the two captures are identical inside the pane (max per-pixel |d|)" 0 "$(python3 -c "
+import numpy as np; from PIL import Image
+a=np.asarray(Image.open('$ROW_DIR/live-e3-1.png').convert('RGB'),int); b=np.asarray(Image.open('$ROW_DIR/live-e3-2.png').convert('RGB'),int)
+print(int(np.abs(a[:, :$PANE_R]-b[:, :$PANE_R]).max()))")"
+assert_eq "(e3) battery saver off: awake" "Awake" "$(battery_saver_off)"
+assert_eq "(e3) battery saver off: low_power = 0" "0" "$(adb shell settings get global low_power | tr -d '\r')"
 
 # ================================================================ (b), (c) over the Reminders page
 make_typed_reminder "remind me to check the QA13 pane list tomorrow at 9 am"

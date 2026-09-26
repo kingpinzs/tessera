@@ -17,6 +17,8 @@
   find_color <png> <r,g,b> <region:l,t,r,b>
       The bounding box "l t r b" of the pixels within +-2 of the colour inside the region (a node with no dump entry,
       e.g. a playlist row's accent square, read from a capture with nothing over it).
+  raw2png <capture.raw> <out.png>
+      A device `screencap` raw capture (no -p) converted to PNG (E5's live sub-step takes its captures on the device).
   opaque <judged.png> <x> <y> <w> <h> <r,g,b>
       Acrylic off / opaque fills: the worst per-pixel, per-channel |pixel - rgb| over the patch (single pixels are
       compared only here, T13-17).
@@ -103,6 +105,11 @@ def main():
         ys, xs = np.nonzero(sub)
         if len(xs):
             print(l + xs.min(), t + ys.min(), l + xs.max() + 1, t + ys.max() + 1)
+    elif cmd == "raw2png":
+        # A device `screencap` raw file (16-byte header: width, height, format, colour space; then RGBA8888) as a PNG.
+        b = open(sys.argv[2], "rb").read()
+        w, h = (int(v) for v in np.frombuffer(b[:8], dtype="<u4"))
+        Image.fromarray(np.frombuffer(b[16:16 + w * h * 4], dtype=np.uint8).reshape(h, w, 4)[..., :3]).save(sys.argv[3])
     elif cmd == "opaque":
         img = load(sys.argv[2])
         x, y, w, h = map(int, sys.argv[3:7])
