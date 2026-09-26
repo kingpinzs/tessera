@@ -97,4 +97,13 @@ class ModalOverlayTest {
     fun aRealLiftStillRunsTheItem() {
         assertTrue(OverlayItemPress().lift(onItem = true, lifted = true))
     }
+
+    // L13-3: a dismissed overlay stops being placed at once but leaves the composition a frame later; a real lift in
+    // that frame reaches the item it was pressed on. The overlay is closed, so the lift runs nothing.
+    @Test
+    fun aLiftAfterTheOverlayWasDismissedRunsNothing() {
+        val press = OverlayItemPress()
+        assertFalse("a real lift on a dismissed overlay's item", press.lift(onItem = true, lifted = true, open = false))
+        assertFalse(press.pressed)
+    }
 }
