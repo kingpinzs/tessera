@@ -1,0 +1,24 @@
+==============================================================================
+ROW EDGE_MANY_APPS — phase 13 edge case: many_apps
+at            2026-09-26T00:50:55-06:00
+driver        edge.sh blob 74def838c36e819e1fe3af971b0d998afc23a4c7
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+      launcher entries before: 41
+RECORD  bulk APKs installed                                         0 / 300
+FAIL  300+ launcher entries                                       expected [yes] got [no]
+RECORD  launcher entries now                                        41
+FAIL  one static layer whatever the list's length: exactly one rebuilt line  expected [1] got [0]
+PASS  the backdrop did not move with the scroll (right margin, worst patch |diff|)  0.00 vs 0.00 +/- 3.0
+RECORD  scroll janky frames                                         13 (2.52%)
+RECORD  scroll 99th percentile                                      16ms
+RECORD  restore: bulk APKs uninstalled                              0
+PASS  restore: launcher entries back to 41                        = 41
+------------------------------------------------------------------------------
+EDGE_MANY_APPS: 3 passed, 2 failed, 5 recorded

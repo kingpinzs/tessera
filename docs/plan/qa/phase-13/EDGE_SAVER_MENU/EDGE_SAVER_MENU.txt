@@ -1,0 +1,27 @@
+==============================================================================
+ROW EDGE_SAVER_MENU — phase 13 edge case: saver_menu
+at            2026-09-26T00:35:37-06:00
+driver        edge.sh blob ffa7bb94a09898729c1905a54867becf47daef11
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  a reminder row to hold                                      != 
+PASS  the reminder menu is open (acrylic:reminder_menu)           = yes
+PASS  battery saver precondition: low_power                       = 1
+      acrylic=off wall=1790404593179, reminder_menu form=fallback wall=1790404593201
+PASS  the acrylic=off reason=battery-saver line                   != 
+PASS  the reminder_menu form=fallback line                        != 
+PASS  the menu's fallback line within 2 frames of acrylic=off (0..34 ms)  22.00 vs 17.00 +/- 17.0
+RECORD  corroboration: the menu's interior under battery saver (10x10 mean; (40,40,40) expected)  40.0
+PASS  the menu stayed open under battery saver                    = yes
+PASS  battery_saver_off: awake                                    = Awake
+PASS  toggled back: [fluent] reminder_menu form=acrylic           contains [[fluent] reminder_menu form=acrylic]
+PASS  toggled back: the menu is still open (acrylic:reminder_menu)  = yes
+PASS  restore: no QA13 reminder left                              = 
+------------------------------------------------------------------------------
+EDGE_SAVER_MENU: 12 passed, 0 failed, 1 recorded

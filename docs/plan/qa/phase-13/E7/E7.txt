@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E7 — the two lights on press: ring 0.30, radial 0.10 -> 0 at 40 epx, following the finger, gone off the item
-at            2026-09-25T19:51:36-06:00
-driver        e7.sh blob 93716f0d500814b20d5190f5c95ebb983b1f8887
+at            2026-09-25T23:43:52-06:00
+driver        e7.sh blob f43eb2892db090652e9013634b424ddfb1ba7e13
 harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
-apk built     15aa7f5f3bd76f7d 337942814 bytes
-apk installed d3ee8663458ce94b
-apk match     yes (d3ee8663458ce94b)
+apk built     120e52ecee4c7ae7 337942814 bytes
+apk installed 52fac1c5ca0f29d1
+apk match     yes (52fac1c5ca0f29d1)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -68,13 +68,13 @@ PASS  (d) D: ring (1,1335) = P + 0.30(255-P)                      0.60 vs 0.00 +
 PASS  (d) D: touch point = P + 0.10(255-P)                        0.20 vs 0.00 +/- 4.0
 PASS  (d) D: 0.5 r point = P + 0.05(255-P)                        0.30 vs 0.00 +/- 4.0
 PASS  (d) D: far point = P                                        0.40 vs 0.00 +/- 2.0
-FAIL  (d) M: the new touch point = P + 0.10(255-P)                42.50 vs 0.00 +/- 4.0
-FAIL  (d) M: the old touch point = P + 0.05(255-P)                43.40 vs 0.00 +/- 4.0
+PASS  (d) M: the new touch point = P + 0.10(255-P)                0.50 vs 0.00 +/- 4.0
+PASS  (d) M: the old touch point = P + 0.05(255-P)                0.60 vs 0.00 +/- 4.0
 PASS  (d) A: (1078 1335) = U (the press ended off the item)       0.00 vs 0.00 +/- 2.0
-FAIL  (d) A: (1 1335) = U (the press ended off the item)          3.00 vs 0.00 +/- 2.0
+PASS  (d) A: (1 1335) = U (the press ended off the item)          0.00 vs 0.00 +/- 2.0
 PASS  (d) A: (540 1335) = U (the press ended off the item)        0.00 vs 0.00 +/- 2.0
-FAIL  (d) A: (600 1335) = U (the press ended off the item)        8.00 vs 0.00 +/- 2.0
-PASS  (d) A: (740 1335) = U (the press ended off the item)        1.00 vs 0.00 +/- 2.0
+PASS  (d) A: (600 1335) = U (the press ended off the item)        0.00 vs 0.00 +/- 2.0
+PASS  (d) A: (740 1335) = U (the press ended off the item)        0.00 vs 0.00 +/- 2.0
 PASS  (d) after UP the app is not pinned (no 'pin to Start' line)  does not contain [pin to Start]
 PASS  battery saver precondition: low_power                       = 1
 PASS  (d) off D: (1078 1335) = P, no light                        0.20 vs 0.00 +/- 2.0
@@ -166,8 +166,9 @@ PASS  phase 02's baseline restored: no slot re-assigned (C-3)     does not conta
 PASS  control: the Settings tile is on Start                      != 
 PASS  control: a pressed Start tile (press None) changes no pixel  = EQUAL
 PASS  control: the Settings row is on screen                      != 
+      control: row [0 447 1080 639], subtitle bottom 551, touch (800,595)
 PASS  control: the Settings row's pressed touch point = U + 0.15(255-U) (no radial light)  0.20 vs 0.00 +/- 2.0
-      control: row edge patch (38.0 38.0 38.0), interior patch (50.0 50.0 50.0)
-FAIL  control: the Settings row's edge patch equals its interior (no ring)  12.00 vs 0.00 +/- 2.0
+      control: row edge patch (38.0 38.0 38.0), interior patch (38.0 38.0 38.0)
+PASS  control: the Settings row's edge patch equals its interior (no ring)  0.00 vs 0.00 +/- 2.0
 ------------------------------------------------------------------------------
-E7: 139 passed, 5 failed, 1 recorded
+E7: 144 passed, 0 failed, 1 recorded

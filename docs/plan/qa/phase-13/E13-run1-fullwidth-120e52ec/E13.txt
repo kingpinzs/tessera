@@ -1,0 +1,25 @@
+==============================================================================
+ROW E13 — the picture's file deleted: the failure line, no rebuilt line, the solid theme background
+at            2026-09-26T00:03:12-06:00
+driver        e13.sh blob 37658a9d80bca7b35bd0b765614e4ba34cb99da7
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     120e52ecee4c7ae7 337942814 bytes
+apk installed 52fac1c5ca0f29d1
+apk match     yes (52fac1c5ca0f29d1)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+      checker URI: content://media/external/images/media/125
+PASS  a text-free strip on a square-centre row                    != 
+PASS  before: the checker shows blurred on the app list (control)  134.00 vs 134.50 +/- 26.9
+PASS  the picture's file is gone                                  = gone
+PASS  the new process: static backdrop failed for the checker's URI, (fallback)  contains [[fluent] static backdrop failed for content://media/external/images/media/125: ]
+PASS  the failure line ends (fallback)                            contains [(fallback)]
+PASS  no static backdrop rebuilt line                             does not contain [static backdrop rebuilt]
+PASS  the app list shows                                          = yes
+FAIL  after: E2's strip reads the theme background (0,0,0) (worst px over the full width, 9 rows)  202.00 vs 0.00 +/- 2.0
+      after: edge probe across x=810: width=none plateaus=0.0/0.0
+PASS  after: no checker edge in the strip (flat: plateaus within 1 level)  = yes
+------------------------------------------------------------------------------
+E13: 9 passed, 1 failed, 0 recorded

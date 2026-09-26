@@ -1,0 +1,21 @@
+==============================================================================
+ROW EDGE_EDIT_MODE — phase 13 edge case: edit_mode
+at            2026-09-26T00:41:45-06:00
+driver        edge.sh blob 59eaa5f53d99712b58367f1a025c09de41826067
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  a tile to hold                                              != 
+PASS  edit mode on                                                contains [edit mode on]
+PASS  the pivot is locked in edit mode: the app list does not show  = no
+FAIL  edit mode left (no edit discs)                              expected [0] got [2]
+FAIL  after leaving, the app list shows                           expected [yes] got [no]
+PASS  entering and leaving edit mode did not rebuild the static layer  does not contain [static backdrop rebuilt]
+PASS  the layout is unchanged                                     = 329256fe57bf8dd27df6247c95e49085  -
+------------------------------------------------------------------------------
+EDGE_EDIT_MODE: 6 passed, 2 failed, 0 recorded

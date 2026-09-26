@@ -1,0 +1,29 @@
+==============================================================================
+ROW EDGE_HUGE — phase 13 edge case: huge
+at            2026-09-26T00:38:38-06:00
+driver        edge.sh blob ffa7bb94a09898729c1905a54867becf47daef11
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+      scroll_to_node theme_transparency_effects: 1 swipe(s), found=yes
+PASS  the 8000 x 8000 picture is in MediaStore                    != 
+      scroll_to_node theme_background_choose: 0 swipe(s), found=yes
+PASS  the picker shows the pushed picture (newest)                != 
+PASS  the Start background is the huge picture                    contains [140]
+RECORD  B: the huge picture, acrylic off (KB)                       212271
+      scroll_to_node theme_transparency_effects: 1 swipe(s), found=yes
+FAIL  the pre-blur ran: static backdrop rebuilt for the huge picture  does not contain [[fluent] static backdrop rebuilt for content://media/external/images/media/140 in ]:     2026-09-26 00:39:43.899 wall=1790404783899 [bars] SettingsActivity: system bars hidden (transient by swipe)
+    2026-09-26 00:39:43.900 wall=1790404783900 [bars] SettingsActivity: system bars hidden (transient by swipe)
+    2026-09-26 0
+RECORD  rebuild time                                                50 ms
+RECORD  C: acrylic on (KB)                                          221501
+PASS  C - B <= 14 MB (E10's C bound): 9230 KB                     = yes
+PASS  the launcher's pid is unchanged (no crash, no restart)      = 25895
+      scroll_to_node theme_background_remove: 0 swipe(s), found=yes
+------------------------------------------------------------------------------
+EDGE_HUGE: 6 passed, 1 failed, 3 recorded

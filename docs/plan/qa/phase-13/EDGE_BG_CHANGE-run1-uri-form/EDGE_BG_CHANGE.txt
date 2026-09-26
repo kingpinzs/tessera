@@ -1,0 +1,34 @@
+==============================================================================
+ROW EDGE_BG_CHANGE — phase 13 edge case: bg_change
+at            2026-09-26T00:37:19-06:00
+driver        edge.sh blob ffa7bb94a09898729c1905a54867becf47daef11
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  a text-free strip on a square-centre row                    != 
+PASS  control: the checker shows blurred on the app list          134.00 vs 134.50 +/- 26.9
+PASS  the grey picture is in MediaStore                           != 
+      scroll_to_node theme_background_choose: 0 swipe(s), found=yes
+PASS  the picker shows the pushed picture (newest)                != 
+PASS  changed: back on the app list                               = yes
+FAIL  changed: the static layer is rebuilt for the new picture    does not contain [[fluent] static backdrop rebuilt for content://media/external/images/media/139 in ]:     2026-09-26 00:37:50.456 wall=1790404670456 [bars] SettingsActivity: system bars hidden (transient by swipe)
+    2026-09-26 00:37:50.457 wall=1790404670457 [bars] SettingsActivity: system bars hidden (transient by swipe)
+    2026-09-26 0
+FAIL  changed: patch at x=60 reads 0.2 x 128 (no stale checker)   79.60 vs 25.60 +/- 3.0
+PASS  changed: patch at x=330 reads 0.2 x 128 (no stale checker)  25.80 vs 25.60 +/- 3.0
+PASS  changed: patch at x=600 reads 0.2 x 128 (no stale checker)  26.00 vs 25.60 +/- 3.0
+PASS  changed: patch at x=870 reads 0.2 x 128 (no stale checker)  25.60 vs 25.60 +/- 3.0
+      changed: probe across x=810: width=none plateaus=24.6/24.8
+PASS  changed: no checker edge left at x=810 (plateaus within 1 level)  = yes
+      scroll_to_node theme_background_remove: 0 swipe(s), found=yes
+PASS  removed: back on the app list                               = yes
+PASS  removed: no static backdrop rebuilt line                    does not contain [static backdrop rebuilt]
+PASS  removed: the background key is gone                         does not contain [name="background"]
+PASS  removed: the strip reads the theme background (0,0,0) (worst px, E2's strip x 675..945, 9 rows)  0.00 vs 0.00 +/- 2.0
+------------------------------------------------------------------------------
+EDGE_BG_CHANGE: 14 passed, 2 failed, 0 recorded

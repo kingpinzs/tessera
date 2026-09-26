@@ -1,0 +1,47 @@
+==============================================================================
+ROW EDGE_RV10 — phase 13 edge case: rv10
+at            2026-09-26T00:45:22-06:00
+driver        edge.sh blob 74def838c36e819e1fe3af971b0d998afc23a4c7
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  base: the show line (30 epx whatever the display)           contains [[fluent] applist source=static tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  base: a text-free strip                                     != 
+PASS  base: the edge spread follows px/epx (r = 90 px)            130.20 vs 134.50 +/- 26.9
+PASS  base: the band opens                                        != 
+      base: band [0 1272 1080 1524] = 84.0 epx tall
+PASS  size1440: the show line (30 epx whatever the display)       contains [[fluent] applist source=static tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  size1440: a text-free strip                                 != 
+PASS  size1440: the edge spread follows px/epx (r = 120 px)       170.10 vs 178.90 +/- 35.8
+PASS  size1440: the band opens                                    != 
+      size1440: band [0 1696 1440 2032] = 84.0 epx tall
+PASS  size1440: the band's height in epx equals the base's (84.0)  84.00 vs 84.00 +/- 1.4
+PASS  d420: the show line (30 epx whatever the display)           contains [[fluent] applist source=static tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  d420: a text-free strip                                     != 
+PASS  d420: the edge spread follows px/epx (r = 90 px)            130.20 vs 134.50 +/- 26.9
+PASS  d420: the band opens                                        != 
+      d420: band [0 1272 1080 1524] = 84.0 epx tall
+PASS  d420: the band's height in epx equals the base's (84.0)     84.00 vs 84.00 +/- 1.4
+PASS  d560: the show line (30 epx whatever the display)           contains [[fluent] applist source=static tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  d560: a text-free strip                                     != 
+PASS  d560: the edge spread follows px/epx (r = 90 px)            130.20 vs 134.50 +/- 26.9
+PASS  d560: the band opens                                        != 
+      d560: band [0 1272 1080 1524] = 84.0 epx tall
+PASS  d560: the band's height in epx equals the base's (84.0)     84.00 vs 84.00 +/- 1.4
+PASS  font13: the show line (30 epx whatever the display)         contains [[fluent] applist source=static tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  font13: a text-free strip                                   != 
+PASS  font13: the edge spread follows px/epx (r = 90 px)          130.20 vs 134.50 +/- 26.9
+PASS  font13: the band opens                                      != 
+      font13: band [0 1272 1080 1524] = 84.0 epx tall
+PASS  font13: the band's height in epx equals the base's (84.0)   84.00 vs 84.00 +/- 1.4
+PASS  restore: wm size                                            contains [Physical size: 1080x2340]
+PASS  restore: no size override                                   does not contain [Override size]
+PASS  restore: no density override                                does not contain [Override density]
+PASS  restore: font_scale 1.0                                     = 1.0
+------------------------------------------------------------------------------
+EDGE_RV10: 29 passed, 0 failed, 0 recorded

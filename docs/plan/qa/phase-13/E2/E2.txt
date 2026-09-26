@@ -1,15 +1,15 @@
 ==============================================================================
 ROW E2 — the app list's backdrop is blurred, its rows are not; the wallpaper on Start stays sharp
-at            2026-09-25T14:53:20-06:00
-driver        e2.sh blob dc12969a5a13e3e83435cef27a950c6cedff8c3f
+at            2026-09-26T00:11:49-06:00
+driver        e2.sh blob 961a94e1012996ae210e199c1e11ac6543d9dda3
 harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
-apk built     c2ac10ea0f3532fc 337942814 bytes
-apk installed 4a161c949c3492ed
-apk match     yes (4a161c949c3492ed)
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-      fhd Start gap y=1714 steepest step at x=188
+      fhd Start gap y=1536 steepest step at x=188
 PASS  fhd: the wallpaper on Start is not blurred in place (edge <= 2 px)  1.30 vs 1.00 +/- 1.0
 PASS  fhd: acrylic:applist is in the dump                         != 
 RECORD  fhd: acrylic:applist reported bounds (uncovered part) / app_list  0 0 1080 180 / 0 0 1080 2196
@@ -24,7 +24,7 @@ PASS  off: acrylic:applist still present                          = yes
 PASS  off: the edge is sharp                                      0.80 vs 1.00 +/- 1.0
 PASS  off: x=675 reads 0.2 x the fixture (51)                     51.00 vs 51.00 +/- 3.0
 PASS  off: x=945 reads 0.2 x the fixture (0)                      0.00 vs 0.00 +/- 3.0
-      hd Start gap y=1143 steepest step at x=125
+      hd Start gap y=1024 steepest step at x=125
 PASS  hd: the wallpaper on Start is not blurred in place (edge <= 2 px)  1.30 vs 1.00 +/- 1.0
 PASS  hd: acrylic:applist is in the dump                          != 
 RECORD  hd: acrylic:applist reported bounds (uncovered part) / app_list  0 0 720 120 / 0 0 720 1464

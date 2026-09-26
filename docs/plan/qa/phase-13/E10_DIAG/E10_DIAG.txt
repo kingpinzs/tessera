@@ -1,0 +1,47 @@
+==============================================================================
+ROW E10_DIAG — where the 12.7 MB after Remove picture sits (diagnosis, recorded only)
+at            2026-09-26T00:18:33-06:00
+driver        e10_diag.sh blob b248891dbed5f1aa223d15610bc24123d281464b
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+RECORD  M0-fresh TOTAL PSS (KB, median of 3)                        74993
+RECORD  M0-fresh categories (Pss KB)                                Native_Heap=23277 Dalvik_Heap=6060 Dalvik_Other=11016 Other_dev=81 .so_mmap=1745 .apk_mmap=13760 .dex_mmap=266 .art_mmap=9432 Other_mmap=3913 Unknown=598
+RECORD  M0-fresh App Summary                                         Java Heap: 14952 45776; Native Heap: 23224 26972; Code: 4336 133348; Stack: 2084 2092; Graphics: 0 0; Private Other: 4552; System: 25845;
+RECORD  M0-fresh Views / Activities                                  Views: 7 ViewRootImpl: 1  AppContexts: 12 Activities: 1  Death Recipients: 4 WebViews: 0 
+RECORD  M1-after-settings TOTAL PSS (KB, median of 3)               76795
+RECORD  M1-after-settings categories (Pss KB)                       Native_Heap=23449 Dalvik_Heap=6096 Dalvik_Other=11652 Other_dev=81 .so_mmap=1835 .apk_mmap=13598 .dex_mmap=266 .art_mmap=9447 Other_mmap=4177 Unknown=598
+RECORD  M1-after-settings App Summary                                Java Heap: 15004 45808; Native Heap: 23396 27132; Code: 3944 135228; Stack: 2088 2096; Graphics: 0 0; Private Other: 4624; System: 27059;
+RECORD  M1-after-settings Views / Activities                         Views: 7 ViewRootImpl: 1  AppContexts: 12 Activities: 1  Death Recipients: 4 WebViews: 0 
+      scroll_to_node theme_transparency_effects: 1 swipe(s), found=yes
+      scroll_to_node theme_background_choose: 0 swipe(s), found=yes
+RECORD  M2-picture-acrylic-off TOTAL PSS (KB, median of 3)          105952
+RECORD  M2-picture-acrylic-off categories (Pss KB)                  Native_Heap=51276 Dalvik_Heap=6216 Dalvik_Other=12586 Other_dev=81 .so_mmap=1836 .apk_mmap=13662 .dex_mmap=266 .art_mmap=9471 Other_mmap=4583 Unknown=606
+RECORD  M2-picture-acrylic-off App Summary                           Java Heap: 15148 45928; Native Heap: 51224 54956; Code: 3956 137456; Stack: 1672 1680; Graphics: 0 0; Private Other: 4716; System: 28388;
+RECORD  M2-picture-acrylic-off Views / Activities                    Views: 7 ViewRootImpl: 1  AppContexts: 7 Activities: 1  Death Recipients: 4 WebViews: 0 
+      scroll_to_node theme_transparency_effects: 1 swipe(s), found=yes
+RECORD  M3-acrylic-on TOTAL PSS (KB, median of 3)                   115864
+RECORD  M3-acrylic-on categories (Pss KB)                           Native_Heap=60720 Dalvik_Heap=5992 Dalvik_Other=12794 Other_dev=81 .so_mmap=1836 .apk_mmap=13698 .dex_mmap=266 .art_mmap=9471 Other_mmap=4675 Unknown=610
+RECORD  M3-acrylic-on App Summary                                    Java Heap: 14924 45704; Native Heap: 60668 64400; Code: 3984 137976; Stack: 1684 1692; Graphics: 0 0; Private Other: 4732; System: 28696;
+RECORD  M3-acrylic-on Views / Activities                             Views: 7 ViewRootImpl: 1  AppContexts: 7 Activities: 1  Death Recipients: 4 WebViews: 0 
+      scroll_to_node theme_background_remove: 0 swipe(s), found=yes
+RECORD  M4-removed TOTAL PSS (KB, median of 3)                      86848
+RECORD  M4-removed categories (Pss KB)                              Native_Heap=31576 Dalvik_Heap=6188 Dalvik_Other=12908 Other_dev=81 .so_mmap=1836 .apk_mmap=13698 .dex_mmap=266 .art_mmap=9471 Other_mmap=4729 Unknown=610
+RECORD  M4-removed App Summary                                       Java Heap: 15120 45900; Native Heap: 31524 35252; Code: 3976 138204; Stack: 1684 1692; Graphics: 0 0; Private Other: 4736; System: 28868;
+RECORD  M4-removed Views / Activities                                Views: 7 ViewRootImpl: 1  AppContexts: 7 Activities: 1  Death Recipients: 4 WebViews: 0 
+RECORD  M5-after-gc TOTAL PSS (KB, median of 3)                     86232
+RECORD  M5-after-gc categories (Pss KB)                             Native_Heap=32012 Dalvik_Heap=6276 Dalvik_Other=12740 Other_dev=81 .so_mmap=1836 .apk_mmap=13698 .dex_mmap=266 .art_mmap=9471 Other_mmap=4733 Unknown=614
+RECORD  M5-after-gc App Summary                                      Java Heap: 15208 45988; Native Heap: 31960 35688; Code: 3976 138212; Stack: 1688 1696; Graphics: 0 0; Private Other: 4568; System: 28876;
+RECORD  M5-after-gc Views / Activities                               Views: 7 ViewRootImpl: 1  AppContexts: 7 Activities: 1  Death Recipients: 4 WebViews: 0 
+RECORD  M6-after-gc-warm TOTAL PSS (KB, median of 3)                86344
+RECORD  M6-after-gc-warm categories (Pss KB)                        Native_Heap=31960 Dalvik_Heap=6176 Dalvik_Other=12794 Other_dev=81 .so_mmap=1836 .apk_mmap=13698 .dex_mmap=266 .art_mmap=9471 Other_mmap=4751 Unknown=614
+RECORD  M6-after-gc-warm App Summary                                 Java Heap: 15108 45888; Native Heap: 31908 35636; Code: 3996 138300; Stack: 1688 1696; Graphics: 0 0; Private Other: 4568; System: 28928;
+RECORD  M6-after-gc-warm Views / Activities                          Views: 7 ViewRootImpl: 1  AppContexts: 7 Activities: 1  Death Recipients: 4 WebViews: 0 
+PASS  one process throughout                                      = 18564
+------------------------------------------------------------------------------
+E10_DIAG: 2 passed, 0 failed, 28 recorded

@@ -1,0 +1,31 @@
+==============================================================================
+ROW EDGE_SCREEN_OFF — phase 13 edge case: screen_off
+at            2026-09-26T00:59:26-06:00
+driver        edge.sh blob 5938186d3be01d0bdffdd9ff85555aa3f8107755
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+      picker: newest photo at [177 862]
+PASS  fixture: the tomorrow reminder's row                        != 
+PASS  fixture: the photo reminder's row                           != 
+PASS  fixture: the photo reminder shows its photo                 = yes
+PASS  the photo row's photo is on the page                        != 
+PASS  the reminder menu is open over the photo                    != 
+RECORD  screen state after KEYCODE_SLEEP                            mWakefulness=Asleep
+PASS  wake_device: awake again (C-25)                             = Awake
+PASS  the menu is still open after wake                           = yes
+      patch (909,1041): before 87.5 after 87.5
+PASS  the menu draws as before sleep at (909,1041) (patch mean, not black)  87.50 vs 87.50 +/- 4.0
+      patch (664,1041): before 82.1 after 82.1
+PASS  the menu draws as before sleep at (664,1041) (patch mean, not black)  82.10 vs 82.10 +/- 4.0
+      patch (909,910): before 88.4 after 88.4
+PASS  the menu draws as before sleep at (909,910) (patch mean, not black)  88.40 vs 88.40 +/- 4.0
+PASS  the menu carries the material's noise after wake (std of 40x40, 1..4)  3.22 vs 2.50 +/- 1.5
+PASS  restore: no QA13 reminder left                              = 
+------------------------------------------------------------------------------
+EDGE_SCREEN_OFF: 13 passed, 0 failed, 1 recorded

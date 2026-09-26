@@ -1,0 +1,97 @@
+==============================================================================
+ROW E11 — regression: 03 E15, 02 E2 hold menu + Pin, 10 MUSIC8 menu, 01 E12 swipe/search/jump grid + E19 bars, exports
+at            2026-09-26T01:15:13-06:00
+driver        e11.sh blob 36928ca79a274b0b8b5a463efbf6957280a8799a
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  (1) phase 03 E15 ran                                        = yes
+PASS  (1) on this build                                           = db078d6af2f0653c
+      (1) this build: E15: 21 passed, 6 failed, 0 recorded; before phase 13: E15: 20 passed, 7 failed, 0 recorded
+FAIL-BOTH-SAME|Choosing Settings runs the same transition and shows the page|expected [yes] got [no] -> expected [yes] got [no]
+PASS-BOTH|R7 3.1.1 Home item|= yes
+PASS-BOTH|R7 3.1.1 Reminders item|= yes
+PASS-BOTH|R7 3.1.1 the pane title|contains [TESS]
+PASS-BOTH|R7 3.1.13 and no text box|= no
+PASS-BOTH|R7 3.1.13 no status bar on a destination page|= no
+PASS-BOTH|R7 3.1.5 pane width 256 epx|256.00 vs 256.00 +/- 1.0
+PASS-BOTH|R7 3.1.9 Settings item|= yes
+FAIL-BOTH-SAME|R7 3.1.9 Settings sits 172 epx above the screen bottom|192.00 vs 172.00 +/- 2.0 -> 192.00 vs 172.00 +/- 2.0
+PASS-BOTH|R7 3.1.9 no Feedback item, and no node in its slot (H23)|= no
+PASS-BOTH|R7 3.1: the pane is open|= yes
+FIXED|R7 3.2.1 black for 283-300 ms|300.00 vs 291.50 +/- 25.0
+PASS-BOTH|R7 3.2.2 its first frame is already 40-60 % bright|0.45 vs 0.50 +/- 0.12
+PASS-BOTH|R7 3.2.2 the page fades up over 200-317 ms|317.00 vs 258.00 +/- 75.0
+PASS-BOTH|R7 3.3.2 the Reminders page is showing|= yes
+FAIL-BOTH-SAME|R7 3.3.2 title at x 60 epx|0.00 vs 60.00 +/- 1.4 -> 0.00 vs 60.00 +/- 1.4
+PASS-BOTH|R7 3.5 page background (14,19,13)|= 14,19,13
+FAIL-BOTH-SAME|R7 3.5.1 a Whenever group exists|expected [yes] got [no] -> expected [yes] got [no]
+PASS-BOTH|R7 3.5.8 app bar 48.2 epx tall|48.33 vs 48.20 +/- 1.4
+PASS-BOTH|R7 3.5.8 the + button|= yes
+PASS-BOTH|R7 3.5.8 the ... button|= yes
+PASS-BOTH|R7 3.5.8 the list button|= yes
+FAIL-BOTH-SAME|a reminder row is on the page|no reminder_row node -> no reminder_row node
+FAIL-BOTH-SAME|and it sits directly above the nav bar|2196.00 vs 2340.00 +/- 4.0 -> 2196.00 vs 2340.00 +/- 4.0
+PASS-BOTH|and no text box|= no
+PASS-BOTH|the shell theme is Dark (X21 default)|does not contain [name="theme">LIGHT]
+PASS-BOTH|with no status bar|= no
+PASS  (1) no E15 clause that passed before phase 13 fails now     = 
+PASS  (1) every clause failing before and now reads the same value (phase 03's own, unchanged)  = 
+PASS  (1) every clause with no earlier verdict passes on its own numbers  = 
+RECORD  (1) E15 clauses failing before and after phase 13 (phase 03's gate)  6
+PASS  (2) phase 02's baseline: no slot re-assigned (C-3)          does not contain [-> assigned]
+PASS  (2) the fixture app.tileshell.testclient.a is not on Start in the baseline  = 0
+      scroll_to_node applist_row:app.tileshell.testclient.a: 4 swipe(s), found=yes
+PASS  (2) the fixture's row is on the app list                    = yes
+PASS  (2) the hold opens the band (applist_menu)                  = yes
+PASS  (2) with Pin to Start                                       = yes
+PASS  (2) labelled 'pin to Start', inside the item                contains [pin to start]
+PASS  (2) Pin runs: the pin line says pinned                      contains [-> pinned]
+PASS  (2) the band closes after Pin                               = no
+PASS  (2) the layout gains the fixture's tile                     = 1
+PASS  (2) the tile is on Start                                    contains [app.tileshell.testclient.a]
+PASS  (2) restore: phase 02's baseline, no slot re-assigned (C-3)  does not contain [-> assigned]
+PASS  (2) restore: the fixture's tile is gone                     = 0
+      pivot -> playlists (settled after 0s, diagnostics say [playlists])
+PASS  (3) a playlist to add to (in the store)                     != 
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  (3) a song row to hold                                      != 
+PASS  (3) open: holding a song opens music_menu                   = yes
+PASS  (3) open: offering the playlist it could join               = yes
+PASS  (3) open: and a new one                                     = yes
+PASS  (3) selection: picking closes the menu                      = no
+PASS  (3) selection: the store adds the track (its line after the MARK)  contains [playlists add]
+PASS  (3) dismissal: the menu is open to dismiss                  = yes
+PASS  (3) dismissal: a tap off the band closes it                 = no
+PASS  (3) dismissal: Back closes it, Music stays                  = no yes
+      pivot -> playlists (settled after 0s, diagnostics say [playlists])
+PASS  (3) dismissal ran nothing: the playlist holds the one song  = 1 song
+PASS  (4) E12 swipe left shows the app list                       = yes
+PASS  (4) E12 with its search box                                 = yes
+      (4) search query 'Cale' (from the row label 'Calendar')
+PASS  (4) a query to type                                         != 
+PASS  (4) a query of 4 letters                                    = 4
+      (4) search results: 1 rows
+PASS  (4) E12 search filters to at least the row it came from     = yes
+PASS  (4) E12 the source row is among the results                 contains [Calendar]
+PASS  (4) E12 every result's label holds the query                = 
+PASS  (4) E12 a letter header opens the jump grid                 = yes
+      (4) jumping to C
+PASS  (4) E12 a letter closes the grid                            = no
+PASS  (4) E12 and jumps: its header is the first on screen        = C
+PASS  (4) E19 app list: statusBars not visible                    = visible=false
+PASS  (4) E19 app list: navigationBars not visible                = visible=false
+PASS  (4) E19 the drawn status bar is there                       != 
+PASS  (4) E19 the drawn nav bar is there                          != 
+PASS  (4) E19 drawn status bar 28 epx tall                        28.00 vs 28.00 +/- 1.1
+PASS  (4) E19 drawn nav bar 48 epx tall (X6)                      48.00 vs 48.00 +/- 1.1
+PASS  (4) E19 nav bar at the screen bottom                        = 2340
+PASS  (5) exported.py: the APK's exports equal the allow-list (rc 0)  = 0
+      (5)                  manifest permission: (none)                  allow-list: guard: none (LAUNCHER intent filter) - The Weather app's own launcher entry. 
+------------------------------------------------------------------------------
+E11: 47 passed, 0 failed, 1 recorded

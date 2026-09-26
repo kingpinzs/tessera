@@ -1,0 +1,17 @@
+==============================================================================
+ROW EDGE_SCREEN_OFF — phase 13 edge case: screen_off
+at            2026-09-26T00:42:37-06:00
+driver        edge.sh blob 59eaa5f53d99712b58367f1a025c09de41826067
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     db078d6af2f0653c 337594086 bytes
+apk installed 2add1dece7f82d35
+apk match     yes (2add1dece7f82d35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+      picker: newest photo at [177 862]
+PASS  fixture: the tomorrow reminder's row                        != 
+PASS  fixture: the photo reminder's row                           != 
+PASS  fixture: the photo reminder shows its photo                 = yes
+FAIL  the photo row's photo is on the page                        should not be []
