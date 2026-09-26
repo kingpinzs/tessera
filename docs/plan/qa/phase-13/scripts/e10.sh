@@ -97,6 +97,10 @@ leave_settings
 assert_contains "(2) the Start background is set" 'name="background"' "$(adb shell run-as $PKG cat shared_prefs/start_theme.xml)"
 warm
 B="$(pss)"; record "(2) B: the checker, acrylic off (KB)" "$B"
+# Gate round 2 (A): Start's page and the app list each kept their own decode of the picture — B - A read 20 552 KB on
+# 509f6e49, two decodes. One decode of the 1080 x 2340 checker is 9 871 KB; the picture must be held once.
+DECODE_KB=$(( 1080 * 2340 * 4 / 1024 ))
+assert_eq "(2) the picture is held once: B - A <= one decode ($DECODE_KB KB) + 3 MB: $(( B - A )) KB" yes "$( [ $(( B - A )) -le $(( DECODE_KB + 3072 )) ] && echo yes || echo no)"
 MARK="$(ring_mark)"
 toggle_to true
 for _ in $(seq 1 20); do ring_since "$MARK" | grep -q 'static backdrop rebuilt' && break; sleep 0.5; done

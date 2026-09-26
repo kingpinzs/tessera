@@ -2,15 +2,15 @@
 # E12 Diagnostics (phase 13 Acceptance E12, T13-22): from the SAVED, action-scoped `ring_since MARK` slices of E1-E5's
 # runs, each surface's show action holds its own `[fluent] <surface> source=... tint=... alpha=0.8 blur=30epx` line, and
 # E1's reasons appear in its saved step order. A missing slice fails the row; nothing is read from an unsliced ring.
-# Builds (INDEX Change Log 2026-09-26, the specific-tests ruling): E1, E2 and E4 ran on apk 509f6e49 (the build of
-# a7ef430b); E3 and E5 on apk 15aa7f5f (the build of c73c32cf), counted because the diff between those two commits does
+# Builds (INDEX Change Log 2026-09-26, the specific-tests ruling): E1, E2 and E4 ran on apk 0eb36905 (the build of
+# 9c4d049f); E3 and E5 on apk 15aa7f5f (the build of c73c32cf), counted because the diff between those two commits does
 # not touch what E12 counts (L13-2's five files and the static layer's StaticBackdrop.kt: no reminder-menu or pane code,
 # no [fluent] show line) — the row asserts that diff's file list itself, so a wider diff fails it.
 . "$(dirname "$0")/lib.sh"
 . "$(dirname "$0")/p13.sh"
 
 row_begin E12 "diagnostics: every surface's show line in its own saved slice, E1's reasons in step order"
-CUR=509f6e49; OLD=15aa7f5f; CUR_C=a7ef430b; OLD_C=c73c32cf
+CUR=0eb36905; OLD=15aa7f5f; CUR_C=9c4d049f; OLD_C=c73c32cf
 
 built() { grep -m1 '^apk built' "$QA/$1/$1.txt" 2>/dev/null | awk '{print substr($3,1,8)}'; }
 failed_of() { tail -1 "$QA/$1/$1.txt" 2>/dev/null | grep -oE '[0-9]+ failed' | cut -d' ' -f1; }
@@ -24,8 +24,8 @@ for r in E3 E5; do
 done
 DIFF="$(git -C "$REPO" diff --name-only "$OLD_C..$CUR_C" -- app | sort | tr '\n' ' ')"
 note "app files changed $OLD_C..$CUR_C: $DIFF"
-assert_eq "the $OLD -> $CUR diff is L13-2's five files and StaticBackdrop.kt only (no pane or reminder-menu code)" \
-  "app/src/main/kotlin/app/tileshell/applist/AppListMenu.kt app/src/main/kotlin/app/tileshell/applist/AppListPage.kt app/src/main/kotlin/app/tileshell/music/MusicCollectionPage.kt app/src/main/kotlin/app/tileshell/ui/components/ModalOverlay.kt app/src/main/kotlin/app/tileshell/ui/fluent/StaticBackdrop.kt app/src/test/kotlin/app/tileshell/ui/components/ModalOverlayTest.kt app/src/test/kotlin/app/tileshell/ui/fluent/StaticBackdropTest.kt " \
+assert_eq "the $OLD -> $CUR diff is L13-2's five files, StaticBackdrop.kt and the shared decode only (no pane or reminder-menu code)" \
+  "app/src/main/kotlin/app/tileshell/applist/AppListMenu.kt app/src/main/kotlin/app/tileshell/applist/AppListPage.kt app/src/main/kotlin/app/tileshell/music/MusicCollectionPage.kt app/src/main/kotlin/app/tileshell/start/BackgroundDecoder.kt app/src/main/kotlin/app/tileshell/start/SingleFlight.kt app/src/main/kotlin/app/tileshell/ui/components/ModalOverlay.kt app/src/main/kotlin/app/tileshell/ui/fluent/StaticBackdrop.kt app/src/test/kotlin/app/tileshell/start/SingleFlightTest.kt app/src/test/kotlin/app/tileshell/ui/components/ModalOverlayTest.kt app/src/test/kotlin/app/tileshell/ui/fluent/StaticBackdropTest.kt " \
   "$DIFF"
 
 # <row> <slice file> <surface> <tint>: the slice exists and holds the surface's show line.
