@@ -13,13 +13,16 @@ row_begin E12 "diagnostics: every surface's show line in its own saved slice, E1
 CUR=0eb36905; OLD=15aa7f5f; CUR_C=9c4d049f; OLD_C=c73c32cf
 
 built() { grep -m1 '^apk built' "$QA/$1/$1.txt" 2>/dev/null | awk '{print substr($3,1,8)}'; }
+matched() { grep -m1 '^apk match' "$QA/$1/$1.txt" 2>/dev/null | awk '{print $3}'; }   # the built APK was the one installed
 failed_of() { tail -1 "$QA/$1/$1.txt" 2>/dev/null | grep -oE '[0-9]+ failed' | cut -d' ' -f1; }
 for r in E1 E2 E4; do
   assert_eq "$r ran on the current build" "$CUR" "$(built $r)"
+  assert_eq "$r: the built APK was the installed one (apk match)" "yes" "$(matched $r)"
   assert_eq "$r's own run had no FAIL" "0" "$(failed_of $r)"
 done
 for r in E3 E5; do
   assert_eq "$r ran on $OLD (the diff below does not touch it)" "$OLD" "$(built $r)"
+  assert_eq "$r: the built APK was the installed one (apk match)" "yes" "$(matched $r)"
   assert_eq "$r's own run had no FAIL" "0" "$(failed_of $r)"
 done
 DIFF="$(git -C "$REPO" diff --name-only "$OLD_C..$CUR_C" -- app | sort | tr '\n' ' ')"
