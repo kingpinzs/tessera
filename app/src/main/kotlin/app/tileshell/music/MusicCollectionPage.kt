@@ -82,9 +82,9 @@ import app.tileshell.bars.W10mStatusBar
 import app.tileshell.brand.Glyph
 import app.tileshell.start.Edit
 import app.tileshell.ui.LocalShellColors
-import app.tileshell.ui.components.LocalOverlayActive
+import app.tileshell.ui.components.OverlayLayer
+import app.tileshell.ui.components.dismissOverlay
 import app.tileshell.ui.components.modalOverlay
-import app.tileshell.ui.components.releaseInputWhenDismissed
 import app.tileshell.ui.components.overlayItem
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.Dispatchers
@@ -464,10 +464,11 @@ private fun PivotPage(
                 }
             }
         }
-        if (gridOpen) {
-            // L13-3: the grid reads its own open state, so it lets input through the moment it is dismissed.
-            CompositionLocalProvider(LocalOverlayActive provides { gridOpen }) {
-                JumpGrid(page.jump, onDismiss = { gridOpen = false }) { index ->
+        // L13-3: the grid is drawn in an OverlayLayer, which stops placing it the moment it is dismissed; its dismissal
+        // (Back, a tap off the cells) is applied at once, so a touch right after it reaches the list.
+        OverlayLayer(active = { gridOpen }) {
+            if (gridOpen) {
+                JumpGrid(page.jump, onDismiss = { dismissOverlay { gridOpen = false } }) { index ->
                     gridOpen = false
                     scope.launch { list.scrollToItem(index) }
                 }
@@ -782,8 +783,6 @@ private fun JumpGrid(targets: List<JumpTarget>, onDismiss: () -> Unit, onPick: (
             // L13-2: modal inside the pivot's page — a drag on the grid never moves the pivot; a tap off the cells
             // dismisses it. The semantics keep the click action `clickable` gave the grid.
             .semantics(mergeDescendants = true) { onClick { onDismiss(); true } }
-            // L13-3: the grid is the list's sibling, so it is the node that shares input once dismissed.
-            .releaseInputWhenDismissed(LocalOverlayActive.current)
             .modalOverlay(onTapOff = onDismiss)
             .padding(start = MusicMetrics.SIDE, top = 12.dp)
             .testTag("music_jump_grid"),

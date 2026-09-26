@@ -88,9 +88,9 @@ import androidx.compose.foundation.layout.size
 import app.tileshell.ui.LocalStartTheme
 import app.tileshell.ui.components.PressRow
 import app.tileshell.ui.components.ROW_PRESS_ALPHA
-import app.tileshell.ui.components.LocalOverlayActive
+import app.tileshell.ui.components.OverlayLayer
+import app.tileshell.ui.components.dismissOverlay
 import app.tileshell.ui.components.modalOverlay
-import app.tileshell.ui.components.releaseInputWhenDismissed
 import app.tileshell.ui.components.overlayItem
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.Dispatchers
@@ -236,8 +236,9 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
             focusManager.clearFocus()
         }
     }
-    BackHandler(enabled = visible && gridOpen) { gridOpen = false }
-    BackHandler(enabled = visible && menu != null) { menu = null }
+    // L13-3: a Back is applied at once, so a touch right after it is not hit-tested against the overlay it closed.
+    BackHandler(enabled = visible && gridOpen) { dismissOverlay { gridOpen = false } }
+    BackHandler(enabled = visible && menu != null) { dismissOverlay { menu = null } }
     BackHandler(enabled = visible && !gridOpen && query.isNotEmpty()) {
         query = ""
         focusManager.clearFocus()
@@ -321,15 +322,14 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
         }
       }
         // The overlays, over the list's own rectangle (the anchors are measured against it), above the backdrop.
-        // L13-3: the box lets input through to the list the moment its overlay is dismissed (a Back writes the state; the
-        // overlay leaves a frame later), and each overlay reads its own open state through LocalOverlayActive.
+        // L13-3: each is drawn in an OverlayLayer, which stops placing it the moment it is dismissed.
         Box(
             Modifier
                 .offset { (listInWindow - pageInWindow).round() }
-                .size(with(LocalDensity.current) { DpSize(listSize.width.toDp(), listSize.height.toDp()) })
-                .releaseInputWhenDismissed { menu != null || gridOpen },
+                .size(with(LocalDensity.current) { DpSize(listSize.width.toDp(), listSize.height.toDp()) }),
         ) {
-            CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop, LocalOverlayActive provides { menu != null }) {
+            OverlayLayer(active = { menu != null }) {
+              CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop) {
                 menu?.let { target ->
                     PinToStartMenu(
                         target.anchorPx,
@@ -346,9 +346,10 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
                         onFirstFrame = { drawnAt -> MotionClock.jump("applist_menu", menuHoldUptime, drawnAt) },
                     )
                 }
+              }
             }
-            if (gridOpen) {
-                CompositionLocalProvider(LocalOverlayActive provides { gridOpen }) {
+            OverlayLayer(active = { gridOpen }) {
+                if (gridOpen) {
                     JumpGrid(model.cells, onPick = { cell ->
                         val index = cell.targetIndex
                         gridOpen = false
