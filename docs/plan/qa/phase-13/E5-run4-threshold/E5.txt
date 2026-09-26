@@ -1,0 +1,68 @@
+==============================================================================
+ROW E5 — the ≡ pane: (14,19,13) over Home, a reminder's title showing through, (17,23,15) over empty Reminders
+at            2026-09-25T20:19:12-06:00
+driver        e5.sh blob c0d8a2ac1198e7952c3414f0624cb470f41f45ae
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     15aa7f5f3bd76f7d 337942814 bytes
+apk installed d3ee8663458ce94b
+apk match     yes (d3ee8663458ce94b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  (a) Tess's Home page is showing                             = yes
+PASS  (a) the session's page (the backdrop child) fills the window  = 0,0,1080,2340
+PASS  (a) cortana_pane is in the dump                             != 
+PASS  (a) acrylic:cortana_pane has the pane's bounds              = 0 0 768 2340
+PASS  (a) the show line                                           contains [[fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx]
+PASS  (a) precondition: a 10x10 patch whose oracle B is (0,0,0) +- 1 at every pixel  != 
+      (a) patch (10,450), oracle max |B - Bm| = 0.00
+PASS  (a) over Home: patch mean R = 14 +- 2                       14.30 vs 14.00 +/- 2.0
+PASS  (a) over Home: patch mean G = 19 +- 2                       19.30 vs 19.00 +/- 2.0
+PASS  (a) over Home: patch mean B = 13 +- 2                       13.30 vs 13.00 +/- 2.0
+      (e1) dump timeline: mic=1790389192465 dump=1790389192827 dumped=1790389194949 ; listening persona [398 589 682 873]
+PASS  (e1) the dump caught the listening persona                  != 
+PASS  (e1) the listening persona's bounds [398 589 682 873] lie under the pane (x 0..768)  = yes
+      (e1) capture timeline: mic=1790389206519 c1=1790389206841 c1done=1790389207653 c2=1790389207865 c2done=1790389208149 ; final at 1790389208719
+PASS  (e1) the captures ended while she listened (c2done < the [speech] final line)  = yes
+PASS  (e1) the persona pulses: its box differs between the two captures (max per-pixel |d| = 50 >= 20)  = yes
+      (e2) timeline: mic=1790389219917 tapped=1790389219951 c1=1790389220309 c1done=1790389220632 c2=1790389220843 c2done=1790389225213 ; final at 1790389222133
+PASS  (e2) the pane opened over her (cortana_pane in the dump after)  = yes
+FAIL  (e2) both captures ended while she listened (c2done < the [speech] final line)  expected [yes] got [no]
+PASS  (e2) the pane's slide had settled before the first capture  contains [[motion] cortana_pane]
+      (e2) the patch at the persona's centre (540,731): (37.8,23.8,15.8) -> (38.8,23.8,15.8)
+FAIL  (e2) on: the backdrop is re-recorded under the open pane (patch-mean |d| = 1.0 (37.8,23.8,15.8)->(38.8,23.8,15.8) >= 2)  expected [yes] got []
+PASS  (e2) nothing right of the pane moved in the same captures (the difference is the persona under the pane)  = 0
+PASS  battery saver precondition: low_power                       = 1
+      (e3) timeline: mic=1790389241785 tapped=1790389241819 c1=1790389242177 c1done=1790389242417 c2=1790389242630 c2done=1790389242898 ; final at 1790389243987
+PASS  (e3) the pane opened over her (cortana_pane in the dump after)  = yes
+PASS  (e3) both captures ended while she listened (c2done < the [speech] final line)  = yes
+PASS  (e3) the pane's slide had settled before the first capture  contains [[motion] cortana_pane]
+PASS  (e3) acrylic=off reason=battery-saver                       contains [[fluent] acrylic=off reason=battery-saver]
+PASS  (e3) off: the two captures are identical inside the pane (max per-pixel |d|)  = 0
+PASS  (e3) battery saver off: awake                               = Awake
+PASS  (e3) battery saver off: low_power = 0                       = 0
+PASS  (b) the Reminders page's backdrop child is in the dump      contains [bounds="[0,0][1080,2196]"]
+PASS  (b) the second reminder's row                               != 
+PASS  (b) the show line                                           contains [[fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx]
+      (b) second row [0 477 1080 673], pane right edge 768
+      (b) title patch (262,539) 10x10: the closed page's mean luma there is 182.1 (white text on (14,19,13))
+PASS  (b) the patch lies on the title's white text (closed-page luma >= 60)  = yes
+      (b) judged=(20.9,26.9,18.9) expected=(20.9,26.7,19.1)
+PASS  (b) over the title: 0.8*(18,24,16) + 0.2*B (worst channel |diff|)  0.20 vs 0.00 +/- 4.0
+PASS  (b) over the title: never (14,19,13) (some channel differs by > 2)  = yes
+PASS  (c) precondition: a 10x10 patch whose oracle B is (14,19,13) +- 1 at every pixel  != 
+      (c) patch (744,827), oracle max |B - Bm| = 0.00
+PASS  (c) over empty Reminders: patch mean R = 17 +- 2            16.80 vs 17.00 +/- 2.0
+PASS  (c) over empty Reminders: patch mean G = 23 +- 2            22.80 vs 23.00 +/- 2.0
+PASS  (c) over empty Reminders: patch mean B = 15 +- 2            14.80 vs 15.00 +/- 2.0
+PASS  battery saver precondition: low_power                       = 1
+PASS  (d) acrylic=off reason=battery-saver                        contains [[fluent] acrylic=off reason=battery-saver]
+PASS  (d) off, over Reminders: the title patch reads (14,19,13) (worst px)  0.00 vs 0.00 +/- 1.0
+PASS  (d) off, over Reminders: under the rows and below them, x 20..748 (worst px)  0.00 vs 0.00 +/- 1.0
+PASS  (d) off, over Home: persona, greeting and black page alike, x 20..748 y 460..1740 (worst px)  0.00 vs 0.00 +/- 1.0
+PASS  (d) battery saver off: awake                                = Awake
+PASS  (d) battery saver off: low_power = 0                        = 0
+PASS  restore: no QA13 reminder left                              = 
+------------------------------------------------------------------------------
+E5: 43 passed, 2 failed, 0 recorded

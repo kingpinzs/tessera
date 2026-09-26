@@ -1,0 +1,46 @@
+==============================================================================
+ROW E5 — the ≡ pane: (14,19,13) over Home, a reminder's title showing through, (17,23,15) over empty Reminders
+at            2026-09-25T19:36:39-06:00
+driver        e5.sh blob d818e4b2d475437b66d402d402c99e73bb599723
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     15aa7f5f3bd76f7d 337942814 bytes
+apk installed d3ee8663458ce94b
+apk match     yes (d3ee8663458ce94b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  (a) Tess's Home page is showing                             = yes
+PASS  (a) the session's page (the backdrop child) fills the window  = 0,0,1080,2340
+PASS  (a) cortana_pane is in the dump                             != 
+PASS  (a) acrylic:cortana_pane has the pane's bounds              = 0 0 768 2340
+PASS  (a) the show line                                           contains [[fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx]
+PASS  (a) precondition: a 10x10 patch whose oracle B is (0,0,0) +- 1 at every pixel  != 
+      (a) patch (10,450), oracle max |B - Bm| = 0.00
+PASS  (a) over Home: patch mean R = 14 +- 2                       14.30 vs 14.00 +/- 2.0
+PASS  (a) over Home: patch mean G = 19 +- 2                       19.30 vs 19.00 +/- 2.0
+PASS  (a) over Home: patch mean B = 13 +- 2                       13.30 vs 13.00 +/- 2.0
+PASS  (b) the Reminders page's backdrop child is in the dump      contains [bounds="[0,0][1080,2196]"]
+PASS  (b) the second reminder's row                               != 
+PASS  (b) the show line                                           contains [[fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx]
+      (b) second row [0 477 1080 673], pane right edge 768
+      (b) title patch (262,539) 10x10: the closed page's mean luma there is 182.1 (white text on (14,19,13))
+PASS  (b) the patch lies on the title's white text (closed-page luma >= 60)  = yes
+      (b) judged=(20.9,26.9,18.9) expected=(20.9,26.7,19.1)
+PASS  (b) over the title: 0.8*(18,24,16) + 0.2*B (worst channel |diff|)  0.20 vs 0.00 +/- 4.0
+PASS  (b) over the title: never (14,19,13) (some channel differs by > 2)  = yes
+PASS  (c) precondition: a 10x10 patch whose oracle B is (14,19,13) +- 1 at every pixel  != 
+      (c) patch (744,827), oracle max |B - Bm| = 0.00
+PASS  (c) over empty Reminders: patch mean R = 17 +- 2            16.80 vs 17.00 +/- 2.0
+PASS  (c) over empty Reminders: patch mean G = 23 +- 2            22.80 vs 23.00 +/- 2.0
+PASS  (c) over empty Reminders: patch mean B = 15 +- 2            14.80 vs 15.00 +/- 2.0
+PASS  battery saver precondition: low_power                       = 1
+PASS  (d) acrylic=off reason=battery-saver                        contains [[fluent] acrylic=off reason=battery-saver]
+PASS  (d) off, over Reminders: the title patch reads (14,19,13) (worst px)  0.00 vs 0.00 +/- 1.0
+PASS  (d) off, over Reminders: under the rows and below them, x 20..748 (worst px)  0.00 vs 0.00 +/- 1.0
+PASS  (d) off, over Home: persona, greeting and black page alike, x 20..748 y 460..1740 (worst px)  0.00 vs 0.00 +/- 1.0
+PASS  (d) battery saver off: awake                                = Awake
+PASS  (d) battery saver off: low_power = 0                        = 0
+PASS  restore: no QA13 reminder left                              = 
+------------------------------------------------------------------------------
+E5: 28 passed, 0 failed, 0 recorded

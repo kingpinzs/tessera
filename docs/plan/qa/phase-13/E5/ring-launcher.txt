@@ -1,440 +1,583 @@
-    2026-09-25 19:36:44.996 wall=1790386604996 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
-    2026-09-25 19:36:44.996 wall=1790386604996 [livetile] store loaded 1 owners
-    2026-09-25 19:36:45.001 wall=1790386605001 [engine] publish pkg:app.tileshell.testclient.a from=api faces=0 front=false source=null sourceTime=null -> shows nothing
-    2026-09-25 19:36:45.001 wall=1790386605001 [badge] set app.tileshell.testclient.a API=0 -> effective 0
-    2026-09-25 19:36:45.002 wall=1790386605002 [app] process start
-    2026-09-25 19:36:45.002 wall=1790386605002 [livetile] samsung badge provider probe: not present
-    2026-09-25 19:36:45.049 wall=1790386605049 [apps] catalog refreshed (init): 41 activities
-    2026-09-25 19:36:45.049 wall=1790386605049 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
-    2026-09-25 19:36:45.050 wall=1790386605050 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
-    2026-09-25 19:36:45.055 wall=1790386605055 [weather] feed start provider=open-meteo
-    2026-09-25 19:36:45.057 wall=1790386605057 [app] feeds started (process start)
-    2026-09-25 19:36:45.058 wall=1790386605058 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790386605058
-    2026-09-25 19:36:45.058 wall=1790386605058 [calendar] refresh (start): access=true faces=1
-    2026-09-25 19:36:45.059 wall=1790386605059 [fluent] acrylic=on reason=none
-    2026-09-25 19:36:45.061 wall=1790386605061 [clock] tiles: publisher started under cmp:app.tileshell/app.tileshell.clock.ClockActivity
-    2026-09-25 19:36:45.065 wall=1790386605065 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null sourceTime=null
-    2026-09-25 19:36:45.065 wall=1790386605065 [clock] tile: no next alarm, face cleared
-    2026-09-25 19:36:45.067 wall=1790386605067 [alarms] rearm (process start): 0 alarms, 0 timers, exact=true
-    2026-09-25 19:36:45.068 wall=1790386605068 [reminders] loaded 0 reminders, 0 places
-    2026-09-25 19:36:45.068 wall=1790386605068 [reminders] rearm (process start): 0 timed alarms, exact=true
-    2026-09-25 19:36:45.070 wall=1790386605070 [places] rearm: no place reminders
-    2026-09-25 19:36:45.070 wall=1790386605070 [person] rearm: no person reminders, observers off
-    2026-09-25 19:36:45.074 wall=1790386605074 [alarms] rearm (locked boot): 0 alarms, 0 timers, exact=true
-    2026-09-25 19:36:45.084 wall=1790386605084 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790386605084
-    2026-09-25 19:36:45.084 wall=1790386605084 [photos] refresh (start): access=GRANTED photos=6 slideshow=0 grow=false
-    2026-09-25 19:36:45.090 wall=1790386605090 [weather] cache loaded fetchedAt=1790385167221 provider=open-meteo units=IMPERIAL
-    2026-09-25 19:36:45.091 wall=1790386605091 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790385167221
-    2026-09-25 19:36:45.091 wall=1790386605091 [weather] publish tile faces=1 temp=70° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790385167221
-    2026-09-25 19:36:45.092 wall=1790386605092 [weather] refresh start reason=start units=IMPERIAL
-    2026-09-25 19:36:45.108 wall=1790386605108 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-25 19:36:45.109 wall=1790386605109 [start] StartActivity created
-    2026-09-25 19:36:45.113 wall=1790386605113 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-25 19:36:45.303 wall=1790386605303 [cortana] VoiceInteractionService created
-    2026-09-25 19:36:45.305 wall=1790386605305 [alarms] rearm (boot): 0 alarms, 0 timers, exact=true
-    2026-09-25 19:36:45.305 wall=1790386605305 [reminders] rearm (boot): 0 timed alarms, exact=true
-    2026-09-25 19:36:45.305 wall=1790386605305 [places] rearm: no place reminders
-    2026-09-25 19:36:45.305 wall=1790386605305 [person] rearm: no person reminders, observers off
-    2026-09-25 19:36:45.479 wall=1790386605479 [render] tile=slot:PHOTOS sourceTime=1790386605084 renderedAt=1790386605479 faces=6
-    2026-09-25 19:36:45.479 wall=1790386605479 [render] tile=slot:CALENDAR sourceTime=1790386605058 renderedAt=1790386605479 faces=1
-    2026-09-25 19:36:45.479 wall=1790386605479 [render] tile=shell:weather sourceTime=1790385167221 renderedAt=1790386605479 faces=1
-    2026-09-25 19:36:45.700 wall=1790386605700 [cortana] VoiceInteractionService ready
-    2026-09-25 19:36:45.700 wall=1790386605700 [notif] listener connected
-    2026-09-25 19:36:45.703 wall=1790386605703 [badge] set com.android.systemui NOTIFICATIONS=1 -> effective 1
-    2026-09-25 19:36:45.703 wall=1790386605703 [engine] publish pkg:com.android.systemui from=notifications faces=1 front=false source=notification sourceTime=1790308978004 -> shows notifications
-    2026-09-25 19:36:45.703 wall=1790386605703 [badge] set com.android.dialer NOTIFICATIONS=2 -> effective 2
-    2026-09-25 19:36:45.704 wall=1790386605704 [engine] publish pkg:com.android.dialer from=notifications faces=2 front=false source=notification sourceTime=1790291074618 -> shows notifications
-    2026-09-25 19:36:45.704 wall=1790386605704 [badge] set com.android.permissioncontroller NOTIFICATIONS=1 -> effective 1
-    2026-09-25 19:36:45.704 wall=1790386605704 [engine] publish pkg:com.android.permissioncontroller from=notifications faces=1 front=false source=notification sourceTime=1790261924720 -> shows notifications
-    2026-09-25 19:36:45.705 wall=1790386605705 [badge] set android NOTIFICATIONS=0 -> effective 0
-    2026-09-25 19:36:45.705 wall=1790386605705 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
-    2026-09-25 19:36:45.705 wall=1790386605705 [notif] rescan (connected): 4 packages with notifications
-    2026-09-25 19:36:45.718 wall=1790386605718 [applist] model: 41 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,V,W
-    2026-09-25 19:36:45.755 wall=1790386605755 [render] tile=dock:slot:PHONE sourceTime=1790291074618 renderedAt=1790386605755 faces=2
-    2026-09-25 19:36:45.769 wall=1790386605769 [applist] model: 41 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,V,W
-    2026-09-25 19:36:46.963 wall=1790386606963 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-25 19:36:46.986 wall=1790386606986 [start] home: page 0, scrolled to top
-    2026-09-25 19:36:47.453 wall=1790386607453 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202889792 faceIndex=0 next=1 faces=6
-    2026-09-25 19:36:48.446 wall=1790386608446 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202890785 faceIndex=0 next=1 faces=1
-    2026-09-25 19:36:48.775 wall=1790386608775 [tile_anim] tile=shell:weather kind=FLIP uptime=202891115 faceIndex=0 next=1 faces=1
-    2026-09-25 19:36:49.107 wall=1790386609107 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
-    2026-09-25 19:36:49.107 wall=1790386609107 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
-    2026-09-25 19:36:50.429 wall=1790386610429 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202892769 faceIndex=0 next=1 faces=2
-    2026-09-25 19:36:50.642 wall=1790386610642 [weather] fetch ok provider=open-meteo ms=1535 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/67.8 hourly=240 daily=10 place=true
-    2026-09-25 19:36:50.653 wall=1790386610653 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790386610640
-    2026-09-25 19:36:50.653 wall=1790386610653 [weather] publish tile faces=1 temp=68° condition=0 sky=CLEAR/day/0.0 stale=false fetchedAt=1790386610640
-    2026-09-25 19:36:50.668 wall=1790386610668 [render] tile=shell:weather sourceTime=1790386610640 renderedAt=1790386610668 faces=1
-    2026-09-25 19:36:52.413 wall=1790386612413 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202894753 faceIndex=1 next=2 faces=6
-    2026-09-25 19:36:52.974 wall=1790386612974 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-25 19:36:52.983 wall=1790386612983 [start] home: page 0, scrolled to top
-    2026-09-25 19:36:53.405 wall=1790386613405 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202895745 faceIndex=1 next=0 faces=1
-    2026-09-25 19:36:53.735 wall=1790386613735 [tile_anim] tile=shell:weather kind=FLIP uptime=202896075 faceIndex=1 next=0 faces=1
-    2026-09-25 19:36:53.759 wall=1790386613759 [notif] listener disconnected
-    2026-09-25 19:36:53.760 wall=1790386613760 [notif] listener connected
-    2026-09-25 19:36:53.761 wall=1790386613761 [badge] set com.android.systemui NOTIFICATIONS=1 -> effective 1
-    2026-09-25 19:36:53.761 wall=1790386613761 [engine] publish pkg:com.android.systemui from=notifications faces=1 front=false source=notification sourceTime=1790308978004 -> shows notifications
-    2026-09-25 19:36:53.762 wall=1790386613762 [badge] set com.android.dialer NOTIFICATIONS=2 -> effective 2
-    2026-09-25 19:36:53.762 wall=1790386613762 [engine] publish pkg:com.android.dialer from=notifications faces=2 front=false source=notification sourceTime=1790291074618 -> shows notifications
-    2026-09-25 19:36:53.762 wall=1790386613762 [badge] set com.android.permissioncontroller NOTIFICATIONS=1 -> effective 1
-    2026-09-25 19:36:53.762 wall=1790386613762 [engine] publish pkg:com.android.permissioncontroller from=notifications faces=1 front=false source=notification sourceTime=1790261924720 -> shows notifications
-    2026-09-25 19:36:53.763 wall=1790386613763 [badge] set android NOTIFICATIONS=0 -> effective 0
-    2026-09-25 19:36:53.763 wall=1790386613763 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
-    2026-09-25 19:36:53.763 wall=1790386613763 [notif] rescan (connected): 4 packages with notifications
-    2026-09-25 19:36:54.055 wall=1790386614055 [cortana] session created
-    2026-09-25 19:36:54.059 wall=1790386614059 [cortana] session window type=2031 flags=0x8d810120 softInputMode=0x0
-    2026-09-25 19:36:54.059 wall=1790386614059 [cortana] session window now flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:36:54.060 wall=1790386614060 [speech] bind requested -> true
-    2026-09-25 19:36:54.060 wall=1790386614060 [speech] preload queued until the bind lands
-    2026-09-25 19:36:54.060 wall=1790386614060 [cortana] session bars: system bars hidden=true (E11 / H1)
-    2026-09-25 19:36:54.061 wall=1790386614061 [cortana] session opened mode=HOME locked=false
-    2026-09-25 19:36:54.174 wall=1790386614174 [speech] bound to :speech
-    2026-09-25 19:36:54.174 wall=1790386614174 [speech] preload delivered after the bind
-    2026-09-25 19:36:54.949 wall=1790386614949 [notif] listener disconnected
-    2026-09-25 19:36:54.963 wall=1790386614963 [notif] listener connected
-    2026-09-25 19:36:54.964 wall=1790386614964 [badge] set com.android.systemui NOTIFICATIONS=1 -> effective 1
-    2026-09-25 19:36:54.964 wall=1790386614964 [engine] publish pkg:com.android.systemui from=notifications faces=1 front=false source=notification sourceTime=1790308978004 -> shows notifications
-    2026-09-25 19:36:54.965 wall=1790386614965 [badge] set com.android.dialer NOTIFICATIONS=2 -> effective 2
-    2026-09-25 19:36:54.965 wall=1790386614965 [engine] publish pkg:com.android.dialer from=notifications faces=2 front=false source=notification sourceTime=1790291074618 -> shows notifications
-    2026-09-25 19:36:54.965 wall=1790386614965 [badge] set com.android.permissioncontroller NOTIFICATIONS=1 -> effective 1
-    2026-09-25 19:36:54.965 wall=1790386614965 [engine] publish pkg:com.android.permissioncontroller from=notifications faces=1 front=false source=notification sourceTime=1790261924720 -> shows notifications
-    2026-09-25 19:36:54.966 wall=1790386614966 [badge] set android NOTIFICATIONS=0 -> effective 0
-    2026-09-25 19:36:54.966 wall=1790386614966 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
-    2026-09-25 19:36:54.966 wall=1790386614966 [notif] rescan (connected): 4 packages with notifications
-    2026-09-25 19:36:55.396 wall=1790386615396 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202897736 faceIndex=1 next=2 faces=2
-    2026-09-25 19:36:57.379 wall=1790386617379 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202899718 faceIndex=2 next=3 faces=6
-    2026-09-25 19:36:58.379 wall=1790386618379 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202900719 faceIndex=0 next=1 faces=1
-    2026-09-25 19:36:58.696 wall=1790386618696 [tile_anim] tile=shell:weather kind=FLIP uptime=202901035 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:00.008 wall=1790386620008 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790386620007
-    2026-09-25 19:37:00.008 wall=1790386620008 [calendar] refresh (minute): access=true faces=1
-    2026-09-25 19:37:00.022 wall=1790386620022 [render] tile=slot:CALENDAR sourceTime=1790386620007 renderedAt=1790386620022 faces=1
-    2026-09-25 19:37:00.362 wall=1790386620362 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202902702 faceIndex=2 next=0 faces=2
-    2026-09-25 19:37:01.951 wall=1790386621951 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:37:01.952 wall=1790386621952 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:37:01.981 wall=1790386621981 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
-    2026-09-25 19:37:02.263 wall=1790386622263 [motion] cortana_pane t0=202904321 peak=246 overshoot=0 settle=246 frames=19 maxGapMs=17
-    2026-09-25 19:37:02.333 wall=1790386622333 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202904672 faceIndex=3 next=4 faces=6
-    2026-09-25 19:37:03.324 wall=1790386623324 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202905664 faceIndex=1 next=0 faces=1
-    2026-09-25 19:37:03.655 wall=1790386623655 [tile_anim] tile=shell:weather kind=FLIP uptime=202905995 faceIndex=1 next=0 faces=1
-    2026-09-25 19:37:05.312 wall=1790386625312 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202907652 faceIndex=0 next=1 faces=2
-    2026-09-25 19:37:07.308 wall=1790386627308 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202909648 faceIndex=4 next=5 faces=6
-    2026-09-25 19:37:08.295 wall=1790386628295 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202910635 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:08.629 wall=1790386628629 [tile_anim] tile=shell:weather kind=FLIP uptime=202910969 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:10.269 wall=1790386630269 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202912609 faceIndex=1 next=2 faces=2
-    2026-09-25 19:37:11.471 wall=1790386631471 [speech] unbound from :speech
-    2026-09-25 19:37:11.471 wall=1790386631471 [cortana] session hidden
-    2026-09-25 19:37:12.253 wall=1790386632253 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202914592 faceIndex=5 next=6 faces=6
-    2026-09-25 19:37:12.493 wall=1790386632493 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-25 19:37:12.502 wall=1790386632502 [start] home: page 0, scrolled to top
-    2026-09-25 19:37:13.245 wall=1790386633245 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202915585 faceIndex=1 next=0 faces=1
-    2026-09-25 19:37:13.562 wall=1790386633562 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:37:13.562 wall=1790386633562 [cortana] session window now flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:37:13.563 wall=1790386633563 [speech] bind requested -> true
-    2026-09-25 19:37:13.563 wall=1790386633563 [speech] preload queued until the bind lands
-    2026-09-25 19:37:13.563 wall=1790386633563 [cortana] session bars: system bars hidden=true (E11 / H1)
-    2026-09-25 19:37:13.563 wall=1790386633563 [cortana] session opened mode=HOME locked=false
-    2026-09-25 19:37:13.575 wall=1790386633575 [tile_anim] tile=shell:weather kind=FLIP uptime=202915914 faceIndex=1 next=0 faces=1
-    2026-09-25 19:37:13.610 wall=1790386633610 [speech] bound to :speech
-    2026-09-25 19:37:13.610 wall=1790386633610 [speech] preload delivered after the bind
-    2026-09-25 19:37:15.229 wall=1790386635229 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202917569 faceIndex=2 next=0 faces=2
-    2026-09-25 19:37:17.213 wall=1790386637213 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202919553 faceIndex=6 next=0 faces=6
-    2026-09-25 19:37:18.212 wall=1790386638212 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202920552 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:18.545 wall=1790386638545 [tile_anim] tile=shell:weather kind=FLIP uptime=202920885 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:18.985 wall=1790386638985 [cortana] touch 0 at 486,2124 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:37:18.988 wall=1790386638988 [cortana] touch 1 at 486,2124 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:37:20.189 wall=1790386640189 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202922528 faceIndex=0 next=1 faces=2
-    2026-09-25 19:37:21.075 wall=1790386641075 [cortana] typed request: "remind me to check the QA13 pane list tomorrow at 9 am"
-    2026-09-25 19:37:21.076 wall=1790386641076 [match] "remind me to check the QA13 pane list tomorrow at 9 am" -> SetReminder(text=check the qa13 pane list, timeMs=1790434800000, recurrence=ONCE, placeName=null, personName=null)
-    2026-09-25 19:37:21.078 wall=1790386641078 [speech] speak[576a8141-36bc-41b5-bf24-ed0241f7aa4e] voice=2 text="Remind you to check the qa13 pane list at 9:00 AM tomorrow. Sound good?"
-    2026-09-25 19:37:22.172 wall=1790386642172 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202924512 faceIndex=0 next=1 faces=6
-    2026-09-25 19:37:23.164 wall=1790386643164 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202925504 faceIndex=1 next=0 faces=1
-    2026-09-25 19:37:23.495 wall=1790386643495 [tile_anim] tile=shell:weather kind=FLIP uptime=202925834 faceIndex=1 next=0 faces=1
-    2026-09-25 19:37:25.148 wall=1790386645148 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202927488 faceIndex=1 next=2 faces=2
-    2026-09-25 19:37:27.133 wall=1790386647133 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202929472 faceIndex=1 next=2 faces=6
-    2026-09-25 19:37:28.125 wall=1790386648125 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202930465 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:28.455 wall=1790386648455 [tile_anim] tile=shell:weather kind=FLIP uptime=202930795 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:30.108 wall=1790386650108 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202932448 faceIndex=2 next=0 faces=2
-    2026-09-25 19:37:31.191 wall=1790386651191 [cortana] touch 0 at 296,1497 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:37:31.192 wall=1790386651192 [cortana] card action CONFIRM pending=SaveReminder
-    2026-09-25 19:37:31.194 wall=1790386651194 [alarms] rearm (store changed): 0 alarms, 0 timers, exact=true
-    2026-09-25 19:37:31.194 wall=1790386651194 [reminders] rearm (store changed): 1 timed alarms, exact=true
-    2026-09-25 19:37:31.194 wall=1790386651194 [places] rearm: no place reminders
-    2026-09-25 19:37:31.194 wall=1790386651194 [person] rearm: no person reminders, observers off
-    2026-09-25 19:37:31.194 wall=1790386651194 [reminders] added 8c7f7f7d-ab73-4f4f-a536-a2e8439d6257 kind=TIME time=1790434800000 place=null person=null text="check the qa13 pane list"
-    2026-09-25 19:37:31.195 wall=1790386651195 [speech] speak[5ccb637a-4389-4a0f-8e61-e4645fa4007e] voice=2 text="I'll remind you."
-    2026-09-25 19:37:31.196 wall=1790386651196 [cortana] touch 1 at 296,1497 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:37:31.404 wall=1790386651404 [speech] speaking done 576a8141-36bc-41b5-bf24-ed0241f7aa4e cancelled=true
-    2026-09-25 19:37:32.092 wall=1790386652092 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202934432 faceIndex=2 next=3 faces=6
-    2026-09-25 19:37:33.084 wall=1790386653084 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202935424 faceIndex=1 next=0 faces=1
-    2026-09-25 19:37:33.415 wall=1790386653415 [tile_anim] tile=shell:weather kind=FLIP uptime=202935754 faceIndex=1 next=0 faces=1
-    2026-09-25 19:37:34.216 wall=1790386654216 [cortana] result cleared
-    2026-09-25 19:37:34.566 wall=1790386654566 [speech] speaking done 5ccb637a-4389-4a0f-8e61-e4645fa4007e cancelled=false
-    2026-09-25 19:37:35.068 wall=1790386655068 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202937408 faceIndex=0 next=1 faces=2
-    2026-09-25 19:37:35.235 wall=1790386655235 [speech] unbound from :speech
-    2026-09-25 19:37:35.235 wall=1790386655235 [cortana] session hidden
-    2026-09-25 19:37:35.251 wall=1790386655251 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-25 19:37:35.271 wall=1790386655271 [start] home: page 0, scrolled to top
-    2026-09-25 19:37:36.285 wall=1790386656285 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:37:36.286 wall=1790386656286 [cortana] session window now flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:37:36.287 wall=1790386656287 [speech] bind requested -> true
-    2026-09-25 19:37:36.287 wall=1790386656287 [speech] preload queued until the bind lands
-    2026-09-25 19:37:36.287 wall=1790386656287 [cortana] session bars: system bars hidden=true (E11 / H1)
-    2026-09-25 19:37:36.287 wall=1790386656287 [cortana] session opened mode=HOME locked=false
-    2026-09-25 19:37:36.340 wall=1790386656340 [speech] bound to :speech
-    2026-09-25 19:37:36.340 wall=1790386656340 [speech] preload delivered after the bind
-    2026-09-25 19:37:37.053 wall=1790386657053 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202939392 faceIndex=3 next=4 faces=6
-    2026-09-25 19:37:38.046 wall=1790386658046 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202940386 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:38.374 wall=1790386658374 [tile_anim] tile=shell:weather kind=FLIP uptime=202940714 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:40.029 wall=1790386660029 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202942369 faceIndex=1 next=2 faces=2
-    2026-09-25 19:37:41.510 wall=1790386661510 [cortana] touch 0 at 486,2124 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:37:41.514 wall=1790386661514 [cortana] touch 1 at 486,2124 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:37:42.012 wall=1790386662012 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202944352 faceIndex=4 next=5 faces=6
-    2026-09-25 19:37:43.004 wall=1790386663004 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202945344 faceIndex=1 next=0 faces=1
-    2026-09-25 19:37:43.334 wall=1790386663334 [tile_anim] tile=shell:weather kind=FLIP uptime=202945674 faceIndex=1 next=0 faces=1
-    2026-09-25 19:37:43.591 wall=1790386663591 [cortana] typed request: "remind me to check the QA13 second pane list tomorrow at 10 am"
-    2026-09-25 19:37:43.591 wall=1790386663591 [match] "remind me to check the QA13 second pane list tomorrow at 10 am" -> SetReminder(text=check the qa13 second pane list, timeMs=1790438400000, recurrence=ONCE, placeName=null, personName=null)
-    2026-09-25 19:37:43.592 wall=1790386663592 [speech] speak[a218ad51-1be4-40ad-bb7b-9ef0d381220f] voice=2 text="Remind you to check the qa13 second pane list at 10:00 AM tomorrow. Sound good?"
-    2026-09-25 19:37:44.988 wall=1790386664988 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202947328 faceIndex=2 next=0 faces=2
-    2026-09-25 19:37:46.973 wall=1790386666973 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202949313 faceIndex=5 next=6 faces=6
-    2026-09-25 19:37:47.964 wall=1790386667964 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202950304 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:48.295 wall=1790386668295 [tile_anim] tile=shell:weather kind=FLIP uptime=202950635 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:49.948 wall=1790386669948 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202952288 faceIndex=0 next=1 faces=2
-    2026-09-25 19:37:51.932 wall=1790386671932 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202954272 faceIndex=6 next=0 faces=6
-    2026-09-25 19:37:52.925 wall=1790386672925 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202955265 faceIndex=1 next=0 faces=1
-    2026-09-25 19:37:53.254 wall=1790386673254 [tile_anim] tile=shell:weather kind=FLIP uptime=202955594 faceIndex=1 next=0 faces=1
-    2026-09-25 19:37:53.669 wall=1790386673669 [cortana] touch 0 at 296,1497 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:37:53.670 wall=1790386673670 [cortana] card action CONFIRM pending=SaveReminder
-    2026-09-25 19:37:53.671 wall=1790386673671 [alarms] rearm (store changed): 0 alarms, 0 timers, exact=true
-    2026-09-25 19:37:53.672 wall=1790386673672 [reminders] rearm (store changed): 2 timed alarms, exact=true
-    2026-09-25 19:37:53.672 wall=1790386673672 [places] rearm: no place reminders
-    2026-09-25 19:37:53.672 wall=1790386673672 [person] rearm: no person reminders, observers off
-    2026-09-25 19:37:53.672 wall=1790386673672 [reminders] added 94152dee-3baf-4dd8-b6e3-473094360c21 kind=TIME time=1790438400000 place=null person=null text="check the qa13 second pane list"
-    2026-09-25 19:37:53.672 wall=1790386673672 [speech] speak[fc2723e7-d890-4ae4-88ff-0e75788e2edc] voice=2 text="I'll remind you."
-    2026-09-25 19:37:53.673 wall=1790386673673 [cortana] touch 1 at 296,1497 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:37:54.467 wall=1790386674467 [speech] speaking done a218ad51-1be4-40ad-bb7b-9ef0d381220f cancelled=true
-    2026-09-25 19:37:54.908 wall=1790386674908 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202957248 faceIndex=1 next=2 faces=2
-    2026-09-25 19:37:56.691 wall=1790386676691 [cortana] result cleared
-    2026-09-25 19:37:56.895 wall=1790386676895 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202959235 faceIndex=0 next=1 faces=6
-    2026-09-25 19:37:57.668 wall=1790386677668 [speech] speaking done fc2723e7-d890-4ae4-88ff-0e75788e2edc cancelled=false
-    2026-09-25 19:37:57.709 wall=1790386677709 [speech] unbound from :speech
-    2026-09-25 19:37:57.709 wall=1790386677709 [cortana] session hidden
-    2026-09-25 19:37:57.732 wall=1790386677732 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-25 19:37:57.740 wall=1790386677740 [start] home: page 0, scrolled to top
-    2026-09-25 19:37:57.884 wall=1790386677884 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202960224 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:58.214 wall=1790386678214 [tile_anim] tile=shell:weather kind=FLIP uptime=202960554 faceIndex=0 next=1 faces=1
-    2026-09-25 19:37:58.734 wall=1790386678734 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:37:58.734 wall=1790386678734 [cortana] session window now flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:37:58.735 wall=1790386678735 [speech] bind requested -> true
-    2026-09-25 19:37:58.735 wall=1790386678735 [speech] preload queued until the bind lands
-    2026-09-25 19:37:58.735 wall=1790386678735 [cortana] session bars: system bars hidden=true (E11 / H1)
-    2026-09-25 19:37:58.735 wall=1790386678735 [cortana] session opened mode=HOME locked=false
-    2026-09-25 19:37:58.796 wall=1790386678796 [speech] bound to :speech
-    2026-09-25 19:37:58.796 wall=1790386678796 [speech] preload delivered after the bind
-    2026-09-25 19:37:59.868 wall=1790386679868 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202962208 faceIndex=2 next=0 faces=2
-    2026-09-25 19:38:00.031 wall=1790386680031 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790386680031
-    2026-09-25 19:38:00.031 wall=1790386680031 [calendar] refresh (minute): access=true faces=1
-    2026-09-25 19:38:00.050 wall=1790386680050 [render] tile=slot:CALENDAR sourceTime=1790386680031 renderedAt=1790386680050 faces=1
-    2026-09-25 19:38:01.852 wall=1790386681852 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202964192 faceIndex=1 next=2 faces=6
-    2026-09-25 19:38:01.984 wall=1790386681984 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:01.984 wall=1790386681984 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:02.007 wall=1790386682007 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
-    2026-09-25 19:38:02.295 wall=1790386682295 [motion] cortana_pane t0=202964346 peak=255 overshoot=0 settle=255 frames=19 maxGapMs=17
-    2026-09-25 19:38:02.845 wall=1790386682845 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202965184 faceIndex=1 next=0 faces=1
-    2026-09-25 19:38:03.174 wall=1790386683174 [tile_anim] tile=shell:weather kind=FLIP uptime=202965514 faceIndex=1 next=0 faces=1
-    2026-09-25 19:38:04.830 wall=1790386684830 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202967169 faceIndex=0 next=1 faces=2
-    2026-09-25 19:38:05.548 wall=1790386685548 [cortana] destination REMINDERS
-    2026-09-25 19:38:05.548 wall=1790386685548 [cortana] touch 0 at 384,372 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:05.549 wall=1790386685549 [cortana] touch 1 at 384,372 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:06.812 wall=1790386686812 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202969152 faceIndex=2 next=3 faces=6
-    2026-09-25 19:38:07.804 wall=1790386687804 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202970144 faceIndex=0 next=1 faces=1
-    2026-09-25 19:38:08.135 wall=1790386688135 [tile_anim] tile=shell:weather kind=FLIP uptime=202970474 faceIndex=0 next=1 faces=1
-    2026-09-25 19:38:09.791 wall=1790386689791 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202972130 faceIndex=1 next=2 faces=2
-    2026-09-25 19:38:11.773 wall=1790386691773 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202974113 faceIndex=3 next=4 faces=6
-    2026-09-25 19:38:12.281 wall=1790386692281 [cortana] touch 0 at 72,108 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:12.282 wall=1790386692282 [cortana] touch 1 at 72,108 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:12.305 wall=1790386692305 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
-    2026-09-25 19:38:12.594 wall=1790386692594 [motion] cortana_pane t0=202974644 peak=257 overshoot=0 settle=257 frames=19 maxGapMs=17
-    2026-09-25 19:38:12.764 wall=1790386692764 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202975104 faceIndex=1 next=0 faces=1
-    2026-09-25 19:38:13.095 wall=1790386693095 [tile_anim] tile=shell:weather kind=FLIP uptime=202975434 faceIndex=1 next=0 faces=1
-    2026-09-25 19:38:14.749 wall=1790386694749 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202977088 faceIndex=2 next=0 faces=2
-    2026-09-25 19:38:16.733 wall=1790386696733 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202979072 faceIndex=4 next=5 faces=6
-    2026-09-25 19:38:17.729 wall=1790386697729 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202980069 faceIndex=0 next=1 faces=1
-    2026-09-25 19:38:18.062 wall=1790386698062 [tile_anim] tile=shell:weather kind=FLIP uptime=202980401 faceIndex=0 next=1 faces=1
-    2026-09-25 19:38:19.709 wall=1790386699709 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202982048 faceIndex=0 next=1 faces=2
-    2026-09-25 19:38:21.693 wall=1790386701693 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202984033 faceIndex=5 next=6 faces=6
-    2026-09-25 19:38:22.685 wall=1790386702685 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202985025 faceIndex=1 next=0 faces=1
-    2026-09-25 19:38:23.014 wall=1790386703014 [tile_anim] tile=shell:weather kind=FLIP uptime=202985354 faceIndex=1 next=0 faces=1
-    2026-09-25 19:38:24.668 wall=1790386704668 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202987008 faceIndex=1 next=2 faces=2
-    2026-09-25 19:38:24.698 wall=1790386704698 [fluent] acrylic=off reason=battery-saver
-    2026-09-25 19:38:26.652 wall=1790386706652 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202988992 faceIndex=6 next=0 faces=6
-    2026-09-25 19:38:27.535 wall=1790386707535 [cortana] touch 0 at 72,108 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:27.536 wall=1790386707536 [cortana] touch 1 at 72,108 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:27.562 wall=1790386707562 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
-    2026-09-25 19:38:27.646 wall=1790386707646 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202989986 faceIndex=0 next=1 faces=1
-    2026-09-25 19:38:27.848 wall=1790386707848 [motion] cortana_pane t0=202989902 peak=249 overshoot=0 settle=249 frames=19 maxGapMs=17
-    2026-09-25 19:38:27.975 wall=1790386707975 [tile_anim] tile=shell:weather kind=FLIP uptime=202990315 faceIndex=0 next=1 faces=1
-    2026-09-25 19:38:29.629 wall=1790386709629 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202991968 faceIndex=2 next=0 faces=2
-    2026-09-25 19:38:31.613 wall=1790386711613 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202993952 faceIndex=0 next=1 faces=6
-    2026-09-25 19:38:32.605 wall=1790386712605 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202994944 faceIndex=1 next=0 faces=1
-    2026-09-25 19:38:32.935 wall=1790386712935 [tile_anim] tile=shell:weather kind=FLIP uptime=202995274 faceIndex=1 next=0 faces=1
-    2026-09-25 19:38:33.378 wall=1790386713378 [cortana] destination HOME
-    2026-09-25 19:38:34.416 wall=1790386714416 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-25 19:38:34.435 wall=1790386714435 [speech] unbound from :speech
-    2026-09-25 19:38:34.435 wall=1790386714435 [cortana] session hidden
-    2026-09-25 19:38:34.435 wall=1790386714435 [start] home: page 0, scrolled to top
-    2026-09-25 19:38:34.589 wall=1790386714589 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=202996929 faceIndex=0 next=1 faces=2
-    2026-09-25 19:38:35.460 wall=1790386715460 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:38:35.460 wall=1790386715460 [cortana] session window now flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:38:35.461 wall=1790386715461 [speech] bind requested -> true
-    2026-09-25 19:38:35.461 wall=1790386715461 [speech] preload queued until the bind lands
-    2026-09-25 19:38:35.461 wall=1790386715461 [cortana] session bars: system bars hidden=true (E11 / H1)
-    2026-09-25 19:38:35.461 wall=1790386715461 [cortana] session opened mode=HOME locked=false
-    2026-09-25 19:38:35.512 wall=1790386715512 [speech] bound to :speech
-    2026-09-25 19:38:35.512 wall=1790386715512 [speech] preload delivered after the bind
-    2026-09-25 19:38:36.572 wall=1790386716572 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=202998912 faceIndex=1 next=2 faces=6
-    2026-09-25 19:38:37.566 wall=1790386717566 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=202999906 faceIndex=0 next=1 faces=1
-    2026-09-25 19:38:37.898 wall=1790386717898 [tile_anim] tile=shell:weather kind=FLIP uptime=203000237 faceIndex=0 next=1 faces=1
-    2026-09-25 19:38:39.548 wall=1790386719548 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203001888 faceIndex=1 next=2 faces=2
-    2026-09-25 19:38:40.517 wall=1790386720517 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:40.517 wall=1790386720517 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:40.536 wall=1790386720536 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
-    2026-09-25 19:38:40.828 wall=1790386720828 [motion] cortana_pane t0=203002876 peak=258 overshoot=0 settle=258 frames=19 maxGapMs=17
-    2026-09-25 19:38:41.532 wall=1790386721532 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203003872 faceIndex=2 next=3 faces=6
-    2026-09-25 19:38:42.525 wall=1790386722525 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203004864 faceIndex=1 next=0 faces=1
-    2026-09-25 19:38:42.855 wall=1790386722855 [tile_anim] tile=shell:weather kind=FLIP uptime=203005194 faceIndex=1 next=0 faces=1
-    2026-09-25 19:38:44.509 wall=1790386724509 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203006848 faceIndex=2 next=0 faces=2
-    2026-09-25 19:38:46.083 wall=1790386726083 [speech] unbound from :speech
-    2026-09-25 19:38:46.084 wall=1790386726084 [cortana] session hidden
-    2026-09-25 19:38:46.493 wall=1790386726493 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203008832 faceIndex=3 next=4 faces=6
-    2026-09-25 19:38:47.115 wall=1790386727115 [fluent] acrylic=on reason=none
-    2026-09-25 19:38:47.485 wall=1790386727485 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203009824 faceIndex=0 next=1 faces=1
-    2026-09-25 19:38:47.814 wall=1790386727814 [tile_anim] tile=shell:weather kind=FLIP uptime=203010154 faceIndex=0 next=1 faces=1
-    2026-09-25 19:38:48.692 wall=1790386728692 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-25 19:38:48.699 wall=1790386728699 [start] home: page 0, scrolled to top
-    2026-09-25 19:38:49.469 wall=1790386729469 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203011808 faceIndex=0 next=1 faces=2
-    2026-09-25 19:38:49.720 wall=1790386729720 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:38:49.720 wall=1790386729720 [cortana] session window now flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:38:49.721 wall=1790386729721 [speech] bind requested -> true
-    2026-09-25 19:38:49.721 wall=1790386729721 [speech] preload queued until the bind lands
-    2026-09-25 19:38:49.721 wall=1790386729721 [cortana] session bars: system bars hidden=true (E11 / H1)
-    2026-09-25 19:38:49.721 wall=1790386729721 [cortana] session opened mode=HOME locked=false
-    2026-09-25 19:38:49.774 wall=1790386729774 [speech] bound to :speech
-    2026-09-25 19:38:49.774 wall=1790386729774 [speech] preload delivered after the bind
-    2026-09-25 19:38:51.452 wall=1790386731452 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203013792 faceIndex=4 next=5 faces=6
-    2026-09-25 19:38:52.445 wall=1790386732445 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203014785 faceIndex=1 next=0 faces=1
-    2026-09-25 19:38:52.774 wall=1790386732774 [tile_anim] tile=shell:weather kind=FLIP uptime=203015114 faceIndex=1 next=0 faces=1
-    2026-09-25 19:38:52.830 wall=1790386732830 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:52.831 wall=1790386732831 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:52.846 wall=1790386732846 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
-    2026-09-25 19:38:53.146 wall=1790386733146 [motion] cortana_pane t0=203015186 peak=248 overshoot=0 settle=248 frames=19 maxGapMs=17
-    2026-09-25 19:38:54.429 wall=1790386734429 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203016769 faceIndex=1 next=2 faces=2
-    2026-09-25 19:38:56.429 wall=1790386736429 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203018769 faceIndex=5 next=6 faces=6
-    2026-09-25 19:38:56.481 wall=1790386736481 [cortana] destination REMINDERS
-    2026-09-25 19:38:56.481 wall=1790386736481 [cortana] touch 0 at 384,372 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:56.482 wall=1790386736482 [cortana] touch 1 at 384,372 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:38:57.405 wall=1790386737405 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203019745 faceIndex=0 next=1 faces=1
-    2026-09-25 19:38:57.735 wall=1790386737735 [tile_anim] tile=shell:weather kind=FLIP uptime=203020075 faceIndex=0 next=1 faces=1
-    2026-09-25 19:38:59.389 wall=1790386739389 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203021729 faceIndex=2 next=0 faces=2
-    2026-09-25 19:39:00.027 wall=1790386740027 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790386740026
-    2026-09-25 19:39:00.027 wall=1790386740027 [calendar] refresh (minute): access=true faces=1
-    2026-09-25 19:39:00.032 wall=1790386740032 [render] tile=slot:CALENDAR sourceTime=1790386740026 renderedAt=1790386740032 faces=1
-    2026-09-25 19:39:00.726 wall=1790386740726 [cortana] touch 0 at 540,575 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:01.373 wall=1790386741373 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203023712 faceIndex=6 next=0 faces=6
-    2026-09-25 19:39:01.436 wall=1790386741436 [fluent] reminder_menu source=live tint=(47,45,47) alpha=0.8 blur=30epx
-    2026-09-25 19:39:01.697 wall=1790386741697 [motion] reminder_menu t0=203023775 peak=242 overshoot=0 settle=242 frames=17 maxGapMs=17
-    2026-09-25 19:39:01.728 wall=1790386741728 [cortana] touch 1 at 540,575 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:02.365 wall=1790386742365 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203024705 faceIndex=1 next=0 faces=1
-    2026-09-25 19:39:02.695 wall=1790386742695 [tile_anim] tile=shell:weather kind=FLIP uptime=203025035 faceIndex=1 next=0 faces=1
-    2026-09-25 19:39:04.349 wall=1790386744349 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203026688 faceIndex=0 next=1 faces=2
-    2026-09-25 19:39:05.098 wall=1790386745098 [cortana] touch 0 at 540,411 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:05.099 wall=1790386745099 [cortana] touch 1 at 540,411 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:05.434 wall=1790386745434 [alarms] rearm (store changed): 0 alarms, 0 timers, exact=true
-    2026-09-25 19:39:05.435 wall=1790386745435 [reminders] rearm (store changed): 1 timed alarms, exact=true
-    2026-09-25 19:39:05.435 wall=1790386745435 [places] rearm: no place reminders
-    2026-09-25 19:39:05.435 wall=1790386745435 [person] rearm: no person reminders, observers off
-    2026-09-25 19:39:05.435 wall=1790386745435 [reminders] deleted 94152dee-3baf-4dd8-b6e3-473094360c21
-    2026-09-25 19:39:06.333 wall=1790386746333 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203028672 faceIndex=0 next=1 faces=6
-    2026-09-25 19:39:06.615 wall=1790386746615 [cortana] destination HOME
-    2026-09-25 19:39:07.329 wall=1790386747329 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203029669 faceIndex=0 next=1 faces=1
-    2026-09-25 19:39:07.647 wall=1790386747647 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-25 19:39:07.664 wall=1790386747664 [speech] unbound from :speech
-    2026-09-25 19:39:07.664 wall=1790386747664 [cortana] session hidden
-    2026-09-25 19:39:07.664 wall=1790386747664 [start] home: page 0, scrolled to top
-    2026-09-25 19:39:07.664 wall=1790386747664 [tile_anim] tile=shell:weather kind=FLIP uptime=203030004 faceIndex=0 next=1 faces=1
-    2026-09-25 19:39:08.670 wall=1790386748670 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:39:08.670 wall=1790386748670 [cortana] session window now flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:39:08.671 wall=1790386748671 [speech] bind requested -> true
-    2026-09-25 19:39:08.671 wall=1790386748671 [speech] preload queued until the bind lands
-    2026-09-25 19:39:08.671 wall=1790386748671 [cortana] session bars: system bars hidden=true (E11 / H1)
-    2026-09-25 19:39:08.671 wall=1790386748671 [cortana] session opened mode=HOME locked=false
-    2026-09-25 19:39:08.736 wall=1790386748736 [speech] bound to :speech
-    2026-09-25 19:39:08.736 wall=1790386748736 [speech] preload delivered after the bind
-    2026-09-25 19:39:09.309 wall=1790386749309 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203031648 faceIndex=1 next=2 faces=2
-    2026-09-25 19:39:11.293 wall=1790386751293 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203033632 faceIndex=1 next=2 faces=6
-    2026-09-25 19:39:11.735 wall=1790386751735 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:11.736 wall=1790386751736 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:11.753 wall=1790386751753 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
-    2026-09-25 19:39:12.045 wall=1790386752045 [motion] cortana_pane t0=203034093 peak=258 overshoot=0 settle=258 frames=19 maxGapMs=17
-    2026-09-25 19:39:12.284 wall=1790386752284 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203034624 faceIndex=1 next=0 faces=1
-    2026-09-25 19:39:12.614 wall=1790386752614 [tile_anim] tile=shell:weather kind=FLIP uptime=203034954 faceIndex=1 next=0 faces=1
-    2026-09-25 19:39:14.279 wall=1790386754279 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203036619 faceIndex=2 next=0 faces=2
-    2026-09-25 19:39:15.297 wall=1790386755297 [cortana] destination REMINDERS
-    2026-09-25 19:39:15.297 wall=1790386755297 [cortana] touch 0 at 384,372 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:15.298 wall=1790386755298 [cortana] touch 1 at 384,372 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:16.253 wall=1790386756253 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203038592 faceIndex=2 next=3 faces=6
-    2026-09-25 19:39:17.245 wall=1790386757245 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203039585 faceIndex=0 next=1 faces=1
-    2026-09-25 19:39:17.574 wall=1790386757574 [tile_anim] tile=shell:weather kind=FLIP uptime=203039914 faceIndex=0 next=1 faces=1
-    2026-09-25 19:39:19.228 wall=1790386759228 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203041568 faceIndex=0 next=1 faces=2
-    2026-09-25 19:39:19.599 wall=1790386759599 [cortana] touch 0 at 540,379 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:20.316 wall=1790386760316 [fluent] reminder_menu source=live tint=(47,45,47) alpha=0.8 blur=30epx
-    2026-09-25 19:39:20.578 wall=1790386760578 [motion] reminder_menu t0=203042655 peak=246 overshoot=0 settle=246 frames=17 maxGapMs=17
-    2026-09-25 19:39:20.611 wall=1790386760611 [cortana] touch 1 at 540,379 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:21.213 wall=1790386761213 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203043552 faceIndex=3 next=4 faces=6
-    2026-09-25 19:39:22.204 wall=1790386762204 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203044544 faceIndex=1 next=0 faces=1
-    2026-09-25 19:39:22.534 wall=1790386762534 [tile_anim] tile=shell:weather kind=FLIP uptime=203044874 faceIndex=1 next=0 faces=1
-    2026-09-25 19:39:23.897 wall=1790386763897 [cortana] touch 0 at 540,215 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:23.897 wall=1790386763897 [cortana] touch 1 at 540,215 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:24.188 wall=1790386764188 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203046528 faceIndex=1 next=2 faces=2
-    2026-09-25 19:39:24.231 wall=1790386764231 [alarms] rearm (store changed): 0 alarms, 0 timers, exact=true
-    2026-09-25 19:39:24.232 wall=1790386764232 [reminders] rearm (store changed): 0 timed alarms, exact=true
-    2026-09-25 19:39:24.232 wall=1790386764232 [places] rearm: no place reminders
-    2026-09-25 19:39:24.232 wall=1790386764232 [person] rearm: no person reminders, observers off
-    2026-09-25 19:39:24.232 wall=1790386764232 [reminders] deleted 8c7f7f7d-ab73-4f4f-a536-a2e8439d6257
-    2026-09-25 19:39:25.413 wall=1790386765413 [cortana] destination HOME
-    2026-09-25 19:39:26.172 wall=1790386766172 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203048512 faceIndex=4 next=5 faces=6
-    2026-09-25 19:39:26.430 wall=1790386766430 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-25 19:39:26.432 wall=1790386766432 [speech] unbound from :speech
-    2026-09-25 19:39:26.432 wall=1790386766432 [cortana] session hidden
-    2026-09-25 19:39:26.456 wall=1790386766456 [start] home: page 0, scrolled to top
-    2026-09-25 19:39:27.164 wall=1790386767164 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203049504 faceIndex=0 next=1 faces=1
-    2026-09-25 19:39:27.473 wall=1790386767473 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:39:27.473 wall=1790386767473 [cortana] session window now flags=0x8d810100 softInputMode=0x0
-    2026-09-25 19:39:27.473 wall=1790386767473 [speech] bind requested -> true
-    2026-09-25 19:39:27.473 wall=1790386767473 [speech] preload queued until the bind lands
-    2026-09-25 19:39:27.474 wall=1790386767474 [cortana] session bars: system bars hidden=true (E11 / H1)
-    2026-09-25 19:39:27.474 wall=1790386767474 [cortana] session opened mode=HOME locked=false
-    2026-09-25 19:39:27.540 wall=1790386767540 [speech] bound to :speech
-    2026-09-25 19:39:27.540 wall=1790386767540 [speech] preload delivered after the bind
-    2026-09-25 19:39:27.555 wall=1790386767555 [tile_anim] tile=shell:weather kind=FLIP uptime=203049895 faceIndex=0 next=1 faces=1
-    2026-09-25 19:39:29.149 wall=1790386769149 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203051488 faceIndex=2 next=0 faces=2
-    2026-09-25 19:39:30.545 wall=1790386770545 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:30.546 wall=1790386770546 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:30.570 wall=1790386770570 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
-    2026-09-25 19:39:30.862 wall=1790386770862 [motion] cortana_pane t0=203052910 peak=257 overshoot=0 settle=257 frames=19 maxGapMs=17
-    2026-09-25 19:39:31.133 wall=1790386771133 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203053472 faceIndex=5 next=6 faces=6
-    2026-09-25 19:39:32.124 wall=1790386772124 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203054464 faceIndex=1 next=0 faces=1
-    2026-09-25 19:39:32.455 wall=1790386772455 [tile_anim] tile=shell:weather kind=FLIP uptime=203054794 faceIndex=1 next=0 faces=1
-    2026-09-25 19:39:34.048 wall=1790386774048 [cortana] destination REMINDERS
-    2026-09-25 19:39:34.048 wall=1790386774048 [cortana] touch 0 at 384,372 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:34.049 wall=1790386774049 [cortana] touch 1 at 384,372 handled=true childCount=1 composeAttached=true
-    2026-09-25 19:39:34.108 wall=1790386774108 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203056448 faceIndex=0 next=1 faces=2
-    2026-09-25 19:39:36.093 wall=1790386776093 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203058432 faceIndex=6 next=0 faces=6
-    2026-09-25 19:39:37.084 wall=1790386777084 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203059424 faceIndex=0 next=1 faces=1
-    2026-09-25 19:39:37.414 wall=1790386777414 [tile_anim] tile=shell:weather kind=FLIP uptime=203059754 faceIndex=0 next=1 faces=1
-    2026-09-25 19:39:38.230 wall=1790386778230 [cortana] destination HOME
-    2026-09-25 19:39:39.068 wall=1790386779068 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=203061408 faceIndex=1 next=2 faces=2
-    2026-09-25 19:39:39.251 wall=1790386779251 [speech] unbound from :speech
-    2026-09-25 19:39:39.251 wall=1790386779251 [cortana] session hidden
-    2026-09-25 19:39:39.265 wall=1790386779265 [bars] StartActivity: system bars hidden (transient by swipe)
-    2026-09-25 19:39:39.284 wall=1790386779284 [start] home: page 0, scrolled to top
-    2026-09-25 19:39:41.053 wall=1790386781053 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=203063393 faceIndex=0 next=1 faces=6
-    2026-09-25 19:39:42.045 wall=1790386782045 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=203064385 faceIndex=1 next=0 faces=1
+    2026-09-25 20:25:13.382 wall=1790389513382 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+    2026-09-25 20:25:13.383 wall=1790389513383 [livetile] store loaded 1 owners
+    2026-09-25 20:25:13.390 wall=1790389513390 [engine] publish pkg:app.tileshell.testclient.a from=api faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-25 20:25:13.390 wall=1790389513390 [badge] set app.tileshell.testclient.a API=0 -> effective 0
+    2026-09-25 20:25:13.390 wall=1790389513390 [app] process start
+    2026-09-25 20:25:13.392 wall=1790389513392 [livetile] samsung badge provider probe: not present
+    2026-09-25 20:25:13.439 wall=1790389513439 [apps] catalog refreshed (init): 41 activities
+    2026-09-25 20:25:13.440 wall=1790389513440 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
+    2026-09-25 20:25:13.440 wall=1790389513440 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-09-25 20:25:13.444 wall=1790389513444 [weather] feed start provider=open-meteo
+    2026-09-25 20:25:13.447 wall=1790389513447 [app] feeds started (process start)
+    2026-09-25 20:25:13.448 wall=1790389513448 [fluent] acrylic=on reason=none
+    2026-09-25 20:25:13.449 wall=1790389513449 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790389513449
+    2026-09-25 20:25:13.449 wall=1790389513449 [calendar] refresh (start): access=true faces=1
+    2026-09-25 20:25:13.451 wall=1790389513451 [clock] tiles: publisher started under cmp:app.tileshell/app.tileshell.clock.ClockActivity
+    2026-09-25 20:25:13.455 wall=1790389513455 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null sourceTime=null
+    2026-09-25 20:25:13.455 wall=1790389513455 [clock] tile: no next alarm, face cleared
+    2026-09-25 20:25:13.457 wall=1790389513457 [alarms] rearm (process start): 0 alarms, 0 timers, exact=true
+    2026-09-25 20:25:13.458 wall=1790389513458 [reminders] loaded 0 reminders, 0 places
+    2026-09-25 20:25:13.458 wall=1790389513458 [reminders] rearm (process start): 0 timed alarms, exact=true
+    2026-09-25 20:25:13.458 wall=1790389513458 [places] rearm: no place reminders
+    2026-09-25 20:25:13.458 wall=1790389513458 [person] rearm: no person reminders, observers off
+    2026-09-25 20:25:13.463 wall=1790389513463 [alarms] rearm (locked boot): 0 alarms, 0 timers, exact=true
+    2026-09-25 20:25:13.485 wall=1790389513485 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790389513485
+    2026-09-25 20:25:13.485 wall=1790389513485 [photos] refresh (start): access=GRANTED photos=6 slideshow=0 grow=false
+    2026-09-25 20:25:13.486 wall=1790389513486 [weather] cache loaded fetchedAt=1790389163376 provider=open-meteo units=IMPERIAL
+    2026-09-25 20:25:13.487 wall=1790389513487 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790389163376
+    2026-09-25 20:25:13.487 wall=1790389513487 [weather] publish tile faces=1 temp=64° condition=0 sky=CLEAR/night/0.0 stale=false fetchedAt=1790389163376
+    2026-09-25 20:25:13.487 wall=1790389513487 [weather] refresh start reason=start units=IMPERIAL
+    2026-09-25 20:25:13.487 wall=1790389513487 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:25:13.489 wall=1790389513489 [start] StartActivity created
+    2026-09-25 20:25:13.493 wall=1790389513493 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:25:13.829 wall=1790389513829 [render] tile=slot:CALENDAR sourceTime=1790389513449 renderedAt=1790389513829 faces=1
+    2026-09-25 20:25:13.829 wall=1790389513829 [render] tile=slot:PHOTOS sourceTime=1790389513485 renderedAt=1790389513829 faces=6
+    2026-09-25 20:25:13.829 wall=1790389513829 [render] tile=shell:weather sourceTime=1790389163376 renderedAt=1790389513829 faces=1
+    2026-09-25 20:25:14.020 wall=1790389514020 [cortana] VoiceInteractionService created
+    2026-09-25 20:25:14.039 wall=1790389514039 [alarms] rearm (boot): 0 alarms, 0 timers, exact=true
+    2026-09-25 20:25:14.039 wall=1790389514039 [reminders] rearm (boot): 0 timed alarms, exact=true
+    2026-09-25 20:25:14.039 wall=1790389514039 [places] rearm: no place reminders
+    2026-09-25 20:25:14.039 wall=1790389514039 [person] rearm: no person reminders, observers off
+    2026-09-25 20:25:14.059 wall=1790389514059 [applist] model: 41 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,V,W
+    2026-09-25 20:25:14.103 wall=1790389514103 [notif] listener connected
+    2026-09-25 20:25:14.106 wall=1790389514106 [badge] set com.android.systemui NOTIFICATIONS=1 -> effective 1
+    2026-09-25 20:25:14.106 wall=1790389514106 [engine] publish pkg:com.android.systemui from=notifications faces=1 front=false source=notification sourceTime=1790308978004 -> shows notifications
+    2026-09-25 20:25:14.107 wall=1790389514107 [badge] set com.android.dialer NOTIFICATIONS=2 -> effective 2
+    2026-09-25 20:25:14.107 wall=1790389514107 [engine] publish pkg:com.android.dialer from=notifications faces=2 front=false source=notification sourceTime=1790291074618 -> shows notifications
+    2026-09-25 20:25:14.108 wall=1790389514108 [badge] set com.android.permissioncontroller NOTIFICATIONS=1 -> effective 1
+    2026-09-25 20:25:14.108 wall=1790389514108 [engine] publish pkg:com.android.permissioncontroller from=notifications faces=1 front=false source=notification sourceTime=1790261924720 -> shows notifications
+    2026-09-25 20:25:14.109 wall=1790389514109 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-25 20:25:14.109 wall=1790389514109 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-25 20:25:14.109 wall=1790389514109 [notif] rescan (connected): 4 packages with notifications
+    2026-09-25 20:25:14.109 wall=1790389514109 [cortana] VoiceInteractionService ready
+    2026-09-25 20:25:14.111 wall=1790389514111 [applist] model: 41 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,V,W
+    2026-09-25 20:25:14.140 wall=1790389514140 [render] tile=dock:slot:PHONE sourceTime=1790291074618 renderedAt=1790389514140 faces=2
+    2026-09-25 20:25:14.165 wall=1790389514165 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205796504 faceIndex=0 next=1 faces=1
+    2026-09-25 20:25:14.546 wall=1790389514546 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205796886 faceIndex=0 next=1 faces=6
+    2026-09-25 20:25:14.929 wall=1790389514929 [tile_anim] tile=shell:weather kind=FLIP uptime=205797269 faceIndex=0 next=1 faces=1
+    2026-09-25 20:25:15.315 wall=1790389515315 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:25:15.333 wall=1790389515333 [start] home: page 0, scrolled to top
+    2026-09-25 20:25:16.836 wall=1790389516836 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205799176 faceIndex=0 next=1 faces=2
+    2026-09-25 20:25:17.336 wall=1790389517336 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-09-25 20:25:17.336 wall=1790389517336 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-25 20:25:19.125 wall=1790389519125 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205801464 faceIndex=1 next=0 faces=1
+    2026-09-25 20:25:19.186 wall=1790389519186 [weather] fetch ok provider=open-meteo ms=1850 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/64.0 hourly=240 daily=10 place=true
+    2026-09-25 20:25:19.194 wall=1790389519194 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790389519184
+    2026-09-25 20:25:19.194 wall=1790389519194 [weather] publish tile faces=1 temp=64° condition=0 sky=CLEAR/night/0.0 stale=false fetchedAt=1790389519184
+    2026-09-25 20:25:19.208 wall=1790389519208 [render] tile=shell:weather sourceTime=1790389519184 renderedAt=1790389519207 faces=1
+    2026-09-25 20:25:19.506 wall=1790389519506 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205801846 faceIndex=1 next=2 faces=6
+    2026-09-25 20:25:19.887 wall=1790389519887 [tile_anim] tile=shell:weather kind=FLIP uptime=205802227 faceIndex=1 next=0 faces=1
+    2026-09-25 20:25:21.330 wall=1790389521330 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:25:21.351 wall=1790389521351 [start] home: page 0, scrolled to top
+    2026-09-25 20:25:21.796 wall=1790389521796 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205804136 faceIndex=1 next=2 faces=2
+    2026-09-25 20:25:22.113 wall=1790389522113 [notif] listener disconnected
+    2026-09-25 20:25:22.129 wall=1790389522129 [notif] listener connected
+    2026-09-25 20:25:22.130 wall=1790389522130 [badge] set com.android.systemui NOTIFICATIONS=1 -> effective 1
+    2026-09-25 20:25:22.130 wall=1790389522130 [engine] publish pkg:com.android.systemui from=notifications faces=1 front=false source=notification sourceTime=1790308978004 -> shows notifications
+    2026-09-25 20:25:22.130 wall=1790389522130 [badge] set com.android.dialer NOTIFICATIONS=2 -> effective 2
+    2026-09-25 20:25:22.131 wall=1790389522131 [engine] publish pkg:com.android.dialer from=notifications faces=2 front=false source=notification sourceTime=1790291074618 -> shows notifications
+    2026-09-25 20:25:22.131 wall=1790389522131 [badge] set com.android.permissioncontroller NOTIFICATIONS=1 -> effective 1
+    2026-09-25 20:25:22.131 wall=1790389522131 [engine] publish pkg:com.android.permissioncontroller from=notifications faces=1 front=false source=notification sourceTime=1790261924720 -> shows notifications
+    2026-09-25 20:25:22.132 wall=1790389522132 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-25 20:25:22.132 wall=1790389522132 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-25 20:25:22.132 wall=1790389522132 [notif] rescan (connected): 4 packages with notifications
+    2026-09-25 20:25:22.396 wall=1790389522396 [cortana] session created
+    2026-09-25 20:25:22.401 wall=1790389522401 [cortana] session window type=2031 flags=0x8d810120 softInputMode=0x0
+    2026-09-25 20:25:22.401 wall=1790389522401 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:25:22.402 wall=1790389522402 [speech] bind requested -> true
+    2026-09-25 20:25:22.403 wall=1790389522403 [speech] preload queued until the bind lands
+    2026-09-25 20:25:22.403 wall=1790389522403 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 20:25:22.404 wall=1790389522404 [cortana] session opened mode=HOME locked=false
+    2026-09-25 20:25:22.498 wall=1790389522498 [speech] bound to :speech
+    2026-09-25 20:25:22.498 wall=1790389522498 [speech] preload delivered after the bind
+    2026-09-25 20:25:23.300 wall=1790389523300 [notif] listener disconnected
+    2026-09-25 20:25:23.317 wall=1790389523317 [notif] listener connected
+    2026-09-25 20:25:23.319 wall=1790389523319 [badge] set com.android.systemui NOTIFICATIONS=1 -> effective 1
+    2026-09-25 20:25:23.319 wall=1790389523319 [engine] publish pkg:com.android.systemui from=notifications faces=1 front=false source=notification sourceTime=1790308978004 -> shows notifications
+    2026-09-25 20:25:23.319 wall=1790389523319 [badge] set com.android.dialer NOTIFICATIONS=2 -> effective 2
+    2026-09-25 20:25:23.319 wall=1790389523319 [engine] publish pkg:com.android.dialer from=notifications faces=2 front=false source=notification sourceTime=1790291074618 -> shows notifications
+    2026-09-25 20:25:23.320 wall=1790389523320 [badge] set com.android.permissioncontroller NOTIFICATIONS=1 -> effective 1
+    2026-09-25 20:25:23.320 wall=1790389523320 [engine] publish pkg:com.android.permissioncontroller from=notifications faces=1 front=false source=notification sourceTime=1790261924720 -> shows notifications
+    2026-09-25 20:25:23.320 wall=1790389523320 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-25 20:25:23.320 wall=1790389523320 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-25 20:25:23.320 wall=1790389523320 [notif] rescan (connected): 4 packages with notifications
+    2026-09-25 20:25:24.084 wall=1790389524084 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205806424 faceIndex=0 next=1 faces=1
+    2026-09-25 20:25:24.467 wall=1790389524467 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205806807 faceIndex=2 next=3 faces=6
+    2026-09-25 20:25:24.850 wall=1790389524850 [tile_anim] tile=shell:weather kind=FLIP uptime=205807190 faceIndex=0 next=1 faces=1
+    2026-09-25 20:25:26.756 wall=1790389526756 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205809096 faceIndex=2 next=0 faces=2
+    2026-09-25 20:25:29.045 wall=1790389529045 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205811385 faceIndex=1 next=0 faces=1
+    2026-09-25 20:25:29.427 wall=1790389529427 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205811766 faceIndex=3 next=4 faces=6
+    2026-09-25 20:25:29.813 wall=1790389529813 [tile_anim] tile=shell:weather kind=FLIP uptime=205812152 faceIndex=1 next=0 faces=1
+    2026-09-25 20:25:30.231 wall=1790389530231 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:25:30.233 wall=1790389530233 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:25:30.254 wall=1790389530254 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 20:25:30.546 wall=1790389530546 [motion] cortana_pane t0=205812593 peak=241 overshoot=0 settle=241 frames=19 maxGapMs=17
+    2026-09-25 20:25:31.731 wall=1790389531731 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205814071 faceIndex=0 next=1 faces=2
+    2026-09-25 20:25:34.013 wall=1790389534013 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205816353 faceIndex=0 next=1 faces=1
+    2026-09-25 20:25:34.396 wall=1790389534396 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205816736 faceIndex=4 next=5 faces=6
+    2026-09-25 20:25:34.781 wall=1790389534781 [tile_anim] tile=shell:weather kind=FLIP uptime=205817121 faceIndex=0 next=1 faces=1
+    2026-09-25 20:25:36.676 wall=1790389536676 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205819015 faceIndex=1 next=2 faces=2
+    2026-09-25 20:25:38.979 wall=1790389538979 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205821318 faceIndex=1 next=0 faces=1
+    2026-09-25 20:25:39.346 wall=1790389539346 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205821686 faceIndex=5 next=6 faces=6
+    2026-09-25 20:25:39.648 wall=1790389539648 [speech] unbound from :speech
+    2026-09-25 20:25:39.648 wall=1790389539648 [cortana] session hidden
+    2026-09-25 20:25:39.729 wall=1790389539729 [tile_anim] tile=shell:weather kind=FLIP uptime=205822068 faceIndex=1 next=0 faces=1
+    2026-09-25 20:25:40.662 wall=1790389540662 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:25:40.684 wall=1790389540684 [start] home: page 0, scrolled to top
+    2026-09-25 20:25:41.635 wall=1790389541635 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205823975 faceIndex=2 next=0 faces=2
+    2026-09-25 20:25:41.701 wall=1790389541701 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:25:41.701 wall=1790389541701 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:25:41.702 wall=1790389541702 [speech] bind requested -> true
+    2026-09-25 20:25:41.702 wall=1790389541702 [speech] preload queued until the bind lands
+    2026-09-25 20:25:41.702 wall=1790389541702 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 20:25:41.704 wall=1790389541704 [cortana] session opened mode=HOME locked=false
+    2026-09-25 20:25:41.770 wall=1790389541770 [speech] bound to :speech
+    2026-09-25 20:25:41.770 wall=1790389541770 [speech] preload delivered after the bind
+    2026-09-25 20:25:43.924 wall=1790389543924 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205826264 faceIndex=0 next=1 faces=1
+    2026-09-25 20:25:44.306 wall=1790389544306 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205826646 faceIndex=6 next=0 faces=6
+    2026-09-25 20:25:44.688 wall=1790389544688 [tile_anim] tile=shell:weather kind=FLIP uptime=205827028 faceIndex=0 next=1 faces=1
+    2026-09-25 20:25:46.596 wall=1790389546596 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205828936 faceIndex=0 next=1 faces=2
+    2026-09-25 20:25:47.025 wall=1790389547025 [cortana] touch 0 at 1008,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:25:47.050 wall=1790389547050 [cortana] touch 1 at 1008,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:25:48.884 wall=1790389548884 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205831224 faceIndex=1 next=0 faces=1
+    2026-09-25 20:25:49.239 wall=1790389549239 [speech] final open="" grammar="" audioMs=2100
+    2026-09-25 20:25:49.239 wall=1790389549239 [cortana] final was silence (audioMs=2100)
+    2026-09-25 20:25:49.241 wall=1790389549241 [speech] speak[4314a576-85fe-4bfe-b423-495084ef6d1c] voice=2 text="I didn't catch that."
+    2026-09-25 20:25:49.267 wall=1790389549267 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205831607 faceIndex=0 next=1 faces=6
+    2026-09-25 20:25:49.647 wall=1790389549647 [tile_anim] tile=shell:weather kind=FLIP uptime=205831987 faceIndex=1 next=0 faces=1
+    2026-09-25 20:25:51.556 wall=1790389551556 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205833896 faceIndex=1 next=2 faces=2
+    2026-09-25 20:25:52.927 wall=1790389552927 [speech] speaking done 4314a576-85fe-4bfe-b423-495084ef6d1c cancelled=false
+    2026-09-25 20:25:53.505 wall=1790389553505 [cortana] result cleared
+    2026-09-25 20:25:53.846 wall=1790389553846 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205836186 faceIndex=0 next=1 faces=1
+    2026-09-25 20:25:54.227 wall=1790389554227 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205836566 faceIndex=1 next=2 faces=6
+    2026-09-25 20:25:54.608 wall=1790389554608 [tile_anim] tile=shell:weather kind=FLIP uptime=205836947 faceIndex=0 next=1 faces=1
+    2026-09-25 20:25:54.719 wall=1790389554719 [speech] unbound from :speech
+    2026-09-25 20:25:54.719 wall=1790389554719 [cortana] session hidden
+    2026-09-25 20:25:54.732 wall=1790389554732 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:25:54.751 wall=1790389554751 [start] home: page 0, scrolled to top
+    2026-09-25 20:25:55.758 wall=1790389555758 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:25:55.758 wall=1790389555758 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:25:55.760 wall=1790389555760 [speech] bind requested -> true
+    2026-09-25 20:25:55.760 wall=1790389555760 [speech] preload queued until the bind lands
+    2026-09-25 20:25:55.760 wall=1790389555760 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 20:25:55.760 wall=1790389555760 [cortana] session opened mode=HOME locked=false
+    2026-09-25 20:25:55.815 wall=1790389555815 [speech] bound to :speech
+    2026-09-25 20:25:55.815 wall=1790389555815 [speech] preload delivered after the bind
+    2026-09-25 20:25:56.516 wall=1790389556516 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205838855 faceIndex=2 next=0 faces=2
+    2026-09-25 20:25:58.804 wall=1790389558804 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205841144 faceIndex=1 next=0 faces=1
+    2026-09-25 20:25:59.186 wall=1790389559186 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205841526 faceIndex=2 next=3 faces=6
+    2026-09-25 20:25:59.568 wall=1790389559568 [tile_anim] tile=shell:weather kind=FLIP uptime=205841907 faceIndex=1 next=0 faces=1
+    2026-09-25 20:26:00.042 wall=1790389560042 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790389560042
+    2026-09-25 20:26:00.042 wall=1790389560042 [calendar] refresh (minute): access=true faces=1
+    2026-09-25 20:26:00.050 wall=1790389560050 [render] tile=slot:CALENDAR sourceTime=1790389560042 renderedAt=1790389560050 faces=1
+    2026-09-25 20:26:01.077 wall=1790389561077 [cortana] touch 0 at 1008,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:26:01.082 wall=1790389561082 [cortana] touch 1 at 1008,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:26:01.524 wall=1790389561524 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205843864 faceIndex=0 next=1 faces=2
+    2026-09-25 20:26:03.268 wall=1790389563268 [speech] final open="" grammar="" audioMs=2100
+    2026-09-25 20:26:03.281 wall=1790389563281 [cortana] final was silence (audioMs=2100)
+    2026-09-25 20:26:03.281 wall=1790389563281 [speech] speak[c2e18a70-ed6f-42ef-9007-efd9d7c8a448] voice=2 text="I didn't catch that."
+    2026-09-25 20:26:03.765 wall=1790389563765 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205846104 faceIndex=0 next=1 faces=1
+    2026-09-25 20:26:04.147 wall=1790389564147 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205846487 faceIndex=3 next=4 faces=6
+    2026-09-25 20:26:04.527 wall=1790389564527 [tile_anim] tile=shell:weather kind=FLIP uptime=205846867 faceIndex=0 next=1 faces=1
+    2026-09-25 20:26:06.435 wall=1790389566435 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205848775 faceIndex=1 next=2 faces=2
+    2026-09-25 20:26:06.648 wall=1790389566648 [cortana] result cleared
+    2026-09-25 20:26:07.021 wall=1790389567021 [speech] speaking done c2e18a70-ed6f-42ef-9007-efd9d7c8a448 cancelled=false
+    2026-09-25 20:26:07.943 wall=1790389567943 [speech] unbound from :speech
+    2026-09-25 20:26:07.943 wall=1790389567943 [cortana] session hidden
+    2026-09-25 20:26:07.949 wall=1790389567949 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:26:07.968 wall=1790389567968 [start] home: page 0, scrolled to top
+    2026-09-25 20:26:08.724 wall=1790389568724 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205851064 faceIndex=1 next=0 faces=1
+    2026-09-25 20:26:08.970 wall=1790389568970 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:26:08.970 wall=1790389568970 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:26:08.971 wall=1790389568971 [speech] bind requested -> true
+    2026-09-25 20:26:08.971 wall=1790389568971 [speech] preload queued until the bind lands
+    2026-09-25 20:26:08.971 wall=1790389568971 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 20:26:08.971 wall=1790389568971 [cortana] session opened mode=HOME locked=false
+    2026-09-25 20:26:09.040 wall=1790389569040 [speech] bound to :speech
+    2026-09-25 20:26:09.040 wall=1790389569040 [speech] preload delivered after the bind
+    2026-09-25 20:26:09.106 wall=1790389569106 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205851446 faceIndex=4 next=5 faces=6
+    2026-09-25 20:26:09.488 wall=1790389569488 [tile_anim] tile=shell:weather kind=FLIP uptime=205851827 faceIndex=1 next=0 faces=1
+    2026-09-25 20:26:11.396 wall=1790389571396 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205853736 faceIndex=2 next=0 faces=2
+    2026-09-25 20:26:13.685 wall=1790389573685 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205856025 faceIndex=0 next=1 faces=1
+    2026-09-25 20:26:14.066 wall=1790389574066 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205856406 faceIndex=5 next=6 faces=6
+    2026-09-25 20:26:14.303 wall=1790389574303 [cortana] touch 0 at 1008,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:26:14.311 wall=1790389574311 [cortana] touch 1 at 1008,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:26:14.322 wall=1790389574322 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:26:14.323 wall=1790389574323 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:26:14.340 wall=1790389574340 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 20:26:14.448 wall=1790389574448 [tile_anim] tile=shell:weather kind=FLIP uptime=205856787 faceIndex=0 next=1 faces=1
+    2026-09-25 20:26:14.628 wall=1790389574628 [motion] cortana_pane t0=205856680 peak=254 overshoot=0 settle=254 frames=19 maxGapMs=17
+    2026-09-25 20:26:16.362 wall=1790389576362 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205858701 faceIndex=0 next=1 faces=2
+    2026-09-25 20:26:16.492 wall=1790389576492 [speech] final open="" grammar="" audioMs=2100
+    2026-09-25 20:26:16.496 wall=1790389576496 [cortana] final was silence (audioMs=2100)
+    2026-09-25 20:26:16.498 wall=1790389576498 [speech] speak[26fde1e5-9bf5-445c-9ee7-6fd7371ad4ef] voice=2 text="I didn't catch that."
+    2026-09-25 20:26:18.645 wall=1790389578645 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205860984 faceIndex=1 next=0 faces=1
+    2026-09-25 20:26:19.027 wall=1790389579027 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205861366 faceIndex=6 next=0 faces=6
+    2026-09-25 20:26:19.408 wall=1790389579408 [tile_anim] tile=shell:weather kind=FLIP uptime=205861748 faceIndex=1 next=0 faces=1
+    2026-09-25 20:26:20.183 wall=1790389580183 [speech] speaking done 26fde1e5-9bf5-445c-9ee7-6fd7371ad4ef cancelled=false
+    2026-09-25 20:26:21.319 wall=1790389581319 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205863659 faceIndex=1 next=2 faces=2
+    2026-09-25 20:26:23.146 wall=1790389583146 [cortana] result cleared
+    2026-09-25 20:26:23.612 wall=1790389583612 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205865952 faceIndex=0 next=1 faces=1
+    2026-09-25 20:26:23.996 wall=1790389583996 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205866335 faceIndex=0 next=1 faces=6
+    2026-09-25 20:26:24.382 wall=1790389584382 [tile_anim] tile=shell:weather kind=FLIP uptime=205866722 faceIndex=0 next=1 faces=1
+    2026-09-25 20:26:25.048 wall=1790389585048 [fluent] acrylic=off reason=battery-saver
+    2026-09-25 20:26:25.579 wall=1790389585579 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:26:25.597 wall=1790389585597 [speech] unbound from :speech
+    2026-09-25 20:26:25.597 wall=1790389585597 [cortana] session hidden
+    2026-09-25 20:26:25.597 wall=1790389585597 [start] home: page 0, scrolled to top
+    2026-09-25 20:26:26.276 wall=1790389586276 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205868616 faceIndex=2 next=0 faces=2
+    2026-09-25 20:26:26.611 wall=1790389586611 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:26:26.611 wall=1790389586611 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:26:26.612 wall=1790389586612 [speech] bind requested -> true
+    2026-09-25 20:26:26.612 wall=1790389586612 [speech] preload queued until the bind lands
+    2026-09-25 20:26:26.612 wall=1790389586612 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 20:26:26.612 wall=1790389586612 [cortana] session opened mode=HOME locked=false
+    2026-09-25 20:26:26.668 wall=1790389586668 [speech] bound to :speech
+    2026-09-25 20:26:26.668 wall=1790389586668 [speech] preload delivered after the bind
+    2026-09-25 20:26:28.565 wall=1790389588565 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205870904 faceIndex=1 next=0 faces=1
+    2026-09-25 20:26:28.947 wall=1790389588947 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205871286 faceIndex=1 next=2 faces=6
+    2026-09-25 20:26:29.330 wall=1790389589330 [tile_anim] tile=shell:weather kind=FLIP uptime=205871669 faceIndex=1 next=0 faces=1
+    2026-09-25 20:26:31.236 wall=1790389591236 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205873575 faceIndex=0 next=1 faces=2
+    2026-09-25 20:26:31.960 wall=1790389591960 [cortana] touch 0 at 1008,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:26:31.967 wall=1790389591967 [cortana] touch 1 at 1008,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:26:31.977 wall=1790389591977 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:26:31.979 wall=1790389591979 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:26:31.989 wall=1790389591989 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 20:26:32.296 wall=1790389592296 [motion] cortana_pane t0=205874329 peak=255 overshoot=0 settle=255 frames=19 maxGapMs=17
+    2026-09-25 20:26:33.525 wall=1790389593525 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205875864 faceIndex=0 next=1 faces=1
+    2026-09-25 20:26:33.907 wall=1790389593907 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205876246 faceIndex=2 next=3 faces=6
+    2026-09-25 20:26:34.160 wall=1790389594160 [speech] final open="" grammar="" audioMs=2100
+    2026-09-25 20:26:34.160 wall=1790389594160 [cortana] final was silence (audioMs=2100)
+    2026-09-25 20:26:34.161 wall=1790389594161 [speech] speak[d0d628c3-935f-4d50-9a1e-c82ad152738f] voice=2 text="I didn't catch that."
+    2026-09-25 20:26:34.287 wall=1790389594287 [tile_anim] tile=shell:weather kind=FLIP uptime=205876627 faceIndex=0 next=1 faces=1
+    2026-09-25 20:26:36.195 wall=1790389596195 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205878535 faceIndex=1 next=2 faces=2
+    2026-09-25 20:26:37.923 wall=1790389597923 [speech] speaking done d0d628c3-935f-4d50-9a1e-c82ad152738f cancelled=false
+    2026-09-25 20:26:38.487 wall=1790389598487 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205880827 faceIndex=1 next=0 faces=1
+    2026-09-25 20:26:38.867 wall=1790389598867 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205881206 faceIndex=3 next=4 faces=6
+    2026-09-25 20:26:39.265 wall=1790389599265 [tile_anim] tile=shell:weather kind=FLIP uptime=205881605 faceIndex=1 next=0 faces=1
+    2026-09-25 20:26:40.365 wall=1790389600365 [cortana] result cleared
+    2026-09-25 20:26:41.165 wall=1790389601165 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205883505 faceIndex=2 next=0 faces=2
+    2026-09-25 20:26:41.922 wall=1790389601922 [fluent] acrylic=on reason=none
+    2026-09-25 20:26:43.446 wall=1790389603446 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205885786 faceIndex=0 next=1 faces=1
+    2026-09-25 20:26:43.466 wall=1790389603466 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:26:43.480 wall=1790389603480 [speech] unbound from :speech
+    2026-09-25 20:26:43.480 wall=1790389603480 [cortana] session hidden
+    2026-09-25 20:26:43.480 wall=1790389603480 [start] home: page 0, scrolled to top
+    2026-09-25 20:26:43.826 wall=1790389603826 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205886166 faceIndex=4 next=5 faces=6
+    2026-09-25 20:26:44.207 wall=1790389604207 [tile_anim] tile=shell:weather kind=FLIP uptime=205886547 faceIndex=0 next=1 faces=1
+    2026-09-25 20:26:44.485 wall=1790389604485 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:26:44.485 wall=1790389604485 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:26:44.486 wall=1790389604486 [speech] bind requested -> true
+    2026-09-25 20:26:44.486 wall=1790389604486 [speech] preload queued until the bind lands
+    2026-09-25 20:26:44.487 wall=1790389604487 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 20:26:44.487 wall=1790389604487 [cortana] session opened mode=HOME locked=false
+    2026-09-25 20:26:44.569 wall=1790389604569 [speech] bound to :speech
+    2026-09-25 20:26:44.569 wall=1790389604569 [speech] preload delivered after the bind
+    2026-09-25 20:26:46.116 wall=1790389606116 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205888455 faceIndex=0 next=1 faces=2
+    2026-09-25 20:26:48.404 wall=1790389608404 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205890744 faceIndex=1 next=0 faces=1
+    2026-09-25 20:26:48.787 wall=1790389608787 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205891127 faceIndex=5 next=6 faces=6
+    2026-09-25 20:26:49.168 wall=1790389609168 [tile_anim] tile=shell:weather kind=FLIP uptime=205891508 faceIndex=1 next=0 faces=1
+    2026-09-25 20:26:49.650 wall=1790389609650 [cortana] touch 0 at 486,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:26:49.654 wall=1790389609654 [cortana] touch 1 at 486,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:26:51.079 wall=1790389611079 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205893419 faceIndex=1 next=2 faces=2
+    2026-09-25 20:26:53.379 wall=1790389613379 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205895718 faceIndex=0 next=1 faces=1
+    2026-09-25 20:26:53.762 wall=1790389613762 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205896102 faceIndex=6 next=0 faces=6
+    2026-09-25 20:26:54.129 wall=1790389614129 [tile_anim] tile=shell:weather kind=FLIP uptime=205896468 faceIndex=0 next=1 faces=1
+    2026-09-25 20:26:54.198 wall=1790389614198 [cortana] typed request: "remind me to check the QA13 pane list tomorrow at 9 am"
+    2026-09-25 20:26:54.199 wall=1790389614199 [match] "remind me to check the QA13 pane list tomorrow at 9 am" -> SetReminder(text=check the qa13 pane list, timeMs=1790434800000, recurrence=ONCE, placeName=null, personName=null)
+    2026-09-25 20:26:54.200 wall=1790389614200 [speech] speak[ee0a0f60-570b-4e0f-ad5b-25f7b718141c] voice=2 text="Remind you to check the qa13 pane list at 9:00 AM tomorrow. Sound good?"
+    2026-09-25 20:26:56.035 wall=1790389616035 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205898375 faceIndex=2 next=0 faces=2
+    2026-09-25 20:26:58.324 wall=1790389618324 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205900664 faceIndex=1 next=0 faces=1
+    2026-09-25 20:26:58.706 wall=1790389618706 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205901046 faceIndex=0 next=1 faces=6
+    2026-09-25 20:26:59.087 wall=1790389619087 [tile_anim] tile=shell:weather kind=FLIP uptime=205901427 faceIndex=1 next=0 faces=1
+    2026-09-25 20:27:00.006 wall=1790389620006 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790389620005
+    2026-09-25 20:27:00.006 wall=1790389620006 [calendar] refresh (minute): access=true faces=1
+    2026-09-25 20:27:00.021 wall=1790389620021 [render] tile=slot:CALENDAR sourceTime=1790389620005 renderedAt=1790389620021 faces=1
+    2026-09-25 20:27:00.996 wall=1790389620996 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205903335 faceIndex=0 next=1 faces=2
+    2026-09-25 20:27:03.284 wall=1790389623284 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205905624 faceIndex=0 next=1 faces=1
+    2026-09-25 20:27:03.667 wall=1790389623667 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205906007 faceIndex=1 next=2 faces=6
+    2026-09-25 20:27:04.047 wall=1790389624047 [tile_anim] tile=shell:weather kind=FLIP uptime=205906387 faceIndex=0 next=1 faces=1
+    2026-09-25 20:27:04.720 wall=1790389624720 [cortana] touch 0 at 296,1497 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:27:04.721 wall=1790389624721 [cortana] card action CONFIRM pending=SaveReminder
+    2026-09-25 20:27:04.722 wall=1790389624722 [alarms] rearm (store changed): 0 alarms, 0 timers, exact=true
+    2026-09-25 20:27:04.722 wall=1790389624722 [reminders] rearm (store changed): 1 timed alarms, exact=true
+    2026-09-25 20:27:04.722 wall=1790389624722 [places] rearm: no place reminders
+    2026-09-25 20:27:04.722 wall=1790389624722 [person] rearm: no person reminders, observers off
+    2026-09-25 20:27:04.722 wall=1790389624722 [reminders] added ca71a360-341b-4688-aeeb-a2c4612f91f5 kind=TIME time=1790434800000 place=null person=null text="check the qa13 pane list"
+    2026-09-25 20:27:04.723 wall=1790389624723 [speech] speak[9916548f-18f4-4ac6-846b-203048b8aca2] voice=2 text="I'll remind you."
+    2026-09-25 20:27:04.723 wall=1790389624723 [cortana] touch 1 at 296,1497 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:27:04.724 wall=1790389624724 [speech] speaking done ee0a0f60-570b-4e0f-ad5b-25f7b718141c cancelled=true
+    2026-09-25 20:27:05.956 wall=1790389625956 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205908295 faceIndex=1 next=2 faces=2
+    2026-09-25 20:27:07.738 wall=1790389627738 [cortana] result cleared
+    2026-09-25 20:27:07.972 wall=1790389627972 [speech] speaking done 9916548f-18f4-4ac6-846b-203048b8aca2 cancelled=false
+    2026-09-25 20:27:08.244 wall=1790389628244 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205910584 faceIndex=1 next=0 faces=1
+    2026-09-25 20:27:08.627 wall=1790389628627 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205910967 faceIndex=2 next=3 faces=6
+    2026-09-25 20:27:08.755 wall=1790389628755 [speech] unbound from :speech
+    2026-09-25 20:27:08.755 wall=1790389628755 [cortana] session hidden
+    2026-09-25 20:27:08.769 wall=1790389628769 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:27:08.789 wall=1790389628789 [start] home: page 0, scrolled to top
+    2026-09-25 20:27:09.007 wall=1790389629007 [tile_anim] tile=shell:weather kind=FLIP uptime=205911347 faceIndex=1 next=0 faces=1
+    2026-09-25 20:27:09.792 wall=1790389629792 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:27:09.792 wall=1790389629792 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:27:09.793 wall=1790389629793 [speech] bind requested -> true
+    2026-09-25 20:27:09.793 wall=1790389629793 [speech] preload queued until the bind lands
+    2026-09-25 20:27:09.793 wall=1790389629793 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 20:27:09.793 wall=1790389629793 [cortana] session opened mode=HOME locked=false
+    2026-09-25 20:27:09.856 wall=1790389629856 [speech] bound to :speech
+    2026-09-25 20:27:09.856 wall=1790389629856 [speech] preload delivered after the bind
+    2026-09-25 20:27:10.917 wall=1790389630917 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205913256 faceIndex=2 next=0 faces=2
+    2026-09-25 20:27:13.204 wall=1790389633204 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205915544 faceIndex=0 next=1 faces=1
+    2026-09-25 20:27:13.586 wall=1790389633586 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205915926 faceIndex=3 next=4 faces=6
+    2026-09-25 20:27:13.967 wall=1790389633967 [tile_anim] tile=shell:weather kind=FLIP uptime=205916307 faceIndex=0 next=1 faces=1
+    2026-09-25 20:27:14.903 wall=1790389634903 [cortana] touch 0 at 486,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:27:14.905 wall=1790389634905 [cortana] touch 1 at 486,2124 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:27:15.875 wall=1790389635875 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205918215 faceIndex=0 next=1 faces=2
+    2026-09-25 20:27:16.990 wall=1790389636990 [cortana] typed request: "remind me to check the QA13 second pane list tomorrow at 10 am"
+    2026-09-25 20:27:16.990 wall=1790389636990 [match] "remind me to check the QA13 second pane list tomorrow at 10 am" -> SetReminder(text=check the qa13 second pane list, timeMs=1790438400000, recurrence=ONCE, placeName=null, personName=null)
+    2026-09-25 20:27:16.991 wall=1790389636991 [speech] speak[298cead4-93ed-458c-86ad-65dbbf122390] voice=2 text="Remind you to check the qa13 second pane list at 10:00 AM tomorrow. Sound good?"
+    2026-09-25 20:27:18.165 wall=1790389638165 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205920505 faceIndex=1 next=0 faces=1
+    2026-09-25 20:27:18.546 wall=1790389638546 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205920886 faceIndex=4 next=5 faces=6
+    2026-09-25 20:27:18.928 wall=1790389638928 [tile_anim] tile=shell:weather kind=FLIP uptime=205921268 faceIndex=1 next=0 faces=1
+    2026-09-25 20:27:20.836 wall=1790389640836 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205923175 faceIndex=1 next=2 faces=2
+    2026-09-25 20:27:23.124 wall=1790389643124 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205925464 faceIndex=0 next=1 faces=1
+    2026-09-25 20:27:23.506 wall=1790389643506 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205925846 faceIndex=5 next=6 faces=6
+    2026-09-25 20:27:23.887 wall=1790389643887 [tile_anim] tile=shell:weather kind=FLIP uptime=205926227 faceIndex=0 next=1 faces=1
+    2026-09-25 20:27:25.796 wall=1790389645796 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205928135 faceIndex=2 next=0 faces=2
+    2026-09-25 20:27:27.062 wall=1790389647062 [cortana] touch 0 at 296,1497 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:27:27.063 wall=1790389647063 [cortana] card action CONFIRM pending=SaveReminder
+    2026-09-25 20:27:27.063 wall=1790389647063 [alarms] rearm (store changed): 0 alarms, 0 timers, exact=true
+    2026-09-25 20:27:27.064 wall=1790389647064 [reminders] rearm (store changed): 2 timed alarms, exact=true
+    2026-09-25 20:27:27.064 wall=1790389647064 [places] rearm: no place reminders
+    2026-09-25 20:27:27.064 wall=1790389647064 [person] rearm: no person reminders, observers off
+    2026-09-25 20:27:27.064 wall=1790389647064 [reminders] added e37c5dcd-b0f7-425a-8cbe-187a012fd00e kind=TIME time=1790438400000 place=null person=null text="check the qa13 second pane list"
+    2026-09-25 20:27:27.064 wall=1790389647064 [speech] speak[b981bff7-37a5-443f-95f3-0c1f0dde9b61] voice=2 text="I'll remind you."
+    2026-09-25 20:27:27.065 wall=1790389647065 [cortana] touch 1 at 296,1497 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:27:27.862 wall=1790389647862 [speech] speaking done 298cead4-93ed-458c-86ad-65dbbf122390 cancelled=true
+    2026-09-25 20:27:28.085 wall=1790389648085 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205930425 faceIndex=1 next=0 faces=1
+    2026-09-25 20:27:28.466 wall=1790389648466 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205930806 faceIndex=6 next=0 faces=6
+    2026-09-25 20:27:28.848 wall=1790389648848 [tile_anim] tile=shell:weather kind=FLIP uptime=205931188 faceIndex=1 next=0 faces=1
+    2026-09-25 20:27:30.082 wall=1790389650082 [cortana] result cleared
+    2026-09-25 20:27:30.756 wall=1790389650756 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205933095 faceIndex=0 next=1 faces=2
+    2026-09-25 20:27:31.034 wall=1790389651034 [speech] speaking done b981bff7-37a5-443f-95f3-0c1f0dde9b61 cancelled=false
+    2026-09-25 20:27:31.099 wall=1790389651099 [speech] unbound from :speech
+    2026-09-25 20:27:31.099 wall=1790389651099 [cortana] session hidden
+    2026-09-25 20:27:31.117 wall=1790389651117 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:27:31.135 wall=1790389651135 [start] home: page 0, scrolled to top
+    2026-09-25 20:27:32.128 wall=1790389652128 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:27:32.128 wall=1790389652128 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:27:32.130 wall=1790389652130 [speech] bind requested -> true
+    2026-09-25 20:27:32.130 wall=1790389652130 [speech] preload queued until the bind lands
+    2026-09-25 20:27:32.130 wall=1790389652130 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 20:27:32.130 wall=1790389652130 [cortana] session opened mode=HOME locked=false
+    2026-09-25 20:27:32.188 wall=1790389652188 [speech] bound to :speech
+    2026-09-25 20:27:32.188 wall=1790389652188 [speech] preload delivered after the bind
+    2026-09-25 20:27:33.048 wall=1790389653048 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205935388 faceIndex=0 next=1 faces=1
+    2026-09-25 20:27:33.430 wall=1790389653430 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205935769 faceIndex=0 next=1 faces=6
+    2026-09-25 20:27:33.812 wall=1790389653812 [tile_anim] tile=shell:weather kind=FLIP uptime=205936152 faceIndex=0 next=1 faces=1
+    2026-09-25 20:27:35.221 wall=1790389655221 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:27:35.222 wall=1790389655222 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:27:35.237 wall=1790389655237 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 20:27:35.529 wall=1790389655529 [motion] cortana_pane t0=205937576 peak=258 overshoot=0 settle=258 frames=19 maxGapMs=17
+    2026-09-25 20:27:35.715 wall=1790389655715 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205938055 faceIndex=1 next=2 faces=2
+    2026-09-25 20:27:38.005 wall=1790389658005 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205940345 faceIndex=1 next=0 faces=1
+    2026-09-25 20:27:38.386 wall=1790389658386 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205940726 faceIndex=1 next=2 faces=6
+    2026-09-25 20:27:38.781 wall=1790389658781 [cortana] destination REMINDERS
+    2026-09-25 20:27:38.781 wall=1790389658781 [cortana] touch 0 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:27:38.781 wall=1790389658781 [tile_anim] tile=shell:weather kind=FLIP uptime=205941121 faceIndex=1 next=0 faces=1
+    2026-09-25 20:27:38.782 wall=1790389658782 [cortana] touch 1 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:27:40.676 wall=1790389660676 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205943015 faceIndex=2 next=0 faces=2
+    2026-09-25 20:27:42.964 wall=1790389662964 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205945304 faceIndex=0 next=1 faces=1
+    2026-09-25 20:27:43.362 wall=1790389663362 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205945702 faceIndex=2 next=3 faces=6
+    2026-09-25 20:27:43.730 wall=1790389663730 [tile_anim] tile=shell:weather kind=FLIP uptime=205946069 faceIndex=0 next=1 faces=1
+    2026-09-25 20:27:45.636 wall=1790389665636 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205947975 faceIndex=0 next=1 faces=2
+    2026-09-25 20:27:45.676 wall=1790389665676 [cortana] touch 0 at 72,108 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:27:45.677 wall=1790389665677 [cortana] touch 1 at 72,108 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:27:45.686 wall=1790389665686 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 20:27:45.978 wall=1790389665978 [motion] cortana_pane t0=205948025 peak=259 overshoot=0 settle=259 frames=19 maxGapMs=17
+    2026-09-25 20:27:47.924 wall=1790389667924 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205950264 faceIndex=1 next=0 faces=1
+    2026-09-25 20:27:48.307 wall=1790389668307 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205950646 faceIndex=3 next=4 faces=6
+    2026-09-25 20:27:48.687 wall=1790389668687 [tile_anim] tile=shell:weather kind=FLIP uptime=205951027 faceIndex=1 next=0 faces=1
+    2026-09-25 20:27:50.597 wall=1790389670597 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205952937 faceIndex=1 next=2 faces=2
+    2026-09-25 20:27:52.885 wall=1790389672885 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205955224 faceIndex=0 next=1 faces=1
+    2026-09-25 20:27:53.266 wall=1790389673266 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205955606 faceIndex=4 next=5 faces=6
+    2026-09-25 20:27:53.648 wall=1790389673648 [tile_anim] tile=shell:weather kind=FLIP uptime=205955987 faceIndex=0 next=1 faces=1
+    2026-09-25 20:27:55.556 wall=1790389675556 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205957896 faceIndex=2 next=0 faces=2
+    2026-09-25 20:27:57.623 wall=1790389677623 [fluent] acrylic=off reason=battery-saver
+    2026-09-25 20:27:57.844 wall=1790389677844 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205960184 faceIndex=1 next=0 faces=1
+    2026-09-25 20:27:58.226 wall=1790389678226 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205960566 faceIndex=5 next=6 faces=6
+    2026-09-25 20:27:58.608 wall=1790389678608 [tile_anim] tile=shell:weather kind=FLIP uptime=205960948 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:00.003 wall=1790389680003 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790389680003
+    2026-09-25 20:28:00.003 wall=1790389680003 [calendar] refresh (minute): access=true faces=1
+    2026-09-25 20:28:00.017 wall=1790389680017 [render] tile=slot:CALENDAR sourceTime=1790389680003 renderedAt=1790389680017 faces=1
+    2026-09-25 20:28:00.298 wall=1790389680298 [cortana] touch 0 at 72,108 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:00.299 wall=1790389680299 [cortana] touch 1 at 72,108 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:00.319 wall=1790389680319 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 20:28:00.516 wall=1790389680516 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205962856 faceIndex=0 next=1 faces=2
+    2026-09-25 20:28:00.612 wall=1790389680612 [motion] cortana_pane t0=205962659 peak=258 overshoot=0 settle=258 frames=19 maxGapMs=17
+    2026-09-25 20:28:02.804 wall=1790389682804 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205965144 faceIndex=0 next=1 faces=1
+    2026-09-25 20:28:03.187 wall=1790389683187 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205965526 faceIndex=6 next=0 faces=6
+    2026-09-25 20:28:03.567 wall=1790389683567 [tile_anim] tile=shell:weather kind=FLIP uptime=205965907 faceIndex=0 next=1 faces=1
+    2026-09-25 20:28:05.476 wall=1790389685476 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205967816 faceIndex=1 next=2 faces=2
+    2026-09-25 20:28:06.598 wall=1790389686598 [cortana] destination HOME
+    2026-09-25 20:28:07.625 wall=1790389687625 [speech] unbound from :speech
+    2026-09-25 20:28:07.625 wall=1790389687625 [cortana] session hidden
+    2026-09-25 20:28:07.633 wall=1790389687633 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:28:07.651 wall=1790389687651 [start] home: page 0, scrolled to top
+    2026-09-25 20:28:07.765 wall=1790389687765 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205970105 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:08.147 wall=1790389688147 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205970486 faceIndex=0 next=1 faces=6
+    2026-09-25 20:28:08.528 wall=1790389688528 [tile_anim] tile=shell:weather kind=FLIP uptime=205970867 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:08.657 wall=1790389688657 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:28:08.657 wall=1790389688657 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:28:08.658 wall=1790389688658 [speech] bind requested -> true
+    2026-09-25 20:28:08.658 wall=1790389688658 [speech] preload queued until the bind lands
+    2026-09-25 20:28:08.658 wall=1790389688658 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 20:28:08.658 wall=1790389688658 [cortana] session opened mode=HOME locked=false
+    2026-09-25 20:28:08.735 wall=1790389688735 [speech] bound to :speech
+    2026-09-25 20:28:08.735 wall=1790389688735 [speech] preload delivered after the bind
+    2026-09-25 20:28:10.446 wall=1790389690446 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205972785 faceIndex=2 next=0 faces=2
+    2026-09-25 20:28:12.729 wall=1790389692729 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205975068 faceIndex=0 next=1 faces=1
+    2026-09-25 20:28:13.112 wall=1790389693112 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205975452 faceIndex=1 next=2 faces=6
+    2026-09-25 20:28:13.496 wall=1790389693496 [tile_anim] tile=shell:weather kind=FLIP uptime=205975835 faceIndex=0 next=1 faces=1
+    2026-09-25 20:28:13.766 wall=1790389693766 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:13.767 wall=1790389693767 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:13.785 wall=1790389693785 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 20:28:14.079 wall=1790389694079 [motion] cortana_pane t0=205976125 peak=259 overshoot=0 settle=259 frames=19 maxGapMs=17
+    2026-09-25 20:28:15.396 wall=1790389695396 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205977736 faceIndex=0 next=1 faces=2
+    2026-09-25 20:28:17.709 wall=1790389697709 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205980048 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:18.070 wall=1790389698070 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205980410 faceIndex=2 next=3 faces=6
+    2026-09-25 20:28:18.463 wall=1790389698463 [tile_anim] tile=shell:weather kind=FLIP uptime=205980802 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:19.548 wall=1790389699548 [speech] unbound from :speech
+    2026-09-25 20:28:19.548 wall=1790389699548 [cortana] session hidden
+    2026-09-25 20:28:20.355 wall=1790389700355 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205982695 faceIndex=1 next=2 faces=2
+    2026-09-25 20:28:20.572 wall=1790389700572 [fluent] acrylic=on reason=none
+    2026-09-25 20:28:22.165 wall=1790389702165 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:28:22.183 wall=1790389702183 [start] home: page 0, scrolled to top
+    2026-09-25 20:28:22.645 wall=1790389702645 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205984985 faceIndex=0 next=1 faces=1
+    2026-09-25 20:28:23.027 wall=1790389703027 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205985366 faceIndex=3 next=4 faces=6
+    2026-09-25 20:28:23.209 wall=1790389703209 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:28:23.209 wall=1790389703209 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:28:23.210 wall=1790389703210 [speech] bind requested -> true
+    2026-09-25 20:28:23.210 wall=1790389703210 [speech] preload queued until the bind lands
+    2026-09-25 20:28:23.210 wall=1790389703210 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 20:28:23.211 wall=1790389703211 [cortana] session opened mode=HOME locked=false
+    2026-09-25 20:28:23.258 wall=1790389703258 [speech] bound to :speech
+    2026-09-25 20:28:23.258 wall=1790389703258 [speech] preload delivered after the bind
+    2026-09-25 20:28:23.413 wall=1790389703413 [tile_anim] tile=shell:weather kind=FLIP uptime=205985752 faceIndex=0 next=1 faces=1
+    2026-09-25 20:28:25.316 wall=1790389705316 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205987655 faceIndex=2 next=0 faces=2
+    2026-09-25 20:28:26.264 wall=1790389706264 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:26.265 wall=1790389706265 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:26.285 wall=1790389706285 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 20:28:26.579 wall=1790389706579 [motion] cortana_pane t0=205988625 peak=259 overshoot=0 settle=259 frames=19 maxGapMs=17
+    2026-09-25 20:28:27.605 wall=1790389707605 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205989945 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:27.986 wall=1790389707986 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205990326 faceIndex=4 next=5 faces=6
+    2026-09-25 20:28:28.379 wall=1790389708379 [tile_anim] tile=shell:weather kind=FLIP uptime=205990719 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:29.780 wall=1790389709780 [cortana] destination REMINDERS
+    2026-09-25 20:28:29.781 wall=1790389709781 [cortana] touch 0 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:29.782 wall=1790389709782 [cortana] touch 1 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:30.279 wall=1790389710279 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205992618 faceIndex=0 next=1 faces=2
+    2026-09-25 20:28:32.565 wall=1790389712565 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205994904 faceIndex=0 next=1 faces=1
+    2026-09-25 20:28:32.947 wall=1790389712947 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=205995286 faceIndex=5 next=6 faces=6
+    2026-09-25 20:28:33.327 wall=1790389713327 [tile_anim] tile=shell:weather kind=FLIP uptime=205995667 faceIndex=0 next=1 faces=1
+    2026-09-25 20:28:34.246 wall=1790389714246 [cortana] touch 0 at 540,575 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:34.967 wall=1790389714967 [fluent] reminder_menu source=live tint=(47,45,47) alpha=0.8 blur=30epx
+    2026-09-25 20:28:35.228 wall=1790389715228 [motion] reminder_menu t0=205997306 peak=245 overshoot=0 settle=245 frames=17 maxGapMs=17
+    2026-09-25 20:28:35.235 wall=1790389715235 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=205997575 faceIndex=1 next=2 faces=2
+    2026-09-25 20:28:35.245 wall=1790389715245 [cortana] touch 1 at 540,575 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:37.525 wall=1790389717525 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=205999864 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:37.906 wall=1790389717906 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=206000246 faceIndex=6 next=0 faces=6
+    2026-09-25 20:28:38.287 wall=1790389718287 [tile_anim] tile=shell:weather kind=FLIP uptime=206000627 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:38.311 wall=1790389718311 [cortana] touch 0 at 540,411 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:38.316 wall=1790389718316 [cortana] touch 1 at 540,411 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:38.651 wall=1790389718651 [alarms] rearm (store changed): 0 alarms, 0 timers, exact=true
+    2026-09-25 20:28:38.651 wall=1790389718651 [reminders] rearm (store changed): 1 timed alarms, exact=true
+    2026-09-25 20:28:38.651 wall=1790389718651 [places] rearm: no place reminders
+    2026-09-25 20:28:38.651 wall=1790389718651 [person] rearm: no person reminders, observers off
+    2026-09-25 20:28:38.651 wall=1790389718651 [reminders] deleted e37c5dcd-b0f7-425a-8cbe-187a012fd00e
+    2026-09-25 20:28:39.831 wall=1790389719831 [cortana] destination HOME
+    2026-09-25 20:28:40.198 wall=1790389720198 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=206002538 faceIndex=2 next=0 faces=2
+    2026-09-25 20:28:40.848 wall=1790389720848 [speech] unbound from :speech
+    2026-09-25 20:28:40.848 wall=1790389720848 [cortana] session hidden
+    2026-09-25 20:28:40.868 wall=1790389720868 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:28:40.883 wall=1790389720883 [start] home: page 0, scrolled to top
+    2026-09-25 20:28:41.886 wall=1790389721886 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:28:41.886 wall=1790389721886 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:28:41.888 wall=1790389721888 [speech] bind requested -> true
+    2026-09-25 20:28:41.888 wall=1790389721888 [speech] preload queued until the bind lands
+    2026-09-25 20:28:41.888 wall=1790389721888 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 20:28:41.888 wall=1790389721888 [cortana] session opened mode=HOME locked=false
+    2026-09-25 20:28:41.959 wall=1790389721959 [speech] bound to :speech
+    2026-09-25 20:28:41.959 wall=1790389721959 [speech] preload delivered after the bind
+    2026-09-25 20:28:42.500 wall=1790389722500 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=206004839 faceIndex=0 next=1 faces=1
+    2026-09-25 20:28:42.879 wall=1790389722879 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=206005219 faceIndex=0 next=1 faces=6
+    2026-09-25 20:28:43.262 wall=1790389723262 [tile_anim] tile=shell:weather kind=FLIP uptime=206005602 faceIndex=0 next=1 faces=1
+    2026-09-25 20:28:44.961 wall=1790389724961 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:44.962 wall=1790389724962 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:44.985 wall=1790389724985 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 20:28:45.156 wall=1790389725156 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=206007495 faceIndex=0 next=1 faces=2
+    2026-09-25 20:28:45.300 wall=1790389725300 [motion] cortana_pane t0=206007324 peak=260 overshoot=0 settle=260 frames=19 maxGapMs=17
+    2026-09-25 20:28:47.445 wall=1790389727445 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=206009785 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:47.826 wall=1790389727826 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=206010166 faceIndex=1 next=2 faces=6
+    2026-09-25 20:28:48.213 wall=1790389728213 [tile_anim] tile=shell:weather kind=FLIP uptime=206010552 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:48.446 wall=1790389728446 [cortana] destination REMINDERS
+    2026-09-25 20:28:48.447 wall=1790389728447 [cortana] touch 0 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:48.447 wall=1790389728447 [cortana] touch 1 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:50.116 wall=1790389730116 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=206012456 faceIndex=1 next=2 faces=2
+    2026-09-25 20:28:52.404 wall=1790389732404 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=206014744 faceIndex=0 next=1 faces=1
+    2026-09-25 20:28:52.787 wall=1790389732787 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=206015127 faceIndex=2 next=3 faces=6
+    2026-09-25 20:28:52.822 wall=1790389732822 [cortana] touch 0 at 540,379 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:53.168 wall=1790389733168 [tile_anim] tile=shell:weather kind=FLIP uptime=206015507 faceIndex=0 next=1 faces=1
+    2026-09-25 20:28:53.532 wall=1790389733532 [fluent] reminder_menu source=live tint=(47,45,47) alpha=0.8 blur=30epx
+    2026-09-25 20:28:53.794 wall=1790389733794 [motion] reminder_menu t0=206015872 peak=245 overshoot=0 settle=245 frames=17 maxGapMs=17
+    2026-09-25 20:28:53.828 wall=1790389733828 [cortana] touch 1 at 540,379 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:55.075 wall=1790389735075 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=206017415 faceIndex=2 next=0 faces=2
+    2026-09-25 20:28:56.897 wall=1790389736897 [cortana] touch 0 at 540,215 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:56.897 wall=1790389736897 [cortana] touch 1 at 540,215 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:28:57.232 wall=1790389737232 [alarms] rearm (store changed): 0 alarms, 0 timers, exact=true
+    2026-09-25 20:28:57.232 wall=1790389737232 [reminders] rearm (store changed): 0 timed alarms, exact=true
+    2026-09-25 20:28:57.232 wall=1790389737232 [places] rearm: no place reminders
+    2026-09-25 20:28:57.232 wall=1790389737232 [person] rearm: no person reminders, observers off
+    2026-09-25 20:28:57.232 wall=1790389737232 [reminders] deleted ca71a360-341b-4688-aeeb-a2c4612f91f5
+    2026-09-25 20:28:57.365 wall=1790389737365 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=206019705 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:57.747 wall=1790389737747 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=206020087 faceIndex=3 next=4 faces=6
+    2026-09-25 20:28:58.128 wall=1790389738128 [tile_anim] tile=shell:weather kind=FLIP uptime=206020467 faceIndex=1 next=0 faces=1
+    2026-09-25 20:28:58.414 wall=1790389738414 [cortana] destination HOME
+    2026-09-25 20:28:59.435 wall=1790389739435 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:28:59.437 wall=1790389739437 [speech] unbound from :speech
+    2026-09-25 20:28:59.437 wall=1790389739437 [cortana] session hidden
+    2026-09-25 20:28:59.452 wall=1790389739452 [start] home: page 0, scrolled to top
+    2026-09-25 20:29:00.032 wall=1790389740032 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790389740032
+    2026-09-25 20:29:00.032 wall=1790389740032 [calendar] refresh (minute): access=true faces=1
+    2026-09-25 20:29:00.036 wall=1790389740036 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=206022376 faceIndex=0 next=1 faces=2
+    2026-09-25 20:29:00.048 wall=1790389740048 [render] tile=slot:CALENDAR sourceTime=1790389740032 renderedAt=1790389740048 faces=1
+    2026-09-25 20:29:00.481 wall=1790389740481 [cortana] session window type=2031 flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:29:00.481 wall=1790389740481 [cortana] session window now flags=0x8d810100 softInputMode=0x0
+    2026-09-25 20:29:00.482 wall=1790389740482 [speech] bind requested -> true
+    2026-09-25 20:29:00.482 wall=1790389740482 [speech] preload queued until the bind lands
+    2026-09-25 20:29:00.482 wall=1790389740482 [cortana] session bars: system bars hidden=true (E11 / H1)
+    2026-09-25 20:29:00.484 wall=1790389740484 [cortana] session opened mode=HOME locked=false
+    2026-09-25 20:29:00.529 wall=1790389740529 [speech] bound to :speech
+    2026-09-25 20:29:00.529 wall=1790389740529 [speech] preload delivered after the bind
+    2026-09-25 20:29:02.329 wall=1790389742329 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=206024668 faceIndex=0 next=1 faces=1
+    2026-09-25 20:29:02.712 wall=1790389742712 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=206025052 faceIndex=4 next=5 faces=6
+    2026-09-25 20:29:03.095 wall=1790389743095 [tile_anim] tile=shell:weather kind=FLIP uptime=206025435 faceIndex=0 next=1 faces=1
+    2026-09-25 20:29:03.586 wall=1790389743586 [cortana] touch 0 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:29:03.586 wall=1790389743586 [cortana] touch 1 at 72,156 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:29:03.601 wall=1790389743601 [fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx
+    2026-09-25 20:29:03.895 wall=1790389743895 [motion] cortana_pane t0=206025940 peak=261 overshoot=0 settle=261 frames=19 maxGapMs=17
+    2026-09-25 20:29:04.995 wall=1790389744995 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=206027335 faceIndex=1 next=2 faces=2
+    2026-09-25 20:29:07.147 wall=1790389747147 [cortana] destination REMINDERS
+    2026-09-25 20:29:07.147 wall=1790389747147 [cortana] touch 0 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:29:07.148 wall=1790389747148 [cortana] touch 1 at 384,372 handled=true childCount=1 composeAttached=true
+    2026-09-25 20:29:07.285 wall=1790389747285 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=206029625 faceIndex=1 next=0 faces=1
+    2026-09-25 20:29:07.666 wall=1790389747666 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=206030006 faceIndex=5 next=6 faces=6
+    2026-09-25 20:29:08.048 wall=1790389748048 [tile_anim] tile=shell:weather kind=FLIP uptime=206030387 faceIndex=1 next=0 faces=1
+    2026-09-25 20:29:09.956 wall=1790389749956 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=206032295 faceIndex=2 next=0 faces=2
+    2026-09-25 20:29:11.324 wall=1790389751324 [cortana] destination HOME
+    2026-09-25 20:29:12.246 wall=1790389752246 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=206034586 faceIndex=0 next=1 faces=1
+    2026-09-25 20:29:12.343 wall=1790389752343 [speech] unbound from :speech
+    2026-09-25 20:29:12.344 wall=1790389752344 [cortana] session hidden
+    2026-09-25 20:29:12.348 wall=1790389752348 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-25 20:29:12.367 wall=1790389752367 [start] home: page 0, scrolled to top
+    2026-09-25 20:29:12.626 wall=1790389752626 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=206034966 faceIndex=6 next=0 faces=6
+    2026-09-25 20:29:13.007 wall=1790389753007 [tile_anim] tile=shell:weather kind=FLIP uptime=206035347 faceIndex=0 next=1 faces=1
+    2026-09-25 20:29:14.915 wall=1790389754915 [tile_anim] tile=dock:slot:PHONE kind=FLIP uptime=206037255 faceIndex=0 next=1 faces=2

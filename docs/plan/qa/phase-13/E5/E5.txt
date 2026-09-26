@@ -1,7 +1,7 @@
 ==============================================================================
 ROW E5 — the ≡ pane: (14,19,13) over Home, a reminder's title showing through, (17,23,15) over empty Reminders
-at            2026-09-25T19:36:39-06:00
-driver        e5.sh blob d818e4b2d475437b66d402d402c99e73bb599723
+at            2026-09-25T20:25:07-06:00
+driver        e5.sh blob d9e3aa5c417c8e0b890eefe6a3e99c1670b1b7cf
 harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
 apk built     15aa7f5f3bd76f7d 337942814 bytes
 apk installed d3ee8663458ce94b
@@ -20,6 +20,28 @@ PASS  (a) precondition: a 10x10 patch whose oracle B is (0,0,0) +- 1 at every pi
 PASS  (a) over Home: patch mean R = 14 +- 2                       14.30 vs 14.00 +/- 2.0
 PASS  (a) over Home: patch mean G = 19 +- 2                       19.30 vs 19.00 +/- 2.0
 PASS  (a) over Home: patch mean B = 13 +- 2                       13.30 vs 13.00 +/- 2.0
+      (e1) dump timeline: mic=1790389547017 dump=1790389547362 dumped=1790389549482 ; listening persona [398 589 682 873]
+PASS  (e1) the dump caught the listening persona                  != 
+PASS  (e1) the listening persona's bounds [398 589 682 873] lie under the pane (x 0..768)  = yes
+      (e1) capture timeline: mic=1790389561069 c1=1790389561391 c1done=1790389562095 c2=1790389562305 c2done=1790389562562 ; final at 1790389563268
+PASS  (e1) the captures ended while she listened (c2done < the [speech] final line)  = yes
+PASS  (e1) the persona pulses: its box differs between the two captures (max per-pixel |d| = 91 >= 20)  = yes
+      (e2 try 1) timeline: mic=1790389574293 tapped=1790389574328 c1=1790389574687 c1done=1790389574954 c2=1790389575168 c2done=1790389575436 ; final at 1790389576492
+PASS  (e2) both captures ended while she listened (c2done < the [speech] final line)  = yes
+PASS  (e2) the pane opened over her (cortana_pane in the dump after)  = yes
+PASS  (e2) the pane's slide logged its settle (wall 1790389574628) before the first capture (c1 1790389574687)  = yes
+RECORD  (e2) the 10x10 patch at the persona's centre (540,731), capture 1 -> 2  (37.8,23.8,15.8) -> (39.8,23.8,15.8), max |d| 2.0
+PASS  (e2) on: the backdrop is re-recorded under the open pane (max per-pixel |d| over the persona = 2 >= 1)  = yes
+PASS  (e2) nothing right of the pane moved in the same captures (the difference is the persona under the pane)  = 0
+PASS  battery saver precondition: low_power                       = 1
+      (e3 try 1) timeline: mic=1790389591952 tapped=1790389591984 c1=1790389592343 c1done=1790389592598 c2=1790389592821 c2done=1790389593090 ; final at 1790389594160
+PASS  (e3) both captures ended while she listened (c2done < the [speech] final line)  = yes
+PASS  (e3) the pane opened over her (cortana_pane in the dump after)  = yes
+PASS  (e3) the pane's slide logged its settle (wall 1790389592296) before the first capture (c1 1790389592343)  = yes
+PASS  (e3) acrylic=off reason=battery-saver                       contains [[fluent] acrylic=off reason=battery-saver]
+PASS  (e3) off: the two captures are identical inside the pane (max per-pixel |d|)  = 0
+PASS  (e3) battery saver off: awake                               = Awake
+PASS  (e3) battery saver off: low_power = 0                       = 0
 PASS  (b) the Reminders page's backdrop child is in the dump      contains [bounds="[0,0][1080,2196]"]
 PASS  (b) the second reminder's row                               != 
 PASS  (b) the show line                                           contains [[fluent] cortana_pane source=live tint=(18,24,16) alpha=0.8 blur=30epx]
@@ -43,4 +65,4 @@ PASS  (d) battery saver off: awake                                = Awake
 PASS  (d) battery saver off: low_power = 0                        = 0
 PASS  restore: no QA13 reminder left                              = 
 ------------------------------------------------------------------------------
-E5: 28 passed, 0 failed, 0 recorded
+E5: 45 passed, 0 failed, 1 recorded
