@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import app.tileshell.diag.Diagnostics
 import app.tileshell.start.BackgroundDecoder
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -66,16 +67,29 @@ object StaticBackdrop {
     val layer: StateFlow<Layer?> = mutable.asStateFlow()
 
     /** Builds the layer for [key] unless it is already built (or already failed) for exactly that key. */
-    suspend fun ensure(context: Context, key: Key) {
+    suspend fun ensure(context: Context, key: Key) = build(key) {
+        val decoded = BackgroundDecoder.decode(context, key.uri).getOrThrow()
+        render(decoded.asAndroidBitmap(), key).asImageBitmap()
+    }
+
+    /** [ensure]'s bookkeeping around one build: [make] decodes and renders; its failure is recorded for [key]. */
+    internal suspend fun build(key: Key, make: suspend () -> ImageBitmap) {
         val now = mutable.value
         if (now is Layer.Built && now.key == key) return
         if (now is Layer.Failed && now.key == key) return
         val started = SystemClock.uptimeMillis()
-        val decoded = BackgroundDecoder.decode(context, key.uri)
-        val result = decoded.mapCatching { render(it.asAndroidBitmap(), key) }
+        val result = try {
+            Result.success(make())
+        } catch (cancelled: CancellationException) {
+            // Acrylic turned off (or the picture changed) mid-build: not a failure. Recorded as one it would stick,
+            // and the next build for this key would never run (gate review A, B1).
+            throw cancelled
+        } catch (why: Throwable) {
+            Result.failure(why)
+        }
         result.fold(
             onSuccess = { bitmap ->
-                mutable.value = Layer.Built(key, bitmap.asImageBitmap())
+                mutable.value = Layer.Built(key, bitmap)
                 Diagnostics.add(
                     "fluent",
                     "static backdrop rebuilt for ${key.uri} in ${SystemClock.uptimeMillis() - started} ms",
