@@ -66,3 +66,16 @@ EDGE_LIGHT and the B1_PROBE rows ran on it; the rest stand where the INDEX Chang
 For each round-1 BLOCKING finding, judge whether it is resolved by the evidence, not by the triage's word. Then re-judge
 the gate as a whole under your lens: anything the fixes broke, anything round 1 missed. Report to
 `2026-09-26-phase13-gate-r2-<a|b>.md`, same format, same last line.
+
+## Round 3, the last (added 2026-09-26)
+
+Round 2: A FAIL (one new BLOCKING: the Start picture held twice — two decodes in flight at once), B PASS. Inputs now:
+both round-2 reports (`2026-09-26-phase13-gate-r2-a.md`, `-r2-b.md`) and the INDEX Change Log lines "PHASE 13 GATE
+ROUND 2" and "PHASE 13 GATE ROUND 2 (B) AND AFTER". The current build is apk **0eb36905** = the build of **9c4d049f**
+(concurrent decodes of one picture share one decode in flight: `start/SingleFlight.kt`, `start/BackgroundDecoder.kt`,
+`SingleFlightTest`); qa/phase-13/README.md maps every row to the build it ran on and says why each earlier-build row
+stands. Judge whether round 2's BLOCKING finding is resolved by the evidence (E10's new clause "the picture is held
+once", EDGE_HUGE's B, the unit results and their red runs under `unit/`), whether 9c4d049f is right (sharing, a
+cancelled waiter, failure and change of picture, anything it could break for phase 01's Start page), and re-judge the
+gate as a whole under your lens. This is the last round: say plainly which findings, if any, still block. Report to
+`2026-09-26-phase13-gate-r3-<a|b>.md`, same format, same last line.
