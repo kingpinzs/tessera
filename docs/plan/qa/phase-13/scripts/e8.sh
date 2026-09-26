@@ -94,32 +94,71 @@ for i in 0 1 2 3; do
 done
 to_start 2
 
-# ================================================================ corroboration: one screenrecord of each (recorded)
+# ================================================================ corroboration: a screenrecord of each, phase 05's rule
+# C-5: a screenrecord corroborates each motion under phase 05's frame-spacing rule, and phase 05's rule is that a capture
+# whose source frames lie more than 18.2 ms apart during the motion is REJECTED AND RETAKEN (qa/phase-05/README.md). Each
+# motion is therefore retaken, up to 10 times, until one capture passes: its motion window (motion_frames.py, read inside
+# the surface's own bounds so the show_touches dot and live tiles elsewhere cannot open or widen it) has every source
+# frame <= 18.2 ms apart, and it spans the motion the shell logged for that same attempt (the pane and the reminder
+# menu: window = settle - 1 frame +- 2 frames; the pivot: at least its settle, because the finger's drag precedes the
+# release its t0 marks). The band is a jump (its first frame at full height): corroborated when it appears within two
+# source frames. The first run recorded one capture per motion and accepted nothing (gate review B, B2).
 adb shell settings put system show_touches 1
-rec() { # name, then the action as the remaining words
-  local n="$1"; shift
-  adb shell rm -f /sdcard/Download/e8.mp4
-  adb shell screenrecord --size 540x1170 --bit-rate 6000000 --time-limit 4 /sdcard/Download/e8.mp4 & local pid=$!
-  sleep 0.8
-  "$@"
-  wait $pid
-  adb pull /sdcard/Download/e8.mp4 "$ROW_DIR/rec-$n.mp4" >/dev/null 2>&1
-  record "screenrecord $n (phase 05's rule: max_gap_ms <= 18.2 during the motion)" "$(python3 "$P13/motion_frames.py" "$ROW_DIR/rec-$n.mp4" "${TMPDIR:-/tmp}/qa13-e8-frames-$n" 2>&1 | tail -1)"
+roi_half() { # dump.xml resource-id -> "x0,y0,x1,y1" in the 540 x 1170 capture
+  local b; b="$(bounds "$1" "$2")"
+  [ -n "$b" ] || return 0
+  set -- $b; echo "$(( $1 / 2 )),$(( $2 / 2 )),$(( ($3 + 1) / 2 )),$(( ($4 + 1) / 2 ))"
+}
+corroborate() { # name roi mode(open|pivot|jump) act reset
+  local n="$1" roi="$2" mode="$3" act="$4" reset="$5" a ok="" out line settle win gap wf mark pid
+  for a in $(seq 1 10); do
+    adb shell rm -f /sdcard/Download/e8.mp4
+    adb shell screenrecord --size 540x1170 --bit-rate 6000000 --time-limit 4 /sdcard/Download/e8.mp4 & pid=$!
+    sleep 0.8
+    mark="$(ring_mark)"
+    "$act"
+    wait $pid
+    adb pull /sdcard/Download/e8.mp4 "$ROW_DIR/rec-$n-$a.mp4" >/dev/null 2>&1
+    line="$(motion_line "$mark" "$n")"; settle="$(field "$line" settle)"
+    out="$(python3 "$P13/motion_frames.py" "$ROW_DIR/rec-$n-$a.mp4" "${TMPDIR:-/tmp}/qa13-e8-frames-$n" 0.2 "$roi" 2>/dev/null | tail -1)"
+    note "$n attempt $a (roi $roi): $out; [motion] settle=${settle:-none}"
+    win="$(echo "$out" | grep -oE 'window_ms=[0-9.]+' | cut -d= -f2)"
+    gap="$(echo "$out" | grep -oE 'max_gap_ms=[0-9.]+' | cut -d= -f2)"
+    wf="$(echo "$out" | grep -oE 'window_frames=[0-9]+' | cut -d= -f2)"
+    "$reset"
+    case "$mode" in
+      open)  python3 -c "import sys; w,g,s=map(float,sys.argv[1:]); sys.exit(0 if g <= 18.2 and abs(w-(s-16.7)) <= 33.4 else 1)" "${win:-0}" "${gap:-99}" "${settle:-0}" && ok="$a" ;;
+      pivot) python3 -c "import sys; w,g,s=map(float,sys.argv[1:]); sys.exit(0 if g <= 18.2 and w >= s-33.4 else 1)" "${win:-0}" "${gap:-99}" "${settle:-9999}" && ok="$a" ;;
+      jump)  [ -n "$wf" ] && [ "$wf" -ge 1 ] && [ "$wf" -le 2 ] && ok="$a" ;;
+    esac
+    [ -n "$ok" ] && break
+  done
+  assert_ne "$n: a screenrecord corroborates it under phase 05's rule (retaken up to 10)" "" "$ok"
+  record "$n: the accepted capture" "${ok:+attempt $ok: $out; settle=$settle}"
 }
 act_pane() { dump_ui "$ROW_DIR/.h.xml"; tap_node "$ROW_DIR/.h.xml" cortana_menu_button; sleep 1.5; }
+reset_pane() { adb shell input keyevent KEYCODE_BACK; sleep 1; }
 act_menu() { adb shell input swipe $RX $RY $RX $RY 1000; sleep 1.2; }
+reset_menu() { adb shell input tap 1000 1500; sleep 1.2; }
 act_pivot() { to_app_list 1.5; }
+reset_pivot() { to_start 2; }
 act_band() { adb shell input swipe $AX $AY $AX $AY 1000; sleep 1; }
+reset_band() { adb shell input keyevent KEYCODE_BACK; sleep 1; }
+# the regions, from dumps of each surface open
 ensure_start; cortana_assist; sleep 3
-rec pane act_pane
-adb shell input keyevent KEYCODE_BACK; sleep 1; cortana_close
+act_pane; dump_ui "$ROW_DIR/roi-pane.xml"; reset_pane
+corroborate cortana_pane "$(roi_half "$ROW_DIR/roi-pane.xml" cortana_pane)" open act_pane reset_pane
+cortana_close
 open_reminders
-rec reminder_menu act_menu
-adb shell input tap 1000 1500; sleep 1.2; cortana_close
+act_menu; dump_ui "$ROW_DIR/roi-menu.xml"; reset_menu
+corroborate reminder_menu "$(roi_half "$ROW_DIR/roi-menu.xml" acrylic:reminder_menu)" open act_menu reset_menu
+cortana_close
 show_start 5
-rec pivot act_pivot
-rec applist_menu act_band
-adb shell input keyevent KEYCODE_BACK; sleep 1
+corroborate pivot "0,150,540,1000" pivot act_pivot reset_pivot
+to_app_list 2
+act_band; dump_ui "$ROW_DIR/roi-band.xml"; reset_band
+corroborate applist_menu "$(roi_half "$ROW_DIR/roi-band.xml" applist_menu)" jump act_band reset_band
+to_start 2
 adb shell settings put system show_touches 0
 assert_eq "show_touches restored to 0" "0" "$(adb shell settings get system show_touches | tr -d '\r')"
 

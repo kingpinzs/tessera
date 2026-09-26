@@ -28,6 +28,11 @@ record "total frames rendered" "$(grep -m1 'Total frames rendered' "$ROW_DIR/gfx
 record "janky frames" "$(grep -m1 'Janky frames:' "$ROW_DIR/gfxinfo.txt" | awk -F': ' '{print $2}' | tr -d '\r')"
 record "99th percentile" "$(grep -m1 '99th percentile' "$ROW_DIR/gfxinfo.txt" | awk -F': ' '{print $2}' | tr -d '\r')"
 record "90th percentile" "$(grep -m1 '90th percentile' "$ROW_DIR/gfxinfo.txt" | awk -F': ' '{print $2}' | tr -d '\r')"
+# The workload, kept before clear_background's force-stop wipes the ring (gate review B, N5); recorded, never asserted.
+ring_save
+record "reminder_menu show lines (the 20 opens)" "$(ring_since "$ROW_MARK" | grep -cF '[fluent] reminder_menu source=live')"
+record "[motion] pivot lines (the 20 swipes)" "$(ring_since "$ROW_MARK" | grep -cF '[motion] pivot ')"
+record "the fixture reminder's id" "${ID:-none}"
 # restore (not graded)
 open_reminders
 set -- $(bounds "$ROW_DIR/reminders.xml" "reminder_row:$ID")
