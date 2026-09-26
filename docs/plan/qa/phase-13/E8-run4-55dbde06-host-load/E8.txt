@@ -1,0 +1,81 @@
+==============================================================================
+ROW E8 — measured motion with acrylic on: pane 250, reminder menu 233 + 1 frame, pivot 250, app-list band <= 2 vsync
+at            2026-09-26T10:03:01-06:00
+driver        e8.sh blob 990fdce3275776c213996ee2d2898d80d3d5223a
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     55dbde067494e4c0 339124958 bytes
+apk installed 06f92d587aa92f8f
+apk match     yes (06f92d587aa92f8f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+RECORD  pane warm-up                                                cortana_pane t0=254884214 peak=251 overshoot=0 settle=251 frames=19 maxGapMs=17
+      pane[1]: cortana_pane t0=254889238 peak=244 overshoot=0 settle=244 frames=19 maxGapMs=17
+PASS  pane[1]: settle = 250 +- 17 ms                              244.00 vs 250.00 +/- 17.0
+PASS  pane[1]: maxGapMs <= 33.4 (got 17)                          = yes
+      pane[2]: cortana_pane t0=254894396 peak=253 overshoot=0 settle=253 frames=19 maxGapMs=17
+PASS  pane[2]: settle = 250 +- 17 ms                              253.00 vs 250.00 +/- 17.0
+PASS  pane[2]: maxGapMs <= 33.4 (got 17)                          = yes
+      pane[3]: cortana_pane t0=254899519 peak=246 overshoot=0 settle=246 frames=19 maxGapMs=17
+PASS  pane[3]: settle = 250 +- 17 ms                              246.00 vs 250.00 +/- 17.0
+PASS  pane[3]: maxGapMs <= 33.4 (got 17)                          = yes
+PASS  a reminder row to hold                                      != 
+RECORD  reminder menu warm-up                                       reminder_menu t0=254939682 peak=250 overshoot=0 settle=250 frames=17 maxGapMs=17
+      reminder_menu[1]: reminder_menu t0=254943548 peak=251 overshoot=0 settle=251 frames=17 maxGapMs=17
+PASS  reminder_menu[1]: settle = 249.7 +- 17 ms                   251.00 vs 249.70 +/- 17.0
+PASS  reminder_menu[1]: maxGapMs <= 33.4 (got 17)                 = yes
+      reminder_menu[2]: reminder_menu t0=254947582 peak=250 overshoot=0 settle=250 frames=17 maxGapMs=17
+PASS  reminder_menu[2]: settle = 249.7 +- 17 ms                   250.00 vs 249.70 +/- 17.0
+PASS  reminder_menu[2]: maxGapMs <= 33.4 (got 17)                 = yes
+      reminder_menu[3]: reminder_menu t0=254951632 peak=250 overshoot=0 settle=250 frames=17 maxGapMs=17
+PASS  reminder_menu[3]: settle = 249.7 +- 17 ms                   250.00 vs 249.70 +/- 17.0
+PASS  reminder_menu[3]: maxGapMs <= 33.4 (got 17)                 = yes
+RECORD  pivot warm-up                                               pivot t0=254961268 peak=264 overshoot=0 settle=264 frames=18 maxGapMs=17
+      pivot[1]: pivot t0=254963685 peak=264 overshoot=0 settle=264 frames=18 maxGapMs=17
+PASS  pivot[1]: settle = 250 +- 16.7 ms                           264.00 vs 250.00 +/- 16.7
+PASS  pivot[1]: maxGapMs <= 33.4 (got 17)                         = yes
+      pivot[2]: pivot t0=254966301 peak=264 overshoot=0 settle=264 frames=18 maxGapMs=17
+PASS  pivot[2]: settle = 250 +- 16.7 ms                           264.00 vs 250.00 +/- 16.7
+PASS  pivot[2]: maxGapMs <= 33.4 (got 17)                         = yes
+      pivot[3]: pivot t0=254968885 peak=264 overshoot=0 settle=264 frames=18 maxGapMs=17
+PASS  pivot[3]: settle = 250 +- 16.7 ms                           264.00 vs 250.00 +/- 16.7
+PASS  pivot[3]: maxGapMs <= 33.4 (got 17)                         = yes
+RECORD  app-list band warm-up                                       applist_menu t0=254979678 peak=10 overshoot=0 settle=10 frames=1 maxGapMs=0
+      applist_menu[1]: applist_menu t0=254983047 peak=6 overshoot=0 settle=6 frames=1 maxGapMs=0
+PASS  applist_menu[1]: settle <= 33.4 ms (got 6)                  = yes
+PASS  applist_menu[1]: maxGapMs <= 33.4 (got 0)                   = yes
+      applist_menu[2]: applist_menu t0=254986596 peak=8 overshoot=0 settle=8 frames=1 maxGapMs=0
+PASS  applist_menu[2]: settle <= 33.4 ms (got 8)                  = yes
+PASS  applist_menu[2]: maxGapMs <= 33.4 (got 0)                   = yes
+      applist_menu[3]: applist_menu t0=254990130 peak=7 overshoot=0 settle=7 frames=1 maxGapMs=0
+PASS  applist_menu[3]: settle <= 33.4 ms (got 7)                  = yes
+PASS  applist_menu[3]: maxGapMs <= 33.4 (got 0)                   = yes
+      cortana_pane attempt 1 (roi 0,0,384,1170): frames=237 bursts=1 window_frames=15 window_ms=233.1 max_gap_ms=18.6; [motion] settle=248
+      cortana_pane attempt 2 (roi 0,0,384,1170): frames=236 bursts=1 window_frames=15 window_ms=233.0 max_gap_ms=16.9; [motion] settle=245
+PASS  cortana_pane: a screenrecord corroborates it under phase 05's rule (retaken up to 10)  != 
+RECORD  cortana_pane: the accepted capture                          attempt 2: frames=236 bursts=1 window_frames=15 window_ms=233.0 max_gap_ms=16.9; settle=245
+      reminder_menu attempt 1 (roi 87,0,453,155): frames=29 bursts=2 window_frames=14 window_ms=230.4 max_gap_ms=30.8; [motion] settle=250
+      reminder_menu attempt 2 (roi 87,0,453,155): frames=225 bursts=2 window_frames=15 window_ms=233.2 max_gap_ms=19.1; [motion] settle=250
+      reminder_menu attempt 3 (roi 87,0,453,155): frames=156 bursts=2 window_frames=14 window_ms=233.3 max_gap_ms=33.6; [motion] settle=250
+      reminder_menu attempt 4 (roi 87,0,453,155): frames=53 bursts=2 window_frames=14 window_ms=231.0 max_gap_ms=31.5; [motion] settle=250
+      reminder_menu attempt 5 (roi 87,0,453,155): frames=236 bursts=2 window_frames=15 window_ms=233.3 max_gap_ms=18.6; [motion] settle=251
+      reminder_menu attempt 6 (roi 87,0,453,155): frames=142 bursts=1 window_frames=14 window_ms=233.1 max_gap_ms=32.9; [motion] settle=251
+      reminder_menu attempt 7 (roi 87,0,453,155): frames=74 bursts=2 window_frames=14 window_ms=236.1 max_gap_ms=35.0; [motion] settle=250
+      reminder_menu attempt 8 (roi 87,0,453,155): frames=237 bursts=2 window_frames=15 window_ms=233.4 max_gap_ms=18.5; [motion] settle=250
+      reminder_menu attempt 9 (roi 87,0,453,155): frames=123 bursts=1 window_frames=14 window_ms=232.4 max_gap_ms=31.9; [motion] settle=250
+      reminder_menu attempt 10 (roi 87,0,453,155): frames=108 bursts=2 window_frames=14 window_ms=230.9 max_gap_ms=31.2; [motion] settle=250
+FAIL  reminder_menu: a screenrecord corroborates it under phase 05's rule (retaken up to 10)  should not be []
+RECORD  reminder_menu: the accepted capture                         
+      pivot attempt 1 (roi 0,150,540,1000): frames=74 bursts=1 window_frames=36 window_ms=583.3 max_gap_ms=19.0; [motion] settle=266
+      pivot attempt 2 (roi 0,150,540,1000): frames=86 bursts=3 window_frames=36 window_ms=583.5 max_gap_ms=19.3; [motion] settle=247
+      pivot attempt 3 (roi 0,150,540,1000): frames=116 bursts=2 window_frames=31 window_ms=497.0 max_gap_ms=17.6; [motion] settle=246
+PASS  pivot: a screenrecord corroborates it under phase 05's rule (retaken up to 10)  != 
+RECORD  pivot: the accepted capture                                 attempt 3: frames=116 bursts=2 window_frames=31 window_ms=497.0 max_gap_ms=17.6; settle=246
+      applist_menu attempt 1 (roi 0,636,540,762): frames=40 bursts=2 window_frames=1 window_ms=0.0 max_gap_ms=0.0; [motion] settle=18
+PASS  applist_menu: a screenrecord corroborates it under phase 05's rule (retaken up to 10)  != 
+RECORD  applist_menu: the accepted capture                          attempt 1: frames=40 bursts=2 window_frames=1 window_ms=0.0 max_gap_ms=0.0; settle=18
+PASS  show_touches restored to 0                                  = 0
+PASS  restore: no QA13 reminder left                              = 
+------------------------------------------------------------------------------
+E8: 31 passed, 1 failed, 8 recorded

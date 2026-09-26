@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # E8 Measured motion holds with acrylic on, on the shell's own [motion] clock (phase 13 Acceptance E8, C-5, C-20, C-31,
 # T13-7, T13-27): the pane's slide settles 250 +- 17 ms after t0 (R7 §3.1.10); the reminder menu's grow settles 233 ms +
-# one frame after its half-height first frame (R7 §3.6.4; t0 is that first frame's composition, so settle = 249.7 +- 17);
+# one frame after its half-height first frame (R7 §3.6.4): since 2026-09-26 the line's t0 IS that half-height frame, read
+# from the frame clock (it was the effect's start on the uptime clock, anywhere inside the frame: readings 230-246), so
+# settle = 249.7 +- 17 and reads 250-251 (INDEX Change Log);
 # the pivot settles 250 ms +- one frame after the release (X13); the app-list band's first frame is <= 33.4 ms after the
 # hold's 783-ms uptime (a jump, no motion added); every line's maxGapMs <= 33.4 ms. Each line is read from the ring slice
 # after a MARK taken just before its open / swipe. One warm-up per motion is recorded, not asserted (the first open after a
