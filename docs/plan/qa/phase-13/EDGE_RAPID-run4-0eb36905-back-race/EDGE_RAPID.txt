@@ -1,0 +1,23 @@
+==============================================================================
+ROW EDGE_RAPID — phase 13 edge case: rapid
+at            2026-09-26T06:07:07-06:00
+driver        edge.sh blob bf3aff29273119342b3c459783e197dd953f640c
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     0eb36905c5ca8082 337598910 bytes
+apk installed 44b46cc9529a265e
+apk match     yes (44b46cc9529a265e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+RECORD  C: the checker, acrylic on (KB)                             95648
+RECORD  GPU memory before the holds (gfxinfo)                       31151636 bytes, 29.71 MB (26.37 MB is purgeable)
+FAIL  each of the 10 holds opened the band (10 applist_menu show lines)  expected [10] got [1]
+RECORD  10 holds took (ms, host clock)                              11334
+PASS  10 holds in <= 15 s                                         = yes
+RECORD  after the 10 holds (KB)                                     96737
+RECORD  GPU memory after the holds (gfxinfo)                        32406420 bytes, 30.91 MB (27.73 MB is purgeable)
+PASS  PSS returns within 2 MB of C (KB)                           1089.00 vs 0.00 +/- 2048.0
+PASS  one process throughout                                      = 15807
+------------------------------------------------------------------------------
+EDGE_RAPID: 4 passed, 1 failed, 5 recorded
