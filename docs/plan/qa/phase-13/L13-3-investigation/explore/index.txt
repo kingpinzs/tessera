@@ -1,0 +1,8 @@
+Exploratory runs, 2026-09-26 10:20-10:28, emulator-5556, acrylic on, checker picture set.
+Build f90081ce (= commit 9c4d049f, the code of 0eb36905) unless named diag-.
+  hostloop1                    EDGE_RAPID run2-4's exact loop (host adb, no sleeps), idle host: 10 / 10
+  loop0                        the same cadence run on the device (20 cycles): 20 / 20
+  hostloop-gfx1                EDGE_RAPID run3/run4's preamble (to Start, meminfo x3, gfxinfo, to the app list) then the loop: 10 / 10
+  hostloop-idle-after-build1-3 meant to run under a gradle build, but the build had finished (10:22:33) before the loops began: idle, 10 / 10 each
+  trials0                      8 isolated trials, gap 0 after Back: 7 / 8 (t1 MISS)
+  diag-815fe1e4-trials-g0      the diagnostic build (diag-instrumentation.diff), 20 trials gap 0: 19 / 20 (t11 MISS, the scrim took the down)

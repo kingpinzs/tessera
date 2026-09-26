@@ -1,0 +1,6 @@
+ABORTED after 8 trials (about 40 s), 2026-09-26 11:00.
+The run pinned this investigation's emulator (tileshell_fhd2, emulator-5556) and stress-ng --cpu 6 to logical CPUs 0-5.
+The session's permission check stopped it as interfering with other workloads on the shared host (emulator-5554 is
+another session's), so stress-ng was killed by pid, the emulator's affinity restored to 0-31, and no load run was
+repeated. The 8 trials here (gap 0: 8 / 8 opened) are too few to say anything about load; note only that
+`input keyevent` took 12-39 ms under the load against 10-15 ms idle (K0->K1 in summary.txt).

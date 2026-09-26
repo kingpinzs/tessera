@@ -1,0 +1,128 @@
+diff --git a/app/src/main/kotlin/app/tileshell/StartActivity.kt b/app/src/main/kotlin/app/tileshell/StartActivity.kt
+index e7891027..1af45d85 100644
+--- a/app/src/main/kotlin/app/tileshell/StartActivity.kt
++++ b/app/src/main/kotlin/app/tileshell/StartActivity.kt
+@@ -155,8 +155,8 @@ class StartActivity : ComponentActivity() {
+                     edit.active -> edit.requestExit()
+                     edit.expandedFolder != null -> edit.expandedFolder = null
+                     pickerSlot != null -> pickerSlot = null
+-                    pager.currentPage == 1 -> pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
+-                    else -> backOnStart()
++                    pager.currentPage == 1 -> { Diagnostics.add("l13", "back on app list: pivot to Start now=${SystemClock.uptimeMillis()}"); pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS)) }
++                    else -> { Diagnostics.add("l13", "back on Start: backOnStart now=${SystemClock.uptimeMillis()}"); backOnStart() }
+                 }
+             }
+         }
+@@ -175,6 +175,7 @@ class StartActivity : ComponentActivity() {
+         // `[motion] pivot`, value = how far the pager has gone from where the finger let go to where it settles.
+         LaunchedEffect(pager) {
+             pager.interactionSource.interactions.collect { interaction ->
++                Diagnostics.add("l13", "pager ${interaction.javaClass.simpleName} now=${SystemClock.uptimeMillis()}")
+                 if (interaction !is DragInteraction.Stop && interaction !is DragInteraction.Cancel) return@collect
+                 val t0 = SystemClock.uptimeMillis()
+                 val from = pager.currentPage + pager.currentPageOffsetFraction
+diff --git a/app/src/main/kotlin/app/tileshell/applist/AppListMenu.kt b/app/src/main/kotlin/app/tileshell/applist/AppListMenu.kt
+index 0e2d860b..62e57f62 100644
+--- a/app/src/main/kotlin/app/tileshell/applist/AppListMenu.kt
++++ b/app/src/main/kotlin/app/tileshell/applist/AppListMenu.kt
+@@ -61,14 +61,17 @@ fun HoldRow(
+     onClick: () -> Unit,
+     onHold: () -> Unit,
+     modifier: Modifier = Modifier,
++    debugName: String = "",
+     content: @Composable BoxScope.() -> Unit,
+ ) {
+     var pressed by remember { mutableStateOf(false) }
+     Box(
+         modifier
+             .pointerInput(onClick, onHold) {
+-                awaitEachGesture {
+-                    awaitFirstDown()
++                if (debugName.startsWith("applist_row:deckers")) app.tileshell.diag.Diagnostics.add("l13", "row detector start $debugName now=${SystemClock.uptimeMillis()}")
++                try { awaitEachGesture {
++                    val d0 = awaitFirstDown()
++                    if (debugName.startsWith("applist_row:deckers")) app.tileshell.diag.Diagnostics.add("l13", "row down eventUptime=${d0.uptimeMillis} now=${SystemClock.uptimeMillis()}")
+                     pressed = true
+                     // withTimeoutOrNull returns null for a cancelled gesture as well as for the hold, so the
+                     // cancel is recorded: a list scroll cancels the row and must neither launch nor open the menu.
+@@ -77,6 +80,7 @@ fun HoldRow(
+                         waitForUpOrCancellation().also { if (it == null) cancelled = true }
+                     }
+                     pressed = false
++                    if (debugName.startsWith("applist_row:deckers")) app.tileshell.diag.Diagnostics.add("l13", "row outcome " + (if (up != null) "click" else if (cancelled) "cancelled" else "hold"))
+                     when {
+                         up != null -> onClick()
+                         cancelled -> Unit
+@@ -84,7 +88,7 @@ fun HoldRow(
+                         // rest of the gesture, so the up that follows cannot also launch the app.
+                         else -> onHold()
+                     }
+-                }
++                } } finally { if (debugName.startsWith("applist_row:deckers")) app.tileshell.diag.Diagnostics.add("l13", "row detector ended now=${SystemClock.uptimeMillis()}") }
+             }
+             .background(if (pressed) Color.White.copy(alpha = ROW_PRESS_ALPHA) else Color.Transparent),
+         content = content,
+@@ -119,6 +123,10 @@ fun PinToStartMenu(
+ ) {
+     val colors = LocalShellColors.current
+     val firstFrame = remember { booleanArrayOf(false) }
++    androidx.compose.runtime.DisposableEffect(Unit) {
++        app.tileshell.diag.Diagnostics.add("l13", "band entered composition now=${SystemClock.uptimeMillis()}")
++        onDispose { app.tileshell.diag.Diagnostics.add("l13", "band left composition now=${SystemClock.uptimeMillis()}") }
++    }
+     Box(
+         Modifier
+             .fillMaxSize()
+diff --git a/app/src/main/kotlin/app/tileshell/applist/AppListPage.kt b/app/src/main/kotlin/app/tileshell/applist/AppListPage.kt
+index 04d790f6..1943358b 100644
+--- a/app/src/main/kotlin/app/tileshell/applist/AppListPage.kt
++++ b/app/src/main/kotlin/app/tileshell/applist/AppListPage.kt
+@@ -235,7 +235,10 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
+         }
+     }
+     BackHandler(enabled = visible && gridOpen) { gridOpen = false }
+-    BackHandler(enabled = visible && menu != null) { menu = null }
++    BackHandler(enabled = visible && menu != null) {
++        Diagnostics.add("l13", "back closes band now=${android.os.SystemClock.uptimeMillis()}")
++        menu = null
++    }
+     BackHandler(enabled = visible && !gridOpen && query.isNotEmpty()) {
+         query = ""
+         focusManager.clearFocus()
+@@ -513,6 +516,7 @@ private fun AppRow(
+             .height(AppListMetrics.ROW)
+             .onPlaced { coordinates[0] = it }
+             .testTag("${item.tagPrefix}:$pkg"),
++        debugName = "${item.tagPrefix}:$pkg",
+     ) {
+         RowLayout(
+             icon = { AppIcon(item.entry, icons, generation) },
+diff --git a/app/src/main/kotlin/app/tileshell/ui/components/ModalOverlay.kt b/app/src/main/kotlin/app/tileshell/ui/components/ModalOverlay.kt
+index b42af554..669e9189 100644
+--- a/app/src/main/kotlin/app/tileshell/ui/components/ModalOverlay.kt
++++ b/app/src/main/kotlin/app/tileshell/ui/components/ModalOverlay.kt
+@@ -24,8 +24,9 @@ import androidx.compose.ui.input.pointer.pointerInput
+ fun Modifier.modalOverlay(onTapOff: () -> Unit): Modifier {
+     val tapOff by rememberUpdatedState(onTapOff)
+     return pointerInput(Unit) {
+-        awaitEachGesture {
++        try { awaitEachGesture {
+             val down = awaitFirstDown(requireUnconsumed = false)
++            app.tileshell.diag.Diagnostics.add("l13", "scrim down eventUptime=${down.uptimeMillis} now=${android.os.SystemClock.uptimeMillis()} byItem=${down.isConsumed}")
+             // An item consumes its own down ([overlayItem]), so a down that arrives consumed is a gesture on an item.
+             val tap = OverlayRootTap(downTakenByItem = down.isConsumed, slopPx = viewConfiguration.touchSlop)
+             down.consume()
+@@ -37,11 +38,12 @@ fun Modifier.modalOverlay(onTapOff: () -> Unit): Modifier {
+                 val ended = event.changes.all { !it.pressed }
+                 event.changes.forEach { it.consume() }
+                 if (ended) {
++                    app.tileshell.diag.Diagnostics.add("l13", "scrim gesture ended tapOff=${tap.lift()}")
+                     if (tap.lift()) tapOff()
+                     break
+                 }
+             }
+-        }
++        } } finally { app.tileshell.diag.Diagnostics.add("l13", "scrim detector ended now=${android.os.SystemClock.uptimeMillis()}") }
+     }
+ }
+ 

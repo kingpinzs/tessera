@@ -1,0 +1,11 @@
+APKs used (sha256 / md5 prefix as lib.sh's installed_apk_id reads it). All built from a detached worktree outside the main tree.
+9c4d049f.apk sha256=f90081ce23397bcd md5=33984f11ab569328 bytes=336026186
+a7ef430b.apk sha256=bababc86e0c0829f md5=7b7341fa011d3a1e bytes=336026186
+diag-9c4d049f.apk sha256=815fe1e4ec38f34f md5=1ed75a36bf60fbdc bytes=336915838
+pre-L13-2-2126f8c9.apk sha256=6ecc67f60bbc3a94 md5=5be8a81f72b3d5fa bytes=336910854
+current.apk sha256=55dbde067494e4c0 md5=06f92d587aa92f8f bytes=339124958
+9c4d049f.apk = commit 9c4d049f, the code of apk 0eb36905 (same classes and assets; dex order differs)
+a7ef430b.apk = commit a7ef430b, the code of apk 509f6e49
+diag-9c4d049f.apk = 9c4d049f + diag-instrumentation.diff (ring lines only; never committed)
+pre-L13-2-2126f8c9.apk = commit 2126f8c9, the parent of de57ec35 (the first L13-2 commit)
+current.apk = the main tree's app-debug.apk at 09:55 (55dbde06 = 0eb36905 + a RemindersPage.kt timer change); copied, never installed
