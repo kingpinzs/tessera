@@ -15,7 +15,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -65,6 +69,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -77,6 +82,8 @@ import app.tileshell.bars.W10mStatusBar
 import app.tileshell.brand.Glyph
 import app.tileshell.start.Edit
 import app.tileshell.ui.LocalShellColors
+import app.tileshell.ui.components.modalOverlay
+import app.tileshell.ui.components.overlayItem
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -767,7 +774,10 @@ private fun JumpGrid(targets: List<JumpTarget>, onDismiss: () -> Unit, onPick: (
         Modifier
             .fillMaxSize()
             .background(colors.background)
-            .clickable(onClick = onDismiss)
+            // L13-2: modal inside the pivot's page — a drag on the grid never moves the pivot; a tap off the cells
+            // dismisses it. The semantics keep the click action `clickable` gave the grid.
+            .semantics(mergeDescendants = true) { onClick { onDismiss(); true } }
+            .modalOverlay(onTapOff = onDismiss)
             .padding(start = MusicMetrics.SIDE, top = 12.dp)
             .testTag("music_jump_grid"),
     ) {
@@ -780,7 +790,7 @@ private fun JumpGrid(targets: List<JumpTarget>, onDismiss: () -> Unit, onPick: (
                             Modifier
                                 .size(64.dp)
                                 .background(if (live) colors.accent else colors.chrome)
-                                .then(if (live) Modifier.clickable { onPick(cell.index!!) } else Modifier)
+                                .then(if (live) Modifier.jumpCellPress { onPick(cell.index!!) } else Modifier)
                                 .testTag("music_jump:${cell.letter}"),
                             Alignment.Center,
                         ) {
@@ -795,6 +805,30 @@ private fun JumpGrid(targets: List<JumpTarget>, onDismiss: () -> Unit, onPick: (
             }
         }
     }
+}
+
+/**
+ * A live jump cell's press (L13-2): [overlayItem]'s rule — held on the cell, ended when the finger leaves, picked by a
+ * lift on it — with the click semantics and the press indication `clickable` gave it.
+ */
+@Composable
+private fun Modifier.jumpCellPress(onPick: () -> Unit): Modifier {
+    val source = remember { MutableInteractionSource() }
+    val held = remember { arrayOfNulls<PressInteraction.Press>(1) }
+    return semantics(mergeDescendants = true) { onClick { onPick(); true } }
+        .indication(source, LocalIndication.current)
+        .overlayItem(
+            onPressedChange = { on ->
+                val press = held[0]
+                if (on && press == null) {
+                    PressInteraction.Press(Offset.Zero).also { held[0] = it; source.tryEmit(it) }
+                } else if (!on && press != null) {
+                    source.tryEmit(PressInteraction.Release(press))
+                    held[0] = null
+                }
+            },
+            onRun = onPick,
+        )
 }
 
 /** An album or an artist, opened from the pivot: its tracks, in the order they play. */
