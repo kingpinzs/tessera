@@ -2,7 +2,7 @@
 """E8's screenrecord corroboration (never the clock — the shell's own [motion] line is, C-5): phase 05's frame-spacing
 rule on a variable-rate emulator capture.
 
-  motion_frames.py <capture.mp4> <frames_dir> [threshold]
+  motion_frames.py <capture.mp4> <frames_dir> [threshold] [x0,y0,x1,y1]
 
 Decodes every SOURCE frame (-vsync passthrough) with its presentation time (ffprobe best_effort_timestamp_time), marks
 a frame as moving when its mean absolute difference from the previous frame exceeds the threshold (default 0.5 levels),
@@ -12,7 +12,9 @@ longer than 100 ms splits the motion, and the chosen burst's window_ms then fall
 which the caller compares against the [motion] line's settle. (The first cut took the first to the last moving frame of
 the whole capture, so the show_touches dot at the hold's touch-down and later live-tile flips widened the window over
 idle time where an emulator capture emits no frames: 584-784 ms "gaps" that were not in the motion, E8 2026-09-26.)
-Prints:
+The optional region (capture pixels) restricts the difference to the animated surface, so the show_touches dot and live
+tiles elsewhere on screen neither open nor widen a burst (gate review B, B2: the whole-screen mean also dropped the
+ease-out tail of a small surface below the threshold). Prints:
   frames=<source frames> bursts=<n> window_frames=<n> window_ms=<ms> max_gap_ms=<largest source-frame spacing inside the window>
 Phase 05's rule: a capture whose max_gap_ms is over 18.2 ms during the motion is rejected (not used to corroborate).
 """
@@ -28,6 +30,7 @@ from PIL import Image
 def main():
     mp4, d = sys.argv[1], sys.argv[2]
     thr = float(sys.argv[3]) if len(sys.argv) > 3 else 0.5
+    roi = tuple(int(v) for v in sys.argv[4].split(",")) if len(sys.argv) > 4 else None
     os.makedirs(d, exist_ok=True)
     for f in glob.glob(os.path.join(d, "f*.png")):
         os.remove(f)
@@ -42,7 +45,10 @@ def main():
     change = {}
     prev = None
     for i in range(n):
-        a = np.asarray(Image.open(files[i]).convert("L"), dtype=np.float32)
+        img = Image.open(files[i]).convert("L")
+        if roi:
+            img = img.crop(roi)
+        a = np.asarray(img, dtype=np.float32)
         if prev is not None:
             d = float(np.abs(a - prev).mean())
             if d > thr:

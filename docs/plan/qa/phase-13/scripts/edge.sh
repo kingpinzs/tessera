@@ -223,8 +223,10 @@ huge)
 # ================================================================ no background image set
 no_image)
   set_pref transparency_effects boolean true
-  clear_background
+  # The MARK goes before clear_background: its force-stop restarts the Home app, whose start is what the absence
+  # clauses are about (gate review B, N6).
   MARK="$(ring_mark)"
+  clear_background
   show_start 7
   to_app_list 3
   ring_since "$MARK" > "$ROW_DIR/slice.txt"
@@ -256,7 +258,7 @@ light)
   SHOW="$(grep -F '[fluent] applist source=' "$ROW_DIR/slice.txt" | tail -1)"
   note "show line: ${SHOW#*\[fluent\] }"
   assert_contains "the app list is acrylic (static, alpha 0.8, 30 epx)" "alpha=0.8 blur=30epx" "$SHOW"
-  record "the light theme's tint" "$(echo "$SHOW" | grep -o 'tint=([0-9,]*)')"
+  assert_contains "the light theme's tint is its background, white (Palette.lightBackground; T = F for the app list)" "tint=(255,255,255)" "$SHOW"
   dump_ui "$ROW_DIR/applist.xml"
   screencap "$ROW_DIR/applist.png"
   Y="$(strip_y "$ROW_DIR/applist.xml")"
@@ -501,12 +503,17 @@ rapid)
   to_start 2
   C="$(pss)"; record "C: the checker, acrylic on (KB)" "$C"
   to_app_list 2
+  # Each hold must be shown to open the band (gate review B, B1: the first cut asserted only time and PSS, which pass
+  # just as well if no live layer was ever allocated). The slice is saved before anything force-stops the shell.
+  MARK="$(ring_mark)"
   T0="$(date +%s%3N)"
   for _ in $(seq 1 10); do
     adb shell input swipe $HX $HY $HX $HY 850
     adb shell input keyevent KEYCODE_BACK
   done
   T1="$(date +%s%3N)"
+  ring_since "$MARK" > "$ROW_DIR/slice-holds.txt"
+  assert_eq "each of the 10 holds opened the band (10 applist_menu show lines)" "10" "$(grep -cF '[fluent] applist_menu source=live' "$ROW_DIR/slice-holds.txt")"
   record "10 holds took (ms, host clock)" "$(( T1 - T0 ))"
   assert_eq "10 holds in <= 15 s" yes "$( [ $(( T1 - T0 )) -le 15000 ] && echo yes || echo no)"
   sleep 3

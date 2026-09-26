@@ -55,6 +55,8 @@ assert_eq "(1) back On" "true" "$(transparency_state)"
 # after A adds a Photos face that stays until the file is deleted — memory that is not the Start background's. The
 # first two runs measured it into A2 (+12.7 MB; E10_DIAG: `[photos] refresh (mediastore change) photos=7` at the push,
 # 6 again only when the file went), so A, B, C and A2 now differ only in the Start background and the switch.
+photos_n() { diag photos | grep -oE 'photos=[0-9]+' | tail -1 | cut -d= -f2; }
+PH0="$(photos_n)"
 python3 "$P13/make_fixtures.py" checker "$ROW_DIR/checker.png" 1080 2340 >/dev/null
 push_picture "$ROW_DIR/checker.png" "$CHECKER_PATH" >/dev/null
 adb shell am force-stop $PKG; sleep 2
@@ -69,7 +71,7 @@ adb shell input keyevent KEYCODE_BACK; sleep 1.5
 leave_settings
 assert_absent "(2) the cancelled picker set no background" 'name="background"' "$(adb shell run-as $PKG cat shared_prefs/start_theme.xml)"
 warm
-assert_contains "(2) the Photos tile already counts the checker (MediaStore holds it before A)" "photos=" "$(diag photos | tail -1)"
+assert_eq "(2) the Photos tile already counts the checker (one more photo than before the push)" "$(( ${PH0:-0} + 1 ))" "$(photos_n)"
 record "(2) the Photos feed before A" "$(diag photos | tail -1 | sed 's/.*\[photos\] //')"
 A="$(pss)"; record "(2) A: no picture as the Start background (KB)" "$A"
 toggle_to false
