@@ -58,3 +58,20 @@ Home item (U / D / M / A captures: ring (77,161,227), touch point (25,133,218), 
 L13-1 repro: `scripts/l13_1_repro.sh <apk> <label>` — `L13-1-pre13-1ee619f8/` on the APK built from 1ee619f8 (before this
 phase), `L13-1-phase13-365bd248/` on this phase's (its pid check read the same pid after the crash; the crash count is the
 primary evidence; `row-tap.txt`: a tap on an existing reminder row crashes too).
+
+## L13-3, L13-4, L13-5 (the fixes; ledger rows in INDEX.md, triage review/2026-09-26-L13-345-fix-triage.md)
+
+Builds: ee4bf960 = before any fix (installed 33e487ea) · 598ca8c2 = b2d44b7d · d6a364c8 = 9a801834 (installed 46b644dc) ·
+00244cec = the tree committed as b572c6fe (installed 51990a8b) · 707aa55b = a clean rebuild of b572c6fe (installed
+60628bac; builds are not byte-reproducible) · e8a00dc6 = b572c6fe + `L13-3-diag3-window-e8a00dc6/diag3.patch` (timing
+lines only, never committed). All runs are on emulator-5554 unless the directory says emu5558.
+
+| Row | Before | After | Notes |
+|---|---|---|---|
+| L13-3 `scripts/l13_3_row.sh` | `L13_3-before-ee4bf960/` (host loops 4/10, 8/10) · `L13_3-fix1-598ca8c2/` (the first fix failed: 8, 8, 10 of 10) · `L13_3-before-ee4bf960-emu5558/` (did not reproduce) | `L13_3-emu5554-d6a364c8/` · `-extra-hostloops/` · `L13_3-emu5558-d6a364c8/` · `L13_3-emu5554-00244cec/` (10/0) | The 70 trials never lost a hold on either build (review B1). |
+| L13-3 window proof | `L13-3-diag-on-fix-e4dedc5e/`, `L13-3-diag2-row-events-5d1a37d5/` (why the first fix failed) | `L13-3-diag3-window-e8a00dc6/window.txt`: 15 of 15 in-window downs held, 0 on the stale scrim | `diag_window.py` parses the `[l13]` lines. |
+| L13-3 `L13-3-diag3-window-e8a00dc6/window_probe.sh` | `L13-3-probe-before-ee4bf960/` 26/40 | `L13-3-probe-707aa55b/` 40/40, `L13-3-diag3-window-e8a00dc6/probe/` 40/40 | Back and hold B together; one session. |
+| L13-4 `scripts/l13_4_row.sh` | `L13_4-before-ee4bf960/` (13/6) · `L13_4-before2-ee4bf960/` (16/6, twice passes) · `L13_4-drv3-before-ee4bf960/` (16/6, final driver) | `L13_4-fix1-598ca8c2/` · `L13_4-fix2-d6a364c8/` (19/0, no twice case) · `L13_4-twice-red-d6a364c8/` (20/2) · `L13_4-00244cec/` (22/0) · `L13_4-drv3-707aa55b/` (22/0, final driver) | twice = two Backs at once. |
+| L13-5 `scripts/l13_5_row.sh` | `L13_5-before-ee4bf960/` (earlier driver) · `L13_5-before2-ee4bf960/` (10/2, committed driver) | `L13_5-fix1-598ca8c2/` (the lifted rule alone) · `L13_5-d6a364c8/` · `L13_5-00244cec/` (12/0) | |
+| L13-2 `scripts/l13_2_row.sh` | `L13-2-row-before-15aa7f5f/` | `L13-2-row-fix-d6a364c8/`, `L13-2-row-fix-00244cec/` (72/0) | `L13-2-row-fix-598ca8c2-interrupted-by-diag-install/` was cut off by a diagnostic install; not a result. |
+| Unit `ModalOverlayTest` | `unit/red-*` (`unit/STUBS.md`) | `unit/green-ModalOverlayTest-L13-3.xml` (12/12) | |
