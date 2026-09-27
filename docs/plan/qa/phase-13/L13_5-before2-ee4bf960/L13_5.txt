@@ -1,0 +1,28 @@
+==============================================================================
+ROW L13_5 — an overlay item does not run when its overlay is removed under the finger
+at            2026-09-26T18:04:37-06:00
+driver        l13_5_row.sh blob d255c67c47cb73539c2653b5143355d43fb0c321
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     707aa55b5180f20e 339125146 bytes
+apk installed 33e487ea08d2c4ad
+apk match     NO (device 33e487ea08d2c4ad, built 60628bac63b5480f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  phase 02's baseline: no slot re-assigned (C-3)              does not contain [-> assigned]
+PASS  the fixture is not on Start                                 = 0
+      scroll_to_node applist_row:app.tileshell.testclient.a: 4 swipe(s), found=yes
+PASS  (1) the band's Pin to Start item is on screen               != 
+      (1) D 1790467523469 K 1790467523778 U 1790467524697 
+FAIL  (1) the band removed under the held finger runs nothing (no pin line)  should NOT contain [pin to Start]
+FAIL  (1) the fixture is still not on Start                       expected [0] got [1]
+PASS  (2) the fixture is not on Start before the press            = 0
+      scroll_to_node applist_row:app.tileshell.testclient.a: 4 swipe(s), found=yes
+PASS  (2) the band's Pin to Start item is on screen               != 
+PASS  (2) a lift on the item runs it: the pin line says pinned    contains [-> pinned]
+PASS  (2) the fixture's tile is on Start                          = 1
+PASS  restore: phase 02's baseline, no slot re-assigned (C-3)     does not contain [-> assigned]
+PASS  restore: the fixture's tile is gone                         = 0
+------------------------------------------------------------------------------
+L13_5: 10 passed, 2 failed, 0 recorded
