@@ -13,14 +13,16 @@ assert_eq "wake: the device is awake" "Awake" "$(wake_device)"
 set_pref transparency_effects boolean true
 clear_background
 
-# "applist" when the app list is the page on screen (app_list's left edge at 0), "start" otherwise.
+# "applist" when the app list is the page on screen (app_list's left edge at 0), "start" when Start is (start_page's
+# left edge at 0), "unknown" otherwise — a failed dump is never read as Start (review/2026-09-26-L13-345-fix-review-b.md N4).
 page() {
   dump_ui "$ROW_DIR/$1.xml"
   python3 - "$ROW_DIR/$1.xml" <<'PY'
 import re, sys
 s = open(sys.argv[1], encoding="utf-8", errors="replace").read()
 m = re.search(r'resource-id="app_list"[^>]*bounds="\[(-?\d+),', s)
-print("applist" if m and int(m.group(1)) == 0 else "start")
+st = re.search(r'resource-id="start_page"[^>]*bounds="\[(-?\d+),', s)
+print("applist" if m and int(m.group(1)) == 0 else "start" if st and int(st.group(1)) == 0 else "unknown")
 PY
 }
 
@@ -29,6 +31,8 @@ one() { # tag key(4 Back | 3 Home | drawn) interrupt(yes|no)
   adb shell am force-stop $PKG; sleep 1
   show_start 5
   to_app_list 2
+  # This case's ring, kept before the next case force-stops the launcher (review N4).
+  local mark; mark="$(ring_mark)"
   assert_eq "$tag: on the app list before the first key" "applist" "$(page "$tag-0")"
   if [ "$key" = drawn ]; then
     set -- $(bounds "$ROW_DIR/$tag-0.xml" nav_back)
@@ -48,6 +52,7 @@ one() { # tag key(4 Back | 3 Home | drawn) interrupt(yes|no)
     sleep 2
     assert_eq "$tag: key $k takes the app list to Start" "start" "$(page "$tag-$k")"
   done
+  ring_since "$mark" > "$ROW_DIR/$tag-ring.txt"
 }
 
 # The order: two Backs at once from the app list. The second waits for the pivot the first started, then runs as Back
