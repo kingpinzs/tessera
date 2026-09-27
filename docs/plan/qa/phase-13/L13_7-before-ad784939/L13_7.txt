@@ -1,0 +1,32 @@
+==============================================================================
+ROW L13_7 — leaving Tess opened from her tile brings Start back (system Back, Tess's Back, Tess's Windows key; control)
+at            2026-09-26T21:20:58-06:00
+driver        l13_7_row.sh blob c90041df433a11f954a96f24b2d2ac355d0c75b1
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     7f00cb9e87598316 339125146 bytes
+apk installed dfcd0c83c0c3a1eb
+apk match     NO (device dfcd0c83c0c3a1eb, built c519a4db80557e9b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  the Tess tile is on Start                                   = yes
+      tiles on Start before: 14
+PASS  back: Tess opened over Start                                = VoiceInteractionSession
+PASS  back: Start has focus again                                 = app.tileshell/app.tileshell.StartActivity
+FAIL  back: every tile is back                                    expected [14] got [0]
+FAIL  back: Start played its entrance once                        expected [1] got [0]
+PASS  drawn-back: Tess opened over Start                          = VoiceInteractionSession
+PASS  drawn-back: Start has focus again                           = app.tileshell/app.tileshell.StartActivity
+FAIL  drawn-back: every tile is back                              expected [14] got [0]
+FAIL  drawn-back: Start played its entrance once                  expected [1] got [0]
+PASS  drawn-windows: Tess opened over Start                       = VoiceInteractionSession
+PASS  drawn-windows: Start has focus again                        = app.tileshell/app.tileshell.StartActivity
+PASS  drawn-windows: every tile is back                           = 14
+PASS  drawn-windows: Start played its entrance once               = 1
+PASS  control: Settings opened                                    contains [Settings]
+PASS  control: every tile is back                                 = 14
+PASS  control: Start played its entrance once                     = 1
+PASS  restore: phase 02's baseline, no slot re-assigned (C-3)     does not contain [-> assigned]
+------------------------------------------------------------------------------
+L13_7: 14 passed, 4 failed, 0 recorded
