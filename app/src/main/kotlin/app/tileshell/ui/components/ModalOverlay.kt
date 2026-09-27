@@ -16,14 +16,16 @@ import androidx.compose.ui.layout.Layout
 
 /**
  * L13-3: whether the overlay this point of the tree is drawn in is still open, read from the state its dismissal writes
- * (the band's `menu`, a grid's `gridOpen`). Provided by [OverlayLayer]; outside one it is always true.
+ * (the band's `menu`, a grid's `gridOpen`, Music's `menu` / `more` / `naming`). Provided by [OverlayLayer]; outside
+ * one it is always true.
  */
 val LocalOverlayActive = staticCompositionLocalOf<() -> Boolean> { { true } }
 
 /**
- * L13-3: the layer an overlay is drawn in over a page (the app list's band and jump grid, Music's jump grid). It places
- * its content only while [active] is true, and it reads [active] while placing, so a dismissal takes the overlay out of
- * the layout at the next layout pass. Compose runs that pass before it hit-tests each touch, and it hit-tests only
+ * L13-3: the layer an overlay is drawn in over a page (the app list's band and jump grid, Music's jump grid; since L13-6
+ * also Music's hold menu, Now Playing's more menu and the playlist name box). It places its content only while [active]
+ * is true, and it reads [active] while placing, so a dismissal takes the overlay out of the layout at the next layout
+ * pass. Compose runs that pass before it hit-tests each touch, and it hit-tests only
  * placed nodes, so a down that follows the dismissal reaches the page instead of the stale scrim. Before this, a
  * dismissal only wrote the state; the overlay stayed placed until it left the composition a frame later, and a down in
  * that frame landed on its full-screen scrim and was lost.

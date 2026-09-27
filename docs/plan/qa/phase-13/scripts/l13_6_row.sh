@@ -14,6 +14,9 @@ assert_eq "wake: the device is awake" "Awake" "$(wake_device)"
 for m in hold more; do
   bash "$PROBE" setup $m > "$ROW_DIR/setup-$m.txt" 2>&1
   note "setup $m: $(tail -1 "$ROW_DIR/setup-$m.txt")"
+  # A failed setup must not let the row read an earlier run's summary (review/2026-09-26-L13-6-fix-review-b.md N2).
+  assert_contains "$m: setup found its target" "setup $m " "$(tail -1 "$ROW_DIR/setup-$m.txt")"
+  [ -f "$ROW_DIR/$m/summary.txt" ] && mv "$ROW_DIR/$m/summary.txt" "$ROW_DIR/$m/summary-earlier-$(date +%H%M%S).txt"
   bash "$PROBE" $m "$ROW_DIR/$m" "$N" > "$ROW_DIR/$m.out" 2>&1
   R="$(tail -1 "$ROW_DIR/$m/summary.txt")"
   note "$m: $R"
