@@ -75,3 +75,9 @@ lines only, never committed). All runs are on emulator-5554 unless the directory
 | L13-5 `scripts/l13_5_row.sh` | `L13_5-before-ee4bf960/` (earlier driver) · `L13_5-before2-ee4bf960/` (10/2, committed driver) | `L13_5-fix1-598ca8c2/` (the lifted rule alone) · `L13_5-d6a364c8/` · `L13_5-00244cec/` (12/0) | |
 | L13-2 `scripts/l13_2_row.sh` | `L13-2-row-before-15aa7f5f/` | `L13-2-row-fix-d6a364c8/`, `L13-2-row-fix-00244cec/` (72/0) | `L13-2-row-fix-598ca8c2-interrupted-by-diag-install/` was cut off by a diagnostic install; not a result. |
 | Unit `ModalOverlayTest` | `unit/red-*` (`unit/STUBS.md`) | `unit/green-ModalOverlayTest-L13-3.xml` (12/12) | |
+
+After review round 2 (both PASS): `l13_3_row.sh` now carries the probe (`scripts/l13_3_probe.sh`, asserted 40/40):
+`L13_3-drv4-before-ee4bf960/` 8/3 (host loops 4/10 and 9/10, probe 22/40) and `L13_3-drv4-707aa55b/` 11/0. On 707aa55b
+(the kept build of b572c6fe): `L13-2-row-fix-707aa55b/` 72/0, `L13_5-707aa55b/` 12/0; L13-4 22/0 in `L13_4-drv3-707aa55b/`.
+Unit on b572c6fe: `unit/green-ModalOverlayTest-b572c6fe.xml` (12/12). `L13-3-diag3-window-e8a00dc6/diag3.patch` is the
+app-only diff; the whole-tree diff is `diag3-wholetree.patch`.
