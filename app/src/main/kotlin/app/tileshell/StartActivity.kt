@@ -463,4 +463,20 @@ class StartActivity : ComponentActivity() {
             Diagnostics.add("motion", "start entrance")
         }
     }
+
+    /**
+     * L13-7: the Tess tile opens her session, a window over Start rather than an activity, so Start is never paused
+     * and onResume never brings it back: once the session hid, Start stayed on its exit's last frame, with no tiles.
+     * Start gets its window focus back when that window goes. A launch that did pause Start came back in onResume,
+     * which cleared [returningFromLaunch] before the focus returned.
+     */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus && returningFromLaunch) {
+            returningFromLaunch = false
+            animation = StartAnimation(entranceElapsedMs = 0f)
+            entranceToken++
+            Diagnostics.add("motion", "start entrance (focus back)")
+        }
+    }
 }
