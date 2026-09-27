@@ -1,0 +1,78 @@
+diff --git a/app/src/main/kotlin/app/tileshell/applist/AppListMenu.kt b/app/src/main/kotlin/app/tileshell/applist/AppListMenu.kt
+index 0e2d860b..9efdf6b5 100644
+--- a/app/src/main/kotlin/app/tileshell/applist/AppListMenu.kt
++++ b/app/src/main/kotlin/app/tileshell/applist/AppListMenu.kt
+@@ -68,7 +68,8 @@ fun HoldRow(
+         modifier
+             .pointerInput(onClick, onHold) {
+                 awaitEachGesture {
+-                    awaitFirstDown()
++                    val d0 = awaitFirstDown()
++                    app.tileshell.diag.Diagnostics.add("l13", "row down eventUptime=${d0.uptimeMillis} now=${android.os.SystemClock.uptimeMillis()}")
+                     pressed = true
+                     // withTimeoutOrNull returns null for a cancelled gesture as well as for the hold, so the
+                     // cancel is recorded: a list scroll cancels the row and must neither launch nor open the menu.
+@@ -77,6 +78,7 @@ fun HoldRow(
+                         waitForUpOrCancellation().also { if (it == null) cancelled = true }
+                     }
+                     pressed = false
++                    app.tileshell.diag.Diagnostics.add("l13", "row outcome " + (if (up != null) "click" else if (cancelled) "cancelled" else "hold") + " now=${android.os.SystemClock.uptimeMillis()}")
+                     when {
+                         up != null -> onClick()
+                         cancelled -> Unit
+@@ -119,6 +121,10 @@ fun PinToStartMenu(
+ ) {
+     val colors = LocalShellColors.current
+     val firstFrame = remember { booleanArrayOf(false) }
++    androidx.compose.runtime.DisposableEffect(Unit) {
++        app.tileshell.diag.Diagnostics.add("l13", "band entered composition now=${android.os.SystemClock.uptimeMillis()}")
++        onDispose { app.tileshell.diag.Diagnostics.add("l13", "band left composition now=${android.os.SystemClock.uptimeMillis()}") }
++    }
+     Box(
+         Modifier
+             .fillMaxSize()
+diff --git a/app/src/main/kotlin/app/tileshell/applist/AppListPage.kt b/app/src/main/kotlin/app/tileshell/applist/AppListPage.kt
+index 2b76daf0..427f30c4 100644
+--- a/app/src/main/kotlin/app/tileshell/applist/AppListPage.kt
++++ b/app/src/main/kotlin/app/tileshell/applist/AppListPage.kt
+@@ -238,7 +238,7 @@ fun AppListPage(onLaunch: (AppEntry, Rect?) -> Unit) {
+     }
+     // L13-3: a Back is applied at once, so a touch right after it is not hit-tested against the overlay it closed.
+     BackHandler(enabled = visible && gridOpen) { dismissOverlay { gridOpen = false } }
+-    BackHandler(enabled = visible && menu != null) { dismissOverlay { menu = null } }
++    BackHandler(enabled = visible && menu != null) { app.tileshell.diag.Diagnostics.add("l13", "back closes band now=${android.os.SystemClock.uptimeMillis()}"); dismissOverlay { menu = null } }
+     BackHandler(enabled = visible && !gridOpen && query.isNotEmpty()) {
+         query = ""
+         focusManager.clearFocus()
+diff --git a/app/src/main/kotlin/app/tileshell/ui/components/ModalOverlay.kt b/app/src/main/kotlin/app/tileshell/ui/components/ModalOverlay.kt
+index f72556b1..d94ca17a 100644
+--- a/app/src/main/kotlin/app/tileshell/ui/components/ModalOverlay.kt
++++ b/app/src/main/kotlin/app/tileshell/ui/components/ModalOverlay.kt
+@@ -37,6 +37,7 @@ val LocalOverlayActive = staticCompositionLocalOf<() -> Boolean> { { true } }
+  */
+ @Composable
+ fun OverlayLayer(active: () -> Boolean, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
++    val placedLast = androidx.compose.runtime.remember { booleanArrayOf(false) }
+     Layout(
+         content = { CompositionLocalProvider(LocalOverlayActive provides active, content = content) },
+         modifier = modifier,
+@@ -45,7 +46,10 @@ fun OverlayLayer(active: () -> Boolean, modifier: Modifier = Modifier, content:
+         val width = maxOf(constraints.minWidth, placeables.maxOfOrNull { it.width } ?: 0)
+         val height = maxOf(constraints.minHeight, placeables.maxOfOrNull { it.height } ?: 0)
+         layout(width, height) {
+-            if (active()) placeables.forEach { it.place(0, 0) }
++            val on = active()
++            if (on != placedLast[0] && placeables.isNotEmpty()) app.tileshell.diag.Diagnostics.add("l13", "layer " + (if (on) "placed" else "unplaced") + " n=${placeables.size} now=${android.os.SystemClock.uptimeMillis()}")
++            placedLast[0] = on
++            if (on) placeables.forEach { it.place(0, 0) }
+         }
+     }
+ }
+@@ -76,6 +80,7 @@ fun Modifier.modalOverlay(onTapOff: () -> Unit): Modifier {
+     return pointerInput(Unit) {
+         awaitEachGesture {
+             val down = awaitFirstDown(requireUnconsumed = false)
++            app.tileshell.diag.Diagnostics.add("l13", "scrim down eventUptime=${down.uptimeMillis} now=${android.os.SystemClock.uptimeMillis()}")
+             // An item consumes its own down ([overlayItem]), so a down that arrives consumed is a gesture on an item.
+             val tap = OverlayRootTap(downTakenByItem = down.isConsumed, slopPx = viewConfiguration.touchSlop)
+             down.consume()
