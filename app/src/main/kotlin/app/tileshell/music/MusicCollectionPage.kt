@@ -173,11 +173,12 @@ fun MusicCollectionPage(
     }
     val playlist = openPlaylist?.let { id -> playlists.firstOrNull { it.id == id } }
 
-    // Innermost first: an overlay closes before the page under it does.
+    // Innermost first: an overlay closes before the page under it does. L13-6: an overlay's Back is applied at once, so
+    // a touch right after it is not hit-tested against the overlay it closed (its OverlayLayer stops placing it).
     BackHandler(enabled = naming != null || menu != null || openPlaylist != null || detail != null) {
         when {
-            naming != null -> naming = null
-            menu != null -> menu = null
+            naming != null -> dismissOverlay { naming = null }
+            menu != null -> dismissOverlay { menu = null }
             openPlaylist != null -> openPlaylist = null
             else -> detail = null
         }
@@ -313,8 +314,8 @@ fun MusicCollectionPage(
         W10mNavBar(
             onBack = {
                 when {
-                    naming != null -> naming = null
-                    menu != null -> menu = null
+                    naming != null -> dismissOverlay { naming = null }
+                    menu != null -> dismissOverlay { menu = null }
                     openPlaylist != null -> openPlaylist = null
                     detail != null -> detail = null
                     else -> onBack()
@@ -329,11 +330,16 @@ fun MusicCollectionPage(
             .offset { (contentInWindow - rootInWindow).round() }
             .size(with(LocalDensity.current) { DpSize(contentSize.width.toDp(), contentSize.height.toDp()) }),
     ) {
-        CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop) {
-            menu?.let { open -> MusicMenu(open.anchorPx, open.entries, onDismiss = { menu = null }) }
+        // L13-6: each is drawn in an OverlayLayer, which stops placing it the moment it is dismissed (L13-3's rule).
+        OverlayLayer(active = { menu != null }) {
+            CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop) {
+                menu?.let { open -> MusicMenu(open.anchorPx, open.entries, onDismiss = { menu = null }) }
+            }
         }
-        naming?.let { open ->
-            PlaylistNameBox(open.caption, open.initial, onDone = open.onDone, onCancel = { naming = null })
+        OverlayLayer(active = { naming != null }) {
+            naming?.let { open ->
+                PlaylistNameBox(open.caption, open.initial, onDone = open.onDone, onCancel = { naming = null })
+            }
         }
     }
     }

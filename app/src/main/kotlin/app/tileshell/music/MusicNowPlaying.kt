@@ -51,6 +51,8 @@ import app.tileshell.bars.BarMetrics
 import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
 import app.tileshell.ui.LocalShellColors
+import app.tileshell.ui.components.OverlayLayer
+import app.tileshell.ui.components.dismissOverlay
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -194,7 +196,8 @@ private enum class MoreMenu { ROOT, SLEEP, EQUALISER, CROSSFADE }
 fun NowPlayingPage(onBack: () -> Unit, onWindows: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var more by remember { mutableStateOf<MoreMenu?>(null) }
-    androidx.activity.compose.BackHandler(enabled = more != null) { more = null }
+    // L13-6: the Back is applied at once, so a touch right after it is not hit-tested against the band it closed.
+    androidx.activity.compose.BackHandler(enabled = more != null) { dismissOverlay { more = null } }
     // The elapsed label and the thumb are the only things on this screen that move on their own. Four
     // reads a second is finer than the label's own resolution and far cheaper than a frame callback.
     LaunchedEffect(MusicPlayer.isPlaying, expanded) {
@@ -237,18 +240,21 @@ fun NowPlayingPage(onBack: () -> Unit, onWindows: () -> Unit) {
         // The chrome last, so nothing can draw over it.
         Chrome(onBack)
         }
-        more?.let { level ->
-            val density = LocalDensity.current
-            // The band rises from just above the transport row, so it covers neither the nav bar nor
-            // the row the `•••` sits in.
-            val rise = with(density) { (transportCy - NowPlayingMetrics.TOGGLE_PILL / 2).toPx() }
-            CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop) {
-                MusicMenu(
-                    anchorPx = 0f,
-                    riseFromPx = rise,
-                    items = moreEntries(level) { more = it },
-                    onDismiss = { more = null },
-                )
+        // L13-6: the band is drawn in an OverlayLayer, which stops placing it the moment it is dismissed (L13-3's rule).
+        OverlayLayer(active = { more != null }) {
+            more?.let { level ->
+                val density = LocalDensity.current
+                // The band rises from just above the transport row, so it covers neither the nav bar nor
+                // the row the `•••` sits in.
+                val rise = with(density) { (transportCy - NowPlayingMetrics.TOGGLE_PILL / 2).toPx() }
+                CompositionLocalProvider(LocalAcrylicBackdrop provides backdrop) {
+                    MusicMenu(
+                        anchorPx = 0f,
+                        riseFromPx = rise,
+                        items = moreEntries(level) { more = it },
+                        onDismiss = { more = null },
+                    )
+                }
             }
         }
         Box(Modifier.align(Alignment.BottomStart)) {
