@@ -10,7 +10,7 @@
 N="${1:-70}"
 RACE="$(dirname "$0")/l13_3_race.sh"
 
-row_begin L13_3 "a hold right after Back closes the band opens it again (n=$N at gap 0, then EDGE_RAPID's loop x3)"
+row_begin L13_3 "a hold right after Back closes the band opens it again (n=$N at gap 0, EDGE_RAPID's loop x3, the probe x40)"
 assert_eq "wake: the device is awake" "Awake" "$(wake_device)"
 bash "$RACE" setup - checker > "$ROW_DIR/setup.txt" 2>&1
 note "setup: $(tail -1 "$ROW_DIR/setup.txt")"
@@ -31,6 +31,12 @@ for k in 1 2 3; do
   assert_contains "EDGE_RAPID's loop $k: every hold opened the band" "bands 10 / 10" "$S"
   assert_contains "EDGE_RAPID's loop $k: still on the app list after" "on app list after: yes" "$S"
 done
+# The discriminating half (review round 2 N-A): the trials and host loops above passed the old build in some sessions;
+# the probe did not (ee4bf960 26 of 40, the fix 40 of 40, one session). Every hold B must open the band.
+bash "$(dirname "$0")/l13_3_probe.sh" "$ROW_DIR/probe" 40 > "$ROW_DIR/probe.out" 2>&1
+P="$(tail -1 "$ROW_DIR/probe/summary.txt")"
+note "probe: $P"
+assert_eq "the probe: every hold B sent with the Back opened the band" "trials 40: B opened the band 40" "$P"
 clear_background
 show_start 3
 row_end
