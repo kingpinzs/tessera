@@ -94,3 +94,9 @@ dfcd0c83). The APKs are kept only in the session scratchpad.
 | `scripts/l13_2_row.sh` | — | `L13-2-row-fix-ad784939/`: 72/0 |
 
 L13-7 (Tess Back, not reproduced): `L13-7-tess-back-repro-707aa55b/`.
+
+## L13-7 (Tess tile, then Back: Start black; ledger row in INDEX.md)
+
+`scripts/l13_7_row.sh` with `scripts/l13_7_layout.json`: `L13_7-before-ad784939/` 14/4 (0 tiles after Back and after
+Tess's Back) · `L13_7-7f00cb9e/` 18/0 (7f00cb9e = 54ecf613's tree, installed c519a4db). `L13_4-7f00cb9e/` 22/0.
+Reproduction: `L13-7-tess-tile-repro-ad784939/`; the Search-key paths that never showed it: `L13-7-tess-back-repro-707aa55b/`.
