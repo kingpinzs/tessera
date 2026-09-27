@@ -1,0 +1,30 @@
+==============================================================================
+ROW L13_3 — a hold right after Back closes the band opens it again (n=70 at gap 0, EDGE_RAPID's loop x3, the probe x40)
+at            2026-09-26T18:31:15-06:00
+driver        l13_3_row.sh blob f21e12db152bf9fa181757aabed9e45ccea087ae
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     707aa55b5180f20e 339125146 bytes
+apk installed 33e487ea08d2c4ad
+apk match     NO (device 33e487ea08d2c4ad, built 60628bac63b5480f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+      setup: apk - installed 33e487ea08d2c4ad bg=checker row=540 1206 applist_row:deckers.thibault.aves.libre
+      RESULT gap=0ms life=100ms: B opened 70 / 70 (bad setups 0); pivot lines 0
+PASS  every trial set up (hold A opened the band)                 = 0
+PASS  every hold right after Back opened the band: 70 of 70       = 70
+PASS  all 70 trials counted                                       = 70
+      hostloop 1: hostloop n=10: bands 4 / 10; pivot lines 5; edit lines 0; on app list after: yes
+FAIL  EDGE_RAPID's loop 1: every hold opened the band             does not contain [bands 10 / 10]: hostloop n=10: bands 4 / 10; pivot lines 5; edit lines 0; on app list after: yes
+PASS  EDGE_RAPID's loop 1: still on the app list after            contains [on app list after: yes]
+      hostloop 2: hostloop n=10: bands 10 / 10; pivot lines 0; edit lines 0; on app list after: yes
+PASS  EDGE_RAPID's loop 2: every hold opened the band             contains [bands 10 / 10]
+PASS  EDGE_RAPID's loop 2: still on the app list after            contains [on app list after: yes]
+      hostloop 3: hostloop n=10: bands 9 / 10; pivot lines 0; edit lines 0; on app list after: yes
+FAIL  EDGE_RAPID's loop 3: every hold opened the band             does not contain [bands 10 / 10]: hostloop n=10: bands 9 / 10; pivot lines 0; edit lines 0; on app list after: yes
+PASS  EDGE_RAPID's loop 3: still on the app list after            contains [on app list after: yes]
+      probe: trials 40: B opened the band 22
+FAIL  the probe: every hold B sent with the Back opened the band  expected [trials 40: B opened the band 40] got [trials 40: B opened the band 22]
+------------------------------------------------------------------------------
+L13_3: 8 passed, 3 failed, 0 recorded
