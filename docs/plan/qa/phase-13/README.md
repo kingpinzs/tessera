@@ -81,3 +81,16 @@ After review round 2 (both PASS): `l13_3_row.sh` now carries the probe (`scripts
 (the kept build of b572c6fe): `L13-2-row-fix-707aa55b/` 72/0, `L13_5-707aa55b/` 12/0; L13-4 22/0 in `L13_4-drv3-707aa55b/`.
 Unit on b572c6fe: `unit/green-ModalOverlayTest-b572c6fe.xml` (12/12). `L13-3-diag3-window-e8a00dc6/diag3.patch` is the
 app-only diff; the whole-tree diff is `diag3-wholetree.patch`.
+
+## L13-6 (Music's menus; ledger row in INDEX.md, plan review/2026-09-26-L13-6-fix-plan.md)
+
+Builds: 707aa55b = b572c6fe, before the fix (installed 60628bac) · ad784939 = 422b6652's tree, the fix (installed
+dfcd0c83). The APKs are kept only in the session scratchpad.
+
+| Row | Before | After |
+|---|---|---|
+| `scripts/l13_6_probe.sh` (reproduction) | `L13-6-repro-707aa55b/`: hold menu 14/30, more menu 23/30 | — |
+| `scripts/l13_6_row.sh` | `L13_6-before-707aa55b/`: 21/30, 21/30 (FAIL) | `L13_6-ad784939/`: 30/30, 30/30 |
+| `scripts/l13_2_row.sh` | — | `L13-2-row-fix-ad784939/`: 72/0 |
+
+L13-7 (Tess Back, not reproduced): `L13-7-tess-back-repro-707aa55b/`.
