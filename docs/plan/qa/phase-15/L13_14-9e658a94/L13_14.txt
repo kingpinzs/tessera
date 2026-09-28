@@ -1,0 +1,35 @@
+==============================================================================
+ROW L13_14 — a touch on the Clock's bar or compare strip does not reach the list under it
+at            2026-09-28T09:19:54-06:00
+driver        l13_14_row.sh blob 14859d45fb9caa9ff9797b56fe72ad3cd28d1672
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     9e658a94f50f481c 339127802 bytes
+apk installed 026fa481d4867c7d
+apk match     yes (026fa481d4867c7d)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      world store existed before: no
+      alarms seeded: 8
+      (a) the bar's blank point (60,2124); the alarm row under it: a70d7c443
+PASS  (a): an alarm row lies under the bar's blank point (the check is not vacuous)  != 
+PASS  (a): a tap on the bar's blank part opened no alarm's editor  = no
+PASS  (a): a hold on the bar's blank part opened no row's hold menu  = no
+PASS  (b): Compare showed the strip                               = yes
+      (b) the strip's centre (540,2124); the city row under it: Asia/Tokyo
+PASS  (b): a city row lies under the strip's centre (the check is not vacuous)  != 
+PASS  (b): a hold on the strip's centre opened no city's hold menu  = no
+      scroll_to_node alarm_row:a611fb3af: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a3a3d8bfe: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:ad59e1392: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a0253ad67: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a1b4a9782: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:af10d5c2c: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a70d7c443: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a3c5754fc: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+L13_14: 10 passed, 0 failed, 0 recorded

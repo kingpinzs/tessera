@@ -1,0 +1,35 @@
+==============================================================================
+ROW L13_14 — a touch on the Clock's bar or compare strip does not reach the list under it
+at            2026-09-28T09:17:43-06:00
+driver        l13_14_row.sh blob 14859d45fb9caa9ff9797b56fe72ad3cd28d1672
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     9e658a94f50f481c 339127802 bytes
+apk installed 8a46e6afed3c671e
+apk match     NO (device 8a46e6afed3c671e, built 026fa481d4867c7d)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      world store existed before: no
+      alarms seeded: 8
+      (a) the bar's blank point (60,2124); the alarm row under it: ac313fde1
+PASS  (a): an alarm row lies under the bar's blank point (the check is not vacuous)  != 
+FAIL  (a): a tap on the bar's blank part opened no alarm's editor  expected [no] got [yes]
+FAIL  (a): a hold on the bar's blank part opened no row's hold menu  expected [no] got [yes]
+PASS  (b): Compare showed the strip                               = yes
+      (b) the strip's centre (540,2124); the city row under it: Asia/Tokyo
+PASS  (b): a city row lies under the strip's centre (the check is not vacuous)  != 
+FAIL  (b): a hold on the strip's centre opened no city's hold menu  expected [no] got [yes]
+      scroll_to_node alarm_row:a9724515b: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a926d6758: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a461d567b: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a703d926d: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a88f167fd: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a2854ff45: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:ac313fde1: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:af89dd4f0: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+L13_14: 7 passed, 3 failed, 0 recorded
