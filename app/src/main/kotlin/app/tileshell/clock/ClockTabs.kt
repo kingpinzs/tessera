@@ -160,7 +160,7 @@ private fun TabsScreen(nav: ClockNav, store: ClockStore, world: WorldClockStore,
         header = { TabHeader(nav) },
         bar = {
             if (nav.tab == ClockTab.WORLD_CLOCK && nav.compare) CompareStrip(nav)
-            else ClockAppBar(buttons, menu, nav.barExpanded) { nav.barExpanded = it }
+            else ClockAppBar(buttons, menu, { nav.barExpanded }) { nav.barExpanded = it }
         },
     ) {
         ClockPager(nav, Modifier.fillMaxSize()) { tab ->

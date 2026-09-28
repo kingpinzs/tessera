@@ -72,6 +72,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlinx.coroutines.withTimeoutOrNull
+import app.tileshell.ui.components.OverlayLayer
 
 /**
  * The Alarms & Clock app's shared drawing (phase 15 build task 4). Every value cites its r11/clock.md row or the
@@ -130,26 +131,33 @@ data class ClockMenuEntry(val label: String, val tag: String, val onPick: () -> 
  * 44-epx pitch in the flyout fill. Drawn as the bottom of a Box that holds the page, so the menu can rise over it.
  */
 @Composable
-fun BoxScope.ClockAppBar(buttons: List<BarButton>, menu: List<ClockMenuEntry>, expanded: Boolean, onExpand: (Boolean) -> Unit) {
+fun BoxScope.ClockAppBar(buttons: List<BarButton>, menu: List<ClockMenuEntry>, isExpanded: () -> Boolean, onExpand: (Boolean) -> Unit) {
     val colors = LocalShellColors.current
+    val expanded = isExpanded()
     val height = if (expanded) ClockMetrics.APP_BAR_EXPANDED else ClockMetrics.APP_BAR
-    if (expanded) {
-        // A tap anywhere above the bar closes it, as R7 §3.6.2's flyouts close.
-        Box(Modifier.fillMaxSize().testTag("clock_bar_scrim").pointerInput(Unit) {
-            awaitEachGesture { awaitFirstDown(); if (waitForUpOrCancellation() != null) onExpand(false) }
-        })
-        var grow by remember { mutableFloatStateOf(0f) }
-        LaunchedEffect(Unit) { MotionClock.animate("appbar_menu", ClockMetrics.FLYOUT_MS, ClockMetrics.easeOut) { grow = it } }
-        val menuHeight = ClockMetrics.MENU_ROW * menu.size + 16.dp
-        Column(
-            Modifier.align(Alignment.BottomStart).offset(y = -height).fillMaxWidth().height(menuHeight * grow)
-                .clipToBounds().background(ClockMetrics.FLYOUT_FILL).testTag("clock_more_menu"),
-        ) {
-            Box(Modifier.height(8.dp))
-            menu.forEach { entry ->
-                PressBox(Modifier.fillMaxWidth().height(ClockMetrics.MENU_ROW).testTag(entry.tag), onClick = { onExpand(false); entry.onPick() }) {
-                    // 1.14: item ink at x 10.7 epx.
-                    BasicText(entry.label, Modifier.align(Alignment.CenterStart).offset(x = 10.7.dp), style = ShellType.body.copy(color = Color.White))
+    // L13-11: the scrim and the "…" menu are drawn in an OverlayLayer, which stops placing them the moment Back closes
+    // the bar (the activity's Back applies it at once); the inner Box keeps the menu's alignment to the page.
+    OverlayLayer(active = isExpanded) {
+        Box(Modifier.fillMaxSize()) {
+            if (expanded) {
+                // A tap anywhere above the bar closes it, as R7 §3.6.2's flyouts close.
+                Box(Modifier.fillMaxSize().testTag("clock_bar_scrim").pointerInput(Unit) {
+                    awaitEachGesture { awaitFirstDown(); if (waitForUpOrCancellation() != null) onExpand(false) }
+                })
+                var grow by remember { mutableFloatStateOf(0f) }
+                LaunchedEffect(Unit) { MotionClock.animate("appbar_menu", ClockMetrics.FLYOUT_MS, ClockMetrics.easeOut) { grow = it } }
+                val menuHeight = ClockMetrics.MENU_ROW * menu.size + 16.dp
+                Column(
+                    Modifier.align(Alignment.BottomStart).offset(y = -height).fillMaxWidth().height(menuHeight * grow)
+                        .clipToBounds().background(ClockMetrics.FLYOUT_FILL).testTag("clock_more_menu"),
+                ) {
+                    Box(Modifier.height(8.dp))
+                    menu.forEach { entry ->
+                        PressBox(Modifier.fillMaxWidth().height(ClockMetrics.MENU_ROW).testTag(entry.tag), onClick = { onExpand(false); entry.onPick() }) {
+                            // 1.14: item ink at x 10.7 epx.
+                            BasicText(entry.label, Modifier.align(Alignment.CenterStart).offset(x = 10.7.dp), style = ShellType.body.copy(color = Color.White))
+                        }
+                    }
                 }
             }
         }

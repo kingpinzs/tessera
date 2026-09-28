@@ -58,6 +58,8 @@ import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.tokens.CapMetrics
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.delay
+import app.tileshell.ui.components.OverlayLayer
+import app.tileshell.ui.components.dismissOverlay
 
 private fun capPad(capTop: Float, size: Float): Dp = CapMetrics.topPaddingForCapTop(capTop, size).dp
 
@@ -142,16 +144,21 @@ fun BoxScope.TimerTab(nav: ClockNav, store: ClockStore) {
                 )
             }
         }
-        menuTimer?.let { id ->
-            RowHoldMenu(
-                anchorY = with(density) { menuAnchor.toDp() }, verb = "Delete", tag = "timer_row_menu", verbTag = "timer_delete:$id",
-                onVerb = {
-                    Diagnostics.add("clock", "hold delete timer $id")
-                    store.deleteTimers(listOf(id))
-                    menuTimer = null
-                },
-                onDismiss = { menuTimer = null },
-            )
+        // L13-12: Back closes the hold menu (it used to close the Clock), applied at once; the menu is drawn in an
+        // OverlayLayer, which stops placing it the moment it is dismissed (L13-3's rule).
+        BackHandler(enabled = menuTimer != null) { dismissOverlay { menuTimer = null } }
+        OverlayLayer(active = { menuTimer != null }) {
+            menuTimer?.let { id ->
+                RowHoldMenu(
+                    anchorY = with(density) { menuAnchor.toDp() }, verb = "Delete", tag = "timer_row_menu", verbTag = "timer_delete:$id",
+                    onVerb = {
+                        Diagnostics.add("clock", "hold delete timer $id")
+                        store.deleteTimers(listOf(id))
+                        menuTimer = null
+                    },
+                    onDismiss = { menuTimer = null },
+                )
+            }
         }
     }
 }
@@ -247,7 +254,7 @@ fun TimerEditorScreen(nav: ClockNav, store: ClockStore, menu: List<ClockMenuEntr
             nav.page = ClockPage.Tabs
         })
     }
-    ClockScaffold(onBack, onWindows, bar = { ClockAppBar(buttons, menu, nav.barExpanded) { nav.barExpanded = it } }) {
+    ClockScaffold(onBack, onWindows, bar = { ClockAppBar(buttons, menu, { nav.barExpanded }) { nav.barExpanded = it } }) {
         EditorTitle(ClockText.timerTitle(draft.id != null), "timer_editor_title")
         val frameTop = 40.dp
         val frameH = ClockMetrics.SPINNER_ROW * 7.97f

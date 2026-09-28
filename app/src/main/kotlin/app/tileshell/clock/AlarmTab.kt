@@ -132,16 +132,21 @@ fun BoxScope.AlarmTab(nav: ClockNav, store: ClockStore) {
                 )
             }
         }
-        menuAlarm?.let { id ->
-            RowHoldMenu(
-                anchorY = with(density) { menuAnchor.toDp() }, verb = "Delete", tag = "alarm_row_menu", verbTag = "alarm_delete:$id",
-                onVerb = {
-                    Diagnostics.add("clock", "hold delete alarm $id")
-                    store.deleteAlarms(listOf(id))
-                    menuAlarm = null
-                },
-                onDismiss = { menuAlarm = null },
-            )
+        // L13-12: Back closes the hold menu (it used to close the Clock), applied at once; the menu is drawn in an
+        // OverlayLayer, which stops placing it the moment it is dismissed (L13-3's rule).
+        BackHandler(enabled = menuAlarm != null) { dismissOverlay { menuAlarm = null } }
+        OverlayLayer(active = { menuAlarm != null }) {
+            menuAlarm?.let { id ->
+                RowHoldMenu(
+                    anchorY = with(density) { menuAnchor.toDp() }, verb = "Delete", tag = "alarm_row_menu", verbTag = "alarm_delete:$id",
+                    onVerb = {
+                        Diagnostics.add("clock", "hold delete alarm $id")
+                        store.deleteAlarms(listOf(id))
+                        menuAlarm = null
+                    },
+                    onDismiss = { menuAlarm = null },
+                )
+            }
         }
     }
 }
@@ -255,7 +260,7 @@ fun AlarmEditorScreen(nav: ClockNav, store: ClockStore, menu: List<ClockMenuEntr
         })
     }
 
-    ClockScaffold(onBack, onWindows, bar = { ClockAppBar(buttons, menu, nav.barExpanded) { nav.barExpanded = it } }) {
+    ClockScaffold(onBack, onWindows, bar = { ClockAppBar(buttons, menu, { nav.barExpanded }) { nav.barExpanded = it } }) {
         EditorTitle(ClockText.alarmTitle(draft.id != null), "alarm_editor_title")
 
         // 3.4–3.7: the spinner frame, top rule 40 epx below the status bar, 191 epx tall (5.97 rows), the centre row's

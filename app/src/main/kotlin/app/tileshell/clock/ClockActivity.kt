@@ -31,6 +31,7 @@ import app.tileshell.tiles.api.LiveTileProtocol
 import app.tileshell.tiles.engine.TileRouting
 import app.tileshell.ui.ShellRoot
 import java.time.DayOfWeek
+import app.tileshell.ui.components.dismissOverlay
 
 /** The four tabs (r11/clock.md 1.3; "Strings as shipped": Alarm · World Clock · Timer · Stopwatch). */
 enum class ClockTab(val id: String, val label: String, val glyph: String) {
@@ -206,7 +207,13 @@ class ClockActivity : ComponentActivity() {
             override fun onChange(selfChange: Boolean) { is24h = DateFormat.is24HourFormat(this@ClockActivity) }
         }.also { runCatching { contentResolver.registerContentObserver(Settings.System.getUriFor(Settings.System.TIME_12_24), false, it) } }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() { if (!nav.back()) finish() }
+            // L13-11: a Back that closes the "…" bar or the city search is applied at once, so a touch right after it is
+            // not hit-tested against what it closed (their OverlayLayers stop placing them; L13-3's rule).
+            override fun handleOnBackPressed() {
+                var handled = false
+                dismissOverlay { handled = nav.back() }
+                if (!handled) finish()
+            }
         })
         setContent {
             ShellRoot {
