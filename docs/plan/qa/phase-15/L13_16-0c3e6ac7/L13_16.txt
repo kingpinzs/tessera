@@ -1,0 +1,63 @@
+==============================================================================
+ROW L13_16 — a row held near the bottom opens its menu above the app bar, where its verb works
+at            2026-09-28T11:03:34-06:00
+driver        l13_16_row.sh blob 713d37b2b5aaf062620397d3703ad44de73ac9d3
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     0c3e6ac794f7af6d 339127802 bytes
+apk installed 39644167f0b28fa6
+apk match     yes (39644167f0b28fa6)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      world store existed before: no
+      alarms seeded: 8; timers seeded: 5
+PASS  (alarm): the app bar is on screen                           != 
+      (alarm) bar 144 px tall (48 dp), so 60 dp = 180 px; bar top 2052; the lowest row showing above it: a0f38eb8b top 1873 (179 px above the bar)
+PASS  (alarm): a row shows above the bar                          != 
+PASS  (alarm): the old placement (top + 60 dp, 60 dp tall) would reach under the bar (the check is not vacuous)  = yes
+PASS  (alarm): the hold opened the row's menu                     = yes
+      (alarm) held (200,1962) on a0f38eb8b; menu bounds 35 1872 1042 2052
+PASS  (alarm): the menu lies wholly above the bar                 = yes
+PASS  (alarm): the verb shows above the bar                       = yes
+PASS  (alarm): the verb acted (the row is gone)                   = no
+      (alarm) control: first row a374208ff top 289; its menu 35 469 1042 649
+PASS  (alarm) control: the first row's menu opens at its top + 60 dp (within 3 px)  = yes
+PASS  (timer): the app bar is on screen                           != 
+      (timer) bar 144 px tall (48 dp), so 60 dp = 180 px; bar top 2052; the lowest row showing above it: t67761911 top 1864 (188 px above the bar)
+PASS  (timer): a row shows above the bar                          != 
+PASS  (timer): the old placement (top + 60 dp, 60 dp tall) would reach under the bar (the check is not vacuous)  = yes
+PASS  (timer): the hold opened the row's menu                     = yes
+      (timer) held (540,1958) on t67761911; menu bounds 35 1872 1042 2052
+PASS  (timer): the menu lies wholly above the bar                 = yes
+PASS  (timer): the verb shows above the bar                       = yes
+PASS  (timer): the verb acted (the row is gone)                   = no
+      (timer) control: first row tc769b5cf top 289; its menu 35 469 1042 649
+PASS  (timer) control: the first row's menu opens at its top + 60 dp (within 3 px)  = yes
+PASS  (world_clock): the app bar is on screen                     != 
+      (world_clock) bar 144 px tall (48 dp), so 60 dp = 180 px; bar top 2052; the lowest row showing above it: Asia/Tokyo top 1999 (53 px above the bar)
+PASS  (world_clock): a row shows above the bar                    != 
+PASS  (world_clock): the old placement (top + 60 dp, 60 dp tall) would reach under the bar (the check is not vacuous)  = yes
+PASS  (world_clock): the hold opened the row's menu               = yes
+      (world_clock) held (540,2025) on Asia/Tokyo; menu bounds 35 1872 1042 2052
+PASS  (world_clock): the menu lies wholly above the bar           = yes
+PASS  (world_clock): the verb shows above the bar                 = yes
+PASS  (world_clock): the verb acted (the row is gone)             = no
+      (world_clock) control: first row Europe/London top 544; its menu 35 724 1042 904
+PASS  (world_clock) control: the first row's menu opens at its top + 60 dp (within 3 px)  = yes
+      scroll_to_node alarm_row:a374208ff: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a63228661: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a711f22c7: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a8127c0e9: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a4c72abaf: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:aab74510f: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a9986f2a2: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:tc769b5cf: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:taeee4458: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t9e0a4748: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t2ea6d7c7: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+L13_16: 28 passed, 0 failed, 0 recorded

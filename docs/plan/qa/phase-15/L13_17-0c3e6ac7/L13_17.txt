@@ -1,0 +1,38 @@
+==============================================================================
+ROW L13_17 — a bar button pressed with the bar expanded collapses it before it acts
+at            2026-09-28T11:06:05-06:00
+driver        l13_17_row.sh blob d757e82723e0fa1eee37b893c79a49a5035b01e8
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     0c3e6ac794f7af6d 339127802 bytes
+apk installed 39644167f0b28fa6
+apk match     yes (39644167f0b28fa6)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      world store existed before: no
+PASS  seed: an alarm                                              != 
+PASS  (a): "…" opened the bar's menu                            = yes
+PASS  (a): clock_bar:add is on the expanded bar                   != 
+PASS  (a): Add opened the alarm editor                            = yes
+PASS  (a): ... with no "…" menu up                              = no
+PASS  (a): ... and no bar scrim                                   = no
+PASS  (b): "…" opened the bar's menu                            = yes
+PASS  (b): clock_bar:add is on the expanded bar                   != 
+PASS  (b): Add opened the timer editor                            = yes
+PASS  (b): ... with no "…" menu up                              = no
+PASS  (b): ... and no bar scrim                                   = no
+PASS  (c): "…" opened the bar's menu                            = yes
+PASS  (c): alarm_select is on the expanded bar                    != 
+PASS  (c): Select entered select mode                             = yes
+PASS  (c): ... with no "…" menu up                              = no
+PASS  (d): "…" opened the bar's menu                            = yes
+PASS  (d): clock_compare is on the expanded bar                   != 
+PASS  (d): Compare showed the strip                               = yes
+PASS  (d): one Back closed Compare, the Clock still open          = no yes
+      scroll_to_node alarm_row:a567bda48: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+L13_17: 23 passed, 0 failed, 0 recorded

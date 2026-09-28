@@ -1,0 +1,65 @@
+==============================================================================
+ROW L13_16 — a row held near the bottom opens its menu above the app bar, where its verb works
+at            2026-09-28T11:00:02-06:00
+driver        l13_16_row.sh blob 713d37b2b5aaf062620397d3703ad44de73ac9d3
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     0c3e6ac794f7af6d 339127802 bytes
+apk installed 6680b5096ea6a02b
+apk match     NO (device 6680b5096ea6a02b, built 39644167f0b28fa6)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      world store existed before: no
+      alarms seeded: 8; timers seeded: 5
+PASS  (alarm): the app bar is on screen                           != 
+      (alarm) bar 144 px tall (48 dp), so 60 dp = 180 px; bar top 2052; the lowest row showing above it: a40dc9a7d top 1873 (179 px above the bar)
+PASS  (alarm): a row shows above the bar                          != 
+PASS  (alarm): the old placement (top + 60 dp, 60 dp tall) would reach under the bar (the check is not vacuous)  = yes
+PASS  (alarm): the hold opened the row's menu                     = yes
+      (alarm) held (200,1962) on a40dc9a7d; menu bounds 35 2053 528 2196
+FAIL  (alarm): the menu lies wholly above the bar                 expected [yes] got [no (bottom 2196 vs bar top 2052)]
+FAIL  (alarm): the verb shows above the bar                       expected [yes] got [no (2136)]
+FAIL  (alarm): the verb acted (the row is gone)                   expected [no] got [yes]
+      (alarm) control: first row a18216155 top 289; its menu 35 469 1042 649
+PASS  (alarm) control: the first row's menu opens at its top + 60 dp (within 3 px)  = yes
+PASS  (timer): the app bar is on screen                           != 
+      (timer) bar 144 px tall (48 dp), so 60 dp = 180 px; bar top 2052; the lowest row showing above it: tfd0ce5c6 top 1864 (188 px above the bar)
+PASS  (timer): a row shows above the bar                          != 
+PASS  (timer): the old placement (top + 60 dp, 60 dp tall) would reach under the bar (the check is not vacuous)  = yes
+PASS  (timer): the hold opened the row's menu                     = yes
+      (timer) held (540,1958) on tfd0ce5c6; menu bounds 35 2044 1042 2196
+FAIL  (timer): the menu lies wholly above the bar                 expected [yes] got [no (bottom 2196 vs bar top 2052)]
+FAIL  (timer): the verb shows above the bar                       expected [yes] got [no (2132)]
+FAIL  (timer): the verb acted (the row is gone)                   expected [no] got [yes]
+      (timer) control: first row ta3276fb5 top 289; its menu 35 469 1042 649
+PASS  (timer) control: the first row's menu opens at its top + 60 dp (within 3 px)  = yes
+PASS  (world_clock): the app bar is on screen                     != 
+      (world_clock) bar 144 px tall (48 dp), so 60 dp = 180 px; bar top 2052; the lowest row showing above it: Asia/Tokyo top 1999 (53 px above the bar)
+PASS  (world_clock): a row shows above the bar                    != 
+PASS  (world_clock): the old placement (top + 60 dp, 60 dp tall) would reach under the bar (the check is not vacuous)  = yes
+PASS  (world_clock): the hold opened the row's menu               = yes
+      (world_clock) held (540,2025) on Asia/Tokyo; menu bounds 35 2179 528 2196
+FAIL  (world_clock): the menu lies wholly above the bar           expected [yes] got [no (bottom 2196 vs bar top 2052)]
+FAIL  (world_clock): the verb shows above the bar                 expected [yes] got [no (absent)]
+FAIL  (world_clock): the verb acted (the row is gone)             expected [no] got [yes]
+      (world_clock) control: first row Europe/London top 544; its menu 35 724 1042 904
+PASS  (world_clock) control: the first row's menu opens at its top + 60 dp (within 3 px)  = yes
+      scroll_to_node alarm_row:a18216155: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:aa341b1c1: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:ab7218830: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:af1e8bd8f: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a0eb19443: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a4d0f8a58: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a40dc9a7d: 0 swipe(s), found=yes
+      scroll_to_node alarm_row:a40045206: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:ta3276fb5: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t038d43ed: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t9312cfdc: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:tfd0ce5c6: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:t8d1c8f6e: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+L13_16: 19 passed, 9 failed, 0 recorded

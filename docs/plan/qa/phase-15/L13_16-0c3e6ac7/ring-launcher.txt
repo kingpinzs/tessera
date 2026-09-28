@@ -1,0 +1,285 @@
+    2026-09-28 11:04:38.868 wall=1790615078868 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+    2026-09-28 11:04:38.869 wall=1790615078869 [livetile] store loaded 1 owners
+    2026-09-28 11:04:38.876 wall=1790615078876 [engine] publish pkg:app.tileshell.testclient.a from=api faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-28 11:04:38.876 wall=1790615078876 [badge] set app.tileshell.testclient.a API=0 -> effective 0
+    2026-09-28 11:04:38.876 wall=1790615078876 [app] process start
+    2026-09-28 11:04:38.876 wall=1790615078876 [livetile] samsung badge provider probe: not present
+    2026-09-28 11:04:38.928 wall=1790615078928 [apps] catalog refreshed (init): 41 activities
+    2026-09-28 11:04:38.929 wall=1790615078929 [layout] addOnce phase03:cortana shell:cortana -> already run or already on Start
+    2026-09-28 11:04:38.929 wall=1790615078929 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-09-28 11:04:38.936 wall=1790615078936 [weather] feed start provider=open-meteo
+    2026-09-28 11:04:38.937 wall=1790615078937 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790615078937
+    2026-09-28 11:04:38.937 wall=1790615078937 [calendar] refresh (start): access=true faces=1
+    2026-09-28 11:04:38.938 wall=1790615078938 [app] feeds started (process start)
+    2026-09-28 11:04:38.939 wall=1790615078939 [fluent] acrylic=on reason=none
+    2026-09-28 11:04:38.948 wall=1790615078948 [clock] tiles: publisher started under cmp:app.tileshell/app.tileshell.clock.ClockActivity
+    2026-09-28 11:04:38.962 wall=1790615078962 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourceTime=1790625840000
+    2026-09-28 11:04:38.962 wall=1790615078962 [clock] tile: next alarm a374208ff at 1790625840000 -> "2:04 PM" [L1316 1, Today]
+    2026-09-28 11:04:38.964 wall=1790615078964 [engine] publish feed:photos faces=6 front=false source=photos sourceTime=1790615078964
+    2026-09-28 11:04:38.964 wall=1790615078964 [photos] refresh (start): access=GRANTED photos=6 slideshow=0 grow=false
+    2026-09-28 11:04:38.970 wall=1790615078970 [alarms] rearm (process start): 7 alarms, 4 timers, exact=true
+    2026-09-28 11:04:38.971 wall=1790615078971 [reminders] loaded 0 reminders, 0 places
+    2026-09-28 11:04:38.971 wall=1790615078971 [reminders] rearm (process start): 0 timed alarms, exact=true
+    2026-09-28 11:04:38.971 wall=1790615078971 [places] rearm: no place reminders
+    2026-09-28 11:04:38.971 wall=1790615078971 [person] rearm: no person reminders, observers off
+    2026-09-28 11:04:38.981 wall=1790615078981 [alarms] rearm (locked boot): 7 alarms, 4 timers, exact=true
+    2026-09-28 11:04:38.983 wall=1790615078983 [weather] cache loaded fetchedAt=1790615074484 provider=open-meteo units=IMPERIAL
+    2026-09-28 11:04:38.985 wall=1790615078985 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790615074484
+    2026-09-28 11:04:38.985 wall=1790615078985 [weather] publish tile faces=1 temp=59° condition=1 sky=PARTLY/day/0.25 stale=false fetchedAt=1790615074484
+    2026-09-28 11:04:38.985 wall=1790615078985 [weather] refresh start reason=start units=IMPERIAL
+    2026-09-28 11:04:39.009 wall=1790615079009 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:04:39.010 wall=1790615079010 [start] StartActivity created
+    2026-09-28 11:04:39.014 wall=1790615079014 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:04:39.359 wall=1790615079359 [render] tile=slot:CALENDAR sourceTime=1790615078937 renderedAt=1790615079359 faces=1
+    2026-09-28 11:04:39.359 wall=1790615079359 [render] tile=slot:PHOTOS sourceTime=1790615078964 renderedAt=1790615079359 faces=6
+    2026-09-28 11:04:39.359 wall=1790615079359 [render] tile=shell:weather sourceTime=1790615074484 renderedAt=1790615079359 faces=1
+    2026-09-28 11:04:39.585 wall=1790615079585 [cortana] VoiceInteractionService created
+    2026-09-28 11:04:39.617 wall=1790615079617 [alarms] rearm (boot): 7 alarms, 4 timers, exact=true
+    2026-09-28 11:04:39.617 wall=1790615079617 [reminders] rearm (boot): 0 timed alarms, exact=true
+    2026-09-28 11:04:39.617 wall=1790615079617 [places] rearm: no place reminders
+    2026-09-28 11:04:39.617 wall=1790615079617 [person] rearm: no person reminders, observers off
+    2026-09-28 11:04:39.618 wall=1790615079618 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-09-28 11:04:39.620 wall=1790615079620 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-09-28 11:04:39.634 wall=1790615079634 [applist] model: 41 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,V,W
+    2026-09-28 11:04:39.680 wall=1790615079680 [cortana] VoiceInteractionService ready
+    2026-09-28 11:04:39.680 wall=1790615079680 [notif] listener connected
+    2026-09-28 11:04:39.682 wall=1790615079682 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:39.683 wall=1790615079683 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615079175 -> shows notifications
+    2026-09-28 11:04:39.683 wall=1790615079683 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-28 11:04:39.683 wall=1790615079683 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-28 11:04:39.683 wall=1790615079683 [notif] rescan (connected): 2 packages with notifications
+    2026-09-28 11:04:39.685 wall=1790615079685 [applist] model: 41 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,V,W
+    2026-09-28 11:04:39.799 wall=1790615079799 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=60423864 faceIndex=0 next=1 faces=1
+    2026-09-28 11:04:39.819 wall=1790615079819 [notif] posted app.tileshell key=0|app.tileshell|-1329412948|null|10150 postTime=1790615079614
+    2026-09-28 11:04:39.820 wall=1790615079820 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:39.820 wall=1790615079820 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615079614 -> shows notifications
+    2026-09-28 11:04:39.820 wall=1790615079820 [notif] posted app.tileshell key=0|app.tileshell|-1259737754|null|10150 postTime=1790615079615
+    2026-09-28 11:04:39.820 wall=1790615079820 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:39.820 wall=1790615079820 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615079615 -> shows notifications
+    2026-09-28 11:04:39.820 wall=1790615079820 [notif] posted app.tileshell key=0|app.tileshell|521256643|null|10150 postTime=1790615079616
+    2026-09-28 11:04:39.821 wall=1790615079821 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:39.821 wall=1790615079821 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615079616 -> shows notifications
+    2026-09-28 11:04:39.821 wall=1790615079821 [notif] posted app.tileshell key=0|app.tileshell|-1723932690|null|10150 postTime=1790615079617
+    2026-09-28 11:04:39.821 wall=1790615079821 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:39.821 wall=1790615079821 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615079617 -> shows notifications
+    2026-09-28 11:04:39.956 wall=1790615079956 [clock] ClockActivity created
+    2026-09-28 11:04:39.957 wall=1790615079957 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:04:39.957 wall=1790615079957 [clock] open page=alarm tile=null api=false -> tab alarm
+    2026-09-28 11:04:39.959 wall=1790615079959 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:04:40.181 wall=1790615080181 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=60424246 faceIndex=0 next=1 faces=6
+    2026-09-28 11:04:40.562 wall=1790615080562 [tile_anim] tile=shell:weather kind=FLIP uptime=60424627 faceIndex=0 next=1 faces=1
+    2026-09-28 11:04:40.687 wall=1790615080687 [weather] fetch ok provider=open-meteo ms=1067 grid=37.4162,-122.0803 tz=America/Los_Angeles current=1/58.6 hourly=240 daily=10 place=true
+    2026-09-28 11:04:40.696 wall=1790615080696 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790615080684
+    2026-09-28 11:04:40.696 wall=1790615080696 [weather] publish tile faces=1 temp=59° condition=1 sky=PARTLY/day/0.25 stale=false fetchedAt=1790615080684
+    2026-09-28 11:04:40.708 wall=1790615080708 [render] tile=shell:weather sourceTime=1790615080684 renderedAt=1790615080708 faces=1
+    2026-09-28 11:04:42.689 wall=1790615082689 [notif] listener disconnected
+    2026-09-28 11:04:42.691 wall=1790615082691 [notif] listener connected
+    2026-09-28 11:04:42.692 wall=1790615082692 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:42.692 wall=1790615082692 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615079617 -> shows notifications
+    2026-09-28 11:04:42.692 wall=1790615082692 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-28 11:04:42.692 wall=1790615082692 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-28 11:04:42.692 wall=1790615082692 [notif] rescan (connected): 2 packages with notifications
+    2026-09-28 11:04:44.759 wall=1790615084759 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=60428824 faceIndex=1 next=0 faces=1
+    2026-09-28 11:04:47.022 wall=1790615087022 [alarms] store: deleted 1 alarm(s)
+    2026-09-28 11:04:47.022 wall=1790615087022 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourceTime=1790625900000
+    2026-09-28 11:04:47.022 wall=1790615087022 [clock] tile: next alarm a63228661 at 1790625900000 -> "2:05 PM" [L1316 2, Today]
+    2026-09-28 11:04:47.028 wall=1790615087028 [alarms] rearm (store change): 6 alarms, 4 timers, exact=true
+    2026-09-28 11:04:47.229 wall=1790615087229 [notif] posted app.tileshell key=0|app.tileshell|-1329412948|null|10150 postTime=1790615087027
+    2026-09-28 11:04:47.230 wall=1790615087230 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:47.230 wall=1790615087230 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615087027 -> shows notifications
+    2026-09-28 11:04:47.230 wall=1790615087230 [notif] posted app.tileshell key=0|app.tileshell|-1259737754|null|10150 postTime=1790615087027
+    2026-09-28 11:04:47.230 wall=1790615087230 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:47.230 wall=1790615087230 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615087027 -> shows notifications
+    2026-09-28 11:04:47.230 wall=1790615087230 [notif] posted app.tileshell key=0|app.tileshell|521256643|null|10150 postTime=1790615087028
+    2026-09-28 11:04:47.230 wall=1790615087230 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:47.231 wall=1790615087231 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615087028 -> shows notifications
+    2026-09-28 11:04:47.231 wall=1790615087231 [notif] posted app.tileshell key=0|app.tileshell|-1723932690|null|10150 postTime=1790615087028
+    2026-09-28 11:04:47.231 wall=1790615087231 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:47.232 wall=1790615087232 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615087028 -> shows notifications
+    2026-09-28 11:04:48.245 wall=1790615088245 [clock] open page=alarm tile=null api=false -> tab alarm
+    2026-09-28 11:04:48.245 wall=1790615088245 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:04:48.796 wall=1790615088796 [notif] listener disconnected
+    2026-09-28 11:04:48.797 wall=1790615088797 [notif] listener connected
+    2026-09-28 11:04:48.798 wall=1790615088798 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:48.798 wall=1790615088798 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615087028 -> shows notifications
+    2026-09-28 11:04:48.798 wall=1790615088798 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-09-28 11:04:48.798 wall=1790615088798 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-28 11:04:48.798 wall=1790615088798 [notif] rescan (connected): 2 packages with notifications
+    2026-09-28 11:04:55.133 wall=1790615095133 [alarms] store: deleted 1 alarm(s)
+    2026-09-28 11:04:55.133 wall=1790615095133 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourceTime=1790625960000
+    2026-09-28 11:04:55.133 wall=1790615095133 [clock] tile: next alarm a711f22c7 at 1790625960000 -> "2:06 PM" [L1316 3, Today]
+    2026-09-28 11:04:55.137 wall=1790615095137 [alarms] rearm (store change): 5 alarms, 4 timers, exact=true
+    2026-09-28 11:04:55.339 wall=1790615095339 [notif] posted app.tileshell key=0|app.tileshell|-1329412948|null|10150 postTime=1790615095136
+    2026-09-28 11:04:55.339 wall=1790615095339 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:55.340 wall=1790615095340 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615095136 -> shows notifications
+    2026-09-28 11:04:55.340 wall=1790615095340 [notif] posted app.tileshell key=0|app.tileshell|-1259737754|null|10150 postTime=1790615095136
+    2026-09-28 11:04:55.340 wall=1790615095340 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:55.340 wall=1790615095340 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615095136 -> shows notifications
+    2026-09-28 11:04:55.340 wall=1790615095340 [notif] posted app.tileshell key=0|app.tileshell|521256643|null|10150 postTime=1790615095137
+    2026-09-28 11:04:55.340 wall=1790615095340 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:55.340 wall=1790615095340 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615095137 -> shows notifications
+    2026-09-28 11:04:55.340 wall=1790615095340 [notif] posted app.tileshell key=0|app.tileshell|-1723932690|null|10150 postTime=1790615095137
+    2026-09-28 11:04:55.340 wall=1790615095340 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:04:55.341 wall=1790615095341 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615095137 -> shows notifications
+    2026-09-28 11:04:56.353 wall=1790615096353 [clock] open page=alarm tile=null api=false -> tab alarm
+    2026-09-28 11:04:56.353 wall=1790615096353 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:05:00.004 wall=1790615100004 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790615100004
+    2026-09-28 11:05:00.004 wall=1790615100004 [calendar] refresh (minute): access=true faces=1
+    2026-09-28 11:05:00.056 wall=1790615100056 [render] tile=slot:CALENDAR sourceTime=1790615100004 renderedAt=1790615100056 faces=1
+    2026-09-28 11:05:03.261 wall=1790615103261 [alarms] store: deleted 1 alarm(s)
+    2026-09-28 11:05:03.261 wall=1790615103261 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourceTime=1790626020000
+    2026-09-28 11:05:03.261 wall=1790615103261 [clock] tile: next alarm a8127c0e9 at 1790626020000 -> "2:07 PM" [L1316 4, Today]
+    2026-09-28 11:05:03.265 wall=1790615103265 [alarms] rearm (store change): 4 alarms, 4 timers, exact=true
+    2026-09-28 11:05:03.467 wall=1790615103467 [notif] posted app.tileshell key=0|app.tileshell|-1329412948|null|10150 postTime=1790615103264
+    2026-09-28 11:05:03.468 wall=1790615103468 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:03.468 wall=1790615103468 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615103264 -> shows notifications
+    2026-09-28 11:05:03.468 wall=1790615103468 [notif] posted app.tileshell key=0|app.tileshell|-1259737754|null|10150 postTime=1790615103265
+    2026-09-28 11:05:03.469 wall=1790615103469 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:03.469 wall=1790615103469 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615103265 -> shows notifications
+    2026-09-28 11:05:03.469 wall=1790615103469 [notif] posted app.tileshell key=0|app.tileshell|521256643|null|10150 postTime=1790615103265
+    2026-09-28 11:05:03.469 wall=1790615103469 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:03.469 wall=1790615103469 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615103265 -> shows notifications
+    2026-09-28 11:05:03.469 wall=1790615103469 [notif] posted app.tileshell key=0|app.tileshell|-1723932690|null|10150 postTime=1790615103265
+    2026-09-28 11:05:03.470 wall=1790615103470 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:03.470 wall=1790615103470 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615103265 -> shows notifications
+    2026-09-28 11:05:04.482 wall=1790615104482 [clock] open page=alarm tile=null api=false -> tab alarm
+    2026-09-28 11:05:04.482 wall=1790615104482 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:05:11.379 wall=1790615111379 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourceTime=1790626080000
+    2026-09-28 11:05:11.379 wall=1790615111379 [clock] tile: next alarm a4c72abaf at 1790626080000 -> "2:08 PM" [L1316 5, Today]
+    2026-09-28 11:05:11.380 wall=1790615111380 [alarms] store: deleted 1 alarm(s)
+    2026-09-28 11:05:11.385 wall=1790615111385 [alarms] rearm (store change): 3 alarms, 4 timers, exact=true
+    2026-09-28 11:05:11.586 wall=1790615111586 [notif] posted app.tileshell key=0|app.tileshell|-1329412948|null|10150 postTime=1790615111383
+    2026-09-28 11:05:11.586 wall=1790615111586 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:11.586 wall=1790615111586 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615111383 -> shows notifications
+    2026-09-28 11:05:11.586 wall=1790615111586 [notif] posted app.tileshell key=0|app.tileshell|-1259737754|null|10150 postTime=1790615111384
+    2026-09-28 11:05:11.586 wall=1790615111586 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:11.587 wall=1790615111587 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615111384 -> shows notifications
+    2026-09-28 11:05:11.587 wall=1790615111587 [notif] posted app.tileshell key=0|app.tileshell|521256643|null|10150 postTime=1790615111384
+    2026-09-28 11:05:11.587 wall=1790615111587 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:11.587 wall=1790615111587 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615111384 -> shows notifications
+    2026-09-28 11:05:11.587 wall=1790615111587 [notif] posted app.tileshell key=0|app.tileshell|-1723932690|null|10150 postTime=1790615111384
+    2026-09-28 11:05:11.587 wall=1790615111587 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:11.587 wall=1790615111587 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615111384 -> shows notifications
+    2026-09-28 11:05:12.602 wall=1790615112602 [clock] open page=alarm tile=null api=false -> tab alarm
+    2026-09-28 11:05:12.602 wall=1790615112602 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:05:19.519 wall=1790615119519 [alarms] store: deleted 1 alarm(s)
+    2026-09-28 11:05:19.519 wall=1790615119519 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourceTime=1790626140000
+    2026-09-28 11:05:19.519 wall=1790615119519 [clock] tile: next alarm aab74510f at 1790626140000 -> "2:09 PM" [L1316 6, Today]
+    2026-09-28 11:05:19.524 wall=1790615119524 [alarms] rearm (store change): 2 alarms, 4 timers, exact=true
+    2026-09-28 11:05:19.724 wall=1790615119724 [notif] posted app.tileshell key=0|app.tileshell|-1329412948|null|10150 postTime=1790615119523
+    2026-09-28 11:05:19.725 wall=1790615119725 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:19.725 wall=1790615119725 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615119523 -> shows notifications
+    2026-09-28 11:05:19.725 wall=1790615119725 [notif] posted app.tileshell key=0|app.tileshell|-1259737754|null|10150 postTime=1790615119523
+    2026-09-28 11:05:19.725 wall=1790615119725 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:19.725 wall=1790615119725 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615119523 -> shows notifications
+    2026-09-28 11:05:19.726 wall=1790615119726 [notif] posted app.tileshell key=0|app.tileshell|521256643|null|10150 postTime=1790615119523
+    2026-09-28 11:05:19.726 wall=1790615119726 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:19.726 wall=1790615119726 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615119523 -> shows notifications
+    2026-09-28 11:05:19.726 wall=1790615119726 [notif] posted app.tileshell key=0|app.tileshell|-1723932690|null|10150 postTime=1790615119524
+    2026-09-28 11:05:19.726 wall=1790615119726 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:19.726 wall=1790615119726 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615119524 -> shows notifications
+    2026-09-28 11:05:20.740 wall=1790615120740 [clock] open page=alarm tile=null api=false -> tab alarm
+    2026-09-28 11:05:20.740 wall=1790615120740 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:05:27.591 wall=1790615127591 [alarms] store: deleted 1 alarm(s)
+    2026-09-28 11:05:27.591 wall=1790615127591 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=true source=clock sourceTime=1790626260000
+    2026-09-28 11:05:27.591 wall=1790615127591 [clock] tile: next alarm a9986f2a2 at 1790626260000 -> "2:11 PM" [L1316 8, Today]
+    2026-09-28 11:05:27.595 wall=1790615127595 [alarms] rearm (store change): 1 alarms, 4 timers, exact=true
+    2026-09-28 11:05:27.795 wall=1790615127795 [notif] posted app.tileshell key=0|app.tileshell|-1329412948|null|10150 postTime=1790615127594
+    2026-09-28 11:05:27.796 wall=1790615127796 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:27.796 wall=1790615127796 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615127594 -> shows notifications
+    2026-09-28 11:05:27.796 wall=1790615127796 [notif] posted app.tileshell key=0|app.tileshell|-1259737754|null|10150 postTime=1790615127594
+    2026-09-28 11:05:27.797 wall=1790615127797 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:27.797 wall=1790615127797 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615127594 -> shows notifications
+    2026-09-28 11:05:27.797 wall=1790615127797 [notif] posted app.tileshell key=0|app.tileshell|521256643|null|10150 postTime=1790615127594
+    2026-09-28 11:05:27.797 wall=1790615127797 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:27.797 wall=1790615127797 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615127594 -> shows notifications
+    2026-09-28 11:05:27.797 wall=1790615127797 [notif] posted app.tileshell key=0|app.tileshell|-1723932690|null|10150 postTime=1790615127595
+    2026-09-28 11:05:27.797 wall=1790615127797 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:27.797 wall=1790615127797 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615127595 -> shows notifications
+    2026-09-28 11:05:28.812 wall=1790615128812 [clock] open page=alarm tile=null api=false -> tab alarm
+    2026-09-28 11:05:28.812 wall=1790615128812 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:05:35.644 wall=1790615135644 [alarms] store: deleted 1 alarm(s)
+    2026-09-28 11:05:35.645 wall=1790615135645 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null sourceTime=null
+    2026-09-28 11:05:35.645 wall=1790615135645 [clock] tile: no next alarm, face cleared
+    2026-09-28 11:05:35.650 wall=1790615135650 [alarms] rearm (store change): 0 alarms, 4 timers, exact=true
+    2026-09-28 11:05:35.850 wall=1790615135850 [notif] posted app.tileshell key=0|app.tileshell|-1329412948|null|10150 postTime=1790615135648
+    2026-09-28 11:05:35.851 wall=1790615135851 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:35.851 wall=1790615135851 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615135648 -> shows notifications
+    2026-09-28 11:05:35.851 wall=1790615135851 [notif] posted app.tileshell key=0|app.tileshell|-1259737754|null|10150 postTime=1790615135648
+    2026-09-28 11:05:35.851 wall=1790615135851 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:35.851 wall=1790615135851 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615135648 -> shows notifications
+    2026-09-28 11:05:35.851 wall=1790615135851 [notif] posted app.tileshell key=0|app.tileshell|521256643|null|10150 postTime=1790615135649
+    2026-09-28 11:05:35.852 wall=1790615135852 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:35.852 wall=1790615135852 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615135649 -> shows notifications
+    2026-09-28 11:05:35.852 wall=1790615135852 [notif] posted app.tileshell key=0|app.tileshell|-1723932690|null|10150 postTime=1790615135649
+    2026-09-28 11:05:35.852 wall=1790615135852 [badge] set app.tileshell NOTIFICATIONS=4 -> effective 4
+    2026-09-28 11:05:35.853 wall=1790615135853 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615135649 -> shows notifications
+    2026-09-28 11:05:36.960 wall=1790615136960 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-28 11:05:36.960 wall=1790615136960 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:05:36.997 wall=1790615136997 [timer] tc769b5cf remaining=10691113 uptime=60481063
+    2026-09-28 11:05:36.997 wall=1790615136997 [timer] taeee4458 remaining=10692260 uptime=60481063
+    2026-09-28 11:05:36.997 wall=1790615136997 [timer] t9e0a4748 remaining=10693408 uptime=60481063
+    2026-09-28 11:05:36.997 wall=1790615136997 [timer] t2ea6d7c7 remaining=10695739 uptime=60481063
+    2026-09-28 11:05:42.347 wall=1790615142347 [alarms] store: deleted 1 timer(s)
+    2026-09-28 11:05:42.350 wall=1790615142350 [alarms] rearm (store change): 0 alarms, 3 timers, exact=true
+    2026-09-28 11:05:42.391 wall=1790615142391 [notif] removed app.tileshell key=0|app.tileshell|-1329412948|null|10150
+    2026-09-28 11:05:42.392 wall=1790615142392 [badge] set app.tileshell NOTIFICATIONS=3 -> effective 3
+    2026-09-28 11:05:42.392 wall=1790615142392 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615142391 -> shows notifications
+    2026-09-28 11:05:42.393 wall=1790615142393 [timer] taeee4458 remaining=10686864 uptime=60486459
+    2026-09-28 11:05:42.393 wall=1790615142393 [timer] t9e0a4748 remaining=10688012 uptime=60486459
+    2026-09-28 11:05:42.393 wall=1790615142393 [timer] t2ea6d7c7 remaining=10690343 uptime=60486459
+    2026-09-28 11:05:42.552 wall=1790615142552 [notif] posted app.tileshell key=0|app.tileshell|-1259737754|null|10150 postTime=1790615142349
+    2026-09-28 11:05:42.552 wall=1790615142552 [badge] set app.tileshell NOTIFICATIONS=3 -> effective 3
+    2026-09-28 11:05:42.552 wall=1790615142552 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615142349 -> shows notifications
+    2026-09-28 11:05:42.552 wall=1790615142552 [notif] posted app.tileshell key=0|app.tileshell|521256643|null|10150 postTime=1790615142350
+    2026-09-28 11:05:42.553 wall=1790615142553 [badge] set app.tileshell NOTIFICATIONS=3 -> effective 3
+    2026-09-28 11:05:42.553 wall=1790615142553 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615142350 -> shows notifications
+    2026-09-28 11:05:42.553 wall=1790615142553 [notif] posted app.tileshell key=0|app.tileshell|-1723932690|null|10150 postTime=1790615142350
+    2026-09-28 11:05:42.553 wall=1790615142553 [badge] set app.tileshell NOTIFICATIONS=3 -> effective 3
+    2026-09-28 11:05:42.553 wall=1790615142553 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790615142350 -> shows notifications
+    2026-09-28 11:05:43.567 wall=1790615143567 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-28 11:05:43.567 wall=1790615143567 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:05:48.948 wall=1790615148948 [alarms] store: deleted 1 timer(s)
+    2026-09-28 11:05:48.951 wall=1790615148951 [alarms] rearm (store change): 0 alarms, 2 timers, exact=true
+    2026-09-28 11:05:48.984 wall=1790615148984 [notif] removed app.tileshell key=0|app.tileshell|-1259737754|null|10150
+    2026-09-28 11:05:48.984 wall=1790615148984 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-28 11:05:48.984 wall=1790615148984 [engine] publish pkg:app.tileshell from=notifications faces=2 front=false source=notification sourceTime=1790615148984 -> shows notifications
+    2026-09-28 11:05:48.986 wall=1790615148986 [timer] t9e0a4748 remaining=10681420 uptime=60493051
+    2026-09-28 11:05:48.986 wall=1790615148986 [timer] t2ea6d7c7 remaining=10683751 uptime=60493051
+    2026-09-28 11:05:49.153 wall=1790615149153 [notif] posted app.tileshell key=0|app.tileshell|1|0|app.tileshell|g:Aggregate_SilentSection|10150|0|app.tileshell|g:Aggregate_SilentSection postTime=1790615079175
+    2026-09-28 11:05:49.153 wall=1790615149153 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-28 11:05:49.154 wall=1790615149154 [engine] publish pkg:app.tileshell from=notifications faces=2 front=false source=notification sourceTime=1790615079175 -> shows notifications
+    2026-09-28 11:05:49.154 wall=1790615149154 [notif] posted app.tileshell key=0|app.tileshell|521256643|null|10150 postTime=1790615148950
+    2026-09-28 11:05:49.154 wall=1790615149154 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-28 11:05:49.154 wall=1790615149154 [engine] publish pkg:app.tileshell from=notifications faces=2 front=false source=notification sourceTime=1790615148950 -> shows notifications
+    2026-09-28 11:05:49.154 wall=1790615149154 [notif] posted app.tileshell key=0|app.tileshell|-1723932690|null|10150 postTime=1790615148950
+    2026-09-28 11:05:49.154 wall=1790615149154 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-09-28 11:05:49.154 wall=1790615149154 [engine] publish pkg:app.tileshell from=notifications faces=2 front=false source=notification sourceTime=1790615148950 -> shows notifications
+    2026-09-28 11:05:50.167 wall=1790615150167 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-28 11:05:50.167 wall=1790615150167 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:05:55.515 wall=1790615155515 [alarms] store: deleted 1 timer(s)
+    2026-09-28 11:05:55.517 wall=1790615155517 [alarms] rearm (store change): 0 alarms, 1 timers, exact=true
+    2026-09-28 11:05:55.543 wall=1790615155543 [notif] removed app.tileshell key=0|app.tileshell|521256643|null|10150
+    2026-09-28 11:05:55.543 wall=1790615155543 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-09-28 11:05:55.543 wall=1790615155543 [engine] publish pkg:app.tileshell from=notifications faces=1 front=false source=notification sourceTime=1790615155543 -> shows notifications
+    2026-09-28 11:05:55.544 wall=1790615155544 [timer] t2ea6d7c7 remaining=10677192 uptime=60499610
+    2026-09-28 11:05:55.719 wall=1790615155719 [notif] posted app.tileshell key=0|app.tileshell|-1723932690|null|10150 postTime=1790615155517
+    2026-09-28 11:05:55.720 wall=1790615155720 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-09-28 11:05:55.720 wall=1790615155720 [engine] publish pkg:app.tileshell from=notifications faces=1 front=false source=notification sourceTime=1790615155517 -> shows notifications
+    2026-09-28 11:05:56.734 wall=1790615156734 [clock] open page=timer tile=null api=false -> tab timer
+    2026-09-28 11:05:56.734 wall=1790615156734 [bars] ClockActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:06:00.003 wall=1790615160003 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790615160003
+    2026-09-28 11:06:00.004 wall=1790615160004 [calendar] refresh (minute): access=true faces=1
+    2026-09-28 11:06:00.020 wall=1790615160020 [render] tile=slot:CALENDAR sourceTime=1790615160003 renderedAt=1790615160020 faces=1
+    2026-09-28 11:06:02.019 wall=1790615162019 [alarms] store: deleted 1 timer(s)
+    2026-09-28 11:06:02.020 wall=1790615162020 [alarms] rearm (store change): 0 alarms, 0 timers, exact=true
+    2026-09-28 11:06:02.021 wall=1790615162021 [notif] removed app.tileshell key=0|app.tileshell|-1723932690|null|10150
+    2026-09-28 11:06:02.021 wall=1790615162021 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
+    2026-09-28 11:06:02.021 wall=1790615162021 [engine] publish pkg:app.tileshell from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-28 11:06:02.022 wall=1790615162022 [notif] removed app.tileshell key=0|app.tileshell|1|0|app.tileshell|g:Aggregate_SilentSection|10150|0|app.tileshell|g:Aggregate_SilentSection
+    2026-09-28 11:06:02.022 wall=1790615162022 [badge] set app.tileshell NOTIFICATIONS=0 -> effective 0
+    2026-09-28 11:06:02.022 wall=1790615162022 [engine] publish pkg:app.tileshell from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-09-28 11:06:03.240 wall=1790615163240 [bars] StartActivity: system bars hidden (transient by swipe)
+    2026-09-28 11:06:03.241 wall=1790615163241 [start] home: page 0
+    2026-09-28 11:06:03.288 wall=1790615163288 [applist] model: 41 rows, groups=A,C,D,F,G,I,K,L,M,N,O,P,R,S,T,V,W
+    2026-09-28 11:06:04.119 wall=1790615164119 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=60508184 faceIndex=0 next=1 faces=1
