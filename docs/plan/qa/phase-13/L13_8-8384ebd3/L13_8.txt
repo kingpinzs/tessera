@@ -1,0 +1,30 @@
+==============================================================================
+ROW L13_8 — Music's drawn Back ends where the system Back ends (jump grid, now playing's more menu, and nothing open)
+at            2026-09-27T18:59:14-06:00
+driver        l13_8_row.sh blob 1901264b9ed8b55110f4dfd9a49a883c6a9aa1ca
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     8384ebd36ddb3ae3 339125146 bytes
+apk installed b5125a9e8d42ea89
+apk match     yes (b5125a9e8d42ea89)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  system (1): the jump grid is open                           = grid
+PASS  system (1): Back closed the grid and Music stayed           = collection
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  system (2): now playing's more menu is open                 = menu
+PASS  system (2): Back closed the menu and now playing stayed     = nowplaying
+PASS  system (3): Back from now playing returns to the collection  = collection
+PASS  system (4): Back from the collection leaves Music           = gone
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  drawn (1): the jump grid is open                            = grid
+PASS  drawn (1): Back closed the grid and Music stayed            = collection
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  drawn (2): now playing's more menu is open                  = menu
+PASS  drawn (2): Back closed the menu and now playing stayed      = nowplaying
+PASS  drawn (3): Back from now playing returns to the collection  = collection
+PASS  drawn (4): Back from the collection leaves Music            = gone
+------------------------------------------------------------------------------
+L13_8: 13 passed, 0 failed, 0 recorded

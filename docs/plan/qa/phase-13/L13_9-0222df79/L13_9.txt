@@ -1,0 +1,19 @@
+==============================================================================
+ROW L13_9 — a tap right after Back closes an alarm editor flyout reaches the editor (n=30)
+at            2026-09-27T18:50:34-06:00
+driver        l13_9_row.sh blob 087b9a90caa5f6d42fd0bddf4e02d02e939b077b
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     0222df7904fca409 339125146 bytes
+apk installed f43b65984e538262
+apk match     yes (f43b65984e538262)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  the editor is open (Repeats field found)                    != 
+PASS  the Snooze time field found                                 != 
+      A = Repeats (132,1199), B = Snooze time (141,1583), apk=f43b65984e538262
+      trials 30: B opened the Snooze flyout 30
+PASS  every tap sent with the Back opened the Snooze flyout       = 30
+------------------------------------------------------------------------------
+L13_9: 4 passed, 0 failed, 0 recorded
