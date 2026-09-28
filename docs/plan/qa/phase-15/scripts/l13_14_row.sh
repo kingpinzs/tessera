@@ -61,6 +61,54 @@ gdump "$ROW_DIR/a2-2-tap.xml" > /dev/null
 assert_eq "(a2): a tap on the expanded bar's blank part closed the menu" no "$(has_node "$ROW_DIR/a2-2-tap.xml" clock_more_menu)"
 assert_eq "(a2): ... and opened no alarm's editor" no "$(has_node "$ROW_DIR/a2-2-tap.xml" 'alarm_editor_field:snooze')"
 
+# ---- (a3) Back and a tap on the bar's blank part together (review/2026-09-28-L13-1415-fix-r2-a.md finding 1): Back
+# unplaces the "…" scrim at once, before the bar recomposes; a tap in that frame must still land on the bar, not on the
+# alarm row under it. Sent from one device shell at 0-20 ms offsets, the form l13_11_row.sh uses.
+N="${N:-30}"
+state_of() { # dump -> editor | menu | tabs | other | nodump
+  [ -s "$1" ] || { echo nodump; return; }
+  if [ "$(has_node "$1" 'alarm_editor_field:snooze')" = yes ]; then echo editor
+  elif [ "$(has_node "$1" clock_more_menu)" = yes ]; then echo menu
+  elif [ "$(has_node "$1" clock_app_bar)" = yes ]; then echo tabs
+  else echo other; fi
+}
+adb shell am force-stop $PKG; sleep 1
+open_clock alarm
+gdump "$ROW_DIR/a3-0.xml" > /dev/null
+read -r MX MY <<< "$(centre "$ROW_DIR/a3-0.xml" clock_more)"
+set -- $(bounds "$ROW_DIR/a3-0.xml" clock_app_bar); PX=$(( $1 + 60 )); PY=$(( ($2 + $4) / 2 ))
+UNDER="$(row_under "$ROW_DIR/a3-0.xml" $PX $PY alarm_row:)"
+note "(a3) the bar's blank point ($PX,$PY); the alarm row under it: ${UNDER:-none}"
+assert_ne "(a3): an alarm row lies under the bar's blank point (the check is not vacuous)" "" "$UNDER"
+mkdir -p "$ROW_DIR/a3"; : > "$ROW_DIR/a3/trials.txt"
+for i in $(seq 1 "$N"); do
+  off=$(( (i % 5) * 5 ))
+  gdump "$ROW_DIR/a3/t$i-pre.xml" > /dev/null
+  [ "$(state_of "$ROW_DIR/a3/t$i-pre.xml")" = tabs ] || { open_clock alarm; gdump "$ROW_DIR/a3/t$i-pre.xml" > /dev/null; }
+  [ "$(state_of "$ROW_DIR/a3/t$i-pre.xml")" = tabs ] || { echo "t$i invalid: not on the tabs" >> "$ROW_DIR/a3/trials.txt"; continue; }
+  adb shell input tap $MX $MY; sleep 0.8
+  gdump "$ROW_DIR/a3/t$i-open.xml" > /dev/null
+  if [ "$(state_of "$ROW_DIR/a3/t$i-open.xml")" != menu ]; then
+    echo "t$i invalid: the bar did not open" >> "$ROW_DIR/a3/trials.txt"; adb shell input keyevent 4; sleep 1; continue
+  fi
+  adb shell "input keyevent 4 & sleep 0.0$(printf %02d $off); input tap $PX $PY; wait"
+  sleep 1.5
+  gdump "$ROW_DIR/a3/t$i.xml" > /dev/null
+  st="$(state_of "$ROW_DIR/a3/t$i.xml")"
+  [ "$st" = nodump ] && { echo "t$i invalid: the dump after failed" >> "$ROW_DIR/a3/trials.txt"; open_clock alarm; continue; }
+  echo "t$i offset=${off}ms after: $st" >> "$ROW_DIR/a3/trials.txt"
+  case "$st" in
+    editor|menu) adb shell input keyevent 4; sleep 1 ;;
+    tabs) ;;
+    *) open_clock alarm ;;
+  esac
+done
+VALID="$(grep -c 'after:' "$ROW_DIR/a3/trials.txt")"; LEAK="$(grep -c 'after: editor' "$ROW_DIR/a3/trials.txt")"
+HELD="$(grep -c 'after: tabs' "$ROW_DIR/a3/trials.txt")"; FIRST="$(grep -cE 'after: (other|menu)' "$ROW_DIR/a3/trials.txt")"
+note "(a3) valid trials $VALID of $N: the tap reached the alarm row $LEAK, the bar took it $HELD, the tap came before the Back (Back then closed the Clock) $FIRST"
+assert_eq "(a3): every trial was valid (on the tabs, the bar open)" "$N" "$VALID"
+assert_eq "(a3): no tap on the bar's blank part reached the alarm row under it" 0 "$LEAK"
+
 # ---- (b) the compare strip's centre, on World Clock
 adb shell am force-stop $PKG; sleep 1
 open_clock world_clock
