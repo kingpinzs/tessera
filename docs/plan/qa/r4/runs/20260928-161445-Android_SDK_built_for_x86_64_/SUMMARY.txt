@@ -1,0 +1,17 @@
+R4 run 2026-09-28T16:14:45-06:00 on Android SDK built for x86_64 (emulator-5554)
+INFO      device facts                                 device.txt
+INFO      toggle baseline (restored to this at the end) baseline.txt
+PASS      1 app_process runs as the shell uid          part1-app_process.txt
+PASS      2a the helper daemonises (parent = init)     part2-daemon.txt
+PASS      2b binder handed to the app; the app's ping answered part2-daemon.txt
+INFO      3a toggles, directly as the shell uid (7/9 changed) part3-direct.txt
+INFO      3b toggles, through the helper (7/9 changed) part3-helper.txt
+PASS      4a app killed: helper lives, re-hands the binder part4-appkill.txt
+PASS      4b forced Doze: helper lives and answers     part4-doze.txt
+SKIPPED   4c cable pulled                              -
+SKIPPED   4d Wireless debugging off                    -
+INFO      blur: platform answer + FLAG_BLUR_BEHIND overlay, normal and power saving blur.txt blur-*.png
+INFO      P5 nav-bar overlay (screenshots + the taps the overlay received) p5-overlay.txt overlay-*.png
+INFO      PQ2 visual voicemail: carrier config, handler app, provider counts (no login) pq2-voicemail.txt
+PASS      clean-up: every toggle as it was at the start cleanup.txt
+Run folder: /home/jeremyking/projects/metro-launcher/docs/plan/qa/r4/runs/20260928-161445-Android_SDK_built_for_x86_64_

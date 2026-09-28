@@ -1,0 +1,66 @@
+== HELPER TOGGLES (each flipped by the helper as the shell uid, read back, restored)
+  battery_saver  [phase 19 verb (battery saver)]
+    before  (exit 0) 0
+    flip on  (exit 0) (empty)
+    read    1
+    flip off (exit 0) (empty)
+    after   0
+    CHANGED yes · RESTORED yes
+  location  [phase 19 verb (location)]
+    before  (exit 0) true
+    flip off (exit 0) (empty)
+    read    false
+    flip on  (exit 0) (empty)
+    after   true
+    CHANGED yes · RESTORED yes
+  auto_time  [phase 19 verb (automatic time)]
+    before  (exit 0) 1
+    flip off (exit 0) (empty)
+    read    0
+    flip on  (exit 0) (empty)
+    after   1
+    CHANGED yes · RESTORED yes
+  nfc  [phase 19 verb (NFC)]
+    before  (exit 1) (empty)
+    flip on  (exit 0) Got a null NfcAdapter, is the system running?
+    read    (empty)
+    flip off (exit 0) Got a null NfcAdapter, is the system running?
+    after   (empty)
+    CHANGED NO · RESTORED yes
+  bluetooth  [phase 04 action center]
+    before  (exit 0) 1
+    flip off (exit 0) BluetoothShellCommand: Exec disable disable: Success
+    read    0
+    flip on  (exit 0) BluetoothShellCommand: Exec enable enable: Success
+    after   1
+    CHANGED yes · RESTORED yes
+  wifi  [phase 04 action center]
+    before  (exit 0) Wifi is enabled
+    flip off (exit 0) (empty)
+    read    Wifi is disabled
+    flip on  (exit 0) (empty)
+    after   Wifi is enabled
+    CHANGED yes · RESTORED yes
+  hotspot  [phase 19 verb (hotspot)]
+    before  (exit 1) (empty)
+    flip on  (exit 255) Exception occurred while executing 'start-softap': java.lang.SecurityException: Uid 2000 does not have access to start-softap wifi command (or such command does
+    read    (empty)
+    flip off (exit 255) Exception occurred while executing 'stop-softap': java.lang.SecurityException: Uid 2000 does not have access to stop-softap wifi command (or such command doesn'
+    after   (empty)
+    CHANGED NO · RESTORED yes
+  mobile_data  [phase 04 action center]
+    before  (exit 0) 1
+    flip off (exit 0) (empty)
+    read    0
+    flip on  (exit 0) (empty)
+    after   1
+    CHANGED yes · RESTORED yes
+  airplane  [phase 04 action center]
+    before  (exit 0) disabled
+    flip on  (exit 0) (empty)
+    read    enabled
+    flip off (exit 0) (empty)
+    after   disabled
+    CHANGED yes · RESTORED yes
+HELPER_TOGGLES DONE 179063350431423
+

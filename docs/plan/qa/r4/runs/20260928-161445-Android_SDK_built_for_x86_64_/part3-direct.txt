@@ -1,0 +1,63 @@
+  battery_saver
+    before  0
+    flip on: (no output)
+    read    1
+    back:   (no output)
+    after   0
+    CHANGED yes · RESTORED yes
+  location
+    before  true
+    flip off: (no output)
+    read    false
+    back:   (no output)
+    after   true
+    CHANGED yes · RESTORED yes
+  auto_time
+    before  1
+    flip off: (no output)
+    read    0
+    back:   (no output)
+    after   1
+    CHANGED yes · RESTORED yes
+  nfc
+    before  
+    flip on: Got a null NfcAdapter, is the system running? 
+    read    
+    back:   Got a null NfcAdapter, is the system running? 
+    after   
+    CHANGED NO · RESTORED yes
+  bluetooth
+    before  1
+    flip off: BluetoothShellCommand: Exec disable disable: Success 
+    read    0
+    back:   BluetoothShellCommand: Exec enable enable: Success 
+    after   1
+    CHANGED yes · RESTORED yes
+  wifi
+    before  Wifi is enabled
+    flip off: (no output)
+    read    Wifi is disabled
+    back:   (no output)
+    after   Wifi is enabled
+    CHANGED yes · RESTORED yes
+  hotspot
+    before  
+    flip on:  Exception occurred while executing 'start-softap': java.lang.SecurityException: Uid 2000 does not have access to start-softap wifi command (or such command doesn't exist) 	at com.android.server.wifi.WifiShellCommand.onCommand(WifiShellCommand.java:511) 	at com.android.wifi.x.com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97) 	at com.android.server.wifi.WifiServiceImpl.handleShellCommand(WifiServiceImpl.java:5963) 	at android.os.Binder.onShellCommand(Binder.java:1204) 	at android.os.Binder.shellCommand(Binder.java:1151) 	at android.os.Binder.onTransact(Binder.java:953) 	at android.net.wifi.IWifiManager$Stub.onTransact(IWifiManager.java:3701) 	at android.os.Binder.execTransactInternal(Binder.java:1426) 	at android.os.Binder.execTransact(Binder.java:1365) 
+    read    
+    back:    Exception occurred while executing 'stop-softap': java.lang.SecurityException: Uid 2000 does not have access to stop-softap wifi command (or such command doesn't exist) 	at com.android.server.wifi.WifiShellCommand.onCommand(WifiShellCommand.java:511) 	at com.android.wifi.x.com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97) 	at com.android.server.wifi.WifiServiceImpl.handleShellCommand(WifiServiceImpl.java:5963) 	at android.os.Binder.onShellCommand(Binder.java:1204) 	at android.os.Binder.shellCommand(Binder.java:1151) 	at android.os.Binder.onTransact(Binder.java:953) 	at android.net.wifi.IWifiManager$Stub.onTransact(IWifiManager.java:3701) 	at android.os.Binder.execTransactInternal(Binder.java:1426) 	at android.os.Binder.execTransact(Binder.java:1365) 
+    after   
+    CHANGED NO · RESTORED yes
+  mobile_data
+    before  1
+    flip off: (no output)
+    read    0
+    back:   (no output)
+    after   1
+    CHANGED yes · RESTORED yes
+  airplane
+    before  disabled
+    flip on: (no output)
+    read    enabled
+    back:   (no output)
+    after   disabled
+    CHANGED yes · RESTORED yes

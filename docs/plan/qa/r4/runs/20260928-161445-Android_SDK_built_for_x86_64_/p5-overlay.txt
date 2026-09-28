@@ -1,0 +1,26 @@
+== nav-0 (navigation_mode=0); taps sent at y=2328 and y=1170 of 2340
+== P5 — THE OVERLAY PROBE
+navigation_mode = 0 (3-button)
+display bounds  1080 x 2340 px
+
+A. MATCH_PARENT, insets fitted (the default)
+  laid out       1080 x 2205 px
+  short by       135 px (the nav bar is 135 px)
+  nav inset seen 0 px from inside the overlay
+  STOPS 135 px short.
+
+B. setFitInsetsTypes(0) + explicit full height
+  laid out       1080 x 2340 px
+  short by       0 px (the nav bar is 135 px)
+  nav inset seen 135 px from inside the overlay
+  REACHES the display's bottom edge.
+
+
+  TOUCHES the overlay received:
+    touch at y=1170 of 2340 — above the strip
+  RESULT: no tap in the strip reached the overlay. Either none was made, or
+  the nav bar takes them — compare with the taps above the strip.
+OVERLAY DONE 179063387521835
+Run it once with gesture navigation and once with 3-button, and paste both reports:
+  Settings > Display > Navigation bar
+

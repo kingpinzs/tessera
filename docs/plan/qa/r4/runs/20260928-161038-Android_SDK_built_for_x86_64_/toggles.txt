@@ -1,0 +1,9 @@
+battery_saver|settings get global low_power|cmd power set-mode 1|cmd power set-mode 0|^1
+location|cmd location is-location-enabled|cmd location set-location-enabled true|cmd location set-location-enabled false|true
+auto_time|settings get global auto_time|settings put global auto_time 1|settings put global auto_time 0|^1
+nfc|dumpsys nfc 2>&1 | grep -i -m1 -E 'mState|state='|svc nfc enable|svc nfc disable|(?i)(mState|state)[=:]\s*on
+bluetooth|settings get global bluetooth_on|cmd bluetooth_manager enable|cmd bluetooth_manager disable|^1
+wifi|cmd wifi status 2>&1 | head -1|cmd wifi set-wifi-enabled enabled|cmd wifi set-wifi-enabled disabled|Wifi is enabled
+hotspot|dumpsys wifi 2>&1 | grep -m1 -E 'WifiApState|SoftApState'|cmd wifi start-softap R4probe wpa2 r4probe-temp-8471|cmd wifi stop-softap|(?i)(WIFI_AP_STATE_ENABLED|state[=: ]+(enabled|13)\b)
+mobile_data|settings get global mobile_data|svc data enable|svc data disable|^1
+airplane|cmd connectivity airplane-mode|cmd connectivity airplane-mode enable|cmd connectivity airplane-mode disable|^enabled
