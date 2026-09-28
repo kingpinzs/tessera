@@ -1,7 +1,7 @@
 ---
 phase: 12
 slug: setup-wizard
-status: DRAFT   # FINAL gates (T12-13): Jeremy's four pictures in art/themes/ (Q6) AND his ruling on committing / shipping R12's Microsoft wallpapers (asked separately 2026-09-23); which build carries the original pictures follows that ruling; with none, T12-7's no-picture form ships
+status: DRAFT   # FINAL gates (T12-13) MET 2026-09-28: Jeremy's pictures are in art/themes/ (his pick: hal-a, lumia-b, midnight-b, soft-c) and his R12 ruling is (a) — every build, the public CI APK included, ships the original preset's pictures. Next: review round 3 (the last, cap 3), then FINAL on Jeremy's word
 depends-on: [01, 03, 05, 10, 13]   # it walks rows those phases put on the Setup checklist and Tess's checklist (phase 03), reuses phase 01's theme settings and phase 03's blocked-permission rule; 13 because a preset writes phase 13's StartTheme.transparencyEffects (T12-3: build order 11 -> 13 -> 12 -> 14)
 ---
 
@@ -51,6 +51,12 @@ picture (R12 §6 lists img5): a preset must not rewrite Android's lock-screen wa
 (b); the split-time reason, "the shell draws no lock screen", missed that the shell can set Android's lock wallpaper). Hooks for later phases.
 
 ## Decisions
+- 2026-09-28: R12 shipping ruling (Jeremy: "(a)"), closing T12-13's second FINAL gate: every build — the public CI APK
+  (apk.yml's "latest" Release) included — bundles R12's two img0 pictures into the original preset (`preset_w10m_hero`,
+  `preset_w10m_streaks`), read by build task 5's host script from docs/plan/r12/ (tracked since 9888f2c on his 2026-09-23
+  "(c)" to committing them publicly). T12-7's no-picture form stays only as the fallback for a build where those files are
+  missing (E12 / E13 still branch on the APK). Asked knowing the repo is public (GitHub API 200, unauthenticated) and that
+  every push to main publishes the APK.
 - 2026-09-28: Jeremy's variant pick (Jeremy: "hal-a lumia-b midnight-b soft-c"): HAL ← `art/themes/hal-a.png`, Lumia ←
   `lumia-b.png`, Midnight ← `midnight-b.png`, Soft ← `soft-c.png`; the other eight files stay local and unbundled. From the
   check below: hal-a, lumia-b and midnight-b are 941 px wide, so the host crop scales them ≈ 2.4× up (Lumia's edges soften;
