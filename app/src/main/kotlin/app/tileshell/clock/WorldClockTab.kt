@@ -70,6 +70,9 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.time.ZoneId
 import java.util.Locale
 import java.util.TimeZone
+import androidx.activity.compose.BackHandler
+import app.tileshell.ui.components.OverlayLayer
+import app.tileshell.ui.components.dismissOverlay
 
 private fun capPad(capTop: Float, size: Float): Dp = CapMetrics.topPaddingForCapTop(capTop, size).dp
 
@@ -141,17 +144,26 @@ fun BoxScope.WorldClockTab(nav: ClockNav, world: WorldClockStore) {
                 }
             }
         }
-        menuZone?.let { id ->
-            // The hold menu: R7 §3.6.2's flyout with the one verb, under the held row.
-            val top = with(density) { menuAnchor.toDp() } + 60.dp
-            ClockFlyout(x = 11.6.dp, top = top, width = 335.5.dp, height = 60.dp, tag = "clock_row_menu", onDismiss = { menuZone = null }) {
-                Box(Modifier.height(8.dp))
-                PressBox(Modifier.fillMaxWidth().height(ClockMetrics.MENU_ROW).testTag("clock_remove:$id"), onClick = { world.remove(id); menuZone = null }) {
-                    BasicText("Remove", Modifier.align(Alignment.CenterStart).offset(x = 11.7.dp), style = ShellType.body.copy(color = Color.White))
+        // L13-12: Back closes the hold menu (it used to close the Clock), applied at once; the menu is drawn in an
+        // OverlayLayer, which stops placing it the moment it is dismissed (L13-3's rule).
+        BackHandler(enabled = menuZone != null) { dismissOverlay { menuZone = null } }
+        OverlayLayer(active = { menuZone != null }) {
+            menuZone?.let { id ->
+                // The hold menu: R7 §3.6.2's flyout with the one verb, under the held row.
+                val top = with(density) { menuAnchor.toDp() } + 60.dp
+                ClockFlyout(x = 11.6.dp, top = top, width = 335.5.dp, height = 60.dp, tag = "clock_row_menu", onDismiss = { menuZone = null }) {
+                    Box(Modifier.height(8.dp))
+                    PressBox(Modifier.fillMaxWidth().height(ClockMetrics.MENU_ROW).testTag("clock_remove:$id"), onClick = { world.remove(id); menuZone = null }) {
+                        BasicText("Remove", Modifier.align(Alignment.CenterStart).offset(x = 11.7.dp), style = ShellType.body.copy(color = Color.White))
+                    }
                 }
             }
         }
-        if (nav.worldSearch) CitySearch(entries, onPick = { world.add(it.id); nav.worldSearch = false })
+        // L13-11: the search page is drawn in an OverlayLayer, which stops placing it the moment Back closes it (the
+        // activity's Back applies it at once).
+        OverlayLayer(active = { nav.worldSearch }) {
+            if (nav.worldSearch) CitySearch(entries, onPick = { world.add(it.id); nav.worldSearch = false })
+        }
     }
     @Suppress("UNUSED_EXPRESSION") colors
 }
