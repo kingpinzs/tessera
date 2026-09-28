@@ -29,16 +29,23 @@ note "(a) first city before: $R, after the scroll: $(first_row "$ROW_DIR/a-1.xml
 assert_ne "(a): the drag scrolled the list" "$(bounds "$ROW_DIR/a-0.xml" "clock_row:$R")" "$(bounds "$ROW_DIR/a-1.xml" "clock_row:$R")"
 assert_eq "(a): the scroll opened no hold menu" no "$(has_node "$ROW_DIR/a-1.xml" clock_row_menu)"
 
-# ---- (b) a slow swipe sideways (to the next tab) that starts on a city
+# ---- (b) a slow sideways drag that starts on a city: past the touch slop but under a quarter of the width, so the pager
+# takes it and springs back and the World Clock page (with any menu) stays on screen (drv1 swiped 700 px, which settled
+# on the Timer tab and removed the page on both builds — review/2026-09-28-L13-1415-fix-review-a.md note 5). Each case
+# starts on a fresh Clock: open_clock alone reuses the running activity, and on the old build (a) leaves a city's menu
+# open, which then took (b)'s and (c)'s touches (review/2026-09-28-L13-1415-fix-review-b.md).
+adb shell am force-stop $PKG; sleep 1
 open_clock world_clock
 gdump "$ROW_DIR/b-0.xml" > /dev/null
 R="$(first_row "$ROW_DIR/b-0.xml")"; read -r RX RY <<< "$(centre "$ROW_DIR/b-0.xml" "clock_row:$R")"
-adb shell input swipe $RX $RY $(( RX - 700 )) $RY 1500; sleep 1.5
+adb shell input swipe $RX $RY $(( RX - 200 )) $RY 1500; sleep 1.5
 gdump "$ROW_DIR/b-1.xml" > /dev/null
-note "(b) after the swipe: world page $(has_node "$ROW_DIR/b-1.xml" 'clock_page:world_clock'), timer page $(has_node "$ROW_DIR/b-1.xml" 'clock_page:timer')"
-assert_eq "(b): the swipe opened no hold menu" no "$(has_node "$ROW_DIR/b-1.xml" clock_row_menu)"
+note "(b) after the drag: world page $(has_node "$ROW_DIR/b-1.xml" 'clock_page:world_clock'), timer page $(has_node "$ROW_DIR/b-1.xml" 'clock_page:timer')"
+assert_eq "(b): the World Clock page is still on screen (the drag sprang back)" yes "$(has_node "$ROW_DIR/b-1.xml" 'clock_page:world_clock')"
+assert_eq "(b): the sideways drag opened no hold menu" no "$(has_node "$ROW_DIR/b-1.xml" clock_row_menu)"
 
 # ---- (c) control: a still hold on a city opens its menu
+adb shell am force-stop $PKG; sleep 1
 open_clock world_clock
 gdump "$ROW_DIR/c-0.xml" > /dev/null
 R="$(first_row "$ROW_DIR/c-0.xml")"; read -r RX RY <<< "$(centre "$ROW_DIR/c-0.xml" "clock_row:$R")"
