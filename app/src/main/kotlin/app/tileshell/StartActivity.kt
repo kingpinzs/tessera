@@ -446,6 +446,25 @@ class StartActivity : ComponentActivity() {
         hideSystemBars()
         // A default app (dialer, SMS, browser) may have been changed elsewhere while Start was away.
         app.tileshell.tiles.SlotDefaults.refresh()
+        comeBack("start entrance")
+    }
+
+    /**
+     * L13-7: the Tess tile opens her session, a window over Start rather than an activity, so Start is never paused
+     * and onResume never brings it back: once the session hid, Start stayed on its exit's last frame, with no tiles.
+     * Start gets its window focus back when that window goes, and comes back then. A launch that did pause Start came
+     * back in onResume, which cleared [returningFromLaunch] before the focus returned.
+     */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus && returningFromLaunch) comeBack("start entrance (focus back)")
+    }
+
+    /**
+     * Start comes back: from onResume, or from the focus returning after a launch that never paused it (L13-7). The
+     * tile sizes and the recent row are applied here, while the tiles are still off screen, and then the entrance plays.
+     */
+    private fun comeBack(entranceLine: String) {
         // Tile size follows use (INDEX Change Log 2026-09-21 item 1). Applied as Start COMES BACK,
         // never while it is on screen: a tile must not change size under the finger that just tapped
         // it, and coming back from the app you just opened is exactly when the new count lands.
@@ -460,23 +479,7 @@ class StartActivity : ComponentActivity() {
             returningFromLaunch = false
             animation = StartAnimation(entranceElapsedMs = 0f)
             entranceToken++
-            Diagnostics.add("motion", "start entrance")
-        }
-    }
-
-    /**
-     * L13-7: the Tess tile opens her session, a window over Start rather than an activity, so Start is never paused
-     * and onResume never brings it back: once the session hid, Start stayed on its exit's last frame, with no tiles.
-     * Start gets its window focus back when that window goes. A launch that did pause Start came back in onResume,
-     * which cleared [returningFromLaunch] before the focus returned.
-     */
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (hasFocus && returningFromLaunch) {
-            returningFromLaunch = false
-            animation = StartAnimation(entranceElapsedMs = 0f)
-            entranceToken++
-            Diagnostics.add("motion", "start entrance (focus back)")
+            Diagnostics.add("motion", entranceLine)
         }
     }
 }
