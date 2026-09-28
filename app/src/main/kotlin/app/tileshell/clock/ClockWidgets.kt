@@ -162,7 +162,13 @@ fun BoxScope.ClockAppBar(buttons: List<BarButton>, menu: List<ClockMenuEntry>, i
             }
         }
     }
-    Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(height).background(ClockMetrics.BAND_FILL).testTag("clock_app_bar")) {
+    // L13-14: the bar takes the touches that land on it, not only on its buttons (it consumes nothing, so they keep theirs):
+    // a list runs under it, and a tap or hold on its blank parts used to reach the row underneath.
+    Box(
+        Modifier.align(Alignment.BottomStart).fillMaxWidth().height(height).background(ClockMetrics.BAND_FILL)
+            .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(requireUnconsumed = false) } }
+            .testTag("clock_app_bar"),
+    ) {
         Row(Modifier.align(Alignment.CenterEnd).fillMaxHeight()) {
             buttons.forEach { b ->
                 BarButtonView(b.glyph, if (expanded) b.label else null, b.tag, b.enabled, ClockMetrics.BUTTON_PITCH, colors.text) { b.onClick() }

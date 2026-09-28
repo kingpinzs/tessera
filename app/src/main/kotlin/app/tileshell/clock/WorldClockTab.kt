@@ -10,7 +10,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -59,14 +58,12 @@ import androidx.compose.ui.unit.sp
 import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
 import app.tileshell.diag.Diagnostics
-import app.tileshell.start.Edit
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.tokens.CapMetrics
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 import java.time.ZoneId
 import java.util.Locale
 import java.util.TimeZone
@@ -192,14 +189,10 @@ private fun CityRow(id: String, zone: ZoneId, label: String, displayMs: Long, lo
     Box(
         Modifier.fillMaxWidth().height(96.9.dp).testTag("clock_row:$id")
             .onGloballyPositioned { top = it.positionInRoot().y }
-            .pointerInput(id) {
-                awaitEachGesture {
-                    awaitFirstDown()
-                    // A hold (Edit.HOLD_MS, the shell's one hold) opens the row's menu; a scroll opens nothing.
-                    val up = withTimeoutOrNull(Edit.HOLD_MS) { waitForUpOrCancellation() }
-                    if (up == null && currentEvent.changes.any { it.pressed }) onHold(top)
-                }
-            },
+            // A hold (Edit.HOLD_MS, the shell's one hold) opens the row's menu; a scroll opens nothing. L13-15: the rows'
+            // shared detector — a press that a scroll or a tab swipe takes ends the gesture, where the old check read
+            // "no lift, the finger still down" as a hold.
+            .pointerInput(id) { detectTapOrHold(onTap = {}, onHold = { onHold(top) }) },
     ) {
         BasicText(ClockText.timeAt(displayMs, zone, is24h, locale), Modifier.offset(x = 18.8.dp, y = capPad(27.5f, 25.4f)).testTag("clock_time:$id"),
             style = ShellType.title.copy(fontSize = 25.4.sp, lineHeight = 32.sp, fontWeight = FontWeight.Light, color = colors.text), maxLines = 1)
@@ -279,7 +272,13 @@ fun BoxScope.CompareStrip(nav: ClockNav) {
             val path = androidx.compose.ui.graphics.Path().apply { moveTo(0f, size.height); lineTo(size.width / 2, 0f); lineTo(size.width, size.height); close() }
             drawPath(path, colors.accent)
         }
-        Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(48.dp).background(colors.accent).testTag("clock_compare_strip")) {
+        // L13-14: the strip takes the touches that land on it (consuming nothing, so its chevrons keep theirs): the city
+        // list runs under it, and a hold on its centre used to open the menu of the row underneath.
+        Box(
+            Modifier.align(Alignment.BottomStart).fillMaxWidth().height(48.dp).background(colors.accent)
+                .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(requireUnconsumed = false) } }
+                .testTag("clock_compare_strip"),
+        ) {
             Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
                 GlyphButton(Glyph.CHEVRON_LEFT, "clock_compare_prev", true, Modifier, size = 16f) { nav.compareOffset-- }
                 Box(Modifier.weight(1f)) {
