@@ -11,8 +11,10 @@ assert_clock_empty "baseline"
 dismiss_any_ring
 # Seeds: an alarm 3 h ahead (no ring during the row), a 1-hour timer, and London in the World Clock (its store kept
 # aside and put back at the end; with none before, the seeded file is moved aside rather than deleted).
-WSAVED="$(adb shell "run-as $PKG sh -c 'if [ -f files/world_clock.json ]; then cp files/world_clock.json files/world_clock.json.l1312; echo yes; else echo no; fi'" | tr -d '\r')"
+WSAVED="$(adb shell "run-as $PKG sh -c 'if [ -f files/world_clock.json ]; then cp files/world_clock.json files/world_clock.json.l1312 && echo yes || echo cp-failed; else echo no; fi'" | tr -d '\r')"
 note "world store existed before: $WSAVED"
+# The seed overwrites the World Clock store; never without its copy (review r2-b N5).
+[ "$WSAVED" = cp-failed ] && { assert_eq "the World Clock store was copied aside before the seed" yes no; row_end; exit 1; }
 NOW="$(device_ms)"; read -r H M <<< "$(device_hm $(( NOW + 3 * 3600000 )))"
 AID="$(api_alarm "$H" "$M" "L1312")"; assert_ne "seed: an alarm" "" "$AID"
 TID="$(api_timer 3600 "L1312")"; assert_ne "seed: a timer" "" "$TID"

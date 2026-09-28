@@ -15,9 +15,12 @@ where() { # dump -> editor | bar | search | menu | tabs | closed | other
   python3 - "$1" <<'PY'
 import sys
 s = open(sys.argv[1], encoding="utf-8", errors="replace").read()
-# The Clock gone means B came BEFORE the Back: it closed the overlay (a tap on its scrim), and the Back then closed the
-# Clock. A B lost to a stale overlay leaves the Clock on its tabs instead. (drv2, t25 on 05e543d7.)
-if 'resource-id="clock_root"' not in s: print("closed"); sys.exit()
+# A dump with no nodes is a failed dump, not an outcome (review r2-b N2).
+if '<node' not in s: print("nodump"); sys.exit()
+# The Clock gone with Start on screen: in (a) this means B came BEFORE the Back — it closed the bar (a tap on its scrim)
+# and the Back then closed the Clock (drv2, t25 on 05e543d7). A B lost to a stale overlay leaves the Clock on its tabs.
+if 'resource-id="clock_root"' not in s:
+    print("closed" if 'resource-id="start_page"' in s else "other"); sys.exit()
 for tag, name in (("alarm_editor_field:snooze", "editor"), ("clock_more_menu", "bar"), ("clock_search_page", "search"),
                   ("clock_row_menu", "menu"), ("clock_tabs", "tabs")):
     if 'resource-id="%s"' % tag in s: print(name); break
@@ -32,6 +35,8 @@ assert_clock_empty "baseline"
 dismiss_any_ring
 WSAVED="$(adb shell "run-as $PKG sh -c 'if [ -f files/world_clock.json ]; then cp files/world_clock.json files/world_clock.json.l1311 && echo yes || echo cp-failed; else echo no; fi'" | tr -d '\r')"
 note "world store existed before: $WSAVED"
+# The seed overwrites the World Clock store; never without its copy (review r2-b N5).
+[ "$WSAVED" = cp-failed ] && { assert_eq "the World Clock store was copied aside before the seed" yes no; row_end; exit 1; }
 NOW="$(device_ms)"; read -r H M <<< "$(device_hm $(( NOW + 3 * 3600000 )))"
 AID="$(api_alarm "$H" "$M" "L1311")"; assert_ne "seed: an alarm" "" "$AID"
 adb shell am force-stop $PKG; sleep 1
@@ -42,7 +47,8 @@ open_clock alarm
 gdump "$ROW_DIR/a-0.xml" > /dev/null
 read -r MX MY <<< "$(centre "$ROW_DIR/a-0.xml" clock_more)"
 read -r RX RY <<< "$(centre "$ROW_DIR/a-0.xml" "alarm_row:$AID")"
-assert_ne "(a): the \"…\" button and the alarm row are on screen" "" "${MX:-}${RX:-}"
+assert_ne "(a): the \"…\" button is on screen" "" "${MX:-}"
+assert_ne "(a): the alarm row is on screen" "" "${RX:-}"
 mkdir -p "$ROW_DIR/a"; : > "$ROW_DIR/a/trials.txt"
 for i in $(seq 1 "$N"); do
   off=$(( (i % 5) * 5 ))
@@ -60,6 +66,7 @@ for i in $(seq 1 "$N"); do
   sleep 1.5
   gdump "$ROW_DIR/a/t$i.xml" > /dev/null
   st="$(where "$ROW_DIR/a/t$i.xml")"
+  [ "$st" = nodump ] && { echo "t$i invalid: the dump after failed" >> "$ROW_DIR/a/trials.txt"; open_clock alarm; continue; }
   echo "t$i offset=${off}ms after: $st" >> "$ROW_DIR/a/trials.txt"
   case "$st" in
     editor|bar) adb shell input keyevent 4; sleep 1 ;;
@@ -68,7 +75,7 @@ for i in $(seq 1 "$N"); do
   esac
 done
 VALID="$(grep -c 'after:' "$ROW_DIR/a/trials.txt")"; OK="$(grep -c 'after: editor' "$ROW_DIR/a/trials.txt")"
-LOST="$(grep -c 'after: tabs' "$ROW_DIR/a/trials.txt")"; FLIP="$(grep -c 'after: closed' "$ROW_DIR/a/trials.txt")"
+LOST="$(grep -cE 'after: (tabs|other)' "$ROW_DIR/a/trials.txt")"; FLIP="$(grep -c 'after: closed' "$ROW_DIR/a/trials.txt")"
 note "(a) the \"…\" menu's bounds while open: $MENU_BOUNDS (compare across builds: its layout is unchanged)"
 note "(a) valid trials $VALID of $N: the row tap opened the editor $OK"
 assert_eq "(a): every trial was valid (on the tabs, the bar open)" "$N" "$VALID"
@@ -82,7 +89,8 @@ open_clock world_clock
 gdump "$ROW_DIR/b-0.xml" > /dev/null
 read -r AX AY <<< "$(centre "$ROW_DIR/b-0.xml" 'clock_bar:add')"
 read -r CX CY <<< "$(centre "$ROW_DIR/b-0.xml" 'clock_row:Europe/London')"
-assert_ne "(b): the add button and the city row are on screen" "" "${AX:-}${CX:-}"
+assert_ne "(b): the add button is on screen" "" "${AX:-}"
+assert_ne "(b): the city row is on screen" "" "${CX:-}"
 mkdir -p "$ROW_DIR/b"; : > "$ROW_DIR/b/trials.txt"
 for i in $(seq 1 "$N"); do
   off=$(( (i % 5) * 5 ))
@@ -101,6 +109,7 @@ for i in $(seq 1 "$N"); do
   sleep 1.2
   gdump "$ROW_DIR/b/t$i.xml" > /dev/null
   st="$(where "$ROW_DIR/b/t$i.xml")"
+  [ "$st" = nodump ] && { echo "t$i invalid: the dump after failed" >> "$ROW_DIR/b/trials.txt"; open_clock world_clock; continue; }
   echo "t$i offset=${off}ms after: $st" >> "$ROW_DIR/b/trials.txt"
   case "$st" in
     # The menu is closed by a tap on its scrim, not by Back: on a build with L13-12's defect, Back closes the Clock and
@@ -112,14 +121,15 @@ for i in $(seq 1 "$N"); do
   esac
 done
 VALID="$(grep -c 'after:' "$ROW_DIR/b/trials.txt")"; OK="$(grep -c 'after: menu' "$ROW_DIR/b/trials.txt")"
-LOST="$(grep -c 'after: tabs' "$ROW_DIR/b/trials.txt")"; FLIP="$(grep -c 'after: closed' "$ROW_DIR/b/trials.txt")"
+# In (b) a closed Clock is never a touch that beat the Back (that hold is lost with the closing search on either
+# build), so it counts as a loss (review r2-b N1).
+LOST="$(grep -cE 'after: (tabs|closed|other)' "$ROW_DIR/b/trials.txt")"; FLIP=0
 note "(b) the search page's bounds while open: $SEARCH_BOUNDS"
 note "(b) valid trials $VALID of $N: the city hold opened its menu $OK"
 assert_eq "(b): every trial was valid (on the tabs, the search open)" "$N" "$VALID"
 note "(b) outcomes: reached $OK, lost to the stale search $LOST, B before the Back $FLIP"
 assert_eq "(b): no hold was lost to the stale search (the Clock left on its tabs)" 0 "$LOST"
 assert_eq "(b): every hold that came after the Back reached the page" "$(( VALID - FLIP ))" "$OK"
-assert_eq "(b): B came before the Back in few trials (<= 3)" yes "$([ "$FLIP" -le 3 ] && echo yes || echo "no ($FLIP)")"
 
 adb shell am force-stop $PKG; sleep 1
 if [ "$WSAVED" = yes ]; then
