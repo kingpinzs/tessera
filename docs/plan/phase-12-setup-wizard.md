@@ -51,6 +51,13 @@ picture (R12 §6 lists img5): a preset must not rewrite Android's lock-screen wa
 (b); the split-time reason, "the shell draws no lock screen", missed that the shell can set Android's lock wallpaper). Hooks for later phases.
 
 ## Decisions
+- 2026-09-28: Jeremy's pictures are in art/themes/ (Q6 input): three variants per preset, `hal-`, `soft-`, `lumia-`,
+  `midnight-` × a / b / c. Agent check against theme-art-brief.md: all twelve are portrait with no text, logo, face or
+  visible mark (full view, and each corner under autocontrast); every file carries an invisible C2PA content-credential
+  chunk (PNG `caBX`, JPEG APP11), which the host crop's re-encode drops. The a and b files are PNG at 941 × 1672, under
+  the brief's 1024-px width (to 1872 × 4056 is ≈ 2.4× up); the c files are 1536 × 2752 but JPEG named .png (the host
+  script reads them as JPEG and writes PNG). Lumia-c's middle is busy behind the tiles (the brief: keep the middle calm).
+  Which variant each preset ships is Jeremy's pick (asked 2026-09-28); FINAL still also waits on the R12 wallpaper ruling.
 - 2026-09-23: From phase 15's review question Q-E (Jeremy: "(a)" — alarms ring as W10M's banner everywhere): the
   setup:overlay step ("Display over other apps", with its why line) EXISTS; phase 15 ADDs its row to the Setup
   checklist and its why line to this doc's table, and this phase builds the step (C-34, 2026-09-23: phase 15 was built
