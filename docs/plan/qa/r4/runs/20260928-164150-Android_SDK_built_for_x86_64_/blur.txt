@@ -1,0 +1,20 @@
+== normal
+[ro.surface_flinger.supports_background_blur]: [1]
+  mBlurEnabled=true
+== BLUR (cross-window blur probe)
+  isCrossWindowBlurEnabled  true
+  power saving (low_power)  0
+  overlay added: FLAG_BLUR_BEHIND, blurBehindRadius 80; held 8 s for the screenshot
+  listener: blur enabled = true
+BLUR DONE 179063544728826
+
+== powersave
+[ro.surface_flinger.supports_background_blur]: [1]
+  mBlurEnabled=false
+== BLUR (cross-window blur probe)
+  isCrossWindowBlurEnabled  false
+  power saving (low_power)  1
+  overlay added: FLAG_BLUR_BEHIND, blurBehindRadius 80; held 8 s for the screenshot
+  listener: blur enabled = false
+BLUR DONE 179063545912793
+

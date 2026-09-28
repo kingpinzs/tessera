@@ -1,0 +1,54 @@
+== carrier (operator names only)
+sim operator: T-Mobile · network: T-Mobile
+
+== carrier config: voicemail / VVM / GBA keys
+call_forwarding_map_non_number_to_voicemail_bool = false
+carrier_certificate_string_array = [92B5F8117FBD9BD5738FF168A4FA12CBE284BE834EDE1A7BB44DD8455BA15920:com.tmobile.rsuapp,com.tmobile.echolocate,com.tmobile.services.nameid,com.tmobile.pr.mytmobile,com.tmobile.vvm.application, 3D1A4BEF6EE7AF7D34D120E7B1AAC0DD245585DE6237CF100F68333AFACFF562:com.tmobile.rsuapp,com.tmobile.echolocate,com.tmobile.services.nameid,com.tmobile.pr.mytmobile,com.tmobile.vvm.application, 6892793FC413019D2DF609DFED7AF622D0F2D8FCF96EFA7E3FB87EEA34E10B93:com.tmobile.rsuapp,com.tmobile.echolocate,com.tmobile.services.nameid,com.tmobile.pr.mytmobile,com.tmobile.vvm.application, 7B68FD9D4E7610C9CB35FC0C6CC06EA04C6906E3DFA9F48F9A05460AF36BFFFC:com.tmobile.rsuapp,com.tmobile.echolocate,com.tmobile.services.nameid,com.tmobile.pr.mytmobile,com.tmobile.vvm.application]
+carrier_ims_gba_required_bool = false
+carrier_ims_gba_required_bool = true
+carrier_vvm_package_name_string = 
+carrier_vvm_package_name_string_array = null
+carrier_vvm_package_name_string = com.tmobile.vvm.application
+config_telephony_use_own_number_for_voicemail_bool = false
+display_voicemail_number_as_default_call_forwarding_number = false
+editable_voicemail_number_bool = false
+editable_voicemail_number_setting_bool = true
+gba_mode_int = 1
+gba_ua_security_organization_int = 1
+gba_ua_security_protocol_int = 65536
+gba_ua_tls_cipher_suite_int = 0
+gba_ua_tls_cipher_suite_int = 47
+hide_voicemail_number_setting_bool = false
+imsvoice.ringback_timer_millis_int = 90000
+mdn_is_additional_voicemail_number_bool = false
+voicemail_notification_persistent_bool = false
+vvm_cellular_data_required_bool = false
+vvm_client_prefix_string = //VVM
+vvm_destination_number_string = 
+vvm_destination_number_string = 122
+vvm_disabled_capabilities_string_array = null
+vvm_legacy_mode_enabled_bool = false
+vvm_port_number_int = 0
+vvm_port_number_int = 1808
+vvm_prefetch_bool = true
+vvm_ssl_enabled_bool = false
+vvm_type_string = 
+vvm_type_string = vvm_type_cvvm
+
+== apps that could handle visual voicemail
+
+== the default dialer (role)
+com.android.dialer
+
+== the system voicemail provider: rows per source app (counts only, no content)
+  no rows: No result found.
+
+== what the shell uid holds (the helper would run as it)
+android.permission.MODIFY_PHONE_STATE
+android.permission.MODIFY_PHONE_STATE: granted=true
+android.permission.READ_PRIVILEGED_PHONE_STATE
+android.permission.READ_PRIVILEGED_PHONE_STATE: granted=true
+com.android.voicemail.permission.ADD_VOICEMAIL
+com.android.voicemail.permission.ADD_VOICEMAIL: granted=true, flags=[ SYSTEM_FIXED|GRANTED_BY_DEFAULT|RESTRICTION_UPGRADE_EXEMPT]
+com.android.voicemail.permission.READ_VOICEMAIL
+com.android.voicemail.permission.READ_VOICEMAIL: granted=true

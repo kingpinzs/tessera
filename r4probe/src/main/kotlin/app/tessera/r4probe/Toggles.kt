@@ -5,9 +5,14 @@ package app.tessera.r4probe
  * the rule phase 19 sets for every helper verb ("a named verb in the allow-list, never a generic command"). The host
  * script's direct pass reads the same list (`HelperMain --list-toggles`), so the two passes cannot drift apart.
  *
- * Each toggle is read, flipped away from its current state, read, flipped back, and read again; [onPattern] decides
- * which way "away" is. A read the pattern cannot place counts as off, so the second flip always turns a toggle OFF
- * that the first one turned on (a hotspot left running, or airplane mode left on, is the failure to avoid).
+ * A toggle is flipped ONLY when its read matches [onPattern] or [offPattern]; a read that matches neither is recorded
+ * and left alone (review/2026-09-28-r4-kit-review.md B1: a pattern that silently failed read NFC as "off" and left it
+ * off). The patterns are case-insensitive and written for BOTH engines that apply them — Kotlin's Regex with
+ * IGNORE_CASE here and GNU `grep -Ei` in the script — so no inline flags like `(?i)`, which grep reads as literals.
+ *
+ * A toggle with a [probe] is never flipped: the probe is a command that shows whether the shell uid may use the verb
+ * without changing anything (the hotspot: `start-softap` with no arguments starts nothing; on a build that refuses the
+ * shell it throws, and that refusal is the answer phase 19 needs).
  */
 object Toggles {
     class Toggle(
@@ -15,36 +20,41 @@ object Toggles {
         val read: String,
         val on: String,
         val off: String,
-        val onPattern: Regex,
+        val onPattern: String,
+        val offPattern: String,
         /** Which plan item waits on this toggle. */
         val forItem: String,
-    )
+        val probe: String? = null,
+    ) {
+        fun state(read: String): String = when {
+            Regex(onPattern, RegexOption.IGNORE_CASE).containsMatchIn(read) -> "on"
+            Regex(offPattern, RegexOption.IGNORE_CASE).containsMatchIn(read) -> "off"
+            else -> "unknown"
+        }
+    }
 
     val ALL = listOf(
         // Android will not hold battery saver on while charging, and the phone charges over the USB cable R4 runs on:
         // the host script reports the battery unplugged (dumpsys battery unplug) around every battery-saver step and
         // resets it after, so this verb stays the plain one the product would ship.
         Toggle("battery_saver", "settings get global low_power", "cmd power set-mode 1", "cmd power set-mode 0",
-            Regex("^1"), "phase 19 verb (battery saver)"),
+            "^1$", "^0$", "phase 19 verb (battery saver)"),
         Toggle("location", "cmd location is-location-enabled", "cmd location set-location-enabled true",
-            "cmd location set-location-enabled false", Regex("true"), "phase 19 verb (location)"),
+            "cmd location set-location-enabled false", "^true$", "^false$", "phase 19 verb (location)"),
         Toggle("auto_time", "settings get global auto_time", "settings put global auto_time 1",
-            "settings put global auto_time 0", Regex("^1"), "phase 19 verb (automatic time)"),
-        Toggle("nfc", "dumpsys nfc 2>&1 | grep -i -m1 -E 'mState|state='", "svc nfc enable", "svc nfc disable",
-            Regex("(?i)(mState|state)[=:]\\s*on"), "phase 19 verb (NFC)"),
+            "settings put global auto_time 0", "^1$", "^0$", "phase 19 verb (automatic time)"),
+        Toggle("nfc", "dumpsys nfc 2>&1 | grep -i -m1 -E 'mState[=:]'", "svc nfc enable", "svc nfc disable",
+            "mState[=:] *on\\b", "mState[=:] *off\\b", "phase 19 verb (NFC)"),
         Toggle("bluetooth", "settings get global bluetooth_on", "cmd bluetooth_manager enable",
-            "cmd bluetooth_manager disable", Regex("^1"), "phase 04 action center"),
+            "cmd bluetooth_manager disable", "^1$", "^0$", "phase 04 action center"),
         Toggle("wifi", "cmd wifi status 2>&1 | head -1", "cmd wifi set-wifi-enabled enabled",
-            "cmd wifi set-wifi-enabled disabled", Regex("Wifi is enabled"), "phase 04 action center"),
-        // No hotspot command is listed for the shell on the Android 16 emulator (a user build); the attempt and its
-        // exact failure are the evidence phase 19 needs (a verb R4 cannot prove stays a deep-link).
-        Toggle("hotspot", "dumpsys wifi 2>&1 | grep -m1 -E 'WifiApState|SoftApState'",
-            "cmd wifi start-softap R4probe wpa2 r4probe-temp-8471", "cmd wifi stop-softap",
-            Regex("(?i)(WIFI_AP_STATE_ENABLED|state[=: ]+(enabled|13)\\b)"), "phase 19 verb (hotspot)"),
+            "cmd wifi set-wifi-enabled disabled", "Wifi is enabled", "Wifi is disabled", "phase 04 action center"),
+        Toggle("hotspot", "dumpsys wifi 2>&1 | grep -m1 -E 'WifiApState|SoftApState'", "-", "-",
+            "a^", "a^", "phase 19 verb (hotspot)", probe = "cmd wifi start-softap 2>&1"),
         Toggle("mobile_data", "settings get global mobile_data", "svc data enable", "svc data disable",
-            Regex("^1"), "phase 04 action center"),
+            "^1$", "^0$", "phase 04 action center"),
         Toggle("airplane", "cmd connectivity airplane-mode", "cmd connectivity airplane-mode enable",
-            "cmd connectivity airplane-mode disable", Regex("^enabled"), "phase 04 action center"),
+            "cmd connectivity airplane-mode disable", "^enabled$", "^disabled$", "phase 04 action center"),
     )
 
     fun named(name: String): Toggle? = ALL.firstOrNull { it.name == name }

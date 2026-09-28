@@ -1,0 +1,9 @@
+battery_saver	settings get global low_power	cmd power set-mode 1	cmd power set-mode 0	^1$	^0$	-	phase 19 verb (battery saver)
+location	cmd location is-location-enabled	cmd location set-location-enabled true	cmd location set-location-enabled false	^true$	^false$	-	phase 19 verb (location)
+auto_time	settings get global auto_time	settings put global auto_time 1	settings put global auto_time 0	^1$	^0$	-	phase 19 verb (automatic time)
+nfc	dumpsys nfc 2>&1 | grep -i -m1 -E 'mState[=:]'	svc nfc enable	svc nfc disable	mState[=:] *on\b	mState[=:] *off\b	-	phase 19 verb (NFC)
+bluetooth	settings get global bluetooth_on	cmd bluetooth_manager enable	cmd bluetooth_manager disable	^1$	^0$	-	phase 04 action center
+wifi	cmd wifi status 2>&1 | head -1	cmd wifi set-wifi-enabled enabled	cmd wifi set-wifi-enabled disabled	Wifi is enabled	Wifi is disabled	-	phase 04 action center
+hotspot	dumpsys wifi 2>&1 | grep -m1 -E 'WifiApState|SoftApState'	-	-	a^	a^	cmd wifi start-softap 2>&1	phase 19 verb (hotspot)
+mobile_data	settings get global mobile_data	svc data enable	svc data disable	^1$	^0$	-	phase 04 action center
+airplane	cmd connectivity airplane-mode	cmd connectivity airplane-mode enable	cmd connectivity airplane-mode disable	^enabled$	^disabled$	-	phase 04 action center

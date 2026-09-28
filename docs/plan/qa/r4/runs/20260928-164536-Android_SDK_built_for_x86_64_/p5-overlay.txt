@@ -1,0 +1,49 @@
+  accessibility service        connected
+== nav-0 a11y (navigation_mode=0); taps sent at y=2328 and y=1170 of 2340
+-- a11y
+window type     TYPE_ACCESSIBILITY_OVERLAY (phase 04's action center)
+navigation_mode = 0 (3-button)
+display bounds  1080 x 2340 px
+
+A. MATCH_PARENT, insets fitted (the default)
+  laid out       1080 x 2340 px
+  short by       0 px (the nav bar is 135 px)
+  nav inset seen 0 px from inside the overlay
+  REACHES the display's bottom edge.
+
+B. setFitInsetsTypes(0) + explicit full height
+  laid out       1080 x 2340 px
+  short by       0 px (the nav bar is 135 px)
+  nav inset seen 0 px from inside the overlay
+  REACHES the display's bottom edge.
+
+
+  TOUCHES the overlay received:
+    touch at y=2328 of 2340 — IN the nav bar's strip
+    touch at y=1170 of 2340 — above the strip
+  RESULT: a tap in the nav bar's strip REACHED the overlay.
+OVERLAY DONE a11y 17906356989208
+== nav-0 app (navigation_mode=0); taps sent at y=2328 and y=1170 of 2340
+-- app
+window type     TYPE_APPLICATION_OVERLAY (contrast only)
+navigation_mode = 0 (3-button)
+display bounds  1080 x 2340 px
+
+A. MATCH_PARENT, insets fitted (the default)
+  laid out       1080 x 2205 px
+  short by       135 px (the nav bar is 135 px)
+  nav inset seen 0 px from inside the overlay
+  STOPS 135 px short.
+
+B. setFitInsetsTypes(0) + explicit full height
+  laid out       1080 x 2340 px
+  short by       0 px (the nav bar is 135 px)
+  nav inset seen 135 px from inside the overlay
+  REACHES the display's bottom edge.
+
+
+  TOUCHES the overlay received:
+    touch at y=1170 of 2340 — above the strip
+  RESULT: no tap in the strip reached the overlay. Either none was made, or
+  the nav bar takes them — compare with the taps above the strip.
+OVERLAY DONE app 179063571428193
