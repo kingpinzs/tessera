@@ -100,3 +100,8 @@ L13-7 (Tess Back, not reproduced): `L13-7-tess-back-repro-707aa55b/`.
 `scripts/l13_7_row.sh` with `scripts/l13_7_layout.json`: `L13_7-before-ad784939/` 14/4 (0 tiles after Back and after
 Tess's Back) · `L13_7-7f00cb9e/` 18/0 (7f00cb9e = 54ecf613's tree, installed c519a4db). `L13_4-7f00cb9e/` 22/0.
 Reproduction: `L13-7-tess-tile-repro-ad784939/`; the Search-key paths that never showed it: `L13-7-tess-back-repro-707aa55b/`.
+After review round 1 (triage review/2026-09-27-L13-7-fix-triage.md): `L13_7-drv4-7f00cb9e/` 21/4 (only the recent-row
+checks fail) and `L13_7-drv4-d74b02ac/` 25/0 (d74b02ac = bf20237a's tree, installed 2fbe728b); `L13_4-d74b02ac/` 22/0.
+Earlier driver versions: `L13_7-drv2-7f00cb9e/` (aborted on a missing tag), `L13_7-drv2-d74b02ac-hung-emulator/` (the
+emulator's framework died mid-run), `L13_7-drv3-*` (a line-order check that is too strict for Tess's Windows key).
+7f00cb9e is 54ecf613's code: reviewer B's javap of the built StartActivity shows onWindowFocusChanged at the committed lines.
