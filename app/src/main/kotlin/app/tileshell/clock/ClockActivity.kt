@@ -160,12 +160,22 @@ class ClockNav {
         page = ClockPage.TimerEditor
     }
 
+    /** L13-18: the page About was opened from — the tabs or an editor, whose draft is still held here — where Back returns. */
+    private var aboutFrom: ClockPage = ClockPage.Tabs
+
+    fun openAbout() {
+        barExpanded = false
+        aboutFrom = page
+        page = ClockPage.About
+    }
+
     /** Back: the innermost thing first. False when there was nothing left to unwind (the activity finishes). */
     fun back(): Boolean {
         if (barExpanded) { barExpanded = false; return true }
         when (page) {
             ClockPage.Tabs -> Unit
             ClockPage.Sounds, ClockPage.MusicPicker -> { page = ClockPage.AlarmEditor; return true }
+            ClockPage.About -> { page = aboutFrom; return true }
             else -> { page = ClockPage.Tabs; return true }
         }
         when {
