@@ -175,8 +175,10 @@ fun BoxScope.ClockAppBar(buttons: List<BarButton>, menu: List<ClockMenuEntry>, i
             Box(Modifier.fillMaxSize().pointerInput(Unit) { awaitEachGesture { awaitFirstDown(requireUnconsumed = false) } })
         }
         Row(Modifier.align(Alignment.CenterEnd).fillMaxHeight()) {
+            // L13-17: a button collapses the bar before it acts, as the "…" menu's items do (and as the CommandBar
+            // closes on a command): left expanded, the next page's bar (the editors share it) opened with its menu up.
             buttons.forEach { b ->
-                BarButtonView(b.glyph, if (expanded) b.label else null, b.tag, b.enabled, ClockMetrics.BUTTON_PITCH, colors.text) { b.onClick() }
+                BarButtonView(b.glyph, if (expanded) b.label else null, b.tag, b.enabled, ClockMetrics.BUTTON_PITCH, colors.text) { onExpand(false); b.onClick() }
             }
             BarButtonView(Glyph.MORE_HORIZONTAL, null, "clock_more", true, ClockMetrics.MORE_W, colors.text) { onExpand(!expanded) }
         }
