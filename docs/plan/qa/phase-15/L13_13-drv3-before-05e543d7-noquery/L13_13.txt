@@ -1,0 +1,40 @@
+==============================================================================
+ROW L13_13 — a World Clock hold menu never stays hidden under the search (New, a blank search area, the bar)
+at            2026-09-27T23:04:20-06:00
+driver        l13_13_row.sh blob 376cee2d3266fe81e9e31abe7c1fbb3ae5dd7fa7
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     ce79bc1700f41c78 339127802 bytes
+apk installed 634ee594af81ad30
+apk match     NO (device 634ee594af81ad30, built 8a46e6afed3c671e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      world store existed before: no
+PASS  the city row is on screen                                   != 
+PASS  the New button is on screen                                 != 
+PASS  the "…" button is on screen                               != 
+PASS  (1): the hold opened the city's menu                        = yes
+PASS  (1): New opened the search                                  = yes
+      (1): hold menu in the dump over the search: no (covered nodes are not dumped)
+FAIL  (1): Back closed the search                                 expected [no] got [yes]
+PASS  (1): ... and the Clock is still open                        = yes
+PASS  (2): the search is open                                     = yes
+PASS  (2): its query matches no city (the page under the hold point is blank)  does not contain [clock_search_result:]
+FAIL  (2): the hold on the search page opened no city menu under it  expected [no] got [yes]
+PASS  (2): ... and the search is still open                       = yes
+FAIL  (2): Back closed the search, the Clock still open           expected [no yes] got [yes yes]
+PASS  (3): the hold opened the city's menu                        = yes
+PASS  (3): "…" opened the bar's menu                            = yes
+FAIL  (3): ... and the hold menu closed                           expected [no] got [yes]
+FAIL  (3): Back closed the bar, the Clock still open              expected [no yes] got [yes yes]
+FAIL  (4): the search lists cities                                should not be []
+      (4): first listed city before the drag: , after: 
+FAIL  (4): a drag on the results scrolls the list                 should not be []
+FAIL  (4): a moving tap on a result picked it (the search closed)  expected [no] got [yes]
+FAIL  (4): ... and the city was added                             expected [yes] got [no]
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+L13_13: 15 passed, 9 failed, 0 recorded
