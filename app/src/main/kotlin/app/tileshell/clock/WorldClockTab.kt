@@ -73,6 +73,7 @@ import java.util.TimeZone
 import androidx.activity.compose.BackHandler
 import app.tileshell.ui.components.OverlayLayer
 import app.tileshell.ui.components.dismissOverlay
+import app.tileshell.ui.components.modalOverlay
 
 private fun capPad(capTop: Float, size: Float): Dp = CapMetrics.topPaddingForCapTop(capTop, size).dp
 
@@ -126,6 +127,9 @@ fun BoxScope.WorldClockTab(nav: ClockNav, world: WorldClockStore) {
     val displayMs = if (nav.compare) WorldClockRules.compareInstant(now, nav.compareOffset) else now
 
     var menuZone by remember { mutableStateOf<String?>(null) }
+    // L13-13: a hold menu closes when the bar is used over it (New's search, the compare strip, the "…" menu), so it never stays open hidden
+    // under what the bar opened, and Back closes what is on top.
+    LaunchedEffect(nav.worldSearch, nav.compare, nav.barExpanded) { if (nav.worldSearch || nav.compare || nav.barExpanded) menuZone = null }
     var menuAnchor by remember { mutableFloatStateOf(0f) }
     var rootTop by remember { mutableFloatStateOf(0f) }
     val density = LocalDensity.current
@@ -223,7 +227,10 @@ private fun BoxScope.CitySearch(entries: List<WorldClockRules.Entry>, onPick: (W
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
     val results = remember(query, entries) { WorldClockRules.search(entries, query) }
-    Box(Modifier.fillMaxSize().background(colors.background).testTag("clock_search_page")) {
+    // L13-13: the search page is modal (L13-2's rule): a touch on its blank parts no longer reaches the city list under it
+    // (a hold there opened a hidden hold menu), and a drag on it does not swipe the tabs. Its field and results take
+    // their own touches first; a tap on a blank part does nothing.
+    Box(Modifier.fillMaxSize().background(colors.background).modalOverlay(onTapOff = {}).testTag("clock_search_page")) {
         Box(
             Modifier.offset(y = 8.dp).padding(horizontal = 12.dp).fillMaxWidth().height(43.4.dp)
                 .background(Color(32, 37, 33)).border(2.dp, colors.accent),
