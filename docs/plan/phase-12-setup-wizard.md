@@ -51,6 +51,12 @@ picture (R12 §6 lists img5): a preset must not rewrite Android's lock-screen wa
 (b); the split-time reason, "the shell draws no lock screen", missed that the shell can set Android's lock wallpaper). Hooks for later phases.
 
 ## Decisions
+- 2026-09-28: Jeremy's variant pick (Jeremy: "hal-a lumia-b midnight-b soft-c"): HAL ← `art/themes/hal-a.png`, Lumia ←
+  `lumia-b.png`, Midnight ← `midnight-b.png`, Soft ← `soft-c.png`; the other eight files stay local and unbundled. From the
+  check below: hal-a, lumia-b and midnight-b are 941 px wide, so the host crop scales them ≈ 2.4× up (Lumia's edges soften;
+  Jeremy judges it on the phone, H row); soft-c is 1536 wide. Agent calls the picks open (T12-2 left Soft's and Midnight's
+  accents to "when the picture is in art/themes/"): Soft = Purple Shadow #8E8CD8, Midnight = Purple Shadow Dark #6B69D6 (the
+  table gives each method). The four picked files are committed.
 - 2026-09-28: Jeremy's pictures are in art/themes/ (Q6 input): three variants per preset, `hal-`, `soft-`, `lumia-`,
   `midnight-` × a / b / c. Agent check against theme-art-brief.md: all twelve are portrait with no text, logo, face or
   visible mark (full view, and each corner under autocontrast); every file carries an invisible C2PA content-credential
@@ -321,9 +327,9 @@ picture (R12 §6 lists img5): a preset must not rewrite Android's lock-screen wa
   | Default | Default Blue #0078D7 (X26) | DARK | none | 0.5 (as built) | NONE | HAL lens (`Brand.LENS_*`) / the accent | DARK (the built keyboard, R6) | true |
   | Windows 10 Mobile (original) | Cobalt #3E65FF (R12 §1, HIGH): the 49th named swatch `Cobalt`, after the 48 (Q7 A) | DARK (R12 §2) | img0, one of two variants (Q8 C; `theme_preset_variant`, T12-10): `hero` (default) = the later rotated Hero, the final release's, `img0_w10m_1607-1709.jpg` → `preset_w10m_hero`; `streaks` = the first build's light streaks, `img0_w10m_1507-1511.jpg` → `preset_w10m_streaks` (R12 §4.2); a variant whose asset the build lacks is not offered, and with neither the preset applies with no picture (T12-7) | 0.75 → α 0.40 (R12 §5.1) | NONE (R12 §5.2) | the lens on Cobalt's hue line / Cobalt (Q9 A) | DARK, the cursor dot in the accent (R12 §5.2) | false (R12 §5.2, approximation) |
   | HAL | Red #E81123 — the A16 swatch nearest the lens red `Brand.LENS_IRIS` #D81810 (`brand/Brand.kt:46`; RGB distance 25.8), agent call T12-11 | DARK | `preset_hal` | 0.35 (α 0.72) | NONE | the exact HAL lens (`Brand.LENS_*`) / the accent | DARK | true |
-  | Soft | the A16 swatch nearest the Soft picture's dominant colour, picked when the picture is in art/themes/ | LIGHT | `preset_soft` | 0.6 (α 0.52) | P4_PRESS | the lens on the accent's hue line / the accent | LIGHT (new, P4: panel `Palette.lightChromeLow` #F2F2F2, keys `lightChromeMedium` #E6E6E6, labels #000000 — R1 §6.2's light chrome, `ui/tokens/Palette.kt:27-32`) | true |
+  | Soft | Purple Shadow #8E8CD8 — the A16 swatch RGB-nearest each of soft-c's three main colours (k-means, k = 4: pink (250,219,230), lavender (231,213,237), pale blue (207,229,248)), agent call 2026-09-28 | LIGHT | `preset_soft` | 0.6 (α 0.52) | P4_PRESS | the lens on the accent's hue line / the accent | LIGHT (new, P4: panel `Palette.lightChromeLow` #F2F2F2, keys `lightChromeMedium` #E6E6E6, labels #000000 — R1 §6.2's light chrome, `ui/tokens/Palette.kt:27-32`) | true |
   | Lumia | Seafoam #00B7C3 — the A16 swatch nearest WP8.1 Cyan #1BA1E2 (R12 §1) by RGB distance, 46.6; no swatch is named "Cyan" (`ui/tokens/Palette.kt:11-18`) | DARK | `preset_lumia` | 0.5 (α 0.6) | WP8_TILT | the lens on the accent's hue line / the accent | DARK | true |
-  | Midnight | the A16 swatch nearest the Midnight picture's dominant colour, picked as Soft's is (T12-2 named none) | DARK | `preset_midnight` | 0.0 (opaque tiles) | NONE | HAL lens dimmed (each tone × 0.5 on its hue line) / the accent | DARK | false |
+  | Midnight | Purple Shadow Dark #6B69D6 — the saturated A16 swatch nearest by hue to midnight-b's aurora (its non-black clusters at 225-249°); RGB distance, Soft's method, lands on greys for so dark a colour (Storm #4C4A48 first), agent call 2026-09-28 | DARK | `preset_midnight` | 0.0 (opaque tiles) | NONE | HAL lens dimmed (each tone × 0.5 on its hue line) / the accent | DARK | false |
 
   **Custom rule:** `theme_preset` holds the preset's id (`default`, `w10m`, `hal`, `soft`, `lumia`, `midnight`) and becomes
   `custom` on any single item change (phase 13's Transparency effects switch included); re-tapping a preset restores every item it
@@ -334,7 +340,8 @@ picture (R12 §6 lists img5): a preset must not rewrite Android's lock-screen wa
   theme's existing rows (the accent grid — pulled out of `StartThemePage` into one shared composable, as the 2026-09-22 line
   planned — Dark / Light, choose / remove picture, tile transparency, press style), phase 13's Transparency effects switch, and two
   new rows, "Tess's look" (lens: HAL red or the accent) and "Keyboard" (Dark / Light) (P4, H6). **Pictures:**
-  `art/themes/<name>.png` (Jeremy's, Q6) → cropped and scaled on the host to 1872 × 4056 (1440 × 3120 × 1.3 parallax headroom,
+  `art/themes/<name>-<variant>.png` (Jeremy's, Q6; the variant each preset ships is his pick, Decisions 2026-09-28: `hal-a`,
+  `lumia-b`, `midnight-b`, `soft-c` — soft-c is JPEG data under a .png name, read as JPEG) → cropped and scaled on the host to 1872 × 4056 (1440 × 3120 × 1.3 parallax headroom,
   portrait) → bundled WebP in the branding module (A10) as `preset_<name>`; `background` holds its
   `android.resource://app.tileshell/drawable/preset_<name>` URI; the pictures add ≤ 8 MB to the APK in total and none is ≥ 2.5 MB
   (E12). The original preset's two variants are `preset_w10m_hero` and `preset_w10m_streaks`, made the same way from R12's two img0
