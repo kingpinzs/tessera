@@ -27,6 +27,20 @@
 
         <!-- R4 part 2: the helper (the shell's app_process) hands its binder in here. Exported because the caller is
              the shell; HelperProvider takes the binder only from uid 2000 (shell) or 0 (root). -->
+        <!-- P5: the accessibility overlay phase 04's action center uses; turned on and off by the R4 script only. -->
+        <service
+            android:name=".ProbeA11yService"
+            android:exported="true"
+            android:label="R4 probe (nav-bar test)"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/a11y_probe" />
+        </service>
+
         <provider
             android:name=".HelperProvider"
             android:authorities="app.tessera.r4probe.helper"

@@ -19,7 +19,8 @@ import java.util.concurrent.TimeUnit
  * Modes:
  *   --probe          print who this process is (uid, SELinux context, build) and whether the hidden calls the handoff
  *                    needs are reachable; exit.
- *   --list-toggles   print the allow-list (Toggles.ALL), one tab-separated "name read on off pattern" line each.
+ *   --list-toggles   print the allow-list (Toggles.ALL), one tab-separated line each:
+ *                    name, read, on, off, on-pattern, off-pattern, probe (or "-"), the plan item.
  *   --daemon <tag>   stay up: write a pid file and a log under /data/local/tmp, and whenever the probe app has a new
  *                    process, hand it [HelperBinder] through the app's provider (the way `content call` reaches a
  *                    provider: IActivityManager.getContentProviderExternal, then IContentProvider.call).
@@ -41,7 +42,8 @@ object HelperMain {
         when (args.firstOrNull()) {
             // Tab-separated: the commands and patterns contain "|" (pipes, alternations); none contains a tab.
             "--list-toggles" -> Toggles.ALL.forEach {
-                println(listOf(it.name, it.read, it.on, it.off, it.onPattern.pattern).joinToString("\t"))
+                println(listOf(it.name, it.read, it.on, it.off, it.onPattern, it.offPattern, it.probe ?: "-", it.forItem)
+                    .joinToString("\t"))
             }
             "--daemon" -> daemon(args.getOrNull(1) ?: "usb")
             else -> probe()
@@ -115,9 +117,14 @@ object HelperMain {
     /** Runs one fixed command string as this process's uid; the exit code and the combined output. */
     fun sh(cmd: String, timeoutS: Long = 20): Pair<Int, String> = try {
         val p = ProcessBuilder("sh", "-c", cmd).redirectErrorStream(true).start()
-        val out = p.inputStream.bufferedReader().readText()
-        if (!p.waitFor(timeoutS, TimeUnit.SECONDS)) { p.destroy(); -2 to "$out[timed out after ${timeoutS}s]" }
-        else p.exitValue() to out
+        // Read on a thread: reading first would block until the command ended, so a hung command never timed out.
+        val buf = StringBuffer()
+        val reader = Thread { runCatching { p.inputStream.bufferedReader().forEachLine { buf.append(it).append('\n') } } }
+            .apply { isDaemon = true; start() }
+        if (!p.waitFor(timeoutS, TimeUnit.SECONDS)) {
+            p.destroyForcibly(); reader.join(1000)
+            -2 to "$buf[timed out after ${timeoutS}s]"
+        } else { reader.join(2000); p.exitValue() to buf.toString() }
     } catch (e: Exception) { -1 to "${e.javaClass.simpleName}: ${e.message}" }
 
     fun log(text: String) {
@@ -151,7 +158,13 @@ object HelperMain {
                     val name = data.readString() ?: ""
                     val action = data.readString() ?: ""
                     val t = Toggles.named(name)
-                    val cmd = when (action) { "read" -> t?.read; "on" -> t?.on; "off" -> t?.off; else -> null }
+                    val cmd = when (action) {
+                        "read" -> t?.read
+                        "on" -> t?.on?.takeIf { t.probe == null }
+                        "off" -> t?.off?.takeIf { t.probe == null }
+                        "probe" -> t?.probe
+                        else -> null
+                    }
                     if (cmd == null) {
                         reply?.writeInt(-101); reply?.writeString("unknown toggle or action: $name $action")
                     } else {

@@ -60,6 +60,8 @@ class ProbeActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // The script's screenshots and taps need the screen on for the whole run.
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val pad = dp(16)
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -73,7 +75,7 @@ class ProbeActivity : Activity() {
             setTextIsSelectable(true)
         }
         root.addView(button("Copy the whole report") { copy() })
-        root.addView(button("Overlay probe: run it (needs the permission below)") { runOverlayProbe() })
+        root.addView(button("Overlay probe: run it (needs the permission below)") { runOverlayProbe("app") })
         root.addView(button("Blur probe: run it (needs the permission below)") { runBlurProbe() })
         root.addView(button("Grant 'Display over other apps'") { askForOverlay() })
         root.addView(button("Helper: ping it") { runHelperPing() })
@@ -104,7 +106,8 @@ class ProbeActivity : Activity() {
     private fun handleRun(intent: Intent?) {
         intent?.getStringExtra("nonce")?.let { nonce = it }
         when (intent?.getStringExtra("run")) {
-            "overlay" -> runOverlayProbe()
+            "overlay" -> runOverlayProbe("app")
+            "overlay_a11y" -> runOverlayProbe("a11y")
             "blur" -> runBlurProbe()
             "helper_ping" -> runHelperPing()
             "helper_toggles" -> runHelperToggles()
@@ -164,7 +167,9 @@ class ProbeActivity : Activity() {
         blank()
 
         section("P5 — THE OVERLAY PROBE")
-        line(overlayResult ?: "not run yet. Grant the permission, then tap the overlay button.")
+        kv("accessibility service", if (ProbeA11yService.instance != null) "connected" else "not connected")
+        if (overlayResults.isEmpty()) line("not run yet. Grant the permission, then tap the overlay button.")
+        overlayResults.forEach { (kind, text) -> line("-- $kind"); line(text) }
         line("Run it once with gesture navigation and once with 3-button, and paste both reports:")
         line("  Settings > Display > Navigation bar")
         blank()
@@ -214,7 +219,10 @@ class ProbeActivity : Activity() {
         }.start()
     }
 
-    /** Each toggle: read, flip away, read, flip back, read — through the helper's binder, so as the shell uid. */
+    /**
+     * Each toggle through the helper's binder, so as the shell uid: read; if the read is a recognised state, flip away,
+     * read, flip back, read; if not, leave it alone and say so; a toggle with a probe runs only its probe.
+     */
     private fun runHelperToggles() {
         helperTogglesResult = "running…"
         collect()
@@ -222,21 +230,29 @@ class ProbeActivity : Activity() {
             val sb = StringBuilder()
             if (!HelperLink.connected()) sb.append("no helper binder: nothing flipped\n")
             else for (t in Toggles.ALL) {
+                sb.append("  ${t.name}  [${t.forItem}]\n")
+                if (t.probe != null) {
+                    val (e, o) = HelperLink.toggle(t.name, "probe")
+                    sb.append("    probe   (exit $e) ${one(o)}\n")
+                    sb.append("    PROBE ${if ("SecurityException" in o) "REFUSED to the shell uid" else "reached (no state changed)"}\n")
+                    continue
+                }
                 val (e0, before) = HelperLink.toggle(t.name, "read")
-                val wasOn = t.onPattern.containsMatchIn(before)
-                val (e1, o1) = HelperLink.toggle(t.name, if (wasOn) "off" else "on")
+                val st = t.state(before.trim())
+                sb.append("    before  (exit $e0) ${one(before)}  [$st]\n")
+                if (st == "unknown") { sb.append("    UNRECOGNISED STATE: not flipped\n"); continue }
+                val (e1, o1) = HelperLink.toggle(t.name, if (st == "on") "off" else "on")
                 Thread.sleep(3000)
                 val (_, mid) = HelperLink.toggle(t.name, "read")
-                val (e2, o2) = HelperLink.toggle(t.name, if (wasOn) "on" else "off")
+                val (e2, o2) = HelperLink.toggle(t.name, st)
                 Thread.sleep(3000)
                 val (_, after) = HelperLink.toggle(t.name, "read")
-                sb.append("  ${t.name}  [${t.forItem}]\n")
-                sb.append("    before  (exit $e0) ${one(before)}\n")
-                sb.append("    flip ${if (wasOn) "off" else "on "} (exit $e1) ${one(o1)}\n")
-                sb.append("    read    ${one(mid)}\n")
-                sb.append("    flip ${if (wasOn) "on " else "off"} (exit $e2) ${one(o2)}\n")
-                sb.append("    after   ${one(after)}\n")
-                sb.append("    CHANGED ${if (mid != before) "yes" else "NO"} · RESTORED ${if (after == before) "yes" else "NO"}\n")
+                val stMid = t.state(mid.trim()); val stAfter = t.state(after.trim())
+                sb.append("    flip ${if (st == "on") "off" else "on "} (exit $e1) ${one(o1)}\n")
+                sb.append("    read    ${one(mid)}  [$stMid]\n")
+                sb.append("    flip $st back (exit $e2) ${one(o2)}\n")
+                sb.append("    after   ${one(after)}  [$stAfter]\n")
+                sb.append("    CHANGED ${if (stMid != st) "yes" else "NO"} · RESTORED ${if (stAfter == st) "yes" else "NO"}\n")
                 runOnUiThread { helperTogglesResult = sb.toString() + "  …"; collect() }
             }
             sb.append("HELPER_TOGGLES DONE $nonce")
@@ -294,26 +310,41 @@ class ProbeActivity : Activity() {
 
     // ---------------- P5 ----------------
 
-    private var overlayResult: String? = null
+    /** Per window kind ("app", "a11y"): the probe's result text. */
+    private val overlayResults = linkedMapOf<String, String>()
     private val touches = mutableListOf<String>()
 
     /**
-     * Ask for a window the size of the whole display and measure what actually arrives.
+     * Ask for a window the size of the whole display and measure what actually arrives — for BOTH window types that
+     * matter (review/2026-09-28-r4-kit-review.md B5): "app" is TYPE_APPLICATION_OVERLAY, which the window manager
+     * layers BELOW the nav bar; "a11y" is TYPE_ACCESSIBILITY_OVERLAY, added through [ProbeA11yService], which is layered
+     * above it and is what phase 04's action center is (its accessibility overlay). P5 is answered by the a11y run; the
+     * app run is kept as the contrast.
      *
-     * The question P5 asks is whether the overlay's own content can occupy the nav bar's strip. An
-     * overlay that is laid out to the display's full height AND reports a zero bottom inset after
-     * asking for it is drawing under the bar; one that stops short is not. Both numbers are printed so
-     * the conclusion can be checked rather than trusted.
+     * The question is whether the overlay's own content can occupy the nav bar's strip. An overlay laid out to the
+     * display's full height AND reporting a zero bottom inset after asking for it is drawing under the bar; one that
+     * stops short is not. Both numbers are printed so the conclusion can be checked rather than trusted.
      */
-    private fun runOverlayProbe() {
-        if (!Settings.canDrawOverlays(this)) {
-            toast("Grant 'Display over other apps' first")
-            return
+    private fun runOverlayProbe(kind: String) {
+        val ctx: android.content.Context = if (kind == "a11y") {
+            ProbeA11yService.instance ?: run {
+                overlayResults[kind] = "the accessibility service is not connected — nothing was measured\nOVERLAY DONE $kind $nonce"
+                collect(); return
+            }
+        } else {
+            if (!Settings.canDrawOverlays(this)) {
+                overlayResults[kind] = "no 'Display over other apps' permission — nothing was measured\nOVERLAY DONE $kind $nonce"
+                collect(); return
+            }
+            this
         }
-        val wm = getSystemService(WindowManager::class.java)
+        val type = if (kind == "a11y") WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
+                   else WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        val wm = ctx.getSystemService(WindowManager::class.java)
         val bounds = wm.currentWindowMetrics.bounds
         val results = StringBuilder()
         touches.clear()
+        results.append("window type     ${if (kind == "a11y") "TYPE_ACCESSIBILITY_OVERLAY (phase 04's action center)" else "TYPE_APPLICATION_OVERLAY (contrast only)"}\n")
         results.append("navigation_mode = ${secureInt("navigation_mode")} ${navName(secureInt("navigation_mode"))}\n")
         results.append("display bounds  ${bounds.width()} x ${bounds.height()} px\n\n")
 
@@ -333,7 +364,7 @@ class ProbeActivity : Activity() {
             val params = WindowManager.LayoutParams(
                 if (explicitSize) bounds.width() else WindowManager.LayoutParams.MATCH_PARENT,
                 if (explicitSize) bounds.height() else WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                type,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                     WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                     WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
@@ -349,10 +380,10 @@ class ProbeActivity : Activity() {
             // records every touch it gets and where. A tap in the bottom strip that never arrives is
             // the nav bar taking it, and that would make any content placed there dead.
             val probe: View = if (label.startsWith("B")) {
-                android.widget.FrameLayout(this).apply {
+                android.widget.FrameLayout(ctx).apply {
                     setBackgroundColor(0x5500AAFFL.toInt())
-                    addView(TextView(this@ProbeActivity).apply {
-                        text = "TAP THE STRIP OVER THE NAV BUTTONS,\nthen tap anywhere higher up"
+                    addView(TextView(ctx).apply {
+                        text = "TAP THE STRIP OVER THE NAV BUTTONS,\nthen tap anywhere higher up\n($kind)"
                         setTextColor(Color.WHITE)
                         textSize = 16f
                         gravity = Gravity.CENTER
@@ -368,10 +399,11 @@ class ProbeActivity : Activity() {
                     }
                 }
             } else {
-                View(this).apply { setBackgroundColor(0x5500AAFFL.toInt()) }
+                View(ctx).apply { setBackgroundColor(0x5500AAFFL.toInt()) }
             }
             runCatching { wm.addView(probe, params) }.onFailure {
-                results.append("$label: could not add the window (${it.javaClass.simpleName})\n\n")
+                results.append("$label: could not add the window (${it.javaClass.simpleName}: ${it.message})\n\n")
+                if (label.startsWith("B")) { overlayResults[kind] = results.toString() + "OVERLAY DONE $kind $nonce"; collect() }
                 then()
                 return
             }
@@ -388,10 +420,10 @@ class ProbeActivity : Activity() {
                 )
                 // Keep B on screen to be photographed; A is measured and taken straight down.
                 if (label.startsWith("B")) {
-                    overlayResult = results.toString() +
+                    overlayResults[kind] = results.toString() +
                         "Screenshot it, and TAP the strip over the nav buttons before it goes.\n" +
                         "Whether the system still DRAWS its glyphs on top is the screenshot's job; who\n" +
-                        "RECEIVES a tap there is the touch list below."
+                        "RECEIVES a tap there is the touch list below.\nWINDOW UP $kind $nonce"
                     collect()
                     toast("15 s: screenshot it, then tap the nav strip")
                     probe.postDelayed({
@@ -408,7 +440,7 @@ class ProbeActivity : Activity() {
                                 "  RESULT: no tap in the strip reached the overlay. Either none was made, or\n" +
                                     "  the nav bar takes them — compare with the taps above the strip.\n"
                         )
-                        overlayResult = results.toString() + "OVERLAY DONE $nonce"
+                        overlayResults[kind] = results.toString() + "OVERLAY DONE $kind $nonce"
                         collect()
                     }, 15000)
                 } else {
