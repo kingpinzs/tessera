@@ -7,7 +7,8 @@
 # city (London):
 #   (1) New over a hold menu: the hold menu closes; then Back (after the keyboard's) closes the search;
 #   (2) a hold on the search page's "No results" area, over where the city row is: no hold menu opens under it;
-#   (3) "…" over a hold menu: the hold menu closes, and Back then closes the bar.
+#   (3) "…" over a hold menu: the hold menu closes, and Back then closes the bar;
+#   (4) the search still works with a real finger: a drag scrolls its results, a tap that moves 8 px picks one.
 . "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"
 
 ime_shown() { adb shell dumpsys input_method | tr -d '\r' | grep -c 'mInputShown=true'; }
@@ -39,9 +40,9 @@ assert_eq "(1): the hold opened the city's menu" yes "$(has_node "$ROW_DIR/1-men
 adb shell input tap $AX $AY; sleep 1.5
 gdump "$ROW_DIR/1-search.xml" > /dev/null
 assert_eq "(1): New opened the search" yes "$(has_node "$ROW_DIR/1-search.xml" clock_search_page)"
-# A hold menu left under the search is covered, and the dump leaves covered nodes out, so the dump cannot show it
-# (drv1 passed this on the old build); what shows it is the next Back closing the hidden menu instead of the search.
-note "(1): hold menu in the dump over the search: $(has_node "$ROW_DIR/1-search.xml" clock_row_menu) (covered nodes are not dumped)"
+# The menu's own band is covered by the search and is not in the dump, but its full-screen scrim is
+# (review/2026-09-27-L13-13-fix-review-b.md: drv1 asserted the band, which passed on the old build too).
+assert_eq "(1): ... and the hold menu closed (its scrim is not left under the search)" no "$(has_node "$ROW_DIR/1-search.xml" clock_row_menu_scrim)"
 hide_ime
 adb shell input keyevent 4; sleep 1.5
 gdump "$ROW_DIR/1-back.xml" > /dev/null
@@ -76,6 +77,31 @@ assert_eq "(3): ... and the hold menu closed" no "$(has_node "$ROW_DIR/3-bar.xml
 adb shell input keyevent 4; sleep 1.5
 gdump "$ROW_DIR/3-back.xml" > /dev/null
 assert_eq "(3): Back closed the bar, the Clock still open" "no yes" "$(has_node "$ROW_DIR/3-back.xml" clock_more_menu) $(has_node "$ROW_DIR/3-back.xml" clock_root)"
+
+# ---- (4) the search still works with a real finger (review/2026-09-27-L13-13-fix-review-a.md: a modalOverlay on the
+# search consumed its list's and rows' gestures; an adb tap has no movement, so the first three cases could not see it).
+open_clock world_clock
+adb shell input tap $AX $AY; sleep 1.5
+# An empty query lists no cities (WorldClockRules.search); "a" lists many (at most 50), enough to scroll.
+adb shell input text a; sleep 1
+hide_ime
+gdump "$ROW_DIR/4-search.xml" > /dev/null
+first_result() { grep -o 'resource-id="clock_search_result:[^"]*"' "$1" | head -1 | sed 's/resource-id="clock_search_result://; s/"$//'; }
+F1="$(first_result "$ROW_DIR/4-search.xml")"
+set -- $(bounds "$ROW_DIR/4-search.xml" "clock_search_page"); SX=$(( ($1 + $3) / 2 )); SB=$4
+assert_ne "(4): the search lists cities" "" "$F1"
+# A drag up over the results, from low on the page to high on it.
+adb shell input swipe $SX $(( SB - 200 )) $SX $(( SB - 1000 )) 400; sleep 1.5
+gdump "$ROW_DIR/4-scrolled.xml" > /dev/null
+F2="$(first_result "$ROW_DIR/4-scrolled.xml")"
+note "(4): first listed city before the drag: $F1, after: $F2"
+assert_ne "(4): a drag on the results scrolls the list" "$F1" "$F2"
+# A tap that moves 8 px, as a finger's does, on a listed city: it is picked (added, the search closes).
+read -r TX TY <<< "$(centre "$ROW_DIR/4-scrolled.xml" "clock_search_result:$F2")"
+adb shell input swipe $TX $TY $(( TX + 8 )) $TY 120; sleep 2
+gdump "$ROW_DIR/4-picked.xml" > /dev/null
+assert_eq "(4): a moving tap on a result picked it (the search closed)" no "$(has_node "$ROW_DIR/4-picked.xml" clock_search_page)"
+assert_eq "(4): ... and the city was added" yes "$(has_node "$ROW_DIR/4-picked.xml" "clock_row:$F2")"
 
 adb shell am force-stop $PKG; sleep 1
 if [ "$WSAVED" = yes ]; then
