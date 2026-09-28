@@ -131,4 +131,28 @@ assert_ne "(2): the alarm fired" "" "$FW"
 adb shell input keyevent KEYCODE_HOME; sleep 1
 section_restore "idle"
 
+# ================================================================== (3) the same session, shown again =====================================
+# Review round 1 (B N5): the watch is started on every show and stopped on every hide, and the session object outlives a
+# hide. Tess opened, closed with Back (her own hide, for its own reason), opened again; then an alarm: she hides again.
+seed "Reuse"
+adb shell input keyevent KEYCODE_HOME; sleep 1.5
+MARK="$(ring_mark)"
+cortana_assist; sleep 3
+cortana_close; sleep 1
+cortana_assist; sleep 3
+dump_ui "$ROW_DIR/reuse_open.xml"
+assert_eq "(3): Tess is open again" yes "$(has_node "$ROW_DIR/reuse_open.xml" cortana_session)"
+ring_since "$MARK" launcher > "$ROW_DIR/ring_reuse_before.txt"
+assert_eq "(3): the first hide was Back's, not a ring's" "1 0" "$(grep -c '\[cortana\] session hidden' "$ROW_DIR/ring_reuse_before.txt") $(grep -c 'a ring started' "$ROW_DIR/ring_reuse_before.txt")"
+jump_clock $(( AT - 5000 )) >/dev/null
+MARK="$(ring_mark)"
+FIRED="$(wait_ring "$MARK" "[alarms] fired $ID kind=alarm" 20)"
+sleep 3
+ring_since "$MARK" launcher > "$ROW_DIR/ring_reuse_launcher.txt"
+FW="$(wall_of "$FIRED")"
+assert_ne "(3): the alarm fired" "" "$FW"
+[ -n "$FW" ] && after_ring reuse "$FW"
+adb shell input keyevent KEYCODE_HOME; sleep 1
+section_restore "reuse"
+
 row_end
