@@ -311,18 +311,9 @@ fun MusicCollectionPage(
                 }
             }
         }
-        W10mNavBar(
-            onBack = {
-                when {
-                    naming != null -> dismissOverlay { naming = null }
-                    menu != null -> dismissOverlay { menu = null }
-                    openPlaylist != null -> openPlaylist = null
-                    detail != null -> detail = null
-                    else -> onBack()
-                }
-            },
-            onWindows = onWindows,
-        )
+        // L13-8: the drawn Back goes through the activity's back dispatcher (onBack), so it runs the BackHandlers above
+        // and the jump grid's, exactly as the system Back does; it no longer keeps a chain of its own.
+        W10mNavBar(onBack = onBack, onWindows = onWindows)
     }
     // The overlays, over whichever page is showing and over the same box the anchors are measured against.
     Box(

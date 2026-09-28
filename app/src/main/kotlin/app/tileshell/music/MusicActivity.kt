@@ -129,7 +129,9 @@ class MusicActivity : ComponentActivity() {
                                     MusicPlayer.play(queue, index)
                                     screen = Screen.NOW_PLAYING
                                 },
-                                onBack = { finish() },
+                                // L13-8: the drawn Back is the system Back — the same dispatcher, so the same callbacks
+                                // in the same order (the jump grid, the page's overlays, then leaving), as the Clock's.
+                                onBack = { onBackPressedDispatcher.onBackPressed() },
                                 onWindows = { goHome() },
                                 onGrant = { grant.launch(Manifest.permission.READ_MEDIA_AUDIO) },
                                 openPivot = pivotRequest?.pivot,
@@ -137,7 +139,8 @@ class MusicActivity : ComponentActivity() {
                             )
                         }
                         Screen.NOW_PLAYING -> NowPlayingPage(
-                            onBack = { screen = Screen.COLLECTION },
+                            // L13-8: as above — the more menu closes first, then the BackHandler above returns to the list.
+                            onBack = { onBackPressedDispatcher.onBackPressed() },
                             onWindows = { goHome() },
                         )
                     }
