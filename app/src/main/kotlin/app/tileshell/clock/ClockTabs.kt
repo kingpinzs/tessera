@@ -66,7 +66,7 @@ fun ClockApp(nav: ClockNav, onBack: () -> Unit, onWindows: () -> Unit, onNotific
     val world = remember(context) { WorldClockStore.get(context) }
     val menu = listOf(
         ClockMenuEntry("Notification settings", "clock_more:notifications", onNotificationSettings),
-        ClockMenuEntry("About", "clock_more:about") { nav.barExpanded = false; nav.page = ClockPage.About },
+        ClockMenuEntry("About", "clock_more:about") { nav.openAbout() },
     )
     when (val page = nav.page) {
         ClockPage.Tabs -> TabsScreen(nav, store, world, menu, onBack, onWindows)
