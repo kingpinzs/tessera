@@ -1,0 +1,30 @@
+==============================================================================
+ROW L13_11 — a touch right after Back closes the Clock's "…" bar or city search reaches the page (n=30 each)
+at            2026-09-27T21:16:47-06:00
+driver        l13_11_row.sh blob 6703360b6658a3a341aceda5c1b335b82405ceb9
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     05e543d7983ac61c 339127802 bytes
+apk installed 362c399f26bc5d4d
+apk match     NO (device 362c399f26bc5d4d, built 634ee594af81ad30)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      world store existed before: no
+PASS  seed: an alarm                                              != 
+PASS  (a): the "…" button and the alarm row are on screen       != 
+      (a) the "…" menu's bounds while open: 0 1680 1080 1992 (compare across builds: its layout is unchanged)
+      (a) valid trials 30 of 30: the row tap opened the editor 23
+PASS  (a): every trial was valid (on the tabs, the bar open)      = 30
+FAIL  (a): every tap sent with the Back reached the page (the editor opened)  expected [30] got [23]
+PASS  (b): the add button and the city row are on screen          != 
+      (b) the search page's bounds while open: 0 289 1080 2196
+      (b) valid trials 30 of 30: the city hold opened its menu 19
+PASS  (b): every trial was valid (on the tabs, the search open)   = 30
+FAIL  (b): every hold sent with the Back reached the page (the city's hold menu opened)  expected [30] got [19]
+      scroll_to_node alarm_row:a2cba38e2: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+L13_11: 9 passed, 2 failed, 0 recorded

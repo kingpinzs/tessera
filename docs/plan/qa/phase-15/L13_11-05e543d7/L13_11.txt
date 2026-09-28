@@ -1,7 +1,7 @@
 ==============================================================================
 ROW L13_11 — a touch right after Back closes the Clock's "…" bar or city search reaches the page (n=30 each)
-at            2026-09-27T20:43:37-06:00
-driver        l13_11_row.sh blob 25f36bc8c505daf10c8180560aad2714a66be64e
+at            2026-09-27T21:36:34-06:00
+driver        l13_11_row.sh blob d31660b8b3c6d17250d9f0cdf8b1dc726ed33f6b
 harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
 apk built     05e543d7983ac61c 339127802 bytes
 apk installed 634ee594af81ad30
@@ -14,13 +14,23 @@ PASS  baseline: alarm and timer stores empty                      = empty
       world store existed before: no
 PASS  seed: an alarm                                              != 
 PASS  (a): the "…" button and the alarm row are on screen       != 
-      (a) trials 30: the row tap opened the editor 30
-PASS  (a): every tap sent with the Back reached the page (the editor opened)  = 30
+      (a) the "…" menu's bounds while open: 0 1680 1080 1992 (compare across builds: its layout is unchanged)
+      (a) valid trials 30 of 30: the row tap opened the editor 30
+PASS  (a): every trial was valid (on the tabs, the bar open)      = 30
+      (a) outcomes: reached 30, lost to the stale bar 0, B before the Back 0
+PASS  (a): no tap was lost to the stale bar (the Clock left on its tabs)  = 0
+PASS  (a): every tap that came after the Back reached the page    = 30
+PASS  (a): B came before the Back in few trials (<= 3)            = yes
 PASS  (b): the add button and the city row are on screen          != 
-      (b) trials 30: the city hold opened its menu 30
-PASS  (b): every hold sent with the Back reached the page (the city's hold menu opened)  = 30
-      scroll_to_node alarm_row:a1cbb180a: 0 swipe(s), found=yes
+      (b) the search page's bounds while open: 0 289 1080 2196
+      (b) valid trials 30 of 30: the city hold opened its menu 30
+PASS  (b): every trial was valid (on the tabs, the search open)   = 30
+      (b) outcomes: reached 30, lost to the stale search 0, B before the Back 0
+PASS  (b): no hold was lost to the stale search (the Clock left on its tabs)  = 0
+PASS  (b): every hold that came after the Back reached the page   = 30
+PASS  (b): B came before the Back in few trials (<= 3)            = yes
+      scroll_to_node alarm_row:a34f6e63f: 0 swipe(s), found=yes
 PASS  restore: no shell alarm or timer pending                    = 0
 PASS  restore: alarm and timer stores empty                       = empty
 ------------------------------------------------------------------------------
-L13_11: 9 passed, 0 failed, 0 recorded
+L13_11: 15 passed, 0 failed, 0 recorded
