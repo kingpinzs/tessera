@@ -210,12 +210,12 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
         model.open(mode)
         // L13-10 (phase 15 Edge cases: "Alarm firing while Tess is listening (the session hides)"): every ring surface —
         // the overlay toast, the locked toast's activity, the heads-up — sits below the voice-interaction window, and
-        // nothing outside a session can hide it, so Tess yields when a ring starts ([ringsStartingAfterFirst]: a ring
-        // already up when she opens, or the same ring moving to another surface, does not close her).
+        // nothing outside a session can hide it, so Tess yields to any ring while she is shown, one already ringing when
+        // she opens included (Jeremy, 2026-09-27: "The alarm should go over top"; [ringsToYieldTo]).
         ringJob?.cancel()
         ringJob = scope.launch {
-            app.tileshell.clock.RingService.state.ringsStartingAfterFirst().collect { ring ->
-                Diagnostics.add("cortana", "a ring started (${ring.logId}): hiding the session")
+            app.tileshell.clock.RingService.state.ringsToYieldTo().collect { ring ->
+                Diagnostics.add("cortana", "a ring is up (${ring.logId}): hiding the session")
                 hide()
             }
         }
