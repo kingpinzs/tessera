@@ -1,0 +1,39 @@
+==============================================================================
+ROW L13_12 — Back with a Clock row's hold menu open closes the menu, not the Clock (alarm, timer, World Clock)
+at            2026-09-27T20:42:45-06:00
+driver        l13_12_row.sh blob 00a81d7ca77a1681885742412b8c879a6aceda35
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     05e543d7983ac61c 339127802 bytes
+apk installed 634ee594af81ad30
+apk match     yes (634ee594af81ad30)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      world store existed before: no
+PASS  seed: an alarm                                              != 
+PASS  seed: a timer                                               != 
+      world store: ["Europe/London"]
+PASS  alarm: the seeded row is on screen (alarm_row:aa465c142)    != 
+PASS  alarm: the hold opened the menu (alarm_row_menu)            = yes
+PASS  alarm: Back closed the menu                                 = no
+PASS  alarm: ... and the Clock is still open                      = yes
+PASS  alarm (control): a second Back closes the Clock             = no
+PASS  timer: the seeded row is on screen (timer_block:td2e002ef)  != 
+FAIL  timer: the hold opened the menu (timer_row_menu)            expected [yes] got [no]
+PASS  timer: Back closed the menu                                 = no
+FAIL  timer: ... and the Clock is still open                      expected [yes] got [no]
+PASS  timer (control): a second Back closes the Clock             = no
+PASS  world: the seeded row is on screen (clock_row:Europe/London)  != 
+PASS  world: the hold opened the menu (clock_row_menu)            = yes
+PASS  world: Back closed the menu                                 = no
+PASS  world: ... and the Clock is still open                      = yes
+PASS  world (control): a second Back closes the Clock             = no
+      world store after: 
+      scroll_to_node alarm_row:aa465c142: 0 swipe(s), found=yes
+      gscroll_to_node timer_name:td2e002ef: 0 swipe(s), found=yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+L13_12: 19 passed, 2 failed, 0 recorded
