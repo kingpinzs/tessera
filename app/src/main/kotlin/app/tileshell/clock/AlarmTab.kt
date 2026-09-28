@@ -115,6 +115,9 @@ fun BoxScope.AlarmTab(nav: ClockNav, store: ClockStore) {
     var rootTop by remember { mutableFloatStateOf(0f) }
     var menuAnchor by remember { mutableFloatStateOf(0f) }
     var menuAlarm by remember { mutableStateOf<String?>(null) }
+    // L13-13: a hold menu closes when the bar is used over it (Select, the "…" menu), so it never stays open hidden
+    // under what the bar opened, and Back closes what is on top.
+    LaunchedEffect(nav.alarmSelect, nav.barExpanded) { if (nav.alarmSelect || nav.barExpanded) menuAlarm = null }
     val density = LocalDensity.current
     Box(Modifier.fillMaxSize().onGloballyPositioned { rootTop = it.positionInRoot().y }) {
         LazyColumn(Modifier.fillMaxSize().testTag("alarm_list"), contentPadding = PaddingValues(bottom = ClockMetrics.APP_BAR)) {
