@@ -105,3 +105,11 @@ checks fail) and `L13_7-drv4-d74b02ac/` 25/0 (d74b02ac = bf20237a's tree, instal
 Earlier driver versions: `L13_7-drv2-7f00cb9e/` (aborted on a missing tag), `L13_7-drv2-d74b02ac-hung-emulator/` (the
 emulator's framework died mid-run), `L13_7-drv3-*` (a line-order check that is too strict for Tess's Windows key).
 7f00cb9e is 54ecf613's code: reviewer B's javap of the built StartActivity shows onWindowFocusChanged at the committed lines.
+
+## L13-9 and L13-8 (Clock flyouts; Music's drawn Back)
+
+Builds: d74b02ac = bf20237a (installed 2fbe728b) · 0222df79 = 03abdc05's tree (installed f43b6598) · 8384ebd3 =
+48ec4ae7's tree (installed b5125a9e). The APKs are kept only in the session scratchpad.
+`scripts/l13_9_row.sh`: `L13_9-before-d74b02ac/` 21/30 (FAIL) · `L13_9-0222df79/` 30/30.
+`scripts/l13_8_row.sh`: `L13_8-before-0222df79/` 10/3 (FAIL: 2 defects, a knock-on third) · `L13_8-8384ebd3/` 13/0;
+the first driver version's runs are `L13_8-drv1-*`.

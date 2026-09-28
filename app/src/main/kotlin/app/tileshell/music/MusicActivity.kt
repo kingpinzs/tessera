@@ -130,7 +130,9 @@ class MusicActivity : ComponentActivity() {
                                     screen = Screen.NOW_PLAYING
                                 },
                                 // L13-8: the drawn Back is the system Back — the same dispatcher, so the same callbacks
-                                // in the same order (the jump grid, the page's overlays, then leaving), as the Clock's.
+                                // in the same order (the jump grid, then the page's overlays). With nothing open it ends in
+                                // the platform's own Back, as the system Back always did: Music's task moves to the back
+                                // rather than finishing (it used to call finish()).
                                 onBack = { onBackPressedDispatcher.onBackPressed() },
                                 onWindows = { goHome() },
                                 onGrant = { grant.launch(Manifest.permission.READ_MEDIA_AUDIO) },
