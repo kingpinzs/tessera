@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -219,16 +220,23 @@ fun PressBox(modifier: Modifier, onClick: () -> Unit, content: @Composable BoxSc
 /**
  * A flyout at a fixed place (R7 §3.6.2's fill and border; 4.1 / 4.3 / 4.4 give each one its box), grown from its
  * top edge over [ClockMetrics.FLYOUT_MS] on the motion clock as `[motion] flyout` (U12). A tap outside closes it.
+ * L13-16: it never sits lower than [bottomInset] above its box's bottom (a row's menu passes the app bar's height), so
+ * a menu asked for below that opens just above it instead of under the bar.
  */
 @Composable
-fun BoxScope.ClockFlyout(x: Dp, top: Dp, width: Dp, height: Dp, tag: String, onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+fun BoxScope.ClockFlyout(x: Dp, top: Dp, width: Dp, height: Dp, tag: String, onDismiss: () -> Unit, bottomInset: Dp = 0.dp, content: @Composable ColumnScope.() -> Unit) {
     Box(Modifier.fillMaxSize().testTag("${tag}_scrim").pointerInput(onDismiss) {
         awaitEachGesture { awaitFirstDown(); if (waitForUpOrCancellation() != null) onDismiss() }
     })
     var grow by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(Unit) { MotionClock.animate("flyout", ClockMetrics.FLYOUT_MS, ClockMetrics.easeOut) { grow = it } }
     Column(
-        Modifier.offset(x, top).width(width).height(height * grow).clipToBounds()
+        // Placed from the full height, not the growing one, so the grow keeps its fixed top edge.
+        Modifier.layout { measurable, constraints ->
+            val placeable = measurable.measure(constraints)
+            val limit = constraints.maxHeight - bottomInset.roundToPx() - height.roundToPx()
+            layout(placeable.width, placeable.height) { placeable.placeRelative(x.roundToPx(), minOf(top.roundToPx(), limit).coerceAtLeast(0)) }
+        }.width(width).height(height * grow).clipToBounds()
             .background(ClockMetrics.FLYOUT_FILL).border(1.dp, ClockMetrics.FLYOUT_BORDER).testTag(tag)
             // Touches inside stay inside: the scrim below must not read them as a tap outside.
             .pointerInput(Unit) { awaitEachGesture { awaitFirstDown().consume(); waitForUpOrCancellation()?.consume() } },
@@ -410,7 +418,7 @@ suspend fun PointerInputScope.detectTapOrHold(onTap: () -> Unit, onHold: () -> U
  */
 @Composable
 fun BoxScope.RowHoldMenu(anchorY: Dp, verb: String, tag: String, verbTag: String, onVerb: () -> Unit, onDismiss: () -> Unit) {
-    ClockFlyout(x = 11.6.dp, top = anchorY + 60.dp, width = 335.5.dp, height = 60.dp, tag = tag, onDismiss = onDismiss) {
+    ClockFlyout(x = 11.6.dp, top = anchorY + 60.dp, width = 335.5.dp, height = 60.dp, tag = tag, onDismiss = onDismiss, bottomInset = ClockMetrics.APP_BAR) {
         Box(Modifier.height(8.dp))
         PressBox(Modifier.fillMaxWidth().height(ClockMetrics.MENU_ROW).testTag(verbTag), onClick = onVerb) {
             BasicText(verb, Modifier.align(Alignment.CenterStart).offset(x = 11.7.dp), style = ShellType.body.copy(color = Color.White))
