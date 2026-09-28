@@ -257,7 +257,9 @@ fun TimerEditorScreen(nav: ClockNav, store: ClockStore, menu: List<ClockMenuEntr
             nav.page = ClockPage.Tabs
         })
     }
-    ClockScaffold(onBack, onWindows, bar = { ClockAppBar(buttons, menu, { nav.barExpanded }) { nav.barExpanded = it } }) {
+    // L13-20: opening the "…" menu ends a name edit (the name is already in the draft), so the editor's Back handler no
+    // longer takes the Back that closes the menu.
+    ClockScaffold(onBack, onWindows, bar = { ClockAppBar(buttons, menu, { nav.barExpanded }) { if (it) editingName = false; nav.barExpanded = it } }) {
         EditorTitle(ClockText.timerTitle(draft.id != null), "timer_editor_title")
         val frameTop = 40.dp
         val frameH = ClockMetrics.SPINNER_ROW * 7.97f

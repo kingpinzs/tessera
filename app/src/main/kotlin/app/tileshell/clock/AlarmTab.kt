@@ -264,8 +264,9 @@ fun AlarmEditorScreen(nav: ClockNav, store: ClockStore, menu: List<ClockMenuEntr
     }
 
     // L13-19: opening the "…" menu closes an open flyout in the same write, as a tab's hold menu closes when the bar is
-    // used over it (L13-13), so the flyout is not left open under the menu's scrim.
-    ClockScaffold(onBack, onWindows, bar = { ClockAppBar(buttons, menu, { nav.barExpanded }) { if (it) flyout = null; nav.barExpanded = it } }) {
+    // used over it (L13-13), so the flyout is not left open under the menu's scrim. L13-20: it ends a name edit too
+    // (the name is already in the draft), so the editor's Back handler no longer takes the Back that closes the menu.
+    ClockScaffold(onBack, onWindows, bar = { ClockAppBar(buttons, menu, { nav.barExpanded }) { if (it) { flyout = null; editingName = false }; nav.barExpanded = it } }) {
         EditorTitle(ClockText.alarmTitle(draft.id != null), "alarm_editor_title")
 
         // 3.4–3.7: the spinner frame, top rule 40 epx below the status bar, 191 epx tall (5.97 rows), the centre row's
