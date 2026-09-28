@@ -1,0 +1,54 @@
+==============================================================================
+ROW L13_10 — an alarm firing while Tess is open hides her, listening or idle; the ring's Dismiss is reachable
+at            2026-09-27T19:43:05-06:00
+driver        l13_10_row.sh blob e0303e7bdef6e59c83faf693a7b9200afa069210
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     592a3efd5a0d686b 339126750 bytes
+apk installed b5125a9e8d42ea89
+apk match     NO (device b5125a9e8d42ea89, built 01037b206062a374)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  Tess: the alarm was created and armed                       != 
+      attempt 1: session open=yes, mic button [936 2052 1080 2196]
+      attempt 1: listen start wall=1790559899190 (final - audioMs), fired wall=1790559900022, listen end wall=1790559901290, unbound wall=none; :speech ring lines: 6
+PASS  (1): the alarm fired while Tess was listening (listen start < fired < listen end)  = yes
+FAIL  (1): the listen ended within 1000 ms of the fire            expected [yes] got [no (ended 1268 ms after)]
+FAIL  (1): Tess released the speech service at or after the fire  expected [yes] got [no (unbound never)]
+FAIL  (1): Tess says nothing after the fire (no speak line after it, launcher or :speech ring)  should NOT contain [[speech] speak[]
+      listen: windows at the ring: TYPE_-1:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+FAIL  listen: the session hid within 1000 ms of the fired line    expected [yes] got [no (no hidden line)]
+FAIL  listen: ... because a ring started                          does not contain [a ring started]:     2026-09-27 19:44:59.023 wall=1790559899023 [cortana] touch 0 at 1008,2124 handled=true childCount=1 composeAttached=true
+    2026-09-27 19:44:59.048 wall=1790559899048 [cortana] touch 1 at 1008,2124 handled=true childCount=1 composeAtta
+FAIL  listen: no cortana_session node in the all-windows dump     expected [no] got [yes]
+FAIL  listen: the ring's Dismiss is on screen                     expected [yes] got [no]
+PASS  listen: the alarm rings (an ALARM player of the shell is started)  != 0
+RECORD  listen: the ring's surface line                             [alarms] surface: toast-overlay a1593818e
+      gdump_for ring_dismiss: not in any of 3 dumps
+      end_ring listen: no ring ended line after the Dismiss tap; the ring is ended by dismiss_any_ring
+      dismiss_any_ring: a ring was up and was ended
+PASS  device clock back within 2 s of the host (RV12)             1790559847.00 vs 1790559847.00 +/- 2.0
+      scroll_to_node alarm_row:a1593818e: 0 swipe(s), found=yes
+PASS  listen: the section left no alarm behind                    = 
+PASS  Idle: the alarm was created and armed                       != 
+PASS  (2): Tess is open                                           = yes
+PASS  (2): the alarm fired                                        != 
+      idle: windows at the ring: TYPE_-1:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+FAIL  idle: the session hid within 1000 ms of the fired line      expected [yes] got [no (no hidden line)]
+FAIL  idle: ... because a ring started                            does not contain [a ring started]: 
+FAIL  idle: no cortana_session node in the all-windows dump       expected [no] got [yes]
+FAIL  idle: the ring's Dismiss is on screen                       expected [yes] got [no]
+PASS  idle: the alarm rings (an ALARM player of the shell is started)  != 0
+RECORD  idle: the ring's surface line                               [alarms] surface: toast-overlay a54a934f3
+      gdump_for ring_dismiss: not in any of 3 dumps
+      end_ring idle: no ring ended line after the Dismiss tap; the ring is ended by dismiss_any_ring
+      dismiss_any_ring: a ring was up and was ended
+PASS  device clock back within 2 s of the host (RV12)             1790559914.00 vs 1790559914.00 +/- 2.0
+      scroll_to_node alarm_row:a54a934f3: 0 swipe(s), found=yes
+PASS  idle: the section left no alarm behind                      = 
+------------------------------------------------------------------------------
+L13_10: 13 passed, 11 failed, 4 recorded

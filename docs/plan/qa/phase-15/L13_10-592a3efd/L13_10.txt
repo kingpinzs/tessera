@@ -1,0 +1,47 @@
+==============================================================================
+ROW L13_10 — an alarm firing while Tess is open hides her, listening or idle; the ring's Dismiss is reachable
+at            2026-09-27T19:45:29-06:00
+driver        l13_10_row.sh blob e0303e7bdef6e59c83faf693a7b9200afa069210
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     592a3efd5a0d686b 339126750 bytes
+apk installed 01037b206062a374
+apk match     yes (01037b206062a374)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  Tess: the alarm was created and armed                       != 
+      attempt 1: session open=yes, mic button [936 2052 1080 2196]
+      attempt 1: listen start wall=1790560019148 (final - audioMs), fired wall=1790560020020, listen end wall=1790560020148, unbound wall=1790560020128; :speech ring lines: 0
+PASS  (1): the alarm fired while Tess was listening (listen start < fired < listen end)  = yes
+PASS  (1): the listen ended within 1000 ms of the fire            = yes
+PASS  (1): Tess released the speech service at or after the fire  = yes
+PASS  (1): Tess says nothing after the fire (no speak line after it, launcher or :speech ring)  does not contain [[speech] speak[]
+      listen: windows at the ring: SYSTEM:app.tileshell:[0,0][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+PASS  listen: the session hid within 1000 ms of the fired line    = yes
+PASS  listen: ... because a ring started                          contains [a ring started]
+PASS  listen: no cortana_session node in the all-windows dump     = no
+PASS  listen: the ring's Dismiss is on screen                     = yes
+PASS  listen: the alarm rings (an ALARM player of the shell is started)  != 0
+RECORD  listen: the ring's surface line                             [alarms] surface: toast-overlay adbd3ad05
+PASS  device clock back within 2 s of the host (RV12)             1790559963.00 vs 1790559963.00 +/- 2.0
+      scroll_to_node alarm_row:adbd3ad05: 0 swipe(s), found=yes
+PASS  listen: the section left no alarm behind                    = 
+PASS  Idle: the alarm was created and armed                       != 
+PASS  (2): Tess is open                                           = yes
+PASS  (2): the alarm fired                                        != 
+      idle: windows at the ring: SYSTEM:app.tileshell:[0,0][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+PASS  idle: the session hid within 1000 ms of the fired line      = yes
+PASS  idle: ... because a ring started                            contains [a ring started]
+PASS  idle: no cortana_session node in the all-windows dump       = no
+PASS  idle: the ring's Dismiss is on screen                       = yes
+PASS  idle: the alarm rings (an ALARM player of the shell is started)  != 0
+RECORD  idle: the ring's surface line                               [alarms] surface: toast-overlay a6282fb44
+PASS  device clock back within 2 s of the host (RV12)             1790560003.00 vs 1790560003.00 +/- 2.0
+      scroll_to_node alarm_row:a6282fb44: 0 swipe(s), found=yes
+PASS  idle: the section left no alarm behind                      = 
+------------------------------------------------------------------------------
+L13_10: 24 passed, 0 failed, 4 recorded
