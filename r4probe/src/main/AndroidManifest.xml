@@ -11,16 +11,25 @@
 
     <application
         android:allowBackup="false"
+        android:icon="@drawable/ic_r4probe"
         android:label="R4 probe"
         android:theme="@android:style/Theme.Material.NoActionBar">
         <activity
             android:name=".ProbeActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:label="R4 probe">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- R4 part 2: the helper (the shell's app_process) hands its binder in here. Exported because the caller is
+             the shell; HelperProvider takes the binder only from uid 2000 (shell) or 0 (root). -->
+        <provider
+            android:name=".HelperProvider"
+            android:authorities="app.tessera.r4probe.helper"
+            android:exported="true" />
     </application>
 </manifest>

@@ -40,11 +40,18 @@ import android.widget.Toast
  *    are writable without it (they are not — this records HOW they fail, which is the case for the
  *    helper).
  *
- * WHAT IT DOES NOT DO YET
- *  - Parts 1-4 of R4 (app_process under the shell uid, daemonising, the binder handoff, survival) need
- *    an ADB pairing client inside the app. That is the next probe, and R4's licence part already found
- *    an Apache-2.0 library that does the SPAKE2 pairing (adb-kt).
- *  - PQ2, the T-Mobile visual voicemail probe.
+ * PART TWO (2026-09-28), driven by the host script docs/plan/qa/r4/r4.sh over USB:
+ *  - Parts 1-4 of R4: [HelperMain] runs under the shell uid via app_process, daemonises, and hands this app a binder
+ *    through [HelperProvider]; the app then asks it to flip each toggle in [Toggles] (the helper pass) and to answer
+ *    after the app is killed, the cable is pulled and Wireless debugging goes off. The helper is started from the PC:
+ *    R4 proves the helper, and the on-device pairing client's licence (adb-kt, Apache-2.0) is already recorded in
+ *    phase 04's doc; the pairing client itself is phase 04's build.
+ *  - The cross-window blur probe (INDEX R4 row, R10): isCrossWindowBlurEnabled, its listener, and a FLAG_BLUR_BEHIND
+ *    overlay held up for a screenshot, run by the script with power saving off and on.
+ *  - `run` extra (overlay | blur | helper_ping | helper_toggles) so the script can drive each probe, and the report
+ *    written to files/report.txt so the script can read it (`run-as`, the debug APK).
+ * PQ2 (voicemail) is read by the script from the shell (carrier config, the handler app, counts only); nothing here
+ * logs in to the carrier as the line.
  */
 class ProbeActivity : Activity() {
 
@@ -67,7 +74,9 @@ class ProbeActivity : Activity() {
         }
         root.addView(button("Copy the whole report") { copy() })
         root.addView(button("Overlay probe: run it (needs the permission below)") { runOverlayProbe() })
+        root.addView(button("Blur probe: run it (needs the permission below)") { runBlurProbe() })
         root.addView(button("Grant 'Display over other apps'") { askForOverlay() })
+        root.addView(button("Helper: ping it") { runHelperPing() })
         root.addView(ScrollView(this).apply { addView(out) })
         setContentView(root)
         collect()
@@ -78,6 +87,29 @@ class ProbeActivity : Activity() {
             collect()
             insets
         }
+        HelperLink.onChange = { runOnUiThread { collect() } }
+        root.post { handleRun(intent) }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleRun(intent)
+    }
+
+    /** The host script drives each probe with `am start … --es run <name>`; each writes "<NAME> DONE" when finished. */
+    /** The script's run id: each "<NAME> DONE" line carries it, so a wait can never be satisfied by an earlier run. */
+    private var nonce = ""
+
+    private fun handleRun(intent: Intent?) {
+        intent?.getStringExtra("nonce")?.let { nonce = it }
+        when (intent?.getStringExtra("run")) {
+            "overlay" -> runOverlayProbe()
+            "blur" -> runBlurProbe()
+            "helper_ping" -> runHelperPing()
+            "helper_toggles" -> runHelperToggles()
+        }
+        intent?.removeExtra("run")
     }
 
     override fun onResume() {
@@ -148,6 +180,18 @@ class ProbeActivity : Activity() {
         kv("development_settings_enabled", "${secureGlobalInt("development_settings_enabled")}")
         blank()
 
+        section("HELPER (R4 parts 1-4)")
+        kv("binder", if (HelperLink.connected()) "connected (tag ${HelperLink.tag}, from uid ${HelperLink.fromUid})" else "none")
+        HelperLink.notes().forEach { line("  $it") }
+        helperPingResult?.let { line("  ping: $it") }
+        blank()
+        section("HELPER TOGGLES (each flipped by the helper as the shell uid, read back, restored)")
+        line(helperTogglesResult ?: "not run yet")
+        blank()
+        section("BLUR (cross-window blur probe)")
+        line(blurResult ?: "not run yet")
+        blank()
+
         section("SHELL PRESENT?")
         kv("app.tileshell installed", installed("app.tileshell"))
         kv("this probe's uid", "${android.os.Process.myUid()}")
@@ -155,6 +199,97 @@ class ProbeActivity : Activity() {
 
         line("END OF REPORT")
         out.text = report
+        runCatching { java.io.File(filesDir, "report.txt").writeText(report.toString()) }
+    }
+
+    // ---------------- helper (R4 parts 1-4) ----------------
+
+    private var helperPingResult: String? = null
+    private var helperTogglesResult: String? = null
+
+    private fun runHelperPing() {
+        Thread {
+            val r = HelperLink.ping()
+            runOnUiThread { helperPingResult = r + "\nHELPER_PING DONE $nonce"; collect() }
+        }.start()
+    }
+
+    /** Each toggle: read, flip away, read, flip back, read — through the helper's binder, so as the shell uid. */
+    private fun runHelperToggles() {
+        helperTogglesResult = "running…"
+        collect()
+        Thread {
+            val sb = StringBuilder()
+            if (!HelperLink.connected()) sb.append("no helper binder: nothing flipped\n")
+            else for (t in Toggles.ALL) {
+                val (e0, before) = HelperLink.toggle(t.name, "read")
+                val wasOn = t.onPattern.containsMatchIn(before)
+                val (e1, o1) = HelperLink.toggle(t.name, if (wasOn) "off" else "on")
+                Thread.sleep(3000)
+                val (_, mid) = HelperLink.toggle(t.name, "read")
+                val (e2, o2) = HelperLink.toggle(t.name, if (wasOn) "on" else "off")
+                Thread.sleep(3000)
+                val (_, after) = HelperLink.toggle(t.name, "read")
+                sb.append("  ${t.name}  [${t.forItem}]\n")
+                sb.append("    before  (exit $e0) ${one(before)}\n")
+                sb.append("    flip ${if (wasOn) "off" else "on "} (exit $e1) ${one(o1)}\n")
+                sb.append("    read    ${one(mid)}\n")
+                sb.append("    flip ${if (wasOn) "on " else "off"} (exit $e2) ${one(o2)}\n")
+                sb.append("    after   ${one(after)}\n")
+                sb.append("    CHANGED ${if (mid != before) "yes" else "NO"} · RESTORED ${if (after == before) "yes" else "NO"}\n")
+                runOnUiThread { helperTogglesResult = sb.toString() + "  …"; collect() }
+            }
+            sb.append("HELPER_TOGGLES DONE $nonce")
+            runOnUiThread { helperTogglesResult = sb.toString(); collect() }
+        }.start()
+    }
+
+    private fun one(text: String) = text.trim().replace('\n', ' ').take(160).ifEmpty { "(empty)" }
+
+    // ---------------- blur (R10's cross-window blur probe) ----------------
+
+    private var blurResult: String? = null
+
+    /**
+     * Whether an overlay window can blur what is behind it: the platform's own answer (isCrossWindowBlurEnabled, which
+     * turns false under power saving on some devices, so its listener is watched too), then a FLAG_BLUR_BEHIND overlay
+     * over this report's text, held for 8 s so the script's screenshot can show whether the text behind it is blurred.
+     */
+    private fun runBlurProbe() {
+        if (!Settings.canDrawOverlays(this)) { toast("Grant 'Display over other apps' first"); return }
+        val wm = getSystemService(WindowManager::class.java)
+        val sb = StringBuilder()
+        sb.append("  isCrossWindowBlurEnabled  ${wm.isCrossWindowBlurEnabled}\n")
+        sb.append("  power saving (low_power)  ${secureGlobalInt("low_power")}\n")
+        val events = mutableListOf<String>()
+        val listener = java.util.function.Consumer<Boolean> { events += "listener: blur enabled = $it" }
+        runCatching { wm.addCrossWindowBlurEnabledListener(mainExecutor, listener) }
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                WindowManager.LayoutParams.FLAG_BLUR_BEHIND,
+            PixelFormat.TRANSLUCENT,
+        ).apply { blurBehindRadius = 80 }
+        val veil = TextView(this).apply {
+            text = "BLUR PROBE — is the text behind this blurred?"
+            setTextColor(Color.WHITE); textSize = 18f; gravity = Gravity.CENTER
+            setBackgroundColor(0x33000000)
+        }
+        runCatching { wm.addView(veil, params) }.onFailure {
+            sb.append("  overlay NOT added: ${it.javaClass.simpleName}: ${it.message}\n")
+            blurResult = sb.toString() + "BLUR DONE $nonce"; collect(); return
+        }
+        sb.append("  overlay added: FLAG_BLUR_BEHIND, blurBehindRadius 80; held 8 s for the screenshot\n")
+        blurResult = sb.toString() + "  (overlay up)"
+        collect()
+        veil.postDelayed({
+            runCatching { wm.removeView(veil) }
+            runCatching { wm.removeCrossWindowBlurEnabledListener(listener) }
+            sb.append(if (events.isEmpty()) "  listener: no change while up\n" else events.joinToString("\n", "  ", "\n"))
+            blurResult = sb.toString() + "BLUR DONE $nonce"
+            collect()
+        }, 8000)
     }
 
     // ---------------- P5 ----------------
@@ -273,7 +408,7 @@ class ProbeActivity : Activity() {
                                 "  RESULT: no tap in the strip reached the overlay. Either none was made, or\n" +
                                     "  the nav bar takes them — compare with the taps above the strip.\n"
                         )
-                        overlayResult = results.toString()
+                        overlayResult = results.toString() + "OVERLAY DONE $nonce"
                         collect()
                     }, 15000)
                 } else {
