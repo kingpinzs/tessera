@@ -30,8 +30,11 @@ import app.tileshell.cortana.ui.CortanaSessionRoot
 import app.tileshell.diag.Diagnostics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 /**
@@ -207,9 +210,24 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
             // key opened the home page on a tap, so a session with no mode opens on Home too.
             ?: CortanaMode.HOME
         model.open(mode)
+        // L13-10 (phase 15 Edge cases: "Alarm firing while Tess is listening (the session hides)"): every ring surface —
+        // the overlay toast, the locked toast's activity, the heads-up — sits below the voice-interaction window, and
+        // nothing outside a session can hide it, so Tess yields when a ring starts. drop(1): a ring already up when she
+        // opens does not close her.
+        ringJob?.cancel()
+        ringJob = scope.launch {
+            app.tileshell.clock.RingService.state.drop(1).filterNotNull().collect { ring ->
+                Diagnostics.add("cortana", "a ring started (${ring.logId}): hiding the session")
+                hide()
+            }
+        }
     }
 
+    private var ringJob: Job? = null
+
     override fun onHide() {
+        ringJob?.cancel()
+        ringJob = null
         model.stop()
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         Diagnostics.add("cortana", "session hidden")
