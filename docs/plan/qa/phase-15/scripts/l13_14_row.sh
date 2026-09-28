@@ -45,7 +45,24 @@ adb shell input swipe $PX $PY $PX $PY 1200; sleep 1
 gdump "$ROW_DIR/a-2-hold.xml" > /dev/null
 assert_eq "(a): a hold on the bar's blank part opened no row's hold menu" no "$(has_node "$ROW_DIR/a-2-hold.xml" alarm_row_menu)"
 
+# Each case starts on a fresh Clock: open_clock alone reuses the running activity, and a menu the case before left open
+# (on the old build) would take the next case's touches (review/2026-09-28-L13-1415-fix-review-b.md).
+# ---- (a2) the bar expanded: a tap on its blank part closes the "…" menu (through its scrim, as before the fix)
+adb shell am force-stop $PKG; sleep 1
+open_clock alarm
+gdump "$ROW_DIR/a2-0.xml" > /dev/null
+read -r MX MY <<< "$(centre "$ROW_DIR/a2-0.xml" clock_more)"
+adb shell input tap $MX $MY; sleep 1
+gdump "$ROW_DIR/a2-1-open.xml" > /dev/null
+assert_eq "(a2): \"…\" opened the bar's menu" yes "$(has_node "$ROW_DIR/a2-1-open.xml" clock_more_menu)"
+set -- $(bounds "$ROW_DIR/a2-1-open.xml" clock_app_bar); BX=$(( $1 + 60 )); BY=$(( ($2 + $4) / 2 ))
+adb shell input tap $BX $BY; sleep 1
+gdump "$ROW_DIR/a2-2-tap.xml" > /dev/null
+assert_eq "(a2): a tap on the expanded bar's blank part closed the menu" no "$(has_node "$ROW_DIR/a2-2-tap.xml" clock_more_menu)"
+assert_eq "(a2): ... and opened no alarm's editor" no "$(has_node "$ROW_DIR/a2-2-tap.xml" 'alarm_editor_field:snooze')"
+
 # ---- (b) the compare strip's centre, on World Clock
+adb shell am force-stop $PKG; sleep 1
 open_clock world_clock
 gdump "$ROW_DIR/b-0.xml" > /dev/null
 read -r CX CY <<< "$(centre "$ROW_DIR/b-0.xml" clock_compare)"

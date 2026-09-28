@@ -1,0 +1,26 @@
+==============================================================================
+ROW L13_15 — a scroll or swipe that starts on a World Clock city opens no hold menu; a hold still does
+at            2026-09-28T09:47:13-06:00
+driver        l13_15_row.sh blob 224d21e4f355f7eb1845433191dd0eff0169eee0
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     b8364831a77bd7ad 339127802 bytes
+apk installed 026fa481d4867c7d
+apk match     NO (device 026fa481d4867c7d, built e730ff0099da100f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+      world store existed before: no
+PASS  (a): a city row is on screen                                != 
+      (a) first city before: Europe/London, after the scroll: Europe/London; row Europe/London bounds 0 544 1080 835 -> 0 289 1080 347
+PASS  (a): the drag scrolled the list                             != 0 544 1080 835
+PASS  (a): the scroll opened no hold menu                         = no
+      (b) after the drag: world page yes, timer page no
+PASS  (b): the World Clock page is still on screen (the drag sprang back)  = yes
+PASS  (b): the sideways drag opened no hold menu                  = no
+PASS  (c) control: a still hold on a city opens its menu          = yes
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+L13_15: 10 passed, 0 failed, 0 recorded
