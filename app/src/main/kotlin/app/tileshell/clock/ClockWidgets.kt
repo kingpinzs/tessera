@@ -163,10 +163,12 @@ fun BoxScope.ClockAppBar(buttons: List<BarButton>, menu: List<ClockMenuEntry>, i
         }
     }
     // L13-14: the bar takes the touches that land on it, not only on its buttons (it consumes nothing, so they keep theirs):
-    // a list runs under it, and a tap or hold on its blank parts used to reach the row underneath.
+    // a list runs under it, and a tap or hold on its blank parts used to reach the row underneath. Only while collapsed:
+    // expanded, the "…" menu's scrim lies under the bar instead of the list, and a tap on the bar's blank part closes the
+    // menu through it, as before (review/2026-09-28-L13-1415-fix-review-a.md note 1).
     Box(
         Modifier.align(Alignment.BottomStart).fillMaxWidth().height(height).background(ClockMetrics.BAND_FILL)
-            .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(requireUnconsumed = false) } }
+            .then(if (expanded) Modifier else Modifier.pointerInput(Unit) { awaitEachGesture { awaitFirstDown(requireUnconsumed = false) } })
             .testTag("clock_app_bar"),
     ) {
         Row(Modifier.align(Alignment.CenterEnd).fillMaxHeight()) {
