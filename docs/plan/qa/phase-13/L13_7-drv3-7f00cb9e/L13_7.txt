@@ -1,0 +1,39 @@
+==============================================================================
+ROW L13_7 — leaving Tess opened from her tile brings Start back (system Back, Tess's Back, Tess's Windows key; control)
+at            2026-09-27T18:18:33-06:00
+driver        l13_7_row.sh blob 87fcb16ff3f866945ed913cb953a78970a4bbff3
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     d74b02ac1aced17b 339125146 bytes
+apk installed c519a4db80557e9b
+apk match     NO (device c519a4db80557e9b, built 2fbe728bd6992664)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  the Tess tile is on Start                                   = yes
+      tiles on Start before: 14
+PASS  back: Tess opened over Start                                = VoiceInteractionSession
+PASS  back: Start has focus again                                 = app.tileshell/app.tileshell.StartActivity
+PASS  back: every tile is back                                    = 14
+PASS  back: Start played its entrance once                        = 1
+PASS  back: the entrance came after the session hid               = yes
+FAIL  back: the Tess tile was promoted to the recent row, before the entrance  expected [yes] got [no (promoted line None, entrance line 17)]
+FAIL  back: the Tess tile moved (grid top 1151)                   should not be [1151]
+PASS  drawn-back: Tess opened over Start                          = VoiceInteractionSession
+PASS  drawn-back: Start has focus again                           = app.tileshell/app.tileshell.StartActivity
+PASS  drawn-back: every tile is back                              = 14
+PASS  drawn-back: Start played its entrance once                  = 1
+PASS  drawn-back: the entrance came after the session hid         = yes
+FAIL  drawn-back: the Tess tile is still in the recent row        expected [1151] got [1579]
+PASS  drawn-windows: Tess opened over Start                       = VoiceInteractionSession
+PASS  drawn-windows: Start has focus again                        = app.tileshell/app.tileshell.StartActivity
+PASS  drawn-windows: every tile is back                           = 14
+PASS  drawn-windows: Start played its entrance once               = 1
+FAIL  drawn-windows: the entrance came after the session hid      expected [yes] got [no (hidden line 20, entrance line 18)]
+FAIL  drawn-windows: the Tess tile is still in the recent row     expected [1151] got [1579]
+PASS  control: Settings opened                                    contains [Settings]
+PASS  control: every tile is back                                 = 14
+PASS  control: Start played its entrance once                     = 1
+PASS  restore: phase 02's baseline, no slot re-assigned (C-3)     does not contain [-> assigned]
+------------------------------------------------------------------------------
+L13_7: 20 passed, 5 failed, 0 recorded

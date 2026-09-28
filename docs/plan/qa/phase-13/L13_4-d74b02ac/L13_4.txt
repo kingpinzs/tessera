@@ -1,0 +1,41 @@
+==============================================================================
+ROW L13_4 — Back and Home survive a touch during the pivot they start
+at            2026-09-27T18:21:22-06:00
+driver        l13_4_row.sh blob d97d47d46f54b76a5b0570541590a179fe97f847
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     d74b02ac1aced17b 339125146 bytes
+apk installed 2fbe728bd6992664
+apk match     yes (2fbe728bd6992664)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  wake: the device is awake                                   = Awake
+PASS  back-control: on the app list before the first key          = applist
+RECORD  back-control: the page after the first key                  start
+PASS  back-control: key 2 takes the app list to Start             = start
+PASS  back-control: key 3 takes the app list to Start             = start
+PASS  back-press: on the app list before the first key            = applist
+RECORD  back-press: the page after the first key                    applist
+PASS  back-press: key 2 takes the app list to Start               = start
+PASS  back-press: key 3 takes the app list to Start               = start
+PASS  home-control: on the app list before the first key          = applist
+RECORD  home-control: the page after the first key                  start
+PASS  home-control: key 2 takes the app list to Start             = start
+PASS  home-control: key 3 takes the app list to Start             = start
+PASS  home-press: on the app list before the first key            = applist
+RECORD  home-press: the page after the first key                    applist
+PASS  home-press: key 2 takes the app list to Start               = start
+PASS  home-press: key 3 takes the app list to Start               = start
+PASS  drawn-control: on the app list before the first key         = applist
+RECORD  drawn-control: the page after the first key                 start
+PASS  drawn-control: key 2 takes the app list to Start            = start
+PASS  drawn-control: key 3 takes the app list to Start            = start
+PASS  drawn-tap: on the app list before the first key             = applist
+RECORD  drawn-tap: the page after the first key                     start
+PASS  drawn-tap: key 2 takes the app list to Start                = start
+PASS  drawn-tap: key 3 takes the app list to Start                = start
+PASS  twice: on the app list before the keys                      = applist
+PASS  twice: the second Back ran as Back on Start, after the pivot  contains [[back] ]
+PASS  twice: no pivot was cut short                               does not contain [interrupted]
+------------------------------------------------------------------------------
+L13_4: 22 passed, 0 failed, 6 recorded
