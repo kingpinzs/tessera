@@ -151,7 +151,7 @@ fun BoxScope.WorldClockTab(nav: ClockNav, world: WorldClockStore) {
             menuZone?.let { id ->
                 // The hold menu: R7 §3.6.2's flyout with the one verb, under the held row.
                 val top = with(density) { menuAnchor.toDp() } + 60.dp
-                ClockFlyout(x = 11.6.dp, top = top, width = 335.5.dp, height = 60.dp, tag = "clock_row_menu", onDismiss = { menuZone = null }) {
+                ClockFlyout(x = 11.6.dp, top = top, width = 335.5.dp, height = 60.dp, tag = "clock_row_menu", onDismiss = { menuZone = null }, bottomInset = ClockMetrics.APP_BAR) {
                     Box(Modifier.height(8.dp))
                     PressBox(Modifier.fillMaxWidth().height(ClockMetrics.MENU_ROW).testTag("clock_remove:$id"), onClick = { world.remove(id); menuZone = null }) {
                         BasicText("Remove", Modifier.align(Alignment.CenterStart).offset(x = 11.7.dp), style = ShellType.body.copy(color = Color.White))
