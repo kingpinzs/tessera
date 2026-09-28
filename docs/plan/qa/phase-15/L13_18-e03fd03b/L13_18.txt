@@ -1,0 +1,31 @@
+==============================================================================
+ROW L13_18 — Back from About returns to the page it was opened from, an editor's edits kept
+at            2026-09-28T14:22:17-06:00
+driver        l13_18_row.sh blob 7fb17feeb3287d646101e7bf1e4091d2c75a3fbd
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     e03fd03bb80a8508 339127802 bytes
+apk installed 3ebde477cec37835
+apk match     yes (3ebde477cec37835)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  (a): Add opened the alarm editor, snooze 10 minutes         = yes yes
+PASS  (a): the edit took (snooze 30 minutes)                      = yes
+PASS  (a): "…" offers About                                     = yes
+PASS  (a): About opened                                           = yes
+PASS  (a): Back from About returned to the alarm editor           = yes no
+PASS  (a): ... with the edit kept (snooze 30 minutes)             = yes
+PASS  (b): Add opened the timer editor                            = yes
+PASS  (b): "…" offers About                                     = yes
+PASS  (b): About opened                                           = yes
+PASS  (b): Back from About returned to the timer editor           = yes no
+PASS  (c): "…" offers About                                     = yes
+PASS  (c): About opened                                           = yes
+PASS  (c) control: Back from About returned to the tabs           = yes no no
+PASS  (c) control: a second Back left the Clock                   = no
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+L13_18: 18 passed, 0 failed, 0 recorded

@@ -1,0 +1,35 @@
+==============================================================================
+ROW L13_19 — opening the "…" menu in the alarm editor closes an open flyout
+at            2026-09-28T14:22:58-06:00
+driver        l13_19_row.sh blob f170442beb50af5233a15dbc457d1a4b7f010863
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     e03fd03bb80a8508 339127802 bytes
+apk installed 3ebde477cec37835
+apk match     yes (3ebde477cec37835)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  (repeats): Add opened the alarm editor                      = yes
+PASS  (repeats): the repeats flyout opened                        = yes
+PASS  (repeats): "…" opened the bar's menu                      = yes
+PASS  (repeats): ... and the repeats flyout closed                = no
+PASS  (repeats): "…" again closed the menu, the editor still up  = no yes
+PASS  (repeats): ... and the repeats flyout is not left open      = no
+PASS  (sound): Add opened the alarm editor                        = yes
+PASS  (sound): the sound flyout opened                            = yes
+PASS  (sound): "…" opened the bar's menu                        = yes
+PASS  (sound): ... and the sound flyout closed                    = no
+PASS  (sound): "…" again closed the menu, the editor still up   = no yes
+PASS  (sound): ... and the sound flyout is not left open          = no
+PASS  (snooze): Add opened the alarm editor                       = yes
+PASS  (snooze): the snooze flyout opened                          = yes
+PASS  (snooze): "…" opened the bar's menu                       = yes
+PASS  (snooze): ... and the snooze flyout closed                  = no
+PASS  (snooze): "…" again closed the menu, the editor still up  = no yes
+PASS  (snooze): ... and the snooze flyout is not left open        = no
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+L13_19: 22 passed, 0 failed, 0 recorded
