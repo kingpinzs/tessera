@@ -3,7 +3,7 @@
 # could stay open, hidden, under the city search, so the next Back closed the hidden menu and nothing visible happened.
 # Two causes: the hold menus did not close when the bar was used over them, and the search page's blank parts did not
 # take touches (a hold there reached the city list under it). The fix closes a tab's hold menu when the bar is used
-# (the search, Select, the compare strip, the "…" menu) and makes the search page modal. Three cases, each on a seeded
+# (the search, Select, the compare strip, the "…" menu) and makes the search page a touch target that consumes nothing. Four cases, each on a seeded
 # city (London):
 #   (1) New over a hold menu: the hold menu closes; then Back (after the keyboard's) closes the search;
 #   (2) a hold on the search page's "No results" area, over where the city row is: no hold menu opens under it;
