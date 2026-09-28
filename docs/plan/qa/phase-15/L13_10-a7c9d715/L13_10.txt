@@ -1,0 +1,74 @@
+==============================================================================
+ROW L13_10 — an alarm firing while Tess is open hides her, listening or idle; the ring's Dismiss is reachable
+at            2026-09-27T20:33:11-06:00
+driver        l13_10_row.sh blob 89bf73dcf69664ef31dc1ec764f879958c848961
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     a7c9d7156d620a4f 339127802 bytes
+apk installed 362c399f26bc5d4d
+apk match     yes (362c399f26bc5d4d)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  appops USE_FULL_SCREEN_INTENT                               Uid mode: USE_FULL_SCREEN_INTENT: allow 
+RECORD  dumpsys package USE_FULL_SCREEN_INTENT grant                android.permission.USE_FULL_SCREEN_INTENT: granted=true
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+PASS  Tess: the alarm was created and armed                       != 
+      attempt 1: session open=yes, mic button [936 2052 1080 2196]
+      attempt 1: listen start wall=1790562899156 (final - audioMs), fired wall=1790562900038, listen end wall=1790562900206, unbound wall=1790562900158; :speech ring lines: 0
+PASS  (1): the alarm fired while Tess was listening (listen start < fired < listen end)  = yes
+PASS  (1): the listen ended within 1000 ms of the fire            = yes
+PASS  (1): Tess released the speech service at or after the fire  = yes
+PASS  (1): Tess says nothing after the fire (no speak line after it, launcher or :speech ring)  does not contain [[speech] speak[]
+      listen: windows at the ring: SYSTEM:app.tileshell:[0,0][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+PASS  listen: the session hid within 1000 ms of the fired line    = yes
+PASS  listen: ... because of the ring                             contains [): hiding the session]
+PASS  listen: no cortana_session node in the all-windows dump     = no
+PASS  listen: the ring's Dismiss is on screen                     = yes
+PASS  listen: the alarm rings (an ALARM player of the shell is started)  != 0
+RECORD  listen: the ring's surface line                             [alarms] surface: toast-overlay a46a262b7
+PASS  device clock back within 2 s of the host (RV12)             1790562824.00 vs 1790562825.00 +/- 2.0
+      scroll_to_node alarm_row:a46a262b7: 0 swipe(s), found=yes
+PASS  listen: the section left no alarm behind                    = 
+PASS  Idle: the alarm was created and armed                       != 
+PASS  (2): Tess is open                                           = yes
+PASS  (2): the alarm fired                                        != 
+      idle: windows at the ring: SYSTEM:app.tileshell:[0,0][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+PASS  idle: the session hid within 1000 ms of the fired line      = yes
+PASS  idle: ... because of the ring                               contains [): hiding the session]
+PASS  idle: no cortana_session node in the all-windows dump       = no
+PASS  idle: the ring's Dismiss is on screen                       = yes
+PASS  idle: the alarm rings (an ALARM player of the shell is started)  != 0
+RECORD  idle: the ring's surface line                               [alarms] surface: toast-overlay a35cd0bc3
+PASS  device clock back within 2 s of the host (RV12)             1790562864.00 vs 1790562865.00 +/- 2.0
+      scroll_to_node alarm_row:a35cd0bc3: 0 swipe(s), found=yes
+PASS  idle: the section left no alarm behind                      = 
+PASS  Reuse: the alarm was created and armed                      != 
+PASS  (3): Tess is open again                                     = yes
+PASS  (3): the first hide was Back's, not a ring's                = 1 0
+PASS  (3): the alarm fired                                        != 
+      reuse: windows at the ring: SYSTEM:app.tileshell:[0,0][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+PASS  reuse: the session hid within 1000 ms of the fired line     = yes
+PASS  reuse: ... because of the ring                              contains [): hiding the session]
+PASS  reuse: no cortana_session node in the all-windows dump      = no
+PASS  reuse: the ring's Dismiss is on screen                      = yes
+PASS  reuse: the alarm rings (an ALARM player of the shell is started)  != 0
+RECORD  reuse: the ring's surface line                              [alarms] surface: toast-overlay ac10b23a1
+PASS  device clock back within 2 s of the host (RV12)             1790562908.00 vs 1790562909.00 +/- 2.0
+      scroll_to_node alarm_row:ac10b23a1: 0 swipe(s), found=yes
+PASS  reuse: the section left no alarm behind                     = 
+PASS  Over: the alarm was created and armed                       != 
+PASS  (4): the alarm fired before Tess opened                     != 
+PASS  (4): Tess opened (her session opened line)                  != 
+      over: windows at the ring: SYSTEM:app.tileshell:[0,0][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+PASS  over: the session hid within 1000 ms of the fired line      = yes
+PASS  over: ... because of the ring                               contains [): hiding the session]
+PASS  over: no cortana_session node in the all-windows dump       = no
+PASS  over: the ring's Dismiss is on screen                       = yes
+PASS  over: the alarm rings (an ALARM player of the shell is started)  != 0
+RECORD  over: the ring's surface line                               
+PASS  device clock back within 2 s of the host (RV12)             1790562945.00 vs 1790562945.00 +/- 2.0
+      scroll_to_node alarm_row:a718c9f05: 0 swipe(s), found=yes
+PASS  over: the section left no alarm behind                      = 
+------------------------------------------------------------------------------
+L13_10: 45 passed, 0 failed, 6 recorded

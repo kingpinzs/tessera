@@ -6,7 +6,9 @@
 # the AlarmClock API and the clock jumped to it (EDGE_ALARM_CONTEXT's method, git da848a06, section 1):
 #   (1) Tess LISTENING when it fires — the mic tapped by a device-side loop 1 s before; the precondition (listen start <
 #       fired < listen end) asserted, a void attempt retried (up to three);
-#   (2) Tess OPEN BUT IDLE when it fires.
+#   (2) Tess OPEN BUT IDLE when it fires;
+#   (3) the same session shown again after Back, then a ring;
+#   (4) a ring already up, then Tess opened (Jeremy 2026-09-27: "The alarm should go over top").
 # Each asserts: the session hides within 1000 ms of the fired line (and says why), no cortana_session in the all-windows
 # dump, the ring's Dismiss on screen, an ALARM player started; (1) also: the listen is stopped and Tess says nothing after.
 . "$(dirname "$0")/lib.sh"; . "$(dirname "$0")/p15.sh"; . "$(dirname "$0")/clock.sh"
@@ -57,7 +59,7 @@ after_ring() { # label fired_wall — the checks both cases share
   gdump_windows "$ROW_DIR/${l}_ring.xml"; screencap "$ROW_DIR/${l}_ring.png"
   note "$l: windows at the ring: $(gwindows "$ROW_DIR/${l}_ring.xml")"
   assert_eq "$l: the session hid within 1000 ms of the fired line" yes "$(hidden_within "$fw" "$ROW_DIR/ring_${l}_launcher.txt")"
-  assert_contains "$l: ... because a ring started" "a ring started" "$(grep -F '[cortana]' "$ROW_DIR/ring_${l}_launcher.txt")"
+  assert_contains "$l: ... because of the ring" "): hiding the session" "$(grep -F '[cortana]' "$ROW_DIR/ring_${l}_launcher.txt")"
   assert_eq "$l: no cortana_session node in the all-windows dump" no "$(has_node "$ROW_DIR/${l}_ring.xml" cortana_session)"
   assert_eq "$l: the ring's Dismiss is on screen" yes "$(has_node "$ROW_DIR/${l}_ring.xml" ring_dismiss)"
   assert_ne "$l: the alarm rings (an ALARM player of the shell is started)" 0 "$(alarm_player_started)"
@@ -143,7 +145,7 @@ cortana_assist; sleep 3
 dump_ui "$ROW_DIR/reuse_open.xml"
 assert_eq "(3): Tess is open again" yes "$(has_node "$ROW_DIR/reuse_open.xml" cortana_session)"
 ring_since "$MARK" launcher > "$ROW_DIR/ring_reuse_before.txt"
-assert_eq "(3): the first hide was Back's, not a ring's" "1 0" "$(grep -c '\[cortana\] session hidden' "$ROW_DIR/ring_reuse_before.txt") $(grep -c 'a ring started' "$ROW_DIR/ring_reuse_before.txt")"
+assert_eq "(3): the first hide was Back's, not a ring's" "1 0" "$(grep -c '\[cortana\] session hidden' "$ROW_DIR/ring_reuse_before.txt") $(grep -c 'hiding the session' "$ROW_DIR/ring_reuse_before.txt")"
 jump_clock $(( AT - 5000 )) >/dev/null
 MARK="$(ring_mark)"
 FIRED="$(wait_ring "$MARK" "[alarms] fired $ID kind=alarm" 20)"
@@ -154,5 +156,23 @@ assert_ne "(3): the alarm fired" "" "$FW"
 [ -n "$FW" ] && after_ring reuse "$FW"
 adb shell input keyevent KEYCODE_HOME; sleep 1
 section_restore "reuse"
+
+# ================================================================== (4) an alarm already ringing, then Tess =============================
+# Jeremy, 2026-09-27: "The alarm should go over top" — Tess opened over a ring that is already up steps aside at once.
+seed "Over"
+adb shell input keyevent KEYCODE_HOME; sleep 1.5
+jump_clock $(( AT - 5000 )) >/dev/null
+MARK="$(ring_mark)"
+FIRED="$(wait_ring "$MARK" "[alarms] fired $ID kind=alarm" 20)"
+assert_ne "(4): the alarm fired before Tess opened" "" "$FIRED"
+sleep 2
+AMARK="$(ring_mark)"
+cortana_assist; sleep 3
+ring_since "$AMARK" launcher > "$ROW_DIR/ring_over_launcher.txt"
+AW="$(wall_of "$(grep -F '[cortana] session opened' "$ROW_DIR/ring_over_launcher.txt" | head -1)")"
+assert_ne "(4): Tess opened (her session opened line)" "" "$AW"
+[ -n "$AW" ] && after_ring over "$AW"
+adb shell input keyevent KEYCODE_HOME; sleep 1
+section_restore "over"
 
 row_end

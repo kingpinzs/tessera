@@ -1,11 +1,11 @@
 ==============================================================================
 ROW L13_10 — an alarm firing while Tess is open hides her, listening or idle; the ring's Dismiss is reachable
-at            2026-09-27T20:14:45-06:00
-driver        l13_10_row.sh blob c9b13707754a062ba66f4a7d815e3d433cba21f8
+at            2026-09-27T20:29:37-06:00
+driver        l13_10_row.sh blob 89bf73dcf69664ef31dc1ec764f879958c848961
 harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
-apk built     55698001968aca91 339127842 bytes
+apk built     a7c9d7156d620a4f 339127802 bytes
 apk installed f44aee7ce4e0423a
-apk match     yes (f44aee7ce4e0423a)
+apk match     NO (device f44aee7ce4e0423a, built 362c399f26bc5d4d)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -15,33 +15,33 @@ PASS  baseline: no shell alarm or timer pending                   = 0
 PASS  baseline: alarm and timer stores empty                      = empty
 PASS  Tess: the alarm was created and armed                       != 
       attempt 1: session open=yes, mic button [936 2052 1080 2196]
-      attempt 1: listen start wall=1790561759146 (final - audioMs), fired wall=1790561760016, listen end wall=1790561760146, unbound wall=1790561760118; :speech ring lines: 0
+      attempt 1: listen start wall=1790562659149 (final - audioMs), fired wall=1790562660019, listen end wall=1790562660149, unbound wall=1790562660121; :speech ring lines: 0
 PASS  (1): the alarm fired while Tess was listening (listen start < fired < listen end)  = yes
 PASS  (1): the listen ended within 1000 ms of the fire            = yes
 PASS  (1): Tess released the speech service at or after the fire  = yes
 PASS  (1): Tess says nothing after the fire (no speak line after it, launcher or :speech ring)  does not contain [[speech] speak[]
       listen: windows at the ring: SYSTEM:app.tileshell:[0,0][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
 PASS  listen: the session hid within 1000 ms of the fired line    = yes
-PASS  listen: ... because a ring started                          contains [a ring started]
+PASS  listen: ... because of the ring                             contains [): hiding the session]
 PASS  listen: no cortana_session node in the all-windows dump     = no
 PASS  listen: the ring's Dismiss is on screen                     = yes
 PASS  listen: the alarm rings (an ALARM player of the shell is started)  != 0
-RECORD  listen: the ring's surface line                             [alarms] surface: toast-overlay a8306c983
-PASS  device clock back within 2 s of the host (RV12)             1790561718.00 vs 1790561719.00 +/- 2.0
-      scroll_to_node alarm_row:a8306c983: 0 swipe(s), found=yes
+RECORD  listen: the ring's surface line                             [alarms] surface: toast-overlay a2cb00980
+PASS  device clock back within 2 s of the host (RV12)             1790562612.00 vs 1790562612.00 +/- 2.0
+      scroll_to_node alarm_row:a2cb00980: 0 swipe(s), found=yes
 PASS  listen: the section left no alarm behind                    = 
 PASS  Idle: the alarm was created and armed                       != 
 PASS  (2): Tess is open                                           = yes
 PASS  (2): the alarm fired                                        != 
       idle: windows at the ring: SYSTEM:app.tileshell:[0,0][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
 PASS  idle: the session hid within 1000 ms of the fired line      = yes
-PASS  idle: ... because a ring started                            contains [a ring started]
+PASS  idle: ... because of the ring                               contains [): hiding the session]
 PASS  idle: no cortana_session node in the all-windows dump       = no
 PASS  idle: the ring's Dismiss is on screen                       = yes
 PASS  idle: the alarm rings (an ALARM player of the shell is started)  != 0
-RECORD  idle: the ring's surface line                               [alarms] surface: toast-overlay ae104bb70
-PASS  device clock back within 2 s of the host (RV12)             1790561758.00 vs 1790561759.00 +/- 2.0
-      scroll_to_node alarm_row:ae104bb70: 0 swipe(s), found=yes
+RECORD  idle: the ring's surface line                               [alarms] surface: toast-overlay af066ac67
+PASS  device clock back within 2 s of the host (RV12)             1790562653.00 vs 1790562653.00 +/- 2.0
+      scroll_to_node alarm_row:af066ac67: 0 swipe(s), found=yes
 PASS  idle: the section left no alarm behind                      = 
 PASS  Reuse: the alarm was created and armed                      != 
 PASS  (3): Tess is open again                                     = yes
@@ -49,13 +49,31 @@ PASS  (3): the first hide was Back's, not a ring's                = 1 0
 PASS  (3): the alarm fired                                        != 
       reuse: windows at the ring: SYSTEM:app.tileshell:[0,0][1080,2340]:focused=false:active=false;APPLICATION:app.tileshell:[0,0][1080,2340]:focused=true:active=true
 PASS  reuse: the session hid within 1000 ms of the fired line     = yes
-PASS  reuse: ... because a ring started                           contains [a ring started]
+PASS  reuse: ... because of the ring                              contains [): hiding the session]
 PASS  reuse: no cortana_session node in the all-windows dump      = no
 PASS  reuse: the ring's Dismiss is on screen                      = yes
 PASS  reuse: the alarm rings (an ALARM player of the shell is started)  != 0
-RECORD  reuse: the ring's surface line                              [alarms] surface: toast-overlay a2aad4274
-PASS  device clock back within 2 s of the host (RV12)             1790561803.00 vs 1790561804.00 +/- 2.0
-      scroll_to_node alarm_row:a2aad4274: 0 swipe(s), found=yes
+RECORD  reuse: the ring's surface line                              [alarms] surface: toast-overlay adfa8e31a
+PASS  device clock back within 2 s of the host (RV12)             1790562702.00 vs 1790562702.00 +/- 2.0
+      scroll_to_node alarm_row:adfa8e31a: 0 swipe(s), found=yes
 PASS  reuse: the section left no alarm behind                     = 
+PASS  Over: the alarm was created and armed                       != 
+PASS  (4): the alarm fired before Tess opened                     != 
+PASS  (4): Tess opened (her session opened line)                  != 
+      over: windows at the ring: TYPE_-1:app.tileshell:[0,0][1080,2340]:focused=true:active=true
+FAIL  over: the session hid within 1000 ms of the fired line      expected [yes] got [no (no hidden line)]
+FAIL  over: ... because of the ring                               does not contain [): hiding the session]:     2026-09-27 20:33:02.471 wall=1790562782471 [cortana] session created
+    2026-09-27 20:33:02.478 wall=1790562782478 [cortana] session window type=2031 flags=0x8d810120 softInputMode=0x0
+    2026-09-27 20:33:02.478 wall=1790562782478 [co
+FAIL  over: no cortana_session node in the all-windows dump       expected [no] got [yes]
+FAIL  over: the ring's Dismiss is on screen                       expected [yes] got [no]
+PASS  over: the alarm rings (an ALARM player of the shell is started)  != 0
+RECORD  over: the ring's surface line                               
+      gdump_for ring_dismiss: not in any of 3 dumps
+      end_ring over: no ring ended line after the Dismiss tap; the ring is ended by dismiss_any_ring
+      dismiss_any_ring: a ring was up and was ended
+PASS  device clock back within 2 s of the host (RV12)             1790562777.00 vs 1790562777.00 +/- 2.0
+      scroll_to_node alarm_row:a106e8ac9: 0 swipe(s), found=yes
+PASS  over: the section left no alarm behind                      = 
 ------------------------------------------------------------------------------
-L13_10: 35 passed, 0 failed, 5 recorded
+L13_10: 41 passed, 4 failed, 6 recorded
