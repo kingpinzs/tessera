@@ -65,6 +65,8 @@ import app.tileshell.brand.Glyph
 import app.tileshell.calculator.InkText
 import app.tileshell.diag.Diagnostics
 import app.tileshell.ui.LocalShellColors
+import app.tileshell.ui.components.OverlayLayer
+import app.tileshell.ui.components.dismissOverlay
 import app.tileshell.ui.tokens.CapMetrics
 import app.tileshell.ui.tokens.ShellType
 import kotlinx.coroutines.Dispatchers
@@ -221,7 +223,12 @@ fun AlarmEditorScreen(nav: ClockNav, store: ClockStore, menu: List<ClockMenuEntr
     val locale = LocalConfiguration.current.locales[0]
     var flyout by remember { mutableStateOf<EditorFlyout?>(null) }
     var editingName by remember { mutableStateOf(false) }
-    BackHandler(enabled = flyout != null || editingName) { flyout = null; editingName = false }
+    // L13-9: a flyout's Back is applied at once, so a touch right after it is not hit-tested against the flyout it
+    // closed (its OverlayLayer stops placing it; L13-3's rule).
+    BackHandler(enabled = flyout != null || editingName) {
+        if (flyout != null) dismissOverlay { flyout = null }
+        editingName = false
+    }
 
     fun update(change: (AlarmDraft) -> AlarmDraft) { nav.alarmDraft = change(draft) }
 
@@ -312,15 +319,18 @@ fun AlarmEditorScreen(nav: ClockNav, store: ClockStore, menu: List<ClockMenuEntr
         FieldRow("Sound", soundText, 404.4f, "alarm_editor_field:sound", glyph = if (draft.sound.kind == AlarmSound.Kind.VIBRATE) Glyph.VIBRATE else Glyph.BELL) { flyout = EditorFlyout.SOUND }
         FieldRow("Snooze time", snoozeLabel(draft.snoozeMinutes), 468.4f, "alarm_editor_field:snooze") { flyout = EditorFlyout.SNOOZE }
 
-        when (flyout) {
-            EditorFlyout.REPEATS -> DaysFlyout(draft.days, locale, onChange = { update { d -> d.copy(days = it) } }) { flyout = null }
-            EditorFlyout.SOUND -> SoundFlyout(
-                onVibrate = { update { d -> d.copy(sound = AlarmSound(AlarmSound.Kind.VIBRATE)) }; flyout = null },
-                onMusic = { flyout = null; nav.page = ClockPage.MusicPicker },
-                onRingtones = { flyout = null; nav.page = ClockPage.Sounds },
-            ) { flyout = null }
-            EditorFlyout.SNOOZE -> SnoozeFlyout(draft.snoozeMinutes, onPick = { update { d -> d.copy(snoozeMinutes = it) }; flyout = null }) { flyout = null }
-            null -> Unit
+        // L13-9: the flyouts are drawn in an OverlayLayer, which stops placing them the moment they are dismissed.
+        OverlayLayer(active = { flyout != null }) {
+            when (flyout) {
+                EditorFlyout.REPEATS -> DaysFlyout(draft.days, locale, onChange = { update { d -> d.copy(days = it) } }) { flyout = null }
+                EditorFlyout.SOUND -> SoundFlyout(
+                    onVibrate = { update { d -> d.copy(sound = AlarmSound(AlarmSound.Kind.VIBRATE)) }; flyout = null },
+                    onMusic = { flyout = null; nav.page = ClockPage.MusicPicker },
+                    onRingtones = { flyout = null; nav.page = ClockPage.Sounds },
+                ) { flyout = null }
+                EditorFlyout.SNOOZE -> SnoozeFlyout(draft.snoozeMinutes, onPick = { update { d -> d.copy(snoozeMinutes = it) }; flyout = null }) { flyout = null }
+                null -> Unit
+            }
         }
     }
     @Suppress("UNUSED_EXPRESSION") context
