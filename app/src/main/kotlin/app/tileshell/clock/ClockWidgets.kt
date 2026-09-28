@@ -162,15 +162,17 @@ fun BoxScope.ClockAppBar(buttons: List<BarButton>, menu: List<ClockMenuEntry>, i
             }
         }
     }
-    // L13-14: the bar takes the touches that land on it, not only on its buttons (it consumes nothing, so they keep theirs):
-    // a list runs under it, and a tap or hold on its blank parts used to reach the row underneath. Only while collapsed:
-    // expanded, the "…" menu's scrim lies under the bar instead of the list, and a tap on the bar's blank part closes the
-    // menu through it, as before (review/2026-09-28-L13-1415-fix-review-a.md note 1).
-    Box(
-        Modifier.align(Alignment.BottomStart).fillMaxWidth().height(height).background(ClockMetrics.BAND_FILL)
-            .then(if (expanded) Modifier else Modifier.pointerInput(Unit) { awaitEachGesture { awaitFirstDown(requireUnconsumed = false) } })
-            .testTag("clock_app_bar"),
-    ) {
+    Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(height).background(ClockMetrics.BAND_FILL).testTag("clock_app_bar")) {
+        // L13-14: the bar takes the touches that land on its blank parts (the target consumes nothing and lies under the
+        // buttons, which keep theirs): a list runs under the bar, and a tap or hold there used to reach the row underneath.
+        // Not while the "…" scrim lies under the bar instead — a tap there closes the menu through it, as before
+        // (review/2026-09-28-L13-1415-fix-review-a.md note 1). The scrim is hit only while it is both composed (`expanded`,
+        // read in composition) and placed (`isExpanded()`, read at placement), so the target is placed exactly when it is
+        // not, read the same two ways: in the frame after Back (placement already changed, composition not yet) exactly
+        // one of them is under the bar (review/2026-09-28-L13-1415-fix-r2-a.md finding 1).
+        OverlayLayer(active = { !expanded || !isExpanded() }, Modifier.matchParentSize()) {
+            Box(Modifier.fillMaxSize().pointerInput(Unit) { awaitEachGesture { awaitFirstDown(requireUnconsumed = false) } })
+        }
         Row(Modifier.align(Alignment.CenterEnd).fillMaxHeight()) {
             buttons.forEach { b ->
                 BarButtonView(b.glyph, if (expanded) b.label else null, b.tag, b.enabled, ClockMetrics.BUTTON_PITCH, colors.text) { b.onClick() }
