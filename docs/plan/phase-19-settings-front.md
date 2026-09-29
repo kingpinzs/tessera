@@ -353,6 +353,14 @@ Load-bearing first. Implementation mechanics are the agent's (P3).
    C. The row stays, disabled, with the reason.
    D. Other / let me clarify.
 
+- OPEN (recorded 2026-09-29 by the phase 12 session; Jeremy, mid-build: "under start and theme the background when
+  choosing a image it should preview it just like the real system does unless this is already planned"): NOT PLANNED
+  anywhere before this line — today "Choose a picture" (phase 01's Start + theme, re-homed here as Personalization > Start)
+  sets the picked image at once, with no preview. W10M showed the chosen photo on a crop / position page before it became
+  the Start background. Needs its W10M reference first (the crop page is not in R3 / R6 / R11: a research item, measured
+  to RV9 / Q10), then a question in the Stage A shape; placed here because this phase builds Personalization > Start in its
+  final form (Rule 16). Phase 12 does not build it (its scope does not change "Choose a picture").
+
 ## Build tasks
 1. **Top level.** The W10M home in r11/settings-front.md §2's values (~~R3 C1 values~~ SUPERSEDED 2026-09-23 by T19-11), the
    box drawn focused at rest without IME focus (T19-11, H10), "Find a setting" (searches this front's page titles; results in
