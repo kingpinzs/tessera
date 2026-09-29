@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import app.tileshell.diag.Diagnostics
 import app.tileshell.prefs.ShellSettings
+import app.tileshell.prefs.ThemeMode
 import app.tileshell.ui.tokens.Palette
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +30,8 @@ data class KeyboardConfig(
     /** Decisions: On by default (approximation, H17). */
     val switchBackAfterEmoji: Boolean = true,
     val accent: Long = Palette.DEFAULT_ACCENT,
+    /** Phase 12 (T12-2): the shell's `keyboard_palette`, DARK or LIGHT; a preset sets it with the rest of the theme. */
+    val palette: ThemeMode = ThemeMode.DARK,
 ) {
     fun toBundle() = Bundle().apply {
         putBoolean(K_SOUNDS, sounds)
@@ -36,6 +39,7 @@ data class KeyboardConfig(
         putString(K_HANDEDNESS, handedness.name)
         putBoolean(K_SWITCH_BACK, switchBackAfterEmoji)
         putLong(K_ACCENT, accent)
+        putString(K_PALETTE, palette.name)
     }
 
     companion object {
@@ -44,6 +48,7 @@ data class KeyboardConfig(
         private const val K_HANDEDNESS = "handedness"
         private const val K_SWITCH_BACK = "switch_back"
         private const val K_ACCENT = "accent"
+        private const val K_PALETTE = "palette"
 
         fun fromBundle(b: Bundle) = KeyboardConfig(
             sounds = b.getBoolean(K_SOUNDS, true),
@@ -51,6 +56,7 @@ data class KeyboardConfig(
             handedness = runCatching { Handedness.valueOf(b.getString(K_HANDEDNESS) ?: "RIGHT") }.getOrDefault(Handedness.RIGHT),
             switchBackAfterEmoji = b.getBoolean(K_SWITCH_BACK, true),
             accent = b.getLong(K_ACCENT, Palette.DEFAULT_ACCENT),
+            palette = runCatching { ThemeMode.valueOf(b.getString(K_PALETTE) ?: "DARK") }.getOrDefault(ThemeMode.DARK),
         )
     }
 }
@@ -104,8 +110,8 @@ class KeyboardConfigProvider : ContentProvider() {
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
         val ctx = context ?: return null
         if (method != METHOD_READ) return null
-        val accent = ShellSettings.get(ctx).theme.value.accent
-        return KeyboardSettings.get(ctx).config.value.copy(accent = accent).toBundle()
+        val theme = ShellSettings.get(ctx).theme.value
+        return KeyboardSettings.get(ctx).config.value.copy(accent = theme.accent, palette = theme.keyboardPalette).toBundle()
     }
 
     override fun query(uri: Uri, p: Array<out String>?, s: String?, a: Array<out String>?, o: String?): Cursor? = null

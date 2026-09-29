@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * The 48-colour Windows 10 accent palette in the Colors page order, 6 columns x 8 rows (R1 §6.1 hex,
- * R3 A16 confirms W10M exposed this palette in this order, MEDIUM).
+ * R3 A16 confirms W10M exposed this palette in this order, MEDIUM), plus Cobalt as the 49th (phase 12 Q7 A).
  */
 object Palette {
     val accents: List<Pair<String, Long>> = listOf(
@@ -16,7 +16,13 @@ object Palette {
         "Pale Rust" to 0xFFEF6950, "Plum" to 0xFFBF0077, "Iris Spring" to 0xFF744DA9, "Mint Dark" to 0xFF018574, "Moss" to 0xFF486860, "Sage" to 0xFF525E54,
         "Brick Red" to 0xFFD13438, "Orchid Light" to 0xFFC239B3, "Violet Red Light" to 0xFFB146C2, "Turf Green" to 0xFF00CC6A, "Meadow Green" to 0xFF498205, "Camouflage Desert" to 0xFF847545,
         "Mod Red" to 0xFFFF4343, "Orchid" to 0xFF9A0089, "Violet Red" to 0xFF881798, "Sport Green" to 0xFF10893E, "Green" to 0xFF107C10, "Camouflage" to 0xFF7E735F,
+        // Phase 12 (interview Q7 A): the 49th swatch, the OEM colour W10M phones shipped with (R12 §1, HIGH), placed last
+        // row, first column (R12 §6). The "Windows 10 Mobile (original)" preset uses it.
+        "Cobalt" to COBALT,
     )
+
+    /** R12 §1: the out-of-box accent of Windows 10 Mobile phones — outside R3 A16's 48. */
+    const val COBALT = 0xFF3E65FF
 
     /** Out-of-box accent: Windows "Default Blue" (approximation, recorded in the INDEX change log). */
     const val DEFAULT_ACCENT = 0xFF0078D7

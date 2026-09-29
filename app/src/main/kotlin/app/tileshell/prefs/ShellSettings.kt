@@ -51,6 +51,17 @@ data class StartTheme(
      * surface draws its measured solid W10M fill instead of acrylic (and phase 12's presets set it).
      */
     val transparencyEffects: Boolean = true,
+    /**
+     * Phase 12 (T12-2): the theme preset the items came from — `default`, `w10m`, `hal`, `soft`, `lumia`, `midnight` — or
+     * `custom` once a write changes any of the preset's items; null (the key absent) reads as the out-of-box Default.
+     */
+    val themePreset: String? = null,
+    /** Phase 12 (T12-10): the original preset's picture variant, `hero` or `streaks`; changing it is not a Custom change. */
+    val themePresetVariant: String = ThemePresets.VARIANT_HERO,
+    /** Phase 12 (r3 D7): Tess's lens, `hal`, `accent` or `hal_dim` (phase 03's persona reads it). */
+    val tessLens: String = ThemePresets.LENS_HAL,
+    /** Phase 12 (T12-2): the keyboard's colours, DARK (as phase 05 built it) or LIGHT (phase 05's keyboard reads it). */
+    val keyboardPalette: ThemeMode = ThemeMode.DARK,
 )
 
 /** Start + theme settings (phase 01 Settings hub). SharedPreferences-backed, exposed as a StateFlow. */
@@ -71,10 +82,19 @@ class ShellSettings private constructor(context: Context) {
         photosSlideshow = prefs.getBoolean("photos_slideshow", false),
         photoFrameUri = prefs.getString("photo_frame", null),
         transparencyEffects = prefs.getBoolean("transparency_effects", true),
+        themePreset = prefs.getString("theme_preset", null),
+        themePresetVariant = prefs.getString("theme_preset_variant", ThemePresets.VARIANT_HERO)!!,
+        tessLens = prefs.getString("tess_lens", ThemePresets.LENS_HAL)!!,
+        keyboardPalette = runCatching { ThemeMode.valueOf(prefs.getString("keyboard_palette", ThemeMode.DARK.name)!!) }.getOrDefault(ThemeMode.DARK),
     )
 
+    /**
+     * A user's change to any item. Phase 12's Custom rule (T12-2, r3 D8): when it changes one of a preset's items the
+     * preset reads `custom`; `columns`, `profiles`, `autosize`, `photos_slideshow` and `photo_frame` never do.
+     */
     fun update(change: (StartTheme) -> StartTheme) {
-        val next = change(state.value)
+        val prev = state.value
+        val next = ThemePresets.afterUserChange(prev, change(prev))
         prefs.edit()
             .putLong("accent", next.accent)
             .putString("theme", next.theme.name)
@@ -87,9 +107,38 @@ class ShellSettings private constructor(context: Context) {
             .putBoolean("photos_slideshow", next.photosSlideshow)
             .putString("photo_frame", next.photoFrameUri)
             .putBoolean("transparency_effects", next.transparencyEffects)
+            .putString("theme_preset", next.themePreset)
+            .putString("theme_preset_variant", next.themePresetVariant)
+            .putString("tess_lens", next.tessLens)
+            .putString("keyboard_palette", next.keyboardPalette.name)
             .apply()
         state.value = next
         Diagnostics.add("settings", "start theme changed: $next")
+    }
+
+    /**
+     * Phase 12's preset write (build task 3, r3 D8): puts ONLY the preset's keys — the eight items, `theme_preset` and,
+     * for the original preset, `theme_preset_variant` — and never rewrites the others, unlike [update].
+     */
+    fun applyPreset(items: PresetItems, presetId: String, variant: String? = null) {
+        val edit = prefs.edit()
+        ThemePresets.putItems(edit, items)
+        edit.putString("theme_preset", presetId)
+        if (variant != null) edit.putString("theme_preset_variant", variant)
+        edit.apply()
+        val next = ThemePresets.withItems(state.value, items).copy(
+            themePreset = presetId,
+            themePresetVariant = variant ?: state.value.themePresetVariant,
+        )
+        state.value = next
+        Diagnostics.add("settings", "start theme preset written: $next")
+    }
+
+    /** Phase 12 (T12-10): the original preset's picture variant — the picture and the variant key only. */
+    fun applyVariant(variant: String, backgroundUri: String?) {
+        prefs.edit().putString("background", backgroundUri).putString("theme_preset_variant", variant).apply()
+        state.value = state.value.copy(backgroundUri = backgroundUri, themePresetVariant = variant)
+        Diagnostics.add("settings", "start theme variant written: ${state.value}")
     }
 
     companion object {
