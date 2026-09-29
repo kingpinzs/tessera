@@ -136,11 +136,13 @@ class SetupWizardTest {
         var run = WizardRules.start(e2Steps)
         val seen = ArrayList<String>()
         val lines = ArrayList<String>()
-        while (!run.onPresets) {
+        repeat(40) {
+            if (run.onPresets) return@repeat
             seen += run.current!!
             val (next, l) = WizardRules.notNow(run, e2())
             run = next; lines += l
         }
+        assertTrue("the walk ends on the presets page within 40 steps", run.onPresets)
         assertEquals(e2Steps, seen)
         assertEquals(20, run.stepNumber)
         assertEquals(20, run.total)
@@ -196,10 +198,12 @@ class SetupWizardTest {
         assertEquals("setup:photos", run.current) // the current step stays
         assertEquals(21, run.total)                // N grew by one
         val seen = ArrayList<String>()
-        while (!run.onPresets) {
+        repeat(40) {
+            if (run.onPresets) return@repeat
             seen += run.current!!
             run = WizardRules.notNow(run, rowsNow).first
         }
+        assertTrue("the walk ends on the presets page within 40 steps", run.onPresets)
         assertEquals(1, seen.count { it == "setup:notifications" })
         assertEquals(listOf("setup:photos", "setup:notifications"), seen.take(2))
     }
@@ -287,6 +291,45 @@ class SetupWizardTest {
         assertEquals("android.settings.FOO", WizardRules.intentAction("No Activity found to handle Intent { act=android.settings.FOO }"))
         assertEquals("unknown", WizardRules.intentAction(null))
         assertEquals("unknown", WizardRules.intentAction("no intent here"))
+    }
+
+    @Test fun `a blocked row that turned PARTIAL reads its verb again (not Open app info)`() {
+        var run = WizardRules.fired(WizardRules.start(listOf("tess:background_location")), "tess:background_location")
+        run = WizardRules.reconcile(run, e2(), noRationale, noneGranted).first
+        val missing = e2().first { it.key == "tess:background_location" }
+        assertEquals("Open app info", WizardRules.label(missing, run))
+        val partial = missing.copy(state = RowState.PARTIAL)   // FINE granted from the app-info page
+        run = WizardRules.reconcile(run, rows(states = mapOf("tess:background_location" to RowState.PARTIAL)), noRationale, noneGranted).first
+        assertEquals("Allow all the time", WizardRules.label(partial, run))
+    }
+
+    @Test fun `the first walk lists PARTIAL-not-done rows beside the MISSING ones`() {
+        val r = rows(states = mapOf("setup:usage" to RowState.MISSING, "tess:background_location" to RowState.PARTIAL))
+        assertEquals(Visibility.Show(listOf("setup:usage", "tess:background_location")), WizardRules.visibility(r, false))
+    }
+
+    @Test fun `blocked, then granted, then revoked - the step asks again (blocked is cleared)`() {
+        var run = WizardRules.fired(WizardRules.start(listOf("setup:photos", "setup:music")), "setup:photos")
+        run = WizardRules.reconcile(run, e2(), noRationale, noneGranted).first
+        assertTrue("setup:photos" in run.blocked)
+        val granted = e2().map { if (it.key == "setup:photos") it.copy(state = RowState.GRANTED) else it }
+        run = WizardRules.reconcile(run, granted, noRationale, noneGranted).first
+        assertFalse("blocked cleared on the grant", "setup:photos" in run.blocked)
+        run = WizardRules.reconcile(run, e2(), noRationale, noneGranted).first   // revoked again: rejoins
+        assertEquals("Allow", WizardRules.label(e2().first { it.key == "setup:photos" }, run))
+    }
+
+    @Test fun `a current key missing from both lists is dropped, never reported granted`() {
+        val run = WizardRules.start(listOf("setup:gone", "setup:usage"))
+        val (next, lines) = WizardRules.reconcile(run, rows(states = mapOf("setup:usage" to RowState.MISSING)), noRationale, noneGranted)
+        assertEquals(emptyList<String>(), lines)
+        assertEquals("setup:usage", next.current)
+        assertFalse("setup:gone" in next.seq)
+    }
+
+    @Test fun `a Settings page that refuses the caller - the action-failed line, not a crash`() {
+        val failure = WizardRules.fire("setup:full_screen_alarms") { throw SecurityException("Permission Denial: starting Intent { act=android.settings.MANAGE_APP_USE_FULL_SCREEN_INTENT }") }!!
+        assertTrue(failure, failure.startsWith("step setup:full_screen_alarms: action failed android.settings.MANAGE_APP_USE_FULL_SCREEN_INTENT: "))
     }
 
     // ------------------------------------------------------------------ verbs and why lines

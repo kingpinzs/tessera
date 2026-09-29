@@ -70,7 +70,13 @@ class ShellSettings private constructor(context: Context) {
     private val state = MutableStateFlow(read())
     val theme: StateFlow<StartTheme> = state.asStateFlow()
 
-    private fun read() = StartTheme(
+    private fun read(): StartTheme = readItems().let { t ->
+        // A set stored before phase 12 has no theme_preset key: read it as Custom when its items are not Default's, so the
+        // first preset tap snapshots it — the user's own picture included — instead of dropping it (adversarial review B1).
+        t.copy(themePreset = ThemePresets.presetOnRead(prefs.getString("theme_preset", null), t))
+    }
+
+    private fun readItems() = StartTheme(
         accent = prefs.getLong("accent", Palette.DEFAULT_ACCENT),
         theme = ThemeMode.valueOf(prefs.getString("theme", ThemeMode.DARK.name)!!),
         backgroundUri = prefs.getString("background", null),
@@ -82,8 +88,7 @@ class ShellSettings private constructor(context: Context) {
         photosSlideshow = prefs.getBoolean("photos_slideshow", false),
         photoFrameUri = prefs.getString("photo_frame", null),
         transparencyEffects = prefs.getBoolean("transparency_effects", true),
-        themePreset = prefs.getString("theme_preset", null),
-        themePresetVariant = prefs.getString("theme_preset_variant", ThemePresets.VARIANT_HERO)!!,
+        themePresetVariant = ThemePresets.variantOnRead(prefs.getString("theme_preset_variant", null)),
         tessLens = prefs.getString("tess_lens", ThemePresets.LENS_HAL)!!,
         keyboardPalette = runCatching { ThemeMode.valueOf(prefs.getString("keyboard_palette", ThemeMode.DARK.name)!!) }.getOrDefault(ThemeMode.DARK),
     )
