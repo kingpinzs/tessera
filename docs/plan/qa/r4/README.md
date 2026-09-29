@@ -66,10 +66,10 @@ The phone's run folder stays on this PC (gitignored: it holds the build fingerpr
 public); the findings go into the plan. Not recorded: the phone number, the IMEI, the serial number (the summary names the
 model only; the Wireless-debugging pairing is recorded as "paired: yes/no"), and voicemail content (counts per app only).
 
-## Not covered (needs Jeremy's ruling)
+## Not covered, by ruling
 
-PQ2 asks whether the helper can reach T-Mobile's visual voicemail (mstore API + GBA SIM auth). The kit only records what
-the shell can see; actually attempting the GBA / mstore exchange would authenticate to T-Mobile with your SIM, which is an
-account action the kit will not take without your say.
+PQ2 asks whether the helper can reach T-Mobile's visual voicemail (mstore API + GBA SIM auth). Jeremy, 2026-09-28: "A" —
+R4 only records what the shell can see; it never signs in to T-Mobile with the SIM. A sign-in probe becomes its own item
+before phase 06's voicemail is built, if phase 06 needs it.
 
 If anything fails, the summary says which file shows why; the run is safe to repeat.

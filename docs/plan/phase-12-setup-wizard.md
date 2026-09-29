@@ -1,7 +1,7 @@
 ---
 phase: 12
 slug: setup-wizard
-status: DRAFT   # FINAL gates (T12-13) MET 2026-09-28: Jeremy's pictures are in art/themes/ (his pick: hal-a, lumia-b, midnight-b, soft-c) and his R12 ruling is (a) — every build, the public CI APK included, ships the original preset's pictures. Review round 3 (the last, cap 3) APPLIED 2026-09-28 (review/2026-09-28-phase12-r3-triage.md, every finding accepted; apply log review/2026-09-28-phase12-r3-applied.md); awaits Jeremy's FINAL
+status: FINAL   # 2026-09-28 (Jeremy: "finalize phase 12") after review round 3 (the last) was triaged and applied; FINAL gates (T12-13) met the same day. Changes from here only through an INDEX Change Log line.
 depends-on: [01, 03, 05, 10, 13]   # it walks rows those phases put on the Setup checklist and Tess's checklist (phase 03), reuses phase 01's theme settings and phase 03's blocked-permission rule; 13 because a preset writes phase 13's StartTheme.transparencyEffects (T12-3: build order 11 -> 13 -> 12 -> 14)
 ---
 
@@ -53,6 +53,7 @@ picture (R12 §6 lists img5): a preset must not rewrite Android's lock-screen wa
 (b); the split-time reason, "the shell draws no lock screen", missed that the shell can set Android's lock wallpaper). Hooks for later phases.
 
 ## Decisions
+- 2026-09-28: FINAL (Jeremy: "finalize phase 12").
 - 2026-09-28: Review round 3 (the last): fable + codex-cli; every finding accepted and applied (triage
   review/2026-09-28-phase12-r3-triage.md; D1–D16 design, V1–V10 testability; apply log review/2026-09-28-phase12-r3-applied.md).
   No finding reopened a dated ruling of Jeremy's; no question went to him.
