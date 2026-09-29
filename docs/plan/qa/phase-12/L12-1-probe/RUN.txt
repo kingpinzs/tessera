@@ -1,0 +1,29 @@
+# L12-1 probe 2026-09-29T16:41:56-06:00 on emulator-5554
+== trial A
+after the drop: quick_burst nodes=1 quick_sat nodes=1 edit_disc:unpin=1
+unpin disc before the tap: [173 132 266 225]; tapping slot:BROWSER at 697 341
+after the tap: edit_disc:unpin=0 at []
+ring (last [edit]/[quick] lines):
+    2026-09-29 16:42:12.585 wall=1790721732585 [quick] satellite 0 rest=[15,356,180,521]
+    2026-09-29 16:42:12.585 wall=1790721732585 [quick] satellite 1 rest=[193,356,358,521]
+    2026-09-29 16:42:12.585 wall=1790721732585 [quick] satellite 2 rest=[371,356,536,521]
+    2026-09-29 16:42:12.585 wall=1790721732585 [quick] satellite 3 rest=[549,356,714,521]
+    2026-09-29 16:42:15.874 wall=1790721735874 [quick] burst closed: tap elsewhere
+    2026-09-29 16:42:15.874 wall=1790721735874 [edit] tap elsewhere with a burst open: exit, touch-up uptime=24193751
+    2026-09-29 16:42:15.947 wall=1790721735947 [quick] motion close shell:settings: t0=24193775 alpha0=50 settle=50 frames=4 maxGapMs=16.7
+    2026-09-29 16:42:16.028 wall=1790721736028 [edit] exit first frame at uptime=24193908, 157 ms after touch-up (R6 §1.5.2: 150 ± 17 ms)
+== trial B
+after the drop: quick_burst nodes=1 quick_sat nodes=1 edit_disc:unpin=1
+after Back: quick_burst nodes=0 edit_disc:unpin=1
+unpin disc before the tap: [173 132 266 225]; tapping slot:BROWSER at 697 341
+after the tap: edit_disc:unpin=1 at [822 123 915 216]
+ring (last [edit]/[quick] lines):
+    2026-09-29 16:42:40.408 wall=1790721760408 [quick] motion open shell:settings: t0=24217958 peak=100 overshoot=6.5 settle=266 frames=20 maxGapMs=16.7
+    2026-09-29 16:42:40.436 wall=1790721760436 [quick] satellite 0 rest=[15,356,180,521]
+    2026-09-29 16:42:40.436 wall=1790721760436 [quick] satellite 1 rest=[193,356,358,521]
+    2026-09-29 16:42:40.436 wall=1790721760436 [quick] satellite 2 rest=[371,356,536,521]
+    2026-09-29 16:42:40.436 wall=1790721760436 [quick] satellite 3 rest=[549,356,714,521]
+    2026-09-29 16:42:44.064 wall=1790721764064 [quick] burst closed: back
+    2026-09-29 16:42:44.147 wall=1790721764147 [quick] motion close shell:settings: t0=24221975 alpha0=50 settle=50 frames=4 maxGapMs=16.7
+    2026-09-29 16:42:47.528 wall=1790721767528 [edit] selection moves to slot:BROWSER
+layout restored
