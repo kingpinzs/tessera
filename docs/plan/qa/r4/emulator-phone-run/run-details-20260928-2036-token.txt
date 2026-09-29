@@ -1,0 +1,270 @@
+== baseline
+  secure navigation_mode = 0
+  global adb_wifi_enabled = 1
+  global adb_enabled = 1
+  secure enabled_accessibility_services = null
+  secure accessibility_enabled = 0
+  global low_power = 0
+  global low_power_sticky = 0
+  battery_saver  off      0
+  location       on       true
+  auto_time      on       1
+  nfc            unknown  
+  bluetooth      on       1
+  wifi           on       Wifi is enabled
+  hotspot        probe    
+  mobile_data    on       1
+  airplane       off      disabled
+  [auto] R4 will flip each of these and flip it straight back ('unknown' ones are left alone; the hotspot is only probed):
+  battery_saver: off
+  location: on
+  auto_time: on
+  nfc: unknown
+  bluetooth: on
+  wifi: on
+  mobile_data: on
+  airplane: off
+Wi-Fi and airplane mode cut Wireless debugging for a moment; R4 turns it back on. If a state above is wrong, tap Stop. -> Go ahead
+== part 1: app_process --probe
+uid            2000
+pid            4279
+selinux        u:r:shell:s0
+sdk            36 (16)
+model          Android SDK built for x86_64
+oneui          not a One UI build
+activity svc   reachable
+== part 2
+  helper pid 4298, parent 1
+2026-09-28 20:37:01 started: uid 2000 pid 4298 tag phone sdk 36
+2026-09-28 20:37:01 binder delivered to app.tessera.r4probe pid 4139 uid 10182
+  ping: helper tag=phone uid=2000 pid=4298 up=0s
+== part 3a: toggles directly over adb (shell uid)
+  battery_saver  [phase 19 verb (battery saver)]
+    before  0  [off]
+    flip away: (no output)
+    read    1  [on]
+    back:   (no output)
+    after   0  [off]
+    CHANGED yes · RESTORED yes
+  location  [phase 19 verb (location)]
+    before  true  [on]
+    flip away: (no output)
+    read    false  [off]
+    back:   (no output)
+    after   true  [on]
+    CHANGED yes · RESTORED yes
+  auto_time  [phase 19 verb (automatic time)]
+    before  1  [on]
+    flip away: (no output)
+    read    0  [off]
+    back:   (no output)
+    after   1  [on]
+    CHANGED yes · RESTORED yes
+  nfc  [phase 19 verb (NFC)]
+    before    [unknown]
+    UNRECOGNISED STATE: not flipped
+  bluetooth  [phase 04 action center]
+    before  1  [on]
+    flip away: BluetoothShellCommand: Exec disable disable: Success
+    read    0  [off]
+    back:   BluetoothShellCommand: Exec enable enable: Success
+    after   1  [on]
+    CHANGED yes · RESTORED yes
+  wifi  [phase 04 action center]
+    not flipped over adb: it would cut this run's own Wireless debugging (flipped through the helper)
+  hotspot  [phase 19 verb (hotspot)]
+    probe   Exception occurred while executing 'start-softap': java.lang.SecurityException: Uid 2000 does not have access to start-softap wifi command (or such command doesn't exist) 	at com.android.server.wifi.W
+    PROBE REFUSED to the shell uid
+  mobile_data  [phase 04 action center]
+    before  1  [on]
+    flip away: (no output)
+    read    0  [off]
+    back:   (no output)
+    after   1  [on]
+    CHANGED yes · RESTORED yes
+  airplane  [phase 04 action center]
+    not flipped over adb: it would cut this run's own Wireless debugging (flipped through the helper)
+== part 3b: toggles through the helper
+  battery_saver  [phase 19 verb (battery saver)]
+    before  0  [off]
+    flip away (exit 0) 
+    read    1  [on]
+    back (exit 0) 
+    after   0  [off]
+    CHANGED yes · RESTORED yes
+  location  [phase 19 verb (location)]
+    before  true  [on]
+    flip away (exit 0) 
+    read    false  [off]
+    back (exit 0) 
+    after   true  [on]
+    CHANGED yes · RESTORED yes
+  auto_time  [phase 19 verb (automatic time)]
+    before  1  [on]
+    flip away (exit 0) 
+    read    0  [off]
+    back (exit 0) 
+    after   1  [on]
+    CHANGED yes · RESTORED yes
+  nfc  [phase 19 verb (NFC)]
+    before    [unknown]
+    UNRECOGNISED STATE: not flipped
+  bluetooth  [phase 04 action center]
+    before  1  [on]
+    flip away (exit 0) BluetoothShellCommand: Exec disable
+disable: Success
+    read    0  [off]
+    back (exit 0) BluetoothShellCommand: Exec enable
+enable: Success
+    after   1  [on]
+    CHANGED yes · RESTORED yes
+  wifi  [phase 04 action center]
+    before  Wifi is enabled  [on]
+    flip away (exit 0) 
+    read    Wifi is disabled  [off]
+    back (exit 0) 
+    after   Wifi is enabled  [on]
+    CHANGED yes · RESTORED yes
+    adb back after 9 s (Wireless debugging 1, port 40667)
+  hotspot  [phase 19 verb (hotspot)]
+    probe   (exit 255) Exception occurred while executing 'start-softap':
+java.lang.SecurityException: Uid 2000 does not have access to start-softap wifi command (or such command doesn't exist)
+	at com.android.server.wifi.W
+    PROBE REFUSED to the shell uid
+  mobile_data  [phase 04 action center]
+    before  1  [on]
+    flip away (exit 0) 
+    read    0  [off]
+    back (exit 0) 
+    after   1  [on]
+    CHANGED yes · RESTORED yes
+  airplane  [phase 04 action center]
+    before  disabled  [off]
+    flip away (exit 0) 
+    read    enabled  [on]
+    back (exit 0) 
+    after   disabled  [off]
+    CHANGED yes · RESTORED yes
+    adb back after 9 s (Wireless debugging 1, port 33073)
+== part 4a: the app is killed on purpose (by a detached shell command) and restarted
+  after the kill and restart: helper 4298 alive: true; ping: helper tag=phone uid=2000 pid=4298 up=116s
+== part 4b: Unable to go deep idle; not enabled
+  [auto] Look at the tinted panel at the bottom (normal pass). Is the text behind it blurred? -> Skip
+  [auto] Look at the tinted panel at the bottom (powersave pass). Is the text behind it blurred? -> Skip
+== blur
+  [ro.surface_flinger.supports_background_blur]: [1]
+  -- normal: low_power=0; isCrossWindowBlurEnabled=true; mBlurEnabled=true
+  -- normal: Jeremy says: Skip
+  -- powersave: low_power=1; isCrossWindowBlurEnabled=false; mBlurEnabled=false
+  -- powersave: Jeremy says: Skip
+  power saving: as it was (on when unplugged: 0; low_power_sticky 0)
+  [auto] Switch the navigation type (Settings > Display > Navigation bar: Swipe gestures <-> Buttons), come back here, and tap Done. -> Skip
+== P5: accessibility service connected
+-- nav-0 a11y (navigation_mode=0; taps at y=2328 and y=1170)
+window type     TYPE_ACCESSIBILITY_OVERLAY (phase 04's action center)
+navigation_mode = 0 (3-button)
+display bounds  1080 x 2340 px
+
+A. MATCH_PARENT, insets fitted (the default)
+  laid out       1080 x 2340 px
+  short by       0 px (the nav bar is 135 px)
+  nav inset seen 0 px from inside the overlay
+  REACHES the display's bottom edge.
+
+B. setFitInsetsTypes(0) + explicit full height
+  laid out       1080 x 2340 px
+  short by       0 px (the nav bar is 135 px)
+  nav inset seen 0 px from inside the overlay
+  REACHES the display's bottom edge.
+
+
+  TOUCHES the overlay received:
+    touch at y=2328 of 2340 — IN the nav bar's strip
+    touch at y=1170 of 2340 — above the strip
+  RESULT: a tap in the nav bar's strip REACHED the overlay.
+OVERLAY DONE a11y run
+-- nav-0 app (navigation_mode=0; taps at y=2328 and y=1170)
+window type     TYPE_APPLICATION_OVERLAY (contrast only)
+navigation_mode = 0 (3-button)
+display bounds  1080 x 2340 px
+
+A. MATCH_PARENT, insets fitted (the default)
+  laid out       1080 x 2205 px
+  short by       135 px (the nav bar is 135 px)
+  nav inset seen 0 px from inside the overlay
+  STOPS 135 px short.
+
+B. setFitInsetsTypes(0) + explicit full height
+  laid out       1080 x 2340 px
+  short by       0 px (the nav bar is 135 px)
+  nav inset seen 135 px from inside the overlay
+  REACHES the display's bottom edge.
+
+
+  TOUCHES the overlay received:
+    touch at y=1170 of 2340 — above the strip
+  RESULT: no tap in the strip reached the overlay. Either none was made, or
+  the nav bar takes them — compare with the taps above the strip.
+OVERLAY DONE app run
+== PQ2 visual voicemail (what the shell can see; Jeremy 2026-09-28 "A": observe only, no sign-in)
+  sim operator: T-Mobile · network: T-Mobile
+  -- carrier config (voicemail / VVM / GBA keys)
+call_forwarding_map_non_number_to_voicemail_bool = false
+carrier_certificate_string_array = [92B5F8117FBD9BD5738FF168A4FA12CBE284BE834EDE1A7BB44DD8455BA15920:com.tmobile.rsuapp,com.tmobile.echolocate,com.tmobile.services.nameid,com.tmobile.pr.mytmobile,com.tmobile.vvm.application, 3D1A4BEF6EE7AF7D34D120E7B1AAC0DD245585DE6237CF100F68333AFACFF562:com.tmobile.rsuapp,com.tmobile.echolocate,com.tmobile.services.nameid,com.tmobile.pr.mytmobile,com.tmobile.vvm.application, 6892793FC413019D2DF609DFED7AF622D0F2D8FCF96EFA7E3FB87EEA34E10B93:com.tmobile.rsuapp,com.tmobile.echolocate,com.tmobile.services.nameid,com.tmobile.pr.mytmobile,com.tmobile.vvm.application, 7B68FD9D4E7610C9CB35FC0C6CC06EA04C6906E3DFA9F48F9A05460AF36BFFFC:com.tmobile.rsuapp,com.tmobile.echolocate,com.tmobile.services.nameid,com.tmobile.pr.mytmobile,com.tmobile.vvm.application]
+carrier_ims_gba_required_bool = false
+carrier_ims_gba_required_bool = true
+carrier_vvm_package_name_string = 
+carrier_vvm_package_name_string = com.tmobile.vvm.application
+carrier_vvm_package_name_string_array = null
+config_telephony_use_own_number_for_voicemail_bool = false
+display_voicemail_number_as_default_call_forwarding_number = false
+editable_voicemail_number_bool = false
+editable_voicemail_number_setting_bool = true
+gba_mode_int = 1
+gba_ua_security_organization_int = 1
+gba_ua_security_protocol_int = 65536
+gba_ua_tls_cipher_suite_int = 0
+gba_ua_tls_cipher_suite_int = 47
+hide_voicemail_number_setting_bool = false
+imsvoice.ringback_timer_millis_int = 90000
+mdn_is_additional_voicemail_number_bool = false
+voicemail_notification_persistent_bool = false
+vvm_cellular_data_required_bool = false
+vvm_client_prefix_string = //VVM
+vvm_destination_number_string = 
+vvm_destination_number_string = 122
+vvm_disabled_capabilities_string_array = null
+vvm_legacy_mode_enabled_bool = false
+vvm_port_number_int = 0
+vvm_port_number_int = 1808
+vvm_prefetch_bool = true
+vvm_ssl_enabled_bool = false
+vvm_type_string = 
+vvm_type_string = vvm_type_cvvm
+  -- apps that could handle visual voicemail
+
+  -- the default dialer: com.android.dialer
+  -- the system voicemail provider: rows per source app (counts only): no rows (No result found.)
+  -- what the shell uid holds
+android.permission.MODIFY_PHONE_STATE
+android.permission.MODIFY_PHONE_STATE: granted=true
+android.permission.READ_PRIVILEGED_PHONE_STATE
+android.permission.READ_PRIVILEGED_PHONE_STATE: granted=true
+com.android.voicemail.permission.ADD_VOICEMAIL
+com.android.voicemail.permission.ADD_VOICEMAIL: granted=true, flags=[ SYSTEM_FIXED|GRANTED_BY_DEFAULT|RESTRICTION_UPGRADE_EXEMPT]
+com.android.voicemail.permission.READ_VOICEMAIL
+com.android.voicemail.permission.READ_VOICEMAIL: granted=true
+== clean-up
+  accessibility services: as they were
+  battery_saver: as it was (off)
+  location: as it was (on)
+  auto_time: as it was (on)
+  nfc: its start state was not recognised; never flipped, left alone
+  bluetooth: as it was (on)
+  wifi: as it was (on)
+  mobile_data: as it was (on)
+  airplane: as it was (off)
+  power saving: as it was (on when unplugged: 0; low_power_sticky 0)
+  [auto] Last step (4d): open Developer options, turn Wireless debugging OFF, then turn USB debugging OFF. Wait 30 seconds, come back here and tap Done. -> Skip
+  helper: exiting
+  helper binder alive after exit: true
