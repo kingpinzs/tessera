@@ -84,7 +84,7 @@ object ThemePresets {
 
     fun byId(id: String?): ThemePreset? = ThemePreset.entries.firstOrNull { it.id == id }
 
-    /** The preset the page shows selected: the stored id, the out-of-box Default when the key is absent, else none. */
+    /** The preset the page shows selected: the id as read (`presetOnRead`), or the out-of-box Default when it is null. */
     fun selectedId(theme: StartTheme): String = theme.themePreset ?: ThemePreset.DEFAULT.id
 
     fun itemsOf(theme: StartTheme) = PresetItems(
