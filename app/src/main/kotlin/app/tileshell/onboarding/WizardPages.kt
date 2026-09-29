@@ -205,10 +205,14 @@ fun WizardPageTransition(key: Any, content: @Composable () -> Unit) {
         while (true) {
             val now = withFrameNanos { it }
             val ms = (now - start) / 1_000_000f
-            elapsed = ms.coerceAtMost(Motion.PAGE_ENTER_MS.toFloat())
-            val v = (ms / Motion.PAGE_ENTER_MS).coerceAtMost(1f)
+            // The motion ends on the frame NEAREST its 217 ms, not the first frame after it: 217 is not a whole number of
+            // frames (13 × 16.7 = 216.7 at 60 Hz), and ending one frame late put the fade's end at 233 ms (E10 run 1),
+            // outside "alpha complete in 217 ms". At 120 Hz that frame is also 216.7 ms.
+            val done = ms >= Motion.PAGE_ENTER_MS - Motion.FRAME_MS / 2f
+            elapsed = if (done) Motion.PAGE_ENTER_MS.toFloat() else ms
+            val v = if (done) 1f else ms / Motion.PAGE_ENTER_MS
             trace.frame(now, v)
-            if (v >= 1f) break
+            if (done) break
         }
         Diagnostics.add("motion", trace.message())
     }
