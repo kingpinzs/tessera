@@ -59,6 +59,15 @@ object HelperLink {
 
     fun ping(): String = call(HelperMain.PING) { }
 
+    /** (exit code, `pidof adbd` output) read by the helper. */
+    fun adbdPid(): Pair<Int, String> { var e = -1; val o = call(HelperMain.ADBD_PID, { e = it }) { }; return e to o }
+
+    fun exit(): String = call(HelperMain.EXIT) { }
+
+    fun wirelessDebuggingOn(): String = call(HelperMain.WD_ON) { }
+
+    fun binderAlive(): Boolean = binder?.isBinderAlive == true
+
     /** (exit code, output) for a NAMED toggle; the helper maps the name to its own fixed command. */
     fun toggle(name: String, action: String): Pair<Int, String> {
         var exit = -1

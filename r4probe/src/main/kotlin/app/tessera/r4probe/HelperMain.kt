@@ -33,6 +33,16 @@ object HelperMain {
     const val AUTHORITY = "app.tessera.r4probe.helper"
     const val PING = IBinder.FIRST_CALL_TRANSACTION
     const val TOGGLE = IBinder.FIRST_CALL_TRANSACTION + 1
+    /** Fixed read: `pidof adbd` — how the phone-only run sees adbd stop once its own adb connection is gone (4d). */
+    const val ADBD_PID = IBinder.FIRST_CALL_TRANSACTION + 2
+    /** Ends the helper (the phone-only run's last step). */
+    const val EXIT = IBinder.FIRST_CALL_TRANSACTION + 3
+    /**
+     * Fixed write: Wireless debugging back on (`settings put global adb_wifi_enabled 1`). Wi-Fi and airplane-mode flips
+     * drop Wi-Fi, and Android turns Wireless debugging off with it, cutting the phone-only run's own adb; the helper,
+     * which does not ride on adb, turns it back on once Wi-Fi is back.
+     */
+    const val WD_ON = IBinder.FIRST_CALL_TRANSACTION + 4
 
     private var logFile: File? = null
     private val startedAt = SystemClock.elapsedRealtime()
@@ -142,7 +152,7 @@ object HelperMain {
 
         override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
             val caller = Binder.getCallingUid()
-            if (code != PING && code != TOGGLE) return super.onTransact(code, data, reply, flags)
+            if (code !in PING..WD_ON) return super.onTransact(code, data, reply, flags)
             if (caller != appUid) {
                 log("refused code $code from uid $caller (the app is uid $appUid)")
                 reply?.writeInt(-100); reply?.writeString("refused: uid $caller is not the probe app")
@@ -153,6 +163,21 @@ object HelperMain {
                     reply?.writeInt(0)
                     reply?.writeString("helper tag=$tag uid=${Process.myUid()} pid=${Process.myPid()} " +
                         "up=${(SystemClock.elapsedRealtime() - startedAt) / 1000}s")
+                }
+                ADBD_PID -> {
+                    val (exit, out) = sh("pidof adbd")
+                    reply?.writeInt(exit); reply?.writeString(out.trim())
+                }
+                WD_ON -> {
+                    // Only when it is off: writing it while it is on restarts the Wireless-debugging server (a new port
+                    // each time), and the app could never catch it.
+                    val (exit, out) = sh("[ \"$(settings get global adb_wifi_enabled)\" = 1 ] || settings put global adb_wifi_enabled 1; settings get global adb_wifi_enabled")
+                    reply?.writeInt(exit); reply?.writeString(out.trim())
+                }
+                EXIT -> {
+                    log("exit requested by the app")
+                    reply?.writeInt(0); reply?.writeString("exiting")
+                    Thread { Thread.sleep(300); runCatching { File("/data/local/tmp/r4helper-$tag.pid").delete() }; System.exit(0) }.start()
                 }
                 TOGGLE -> {
                     val name = data.readString() ?: ""

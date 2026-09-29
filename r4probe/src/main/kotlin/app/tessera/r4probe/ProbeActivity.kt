@@ -74,6 +74,11 @@ class ProbeActivity : Activity() {
             typeface = android.graphics.Typeface.MONOSPACE
             setTextIsSelectable(true)
         }
+        // R4 on this phone alone: the run, and the panel it asks its hands-on questions in.
+        root.addView(button("Run R4 on this phone") { Runner.start(this, autoMode = false) })
+        promptText = TextView(this).apply { setTextColor(Color.WHITE); textSize = 15f; setPadding(0, dp(8), 0, dp(8)) }
+        promptRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        root.addView(promptText); root.addView(promptRow)
         root.addView(button("Copy the whole report") { copy() })
         root.addView(button("Overlay probe: run it (needs the permission below)") { runOverlayProbe("app") })
         root.addView(button("Blur probe: run it (needs the permission below)") { runBlurProbe() })
@@ -90,7 +95,17 @@ class ProbeActivity : Activity() {
             insets
         }
         HelperLink.onChange = { runOnUiThread { collect() } }
-        root.post { handleRun(intent) }
+        Runner.ui = this
+        Runner.onChange = { runOnUiThread { renderPrompt(); collect() } }
+        if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED)
+            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
+        root.post {
+            handleRun(intent)
+            // A run that did not finish (an unplanned stop): offer to carry on or to put everything back.
+            val left = Runner.unfinishedStage(this)
+            if (left != null && !Runner.running && intent?.getStringExtra("run") == null) offerUnfinished(left)
+            renderPrompt()
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -100,6 +115,32 @@ class ProbeActivity : Activity() {
     }
 
     /** The host script drives each probe with `am start … --es run <name>`; each writes "<NAME> DONE" when finished. */
+    private lateinit var promptText: TextView
+    private lateinit var promptRow: LinearLayout
+
+    /** Draws the run's current question (or nothing) with its buttons. */
+    private fun renderPrompt() {
+        promptText.text = Runner.promptText ?: ""
+        promptRow.removeAllViews()
+        for (label in Runner.promptButtons) {
+            promptRow.addView(button(label) {
+                if (label == Runner.OPEN_DEV) runCatching { startActivity(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)) }
+                else Runner.answer(label)
+            })
+        }
+    }
+
+    private fun offerUnfinished(stage: String) {
+        promptText.text = "An R4 run did not finish (it stopped at '$stage'). Carry on, or put everything back now?"
+        promptRow.removeAllViews()
+        promptRow.addView(button("Carry on") { Runner.resume(this) })
+        promptRow.addView(button("Restore now") { Runner.restoreNow(this) })
+    }
+
+    /** For the run's P5 step: starts the overlay probe of [kind] ("a11y" or "app") and reads its result text. */
+    fun startOverlay(kind: String) { nonce = "run"; overlayResults.remove(kind); runOverlayProbe(kind) }
+    fun overlayText(kind: String): String? = overlayResults[kind]
+
     /** The script's run id: each "<NAME> DONE" line carries it, so a wait can never be satisfied by an earlier run. */
     private var nonce = ""
 
@@ -111,9 +152,14 @@ class ProbeActivity : Activity() {
             "blur" -> runBlurProbe()
             "helper_ping" -> runHelperPing()
             "helper_toggles" -> runHelperToggles()
+            // The phone-only run: start (auto = the emulator test, which skips the hands-on steps) and resume (after the
+            // planned kill in part 4a).
+            "start" -> Runner.start(this, autoMode = intent.getBooleanExtra("auto", false))
+            "resume" -> Runner.resume(this)
             // Spike (emulator): pair / connect to the phone's own adb from extras; the real run takes the code from a
             // notification and finds the ports with mDNS.
             "pair" -> spike { AdbSelf.pair(this, intent.getStringExtra("host") ?: "", intent.getIntExtra("port", 0), intent.getStringExtra("code") ?: "") }
+            "discover" -> spike { Discovery.dump(this, Discovery.CONNECT, 8) + Discovery.dump(this, Discovery.PAIRING, 4) }
             "connect" -> spike {
                 val c = AdbSelf.connect(this, intent.getStringExtra("host") ?: "", intent.getIntExtra("port", 0))
                 c + "\n" + AdbSelf.shell("id").second.trim()
@@ -132,7 +178,16 @@ class ProbeActivity : Activity() {
 
     private fun collect() {
         report.setLength(0)
-        line("R4 PROBE — part one")
+        line("R4 PROBE")
+        val summary = Runner.summary()
+        if (summary.isNotEmpty()) {
+            section("RUN (R4 on this phone)")
+            report.append(summary)
+            blank()
+            section("RUN DETAILS")
+            report.append(Runner.details())
+            blank()
+        }
         line("run at ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date())}")
         blank()
 
