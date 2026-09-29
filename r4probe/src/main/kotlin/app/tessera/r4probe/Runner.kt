@@ -124,8 +124,9 @@ object Runner {
                 detail("== an earlier run did not finish (stopped at '$left'): putting it back before a new run")
                 val ok = runCatching { restoreIfNeeded() }.getOrDefault(false); runCatching { endHelper() }
                 if (!ok) { put("stage", "cleanup-pending"); running = false; changed(); return@Thread }
-                // Its report and its restore are evidence for the new report, not something to delete with its files.
-                carried = "== the earlier run's summary\n" + summary() + details().substring(details().lastIndexOf("== an earlier run did not finish").coerceAtLeast(0))
+                // Its whole report, restore included, is evidence for the new report, not something to delete with its
+                // files (review r4-phone r3 note 2).
+                carried = "== the earlier run's summary\n" + summary() + "== the earlier run's details\n" + details()
             }
             f("run-summary.txt").delete(); f("run-details.txt").delete(); f("run-state.properties").delete()
             state.clear(); put("auto", if (autoMode) "1" else "0"); put("stage", "pair")
@@ -177,6 +178,12 @@ object Runner {
                 var i = STAGES.indexOf(from).coerceAtLeast(0)
                 while (i < STAGES.size) {
                     val s = STAGES[i]
+                    // With adb and the helper both gone nothing later can run, so the questions are not asked for nothing
+                    // (review r4-phone r3 note 4): the clean-up says what to set by hand.
+                    if (s in listOf("p4a", "p4b", "blur", "p5", "pq2") && !HelperLink.connected() && !ensureAdb()) {
+                        result("FAIL", "adb and the helper were both gone before stage $s: the rest of the run was skipped")
+                        i = STAGES.indexOf("cleanup"); continue
+                    }
                     put("stage", s)
                     val go = when (s) {
                         "pair" -> stagePair()
@@ -286,11 +293,21 @@ object Runner {
             sb.append("  %-14s %-8s %s\n".format(t.name, if (t.probe != null) "probe" else t.state(r), r.take(80)))
         }
         detail(sb.toString())
-        put("baseline_taken", "1")
+        // With USB debugging off, Wi-Fi going off stops adbd altogether (Wireless debugging goes with it), and the helper
+        // — started by adbd — dies before it can turn Wi-Fi back on (review r4-phone r3 B8). USB debugging on keeps adbd
+        // running; no cable is needed. Its value at the start is kept for the reminder after 4d.
+        while (sh1("settings get global adb_enabled") != "1") {
+            val a = ask("Turn on USB debugging (Developer options > USB debugging; no cable needed). With it off, the Wi-Fi flip " +
+                "would stop adb and the helper with it. Then tap Done.", OPEN_DEV, "Done", "Stop")
+            // Auto (test) mode cannot flip the switch, so it stops instead of asking forever.
+            if (a == "Stop" || auto) { detail("  USB debugging is off; stopped before any change"); return false }
+        }
         val list = Toggles.ALL.filter { it.probe == null }.joinToString("\n") { "  ${it.name}: ${it.state(get("tog.${it.name}"))}" }
         val a = ask("R4 will flip each of these and flip it straight back ('unknown' ones are left alone; the hotspot is only probed):\n$list\n" +
             "Wi-Fi and airplane mode cut Wireless debugging for a moment; R4 turns it back on. If a state above is wrong, tap Stop.",
             "Go ahead", "Stop")
+        // Only now does anything change: a Stop here leaves nothing to put back (review r4-phone r3 note).
+        if (a == "Go ahead") put("baseline_taken", "1")
         return a == "Go ahead"
     }
 
@@ -629,8 +646,9 @@ object Runner {
         detail("== part 4d: adbd pid before $before, after '${after}' (exit $e); ping: $ping")
         when {
             !Regex("^\\d+( \\d+)*$").matches(before) -> result("INFO", "4d NOT tested: no adbd pid was read before the step ('$before')")
+            // A helper that died with adbd is R4's own answer (review r4-phone r3 B7): the FAIL comes first.
+            !ping.contains("pid=$pid ") -> result("FAIL", "4d adbd gone: the helper did NOT answer (${ping.take(80)})")
             e != 0 && after.isNotEmpty() && !Regex("^\\d+( \\d+)*$").matches(after) -> result("INFO", "4d NOT tested: the helper's adbd read failed ('$after')")
-            !ping.contains("pid=$pid ") -> result("FAIL", "4d adbd gone: the helper did NOT answer")
             after.isNotEmpty() && after == before -> result("INFO", "4d NOT tested: adbd never stopped (same pid) — were both debugging switches off?")
             else -> result("PASS", "4d adbd gone (${if (after.isEmpty()) "not running" else "new pid"}): the helper lives and answers")
         }

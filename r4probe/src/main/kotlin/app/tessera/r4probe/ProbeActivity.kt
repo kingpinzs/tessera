@@ -100,7 +100,11 @@ class ProbeActivity : Activity() {
         HelperLink.onChange = { runOnUiThread { collect() } }
         RunToken.get(this)   // made at first open, so test tooling can read it before its first `run` request
         Runner.ui = this
-        Runner.onChange = { runOnUiThread { renderPrompt(); collect() } }
+        Runner.onChange = { runOnUiThread {
+            renderPrompt(); collect()
+            // A clean-up that could not finish offers Restore now right here, not only on the next open.
+            if (!Runner.running && Runner.unfinishedStage(this) == "cleanup-pending") offerUnfinished("cleanup-pending")
+        } }
         if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED)
             requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
         root.post {

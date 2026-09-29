@@ -28,7 +28,7 @@ echo "screen after a plain open:"; screen
 X=$(python3 - "$S/r4ui.xml" <<'PY'
 import re,sys
 s=open(sys.argv[1]).read()
-m=re.search(r'text="Restore now"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', s)
+m=re.search(r'text="Restore now"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', s, re.I)   # the button renders in capitals
 print(f"{(int(m[1])+int(m[3]))//2} {(int(m[2])+int(m[4]))//2}" if m else "")
 PY
 )
