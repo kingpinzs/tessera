@@ -56,10 +56,13 @@ object Runner {
         val s = get("stage"); return if (s.isNotEmpty() && s != "done") s else null
     }
 
+    private val ipv4 = Regex("\\b\\d{1,3}(\\.\\d{1,3}){3}\\b")
+    /** The report is pasted back: the phone's LAN address is written as "<this phone>". */
+    private fun redact(s: String) = s.replace(ipv4) { if (it.value.startsWith("127.")) it.value else "<this phone>" }
     private fun result(kind: String, what: String) {
-        f("run-summary.txt").appendText("%-8s %s\n".format(kind, what)); changed()
+        f("run-summary.txt").appendText("%-8s %s\n".format(kind, redact(what))); changed()
     }
-    private fun detail(text: String) { f("run-details.txt").appendText(text.trimEnd() + "\n"); changed() }
+    private fun detail(text: String) { f("run-details.txt").appendText(redact(text.trimEnd()) + "\n"); changed() }
     private fun changed() { onChange?.invoke() }
 
     fun answer(a: String) { answers.offer(a) }
@@ -110,10 +113,31 @@ object Runner {
     fun start(ctx: Context, autoMode: Boolean) {
         app = ctx.applicationContext
         if (running) return
-        f("run-summary.txt").delete(); f("run-details.txt").delete(); f("run-state.properties").delete()
-        state.clear(); put("auto", if (autoMode) "1" else "0"); put("stage", "pair")
-        result("INFO", "R4 phone-only run ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date())}")
-        launch("pair")
+        load()
+        val left = get("stage")
+        running = true; changed()
+        Thread {
+            // An earlier run that did not finish is put back first, against ITS baseline (review r4-phone B1): starting
+            // over on top of it would take the settings it left changed as the new starting state.
+            var carried = ""
+            if (left.isNotEmpty() && left != "done") {
+                detail("== an earlier run did not finish (stopped at '$left'): putting it back before a new run")
+                val ok = runCatching { stageCleanup() }.getOrDefault(false); runCatching { endHelper() }
+                if (!ok) { put("stage", "cleanup-pending"); running = false; changed(); return@Thread }
+                // Its restore is evidence for the new report, not something to delete with the old run's files.
+                carried = details().substringAfterLast("== an earlier run did not finish")
+                carried = "== an earlier run did not finish$carried"
+            }
+            f("run-summary.txt").delete(); f("run-details.txt").delete(); f("run-state.properties").delete()
+            state.clear(); put("auto", if (autoMode) "1" else "0"); put("stage", "pair")
+            result("INFO", "R4 phone-only run ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date())}")
+            if (carried.isNotEmpty()) {
+                result("INFO", "an earlier run that did not finish (stopped at '$left') was put back first: every change undone")
+                detail(carried)
+            }
+            running = false
+            launch("pair")
+        }.start()
     }
 
     fun resume(ctx: Context) {
@@ -132,7 +156,7 @@ object Runner {
         load()
         running = true
         Thread {
-            try { stageCleanup(); endHelper(); put("stage", "done") } finally { running = false; changed() }
+            try { val ok = stageCleanup(); endHelper(); put("stage", if (ok) "done" else "cleanup-pending") } finally { running = false; changed() }
         }.start()
     }
 
@@ -156,18 +180,18 @@ object Runner {
                         "blur" -> { stageBlur(); true }
                         "p5" -> { stageP5(); true }
                         "pq2" -> { stagePq2(); true }
-                        "cleanup" -> { stageCleanup(); true }
+                        "cleanup" -> { if (!stageCleanup()) { put("stage", "cleanup-pending"); return@Thread }; true }
                         "p4d" -> { stageP4d(); true }
                         "done" -> { stageDone(); true }
                         else -> true
                     }
-                    if (!go) { detail("stopped at stage $s"); stageCleanup(); endHelper(); put("stage", "done"); break }
+                    if (!go) { detail("stopped at stage $s"); val ok = stageCleanup(); endHelper(); put("stage", if (ok) "done" else "cleanup-pending"); break }
                     i++
                 }
             } catch (e: Throwable) {
                 detail("RUN ERROR: ${e.javaClass.simpleName}: ${e.message}")
                 result("FAIL", "the run stopped on an error (details); restoring")
-                runCatching { stageCleanup() }; runCatching { endHelper() }; put("stage", "done")
+                val ok = runCatching { stageCleanup() }.getOrDefault(false); runCatching { endHelper() }; put("stage", if (ok) "done" else "cleanup-pending")
             } finally { running = false; clearPrompt() }
         }.start()
     }
@@ -229,11 +253,26 @@ object Runner {
         "secure accessibility_enabled", "global low_power", "global low_power_sticky",
     )
 
+    private fun bad(v: String) = v.startsWith("adb not reachable") || v.startsWith("SHELL FAILED") || v.startsWith("not connected")
+
     private fun stageBaseline(): Boolean {
-        val sb = StringBuilder("== baseline\n")
-        for (k in settingsKeys) { val v = sh1("settings get $k"); put("set.$k", v); sb.append("  $k = $v\n") }
+        val sb = StringBuilder("== before the baseline: anything an earlier run left\n")
+        sb.append("  ${sh1("dumpsys deviceidle unforce")}; battery report reset ${sh("dumpsys battery reset").first}\n")
+        if (HelperLink.connected()) sb.append("  an earlier helper's binder: ${HelperLink.exit()}\n")
+        for (pid in sh("ps -A -o PID,ARGS | grep 'app.tessera.r4probe.HelperMain --daemon' | grep -v grep").second.lines()
+            .mapNotNull { it.trim().split(Regex("\\s+")).firstOrNull()?.toIntOrNull() }) {
+            sh("kill $pid"); sb.append("  stopped a helper left by an earlier run: pid $pid\n")
+        }
+        sb.append("== baseline\n")
+        for (k in settingsKeys) {
+            val v = sh1("settings get $k")
+            if (bad(v)) { detail(sb.toString()); result("FAIL", "could not read the starting state ($k: $v): stopped before any change"); return false }
+            put("set.$k", v); sb.append("  $k = $v\n")
+        }
         for (t in Toggles.ALL) {
-            val r = sh1(t.read); put("tog.${t.name}", r)
+            val r = sh1(t.read)
+            if (bad(r)) { detail(sb.toString()); result("FAIL", "could not read the starting state (${t.name}: $r): stopped before any change"); return false }
+            put("tog.${t.name}", r)
             sb.append("  %-14s %-8s %s\n".format(t.name, if (t.probe != null) "probe" else t.state(r), r.take(80)))
         }
         detail(sb.toString())
@@ -356,7 +395,7 @@ object Runner {
     private fun stageP4a() {
         put("stage", "p4a-check")
         detail("== part 4a: the app is killed on purpose (by a detached shell command) and restarted")
-        sh("setsid sh -c 'sleep 2; am force-stop app.tessera.r4probe; sleep 4; am start -n app.tessera.r4probe/.ProbeActivity --es run resume --es token ${RunToken.get(app)}' > /dev/null 2>&1 < /dev/null &")
+        sh("setsid sh -c 'sleep 2; am force-stop app.tessera.r4probe; sleep 4; am start -n app.tessera.r4probe/.ProbeActivity --es run resume --es token ${RunToken.get(app)}; input keyevent KEYCODE_WAKEUP' > /dev/null 2>&1 < /dev/null &")
         Thread.sleep(30_000)
         result("FAIL", "4a the app was not killed (still running 30 s later)")
         put("stage", "p4b"); launchLater("p4b")
@@ -376,6 +415,8 @@ object Runner {
 
     private fun stageP4b() {
         sh("dumpsys battery unplug")
+        // Undone in 40 s whatever happens to this app meanwhile (One UI may freeze it; Kadb calls have no timeout).
+        sh("setsid sh -c 'sleep 40; dumpsys deviceidle unforce; dumpsys battery reset' > /dev/null 2>&1 < /dev/null &")
         val doze = sh1("dumpsys deviceidle force-idle")
         detail("== part 4b: $doze")
         if ("Now forced in to deep idle mode" in doze) {
@@ -458,7 +499,13 @@ object Runner {
                 val until = System.currentTimeMillis() + 20_000
                 while (System.currentTimeMillis() < until && u.overlayText(kind)?.contains("WINDOW UP") != true && u.overlayText(kind)?.contains("OVERLAY DONE") != true) Thread.sleep(300)
                 val size = sh1("wm size").substringAfterLast(": ").trim(); val w = size.substringBefore("x").toIntOrNull() ?: 1080; val h = size.substringAfter("x").toIntOrNull() ?: 2340
-                sh("input tap ${w / 2} ${h - 12}"); Thread.sleep(700); sh("input tap ${w / 2} ${h / 2}")
+                // Only onto a window that is up (review r4-phone B2): with none, the strip tap is the nav bar's Home and
+                // the other lands on whatever is on screen. A strip tap the overlay does not take presses Home, so the
+                // probe is brought back to the front after.
+                if (u.overlayText(kind)?.contains("WINDOW UP") == true) {
+                    sh("input tap ${w / 2} ${h - 12}"); Thread.sleep(700); sh("input tap ${w / 2} ${h / 2}")
+                    Thread.sleep(700); sh("am start -n app.tessera.r4probe/.ProbeActivity")
+                } else sb.append("  $label $kind: no window came up — no taps sent\n")
                 val done = System.currentTimeMillis() + 25_000
                 while (System.currentTimeMillis() < done && u.overlayText(kind)?.contains("OVERLAY DONE") != true) Thread.sleep(500)
                 sb.append("-- $label $kind (navigation_mode=${sh1("settings get secure navigation_mode")}; taps at y=${h - 12} and y=${h / 2})\n")
@@ -478,6 +525,7 @@ object Runner {
     private fun restoreA11y(): String {
         if (get("a11y_touched") != "1") return ""
         val base = get("set.secure enabled_accessibility_services"); val on = get("set.secure accessibility_enabled")
+        if (bad(base) || bad(on)) return "FAIL: the accessibility list's starting value was not read; check Settings > Accessibility > Installed apps by hand"
         if (base == "null" || base.isEmpty()) sh("settings delete secure enabled_accessibility_services") else sh("settings put secure enabled_accessibility_services '$base'")
         if (on == "null" || on.isEmpty()) sh("settings delete secure accessibility_enabled") else sh("settings put secure accessibility_enabled $on")
         val now = sh1("settings get secure enabled_accessibility_services")
@@ -505,10 +553,18 @@ object Runner {
 
     // ---------------------------------------------------------------- clean-up, 4d, end
 
-    private fun stageCleanup() {
+    private fun stageCleanup(): Boolean {
         val sb = StringBuilder("== clean-up\n")
+        // adb gone but the helper still here (Wi-Fi or Wireless debugging went off): the helper turns it back on first.
+        if (!ensureAdb() && HelperLink.connected()) {
+            for (t in Toggles.ALL.filter { it.name in cutsAdb }) {
+                val want = t.state(get("tog.${t.name}"))
+                if (want != "unknown" && t.state(HelperLink.toggle(t.name, "read").second.trim()) != want) HelperLink.toggle(t.name, want)
+            }
+            sb.append("  adb was gone: ${bringBackAdb().lines().first()}\n")
+        }
         if (!ensureAdb()) {
-            sb.append("  FAIL: adb is not reachable, so settings could not be restored. Turn Wireless debugging on, open R4 probe, and tap 'Restore now';\n")
+            sb.append("  FAIL: adb is not reachable, so settings could not be restored. Turn Wireless debugging on, open R4 probe, and tap 'Restore now' (it is offered until the clean-up passes);\n")
             sb.append("  or reboot the phone and check Wi-Fi, Bluetooth, NFC, location, mobile data, airplane mode, automatic date & time, Power saving,\n")
             sb.append("  the navigation type and Settings > Accessibility by hand.\n")
         } else {
@@ -531,7 +587,8 @@ object Runner {
             if (nav != get("set.secure navigation_mode")) sb.append("  NOTE: the navigation type is $nav, it was ${get("set.secure navigation_mode")} — switch it back in Settings > Display > Navigation bar\n")
         }
         detail(sb.toString())
-        if ("FAIL" in sb) result("FAIL", "clean-up: something could not be set back (details)") else result("PASS", "clean-up: every change undone")
+        return if ("FAIL" in sb) { result("FAIL", "clean-up: something could not be set back (details); open R4 probe again to retry"); false }
+        else { result("PASS", "clean-up: every change undone"); true }
     }
 
     private fun stageP4d() {
@@ -546,6 +603,7 @@ object Runner {
         val pid = get("helper_pid")
         detail("== part 4d: adbd pid before $before, after '${after}' (exit $e); ping: $ping")
         when {
+            !Regex("^\\d+( \\d+)*$").matches(before) -> result("INFO", "4d NOT tested: no adbd pid was read before the step ('$before')")
             !ping.contains("pid=$pid ") -> result("FAIL", "4d adbd gone: the helper did NOT answer")
             after.isNotEmpty() && after == before -> result("INFO", "4d NOT tested: adbd never stopped (same pid) — were both debugging switches off?")
             else -> result("PASS", "4d adbd gone (${if (after.isEmpty()) "not running" else "new pid"}): the helper lives and answers")
@@ -555,14 +613,18 @@ object Runner {
     }
 
     private fun endHelper() {
-        if (!HelperLink.connected()) return
-        detail("  helper: ${HelperLink.exit()}")
-        Thread.sleep(1500)
-        detail("  helper binder alive after exit: ${HelperLink.binderAlive()}")
+        val pid = get("helper_pid")
+        if (HelperLink.connected()) { detail("  helper: ${HelperLink.exit()}"); Thread.sleep(1500) }
+        if (pid.isNotEmpty() && AdbSelf.connected()) {
+            val still = sh1("ps -o PID -p $pid | tail -n +2") == pid
+            if (still) sh("kill $pid")
+            val gone = sh1("ps -o PID -p $pid | tail -n +2") != pid
+            detail(if (gone) "  helper pid $pid: stopped" else "  FAIL: helper pid $pid is still running — a reboot stops it")
+        } else if (pid.isNotEmpty()) detail("  helper pid $pid: exit sent (${if (HelperLink.binderAlive()) "its binder still answers" else "its binder is gone"})")
     }
 
     private fun stageDone() {
         endHelper()
-        result("INFO", "done: tap 'Copy the whole report' and paste it back; then uninstall R4 probe, and in Wireless debugging > Paired devices tap R4 probe > Forget (the app cannot remove its own pairing)")
+        result("INFO", "done: tap 'Copy the whole report' and paste it back; then uninstall R4 probe, and in Wireless debugging > Paired devices tap R4 probe > Forget (the app cannot remove its own pairing); turn Wireless debugging off if you do not use it")
     }
 }
