@@ -46,7 +46,13 @@ check "no tile gained or lost" "$(echo "$BEFORE" | wc -w)" "$(echo "$AFTER" | wc
 check_absent "no folder (the release was past the dwell)" "folder:" "$AFTER"
 
 say "--- 2. tapping a different tile moves the selection (H8) ---"
+# Since phase 11 the drop brings the held tile's quick-action burst back, and with a burst open a tap on another tile
+# closes it and leaves edit mode (Jeremy's one-tap ruling, 2026-09-25; phase 11 E5 proves that case). H8 holds with no
+# burst open, so Back closes the burst first and edit mode stays (L12-1, Jeremy's ruling "A", 2026-09-29).
+adb shell input keyevent KEYCODE_BACK; sleep 1.2
 dump "$OUT/e1_selected_first.xml"
+check_absent "Back closed the quick-action burst" "quick_burst" "$(grep -o 'quick_burst' "$OUT/e1_selected_first.xml" | head -1)"
+check_contains "edit mode stays on after Back" "edit_disc:unpin" "$(grep -o 'edit_disc:unpin' "$OUT/e1_selected_first.xml" | head -1)"
 D1=$(bounds "$OUT/e1_selected_first.xml" "edit_disc:unpin")
 say "unpin disc on the held tile: $D1"
 OTHER=$(python3 -c "
