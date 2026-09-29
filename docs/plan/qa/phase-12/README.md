@@ -31,7 +31,7 @@ both lists, a SecurityException from a Settings page).
 | E6 | 32 / 0 | c464ffcd | |
 | E7 | 19 / 0 | c464ffcd | |
 | E8 | 30 / 0 | c464ffcd | |
-| E9 | 22 / 1 | a4d7430b | the one FAIL is phase 02 E1's edit-mode check, **pre-existing** — identical on the pre-phase-12 APK (BUILD_START/phase02-e1-base/); INDEX ledger L12-1. Round 1 (codex B2): phase 02 E1's saved dump covers its restore with zero assignments. Drivers 93134be9. Runs 1–4 kept |
+| E9 | 23 / 0 | a4d7430b | every earlier-phase row passes. Runs 1–5 kept: run 5 (22 / 1) failed only phase 02 E1's step 2, ledger L12-1 — not a product defect: that step predated the 2026-09-25 one-tap ruling (with a burst open a tap on another tile exits edit mode); Jeremy's ruling "A" made step 2 close the burst with Back first (44aa3218), so phase 02 E1 is the one child whose driver changed (INDEX Change Log). Round 1 (codex B2): phase 02 E1's saved dump covers its restore with zero assignments |
 | E10 | 20 / 2 (+8 recorded) | a4d7430b | every doc gate on the shell's clock passes (settle 217 on each transition and Done → Start, maxGapMs 17); the 2 FAILs are the compositor corroboration, which Jeremy ruled an AVD reading, not a gate ("E10 (a)", 2026-09-29; the feel is H1) — see the reading below. Runs 1–4 kept |
 | E11 | 302 / 0 | a4d7430b | incl. the grant sub-row (both halves, urigrants.xml), the pre-phase-12 sub-row (review B1), and round 1's stricter Custom checks (effects toggle on both surfaces, Remove / Choose picture after a preset; codex B3) with each seed's ring read (B2). Drivers a306271a. Runs 1–5 kept |
 | E12 | 55 / 0 (+3 recorded) | a4d7430b | NOPICS build = 0c8fe8f4 with the six WebP removed (a worktree); run 1 kept |
