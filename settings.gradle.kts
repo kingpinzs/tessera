@@ -10,6 +10,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // R4's on-device pairing: Kadb's SPAKE2 dependency (com.github.Flyfish233:spake2-java) is published only on
+        // JitPack. Scoped to that one group, so nothing else in the build can resolve from here.
+        maven("https://jitpack.io") { content { includeGroup("com.github.Flyfish233") } }
     }
 }
 rootProject.name = "tessera"

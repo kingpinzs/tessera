@@ -111,6 +111,13 @@ class ProbeActivity : Activity() {
             "blur" -> runBlurProbe()
             "helper_ping" -> runHelperPing()
             "helper_toggles" -> runHelperToggles()
+            // Spike (emulator): pair / connect to the phone's own adb from extras; the real run takes the code from a
+            // notification and finds the ports with mDNS.
+            "pair" -> spike { AdbSelf.pair(this, intent.getStringExtra("host") ?: "", intent.getIntExtra("port", 0), intent.getStringExtra("code") ?: "") }
+            "connect" -> spike {
+                val c = AdbSelf.connect(this, intent.getStringExtra("host") ?: "", intent.getIntExtra("port", 0))
+                c + "\n" + AdbSelf.shell("id").second.trim()
+            }
         }
         intent?.removeExtra("run")
     }
@@ -185,6 +192,9 @@ class ProbeActivity : Activity() {
         kv("development_settings_enabled", "${secureGlobalInt("development_settings_enabled")}")
         blank()
 
+        section("SELF ADB (pairing spike)")
+        line(spikeResult ?: "not run yet")
+        blank()
         section("HELPER (R4 parts 1-4)")
         kv("binder", if (HelperLink.connected()) "connected (tag ${HelperLink.tag}, from uid ${HelperLink.fromUid})" else "none")
         HelperLink.notes().forEach { line("  $it") }
@@ -205,6 +215,13 @@ class ProbeActivity : Activity() {
         line("END OF REPORT")
         out.text = report
         runCatching { java.io.File(filesDir, "report.txt").writeText(report.toString()) }
+    }
+
+    private var spikeResult: String? = null
+
+    private fun spike(work: () -> String) {
+        val n = nonce
+        Thread { val r = work(); runOnUiThread { spikeResult = r + "\nSPIKE DONE $n"; collect() } }.start()
     }
 
     // ---------------- helper (R4 parts 1-4) ----------------
