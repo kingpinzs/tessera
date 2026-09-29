@@ -27,8 +27,11 @@ Apps > Tessera > Permissions (for example Location and Microphone), then press H
 0. (Optional, and only BEFORE step 1: once the wizard is finished it never shows again.) The Default Home step, the way a
    new user meets it. Phone Settings > Apps > Tessera > **Set as default** > **Clear defaults**, then press Home. One UI
    asks which Home app to use: tap Tessera, then **Just once**. The wizard's first step should be **Default Home**. Tap
-   **Set as default**, choose Tessera in Samsung's sheet, and write down what that sheet looked like. (If anything goes
-   wrong, Settings > Apps > Choose default apps > Home app > Tessera puts it back.)
+   **Set as default** and write down what Samsung's sheet looks like. In the sheet, choose **One UI Home** first and note
+   what comes to the front. Then get back to Tessera (Settings > Apps > Choose default apps > Home app > Tessera, or the
+   Home key if One UI asks again) and note whether the wizard is still on **Default Home** or has moved on. If it still
+   shows Default Home, tap **Set as default** again and choose Tessera this time. (If anything goes wrong, Settings > Apps
+   > Choose default apps > Home app > Tessera puts it back.)
 1. Note whether Location is on (quick panel), then press Home. The wizard shows its first missing step.
 2. Tap each step's button once and do what Android's page or dialog asks. For each step, write down the title of the page
    or dialog that opened (for example "Notification access", "Usage data access", "Allow Tessera to access photos"). Also

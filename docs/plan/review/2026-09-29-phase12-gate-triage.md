@@ -59,3 +59,22 @@ the run itself exposed a driver fault. Every run is kept (`<ROW>-run<n>-<why>/`)
 
 Round 2 goes to Reviewer B (codex CLI) with `2026-09-29-phase12-gate-r2-brief.md`. Reviewer A passed round 1 and its notes are
 answered above; it is not re-run.
+
+## Round 2 (2026-09-29)
+
+Codex CLI stopped at its usage limit mid-review (no verdict; `2026-09-29-phase12-gate-r2-codex-raw.md`), so Reviewer B is a
+second Fable subagent on the evidence lens (`2026-09-29-phase12-gate-r2-evidence.md`): **GATE: PASS**, B2–B7 CLEARED (each
+driver checked able to fail on the defect; every re-run header's driver blob matched to its commit), no new BLOCKING,
+**B1: open (Jeremy)**. Reviewer A passed round 1. Both reviewers now pass, with B1 left as Jeremy's criterion decision.
+
+| Note | Action |
+|---|---|
+| 1 P1 step 0 never observes "another launcher" on One UI | APPLIED: step 0 now chooses One UI Home first, notes what comes forward and whether the wizard is still on Default Home, then Tessera (NEEDS-HUMAN.md) |
+| 2 `assert_seeded` could pass on an empty slice | Recorded, not applied: every captured slice carries the restore's line (the reviewer checked each); a driver change would re-open E11 / E13 / the fixtures for no evidence gain. For the end-of-project gate run |
+| 3 E9's second-restore coverage leans on later children not restarting the shell | Recorded, not applied (holds today, `E9/ring-all.txt:1`); same reason |
+| 4 EDGE_HOME_ONCE reads a wrong advance only after the reopen | Recorded, not applied (the reopen's same-step check catches it) |
+| 5 E13 (a) walks the chip sequence in two trials | APPLIED: README row says so |
+| 6 `persisted_grants`' exit 3 unchecked in E11 | Recorded, not applied (cannot pass silently: the positive checks FAIL; only the FAIL's wording would mislead) |
+| 7 EDGE_LMK notes the remaining walk, asserts only no photos | Recorded, not applied (the walk in `EDGE_LMK.txt:28` is E2's list minus photos, "Step 1 of 19" asserted) |
+
+Per the phased-build rule, no third round: nothing HIGH remains.

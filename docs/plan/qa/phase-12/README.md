@@ -35,7 +35,7 @@ both lists, a SecurityException from a Settings page).
 | E10 | 20 / 2 (+8 recorded) | a4d7430b | every doc gate on the shell's clock passes (settle 217 on each transition and Done → Start, maxGapMs 17); the 2 FAILs are the compositor corroboration — see the reading below. Runs 1–4 kept |
 | E11 | 302 / 0 | a4d7430b | incl. the grant sub-row (both halves, urigrants.xml), the pre-phase-12 sub-row (review B1), and round 1's stricter Custom checks (effects toggle on both surfaces, Remove / Choose picture after a preset; codex B3) with each seed's ring read (B2). Drivers a306271a. Runs 1–5 kept |
 | E12 | 55 / 0 (+3 recorded) | a4d7430b | NOPICS build = 0c8fe8f4 with the six WebP removed (a worktree); run 1 kept |
-| E13 | 77 / 0 (+1 recorded) | a4d7430b | both surfaces walk streaks → hero and Default → original (streaks remembered); Start's PID unchanged around every live capture (codex B4). Drivers a306271a. Runs 1–2 kept |
+| E13 | 77 / 0 (+1 recorded) | a4d7430b | both surfaces walk streaks → hero and Default → original (streaks remembered); on (a) the two halves are two trials (trial 1 streaks → hero chip; trial 2 Default → original with streaks remembered, then Start captured), the literal four-tap pass is on (b); Start's PID unchanged around every live capture (codex B4). Drivers a306271a. Runs 1–2 kept |
 | E14 (setup:usage) | 19 / 0 | c464ffcd | run 1 kept |
 | E14 setup:full_screen_alarms | 19 / 0 | 48000638 | phase 15's step, run here (C-34) |
 | E14 setup:overlay | 19 / 0 | 48000638 | phase 15's step, run here (C-34) |
