@@ -4,8 +4,8 @@
 // shell: no helper rows, no pages, no permission the shell would then be carrying for a probe. It is
 // installed, read, and uninstalled.
 //
-// No Compose and no dependency of any kind: the probe has to build and run even if it is the first
-// thing tried on a phone that turns out to be hostile to everything else in this plan.
+// No Compose, and one dependency only (Kadb, below): the probe has to build and run even if it is the first thing tried
+// on a phone that turns out to be hostile to everything else in this plan.
 plugins {
     alias(libs.plugins.android.application)
 }
@@ -26,4 +26,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
+
+// R4 runs on the phone alone (PLAN.md R4 "phone-only, standalone"; Jeremy 2026-09-28: the phone cannot be plugged into
+// the PC): the probe pairs with the phone's own Wireless debugging and starts the helper itself. Kadb (Apache-2.0, Maven
+// Central) is the on-device ADB pairing + TLS client — one of the licence-cleared clients phase 04's doc lists.
+dependencies {
+    implementation("com.flyfishxu:kadb:2.1.1")   // 2.1.2+ need compileSdk 37; this SDK has 36
+    // Kadb.pair is a suspend function; Kadb brings coroutines at runtime only, so the probe names the same version.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
 }
