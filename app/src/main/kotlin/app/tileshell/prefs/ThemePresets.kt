@@ -101,6 +101,24 @@ object ThemePresets {
     /** The Custom rule (r3 D8): true when any of the eight items differs; the variant and the non-preset keys never count. */
     fun itemsDiffer(a: StartTheme, b: StartTheme): Boolean = itemsOf(a) != itemsOf(b)
 
+    /**
+     * The preset a stored set reads as: the stored id; or, when the key is absent (a fresh install, or a set stored before
+     * phase 12), Custom if the items are not Default's, else null (the out-of-box Default).
+     */
+    fun presetOnRead(stored: String?, theme: StartTheme): String? =
+        stored ?: if (itemsDiffer(theme, StartTheme())) CUSTOM else null
+
+    /** A stored variant, or the Hero when it is absent or not one of the two. */
+    fun variantOnRead(stored: String?): String = stored?.takeIf { it in VARIANTS } ?: VARIANT_HERO
+
+    /**
+     * Whether a replaced snapshot's picture grant may go (T12-12, r3 D15): only a `content://` read grant the shell holds,
+     * and only when neither the photo frame nor the new snapshot (the set just replaced by the preset) references it. The
+     * live background is the preset's own picture by then, which carries no grant.
+     */
+    fun releasable(uri: String, photoFrameUri: String?, snapshotBackgroundUri: String?, held: Boolean): Boolean =
+        uri.startsWith("content://") && uri != photoFrameUri && uri != snapshotBackgroundUri && held
+
     /** A user's item write through [ShellSettings.update]: the Custom rule applied to [next]. */
     fun afterUserChange(prev: StartTheme, next: StartTheme): StartTheme =
         if (itemsDiffer(prev, next) && next.themePreset != CUSTOM) next.copy(themePreset = CUSTOM) else next
@@ -194,13 +212,10 @@ object ThemePresets {
     }
 
     private fun releaseIfUnreferenced(context: Context, uri: String, current: StartTheme) {
-        if (!uri.startsWith("content://")) return
-        // After the preset write the live background is the preset's picture, so the references left are the photo frame
-        // and the new snapshot (which holds current.backgroundUri).
-        if (uri == current.photoFrameUri || uri == current.backgroundUri) return
         val resolver = context.contentResolver
         val held = resolver.persistedUriPermissions.any { it.uri.toString() == uri && it.isReadPermission }
-        if (!held) return
+        // The new snapshot holds current.backgroundUri (the set the preset just replaced).
+        if (!releasable(uri, current.photoFrameUri, current.backgroundUri, held)) return
         runCatching { resolver.releasePersistableUriPermission(Uri.parse(uri), Intent.FLAG_GRANT_READ_URI_PERMISSION) }
             .onSuccess { Diagnostics.add("theme", "custom snapshot replaced: released the read grant on $uri") }
             .onFailure { Diagnostics.add("theme", "custom snapshot replaced: releasing $uri failed: $it") }

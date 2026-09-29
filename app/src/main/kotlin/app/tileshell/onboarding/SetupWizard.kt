@@ -107,8 +107,13 @@ object WizardRules {
         if (cur != null) {
             val row = byKey[cur]
             when {
-                row == null || !needsStep(row) -> {
-                    lines += "step $cur: " + if (row?.state == RowState.PARTIAL) "partial" else "granted"
+                // A key no longer in either list is dropped, never reported granted (adversarial review N8).
+                row == null -> {
+                    blocked = blocked - cur
+                    visitFired = visitFired - cur
+                }
+                !needsStep(row) -> {
+                    lines += "step $cur: " + if (row.state == RowState.PARTIAL) "partial" else "granted"
                     passed += cur
                     blocked = blocked - cur
                     visitFired = visitFired - cur
@@ -208,6 +213,9 @@ object WizardRules {
         action()
         null
     } catch (e: ActivityNotFoundException) {
+        "step $key: action failed ${intentAction(e.message)}: $e"
+    } catch (e: SecurityException) {
+        // An OEM Settings page that refuses the caller would otherwise crash Home (adversarial review N9): the same way on.
         "step $key: action failed ${intentAction(e.message)}: $e"
     }
 

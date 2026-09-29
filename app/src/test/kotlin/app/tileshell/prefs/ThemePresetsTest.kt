@@ -86,6 +86,29 @@ class ThemePresetsTest {
         assertEquals("custom", ThemePresets.selectedId(StartTheme(themePreset = "custom")))
     }
 
+    @Test fun `a stored set with no theme_preset key reads as Custom when its items are not Default's (B1)`() {
+        assertNull("a fresh install reads as Default", ThemePresets.presetOnRead(null, StartTheme()))
+        assertEquals("custom", ThemePresets.presetOnRead(null, StartTheme(backgroundUri = "content://media/picker/0/x/media/1")))
+        assertEquals("custom", ThemePresets.presetOnRead(null, StartTheme(accent = 0xFFE81123)))
+        assertNull("columns is not an item", ThemePresets.presetOnRead(null, StartTheme(mediumColumns = 2)))
+        assertEquals("a stored id wins", "hal", ThemePresets.presetOnRead("hal", StartTheme(accent = 0xFF00B7C3)))
+    }
+
+    @Test fun `the variant reads as one of the two, else the Hero`() {
+        assertEquals("hero", ThemePresets.variantOnRead(null))
+        assertEquals("streaks", ThemePresets.variantOnRead("streaks"))
+        assertEquals("hero", ThemePresets.variantOnRead("garbage"))
+    }
+
+    @Test fun `a replaced snapshot's grant goes only when it is a held content grant nothing references`() {
+        val a = "content://media/picker/0/p/media/2290"
+        assertTrue(ThemePresets.releasable(a, photoFrameUri = null, snapshotBackgroundUri = "content://other", held = true))
+        assertFalse("never an android.resource URI", ThemePresets.releasable("android.resource://app.tileshell/drawable/preset_hal", null, null, true))
+        assertFalse("kept while the photo frame uses it", ThemePresets.releasable(a, photoFrameUri = a, snapshotBackgroundUri = null, held = true))
+        assertFalse("kept while the new snapshot uses it", ThemePresets.releasable(a, photoFrameUri = null, snapshotBackgroundUri = a, held = true))
+        assertFalse("never one the shell does not hold", ThemePresets.releasable(a, null, null, held = false))
+    }
+
     @Test fun `Cobalt is the 49th swatch - last row, first column`() {
         assertEquals(49, Palette.accents.size)
         assertEquals("Cobalt" to 0xFF3E65FF, Palette.accents[48])
