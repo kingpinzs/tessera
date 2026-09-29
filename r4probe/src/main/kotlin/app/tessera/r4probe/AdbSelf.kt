@@ -43,7 +43,8 @@ object AdbSelf {
         configure(ctx)
         runCatching { kadb?.close() }
         alive = false
-        kadb = Kadb.create(host, port)
+        // Bounded, so a phone that stops answering (Doze, a frozen app) cannot hang the run (review r4-phone notes).
+        kadb = Kadb.create(host, port, connectTimeout = 10_000, socketTimeout = 90_000)
         val probe = kadb!!.shell("echo r4")
         alive = probe.allOutput.contains("r4")
         if (alive) "connected to $host:$port" else "CONNECT FAILED: no answer on $host:$port"

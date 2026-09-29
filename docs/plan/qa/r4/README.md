@@ -24,7 +24,9 @@ Already done, not re-run: the licence of the on-device pairing client (phase 04'
 1. Uninstall any older **R4 probe** first (each build is signed with a new key, so installing over it fails), then install
    R4 probe from the GitHub release page (the "latest" release; it sits next to the shell's APK).
 2. Developer options on: Settings > About phone > Software information > tap **Build number** 7 times.
-3. The phone on **Wi-Fi** (Wireless debugging needs it). Power saving can stay as you have it; R4 puts it back exactly.
+3. **USB debugging on** too (Developer options; no cable needed): with it off, the Wi-Fi flip would stop adb and the
+   helper with it. R4 asks for it if it is off, and the last step turns it off anyway.
+4. The phone on **Wi-Fi** (Wireless debugging needs it). Power saving can stay as you have it; R4 puts it back exactly.
 
 ## The run
 
