@@ -93,6 +93,10 @@ class StartActivity : ComponentActivity() {
     private val edit = StartEditState()
     /** Phase 11: runs a satellite's App Shortcut. */
     private val quickSource by lazy { app.tileshell.start.QuickSource(this) }
+    /** Phase 12: the wizard was evaluated in onCreate, so the first onResume does not evaluate (and log) it again. */
+    private var wizardEvaluatedAtCreate = false
+    /** Phase 12 (T12-6): Start composes under the X7 page motion when the wizard ends, never behind it. */
+    private var cameFromWizard by mutableStateOf(false)
 
     /**
      * Phase 11: `onShortcutsChanged` for the held app while its burst is open closes the burst — `removed` when the
@@ -116,6 +120,10 @@ class StartActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() { backEvents.tryEmit(Unit) }
         })
+        // Phase 12: the Visibility rule is evaluated before Start's first frame, so a phone missing a grant never sees
+        // Start drawn behind the wizard.
+        if (!app.tileshell.onboarding.SetupWizard.showing) app.tileshell.onboarding.SetupWizard.evaluate(this)
+        wizardEvaluatedAtCreate = true
         setContent {
             ShellRoot {
                 Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
@@ -139,6 +147,9 @@ class StartActivity : ComponentActivity() {
         // and they still take one key at a time: a second Back during the pivot runs when it ends (Back on Start).
         LaunchedEffect(Unit) {
             homeEvents.collect { alreadyInFront ->
+                // Phase 12: the Windows key and Home do nothing while the wizard shows — Start is behind it, and Home is
+                // where you are (Decisions "Bars").
+                if (app.tileshell.onboarding.SetupWizard.showing) return@collect
                 pickerSlot = null
                 // Phase 11: Home closes an open burst and edit mode with it (the HOME intent and the drawn
                 // Windows key both arrive here, T11-16).
@@ -158,6 +169,8 @@ class StartActivity : ComponentActivity() {
         LaunchedEffect(Unit) {
             backEvents.collect {
                 when {
+                    // Phase 12: Back = the wizard's previous step (nothing on the first).
+                    app.tileshell.onboarding.SetupWizard.showing -> app.tileshell.onboarding.SetupWizard.back(this@StartActivity)
                     // Phase 11: Back closes an open burst only; the next Back exits edit mode (R6 §4.1.7).
                     edit.quick.active -> edit.quick.close(app.tileshell.start.CloseReason.BACK)
                     // R6 §4.1.7 (H9): Back exits edit mode like a tap, and an expanded folder stays expanded.
@@ -206,59 +219,14 @@ class StartActivity : ComponentActivity() {
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
                 Box(Modifier.weight(1f).fillMaxWidth()) {
-                    HorizontalPager(
-                        state = pager,
-                        modifier = Modifier.fillMaxSize(),
-                        // X13 approximation: follows the finger 1:1, settles with an ease-out over 250 ms.
-                        flingBehavior = PagerDefaults.flingBehavior(pager, snapAnimationSpec = tween(Motion.PIVOT_SETTLE_MS)),
-                        snapPosition = SnapPosition.Start,
-                        beyondViewportPageCount = 1,
-                        // Edit mode holds Start still: a drag across the screen moves a tile, not the pivot (agent).
-                        userScrollEnabled = !edit.active,
-                    ) { index ->
-                        if (index == 0) {
-                            StartPage(scroll, animation, edit) { tile -> onTileTap(tile) }
-                        } else {
-                            // A pivot page that is not showing takes no focus. Without this, dismissing a text
-                            // field on Start (the folder name box) handed focus to the app list's search field,
-                            // and the pager dutifully scrolled that page into view — Start swung away on its own.
-                            Box(
-                                Modifier
-                                    .fillMaxSize()
-                                    .focusGroup()
-                                    .focusProperties { canFocus = pager.currentPage == 1 },
-                            ) {
-                                AppListPage(onLaunch = { entry, bounds -> launchApp(TileTarget.App(entry), bounds, null) })
-                            }
-                        }
-                    }
-                    // The folder name box (R6 §1.7.2): drawn here, above the pivot, so focusing it cannot make
-                    // the pager bring it into view and swing Start over to the app list.
-                    if (edit.naming) {
-                        val folderId = edit.expandedFolder
-                        val store = app.tileshell.tiles.LayoutStore.get(this@StartActivity)
-                        if (folderId != null) {
-                            FolderNameBox(
-                                initial = store.layout.value.folders[folderId]?.name.orEmpty(),
-                                yPx = edit.nameBoxYPx,
-                            ) { name ->
-                                store.renameFolder(folderId, name)
-                                edit.naming = false
-                            }
-                        } else {
-                            edit.naming = false
-                        }
-                    }
-                    // The pin confirmation band sits at the top of the screen, under the drawn status bar (H22).
-                    val pinRequest by SecondaryTiles.pending.collectAsState()
-                    pinRequest?.let { request ->
-                        SecondaryPinPrompt(request, Modifier.align(Alignment.TopCenter).padding(top = BarMetrics.STATUS_EPX.dp))
-                    }
-                    // The picker is a page between the drawn bars (bar rule): the status bar draws over its top inset.
-                    pickerSlot?.let { slot ->
-                        Box(Modifier.fillMaxSize().background(LocalShellColors.current.background).padding(top = BarMetrics.STATUS_EPX.dp)) {
-                            SlotPicker(slot, onDone = { pickerSlot = null })
-                        }
+                    if (app.tileshell.onboarding.SetupWizard.showing) {
+                        // Phase 12 (T12-6, T12-8): the wizard sits above everything Start draws, and while it shows the
+                        // pager, the burst layer, the pin band and the picker are not composed at all; the feeds keep running.
+                        app.tileshell.onboarding.WizardHost(onEnd = { onWizardEnded() })
+                    } else if (cameFromWizard) {
+                        app.tileshell.onboarding.WizardPageTransition("start") { StartPivot(pager, scroll) }
+                    } else {
+                        StartPivot(pager, scroll)
                     }
                 }
                 W10mNavBar(
@@ -293,6 +261,68 @@ class StartActivity : ComponentActivity() {
             }
             animation = StartAnimation()
             Diagnostics.add("motion", "start entrance finished")
+        }
+    }
+
+    /** Start and the app list on one pivot, with what is drawn above it (folder name box, pin band, slot picker). */
+    @OptIn(ExperimentalFoundationApi::class)
+    @Composable
+    private fun StartPivot(pager: androidx.compose.foundation.pager.PagerState, scroll: androidx.compose.foundation.ScrollState) {
+        Box(Modifier.fillMaxSize()) {
+            HorizontalPager(
+                state = pager,
+                modifier = Modifier.fillMaxSize(),
+                // X13 approximation: follows the finger 1:1, settles with an ease-out over 250 ms.
+                flingBehavior = PagerDefaults.flingBehavior(pager, snapAnimationSpec = tween(Motion.PIVOT_SETTLE_MS)),
+                snapPosition = SnapPosition.Start,
+                beyondViewportPageCount = 1,
+                // Edit mode holds Start still: a drag across the screen moves a tile, not the pivot (agent).
+                userScrollEnabled = !edit.active,
+            ) { index ->
+                if (index == 0) {
+                    StartPage(scroll, animation, edit) { tile -> onTileTap(tile) }
+                } else {
+                    // A pivot page that is not showing takes no focus. Without this, dismissing a text
+                    // field on Start (the folder name box) handed focus to the app list's search field,
+                    // and the pager dutifully scrolled that page into view — Start swung away on its own.
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .focusGroup()
+                            .focusProperties { canFocus = pager.currentPage == 1 },
+                    ) {
+                        AppListPage(onLaunch = { entry, bounds -> launchApp(TileTarget.App(entry), bounds, null) })
+                    }
+                }
+            }
+            // The folder name box (R6 §1.7.2): drawn here, above the pivot, so focusing it cannot make
+            // the pager bring it into view and swing Start over to the app list.
+            if (edit.naming) {
+                val folderId = edit.expandedFolder
+                val store = app.tileshell.tiles.LayoutStore.get(this@StartActivity)
+                if (folderId != null) {
+                    FolderNameBox(
+                        initial = store.layout.value.folders[folderId]?.name.orEmpty(),
+                        yPx = edit.nameBoxYPx,
+                    ) { name ->
+                        store.renameFolder(folderId, name)
+                        edit.naming = false
+                    }
+                } else {
+                    edit.naming = false
+                }
+            }
+            // The pin confirmation band sits at the top of the screen, under the drawn status bar (H22).
+            val pinRequest by SecondaryTiles.pending.collectAsState()
+            pinRequest?.let { request ->
+                SecondaryPinPrompt(request, Modifier.align(Alignment.TopCenter).padding(top = BarMetrics.STATUS_EPX.dp))
+            }
+            // The picker is a page between the drawn bars (bar rule): the status bar draws over its top inset.
+            pickerSlot?.let { slot ->
+                Box(Modifier.fillMaxSize().background(LocalShellColors.current.background).padding(top = BarMetrics.STATUS_EPX.dp)) {
+                    SlotPicker(slot, onDone = { pickerSlot = null })
+                }
+            }
         }
     }
 
@@ -441,8 +471,17 @@ class StartActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         inFront = true
-        // A pin request that arrived while Start was away is shown now, never over another app (R5 §1.9).
-        SecondaryTiles.setStartVisible(true)
+        // Phase 12: the Visibility rule on every resume while no run is in progress; a run in progress re-derives its steps
+        // from live grant state (the dialogs and Settings pages all return through here).
+        val wizard = app.tileshell.onboarding.SetupWizard
+        when {
+            wizardEvaluatedAtCreate -> wizardEvaluatedAtCreate = false
+            wizard.showing -> reconcileWizard()
+            else -> wizard.evaluate(this)
+        }
+        // A pin request that arrived while Start was away is shown now, never over another app (R5 §1.9) — and never
+        // behind the wizard: it waits until Start is visible (T12-14).
+        if (!wizard.showing) SecondaryTiles.setStartVisible(true)
         hideSystemBars()
         // A default app (dialer, SMS, browser) may have been changed elsewhere while Start was away.
         app.tileshell.tiles.SlotDefaults.refresh()
@@ -458,6 +497,33 @@ class StartActivity : ComponentActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus && returningFromLaunch) comeBack("start entrance (focus back)")
+        // Phase 12: the keyboard picker is a system window, not an activity, so Start is never paused under it; the step
+        // re-derives when the focus comes back instead.
+        if (hasFocus && app.tileshell.onboarding.SetupWizard.showing) reconcileWizard()
+    }
+
+    private fun reconcileWizard() {
+        app.tileshell.onboarding.SetupWizard.reconcile(
+            this,
+            rationale = { shouldShowRequestPermissionRationale(it) },
+            granted = { checkSelfPermission(it) == android.content.pm.PackageManager.PERMISSION_GRANTED },
+        )
+    }
+
+    /** "Skip setup" or "Done": Start composes under the page motion, and a pin request that waited is shown now. */
+    private fun onWizardEnded() {
+        cameFromWizard = true
+        if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) SecondaryTiles.setStartVisible(true)
+    }
+
+    /**
+     * Phase 12 (build task 2, r3 V4): `adb shell dumpsys activity app.tileshell/.StartActivity` prints the diagnostics
+     * ring through this already-exported activity — no new exported component — so a row can read the wizard's lines while
+     * notification access (the listener's own dump) is revoked.
+     */
+    override fun dump(prefix: String, fd: java.io.FileDescriptor?, writer: java.io.PrintWriter, args: Array<out String>?) {
+        super.dump(prefix, fd, writer, args)
+        Diagnostics.dump(writer)
     }
 
     /**
