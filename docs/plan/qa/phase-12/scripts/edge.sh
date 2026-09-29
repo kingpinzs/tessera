@@ -13,6 +13,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 CASE="${1:?usage: edge.sh <case>}"
 C_UP="$(echo "$CASE" | tr 'a-z' 'A-Z')"
 pid() { adb shell pidof $PKG | tr -d '\r' | awk '{print $1}'; }
+start_records() { adb shell dumpsys activity activities | grep -oE 'Hist .*ActivityRecord\{[0-9a-f]+ u0 app\.tileshell/\.StartActivity' | grep -oE '\{[0-9a-f]+'; }
 cur_step() { dump_ui "$ROW_DIR/$1.xml"; wiz_step "$ROW_DIR/$1.xml"; }
 start_e2() { e2_state; assert_e2_appops; adb shell input keyevent KEYCODE_HOME; sleep 5; }
 # a no-marker provision with the given revocations, so the ASSISTANT role (and everything else) is held
@@ -254,7 +255,8 @@ home_once)
   adb shell am force-stop "$PKG"
   record "HOME role holder after removing the shell" "$(adb shell cmd role get-role-holders android.app.role.HOME | tr -d '\r')"
   assert_contains "Home resolves to the chooser" "ResolverActivity" "$(adb shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME | tr -d '\r' | tail -1)"
-  assert_eq "no shell process before Home" "" "$(pid)"
+  # The process itself may be up again (the notification listener rebinds after the force-stop, run 3); no activity is.
+  assert_eq "no StartActivity before Home" "0" "$(start_records | grep -c .)"
   pick() { python3 - "$1" "$2" <<'PY'
 import re, sys, xml.etree.ElementTree as ET
 for n in ET.parse(sys.argv[1]).getroot().iter("node"):
@@ -275,6 +277,8 @@ PY
   k="$(cur_step first)"
   assert_eq "Default Home is step 1" "setup:home" "$k"
   assert_eq "its button: Set as default" "Set as default" "$(ntext "$ROW_DIR/first.xml" wizard_action)"
+  prog0="$(ntext "$ROW_DIR/first.xml" wizard_progress)"; rec0="$(start_records)"
+  record "the step's progress / StartActivity's record" "$prog0 / $rec0"
   start_slice "$MARK" "Just once"
   assert_contains "the run begins with the Home step" "[wizard] shown: missing=setup:home" "$SLICE"
   tap_node "$ROW_DIR/first.xml" wizard_action; sleep 3
@@ -294,13 +298,28 @@ PY
   xy="$(pick "$ROW_DIR/sheet2.xml" "$other_name")"; [ -n "$xy" ] && adb shell input tap $xy; sleep 1
   dump_ui "$ROW_DIR/sheet3.xml"; xy="$(pick "$ROW_DIR/sheet3.xml" 'set as default')"; [ -n "$xy" ] && adb shell input tap $xy; sleep 3
   record "HOME role holder after choosing another launcher" "$(adb shell cmd role get-role-holders android.app.role.HOME | tr -d '\r')"
-  # The immediate return, read before any launch or Home press.
-  assert_eq "another launcher chosen: Start is in front on return" "app.tileshell/.StartActivity" "$(resumed_activity)"
-  assert_eq "another launcher chosen: the step stays" "setup:home" "$(cur_step after2)"
-  assert_eq "another launcher chosen: the same process (no relaunch)" "$p0" "$(pid)"
+  # The immediate return, read before any launch or Home press. The permission controller launches the newly chosen Home
+  # itself (BUILD_START/home-return-probe: choosing Tessera under Settings > Default apps > Home app brings Tessera forward the
+  # same way), so on the AVD the other launcher is in front at once (run 3); the wizard must still be alive behind it.
+  record "another launcher chosen: in front on return" "$(resumed_activity)"
+  assert_eq "another launcher chosen: StartActivity still alive behind it (the same activity record)" "$rec0" "$(start_records)"
+  assert_eq "another launcher chosen: the same process" "$p0" "$(pid)"
   start_slice "$MARK" "the return"
   assert_eq "one StartActivity created since Home" "1" "$(grep -c '\[start\] StartActivity created' <<<"$SLICE")"
+  assert_eq "one [wizard] shown line since Home (the run was not restarted)" "1" "$(grep -c '\[wizard\] shown' <<<"$SLICE")"
   assert_absent "no finished marker line" "[wizard] finished" "$SLICE"
+  assert_absent "no skip line" "[wizard] skip" "$SLICE"
+  # Back to Tessera: the HOME intent to the shell's own activity reaches the live one (onNewIntent; the wizard ignores Home). A
+  # product that had ended the run on the return would show no wizard, or a fresh run with a second "[wizard] shown" line.
+  adb shell am start -a android.intent.action.MAIN -c android.intent.category.HOME -n "$PKG/.StartActivity" >/dev/null; sleep 3
+  assert_eq "reopened: Start in front" "app.tileshell/.StartActivity" "$(resumed_activity)"
+  assert_eq "reopened: the same activity record (not recreated)" "$rec0" "$(start_records)"
+  assert_eq "reopened: the step stays" "setup:home" "$(cur_step after2)"
+  assert_eq "reopened: the same progress caption" "$prog0" "$(ntext "$ROW_DIR/after2.xml" wizard_progress)"
+  assert_eq "reopened: the same process" "$p0" "$(pid)"
+  start_slice "$MARK" "reopened"
+  assert_eq "still one StartActivity created" "1" "$(grep -c '\[start\] StartActivity created' <<<"$SLICE")"
+  assert_eq "still one [wizard] shown line" "1" "$(grep -c '\[wizard\] shown' <<<"$SLICE")"
   adb shell input keyevent KEYCODE_HOME; sleep 3
   record "Home pressed afterwards: resumed" "$(resumed_activity)"
   adb shell cmd role add-role-holder android.app.role.HOME "$PKG"

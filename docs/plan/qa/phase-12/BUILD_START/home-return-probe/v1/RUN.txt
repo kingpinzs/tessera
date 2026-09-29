@@ -1,0 +1,78 @@
+== 2026-09-29T15:43:35-06:00 on emulator-5554
+-- 1. into the wizard through the chooser
+/sdcard/p.xml: 1 file pulled, 0 skipped. 17.3 MB/s (9843 bytes in 0.001s)
+/sdcard/p.xml: 1 file pulled, 0 skipped. 12.1 MB/s (9841 bytes in 0.001s)
+/sdcard/p.xml: 1 file pulled, 0 skipped. 31.8 MB/s (25436 bytes in 0.001s)
+resumed:       topResumedActivity=ActivityRecord{211806876 u0 app.tileshell/.StartActivity t6563}
+step: 
+pid: 14641
+-- 2. Set as default -> Quickstep -> SET AS DEFAULT
+
+Exception occurred while executing 'tap':
+java.lang.IllegalArgumentException: Argument expected after "tap"
+	at com.android.modules.utils.BasicShellCommandHandler.getNextArgRequired(BasicShellCommandHandler.java:295)
+	at com.android.server.input.InputShellCommand.runTap(InputShellCommand.java:484)
+	at com.android.server.input.InputShellCommand.onCommand(InputShellCommand.java:294)
+	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+	at android.os.ShellCommand.exec(ShellCommand.java:38)
+	at com.android.server.input.InputManagerService.onShellCommand(InputManagerService.java:3887)
+	at android.os.Binder.shellCommand(Binder.java:1151)
+	at android.os.Binder.onTransact(Binder.java:953)
+	at android.hardware.input.IInputManager$Stub.onTransact(IInputManager.java:1576)
+	at android.os.Binder.execTransactInternal(Binder.java:1426)
+	at android.os.Binder.execTransact(Binder.java:1365)
+/sdcard/p.xml: 1 file pulled, 0 skipped. 39.8 MB/s (24468 bytes in 0.001s)
+
+Exception occurred while executing 'tap':
+java.lang.IllegalArgumentException: Argument expected after "tap"
+	at com.android.modules.utils.BasicShellCommandHandler.getNextArgRequired(BasicShellCommandHandler.java:295)
+	at com.android.server.input.InputShellCommand.runTap(InputShellCommand.java:484)
+	at com.android.server.input.InputShellCommand.onCommand(InputShellCommand.java:294)
+	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+	at android.os.ShellCommand.exec(ShellCommand.java:38)
+	at com.android.server.input.InputManagerService.onShellCommand(InputManagerService.java:3887)
+	at android.os.Binder.shellCommand(Binder.java:1151)
+	at android.os.Binder.onTransact(Binder.java:953)
+	at android.hardware.input.IInputManager$Stub.onTransact(IInputManager.java:1576)
+	at android.os.Binder.execTransactInternal(Binder.java:1426)
+	at android.os.Binder.execTransact(Binder.java:1365)
+/sdcard/p.xml: 1 file pulled, 0 skipped. 31.0 MB/s (25436 bytes in 0.001s)
+
+Exception occurred while executing 'tap':
+java.lang.IllegalArgumentException: Argument expected after "tap"
+	at com.android.modules.utils.BasicShellCommandHandler.getNextArgRequired(BasicShellCommandHandler.java:295)
+	at com.android.server.input.InputShellCommand.runTap(InputShellCommand.java:484)
+	at com.android.server.input.InputShellCommand.onCommand(InputShellCommand.java:294)
+	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+	at android.os.ShellCommand.exec(ShellCommand.java:38)
+	at com.android.server.input.InputManagerService.onShellCommand(InputManagerService.java:3887)
+	at android.os.Binder.shellCommand(Binder.java:1151)
+	at android.os.Binder.onTransact(Binder.java:953)
+	at android.hardware.input.IInputManager$Stub.onTransact(IInputManager.java:1576)
+	at android.os.Binder.execTransactInternal(Binder.java:1426)
+	at android.os.Binder.execTransact(Binder.java:1365)
+t+1:       topResumedActivity=ActivityRecord{211806876 u0 app.tileshell/.StartActivity t6563}
+t+2:       topResumedActivity=ActivityRecord{211806876 u0 app.tileshell/.StartActivity t6563}
+t+3:       topResumedActivity=ActivityRecord{211806876 u0 app.tileshell/.StartActivity t6563}
+records:
+      * Hist  #0: ActivityRecord{211806876 u0 app.tileshell/.StartActivity t6563}
+      * Hist  #0: ActivityRecord{30080728 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t6471}
+pid: 14641  holders: 
+-- 3. back to Tessera through Recents (no launch intent)
+/sdcard/p.xml: 1 file pulled, 0 skipped. 33.1 MB/s (25436 bytes in 0.001s)
+recents resumed:       topResumedActivity=ActivityRecord{211806876 u0 app.tileshell/.StartActivity t6563}
+Tessera card at: []
+/sdcard/p.xml: 1 file pulled, 0 skipped. 36.4 MB/s (25436 bytes in 0.001s)
+resumed:       topResumedActivity=ActivityRecord{211806876 u0 app.tileshell/.StartActivity t6563}
+step: 
+pid: 14641 (was 14641)
+-- 4. control: Settings > Default apps > Home app, choose Tessera
+/sdcard/p.xml: 1 file pulled, 0 skipped. 26.4 MB/s (19627 bytes in 0.001s)
+/sdcard/p.xml: 1 file pulled, 0 skipped. 18.7 MB/s (13575 bytes in 0.001s)
+t+1:       topResumedActivity=ActivityRecord{211806876 u0 app.tileshell/.StartActivity t6563}
+t+2:       topResumedActivity=ActivityRecord{211806876 u0 app.tileshell/.StartActivity t6563}
+t+3:       topResumedActivity=ActivityRecord{211806876 u0 app.tileshell/.StartActivity t6563}
+/sdcard/p.xml: 1 file pulled, 0 skipped. 37.6 MB/s (25795 bytes in 0.001s)
+holders: app.tileshell
+-- restore
+holders: app.tileshell  resumed:       topResumedActivity=ActivityRecord{211806876 u0 app.tileshell/.StartActivity t6563}

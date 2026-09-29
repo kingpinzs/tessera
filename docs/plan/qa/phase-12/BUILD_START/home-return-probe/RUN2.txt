@@ -1,0 +1,42 @@
+== 2026-09-29T15:44:53-06:00 on emulator-5554
+-- 0. a no-marker state (pm clear, provision without the finished marker)
+provision rc=0
+-- 1. into the wizard through the chooser
+resumed:       topResumedActivity=ActivityRecord{25004895 u0 app.tileshell/.StartActivity t6567}
+step: setup:home
+pid: 15721
+-- 2. Set as default -> Quickstep -> SET AS DEFAULT
+t+1:       topResumedActivity=ActivityRecord{30080728 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t6471}
+t+2:       topResumedActivity=ActivityRecord{30080728 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t6471}
+t+3:       topResumedActivity=ActivityRecord{30080728 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t6471}
+records:
+      * Hist  #0: ActivityRecord{30080728 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t6471}
+      * Hist  #0: ActivityRecord{25004895 u0 app.tileshell/.StartActivity t6567}
+pid: 15721  holders: com.android.launcher3
+-- 3. back to Tessera through Recents (no launch intent)
+recents resumed:       topResumedActivity=ActivityRecord{30080728 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t6471}
+Tessera card at: []
+resumed:       topResumedActivity=ActivityRecord{30080728 u0 com.android.launcher3/.uioverrides.QuickstepLauncher t6471}
+step: 
+pid: 15721 (was 15721)
+-- 4. control: Settings > Default apps > Home app, choose Tessera
+
+Exception occurred while executing 'tap':
+java.lang.IllegalArgumentException: Argument expected after "tap"
+	at com.android.modules.utils.BasicShellCommandHandler.getNextArgRequired(BasicShellCommandHandler.java:295)
+	at com.android.server.input.InputShellCommand.runTap(InputShellCommand.java:484)
+	at com.android.server.input.InputShellCommand.onCommand(InputShellCommand.java:294)
+	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+	at android.os.ShellCommand.exec(ShellCommand.java:38)
+	at com.android.server.input.InputManagerService.onShellCommand(InputManagerService.java:3887)
+	at android.os.Binder.shellCommand(Binder.java:1151)
+	at android.os.Binder.onTransact(Binder.java:953)
+	at android.hardware.input.IInputManager$Stub.onTransact(IInputManager.java:1576)
+	at android.os.Binder.execTransactInternal(Binder.java:1426)
+	at android.os.Binder.execTransact(Binder.java:1365)
+t+1:       topResumedActivity=ActivityRecord{25004895 u0 app.tileshell/.StartActivity t6567}
+t+2:       topResumedActivity=ActivityRecord{25004895 u0 app.tileshell/.StartActivity t6567}
+t+3:       topResumedActivity=ActivityRecord{25004895 u0 app.tileshell/.StartActivity t6567}
+holders: app.tileshell
+-- restore
+holders: app.tileshell  resumed:       topResumedActivity=ActivityRecord{25004895 u0 app.tileshell/.StartActivity t6567}
