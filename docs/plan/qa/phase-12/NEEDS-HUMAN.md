@@ -23,15 +23,30 @@ you press Home after installing this build, the wizard shows if ANY of its permi
 or Tess's). **Do not clear Tessera's data for this**: that would also wipe your Start layout, Tess's reminders and every
 setting. If the wizard does not show (everything already granted), turn a few permissions off first, in phone Settings >
 Apps > Tessera > Permissions (for example Location and Microphone), then press Home.
-1. Press Home. The wizard shows its first missing step.
-2. Tap each step's button once and do what Android's page or dialog asks. Write down any step where the page that
-   opened looked wrong or empty, or where the button changed to **Open Android settings**.
-3. On **Choose a theme**, tap a theme, then **Done**. Look at Start, then open Tess (the Search key), then open any text
-   field so the keyboard shows.
-4. Start settings > Diagnostics > **Copy everything**, and paste it here.
 
-What I read from the paste: every `[wizard] step … granted / partial / blocked / action failed` line, and which One UI
-page each step reached. (The Default Home step only appears when Tessera is not your Home app, so it will not show here.)
+0. (Optional, and only BEFORE step 1: once the wizard is finished it never shows again.) The Default Home step, the way a
+   new user meets it. Phone Settings > Apps > Tessera > **Set as default** > **Clear defaults**, then press Home. One UI
+   asks which Home app to use: tap Tessera, then **Just once**. The wizard's first step should be **Default Home**. Tap
+   **Set as default**, choose Tessera in Samsung's sheet, and write down what that sheet looked like. (If anything goes
+   wrong, Settings > Apps > Choose default apps > Home app > Tessera puts it back.)
+1. Note whether Location is on (quick panel), then press Home. The wizard shows its first missing step.
+2. Tap each step's button once and do what Android's page or dialog asks. For each step, write down the title of the page
+   or dialog that opened (for example "Notification access", "Usage data access", "Allow Tessera to access photos"). Also
+   note any step where that page looked wrong or empty, or where the button changed to **Open Android settings**.
+   On ONE permission dialog (Photos is a good one), first tap the dimmed area outside the dialog and note whether the
+   dialog closes. If it does, the step should still be there; tap its button again to carry on.
+3. On **Choose a theme**, tap a theme, then **Done**. Look at Start, then open Tess (the Search key), then open any text
+   field so the keyboard shows. Phone screenshots of those three are welcome for H6 / H7 if you can share them; a
+   description is fine too.
+4. Start settings > Diagnostics > **Copy everything**, and paste it here with your notes from steps 0-3.
+
+What I read from the paste: every `[wizard] step … granted / partial / blocked / action failed` line, and your page
+titles beside them (the phone rule rules out the doc's `dumpsys` read of the page, so your titles stand in for it). The
+Default Home step shows only in step 0, because Tessera is already your Home app otherwise.
+
+Two differences from the doc's P1, both because of the phone rule and your data: the doc starts P1 "from a fresh
+sideload", and it reads each page from `dumpsys activity activities`. Here P1 starts from your installed phone (no
+clearing), step 0 stands in for the fresh install's Home route, and your page titles stand in for `dumpsys`.
 
 **P2: the marker holds.** After P1 is done:
 1. Restart the phone, then press Home: no wizard.
