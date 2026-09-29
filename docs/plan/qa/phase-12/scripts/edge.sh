@@ -255,8 +255,11 @@ home_once)
   adb shell am force-stop "$PKG"
   record "HOME role holder after removing the shell" "$(adb shell cmd role get-role-holders android.app.role.HOME | tr -d '\r')"
   assert_contains "Home resolves to the chooser" "ResolverActivity" "$(adb shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME | tr -d '\r' | tail -1)"
-  # The process itself may be up again (the notification listener rebinds after the force-stop, run 3); no activity is.
-  assert_eq "no StartActivity before Home" "0" "$(start_records | grep -c .)"
+  # The process itself may be up again (the notification listener rebinds after the force-stop, run 3); no activity is. The
+  # force-stop removes the record asynchronously (run 4 read it mid-removal; BUILD_START/home-prestate-probe: gone by +0.5 s),
+  # so the check waits up to 5 s for it.
+  n=1; for i in 1 2 3 4 5 6 7 8 9 10; do n="$(start_records | grep -c .)"; [ "$n" = 0 ] && break; sleep 0.5; done
+  assert_eq "no StartActivity before Home (the force-stop's removal waited for, up to 5 s)" "0" "$n"
   pick() { python3 - "$1" "$2" <<'PY'
 import re, sys, xml.etree.ElementTree as ET
 for n in ET.parse(sys.argv[1]).getroot().iter("node"):

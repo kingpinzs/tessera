@@ -1,0 +1,44 @@
+== 2026-09-29T15:56:26-06:00 on emulator-5554
+provision rc=0
+after provision: pid=[20966]
+after force-stop: pid=[21152]
+-- acts-1-after-provision.txt
+3:  * Task{acb4e71 #6469 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=2}
+4:    * Task{1c0de70 #6580 type=home A=10150:app.tileshell nonResizable U=0 rootTaskId=6469 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+7:      topResumedActivity=ActivityRecord{145766579 u0 app.tileshell/.StartActivity t6580}
+8:      * Hist  #0: ActivityRecord{145766579 u0 app.tileshell/.StartActivity t6580}
+53:    * Task{248231 #6471 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=6469 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+249:  * Task{557c0f2 #6531 type=standard A=10171:app.tileshell.qa.imefixture U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+350:  * Task{9b0e048 #5897 type=standard A=10191:app.tileshell.testclient.a U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+498:      * Task{acb4e71 #6469 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=2}
+app=ProcessRecord{c4f3ab1
+-- acts-2-after-role-removed.txt
+3:  * Task{acb4e71 #6469 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=2}
+4:    * Task{1c0de70 #6580 type=home A=10150:app.tileshell nonResizable U=0 rootTaskId=6469 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+7:      topResumedActivity=ActivityRecord{145766579 u0 app.tileshell/.StartActivity t6580}
+8:      * Hist  #0: ActivityRecord{145766579 u0 app.tileshell/.StartActivity t6580}
+53:    * Task{248231 #6471 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=6469 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+249:  * Task{557c0f2 #6531 type=standard A=10171:app.tileshell.qa.imefixture U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+350:  * Task{9b0e048 #5897 type=standard A=10191:app.tileshell.testclient.a U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+498:      * Task{acb4e71 #6469 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=2}
+app=ProcessRecord{c4f3ab1
+-- acts-3-after-force-stop-0s.txt
+6:    topResumedActivity=ActivityRecord{249737974 u0 android/com.android.internal.app.ResolverActivity t6581}
+55:  * Task{acb4e71 #6469 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+56:    * Task{248231 #6471 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=6469 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+252:  * Task{557c0f2 #6531 type=standard A=10171:app.tileshell.qa.imefixture U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+353:  * Task{9b0e048 #5897 type=standard A=10191:app.tileshell.testclient.a U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+504:      * Task{acb4e71 #6469 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+506:        * Task{248231 #6471 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=6469 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+516:      * Task{557c0f2 #6531 type=standard A=10171:app.tileshell.qa.imefixture U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+-- acts-4-after-force-stop-3s.txt
+6:    topResumedActivity=ActivityRecord{249737974 u0 android/com.android.internal.app.ResolverActivity t6581}
+55:  * Task{acb4e71 #6469 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+56:    * Task{248231 #6471 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=6469 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+252:  * Task{557c0f2 #6531 type=standard A=10171:app.tileshell.qa.imefixture U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+353:  * Task{9b0e048 #5897 type=standard A=10191:app.tileshell.testclient.a U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+504:      * Task{acb4e71 #6469 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+506:        * Task{248231 #6471 type=home I=com.android.launcher3/.uioverrides.QuickstepLauncher U=0 rootTaskId=6469 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
+516:      * Task{557c0f2 #6531 type=standard A=10171:app.tileshell.qa.imefixture U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
+-- restore
+restore provision rc=0
