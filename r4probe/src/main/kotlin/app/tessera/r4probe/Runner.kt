@@ -415,8 +415,10 @@ object Runner {
 
     private fun stageP4b() {
         sh("dumpsys battery unplug")
-        // Undone in 40 s whatever happens to this app meanwhile (One UI may freeze it; Kadb calls have no timeout).
-        sh("setsid sh -c 'sleep 40; dumpsys deviceidle unforce; dumpsys battery reset' > /dev/null 2>&1 < /dev/null &")
+        // Undone in 40 s whatever happens to this app meanwhile (One UI may freeze it; Kadb calls have no timeout). Its
+        // pid is kept and it is stopped once 4b has undone Doze itself, so it cannot reset the battery report in the
+        // middle of the blur step, which sets it on purpose.
+        val net = sh1("setsid sh -c 'sleep 40; dumpsys deviceidle unforce; dumpsys battery reset' > /dev/null 2>&1 < /dev/null & echo \$!")
         val doze = sh1("dumpsys deviceidle force-idle")
         detail("== part 4b: $doze")
         if ("Now forced in to deep idle mode" in doze) {
@@ -427,6 +429,7 @@ object Runner {
             result(if (ok) "PASS" else "FAIL", "4b forced deep Doze: the helper lives and answers")
         } else result("INFO", "4b deep Doze could NOT be forced here (not tested)")
         sh("dumpsys deviceidle unforce"); sh("dumpsys battery reset")
+        if (net.toIntOrNull() != null) sh("kill $net")
         result("INFO", "4c cable pulled: not applicable (no PC in a phone-only run)")
     }
 
