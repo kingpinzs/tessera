@@ -1,0 +1,44 @@
+=== FULL RUN
+INFO     R4 phone-only run 2026-09-28 20:54:47
+PASS     adb on this phone (already paired): runs as the shell uid
+PASS     1 app_process runs as the shell uid
+PASS     2a the helper daemonises (parent = init)
+PASS     2b binder handed to the app; the ping answered
+INFO     3a toggles directly over adb: 5/6 changed
+INFO     3b toggles through the helper: 7/8 changed
+PASS     4a app killed: the helper lives and re-hands the binder
+INFO     4b deep Doze could NOT be forced here (not tested)
+INFO     4c cable pulled: not applicable (no PC in a phone-only run)
+INFO     blur: the platform answer and Jeremy's look, normal and power saving (details)
+INFO     P5 nav-bar overlay: accessibility + app overlay, taps received (details)
+INFO     PQ2 visual voicemail: carrier config, handler app, provider counts (no sign-in)
+PASS     clean-up: every change undone
+SKIPPED  4d adbd gone
+INFO     done: tap 'Copy the whole report' and paste it back; then uninstall R4 probe, and in Wireless debugging > Paire
+=== after: wifi Wifi is enabled; airplane disabled; low_power 0; deep ACTIVE; helpers 0
+=== B1 TEST
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+killing mid-toggle at 20:58:13: stage stage=p3
+helpers before: 1
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+=== second run SUMMARY
+INFO     R4 phone-only run 2026-09-28 20:58:27
+PASS     adb on this phone (already paired): runs as the shell uid
+PASS     1 app_process runs as the shell uid
+PASS     2a the helper daemonises (parent = init)
+PASS     2b binder handed to the app; the ping answered
+INFO     3a toggles directly over adb: 5/6 changed
+INFO     3b toggles through the helper: 7/8 changed
+PASS     4a app killed: the helper lives and re-hands the binder
+INFO     4b deep Doze could NOT be forced here (not tested)
+INFO     4c cable pulled: not applicable (no PC in a phone-only run)
+INFO     blur: the platform answer and Jeremy's look, normal and power saving (details)
+INFO     P5 nav-bar overlay: accessibility + app overlay, taps received (details)
+INFO     PQ2 visual voicemail: carrier config, handler app, provider counts (no sign-in)
+PASS     clean-up: every change undone
+SKIPPED  4d adbd gone
+INFO     done: tap 'Copy the whole report' and paste it back; then uninstall R4 probe, and in Wireless debugging > Paired devices tap R4 probe > Forget (the app cannot remove its own pairing); turn Wireless debugging off if you do not use it
+=== its details: the restore of the first run and the leftovers
+== before the baseline: anything an earlier run left
+  an earlier helper's binder: call failed: DeadObjectException: null
+=== after: helpers 0; wifi Wifi is enabled; bt 1; location true; auto_time 1; low_power 0

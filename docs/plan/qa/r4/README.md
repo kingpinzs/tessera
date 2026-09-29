@@ -21,8 +21,8 @@ Already done, not re-run: the licence of the on-device pairing client (phase 04'
 
 ## Once, before the run
 
-1. Install **R4 probe** from the GitHub release page (the "latest" release; it sits next to the shell's APK). If an older R4
-   probe is installed, install over it.
+1. Uninstall any older **R4 probe** first (each build is signed with a new key, so installing over it fails), then install
+   R4 probe from the GitHub release page (the "latest" release; it sits next to the shell's APK).
 2. Developer options on: Settings > About phone > Software information > tap **Build number** 7 times.
 3. The phone on **Wi-Fi** (Wireless debugging needs it). Power saving can stay as you have it; R4 puts it back exactly.
 
@@ -30,7 +30,8 @@ Already done, not re-run: the licence of the on-device pairing client (phase 04'
 
 1. Open R4 probe, allow its notifications, tap **Run R4 on this phone**.
 2. **Pairing** (only the first time): the app says what to do. Open Developer options > **Wireless debugging** > turn it on
-   (allow this network; "always allow" saves a prompt later) > **Pair device with pairing code**. Keep that dialog open,
+   (tick **Always allow on this network** — R4 needs it: it turns Wireless debugging back on by itself after the Wi-Fi
+   flip) > **Pair device with pairing code**. Keep that dialog open,
    pull down the notification shade: R4 probe's notification says "type the pairing code" — tap **Enter code**, type the 6
    digits. The app carries on by itself.
 3. It shows what it read for each toggle and asks **Go ahead** — tap it (or Stop if a state looks wrong).
@@ -49,13 +50,15 @@ Already done, not re-run: the licence of the on-device pairing client (phase 04'
 - The battery is briefly *reported* unplugged (so battery saver can be tested while charging) and Doze is briefly forced;
   both are reset. The probe's accessibility service is switched on for the nav-bar step only, then your list is put back.
 - At the end every change is undone and checked against what it read at the start; anything it cannot set back is a FAIL
-  line saying what to set by hand. If the app is stopped part-way, opening it again offers **Restore now**.
+  line saying what to set by hand. If the app is stopped part-way, opening it again offers **Restore now** (and a new
+  run always puts an unfinished one back first).
 
 ## After
 
-- Paste the report. Then uninstall R4 probe.
+- Paste the report (the phone's network address is written as "<this phone>"). Then uninstall R4 probe.
 - Wireless debugging keeps R4 probe in its **Paired devices** list: tap it there and **Forget** (the app cannot remove its
-  own pairing). Turn Developer options off if you like; turn USB debugging back on if you use it.
+  own pairing). Turn Wireless debugging off if you do not use it; turn Developer options off if you like; turn USB debugging
+  back on if you use it.
 
 Not recorded: the phone number, the IMEI, the serial number, voicemail content (counts per app only).
 
