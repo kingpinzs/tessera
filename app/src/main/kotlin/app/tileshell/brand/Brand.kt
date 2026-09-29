@@ -33,6 +33,17 @@ object Brand {
      */
     const val EMOJI_ARTWORK_DIR = "keyboard/emoji"
 
+    /**
+     * Phase 12 (T12-7): the theme presets whose names or pictures are Microsoft's live here, so a public build can swap
+     * them with the rest of this module. The original preset's two pictures are R12's stock img0 files (Q8 C, ruling
+     * (a)), cropped by tools/make-preset-pictures.py into res/drawable-nodpi; the other four are Jeremy's (Q6).
+     */
+    const val PRESET_W10M_NAME = "Windows 10 Mobile (original)"
+    const val PRESET_LUMIA_NAME = "Lumia"
+
+    /** A preset picture's drawable name, e.g. `preset_hal`, `preset_w10m_hero`. */
+    fun presetPicture(name: String) = "preset_$name"
+
     const val PRODUCT_NAME = "Tessera"
     const val ASSISTANT_NAME = "Tess"
 

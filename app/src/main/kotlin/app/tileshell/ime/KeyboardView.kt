@@ -56,15 +56,48 @@ import app.tileshell.brand.Brand
 import app.tileshell.ui.tokens.CapMetrics
 import kotlin.math.roundToInt
 
-/** R6 §2.1.18 capture colours (MEDIUM; judged against W10M in H11) and §2.8.2's white action key. */
+/** One set of the keyboard's colours. */
+data class KeyPalette(
+    val panel: Color,
+    val dark: Color,
+    val function: Color,
+    val label: Color,
+    val grip: Color,
+    val actionWhite: Color,
+    val actionGlyph: Color,
+) {
+    companion object {
+        /** R6 §2.1.18 capture colours (MEDIUM; judged against W10M in H11) and §2.8.2's white action key — as phase 05 built it. */
+        val DARK = KeyPalette(
+            panel = Color(22, 27, 21), dark = Color(48, 48, 48), function = Color(73, 74, 72), label = Color.White,
+            grip = Color(80, 80, 80), actionWhite = Color(254, 255, 253), actionGlyph = Color(34, 36, 33),
+        )
+
+        /**
+         * Phase 12 (T12-2, P4, H6): the light keyboard the Soft preset sets — R1 §6.2's light chrome: panel
+         * `lightChromeLow` #F2F2F2, keys `lightChromeMedium` #E6E6E6, labels black. The function keys, grip and the
+         * action key have no source; they are the dark set's roles inverted (agent approximation, judged in H6).
+         */
+        val LIGHT = KeyPalette(
+            panel = Color(0xFFF2F2F2), dark = Color(0xFFE6E6E6), function = Color(0xFFCCCCCC), label = Color.Black,
+            grip = Color(0xFFA0A0A0), actionWhite = Color(0xFF1F1F1F), actionGlyph = Color(0xFFFFFFFF),
+        )
+    }
+}
+
+/**
+ * The keyboard's colours, read by every drawing of the keys. [palette] follows the shell's `keyboard_palette` (phase 12),
+ * set from the keyboard's config each time it shows; it is snapshot state, so a change redraws the keys.
+ */
 object KeyColors {
-    val panel = Color(22, 27, 21)
-    val dark = Color(48, 48, 48)
-    val function = Color(73, 74, 72)
-    val label = Color.White
-    val grip = Color(80, 80, 80)
-    val actionWhite = Color(254, 255, 253)
-    val actionGlyph = Color(34, 36, 33)
+    var palette by mutableStateOf(KeyPalette.DARK)
+    val panel get() = palette.panel
+    val dark get() = palette.dark
+    val function get() = palette.function
+    val label get() = palette.label
+    val grip get() = palette.grip
+    val actionWhite get() = palette.actionWhite
+    val actionGlyph get() = palette.actionGlyph
     val navBar = Color.Black
 }
 

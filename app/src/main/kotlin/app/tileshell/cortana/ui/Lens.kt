@@ -65,6 +65,64 @@ object LensValues {
     }
 }
 
+// ---------------- the lens tones: phase 12's `tess_lens` (r3 D7) ----------------
+
+/** The four lens tones the persona paints with; [HAL] is `Brand.LENS_*` as built. */
+data class LensTones(val rim: Color, val iris: Color, val glow: Color, val core: Color) {
+    companion object {
+        val HAL = LensTones(Brand.LENS_RIM, Brand.LENS_IRIS, Brand.LENS_GLOW, Brand.LENS_CORE)
+
+        /**
+         * Phase 12 (r3 D7): `hal` = the lens as built; `accent` = rim, iris and glow each re-hued to [accent]'s HSV hue
+         * with their own saturation and value kept, so the lens follows the accent; `hal_dim` = the HAL tones with R, G
+         * and B each halved. The core is the specular highlight and never changes.
+         */
+        fun of(lens: String, accent: Color): LensTones = when (lens) {
+            "accent" -> {
+                val hue = hsv(accent)[0]
+                LensTones(rehue(Brand.LENS_RIM, hue), rehue(Brand.LENS_IRIS, hue), rehue(Brand.LENS_GLOW, hue), Brand.LENS_CORE)
+            }
+            "hal_dim" -> LensTones(half(Brand.LENS_RIM), half(Brand.LENS_IRIS), half(Brand.LENS_GLOW), Brand.LENS_CORE)
+            else -> HAL
+        }
+
+        private fun half(c: Color) = Color(c.red * 0.5f, c.green * 0.5f, c.blue * 0.5f, c.alpha)
+
+        private fun rehue(c: Color, hue: Float): Color {
+            val (_, s, v) = hsv(c)
+            return fromHsv(hue, s, v, c.alpha)
+        }
+
+        /** [h in 0..360, s, v] of an sRGB colour (pure, so the derivation is unit-tested on the JVM). */
+        fun hsv(c: Color): FloatArray {
+            val r = c.red; val g = c.green; val b = c.blue
+            val max = maxOf(r, g, b); val min = minOf(r, g, b); val d = max - min
+            val h = when {
+                d == 0f -> 0f
+                max == r -> 60f * (((g - b) / d) % 6f)
+                max == g -> 60f * (((b - r) / d) + 2f)
+                else -> 60f * (((r - g) / d) + 4f)
+            }.let { if (it < 0f) it + 360f else it }
+            return floatArrayOf(h, if (max == 0f) 0f else d / max, max)
+        }
+
+        fun fromHsv(h: Float, s: Float, v: Float, alpha: Float = 1f): Color {
+            val c = v * s
+            val x = c * (1f - kotlin.math.abs((h / 60f) % 2f - 1f))
+            val m = v - c
+            val (r, g, b) = when {
+                h < 60f -> Triple(c, x, 0f)
+                h < 120f -> Triple(x, c, 0f)
+                h < 180f -> Triple(0f, c, x)
+                h < 240f -> Triple(0f, x, c)
+                h < 300f -> Triple(x, 0f, c)
+                else -> Triple(c, 0f, x)
+            }
+            return Color(r + m, g + m, b + m, alpha)
+        }
+    }
+}
+
 // ---------------- the lens, painted at whatever geometry the persona hands it ----------------
 
 /** The lens tones all sit on one hue line so a colour search finds the whole lens (see persona.py). */
@@ -75,16 +133,16 @@ private fun tone(hal: Color, accent: Color, reveal: Float) = lerp(hal, accent, r
  * are drawn as. The outermost tone is opaque right up to the edge, so the edge sits exactly where the
  * flat disc's did.
  */
-fun DrawScope.drawLensDisc(centre: Offset, diameterPx: Float, accent: Color, reveal: Float) {
+fun DrawScope.drawLensDisc(centre: Offset, diameterPx: Float, accent: Color, reveal: Float, tones: LensTones = LensTones.HAL) {
     val radius = diameterPx / 2f
     if (radius <= 0f) return
     drawCircle(
         brush = Brush.radialGradient(
-            0f to tone(Brand.LENS_CORE, accent, reveal),
-            LensValues.CORE_RATIO to tone(Brand.LENS_CORE, accent, reveal),
-            LensValues.GLOW_RATIO to tone(Brand.LENS_GLOW, accent, reveal),
-            LensValues.IRIS_RATIO to tone(Brand.LENS_IRIS, accent, reveal),
-            1f to tone(Brand.LENS_RIM, accent, reveal),
+            0f to tone(tones.core, accent, reveal),
+            LensValues.CORE_RATIO to tone(tones.core, accent, reveal),
+            LensValues.GLOW_RATIO to tone(tones.glow, accent, reveal),
+            LensValues.IRIS_RATIO to tone(tones.iris, accent, reveal),
+            1f to tone(tones.rim, accent, reveal),
             center = centre,
             radius = radius,
         ),
@@ -103,13 +161,14 @@ fun DrawScope.drawLensRing(
     strokePx: Float,
     accent: Color,
     reveal: Float,
+    tones: LensTones = LensTones.HAL,
 ) {
     val radius = (outerPx - strokePx) / 2f
     if (radius <= 0f || strokePx <= 0f) return
     drawCircle(
         brush = Brush.radialGradient(
-            0f to tone(Brand.LENS_GLOW, accent, reveal),
-            1f to tone(Brand.LENS_RIM, accent, reveal),
+            0f to tone(tones.glow, accent, reveal),
+            1f to tone(tones.rim, accent, reveal),
             center = centre,
             radius = outerPx / 2f,
         ),
@@ -120,6 +179,6 @@ fun DrawScope.drawLensRing(
 }
 
 /** The bloom around the lens: R6's 25 % halo, in the iris tone instead of the accent. */
-fun DrawScope.drawLensHalo(centre: Offset, diameterPx: Float, accent: Color, reveal: Float) {
-    drawCircle(tone(Brand.LENS_IRIS, accent, reveal).copy(alpha = 0.25f), diameterPx / 2f, centre)
+fun DrawScope.drawLensHalo(centre: Offset, diameterPx: Float, accent: Color, reveal: Float, tones: LensTones = LensTones.HAL) {
+    drawCircle(tone(tones.iris, accent, reveal).copy(alpha = 0.25f), diameterPx / 2f, centre)
 }

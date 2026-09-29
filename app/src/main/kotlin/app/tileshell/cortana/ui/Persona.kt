@@ -25,6 +25,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import app.tileshell.cortana.PersonaState
+import app.tileshell.ui.LocalStartTheme
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
@@ -153,6 +154,7 @@ fun LargePersona(state: PersonaState, level: Float, accent: Color, modifier: Mod
     // remembered without a key: Cortana does not vanish because the reply started while she was out.
     var egg by remember { mutableStateOf(LensValues.Egg()) }
     var reveal by remember { mutableFloatStateOf(0f) }
+    val tones = rememberLensTones(accent)
     LaunchedEffect(state) {
         val first = withFrameMillis { it }
         start.longValue = first
@@ -174,9 +176,9 @@ fun LargePersona(state: PersonaState, level: Float, accent: Color, modifier: Mod
     ) {
         Canvas(Modifier.size(boxEpx.dp)) {
             when (state) {
-                PersonaState.LISTENING -> drawListening(elapsed, level, accent, reveal)
-                PersonaState.THINKING -> drawThinkingRing(elapsed, accent, reveal)
-                else -> drawIdleRing(elapsed, accent, reveal)
+                PersonaState.LISTENING -> drawListening(elapsed, level, accent, reveal, tones)
+                PersonaState.THINKING -> drawThinkingRing(elapsed, accent, reveal, tones)
+                else -> drawIdleRing(elapsed, accent, reveal, tones)
             }
         }
     }
@@ -190,6 +192,7 @@ fun SmallPersona(state: PersonaState, level: Float, accent: Color, modifier: Mod
     // so it is sampled on a step clock, not interpolated between frames.
     var steppedLevel by remember(state) { mutableFloatStateOf(0f) }
     var lastStep by remember(state) { mutableLongStateOf(0L) }
+    val tones = rememberLensTones(accent)
     LaunchedEffect(state) {
         val first = withFrameMillis { it }
         while (true) {
@@ -206,12 +209,19 @@ fun SmallPersona(state: PersonaState, level: Float, accent: Color, modifier: Mod
         Canvas(Modifier.size(boxEpx.dp)) {
             when (state) {
                 // The small persona is a passenger on the response card and takes no taps of its own.
-                PersonaState.SPEAKING -> drawSpeaking(steppedLevel, accent, 0f)
-                PersonaState.LISTENING, PersonaState.THINKING -> drawAwaitingReply(elapsed, accent, 0f)
-                else -> drawIdleAfterSpeaking(elapsed, accent, 0f)
+                PersonaState.SPEAKING -> drawSpeaking(steppedLevel, accent, 0f, tones)
+                PersonaState.LISTENING, PersonaState.THINKING -> drawAwaitingReply(elapsed, accent, 0f, tones)
+                else -> drawIdleAfterSpeaking(elapsed, accent, 0f, tones)
             }
         }
     }
+}
+
+/** Phase 12 (r3 D3 / D7): the lens tones follow the Start + theme `tess_lens` setting, re-derived when it or the accent changes. */
+@Composable
+private fun rememberLensTones(accent: Color): LensTones {
+    val lens = LocalStartTheme.current.tessLens
+    return remember(lens, accent) { LensTones.of(lens, accent) }
 }
 
 // ---------------- the drawing, all in epx ----------------
@@ -220,7 +230,7 @@ private fun DrawScope.centre() = Offset(size.width / 2f, size.height / 2f)
 
 private fun DrawScope.epx(value: Float) = value * density
 
-private fun DrawScope.drawIdleRing(elapsedMs: Long, accent: Color, reveal: Float) {
+private fun DrawScope.drawIdleRing(elapsedMs: Long, accent: Color, reveal: Float, tones: LensTones) {
     // A22's pop-in: a dot grows to full width in 183 ms, and the filled disc becomes a ring by 650 ms.
     val grow = min(1f, elapsedMs.toFloat() / PersonaValues.POP_GROW_MS)
     val hollow = ((elapsedMs - PersonaValues.POP_GROW_MS).toFloat() /
@@ -229,10 +239,10 @@ private fun DrawScope.drawIdleRing(elapsedMs: Long, accent: Color, reveal: Float
     val stroke = epx(PersonaValues.IDLE_STROKE_EPX)
     // While the disc is still filling in, the stroke is half the radius (a disc) and thins to the ring.
     val effectiveStroke = outer / 2f + (stroke - outer / 2f) * hollow
-    drawLensRing(centre(), outer, effectiveStroke, accent, reveal)
+    drawLensRing(centre(), outer, effectiveStroke, accent, reveal, tones)
 }
 
-private fun DrawScope.drawThinkingRing(elapsedMs: Long, accent: Color, reveal: Float) {
+private fun DrawScope.drawThinkingRing(elapsedMs: Long, accent: Color, reveal: Float, tones: LensTones) {
     val scaleX = PersonaValues.rotationScaleX(elapsedMs)
     val outer = epx(PersonaValues.THINKING_OUTER_EPX)
     val stroke = epx(PersonaValues.THINKING_STROKE_EPX)
@@ -240,11 +250,11 @@ private fun DrawScope.drawThinkingRing(elapsedMs: Long, accent: Color, reveal: F
     // apparent-width change rather than a real 3-D projection.
     val c = centre()
     scale(scaleX, 1f, c) {
-        drawLensRing(c, outer, stroke, accent, reveal)
+        drawLensRing(c, outer, stroke, accent, reveal, tones)
     }
 }
 
-private fun DrawScope.drawListening(elapsedMs: Long, level: Float, accent: Color, reveal: Float) {
+private fun DrawScope.drawListening(elapsedMs: Long, level: Float, accent: Color, reveal: Float, tones: LensTones) {
     val phase = PersonaValues.listenPhase(elapsedMs)
     // R6 §3.1.7: halo and disc move in ANTIPHASE — the halo grows while the disc shrinks.
     val halo = PersonaValues.LISTEN_HALO_MIN_EPX +
@@ -252,30 +262,30 @@ private fun DrawScope.drawListening(elapsedMs: Long, level: Float, accent: Color
     val disc = PersonaValues.LISTEN_DISC_MAX_EPX -
         (PersonaValues.LISTEN_DISC_MAX_EPX - PersonaValues.LISTEN_DISC_MIN_EPX) * phase
     val c = centre()
-    drawLensHalo(c, epx(halo), accent, reveal)
-    drawLensDisc(c, epx(disc), accent, reveal)
+    drawLensHalo(c, epx(halo), accent, reveal, tones)
+    drawLensDisc(c, epx(disc), accent, reveal, tones)
 }
 
-private fun DrawScope.drawSpeaking(level: Float, accent: Color, reveal: Float) {
+private fun DrawScope.drawSpeaking(level: Float, accent: Color, reveal: Float, tones: LensTones) {
     val halo = PersonaValues.SPEAK_HALO_MIN_EPX +
         (PersonaValues.SPEAK_HALO_MAX_EPX - PersonaValues.SPEAK_HALO_MIN_EPX) * level.coerceIn(0f, 1f)
     val c = centre()
-    drawLensHalo(c, epx(halo), accent, reveal)
-    drawLensDisc(c, epx(PersonaValues.SPEAK_DISC_EPX), accent, reveal)
+    drawLensHalo(c, epx(halo), accent, reveal, tones)
+    drawLensDisc(c, epx(PersonaValues.SPEAK_DISC_EPX), accent, reveal, tones)
 }
 
-private fun DrawScope.drawAwaitingReply(elapsedMs: Long, accent: Color, reveal: Float) {
+private fun DrawScope.drawAwaitingReply(elapsedMs: Long, accent: Color, reveal: Float, tones: LensTones) {
     val phase = PersonaValues.breathe(elapsedMs, PersonaValues.AWAIT_PERIOD_MS)
     val disc = PersonaValues.AWAIT_DISC_MIN_EPX +
         (PersonaValues.AWAIT_DISC_MAX_EPX - PersonaValues.AWAIT_DISC_MIN_EPX) * phase
     val halo = PersonaValues.AWAIT_HALO_MAX_EPX -
         (PersonaValues.AWAIT_HALO_MAX_EPX - PersonaValues.AWAIT_HALO_MIN_EPX) * phase
     val c = centre()
-    drawLensHalo(c, epx(halo), accent, reveal)
-    drawLensDisc(c, epx(disc), accent, reveal)
+    drawLensHalo(c, epx(halo), accent, reveal, tones)
+    drawLensDisc(c, epx(disc), accent, reveal, tones)
 }
 
-private fun DrawScope.drawIdleAfterSpeaking(elapsedMs: Long, accent: Color, reveal: Float) {
+private fun DrawScope.drawIdleAfterSpeaking(elapsedMs: Long, accent: Color, reveal: Float, tones: LensTones) {
     val phase = PersonaValues.breathe(elapsedMs, PersonaValues.AFTER_PERIOD_MS)
     val ring = PersonaValues.AFTER_RING_MIN_EPX +
         (PersonaValues.AFTER_RING_MAX_EPX - PersonaValues.AFTER_RING_MIN_EPX) * phase
@@ -283,8 +293,8 @@ private fun DrawScope.drawIdleAfterSpeaking(elapsedMs: Long, accent: Color, reve
         (PersonaValues.AFTER_HALO_MAX_EPX - PersonaValues.AFTER_HALO_MIN_EPX) * phase
     val stroke = epx(3f)
     val c = centre()
-    drawLensHalo(c, epx(halo), accent, reveal)
-    drawLensRing(c, epx(ring), stroke, accent, reveal)
+    drawLensHalo(c, epx(halo), accent, reveal, tones)
+    drawLensRing(c, epx(ring), stroke, accent, reveal, tones)
 }
 
 /**

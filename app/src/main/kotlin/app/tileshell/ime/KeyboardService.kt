@@ -231,6 +231,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, ViewModelStoreOwne
         super.onStartInputView(info, restarting)
         KeyboardConfigProvider.read(this)?.let { config = it }
         state.accent = config.accent
+        KeyColors.palette = if (config.palette == app.tileshell.prefs.ThemeMode.LIGHT) KeyPalette.LIGHT else KeyPalette.DARK
         state.handedness = config.handedness
         feedback.sounds = config.sounds
         feedback.vibration = config.vibration
