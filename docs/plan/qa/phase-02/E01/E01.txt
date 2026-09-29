@@ -1,6 +1,6 @@
-# E1 2026-09-22T20:47:07-06:00
-build guard: built=a7e62760cf77d72488366b49e26abdc9 installed=a7e62760cf77d72488366b49e26abdc9
-driver: e1.sh blob ef27b48a3eaceb7326bed34eb74ebae6191324de
+# E1 2026-09-29T16:54:42-06:00
+build guard: built= installed=5f3ebbc5ab0ae8559d7b37bf5c9cd93e
+driver: e1.sh blob 69279f4c2e28e5ddf3e1336b45fd91e72eb3f3ee
 order at rest: slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR slot:PHOTOS shell:weather slot:STORE slot:MAPS slot:MUSIC shell:settings
 --- 1. hold shell:settings past 783 ms, drag onto slot:PEOPLE, release past the dwell (a move, not a folder) ---
 order after the move: shell:settings slot:PEOPLE slot:BROWSER slot:MAIL slot:CALENDAR slot:PHOTOS shell:weather slot:STORE slot:MAPS slot:MUSIC
@@ -8,6 +8,8 @@ PASS  the dragged tile took the first cell (= shell:settings)
 PASS  no tile gained or lost (= 10)
 PASS  no folder (the release was past the dwell) (no [folder:])
 --- 2. tapping a different tile moves the selection (H8) ---
+PASS  Back closed the quick-action burst (no [quick_burst])
+PASS  edit mode stays on after Back (found [edit_disc:unpin])
 unpin disc on the held tile: 173 132 266 225
 tapping slot:BROWSER at 697 341
 unpin disc after the tap: 822 123 915 216
@@ -29,4 +31,4 @@ PASS  the unpinned tile is out of the store (no [slot:PEOPLE])
 PASS  exactly one tile was removed (= 9)
 PASS  and off the screen (no [tile:slot:PEOPLE"])
 baseline layout restored
----- 12 passed, 0 failed ----
+---- 14 passed, 0 failed ----
