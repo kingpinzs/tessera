@@ -1,0 +1,30 @@
+Success
+manifest asks for: 1 POST_NOTIFICATIONS
+permission dialog: shown
+stage pair; prompt with notifications denied: (no prompt)
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+prompt after allowing: (no prompt)
+pairing dialog open: 10.0.2.16:33755 code (6 digits)
+notification id 7 posted: 0
+Enter code action: NOT FOUND
+
+Exception occurred while executing 'tap':
+java.lang.IllegalArgumentException: Argument expected after "tap"
+	at com.android.modules.utils.BasicShellCommandHandler.getNextArgRequired(BasicShellCommandHandler.java:295)
+	at com.android.server.input.InputShellCommand.runTap(InputShellCommand.java:484)
+	at com.android.server.input.InputShellCommand.onCommand(InputShellCommand.java:294)
+	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+	at android.os.ShellCommand.exec(ShellCommand.java:38)
+	at com.android.server.input.InputManagerService.onShellCommand(InputManagerService.java:3887)
+	at android.os.Binder.shellCommand(Binder.java:1151)
+	at android.os.Binder.onTransact(Binder.java:953)
+	at android.hardware.input.IInputManager$Stub.onTransact(IInputManager.java:1576)
+	at android.os.Binder.execTransactInternal(Binder.java:1426)
+	at android.os.Binder.execTransact(Binder.java:1365)
+=== summary
+INFO     R4 phone-only run 2026-09-29 06:55:42
+PASS     adb on this phone (already paired): runs as the shell uid
+=== pairing details
+at Go ahead: stage baseline; answering Stop
+Warning: Activity not started, its current task has been brought to the front
+stage after Stop: done
