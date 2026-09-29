@@ -31,34 +31,36 @@ both lists, a SecurityException from a Settings page).
 | E6 | 32 / 0 | c464ffcd | |
 | E7 | 19 / 0 | c464ffcd | |
 | E8 | 30 / 0 | c464ffcd | |
-| E9 | 18 / 1 | a4d7430b | the one FAIL is phase 02 E1's edit-mode check, **pre-existing** — identical on the pre-phase-12 APK (BUILD_START/phase02-e1-base/); INDEX ledger L12-1. Runs 1–2 kept |
+| E9 | 22 / 1 | a4d7430b | the one FAIL is phase 02 E1's edit-mode check, **pre-existing** — identical on the pre-phase-12 APK (BUILD_START/phase02-e1-base/); INDEX ledger L12-1. Round 1 (codex B2): phase 02 E1's saved dump covers its restore with zero assignments. Drivers 93134be9. Runs 1–4 kept |
 | E10 | 20 / 2 (+8 recorded) | a4d7430b | every doc gate on the shell's clock passes (settle 217 on each transition and Done → Start, maxGapMs 17); the 2 FAILs are the compositor corroboration — see the reading below. Runs 1–4 kept |
-| E11 | 271 / 0 | a4d7430b | incl. the grant sub-row (both halves, urigrants.xml) and the pre-phase-12 sub-row (review B1). Runs 1–4 kept |
+| E11 | 302 / 0 | a4d7430b | incl. the grant sub-row (both halves, urigrants.xml), the pre-phase-12 sub-row (review B1), and round 1's stricter Custom checks (effects toggle on both surfaces, Remove / Choose picture after a preset; codex B3) with each seed's ring read (B2). Drivers a306271a. Runs 1–5 kept |
 | E12 | 55 / 0 (+3 recorded) | a4d7430b | NOPICS build = 0c8fe8f4 with the six WebP removed (a worktree); run 1 kept |
-| E13 | 64 / 0 (+1 recorded) | a4d7430b | run 1 kept (disturbed by the lead's `adb root`) |
+| E13 | 77 / 0 (+1 recorded) | a4d7430b | both surfaces walk streaks → hero and Default → original (streaks remembered); Start's PID unchanged around every live capture (codex B4). Drivers a306271a. Runs 1–2 kept |
 | E14 (setup:usage) | 19 / 0 | c464ffcd | run 1 kept |
 | E14 setup:full_screen_alarms | 19 / 0 | 48000638 | phase 15's step, run here (C-34) |
 | E14 setup:overlay | 19 / 0 | 48000638 | phase 15's step, run here (C-34) |
 | EDGE_INSTALL_R | 10 / 0 | a4d7430b | install -r mid-run: the run resumes, no marker |
-| EDGE_LMK | 9 / 0 (+1) | a4d7430b | am kill with the dialog up did not kill the visible process (recorded); the answer is read from live state |
+| EDGE_LMK | 14 / 0 (+1) | a4d7430b | the doc's `am kill` does not kill the visible process (recorded); `run-as … kill -9` with the dialog up does: new PID on return, no marker, the re-derived first step, "Step 1 of 19" (codex B5). Run 1 kept |
 | EDGE_ROTATION | 9 / 0 | a4d7430b | portrait-locked, not recreated |
-| EDGE_DISMISS | 15 / 0 (+5) | a4d7430b | Back and a tap outside (which does not dismiss the dialog on this image, recorded); the step stays, Not now advances. The button then reads "Open app info" (reading below). Run 1 kept (driver) |
+| EDGE_DISMISS | 13 / 0 (+4) | a4d7430b | Back: the step stays, Not now advances; the button then reads "Open app info" (reading below). A tap outside: **NOT PROVEN** — the dialog does not dismiss on an outside tap on this image, so no PASS line is claimed for it (codex B6); P1 asks for it on the phone. Runs 1–2 kept |
 | EDGE_DOUBLE_TAP | 7 / 0 | a4d7430b | one permission dialog, pid unchanged. Run 1 kept (driver edited mid-run; wrong count) |
 | EDGE_PARTIAL_PHOTOS | 9 / 0 | a4d7430b | Select photos: PARTIAL advances, checklist:photos:partial |
 | EDGE_PARTIAL_BGLOC | 9 / 0 | a4d7430b | While using the app: the step stays with its partial line |
 | EDGE_PARTIAL_CALENDAR | 9 / 0 (+1) | a4d7430b | read only (WRITE user-fixed): Tess's page opens app info (phase 03), Back, the step stays with its partial line. Run 1 kept (driver) |
 | EDGE_LOCATION_OFF | 9 / 0 | a4d7430b | PARTIAL never summons; inside a run the step stays after "Allow all the time" |
 | EDGE_KB_DISMISS | 5 / 0 | a4d7430b | the keyboard picker dismissed: the step stays |
-| EDGE_HOME_ONCE | 5 / 0 (+4) | a4d7430b | Default Home is step 1; the AVD's sheet is RequestRoleActivity; Cancel, and choosing Quickstep, both leave the step. Run 1 kept (driver) |
+| EDGE_HOME_ONCE | 28 / 0 (+8) | a4d7430b | entered through Android's chooser (Home with no default → "Select a Home app" → Tessera → Just once): Default Home is step 1; the AVD's sheet is RequestRoleActivity; Cancel leaves the step; choosing Quickstep brings Quickstep forward (the permission controller's doing, reading below) with the wizard alive behind it, and reopening Tessera shows the same step on the same activity record (codex B7). Drivers d7f1be4d. Runs 1–4 kept |
 | EDGE_LIGHT | 3 / 0 | a4d7430b | the wizard follows the Light theme |
 | EDGE_CUSTOM_BEFORE | 4 / 0 | a4d7430b | items changed in Settings: Custom selected, Done leaves them |
 | EDGE_BATTERY_SAVER | 8 / 0 | a4d7430b | acrylic off by battery saver while transparency_effects is written true; saver off: on. Run 1 kept (driver ordering) |
 | EDGE_NO_PICTURE | 7 / 0 | a4d7430b + NOPICS fault build | HAL applies with no picture and says so; the normal APK restored |
 | EDGE_PROFILE | 3 / 0 (+1) | a4d7430b | a work profile (user 10) present: the step list equals E2's |
 | EDGE_KEYGUARD | 5 / 0 | a4d7430b | never over the keyguard; shows after unlock |
-| JVM | 49 / 49 | 0c8fe8f4 | SetupWizardTest 33, ThemePresetsTest 16 |
+| JVM | 49 / 49 | 36a301c3 (debug APK byte-identical to a4d7430b) | SetupWizardTest 33, ThemePresetsTest 16; the result files are in JVM/ |
 
-Runs that failed on a driver or harness fault are kept beside the passing run, renamed `<row>-run<n>-<what went wrong>`.
+Earlier runs are kept beside the current one, renamed `<row>-run<n>-<why>`. The why is a harness or driver fault, a
+product finding that was then fixed at the producer (E10 run 1 found settle 234 → e5b9cc7d; E11 run 4 stopped for the
+adversarial review's B1 → 0c8fe8f4), or a driver the gate review made stricter (the `…-before-codex-B<n>` runs, round 1).
 
 ## Readings of the doc recorded here (no doc change)
 
@@ -68,8 +70,24 @@ Runs that failed on a driver or harness fault are kept beside the passing run, r
 - **E13's "exactly six `preset:*` entries"**: `preset:Custom` (T12-12's Custom entry) carries the same prefix; the six are
   counted without it and the Custom node is recorded apart. The variant chips are `preset_variant:*`, a different prefix.
 - **E11 / E13's lens regions "(rim, iris, glow)"**: the idle persona at reveal 0 draws a glow → rim ring with no iris
-  tone (`scripts/selftest/HELPERS.md`); the checker measures three radial bands against the colour predicted at each
-  radius. Surfaced to Jeremy.
+  tone (`scripts/selftest/HELPERS.md`), so the checker measures three radial bands (glow, mid, rim) against the colour
+  predicted at each radius. That proves the glow and the rim; it does **not** measure an iris, because none is drawn at
+  idle. Surfaced to Jeremy.
+- **T12-10's "a chip is drawn only for a variant whose asset the build carries"**: both pictures are compiled-in
+  resources (ruling (a)), so a build without one does not compile and the rule cannot be reached; the chips are drawn for
+  both variants always (Reviewer A's N6).
+- **EDGE_HOME_ONCE's "(Start stays behind the wizard until Home is pressed)"**: on AOSP the permission controller launches
+  the newly chosen Home itself, so choosing Quickstep in the role sheet brings Quickstep forward at once
+  (BUILD_START/home-return-probe/: the control — choosing Tessera under Settings > Default apps > Home app — brings Tessera
+  forward the same way; AOSP's source could not be fetched, googlesource answered 503). A task opened by a HOME intent is not
+  in Recents. The row therefore proves the doc's clause "choosing another launcher there leaves the step" as the platform
+  allows: the wizard stays alive behind the other launcher (the same StartActivity record, the same process, one created line
+  and one shown line since Home, no finished or skip line), and reopening Tessera shows the same step and progress caption on
+  the same record. One UI's behaviour is P1 step 0.
+- **P1 on the phone** starts from Jeremy's installed phone, not the doc's fresh sideload (clearing Tessera's data would wipe
+  his layout, reminders and settings), and reads each page from his notes instead of `dumpsys activity activities` (the phone
+  rule: no PC, cable or adb). NEEDS-HUMAN P1's optional step 0 walks the fresh install's Home route (Clear defaults →
+  Home → Just once → the Default Home step).
 - **E5's Tess page** is reached through her session, which opens only for the ASSISTANT role holder (without it the
   Search key shows her role notice, `CortanaService.open`). The E2 state removes the role, so E5 adds it for the one read
   of `cortana_check:microphone:missing` (the microphone stays revoked) and removes it again.
@@ -144,3 +162,18 @@ Runs that failed on a driver or harness fault are kept beside the passing run, r
   assistant-probe/).
 - **`adb root` restarts adbd**: running it for a probe while E13 run 1 was driving the device broke that run's fixture
   (kept as `E13-run1-disturbed-by-adb-root/`). Root reads now go through `su`, which does not restart adbd.
+- **E10's ~50 ms start: two producer causes ruled out** (BUILD_START/modulate-alpha-probe/): drawing the fade's alpha
+  without an offscreen buffer (Compose ModulateAlpha) left the first presented gap at 50.2-50.7 ms; the wizard's two live
+  checklist reads per page change cost 0.7-1.6 ms on the main thread. Both experiments were reverted (the evidence build
+  stays 0c8fe8f4). The remaining suspect is the AVD's renderer on the first frames of each new page; the phone's is
+  judged in H1 and measured in P1 if Jeremy wants a number.
+- **Two AVDs on the host** (found at the round-1 re-run): an unrelated project's `neuromap_36` came up as emulator-5556,
+  so a bare `adb` fails with "more than one device". `p12.sh`, `chain.sh` and `edges.sh` pin `ANDROID_SERIAL` to
+  emulator-5554 unless the caller sets one; children (phase 02 / 03 / 05 drivers, `provision.sh`) inherit it.
+- **The Home chooser needs the preferred mapping cleared** (BUILD_START/home-chooser-probe/): removing the shell from the
+  HOME role is not enough; the preferred activity that `set-home-activity` wrote still resolves Home to the shell.
+  `cmd package clear-package-preferred-activities app.tileshell` brings up Android's "Select a Home app" (Tessera,
+  Quickstep; Just once / Always disabled until one is tapped). EDGE_HOME_ONCE enters that way (round 1, codex B7).
+- **A force-stop removes Start's activity record asynchronously** (BUILD_START/home-prestate-probe/): EDGE_HOME_ONCE run 4
+  read the record mid-removal; it is gone by +0.5 s, when the system has already put its chooser up (no default Home) and
+  the process is back only through the notification listener's rebind. The row polls up to 5 s before asserting none.

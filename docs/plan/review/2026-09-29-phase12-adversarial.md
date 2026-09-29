@@ -69,3 +69,18 @@ the report came back as text.
 | N7 | NEEDS-HUMAN.md now tells Jeremy what the paste carries and that only `[wizard]` / `[theme]` lines are needed |
 | N1 | Recorded, not changed: a sweep of every unreferenced persisted grant would today touch only the background and the photo frame (the only two takers), but would silently release grants later phases take (phase 17 Photos, phase 18 Files); re-picks never releasing is phase 01's behaviour — for Jeremy / phase 19's Personalization rebuild |
 | N3, N4, N10 | Recorded as notes (cosmetic; pre-existing phase 13; checked by P1 on One UI) |
+
+## Re-verification at 3bceaaec (fix commit 0c8fe8f4) — ADVERSARIAL: PASS
+
+Same reviewer, same rules (read-only; a fresh scratch copy; 49 / 49 baseline).
+
+- **B1 CLEARED.** `presetOnRead` re-derived: a fresh install reads Default (E11 run 5's control PASS, "absent"); a stored id
+  always wins; non-item keys never make a set Custom; the derived Custom reaches the snapshot on the first preset tap.
+  Device proof: E11 run 5, sub-row "(b) a set stored before phase 12" (4 / 4). JVM: the read-rule test catches M19–M22.
+- **B2 CLEARED.** E11 run 5's grant reads are real (`g-grants-1..4.txt`: A, A, A with no media permission and the
+  checker drawn through the grant alone, then B only), so "A released" is no longer vacuous; both halves hold. The pure
+  `releasable` decision's four gates are pinned (M23–M26 caught).
+- Hardening N5 / N8 / N9 and the loop bounds verified (M28–M30 caught; M11 now fails in 14 s instead of hanging).
+- Mutations: 23 of 24 caught. The survivor, M27 (the call site passing null for the photo frame), is Android-bound; no
+  device row sets photo_frame == background (NOTE). N1, N4, N7, N10 stand as notes. NOTE: two KDoc lines
+  (ShellSettings.kt:56, ThemePresets.kt:87) still describe an absent key as Default only.
