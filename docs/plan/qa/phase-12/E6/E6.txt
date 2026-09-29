@@ -1,0 +1,56 @@
+==============================================================================
+ROW E6 — denied for good: Photos and Tess's microphone
+at            2026-09-29T10:04:41-06:00
+driver        e6.sh blob 1bc3e4a686902bd7695a5854c0f37d02bde4610f
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d13h27m46s7ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+PASS  E2 state: USE_FULL_SCREEN_INTENT no mode left at allow (uid or package)  does not contain [allow]
+PASS  E2 state: SYSTEM_ALERT_WINDOW ignore                        contains [ignore]
+PASS  E2 state: SYSTEM_ALERT_WINDOW not allow/default             does not contain [default]
+PASS  on the Photos step                                          = setup:photos
+PASS  button: Allow                                               = Allow
+      photos-1: resumed com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  photos-1: Android's dialog is up                            contains [permissioncontroller]
+PASS  after one denial: still the Photos step                     = setup:photos
+PASS  after one denial: the button still says Allow (Android will ask again)  = Allow
+      photos-2: resumed com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  photos-2: Android's dialog is up                            contains [permissioncontroller]
+PASS  after the second denial: still the Photos step              = setup:photos
+PASS  after the second denial: Open app info                      = Open app info
+PASS  start ring readable (photos denied)                         header present
+PASS  [wizard] step setup:photos: blocked (app info)              contains [[wizard] step setup:photos: blocked (app info)]
+PASS  blocked logged once                                         = 1
+      app info: com.android.settings/.spa.SpaActivity
+PASS  Open app info resumes com.android.settings                  contains [com.android.settings]
+PASS  the page is the shell's app info                            contains [Tessera]
+PASS  Back returns to the same step                               = setup:photos
+PASS  and it still says Open app info                             = Open app info
+tess:microphone denied twice
+PASS  on the microphone step                                      = tess:microphone
+      mic-1: resumed com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  mic-1: Android's dialog is up                               contains [permissioncontroller]
+PASS  mic, one denial: still the step, Allow                      = Allow
+      after the second mic denial: com.android.settings/.spa.SpaActivity
+PASS  the second denial opens app info at once                    contains [com.android.settings]
+PASS  start ring readable (mic denied)                            header present
+PASS  [cortana] permission blocked ... opening app info           contains [[cortana] permission blocked by Android (no prompt shown): [android.permission.RECORD_AUDIO]; opening app info]
+PASS  Back: the microphone step                                   = tess:microphone
+PASS  Back: Open app info                                         = Open app info
+PASS  start ring readable (mic back)                              header present
+PASS  [wizard] step tess:microphone: blocked (app info)           contains [[wizard] step tess:microphone: blocked (app info)]
+PASS  tapping it resumes app info again                           contains [com.android.settings]
+PASS  Back returns to the step                                    = tess:microphone
+restore: pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E6: 32 passed, 0 failed, 0 recorded

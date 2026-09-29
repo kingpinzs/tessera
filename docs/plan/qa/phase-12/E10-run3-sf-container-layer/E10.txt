@@ -1,0 +1,66 @@
+==============================================================================
+ROW E10 — wizard page motion on the shell's clock
+at            2026-09-29T13:45:59-06:00
+driver        e10.sh blob 6055e8ae9c7a93ea22a2ce1e63b5f7fd2c99d96a
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d17h9m4s266ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  the wizard shows                                            = setup:notifications
+      transition 1: [motion] wizard_page t0=13629425 peak=217 overshoot=0 settle=217 frames=14 maxGapMs=17
+PASS  transition 1: a [motion] wizard_page line                   != 
+PASS  transition 1: settle = 217 ms +- one frame                  217.00 vs 217.00 +/- 16.7
+PASS  transition 1: maxGapMs <= 33.4                              = 17
+RECORD  transition 1: frames                                        14
+      transition 2: [motion] wizard_page t0=13632825 peak=217 overshoot=0 settle=217 frames=14 maxGapMs=17
+PASS  transition 2: a [motion] wizard_page line                   != 
+PASS  transition 2: settle = 217 ms +- one frame                  217.00 vs 217.00 +/- 16.7
+PASS  transition 2: maxGapMs <= 33.4                              = 17
+RECORD  transition 2: frames                                        14
+      transition 3: [motion] wizard_page t0=13636192 peak=217 overshoot=0 settle=217 frames=14 maxGapMs=17
+PASS  transition 3: a [motion] wizard_page line                   != 
+PASS  transition 3: settle = 217 ms +- one frame                  217.00 vs 217.00 +/- 16.7
+PASS  transition 3: maxGapMs <= 33.4                              = 17
+RECORD  transition 3: frames                                        14
+corroboration: a screenrecord of a step transition (Not now, then Back to reset)
+      attempt 1: frames=15 bursts=1 window_frames=10 window_ms=182.2 max_gap_ms=49.4; [motion] settle=217
+      attempt 2: frames=15 bursts=1 window_frames=10 window_ms=166.6 max_gap_ms=33.2; [motion] settle=217
+      attempt 3: frames=15 bursts=1 window_frames=10 window_ms=182.5 max_gap_ms=49.6; [motion] settle=217
+      attempt 4: frames=15 bursts=1 window_frames=10 window_ms=182.3 max_gap_ms=49.4; [motion] settle=217
+      attempt 5: frames=16 bursts=1 window_frames=10 window_ms=165.7 max_gap_ms=32.3; [motion] settle=217
+      attempt 6: frames=15 bursts=1 window_frames=10 window_ms=165.8 max_gap_ms=32.9; [motion] settle=217
+      attempt 7: frames=15 bursts=1 window_frames=10 window_ms=166.3 max_gap_ms=32.8; [motion] settle=217
+      attempt 8: frames=15 bursts=1 window_frames=10 window_ms=182.7 max_gap_ms=49.7; [motion] settle=217
+      attempt 9: frames=15 bursts=1 window_frames=10 window_ms=182.8 max_gap_ms=50.4; [motion] settle=217
+      attempt 10: frames=15 bursts=1 window_frames=10 window_ms=183.1 max_gap_ms=49.8; [motion] settle=217
+RECORD  screenrecord corroboration (phase 05's rule)                every capture rejected: source frames >18.2 ms apart (the emulator encoder drops frames)
+corroboration: SurfaceFlinger's present times for Start's layer (the compositor's clock, not the app's)
+      layer: app.tileshell/app.tileshell.StartActivity#14489
+      transition 1: [motion] t0=13726975 settle=217 frames=14; SurfaceFlinger presented 0 frames in [t0, t0+settle+1 frame], largest gap 999.0 ms
+FAIL  SF corroborates transition 1: frames presented <= 18.2 ms apart  largest 999.0 ms over 0 frames
+FAIL  SF corroborates transition 1: as many frames as the motion logged (+-2)  0.00 vs 14.00 +/- 2.0
+      transition 2: [motion] t0=13732175 settle=217 frames=14; SurfaceFlinger presented 0 frames in [t0, t0+settle+1 frame], largest gap 999.0 ms
+FAIL  SF corroborates transition 2: frames presented <= 18.2 ms apart  largest 999.0 ms over 0 frames
+FAIL  SF corroborates transition 2: as many frames as the motion logged (+-2)  0.00 vs 14.00 +/- 2.0
+      transition 3: [motion] t0=13737359 settle=217 frames=14; SurfaceFlinger presented 0 frames in [t0, t0+settle+1 frame], largest gap 999.0 ms
+FAIL  SF corroborates transition 3: frames presented <= 18.2 ms apart  largest 999.0 ms over 0 frames
+FAIL  SF corroborates transition 3: as many frames as the motion logged (+-2)  0.00 vs 14.00 +/- 2.0
+wizard_done -> Start: the same motion
+PASS  on the presets page                                         = yes
+      wizard_done -> Start: [motion] wizard_page t0=13795109 peak=217 overshoot=0 settle=217 frames=14 maxGapMs=17
+PASS  wizard_done -> Start: a [motion] wizard_page line           != 
+PASS  wizard_done -> Start: settle = 217 ms +- one frame          217.00 vs 217.00 +/- 16.7
+PASS  wizard_done -> Start: maxGapMs <= 33.4                      = 17
+RECORD  wizard_done -> Start: frames                                14
+PASS  Start composed                                              = yes
+restore: pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E10: 16 passed, 6 failed, 5 recorded

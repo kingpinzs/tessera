@@ -1,0 +1,46 @@
+==============================================================================
+ROW E1 — absence on a provisioned AVD, both routes
+at            2026-09-29T09:38:42-06:00
+driver        e1.sh blob 28e2c0ef2a39b65da4d68a3857fbb64102e6f827
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+(a) pm clear -> provision.sh (marker written)
+      restore_fresh a-start: provision rc=127
+FAIL  (a) provision.sh rc                                         expected [0] got [127]
+FAIL  (a) provision wrote the marker                              does not contain [<boolean name="finished" value="true" />]: 
+FAIL  (a) start_page after the resume                             expected [yes] got [no]
+FAIL  (a) no wizard_page after the resume                         expected [no] got [yes]
+PASS  start ring readable ((a) resume)                            header present
+FAIL  (a) [wizard] not shown: core held                           does not contain [[wizard] not shown: core held]: 2026-09-29 09:38:48.518 wall=1790696328518 [apps] LauncherApps.onShortcutsChanged com.android.deskclock user=0 n=4
+2026-09-29 09:38:50.268 wall=1790696330268 [bars] StartActivity: system bars hidden (transient by swipe)
+PASS  (a) no [wizard] shown line                                  does not contain [[wizard] shown]
+(a) force-stop + Home: the keyboard is deselected, the marker keeps the wizard away
+FAIL  (a) no wizard_page after force-stop                         expected [no] got [yes]
+FAIL  (a) start_page after force-stop                             expected [yes] got [no]
+PASS  start ring readable ((a) force-stop)                        header present
+FAIL  (a) [wizard] not shown: finished                            does not contain [[wizard] not shown: finished]: 2026-09-29 09:38:55.663 wall=1790696335663 [livetile] store loaded 0 owners
+2026-09-29 09:38:55.664 wall=1790696335664 [livetile] legacy badge receiver registered at runtime (RECEIVER_EXPORTED)
+2026-09-29 09:38:55.668 wall=1790696335668 [li
+PASS  (a) default_input_method is not the shell keyboard          != app.tileshell/.ime.KeyboardService
+      scroll_to_node checklist:keyboard_selected:missing: 0 swipe(s), found=yes
+PASS  (a) Setup page: checklist:keyboard_selected:missing         = yes
+PASS  (a) ime set restores the keyboard                           = app.tileshell/.ime.KeyboardService
+(b) pm clear -> every grant from adb alone -> Home
+FAIL  (b) start_page                                              expected [yes] got [no]
+FAIL  (b) no wizard_page                                          expected [no] got [yes]
+PASS  start ring readable ((b) home)                              header present
+FAIL  (b) [wizard] not shown: core held                           does not contain [[wizard] not shown: core held]: 2026-09-29 09:39:09.552 wall=1790696349552 [cortana] VoiceInteractionService created
+2026-09-29 09:39:09.562 wall=1790696349562 [wizard] step setup:keyboard_selected: granted
+2026-09-29 09:39:09.562 wall=1790696349562 [bars] StartActivity: 
+      (b) shared_prefs: 
+PASS  (b) no setup_wizard file (a device provisioned by adb never ran the wizard)  does not contain [setup_wizard]
+restore: pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=127
+FAIL  restore provision.sh rc                                     expected [0] got [127]
+------------------------------------------------------------------------------
+E1: 8 passed, 12 failed, 0 recorded

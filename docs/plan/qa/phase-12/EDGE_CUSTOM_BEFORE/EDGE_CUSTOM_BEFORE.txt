@@ -1,0 +1,35 @@
+==============================================================================
+ROW EDGE_CUSTOM_BEFORE — the presets page on an install whose items were changed in Settings: Custom selected, Done leaves them
+at            2026-09-29T14:17:25-06:00
+driver        edge.sh blob bcb62e8f785e61515b629ad879fa9ff90e0c4220
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      provision_no_marker cb: rc=0
+      scroll_to_node accent:Seafoam: 1 swipe(s), found=yes
+PASS  a user change reads custom                                  contains [<string name="theme_preset">custom</string>]
+PASS  preset:Custom selected on the presets page                  = true
+PASS  Done leaves every item as it was                            =     <boolean name="autosize" value="true" />
+    <boolean name="photos_slideshow" value="false" />
+    <boolean name="profiles" value="true" />
+    <boolean name="transparency_effects" value="true" />
+    <float name="transparency" value="0.5" />
+    <int name="columns" value="3" />
+    <long name="accent" value="4278237123" />
+</map>
+<map>
+    <string name="keyboard_palette">DARK</string>
+    <string name="press">NONE</string>
+    <string name="tess_lens">hal</string>
+    <string name="theme">DARK</string>
+    <string name="theme_preset">custom</string>
+    <string name="theme_preset_variant">hero</string>
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+EDGE_CUSTOM_BEFORE: 4 passed, 0 failed, 0 recorded

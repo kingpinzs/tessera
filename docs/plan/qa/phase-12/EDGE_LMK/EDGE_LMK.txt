@@ -1,0 +1,28 @@
+==============================================================================
+ROW EDGE_LMK — a low-memory kill while a permission dialog is up
+at            2026-09-29T14:01:40-06:00
+driver        edge.sh blob ea9106dacfe6fed9f4d0deb62969efd31779a7d8
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d17h24m44s414ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+PASS  E2 state: USE_FULL_SCREEN_INTENT no mode left at allow (uid or package)  does not contain [allow]
+PASS  E2 state: SYSTEM_ALERT_WINDOW ignore                        contains [ignore]
+PASS  E2 state: SYSTEM_ALERT_WINDOW not allow/default             does not contain [default]
+PASS  the dialog is up                                            contains [permissioncontroller]
+RECORD  am kill with the dialog up: pid before / after              28323 / 28323
+PASS  the wizard re-derives (a step shows)                        != 
+PASS  the dialog's answer is read from live state: READ_MEDIA_IMAGES granted  contains [READ_MEDIA_IMAGES: granted=true]
+      steps: setup:music setup:music setup:calendar setup:location setup:usage setup:keyboard_enabled setup:keyboard_selected setup:full_screen_alarms setup:overlay tess:assistant tess:microphone tess:contacts tess:calendar tess:sms_send tess:call_phone tess:background_location tess:call_log tess:sms_read PRESETS 
+PASS  setup:photos is not a step any more                         does not contain [setup:photos]
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+EDGE_LMK: 9 passed, 0 failed, 1 recorded

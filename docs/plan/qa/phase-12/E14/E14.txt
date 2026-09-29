@@ -1,0 +1,38 @@
+==============================================================================
+ROW E14 — wizard step added: setup:usage
+at            2026-09-29T10:40:50-06:00
+driver        e14.sh blob b82b01bfd23febfd37847864b35c68fd4a8aa263
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+(a) pm clear -> PROVISION_FINISH_WIZARD=0 provision.sh -> revoke -> Home
+      provision_no_marker a: rc=0
+PASS  (a) no-marker provision rc                                  = 0
+PASS  (a) provision wrote no marker                               contains [PROVISION_FINISH_WIZARD=0: no marker written]
+PASS  (a) wizard_step:setup:usage                                 = yes
+PASS  (a) its why line = the table's                              = Back on Start returns to the app you were using. Without it Back stays on Start.
+PASS  (a) wizard_progress                                         = Step 1 of 2
+PASS  start ring readable ((a) shown)                             header present
+PASS  (a) shown with that step alone                              contains [[wizard] shown: missing=setup:usage]
+PASS  (a) the step is gone                                        = no
+PASS  (a) wizard_presets shows                                    = yes
+PASS  start ring readable ((a) granted)                           header present
+PASS  (a) [wizard] step setup:usage: granted                      contains [[wizard] step setup:usage: granted]
+(b) pm clear -> provision.sh (carries the grant, writes the marker) -> Home
+      restore_fresh b: provision rc=0
+PASS  (b) provision rc                                            = 0
+PASS  (b) no wizard_page                                          = no
+PASS  start ring readable ((b) resume)                            header present
+PASS  (b) [wizard] not shown: core held                           contains [[wizard] not shown: core held]
+(c) the finished-install rule: revoke -> a resume
+PASS  (c) no wizard_page                                          = no
+PASS  start ring readable ((c) resume)                            header present
+PASS  (c) [wizard] not shown: finished                            contains [[wizard] not shown: finished]
+      scroll_to_node checklist:usage:missing: 0 swipe(s), found=yes
+PASS  (c) checklist:usage:missing                                 = yes
+------------------------------------------------------------------------------
+E14: 19 passed, 0 failed, 0 recorded

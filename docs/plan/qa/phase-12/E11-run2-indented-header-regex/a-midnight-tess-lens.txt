@@ -1,0 +1,16 @@
+lens_check: form=ring hue=hal brightness=0.50
+  predicted glow rgb (127.5, 22.5, 14.0)  h    4.5  s 0.890  v 0.500
+  predicted iris rgb (108.0, 12.0,  8.0)  h    2.4  s 0.926  v 0.424
+  predicted rim  rgb ( 69.0,  8.0,  4.0)  h    3.7  s 0.942  v 0.271
+  predicted core rgb (255.0,233.0,200.0)  h   36.0  s 0.216  v 1.000  (Brand, unchanged)
+  node cortana_persona_large_idle bounds [398, 590, 682, 874] -> centre (540.0, 732.0), box 284 x 284 px (expected 284.1 = 94.7 epx)
+  lit pixels 18636, centroid (540.00, 732.00), 0.00 px from the node centre
+  ring radii (median over 16 rays): inner 71.5 (expected 72.0), outer 105.0 (expected 105.0)
+  gradient: radialGradient(0 -> glow, 1 -> rim) of radius 105 px; the stroke shows t 0.686 .. 1.0
+REGIONS (hue tol +-8 deg where predicted S >= 0.3; V tol +-0.05; min 40 samples)
+  band  r px         samples  sampled median         predicted median       hue err   V err     S       verdict
+  glow  74-83        4452     (84,12,6)              (84,12,6)              0.1       +0.000    0.926   ok
+  mid   83-94        6116     (78,10,6)              (78,10,6)              0.3       +0.000    0.926   ok
+  rim   94-103       5564     (73,9,5)               (73,9,5)               0.3       -0.000    0.933   ok
+  iris  -            0        not drawn by the ring form (by design: drawLensRing's gradient has only glow and rim stops, Lens.kt:117-119)
+RESULT PASS 3 regions (glow,mid,rim) on hue hal at brightness 0.50, 16132 samples

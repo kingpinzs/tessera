@@ -1,0 +1,56 @@
+==============================================================================
+ROW E10 — wizard page motion on the shell's clock
+at            2026-09-29T10:49:05-06:00
+driver        e10.sh blob 4ae648e091773acd0021d37b8744b08674c24e20
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d14h12m10s38ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  the wizard shows                                            = setup:notifications
+      transition 1: [motion] wizard_page t0=3015192 peak=234 overshoot=0 settle=234 frames=15 maxGapMs=17
+PASS  transition 1: a [motion] wizard_page line                   != 
+FAIL  transition 1: settle = 217 ms +- one frame                  234.00 vs 217.00 +/- 16.7
+PASS  transition 1: maxGapMs <= 33.4                              = 17
+RECORD  transition 1: frames                                        15
+      transition 2: [motion] wizard_page t0=3018609 peak=234 overshoot=0 settle=234 frames=15 maxGapMs=17
+PASS  transition 2: a [motion] wizard_page line                   != 
+FAIL  transition 2: settle = 217 ms +- one frame                  234.00 vs 217.00 +/- 16.7
+PASS  transition 2: maxGapMs <= 33.4                              = 17
+RECORD  transition 2: frames                                        15
+      transition 3: [motion] wizard_page t0=3021992 peak=234 overshoot=0 settle=234 frames=15 maxGapMs=17
+PASS  transition 3: a [motion] wizard_page line                   != 
+FAIL  transition 3: settle = 217 ms +- one frame                  234.00 vs 217.00 +/- 16.7
+PASS  transition 3: maxGapMs <= 33.4                              = 17
+RECORD  transition 3: frames                                        15
+corroboration: a screenrecord of a step transition (Not now, then Back to reset)
+      attempt 1: frames=15 bursts=1 window_frames=10 window_ms=165.9 max_gap_ms=34.2; [motion] settle=234
+      attempt 2: frames=15 bursts=1 window_frames=10 window_ms=182.8 max_gap_ms=50.3; [motion] settle=234
+      attempt 3: frames=15 bursts=1 window_frames=10 window_ms=182.7 max_gap_ms=49.8; [motion] settle=234
+      attempt 4: frames=15 bursts=1 window_frames=10 window_ms=182.7 max_gap_ms=50.4; [motion] settle=234
+      attempt 5: frames=15 bursts=1 window_frames=10 window_ms=182.5 max_gap_ms=49.2; [motion] settle=234
+      attempt 6: frames=15 bursts=1 window_frames=10 window_ms=183.2 max_gap_ms=49.6; [motion] settle=234
+      attempt 7: frames=15 bursts=1 window_frames=10 window_ms=184.6 max_gap_ms=49.9; [motion] settle=234
+      attempt 8: frames=15 bursts=1 window_frames=10 window_ms=184.2 max_gap_ms=53.2; [motion] settle=234
+      attempt 9: frames=15 bursts=1 window_frames=10 window_ms=183.3 max_gap_ms=51.6; [motion] settle=234
+      attempt 10: frames=15 bursts=1 window_frames=10 window_ms=183.3 max_gap_ms=49.6; [motion] settle=234
+FAIL  a screenrecord corroborates the step transition under phase 05's rule (retaken up to 10)  should not be []
+RECORD  the accepted capture                                        
+wizard_done -> Start: the same motion
+PASS  on the presets page                                         = yes
+      wizard_done -> Start: [motion] wizard_page t0=3165176 peak=234 overshoot=0 settle=234 frames=14 maxGapMs=33
+PASS  wizard_done -> Start: a [motion] wizard_page line           != 
+FAIL  wizard_done -> Start: settle = 217 ms +- one frame          234.00 vs 217.00 +/- 16.7
+PASS  wizard_done -> Start: maxGapMs <= 33.4                      = 33
+RECORD  wizard_done -> Start: frames                                14
+PASS  Start composed                                              = yes
+restore: pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E10: 12 passed, 5 failed, 5 recorded

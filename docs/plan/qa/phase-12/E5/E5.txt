@@ -1,0 +1,60 @@
+==============================================================================
+ROW E5 — Skip setup and the finished marker's rules
+at            2026-09-29T10:01:19-06:00
+driver        e5.sh blob 461b79e1a23ad0d9423f2a1d79c06dc2b5a4e91d
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d13h24m23s537ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+PASS  E2 state: USE_FULL_SCREEN_INTENT no mode left at allow (uid or package)  does not contain [allow]
+PASS  E2 state: SYSTEM_ALERT_WINDOW ignore                        contains [ignore]
+PASS  E2 state: SYSTEM_ALERT_WINDOW not allow/default             does not contain [default]
+PASS  the wizard shows on the first step                          = setup:notifications
+PASS  start_page after Skip                                       = yes
+PASS  no wizard_page after Skip                                   = no
+PASS  start ring readable (skip)                                  header present
+PASS  [wizard] skip                                               contains [[wizard] skip]
+PASS  the marker: shared_prefs/setup_wizard.xml holds finished true  contains [<boolean name="finished" value="true" />]
+PASS  Setup page: checklist:notifications:missing (Skip granted nothing)  = yes
+      scroll_to_node cortana_check:microphone:missing: 1 swipe(s), found=yes
+PASS  Tess's page: cortana_check:microphone:missing (Skip covers both lists)  = yes
+am force-stop + Home
+PASS  force-stop: no wizard_page                                  = no
+PASS  start ring readable (force-stop)                            header present
+PASS  force-stop: [wizard] not shown: finished                    contains [[wizard] not shown: finished]
+adb install -r <same apk> + Home
+PASS  install -r succeeded                                        contains [Success]
+PASS  update install: no wizard_page                              = no
+PASS  start ring readable (install -r)                            header present
+PASS  update install: [wizard] not shown: finished                contains [[wizard] not shown: finished]
+a core grant made and revoked later
+PASS  revoked later: no wizard_page                               = no
+PASS  start ring readable (revoked later)                         header present
+PASS  revoked later: [wizard] not shown: finished                 contains [[wizard] not shown: finished]
+pm clear + disallow_listener + Home: the wizard is back (the marker went with the data)
+PASS  pm clear: wizard_page again                                 = yes
+second half: Not now on every step and Done also finish the run
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d13h25m40s694ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+      steps seen: setup:notifications setup:photos setup:music setup:calendar setup:location setup:usage setup:keyboard_enabled setup:keyboard_selected setup:full_screen_alarms setup:overlay tess:assistant tess:microphone tess:contacts tess:calendar tess:sms_send tess:call_phone tess:background_location tess:call_log tess:sms_read PRESETS 
+PASS  Not now reaches the presets page                            contains [PRESETS]
+PASS  Done: start_page                                            = yes
+PASS  start ring readable (done)                                  header present
+PASS  Done: [wizard] finished                                     contains [[wizard] finished]
+PASS  Done: marker set                                            contains [<boolean name="finished" value="true" />]
+PASS  next launch: no wizard_page                                 = no
+PASS  start ring readable (next launch)                           header present
+PASS  next launch: [wizard] not shown: finished                   contains [[wizard] not shown: finished]
+restore: pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E5: 32 passed, 0 failed, 0 recorded

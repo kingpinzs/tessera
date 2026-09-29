@@ -80,25 +80,26 @@ rotation)
 
 dismiss)
   row_begin EDGE_DISMISS "the runtime dialog dismissed by Back or a tap outside: the step stays; Not now advances"
-  start_e2
-  walk_to setup:photos "$ROW_DIR/w" >/dev/null
-  tap_node "$ROW_DIR/w-at.xml" wizard_action; sleep 2.5
-  assert_contains "dialog up" "permissioncontroller" "$(resumed_activity)"
-  adb shell input keyevent KEYCODE_BACK; sleep 2.5
-  assert_eq "dismissed by Back: the Photos step stays" "setup:photos" "$(cur_step back)"
-  record "button after a dismissal by Back" "$(ntext "$ROW_DIR/back.xml" wizard_action)"
-  tap_node "$ROW_DIR/back.xml" wizard_action; sleep 2.5
-  if [ "$(resumed_activity | grep -c permissioncontroller)" = 1 ]; then
-    adb shell input tap 540 150; sleep 2.5
-    record "second request: a tap outside the dialog" "resumed after: $(resumed_activity)"
-  else
-    record "second request" "no dialog came up (resumed $(resumed_activity))"
-    adb shell input keyevent KEYCODE_BACK; sleep 2
-  fi
-  assert_eq "dismissed by a tap outside: the Photos step stays" "setup:photos" "$(cur_step outside)"
-  record "button after the second dismissal" "$(ntext "$ROW_DIR/outside.xml" wizard_action)"
-  tap_node "$ROW_DIR/outside.xml" wizard_not_now; sleep 1.5
-  assert_eq "Not now advances" "setup:music" "$(cur_step after)"
+  # Each dismissal starts from its own fresh E2 state: a dismissed first request reads to Android's API like "will no
+  # longer ask" (no rationale), so after one the button is "Open app info" (phase 03's rule, recorded) and a second
+  # request would no longer raise the dialog (run 1).
+  for how in back outside; do
+    start_e2
+    walk_to setup:photos "$ROW_DIR/w-$how" >/dev/null
+    tap_node "$ROW_DIR/w-$how-at.xml" wizard_action; sleep 2.5
+    assert_contains "($how) the dialog is up" "permissioncontroller" "$(resumed_activity)"
+    if [ "$how" = back ]; then adb shell input keyevent KEYCODE_BACK; else adb shell input tap 540 150; fi
+    sleep 2.5
+    record "($how) resumed after the dismissal" "$(resumed_activity)"
+    if [ "$(resumed_activity | grep -c permissioncontroller)" = 1 ]; then
+      record "($how) the dialog did not dismiss on this image" "pressing Back to leave it"
+      adb shell input keyevent KEYCODE_BACK; sleep 2
+    fi
+    assert_eq "($how) the Photos step stays" "setup:photos" "$(cur_step "d-$how")"
+    record "($how) the button after the dismissal" "$(ntext "$ROW_DIR/d-$how.xml" wizard_action)"
+    tap_node "$ROW_DIR/d-$how.xml" wizard_not_now; sleep 1.5
+    assert_eq "($how) Not now advances" "setup:music" "$(cur_step "n-$how")"
+  done
   end_row ;;
 
 double_tap)
@@ -112,7 +113,8 @@ double_tap)
   tasks="$(adb shell dumpsys activity activities | grep -c 'GrantPermissionsActivity')"
   note "GrantPermissionsActivity records: $tasks"
   adb shell dumpsys activity activities | grep -E 'Task\{|GrantPermissions' > "$ROW_DIR/activities.txt"
-  assert_eq "one permission-controller task" "1" "$(grep -c 'Task{.*permissioncontroller' "$ROW_DIR/activities.txt")"
+  # The dialog opens in the caller's task, so the check is one GrantPermissionsActivity record (run 1 counted tasks).
+  assert_eq "one permission dialog" "1" "$(adb shell dumpsys activity activities | grep -cE 'Hist .*GrantPermissionsActivity')"
   assert_eq "the launcher's pid unchanged (no crash)" "$p0" "$(pid)"
   perm_tap "$ROW_DIR/dialog.xml" deny_button "don.t allow"; sleep 2
   end_row ;;
@@ -182,6 +184,9 @@ partial_calendar)
   walk_to tess:calendar "$ROW_DIR/w" >/dev/null
   MARK="$(ring_mark)"
   tap_node "$ROW_DIR/w-at.xml" wizard_action; sleep 3
+  record "after the request" "$(resumed_activity)"
+  # WRITE is denied for good, so Tess's permission page opens app info at once (phase 03's rule): Back returns.
+  [ "$(resumed_activity | grep -c 'com.android.settings')" = 1 ] && { adb shell input keyevent KEYCODE_BACK; sleep 2.5; }
   assert_eq "the step stays" "tess:calendar" "$(cur_step after)"
   start_slice "$MARK" "read only"
   assert_contains "[wizard] step tess:calendar: partial" "[wizard] step tess:calendar: partial" "$SLICE"
@@ -240,8 +245,28 @@ home_once)
   note "the role sheet: $(resumed_activity)"
   dump_ui "$ROW_DIR/sheet.xml"; screencap "$ROW_DIR/sheet.png"
   record "the role sheet on the AVD" "$(resumed_activity)"
-  adb shell input keyevent KEYCODE_BACK; sleep 3
-  assert_eq "cancelled: the step stays (Start behind the wizard)" "setup:home" "$(cur_step after)"
+  pick() { python3 - "$1" "$2" <<'PY'
+import re, sys, xml.etree.ElementTree as ET
+for n in ET.parse(sys.argv[1]).getroot().iter("node"):
+    if re.fullmatch(sys.argv[2], n.get("text", ""), re.I):
+        x1, y1, x2, y2 = map(int, re.findall(r"-?\d+", n.get("bounds") or "0 0 0 0")); print((x1 + x2) // 2, (y1 + y2) // 2); break
+PY
+  }
+  xy="$(pick "$ROW_DIR/sheet.xml" cancel)"; [ -n "$xy" ] && adb shell input tap $xy; sleep 3
+  assert_eq "cancelled: the step stays" "setup:home" "$(cur_step after)"
+  tap_node "$ROW_DIR/after.xml" wizard_action; sleep 3; dump_ui "$ROW_DIR/sheet2.xml"
+  other_name="$(python3 - "$ROW_DIR/sheet2.xml" <<'PY'
+import sys, xml.etree.ElementTree as ET
+t = [n.get("text", "") for n in ET.parse(sys.argv[1]).getroot().iter("node") if n.get("text")]
+print(next((x for x in t if x not in ("Tessera", "CANCEL", "SET AS DEFAULT") and not x.startswith("Set ")), ""))
+PY
+)"
+  record "another launcher offered" "${other_name:-none}"
+  xy="$(pick "$ROW_DIR/sheet2.xml" "$other_name")"; [ -n "$xy" ] && adb shell input tap $xy; sleep 1
+  dump_ui "$ROW_DIR/sheet3.xml"; xy="$(pick "$ROW_DIR/sheet3.xml" 'set as default')"; [ -n "$xy" ] && adb shell input tap $xy; sleep 3
+  record "HOME role holder after choosing another launcher" "$(adb shell cmd role get-role-holders android.app.role.HOME | tr -d '\r')"
+  adb shell am start -n "$PKG/.StartActivity" >/dev/null; sleep 3
+  assert_eq "another launcher chosen: the step stays" "setup:home" "$(cur_step after2)"
   adb shell cmd role add-role-holder android.app.role.HOME "$PKG"
   adb shell cmd package set-home-activity "$PKG/$PKG.StartActivity" >/dev/null
   end_row ;;
@@ -285,16 +310,19 @@ battery_saver)
   row_begin EDGE_BATTERY_SAVER "a preset applied under battery saver: phase 13's rule wins"
   restore_fresh start
   adb shell am start -n "$PKG/.settings.SettingsActivity" --activity-clear-task --es page START_THEME >/dev/null 2>&1; sleep 3
-  dump_ui "$ROW_DIR/t0.xml"; tap_node "$ROW_DIR/t0.xml" "theme_preset:Midnight"; sleep 2   # acrylic off by the setting first
-  battery_saver_on
+  dump_ui "$ROW_DIR/t0.xml"; tap_node "$ROW_DIR/t0.xml" "theme_preset:Default"; sleep 2   # acrylic on first
+  # Phase 13's order checks battery saver before the setting, so its line is written when saver comes on (run 1 marked
+  # after that); the preset is then applied under it.
   MARK="$(ring_mark)"
+  battery_saver_on
   dump_ui "$ROW_DIR/t1.xml"; tap_node "$ROW_DIR/t1.xml" "theme_preset:HAL"; sleep 3
-  start_slice "$MARK" "HAL under battery saver"
+  listener_slice "$MARK" "HAL under battery saver"
   assert_contains "[fluent] acrylic=off reason=battery-saver" "[fluent] acrylic=off reason=battery-saver" "$SLICE"
+  assert_absent "acrylic stays off under saver after HAL (no acrylic=on)" "[fluent] acrylic=on" "$SLICE"
   assert_contains "transparency_effects still written as the preset says (true)" '<boolean name="transparency_effects" value="true" />' "$(adb shell run-as $PKG cat shared_prefs/start_theme.xml | tr -d '\r')"
   MARK="$(ring_mark)"
   battery_saver_off; sleep 3
-  start_slice "$MARK" "battery saver off"
+  listener_slice "$MARK" "battery saver off"
   assert_contains "battery saver off: acrylic follows the preset (on)" "[fluent] acrylic=on" "$SLICE"
   end_row ;;
 

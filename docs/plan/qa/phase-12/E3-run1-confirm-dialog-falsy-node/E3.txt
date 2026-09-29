@@ -1,0 +1,37 @@
+==============================================================================
+ROW E3 — real grants through Android's pages, then HAL
+at            2026-09-29T10:12:15-06:00
+driver        e3.sh blob 0832cc3258fab8b2910bbad83cd03d4b58b4078b
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d13h35m19s676ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+PASS  E2 state: USE_FULL_SCREEN_INTENT no mode left at allow (uid or package)  does not contain [allow]
+PASS  E2 state: SYSTEM_ALERT_WINDOW ignore                        contains [ignore]
+PASS  E2 state: SYSTEM_ALERT_WINDOW not allow/default             does not contain [default]
+PASS  layout_restore of phase 02's baseline                       = 0
+PASS  why line on setup:notifications                             = Live tiles and unread counts come from your notifications. Without it the tiles stay still.
+      setup:notifications: first resumed [com.android.settings/.Settings$NotificationAccessDetailsActivity]; actions: | tap 962 1246 the page's switch | back switch set | back switch set | wizard setup:notifications
+RECORD  setup:notifications: Android's page                         com.android.settings/.Settings$NotificationAccessDetailsActivity
+PASS  start ring readable (setup:notifications)                   header present
+FAIL  [wizard] step setup:notifications: granted                  does not contain [[wizard] step setup:notifications: granted]: 2026-09-29 10:12:45.974 wall=1790698365974 [bars] StartActivity: system bars hidden (transient by swipe)
+PASS  why line on setup:notifications                             = Live tiles and unread counts come from your notifications. Without it the tiles stay still.
+      setup:notifications: first resumed [com.android.settings/.Settings$NotificationAccessDetailsActivity]; actions: | tap 962 1246 the page's switch | back switch set | back switch set | wizard setup:notifications
+RECORD  setup:notifications: Android's page                         com.android.settings/.Settings$NotificationAccessDetailsActivity
+PASS  start ring readable (setup:notifications)                   header present
+FAIL  [wizard] step setup:notifications: granted                  does not contain [[wizard] step setup:notifications: granted]: 2026-09-29 10:13:00.001 wall=1790698380001 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790698380001
+2026-09-29 10:13:00.001 wall=1790698380001 [calendar] refresh (minute): access=false faces=1
+2026-09-29 1
+PASS  why line on setup:notifications                             = Live tiles and unread counts come from your notifications. Without it the tiles stay still.
+      setup:notifications: first resumed [com.android.settings/.Settings$NotificationAccessDetailsActivity]; actions: | tap 962 1246 the page's switch | back switch set | back switch set | wizard setup:notifications
+RECORD  setup:notifications: Android's page                         com.android.settings/.Settings$NotificationAccessDetailsActivity
+PASS  start ring readable (setup:notifications)                   header present
+FAIL  [wizard] step setup:notifications: granted                  does not contain [[wizard] step setup:notifications: granted]: 2026-09-29 10:13:28.178 wall=1790698408178 [bars] StartActivity: system bars hidden (transient by swipe)
+PASS  why line on setup:notifications                             = Live tiles and unread counts come from your notifications. Without it the tiles stay still.

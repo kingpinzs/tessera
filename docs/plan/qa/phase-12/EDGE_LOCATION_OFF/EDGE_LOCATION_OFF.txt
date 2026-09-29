@@ -1,0 +1,24 @@
+==============================================================================
+ROW EDGE_LOCATION_OFF — both location permissions held, device location off
+at            2026-09-29T14:11:52-06:00
+driver        edge.sh blob bcb62e8f785e61515b629ad879fa9ff90e0c4220
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      provision_no_marker lo: rc=0
+PASS  start ring readable (location off, nothing else missing)    header present
+PASS  PARTIAL never summons the wizard: not shown: core held      contains [[wizard] not shown: core held]
+PASS  inside a run the PARTIAL row is a step                      = tess:background_location
+PASS  after Allow all the time the step stays                     = tess:background_location
+PASS  start ring readable (all the time with location off)        header present
+PASS  [wizard] step tess:background_location: partial             contains [[wizard] step tess:background_location: partial]
+PASS  start ring readable (not now)                               header present
+PASS  [wizard] step tess:background_location: not now             contains [[wizard] step tess:background_location: not now]
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+EDGE_LOCATION_OFF: 9 passed, 0 failed, 0 recorded

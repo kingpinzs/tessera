@@ -1,0 +1,78 @@
+==============================================================================
+ROW E2 — appearance, order and why lines in the E2 state
+at            2026-09-29T09:48:10-06:00
+driver        e2.sh blob ff4e8c475cd23a9fea758802d78921b06b6456ee
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d13h11m14s786ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+PASS  E2 state: USE_FULL_SCREEN_INTENT no mode left at allow (uid or package)  does not contain [allow]
+PASS  E2 state: SYSTEM_ALERT_WINDOW ignore                        contains [ignore]
+PASS  E2 state: SYSTEM_ALERT_WINDOW not allow/default             does not contain [default]
+PASS  wizard_page                                                 = yes
+PASS  wizard_step:setup:notifications first                       = yes
+PASS  no wizard_step:setup:home (Home held)                       = no
+PASS  no start_page node (pager not composed)                     = no
+PASS  no applist_* node                                           does not contain [resource-id="applist_]
+PASS  wizard_progress                                             = Step 1 of 20
+PASS  start ring readable (shown)                                 header present
+PASS  [wizard] shown: missing= names exactly the nineteen, in order  = setup:notifications,setup:photos,setup:music,setup:calendar,setup:location,setup:usage,setup:keyboard_enabled,setup:keyboard_selected,setup:full_screen_alarms,setup:overlay,tess:assistant,tess:microphone,tess:contacts,tess:calendar,tess:sms_send,tess:call_phone,tess:background_location,tess:call_log,tess:sms_read
+PASS  [wizard] shown written once                                 = 1
+a swipe left on the wizard page changes nothing
+PASS  dump's wizard nodes identical after the swipe               = 6bd95550a42e2e69
+Not now through the run: order and every step's why line
+PASS  why line on setup:notifications                             = Live tiles and unread counts come from your notifications. Without it the tiles stay still.
+PASS  progress on setup:notifications                             = Step 1 of 20
+PASS  why line on setup:photos                                    = The Photos tile shows your pictures. Without it the tile stays empty.
+PASS  progress on setup:photos                                    = Step 2 of 20
+PASS  why line on setup:music                                     = Music plays the songs on this phone. Without it Music finds nothing to play.
+PASS  progress on setup:music                                     = Step 3 of 20
+PASS  why line on setup:calendar                                  = The Calendar tile shows what's next. Without it the tile stays empty.
+PASS  progress on setup:calendar                                  = Step 4 of 20
+PASS  why line on setup:location                                  = Weather shows the weather where you are. Without it Weather cannot tell where that is.
+PASS  progress on setup:location                                  = Step 5 of 20
+PASS  why line on setup:usage                                     = Back on Start returns to the app you were using. Without it Back stays on Start.
+PASS  progress on setup:usage                                     = Step 6 of 20
+PASS  why line on setup:keyboard_enabled                          = This turns on the Windows-style keyboard. Without it the keyboard cannot be chosen.
+PASS  progress on setup:keyboard_enabled                          = Step 7 of 20
+PASS  why line on setup:keyboard_selected                         = This makes it the keyboard wherever you type. Without it your old keyboard stays.
+PASS  progress on setup:keyboard_selected                         = Step 8 of 20
+PASS  why line on setup:full_screen_alarms                        = Alarms ring over the lock screen. Without it an alarm still sounds, but shows only as a notification.
+PASS  progress on setup:full_screen_alarms                        = Step 9 of 20
+PASS  why line on setup:overlay                                   = Alarms ring over the app you're using. Without it an alarm shows as a notification.
+PASS  progress on setup:overlay                                   = Step 10 of 20
+PASS  why line on tess:assistant                                  = The side key and the assist gesture open Tess. Without it they open another assistant.
+PASS  progress on tess:assistant                                  = Step 11 of 20
+PASS  why line on tess:microphone                                 = Tess hears what you ask. Without it you can only type to her.
+PASS  progress on tess:microphone                                 = Step 12 of 20
+PASS  why line on tess:contacts                                   = Tess calls and texts people by name. Without it she cannot find them.
+PASS  progress on tess:contacts                                   = Step 13 of 20
+PASS  why line on tess:calendar                                   = Tess reads your calendar and adds to it. Without it she cannot see or add events.
+PASS  progress on tess:calendar                                   = Step 14 of 20
+PASS  why line on tess:sms_send                                   = Tess sends a text after reading it back to you. Without it she cannot send one.
+PASS  progress on tess:sms_send                                   = Step 15 of 20
+PASS  why line on tess:call_phone                                 = Tess places a call after you confirm. Without it she cannot call.
+PASS  progress on tess:call_phone                                 = Step 16 of 20
+PASS  why line on tess:background_location                        = Place reminders go off when you arrive. Without "all the time" they never fire.
+PASS  progress on tess:background_location                        = Step 17 of 20
+PASS  why line on tess:call_log                                   = Person reminders go off after you talk to that person. Without it they cannot tell you did.
+PASS  progress on tess:call_log                                   = Step 18 of 20
+PASS  why line on tess:sms_read                                   = Person reminders go off after you text that person. Without it they cannot tell you did.
+PASS  progress on tess:sms_read                                   = Step 19 of 20
+PASS  steps seen in exactly the hand-written order                = setup:notifications setup:photos setup:music setup:calendar setup:location setup:usage setup:keyboard_enabled setup:keyboard_selected setup:full_screen_alarms setup:overlay tess:assistant tess:microphone tess:contacts tess:calendar tess:sms_send tess:call_phone tess:background_location tess:call_log tess:sms_read
+PASS  then wizard_presets                                         = yes
+PASS  presets page progress                                       = Step 20 of 20
+PASS  start ring readable (walk)                                  header present
+PASS  one not-now line per step                                   = 19
+restore: pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E2: 58 passed, 0 failed, 0 recorded

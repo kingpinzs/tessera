@@ -1,0 +1,56 @@
+==============================================================================
+ROW E8 — keys, bars and the pin band while the wizard shows
+at            2026-09-29T10:09:20-06:00
+driver        e8.sh blob 498b1de3ba69f441dcf274ab476017838ab1eb73
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      provision_no_marker keys: rc=0
+PASS  no-marker provision rc                                      = 0
+PASS  step 1: notifications                                       = setup:notifications
+PASS  Step 1 of 3                                                 = Step 1 of 3
+drawn Back on step 1 changes nothing
+PASS  Back on step 1: wizard nodes identical                      = 4fba29eeaaa8a37e
+Back on step 2 returns to step 1
+PASS  step 2: usage                                               = setup:usage
+PASS  drawn Back on step 2: step 1 again                          = setup:notifications
+PASS  Step 1 of 3 again                                           = Step 1 of 3
+PASS  system Back on step 2: step 1 again                         = setup:notifications
+the Windows key and Home do nothing
+PASS  Windows key: wizard nodes identical                         = 4fba29eeaaa8a37e
+PASS  Home: the wizard stays, same step                           = setup:notifications
+PASS  Home: no start_page                                         = no
+the Search key opens Tess; Back returns to the same step
+PASS  Search: cortana_session                                     = yes
+PASS  Back from Tess: the wizard at the same step                 = setup:notifications
+Android's bars hidden; the drawn bars measured
+      insets:  InsetsSource id=97280001 type=navigationBars frame=[0,2205][1080,2340] visible=false flags=INSETS_ROUNDED_CORNER sideHint=BOTTOM boundingRects=null  InsetsSource id=44730000 type=statusBars frame=[0,0][1080,136] visible=false flags= sideHint=TOP boundingRects=null 
+PASS  system status bar not visible                               contains [type=statusBars frame=[0,0][1080,136] visible=false]
+PASS  system nav bar not visible                                  contains [visible=false]
+PASS  drawn status bar height = BarMetrics.STATUS_EPX (28 epx x 3 px)  = 84
+PASS  drawn nav bar height = 48 epx (144 px)                      = 144
+PASS  drawn nav bar at the bottom                                 = 2340
+PASS  X17: nav_back is one third of the width                     = 360
+PASS  X17: nav_windows is one third of the width                  = 360
+PASS  X17: nav_search is one third of the width                   = 360
+pin band under the wizard (T12-14)
+PASS  tileclient-a installed                                      contains [Success]
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d13h33m41s90ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  request pending: wizard_page                                = yes
+PASS  request pending: no secondary_pin_prompt behind the wizard  = no
+PASS  start ring readable (skip with a pin pending)               header present
+PASS  [wizard] skip                                               contains [[wizard] skip]
+PASS  the band shows once Start is visible                        = yes
+PASS  over start_page                                             = yes
+PASS  band cancelled                                              = no
+restore: pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E8: 30 passed, 0 failed, 0 recorded

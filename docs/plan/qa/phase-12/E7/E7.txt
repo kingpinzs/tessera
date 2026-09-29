@@ -1,0 +1,41 @@
+==============================================================================
+ROW E7 — a grant revoked, and one made, mid-run
+at            2026-09-29T10:07:10-06:00
+driver        e7.sh blob db9c49b7b0a57967623bd8cc510692d40c3f5a7f
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d13h30m14s603ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+PASS  E2 state: USE_FULL_SCREEN_INTENT no mode left at allow (uid or package)  does not contain [allow]
+PASS  E2 state: SYSTEM_ALERT_WINDOW ignore                        contains [ignore]
+PASS  E2 state: SYSTEM_ALERT_WINDOW not allow/default             does not contain [default]
+PASS  first step: notifications                                   = setup:notifications
+PASS  notification access granted: on the Photos step             = setup:photos
+PASS  Step 2 of 20                                                = Step 2 of 20
+revoke notification access from adb, then a resume
+PASS  still on the Photos step                                    = setup:photos
+PASS  N grew by one: Step 2 of 21                                 = Step 2 of 21
+PASS  start ring readable (run so far)                            header present
+PASS  [wizard] shown not repeated (same run)                      = 1
+a grant made from adb while the Photos step shows
+PASS  the Photos step advanced                                    != setup:photos
+PASS  start ring readable (photos granted from adb)               header present
+PASS  [wizard] step setup:photos: granted                         contains [[wizard] step setup:photos: granted]
+walk on with Not now
+      steps seen: setup:notifications setup:music setup:calendar setup:location setup:usage setup:keyboard_enabled setup:keyboard_selected setup:full_screen_alarms setup:overlay tess:assistant tess:microphone tess:contacts tess:calendar tess:sms_send tess:call_phone tess:background_location tess:call_log tess:sms_read PRESETS 
+PASS  setup:notifications seen again exactly once                 = 1
+PASS  ... and before the presets page                             contains [setup:notifications]
+PASS  the run ends on the presets page                            contains [PRESETS]
+PASS  setup:photos is not asked again                             does not contain [setup:photos]
+restore: pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E7: 19 passed, 0 failed, 0 recorded

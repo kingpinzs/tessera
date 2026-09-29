@@ -1,0 +1,47 @@
+==============================================================================
+ROW E9 — regression: one row per earlier phase, unchanged
+at            2026-09-29T10:47:33-06:00
+driver        e9.sh blob 892d29358a539243a9f4b619ed5c253b6dabf7f8
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  fresh provision rc                                          = 0
+FAIL  phase-02-E1 passes unchanged (rc)                           expected [0] got [1]
+PASS  phase-03-E1 passes unchanged (rc)                           = 0
+PASS  phase-03-E5 passes unchanged (rc)                           = 0
+FAIL  phase-05-E1 passes unchanged (rc)                           expected [0] got [1]
+      phase-03-E1 summary: /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-12/E9/phase-03-E1/E1.txt:E1: 5 passed, 0 failed, 0 recorded
+      phase-03-E5 summary: /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-12/E9/phase-03-E5/E5.txt:E5: 12 passed, 0 failed, 0 recorded
+      phase-05-E1 summary: /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-12/E9/phase-05-E1/E1.txt:E1: 4 passed, 6 failed, 0 recorded
+      phase-02-E1 tail: /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-12/E9/phase-02-E1/layout_before.json: 1 file pushed, 0 skipped. 29.5 MB/s (1039 bytes in 0.000s) baseline layout restored ---- 11 passed, 1 failed ---- 
+phase 01 E2: the HOME role, and Home shows Start
+PASS  phase 01 E2: HOME role holder                               = app.tileshell
+PASS  phase 01 E2: Home shows Start                               = yes
+phase 01 E14: disallow_listener flips the checklist row; allow flips it back (on the moved row list)
+PASS  phase 01 E14: notifications granted before                  = yes
+PASS  phase 01 E14: revoke flips it to missing                    = yes
+PASS  phase 01 E14: re-allow flips it back                        = yes
+phase 10 E2: Music in the app list, its hold menu offers Pin to Start and not Uninstall
+      Music entry: applist_name:app.tileshell/.music.MusicActivity [168,1377][284,1431]
+PASS  phase 10 E2: Music is in the app list                       != 
+      hold menu texts: Search||I|IME fixture|K|K-9 Mail|L|Libre Contacts Backup|M|Messages|Messaging|Music|Music Player|N|Notes|O|Open Camera|Pin to Start||||||10:48 AM
+PASS  phase 10 E2: the hold menu offers Pin to Start              contains [Pin to Start]
+PASS  phase 10 E2: and not Uninstall                              does not contain [Uninstall]
+no dump any of them saved contains wizard_page
+      xml files scanned: 23
+PASS  no saved dump holds wizard_page                             = 0
+PASS  the scan saw the children's dumps                           != 0
+no assignSlotOnce ... -> assigned line while they ran (C-3)
+PASS  zero assignSlotOnce -> assigned lines                       = 0
+PASS  no [wizard] shown line during the regression                = 0
+exported components still phase 03's allow-list
+PASS  exported.py: no new exported component                      = 0
+restore: pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E9: 17 passed, 2 failed, 0 recorded

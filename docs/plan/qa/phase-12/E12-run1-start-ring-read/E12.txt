@@ -1,0 +1,84 @@
+==============================================================================
+ROW E12 — the preset pictures: sources, script, APK, backdrop
+at            2026-09-29T10:52:29-06:00
+driver        e12.sh blob ce3bb95bc36c2a324d7677e5dab8b57e5984d743
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+host: the four picked sources (identify)
+PASS  art/themes/hal-a.png is PNG 941 x 1672                      = PNG 941x1672
+PASS  art/themes/lumia-b.png is PNG 941 x 1672                    = PNG 941x1672
+PASS  art/themes/midnight-b.png is PNG 941 x 1672                 = PNG 941x1672
+PASS  art/themes/soft-c.png is JPEG 1536 x 2752 (JPEG data under a .png name)  = JPEG 1536x2752
+RECORD  the brief's 1024-px floor                                   waived for hal-a, lumia-b, midnight-b (941 px) by Jeremy's pick, Decisions 2026-09-28
+host: the script's scale factors, and its output equals the committed WebP
+PASS  host script rc                                              = 0
+PASS  scale factor preset_hal ~ 2.43                              2.43 vs 2.43 +/- 0.01
+PASS  scale factor preset_lumia ~ 2.43                            2.43 vs 2.43 +/- 0.01
+PASS  scale factor preset_midnight ~ 2.43                         2.43 vs 2.43 +/- 0.01
+PASS  scale factor preset_soft ~ 1.47                             1.47 vs 1.47 +/- 0.01
+PASS  scale factor preset_w10m_hero ~ 2.64                        2.64 vs 2.64 +/- 0.01
+PASS  scale factor preset_w10m_streaks ~ 2.11                     2.11 vs 2.11 +/- 0.01
+PASS  committed preset_hal.webp sha256 = the script's output      = 8ac933001562b3a34f8e95c401106f70beeaeb3d1b3d8788c1d06fb92920352e
+PASS  committed preset_soft.webp sha256 = the script's output     = 0bdbeb2db6576293c8121640167409283d1463074dd99f569d442722409ba383
+PASS  committed preset_lumia.webp sha256 = the script's output    = e102d6c4424b1b82519a8001d626c48476fd98b136b1e423a0dbd7b8383a1c7e
+PASS  committed preset_midnight.webp sha256 = the script's output  = c8b13d2fa93939e3f1f0990145287d35d58cab5d60f1b62aa63e3a148104fc42
+PASS  committed preset_w10m_hero.webp sha256 = the script's output  = 89b1179a1a9e3e6833fd6448c82ca392fc64db08b3870ad18da21839d502ae7b
+PASS  committed preset_w10m_streaks.webp sha256 = the script's output  = 033f9f61555caef01521b5eb63754d5404fcf9ee39adc39780b1e83bc65222ee
+APK: the six pictures, their size, the size against the same commit built without them
+PASS  APK carries preset_hal.webp                                 != 
+PASS  preset_hal in the APK is 1872 x 4056                        = 1872x4056
+      preset_hal: res/drawable-nodpi-v4/preset_hal.webp 62748 bytes
+PASS  preset_hal under 2.5 MB                                     = yes
+PASS  APK carries preset_soft.webp                                != 
+PASS  preset_soft in the APK is 1872 x 4056                       = 1872x4056
+      preset_soft: res/drawable-nodpi-v4/preset_soft.webp 116060 bytes
+PASS  preset_soft under 2.5 MB                                    = yes
+PASS  APK carries preset_lumia.webp                               != 
+PASS  preset_lumia in the APK is 1872 x 4056                      = 1872x4056
+      preset_lumia: res/drawable-nodpi-v4/preset_lumia.webp 91804 bytes
+PASS  preset_lumia under 2.5 MB                                   = yes
+PASS  APK carries preset_midnight.webp                            != 
+PASS  preset_midnight in the APK is 1872 x 4056                   = 1872x4056
+      preset_midnight: res/drawable-nodpi-v4/preset_midnight.webp 37416 bytes
+PASS  preset_midnight under 2.5 MB                                = yes
+PASS  APK carries preset_w10m_hero.webp                           != 
+PASS  preset_w10m_hero in the APK is 1872 x 4056                  = 1872x4056
+      preset_w10m_hero: res/drawable-nodpi-v4/preset_w10m_hero.webp 188752 bytes
+PASS  preset_w10m_hero under 2.5 MB                               = yes
+PASS  APK carries preset_w10m_streaks.webp                        != 
+PASS  preset_w10m_streaks in the APK is 1872 x 4056               = 1872x4056
+      preset_w10m_streaks: res/drawable-nodpi-v4/preset_w10m_streaks.webp 180628 bytes
+PASS  preset_w10m_streaks under 2.5 MB                            = yes
+RECORD  the six pictures in the APK, bytes                          677408
+PASS  their sum <= 8 MB                                           = yes
+PASS  the no-picture build carries none of them                   = 0
+RECORD  APK bytes with / without the pictures                       338315461 / 336277192 (difference 2038269)
+PASS  the APK is <= 8 MB larger than without them                 = yes
+device, surface (b): the static backdrop per preset
+      restore_fresh start: provision rc=0
+PASS  fresh provision rc                                          = 0
+FAIL  start ring readable (HAL)                                   no diagnostics header in StartActivity's dump
+PASS  HAL: app list composed                                      = yes
+FAIL  HAL: [fluent] static backdrop rebuilt for its picture       does not contain [[fluent] static backdrop rebuilt for android.resource://app.tileshell/drawable/preset_hal in ]: 
+FAIL  start ring readable (Soft)                                  no diagnostics header in StartActivity's dump
+PASS  Soft: app list composed                                     = yes
+FAIL  Soft: [fluent] static backdrop rebuilt for its picture      does not contain [[fluent] static backdrop rebuilt for android.resource://app.tileshell/drawable/preset_soft in ]: 
+FAIL  start ring readable (Lumia)                                 no diagnostics header in StartActivity's dump
+PASS  Lumia: app list composed                                    = yes
+FAIL  Lumia: [fluent] static backdrop rebuilt for its picture     does not contain [[fluent] static backdrop rebuilt for android.resource://app.tileshell/drawable/preset_lumia in ]: 
+FAIL  start ring readable (Windows 10 Mobile (original))          no diagnostics header in StartActivity's dump
+PASS  Windows 10 Mobile (original): no static backdrop rebuilt    does not contain [static backdrop rebuilt]
+FAIL  Windows 10 Mobile (original): [fluent] acrylic=off reason=setting  does not contain [[fluent] acrylic=off reason=setting]: 
+FAIL  start ring readable (Midnight)                              no diagnostics header in StartActivity's dump
+PASS  Midnight: no static backdrop rebuilt                        does not contain [static backdrop rebuilt]
+FAIL  Midnight: [fluent] acrylic=off reason=setting               does not contain [[fluent] acrylic=off reason=setting]: 
+restore: Default, then pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E12: 45 passed, 10 failed, 3 recorded

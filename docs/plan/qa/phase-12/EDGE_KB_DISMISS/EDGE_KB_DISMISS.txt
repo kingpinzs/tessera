@@ -1,0 +1,20 @@
+==============================================================================
+ROW EDGE_KB_DISMISS — the keyboard picker dismissed without a choice: the step stays
+at            2026-09-29T14:13:30-06:00
+driver        edge.sh blob bcb62e8f785e61515b629ad879fa9ff90e0c4220
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      provision_no_marker kb: rc=0
+PASS  the keyboard step (the stop deselected it)                  = setup:keyboard_selected
+PASS  the input-method picker is up                               contains [Tessera keyboard]
+PASS  dismissed: the step stays                                   = setup:keyboard_selected
+PASS  the keyboard is not selected                                != app.tileshell/.ime.KeyboardService
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+EDGE_KB_DISMISS: 5 passed, 0 failed, 0 recorded

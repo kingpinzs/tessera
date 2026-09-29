@@ -1,0 +1,23 @@
+==============================================================================
+ROW EDGE_BATTERY_SAVER — a preset applied under battery saver: phase 13's rule wins
+at            2026-09-29T14:31:01-06:00
+driver        edge.sh blob 0ee194eddb4bae217594c2053320c8990ff74b12
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      restore_fresh start: provision rc=0
+PASS  battery saver precondition: low_power                       = 1
+PASS  listener ring readable (HAL under battery saver)            header present
+PASS  [fluent] acrylic=off reason=battery-saver                   contains [[fluent] acrylic=off reason=battery-saver]
+PASS  acrylic stays off under saver after HAL (no acrylic=on)     does not contain [[fluent] acrylic=on]
+PASS  transparency_effects still written as the preset says (true)  contains [<boolean name="transparency_effects" value="true" />]
+PASS  listener ring readable (battery saver off)                  header present
+PASS  battery saver off: acrylic follows the preset (on)          contains [[fluent] acrylic=on]
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+EDGE_BATTERY_SAVER: 8 passed, 0 failed, 0 recorded

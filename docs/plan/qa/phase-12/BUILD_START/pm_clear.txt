@@ -1,0 +1,25 @@
+Phase 12 build-start check: what pm clear resets on tileshell_fhd (API 36 AOSP), 2026-09-29T09:35:23-06:00
+apk c464ffcdf1e19035
+== before pm clear
+home=app.tileshell assistant=app.tileshell
+listener: android.ext.services/android.ext.services.notification.Assistant
+      app.tileshell/app.tileshell.feeds.TileNotificationListener (user: 0 isPrimary: true)
+      userId=0 value={app.tileshell/app.tileshell.feeds.TileNotificationListener}
+GET_USAGE_STATS: GET_USAGE_STATS: allow; time=+21m25s141ms ago
+USE_FULL_SCREEN_INTENT: Uid mode: USE_FULL_SCREEN_INTENT: allow
+SYSTEM_ALERT_WINDOW: SYSTEM_ALERT_WINDOW: allow; time=+1d12h58m22s950ms ago; duration=+7s283ms
+ime enabled: com.android.inputmethod.latin/.LatinIME app.tileshell/.ime.KeyboardService 
+ime default: app.tileshell/.ime.KeyboardService
+android.permission.ACCESS_BACKGROUND_LOCATION: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT] android.permission.ACCESS_COARSE_LOCATION: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.ACCESS_FINE_LOCATION: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.CALL_PHONE: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.READ_CALENDAR: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.READ_CALL_LOG: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT|RESTRICTION_SYSTEM_EXEMPT] android.permission.READ_CONTACTS: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.READ_MEDIA_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.READ_MEDIA_IMAGES: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.READ_MEDIA_VISUAL_USER_SELECTED: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.READ_SMS: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT|RESTRICTION_SYSTEM_EXEMPT] android.permission.RECORD_AUDIO: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.SEND_SMS: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT|RESTRICTION_SYSTEM_EXEMPT] android.permission.WRITE_CALENDAR: granted=true, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] 
+location enabled: 3
+Success
+== after pm clear
+home=app.tileshell assistant=app.tileshell
+listener: android.ext.services/android.ext.services.notification.Assistant
+GET_USAGE_STATS: GET_USAGE_STATS: allow; time=+21m25s650ms ago
+USE_FULL_SCREEN_INTENT: Uid mode: USE_FULL_SCREEN_INTENT: allow
+SYSTEM_ALERT_WINDOW: SYSTEM_ALERT_WINDOW: allow; time=+1d12h58m23s463ms ago; duration=+7s283ms
+ime enabled: com.android.inputmethod.latin/.LatinIME app.tileshell/.ime.KeyboardService 
+ime default: com.android.inputmethod.latin/.LatinIME
+android.permission.ACCESS_BACKGROUND_LOCATION: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT] android.permission.ACCESS_COARSE_LOCATION: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.ACCESS_FINE_LOCATION: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.CALL_PHONE: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.READ_CALENDAR: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.READ_CALL_LOG: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT|RESTRICTION_SYSTEM_EXEMPT] android.permission.READ_CONTACTS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.READ_MEDIA_AUDIO: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.READ_MEDIA_IMAGES: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.READ_MEDIA_VISUAL_USER_SELECTED: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.READ_SMS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT|RESTRICTION_SYSTEM_EXEMPT] android.permission.RECORD_AUDIO: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] android.permission.SEND_SMS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED|RESTRICTION_INSTALLER_EXEMPT|RESTRICTION_SYSTEM_EXEMPT] android.permission.WRITE_CALENDAR: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED] 
+location enabled: 3

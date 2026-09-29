@@ -1,0 +1,72 @@
+==============================================================================
+ROW E2 — appearance, order and why lines in the E2 state
+at            2026-09-29T09:43:08-06:00
+driver        e2.sh blob db8e9c4a963fcb9920f35912c5c3b5b4eb3c646f
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: allow
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: default; time=+1d13h6m12s523ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+FAIL  E2 state: SYSTEM_ALERT_WINDOW ignore                        does not contain [ignore]: SYSTEM_ALERT_WINDOW: default; time=+1d13h6m12s563ms ago; duration=+7s283ms
+PASS  wizard_page                                                 = yes
+PASS  wizard_step:setup:notifications first                       = yes
+PASS  no wizard_step:setup:home (Home held)                       = no
+PASS  no start_page node (pager not composed)                     = no
+PASS  no applist_* node                                           does not contain [resource-id="applist_]
+FAIL  wizard_progress                                             expected [Step 1 of 20] got [Step 1 of 18]
+PASS  start ring readable (shown)                                 header present
+FAIL  [wizard] shown: missing= names exactly the nineteen, in order  expected [setup:notifications,setup:photos,setup:music,setup:calendar,setup:location,setup:usage,setup:keyboard_enabled,setup:keyboard_selected,setup:full_screen_alarms,setup:overlay,tess:assistant,tess:microphone,tess:contacts,tess:calendar,tess:sms_send,tess:call_phone,tess:background_location,tess:call_log,tess:sms_read] got [setup:notifications,setup:photos,setup:music,setup:calendar,setup:location,setup:usage,setup:keyboard_enabled,setup:keyboard_selected,tess:assistant,tess:microphone,tess:contacts,tess:calendar,tess:sms_send,tess:call_phone,tess:background_location,tess:call_log,tess:sms_read]
+PASS  [wizard] shown written once                                 = 1
+a swipe left on the wizard page changes nothing
+PASS  dump's wizard nodes identical after the swipe               = d48f0ce6df7eff3a
+Not now through the run: order and every step's why line
+PASS  why line on setup:notifications                             = Live tiles and unread counts come from your notifications. Without it the tiles stay still.
+FAIL  progress on setup:notifications                             expected [Step 1 of 20] got [Step 1 of 18]
+PASS  why line on setup:photos                                    = The Photos tile shows your pictures. Without it the tile stays empty.
+FAIL  progress on setup:photos                                    expected [Step 2 of 20] got [Step 2 of 18]
+PASS  why line on setup:music                                     = Music plays the songs on this phone. Without it Music finds nothing to play.
+FAIL  progress on setup:music                                     expected [Step 3 of 20] got [Step 3 of 18]
+PASS  why line on setup:calendar                                  = The Calendar tile shows what's next. Without it the tile stays empty.
+FAIL  progress on setup:calendar                                  expected [Step 4 of 20] got [Step 4 of 18]
+PASS  why line on setup:location                                  = Weather shows the weather where you are. Without it Weather cannot tell where that is.
+FAIL  progress on setup:location                                  expected [Step 5 of 20] got [Step 5 of 18]
+PASS  why line on setup:usage                                     = Back on Start returns to the app you were using. Without it Back stays on Start.
+FAIL  progress on setup:usage                                     expected [Step 6 of 20] got [Step 6 of 18]
+PASS  why line on setup:keyboard_enabled                          = This turns on the Windows-style keyboard. Without it the keyboard cannot be chosen.
+FAIL  progress on setup:keyboard_enabled                          expected [Step 7 of 20] got [Step 7 of 18]
+PASS  why line on setup:keyboard_selected                         = This makes it the keyboard wherever you type. Without it your old keyboard stays.
+FAIL  progress on setup:keyboard_selected                         expected [Step 8 of 20] got [Step 8 of 18]
+PASS  why line on tess:assistant                                  = The side key and the assist gesture open Tess. Without it they open another assistant.
+FAIL  progress on tess:assistant                                  expected [Step 9 of 20] got [Step 9 of 18]
+PASS  why line on tess:microphone                                 = Tess hears what you ask. Without it you can only type to her.
+FAIL  progress on tess:microphone                                 expected [Step 10 of 20] got [Step 10 of 18]
+PASS  why line on tess:contacts                                   = Tess calls and texts people by name. Without it she cannot find them.
+FAIL  progress on tess:contacts                                   expected [Step 11 of 20] got [Step 11 of 18]
+PASS  why line on tess:calendar                                   = Tess reads your calendar and adds to it. Without it she cannot see or add events.
+FAIL  progress on tess:calendar                                   expected [Step 12 of 20] got [Step 12 of 18]
+PASS  why line on tess:sms_send                                   = Tess sends a text after reading it back to you. Without it she cannot send one.
+FAIL  progress on tess:sms_send                                   expected [Step 13 of 20] got [Step 13 of 18]
+PASS  why line on tess:call_phone                                 = Tess places a call after you confirm. Without it she cannot call.
+FAIL  progress on tess:call_phone                                 expected [Step 14 of 20] got [Step 14 of 18]
+FAIL  why line on tess:background_location                        expected [Place reminders go off when you arrive. Without "all the time" they never fire.] got []
+FAIL  progress on tess:background_location                        expected [Step 15 of 20] got [Step 15 of 18]
+PASS  why line on tess:call_log                                   = Person reminders go off after you talk to that person. Without it they cannot tell you did.
+FAIL  progress on tess:call_log                                   expected [Step 16 of 20] got [Step 16 of 18]
+PASS  why line on tess:sms_read                                   = Person reminders go off after you text that person. Without it they cannot tell you did.
+FAIL  progress on tess:sms_read                                   expected [Step 17 of 20] got [Step 17 of 18]
+FAIL  steps seen in exactly the hand-written order                expected [setup:notifications setup:photos setup:music setup:calendar setup:location setup:usage setup:keyboard_enabled setup:keyboard_selected setup:full_screen_alarms setup:overlay tess:assistant tess:microphone tess:contacts tess:calendar tess:sms_send tess:call_phone tess:background_location tess:call_log tess:sms_read] got [setup:notifications setup:photos setup:music setup:calendar setup:location setup:usage setup:keyboard_enabled setup:keyboard_selected tess:assistant tess:microphone tess:contacts tess:calendar tess:sms_send tess:call_phone tess:background_location tess:call_log tess:sms_read]
+PASS  then wizard_presets                                         = yes
+FAIL  presets page progress                                       expected [Step 20 of 20] got [Step 18 of 18]
+PASS  start ring readable (walk)                                  header present
+FAIL  one not-now line per step                                   expected [19] got [17]
+restore: pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E2: 28 passed, 24 failed, 0 recorded

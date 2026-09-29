@@ -1,0 +1,292 @@
+==============================================================================
+ROW E11 — presets on both surfaces, Custom, snapshot, grant, persistence
+at            2026-09-29T11:30:13-06:00
+driver        e11.sh blob aa93a4eecc55166dd54a2e54b6966899360535f3
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     48000638b63d33d6 338315461 bytes
+apk installed d1f75fac0f1bde72
+apk match     yes (d1f75fac0f1bde72)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+control: pm clear -> provision.sh -> Home, provisioning never applies a preset
+      restore_fresh control: provision rc=0
+PASS  control: theme_preset absent or default                     absent
+(a) Default
+      provision_no_marker fixture-a-default: rc=0
+PASS  (a-default) fixture reaches wizard_presets                  = yes
+PASS  (a-default) ASSISTANT role held                             = app.tileshell
+FAIL  listener ring readable ((a) Default tap)                    no diagnostics header in the listener's dump
+FAIL  (a) Default: [wizard] preset Default                        does not contain [[wizard] preset Default]: 
+FAIL  (a) Default: [theme] preset Default applied                 does not contain [[theme] preset Default applied]: 
+PASS  (a) Default: theme_preset = default                         contains [<string name="theme_preset">default</string>]
+PASS  (a) Default: accent                                         contains [<long name="accent" value="4278221015" />]
+PASS  (a) Default: theme                                          contains [<string name="theme">DARK</string>]
+PASS  (a) Default: background absent                              does not contain [name="background"]
+PASS  (a) Default: transparency                                   contains [<float name="transparency" value="0.5" />]
+PASS  (a) Default: press                                          contains [<string name="press">NONE</string>]
+PASS  (a) Default: tess_lens                                      contains [<string name="tess_lens">hal</string>]
+PASS  (a) Default: no tess_ring key                               does not contain [tess_ring]
+PASS  (a) Default: keyboard_palette                               contains [<string name="keyboard_palette">DARK</string>]
+PASS  (a) Default: transparency_effects                           contains [<boolean name="transparency_effects" value="true" />]
+PASS  (a) Default: Start after Done                               = yes
+      (a) Default oracle: RESULT PASS 12 patches: T = accent +- 2; 23 gutter patches black
+PASS  (a) Default: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = accent +- 2; 23 gutter patches b)  = 0
+PASS  (a) Default: Tess's session opens (ASSISTANT held)          = yes
+      (a) Default lens (hal, hue hal, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue hal at brightness 1.00, 16126 samples
+PASS  (a) Default: Tess's lens is hal (hue hal, brightness 1.0)   = 0
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD e5b9cc7d (2026-09-29T10:53:56-06:00); uncommitted files under app/: 0; apk built 2026-09-29T11:19:56-06:00
+      (a) Default keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
+PASS  (a) Default: letter key fill DARK (48,48,48 +-4)            = 0
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+PASS  (a) Default: Start's PID unchanged across the capture (no restart)  = 21493
+(a) Windows 10 Mobile (original)
+      provision_no_marker fixture-a-w10m: rc=0
+PASS  (a-w10m) fixture reaches wizard_presets                     = yes
+PASS  (a-w10m) ASSISTANT role held                                = app.tileshell
+FAIL  listener ring readable ((a) Windows 10 Mobile (original) tap)  no diagnostics header in the listener's dump
+FAIL  (a) Windows 10 Mobile (original): [wizard] preset Windows 10 Mobile (original)  does not contain [[wizard] preset Windows 10 Mobile (original)]: 
+FAIL  (a) Windows 10 Mobile (original): [theme] preset Windows 10 Mobile (original) applied  does not contain [[theme] preset Windows 10 Mobile (original) applied]: 
+PASS  (a) Windows 10 Mobile (original): theme_preset = w10m       contains [<string name="theme_preset">w10m</string>]
+PASS  (a) Windows 10 Mobile (original): accent                    contains [<long name="accent" value="4282279423" />]
+PASS  (a) Windows 10 Mobile (original): theme                     contains [<string name="theme">DARK</string>]
+PASS  (a) Windows 10 Mobile (original): background = the preset's picture  contains [<string name="background">android.resource://app.tileshell/drawable/preset_w10m_hero</string>]
+PASS  (a) Windows 10 Mobile (original): transparency              contains [<float name="transparency" value="0.75" />]
+PASS  (a) Windows 10 Mobile (original): press                     contains [<string name="press">NONE</string>]
+PASS  (a) Windows 10 Mobile (original): tess_lens                 contains [<string name="tess_lens">accent</string>]
+PASS  (a) Windows 10 Mobile (original): no tess_ring key          does not contain [tess_ring]
+PASS  (a) Windows 10 Mobile (original): keyboard_palette          contains [<string name="keyboard_palette">DARK</string>]
+PASS  (a) Windows 10 Mobile (original): transparency_effects      contains [<boolean name="transparency_effects" value="false" />]
+PASS  (a) Windows 10 Mobile (original): theme_preset_variant = hero  contains [<string name="theme_preset_variant">hero</string>]
+PASS  (a) Windows 10 Mobile (original): Start after Done          = yes
+      (a) Windows 10 Mobile (original) oracle: RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T != accent; gutters 23/23 within +-6
+PASS  (a) Windows 10 Mobile (original): Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T )  = 0
+PASS  (a) Windows 10 Mobile (original): Tess's session opens (ASSISTANT held)  = yes
+      (a) Windows 10 Mobile (original) lens (accent, hue 227.88, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 227.88 at brightness 1.00, 16126 samples
+PASS  (a) Windows 10 Mobile (original): Tess's lens is accent (hue 227.88, brightness 1.0)  = 0
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD e5b9cc7d (2026-09-29T10:53:56-06:00); uncommitted files under app/: 0; apk built 2026-09-29T11:19:56-06:00
+      (a) Windows 10 Mobile (original) keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
+PASS  (a) Windows 10 Mobile (original): letter key fill DARK (48,48,48 +-4)  = 0
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+PASS  (a) Windows 10 Mobile (original): Start's PID unchanged across the capture (no restart)  = 22444
+(a) HAL
+      provision_no_marker fixture-a-hal: rc=0
+PASS  (a-hal) fixture reaches wizard_presets                      = yes
+PASS  (a-hal) ASSISTANT role held                                 = app.tileshell
+FAIL  listener ring readable ((a) HAL tap)                        no diagnostics header in the listener's dump
+FAIL  (a) HAL: [wizard] preset HAL                                does not contain [[wizard] preset HAL]: 
+FAIL  (a) HAL: [theme] preset HAL applied                         does not contain [[theme] preset HAL applied]: 
+PASS  (a) HAL: theme_preset = hal                                 contains [<string name="theme_preset">hal</string>]
+PASS  (a) HAL: accent                                             contains [<long name="accent" value="4293398819" />]
+PASS  (a) HAL: theme                                              contains [<string name="theme">DARK</string>]
+PASS  (a) HAL: background = the preset's picture                  contains [<string name="background">android.resource://app.tileshell/drawable/preset_hal</string>]
+PASS  (a) HAL: transparency                                       contains [<float name="transparency" value="0.35" />]
+PASS  (a) HAL: press                                              contains [<string name="press">NONE</string>]
+PASS  (a) HAL: tess_lens                                          contains [<string name="tess_lens">hal</string>]
+PASS  (a) HAL: no tess_ring key                                   does not contain [tess_ring]
+PASS  (a) HAL: keyboard_palette                                   contains [<string name="keyboard_palette">DARK</string>]
+PASS  (a) HAL: transparency_effects                               contains [<boolean name="transparency_effects" value="true" />]
+PASS  (a) HAL: Start after Done                                   = yes
+      (a) HAL oracle: RESULT PASS 12 patches: T = 0.72*accent + 0.28*B +- 4 and T != accent; gutters 23/23 within +-6
+PASS  (a) HAL: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.72*accent + 0.28*B +- 4 and T )  = 0
+PASS  (a) HAL: Tess's session opens (ASSISTANT held)              = yes
+      (a) HAL lens (hal, hue hal, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue hal at brightness 1.00, 16126 samples
+PASS  (a) HAL: Tess's lens is hal (hue hal, brightness 1.0)       = 0
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD e5b9cc7d (2026-09-29T10:53:56-06:00); uncommitted files under app/: 0; apk built 2026-09-29T11:19:56-06:00
+      (a) HAL keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
+PASS  (a) HAL: letter key fill DARK (48,48,48 +-4)                = 0
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+PASS  (a) HAL: Start's PID unchanged across the capture (no restart)  = 23404
+(a) Soft
+      provision_no_marker fixture-a-soft: rc=0
+PASS  (a-soft) fixture reaches wizard_presets                     = yes
+PASS  (a-soft) ASSISTANT role held                                = app.tileshell
+FAIL  listener ring readable ((a) Soft tap)                       no diagnostics header in the listener's dump
+FAIL  (a) Soft: [wizard] preset Soft                              does not contain [[wizard] preset Soft]: 
+FAIL  (a) Soft: [theme] preset Soft applied                       does not contain [[theme] preset Soft applied]: 
+PASS  (a) Soft: theme_preset = soft                               contains [<string name="theme_preset">soft</string>]
+PASS  (a) Soft: accent                                            contains [<long name="accent" value="4287532248" />]
+PASS  (a) Soft: theme                                             contains [<string name="theme">LIGHT</string>]
+PASS  (a) Soft: background = the preset's picture                 contains [<string name="background">android.resource://app.tileshell/drawable/preset_soft</string>]
+PASS  (a) Soft: transparency                                      contains [<float name="transparency" value="0.6" />]
+PASS  (a) Soft: press                                             contains [<string name="press">P4_PRESS</string>]
+PASS  (a) Soft: tess_lens                                         contains [<string name="tess_lens">accent</string>]
+PASS  (a) Soft: no tess_ring key                                  does not contain [tess_ring]
+PASS  (a) Soft: keyboard_palette                                  contains [<string name="keyboard_palette">LIGHT</string>]
+PASS  (a) Soft: transparency_effects                              contains [<boolean name="transparency_effects" value="true" />]
+PASS  (a) Soft: Start after Done                                  = yes
+      (a) Soft oracle: RESULT PASS 12 patches: T = 0.52*accent + 0.48*B +- 4 and T != accent; gutters 23/23 within +-6
+PASS  (a) Soft: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.52*accent + 0.48*B +- 4 and T )  = 0
+PASS  (a) Soft: Tess's session opens (ASSISTANT held)             = yes
+      (a) Soft lens (accent, hue 241.58, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 241.58 at brightness 1.00, 16126 samples
+PASS  (a) Soft: Tess's lens is accent (hue 241.58, brightness 1.0)  = 0
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD e5b9cc7d (2026-09-29T10:53:56-06:00); uncommitted files under app/: 0; apk built 2026-09-29T11:19:56-06:00
+      (a) Soft keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
+PASS  (a) Soft: letter key fill LIGHT (230,230,230 +-4)           = 0
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+PASS  (a) Soft: Start's PID unchanged across the capture (no restart)  = 24335
+(a) Lumia
+      provision_no_marker fixture-a-lumia: rc=0
+PASS  (a-lumia) fixture reaches wizard_presets                    = yes
+PASS  (a-lumia) ASSISTANT role held                               = app.tileshell
+FAIL  listener ring readable ((a) Lumia tap)                      no diagnostics header in the listener's dump
+FAIL  (a) Lumia: [wizard] preset Lumia                            does not contain [[wizard] preset Lumia]: 
+FAIL  (a) Lumia: [theme] preset Lumia applied                     does not contain [[theme] preset Lumia applied]: 
+PASS  (a) Lumia: theme_preset = lumia                             contains [<string name="theme_preset">lumia</string>]
+PASS  (a) Lumia: accent                                           contains [<long name="accent" value="4278237123" />]
+PASS  (a) Lumia: theme                                            contains [<string name="theme">DARK</string>]
+PASS  (a) Lumia: background = the preset's picture                contains [<string name="background">android.resource://app.tileshell/drawable/preset_lumia</string>]
+PASS  (a) Lumia: transparency                                     contains [<float name="transparency" value="0.5" />]
+PASS  (a) Lumia: press                                            contains [<string name="press">WP8_TILT</string>]
+PASS  (a) Lumia: tess_lens                                        contains [<string name="tess_lens">accent</string>]
+PASS  (a) Lumia: no tess_ring key                                 does not contain [tess_ring]
+PASS  (a) Lumia: keyboard_palette                                 contains [<string name="keyboard_palette">DARK</string>]
+PASS  (a) Lumia: transparency_effects                             contains [<boolean name="transparency_effects" value="true" />]
+PASS  (a) Lumia: Start after Done                                 = yes
+      (a) Lumia oracle: RESULT PASS 12 patches: T = 0.60*accent + 0.40*B +- 4 and T != accent; gutters 23/23 within +-6
+PASS  (a) Lumia: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.60*accent + 0.40*B +- 4 and T )  = 0
+PASS  (a) Lumia: Tess's session opens (ASSISTANT held)            = yes
+      (a) Lumia lens (accent, hue 183.69, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 183.69 at brightness 1.00, 16126 samples
+PASS  (a) Lumia: Tess's lens is accent (hue 183.69, brightness 1.0)  = 0
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD e5b9cc7d (2026-09-29T10:53:56-06:00); uncommitted files under app/: 0; apk built 2026-09-29T11:19:56-06:00
+      (a) Lumia keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
+PASS  (a) Lumia: letter key fill DARK (48,48,48 +-4)              = 0
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+PASS  (a) Lumia: Start's PID unchanged across the capture (no restart)  = 25297
+(a) Midnight
+      provision_no_marker fixture-a-midnight: rc=0
+PASS  (a-midnight) fixture reaches wizard_presets                 = yes
+PASS  (a-midnight) ASSISTANT role held                            = app.tileshell
+FAIL  listener ring readable ((a) Midnight tap)                   no diagnostics header in the listener's dump
+FAIL  (a) Midnight: [wizard] preset Midnight                      does not contain [[wizard] preset Midnight]: 
+FAIL  (a) Midnight: [theme] preset Midnight applied               does not contain [[theme] preset Midnight applied]: 
+PASS  (a) Midnight: theme_preset = midnight                       contains [<string name="theme_preset">midnight</string>]
+PASS  (a) Midnight: accent                                        contains [<long name="accent" value="4285229526" />]
+PASS  (a) Midnight: theme                                         contains [<string name="theme">DARK</string>]
+PASS  (a) Midnight: background = the preset's picture             contains [<string name="background">android.resource://app.tileshell/drawable/preset_midnight</string>]
+PASS  (a) Midnight: transparency                                  contains [<float name="transparency" value="0.0" />]
+PASS  (a) Midnight: press                                         contains [<string name="press">NONE</string>]
+PASS  (a) Midnight: tess_lens                                     contains [<string name="tess_lens">hal_dim</string>]
+PASS  (a) Midnight: no tess_ring key                              does not contain [tess_ring]
+PASS  (a) Midnight: keyboard_palette                              contains [<string name="keyboard_palette">DARK</string>]
+PASS  (a) Midnight: transparency_effects                          contains [<boolean name="transparency_effects" value="false" />]
+PASS  (a) Midnight: Start after Done                              = yes
+      (a) Midnight oracle: RESULT PASS 12 patches: T = accent +- 2; gutters validated against the picture
+PASS  (a) Midnight: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = accent +- 2; gutters validated a)  = 0
+PASS  (a) Midnight: Tess's session opens (ASSISTANT held)         = yes
+      (a) Midnight lens (hal_dim, hue hal, brightness 0.5): RESULT PASS 3 regions (glow,mid,rim) on hue hal at brightness 0.50, 16132 samples
+PASS  (a) Midnight: Tess's lens is hal_dim (hue hal, brightness 0.5)  = 0
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD e5b9cc7d (2026-09-29T10:53:56-06:00); uncommitted files under app/: 0; apk built 2026-09-29T11:19:56-06:00
+      (a) Midnight keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
+PASS  (a) Midnight: letter key fill DARK (48,48,48 +-4)           = 0
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+PASS  (a) Midnight: Start's PID unchanged across the capture (no restart)  = 26239
+(a) Custom: Lumia, then accent Red among the items
+      provision_no_marker fixture-a-custom: rc=0
+PASS  (a-custom) fixture reaches wizard_presets                   = yes
+PASS  (a-custom) ASSISTANT role held                              = app.tileshell
+      scroll_to_node accent:Red: 1 swipe(s), found=yes
+PASS  (a) Custom: preset:Custom selected                          = true
+PASS  (a) Custom: theme_preset = custom                           contains [<string name="theme_preset">custom</string>]
+PASS  (a) Custom: accent = Red                                    contains [<long name="accent" value="4293398819" />]
+PASS  (a) Custom: every OTHER item key unchanged from Lumia's     =     <boolean name="transparency_effects" value="true" />
+    <float name="transparency" value="0.5" />
+    <string name="background">android.resource://app.tileshell/drawable/preset_lumia</string>
+    <string name="keyboard_palette">DARK</string>
+    <string name="press">WP8_TILT</string>
+    <string name="tess_lens">accent</string>
+    <string name="theme">DARK</string>
+(b) seed once: pm clear -> provision.sh -> layout_restore
+      restore_fresh b: provision rc=0
+(b) Default
+FAIL  listener ring readable ((b) Default tap)                    no diagnostics header in the listener's dump
+FAIL  (b) Default: [theme] preset Default applied                 does not contain [[theme] preset Default applied]: 
+PASS  (b) Default: no [wizard] line on Start + theme              does not contain [[wizard] preset]
+PASS  (b) Default: theme_preset = default                         contains [<string name="theme_preset">default</string>]
+PASS  (b) Default: accent                                         contains [<long name="accent" value="4278221015" />]
+PASS  (b) Default: theme                                          contains [<string name="theme">DARK</string>]
+PASS  (b) Default: background absent                              does not contain [name="background"]
+PASS  (b) Default: transparency                                   contains [<float name="transparency" value="0.5" />]
+PASS  (b) Default: press                                          contains [<string name="press">NONE</string>]
+PASS  (b) Default: tess_lens                                      contains [<string name="tess_lens">hal</string>]
+PASS  (b) Default: no tess_ring key                               does not contain [tess_ring]
+PASS  (b) Default: keyboard_palette                               contains [<string name="keyboard_palette">DARK</string>]
+PASS  (b) Default: transparency_effects                           contains [<boolean name="transparency_effects" value="true" />]
+      (b) Default oracle: RESULT PASS 12 patches: T = accent +- 2; 23 gutter patches black
+PASS  (b) Default: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = accent +- 2; 23 gutter patches b)  = 0
+PASS  (b) Default: Tess's session opens (ASSISTANT held)          = yes
+      (b) Default lens (hal, hue hal, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue hal at brightness 1.00, 16126 samples
+PASS  (b) Default: Tess's lens is hal (hue hal, brightness 1.0)   = 0
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD e5b9cc7d (2026-09-29T10:53:56-06:00); uncommitted files under app/: 0; apk built 2026-09-29T11:19:56-06:00
+      (b) Default keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
+PASS  (b) Default: letter key fill DARK (48,48,48 +-4)            = 0
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+(b) Windows 10 Mobile (original)
+FAIL  listener ring readable ((b) Windows 10 Mobile (original) tap)  no diagnostics header in the listener's dump
+FAIL  (b) Windows 10 Mobile (original): [theme] preset Windows 10 Mobile (original) applied  does not contain [[theme] preset Windows 10 Mobile (original) applied]: 
+PASS  (b) Windows 10 Mobile (original): no [wizard] line on Start + theme  does not contain [[wizard] preset]
+PASS  (b) Windows 10 Mobile (original): theme_preset = w10m       contains [<string name="theme_preset">w10m</string>]
+PASS  (b) Windows 10 Mobile (original): accent                    contains [<long name="accent" value="4282279423" />]
+PASS  (b) Windows 10 Mobile (original): theme                     contains [<string name="theme">DARK</string>]
+PASS  (b) Windows 10 Mobile (original): background = the preset's picture  contains [<string name="background">android.resource://app.tileshell/drawable/preset_w10m_hero</string>]
+PASS  (b) Windows 10 Mobile (original): transparency              contains [<float name="transparency" value="0.75" />]
+PASS  (b) Windows 10 Mobile (original): press                     contains [<string name="press">NONE</string>]
+PASS  (b) Windows 10 Mobile (original): tess_lens                 contains [<string name="tess_lens">accent</string>]
+PASS  (b) Windows 10 Mobile (original): no tess_ring key          does not contain [tess_ring]
+PASS  (b) Windows 10 Mobile (original): keyboard_palette          contains [<string name="keyboard_palette">DARK</string>]
+PASS  (b) Windows 10 Mobile (original): transparency_effects      contains [<boolean name="transparency_effects" value="false" />]
+      (b) Windows 10 Mobile (original) oracle: RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T != accent; gutters 23/23 within +-6
+PASS  (b) Windows 10 Mobile (original): Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T )  = 0
+PASS  (b) Windows 10 Mobile (original): Tess's session opens (ASSISTANT held)  = yes
+      (b) Windows 10 Mobile (original) lens (accent, hue 227.88, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 227.88 at brightness 1.00, 16126 samples
+PASS  (b) Windows 10 Mobile (original): Tess's lens is accent (hue 227.88, brightness 1.0)  = 0
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD e5b9cc7d (2026-09-29T10:53:56-06:00); uncommitted files under app/: 0; apk built 2026-09-29T11:19:56-06:00
+      (b) Windows 10 Mobile (original) keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
+PASS  (b) Windows 10 Mobile (original): letter key fill DARK (48,48,48 +-4)  = 0
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+(b) HAL
+FAIL  listener ring readable ((b) HAL tap)                        no diagnostics header in the listener's dump
+FAIL  (b) HAL: [theme] preset HAL applied                         does not contain [[theme] preset HAL applied]: 
+PASS  (b) HAL: no [wizard] line on Start + theme                  does not contain [[wizard] preset]
+PASS  (b) HAL: theme_preset = hal                                 contains [<string name="theme_preset">hal</string>]
+PASS  (b) HAL: accent                                             contains [<long name="accent" value="4293398819" />]
+PASS  (b) HAL: theme                                              contains [<string name="theme">DARK</string>]
+PASS  (b) HAL: background = the preset's picture                  contains [<string name="background">android.resource://app.tileshell/drawable/preset_hal</string>]
+PASS  (b) HAL: transparency                                       contains [<float name="transparency" value="0.35" />]
+PASS  (b) HAL: press                                              contains [<string name="press">NONE</string>]
+PASS  (b) HAL: tess_lens                                          contains [<string name="tess_lens">hal</string>]
+PASS  (b) HAL: no tess_ring key                                   does not contain [tess_ring]
+PASS  (b) HAL: keyboard_palette                                   contains [<string name="keyboard_palette">DARK</string>]
+PASS  (b) HAL: transparency_effects                               contains [<boolean name="transparency_effects" value="true" />]
+      (b) HAL oracle: RESULT PASS 12 patches: T = 0.72*accent + 0.28*B +- 4 and T != accent; gutters 23/23 within +-6
+PASS  (b) HAL: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.72*accent + 0.28*B +- 4 and T )  = 0
+PASS  (b) HAL: Tess's session opens (ASSISTANT held)              = yes
+      (b) HAL lens (hal, hue hal, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue hal at brightness 1.00, 16126 samples
+PASS  (b) HAL: Tess's lens is hal (hue hal, brightness 1.0)       = 0
+      kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+      tree: HEAD e5b9cc7d (2026-09-29T10:53:56-06:00); uncommitted files under app/: 0; apk built 2026-09-29T11:19:56-06:00
+      (b) HAL keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
+PASS  (b) HAL: letter key fill DARK (48,48,48 +-4)                = 0
+      kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
+(b) Soft
+FAIL  listener ring readable ((b) Soft tap)                       no diagnostics header in the listener's dump
+FAIL  (b) Soft: [theme] preset Soft applied                       does not contain [[theme] preset Soft applied]: 
+PASS  (b) Soft: no [wizard] line on Start + theme                 does not contain [[wizard] preset]
+PASS  (b) Soft: theme_preset = soft                               contains [<string name="theme_preset">soft</string>]
+PASS  (b) Soft: accent                                            contains [<long name="accent" value="4287532248" />]
+PASS  (b) Soft: theme                                             contains [<string name="theme">LIGHT</string>]
+PASS  (b) Soft: background = the preset's picture                 contains [<string name="background">android.resource://app.tileshell/drawable/preset_soft</string>]
+PASS  (b) Soft: transparency                                      contains [<float name="transparency" value="0.6" />]
+PASS  (b) Soft: press                                             contains [<string name="press">P4_PRESS</string>]
+PASS  (b) Soft: tess_lens                                         contains [<string name="tess_lens">accent</string>]
+PASS  (b) Soft: no tess_ring key                                  does not contain [tess_ring]
+PASS  (b) Soft: keyboard_palette                                  contains [<string name="keyboard_palette">LIGHT</string>]
+PASS  (b) Soft: transparency_effects                              contains [<boolean name="transparency_effects" value="true" />]

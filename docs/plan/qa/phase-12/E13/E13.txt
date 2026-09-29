@@ -1,0 +1,107 @@
+==============================================================================
+ROW E13 — the original W10M preset and its two pictures
+at            2026-09-29T13:21:59-06:00
+driver        e13.sh blob 45349628a8fcee17b9b0edbd5edce93249a23e69
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+pictures, asserted present in the APK
+PASS  APK lists preset_w10m_hero.webp                             contains [preset_w10m_hero.webp]
+PASS  APK lists preset_w10m_streaks.webp                          contains [preset_w10m_streaks.webp]
+(a) trial 1: the original preset, the Hero
+      provision_no_marker fixture-a-hero: rc=0
+PASS  (a-hero) fixture reaches wizard_presets                     = yes
+PASS  (a-hero) ASSISTANT role held                                = app.tileshell
+PASS  listener ring readable ((a) original)                       header present
+PASS  (a) [theme] preset Windows 10 Mobile (original) applied     contains [[theme] preset Windows 10 Mobile (original) applied]
+PASS  (a) [wizard] preset Windows 10 Mobile (original)            contains [[wizard] preset Windows 10 Mobile (original)]
+PASS  (a) theme_preset = w10m                                     contains [<string name="theme_preset">w10m</string>]
+PASS  (a) theme_preset_variant = hero                             contains [<string name="theme_preset_variant">hero</string>]
+PASS  (a) accent = Cobalt 4282279423                              contains [<long name="accent" value="4282279423" />]
+PASS  (a) theme DARK                                              contains [<string name="theme">DARK</string>]
+PASS  (a) transparency 0.75                                       contains [<float name="transparency" value="0.75" />]
+PASS  (a) press NONE                                              contains [<string name="press">NONE</string>]
+PASS  (a) transparency_effects false                              contains [<boolean name="transparency_effects" value="false" />]
+PASS  (a) keyboard_palette DARK                                   contains [<string name="keyboard_palette">DARK</string>]
+PASS  (a) tess_lens accent                                        contains [<string name="tess_lens">accent</string>]
+PASS  (a) background = the Hero                                   contains [<string name="background">android.resource://app.tileshell/drawable/preset_w10m_hero</string>]
+PASS  (a) the hero chip                                           = yes
+PASS  (a) the streaks chip                                        = yes
+PASS  (a) wizard_presets holds exactly six presets (the variant is not a seventh)  = 6
+RECORD  (a) the Custom entry, counted apart                         1 preset:Custom node(s)
+PASS  (a) the accent grid holds exactly 49 accent:* nodes         = 49
+PASS  (a) accent:Cobalt present and selected                      = true
+(a) Default, then the original again: the last-chosen variant (hero); streaks is its own trial
+PASS  (a) re-tapped: variant still hero                           contains [<string name="theme_preset_variant">hero</string>]
+      (a) the Hero on Start oracle: RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T != accent; gutters 23/23 within +-6
+PASS  (a) the Hero on Start: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T )  = 0
+PASS  (a) Tess on Cobalt: Tess's session opens (ASSISTANT held)   = yes
+      (a) Tess on Cobalt lens (accent, hue 227.88, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 227.88 at brightness 1.00, 16126 samples
+PASS  (a) Tess on Cobalt: Tess's lens is accent (hue 227.88, brightness 1.0)  = 0
+(a) trial 2: the streaks chip, tapped before Done
+      provision_no_marker fixture-a-streaks: rc=0
+PASS  (a-streaks) fixture reaches wizard_presets                  = yes
+PASS  (a-streaks) ASSISTANT role held                             = app.tileshell
+PASS  listener ring readable ((a) streaks)                        header present
+PASS  (a) [theme] preset w10m variant streaks applied             contains [[theme] preset w10m variant streaks applied]
+PASS  (a) streaks: background                                     contains [<string name="background">android.resource://app.tileshell/drawable/preset_w10m_streaks</string>]
+PASS  (a) streaks: theme_preset_variant                           contains [<string name="theme_preset_variant">streaks</string>]
+PASS  (a) streaks: still w10m (a variant is not Custom)           contains [<string name="theme_preset">w10m</string>]
+PASS  (a) streaks: every other item key unchanged                 =     <boolean name="transparency_effects" value="false" />
+    <float name="transparency" value="0.75" />
+    <long name="accent" value="4282279423" />
+    <string name="keyboard_palette">DARK</string>
+    <string name="press">NONE</string>
+    <string name="tess_lens">accent</string>
+    <string name="theme">DARK</string>
+      (a) the streaks picture on Start oracle: RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T != accent; gutters 23/23 within +-6
+PASS  (a) the streaks picture on Start: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T )  = 0
+(b) seed once
+      restore_fresh b: provision rc=0
+PASS  listener ring readable ((b) original)                       header present
+PASS  (b) [theme] preset Windows 10 Mobile (original) applied     contains [[theme] preset Windows 10 Mobile (original) applied]
+PASS  (b) theme_preset = w10m                                     contains [<string name="theme_preset">w10m</string>]
+PASS  (b) theme_preset_variant = hero                             contains [<string name="theme_preset_variant">hero</string>]
+PASS  (b) accent = Cobalt 4282279423                              contains [<long name="accent" value="4282279423" />]
+PASS  (b) theme DARK                                              contains [<string name="theme">DARK</string>]
+PASS  (b) transparency 0.75                                       contains [<float name="transparency" value="0.75" />]
+PASS  (b) press NONE                                              contains [<string name="press">NONE</string>]
+PASS  (b) transparency_effects false                              contains [<boolean name="transparency_effects" value="false" />]
+PASS  (b) keyboard_palette DARK                                   contains [<string name="keyboard_palette">DARK</string>]
+PASS  (b) tess_lens accent                                        contains [<string name="tess_lens">accent</string>]
+PASS  (b) background = the Hero                                   contains [<string name="background">android.resource://app.tileshell/drawable/preset_w10m_hero</string>]
+PASS  (b) the hero chip                                           = yes
+PASS  (b) the streaks chip                                        = yes
+PASS  (b) the accent grid holds exactly 49 accent:* nodes         = 49
+PASS  (b) accent:Cobalt present and selected                      = true
+      (b) the Hero on Start oracle: RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T != accent; gutters 23/23 within +-6
+PASS  (b) the Hero on Start: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T )  = 0
+PASS  (b) Tess on Cobalt: Tess's session opens (ASSISTANT held)   = yes
+      (b) Tess on Cobalt lens (accent, hue 227.88, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 227.88 at brightness 1.00, 16126 samples
+PASS  (b) Tess on Cobalt: Tess's lens is accent (hue 227.88, brightness 1.0)  = 0
+(b) the variant
+PASS  listener ring readable ((b) streaks)                        header present
+PASS  (b) [theme] preset w10m variant streaks applied             contains [[theme] preset w10m variant streaks applied]
+PASS  (b) streaks: background                                     contains [preset_w10m_streaks</string>]
+PASS  (b) streaks: still w10m                                     contains [<string name="theme_preset">w10m</string>]
+PASS  (b) streaks: every other item key unchanged                 =     <boolean name="transparency_effects" value="false" />
+    <float name="transparency" value="0.75" />
+    <long name="accent" value="4282279423" />
+    <string name="keyboard_palette">DARK</string>
+    <string name="press">NONE</string>
+    <string name="tess_lens">accent</string>
+    <string name="theme">DARK</string>
+      (b) the streaks picture on Start oracle: RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T != accent; gutters 23/23 within +-6
+PASS  (b) the streaks picture on Start: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T )  = 0
+PASS  (b) Default, then the original: the last-chosen variant, streaks  contains [<string name="theme_preset_variant">streaks</string>]
+PASS  (b) ... and its picture                                     contains [preset_w10m_streaks</string>]
+PASS  (b) the hero chip: the Hero again                           contains [preset_w10m_hero</string>]
+restore: Default, then pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E13: 64 passed, 0 failed, 1 recorded

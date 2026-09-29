@@ -1,0 +1,41 @@
+==============================================================================
+ROW E1 — absence on a provisioned AVD, both routes
+at            2026-09-29T09:41:06-06:00
+driver        e1.sh blob 6b886781cf09447582ac2c154ab9fac15327d868
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+(a) pm clear -> provision.sh (marker written)
+      restore_fresh a-start: provision rc=0
+PASS  (a) provision.sh rc                                         = 0
+PASS  (a) provision wrote the marker                              contains [<boolean name="finished" value="true" />]
+PASS  (a) start_page after the resume                             = yes
+PASS  (a) no wizard_page after the resume                         = no
+PASS  start ring readable ((a) resume)                            header present
+PASS  (a) [wizard] not shown: core held                           contains [[wizard] not shown: core held]
+PASS  (a) no [wizard] shown line                                  does not contain [[wizard] shown]
+(a) force-stop + Home: the keyboard is deselected, the marker keeps the wizard away
+PASS  (a) no wizard_page after force-stop                         = no
+PASS  (a) start_page after force-stop                             = yes
+PASS  start ring readable ((a) force-stop)                        header present
+PASS  (a) [wizard] not shown: finished                            contains [[wizard] not shown: finished]
+PASS  (a) default_input_method is not the shell keyboard          != app.tileshell/.ime.KeyboardService
+      scroll_to_node checklist:keyboard_selected:missing: 0 swipe(s), found=yes
+PASS  (a) Setup page: checklist:keyboard_selected:missing         = yes
+PASS  (a) ime set restores the keyboard                           = app.tileshell/.ime.KeyboardService
+(b) pm clear -> every grant from adb alone -> Home
+PASS  (b) start_page                                              = yes
+PASS  (b) no wizard_page                                          = no
+PASS  start ring readable ((b) home)                              header present
+PASS  (b) [wizard] not shown: core held                           contains [[wizard] not shown: core held]
+      (b) shared_prefs: applist_new.xml
+PASS  (b) no setup_wizard file (a device provisioned by adb never ran the wizard)  does not contain [setup_wizard]
+restore: pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E1: 20 passed, 0 failed, 0 recorded

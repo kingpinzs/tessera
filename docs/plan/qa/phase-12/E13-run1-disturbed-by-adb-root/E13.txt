@@ -1,0 +1,45 @@
+==============================================================================
+ROW E13 — the original W10M preset and its two pictures
+at            2026-09-29T11:12:45-06:00
+driver        e13.sh blob abdeac5c5f63134f23c3ebd635bbbfb2d8f522bc
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+pictures, asserted present in the APK
+PASS  APK lists preset_w10m_hero.webp                             contains [preset_w10m_hero.webp]
+PASS  APK lists preset_w10m_streaks.webp                          contains [preset_w10m_streaks.webp]
+(a) trial 1: the original preset, the Hero
+      provision_no_marker fixture-a-hero: rc=0
+FAIL  (a-hero) fixture reaches wizard_presets                     expected [yes] got [no]
+FAIL  (a-hero) ASSISTANT role held                                expected [app.tileshell] got []
+FAIL  start ring readable ((a) original)                          no diagnostics header in StartActivity's dump
+FAIL  (a) [theme] preset Windows 10 Mobile (original) applied     does not contain [[theme] preset Windows 10 Mobile (original) applied]: 
+FAIL  (a) [wizard] preset Windows 10 Mobile (original)            does not contain [[wizard] preset Windows 10 Mobile (original)]: 
+FAIL  (a) theme_preset = w10m                                     does not contain [<string name="theme_preset">w10m</string>]: 
+FAIL  (a) theme_preset_variant = hero                             does not contain [<string name="theme_preset_variant">hero</string>]: 
+FAIL  (a) accent = Cobalt 4282279423                              does not contain [<long name="accent" value="4282279423" />]: 
+FAIL  (a) theme DARK                                              does not contain [<string name="theme">DARK</string>]: 
+FAIL  (a) transparency 0.75                                       does not contain [<float name="transparency" value="0.75" />]: 
+FAIL  (a) press NONE                                              does not contain [<string name="press">NONE</string>]: 
+FAIL  (a) transparency_effects false                              does not contain [<boolean name="transparency_effects" value="false" />]: 
+FAIL  (a) keyboard_palette DARK                                   does not contain [<string name="keyboard_palette">DARK</string>]: 
+FAIL  (a) tess_lens accent                                        does not contain [<string name="tess_lens">accent</string>]: 
+FAIL  (a) background = the Hero                                   does not contain [<string name="background">android.resource://app.tileshell/drawable/preset_w10m_hero</string>]: 
+PASS  (a) the hero chip                                           = yes
+PASS  (a) the streaks chip                                        = yes
+PASS  (a) wizard_presets holds exactly six presets (the variant is not a seventh)  = 6
+RECORD  (a) the Custom entry, counted apart                         1 preset:Custom node(s)
+PASS  (a) the accent grid holds exactly 49 accent:* nodes         = 49
+FAIL  (a) accent:Cobalt present and selected                      expected [true] got [false]
+(a) Default, then the original again: the last-chosen variant (hero); streaks is its own trial
+PASS  (a) re-tapped: variant still hero                           contains [<string name="theme_preset_variant">hero</string>]
+      (a) the Hero on Start oracle: RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T != accent; gutters 23/23 within +-6
+PASS  (a) the Hero on Start: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T )  = 0
+PASS  (a) Tess on Cobalt: Tess's session opens (ASSISTANT held)   = yes
+      (a) Tess on Cobalt lens (accent, hue 227.88, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 227.88 at brightness 1.00, 16126 samples
+PASS  (a) Tess on Cobalt: Tess's lens is accent (hue 227.88, brightness 1.0)  = 0
+(a) trial 2: the streaks chip, tapped before Done

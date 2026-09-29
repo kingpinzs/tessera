@@ -1,0 +1,52 @@
+picture_oracle: mode=picture screenshot=/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-12/E11/b-soft-start.png 1080x2340 dump=/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-12/E11/b-soft-start.xml nodes=61 viewport=[0, 0, 1080, 2196] (dump start_page) numpy=True
+  accent=8E8CD8 alpha=0.520 (LITERAL from the caller, never computed here) scroll=0.0 layer_scale=1.30
+  tile tile:slot:PEOPLE bounds [9, 84, 352, 427] (343 x 343 px)
+  picture /home/jeremyking/projects/metro-launcher/app/src/main/res/drawable-nodpi/preset_soft.webp 1872x4056: crop scale 0.576923 -> dst 1080x2340 at offset [0, -72]; layer scale 1.30 about the viewport centre; translationY 0.00; total scale 0.7500
+GUTTER VALIDATION (5x5 patches, tol +-6.0 per channel mean)
+  cell     xy             screenshot               oracle                   diff                     verdict
+  0,1      132,431        ( 251.0, 215.0, 227.0)   ( 251.0, 215.0, 227.0)   (   0.0,   0.0,   0.0)   ok
+  0,2      132,787        ( 240.4, 214.4, 232.4)   ( 240.4, 214.4, 232.4)   (   0.0,   0.0,   0.0)   ok
+  0,3      132,1278       ( 228.0, 207.0, 235.0)   ( 228.0, 207.0, 235.0)   (   0.0,   0.0,   0.0)   ok
+  0,4      132,1644       ( 220.5, 217.4, 238.5)   ( 220.5, 217.4, 238.5)   (   0.0,   0.0,   0.0)   ok
+  0,5      132,1927       ( 225.5, 228.7, 246.1)   ( 225.5, 228.7, 246.1)   (  -0.0,  -0.0,  -0.0)   ok
+  1,0      357,180        ( 251.8, 216.2, 226.0)   ( 251.8, 216.2, 226.0)   (   0.0,   0.0,   0.0)   ok
+  1,1      402,431        ( 247.0, 215.0, 230.0)   ( 247.1, 215.1, 230.1)   (  -0.0,  -0.0,  -0.0)   ok
+  1,2      402,787        ( 239.8, 216.8, 235.0)   ( 239.8, 216.8, 235.0)   (   0.0,   0.0,   0.0)   ok
+  1,3      402,1278       ( 228.2, 215.2, 237.3)   ( 228.2, 215.2, 237.4)   (  -0.0,  -0.0,  -0.0)   ok
+  1,4      402,1644       ( 226.6, 225.8, 243.8)   ( 226.7, 225.9, 243.9)   (  -0.1,  -0.0,  -0.1)   ok
+  1,5      357,2010       ( 206.6, 223.6, 243.1)   ( 206.6, 223.6, 243.1)   (   0.0,   0.0,   0.0)   ok
+  2,0      711,180        ( 249.8, 217.2, 228.8)   ( 249.8, 217.2, 228.8)   (   0.0,   0.0,   0.0)   ok
+  2,1      711,546        ( 243.2, 218.2, 233.2)   ( 243.2, 218.2, 233.2)   (   0.0,   0.0,   0.0)   ok
+  2,2      711,912        ( 231.2, 211.9, 235.0)   ( 231.2, 211.9, 235.0)   (   0.0,   0.0,   0.0)   ok
+  2,3      672,1278       ( 230.0, 222.0, 243.0)   ( 230.0, 222.0, 243.0)   (   0.0,   0.0,   0.0)   ok
+  2,4      672,1644       ( 219.5, 225.5, 243.8)   ( 219.6, 225.6, 243.8)   (  -0.1,  -0.1,  -0.0)   ok
+  2,5      711,2010       ( 204.0, 225.0, 245.0)   ( 204.0, 225.0, 245.0)   (   0.0,   0.0,   0.0)   ok
+  3,0      1067,180       ( 248.6, 227.7, 239.0)   ( 248.6, 227.7, 239.0)   (   0.0,   0.0,   0.0)   ok
+  3,1      942,431        ( 244.9, 219.2, 232.5)   ( 245.0, 219.4, 232.5)   (  -0.1,  -0.1,   0.0)   ok
+  3,2      942,963        ( 227.2, 207.4, 235.0)   ( 227.2, 207.4, 235.0)   (   0.0,   0.0,   0.0)   ok
+  3,3      942,1278       ( 225.4, 221.2, 241.0)   ( 225.4, 221.2, 241.0)   (   0.0,  -0.1,  -0.0)   ok
+  3,4      942,1644       ( 226.4, 231.9, 247.0)   ( 226.4, 231.9, 247.0)   (   0.0,   0.0,   0.0)   ok
+  3,5      942,1927       ( 218.4, 232.4, 248.4)   ( 218.4, 232.4, 248.4)   (   0.0,   0.0,   0.0)   ok
+  23 patches over 23 cells; worst per-channel mean diff 0.11; 0 mismatch
+  gutter validation OK: the oracle's geometry reproduces the screenshot's picture
+TILE PATCH SELECTION in [9, 84, 352, 427] (9x9 patches; edges 3 px, label band 70 px, icon square [96,171]-[264,339] excluded)
+  391 candidates: 391 accepted (12 chosen), rejected none
+GEOMETRY SENSITIVITY (which patches would notice a wrong model; informational)
+  shift_y+30px     gutter patches that would show it:  0/23   tile patches whose B it would move:  0/12   (the picture is flat there: B does not depend on it)
+  shift_x+30px     gutter patches that would show it:  2/23   tile patches whose B it would move:  0/12   (the picture is flat there: B does not depend on it)
+  layer_scale_1.0  gutter patches that would show it:  7/23   tile patches whose B it would move:  1/12
+TILE PATCH ASSERTIONS (T = alpha*accent + (1-alpha)*B +- 4, and T != accent +- 4)
+  xy         T                        B                        expected                 diff                     verdict
+  60,87      ( 195.4, 174.4, 219.0)   ( 253.5, 212.3, 221.8)   ( 195.5, 174.7, 218.8)   (  -0.1,  -0.3,   0.3)   ok
+  180,87     ( 195.6, 175.9, 220.7)   ( 253.5, 215.6, 225.1)   ( 195.5, 176.3, 220.4)   (   0.1,  -0.4,   0.4)   ok
+  120,99     ( 195.8, 175.0, 219.8)   ( 253.8, 213.8, 222.8)   ( 195.7, 175.4, 219.3)   (   0.1,  -0.4,   0.5)   ok
+  312,99     ( 195.0, 177.7, 222.6)   ( 252.9, 219.3, 228.3)   ( 195.2, 178.0, 221.9)   (  -0.2,  -0.4,   0.7)   ok
+  108,159    ( 195.6, 174.0, 219.0)   ( 254.1, 211.6, 221.6)   ( 195.8, 174.3, 218.7)   (  -0.2,  -0.3,   0.3)   ok
+  288,183    ( 195.0, 176.8, 221.7)   ( 252.6, 217.6, 226.8)   ( 195.1, 177.2, 221.2)   (  -0.1,  -0.4,   0.6)   ok
+  84,195     ( 195.8, 175.1, 220.1)   ( 253.9, 213.9, 223.5)   ( 195.7, 175.5, 219.6)   (   0.1,  -0.3,   0.5)   ok
+  12,219     ( 195.4, 173.8, 219.9)   ( 253.8, 211.3, 223.3)   ( 195.7, 174.2, 219.5)   (  -0.2,  -0.5,   0.4)   ok
+  276,255    ( 194.9, 176.4, 221.4)   ( 252.3, 216.8, 226.4)   ( 194.9, 176.9, 221.0)   (  -0.0,  -0.4,   0.4)   ok
+  60,291     ( 195.7, 174.3, 220.1)   ( 254.1, 212.6, 224.0)   ( 195.8, 174.8, 219.8)   (  -0.1,  -0.5,   0.3)   ok
+  60,339     ( 195.0, 174.0, 220.0)   ( 252.7, 211.7, 223.7)   ( 195.1, 174.4, 219.7)   (  -0.1,  -0.4,   0.3)   ok
+  324,339    ( 194.5, 176.9, 222.6)   ( 251.7, 217.3, 228.8)   ( 194.7, 177.1, 222.1)   (  -0.1,  -0.2,   0.5)   ok
+RESULT PASS 12 patches: T = 0.52*accent + 0.48*B +- 4 and T != accent; gutters 23/23 within +-6

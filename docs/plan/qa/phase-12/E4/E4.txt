@@ -1,0 +1,53 @@
+==============================================================================
+ROW E4 — persistence and resume after process death and reboot
+at            2026-09-29T09:57:26-06:00
+driver        e4.sh blob faf8b981f4af2c030d251a54ac7db8884b188c6a
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d13h20m30s212ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+PASS  E2 state: USE_FULL_SCREEN_INTENT no mode left at allow (uid or package)  does not contain [allow]
+PASS  E2 state: SYSTEM_ALERT_WINDOW ignore                        contains [ignore]
+PASS  E2 state: SYSTEM_ALERT_WINDOW not allow/default             does not contain [default]
+PASS  E2 state: first step notifications                          = setup:notifications
+PASS  E2 state: Step 1 of 20                                      = Step 1 of 20
+PASS  on the Photos step                                          = setup:photos
+      resumed while the dialog shows: com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  Android's permission dialog is up                           contains [permissioncontroller]
+PASS  the Photos step advanced (music next)                       = setup:music
+PASS  start ring readable (photos granted)                        header present
+PASS  [wizard] step setup:photos: granted                         contains [[wizard] step setup:photos: granted]
+PASS  READ_MEDIA_IMAGES granted                                   contains [READ_MEDIA_IMAGES: granted=true]
+(1) am force-stop + Home
+PASS  (forcestop) wizard_page                                     = yes
+PASS  (forcestop) first step setup:notifications                  = setup:notifications
+PASS  (forcestop) one fewer N: Step 1 of 19                       = Step 1 of 19
+      (forcestop) steps seen: setup:notifications setup:music setup:calendar setup:location setup:usage setup:keyboard_enabled setup:keyboard_selected setup:full_screen_alarms setup:overlay tess:assistant tess:microphone tess:contacts tess:calendar tess:sms_send tess:call_phone tess:background_location tess:call_log tess:sms_read PRESETS 
+PASS  (forcestop) setup:photos nowhere in the run                 does not contain [setup:photos]
+PASS  (forcestop) the run ends on the presets page                contains [PRESETS]
+PASS  (forcestop) eighteen steps walked                           = 18
+PASS  start ring readable (force-stop)                            header present
+PASS  (forcestop) a new run: [wizard] shown without setup:photos  contains [[wizard] shown: missing=setup:notifications,setup:music]
+(2) adb reboot in place of the force-stop
+PASS  wake_device after the reboot                                = Awake
+PASS  (reboot) wizard_page                                        = yes
+PASS  (reboot) first step setup:notifications                     = setup:notifications
+PASS  (reboot) one fewer N: Step 1 of 19                          = Step 1 of 19
+      (reboot) steps seen: setup:notifications setup:music setup:calendar setup:location setup:usage setup:keyboard_enabled setup:keyboard_selected setup:full_screen_alarms setup:overlay tess:assistant tess:microphone tess:contacts tess:calendar tess:sms_send tess:call_phone tess:background_location tess:call_log tess:sms_read PRESETS 
+PASS  (reboot) setup:photos nowhere in the run                    does not contain [setup:photos]
+PASS  (reboot) the run ends on the presets page                   contains [PRESETS]
+PASS  (reboot) eighteen steps walked                              = 18
+PASS  start ring readable (reboot)                                header present
+PASS  (reboot) a new run: [wizard] shown without setup:photos     contains [[wizard] shown: missing=setup:notifications,setup:music]
+restore: pm clear -> provision.sh -> Home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E4: 30 passed, 0 failed, 0 recorded

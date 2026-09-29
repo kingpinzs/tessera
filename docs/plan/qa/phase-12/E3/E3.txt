@@ -1,0 +1,162 @@
+==============================================================================
+ROW E3 — real grants through Android's pages, then HAL
+at            2026-09-29T10:33:46-06:00
+driver        e3.sh blob 0a76ca62cdf0d745c79c981ccad190d1b539c10e
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d13h56m50s742ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+PASS  E2 state: USE_FULL_SCREEN_INTENT no mode left at allow (uid or package)  does not contain [allow]
+PASS  E2 state: SYSTEM_ALERT_WINDOW ignore                        contains [ignore]
+PASS  E2 state: SYSTEM_ALERT_WINDOW not allow/default             does not contain [default]
+PASS  layout_restore of phase 02's baseline                       = 0
+PASS  why line on setup:notifications                             = Live tiles and unread counts come from your notifications. Without it the tiles stay still.
+      setup:notifications: first resumed [com.android.settings/.Settings$NotificationAccessDetailsActivity]; actions: | tap 962 1246 the page's switch | tap 540 1767 confirm (ALLOW) | back switch set | wizard setup:photos
+RECORD  setup:notifications: Android's page                         com.android.settings/.Settings$NotificationAccessDetailsActivity
+PASS  start ring readable (setup:notifications)                   header present
+PASS  [wizard] step setup:notifications: granted                  contains [[wizard] step setup:notifications: granted]
+PASS  why line on setup:photos                                    = The Photos tile shows your pictures. Without it the tile stays empty.
+      setup:photos: first resumed [com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity]; actions: | tap 540 1408 Allow all (photos) | wizard setup:music
+RECORD  setup:photos: Android's page                                com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  start ring readable (setup:photos)                          header present
+PASS  [wizard] step setup:photos: granted                         contains [[wizard] step setup:photos: granted]
+PASS  why line on setup:music                                     = Music plays the songs on this phone. Without it Music finds nothing to play.
+      setup:music: first resumed [com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity]; actions: | tap 540 1323 Allow | wizard setup:calendar
+RECORD  setup:music: Android's page                                 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  start ring readable (setup:music)                           header present
+PASS  [wizard] step setup:music: granted                          contains [[wizard] step setup:music: granted]
+PASS  why line on setup:calendar                                  = The Calendar tile shows what's next. Without it the tile stays empty.
+      setup:calendar: first resumed [com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity]; actions: | tap 540 1323 Allow | wizard setup:location
+RECORD  setup:calendar: Android's page                              com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  start ring readable (setup:calendar)                        header present
+PASS  [wizard] step setup:calendar: granted                       contains [[wizard] step setup:calendar: granted]
+PASS  why line on setup:location                                  = Weather shows the weather where you are. Without it Weather cannot tell where that is.
+      setup:location: first resumed [com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity]; actions: | tap 540 1454 While using the app | wizard setup:usage
+RECORD  setup:location: Android's page                              com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  start ring readable (setup:location)                        header present
+PASS  [wizard] step setup:location: granted                       contains [[wizard] step setup:location: granted]
+PASS  why line on setup:usage                                     = Back on Start returns to the app you were using. Without it Back stays on Start.
+      setup:usage: first resumed [com.android.settings/.Settings$AppUsageAccessSettingsActivity]; actions: | tap 962 1160 the page's switch | back switch set | wizard setup:keyboard_enabled
+RECORD  setup:usage: Android's page                                 com.android.settings/.Settings$AppUsageAccessSettingsActivity
+PASS  start ring readable (setup:usage)                           header present
+PASS  [wizard] step setup:usage: granted                          contains [[wizard] step setup:usage: granted]
+PASS  why line on setup:keyboard_enabled                          = This turns on the Windows-style keyboard. Without it the keyboard cannot be chosen.
+      setup:keyboard_enabled: first resumed [com.android.settings/.Settings$AvailableVirtualKeyboardActivity]; actions: | tap 962 1033 the shell keyboard's switch | tap 884 1382 confirm (OK) | tap 884 1253 confirm (OK) | back keyboard enabled | wizard setup:keyboard_selected
+RECORD  setup:keyboard_enabled: Android's page                      com.android.settings/.Settings$AvailableVirtualKeyboardActivity
+PASS  start ring readable (setup:keyboard_enabled)                header present
+PASS  [wizard] step setup:keyboard_enabled: granted               contains [[wizard] step setup:keyboard_enabled: granted]
+PASS  why line on setup:keyboard_selected                         = This makes it the keyboard wherever you type. Without it your old keyboard stays.
+      setup:keyboard_selected: first resumed [app.tileshell/.StartActivity]; actions: | tap 342 1815 the shell keyboard's subtype | wizard setup:full_screen_alarms
+RECORD  setup:keyboard_selected: Android's page                     app.tileshell/.StartActivity
+PASS  start ring readable (setup:keyboard_selected)               header present
+PASS  [wizard] step setup:keyboard_selected: granted              contains [[wizard] step setup:keyboard_selected: granted]
+PASS  why line on setup:full_screen_alarms                        = Alarms ring over the lock screen. Without it an alarm still sounds, but shows only as a notification.
+      setup:full_screen_alarms: first resumed [com.android.settings/.spa.SpaActivity]; actions: | tap 540 1258 the page's switch | back switch set | wizard setup:overlay
+RECORD  setup:full_screen_alarms: Android's page                    com.android.settings/.spa.SpaActivity
+PASS  start ring readable (setup:full_screen_alarms)              header present
+PASS  [wizard] step setup:full_screen_alarms: granted             contains [[wizard] step setup:full_screen_alarms: granted]
+PASS  appops USE_FULL_SCREEN_INTENT allow                         contains [allow]
+PASS  why line on setup:overlay                                   = Alarms ring over the app you're using. Without it an alarm shows as a notification.
+      setup:overlay: first resumed [com.android.settings/.spa.SpaActivity]; actions: | tap 305 1462 the shell's entry | tap 540 1224 the page's switch | back switch set | back switch set | wizard tess:assistant
+RECORD  setup:overlay: Android's page                               com.android.settings/.spa.SpaActivity
+PASS  start ring readable (setup:overlay)                         header present
+PASS  [wizard] step setup:overlay: granted                        contains [[wizard] step setup:overlay: granted]
+PASS  appops SYSTEM_ALERT_WINDOW allow                            contains [allow]
+PASS  why line on tess:assistant                                  = The side key and the assist gesture open Tess. Without it they open another assistant.
+      tess:assistant: first resumed [com.android.settings/.Settings$ManageAssistActivity]; actions: | tap 415 722 Default digital assistant app | tap 435 1007 choose the shell in the default-assistant list | tap 884 1332 OK (the assistant's access warning) | back assistant chosen | back assistant chosen | wizard tess:microphone
+RECORD  tess:assistant: Android's page                              com.android.settings/.Settings$ManageAssistActivity
+PASS  start ring readable (tess:assistant)                        header present
+PASS  [wizard] step tess:assistant: granted                       contains [[wizard] step tess:assistant: granted]
+PASS  ASSISTANT role holder                                       = app.tileshell
+PASS  why line on tess:microphone                                 = Tess hears what you ask. Without it you can only type to her.
+      tess:microphone: first resumed [com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity]; actions: | tap 540 1137 While using the app | wizard tess:contacts
+RECORD  tess:microphone: Android's page                             com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  start ring readable (tess:microphone)                       header present
+PASS  [wizard] step tess:microphone: granted                      contains [[wizard] step tess:microphone: granted]
+PASS  why line on tess:contacts                                   = Tess calls and texts people by name. Without it she cannot find them.
+      tess:contacts: first resumed [com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity]; actions: | tap 540 1255 Allow | wizard tess:calendar
+RECORD  tess:contacts: Android's page                               com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  start ring readable (tess:contacts)                         header present
+PASS  [wizard] step tess:contacts: granted                        contains [[wizard] step tess:contacts: granted]
+PASS  why line on tess:calendar                                   = Tess reads your calendar and adds to it. Without it she cannot see or add events.
+      tess:calendar: first resumed [app.tileshell/.StartActivity]; actions: | wizard tess:call_phone
+RECORD  tess:calendar: Android's page                               app.tileshell/.StartActivity
+PASS  start ring readable (tess:calendar)                         header present
+PASS  [wizard] step tess:calendar: granted                        contains [[wizard] step tess:calendar: granted]
+PASS  why line on tess:call_phone                                 = Tess places a call after you confirm. Without it she cannot call.
+      tess:call_phone: first resumed [com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity]; actions: | tap 540 1255 Allow | wizard tess:background_location
+RECORD  tess:call_phone: Android's page                             com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  start ring readable (tess:call_phone)                       header present
+PASS  [wizard] step tess:call_phone: granted                      contains [[wizard] step tess:call_phone: granted]
+PASS  why line on tess:background_location                        = Place reminders go off when you arrive. Without "all the time" they never fire.
+PASS  before: ACCESS_FINE_LOCATION not granted                    contains [ACCESS_FINE_LOCATION: granted=false]
+PASS  before: ACCESS_BACKGROUND_LOCATION not granted              contains [ACCESS_BACKGROUND_LOCATION: granted=false]
+      tess:background_location: first resumed [com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity]; actions: | tap 540 1420 While using the app | wizard tess:background_location
+RECORD  tess:background_location: Android's page                    com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  leg 1: FINE granted                                         contains [ACCESS_FINE_LOCATION: granted=true]
+PASS  leg 1: BACKGROUND still absent                              contains [ACCESS_BACKGROUND_LOCATION: granted=false]
+PASS  leg 1: the same step still shows                            = tess:background_location
+PASS  start ring readable (bgloc leg 1)                           header present
+PASS  leg 1: [wizard] step tess:background_location: partial      contains [[wizard] step tess:background_location: partial]
+      tess:background_location: first resumed [com.android.permissioncontroller/.permission.ui.ManagePermissionsActivity]; actions: | tap 101 1319 Allow all the time | back location page: all the time is chosen | wizard presets
+RECORD  tess:background_location: Android's page                    com.android.permissioncontroller/.permission.ui.ManagePermissionsActivity
+PASS  leg 2: BACKGROUND granted                                   contains [android.permission.ACCESS_BACKGROUND_LOCATION: granted=true]
+PASS  leg 2: appops FINE_LOCATION allow (not foreground)          contains [allow]
+PASS  leg 2: appops FINE_LOCATION not foreground                  does not contain [foreground]
+PASS  start ring readable (tess:background_location)              header present
+PASS  [wizard] step tess:background_location: granted             contains [[wizard] step tess:background_location: granted]
+      steps walked: setup:notifications setup:photos setup:music setup:calendar setup:location setup:usage setup:keyboard_enabled setup:keyboard_selected setup:full_screen_alarms setup:overlay tess:assistant tess:microphone tess:contacts tess:calendar tess:call_phone tess:background_location
+RECORD  steps granted by the ASSISTANT role, never shown             tess:sms_send tess:call_log tess:sms_read
+PASS  the steps not walked are exactly Tess's SMS and call-log rows  = tess:sms_send tess:call_log tess:sms_read
+PASS  SEND_SMS granted (by the role, no dialog)                   contains [android.permission.SEND_SMS: granted=true]
+PASS  READ_CALL_LOG granted (by the role, no dialog)              contains [android.permission.READ_CALL_LOG: granted=true]
+PASS  READ_SMS granted (by the role, no dialog)                   contains [android.permission.READ_SMS: granted=true]
+PASS  walked + role-granted = the nineteen                        = 19
+PASS  no step was declined on the way                             = 0
+the presets page
+PASS  wizard_presets                                              = yes
+PASS  the six presets in order                                    = Default|Windows 10 Mobile (original)|HAL|Soft|Lumia|Midnight|
+PASS  preset:Default selected (Compose reports it checked)        = true
+PASS  start_page is back                                          = yes
+PASS  theme_preset = hal                                          contains [<string name="theme_preset">hal</string>]
+PASS  accent = Red 4293398819                                     contains [<long name="accent" value="4293398819" />]
+PASS  start ring readable (HAL + Done)                            header present
+PASS  ring order: [wizard] preset HAL, [theme] preset HAL applied, [wizard] finished  = [wizard] preset HAL|[theme] preset HAL applied|[wizard] finished|
+PASS  picture oracle: T = 0.72 Red + 0.28 B +-4 and T != Red (exit 0)  = 0
+      oracle: RESULT PASS 12 patches: T = 0.72*accent + 0.28*B +- 4 and T != accent; gutters 23/23 within +-6
+PASS  zero assignSlotOnce -> assigned after layout_restore (C-3)  = 0
+both checklists green
+PASS  checklist:home:granted                                      contains [checklist:home:granted]
+PASS  checklist:notifications:granted                             contains [checklist:notifications:granted]
+PASS  checklist:photos:granted                                    contains [checklist:photos:granted]
+PASS  checklist:music:granted                                     contains [checklist:music:granted]
+PASS  checklist:calendar:granted                                  contains [checklist:calendar:granted]
+PASS  checklist:location:granted                                  contains [checklist:location:granted]
+PASS  checklist:usage:granted                                     contains [checklist:usage:granted]
+PASS  checklist:keyboard_enabled:granted                          contains [checklist:keyboard_enabled:granted]
+PASS  checklist:keyboard_selected:granted                         contains [checklist:keyboard_selected:granted]
+PASS  checklist:full_screen_alarms:granted                        contains [checklist:full_screen_alarms:granted]
+PASS  checklist:overlay:granted                                   contains [checklist:overlay:granted]
+PASS  cortana_check:assistant:granted                             contains [cortana_check:assistant:granted]
+PASS  cortana_check:microphone:granted                            contains [cortana_check:microphone:granted]
+PASS  cortana_check:contacts:granted                              contains [cortana_check:contacts:granted]
+PASS  cortana_check:calendar:granted                              contains [cortana_check:calendar:granted]
+PASS  cortana_check:sms_send:granted                              contains [cortana_check:sms_send:granted]
+PASS  cortana_check:call_phone:granted                            contains [cortana_check:call_phone:granted]
+PASS  cortana_check:background_location:granted                   contains [cortana_check:background_location:granted]
+PASS  cortana_check:call_log:granted                              contains [cortana_check:call_log:granted]
+PASS  cortana_check:sms_read:granted                              contains [cortana_check:sms_read:granted]
+restore: Start + theme -> Default, then pm clear -> provision.sh -> Home
+PASS  theme_preset:Default selected                               = true
+PASS  theme_preset = default                                      contains [<string name="theme_preset">default</string>]
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+E3: 105 passed, 0 failed, 18 recorded

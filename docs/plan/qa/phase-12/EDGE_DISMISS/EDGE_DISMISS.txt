@@ -1,0 +1,40 @@
+==============================================================================
+ROW EDGE_DISMISS — the runtime dialog dismissed by Back or a tap outside: the step stays; Not now advances
+at            2026-09-29T14:24:54-06:00
+driver        edge.sh blob 0ee194eddb4bae217594c2053320c8990ff74b12
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d17h47m59s34ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+PASS  E2 state: USE_FULL_SCREEN_INTENT no mode left at allow (uid or package)  does not contain [allow]
+PASS  E2 state: SYSTEM_ALERT_WINDOW ignore                        contains [ignore]
+PASS  E2 state: SYSTEM_ALERT_WINDOW not allow/default             does not contain [default]
+PASS  (back) the dialog is up                                     contains [permissioncontroller]
+RECORD  (back) resumed after the dismissal                          app.tileshell/.StartActivity
+PASS  (back) the Photos step stays                                = setup:photos
+RECORD  (back) the button after the dismissal                       Open app info
+PASS  (back) Not now advances                                     = setup:music
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d17h48m21s645ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+PASS  E2 state: USE_FULL_SCREEN_INTENT no mode left at allow (uid or package)  does not contain [allow]
+PASS  E2 state: SYSTEM_ALERT_WINDOW ignore                        contains [ignore]
+PASS  E2 state: SYSTEM_ALERT_WINDOW not allow/default             does not contain [default]
+PASS  (outside) the dialog is up                                  contains [permissioncontroller]
+RECORD  (outside) resumed after the dismissal                       com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+RECORD  (outside) the dialog did not dismiss on this image          pressing Back to leave it
+PASS  (outside) the Photos step stays                             = setup:photos
+RECORD  (outside) the button after the dismissal                    Open app info
+PASS  (outside) Not now advances                                  = setup:music
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+EDGE_DISMISS: 15 passed, 0 failed, 5 recorded

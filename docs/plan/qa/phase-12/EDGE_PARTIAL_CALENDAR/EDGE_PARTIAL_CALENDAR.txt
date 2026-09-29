@@ -1,0 +1,27 @@
+==============================================================================
+ROW EDGE_PARTIAL_CALENDAR — tess:calendar with read only: PARTIAL stays with its partial line; Not now advances
+at            2026-09-29T14:27:24-06:00
+driver        edge.sh blob 0ee194eddb4bae217594c2053320c8990ff74b12
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d17h50m28s612ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+PASS  E2 state: USE_FULL_SCREEN_INTENT no mode left at allow (uid or package)  does not contain [allow]
+PASS  E2 state: SYSTEM_ALERT_WINDOW ignore                        contains [ignore]
+PASS  E2 state: SYSTEM_ALERT_WINDOW not allow/default             does not contain [default]
+RECORD  after the request                                           com.android.settings/.spa.SpaActivity
+PASS  the step stays                                              = tess:calendar
+PASS  start ring readable (read only)                             header present
+PASS  [wizard] step tess:calendar: partial                        contains [[wizard] step tess:calendar: partial]
+PASS  Not now advances                                            = tess:sms_send
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+EDGE_PARTIAL_CALENDAR: 9 passed, 0 failed, 1 recorded

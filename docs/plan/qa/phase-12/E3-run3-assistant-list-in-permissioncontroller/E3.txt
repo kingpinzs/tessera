@@ -1,0 +1,92 @@
+==============================================================================
+ROW E3 — real grants through Android's pages, then HAL
+at            2026-09-29T10:20:09-06:00
+driver        e3.sh blob 43810c3180374da830460a48ad238208d2192be8
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     c464ffcdf1e19035 338315461 bytes
+apk installed 86520f8059f3471e
+apk match     yes (86520f8059f3471e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      e2_state: fsi=Uid mode: USE_FULL_SCREEN_INTENT: ignore
+USE_FULL_SCREEN_INTENT: ignore overlay=SYSTEM_ALERT_WINDOW: ignore; time=+1d13h43m14s17ms ago; duration=+7s283ms
+      e2_state: home=app.tileshell assistant=[]
+PASS  E2 state: USE_FULL_SCREEN_INTENT ignore                     contains [ignore]
+PASS  E2 state: USE_FULL_SCREEN_INTENT no mode left at allow (uid or package)  does not contain [allow]
+PASS  E2 state: SYSTEM_ALERT_WINDOW ignore                        contains [ignore]
+PASS  E2 state: SYSTEM_ALERT_WINDOW not allow/default             does not contain [default]
+PASS  layout_restore of phase 02's baseline                       = 0
+PASS  why line on setup:notifications                             = Live tiles and unread counts come from your notifications. Without it the tiles stay still.
+      setup:notifications: first resumed [com.android.settings/.Settings$NotificationAccessDetailsActivity]; actions: | tap 962 1246 the page's switch | tap 540 1767 confirm (ALLOW) | back switch set | wizard setup:photos
+RECORD  setup:notifications: Android's page                         com.android.settings/.Settings$NotificationAccessDetailsActivity
+PASS  start ring readable (setup:notifications)                   header present
+PASS  [wizard] step setup:notifications: granted                  contains [[wizard] step setup:notifications: granted]
+PASS  why line on setup:photos                                    = The Photos tile shows your pictures. Without it the tile stays empty.
+      setup:photos: first resumed [com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity]; actions: | tap 540 1408 Allow all (photos) | wizard setup:music
+RECORD  setup:photos: Android's page                                com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  start ring readable (setup:photos)                          header present
+PASS  [wizard] step setup:photos: granted                         contains [[wizard] step setup:photos: granted]
+PASS  why line on setup:music                                     = Music plays the songs on this phone. Without it Music finds nothing to play.
+      setup:music: first resumed [com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity]; actions: | tap 540 1323 Allow | wizard setup:calendar
+RECORD  setup:music: Android's page                                 com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  start ring readable (setup:music)                           header present
+PASS  [wizard] step setup:music: granted                          contains [[wizard] step setup:music: granted]
+PASS  why line on setup:calendar                                  = The Calendar tile shows what's next. Without it the tile stays empty.
+      setup:calendar: first resumed [com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity]; actions: | tap 540 1323 Allow | wizard setup:location
+RECORD  setup:calendar: Android's page                              com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  start ring readable (setup:calendar)                        header present
+PASS  [wizard] step setup:calendar: granted                       contains [[wizard] step setup:calendar: granted]
+PASS  why line on setup:location                                  = Weather shows the weather where you are. Without it Weather cannot tell where that is.
+      setup:location: first resumed [com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity]; actions: | tap 540 1454 While using the app | wizard setup:usage
+RECORD  setup:location: Android's page                              com.android.permissioncontroller/.permission.ui.GrantPermissionsActivity
+PASS  start ring readable (setup:location)                        header present
+PASS  [wizard] step setup:location: granted                       contains [[wizard] step setup:location: granted]
+PASS  why line on setup:usage                                     = Back on Start returns to the app you were using. Without it Back stays on Start.
+      setup:usage: first resumed [com.android.settings/.Settings$AppUsageAccessSettingsActivity]; actions: | tap 962 1160 the page's switch | back switch set | wizard setup:keyboard_enabled
+RECORD  setup:usage: Android's page                                 com.android.settings/.Settings$AppUsageAccessSettingsActivity
+PASS  start ring readable (setup:usage)                           header present
+PASS  [wizard] step setup:usage: granted                          contains [[wizard] step setup:usage: granted]
+PASS  why line on setup:keyboard_enabled                          = This turns on the Windows-style keyboard. Without it the keyboard cannot be chosen.
+      setup:keyboard_enabled: first resumed [com.android.settings/.Settings$AvailableVirtualKeyboardActivity]; actions: | tap 962 1033 the shell keyboard's switch | tap 884 1382 confirm (OK) | tap 884 1253 confirm (OK) | back keyboard enabled | wizard setup:keyboard_selected
+RECORD  setup:keyboard_enabled: Android's page                      com.android.settings/.Settings$AvailableVirtualKeyboardActivity
+PASS  start ring readable (setup:keyboard_enabled)                header present
+PASS  [wizard] step setup:keyboard_enabled: granted               contains [[wizard] step setup:keyboard_enabled: granted]
+PASS  why line on setup:keyboard_selected                         = This makes it the keyboard wherever you type. Without it your old keyboard stays.
+      setup:keyboard_selected: first resumed [app.tileshell/.StartActivity]; actions: | tap 342 1815 the shell keyboard's subtype | wizard setup:full_screen_alarms
+RECORD  setup:keyboard_selected: Android's page                     app.tileshell/.StartActivity
+PASS  start ring readable (setup:keyboard_selected)               header present
+PASS  [wizard] step setup:keyboard_selected: granted              contains [[wizard] step setup:keyboard_selected: granted]
+PASS  why line on setup:full_screen_alarms                        = Alarms ring over the lock screen. Without it an alarm still sounds, but shows only as a notification.
+      setup:full_screen_alarms: first resumed [com.android.settings/.spa.SpaActivity]; actions: | tap 540 1258 the page's switch | back switch set | wizard setup:overlay
+RECORD  setup:full_screen_alarms: Android's page                    com.android.settings/.spa.SpaActivity
+PASS  start ring readable (setup:full_screen_alarms)              header present
+PASS  [wizard] step setup:full_screen_alarms: granted             contains [[wizard] step setup:full_screen_alarms: granted]
+PASS  appops USE_FULL_SCREEN_INTENT allow                         contains [allow]
+PASS  why line on setup:overlay                                   = Alarms ring over the app you're using. Without it an alarm shows as a notification.
+      setup:overlay: first resumed [com.android.settings/.spa.SpaActivity]; actions: | tap 305 1462 the shell's entry | tap 540 1224 the page's switch | back switch set | back switch set | wizard tess:assistant
+RECORD  setup:overlay: Android's page                               com.android.settings/.spa.SpaActivity
+PASS  start ring readable (setup:overlay)                         header present
+PASS  [wizard] step setup:overlay: granted                        contains [[wizard] step setup:overlay: granted]
+PASS  appops SYSTEM_ALERT_WINDOW allow                            contains [allow]
+PASS  why line on tess:assistant                                  = The side key and the assist gesture open Tess. Without it they open another assistant.
+      tess:assistant: first resumed [com.android.settings/.Settings$ManageAssistActivity]; actions: | tap 415 722 Default digital assistant app | unknown com.android.permissioncontroller | None / Tessera / Assist apps can help you based on information from the screen you’re viewing. Some apps support both launcher and voice input services to give you integrated assistance.
+RECORD  tess:assistant: Android's page                              com.android.settings/.Settings$ManageAssistActivity
+PASS  start ring readable (tess:assistant)                        header present
+FAIL  [wizard] step tess:assistant: granted                       does not contain [[wizard] step tess:assistant: granted]: 2026-09-29 10:23:19.574 wall=1790698999574 [cortana] assistant role: opening android.settings.VOICE_INPUT_SETTINGS (roleAvailable=true)
+FAIL  ASSISTANT role holder                                       expected [app.tileshell] got []
+      steps walked: setup:notifications setup:photos setup:music setup:calendar setup:location setup:usage setup:keyboard_enabled setup:keyboard_selected setup:full_screen_alarms setup:overlay tess:assistant
+FAIL  all nineteen steps walked                                   expected [19] got [11]
+the presets page
+FAIL  wizard_presets                                              expected [yes] got [no]
+FAIL  the six presets in order                                    expected [Default|Windows 10 Mobile (original)|HAL|Soft|Lumia|Midnight|] got []
+FAIL  preset:Default selected (Compose reports it checked)        expected [true] got []
+FAIL  start_page is back                                          expected [yes] got [no]
+FAIL  theme_preset = hal                                          does not contain [<string name="theme_preset">hal</string>]: 
+FAIL  accent = Red 4293398819                                     does not contain [<long name="accent" value="4293398819" />]: 
+PASS  start ring readable (HAL + Done)                            header present
+FAIL  ring order: [wizard] preset HAL, [theme] preset HAL applied, [wizard] finished  expected [[wizard] preset HAL|[theme] preset HAL applied|[wizard] finished|] got []
+FAIL  picture oracle: T = 0.72 Red + 0.28 B +-4 and T != Red (exit 0)  expected [0] got [2]
+      oracle: RESULT UNUSABLE tile tile:slot:PEOPLE not in the dump
+PASS  zero assignSlotOnce -> assigned after layout_restore (C-3)  = 0
+both checklists green

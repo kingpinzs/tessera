@@ -1,0 +1,163 @@
+{
+ "args": {
+  "screenshot": "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-12/E11/a-default-tess.png",
+  "dump": "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-12/E11/a-default-tess.xml",
+  "hue": "hal",
+  "brightness": 1.0,
+  "form": "ring",
+  "node": null,
+  "expect_tones": null,
+  "require": "",
+  "hue_tol": 8.0,
+  "v_tol": 0.05,
+  "min_samples": 40,
+  "radius_tol": 2.5,
+  "out": "/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-12/E11/a-default-tess-lens.json"
+ },
+ "tones": {
+  "core": [
+   255.0,
+   233.0,
+   200.0
+  ],
+  "rim": [
+   138.0,
+   16.0,
+   8.0
+  ],
+  "iris": [
+   216.0,
+   24.0,
+   16.0
+  ],
+  "glow": [
+   255.0,
+   45.0,
+   28.0
+  ]
+ },
+ "geometry": {
+  "node": "cortana_persona_large_idle",
+  "box": [
+   398,
+   590,
+   682,
+   874
+  ],
+  "node_centre": [
+   540.0,
+   732.0
+  ],
+  "centroid": [
+   539.9910766608066,
+   731.9843109051196
+  ],
+  "lit": 18771,
+  "inner_r": 71.5,
+  "outer_r": 105.0,
+  "rays": 16
+ },
+ "regions": [
+  {
+   "region": "glow",
+   "t": [
+    0.7047619047619048,
+    0.7904761904761904
+   ],
+   "r_px": [
+    74.0,
+    83.0
+   ],
+   "samples": 4453,
+   "required": true,
+   "sampled_median_rgb": [
+    167,
+    23,
+    13
+   ],
+   "predicted_median_rgb": [
+    167.4,
+    23.3,
+    13.0
+   ],
+   "hue_err_median_deg": 0.12,
+   "v_err_median": -0.0003,
+   "s_median": 0.922,
+   "hue_ok": true,
+   "v_ok": true,
+   "present": true,
+   "pass": true
+  },
+  {
+   "region": "mid",
+   "t": [
+    0.7904761904761904,
+    0.8952380952380953
+   ],
+   "r_px": [
+    83.0,
+    94.0
+   ],
+   "samples": 6110,
+   "required": true,
+   "sampled_median_rgb": [
+    156.0,
+    20.0,
+    11.0
+   ],
+   "predicted_median_rgb": [
+    156.2,
+    20.5,
+    11.1
+   ],
+   "hue_err_median_deg": 0.13,
+   "v_err_median": -0.0002,
+   "s_median": 0.929,
+   "hue_ok": true,
+   "v_ok": true,
+   "present": true,
+   "pass": true
+  },
+  {
+   "region": "rim",
+   "t": [
+    0.8952380952380953,
+    0.9809523809523809
+   ],
+   "r_px": [
+    94.0,
+    103.0
+   ],
+   "samples": 5563,
+   "required": true,
+   "sampled_median_rgb": [
+    145,
+    18,
+    9
+   ],
+   "predicted_median_rgb": [
+    145.1,
+    17.8,
+    9.2
+   ],
+   "hue_err_median_deg": 0.16,
+   "v_err_median": -0.0002,
+   "s_median": 0.937,
+   "hue_ok": true,
+   "v_ok": true,
+   "present": true,
+   "pass": true
+  },
+  {
+   "region": "iris",
+   "samples": 0,
+   "required": false,
+   "present": false,
+   "pass": true,
+   "note": "not drawn by the ring form (by design: drawLensRing's gradient has only glow and rim stops, Lens.kt:117-119)"
+  }
+ ],
+ "verdict": "PASS",
+ "summary": "3 regions (glow,mid,rim) on hue hal at brightness 1.00, 16126 samples",
+ "exit": 0
+}
