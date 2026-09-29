@@ -39,6 +39,7 @@ object Runner {
     @Volatile var ui: ProbeActivity? = null
 
     const val OPEN_DEV = "Open Developer options"
+    const val OPEN_NOTIF = "Open notification settings"
     private const val TAG = "phone"
     private val STAGES = listOf("pair", "baseline", "p1", "p2", "p3", "p4a", "p4a-check", "p4b", "blur", "p5", "pq2", "cleanup", "p4d", "done")
 
@@ -71,7 +72,7 @@ object Runner {
     private fun ask(text: String, vararg buttons: String, manual: Boolean = false): String {
         answers.clear()
         if (auto) {
-            val a = if (manual) "Skip" else buttons.first { it != OPEN_DEV }
+            val a = if (manual) "Skip" else buttons.first { it != OPEN_DEV && it != OPEN_NOTIF }
             detail("  [auto] $text -> $a"); return a
         }
         promptText = text; promptButtons = buttons.toList(); changed()
@@ -224,11 +225,21 @@ object Runner {
         if (ensureAdb() && sh1("id").contains("uid=2000")) {
             result("PASS", "adb on this phone (already paired): runs as the shell uid"); return true
         }
+        // The code is typed into R4's notification, so a blocked notification makes pairing impossible: ask first.
+        val nm = app.getSystemService(NotificationManager::class.java)
+        while (!auto && !nm.areNotificationsEnabled()) {
+            val a = ask("R4 probe's notifications are off, and the pairing code is typed into one. Tap 'Open notification settings', " +
+                "allow them, come back and tap Done.", OPEN_NOTIF, "Done", "Stop")
+            if (a == "Stop") return false
+        }
+        detail("pairing: notifications ${if (nm.areNotificationsEnabled()) "allowed" else "OFF"}")
         show("Open Developer options > Wireless debugging: turn it ON (allow this network), then tap 'Pair device with pairing code'. " +
             "A notification from R4 probe appears: pull it down, tap 'Enter code', type the 6 digits.", OPEN_DEV, "Stop")
         AdbSelf.lastPair = null
         var posted: Pair<String, Int>? = null
-        val end = System.currentTimeMillis() + 15 * 60_000
+        val start = System.currentTimeMillis()
+        var dumped = false
+        val end = start + 15 * 60_000
         while (System.currentTimeMillis() < end) {
             if (answers.poll() == "Stop") { clearPrompt(); return false }
             AdbSelf.lastPair?.let { lp ->
@@ -236,7 +247,15 @@ object Runner {
                 detail("pairing: $lp"); AdbSelf.lastPair = null   // wrong code: keep waiting for another try
             }
             val svc = Discovery.find(app, Discovery.PAIRING, 5)
-            if (svc != null && svc != posted) { postPairNotification(svc.first, svc.second); posted = svc }
+            if (svc != null && svc != posted) {
+                postPairNotification(svc.first, svc.second); posted = svc
+                detail("pairing: the pairing dialog found at ${svc.first}:${svc.second}; notification posted")
+            }
+            // Nothing found in 90 s: what mDNS does see goes into the report, so a failed pairing says why.
+            if (posted == null && !dumped && System.currentTimeMillis() - start > 90_000) {
+                dumped = true
+                detail("pairing: no pairing dialog of this phone's found in 90 s; mDNS sees:\n" + Discovery.dump(app, Discovery.PAIRING, 5).prependIndent("  "))
+            }
         }
         clearPrompt(); cancelPairNotification()
         if (AdbSelf.lastPair?.startsWith("paired") != true) { result("FAIL", "pairing did not happen within 15 minutes"); return false }

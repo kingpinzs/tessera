@@ -12,6 +12,9 @@
     <!-- R4 phone-only: the probe pairs with and connects to the phone's own adbd (Wireless debugging) over TCP. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- R4 phone-only: the pairing code is typed into the probe's notification; without this Android drops it. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="false"
         android:icon="@drawable/ic_r4probe"

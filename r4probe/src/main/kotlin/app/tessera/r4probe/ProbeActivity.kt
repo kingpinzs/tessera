@@ -138,6 +138,9 @@ class ProbeActivity : Activity() {
         for (label in Runner.promptButtons) {
             promptRow.addView(button(label) {
                 if (label == Runner.OPEN_DEV) runCatching { startActivity(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)) }
+                else if (label == Runner.OPEN_NOTIF) runCatching {
+                    startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
+                }
                 else Runner.answer(label)
             })
         }
