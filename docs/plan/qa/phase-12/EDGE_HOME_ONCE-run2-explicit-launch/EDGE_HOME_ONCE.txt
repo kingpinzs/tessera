@@ -1,0 +1,25 @@
+==============================================================================
+ROW EDGE_HOME_ONCE — the Default Home step when the shell was opened Just once
+at            2026-09-29T14:29:11-06:00
+driver        edge.sh blob 0ee194eddb4bae217594c2053320c8990ff74b12
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      provision_no_marker home: rc=0
+RECORD  HOME role holder after removing the shell                   none
+PASS  Default Home is step 1                                      = setup:home
+PASS  its button: Set as default                                  = Set as default
+      the role sheet: com.android.permissioncontroller/.role.ui.RequestRoleActivity
+RECORD  the role sheet on the AVD                                   com.android.permissioncontroller/.role.ui.RequestRoleActivity
+PASS  cancelled: the step stays                                   = setup:home
+RECORD  another launcher offered                                    Quickstep
+RECORD  HOME role holder after choosing another launcher            com.android.launcher3
+PASS  another launcher chosen: the step stays                     = setup:home
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+EDGE_HOME_ONCE: 5 passed, 0 failed, 4 recorded

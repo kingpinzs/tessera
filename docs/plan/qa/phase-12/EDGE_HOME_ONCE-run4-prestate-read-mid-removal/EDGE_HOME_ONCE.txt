@@ -1,0 +1,51 @@
+==============================================================================
+ROW EDGE_HOME_ONCE — the Default Home step when the shell was opened Just once from the chooser
+at            2026-09-29T15:48:15-06:00
+driver        edge.sh blob acaa0d1bc4bf35b75fefcef241bf9114b2c59fe6
+harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      provision_no_marker home: rc=0
+RECORD  HOME role holder after removing the shell                   
+PASS  Home resolves to the chooser                                contains [ResolverActivity]
+FAIL  no StartActivity before Home                                expected [0] got [1]
+PASS  Home: Android's chooser                                     contains [ResolverActivity]
+PASS  the chooser's title                                         = Select a Home app
+PASS  Just once: Start resumed                                    = app.tileshell/.StartActivity
+PASS  Just once: the shell is running                             != 
+RECORD  HOME role holder after Just once                            
+PASS  Default Home is step 1                                      = setup:home
+PASS  its button: Set as default                                  = Set as default
+RECORD  the step's progress / StartActivity's record                Step 1 of 3 / {77126121
+PASS  start ring readable (Just once)                             header present
+PASS  the run begins with the Home step                           contains [[wizard] shown: missing=setup:home]
+RECORD  the role sheet on the AVD                                   com.android.permissioncontroller/.role.ui.RequestRoleActivity
+PASS  cancelled: Start is back in front                           = app.tileshell/.StartActivity
+PASS  cancelled: the step stays                                   = setup:home
+RECORD  another launcher offered                                    Quickstep
+RECORD  HOME role holder after choosing another launcher            com.android.launcher3
+RECORD  another launcher chosen: in front on return                 com.android.launcher3/.uioverrides.QuickstepLauncher
+PASS  another launcher chosen: StartActivity still alive behind it (the same activity record)  = {77126121
+PASS  another launcher chosen: the same process                   = 16702
+PASS  start ring readable (the return)                            header present
+PASS  one StartActivity created since Home                        = 1
+PASS  one [wizard] shown line since Home (the run was not restarted)  = 1
+PASS  no finished marker line                                     does not contain [[wizard] finished]
+PASS  no skip line                                                does not contain [[wizard] skip]
+PASS  reopened: Start in front                                    = app.tileshell/.StartActivity
+PASS  reopened: the same activity record (not recreated)          = {77126121
+PASS  reopened: the step stays                                    = setup:home
+PASS  reopened: the same progress caption                         = Step 1 of 3
+PASS  reopened: the same process                                  = 16702
+PASS  start ring readable (reopened)                              header present
+PASS  still one StartActivity created                             = 1
+PASS  still one [wizard] shown line                               = 1
+RECORD  Home pressed afterwards: resumed                            com.android.launcher3/.uioverrides.QuickstepLauncher
+      restore_fresh end: provision rc=0
+PASS  restore provision.sh rc                                     = 0
+------------------------------------------------------------------------------
+EDGE_HOME_ONCE: 27 passed, 1 failed, 8 recorded

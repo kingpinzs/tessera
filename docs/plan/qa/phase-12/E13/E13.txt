@@ -1,7 +1,7 @@
 ==============================================================================
 ROW E13 — the original W10M preset and its two pictures
-at            2026-09-29T13:21:59-06:00
-driver        e13.sh blob 45349628a8fcee17b9b0edbd5edce93249a23e69
+at            2026-09-29T15:30:15-06:00
+driver        e13.sh blob 75a2360bf5295f933c3114c41a92a96c7e8fd2ee
 harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
 apk built     a4d7430b4570e62a 338316313 bytes
 apk installed 5f3ebbc5ab0ae855
@@ -14,6 +14,8 @@ PASS  APK lists preset_w10m_hero.webp                             contains [pres
 PASS  APK lists preset_w10m_streaks.webp                          contains [preset_w10m_streaks.webp]
 (a) trial 1: the original preset, the Hero
       provision_no_marker fixture-a-hero: rc=0
+PASS  start ring readable (seed (a-hero))                         header present
+PASS  seed (a-hero): zero assignSlotOnce -> assigned after layout_restore  = 0
 PASS  (a-hero) fixture reaches wizard_presets                     = yes
 PASS  (a-hero) ASSISTANT role held                                = app.tileshell
 PASS  listener ring readable ((a) original)                       header present
@@ -35,15 +37,20 @@ PASS  (a) wizard_presets holds exactly six presets (the variant is not a seventh
 RECORD  (a) the Custom entry, counted apart                         1 preset:Custom node(s)
 PASS  (a) the accent grid holds exactly 49 accent:* nodes         = 49
 PASS  (a) accent:Cobalt present and selected                      = true
-(a) Default, then the original again: the last-chosen variant (hero); streaks is its own trial
-PASS  (a) re-tapped: variant still hero                           contains [<string name="theme_preset_variant">hero</string>]
+(a) the streaks chip, then the hero chip: the Hero again
+PASS  (a) streaks chip: the streaks picture                       contains [preset_w10m_streaks</string>]
+PASS  (a) hero chip: the Hero again                               contains [preset_w10m_hero</string>]
+PASS  (a) hero chip: theme_preset_variant hero                    contains [<string name="theme_preset_variant">hero</string>]
       (a) the Hero on Start oracle: RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T != accent; gutters 23/23 within +-6
 PASS  (a) the Hero on Start: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T )  = 0
 PASS  (a) Tess on Cobalt: Tess's session opens (ASSISTANT held)   = yes
       (a) Tess on Cobalt lens (accent, hue 227.88, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 227.88 at brightness 1.00, 16126 samples
 PASS  (a) Tess on Cobalt: Tess's lens is accent (hue 227.88, brightness 1.0)  = 0
+PASS  (a) hero trial: Start's PID unchanged across the capture (no restart)  = 8627
 (a) trial 2: the streaks chip, tapped before Done
       provision_no_marker fixture-a-streaks: rc=0
+PASS  start ring readable (seed (a-streaks))                      header present
+PASS  seed (a-streaks): zero assignSlotOnce -> assigned after layout_restore  = 0
 PASS  (a-streaks) fixture reaches wizard_presets                  = yes
 PASS  (a-streaks) ASSISTANT role held                             = app.tileshell
 PASS  listener ring readable ((a) streaks)                        header present
@@ -58,10 +65,16 @@ PASS  (a) streaks: every other item key unchanged                 =     <boolean
     <string name="press">NONE</string>
     <string name="tess_lens">accent</string>
     <string name="theme">DARK</string>
+(a) Default, then the original again: the last-chosen variant (streaks)
+PASS  (a) re-tapped: theme_preset_variant streaks (remembered)    contains [<string name="theme_preset_variant">streaks</string>]
+PASS  (a) re-tapped: the streaks picture                          contains [preset_w10m_streaks</string>]
       (a) the streaks picture on Start oracle: RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T != accent; gutters 23/23 within +-6
 PASS  (a) the streaks picture on Start: Start's tile band by the picture oracle (RESULT PASS 12 patches: T = 0.40*accent + 0.60*B +- 4 and T )  = 0
+PASS  (a) streaks trial: Start's PID unchanged across the capture (no restart)  = 9720
 (b) seed once
       restore_fresh b: provision rc=0
+PASS  start ring readable (seed (b))                              header present
+PASS  seed (b): zero assignSlotOnce -> assigned after layout_restore  = 0
 PASS  listener ring readable ((b) original)                       header present
 PASS  (b) [theme] preset Windows 10 Mobile (original) applied     contains [[theme] preset Windows 10 Mobile (original) applied]
 PASS  (b) theme_preset = w10m                                     contains [<string name="theme_preset">w10m</string>]
@@ -100,8 +113,9 @@ PASS  (b) the streaks picture on Start: Start's tile band by the picture oracle 
 PASS  (b) Default, then the original: the last-chosen variant, streaks  contains [<string name="theme_preset_variant">streaks</string>]
 PASS  (b) ... and its picture                                     contains [preset_w10m_streaks</string>]
 PASS  (b) the hero chip: the Hero again                           contains [preset_w10m_hero</string>]
+PASS  (b) Start's PID unchanged through the pass and its captures (no restart)  = 10651
 restore: Default, then pm clear -> provision.sh -> Home
       restore_fresh end: provision rc=0
 PASS  restore provision.sh rc                                     = 0
 ------------------------------------------------------------------------------
-E13: 64 passed, 0 failed, 1 recorded
+E13: 77 passed, 0 failed, 1 recorded

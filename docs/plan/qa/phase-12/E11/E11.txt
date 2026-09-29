@@ -1,7 +1,7 @@
 ==============================================================================
 ROW E11 — presets on both surfaces, Custom, snapshot, grant, persistence
-at            2026-09-29T13:03:25-06:00
-driver        e11.sh blob dfea15cb241452052509b1b9a72b5ea8eb8c091f
+at            2026-09-29T15:10:34-06:00
+driver        e11.sh blob ba8fcd09143ce3286ef568b00d3d1d80eaf8953d
 harness       lib.sh blob 422840045a498102789c3c983260b389ca06c971
 apk built     a4d7430b4570e62a 338316313 bytes
 apk installed 5f3ebbc5ab0ae855
@@ -14,6 +14,8 @@ control: pm clear -> provision.sh -> Home, provisioning never applies a preset
 PASS  control: theme_preset absent or default                     absent
 (a) Default
       provision_no_marker fixture-a-default: rc=0
+PASS  start ring readable (seed (a-default))                      header present
+PASS  seed (a-default): zero assignSlotOnce -> assigned after layout_restore  = 0
 PASS  (a-default) fixture reaches wizard_presets                  = yes
 PASS  (a-default) ASSISTANT role held                             = app.tileshell
 PASS  listener ring readable ((a) Default tap)                    header present
@@ -36,13 +38,15 @@ PASS  (a) Default: Tess's session opens (ASSISTANT held)          = yes
       (a) Default lens (hal, hue hal, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue hal at brightness 1.00, 16126 samples
 PASS  (a) Default: Tess's lens is hal (hue hal, brightness 1.0)   = 0
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      tree: HEAD 0c8fe8f4 (2026-09-29T12:08:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T12:08:18-06:00
+      tree: HEAD a306271a (2026-09-29T14:55:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T14:45:14-06:00
       (a) Default keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
 PASS  (a) Default: letter key fill DARK (48,48,48 +-4)            = 0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-PASS  (a) Default: Start's PID unchanged across the capture (no restart)  = 25858
+PASS  (a) Default: Start's PID unchanged across the capture (no restart)  = 27205
 (a) Windows 10 Mobile (original)
       provision_no_marker fixture-a-w10m: rc=0
+PASS  start ring readable (seed (a-w10m))                         header present
+PASS  seed (a-w10m): zero assignSlotOnce -> assigned after layout_restore  = 0
 PASS  (a-w10m) fixture reaches wizard_presets                     = yes
 PASS  (a-w10m) ASSISTANT role held                                = app.tileshell
 PASS  listener ring readable ((a) Windows 10 Mobile (original) tap)  header present
@@ -66,13 +70,15 @@ PASS  (a) Windows 10 Mobile (original): Tess's session opens (ASSISTANT held)  =
       (a) Windows 10 Mobile (original) lens (accent, hue 227.88, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 227.88 at brightness 1.00, 16126 samples
 PASS  (a) Windows 10 Mobile (original): Tess's lens is accent (hue 227.88, brightness 1.0)  = 0
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      tree: HEAD 0c8fe8f4 (2026-09-29T12:08:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T12:08:18-06:00
+      tree: HEAD a306271a (2026-09-29T14:55:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T14:45:14-06:00
       (a) Windows 10 Mobile (original) keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
 PASS  (a) Windows 10 Mobile (original): letter key fill DARK (48,48,48 +-4)  = 0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-PASS  (a) Windows 10 Mobile (original): Start's PID unchanged across the capture (no restart)  = 26809
+PASS  (a) Windows 10 Mobile (original): Start's PID unchanged across the capture (no restart)  = 28171
 (a) HAL
       provision_no_marker fixture-a-hal: rc=0
+PASS  start ring readable (seed (a-hal))                          header present
+PASS  seed (a-hal): zero assignSlotOnce -> assigned after layout_restore  = 0
 PASS  (a-hal) fixture reaches wizard_presets                      = yes
 PASS  (a-hal) ASSISTANT role held                                 = app.tileshell
 PASS  listener ring readable ((a) HAL tap)                        header present
@@ -95,13 +101,15 @@ PASS  (a) HAL: Tess's session opens (ASSISTANT held)              = yes
       (a) HAL lens (hal, hue hal, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue hal at brightness 1.00, 16126 samples
 PASS  (a) HAL: Tess's lens is hal (hue hal, brightness 1.0)       = 0
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      tree: HEAD 0c8fe8f4 (2026-09-29T12:08:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T12:08:18-06:00
+      tree: HEAD a306271a (2026-09-29T14:55:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T14:45:14-06:00
       (a) HAL keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
 PASS  (a) HAL: letter key fill DARK (48,48,48 +-4)                = 0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-PASS  (a) HAL: Start's PID unchanged across the capture (no restart)  = 27749
+PASS  (a) HAL: Start's PID unchanged across the capture (no restart)  = 29131
 (a) Soft
       provision_no_marker fixture-a-soft: rc=0
+PASS  start ring readable (seed (a-soft))                         header present
+PASS  seed (a-soft): zero assignSlotOnce -> assigned after layout_restore  = 0
 PASS  (a-soft) fixture reaches wizard_presets                     = yes
 PASS  (a-soft) ASSISTANT role held                                = app.tileshell
 PASS  listener ring readable ((a) Soft tap)                       header present
@@ -124,13 +132,15 @@ PASS  (a) Soft: Tess's session opens (ASSISTANT held)             = yes
       (a) Soft lens (accent, hue 241.58, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 241.58 at brightness 1.00, 16126 samples
 PASS  (a) Soft: Tess's lens is accent (hue 241.58, brightness 1.0)  = 0
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      tree: HEAD 0c8fe8f4 (2026-09-29T12:08:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T12:08:18-06:00
+      tree: HEAD a306271a (2026-09-29T14:55:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T14:45:14-06:00
       (a) Soft keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
 PASS  (a) Soft: letter key fill LIGHT (230,230,230 +-4)           = 0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-PASS  (a) Soft: Start's PID unchanged across the capture (no restart)  = 28707
+PASS  (a) Soft: Start's PID unchanged across the capture (no restart)  = 30084
 (a) Lumia
       provision_no_marker fixture-a-lumia: rc=0
+PASS  start ring readable (seed (a-lumia))                        header present
+PASS  seed (a-lumia): zero assignSlotOnce -> assigned after layout_restore  = 0
 PASS  (a-lumia) fixture reaches wizard_presets                    = yes
 PASS  (a-lumia) ASSISTANT role held                               = app.tileshell
 PASS  listener ring readable ((a) Lumia tap)                      header present
@@ -153,13 +163,15 @@ PASS  (a) Lumia: Tess's session opens (ASSISTANT held)            = yes
       (a) Lumia lens (accent, hue 183.69, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 183.69 at brightness 1.00, 16126 samples
 PASS  (a) Lumia: Tess's lens is accent (hue 183.69, brightness 1.0)  = 0
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      tree: HEAD 0c8fe8f4 (2026-09-29T12:08:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T12:08:18-06:00
+      tree: HEAD a306271a (2026-09-29T14:55:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T14:45:14-06:00
       (a) Lumia keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
 PASS  (a) Lumia: letter key fill DARK (48,48,48 +-4)              = 0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-PASS  (a) Lumia: Start's PID unchanged across the capture (no restart)  = 29651
+PASS  (a) Lumia: Start's PID unchanged across the capture (no restart)  = 31037
 (a) Midnight
       provision_no_marker fixture-a-midnight: rc=0
+PASS  start ring readable (seed (a-midnight))                     header present
+PASS  seed (a-midnight): zero assignSlotOnce -> assigned after layout_restore  = 0
 PASS  (a-midnight) fixture reaches wizard_presets                 = yes
 PASS  (a-midnight) ASSISTANT role held                            = app.tileshell
 PASS  listener ring readable ((a) Midnight tap)                   header present
@@ -182,13 +194,15 @@ PASS  (a) Midnight: Tess's session opens (ASSISTANT held)         = yes
       (a) Midnight lens (hal_dim, hue hal, brightness 0.5): RESULT PASS 3 regions (glow,mid,rim) on hue hal at brightness 0.50, 16132 samples
 PASS  (a) Midnight: Tess's lens is hal_dim (hue hal, brightness 0.5)  = 0
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      tree: HEAD 0c8fe8f4 (2026-09-29T12:08:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T12:08:18-06:00
+      tree: HEAD a306271a (2026-09-29T14:55:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T14:45:14-06:00
       (a) Midnight keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
 PASS  (a) Midnight: letter key fill DARK (48,48,48 +-4)           = 0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-PASS  (a) Midnight: Start's PID unchanged across the capture (no restart)  = 30588
+PASS  (a) Midnight: Start's PID unchanged across the capture (no restart)  = 31988
 (a) Custom: Lumia, then accent Red among the items
       provision_no_marker fixture-a-custom: rc=0
+PASS  start ring readable (seed (a-custom))                       header present
+PASS  seed (a-custom): zero assignSlotOnce -> assigned after layout_restore  = 0
 PASS  (a-custom) fixture reaches wizard_presets                   = yes
 PASS  (a-custom) ASSISTANT role held                              = app.tileshell
       scroll_to_node accent:Red: 1 swipe(s), found=yes
@@ -202,8 +216,22 @@ PASS  (a) Custom: every OTHER item key unchanged from Lumia's     =     <boolean
     <string name="press">WP8_TILT</string>
     <string name="tess_lens">accent</string>
     <string name="theme">DARK</string>
+(a) Transparency effects after re-tapping a preset: Custom the same way
+      scroll_to_node theme_transparency_effects: 3 swipe(s), found=yes
+PASS  (a) effects toggled: theme_preset = custom                  contains [<string name="theme_preset">custom</string>]
+PASS  (a) effects toggled: transparency_effects flipped (Lumia's true -> false)  = false
+PASS  (a) effects toggled: every other item unchanged from Lumia's  = accent=4278237123
+background=android.resource://app.tileshell/drawable/preset_lumia
+keyboard_palette=DARK
+press=WP8_TILT
+tess_lens=accent
+theme=DARK
+transparency=0.5
+PASS  (a) effects toggled: preset:Custom selected                 = true
 (b) seed once: pm clear -> provision.sh -> layout_restore
       restore_fresh b: provision rc=0
+PASS  start ring readable (seed (b))                              header present
+PASS  seed (b): zero assignSlotOnce -> assigned after layout_restore  = 0
 (b) Default
 PASS  listener ring readable ((b) Default tap)                    header present
 PASS  (b) Default: [theme] preset Default applied                 contains [[theme] preset Default applied]
@@ -224,7 +252,7 @@ PASS  (b) Default: Tess's session opens (ASSISTANT held)          = yes
       (b) Default lens (hal, hue hal, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue hal at brightness 1.00, 16126 samples
 PASS  (b) Default: Tess's lens is hal (hue hal, brightness 1.0)   = 0
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      tree: HEAD 0c8fe8f4 (2026-09-29T12:08:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T12:08:18-06:00
+      tree: HEAD a306271a (2026-09-29T14:55:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T14:45:14-06:00
       (b) Default keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
 PASS  (b) Default: letter key fill DARK (48,48,48 +-4)            = 0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
@@ -248,7 +276,7 @@ PASS  (b) Windows 10 Mobile (original): Tess's session opens (ASSISTANT held)  =
       (b) Windows 10 Mobile (original) lens (accent, hue 227.88, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 227.88 at brightness 1.00, 16126 samples
 PASS  (b) Windows 10 Mobile (original): Tess's lens is accent (hue 227.88, brightness 1.0)  = 0
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      tree: HEAD 0c8fe8f4 (2026-09-29T12:08:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T12:08:18-06:00
+      tree: HEAD a306271a (2026-09-29T14:55:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T14:45:14-06:00
       (b) Windows 10 Mobile (original) keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
 PASS  (b) Windows 10 Mobile (original): letter key fill DARK (48,48,48 +-4)  = 0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
@@ -272,7 +300,7 @@ PASS  (b) HAL: Tess's session opens (ASSISTANT held)              = yes
       (b) HAL lens (hal, hue hal, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue hal at brightness 1.00, 16126 samples
 PASS  (b) HAL: Tess's lens is hal (hue hal, brightness 1.0)       = 0
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      tree: HEAD 0c8fe8f4 (2026-09-29T12:08:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T12:08:18-06:00
+      tree: HEAD a306271a (2026-09-29T14:55:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T14:45:14-06:00
       (b) HAL keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
 PASS  (b) HAL: letter key fill DARK (48,48,48 +-4)                = 0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
@@ -296,7 +324,7 @@ PASS  (b) Soft: Tess's session opens (ASSISTANT held)             = yes
       (b) Soft lens (accent, hue 241.58, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 241.58 at brightness 1.00, 16126 samples
 PASS  (b) Soft: Tess's lens is accent (hue 241.58, brightness 1.0)  = 0
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      tree: HEAD 0c8fe8f4 (2026-09-29T12:08:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T12:08:18-06:00
+      tree: HEAD a306271a (2026-09-29T14:55:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T14:45:14-06:00
       (b) Soft keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
 PASS  (b) Soft: letter key fill LIGHT (230,230,230 +-4)           = 0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
@@ -320,7 +348,7 @@ PASS  (b) Lumia: Tess's session opens (ASSISTANT held)            = yes
       (b) Lumia lens (accent, hue 183.69, brightness 1.0): RESULT PASS 3 regions (glow,mid,rim) on hue 183.69 at brightness 1.00, 16126 samples
 PASS  (b) Lumia: Tess's lens is accent (hue 183.69, brightness 1.0)  = 0
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      tree: HEAD 0c8fe8f4 (2026-09-29T12:08:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T12:08:18-06:00
+      tree: HEAD a306271a (2026-09-29T14:55:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T14:45:14-06:00
       (b) Lumia keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
 PASS  (b) Lumia: letter key fill DARK (48,48,48 +-4)              = 0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
@@ -344,11 +372,11 @@ PASS  (b) Midnight: Tess's session opens (ASSISTANT held)         = yes
       (b) Midnight lens (hal_dim, hue hal, brightness 0.5): RESULT PASS 3 regions (glow,mid,rim) on hue hal at brightness 0.50, 16132 samples
 PASS  (b) Midnight: Tess's lens is hal_dim (hue hal, brightness 0.5)  = 0
       kb_begin: prior ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-      tree: HEAD 0c8fe8f4 (2026-09-29T12:08:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T12:08:18-06:00
+      tree: HEAD a306271a (2026-09-29T14:55:07-06:00); uncommitted files under app/: 0; apk built 2026-09-29T14:45:14-06:00
       (b) Midnight keyboard: RESULT PASS kb_key_q bounds=[4,1559][101,1710]
 PASS  (b) Midnight: letter key fill DARK (48,48,48 +-4)           = 0
       kb_end: restored ime=app.tileshell/.ime.KeyboardService show_ime_with_hard_keyboard=1
-PASS  (b) Start's PID unchanged through the pass (no restart)     = 32364
+PASS  (b) Start's PID unchanged through the pass (no restart)     = 2870
 (b) Custom: Lumia -> accent Red; Transparency effects; the show-more-tiles control
       scroll_to_node accent:Red: 1 swipe(s), found=yes
 PASS  (b) Custom: theme_preset = custom                           contains [<string name="theme_preset">custom</string>]
@@ -363,21 +391,42 @@ PASS  (b) Custom: every OTHER item key unchanged from Lumia's     =     <boolean
 PASS  (b) Custom: theme_preset:Custom selected                    = true
       scroll_to_node theme_transparency_effects: 2 swipe(s), found=yes
 PASS  (b) Transparency effects toggled after a preset: custom     contains [<string name="theme_preset">custom</string>]
+PASS  (b) effects toggled: transparency_effects flipped (HAL's true -> false)  = false
+PASS  (b) effects toggled: every other item unchanged from HAL's  = accent=4293398819
+background=android.resource://app.tileshell/drawable/preset_hal
+keyboard_palette=DARK
+press=NONE
+tess_lens=hal
+theme=DARK
+transparency=0.35
+(b) Remove picture right after a preset: Custom, the picture gone, the rest unchanged
+      scroll_to_node theme_background_remove: 1 swipe(s), found=yes
+PASS  (b) Remove picture: theme_preset = custom                   contains [<string name="theme_preset">custom</string>]
+PASS  (b) Remove picture: background gone                         = (none)
+PASS  (b) Remove picture: every other item unchanged from HAL's   = accent=4293398819
+keyboard_palette=DARK
+press=NONE
+tess_lens=hal
+theme=DARK
+transparency=0.35
+transparency_effects=true
       scroll_to_node theme_show_more_tiles: 4 swipe(s), found=yes
 PASS  (b) control: show more tiles leaves theme_preset hal        contains [<string name="theme_preset">hal</string>]
 PASS  (b) control: toggled back, columns 3                        contains [<int name="columns" value="3" />]
 (b) Custom snapshot: a picture of the user's, HAL over it, Custom brings it back
       restore_fresh snap: provision rc=0
-      checker MediaStore URI: content://media/external/images/media/2289
+PASS  start ring readable (seed (snapshot))                       header present
+PASS  seed (snapshot): zero assignSlotOnce -> assigned after layout_restore  = 0
+      checker MediaStore URI: content://media/external/images/media/2294
 PASS  the checker is in MediaStore                                contains [content://media/]
 PASS  no theme_custom.xml before the HAL tap                      does not contain [theme_custom.xml]
 PASS  HAL over it: background = preset_hal                        contains [android.resource://app.tileshell/drawable/preset_hal]
 PASS  theme_custom.xml now exists                                 contains [theme_custom.xml]
 PASS  listener ring readable (Custom restored)                    header present
 PASS  [theme] preset Custom restored                              contains [[theme] preset Custom restored]
-PASS  Custom: background = the checker again                      contains [<string name="background">content://media/external/images/media/2289</string>]
+PASS  Custom: background = the checker again                      contains [<string name="background">content://media/external/images/media/2294</string>]
 PASS  Custom: every item key equals the pre-HAL state (effective values)  = accent=4278221015
-background=content://media/external/images/media/2289
+background=content://media/external/images/media/2294
 keyboard_palette=DARK
 press=NONE
 tess_lens=hal
@@ -385,7 +434,7 @@ theme=DARK
 transparency=0.5
 transparency_effects=true
 <string name="theme_preset">custom
-      checker edge step in the gutter column: 196
+      checker edge step in the gutter column: 240
 PASS  the checker shows on Start: a sharp edge in a gutter column (step >= 100 levels)  = yes
 PASS  Default: every item key equals the control's (effective values; a fresh install writes no keys)  = accent=4278221015
 background=(none)
@@ -399,25 +448,35 @@ PASS  Default: tess_lens hal                                      contains [<str
 PASS  Default: keyboard_palette DARK                              contains [<string name="keyboard_palette">DARK</string>]
 (b) a set stored before phase 12 (no theme_preset key): it reads Custom, and a preset over it keeps it (review B1)
       restore_fresh pre12: provision rc=0
-      pre-12 picture: content://media/external/images/media/2292
+      pre-12 picture: content://media/external/images/media/2295
 PASS  the stored set has no theme_preset key                      does not contain [theme_preset]
 PASS  it reads Custom (theme_preset:Custom selected)              = true
 PASS  HAL over it: theme_custom.xml exists                        contains [theme_custom.xml]
-PASS  Custom brings the user's picture back                       contains [<string name="background">content://media/external/images/media/2292</string>]
+PASS  Custom brings the user's picture back                       contains [<string name="background">content://media/external/images/media/2295</string>]
 (b) Custom grant: the picker's persisted grant kept while the snapshot references it, released after
       A picker item: [0 1350 354 1705]
-      A's picker URI: content://media/picker/0/com.android.providers.media.photopicker/media/2290
-PASS  A's persisted read grant is held                            contains [content://media/picker/0/com.android.providers.media.photopicker/media/2290]
-PASS  after HAL: A's grant still held (the snapshot references it)  contains [content://media/picker/0/com.android.providers.media.photopicker/media/2290]
-PASS  after a force-stop, Custom restores A                       contains [<string name="background">content://media/picker/0/com.android.providers.media.photopicker/media/2290</string>]
-      A on Start: checker edge step 131 (no broad media permission: only the persisted grant can read it)
+PASS  Choose picture right after a preset (Midnight): theme_preset = custom  contains [<string name="theme_preset">custom</string>]
+PASS  Choose picture right after a preset: every other item unchanged from Midnight's  = accent=4285229526
+keyboard_palette=DARK
+press=NONE
+tess_lens=hal_dim
+theme=DARK
+transparency=0.0
+transparency_effects=false
+PASS  the picker gave a content URI for A                         contains [content://]
+      A's picker URI: content://media/picker/0/com.android.providers.media.photopicker/media/2296
+PASS  A's persisted read grant is held                            contains [content://media/picker/0/com.android.providers.media.photopicker/media/2296]
+PASS  after HAL: A's grant still held (the snapshot references it)  contains [content://media/picker/0/com.android.providers.media.photopicker/media/2296]
+PASS  after a force-stop, Custom restores A                       contains [<string name="background">content://media/picker/0/com.android.providers.media.photopicker/media/2296</string>]
+      A on Start: checker edge step 137 (no broad media permission: only the persisted grant can read it)
 PASS  A decodes and renders on Start (a sharp checker edge in a gutter, step >= 100)  = yes
-PASS  A's grant still held after Custom                           contains [content://media/picker/0/com.android.providers.media.photopicker/media/2290]
+PASS  A's grant still held after Custom                           contains [content://media/picker/0/com.android.providers.media.photopicker/media/2296]
       B picker item: [0 1350 354 1705]
-      B's picker URI: content://media/picker/0/com.android.providers.media.photopicker/media/2291
-PASS  B is a different picture                                    != content://media/picker/0/com.android.providers.media.photopicker/media/2290
-PASS  a preset over B: A's grant released                         does not contain [content://media/picker/0/com.android.providers.media.photopicker/media/2290]
-PASS  ... and B's retained                                        contains [content://media/picker/0/com.android.providers.media.photopicker/media/2291]
+PASS  the picker gave a content URI for B                         contains [content://]
+      B's picker URI: content://media/picker/0/com.android.providers.media.photopicker/media/2297
+PASS  B is a different picture                                    != content://media/picker/0/com.android.providers.media.photopicker/media/2296
+PASS  a preset over B: A's grant released                         does not contain [content://media/picker/0/com.android.providers.media.photopicker/media/2296]
+PASS  ... and B's retained                                        contains [content://media/picker/0/com.android.providers.media.photopicker/media/2297]
 (b) persistence: force-stop, reopen Start + theme
 PASS  persistence: the keys unchanged                             = accent=4287532248
 background=android.resource://app.tileshell/drawable/preset_soft
@@ -433,4 +492,4 @@ restore: Default, then pm clear -> provision.sh -> Home
       restore_fresh end: provision rc=0
 PASS  restore provision.sh rc                                     = 0
 ------------------------------------------------------------------------------
-E11: 271 passed, 0 failed, 0 recorded
+E11: 302 passed, 0 failed, 0 recorded
