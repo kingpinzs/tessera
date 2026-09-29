@@ -32,7 +32,7 @@ both lists, a SecurityException from a Settings page).
 | E7 | 19 / 0 | c464ffcd | |
 | E8 | 30 / 0 | c464ffcd | |
 | E9 | 22 / 1 | a4d7430b | the one FAIL is phase 02 E1's edit-mode check, **pre-existing** — identical on the pre-phase-12 APK (BUILD_START/phase02-e1-base/); INDEX ledger L12-1. Round 1 (codex B2): phase 02 E1's saved dump covers its restore with zero assignments. Drivers 93134be9. Runs 1–4 kept |
-| E10 | 20 / 2 (+8 recorded) | a4d7430b | every doc gate on the shell's clock passes (settle 217 on each transition and Done → Start, maxGapMs 17); the 2 FAILs are the compositor corroboration — see the reading below. Runs 1–4 kept |
+| E10 | 20 / 2 (+8 recorded) | a4d7430b | every doc gate on the shell's clock passes (settle 217 on each transition and Done → Start, maxGapMs 17); the 2 FAILs are the compositor corroboration, which Jeremy ruled an AVD reading, not a gate ("E10 (a)", 2026-09-29; the feel is H1) — see the reading below. Runs 1–4 kept |
 | E11 | 302 / 0 | a4d7430b | incl. the grant sub-row (both halves, urigrants.xml), the pre-phase-12 sub-row (review B1), and round 1's stricter Custom checks (effects toggle on both surfaces, Remove / Choose picture after a preset; codex B3) with each seed's ring read (B2). Drivers a306271a. Runs 1–5 kept |
 | E12 | 55 / 0 (+3 recorded) | a4d7430b | NOPICS build = 0c8fe8f4 with the six WebP removed (a worktree); run 1 kept |
 | E13 | 77 / 0 (+1 recorded) | a4d7430b | both surfaces walk streaks → hero and Default → original (streaks remembered); on (a) the two halves are two trials (trial 1 streaks → hero chip; trial 2 Default → original with streaks remembered, then Start captured), the literal four-tap pass is on (b); Start's PID unchanged around every live capture (codex B4). Drivers a306271a. Runs 1–2 kept |
@@ -104,7 +104,8 @@ adversarial review's B1 → 0c8fe8f4), or a driver the gate review made stricter
   each page change's first frame is presented at t0 + ~2 ms, the next at t0 + ~50 ms, and after that every 16–24 ms to
   the settle (all 14 of the motion's frames presented). So on this AVD each page change starts ~50 ms late and then runs
   within the doc's two-vsync bound (33.4 ms) but not phase 05's 18.2 ms. The shell's clock cannot see it (it times frame
-  production, not presentation). Recorded as it is; surfaced to Jeremy (the phone's feel is H1).
+  production, not presentation). Recorded as it is. Jeremy's ruling "E10 (a)" (2026-09-29, INDEX Change Log): the shell-clock
+  checks are E10's gate and this corroboration is an AVD reading; the phone's feel is H1.
 
 - **A dismissed permission dialog reads as "Android will no longer ask".** Dismissing the dialog without an answer
   leaves shouldShowRequestPermissionRationale false, the same signal as a permanent "Don't allow", so the wizard relabels
