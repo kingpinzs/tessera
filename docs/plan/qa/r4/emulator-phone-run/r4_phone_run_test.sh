@@ -7,7 +7,9 @@ adb install -r r4probe/build/outputs/apk/debug/r4probe-debug.apk | tail -1
 adb shell pm grant app.tessera.r4probe android.permission.POST_NOTIFICATIONS
 adb shell settings put global adb_wifi_enabled 1; sleep 2
 adb shell input keyevent KEYCODE_WAKEUP
-adb shell am start -n app.tessera.r4probe/.ProbeActivity --es run start --ez auto true > /dev/null
+adb shell am start -W -n app.tessera.r4probe/.ProbeActivity > /dev/null; sleep 2
+TOKEN="$(adb shell run-as app.tessera.r4probe cat files/run-token | tr -d '\r')"
+adb shell am start -n app.tessera.r4probe/.ProbeActivity --es run start --ez auto true --es token "$TOKEN" > /dev/null
 paired=0
 for i in $(seq 1 240); do
   sleep 5

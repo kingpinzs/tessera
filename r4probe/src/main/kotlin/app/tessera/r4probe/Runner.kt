@@ -356,7 +356,7 @@ object Runner {
     private fun stageP4a() {
         put("stage", "p4a-check")
         detail("== part 4a: the app is killed on purpose (by a detached shell command) and restarted")
-        sh("setsid sh -c 'sleep 2; am force-stop app.tessera.r4probe; sleep 4; am start -n app.tessera.r4probe/.ProbeActivity --es run resume' > /dev/null 2>&1 < /dev/null &")
+        sh("setsid sh -c 'sleep 2; am force-stop app.tessera.r4probe; sleep 4; am start -n app.tessera.r4probe/.ProbeActivity --es run resume --es token ${RunToken.get(app)}' > /dev/null 2>&1 < /dev/null &")
         Thread.sleep(30_000)
         result("FAIL", "4a the app was not killed (still running 30 s later)")
         put("stage", "p4b"); launchLater("p4b")

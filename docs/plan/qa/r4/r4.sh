@@ -60,7 +60,8 @@ wait_report() { # marker timeout_s -> 0 when the app's report shows the marker
 }
 section() { report | sed -n "/^== $1/,/^== /p" | sed '$d'; }   # one section of the app's report, without the next header
 NONCE=0
-run_app() { NONCE="$(date +%s)$RANDOM"; adb shell am start -n $PKG/.ProbeActivity --es run "$1" --es nonce "$NONCE" > /dev/null 2>&1; }
+# The probe obeys a `run` extra only with its own secret (RunToken): read it with run-as (debug builds only).
+run_app() { NONCE="$(date +%s)$RANDOM"; adb shell am start -n $PKG/.ProbeActivity --es run "$1" --es nonce "$NONCE" --es token "$(adb shell run-as $PKG cat files/run-token | tr -d '\r')" > /dev/null 2>&1; }
 wake() { adb shell input keyevent KEYCODE_WAKEUP > /dev/null 2>&1; adb shell wm dismiss-keyguard > /dev/null 2>&1; }
 
 say "R4 run $(date -Is) on $MODEL"

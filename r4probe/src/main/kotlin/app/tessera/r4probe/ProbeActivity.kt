@@ -95,6 +95,7 @@ class ProbeActivity : Activity() {
             insets
         }
         HelperLink.onChange = { runOnUiThread { collect() } }
+        RunToken.get(this)   // made at first open, so test tooling can read it before its first `run` request
         Runner.ui = this
         Runner.onChange = { runOnUiThread { renderPrompt(); collect() } }
         if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED)
@@ -145,6 +146,12 @@ class ProbeActivity : Activity() {
     private var nonce = ""
 
     private fun handleRun(intent: Intent?) {
+        // The extras drive shell-uid work and this activity is exported: they are obeyed only with the app's own secret
+        // (RunToken), which the app's own commands and debug test tooling carry and no other app can read.
+        if (intent?.getStringExtra("run") != null && intent.getStringExtra("token") != RunToken.get(this)) {
+            HelperLink.note("ignored a 'run' request without this app's token")
+            intent.removeExtra("run"); return
+        }
         intent?.getStringExtra("nonce")?.let { nonce = it }
         when (intent?.getStringExtra("run")) {
             "overlay" -> runOverlayProbe("app")
