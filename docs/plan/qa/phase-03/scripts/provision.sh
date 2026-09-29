@@ -50,9 +50,24 @@ say "the ring's special app accesses (phase 15, Q-E A)"
 # Alarms ring over the keyguard through a full-screen intent and over the app in use through an overlay window;
 # both are special app accesses the Setup checklist asks for on a phone (its full_screen_alarms and overlay rows).
 adb shell appops set app.tileshell USE_FULL_SCREEN_INTENT allow
+# The image also keeps a UID mode for this op, and it outranks the package mode above (found at phase 12's build: with
+# the uid mode left at ignore, canUseFullScreenIntent() stays false whatever the package mode says). Set both.
+adb shell appops set --uid app.tileshell USE_FULL_SCREEN_INTENT allow
 adb shell appops set app.tileshell SYSTEM_ALERT_WINDOW allow
 echo "full-screen intent: $(adb shell appops get app.tileshell USE_FULL_SCREEN_INTENT | tr -d '\r')"
 echo "overlay: $(adb shell appops get app.tileshell SYSTEM_ALERT_WINDOW | tr -d '\r')"
+
+say "the Setup checklist's grants (phase 12, build task 4)"
+# Phase 12's wizard shows while any grant row of the Setup checklist or Tess's is missing, so a provisioned AVD holds
+# every one: notification access and Usage access here (phase 01's rows used to grant them inside their own drivers),
+# the keyboard enabled and selected (phase 05's rows), Tess's nine through `install -r -g` above, the two roles below.
+# Each later phase that adds a grant row appends its line here (phase 12 C-4 (a)).
+adb shell cmd notification allow_listener app.tileshell/app.tileshell.feeds.TileNotificationListener
+adb shell appops set app.tileshell GET_USAGE_STATS allow
+adb shell ime enable app.tileshell/.ime.KeyboardService
+adb shell ime set app.tileshell/.ime.KeyboardService
+echo "usage access: $(adb shell appops get app.tileshell GET_USAGE_STATS | tr -d '\r')"
+echo "keyboard: $(adb shell settings get secure default_input_method | tr -d '\r')"
 
 say "roles"
 adb shell cmd role add-role-holder android.app.role.HOME app.tileshell
@@ -120,7 +135,40 @@ fi
 adb shell content query --uri content://com.android.contacts/data/phones --projection display_name:data1 2>/dev/null | head -3
 
 say "the audio route"
-"$HERE/audio.sh" setup
+# Off unless asked for (PROVISION_AUDIO=1): audio.sh setup switches the DESKTOP's default microphone to a null sink, and
+# that took Jeremy's mic away during his work calls (2026-09-29). Only a row that speaks to Tess needs it; run it
+# alone, with his OK, and run audio.sh teardown afterwards.
+if [ "${PROVISION_AUDIO:-0}" = "1" ]; then
+  "$HERE/audio.sh" setup
+else
+  echo "PROVISION_AUDIO not set: the host's audio is left alone"
+fi
+
+say "the setup wizard's finished marker (phase 12, C-15)"
+# Every provisioned AVD finishes the wizard once, through the marker its own finish writes, as a user who completed setup
+# would: a force-stop deselects the keyboard (qa/phase-05/README.md), and without the marker that one missing row would
+# summon the wizard in every driver that restarts the shell. The shell is stopped first because SharedPreferences are
+# cached in-process. PROVISION_FINISH_WIZARD=0 skips it, for the rows that test the wizard itself.
+#
+# Start is the HOME role holder, and Android relaunches the home activity the moment its process dies while it is on top
+# (found at phase 12's build: after a pm clear or a force-stop with Start in front, a fresh Start evaluated the wizard
+# BEFORE the grants or the marker landed, and its run then stayed in progress). So Android's Settings goes in front first,
+# the shell is stopped behind it — which also ends any run a half-provisioned Start began — and only Home brings Start
+# back, after everything below is in place. The stop happens with PROVISION_FINISH_WIZARD=0 too, so both routes end on a
+# fresh Start that evaluates the finished state.
+adb shell am start -W -n com.android.settings/.Settings >/dev/null 2>&1
+adb shell am force-stop app.tileshell
+if [ "${PROVISION_FINISH_WIZARD:-1}" = "0" ]; then
+  echo "PROVISION_FINISH_WIZARD=0: no marker written"
+else
+  adb push "$HERE/../../phase-12/fixtures/setup_wizard.xml" /data/local/tmp/setup_wizard.xml >/dev/null
+  adb shell 'run-as app.tileshell sh -c "mkdir -p shared_prefs && cat /data/local/tmp/setup_wizard.xml > shared_prefs/setup_wizard.xml"'
+  echo "marker: $(adb shell run-as app.tileshell cat shared_prefs/setup_wizard.xml | tr -d '\r' | grep -o '<boolean[^>]*>')"
+fi
+# The stop deselected the keyboard (and a run with no marker gets it back the same way).
+adb shell ime enable app.tileshell/.ime.KeyboardService >/dev/null
+adb shell ime set app.tileshell/.ime.KeyboardService >/dev/null
+adb shell input keyevent KEYCODE_HOME
 
 say "checking that a tap actually activates something"
 # The check that would have saved this session a great deal of time. If a tap on Start's own Search key
