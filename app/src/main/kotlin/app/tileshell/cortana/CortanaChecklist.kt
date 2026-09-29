@@ -26,6 +26,10 @@ data class CortanaRow(
     val detail: String,
     /** The permissions this row grants when it is tapped; empty when the row opens something else. */
     val permissions: List<String> = emptyList(),
+    /** Phase 12 (T12-1 (c)): PARTIAL counts as the wizard step done — false for every one of Tess's rows. */
+    val partialIsDone: Boolean = false,
+    /** Phase 12 (r3 D5): a grant row (a wizard step and a core row), not an observation. */
+    val grant: Boolean = false,
 )
 
 object CortanaChecklist {
@@ -38,6 +42,7 @@ object CortanaChecklist {
                 "assistant", "Default assistant",
                 if (CortanaService.roleHeld(context)) RowState.GRANTED else RowState.MISSING,
                 "The side key and the assist gesture open ${Brand.ASSISTANT_NAME}",
+                grant = true,
             ),
             permissionRow(context, "microphone", "Microphone", "Speak your requests", Manifest.permission.RECORD_AUDIO),
             permissionRow(context, "contacts", "Contacts", "Call and text people by name", Manifest.permission.READ_CONTACTS),
@@ -50,6 +55,7 @@ object CortanaChecklist {
                 },
                 "Read what's on your calendar and add to it",
                 listOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR),
+                grant = true,
             ),
             permissionRow(context, "sms_send", "Send texts", "Send a text after reading it back", Manifest.permission.SEND_SMS),
             permissionRow(context, "call_phone", "Phone calls", "Place a call after confirming", Manifest.permission.CALL_PHONE),
@@ -68,6 +74,7 @@ object CortanaChecklist {
                 },
                 "Place reminders fire when you arrive",
                 listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                grant = true,
             ),
             permissionRow(
                 context, "call_log", "Call log",
@@ -122,7 +129,7 @@ object CortanaChecklist {
         CortanaRow(
             id, title,
             if (granted(context, permission)) RowState.GRANTED else RowState.MISSING,
-            detail, listOf(permission),
+            detail, listOf(permission), grant = true,
         )
 
     private fun granted(context: Context, permission: String) =
