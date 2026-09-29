@@ -87,13 +87,21 @@ HELPER_PIDS=()
 TOGGLES_READY=0
 { echo "navigation_mode=$BASE_NAV"; echo "adb_wifi_enabled=$BASE_ADBWIFI"; echo "enabled_accessibility_services=$BASE_A11Y"
   echo "accessibility_enabled=$BASE_A11Y_ON"; echo "low_power=$BASE_LOWPOWER"; echo "low_power_sticky=$BASE_STICKY"; } > "$OUT/baseline-settings.txt"
-restore_sticky() { # puts the owner's Power saving choice back; prints FAIL if it does not read back
-  adb shell cmd power set-mode 0 > /dev/null 2>&1
+restore_sticky() { # puts the owner's Power saving back exactly: on stays on, off stays off (review r3 R3-1)
+  # `cmd power set-mode 0` is a manual OFF that Android keeps until a reboot, whatever low_power_sticky then says, so
+  # the mode is set to the owner's own value — read while the battery is reported unplugged, where it means something.
+  local want=0 lp st
+  { [ "$BASE_STICKY" = 1 ] || [ "$BASE_LOWPOWER" = 1 ]; } && want=1
+  adb shell dumpsys battery unplug > /dev/null 2>&1
+  adb shell cmd power set-mode "$want" > /dev/null 2>&1
+  sleep 1
+  lp="$(adb shell settings get global low_power | tr -d '\r')"
   if [ "$BASE_STICKY" = null ]; then adb shell settings delete global low_power_sticky > /dev/null 2>&1
   else adb shell settings put global low_power_sticky "$BASE_STICKY"; fi
-  local now; now="$(adb shell settings get global low_power_sticky | tr -d '\r')"
-  if [ "$now" = "$BASE_STICKY" ]; then echo "power saving (low_power_sticky): as it was ($BASE_STICKY)"
-  else echo "FAIL: power saving (low_power_sticky) is $now, it was $BASE_STICKY — set Power saving by hand"; fi
+  st="$(adb shell settings get global low_power_sticky | tr -d '\r')"
+  adb shell dumpsys battery reset > /dev/null 2>&1
+  if [ "$lp" = "$want" ] && [ "$st" = "$BASE_STICKY" ]; then echo "power saving: as it was (on when unplugged: $want; low_power_sticky $st)"
+  else echo "FAIL: power saving is not as it was (unplugged it reads $lp, it should be $want; low_power_sticky $st, it was $BASE_STICKY) — set Power saving by hand"; fi
 }
 
 tfield() { awk -F'\t' -v n="$1" -v k="$2" '$1==n {print $k}' "$OUT/toggles.txt"; }   # 2 read 3 on 4 off 5 onpat 6 offpat 7 probe 8 item
@@ -122,7 +130,8 @@ cleanup() {
   if [ "$(timeout 20 adb get-state 2>/dev/null)" != device ]; then
     echo "FAIL: the phone is not reachable, so nothing could be checked or undone. Reboot the phone: that ends forced Doze," >> "$c"
     echo "  the unplugged-battery report and the helper; then check Wi-Fi, Bluetooth, NFC, location, mobile data, airplane" >> "$c"
-    echo "  mode, Power saving and Settings > Accessibility by hand, and uninstall 'R4 probe'." >> "$c"
+    echo "  mode, automatic date & time, Power saving, the navigation type and Settings > Accessibility by hand, and" >> "$c"
+    echo "  uninstall 'R4 probe'." >> "$c"
     result FAIL "clean-up: the phone was unreachable (see the file)" cleanup.txt
     say "Run folder: $OUT"; return
   fi
@@ -137,7 +146,8 @@ cleanup() {
     else adb shell settings put secure enabled_accessibility_services "'$BASE_A11Y'"; fi
     if [ "$BASE_A11Y_ON" = null ]; then adb shell settings delete secure accessibility_enabled > /dev/null
     else adb shell settings put secure accessibility_enabled "$BASE_A11Y_ON"; fi
-    echo "accessibility services: $([ "$(adb shell settings get secure enabled_accessibility_services | tr -d '\r')" = "$BASE_A11Y" ] && echo "as they were" || echo "FAIL: NOT as they were")" >> "$c"
+    if [ "$(adb shell settings get secure enabled_accessibility_services | tr -d '\r')" = "$BASE_A11Y" ]; then echo "accessibility services: as they were" >> "$c"
+    else echo "FAIL: accessibility services are NOT as they were — check Settings > Accessibility > Installed apps" >> "$c"; fi
   fi
   if [ "$TOGGLES_READY" = 1 ]; then
     while IFS=$'\t' read -r name rd on off onp offp probe item <&3; do
@@ -321,7 +331,9 @@ if ask "On the phone: Settings > Developer options > Wireless debugging — turn
     { echo "after adbd was gone (Wireless and USB debugging off, cable out): helper ${HWIFI:-none} alive: $(alive "$HWIFI" && echo yes || echo NO)"
       echo "--- helper log"; adb shell cat /data/local/tmp/r4helper-wifi.log | tr -d '\r'; } >> "$OUT/part4-adbd-gone.txt"
     ADBD2="$(adb shell pidof adbd | tr -d '\r')"; echo "adbd pid after: ${ADBD2:-?}" >> "$OUT/part4-adbd-gone.txt"
-    if [ -z "$ADBD1" ] || [ "$ADBD1" = "$ADBD2" ]; then
+    if [ "$(timeout 20 adb get-state 2>/dev/null)" != device ]; then
+      result INFO "4d NOT tested: the phone did not come back on USB in 5 minutes" part4-adbd-gone.txt
+    elif [ -z "$ADBD1" ] || [ "$ADBD1" = "$ADBD2" ]; then
       result INFO "4d NOT tested: adbd never stopped (same pid) — was USB debugging off?" part4-adbd-gone.txt
     elif ping_ok wifi "$HWIFI"; then result PASS "4d adbd gone (new adbd pid): helper lives and answers" part4-adbd-gone.txt
     else result FAIL "4d adbd gone (new adbd pid): helper lives and answers" part4-adbd-gone.txt; fi

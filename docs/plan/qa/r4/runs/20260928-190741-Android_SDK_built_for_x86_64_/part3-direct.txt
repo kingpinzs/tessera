@@ -1,0 +1,55 @@
+  battery_saver  [phase 19 verb (battery saver)]
+    before  1  [on]
+    flip away: (no output)
+    read    0  [off]
+    back:   (no output)
+    after   1  [on]
+    CHANGED yes · RESTORED yes
+  location  [phase 19 verb (location)]
+    before  true  [on]
+    flip away: (no output)
+    read    false  [off]
+    back:   (no output)
+    after   true  [on]
+    CHANGED yes · RESTORED yes
+  auto_time  [phase 19 verb (automatic time)]
+    before  1  [on]
+    flip away: (no output)
+    read    0  [off]
+    back:   (no output)
+    after   1  [on]
+    CHANGED yes · RESTORED yes
+  nfc  [phase 19 verb (NFC)]
+    before    [unknown]
+    UNRECOGNISED STATE: not flipped
+  bluetooth  [phase 04 action center]
+    before  1  [on]
+    flip away: BluetoothShellCommand: Exec disable disable: Success 
+    read    0  [off]
+    back:   BluetoothShellCommand: Exec enable enable: Success 
+    after   1  [on]
+    CHANGED yes · RESTORED yes
+  wifi  [phase 04 action center]
+    before  Wifi is enabled  [on]
+    flip away: (no output)
+    read    Wifi is disabled  [off]
+    back:   (no output)
+    after   Wifi is enabled  [on]
+    CHANGED yes · RESTORED yes
+  hotspot  [phase 19 verb (hotspot)]
+    probe    Exception occurred while executing 'start-softap': java.lang.SecurityException: Uid 2000 does not have access to start-softap wifi command (or such command doesn't exist) 	at com.android.server.wifi.WifiShellCommand.onC
+    PROBE REFUSED to the shell uid
+  mobile_data  [phase 04 action center]
+    before  1  [on]
+    flip away: (no output)
+    read    0  [off]
+    back:   (no output)
+    after   1  [on]
+    CHANGED yes · RESTORED yes
+  airplane  [phase 04 action center]
+    before  disabled  [off]
+    flip away: (no output)
+    read    enabled  [on]
+    back:   (no output)
+    after   disabled  [off]
+    CHANGED yes · RESTORED yes
