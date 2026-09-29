@@ -41,11 +41,12 @@ case "$MODEL" in
   SM-S938*) ;;
   *) if [ "${R4_ALLOW_ANY:-0}" != 1 ]; then echo "This is '$MODEL', not an S25 Ultra (SM-S938*). R4 is for the phone; set R4_ALLOW_ANY=1 for a dry run."; exit 2; fi ;;
 esac
+exec 5>&1   # the terminal: say / result write here even from inside a block redirected to a file (R2-1)
 OUT="$HERE/runs/$(date +%Y%m%d-%H%M%S)-$(echo "$MODEL" | tr -c 'A-Za-z0-9_-' '_')"
 mkdir -p "$OUT"
 SUM="$OUT/SUMMARY.txt"
-say() { echo "$*" | tee -a "$SUM"; }
-result() { printf '%-9s %-50s %s\n' "$1" "$2" "$3" | tee -a "$SUM"; }   # PASS|FAIL|SKIPPED|INFO  what  file
+say() { echo "$*" | tee -a "$SUM" >&5; }
+result() { printf '%-9s %-50s %s\n' "$1" "$2" "$3" | tee -a "$SUM" >&5; }   # PASS|FAIL|SKIPPED|INFO  what  file
 ask() { # message -> 0 when done, 1 when skipped (R4_AUTO=1 skips every one)
   if [ "${R4_AUTO:-0}" = 1 ]; then echo "  (R4_AUTO: skipped — $1)"; return 1; fi
   printf '\n>>> %s\n>>> Press Enter when done, or type s then Enter to skip: ' "$1"
@@ -78,11 +79,22 @@ BASE_ADBWIFI="$(adb shell settings get global adb_wifi_enabled | tr -d '\r')"
 BASE_A11Y="$(adb shell settings get secure enabled_accessibility_services | tr -d '\r')"
 BASE_A11Y_ON="$(adb shell settings get secure accessibility_enabled | tr -d '\r')"
 BASE_LOWPOWER="$(adb shell settings get global low_power | tr -d '\r')"
+# low_power reads 0 whenever the phone charges (it does, on USB); the owner's Power saving choice is low_power_sticky,
+# which `cmd power set-mode` also writes. That is what the clean-up restores and checks (R2-3).
+BASE_STICKY="$(adb shell settings get global low_power_sticky | tr -d '\r')"
 A11Y_TOUCHED=0
 HELPER_PIDS=()
 TOGGLES_READY=0
 { echo "navigation_mode=$BASE_NAV"; echo "adb_wifi_enabled=$BASE_ADBWIFI"; echo "enabled_accessibility_services=$BASE_A11Y"
-  echo "accessibility_enabled=$BASE_A11Y_ON"; echo "low_power=$BASE_LOWPOWER"; } > "$OUT/baseline-settings.txt"
+  echo "accessibility_enabled=$BASE_A11Y_ON"; echo "low_power=$BASE_LOWPOWER"; echo "low_power_sticky=$BASE_STICKY"; } > "$OUT/baseline-settings.txt"
+restore_sticky() { # puts the owner's Power saving choice back; prints FAIL if it does not read back
+  adb shell cmd power set-mode 0 > /dev/null 2>&1
+  if [ "$BASE_STICKY" = null ]; then adb shell settings delete global low_power_sticky > /dev/null 2>&1
+  else adb shell settings put global low_power_sticky "$BASE_STICKY"; fi
+  local now; now="$(adb shell settings get global low_power_sticky | tr -d '\r')"
+  if [ "$now" = "$BASE_STICKY" ]; then echo "power saving (low_power_sticky): as it was ($BASE_STICKY)"
+  else echo "FAIL: power saving (low_power_sticky) is $now, it was $BASE_STICKY — set Power saving by hand"; fi
+}
 
 tfield() { awk -F'\t' -v n="$1" -v k="$2" '$1==n {print $k}' "$OUT/toggles.txt"; }   # 2 read 3 on 4 off 5 onpat 6 offpat 7 probe 8 item
 read_toggle() { adb shell "$(tfield "$1" 2)" 2>&1 | tr -d '\r' | tr '\n' ' ' | sed 's/ *$//'; }
@@ -100,15 +112,26 @@ kill_helper() { # pid label -> kills that recorded pid and checks it is gone
 }
 
 cleanup() {
-  trap - EXIT INT TERM HUP
+  # A second Ctrl-C must not kill the clean-up half-way (R2-1): every further signal is ignored from here on.
+  trap '' INT TERM HUP
+  trap - EXIT
   set +e
   local c="$OUT/cleanup.txt"
+  echo "Cleaning up — this takes about a minute; further Ctrl-C is ignored until it is done." >&5
   echo "--- clean-up $(date -Is)" >> "$c"
+  if [ "$(timeout 20 adb get-state 2>/dev/null)" != device ]; then
+    echo "FAIL: the phone is not reachable, so nothing could be checked or undone. Reboot the phone: that ends forced Doze," >> "$c"
+    echo "  the unplugged-battery report and the helper; then check Wi-Fi, Bluetooth, NFC, location, mobile data, airplane" >> "$c"
+    echo "  mode, Power saving and Settings > Accessibility by hand, and uninstall 'R4 probe'." >> "$c"
+    result FAIL "clean-up: the phone was unreachable (see the file)" cleanup.txt
+    say "Run folder: $OUT"; return
+  fi
+  # the two that outlast the run until a reboot go first
+  adb shell dumpsys deviceidle unforce > /dev/null 2>&1
+  adb shell dumpsys battery reset > /dev/null 2>&1
   for p in "${HELPER_PIDS[@]}"; do kill_helper "$p" recorded >> "$c"; done
   for tag in usb wifi; do p="$(helper_pid $tag)"; [ -n "$p" ] && kill_helper "$p" "$tag" >> "$c"; done
   adb shell rm -f /data/local/tmp/r4helper-usb.pid /data/local/tmp/r4helper-usb.log /data/local/tmp/r4helper-wifi.pid /data/local/tmp/r4helper-wifi.log
-  adb shell dumpsys deviceidle unforce > /dev/null 2>&1
-  adb shell dumpsys battery reset > /dev/null 2>&1
   if [ "$A11Y_TOUCHED" = 1 ]; then
     if [ "$BASE_A11Y" = null ]; then adb shell settings delete secure enabled_accessibility_services > /dev/null
     else adb shell settings put secure enabled_accessibility_services "'$BASE_A11Y'"; fi
@@ -129,6 +152,7 @@ cleanup() {
       else echo "FAIL: $name could NOT be set back to $want (now $now) — set it by hand"; fi
     done 3< "$OUT/toggles.txt" >> "$c"
   fi
+  restore_sticky >> "$c"
   now_nav="$(adb shell settings get secure navigation_mode | tr -d '\r')"
   [ "$now_nav" != "$BASE_NAV" ] && echo "NOTE: navigation mode is $now_nav, it was $BASE_NAV — switch it back in Settings > Display > Navigation bar" >> "$c"
   now_aw="$(adb shell settings get global adb_wifi_enabled | tr -d '\r')"
@@ -140,7 +164,7 @@ cleanup() {
   say "Run folder: $OUT"
 }
 trap cleanup EXIT
-trap 'say "interrupted — cleaning up"; exit 130' INT TERM HUP
+trap 'say "interrupted"; exit 130' INT TERM HUP
 
 # A run stopped before this kit had its clean-up may have left these behind; undo them before taking the baseline.
 adb shell dumpsys deviceidle unforce > /dev/null 2>&1
@@ -176,7 +200,10 @@ result INFO "toggle baseline (clean-up restores these)" baseline-states.txt
 echo
 echo "R4 will flip each of these on the phone and flip it straight back (directly, then through the helper):"
 awk -F'\t' '$7=="-" {printf "%s ", $1}' "$OUT/toggles.txt"; echo
-echo "Only a toggle whose state it recognises is flipped (see $OUT/baseline-states.txt); the hotspot is only probed, never"
+echo "What it read on the phone (only on / off are flipped; 'unknown' is left alone):"
+sed 's/^/    /' "$OUT/baseline-states.txt" | cut -c1-100
+echo "If any on / off above is wrong for your phone, answer n and tell me which."
+echo "Only a toggle whose state it recognises is flipped; the hotspot is only probed, never"
 echo "started. Wi-Fi, mobile data and airplane mode drop the phone's connections for a few seconds each; USB is unaffected."
 if [ "${R4_YES:-0}" != 1 ]; then printf 'Go ahead? [y/N] '; read -r go; [ "$go" = y ] || { say "stopped before any toggle was flipped"; exit 0; }; fi
 
@@ -267,7 +294,7 @@ else result INFO "4b deep Doze could NOT be forced here (not tested; see the fil
 adb shell dumpsys deviceidle unforce > /dev/null 2>&1; adb shell dumpsys battery reset
 
 if ask "Unplug the USB cable from the phone, wait 30 seconds, then plug it back in (accept the USB prompt if the phone shows one)."; then
-  timeout 300 adb wait-for-device; sleep 3
+  echo "Waiting up to 5 minutes for the phone to come back on USB…" >&5; timeout 300 adb wait-for-device; sleep 3
   { echo "after the cable was pulled: helper $HUSB alive: $(alive "$HUSB" && echo yes || echo NO)"; } > "$OUT/part4-cable.txt"
   if ping_ok usb "$HUSB"; then result PASS "4c cable pulled: helper lives and answers" part4-cable.txt
   else result FAIL "4c cable pulled: helper lives and answers" part4-cable.txt; fi
@@ -288,12 +315,16 @@ if ask "On the phone: Settings > Developer options > Wireless debugging — turn
   echo "helper started over Wireless debugging: pid ${HWIFI:-none}" >> "$OUT/part4-adbd-gone.txt"
   ping_ok wifi "$HWIFI" && echo "the app holds the Wireless-debugging helper's binder" >> "$OUT/part4-adbd-gone.txt"
   timeout 20 adb disconnect "$WADDR" > /dev/null 2>&1
+  ADBD1="$(adb shell pidof adbd | tr -d '\r')"; echo "adbd pid before: ${ADBD1:-?}" >> "$OUT/part4-adbd-gone.txt"
   if ask "Now: turn Wireless debugging OFF, turn USB debugging OFF, unplug the cable, and wait 60 seconds. Then turn USB debugging back ON, plug the cable in, accept the prompt."; then
-    timeout 300 adb wait-for-device; sleep 3
+    echo "Waiting up to 5 minutes for the phone to come back on USB…" >&5; timeout 300 adb wait-for-device; sleep 3
     { echo "after adbd was gone (Wireless and USB debugging off, cable out): helper ${HWIFI:-none} alive: $(alive "$HWIFI" && echo yes || echo NO)"
       echo "--- helper log"; adb shell cat /data/local/tmp/r4helper-wifi.log | tr -d '\r'; } >> "$OUT/part4-adbd-gone.txt"
-    if ping_ok wifi "$HWIFI"; then result PASS "4d adbd gone: helper lives and answers" part4-adbd-gone.txt
-    else result FAIL "4d adbd gone: helper lives and answers" part4-adbd-gone.txt; fi
+    ADBD2="$(adb shell pidof adbd | tr -d '\r')"; echo "adbd pid after: ${ADBD2:-?}" >> "$OUT/part4-adbd-gone.txt"
+    if [ -z "$ADBD1" ] || [ "$ADBD1" = "$ADBD2" ]; then
+      result INFO "4d NOT tested: adbd never stopped (same pid) — was USB debugging off?" part4-adbd-gone.txt
+    elif ping_ok wifi "$HWIFI"; then result PASS "4d adbd gone (new adbd pid): helper lives and answers" part4-adbd-gone.txt
+    else result FAIL "4d adbd gone (new adbd pid): helper lives and answers" part4-adbd-gone.txt; fi
   else result SKIPPED "4d adbd gone" part4-adbd-gone.txt; fi
 else result SKIPPED "4d adbd gone" "-"; fi
 
@@ -308,7 +339,7 @@ blur_pass() { # label
 blur_pass normal
 adb shell dumpsys battery unplug; adb shell cmd power set-mode 1; sleep 2
 blur_pass powersave
-adb shell cmd power set-mode "${BASE_LOWPOWER:-0}"; adb shell dumpsys battery reset
+restore_sticky >> "$OUT/blur.txt"; adb shell dumpsys battery reset
 result INFO "blur: platform answer + FLAG_BLUR_BEHIND overlay, normal and power saving" "blur.txt blur-*.png"
 
 # ---------------------------------------------------------------- P5: the nav-bar overlay
