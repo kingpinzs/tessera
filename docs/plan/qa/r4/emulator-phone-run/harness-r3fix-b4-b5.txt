@@ -1,0 +1,33 @@
+=== B4
+sticky before 0
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+at the pairing prompt: stage pair
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+stage after Stop: done
+stopped at stage pair
+  stopped before the baseline was taken: nothing was changed, nothing to put back
+  helper: call failed: DeadObjectException: null
+sticky after 0; low_power 0
+=== B5
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+killed at stage p3
+screen after a plain open:
+text="An R4 run did not finish (it stopped at 'p3'). Carry on, or put everything back now?"
+text="CARRY ON"
+text="RESTORE NOW"
+tapped Restore now
+stage after Restore now: done
+== clean-up
+  battery_saver: as it was (off)
+  location: as it was (on)
+  auto_time: as it was (on)
+  nfc: its start state was not recognised; never flipped, left alone
+  bluetooth: as it was (on)
+  wifi: as it was (on)
+  mobile_data: as it was (on)
+  airplane: as it was (off)
+  power saving: as it was (on when unplugged: 0; low_power_sticky 0)
+  helper: exiting
+  helper pid 19294: stopped
+=== after: helpers 0; wifi Wifi is enabled; bt 1; low_power 0
+b4b5 rc=0
