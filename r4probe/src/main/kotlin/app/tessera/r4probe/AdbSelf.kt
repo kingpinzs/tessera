@@ -18,6 +18,9 @@ import okio.Path.Companion.toPath
 object AdbSelf {
     @Volatile private var configured = false
     @Volatile private var kadb: Kadb? = null
+    /** True once a command has gone through this connection; false after any failure (Kadb's connectionCheck() reports
+     *  false for a fresh connection that has carried nothing yet, which read as "not connected"). */
+    @Volatile private var alive = false
 
     private fun configure(ctx: Context) {
         if (configured) return
@@ -25,29 +28,39 @@ object AdbSelf {
         configured = true
     }
 
+    /** The last pairing's result line ("paired with …" or "PAIR FAILED: …"), for the run that waits on it. */
+    @Volatile var lastPair: String? = null
+
     /** Pairs with the code shown in Wireless debugging's pairing dialog. Blocks; call off the main thread. */
-    fun pair(ctx: Context, host: String, port: Int, code: String): String = try {
+    fun pair(ctx: Context, host: String, port: Int, code: String): String = (try {
         configure(ctx)
         runBlocking { Kadb.pair(host, port, code) }
         "paired with $host:$port"
-    } catch (e: Throwable) { "PAIR FAILED: ${e.javaClass.simpleName}: ${e.message}" }
+    } catch (e: Throwable) { "PAIR FAILED: ${e.javaClass.simpleName}: ${e.message}" }).also { lastPair = it }
 
     /** Connects to the phone's own adbd (Wireless debugging's IP address & port). Blocks. */
     fun connect(ctx: Context, host: String, port: Int): String = try {
         configure(ctx)
         runCatching { kadb?.close() }
+        alive = false
         kadb = Kadb.create(host, port)
-        "connected to $host:$port"
-    } catch (e: Throwable) { kadb = null; "CONNECT FAILED: ${e.javaClass.simpleName}: ${e.message}" }
+        val probe = kadb!!.shell("echo r4")
+        alive = probe.allOutput.contains("r4")
+        if (alive) "connected to $host:$port" else "CONNECT FAILED: no answer on $host:$port"
+    } catch (e: Throwable) { kadb = null; alive = false; "CONNECT FAILED: ${e.javaClass.simpleName}: ${e.message}" }
 
-    fun connected(): Boolean = runCatching { kadb?.connectionCheck() == true }.getOrDefault(false)
+    fun connected(): Boolean = kadb != null && alive
+
+    /** Drops the connection (Wi-Fi went away and adbd came back on a new port). */
+    fun disconnect() { runCatching { kadb?.close() }; kadb = null; alive = false }
 
     /** Runs one shell command as the shell uid; (exit code, output). Blocks. */
     fun shell(cmd: String): Pair<Int, String> {
         val k = kadb ?: return -1 to "not connected"
         return try {
             val r = k.shell(cmd)
+            alive = true
             r.exitCode to r.allOutput
-        } catch (e: Throwable) { -1 to "SHELL FAILED: ${e.javaClass.simpleName}: ${e.message}" }
+        } catch (e: Throwable) { alive = false; -1 to "SHELL FAILED: ${e.javaClass.simpleName}: ${e.message}" }
     }
 }
