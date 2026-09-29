@@ -63,7 +63,7 @@ clearing), step 0 stands in for the fresh install's Home route, and your page ti
 
 | Row | What to look at | Where |
 |---|---|---|
-| H1 | The step page: the progress caption, the title, the "why" line under it, the state line with its mark, the blue button's wording ("Open settings", "Allow", "Set as default", "Turn on", "Choose", "Allow all the time"), "Not now", "Skip setup" (first step only), and the page-to-page motion | the phone (P1); emulator screens in E2/*.png |
+| H1 | The step page: the progress caption, the title, the "why" line under it, the state line with its mark, the blue button's wording ("Open settings", "Allow", "Set as default", "Turn on", "Choose", "Allow all the time"), "Not now", "Skip setup" (first step only), and the page-to-page motion (on the emulator each page change starts about 50 ms late, then runs smoothly; say whether you see a hitch at the start on the phone) | the phone (P1); emulator screens in E2/*.png |
 | H2 | The walking order: the Setup rows, then Tess's, then the themes page | P1 |
 | H3 | The themes page last: six themes at the top, then every item below them, "Done" at the bottom | P1; E2/presets.png |
 | H4 | Once you finish or skip the wizard it never comes back on that install. A permission you turn off later shows up red on the Setup checklist instead | P2 |

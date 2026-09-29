@@ -78,3 +78,10 @@ driver checked able to fail on the defect; every re-run header's driver blob mat
 | 7 EDGE_LMK notes the remaining walk, asserts only no photos | Recorded, not applied (the walk in `EDGE_LMK.txt:28` is E2's list minus photos, "Step 1 of 19" asserted) |
 
 Per the phased-build rule, no third round: nothing HIGH remains.
+
+## B1 ruled (2026-09-29)
+
+Jeremy: "E10 (a)". E10's gate is the shell-clock checks, which pass; the screenrecord / SurfaceFlinger corroboration is an
+AVD reading, not a gate; the feel is judged on the phone in H1 (NEEDS-HUMAN H1 now names the ~50 ms start). B1 is cleared.
+Reviewer A's N4 (a dismissed first dialog reads as blocked) was surfaced in the same handoff with the lead's lean to keep the
+doc's and phase 03's rule; no ruling yet, so the rule stands as built.
