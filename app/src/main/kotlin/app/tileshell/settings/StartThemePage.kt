@@ -38,19 +38,16 @@ import app.tileshell.ui.components.PressRow
 import app.tileshell.ui.tokens.Palette
 import app.tileshell.ui.tokens.ShellType
 
-/** Settings > Start + theme (phase 01 Scope): accent, background, transparency, show more tiles, theme, press effect, profiles. */
+/**
+ * Settings > Start + theme (phase 01 Scope): the theme presets (phase 12's ADD, T12-2), then the items they set — background,
+ * mode, accent, effects, press effect, Tess's look, keyboard — then show more tiles, profiles and the Photos tile.
+ */
 @Composable
 fun StartThemePage() {
     val context = LocalContext.current
     val settings = ShellSettings.get(context)
     val theme by settings.theme.collectAsState()
     val colors = LocalShellColors.current
-    val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            runCatching { context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
-            settings.update { it.copy(backgroundUri = uri.toString()) }
-        }
-    }
     // The picture frame's photo, taken the same way the Start background is: a persisted read grant on the
     // picker's URI, so the tile keeps drawing it whether or not the shell holds gallery access at all.
     val pickFrame = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -62,46 +59,10 @@ fun StartThemePage() {
 
     PageHeader(Glyph.PALETTE, "Start + theme")
 
-    SectionHeader("Background")
-    PressRow({ pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, Modifier.fillMaxWidth().height(44.dp).testTag("theme_background_choose")) {
-        BasicText("Choose a picture", style = ShellType.body.copy(color = colors.accent), modifier = Modifier.padding(start = 12.dp, top = 11.dp))
-    }
-    if (theme.backgroundUri != null) {
-        PressRow({ settings.update { it.copy(backgroundUri = null) } }, Modifier.fillMaxWidth().height(44.dp).testTag("theme_background_remove")) {
-            BasicText("Remove picture", style = ShellType.body.copy(color = colors.accent), modifier = Modifier.padding(start = 12.dp, top = 11.dp))
-        }
-        SliderRow("Tile transparency", theme.transparency, "theme_transparency") { v -> settings.update { it.copy(transparency = v) } }
-    }
-
-    SectionHeader("Choose your mode")
-    RadioRow("Dark", theme.theme == ThemeMode.DARK, "theme_mode_dark") { settings.update { it.copy(theme = ThemeMode.DARK) } }
-    RadioRow("Light", theme.theme == ThemeMode.LIGHT, "theme_mode_light") { settings.update { it.copy(theme = ThemeMode.LIGHT) } }
-
-    SectionHeader("Accent color")
-    // R3 A16: 6 x 8 swatches, 44 epx square, 4-epx horizontal gap, ≈7-epx vertical gap, left edge 12 epx.
-    Column(Modifier.padding(start = 12.dp).testTag("theme_accent_grid")) {
-        Palette.accents.chunked(6).forEach { row ->
-            Row(Modifier.padding(bottom = 7.dp)) {
-                row.forEach { (name, argb) ->
-                    val selected = theme.accent == argb
-                    Box(
-                        Modifier.size(44.dp).background(Color(argb))
-                            .let { if (selected) it.border(3.dp, colors.text) else it }
-                            .pointerInput(argb) { detectTapGestures { settings.update { it.copy(accent = argb) } } }
-                            .testTag("accent:$name")
-                            .semantics { contentDescription = name; this.selected = selected },
-                    )
-                    Spacer(Modifier.width(4.dp))
-                }
-            }
-        }
-    }
-
-    // Phase 13 (interview Q2 A): Windows 10's own wording, from Settings > Personalization > Colors (H5).
-    SectionHeader("Effects")
-    ToggleRow("Transparency effects", theme.transparencyEffects, "theme_transparency_effects") { on ->
-        settings.update { it.copy(transparencyEffects = on) }
-    }
+    // Phase 12 (T12-2): the same presets the wizard's last page shows, each applied the moment it is tapped.
+    SectionHeader("Themes")
+    Box(Modifier.testTag("theme_presets")) { ThemePresetsGrid("theme_preset") }
+    ThemeItems()
 
     SectionHeader("Start")
     ToggleRow("Show more tiles", theme.mediumColumns == 3, "theme_show_more_tiles") { on -> settings.update { it.copy(mediumColumns = if (on) 3 else 2) } }
@@ -129,9 +90,5 @@ fun StartThemePage() {
         )
     }
 
-    SectionHeader("Tile press effect")
-    RadioRow("None (Windows 10 Mobile)", theme.pressStyle == PressStyle.NONE, "press_none") { settings.update { it.copy(pressStyle = PressStyle.NONE) } }
-    RadioRow("Tilt (Windows Phone 8)", theme.pressStyle == PressStyle.WP8_TILT, "press_tilt") { settings.update { it.copy(pressStyle = PressStyle.WP8_TILT) } }
-    RadioRow("Press", theme.pressStyle == PressStyle.P4_PRESS, "press_p4") { settings.update { it.copy(pressStyle = PressStyle.P4_PRESS) } }
     Spacer(Modifier.height(24.dp))
 }
