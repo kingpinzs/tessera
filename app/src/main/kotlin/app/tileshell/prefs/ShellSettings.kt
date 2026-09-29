@@ -53,7 +53,7 @@ data class StartTheme(
     val transparencyEffects: Boolean = true,
     /**
      * Phase 12 (T12-2): the theme preset the items came from — `default`, `w10m`, `hal`, `soft`, `lumia`, `midnight` — or
-     * `custom` once a write changes any of the preset's items; null (the key absent) reads as the out-of-box Default.
+     * `custom` once a write changes any of the preset's items; null = the out-of-box Default (`ThemePresets.presetOnRead`).
      */
     val themePreset: String? = null,
     /** Phase 12 (T12-10): the original preset's picture variant, `hero` or `streaks`; changing it is not a Custom change. */
