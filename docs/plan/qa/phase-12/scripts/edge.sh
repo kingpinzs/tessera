@@ -51,12 +51,21 @@ lmk)
   tap_node "$ROW_DIR/w-at.xml" wizard_action; sleep 2.5
   assert_contains "the dialog is up" "permissioncontroller" "$(resumed_activity)"
   adb shell am kill "$PKG"; sleep 2
-  p1="$(pid)"
-  record "am kill with the dialog up: pid before / after" "$p0 / ${p1:-none}"
+  record "am kill with the dialog up (the doc's form): pid before / after" "$p0 / $(pid)"
+  # am kill only kills a process Android already counts as killable, and with the dialog over it the shell is not (run 1:
+  # the same pid survived). A low-memory kill is simulated for real: the process kills itself as its own uid (run-as, a
+  # debug build), while the dialog stays up.
+  adb shell run-as "$PKG" kill -9 "$p0"; sleep 2
+  assert_ne "the shell's process died with the dialog up" "$p0" "$(pid)"
+  assert_contains "the dialog is still up" "permissioncontroller" "$(resumed_activity)"
   perm_tap "$ROW_DIR/dialog.xml" allow_all_button "allow all"; sleep 3
   adb shell input keyevent KEYCODE_HOME; sleep 5
+  p2="$(pid)"
+  assert_ne "a new process after returning" "$p0" "$p2"
+  assert_absent "no finished marker" "setup_wizard" "$(adb shell run-as $PKG ls shared_prefs | tr -d '\r')"
   k="$(cur_step after)"
-  assert_ne "the wizard re-derives (a step shows)" "" "$k"
+  assert_eq "the wizard re-derives from live state: setup:notifications first" "setup:notifications" "$k"
+  assert_eq "one fewer N: Step 1 of 19" "Step 1 of 19" "$(ntext "$ROW_DIR/after.xml" wizard_progress)"
   assert_contains "the dialog's answer is read from live state: READ_MEDIA_IMAGES granted" "READ_MEDIA_IMAGES: granted=true" "$(adb shell dumpsys package $PKG | grep 'READ_MEDIA_IMAGES: granted' | head -1)"
   seen="$(walk_not_now "$ROW_DIR/walk" | tr '\n' ' ')"; note "steps: $k $seen"
   assert_absent "setup:photos is not a step any more" "setup:photos" "$k $seen"
@@ -92,8 +101,10 @@ dismiss)
     sleep 2.5
     record "($how) resumed after the dismissal" "$(resumed_activity)"
     if [ "$(resumed_activity | grep -c permissioncontroller)" = 1 ]; then
-      record "($how) the dialog did not dismiss on this image" "pressing Back to leave it"
+      # Codex gate review B6: a Back after a failed outside tap proves Back, not the outside case; no PASS line for it.
+      record "($how) NOT PROVEN" "the dialog does not dismiss on an outside tap on this image; left to P1 on the phone"
       adb shell input keyevent KEYCODE_BACK; sleep 2
+      continue
     fi
     assert_eq "($how) the Photos step stays" "setup:photos" "$(cur_step "d-$how")"
     record "($how) the button after the dismissal" "$(ntext "$ROW_DIR/d-$how.xml" wizard_action)"
@@ -232,19 +243,18 @@ kb_dismiss)
   end_row ;;
 
 home_once)
-  row_begin EDGE_HOME_ONCE "the Default Home step when the shell was opened Just once"
+  row_begin EDGE_HOME_ONCE "the Default Home step when the shell was opened Just once from the chooser"
+  # Codex gate review B7: entered through Android's own chooser (Home pressed with no default), and the return from the
+  # role sheet is read as it lands — no explicit launch and no Home press until the step's last check.
   leave_home; adb shell pm clear "$PKG" >/dev/null; provision_no_marker home
   adb shell cmd role remove-role-holder android.app.role.HOME "$PKG"
-  other="$(adb shell cmd role get-role-holders android.app.role.HOME | tr -d '\r')"
-  record "HOME role holder after removing the shell" "${other:-none}"
-  adb shell am start -n "$PKG/.StartActivity" >/dev/null; sleep 5
-  k="$(cur_step first)"
-  assert_eq "Default Home is step 1" "setup:home" "$k"
-  assert_eq "its button: Set as default" "Set as default" "$(ntext "$ROW_DIR/first.xml" wizard_action)"
-  tap_node "$ROW_DIR/first.xml" wizard_action; sleep 3
-  note "the role sheet: $(resumed_activity)"
-  dump_ui "$ROW_DIR/sheet.xml"; screencap "$ROW_DIR/sheet.png"
-  record "the role sheet on the AVD" "$(resumed_activity)"
+  # With no holder, the preferred mapping set-home-activity left still resolves Home to the shell
+  # (BUILD_START/home-chooser-probe); clearing it is what makes Home ask.
+  adb shell cmd package clear-package-preferred-activities "$PKG"
+  adb shell am force-stop "$PKG"
+  record "HOME role holder after removing the shell" "$(adb shell cmd role get-role-holders android.app.role.HOME | tr -d '\r')"
+  assert_contains "Home resolves to the chooser" "ResolverActivity" "$(adb shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME | tr -d '\r' | tail -1)"
+  assert_eq "no shell process before Home" "" "$(pid)"
   pick() { python3 - "$1" "$2" <<'PY'
 import re, sys, xml.etree.ElementTree as ET
 for n in ET.parse(sys.argv[1]).getroot().iter("node"):
@@ -252,7 +262,26 @@ for n in ET.parse(sys.argv[1]).getroot().iter("node"):
         x1, y1, x2, y2 = map(int, re.findall(r"-?\d+", n.get("bounds") or "0 0 0 0")); print((x1 + x2) // 2, (y1 + y2) // 2); break
 PY
   }
+  MARK="$(ring_mark)"
+  adb shell input keyevent KEYCODE_HOME; sleep 3
+  assert_contains "Home: Android's chooser" "ResolverActivity" "$(resumed_activity)"
+  dump_ui "$ROW_DIR/chooser.xml"; screencap "$ROW_DIR/chooser.png"
+  assert_eq "the chooser's title" "Select a Home app" "$(ntext "$ROW_DIR/chooser.xml" android:id/title)"
+  xy="$(pick "$ROW_DIR/chooser.xml" Tessera)"; [ -n "$xy" ] && adb shell input tap $xy; sleep 1
+  dump_ui "$ROW_DIR/chooser2.xml"; xy="$(pick "$ROW_DIR/chooser2.xml" 'just once')"; [ -n "$xy" ] && adb shell input tap $xy; sleep 4
+  assert_eq "Just once: Start resumed" "app.tileshell/.StartActivity" "$(resumed_activity)"
+  p0="$(pid)"; assert_ne "Just once: the shell is running" "" "$p0"
+  record "HOME role holder after Just once" "$(adb shell cmd role get-role-holders android.app.role.HOME | tr -d '\r')"
+  k="$(cur_step first)"
+  assert_eq "Default Home is step 1" "setup:home" "$k"
+  assert_eq "its button: Set as default" "Set as default" "$(ntext "$ROW_DIR/first.xml" wizard_action)"
+  start_slice "$MARK" "Just once"
+  assert_contains "the run begins with the Home step" "[wizard] shown: missing=setup:home" "$SLICE"
+  tap_node "$ROW_DIR/first.xml" wizard_action; sleep 3
+  dump_ui "$ROW_DIR/sheet.xml"; screencap "$ROW_DIR/sheet.png"
+  record "the role sheet on the AVD" "$(resumed_activity)"
   xy="$(pick "$ROW_DIR/sheet.xml" cancel)"; [ -n "$xy" ] && adb shell input tap $xy; sleep 3
+  assert_eq "cancelled: Start is back in front" "app.tileshell/.StartActivity" "$(resumed_activity)"
   assert_eq "cancelled: the step stays" "setup:home" "$(cur_step after)"
   tap_node "$ROW_DIR/after.xml" wizard_action; sleep 3; dump_ui "$ROW_DIR/sheet2.xml"
   other_name="$(python3 - "$ROW_DIR/sheet2.xml" <<'PY'
@@ -265,8 +294,15 @@ PY
   xy="$(pick "$ROW_DIR/sheet2.xml" "$other_name")"; [ -n "$xy" ] && adb shell input tap $xy; sleep 1
   dump_ui "$ROW_DIR/sheet3.xml"; xy="$(pick "$ROW_DIR/sheet3.xml" 'set as default')"; [ -n "$xy" ] && adb shell input tap $xy; sleep 3
   record "HOME role holder after choosing another launcher" "$(adb shell cmd role get-role-holders android.app.role.HOME | tr -d '\r')"
-  adb shell am start -n "$PKG/.StartActivity" >/dev/null; sleep 3
+  # The immediate return, read before any launch or Home press.
+  assert_eq "another launcher chosen: Start is in front on return" "app.tileshell/.StartActivity" "$(resumed_activity)"
   assert_eq "another launcher chosen: the step stays" "setup:home" "$(cur_step after2)"
+  assert_eq "another launcher chosen: the same process (no relaunch)" "$p0" "$(pid)"
+  start_slice "$MARK" "the return"
+  assert_eq "one StartActivity created since Home" "1" "$(grep -c '\[start\] StartActivity created' <<<"$SLICE")"
+  assert_absent "no finished marker line" "[wizard] finished" "$SLICE"
+  adb shell input keyevent KEYCODE_HOME; sleep 3
+  record "Home pressed afterwards: resumed" "$(resumed_activity)"
   adb shell cmd role add-role-holder android.app.role.HOME "$PKG"
   adb shell cmd package set-home-activity "$PKG/$PKG.StartActivity" >/dev/null
   end_row ;;

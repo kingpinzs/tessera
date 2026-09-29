@@ -124,6 +124,12 @@ note "xml files scanned: $(find "$OUT" -name '*.xml' | wc -l)"
 assert_eq "no saved dump holds wizard_page" "0" "$hits"
 assert_ne "the scan saw the children's dumps" "0" "$(find "$OUT" -name '*.xml' | wc -l)"
 
+log "phase 02 E1's own layout_restore: its saved diagnostics dump (the process that loaded the layout)"
+d02="$(ls "$OUT/phase-02-E1/"e1_diag.txt 2>/dev/null)"
+assert_ne "phase 02 E1 saved its diagnostics dump" "" "$d02"
+assert_eq "that dump carries the diagnostics header" "1" "$(grep -cE '^[[:space:]]*tileshell diagnostics: [0-9]+ entries' "$d02" 2>/dev/null | head -1)"
+assert_eq "zero assignSlotOnce -> assigned in phase 02 E1's restore" "0" "$(grep -c 'assignSlotOnce.*-> assigned' "$d02" 2>/dev/null)"
+
 log "no assignSlotOnce ... -> assigned line while they ran (C-3)"
 ring_since "$MARK0" > "$ROW_DIR/ring-all.txt" 2>/dev/null
 assert_eq "zero assignSlotOnce -> assigned lines" "0" "$(grep -c 'assignSlotOnce.*-> assigned' "$ROW_DIR/ring-all.txt")"
