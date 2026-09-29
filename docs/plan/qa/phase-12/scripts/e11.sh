@@ -54,11 +54,29 @@ assert_contains "(a) Custom: theme_preset = custom" '<string name="theme_preset"
 assert_contains "(a) Custom: accent = Red" '<long name="accent" value="4293398819" />' "$custom"
 others() { echo "$1" | grep -E 'name="(theme|background|transparency|press|tess_lens|keyboard_palette|transparency_effects)"' | sort; }
 assert_eq "(a) Custom: every OTHER item key unchanged from Lumia's" "$(others "$lumia")" "$(others "$custom")"
+# All eight items as effective values, less one key (codex review B3: a change reads Custom AND changes only its item).
+except() { effective_items "$1" | grep -v "^$2="; }
+eff() { effective_items "$1" | grep "^$2=" | cut -d= -f2; }
+log "(a) Transparency effects after re-tapping a preset: Custom the same way"
+for i in 1 2 3; do adb shell input swipe 540 700 540 2000 300; sleep 0.6; done
+dump_ui "$ROW_DIR/a-fx0.xml"; tap_node "$ROW_DIR/a-fx0.xml" "preset:Lumia"; sleep 2
+lumia="$(prefs_now)"
+scroll_to_node "$ROW_DIR/a-fx1.xml" "theme_transparency_effects" 12
+tap_node "$ROW_DIR/a-fx1.xml" "theme_transparency_effects"; sleep 2
+fx="$(prefs_now)"
+assert_contains "(a) effects toggled: theme_preset = custom" '<string name="theme_preset">custom</string>' "$fx"
+assert_eq "(a) effects toggled: transparency_effects flipped (Lumia's true -> false)" "false" "$(eff "$fx" transparency_effects)"
+assert_eq "(a) effects toggled: every other item unchanged from Lumia's" "$(except "$lumia" transparency_effects)" "$(except "$fx" transparency_effects)"
+for i in 1 2 3; do adb shell input swipe 540 700 540 2000 300; sleep 0.6; done
+dump_ui "$ROW_DIR/a-fx2.xml"
+assert_eq "(a) effects toggled: preset:Custom selected" "true" "$(node_checked "$ROW_DIR/a-fx2.xml" preset:Custom)"
 
 # ============================================================ (b) Settings > Start + theme after a run, seeded once
 log "(b) seed once: pm clear -> provision.sh -> layout_restore"
 restore_fresh b
+SEEDMARK="$(ring_mark)"
 layout_restore "$QAROOT/phase-02/baseline_layout.json" > "$ROW_DIR/layout-b.txt" 2>&1
+assert_seeded "$SEEDMARK" "(b)"
 adb shell ime set "$KEYBOARD" >/dev/null
 adb shell input keyevent KEYCODE_HOME; sleep 3
 pid0="$(adb shell pidof $PKG | tr -d '\r')"
@@ -95,8 +113,21 @@ open_theme "$ROW_DIR/b-c2.xml"
 assert_eq "(b) Custom: theme_preset:Custom selected" "true" "$(node_checked "$ROW_DIR/b-c2.xml" theme_preset:Custom)"
 tap_node "$ROW_DIR/b-c2.xml" "theme_preset:HAL"; sleep 2
 scroll_to_node "$ROW_DIR/b-c3.xml" "theme_transparency_effects" 10
+hal="$(prefs_now)"
 tap_node "$ROW_DIR/b-c3.xml" "theme_transparency_effects"; sleep 2
-assert_contains "(b) Transparency effects toggled after a preset: custom" '<string name="theme_preset">custom</string>' "$(prefs_now)"
+fx="$(prefs_now)"
+assert_contains "(b) Transparency effects toggled after a preset: custom" '<string name="theme_preset">custom</string>' "$fx"
+assert_eq "(b) effects toggled: transparency_effects flipped (HAL's true -> false)" "false" "$(eff "$fx" transparency_effects)"
+assert_eq "(b) effects toggled: every other item unchanged from HAL's" "$(except "$hal" transparency_effects)" "$(except "$fx" transparency_effects)"
+log "(b) Remove picture right after a preset: Custom, the picture gone, the rest unchanged"
+open_theme "$ROW_DIR/b-rm0.xml"; tap_node "$ROW_DIR/b-rm0.xml" "theme_preset:HAL"; sleep 2
+hal="$(prefs_now)"
+scroll_to_node "$ROW_DIR/b-rm1.xml" "theme_background_remove" 8
+tap_node "$ROW_DIR/b-rm1.xml" "theme_background_remove"; sleep 2
+rm="$(prefs_now)"
+assert_contains "(b) Remove picture: theme_preset = custom" '<string name="theme_preset">custom</string>' "$rm"
+assert_eq "(b) Remove picture: background gone" "(none)" "$(eff "$rm" background)"
+assert_eq "(b) Remove picture: every other item unchanged from HAL's" "$(except "$hal" background)" "$(except "$rm" background)"
 open_theme "$ROW_DIR/b-c4.xml"
 tap_node "$ROW_DIR/b-c4.xml" "theme_preset:HAL"; sleep 2
 scroll_to_node "$ROW_DIR/b-c5.xml" "theme_show_more_tiles" 12
@@ -109,7 +140,9 @@ log "(b) Custom snapshot: a picture of the user's, HAL over it, Custom brings it
 # Its own fresh state: the Custom sub-row above already made a snapshot (Lumia -> Red, then HAL), and this sub-row starts
 # from "no theme_custom.xml" (run 1 read the older snapshot's file).
 restore_fresh snap
+SEEDMARK="$(ring_mark)"
 layout_restore "$QAROOT/phase-02/baseline_layout.json" > "$ROW_DIR/layout-snap.txt" 2>&1
+assert_seeded "$SEEDMARK" "(snapshot)"
 adb shell ime set "$KEYBOARD" >/dev/null
 adb shell input keyevent KEYCODE_HOME; sleep 3
 CHECKER_PATH="/sdcard/Pictures/p12_checker.png"
@@ -203,8 +236,13 @@ PY
   note "$1 picker item: [$b]"
   if [ -n "$b" ]; then set -- $b; adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )); sleep 3; fi
 }
+open_theme "$ROW_DIR/g-mid.xml"; tap_node "$ROW_DIR/g-mid.xml" "theme_preset:Midnight"; sleep 2
+midnight="$(prefs_now)"
 choose_picture A
 gA="$(prefs_now | grep -oE 'name="background">[^<]*' | sed 's/name="background">//')"
+assert_contains "Choose picture right after a preset (Midnight): theme_preset = custom" '<string name="theme_preset">custom</string>' "$(prefs_now)"
+assert_eq "Choose picture right after a preset: every other item unchanged from Midnight's" "$(except "$midnight" background)" "$(except "$(prefs_now)" background)"
+assert_contains "the picker gave a content URI for A" "content://" "$gA"
 note "A's picker URI: $gA"
 persisted_grants > "$ROW_DIR/g-grants-1.txt"
 assert_contains "A's persisted read grant is held" "$gA" "$(cat "$ROW_DIR/g-grants-1.txt")"
@@ -224,6 +262,7 @@ assert_contains "A's grant still held after Custom" "$gA" "$(cat "$ROW_DIR/g-gra
 BURI="$(push_picture "$ROW_DIR/fixB.png" /sdcard/Pictures/p12_fixB.png)"
 choose_picture B
 gB="$(prefs_now | grep -oE 'name="background">[^<]*' | sed 's/name="background">//')"
+assert_contains "the picker gave a content URI for B" "content://" "$gB"
 note "B's picker URI: $gB"
 assert_ne "B is a different picture" "$gA" "$gB"
 open_theme "$ROW_DIR/g-lumia.xml"; tap_node "$ROW_DIR/g-lumia.xml" "theme_preset:Lumia"; sleep 2

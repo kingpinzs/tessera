@@ -55,6 +55,7 @@ surface_checks() { # surface(a|b) tag-prefix dump-with-presets label
 # ============================================================ (a) the wizard's page
 log "(a) trial 1: the original preset, the Hero"
 wizard_fixture a-hero
+pidA="$(adb shell pidof $PKG | tr -d '\r')"
 MARK="$(ring_mark)"
 tap_node "$FIX_LAST" "preset:$W"; sleep 2
 listener_slice "$MARK" "(a) original"
@@ -62,20 +63,24 @@ assert_contains "(a) [theme] preset $W applied" "[theme] preset $W applied" "$SL
 assert_contains "(a) [wizard] preset $W" "[wizard] preset $W" "$SLICE"
 dump_ui "$ROW_DIR/a-hero-presets.xml"
 surface_checks a preset "$ROW_DIR/a-hero-presets.xml" hero
-log "(a) Default, then the original again: the last-chosen variant (hero); streaks is its own trial"
-adb shell input swipe 540 700 540 2000 300; sleep 1; adb shell input swipe 540 700 540 2000 300; sleep 1; adb shell input swipe 540 700 540 2000 300; sleep 1
+log "(a) the streaks chip, then the hero chip: the Hero again"
+for i in 1 2 3; do adb shell input swipe 540 700 540 2000 300; sleep 0.6; done
 dump_ui "$ROW_DIR/a-top.xml"
-tap_node "$ROW_DIR/a-top.xml" "preset:Default"; sleep 2
-dump_ui "$ROW_DIR/a-top2.xml"; tap_node "$ROW_DIR/a-top2.xml" "preset:$W"; sleep 2
-assert_contains "(a) re-tapped: variant still hero" '<string name="theme_preset_variant">hero</string>' "$(prefs_now)"
+tap_node "$ROW_DIR/a-top.xml" "preset_variant:streaks"; sleep 2
+assert_contains "(a) streaks chip: the streaks picture" "preset_w10m_streaks</string>" "$(prefs_now)"
+dump_ui "$ROW_DIR/a-top2.xml"; tap_node "$ROW_DIR/a-top2.xml" "preset_variant:hero"; sleep 2
+assert_contains "(a) hero chip: the Hero again" "preset_w10m_hero</string>" "$(prefs_now)"
+assert_contains "(a) hero chip: theme_preset_variant hero" '<string name="theme_preset_variant">hero</string>' "$(prefs_now)"
 dump_ui "$ROW_DIR/a-hero-done.xml"
 tap_node "$ROW_DIR/a-hero-done.xml" wizard_done; settle_motion
 dump_ui "$ROW_DIR/a-hero-start.xml"; screencap "$ROW_DIR/a-hero-start.png"
 check_start w10m "(a) the Hero on Start" "$ROW_DIR/a-hero-start.png" "$ROW_DIR/a-hero-start.xml" preset_w10m_hero
 check_tess w10m "(a) Tess on Cobalt" "$ROW_DIR/a-hero-tess"
+assert_eq "(a) hero trial: Start's PID unchanged across the capture (no restart)" "$pidA" "$(adb shell pidof $PKG | tr -d '\r')"
 
 log "(a) trial 2: the streaks chip, tapped before Done"
 wizard_fixture a-streaks
+pidB="$(adb shell pidof $PKG | tr -d '\r')"
 tap_node "$FIX_LAST" "preset:$W"; sleep 2
 dump_ui "$ROW_DIR/a-streaks-presets.xml"
 before="$(prefs_now)"
@@ -89,17 +94,26 @@ assert_contains "(a) streaks: theme_preset_variant" '<string name="theme_preset_
 assert_contains "(a) streaks: still w10m (a variant is not Custom)" '<string name="theme_preset">w10m</string>' "$after"
 rest() { echo "$1" | grep -E 'name="(accent|theme|transparency|press|tess_lens|keyboard_palette|transparency_effects)"' | sort; }
 assert_eq "(a) streaks: every other item key unchanged" "$(rest "$before")" "$(rest "$after")"
+log "(a) Default, then the original again: the last-chosen variant (streaks)"
+dump_ui "$ROW_DIR/a-str-d.xml"; tap_node "$ROW_DIR/a-str-d.xml" "preset:Default"; sleep 2
+dump_ui "$ROW_DIR/a-str-o.xml"; tap_node "$ROW_DIR/a-str-o.xml" "preset:$W"; sleep 2
+assert_contains "(a) re-tapped: theme_preset_variant streaks (remembered)" '<string name="theme_preset_variant">streaks</string>' "$(prefs_now)"
+assert_contains "(a) re-tapped: the streaks picture" "preset_w10m_streaks</string>" "$(prefs_now)"
 dump_ui "$ROW_DIR/a-streaks-done.xml"
 tap_node "$ROW_DIR/a-streaks-done.xml" wizard_done; settle_motion
 dump_ui "$ROW_DIR/a-streaks-start.xml"; screencap "$ROW_DIR/a-streaks-start.png"
 check_start w10m "(a) the streaks picture on Start" "$ROW_DIR/a-streaks-start.png" "$ROW_DIR/a-streaks-start.xml" preset_w10m_streaks
+assert_eq "(a) streaks trial: Start's PID unchanged across the capture (no restart)" "$pidB" "$(adb shell pidof $PKG | tr -d '\r')"
 
 # ============================================================ (b) Start + theme, seeded once
 log "(b) seed once"
 restore_fresh b
+SEEDMARK="$(ring_mark)"
 layout_restore "$QAROOT/phase-02/baseline_layout.json" > "$ROW_DIR/layout-b.txt" 2>&1
+assert_seeded "$SEEDMARK" "(b)"
 adb shell ime set "$KEYBOARD" >/dev/null
 adb shell input keyevent KEYCODE_HOME; sleep 3
+pidC="$(adb shell pidof $PKG | tr -d '\r')"
 open_theme "$ROW_DIR/b-theme.xml"
 MARK="$(ring_mark)"
 tap_node "$ROW_DIR/b-theme.xml" "theme_preset:$W"; sleep 2
@@ -131,6 +145,7 @@ assert_contains "(b) Default, then the original: the last-chosen variant, streak
 assert_contains "(b) ... and its picture" "preset_w10m_streaks</string>" "$(prefs_now)"
 dump_ui "$ROW_DIR/b-v4.xml"; tap_node "$ROW_DIR/b-v4.xml" "theme_preset_variant:hero"; sleep 2
 assert_contains "(b) the hero chip: the Hero again" "preset_w10m_hero</string>" "$(prefs_now)"
+assert_eq "(b) Start's PID unchanged through the pass and its captures (no restart)" "$pidC" "$(adb shell pidof $PKG | tr -d '\r')"
 
 log "restore: Default, then pm clear -> provision.sh -> Home"
 open_theme "$ROW_DIR/b-end.xml"; tap_node "$ROW_DIR/b-end.xml" "theme_preset:Default"; sleep 2

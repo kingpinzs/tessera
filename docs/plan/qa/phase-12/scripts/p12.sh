@@ -333,3 +333,11 @@ for y in range(200, 2100, 3):
 print(best)
 PY
 }
+
+# C-3's seeding assertion, per restore (codex review B2): the ring of the process that loaded the restored layout, read
+# before anything restarts the shell again, with its header asserted and zero `assignSlotOnce ... -> assigned` lines.
+assert_seeded() { # mark label
+  # Through Start's dump: layout_restore ends on Home with Start in front, and the listener may not have re-bound yet.
+  start_slice "$1" "seed $2"
+  assert_eq "seed $2: zero assignSlotOnce -> assigned after layout_restore" "0" "$(printf '%s\n' "$SLICE" | grep -c 'assignSlotOnce.*-> assigned')"
+}

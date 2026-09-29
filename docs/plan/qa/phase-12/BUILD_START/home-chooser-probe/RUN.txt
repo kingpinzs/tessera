@@ -1,0 +1,95 @@
+== 2026-09-29T14:50:41-06:00 probe on emulator-5554: Home pressed with no HOME role holder (codex B7)
+holders before: [app.tileshell]
+remove rc=0
+holders after: []
+resumed:       topResumedActivity=ActivityRecord{10480044 u0 app.tileshell/.StartActivity t6483}
+/sdcard/p.xml: 1 file pulled, 0 skipped. 18.6 MB/s (10148 bytes in 0.001s)
+'Step 1 of 4' wizard_progress [36,161][207,205] app.tileshell enabled= true
+'Skip setup' wizard_skip [792,132][1044,234] app.tileshell enabled= true
+'Notification access' wizard_title [36,294][611,380] app.tileshell enabled= true
+'Live tiles and unread counts come from your notifications. Without it the tiles stay still.' wizard_why [36,404][1044,518] app.tileshell enabled= true
+'\ue6d3'  [36,571][81,616] app.tileshell enabled= true
+'Live tiles show your notifications' wizard_body [105,566][745,620] app.tileshell enabled= true
+'Open settings' wizard_action [36,716][408,836] app.tileshell enabled= true
+'Not now' wizard_not_now [36,860][219,974] app.tileshell enabled= true
+'\ue115'  [150,2238][210,2298] app.tileshell enabled= true
+'\uefd7'  [870,2238][930,2298] app.tileshell enabled= true
+'\ue3f8'  [36,20][81,65] app.tileshell enabled= true
+'\uf5a7'  [99,20][144,65] app.tileshell enabled= true
+'\ue1f9'  [854,20][899,65] app.tileshell enabled= true
+'2:50 PM'  [917,20][1044,64] app.tileshell enabled= true
+== resolve HOME with no holder
+priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+app.tileshell/.StartActivity
+== query-activities HOME
+3 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    com.android.launcher3/.uioverrides.QuickstepLauncher
+  Activity #1:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    app.tileshell/.StartActivity
+  Activity #2:
+    priority=-1000 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    com.android.settings/.FallbackHome
+== preferred
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<preferred-activities>
+    <item name="com.android.dialer/.main.impl.MainActivity">
+        <filter>
+            <action name="android.intent.action.DIAL" />
+            <cat name="android.intent.category.DEFAULT" />
+            <scheme name="tel" />
+        </filter>
+    </item>
+    <item name="app.tileshell/.StartActivity">
+        <filter>
+            <action name="android.intent.action.MAIN" />
+            <cat name="android.intent.category.HOME" />
+            <cat name="android.intent.category.DEFAULT" />
+        </filter>
+    </item>
+    <item name="org.fossify.messages/.activities.NewConversationActivity">
+        <filter>
+            <action name="android.intent.action.SENDTO" />
+            <cat name="android.intent.category.DEFAULT" />
+== 2026-09-29T14:51:10-06:00 clear the shell's preferred HOME mapping, then Home
+clear rc=0
+resolve: android/com.android.internal.app.ResolverActivity
+resumed:     topResumedActivity=ActivityRecord{83212758 u0 android/com.android.internal.app.ResolverActivity t6484}
+/sdcard/p.xml: 1 file pulled, 0 skipped. 14.7 MB/s (9843 bytes in 0.001s)
+'Select a Home app' android:id/title [68,1556][1012,1617] android enabled= true
+'Tessera' android:id/text1 [136,1736][293,1797] android enabled= true
+'Quickstep' android:id/text1 [136,1894][337,1955] android enabled= true
+'' android:id/button_bar_container [0,2004][1080,2340] android enabled= true
+'' android:id/resolver_button_bar_divider [0,2004][1080,2007] android enabled= true
+'' android:id/button_bar [0,2007][1080,2340] android enabled= true
+'Just once' android:id/button_once [600,2030][838,2182] android enabled= false
+'Always' android:id/button_always [838,2030][1029,2182] android enabled= false
+== 2026-09-29T14:51:27-06:00 tap Tessera, then Just once
+/sdcard/p.xml: 1 file pulled, 0 skipped. 18.0 MB/s (9841 bytes in 0.001s)
+'' android:id/button_bar_container [0,2004][1080,2340] enabled= true
+'' android:id/resolver_button_bar_divider [0,2004][1080,2007] enabled= true
+'' android:id/button_bar [0,2007][1080,2340] enabled= true
+'Just once' android:id/button_once [600,2030][838,2182] enabled= true
+'Always' android:id/button_always [838,2030][1029,2182] enabled= true
+resumed:       topResumedActivity=ActivityRecord{10480044 u0 app.tileshell/.StartActivity t6483}
+holders: []
+resolve: android/com.android.internal.app.ResolverActivity
+/sdcard/p.xml: 1 file pulled, 0 skipped. 19.9 MB/s (10148 bytes in 0.000s)
+'' wizard_page
+'' wizard_step:setup:notifications
+'Step 1 of 4' wizard_progress
+'Skip setup' wizard_skip
+'Notification access' wizard_title
+'Live tiles and unread counts come from your notifications. Without it the tiles stay still.' wizard_why
+'Live tiles show your notifications' wizard_body
+'Open settings' wizard_action
+'Not now' wizard_not_now
+== 2026-09-29T14:52:02-06:00 restore: HOME role back to the shell
+add rc=0
+Success
+set-home rc=0
+holders: [app.tileshell]
+resolve: app.tileshell/.StartActivity
+Reading: with no HOME holder the shell's preferred mapping (from set-home-activity) still resolves Home to it; clear-package-preferred-activities brings up ResolverActivity 'Select a Home app' (Tessera, Quickstep; Just once / Always disabled until one is tapped). Just once on Tessera resumes StartActivity with the role still unheld.

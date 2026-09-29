@@ -25,17 +25,25 @@
 #     adb shell su 0 abx2xml /data/system/urigrants.xml -
 # and find the picker URI with targetPkg="app.tileshell"; then Remove picture / replace the snapshot and see it go.
 
+# Fails closed (codex review note): an unreadable or malformed table prints GRANTS UNAVAILABLE on stderr and returns 3,
+# so an empty result can only mean "no grant", never "could not read".
 persisted_grants() {
   sleep "${GRANTS_SETTLE:-12}"
-  adb shell su 0 abx2xml /data/system/urigrants.xml - 2>/dev/null | python3 -c '
+  local xml
+  xml="$(adb shell su 0 abx2xml /data/system/urigrants.xml - 2>/dev/null)"
+  python3 -c '
 import sys, xml.etree.ElementTree as ET
 pkg = sys.argv[1]
 try:
     root = ET.fromstring(sys.stdin.read())
 except Exception:
-    sys.exit(0)
+    print("GRANTS UNAVAILABLE: /data/system/urigrants.xml did not decode", file=sys.stderr)
+    sys.exit(3)
+if root.tag != "uri-grants":
+    print("GRANTS UNAVAILABLE: unexpected root " + root.tag, file=sys.stderr)
+    sys.exit(3)
 for g in root.iter("uri-grant"):
     if g.get("targetPkg") == pkg and int(g.get("modeFlags", "0")) & 1:
         print(g.get("uri"))
-' "${PKG:-app.tileshell}"
+' "${PKG:-app.tileshell}" <<<"$xml"
 }

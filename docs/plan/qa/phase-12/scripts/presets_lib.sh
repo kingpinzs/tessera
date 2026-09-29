@@ -102,7 +102,9 @@ wizard_fixture() { # label
   leave_home
   adb shell pm clear "$PKG" >/dev/null
   provision_no_marker "fixture-$label"
+  local seedmark; seedmark="$(ring_mark)"
   layout_restore "$QAROOT/phase-02/baseline_layout.json" > "$ROW_DIR/layout-$label.txt" 2>&1
+  assert_seeded "$seedmark" "($label)"
   adb shell ime set "$KEYBOARD" >/dev/null
   adb shell appops set "$PKG" GET_USAGE_STATS ignore
   adb shell input keyevent KEYCODE_HOME; sleep 4
