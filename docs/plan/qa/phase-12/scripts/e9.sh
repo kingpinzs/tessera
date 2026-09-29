@@ -127,7 +127,10 @@ assert_ne "the scan saw the children's dumps" "0" "$(find "$OUT" -name '*.xml' |
 log "phase 02 E1's own layout_restore: its saved diagnostics dump (the process that loaded the layout)"
 d02="$(ls "$OUT/phase-02-E1/"e1_diag.txt 2>/dev/null)"
 assert_ne "phase 02 E1 saved its diagnostics dump" "" "$d02"
-assert_eq "that dump carries the diagnostics header" "1" "$(grep -cE '^[[:space:]]*tileshell diagnostics: [0-9]+ entries' "$d02" 2>/dev/null | head -1)"
+# Phase 02's unchanged driver saves the listener's dump filtered to [edit] / [layout] lines, last 40 (phase-02/scripts/e1.sh),
+# so it carries no header (E9 run 4); what proves it covers the restore is the restore's own assignSlotOnce lines in it.
+assert_ne "that dump covers the restore (its assignSlotOnce lines are in it)" "0" "$(grep -c 'assignSlotOnce' "$d02" 2>/dev/null)"
+assert_ne "and nothing was cut by its tail -40" "40" "$(grep -c '' "$d02" 2>/dev/null)"
 assert_eq "zero assignSlotOnce -> assigned in phase 02 E1's restore" "0" "$(grep -c 'assignSlotOnce.*-> assigned' "$d02" 2>/dev/null)"
 
 log "no assignSlotOnce ... -> assigned line while they ran (C-3)"
