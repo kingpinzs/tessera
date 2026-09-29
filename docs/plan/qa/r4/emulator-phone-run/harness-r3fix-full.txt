@@ -1,0 +1,55 @@
+Success
+Warning: Activity not started, intent has been delivered to currently running top-most instance.
+22:49:25 stage=pair lines=1
+22:49:30 stage=p3 lines=5
+22:49:35 stage=p3 lines=5
+22:49:40 stage=p3 lines=5
+22:49:45 stage=p3 lines=5
+22:49:50 stage=p3 lines=5
+22:49:55 stage=p3 lines=5
+22:50:00 stage=p3 lines=6
+22:50:05 stage=p3 lines=6
+22:50:10 stage=p3 lines=6
+22:50:15 stage=p3 lines=6
+22:50:20 stage=p3 lines=6
+22:50:25 stage=p3 lines=6
+22:50:30 stage=p3 lines=6
+22:50:35 stage=p3 lines=6
+22:50:40 stage=p3 lines=6
+22:50:45 stage=p3 lines=6
+22:50:50 stage=p3 lines=6
+22:50:55 stage=p3 lines=6
+22:51:00 stage=p3 lines=6
+22:51:05 stage=p3 lines=6
+22:51:10 stage=p3 lines=6
+22:51:15 stage=p3 lines=6
+22:51:20 stage=p4a-check lines=7
+22:51:25 stage=blur lines=10
+22:51:30 stage=p5 lines=11
+22:51:35 stage=p5 lines=11
+22:51:41 stage=p5 lines=11
+22:51:46 stage=p5 lines=11
+22:51:51 stage=p5 lines=11
+22:51:56 stage=p5 lines=11
+22:52:01 stage=pq2 lines=12
+22:52:06 stage=done lines=16
+=== SUMMARY
+INFO     R4 phone-only run 2026-09-28 22:49:19
+PASS     adb on this phone (already paired): runs as the shell uid
+PASS     1 app_process runs as the shell uid
+PASS     2a the helper daemonises (parent = init)
+PASS     2b binder handed to the app; the ping answered
+INFO     3a toggles directly over adb: 5/6 changed
+INFO     3b toggles through the helper: 7/8 changed
+PASS     4a app killed: the helper lives and re-hands the binder
+INFO     4b deep Doze could NOT be forced here (not tested)
+INFO     4c cable pulled: not applicable (no PC in a phone-only run)
+INFO     blur: the platform answer and Jeremy's look, normal and power saving (details)
+INFO     P5 nav-bar overlay: accessibility + app overlay, taps received (details)
+INFO     PQ2 visual voicemail: carrier config, handler app, provider counts (no sign-in)
+PASS     clean-up: every change undone
+SKIPPED  4d adbd gone
+INFO     done: tap 'Copy the whole report' and paste it back; then uninstall R4 probe, and in Wireless debugging > Paired devices tap R4 probe > Forget (the app cannot remove its own pairing); turn Wireless debugging off if you do not use it
+details: 272 lines
+=== after: wifi Wifi is enabled; airplane disabled; low_power 0; deep ACTIVE; helpers 0
+full rc=0
