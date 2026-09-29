@@ -58,7 +58,7 @@ object Runner {
 
     private val ipv4 = Regex("\\b\\d{1,3}(\\.\\d{1,3}){3}\\b")
     /** The report is pasted back: the phone's LAN address is written as "<this phone>". */
-    private fun redact(s: String) = s.replace(ipv4) { if (it.value.startsWith("127.")) it.value else "<this phone>" }
+    fun redact(s: String) = s.replace(ipv4) { if (it.value.startsWith("127.")) it.value else "<this phone>" }
     private fun result(kind: String, what: String) {
         f("run-summary.txt").appendText("%-8s %s\n".format(kind, redact(what))); changed()
     }
@@ -91,7 +91,7 @@ object Runner {
         val h = get("adb_host"); val p = get("adb_port").toIntOrNull() ?: 0
         if (h.isNotEmpty() && p > 0 && !AdbSelf.connect(app, h, p).startsWith("CONNECT FAILED") && AdbSelf.connected()) return true
         // Every advertised address, newest first: mDNS can still hold a dead adbd's record beside the live one.
-        val dead = get("adb_dead_port")
+        val dead = if (System.currentTimeMillis() < (get("adb_dead_until").toLongOrNull() ?: 0L)) get("adb_dead_port") else ""
         for (c in Discovery.findAll(app, Discovery.CONNECT, 6).filter { it.second.toString() != dead }) {
             if (!AdbSelf.connect(app, c.first, c.second).startsWith("CONNECT FAILED") && AdbSelf.connected()) {
                 put("adb_host", c.first); put("adb_port", c.second.toString()); return true
@@ -122,11 +122,10 @@ object Runner {
             var carried = ""
             if (left.isNotEmpty() && left != "done") {
                 detail("== an earlier run did not finish (stopped at '$left'): putting it back before a new run")
-                val ok = runCatching { stageCleanup() }.getOrDefault(false); runCatching { endHelper() }
+                val ok = runCatching { restoreIfNeeded() }.getOrDefault(false); runCatching { endHelper() }
                 if (!ok) { put("stage", "cleanup-pending"); running = false; changed(); return@Thread }
-                // Its restore is evidence for the new report, not something to delete with the old run's files.
-                carried = details().substringAfterLast("== an earlier run did not finish")
-                carried = "== an earlier run did not finish$carried"
+                // Its report and its restore are evidence for the new report, not something to delete with its files.
+                carried = "== the earlier run's summary\n" + summary() + details().substring(details().lastIndexOf("== an earlier run did not finish").coerceAtLeast(0))
             }
             f("run-summary.txt").delete(); f("run-details.txt").delete(); f("run-state.properties").delete()
             state.clear(); put("auto", if (autoMode) "1" else "0"); put("stage", "pair")
@@ -146,7 +145,18 @@ object Runner {
         load()
         val stage = get("stage")
         if (stage.isEmpty() || stage == "done") return
+        // A clean-up that did not finish is only ever retried, never carried on from (review r4-phone r2 B5).
+        if (stage == "cleanup-pending") { restoreNow(ctx); return }
         launch(stage)
+    }
+
+    /**
+     * The clean-up, but only for a run that took its baseline (review r4-phone r2 B4): before that nothing was changed,
+     * and a clean-up with nothing saved would "restore" Power saving to off. True when nothing is left changed.
+     */
+    private fun restoreIfNeeded(): Boolean {
+        if (get("baseline_taken") != "1") { detail("  stopped before the baseline was taken: nothing was changed, nothing to put back"); return true }
+        return stageCleanup()
     }
 
     /** Stops a run that did not finish and puts everything back (the clean-up, then the helper's exit). */
@@ -156,7 +166,7 @@ object Runner {
         load()
         running = true
         Thread {
-            try { val ok = stageCleanup(); endHelper(); put("stage", if (ok) "done" else "cleanup-pending") } finally { running = false; changed() }
+            try { val ok = restoreIfNeeded(); endHelper(); put("stage", if (ok) "done" else "cleanup-pending") } finally { running = false; changed() }
         }.start()
     }
 
@@ -185,13 +195,13 @@ object Runner {
                         "done" -> { stageDone(); true }
                         else -> true
                     }
-                    if (!go) { detail("stopped at stage $s"); val ok = stageCleanup(); endHelper(); put("stage", if (ok) "done" else "cleanup-pending"); break }
+                    if (!go) { detail("stopped at stage $s"); val ok = restoreIfNeeded(); endHelper(); put("stage", if (ok) "done" else "cleanup-pending"); break }
                     i++
                 }
             } catch (e: Throwable) {
                 detail("RUN ERROR: ${e.javaClass.simpleName}: ${e.message}")
                 result("FAIL", "the run stopped on an error (details); restoring")
-                val ok = runCatching { stageCleanup() }.getOrDefault(false); runCatching { endHelper() }; put("stage", if (ok) "done" else "cleanup-pending")
+                val ok = runCatching { restoreIfNeeded() }.getOrDefault(false); runCatching { endHelper() }; put("stage", if (ok) "done" else "cleanup-pending")
             } finally { running = false; clearPrompt() }
         }.start()
     }
@@ -276,6 +286,7 @@ object Runner {
             sb.append("  %-14s %-8s %s\n".format(t.name, if (t.probe != null) "probe" else t.state(r), r.take(80)))
         }
         detail(sb.toString())
+        put("baseline_taken", "1")
         val list = Toggles.ALL.filter { it.probe == null }.joinToString("\n") { "  ${it.name}: ${it.state(get("tog.${it.name}"))}" }
         val a = ask("R4 will flip each of these and flip it straight back ('unknown' ones are left alone; the hotspot is only probed):\n$list\n" +
             "Wi-Fi and airplane mode cut Wireless debugging for a moment; R4 turns it back on. If a state above is wrong, tap Stop.",
@@ -375,7 +386,11 @@ object Runner {
      */
     private fun bringBackAdb(): String {
         val t0 = System.currentTimeMillis()
-        put("adb_dead_port", get("adb_port"))   // the port adbd had before Wi-Fi dropped; its mDNS record lingers
+        // Wi-Fi may not have dropped at all (a phone set to keep Wi-Fi on in airplane mode): then adb is still up.
+        if (AdbSelf.connected() && AdbSelf.shell("echo r4").second.contains("r4")) return "adb stayed up (Wi-Fi did not drop)"
+        // The port adbd had before Wi-Fi dropped: its mDNS record lingers, so it is refused for a minute (after that it
+        // is tried again, in case the new adbd took the same port).
+        put("adb_dead_port", get("adb_port")); put("adb_dead_until", (t0 + 60_000).toString())
         AdbSelf.disconnect(); put("adb_port", "0")
         var wd = ""
         val tries = StringBuilder()
@@ -424,9 +439,15 @@ object Runner {
         if ("Now forced in to deep idle mode" in doze) {
             Thread.sleep(20_000)
             val pid = get("helper_pid")
-            val ok = sh1("ps -o PID -p $pid | tail -n +2") == pid && HelperLink.ping().contains("pid=$pid ")
-            detail("  deep state: ${sh1("dumpsys deviceidle get deep")}; helper answered: $ok")
-            result(if (ok) "PASS" else "FAIL", "4b forced deep Doze: the helper lives and answers")
+            val deep = sh1("dumpsys deviceidle get deep")
+            if (deep != "IDLE") {
+                detail("  deep state at the check: $deep")
+                result("INFO", "4b NOT tested: Doze had already ended at the check (deep = $deep)")
+            } else {
+                val ok = sh1("ps -o PID -p $pid | tail -n +2") == pid && HelperLink.ping().contains("pid=$pid ")
+                detail("  deep state: IDLE; helper answered: $ok")
+                result(if (ok) "PASS" else "FAIL", "4b forced deep Doze: the helper lives and answers")
+            }
         } else result("INFO", "4b deep Doze could NOT be forced here (not tested)")
         sh("dumpsys deviceidle unforce"); sh("dumpsys battery reset")
         if (net.toIntOrNull() != null) sh("kill $net")
@@ -472,6 +493,7 @@ object Runner {
     /** The owner's Power saving exactly as it was (review r3 R3-1): the mode set to their own value, read unplugged. */
     private fun restoreSticky(): String {
         val base = get("set.global low_power_sticky"); val low = get("set.global low_power")
+        if (base.isEmpty() || low.isEmpty() || bad(base) || bad(low)) return "power saving: its starting value was not read, so it was not touched"
         val want = if (base == "1" || low == "1") "1" else "0"
         sh("dumpsys battery unplug; cmd power set-mode $want"); Thread.sleep(1000)
         val lp = sh1("settings get global low_power")
@@ -607,6 +629,7 @@ object Runner {
         detail("== part 4d: adbd pid before $before, after '${after}' (exit $e); ping: $ping")
         when {
             !Regex("^\\d+( \\d+)*$").matches(before) -> result("INFO", "4d NOT tested: no adbd pid was read before the step ('$before')")
+            e != 0 && after.isNotEmpty() && !Regex("^\\d+( \\d+)*$").matches(after) -> result("INFO", "4d NOT tested: the helper's adbd read failed ('$after')")
             !ping.contains("pid=$pid ") -> result("FAIL", "4d adbd gone: the helper did NOT answer")
             after.isNotEmpty() && after == before -> result("INFO", "4d NOT tested: adbd never stopped (same pid) — were both debugging switches off?")
             else -> result("PASS", "4d adbd gone (${if (after.isEmpty()) "not running" else "new pid"}): the helper lives and answers")
@@ -619,7 +642,7 @@ object Runner {
         val pid = get("helper_pid")
         if (HelperLink.connected()) { detail("  helper: ${HelperLink.exit()}"); Thread.sleep(1500) }
         if (pid.isNotEmpty() && AdbSelf.connected()) {
-            val still = sh1("ps -o PID -p $pid | tail -n +2") == pid
+            val still = sh1("ps -o PID -p $pid | tail -n +2") == pid && "r4probe.HelperMain" in sh1("ps -o ARGS -p $pid | tail -n +2")
             if (still) sh("kill $pid")
             val gone = sh1("ps -o PID -p $pid | tail -n +2") != pid
             detail(if (gone) "  helper pid $pid: stopped" else "  FAIL: helper pid $pid is still running — a reboot stops it")

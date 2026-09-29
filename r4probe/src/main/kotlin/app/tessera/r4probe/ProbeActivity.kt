@@ -105,10 +105,11 @@ class ProbeActivity : Activity() {
             requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
         root.post {
             handleRun(intent)
-            // A run that did not finish (an unplanned stop): offer to carry on or to put everything back.
+            renderPrompt()
+            // A run that did not finish (an unplanned stop): offer to carry on or to put everything back. After
+            // renderPrompt, which would otherwise wipe it (review r4-phone r2 B5).
             val left = Runner.unfinishedStage(this)
             if (left != null && !Runner.running && intent?.getStringExtra("run") == null) offerUnfinished(left)
-            renderPrompt()
         }
     }
 
@@ -122,8 +123,12 @@ class ProbeActivity : Activity() {
     private lateinit var promptText: TextView
     private lateinit var promptRow: LinearLayout
 
-    /** Draws the run's current question (or nothing) with its buttons. */
+    private var offering = false
+
+    /** Draws the run's current question (or nothing) with its buttons; leaves an unfinished-run offer up until acted on. */
     private fun renderPrompt() {
+        if (offering && !Runner.running && Runner.promptText == null) return
+        offering = false
         promptText.text = Runner.promptText ?: ""
         promptRow.removeAllViews()
         for (label in Runner.promptButtons) {
@@ -135,10 +140,17 @@ class ProbeActivity : Activity() {
     }
 
     private fun offerUnfinished(stage: String) {
-        promptText.text = "An R4 run did not finish (it stopped at '$stage'). Carry on, or put everything back now?"
+        offering = true
         promptRow.removeAllViews()
-        promptRow.addView(button("Carry on") { Runner.resume(this) })
-        promptRow.addView(button("Restore now") { Runner.restoreNow(this) })
+        if (stage == "cleanup-pending") {
+            // A clean-up that did not finish is only ever retried: carrying on would take a new baseline over the
+            // settings it left changed.
+            promptText.text = "The last R4 run could not put everything back. Retry it now (Wireless debugging must be on)."
+        } else {
+            promptText.text = "An R4 run did not finish (it stopped at '$stage'). Carry on, or put everything back now?"
+            promptRow.addView(button("Carry on") { offering = false; Runner.resume(this) })
+        }
+        promptRow.addView(button("Restore now") { offering = false; Runner.restoreNow(this) })
     }
 
     /** For the run's P5 step: starts the overlay probe of [kind] ("a11y" or "app") and reads its result text. */
@@ -166,6 +178,8 @@ class ProbeActivity : Activity() {
             // planned kill in part 4a).
             "start" -> Runner.start(this, autoMode = intent.getBooleanExtra("auto", false))
             "resume" -> Runner.resume(this)
+            // Test tooling: answers the run's current question.
+            "answer" -> Runner.answer(intent.getStringExtra("answer") ?: "")
             // Spike (emulator): pair / connect to the phone's own adb from extras; the real run takes the code from a
             // notification and finds the ports with mDNS.
             "pair" -> spike { AdbSelf.pair(this, intent.getStringExtra("host") ?: "", intent.getIntExtra("port", 0), intent.getStringExtra("code") ?: "") }
@@ -278,8 +292,10 @@ class ProbeActivity : Activity() {
         blank()
 
         line("END OF REPORT")
-        out.text = report
-        runCatching { java.io.File(filesDir, "report.txt").writeText(report.toString()) }
+        // The report is pasted back: the phone's network address is written as "<this phone>" everywhere in it.
+        val text = Runner.redact(report.toString())
+        out.text = text
+        runCatching { java.io.File(filesDir, "report.txt").writeText(text) }
     }
 
     private var spikeResult: String? = null
@@ -597,7 +613,7 @@ class ProbeActivity : Activity() {
 
     private fun copy() {
         getSystemService(ClipboardManager::class.java)
-            .setPrimaryClip(ClipData.newPlainText("R4 probe", report.toString()))
+            .setPrimaryClip(ClipData.newPlainText("R4 probe", Runner.redact(report.toString())))
         toast("Copied — paste it back")
     }
 
