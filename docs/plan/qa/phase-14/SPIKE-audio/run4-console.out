@@ -1,0 +1,23 @@
+── SPIKE-audio the emulator's own gRPC audio route (injectAudio / streamAudio)
+PASS  AUDIO_ROUTE is the emulator's gRPC route                    = emu
+PASS  (1) endpoint resolves                                       = 0
+PASS  (1) the discovery file is tileshell_fhd's                   contains [avd.name=tileshell_fhd port.serial=5554]
+PASS  (1) that file really says port.serial=5554                  = port.serial=5554
+PASS  (1) its grpc.port is the one the client uses                = grpc.port=8554
+PASS  (1) another device is refused before any connection         = 2
+PASS  (1) and says why                                            contains [only ever talks to emulator-5554]
+PASS  (2) getMicrophoneState answers                              = 0
+PASS  (2) host microphone access is off                           = realAudioEnabled=false
+PASS  Tess is open                                                = yes
+PASS  (3) speak.sh exit status                                    = 0
+PASS  (3) the injection went through injectAudio                  contains [injected pod_bay_doors.wav]
+PASS  (3) a new asr: final since the MARK                         contains [[speech] asr: final]
+PASS  (3) holding "pod bay"                                       contains [pod bay]
+PASS  (3) C-30 levels line heard=true                             contains [(heard=true)]
+PASS  (3) C-30 no 'no speech in the capture'                      does not contain [asr: no speech in the capture]
+PASS  (4) Tess replied (reply text since the MARK)                != 
+PASS  (4) streamAudio capture finished                            contains [rc=0]
+FAIL  (4) the reply was audible through streamAudio               RMS -42.97 dBFS is not above -40
+PASS  restore: the media volume is back                           = 0
+   SPIKE-audio: 19 passed, 1 failed, 0 recorded
+rc=1
