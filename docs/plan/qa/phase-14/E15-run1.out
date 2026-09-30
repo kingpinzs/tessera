@@ -1,0 +1,19 @@
+── E15 RV10: display size, density and font scale leave the pod nodes' epx bounds
+PASS  base: the pod bay                                           = yes
+PASS  1440x3120 applied                                           contains [Override size: 1440x3120]
+PASS  size1440: still the pod bay                                 = yes
+FAIL  size1440: every pod node within 1 epx of the base           expected [0] got [1]
+PASS  720x1560 applied                                            contains [Override size: 720x1560]
+PASS  size720: still the pod bay                                  = yes
+FAIL  size720: every pod node within 1 epx of the base            expected [0] got [1]
+PASS  density 560 applied                                         contains [Override density: 560]
+PASS  d560: still the pod bay                                     = yes
+PASS  d560: every pod node within 1 epx of the base               = 0
+PASS  font_scale 1.3 applied                                      = 1.3
+PASS  font13: still the pod bay                                   = yes
+PASS  font13: every pod node within 1 epx of the base             = 0
+PASS  restore: wm size                                            contains [Physical size: 1080x2340]
+PASS  restore: no size override                                   does not contain [Override size]
+PASS  restore: no density override                                does not contain [Override density]
+PASS  restore: font_scale 1.0                                     = 1.0
+   E15: 15 passed, 2 failed, 0 recorded
