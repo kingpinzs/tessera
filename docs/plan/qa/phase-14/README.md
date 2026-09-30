@@ -107,7 +107,7 @@ drivers' `c6`). **`baseline_layout-nomusic.json`** (E4): phase 02's baseline wit
 unassigned (`cmd package query-activities … APP_MUSIC`: gramophone, auxio, app.tileshell/.music.MusicActivity).
 The CALENDAR category has exactly one (`com.android.calendar/.AllInOneActivity`), E3's precondition.
 
-## E12 and Android's immersive edge — RULING PENDING (Jeremy)
+## E12 and Android's immersive edge — RULED (a), 2026-09-30 (INDEX Change Log)
 
 Found by E12 run 1 (`E12-run1-no-guard/`): with the AVD's gestural overlay on, a swipe from x = 2 on Start opened the
 pod bay instead of firing Android's Back. The probes (`BUILD-NOTES/e12-probe/`) place the cause in the platform, not
@@ -149,7 +149,7 @@ gate needs every row again on ONE final APK before the reviews.
 | E9 inside another app | not run | | |
 | E10 edit mode | 25/0 | `E10/` (runs 1-2 kept) | run 2 found a hold on a pod launching (fixed: tap-or-hold) |
 | E11 screen-off / lock / death | 15/0 | `E11/` (run 1 kept) | |
-| E12 gesture nav | 10/1, 2 recorded | `E12/` (run 1 kept) | ruling pending (above) |
+| E12 gesture nav | 14/0 (run 4, under Jeremy's ruling (a) of 2026-09-30) | `E12/` (runs 1-3 kept; run 3 had no device — the AVD had been closed at 08:03) | first edge swipe reveals the bars and moves nothing; the second is Back (DeskClock resumes) |
 | E13 regression | not run | | |
 | E14 backdrop | not run | | |
 | E15 RV10 | not run | | |
