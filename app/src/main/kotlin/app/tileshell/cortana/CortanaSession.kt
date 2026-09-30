@@ -85,8 +85,21 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
             AppCatalog.get(context).launch(entry, null, null)
         }
 
+        /**
+         * L14-1: the session's window layers above the keyguard and its PIN pad, so a PIN pad raised under a shown Tess
+         * can be neither seen nor used. Tess steps aside as she does for a launched page (L13-1) — quiet, UI switched
+         * off, not hidden, because a hide drops the pending request (H12) — and comes back before the result is
+         * delivered: unlocked, she runs the request on screen; cancelled, the card is still there.
+         */
         override fun requestUnlock() {
-            UnlockBridge.await { unlocked -> if (unlocked) model.onUnlocked() else model.onUnlockCancelled() }
+            Diagnostics.add("cortana", "stepping aside for the unlock prompt")
+            model.onSteppedAside()
+            setUiEnabled(false)
+            UnlockBridge.await { unlocked ->
+                Diagnostics.add("cortana", "back from the unlock prompt (unlocked=$unlocked)")
+                setUiEnabled(true)
+                if (unlocked) model.onUnlocked() else model.onUnlockCancelled()
+            }
             UnlockBridge.start(context)
         }
 

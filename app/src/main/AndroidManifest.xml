@@ -379,15 +379,15 @@
         -->
         <!--
           Raises Android's unlock prompt for the "Unlock to continue" card (H12): a session is not an
-          Activity, and requestDismissKeyguard needs one. Draws nothing.
+          Activity, and requestDismissKeyguard needs one. Draws nothing. Deliberately NOT showWhenLocked
+          (L14-1): showing over the lock screen occludes the keyguard, and the occlusion cancels the very
+          dismiss this page asks for.
         -->
         <activity
             android:name=".cortana.CortanaUnlockActivity"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:excludeFromRecents="true"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
             android:taskAffinity="app.tileshell.cortana.unlock" />
 
         <!--
