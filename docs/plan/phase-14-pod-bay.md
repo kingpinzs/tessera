@@ -247,8 +247,22 @@ own "Glance", a different thing; the name collision is why this pane is the pod 
   read ADDs to `MusicFeed` (`now`, `Transport.PREVIOUS`), `CalendarFeed` (`agenda`) and `WeatherFeed` (`State.stale`, problems
   win) (r3 D4-D6); the backdrop shares the app list's `StaticBackdrop` key (r3 D7); pod launches take the app list's path, no
   Start exit (r3 D8); the QA floor fixed (typed reminders, the lock screen, the Start ring read under E17, both-location revoke,
-  scroll before reads, E14's strip and A-N4 check, E16's literal patterns). PENDING Jeremy, Q-R3-1: how the voice rows (E6, E8,
-  E9, E13's phase 03 re-runs) run now that QA never touches the host's audio
+  scroll before reads, E14's strip and A-N4 check, E16's literal patterns). Q-R3-1 (how the voice rows run now that QA never touches
+  the host's audio) RULED 2026-09-29 through Q-R3-1a (a) — below
+- 2026-09-29: Q-R3-1, Jeremy's first reply: "I am done with calls tonight but dont change the system audio but you can use it
+  now". Read as: audio may be used, the host's audio settings may not be changed. Phase 03's route cannot do both (its `audio.sh
+  setup` loads a null sink and switches the desktop's default microphone, `audio.sh:28-50`), so a follow-up (Q-R3-1a) asks which
+  route the spoken rows take. Found for it (agent, 2026-09-29): the installed emulator (37.1.11) has gRPC `injectAudio` ("Injects
+  a series of audio packets into the Android microphone") and `streamAudio` (the device's audio output) —
+  `~/Android/Sdk/emulator/lib/emulator_controller.proto:325-348` — and `tileshell_fhd` (emulator-5554) runs with gRPC on port
+  8554, token auth (`/run/user/1000/avd/running/pid_*.ini`); neither call goes through the host's PipeWire. Not yet tried.
+- 2026-09-29: Q-R3-1a — the spoken rows' route (Jeremy: "(a)"): the emulator's own gRPC audio — the synthesised utterance goes
+  into the AVD's microphone by `injectAudio`, Tess's reply is captured by `streamAudio` for the RMS check; the host's audio is never
+  touched (no `audio.sh setup`, no null sink, no default-microphone change, no `hostmicon`). Phase 14's build starts with a short
+  spike that proves the route; if it fails, those rows fall back to typed-only on the emulator plus the phone rows (P1 / H13).
+  Applied: the Acceptance criteria's Audio route and Audio spike paragraphs, C-30 in r3 V16's form, E6 / E8 / E9 as `speak.sh`
+  steps, E13's phase 03 re-runs under `AUDIO_ROUTE=emu`, build task 6's `emu_audio.py` and switch, and the hotwords JVM test
+  (r3 V2 / D13)
 
 ## Interview queue (Stage A step 4)
 1. ~~Real widgets~~ RULED 2026-09-23: B (see Decisions). Original question kept below.
@@ -263,6 +277,11 @@ own "Glance", a different thing; the name collision is why this pane is the pod 
    B. Out for this plan: the four pods only; a widget pod, if ever, is an ADD in the post-plan updates (lean)
    C. In, but behind a Start-settings switch that is Off by default, so the default bay stays Metro and the seams are opt-in
    D. Other / let me clarify
+2. ~~Voice rows without host audio~~ RULED 2026-09-29 (round 3, Q-R3-1 then Q-R3-1a): (a) — the emulator's own gRPC audio
+   (`injectAudio` / `streamAudio`), proven by a build-start spike, typed-only plus the phone rows if the spike fails (see Decisions).
+   Q-R3-1 asked A typed gate + spoken sub-rows when the audio route is opened (lean) / B typed only, spoken proof on the phone /
+   C spoken rows stay gate rows / D Other; Jeremy's reply ("dont change the system audio but you can use it now") led to Q-R3-1a:
+   A the emulator's gRPC audio (lean) / B phase 03's `audio.sh` route in windows he opens / C typed only, phone rows / D Other.
 
 ## Build tasks
 1. Pager: the third page with named indices, initial page START, the Back / Home rules, the focus guard, the `[podbay] opened by
@@ -290,7 +309,11 @@ own "Glance", a different thing; the name collision is why this pane is the pod 
    updates every grep of Start's home line (`qa/phase-02/scripts/regress.sh:120` at the split, T11-9 / T14-5); the
    force-stop-after-launch rule (C-6); the regression run (E13); `qa/phase-14/baseline_layout-nomusic.json` for E4's
    launch-failure sub-row (T14-13); E17's driver (T14-12), which sources `qa/phase-12/scripts/p12.sh` for its ring reads (r3 V3);
-   evidence index `qa/phase-14/README.md`
+   the audio route (Q-R3-1a (a)): `qa/phase-03/scripts/emu_audio.py` — a gRPC client of the emulator's own controller
+   (`emulator_controller.proto`, shipped with the SDK) with `say <wav>` (`injectAudio`), `record <out> <secs>` (`streamAudio`) and
+   `mic-state` (`getMicrophoneState`), which reads its endpoint only from the discovery file whose `port.serial=5554` — and the
+   `AUDIO_ROUTE=emu` switch in phase 03's `speak.sh` (`:42`, `timeout 40 "$HERE/audio.sh" say`) and `lib.sh` `say` (`:293-299`),
+   an ADD to phase 03's floor whose default path is unchanged; the audio spike, run first; evidence index `qa/phase-14/README.md`
 7. ~~Only if Q1 is A or C: the Widgets pod kind (`AppWidgetHost`, picker, bind consent, configure, host lifecycle, persistence) —
    added at the interview with its rows; not built otherwise~~ Ruled out 2026-09-23 (Q1 B): no widget pod kind is built (T14-1)
 
@@ -299,15 +322,33 @@ Rows start from the baseline state and restore what they change (PLAN RV12); mot
 RV13; "diagnostics" is read with phase 01's command, or — where notification access is revoked (E17) — through phase 12's Start
 ring read (`qa/phase-12/scripts/p12.sh` `start_slice`, `:48-58`; a missing `tileshell diagnostics: <n> entries` header fails the
 row; r3 V3). Every E row runs on the AOSP AVD `tileshell_fhd` (1080×2340 @ 450 dpi, no
-Google) through adb on phase 03's driver floor (`qa/phase-03/scripts/lib.sh`); voice rows use phase 03's audio route (null-sink
-microphone, `say`, `reply_since`, `parecord`) and inherit phase 03's status: they prove the pipeline with a synthesised voice, and
-Jeremy's own voice is P1. **Ring reads (C-20):** every ring assertion reads `ring_since` from a MARK (`adb shell date +%s%3N`) taken
+Google) through adb on phase 03's driver floor (`qa/phase-03/scripts/lib.sh`). **Audio route (Q-R3-1a (a), 2026-09-29):** voice
+rows never touch the host's audio — no `audio.sh setup` / `say` / `record`, no `pactl`, `paplay` or `parecord`, no `emu avd
+hostmicon`. A spoken step is `qa/phase-03/scripts/speak.sh <id> <settle>` with its exit status asserted 0 — phase 03's one-request
+script, which opens listening from `cortana_text_box_mic` unless `cortana_listening_box` already shows and exits 4 (`NO NEW
+FINAL`) when the recogniser produced nothing; never bare `say`, which neither taps the mic nor checks a result, and `KEYCODE_ASSIST`
+opens Tess in HOME mode, not listening (`CortanaService.kt:12-16`; r3 V2). Run with `AUDIO_ROUTE=emu`, `speak.sh` sends its
+utterance into the AVD's microphone through the emulator's own gRPC `injectAudio` ("Injects a series of audio packets into the
+Android microphone", `~/Android/Sdk/emulator/lib/emulator_controller.proto:334-348`, emulator 37.1.11), and a reply window is
+captured through `streamAudio` (`:325-332`) — both by build task 6's `emu_audio.py`; the RMS is `audio.sh rms` on the captured file
+(a file computation, no host audio). Every driver with a spoken step asserts `AUDIO_ROUTE=emu` before its first one and fails
+otherwise, so no row can fall through to the host route. Voice rows prove the pipeline with a synthesised voice; Jeremy's own voice
+and Tess speaking on the phone are P1 / H13. **Audio spike (build start, before any voice row; evidence `qa/phase-14/SPIKE-audio/`):**
+`emu_audio.py` (1) takes the gRPC port and token files from the discovery file whose `port.serial=5554`
+(`/run/user/1000/avd/running/pid_*.ini`; `tileshell_fhd` listed `grpc.port=8554` on 2026-09-29) and never from any other — the
+second AVD, emulator-5556, is another project's; (2) `getMicrophoneState` reads host microphone access off (`injectAudio` returns
+`FAILED_PRECONDITION` while another microphone is active, `:344`); (3) with Tess listening, injects `pod_bay_doors` → a new
+`[speech] asr: final` holding "pod bay"; (4) captures a spoken reply through `streamAudio` with RMS above −40 dBFS. **If the spike
+fails** (Jeremy's ruling): every spoken step below becomes its typed twin — `type_request` with the same words once the session is
+open, E7's form — its RMS and C-30 clauses are recorded NOT RUN with the spike's evidence, the spoken proof is P1 / H13, and INDEX's
+phase 14 row says so. **Ring reads (C-20):** every ring assertion reads `ring_since` from a MARK (`adb shell date +%s%3N`) taken
 immediately before the step's action (after any clock jump, so the MARK is on the new clock); absence assertions read the same
 slice; `reply_text` is `reply_since <MARK>` (the first reply after the MARK, empty if none — so a row whose request produced no reply
-fails instead of reading an earlier row's identical line); helpers: phase 11's build task 7. **Voice verdict (C-30):** each `say`
+fails instead of reading an earlier row's identical line); helpers: phase 11's build task 7. **Voice verdict (C-30):** each spoken
 step also saves `speech_dump` sliced from its MARK (`ring_since <MARK> speech`, the `:speech` process's own ring) and asserts that the
-last `asr:` line in that slice is not `asr: no speech in the capture …` (`cortana/speech/SherpaAsr.kt:418`), so a gate drop fails with
-its own reason, not as a matcher miss; the five utterances are built through `utterances.py build`. **Wake (C-25):** after any `adb
+slice holds an `asr: levels … (heard=true)` line and no `asr: no speech in the capture …` line (`cortana/speech/SherpaAsr.kt:410-419`),
+so a gate drop fails with its own reason, not as a matcher miss (r3 V16: with nothing decoded, the last `asr:` line is the levels
+line with `heard=false`, which the old "last line is not `no speech`" clause passed); the five utterances are built through `utterances.py build`. **Wake (C-25):** after any `adb
 reboot` (boot-completed poll), `dumpsys battery unplug` or `KEYCODE_SLEEP` step, the driver calls `wake_device` and asserts it printed
 `Awake` before the next tap — except where the row's point is the lock screen (E8, E11's locked half), which wakes with
 `KEYCODE_WAKEUP` alone and asserts `mWakefulness=Awake` in `dumpsys power` before its next tap, since `wake_device` dismisses the
@@ -405,19 +446,20 @@ the swipes noted in the log).
   `tap_node pod_switch:weather`; Back to Start, swipe right → `pod:weather` absent, the other three present in the same order (each
   read after `scroll_to_node`, r3 V15), `[podbay] pods enabled: agenda,nowplaying,reminders`; all four off → `pod_bay_empty`
   present, `tap_node` on it → `SettingsActivity` on the Pod bay page (`settings_page_pod_bay` in the dump); `adb shell am force-stop app.tileshell`, Home → the switches persist (dump); restore all On
-- E6 Voice, the easter egg: from Start, `KEYCODE_ASSIST`, MARK, `say pod_bay_doors` → the slice holds `[match] "…" ->
-  OpenPodBay(doors=true)`; `reply_since` MARK equals "I'm afraid I can't do that, Dave." and the `parecord` capture's RMS over the
-  reply window is above −40 dBFS (phase 03's spoken reply pass rule); the `[podbay] opened by voice (doors)` line's `wall=` value is
+- E6 Voice, the easter egg (the audio route above, `AUDIO_ROUTE=emu`): from Start, `KEYCODE_ASSIST`, MARK, `speak.sh pod_bay_doors 11`
+  (rc 0) → the slice holds `[match] "…" -> OpenPodBay(doors=true)`; `reply_since` MARK equals "I'm afraid I can't do that, Dave."
+  and the `emu_audio.py record` (`streamAudio`) capture's RMS over the reply window is above −40 dBFS (phase 03's spoken reply pass
+  rule); the `[podbay] opened by voice (doors)` line's `wall=` value is
   after the `[speech] speaking done <utteranceId> cancelled=false` line's `wall=` for that utterance (the launcher-ring literal,
-  `cortana/speech/SpeechClient.kt:107`; T14-14) — both read from the launcher ring (`diag`) sliced from the MARK taken before `say`
+  `cortana/speech/SpeechClient.kt:107`; T14-14) — both read from the launcher ring (`diag`) sliced from the MARK taken before the spoken step
   (`Diagnostics.dump` prints `wall=<ms>` on every line, `diag/Diagnostics.kt:40`, and the speech client writes into that ring), never
   from the host clock (T14-8, C-20); `dumpsys window` shows no session window and
-  the dump shows `pod_bay`. Each of the following from its own MARK: `say pod_bay_open` → `OpenPodBay(doors=false)`, reply "Opening
-  the pod bay.", `opened by voice`; `say pod_bay_close` → `ClosePodBay`, reply "Closing the pod bay.", `start_page`, `[podbay] closed
-  by voice`. Negatives: `say pod_bay_neg1` ("open the pod") → `[match] "…" -> OpenApp(name=the pod)` (phase 03's open-app rule,
+  the dump shows `pod_bay`. Each of the following from its own MARK, each a `speak.sh` step: `pod_bay_open` → `OpenPodBay(doors=false)`, reply "Opening
+  the pod bay.", `opened by voice`; `pod_bay_close` → `ClosePodBay`, reply "Closing the pod bay.", `start_page`, `[podbay] closed
+  by voice`. Negatives: `pod_bay_neg1` ("open the pod") → `[match] "…" -> OpenApp(name=the pod)` (phase 03's open-app rule,
   `CommandMatcher.kt:86`), `reply_since` MARK = "I don't see an app called the pod." (`ActionLayer.kt:212-219`), no `pod_bay` and no
-  `[podbay] opened` in the slice (r3 D2 / V8); `say pod_bay_doors_noart` → doors=true; no match line in the slices of the four
-  pod-bay utterances contains `OpenApp`; every `say` also passes the C-30
+  `[podbay] opened` in the slice (r3 D2 / V8); `pod_bay_doors_noart` → doors=true; no match line in the slices of the four
+  pod-bay utterances contains `OpenApp`; every spoken step also passes the C-30
   voice-verdict check
 - E7 Typed form: from Start (`ensure_start` with the Harness fix; `start_page` alone and no `pod_bay` asserted first, so the open
   can fail — r3 V9), `KEYCODE_ASSIST` → `cortana_session` in the dump, MARK, `type_request "open the pod bay doors" 8` → the same
@@ -429,14 +471,14 @@ the swipes noted in the log).
   get-disabled` = false; `KEYCODE_SLEEP`, `KEYCODE_WAKEUP` (the lock-screen exception to C-25: `mWakefulness=Awake` asserted,
   keyguard kept), assert `isKeyguardShowing=true` in `dumpsys window` (`e10.sh:52-62`'s form); Tess over the keyguard by
   `e10.sh:31-45`'s `lock_and_open` (`KEYCODE_ASSIST`, then `cmd voiceinteraction show` if no `cortana_session`), MARK,
-  `say pod_bay_doors` → `cortana_card:unlock` in the dump with caption "Open the pod bay" (`LockGate.restate`), `reply_since` MARK =
+  `speak.sh pod_bay_doors 11` (rc 0; the locked session opens listening, `qa/phase-03/scripts/e9.sh:104`) → `cortana_card:unlock` in the dump with caption "Open the pod bay" (`LockGate.restate`), `reply_since` MARK =
   "Unlock your phone to continue.", `dumpsys window` still shows the keyguard, no `[podbay] opened` in the slice; MARK2, `tap_node
   cortana_card_button:unlock` (`e10.sh:124`) → `isKeyguardShowing=true` (the bouncer), `adb shell input text 1234`, `KEYCODE_ENTER`
   (`e10.sh:128-129`) → `reply_since` MARK2 is the doors line and the pod bay opens (E6's checks on the MARK2 slice); restore in an
   EXIT trap: `adb shell locksettings clear --old 1234`, `locksettings set-disabled true`, `KEYCODE_WAKEUP`, `wm dismiss-keyguard`
   (`e10.sh:16-23`)
-- E9 From inside another app: `adb shell am start -n com.android.deskclock/.DeskClock`, `KEYCODE_ASSIST`, `say pod_bay_doors` → after
-  the reply `dumpsys activity activities` shows `StartActivity` resumed and the dump shows `pod_bay`; `KEYCODE_BACK` → Start; a second
+- E9 From inside another app: `adb shell am start -n com.android.deskclock/.DeskClock`, `KEYCODE_ASSIST`, MARK, `speak.sh pod_bay_doors 11`
+  (rc 0, C-30) → after the reply (`[podbay] opened by voice (doors)` after `speaking done` in the slice, E6's order) `dumpsys activity activities` shows `StartActivity` resumed and the dump shows `pod_bay`; `KEYCODE_BACK` → Start; a second
   `KEYCODE_BACK` → DeskClock resumes (phase 01 E20: the Back history survived the detour); then `am force-stop app.tileshell` +
   Home (C-6)
 - E10 Edit mode and the pivot: `enter_edit` on a tile (phase 02's `gestures.sh`) → `adb shell input swipe 200 1200 950 1200 250`
@@ -460,7 +502,8 @@ the swipes noted in the log).
   2026-09-22 suite, qa/JEREMY-QA.md P02), its home-line grep updated to `home: page START` (T14-5); a row that starts on the pod bay and
   one that starts on the app list and calls each fixed helper — `gestures.sh` `ensure_start`, phase 03's `lib.sh` `ensure_start`,
   phase 11's `q.sh` `ensure_start_page` (r3 V1) — → `start_page` alone; phase 01 E2 (Home shows Start), E12
-  (swipe left → app list, search, jump grid), E19 (bars on all shell screens), E20 (Back on Start); phase 03 E3 (an utterance outside
+  (swipe left → app list, search, jump grid), E19 (bars on all shell screens), E20 (Back on Start); with `AUDIO_ROUTE=emu` exported
+  (phase 03's `e3.sh` and `e10.sh` speak only through `speak.sh`, `e3.sh:14,38`, `e10.sh:65-110`) phase 03 E3 (an utterance outside
   the list is still not understood), E5 (typed request and the allow-list), E10 (locked commands; "now with the pod-bay phrase" struck 2026-09-29, r3 V22 — E8 proves the locked phrase and phase
   03's `e10.sh` is not edited);
   `utterances.py build` succeeds with the five new ids; after every re-run that opened an app, `am force-stop app.tileshell` + Home
@@ -539,7 +582,9 @@ any approximation not covered by H2–H11; H13 Tess speaking the line on the pho
   pod" / "open the bay" (phase 03's `OpenApp` — "I don't see an app called …" — never the pod bay, r3 D2); "open pod bay doors" without the article (doors); ASR returning "podbay" as one word (still
   matched); the grammar hotword present but the open pass winning with a different transcript (E3's diagnostics show which)
 - The HAL strings in the A10 branding module: changing `Brand.POD_BAY_NAME` changes the page title, the Settings entry, the empty-bay
-  line and the phrase set together (a JVM test asserts the matcher follows the Brand value)
+  line and the phrase set together (a JVM test asserts the matcher follows the Brand value, and that `CommandMatcher.hotwords()`
+  holds "open the pod bay doors", "open the pod bay" and "close the pod bay doors" — the grammar pass's input, which no AVD row
+  reads directly; r3 V2)
 - Gesture navigation: the pan vs the left-edge Back (E12); a pan that starts on a bottom-row tile (the pager still pans, as it does on
   Start today); a pan during a live flip
 - Show more tiles toggled, theme light / dark, the accent changed (headers follow), the X5 transparency slider (pods are not tiles and
