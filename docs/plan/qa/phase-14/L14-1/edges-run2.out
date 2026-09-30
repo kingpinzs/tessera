@@ -1,0 +1,58 @@
+── L14-1-EDGES the Unlock button's edge cases: Back on the PIN pad, a wrong PIN, the screen off on the PIN pad
+PASS  AUDIO_ROUTE is the emulator's gRPC route                    = emu
+PASS  a PIN is set                                                = yes
+PASS  A: the keyguard is showing                                  = isKeyguardShowing=true
+PASS  A: speak.sh pod_bay_doors exits 0                           = 0
+PASS  A: C-30 asr levels heard=true                               contains [(heard=true)]
+PASS  A: C-30 no 'no speech in the capture'                       does not contain [asr: no speech in the capture]
+PASS  A: the Unlock card                                          = yes
+PASS  A: reply_since MARK                                         = Unlock your phone to continue.
+PASS  A: the Unlock button shows the PIN pad                      = yes
+PASS  A: Tess has stepped aside                                   = no
+PASS  A: after Back the keyguard is still showing                 = isKeyguardShowing=true
+PASS  A: Tess is back                                             = yes
+PASS  A: with the Unlock card                                     = yes
+PASS  A: its caption still restates the request                   = Open the pod bay
+PASS  A: the unlock was cancelled                                 contains [unlock bridge: cancelled]
+PASS  A: the request stays pending                                contains [unlock cancelled; the pending request stays on the card]
+PASS  A: nothing new was said (Q2 (a))                            = 
+PASS  A: nothing ran                                              does not contain [[podbay] opened]
+PASS  A: the session was not hidden                               does not contain [session hidden]
+PASS  A: the second Unlock shows the PIN pad                      = yes
+PASS  A: unlocked                                                 = isKeyguardShowing=false
+PASS  A: the first reply after the second Unlock is the doors line  = I'm afraid I can't do that, Dave.
+PASS  A: the pod bay opens                                        contains [[podbay] opened by voice (doors)]
+PASS  A: the dump shows pod_bay                                   = yes
+PASS  B: the keyguard is showing                                  = isKeyguardShowing=true
+PASS  B: speak.sh open_clock exits 0                              = 0
+PASS  B: C-30 asr levels heard=true                               contains [(heard=true)]
+PASS  B: C-30 no 'no speech in the capture'                       does not contain [asr: no speech in the capture]
+PASS  B: the Unlock card                                          = yes
+PASS  B: reply_since MARK                                         = Unlock your phone to continue.
+PASS  B: the caption restates the request (case aside)            = open clock
+PASS  B: the Unlock button shows the PIN pad                      = yes
+PASS  B: a wrong PIN keeps the keyguard                           = isKeyguardShowing=true
+PASS  B: and the PIN pad                                          = yes
+PASS  B: no result delivered yet (dismissed)                      does not contain [unlock bridge: dismissed]
+PASS  B: no result delivered yet (cancelled)                      does not contain [unlock bridge: cancelled]
+PASS  B: nothing ran                                              does not contain [unlocked; running the pending]
+PASS  B: unlocked                                                 = isKeyguardShowing=false
+PASS  B: the request that was on the card runs                    contains [unlocked; running the pending OpenApp]
+PASS  B: DeskClock resumes (E10's check)                          contains [deskclock]
+PASS  C: the keyguard is showing                                  = isKeyguardShowing=true
+PASS  C: speak.sh pod_bay_doors exits 0                           = 0
+PASS  C: C-30 asr levels heard=true                               contains [(heard=true)]
+PASS  C: C-30 no 'no speech in the capture'                       does not contain [asr: no speech in the capture]
+PASS  C: the Unlock card                                          = yes
+PASS  C: reply_since MARK                                         = Unlock your phone to continue.
+PASS  C: the Unlock button shows the PIN pad                      = yes
+PASS  C: after the wake the keyguard is showing                   = isKeyguardShowing=true
+RECORD  C: the unlock result after the screen went off              unlock bridge: cancelled;
+RECORD  C: the session after the wake                               shown=no card=no hidden-line=1
+PASS  C: nothing ran before any unlock                            does not contain [[podbay] opened]
+PASS  C: nothing ran before any unlock (model)                    does not contain [unlocked; running the pending]
+PASS  C: unlocked                                                 = isKeyguardShowing=false
+RECORD  C: after the user's own unlock                              ran=0 podbay=0 nothing-pending=0 top=app.tileshell/.StartActivity
+PASS  C: the user's own unlock runs nothing (model)               does not contain [unlocked; running the pending]
+PASS  C: the user's own unlock runs nothing (pod bay)             does not contain [[podbay] opened]
+   L14-1-EDGES: 53 passed, 0 failed, 3 recorded

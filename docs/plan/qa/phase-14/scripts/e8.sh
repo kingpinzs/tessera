@@ -64,18 +64,13 @@ MARK2="$(ring_mark)"
 tap_node "$ROW_DIR/02-card.xml" cortana_card_button:unlock
 sleep 3
 assert_eq "the Unlock button raises the keyguard" "isKeyguardShowing=true" "$(keyguard)"
-# On this AVD the Unlock button's dismiss request shows the lock screen, not yet the PIN pad (BUILD-NOTES/e8-probe:
-# the PIN typed there went nowhere; run 2: an injected swipe up did not reach it either); E11's form reaches it.
+# L14-1 (fixed 2026-09-30): the Unlock button itself brings up the PIN pad, with Tess stepped aside. Runs 1-3 fell back
+# to `wm dismiss-keyguard` here because the button's own request was cancelled; that fallback is gone — E8's text has
+# none, and it would pass a Unlock button that shows no PIN pad. (The PNG is black: the PIN pad blocks screen capture.)
 dump_ui "$ROW_DIR/03-after-unlock-button.xml"
 screencap "$ROW_DIR/03-after-unlock-button.png"
-if ! grep -qE 'resource-id="com.android.systemui:id/(pinEntry|keyguard_pin_view|pin_view)"' "$ROW_DIR/03-after-unlock-button.xml"; then
-  record "after the Unlock button" "the lock screen, not the PIN pad: wm dismiss-keyguard to the PIN pad (E11's form)"
-  adb shell wm dismiss-keyguard
-  sleep 2
-fi
-dump_ui "$ROW_DIR/03b-bouncer.xml"
-screencap "$ROW_DIR/03b-bouncer.png"
-assert_eq "the PIN pad is showing" "yes" "$(grep -qE 'resource-id="com.android.systemui:id/(pinEntry|keyguard_pin_view|pin_view)"' "$ROW_DIR/03b-bouncer.xml" && echo yes || echo no)"
+assert_eq "the Unlock button shows the PIN pad" "yes" "$(grep -qE 'resource-id="com.android.systemui:id/(pinEntry|keyguard_pin_view|pin_view)"' "$ROW_DIR/03-after-unlock-button.xml" && echo yes || echo no)"
+assert_eq "Tess has stepped aside for it" "no" "$(has_node "$ROW_DIR/03-after-unlock-button.xml" cortana_session)"
 adb shell input text $PIN
 adb shell input keyevent KEYCODE_ENTER
 sleep 20
