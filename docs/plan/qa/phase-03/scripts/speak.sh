@@ -39,7 +39,18 @@ fi
 # never said — which is exactly what happened once here ("CALL MA'AM" reported for a text command).
 finals_before="$(speech_dump | grep -cF '[speech] asr: final')"
 
-timeout 40 "$HERE/audio.sh" say "$wav"
+# AUDIO_ROUTE=emu (phase 14 Q-R3-1a (a)): the utterance goes in through the emulator's own gRPC injectAudio and the
+# host's audio is never touched. A failed injection is exit 5 with its reason, never a silent "no final".
+if [ "${AUDIO_ROUTE:-}" = emu ]; then
+  timeout 40 python3 "$HERE/emu_audio.py" say "$wav" >&2
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
+    echo "speak.sh: emu_audio.py say failed for '$utterance' (rc $rc)" >&2
+    exit 5
+  fi
+else
+  timeout 40 "$HERE/audio.sh" say "$wav"
+fi
 sleep "$settle"
 
 finals_after="$(speech_dump | grep -cF '[speech] asr: final')"

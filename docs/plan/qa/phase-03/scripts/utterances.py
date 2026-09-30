@@ -78,6 +78,12 @@ UTTERANCES = {
     "reminder_place": "Remind me to take out the trash when I get home.",
     "reminder_person": "Remind me to ask about dinner next time I talk to Mom.",
     "save_home": "This is home.",
+    # Phase 14 E6-E9: the pod bay (its Decisions' typed-form line names these five ids)
+    "pod_bay_doors": "Open the pod bay doors.",
+    "pod_bay_doors_noart": "Open pod bay doors.",
+    "pod_bay_open": "Open the pod bay.",
+    "pod_bay_close": "Close the pod bay doors.",
+    "pod_bay_neg1": "Open the pod.",
     # Edge cases
     "silence": "",
     "long": (

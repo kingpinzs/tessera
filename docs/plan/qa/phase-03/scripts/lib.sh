@@ -294,8 +294,20 @@ say() { # utterance-id [settle-seconds]
   local wav
   wav="$(python3 "$HERE/utterances.py" path "$1")"
   [ -f "$wav" ] || { echo "missing utterance $1 — run utterances.py build" >&2; return 2; }
-  "$HERE/audio.sh" say "$wav"
+  # AUDIO_ROUTE=emu (phase 14 Q-R3-1a (a)): the emulator's own gRPC injectAudio; the host's audio is never touched.
+  if [ "${AUDIO_ROUTE:-}" = emu ]; then
+    python3 "$HERE/emu_audio.py" say "$wav" >&2 || return 5
+  else
+    "$HERE/audio.sh" say "$wav"
+  fi
   sleep "${2:-6}"
+}
+
+# The assertion every driver with a spoken step makes before its first one (phase 14 Acceptance criteria: no row
+# can fall through to the host route).
+require_emu_audio() {
+  assert_eq "AUDIO_ROUTE is the emulator's gRPC route" "emu" "${AUDIO_ROUTE:-}"
+  [ "${AUDIO_ROUTE:-}" = emu ]
 }
 
 # Type a request into the real text box (fidelity A4: the same matcher and reply path as speech).
