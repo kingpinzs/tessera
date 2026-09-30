@@ -37,6 +37,9 @@ import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.semantics.semantics
@@ -301,10 +304,12 @@ class StartActivity : ComponentActivity() {
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     private fun StartPivot(pager: androidx.compose.foundation.pager.PagerState, scroll: androidx.compose.foundation.ScrollState) {
+        val view = androidx.compose.ui.platform.LocalView.current
         Box(Modifier.fillMaxSize()) {
             HorizontalPager(
                 state = pager,
-                modifier = Modifier.fillMaxSize(),
+                // Phase 14 (Decisions "Gesture navigation"): a swipe from Android's left gesture inset is never the pod bay.
+                modifier = Modifier.fillMaxSize().pointerInput(edit.active) { if (!edit.active) edgeGuard(view) },
                 // X13 approximation: follows the finger 1:1, settles with an ease-out over 250 ms.
                 flingBehavior = PagerDefaults.flingBehavior(pager, snapAnimationSpec = tween(Motion.PIVOT_SETTLE_MS)),
                 snapPosition = SnapPosition.Start,
@@ -368,6 +373,41 @@ class StartActivity : ComponentActivity() {
     }
 
     private var pendingLaunch: (() -> Unit)? = null
+
+    /**
+     * Phase 14 (Decisions "Gesture navigation"): a horizontal pan that STARTS inside Android's left system-gesture inset
+     * is not the pager's. Every shell screen hides the system bars (phase 01's bar rule), and on an immersive window
+     * Android answers the first edge swipe by revealing the bars and still hands the drag to the app — found by E12 on
+     * the AVD's gestural overlay, where it opened the pod bay (qa/phase-14/BUILD-NOTES/e12-probe). The guard takes the
+     * pan in the Initial pass once it is horizontal past the touch slop, so the pager (a child in the Main pass) sees it
+     * consumed and never starts; a tap or a vertical scroll from that strip is untouched. No
+     * systemGestureExclusionRects: the edge stays Android's. With 3-button navigation the inset is 0 and nothing happens.
+     */
+    private suspend fun androidx.compose.ui.input.pointer.PointerInputScope.edgeGuard(view: android.view.View) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false, pass = androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+            val inset = view.rootWindowInsets?.getInsets(android.view.WindowInsets.Type.systemGestures())?.left ?: 0
+            if (inset <= 0 || down.position.x >= inset) return@awaitEachGesture
+            var dx = 0f
+            var dy = 0f
+            var taken = false
+            while (true) {
+                val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                if (!change.pressed) break
+                if (!taken) {
+                    val d = change.position - change.previousPosition
+                    dx += d.x
+                    dy += d.y
+                    if (kotlin.math.abs(dx) > viewConfiguration.touchSlop && kotlin.math.abs(dx) > kotlin.math.abs(dy)) {
+                        taken = true
+                        Diagnostics.add("start", "edge pan from x=${down.position.x.toInt()} inside the gesture inset ($inset px): not the pager's")
+                    }
+                }
+                if (taken) change.consume()
+            }
+        }
+    }
 
     /** Home: Start, the burst and edit mode closed, and X20's scroll to the top when Start was already in front. */
     private suspend fun home(
