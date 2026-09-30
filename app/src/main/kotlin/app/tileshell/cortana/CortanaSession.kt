@@ -93,14 +93,16 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
          */
         override fun requestUnlock() {
             Diagnostics.add("cortana", "stepping aside for the unlock prompt")
-            model.onSteppedAside()
-            setUiEnabled(false)
             UnlockBridge.await { unlocked ->
                 Diagnostics.add("cortana", "back from the unlock prompt (unlocked=$unlocked)")
                 setUiEnabled(true)
                 if (unlocked) model.onUnlocked() else model.onUnlockCancelled()
             }
+            // Started while Tess's window is still up: Android allows the start as coming from a visible window, and
+            // the page's onCreate is posted, so no result can land before she has stepped aside (fix review r1).
             UnlockBridge.start(context)
+            model.onSteppedAside()
+            setUiEnabled(false)
         }
 
         /**

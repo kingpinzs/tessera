@@ -117,6 +117,7 @@ class CortanaModel(
         SpeechClient.stopSpeaking()
         SpeechClient.unbind(context)
         closeAfterUtterance = null
+        dropStoppedFinal = false
         // "closing the session drops it too" (H12): a pending request never survives the session.
         releaseDroppedPhoto(null)
         mutable.value = CortanaState()
@@ -125,6 +126,7 @@ class CortanaModel(
     // ---------------- opening ----------------
 
     fun open(mode: CortanaMode) {
+        dropStoppedFinal = false
         val locked = LockGate.locked(context)
         releaseDroppedPhoto(null)
         mutable.value = CortanaState(
@@ -237,7 +239,20 @@ class CortanaModel(
         }
     }
 
+    /**
+     * L14-1 (fix review r1): a pass stopped by [onSteppedAside] still sends its final, with whatever the recogniser had
+     * decoded ("via stopped") — the words cut off by the tap that stepped Tess aside, not a request. Handled, it would
+     * replace the pending request behind the PIN pad or the picker (and be answered there). The flag names that one
+     * pass, so its final is dropped whenever it lands, before or after Tess comes back. Cleared by a new show or a hide.
+     */
+    private var dropStoppedFinal = false
+
     private fun onFinal(event: SpeechEvent.Final) {
+        if (dropStoppedFinal) {
+            dropStoppedFinal = false
+            Diagnostics.add("cortana", "final of the pass stopped by stepping aside: dropped (audioMs=${event.audioMs})")
+            return
+        }
         mutable.value = mutable.value.copy(listening = false, level = 0f, persona = PersonaState.THINKING)
         // The grammar pass wins when it produced something, because it is the same audio decoded with
         // the command vocabulary boosted; the open pass is what an unmatched utterance is judged on and
@@ -391,7 +406,10 @@ class CortanaModel(
     fun onSteppedAside() {
         listenAfterUtterance = null
         SpeechClient.stopSpeaking()
-        if (mutable.value.listening) SpeechClient.stopListening()
+        if (mutable.value.listening) {
+            dropStoppedFinal = true
+            SpeechClient.stopListening()
+        }
         mutable.value = mutable.value.copy(listening = false, level = 0f, persona = PersonaState.IDLE_AFTER_SPEAKING)
     }
 
