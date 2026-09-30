@@ -106,3 +106,27 @@ drivers' `c6`). **`baseline_layout-nomusic.json`** (E4): phase 02's baseline wit
 `slot:music:v1` kept in `addedOnce`; the AVD has three `APP_MUSIC` handlers and no preferred one, so the slot is
 unassigned (`cmd package query-activities … APP_MUSIC`: gramophone, auxio, app.tileshell/.music.MusicActivity).
 The CALENDAR category has exactly one (`com.android.calendar/.AllInOneActivity`), E3's precondition.
+
+## E12 and Android's immersive edge — RULING PENDING (Jeremy)
+
+Found by E12 run 1 (`E12-run1-no-guard/`): with the AVD's gestural overlay on, a swipe from x = 2 on Start opened the
+pod bay instead of firing Android's Back. The probes (`BUILD-NOTES/e12-probe/`) place the cause in the platform, not
+the pod bay:
+
+- probe 1: the same injected edge swipe over DeskClock (system bars showing) IS Back (x = 2, 10, 30): injection and
+  gesture mode work (`navigation_mode=2`, `systemGestures` left inset 84 px).
+- probe 2: over the shell's own SettingsActivity (system bars hidden, phase 01's bar rule) the edge swipe does NOT pop
+  the page — every shell screen is an immersive window (`BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE`).
+- probe 3: on Start the first edge swipe reveals the bars (`visible=true` 0.5 s after) and Android still hands the drag
+  to the app — the pager opened the pod bay; a second swipe while the bars showed was Back (`closed by back`).
+
+**Fixed (ours):** the Decision's "never the pod bay" half — a horizontal pan that starts inside Android's left
+system-gesture inset is not the pager's (`StartActivity.edgeGuard`, logged `[start] edge pan from x=… inside the gesture
+inset (84 px): not the pager's`); taps and vertical scrolls from that strip are untouched; no exclusion rects.
+E12 run 2 (`E12/`): 10 passed, 1 failed, 2 recorded — no pod bay, no `page=POD_BAY`, the guard's line, bars revealed.
+
+**Open (Android's):** E12's clause "Android's Back fires: `topResumedActivity` is DeskClock" on the FIRST edge swipe
+cannot hold while phase 01's bar rule hides the bars. probe 4 (guard build): the first edge swipe reveals the bars and
+moves nothing; a second one 0.4 s later is Android's Back and Start's Back-history rule resumes DeskClock
+(`[launch] tile=back`). The question to Jeremy: read E12's Back clause as "first swipe reveals the bars, second is
+Back" (Change Log), or keep it as written and leave the Back proof to phone row P2.
