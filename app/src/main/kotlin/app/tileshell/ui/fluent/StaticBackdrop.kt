@@ -164,14 +164,22 @@ object StaticBackdrop {
 }
 
 /**
- * The app-list page's backdrop (`acrylic:applist`), drawn under its rows:
+ * The app-list page's backdrop (`acrylic:applist`), drawn under its rows — and, since phase 14, the pod bay's
+ * (`acrylic:pod_bay`, [surface] = [FluentSurface.POD_BAY]). Both pages compose it with the same arguments, so their
+ * [StaticBackdrop.Key] is equal and neither evicts the other's layer (A-N4):
  * - acrylic on and the layer built → the blurred, tinted, noised picture;
  * - acrylic off (or the layer not built) → the fallback, W10M's own form (R3 A18): the picture under the tint at
  *   0.8, unblurred, no noise;
  * - no picture, or the picture cannot be decoded → the solid theme background, and no layer is allocated.
  */
 @Composable
-fun AppListBackdrop(backgroundUri: String?, background: Color, visible: Boolean, modifier: Modifier = Modifier) {
+fun AppListBackdrop(
+    backgroundUri: String?,
+    background: Color,
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    surface: FluentSurface = FluentSurface.APPLIST,
+) {
     val context = LocalContext.current
     val state by Fluent.state.collectAsState()
     val layer by StaticBackdrop.layer.collectAsState()
@@ -200,7 +208,7 @@ fun AppListBackdrop(backgroundUri: String?, background: Color, visible: Boolean,
         }
     }
     LaunchedEffect(visible) {
-        if (visible) Fluent.logShown(FluentSurface.APPLIST, tint)
+        if (visible) Fluent.logShown(surface, tint)
     }
 
     val built = (layer as? StaticBackdrop.Layer.Built)?.takeIf { it.key.uri == backgroundUri && it.key.size == size && it.key.tint == tint }
@@ -209,10 +217,10 @@ fun AppListBackdrop(backgroundUri: String?, background: Color, visible: Boolean,
         modifier
             .fillMaxSize()
             .onSizeChanged { size = it }
-            .testTag("acrylic:${FluentSurface.APPLIST.id}")
+            .testTag("acrylic:${surface.id}")
             .drawBehind {
                 // The form this frame draws: acrylic needs the layer, which is built after acrylic turns on.
-                if (visible && holder.drawn != null && holder.drawn != acrylic) Fluent.logForm(FluentSurface.APPLIST, acrylic)
+                if (visible && holder.drawn != null && holder.drawn != acrylic) Fluent.logForm(surface, acrylic)
                 holder.drawn = acrylic
             },
     ) {

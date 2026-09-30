@@ -96,6 +96,8 @@ enum class FluentSurface(val id: String, val source: FluentSource) {
     MUSIC_MENU("music_menu", FluentSource.LIVE),
     CORTANA_PANE("cortana_pane", FluentSource.LIVE),
     REMINDER_MENU("reminder_menu", FluentSource.LIVE),
+    /** Phase 14 (T14-11, r3 D7): the pod bay, the app list's sibling page, on the same static layer. */
+    POD_BAY("pod_bay", FluentSource.STATIC),
 }
 
 /** Why acrylic is off, in precedence order (T13-20): the first false term of the rule names it. */
