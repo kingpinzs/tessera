@@ -14,6 +14,8 @@ import android.telephony.SmsManager
 import app.tileshell.apps.AppCatalog
 import app.tileshell.apps.AppEntry
 import app.tileshell.brand.Brand
+import app.tileshell.start.podbay.PodBayRequest
+import app.tileshell.start.podbay.PodBayRequests
 import app.tileshell.cortana.Card
 import app.tileshell.cortana.CardAction
 import app.tileshell.cortana.CardButton
@@ -117,6 +119,8 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
             is Request.TakeNote -> takeNote(request.text)
             is Request.Weather -> weather()
             is Request.Arithmetic -> arithmetic(request.expr)
+            is Request.OpenPodBay -> podBay(PodBayRequest(open = true, doors = request.doors))
+            is Request.ClosePodBay -> podBay(PodBayRequest(open = false))
             is Request.SavePlaceHere -> Outcome(
                 "Where would you like to save ${request.name}?", null, openPlaces = request.name,
             )
@@ -658,6 +662,21 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
     }
 
     private fun notUnderstoodCard(title: String) = Card(CardKind.NOT_UNDERSTOOD, title)
+
+    /**
+     * Phase 14 (Decisions "Tess's command", "Route to Start"): the request is only RECORDED here and nothing is started;
+     * the reply is shown on an answer card and spoken, the session closes after it, and Start takes the request then —
+     * so the order is reply, close, pane. "open" while it is open and "close" on Start still say their line.
+     */
+    private fun podBay(request: PodBayRequest): Outcome {
+        PodBayRequests.record(request)
+        val spoken = when {
+            !request.open -> "Closing the ${Brand.POD_BAY_NAME}."
+            request.doors -> Brand.POD_BAY_DOORS_REPLY
+            else -> "Opening the ${Brand.POD_BAY_NAME}."
+        }
+        return Outcome(spoken, Card(CardKind.ANSWER, spoken), close = true)
+    }
 
     private fun slotApp(slot: Slot): AppEntry? {
         val catalog = AppCatalog.get(context)

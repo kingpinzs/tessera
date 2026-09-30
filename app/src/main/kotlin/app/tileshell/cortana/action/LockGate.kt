@@ -40,6 +40,8 @@ object LockGate {
         is Request.SetReminder, is Request.DeleteReminder -> false
         is Request.OpenApp, is Request.Directions, is Request.TakePhoto, is Request.TakeNote -> false
         is Request.SavePlaceHere -> false
+        // Phase 14: the pod bay shows the agenda and reminders and is a Start surface.
+        is Request.OpenPodBay, is Request.ClosePodBay -> false
     }
 
     /** The caption the "Unlock to continue" card restates the request with (H12). */
@@ -56,6 +58,8 @@ object LockGate {
         is Request.TakePhoto -> "Take a photo"
         is Request.TakeNote -> "Take a note"
         is Request.SavePlaceHere -> "Save this place as ${request.name}"
+        is Request.OpenPodBay -> "Open the ${app.tileshell.brand.Brand.POD_BAY_NAME}"
+        is Request.ClosePodBay -> "Close the ${app.tileshell.brand.Brand.POD_BAY_NAME}"
         else -> "That"
     }
 }
