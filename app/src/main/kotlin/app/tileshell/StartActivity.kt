@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,7 +57,11 @@ import app.tileshell.start.FolderNameBox
 import app.tileshell.start.SecondaryPinPrompt
 import app.tileshell.start.StartEditState
 import app.tileshell.start.StartPage
+import app.tileshell.start.StartPages
 import app.tileshell.start.TileTarget
+import app.tileshell.start.podbay.PodBayPage
+import app.tileshell.start.podbay.PodBayRequests
+import app.tileshell.start.podbay.PodTarget
 import app.tileshell.tiles.ShellTiles
 import app.tileshell.tiles.TileKey
 import app.tileshell.tiles.UseCounts
@@ -69,12 +74,30 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
-/** The HOME activity: Start and the app list on one pivot, the drawn W10M bars, launch / return motion. */
+/** What the one pager-moving coroutine for keys takes (L13-4): Home, or phase 14's look at a pending pod-bay request. */
+private sealed interface HomeEvent {
+    /** true = Home pressed while Start was already in front (scroll to top); false = Home from elsewhere (Start only). */
+    data class Home(val alreadyInFront: Boolean) : HomeEvent
+
+    /** Phase 14 (r3 D1): consult [PodBayRequests]; open or close the pod bay if a request is pending. */
+    data object PodBayCheck : HomeEvent
+}
+
+/** The HOME activity: the pod bay, Start and the app list on one pivot, the drawn W10M bars, launch / return motion. */
 class StartActivity : ComponentActivity() {
-    /** true = Home pressed while Start was already in front (scroll to top); false = Home from elsewhere (page 0 only). */
-    private val homeEvents = MutableSharedFlow<Boolean>(extraBufferCapacity = 1)
+    // Room for a Home and a pod-bay check in the same instant (the session's HOME intent and the focus coming back).
+    private val homeEvents = MutableSharedFlow<HomeEvent>(extraBufferCapacity = 8)
+
+    /**
+     * The page a key or voice scroll is taking the pager to, and why ("back", "home", "voice", "voice (doors)"), consumed
+     * by the settle that lands on that page; a settle anywhere else is a swipe. Cleared when the scroll is interrupted or
+     * moves nothing, so a later swipe is never credited to a key.
+     */
+    private var pendingCause: Pair<Int, String>? = null
     // In front means resumed and not stopped since; Android pauses Start before delivering a Home intent, so
     // RESUMED can't be read in onNewIntent.
     private var inFront = false
@@ -138,7 +161,7 @@ class StartActivity : ComponentActivity() {
     @Composable
     private fun StartHost() {
         val scroll = rememberScrollState()
-        val pager = rememberPagerState(pageCount = { 2 })
+        val pager = rememberPagerState(initialPage = StartPages.START, pageCount = { StartPages.COUNT })
         val scope = rememberCoroutineScope()
 
         // L13-4: a touch that lands during the pivot (or Home's scroll to the top) interrupts the animation, which throws a
@@ -146,24 +169,15 @@ class StartActivity : ComponentActivity() {
         // included, did nothing until the activity was recreated. The collectors now catch that interruption and go on,
         // and they still take one key at a time: a second Back during the pivot runs when it ends (Back on Start).
         LaunchedEffect(Unit) {
-            homeEvents.collect { alreadyInFront ->
+            homeEvents.collect { event ->
                 // Phase 12: the Windows key and Home do nothing while the wizard shows — Start is behind it, and Home is
-                // where you are (Decisions "Bars").
+                // where you are (Decisions "Bars"). A pod-bay request is not taken then either: it waits for the wizard
+                // to end (phase 14 T14-7), when onWizardEnded() asks again.
                 if (app.tileshell.onboarding.SetupWizard.showing) return@collect
-                pickerSlot = null
-                // Phase 11: Home closes an open burst and edit mode with it (the HOME intent and the drawn
-                // Windows key both arrive here, T11-16).
-                edit.quick.close(app.tileshell.start.CloseReason.HOME)
-                // Windows leaves edit mode when Start is re-entered (X20's sibling; agent).
-                if (edit.active) edit.requestExit()
-                val done = untilInterrupted("home") {
-                    pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
-                    if (alreadyInFront) {
-                        // X20 approximation: Home while Start is showing scrolls Start to the top.
-                        scroll.animateScrollTo(0)
-                    }
+                when (event) {
+                    is HomeEvent.Home -> home(pager, scroll, event.alreadyInFront)
+                    HomeEvent.PodBayCheck -> podBayCheck(pager)
                 }
-                if (done) Diagnostics.add("start", "home: page 0" + if (alreadyInFront) ", scrolled to top" else "")
             }
         }
         LaunchedEffect(Unit) {
@@ -177,9 +191,10 @@ class StartActivity : ComponentActivity() {
                     edit.active -> edit.requestExit()
                     edit.expandedFolder != null -> edit.expandedFolder = null
                     pickerSlot != null -> pickerSlot = null
-                    pager.currentPage == 1 -> untilInterrupted("back") {
-                        pager.animateScrollToPage(0, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
-                    }
+                    // Phase 14: Back from the pod bay is Start, as it is from the app list; the Back history rule
+                    // (backOnStart) applies only when Start is the current page (an ADD to phase 01's rule, H8).
+                    pager.currentPage == StartPages.APP_LIST || pager.currentPage == StartPages.POD_BAY ->
+                        scrollForKey(pager, StartPages.START, "back")
                     else -> backOnStart()
                 }
             }
@@ -195,6 +210,24 @@ class StartActivity : ComponentActivity() {
             }
         }
         LaunchedEffect(pager.currentPage) { page = pager.currentPage }
+        // Phase 14 (T14-8): `[start] page=<name>` each time the pager settles on a page, and the pod bay's
+        // `[podbay] opened by …` / `closed by …` with the cause a key or voice scroll left in [pendingCause].
+        LaunchedEffect(pager) {
+            var last: Int? = null
+            snapshotFlow { pager.settledPage }.collect { now ->
+                if (now == last) return@collect
+                val from = last
+                last = now
+                Diagnostics.add("start", "page=${StartPages.name(now)}")
+                if (from == null) return@collect
+                val cause = pendingCause?.takeIf { it.first == now }?.second ?: "swipe"
+                pendingCause = null
+                when {
+                    now == StartPages.POD_BAY -> Diagnostics.add("podbay", "opened by $cause")
+                    from == StartPages.POD_BAY -> Diagnostics.add("podbay", "closed by $cause")
+                }
+            }
+        }
         // Phase 13 (C-5, T13-27, E8): the pivot's settle after a swipe is released, on the shell's own clock —
         // `[motion] pivot`, value = how far the pager has gone from where the finger let go to where it settles.
         LaunchedEffect(pager) {
@@ -231,7 +264,7 @@ class StartActivity : ComponentActivity() {
                 }
                 W10mNavBar(
                     onBack = { backEvents.tryEmit(Unit) },
-                    onWindows = { homeEvents.tryEmit(true) },
+                    onWindows = { homeEvents.tryEmit(HomeEvent.Home(true)) },
                 )
             }
             W10mStatusBar(Modifier.align(Alignment.TopCenter))
@@ -279,17 +312,25 @@ class StartActivity : ComponentActivity() {
                 // Edit mode holds Start still: a drag across the screen moves a tile, not the pivot (agent).
                 userScrollEnabled = !edit.active,
             ) { index ->
-                if (index == 0) {
-                    StartPage(scroll, animation, edit) { tile -> onTileTap(tile) }
-                } else {
+                when (index) {
+                    StartPages.START -> StartPage(scroll, animation, edit) { tile -> onTileTap(tile) }
                     // A pivot page that is not showing takes no focus. Without this, dismissing a text
                     // field on Start (the folder name box) handed focus to the app list's search field,
                     // and the pager dutifully scrolled that page into view — Start swung away on its own.
-                    Box(
+                    // Phase 14: the pod bay carries the same guard, so nothing on it can swing the pager either.
+                    StartPages.POD_BAY -> Box(
                         Modifier
                             .fillMaxSize()
                             .focusGroup()
-                            .focusProperties { canFocus = pager.currentPage == 1 },
+                            .focusProperties { canFocus = pager.currentPage == StartPages.POD_BAY },
+                    ) {
+                        PodBayPage(onLaunch = { pod, target, bounds -> podLaunch(pod, target, bounds) })
+                    }
+                    else -> Box(
+                        Modifier
+                            .fillMaxSize()
+                            .focusGroup()
+                            .focusProperties { canFocus = pager.currentPage == StartPages.APP_LIST },
                     ) {
                         AppListPage(onLaunch = { entry, bounds -> launchApp(TileTarget.App(entry), bounds, null) })
                     }
@@ -327,6 +368,112 @@ class StartActivity : ComponentActivity() {
     }
 
     private var pendingLaunch: (() -> Unit)? = null
+
+    /** Home: Start, the burst and edit mode closed, and X20's scroll to the top when Start was already in front. */
+    private suspend fun home(
+        pager: androidx.compose.foundation.pager.PagerState,
+        scroll: androidx.compose.foundation.ScrollState,
+        alreadyInFront: Boolean,
+    ) {
+        pickerSlot = null
+        // Phase 11: Home closes an open burst and edit mode with it (the HOME intent and the drawn
+        // Windows key both arrive here, T11-16).
+        edit.quick.close(app.tileshell.start.CloseReason.HOME)
+        // Windows leaves edit mode when Start is re-entered (X20's sibling; agent).
+        if (edit.active) edit.requestExit()
+        val done = scrollForKey(pager, StartPages.START, "home") {
+            if (alreadyInFront) {
+                // X20 approximation: Home while Start is showing scrolls Start to the top.
+                scroll.animateScrollTo(0)
+            }
+        }
+        if (done) Diagnostics.add("start", "home: page ${StartPages.name(StartPages.START)}" + if (alreadyInFront) ", scrolled to top" else "")
+    }
+
+    /**
+     * Phase 14 (r3 D1): takes the pending pod-bay request, if any — none does nothing and never scrolls. Otherwise Home's
+     * housekeeping (the picker, the burst, edit mode), then the pivot's own settle to the pod bay (open) or to Start
+     * (close); on the page already, the request is taken and nothing moves. No scroll-to-top and no home line.
+     */
+    private suspend fun podBayCheck(pager: androidx.compose.foundation.pager.PagerState) {
+        val request = PodBayRequests.take() ?: return
+        pickerSlot = null
+        edit.quick.close(app.tileshell.start.CloseReason.HOME)
+        if (edit.active) edit.requestExit()
+        // Right after the wizard ends the pager is composed on the next frame; wait for its first layout.
+        withTimeoutOrNull(2_000) { snapshotFlow { pager.layoutInfo.visiblePagesInfo.isNotEmpty() }.first { it } }
+        val target = if (request.open) StartPages.POD_BAY else StartPages.START
+        if (pager.currentPage == target && !pager.isScrollInProgress) {
+            Diagnostics.add("podbay", "voice ${if (request.open) "open" else "close"}: already on ${StartPages.name(target)}, nothing moves")
+            return
+        }
+        scrollForKey(pager, target, if (!request.open) "voice" else if (request.doors) "voice (doors)" else "voice")
+    }
+
+    /**
+     * A key's (or the voice request's) scroll to [target] with the pivot's settle, recording why for the settle line;
+     * [then] runs after the scroll (Home's scroll to the top). Returns false when interrupted (L13-4).
+     */
+    private suspend fun scrollForKey(
+        pager: androidx.compose.foundation.pager.PagerState,
+        target: Int,
+        cause: String,
+        then: suspend () -> Unit = {},
+    ): Boolean {
+        val from = pager.currentPage
+        pendingCause = if (from != target) target to cause else null
+        val done = untilInterrupted(cause.substringBefore(' ')) {
+            pager.animateScrollToPage(target, animationSpec = tween(Motion.PIVOT_SETTLE_MS))
+            then()
+        }
+        if (!done) pendingCause = null
+        return done
+    }
+
+    /**
+     * Phase 14 (Decisions "The pods", r3 D8 / D9, T14-13): a pod's tap opens its app or page as the app list's do —
+     * [launchApp] with no tile key, so no Start exit and nothing promoted — and a tap that opens nothing says why.
+     */
+    private fun podLaunch(pod: app.tileshell.prefs.PodId, target: PodTarget, bounds: Rect?) {
+        when (target) {
+            is PodTarget.SlotApp -> {
+                val entry = app.tileshell.tiles.SlotResolver(this, AppCatalog.get(this))
+                    .resolve(target.slot, app.tileshell.tiles.LayoutStore.get(this).layout.value.explicitSlots)
+                if (entry == null) {
+                    Diagnostics.add("podbay", "launch ${pod.id} failed: slot unassigned")
+                    // The tap follows the tile: an unassigned slot opens its picker (StartActivity onTileTap).
+                    pickerSlot = target.slot
+                    return
+                }
+                guardedLaunch(pod, entry.component.flattenToShortString()) { launchApp(TileTarget.App(entry), bounds, null) }
+            }
+            PodTarget.Weather -> guardedLaunch(pod, "app.tileshell/.weather.WeatherActivity") {
+                launchApp(TileTarget.Shell(ShellTiles.WEATHER), bounds, null)
+            }
+            PodTarget.TessReminders -> {
+                val why = app.tileshell.cortana.CortanaService.whyNoSession(this)
+                if (app.tileshell.cortana.CortanaService.open(
+                        this, app.tileshell.cortana.CortanaMode.HOME, app.tileshell.cortana.CortanaDestinationKey.REMINDERS,
+                    )
+                ) {
+                    Diagnostics.add("podbay", "launch ${pod.id} -> app.tileshell/.cortana.CortanaService (Reminders)")
+                } else {
+                    Diagnostics.add("podbay", "launch ${pod.id} failed: no session: ${why ?: "not shown"}")
+                }
+            }
+        }
+    }
+
+    /** Runs a pod's launch; an app that cannot be started is logged, and Start does not wait for a return. */
+    private fun guardedLaunch(pod: app.tileshell.prefs.PodId, component: String, launch: () -> Unit) {
+        try {
+            launch()
+            Diagnostics.add("podbay", "launch ${pod.id} -> $component")
+        } catch (e: android.content.ActivityNotFoundException) {
+            returningFromLaunch = false
+            Diagnostics.add("podbay", "launch ${pod.id} failed: ActivityNotFoundException")
+        }
+    }
 
     private fun onTileTap(tile: PlacedTile) {
         when (val target = tile.target) {
@@ -464,7 +611,9 @@ class StartActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_HOME)) {
-            homeEvents.tryEmit(inFront)
+            // Phase 14: Tess's session sends Home with a POD_BAY_CHECK signal when a pod-bay request is pending. The
+            // extra carries no request — anyone may send it; it only makes Start consult PodBayRequests.
+            homeEvents.tryEmit(if (intent.getBooleanExtra(EXTRA_POD_BAY_CHECK, false)) HomeEvent.PodBayCheck else HomeEvent.Home(inFront))
         }
     }
 
@@ -497,6 +646,9 @@ class StartActivity : ComponentActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus && returningFromLaunch) comeBack("start entrance (focus back)")
+        // Phase 14 (r3 D1): Tess's session is a window over Start, so Start is never paused under it; when it goes —
+        // after her reply, or dismissed mid-line — the focus comes back, and a pending pod-bay request is taken here.
+        if (hasFocus) homeEvents.tryEmit(HomeEvent.PodBayCheck)
         // Phase 12: the keyboard picker is a system window, not an activity, so Start is never paused under it; the step
         // re-derives when the focus comes back instead.
         if (hasFocus && app.tileshell.onboarding.SetupWizard.showing) reconcileWizard()
@@ -514,6 +666,8 @@ class StartActivity : ComponentActivity() {
     private fun onWizardEnded() {
         cameFromWizard = true
         if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) SecondaryTiles.setStartVisible(true)
+        // Phase 14 (T14-7): a pod-bay request made while the wizard showed waited for this.
+        homeEvents.tryEmit(HomeEvent.PodBayCheck)
     }
 
     /**
@@ -524,6 +678,11 @@ class StartActivity : ComponentActivity() {
     override fun dump(prefix: String, fd: java.io.FileDescriptor?, writer: java.io.PrintWriter, args: Array<out String>?) {
         super.dump(prefix, fd, writer, args)
         Diagnostics.dump(writer)
+    }
+
+    companion object {
+        /** Phase 14: the signal on the HOME intent Tess's session sends when a pod-bay request is pending. */
+        const val EXTRA_POD_BAY_CHECK = "app.tileshell.extra.POD_BAY_CHECK"
     }
 
     /**

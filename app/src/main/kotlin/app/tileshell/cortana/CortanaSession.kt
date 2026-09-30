@@ -123,7 +123,14 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
         // merely-CREATED owner the content composes and draws but never reacts to touch.
         lifecycleRegistry.currentState = Lifecycle.State.RESUMED
         setUiEnabled(true)
-        scope.launch { model.closeRequests.collect { hide() } }
+        scope.launch {
+            model.closeRequests.collect {
+                // Phase 14 (r3 D1): a pod-bay request waits in PodBayRequests; Start comes to the front (when Tess was
+                // over another app) with a signal to look, and only after the reply — this runs on the close.
+                if (app.tileshell.start.podbay.PodBayRequests.pending.value != null) startHome(podBayCheck = true)
+                hide()
+            }
+        }
         Diagnostics.add("cortana", "session created")
     }
 
@@ -208,6 +215,11 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
             // key opened the home page on a tap, so a session with no mode opens on Home too.
             ?: CortanaMode.HOME
         model.open(mode)
+        // Phase 14 (T14-6): the Reminders pod opens Tess on her Reminders page. Validated as the mode is — an enum name
+        // or nothing.
+        args?.getString(CortanaService.EXTRA_DESTINATION)
+            ?.let { runCatching { CortanaDestinationKey.valueOf(it) }.getOrNull() }
+            ?.let { model.goTo(it) }
         // L13-10 (phase 15 Edge cases: "Alarm firing while Tess is listening (the session hides)"): every ring surface —
         // the overlay toast, the locked toast's activity, the heads-up — sits below the voice-interaction window, and
         // nothing outside a session can hide it, so Tess yields to any ring while she is shown, one already ringing when
@@ -264,10 +276,15 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
 
     /** The drawn Windows key: Start comes back and the session goes away. */
     fun goHome() {
-        context.startActivity(
-            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        )
+        startHome(podBayCheck = false)
         hide()
+    }
+
+    /** The HOME intent; with [podBayCheck], phase 14's signal for Start to take a pending pod-bay request. */
+    private fun startHome(podBayCheck: Boolean) {
+        val home = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (podBayCheck) home.putExtra(app.tileshell.StartActivity.EXTRA_POD_BAY_CHECK, true)
+        context.startActivity(home)
     }
 
     fun onDrawnBack() {

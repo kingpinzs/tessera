@@ -64,11 +64,40 @@ data class StartTheme(
     val keyboardPalette: ThemeMode = ThemeMode.DARK,
 )
 
+/**
+ * Phase 14 (Decisions "Settings"): which pods the pod bay shows, one switch each, default all On. The order is fixed
+ * (Agenda, Weather, Now playing, Reminders); a pod switched off is simply absent. Not a theme item: a preset never
+ * writes these and changing one never makes a preset read Custom.
+ */
+enum class PodId(val id: String, val title: String) {
+    AGENDA("agenda", "Agenda"),
+    WEATHER("weather", "Weather"),
+    NOWPLAYING("nowplaying", "Now playing"),
+    REMINDERS("reminders", "Reminders"),
+}
+
+data class PodBaySettings(val enabled: Set<PodId> = PodId.entries.toSet()) {
+    /** The pods shown, in the fixed order. */
+    val shown: List<PodId> get() = PodId.entries.filter { it in enabled }
+}
+
 /** Start + theme settings (phase 01 Settings hub). SharedPreferences-backed, exposed as a StateFlow. */
 class ShellSettings private constructor(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("start_theme", Context.MODE_PRIVATE)
     private val state = MutableStateFlow(read())
     val theme: StateFlow<StartTheme> = state.asStateFlow()
+
+    private val podState = MutableStateFlow(readPods())
+    /** Phase 14: the pod bay's per-pod switches, in the same store under `pod_<id>` keys. */
+    val pods: StateFlow<PodBaySettings> = podState.asStateFlow()
+
+    private fun readPods() = PodBaySettings(PodId.entries.filter { prefs.getBoolean("pod_${it.id}", true) }.toSet())
+
+    fun setPod(pod: PodId, on: Boolean) {
+        prefs.edit().putBoolean("pod_${pod.id}", on).apply()
+        podState.value = PodBaySettings(if (on) podState.value.enabled + pod else podState.value.enabled - pod)
+        Diagnostics.add("settings", "pod ${pod.id} ${if (on) "on" else "off"}")
+    }
 
     private fun read(): StartTheme = readItems().let { t ->
         // A set stored before phase 12 has no theme_preset key: read it as Custom when its items are not Default's, so the
