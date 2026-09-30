@@ -71,6 +71,8 @@ dump_ui "$ROW_DIR/03-after-unlock-button.xml"
 screencap "$ROW_DIR/03-after-unlock-button.png"
 assert_eq "the Unlock button shows the PIN pad" "yes" "$(grep -qE 'resource-id="com.android.systemui:id/(pinEntry|keyguard_pin_view|pin_view)"' "$ROW_DIR/03-after-unlock-button.xml" && echo yes || echo no)"
 assert_eq "Tess has stepped aside for it" "no" "$(has_node "$ROW_DIR/03-after-unlock-button.xml" cortana_session)"
+# The dump shows only the focused window; Tess's own window state is dumpsys window's (fix review r2).
+assert_eq "Tess's window is not showing (dumpsys window)" "no" "$(session_window)"
 adb shell input text $PIN
 adb shell input keyevent KEYCODE_ENTER
 sleep 20
