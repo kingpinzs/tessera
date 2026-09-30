@@ -1,0 +1,87 @@
+==============================================================================
+ROW E3 — pod content from fixtures, present then gone; the launches
+at            2026-09-29T23:09:23-06:00
+driver        e3.sh blob 47895a2feca0dd18996ee44491ad9ae39775e844
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     9fe4669bf602c3e9 338830308 bytes
+apk installed fa7b22a5668fb0a6
+apk match     yes (fa7b22a5668fb0a6)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      device time zone: America/Boise; device time: Tue Sep 29 23:09:25 MDT 2026
+PASS  precondition: exactly one APP_CALENDAR activity             = 1 activities found:
+      the CALENDAR slot's app, listed on the host: com.android.calendar/.AllInOneActivity
+PASS  the qa calendar exists                                      != 
+PASS  precondition: QA overlap one begins today (run before 23:45 local)  = 2026-09-29
+      DAY0=1790640000000 (UTC midnight of 2026-09-29) OV=1790745600000 (11:20 PM) TOM930=1790782200000 (Wed Sep 30 09:30:00 AM MDT 2026)
+PASS  three QA events inserted                                    = 3
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  agenda row 0                                                = All day  QA all day
+PASS  agenda row 1                                                = 11:20 PM  QA overlap one
+PASS  agenda row 2                                                = 9:30 AM  QA tomorrow
+RECORD  agenda row 1 raw text (U+202F shown as \u202f)              11:20 PM  QA overlap one
+PASS  the Tomorrow subheader is there                             = Tomorrow
+PASS  the subheader sits between row 1 and row 2                  = yes
+PASS  exactly three agenda rows                                   = no
+PASS  [podbay] pod agenda: 3 rows                                 contains [[podbay] pod agenda: 3 rows]
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  agenda gone: no row 0                                       = no
+PASS  agenda gone: the empty line                                 = Nothing on your calendar today
+PASS  the qa calendar is gone                                     = 0
+PASS  weather: airplane mode on (ITEM2's route: no fetch replaces the fixture)  = 1
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+      weather rows: Denver|64°  Cloudy|H 72° L 51°  30%|
+PASS  weather rows hold Denver, 64°, Cloudy, H 72° L 51°, 30% in order  Denver|64°  Cloudy|H 72° L 51°  30%|
+PASS  not stale yet: no Updated row                               does not contain [Updated]
+      clock: Wed Sep 30 00:11:13 MDT 2026 (+61 min)
+      stale rows after 10 s: Denver|64°  Cloudy|H 72° L 51°  30%|Updated 11:10|
+PASS  clock + 61 min: the X22 row within 180 s                    contains [Updated 11:10]
+PASS  restore: automatic time on                                  = 1
+PASS  restore: airplane mode off                                  = 0
+      restore: device clock 1790745039 vs host 1790745040
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+PASS  the first fixture (Bloom) is on the songs list              != 
+      scroll_to_node pod:nowplaying: 0 swipe(s), found=yes
+PASS  now playing: the first fixture's title                      = Bloom
+PASS  now playing: its artist                                     = Radiohead
+PASS  control PREVIOUS present                                    = yes
+PASS  control PLAY_PAUSE present                                  = yes
+PASS  control NEXT present                                        = yes
+PASS  PLAY_PAUSE: the session is PAUSED                           contains [PAUSED]
+PASS  [music] control PLAY_PAUSE -> app.tileshell                 contains [[music] control PLAY_PAUSE -> app.tileshell]
+      np-paused.png: the play glyph shown while paused (read by eye; H3)
+PASS  paused: the pod still present                               = yes
+PASS  NEXT: the second fixture's title                            = Codex
+PASS  [music] control NEXT -> app.tileshell                       contains [[music] control NEXT -> app.tileshell]
+PASS  PREVIOUS: the first title again                             = Bloom
+PASS  [music] control PREVIOUS -> app.tileshell                   contains [[music] control PREVIOUS -> app.tileshell]
+PASS  the title tap: the MUSIC slot app resumed                   = app.tileshell/.music.MusicActivity
+PASS  [podbay] launch nowplaying -> ...                           contains [[podbay] launch nowplaying -> app.tileshell/.music.MusicActivity]
+      scroll_to_node pod:nowplaying: 0 swipe(s), found=yes
+FAIL  stopped: Nothing playing                                    expected [Nothing playing] got []
+      stop slice: 
+PASS  precondition: no QA14 reminder before the fixture           = 
+PASS  precondition: the today reminder's time is still today      = 2026-09-29
+RECORD  the doc's utterance "...today list at 11:30 pm" is stored as  check the qa14
+PASS  that reminder deleted again                                 = 
+      scroll_to_node pod:reminders: 0 swipe(s), found=yes
+PASS  reminders row 0                                             = check the qa14 today list
+PASS  reminders row 0 subline                                     = Today at 11:30 PM
+PASS  reminders row 1                                             = check the qa14 tomorrow list
+PASS  reminders row 1 subline                                     = Tomorrow at 9:00 AM
+PASS  reminders row 2                                             = check the QA14 whenever
+PASS  reminders row 2: no subline                                 = no
+PASS  agenda header: the CALENDAR slot's app resumed              = com.android.calendar/.AllInOneActivity
+PASS  [podbay] launch agenda -> com.android.calendar/.AllInOneActivity  contains [[podbay] launch agenda -> com.android.calendar/.AllInOneActivity]
+PASS  weather header: WeatherActivity resumed                     = app.tileshell/.weather.WeatherActivity
+PASS  [podbay] launch weather -> ...                              contains [[podbay] launch weather -> app.tileshell/.weather.WeatherActivity]
+      scroll_to_node pod:reminders: 0 swipe(s), found=yes
+PASS  reminder row: Tess's session is showing                     = yes
+PASS  on her Reminders page                                       = yes
+PASS  [podbay] launch reminders -> ...                            contains [[podbay] launch reminders -> app.tileshell/.cortana.CortanaService (Reminders)]
+PASS  restore: no QA14 reminder left (the store)                  = 
+      scroll_to_node pod:reminders: 0 swipe(s), found=yes
+PASS  reminders gone: the empty line                              = No reminders — ask Tess to remind you
+------------------------------------------------------------------------------
+E3: 53 passed, 1 failed, 2 recorded
