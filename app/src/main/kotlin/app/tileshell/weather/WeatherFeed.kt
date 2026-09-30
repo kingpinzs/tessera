@@ -43,7 +43,16 @@ object WeatherFeed {
 
     enum class Problem { NO_PERMISSION, LOCATION_OFF, NO_LOCATION, NO_NETWORK, PROVIDER_ERROR }
 
-    data class State(val report: WeatherReport? = null, val problems: List<Problem> = emptyList(), val refreshing: Boolean = false)
+    /**
+     * [stale] (phase 14, r3 D6) is the feed's own X22 flag — the value the tile was last published with — so the pod bay's
+     * "Updated h:mm" line flips exactly when the tile's does.
+     */
+    data class State(
+        val report: WeatherReport? = null,
+        val problems: List<Problem> = emptyList(),
+        val refreshing: Boolean = false,
+        val stale: Boolean = false,
+    )
 
     /** Swappable provider (phase 01 Decisions); Open-Meteo is the recorded pick. */
     @Volatile var provider: WeatherProvider = OpenMeteoProvider()
@@ -164,7 +173,7 @@ object WeatherFeed {
             Diagnostics.add("weather", "fetch ok provider=${p.id} ms=${SystemClock.elapsedRealtime() - started} grid=${full.latitude},${full.longitude} " +
                 "tz=${full.timeZoneId} current=${full.current.code}/${full.current.temperature} hourly=${full.hourly.size} daily=${full.daily.size} place=${place != null}")
             saveCache(app, full)
-            mutableState.value = State(report = full, problems = problems, refreshing = false)
+            mutableState.value = State(report = full, problems = problems, refreshing = false, stale = isStale(full))
             publishTile(app, full)
         } finally {
             mutableState.update { it.copy(refreshing = false) }
@@ -217,6 +226,7 @@ object WeatherFeed {
             TileContent(faces, FaceTransition.FLIP, sourceTimeMs = report.fetchedAtMs, sourceTag = "weather:${report.provider}", front = front),
         )
         publishedStale = stale
+        mutableState.update { it.copy(stale = stale) }
         Diagnostics.add("weather", "publish tile faces=${faces.size} temp=${WeatherFormat.degrees(c.temperature)} condition=${c.code} " +
             "sky=${sky.scene}/${if (sky.isDay) "day" else "night"}/${sky.intensity} stale=$stale fetchedAt=${report.fetchedAtMs}")
     }
