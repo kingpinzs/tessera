@@ -4,6 +4,8 @@ import app.tileshell.cortana.reminders.Reminder
 import app.tileshell.cortana.reminders.ReminderKind
 import app.tileshell.feeds.AgendaRules
 import app.tileshell.feeds.CalendarFeed
+import app.tileshell.feeds.MusicRules
+import android.media.session.PlaybackState
 import app.tileshell.feeds.CalendarFeed.AgendaDay.TODAY
 import app.tileshell.feeds.CalendarFeed.AgendaDay.TOMORROW
 import app.tileshell.start.StartPages
@@ -151,6 +153,17 @@ class PodBayRulesTest {
         assertEquals(listOf("today early", "today late", "up1", "up2", "up3", "whenever"), content.rows.map { it.text })
         assertEquals("sub:today early", content.rows.first().subline)
         assertEquals(PodBayRules.Content.Empty("No reminders — ask Tess to remind you", "none"), PodBayRules.reminders(emptyList(), now, endOfToday) { null })
+    }
+
+    @Test
+    fun `now playing shows a session that is playing or paused, never a stopped one`() {
+        listOf(PlaybackState.STATE_PLAYING, PlaybackState.STATE_BUFFERING, PlaybackState.STATE_PAUSED).forEach {
+            assertEquals("state $it", true, MusicRules.podShows(it))
+        }
+        // E3: `cmd media_session dispatch stop` left the shell's session at NONE with its metadata still set.
+        listOf(PlaybackState.STATE_NONE, PlaybackState.STATE_STOPPED, PlaybackState.STATE_ERROR, PlaybackState.STATE_CONNECTING).forEach {
+            assertEquals("state $it", false, MusicRules.podShows(it))
+        }
     }
 
     @Test
