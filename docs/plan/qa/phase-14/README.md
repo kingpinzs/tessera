@@ -130,3 +130,39 @@ cannot hold while phase 01's bar rule hides the bars. probe 4 (guard build): the
 moves nothing; a second one 0.4 s later is Android's Back and Start's Back-history rule resumes DeskClock
 (`[launch] tile=back`). The question to Jeremy: read E12's Back clause as "first swipe reveals the bars, second is
 Back" (Change Log), or keep it as written and leave the Back proof to phone row P2.
+
+## Row status (2026-09-30 00:05) — phase BLOCKED on L14-1
+
+Every row below ran on the APK installed at its run (the pod code changed between some runs — the fixes listed); the
+gate needs every row again on ONE final APK before the reviews.
+
+| row | result | evidence | notes |
+|---|---|---|---|
+| E1 pager | 27/0 | `E1/` (run 1 without the C-3 seed kept) | |
+| E2 bars | 10/0 | `E2/` | |
+| E3 pod content | 55/0, 4 recorded | `E3/` (runs 1-2 kept) | run 1 driver bugs; run 2 found the stopped-session defect (fixed, `MusicRules.podShows`) |
+| E4 denied / empty / launch failures | 39/0 | `E4/` (run 1 kept) | run 1 found the Weather pod stuck on "Location is off" after a grant (fixed: the pod's retry) |
+| E5 Settings | 36/0 | `E5/` (run 1 kept) | |
+| E6 voice | 44/0 | `E6/` (run 1 kept) | speak.sh fixed to catch the final before a closing request unbinds the speech ring; doors RMS −29.88 dBFS, pane 291 ms after `speaking done` |
+| E7 typed | 10/0 | `E7/` | exported components = phase 03's allow-list |
+| E8 locked | 20/4, 1 recorded | `E8/` (runs 1-2 kept) | **BLOCKED — L14-1** (phase 03's unlock hand-off): every clause up to the Unlock button passes |
+| E9 inside another app | not run | | |
+| E10 edit mode | 25/0 | `E10/` (runs 1-2 kept) | run 2 found a hold on a pod launching (fixed: tap-or-hold) |
+| E11 screen-off / lock / death | 15/0 | `E11/` (run 1 kept) | |
+| E12 gesture nav | 10/1, 2 recorded | `E12/` (run 1 kept) | ruling pending (above) |
+| E13 regression | not run | | |
+| E14 backdrop | not run | | |
+| E15 RV10 | not run | | |
+| E16 diagnostics coverage | not run | | |
+| E17 under the wizard | not run | | |
+| JVM | PodBayCommandTest 12/0, PodBayRulesTest 11/0; CommandMatcherTest 27/0, LockGateTest 4/0, MusicRulesTest 18/0 | `app/build/test-results` (not kept in git) | |
+
+## E8 and L14-1 (phase 03's unlock hand-off)
+
+`E8/03-unlock-slice.txt`: `[cortana] card action UNLOCK pending=Locked` → Tess re-speaks "Unlock your phone to
+continue." → 67 ms later `[cortana] unlock bridge: cancelled` → `[cortana] unlock cancelled; the pending request stays
+on the card` → 100 ms later `[cortana] session hidden` (the model's `stop()` drops the pending request). The Unlock button
+shows the AOSP lock screen, not the PIN pad (`E8-run1-pin-on-lockscreen`: the PIN typed there went nowhere; run 2: an
+injected swipe up did not reach it; run 3: `wm dismiss-keyguard` did, and the device unlocked) — and nothing ran after
+the unlock. Phase 03's own E10 records the same clause FAILED. Logged as L14-1 in INDEX's Blocked-on ledger; the fix
+is phase 03's part and is planned with Jeremy.
