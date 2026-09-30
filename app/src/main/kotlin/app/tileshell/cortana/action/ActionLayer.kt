@@ -143,9 +143,11 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
             store.delete(pending.reminderId)
             answer("Deleted.")
         }
+        // L14-1 (Jeremy's Q2 (a)): the card stays and nothing new is said — the line was said when the card appeared, and
+        // a cancelled unlock brings Tess back to this same card with the request still pending.
         is Pending.Locked -> {
             host.requestUnlock()
-            Outcome("Unlock your phone to continue.", null, pending = pending, awaiting = null)
+            Outcome("", unlockCard(pending.request).card, pending = pending, awaiting = null)
         }
         // "add more" and "what do you want to say?" are not confirmable: the next utterance answers them.
         is Pending.AwaitMessage, is Pending.AwaitReminderTime, is AddingTo -> Outcome("", null, pending = pending)
