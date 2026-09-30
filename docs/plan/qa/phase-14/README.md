@@ -56,3 +56,53 @@ RMS saves the volume, sets it with `adb shell cmd audio set-volume 3 15`, and re
 
 Consequence for the doc's fallback clause: the spike passed, so the voice rows (E6, E8, E9, E13's phase 03 re-runs)
 stay spoken on `AUDIO_ROUTE=emu` — no typed-only fallback.
+
+## Build-start checks (`scripts/buildstart_checks.sh`, `BUILDSTART/`) — 7/0, 4 recorded, on the build before phase 14's code
+
+- **Page absence (T14-8):** an off-screen page the pager has composed is absent from the dump — on Start no `app_list`,
+  on the app list no `start_page` (4 assertions). Every "no `pod_bay`" / "no `app_list`" assertion also reads the
+  `[start] page=<name>` line.
+- **The session's HOME intent (Route Decision):** with Tess open over a resumed Start, her drawn Windows key (`goHome()`,
+  the HOME intent) produced `[start] home: page 0, scrolled to top` 29 ms after `[cortana] session hidden` — the intent
+  **reaches `onNewIntent`** while Start is resumed beneath the session (`topResumedActivity` was StartActivity). The
+  focus-back `PodBayCheck` is there either way.
+
+## Build readings (INDEX Change Log 2026-09-29, PHASE 14 BUILD)
+
+- Agenda query from local start of today (the all-day probe: `BUILD-NOTES/cal_probe.sh`, `cal_probe.out`).
+- Agenda row time text is `ReminderText.time` — "9:30 AM" on this 12-hour AVD.
+- E3's all-day fixture uses the UTC midnight of the device's LOCAL date (phase 01's `edge_calendar.sh` DAY0 is the UTC
+  date's midnight — tomorrow, in the evening behind UTC). Its `content insert` titles with spaces need escaping for the
+  device shell (`title:s:QA\ all\ day`); unescaped, the insert fails with a usage error (seen in the probe's first run).
+- `acrylic:pod_bay` sits inside the scroll container so the accessibility tree keeps it with the page's bounds
+  (`BUILD-NOTES/smoke1/podbay2.xml`: `[0,0][1080,2196]`, the same as `pod_bay`).
+
+## Harness (build task 6)
+
+**The three Start helpers** now do the Decision's fix — `KEYCODE_HOME`, then `KEYCODE_BACK` while the dump shows
+`app_list` or `pod_bay`, then assert `start_page` alone (a failure is a FAIL verdict, so it fails the row):
+phase 02's `gestures.sh` `ensure_start` (it bumps the caller's `FAIL` counter), phase 03's `lib.sh` `ensure_start`
+(`_verdict FAIL`), phase 11's `q.sh` `ensure_start_page` (`_verdict FAIL`).
+
+**Re-grep** (`scripts/regrep.py`, every `input swipe` in the qa tree, literal and computed operands; before:
+`BUILD-NOTES/regrep-before.txt` taken after the two helper edits, plus `git show` of the pre-fix files; after:
+`BUILD-NOTES/regrep-after.txt`):
+
+| hit | what it is | action |
+|---|---|---|
+| `phase-02/scripts/gestures.sh:44` (pre-fix) | `ensure_start`'s right swipe to page 0 | replaced by the fix |
+| `phase-11/scripts/q.sh:82` (pre-fix) | `ensure_start_page`'s Back-then-right-swipe | replaced by the fix |
+| `phase-13/scripts/l13_2_row.sh:43` | `pivot_moves_to_start`: app list → Start | still correct (it starts on the app list) |
+| `phase-13/scripts/p13.sh:70` `to_start` (computed) | a right swipe at mid height | every caller runs it after `to_app_list` or from the app list (bs_step, e8-e10, edge, l13_3_race, b1_probe) — app list → Start, still correct; **a call made from Start would now open the pod bay**. Phase 13's rows are not re-run in phase 14 (E13 covers 01 / 02 / 03), so this is flagged for phase 13's next run, not changed |
+| `phase-13/scripts/l13_2_row.sh:88`, `:169` (computed y) | rightward swipes on the app list's scrim / jump grid, asserting the page does NOT move | not a way to reach Start; unchanged |
+| `phase-01/scripts/j2.sh:63` (computed) | a drag on Music's scrubber | not the pager |
+| every other computed hit | a hold (`x y x y <ms>`), a vertical scroll, or a leftward swipe | not a right swipe |
+
+**Greps of Start's home line** (renamed `home: page 0` → `home: page START`, T11-9 / T14-5): `phase-02/scripts/regress.sh:120`
+and `phase-13/L13-3-investigation/back_interrupt.sh:29`, both updated.
+
+**Launches (C-6):** after any launch, `am force-stop app.tileshell` + Home before the next grid assertion (the row
+drivers' `c6`). **`baseline_layout-nomusic.json`** (E4): phase 02's baseline with `slots.MUSIC` removed and
+`slot:music:v1` kept in `addedOnce`; the AVD has three `APP_MUSIC` handlers and no preferred one, so the slot is
+unassigned (`cmd package query-activities … APP_MUSIC`: gramophone, auxio, app.tileshell/.music.MusicActivity).
+The CALENDAR category has exactly one (`com.android.calendar/.AllInOneActivity`), E3's precondition.

@@ -26,4 +26,4 @@ for k in 2 3; do
   echo "  after key $k: app_list x = $(page $k-after)" | tee -a "$OUT/summary.txt"
 done
 ring_since "$MARK" > "$OUT/slice.txt"
-echo "back lines in the ring: $(grep -c 'back on app list\|back on Start' "$OUT/slice.txt") (diagnostic build only); home lines: $(grep -c '\[start\] home: page 0' "$OUT/slice.txt")" | tee -a "$OUT/summary.txt"
+echo "back lines in the ring: $(grep -c 'back on app list\|back on Start' "$OUT/slice.txt") (diagnostic build only); home lines: $(grep -c '\[start\] home: page START' "$OUT/slice.txt")" | tee -a "$OUT/summary.txt"
