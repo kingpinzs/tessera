@@ -1,7 +1,7 @@
 ---
 phase: 14
 slug: pod-bay
-status: DRAFT   # DRAFT → FINAL (only after Stage A step 7; changes after FINAL go through INDEX.md Change Log)
+status: FINAL   # FINAL 2026-09-29 (Jeremy: "A"); was DRAFT → FINAL (only after Stage A step 7; changes after FINAL go through INDEX.md Change Log)
 depends-on: [01, 03, 12, 13]   # 12 for T14-7's wizard gate and E17 (C-23, T14-12); 10 is a soft dependency (T14-4): the Now playing pod works with any media session through phase 01's MusicFeed; only its title tap opens the MUSIC slot app, which is phase 10's Music once built
 ---
 
@@ -263,6 +263,8 @@ own "Glance", a different thing; the name collision is why this pane is the pod 
   Applied: the Acceptance criteria's Audio route and Audio spike paragraphs, C-30 in r3 V16's form, E6 / E8 / E9 as `speak.sh`
   steps, E13's phase 03 re-runs under `AUDIO_ROUTE=emu`, build task 6's `emu_audio.py` and switch, and the hotwords JVM test
   (r3 V2 / D13)
+- 2026-09-29: FINAL (Jeremy: "A") — Stage A step 7, after round 3 (the last) and Q-R3-1 / Q-R3-1a. From here the doc changes
+  only through a dated INDEX.md Change Log entry
 
 ## Interview queue (Stage A step 4)
 1. ~~Real widgets~~ RULED 2026-09-23: B (see Decisions). Original question kept below.
