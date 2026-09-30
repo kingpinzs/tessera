@@ -1,0 +1,30 @@
+==============================================================================
+ROW E12 — gesture navigation: the pan vs the left-edge Back
+at            2026-09-30T12:19:52-06:00
+driver        e12.sh blob 4e3bdaa66f0efea447907a31ce916ce319976fc6
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     9278faa4310149ee 340385008 bytes
+apk installed (not installed)
+apk match     NO (device (not installed), built 9a727ee00a299456)
+device        
+awake         
+==============================================================================
+      overlay: 
+FAIL  the gestural overlay is enabled                             does not contain [[x] com.android.internal.systemui.navbar.gestural]: 
+FAIL  ensure_start: Start alone                                   start_page=no app_list=no pod_bay=no
+FAIL  gestural: a pan from x = 200 opens the pod bay              expected [yes] got [no]
+FAIL  gestural: opened by swipe                                   does not contain [[podbay] opened by swipe]: 
+FAIL  back to Start                                               expected [yes] got [no]
+FAIL  Home from DeskClock: Start alone                            expected [yes] got [no]
+FAIL  before: the system bars are hidden (phase 01's bar rule)    expected [visible=false visible=false] got []
+FAIL  edge swipe 1: the bars are revealed                         expected [visible=true visible=true] got []
+FAIL  edge swipe 1: nothing moved — Start still on top          expected [app.tileshell/.StartActivity] got []
+FAIL  edge swipe 1: the guard took the pan                        does not contain [edge pan from x=]: 
+PASS  no edge swipe opened the pod bay                            does not contain [[podbay] opened]
+PASS  no [start] page=POD_BAY                                     does not contain [[start] page=POD_BAY]
+FAIL  edge swipe 2 (bars showing) is Android's Back: DeskClock resumes  expected [com.android.deskclock/.DeskClock] got []
+FAIL  ... through Start's Back-history rule                       does not contain [tile=back]: 
+      overlay restored: 
+FAIL  restore: the gestural overlay is off                        does not contain [[ ] com.android.internal.systemui.navbar.gestural]: 
+------------------------------------------------------------------------------
+E12: 2 passed, 13 failed, 0 recorded

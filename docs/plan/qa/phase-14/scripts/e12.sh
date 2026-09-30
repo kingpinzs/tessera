@@ -42,27 +42,26 @@ adb shell input keyevent KEYCODE_HOME
 sleep 3
 dump_ui "$ROW_DIR/03-start.xml"
 assert_eq "Home from DeskClock: Start alone" "yes" "$(start_alone "$ROW_DIR/03-start.xml")"
-bars_state() { adb shell dumpsys window | grep -m2 -E 'InsetsSource id=[0-9a-f]* type=(statusBars|navigationBars)' | grep -oE 'visible=[a-z]+' | tr '\n' ' '; }
+bars_state() { adb shell dumpsys window | grep -m2 -E 'InsetsSource id=[0-9a-f]* type=(statusBars|navigationBars)' | grep -oE 'visible=[a-z]+' | tr '\n' ' ' | sed 's/ $//'; }
+# Jeremy's ruling (a), 2026-09-30 (INDEX Change Log): on a bars-hidden shell screen the FIRST edge swipe reveals the
+# bars and moves nothing — never the pod bay — and a second edge swipe while the bars show is Android's Back.
+assert_eq "before: the system bars are hidden (phase 01's bar rule)" "visible=false visible=false" "$(bars_state)"
 MARK="$(ring_mark)"
 adb shell input swipe 2 1200 400 1200 250
-sleep 0.5
-record "bars 0.5 s after the edge swipe (hidden by phase 01's bar rule before it)" "$(bars_state)"
-sleep 2.5
+b1="$(bars_state)"
+t1="$(top_activity)"
+# The second swipe right away, inside the bars' transient window (they hide again after a few seconds: run 2's second
+# swipe, 3 s later, found them hidden and was taken by the guard like the first).
+adb shell input swipe 2 1200 400 1200 250
+sleep 3
 s="$(ring_since "$MARK")"; printf '%s\n' "$s" > "$ROW_DIR/04-slice.txt"
-dump_ui "$ROW_DIR/04-after-edge.xml"
-# The doc's clause, kept as written: on an immersive window Android's first edge swipe reveals the bars instead
-# (BUILD-NOTES/e12-probe) — ruling asked of Jeremy (qa/phase-14/README.md, "E12 and Android's immersive edge").
-assert_eq "the edge swipe is Android's Back: DeskClock resumes" "com.android.deskclock/.DeskClock" "$(top_activity)"
-assert_absent "the edge swipe opened no pod bay" "[podbay] opened" "$s"
+assert_eq "edge swipe 1: the bars are revealed" "visible=true visible=true" "$b1"
+assert_eq "edge swipe 1: nothing moved — Start still on top" "app.tileshell/.StartActivity" "$t1"
+assert_contains "edge swipe 1: the guard took the pan" "edge pan from x=" "$s"
+assert_absent "no edge swipe opened the pod bay" "[podbay] opened" "$s"
 assert_absent "no [start] page=POD_BAY" "[start] page=POD_BAY" "$s"
-assert_eq "no pod_bay in the dump" "no" "$(has_node "$ROW_DIR/04-after-edge.xml" pod_bay)"
-assert_contains "the guard took the pan" "edge pan from x=" "$s"
-if [ "$(top_activity)" = "app.tileshell/.StartActivity" ]; then
-  MARK2="$(ring_mark)"
-  adb shell input swipe 2 1200 400 1200 250
-  sleep 3
-  record "a second edge swipe (bars now showing)" "top=$(top_activity); slice: $(ring_since "$MARK2" | grep -oE '\[(podbay|start)\] [^w]*' | tr '\n' ';' | cut -c1-200)"
-fi
+assert_eq "edge swipe 2 (bars showing) is Android's Back: DeskClock resumes" "com.android.deskclock/.DeskClock" "$(top_activity)"
+assert_contains "... through Start's Back-history rule" "tile=back" "$(printf '%s\n' "$s" | grep -F '[launch]')"
 c6
 
 restore_overlay
