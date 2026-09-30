@@ -52,7 +52,7 @@ object MusicFeed {
     /**
      * Phase 14 (r3 D4): the live session's track, set in [publish] from the controller [send] drives, and null
      * whenever no routed session with metadata exists — unlike the tile, which keeps the last track as idle when the
-     * session dies ([publish]'s `next`).
+     * session dies ([publish]'s `next`) — or when that session is neither playing nor paused ([MusicRules.podShows]).
      */
     val now: StateFlow<NowPlaying?> = nowState.asStateFlow()
 
@@ -184,11 +184,13 @@ object MusicFeed {
         // A session that went away leaves the tile showing what it last showed, idle: "not playing"
         // is a state of this tile, not an absence of it.
         val next = now ?: published?.copy(playing = false)
+        // The pod's track: the live session's, and only while it is playing or paused (MusicRules.podShows).
+        val podNow = now?.takeIf { MusicRules.podShows(controller?.playbackState?.state ?: PlaybackState.STATE_NONE) }
         if (!MusicRules.republish(published, next)) {
             // Nothing the tile draws changed, but the pod follows the LIVE session: a dead session is none, and a
             // session that comes back with the track the tile already shows idle is that track again (its art is the
             // published art, since republish is false only when the track is the published one).
-            publishNow(now, publishedArt)
+            publishNow(podNow, publishedArt)
             return
         }
 
@@ -204,7 +206,7 @@ object MusicFeed {
 
         published = next
         publishedArt = art
-        publishNow(now, art)
+        publishNow(podNow, art)
         val plan = MusicRules.plan(next)
         val pkg = next?.track?.pkg
         // A live controller gives the route; a session that went away keeps the route its face already had.
