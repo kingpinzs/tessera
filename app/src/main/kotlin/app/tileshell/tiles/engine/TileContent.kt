@@ -101,10 +101,13 @@ sealed interface TileFace {
  * skip"). One play/pause control rather than two, because the tile always knows which state it is in and
  * a pair of buttons where one is always dead is not what W10M did with a transport.
  *
+ * PREVIOUS is phase 14's Now playing pod's; the tile's controls ([app.tileshell.feeds.MusicRules.PLAYING_CONTROLS])
+ * never carry it.
+ *
  * The enum lives in the engine, next to the face that carries it: it says WHAT the tile offers. Which
  * media session it is sent to is the feed's business ([app.tileshell.feeds.MusicFeed.send]).
  */
-enum class Transport { PLAY_PAUSE, STOP, NEXT }
+enum class Transport { PLAY_PAUSE, STOP, NEXT, PREVIOUS }
 
 /**
  * Which sky a weather face animates (Jeremy, INDEX Change Log 2026-09-21 item 2: "the main tile should be the

@@ -21,6 +21,9 @@ import app.tileshell.tiles.engine.TileRouting
 import app.tileshell.tiles.engine.TileContent
 import app.tileshell.tiles.engine.TileFace
 import app.tileshell.tiles.engine.Transport
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * The Music tile (X3 approximation, extended by INDEX Change Log 2026-09-21 item 3).
@@ -40,6 +43,18 @@ import app.tileshell.tiles.engine.Transport
  */
 object MusicFeed {
     private val callbacks = HashMap<MediaSession.Token, MediaController.Callback>()
+
+    /** What a live, routed session is playing now, with its art (phase 14's Now playing pod reads it). */
+    data class NowPlaying(val track: MusicRules.Track, val playing: Boolean, val art: ImageBitmap?)
+
+    private val nowState = MutableStateFlow<NowPlaying?>(null)
+
+    /**
+     * Phase 14 (r3 D4): the live session's track, set in [publish] from the controller [send] drives, and null
+     * whenever no routed session with metadata exists — unlike the tile, which keeps the last track as idle when the
+     * session dies ([publish]'s `next`).
+     */
+    val now: StateFlow<NowPlaying?> = nowState.asStateFlow()
 
     /** The session the tile is following, and therefore the one [send] drives. */
     @Volatile private var current: MediaController? = null
@@ -132,6 +147,8 @@ object MusicFeed {
                 Transport.PLAY_PAUSE -> if (playing) controller.transportControls.pause() else controller.transportControls.play()
                 Transport.STOP -> controller.transportControls.stop()
                 Transport.NEXT -> controller.transportControls.skipToNext()
+                // Phase 14: the Now playing pod's previous control; the tile never offers it.
+                Transport.PREVIOUS -> controller.transportControls.skipToPrevious()
             }
         }.onFailure { Diagnostics.add("music", "control $transport failed on ${controller.packageName}: $it") }
         Diagnostics.add("music", "control $transport -> ${controller.packageName} (was ${if (playing) "playing" else "idle"})")
@@ -167,7 +184,13 @@ object MusicFeed {
         // A session that went away leaves the tile showing what it last showed, idle: "not playing"
         // is a state of this tile, not an absence of it.
         val next = now ?: published?.copy(playing = false)
-        if (!MusicRules.republish(published, next)) return
+        if (!MusicRules.republish(published, next)) {
+            // Nothing the tile draws changed, but the pod follows the LIVE session: a dead session is none, and a
+            // session that comes back with the track the tile already shows idle is that track again (its art is the
+            // published art, since republish is false only when the track is the published one).
+            publishNow(now, publishedArt)
+            return
+        }
 
         // Only a new track costs a Binder round trip for the art.
         val art = if (MusicRules.artChanged(published?.track, next?.track)) {
@@ -181,6 +204,7 @@ object MusicFeed {
 
         published = next
         publishedArt = art
+        publishNow(now, art)
         val plan = MusicRules.plan(next)
         val pkg = next?.track?.pkg
         // A live controller gives the route; a session that went away keeps the route its face already had.
@@ -223,7 +247,13 @@ object MusicFeed {
         )
     }
 
+    private fun publishNow(now: MusicRules.Now?, art: ImageBitmap?) {
+        val next = now?.let { NowPlaying(it.track, it.playing, art) }
+        if (nowState.value != next) nowState.value = next
+    }
+
     private fun forget(pkg: String) {
+        if (nowState.value?.track?.pkg == pkg) nowState.value = null
         if (publishedRoute?.growthKey != pkg) return
         // The engine forgot the package on the wipe's thread; a publish of ours that ran on main in between (a session
         // dying mid-uninstall) re-created the slot. Main has the last word on our own slot (the re-judge, R1-1).
@@ -238,6 +268,7 @@ object MusicFeed {
     /** Back to nothing: no tile content, no growth, no remembered track. */
     private fun clear(reason: String) {
         current = null
+        nowState.value = null
         published = null
         publishedArt = null
         publishedRoute?.let {
