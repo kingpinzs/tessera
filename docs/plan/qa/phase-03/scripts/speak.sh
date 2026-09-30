@@ -34,10 +34,11 @@ if [ "$(has_node "$dump" cortana_listening_box)" != yes ]; then
   adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))
 fi
 
-# How many utterances the recogniser had finished BEFORE this one. Without it a driver that produced
-# no recognition at all reads the PREVIOUS utterance's result and records a verdict about something it
-# never said — which is exactly what happened once here ("CALL MA'AM" reported for a text command).
-finals_before="$(speech_dump | grep -cF '[speech] asr: final')"
+# Only a final made AFTER this point counts. Without it a driver that produced no recognition at all reads the
+# PREVIOUS utterance's result and records a verdict about something it never said — which is exactly what happened
+# once here ("CALL MA'AM" reported for a text command). Phase 14: matched by the lines' own wall= stamps against this
+# mark (the device's clock), not by counting lines — a count stands still once the ring is full.
+speak_mark="$(ring_mark)"
 
 # AUDIO_ROUTE=emu (phase 14 Q-R3-1a (a)): the utterance goes in through the emulator's own gRPC injectAudio and the
 # host's audio is never touched. A failed injection is exit 5 with its reason, never a silent "no final".
@@ -51,12 +52,24 @@ if [ "${AUDIO_ROUTE:-}" = emu ]; then
 else
   timeout 40 "$HERE/audio.sh" say "$wav"
 fi
-sleep "$settle"
+# The final is caught DURING the settle (phase 14): a request that closes Tess — an app opened, the pod bay — unbinds
+# the speech service with her, and its ring cannot be dumped any more ("No services match"), so a read after the
+# settle found nothing for exactly those requests (phase 14 E6 run 1). The :speech ring as it stood at that moment is
+# kept in $SPEAK_SPEECH_OUT when a driver names one (phase 14's C-30 check reads it).
+deadline=$(( $(date +%s) + settle ))
+caught=""
+while [ "$(date +%s)" -lt "$deadline" ]; do
+  now_dump="$(ring_since "$speak_mark" speech)"
+  if printf '%s\n' "$now_dump" | grep -qF '[speech] asr: final'; then caught="$now_dump"; break; fi
+  sleep 0.5
+done
+[ -n "${SPEAK_SPEECH_OUT:-}" ] && printf '%s\n' "$caught" > "$SPEAK_SPEECH_OUT"
+remaining=$(( deadline - $(date +%s) ))
+[ "$remaining" -gt 0 ] && sleep "$remaining"
 
-finals_after="$(speech_dump | grep -cF '[speech] asr: final')"
-if [ "$finals_after" -le "$finals_before" ]; then
-  echo "NO NEW FINAL: the recogniser produced nothing for '$utterance' (finals $finals_before -> $finals_after)" >&2
+if [ -z "$caught" ]; then
+  echo "NO NEW FINAL: the recogniser produced nothing for '$utterance' (no asr: final stamped after the mark)" >&2
   exit 4
 fi
 
-speech_dump | grep -F '[speech] asr: final' | tail -1 | sed 's/.*open="/open="/'
+printf '%s\n' "$caught" | grep -F '[speech] asr: final' | tail -1 | sed 's/.*open="/open="/'
