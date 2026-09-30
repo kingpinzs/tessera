@@ -77,6 +77,8 @@ import app.tileshell.ui.tokens.StartGrid
 import app.tileshell.weather.WeatherFeed
 import app.tileshell.weather.WeatherFormat
 import kotlinx.coroutines.delay
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 
 /** Where a pod's tap goes; Start opens it ([app.tileshell.StartActivity]), as the app list's taps are opened there. */
 sealed interface PodTarget {
@@ -163,7 +165,7 @@ fun PodBayPage(onLaunch: (PodId, PodTarget, Rect?) -> Unit) {
                         if (index > 0) Spacer(Modifier.height(PodMetrics.POD_GAP))
                         when (pod) {
                             PodId.AGENDA -> AgendaPod(onLaunch)
-                            PodId.WEATHER -> WeatherPod(onLaunch)
+                            PodId.WEATHER -> WeatherPod(visible, onLaunch)
                             PodId.NOWPLAYING -> NowPlayingPod(artSize, onLaunch)
                             PodId.REMINDERS -> RemindersPod(onLaunch)
                         }
@@ -303,13 +305,19 @@ private fun AgendaPod(onLaunch: (PodId, PodTarget, Rect?) -> Unit) {
 }
 
 @Composable
-private fun WeatherPod(onLaunch: (PodId, PodTarget, Rect?) -> Unit) {
+private fun WeatherPod(visible: Boolean, onLaunch: (PodId, PodTarget, Rect?) -> Unit) {
     val context = LocalContext.current
     val state by WeatherFeed.state.collectAsState()
     // The X22 line follows the feed's own stale flag; the clock text is WeatherFormat's, as on the tile.
     val content = PodBayRules.weather(state, System.currentTimeMillis()) { WeatherFormat.clock(context, it) }
     val open: (Rect?) -> Unit = { onLaunch(PodId.WEATHER, PodTarget.Weather, it) }
     val noLocation = content is PodBayRules.Content.Empty && content.reason == "no location"
+    // The line sends the user to Setup; coming back, the pod must not keep saying "off" until the feed's 30-minute
+    // refresh (E4 run 1: 90 s after the grant it still did). While it shows that line, Start resuming or the page coming
+    // into view asks the feed to look again — the Weather app's own retry, WeatherFeed.onAppResumed().
+    val retry = { if (noLocation) WeatherFeed.onAppResumed() }
+    LaunchedEffect(visible) { if (visible) retry() }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { retry() }
     PodFrame(
         PodId.WEATHER, content, open, { _, r -> open(r) },
         onEmpty = if (noLocation) ({ openSettings(context, SettingsPage.CHECKLIST) }) else ({ open(null) }),
