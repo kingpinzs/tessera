@@ -62,7 +62,13 @@ import app.tileshell.tiles.Slot
 import app.tileshell.tiles.engine.Transport
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.LocalStartTheme
-import app.tileshell.ui.components.PressRow
+import app.tileshell.clock.detectTapOrHold
+import app.tileshell.ui.components.ROW_PRESS_ALPHA
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.ui.input.pointer.pointerInput
 import app.tileshell.ui.fluent.AppListBackdrop
 import app.tileshell.ui.fluent.FluentSurface
 import app.tileshell.ui.tokens.Scale
@@ -168,6 +174,30 @@ fun PodBayPage(onLaunch: (PodId, PodTarget, Rect?) -> Unit) {
     }
 }
 
+/**
+ * A pod's press (Decisions "Edit mode": a hold on a pod does nothing — pods are configured in Settings): a tap opens,
+ * a press held to [app.tileshell.start.Edit.HOLD_MS] (the shell's one hold) is a hold and does nothing, and a press a
+ * scroll takes over is neither — the Clock's [detectTapOrHold]. The press highlight is the list rows' ([ROW_PRESS_ALPHA]).
+ */
+@Composable
+private fun PodPress(onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
+    var pressed by remember { mutableStateOf(false) }
+    Box(
+        modifier
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    pressed = true
+                    waitForUpOrCancellation()
+                    pressed = false
+                }
+            }
+            .pointerInput(onClick) { detectTapOrHold(onTap = onClick, onHold = {}) }
+            .background(if (pressed) Color.White.copy(alpha = ROW_PRESS_ALPHA) else Color.Transparent),
+        content = content,
+    )
+}
+
 private fun openSettings(context: android.content.Context, page: SettingsPage) {
     context.startActivity(Intent(context, SettingsActivity::class.java).putExtra(SettingsActivity.EXTRA_PAGE, page.name))
     Diagnostics.add("podbay", "settings ${page.name} opened")
@@ -192,7 +222,7 @@ private fun boundsOf(c: LayoutCoordinates?): Rect? = c?.boundsInWindow()?.let {
 private fun PodHeader(pod: PodId, onTap: (Rect?) -> Unit) {
     val colors = LocalShellColors.current
     var coords by remember { mutableStateOf<LayoutCoordinates?>(null) }
-    PressRow({ onTap(boundsOf(coords)) }, Modifier.fillMaxWidth().onGloballyPositioned { coords = it }.testTag("pod_header:${pod.id}")) {
+    PodPress({ onTap(boundsOf(coords)) }, Modifier.fillMaxWidth().onGloballyPositioned { coords = it }.testTag("pod_header:${pod.id}")) {
         BasicText(pod.title, style = ShellType.base.copy(color = colors.accent), modifier = Modifier.padding(bottom = PodMetrics.HEADER_BOTTOM))
     }
 }
@@ -204,7 +234,7 @@ private fun PodLine(text: String, tag: String, onTap: (() -> Unit)? = null) {
     val body = @Composable {
         BasicText(text, style = ShellType.body.copy(color = colors.subtleText), modifier = Modifier.testTag(tag))
     }
-    if (onTap != null) PressRow(onTap, Modifier.fillMaxWidth()) { body() } else body()
+    if (onTap != null) PodPress(onTap, Modifier.fillMaxWidth()) { body() } else body()
 }
 
 /** A pod's rows: 15-epx body in the theme foreground, second lines subtle, 12 epx apart, one line each, ellipsised. */
@@ -242,7 +272,7 @@ private fun PodRows(pod: PodId, rows: List<PodRow>, onTap: ((Int, Rect?) -> Unit
                 }
             }
         }
-        if (onTap != null) PressRow({ onTap(n, boundsOf(coords)) }, Modifier.fillMaxWidth()) { content() } else content()
+        if (onTap != null) PodPress({ onTap(n, boundsOf(coords)) }, Modifier.fillMaxWidth()) { content() } else content()
     }
 }
 
@@ -318,7 +348,7 @@ private fun NowPlayingPod(artSize: Dp, onLaunch: (PodId, PodTarget, Rect?) -> Un
             }
             Row(Modifier.padding(top = PodMetrics.ROW_GAP / 2), horizontalArrangement = Arrangement.Start) {
                 listOf(Transport.PREVIOUS, Transport.PLAY_PAUSE, Transport.NEXT).forEach { t ->
-                    PressRow({ MusicFeed.send(t) }, Modifier.size(PodMetrics.CONTROL).testTag("pod_control:${PodId.NOWPLAYING.id}:${t.name}")) {
+                    PodPress({ MusicFeed.send(t) }, Modifier.size(PodMetrics.CONTROL).testTag("pod_control:${PodId.NOWPLAYING.id}:${t.name}")) {
                         Canvas(Modifier.fillMaxSize().padding(PodMetrics.CONTROL * (1f - PodMetrics.CONTROL_GLYPH_FRACTION) / 2)) {
                             drawTransport(t, playing.playing, colors.text)
                         }
