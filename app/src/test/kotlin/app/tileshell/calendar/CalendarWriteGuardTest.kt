@@ -282,11 +282,20 @@ class CalendarWriteGuardTest {
         // no copy" and a new one was allowed — a second copy beside the first.
         val unread = SyncFacts(sourceInTessera = true, mapped = false, targetAllowed = true, mappingTarget = personal.key, copyCalendarId = null, copyReadFailed = true, onExistingRow = false)
         assertEquals(allowed, check(Path.SYNC, Op.INSERT, Table.EVENTS, personal, sync = unread.copy(copyReadFailed = false)))
-        assertEquals(refused(), check(Path.SYNC, Op.INSERT, Table.EVENTS, personal, sync = unread))
+        // Its own refusal: the Sync line reads "failed the copy could not be read", not "refused (not allowed)".
+        assertEquals(refused(Refusal.COPY_UNREADABLE), check(Path.SYNC, Op.INSERT, Table.EVENTS, personal, sync = unread))
+        assertEquals("failed the copy could not be read", Refusal.COPY_UNREADABLE.text)
         // And nothing else is written either, whatever the rest of the facts say.
         for (op in Op.entries) for (table in listOf(Table.EVENTS, Table.REMINDERS)) {
-            assertEquals("$op $table", refused(), check(Path.SYNC, op, table, personal, sync = mappedCopy().copy(copyReadFailed = true)))
+            assertEquals("$op $table", refused(Refusal.COPY_UNREADABLE), check(Path.SYNC, op, table, personal, sync = mappedCopy().copy(copyReadFailed = true)))
         }
+        // The row's calendar is unknown BECAUSE the row could not be read: that is not "the calendar is gone".
+        assertEquals(refused(Refusal.COPY_UNREADABLE), check(Path.SYNC, Op.DELETE, Table.EVENTS, null, sync = mappedCopy().copy(copyReadFailed = true)))
+        assertEquals(refused(Refusal.CALENDAR_GONE), check(Path.SYNC, Op.DELETE, Table.EVENTS, null, sync = mappedCopy()))
+        // It says nothing about what is allowed: a Sync the rule excludes anyway is still "not allowed".
+        assertEquals(refused(), check(Path.SYNC, Op.INSERT, Table.EVENTS, personal, sync = unread.copy(sourceInTessera = false)))
+        assertEquals(refused(), check(Path.SYNC, Op.INSERT, Table.EVENTS, qaLocal, sync = unread))
+        assertEquals(refused(), check(Path.EDITOR, Op.INSERT, Table.EVENTS, personal, sync = unread))
     }
 
     @Test fun aSyncTargetThatIsGoneIsRefused() {

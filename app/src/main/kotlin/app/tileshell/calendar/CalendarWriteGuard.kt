@@ -61,8 +61,9 @@ object CalendarWriteGuard {
      *   allowed list now
      * @param mappingTarget the calendar the mapping names as its target, by its whole key; null when no mapping exists yet
      * @param copyCalendarId the copy's `calendar_id` as re-read from the provider; null when there is no copy row
-     * @param copyReadFailed a mapping exists and its copy row could NOT be read (the query failed): where the copy sits
-     *   is unknown. It is never taken for "there is no copy" — nothing is written, a new copy included
+     * @param copyReadFailed a mapping exists and its copy row — or the row of the copy this write touches — could NOT
+     *   be read (the query failed): where the copy sits is unknown. It is never taken for "there is no copy" —
+     *   nothing is written, a new copy included
      * @param onExistingRow the write names an existing row: the copy or an exception of it (an update, a delete, a
      *   reminder of either), or the master an inserted exception is to hang on. False only for the insert of a new
      *   copy, which names no row at all
@@ -104,6 +105,8 @@ object CalendarWriteGuard {
         READ_ONLY("failed calendar read-only"),
         /** T16-1: the Sync target is no longer on this phone. */
         CALENDAR_GONE("failed calendar gone"),
+        /** F20: a mapping exists and its copy row could not be read — nothing is known of the copy, so nothing is written. */
+        COPY_UNREADABLE("failed the copy could not be read"),
     }
 
     sealed interface Verdict {
@@ -149,7 +152,15 @@ object CalendarWriteGuard {
         // Nobody but the receiver writes the alerts, and no path writes a table this rule does not name.
         if (r.table == Table.CALENDAR_ALERTS || r.table == Table.OTHER) return refused(Refusal.NOT_ALLOWED)
 
-        val calendar = r.calendar ?: return refused(if (r.path == Path.SYNC) Refusal.CALENDAR_GONE else Refusal.NOT_ALLOWED)
+        // No calendar could be read for the row. For Sync that is a target that is gone — unless the row itself could
+        // not be read, in which case nothing is known of its calendar and "gone" would be the wrong thing to say.
+        val calendar = r.calendar ?: return refused(
+            when {
+                r.path != Path.SYNC -> Refusal.NOT_ALLOWED
+                r.sync?.copyReadFailed == true -> Refusal.COPY_UNREADABLE
+                else -> Refusal.CALENDAR_GONE
+            },
+        )
         return when {
             isTessera(calendar) -> tessera(r)
             isBirthdays(calendar) -> birthdays(r)
@@ -195,7 +206,7 @@ object CalendarWriteGuard {
         if (!sync.sourceInTessera) return refused(Refusal.NOT_ALLOWED)
         // A copy row that could not be read may sit anywhere: a failed read is not "no copy" (F20), and a new copy
         // made on the strength of it would be a second one.
-        if (sync.copyReadFailed) return refused(Refusal.NOT_ALLOWED)
+        if (sync.copyReadFailed) return refused(Refusal.COPY_UNREADABLE)
         // Only the first insert of a copy — a new row that names no existing one — may be a write the store does not
         // map. An exception event is an insert too, but it hangs on a row: on the mapped copy, or it is refused.
         val firstInsert = r.op == Op.INSERT && r.table == Table.EVENTS && !sync.mapped && !sync.onExistingRow
