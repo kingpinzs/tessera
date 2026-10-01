@@ -86,6 +86,9 @@ class PeopleNav {
     val page: PeoplePage get() = stack.last()
     val depth: Int get() = stack.size
 
+    /** The page Back would show, or null when the page on show is the last one. */
+    val under: PeoplePage? get() = stack.getOrNull(stack.lastIndex - 1)
+
     var pivot by mutableStateOf(PeoplePivot.CONTACTS)
 
     /** A tap on the other pivot's header: the pager slides to it, then it is [pivot]. */

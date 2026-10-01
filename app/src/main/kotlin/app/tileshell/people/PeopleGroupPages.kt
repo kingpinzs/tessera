@@ -6,6 +6,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
@@ -154,21 +156,29 @@ fun GroupPage(env: PeopleEnv, groupId: Long) {
         if (group == null) return@PeopleScaffold
         Box(Modifier.fillMaxSize().testTag("people_group:$groupId")) {
             CapsHeader(group.title, PeopleMetrics.PIVOT_CAP_TOP, 12.5f, "people_group_title")
-            Column(Modifier.fillMaxSize().padding(top = PeopleMetrics.SEARCH_TOP).verticalScroll(rememberScrollState()).padding(bottom = ClockMetrics.APP_BAR + 72.dp)) {
-                BasicText(
-                    "${GroupRules.membersLine(members.size)} · ${CardRules.accountName(group.account)}",
-                    Modifier.padding(start = PeopleMetrics.SIDE, bottom = 8.dp).testTag("people_group_members"),
-                    style = ShellType.caption.copy(color = colors.subtleText), maxLines = 1,
-                )
-                if (!writable) {
+            LazyColumn(
+                Modifier.fillMaxSize().padding(top = PeopleMetrics.SEARCH_TOP).testTag("people_group_list"),
+                contentPadding = PaddingValues(bottom = ClockMetrics.APP_BAR + 72.dp),
+            ) {
+                item {
                     BasicText(
-                        "This group is in ${CardRules.accountName(group.account)}. To change it, allow that account in Can edit.",
-                        Modifier.padding(start = PeopleMetrics.SIDE, end = PeopleMetrics.SIDE, bottom = 8.dp).testTag("people_group_readonly")
-                            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { nav.push(PeoplePage.CanEdit) },
-                        style = ShellType.body.copy(color = colors.accent),
+                        "${GroupRules.membersLine(members.size)} · ${CardRules.accountName(group.account)}",
+                        Modifier.padding(start = PeopleMetrics.SIDE, bottom = 8.dp).testTag("people_group_members"),
+                        style = ShellType.caption.copy(color = colors.subtleText), maxLines = 1,
                     )
                 }
-                members.forEach { row ->
+                if (!writable) {
+                    item {
+                        BasicText(
+                            "This group is in ${CardRules.accountName(group.account)}. To change it, allow that account in Can edit.",
+                            Modifier.padding(start = PeopleMetrics.SIDE, end = PeopleMetrics.SIDE, bottom = 8.dp).testTag("people_group_readonly")
+                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { nav.push(PeoplePage.CanEdit) },
+                            style = ShellType.body.copy(color = colors.accent),
+                        )
+                    }
+                }
+                items(members.size, key = { members[it].id }) { i ->
+                    val row = members[i]
                     ContactRowView(row, "people_row:${row.lookup}", { nav.push(PeoplePage.Card(row.id, row.lookup)) })
                 }
             }
@@ -303,11 +313,12 @@ fun MemberPickerPage(env: PeopleEnv, groupId: Long) {
     LaunchedEffect(groupId, env.repo.version) {
         if (env.repo.loaded && env.repo.groups.none { it.id == groupId }) nav.pop(PeopleNotices.GROUP_GONE)
     }
-    LeafPage(env, "people_page:member_picker", "Choose members") {
-        if (group == null) return@LeafPage
+    LeafListPage(env, "people_page:member_picker", "Choose members") {
+        if (group == null) return@LeafListPage
         val candidates = env.repo.all.filter { row -> env.repo.memberships[row.id]?.accounts?.contains(group.account) == true }
-        if (candidates.isEmpty()) PageLine("No contact is saved in ${CardRules.accountName(group.account)}.", "people_member_empty")
-        candidates.forEach { row ->
+        if (candidates.isEmpty()) item { PageLine("No contact is saved in ${CardRules.accountName(group.account)}.", "people_member_empty") }
+        items(candidates.size, key = { candidates[it].id }) { i ->
+            val row = candidates[i]
             val isMember = env.repo.memberships[row.id]?.groups?.contains(groupId) == true
             val toggle = {
                 scope.launch {

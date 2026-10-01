@@ -253,7 +253,9 @@ fun EditorPage(env: PeopleEnv, draft: EditorDraft) {
             }
             when {
                 saved == null -> if (!nav.pop()) env.host.finish()
-                nav.depth > 1 && !draft.isNew -> nav.pop()
+                // The editor was opened from this contact's card: back to it. From anywhere else (the list's "+", an
+                // intent, INSERT_OR_EDIT's chooser) the card takes the editor's place.
+                nav.under is PeoplePage.Card -> nav.pop()
                 else -> nav.replace(PeoplePage.Card(saved.id, saved.lookup))
             }
         }
