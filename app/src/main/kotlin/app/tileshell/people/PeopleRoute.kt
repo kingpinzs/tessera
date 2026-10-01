@@ -65,6 +65,7 @@ sealed interface PeopleRoute {
  * Every caller-supplied value is bounded here; anything this does not recognise opens the list, never a crash.
  */
 object PeopleIntents {
+    const val ACTION_MAIN = "android.intent.action.MAIN"
     const val ACTION_VIEW = "android.intent.action.VIEW"
     const val ACTION_EDIT = "android.intent.action.EDIT"
     const val ACTION_INSERT = "android.intent.action.INSERT"
@@ -113,6 +114,38 @@ object PeopleIntents {
     }
 
     private fun open(extras: Extras) = PeopleRoute.Open(PeopleShortcut.byId(extras.string(EXTRA_PAGE)))
+
+    /** The actions PeopleActivity handles: the launcher entry's and its five handlers'. */
+    private val HANDLED_ACTIONS = setOf(ACTION_MAIN, ACTION_VIEW, ACTION_EDIT, ACTION_INSERT, ACTION_INSERT_OR_EDIT, ACTION_PICK)
+
+    const val NO_ACTION = "no action"
+    const val OTHER_ACTION = "other"
+
+    /**
+     * An intent's action as the diagnostics ring may hold it. Any app may send any action string to an exported
+     * activity — a line break and a forged line, a megabyte of text — so the string is written only when it is one of
+     * the six the activity handles; any other is the word `other`, and an intent without one reads `no action`.
+     */
+    fun loggedAction(action: String?): String = when {
+        action == null -> NO_ACTION
+        action in HANDLED_ACTIONS -> action
+        else -> OTHER_ACTION
+    }
+
+    /**
+     * The `[people] open …` line: the action as [loggedAction] gives it and the kind of route — never what the caller
+     * typed into it (a name, a number, a lookup key).
+     */
+    fun openLine(action: String?, route: PeopleRoute): String = "open ${loggedAction(action)} -> ${describe(route)}"
+
+    private fun describe(route: PeopleRoute): String = when (route) {
+        is PeopleRoute.Open -> "open page=${route.page?.id ?: "default"}"
+        is PeopleRoute.Card -> "card"
+        is PeopleRoute.Edit -> "edit"
+        is PeopleRoute.Insert -> "insert (prefilled, unsaved)"
+        is PeopleRoute.InsertOrEdit -> "insert or edit (prefilled, unsaved)"
+        is PeopleRoute.Pick -> "pick ${route.kind.name.lowercase()}"
+    }
 
     /**
      * `contacts/<id>`, `contacts/lookup/<key>` or `contacts/lookup/<key>/<id>`, and nothing else: a fourth segment that

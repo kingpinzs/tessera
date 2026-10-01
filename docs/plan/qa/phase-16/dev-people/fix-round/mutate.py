@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mutation proof for the fix round's parser and intent-rule tests (People's part of F11).
+"""Mutation proof for the fix round's parser and intent-rule tests (People's part of F4 and F11).
 
 Each mutation is applied to the source file alone, one test class is run, the failing tests are read from its XML
 report, and the file is restored. Usage: mutate.py <test class> <id> [<id> ...]   (run from the repo root)."""
@@ -26,6 +26,12 @@ MUTATIONS = {
            'segment.isNotEmpty() && segment.length <= MAX_FIELD'),
     'D2': ('only a literal dot segment refused, not %2E',
            'segment.replace("%2e", ".", ignoreCase = true).any', 'segment.any'),
+    'A1': ('the action logged as the caller wrote it', 'action in HANDLED_ACTIONS -> action', 'action != null -> action'),
+    'A2': ('an action outside the handled six let through (DELETE added to the set)',
+           'setOf(ACTION_MAIN, ACTION_VIEW,', 'setOf("android.intent.action.DELETE", ACTION_MAIN, ACTION_VIEW,'),
+    'A3': ('the open line carries the lookup key the URI named', 'is PeopleRoute.Card -> "card"', 'is PeopleRoute.Card -> "card ${route.contact.encodedLookupKey}"'),
+    'A4': ('the open line carries the name the caller prefilled (the reviewer\'s X6, on People)',
+           'is PeopleRoute.Insert -> "insert (prefilled, unsaved)"', 'is PeopleRoute.Insert -> "insert ${route.prefill.name} (prefilled, unsaved)"'),
 }
 
 def run(cls):
