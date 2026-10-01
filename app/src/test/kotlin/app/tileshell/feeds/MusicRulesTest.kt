@@ -155,20 +155,20 @@ class MusicRulesTest {
     }
 
     @Test
-    fun `the Now playing pod keeps a session that is skipping, seeking or connecting`() {
+    fun `the Now playing pod keeps a session that is skipping or seeking`() {
         // Phase 14 gate review: these are still the session playing; the pod must not drop to "Nothing playing" mid-skip.
         listOf(
             PlaybackState.STATE_PLAYING, PlaybackState.STATE_PAUSED, PlaybackState.STATE_BUFFERING,
             PlaybackState.STATE_SKIPPING_TO_NEXT, PlaybackState.STATE_SKIPPING_TO_PREVIOUS,
             PlaybackState.STATE_SKIPPING_TO_QUEUE_ITEM, PlaybackState.STATE_FAST_FORWARDING,
-            PlaybackState.STATE_REWINDING, PlaybackState.STATE_CONNECTING,
+            PlaybackState.STATE_REWINDING,
         ).forEach { assertTrue("state $it", MusicRules.podShows(it)) }
     }
 
     @Test
-    fun `the Now playing pod drops a session that is stopped, idle or in error`() {
+    fun `the Now playing pod drops a session that is stopped, idle, in error or only connecting`() {
         // E3: `dispatch stop` leaves state NONE with the track's metadata still there.
-        listOf(PlaybackState.STATE_STOPPED, PlaybackState.STATE_NONE, PlaybackState.STATE_ERROR)
+        listOf(PlaybackState.STATE_STOPPED, PlaybackState.STATE_NONE, PlaybackState.STATE_ERROR, PlaybackState.STATE_CONNECTING)
             .forEach { assertFalse("state $it", MusicRules.podShows(it)) }
     }
 }

@@ -142,7 +142,7 @@ class CortanaSession(context: Context) : VoiceInteractionSession(context),
             model.closeRequests.collect {
                 // Phase 14 (r3 D1): a pod-bay request waits in PodBayRequests; Start comes to the front (when Tess was
                 // over another app) with a signal to look, and only after the reply — this runs on the close.
-                if (app.tileshell.start.podbay.PodBayRequests.pending.value != null) startHome(podBayCheck = true)
+                if (app.tileshell.start.podbay.PodBayRequests.hasPending()) startHome(podBayCheck = true)
                 hide()
             }
         }
