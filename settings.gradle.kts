@@ -26,3 +26,5 @@ include(":testapps:tileclient-a", ":testapps:tileclient-b", ":testapps:tileclien
 // Phase 05 QA tooling, never shipped: the IME fixture app (mirrors the focused field's raw text and
 // selection into TextViews) and, in its androidTest, the UiAutomator gesture driver.
 include(":testapps:ime-fixture")
+// Phase 16 QA tooling, never shipped: a permission-less caller for People's ACTION_PICK (the TRUST row's probe).
+include(":testapps:pick-probe")

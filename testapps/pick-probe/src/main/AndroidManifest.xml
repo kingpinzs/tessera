@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- No permission at all: whatever this app can read after a pick, it reads through the pick's grant. -->
+
+    <queries>
+        <package android:name="app.tileshell" />
+    </queries>
+
+    <application
+        android:icon="@android:drawable/sym_def_app_icon"
+        android:label="Pick probe">
+
+        <!-- No LAUNCHER entry: it never shows in the shell's app list. Started by the TRUST row with `am start -n`. -->
+        <activity
+            android:name=".ProbeActivity"
+            android:exported="true" />
+    </application>
+</manifest>

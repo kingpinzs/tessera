@@ -108,8 +108,12 @@ open_people "VIEW lookup" "-> card" -a android.intent.action.VIEW -d content://c
 open_people "EDIT contact" "-> edit" -a android.intent.action.EDIT -d content://com.android.contacts/contacts/1
 open_people "INSERT naming an account" "-> insert (prefilled, unsaved)" -a android.intent.action.INSERT -t vnd.android.cursor.dir/contact --es name Intruder --es account_name qa.work@example.com
 open_people "INSERT_OR_EDIT" "-> insert or edit (prefilled, unsaved)" -a android.intent.action.INSERT_OR_EDIT -t vnd.android.cursor.item/contact --es phone 5550002
-open_people "PICK contact" "-> pick contact" -a android.intent.action.PICK -t vnd.android.cursor.dir/contact
-open_people "PICK phone" "-> pick phone" -a android.intent.action.PICK -t vnd.android.cursor.dir/phone_v2
+# Since the fix round (trust review B-F4 / ledger F5): a PICK is honoured only for a caller that can receive its result,
+# and am start has none — the plain list opens and the shell says so. PICK from a real caller is the TRUST row's.
+PMARK="$(ring_mark)"
+open_people "PICK contact, no caller" "-> open page=default" -a android.intent.action.PICK -t vnd.android.cursor.dir/contact
+open_people "PICK phone, no caller" "-> open page=default" -a android.intent.action.PICK -t vnd.android.cursor.dir/phone_v2
+assert_contains "PICK with no caller: the shell says so" "[people] pick: no caller to return a result to; the list was opened" "$(ring_since "$PMARK")"
 open_people "malformed URI" "-> open page=default" -a android.intent.action.VIEW -d content://com.android.contacts/contacts/abc
 assert_absent "a caller's name never reaches the ring" "Intruder" "$(diag)"
 for probe in "-a android.intent.action.VIEW -d content://com.android.contacts/contacts/1 -t vnd.android.cursor.item/contact" \
