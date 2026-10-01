@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Mutation proof for the fix round's parser and intent-rule tests (People's part of F4, F5 and F11).
+"""Mutation proof for the fix round's parser and intent-rule tests (People's part of F4, F5, F11, F15, F22 and F23).
 
-Each mutation is applied to the source file alone, one test class is run, the failing tests are read from its XML
+Each mutation is applied to its one source file, one test class is run, the failing tests are read from its XML
 report, and the file is restored. Usage: mutate.py <test class> <id> [<id> ...]   (run from the repo root)."""
 import re, subprocess, sys
 
 SRC = 'app/src/main/kotlin/app/tileshell/people/PeopleRoute.kt'
+WRITES = 'app/src/main/kotlin/app/tileshell/people/PeopleWrites.kt'
+GUARD = 'app/src/main/kotlin/app/tileshell/people/PeopleWriteGuard.kt'
 MUTATIONS = {
     'P6': ('authority prefix without its trailing slash',
            'val prefix = "content://$AUTHORITY/"', 'val prefix = "content://$AUTHORITY"'),
@@ -43,6 +45,47 @@ MUTATIONS = {
     'X1c': ('the PICK result grants nothing', 'const val PICK_RESULT_FLAGS = 0x1', 'const val PICK_RESULT_FLAGS = 0x0'),
     'L1': ('the no-caller line says a URI was granted', 'const val PICK_NO_CALLER = "pick: no caller to return a result to; the list was opened"',
            'const val PICK_NO_CALLER = "pick: one contact URI granted (read)"'),
+    # ---- the write layer (F15): the reviewer's PW1-PW4, then the same idea for every other op
+    'PW1': ('update(): the per-raw-contact guard loop removed',
+            '        for (s in steps) if (refused(PeopleWrite.DataRow(s.op, raws.getValue(s.rawId)))) return refusedLine("update", s.rawId.toString())\n', '', WRITES),
+    'PW2': ('delete(): the guard\'s refusal ignored',
+            '        if (verdict is GuardVerdict.Refused) return refusedLine("delete", (verdict.rawId ?: raws.first().id).toString())\n', '', WRITES),
+    'PW3': ('create(): the guard not asked',
+            '        if (refused(PeopleWrite.NewRawContact(account, source))) return refusedLine("insert", "new")\n', '', WRITES),
+    'PW4': ('the write layer\'s `refused` helper always says allowed',
+            'private fun refused(write: PeopleWrite): Boolean = PeopleWriteGuard.check(write, port.policy()) is GuardVerdict.Refused',
+            'private fun refused(write: PeopleWrite): Boolean = false', WRITES),
+    'PW5': ('update(): the photo\'s raw contact not asked about before the fields are written',
+            '        if (photoRaw != null && refused(PeopleWrite.DataRow(WriteOp.UPDATE, raws.getValue(photoRaw)))) return refusedLine("update", photoRaw.toString())\n', '', WRITES),
+    'PW6': ('the photo write and removal no longer ask the guard themselves',
+            '        if (refused(PeopleWrite.DataRow(op, raw))) return refusedLine("update", rawId.toString())\n', '', WRITES),
+    'PW7': ('createGroup(): the guard not asked',
+            '        if (refused(PeopleWrite.GroupRow(WriteOp.INSERT, account))) return groupFailed("create", "new", "refused (not allowed)", refused = true)\n', '', WRITES),
+    'PW8': ('renameGroup(): the guard not asked',
+            '        if (refused(PeopleWrite.GroupRow(WriteOp.UPDATE, group.account))) return groupFailed("rename", groupId.toString(), "refused (not allowed)", refused = true)\n', '', WRITES),
+    'PW9': ('deleteGroup(): the guard not asked',
+            '        if (refused(PeopleWrite.GroupRow(WriteOp.DELETE, group.account))) return groupFailed("delete", groupId.toString(), "refused (not allowed)", refused = true)\n', '', WRITES),
+    'PW9b': ('deleteGroup(): every group removed outright through the sync-adapter URI',
+             'if (port.policy().isPhone(group.account)) uri += "?${ContactsContract.CALLER_IS_SYNCADAPTER}=true"', 'uri += "?${ContactsContract.CALLER_IS_SYNCADAPTER}=true"', WRITES),
+    'PW9c': ('deleteGroup(): no group removed outright (a phone group left marked deleted)',
+             'if (port.policy().isPhone(group.account)) uri += "?${ContactsContract.CALLER_IS_SYNCADAPTER}=true"', '', WRITES),
+    'PW10a': ('setMember(): the group check removed (the data-row check stays)',
+              '        if (refused(PeopleWrite.GroupRow(WriteOp.UPDATE, group.account))) return refusedLine("update", raw.id.toString())\n', '', WRITES),
+    'PW10b': ('setMember(): the data-row check removed (the group check stays)',
+              '        if (refused(PeopleWrite.DataRow(if (member) WriteOp.INSERT else WriteOp.DELETE, raw))) return refusedLine("update", raw.id.toString())\n', '', WRITES),
+    'PW10c': ('setMember(): neither check asked',
+              '        if (refused(PeopleWrite.GroupRow(WriteOp.UPDATE, group.account))) return refusedLine("update", raw.id.toString())\n        if (refused(PeopleWrite.DataRow(if (member) WriteOp.INSERT else WriteOp.DELETE, raw))) return refusedLine("update", raw.id.toString())\n', '', WRITES),
+    'PW12': ('update(): a field\'s raw contact taken from the draft, not from the provider',
+             'val raw = owner[e.dataId] ?: return failedLine("update", e.rawId?.toString() ?: "unknown", "the field is gone")',
+             'val raw = e.rawId ?: owner[e.dataId] ?: return failedLine("update", "unknown", "the field is gone")', WRITES),
+    'PW13': ('importSim(): the first allowed account instead of the phone',
+             'val local = port.policy().local', 'val local = port.policy().allowed.firstOrNull() ?: port.policy().local', WRITES),
+    'PW14': ('create(): WRITE_CONTACTS not checked',
+             '        if (!port.mayWrite()) return failedLine("insert", "new", NOT_HELD, needsGrant = true)\n', '', WRITES),
+    'PW15': ('update(): a data row addressed by its id alone, not with its raw contact',
+             'const val DATA_ROW_OF_RAW = "${Data._ID}=? AND ${Data.RAW_CONTACT_ID}=?"', 'const val DATA_ROW_OF_RAW = "${Data._ID}=?"', WRITES),
+    'PW16': ('delete(): only the first raw contact behind the contact removed',
+             'port.applyBatch(raws.map { RowWrite(WriteOp.DELETE, "$RAW_CONTACTS/${it.id}") })', 'port.applyBatch(raws.take(1).map { RowWrite(WriteOp.DELETE, "$RAW_CONTACTS/${it.id}") })', WRITES),
 }
 
 def run(cls):
@@ -57,16 +100,17 @@ def run(cls):
     return p.returncode, tests, failed
 
 cls, ids = sys.argv[1], sys.argv[2:]
-original = open(SRC, encoding='utf-8').read()
 for i in ids:
-    what, old, new = MUTATIONS[i]
+    what, old, new = MUTATIONS[i][:3]
+    src = MUTATIONS[i][3] if len(MUTATIONS[i]) > 3 else SRC
+    original = open(src, encoding='utf-8').read()
     if original.count(old) < 1:
         print('%s %s | NOT APPLIED (the text to mutate is absent)' % (i, what)); continue
     try:
-        open(SRC, 'w', encoding='utf-8').write(original.replace(old, new))
+        open(src, 'w', encoding='utf-8').write(original.replace(old, new))
         rc, tests, failed = run(cls)
     finally:
-        open(SRC, 'w', encoding='utf-8').write(original)
+        open(src, 'w', encoding='utf-8').write(original)
     print('%s %s | %s (gradle rc=%d, %s tests run, %d failed) | %s' % (i, what, 'CAUGHT' if rc != 0 and failed else 'SURVIVED', rc, tests, len(failed), '; '.join(failed)), flush=True)
 rc, tests, failed = run(cls)
 print('unmutated | gradle rc=%d, %s tests run, %d failed' % (rc, tests, len(failed)))
