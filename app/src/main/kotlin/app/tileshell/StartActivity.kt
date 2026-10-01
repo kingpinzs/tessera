@@ -176,7 +176,11 @@ class StartActivity : ComponentActivity() {
                 // Phase 12: the Windows key and Home do nothing while the wizard shows — Start is behind it, and Home is
                 // where you are (Decisions "Bars"). A pod-bay request is not taken then either: it waits for the wizard
                 // to end (phase 14 T14-7), when onWizardEnded() asks again.
-                if (app.tileshell.onboarding.SetupWizard.showing) return@collect
+                if (app.tileshell.onboarding.SetupWizard.showing) {
+                    // The wizard holds a pending request for as long as it shows; without this it would lapse (gate r1 S2).
+                    if (event is HomeEvent.PodBayCheck) PodBayRequests.waitForWizard()
+                    return@collect
+                }
                 when (event) {
                     is HomeEvent.Home -> home(pager, scroll, event.alreadyInFront)
                     HomeEvent.PodBayCheck -> podBayCheck(pager)

@@ -95,6 +95,9 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
     // ---------------- entry point ----------------
 
     fun run(request: Request): Outcome {
+        // A pod-bay request still pending when anything else is asked is the user's OLD request: left there, the close of
+        // this one would pull Start and the pod bay over its result (gate review r1 S2; owner ruling 2026-09-30).
+        if (request !is Request.OpenPodBay && request !is Request.ClosePodBay) PodBayRequests.dropFor("another request")
         // The gate is here, not in the matcher, so phase 08 inherits it (Decisions "Locked commands").
         if (LockGate.locked(context) && !LockGate.allowedWhileLocked(request)) {
             Diagnostics.add("cortana", "locked: $request gated")
