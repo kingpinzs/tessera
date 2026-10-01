@@ -76,7 +76,8 @@ class PeopleActivity : ComponentActivity() {
 
     private fun route(intent: Intent?) {
         val route = if (intent == null) PeopleRoute.Open(null) else PeopleIntents.route(intent.action, intent.dataString, resolvedType(intent), IntentExtras(intent))
-        Diagnostics.add("people", "open ${intent?.action ?: "no action"} -> ${describe(route)}")
+        // The action is the caller's text: the line holds it only when it is one the activity handles (PeopleIntents.loggedAction).
+        Diagnostics.add("people", PeopleIntents.openLine(intent?.action, route))
         nav.open(route)
     }
 
@@ -101,16 +102,6 @@ class PeopleActivity : ComponentActivity() {
 
     private fun goHome() {
         startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-    }
-
-    /** The route without what the caller typed into it: a name or a number never reaches the diagnostics ring. */
-    private fun describe(route: PeopleRoute): String = when (route) {
-        is PeopleRoute.Open -> "open page=${route.page?.id ?: "default"}"
-        is PeopleRoute.Card -> "card"
-        is PeopleRoute.Edit -> "edit"
-        is PeopleRoute.Insert -> "insert (prefilled, unsaved)"
-        is PeopleRoute.InsertOrEdit -> "insert or edit (prefilled, unsaved)"
-        is PeopleRoute.Pick -> "pick ${route.kind.name.lowercase()}"
     }
 
     /**

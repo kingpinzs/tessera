@@ -171,4 +171,44 @@ class PeopleIntentsTest {
         assertEquals(PeopleRoute.Card(ContactRef(null, 7)), route(PeopleIntents.ACTION_VIEW, "$contacts/contacts/7#a?b"))
         assertEquals(PeopleRoute.Card(ContactRef(null, 7)), route(PeopleIntents.ACTION_VIEW, "$contacts/contacts/7?a=1#top"))
     }
+
+    // ---- The fix round's F4 (trust review B-F3): the caller's action string and the diagnostics ring.
+
+    @Test fun anActionTheActivityHandlesIsLoggedAsWritten() {
+        for (action in listOf(
+            "android.intent.action.MAIN", "android.intent.action.VIEW", "android.intent.action.EDIT",
+            "android.intent.action.INSERT", "android.intent.action.INSERT_OR_EDIT", "android.intent.action.PICK",
+        )) assertEquals(action, PeopleIntents.loggedAction(action))
+        assertEquals("no action", PeopleIntents.loggedAction(null))
+    }
+
+    @Test fun anyOtherActionIsLoggedAsTheWordOther() {
+        for (action in listOf(
+            "x\n[people] forged", "android.intent.action.VIEW\n2026-10-01 12:00:00.000 wall=1 [people] write delete raw=1: ok", "a".repeat(1_000_000),
+            "", " ", "android.intent.action.VIEW ", " android.intent.action.VIEW", "ANDROID.INTENT.ACTION.VIEW", "android.intent.action.DELETE",
+            "android.intent.action.SEND", "android.intent.action.GET_CONTENT", "VIEW", "no action", "other",
+        )) assertEquals(action.take(40), "other", PeopleIntents.loggedAction(action))
+    }
+
+    @Test fun theOpenLineHoldsTheKindOfRouteAndNothingTheCallerTyped() {
+        assertEquals("open android.intent.action.MAIN -> open page=default", PeopleIntents.openLine("android.intent.action.MAIN", PeopleRoute.Open(null)))
+        assertEquals("open no action -> open page=groups", PeopleIntents.openLine(null, PeopleRoute.Open(PeopleShortcut.GROUPS)))
+        assertEquals("open other -> open page=default", PeopleIntents.openLine("x\n[people] forged", PeopleRoute.Open(null)))
+        assertEquals("open android.intent.action.VIEW -> card", PeopleIntents.openLine(PeopleIntents.ACTION_VIEW, PeopleRoute.Card(ContactRef("0r3-2A4C", 7))))
+        assertEquals("open android.intent.action.EDIT -> edit", PeopleIntents.openLine(PeopleIntents.ACTION_EDIT, PeopleRoute.Edit(ContactRef("0r3-2A4C", 7))))
+        val typed = ContactPrefill("Intruder", "5550666", "i@example.com", "Acme", "a note", "1 Main St")
+        assertEquals("open android.intent.action.INSERT -> insert (prefilled, unsaved)", PeopleIntents.openLine(PeopleIntents.ACTION_INSERT, PeopleRoute.Insert(typed)))
+        assertEquals("open android.intent.action.INSERT_OR_EDIT -> insert or edit (prefilled, unsaved)", PeopleIntents.openLine(PeopleIntents.ACTION_INSERT_OR_EDIT, PeopleRoute.InsertOrEdit(typed)))
+        assertEquals("open android.intent.action.PICK -> pick contact", PeopleIntents.openLine(PeopleIntents.ACTION_PICK, PeopleRoute.Pick(PickKind.CONTACT)))
+        assertEquals("open android.intent.action.PICK -> pick phone", PeopleIntents.openLine(PeopleIntents.ACTION_PICK, PeopleRoute.Pick(PickKind.PHONE)))
+        // Whatever the action and the route, the line is one short line.
+        val routes = listOf(
+            PeopleRoute.Open(null), PeopleRoute.Open(PeopleShortcut.NEW_CONTACT), PeopleRoute.Card(ContactRef("k".repeat(500), 7)), PeopleRoute.Edit(ContactRef(null, 7)),
+            PeopleRoute.Insert(ContactPrefill(name = "x".repeat(500), notes = "line\nbreak")), PeopleRoute.InsertOrEdit(typed), PeopleRoute.Pick(PickKind.PHONE),
+        )
+        for (action in listOf(null, "android.intent.action.INSERT_OR_EDIT", "x\n[people] forged", "a".repeat(100_000))) for (route in routes) {
+            val line = PeopleIntents.openLine(action, route)
+            assertEquals(line, false, line.contains('\n') || line.length > 90)
+        }
+    }
 }
