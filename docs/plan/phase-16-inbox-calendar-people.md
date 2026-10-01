@@ -122,6 +122,20 @@ adapter uploads).
 - Alarms & Clock, Calculator, Voice Recorder (15), Photos / Camera / video (17), Files (18), the Settings front (19)
 
 ## Decisions
+- 2026-10-01: Build question Q-16-4 — alerts that were due before the shell's first start are skipped (Jeremy: "a";
+  rejected: B, build r3 D6 (c) as written and see on the phone whether a burst happens; C, skip any alert whose event has
+  already ended). The reminder receiver, as r3 D6 (c) specified it, notifies for every alert that is due and not yet
+  handled by the shell; on a phone that already has a calendar app, its first run after install would notify for every
+  alert of the provider's retention window (about a week) that the other app fired and the user never dismissed. The
+  shell reminds only for alerts that come due AFTER its first start on this install. How it is built (agent; INDEX
+  Change Log 2026-10-01): the shell's store keeps the wall-clock time of its first start (`remindersSince`, written
+  once, when the store is first created — a `pm clear` or a fresh install starts it again; an update keeps it, and the
+  first build that carries the field sets it at its own first start); the receiver's re-read keeps the rows with
+  `alarmTime` ≥ that time and drops the older ones without a notification and without a write, logging once per poke
+  `[calendar] reminder: n skipped (due before the shell's first start)` when n > 0; a stored time later than the
+  device's now (the clock was set back) is lowered to now, so a clock change can never silence reminders for good. A
+  reminder that came due while the phone was off, after the first start, still arrives late (P7 unchanged). The pure
+  rule has a JVM test; E6 gains leg (e).
 - 2026-09-30: Round 3 Q-16-1 — the shell's Calendar and People take their slots once (Jeremy: "(A)", Q-16-1,
   review/2026-09-30-phase16-r3-triage.md; rejected: B, keep the earlier pick with a phone row to re-point; C, a prompt on
   first Start). On the update that brings them, the shell's Calendar and People take the CALENDAR and PEOPLE slots ONCE,
@@ -540,7 +554,9 @@ adapter uploads).
   SCHEDULED or FIRED — another calendar app may have flipped the row to FIRED first, so a SCHEDULED-only read can find
   nothing — less the alert ids in its own notified set (kept in the shell's store, since the receiver may run in a fresh
   process) and less a synced copy's alerts (Q-16-2). It posts one notification per remaining alert, records the id and
-  marks the row FIRED; dismissing the notification marks it DISMISSED. (d) That state update is the write guard's case
+  marks the row FIRED; dismissing the notification marks it DISMISSED. ADDED 2026-10-01 (Q-16-4, Jeremy: "a"): the
+  re-read also drops every row whose `alarmTime` is before the shell's first start on this install — no notification,
+  no write, one `skipped (due before the shell's first start)` line per poke. (d) That state update is the write guard's case
   (4). (e) The notification is `VISIBILITY_PRIVATE`: over a locked screen it shows that a calendar reminder fired, not
   the event's title (H7). Reason: the four gaps r3 D6 found; a forged poke can then do no more than make the receiver
   re-read the provider.
@@ -1039,7 +1055,14 @@ asserted relative to the drawn bar's bottom edge.
   from a MARK, `adb shell am broadcast -a android.intent.action.EVENT_REMINDER -d content://com.android.calendar/1 -n
   app.tileshell/.calendar.CalendarReminderReceiver` with no alert due → no new notification and no `notified` line
   (`absent_in`). **(d) Reboot:** `adb reboot` with a reminder 3 min ahead, the boot poll and `wake_device`
-  asserting `Awake` (C-25) → after boot the provider re-armed it (`dumpsys alarm`) and it notifies at its time. Restore
+  asserting `Awake` (C-25) → after boot the provider re-armed it (`dumpsys alarm`) and it notifies at its time. **(e) Due
+  before the shell's first start (added 2026-10-01, Q-16-4):** with the AOSP Calendar disabled, event A with a 10-minute
+  reminder; Android's Settings in front, `pm clear app.tileshell` (the shell is stopped, its store gone); `jump_clock`
+  past A's T−10 min, so A's alert comes due while no shell runs (its `calendar_alerts` row asserted present, state 0 or
+  1); `provision.sh` → `ensure_start` — the shell's first start is now AFTER A's alert came due; event B with a
+  10-minute reminder, `jump_clock` to 5 s before B's T−10 min, a MARK → within 10 s exactly ONE notification of the
+  shell's, titled B; none titled A; A's alert row's state unchanged from its read before the poke; and the slice holds
+  `[calendar] reminder: 1 skipped (due before the shell's first start)` and one `notified` line, B's. Restore
   (r3 V10): `pm enable com.android.calendar`, the events and their reminders deleted, `clock_restore` (its force-stop also
   removes the shell's notifications — asserted: `dumpsys notification --noredact` then holds none on the calendar channel)
 - E7 Thousands of events: a driver loop inserts 5,000 events across 24 months into the QA calendar (run time `record`ed),
