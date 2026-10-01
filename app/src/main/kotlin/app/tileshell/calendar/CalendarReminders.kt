@@ -16,6 +16,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** Which due alerts the receiver notifies and which it skips — pure, so the JVM test pins r3 D6 (c), Q-16-2 and Q-16-4. */
 object ReminderRules {
@@ -87,6 +88,44 @@ object ReminderRules {
      */
     fun recorded(actions: List<Action>, done: (Action) -> Boolean): Set<String> =
         actions.filter(done).mapTo(LinkedHashSet()) { it.row.key }
+
+    /**
+     * One piece of the receivers' work, run so that nothing it throws leaves the worker thread (fix round F9): an
+     * uncaught Throwable there would end the launcher's process, and a broadcast taken with `goAsync` and never
+     * finished is an ANR. Whatever [task] throws is caught and said in one line through [log]; [finish] always runs,
+     * once; and neither a failing [log] nor a failing [finish] escapes either.
+     */
+    fun contained(what: String, log: (String) -> Unit, finish: () -> Unit, task: () -> Unit) {
+        try {
+            task()
+        } catch (t: Throwable) {
+            try {
+                log("$what failed: ${t.toString().replace('\n', ' ').take(160)}")
+            } catch (_: Throwable) {
+            }
+        } finally {
+            try {
+                finish()
+            } catch (_: Throwable) {
+            }
+        }
+    }
+}
+
+/**
+ * At most one poke waits (fix round F9). `EVENT_REMINDER` can arrive in a burst — any app can send it — and each one
+ * used to queue a whole read of the provider. A poke that is queued and has not started reads the provider LATER than
+ * every broadcast that arrives meanwhile, so those broadcasts are dropped without loss. Once the queued poke starts its
+ * read, the next broadcast queues one more: its alert may have come due after that read's "now".
+ */
+class PokeGate {
+    private val queued = AtomicBoolean(false)
+
+    /** True: queue a poke. False: one is already waiting, and this broadcast is dropped. */
+    fun offer(): Boolean = queued.compareAndSet(false, true)
+
+    /** The queued poke starts (or could not be queued at all): the next broadcast queues another. */
+    fun started() = queued.set(false)
 }
 
 /**
@@ -100,15 +139,15 @@ object ReminderRules {
  */
 class CalendarReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        // A poke is already waiting: its read will see whatever this broadcast announces. Nothing is queued, nothing
+        // is logged — a burst of forged pokes costs one read, not one read each (fix round F9).
+        if (!CalendarReminders.pokes.offer()) return
         val app = context.applicationContext
-        val pending = goAsync()
-        CalendarReminders.worker.execute {
-            try {
-                CalendarReminders.poke(app)
-            } finally {
-                pending.finish()
-            }
+        val queued = CalendarReminders.runAsync(goAsync(), "reminder poke") {
+            CalendarReminders.pokes.started()
+            CalendarReminders.poke(app)
         }
+        if (!queued) CalendarReminders.pokes.started()
     }
 }
 
@@ -130,14 +169,7 @@ class CalendarReminderDismissReceiver : BroadcastReceiver() {
         )
         val minutes = intent.getIntExtra(CalendarReminders.EXTRA_MINUTES, 0)
         val app = context.applicationContext
-        val pending = goAsync()
-        CalendarReminders.worker.execute {
-            try {
-                CalendarReminders.dismissed(app, alert, minutes)
-            } finally {
-                pending.finish()
-            }
-        }
+        CalendarReminders.runAsync(goAsync(), "reminder dismiss") { CalendarReminders.dismissed(app, alert, minutes) }
     }
 }
 
@@ -152,14 +184,7 @@ class CalendarClockReceiver : BroadcastReceiver() {
         if (intent.action != Intent.ACTION_TIME_CHANGED) return
         val app = context.applicationContext
         val now = System.currentTimeMillis()
-        val pending = goAsync()
-        CalendarReminders.worker.execute {
-            try {
-                CalendarReminders.clockChanged(app, now)
-            } finally {
-                pending.finish()
-            }
-        }
+        CalendarReminders.runAsync(goAsync(), "reminder clock change") { CalendarReminders.clockChanged(app, now) }
     }
 }
 
@@ -175,6 +200,26 @@ object CalendarReminders {
 
     /** One thread: two broadcasts for one alert are read one after the other, so the second finds the first's record. */
     val worker = Executors.newSingleThreadExecutor()
+
+    /** The reminder receiver's queue of pokes: never more than one waiting. */
+    val pokes = PokeGate()
+
+    /**
+     * Queues a receiver's [task] on the worker, as [ReminderRules.contained] runs it: a failure is one ring line, never
+     * the end of the process, and [pending] (the broadcast taken with `goAsync`) is finished whatever happens. False
+     * when the task could not be queued at all; the broadcast is finished then too.
+     */
+    fun runAsync(pending: BroadcastReceiver.PendingResult?, what: String, task: () -> Unit): Boolean {
+        val log: (String) -> Unit = { Diagnostics.add("calendar", it) }
+        val finish: () -> Unit = { pending?.finish() }
+        return try {
+            worker.execute { ReminderRules.contained(what, log, finish, task) }
+            true
+        } catch (t: Throwable) {
+            ReminderRules.contained(what, log, finish) { throw t }
+            false
+        }
+    }
 
     /**
      * The shell's first start on this install (Q-16-4): called from the launcher's process start, where the feeds

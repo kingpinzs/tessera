@@ -470,6 +470,80 @@ class CalendarRulesTest {
         assertEquals(setOf("x"), SyncStateRules.keepNotified(SyncState(), live = setOf("x", "y"), added = setOf("x")).notifiedAlerts)
     }
 
+    // ---------------------------------------------------------------- fix round F9: one waiting poke, and a worker nothing kills
+
+    @Test fun aPokeIsDroppedWhileOneIsAlreadyQueued() {
+        val gate = PokeGate()
+        assertTrue(gate.offer())    // the first broadcast queues a poke
+        assertFalse(gate.offer())   // a second while it waits is dropped
+        assertFalse(gate.offer())
+        gate.started()              // the queued poke starts its read
+        assertTrue(gate.offer())    // a broadcast after that read began queues one more — and only one
+        assertFalse(gate.offer())
+    }
+
+    @Test fun aBurstOfAThousandPokesQueuesOne() {
+        val gate = PokeGate()
+        assertEquals(1, (1..1000).count { gate.offer() })
+        // While that one runs, the rest of the burst queues one more, however long it is.
+        gate.started()
+        assertEquals(1, (1..1000).count { gate.offer() })
+    }
+
+    @Test fun aFailureInOnePokeIsCaughtSaidInOneLineAndItsBroadcastIsFinished() {
+        for (failure in listOf(IllegalStateException("the provider is gone"), SecurityException("denied"), OutOfMemoryError("big"), StackOverflowError(), AssertionError("no"))) {
+            val lines = ArrayList<String>()
+            var finished = 0
+            ReminderRules.contained("reminder poke", { lines += it }, { finished++ }) { throw failure }
+            assertEquals(1, finished)
+            assertEquals(1, lines.size)
+            assertTrue(lines[0], lines[0].startsWith("reminder poke failed: ${failure.javaClass.name}"))
+        }
+        // The line is one line, and bounded.
+        val lines = ArrayList<String>()
+        ReminderRules.contained("reminder poke", { lines += it }, {}) { throw IllegalStateException("a\nb" + "x".repeat(5000)) }
+        assertFalse(lines[0].contains('\n'))
+        assertTrue(lines[0].length <= "reminder poke failed: ".length + 160)
+        // Work that does not fail: finished once, nothing said.
+        var finished = 0
+        var ran = 0
+        ReminderRules.contained("reminder poke", { lines += it }, { finished++ }) { ran++ }
+        assertEquals(listOf(1, 1, 1), listOf(ran, finished, lines.size))
+        // A ring that fails, or a broadcast that cannot be finished: nothing escapes, and the finish is still tried.
+        ReminderRules.contained("reminder poke", { throw IllegalStateException("ring") }, { finished++ }) { throw IllegalStateException("task") }
+        assertEquals(2, finished)
+        ReminderRules.contained("reminder poke", { lines += it }, { throw IllegalStateException("Broadcast already finished") }) { ran++ }
+        assertEquals(2, ran)
+    }
+
+    @Test fun aPokeThatFailsLeavesTheGateOpenAndTheWorkerThreadAlive() {
+        val gate = PokeGate()
+        val worker = java.util.concurrent.Executors.newSingleThreadExecutor()
+        try {
+            val threads = java.util.concurrent.CopyOnWriteArrayList<Thread>()
+            val done = java.util.concurrent.CountDownLatch(2)
+            repeat(2) { n ->
+                assertTrue(gate.offer())
+                worker.execute {
+                    ReminderRules.contained("reminder poke", {}, { done.countDown() }) {
+                        gate.started()
+                        threads += Thread.currentThread()
+                        if (n == 0) throw OutOfMemoryError("the first poke fails")
+                    }
+                }
+                // The next broadcast arrives once this poke has started.
+                while (threads.size <= n) Thread.sleep(1)
+            }
+            assertTrue(done.await(10, java.util.concurrent.TimeUnit.SECONDS))
+            // The poke after the failed one ran on the same thread: the failure did not end it.
+            assertEquals(2, threads.size)
+            assertTrue(threads[0] === threads[1])
+            assertTrue(gate.offer())
+        } finally {
+            worker.shutdownNow()
+        }
+    }
+
     // ---------------------------------------------------------------- fix round F3: which row a state write may touch
 
     @Test fun aStateWriteNamesTheAlertByItsRowItsEventItsOccurrenceAndItsAlarmTime() {
