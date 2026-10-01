@@ -256,7 +256,11 @@ object CalendarWrites {
         return logged(path, Op.UPDATE, eventId.toString(), updateColumns(context, path, eventId, columns))
     }
 
+    /** A row that is no longer there cannot be written: said as a failure, before the guard is asked about a calendar nobody can read. */
+    private const val GONE = "the event is gone"
+
     private fun updateColumns(context: Context, path: Path, eventId: Long, columns: ContentValues): WriteResult<Unit> {
+        if (eventRow(context, eventId) == null) return WriteResult.Failed(GONE)
         val request = Request(path, Op.UPDATE, Table.EVENTS, eventCalendar(context, eventId), columns.keySet())
         return guarded(request) {
             val rows = context.contentResolver.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), columns, null, null)
@@ -273,9 +277,9 @@ object CalendarWrites {
      * only marks it deleted, and nobody but the shell would ever come to clear it (qa/phase-16/dev-cal/P_EXCEPTION2).
      */
     fun deleteEvent(context: Context, path: Path, eventId: Long): WriteResult<Unit> {
-        val row = eventRow(context, eventId)
-        val calendar = facts(context, row?.first)
-        if (row?.second != null) {
+        val row = eventRow(context, eventId) ?: return logged(path, Op.DELETE, eventId.toString(), WriteResult.Failed(GONE))
+        val calendar = facts(context, row.first)
+        if (row.second != null) {
             val columns = ContentValues().apply { put(CalendarContract.Events.STATUS, CalendarContract.Events.STATUS_CANCELED) }
             return logged(path, Op.DELETE, eventId.toString(), guarded(Request(path, Op.DELETE, Table.EVENTS, calendar)) {
                 val rows = context.contentResolver.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), columns, null, null)
@@ -327,6 +331,7 @@ object CalendarWrites {
      * and applies [values]. [reminderMinutes] null keeps the reminders the provider copies from the master.
      */
     fun insertException(context: Context, path: Path, masterId: Long, originalInstanceTime: Long, values: ExceptionValues, reminderMinutes: List<Int>?): WriteResult<Long> {
+        if (eventRow(context, masterId) == null) return logged(path, Op.INSERT, "new", WriteResult.Failed(GONE))
         val keyed = ensureSyncId(context, path, masterId)
         if (keyed !is WriteResult.Ok) return logged(path, Op.INSERT, "new", keyed.retype())
         val result = guarded(Request(path, Op.INSERT, Table.EVENTS, eventCalendar(context, masterId))) { exception(context, masterId, originalInstanceTime, values) }
