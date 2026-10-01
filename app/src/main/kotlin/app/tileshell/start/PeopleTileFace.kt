@@ -78,6 +78,10 @@ object PeopleTileClock {
     var incoming by mutableFloatStateOf(0f)
         private set
 
+    /** True from an event's first frame to its last: between its two slides the tile rightly holds no bubble. */
+    var inEvent by mutableStateOf(false)
+        private set
+
     private val driver = Mutex()
     private var events = 0
     private var lastEventUptime: Long? = null
@@ -93,10 +97,12 @@ object PeopleTileClock {
     suspend fun drive() = driver.withLock {
         try {
             while (true) {
-                // Nothing to show: the faces draw the static pattern until a photo arrives.
+                // Every photo removed (mid-event too: the event has finished by here): the static pattern, until one arrives.
+                if (photos.isEmpty()) settled = null
                 val list = snapshotFlow { photos }.first { it.isNotEmpty() }
+                // The bubble a face shows before the clock runs is the first photo; the clock starts from the same one.
                 // A bubble whose photo has since been removed finishes its turn: the next event brings in another.
-                if (settled == null) settled = list[PeopleTileRules.next(-1, list.size) { Random.nextInt(it) }]
+                if (settled == null) settled = list.first()
                 val wait = PeopleTileRules.waitMs(SystemClock.uptimeMillis(), lastEventUptime)
                 // Every photo removed while a bubble rests: the static pattern, at once.
                 val emptied = withTimeoutOrNull(wait) { snapshotFlow { photos }.first { it.isEmpty() } }
@@ -109,6 +115,7 @@ object PeopleTileClock {
         } finally {
             // A driver that leaves mid-event leaves a whole bubble behind, not half a slide.
             if (arriving != null) settled = arriving else if (settled == null && leaving != null) settled = leaving
+            inEvent = false
             leaving = null
             arriving = null
             out = 0f
@@ -125,6 +132,7 @@ object PeopleTileClock {
         events++
         Diagnostics.add("people", "tile event $events t0=$t0 lookup=${next.lookup}")
 
+        inEvent = true
         leaving = settled
         settled = null
         out = 0f
@@ -140,6 +148,7 @@ object PeopleTileClock {
         settled = next
         arriving = null
         incoming = 0f
+        inEvent = false
     }
 }
 
@@ -187,10 +196,11 @@ internal fun PeopleTileFace(face: TileFace.People, model: TileModel, widthDp: Dp
         Modifier.fillMaxSize().testTag("people_tile_face")
             .onGloballyPositioned { onScreen = !it.boundsInWindow().isEmpty },
     ) {
-        val settled = PeopleTileClock.settled
         val leaving = PeopleTileClock.leaving
         val arriving = PeopleTileClock.arriving
-        if (settled == null && leaving == null && arriving == null && PeopleTileClock.photos.isEmpty()) {
+        // At rest the bubble is the clock's; before the clock has run (the first frame, a tile off screen) the first photo.
+        val settled = PeopleTileClock.settled ?: face.photos.firstOrNull().takeIf { !PeopleTileClock.inEvent }
+        if (settled == null && leaving == null && arriving == null && face.photos.isEmpty()) {
             CirclePattern(Modifier.fillMaxSize().testTag("people_tile_pattern"))
             return@Box
         }

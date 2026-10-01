@@ -5,11 +5,14 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
@@ -56,6 +59,28 @@ fun LeafPage(
             Modifier.fillMaxSize().padding(top = PeopleMetrics.SEARCH_TOP).verticalScroll(rememberScrollState())
                 .padding(bottom = ClockMetrics.APP_BAR + 72.dp),
         ) { content() }
+    }
+}
+
+/**
+ * A leaf page whose content is a list that can be long (every contact, a group's members): only the rows on screen
+ * are composed.
+ */
+@Composable
+fun LeafListPage(
+    env: PeopleEnv,
+    tag: String,
+    title: String,
+    bar: (@Composable BoxScope.() -> Unit)? = null,
+    content: LazyListScope.() -> Unit,
+) {
+    PeopleScaffold(tag, env.host, env.nav.notice, env.onNoticeAction, bar = bar) {
+        CapsHeader(title, PeopleMetrics.PIVOT_CAP_TOP, 12.5f, "people_page_title")
+        LazyColumn(
+            Modifier.fillMaxSize().padding(top = PeopleMetrics.SEARCH_TOP).testTag("people_page_list"),
+            contentPadding = PaddingValues(bottom = ClockMetrics.APP_BAR + 72.dp),
+            content = content,
+        )
     }
 }
 

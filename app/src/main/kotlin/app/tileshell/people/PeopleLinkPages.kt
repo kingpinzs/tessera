@@ -104,9 +104,10 @@ fun LinkPickerPage(env: PeopleEnv, page: PeoplePage.LinkPicker) {
     val context = LocalContext.current
     val nav = env.nav
     val scope = rememberCoroutineScope()
-    LeafPage(env, "people_page:link_picker", "Select a contact to link") {
-        if (page.snapshot.isEmpty()) PageLine("There is no other contact to link.", "people_link_empty")
-        page.snapshot.forEach { row ->
+    LeafListPage(env, "people_page:link_picker", "Select a contact to link") {
+        if (page.snapshot.isEmpty()) item { PageLine("There is no other contact to link.", "people_link_empty") }
+        items(page.snapshot.size, key = { page.snapshot[it].id }) { i ->
+            val row = page.snapshot[i]
             ContactRowView(row, "people_row:${row.lookup}", {
                 scope.launch {
                     val result = withContext(Dispatchers.IO) { PeopleWriter.link(context, page.contactId, row.id) }
