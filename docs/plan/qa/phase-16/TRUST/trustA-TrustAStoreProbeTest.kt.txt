@@ -1,0 +1,168 @@
+package app.tileshell.trustA
+
+import android.content.Context
+import android.content.ContextWrapper
+import app.tileshell.calendar.CalendarKey
+import app.tileshell.calendar.CalendarSyncStore
+import app.tileshell.calendar.SyncMapping
+import app.tileshell.calendar.SyncStateRules
+import app.tileshell.people.ContactAccount
+import app.tileshell.people.PeopleEditStore
+import org.junit.Test
+import java.io.File
+
+/**
+ * Reviewer A's scratch probe (never committed): runs the PRODUCT stores against files in a temp dir and prints what
+ * they yield. JSON is JSON-java 20241224 on the test classpath (the Android org.json is not on a JVM), so string
+ * coercion details may differ from the phone; the control flow (fallbacks, followFile, save failure) is the product's.
+ */
+class TrustAStoreProbeTest {
+    private class FakeContext(private val dir: File) : ContextWrapper(null) {
+        override fun getFilesDir(): File = dir
+        override fun getApplicationContext(): Context = this
+    }
+
+    private val out = StringBuilder()
+    private fun say(s: String) { out.append(s).append('\n') }
+
+    private fun resetCalendar() {
+        val f = CalendarSyncStore::class.java.getDeclaredField("instance")
+        f.isAccessible = true
+        f.set(null, null)
+    }
+
+    private fun resetPeople() {
+        val f = PeopleEditStore::class.java.getDeclaredField("instance")
+        f.isAccessible = true
+        f.set(null, null)
+    }
+
+    private val good = """{"version":1,"allowed":[{"id":5,"accountName":"me@example.com","accountType":"com.google"}],""" +
+        """"mappings":[{"id":5,"accountName":"me@example.com","accountType":"com.google","local":10,"copy":77}],"hidden":[],"notifiedAlerts":["10:1:2"]}"""
+
+    private fun calCase(name: String, dir: File, content: String?) {
+        val file = File(dir, CalendarSyncStore.FILE)
+        if (content == null) file.delete() else file.writeText(content)
+        resetCalendar()
+        val state = CalendarSyncStore.get(FakeContext(dir)).current
+        say("CAL $name -> allowed=${state.allowed} mappings=${state.mappings.values.toList()} notified=${state.notifiedAlerts}")
+    }
+
+    @Test fun calendarSyncJson() {
+        val dir = File(System.getProperty("java.io.tmpdir"), "trustA-cal-${System.nanoTime()}").apply { mkdirs() }
+        calCase("missing", dir, null)
+        calCase("sanity-valid", dir, good)
+        calCase("truncated-half", dir, good.substring(0, good.length / 2))
+        calCase("truncated-last-brace", dir, good.dropLast(1))
+        calCase("empty-file", dir, "")
+        calCase("garbage", dir, "\u0000\u0001not json at all")
+        calCase("top-level-array", dir, "[]")
+        calCase("allowed-not-an-array", dir, good.replace("""[{"id":5,"accountName":"me@example.com","accountType":"com.google"}],"mappings"""", """"yes","mappings""""))
+        calCase("allowed-entry-missing-accountType", dir, good.replace(""","accountType":"com.google"}],"mappings"""", """}],"mappings""""))
+        calCase("allowed-entry-id-as-string", dir, good.replace("""[{"id":5,""", """[{"id":"5","""))
+        calCase("allowed-entry-is-a-number", dir, good.replace("""[{"id":5,"accountName":"me@example.com","accountType":"com.google"}],"mappings"""", """[5],"mappings""""))
+        calCase("hand-edited-adds-work", dir, good.replace(""""allowed":[""", """"allowed":[{"id":6,"accountName":"work@example.com","accountType":"com.google"},"""))
+        calCase("mapping-entry-missing-copy", dir, good.replace(""","copy":77""", ""))
+
+        // A corrupt file, then any update (the receiver's keepNotified, a prune): what is on disk afterwards?
+        val file = File(dir, CalendarSyncStore.FILE)
+        file.writeText(good.dropLast(1))
+        resetCalendar()
+        val store = CalendarSyncStore.get(FakeContext(dir))
+        say("CAL corrupt-then-update: before=${store.current.mappings.size} mappings, file bytes=${file.length()}")
+        store.update { SyncStateRules.keepNotified(it, emptySet(), setOf("1:2:3")) }
+        say("CAL corrupt-then-update: file now=${file.readText()}")
+
+        // The file removed under a running store.
+        file.writeText(good)
+        resetCalendar()
+        val running = CalendarSyncStore.get(FakeContext(dir))
+        say("CAL running: allowed=${running.current.allowed}")
+        file.delete()
+        say("CAL running, file deleted: allowed=${running.current.allowed}")
+
+        // The file replaced under a running store by one of the same length within the same timestamp.
+        file.writeText(good)
+        val stamp = file.lastModified()
+        resetCalendar()
+        val same = CalendarSyncStore.get(FakeContext(dir))
+        say("CAL same-stamp: allowed before=${same.current.allowed}")
+        file.writeText(good.replace("me@example.com", "xx@example.com"))
+        file.setLastModified(stamp)
+        say("CAL same-stamp: file says xx@, store says allowed=${same.current.allowed}")
+
+        // An un-tick whose save fails (the dir is not writable): memory against disk, then a process restart.
+        file.writeText(good)
+        resetCalendar()
+        val s2 = CalendarSyncStore.get(FakeContext(dir))
+        val key = CalendarKey(5, "me@example.com", "com.google")
+        say("CAL untick-save-fails: allowed before=${s2.current.allowed}")
+        dir.setWritable(false)
+        val after = s2.update { SyncStateRules.setAllowed(it, key, false) }
+        dir.setWritable(true)
+        say("CAL untick-save-fails: update returned allowed=${after.allowed}; store.current.allowed=${s2.current.allowed}; file=${file.readText().take(90)}")
+        resetCalendar()
+        say("CAL untick-save-fails: after a restart allowed=${CalendarSyncStore.get(FakeContext(dir)).current.allowed}")
+
+        // A tick whose save fails.
+        file.delete()
+        resetCalendar()
+        val s3 = CalendarSyncStore.get(FakeContext(dir))
+        dir.setWritable(false)
+        s3.update { SyncStateRules.setAllowed(it, key, true) }
+        dir.setWritable(true)
+        say("CAL tick-save-fails: store.current.allowed=${s3.current.allowed}; file exists=${file.exists()}")
+
+        // A mapping kept across a target that is gone, and its id-only compare.
+        say("CAL map: ${SyncStateRules.map(s3.current, SyncMapping(10, key, 77)).mappings}")
+        File("/tmp/claude-1000/-home-jeremyking/94273004-6013-4029-a961-ffb26e4dcb1f/scratchpad/trustA-store-probe-cal.out").writeText(out.toString())
+    }
+
+    private fun peopleCase(name: String, dir: File, content: String?) {
+        val file = File(dir, PeopleEditStore.FILE)
+        if (content == null) file.delete() else file.writeText(content)
+        resetPeople()
+        say("PEOPLE $name -> allowed=${PeopleEditStore.get(FakeContext(dir)).allowed.value}")
+    }
+
+    @Test fun peopleEditJson() {
+        val dir = File(System.getProperty("java.io.tmpdir"), "trustA-people-${System.nanoTime()}").apply { mkdirs() }
+        val ok = """{"allowed":[{"name":"me@example.com","type":"com.google"}]}"""
+        peopleCase("missing", dir, null)
+        peopleCase("sanity-valid", dir, ok)
+        peopleCase("truncated-half", dir, ok.substring(0, ok.length / 2))
+        peopleCase("truncated-last-brace", dir, ok.dropLast(1))
+        peopleCase("empty-file", dir, "")
+        peopleCase("garbage", dir, "\u0000\u0001nope")
+        peopleCase("top-level-array", dir, "[]")
+        peopleCase("allowed-not-an-array", dir, """{"allowed":"all"}""")
+        peopleCase("allowed-true", dir, """{"allowed":true}""")
+        peopleCase("entry-missing-type", dir, """{"allowed":[{"name":"me@example.com"}]}""")
+        peopleCase("entry-null-name", dir, """{"allowed":[{"name":null,"type":"com.google"}]}""")
+        peopleCase("entry-empty-name", dir, """{"allowed":[{"name":"","type":"com.google"}]}""")
+        peopleCase("entry-numbers", dir, """{"allowed":[{"name":5,"type":7}]}""")
+        peopleCase("entry-is-a-string", dir, """{"allowed":["work@example.com"]}""")
+        peopleCase("one-bad-one-good", dir, """{"allowed":[{"name":"me@example.com"},{"name":"work@example.com","type":"com.example"}]}""")
+        peopleCase("hand-edited-adds-work", dir, """{"allowed":[{"name":"me@example.com","type":"com.google"},{"name":"work@example.com","type":"com.example"}]}""")
+
+        // An un-tick whose save fails.
+        val file = File(dir, PeopleEditStore.FILE)
+        file.writeText(ok)
+        resetPeople()
+        val store = PeopleEditStore.get(FakeContext(dir))
+        dir.setWritable(false)
+        store.set(ContactAccount("me@example.com", "com.google"), false)
+        dir.setWritable(true)
+        say("PEOPLE untick-save-fails: memory=${store.allowed.value}; file=${file.readText()}")
+        // The file removed under a running store (no re-read).
+        file.delete()
+        say("PEOPLE running, file deleted: memory=${store.allowed.value}")
+        // A prune with nothing named (an EMPTY successful read).
+        file.writeText(ok)
+        resetPeople()
+        val s2 = PeopleEditStore.get(FakeContext(dir))
+        s2.prune(emptyList())
+        say("PEOPLE prune(empty named): memory=${s2.allowed.value}; file=${file.readText()}")
+        File("/tmp/claude-1000/-home-jeremyking/94273004-6013-4029-a961-ffb26e4dcb1f/scratchpad/trustA-store-probe-people.out").writeText(out.toString())
+    }
+}
