@@ -163,11 +163,21 @@ object CalendarEvents {
         val kept = reminders ?: CalendarReads.reminders(context, masterId).map { it.first }
         val created = CalendarWrites.insertEvent(context, Path.EDITOR, calendarId, tail, kept)
         if (created !is WriteResult.Ok) return result(created)
+        // An occurrence changed (or deleted) later than the split belongs to the new series: it is written again as
+        // that series' exception, and its old row is removed.
         val later = exceptions.filter { (it.originalInstanceTime ?: Long.MIN_VALUE) >= instance }
-        if (later.isNotEmpty() && tail.rrule != null) {
-            later.forEach { CalendarWrites.repointException(context, Path.EDITOR, it.id, created.value) }
-            // Writing the rule again makes the provider expand the new series with its exceptions in place.
-            CalendarWrites.setRule(context, Path.EDITOR, created.value, tail.rrule)
+        if (tail.rrule != null) {
+            for (e in later) {
+                val time = e.originalInstanceTime ?: continue
+                val values = ExceptionValues(
+                    title = e.title.orEmpty(), location = e.location.orEmpty(), description = e.description.orEmpty(), dtstart = e.dtstart,
+                    duration = "P${((e.dtend ?: e.dtstart) - e.dtstart) / 1000}S", status = e.status ?: CalendarContract.Events.STATUS_CONFIRMED,
+                )
+                val moved = CalendarWrites.insertException(context, Path.EDITOR, created.value, time, values, CalendarReads.reminders(context, e.id).map { it.first })
+                if (moved is WriteResult.Ok) CalendarWrites.purgeRow(context, Path.EDITOR, e.id)
+            }
+        } else {
+            later.forEach { CalendarWrites.purgeRow(context, Path.EDITOR, it.id) }
         }
         return SaveResult.Saved(created.value)
     }
@@ -198,7 +208,8 @@ object CalendarEvents {
                 val rrule = event.rrule ?: return WriteResult.Failed("the event does not repeat")
                 val later = CalendarReads.exceptions(context, eventId).filter { (it.originalInstanceTime ?: Long.MIN_VALUE) >= instanceBeginMs }
                 val ended = CalendarWrites.setRule(context, Path.EDITOR, eventId, EventRules.endBefore(rrule, instanceBeginMs, event.allDay))
-                if (ended is WriteResult.Ok) later.forEach { CalendarWrites.deleteEvent(context, Path.EDITOR, it.id) }
+                // Their occurrences are past the series' new end: the rows go for good.
+                if (ended is WriteResult.Ok) later.forEach { CalendarWrites.purgeRow(context, Path.EDITOR, it.id) }
                 ended
             }
         }

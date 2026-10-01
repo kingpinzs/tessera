@@ -1,0 +1,25 @@
+==============================================================================
+ROW P_EXCEPTION3 — probe: rule updates, EXDATE, cancelled and re-pointed exceptions, deletes
+at            2026-10-01T14:02:03-06:00
+driver        p_exception3.sh blob b94ecb2da5e23a59012eca0be036d2dba697db10
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     a5b3bdbffff0d744 339299596 bytes
+apk installed 2c802c043cb40279
+apk match     yes (2c802c043cb40279)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  (a) the rule alone updated to end before week 8             193@w0 193@w1 193@w2 193@w3 193@w4 193@w5 193@w6 193@w7 
+RECORD  (b) the rule with DTSTART and DURATION                      193@w0 193@w1 193@w2 193@w3 193@w4 193@w5 193@w6 193@w7 
+RECORD  (c) EXDATE for week 5                                       193@w0 193@w1 193@w2 193@w3 193@w4 193@w5 193@w6 193@w7 
+RECORD  (d) a CANCELLED exception for week 3: insert said []        193@w0 193@w1 193@w2 193@w4 193@w5 193@w6 193@w7  rows: _id=193, title=PW3 weekly, _sync_id=tessera-193, original_id=NULL, original_sync_id=NULL, originalInstanceTime=NULL, eventStatus=NULL, deleted=0, rrule=FREQ=WEEKLY;UNTIL=20261126T235959Z, exdate=20261106T000000Z;_id=194, title=PW3 weekly, _sync_id=NULL, original_id=193, original_sync_id=tessera-193, originalInstanceTime=1792713600000, eventStatus=2, deleted=0, rrule=NULL, exdate=NULL;
+RECORD  (e) an edited exception 195 for week 2                      193@w0 193@w1 193@w4 193@w5 193@w6 193@w7 195@w2 
+RECORD  (f) that exception deleted by a normal app                  193@w0 193@w1 193@w2 193@w4 193@w5 193@w6 193@w7  rows: No result found.;
+RECORD  (g1) the master ended before week 4 and a tail series 197 made; week 6's exception 196 still points at the old master  193@w0 193@w1 193@w2 196@w6 197@w4 197@w5 197@w6 197@w7 197@w8 197@w9 
+RECORD  (g2) the exception re-pointed (sync adapter), nothing else  193@w0 193@w1 193@w2 196@w6 197@w4 197@w5 197@w6 197@w7 197@w8 197@w9 
+RECORD  (g3) and the tail series written again                      193@w0 193@w1 193@w2 196@w6 197@w4 197@w5 197@w6 197@w7 197@w8 197@w9 
+RECORD  (h) the tail master deleted by the sync adapter             193@w0 193@w1 193@w2 196@w6  rows: _id=193, title=PW3 weekly, _sync_id=tessera-193, original_id=NULL, original_sync_id=NULL, originalInstanceTime=NULL, eventStatus=NULL, deleted=0, rrule=FREQ=WEEKLY;UNTIL=20261029T235959Z, exdate=20261106T000000Z;_id=194, title=PW3 weekly, _sync_id=NULL, original_id=193, original_sync_id=tessera-193, originalInstanceTime=1792713600000, eventStatus=2, deleted=0, rrule=NULL, exdate=NULL;_id=196, title=PW3 six, _sync_id=NULL, original_id=197, original_sync_id=tessera-197, originalInstanceTime=1794528000000, eventStatus=1, deleted=0, rrule=NULL, exdate=NULL;
+RECORD  probe rows left                                             No result found.;
+------------------------------------------------------------------------------
+P_EXCEPTION3: 0 passed, 0 failed, 11 recorded
+P_EXCEPTION3: recorded only (11 facts)

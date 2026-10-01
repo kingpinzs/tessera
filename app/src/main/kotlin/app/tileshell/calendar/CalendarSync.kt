@@ -210,11 +210,9 @@ object CalendarSync {
             val gone = CalendarWrites.syncDeleteRow(context, eventId, mapping.copyEventId)
             if (gone !is WriteResult.Ok) return gone
         }
-        val exceptions = CalendarReads.exceptions(context, eventId)
+        // A series goes with its exception rows (the write layer removes them with it).
         val deleted = CalendarWrites.deleteEvent(context, path, eventId)
         if (deleted !is WriteResult.Ok) return deleted
-        // A series' exception events are rows of their own; none is left behind.
-        for (e in exceptions) if (CalendarReads.event(context, e.id) != null) CalendarWrites.deleteEvent(context, path, e.id)
         if (mapping != null) store.update { SyncStateRules.unmap(it, eventId) }
         return deleted
     }
