@@ -116,4 +116,13 @@ object Glyph {
     const val DIALPAD = "\ue6c3"
     const val AIRPLANE = "\ue01f"
     const val CALCULATOR = "\ue328"
+
+    // Phase 16 (People). Same font, same source; code points read from the shipped TTF's cmap
+    // (ic_fluent_<name>_20_regular). The MDL2 glyph each stands in for is r11/people.md §8 (Link E71B, Filter E71C,
+    // Import E8B5). SHARE, DELETE, EDIT, ADD, SAVE, DISMISS, GLOBE, BRIEFCASE and CHEVRON_DOWN are above.
+    const val LINK = "\ueb68"               // Link E71B — the card's app bar
+    const val LINK_DISMISS = "\ueb6c"       // Unlink on a linked profile's row
+    const val FILTER = "\ue8a7"             // Filter E71C — "filter contact list"
+    const val IMPORT = "\ue111"             // Import E8B5 — "import from SIM"
+    const val PEOPLE_TEAM = "\ueda9"        // a group's round avatar (P5.2)
 }

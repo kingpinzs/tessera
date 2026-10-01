@@ -77,9 +77,12 @@ object PeopleBuckets {
         }
     }
 
-    /** The grey disc's letter for a contact without a photo (P1.8): the name's first letter or digit, else "#". */
-    fun initial(name: String): String =
-        name.firstOrNull { it.isLetterOrDigit() }?.uppercase() ?: NUMBER
+    /** The grey disc's letter for a contact without a photo (P1.8): the name's first letter; "#" for a number or no name. */
+    fun initial(name: String): String {
+        if (name == NO_NAME) return NUMBER
+        val first = name.firstOrNull { it.isLetterOrDigit() } ?: return NUMBER
+        return if (first.isLetter()) first.uppercase() else NUMBER
+    }
 }
 
 object PeopleSearch {
@@ -258,12 +261,16 @@ object CardRules {
 data class ContactGroup(val id: Long, val title: String, val account: ContactAccount, val members: Int)
 
 object GroupRules {
+    /** A number as it is dialled: its digits, with a plus, `*` and `#` kept — so several join into one `smsto:` list. */
+    fun dialable(number: String): String = number.filter { it.isDigit() || it in "+*#" }
+
     /**
      * "Text the group" (T16-14): `smsto:<n1>;<n2>…`, each member's first mobile number; a member with no mobile number
-     * is left out. Null when no number is left — the page then shows a notice, not a compose.
+     * is left out. Null when no number is left — the page then shows a notice, not a compose. The card's Text is the
+     * same with one number.
      */
     fun smsTo(memberMobiles: List<String?>): String? {
-        val numbers = memberMobiles.mapNotNull { it?.trim()?.takeIf { n -> n.isNotEmpty() } }.distinct()
+        val numbers = memberMobiles.mapNotNull { it?.let(::dialable)?.takeIf { n -> n.isNotEmpty() } }.distinct()
         return if (numbers.isEmpty()) null else "smsto:" + numbers.joinToString(";")
     }
 

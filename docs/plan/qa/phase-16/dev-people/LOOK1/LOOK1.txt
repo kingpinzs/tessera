@@ -1,0 +1,99 @@
+==============================================================================
+ROW LOOK1 — development look: list, jump grid, search, card
+at            2026-10-01T10:14:49-06:00
+driver        look1.sh blob ba39d7407817600dde8d36c735d6de730ae53f86
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     21e2a46c1aeec2f4 338159694 bytes
+apk installed aa4a4c963cc290e4
+apk match     NO (device aa4a4c963cc290e4, built 6fdf8ea65a51c707)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+Success
+PASS  the device holds this build                                 contains [yes]
+fixture raw ids: ann=21 bob=22 zoe=23 wei=24 num=25 cara=26,27
+Row: 0 _id=1, lookup=0r1-434743, display_name=Mom, phonebook_label=M, display_name_source=40
+Row: 1 _id=2, lookup=0r2-, display_name=NULL, phonebook_label=#, display_name_source=0
+Row: 2 _id=21, lookup=0r21-2B4545413333, display_name=Ann Lee, phonebook_label=A, display_name_source=40
+Row: 3 _id=22, lookup=0r22-2D472D4F51474533, display_name=Bob Stone, phonebook_label=B, display_name_source=40
+Row: 4 _id=23, lookup=0r23-5D47332B4D3345, display_name=Zoë Ǻrén, phonebook_label=Z, display_name_source=40
+Row: 5 _id=24, lookup=0r24-FAAB7AFA0C18, display_name=张伟, phonebook_label=…, display_name_source=40
+Row: 6 _id=25, lookup=0r25-141C1C1C12121212121224, display_name=+1 555 000 0009, phonebook_label=#, display_name_source=20
+Row: 7 _id=27, lookup=0r26-2F2B4D2B313B2B5D.0r27-2F2B4D2B313B2B5D, display_name=Cara Diaz, phonebook_label=C, display_name_source=40
+Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom
+Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL
+Row: 2 _id=21, contact_id=21, account_name=NULL, account_type=NULL, display_name=Ann Lee
+Row: 3 _id=22, contact_id=22, account_name=NULL, account_type=NULL, display_name=Bob Stone
+Row: 4 _id=23, contact_id=23, account_name=NULL, account_type=NULL, display_name=Zoë Ǻrén
+Row: 5 _id=24, contact_id=24, account_name=NULL, account_type=NULL, display_name=张伟
+Row: 6 _id=25, contact_id=25, account_name=NULL, account_type=NULL, display_name=+1 555 000 0009
+Row: 7 _id=26, contact_id=27, account_name=NULL, account_type=NULL, display_name=Cara Diaz
+Row: 8 _id=27, contact_id=27, account_name=NULL, account_type=NULL, display_name=Cara Diaz
+PASS  People resumed                                              = app.tileshell/.people.PeopleActivity
+ring since open:
+    2026-10-01 10:15:33.137 wall=1790871333137 [people] PeopleActivity created
+    2026-10-01 10:15:33.138 wall=1790871333138 [people] open android.intent.action.MAIN -> open page=default
+    2026-10-01 10:15:33.170 wall=1790871333170 [people] reload (resume)
+    2026-10-01 10:15:33.228 wall=1790871333228 [people] list: 8 contacts read=true write=true
+PASS  people_page:list                                            = yes
+      1 resource-id="people_app_bar"
+      1 resource-id="people_avatar:0r1-434743"
+      1 resource-id="people_avatar:0r2-"
+      1 resource-id="people_avatar:0r21-2B4545413333"
+      1 resource-id="people_avatar:0r22-2D472D4F51474533"
+      1 resource-id="people_avatar:0r25-141C1C1C12121212121224"
+      1 resource-id="people_avatar:0r26-2F2B4D2B313B2B5D.0r27-2F2B4D2B313B2B5D"
+      1 resource-id="people_bar:add"
+      1 resource-id="people_contacts"
+      1 resource-id="people_letter:#"
+      1 resource-id="people_letter:A"
+      1 resource-id="people_letter:B"
+      1 resource-id="people_letter:C"
+      1 resource-id="people_letter:M"
+      1 resource-id="people_letter:Z"
+      1 resource-id="people_list"
+      1 resource-id="people_more"
+      1 resource-id="people_name:0r1-434743"
+      1 resource-id="people_name:0r2-"
+      1 resource-id="people_name:0r21-2B4545413333"
+      1 resource-id="people_name:0r22-2D472D4F51474533"
+      1 resource-id="people_name:0r25-141C1C1C12121212121224"
+      1 resource-id="people_name:0r26-2F2B4D2B313B2B5D.0r27-2F2B4D2B313B2B5D"
+      1 resource-id="people_page:list"
+      1 resource-id="people_pivot:contacts"
+      1 resource-id="people_pivot:groups"
+      1 resource-id="people_pivots"
+      1 resource-id="people_row:0r1-434743"
+      1 resource-id="people_row:0r2-"
+      1 resource-id="people_row:0r21-2B4545413333"
+      1 resource-id="people_row:0r22-2D472D4F51474533"
+      1 resource-id="people_row:0r25-141C1C1C12121212121224"
+      1 resource-id="people_row:0r26-2F2B4D2B313B2B5D.0r27-2F2B4D2B313B2B5D"
+      1 resource-id="people_search"
+      1 resource-id="people_search_box"
+      1 resource-id="people_search_hint"
+PASS  jump grid open                                              = yes
+PASS  grid closed after Z                                         = no
+search ring:
+    2026-10-01 10:15:48.068 wall=1790871348068 [people] search "ann": 1 (+0 enterprise)
+Ann contact=21 lookup=0r21-2B4545413333
+PASS  Ann's card                                                  = yes
+      2 resource-id="people_action_detail"
+      3 resource-id="people_action_title"
+      1 resource-id="people_app_bar"
+      1 resource-id="people_card:0r21-2B4545413333"
+      1 resource-id="people_card_account"
+      1 resource-id="people_card_action:call:0"
+      1 resource-id="people_card_action:mail:0"
+      1 resource-id="people_card_action:text:0"
+      1 resource-id="people_card_delete"
+      1 resource-id="people_card_edit"
+      1 resource-id="people_card_link"
+      1 resource-id="people_card_name"
+      1 resource-id="people_card_photo"
+      1 resource-id="people_card_profile"
+      1 resource-id="people_more"
+      1 resource-id="people_page:card"
+PASS  raw_contacts count restored                                 = 2
+------------------------------------------------------------------------------
+LOOK1: 7 passed, 0 failed, 0 recorded

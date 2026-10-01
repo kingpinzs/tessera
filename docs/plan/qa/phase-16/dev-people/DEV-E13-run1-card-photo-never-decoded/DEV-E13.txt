@@ -1,0 +1,74 @@
+==============================================================================
+ROW DEV-E13 — create, edit, photo, delete; WRITE_CONTACTS revoked (E13's core)
+at            2026-10-01T10:33:55-06:00
+driver        e13.sh blob 0828cc929107649f87bb2c8b9d39c843a0241b0f
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     68c1362ab1993eec 339413434 bytes
+apk installed 769ff74f5ad0e0f7
+apk match     NO (device 769ff74f5ad0e0f7, built b4096452f9b15ed4)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+Success
+PASS  the device holds this build                                 contains [yes]
+pushed /sdcard/Pictures/people-red.jpg
+PASS  New opens the editor                                        = yes
+PASS  people_editor_account reads Phone                           = Phone
+PASS  the header names the phone                                  = NEW PHONE CONTACT
+PASS  the account menu offers one row                             = 1
+PASS  and it is the phone                                         = yes
+PASS  Save is off until there is something to save                contains [enabled="false"]
+PASS  nothing is saved before Save is tapped                      = 0
+Row: 0 _id=51, account_name=NULL, account_type=NULL, display_name=Dan Ford
+PASS  Dan Ford is a new raw contact on the phone (NULL account)   contains [account_name=NULL, account_type=NULL]
+Row: 0 _id=80, raw_contact_id=51, mimetype=vnd.android.cursor.item/name, data1=Dan Ford
+Row: 1 _id=81, raw_contact_id=51, mimetype=vnd.android.cursor.item/phone_v2, data1=5550000042
+PASS  his number is a phone data row under it                     contains [mimetype=vnd.android.cursor.item/phone_v2, data1=5550000042]
+PASS  the write line                                              contains [[people] write insert raw=51: ok]
+PASS  Save opens the new contact's card                           = yes
+PASS  the editor shows her number                                 = +1 555 000 0001
+PASS  an existing contact's header                                = EDIT PHONE CONTACT
+Row: 0 _id=77, raw_contact_id=50, mimetype=vnd.android.cursor.item/name, data1=Ann Lee
+Row: 1 _id=78, raw_contact_id=50, mimetype=vnd.android.cursor.item/phone_v2, data1=5550000077
+Row: 2 _id=79, raw_contact_id=50, mimetype=vnd.android.cursor.item/email_v2, data1=ann@example.com
+PASS  her phone data row changed                                  contains [mimetype=vnd.android.cursor.item/phone_v2, data1=5550000077]
+PASS  the old number is gone                                      does not contain [data1=+1 555 000 0001]
+PASS  her e-mail is untouched                                     contains [data1=ann@example.com]
+PASS  the write line                                              contains [[people] write update raw=50: ok]
+PASS  still one raw contact, one contact                          = 50
+after the photo tap the resumed activity is: com.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerActivity
+PASS  Android's photo picker opened                               contains [photopicker]
+PASS  back in People's editor                                     = app.tileshell/.people.PeopleActivity
+PASS  the editor shows the picked photo                           (254,0,0) within 8 of (254,0,0)
+PASS  no photo row before Save                                    does not contain [vnd.android.cursor.item/photo]
+Row: 0 _id=77, raw_contact_id=50, mimetype=vnd.android.cursor.item/name
+Row: 1 _id=78, raw_contact_id=50, mimetype=vnd.android.cursor.item/phone_v2
+Row: 2 _id=79, raw_contact_id=50, mimetype=vnd.android.cursor.item/email_v2
+Row: 3 _id=82, raw_contact_id=50, mimetype=vnd.android.cursor.item/photo
+PASS  a photo data row exists for Ann                             contains [mimetype=vnd.android.cursor.item/photo]
+PASS  the write line                                              contains [[people] write update raw=50: ok]
+FAIL  people_card_photo's centre pixel is the fixture's colour    expected (254,0,0) ± 8, got (85,85,85)
+PASS  people_card_photo is 124 epx                                124.00 vs 124.00 +/- 1.0
+PASS  Delete asks once                                            = yes
+PASS  Dan's contact row is gone                                   = 0
+PASS  and his raw contact                                         = 0
+PASS  the write line                                              contains [[people] write delete raw=51: ok]
+PASS  the list is back, without Dan                               = no
+PASS  WRITE_CONTACTS is revoked                                   = false
+PASS  READ_CONTACTS is still held                                 = true
+notice: People can't save this: it isn't allowed to change contacts. / allow access
+PASS  the editor says it cannot save (people_notice)              = People can't save this: it isn't allowed to change contacts.
+PASS  and offers the grant in place                               = allow access
+PASS  the editor is still open with the edit                      = Ann Leigh
+PASS  the write line says why                                     contains [[people] write update raw=50: failed WRITE_CONTACTS not held]
+PASS  nothing was written                                         contains [data1=Ann Lee]
+the grant's dialog: app.tileshell/.people.PeopleActivity
+FAIL  Android's permission dialog is offered                      does not contain [GrantPermissionsActivity]: app.tileshell/.people.PeopleActivity
+PASS  WRITE_CONTACTS is granted from the notice                   = true
+PASS  the notice is gone once granted                             = no
+PASS  Save now writes                                             contains [[people] write update raw=50: ok]
+PASS  the name changed                                            contains [data1=Ann Leigh]
+PASS  WRITE_CONTACTS held at the end                              = true
+PASS  raw_contacts count equals the count before the row          = 2
+------------------------------------------------------------------------------
+DEV-E13: 44 passed, 2 failed, 0 recorded

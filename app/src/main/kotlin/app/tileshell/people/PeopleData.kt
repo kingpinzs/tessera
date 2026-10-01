@@ -344,7 +344,10 @@ object PeopleData {
     fun photo(context: Context, contactId: Long, targetPx: Int): Bitmap? = runCatching {
         val uri = ContentUris.withAppendedId(Contacts.CONTENT_URI, contactId)
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        Contacts.openContactPhotoInputStream(context.contentResolver, uri, true)?.use { BitmapFactory.decodeStream(it, null, bounds) } ?: return@runCatching null
+        // A bounds-only decode returns no bitmap: what says the stream opened is the stream, not the decode's result.
+        val stream = Contacts.openContactPhotoInputStream(context.contentResolver, uri, true) ?: return@runCatching null
+        stream.use { BitmapFactory.decodeStream(it, null, bounds) }
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return@runCatching null
         val options = BitmapFactory.Options().apply { inSampleSize = ContactPhotoRules.sampleSize(bounds.outWidth, bounds.outHeight, targetPx) }
         Contacts.openContactPhotoInputStream(context.contentResolver, uri, true)?.use { BitmapFactory.decodeStream(it, null, options) }
     }.getOrNull()
