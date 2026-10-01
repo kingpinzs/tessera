@@ -287,16 +287,19 @@ class PeopleWrites(private val port: ContactsPort) {
     }
 
     /**
-     * Deletes a group; its members stay contacts. A phone group has no sync adapter to clear a row marked deleted, so
-     * its row is removed outright; an allowed account's group is marked deleted for that account's own adapter.
+     * Deletes a group; its members stay contacts. The provider only MARKS a group deleted (`deleted=1`, `dirty=1`) and
+     * leaves the row for the account's sync adapter to remove. A phone group has no sync adapter, so its row would
+     * stay in the provider for good: it is removed outright, through the sync-adapter URI. An allowed account's group
+     * is deleted the plain way, for that account's own adapter to finish. The guard is asked about the very write
+     * that is made — the URI follows from what it was asked.
      */
     fun deleteGroup(groupId: Long): WriteResult {
         val group = port.group(groupId) ?: return groupFailed("delete", groupId.toString(), "the group is gone")
-        if (refused(PeopleWrite.GroupRow(WriteOp.DELETE, group.account))) return groupFailed("delete", groupId.toString(), "refused (not allowed)", refused = true)
+        val write = PeopleWrite.GroupRow(WriteOp.DELETE, group.account, viaSyncAdapter = port.policy().isPhone(group.account))
+        if (refused(write)) return groupFailed("delete", groupId.toString(), "refused (not allowed)", refused = true)
         if (!port.mayWrite()) return groupFailed("delete", groupId.toString(), NOT_HELD, needsGrant = true)
         return runCatching {
-            var uri = "$GROUPS/$groupId"
-            if (port.policy().isPhone(group.account)) uri += "?${ContactsContract.CALLER_IS_SYNCADAPTER}=true"
+            val uri = "$GROUPS/$groupId" + if (write.viaSyncAdapter) "?${ContactsContract.CALLER_IS_SYNCADAPTER}=true" else ""
             val n = port.delete(uri)
             if (n == 0) error("the group is gone")
             port.line("group delete $groupId: ok")

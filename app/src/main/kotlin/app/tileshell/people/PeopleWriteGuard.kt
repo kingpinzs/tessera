@@ -69,8 +69,12 @@ sealed interface PeopleWrite {
     /** Link (`TYPE_KEEP_TOGETHER`) or Unlink (`TYPE_KEEP_SEPARATE`): an `AggregationExceptions` row, local to the phone. */
     data class Aggregation(val a: RawRef, val b: RawRef, val together: Boolean) : PeopleWrite
 
-    /** Creating, renaming or deleting a group in [account] (the group's own account). */
-    data class GroupRow(val op: WriteOp, val account: ContactAccount) : PeopleWrite
+    /**
+     * Creating, renaming or deleting a group in [account] (the group's own account). [viaSyncAdapter]: the write goes
+     * through the provider's sync-adapter URI (`caller_is_syncadapter=true`), where a delete removes the group's row
+     * outright instead of marking it deleted for an adapter to finish.
+     */
+    data class GroupRow(val op: WriteOp, val account: ContactAccount, val viaSyncAdapter: Boolean = false) : PeopleWrite
 }
 
 sealed interface GuardVerdict {
@@ -104,7 +108,13 @@ object PeopleWriteGuard {
         is PeopleWrite.ContactColumn -> all(write.raws, policy)
         // AggregationExceptions are local to the phone and reach no account: allowed on any contact.
         is PeopleWrite.Aggregation -> GuardVerdict.Allowed
-        is PeopleWrite.GroupRow -> if (policy.canWrite(write.account)) GuardVerdict.Allowed else GuardVerdict.Refused(null)
+        is PeopleWrite.GroupRow -> when {
+            // As a sync adapter People does one thing: it finishes the delete of a group of the phone's own account,
+            // which has no adapter to do it. In an account, allowed or not, that is the account's own adapter's work.
+            write.viaSyncAdapter -> if (write.op == WriteOp.DELETE && policy.isPhone(write.account)) GuardVerdict.Allowed else GuardVerdict.Refused(null)
+            policy.canWrite(write.account) -> GuardVerdict.Allowed
+            else -> GuardVerdict.Refused(null)
+        }
     }
 
     private fun one(raw: RawRef, policy: EditPolicy): GuardVerdict =

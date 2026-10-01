@@ -2,7 +2,7 @@
 """Mutation proof for the fix round's parser and intent-rule tests (People's part of F4, F5, F11, F15, F22 and F23).
 
 Each mutation is applied to its one source file, one test class is run, the failing tests are read from its XML
-report, and the file is restored. Usage: mutate.py <test class> <id> [<id> ...]   (run from the repo root)."""
+report, and the file is restored. Usage: mutate.py <test class>[,<test class>] <id> [<id> ...]   (run from the repo root)."""
 import re, subprocess, sys
 
 SRC = 'app/src/main/kotlin/app/tileshell/people/PeopleRoute.kt'
@@ -64,11 +64,26 @@ MUTATIONS = {
     'PW8': ('renameGroup(): the guard not asked',
             '        if (refused(PeopleWrite.GroupRow(WriteOp.UPDATE, group.account))) return groupFailed("rename", groupId.toString(), "refused (not allowed)", refused = true)\n', '', WRITES),
     'PW9': ('deleteGroup(): the guard not asked',
-            '        if (refused(PeopleWrite.GroupRow(WriteOp.DELETE, group.account))) return groupFailed("delete", groupId.toString(), "refused (not allowed)", refused = true)\n', '', WRITES),
-    'PW9b': ('deleteGroup(): every group removed outright through the sync-adapter URI',
-             'if (port.policy().isPhone(group.account)) uri += "?${ContactsContract.CALLER_IS_SYNCADAPTER}=true"', 'uri += "?${ContactsContract.CALLER_IS_SYNCADAPTER}=true"', WRITES),
+            '        if (refused(write)) return groupFailed("delete", groupId.toString(), "refused (not allowed)", refused = true)\n', '', WRITES),
+    'PW9b': ('deleteGroup(): every group removed outright through the sync-adapter URI, and the guard told so',
+             'viaSyncAdapter = port.policy().isPhone(group.account))', 'viaSyncAdapter = true)', WRITES),
     'PW9c': ('deleteGroup(): no group removed outright (a phone group left marked deleted)',
-             'if (port.policy().isPhone(group.account)) uri += "?${ContactsContract.CALLER_IS_SYNCADAPTER}=true"', '', WRITES),
+             'viaSyncAdapter = port.policy().isPhone(group.account))', 'viaSyncAdapter = false)', WRITES),
+    'PW9d': ('deleteGroup(): the sync-adapter URI used for every group while the guard is asked about the plain one',
+             'val uri = "$GROUPS/$groupId" + if (write.viaSyncAdapter) "?${ContactsContract.CALLER_IS_SYNCADAPTER}=true" else ""',
+             'val uri = "$GROUPS/$groupId" + "?${ContactsContract.CALLER_IS_SYNCADAPTER}=true"', WRITES),
+    # ---- the guard's sync-adapter fact (F22)
+    'GV1': ('guard: the sync-adapter delete allowed for any writable account, not the phone alone',
+            'write.viaSyncAdapter -> if (write.op == WriteOp.DELETE && policy.isPhone(write.account))',
+            'write.viaSyncAdapter -> if (write.op == WriteOp.DELETE && policy.canWrite(write.account))', GUARD),
+    'GV2': ('guard: any group op allowed through the sync-adapter URI on the phone',
+            'write.viaSyncAdapter -> if (write.op == WriteOp.DELETE && policy.isPhone(write.account))',
+            'write.viaSyncAdapter -> if (policy.isPhone(write.account))', GUARD),
+    'GV3': ('guard: the sync-adapter fact ignored',
+            '            write.viaSyncAdapter -> if (write.op == WriteOp.DELETE && policy.isPhone(write.account)) GuardVerdict.Allowed else GuardVerdict.Refused(null)\n', '', GUARD),
+    'GV4': ('guard: the sync-adapter delete refused even for the phone',
+            'write.viaSyncAdapter -> if (write.op == WriteOp.DELETE && policy.isPhone(write.account)) GuardVerdict.Allowed else GuardVerdict.Refused(null)',
+            'write.viaSyncAdapter -> GuardVerdict.Refused(null)', GUARD),
     'PW10a': ('setMember(): the group check removed (the data-row check stays)',
               '        if (refused(PeopleWrite.GroupRow(WriteOp.UPDATE, group.account))) return refusedLine("update", raw.id.toString())\n', '', WRITES),
     'PW10b': ('setMember(): the data-row check removed (the group check stays)',
@@ -88,13 +103,18 @@ MUTATIONS = {
              'port.applyBatch(raws.map { RowWrite(WriteOp.DELETE, "$RAW_CONTACTS/${it.id}") })', 'port.applyBatch(raws.take(1).map { RowWrite(WriteOp.DELETE, "$RAW_CONTACTS/${it.id}") })', WRITES),
 }
 
-def run(cls):
-    p = subprocess.run(['./gradlew', ':app:testDebugUnitTest', '--tests', cls], capture_output=True, text=True)
-    failed, tests = [], '?'
+def run(classes):
+    names = classes.split(',')
+    args = ['./gradlew', ':app:testDebugUnitTest']
+    for name in names:
+        args += ['--tests', name]
+    p = subprocess.run(args, capture_output=True, text=True)
+    failed, tests = [], 0
     try:
-        x = open('app/build/test-results/testDebugUnitTest/TEST-%s.xml' % cls, encoding='utf-8').read()
-        tests = re.search(r'<testsuite[^>]*tests="(\d+)"', x).group(1)
-        failed = re.findall(r'<testcase name="([^"]+)"[^>]*>\s*<failure', x)
+        for name in names:
+            x = open('app/build/test-results/testDebugUnitTest/TEST-%s.xml' % name, encoding='utf-8').read()
+            tests += int(re.search(r'<testsuite[^>]*tests="(\d+)"', x).group(1))
+            failed += ['%s.%s' % (name.rsplit('.', 1)[-1], t) for t in re.findall(r'<testcase name="([^"]+)"[^>]*>\s*<failure', x)]
     except OSError:
         failed = ['(no report: the build failed) ' + ' '.join(l for l in p.stdout.splitlines() if l.startswith('e: '))[:300]]
     return p.returncode, tests, failed
