@@ -33,6 +33,31 @@ object ReminderRules {
      */
     data class Plan(val actions: List<Action>, val skippedBeforeStart: Int)
 
+    /** An alert as the shell knew it when it posted its notification: the row, and what the row was an alert of. */
+    data class AlertIdentity(val id: Long, val eventId: Long, val beginMs: Long, val alarmTimeMs: Long)
+
+    fun identity(row: AlertRow) = AlertIdentity(row.id, row.eventId, row.beginMs, row.alarmTimeMs)
+
+    /** A provider selection and its arguments. */
+    data class Selection(val where: String, val args: List<String>)
+
+    /**
+     * Which row a state write (FIRED at the notification, DISMISSED at its swipe) may touch (fix round F3): the row
+     * with that `_id` ONLY while it is still the alert of that event, that occurrence and that alarm time, and still
+     * SCHEDULED (0) or FIRED (1). The provider hands a deleted alert row's `_id` out again, so the row id alone could
+     * name another event's alert by the time a stale notification is swiped — possibly a work calendar's — and
+     * dismissing it would silence a reminder nobody has seen. A selection that matches nothing writes nothing.
+     * The column names are `CalendarContract.CalendarAlerts`' (`_ID`, `EVENT_ID`, `BEGIN`, `ALARM_TIME`, `STATE`).
+     */
+    fun stateSelection(alert: AlertIdentity) = Selection(
+        "_id = ? AND event_id = ? AND begin = ? AND alarmTime = ? AND state IN (0, 1)",
+        listOf(alert.id, alert.eventId, alert.beginMs, alert.alarmTimeMs).map { it.toString() },
+    )
+
+    /** [stateSelection] in Kotlin, over a row as it reads now: the rule the selection states, for the JVM test. */
+    fun isStillThatAlert(alert: AlertIdentity, row: AlertRow): Boolean =
+        row.id == alert.id && row.eventId == alert.eventId && row.beginMs == alert.beginMs && row.alarmTimeMs == alert.alarmTimeMs && row.state in 0..1
+
     /** The rows a poke may act on: due at or after [sinceMs]. An alert due at the very instant of the first start counts. */
     fun sinceStart(due: List<AlertRow>, sinceMs: Long): List<AlertRow> = due.filter { it.alarmTimeMs >= sinceMs }
 
@@ -81,19 +106,26 @@ class CalendarReminderReceiver : BroadcastReceiver() {
 
 /**
  * The swipe that dismisses one of the shell's reminder notifications. Not exported: only the notification's own
- * PendingIntent reaches it, so the alert id it carries is one the shell put there.
+ * PendingIntent reaches it, so what it carries — the alert's row id, its event, its occurrence and its alarm time — is
+ * what the shell put there when it posted the notification. All four are needed: the row id alone may by now be
+ * another event's alert (fix round F3).
  */
 class CalendarReminderDismissReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val alert = intent.getLongExtra(CalendarReminders.EXTRA_ALERT, -1L)
-        if (alert < 0) return
-        val event = intent.getLongExtra(CalendarReminders.EXTRA_EVENT, -1L)
+        val id = intent.getLongExtra(CalendarReminders.EXTRA_ALERT, -1L)
+        if (id < 0) return
+        val alert = ReminderRules.AlertIdentity(
+            id = id,
+            eventId = intent.getLongExtra(CalendarReminders.EXTRA_EVENT, -1L),
+            beginMs = intent.getLongExtra(CalendarReminders.EXTRA_BEGIN, -1L),
+            alarmTimeMs = intent.getLongExtra(CalendarReminders.EXTRA_ALARM_TIME, -1L),
+        )
         val minutes = intent.getIntExtra(CalendarReminders.EXTRA_MINUTES, 0)
         val app = context.applicationContext
         val pending = goAsync()
         CalendarReminders.worker.execute {
             try {
-                CalendarReminders.dismissed(app, alert, event, minutes)
+                CalendarReminders.dismissed(app, alert, minutes)
             } finally {
                 pending.finish()
             }
@@ -130,6 +162,8 @@ object CalendarReminders {
     const val EXTRA_ALERT = "app.tileshell.calendar.ALERT"
     const val EXTRA_EVENT = "app.tileshell.calendar.EVENT"
     const val EXTRA_MINUTES = "app.tileshell.calendar.MINUTES"
+    const val EXTRA_BEGIN = "app.tileshell.calendar.BEGIN"
+    const val EXTRA_ALARM_TIME = "app.tileshell.calendar.ALARM_TIME"
 
     /** One thread: two broadcasts for one alert are read one after the other, so the second finds the first's record. */
     val worker = Executors.newSingleThreadExecutor()
@@ -209,7 +243,7 @@ object CalendarReminders {
                         continue
                     }
                     handled += row.key
-                    CalendarWrites.setAlertState(context, row.id, CalendarContract.CalendarAlerts.STATE_FIRED)
+                    CalendarWrites.setAlertState(context, ReminderRules.identity(row), CalendarContract.CalendarAlerts.STATE_FIRED)
                     Diagnostics.add("calendar", "reminder event=${row.eventId} minutes=${row.minutes}: notified")
                 }
             }
@@ -217,9 +251,18 @@ object CalendarReminders {
         store.update { SyncStateRules.keepNotified(it, live, handled) }
     }
 
-    fun dismissed(context: Context, alertId: Long, eventId: Long, minutes: Int) {
-        CalendarWrites.setAlertState(context, alertId, CalendarContract.CalendarAlerts.STATE_DISMISSED)
-        Diagnostics.add("calendar", "reminder event=$eventId minutes=$minutes: dismissed")
+    /**
+     * The notification of [alert] was swiped away: its row is marked DISMISSED — if it is still that alert's row. A
+     * stale notification, whose row is gone or has become another event's alert, dismisses nothing; that is said in
+     * the ring and is not an error.
+     */
+    fun dismissed(context: Context, alert: ReminderRules.AlertIdentity, minutes: Int) {
+        val line = when (val written = CalendarWrites.setAlertState(context, alert, CalendarContract.CalendarAlerts.STATE_DISMISSED)) {
+            is WriteResult.Ok -> if (written.value > 0) "dismissed" else "swipe ignored (no such alert now)"
+            is WriteResult.Refused -> "dismiss ${written.why.text}"
+            is WriteResult.Failed -> "dismiss failed ${written.error}"
+        }
+        Diagnostics.add("calendar", "reminder event=${alert.eventId} minutes=$minutes: $line")
     }
 
     private fun channel(context: Context): NotificationManager {
@@ -248,7 +291,8 @@ object CalendarReminders {
         val dismiss = PendingIntent.getBroadcast(
             context, requestCode(row.id),
             Intent(context, CalendarReminderDismissReceiver::class.java)
-                .putExtra(EXTRA_ALERT, row.id).putExtra(EXTRA_EVENT, row.eventId).putExtra(EXTRA_MINUTES, row.minutes),
+                .putExtra(EXTRA_ALERT, row.id).putExtra(EXTRA_EVENT, row.eventId).putExtra(EXTRA_MINUTES, row.minutes)
+                .putExtra(EXTRA_BEGIN, row.beginMs).putExtra(EXTRA_ALARM_TIME, row.alarmTimeMs),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val public = Notification.Builder(context, CHANNEL)

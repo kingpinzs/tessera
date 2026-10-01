@@ -472,13 +472,18 @@ object CalendarWrites {
 
     // ------------------------------------------------------------------------------------------ the reminder receiver
 
-    /** Case 4: the state of one alert row (FIRED, DISMISSED) and nothing else — no other column, no other table. */
-    fun setAlertState(context: Context, alertId: Long, state: Int): WriteResult<Unit> {
+    /**
+     * Case 4: the state of one alert row (FIRED, DISMISSED) and nothing else — no other column, no other table. The row
+     * is named by [ReminderRules.stateSelection]: its `_id` together with the event, occurrence and alarm time it was an
+     * alert of, and only while it is SCHEDULED or FIRED — an `_id` the provider has handed to another alert since
+     * matches nothing. Returns the number of rows written (0 or 1).
+     */
+    fun setAlertState(context: Context, alert: ReminderRules.AlertIdentity, state: Int): WriteResult<Int> {
         val columns = ContentValues().apply { put(CalendarContract.CalendarAlerts.STATE, state) }
         val request = Request(Path.RECEIVER, Op.UPDATE, Table.CALENDAR_ALERTS, null, columns.keySet())
-        return logged(Path.RECEIVER, Op.UPDATE, "alert $alertId", guarded(request) {
-            context.contentResolver.update(ContentUris.withAppendedId(CalendarContract.CalendarAlerts.CONTENT_URI, alertId), columns, null, null)
-            Unit
+        val selection = ReminderRules.stateSelection(alert)
+        return logged(Path.RECEIVER, Op.UPDATE, "alert ${alert.id}", guarded(request) {
+            context.contentResolver.update(CalendarContract.CalendarAlerts.CONTENT_URI, columns, selection.where, selection.args.toTypedArray())
         })
     }
 }
