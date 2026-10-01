@@ -1,0 +1,121 @@
+==============================================================================
+ROW E2 — Calendar and People in the app list, their windows, the exported surface, the baseline
+at            2026-10-01T15:35:48-06:00
+driver        e2.sh blob 93ef0dc3ae43cdad74c82fb0c28c976c3b3319e9
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     d008aec0c1318519 340591758 bytes
+apk installed 686506a7a7936b2e
+apk match     yes (686506a7a7936b2e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+--- phase 02's regress.sh on this build (seeded with phase 02's baseline + this phase's two markers)
+PASS  regress.sh exits 0                                          = 0
+      regress.sh: 12 passed, 0 failed
+PASS  regress.sh: 0 failed                                        contains [ passed, 0 failed]
+PASS  regress.sh: its slice covers a restore (assignSlotOnce lines in it)  != 0
+PASS  regress.sh: zero assignSlotOnce -> assigned after its restores (C-3)  = 0
+--- the baseline (C-3)
+PASS  layout_restore of qa/phase-16/baseline_layout.json          = 0
+PASS  the slice holds at least one assignSlotOnce line            != 0
+PASS  ZERO assignSlotOnce … -> assigned lines after the restore  does not contain [-> assigned]
+PASS  slot:calendar:v1 reports already run                        contains [already run]
+PASS  slot:people:v1 reports already run                          contains [already run]
+PASS  slot:music:v1 reports already run                           contains [already run]
+PASS  the restored addedOnce equals the file's                    = ['folder:games:v1', 'folder:office:v1', 'phase03:cortana', 'slot:calendar:v1', 'slot:music:v1', 'slot:people:v1']
+PASS  … with slot:calendar:v1                                   contains [slot:calendar:v1]
+PASS  … and slot:people:v1                                      contains [slot:people:v1]
+--- the app list
+PASS  Calendar sits under C                                       = C
+PASS  People sits under P                                         = P
+PASS  no New caption on any in-APK row (X14)                      = 0
+      scroll_to_node applist_name:app.tileshell/.calendar.CalendarActivity: 0 swipe(s), found=yes
+PASS  Calendar row found by applist_name                          = Calendar
+PASS  Calendar hold menu offers Pin to Start                      = yes
+PASS  Calendar hold menu does NOT offer Uninstall                 = no
+      scroll_to_node applist_name:app.tileshell/.people.PeopleActivity: 0 swipe(s), found=yes
+PASS  People row found by applist_name                            = People
+PASS  People hold menu offers Pin to Start                        = yes
+PASS  People hold menu does NOT offer Uninstall                   = no
+PASS  the jump grid's C cell is available (a tap jumps)           contains [jump to C]
+      scroll_to_node applist_name:app.tileshell/.calendar.CalendarActivity: 0 swipe(s), found=yes
+PASS  after the jump, Calendar's row is on screen                 = yes
+PASS  the jump grid's P cell is available (a tap jumps)           contains [jump to P]
+      scroll_to_node applist_name:app.tileshell/.people.PeopleActivity: 0 swipe(s), found=yes
+PASS  after the jump, People's row is on screen                   = yes
+--- the two windows
+      people_fixtures_up: raw ids ann=150 bob=151 zoe=152 zhang=153 number-only=154 cara=155,156 (raw contacts before: 2)
+PASS  Calendar's window dump carries resource-id cal_view         = yes
+PASS  People's window dump carries resource-id people_letter:A    = yes
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+--- the exported surface against qa/phase-03/exported-allowlist.txt
+20 exported in app.tileshell, 20 on the allow-list
+  receiver       androidx.profileinstaller.ProfileInstallReceiver
+                 manifest permission: android.permission.DUMP
+                 allow-list: android.permission.DUMP - androidx.profileinstaller's baseline-profile trigger. Added by the library, guarded by DUMP.
+  activity       app.tileshell.StartActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (HOME intent filter) - The home screen. A launcher's HOME activity has to be exported or the platform cannot start it.
+  activity       app.tileshell.calculator.CalculatorActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - The Calculator app's own launcher entry (phase 15 build task 6). The `page` extra only chooses a mode or the Converter.
+  activity       app.tileshell.calendar.CalendarActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER / APP_CALENDAR; VIEW, EDIT, INSERT on events) - The Calendar app's one activity (phase 16 build task 2). An intent only chooses what is shown: VIEW a day or an event, EDIT an event (the editor only for an event in the Tessera calendar, any other opens read-only), INSERT fills the editor in and saves nothing without the user's tap, into Tessera whatever calendar_id it carried.
+  receiver       app.tileshell.calendar.CalendarReminderReceiver
+                 manifest permission: (none)
+                 allow-list: guard: none (the calendar provider's process sends EVENT_REMINDER, so any app can) - Calendar's event reminders (phase 16 build task 3). The broadcast is a poke only: nothing in the intent is read. Each poke re-reads CalendarAlerts for rows due now in state SCHEDULED or FIRED, less the alerts already notified and less a synced copy's, posts one notification per alert left and marks that row's state FIRED; it writes no other column or table.
+  activity       app.tileshell.clock.AlarmApiActivity
+                 manifest permission: com.android.alarm.permission.SET_ALARM
+                 allow-list: com.android.alarm.permission.SET_ALARM - The AlarmClock API handler (T15-37): SET_ALARM / SET_TIMER / SHOW_ALARMS / SHOW_TIMERS. Every request is validated (hour, minutes, days, a message ≤ 64 characters, a length ≤ the timer ceiling) and logged with its caller; it never edits or deletes an existing alarm.
+  activity       app.tileshell.clock.ClockActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - The Alarms & Clock app's own launcher entry (phase 15 build task 4). The `page` and tile-id extras only choose a tab; nothing they carry creates, edits or deletes an alarm.
+  service        app.tileshell.cortana.CortanaRecognitionService
+                 manifest permission: android.permission.BIND_VOICE_INTERACTION
+                 allow-list: android.permission.BIND_VOICE_INTERACTION - The offline recogniser a VoiceInteractionService must name. It serves the same :speech process.
+  service        app.tileshell.cortana.CortanaService
+                 manifest permission: android.permission.BIND_VOICE_INTERACTION
+                 allow-list: android.permission.BIND_VOICE_INTERACTION - The assistant. Only the system holds the permission; this is what the assist gesture, the side key and KEYCODE_ASSIST reach.
+  service        app.tileshell.cortana.CortanaSessionService
+                 manifest permission: android.permission.BIND_VOICE_INTERACTION
+                 allow-list: android.permission.BIND_VOICE_INTERACTION - The session window the framework asks for.
+  service        app.tileshell.feeds.TileNotificationListener
+                 manifest permission: android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
+                 allow-list: android.permission.BIND_NOTIFICATION_LISTENER_SERVICE - The live-tile notification listener. Only the system holds the permission.
+  service        app.tileshell.ime.KeyboardService
+                 manifest permission: android.permission.BIND_INPUT_METHOD
+                 allow-list: android.permission.BIND_INPUT_METHOD - The keyboard (input method). Only the system holds the permission; nothing outside Android's input-method framework can bind it.
+  activity       app.tileshell.music.MusicActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - Music's own launcher entry (phase 10 build task 1).
+  service        app.tileshell.music.MusicService
+                 manifest permission: (none)
+                 allow-list: guard: none (MediaSessionService / MediaBrowserService filters) - The playback session other apps' media controllers bind; Media3 decides per controller what it may do.
+  activity       app.tileshell.people.PeopleActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER / APP_CONTACTS; VIEW, EDIT, INSERT, INSERT_OR_EDIT, PICK on contacts) - The People app's one activity (phase 16 build task 2). An intent only chooses what is shown: VIEW a card, EDIT (the editor only where the write guard allows, else the card), INSERT fills the editor in and saves nothing without the user's tap, on the phone whatever account it named; PICK returns the one contact or phone URI the user tapped, with a read grant for it alone.
+  activity       app.tileshell.recorder.RecorderActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - The Voice Recorder app's own launcher entry (phase 15 build task 7). The `page` extra only chooses the record or list state; it never starts a take (T15-33 (i)).
+  activity       app.tileshell.settings.SettingsActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - The Start settings launcher entry, and the settingsActivity the voice-interaction and recognition services point at.
+  receiver       app.tileshell.tiles.api.LegacyBadgeReceiver
+                 manifest permission: (none)
+                 allow-list: guard: none (legacy badge broadcasts) - Legacy badge senders resolve the shell through this entry. A sender that does not share its identity is refused by default (phase 01 adversarial review).
+  provider       app.tileshell.tiles.api.LiveTileProvider
+                 manifest permission: (none)
+                 allow-list: guard: none by design (R5 4b) - The public Live Tile API. Every call() verb authorises on the caller's Binder identity rather than on a manifest permission.
+  activity       app.tileshell.weather.WeatherActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - The Weather app's own launcher entry.
+PASS  exported.py: the APK's exported components equal the allow-list (rc)  = 0
+PASS  the allow-list carries the ADD app.tileshell.calendar.CalendarActivity  = 1
+PASS  the allow-list carries the ADD app.tileshell.people.PeopleActivity  = 1
+PASS  the allow-list carries the ADD app.tileshell.calendar.CalendarReminderReceiver  = 1
+PASS  the device holds the APK that was checked                   contains [yes]
+FAIL  dumpsys package: the reminder receiver is registered for EVENT_REMINDER  does not contain [app.tileshell/.calendar.CalendarReminderReceiver]: 
+PASS  restore: layout_restore of the baseline                     = 0
+------------------------------------------------------------------------------
+E2: 35 passed, 1 failed, 0 recorded

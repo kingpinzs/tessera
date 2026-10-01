@@ -46,6 +46,17 @@ class SlotSeedTest {
     }
 
     @Test
+    fun `take-over names a hand-picked app that is no longer installed`() {
+        // Edge case "the update installed while a slot's hand-picked app has been uninstalled": the rule never asks
+        // whether the picked component still resolves — an uninstall drops the app's tiles and leaves the slot's
+        // explicit assignment (LayoutOpsTest) — so the slot is taken as any other and the line names what was there.
+        val gone = "com.example.uninstalled/.CalendarActivity"
+        assertEquals(Outcome.AssignedReplacing(gone), SlotSeed.decide(markerHasRun = false, current = gone, component = shell, takeOver = true))
+        // Under the guard (every later seed) the same stale pick is kept, and named.
+        assertEquals(Outcome.KeptUsers(gone), SlotSeed.decide(markerHasRun = false, current = gone, component = shell, takeOver = false))
+    }
+
+    @Test
     fun `take-over of a slot with no pick is a plain assignment`() {
         assertEquals(Outcome.Assigned, SlotSeed.decide(markerHasRun = false, current = null, component = shell, takeOver = true))
     }

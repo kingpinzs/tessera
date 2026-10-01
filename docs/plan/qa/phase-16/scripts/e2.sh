@@ -165,7 +165,11 @@ for c in app.tileshell.calendar.CalendarActivity app.tileshell.people.PeopleActi
 done
 assert_contains "the device holds the APK that was checked" "yes" "$(apk_matches)"
 D="$(adb shell dumpsys package app.tileshell | tr -d '\r')"
-assert_contains "dumpsys package: the reminder receiver is registered for EVENT_REMINDER" "app.tileshell/.calendar.CalendarReminderReceiver" "$(printf '%s\n' "$D" | grep -A3 'android.intent.action.EVENT_REMINDER:' | head -6)"
+# A filter with a data scheme is listed under the receiver table's "content:" scheme, the component line first.
+RCV="$(printf '%s\n' "$D" | grep -B1 -A2 'Action: "android.intent.action.EVENT_REMINDER"' | head -6)"
+assert_contains "dumpsys package: the reminder receiver is registered for EVENT_REMINDER" "app.tileshell/.calendar.CalendarReminderReceiver" "$RCV"
+assert_contains "… with the content scheme (r3 D6: a filter with no data never matches the provider's broadcast)" 'Scheme: "content"' "$RCV"
+assert_contains "… and the calendar provider's host" 'Authority: "com.android.calendar"' "$RCV"
 
 # ---------------------------------------------------------------- restore
 layout_restore "$BASELINE"; assert_eq "restore: layout_restore of the baseline" "0" "$?"

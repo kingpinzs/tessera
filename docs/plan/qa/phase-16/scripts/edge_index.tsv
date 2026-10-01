@@ -71,7 +71,7 @@ B20.1	Share when no app receives text/x-vcard: Android's resolver empty state	ed
 B20.2	share of a contact with a photo: the vCard carries PHOTO;ENCODING=b	edge.sh:P09
 B21.1	the People tile: a photo removed while its bubble is on screen (the next event uses another photo)	edge.sh:P10
 B21.2	every photo removed mid-cycle: the static pattern after the current event	E11	its no-photo leg, plus edge.sh:P10
-B21.3	a photo that fails to decode: skipped, `[people] tile: photo <lookup> skipped: <why>`	JVM: PeopleFeed's skip test	not storable on a device (r3 V6)
+B21.3	a photo that fails to decode: skipped, `[people] tile: photo <lookup> skipped: <why>`	JVM: PeopleTileRulesTest	not storable on a device (r3 V6)
 B21.4	the tile pinned small / medium / wide: the face scales per phase 01's tile rules	edge.sh:P10
 B22.1	phase 06 not yet built: Text goes to the SMS role holder, Call through Telecom to the dialer role holder	E12
 B23.1	liveness: reboot, force-stop (the receiver is manifest-registered; the People feed restarts with the shell)	E6	its reboot leg; edge.sh:P10 for the feed after a force-stop
