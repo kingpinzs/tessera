@@ -1,6 +1,7 @@
 package app.tileshell.people
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
@@ -50,8 +51,12 @@ class PeopleActivity : ComponentActivity() {
                 Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
                     PeopleApp(
                         nav = nav,
-                        onBack = { onBackPressedDispatcher.onBackPressed() },
-                        onWindows = { goHome() },
+                        host = PeopleHost(
+                            onBack = { onBackPressedDispatcher.onBackPressed() },
+                            onWindows = { goHome() },
+                            finishPick = ::finishPick,
+                            finish = { finish() },
+                        ),
                     )
                 }
             }
@@ -78,6 +83,21 @@ class PeopleActivity : ComponentActivity() {
     /** The intent's own type, else what the Contacts provider says its data is; never another provider's answer. */
     private fun resolvedType(intent: Intent): String? = intent.type
         ?: intent.data?.takeIf { it.scheme == "content" && it.authority == PeopleIntents.AUTHORITY }?.let { runCatching { contentResolver.getType(it) }.getOrNull() }
+
+    /**
+     * Ends an `ACTION_PICK` (Trust (c)): the result is the ONE contact lookup URI or phone data URI the user tapped,
+     * with a read grant for that URI alone. Null — Back, or nothing to pick — cancels.
+     */
+    private fun finishPick(picked: Uri?) {
+        if (picked == null) {
+            setResult(RESULT_CANCELED)
+            Diagnostics.add("people", "pick: cancelled")
+        } else {
+            setResult(RESULT_OK, Intent().setData(picked).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
+            Diagnostics.add("people", "pick: one ${if (picked.pathSegments.firstOrNull() == "data") "phone" else "contact"} URI granted (read)")
+        }
+        finish()
+    }
 
     private fun goHome() {
         startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))

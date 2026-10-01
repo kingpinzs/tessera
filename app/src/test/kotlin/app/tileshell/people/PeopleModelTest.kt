@@ -71,7 +71,9 @@ class PeopleModelTest {
     @Test
     fun `the avatar's initial`() {
         assertEquals("B", PeopleBuckets.initial("Boss"))
-        assertEquals("1", PeopleBuckets.initial("+1 555 000 0009"))
+        assertEquals("#", PeopleBuckets.initial("+1 555 000 0009"))
+        assertEquals("#", PeopleBuckets.initial(PeopleBuckets.NO_NAME))
+        assertEquals("A", PeopleBuckets.initial("ann@example.com"))
         assertEquals("张", PeopleBuckets.initial("张伟"))
         assertEquals("#", PeopleBuckets.initial("()"))
     }
@@ -180,7 +182,7 @@ class PeopleModelTest {
 
     @Test
     fun `Text the group is each member's first mobile number`() {
-        assertEquals("smsto:+15550000001;+15550000002", GroupRules.smsTo(listOf("+15550000001", "+15550000002")))
+        assertEquals("smsto:+15550000001;+15550000002", GroupRules.smsTo(listOf("+1 555 000 0001", "+1 (555) 000-0002")))
     }
 
     @Test
