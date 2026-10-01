@@ -2,7 +2,6 @@ package app.tileshell.cortana.action
 
 import android.content.ComponentName
 import android.content.ContentUris
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.media.session.MediaController
@@ -488,55 +487,75 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
     }
 
     private fun insertEvent(pending: Pending.AddEvent): Outcome {
-        // Only ever the shell's own local calendar: never an account calendar, so never a work one (J6).
+        // Only ever the shell's own local calendar: never an account calendar, so never a work one (J6). A lookup that
+        // failed returns null here too, and nothing is created after it (phase 16, r3 D7).
         val calendarId = app.tileshell.feeds.LocalCalendar.id(context) ?: return answer("I don't have a calendar to add that to.")
-        return runCatching {
-            val values = ContentValues().apply {
-                put(CalendarContract.Events.CALENDAR_ID, calendarId)
-                put(CalendarContract.Events.TITLE, pending.title)
-                put(CalendarContract.Events.DTSTART, pending.beginMs)
-                put(CalendarContract.Events.DTEND, pending.endMs)
-                put(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
+        // Phase 16: the insert is the calendar write layer's, behind the write guard, as every CalendarContract write of
+        // the shell is; the guard re-reads the calendar and allows Tess the Tessera calendar alone.
+        val values = app.tileshell.calendar.EventValues(
+            title = pending.title, location = "", description = "", dtstart = pending.beginMs, dtend = pending.endMs,
+            duration = null, allDay = false, timezone = TimeZone.getDefault().id, rrule = null,
+        )
+        return when (val written = app.tileshell.calendar.CalendarWrites.insertEvent(context, app.tileshell.calendar.CalendarWriteGuard.Path.TESS, calendarId, values, emptyList())) {
+            is app.tileshell.calendar.WriteResult.Ok -> {
+                Diagnostics.add("cortana", "calendar event inserted into the shell's local calendar ($calendarId): ${ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, written.value)}")
+                answer("Added to your calendar.")
             }
-            val uri = context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)
-            Diagnostics.add("cortana", "calendar event inserted into the shell's local calendar ($calendarId): $uri")
-            answer("Added to your calendar.")
-        }.getOrElse {
-            Diagnostics.add("cortana", "calendar insert failed: $it")
-            answer("I couldn't add that.")
+            else -> {
+                Diagnostics.add("cortana", "calendar insert failed: $written")
+                answer("I couldn't add that.")
+            }
         }
     }
 
+    /**
+     * Phase 16 (r3 D1): Tess deletes only an event of the Tessera calendar. The title is matched in that calendar
+     * alone; a title found only on another calendar — an account's, Birthdays — gets no Delete card, because Tess
+     * never writes to a calendar that is not the shell's own (Q2 rule 1: "by any path (app, Tess, Sync)").
+     */
     private fun deleteEvent(title: String): Outcome {
-        val event = calendarEvents(System.currentTimeMillis(), 30L * 86_400_000L)
-            .firstOrNull { it.second.equals(title, ignoreCase = true) }
-            ?: calendarEvents(System.currentTimeMillis(), 30L * 86_400_000L)
-                .firstOrNull { it.second.contains(title, ignoreCase = true) }
-            ?: return answer("I don't see $title on your calendar.")
+        val events = calendarEvents(System.currentTimeMillis(), 30L * 86_400_000L)
+        val local = app.tileshell.feeds.LocalCalendar.existingId(context)
+        val mine = events.filter { it.calendarId == local }
+        val event = mine.firstOrNull { it.title.equals(title, ignoreCase = true) }
+            ?: mine.firstOrNull { it.title.contains(title, ignoreCase = true) }
+        if (event == null) {
+            val elsewhere = events.any { it.title.equals(title, ignoreCase = true) } || events.any { it.title.contains(title, ignoreCase = true) }
+            return answer(if (elsewhere) "That event isn't in your ${app.tileshell.feeds.LocalCalendar.ACCOUNT_NAME} calendar." else "I don't see $title on your calendar.")
+        }
         return Outcome(
             "Delete this event?",
             Card(
                 CardKind.DELETE_CONFIRM, "Delete this event?", caption = "Event",
-                fields = listOf(CardField("event_title", event.second)),
+                fields = listOf(CardField("event_title", event.title)),
                 buttons = listOf(CardButton("Delete", CardAction.CONFIRM), CardButton("Cancel", CardAction.CANCEL)),
                 callout = "you can say Yes, No, or Cancel",
             ),
-            pending = Pending.DeleteEvent(event.first, event.second),
+            pending = Pending.DeleteEvent(event.id, event.title),
             awaiting = CommandMatcher.Awaiting.CARD,
         )
     }
 
-    private fun removeEvent(pending: Pending.DeleteEvent): Outcome = runCatching {
-        val uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, pending.eventId)
-        val rows = context.contentResolver.delete(uri, null, null)
-        Diagnostics.add("cortana", "calendar event ${pending.eventId} deleted rows=$rows")
-        answer("Deleted.")
-    }.getOrElse { answer("I couldn't delete that.") }
+    /**
+     * The delete goes through the calendar write layer, whose guard re-reads the event's calendar and refuses any but
+     * Tessera. A synced event is deleted "here" only: its copy in the account calendar is kept and the mapping dropped.
+     */
+    private fun removeEvent(pending: Pending.DeleteEvent): Outcome =
+        when (val deleted = app.tileshell.calendar.CalendarSync.delete(context, app.tileshell.calendar.CalendarWriteGuard.Path.TESS, pending.eventId, both = false)) {
+            is app.tileshell.calendar.WriteResult.Ok -> {
+                Diagnostics.add("cortana", "calendar event ${pending.eventId} deleted")
+                answer("Deleted.")
+            }
+            else -> {
+                Diagnostics.add("cortana", "calendar event ${pending.eventId} not deleted: $deleted")
+                answer("I couldn't delete that.")
+            }
+        }
 
     private fun calendarToday(): Outcome {
         val events = calendarEvents(System.currentTimeMillis(), 86_400_000L)
         if (events.isEmpty()) return answer("You have nothing on your calendar today.")
-        val names = events.map { it.second }
+        val names = events.map { it.title }
         val spoken = "You have " + when (names.size) {
             1 -> names.first()
             2 -> "${names[0]} and ${names[1]}"
@@ -694,19 +713,26 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
         return Outcome(spoken, null, close = true)
     }
 
-    /** (event id, title) for events starting inside [windowMs] from [fromMs]. */
-    private fun calendarEvents(fromMs: Long, windowMs: Long): List<Pair<Long, String>> = runCatching {
+    private data class CalendarEvent(val id: Long, val title: String, val calendarId: Long)
+
+    /**
+     * The events with an instance inside [windowMs] from [fromMs], every calendar's — less a synced copy while its
+     * Tessera original exists (phase 16, Q-16-2: one event, named once).
+     */
+    private fun calendarEvents(fromMs: Long, windowMs: Long): List<CalendarEvent> = runCatching {
         val uri = CalendarContract.Instances.CONTENT_URI.buildUpon()
             .appendPath(fromMs.toString()).appendPath((fromMs + windowMs).toString()).build()
+        val copies = app.tileshell.calendar.SyncedCopies.hiddenEventIds(context)
         context.contentResolver.query(
             uri,
-            arrayOf(CalendarContract.Instances.EVENT_ID, CalendarContract.Instances.TITLE, CalendarContract.Instances.BEGIN),
+            arrayOf(CalendarContract.Instances.EVENT_ID, CalendarContract.Instances.TITLE, CalendarContract.Instances.BEGIN, CalendarContract.Instances.CALENDAR_ID),
             null, null, "${CalendarContract.Instances.BEGIN} ASC",
         )?.use { cursor ->
             buildList {
                 while (cursor.moveToNext()) {
                     val title = cursor.getString(1) ?: continue
-                    add(cursor.getLong(0) to title)
+                    if (cursor.getLong(0) in copies) continue
+                    add(CalendarEvent(cursor.getLong(0), title, cursor.getLong(3)))
                 }
             }
         }.orEmpty()

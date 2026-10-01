@@ -1,0 +1,25 @@
+==============================================================================
+ROW A_SMOKE — data layer: the build starts and the feeds run
+at            2026-10-01T10:02:35-06:00
+driver        a_smoke.sh blob fa02b09f0dab68142714c073dda5f92f43fa4440
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     1e901213749df0bc 337518804 bytes
+apk installed aa4a4c963cc290e4
+apk match     yes (aa4a4c963cc290e4)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the launcher's process started                              contains [[app] process start]
+PASS  feeds started                                               contains [[app] feeds started (process start)]
+PASS  the Birthdays writer ran from startFeeds                    contains [[calendar] birthdays:]
+birthdays line: [calendar] birthdays: 0 synced
+PASS  CalendarFeed refreshed                                      contains [[calendar] refresh (start): access=true]
+PASS  the face is published under the slot key                    contains [[engine] publish feed:calendar]
+PASS  the face is published under the Calendar activity's component key (r3 D12)  contains [[engine] publish cmp:app.tileshell/app.tileshell.calendar.CalendarActivity]
+PASS  exported.py: the APK's exported components equal the allow-list  = 0
+20 exported in app.tileshell, 20 on the allow-list
+PASS  the reminder receiver is registered for EVENT_REMINDER      contains [CalendarReminderReceiver]
+PASS  Calendar resumes                                            = app.tileshell/.calendar.CalendarActivity
+PASS  no new crash of the shell                                   = 0
+------------------------------------------------------------------------------
+A_SMOKE: 10 passed, 0 failed, 0 recorded
