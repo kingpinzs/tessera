@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E10 — the locked commands
-at            2026-09-30T19:23:47-06:00
+at            2026-09-30T22:27:34-06:00
 driver        e10.sh blob b82c3e098b9636f4b1a0084388a8dafd846ffe4f
 harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
-apk built     e5cb1e902be4b97d 340385592 bytes
-apk installed a869ae73bc37297d
-apk match     yes (a869ae73bc37297d)
+apk built     ce2289a556696025 341942604 bytes
+apk installed aaf9a1d8ed536d25
+apk match     yes (aaf9a1d8ed536d25)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -21,23 +21,23 @@ PASS  locked: weather shows no Unlock card                        does not conta
 PASS  locked: an alarm is set directly                            contains [Alarm set for]
 FAIL  and it reaches DeskClock with the keyguard still up         should not be [0]
 PASS  the keyguard never came down for it                         contains [isKeyguardShowing=true]
-      media_session after 'play music': 1
+      media_session after 'play music': 7
 PASS  locked: text_contact shows Unlock to continue (H12)         = yes
-FAIL  locked: text_contact was UNDERSTOOD, then refused           does not contain [text_contact]:     2026-09-30 19:27:07.008 wall=1790818027008 [match] "THE TEXT MA'M I'M ON MY WAY" -> TextContact(name=Ma'm, message=i'm on my way)
+FAIL  locked: text_contact was UNDERSTOOD, then refused           does not contain [text_contact]:     2026-09-30 22:29:41.420 wall=1790828981420 [match] "THE TEXT MA'AM I'M ON MY WAY" -> TextContact(name=Ma'am, message=i'm on my way)
 PASS  locked: call_contact shows Unlock to continue (H12)         = yes
-FAIL  locked: call_contact was UNDERSTOOD, then refused           does not contain [call_contact]:     2026-09-30 19:27:46.142 wall=1790818066142 [match] "CALL MA'AM" -> CallContact(name=Ma'am)
+FAIL  locked: call_contact was UNDERSTOOD, then refused           does not contain [call_contact]:     2026-09-30 22:30:02.300 wall=1790829002300 [match] "CALL MA'AM" -> CallContact(name=Ma'am)
 PASS  locked: calendar_query shows Unlock to continue (H12)       = yes
-FAIL  locked: calendar_query was UNDERSTOOD, then refused         does not contain [calendar_query]:     2026-09-30 19:28:25.547 wall=1790818105547 [match] "WHAT'S ON MY CALENDAR" -> WhatsOnMyCalendar
+FAIL  locked: calendar_query was UNDERSTOOD, then refused         does not contain [calendar_query]:     2026-09-30 22:30:23.418 wall=1790829023418 [match] "WHAT'S ON MY CALENDAR" -> WhatsOnMyCalendar
 PASS  locked: reminder_time shows Unlock to continue (H12)        = yes
-FAIL  locked: reminder_time was UNDERSTOOD, then refused          does not contain [reminder_time]:     2026-09-30 19:29:06.275 wall=1790818146275 [match] "REMIND ME TO TAKE OUT THE BINS AT EIGHT P M" -> SetReminder(text=take out the bins, timeMs=1790820000000, recurrence=ONCE, placeName=null, personName=null)
+FAIL  locked: reminder_time was UNDERSTOOD, then refused          does not contain [reminder_time]:     2026-09-30 22:30:45.605 wall=1790829045605 [match] "REMIND ME TO TAKE OUT THE BINS AT EIGHT P M" -> SetReminder(text=take out the bins, timeMs=1790906400000, recurrence=ONCE, placeName=null, personName=null)
 PASS  locked: directions shows Unlock to continue (H12)           = yes
-FAIL  locked: directions was UNDERSTOOD, then refused             does not contain [directions]:     2026-09-30 19:29:46.130 wall=1790818186130 [match] "THE DIRECTIONS TO THE AIRPORT" -> Directions(destination=the airport)
+FAIL  locked: directions was UNDERSTOOD, then refused             does not contain [directions]:     2026-09-30 22:31:06.915 wall=1790829066915 [match] "THE DIRECTIONS TO THE AIRPORT" -> Directions(destination=the airport)
 PASS  locked: take_photo shows Unlock to continue (H12)           = yes
-FAIL  locked: take_photo was UNDERSTOOD, then refused             does not contain [take_photo]:     2026-09-30 19:30:25.459 wall=1790818225459 [match] "TAKE A PHOTO" -> TakePhoto
+FAIL  locked: take_photo was UNDERSTOOD, then refused             does not contain [take_photo]:     2026-09-30 22:31:28.104 wall=1790829088104 [match] "TAKE A PHOTO" -> TakePhoto
 PASS  locked: take_note shows Unlock to continue (H12)            = yes
-FAIL  locked: take_note was UNDERSTOOD, then refused              does not contain [take_note]:     2026-09-30 19:30:44.873 wall=1790818244873 [match] "TAKE A NOTE" -> TakeNote(text=null)
+FAIL  locked: take_note was UNDERSTOOD, then refused              does not contain [take_note]:     2026-09-30 22:31:49.061 wall=1790829109061 [match] "TAKE A NOTE" -> TakeNote(text=null)
 PASS  locked: calendar_add shows Unlock to continue (H12)         = yes
-FAIL  locked: calendar_add was UNDERSTOOD, then refused           does not contain [calendar_add]:     2026-09-30 19:31:06.315 wall=1790818266315 [match] "ADD A MEETING CALLED STAND UP TO MY CALENDAR AT TEN A M" -> AddCalendarEvent(title=stand up, beginMs=1790870400000)
+FAIL  locked: calendar_add was UNDERSTOOD, then refused           does not contain [calendar_add]:     2026-09-30 22:32:10.570 wall=1790829130570 [match] "ADD A MEETING CALLED STAND UP TO MY CALENDAR AT TEN A M" -> AddCalendarEvent(title=stand up, beginMs=1790870400000)
 PASS  locked: open an app shows Unlock to continue                = yes
 PASS  nothing was sent                                            = 0
 PASS  nothing was dialled                                         = 0

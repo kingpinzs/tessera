@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E8 — locked: gated with its caption, then unlocked, the doors line and the pane
-at            2026-09-30T19:55:06-06:00
-driver        e8.sh blob 9ea04bd9927315ebb0ab77cde306210c3f84d4df
+at            2026-09-30T22:19:05-06:00
+driver        e8.sh blob c1b3b290f46c530a76d44fdefb551e1cc00b5761
 harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
-apk built     e5cb1e902be4b97d 340385592 bytes
-apk installed a869ae73bc37297d
-apk match     yes (a869ae73bc37297d)
+apk built     ce2289a556696025 341942604 bytes
+apk installed aaf9a1d8ed536d25
+apk match     yes (aaf9a1d8ed536d25)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -21,20 +21,25 @@ PASS  Tess is open over the keyguard                              = yes
 PASS  locked: speak.sh pod_bay_doors exits 0                      = 0
 PASS  locked: C-30 asr levels heard=true                          contains [(heard=true)]
 PASS  locked: C-30 no 'no speech in the capture'                  does not contain [asr: no speech in the capture]
-      locked: reply [Unlock your phone to continue.] RMS -29.59 dBFS; record: recorded /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E8/locked-reply.wav: 28 s window, 832 packets, 8.30 s of device audio rc=0 
+      locked: reply [Unlock your phone to continue.] RMS -29.70 dBFS; record: recorded /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E8/locked-reply.wav: 28 s window, 816 packets, 8.14 s of device audio rc=0 
 PASS  locked: the match                                           contains [-> OpenPodBay(doors=true)]
 PASS  locked: the Unlock card                                     = yes
 PASS  locked: its caption restates the request                    = Open the pod bay
 PASS  locked: reply_since MARK                                    = Unlock your phone to continue.
 PASS  locked: the keyguard is still showing                       = isKeyguardShowing=true
 PASS  locked: no [podbay] opened                                  does not contain [[podbay] opened]
+PASS  Tess's window is showing before the tap (dumpsys window)    = yes
 PASS  the Unlock button raises the keyguard                       = isKeyguardShowing=true
 PASS  the Unlock button shows the PIN pad                         = yes
 PASS  Tess has stepped aside for it                               = no
 PASS  Tess's window is not showing (dumpsys window)               = no
 PASS  unlocked                                                    = isKeyguardShowing=false
+      dismissed wall=1790828400962; first speak wall=1790828400962; first [podbay] opened wall=1790828407211
+PASS  the unlock was delivered (unlock bridge: dismissed)         != 
+PASS  nothing was said before the unlock                          = yes
+PASS  nothing opened before the unlock                            = yes
 PASS  after unlock: reply_since MARK2 is the doors line           = I'm afraid I can't do that, Dave.
-      after unlock: utterance e98cda1f-e109-482e-bb17-1246e5ddcad5 speaking done wall=1790819769334; opened by voice (doors) wall=1790819769618
+      after unlock: utterance e32fb678-8f0a-4407-aa30-065f2467ea9b speaking done wall=1790828406937; opened by voice (doors) wall=1790828407211
 PASS  after unlock: [podbay] opened by voice (doors)              != 
 PASS  after unlock: the pane opened AFTER the reply was spoken    = yes
 PASS  after unlock: no session window                             = no
@@ -42,4 +47,4 @@ PASS  after unlock: the dump shows pod_bay                        = yes
       restored: PIN cleared, lock screen disabled (true), awake
 PASS  restore: the media volume                                   = 15
 ------------------------------------------------------------------------------
-E8: 26 passed, 0 failed, 0 recorded
+E8: 30 passed, 0 failed, 0 recorded

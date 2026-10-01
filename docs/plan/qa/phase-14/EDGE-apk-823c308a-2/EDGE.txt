@@ -1,0 +1,73 @@
+==============================================================================
+ROW EDGE — gate-review device checks and the uncovered edge cases
+at            2026-09-30T21:54:23-06:00
+driver        edge.sh blob 88e6f7488eac5ce82e89dfd52fefdfad6029e2ef
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     91f289b8af3cf671 340387016 bytes
+apk installed 823c308a8fb61226
+apk match     yes (823c308a8fb61226)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+W: Location off, the permission held, a cached report
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+PASS  W: before: a weather row (a report is cached)               = yes
+PASS  W: Location is off                                          = false
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+PASS  W: the location line, with the report cached                = Location is off — turn it on in Setup
+      W: resumes in the slice: 4 bars lines, pages: POD_BAY START POD_BAY START
+PASS  W: the slice saw Start resume at least four times           = yes
+PASS  W: and the pod bay come into view                           contains [[start] page=POD_BAY]
+PASS  W: no weather refresh from the location line                = 0
+PASS  W: and no request left the device                           = 0
+PASS  W: Location is back on                                      = true
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+PASS  W: Location back on: the feed looks again                   contains [[weather] refresh start reason=access restored]
+PASS  W: and the rows return                                      = yes
+A: calendar access granted with nothing on the calendar
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  A: revoked: the access line                                 = Calendar access is off — turn it on in Setup
+      A: the page after the resume: pod_bay=yes
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  A: granted, nothing on the calendar: the empty line, not the access line  = Nothing on your calendar today
+P1: the phrase while the pod bay is already open
+PASS  P1: the line is spoken                                      = Opening the pod bay.
+PASS  P1: still the pod bay                                       = yes
+PASS  P1: nothing moved (no page line)                            = 0
+P2: close on Start
+PASS  P2: the line is spoken                                      = Closing the pod bay.
+PASS  P2: Start alone                                             = yes
+PASS  P2: nothing moved (no page line)                            = 0
+P3: open the bay is OpenApp; one-word podbay still opens
+PASS  P3: open the bay → OpenApp                                contains [-> OpenApp(name=the bay)]
+PASS  P3: its reply                                               = I don't see an app called the bay.
+PASS  P3: no [podbay] opened                                      does not contain [[podbay] opened]
+PASS  P3: one-word podbay → OpenPodBay(doors=true)              contains [-> OpenPodBay(doors=true)]
+PASS  P3: and the pod bay opens                                   contains [[podbay] opened by voice (doors)]
+PASS  P3: the dump shows pod_bay                                  = yes
+P4: the session dismissed mid-line
+PASS  P4: the doors line was started                              != 
+PASS  P4: and cancelled by the dismissal                          contains [speaking done a207c078-c586-4495-97c4-94fb7063c3d6 cancelled=true]
+PASS  P4: the pending open is still consumed                      contains [[podbay] opened by voice (doors)]
+PASS  P4: the dump shows pod_bay                                  = yes
+PASS  P4: no session window                                       = no
+G1: a pan that starts on a bottom-row tile
+PASS  G1: a bottom-row tile on Start                              != 
+      G1: swipe from the dock tile at 180,2058
+PASS  G1: the pod bay opens                                       = yes
+PASS  G1: opened by swipe                                         contains [[podbay] opened by swipe]
+PASS  G1: and the tile was not launched                           does not contain [[launch] tile=]
+C: 20 events today → 6 rows; a long title stays one line
+PASS  C: the QA calendar                                          != 
+      C: 120 minutes left today
+      C: 20 events inserted
+PASS  C: more events than the cap                                 = yes
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+FAIL  C: the Agenda pod shows its cap of 6 rows                   expected [6] got [0]
+      C: long row [   ] next row [   ] pod [10 206 1064 338]
+FAIL  C: row 0 is the long title                                  does not contain [QA long title]: 
+PASS  C: the long title is one line (the next row's height)       = 0
+FAIL  C: and stays inside the pod                                 expected [yes] got [no]
+      restored: location true, calendar granted, QA calendar removed
+------------------------------------------------------------------------------
+EDGE: 36 passed, 3 failed, 0 recorded

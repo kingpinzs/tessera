@@ -1,0 +1,44 @@
+==============================================================================
+ROW E16 — diagnostics coverage: every Decisions line in this build's saved rings
+at            2026-09-30T20:04:13-06:00
+driver        e16.sh blob dd875b69dad3e41606706202b611b94ca0869f9c
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     e5cb1e902be4b97d 340385592 bytes
+apk installed a869ae73bc37297d
+apk match     yes (a869ae73bc37297d)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      device apk: a869ae73bc37297d
+      rows: 16 on this build, 0 skipped; union 4214 lines
+PASS  at least one row ran on this build                          != 0
+PASS  the union holds [opened by swipe]                           contains [opened by swipe]
+PASS  the union holds [opened by voice]                           contains [opened by voice]
+PASS  the union holds [opened by voice (doors)]                   contains [opened by voice (doors)]
+PASS  the union holds [closed by back]                            contains [closed by back]
+PASS  the union holds [closed by home]                            contains [closed by home]
+PASS  the union holds [closed by swipe]                           contains [closed by swipe]
+PASS  the union holds [closed by voice]                           contains [closed by voice]
+PASS  the union holds [pods enabled: ]                            contains [pods enabled: ]
+PASS  the union holds [launch agenda -> ]                         contains [launch agenda -> ]
+PASS  the union holds [launch weather -> ]                        contains [launch weather -> ]
+PASS  the union holds [launch nowplaying -> ]                     contains [launch nowplaying -> ]
+PASS  the union holds [launch reminders -> ]                      contains [launch reminders -> ]
+PASS  the union holds [launch nowplaying failed: slot unassigned]  contains [launch nowplaying failed: slot unassigned]
+PASS  the union holds [launch reminders failed: no session]       contains [launch reminders failed: no session]
+PASS  the union holds [[start] page=POD_BAY]                      contains [[start] page=POD_BAY]
+PASS  the union holds [[start] page=START]                        contains [[start] page=START]
+PASS  the union holds [[start] page=APP_LIST]                     contains [[start] page=APP_LIST]
+PASS  the union holds [[start] home: page START]                  contains [[start] home: page START]
+PASS  the union holds [[fluent] pod_bay source=static]            contains [[fluent] pod_bay source=static]
+PASS  pod agenda: a rows line                                     != 
+PASS  pod agenda: an empty line                                   != 
+PASS  pod weather: a rows line                                    != 
+PASS  pod weather: an empty line                                  != 
+PASS  pod nowplaying: a rows line                                 != 
+PASS  pod nowplaying: an empty line                               != 
+PASS  pod reminders: a rows line                                  != 
+PASS  pod reminders: an empty line                                != 
+RECORD  launch <id> failed: ActivityNotFoundException (C-26: no row exercises it)  0 lines
+------------------------------------------------------------------------------
+E16: 28 passed, 0 failed, 1 recorded

@@ -1,0 +1,90 @@
+==============================================================================
+ROW EDGE — gate-review device checks and the uncovered edge cases
+at            2026-09-30T22:40:40-06:00
+driver        edge.sh blob ccaaed0645b9cee8e18d157f51db5322d825565d
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     ce2289a556696025 341942604 bytes
+apk installed aaf9a1d8ed536d25
+apk match     yes (aaf9a1d8ed536d25)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+W: Location off, the permission held, a cached report
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+FAIL  W: before: a weather row (a report is cached)               expected [yes] got [no]
+PASS  W: Location is off                                          = false
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+PASS  W: the location line, with the report cached                = Location is off — turn it on in Setup
+      W: resumes in the slice: 4 bars lines, pages: POD_BAY START POD_BAY START
+PASS  W: the slice saw Start resume at least four times           = yes
+PASS  W: and the pod bay come into view                           contains [[start] page=POD_BAY]
+PASS  W: no weather refresh from the location line                = 0
+PASS  W: and no request left the device                           = 0
+PASS  W: Location is back on                                      = true
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+PASS  W: Location back on: the feed looks again                   contains [[weather] refresh start reason=access restored]
+PASS  W: and the rows return                                      = yes
+A: calendar access granted with nothing on the calendar
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  A: revoked: the access line                                 = Calendar access is off — turn it on in Setup
+      A: the page after the resume: pod_bay=yes
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  A: granted, nothing on the calendar: the empty line, not the access line  = Nothing on your calendar today
+P1: the phrase while the pod bay is already open
+PASS  P1: the line is spoken                                      = Opening the pod bay.
+PASS  P1: still the pod bay                                       = yes
+PASS  P1: nothing moved (no page line)                            = 0
+P2: close on Start
+PASS  P2: the line is spoken                                      = Closing the pod bay.
+PASS  P2: Start alone                                             = yes
+PASS  P2: nothing moved (no page line)                            = 0
+P3: open the bay is OpenApp; one-word podbay still opens
+PASS  P3: open the bay → OpenApp                                contains [-> OpenApp(name=the bay)]
+PASS  P3: its reply                                               = I don't see an app called the bay.
+PASS  P3: no [podbay] opened                                      does not contain [[podbay] opened]
+PASS  P3: one-word podbay → OpenPodBay(doors=true)              contains [-> OpenPodBay(doors=true)]
+PASS  P3: and the pod bay opens                                   contains [[podbay] opened by voice (doors)]
+PASS  P3: the dump shows pod_bay                                  = yes
+P4: the session dismissed mid-line
+PASS  P4: the doors line was started                              != 
+PASS  P4: and cancelled by the dismissal                          contains [speaking done 65d758b7-5882-4192-a442-6eaaa953aaf3 cancelled=true]
+PASS  P4: the pending open is still consumed                      contains [[podbay] opened by voice (doors)]
+PASS  P4: the dump shows pod_bay                                  = yes
+PASS  P4: no session window                                       = no
+R1: another request drops the pending one
+PASS  R1: Tess dismissed over DeskClock                           contains [com.android.deskclock/]
+PASS  R1: the request was recorded                                contains [[podbay] request recorded: open (doors)]
+PASS  R1: and not consumed                                        does not contain [[podbay] opened]
+PASS  R1: the other request drops it                              contains [[podbay] request dropped: open (doors) (another request)]
+PASS  R1: and is answered                                         contains [It's ]
+PASS  R1: Start was not pulled over its result (DeskClock is still on top)  contains [com.android.deskclock/]
+PASS  R1: nothing opened                                          does not contain [[podbay] opened]
+PASS  R1: Home afterwards is Start alone                          = yes
+R2: a pending request lapses after 30 s
+PASS  R2: Tess dismissed over DeskClock                           contains [com.android.deskclock/]
+PASS  R2: the request was recorded                                contains [[podbay] request recorded: open (doors)]
+PASS  R2: it lapsed                                               contains [[podbay] request lapsed: open (doors) after ]
+PASS  R2: nothing opened                                          does not contain [[podbay] opened]
+PASS  R2: Home is Start alone, not the pod bay                    = yes
+G1: a pan that starts on a bottom-row tile
+PASS  G1: a bottom-row tile on Start                              != 
+      G1: swipe from the dock tile at 180,2058
+PASS  G1: the pod bay opens                                       = yes
+PASS  G1: opened by swipe                                         contains [[podbay] opened by swipe]
+PASS  G1: and the tile was not launched                           does not contain [[launch] tile=]
+C: 20 events today → 6 rows; a long title stays one line
+PASS  C: the QA calendar                                          != 
+      C: 72 minutes left today
+      C: 20 events inserted
+PASS  C: more events than the cap                                 = yes
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+      C: rows after 5 s (plus the dumps): 6
+PASS  C: the Agenda pod shows its cap of 6 rows                   = 6
+      C: long row [10 284 1064 338] next row [10 374 438 428] pod [10 206 1064 788]
+PASS  C: row 0 is the long title                                  contains [QA long title]
+PASS  C: the long title is one line (the next row's height)       = 54
+PASS  C: and stays inside the pod                                 = yes
+      restored: location true, calendar granted, QA calendar removed
+------------------------------------------------------------------------------
+EDGE: 51 passed, 1 failed, 0 recorded

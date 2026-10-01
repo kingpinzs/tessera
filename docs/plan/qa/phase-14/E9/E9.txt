@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E9 — from inside another app: DeskClock, the doors line, Start with the pod bay, Back twice to DeskClock
-at            2026-09-30T19:56:30-06:00
+at            2026-09-30T22:20:28-06:00
 driver        e9.sh blob b686edb292986eea27bab9ac755f55c160a79a4b
 harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
-apk built     e5cb1e902be4b97d 340385592 bytes
-apk installed a869ae73bc37297d
-apk match     yes (a869ae73bc37297d)
+apk built     ce2289a556696025 341942604 bytes
+apk installed aaf9a1d8ed536d25
+apk match     yes (aaf9a1d8ed536d25)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -17,11 +17,11 @@ PASS  Tess open over DeskClock                                    = yes
 PASS  doors: speak.sh pod_bay_doors exits 0                       = 0
 PASS  doors: C-30 asr levels heard=true                           contains [(heard=true)]
 PASS  doors: C-30 no 'no speech in the capture'                   does not contain [asr: no speech in the capture]
-      doors: reply [I'm afraid I can't do that, Dave.] RMS -29.88 dBFS; record: recorded /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E9/doors-reply.wav: 28 s window, 539 packets, 5.37 s of device audio rc=0 
+      doors: reply [I'm afraid I can't do that, Dave.] RMS -29.89 dBFS; record: recorded /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E9/doors-reply.wav: 28 s window, 539 packets, 5.37 s of device audio rc=0 
 PASS  doors: the match                                            contains [-> OpenPodBay(doors=true)]
 PASS  doors: the reply                                            = I'm afraid I can't do that, Dave.
-PASS  doors: the reply was audible (streamAudio)                  RMS -29.88 dBFS > -40
-      doors: utterance 33780981-df6b-410e-a9e7-c4f11e0e6880 speaking done wall=1790819816563; opened by voice (doors) wall=1790819816853
+PASS  doors: the reply was audible (streamAudio)                  RMS -29.89 dBFS > -40
+      doors: utterance f95b0471-668a-422b-b6bb-064c5f839844 speaking done wall=1790828453383; opened by voice (doors) wall=1790828453677
 PASS  doors: the reply finished (speaking done ... cancelled=false)  != 
 PASS  doors: [podbay] opened by voice (doors)                     != 
 PASS  doors: the pane opened AFTER the reply was spoken           = yes
