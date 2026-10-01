@@ -1,7 +1,7 @@
 ==============================================================================
 ROW EDGE — gate-review device checks and the uncovered edge cases
-at            2026-09-30T22:51:31-06:00
-driver        edge.sh blob 31530ba996f308a96fe11f2e8b26d749b53a5a32
+at            2026-09-30T23:54:12-06:00
+driver        edge.sh blob c8e5a28a53388cdbc8658c3cd80fcead77f07f80
 harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
 apk built     ce2289a556696025 341942604 bytes
 apk installed aaf9a1d8ed536d25
@@ -38,7 +38,11 @@ P2: close on Start
 PASS  P2: the line is spoken                                      = Closing the pod bay.
 PASS  P2: Start alone                                             = yes
 PASS  P2: nothing moved (no page line)                            = 0
-P3: open the bay is OpenApp; one-word podbay still opens
+P3: open the pod and open the bay are OpenApp, exactly; one-word podbay still opens
+PASS  P3: open the pod → OpenApp(name=the pod)                  contains ["open the pod" -> OpenApp(name=the pod)]
+PASS  P3: its reply, exactly                                      = I don't see an app called the pod.
+PASS  P3: no [podbay] opened                                      does not contain [[podbay] opened]
+PASS  P3: no pod_bay                                              = no
 PASS  P3: open the bay → OpenApp                                contains [-> OpenApp(name=the bay)]
 PASS  P3: its reply                                               = I don't see an app called the bay.
 PASS  P3: no [podbay] opened                                      does not contain [[podbay] opened]
@@ -47,7 +51,7 @@ PASS  P3: and the pod bay opens                                   contains [[pod
 PASS  P3: the dump shows pod_bay                                  = yes
 P4: the session dismissed mid-line
 PASS  P4: the doors line was started                              != 
-PASS  P4: and cancelled by the dismissal                          contains [speaking done 04f57382-84b6-4906-a65b-bd5f6078709c cancelled=true]
+PASS  P4: and cancelled by the dismissal                          contains [speaking done 9dd944fc-534f-4f19-b365-e55c0c4c10ff cancelled=true]
 PASS  P4: the pending open is still consumed                      contains [[podbay] opened by voice (doors)]
 PASS  P4: the dump shows pod_bay                                  = yes
 PASS  P4: no session window                                       = no
@@ -74,16 +78,16 @@ PASS  G1: opened by swipe                                         contains [[pod
 PASS  G1: and the tile was not launched                           does not contain [[launch] tile=]
 C: 20 events today → 6 rows; a long title stays one line
 PASS  C: the QA calendar                                          != 
-      C: 61 minutes left today
+      C: 1438 minutes left today
       C: 20 events inserted
 PASS  C: more events than the cap                                 = yes
       scroll_to_node pod:agenda: 0 swipe(s), found=yes
       C: rows after 5 s (plus the dumps): 6
 PASS  C: the Agenda pod shows its cap of 6 rows                   = 6
-      C: long row [10 284 1064 338] next row [10 374 438 428] pod [10 206 1064 788]
+      C: long row [10 284 1064 338] next row [10 374 442 428] pod [10 206 1064 788]
 PASS  C: row 0 is the long title                                  contains [QA long title]
 PASS  C: the long title is one line (the next row's height)       = 54
 PASS  C: and stays inside the pod                                 = yes
       restored: location true, calendar granted, QA calendar removed
 ------------------------------------------------------------------------------
-EDGE: 52 passed, 0 failed, 0 recorded
+EDGE: 56 passed, 0 failed, 0 recorded
