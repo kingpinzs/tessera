@@ -153,4 +153,22 @@ class MusicRulesTest {
     fun `no sessions at all is not an error`() {
         assertNull(MusicRules.pick(emptyList<Pair<String, Boolean>>()) { it.second })
     }
+
+    @Test
+    fun `the Now playing pod keeps a session that is skipping, seeking or connecting`() {
+        // Phase 14 gate review: these are still the session playing; the pod must not drop to "Nothing playing" mid-skip.
+        listOf(
+            PlaybackState.STATE_PLAYING, PlaybackState.STATE_PAUSED, PlaybackState.STATE_BUFFERING,
+            PlaybackState.STATE_SKIPPING_TO_NEXT, PlaybackState.STATE_SKIPPING_TO_PREVIOUS,
+            PlaybackState.STATE_SKIPPING_TO_QUEUE_ITEM, PlaybackState.STATE_FAST_FORWARDING,
+            PlaybackState.STATE_REWINDING, PlaybackState.STATE_CONNECTING,
+        ).forEach { assertTrue("state $it", MusicRules.podShows(it)) }
+    }
+
+    @Test
+    fun `the Now playing pod drops a session that is stopped, idle or in error`() {
+        // E3: `dispatch stop` leaves state NONE with the track's metadata still there.
+        listOf(PlaybackState.STATE_STOPPED, PlaybackState.STATE_NONE, PlaybackState.STATE_ERROR)
+            .forEach { assertFalse("state $it", MusicRules.podShows(it)) }
+    }
 }

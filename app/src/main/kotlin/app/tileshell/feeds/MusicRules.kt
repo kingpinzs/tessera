@@ -58,7 +58,11 @@ object MusicRules {
      * STOPPED, NONE or in ERROR — which keeps its metadata after a stop (E3's `dispatch stop` left `state=NONE` with the
      * track) — is not now playing, and the pod says "Nothing playing". The tile keeps its own idle rule.
      */
-    fun podShows(state: Int): Boolean = isPlaying(state) || state == PlaybackState.STATE_PAUSED
+    fun podShows(state: Int): Boolean =
+        // Everything but the three "not playing" states: a session that is skipping, seeking or connecting is still
+        // the one playing, and dropping the pod to "Nothing playing" mid-skip took its controls from under the finger
+        // (gate review).
+        state != PlaybackState.STATE_STOPPED && state != PlaybackState.STATE_NONE && state != PlaybackState.STATE_ERROR
 
     /**
      * THE REPUBLISH RULE, and the fix for the defect phase 02 handed over: MusicFeed republished about

@@ -53,6 +53,17 @@ class BackHistorySurfacesTest {
     }
 
     @Test
+    fun `of the shell's own pages only Start and its catalog apps count`() {
+        // Gate review of L14-2: a ring over the lock screen must not become a Back target through the package fallback.
+        val shellApps = setOf("app.tileshell.weather.WeatherActivity", "app.tileshell.music.MusicActivity")
+        assertTrue(BackHistory.shellPageCounts("app.tileshell.StartActivity", shellApps))
+        assertTrue(BackHistory.shellPageCounts("app.tileshell.weather.WeatherActivity", shellApps))
+        assertFalse(BackHistory.shellPageCounts("app.tileshell.clock.RingActivity", shellApps))
+        assertFalse(BackHistory.shellPageCounts("app.tileshell.cortana.CortanaUnlockActivity", shellApps))
+        assertFalse(BackHistory.shellPageCounts("app.tileshell.cortana.CortanaPermissionActivity", shellApps))
+    }
+
+    @Test
     fun `another keyboard's page still neither counts nor ends the continuation`() {
         assertNull(pick(clock, KeyguardShown, keyboardPage, clock, start))
     }

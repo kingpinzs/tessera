@@ -294,8 +294,11 @@ private fun PodFrame(pod: PodId, content: PodBayRules.Content, onHeader: (Rect?)
 private fun AgendaPod(onLaunch: (PodId, PodTarget, Rect?) -> Unit) {
     val context = LocalContext.current
     val items by CalendarFeed.agenda.collectAsState()
-    // Read with the feed's own refresh: a grant or revoke restarts the feed (a revoke kills the process).
-    val access = CalendarFeed.hasAccess(context)
+    // Read again on every resume: a grant made in Setup with nothing on the calendar changes no row (the agenda goes
+    // from empty to empty), so nothing else would redraw the "Calendar access is off" line (gate review). A revoke
+    // kills the process. The read is the permission check alone.
+    var access by remember { mutableStateOf(CalendarFeed.hasAccess(context)) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { access = CalendarFeed.hasAccess(context) }
     val content = PodBayRules.agenda(access, items) { ReminderText.time(context, it) }
     val open: (Rect?) -> Unit = { onLaunch(PodId.AGENDA, PodTarget.SlotApp(Slot.CALENDAR), it) }
     PodFrame(
@@ -314,8 +317,9 @@ private fun WeatherPod(visible: Boolean, onLaunch: (PodId, PodTarget, Rect?) -> 
     val noLocation = content is PodBayRules.Content.Empty && content.reason == "no location"
     // The line sends the user to Setup; coming back, the pod must not keep saying "off" until the feed's 30-minute
     // refresh (E4 run 1: 90 s after the grant it still did). While it shows that line, Start resuming or the page coming
-    // into view asks the feed to look again — the Weather app's own retry, WeatherFeed.onAppResumed().
-    val retry = { if (noLocation) WeatherFeed.onAppResumed() }
+    // into view asks the feed whether access is back — and only then does the feed refresh (WeatherFeed.onAccessLineShown:
+    // no request leaves the device while Location is still off or the permission still missing).
+    val retry = { if (noLocation) WeatherFeed.onAccessLineShown() }
     LaunchedEffect(visible) { if (visible) retry() }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { retry() }
     PodFrame(
