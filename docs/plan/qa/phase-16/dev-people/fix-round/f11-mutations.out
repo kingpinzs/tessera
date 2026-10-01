@@ -1,0 +1,11 @@
+P6 authority prefix without its trailing slash | CAUGHT (gradle rc=1, 18 tests run, 1 failed) | anAuthorityThatOnlyBeginsLikeContactsIsAnotherProvider
+P7 INSERT by type while the data is a foreign URI | CAUGHT (gradle rc=1, 18 tests run, 1 failed) | insertByTypeIsOnlyForAnIntentWithNoData
+P8 INSERT_OR_EDIT whatever the type or data | CAUGHT (gradle rc=1, 18 tests run, 2 failed) | anAuthorityThatOnlyBeginsLikeContactsIsAnotherProvider; insertOrEditNeedsTheContactTypeOrTheContactsUri
+P9 lookup/<key>/<id> accepts an id of 0 or less | CAUGHT (gradle rc=1, 18 tests run, 1 failed) | aLookupUrisFourthSegmentIsAPositiveRowIdOrTheUriIsRefused
+P9b lookup/<key>/<anything> read as the key alone (the parser before the fix round) | CAUGHT (gradle rc=1, 18 tests run, 1 failed) | aLookupUrisFourthSegmentIsAPositiveRowIdOrTheUriIsRefused
+P11 query not stripped | CAUGHT (gradle rc=1, 18 tests run, 2 failed) | aFragmentOnTheUriIsNotPartOfThePath; aQueryOnTheUriIsNotPartOfThePath
+P12 fragment not stripped | CAUGHT (gradle rc=1, 18 tests run, 1 failed) | aFragmentOnTheUriIsNotPartOfThePath
+P13 contacts/<x>/<y> taken as a lookup key | CAUGHT (gradle rc=1, 18 tests run, 1 failed) | onlyTheWordLookupIntroducesAKey
+D1 a dot segment accepted as a lookup key | CAUGHT (gradle rc=1, 18 tests run, 1 failed) | aDotSegmentIsNotALookupKey
+D2 only a literal dot segment refused, not %2E | CAUGHT (gradle rc=1, 18 tests run, 1 failed) | aDotSegmentIsNotALookupKey
+unmutated | gradle rc=0, 18 tests run, 0 failed
