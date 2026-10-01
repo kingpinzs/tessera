@@ -320,7 +320,7 @@ fun EditorPage(env: PeopleEnv, draft: EditorDraft) {
 
                 // Where the contact is saved (Q-16-3): "Phone", or an account on "Can edit" — a new contact's choice only.
                 var accountY by remember { mutableFloatStateOf(0f) }
-                FieldLabel("Save to", accent = false, tag = "people_editor_account_label", chevron = false, onTap = null)
+                FieldLabel(if (draft.isNew) "Save to" else "Saved to", accent = false, tag = "people_editor_account_label", chevron = false, onTap = null)
                 Row(
                     Modifier.padding(start = PeopleMetrics.SIDE).height(OutlinedFieldMetrics.HEIGHT).onGloballyPositioned { accountY = it.positionInRoot().y }
                         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, enabled = draft.isNew) {

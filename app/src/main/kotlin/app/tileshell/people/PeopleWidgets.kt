@@ -33,6 +33,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -191,7 +193,8 @@ fun PeopleScaffold(
         W10mStatusBar()
         Box(
             Modifier.fillMaxWidth().weight(1f).background(pageFill ?: colors.background)
-                .testTag(tag).semantics { selected = true },
+                // The page on show reads selected="true" in a dump: Android reports a selected node that way only for a tab.
+                .testTag(tag).semantics { role = Role.Tab; selected = true },
         ) {
             content()
             if (notice != null) NoticeBand(notice, if (bar != null) barHeight else 0.dp, onNoticeAction)

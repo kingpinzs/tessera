@@ -234,3 +234,14 @@ PY
   # shellcheck disable=SC2086
   if [ -n "$add" ]; then adb shell input tap $add; sleep 3; fi
 }
+
+# ---------------------------------------------------------------- calls
+# Telecom's own record of the calls it was handed: each is a "CallTC@<n> [<time>](MO - outgoing)" entry in dumpsys.
+# (`adb emu gsm list` prints nothing on this AVD even with the dialer's in-call screen up — DEV-CALLPROBE.)
+outgoing_calls() { S dumpsys telecom | grep -cE 'CallTC@[0-9]+ \[.*\]\(MO - outgoing\)'; }
+# The END CALL key only while a call is up: with no call it puts the screen to sleep (DEV-E12 run 2).
+end_call() {
+  if [ "$(top_activity)" = "com.android.dialer/com.android.incallui.InCallActivity" ] || S dumpsys telecom | grep -q 'mForegroundCall: \[Call'; then
+    adb shell input keyevent KEYCODE_ENDCALL; sleep 2
+  fi
+}

@@ -1,0 +1,38 @@
+==============================================================================
+ROW DEV-CALLPROBE — what the emulated network does with a placed call (recorded)
+at            2026-10-01T12:44:32-06:00
+driver        callprobe.sh blob 0cae4002339c93595eebd301b7582fd3e41490ae
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     eefb6fb4c29462ec 339427186 bytes
+apk installed 56c626cba75ebe22
+apk match     yes (56c626cba75ebe22)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+device already holds this build
+RECORD  after ending: top activity, wakefulness                     app.tileshell/.StartActivity mWakefulness=Awake
+RECORD  spaced: gsm list 1 s after the tap                          OK 
+RECORD  spaced: gsm list 4 s after the tap                          OK 
+RECORD  spaced: the action line                                     action call -> com.android.dialer/.main.impl.MainActivity tel:+1 555 000 0001
+RECORD  spaced: top activity                                        app.tileshell/.people.PeopleActivity
+RECORD  spaced: Telecom's newest call                                   CallTC@4 [Oct 1, 2026 12:44:58 PM](MO - outgoing)(User=UserHandle{0})
+RECORD  spaced: its end                                                   12:44:58.789 - SET_DISCONNECTED (disconnected set explicitly> DisconnectCause [ Code: (REMOTE) Label: () Description: () Reason: (NORMAL) Tone: (27)  TelephonyCause: 2/-1 ImsReasonInfo: null]):C
+RECORD  after ending: top activity, wakefulness                     app.tileshell/.people.PeopleActivity mWakefulness=Awake
+RECORD  plain: gsm list 1 s after the tap                           OK 
+RECORD  plain: gsm list 4 s after the tap                           OK 
+RECORD  plain: the action line                                      action call -> com.android.dialer/.main.impl.MainActivity tel:5551230001
+RECORD  plain: top activity                                         com.android.dialer/com.android.incallui.InCallActivity
+RECORD  plain: Telecom's newest call                                      CallTC@5 [Oct 1, 2026 12:45:08 PM](MO - outgoing)(User=UserHandle{0})
+RECORD  plain: its end                                                      12:44:58.789 - SET_DISCONNECTED (disconnected set explicitly> DisconnectCause [ Code: (REMOTE) Label: () Description: () Reason: (NORMAL) Tone: (27)  TelephonyCause: 2/-1 ImsReasonInfo: null])
+RECORD  after ending: top activity, wakefulness                     app.tileshell/.people.PeopleActivity mWakefulness=Awake
+RECORD  joined: gsm list 1 s after the tap                          OK 
+RECORD  joined: gsm list 4 s after the tap                          OK 
+RECORD  joined: the action line                                     action call -> com.android.dialer/.main.impl.MainActivity tel:+15550000001
+RECORD  joined: top activity                                        app.tileshell/.people.PeopleActivity
+RECORD  joined: Telecom's newest call                                   CallTC@6 [Oct 1, 2026 12:45:21 PM](MO - outgoing)(User=UserHandle{0})
+RECORD  joined: its end                                                   12:45:21.349 - SET_DISCONNECTED (disconnected set explicitly> DisconnectCause [ Code: (REMOTE) Label: () Description: () Reason: (NORMAL) Tone: (27)  TelephonyCause: 2/-1 ImsReasonInfo: null]):C
+RECORD  after ending: top activity, wakefulness                     app.tileshell/.people.PeopleActivity mWakefulness=Awake
+PASS  no call is left on the modem                                = 
+PASS  raw_contacts count equals the count before the row          = 2
+------------------------------------------------------------------------------
+DEV-CALLPROBE: 2 passed, 0 failed, 22 recorded

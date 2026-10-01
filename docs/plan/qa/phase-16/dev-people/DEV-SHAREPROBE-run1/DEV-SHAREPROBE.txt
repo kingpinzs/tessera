@@ -1,0 +1,19 @@
+==============================================================================
+ROW DEV-SHAREPROBE — who can read the provider's vCard URI (recorded)
+at            2026-10-01T12:52:32-06:00
+driver        shareprobe.sh blob 4b6e6ec3f27160d84138bbb572943f5f66e954fa
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     eefb6fb4c29462ec 339427186 bytes
+apk installed 56c626cba75ebe22
+apk match     yes (56c626cba75ebe22)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+device already holds this build
+RECORD  content query on the vCard URI                              Row: 0 _size=NULL, _display_name=Ann Lee.vcf, _id=71 
+RECORD  content read on the vCard URI                               Error while accessing provider:com.android.contacts java.io.FileNotFoundException: No files supported by provider at content://com.android.contacts/contacts/as_vcard/0r69-2B4545413333 
+RECORD  the share sheet's entries                                   text="Sharing 1 file" text="Ann Lee.vcf" text="No recommended people to share with" text="Notes" text="Messages" text="Bluetooth" text="Contacts" text="FairEmail" 
+RECORD  URI grants naming as_vcard before a target is chosen        1
+PASS  raw_contacts count equals the count before the row          = 2
+------------------------------------------------------------------------------
+DEV-SHAREPROBE: 1 passed, 0 failed, 4 recorded

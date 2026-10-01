@@ -32,15 +32,18 @@ give_photo "$ZOE" blue "0,0,254"
 log "lookups: ann=${LOOK[$ANN]} bob=${LOOK[$BOB]} zoe=${LOOK[$ZOE]}"
 
 # ---- Start, with photos: one publisher, two keys, then the events
-adb shell am force-stop app.tileshell; sleep 1
+# The MARK is taken BEFORE the stop: the shell is the home app, Android restarts it the moment it is stopped, and the
+# feed publishes as the process starts (run 1 took the MARK after and read nothing).
 MARK="$(ring_mark)"
+adb shell am force-stop app.tileshell; sleep 1
 ensure_start
-sleep 3
+sleep 2
+SLICE="$(ring_since "$MARK")"
 gdump "$D/start.xml"; screencap "$D/start.png"
 TB="$(bounds "$D/start.xml" tile:slot:PEOPLE)"; log "the PEOPLE slot tile: [$TB]"
 assert_ne "the PEOPLE slot tile is on Start's first screen" "" "$TB"
 assert_eq "the tile's face is the People face (people_tile_face)" "yes" "$(has_node "$D/start.xml" people_tile_face)"
-SLICE="$(ring_since "$MARK")"
+echo "$SLICE" | grep -E '\[people\] tile:|publish (feed:people|cmp:app.tileshell/app.tileshell.people)' | sed 's/.*wall=[0-9]* //' >> "$LOG"
 assert_contains "the feed read three photos" "[people] tile: 3 photos" "$SLICE"
 assert_contains "published under the PEOPLE slot's key" "[engine] publish feed:people " "$SLICE"
 assert_contains "and under the People component's key" "[engine] publish cmp:app.tileshell/app.tileshell.people.PeopleActivity " "$SLICE"

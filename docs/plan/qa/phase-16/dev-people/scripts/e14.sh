@@ -50,7 +50,7 @@ assert_eq "and the e-mail" "yes" "$(has_node "$D/joined.xml" people_card_action:
 adb shell input keyevent KEYCODE_BACK; sleep 1
 open_people -a android.intent.action.MAIN
 dump_ui "$D/list.xml"
-assert_eq "the list shows one Sam Reed" "1" "$(grep -c 'text="Sam Reed"' "$D/list.xml")"
+assert_eq "the list shows one Sam Reed" "1" "$(grep -o 'text="Sam Reed"' "$D/list.xml" | wc -l)"
 
 # ---- Unlink
 JOINED="$(contact_of $S1)"
@@ -66,7 +66,7 @@ ROWS="$(contacts_of)"; log "$ROWS"
 assert_eq "two contacts again" "2" "$(echo "$ROWS" | grep -oE 'contact_id=[0-9]+' | sort -u | wc -l)"
 open_people -a android.intent.action.MAIN
 dump_ui "$D/list2.xml"
-assert_eq "the list shows two Sam Reed rows again" "2" "$(grep -c 'text="Sam Reed"' "$D/list2.xml")"
+assert_eq "the list shows two Sam Reed rows again" "2" "$(grep -o 'text="Sam Reed"' "$D/list2.xml" | wc -l)"
 
 # ---- restore: deleting the raw contacts removes their exception rows
 adb shell input keyevent KEYCODE_BACK; sleep 1

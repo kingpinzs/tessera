@@ -32,10 +32,10 @@ assert_eq "Back discards it: still nothing in the provider" "0" "$(named Intrude
 adb shell am start -W -n "$PEOPLE" -a android.intent.action.INSERT -t vnd.android.cursor.dir/contact --es name Intruder --es phone 5550666 --es account_name qa.work@example.com --es account_type com.example >/dev/null 2>&1; sleep 3
 MARK="$(ring_mark)"
 dump_ui "$D/insert2.xml"; tap_node "$D/insert2.xml" people_editor_save; sleep 3
-ROW="$(named Intruder)"; log "$ROW"
-echo "$ROW" | grep -oE '_id=[0-9]+' | cut -d= -f2 >> "$(_fix_file)"
-assert_contains "saved by the user's tap, it lands on the phone (NULL account)" "account_name=NULL, account_type=NULL" "$ROW"
-assert_absent "never in the account the intent named" "qa.work@example.com" "$ROW"
+SAVED="$(named Intruder)"; log "$SAVED"
+echo "$SAVED" | grep -oE '_id=[0-9]+' | cut -d= -f2 >> "$(_fix_file)"
+assert_contains "saved by the user's tap, it lands on the phone (NULL account)" "account_name=NULL, account_type=NULL" "$SAVED"
+assert_absent "never in the account the intent named" "qa.work@example.com" "$SAVED"
 assert_absent "the caller's text is not in the ring" "Intruder" "$(ring_since "$MARK")"
 
 # ---- INSERT_OR_EDIT: choose "new contact" or an existing editable contact; a read-only one is refused
@@ -91,6 +91,14 @@ assert_contains "the tap ends the pick with one phone URI, read-granted" "[peopl
 SC="$(S dumpsys shortcut | grep -A400 'Package: app.tileshell' | grep -E 'ShortcutInfo \{id=(contacts|new_contact|groups),|activity=ComponentInfo\{app.tileshell/app.tileshell.people.PeopleActivity\}' | head -12)"
 log "$SC"
 for id in contacts new_contact groups; do assert_contains "dumpsys shortcut lists $id" "id=$id," "$(S dumpsys shortcut | grep -A400 'Package: app.tileshell')"; done
+RANKS="$(S dumpsys shortcut | grep -A400 'Package: app.tileshell' | python3 -c '
+import re, sys
+t = sys.stdin.read()
+out = []
+for m in re.finditer(r"ShortcutInfo \{id=(contacts|new_contact|groups),.*?rank=(\d+)", t, re.S):
+    out.append((int(m.group(2)), m.group(1)))
+print(" ".join("%s=%d" % (i, r) for r, i in sorted(set(out))))')"
+assert_eq "in rank order: Contacts, New contact, Groups" "contacts=0 new_contact=1 groups=2" "$RANKS"
 open_people -a android.intent.action.VIEW --es page contacts; dump_ui "$D/sc_contacts.xml"
 assert_contains "contacts: the list, CONTACTS on show" 'selected="true"' "$(grep -o '<node[^>]*resource-id="people_pivot:contacts"[^>]*>' "$D/sc_contacts.xml")"
 open_people -a android.intent.action.VIEW --es page new_contact; dump_ui "$D/sc_new.xml"

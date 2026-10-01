@@ -1,0 +1,43 @@
+==============================================================================
+ROW DEV-E12 — card actions: call, text, mail, map (E12's core)
+at            2026-10-01T12:41:15-06:00
+driver        e12.sh blob 325c7a6cdcddca6b23cfcef800b969b0b9a17f74
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     eefb6fb4c29462ec 339427186 bytes
+apk installed 3e58520b85c52aed
+apk match     NO (device 3e58520b85c52aed, built 56c626cba75ebe22)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+Success
+PASS  the device holds this build                                 contains [yes]
+K-9 launcher com.fsck.k9/net.thunderbird.app.common.MainActivity; Notes launcher org.fossify.notes/org.fossify.notes.activities.SplashActivity.Green
+PASS  the slots were written                                      = 0
+slots: {"CALENDAR": "app.tileshell/app.tileshell.calendar.CalendarActivity", "MAIL": "com.fsck.k9/net.thunderbird.app.common.MainActivity", "MAPS": "org.fossify.notes/org.fossify.notes.activities.SplashActivity.Green", "MUSIC": "app.tileshell/app.tileshell.music.MusicActivity", "PEOPLE": "app.tileshell/app.tileshell.people.PeopleActivity"}
+PASS  the VIEW intent opens Ann's card                            = yes
+action rows: resource-id="people_card_action:text:0" resource-id="people_card_action:call:0" resource-id="people_card_action:mail:0" resource-id="people_card_action:map:0" 
+PASS  the card is a full accent page                              = 0,120,215
+    2026-10-01 12:41:46.049 wall=1790880106049 [people] action call -> com.android.dialer/.main.impl.MainActivity tel:+1 555 000 0001
+PASS  the call line                                               contains [[people] action call -> ]
+PASS  the call line names the number                              contains [tel:+1 555 000 0001]
+FAIL  dumpsys telecom shows a call after the tap (phase 03 E7's count)  should not be [0]
+RECORD  adb emu gsm list after the call                             OK 
+
+FAIL  the text line                                               does not contain [[people] action text -> org.fossify.messages]:     2026-10-01 12:42:00.003 wall=1790880120003 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790880120003
+    2026-10-01 12:42:00.003 wall=1790880120003 [calendar] refresh (minute): access=true faces=1 agend
+FAIL  the text line names smsto: her number                       does not contain [smsto:+15550000001]:     2026-10-01 12:42:00.003 wall=1790880120003 [engine] publish feed:calendar faces=1 front=false source=calendar sourceTime=1790880120003
+    2026-10-01 12:42:00.003 wall=1790880120003 [calendar] refresh (minute): access=true faces=1 agend
+FAIL  the SMS role holder is on top                               does not contain [org.fossify.messages/]: 
+
+FAIL  the mail line names the Mail slot's component and the address  does not contain [[people] action mail -> com.fsck.k9/net.thunderbird.app.common.MainActivity mailto:ann@example.com]: 
+FAIL  K-9 is the top package                                      does not contain [com.fsck.k9/]: 
+
+FAIL  the map line names the Maps slot's component and a geo: query for the address  does not contain [[people] action map -> org.fossify.notes/.activities.SplashActivity.Green geo:0,0?q=1%20Main%20St%20Springfield]: 
+FAIL  the Maps slot's app is the top package                      does not contain [org.fossify.notes/]: 
+PASS  the layout is back                                          = 0
+PASS  the slots equal the slots before the row                    = {"CALENDAR": "app.tileshell/app.tileshell.calendar.CalendarActivity", "MUSIC": "app.tileshell/app.tileshell.music.MusicActivity", "PEOPLE": "app.tileshell/app.tileshell.people.PeopleActivity"}
+PASS  raw_contacts count equals the count before the row          = 2
+PASS  no call is left on the modem                                = 
+FAIL  ensure_start: Start alone                                   start_page=no app_list=no pod_bay=no
+------------------------------------------------------------------------------
+DEV-E12: 10 passed, 9 failed, 1 recorded

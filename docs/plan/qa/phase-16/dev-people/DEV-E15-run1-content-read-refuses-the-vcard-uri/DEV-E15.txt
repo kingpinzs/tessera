@@ -1,0 +1,52 @@
+==============================================================================
+ROW DEV-E15 — Share, SIM import, filter (E15's core)
+at            2026-10-01T12:49:51-06:00
+driver        e15.sh blob 67685659fb0c3bb01040cef799c3998f40a11adb
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     eefb6fb4c29462ec 339427186 bytes
+apk installed 56c626cba75ebe22
+apk match     yes (56c626cba75ebe22)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+device already holds this build
+PASS  the device holds this build                                 contains [yes]
+PASS  the card's … menu offers share contact                    = yes
+RECORD  what ACTION_SEND text/x-vcard reached                       com.android.intentresolver/.ChooserActivityLauncher
+intent on top:       Intent { act=android.intent.action.CHOOSER flg=0x800001 xflg=0x4 cmp=com.android.intentresolver/.ChooserActivityLauncher clip={text/uri-list {U(content)}} (has extras) }
+PASS  Android's share sheet is on top                             contains [hooser]
+share 0r66-2B4545413333: content://com.android.contacts/contacts/as_vcard/0r66-2B4545413333
+PASS  the share line names the provider's own vCard URI           = share 0r66-2B4545413333: content://com.android.contacts/contacts/as_vcard/0r66-2B4545413333
+
+FAIL  the stream begins BEGIN:VCARD                               does not contain [BEGIN:VCARD]: 
+FAIL  it carries FN:Ann Lee                                       does not contain [FN:Ann Lee]: 
+FAIL  and her TEL                                                 does not contain [TEL;]: 
+FAIL  with her number                                             does not contain [555]: 
+PASS  no file of the shell's holds a vCard                        = 0
+icc/adn: Row: 0 name=Sim Bob, number=5550002, emails=NULL, anrs=NULL, _id=0
+RECORD  the emulated SIM's phonebook took the insert                accepted ()
+PASS  People's settings page                                      = yes
+PASS  the SIM import page                                         = yes
+sim import: 1 of 1
+PASS  the page lists the SIM's entry                              = Sim Bob
+PASS  the import line                                             = sim import: 1 of 1
+Row: 0 _id=67, account_name=NULL, account_type=NULL, display_name=Sim Bob
+PASS  the imported contact is on the phone (NULL account)         contains [account_name=NULL, account_type=NULL]
+PASS  with the SIM's number                                       contains [data1=5550002]
+PASS  the filter page                                             = yes
+PASS  the com.example account is listed, ticked                   contains [checked="true"]
+PASS  the phone is listed too                                     = yes
+PASS  Xena is listed before the filter                            = yes
+PASS  unticked                                                    contains [checked="false"]
+listed before 5, after the untick 4
+PASS  the row count drops by one                                  = 4
+PASS  Xena's row is hidden                                        = no
+PASS  the list says a filter is on (P1.4's caption)               = yes
+PASS  nothing was written to the provider: her raw contact is as it was  contains [account_name=x, account_type=com.example]
+PASS  re-ticked: the row count is back                            = 5
+RECORD  the SIM entry's delete                                      ok
+people_filter.json: {"hideWithoutPhones":false,"hiddenAccounts":[],"hiddenGroups":[]}
+PASS  the filter is back to hiding no account                     contains ["hiddenAccounts":[]]
+PASS  raw_contacts count equals the count before the row          = 2
+------------------------------------------------------------------------------
+DEV-E15: 23 passed, 4 failed, 3 recorded
