@@ -1,5 +1,6 @@
 package app.tileshell.people
 
+import android.content.Intent
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -210,5 +211,47 @@ class PeopleIntentsTest {
             val line = PeopleIntents.openLine(action, route)
             assertEquals(line, false, line.contains('\n') || line.length > 90)
         }
+    }
+
+    // ---- The fix round's F5 (trust review B-F4, B-F12): a PICK only for a caller, and what its result carries.
+
+    @Test fun aPickIsHonouredOnlyForACallerThatCanReceiveAResult() {
+        for (kind in PickKind.entries) {
+            assertEquals(PeopleRoute.Open(null), PeopleIntents.honoured(PeopleRoute.Pick(kind), hasCaller = false))
+            assertEquals(PeopleRoute.Pick(kind), PeopleIntents.honoured(PeopleRoute.Pick(kind), hasCaller = true))
+        }
+        // The intent as `am start`, a plain startActivity or a new task delivers it: no caller, so the plain list.
+        assertEquals(PeopleRoute.Open(null), PeopleIntents.honoured(route(PeopleIntents.ACTION_PICK, null, PeopleIntents.TYPE_CONTACT_DIR), hasCaller = false))
+        assertEquals(PeopleRoute.Open(null), PeopleIntents.honoured(route(PeopleIntents.ACTION_PICK, "content://com.android.contacts/data/phones"), hasCaller = false))
+        assertEquals(PeopleRoute.Open(null), PeopleIntents.honoured(route(PeopleIntents.ACTION_PICK, null, PeopleIntents.TYPE_CONTACT_DIR, "page" to "groups"), hasCaller = false))
+        assertEquals(PeopleRoute.Pick(PickKind.CONTACT), PeopleIntents.honoured(route(PeopleIntents.ACTION_PICK, null, PeopleIntents.TYPE_CONTACT_DIR), hasCaller = true))
+    }
+
+    @Test fun aCallerChangesNoOtherRoute() {
+        val prefill = ContactPrefill(name = "Ned New")
+        for (other in listOf(
+            PeopleRoute.Open(null), PeopleRoute.Open(PeopleShortcut.GROUPS), PeopleRoute.Card(ContactRef("0r3-2A4C", 7)), PeopleRoute.Edit(ContactRef(null, 7)),
+            PeopleRoute.Insert(prefill), PeopleRoute.InsertOrEdit(prefill),
+        )) {
+            assertEquals(other, PeopleIntents.honoured(other, hasCaller = false))
+            assertEquals(other, PeopleIntents.honoured(other, hasCaller = true))
+        }
+    }
+
+    @Test fun aPickWithNoCallerSaysSoAndNothingIsSaidToBeGranted() {
+        assertEquals("pick: no caller to return a result to; the list was opened", PeopleIntents.PICK_NO_CALLER)
+        val shown = PeopleIntents.honoured(route(PeopleIntents.ACTION_PICK, null, PeopleIntents.TYPE_CONTACT_DIR), hasCaller = false)
+        assertEquals("open android.intent.action.PICK -> open page=default", PeopleIntents.openLine(PeopleIntents.ACTION_PICK, shown))
+        assertEquals(false, PeopleIntents.PICK_NO_CALLER.contains("granted"))
+        assertEquals("pick: cancelled", PeopleIntents.PICK_CANCELLED)
+    }
+
+    @Test fun aPickResultGrantsAReadOfTheOneUriAndNothingElse() {
+        assertEquals(Intent.FLAG_GRANT_READ_URI_PERMISSION, PeopleIntents.PICK_RESULT_FLAGS)
+        val more = Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
+        assertEquals(0, PeopleIntents.PICK_RESULT_FLAGS and more)
+        assertEquals(1, Integer.bitCount(PeopleIntents.PICK_RESULT_FLAGS))
+        assertEquals("pick: one contact URI granted (read)", PeopleIntents.pickGrantedLine(phone = false))
+        assertEquals("pick: one phone URI granted (read)", PeopleIntents.pickGrantedLine(phone = true))
     }
 }
