@@ -1,6 +1,5 @@
 package app.tileshell.calendar
 
-import android.content.Context
 import android.provider.CalendarContract
 import app.tileshell.calendar.CalendarWriteGuard.Path
 import app.tileshell.calendar.CalendarWriteGuard.Refusal
@@ -69,18 +68,18 @@ object CalendarSync {
      * a Sync tapped twice quickly makes one copy, and the second compares that copy with the local event (`ok`).
      */
     @Synchronized
-    fun sync(context: Context, localEventId: Long, target: CalendarKey): Outcome {
-        val outcome = push(context, localEventId, target)
+    fun sync(access: CalendarAccess, localEventId: Long, target: CalendarKey): Outcome {
+        val outcome = push(access, localEventId, target)
         Diagnostics.add("calendar", "sync event=$localEventId -> calendar ${target.id}: ${outcome.text}")
         return outcome
     }
 
-    private fun push(context: Context, localEventId: Long, target: CalendarKey): Outcome {
-        val store = CalendarSyncStore.get(context)
-        val local = CalendarReads.event(context, localEventId) ?: return Outcome.Failed("the event is gone")
+    private fun push(access: CalendarAccess, localEventId: Long, target: CalendarKey): Outcome {
+        val store = access.store
+        val local = CalendarReads.event(access, localEventId) ?: return Outcome.Failed("the event is gone")
         // The target must still be the calendar the user allowed: same id, same account, same name of its own. An
         // account removed and added again has new ids, and an id that was handed to another calendar is not this one.
-        val present = CalendarReads.calendar(context, target.id)
+        val present = CalendarReads.calendar(access, target.id)
         if (present == null || present.key != target) return Outcome.CalendarGone
         // Synced to another calendar before: that copy stays where it is, as the account event it is, and this
         // Sync starts a new one.
@@ -88,59 +87,59 @@ object CalendarSync {
 
         // Asked before anything is compared or written: a target that became read-only, or a copy that was moved,
         // refuses the Sync even when nothing has changed.
-        (CalendarWrites.syncCheck(context, localEventId, target) as? Verdict.Refused)?.let { return outcomeOf(it.why) }
+        (CalendarWrites.syncCheck(access, localEventId, target) as? Verdict.Refused)?.let { return outcomeOf(it.why) }
 
-        val localExceptions = CalendarReads.exceptions(context, localEventId)
-        val localReminders = CalendarReads.reminders(context, localEventId)
+        val localExceptions = CalendarReads.exceptions(access, localEventId)
+        val localReminders = CalendarReads.reminders(access, localEventId)
         val localSnapshot = SyncRules.snapshot(local, localReminders, localExceptions)
         val mapping = store.current.mappings[localEventId]
-        val copy = mapping?.let { CalendarReads.event(context, it.copyEventId) }
+        val copy = mapping?.let { CalendarReads.event(access, it.copyEventId) }
 
         if (mapping != null && copy != null) {
-            val copyExceptions = CalendarReads.exceptions(context, copy.id)
-            val copySnapshot = SyncRules.snapshot(copy, CalendarReads.reminders(context, copy.id), copyExceptions)
+            val copyExceptions = CalendarReads.exceptions(access, copy.id)
+            val copySnapshot = SyncRules.snapshot(copy, CalendarReads.reminders(access, copy.id), copyExceptions)
             // r3 V13: the copy is compared with the local event, so an edit made on the other side is overwritten.
             if (!SyncRules.differs(localSnapshot, copySnapshot)) return Outcome.Ok
             // An occurrence the copy changed and the local series did not cannot be un-made by a normal app (deleting
             // an exception row only cancels its occurrence), so the copy is made again from the local event.
             val localTimes = localExceptions.mapTo(HashSet()) { it.originalInstanceTime }
             if (copyExceptions.any { it.originalInstanceTime !in localTimes }) {
-                copyExceptions.forEach { e -> outcomeOf(CalendarWrites.syncDeleteRow(context, localEventId, e.id))?.let { return it } }
-                outcomeOf(CalendarWrites.syncDeleteRow(context, localEventId, copy.id))?.let { return it }
-                return insertCopy(context, localEventId, target, local, localReminders, localExceptions) ?: Outcome.Updated
+                copyExceptions.forEach { e -> outcomeOf(CalendarWrites.syncDeleteRow(access, localEventId, e.id))?.let { return it } }
+                outcomeOf(CalendarWrites.syncDeleteRow(access, localEventId, copy.id))?.let { return it }
+                return insertCopy(access, localEventId, target, local, localReminders, localExceptions) ?: Outcome.Updated
             }
             if (localSnapshot.fields != copySnapshot.fields) {
-                outcomeOf(CalendarWrites.syncUpdateCopy(context, localEventId, copy.id, valuesOf(local)))?.let { return it }
+                outcomeOf(CalendarWrites.syncUpdateCopy(access, localEventId, copy.id, valuesOf(local)))?.let { return it }
             }
             if (localSnapshot.reminders != copySnapshot.reminders) {
-                outcomeOf(CalendarWrites.syncSetReminders(context, localEventId, copy.id, localReminders))?.let { return it }
+                outcomeOf(CalendarWrites.syncSetReminders(access, localEventId, copy.id, localReminders))?.let { return it }
             }
             if (localSnapshot.exceptions != copySnapshot.exceptions) {
-                pushExceptions(context, localEventId, copy.id, localExceptions, copyExceptions)?.let { return it }
+                pushExceptions(access, localEventId, copy.id, localExceptions, copyExceptions)?.let { return it }
             }
             return Outcome.Updated
         }
-        return insertCopy(context, localEventId, target, local, localReminders, localExceptions) ?: if (mapping != null) Outcome.Recreated else Outcome.Ok
+        return insertCopy(access, localEventId, target, local, localReminders, localExceptions) ?: if (mapping != null) Outcome.Recreated else Outcome.Ok
     }
 
     /** Null when every write went through; else how the first one that did not ended. */
     private fun insertCopy(
-        context: Context, localEventId: Long, target: CalendarKey, local: EventDetail,
+        access: CalendarAccess, localEventId: Long, target: CalendarKey, local: EventDetail,
         reminders: List<Pair<Int, Int>>, exceptions: List<EventDetail>,
     ): Outcome? {
-        val copyId = when (val inserted = CalendarWrites.syncInsertCopy(context, localEventId, target, valuesOf(local))) {
+        val copyId = when (val inserted = CalendarWrites.syncInsertCopy(access, localEventId, target, valuesOf(local))) {
             is WriteResult.Ok -> inserted.value
             else -> return outcomeOf(inserted)
         }
-        if (reminders.isNotEmpty()) outcomeOf(CalendarWrites.syncSetReminders(context, localEventId, copyId, reminders))?.let { return it }
-        return pushExceptions(context, localEventId, copyId, exceptions, emptyList())
+        if (reminders.isNotEmpty()) outcomeOf(CalendarWrites.syncSetReminders(access, localEventId, copyId, reminders))?.let { return it }
+        return pushExceptions(access, localEventId, copyId, exceptions, emptyList())
     }
 
     /**
      * The copy's exception events, one per local exception, matched by the occurrence they replace: an existing one is
      * updated in place, a missing one is made with `ORIGINAL_ID` re-pointed at the COPY's master.
      */
-    private fun pushExceptions(context: Context, localEventId: Long, copyMasterId: Long, local: List<EventDetail>, copy: List<EventDetail>): Outcome? {
+    private fun pushExceptions(access: CalendarAccess, localEventId: Long, copyMasterId: Long, local: List<EventDetail>, copy: List<EventDetail>): Outcome? {
         val existing = copy.associateBy { it.originalInstanceTime }
         for (e in local) {
             val time = e.originalInstanceTime ?: continue
@@ -152,21 +151,21 @@ object CalendarSync {
                     dtstart = e.dtstart, duration = "P${((e.dtend ?: e.dtstart) - e.dtstart) / 1000}S",
                     status = if (cancelled) CalendarContract.Events.STATUS_CANCELED else CalendarContract.Events.STATUS_CONFIRMED,
                 )
-                when (val inserted = CalendarWrites.syncInsertException(context, localEventId, copyMasterId, time, values)) {
+                when (val inserted = CalendarWrites.syncInsertException(access, localEventId, copyMasterId, time, values)) {
                     is WriteResult.Ok -> inserted.value
                     else -> return outcomeOf(inserted)
                 }
             } else {
                 if (SyncRules.exception(e) != SyncRules.exception(row)) {
                     val values = valuesOf(e).copy(status = if (cancelled) CalendarContract.Events.STATUS_CANCELED else CalendarContract.Events.STATUS_CONFIRMED)
-                    outcomeOf(CalendarWrites.syncUpdateCopy(context, localEventId, row.id, values))?.let { return it }
+                    outcomeOf(CalendarWrites.syncUpdateCopy(access, localEventId, row.id, values))?.let { return it }
                 }
                 row.id
             }
             if (!cancelled) {
-                val wanted = CalendarReads.reminders(context, e.id)
-                if (wanted.toSet() != CalendarReads.reminders(context, rowId).toSet()) {
-                    outcomeOf(CalendarWrites.syncSetReminders(context, localEventId, rowId, wanted))?.let { return it }
+                val wanted = CalendarReads.reminders(access, e.id)
+                if (wanted.toSet() != CalendarReads.reminders(access, rowId).toSet()) {
+                    outcomeOf(CalendarWrites.syncSetReminders(access, localEventId, rowId, wanted))?.let { return it }
                 }
             }
         }
@@ -199,24 +198,24 @@ object CalendarSync {
      * no longer where the mapping says, or its calendar is no longer allowed (T16-12).
      */
     @Synchronized
-    fun delete(context: Context, path: Path, eventId: Long, both: Boolean): WriteResult<Unit> {
-        val store = CalendarSyncStore.get(context)
+    fun delete(access: CalendarAccess, path: Path, eventId: Long, both: Boolean): WriteResult<Unit> {
+        val store = access.store
         val mapping = store.current.mappings[eventId]
         if (both && mapping != null) {
             if (path != Path.EDITOR) return WriteResult.Refused(Refusal.NOT_ALLOWED)
-            (CalendarWrites.syncDeleteCheck(context, eventId) as? Verdict.Refused)?.let {
+            (CalendarWrites.syncDeleteCheck(access, eventId) as? Verdict.Refused)?.let {
                 Diagnostics.add("calendar", "sync event=$eventId -> calendar ${mapping.target.id}: ${outcomeOf(it.why).text}")
                 return WriteResult.Refused(it.why)
             }
-            for (e in CalendarReads.exceptions(context, mapping.copyEventId)) {
-                val gone = CalendarWrites.syncDeleteRow(context, eventId, e.id)
+            for (e in CalendarReads.exceptions(access, mapping.copyEventId)) {
+                val gone = CalendarWrites.syncDeleteRow(access, eventId, e.id)
                 if (gone !is WriteResult.Ok) return gone
             }
-            val gone = CalendarWrites.syncDeleteRow(context, eventId, mapping.copyEventId)
+            val gone = CalendarWrites.syncDeleteRow(access, eventId, mapping.copyEventId)
             if (gone !is WriteResult.Ok) return gone
         }
         // A series goes with its exception rows (the write layer removes them with it).
-        val deleted = CalendarWrites.deleteEvent(context, path, eventId)
+        val deleted = CalendarWrites.deleteEvent(access, path, eventId)
         if (deleted !is WriteResult.Ok) return deleted
         if (mapping != null) store.update { SyncStateRules.unmap(it, eventId) }
         return deleted
