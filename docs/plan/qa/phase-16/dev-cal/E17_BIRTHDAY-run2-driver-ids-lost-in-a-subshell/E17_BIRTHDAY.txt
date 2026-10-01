@@ -1,0 +1,54 @@
+==============================================================================
+ROW E17_BIRTHDAY — a contact's birthday becomes a Birthdays calendar event with the Calendar app never opened
+at            2026-10-01T14:42:23-06:00
+driver        e17_birthday.sh blob b293dbeddf32e6a40ccb4ffe951b123e9da25b6a
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     7361dc8e1ed34163 342667224 bytes
+apk installed b71a6e41fdc3984f
+apk match     yes (b71a6e41fdc3984f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  birthdays already on the phone's contacts before the session  3
+PASS  no Birthdays calendar before the first birthday             = 
+      Birthdays calendar id [3] after 1 s
+PASS  within 5 s the provider has a Birthdays calendar            != 
+its row: Row: 1 _id=3, account_name=Tessera Birthdays, account_type=LOCAL, calendar_displayName=Birthdays, calendar_access_level=200, calendar_color=-7904072
+PASS  under its own account, never Tessera                        contains [account_name=Tessera Birthdays, account_type=LOCAL, calendar_displayName=Birthdays, calendar_access_level=200]
+PASS  Tessera is untouched: still one, another id                 = 1 yes
+its events: _id=248, title=Ann Lee's birthday, dtstart=654739200000, allDay=1, rrule=FREQ=YEARLY, duration=P1D
+_id=246, title=Bob Stone's birthday, dtstart=1790899200000, allDay=1, rrule=FREQ=YEARLY, duration=P1D
+_id=247, title=Lea Leap's birthday, dtstart=699321600000, allDay=1, rrule=FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1, duration=P1D
+PASS  a yearly all-day event for Ann from 1990                    contains [title=Ann Lee's birthday, dtstart=654739200000, allDay=1, rrule=FREQ=YEARLY]
+FAIL  the synced line                                             does not contain [[calendar] birthdays: 4 synced]:     2026-10-01 14:42:46.855 wall=1790887366855 [calendar] birthdays: 3 synced
+    2026-10-01 14:42:46.862 wall=1790887366862 [engine] publish feed:calendar faces=3 front=false source=calendar sourceTime=1790887366861
+    2026-10-01 14:42:46
+PASS  no reminder rows on a birthday                              contains [No result found]
+PASS  an instance today, with the Calendar app never opened       = 1
+PASS  the feed (the tile and the Agenda pod) sees it              contains [agenda=]
+RECORD  the feed's refresh line after the birthday                  [calendar] refresh (provider change): access=true faces=3 agenda=2
+events after the date forms: _id=248, title=Ann Lee's birthday, dtstart=654739200000, allDay=1, rrule=FREQ=YEARLY, duration=P1D
+_id=246, title=Bob Stone's birthday, dtstart=1790899200000, allDay=1, rrule=FREQ=YEARLY, duration=P1D
+_id=249, title=Bob Stone's birthday, dtstart=1790899200000, allDay=1, rrule=FREQ=YEARLY, duration=P1D
+_id=247, title=Lea Leap's birthday, dtstart=699321600000, allDay=1, rrule=FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1, duration=P1D
+_id=250, title=Lea Leap's birthday, dtstart=699321600000, allDay=1, rrule=FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1, duration=P1D
+PASS  no year: a yearly event from this year's date (tomorrow)    contains [title=Bob Stone's birthday, dtstart=1790899200000, allDay=1, rrule=FREQ=YEARLY]
+PASS  29 February: February's last day every twelve months        contains [title=Lea Leap's birthday, dtstart=699321600000, allDay=1, rrule=FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1]
+FAIL  one instance in February 2027, on the 28th                  expected [2027-02-28] got []
+FAIL  one instance in February 2028, on the 29th                  expected [2028-02-29] got []
+PASS  a value in neither form makes no event                      does not contain [Odd Form]
+FAIL  and is not counted                                          does not contain [[calendar] birthdays: 6 synced]:     2026-10-01 14:43:03.773 wall=1790887383773 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=7639275 faceIndex=3 next=4 faces=4
+    2026-10-01 14:43:04.065 wall=1790887384065 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=7639567 face
+PASS  today's Day view shows Ann's birthday in the all-day band   = yes Ann Lee's birthday
+PASS  its page is read-only (the Birthdays calendar is not Tessera)  = yes 0
+PASS  the pane lists Birthdays under its own account              = yes yes
+PASS  Ann's birthday removed: her event is gone                   does not contain [Ann Lee]
+FAIL  the count follows                                           does not contain [[calendar] birthdays: 5 synced]:     2026-10-01 14:43:36.965 wall=1790887416965 [weather] fetch ok provider=open-meteo ms=1175 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/70.9 hourly=240 daily=10 place=true
+    2026-10-01 14:43:36.973 wall=1790887416973 [engine
+FAIL  the calendar is kept, empty, when the last birthday goes    expected [3/3] got [3/4]
+FAIL  and the line says so                                        does not contain [[calendar] birthdays: 3 synced]:     2026-10-01 14:43:43.453 wall=1790887423453 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=7678956 faceIndex=2 next=3 faces=3
+    2026-10-01 14:43:43.745 wall=1790887423745 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=7679248 face
+PASS  the session's raw contacts are gone                         = 0
+PASS  the Birthdays calendar is deleted at the end                = 
+------------------------------------------------------------------------------
+E17_BIRTHDAY: 17 passed, 7 failed, 2 recorded

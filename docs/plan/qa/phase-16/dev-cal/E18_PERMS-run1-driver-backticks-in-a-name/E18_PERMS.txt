@@ -1,0 +1,44 @@
+==============================================================================
+ROW E18_PERMS — READ_CALENDAR and WRITE_CALENDAR revoked, together and alone
+at            2026-10-01T14:50:21-06:00
+driver        e18_perms.sh blob 83dc9eb0476ccedd3bff9f9529490ffba00fc123
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     eadce7b155df7d52 342667168 bytes
+apk installed b5f94c10713f3262
+apk match     yes (b5f94c10713f3262)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  both calendar permissions are held at the start             = true true
+PASS  the page says it cannot read the calendar                   contains [can't read your calendar]
+PASS  and offers the grant in place                               = yes
+PASS  the denied line                                             contains [[calendar] calendars: denied (READ_CALENDAR)]
+PASS  no                                                          does not contain [calendars: none]
+PASS  no query ran: no view line                                  does not contain [[calendar] view ]
+PASS  after pm grant the views load: no notice, the week strip is there  = no yes
+PASS  with no restart of the shell                                = 29390
+PASS  a calendars line after the grant                            contains [[calendar] calendars: ]
+PASS  and no denied line                                          does not contain [denied]
+after the grant: [calendar] calendars: 1 (local present)
+PASS  READ held, WRITE revoked                                    = true false
+PASS  the local-missing line                                      contains [[calendar] calendars: 0 (local missing: WRITE_CALENDAR)]
+PASS  the views load                                              = no yes
+PASS  nothing was created: no Tessera row                         = 0
+PASS  Save says it cannot save                                    contains [can't save events]
+PASS  and offers the grant in place; the editor stays             = yes yes
+PASS  no such event, no Tessera                                   = 0 0
+PASS  after the grant, Save again: one Tessera row                = 1
+PASS  holding the event                                           = 1
+PASS  local created                                               contains [(local created id=1)]
+PASS  the event's write line                                      contains [[calendar] write insert event=]
+PASS  READ revoked, WRITE held                                    = false true
+PASS  Tess's reply                                                = I don't have a calendar to add that to.
+PASS  the lookup failed, and said so                              contains [[calendar] local calendar lookup failed:]
+PASS  no calendar was created while READ was denied               does not contain [local calendar created]
+PASS  the app logged denied each time it opened                   contains [[calendar] calendars: denied (READ_CALENDAR)]
+PASS  after the grant: EXACTLY one Tessera row                    = 1
+PASS  and no standup event                                        = 0
+PASS  both permissions are held again                             = true true
+PASS  the session's event is gone                                 = 0
+------------------------------------------------------------------------------
+E18_PERMS: 30 passed, 0 failed, 0 recorded
