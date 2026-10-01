@@ -131,6 +131,31 @@ moves nothing; a second one 0.4 s later is Android's Back and Start's Back-histo
 (`[launch] tile=back`). The question to Jeremy: read E12's Back clause as "first swipe reveals the bars, second is
 Back" (Change Log), or keep it as written and leave the Back proof to phone row P2.
 
+## Row status (2026-09-30 20:04) — every row on the final APK a869ae73
+
+`FINAL/final-run.txt` (driver `scripts/final_run.sh`; each row's earlier run kept as `<row>-apk-<id>/`). L14-1 and L14-2
+are fixed (INDEX ledger). The table further down is the 00:05 state, kept for the history.
+
+| row | result on a869ae73 | notes |
+|---|---|---|
+| E1 | 28/0 | |
+| E2 | 10/0 | |
+| E3 | 55/0, 4 recorded | |
+| E4 | 39/0 | |
+| E5 | 36/0 | |
+| E6 | 44/0 | |
+| E7 | 10/0 | |
+| E8 | 26/0 | the Unlock button itself raises the PIN pad (L14-1); no `wm dismiss-keyguard` fallback |
+| E9 | 20/0 | |
+| E10 | 25/0 | |
+| E11 | 15/0 | |
+| E12 | 14/0 | under the 2026-09-30 ruling (a) |
+| E13 | 70/1 (run 2) | the one failure: phase 03 E10 as a whole row (31/9; its unlock clause passes) — Q-E10 with Jeremy. Run 1 (53/9) found L14-2 and three driver faults: `E13-run1-1be3df67/` |
+| E14 | 15/0 | |
+| E15 | 17/0 | under the 2026-09-30 ruling (a): text nodes' right edge has 1.5 epx |
+| E16 | 28/0, 1 recorded | |
+| E17 | 16/0 | |
+
 ## Row status (2026-09-30 00:05) — phase BLOCKED on L14-1
 
 Every row below ran on the APK installed at its run (the pod code changed between some runs — the fixes listed); the
