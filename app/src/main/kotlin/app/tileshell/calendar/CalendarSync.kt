@@ -82,8 +82,12 @@ object CalendarSync {
         val present = CalendarReads.calendar(access, target.id)
         if (present == null || present.key != target) return Outcome.CalendarGone
         // Synced to another calendar before: that copy stays where it is, as the account event it is, and this
-        // Sync starts a new one.
-        store.current.mappings[localEventId]?.takeIf { it.target != target }?.let { store.update { s -> SyncStateRules.unmap(s, localEventId) } }
+        // Sync starts a new one. The old mapping is dropped only once the guard has allowed the push into the new
+        // target (F20): a Sync that is refused leaves the store as it found it.
+        if (store.current.mappings[localEventId]?.let { it.target != target } == true) {
+            (CalendarWrites.syncRetargetCheck(access, localEventId, target) as? Verdict.Refused)?.let { return outcomeOf(it.why) }
+            store.update { s -> SyncStateRules.unmap(s, localEventId) }
+        }
 
         // Asked before anything is compared or written: a target that became read-only, or a copy that was moved,
         // refuses the Sync even when nothing has changed.
@@ -93,7 +97,8 @@ object CalendarSync {
         val localReminders = CalendarReads.reminders(access, localEventId)
         val localSnapshot = SyncRules.snapshot(local, localReminders, localExceptions)
         val mapping = store.current.mappings[localEventId]
-        val copy = mapping?.let { CalendarReads.event(access, it.copyEventId) }
+        // A read of the copy that FAILED is not a copy that is gone: nothing is made again on the strength of it (F20).
+        val copy = mapping?.let { CalendarReads.eventRead(access, it.copyEventId).getOrElse { return Outcome.Failed("the copy could not be read") } }
 
         if (mapping != null && copy != null) {
             val copyExceptions = CalendarReads.exceptions(access, copy.id)

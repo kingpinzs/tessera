@@ -58,7 +58,7 @@ class CalendarRulesTest {
         assertEquals(emptyList<CalendarInfo>(), CalendarSync.targets(nowOnPhone, state))
         assertFalse(team.key in state.allowed)
         assertFalse(nowOnPhone[1].key in state.allowed)
-        val firstPush = CalendarWriteGuard.SyncFacts(sourceInTessera = true, mapped = false, targetAllowed = team.key in state.allowed, mappingTarget = null, copyCalendarId = null, onExistingRow = false)
+        val firstPush = CalendarWriteGuard.SyncFacts(sourceInTessera = true, mapped = false, targetAllowed = team.key in state.allowed, mappingTarget = null, copyCalendarId = null, copyReadFailed = false, onExistingRow = false)
         assertEquals(
             CalendarWriteGuard.Verdict.Refused(CalendarWriteGuard.Refusal.NOT_ALLOWED),
             CalendarWriteGuard.check(CalendarWriteGuard.Request(CalendarWriteGuard.Path.SYNC, CalendarWriteGuard.Op.INSERT, CalendarWriteGuard.Table.EVENTS, team.facts, sync = firstPush)),
