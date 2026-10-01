@@ -44,7 +44,13 @@ count_in() { printf '%s\n' "$1" | grep -cF -- "$2"; }
 
 # ============================================================ W: Location off sends nothing
 log "W: Location off, the permission held, a cached report"
-open_bay_at weather "$ROW_DIR/W-00-before.xml"
+# The report must be there first: straight after E17's reset the feed has not fetched yet (the run of 22:40 began on "No
+# weather yet", which makes "nothing left the device" true for the wrong reason). Waited for, up to 90 s.
+for i in $(seq 1 9); do
+  open_bay_at weather "$ROW_DIR/W-00-before.xml"
+  [ "$(has_node "$ROW_DIR/W-00-before.xml" pod_row:weather:0)" = yes ] && break
+  resume_start; sleep 8
+done
 assert_eq "W: before: a weather row (a report is cached)" "yes" "$(has_node "$ROW_DIR/W-00-before.xml" pod_row:weather:0)"
 adb shell cmd location set-location-enabled false
 assert_eq "W: Location is off" "false" "$(loc_on)"
