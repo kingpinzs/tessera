@@ -239,11 +239,18 @@ object CalendarReads {
     private const val NOT_DELETED = "${CalendarContract.Events.DELETED} != 1"
 
     /** An event row that still exists (a row marked deleted for its sync adapter does not). */
-    fun event(access: CalendarAccess, id: Long): EventDetail? = runCatching {
-        access.provider.query(
+    fun event(access: CalendarAccess, id: Long): EventDetail? = eventRead(access, id).getOrNull()
+
+    /**
+     * [event], telling the two nulls apart: success with null when the query answered and holds no such row, failure
+     * when it did not answer. Sync asks this of a mapped copy — a read that failed is not "the copy is gone" (F20).
+     */
+    fun eventRead(access: CalendarAccess, id: Long): Result<EventDetail?> = runCatching {
+        val rows = access.provider.query(
             ProviderUri(ProviderTable.EVENTS), EVENT_COLUMNS, "${CalendarContract.Events._ID} = ? AND $NOT_DELETED", listOf(id.toString()),
-        )?.firstOrNull()?.let { event(it) }
-    }.getOrNull()
+        ) ?: error("the calendar provider gave no answer")
+        rows.firstOrNull()?.let { event(it) }
+    }
 
     /** The exception events of [masterId]: the rows whose `ORIGINAL_ID` it is. */
     fun exceptions(access: CalendarAccess, masterId: Long): List<EventDetail> = runCatching {

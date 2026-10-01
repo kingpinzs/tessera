@@ -31,8 +31,15 @@ enum class ProviderTable {
 data class ProviderUri(val table: ProviderTable, val ids: List<Long> = emptyList(), val syncAdapterAccount: String? = null) {
     constructor(table: ProviderTable, id: Long) : this(table, listOf(id))
 
-    /** The same URI through `caller_is_syncadapter`, as the LOCAL account [accountName]'s own sync adapter. */
-    fun asSyncAdapter(accountName: String): ProviderUri = copy(syncAdapterAccount = accountName)
+    /**
+     * The same URI through `caller_is_syncadapter`, as the LOCAL account [accountName]'s own sync adapter. The name
+     * must not be empty (fix round F20, trust review A-F14): the provider scopes a sync adapter's write to its account
+     * only when the URI names one, so an empty name would un-scope a delete by selection to every account's rows.
+     */
+    fun asSyncAdapter(accountName: String): ProviderUri {
+        require(accountName.isNotEmpty()) { "a sync-adapter URI must name its account" }
+        return copy(syncAdapterAccount = accountName)
+    }
 }
 
 /**

@@ -22,11 +22,14 @@ class FakeCalendarProvider : CalendarProvider {
     val alerts = ArrayList<MutableMap<String, Any?>>()
     val instances = ArrayList<MutableMap<String, Any?>>()
 
-    /** A query of a table for which this answers true gets no answer (null), as from a provider that is off. */
-    var noAnswer: (ProviderUri) -> Boolean = { false }
+    /** One query as the product made it. */
+    data class Query(val uri: ProviderUri, val where: String?, val args: List<String>)
 
-    /** A query of a table for which this answers true throws, as with READ_CALENDAR revoked. */
-    var throwOnQuery: (ProviderUri) -> Boolean = { false }
+    /** A query for which this answers true gets no answer (null), as from a provider that is off. */
+    var noAnswer: (Query) -> Boolean = { false }
+
+    /** A query for which this answers true throws, as with READ_CALENDAR revoked. */
+    var throwOnQuery: (Query) -> Boolean = { false }
 
     /** Called after each write was applied: a test's way to change the provider between two writes of one call. */
     var afterWrite: (Write) -> Unit = {}
@@ -69,8 +72,9 @@ class FakeCalendarProvider : CalendarProvider {
     // ------------------------------------------------------------------------------------------ the four calls
 
     override fun query(uri: ProviderUri, columns: List<String>, where: String?, args: List<String>, sort: String?): List<ProviderRow>? {
-        if (throwOnQuery(uri)) throw SecurityException("Permission Denial: reading ${uri.table}")
-        if (noAnswer(uri)) return null
+        val asked = Query(uri, where, args)
+        if (throwOnQuery(asked)) throw SecurityException("Permission Denial: reading ${uri.table}")
+        if (noAnswer(asked)) return null
         var rows = matching(uri, where, args)
         if (sort != null && sort.startsWith("minutes")) rows = rows.sortedBy { (it["minutes"] as Number).toLong() }
         if (sort != null && sort.startsWith("begin")) rows = rows.sortedBy { (it["begin"] as Number).toLong() }

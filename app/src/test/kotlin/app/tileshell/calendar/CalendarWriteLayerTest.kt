@@ -593,6 +593,112 @@ class CalendarWriteLayerTest {
         assertEquals(setOf(LOCAL), store.current.mappings.keys)
     }
 
+    // ================================================================== fix round F20
+
+    @Test fun aSyncToAnotherCalendarKeepsTheOldMappingUntilTheNewPushIsAllowed() {
+        // A-F7. The event is synced to Personal. A Sync tapped for another calendar starts a new copy there — but a
+        // Sync that is refused must leave the store as it found it. Before, the old mapping was dropped first.
+        allow(personal)
+        val copy = mapped(personal)
+        val old = SyncMapping(LOCAL, personal.key, copy)
+        assertEquals(CalendarSync.Outcome.Refused, CalendarSync.sync(access, LOCAL, work.key))
+        assertEquals(old, store.current.mappings[LOCAL])
+        allow(shared)
+        assertEquals(CalendarSync.Outcome.ReadOnly, CalendarSync.sync(access, LOCAL, shared.key))
+        assertEquals(CalendarSync.Outcome.CalendarGone, CalendarSync.sync(access, LOCAL, CalendarKey(99, "me@example.com", "com.google", "x")))
+        assertEquals(old, store.current.mappings[LOCAL])
+        assertEquals(Verdict.Refused(Refusal.NOT_ALLOWED), CalendarWrites.syncRetargetCheck(access, LOCAL, work.key))
+        noWrites()
+        // Work ticked: the push is allowed, so the old mapping goes and a new copy is made there. The old copy is not
+        // written — it stays in Personal as the account event it is.
+        allow(work)
+        assertEquals(Verdict.Allowed, CalendarWrites.syncRetargetCheck(access, LOCAL, work.key))
+        assertEquals(CalendarSync.Outcome.Ok, CalendarSync.sync(access, LOCAL, work.key))
+        val made = store.current.mappings.getValue(LOCAL)
+        assertEquals(work.key, made.target)
+        assertFalse(made.copyEventId == copy)
+        assertEquals(listOf("insert"), fake.writes.map { it.op })
+        assertEquals(work.id, fake.writes.single().values["calendar_id"])
+        assertEquals(personal.id, fake.eventRow(copy)!!["calendar_id"])
+    }
+
+    @Test fun aCopyRowThatCouldNotBeReadIsNotTakenForACopyThatIsGone() {
+        // A-F9. The read of the mapped copy's row fails (no answer, or it throws). Before, that read as "no copy" and
+        // the guard allowed a new one: a second copy beside the first.
+        allow(personal)
+        val copy = mapped(personal)
+        val readOfTheCopyRow: (FakeCalendarProvider.Query) -> Boolean = { it.uri.table == ProviderTable.EVENTS && it.where == "_id = ?" && it.args == listOf("$copy") }
+        for (mode in listOf("no answer", "throws")) {
+            fake.noAnswer = if (mode == "no answer") readOfTheCopyRow else { _ -> false }
+            fake.throwOnQuery = if (mode == "throws") readOfTheCopyRow else { _ -> false }
+            assertEquals(mode, Verdict.Refused(Refusal.NOT_ALLOWED), CalendarWrites.syncCheck(access, LOCAL, personal.key))
+            assertEquals(mode, refused(), CalendarWrites.syncInsertCopy(access, LOCAL, personal.key, values))
+            assertEquals(mode, CalendarSync.Outcome.Refused, CalendarSync.sync(access, LOCAL, personal.key))
+            noWrites(mode)
+            assertEquals(mode, SyncMapping(LOCAL, personal.key, copy), store.current.mappings[LOCAL])
+        }
+        // The engine's own read of the copy (the whole row) fails while the layer's read works: the Sync fails, and
+        // nothing is made again.
+        val readOfTheCopy: (FakeCalendarProvider.Query) -> Boolean = { it.uri.table == ProviderTable.EVENTS && it.where == "_id = ? AND deleted != 1" && it.args == listOf("$copy") }
+        for (mode in listOf("no answer", "throws")) {
+            fake.noAnswer = if (mode == "no answer") readOfTheCopy else { _ -> false }
+            fake.throwOnQuery = if (mode == "throws") readOfTheCopy else { _ -> false }
+            assertEquals(mode, "failed the copy could not be read", CalendarSync.sync(access, LOCAL, personal.key).text)
+            noWrites(mode)
+        }
+        // A copy that IS gone — the query answered, and there is no such row — is made again in the mapped calendar.
+        fake.noAnswer = { false }
+        fake.throwOnQuery = { false }
+        fake.events.removeAll { it["_id"] == copy }
+        assertEquals(CalendarSync.Outcome.Recreated, CalendarSync.sync(access, LOCAL, personal.key))
+        assertEquals(listOf("insert"), fake.writes.map { it.op })
+    }
+
+    @Test fun everyWriteOfAReminderBatchIsPutToTheGuardWithFactsReadThen() {
+        // A-F13. The copy's reminders are a delete and one insert per reminder. Before, the Sync facts were read once
+        // for the whole batch; now each write re-reads them.
+        allow(personal, work)
+        val copy = mapped(personal)
+        fake.reminder(copy, 30)
+        // The copy is moved to Work on the other side right after its reminders were cleared: the batch stops there.
+        fake.afterWrite = { w -> if (w.op == "delete" && w.uri.table == ProviderTable.REMINDERS) fake.eventRow(copy)!!["calendar_id"] = work.id }
+        assertEquals(refused(Refusal.MAPPING_STALE), CalendarWrites.syncSetReminders(access, LOCAL, copy, listOf(10 to 1, 60 to 1)))
+        assertEquals(listOf("delete"), fake.writes.map { it.op })
+        // The calendar is un-ticked between the two inserts: the first is written, the second is not.
+        fake.writes.clear()
+        fake.eventRow(copy)!!["calendar_id"] = personal.id
+        fake.afterWrite = { w -> if (w.op == "insert" && w.uri.table == ProviderTable.REMINDERS) store.update { it.copy(allowed = emptyList()) } }
+        assertEquals(refused(), CalendarWrites.syncSetReminders(access, LOCAL, copy, listOf(10 to 1, 60 to 1)))
+        assertEquals(listOf("delete", "insert"), fake.writes.map { it.op })
+        // The editor's batch too: the event is re-homed to Work under the open editor after its reminders were cleared.
+        fake.writes.clear()
+        fake.afterWrite = { w -> if (w.op == "delete" && w.uri.table == ProviderTable.REMINDERS) fake.eventRow(LOCAL)!!["calendar_id"] = work.id }
+        assertEquals(refused(), CalendarWrites.updateEvent(access, Path.EDITOR, LOCAL, values, listOf(5, 10)))
+        assertEquals(listOf("update", "delete"), fake.writes.map { it.op })
+        assertEquals(emptyList<Map<String, Any?>>(), fake.reminders.filter { it["event_id"] == LOCAL })
+    }
+
+    @Test fun aSyncAdapterUriMustNameItsAccount() {
+        // A-F14. The provider scopes a sync adapter's write to its account only when the URI names one.
+        for (uri in listOf(ProviderUri(ProviderTable.EVENTS), ProviderUri(ProviderTable.EVENTS, 5), ProviderUri(ProviderTable.CALENDARS))) {
+            assertTrue(runCatching { uri.asSyncAdapter("") }.exceptionOrNull() is IllegalArgumentException)
+            assertEquals("Tessera", uri.asSyncAdapter("Tessera").syncAdapterAccount)
+            assertEquals(uri.ids, uri.asSyncAdapter("Tessera").ids)
+        }
+        // Every sync-adapter write the layer makes names Tessera or Tessera Birthdays, never nothing.
+        fake.event(11, tessera.id, "Run", rrule = "FREQ=DAILY", duration = "P3600S", dtend = null)
+        CalendarWrites.insertException(access, Path.EDITOR, 11, 9000, ExceptionValues(status = 2), null)
+        CalendarWrites.deleteEvent(access, Path.EDITOR, 11)
+        CalendarWrites.purgeRow(access, Path.EDITOR, LOCAL)
+        CalendarWrites.birthdayInsert(access, birthdays.id, values)
+        CalendarWrites.birthdayDelete(access, BIRTHDAY)
+        CalendarWrites.createLocalCalendar(access, "Tessera", 0)
+        CalendarWrites.createBirthdaysCalendar(access, "Birthdays", 0)
+        val adapters = fake.writes.mapNotNull { it.uri.syncAdapterAccount }
+        assertEquals(8, adapters.size)
+        assertEquals(setOf("Tessera", "Tessera Birthdays"), adapters.toSet())
+    }
+
     // ================================================================== Tess
 
     @Test fun tessDeletesHereOnlyAndOnlyATesseraEvent() {
@@ -664,11 +770,11 @@ class CalendarWriteLayerTest {
         // A lookup that did not answer — no cursor, or READ_CALENDAR revoked — is not a lookup that found nothing:
         // no calendar is created after it, however often it is asked.
         fake.calendars.removeAll { it["_id"] == tessera.id }
-        fake.noAnswer = { it.table == ProviderTable.CALENDARS }
+        fake.noAnswer = { it.uri.table == ProviderTable.CALENDARS }
         repeat(3) { assertNull(LocalCalendar.id(access)) }
         assertTrue(LocalCalendar.find(access) is LocalCalendar.Lookup.Failed)
         fake.noAnswer = { false }
-        fake.throwOnQuery = { it.table == ProviderTable.CALENDARS }
+        fake.throwOnQuery = { it.uri.table == ProviderTable.CALENDARS }
         repeat(3) { assertNull(LocalCalendar.id(access)) }
         assertNull(LocalCalendar.existingId(access))
         noWrites()
@@ -690,10 +796,10 @@ class CalendarWriteLayerTest {
         allow(personal, work)
         store.update { SyncStateRules.setHidden(it, shared.key, true) }
         // A read that did not answer concludes nothing.
-        fake.noAnswer = { it.table == ProviderTable.CALENDARS }
+        fake.noAnswer = { it.uri.table == ProviderTable.CALENDARS }
         SyncAllowList.followProvider(access)
         fake.noAnswer = { false }
-        fake.throwOnQuery = { it.table == ProviderTable.CALENDARS }
+        fake.throwOnQuery = { it.uri.table == ProviderTable.CALENDARS }
         SyncAllowList.followProvider(access)
         fake.throwOnQuery = { false }
         assertEquals(listOf(personal.key, work.key), store.current.allowed)

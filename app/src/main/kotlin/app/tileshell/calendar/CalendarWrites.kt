@@ -57,13 +57,33 @@ object CalendarWrites {
 
     private fun facts(access: CalendarAccess, calendarId: Long?): CalendarFacts? = calendarId?.let { CalendarReads.calendar(access, it)?.facts }
 
-    /** (calendar_id, original_id) of an event row, deleted or not; null when no such row. */
-    private fun eventRow(access: CalendarAccess, eventId: Long): Pair<Long, Long?>? = runCatching {
-        access.provider.query(
+    /** What a read of one event row found: the row, no such row, or no answer at all. */
+    private sealed interface RowRead {
+        data class Found(val calendarId: Long, val originalId: Long?) : RowRead
+        /** The query answered and holds no such row. */
+        data object Absent : RowRead
+        /** The query did not answer or threw: nothing is known about the row. */
+        data object Failed : RowRead
+    }
+
+    /** An event row, deleted or not, by one read that tells "no such row" from "the read failed" (F20). */
+    private fun readRow(access: CalendarAccess, eventId: Long): RowRead = try {
+        val rows = access.provider.query(
             EVENTS, listOf(CalendarContract.Events.CALENDAR_ID, CalendarContract.Events.ORIGINAL_ID),
             "${CalendarContract.Events._ID} = ?", listOf(eventId.toString()),
-        )?.firstOrNull()?.let { c -> c.long(0) to (if (c.isNull(1)) null else c.long(1)) }
-    }.getOrNull()
+        )
+        when {
+            rows == null -> RowRead.Failed
+            rows.isEmpty() -> RowRead.Absent
+            else -> rows.first().let { c -> RowRead.Found(c.long(0), if (c.isNull(1)) null else c.long(1)) }
+        }
+    } catch (e: Exception) {
+        RowRead.Failed
+    }
+
+    /** (calendar_id, original_id) of an event row, deleted or not; null when there is no such row or it could not be read. */
+    private fun eventRow(access: CalendarAccess, eventId: Long): Pair<Long, Long?>? =
+        (readRow(access, eventId) as? RowRead.Found)?.let { it.calendarId to it.originalId }
 
     /** A row's `_sync_id`, DTSTART and DURATION, for the two writes that must name them. */
     private data class SeriesRow(val syncId: String?, val dtstart: Long, val duration: String?)
@@ -221,7 +241,7 @@ object CalendarWrites {
             idOf(access.provider.insert(EVENTS, eventColumns(values).apply { put(CalendarContract.Events.CALENDAR_ID, calendarId) }))
         }
         if (result is WriteResult.Ok && reminderMinutes.isNotEmpty()) {
-            val reminders = setReminders(access, path, result.value, reminderMinutes.map { it to CalendarContract.Reminders.METHOD_ALERT }, clear = false)
+            val reminders = setReminders(access, result.value, reminderMinutes.map { it to CalendarContract.Reminders.METHOD_ALERT }, clear = false, reminderRequest(access, path, result.value))
             if (reminders !is WriteResult.Ok) return logged(path, Op.INSERT, result.value.toString(), reminders.retype())
         }
         return logged(path, Op.INSERT, "new", result) { it.toString() }
@@ -231,7 +251,7 @@ object CalendarWrites {
     fun updateEvent(access: CalendarAccess, path: Path, eventId: Long, values: EventValues, reminderMinutes: List<Int>?): WriteResult<Unit> {
         val result = updateColumns(access, path, eventId, eventColumns(values).apply { remove(CalendarContract.Events.AVAILABILITY) })
         if (result is WriteResult.Ok && reminderMinutes != null) {
-            val reminders = setReminders(access, path, eventId, reminderMinutes.map { it to CalendarContract.Reminders.METHOD_ALERT }, clear = true)
+            val reminders = setReminders(access, eventId, reminderMinutes.map { it to CalendarContract.Reminders.METHOD_ALERT }, clear = true, reminderRequest(access, path, eventId))
             if (reminders !is WriteResult.Ok) return logged(path, Op.UPDATE, eventId.toString(), reminders)
         }
         return logged(path, Op.UPDATE, eventId.toString(), result)
@@ -327,7 +347,7 @@ object CalendarWrites {
         if (keyed !is WriteResult.Ok) return logged(path, Op.INSERT, "new", keyed.retype())
         val result = guarded(Request(path, Op.INSERT, Table.EVENTS, eventCalendar(access, masterId))) { exception(access, masterId, originalInstanceTime, values) }
         if (result is WriteResult.Ok && reminderMinutes != null) {
-            val reminders = setReminders(access, path, result.value, reminderMinutes.map { it to CalendarContract.Reminders.METHOD_ALERT }, clear = true)
+            val reminders = setReminders(access, result.value, reminderMinutes.map { it to CalendarContract.Reminders.METHOD_ALERT }, clear = true, reminderRequest(access, path, result.value))
             if (reminders !is WriteResult.Ok) return logged(path, Op.INSERT, result.value.toString(), reminders.retype())
         }
         return logged(path, Op.INSERT, "new", result) { it.toString() }
@@ -336,19 +356,27 @@ object CalendarWrites {
     private fun exception(access: CalendarAccess, masterId: Long, originalInstanceTime: Long, values: ExceptionValues): Long =
         idOf(access.provider.insert(ProviderUri(ProviderTable.EXCEPTIONS, masterId), exceptionColumns(originalInstanceTime, values)))
 
-    /** The reminder rows of an event of [path]'s calendar: optionally cleared, then one row per (minutes, method). */
-    private fun setReminders(access: CalendarAccess, path: Path, eventId: Long, reminders: List<Pair<Int, Int>>, clear: Boolean, sync: SyncFacts? = null): WriteResult<Unit> {
-        val calendar = eventCalendar(access, eventId)
+    /** The editor's and Tess's request for one reminder write of [eventId]: the event's calendar, re-read now. */
+    private fun reminderRequest(access: CalendarAccess, path: Path, eventId: Long): (Op) -> Request =
+        { op -> Request(path, op, Table.REMINDERS, eventCalendar(access, eventId)) }
+
+    /**
+     * The reminder rows of an event: optionally cleared, then one row per (minutes, method). It is a batch of writes,
+     * and [request] is asked again before EACH of them (fix round F20, trust review A-F13), so every one is put to the
+     * guard with facts re-read at that moment: a copy that was moved, or a calendar un-ticked, between two rows stops
+     * the batch there.
+     */
+    private fun setReminders(access: CalendarAccess, eventId: Long, reminders: List<Pair<Int, Int>>, clear: Boolean, request: (Op) -> Request): WriteResult<Unit> {
         val table = ProviderUri(ProviderTable.REMINDERS)
         if (clear) {
-            val cleared = guarded(Request(path, Op.DELETE, Table.REMINDERS, calendar, sync = sync)) {
+            val cleared = guarded(request(Op.DELETE)) {
                 access.provider.delete(table, "${CalendarContract.Reminders.EVENT_ID} = ?", listOf(eventId.toString()))
                 Unit
             }
             if (cleared !is WriteResult.Ok) return cleared
         }
         for ((minutes, method) in reminders) {
-            val inserted = guarded(Request(path, Op.INSERT, Table.REMINDERS, calendar, sync = sync)) {
+            val inserted = guarded(request(Op.INSERT)) {
                 access.provider.insert(
                     table,
                     columns {
@@ -378,10 +406,19 @@ object CalendarWrites {
      *
      * @param rowEventId the existing row the write touches (the copy, or an exception of it); null for the first
      *   insert of a copy, which goes to [insertTarget]
+     * @param copyRead the read of the mapped copy's row the caller has just made, so one read decides both which
+     *   request is built and what it says of the copy
      */
-    private fun syncRequest(access: CalendarAccess, op: Op, table: Table, localEventId: Long, rowEventId: Long?, insertTarget: Long?): Request {
+    private fun syncRequest(
+        access: CalendarAccess, op: Op, table: Table, localEventId: Long, rowEventId: Long?, insertTarget: Long?,
+        copyRead: RowRead? = null, asNewTarget: Boolean = false,
+    ): Request {
         val state = access.store.current
-        val mapping = state.mappings[localEventId]
+        // [asNewTarget]: the Sync was tapped for a calendar other than the one the mapping names, and the question is
+        // whether a first push THERE would be allowed — asked while the old mapping still stands (see syncRetargetCheck).
+        val mapping = if (asNewTarget) null else state.mappings[localEventId]
+        // The copy row is read once per request; [copyRead] is that read when the caller has just made it.
+        val copyRow = if (mapping == null) null else copyRead ?: readRow(access, mapping.copyEventId)
         val source = eventCalendar(access, localEventId)
         val row = rowEventId?.let { eventRow(access, it) }
         val calendar = facts(access, if (rowEventId != null) row?.first else insertTarget)
@@ -393,7 +430,8 @@ object CalendarWrites {
                 mapped = mapped,
                 targetAllowed = calendar != null && calendar.key in state.allowed,
                 mappingTarget = mapping?.target,
-                copyCalendarId = mapping?.let { eventRow(access, it.copyEventId)?.first },
+                copyCalendarId = (copyRow as? RowRead.Found)?.calendarId,
+                copyReadFailed = copyRow is RowRead.Failed,
                 onExistingRow = rowEventId != null,
             ),
         )
@@ -406,12 +444,23 @@ object CalendarWrites {
      */
     fun syncCheck(access: CalendarAccess, localEventId: Long, target: CalendarKey): Verdict {
         val mapping = access.store.current.mappings[localEventId]
-        val copyExists = mapping != null && eventRow(access, mapping.copyEventId) != null
+        // One read of the copy row: found, it is an update of that row; absent, a copy to make (again); failed, the
+        // request says so and the guard refuses — a read that failed is never "the copy is gone" (F20).
+        val copy = mapping?.let { readRow(access, it.copyEventId) }
         return CalendarWriteGuard.check(
-            if (copyExists) syncRequest(access, Op.UPDATE, Table.EVENTS, localEventId, mapping!!.copyEventId, null)
-            else syncRequest(access, Op.INSERT, Table.EVENTS, localEventId, null, target.id),
+            if (mapping != null && copy is RowRead.Found) syncRequest(access, Op.UPDATE, Table.EVENTS, localEventId, mapping.copyEventId, null, copyRead = copy)
+            else syncRequest(access, Op.INSERT, Table.EVENTS, localEventId, null, target.id, copyRead = copy),
         )
     }
+
+    /**
+     * What the guard would say of a FIRST push of [localEventId] into [target], asked while a mapping to another
+     * calendar still stands (fix round F20, trust review A-F7). A Sync tapped for another calendar starts a new copy
+     * there and leaves the old one as the account event it is — but the old mapping may only be dropped once this says
+     * Allowed: a Sync that is refused must leave the store as it found it.
+     */
+    fun syncRetargetCheck(access: CalendarAccess, localEventId: Long, target: CalendarKey): Verdict =
+        CalendarWriteGuard.check(syncRequest(access, Op.INSERT, Table.EVENTS, localEventId, null, target.id, asNewTarget = true))
 
     /** What the guard says of deleting [localEventId]'s copy now (the delete choice's "both"). */
     fun syncDeleteCheck(access: CalendarAccess, localEventId: Long): Verdict {
@@ -450,10 +499,8 @@ object CalendarWrites {
         }
 
     /** The copy's reminders (or one of its exceptions'), replaced by the local event's. */
-    fun syncSetReminders(access: CalendarAccess, localEventId: Long, rowEventId: Long, reminders: List<Pair<Int, Int>>): WriteResult<Unit> {
-        val request = syncRequest(access, Op.INSERT, Table.REMINDERS, localEventId, rowEventId, null)
-        return setReminders(access, Path.SYNC, rowEventId, reminders, clear = true, sync = request.sync)
-    }
+    fun syncSetReminders(access: CalendarAccess, localEventId: Long, rowEventId: Long, reminders: List<Pair<Int, Int>>): WriteResult<Unit> =
+        setReminders(access, rowEventId, reminders, clear = true) { op -> syncRequest(access, op, Table.REMINDERS, localEventId, rowEventId, null) }
 
     /** An exception of the copy's master: `ORIGINAL_ID` is the COPY's master, never the local one. */
     fun syncInsertException(access: CalendarAccess, localEventId: Long, copyMasterId: Long, originalInstanceTime: Long, values: ExceptionValues): WriteResult<Long> =

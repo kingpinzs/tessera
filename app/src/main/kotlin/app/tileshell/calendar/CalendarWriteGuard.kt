@@ -61,6 +61,8 @@ object CalendarWriteGuard {
      *   allowed list now
      * @param mappingTarget the calendar the mapping names as its target, by its whole key; null when no mapping exists yet
      * @param copyCalendarId the copy's `calendar_id` as re-read from the provider; null when there is no copy row
+     * @param copyReadFailed a mapping exists and its copy row could NOT be read (the query failed): where the copy sits
+     *   is unknown. It is never taken for "there is no copy" — nothing is written, a new copy included
      * @param onExistingRow the write names an existing row: the copy or an exception of it (an update, a delete, a
      *   reminder of either), or the master an inserted exception is to hang on. False only for the insert of a new
      *   copy, which names no row at all
@@ -71,6 +73,7 @@ object CalendarWriteGuard {
         val targetAllowed: Boolean,
         val mappingTarget: CalendarKey?,
         val copyCalendarId: Long?,
+        val copyReadFailed: Boolean,
         val onExistingRow: Boolean,
     )
 
@@ -190,6 +193,9 @@ object CalendarWriteGuard {
         val sync = r.sync ?: return refused(Refusal.NOT_ALLOWED)
         // Sync only ever copies an event of the shell's own calendar.
         if (!sync.sourceInTessera) return refused(Refusal.NOT_ALLOWED)
+        // A copy row that could not be read may sit anywhere: a failed read is not "no copy" (F20), and a new copy
+        // made on the strength of it would be a second one.
+        if (sync.copyReadFailed) return refused(Refusal.NOT_ALLOWED)
         // Only the first insert of a copy — a new row that names no existing one — may be a write the store does not
         // map. An exception event is an insert too, but it hangs on a row: on the mapped copy, or it is refused.
         val firstInsert = r.op == Op.INSERT && r.table == Table.EVENTS && !sync.mapped && !sync.onExistingRow
