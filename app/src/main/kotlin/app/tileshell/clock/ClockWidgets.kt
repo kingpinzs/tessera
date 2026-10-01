@@ -132,7 +132,16 @@ data class ClockMenuEntry(val label: String, val tag: String, val onPick: () -> 
  * 44-epx pitch in the flyout fill. Drawn as the bottom of a Box that holds the page, so the menu can rise over it.
  */
 @Composable
-fun BoxScope.ClockAppBar(buttons: List<BarButton>, menu: List<ClockMenuEntry>, isExpanded: () -> Boolean, onExpand: (Boolean) -> Unit) {
+fun BoxScope.ClockAppBar(
+    buttons: List<BarButton>,
+    menu: List<ClockMenuEntry>,
+    isExpanded: () -> Boolean,
+    /** Phase 16 (People): the bar's own fill — People's card draws its bar on the accent page (r11/people.md P3.1). */
+    fill: Color = ClockMetrics.BAND_FILL,
+    /** Phase 16 (People): the prefix of the bar's own tags (`<prefix>_app_bar`, `_more`, `_more_menu`, `_bar_scrim`). */
+    tagPrefix: String = "clock",
+    onExpand: (Boolean) -> Unit,
+) {
     val colors = LocalShellColors.current
     val expanded = isExpanded()
     val height = if (expanded) ClockMetrics.APP_BAR_EXPANDED else ClockMetrics.APP_BAR
@@ -142,7 +151,7 @@ fun BoxScope.ClockAppBar(buttons: List<BarButton>, menu: List<ClockMenuEntry>, i
         Box(Modifier.fillMaxSize()) {
             if (expanded) {
                 // A tap anywhere above the bar closes it, as R7 §3.6.2's flyouts close.
-                Box(Modifier.fillMaxSize().testTag("clock_bar_scrim").pointerInput(Unit) {
+                Box(Modifier.fillMaxSize().testTag("${tagPrefix}_bar_scrim").pointerInput(Unit) {
                     awaitEachGesture { awaitFirstDown(); if (waitForUpOrCancellation() != null) onExpand(false) }
                 })
                 var grow by remember { mutableFloatStateOf(0f) }
@@ -150,7 +159,7 @@ fun BoxScope.ClockAppBar(buttons: List<BarButton>, menu: List<ClockMenuEntry>, i
                 val menuHeight = ClockMetrics.MENU_ROW * menu.size + 16.dp
                 Column(
                     Modifier.align(Alignment.BottomStart).offset(y = -height).fillMaxWidth().height(menuHeight * grow)
-                        .clipToBounds().background(ClockMetrics.FLYOUT_FILL).testTag("clock_more_menu"),
+                        .clipToBounds().background(ClockMetrics.FLYOUT_FILL).testTag("${tagPrefix}_more_menu"),
                 ) {
                     Box(Modifier.height(8.dp))
                     menu.forEach { entry ->
@@ -163,7 +172,7 @@ fun BoxScope.ClockAppBar(buttons: List<BarButton>, menu: List<ClockMenuEntry>, i
             }
         }
     }
-    Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(height).background(ClockMetrics.BAND_FILL).testTag("clock_app_bar")) {
+    Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(height).background(fill).testTag("${tagPrefix}_app_bar")) {
         // L13-14: the bar takes the touches that land on its blank parts (the target consumes nothing and lies under the
         // buttons, which keep theirs): a list runs under the bar, and a tap or hold there used to reach the row underneath.
         // Not while the "…" scrim lies under the bar instead — a tap there closes the menu through it, as before
@@ -180,7 +189,7 @@ fun BoxScope.ClockAppBar(buttons: List<BarButton>, menu: List<ClockMenuEntry>, i
             buttons.forEach { b ->
                 BarButtonView(b.glyph, if (expanded) b.label else null, b.tag, b.enabled, ClockMetrics.BUTTON_PITCH, colors.text) { onExpand(false); b.onClick() }
             }
-            BarButtonView(Glyph.MORE_HORIZONTAL, null, "clock_more", true, ClockMetrics.MORE_W, colors.text) { onExpand(!expanded) }
+            BarButtonView(Glyph.MORE_HORIZONTAL, null, "${tagPrefix}_more", true, ClockMetrics.MORE_W, colors.text) { onExpand(!expanded) }
         }
     }
 }
