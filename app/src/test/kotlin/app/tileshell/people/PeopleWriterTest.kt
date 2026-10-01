@@ -433,9 +433,44 @@ class PeopleWriterTest {
     }
 
     @Test fun aPhoneGroupIsDeletedOutright() {
+        // The fix round's F22: the phone has no sync adapter to remove a row marked deleted, so People removes it.
         val fake = withGroups(allowed = setOf(personal))
         assertEquals(WriteResult.Ok(id = 5), PeopleWrites(fake).deleteGroup(5))
         assertEquals(listOf<Call>(Call.Delete("$GROUPS/5?caller_is_syncadapter=true", null, emptyList())), fake.calls)
+    }
+
+    @Test fun onAPhoneThatNamesItsLocalAccountItsGroupIsThePhoneGroup() {
+        val maker = ContactAccount("Phone", "vnd.maker.local")
+        val fake = FakeContacts().apply {
+            policy = EditPolicy(maker, setOf(personal))
+            groups[5] = ContactGroup(5, "Family", maker, 0)
+            groups[6] = ContactGroup(6, "Friends", personal, 0)
+            groups[7] = ContactGroup(7, "Stray", phone, 0)
+        }
+        assertEquals(WriteResult.Ok(id = 5), PeopleWrites(fake).deleteGroup(5))
+        assertEquals(WriteResult.Ok(id = 6), PeopleWrites(fake).deleteGroup(6))
+        // A group with no account at all is not this phone's local account: not People's to write, by either URI.
+        assertEquals(WriteResult.Refused, PeopleWrites(fake).deleteGroup(7))
+        assertEquals(listOf<Call>(Call.Delete("$GROUPS/5?caller_is_syncadapter=true", null, emptyList()), Call.Delete("$GROUPS/6", null, emptyList())), fake.calls)
+    }
+
+    @Test fun noGroupInAnAccountIsEverWrittenThroughTheSyncAdapterUri() {
+        for (allowed in listOf(emptySet(), setOf(personal), setOf(personal, work))) {
+            val fake = withGroups(allowed)
+            val writes = PeopleWrites(fake)
+            writes.createGroup("New", personal); writes.createGroup("New", work)
+            for (id in listOf(6L, 8L)) { writes.renameGroup(id, "Renamed"); writes.deleteGroup(id); writes.setMember(id, if (id == 6L) 3 else 2, true) }
+            val uris = fake.calls.map { call ->
+                when (call) {
+                    is Call.Insert -> call.uri
+                    is Call.Update -> call.uri
+                    is Call.Delete -> call.uri
+                    is Call.Batch -> call.rows.joinToString { it.uri }
+                    is Call.Stream -> call.uri
+                }
+            }
+            assertEquals("$allowed $uris", emptyList<String>(), uris.filter { "caller_is_syncadapter" in it })
+        }
     }
 
     @Test fun aGroupOpOnAGroupThatIsGoneOrWithNoNameOrWithoutWriteContactsWritesNothing() {

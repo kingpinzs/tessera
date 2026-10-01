@@ -152,6 +152,40 @@ class PeopleWriteGuardTest {
         assertFalse(PeopleWriteGuard.editable(wade.copy(otherProfile = true), allAllowed))
     }
 
+    // ------------------------------------------------------------------------------------------- the sync-adapter URI (fix round F22)
+
+    @Test
+    fun `allowed - the delete of a phone group through the sync-adapter URI`() {
+        val delete = PeopleWrite.GroupRow(WriteOp.DELETE, phone, viaSyncAdapter = true)
+        assertTrue(allowed(delete, nothingAllowed))
+        assertTrue(allowed(delete, personalAllowed))
+        // A phone whose maker names its local account: that account's group is the phone group, a null-account one is not.
+        val maker = ContactAccount("Phone", "vnd.sec.contact.phone")
+        val named = EditPolicy(local = maker, allowed = setOf(personal))
+        assertTrue(allowed(PeopleWrite.GroupRow(WriteOp.DELETE, maker, viaSyncAdapter = true), named))
+        assertTrue(refused(delete, named))
+    }
+
+    @Test
+    fun `refused - any other group write through the sync-adapter URI, whatever is allowed`() {
+        val allAllowed = EditPolicy(local = phone, allowed = setOf(work, personal))
+        for (policy in listOf(nothingAllowed, personalAllowed, allAllowed)) {
+            // A group in an account, allowed or not: removing its row outright is that account's own adapter's work.
+            for (account in listOf(personal, work)) for (op in WriteOp.entries) {
+                assertTrue("$op ${account.id}", refused(PeopleWrite.GroupRow(op, account, viaSyncAdapter = true), policy))
+            }
+            // On the phone, only the delete: a group is not created or renamed as a sync adapter.
+            assertTrue(refused(PeopleWrite.GroupRow(WriteOp.INSERT, phone, viaSyncAdapter = true), policy))
+            assertTrue(refused(PeopleWrite.GroupRow(WriteOp.UPDATE, phone, viaSyncAdapter = true), policy))
+        }
+        // The plain URI's rule is as it was: an allowed account's group, every op; the phone's, every op.
+        for (op in WriteOp.entries) {
+            assertTrue(allowed(PeopleWrite.GroupRow(op, personal), personalAllowed))
+            assertTrue(allowed(PeopleWrite.GroupRow(op, phone), nothingAllowed))
+            assertTrue(refused(PeopleWrite.GroupRow(op, work), personalAllowed))
+        }
+    }
+
     // ------------------------------------------------------------------------------------------- the local account
 
     @Test
