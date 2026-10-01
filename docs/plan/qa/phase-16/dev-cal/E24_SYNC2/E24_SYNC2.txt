@@ -1,0 +1,52 @@
+==============================================================================
+ROW E24_SYNC2 — delete both, the un-ticked target, a synced series, and the three refusals
+at            2026-10-01T14:27:35-06:00
+driver        e24_sync2.sh blob 8ce22a67c5f05daa36c89cb9b852c833b73352ba
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     bf4db91ef1047968 340872568 bytes
+apk installed 6d900c7f719db122
+apk match     yes (6d900c7f719db122)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  with no account calendar on the phone, nothing is allowed   does not contain [accountName]
+      personal=3 work=4 offsite=225
+PASS  a calendar created again under the id it had starts NOT allowed (ids are reused after a delete)  = false
+PASS  Personal ticked from the settings page                      = true
+PASS  A is copied                                                 = E24 both
+PASS  both: the local event is gone                               = 0
+PASS  both: and the copy                                          = 
+PASS  both: and the mapping                                       does not contain ["local":226]
+PASS  after delete both: Work holds exactly Offsite               = Offsite
+PASS  the marker stays after its target is un-ticked              = synced to QA Personal
+PASS  delete offers here and NOT both for a target no longer allowed  = yes no
+PASS  with nothing allowed, Sync opens Can sync to again          = yes
+Personal's rows for the series: Row: 0 _id=232, title=E24 weekly, rrule=FREQ=WEEKLY;COUNT=5, duration=PT1H, original_id=NULL, originalInstanceTime=NULL
+Row: 1 _id=233, title=E24 weeklyX, rrule=NULL, duration=NULL, original_id=232, originalInstanceTime=1792249200000
+PASS  Personal holds a master with the rrule                      != 
+PASS  and the duration                                            contains [duration=PT1H]
+PASS  one exception whose original_id is the COPY's master        contains [title=E24 weeklyX, rrule=NULL, duration=NULL, original_id=232, originalInstanceTime=1792249200000]
+PASS  exactly two rows                                            = 2
+PASS  a reminder row of 10 minutes on the copy                    contains [minutes=10]
+PASS  Sync again with nothing changed: ok                         contains [-> calendar 3: ok]
+PASS  the views show that occurrence once (the copy's master and exception are hidden)  = 1
+PASS  after the series' Sync: Work holds exactly Offsite          = Offsite
+PASS  Sync to a target that is read-only now                      contains [-> calendar 3: failed calendar read-only]
+PASS  its notice                                                  = That calendar is read-only now
+PASS  the marker keeps a warning                                  = yes
+PASS  and nothing was written: the copy keeps its old title       contains [E24 kept|]
+RECORD  the copy's calendar after the move                          calendar_id=4, title=E24 kept
+PASS  Sync on a moved copy                                        contains [failed mapping stale]
+PASS  the moved copy was not written                              contains [title=E24 kept]
+PASS  delete both on a moved copy writes nothing: the local event is still there  = 1
+PASS  and so is the copy                                          = 1
+PASS  after the copy is moved back: Work holds exactly Offsite    = Offsite
+PASS  Sync when the calendar is gone                              contains [failed calendar gone]
+PASS  its notice                                                  = That calendar is no longer on this phone
+PASS  the marker keeps a warning glyph                            = yes
+PASS  at the end: Work holds exactly Offsite                      = Offsite
+PASS  the account calendars are gone                              = 
+PASS  Tessera holds what it held before the session               = 0
+RECORD  calendar_sync.json after the restore                        {"version":1,"allowed":[],"mappings":[],"hidden":[],"notifiedAlerts":[]}
+------------------------------------------------------------------------------
+E24_SYNC2: 34 passed, 0 failed, 2 recorded

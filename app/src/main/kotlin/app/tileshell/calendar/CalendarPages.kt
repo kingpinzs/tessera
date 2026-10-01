@@ -55,7 +55,6 @@ import app.tileshell.clock.ClockFlyout
 import app.tileshell.clock.ClockMetrics
 import app.tileshell.clock.LocalIs24h
 import app.tileshell.clock.LoopSpinner
-import app.tileshell.clock.PressBox
 import app.tileshell.diag.Diagnostics
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.components.OutlinedField
@@ -300,7 +299,7 @@ private fun GroupRule() {
 /** A field that opens a picker or a list: the editor text box's own frame (P4.4) with its value, and ⌄ when it is a combo. */
 @Composable
 private fun PickBox(value: String, tag: String, modifier: Modifier = Modifier, combo: Boolean = false, enabled: Boolean = true, onClick: () -> Unit) {
-    PressBox(
+    CalPress(
         modifier.height(OutlinedFieldMetrics.HEIGHT).background(OutlinedFieldMetrics.FILL).border(OutlinedFieldMetrics.BORDER, OutlinedFieldMetrics.BORDER_COLOR).testTag(tag),
         onClick = { if (enabled) onClick() },
     ) {
@@ -380,7 +379,7 @@ fun EventEditor(nav: CalendarNav, model: CalendarModel, state: EditorState, onGr
             OutlinedField(draft.location, { state.draft = state.draft.copy(location = it) }, "cal_editor_field:location", field, maxLength = CalendarIntents.MAX_LOCATION, onImeAction = { keyboard?.hide() })
             GroupRule()
 
-            PressBox(
+            CalPress(
                 Modifier.fillMaxWidth().height(44.dp).testTag("cal_editor_field:all_day").semantics { role = Role.Checkbox; toggleableState = ToggleableState(draft.allDay) },
                 onClick = {
                     focus.clearFocus()
@@ -487,7 +486,7 @@ fun SyncPickerPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page
     LeafPage(nav, "cal_sync", "Sync to") {
         if (targets.isEmpty()) {
             CalNotice(CalNotices.CHOOSE, Modifier.padding(start = CalMetrics.PANE_ACCOUNT_X.dp, end = 12.dp, bottom = 8.dp))
-            PressBox(Modifier.fillMaxWidth().height(CalMetrics.PANE_ROW).testTag("cal_sync_open_can_sync"), onClick = { nav.pop(); nav.push(CalPage.CanSyncTo(page.eventId)) }) {
+            CalPress(Modifier.fillMaxWidth().height(CalMetrics.PANE_ROW).testTag("cal_sync_open_can_sync"), onClick = { nav.pop(); nav.push(CalPage.CanSyncTo(page.eventId)) }) {
                 BasicText("Can sync to", Modifier.align(Alignment.CenterStart).offset(x = CalMetrics.PANE_ACCOUNT_X.dp), style = ShellType.body.copy(color = LocalShellColors.current.accent))
             }
         }
@@ -556,7 +555,7 @@ fun CalendarSettingsPage(nav: CalendarNav, model: CalendarModel, sync: SyncState
             }
         }
         GroupRule()
-        PressBox(Modifier.fillMaxWidth().height(CalMetrics.PANE_ROW).testTag("cal_settings_open_can_sync"), onClick = { nav.push(CalPage.CanSyncTo(null)) }) {
+        CalPress(Modifier.fillMaxWidth().height(CalMetrics.PANE_ROW).testTag("cal_settings_open_can_sync"), onClick = { nav.push(CalPage.CanSyncTo(null)) }) {
             BasicText("Can sync to", Modifier.align(Alignment.CenterStart).offset(x = CalMetrics.FIELD_X), style = ShellType.body.copy(color = Color.White))
             BasicText(Glyph.CHEVRON_RIGHT, Modifier.align(Alignment.CenterEnd).padding(end = 12.dp), style = glyphStyle(14f, Color.White))
         }
@@ -579,7 +578,7 @@ private fun CalDialogBox(tag: String, title: String, buttons: List<Triple<String
             BasicText(title, Modifier.testTag("${tag}_title"), style = ShellType.subtitle.copy(color = Color.White))
             Spacer(Modifier.height(16.dp))
             (buttons + Triple("Cancel", "${tag}_cancel", onCancel)).forEach { (label, buttonTag, onClick) ->
-                PressBox(Modifier.fillMaxWidth().padding(bottom = 8.dp).height(34.dp).border(1.dp, Color.White.copy(alpha = 0.7f)).testTag(buttonTag), onClick = onClick) {
+                CalPress(Modifier.fillMaxWidth().padding(bottom = 8.dp).height(34.dp).border(1.dp, Color.White.copy(alpha = 0.7f)).testTag(buttonTag), onClick = onClick) {
                     BasicText(label, Modifier.fillMaxWidth().align(Alignment.Center), style = ShellType.body.copy(color = Color.White, textAlign = TextAlign.Center), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
@@ -623,11 +622,11 @@ private fun TimePickerPanel(initial: LocalTime, onPick: (LocalTime) -> Unit, onD
             }
             Box(Modifier.fillMaxWidth().height(48.dp).background(Color.Black)) {
                 Row(Modifier.align(Alignment.CenterEnd)) {
-                    PressBox(Modifier.size(48.dp).testTag("cal_time_ok"), onClick = { onPick(LocalTime.of(hour, minute)); onDone() }) {
+                    CalPress(Modifier.size(48.dp).testTag("cal_time_ok"), onClick = { onPick(LocalTime.of(hour, minute)); onDone() }) {
                         BasicText(Glyph.CHECKMARK, Modifier.align(Alignment.Center), style = glyphStyle(20f, Color.White))
                     }
                     Spacer(Modifier.width(20.dp))
-                    PressBox(Modifier.size(48.dp).testTag("cal_time_cancel"), onClick = onDone) {
+                    CalPress(Modifier.size(48.dp).testTag("cal_time_cancel"), onClick = onDone) {
                         BasicText(Glyph.DISMISS, Modifier.align(Alignment.Center), style = glyphStyle(20f, Color.White))
                     }
                 }
@@ -664,7 +663,7 @@ fun BoxScope.CalendarDialogs(nav: CalendarNav) {
         ) {
             Box(Modifier.height(8.dp))
             d.options.forEach { (id, label) ->
-                PressBox(
+                CalPress(
                     Modifier.fillMaxWidth().height(ClockMetrics.MENU_ROW).testTag("${d.tag}:$id").semantics { role = Role.Tab; selected = id == d.selected },
                     onClick = { close(); d.onPick(id) },
                 ) {

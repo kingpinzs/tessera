@@ -68,7 +68,6 @@ import app.tileshell.brand.Glyph
 import app.tileshell.clock.BarButton
 import app.tileshell.clock.ClockMetrics
 import app.tileshell.clock.LocalIs24h
-import app.tileshell.clock.PressBox
 import app.tileshell.diag.Diagnostics
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.MotionClock
@@ -360,7 +359,7 @@ internal fun EventRow(event: EventInstance, zone: ZoneId, locale: Locale, onEven
     val color = colorOf(event.color)
     val tint = tintOf(event.color)
     val bar = if (event.allDay) CalMetrics.ALL_DAY_BAR else CalMetrics.TIMED_BAR
-    PressBox(
+    CalPress(
         Modifier.fillMaxWidth().height(if (event.allDay) CalMetrics.ALL_DAY_PITCH else CalMetrics.TIMED_PITCH).testTag("cal_event:${event.eventId}"),
         onClick = { onEvent(event) },
     ) {

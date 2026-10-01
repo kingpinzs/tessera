@@ -8,6 +8,7 @@ import android.database.ContentObserver
 import android.os.Handler
 import android.os.Looper
 import android.provider.CalendarContract
+import app.tileshell.calendar.SyncAllowList
 import app.tileshell.calendar.SyncedCopies
 import app.tileshell.diag.Diagnostics
 import app.tileshell.tiles.engine.FaceTransition
@@ -89,6 +90,9 @@ object CalendarFeed {
             val faces = mutableListOf<TileFace>(TileFace.CalendarDay(dayName, dayNumber, emptyList()))
             // Phase 16 (Q-16-2): a synced copy is hidden everywhere in the shell while its Tessera original exists, so the
             // tile and the agenda (phase 14's pod) show a synced event once. One reader gives the ids for both queries.
+            // Phase 16 (T16-1): a calendar that left the phone leaves Sync's allowed list here, whether or not the Calendar
+            // app is open — this observer is the one that is always running.
+            if (hasAccess(context)) SyncAllowList.followProvider(context)
             val copies = if (hasAccess(context)) SyncedCopies.hiddenEventIds(context) else emptySet()
             if (hasAccess(context)) {
                 runCatching {

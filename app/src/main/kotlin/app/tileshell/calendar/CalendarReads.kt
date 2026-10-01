@@ -350,3 +350,23 @@ object SyncedCopies {
         return SyncStateRules.hiddenEventIds(state, CalendarReads.exceptionIds(context, copies))
     }
 }
+
+/**
+ * The store's `allowed` and `hidden` lists follow the provider's calendar list wherever the shell is alive, not only
+ * while the Calendar app is open: `CalendarFeed`'s observer calls this on every provider change. A calendar removed
+ * from the phone leaves both lists at once, so one that comes back — even under the `_ID` it had, which the provider
+ * hands out again after a delete (Verify at build start 3) — starts NOT allowed (T16-1; the Trust line (e)).
+ */
+object SyncAllowList {
+    fun followProvider(context: Context) {
+        val store = CalendarSyncStore.get(context)
+        val state = store.current
+        if (state.allowed.isEmpty() && state.hidden.isEmpty()) return
+        // A read that did not answer concludes nothing.
+        val present = (CalendarReads.calendars(context) as? CalendarsResult.Ok)?.calendars?.mapTo(HashSet()) { it.key } ?: return
+        val after = store.update { SyncStateRules.prune(it, present) }
+        if (after.allowed.size != state.allowed.size) {
+            Diagnostics.add("calendar", "can sync to: ${state.allowed.size - after.allowed.size} calendar(s) no longer on this phone left the list")
+        }
+    }
+}

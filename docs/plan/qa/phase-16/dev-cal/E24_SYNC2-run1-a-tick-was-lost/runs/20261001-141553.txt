@@ -1,0 +1,60 @@
+==============================================================================
+ROW E24_SYNC2 — delete both, the un-ticked target, a synced series, and the three refusals
+at            2026-10-01T14:15:49-06:00
+driver        e24_sync2.sh blob e5cc9c5bf39cd817a335c61572fbea93ae118a81
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     79cd257f3f46ca49 339305256 bytes
+apk installed c4f1563a77205e6c
+apk match     yes (c4f1563a77205e6c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      personal=3 work=4 offsite=210
+FAIL  Personal ticked from the settings page                      expected [true] got [false]
+FAIL  tap cal_sync_target:3                                       no such node on screen (cal_account:qa.personal@example.com cal_account:qa.work@example.com cal_app_bar cal_bar:more cal_can_sync cal_can_sync_title cal_notice cal_settings_can_sync:3 cal_settings_can_sync:4 )
+FAIL  A is copied                                                 expected [E24 both] got []
+FAIL  tap cal_delete_choice:both                                  no such node on screen (cal_agenda cal_app_bar cal_bar:more cal_bar:new cal_bar:today cal_bar:view cal_day:2026-10-01 cal_day:2026-10-06 cal_empty:2026-10-01 cal_event:210 cal_event_bar:210 cal_event_time:210 cal_event_title:210 cal_header cal_header_chevron cal_menu cal_month_title cal_strip cal_strip_day:2026-09-27 cal_s)
+PASS  both: the local event is gone                               = 0
+PASS  both: and the copy                                          = 
+PASS  both: and the mapping                                       does not contain ["local":211]
+PASS  after delete both: Work holds exactly Offsite               = Offsite
+FAIL  tap cal_sync_target:3                                       no such node on screen (cal_account:qa.personal@example.com cal_account:qa.work@example.com cal_app_bar cal_bar:more cal_can_sync cal_can_sync_title cal_notice cal_settings_can_sync:3 cal_settings_can_sync:4 )
+FAIL  the marker stays after its target is un-ticked              expected [synced to QA Personal] got []
+FAIL  delete offers here and NOT both for a target no longer allowed  expected [yes no] got [no no]
+FAIL  tap cal_event_action:sync                                   no such node on screen ()
+FAIL  with nothing allowed, Sync opens Can sync to again          expected [yes] got [no]
+FAIL  tap cal_settings_can_sync:3                                 no such node on screen ()
+Personal's rows for the series: Row: 0 _id=215, title=E24 weekly, rrule=FREQ=WEEKLY;COUNT=5, duration=PT1H, original_id=NULL, originalInstanceTime=NULL
+Row: 1 _id=216, title=E24 weeklyX, rrule=NULL, duration=NULL, original_id=215, originalInstanceTime=1792249200000
+PASS  Personal holds a master with the rrule                      != 
+PASS  and the duration                                            contains [duration=PT1H]
+PASS  one exception whose original_id is the COPY's master        contains [title=E24 weeklyX, rrule=NULL, duration=NULL, original_id=215, originalInstanceTime=1792249200000]
+PASS  exactly two rows                                            = 2
+PASS  a reminder row of 10 minutes on the copy                    contains [minutes=10]
+PASS  Sync again with nothing changed: ok                         contains [-> calendar 3: ok]
+PASS  the views show that occurrence once (the copy's master and exception are hidden)  = 1
+PASS  after the series' Sync: Work holds exactly Offsite          = Offsite
+FAIL  tap cal_event_action:sync                                   no such node on screen (cal_allday:2026-10-17 cal_app_bar cal_bar:more cal_bar:new cal_bar:today cal_bar:view cal_day:2026-10-17 cal_day_grid cal_event:214 cal_event_time:214 cal_event_title:214 cal_header cal_header_chevron cal_menu cal_month_title cal_notice cal_view cal_view_mode:day )
+FAIL  Sync to a target that is read-only now                      does not contain [-> calendar 3: failed calendar read-only]: FAIL  tap cal_event_action:sync                                   no such node on screen (cal_allday:2026-10-17 cal_app_bar cal_bar:more cal_bar:new cal_bar:today cal_bar:view cal_day:2026-10-17 cal_day_grid cal_event:214 cal_event_time:214
+FAIL  its notice                                                  expected [That calendar is read-only now] got [That event is no longer on this phone.]
+FAIL  the marker keeps a warning                                  expected [yes] got [no]
+FAIL  and nothing was written: the copy keeps its old title       does not contain [E24 kept|]: E24 weekly|E24 weeklyX|
+RECORD  the copy's calendar after the move                          
+FAIL  tap cal_event_action:sync                                   no such node on screen (cal_allday:2026-10-17 cal_app_bar cal_bar:more cal_bar:new cal_bar:today cal_bar:view cal_day:2026-10-17 cal_day_grid cal_event:214 cal_event_time:214 cal_event_title:214 cal_header cal_header_chevron cal_menu cal_month_title cal_notice cal_view cal_view_mode:day )
+FAIL  Sync on a moved copy                                        does not contain [failed mapping stale]: FAIL  tap cal_event_action:sync                                   no such node on screen (cal_allday:2026-10-17 cal_app_bar cal_bar:more cal_bar:new cal_bar:today cal_bar:view cal_day:2026-10-17 cal_day_grid cal_event:214 cal_event_time:214
+FAIL  the moved copy was not written                              does not contain [title=E24 kept]: 
+FAIL  tap cal_event_action:delete                                 no such node on screen (cal_allday:2026-10-17 cal_app_bar cal_bar:more cal_bar:new cal_bar:today cal_bar:view cal_day:2026-10-17 cal_day_grid cal_event:214 cal_event_time:214 cal_event_title:214 cal_header cal_header_chevron cal_menu cal_month_title cal_notice cal_view cal_view_mode:day )
+FAIL  tap cal_delete_choice:both                                  no such node on screen (cal_allday:2026-10-17 cal_app_bar cal_bar:more cal_bar:new cal_bar:today cal_bar:view cal_day:2026-10-17 cal_day_grid cal_event:214 cal_event_time:214 cal_event_title:214 cal_header cal_header_chevron cal_menu cal_month_title cal_notice cal_view cal_view_mode:day )
+FAIL  delete both on a moved copy writes nothing: the local event is still there  expected [1] got [0]
+FAIL  and so is the copy                                          expected [1] got [0]
+PASS  after the copy is moved back: Work holds exactly Offsite    = Offsite
+FAIL  tap cal_event_action:sync                                   no such node on screen (cal_allday:2026-10-17 cal_app_bar cal_bar:more cal_bar:new cal_bar:today cal_bar:view cal_day:2026-10-17 cal_day_grid cal_event:214 cal_event_time:214 cal_event_title:214 cal_header cal_header_chevron cal_menu cal_month_title cal_notice cal_view cal_view_mode:day )
+FAIL  Sync when the calendar is gone                              does not contain [failed calendar gone]: FAIL  tap cal_event_action:sync                                   no such node on screen (cal_allday:2026-10-17 cal_app_bar cal_bar:more cal_bar:new cal_bar:today cal_bar:view cal_day:2026-10-17 cal_day_grid cal_event:214 cal_event_time:214
+FAIL  its notice                                                  expected [That calendar is no longer on this phone] got [That event is no longer on this phone.]
+FAIL  the marker keeps a warning glyph                            expected [yes] got [no]
+PASS  at the end: Work holds exactly Offsite                      = Offsite
+PASS  the account calendars are gone                              = 
+PASS  Tessera holds what it held before the session               = 0
+RECORD  calendar_sync.json after the restore                        {"version":1,"allowed":[],"mappings":[],"hidden":[],"notifiedAlerts":[]}
+------------------------------------------------------------------------------
+E24_SYNC2: 16 passed, 23 failed, 2 recorded
