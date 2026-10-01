@@ -20,6 +20,17 @@ object BackHistory {
         "com.android.packageinstaller", "com.google.android.packageinstaller", "com.android.intentresolver",
     )
 
+    /**
+     * The packages [BackRules] treats as system surfaces: they neither count nor end an unlock's continuation.
+     *
+     * Keyboards are among them — but not the shell, which has been a keyboard package itself since phase 05 (L14-2).
+     * With the shell in this set every resume of Start was skipped: Start never ended the continuation, and the last
+     * app used before a lock could not be reached by Back until some other app had been opened. Start is a HOME
+     * activity, and [BackRules] already leaves those out by activity.
+     */
+    internal fun systemSurfaces(shellPackage: String, imePackages: Set<String>): Set<String> =
+        alwaysExcluded + (imePackages - shellPackage)
+
     fun hasUsageAccess(context: Context): Boolean {
         val ops = context.getSystemService(android.app.AppOpsManager::class.java)
         val mode = ops.unsafeCheckOpNoThrow(android.app.AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), context.packageName)
@@ -40,7 +51,7 @@ object BackHistory {
             .flatMap { r -> listOfNotNull(r.activityInfo.name, r.activityInfo.targetActivity).map { r.activityInfo.packageName to it } }
             .toSet()
         val imePackages = context.getSystemService(InputMethodManager::class.java).inputMethodList.map { it.packageName }.toSet()
-        val rules = BackRules(context.packageName, homeComponents, alwaysExcluded + imePackages)
+        val rules = BackRules(context.packageName, homeComponents, systemSurfaces(context.packageName, imePackages))
         val stream = mutableListOf<BackRules.Event>()
         var keyguards = 0
         val e = UsageEvents.Event()
