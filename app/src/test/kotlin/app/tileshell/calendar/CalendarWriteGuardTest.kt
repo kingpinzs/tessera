@@ -22,6 +22,10 @@ class CalendarWriteGuardTest {
     private val work = CalendarFacts(6, "qa.work@example.com", "com.google", 700)
     private val qaLocal = CalendarFacts(7, "qa", "LOCAL", 700)
 
+    /** Account calendars whose account is NAMED like the shell's two (a CalDAV account can be named anything): F18. */
+    private val davNamedTessera = CalendarFacts(8, "Tessera", "com.example.dav", 700)
+    private val googleNamedBirthdays = CalendarFacts(9, "Tessera Birthdays", "com.google", 700)
+
     private val allowed = Verdict.Allowed
     private fun refused(why: Refusal = Refusal.NOT_ALLOWED) = Verdict.Refused(why)
 
@@ -72,16 +76,74 @@ class CalendarWriteGuardTest {
     }
 
     @Test fun tesserasEventRowsMayBeWrittenAsItsOwnSyncAdapterAndNothingElseMay() {
-        // The LOCAL account's sync adapter is the shell itself: a series gets its _sync_id, and a row is removed for good.
-        for (op in Op.entries) {
-            assertEquals("$op", allowed, check(Path.EDITOR, op, Table.EVENTS, tessera, syncAdapter = true))
-            assertEquals("$op", allowed, check(Path.TESS, op, Table.EVENTS, tessera, syncAdapter = true))
+        // The LOCAL account's sync adapter is the shell itself, and it is needed for two writes only (fix round F19):
+        // a row removed for good — the editor's delete and Tess's —
+        assertEquals(allowed, check(Path.EDITOR, Op.DELETE, Table.EVENTS, tessera, syncAdapter = true))
+        assertEquals(allowed, check(Path.TESS, Op.DELETE, Table.EVENTS, tessera, syncAdapter = true))
+        // and a series given its _sync_id before its first exception, by the editor, that column alone.
+        assertEquals(allowed, check(Path.EDITOR, Op.UPDATE, Table.EVENTS, tessera, columns = setOf("_sync_id"), syncAdapter = true))
+        // Nothing else: no insert, no update of another column or of more than that one, and never by Tess.
+        for (path in listOf(Path.EDITOR, Path.TESS)) {
+            assertEquals("$path insert", refused(), check(path, Op.INSERT, Table.EVENTS, tessera, syncAdapter = true))
+            assertEquals("$path insert", refused(), check(path, Op.INSERT, Table.EVENTS, tessera, columns = setOf("_sync_id"), syncAdapter = true))
+            for (columns in listOf(emptySet(), setOf("title"), setOf("_sync_id", "title"), setOf("calendar_id"), setOf("_sync_id", "calendar_id"), setOf("deleted"), setOf("dirty"))) {
+                assertEquals("$path update $columns", refused(), check(path, Op.UPDATE, Table.EVENTS, tessera, columns = columns, syncAdapter = true))
+            }
         }
-        // Reminder rows are a normal app's; and the sync-adapter URI opens no other calendar to the editor or Tess.
-        assertEquals(refused(), check(Path.EDITOR, Op.INSERT, Table.REMINDERS, tessera, syncAdapter = true))
-        for (calendar in listOf(birthdays, personal, work, qaLocal)) for (op in Op.entries) {
-            assertEquals("$op ${calendar.accountName}", refused(), check(Path.EDITOR, op, Table.EVENTS, calendar, syncAdapter = true))
-            assertEquals("$op ${calendar.accountName}", refused(), check(Path.TESS, op, Table.EVENTS, calendar, syncAdapter = true))
+        assertEquals(refused(), check(Path.TESS, Op.UPDATE, Table.EVENTS, tessera, columns = setOf("_sync_id"), syncAdapter = true))
+        // Reminder rows are a normal app's, and the calendar row is nobody's to rewrite.
+        for (path in listOf(Path.EDITOR, Path.TESS)) for (op in Op.entries) {
+            assertEquals("$path $op", refused(), check(path, op, Table.REMINDERS, tessera, columns = setOf("_sync_id"), syncAdapter = true))
+            assertEquals("$path $op", refused(), check(path, op, Table.CALENDARS, tessera, columns = setOf("_sync_id"), syncAdapter = true))
+        }
+        // And the sync-adapter URI opens no other calendar to the editor or Tess — not one whose account is only named Tessera.
+        for (calendar in listOf(birthdays, personal, work, qaLocal, davNamedTessera, googleNamedBirthdays)) for (op in Op.entries) {
+            for (columns in listOf(emptySet(), setOf("_sync_id"))) {
+                assertEquals("$op ${calendar.accountName}", refused(), check(Path.EDITOR, op, Table.EVENTS, calendar, columns = columns, syncAdapter = true))
+                assertEquals("$op ${calendar.accountName}", refused(), check(Path.TESS, op, Table.EVENTS, calendar, columns = columns, syncAdapter = true))
+            }
+        }
+    }
+
+    @Test fun noUpdateMaySetCalendarIdWhoeverAsks() {
+        // A row never changes calendars (fix round F19): calendar_id among an update's columns is refused on every
+        // path, in every calendar, through either URI — also where the same update without it is allowed.
+        assertEquals(allowed, check(Path.EDITOR, Op.UPDATE, Table.EVENTS, tessera, columns = setOf("title")))
+        assertEquals(allowed, check(Path.SYNC, Op.UPDATE, Table.EVENTS, personal, columns = setOf("title"), sync = mappedCopy()))
+        assertEquals(allowed, check(Path.BIRTHDAYS, Op.UPDATE, Table.EVENTS, birthdays, columns = setOf("title"), syncAdapter = true))
+        assertEquals(refused(), check(Path.EDITOR, Op.UPDATE, Table.EVENTS, tessera, columns = setOf("title", "calendar_id")))
+        assertEquals(refused(), check(Path.TESS, Op.UPDATE, Table.EVENTS, tessera, columns = setOf("calendar_id")))
+        assertEquals(refused(), check(Path.SYNC, Op.UPDATE, Table.EVENTS, personal, columns = setOf("title", "calendar_id"), sync = mappedCopy()))
+        assertEquals(refused(), check(Path.BIRTHDAYS, Op.UPDATE, Table.EVENTS, birthdays, columns = setOf("title", "calendar_id"), syncAdapter = true))
+        for (path in Path.entries) for (table in Table.entries) for (adapter in listOf(false, true)) {
+            for (calendar in listOf(tessera, birthdays, personal, work, qaLocal, davNamedTessera, null)) for (sync in listOf(null, firstPush, mappedCopy())) {
+                for (columns in listOf(setOf("calendar_id"), setOf("calendar_id", "state"), setOf("_sync_id", "calendar_id"), setOf("title", "calendar_id"))) {
+                    assertEquals("$path $table ${calendar?.accountName} adapter=$adapter $columns", refused(), check(path, Op.UPDATE, table, calendar, columns, adapter, sync))
+                }
+            }
+        }
+    }
+
+    // ---- an account calendar whose account is only NAMED like the shell's (fix round F18) ----
+
+    @Test fun aNonLocalCalendarWhoseAccountIsNamedTesseraOrTesseraBirthdaysIsAnAccountCalendar() {
+        for (calendar in listOf(davNamedTessera, googleNamedBirthdays)) {
+            assertEquals(false, CalendarWriteGuard.isTessera(calendar))
+            assertEquals(false, CalendarWriteGuard.isBirthdays(calendar))
+            // Refused on every path but Sync: every op, every table that has a calendar (the alerts have none: the
+            // receiver's case 4 is not a write to any calendar), either URI, whatever columns.
+            val tables = listOf(Table.CALENDARS, Table.EVENTS, Table.REMINDERS, Table.OTHER)
+            for (path in Path.entries.filter { it != Path.SYNC }) for (op in Op.entries) for (table in tables) for (adapter in listOf(false, true)) {
+                for (columns in listOf(emptySet(), setOf("state"), setOf("_sync_id"), setOf("title"))) {
+                    assertEquals("$path $op $table ${calendar.accountName} adapter=$adapter $columns", refused(), check(path, op, table, calendar, columns, adapter))
+                }
+            }
+            // It is an account calendar like any other: only a tapped Sync into it, once it is allowed, may write it —
+            assertEquals(allowed, check(Path.SYNC, Op.INSERT, Table.EVENTS, calendar, sync = firstPush))
+            assertEquals(allowed, check(Path.SYNC, Op.UPDATE, Table.EVENTS, calendar, sync = mappedCopy(calendar)))
+            // and not while it is not on the allowed list.
+            assertEquals(refused(), check(Path.SYNC, Op.INSERT, Table.EVENTS, calendar, sync = firstPush.copy(targetAllowed = false)))
+            assertEquals(refused(), check(Path.SYNC, Op.UPDATE, Table.EVENTS, calendar, sync = mappedCopy(calendar).copy(targetAllowed = false)))
         }
     }
 
@@ -209,7 +271,7 @@ class CalendarWriteGuardTest {
 
     @Test fun everyOpOnAnAccountCalendarIsRefusedForEveryPathButSync() {
         for (path in Path.entries.filter { it != Path.SYNC }) for (op in Op.entries) {
-            for (table in listOf(Table.CALENDARS, Table.EVENTS, Table.REMINDERS)) for (calendar in listOf(personal, work, qaLocal)) {
+            for (table in listOf(Table.CALENDARS, Table.EVENTS, Table.REMINDERS)) for (calendar in listOf(personal, work, qaLocal, davNamedTessera, googleNamedBirthdays)) {
                 assertEquals("$path $op $table ${calendar.accountName}", refused(), check(path, op, table, calendar))
                 assertEquals("$path $op $table ${calendar.accountName} (sync adapter)", refused(), check(path, op, table, calendar, syncAdapter = true))
             }
@@ -267,15 +329,19 @@ class CalendarWriteGuardTest {
     // ---- the whole space: nothing is allowed outside the four cases ----
 
     @Test fun everyCombinationOutsideTheFourCasesIsRefused() {
-        val calendars = listOf(tessera, birthdays, personal, work, qaLocal, personal.copy(accessLevel = 200), null)
+        val calendars = listOf(tessera, birthdays, personal, work, qaLocal, davNamedTessera, googleNamedBirthdays, personal.copy(accessLevel = 200), null)
         val syncs = listOf(null, firstPush, mappedCopy(), mappedCopy(work), firstPush.copy(targetAllowed = false), mappedCopy().copy(sourceInTessera = false))
         var allowedCount = 0
         for (path in Path.entries) for (op in Op.entries) for (table in Table.entries) for (calendar in calendars) for (adapter in listOf(false, true)) for (sync in syncs) {
-            for (columns in listOf(emptySet(), setOf("state"), setOf("title"))) {
+            for (columns in listOf(emptySet(), setOf("state"), setOf("title"), setOf("_sync_id"), setOf("calendar_id"), setOf("_sync_id", "calendar_id"))) {
                 val verdict = check(path, op, table, calendar, columns, adapter, sync)
                 if (verdict != allowed) continue
                 allowedCount++
-                val case1 = calendar == tessera && (path == Path.EDITOR || path == Path.TESS) && (table == Table.EVENTS || (table == Table.REMINDERS && !adapter))
+                // Whatever the case, an update never names calendar_id.
+                assertEquals("an update of calendar_id was allowed: $path $table $calendar adapter=$adapter $sync $columns", false, op == Op.UPDATE && "calendar_id" in columns)
+                val asNormalApp = !adapter && (table == Table.EVENTS || table == Table.REMINDERS)
+                val asItsAdapter = adapter && table == Table.EVENTS && (op == Op.DELETE || (op == Op.UPDATE && path == Path.EDITOR && columns == setOf("_sync_id")))
+                val case1 = calendar == tessera && (path == Path.EDITOR || path == Path.TESS) && (asNormalApp || asItsAdapter)
                 val case1Create = calendar == tessera && adapter && path == Path.LOCAL_CALENDAR && table == Table.CALENDARS && op == Op.INSERT
                 val case2 = calendar == birthdays && adapter && path == Path.BIRTHDAYS && (table == Table.EVENTS || (table == Table.CALENDARS && op == Op.INSERT))
                 val case3 = path == Path.SYNC && !adapter && calendar != null && calendar.accountType != "LOCAL" && calendar.accessLevel >= 500 &&
