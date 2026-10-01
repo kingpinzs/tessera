@@ -420,7 +420,8 @@ object CalendarWrites {
         // The copy row is read once per request; [copyRead] is that read when the caller has just made it.
         val copyRow = if (mapping == null) null else copyRead ?: readRow(access, mapping.copyEventId)
         val source = eventCalendar(access, localEventId)
-        val row = rowEventId?.let { eventRow(access, it) }
+        val touched = rowEventId?.let { readRow(access, it) }
+        val row = (touched as? RowRead.Found)?.let { it.calendarId to it.originalId }
         val calendar = facts(access, if (rowEventId != null) row?.first else insertTarget)
         val mapped = mapping != null && rowEventId != null && (rowEventId == mapping.copyEventId || row?.second == mapping.copyEventId)
         return Request(
@@ -431,7 +432,7 @@ object CalendarWrites {
                 targetAllowed = calendar != null && calendar.key in state.allowed,
                 mappingTarget = mapping?.target,
                 copyCalendarId = (copyRow as? RowRead.Found)?.calendarId,
-                copyReadFailed = copyRow is RowRead.Failed,
+                copyReadFailed = copyRow is RowRead.Failed || touched is RowRead.Failed,
                 onExistingRow = rowEventId != null,
             ),
         )

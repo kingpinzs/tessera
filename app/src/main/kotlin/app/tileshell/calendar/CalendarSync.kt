@@ -27,6 +27,8 @@ object CalendarSync {
         data object ReadOnly : Outcome(Refusal.READ_ONLY.text)
         data object MappingStale : Outcome(Refusal.MAPPING_STALE.text)
         data object Refused : Outcome(Refusal.NOT_ALLOWED.text)
+        /** The mapped copy could not be read (the query failed): nothing was compared, written or made again. */
+        data object CopyUnreadable : Outcome(Refusal.COPY_UNREADABLE.text)
 
         val wrote: Boolean get() = this is Ok || this is Updated || this is Recreated
     }
@@ -55,6 +57,7 @@ object CalendarSync {
         Refusal.MAPPING_STALE -> Outcome.MappingStale
         Refusal.READ_ONLY -> Outcome.ReadOnly
         Refusal.CALENDAR_GONE -> Outcome.CalendarGone
+        Refusal.COPY_UNREADABLE -> Outcome.CopyUnreadable
     }
 
     private fun <T> outcomeOf(result: WriteResult<T>): Outcome? = when (result) {
@@ -98,7 +101,7 @@ object CalendarSync {
         val localSnapshot = SyncRules.snapshot(local, localReminders, localExceptions)
         val mapping = store.current.mappings[localEventId]
         // A read of the copy that FAILED is not a copy that is gone: nothing is made again on the strength of it (F20).
-        val copy = mapping?.let { CalendarReads.eventRead(access, it.copyEventId).getOrElse { return Outcome.Failed("the copy could not be read") } }
+        val copy = mapping?.let { CalendarReads.eventRead(access, it.copyEventId).getOrElse { return Outcome.CopyUnreadable } }
 
         if (mapping != null && copy != null) {
             val copyExceptions = CalendarReads.exceptions(access, copy.id)

@@ -631,9 +631,19 @@ class CalendarWriteLayerTest {
         for (mode in listOf("no answer", "throws")) {
             fake.noAnswer = if (mode == "no answer") readOfTheCopyRow else { _ -> false }
             fake.throwOnQuery = if (mode == "throws") readOfTheCopyRow else { _ -> false }
-            assertEquals(mode, Verdict.Refused(Refusal.NOT_ALLOWED), CalendarWrites.syncCheck(access, LOCAL, personal.key))
-            assertEquals(mode, refused(), CalendarWrites.syncInsertCopy(access, LOCAL, personal.key, values))
-            assertEquals(mode, CalendarSync.Outcome.Refused, CalendarSync.sync(access, LOCAL, personal.key))
+            assertEquals(mode, Verdict.Refused(Refusal.COPY_UNREADABLE), CalendarWrites.syncCheck(access, LOCAL, personal.key))
+            assertEquals(mode, refused(Refusal.COPY_UNREADABLE), CalendarWrites.syncInsertCopy(access, LOCAL, personal.key, values))
+            // The engine's one line, and the notice the page shows for it.
+            lateinit var outcome: CalendarSync.Outcome
+            assertEquals(mode, listOf("sync event=$LOCAL -> calendar ${personal.id}: failed the copy could not be read"), ring { outcome = CalendarSync.sync(access, LOCAL, personal.key) })
+            assertEquals(mode, CalendarSync.Outcome.CopyUnreadable, outcome)
+            assertEquals("That event's copy couldn't be read. Try again.", CalNotices.of(outcome, "Personal"))
+            // "Delete here and from": refused the same way, nothing deleted on either side.
+            assertEquals(mode, Verdict.Refused(Refusal.COPY_UNREADABLE), CalendarWrites.syncDeleteCheck(access, LOCAL))
+            for (written in listOf(CalendarWrites.syncUpdateCopy(access, LOCAL, copy, values), CalendarWrites.syncDeleteRow(access, LOCAL, copy), CalendarWrites.syncSetReminders(access, LOCAL, copy, listOf(10 to 1)))) {
+                assertEquals(mode, refused(Refusal.COPY_UNREADABLE), written)
+            }
+            assertEquals(mode, listOf("sync event=$LOCAL -> calendar ${personal.id}: failed the copy could not be read"), ring { assertEquals(refused(Refusal.COPY_UNREADABLE), CalendarSync.delete(access, Path.EDITOR, LOCAL, both = true)) })
             noWrites(mode)
             assertEquals(mode, SyncMapping(LOCAL, personal.key, copy), store.current.mappings[LOCAL])
         }
@@ -643,9 +653,18 @@ class CalendarWriteLayerTest {
         for (mode in listOf("no answer", "throws")) {
             fake.noAnswer = if (mode == "no answer") readOfTheCopy else { _ -> false }
             fake.throwOnQuery = if (mode == "throws") readOfTheCopy else { _ -> false }
-            assertEquals(mode, "failed the copy could not be read", CalendarSync.sync(access, LOCAL, personal.key).text)
+            assertEquals(mode, listOf("sync event=$LOCAL -> calendar ${personal.id}: failed the copy could not be read"), ring { assertEquals(CalendarSync.Outcome.CopyUnreadable, CalendarSync.sync(access, LOCAL, personal.key)) })
             noWrites(mode)
         }
+        // An exception row of the copy that cannot be read, while the copy itself can: the same refusal, never
+        // "the calendar is gone".
+        fake.event(78, personal.id, "Dentist, late", originalId = copy, originalInstanceTime = 9000)
+        fake.noAnswer = { false }
+        fake.throwOnQuery = { it.uri.table == ProviderTable.EVENTS && it.where == "_id = ?" && it.args == listOf("78") }
+        assertEquals(refused(Refusal.COPY_UNREADABLE), CalendarWrites.syncDeleteRow(access, LOCAL, 78))
+        assertEquals(refused(Refusal.COPY_UNREADABLE), CalendarWrites.syncUpdateCopy(access, LOCAL, 78, values))
+        noWrites()
+        fake.events.removeAll { it["_id"] == 78L }
         // A copy that IS gone — the query answered, and there is no such row — is made again in the mapped calendar.
         fake.noAnswer = { false }
         fake.throwOnQuery = { false }
@@ -697,6 +716,111 @@ class CalendarWriteLayerTest {
         val adapters = fake.writes.mapNotNull { it.uri.syncAdapterAccount }
         assertEquals(8, adapters.size)
         assertEquals(setOf("Tessera", "Tessera Birthdays"), adapters.toSet())
+    }
+
+    // ================================================================== fix round F29: a scoped delete or edit on a page with no occurrence
+
+    private val SERIES = 11L
+    private val FIRST = 1_790_000_000_000L
+    private val DAY = 86_400_000L
+
+    /** A daily Tessera series, as an event page opened with NO occurrence shows it (a VIEW without one, the EDIT route). */
+    private fun series() = fake.event(SERIES, tessera.id, "Run", dtstart = FIRST, dtend = null, rrule = "FREQ=DAILY", duration = "P3600S")
+
+    private val deleteOfTheWholeSeries = listOf(
+        Write("delete", EVENTS.asSyncAdapter("Tessera"), where = "original_id = ?", args = listOf("$SERIES")),
+        Write("delete", ProviderUri(ProviderTable.EVENTS, SERIES).asSyncAdapter("Tessera")),
+    )
+
+    @Test fun thisOccurrenceOnAPageWithNoOccurrenceCancelsTheFirstOneAndNeverDeletesTheSeries() {
+        series()
+        assertEquals(WriteResult.Ok(Unit), CalendarEvents.delete(access, SERIES, EditScope.THIS, null, both = false))
+        assertEquals(
+            listOf(
+                Write("update", ProviderUri(ProviderTable.EVENTS, SERIES).asSyncAdapter("Tessera"), mapOf<String, Any?>("_sync_id" to "tessera-$SERIES")),
+                // One cancelled exception, for the occurrence the page showed: the series' first.
+                Write("insert", ProviderUri(ProviderTable.EXCEPTIONS, SERIES), mapOf<String, Any?>("originalInstanceTime" to FIRST, "eventStatus" to 2)),
+            ),
+            fake.writes,
+        )
+        assertEquals(emptyList<String>(), fake.writes.map { it.op }.filter { it == "delete" })
+        assertEquals("FREQ=DAILY", fake.eventRow(SERIES)!!["rrule"])
+        // With an occurrence, it is that occurrence.
+        fake.writes.clear()
+        assertEquals(WriteResult.Ok(Unit), CalendarEvents.delete(access, SERIES, EditScope.THIS, FIRST + 3 * DAY, both = false))
+        assertEquals(listOf(Write("insert", ProviderUri(ProviderTable.EXCEPTIONS, SERIES), mapOf<String, Any?>("originalInstanceTime" to FIRST + 3 * DAY, "eventStatus" to 2))), fake.writes)
+    }
+
+    @Test fun thisAndFollowingFromTheFirstOccurrenceIsADeliberateAllThroughTheSamePath() {
+        // "This and following" from the first occurrence is the whole series by definition — with no occurrence on the
+        // page (it shows the first) and with the first one named. It takes the path "All occurrences" takes: the same
+        // writes, the mapping of a synced series dropped, its copy left where it is.
+        for (scope in listOf<Pair<EditScope, Long?>>(EditScope.ALL to null, EditScope.FOLLOWING to null, EditScope.FOLLOWING to FIRST, EditScope.ALL to FIRST + 3 * DAY)) {
+            fake.writes.clear()
+            fake.events.removeAll { it["_id"] == SERIES || it["_id"] == 77L }
+            series()
+            allow(personal)
+            fake.event(77, personal.id, "Run")
+            store.update { SyncStateRules.map(it, SyncMapping(SERIES, personal.key, 77)) }
+            assertEquals("$scope", WriteResult.Ok(Unit), CalendarEvents.delete(access, SERIES, scope.first, scope.second, both = false))
+            assertEquals("$scope", deleteOfTheWholeSeries, fake.writes)
+            assertNull("$scope", fake.eventRow(SERIES))
+            assertNull("$scope", store.current.mappings[SERIES])
+            assertTrue("$scope", fake.eventRow(77) != null)
+        }
+    }
+
+    @Test fun thisAndFollowingFromALaterOccurrenceEndsTheSeriesThereAndDeletesNoMaster() {
+        series()
+        assertEquals(WriteResult.Ok(Unit), CalendarEvents.delete(access, SERIES, EditScope.FOLLOWING, FIRST + 3 * DAY, both = false))
+        val write = fake.writes.single()
+        assertEquals("update", write.op)
+        assertEquals(ProviderUri(ProviderTable.EVENTS, SERIES), write.uri)
+        assertEquals(setOf("rrule", "dtstart", "duration"), write.columns)
+        assertTrue("${write.values["rrule"]}", write.values["rrule"].toString().startsWith("FREQ=DAILY;UNTIL="))
+        assertTrue(fake.eventRow(SERIES) != null)
+        // An event that does not repeat has no scope: it is deleted.
+        fake.writes.clear()
+        assertEquals(WriteResult.Ok(Unit), CalendarEvents.delete(access, LOCAL, null, null, both = false))
+        assertEquals(listOf("delete", "delete"), fake.writes.map { it.op })
+        assertEquals(WriteResult.Failed("no such event"), CalendarEvents.delete(access, 999, EditScope.THIS, null, both = false))
+    }
+
+    @Test fun aScopedEditOnAPageWithNoOccurrenceIsAboutTheFirstOccurrence() {
+        series()
+        val utc = java.time.ZoneId.of("UTC")
+        val event = CalendarReads.event(access, SERIES)!!
+        // The editor's draft names the occurrence the page showed — the first, when the page had none.
+        val thisOne = CalendarEvents.draftOf(event, emptyList(), null, null, EditScope.THIS, utc)
+        assertEquals(FIRST, thisOne.instanceBeginMs)
+        assertEquals(FIRST, thisOne.masterStartMs)
+        assertEquals(EditScope.THIS, thisOne.scope)
+        // "This occurrence": one exception for the first occurrence; the master row is not edited.
+        assertTrue(CalendarEvents.save(access, thisOne.copy(title = "Run, late"), utc) { error("no new calendar is asked for") } is CalendarEvents.SaveResult.Saved)
+        assertEquals(listOf("update", "insert"), fake.writes.map { it.op })
+        assertEquals(setOf("_sync_id"), fake.writes[0].columns)
+        assertEquals(ProviderUri(ProviderTable.EXCEPTIONS, SERIES), fake.writes[1].uri)
+        assertEquals(FIRST, fake.writes[1].values["originalInstanceTime"])
+        assertEquals("Run, late", fake.writes[1].values["title"])
+        assertEquals("Run", fake.eventRow(SERIES)!!["title"])
+        // "This and following" from the first occurrence is the whole series: the write "All occurrences" makes.
+        val writesOf = { scope: EditScope ->
+            fake.writes.clear()
+            val draft = CalendarEvents.draftOf(CalendarReads.event(access, SERIES)!!, emptyList(), null, null, scope, utc)
+            assertTrue("$scope", CalendarEvents.save(access, draft.copy(title = "Jog"), utc) { error("no new calendar is asked for") } is CalendarEvents.SaveResult.Saved)
+            fake.writes.toList()
+        }
+        val all = writesOf(EditScope.ALL)
+        assertEquals(listOf(ProviderUri(ProviderTable.EVENTS, SERIES)), all.map { it.uri })
+        assertEquals("update", all.single().op)
+        assertEquals(all, writesOf(EditScope.FOLLOWING))
+        // A draft with a scope and no occurrence at all is never read as "the whole series".
+        fake.writes.clear()
+        for (scope in listOf(EditScope.THIS, EditScope.FOLLOWING)) {
+            val none = thisOne.copy(scope = scope, instanceBeginMs = null, title = "Jog")
+            assertEquals("$scope", CalendarEvents.SaveResult.Failed("no occurrence"), CalendarEvents.save(access, none, utc) { error("no new calendar is asked for") })
+            noWrites("$scope")
+        }
     }
 
     // ================================================================== Tess

@@ -83,7 +83,11 @@ object CalendarEvents {
      */
     fun save(context: Context, draft: EventDraft, zone: ZoneId, localCalendar: () -> Long?): SaveResult {
         if (!CalendarReads.canWrite(context)) return SaveResult.NeedsWrite
-        val access = CalendarAccess.of(context)
+        return save(CalendarAccess.of(context), draft, zone, localCalendar)
+    }
+
+    /** [save] once WRITE_CALENDAR is known to be held; the JVM tests enter here with a recording provider. */
+    internal fun save(access: CalendarAccess, draft: EventDraft, zone: ZoneId, localCalendar: () -> Long?): SaveResult {
         val reminders = listOfNotNull(draft.reminder)
         val id = draft.eventId
         if (id == null) {
@@ -100,9 +104,14 @@ object CalendarEvents {
             }
             EditScope.THIS -> saveThis(access, draft, id, zone, keptReminders)
             EditScope.ALL -> saveAll(access, draft, id, zone, keptReminders)
-            EditScope.FOLLOWING ->
-                if (draft.instanceBeginMs == null || draft.instanceBeginMs == draft.masterStartMs) saveAll(access, draft, id, zone, keptReminders)
-                else saveFollowing(access, draft, id, zone, keptReminders)
+            EditScope.FOLLOWING -> when (draft.instanceBeginMs) {
+                // No occurrence is never read as "the whole series" (fix round F29): `draftOf` always names one — the
+                // occurrence the page showed, the first when the page had none.
+                null -> SaveResult.Failed("no occurrence")
+                // "This and following" from the first occurrence IS the whole series: the same write as "all".
+                draft.masterStartMs -> saveAll(access, draft, id, zone, keptReminders)
+                else -> saveFollowing(access, draft, id, zone, keptReminders)
+            }
         }
     }
 
@@ -189,27 +198,37 @@ object CalendarEvents {
 
     /**
      * Delete, for the scope the occurrence prompt gave (null for an event that does not repeat).
+     *
+     * @param instanceBeginMs the occurrence the page showed. Null when the page was opened with none — a VIEW without
+     *   an occurrence, the EDIT route: the page then shows the series' FIRST occurrence, and that is the occurrence a
+     *   scoped delete is about (fix round F29). It used to read as "no occurrence, so the whole series", which
+     *   deleted every occurrence when the user had picked "This occurrence".
      * @param both the delete choice of a synced event: "here and from <calendar>"
      */
-    fun delete(context: Context, eventId: Long, scope: EditScope?, instanceBeginMs: Long?, both: Boolean): WriteResult<Unit> {
-        val access = CalendarAccess.of(context)
+    fun delete(context: Context, eventId: Long, scope: EditScope?, instanceBeginMs: Long?, both: Boolean): WriteResult<Unit> =
+        delete(CalendarAccess.of(context), eventId, scope, instanceBeginMs, both)
+
+    internal fun delete(access: CalendarAccess, eventId: Long, scope: EditScope?, instanceBeginMs: Long?, both: Boolean): WriteResult<Unit> {
         val event = CalendarReads.event(access, eventId) ?: return WriteResult.Failed("no such event")
-        if (!event.recurring || scope == null || scope == EditScope.ALL || instanceBeginMs == null) {
-            return CalendarSync.delete(access, Path.EDITOR, eventId, both)
-        }
+        // The whole event: one that does not repeat, or the prompt's "All occurrences". Only these two.
+        if (!event.recurring || scope == null || scope == EditScope.ALL) return CalendarSync.delete(access, Path.EDITOR, eventId, both)
+        // The occurrence the page showed, as the editor's `draftOf` reads it.
+        val occurrence = instanceBeginMs ?: event.dtstart
         return when (scope) {
             EditScope.THIS -> when (val made = CalendarWrites.insertException(
-                access, Path.EDITOR, eventId, instanceBeginMs, ExceptionValues(status = CalendarContract.Events.STATUS_CANCELED), null,
+                access, Path.EDITOR, eventId, occurrence, ExceptionValues(status = CalendarContract.Events.STATUS_CANCELED), null,
             )) {
                 is WriteResult.Ok -> WriteResult.Ok(Unit)
                 is WriteResult.Refused -> made
                 is WriteResult.Failed -> made
             }
             else -> {
-                if (instanceBeginMs == event.dtstart) return CalendarSync.delete(access, Path.EDITOR, eventId, both)
+                // "This and following" from the first occurrence IS the whole series, by definition: the same delete
+                // "All occurrences" makes, through the same path.
+                if (occurrence == event.dtstart) return CalendarSync.delete(access, Path.EDITOR, eventId, both)
                 val rrule = event.rrule ?: return WriteResult.Failed("the event does not repeat")
-                val later = CalendarReads.exceptions(access, eventId).filter { (it.originalInstanceTime ?: Long.MIN_VALUE) >= instanceBeginMs }
-                val ended = CalendarWrites.setRule(access, Path.EDITOR, eventId, EventRules.endBefore(rrule, instanceBeginMs, event.allDay))
+                val later = CalendarReads.exceptions(access, eventId).filter { (it.originalInstanceTime ?: Long.MIN_VALUE) >= occurrence }
+                val ended = CalendarWrites.setRule(access, Path.EDITOR, eventId, EventRules.endBefore(rrule, occurrence, event.allDay))
                 // Their occurrences are past the series' new end: the rows go for good.
                 if (ended is WriteResult.Ok) later.forEach { CalendarWrites.purgeRow(access, Path.EDITOR, it.id) }
                 ended

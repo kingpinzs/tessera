@@ -84,6 +84,7 @@ internal object CalNotices {
     const val READ_ONLY = "That calendar is read-only now"
     const val CHOOSE = "Choose which calendars Sync may use"
     const val EVENT_GONE = "That event is no longer on this phone."
+    const val COPY_UNREADABLE = "That event's copy couldn't be read. Try again."
 
     fun recreated(calendar: String) = "The copy in $calendar was gone, so Sync made it again."
     fun stale(calendar: String) = "The copy is no longer in $calendar, so nothing was changed."
@@ -95,6 +96,7 @@ internal object CalNotices {
         CalendarSync.Outcome.ReadOnly -> READ_ONLY
         CalendarSync.Outcome.MappingStale -> stale(calendar)
         CalendarSync.Outcome.Refused -> "Sync isn't allowed for that calendar."
+        CalendarSync.Outcome.CopyUnreadable -> COPY_UNREADABLE
         is CalendarSync.Outcome.Failed -> "That event couldn't be synced."
     }
 }
@@ -156,6 +158,7 @@ fun EventPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page: Cal
                     CalendarWriteGuard.Refusal.MAPPING_STALE -> CalNotices.stale(marker?.calendarName ?: "that calendar")
                     CalendarWriteGuard.Refusal.READ_ONLY -> CalNotices.READ_ONLY
                     CalendarWriteGuard.Refusal.CALENDAR_GONE -> CalNotices.CALENDAR_GONE
+                    CalendarWriteGuard.Refusal.COPY_UNREADABLE -> CalNotices.COPY_UNREADABLE
                     CalendarWriteGuard.Refusal.NOT_ALLOWED -> "That event can't be deleted here."
                 }
                 is WriteResult.Failed -> page.notice = "That event couldn't be deleted."
