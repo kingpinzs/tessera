@@ -1,0 +1,26 @@
+── E1 absence on a provisioned AVD, both routes
+(a) pm clear -> provision.sh (marker written)
+PASS  (a) provision.sh rc                                         = 0
+PASS  (a) provision wrote the marker                              contains [<boolean name="finished" value="true" />]
+PASS  (a) start_page after the resume                             = yes
+PASS  (a) no wizard_page after the resume                         = no
+PASS  start ring readable ((a) resume)                            header present
+PASS  (a) [wizard] not shown: core held                           contains [[wizard] not shown: core held]
+PASS  (a) no [wizard] shown line                                  does not contain [[wizard] shown]
+(a) force-stop + Home: the keyboard is deselected, the marker keeps the wizard away
+PASS  (a) no wizard_page after force-stop                         = no
+PASS  (a) start_page after force-stop                             = yes
+PASS  start ring readable ((a) force-stop)                        header present
+PASS  (a) [wizard] not shown: finished                            contains [[wizard] not shown: finished]
+PASS  (a) default_input_method is not the shell keyboard          != app.tileshell/.ime.KeyboardService
+PASS  (a) Setup page: checklist:keyboard_selected:missing         = yes
+PASS  (a) ime set restores the keyboard                           = app.tileshell/.ime.KeyboardService
+(b) pm clear -> every grant from adb alone -> Home
+PASS  (b) start_page                                              = yes
+PASS  (b) no wizard_page                                          = no
+PASS  start ring readable ((b) home)                              header present
+PASS  (b) [wizard] not shown: core held                           contains [[wizard] not shown: core held]
+PASS  (b) no setup_wizard file (a device provisioned by adb never ran the wizard)  does not contain [setup_wizard]
+restore: pm clear -> provision.sh -> Home
+PASS  restore provision.sh rc                                     = 0
+   E1: 20 passed, 0 failed, 0 recorded
