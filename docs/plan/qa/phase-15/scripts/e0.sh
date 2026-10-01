@@ -48,7 +48,7 @@ media_id() { # title -> MediaStore _id
 
 # ---------------------------------------------------------------- baseline
 assert_clock_empty "baseline"
-layout_restore "$P15/baseline_layout.json"
+layout_restore "${E0_BASELINE:-$P15/baseline_layout.json}"
 assert_eq "baseline layout restored (the three apps and Auxio pinned)" 0 $?
 # RV12: the media volume and the Music fixtures are put back as found (music_lib's mute and its six 90-s tracks).
 VOL0="$(adb shell cmd media_session volume --stream 3 --get 2>/dev/null | tr -d '\r' | grep -oE 'volume is [0-9]+' | grep -oE '[0-9]+')"
@@ -199,6 +199,6 @@ if [ "$HAD_FIX" = 0 ]; then
 fi
 [ -n "$VOL0" ] && adb shell cmd media_session volume --stream 3 --set "$VOL0" >/dev/null 2>&1
 ring_save
-layout_restore "$P15/baseline_layout.json"
+layout_restore "${E0_BASELINE:-$P15/baseline_layout.json}"
 assert_clock_empty "restore"
 row_end

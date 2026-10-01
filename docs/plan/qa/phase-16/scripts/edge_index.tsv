@@ -1,0 +1,78 @@
+# Phase 16 EDGE — every bullet of the phase doc's "Edge cases", mapped to where it is run (r3 V6): a sub-step of
+# edge.sh (its id), another row, a phone row, or a JVM test. A bullet with no entry fails the EDGE row; edge.sh reads
+# this file and asserts that every `edge.sh:<id>` named here ran. Bullets are numbered in the doc's order (B01 is the
+# first bullet under "## Edge cases"); a bullet with several clauses has one line per clause.
+# columns: id <TAB> clause <TAB> where <TAB> note
+B01.1	provider package disabled: the app says the provider is off, creates nothing; the tile's face is the day only	edge.sh:C01	produces `[calendar] calendars: none`
+B01.2	provider disabled: Tess's "add" answers "I don't have a calendar to add that to." and writes nowhere	edge.sh:C01	typed request, confirm tapped
+B02.1	Tessera deleted by another app while the app is open: its events vanish through the observer	edge.sh:C02
+B02.2	the next start or write recreates Tessera whatever else remains (QA calendar present)	edge.sh:C02	`local calendar created`
+B02.3	synced markers whose local event went with it are dropped from calendar_sync.json	edge.sh:C02
+B03.1	an allowed calendar removed from the phone refuses the Sync ("That calendar is no longer on this phone")	E24	`failed calendar gone`
+B03.2	an account calendar removed while one of its events is open read-only: the page closes with a notice, the view refreshes	edge.sh:C03
+B04.1	the allow-list cleared after a sync: the marker stays; the next Sync opens "Can sync to"; delete offers "here" only	E24	the un-ticked Personal step (T16-12)
+B04.2	a copy whose calendar_id no longer matches the mapping's target: Sync / delete-"both" refuse, `failed mapping stale`	edge.sh:C04	produces `failed mapping stale`
+B04.3	a Sync tapped twice quickly: one copy; the second writes nothing (`ok`)	edge.sh:C05
+B04.4	a local event edited while its Sync runs: the next Sync pushes the edit	E24	the rename-then-Sync step (`updated`)
+B04.5	calendar_sync.json lost: markers vanish, the next Sync makes a new copy, the old one shows beside the original (recorded)	edge.sh:C06	a recorded clause
+B04.6	a synced event whose copy's calendar became read-only: "That calendar is read-only now", `failed calendar read-only`	edge.sh:C07	produces `failed calendar read-only`
+B05.1	a synced event whose copy was edited on the other side to another time: the shell still shows only the original	edge.sh:C08
+B05.2	the original deleted by another app: the mapping is dropped at the next read and the copy shows as the account's event	edge.sh:C08
+B05.3	the ≡ pane hiding Tessera: the original leaves the app's views, its copy stays hidden; tile, pod and Tess still show it	edge.sh:C08
+B06.1	the update installed while a slot's hand-picked app has been uninstalled: the slot is taken, the line names the component	JVM: SlotSeedTest	the seed's rule takes the component from the layout, whether or not it still resolves (decide(...) with a stale current)
+B06.2	the shell's Calendar pointed back and the shell then updated again: `already run`, the pick kept	E1	the point-back leg (a restart is the same code path as an update: ShellApp.startLauncher)
+B06.3	pm clear after the update: a fresh install, `-> assigned`, nothing replaced	E1	the wiped leg's layout; the seed line itself is in the T2SMOKE-run1 evidence and the upgrade leg's CALENDAR line
+B07.1	the Birthdays calendar deleted by another app: recreated under Tessera Birthdays at the next start or contacts change; Tessera untouched	edge.sh:C09
+B07.2	the provider refuses the create: `birthdays calendar could not be created`, the views show no Birthdays calendar	E17	its "Creation refused" sub-step
+B08.1	rows changing under the observer (a content insert loop of 50 events over 10 s): the views refresh without a crash	edge.sh:C10
+B09.1	an event whose dtend < dtstart is refused by the editor	edge.sh:C11
+B09.2	a 10-year daily series with no COUNT: Agenda and Week render with `view … in <ms> ms` ≤ 3000	edge.sh:C12
+B09.3	an RRULE with BYDAY=2TU shows on the right days	edge.sh:C12
+B09.4	an exception that moves an occurrence to another day shows on the new day only	edge.sh:C12
+B10.1	a reminder on an event already past: never notifies, no scheduled alert row	edge.sh:C13
+B10.2	a reminder 0 minutes before	edge.sh:C13
+B10.3	two reminders on one event: two notifications	edge.sh:C13
+B10.4	the phone off across a reminder's time: delivered late, the notification gives the event's time	P7	not drivable on the AVD
+B10.5	the reminder broadcast sent twice for one alert, or forged: one notification	E6	leg (c), and leg (b)'s race
+B11.1	a calendar with a null colour: the accent is drawn	edge.sh:C14
+B11.2	two calendars with one colour: both listed by name	edge.sh:C14
+B11.3	a calendar whose display name is empty: its account name is shown	edge.sh:C14
+B12.1	time_12_24 = 24: every time reads "H:mm"	edge.sh:C15
+B12.2	a locale change re-labels months and the first day of the week without a restart	edge.sh:C15
+B12.3	the clock jumped backwards a year: the views follow, no event is lost	edge.sh:C16	the one backwards jump: ring_save, force-stop, ensure_start before its MARK (r3 V4)
+B13.1	the Calendar tile's tap lands on today	edge.sh:C17
+B13.2	ACTION_INSERT with title / beginTime / endTime opens the editor prefilled, saves nothing until Save; calendar_id ignored	E22	its exported-intents step
+B13.3	a content://com.android.calendar/events/<id> VIEW opens that event	edge.sh:C17
+B13.4	an EDIT on an event outside Tessera opens it read-only	E22
+B13.5	a malformed URI opens today with no crash	edge.sh:C17	also JVM: CalendarIntentsTest
+B13.6	the Agenda pod's header tap opens the shell's Calendar on today	E1	its Agenda-pod leg
+B14.1	People with 5,000 contacts: the list's top rows within 3 s, the jump grid lands on its letter	edge.sh:P01
+B14.2	a contact with 20 numbers: all listed on the card with their labels	edge.sh:P02
+B14.3	a 20 MB contact photo: thumbnail in the list, the full photo on the card, decoded at bounds	edge.sh:P02
+B14.4	a contact deleted while its card is open: the card closes with a notice	edge.sh:P03
+B14.5	a contact linked across two accounts and then one account removed: the remaining raw contact stays a contact	edge.sh:P03
+B14.6	editing a field on an aggregated contact writes to ITS raw contact, never splits; only when that raw contact is editable	E28	its mixed-contact step
+B15.1	"Can edit": an account removed from the phone leaves the list and people_edit.json; re-added, it starts unticked	edge.sh:P04
+B15.2	people_edit.json lost: nothing is allowed again, phone-only contacts still editable	edge.sh:P04
+B15.3	a starred change on a contact with one read-only raw contact: refused	JVM: PeopleWriteGuardTest	the builder's test class name is confirmed at merge
+B15.4	a contact found by the work-profile search: always read-only	E16
+B16.1	non-Latin names and their buckets (张伟, Zoë, "Ærøskøbing")	E10	plus edge.sh:P05 for "Ærøskøbing"
+B16.2	a name with only a family name; a company-only contact (organisation shown as the name)	edge.sh:P05
+B16.3	a number stored with spaces and dashes matches a search typed without them	edge.sh:P05
+B17.1	WRITE_CONTACTS granted while READ is revoked: reads MISSING, People says it cannot read and offers the grant	E18
+B17.2	READ revoked mid-edit: the edit is lost, nothing half-written; People reopens on its cannot-read notice	edge.sh:P06
+B18.1	SIM removed while importing	P4	not drivable on the AVD
+B18.2	a SIM contact with no number; a SIM contact that already exists (either outcome recorded)	edge.sh:P07	recorded clauses when the emulated SIM refuses inserts
+B19.1	a group with no members: "Text the group" shows a notice, no compose	edge.sh:P08
+B19.2	a member with no mobile number is left out of the smsto: list; none left → the notice	edge.sh:P08
+B19.3	a group under an account not on "Can edit": no rename or delete action, the page says why	edge.sh:P08
+B19.4	a group deleted by another app while its page is open: the page closes with a notice	edge.sh:P08
+B20.1	Share when no app receives text/x-vcard: Android's resolver empty state	edge.sh:P09	recorded: the AVD has receivers (the fixture apps)
+B20.2	share of a contact with a photo: the vCard carries PHOTO;ENCODING=b	edge.sh:P09
+B21.1	the People tile: a photo removed while its bubble is on screen (the next event uses another photo)	edge.sh:P10
+B21.2	every photo removed mid-cycle: the static pattern after the current event	E11	its no-photo leg, plus edge.sh:P10
+B21.3	a photo that fails to decode: skipped, `[people] tile: photo <lookup> skipped: <why>`	JVM: PeopleFeed's skip test	not storable on a device (r3 V6)
+B21.4	the tile pinned small / medium / wide: the face scales per phase 01's tile rules	edge.sh:P10
+B22.1	phase 06 not yet built: Text goes to the SMS role holder, Call through Telecom to the dialer role holder	E12
+B23.1	liveness: reboot, force-stop (the receiver is manifest-registered; the People feed restarts with the shell)	E6	its reboot leg; edge.sh:P10 for the feed after a force-stop
+B23.2	liveness: 24 h idle, Device care	P7
