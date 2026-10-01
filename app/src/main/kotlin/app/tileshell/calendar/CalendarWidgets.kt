@@ -24,7 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,10 +56,10 @@ import app.tileshell.brand.Glyph
 import app.tileshell.clock.BarButton
 import app.tileshell.clock.ClockMetrics
 import app.tileshell.clock.DIM_INK
-import app.tileshell.clock.PressBox
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.MotionClock
 import app.tileshell.ui.components.OverlayLayer
+import app.tileshell.ui.components.ROW_PRESS_ALPHA
 import app.tileshell.ui.tokens.CapMetrics
 import app.tileshell.ui.tokens.ShellType
 import java.time.DayOfWeek
@@ -267,6 +269,30 @@ fun CalHeader(title: String, monthOpen: Boolean, onMenu: () -> Unit, onTitle: ()
     }
 }
 
+/**
+ * A row or a button that lightens while pressed (X19's press, [ROW_PRESS_ALPHA]) and fires on the up — the Clock app's
+ * PressBox in look. Its gesture is keyed on nothing and reads the callback as it is at the up: a page that recomposes
+ * under a finger (the provider changed, a list was read again) hands a row a new callback, and a gesture keyed on the
+ * callback would restart there and lose the tap.
+ */
+@Composable
+fun CalPress(modifier: Modifier, onClick: () -> Unit, content: @Composable BoxScope.() -> Unit) {
+    var pressed by remember { mutableStateOf(false) }
+    val click by rememberUpdatedState(onClick)
+    Box(
+        modifier.pointerInput(Unit) {
+            awaitEachGesture {
+                awaitFirstDown().consume()
+                pressed = true
+                val up = waitForUpOrCancellation()
+                pressed = false
+                if (up != null) { up.consume(); click() }
+            }
+        }.background(if (pressed) Color.White.copy(alpha = ROW_PRESS_ALPHA) else Color.Transparent),
+        content = content,
+    )
+}
+
 /** One row of the View list or the "…" menu. */
 data class CalMenuEntry(val glyph: String?, val label: String, val tag: String, val selected: Boolean = false, val onPick: () -> Unit)
 
@@ -304,7 +330,7 @@ fun BoxScope.CalAppBar(
                         .clipToBounds().background(CalMetrics.MENU_FILL).testTag(if (open == BarMenu.VIEW) "cal_view_menu" else "cal_more_menu"),
                 ) {
                     entries.forEach { entry ->
-                        PressBox(
+                        CalPress(
                             Modifier.fillMaxWidth().height(CalMetrics.MENU_ROW).testTag(entry.tag).semantics { role = Role.Tab; selected = entry.selected },
                             onClick = { onMenu(BarMenu.NONE); entry.onPick() },
                         ) {
@@ -371,7 +397,7 @@ fun ColorCheckbox(checked: Boolean, color: Color, modifier: Modifier = Modifier)
 /** A calendar row of the ≡ pane, "Can sync to" and the Sync picker: 48.1 epx, the box at x 22, the name at x 62 (K6.4). */
 @Composable
 fun CalendarRow(name: String, color: Color, checked: Boolean?, tag: String, onClick: () -> Unit) {
-    PressBox(
+    CalPress(
         Modifier.fillMaxWidth().height(CalMetrics.PANE_ROW).testTag(tag).semantics {
             if (checked != null) {
                 role = Role.Checkbox

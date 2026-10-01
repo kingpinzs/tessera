@@ -266,3 +266,31 @@ open_event() { # id [begin end]
 instance_count() { # from to event_id
   S "content query --uri content://com.android.calendar/instances/when/$1/$2 --projection event_id:begin --where \"event_id=$3\"" | grep -c 'event_id='
 }
+
+# ---------------------------------------------------------------- Sync fixtures (E22–E24's form)
+PERSONAL_ACCT=qa.personal@example.com
+WORK_ACCT=qa.work@example.com
+# Personal FIRST, then Work (r3 V15), and "Offsite" in Work as the sentinel: Work holds exactly Offsite after every step.
+sync_fixtures_up() {
+  mkcal "$PERSONAL_ACCT" 'QA Personal' 0 > /dev/null 2>&1
+  mkcal "$WORK_ACCT" 'QA Work' 1 > /dev/null 2>&1
+  PERSONAL="$(cal_id "$PERSONAL_ACCT" 'QA Personal')"; WORK="$(cal_id "$WORK_ACCT" 'QA Work')"
+  OFFSITE="$(mkevent "$WORK" Offsite "$(day_ms 5 10:00)" "$(day_ms 5 11:00)")"
+}
+titles_in() { # calendar id -> the titles it holds, sorted, joined with |
+  cal_lists "$1" || { echo "(calendar $1 does not list)"; return; }
+  S "content query --uri $EVENTS --projection title --where \"calendar_id=$1 AND deleted=0\"" | sed -n 's/^Row: [0-9]* title=//p' | sort | paste -sd'|'
+}
+work_holds_offsite() { assert_eq "$1: Work holds exactly Offsite" "Offsite" "$(titles_in "$WORK")"; }
+# As the account's own sync adapter would write (the "other side").
+other_side() { # account verb(update|delete) event-id [binds...]
+  local acct="$1" verb="$2" id="$3"; shift 3
+  adb shell "content $verb --uri '$EVENTS/$id?$SA&account_name=$acct&account_type=com.google' $*" < /dev/null >/dev/null 2>&1
+}
+# Tick (or un-tick) a "Can sync to" row to the state asked for, whatever it reads now. Must be on the Can sync to page.
+set_can_sync() { # calendar id, true|false
+  local d="$ROW_DIR/.can_sync.xml"; dump_ui "$d"
+  [ "$(node_attr "$d" "cal_settings_can_sync:$1" checked)" = "$2" ] || { tap_node "$d" "cal_settings_can_sync:$1"; sleep 1.2; }
+}
+open_can_sync() { tap cal_bar:more 1.2; tap cal_more:settings 1.5; tap cal_settings_open_can_sync 1.5; }
+sync_line() { line_of "$1" "[calendar] sync event=" | sed 's/^\[calendar\] //'; }
