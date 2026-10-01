@@ -1,15 +1,16 @@
 ==============================================================================
 ROW E1 — pager: pod bay by pan, Back, Windows key; app list; Back history on Start
-at            2026-09-29T22:40:50-06:00
+at            2026-09-30T19:36:31-06:00
 driver        e1.sh blob 7d3c4f33d1be43bf26dc650070c2a060c6ebd0a5
 harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
-apk built     0662f0a70eb6aafe 338830308 bytes
-apk installed 22fae39ccd591d20
-apk match     yes (22fae39ccd591d20)
+apk built     e5cb1e902be4b97d 340385592 bytes
+apk installed a869ae73bc37297d
+apk match     yes (a869ae73bc37297d)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  layout_restore of phase 02's baseline                       = 0
+PASS  C-3: the slice covers the restore (assignSlotOnce lines in it)  != 0
 PASS  C-3: zero assignSlotOnce ... -> assigned lines after the restore  = 0
 PASS  Home from DeskClock shows Start alone                       = yes
 PASS  swipe right: pod_bay in the dump                            = yes
@@ -37,4 +38,4 @@ PASS  Windows key: the renamed home line                          contains [[sta
 PASS  Windows key: the page lines                                 = START
 PASS  restore: the device's own layout                            = 0
 ------------------------------------------------------------------------------
-E1: 27 passed, 0 failed, 0 recorded
+E1: 28 passed, 0 failed, 0 recorded
