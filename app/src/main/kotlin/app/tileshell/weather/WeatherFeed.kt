@@ -43,7 +43,16 @@ object WeatherFeed {
 
     enum class Problem { NO_PERMISSION, LOCATION_OFF, NO_LOCATION, NO_NETWORK, PROVIDER_ERROR }
 
-    data class State(val report: WeatherReport? = null, val problems: List<Problem> = emptyList(), val refreshing: Boolean = false)
+    /**
+     * [stale] (phase 14, r3 D6) is the feed's own X22 flag — the value the tile was last published with — so the pod bay's
+     * "Updated h:mm" line flips exactly when the tile's does.
+     */
+    data class State(
+        val report: WeatherReport? = null,
+        val problems: List<Problem> = emptyList(),
+        val refreshing: Boolean = false,
+        val stale: Boolean = false,
+    )
 
     /** Swappable provider (phase 01 Decisions); Open-Meteo is the recorded pick. */
     @Volatile var provider: WeatherProvider = OpenMeteoProvider()
@@ -98,6 +107,23 @@ object WeatherFeed {
     fun onAppResumed() {
         scope.launch { if (mutableState.value.problems.isNotEmpty()) refresh("app resumed") else check("app resumed") }
     }
+
+    /**
+     * The pod bay's "Location is off" line is showing and Start resumed or the page came into view (phase 14). Look
+     * again only if access has CHANGED since the line went up — the permission granted, or Location switched on.
+     * While it has not, nothing leaves the device: the line is there on every Start resume, and [onAppResumed]'s retry
+     * fetches with the last place's coordinates, which made one request per Home press with Location off (gate review).
+     */
+    fun onAccessLineShown() {
+        val app = appContext ?: return
+        if (accessRestored(mutableState.value.problems, WeatherLocation.hasPermission(app), WeatherLocation.isEnabled(app))) {
+            scope.launch { refresh("access restored") }
+        }
+    }
+
+    /** Whether a problem the access line stands for has gone: the permission is back, or Location is on again. */
+    internal fun accessRestored(problems: Collection<Problem>, hasPermission: Boolean, locationOn: Boolean): Boolean =
+        (Problem.NO_PERMISSION in problems && hasPermission) || (Problem.LOCATION_OFF in problems && hasPermission && locationOn)
 
     /** A user tap on a retry row. */
     fun refreshNow(reason: String) {
@@ -164,7 +190,7 @@ object WeatherFeed {
             Diagnostics.add("weather", "fetch ok provider=${p.id} ms=${SystemClock.elapsedRealtime() - started} grid=${full.latitude},${full.longitude} " +
                 "tz=${full.timeZoneId} current=${full.current.code}/${full.current.temperature} hourly=${full.hourly.size} daily=${full.daily.size} place=${place != null}")
             saveCache(app, full)
-            mutableState.value = State(report = full, problems = problems, refreshing = false)
+            mutableState.value = State(report = full, problems = problems, refreshing = false, stale = isStale(full))
             publishTile(app, full)
         } finally {
             mutableState.update { it.copy(refreshing = false) }
@@ -217,6 +243,7 @@ object WeatherFeed {
             TileContent(faces, FaceTransition.FLIP, sourceTimeMs = report.fetchedAtMs, sourceTag = "weather:${report.provider}", front = front),
         )
         publishedStale = stale
+        mutableState.update { it.copy(stale = stale) }
         Diagnostics.add("weather", "publish tile faces=${faces.size} temp=${WeatherFormat.degrees(c.temperature)} condition=${c.code} " +
             "sky=${sky.scene}/${if (sky.isDay) "day" else "night"}/${sky.intensity} stale=$stale fetchedAt=${report.fetchedAtMs}")
     }

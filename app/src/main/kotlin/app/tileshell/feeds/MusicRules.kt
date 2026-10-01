@@ -54,6 +54,23 @@ object MusicRules {
         state == PlaybackState.STATE_PLAYING || state == PlaybackState.STATE_BUFFERING
 
     /**
+     * Phase 14's Now playing pod shows a session "playing or paused" (Decisions "The pods"): a session that is
+     * STOPPED, NONE or in ERROR — which keeps its metadata after a stop (E3's `dispatch stop` left `state=NONE` with the
+     * track) — is not now playing, and the pod says "Nothing playing". The tile keeps its own idle rule.
+     */
+    fun podShows(state: Int): Boolean = isPlaying(state) || state == PlaybackState.STATE_PAUSED || isMovingWithinPlayback(state)
+
+    /**
+     * Skipping or seeking: still the session that is playing — dropping the pod to "Nothing playing" mid-skip took its
+     * controls from under the finger (gate review). CONNECTING is not among them: nothing is playing yet
+     * (PodBayRulesTest pins it with STOPPED, NONE and ERROR).
+     */
+    private fun isMovingWithinPlayback(state: Int): Boolean =
+        state == PlaybackState.STATE_SKIPPING_TO_NEXT || state == PlaybackState.STATE_SKIPPING_TO_PREVIOUS ||
+            state == PlaybackState.STATE_SKIPPING_TO_QUEUE_ITEM || state == PlaybackState.STATE_FAST_FORWARDING ||
+            state == PlaybackState.STATE_REWINDING
+
+    /**
      * THE REPUBLISH RULE, and the fix for the defect phase 02 handed over: MusicFeed republished about
      * every 3 s, because a player posts a new PlaybackState on every position update and the feed
      * published whatever it was handed.

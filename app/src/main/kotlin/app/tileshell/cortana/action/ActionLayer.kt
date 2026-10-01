@@ -14,6 +14,8 @@ import android.telephony.SmsManager
 import app.tileshell.apps.AppCatalog
 import app.tileshell.apps.AppEntry
 import app.tileshell.brand.Brand
+import app.tileshell.start.podbay.PodBayRequest
+import app.tileshell.start.podbay.PodBayRequests
 import app.tileshell.cortana.Card
 import app.tileshell.cortana.CardAction
 import app.tileshell.cortana.CardButton
@@ -93,6 +95,9 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
     // ---------------- entry point ----------------
 
     fun run(request: Request): Outcome {
+        // A pod-bay request still pending when anything else is asked is the user's OLD request: left there, the close of
+        // this one would pull Start and the pod bay over its result (gate review r1 S2; owner ruling 2026-09-30).
+        if (request !is Request.OpenPodBay && request !is Request.ClosePodBay) PodBayRequests.dropFor("another request")
         // The gate is here, not in the matcher, so phase 08 inherits it (Decisions "Locked commands").
         if (LockGate.locked(context) && !LockGate.allowedWhileLocked(request)) {
             Diagnostics.add("cortana", "locked: $request gated")
@@ -117,6 +122,8 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
             is Request.TakeNote -> takeNote(request.text)
             is Request.Weather -> weather()
             is Request.Arithmetic -> arithmetic(request.expr)
+            is Request.OpenPodBay -> podBay(PodBayRequest(open = true, doors = request.doors))
+            is Request.ClosePodBay -> podBay(PodBayRequest(open = false))
             is Request.SavePlaceHere -> Outcome(
                 "Where would you like to save ${request.name}?", null, openPlaces = request.name,
             )
@@ -139,9 +146,11 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
             store.delete(pending.reminderId)
             answer("Deleted.")
         }
+        // L14-1 (Jeremy's Q2 (a)): the card stays and nothing new is said — the line was said when the card appeared, and
+        // a cancelled unlock brings Tess back to this same card with the request still pending.
         is Pending.Locked -> {
             host.requestUnlock()
-            Outcome("Unlock your phone to continue.", null, pending = pending, awaiting = null)
+            Outcome("", unlockCard(pending.request).card, pending = pending, awaiting = null)
         }
         // "add more" and "what do you want to say?" are not confirmable: the next utterance answers them.
         is Pending.AwaitMessage, is Pending.AwaitReminderTime, is AddingTo -> Outcome("", null, pending = pending)
@@ -658,6 +667,21 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
     }
 
     private fun notUnderstoodCard(title: String) = Card(CardKind.NOT_UNDERSTOOD, title)
+
+    /**
+     * Phase 14 (Decisions "Tess's command", "Route to Start"): the request is only RECORDED here and nothing is started;
+     * the reply is shown on an answer card and spoken, the session closes after it, and Start takes the request then —
+     * so the order is reply, close, pane. "open" while it is open and "close" on Start still say their line.
+     */
+    private fun podBay(request: PodBayRequest): Outcome {
+        PodBayRequests.record(request)
+        val spoken = when {
+            !request.open -> "Closing the ${Brand.POD_BAY_NAME}."
+            request.doors -> Brand.POD_BAY_DOORS_REPLY
+            else -> "Opening the ${Brand.POD_BAY_NAME}."
+        }
+        return Outcome(spoken, Card(CardKind.ANSWER, spoken), close = true)
+    }
 
     private fun slotApp(slot: Slot): AppEntry? {
         val catalog = AppCatalog.get(context)

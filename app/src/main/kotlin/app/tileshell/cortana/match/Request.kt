@@ -48,6 +48,13 @@ sealed interface Request {
      * engine — never left for a model to work out.
      */
     data class Arithmetic(val expr: CalcRequest) : Action
+    /**
+     * Phase 14: "open the pod bay doors" / "open the pod bay" — the pager page left of Start. [doors] is the easter
+     * egg: Tess refuses in the film's words, then opens it anyway.
+     */
+    data class OpenPodBay(val doors: Boolean) : Action
+    /** Phase 14: "close the pod bay doors". */
+    data object ClosePodBay : Action
 
     // ---- confirmation answers (R6 §3.4.1 / §3.4.2) ----
     /** "send it", "yes", or the card's confirm button. */

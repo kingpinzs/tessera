@@ -599,13 +599,14 @@ private fun transportLabel(transport: Transport, playing: Boolean): String = whe
     Transport.PLAY_PAUSE -> if (playing) "Pause" else "Play"
     Transport.STOP -> "Stop"
     Transport.NEXT -> "Next"
+    Transport.PREVIOUS -> "Previous"
 }
 
 /** The white overlay on the control under the finger. */
 private const val CONTROL_PRESS_ALPHA = 0.22f
 
-/** One transport glyph, centred in its own cell and sized from it (never in pixels). */
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawTransport(transport: Transport, playing: Boolean) {
+/** One transport glyph, centred in its own cell and sized from it (never in pixels). Phase 14's pod draws with it too. */
+internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawTransport(transport: Transport, playing: Boolean, color: Color = Color.White) {
     val side = minOf(size.width, size.height) * TileControls.GLYPH_FRACTION
     val half = side / 2f
     val cx = size.width / 2f
@@ -613,18 +614,32 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawTransport(trans
     when (transport) {
         Transport.PLAY_PAUSE -> if (playing) {
             val bar = side * 0.32f
-            drawRect(Color.White, topLeft = Offset(cx - half, cy - half), size = Size(bar, side))
-            drawRect(Color.White, topLeft = Offset(cx + half - bar, cy - half), size = Size(bar, side))
+            drawRect(color, topLeft = Offset(cx - half, cy - half), size = Size(bar, side))
+            drawRect(color, topLeft = Offset(cx + half - bar, cy - half), size = Size(bar, side))
         } else {
-            drawPath(rightTriangle(cx - half * 0.85f, cy - half, side), Color.White)
+            drawPath(rightTriangle(cx - half * 0.85f, cy - half, side), color)
         }
-        Transport.STOP -> drawRect(Color.White, topLeft = Offset(cx - half, cy - half), size = Size(side, side))
+        Transport.STOP -> drawRect(color, topLeft = Offset(cx - half, cy - half), size = Size(side, side))
         Transport.NEXT -> {
             val bar = side * 0.22f
-            drawPath(rightTriangle(cx - half, cy - half, side * 0.9f), Color.White)
-            drawRect(Color.White, topLeft = Offset(cx + half - bar, cy - half), size = Size(bar, side))
+            drawPath(rightTriangle(cx - half, cy - half, side * 0.9f), color)
+            drawRect(color, topLeft = Offset(cx + half - bar, cy - half), size = Size(bar, side))
+        }
+        // NEXT mirrored: the bar on the left, the triangle pointing left.
+        Transport.PREVIOUS -> {
+            val bar = side * 0.22f
+            drawRect(color, topLeft = Offset(cx - half, cy - half), size = Size(bar, side))
+            drawPath(leftTriangle(cx + half, cy - half, side * 0.9f), color)
         }
     }
+}
+
+/** A previous triangle, pointing left, whose bounding box ENDS at ([right], [top]) and is [side] tall. */
+private fun leftTriangle(right: Float, top: Float, side: Float): Path = Path().apply {
+    moveTo(right, top)
+    lineTo(right, top + side)
+    lineTo(right - side * 0.87f, top + side / 2f)
+    close()
 }
 
 /** A play triangle whose bounding box starts at ([left], [top]) and is [side] tall. */

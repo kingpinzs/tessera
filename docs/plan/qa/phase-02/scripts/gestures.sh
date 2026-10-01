@@ -28,23 +28,28 @@ tile_center() { center "$1" "tile:$2"; }
 # ensure_start: bring the pivot back to Start.
 # KEYCODE_HOME is not enough on this AVD: when the shell is already the resumed home activity, Android does not
 # re-deliver the home intent (no onNewIntent), so the pivot stays wherever it is. Phase 01 never exercised that
-# either — its own X20 / H28 row for "Home while Start is showing" is a phone row. A right-swipe is what the
-# user would do, and it is what these drivers use to get back to page 0.
+# either — its own X20 / H28 row for "Home while Start is showing" is a phone row. These drivers used to swipe right
+# to get back to page 0; since phase 14 a right swipe on Start opens the pod bay, so (phase 14 Decisions "Harness"):
+# Home, then Back while the dump shows the app list or the pod bay (Back on either is Start, and it closes an IME or a
+# menu on the way), then Start ALONE is asserted — a failure counts as a FAIL in the caller's FAIL counter.
 ensure_start() {
-  local i
+  local i d=/tmp/qa_ensure_start.xml
   adb shell input keyevent KEYCODE_HOME >/dev/null 2>&1
   sleep 1.5
-  for i in 1 2 3; do
-    dump /tmp/qa_ensure_start.xml >/dev/null 2>&1 || true
-    if grep -q 'resource-id="start_page"' /tmp/qa_ensure_start.xml 2>/dev/null && ! grep -q 'resource-id="app_list"' /tmp/qa_ensure_start.xml 2>/dev/null; then
-      return 0
+  for i in 1 2 3 4 5; do
+    dump "$d" >/dev/null 2>&1 || true
+    if [ "$i" -lt 5 ] && grep -q 'resource-id="\(app_list\|pod_bay\)"' "$d" 2>/dev/null; then
+      adb shell input keyevent KEYCODE_BACK >/dev/null 2>&1
+      sleep 1.2
+      continue
     fi
-    adb shell input keyevent KEYCODE_BACK >/dev/null 2>&1   # close an IME or a menu first
-    sleep 0.6
-    adb shell input swipe 200 1200 950 1200 250
-    sleep 1.5
+    break
   done
-  echo "ensure_start: could not get back to Start" >&2
+  if grep -q 'resource-id="start_page"' "$d" 2>/dev/null && ! grep -q 'resource-id="\(app_list\|pod_bay\)"' "$d" 2>/dev/null; then
+    return 0
+  fi
+  echo "FAIL  ensure_start: not on Start alone" | tee -a "${LOG:-/dev/null}" >&2
+  FAIL=$(( ${FAIL:-0} + 1 ))
   return 1
 }
 

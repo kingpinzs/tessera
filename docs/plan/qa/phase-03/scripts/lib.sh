@@ -284,9 +284,28 @@ has_node() { # dump.xml resource-id  -> prints yes/no
 cortana_assist() { adb shell input keyevent KEYCODE_ASSIST; }
 cortana_close() { adb shell input keyevent KEYCODE_BACK; sleep 1; }
 
+# Phase 14 (Decisions "Harness"): Home, then Back while the dump shows the app list or the pod bay — this AVD does not
+# re-deliver the HOME intent to a resumed Start (T11-16), so Home alone leaves the pager where it was, and since phase 14
+# the page left of Start is the pod bay — then Start ALONE is asserted: a failure is a FAIL verdict, so it fails the row.
 ensure_start() {
+  local d="${ROW_DIR:-${TMPDIR:-/tmp}}/.ensure_start.xml" i
   adb shell input keyevent KEYCODE_HOME
   sleep 1
+  for i in 1 2 3 4 5; do
+    dump_ui "$d" || true
+    if [ "$i" -lt 5 ] && { [ "$(has_node "$d" app_list)" = yes ] || [ "$(has_node "$d" pod_bay)" = yes ]; }; then
+      adb shell input keyevent KEYCODE_BACK
+      sleep 1
+      continue
+    fi
+    break
+  done
+  if [ "$(has_node "$d" start_page)" = yes ] && [ "$(has_node "$d" app_list)" = no ] && [ "$(has_node "$d" pod_bay)" = no ]; then
+    return 0
+  fi
+  local got="start_page=$(has_node "$d" start_page) app_list=$(has_node "$d" app_list) pod_bay=$(has_node "$d" pod_bay)"
+  if [ -n "${LOG:-}" ]; then _verdict FAIL "ensure_start: Start alone" "$got"; else echo "ensure_start: not on Start alone ($got)" >&2; fi
+  return 1
 }
 
 # Speak an utterance into the AVD's microphone and wait for Cortana to finish with it.
@@ -294,8 +313,20 @@ say() { # utterance-id [settle-seconds]
   local wav
   wav="$(python3 "$HERE/utterances.py" path "$1")"
   [ -f "$wav" ] || { echo "missing utterance $1 — run utterances.py build" >&2; return 2; }
-  "$HERE/audio.sh" say "$wav"
+  # AUDIO_ROUTE=emu (phase 14 Q-R3-1a (a)): the emulator's own gRPC injectAudio; the host's audio is never touched.
+  if [ "${AUDIO_ROUTE:-}" = emu ]; then
+    python3 "$HERE/emu_audio.py" say "$wav" >&2 || return 5
+  else
+    "$HERE/audio.sh" say "$wav"
+  fi
   sleep "${2:-6}"
+}
+
+# The assertion every driver with a spoken step makes before its first one (phase 14 Acceptance criteria: no row
+# can fall through to the host route).
+require_emu_audio() {
+  assert_eq "AUDIO_ROUTE is the emulator's gRPC route" "emu" "${AUDIO_ROUTE:-}"
+  [ "${AUDIO_ROUTE:-}" = emu ]
 }
 
 # Type a request into the real text box (fidelity A4: the same matcher and reply path as speech).

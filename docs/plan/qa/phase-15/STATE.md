@@ -233,3 +233,7 @@ INDEX.md is master (Hard Rule 12); this file only records where THIS session is.
   RowHoldMenu in ClockWidgets). EDGE_HOLD_DELETE passes 20/0 on build c4a45bcf (5560). World Clock's own hold detector
   cannot tell a scroll-cancelled press from a hold (both give null); that is not changed here, and a long city list is
   the case to watch.
+- 2026-09-25: PHASE 15 DONE. Jeremy: "that is all good", then "(a)" to closing it with every NEEDS-HUMAN line OK,
+  Music's resume accepted, the gate reviewers waived, and Tess-not-hidden left logged. NEEDS-HUMAN.md is signed (the P
+  rows accepted without being run on the phone), INDEX row 15 is done, and the Change Log line is "PHASE 15 DONE". Final
+  build c4a45bcf. HARD STOP: the next phase is Jeremy's call.

@@ -1,5 +1,6 @@
 package app.tileshell.cortana.match
 
+import app.tileshell.brand.Brand
 import app.tileshell.cortana.reminders.Recurrence
 import app.tileshell.diag.Diagnostics
 
@@ -72,6 +73,8 @@ object CommandMatcher {
     // ---------------- commands ----------------
 
     private fun command(text: String, words: List<String>, context: Context): Request? {
+        // Phase 14: checked FIRST, so "open the pod bay doors" never reaches the open-app rule as an app name.
+        podBay(text)?.let { return it }
         reminder(text, words, context)?.let { return it }
         deleteReminder(text)?.let { return it }
         calendar(text, words, context)?.let { return it }
@@ -109,6 +112,31 @@ object CommandMatcher {
 
         return null
     }
+
+    /**
+     * Phase 14 (Decisions "Tess's command"): the normalised text names the pod bay ([name], or it run together as one
+     * word, which the recogniser may produce) and starts with open / show / pull out → [Request.OpenPodBay], doors when
+     * it also says "door(s)"; with close / shut → [Request.ClosePodBay]. The name comes from the branding module, so a
+     * public build's renamed bay is what Tess listens for. "open the pod" is not the pod bay: it falls through to the
+     * open-app rule.
+     */
+    internal fun podBay(text: String, name: String = Brand.POD_BAY_NAME): Request? {
+        val spaced = name.lowercase().trim()
+        if (!text.contains(spaced) && !text.contains(spaced.replace(" ", ""))) return null
+        val doors = Regex("\\bdoors?\\b").containsMatchIn(text)
+        return when {
+            OPEN_VERBS.any { text.startsWith("$it ") } -> Request.OpenPodBay(doors)
+            CLOSE_VERBS.any { text.startsWith("$it ") } -> Request.ClosePodBay
+            else -> null
+        }
+    }
+
+    private val OPEN_VERBS = listOf("open", "show", "pull out")
+    private val CLOSE_VERBS = listOf("close", "shut")
+
+    /** The pod bay's grammar phrases, from the branding module's name (phase 14). */
+    internal fun podBayPhrases(name: String = Brand.POD_BAY_NAME): List<String> =
+        listOf("open the $name doors", "open the $name", "close the $name doors")
 
     /** "remind me to <task> at <time> / when I get to <place> / next time I talk to <name>". */
     private fun reminder(text: String, words: List<String>, context: Context): Request? {
@@ -215,7 +243,7 @@ object CommandMatcher {
      * follow a command here — a generic model has no reason to prefer "Ilkka" over "ill car".
      */
     fun hotwords(contactNames: List<String> = emptyList(), appNames: List<String> = emptyList()): String {
-        val phrases = COMMAND_PHRASES + contactNames.flatMap { listOf("call $it", "text $it") } + appNames.map { "open $it" }
+        val phrases = COMMAND_PHRASES + podBayPhrases() + contactNames.flatMap { listOf("call $it", "text $it") } + appNames.map { "open $it" }
         return phrases.filter { it.isNotBlank() }.distinct().joinToString("\n")
     }
 
