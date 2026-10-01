@@ -145,6 +145,14 @@ object Checklist {
         ChecklistRow("keyboard_selected", "Keyboard selected", if (keyboardSelected(context)) RowState.GRANTED else RowState.MISSING, "Use it for typing everywhere", grant = true) {
             context.getSystemService(InputMethodManager::class.java).showInputMethodPicker()
         },
+        // Phase 16 (T16-15): People's own grant, READ and WRITE together — Tess's `contacts` row stays READ only, since
+        // she never writes a contact. MISSING whenever READ is not held, whatever WRITE is (r3 V12); PARTIAL with READ
+        // alone, which is not "done" for the wizard: People edits contacts.
+        PEOPLE_PERMISSIONS.let { perms ->
+            ChecklistRow("people", "People",
+                WizardRules.readWriteState(granted(context, Manifest.permission.READ_CONTACTS), granted(context, Manifest.permission.WRITE_CONTACTS)),
+                "People shows and edits your contacts", permissions = perms, grant = true) { requestPermissions(perms.toTypedArray()) }
+        },
         // Phase 15 (Q-E A, T15-14): alarms ring as W10M's toast — over the lock screen through a full-screen intent
         // (special app access on API 34+), over the app in use through "Display over other apps". Without either the
         // alarm still sounds and shows as Android's own notification, never silently.
@@ -160,6 +168,7 @@ object Checklist {
     )
 
     private val PHOTOS_PERMISSIONS = listOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
+    private val PEOPLE_PERMISSIONS = listOf(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)
 }
 
 @Composable
