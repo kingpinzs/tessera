@@ -217,6 +217,8 @@ class ShellApp : Application() {
     fun startFeeds(reason: String) {
         PhotosFeed.start(this)
         CalendarFeed.start(this)
+        // Phase 16 (r3 D14): the Birthdays calendar's one writer and its Contacts observer, beside the feed that shows it.
+        app.tileshell.calendar.BirthdaysWriter.start(this)
         MusicFeed.start(this)
         app.tileshell.feeds.PeopleFeed.start(this)
         app.tileshell.weather.WeatherFeed.start(this)

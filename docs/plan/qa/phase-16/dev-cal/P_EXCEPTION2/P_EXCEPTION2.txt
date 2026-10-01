@@ -1,0 +1,24 @@
+==============================================================================
+ROW P_EXCEPTION2 — probe: three ways to write an occurrence edit on a LOCAL series
+at            2026-10-01T14:00:40-06:00
+driver        p_exception2.sh blob 56976d1d9d6a7ee219e1c5c531647b354554c152
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     a5b3bdbffff0d744 339299596 bytes
+apk installed 2c802c043cb40279
+apk match     yes (2c802c043cb40279)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  V1 after the exception insert                               188@w5 188@w6 188@w7 188@w8 188@w9 189@w2 
+RECORD  V1 after the master is written again whole                  188@w0 188@w1 188@w2 188@w3 188@w4 188@w5 188@w6 188@w7 188@w8 188@w9 
+RECORD  V2 master row                                               Row: 0 _id=190, _sync_id=tessera-190, dirty=1
+RECORD  V2 rows                                                     Row: 0 _id=190, title=PV2 weekly, _sync_id=tessera-190, original_id=NULL, original_sync_id=NULL, originalInstanceTime=NULL;Row: 1 _id=191, title=PV2 changed, _sync_id=NULL, original_id=190, original_sync_id=tessera-190, originalInstanceTime=1792108800000;
+RECORD  V2 after the exception insert (master has a _sync_id)       190@w0 190@w1 190@w3 190@w4 190@w5 190@w6 190@w7 190@w8 190@w9 191@w2 
+RECORD  V3 = V2, then the master written again whole                190@w0 190@w1 190@w3 190@w4 190@w5 190@w6 190@w7 190@w8 190@w9 191@w2 
+RECORD  V2 after a CANCELLED exception for week 5                   190@w0 190@w1 190@w3 190@w4 190@w5 190@w6 190@w7 190@w8 190@w9 191@w2 
+RECORD  V2 cancelled, master written again                          190@w0 190@w1 190@w3 190@w4 190@w5 190@w6 190@w7 190@w8 190@w9 191@w2 
+RECORD  V2 master after a normal app's delete                       Row: 0 _id=190, deleted=1, dirty=1; / exceptions: No result found.;
+RECORD  probe rows left (as the sync adapter sees them)             No result found.;
+------------------------------------------------------------------------------
+P_EXCEPTION2: 0 passed, 0 failed, 10 recorded
+P_EXCEPTION2: recorded only (10 facts)

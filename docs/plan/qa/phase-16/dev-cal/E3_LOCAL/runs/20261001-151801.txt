@@ -1,0 +1,37 @@
+==============================================================================
+ROW E3_LOCAL — Tessera is created at first open and reused
+at            2026-10-01T15:17:58-06:00
+driver        e3_local.sh blob c6ae2855472314014b1dc6960eb37d351740a683
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     264210e3d9c6823b 342668288 bytes
+apk installed 1c0b1b18e29cac25
+apk match     yes (1c0b1b18e29cac25)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+calendars before: No result found.
+PASS  no Tessera calendar before the app opens                    does not contain [account_name=Tessera,]
+calendars after the first open: Row: 0 _id=1, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700, calendar_color=-16751695
+PASS  exactly one Tessera row                                     = 1
+PASS  account type LOCAL                                          contains [account_type=LOCAL]
+PASS  display name Tessera                                        contains [calendar_displayName=Tessera]
+PASS  access 700                                                  contains [calendar_access_level=700]
+PASS  colour #0063B1                                              contains [calendar_color=-16751695]
+PASS  LocalCalendar's line                                        contains [[calendar] local calendar created: content://com.android.calendar/calendars/1]
+PASS  the calendars line                                          contains [[calendar] calendars: 1 (local created id=1)]
+PASS  still one Tessera row after a force-stop and a reopen       = 1
+PASS  local present                                               contains [[calendar] calendars: 1 (local present)]
+PASS  no second create                                            does not contain [local calendar created]
+PASS  the QA calendar exists                                      != 
+calendars, inverted: Row: 0 _id=1, account_name=qa, account_type=LOCAL, calendar_displayName=QA, calendar_access_level=700, calendar_color=NULL
+Row: 1 _id=2, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700, calendar_color=-16751695
+PASS  Tessera is created though another LOCAL calendar exists     = 1
+PASS  local created (two rows)                                    contains [(local created id=2)]
+PASS  LocalCalendar did not pick the QA calendar                  != 1
+PASS  both calendars list in the pane                             = yes yes
+PASS  under their account headers                                 = yes yes
+PASS  the QA event's page opened                                  = yes
+PASS  no edit / delete / sync on a calendar that is not Tessera   = no no no
+PASS  the QA calendar is gone                                     = 
+------------------------------------------------------------------------------
+E3_LOCAL: 20 passed, 0 failed, 0 recorded

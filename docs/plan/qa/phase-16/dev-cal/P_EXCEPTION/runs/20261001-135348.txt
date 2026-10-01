@@ -1,0 +1,21 @@
+==============================================================================
+ROW P_EXCEPTION — probe: the provider's exception insert and the master's instances
+at            2026-10-01T13:53:45-06:00
+driver        p_exception.sh blob 9401595760b5332c9b3f52f548bbacbc23e3fba0
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     a5b3bdbffff0d744 339299596 bytes
+apk installed 2c802c043cb40279
+apk match     yes (2c802c043cb40279)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  instances after the insert of the series 186                event_id=186, begin=1790899200000, title=Probe weekly;event_id=186, begin=1791504000000, title=Probe weekly;event_id=186, begin=1792108800000, title=Probe weekly;event_id=186, begin=1792713600000, title=Probe weekly;event_id=186, begin=1793318400000, title=Probe weekly;event_id=186, begin=1793926800000, title=Probe weekly;event_id=186, begin=1794531600000, title=Probe weekly;event_id=186, begin=1795136400000, title=Probe weekly;event_id=186, begin=1795741200000, title=Probe weekly;event_id=186, begin=1796346000000, title=Probe weekly;
+RECORD  event rows                                                  Row: 0 _id=186, title=Probe weekly, original_id=NULL, originalInstanceTime=NULL, original_sync_id=NULL, _sync_id=NULL, dtstart=1790899200000, dtend=NULL, duration=PT1H, rrule=FREQ=WEEKLY;COUNT=10, eventStatus=NULL, lastDate=1796349600000;Row: 1 _id=187, title=Probe changed, original_id=186, originalInstanceTime=1792108800000, original_sync_id=NULL, _sync_id=NULL, dtstart=1792108800000, dtend=1792112400000, duration=NULL, rrule=NULL, eventStatus=1, lastDate=1796349600000;
+RECORD  instances right after the exception insert                  event_id=187, begin=1792108800000, title=Probe changed;
+RECORD  instances in a WIDER window (forces an expansion)           event_id=187, begin=1792108800000, title=Probe changed;
+RECORD  instances in the first window again                         event_id=187, begin=1792108800000, title=Probe changed;
+RECORD  instances after an update of the master that names DTSTART  event_id=186, begin=1790899200000, title=Probe weekly;event_id=187, begin=1792108800000, title=Probe changed;
+RECORD  probe rows left                                             0
+------------------------------------------------------------------------------
+P_EXCEPTION: 0 passed, 0 failed, 7 recorded
+P_EXCEPTION: recorded only (7 facts)

@@ -1,0 +1,26 @@
+==============================================================================
+ROW E24_REMINDER — a synced event reminds once: the copy's alert is skipped
+at            2026-10-01T15:11:07-06:00
+driver        e24_reminder.sh blob 1a26138777993c5e6983904783397573024e7052
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     be2cdaa54ff8e0f1 342668012 bytes
+apk installed 992b4091a3e1cb35
+apk match     yes (992b4091a3e1cb35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the copy exists                                             != 
+PASS  the copy has its own reminder row                           contains [minutes=10]
+the shell's calendar notifications: title=[E24 remind] 
+PASS  exactly ONE notification of the shell's, titled the event   = title=[E24 remind]
+PASS  the original's alert notified, once                         = 1
+PASS  the copy's alert skipped, once                              = 1
+RECORD  the two alert rows (the copy's did fire and is left as it was)  event_id=279, state=1;event_id=280, state=0;
+PASS  the original's alert row is FIRED                           contains [event_id=279, state=1]
+PASS  the copy has an alert row of its own                        contains [event_id=280, state=]
+PASS  the AOSP Calendar is enabled again, as it was               = 1
+PASS  device clock back within 2 s of the host (RV12)             1790889138.00 vs 1790889138.00 +/- 2.0
+PASS  no calendar notification of the shell's is left             = 0
+PASS  the fixtures are gone                                       = /0
+------------------------------------------------------------------------------
+E24_REMINDER: 11 passed, 0 failed, 1 recorded

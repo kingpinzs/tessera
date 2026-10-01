@@ -506,6 +506,7 @@
             android:taskAffinity="app.tileshell.calendar"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
             android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -528,7 +529,31 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="vnd.android.cursor.dir/event" />
             </intent-filter>
+            <!-- Build task 9: Agenda, Day, Month, New event (phase 11 Q1's standing rule). -->
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_calendar" />
         </activity>
+
+        <!--
+          Calendar's reminder receiver (phase 16 build task 3; r3 D6). The provider's process sends EVENT_REMINDER with a
+          data URI (content://com.android.calendar/<alarmTime>), and a filter with no <data> never matches an intent
+          that has data, hence the scheme + host. Exported because the sender is the provider, so ANY app can send it:
+          it is on qa/phase-03/exported-allowlist.txt and on the Trust list, and the broadcast is a poke only — the
+          receiver reads nothing from the intent and re-reads CalendarAlerts itself.
+        -->
+        <receiver
+            android:name=".calendar.CalendarReminderReceiver"
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.EVENT_REMINDER" />
+                <data android:scheme="content" android:host="com.android.calendar" />
+            </intent-filter>
+        </receiver>
+
+        <!-- The swipe that dismisses one of Calendar's own reminder notifications: only its PendingIntent reaches this. -->
+        <receiver
+            android:name=".calendar.CalendarReminderDismissReceiver"
+            android:exported="false" />
 
         <!--
           People: the W10M People hub over Android's Contacts provider — an app in the app list with its own task, and
