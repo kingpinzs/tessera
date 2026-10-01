@@ -15,14 +15,14 @@ data class SyncMapping(val localEventId: Long, val target: CalendarKey, val copy
  *  - [mappings]: the synced events, by local event id;
  *  - [hidden]: the ≡ pane's un-ticked calendars — the shell's own state, never `Calendars.VISIBLE` (r3 D4);
  *  - [firstDayOfWeek]: 1 (Monday) … 7 (Sunday), or null to follow the locale;
- *  - [notifiedAlerts]: the `CalendarAlerts` ids the reminder receiver has already handled (r3 D6).
+ *  - [notifiedAlerts]: the alerts the reminder receiver has already handled (r3 D6), each by its [AlertRow.key].
  */
 data class SyncState(
     val allowed: List<CalendarKey> = emptyList(),
     val mappings: Map<Long, SyncMapping> = emptyMap(),
     val hidden: List<CalendarKey> = emptyList(),
     val firstDayOfWeek: Int? = null,
-    val notifiedAlerts: Set<Long> = emptySet(),
+    val notifiedAlerts: Set<String> = emptySet(),
 )
 
 /** The store's rules, pure over their inputs so the JVM tests pin them. */
@@ -68,9 +68,9 @@ object SyncStateRules {
     fun mappingOfCopy(state: SyncState, eventId: Long): SyncMapping? = state.mappings.values.firstOrNull { it.copyEventId == eventId }
 
     /**
-     * The receiver's notified set stays as large as the alerts that can still come back: an id is kept only while its
-     * alert row is still a candidate ([live]: the rows due now in state SCHEDULED or FIRED).
+     * The receiver's notified set stays as large as the alerts that can still come back: a key is kept only while its
+     * alert row is still a candidate ([live]: the keys of the rows due now in state SCHEDULED or FIRED).
      */
-    fun keepNotified(state: SyncState, live: Set<Long>, added: Set<Long>): SyncState =
+    fun keepNotified(state: SyncState, live: Set<String>, added: Set<String>): SyncState =
         state.copy(notifiedAlerts = (state.notifiedAlerts intersect live) + added)
 }

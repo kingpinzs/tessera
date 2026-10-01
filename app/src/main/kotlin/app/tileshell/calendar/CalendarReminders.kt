@@ -27,12 +27,13 @@ object ReminderRules {
     }
 
     /**
-     * [due]: the alert rows with `alarmTime` ≤ now in state SCHEDULED or FIRED. Less the ids already handled
-     * ([notified]) — so a second or a forged broadcast for the same alert does nothing — and with a copy's alert
+     * [due]: the alert rows with `alarmTime` ≤ now in state SCHEDULED or FIRED. Less the alerts already handled
+     * ([notified], by [AlertRow.key]) — so a second or a forged broadcast for the same alert does nothing, and a new
+     * alert that was handed a deleted row's `_id` still notifies — and with a copy's alert
      * ([copies]: the synced-copy event ids) skipped rather than shown.
      */
-    fun plan(due: List<AlertRow>, notified: Set<Long>, copies: Set<Long>): List<Action> =
-        due.filter { it.id !in notified }.map { if (it.eventId in copies) Action.SkipCopy(it) else Action.Notify(it) }
+    fun plan(due: List<AlertRow>, notified: Set<String>, copies: Set<Long>): List<Action> =
+        due.filter { it.key !in notified }.map { if (it.eventId in copies) Action.SkipCopy(it) else Action.Notify(it) }
 }
 
 /**
@@ -93,7 +94,7 @@ object CalendarReminders {
 
     /**
      * Re-reads `CalendarAlerts` for what is due and unhandled, and for each alert left posts one notification, records
-     * its id in the shell's store (the receiver may run in a fresh process) and marks the row FIRED — the write guard's
+     * it in the shell's store (the receiver may run in a fresh process) and marks the row FIRED — the write guard's
      * case 4. Every calendar's alerts are shown, the account calendars' too (T16-4), except a synced copy's.
      */
     fun poke(context: Context) {
@@ -103,21 +104,21 @@ object CalendarReminders {
         }
         val due = CalendarReads.dueAlerts(context, System.currentTimeMillis()) ?: return
         val store = CalendarSyncStore.get(context)
-        val live = due.mapTo(HashSet()) { it.id }
-        val fresh = due.filter { it.id !in store.current.notifiedAlerts }
+        val live = due.mapTo(HashSet()) { it.key }
+        val fresh = due.filter { it.key !in store.current.notifiedAlerts }
         if (fresh.isEmpty()) {
             store.update { SyncStateRules.keepNotified(it, live, emptySet()) }
             return
         }
         val plan = ReminderRules.plan(due, store.current.notifiedAlerts, SyncedCopies.hiddenEventIds(context))
-        val handled = HashSet<Long>()
+        val handled = HashSet<String>()
         for (action in plan) {
             val row = action.row
             when (action) {
                 is ReminderRules.Action.SkipCopy -> {
                     // The copy keeps its own reminder rows, so the account's other clients still remind; its alert
                     // row is left as it is — only the shell stays quiet about it.
-                    handled += row.id
+                    handled += row.key
                     Diagnostics.add("calendar", "reminder event=${row.eventId} minutes=${row.minutes}: skipped (synced copy)")
                 }
                 is ReminderRules.Action.Notify -> {
@@ -125,7 +126,7 @@ object CalendarReminders {
                         Diagnostics.add("calendar", "reminder event=${row.eventId} minutes=${row.minutes}: failed notifications are off")
                         continue
                     }
-                    handled += row.id
+                    handled += row.key
                     CalendarWrites.setAlertState(context, row.id, CalendarContract.CalendarAlerts.STATE_FIRED)
                     Diagnostics.add("calendar", "reminder event=${row.eventId} minutes=${row.minutes}: notified")
                 }

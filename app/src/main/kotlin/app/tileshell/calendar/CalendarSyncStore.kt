@@ -66,7 +66,8 @@ class CalendarSyncStore private constructor(context: Context) {
             firstDayOfWeek = if (o.has("firstDayOfWeek") && !o.isNull("firstDayOfWeek")) o.getInt("firstDayOfWeek").takeIf { it in 1..7 } else null,
             notifiedAlerts = buildSet {
                 val n = o.optJSONArray("notifiedAlerts") ?: JSONArray()
-                for (i in 0 until n.length()) add(n.getLong(i))
+                // Keys of the form <event>:<begin>:<alarmTime>; a bare row id an earlier build wrote names no alert now.
+                for (i in 0 until n.length()) n.optString(i).takeIf { ':' in it }?.let { add(it) }
             },
         )
     }.getOrElse {

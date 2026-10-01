@@ -82,7 +82,14 @@ data class AlertRow(
     val minutes: Int,
     val title: String?,
     val allDay: Boolean,
-)
+) {
+    /**
+     * What the receiver remembers of an alert it has handled: the event, the occurrence and the alarm time — not the
+     * row's `_id`, which the provider hands out again once the row is deleted (as it does calendar ids, Verify at build
+     * start 3): a new alert that inherited a handled row's id would otherwise never notify.
+     */
+    val key: String get() = "$eventId:$beginMs:$alarmTimeMs"
+}
 
 sealed interface CalendarsResult {
     data class Ok(val calendars: List<CalendarInfo>) : CalendarsResult
