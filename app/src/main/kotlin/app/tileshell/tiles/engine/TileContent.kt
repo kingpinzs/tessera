@@ -94,7 +94,18 @@ sealed interface TileFace {
             }
         }
     }
+
+    /**
+     * The People tile's face (phase 16 build task 7; R3 A9, C3): with [photos], contact-photo bubbles that change on
+     * A9's event — one slides out to the left, a pause, the next slides in from the right — every 7.7 s; with none,
+     * the static circle pattern. It is published as a `front`: the face IS the tile, on the PEOPLE slot and on a
+     * pinned People app tile alike, and the tile draws the event itself (R3 A8: each tile runs its own timer).
+     */
+    data class People(val photos: List<PersonPhoto>) : TileFace
 }
+
+/** One contact's photo on the People tile, decoded at about the bubble's size; [lookup] is the contact's lookup key. */
+class PersonPhoto(val lookup: String, val image: ImageBitmap)
 
 /**
  * A transport command a tile can carry (INDEX Change Log 2026-09-21 item 3, Jeremy's "play pauese stop
