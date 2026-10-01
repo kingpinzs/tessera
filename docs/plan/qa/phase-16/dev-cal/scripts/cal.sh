@@ -189,6 +189,11 @@ event_count() { # where
 rmevents() { # where
   adb shell "content delete --uri $EVENTS --where \"$1\"" < /dev/null >/dev/null 2>&1
 }
+# Tessera rows removed for good, as the LOCAL account's own sync adapter (a normal delete of a row that carries a
+# _sync_id only marks it deleted, and an exception row is cancelled, not removed).
+purge_tessera_events() { # where
+  adb shell "content delete --uri '$EVENTS?$SA&account_name=Tessera&account_type=LOCAL' --where \"$1\"" < /dev/null >/dev/null 2>&1
+}
 sync_json() { adb shell "run-as app.tileshell cat files/calendar_sync.json" < /dev/null 2>/dev/null | tr -d '\r'; }
 granted() { # permission -> true / false
   S dumpsys package app.tileshell | grep -m1 "$1: granted=" | sed 's/.*granted=\([a-z]*\).*/\1/'

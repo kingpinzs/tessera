@@ -9,8 +9,9 @@ package app.tileshell.calendar
  * The owner, 2026-09-23: "I dont want to add anything to my work calander from my phone ever." So nothing is allowed
  * by default, and the allow set is exactly four cases:
  *
- *  1. the `Tessera` calendar (the shell's own LOCAL calendar): every event and reminder op of the editor and of Tess,
- *     and the one insert that creates the calendar;
+ *  1. the `Tessera` calendar (the shell's own LOCAL calendar): every event and reminder op of the editor and of Tess —
+ *     as a normal app or, for its event rows, as the LOCAL account's own sync adapter — and the one insert that
+ *     creates the calendar;
  *  2. the `Tessera Birthdays` calendar: the Birthdays writer's path only, through the sync-adapter URI;
  *  3. an allowed Sync target: only a push, update or delete of a copy `calendar_sync.json` maps, only while the copy's
  *     re-read `calendar_id` equals the mapping's target, the target is still on the allowed list and its re-read
@@ -136,8 +137,10 @@ object CalendarWriteGuard {
     private fun tessera(r: Request): Verdict = when (r.path) {
         // The calendar row itself is only ever created, by its one creator, as its own sync adapter.
         Path.LOCAL_CALENDAR -> allowIf(r.table == Table.CALENDARS && r.op == Op.INSERT && r.viaSyncAdapter)
-        // Events and their reminders: every op, as a normal app.
-        Path.EDITOR, Path.TESS -> allowIf((r.table == Table.EVENTS || r.table == Table.REMINDERS) && !r.viaSyncAdapter)
+        // Events and their reminders: every op. An event row may also be written as the calendar's own sync adapter (a
+        // LOCAL account's adapter is the app itself): the provider pairs an occurrence's exception with its series by
+        // `_sync_id`, and removes a row for good only for its adapter (qa/phase-16/dev-cal/P_EXCEPTION*).
+        Path.EDITOR, Path.TESS -> allowIf(r.table == Table.EVENTS || (r.table == Table.REMINDERS && !r.viaSyncAdapter))
         else -> refused(Refusal.NOT_ALLOWED)
     }
 

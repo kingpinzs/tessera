@@ -78,7 +78,7 @@ tap cal_editor_save 2.5
 EX="$(event_rows _id:title:original_id:originalInstanceTime:dtstart:dtend:rrule "original_id=$SERIES")"; log "exception: $EX"
 assert_contains "an exception row of the master" "original_id=$SERIES, originalInstanceTime=$T3" "$EX"
 assert_contains "with the changed title" "title=E5 weeklyX" "$EX"
-EXID="$(printf '%s\n' "$EX" | sed -n 's/.*_id=\([0-9]*\),.*/\1/p' | head -1)"
+EXID="$(printf '%s\n' "$EX" | sed -n 's/^Row: [0-9]* _id=\([0-9]*\),.*/\1/p' | head -1)"
 assert_contains "the write line" "[calendar] write insert event=$EXID: ok" "$(ring_since "$MARK")"
 open_day "$T3"; dump_ui "$ROW_DIR/third.xml"
 assert_eq "the third day shows the exception, not the master's instance" "yes no" "$(has_node "$ROW_DIR/third.xml" "cal_event:$EXID") $(has_node "$ROW_DIR/third.xml" "cal_event:$SERIES")"
@@ -98,9 +98,20 @@ assert_absent "and no COUNT left on it" "COUNT=" "$M"
 TAIL="$(event_rows _id:title:rrule:dtstart:duration "title='E5 weeklyT'")"; log "new master: $TAIL"
 assert_contains "a new master starts at the fifth occurrence" "dtstart=$T5" "$TAIL"
 assert_contains "keeping what is left of the count (10 less the four before)" "rrule=FREQ=WEEKLY;COUNT=6" "$TAIL"
-TAILID="$(printf '%s\n' "$TAIL" | sed -n 's/.*_id=\([0-9]*\),.*/\1/p' | head -1)"
+TAILID="$(printf '%s\n' "$TAIL" | sed -n 's/^Row: [0-9]* _id=\([0-9]*\),.*/\1/p' | head -1)"
 assert_eq "the old master now expands to three instances (the third is the exception's)" 3 "$(instance_count "$S0" "$(( S0 + 12 * WEEK ))" "$SERIES")"
 assert_eq "the new master to six" 6 "$(instance_count "$S0" "$(( S0 + 12 * WEEK ))" "$TAILID")"
+
+# ---- an occurrence of the new series deleted alone, then the changed (third) occurrence deleted: neither comes back
+T7=$(( S0 + 6 * WEEK )); T7B="$(S "content query --uri content://com.android.calendar/instances/when/$(( T7 - 86400000 ))/$(( T7 + 86400000 )) --projection begin:end --where \"event_id=$TAILID\"" | sed -n 's/.*begin=\([0-9]*\), end=\([0-9]*\).*/\1 \2/p' | head -1)"
+# shellcheck disable=SC2086
+open_event "$TAILID" $T7B
+tap cal_event_action:delete 1.5; tap cal_occurrence:this 2.5
+assert_eq "delete this occurrence: the new series loses one instance" 5 "$(instance_count "$S0" "$(( S0 + 12 * WEEK ))" "$TAILID")"
+open_event "$EXID"
+tap cal_event_action:delete 2.5
+assert_eq "the changed occurrence deleted: its instance is gone" 0 "$(instance_count "$S0" "$(( S0 + 12 * WEEK ))" "$EXID")"
+assert_eq "and the series' own occurrence on that day does not come back" 3 "$(instance_count "$S0" "$(( S0 + 12 * WEEK ))" "$SERIES")"
 
 # ---- delete all: the new series, then the old one with its exception
 open_event "$TAILID" "$T5" "$(( T5 + 3600000 ))"
@@ -110,12 +121,12 @@ assert_eq "with every instance" 0 "$(instance_count "$S0" "$(( S0 + 12 * WEEK ))
 open_event "$SERIES" "$S0" "$(( S0 + 3600000 ))"
 tap cal_event_action:delete 1.5; tap cal_occurrence:all 2.5
 assert_eq "the old master is gone" 0 "$(event_count "_id=$SERIES")"
-record "exception rows left after delete all (deleted=0)" "$(event_rows _id:title:status:deleted "original_id=$SERIES" | tr '\n' ' ')"
+assert_eq "no exception row of either series is left" 0 "$(event_count "original_id IN ($SERIES,$TAILID)")"
 assert_eq "no instance of the exception is left" 0 "$(instance_count "$S0" "$(( S0 + 12 * WEEK ))" "$EXID")"
 
-# ---- restore: every event the session made, by id
-rmevents "_id IN ($ALLDAY,$THREE,$APPW)"
-rmevents "title LIKE 'E5 %'"
+# ---- restore: every event the session made
+purge_tessera_events "_id IN ($ALLDAY,$THREE,$APPW)"
+purge_tessera_events "title LIKE 'E5 %'"
 assert_eq "Tessera holds what it held before the session" "$BEFORE" "$(event_count "calendar_id=$TESS")"
 c6; ensure_start
 session_end

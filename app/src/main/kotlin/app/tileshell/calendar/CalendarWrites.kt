@@ -62,6 +62,17 @@ object CalendarWrites {
         )?.use { c -> if (c.moveToFirst()) c.getLong(0) to (if (c.isNull(1)) null else c.getLong(1)) else null }
     }.getOrNull()
 
+    /** A row's `_sync_id`, DTSTART and DURATION, for the two writes that must name them. */
+    private data class SeriesRow(val syncId: String?, val dtstart: Long, val duration: String?)
+
+    private fun seriesRow(context: Context, eventId: Long): SeriesRow? = runCatching {
+        context.contentResolver.query(
+            CalendarContract.Events.CONTENT_URI,
+            arrayOf(CalendarContract.Events._SYNC_ID, CalendarContract.Events.DTSTART, CalendarContract.Events.DURATION),
+            "${CalendarContract.Events._ID} = ?", arrayOf(eventId.toString()), null,
+        )?.use { c -> if (c.moveToFirst()) SeriesRow(c.getString(0), c.getLong(1), c.getString(2)) else null }
+    }.getOrNull()
+
     private fun eventCalendar(context: Context, eventId: Long): CalendarFacts? = facts(context, eventRow(context, eventId)?.first)
 
     // ------------------------------------------------------------------------------------------ the gate
@@ -229,13 +240,21 @@ object CalendarWrites {
         return logged(path, Op.UPDATE, eventId.toString(), result)
     }
 
-    /** "This and following", the old master's half: its rule ends before the occurrence. */
-    fun setRule(context: Context, path: Path, eventId: Long, rrule: String): WriteResult<Unit> =
-        logged(path, Op.UPDATE, eventId.toString(), updateColumns(context, path, eventId, ContentValues().apply { put(CalendarContract.Events.RRULE, rrule) }))
-
-    /** "This and following": an exception later than the split now belongs to the new series. */
-    fun repointException(context: Context, path: Path, exceptionId: Long, newMasterId: Long): WriteResult<Unit> =
-        logged(path, Op.UPDATE, exceptionId.toString(), updateColumns(context, path, exceptionId, ContentValues().apply { put(CalendarContract.Events.ORIGINAL_ID, newMasterId) }))
+    /**
+     * "This and following", the old master's half: its rule ends before the occurrence. The row's own DTSTART and
+     * DURATION are written with the rule, so the provider expands the series again.
+     */
+    fun setRule(context: Context, path: Path, eventId: Long, rrule: String): WriteResult<Unit> {
+        val row = seriesRow(context, eventId)
+        val columns = ContentValues().apply {
+            put(CalendarContract.Events.RRULE, rrule)
+            if (row != null) {
+                put(CalendarContract.Events.DTSTART, row.dtstart)
+                if (row.duration != null) put(CalendarContract.Events.DURATION, row.duration)
+            }
+        }
+        return logged(path, Op.UPDATE, eventId.toString(), updateColumns(context, path, eventId, columns))
+    }
 
     private fun updateColumns(context: Context, path: Path, eventId: Long, columns: ContentValues): WriteResult<Unit> {
         val request = Request(path, Op.UPDATE, Table.EVENTS, eventCalendar(context, eventId), columns.keySet())
@@ -245,12 +264,61 @@ object CalendarWrites {
         }
     }
 
+    /**
+     * Deletes an event of the Tessera calendar.
+     *
+     * An exception row — one changed occurrence of a series — is not removed but marked cancelled: removing the row
+     * would bring the series' own occurrence back. Any other row is removed for good, with the exception rows that
+     * hang on it, as the LOCAL account's own sync adapter: a normal app's delete of a row that carries a `_sync_id`
+     * only marks it deleted, and nobody but the shell would ever come to clear it (qa/phase-16/dev-cal/P_EXCEPTION2).
+     */
     fun deleteEvent(context: Context, path: Path, eventId: Long): WriteResult<Unit> {
-        val request = Request(path, Op.DELETE, Table.EVENTS, eventCalendar(context, eventId))
-        return logged(path, Op.DELETE, eventId.toString(), guarded(request) {
-            val rows = context.contentResolver.delete(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), null, null)
+        val row = eventRow(context, eventId)
+        val calendar = facts(context, row?.first)
+        if (row?.second != null) {
+            val columns = ContentValues().apply { put(CalendarContract.Events.STATUS, CalendarContract.Events.STATUS_CANCELED) }
+            return logged(path, Op.DELETE, eventId.toString(), guarded(Request(path, Op.DELETE, Table.EVENTS, calendar)) {
+                val rows = context.contentResolver.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), columns, null, null)
+                if (rows != 1) error("no such event (rows=$rows)")
+            })
+        }
+        return logged(path, Op.DELETE, eventId.toString(), guarded(Request(path, Op.DELETE, Table.EVENTS, calendar, viaSyncAdapter = true)) {
+            val account = calendar?.accountName.orEmpty()
+            context.contentResolver.delete(
+                syncAdapterUri(CalendarContract.Events.CONTENT_URI, account), "${CalendarContract.Events.ORIGINAL_ID} = ?", arrayOf(eventId.toString()),
+            )
+            val rows = context.contentResolver.delete(syncAdapterUri(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), account), null, null)
             if (rows < 1) error("no such event (rows=$rows)")
         })
+    }
+
+    /** Removes one Tessera row for good, whatever it is: an exception row that has been written again elsewhere. */
+    fun purgeRow(context: Context, path: Path, eventId: Long): WriteResult<Unit> {
+        val calendar = eventCalendar(context, eventId)
+        return guarded(Request(path, Op.DELETE, Table.EVENTS, calendar, viaSyncAdapter = true)) {
+            context.contentResolver.delete(
+                syncAdapterUri(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), calendar?.accountName.orEmpty()), null, null,
+            )
+            Unit
+        }
+    }
+
+    /**
+     * The provider pairs an occurrence's exception with its series by `_sync_id` (`ORIGINAL_SYNC_ID`): for a series
+     * that has none, an exception insert loses the series' other occurrences from `Instances`
+     * (qa/phase-16/dev-cal/P_EXCEPTION, P_EXCEPTION2). A LOCAL account's sync adapter is the app itself, so the shell
+     * gives a Tessera series its `_sync_id` — once, before its first exception.
+     */
+    private fun ensureSyncId(context: Context, path: Path, masterId: Long): WriteResult<Unit> {
+        if (seriesRow(context, masterId)?.syncId != null) return WriteResult.Ok(Unit)
+        val calendar = eventCalendar(context, masterId)
+        val columns = ContentValues().apply { put(CalendarContract.Events._SYNC_ID, "tessera-$masterId") }
+        return guarded(Request(path, Op.UPDATE, Table.EVENTS, calendar, columns.keySet(), viaSyncAdapter = true)) {
+            val rows = context.contentResolver.update(
+                syncAdapterUri(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, masterId), calendar?.accountName.orEmpty()), columns, null, null,
+            )
+            if (rows != 1) error("no such event (rows=$rows)")
+        }
     }
 
     /**
@@ -259,6 +327,8 @@ object CalendarWrites {
      * and applies [values]. [reminderMinutes] null keeps the reminders the provider copies from the master.
      */
     fun insertException(context: Context, path: Path, masterId: Long, originalInstanceTime: Long, values: ExceptionValues, reminderMinutes: List<Int>?): WriteResult<Long> {
+        val keyed = ensureSyncId(context, path, masterId)
+        if (keyed !is WriteResult.Ok) return logged(path, Op.INSERT, "new", keyed.retype())
         val result = guarded(Request(path, Op.INSERT, Table.EVENTS, eventCalendar(context, masterId))) { exception(context, masterId, originalInstanceTime, values) }
         if (result is WriteResult.Ok && reminderMinutes != null) {
             val reminders = setReminders(context, path, result.value, reminderMinutes.map { it to CalendarContract.Reminders.METHOD_ALERT }, clear = true)

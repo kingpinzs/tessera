@@ -71,9 +71,18 @@ class CalendarWriteGuardTest {
         }
     }
 
-    @Test fun theEditorAndTessNeverUseTheSyncAdapterUri() {
-        assertEquals(refused(), check(Path.EDITOR, Op.INSERT, Table.EVENTS, tessera, syncAdapter = true))
-        assertEquals(refused(), check(Path.TESS, Op.DELETE, Table.EVENTS, tessera, syncAdapter = true))
+    @Test fun tesserasEventRowsMayBeWrittenAsItsOwnSyncAdapterAndNothingElseMay() {
+        // The LOCAL account's sync adapter is the shell itself: a series gets its _sync_id, and a row is removed for good.
+        for (op in Op.entries) {
+            assertEquals("$op", allowed, check(Path.EDITOR, op, Table.EVENTS, tessera, syncAdapter = true))
+            assertEquals("$op", allowed, check(Path.TESS, op, Table.EVENTS, tessera, syncAdapter = true))
+        }
+        // Reminder rows are a normal app's; and the sync-adapter URI opens no other calendar to the editor or Tess.
+        assertEquals(refused(), check(Path.EDITOR, Op.INSERT, Table.REMINDERS, tessera, syncAdapter = true))
+        for (calendar in listOf(birthdays, personal, work, qaLocal)) for (op in Op.entries) {
+            assertEquals("$op ${calendar.accountName}", refused(), check(Path.EDITOR, op, Table.EVENTS, calendar, syncAdapter = true))
+            assertEquals("$op ${calendar.accountName}", refused(), check(Path.TESS, op, Table.EVENTS, calendar, syncAdapter = true))
+        }
     }
 
     // ---- case 2: Tessera Birthdays, the Birthdays writer's path only ----
@@ -266,7 +275,7 @@ class CalendarWriteGuardTest {
                 val verdict = check(path, op, table, calendar, columns, adapter, sync)
                 if (verdict != allowed) continue
                 allowedCount++
-                val case1 = calendar == tessera && !adapter && (path == Path.EDITOR || path == Path.TESS) && (table == Table.EVENTS || table == Table.REMINDERS)
+                val case1 = calendar == tessera && (path == Path.EDITOR || path == Path.TESS) && (table == Table.EVENTS || (table == Table.REMINDERS && !adapter))
                 val case1Create = calendar == tessera && adapter && path == Path.LOCAL_CALENDAR && table == Table.CALENDARS && op == Op.INSERT
                 val case2 = calendar == birthdays && adapter && path == Path.BIRTHDAYS && (table == Table.EVENTS || (table == Table.CALENDARS && op == Op.INSERT))
                 val case3 = path == Path.SYNC && !adapter && calendar != null && calendar.accountType != "LOCAL" && calendar.accessLevel >= 500 &&
