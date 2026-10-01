@@ -8,6 +8,7 @@ import re, subprocess, sys
 SRC = 'app/src/main/kotlin/app/tileshell/people/PeopleRoute.kt'
 WRITES = 'app/src/main/kotlin/app/tileshell/people/PeopleWrites.kt'
 GUARD = 'app/src/main/kotlin/app/tileshell/people/PeopleWriteGuard.kt'
+MODEL = 'app/src/main/kotlin/app/tileshell/people/PeopleModel.kt'
 MUTATIONS = {
     'P6': ('authority prefix without its trailing slash',
            'val prefix = "content://$AUTHORITY/"', 'val prefix = "content://$AUTHORITY"'),
@@ -101,6 +102,20 @@ MUTATIONS = {
              'const val DATA_ROW_OF_RAW = "${Data._ID}=? AND ${Data.RAW_CONTACT_ID}=?"', 'const val DATA_ROW_OF_RAW = "${Data._ID}=?"', WRITES),
     'PW16': ('delete(): only the first raw contact behind the contact removed',
              'port.applyBatch(raws.map { RowWrite(WriteOp.DELETE, "$RAW_CONTACTS/${it.id}") })', 'port.applyBatch(raws.take(1).map { RowWrite(WriteOp.DELETE, "$RAW_CONTACTS/${it.id}") })', WRITES),
+    # ---- another profile's rows (F23)
+    'OP1': ('the write layer does not name another profile\'s contact as what it is (it just finds nothing)',
+            'if (port.isOtherProfile(contactId)) listOf(OtherProfile.REF) else port.rawContactsOf(contactId)', 'port.rawContactsOf(contactId)', WRITES),
+    'OP2': ('update(): a field or photo naming another profile\'s raw contact not put to the guard',
+            '        if (named.any(OtherProfile::isRaw) && refused(PeopleWrite.DataRow(WriteOp.UPDATE, OtherProfile.REF))) return refusedLine("update", OtherProfile.RAW.toString())\n', '', WRITES),
+    'OP3': ('the reference for another profile\'s contact not marked as another profile\'s',
+            'val REF = RawRef(RAW, ContactAccount(null, null), otherProfile = true)', 'val REF = RawRef(RAW, ContactAccount(null, null), otherProfile = false)', GUARD),
+    'OP5': ('guard: another profile\'s raw contact editable when its account is writable',
+            'fun editable(raw: RawRef, policy: EditPolicy): Boolean = !raw.otherProfile && policy.canWrite(raw.account)',
+            'fun editable(raw: RawRef, policy: EditPolicy): Boolean = policy.canWrite(raw.account)', GUARD),
+    'OP6': ('the read model drops the mark on its way to the guard',
+            'fun ref() = RawRef(id, account, otherProfile)', 'fun ref() = RawRef(id, account)', MODEL),
+    'OP7': ('setMember(): another profile\'s contact looked for by the group\'s account like any other',
+            'val raw = raws.firstOrNull { it.otherProfile } ?: raws.firstOrNull { it.account == group.account }', 'val raw = raws.firstOrNull { it.account == group.account }', WRITES),
 }
 
 def run(classes):

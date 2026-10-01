@@ -268,11 +268,11 @@ object PeopleData {
         }
         read(CommonDataKinds.Phone.ENTERPRISE_CONTENT_FILTER_URI, FieldKind.PHONE)
         read(CommonDataKinds.Email.ENTERPRISE_CONTENT_FILTER_URI, FieldKind.EMAIL)
-        return ContactCard(row.id, row.lookup, row.name, row.photoThumb != null, listOf(RawContact(ENTERPRISE_RAW, ContactAccount(null, null), row.name)), fields, enterprise = true)
+        return ContactCard(row.id, row.lookup, row.name, row.photoThumb != null, listOf(RawContact(ENTERPRISE_RAW, ContactAccount(null, null), row.name, otherProfile = true)), fields, enterprise = true)
     }
 
     /** The id an enterprise card's one raw-contact reference carries: no row of this profile's provider. */
-    const val ENTERPRISE_RAW = -1L
+    const val ENTERPRISE_RAW = OtherProfile.RAW
 
     /** The groups the provider holds, with their member counts; a group marked deleted is not listed. */
     fun groups(context: Context): List<ContactGroup> = runCatching {

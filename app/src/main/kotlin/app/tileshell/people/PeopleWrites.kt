@@ -36,6 +36,9 @@ interface ContactsPort {
 
     // ---- what an op resolves from the provider before the guard is asked
 
+    /** The contact id is one the provider gives another profile's contact (a work-profile row of the enterprise search). */
+    fun isOtherProfile(contactId: Long): Boolean
+
     /** The raw contacts behind a contact, with their accounts; empty when the contact is gone. */
     fun rawContactsOf(contactId: Long): List<RawRef>
 
@@ -115,6 +118,10 @@ class PeopleWrites(private val port: ContactsPort) {
      * raw contact the edit touches must be editable; otherwise nothing is written.
      */
     fun update(edits: List<FieldEdit>, photo: PhotoEdit?): WriteResult {
+        // A field or a photo of another profile's contact, as the read named it: the guard is asked — and refuses —
+        // before anything is looked up, so it is the rule that stops it and not a row that cannot be found.
+        val named = edits.mapNotNull { it.rawId } + listOfNotNull(photo?.rawId)
+        if (named.any(OtherProfile::isRaw) && refused(PeopleWrite.DataRow(WriteOp.UPDATE, OtherProfile.REF))) return refusedLine("update", OtherProfile.RAW.toString())
         // Which raw contact each existing data row REALLY belongs to: read from the provider, not from the draft.
         val dataIds = edits.mapNotNull { it.dataId }
         val owner: Map<Long, Long> =
@@ -167,7 +174,7 @@ class PeopleWrites(private val port: ContactsPort) {
 
     /** Deleting a contact deletes the aggregate, so every raw contact behind it must be editable. */
     fun delete(contactId: Long): WriteResult {
-        val raws = port.rawContactsOf(contactId)
+        val raws = rawsBehind(contactId)
         if (raws.isEmpty()) return failedLine("delete", "unknown", "the contact is gone")
         val verdict = PeopleWriteGuard.check(PeopleWrite.DeleteContact(raws), port.policy())
         if (verdict is GuardVerdict.Refused) return refusedLine("delete", (verdict.rawId ?: raws.first().id).toString())
@@ -313,7 +320,9 @@ class PeopleWrites(private val port: ContactsPort) {
      */
     fun setMember(groupId: Long, contactId: Long, member: Boolean): WriteResult {
         val group = port.group(groupId) ?: return failedLine("update", "unknown", "the group is gone")
-        val raw = port.rawContactsOf(contactId).firstOrNull { it.account == group.account }
+        val raws = rawsBehind(contactId)
+        // Another profile's contact is asked about as what it is, whatever account the group is in.
+        val raw = raws.firstOrNull { it.otherProfile } ?: raws.firstOrNull { it.account == group.account }
             ?: return failedLine("update", "unknown", "the contact is not in the group's account")
         if (refused(PeopleWrite.GroupRow(WriteOp.UPDATE, group.account))) return refusedLine("update", raw.id.toString())
         if (refused(PeopleWrite.DataRow(if (member) WriteOp.INSERT else WriteOp.DELETE, raw))) return refusedLine("update", raw.id.toString())
@@ -335,6 +344,17 @@ class PeopleWrites(private val port: ContactsPort) {
     }
 
     // ---------------------------------------------------------------------------------------------- inside
+
+    /**
+     * The raw contacts behind a contact, for an op the guard decides per raw contact. Another profile's contact has
+     * none in this profile's provider: it is named as what it is ([OtherProfile.REF]), so the guard's "another
+     * profile's contact never" refuses it, rather than the op failing because nothing was found.
+     *
+     * Link and Unlink do not use this: the guard allows an aggregation exception on any contact (Decisions), so for
+     * them a contact with no raw contact here stays "gone" and nothing is written.
+     */
+    private fun rawsBehind(contactId: Long): List<RawRef> =
+        if (port.isOtherProfile(contactId)) listOf(OtherProfile.REF) else port.rawContactsOf(contactId)
 
     /**
      * The photo as a photo data row: written through the raw contact's display-photo stream, which the provider keeps
