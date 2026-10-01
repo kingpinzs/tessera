@@ -415,6 +415,32 @@ class CalendarRulesTest {
         assertEquals(listOf(77L), plan.filterIsInstance<ReminderRules.Action.SkipCopy>().map { it.row.eventId })
     }
 
+    // ---------------------------------------------------------------- fix round F3: which row a state write may touch
+
+    @Test fun aStateWriteNamesTheAlertByItsRowItsEventItsOccurrenceAndItsAlarmTime() {
+        val shown = alert(7, 10, state = 1, begin = 5000)   // alarm time 4400
+        val selection = ReminderRules.stateSelection(ReminderRules.identity(shown))
+        assertEquals("_id = ? AND event_id = ? AND begin = ? AND alarmTime = ? AND state IN (0, 1)", selection.where)
+        assertEquals(listOf("7", "10", "5000", "4400"), selection.args)
+    }
+
+    @Test fun aStaleNotificationsSwipeCannotDismissAnotherEventsAlert() {
+        // A's reminder was shown from row 7. A's row is deleted and the provider hands id 7 to B's future alert.
+        val a = ReminderRules.identity(alert(7, 10, state = 1, begin = 5000))
+        assertTrue(ReminderRules.isStillThatAlert(a, alert(7, 10, state = 1, begin = 5000)))
+        assertTrue(ReminderRules.isStillThatAlert(a, alert(7, 10, state = 0, begin = 5000)))
+        // The same row id, another event's alert (possibly a work calendar's): the swipe touches nothing.
+        assertFalse(ReminderRules.isStillThatAlert(a, alert(7, 11, state = 0, begin = 5000)))
+        // The same event's next occurrence under the same row id, or its other reminder: nothing.
+        assertFalse(ReminderRules.isStillThatAlert(a, alert(7, 10, state = 0, begin = 9000)))
+        assertFalse(ReminderRules.isStillThatAlert(a, AlertRow(7, 10, 5000, 6000, alarmTimeMs = 1400, state = 0, minutes = 60, title = "Standup", allDay = false)))
+        // Another row, or a row already dismissed: nothing.
+        assertFalse(ReminderRules.isStillThatAlert(a, alert(8, 10, state = 1, begin = 5000)))
+        assertFalse(ReminderRules.isStillThatAlert(a, alert(7, 10, state = 2, begin = 5000)))
+        // A notification an earlier build posted carries no occurrence or alarm time (-1): it matches no row.
+        assertFalse(ReminderRules.isStillThatAlert(ReminderRules.AlertIdentity(7, 10, -1, -1), alert(7, 10, state = 1, begin = 5000)))
+    }
+
     // ---------------------------------------------------------------- Q-16-4: alerts due before the shell's first start
 
     @Test fun anAlertDueBeforeTheShellsFirstStartIsSkippedAndCounted() {
