@@ -1,0 +1,43 @@
+==============================================================================
+ROW EDGE_CAL — the provider off, a vanished event, a zone change, 24-hour time, Tessera deleted
+at            2026-10-01T15:07:40-06:00
+driver        edge_cal.sh blob f880fc9dda28442ec8e0cb5e2745578228b96667
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     be2cdaa54ff8e0f1 342668012 bytes
+apk installed 992b4091a3e1cb35
+apk match     yes (992b4091a3e1cb35)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  Save of an event that is gone: the failed line              contains [[calendar] write update event=275: failed the event is gone]
+PASS  and the editor says so                                      contains [couldn't be saved]
+PASS  nothing was written                                         = 0
+PASS  the vanished event's page is not left open under the editor  = no yes
+PASS  the views say what happened                                 contains [no longer on this phone]
+PASS  the device zone is Asia/Tokyo                               = Asia/Tokyo
+PASS  an all-day event keeps its date across a zone change (Thu 1 Oct 2026, all day)  = Thu 1 Oct 2026, all day
+the timed event: [Thu 1 Oct 2026, 1:00 PM – 2:00 PM] in America/Boise, [Fri 2 Oct 2026, 4:00 AM – 5:00 AM] in Asia/Tokyo
+PASS  the time text changed with the zone                         != Thu 1 Oct 2026, 1:00 PM – 2:00 PM
+PASS  a timed event shows at its Tokyo wall time (Fri 2 Oct 2026, 4:00 AM)  contains [Fri 2 Oct 2026, 4:00 AM]
+PASS  the open page follows the zone back, with no reopen         = Thu 1 Oct 2026, 1:00 PM – 2:00 PM
+PASS  the zone is restored                                        = America/Boise
+PASS  with the 24-hour setting every time reads H:mm              contains [13:00 – 14:00]
+PASS  the 12 / 24-hour setting is restored                        = null
+PASS  none of it restarted the shell                              = 3939
+PASS  the events show before Tessera is deleted                   = yes
+PASS  Tessera deleted by another app: its events leave the open view  = no no
+PASS  nothing was recreated behind the open app                   = 0
+PASS  the next start makes it again                               contains [(local created id=]
+PASS  one Tessera                                                 = 1
+PASS  the page says the calendar storage is off                   contains [turned off]
+PASS  calendars: none, with the reason                            contains [[calendar] calendars: none (]
+[calendar] calendars: none (java.lang.IllegalStateException: the calendar provider gave no answer)
+PASS  nothing was created                                         does not contain [local calendar created]
+PASS  Tess's add with no provider                                 = I don't have a calendar to add that to.
+PASS  the provider is enabled again                               contains [com.android.providers.calendar]
+PASS  with the provider back the views load                       = no yes
+PASS  and Tessera is still the one calendar (a LOCAL calendar survives the provider's restart)  contains [(local present)]
+PASS  no session event is left                                    = 0
+PASS  no new crash of the shell                                   = 0
+------------------------------------------------------------------------------
+EDGE_CAL: 28 passed, 0 failed, 0 recorded

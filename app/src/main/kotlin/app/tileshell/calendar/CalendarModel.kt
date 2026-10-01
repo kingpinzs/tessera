@@ -89,9 +89,12 @@ class CalendarModel(context: Context) {
 
     private fun observe() {
         if (!canRead || observer != null || !started) return
-        observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        val watcher = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) = changed()
-        }.also { app.contentResolver.registerContentObserver(CalendarContract.CONTENT_URI, true, it) }
+        }
+        // With the calendar provider turned off there is nothing to observe, and Android refuses the registration.
+        observer = runCatching { app.contentResolver.registerContentObserver(CalendarContract.CONTENT_URI, true, watcher); watcher }
+            .onFailure { Diagnostics.add("calendar", "the provider cannot be observed: $it") }.getOrNull()
     }
 
     private var settle: Job? = null
