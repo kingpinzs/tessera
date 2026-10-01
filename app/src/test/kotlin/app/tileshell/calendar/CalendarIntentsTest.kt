@@ -167,6 +167,34 @@ class CalendarIntentsTest {
         assertEquals(CalendarRoute.Event(42, null, null), view("1790000000000", 1_790_003_600_000.0))
     }
 
+    // ---------------------------------------------------------------- fix round F12: an occurrence only the provider can vouch for
+
+    private fun instance(event: Long, begin: Long, end: Long) = EventInstance(event, "Standup", begin, end, false, 3, null, null, false)
+
+    @Test fun aViewsOccurrenceIsTakenOnlyWhenTheProviderHoldsThatOccurrenceOfThatEvent() {
+        val begin = 1_790_000_000_000L
+        val end = begin + 1_800_000
+        val held = listOf(instance(7, begin - 600_000, begin + 600_000), instance(42, begin, end), instance(8, begin, begin + 60_000))
+        // Held: the event's own instance begins exactly there. The end is the provider's, whatever the caller said.
+        assertEquals(CalendarIntents.Occurrence(begin, end), CalendarIntents.occurrence(CalendarRoute.Event(42, begin, end), held))
+        assertEquals(CalendarIntents.Occurrence(begin, end), CalendarIntents.occurrence(CalendarRoute.Event(42, begin, begin + 999_999_999), held))
+        assertEquals(CalendarIntents.Occurrence(begin, end), CalendarIntents.occurrence(CalendarRoute.Event(42, begin, null), held))
+        // Not held — each opens the page with no occurrence:
+        // a time the event has no occurrence at, though another event has one there,
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, begin, end), listOf(instance(7, begin, end), instance(8, begin, end))))
+        // an occurrence of this event that overlaps the claimed time but began at another,
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, begin + 60_000, end), held))
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, begin - 1, end), held))
+        // an occurrence since changed into its own row (the provider lists it under that row's id, 43),
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, begin, end), listOf(instance(43, begin, end))))
+        // nothing at that time at all, or a read that failed (READ_CALENDAR denied),
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, begin, end), emptyList()))
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, begin, end), null))
+        // and a VIEW with no beginTime, whatever the provider holds and whatever endTime said.
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, null, end), held))
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, null, null), held))
+    }
+
     // ---------------------------------------------------------------- fix round F4: what an intent may write to the ring
 
     @Test fun onlyAHandledActionIsLoggedByName() {
