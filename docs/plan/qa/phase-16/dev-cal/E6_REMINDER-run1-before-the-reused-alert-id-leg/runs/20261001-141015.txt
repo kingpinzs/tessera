@@ -1,43 +1,40 @@
 ==============================================================================
 ROW E6_REMINDER — a reminder notifies once through the provider; a forged poke does nothing
-at            2026-10-01T15:14:23-06:00
-driver        e6_reminder.sh blob f2b25ab90b9670639424035f0995436ec607df96
+at            2026-10-01T14:10:12-06:00
+driver        e6_reminder.sh blob b53229c3d7926629778ed527b363bc8c0a6f6d5a
 harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
-apk built     264210e3d9c6823b 342668288 bytes
-apk installed 1c0b1b18e29cac25
-apk match     yes (1c0b1b18e29cac25)
+apk built     79cd257f3f46ca49 339305256 bytes
+apk installed c4f1563a77205e6c
+apk match     yes (c4f1563a77205e6c)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  the AOSP Calendar is disabled (only the shell can mark the alert)  = 0
 PASS  Tessera exists                                              != 
-      event 281 starts 1790891040000; reminder 10 minutes; alerts now: No result found.;
+      event 205 starts 1790887200000; reminder 10 minutes; alerts now: No result found.;
 PASS  the provider armed its own alarm                            contains [com.android.providers.calendar]
 PASS  the shell's pending alarms are unchanged by the reminder (Rule 16: no alarm of its own)  = 0
 PASS  no calendar notification before the time                    = 
-the shell's calendar notifications: title=[E6 standup] text=[Thu 1 Oct, 3:44 PM – 4:44 PM] vis=PRIVATE (after 6 s)
+the shell's calendar notifications: title=[E6 standup] text=[Thu 1 Oct, 2:40 PM – 3:40 PM] vis=PRIVATE (after 6 s)
 PASS  exactly ONE notification of the shell's on the calendar channel  = 1
 PASS  its title is the event's                                    contains [title=[E6 standup]]
 PASS  visibility PRIVATE                                          contains [vis=PRIVATE]
-RECORD  the notification's text (the event's time)                  Thu 1 Oct, 3:44 PM – 4:44 PM
+RECORD  the notification's text (the event's time)                  Thu 1 Oct, 2:40 PM – 3:40 PM
 PASS  the notified line, once                                     = 1
-PASS  the alert row is FIRED (state 1)                            contains [event_id=281, state=1]
+PASS  the alert row is FIRED (state 1)                            contains [event_id=205, state=1]
 PASS  still no alarm of the shell's own                           = 0
 PASS  a second poke for a handled alert logs no notified line     does not contain [: notified]
 PASS  and posts no second notification                            = 1
       the notification's title node in the shade: [191 662 387 715]
 PASS  the notification is gone after the swipe                    = 0
-PASS  the alert row is DISMISSED (state 2)                        contains [event_id=281, state=2]
-PASS  the dismissed line                                          contains [[calendar] reminder event=281 minutes=10: dismissed]
-RECORD  the first alert's row id, the second's (the provider reuses a deleted row's id), and the events' ids  1 / 1 / 281 282
-PASS  the second event's reminder notifies                        contains [title=[E6 second]]
-PASS  its notified line, once                                     = 1
+PASS  the alert row is DISMISSED (state 2)                        contains [event_id=205, state=2]
+PASS  the dismissed line                                          contains [[calendar] reminder event=205 minutes=10: dismissed]
 PASS  a forged poke logs no notified line                         does not contain [: notified]
-PASS  and posts no new notification (the second event's is the only one up)  = 1
+PASS  and posts no notification                                   = 0
 PASS  the broadcast was delivered to the receiver                 contains [Broadcast completed]
-PASS  the events are gone                                         = 0
+PASS  the event is gone                                           = 0
 PASS  the AOSP Calendar is enabled again, as it was               = 1
-PASS  device clock back within 2 s of the host (RV12)             1790889321.00 vs 1790889321.00 +/- 2.0
+PASS  device clock back within 2 s of the host (RV12)             1790885454.00 vs 1790885455.00 +/- 2.0
 PASS  no calendar notification of the shell's is left             = 0
 ------------------------------------------------------------------------------
-E6_REMINDER: 25 passed, 0 failed, 2 recorded
+E6_REMINDER: 23 passed, 0 failed, 1 recorded

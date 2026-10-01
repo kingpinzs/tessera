@@ -83,6 +83,22 @@ assert_eq "the notification is gone after the swipe" 0 "$(shell_notes | grep -c 
 assert_contains "the alert row is DISMISSED (state 2)" "event_id=$EV, state=2" "$(alert_rows "$EV")"
 assert_contains "the dismissed line" "[calendar] reminder event=$EV minutes=10: dismissed" "$(ring_since "$MARK3")"
 
+# ---- the next reminder, whose alert row is handed the deleted row's _id: it still notifies
+ALERT1="$(alert_rows "$EV" | sed -n 's/^_id=\([0-9]*\),.*/\1/p')"
+purge_tessera_events "_id=$EV"; sleep 1
+NOW2="$(device_ms)"; START2=$(( (NOW2 / 60000 + 30) * 60000 ))
+EV2="$(mkevent "$TESS" 'E6 second' "$START2" "$(( START2 + 3600000 ))")"
+adb shell "content insert --uri content://com.android.calendar/reminders --bind event_id:i:$EV2 --bind minutes:i:10 --bind method:i:1" < /dev/null
+sleep 2
+jump_clock $(( START2 - 600000 - 5000 )) > /dev/null
+MARK5="$(ring_mark)"
+for i in $(seq 1 15); do [ -n "$(shell_notes)" ] && break; sleep 1; done
+ALERT2="$(alert_rows "$EV2" | sed -n 's/^_id=\([0-9]*\),.*/\1/p')"
+record "the first alert's row id, the second's (the provider reuses a deleted row's id), and the events' ids" "$ALERT1 / $ALERT2 / $EV $EV2"
+assert_contains "the second event's reminder notifies" "title=[E6 second]" "$(shell_notes)"
+assert_eq "its notified line, once" 1 "$(ring_since "$MARK5" | grep -c "\[calendar\] reminder event=$EV2 minutes=10: notified")"
+purge_tessera_events "_id=$EV2"
+
 # ---- (c) a forged poke with no alert due
 MARK4="$(ring_mark)"
 adb shell am broadcast -a android.intent.action.EVENT_REMINDER -d content://com.android.calendar/1 -n app.tileshell/.calendar.CalendarReminderReceiver > "$ROW_DIR/forged.txt" 2>&1
@@ -90,12 +106,12 @@ sleep 3
 SLICE4="$(ring_since "$MARK4")"
 [ -n "$SLICE4" ] || { adb shell am start -W -n "$CAL_ACT" > /dev/null 2>&1; sleep 2; SLICE4="$(ring_since "$MARK4")"; adb shell input keyevent KEYCODE_HOME; }
 absent_in "a forged poke logs no notified line" ": notified" "$SLICE4"
-assert_eq "and posts no notification" 0 "$(shell_notes | grep -c 'title=')"
+assert_eq "and posts no new notification (the second event's is the only one up)" 1 "$(shell_notes | grep -c 'title=')"
 assert_contains "the broadcast was delivered to the receiver" "Broadcast completed" "$(cat "$ROW_DIR/forged.txt")"
 
 # ---- restore
-purge_tessera_events "_id=$EV"
-assert_eq "the event is gone" 0 "$(event_count "_id=$EV")"
+purge_tessera_events "title LIKE 'E6 %'"
+assert_eq "the events are gone" 0 "$(event_count "title LIKE 'E6 %'")"
 [ "$AOSP_WAS" = 1 ] && adb shell pm enable com.android.calendar > /dev/null 2>&1
 assert_eq "the AOSP Calendar is enabled again, as it was" "$AOSP_WAS" "$(S pm list packages -e com.android.calendar | grep -c '^package:com.android.calendar$')"
 ring_save

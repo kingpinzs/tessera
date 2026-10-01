@@ -79,9 +79,9 @@ class CalendarRulesTest {
     }
 
     @Test fun theNotifiedSetKeepsOnlyAlertsThatCanStillComeBack() {
-        val state = SyncState(notifiedAlerts = setOf(1, 2, 3))
-        // 1 was dismissed (no longer due in SCHEDULED or FIRED); 4 is new.
-        assertEquals(setOf(2L, 3L, 4L), SyncStateRules.keepNotified(state, live = setOf(2, 3, 4), added = setOf(4)).notifiedAlerts)
+        val state = SyncState(notifiedAlerts = setOf("a", "b", "c"))
+        // "a" was dismissed (no longer due in SCHEDULED or FIRED); "d" is new.
+        assertEquals(setOf("b", "c", "d"), SyncStateRules.keepNotified(state, live = setOf("b", "c", "d"), added = setOf("d")).notifiedAlerts)
     }
 
     @Test fun theMarkerNamesTheCalendarAndItsAccountAndWarnsWhenTheTargetIsGoneOrReadOnly() {
@@ -376,7 +376,7 @@ class CalendarRulesTest {
 
     // ---------------------------------------------------------------- the reminder receiver's plan (r3 D6 (c), Q-16-2)
 
-    private fun alert(id: Long, event: Long, state: Int = 0) = AlertRow(id, event, 1000, 2000, 400, state, 10, "Standup", false)
+    private fun alert(id: Long, event: Long, state: Int = 0, begin: Long = 1000) = AlertRow(id, event, begin, begin + 1000, begin - 600, state, 10, "Standup", false)
 
     @Test fun oneNotificationPerDueAlertNotYetHandled() {
         val plan = ReminderRules.plan(listOf(alert(1, 10), alert(2, 11)), notified = emptySet(), copies = emptySet())
@@ -389,9 +389,19 @@ class CalendarRulesTest {
     }
 
     @Test fun aSecondOrForgedPokeForAHandledAlertDoesNothing() {
-        assertEquals(emptyList<ReminderRules.Action>(), ReminderRules.plan(listOf(alert(1, 10, state = 1)), notified = setOf(1), copies = emptySet()))
+        assertEquals(emptyList<ReminderRules.Action>(), ReminderRules.plan(listOf(alert(1, 10, state = 1)), notified = setOf(alert(1, 10).key), copies = emptySet()))
         // And with nothing due, nothing happens at all.
         assertEquals(emptyList<ReminderRules.Action>(), ReminderRules.plan(emptyList(), notified = emptySet(), copies = emptySet()))
+    }
+
+    @Test fun aNewAlertThatInheritedAHandledRowsIdStillNotifies() {
+        // The provider hands a deleted row's _id out again: alert 1 was event 10's and was handled; it is deleted, and
+        // the next alert — another event, or the same event's next occurrence — is given id 1.
+        val handled = setOf(alert(1, 10).key)
+        assertEquals(1, ReminderRules.plan(listOf(alert(1, 11)), handled, emptySet()).size)
+        assertEquals(1, ReminderRules.plan(listOf(alert(1, 10, begin = 9000)), handled, emptySet()).size)
+        // The same alert under a new row id (the provider wrote its row again) is still the alert that was handled.
+        assertEquals(0, ReminderRules.plan(listOf(alert(7, 10)), handled, emptySet()).size)
     }
 
     @Test fun aSyncedCopysAlertIsSkippedAndItsOriginalsIsNotified() {
