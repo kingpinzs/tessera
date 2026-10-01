@@ -1,0 +1,43 @@
+==============================================================================
+ROW E8 — locked: gated with its caption, then unlocked, the doors line and the pane
+at            2026-09-29T23:50:56-06:00
+driver        e8.sh blob 2896e488c2756da2b295f740cdfd15e1354dfb1b
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     9278faa4310149ee 340385008 bytes
+apk installed 9a727ee00a299456
+apk match     yes (9a727ee00a299456)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  AUDIO_ROUTE is the emulator's gRPC route                    = emu
+      media volume 0 -> 15 for the spoken steps
+PASS  a PIN is set                                                = yes
+PASS  the lock screen is enabled                                  = false
+PASS  awake (KEYCODE_WAKEUP alone, the keyguard kept)             = mWakefulness=Awake
+PASS  the keyguard is showing                                     = isKeyguardShowing=true
+PASS  Tess is open over the keyguard                              = yes
+      listening already (the locked session opens listening): no
+      locked: speak.sh pod_bay_doors rc=0 final: open="OPEN THE POD BAY DOORS" grammar="OPEN THE POD BAY DOORS"; injected pod_bay_doors.wav: 5.08 s at 16000 Hz in 4.20 s 
+PASS  locked: speak.sh pod_bay_doors exits 0                      = 0
+PASS  locked: C-30 asr levels heard=true                          contains [(heard=true)]
+PASS  locked: C-30 no 'no speech in the capture'                  does not contain [asr: no speech in the capture]
+      locked: reply [Unlock your phone to continue.] RMS -29.69 dBFS; record: recorded /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E8/locked-reply.wav: 28 s window, 826 packets, 8.23 s of device audio rc=0 
+PASS  locked: the match                                           contains [-> OpenPodBay(doors=true)]
+PASS  locked: the Unlock card                                     = yes
+PASS  locked: its caption restates the request                    = Open the pod bay
+PASS  locked: reply_since MARK                                    = Unlock your phone to continue.
+PASS  locked: the keyguard is still showing                       = isKeyguardShowing=true
+PASS  locked: no [podbay] opened                                  does not contain [[podbay] opened]
+PASS  the Unlock button raises the bouncer                        = isKeyguardShowing=true
+FAIL  unlocked                                                    expected [isKeyguardShowing=false] got [isKeyguardShowing=true]
+FAIL  after unlock: reply_since MARK2 is the doors line           expected [I'm afraid I can't do that, Dave.] got [Unlock your phone to continue.]
+      after unlock: utterance  speaking done wall=; opened by voice (doors) wall=
+FAIL  after unlock: [podbay] opened by voice (doors)              should not be []
+FAIL  after unlock: the pane opened AFTER the reply was spoken    expected [yes] got [no]
+PASS  after unlock: no session window                             = no
+FAIL  after unlock: the dump shows pod_bay                        expected [yes] got [no]
+      restored: PIN cleared, lock screen disabled (true), awake
+FAIL  ensure_start: Start alone                                   start_page=no app_list=no pod_bay=no
+PASS  restore: the media volume                                   = 0
+------------------------------------------------------------------------------
+E8: 18 passed, 6 failed, 0 recorded

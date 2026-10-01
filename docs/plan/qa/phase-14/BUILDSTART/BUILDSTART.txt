@@ -1,0 +1,24 @@
+==============================================================================
+ROW BUILDSTART — page absence in the dump; the session's HOME intent and onNewIntent
+at            2026-09-29T22:14:40-06:00
+driver        buildstart_checks.sh blob cabba56f46fe0c3a406f4504123e889f443f2859
+harness       lib.sh blob 403131b2541e1f8362401e3f40ec8f92c96de4fe
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  (a) on Start: start_page in the dump                        = yes
+PASS  (a) on Start: the composed app list is absent               = no
+PASS  (a) on the app list: app_list in the dump                   = yes
+PASS  (a) on the app list: the composed Start page is absent      = no
+PASS  back on Start                                               = yes
+PASS  Tess is open over Start                                     = yes
+RECORD  (b) top resumed activity under the session                  topResumedActivity=ActivityRecord{103536983 u0 app.tileshell/.StartActivity t6566}
+RECORD  (b) session hidden after its Windows key                        2026-09-29 22:15:01.686 wall=1790741701686 [cortana] session hidden
+RECORD  (b) Start's home line after the session's HOME intent           2026-09-29 22:15:01.715 wall=1790741701715 [start] home: page 0, scrolled to top
+RECORD  (b) verdict                                                 the HOME intent from the session REACHES onNewIntent while Start is resumed beneath it
+PASS  Start is showing after the session went                     = yes
+------------------------------------------------------------------------------
+BUILDSTART: 7 passed, 0 failed, 4 recorded

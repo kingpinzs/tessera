@@ -1,0 +1,17 @@
+── E11 screen-off, PIN lock and process death with the pod bay open
+PASS  the pod bay is open                                         = yes
+PASS  asleep                                                      = mWakefulness=Asleep
+PASS  C-25: awake before the next read                            = mWakefulness=Awake
+PASS  screen off and on: still the pod bay                        = yes
+PASS  screen off and on: no start_page                            = no
+PASS  screen off and on: the pod bay did not close                does not contain [[podbay] closed]
+PASS  a PIN is set                                                = yes
+PASS  the lock screen is enabled                                  = false
+PASS  woken (KEYCODE_WAKEUP alone, keyguard kept)                 = mWakefulness=Awake
+PASS  the keyguard is showing                                     = isKeyguardShowing=true
+PASS  unlocked                                                    = isKeyguardShowing=false
+PASS  after the PIN unlock: still the pod bay                     = yes
+PASS  after the PIN unlock: the pod bay did not close             does not contain [[podbay] closed]
+PASS  after force-stop and Home: Start alone                      = yes
+PASS  the new process's first page line is START                  = START
+   E11: 15 passed, 0 failed, 0 recorded

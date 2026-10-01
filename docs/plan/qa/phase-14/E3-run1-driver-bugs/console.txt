@@ -1,0 +1,81 @@
+── E3 pod content from fixtures, present then gone; the launches
+PASS  precondition: exactly one APP_CALENDAR activity             = 1 activities found:
+PASS  the qa calendar exists                                      != 
+PASS  precondition: QA overlap one begins today (run before 23:45 local)  = 2026-09-29
+PASS  three QA events inserted                                    = 3
+PASS  agenda row 0                                                = All day  QA all day
+PASS  agenda row 1                                                = 11:15 PM  QA overlap one
+FAIL  agenda row 2                                                expected [9:30 AM  QA tomorrow] got [2:30 AM  QA tomorrow]
+RECORD  agenda row 1 raw text (U+202F shown as \u202f)              11:15 PM  QA overlap one
+PASS  the Tomorrow subheader is there                             = Tomorrow
+PASS  the subheader sits between row 1 and row 2                  = yes
+PASS  exactly three agenda rows                                   = no
+PASS  [podbay] pod agenda: 3 rows                                 contains [[podbay] pod agenda: 3 rows]
+PASS  agenda gone: no row 0                                       = no
+PASS  agenda gone: the empty line                                 = Nothing on your calendar today
+PASS  the qa calendar is gone                                     = 0
+PASS  weather: airplane mode on (ITEM2's route: no fetch replaces the fixture)  = 1
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E3/weather-fixture.json: code=3 isDay=day
+PASS  weather rows hold Denver, 64°, Cloudy, H 72° L 51°, 30% in order  Denver|64°  Cloudy|H 72° L 51°  30%|
+PASS  not stale yet: no Updated row                               does not contain [Updated]
+PASS  clock + 61 min: the X22 row within 180 s                    contains [Updated 11:02]
+PASS  restore: automatic time on                                  = 1
+PASS  restore: airplane mode off                                  = 0
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-01/scripts/music_lib.sh: line 36: dump: command not found
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E3/music-songs.xml'
+FAIL  the first fixture (Bloom) is on the songs list              should not be []
+
+Exception occurred while executing 'tap':
+java.lang.IllegalArgumentException: Argument expected after "tap"
+	at com.android.modules.utils.BasicShellCommandHandler.getNextArgRequired(BasicShellCommandHandler.java:295)
+	at com.android.server.input.InputShellCommand.runTap(InputShellCommand.java:484)
+	at com.android.server.input.InputShellCommand.onCommand(InputShellCommand.java:294)
+	at com.android.modules.utils.BasicShellCommandHandler.exec(BasicShellCommandHandler.java:97)
+	at android.os.ShellCommand.exec(ShellCommand.java:38)
+	at com.android.server.input.InputManagerService.onShellCommand(InputManagerService.java:3887)
+	at android.os.Binder.shellCommand(Binder.java:1151)
+	at android.os.Binder.onTransact(Binder.java:953)
+	at android.hardware.input.IInputManager$Stub.onTransact(IInputManager.java:1576)
+	at android.os.Binder.execTransactInternal(Binder.java:1426)
+	at android.os.Binder.execTransact(Binder.java:1365)
+FAIL  now playing: the first fixture's title                      expected [Bloom] got []
+FAIL  now playing: its artist                                     expected [Radiohead] got []
+FAIL  control PREVIOUS present                                    expected [yes] got [no]
+FAIL  control PLAY_PAUSE present                                  expected [yes] got [no]
+FAIL  control NEXT present                                        expected [yes] got [no]
+tap_node: no node pod_control:nowplaying:PLAY_PAUSE
+FAIL  PLAY_PAUSE: the session is PAUSED                           does not contain [PAUSED]:       state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=3563424, actions=7339653, custom actions=[], active item id=0, error=null}
+FAIL  [music] control PLAY_PAUSE -> app.tileshell                 does not contain [[music] control PLAY_PAUSE -> app.tileshell]: 
+PASS  paused: the pod still present                               = yes
+tap_node: no node pod_control:nowplaying:NEXT
+FAIL  NEXT: the second fixture's title                            expected [Codex] got []
+FAIL  [music] control NEXT -> app.tileshell                       does not contain [[music] control NEXT -> app.tileshell]:     2026-09-29 23:03:21.012 wall=1790744601012 [tile_anim] tile=shell:weather kind=FLIP uptime=3587733 faceIndex=0 next=1 faces=1
+tap_node: no node pod_control:nowplaying:PREVIOUS
+FAIL  PREVIOUS: the first title again                             expected [Bloom] got []
+FAIL  [music] control PREVIOUS -> app.tileshell                   does not contain [[music] control PREVIOUS -> app.tileshell]:     2026-09-29 23:03:25.312 wall=1790744605312 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=3592032 faceIndex=0 next=1 faces=1
+    2026-09-29 23:03:25.642 wall=1790744605642 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=3592362 face
+tap_node: no node pod_row:nowplaying:0
+FAIL  the title tap: the MUSIC slot app resumed                   expected [app.tileshell/.music.MusicActivity] got [app.tileshell/.StartActivity]
+FAIL  [podbay] launch nowplaying -> ...                           does not contain [[podbay] launch nowplaying -> app.tileshell/.music.MusicActivity]:     2026-09-29 23:03:30.272 wall=1790744610272 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=3596992 faceIndex=1 next=0 faces=1
+    2026-09-29 23:03:30.602 wall=1790744610602 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=3597322 face
+PASS  stopped: Nothing playing                                    = Nothing playing
+PASS  precondition: the today reminder's time is still today      = 2026-09-29
+FAIL  reminders row 0                                             expected [check the qa14 today list] got [check the qa14]
+PASS  reminders row 0 subline                                     = Today at 11:20 PM
+PASS  reminders row 1                                             = check the qa14 tomorrow list
+PASS  reminders row 1 subline                                     = Tomorrow at 9:00 AM
+PASS  reminders row 2                                             = check the QA14 whenever
+PASS  reminders row 2: no subline                                 = no
+PASS  agenda header: the CALENDAR slot's app resumed              = com.android.calendar/.AllInOneActivity
+PASS  [podbay] launch agenda -> com.android.calendar/.AllInOneActivity  contains [[podbay] launch agenda -> com.android.calendar/.AllInOneActivity]
+PASS  weather header: WeatherActivity resumed                     = app.tileshell/.weather.WeatherActivity
+PASS  [podbay] launch weather -> ...                              contains [[podbay] launch weather -> app.tileshell/.weather.WeatherActivity]
+PASS  reminder row: Tess's session is showing                     = yes
+PASS  on her Reminders page                                       = yes
+PASS  [podbay] launch reminders -> ...                            contains [[podbay] launch reminders -> app.tileshell/.cortana.CortanaService (Reminders)]
+PASS  restore: no QA14 reminder left                              = 
+FAIL  reminders gone: the empty line                              expected [No reminders — ask Tess to remind you] got []
+   E3: 35 passed, 17 failed, 1 recorded
+rc=1

@@ -1,0 +1,91 @@
+==============================================================================
+ROW E13 — regression: utterances, phase 02 regress.sh, the fixed helpers, phase 01 E2/E12/E19/E20, phase 03 E3/E5/E10
+at            2026-09-30T14:02:54-06:00
+driver        e13.sh blob 1041b3e6ee84e35d8b5afacd585e200207f0d9c8
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     637f17ff2c0bd9a7 340385592 bytes
+apk installed 1be3df67f75af028
+apk match     yes (1be3df67f75af028)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+(0) utterances.py build with the five new ids
+FAIL  utterances.py build rc                                      expected [0] got [1]
+PASS  utterance pod_bay_doors built                               = yes
+PASS  utterance pod_bay_doors_noart built                         = yes
+PASS  utterance pod_bay_open built                                = yes
+PASS  utterance pod_bay_close built                               = yes
+PASS  utterance pod_bay_neg1 built                                = yes
+(1) phase 02 regress.sh
+PASS  regress.sh exits 0                                          = 0
+      regress.sh: 12 passed, 0 failed
+PASS  regress.sh: 0 failed                                        contains [ passed, 0 failed]
+PASS  regress.sh: the home-line grep passed (home: page START)    contains [PASS  the shell logged the home event]
+PASS  regress.sh: zero assignSlotOnce -> assigned after its restores (C-3)  = 0
+(2) the fixed helpers, from the pod bay and from the app list
+PASS  p02-gestures from pod_bay: on pod_bay first                 = yes
+PASS  p02-gestures from pod_bay: the helper returns 0             = 0
+PASS  p02-gestures from pod_bay: start_page alone                 = yes
+PASS  p03-lib from pod_bay: on pod_bay first                      = yes
+PASS  p03-lib from pod_bay: the helper returns 0                  = 0
+PASS  p03-lib from pod_bay: start_page alone                      = yes
+PASS  p11-q from pod_bay: on pod_bay first                        = yes
+PASS  p11-q from pod_bay: the helper returns 0                    = 0
+PASS  p11-q from pod_bay: start_page alone                        = yes
+PASS  p02-gestures from app_list: on app_list first               = yes
+PASS  p02-gestures from app_list: the helper returns 0            = 0
+PASS  p02-gestures from app_list: start_page alone                = yes
+PASS  p03-lib from app_list: on app_list first                    = yes
+PASS  p03-lib from app_list: the helper returns 0                 = 0
+PASS  p03-lib from app_list: start_page alone                     = yes
+PASS  p11-q from app_list: on app_list first                      = yes
+PASS  p11-q from app_list: the helper returns 0                   = 0
+PASS  p11-q from app_list: start_page alone                       = yes
+(3) phase 01 E2: the HOME role, and Home shows Start
+PASS  phase 01 E2: HOME role holder                               = app.tileshell
+PASS  phase 01 E2: Home shows Start                               = yes
+(3) phase 01 E12: swipe left → the app list; search filters; a jump-grid letter jumps
+PASS  phase 01 E12: swipe left shows the app list                 = yes
+      search 'fossify':  
+FAIL  phase 01 E12: search 'fossify' has results                  should not be []
+FAIL  phase 01 E12: every result is a Fossify app                 expected [0] got [1]
+PASS  phase 01 E12: a letter header on the list                   != 
+PASS  phase 01 E12: the header opens the jump grid                = yes
+PASS  phase 01 E12: the grid closes on a letter                   = no
+PASS  phase 01 E12: O is the first header on screen               = O
+(3) phase 01 E19: bars on Start, the app list, a Settings page and Weather
+PASS  phase 01 E19 start: system status bar not visible           = visible=false
+PASS  phase 01 E19 start: system nav bar not visible              = visible=false
+PASS  phase 01 E19 start: the drawn status bar                    = yes
+PASS  phase 01 E19 start: the drawn nav bar                       = yes
+PASS  phase 01 E19 applist: system status bar not visible         = visible=false
+PASS  phase 01 E19 applist: system nav bar not visible            = visible=false
+PASS  phase 01 E19 applist: the drawn status bar                  = yes
+PASS  phase 01 E19 applist: the drawn nav bar                     = yes
+      the hub's page header: []
+PASS  phase 01 E19 settings: system status bar not visible        = visible=false
+PASS  phase 01 E19 settings: system nav bar not visible           = visible=false
+PASS  phase 01 E19 settings: the drawn status bar                 = yes
+PASS  phase 01 E19 settings: the drawn nav bar                    = yes
+FAIL  phase 01 E19: the Settings page is not the hub              should not be []
+PASS  phase 01 E19: the drawn Back on a Settings page returns to the hub  = 
+PASS  phase 01 E19 weather: system status bar not visible         = visible=false
+PASS  phase 01 E19 weather: system nav bar not visible            = visible=false
+PASS  phase 01 E19 weather: the drawn status bar                  = yes
+PASS  phase 01 E19 weather: the drawn nav bar                     = yes
+(3) phase 01 E20: Back on Start brings DeskClock's Timer tab back
+PASS  phase 01 E20: DeskClock's Timer tab is on screen            != 
+      before Home:     topResumedActivity=ActivityRecord{87689238 u0 com.android.deskclock/.DeskClock t6715}
+      after the drawn Back:       topResumedActivity=ActivityRecord{254412000 u0 app.tileshell/.StartActivity t6720}
+FAIL  phase 01 E20: the same task and activity resumed            expected [t6715}] got [t6720}]
+FAIL  phase 01 E20: DeskClock resumed                             does not contain [com.android.deskclock/]:       topResumedActivity=ActivityRecord{254412000 u0 app.tileshell/.StartActivity t6720}
+FAIL  phase 01 E20: the Timer tab is still selected               expected [yes] got [no]
+(4) phase 03 E3, E5, E10 — run unchanged, spoken through the emulator's route
+FAIL  phase 03 E3 passes unchanged (rc)                           expected [0] got [1]
+      phase 03 E3: E3: 6 passed, 1 failed, 0 recorded
+PASS  phase 03 E5 passes unchanged (rc)                           = 0
+      phase 03 E5: E5: 12 passed, 0 failed, 0 recorded
+FAIL  phase 03 E10 passes unchanged (rc)                          expected [0] got [1]
+      phase 03 E10: E10: 31 passed, 9 failed, 0 recorded
+------------------------------------------------------------------------------
+E13: 53 passed, 9 failed, 0 recorded

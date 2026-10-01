@@ -1,0 +1,28 @@
+==============================================================================
+ROW E12 — gesture navigation: the pan vs the left-edge Back
+at            2026-09-29T22:56:30-06:00
+driver        e12.sh blob 00103547e68e25258dccdbaaa2fb584394d6d6b6
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     9fe4669bf602c3e9 338830308 bytes
+apk installed fa7b22a5668fb0a6
+apk match     yes (fa7b22a5668fb0a6)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      overlay: [x] com.android.internal.systemui.navbar.gestural
+PASS  the gestural overlay is enabled                             contains [[x] com.android.internal.systemui.navbar.gestural]
+PASS  gestural: a pan from x = 200 opens the pod bay              = yes
+PASS  gestural: opened by swipe                                   contains [[podbay] opened by swipe]
+PASS  back to Start                                               = yes
+PASS  Home from DeskClock: Start alone                            = yes
+RECORD  bars 0.5 s after the edge swipe (hidden by phase 01's bar rule before it)  visible=true visible=true 
+FAIL  the edge swipe is Android's Back: DeskClock resumes         expected [com.android.deskclock/.DeskClock] got [app.tileshell/.StartActivity]
+PASS  the edge swipe opened no pod bay                            does not contain [[podbay] opened]
+PASS  no [start] page=POD_BAY                                     does not contain [[start] page=POD_BAY]
+PASS  no pod_bay in the dump                                      = no
+PASS  the guard took the pan                                      contains [edge pan from x=]
+RECORD  a second edge swipe (bars now showing)                      top=app.tileshell/.StartActivity; slice: [start] edge pan from x=2 inside the gesture inset (84 px): not the pager's;
+      overlay restored: [ ] com.android.internal.systemui.navbar.gestural
+PASS  restore: the gestural overlay is off                        contains [[ ] com.android.internal.systemui.navbar.gestural]
+------------------------------------------------------------------------------
+E12: 10 passed, 1 failed, 2 recorded

@@ -73,15 +73,20 @@ c6() {
 }
 
 # Start's page with nothing over it (phase 02's ensure_start: KEYCODE_HOME is not re-delivered to a resumed Start).
+# Phase 14 (Decisions "Harness"): Back while the dump shows the app list or the pod bay — a right swipe on Start now
+# opens the pod bay — then Start ALONE is asserted, and a failure is a FAIL verdict (it fails the row).
 ensure_start_page() {
   local i d="$ROW_DIR/.start.xml"
-  for i in 1 2 3; do
+  for i in 1 2 3 4 5; do
     qdump "$d" >/dev/null 2>&1 || true
-    if grep -q 'resource-id="start_page"' "$d" && ! grep -q 'resource-id="app_list"' "$d"; then return 0; fi
-    adb shell input keyevent KEYCODE_BACK; sleep 0.6
-    adb shell input swipe 200 1200 950 1200 250; sleep 1.5
+    if [ "$i" -lt 5 ] && grep -q 'resource-id="\(app_list\|pod_bay\)"' "$d"; then
+      adb shell input keyevent KEYCODE_BACK; sleep 1.2
+      continue
+    fi
+    break
   done
-  note "ensure_start_page: could not get back to Start"
+  if grep -q 'resource-id="start_page"' "$d" && ! grep -q 'resource-id="\(app_list\|pod_bay\)"' "$d"; then return 0; fi
+  _verdict FAIL "ensure_start_page: Start alone" "not on Start alone"
   return 1
 }
 

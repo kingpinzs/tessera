@@ -1,0 +1,56 @@
+==============================================================================
+ROW E10 — the locked commands
+at            2026-09-30T21:39:18-06:00
+driver        e10.sh blob b82c3e098b9636f4b1a0084388a8dafd846ffe4f
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     91f289b8af3cf671 340387016 bytes
+apk installed 823c308a8fb61226
+apk match     yes (823c308a8fb61226)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  a PIN is set                                                = yes
+PASS  and the lock screen is enabled, so there is a keyguard to test against  = false
+PASS  Cortana is open over the keyguard                           = yes
+PASS  locked: time_query replies directly                         contains [It's]
+PASS  locked: time_query shows no Unlock card                     does not contain [cortana_card:unlock]
+PASS  locked: date_query replies directly                         contains [Today is]
+PASS  locked: date_query shows no Unlock card                     does not contain [cortana_card:unlock]
+PASS  locked: weather replies directly                            contains [degrees]
+PASS  locked: weather shows no Unlock card                        does not contain [cortana_card:unlock]
+PASS  locked: an alarm is set directly                            contains [Alarm set for]
+FAIL  and it reaches DeskClock with the keyguard still up         should not be [0]
+PASS  the keyguard never came down for it                         contains [isKeyguardShowing=true]
+      media_session after 'play music': 5
+PASS  locked: text_contact shows Unlock to continue (H12)         = yes
+FAIL  locked: text_contact was UNDERSTOOD, then refused           does not contain [text_contact]:     2026-09-30 21:41:57.458 wall=1790826117458 [match] "THE TEXT MAM I'M ON MY WAY" -> TextContact(name=Mam, message=i'm on my way)
+PASS  locked: call_contact shows Unlock to continue (H12)         = yes
+FAIL  locked: call_contact was UNDERSTOOD, then refused           does not contain [call_contact]:     2026-09-30 21:42:36.540 wall=1790826156540 [match] "CALL MA'AM" -> CallContact(name=Ma'am)
+PASS  locked: calendar_query shows Unlock to continue (H12)       = yes
+FAIL  locked: calendar_query was UNDERSTOOD, then refused         does not contain [calendar_query]:     2026-09-30 21:43:15.935 wall=1790826195935 [match] "WHAT'S ON MY CALENDAR" -> WhatsOnMyCalendar
+PASS  locked: reminder_time shows Unlock to continue (H12)        = yes
+FAIL  locked: reminder_time was UNDERSTOOD, then refused          does not contain [reminder_time]:     2026-09-30 21:43:56.725 wall=1790826236725 [match] "REMIND ME TO TAKE OUT THE BINS AT EIGHT P M" -> SetReminder(text=take out the bins, timeMs=1790906400000, recurrence=ONCE, placeName=null, personName=null)
+PASS  locked: directions shows Unlock to continue (H12)           = yes
+FAIL  locked: directions was UNDERSTOOD, then refused             does not contain [directions]:     2026-09-30 21:44:36.624 wall=1790826276624 [match] "THE DIRECTIONS TO THE AIRPORT" -> Directions(destination=the airport)
+PASS  locked: take_photo shows Unlock to continue (H12)           = yes
+FAIL  locked: take_photo was UNDERSTOOD, then refused             does not contain [take_photo]:     2026-09-30 21:45:15.899 wall=1790826315899 [match] "TAKE A PHOTO" -> TakePhoto
+PASS  locked: take_note shows Unlock to continue (H12)            = yes
+FAIL  locked: take_note was UNDERSTOOD, then refused              does not contain [take_note]:     2026-09-30 21:45:35.363 wall=1790826335363 [match] "TAKE A NOTE" -> TakeNote(text=null)
+PASS  locked: calendar_add shows Unlock to continue (H12)         = yes
+FAIL  locked: calendar_add was UNDERSTOOD, then refused           does not contain [calendar_add]:     2026-09-30 21:45:56.956 wall=1790826356956 [match] "ADD A MEETING CALLED STAND UP TO MY CALENDAR AT TEN A M" -> AddCalendarEvent(title=stand up, beginMs=1790870400000)
+PASS  locked: open an app shows Unlock to continue                = yes
+PASS  nothing was sent                                            = 0
+PASS  nothing was dialled                                         = 0
+PASS  nothing was added to the calendar                           = 1
+PASS  no reminder was stored                                      = 0
+PASS  and no app was opened                                       = 
+PASS  the Unlock button raises the bouncer                        contains [isKeyguardShowing=true]
+      after unlock:     topResumedActivity=ActivityRecord{87689238 u0 com.android.deskclock/.DeskClock t6715}
+PASS  the request that was on the card runs                       contains [deskclock]
+PASS  and none of the earlier gated requests ran: nothing sent    = 0
+PASS  nothing dialled                                             = 0
+PASS  nothing added to the calendar                               = 1
+PASS  no reminder stored                                          = 0
+------------------------------------------------------------------------------
+E10: 31 passed, 9 failed, 0 recorded
+      restored: PIN cleared, lock screen disabled again, device awake

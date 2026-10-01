@@ -1,0 +1,38 @@
+── E5 Settings: Pod bay page, per-pod switches, empty bay, persistence
+PASS  the hub shows settings_pod_bay                              = yes
+PASS  the Pod bay page opens (settings_page_pod_bay)              = yes
+PASS  switch agenda starts On                                     = true
+PASS  switch weather starts On                                    = true
+PASS  switch nowplaying starts On                                 = true
+PASS  switch reminders starts On                                  = true
+PASS  switch weather now Off                                      = false
+PASS  pod agenda present                                          = yes
+PASS  pod nowplaying present                                      = yes
+PASS  pod reminders present                                       = yes
+PASS  pod weather absent (scrolled to the end looking)            = no
+PASS  the other three in the fixed order                          tops 206 410 614
+PASS  [podbay] pods enabled: agenda,nowplaying,reminders          contains [[podbay] pods enabled: agenda,nowplaying,reminders]
+PASS  the Pod bay page from the hub again                         = yes
+PASS  switch agenda Off                                           = false
+PASS  switch weather Off                                          = false
+PASS  switch nowplaying Off                                       = false
+PASS  switch reminders Off                                        = false
+PASS  all off: pod_bay_empty present                              = yes
+PASS  all off: its text                                           = Turn on pods in Start settings
+PASS  all off: no pod:agenda                                      = no
+PASS  all off: no pod:weather                                     = no
+PASS  all off: no pod:nowplaying                                  = no
+PASS  all off: no pod:reminders                                   = no
+PASS  [podbay] pods enabled: none                                 contains [[podbay] pods enabled: none]
+PASS  the empty-bay line opens SettingsActivity                   = app.tileshell/.settings.SettingsActivity
+PASS  on the Pod bay page                                         = yes
+PASS  after force-stop: still the empty bay                       = yes
+PASS  after force-stop: switch agenda still Off                   = false
+PASS  after force-stop: switch weather still Off                  = false
+PASS  after force-stop: switch nowplaying still Off               = false
+PASS  after force-stop: switch reminders still Off                = false
+PASS  restore: switch agenda On                                   = true
+PASS  restore: switch weather On                                  = true
+PASS  restore: switch nowplaying On                               = true
+PASS  restore: switch reminders On                                = true
+   E5: 36 passed, 0 failed, 0 recorded

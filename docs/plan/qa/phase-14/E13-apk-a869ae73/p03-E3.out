@@ -1,0 +1,12 @@
+── E3 an unmatched utterance reaches the not-understood handler
+injected unmatched.wav: 5.06 s at 16000 Hz in 4.10 s
+PASS  the recogniser produced an open-vocabulary transcript       != 
+PASS  the not-understood handler ran                              contains [transcript=]
+PASS  with no phase 08 handler registered yet                     contains [handler=none]
+PASS  and it logged the transcript the recogniser produced        contains [WHAT IS THE CAPITAL OF PERU]
+PASS  Cortana said it cannot do that yet                          contains [can't do that yet]
+PASS  a not-understood card is on screen                          = yes
+emu_audio: gRPC DEADLINE_EXCEEDED: Deadline Exceeded
+speak.sh: emu_audio.py say failed for 'time_query' (rc 1)
+PASS  a matched command does NOT reach the handler                = 1
+   E3: 7 passed, 0 failed, 0 recorded

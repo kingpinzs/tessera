@@ -1,0 +1,70 @@
+==============================================================================
+ROW E6 — voice: the doors line, plain open and close, the negatives
+at            2026-09-30T19:51:12-06:00
+driver        e6.sh blob d34bded08c54a17c715b639e2981fd1188004699
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     e5cb1e902be4b97d 340385592 bytes
+apk installed a869ae73bc37297d
+apk match     yes (a869ae73bc37297d)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  AUDIO_ROUTE is the emulator's gRPC route                    = emu
+      media volume 15 -> 15 for the spoken steps
+PASS  Tess open over Start                                        = yes
+      doors: speak.sh pod_bay_doors rc=0 final: open="OPEN THE POD BAY DOORS" grammar="OPEN THE POD BAY DOORS"; injected pod_bay_doors.wav: 5.08 s at 16000 Hz in 4.20 s 
+PASS  doors: speak.sh pod_bay_doors exits 0                       = 0
+PASS  doors: C-30 asr levels heard=true                           contains [(heard=true)]
+PASS  doors: C-30 no 'no speech in the capture'                   does not contain [asr: no speech in the capture]
+      doors: reply [I'm afraid I can't do that, Dave.] RMS -29.88 dBFS; record: recorded /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E6/doors-reply.wav: 28 s window, 1281 packets, 5.89 s of device audio rc=0 
+PASS  doors: the match                                            contains [-> OpenPodBay(doors=true)]
+PASS  doors: the reply                                            = I'm afraid I can't do that, Dave.
+PASS  doors: the reply was audible (streamAudio)                  RMS -29.88 dBFS > -40
+      doors: utterance 9b3a93ff-3469-4706-8839-a475e24586b9 speaking done wall=1790819494838; opened by voice (doors) wall=1790819495135
+PASS  doors: the reply finished (speaking done ... cancelled=false)  != 
+PASS  doors: [podbay] opened by voice (doors)                     != 
+PASS  doors: the pane opened AFTER the reply was spoken           = yes
+PASS  doors: no session window                                    = no
+PASS  doors: the dump shows pod_bay                               = yes
+PASS  open: from Start                                            = yes
+      open: speak.sh pod_bay_open rc=0 final: open="OPEN THE POD BAY" grammar="OPEN THE POD BAY"; injected pod_bay_open.wav: 4.72 s at 16000 Hz in 3.80 s 
+PASS  open: speak.sh pod_bay_open exits 0                         = 0
+PASS  open: C-30 asr levels heard=true                            contains [(heard=true)]
+PASS  open: C-30 no 'no speech in the capture'                    does not contain [asr: no speech in the capture]
+      open: reply [Opening the pod bay.] RMS -31.70 dBFS; record: recorded /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E6/open-reply.wav: 28 s window, 444 packets, 4.42 s of device audio rc=0 
+PASS  open: the match                                             contains [-> OpenPodBay(doors=false)]
+PASS  open: the reply                                             = Opening the pod bay.
+PASS  open: [podbay] opened by voice                              contains [[podbay] opened by voice]
+PASS  open: not the doors line                                    does not contain [[podbay] opened by voice (doors)]
+PASS  open: pod_bay                                               = yes
+      open: RMS -31.70
+      close: speak.sh pod_bay_close rc=0 final: open="CLOSE THE POD BAY DOORS" grammar="CLOSE THE POD BAY DOORS"; injected pod_bay_close.wav: 5.13 s at 16000 Hz in 4.20 s 
+PASS  close: speak.sh pod_bay_close exits 0                       = 0
+PASS  close: C-30 asr levels heard=true                           contains [(heard=true)]
+PASS  close: C-30 no 'no speech in the capture'                   does not contain [asr: no speech in the capture]
+      close: reply [Closing the pod bay.] RMS -31.33 dBFS; record: recorded /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E6/close-reply.wav: 28 s window, 448 packets, 4.46 s of device audio rc=0 
+PASS  close: the match                                            contains [-> ClosePodBay]
+PASS  close: the reply                                            = Closing the pod bay.
+PASS  close: [podbay] closed by voice                             contains [[podbay] closed by voice]
+PASS  close: Start alone                                          = yes
+      neg1: speak.sh pod_bay_neg1 rc=0 final: open="OPEN THE POD" grammar="OPEN THE POD"; injected pod_bay_neg1.wav: 4.51 s at 16000 Hz in 3.60 s 
+PASS  neg1: speak.sh pod_bay_neg1 exits 0                         = 0
+PASS  neg1: C-30 asr levels heard=true                            contains [(heard=true)]
+PASS  neg1: C-30 no 'no speech in the capture'                    does not contain [asr: no speech in the capture]
+      neg1: reply [I don't see an app called the pod.] RMS -29.48 dBFS; record: recorded /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E6/neg1-reply.wav: 28 s window, 505 packets, 5.03 s of device audio rc=0 
+PASS  neg1: OpenApp(name=the pod)                                 contains [-> OpenApp(name=the pod)]
+PASS  neg1: the reply                                             = I don't see an app called the pod.
+PASS  neg1: no [podbay] opened                                    does not contain [[podbay] opened]
+PASS  neg1: no pod_bay                                            = no
+      noart: speak.sh pod_bay_doors_noart rc=0 final: open="OPEN POD BAY DOORS" grammar="OPEN POD BAY DOORS"; injected pod_bay_doors_noart.wav: 5.04 s at 16000 Hz in 4.10 s 
+PASS  noart: speak.sh pod_bay_doors_noart exits 0                 = 0
+PASS  noart: C-30 asr levels heard=true                           contains [(heard=true)]
+PASS  noart: C-30 no 'no speech in the capture'                   does not contain [asr: no speech in the capture]
+      noart: reply [I'm afraid I can't do that, Dave.] RMS -29.88 dBFS; record: recorded /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E6/noart-reply.wav: 28 s window, 539 packets, 5.37 s of device audio rc=0 
+PASS  noart: doors=true                                           contains [-> OpenPodBay(doors=true)]
+PASS  noart: the reply                                            = I'm afraid I can't do that, Dave.
+PASS  noart: pod_bay                                              = yes
+PASS  no match line of the four pod-bay utterances is OpenApp     does not contain [OpenApp]
+PASS  restore: the media volume                                   = 15
+------------------------------------------------------------------------------
+E6: 44 passed, 0 failed, 0 recorded

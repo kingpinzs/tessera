@@ -1,0 +1,37 @@
+==============================================================================
+ROW L14-1-EDGES-D-red-19ccac9f — the Unlock button's edge cases: Back on the PIN pad, a wrong PIN, the screen off on the PIN pad
+at            2026-09-30T13:08:18-06:00
+driver        l14_1_edges.sh blob 3244d9066f7147db05b5912a957826a42b2c21de
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     001b38bff9c18860 340385352 bytes
+apk installed 19ccac9f359f79c5
+apk match     yes (19ccac9f359f79c5)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  AUDIO_ROUTE is the emulator's gRPC route                    = emu
+      cases: D
+PASS  a PIN is set                                                = yes
+PASS  D: the keyguard is showing                                  = isKeyguardShowing=true
+      D: speak.sh pod_bay_doors rc=0 final: open="OPEN THE POD BAY DOORS" grammar="OPEN THE POD BAY DOORS"; injected pod_bay_doors.wav: 5.08 s at 16000 Hz in 4.21 s 
+PASS  D: speak.sh pod_bay_doors exits 0                           = 0
+PASS  D: C-30 asr levels heard=true                               contains [(heard=true)]
+PASS  D: C-30 no 'no speech in the capture'                       does not contain [asr: no speech in the capture]
+      D: reply [Unlock your phone to continue.] RMS -116.78 dBFS; record: recorded /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/L14-1-EDGES-D-red-19ccac9f/D-reply.wav: 28 s window, 762 packets, 7.60 s of device audio rc=0 
+PASS  D: the Unlock card                                          = yes
+PASS  D: reply_since MARK                                         = Unlock your phone to continue.
+PASS  D: listening on the card's page                             = yes
+PASS  D: the Unlock button still on screen                        = yes
+RECORD  D: the recogniser's final after the tap                     
+FAIL  D: the PIN pad is up                                        expected [yes] got [no]
+PASS  D: the cut-off final did not replace the pending request    does not contain [a new request replaced the pending]
+PASS  D: nothing was matched behind the PIN pad                   does not contain [[match]]
+PASS  D: nothing was said behind the PIN pad                      = 
+FAIL  D: unlocked                                                 expected [isKeyguardShowing=false] got []
+FAIL  D: the request on the card runs                             does not contain [unlocked; running the pending OpenPodBay(doors=true)]: 
+FAIL  D: the first reply after the PIN is the doors line          expected [I'm afraid I can't do that, Dave.] got []
+FAIL  D: the pod bay opens                                        does not contain [[podbay] opened by voice (doors)]: 
+      restored: PIN cleared, lock screen disabled (), awake
+FAIL  ensure_start: Start alone                                   start_page=no app_list=no pod_bay=no
+------------------------------------------------------------------------------
+L14-1-EDGES-D-red-19ccac9f: 13 passed, 6 failed, 1 recorded

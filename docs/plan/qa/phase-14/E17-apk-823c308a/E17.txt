@@ -1,0 +1,32 @@
+==============================================================================
+ROW E17 — a pod-bay request under the wizard waits for it, then opens after Skip
+at            2026-09-30T21:52:28-06:00
+driver        e17.sh blob 31526d2ca6d8eb335326fe50273a70b8e91a9138
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     91f289b8af3cf671 340387016 bytes
+apk installed 823c308a8fb61226
+apk match     yes (823c308a8fb61226)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      provision_no_marker wizard: rc=0
+PASS  no-marker provision rc                                      = 0
+PASS  Home: the wizard shows                                      = yes
+PASS  Search: Tess opens (cortana_session)                        = yes
+PASS  start ring readable (typed)                                 header present
+PASS  typed: the reply                                            = Opening the pod bay.
+PASS  typed: no session window                                    = no
+PASS  typed: no [podbay] opened under the wizard                  does not contain [[podbay] opened]
+PASS  typed: no [start] page=POD_BAY                              does not contain [[start] page=POD_BAY]
+PASS  typed: the wizard still shows                               = yes
+PASS  typed: no pod_bay                                           = no
+PASS  start ring readable (skip)                                  header present
+      skip wall=1790826813294; opened by voice wall=1790826813563
+PASS  Skip: [wizard] skip                                         != 
+PASS  Skip: [podbay] opened by voice                              != 
+PASS  Skip: the pod bay opened AFTER the skip                     = yes
+PASS  Skip: the dump shows pod_bay                                = yes
+      restored: pm clear, provision.sh (rc=0), Home
+PASS  restore: Start                                              = yes
+------------------------------------------------------------------------------
+E17: 16 passed, 0 failed, 0 recorded

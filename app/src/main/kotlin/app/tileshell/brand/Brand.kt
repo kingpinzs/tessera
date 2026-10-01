@@ -48,6 +48,17 @@ object Brand {
     const val ASSISTANT_NAME = "Tess"
 
     /**
+     * Phase 14 (R10-Q5, Jeremy: "(a)"): the pager page left of Start is the "pod bay" and its cards are "pods" — the
+     * HAL lineage Tess's lens already carries. The page title, the Settings entry, the empty-bay line and Tess's phrase
+     * set all read these, so the whole HAL layer (lens, name, line) swaps together in a public build.
+     */
+    const val POD_BAY_NAME = "pod bay"
+    const val POD_NAME = "pod"
+
+    /** Tess's answer to "open the pod bay doors" — spoken as is, then she opens it anyway (the film's line, not a mark). */
+    const val POD_BAY_DOORS_REPLY = "I'm afraid I can't do that, Dave."
+
+    /**
      * Tess's eye is HAL 9000's lens (Jeremy, 2026-09-21). Four tones, and they all sit on ONE hue line
      * — each is the rim tone scaled up — so a colour search finds the whole lens the way E4's
      * persona.py found the flat accent disc. Only [LENS_CORE] is off the line: it is the specular

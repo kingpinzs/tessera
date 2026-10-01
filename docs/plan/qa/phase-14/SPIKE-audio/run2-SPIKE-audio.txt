@@ -1,0 +1,43 @@
+==============================================================================
+ROW SPIKE-audio — the emulator's own gRPC audio route (injectAudio / streamAudio)
+at            2026-09-29T22:04:18-06:00
+driver        spike_audio.sh blob c962acfb1b474157cce1bc5c98be93ef2fd07877
+harness       lib.sh blob 403131b2541e1f8362401e3f40ec8f92c96de4fe
+apk built     a4d7430b4570e62a 338316313 bytes
+apk installed 5f3ebbc5ab0ae855
+apk match     yes (5f3ebbc5ab0ae855)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  AUDIO_ROUTE is the emulator's gRPC route                    = emu
+      emu_audio.py endpoint (rc 0):
+        discovery /run/user/1000/avd/running/pid_1018000.ini
+        avd.name=tileshell_fhd port.serial=5554 grpc.port=8554 token=yes
+PASS  (1) endpoint resolves                                       = 0
+PASS  (1) the discovery file is tileshell_fhd's                   contains [avd.name=tileshell_fhd port.serial=5554]
+PASS  (1) that file really says port.serial=5554                  = port.serial=5554
+PASS  (1) its grpc.port is the one the client uses                = grpc.port=8554
+      ANDROID_SERIAL=emulator-5556 emu_audio.py endpoint (rc 2): emu_audio: ANDROID_SERIAL=emulator-5556; this client only ever talks to emulator-5554
+PASS  (1) another device is refused before any connection         = 2
+PASS  (1) and says why                                            contains [only ever talks to emulator-5554]
+      emu_audio.py mic-state (rc 0): realAudioEnabled=false
+PASS  (2) getMicrophoneState answers                              = 0
+PASS  (2) host microphone access is off                           = realAudioEnabled=false
+PASS  Tess is open                                                = yes
+      speak.sh pod_bay_doors (rc 0) stdout: open="OPEN THE POD BAY DOORS" grammar="OPEN THE POD BAY DOORS"
+      speak.sh stderr: injected pod_bay_doors.wav: 5.08 s at 16000 Hz in 4.21 s 
+      record: recorded /home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/SPIKE-audio/reply.wav: 28 s window, 1430 packets, 6.40 s of device audio rc=0 
+PASS  (3) speak.sh exit status                                    = 0
+PASS  (3) the injection went through injectAudio                  contains [injected pod_bay_doors.wav]
+      asr finals since MARK:     2026-09-29 22:04:38.120 wall=1790741078120 [speech] asr: final gen=1 via endpoint audioMs=4000 open="OPEN THE POD BAY DOORS" grammar="OPEN THE POD BAY DOORS"
+PASS  (3) a new asr: final since the MARK                         contains [[speech] asr: final]
+PASS  (3) holding "pod bay"                                       contains [pod bay]
+PASS  (3) C-30 levels line heard=true                             contains [(heard=true)]
+PASS  (3) C-30 no 'no speech in the capture'                      does not contain [asr: no speech in the capture]
+      reply_since MARK: I don't see an app called the pod bay doors.
+PASS  (4) Tess replied (reply text since the MARK)                != 
+PASS  (4) streamAudio capture finished                            contains [rc=0]
+      reply window RMS: -97.30 dBFS (audio.sh rms: a file computation, no host audio)
+FAIL  (4) the reply was audible through streamAudio               RMS -97.30 dBFS is not above -40
+------------------------------------------------------------------------------
+SPIKE-audio: 18 passed, 1 failed, 0 recorded

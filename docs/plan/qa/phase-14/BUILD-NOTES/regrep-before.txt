@@ -1,0 +1,125 @@
+== literal right swipes at page height
+phase-13/scripts/l13_2_row.sh:43: adb shell input swipe 150 1200 950 1200 250; sleep 2
+== computed operands (classify by hand)
+phase-15/scripts/l13_11_row.sh:108: adb shell "input keyevent 4 & sleep 0.0$(printf %02d $off); input swipe $CX $CY $CX $CY 1200; wait"
+phase-15/scripts/l13_13_row.sh:34: hold_city() { adb shell input swipe $CX $CY $CX $CY 1200; sleep 1; }
+phase-15/scripts/l13_13_row.sh:94: adb shell input swipe $SX $(( SB - 200 )) $SX $(( SB - 1000 )) 400; sleep 1.5
+phase-15/scripts/l13_13_row.sh:101: adb shell input swipe $TX $TY $(( TX + 8 )) $TY 120; sleep 2
+phase-15/scripts/edge_spinner.sh:96: adb shell "t0=\$(date +%s%3N); input swipe $X $(( CY + 3 * ROWPX )) $X $(( CY - 3 * ROWPX )) 30; t1=\$(date +%s%3N); input motionevent DOWN $X $CY; t2
+phase-15/scripts/l13_16_row.sh:40: adb shell input swipe $hx $hy $hx $hy 1200; sleep 1
+phase-15/scripts/l13_16_row.sh:56: adb shell input swipe $hx $(( ft + px30 )) $hx $(( ft + px30 )) 1200; sleep 1
+phase-15/scripts/rec.sh:114: adb shell input swipe $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) 1000
+phase-15/scripts/e1.sh:108: adb shell input swipe $(( (x1 + x2) / 2 )) $(( (y1 + y2) / 2 )) $(( (x1 + x2) / 2 )) $(( (y1 + y2) / 2 )) 1000; sleep 1.5
+phase-15/scripts/edge_alarms.sh:269: [ -n "$HUNW" ] && set -- $(printf '%s' "$HUNW" | sed -E 's/^[^[]*\[([0-9]+),([0-9]+)\]\[([0-9]+),([0-9]+)\].*/\1 \2 \3 \4/') && { adb shell input swip
+phase-15/scripts/l13_15_row.sh:26: adb shell input swipe $RX $RY $RX $(( RY - 500 )) 1500; sleep 1
+phase-15/scripts/l13_15_row.sh:41: adb shell input swipe $RX $RY $(( RX - 200 )) $RY 1500; sleep 1.5
+phase-15/scripts/l13_15_row.sh:52: adb shell input swipe $RX $RY $RX $RY 1200; sleep 1
+phase-15/scripts/clock.sh:216: note "gscroll_to_node: input swipe moved nothing; UiDevice.swipe $([ "$before" = "$after" ] && echo 'moved nothing either' || echo 'moved the list')"
+phase-15/scripts/clock.sh:249: adb shell input swipe "$cx" "$cy" "$cx" $(( cy + dy )) "$dur"
+phase-15/scripts/clock.sh:444: adb shell input swipe $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) "$5"
+phase-15/scripts/edge_hold_delete.sh:10: hold() { adb shell input swipe "$1" "$2" "$1" "$2" 1300; sleep 1; } # x y: a still press past the 783-ms hold
+phase-15/scripts/edge_applist.sh:46: adb shell input swipe $(( W * $1 / 1000 )) $(( H * $2 / 1000 )) $(( W * $3 / 1000 )) $(( H * $4 / 1000 )) "$5"
+phase-15/scripts/edge_applist.sh:120: adb shell input swipe $(( (x1 + x2) / 2 )) $(( (y1 + y2) / 2 )) $(( (x1 + x2) / 2 )) $(( (y1 + y2) / 2 )) 1000; sleep 1.5
+phase-15/scripts/l13_12_row.sh:33: adb shell input swipe $x $y $x $y 1200; sleep 1
+phase-15/scripts/e11.sh:38: adb shell input swipe "$cx" "$cy" "$cx" "$cy" 1200
+phase-15/scripts/edge_calc.sh:153: adb shell input swipe $(( (x1 + x2) / 2 )) $(( (y1 + y2) / 2 )) $(( (x1 + x2) / 2 )) $(( (y1 + y2) / 2 )) 1200
+phase-15/scripts/l13_14_row.sh:44: adb shell input swipe $PX $PY $PX $PY 1200; sleep 1
+phase-15/scripts/l13_14_row.sh:124: adb shell input swipe $SX $SY $SX $SY 1200; sleep 1
+phase-12/scripts/e9.sh:105: adb shell input swipe $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) 900; sleep 2
+phase-13/explore/e4/explore_e4.sh:18: adb shell input swipe $X $Y $X $Y 1000; sleep 1.5
+phase-13/explore/e4/explore_e4.sh:41: adb shell input swipe $X $Y $X $Y 1000; sleep 1.5
+phase-13/explore/e3/explore_e3.sh:14: set -- $b; adb shell input swipe $(( ($1+$3)/2 )) $(( ($2+$4)/2 )) $(( ($1+$3)/2 )) $(( ($2+$4)/2 )) 1000
+phase-13/explore/e3/explore_e3.sh:19: set -- $pb; adb shell input swipe $(( ($1+$3)/2 )) $(( $4-10 )) $(( ($1+$3)/2 )) $(( $4-10 )) 1000
+phase-13/L13-3-investigation/l13_3.sh:9: # Every hold is `input swipe X Y X Y 850` on the app list's 3rd row (EDGE_RAPID's row), every Back `input keyevent 4`.
+phase-13/L13-3-investigation/l13_3.sh:92: adb shell "echo A0 \$(date +%s%3N); input swipe $X $Y $X $Y 850; echo A1 \$(date +%s%3N); sleep $L; echo K0 \$(date +%s%3N); input keyevent 4; echo K1
+phase-13/L13-3-investigation/l13_3.sh:92: adb shell "echo A0 \$(date +%s%3N); input swipe $X $Y $X $Y 850; echo A1 \$(date +%s%3N); sleep $L; echo K0 \$(date +%s%3N); input keyevent 4; echo K1
+phase-13/L13-3-investigation/l13_3.sh:130: adb shell "for i in \$(seq 1 $N); do echo H\$i \$(date +%s%3N); input swipe $X $Y $X $Y 850; echo K\$i \$(date +%s%3N); input keyevent 4; echo E\$i \$
+phase-13/L13-3-investigation/l13_3.sh:153: adb shell input swipe $X $Y $X $Y 850
+phase-13/L13-3-investigation/item_cancel.sh:10: adb shell input swipe $X $Y $X $Y 850; sleep 0.8               # the band opens on the row
+phase-13/L13-3-investigation/item_cancel.sh:17: adb shell "echo D \$(date +%s%3N); input swipe $PX $PY $PX $PY 1200 & sleep 0.3; echo K \$(date +%s%3N); input keyevent 4; wait; echo U \$(date +%s%3N
+phase-13/L13-3-investigation/item_cancel.sh:20: adb shell "echo D \$(date +%s%3N); input swipe $PX $PY $PX $PY 1200; echo U \$(date +%s%3N); input keyevent 4; echo K \$(date +%s%3N)" | tr -d '\r' > 
+phase-13/scripts/e4.sh:35: adb shell input swipe $X $Y $X $Y 1000
+phase-13/scripts/e4.sh:71: adb shell input swipe $X $Y $X $Y 1000
+phase-13/scripts/e4.sh:109: adb shell input swipe $X $Y $X $Y 1000
+phase-13/scripts/e4.sh:155: adb shell input swipe $X $Y $X $Y 1000
+phase-13/scripts/e4.sh:171: set -- $(bounds "$ROW_DIR/.pl.xml" "$P"); adb shell input swipe $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) 10
+phase-13/scripts/l13_5_row.sh:27: adb shell input swipe $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) 850
+phase-13/scripts/l13_5_row.sh:38: adb shell "echo D \$(date +%s%3N); input swipe $PX $PY $PX $PY 1200 & sleep 0.3; echo K \$(date +%s%3N); input keyevent 4; wait; echo U \$(date +%s%3N
+phase-13/scripts/l13_5_row.sh:52: adb shell "input swipe $PX $PY $PX $PY 1200"
+phase-13/scripts/reminders_fixture.sh:121: adb shell input swipe "$1" "$2" "$1" "$2" 1000
+phase-13/scripts/l13_6_probe.sh:59: if [ "$MODE" = hold ]; then open_a="input swipe $X $Y $X $Y 1200"; home=songs; else open_a="input tap $X $Y"; home=nowplaying; fi
+phase-13/scripts/e9.sh:20: adb shell input swipe $RX $RY $RX $RY 1000; sleep 1
+phase-13/scripts/e7.sh:74: adb shell input swipe $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) 1000
+phase-13/scripts/e7.sh:114: adb shell input swipe $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) 1000
+phase-13/scripts/e7.sh:133: adb shell input swipe $HX $HY $HX $HY 1000
+phase-13/scripts/e7.sh:147: adb shell input swipe $HX $HY $HX $HY 1000
+phase-13/scripts/e7.sh:169: adb shell input swipe $HX $HY $HX $HY 1200
+phase-13/scripts/e7.sh:183: adb shell input swipe $HX $HY $HX $HY 1200
+phase-13/scripts/p13.sh:64: adb shell input swipe $(( w * 5 / 6 )) $(( h / 2 )) $(( w / 7 )) $(( h / 2 )) 250
+phase-13/scripts/p13.sh:70: adb shell input swipe $(( w / 7 )) $(( h / 2 )) $(( w * 5 / 6 )) $(( h / 2 )) 250
+phase-13/scripts/l13_3_probe.sh:34: adb shell input swipe $X $Y $X $Y 850
+phase-13/scripts/l13_3_probe.sh:36: adb shell "input keyevent 4 & sleep 0.0$(printf %02d $off); input swipe $X $Y $X $Y 850; wait"
+phase-13/scripts/e8.sh:66: adb shell input swipe $RX $RY $RX $RY 1000
+phase-13/scripts/e8.sh:91: adb shell input swipe $AX $AY $AX $AY 1000
+phase-13/scripts/e8.sh:143: act_menu() { adb shell input swipe $RX $RY $RX $RY 1000; sleep 1.2; }
+phase-13/scripts/e8.sh:147: act_band() { adb shell input swipe $AX $AY $AX $AY 1000; sleep 1; }
+phase-13/scripts/e3.sh:42: adb shell input swipe $TX $TY $TX $TY 1000
+phase-13/scripts/e3.sh:80: adb shell input swipe $EX $(( PBOT - 10 )) $EX $(( PBOT - 10 )) 1000
+phase-13/scripts/e3.sh:118: adb shell input swipe $EX $(( PBOT - 10 )) $EX $(( PBOT - 10 )) 1000
+phase-13/scripts/e11_menu.sh:37: adb shell input swipe $cx $cy $cx $cy 900
+phase-13/scripts/l13_2_repro.sh:18: adb shell input swipe $HX $HY $HX $HY 1000
+phase-13/scripts/edge.sh:100: adb shell input swipe $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) 1000
+phase-13/scripts/edge.sh:339: adb shell input swipe $HX $HY $HX $HY 1000
+phase-13/scripts/edge.sh:376: adb shell input swipe $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) 1000
+phase-13/scripts/edge.sh:425: adb shell input swipe $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 )) 1000
+phase-13/scripts/edge.sh:525: adb shell input swipe $HX $HY $HX $HY 850
+phase-13/scripts/e11.sh:82: adb shell input swipe $HX $HY $HX $HY 1000
+phase-13/scripts/e11.sh:134: adb shell input swipe $SX $SY $SX $SY 1200; sleep 2
+phase-13/scripts/e11.sh:147: adb shell input swipe $SX $SY $SX $SY 1200; sleep 2
+phase-13/scripts/e11.sh:155: adb shell input swipe $SX $SY $SX $SY 1200; sleep 2
+phase-13/scripts/l13_2_row.sh:33: adb shell input swipe $(( ($2 + $4) / 2 )) $(( ($3 + $5) / 2 )) $(( ($2 + $4) / 2 )) $(( ($3 + $5) / 2 )) 1000; sleep 1.5
+phase-13/scripts/l13_2_row.sh:72: adb shell input swipe $TX $TY $(( TX + 500 )) $(( TY + 300 )) $FAST; sleep 1.5
+phase-13/scripts/l13_2_row.sh:88: adb shell input swipe 200 $SY 800 $SY $FAST; sleep 1.5
+phase-13/scripts/l13_2_row.sh:154: adb shell input swipe $CX $CY $(( CX + 500 )) $(( CY + 300 )) $FAST; sleep 1.5
+phase-13/scripts/l13_2_row.sh:169: adb shell input swipe 200 $GY 800 $GY $FAST; sleep 1.5
+phase-13/scripts/l13_2_row.sh:248: adb shell input swipe $CX $CY $(( CX + 500 )) $(( CY + 300 )) $FAST; sleep 1.5
+phase-13/scripts/l13_2_row.sh:262: adb shell input swipe 900 $GY 200 $GY $FAST; sleep 1.5
+phase-13/scripts/l13_3_race.sh:9: # Every hold is `input swipe X Y X Y 850` on the app list's 3rd row (EDGE_RAPID's row), every Back `input keyevent 4`.
+phase-13/scripts/l13_3_race.sh:92: adb shell "echo A0 \$(date +%s%3N); input swipe $X $Y $X $Y 850; echo A1 \$(date +%s%3N); sleep $L; echo K0 \$(date +%s%3N); input keyevent 4; echo K1
+phase-13/scripts/l13_3_race.sh:92: adb shell "echo A0 \$(date +%s%3N); input swipe $X $Y $X $Y 850; echo A1 \$(date +%s%3N); sleep $L; echo K0 \$(date +%s%3N); input keyevent 4; echo K1
+phase-13/scripts/l13_3_race.sh:130: adb shell "for i in \$(seq 1 $N); do echo H\$i \$(date +%s%3N); input swipe $X $Y $X $Y 850; echo K\$i \$(date +%s%3N); input keyevent 4; echo E\$i \$
+phase-13/scripts/l13_3_race.sh:153: adb shell input swipe $X $Y $X $Y 850
+phase-13/scripts/l13_2_scope.sh:33: adb shell input swipe $HX $HY $HX $HY 1000; sleep 1.5
+phase-13/L13-3-diag3-window-e8a00dc6/window_probe.sh:31: adb shell input swipe $X $Y $X $Y 850
+phase-13/L13-3-diag3-window-e8a00dc6/window_probe.sh:33: adb shell "input keyevent 4 & sleep 0.0$(printf %02d $off); input swipe $X $Y $X $Y 850; wait"
+phase-03/scripts/e15.sh:145: adb shell input swipe $cx $cy $cx $cy 900
+phase-03/scripts/e8.sh:5: #    listening (dump shows the session UI); a press-and-hold on the Search key (input swipe x y x y
+phase-03/scripts/e8.sh:58: adb shell input swipe $x $y $x $y 1000
+phase-02/agent-tasks-3-5/scripts/probe_hold2.sh:10: adb shell "input swipe $XY $XY 5000" &
+phase-02/agent-tasks-3-5/scripts/e2_pin.sh:27: echo "\$ adb shell input swipe $XY $XY 900   # hold past Edit.HOLD_MS (783 ms)" >> "$LOG"
+phase-02/agent-tasks-3-5/scripts/e2_pin.sh:28: adb shell "input swipe $XY $XY 900"; sleep 2
+phase-02/scripts/e7_capture.sh:98: # `input swipe x y x y <ms>` presses for exactly that long on the device, so the bracket does not depend on host
+phase-02/scripts/e7_capture.sh:104: adb shell input swipe ${XY% *} ${XY#* } ${XY% *} ${XY#* } $MS
+phase-02/scripts/regress.sh:79: adb shell input swipe ${SXY% *} ${SXY#* } ${SXY% *} ${SXY#* } 300; sleep 2.5
+phase-01/scripts/j2.sh:63: adb shell input swipe $((x1 + 20)) $cy $(( (x1 + x2) / 2 )) $cy 700; command sleep 1.5
+phase-01/scripts/j4.sh:16: adb shell input swipe $x $y $x $y "$3"; sleep 1.5
+phase-05/scripts/edge2.sh:178: adb shell input swipe $dx $dy $dx $dy 4000 &
+phase-05/scripts/e7.sh:29: adb shell input swipe 900 "$gy" 250 "$gy" 250; sleep 0.8; kb_dump "$D"; n=$((n + 1))
+phase-05/scripts/e12.sh:39: adb shell input swipe $ex $ey $ex $ey 3000 &
+phase-05/scripts/e12.sh:105: adb shell input swipe $yx $yy $yx $yy 2500 &
+phase-05/scripts/edge1.sh:126: adb shell input swipe $gx $gy $gx $gy 1500 &
+phase-05/scripts/edge1.sh:184: adb shell input swipe $vx $vy $vx $vy 900 &
+phase-05/scripts/edge1.sh:200: adb shell input swipe $((sr - 60)) $(( (st + sb) / 2 )) $((sl + 60)) $(( (st + sb) / 2 )) 300; sleep 1
+phase-05/scripts/e3.sh:153: adb shell input swipe $c $c 6000 &
+phase-05/scripts/e3motion.sh:121: popup_action() { adb shell input swipe $gx $gy $gx $gy 400; sleep 1.5; }
+phase-11/scripts/e2.sh:13: adb shell input swipe "$cx" "$cy" "$cx" "$cy" 740; sleep 2.5
+phase-11/scripts/e2.sh:23: adb shell input swipe "$cx" "$cy" "$cx" "$cy" 830; sleep 1.5
+phase-11/scripts/.fling_probe.sh:10: note "input swipe $sw: folder:qa top $y0 -> $y1 (moved $((y0 - y1)); the finger travelled 400)"
+phase-11/scripts/e13.sh:68: adb shell input swipe "$X" "$Y" "$X" "$Y" 830; sleep 1.5
+phase-11/scripts/e10.sh:28: MARK="$(ring_mark)"; adb shell input swipe "$X" "$Y" "$X" "$Y" 1000; sleep 1.5
+phase-11/scripts/e11.sh:14: adb shell input swipe "$X" "$Y" "$X" "$Y" 1200; sleep 1.2
+phase-11/scripts/e11.sh:25: adb shell input swipe "$X" "$Y" "$X" "$Y" 1200; sleep 1.2
+phase-11/scripts/e5.sh:171: adb shell input swipe "$EX" "$EY" "$EX" $((EY - 160)) 1500; sleep 1.5
+== greps of Start's home line
+phase-13/L13-3-investigation/back_interrupt.sh:29: echo "back lines in the ring: $(grep -c 'back on app list\|back on Start' "$OUT/slice.txt") (diagnostic build only); home lines: $(grep -c '\[start\] 
+phase-02/scripts/regress.sh:120: grep -q "home: page 0" "$OUT/r_home_diag.txt" && ok yes yes "the shell logged the home event" || ok no yes "the shell logged the home event"

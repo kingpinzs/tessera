@@ -1,0 +1,47 @@
+── E6 voice: the doors line, plain open and close, the negatives
+PASS  AUDIO_ROUTE is the emulator's gRPC route                    = emu
+PASS  Tess open over Start                                        = yes
+PASS  doors: speak.sh pod_bay_doors exits 0                       = 0
+PASS  doors: C-30 asr levels heard=true                           contains [(heard=true)]
+PASS  doors: C-30 no 'no speech in the capture'                   does not contain [asr: no speech in the capture]
+PASS  doors: the match                                            contains [-> OpenPodBay(doors=true)]
+PASS  doors: the reply                                            = I'm afraid I can't do that, Dave.
+PASS  doors: the reply was audible (streamAudio)                  RMS -29.87 dBFS > -40
+PASS  doors: the reply finished (speaking done ... cancelled=false)  != 
+PASS  doors: [podbay] opened by voice (doors)                     != 
+PASS  doors: the pane opened AFTER the reply was spoken           = yes
+PASS  doors: no session window                                    = no
+PASS  doors: the dump shows pod_bay                               = yes
+PASS  open: from Start                                            = yes
+PASS  open: speak.sh pod_bay_open exits 0                         = 0
+PASS  open: C-30 asr levels heard=true                            contains [(heard=true)]
+PASS  open: C-30 no 'no speech in the capture'                    does not contain [asr: no speech in the capture]
+PASS  open: the match                                             contains [-> OpenPodBay(doors=false)]
+PASS  open: the reply                                             = Opening the pod bay.
+PASS  open: [podbay] opened by voice                              contains [[podbay] opened by voice]
+PASS  open: not the doors line                                    does not contain [[podbay] opened by voice (doors)]
+PASS  open: pod_bay                                               = yes
+PASS  close: speak.sh pod_bay_close exits 0                       = 0
+PASS  close: C-30 asr levels heard=true                           contains [(heard=true)]
+PASS  close: C-30 no 'no speech in the capture'                   does not contain [asr: no speech in the capture]
+PASS  close: the match                                            contains [-> ClosePodBay]
+PASS  close: the reply                                            = Closing the pod bay.
+PASS  close: [podbay] closed by voice                             contains [[podbay] closed by voice]
+PASS  close: Start alone                                          = yes
+PASS  neg1: speak.sh pod_bay_neg1 exits 0                         = 0
+PASS  neg1: C-30 asr levels heard=true                            contains [(heard=true)]
+PASS  neg1: C-30 no 'no speech in the capture'                    does not contain [asr: no speech in the capture]
+RECORD  neg1: what the recogniser returned                          "OPEN THE POD" -> OpenApp(name=the pod)
+PASS  neg1: OpenApp with a name beginning the pod                 contains [-> OpenApp(name=the pod]
+PASS  neg1: the reply names an app called the pod…              contains [I don't see an app called the pod]
+PASS  neg1: no [podbay] opened                                    does not contain [[podbay] opened]
+PASS  neg1: no pod_bay                                            = no
+PASS  noart: speak.sh pod_bay_doors_noart exits 0                 = 0
+PASS  noart: C-30 asr levels heard=true                           contains [(heard=true)]
+PASS  noart: C-30 no 'no speech in the capture'                   does not contain [asr: no speech in the capture]
+PASS  noart: doors=true                                           contains [-> OpenPodBay(doors=true)]
+PASS  noart: the reply                                            = I'm afraid I can't do that, Dave.
+PASS  noart: pod_bay                                              = yes
+PASS  no match line of the four pod-bay utterances is OpenApp     does not contain [OpenApp]
+PASS  restore: the media volume                                   = 15
+   E6: 44 passed, 0 failed, 1 recorded

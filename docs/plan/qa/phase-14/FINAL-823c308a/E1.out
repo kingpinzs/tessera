@@ -1,0 +1,32 @@
+── E1 pager: pod bay by pan, Back, Windows key; app list; Back history on Start
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-02/scripts/../baseline_layout.json: 1 file pushed, 0 skipped. 25.1 MB/s (841 bytes in 0.000s)
+PASS  layout_restore of phase 02's baseline                       = 0
+PASS  C-3: the slice covers the restore (assignSlotOnce lines in it)  != 0
+PASS  C-3: zero assignSlotOnce ... -> assigned lines after the restore  = 0
+PASS  Home from DeskClock shows Start alone                       = yes
+PASS  swipe right: pod_bay in the dump                            = yes
+PASS  swipe right: start_page not in the dump                     = no
+PASS  swipe right: [podbay] opened by swipe                       contains [[podbay] opened by swipe]
+PASS  swipe right: the page lines                                 = POD_BAY
+PASS  swipe left from the pod bay: Start alone                    = yes
+PASS  swipe left: [podbay] closed by swipe                        contains [[podbay] closed by swipe]
+PASS  swipe left: the page lines                                  = START
+PASS  second left pan: app_list in the dump                       = yes
+PASS  second left pan: no pod_bay                                 = no
+PASS  second left pan: the page lines                             = APP_LIST
+PASS  the app list pan says nothing about the pod bay             does not contain [[podbay]]
+PASS  Back from the app list: Start alone                         = yes
+PASS  pod bay again                                               = yes
+PASS  Back from the pod bay: Start alone                          = yes
+PASS  Back: [podbay] closed by back                               contains [[podbay] closed by back]
+PASS  Back: the page lines                                        = START
+PASS  Back from the pod bay did not leave Start                   = app.tileshell/.StartActivity
+PASS  Back on Start: DeskClock resumes (E20)                      = com.android.deskclock/.DeskClock
+PASS  pod bay before the Windows key                              = yes
+PASS  Windows key: Start alone                                    = yes
+PASS  Windows key: [podbay] closed by home                        contains [[podbay] closed by home]
+PASS  Windows key: the renamed home line                          contains [[start] home: page START, scrolled to top]
+PASS  Windows key: the page lines                                 = START
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E1/device-layout.json: 1 file pushed, 0 skipped. 32.8 MB/s (1039 bytes in 0.000s)
+PASS  restore: the device's own layout                            = 0
+   E1: 28 passed, 0 failed, 0 recorded

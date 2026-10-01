@@ -1,0 +1,22 @@
+── E9 from inside another app: DeskClock, the doors line, Start with the pod bay, Back twice to DeskClock
+PASS  AUDIO_ROUTE is the emulator's gRPC route                    = emu
+PASS  DeskClock is on top                                         contains [com.android.deskclock/]
+PASS  Tess open over DeskClock                                    = yes
+PASS  doors: speak.sh pod_bay_doors exits 0                       = 0
+PASS  doors: C-30 asr levels heard=true                           contains [(heard=true)]
+PASS  doors: C-30 no 'no speech in the capture'                   does not contain [asr: no speech in the capture]
+PASS  doors: the match                                            contains [-> OpenPodBay(doors=true)]
+PASS  doors: the reply                                            = I'm afraid I can't do that, Dave.
+PASS  doors: the reply was audible (streamAudio)                  RMS -29.89 dBFS > -40
+PASS  doors: the reply finished (speaking done ... cancelled=false)  != 
+PASS  doors: [podbay] opened by voice (doors)                     != 
+PASS  doors: the pane opened AFTER the reply was spoken           = yes
+PASS  doors: no session window                                    = no
+PASS  doors: StartActivity is resumed                             = app.tileshell/.StartActivity
+PASS  doors: the dump shows pod_bay                               = yes
+PASS  Back: Start alone                                           = yes
+PASS  Back: [podbay] closed by back                               contains [[podbay] closed by back]
+PASS  Back: still Start's activity                                = app.tileshell/.StartActivity
+PASS  second Back: DeskClock resumes                              contains [com.android.deskclock/]
+PASS  restore: the media volume                                   = 15
+   E9: 20 passed, 0 failed, 0 recorded

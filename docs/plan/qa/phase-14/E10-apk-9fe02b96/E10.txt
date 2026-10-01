@@ -1,0 +1,42 @@
+==============================================================================
+ROW E10 — edit mode locks the pivot; a hold on a pod does nothing; the folder-name box never swings the pivot
+at            2026-09-29T22:47:41-06:00
+driver        e10.sh blob 9814d78c11a4206f3f1254bc7c3b1b567417333e
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     659af13dd8bdf6ac 338830308 bytes
+apk installed 9fe02b96d1941db3
+apk match     yes (9fe02b96d1941db3)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  layout_restore of phase 02's baseline                       = 0
+PASS  C-3: the slice covers the restore (assignSlotOnce lines in it)  != 0
+PASS  C-3: zero assignSlotOnce ... -> assigned lines after the restore  = 0
+      held tile: slot:PEOPLE
+      after the hold: quick_burst=yes
+PASS  the burst is closed                                         = no
+PASS  edit mode is on (edit discs in the dump)                    != 0
+PASS  pan in edit mode: no pod_bay                                = no
+PASS  pan in edit mode: dump unchanged (ids and bounds)           = same
+PASS  pan in edit mode: no [podbay] opened                        does not contain [[podbay] opened]
+PASS  pan in edit mode: no [start] page=POD_BAY                   does not contain [[start] page=POD_BAY]
+PASS  edit mode exited                                            = 0
+PASS  on the pod bay                                              = yes
+      hold on pod:weather at 537,566 for 1000 ms
+PASS  hold on a pod: dump unchanged (ids and bounds)              = same
+PASS  hold on a pod: no edit_disc                                 = 0
+PASS  hold on a pod: no quick_burst                               = no
+PASS  hold on a pod: no menu (no applist_menu, no *_menu node)    = 0
+PASS  hold on a pod: nothing launched                             = app.tileshell/.StartActivity
+      folder: shell:settings dropped on slot:PEOPLE (981 1055 -> 216 341)
+PASS  a folder with a Name folder placeholder                     != 
+PASS  the name box opened                                         = yes
+PASS  name box dismissed                                          = no
+PASS  the pivot stayed on Start: start_page                       = yes
+PASS  the pivot stayed on Start: no pod_bay                       = no
+PASS  the pivot stayed on Start: no app_list                      = no
+PASS  no [start] page=APP_LIST in the slice                       does not contain [[start] page=APP_LIST]
+PASS  no [start] page=POD_BAY in the slice                        does not contain [[start] page=POD_BAY]
+PASS  restore: the device's own layout                            = 0
+------------------------------------------------------------------------------
+E10: 25 passed, 0 failed, 0 recorded

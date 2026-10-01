@@ -1,0 +1,38 @@
+── L14-1-EDGES-D-1be3df67 the Unlock button's edge cases: Back on the PIN pad, a wrong PIN, the screen off on the PIN pad
+PASS  AUDIO_ROUTE is the emulator's gRPC route                    = emu
+PASS  a PIN is set                                                = yes
+PASS  D: the keyguard is showing                                  = isKeyguardShowing=true
+PASS  D: speak.sh pod_bay_doors exits 0                           = 0
+PASS  D: C-30 asr levels heard=true                               contains [(heard=true)]
+PASS  D: C-30 no 'no speech in the capture'                       does not contain [asr: no speech in the capture]
+PASS  D: the Unlock card                                          = yes
+PASS  D: reply_since MARK                                         = Unlock your phone to continue.
+PASS  D: listening on the card's page                             = yes
+PASS  D: the Unlock button still on screen                        = yes
+adb: device 'emulator-5554' not found
+RECORD  D: the recogniser's final after the tap                     
+FAIL  D: the PIN pad is up                                        expected [yes] got [no]
+adb: device 'emulator-5554' not found
+PASS  D: Tess's window is not showing (dumpsys window)            = no
+FAIL  D: the slice is the tap's (stepping aside)                  does not contain [stepping aside for the unlock prompt]: 
+FAIL  D: the stopped pass's final was dropped                     does not contain [final of the pass stopped by stepping aside: dropped]: 
+PASS  D: the cut-off final did not replace the pending request    does not contain [a new request replaced the pending]
+PASS  D: nothing was matched behind the PIN pad                   does not contain [[match]]
+PASS  D: nothing was said behind the PIN pad (the slice's own speak lines)  = 
+adb: device 'emulator-5554' not found
+adb: device 'emulator-5554' not found
+adb: device 'emulator-5554' not found
+ring_since: mark must be the ms value ring_mark printed, got []
+adb: device 'emulator-5554' not found
+FAIL  D: unlocked                                                 expected [isKeyguardShowing=false] got []
+FAIL  D: the request on the card runs                             does not contain [unlocked; running the pending OpenPodBay(doors=true)]: 
+ring_since: mark must be the ms value ring_mark printed, got []
+FAIL  D: the first reply after the PIN is the doors line          expected [I'm afraid I can't do that, Dave.] got []
+FAIL  D: the pod bay opens                                        does not contain [[podbay] opened by voice (doors)]: 
+adb: device 'emulator-5554' not found
+adb: device 'emulator-5554' not found
+adb: device 'emulator-5554' not found
+adb: device 'emulator-5554' not found
+FAIL  ensure_start: Start alone                                   start_page=no app_list=no pod_bay=no
+FAIL  restore: the media volume                                   expected [0] got []
+   L14-1-EDGES-D-1be3df67: 14 passed, 9 failed, 1 recorded

@@ -1,0 +1,24 @@
+==============================================================================
+ROW E12 — gesture navigation: the pan vs the left-edge Back
+at            2026-09-29T22:51:20-06:00
+driver        e12.sh blob 21cc212b8f099ae756e3fabae5f8b4bc030bdb06
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     659af13dd8bdf6ac 338830308 bytes
+apk installed 9fe02b96d1941db3
+apk match     yes (9fe02b96d1941db3)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      overlay: [x] com.android.internal.systemui.navbar.gestural
+PASS  the gestural overlay is enabled                             contains [[x] com.android.internal.systemui.navbar.gestural]
+PASS  gestural: a pan from x = 200 opens the pod bay              = yes
+PASS  gestural: opened by swipe                                   contains [[podbay] opened by swipe]
+PASS  back to Start                                               = yes
+PASS  Home from DeskClock: Start alone                            = yes
+FAIL  the edge swipe is Android's Back: DeskClock resumes         expected [com.android.deskclock/.DeskClock] got [app.tileshell/.StartActivity]
+FAIL  the edge swipe opened no pod bay                            should NOT contain [[podbay] opened]
+FAIL  no [start] page=POD_BAY                                     should NOT contain [[start] page=POD_BAY]
+      overlay restored: [ ] com.android.internal.systemui.navbar.gestural
+PASS  restore: the gestural overlay is off                        contains [[ ] com.android.internal.systemui.navbar.gestural]
+------------------------------------------------------------------------------
+E12: 6 passed, 3 failed, 0 recorded

@@ -1,0 +1,85 @@
+==============================================================================
+ROW E3 — pod content from fixtures, present then gone; the launches
+at            2026-09-29T23:01:33-06:00
+driver        e3.sh blob 9e8ad974cf5e6fba569fb67c43db9d3cad2b5afd
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     9fe4669bf602c3e9 338830308 bytes
+apk installed fa7b22a5668fb0a6
+apk match     yes (fa7b22a5668fb0a6)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      device time zone: America/Boise; device time: Tue Sep 29 23:01:36 MDT 2026
+PASS  precondition: exactly one APP_CALENDAR activity             = 1 activities found:
+      the CALENDAR slot's app, listed on the host: com.android.calendar/.AllInOneActivity
+PASS  the qa calendar exists                                      != 
+PASS  precondition: QA overlap one begins today (run before 23:45 local)  = 2026-09-29
+      DAY0=1790640000000 (UTC midnight of 2026-09-29) OV=1790745300000 (11:15 PM) TOM930=1790757000000 (Wed Sep 30 02:30:00 AM MDT 2026)
+PASS  three QA events inserted                                    = 3
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  agenda row 0                                                = All day  QA all day
+PASS  agenda row 1                                                = 11:15 PM  QA overlap one
+FAIL  agenda row 2                                                expected [9:30 AM  QA tomorrow] got [2:30 AM  QA tomorrow]
+RECORD  agenda row 1 raw text (U+202F shown as \u202f)              11:15 PM  QA overlap one
+PASS  the Tomorrow subheader is there                             = Tomorrow
+PASS  the subheader sits between row 1 and row 2                  = yes
+PASS  exactly three agenda rows                                   = no
+PASS  [podbay] pod agenda: 3 rows                                 contains [[podbay] pod agenda: 3 rows]
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  agenda gone: no row 0                                       = no
+PASS  agenda gone: the empty line                                 = Nothing on your calendar today
+PASS  the qa calendar is gone                                     = 0
+PASS  weather: airplane mode on (ITEM2's route: no fetch replaces the fixture)  = 1
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+      weather rows: Denver|64°  Cloudy|H 72° L 51°  30%|
+PASS  weather rows hold Denver, 64°, Cloudy, H 72° L 51°, 30% in order  Denver|64°  Cloudy|H 72° L 51°  30%|
+PASS  not stale yet: no Updated row                               does not contain [Updated]
+      clock: Wed Sep 30 00:03:25 MDT 2026 (+61 min)
+      stale rows after 10 s: Denver|64°  Cloudy|H 72° L 51°  30%|Updated 11:02|
+PASS  clock + 61 min: the X22 row within 180 s                    contains [Updated 11:02]
+PASS  restore: automatic time on                                  = 1
+PASS  restore: airplane mode off                                  = 0
+      restore: device clock 1790744570 vs host 1790744571
+FAIL  the first fixture (Bloom) is on the songs list              should not be []
+      scroll_to_node pod:nowplaying: 0 swipe(s), found=yes
+FAIL  now playing: the first fixture's title                      expected [Bloom] got []
+FAIL  now playing: its artist                                     expected [Radiohead] got []
+FAIL  control PREVIOUS present                                    expected [yes] got [no]
+FAIL  control PLAY_PAUSE present                                  expected [yes] got [no]
+FAIL  control NEXT present                                        expected [yes] got [no]
+FAIL  PLAY_PAUSE: the session is PAUSED                           does not contain [PAUSED]:       state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=3563424, actions=7339653, custom actions=[], active item id=0, error=null}
+FAIL  [music] control PLAY_PAUSE -> app.tileshell                 does not contain [[music] control PLAY_PAUSE -> app.tileshell]: 
+      np-paused.png: the play glyph shown while paused (read by eye; H3)
+PASS  paused: the pod still present                               = yes
+FAIL  NEXT: the second fixture's title                            expected [Codex] got []
+FAIL  [music] control NEXT -> app.tileshell                       does not contain [[music] control NEXT -> app.tileshell]:     2026-09-29 23:03:21.012 wall=1790744601012 [tile_anim] tile=shell:weather kind=FLIP uptime=3587733 faceIndex=0 next=1 faces=1
+FAIL  PREVIOUS: the first title again                             expected [Bloom] got []
+FAIL  [music] control PREVIOUS -> app.tileshell                   does not contain [[music] control PREVIOUS -> app.tileshell]:     2026-09-29 23:03:25.312 wall=1790744605312 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=3592032 faceIndex=0 next=1 faces=1
+    2026-09-29 23:03:25.642 wall=1790744605642 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=3592362 face
+FAIL  the title tap: the MUSIC slot app resumed                   expected [app.tileshell/.music.MusicActivity] got [app.tileshell/.StartActivity]
+FAIL  [podbay] launch nowplaying -> ...                           does not contain [[podbay] launch nowplaying -> app.tileshell/.music.MusicActivity]:     2026-09-29 23:03:30.272 wall=1790744610272 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=3596992 faceIndex=1 next=0 faces=1
+    2026-09-29 23:03:30.602 wall=1790744610602 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=3597322 face
+      scroll_to_node pod:nowplaying: 0 swipe(s), found=yes
+PASS  stopped: Nothing playing                                    = Nothing playing
+      stop slice: 
+PASS  precondition: the today reminder's time is still today      = 2026-09-29
+      scroll_to_node pod:reminders: 0 swipe(s), found=yes
+FAIL  reminders row 0                                             expected [check the qa14 today list] got [check the qa14]
+PASS  reminders row 0 subline                                     = Today at 11:20 PM
+PASS  reminders row 1                                             = check the qa14 tomorrow list
+PASS  reminders row 1 subline                                     = Tomorrow at 9:00 AM
+PASS  reminders row 2                                             = check the QA14 whenever
+PASS  reminders row 2: no subline                                 = no
+PASS  agenda header: the CALENDAR slot's app resumed              = com.android.calendar/.AllInOneActivity
+PASS  [podbay] launch agenda -> com.android.calendar/.AllInOneActivity  contains [[podbay] launch agenda -> com.android.calendar/.AllInOneActivity]
+PASS  weather header: WeatherActivity resumed                     = app.tileshell/.weather.WeatherActivity
+PASS  [podbay] launch weather -> ...                              contains [[podbay] launch weather -> app.tileshell/.weather.WeatherActivity]
+      scroll_to_node pod:reminders: 0 swipe(s), found=yes
+PASS  reminder row: Tess's session is showing                     = yes
+PASS  on her Reminders page                                       = yes
+PASS  [podbay] launch reminders -> ...                            contains [[podbay] launch reminders -> app.tileshell/.cortana.CortanaService (Reminders)]
+PASS  restore: no QA14 reminder left                              = 
+      scroll_to_node pod:reminders: 0 swipe(s), found=yes
+FAIL  reminders gone: the empty line                              expected [No reminders — ask Tess to remind you] got []
+------------------------------------------------------------------------------
+E3: 35 passed, 17 failed, 1 recorded

@@ -1,0 +1,41 @@
+==============================================================================
+ROW E1 — pager: pod bay by pan, Back, Windows key; app list; Back history on Start
+at            2026-09-30T19:36:31-06:00
+driver        e1.sh blob 7d3c4f33d1be43bf26dc650070c2a060c6ebd0a5
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     e5cb1e902be4b97d 340385592 bytes
+apk installed a869ae73bc37297d
+apk match     yes (a869ae73bc37297d)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  layout_restore of phase 02's baseline                       = 0
+PASS  C-3: the slice covers the restore (assignSlotOnce lines in it)  != 0
+PASS  C-3: zero assignSlotOnce ... -> assigned lines after the restore  = 0
+PASS  Home from DeskClock shows Start alone                       = yes
+PASS  swipe right: pod_bay in the dump                            = yes
+PASS  swipe right: start_page not in the dump                     = no
+PASS  swipe right: [podbay] opened by swipe                       contains [[podbay] opened by swipe]
+PASS  swipe right: the page lines                                 = POD_BAY
+PASS  swipe left from the pod bay: Start alone                    = yes
+PASS  swipe left: [podbay] closed by swipe                        contains [[podbay] closed by swipe]
+PASS  swipe left: the page lines                                  = START
+PASS  second left pan: app_list in the dump                       = yes
+PASS  second left pan: no pod_bay                                 = no
+PASS  second left pan: the page lines                             = APP_LIST
+PASS  the app list pan says nothing about the pod bay             does not contain [[podbay]]
+PASS  Back from the app list: Start alone                         = yes
+PASS  pod bay again                                               = yes
+PASS  Back from the pod bay: Start alone                          = yes
+PASS  Back: [podbay] closed by back                               contains [[podbay] closed by back]
+PASS  Back: the page lines                                        = START
+PASS  Back from the pod bay did not leave Start                   = app.tileshell/.StartActivity
+PASS  Back on Start: DeskClock resumes (E20)                      = com.android.deskclock/.DeskClock
+PASS  pod bay before the Windows key                              = yes
+PASS  Windows key: Start alone                                    = yes
+PASS  Windows key: [podbay] closed by home                        contains [[podbay] closed by home]
+PASS  Windows key: the renamed home line                          contains [[start] home: page START, scrolled to top]
+PASS  Windows key: the page lines                                 = START
+PASS  restore: the device's own layout                            = 0
+------------------------------------------------------------------------------
+E1: 28 passed, 0 failed, 0 recorded

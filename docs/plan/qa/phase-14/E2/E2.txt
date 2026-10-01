@@ -1,0 +1,24 @@
+==============================================================================
+ROW E2 — bars on the pod bay; drawn Back and Windows keys
+at            2026-09-30T22:01:34-06:00
+driver        e2.sh blob 828ef1c5f4dbfa994b3f2b71d003e864763e316c
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     ce2289a556696025 341942604 bytes
+apk installed aaf9a1d8ed536d25
+apk match     yes (aaf9a1d8ed536d25)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the pod bay is showing                                      = yes
+PASS  system status bar inset source not visible                  = visible=false
+PASS  system nav bar inset source not visible                     = visible=false
+PASS  the drawn W10M status bar is in the dump                    = yes
+PASS  the drawn W10M nav bar is in the dump                       = yes
+      screencap podbay-bars.png: the drawn bars (NEEDS-HUMAN reading of the picture is H1/H2's)
+PASS  drawn Back from the pod bay: Start alone                    = yes
+PASS  drawn Back: closed by back                                  contains [[podbay] closed by back]
+PASS  the pod bay again                                           = yes
+PASS  drawn Windows key from the pod bay: Start alone             = yes
+PASS  drawn Windows key: closed by home                           contains [[podbay] closed by home]
+------------------------------------------------------------------------------
+E2: 10 passed, 0 failed, 0 recorded

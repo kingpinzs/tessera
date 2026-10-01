@@ -1,0 +1,75 @@
+==============================================================================
+ROW E4 — denied and empty states with diagnostics; the launch failures
+at            2026-09-29T23:27:01-06:00
+driver        e4.sh blob bf22627101d90b794a6513d360f215f230b390bd
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     896f9127b576d1f7 340385008 bytes
+apk installed bfa4263a906c9b1c
+apk match     yes (bfa4263a906c9b1c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  precondition: the QA event begins today                     = 2026-09-29
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  agenda before the revoke: the QA row                        = 11:40 PM  QA E4 event
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  calendar revoked: the access line                           = Calendar access is off — turn it on in Setup
+PASS  calendar revoked: no agenda row                             = no
+PASS  [podbay] pod agenda: empty: no calendar access              contains [[podbay] pod agenda: empty: no calendar access]
+PASS  the access line opens SettingsActivity                      = app.tileshell/.settings.SettingsActivity
+      scroll_to_node checklist:calendar:missing: 0 swipe(s), found=yes
+PASS  on the checklist, the Calendar row (missing)                = yes
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+      the row returned after 20 s (the feed's own minute tick / the checklist's feed restart)
+PASS  pm grant: the agenda row returns                            = yes
+PASS  and its line says rows                                      contains [[podbay] pod agenda: 1 rows]
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+PASS  location revoked: the location line, even with a cached report  = Location is off — turn it on in Setup
+PASS  the cached report was loaded (so it is the problem that wins)  contains [[weather] cache loaded]
+PASS  [podbay] pod weather: empty: no location                    contains [[podbay] pod weather: empty: no location]
+PASS  restore: FINE location granted                              contains [android.permission.ACCESS_FINE_LOCATION: granted=true]
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+FAIL  grant: the weather rows return                              expected [yes] got [no]
+FAIL  the weather line's row count matches the dump's pod_row:weather nodes  expected [pod weather: 0 rows] got [pod weather: empty: no location]
+      scroll_to_node pod:nowplaying: 0 swipe(s), found=yes
+PASS  no session: Nothing playing                                 = Nothing playing
+      scroll_to_node pod:reminders: 0 swipe(s), found=yes
+PASS  no reminders: the empty line                                = No reminders — ask Tess to remind you
+PASS  [podbay] pod nowplaying: empty: no session                  contains [pod nowplaying: empty: no session]
+PASS  [podbay] pod reminders: empty: none                         contains [pod reminders: empty: none]
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+PASS  never fetched: No weather yet                               = No weather yet
+PASS  [podbay] pod weather: empty: no report                      contains [[podbay] pod weather: empty: no report]
+      scroll_to_node pod:weather: 0 swipe(s), found=yes
+PASS  restore: network back, a report fetched, the rows fill in place  = yes
+PASS  restore: a real fetch landed                                contains [[weather] fetch ok]
+PASS  layout: phase 02's baseline without slots.MUSIC             = 0
+PASS  the MUSIC slot is unassigned in the store                   = {}
+      pivot -> songs (settled after 0s, diagnostics say [songs])
+      scroll_to_node pod:nowplaying: 0 swipe(s), found=yes
+PASS  the fixture is playing on the pod                           = Bloom
+PASS  unassigned MUSIC: the slot picker opens (the tap follows the tile)  = yes
+PASS  [podbay] launch nowplaying failed: slot unassigned          contains [[podbay] launch nowplaying failed: slot unassigned]
+PASS  Back closes the picker                                      = no
+PASS  layout: phase 02's baseline back                            = 0
+PASS  the assistant role is gone                                  = 
+      scroll_to_node pod:reminders: 0 swipe(s), found=yes
+PASS  [podbay] launch reminders failed: no session: not the assistant  contains [[podbay] launch reminders failed: no session: not the assistant]
+PASS  phase 03's role-notice line                                 contains [cannot show a session]
+PASS  ... showing the role notice                                 contains [showing the role notice]
+PASS  CortanaRoleNoticeActivity resumed (H30)                     = app.tileshell/.cortana.CortanaRoleNoticeActivity
+PASS  no session window                                           = no
+PASS  restore: [cortana] VoiceInteractionService ready            = yes
+PASS  restore: the role holder is app.tileshell                   = app.tileshell
+FAIL  restore: the QA14 role reminder is gone                     expected [] got [0]
+------------------------------------------------------------------------------
+E4: 36 passed, 3 failed, 0 recorded

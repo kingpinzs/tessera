@@ -1,0 +1,10 @@
+Lock screen disabled set to false
+Pin set to '1234'
+locked: isKeyguardShowing=true
+tess: yes
+speak rc=0
+card: no
+tap_node: no node cortana_card_button:unlock
+after Unlock: isKeyguardShowing=true focus: mCurrentFocus=Window{d4e149 u0 VoiceInteractionSession}
+after PIN: focus: mCurrentFocus=Window{d4e149 u0 VoiceInteractionSession}
+after Enter: isKeyguardShowing=true focus: mCurrentFocus=Window{d4e149 u0 VoiceInteractionSession}
