@@ -1,0 +1,66 @@
+── E3 pod content from fixtures, present then gone; the launches
+PASS  precondition: exactly one APP_CALENDAR activity             = 1 activities found:
+PASS  the qa calendar exists                                      != 
+PASS  precondition: QA overlap one begins today (run before 23:45 local)  = 2026-09-30
+PASS  three QA events inserted                                    = 3
+PASS  pod agenda: its rows line matches the dump's pod_row nodes  = pod agenda: 3 rows
+PASS  agenda row 0                                                = All day  QA all day
+PASS  agenda row 1                                                = 9:25 PM  QA overlap one
+PASS  agenda row 2                                                = 9:30 AM  QA tomorrow
+RECORD  agenda row 1 raw text (U+202F shown as \u202f)              9:25 PM  QA overlap one
+PASS  the Tomorrow subheader is there                             = Tomorrow
+PASS  the subheader sits between row 1 and row 2                  = yes
+PASS  exactly three agenda rows                                   = no
+PASS  [podbay] pod agenda: 3 rows                                 contains [[podbay] pod agenda: 3 rows]
+PASS  agenda gone: no row 0                                       = no
+PASS  agenda gone: the empty line                                 = Nothing on your calendar today
+PASS  the qa calendar is gone                                     = 0
+PASS  weather: airplane mode on (ITEM2's route: no fetch replaces the fixture)  = 1
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E3/weather-fixture.json: code=3 isDay=day
+PASS  pod weather: its rows line matches the dump's pod_row nodes  = pod weather: 3 rows
+PASS  weather rows hold Denver, 64°, Cloudy, H 72° L 51°, 30% in order  Denver|64°  Cloudy|H 72° L 51°  30%|
+PASS  not stale yet: no Updated row                               does not contain [Updated]
+PASS  clock + 61 min: the X22 row within 180 s                    contains [Updated 9:13]
+PASS  restore: automatic time on                                  = 1
+PASS  restore: airplane mode off                                  = 0
+PASS  the first fixture (Bloom) is on the songs list              != 
+PASS  pod nowplaying: its rows line matches the dump's pod_row nodes  = pod nowplaying: 1 rows
+PASS  now playing: the first fixture's title                      = Bloom
+PASS  now playing: its artist                                     = Radiohead
+PASS  control PREVIOUS present                                    = yes
+PASS  control PLAY_PAUSE present                                  = yes
+PASS  control NEXT present                                        = yes
+PASS  PLAY_PAUSE: the session is PAUSED                           contains [PAUSED]
+PASS  [music] control PLAY_PAUSE -> app.tileshell                 contains [[music] control PLAY_PAUSE -> app.tileshell]
+PASS  paused: the pod still present                               = yes
+PASS  NEXT: the second fixture's title                            = Codex
+PASS  [music] control NEXT -> app.tileshell                       contains [[music] control NEXT -> app.tileshell]
+PASS  PREVIOUS: the first title again                             = Bloom
+PASS  [music] control PREVIOUS -> app.tileshell                   contains [[music] control PREVIOUS -> app.tileshell]
+PASS  the title tap: the MUSIC slot app resumed                   = app.tileshell/.music.MusicActivity
+PASS  [podbay] launch nowplaying -> ...                           contains [[podbay] launch nowplaying -> app.tileshell/.music.MusicActivity]
+PASS  PLAY_PAUSE again: the session is PLAYING                    contains [PLAYING]
+RECORD  media button session before the stop                        Media button session is app.tileshell/androidx.media3.session.id.music/34 (userId=0)
+RECORD  the shell's session after the stop                          state=PlaybackState {state=NONE(0), position=2031, buffered position=2031, speed=0.0, upda
+PASS  stopped: Nothing playing                                    = Nothing playing
+PASS  precondition: no QA14 reminder before the fixture           = 
+PASS  precondition: the today reminder's time is still today      = 2026-09-30
+RECORD  the doc's utterance "...today list at 9:35 pm" is stored as  check the qa14
+PASS  that reminder deleted again                                 = 
+PASS  pod reminders: its rows line matches the dump's pod_row nodes  = pod reminders: 3 rows
+PASS  reminders row 0                                             = check the qa14 today list
+PASS  reminders row 0 subline                                     = Today at 9:35 PM
+PASS  reminders row 1                                             = check the qa14 tomorrow list
+PASS  reminders row 1 subline                                     = Tomorrow at 9:00 AM
+PASS  reminders row 2                                             = check the QA14 whenever
+PASS  reminders row 2: no subline                                 = no
+PASS  agenda header: the CALENDAR slot's app resumed              = com.android.calendar/.AllInOneActivity
+PASS  [podbay] launch agenda -> com.android.calendar/.AllInOneActivity  contains [[podbay] launch agenda -> com.android.calendar/.AllInOneActivity]
+PASS  weather header: WeatherActivity resumed                     = app.tileshell/.weather.WeatherActivity
+PASS  [podbay] launch weather -> ...                              contains [[podbay] launch weather -> app.tileshell/.weather.WeatherActivity]
+PASS  reminder row: Tess's session is showing                     = yes
+PASS  on her Reminders page                                       = yes
+PASS  [podbay] launch reminders -> ...                            contains [[podbay] launch reminders -> app.tileshell/.cortana.CortanaService (Reminders)]
+PASS  restore: no QA14 reminder left (the store)                  = 
+PASS  reminders gone: the empty line                              = No reminders — ask Tess to remind you
+   E3: 59 passed, 0 failed, 4 recorded

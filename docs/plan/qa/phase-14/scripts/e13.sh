@@ -34,6 +34,10 @@ run_p03_row() { # row script
   bash "$P03S/$script" > "$OUT/p03-$row.out" 2>&1; echo $? > "$OUT/p03-$row.rc"
   ring_since "$m" > "$OUT/p03-$row.ring.txt" 2>/dev/null
   rm -rf "$OUT/p03-$row"; [ -e "$dir" ] && mv "$dir" "$OUT/p03-$row"
+  # Q-E10 (a), 2026-09-30: against phase 03's OWN last run of the row (the directory moved aside above) — the checks that
+  # passed there, and the ones of them that do not pass in this run.
+  python3 "$HERE/regressed.py" "$keep/$row.txt" "$OUT/p03-$row/$row.txt" > "$OUT/p03-$row.regressed.txt" 2> "$OUT/p03-$row.regressed.err"
+  echo $? > "$OUT/p03-$row.regressed.rc"
   [ -e "$keep" ] && mv "$keep" "$dir"
   c6
 }
@@ -190,9 +194,19 @@ ring_save launcher
 c6
 
 log "(4) phase 03 E3, E5, E10 — run unchanged, spoken through the emulator's route"
-for r in E3 E5 E10; do
+for r in E3 E5; do
   assert_eq "phase 03 $r passes unchanged (rc)" "0" "$(cat "$OUT/p03-$r.rc")"
   note "phase 03 $r: $(grep -hE "^$r: [0-9]+ passed" "$OUT/p03-$r/"*.txt 2>/dev/null | tail -1)"
 done
+# E10 (Jeremy's ruling Q-E10 (a), INDEX Change Log 2026-09-30): run unchanged; it passes here when no check that passed
+# in phase 03's own last run of E10 fails now. Its remaining failures are phase 03's, listed for phase 03's gate.
+note "phase 03 E10: $(grep -hE "^E10: [0-9]+ passed" "$OUT/p03-E10/"*.txt 2>/dev/null | tail -1)"
+assert_eq "phase 03 E10: its own last run was read (regressed.py rc)" "0" "$(cat "$OUT/p03-E10.regressed.rc")"
+note "phase 03 E10 against its own last run: $(head -1 "$OUT/p03-E10.regressed.txt")"
+assert_eq "phase 03 E10: no check that passed in its own last run fails now" "" "$(sed -n '2,$p' "$OUT/p03-E10.regressed.txt" | tr '\n' ';')"
+assert_contains "phase 03 E10: the Unlock button raises the bouncer" "PASS  the Unlock button raises the bouncer" "$(cat "$OUT/p03-E10/E10.txt")"
+assert_contains "phase 03 E10: the request that was on the card runs" "PASS  the request that was on the card runs" "$(cat "$OUT/p03-E10/E10.txt")"
+assert_contains "phase 03 E10: none of the earlier gated requests ran" "PASS  and none of the earlier gated requests ran: nothing sent" "$(cat "$OUT/p03-E10/E10.txt")"
+grep -E "^FAIL" "$OUT/p03-E10/E10.txt" | cut -c1-110 | while read -r l; do note "phase 03 E10 (for phase 03's gate): $l"; done
 
 RINGS="launcher speech" row_end

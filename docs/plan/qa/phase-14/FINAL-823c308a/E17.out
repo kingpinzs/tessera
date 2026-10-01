@@ -1,0 +1,18 @@
+── E17 a pod-bay request under the wizard waits for it, then opens after Skip
+PASS  no-marker provision rc                                      = 0
+PASS  Home: the wizard shows                                      = yes
+PASS  Search: Tess opens (cortana_session)                        = yes
+PASS  start ring readable (typed)                                 header present
+PASS  typed: the reply                                            = Opening the pod bay.
+PASS  typed: no session window                                    = no
+PASS  typed: no [podbay] opened under the wizard                  does not contain [[podbay] opened]
+PASS  typed: no [start] page=POD_BAY                              does not contain [[start] page=POD_BAY]
+PASS  typed: the wizard still shows                               = yes
+PASS  typed: no pod_bay                                           = no
+PASS  start ring readable (skip)                                  header present
+PASS  Skip: [wizard] skip                                         != 
+PASS  Skip: [podbay] opened by voice                              != 
+PASS  Skip: the pod bay opened AFTER the skip                     = yes
+PASS  Skip: the dump shows pod_bay                                = yes
+PASS  restore: Start                                              = yes
+   E17: 16 passed, 0 failed, 0 recorded

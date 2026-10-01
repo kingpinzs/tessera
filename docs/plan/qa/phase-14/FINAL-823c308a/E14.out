@@ -1,0 +1,18 @@
+── E14 the pod bay's backdrop is the blurred static background; its text is sharp; the shared key; acrylic off
+/home/jeremyking/projects/metro-launcher/docs/plan/qa/phase-14/E14/checker.png: 1 file pushed, 0 skipped. 167.2 MB/s (12787 bytes in 0.000s)
+PASS  the show line                                               contains [[fluent] pod_bay source=static tint=(0,0,0) alpha=0.8 blur=30epx]
+PASS  the pod bay                                                 = yes
+PASS  no media session: Now playing is empty                      = yes
+PASS  acrylic:pod_bay has the page's bounds                       = 0 0 1080 2196
+PASS  a text-free strip on a square-centre row                    != 
+PASS  edge spread = 2.563 sigma(r=90 px) +- 20 %                  145.60 vs 134.50 +/- 26.9
+PASS  the strip's profile = 0.2 x the host-blurred checker (worst |diff|)  2.70 vs 0.00 +/- 3.0
+PASS  a pod header's text edge is sharp (<= 2 px)                 0.80 vs 1.00 +/- 1.0
+PASS  a pod row's text edge is sharp (<= 2 px)                    0.90 vs 1.00 +/- 1.0
+PASS  the shared key: no static backdrop rebuilt                  does not contain [[fluent] static backdrop rebuilt for]
+PASS  off: the pod bay                                            = yes
+PASS  off: acrylic:pod_bay still present                          = yes
+PASS  off: the edge is sharp                                      0.80 vs 1.00 +/- 1.0
+PASS  off: x=675 reads 0.2 x the fixture (51)                     51.00 vs 51.00 +/- 3.0
+PASS  off: x=945 reads 0.2 x the fixture (0)                      0.00 vs 0.00 +/- 3.0
+   E14: 15 passed, 0 failed, 0 recorded

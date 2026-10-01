@@ -1,0 +1,32 @@
+── E8 locked: gated with its caption, then unlocked, the doors line and the pane
+PASS  AUDIO_ROUTE is the emulator's gRPC route                    = emu
+PASS  a PIN is set                                                = yes
+PASS  the lock screen is enabled                                  = false
+PASS  awake (KEYCODE_WAKEUP alone, the keyguard kept)             = mWakefulness=Awake
+PASS  the keyguard is showing                                     = isKeyguardShowing=true
+PASS  Tess is open over the keyguard                              = yes
+PASS  locked: speak.sh pod_bay_doors exits 0                      = 0
+PASS  locked: C-30 asr levels heard=true                          contains [(heard=true)]
+PASS  locked: C-30 no 'no speech in the capture'                  does not contain [asr: no speech in the capture]
+PASS  locked: the match                                           contains [-> OpenPodBay(doors=true)]
+PASS  locked: the Unlock card                                     = yes
+PASS  locked: its caption restates the request                    = Open the pod bay
+PASS  locked: reply_since MARK                                    = Unlock your phone to continue.
+PASS  locked: the keyguard is still showing                       = isKeyguardShowing=true
+PASS  locked: no [podbay] opened                                  does not contain [[podbay] opened]
+PASS  Tess's window is showing before the tap (dumpsys window)    = yes
+PASS  the Unlock button raises the keyguard                       = isKeyguardShowing=true
+PASS  the Unlock button shows the PIN pad                         = yes
+PASS  Tess has stepped aside for it                               = no
+PASS  Tess's window is not showing (dumpsys window)               = no
+PASS  unlocked                                                    = isKeyguardShowing=false
+PASS  the unlock was delivered (unlock bridge: dismissed)         != 
+PASS  nothing was said before the unlock                          = yes
+PASS  nothing opened before the unlock                            = yes
+PASS  after unlock: reply_since MARK2 is the doors line           = I'm afraid I can't do that, Dave.
+PASS  after unlock: [podbay] opened by voice (doors)              != 
+PASS  after unlock: the pane opened AFTER the reply was spoken    = yes
+PASS  after unlock: no session window                             = no
+PASS  after unlock: the dump shows pod_bay                        = yes
+PASS  restore: the media volume                                   = 15
+   E8: 30 passed, 0 failed, 0 recorded
