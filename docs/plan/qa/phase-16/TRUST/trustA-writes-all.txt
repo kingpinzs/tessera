@@ -1,0 +1,79 @@
+app/src/main/kotlin/app/tileshell/cortana/reminders/ReminderPhotos.kt:40:            out.delete()
+app/src/main/kotlin/app/tileshell/cortana/reminders/ReminderPhotos.kt:63:        val deleted = file.delete()
+app/src/main/kotlin/app/tileshell/cortana/reminders/ReminderPhotos.kt:72:        orphans.forEach { it.delete() }
+app/src/main/kotlin/app/tileshell/cortana/action/ActionLayer.kt:145:            store.delete(pending.reminderId)
+app/src/main/kotlin/app/tileshell/cortana/action/ActionLayer.kt:544:        when (val deleted = app.tileshell.calendar.CalendarSync.delete(context, app.tileshell.calendar.CalendarWriteGuard.Path.TESS, pending.eventId, both = false)) {
+app/src/main/kotlin/app/tileshell/cortana/ui/RemindersPage.kt:246:                if (complete) store.complete(id) else store.delete(id)
+app/src/main/kotlin/app/tileshell/cortana/ui/ReminderDetailPage.kt:184:                        reminderId?.let { store.delete(it) }
+app/src/main/kotlin/app/tileshell/cortana/ui/ReminderDetailPage.kt:189:                        if (original == null) store.add(toSave) else store.update(toSave)
+app/src/main/kotlin/app/tileshell/calendar/CalendarPages.kt:152:            val result = withContext(Dispatchers.IO) { CalendarEvents.delete(context, page.eventId, scope_, page.beginMs, both) }
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:157:        return context.contentResolver.insert(
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:176:            context.contentResolver.insert(
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:200:                context.contentResolver.insert(
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:211:            context.contentResolver.delete(
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:224:            idOf(context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, eventColumns(values).apply { put(CalendarContract.Events.CALENDAR_ID, calendarId) }))
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:266:            val rows = context.contentResolver.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), columns, null, null)
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:285:                val rows = context.contentResolver.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), columns, null, null)
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:291:            context.contentResolver.delete(
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:294:            val rows = context.contentResolver.delete(syncAdapterUri(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), account), null, null)
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:303:            context.contentResolver.delete(
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:321:            val rows = context.contentResolver.update(
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:346:        context.contentResolver.insert(
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:357:                context.contentResolver.delete(CalendarContract.Reminders.CONTENT_URI, "${CalendarContract.Reminders.EVENT_ID} = ?", arrayOf(eventId.toString()))
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:364:                context.contentResolver.insert(
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:440:            idOf(context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, eventColumns(values).apply { put(CalendarContract.Events.CALENDAR_ID, target.id) }))
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:451:            val rows = context.contentResolver.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, copyEventId), columns, null, null)
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:459:            context.contentResolver.delete(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, rowEventId), null, null)
+app/src/main/kotlin/app/tileshell/calendar/CalendarWrites.kt:480:            context.contentResolver.update(ContentUris.withAppendedId(CalendarContract.CalendarAlerts.CONTENT_URI, alertId), columns, null, null)
+app/src/main/kotlin/app/tileshell/cortana/speech/SpeechModels.kt:156:        digest.update(buffer, 0, read)
+app/src/main/kotlin/app/tileshell/cortana/speech/SpeechModels.kt:218:        stamp.delete()
+app/src/main/kotlin/app/tileshell/cortana/speech/SpeechModels.kt:322:        target.delete()
+app/src/main/kotlin/app/tileshell/clock/ClockTiles.kt:110:                        SecondaryTiles.delete(app, pkg, info.tileId)
+app/src/main/kotlin/app/tileshell/calendar/CalendarEvents.kt:196:            return CalendarSync.delete(context, Path.EDITOR, eventId, both)
+app/src/main/kotlin/app/tileshell/calendar/CalendarEvents.kt:207:                if (instanceBeginMs == event.dtstart) return CalendarSync.delete(context, Path.EDITOR, eventId, both)
+app/src/main/kotlin/app/tileshell/ime/engine/Lexicon.kt:69:                val node = trie.insert(word)
+app/src/main/kotlin/app/tileshell/tiles/api/LiveTileStore.kt:248:            val result = TileQueuePolicy.insert(state.queue, entry, state.queueEnabled) { it.tag }
+app/src/main/kotlin/app/tileshell/tiles/api/LiveTileStore.kt:444:        images.forEach { File(dir, it.file).delete() }
+app/src/main/kotlin/app/tileshell/tiles/api/LiveTileStore.kt:536:                        val result = TileQueuePolicy.insert(state.queue, entry, state.queueEnabled) { it.tag }
+app/src/main/kotlin/app/tileshell/tiles/api/LiveTileStore.kt:624:            ?.forEach { it.delete() }
+app/src/main/kotlin/app/tileshell/recorder/TakeFiles.kt:39:        audio.delete()
+app/src/main/kotlin/app/tileshell/recorder/TakeFiles.kt:40:        sidecar.delete()
+app/src/main/kotlin/app/tileshell/recorder/TakeFiles.kt:41:        File(dir, sidecar.name + ".tmp").delete()
+app/src/main/kotlin/app/tileshell/music/PlaylistStore.kt:34:    fun delete(id: String) = mutate("delete") { PlaylistRules.delete(it, id) }
+app/src/main/kotlin/app/tileshell/ime/KeyboardConfig.kt:129:            context.contentResolver.call(Uri.parse("content://$AUTHORITY"), METHOD_READ, null, null)?.let { KeyboardConfig.fromBundle(it) }
+app/src/main/kotlin/app/tileshell/tiles/api/SecondaryTiles.kt:253:                    record.logo?.let { store.ownerDir(record.owner).resolve(it.file).delete() }
+app/src/main/kotlin/app/tileshell/tiles/api/SecondaryTiles.kt:279:            record.logo?.let { LiveTileStore.get(app).ownerDir(record.owner).resolve(it.file).delete() }
+app/src/main/kotlin/app/tileshell/people/PeopleEditorPage.kt:241:                    PeopleWriter.update(context, edits, photoEdit)
+app/src/main/kotlin/app/tileshell/recorder/RecorderService.kt:325:            files.delete()
+app/src/main/kotlin/app/tileshell/recorder/RecorderService.kt:335:            files.delete()
+app/src/main/kotlin/app/tileshell/recorder/RecorderService.kt:505:                t.files.delete()
+app/src/main/kotlin/app/tileshell/recorder/RecorderService.kt:558:        files.delete()
+app/src/main/kotlin/app/tileshell/recorder/RecorderService.kt:577:                    files.delete()
+app/src/main/kotlin/app/tileshell/recorder/RecorderActivity.kt:422:                        val ok = RecorderEdits.delete(context, d.recording)
+app/src/main/kotlin/app/tileshell/recorder/RecorderEdits.kt:78:        if (!RecordingStore.delete(context, recording.id)) {
+app/src/main/kotlin/app/tileshell/recorder/RecorderEdits.kt:108:        val ok = RecordingStore.delete(context, recording.id)
+app/src/main/kotlin/app/tileshell/recorder/RecordingStore.kt:110:        context.contentResolver.insert(PRIMARY, values)
+app/src/main/kotlin/app/tileshell/recorder/RecordingStore.kt:116:        context.contentResolver.update(uri, values, null, null) > 0
+app/src/main/kotlin/app/tileshell/recorder/RecordingStore.kt:121:        runCatching { context.contentResolver.delete(uri, null, null) }
+app/src/main/kotlin/app/tileshell/recorder/RecordingStore.kt:154:            context.contentResolver.update(uri, values, null, null)
+app/src/main/kotlin/app/tileshell/recorder/RecordingStore.kt:162:        return runCatching { context.contentResolver.delete(uriOf(id), null, null) > 0 }
+app/src/main/kotlin/app/tileshell/people/PeopleWriter.kt:83:            val results = context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
+app/src/main/kotlin/app/tileshell/people/PeopleWriter.kt:149:            runCatching { resolver.applyBatch(ContactsContract.AUTHORITY, ops) }
+app/src/main/kotlin/app/tileshell/people/PeopleWriter.kt:170:        runCatching { context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ArrayList(ops)) }
+app/src/main/kotlin/app/tileshell/people/PeopleWriter.kt:220:            context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ArrayList(ops))
+app/src/main/kotlin/app/tileshell/people/PeopleWriter.kt:271:            val id = ContentUris.parseId(context.contentResolver.insert(Groups.CONTENT_URI, values) ?: error("no group was made"))
+app/src/main/kotlin/app/tileshell/people/PeopleWriter.kt:283:            val n = context.contentResolver.update(
+app/src/main/kotlin/app/tileshell/people/PeopleWriter.kt:305:            val n = context.contentResolver.delete(uri, null, null)
+app/src/main/kotlin/app/tileshell/people/PeopleWriter.kt:330:                    resolver.insert(Data.CONTENT_URI, ContentValues().apply {
+app/src/main/kotlin/app/tileshell/people/PeopleWriter.kt:337:                resolver.delete(Data.CONTENT_URI, where, args)
+app/src/main/kotlin/app/tileshell/people/PeopleWriter.kt:365:        context.contentResolver.delete(
+app/src/main/kotlin/app/tileshell/people/PeopleCardPage.kt:96:            val result = withContext(Dispatchers.IO) { PeopleWriter.delete(context, c.id) }
+app/src/main/kotlin/app/tileshell/tiles/api/ImageIngest.kt:39:            written.forEach { it.delete() }
+app/src/main/kotlin/app/tileshell/tiles/api/LiveTileProvider.kt:133:        val stored = store.update(pkg, tileId, xml, images, tag, expiresAtMs, now)
+app/src/main/kotlin/app/tileshell/tiles/api/LiveTileProvider.kt:134:        if (stored is LiveTileStore.Outcome.Rejected) images.forEach { store.ownerDir(pkg).resolve(it.file).delete() }
+app/src/main/kotlin/app/tileshell/tiles/api/LiveTileProvider.kt:172:        if (stored is LiveTileStore.Outcome.Rejected) images.forEach { store.ownerDir(pkg).resolve(it.file).delete() }
+app/src/main/kotlin/app/tileshell/tiles/api/LiveTileProvider.kt:245:                logo?.let { store.ownerDir(pkg).resolve(it.file).delete() }
+app/src/main/kotlin/app/tileshell/tiles/api/LiveTileProvider.kt:251:                logo?.let { store.ownerDir(pkg).resolve(it.file).delete() }
+app/src/main/kotlin/app/tileshell/tiles/api/LiveTileProvider.kt:276:        SecondaryTiles.delete(ctx, pkg, tileId)
+app/src/main/kotlin/app/tileshell/tiles/api/LiveTileProvider.kt:334:        if (stored is LiveTileStore.Outcome.Rejected && logo != null) store.ownerDir(pkg).resolve(logo.file).delete()
+app/src/main/kotlin/app/tileshell/music/MusicCollectionPage.kt:303:                                            MenuEntry("Delete", "music_menu_delete") { store.delete(item.playlist.id); menu = null },
