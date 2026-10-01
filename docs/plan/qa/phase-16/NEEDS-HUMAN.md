@@ -13,12 +13,12 @@ it is read on a page of the shell (Start settings > Diagnostics) and pasted back
 | id | kind | what you are judging |
 |---|---|---|
 | H1 | fidelity | Calendar against the W10M captures: Agenda, Week, the month drop-down, the ≡ calendar pane. Note: the week strip and the selected day follow the 15063-era form, seen only at one resolution (LOW confidence) |
-| H2 | fidelity | People against the W10M captures — the list, the jump grid, the contact card, the editor — judged against the 10586 build's captures (no capture of the final build exists) |
-| H3 | fidelity | the People tile: the photo bubble sliding out and in, and the static circle pattern when no contact has a photo |
+| H2 | fidelity | People against the W10M captures — the list, the jump grid, the contact card, the editor — judged against the 10586 build's captures (no capture of the final build exists). Not built, for you to accept or send back: the small pencil button beside Name and Company that opens W10M's name-parts editor (those two fields are plain 32-epx boxes here), and the jump grid's short closing fade (it closes at once) |
+| H3 | fidelity | the People tile: the photo bubble sliding out and in, and the static circle pattern when no contact has a photo. Note: the footage's own numbers disagree (slide out 333 ms + a short pause + slide in 583 ms does not add up to the 1.88 s event it also measured); built to the three measured durations, which makes the pause between the two slides about one second |
 | H4 | accept | the local calendar's name "Tessera" and its colour (#0063B1) |
 | H5 | accept | the Birthdays calendar in the views and on the tile; a birthday stored without a year shown yearly from this year; a 29 February birthday shown on 28 February in years without one |
 | H6 | accept | "(No title)", the first-day-of-week default and its setting's wording, the Calendar settings page |
-| H7 | accept | the event reminder notification's look; over a locked screen it says a calendar reminder fired and hides the event's title |
+| H7 | accept | the event reminder notification's look. Over a locked screen it says only "Calendar reminder" and hides the event's title **when the phone is set to hide sensitive notification content on the lock screen**; with the lock screen set to show all content, the title and time show, as for every app's private notifications (Android's rule; found by the trust review). The alternative is to keep reminders off the lock screen entirely — say so if you want that |
 | H8 | accept | a contact with no name listed under "#" as its number or e-mail |
 | H9 | accept | the Android profile ("Me") left out of People |
 | H10 | accept | work-profile contacts found by search only, marked with the briefcase |
