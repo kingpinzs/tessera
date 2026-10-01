@@ -14,7 +14,8 @@ import java.io.File
  * `LayoutStore`'s `start_layout.json`. What it holds and why is [SyncState]'s; the rules are [SyncStateRules]'.
  *
  * It is the Trust line's (e): its `allowed` list is the only gate to an account calendar, so nothing but the "Can sync
- * to" page's tick writes that list, and a file that is lost or unreadable reads as nothing allowed.
+ * to" page's tick writes that list, and a file that is lost or unreadable reads as nothing allowed. A calendar is
+ * named in it by `id`, `accountName`, `accountType` and `name` (the provider's `Calendars.NAME`).
  */
 class CalendarSyncStore private constructor(context: Context) {
     private val file = File(context.filesDir, FILE)
@@ -59,7 +60,9 @@ class CalendarSyncStore private constructor(context: Context) {
                 for (i in 0 until m.length()) {
                     val e = m.getJSONObject(i)
                     val local = e.getLong("local")
-                    put(local, SyncMapping(local, key(e), e.getLong("copy")))
+                    // A mapping written before the key carried the name is kept, its target's name unknown (null): its
+                    // copy stays hidden, and nothing is pushed to a calendar the key no longer names (F16).
+                    put(local, SyncMapping(local, CalendarKey(e.getLong("id"), e.getString("accountName"), e.getString("accountType"), nameOf(e)), e.getLong("copy")))
                 }
             },
             hidden = keys(o.optJSONArray("hidden")),
@@ -97,14 +100,26 @@ class CalendarSyncStore private constructor(context: Context) {
         }.onFailure { Diagnostics.add("calendar", "calendar_sync.json could not be written: $it") }
     }
 
-    /** A calendar: its `_ID`, account name and account type — the key form of `allowed`, `hidden` and a mapping's target. */
+    /**
+     * A calendar: its `_ID`, account name, account type and its own name — the key form of `allowed`, `hidden` and a
+     * mapping's target.
+     */
     private fun json(k: CalendarKey): JSONObject = JSONObject().put("id", k.id).put("accountName", k.accountName).put("accountType", k.accountType)
+        .apply { if (k.name != null) put("name", k.name) }
 
-    private fun key(o: JSONObject) = CalendarKey(o.getLong("id"), o.getString("accountName"), o.getString("accountType"))
+    private fun nameOf(o: JSONObject): String? = if (o.has("name") && !o.isNull("name")) o.getString("name") else null
 
+    /**
+     * The entries of `allowed` or `hidden`. An entry without the calendar's name — one an earlier build wrote — is
+     * dropped: it cannot say WHICH calendar of its account was ticked, so nothing is allowed by it (F16).
+     */
     private fun keys(a: JSONArray?): List<CalendarKey> = buildList {
         if (a == null) return@buildList
-        for (i in 0 until a.length()) add(key(a.getJSONObject(i)))
+        for (i in 0 until a.length()) {
+            val o = a.getJSONObject(i)
+            val name = nameOf(o) ?: continue
+            add(CalendarKey(o.getLong("id"), o.getString("accountName"), o.getString("accountType"), name))
+        }
     }
 
     companion object {

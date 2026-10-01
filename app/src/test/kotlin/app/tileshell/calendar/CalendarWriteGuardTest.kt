@@ -16,15 +16,15 @@ import org.junit.Test
  * Each of the four allowed cases, and the refusal of every other combination the doc lists.
  */
 class CalendarWriteGuardTest {
-    private val tessera = CalendarFacts(1, "Tessera", "LOCAL", 700)
-    private val birthdays = CalendarFacts(2, "Tessera Birthdays", "LOCAL", 200)
-    private val personal = CalendarFacts(5, "qa.personal@example.com", "com.google", 700)
-    private val work = CalendarFacts(6, "qa.work@example.com", "com.google", 700)
-    private val qaLocal = CalendarFacts(7, "qa", "LOCAL", 700)
+    private val tessera = CalendarFacts(1, "Tessera", "LOCAL", 700, "Tessera")
+    private val birthdays = CalendarFacts(2, "Tessera Birthdays", "LOCAL", 200, "Birthdays")
+    private val personal = CalendarFacts(5, "qa.personal@example.com", "com.google", 700, "personal-cal")
+    private val work = CalendarFacts(6, "qa.work@example.com", "com.google", 700, "work-cal")
+    private val qaLocal = CalendarFacts(7, "qa", "LOCAL", 700, "qa")
 
     /** Account calendars whose account is NAMED like the shell's two (a CalDAV account can be named anything): F18. */
-    private val davNamedTessera = CalendarFacts(8, "Tessera", "com.example.dav", 700)
-    private val googleNamedBirthdays = CalendarFacts(9, "Tessera Birthdays", "com.google", 700)
+    private val davNamedTessera = CalendarFacts(8, "Tessera", "com.example.dav", 700, "Tessera")
+    private val googleNamedBirthdays = CalendarFacts(9, "Tessera Birthdays", "com.google", 700, "Birthdays")
 
     private val allowed = Verdict.Allowed
     private fun refused(why: Refusal = Refusal.NOT_ALLOWED) = Verdict.Refused(why)
@@ -34,7 +34,7 @@ class CalendarWriteGuardTest {
 
     /** A mapped copy sitting in the allowed calendar the mapping names. */
     private fun mappedCopy(target: CalendarFacts = personal) =
-        SyncFacts(sourceInTessera = true, mapped = true, targetAllowed = true, mappingTarget = target.id, copyCalendarId = target.id)
+        SyncFacts(sourceInTessera = true, mapped = true, targetAllowed = true, mappingTarget = target.key, copyCalendarId = target.id)
 
     /** The first push: nothing mapped yet. */
     private val firstPush = SyncFacts(sourceInTessera = true, mapped = false, targetAllowed = true, mappingTarget = null, copyCalendarId = null)
@@ -200,7 +200,7 @@ class CalendarWriteGuardTest {
     }
 
     @Test fun syncMayRecreateACopyThatIsGoneInTheMappedTarget() {
-        val recreate = SyncFacts(sourceInTessera = true, mapped = false, targetAllowed = true, mappingTarget = personal.id, copyCalendarId = null)
+        val recreate = SyncFacts(sourceInTessera = true, mapped = false, targetAllowed = true, mappingTarget = personal.key, copyCalendarId = null)
         assertEquals(allowed, check(Path.SYNC, Op.INSERT, Table.EVENTS, personal, sync = recreate))
     }
 
@@ -239,7 +239,7 @@ class CalendarWriteGuardTest {
 
     @Test fun aStaleMappingIsRefused() {
         // T16-12: the copy was moved to Work on the other side. The row now sits in Work; the mapping still names Personal.
-        val moved = SyncFacts(sourceInTessera = true, mapped = true, targetAllowed = false, mappingTarget = personal.id, copyCalendarId = work.id)
+        val moved = SyncFacts(sourceInTessera = true, mapped = true, targetAllowed = false, mappingTarget = personal.key, copyCalendarId = work.id)
         assertEquals(refused(Refusal.MAPPING_STALE), check(Path.SYNC, Op.UPDATE, Table.EVENTS, work, sync = moved))
         assertEquals(refused(Refusal.MAPPING_STALE), check(Path.SYNC, Op.DELETE, Table.EVENTS, work, sync = moved))
         // Even when the calendar it moved to is itself allowed, the mapping is stale and nothing is written.
@@ -247,8 +247,29 @@ class CalendarWriteGuardTest {
         // A write aimed at the mapping's target while the copy sits elsewhere is stale too.
         assertEquals(refused(Refusal.MAPPING_STALE), check(Path.SYNC, Op.UPDATE, Table.EVENTS, personal, sync = moved.copy(targetAllowed = true)))
         // A new copy may not be started in another calendar while a mapping names one.
-        val elsewhere = SyncFacts(sourceInTessera = true, mapped = false, targetAllowed = true, mappingTarget = personal.id, copyCalendarId = personal.id)
+        val elsewhere = SyncFacts(sourceInTessera = true, mapped = false, targetAllowed = true, mappingTarget = personal.key, copyCalendarId = personal.id)
         assertEquals(refused(Refusal.MAPPING_STALE), check(Path.SYNC, Op.INSERT, Table.EVENTS, work, sync = elsewhere))
+    }
+
+    @Test fun aMappingNamesItsTargetByItsWholeKeyNotByTheIdAlone() {
+        // F16: the mapping's target was "Personal" under id 5. The account's calendars were re-made and id 5 is now
+        // another calendar of the same account (its own name differs): the copy's mapping is stale, whatever is allowed.
+        val reused = personal.copy(name = "team-cal")
+        assertEquals(allowed, check(Path.SYNC, Op.UPDATE, Table.EVENTS, personal, sync = mappedCopy(personal)))
+        for (op in Op.entries) {
+            assertEquals("$op", refused(Refusal.MAPPING_STALE), check(Path.SYNC, op, Table.EVENTS, reused, sync = mappedCopy(personal)))
+            assertEquals("$op", refused(Refusal.MAPPING_STALE), check(Path.SYNC, op, Table.REMINDERS, reused, sync = mappedCopy(personal)))
+        }
+        // A copy that is gone is not made again in the calendar that took the id either.
+        val recreate = SyncFacts(sourceInTessera = true, mapped = false, targetAllowed = true, mappingTarget = personal.key, copyCalendarId = null)
+        assertEquals(refused(Refusal.MAPPING_STALE), check(Path.SYNC, Op.INSERT, Table.EVENTS, reused, sync = recreate))
+        // The same id under another account, or another account type, is not the mapped calendar either.
+        assertEquals(refused(Refusal.MAPPING_STALE), check(Path.SYNC, Op.UPDATE, Table.EVENTS, personal.copy(accountName = "qa.work@example.com"), sync = mappedCopy(personal)))
+        assertEquals(refused(Refusal.MAPPING_STALE), check(Path.SYNC, Op.UPDATE, Table.EVENTS, personal.copy(accountType = "com.example"), sync = mappedCopy(personal)))
+        // A mapping from a file written before the key carried the name (null) names no calendar at all.
+        val old = mappedCopy(personal).copy(mappingTarget = personal.key.copy(name = null))
+        assertEquals(refused(Refusal.MAPPING_STALE), check(Path.SYNC, Op.UPDATE, Table.EVENTS, personal, sync = old))
+        assertEquals(refused(Refusal.MAPPING_STALE), check(Path.SYNC, Op.DELETE, Table.EVENTS, personal, sync = old))
     }
 
     @Test fun aSyncTargetThatIsGoneIsRefused() {
@@ -330,7 +351,10 @@ class CalendarWriteGuardTest {
 
     @Test fun everyCombinationOutsideTheFourCasesIsRefused() {
         val calendars = listOf(tessera, birthdays, personal, work, qaLocal, davNamedTessera, googleNamedBirthdays, personal.copy(accessLevel = 200), null)
-        val syncs = listOf(null, firstPush, mappedCopy(), mappedCopy(work), firstPush.copy(targetAllowed = false), mappedCopy().copy(sourceInTessera = false))
+        val syncs = listOf(
+            null, firstPush, mappedCopy(), mappedCopy(work), firstPush.copy(targetAllowed = false), mappedCopy().copy(sourceInTessera = false),
+            mappedCopy().copy(mappingTarget = personal.key.copy(name = "team-cal")), mappedCopy().copy(mappingTarget = personal.key.copy(name = null)),
+        )
         var allowedCount = 0
         for (path in Path.entries) for (op in Op.entries) for (table in Table.entries) for (calendar in calendars) for (adapter in listOf(false, true)) for (sync in syncs) {
             for (columns in listOf(emptySet(), setOf("state"), setOf("title"), setOf("_sync_id"), setOf("calendar_id"), setOf("_sync_id", "calendar_id"))) {
@@ -346,7 +370,7 @@ class CalendarWriteGuardTest {
                 val case2 = calendar == birthdays && adapter && path == Path.BIRTHDAYS && (table == Table.EVENTS || (table == Table.CALENDARS && op == Op.INSERT))
                 val case3 = path == Path.SYNC && !adapter && calendar != null && calendar.accountType != "LOCAL" && calendar.accessLevel >= 500 &&
                     (table == Table.EVENTS || table == Table.REMINDERS) && sync != null && sync.targetAllowed && sync.sourceInTessera &&
-                    (sync.mappingTarget == null || sync.mappingTarget == calendar.id) && (sync.copyCalendarId == null || sync.copyCalendarId == calendar.id) &&
+                    (sync.mappingTarget == null || sync.mappingTarget == calendar.key) && (sync.copyCalendarId == null || sync.copyCalendarId == calendar.id) &&
                     (sync.mapped || (op == Op.INSERT && table == Table.EVENTS))
                 val case4 = path == Path.RECEIVER && op == Op.UPDATE && table == Table.CALENDAR_ALERTS && columns == setOf("state") && !adapter
                 assertEquals("allowed outside the four cases: $path $op $table $calendar adapter=$adapter $sync $columns", true, case1 || case1Create || case2 || case3 || case4)

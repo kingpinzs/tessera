@@ -43,8 +43,13 @@ object CalendarWriteGuard {
 
     enum class Table { CALENDARS, EVENTS, REMINDERS, CALENDAR_ALERTS, OTHER }
 
-    /** A calendar row as the write layer has just re-read it. */
-    data class CalendarFacts(val id: Long, val accountName: String?, val accountType: String?, val accessLevel: Int)
+    /**
+     * A calendar row as the write layer has just re-read it. [name] is the provider's `Calendars.NAME`; with the id,
+     * the account name and the account type it is the calendar's [key], the form the store's lists and mappings hold.
+     */
+    data class CalendarFacts(val id: Long, val accountName: String?, val accountType: String?, val accessLevel: Int, val name: String?) {
+        val key: CalendarKey get() = CalendarKey(id, accountName.orEmpty(), accountType.orEmpty(), name.orEmpty())
+    }
 
     /**
      * What Sync's write is about, each fact re-read just before the guard is asked.
@@ -52,15 +57,16 @@ object CalendarWriteGuard {
      * @param sourceInTessera the local event being pushed is an event of the Tessera calendar
      * @param mapped `calendar_sync.json` maps the row this write touches — the copy, an exception of the copy, or
      *   their reminders. False for the first insert of a copy (there is nothing to map yet)
-     * @param targetAllowed the calendar's `_ID` + account name + account type is on the allowed list now
-     * @param mappingTarget the calendar id the mapping names as its target; null when no mapping exists yet
+     * @param targetAllowed the calendar's whole key — `_ID` + account name + account type + its own name — is on the
+     *   allowed list now
+     * @param mappingTarget the calendar the mapping names as its target, by its whole key; null when no mapping exists yet
      * @param copyCalendarId the copy's `calendar_id` as re-read from the provider; null when there is no copy row
      */
     data class SyncFacts(
         val sourceInTessera: Boolean,
         val mapped: Boolean,
         val targetAllowed: Boolean,
-        val mappingTarget: Long?,
+        val mappingTarget: CalendarKey?,
         val copyCalendarId: Long?,
     )
 
@@ -183,9 +189,10 @@ object CalendarWriteGuard {
         // Only the first insert of a copy may touch a row the store does not map.
         val firstInsert = r.op == Op.INSERT && r.table == Table.EVENTS && !sync.mapped
         if (!firstInsert && !sync.mapped) return refused(Refusal.NOT_ALLOWED)
-        // T16-12: the copy must still be where the mapping says, and the write must be to that calendar.
-        if (sync.mappingTarget != null && sync.mappingTarget != calendar.id) return refused(Refusal.MAPPING_STALE)
-        if (sync.copyCalendarId != null && sync.copyCalendarId != sync.mappingTarget) return refused(Refusal.MAPPING_STALE)
+        // T16-12: the copy must still be where the mapping says, and the write must be to that calendar — the calendar
+        // the mapping names by its whole key, not whichever calendar holds its id now (F16).
+        if (sync.mappingTarget != null && sync.mappingTarget != calendar.key) return refused(Refusal.MAPPING_STALE)
+        if (sync.copyCalendarId != null && sync.copyCalendarId != sync.mappingTarget?.id) return refused(Refusal.MAPPING_STALE)
         if (sync.mapped && sync.mappingTarget == null) return refused(Refusal.MAPPING_STALE)
         if (!sync.targetAllowed) return refused(Refusal.NOT_ALLOWED)
         // r3 D5: the provider accepts a normal insert whatever the level, and the copy would sit dirty and never upload.

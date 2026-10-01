@@ -150,7 +150,7 @@ object CalendarWrites {
     fun createLocalCalendar(context: Context, accountName: String, color: Int): Uri? {
         val request = Request(
             Path.LOCAL_CALENDAR, Op.INSERT, Table.CALENDARS,
-            CalendarFacts(0, accountName, CalendarContract.ACCOUNT_TYPE_LOCAL, CalendarContract.Calendars.CAL_ACCESS_OWNER),
+            CalendarFacts(0, accountName, CalendarContract.ACCOUNT_TYPE_LOCAL, CalendarContract.Calendars.CAL_ACCESS_OWNER, accountName),
             viaSyncAdapter = true,
         )
         check(CalendarWriteGuard.check(request) == Verdict.Allowed) { "the write guard refuses a calendar named $accountName" }
@@ -168,7 +168,7 @@ object CalendarWrites {
         val account = CalendarWriteGuard.BIRTHDAYS_ACCOUNT
         val request = Request(
             Path.BIRTHDAYS, Op.INSERT, Table.CALENDARS,
-            CalendarFacts(0, account, CalendarContract.ACCOUNT_TYPE_LOCAL, CalendarContract.Calendars.CAL_ACCESS_READ),
+            CalendarFacts(0, account, CalendarContract.ACCOUNT_TYPE_LOCAL, CalendarContract.Calendars.CAL_ACCESS_READ, displayName),
             viaSyncAdapter = true,
         )
         check(CalendarWriteGuard.check(request) == Verdict.Allowed) { "the write guard refuses the Birthdays calendar" }
@@ -403,8 +403,8 @@ object CalendarWrites {
             sync = SyncFacts(
                 sourceInTessera = source != null && CalendarWriteGuard.isTessera(source),
                 mapped = mapped,
-                targetAllowed = calendar != null && CalendarKey(calendar.id, calendar.accountName.orEmpty(), calendar.accountType.orEmpty()) in state.allowed,
-                mappingTarget = mapping?.target?.id,
+                targetAllowed = calendar != null && calendar.key in state.allowed,
+                mappingTarget = mapping?.target,
                 copyCalendarId = mapping?.let { eventRow(context, it.copyEventId)?.first },
             ),
         )
