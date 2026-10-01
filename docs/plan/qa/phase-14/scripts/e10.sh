@@ -54,8 +54,8 @@ ids_bounds "$ROW_DIR/03-edit-after-pan.xml" > "$ROW_DIR/03-edit-after-pan.ids"
 s="$(ring_since "$MARK")"; printf '%s\n' "$s" > "$ROW_DIR/03-slice.txt"
 assert_eq "pan in edit mode: no pod_bay" "no" "$(has_node "$ROW_DIR/03-edit-after-pan.xml" pod_bay)"
 assert_eq "pan in edit mode: dump unchanged (ids and bounds)" "same" "$(cmp -s "$ROW_DIR/02-edit.ids" "$ROW_DIR/03-edit-after-pan.ids" && echo same || echo "differs: $(diff "$ROW_DIR/02-edit.ids" "$ROW_DIR/03-edit-after-pan.ids" | head -4 | tr '\n' ' ')")"
-assert_absent "pan in edit mode: no [podbay] opened" "[podbay] opened" "$s"
-assert_absent "pan in edit mode: no [start] page=POD_BAY" "[start] page=POD_BAY" "$s"
+absent_in "pan in edit mode: no [podbay] opened" "[podbay] opened" "$s"
+absent_in "pan in edit mode: no [start] page=POD_BAY" "[start] page=POD_BAY" "$s"
 adb shell input keyevent KEYCODE_BACK   # exit edit mode (R6 §4.1.7)
 sleep 1.5
 dump_ui "$ROW_DIR/04-exited.xml"
@@ -117,8 +117,8 @@ assert_eq "name box dismissed" "no" "$(has_node "$ROW_DIR/11-dismissed.xml" fold
 assert_eq "the pivot stayed on Start: start_page" "yes" "$(has_node "$ROW_DIR/11-dismissed.xml" start_page)"
 assert_eq "the pivot stayed on Start: no pod_bay" "no" "$(has_node "$ROW_DIR/11-dismissed.xml" pod_bay)"
 assert_eq "the pivot stayed on Start: no app_list" "no" "$(has_node "$ROW_DIR/11-dismissed.xml" app_list)"
-assert_absent "no [start] page=APP_LIST in the slice" "[start] page=APP_LIST" "$s"
-assert_absent "no [start] page=POD_BAY in the slice" "[start] page=POD_BAY" "$s"
+absent_in "no [start] page=APP_LIST in the slice" "[start] page=APP_LIST" "$s"
+absent_in "no [start] page=POD_BAY in the slice" "[start] page=POD_BAY" "$s"
 
 restore_device_layout
 row_end

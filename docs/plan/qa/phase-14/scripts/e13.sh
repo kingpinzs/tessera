@@ -71,6 +71,7 @@ assert_eq "regress.sh exits 0" "0" "$(cat "$OUT/p02-regress.rc")"
 note "regress.sh: $(grep -E '^[0-9]+ passed, [0-9]+ failed' "$OUT/p02-REGRESS/REGRESS.txt" | tail -1)"
 assert_contains "regress.sh: 0 failed" " passed, 0 failed" "$(grep -E '^[0-9]+ passed, [0-9]+ failed' "$OUT/p02-REGRESS/REGRESS.txt" | tail -1)"
 assert_contains "regress.sh: the home-line grep passed (home: page START)" "PASS  the shell logged the home event" "$(cat "$OUT/p02-REGRESS/REGRESS.txt")"
+assert_ne "regress.sh: its ring slice covers a restore (assignSlotOnce lines in it)" "0" "$(grep -cF 'assignSlotOnce' "$OUT/p02-regress.ring.txt")"
 reg_assigned="$(grep -F 'assignSlotOnce' "$OUT/p02-regress.ring.txt" | grep -cF -- '-> assigned')"
 assert_eq "regress.sh: zero assignSlotOnce -> assigned after its restores (C-3)" "0" "$reg_assigned"
 
