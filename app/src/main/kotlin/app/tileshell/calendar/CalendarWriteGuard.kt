@@ -9,16 +9,18 @@ package app.tileshell.calendar
  * The owner, 2026-09-23: "I dont want to add anything to my work calander from my phone ever." So nothing is allowed
  * by default, and the allow set is exactly four cases:
  *
- *  1. the `Tessera` calendar (the shell's own LOCAL calendar): every event and reminder op of the editor and of Tess —
- *     as a normal app or, for its event rows, as the LOCAL account's own sync adapter — and the one insert that
- *     creates the calendar;
+ *  1. the `Tessera` calendar (the shell's own LOCAL calendar): every event and reminder op of the editor and of Tess
+ *     as a normal app; as the LOCAL account's own sync adapter only the two writes the provider needs it for — the
+ *     delete of an event row (editor, Tess) and the editor's update of an event's `_sync_id` alone; and the one
+ *     insert that creates the calendar;
  *  2. the `Tessera Birthdays` calendar: the Birthdays writer's path only, through the sync-adapter URI;
  *  3. an allowed Sync target: only a push, update or delete of a copy `calendar_sync.json` maps, only while the copy's
  *     re-read `calendar_id` equals the mapping's target, the target is still on the allowed list and its re-read
  *     access level is at least CONTRIBUTOR (500);
  *  4. the reminder receiver's update of `CalendarAlerts.STATE`, and no other column or table.
  *
- * Every other combination is refused.
+ * Every other combination is refused — and whatever the case, an update that names `calendar_id` among its columns
+ * (a row moved to another calendar) is refused for every path.
  */
 object CalendarWriteGuard {
     /** Who is writing: the code path, never a value a caller outside the shell can choose. */
@@ -111,11 +113,20 @@ object CalendarWriteGuard {
     /** CalendarContract.CalendarAlerts.STATE: the one column the receiver may set. */
     const val ALERT_STATE_COLUMN = "state"
 
+    /** CalendarContract.Events.CALENDAR_ID: no update of the shell may set it — a row never changes calendars. */
+    const val CALENDAR_ID_COLUMN = "calendar_id"
+
+    /** CalendarContract.Events._SYNC_ID: the one column the editor may set as Tessera's own sync adapter. */
+    const val SYNC_ID_COLUMN = "_sync_id"
+
     fun isTessera(c: CalendarFacts): Boolean = c.accountType == ACCOUNT_TYPE_LOCAL && c.accountName == TESSERA_ACCOUNT
 
     fun isBirthdays(c: CalendarFacts): Boolean = c.accountType == ACCOUNT_TYPE_LOCAL && c.accountName == BIRTHDAYS_ACCOUNT
 
     fun check(r: Request): Verdict {
+        // No write of the shell moves a row to another calendar: the provider would let a sync adapter re-home an
+        // event with one column, so the column is refused in every update, whoever asks and whatever the calendar.
+        if (r.op == Op.UPDATE && CALENDAR_ID_COLUMN in r.columns) return refused(Refusal.NOT_ALLOWED)
         // Case 4, and the receiver's only case: the state of an alert row. `calendar_alerts` is a table local to the
         // phone that no sync adapter uploads; any other column, table or op by the receiver is refused.
         if (r.path == Path.RECEIVER) {
@@ -137,10 +148,18 @@ object CalendarWriteGuard {
     private fun tessera(r: Request): Verdict = when (r.path) {
         // The calendar row itself is only ever created, by its one creator, as its own sync adapter.
         Path.LOCAL_CALENDAR -> allowIf(r.table == Table.CALENDARS && r.op == Op.INSERT && r.viaSyncAdapter)
-        // Events and their reminders: every op. An event row may also be written as the calendar's own sync adapter (a
-        // LOCAL account's adapter is the app itself): the provider pairs an occurrence's exception with its series by
-        // `_sync_id`, and removes a row for good only for its adapter (qa/phase-16/dev-cal/P_EXCEPTION*).
-        Path.EDITOR, Path.TESS -> allowIf(r.table == Table.EVENTS || (r.table == Table.REMINDERS && !r.viaSyncAdapter))
+        Path.EDITOR, Path.TESS -> when {
+            // As a normal app: events and their reminders, every op.
+            !r.viaSyncAdapter -> allowIf(r.table == Table.EVENTS || r.table == Table.REMINDERS)
+            // As the calendar's own sync adapter (a LOCAL account's adapter is the app itself), only the two writes
+            // the provider needs an adapter for (qa/phase-16/dev-cal/P_EXCEPTION*): it removes a row for good only
+            // for its adapter, and it pairs an occurrence's exception with its series by `_sync_id`, which the editor
+            // gives a series before its first exception. No insert, and no other column.
+            r.table != Table.EVENTS -> refused(Refusal.NOT_ALLOWED)
+            r.op == Op.DELETE -> Verdict.Allowed
+            r.op == Op.UPDATE -> allowIf(r.path == Path.EDITOR && r.columns == setOf(SYNC_ID_COLUMN))
+            else -> refused(Refusal.NOT_ALLOWED)
+        }
         else -> refused(Refusal.NOT_ALLOWED)
     }
 
