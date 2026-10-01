@@ -105,8 +105,10 @@ object PeopleIntents {
             ACTION_INSERT ->
                 if (path == listOf("contacts") || path == listOf("raw_contacts") || (data == null && type == TYPE_CONTACT_DIR)) PeopleRoute.Insert(prefill(extras))
                 else open(extras)
+            // As INSERT: the contacts URI asks for it, or the contact type on an intent with no data. The type on some
+            // other URI — another provider's, a file — is the plain list, and nothing the caller suggested is kept.
             ACTION_INSERT_OR_EDIT ->
-                if (type == TYPE_CONTACT_ITEM || path == listOf("contacts")) PeopleRoute.InsertOrEdit(prefill(extras)) else open(extras)
+                if (path == listOf("contacts") || (data == null && type == TYPE_CONTACT_ITEM)) PeopleRoute.InsertOrEdit(prefill(extras)) else open(extras)
             ACTION_PICK -> when {
                 type == TYPE_PHONE_DIR || path == listOf("data", "phones") -> PeopleRoute.Pick(PickKind.PHONE)
                 type == TYPE_CONTACT_DIR || path == listOf("contacts") -> PeopleRoute.Pick(PickKind.CONTACT)

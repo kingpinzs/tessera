@@ -130,6 +130,22 @@ class PeopleIntentsTest {
         }
     }
 
+    @Test fun insertOrEditByTypeIsOnlyForAnIntentWithNoData() {
+        // The same rule as INSERT's: the contact type on another provider's URI, a file, or some other contacts table
+        // is the plain list, with nothing of what the caller suggested.
+        val suggested = arrayOf<Pair<String, Any?>>("name" to "Intruder", "phone" to "5550002")
+        for (data in listOf(
+            "content://evil.example/contacts", "content://com.android.calendar/events", "file:///sdcard/x.vcf", "content://com.android.contactscontacts",
+            "$contacts/groups", "$contacts/contacts/7", "$contacts/raw_contacts",
+        )) {
+            assertEquals(data, PeopleRoute.Open(null), route(PeopleIntents.ACTION_INSERT_OR_EDIT, data, PeopleIntents.TYPE_CONTACT_ITEM, *suggested))
+        }
+        val prefilled = PeopleRoute.InsertOrEdit(ContactPrefill(name = "Intruder", phone = "5550002"))
+        assertEquals(prefilled, route(PeopleIntents.ACTION_INSERT_OR_EDIT, null, PeopleIntents.TYPE_CONTACT_ITEM, *suggested))
+        assertEquals(prefilled, route(PeopleIntents.ACTION_INSERT_OR_EDIT, "$contacts/contacts", PeopleIntents.TYPE_CONTACT_ITEM, *suggested))
+        assertEquals(prefilled, route(PeopleIntents.ACTION_INSERT_OR_EDIT, "$contacts/contacts", PeopleIntents.TYPE_CONTACT_DIR, *suggested))
+    }
+
     @Test fun aLookupUrisFourthSegmentIsAPositiveRowIdOrTheUriIsRefused() {
         // `lookup/<key>/<id>` names a contact; `lookup/<key>/data`, `/photo`, `/entities` and an id of 0 or less do not.
         for (tail in listOf("0", "-3", "abc", "data", "photo", "entities", "7x")) assertOpensTheList("$contacts/contacts/lookup/0r3-2A4C/$tail")
