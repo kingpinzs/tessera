@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Calendar's static App Shortcuts (phase 16 build task 9, phase 11 Q1's standing rule; Decisions 2026-09-23): Agenda,
+  Day, Month and New event, ranks 0–3 in file order. Each opens CalendarActivity with the extra "page" (the key
+  SettingsActivity.EXTRA_PAGE uses); CalendarIntents reads it. W10M had no Month page (r11/calendar.md K5), so "month"
+  opens Agenda with the month drop-down open (T16-13); "new_event" opens the editor, which saves nothing until Save.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="agenda"
+        android:enabled="true"
+        android:icon="@drawable/ic_calendar_glyph"
+        android:shortcutShortLabel="@string/calendar_shortcut_agenda"
+        android:shortcutLongLabel="@string/calendar_shortcut_agenda">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.calendar.CalendarActivity">
+            <extra android:name="page" android:value="agenda" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="day"
+        android:enabled="true"
+        android:icon="@drawable/ic_calendar_glyph"
+        android:shortcutShortLabel="@string/calendar_shortcut_day"
+        android:shortcutLongLabel="@string/calendar_shortcut_day">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.calendar.CalendarActivity">
+            <extra android:name="page" android:value="day" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="month"
+        android:enabled="true"
+        android:icon="@drawable/ic_calendar_glyph"
+        android:shortcutShortLabel="@string/calendar_shortcut_month"
+        android:shortcutLongLabel="@string/calendar_shortcut_month">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.calendar.CalendarActivity">
+            <extra android:name="page" android:value="month" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="new_event"
+        android:enabled="true"
+        android:icon="@drawable/ic_calendar_glyph"
+        android:shortcutShortLabel="@string/calendar_shortcut_new_event"
+        android:shortcutLongLabel="@string/calendar_shortcut_new_event">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.calendar.CalendarActivity">
+            <extra android:name="page" android:value="new_event" />
+        </intent>
+    </shortcut>
+</shortcuts>
