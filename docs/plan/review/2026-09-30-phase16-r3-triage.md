@@ -49,3 +49,22 @@ negatives in E22. **V19** H13 split into named accept rows. **V20 / V21** the ty
 Verify at build start (reviewers' API facts from memory): the reminder broadcast's data URI form (D6); whether the provider
 gates an app insert on the calendar's access level (D5); whether CalendarProvider drops non-LOCAL calendars with no account
 when its process restarts (V11).
+
+## Applied 2026-09-30 (opus doc writer; only phase-16-inbox-calendar-people.md was edited: 974 → 1702 lines)
+
+Every ruling and every accepted fix is in the doc (its hand-back lists each id and where). Decisions the writer made
+itself, for Jeremy to overrule at FINAL or at the build:
+- Q-16-1: the take-over is built as a `takeOver` argument only the two markers pass; the line naming the replaced app is
+  in the in-memory ring only (no persistence — the replaced app stays in the slot's picker). The guard keeps a device proof
+  on `slot:music:v1` (a new "guard leg" in E1) plus a JVM test.
+- Q-16-3: a contact made of editable and read-only raw contacts gets Edit for its editable part and no Delete (H21); the
+  "Can edit" list is the distinct accounts in `raw_contacts`, stored in `people_edit.json` (no AccountManager read);
+  "phone-only" is compared against `RawContacts.getLocalAccountName/Type` rather than a literal null, because Samsung may
+  name its local account (from memory: Verify item 4, phone row P8).
+- D14: 29 February is written as the last day of February in other years (from memory: Verify item 5, asserted in E17).
+- D1: Tess deleting a synced event deletes "here" only.
+- V16 against D10: no shell file for the vCard share, so the row reads the logged Contacts-provider vCard URI.
+- E6 gains a forged-poke leg so D6's "the broadcast is a poke only" can fail.
+- Not edited (one-file limit), owed at phase 16's build: `build-prompt.md:21`'s trust list, phase 14's E3 precondition
+  and driver (Change Log then).
+- "Verify at build start" in the doc holds five items: the triage's three and the writer's two.
