@@ -70,6 +70,7 @@ assert_eq "three QA events inserted" "3" "$(grep -c '^Row:' "$ROW_DIR/agenda-eve
 sleep 4
 MARK="$(ring_mark)"
 open_bay_at agenda "$ROW_DIR/agenda.xml"
+assert_rows_match "$ROW_DIR/agenda.xml" agenda "$(ring_since "$ROW_MARK")"
 screencap "$ROW_DIR/agenda.png"
 assert_eq "agenda row 0" "All day  QA all day" "$(row_text "$ROW_DIR/agenda.xml" pod_row:agenda:0)"
 assert_eq "agenda row 1" "$(fmt_time "$OV")  QA overlap one" "$(row_text "$ROW_DIR/agenda.xml" pod_row:agenda:1)"
@@ -104,6 +105,7 @@ sleep 1
 adb shell input keyevent KEYCODE_HOME
 sleep 5
 open_bay_at weather "$ROW_DIR/weather.xml"
+assert_rows_match "$ROW_DIR/weather.xml" weather "$(ring_since "$ROW_MARK")"
 screencap "$ROW_DIR/weather.png"
 w="$(for n in 0 1 2 3 4; do row_text "$ROW_DIR/weather.xml" "pod_row:weather:$n"; done | tr '\n' '|')"
 note "weather rows: $w"
@@ -172,6 +174,7 @@ adb shell input keyevent KEYCODE_HOME
 sleep 3
 MARK="$(ring_mark)"
 open_bay_at nowplaying "$ROW_DIR/np.xml"
+assert_rows_match "$ROW_DIR/np.xml" nowplaying "$(ring_since "$ROW_MARK")"
 screencap "$ROW_DIR/np-playing.png"
 assert_eq "now playing: the first fixture's title" "Bloom" "$(row_text "$ROW_DIR/np.xml" pod_row:nowplaying:0)"
 assert_eq "now playing: its artist" "Radiohead" "$(row_text "$ROW_DIR/np.xml" pod_subline:nowplaying:0)"
@@ -290,6 +293,7 @@ sleep 2
 cortana_close
 MARK="$(ring_mark)"
 open_bay_at reminders "$ROW_DIR/reminders-pod.xml"
+assert_rows_match "$ROW_DIR/reminders-pod.xml" reminders "$(ring_since "$ROW_MARK")"
 screencap "$ROW_DIR/reminders-pod.png"
 # The typed titles pass through phase 03's matcher, which lower-cases a request as it does a transcript: compared
 # case-insensitively (the Reminders page shows the same text).

@@ -149,3 +149,22 @@ assert_rms_audible() { # label rms
 
 # The [match] line in a slice.
 match_line() { printf '%s\n' "$1" | grep -F '[match]' | tail -1 | sed 's/.*\[match\] //'; }
+
+# ---- gate review r2 (2026-09-30) -------------------------------------------------------------------------------------
+# An absence check that cannot pass on an unreadable ring: the slice must hold at least one ring line (a `wall=` stamp)
+# before "it does not contain X" means anything.
+absent_in() { # name needle slice
+  if printf '%s\n' "$3" | grep -q 'wall='; then
+    assert_absent "$1" "$2" "$3"
+  else
+    _verdict FAIL "$1" "the ring slice is empty or unreadable, so the absence proves nothing"
+  fi
+}
+
+# r3 V15: the pod's last `<n> rows` line equals the count of its pod_row nodes in a dump taken after scroll_to_node.
+assert_rows_match() { # dump.xml pod-id slice
+  local n line
+  n="$(grep -oE "resource-id=\"pod_row:$2:[0-9]+\"" "$1" | sort -u | wc -l | tr -d ' ')"
+  line="$(printf '%s\n' "$3" | grep -F "[podbay] pod $2: " | tail -1 | sed 's/.*\[podbay\] //')"
+  assert_eq "pod $2: its rows line matches the dump's pod_row nodes" "pod $2: $n rows" "$line"
+}

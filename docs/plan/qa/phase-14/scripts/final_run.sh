@@ -12,7 +12,7 @@ QA="$(cd "$HERE/.." && pwd)"
 OUT="$QA/FINAL"; mkdir -p "$OUT"
 apk_now="$(adb shell md5sum "$(adb shell pm path app.tileshell | head -1 | tr -d '\r' | sed 's/^package://')" | cut -c1-16 | tr -d '\r')"
 echo "final APK on the device: $apk_now ($(date -Is))" | tee "$OUT/final-run.txt"
-rows=("$@"); [ ${#rows[@]} -eq 0 ] && rows=(E1 E2 E3 E4 E5 E6 E7 E8 E9 E10 E11 E12 E14 E15 E17 E16)
+rows=("$@"); [ ${#rows[@]} -eq 0 ] && rows=(E1 E2 E3 E4 E5 E6 E7 E8 E9 E10 E11 E12 E13 E14 E15 E17 EDGE E16)
 for row in "${rows[@]}"; do
   driver="$HERE/$(echo "$row" | tr 'A-Z' 'a-z').sh"
   if [ -d "$QA/$row" ] && [ -f "$QA/$row/$row.txt" ]; then

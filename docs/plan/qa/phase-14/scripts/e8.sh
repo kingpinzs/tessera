@@ -58,7 +58,9 @@ assert_eq "locked: the Unlock card" "yes" "$(has_node "$ROW_DIR/02-card.xml" cor
 assert_eq "locked: its caption restates the request" "Open the pod bay" "$(node_text "$ROW_DIR/02-card.xml" cortana_card_caption)"
 assert_eq "locked: reply_since MARK" "Unlock your phone to continue." "$VS_REPLY"
 assert_eq "locked: the keyguard is still showing" "isKeyguardShowing=true" "$(keyguard)"
-assert_absent "locked: no [podbay] opened" "[podbay] opened" "$(ring_since "$VS_MARK")"
+absent_in "locked: no [podbay] opened" "[podbay] opened" "$(ring_since "$VS_MARK")"
+# The window read can say yes: Tess is showing before the tap (gate review r2 — it was only ever asserted "no").
+assert_eq "Tess's window is showing before the tap (dumpsys window)" "yes" "$(session_window)"
 
 MARK2="$(ring_mark)"
 tap_node "$ROW_DIR/02-card.xml" cortana_card_button:unlock
@@ -78,6 +80,15 @@ adb shell input keyevent KEYCODE_ENTER
 sleep 20
 s="$(ring_since "$MARK2")"; printf '%s\n' "$s" > "$ROW_DIR/03-unlock-slice.txt"
 assert_eq "unlocked" "isKeyguardShowing=false" "$(keyguard)"
+# Nothing is said or opened between the Unlock tap and the unlock itself (gate review r2): the doors line and the pane
+# come after `unlock bridge: dismissed`, never before it.
+dis_wall="$(wall_of_first "$s" "unlock bridge: dismissed")"
+spk_wall="$(wall_of_first "$s" "[speech] speak[")"
+pod_wall="$(wall_of_first "$s" "[podbay] opened")"
+note "dismissed wall=$dis_wall; first speak wall=$spk_wall; first [podbay] opened wall=$pod_wall"
+assert_ne "the unlock was delivered (unlock bridge: dismissed)" "" "$dis_wall"
+assert_eq "nothing was said before the unlock" "yes" "$([ -n "$dis_wall" ] && [ -n "$spk_wall" ] && [ "$spk_wall" -ge "$dis_wall" ] && echo yes || echo no)"
+assert_eq "nothing opened before the unlock" "yes" "$([ -n "$dis_wall" ] && [ -n "$pod_wall" ] && [ "$pod_wall" -gt "$dis_wall" ] && echo yes || echo no)"
 assert_eq "after unlock: reply_since MARK2 is the doors line" "$DOORS" "$(reply_since "$MARK2")"
 uid="$(printf '%s\n' "$s" | grep -F '[speech] speak[' | grep -F "text=\"$DOORS\"" | head -1 | sed -E 's/.*speak\[([^]]+)\].*/\1/')"
 done_wall="$(wall_of_first "$s" "[speech] speaking done $uid cancelled=false")"

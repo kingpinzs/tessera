@@ -38,7 +38,7 @@ dump_ui "$ROW_DIR/02-after-wake.xml"
 s="$(ring_since "$MARK")"; printf '%s\n' "$s" > "$ROW_DIR/02-slice.txt"
 assert_eq "screen off and on: still the pod bay" "yes" "$(has_node "$ROW_DIR/02-after-wake.xml" pod_bay)"
 assert_eq "screen off and on: no start_page" "no" "$(has_node "$ROW_DIR/02-after-wake.xml" start_page)"
-assert_absent "screen off and on: the pod bay did not close" "[podbay] closed" "$s"
+absent_in "screen off and on: the pod bay did not close" "[podbay] closed" "$s"
 
 # (2) With a PIN: sleep, wake (keyguard kept), unlock.
 adb shell locksettings set-disabled false >/dev/null 2>&1
@@ -62,7 +62,7 @@ assert_eq "unlocked" "isKeyguardShowing=false" "$(keyguard)"
 dump_ui "$ROW_DIR/04-after-unlock.xml"
 s="$(ring_since "$MARK")"; printf '%s\n' "$s" > "$ROW_DIR/04-slice.txt"
 assert_eq "after the PIN unlock: still the pod bay" "yes" "$(has_node "$ROW_DIR/04-after-unlock.xml" pod_bay)"
-assert_absent "after the PIN unlock: the pod bay did not close" "[podbay] closed" "$s"
+absent_in "after the PIN unlock: the pod bay did not close" "[podbay] closed" "$s"
 screencap "$ROW_DIR/04-after-unlock.png"
 restore
 pin_set=no

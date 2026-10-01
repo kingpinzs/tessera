@@ -70,7 +70,7 @@ MK="$(ring_mark)"
 swipe_left 2; swipe_left 2; swipe_right 2; swipe_right 2; swipe_left 2; swipe_left 2; swipe_right 2
 s="$(ring_since "$MK")"; printf '%s\n' "$s" > "$ROW_DIR/slice-shared-key.txt"
 note "pages: $(pages_in "$s")"
-assert_absent "the shared key: no static backdrop rebuilt" "[fluent] static backdrop rebuilt for" "$s"
+absent_in "the shared key: no static backdrop rebuilt" "[fluent] static backdrop rebuilt for" "$s"
 
 # ---- acrylic off
 ring_save
