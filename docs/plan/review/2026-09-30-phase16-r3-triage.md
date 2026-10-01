@@ -9,8 +9,8 @@ applied to the doc as an agent fix or put to Jeremy; nothing goes to a round 4.
 
 | # | from | question | status |
 |---|---|---|---|
-| Q-16-1 | D9 | On the update that brings the shell's own Calendar and People: a CALENDAR / PEOPLE slot already pointed at an app by hand — is that pick kept (the doc's guard, an agent decision of 2026-09-22), or does the new app take the slot once | ASKED 2026-09-30 |
-| Q-16-2 | D2 | A local event that has been synced to an account calendar exists twice in the provider (the Tessera event and its copy): which one do the views, the tile, the Agenda pod, Tess and the reminders show | queued |
+| Q-16-1 | D9 | On the update that brings the shell's own Calendar and People: a CALENDAR / PEOPLE slot already pointed at an app by hand — is that pick kept (the doc's guard, an agent decision of 2026-09-22), or does the new app take the slot once | ANSWERED 2026-09-30: "(A)" — the shell's Calendar and People take their slots ONCE on this update (as Music took its slot); from then on a pick made by hand is always kept, and the slot can be pointed back in Settings > Tile apps. Rejected: B (keep the earlier pick, a phone row to re-point), C (a prompt on first Start). The 2026-09-22 agent decision (the guard keeps an existing pick on this update) is replaced for these two markers; the guard stays for every later seed |
+| Q-16-2 | D2 | A local event that has been synced to an account calendar exists twice in the provider (the Tessera event and its copy): which one do the views, the tile, the Agenda pod, Tess and the reminders show | ASKED 2026-09-30 |
 | Q-16-3 | D13 | Does "never work" reach People: are contacts of a work account editable / deletable in People | queued |
 
 ## Agent fixes (accepted; applied to the doc after the answers, in one edit)
