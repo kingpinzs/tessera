@@ -136,7 +136,8 @@ class CalendarActivity : ComponentActivity() {
                 addAction(Intent.ACTION_TIME_CHANGED)
                 addAction(Intent.ACTION_DATE_CHANGED)
             },
-            Context.RECEIVER_EXPORTED,
+            // The three are broadcasts only the system sends; nothing outside it needs to reach this receiver (F14).
+            Context.RECEIVER_NOT_EXPORTED,
         )
         TimeZone.setDefault(null)
         clock++
@@ -163,7 +164,9 @@ class CalendarActivity : ComponentActivity() {
 
     private fun route(intent: Intent?) {
         val route = if (intent == null) CalendarRoute.Open(null) else CalendarIntents.route(intent.action, intent.dataString, resolvedType(intent), IntentExtras(intent))
-        Diagnostics.add("calendar", "open ${intent?.action ?: "no action"} -> ${describe(route)}")
+        // Any app can start this activity with any action string and any extras: the line is built from the handled
+        // action's own name (else the word "other") and the route's numbers, never from what a caller typed (F4).
+        Diagnostics.add("calendar", CalendarIntents.openLine(intent?.action, route))
         nav.open(route)
     }
 
@@ -173,15 +176,6 @@ class CalendarActivity : ComponentActivity() {
 
     private fun goHome() {
         startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-    }
-
-    /** The route without what the caller typed into it: a title or a note never reaches the diagnostics ring. */
-    private fun describe(route: CalendarRoute): String = when (route) {
-        is CalendarRoute.Open -> "open page=${route.page?.id ?: "default"}"
-        is CalendarRoute.Time -> "time ${route.millis}"
-        is CalendarRoute.Event -> "event ${route.id}"
-        is CalendarRoute.Edit -> "edit ${route.id}"
-        is CalendarRoute.Insert -> "insert (prefilled, unsaved)"
     }
 
     /**
