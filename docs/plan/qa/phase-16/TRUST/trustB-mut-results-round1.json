@@ -1,0 +1,339 @@
+[
+ [
+  "C2 time(): upper bound removed",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarIntentsTest.insertBoundsWhatACallerSuggests"
+  ]
+ ],
+ [
+  "C3 time(): lower bound removed",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarIntentsTest.aMalformedOrForeignUriOpensToday"
+  ]
+ ],
+ [
+  "C4 authority prefix without the trailing slash",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "C5 EDIT accepts an id <= 0",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarIntentsTest.aMalformedOrForeignUriOpensToday"
+  ]
+ ],
+ [
+  "C6 INSERT by type even when the data is a foreign URI",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "C7 INSERT keeps an end before its start",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarIntentsTest.insertBoundsWhatACallerSuggests"
+  ]
+ ],
+ [
+  "C8 allDay true unless the caller says false",
+  "CAUGHT (gradle rc=1, 1111 tests run, 3 failed)",
+  [
+   "CalendarIntentsTest.insertBoundsWhatACallerSuggests",
+   "CalendarIntentsTest.insertNeverCarriesACalendar",
+   "CalendarIntentsTest.insertPrefillsTheEditor"
+  ]
+ ],
+ [
+  "C9 VIEW accepts an event id <= 0",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarIntentsTest.aMalformedOrForeignUriOpensToday"
+  ]
+ ],
+ [
+  "C10 EDIT on any two-segment path (time URI too)",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarIntentsTest.aMalformedOrForeignUriOpensToday"
+  ]
+ ],
+ [
+  "C11 fragment not stripped from the path",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "C12 query not stripped from the path",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarIntentsTest.aQueryOrFragmentOnTheUriIsNotPartOfTheId"
+  ]
+ ],
+ [
+  "C13 prefill text not trimmed",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarIntentsTest.insertBoundsWhatACallerSuggests"
+  ]
+ ],
+ [
+  "C14 INSERT on any calendar-provider path",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarIntentsTest.insertOnAnythingButEventsOpensToday"
+  ]
+ ],
+ [
+  "C15 VIEW event: begin/end extras not range-checked",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "C16 VIEW on an event routes to the editor (Edit)",
+  "CAUGHT (gradle rc=1, 1111 tests run, 2 failed)",
+  [
+   "CalendarIntentsTest.aQueryOrFragmentOnTheUriIsNotPartOfTheId",
+   "CalendarIntentsTest.viewOnAnEventOpensItsPageWithTheOccurrenceWhenGiven"
+  ]
+ ],
+ [
+  "P1 field length cap removed",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "PeopleIntentsTest.insertBoundsWhatACallerSuggests"
+  ]
+ ],
+ [
+  "P2 contacts/<id> accepts id <= 0",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "PeopleIntentsTest.aMalformedOrForeignUriOpensTheList"
+  ]
+ ],
+ [
+  "P3 lookup key length bound removed",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "PeopleIntentsTest.aMalformedOrForeignUriOpensTheList"
+  ]
+ ],
+ [
+  "P4 any PICK is a contact pick",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "PeopleIntentsTest.pickNamesOnlyWhatKindOfUriGoesBack"
+  ]
+ ],
+ [
+  "P5 a phone PICK answers as a contact PICK",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "PeopleIntentsTest.pickNamesOnlyWhatKindOfUriGoesBack"
+  ]
+ ],
+ [
+  "P6 authority prefix without the trailing slash",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "P7 INSERT by type even when the data is a foreign URI",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "P8 INSERT_OR_EDIT whatever the type or data",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "P9 lookup/<key>/<id> accepts id <= 0",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "P10 lookup path of any length >= 3",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "PeopleIntentsTest.aMalformedOrForeignUriOpensTheList"
+  ]
+ ],
+ [
+  "P11 query not stripped from the path",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "P12 fragment not stripped from the path",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "P13 contacts/<x>/<y> taken as a lookup key whatever <x> is",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "P14 VIEW on a contact routes to Edit",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "PeopleIntentsTest.viewOnAContactOrLookupUriOpensTheCard"
+  ]
+ ],
+ [
+  "P15 INSERT on any contacts-provider path",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "PeopleIntentsTest.aMalformedOrForeignUriOpensTheList"
+  ]
+ ],
+ [
+  "P16 prefill text not trimmed",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "PeopleIntentsTest.insertBoundsWhatACallerSuggests"
+  ]
+ ],
+ [
+  "R1 plan ignores the notified set",
+  "CAUGHT (gradle rc=1, 1111 tests run, 2 failed)",
+  [
+   "CalendarRulesTest.aSecondOrForgedPokeForAHandledAlertDoesNothing",
+   "CalendarRulesTest.aNewAlertThatInheritedAHandledRowsIdStillNotifies"
+  ]
+ ],
+ [
+  "R2 plan notifies a synced copy",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarRulesTest.aSyncedCopysAlertIsSkippedAndItsOriginalsIsNotified"
+  ]
+ ],
+ [
+  "R3 plan: copy test inverted",
+  "CAUGHT (gradle rc=1, 1111 tests run, 3 failed)",
+  [
+   "CalendarRulesTest.aSyncedCopysAlertIsSkippedAndItsOriginalsIsNotified",
+   "CalendarRulesTest.aRowAnotherAppAlreadyFiredIsStillNotified",
+   "CalendarRulesTest.oneNotificationPerDueAlertNotYetHandled"
+  ]
+ ],
+ [
+  "R4 alert key without the alarm time",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "R5 alert key without the begin",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "R6 alert key on the row id",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarRulesTest.aNewAlertThatInheritedAHandledRowsIdStillNotifies"
+  ]
+ ],
+ [
+  "R7 notified set never shrinks",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarRulesTest.theNotifiedSetKeepsOnlyAlertsThatCanStillComeBack"
+  ]
+ ],
+ [
+  "R8 notified set = every live alert (a failed post is recorded too)",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "R9 notified set drops what was just added",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarRulesTest.theNotifiedSetKeepsOnlyAlertsThatCanStillComeBack"
+  ]
+ ],
+ [
+  "G1 receiver may set any columns",
+  "CAUGHT (gradle rc=1, 1111 tests run, 2 failed)",
+  [
+   "CalendarWriteGuardTest.everyCombinationOutsideTheFourCasesIsRefused",
+   "CalendarWriteGuardTest.anyOtherWriteByTheReceiverIsRefused"
+  ]
+ ],
+ [
+  "G2 receiver may use the sync-adapter URI",
+  "CAUGHT (gradle rc=1, 1111 tests run, 2 failed)",
+  [
+   "CalendarWriteGuardTest.everyCombinationOutsideTheFourCasesIsRefused",
+   "CalendarWriteGuardTest.anyOtherWriteByTheReceiverIsRefused"
+  ]
+ ],
+ [
+  "G3 receiver may insert/delete alerts",
+  "CAUGHT (gradle rc=1, 1111 tests run, 2 failed)",
+  [
+   "CalendarWriteGuardTest.everyCombinationOutsideTheFourCasesIsRefused",
+   "CalendarWriteGuardTest.anyOtherWriteByTheReceiverIsRefused"
+  ]
+ ],
+ [
+  "G4 receiver may update any table",
+  "CAUGHT (gradle rc=1, 1111 tests run, 2 failed)",
+  [
+   "CalendarWriteGuardTest.everyCombinationOutsideTheFourCasesIsRefused",
+   "CalendarWriteGuardTest.anyOtherWriteByTheReceiverIsRefused"
+  ]
+ ],
+ [
+  "G5 receiver may set state plus other columns",
+  "CAUGHT (gradle rc=1, 1111 tests run, 1 failed)",
+  [
+   "CalendarWriteGuardTest.anyOtherWriteByTheReceiverIsRefused"
+  ]
+ ],
+ [
+  "X1 PICK result grants write + persistable + prefix",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "X2 share stream = the whole contacts table",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "X3 reminder notification VISIBILITY_PUBLIC",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "X4 reminder PendingIntents mutable",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "X5 exported EDIT opens the editor for any calendar",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "X6 the caller's title written to the diagnostics ring",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "X7 public (lock-screen) version carries the event title",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ],
+ [
+  "X8 the swipe receiver exported",
+  "SURVIVED (gradle rc=0, 1111 tests run, 0 failed)",
+  []
+ ]
+]
