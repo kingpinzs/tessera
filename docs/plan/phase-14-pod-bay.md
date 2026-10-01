@@ -506,7 +506,7 @@ the swipes noted in the log).
   phase 11's `q.sh` `ensure_start_page` (r3 V1) — → `start_page` alone; phase 01 E2 (Home shows Start), E12
   (swipe left → app list, search, jump grid), E19 (bars on all shell screens), E20 (Back on Start); with `AUDIO_ROUTE=emu` exported
   (phase 03's `e3.sh` and `e10.sh` speak only through `speak.sh`, `e3.sh:14,38`, `e10.sh:65-110`) phase 03 E3 (an utterance outside
-  the list is still not understood), E5 (typed request and the allow-list), E10 (locked commands; "now with the pod-bay phrase" struck 2026-09-29, r3 V22 — E8 proves the locked phrase and phase
+  the list is still not understood), E5 (typed request and the allow-list), E10 (ruled 2026-09-30, Q-E10 (a), INDEX Change Log: run unchanged, and it passes here when no check that passed in phase 03's own last run fails now) (locked commands; "now with the pod-bay phrase" struck 2026-09-29, r3 V22 — E8 proves the locked phrase and phase
   03's `e10.sh` is not edited);
   `utterances.py build` succeeds with the five new ids; after every re-run that opened an app, `am force-stop app.tileshell` + Home
   (C-6), and after every `layout_restore`, zero `assignSlotOnce … -> assigned` lines (C-3)
@@ -555,7 +555,11 @@ the left-edge swipe is One UI's Back, and the hint area does not take the pan; P
 Samsung media session (Samsung Music, YouTube Music) in Now playing with its transport; ~~P4 (only if Q1 is A or C) Samsung's own
 widgets bind, draw and update in the bay~~ ruled out 2026-09-23 (Q1 B, T14-1); P5 `KEYCODE_HOME` from the pod bay → Start,
 `[podbay] closed by home` (the HOME-intent path, which this AVD does not re-deliver to a resumed home activity, T11-16; r3 D3 /
-V1 — numbered P5 because P4 is the struck widget row)
+V1 — numbered P5 because P4 is the struck widget row); added 2026-09-30 (INDEX Change Log): P-L14-1 Tess over the lock screen, the microphone open, speak and tap Unlock
+mid-sentence — after the PIN the request on the card runs and nothing is answered behind the PIN pad; and, by Jeremy's ruling,
+the Edge cases the AVD cannot drive: P6 Home while the pane is mid-swipe; P7 a reminder firing, and one completed, while the pane
+shows; P8 a place and a person reminder's subline; P9 a second request in one Tess session; P10 a pan during a live flip; P11 Show
+more tiles, theme, accent, the X5 slider; P12 a pod switched off while its feed updates
 
 **NEEDS-HUMAN (all accept rows):** H1 the pod bay as a whole (P4 design, no W10M original); H2 the pod frame — type-only Metro
 cards, spacing, accent headers (P4); H3 each pod's content choices, caps and the paused-session rule for Now playing (P4); H4 the
