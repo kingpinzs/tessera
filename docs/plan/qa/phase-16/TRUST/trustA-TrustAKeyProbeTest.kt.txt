@@ -1,0 +1,41 @@
+package app.tileshell.trustA
+
+import app.tileshell.calendar.CalendarInfo
+import app.tileshell.calendar.CalendarKey
+import app.tileshell.calendar.CalendarSync
+import app.tileshell.calendar.CalendarWriteGuard
+import app.tileshell.calendar.CalendarWriteGuard.Op
+import app.tileshell.calendar.CalendarWriteGuard.Path
+import app.tileshell.calendar.CalendarWriteGuard.Request
+import app.tileshell.calendar.CalendarWriteGuard.SyncFacts
+import app.tileshell.calendar.CalendarWriteGuard.Table
+import app.tileshell.calendar.SyncState
+import app.tileshell.calendar.SyncStateRules
+import org.junit.Test
+import java.io.File
+
+/** Reviewer A's scratch probe (never committed): what the product rules say of a calendar that came back under a reused key. */
+class TrustAKeyProbeTest {
+    @Test fun aDifferentCalendarOfTheSameAccountUnderAReusedId() {
+        val out = StringBuilder()
+        val account = "me@example.com"
+        // The user ticked "Personal" (id 3). The account's calendars were then dropped and re-made; id 3 is now "Team (shared)".
+        val ticked = CalendarKey(3, account, "com.google")
+        var state = SyncStateRules.setAllowed(SyncState(), ticked, true)
+        val nowOnPhone = listOf(
+            CalendarInfo(3, account, "com.google", "Team (shared)", null, 700),
+            CalendarInfo(4, account, "com.google", "Personal", null, 700),
+        )
+        // The next prune sees the provider after both changes (one notification, or the shell's process was not running between them).
+        state = SyncStateRules.prune(state, nowOnPhone.mapTo(HashSet()) { it.key })
+        out.append("allowed after the prune: ${state.allowed}\n")
+        out.append("Sync picker offers: ${CalendarSync.targets(nowOnPhone, state).map { "${it.id}=${it.displayName}" }}\n")
+        val team = nowOnPhone[0]
+        val verdict = CalendarWriteGuard.check(
+            Request(Path.SYNC, Op.INSERT, Table.EVENTS, team.facts,
+                sync = SyncFacts(sourceInTessera = true, mapped = false, targetAllowed = team.key in state.allowed, mappingTarget = null, copyCalendarId = null)),
+        )
+        out.append("guard on a first push into id 3 (${team.displayName}): $verdict\n")
+        File("/tmp/claude-1000/-home-jeremyking/94273004-6013-4029-a961-ffb26e4dcb1f/scratchpad/trustA-key-probe.out").writeText(out.toString())
+    }
+}
