@@ -415,6 +415,61 @@ class CalendarRulesTest {
         assertEquals(listOf(77L), plan.filterIsInstance<ReminderRules.Action.SkipCopy>().map { it.row.eventId })
     }
 
+    // ---------------------------------------------------------------- fix round F7: the notified key's parts, and what is recorded
+
+    /** One occurrence (begin 100 000) of event 10 with two reminders: 60 minutes before and 10 minutes before. */
+    private val sixtyBefore = AlertRow(1, 10, 100_000, 101_000, alarmTimeMs = 40_000, state = 0, minutes = 60, title = "Standup", allDay = false)
+    private val tenBefore = AlertRow(2, 10, 100_000, 101_000, alarmTimeMs = 90_000, state = 0, minutes = 10, title = "Standup", allDay = false)
+
+    @Test fun twoRemindersOnOneOccurrenceBothNotify() {
+        // The alarm time is part of the key: the two alerts share the event and the occurrence and nothing else.
+        assertEquals("10:100000:40000", sixtyBefore.key)
+        assertEquals("10:100000:90000", tenBefore.key)
+        // The first poke, at the 60-minute alarm: one notification, recorded.
+        val first = actions(listOf(sixtyBefore))
+        assertEquals(listOf<ReminderRules.Action>(ReminderRules.Action.Notify(sixtyBefore)), first)
+        val notified = SyncStateRules.keepNotified(SyncState(), live = setOf(sixtyBefore.key), added = ReminderRules.recorded(first) { true }).notifiedAlerts
+        // The second poke, at the 10-minute alarm: the first alert is still due (FIRED, not swiped) and handled; the
+        // second is new and notifies — it is not taken for the first because it is the same event and occurrence.
+        val second = actions(listOf(sixtyBefore.copy(state = 1), tenBefore), notified)
+        assertEquals(listOf<ReminderRules.Action>(ReminderRules.Action.Notify(tenBefore)), second)
+        // And the same under one row id (the 60-minute row was deleted and its id handed to the 10-minute alert).
+        assertEquals(listOf<ReminderRules.Action>(ReminderRules.Action.Notify(tenBefore.copy(id = 1))), actions(listOf(tenBefore.copy(id = 1)), notified))
+    }
+
+    @Test fun theSameAlarmTimeOnAnotherOccurrenceStillNotifies() {
+        // The begin is part of the key: a daily event with two reminders, 10 minutes and a day and 10 minutes, has two
+        // alerts due at one instant — today's occurrence's short one and tomorrow's occurrence's long one. They share
+        // the event and the alarm time and nothing else, and each one notifies.
+        val today = AlertRow(1, 10, 100_000, 101_000, alarmTimeMs = 90_000, state = 0, minutes = 10, title = "Standup", allDay = false)
+        val tomorrow = today.copy(id = 2, beginMs = 86_500_000, endMs = 86_501_000, minutes = 1450)
+        assertEquals("10:100000:90000", today.key)
+        assertEquals("10:86500000:90000", tomorrow.key)
+        assertEquals(listOf<ReminderRules.Action>(ReminderRules.Action.Notify(tomorrow)), actions(listOf(today, tomorrow), notified = setOf(today.key)))
+        // Another event with the same begin and alarm time is not that alert either.
+        assertEquals(1, actions(listOf(today.copy(id = 3, eventId = 11)), notified = setOf(today.key)).size)
+    }
+
+    @Test fun aDueAlertWhosePostFailedIsNotRecordedAsNotified() {
+        val copy = alert(3, 77, begin = 7000)
+        val plan = actions(listOf(sixtyBefore, tenBefore, copy), copies = setOf(77))
+        assertEquals(3, plan.size)
+        // Notifications are off for the 10-minute alert's post (the post answers false): only what was done is recorded.
+        val recorded = ReminderRules.recorded(plan) { it.row.id != tenBefore.id }
+        assertEquals(setOf(sixtyBefore.key, copy.key), recorded)
+        // The store after that poke: every row is still live, and the failed one is not among the notified.
+        val live = setOf(sixtyBefore.key, tenBefore.key, copy.key)
+        val after = SyncStateRules.keepNotified(SyncState(), live, recorded).notifiedAlerts
+        assertEquals(setOf(sixtyBefore.key, copy.key), after)
+        assertFalse(tenBefore.key in after)
+        // So the next poke plans it again, and only it.
+        assertEquals(listOf<ReminderRules.Action>(ReminderRules.Action.Notify(tenBefore)), actions(listOf(sixtyBefore, tenBefore, copy), after, copies = setOf(77)))
+        // Nothing posted at all: nothing recorded, though every row is live.
+        assertEquals(emptySet<String>(), SyncStateRules.keepNotified(SyncState(), live, ReminderRules.recorded(plan) { false }).notifiedAlerts)
+        // A live alert the poke never planned (already skipped as old, say) is not recorded for being live.
+        assertEquals(setOf("x"), SyncStateRules.keepNotified(SyncState(), live = setOf("x", "y"), added = setOf("x")).notifiedAlerts)
+    }
+
     // ---------------------------------------------------------------- fix round F3: which row a state write may touch
 
     @Test fun aStateWriteNamesTheAlertByItsRowItsEventItsOccurrenceAndItsAlarmTime() {

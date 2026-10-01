@@ -79,6 +79,14 @@ object ReminderRules {
             skippedBeforeStart = due.size - current.size,
         )
     }
+
+    /**
+     * What a poke records as handled, by [AlertRow.key]: the actions [done] says were carried out, in the plan's
+     * order — a skipped copy, and a notification that was really posted. An alert whose post failed (notifications
+     * off) is NOT recorded: it is still due, and the next poke plans it again (fix round F7, the review's R8).
+     */
+    fun recorded(actions: List<Action>, done: (Action) -> Boolean): Set<String> =
+        actions.filter(done).mapTo(LinkedHashSet()) { it.row.key }
 }
 
 /**
@@ -227,24 +235,24 @@ object CalendarReminders {
             return
         }
         val plan = ReminderRules.plan(due, notified, SyncedCopies.hiddenEventIds(context), since)
-        val handled = HashSet<String>()
-        for (action in plan.actions) {
+        val handled = ReminderRules.recorded(plan.actions) { action ->
             val row = action.row
             when (action) {
                 is ReminderRules.Action.SkipCopy -> {
                     // The copy keeps its own reminder rows, so the account's other clients still remind; its alert
                     // row is left as it is — only the shell stays quiet about it.
-                    handled += row.key
                     Diagnostics.add("calendar", "reminder event=${row.eventId} minutes=${row.minutes}: skipped (synced copy)")
+                    true
                 }
                 is ReminderRules.Action.Notify -> {
                     if (!post(context, row)) {
                         Diagnostics.add("calendar", "reminder event=${row.eventId} minutes=${row.minutes}: failed notifications are off")
-                        continue
+                        false
+                    } else {
+                        CalendarWrites.setAlertState(context, ReminderRules.identity(row), CalendarContract.CalendarAlerts.STATE_FIRED)
+                        Diagnostics.add("calendar", "reminder event=${row.eventId} minutes=${row.minutes}: notified")
+                        true
                     }
-                    handled += row.key
-                    CalendarWrites.setAlertState(context, ReminderRules.identity(row), CalendarContract.CalendarAlerts.STATE_FIRED)
-                    Diagnostics.add("calendar", "reminder event=${row.eventId} minutes=${row.minutes}: notified")
                 }
             }
         }
