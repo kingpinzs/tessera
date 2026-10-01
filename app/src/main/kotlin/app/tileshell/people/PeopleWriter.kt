@@ -98,6 +98,8 @@ private class ResolverContacts(private val context: Context) : ContactsPort {
 
     override fun mayWrite(): Boolean = PeopleData.canWrite(context)
 
+    override fun isOtherProfile(contactId: Long): Boolean = Contacts.isEnterpriseContactId(contactId)
+
     override fun rawContactsOf(contactId: Long): List<RawRef> = PeopleData.rawContacts(context, contactId).map { it.ref() }
 
     override fun rawContacts(ids: List<Long>): Map<Long, RawRef> = runCatching {

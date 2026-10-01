@@ -152,7 +152,7 @@ class EditorDraft private constructor(
          * its values as new fields; nothing existing is replaced.
          */
         fun edit(card: ContactCard, policy: EditPolicy, prefill: ContactPrefill): EditorDraft {
-            val editable = card.raws.filter { PeopleWriteGuard.editable(it.ref(card.enterprise), policy) }
+            val editable = card.raws.filter { PeopleWriteGuard.editable(it.ref(), policy) }
             val target = editable.first()
             val editableIds = editable.map { it.id }.toSet()
             val accountOf = card.raws.associate { it.id to it.account }

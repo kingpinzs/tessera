@@ -152,6 +152,27 @@ class PeopleWriteGuardTest {
         assertFalse(PeopleWriteGuard.editable(wade.copy(otherProfile = true), allAllowed))
     }
 
+    // ------------------------------------------------------------------------------------------- another profile's rows (fix round F23)
+
+    @Test
+    fun `another profile - the reference a read gives it is refused whatever is allowed`() {
+        val allAllowed = EditPolicy(local = phone, allowed = setOf(work, personal))
+        assertEquals(RawRef(-1, ContactAccount(null, null), otherProfile = true), OtherProfile.REF)
+        assertTrue(OtherProfile.isRaw(-1))
+        for (id in listOf(0L, 1L, -2L, 1_000_000_000L)) assertFalse("$id", OtherProfile.isRaw(id))
+        assertFalse(PeopleWriteGuard.editable(OtherProfile.REF, allAllowed))
+        assertEquals(GuardVerdict.Refused(-1), PeopleWriteGuard.check(PeopleWrite.DeleteContact(listOf(OtherProfile.REF)), allAllowed))
+        // The read model carries the mark to the guard: the card's stand-in raw contact, then its reference.
+        val standIn = RawContact(OtherProfile.RAW, ContactAccount(null, null), "Wendy Work", otherProfile = true)
+        assertEquals(OtherProfile.REF, standIn.ref())
+        val actions = PeopleWriteGuard.cardActions(listOf(standIn.ref()), allAllowed)
+        assertFalse(actions.edit)
+        assertFalse(actions.delete)
+        assertTrue(actions.otherProfile)
+        // A row of this profile carries no mark.
+        assertEquals(RawRef(11, phone), RawContact(11, phone, "Lou Local").ref())
+    }
+
     // ------------------------------------------------------------------------------------------- the sync-adapter URI (fix round F22)
 
     @Test

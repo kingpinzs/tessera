@@ -48,7 +48,11 @@ class PeopleWriterTest {
 
         fun field(dataId: Long, rawId: Long) { owners[dataId] = rawId }
 
+        /** Contact ids the provider gives another profile's contacts. */
+        val otherProfileContacts = HashSet<Long>()
+
         override fun policy() = policy
+        override fun isOtherProfile(contactId: Long) = contactId in otherProfileContacts
         override fun mayWrite() = held
         override fun rawContactsOf(contactId: Long) = contacts[contactId].orEmpty().mapNotNull { raws[it] }
         override fun rawContacts(ids: List<Long>) = ids.mapNotNull { raws[it] }.associateBy { it.id }
@@ -338,6 +342,60 @@ class PeopleWriterTest {
         assertEquals(WriteResult.Failed("nothing is linked"), PeopleWrites(fake).unlink(1, 1))
         fake.held = false
         assertEquals(WriteResult.Failed("WRITE_CONTACTS not held", needsGrant = true), PeopleWrites(fake).link(1, 2))
+        assertNothingWritten(fake)
+    }
+
+    // ---------------------------------------------------------------------------------------------- another profile (fix round F23)
+
+    private val everyAccount = setOf(personal, work)
+    private val workProfileContact = 1_000_000_007L
+
+    @Test fun anotherProfilesContactIsRefusedByTheGuardNotBecauseItCannotBeFound() {
+        // A work-profile contact as the enterprise search reads it: a contact id the provider says is another
+        // profile's, and -1 for the raw contact it does not have here. Nothing about it is in this profile's provider.
+        val ops = listOf<Pair<String, (PeopleWrites) -> WriteResult>>(
+            "write delete raw=-1: refused (not allowed)" to { it.delete(workProfileContact) },
+            "write update raw=-1: refused (not allowed)" to { it.update(listOf(number("555 0333", dataId = 555, rawId = -1)), null) },
+            "write update raw=-1: refused (not allowed)" to { it.update(listOf(FieldEdit(FieldKind.NOTES, null, -1, "a note")), null) },
+            "write update raw=-1: refused (not allowed)" to { it.update(emptyList(), PhotoEdit(-1, JPEG)) },
+            "write update raw=-1: refused (not allowed)" to { it.update(listOf(number("555 0111", dataId = 11, rawId = 1)), PhotoEdit(-1, null)) },
+            "write update raw=-1: refused (not allowed)" to { it.setMember(5, workProfileContact, true) },
+            "write update raw=-1: refused (not allowed)" to { it.setMember(6, workProfileContact, false) },
+        )
+        for ((line, op) in ops) {
+            val fake = withGroups(allowed = everyAccount).apply { field(11, 1); otherProfileContacts += workProfileContact }
+            assertEquals(line, WriteResult.Refused, op(PeopleWrites(fake)))
+            assertNothingWritten(fake)
+            assertEquals(listOf(line), fake.lines)
+        }
+    }
+
+    @Test fun aRawContactTheReadMarkedAsAnotherProfilesIsNeverWritten() {
+        // Whatever names it and whatever account it claims — here the phone's own — the mark the read put on it is what
+        // the guard goes by.
+        val ops = listOf<(PeopleWrites) -> WriteResult>(
+            { it.update(listOf(number("555 0333", dataId = 91, rawId = 9)), null) },
+            { it.update(listOf(FieldEdit(FieldKind.NOTES, null, 9, "a note")), null) },
+            { it.update(emptyList(), PhotoEdit(9, JPEG)) },
+            { it.update(emptyList(), PhotoEdit(9, null)) },
+            { it.delete(9) },
+            { it.setMember(5, 9, true) },
+            { it.setMember(5, 9, false) },
+        )
+        for ((i, op) in ops.withIndex()) {
+            val fake = withGroups(allowed = everyAccount).apply { raw(9, phone, otherProfile = true); field(91, 9); memberships += 9L to 5L }
+            assertEquals("op $i", WriteResult.Refused, op(PeopleWrites(fake)))
+            assertNothingWritten(fake)
+            assertEquals("op $i", true, fake.lines.single().endsWith("raw=9: refused (not allowed)"))
+        }
+    }
+
+    @Test fun linkWithAnotherProfilesContactWritesNothing() {
+        // Link is the one op the guard allows on any contact (Decisions), so this is not the guard's refusal: a
+        // work-profile contact has no raw contact here to keep together with anything.
+        val fake = louAndWade(allowed = everyAccount).apply { otherProfileContacts += workProfileContact }
+        assertEquals(WriteResult.Failed("a contact is gone"), PeopleWrites(fake).link(1, workProfileContact))
+        assertEquals(WriteResult.Failed("nothing is linked"), PeopleWrites(fake).unlink(workProfileContact, -1))
         assertNothingWritten(fake)
     }
 

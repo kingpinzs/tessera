@@ -175,9 +175,12 @@ data class ContactField(
     val customLabel: String? = null,
 )
 
-/** One raw contact behind an aggregate, with its account. */
-data class RawContact(val id: Long, val account: ContactAccount, val name: String?) {
-    fun ref(otherProfile: Boolean = false) = RawRef(id, account, otherProfile)
+/**
+ * One raw contact behind an aggregate, with its account. [otherProfile] is set where the row is read: true for the one
+ * stand-in a work-profile contact's card carries, and it goes with the row to the guard.
+ */
+data class RawContact(val id: Long, val account: ContactAccount, val name: String?, val otherProfile: Boolean = false) {
+    fun ref() = RawRef(id, account, otherProfile)
 }
 
 /** Everything a contact's card shows. */

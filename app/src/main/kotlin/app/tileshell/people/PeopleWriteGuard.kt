@@ -35,6 +35,22 @@ data class EditPolicy(val local: ContactAccount, val allowed: Set<ContactAccount
  */
 data class RawRef(val id: Long, val account: ContactAccount, val otherProfile: Boolean = false)
 
+/**
+ * Another profile's rows as the reads name them (a work-profile contact found by the enterprise search), so the write
+ * layer can carry that fact to the guard instead of merely failing to find the row.
+ *
+ * Such a contact has no raw contact in this profile's provider: the read stands [RAW] in for it, and [REF] is that one
+ * reference as the guard sees it. Which contact ids are another profile's is the provider's own answer
+ * (`Contacts.isEnterpriseContactId`), asked where the row is read.
+ */
+object OtherProfile {
+    const val RAW = -1L
+
+    fun isRaw(rawId: Long): Boolean = rawId == RAW
+
+    val REF = RawRef(RAW, ContactAccount(null, null), otherProfile = true)
+}
+
 enum class WriteOp(val word: String) { INSERT("insert"), UPDATE("update"), DELETE("delete") }
 
 /** Where a new raw contact comes from. Each has its own rule for the account it may land in. */
