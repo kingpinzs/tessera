@@ -192,7 +192,7 @@ fun CalendarApp(nav: CalendarNav, model: CalendarModel, clock: Int, onBack: () -
         Box(Modifier.fillMaxWidth().weight(1f).padding(bottom = (keyboard - BarMetrics.NAV_EPX.dp).coerceAtLeast(0.dp)).background(CalendarPageBackground)) {
             when (val page = nav.page) {
                 null -> CalendarViews(nav, model, sync, clock, onGrant)
-                is CalPage.Event -> EventPage(nav, model, sync, page, onGrant)
+                is CalPage.Event -> EventPage(nav, model, sync, page, clock, onGrant)
                 is CalPage.Editor -> EventEditor(nav, model, page.state, onGrant)
                 is CalPage.SyncPicker -> SyncPickerPage(nav, model, sync, page)
                 is CalPage.CanSyncTo -> CanSyncToPage(nav, model, sync, page)

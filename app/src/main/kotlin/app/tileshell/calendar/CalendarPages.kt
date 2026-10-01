@@ -110,11 +110,12 @@ private data class EventData(val event: EventDetail, val reminders: List<Pair<In
  * carries `cal_synced_marker:<id>` — "synced to <calendar>" — with its account beside it (r3 D5).
  */
 @Composable
-fun EventPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page: CalPage.Event, onGrant: (write: Boolean) -> Unit) {
+fun EventPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page: CalPage.Event, clock: Int, onGrant: (write: Boolean) -> Unit) {
     val context = LocalContext.current
     val locale = LocalConfiguration.current.locales[0]
     val is24h = LocalIs24h.current
-    val zone = remember(model.changes) { ZoneId.systemDefault() }
+    // Read again when the activity says the zone, the date or the time changed under the app.
+    val zone = remember(clock) { ZoneId.systemDefault() }
     val scope = rememberCoroutineScope()
     var data by remember(page) { mutableStateOf<EventData?>(null) }
     var barMenu by remember(page) { mutableStateOf(BarMenu.NONE) }
@@ -125,10 +126,10 @@ fun EventPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page: Cal
     LaunchedEffect(page, model.changes) {
         val read = withContext(Dispatchers.IO) { CalendarReads.event(context, page.eventId)?.let { EventData(it, CalendarReads.reminders(context, it.id)) } }
         if (read == null) {
-            if (nav.page === page) {
-                nav.pop()
-                nav.notice = CalNotices.EVENT_GONE
-            }
+            // Wherever the page is in the stack: under an open editor it would otherwise come back showing an event
+            // that no longer exists.
+            if (nav.page === page) nav.dialog = null
+            if (nav.pages.remove(page)) nav.notice = CalNotices.EVENT_GONE
         } else {
             data = read
         }
