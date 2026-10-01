@@ -1,11 +1,11 @@
 ==============================================================================
 ROW DEV-E12 — card actions: call, text, mail, map (E12's core)
-at            2026-10-01T12:45:51-06:00
+at            2026-10-01T13:34:55-06:00
 driver        e12.sh blob 1db3e0596f594186db2979103f79250e00f06a68
 harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
-apk built     eefb6fb4c29462ec 339427186 bytes
-apk installed 56c626cba75ebe22
-apk match     yes (56c626cba75ebe22)
+apk built     0375f838a99c11d5 339427210 bytes
+apk installed 34b1373d4945c089
+apk match     yes (34b1373d4945c089)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -17,22 +17,22 @@ slots: {"CALENDAR": "app.tileshell/app.tileshell.calendar.CalendarActivity", "MA
 PASS  the VIEW intent opens Ann's card                            = yes
 action rows: resource-id="people_card_action:text:0" resource-id="people_card_action:call:0" resource-id="people_card_action:mail:0" resource-id="people_card_action:map:0" 
 PASS  the card is a full accent page                              = 0,120,215
-    2026-10-01 12:46:15.856 wall=1790880375856 [people] action call -> com.android.dialer/.main.impl.MainActivity tel:+1 555 000 0001
+    2026-10-01 13:35:20.282 wall=1790883320282 [people] action call -> com.android.dialer/.main.impl.MainActivity tel:+1 555 000 0001
 PASS  the call line                                               contains [[people] action call -> ]
 PASS  the call line names the number                              contains [tel:+1 555 000 0001]
-PASS  Telecom holds one more outgoing call than before the tap    = 7
-RECORD  Telecom's record of it                                      CallTC@7 [Oct 1, 2026 12:46:15 PM](MO - outgoing)(User=UserHandle{0})
-RECORD  how it ended                                                12:46:16.111 - SET_DISCONNECTED (disconnected set explicitly> DisconnectCause [ Code: (REMOTE) Label: () Description: () Reason: (NORMAL) Tone: (27)  TelephonyCause: 2/-1
+PASS  Telecom holds one more outgoing call than before the tap    = 8
+RECORD  Telecom's record of it                                      CallTC@8 [Oct 1, 2026 1:35:20 PM](MO - outgoing)(User=UserHandle{0})
+RECORD  how it ended                                                13:35:20.553 - SET_DISCONNECTED (disconnected set explicitly> DisconnectCause [ Code: (REMOTE) Label: () Description: () Reason: (NORMAL) Tone: (27)  TelephonyCause: 2/-1
 RECORD  adb emu gsm list after the call                             OK 
-    2026-10-01 12:46:24.139 wall=1790880384139 [people] action text -> org.fossify.messages/.activities.SplashActivity.Green smsto:+15550000001
+    2026-10-01 13:35:28.612 wall=1790883328612 [people] action text -> org.fossify.messages/.activities.SplashActivity.Green smsto:+15550000001
 PASS  the text line                                               contains [[people] action text -> org.fossify.messages]
 PASS  the text line names smsto: her number                       contains [smsto:+15550000001]
 PASS  the SMS role holder is on top                               contains [org.fossify.messages/]
-    2026-10-01 12:46:32.366 wall=1790880392366 [people] action mail: com.fsck.k9/net.thunderbird.app.common.MainActivity has no handler for it; the app was opened
-    2026-10-01 12:46:32.366 wall=1790880392366 [people] action mail -> com.fsck.k9/net.thunderbird.app.common.MainActivity mailto:ann@example.com
+    2026-10-01 13:35:36.905 wall=1790883336905 [people] action mail: com.fsck.k9/net.thunderbird.app.common.MainActivity has no handler for it; the app was opened
+    2026-10-01 13:35:36.905 wall=1790883336905 [people] action mail -> com.fsck.k9/net.thunderbird.app.common.MainActivity mailto:ann@example.com
 PASS  the mail line names the Mail slot's component and the address  contains [[people] action mail -> com.fsck.k9/net.thunderbird.app.common.MainActivity mailto:ann@example.com]
 PASS  K-9 is the top package                                      contains [com.fsck.k9/]
-    2026-10-01 12:46:40.741 wall=1790880400741 [people] action map -> org.fossify.notes/.activities.SplashActivity.Green geo:0,0?q=1%20Main%20St%20Springfield
+    2026-10-01 13:35:45.349 wall=1790883345349 [people] action map -> org.fossify.notes/.activities.SplashActivity.Green geo:0,0?q=1%20Main%20St%20Springfield
 PASS  the map line names the Maps slot's component and a geo: query for the address  contains [[people] action map -> org.fossify.notes/.activities.SplashActivity.Green geo:0,0?q=1%20Main%20St%20Springfield]
 PASS  the Maps slot's app is the top package                      contains [org.fossify.notes/]
 PASS  the layout is back                                          = 0

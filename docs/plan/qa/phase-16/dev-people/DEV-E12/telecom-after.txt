@@ -9,12 +9,6 @@ CallsManager:
     null
     CallAudioModeStateMachine:
       History:
-      2026-10-01T12:44:59.654454 - Enter UNFOCUSED
-      2026-10-01T12:44:59.654515 - Mode MODE_NORMAL
-      2026-10-01T12:45:08.891200 - Enter SIM_CALL
-      2026-10-01T12:45:08.891451 - Mode MODE_IN_CALL
-      2026-10-01T12:45:13.069366 - Enter TONE/HOLDING
-      2026-10-01T12:45:13.069752 - Mode 2
       2026-10-01T12:45:13.909576 - Enter UNFOCUSED
       2026-10-01T12:45:13.909855 - Mode MODE_NORMAL
       2026-10-01T12:45:21.194883 - Enter SIM_CALL
@@ -29,6 +23,12 @@ CallsManager:
       2026-10-01T12:46:16.113591 - Mode 2
       2026-10-01T12:46:16.974221 - Enter UNFOCUSED
       2026-10-01T12:46:16.974265 - Mode MODE_NORMAL
+      2026-10-01T13:35:20.323782 - Enter SIM_CALL
+      2026-10-01T13:35:20.324498 - Mode MODE_IN_CALL
+      2026-10-01T13:35:20.557619 - Enter TONE/HOLDING
+      2026-10-01T13:35:20.559110 - Mode 2
+      2026-10-01T13:35:21.432990 - Enter UNFOCUSED
+      2026-10-01T13:35:21.433052 - Mode MODE_NORMAL
       Pending Msg:
       Looper (CallAudioModeStateMachine, tid 209) {e73621f}
         (MessageQueue is using Concurrent implementation)
@@ -82,6 +82,8 @@ CallsManager:
       2026-10-01T12:45:21.349679 - <none>
       2026-10-01T12:46:15.870267 - TC@7
       2026-10-01T12:46:16.111855 - <none>
+      2026-10-01T13:35:20.328952 - TC@8
+      2026-10-01T13:35:20.553817 - <none>
     CallAudioWatchdog:
       Active Sessions:
       Audio sessions Sessions:
@@ -244,9 +246,30 @@ CallsManager:
         callSource: UNSPECIFIED
     }
     
+    Call TC@8: {
+        startTime: 0
+        endTime: 1790883320553
+        direction: OUTGOING
+        isAdditionalCall: false
+        isInterrupted: false
+        isEmergency: false
+        callTechnologies: [GSM ]
+        callTerminationReason: DisconnectCause [ Code: (REMOTE) Label: () Description: () Reason: (NORMAL) Tone: (27)  TelephonyCause: 2/-1 ImsReasonInfo: null]
+        missedReason: []
+        connectionService: com.android.phone/com.android.services.telephony.TelephonyConnectionService
+        isVideoCall: false
+        inCallServices: [
+        name: com.android.dialer/com.android.incallui.InCallServiceImpl type: 2 is crashed: false service last time in ms: 2280
+        name: android/com.android.ecm.EnhancedConfirmationCallTrackerService type: 4 is crashed: false service last time in ms: 2248
+        name: com.android.bluetooth/.telephony.BluetoothInCallService type: 6 is crashed: false service last time in ms: 3147
+    ]
+        callProperties: []
+        callSource: UNSPECIFIED
+    }
+    
     CSW.sA: 251.00
-    CSW.sDc: 2863.14
-    CSW.rC: 2003.71
+    CSW.sDc: 2865.25
+    CSW.rC: 2004.00
     Hardware Version: 
     Past analytics dumps: 
   Flag Configurations: 
@@ -470,3 +493,20 @@ CallsManager:
       12:46:16.123 - DESTROYED:CSW.rC->CM.pR(cap)@AxE
       Timings (average for this call, milliseconds):
         outgoing_time_to_dialing: 227.00
+    CallTC@8 [Oct 1, 2026 1:35:20 PM](MO - outgoing)(User=UserHandle{0})
+    	>>>Target PhoneAccount: ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0} (T-Mobile)
+    	>>>Conn mgr: ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}
+    	To address: tel:**********01 Presentation: Allowed
+      13:35:20.280 - CREATED (app.tileshell;requestedAcct:none, selfMgd:false):TSI.pC(at)@BFM
+      13:35:20.283 - SET_CONNECTING (ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}):TSI.pC->CM.fOCP->CM.sOCPA->CM.dSMCP->CM.mROC->CM.dSPA->CM.pASP(at)@BFM
+      13:35:20.337 - START_CONNECTION (tel:**********01 via:com.android.phone):SBC.oSC(cap)@BFg
+      13:35:20.341 - AUDIO_ROUTE (Entering audio route: AudioRoute[Type=TYPE_SPEAKER, Address=invalid] (active=true)):TSI.pC->CM.fOCP->CM.sOCPA->CM.dSMCP->CM.mROC->CM.dSPA->CM.pASP->CAMSM.pM_2001->CARC.pM_SWITCH_FOCUS->CARC.pM_EXIT_PENDING_ROUTE(at)@BFM
+      13:35:20.496 - CAPABILITY_CHANGE (Current: [[ sup_hld mut !v2a]], Removed [[]], Added [[ sup_hld mut !v2a]]):(...->CS.crCo->H.CS.crCo->H.CS.crCo.pICR)->CSW.hCCC(cap/cast)@E-E-BFg
+      13:35:20.497 - SET_DIALING (dialing set explicitly):(...->CS.crCo->H.CS.crCo->H.CS.crCo.pICR)->CSW.hCCC(cap/cast)@E-E-BFg
+      13:35:20.553 - SET_DISCONNECTED (disconnected set explicitly> DisconnectCause [ Code: (REMOTE) Label: () Description: () Reason: (NORMAL) Tone: (27)  TelephonyCause: 2/-1 ImsReasonInfo: null]):CSW.sDc(cap)@BG4
+      13:35:20.556 - LOG_CALL (number=**********01,postDial=,pres=1):CSW.sDc(cap)@BG4
+      13:35:20.563 - CONF_CALLS_CHANGED ():CSW.sCC(cap)@BHE
+      13:35:20.564 - CONF_CALLS_CHANGED ():CSW.sCC(cap)@BHI
+      13:35:20.568 - DESTROYED:CSW.rC->CM.pR(cap)@BHM
+      Timings (average for this call, milliseconds):
+        outgoing_time_to_dialing: 160.00

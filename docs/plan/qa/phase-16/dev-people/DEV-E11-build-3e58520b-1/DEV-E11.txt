@@ -1,0 +1,81 @@
+==============================================================================
+ROW DEV-E11 — the People tile: bubble events and the static pattern (E11's core)
+at            2026-10-01T13:21:28-06:00
+driver        e11.sh blob 7afd28ce24e52a15ec1bac61c25443f7c6d07c82
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     14089ecd3aa13b71 339427170 bytes
+apk installed 3e58520b85c52aed
+apk match     NO (device 3e58520b85c52aed, built 8ea53aa597b6c63d)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+Success
+PASS  the device holds this build                                 contains [yes]
+PASS  red: a photo data row exists for raw 98                     contains [mimetype=vnd.android.cursor.item/photo]
+PASS  green: a photo data row exists for raw 99                   contains [mimetype=vnd.android.cursor.item/photo]
+PASS  blue: a photo data row exists for raw 100                   contains [mimetype=vnd.android.cursor.item/photo]
+lookups: ann=0r98-2B4545413333 bob=0r99-2D472D4F51474533 zoe=0r100-5D47332B4D3345
+the PEOPLE slot tile: [9 84 352 427]
+PASS  the PEOPLE slot tile is on Start's first screen             != 
+PASS  the tile's face is the People face (people_tile_face)       = yes
+[engine] publish feed:people faces=0 front=true source=people sourceTime=1790882600344
+[engine] publish cmp:app.tileshell/app.tileshell.people.PeopleActivity faces=0 front=true source=people sourceTime=1790882600344
+[people] tile: 3 photos
+PASS  the feed read three photos                                  contains [[people] tile: 3 photos]
+PASS  published under the PEOPLE slot's key                       contains [[engine] publish feed:people ]
+PASS  and under the People component's key                        contains [[engine] publish cmp:app.tileshell/app.tileshell.people.PeopleActivity ]
+PASS  never under a package key                                   does not contain [publish pkg:app.tileshell]
+PASS  event 1: the settled bubble's centre is the colour of lookup=0r99-2D472D4F51474533  (0,255,1) within 8 of (0,255,1)
+PASS  event 2: the settled bubble's centre is the colour of lookup=0r100-5D47332B4D3345  (0,0,254) within 8 of (0,0,254)
+PASS  event 3: the settled bubble's centre is the colour of lookup=0r99-2D472D4F51474533  (0,255,1) within 8 of (0,255,1)
+PASS  event 4: the settled bubble's centre is the colour of lookup=0r100-5D47332B4D3345  (0,0,254) within 8 of (0,0,254)
+PASS  event 5: the settled bubble's centre is the colour of lookup=0r98-2B4545413333  (254,0,0) within 8 of (254,0,0)
+    2026-10-01 13:23:30.231 wall=1790882610231 [people] tile event 2 t0=2864542 lookup=0r99-2D472D4F51474533
+    2026-10-01 13:23:30.567 wall=1790882610567 [motion] people_bubble_out t0=2864543 peak=335 overshoot=0 settle=335 frames=21 maxGapMs=17
+    2026-10-01 13:23:32.117 wall=1790882612117 [motion] people_bubble_in t0=2865839 peak=589 overshoot=0 settle=589 frames=36 maxGapMs=17
+    2026-10-01 13:23:37.931 wall=1790882617931 [people] tile event 3 t0=2872243 lookup=0r100-5D47332B4D3345
+    2026-10-01 13:23:38.266 wall=1790882618266 [motion] people_bubble_out t0=2872243 peak=335 overshoot=0 settle=335 frames=21 maxGapMs=17
+    2026-10-01 13:23:39.817 wall=1790882619817 [motion] people_bubble_in t0=2873541 peak=587 overshoot=0 settle=587 frames=36 maxGapMs=17
+    2026-10-01 13:23:45.632 wall=1790882625632 [people] tile event 4 t0=2879944 lookup=0r99-2D472D4F51474533
+    2026-10-01 13:23:45.966 wall=1790882625966 [motion] people_bubble_out t0=2879944 peak=334 overshoot=0 settle=334 frames=21 maxGapMs=17
+    2026-10-01 13:23:47.516 wall=1790882627516 [motion] people_bubble_in t0=2881242 peak=586 overshoot=0 settle=586 frames=36 maxGapMs=17
+    2026-10-01 13:23:53.334 wall=1790882633334 [people] tile event 5 t0=2887646 lookup=0r100-5D47332B4D3345
+    2026-10-01 13:23:53.683 wall=1790882633683 [motion] people_bubble_out t0=2887646 peak=349 overshoot=0 settle=349 frames=21 maxGapMs=17
+    2026-10-01 13:23:55.216 wall=1790882635216 [motion] people_bubble_in t0=2888944 peak=584 overshoot=0 settle=584 frames=36 maxGapMs=17
+    2026-10-01 13:24:01.034 wall=1790882641034 [people] tile event 6 t0=2895346 lookup=0r98-2B4545413333
+    2026-10-01 13:24:01.384 wall=1790882641384 [motion] people_bubble_out t0=2895346 peak=349 overshoot=0 settle=349 frames=21 maxGapMs=17
+    2026-10-01 13:24:02.917 wall=1790882642917 [motion] people_bubble_in t0=2896643 peak=585 overshoot=0 settle=585 frames=36 maxGapMs=17
+    2026-10-01 13:24:08.735 wall=1790882648735 [people] tile event 7 t0=2903047 lookup=0r100-5D47332B4D3345
+    2026-10-01 13:24:09.083 wall=1790882649083 [motion] people_bubble_out t0=2903047 peak=348 overshoot=0 settle=348 frames=21 maxGapMs=17
+PASS  a screencap was graded for at least three events            = yes
+PASS  at least 4 tile events in the window                        6 events: [2, 3, 4, 5, 6, 7]
+PASS  events 7.7 s apart (± 0.2 s + one frame)                   [7701, 7701, 7702, 7700, 7701]
+PASS  at least two different contacts                             ['0r100-5D47332B4D3345', '0r98-2B4545413333', '0r99-2D472D4F51474533']
+PASS  event 2 out settle ≈ 333 ms (± 42 + one frame)           335 ms, 21 frames
+PASS  event 2 in settle ≈ 583 ms (± 42 + one frame)            589 ms, 36 frames
+PASS  event 2: 1.88 s from the out's t0 to the in's settle (± 0.04 s + one frame)  1885 ms
+PASS  event 2: maxGapMs ≤ 33.4 on both slides                   out 17, in 17
+PASS  event 3 out settle ≈ 333 ms (± 42 + one frame)           335 ms, 21 frames
+PASS  event 3 in settle ≈ 583 ms (± 42 + one frame)            587 ms, 36 frames
+PASS  event 3: 1.88 s from the out's t0 to the in's settle (± 0.04 s + one frame)  1885 ms
+PASS  event 3: maxGapMs ≤ 33.4 on both slides                   out 17, in 17
+PASS  event 4 out settle ≈ 333 ms (± 42 + one frame)           334 ms, 21 frames
+PASS  event 4 in settle ≈ 583 ms (± 42 + one frame)            586 ms, 36 frames
+PASS  event 4: 1.88 s from the out's t0 to the in's settle (± 0.04 s + one frame)  1884 ms
+PASS  event 4: maxGapMs ≤ 33.4 on both slides                   out 17, in 17
+PASS  event 5 out settle ≈ 333 ms (± 42 + one frame)           349 ms, 21 frames
+PASS  event 5 in settle ≈ 583 ms (± 42 + one frame)            584 ms, 36 frames
+PASS  event 5: 1.88 s from the out's t0 to the in's settle (± 0.04 s + one frame)  1882 ms
+PASS  event 5: maxGapMs ≤ 33.4 on both slides                   out 17, in 17
+PASS  event 6 out settle ≈ 333 ms (± 42 + one frame)           349 ms, 21 frames
+PASS  event 6 in settle ≈ 583 ms (± 42 + one frame)            585 ms, 36 frames
+PASS  event 6: 1.88 s from the out's t0 to the in's settle (± 0.04 s + one frame)  1882 ms
+PASS  event 6: maxGapMs ≤ 33.4 on both slides                   out 17, in 17
+PASS  the feed reads no photo                                     contains [[people] tile: 0 photos]
+PASS  the tile shows the static pattern                           = yes
+PASS  its root is still people_tile_face                          = yes
+PASS  six screencaps over 15 s show no change on the tile         = yes
+PASS  no tile event while there is no photo                       does not contain [[people] tile event]
+PASS  raw_contacts count equals the count before the row          = 2
+------------------------------------------------------------------------------
+DEV-E11: 45 passed, 0 failed, 0 recorded

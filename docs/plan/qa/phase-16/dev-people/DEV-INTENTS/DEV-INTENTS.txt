@@ -1,15 +1,15 @@
 ==============================================================================
 ROW DEV-INTENTS — INSERT, INSERT_OR_EDIT, PICK, the shortcuts, the cannot-read state
-at            2026-10-01T13:24:57-06:00
+at            2026-10-01T13:54:19-06:00
 driver        intents.sh blob 2eea7dd417dfc140da40be78729fbfabf17507ff
 harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
-apk built     14089ecd3aa13b71 339427170 bytes
-apk installed 8ea53aa597b6c63d
-apk match     yes (8ea53aa597b6c63d)
+apk built     0375f838a99c11d5 339427210 bytes
+apk installed 2c802c043cb40279
+apk match     NO (device 2c802c043cb40279, built 34b1373d4945c089)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-device already holds this build
+Success
 PASS  the device holds this build                                 contains [yes]
 PASS  INSERT opens the editor                                     = yes
 PASS  prefilled with the name                                     = Intruder
@@ -18,17 +18,17 @@ PASS  it starts on the phone, not the account the caller named    = Phone
 PASS  before Save nothing is in the provider                      = 0
 PASS  the account choice offers only the phone                    = 1
 PASS  Back discards it: still nothing in the provider             = 0
-Row: 0 _id=104, account_name=NULL, account_type=NULL, display_name=Intruder
+Row: 0 _id=130, account_name=NULL, account_type=NULL, display_name=Intruder
 PASS  saved by the user's tap, it lands on the phone (NULL account)  contains [account_name=NULL, account_type=NULL]
 PASS  never in the account the intent named                       does not contain [qa.work@example.com]
 PASS  the caller's text is not in the ring                        does not contain [Intruder]
 PASS  INSERT_OR_EDIT opens the list                               = yes
 PASS  with a new-contact row first                                = yes
-      scroll_to_node people_row:3473r102-572B313357474D3F: 1 swipe(s), found=yes
+      scroll_to_node people_row:3473r128-572B313357474D3F: 1 swipe(s), found=yes
 PASS  a read-only contact does not open the editor                = no
 PASS  the page says why (people_notice)                           contains [allow that account in Can edit]
-PASS  and logs the refusal                                        contains [[people] edit 3473r102-572B313357474D3F: refused (account not allowed)]
-      scroll_to_node people_row:0r101-41475341472F2B41: 0 swipe(s), found=yes
+PASS  and logs the refusal                                        contains [[people] edit 3473r128-572B313357474D3F: refused (account not allowed)]
+      scroll_to_node people_row:0r127-41475341472F2B41: 0 swipe(s), found=yes
 PASS  an editable contact opens the editor                        = yes
 PASS  with its own number kept                                    = +1 555 000 0021
 PASS  and the intent's number added as a new field                = 5550777
@@ -37,10 +37,10 @@ PASS  PICK opens the list                                         = yes
 PASS  in pick mode (no app bar, a chooser's header)               = CHOOSE A CONTACT
 PASS  no add button in pick mode                                  = no
 PASS  Back cancels and leaves People                              != app.tileshell/.people.PeopleActivity
-      scroll_to_node people_row:0r101-41475341472F2B41: 0 swipe(s), found=yes
+      scroll_to_node people_row:0r127-41475341472F2B41: 0 swipe(s), found=yes
 PASS  a tap ends the pick with one contact URI, read-granted      contains [[people] pick: one contact URI granted (read)]
 PASS  and People finished                                         != app.tileshell/.people.PeopleActivity
-      scroll_to_node people_row:0r103-51334F4F515747: 0 swipe(s), found=yes
+      scroll_to_node people_row:0r129-51334F4F515747: 0 swipe(s), found=yes
 PASS  a phone PICK's header                                       = CHOOSE A PHONE NUMBER
 PASS  a contact with two numbers asks which                       = yes
 PASS  both numbers are offered                                    = 2

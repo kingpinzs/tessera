@@ -1,46 +1,46 @@
 ==============================================================================
 ROW DEV-E27 — Groups: create, members, text, rename, delete (E27)
-at            2026-10-01T13:00:35-06:00
+at            2026-10-01T13:46:25-06:00
 driver        e27.sh blob 8109e2a7033b9710b783c8e44592de851da1b2ee
 harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
-apk built     eefb6fb4c29462ec 339427186 bytes
-apk installed 56c626cba75ebe22
-apk match     yes (56c626cba75ebe22)
+apk built     0375f838a99c11d5 339427210 bytes
+apk installed 2c802c043cb40279
+apk match     NO (device 2c802c043cb40279, built 34b1373d4945c089)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-device already holds this build
+Success
 PASS  the device holds this build                                 contains [yes]
 PASS  the GROUPS pivot is on show                                 contains [selected="true"]
 PASS  the group editor                                            = yes
 PASS  a new group is saved to the phone unless an allowed account is chosen  = Phone
-Row: 0 _id=2, title=Family, account_type=NULL, account_name=NULL, deleted=0
+Row: 0 _id=3, title=Family, account_type=NULL, account_name=NULL, deleted=0
 PASS  the provider lists Family with a NULL account (the phone)   contains [title=Family, account_type=NULL, account_name=NULL]
-PASS  the create line                                             contains [[people] group create 2: ok]
+PASS  the create line                                             contains [[people] group create 3: ok]
 PASS  Save opens the group's page                                 = yes
 PASS  the member picker                                           = yes
 PASS  Ann is ticked                                               contains [checked="true"]
 PASS  Bob is ticked                                               contains [checked="true"]
-Row: 0 raw_contact_id=79, mimetype=vnd.android.cursor.item/group_membership, data1=2
-Row: 1 raw_contact_id=80, mimetype=vnd.android.cursor.item/group_membership, data1=2
-PASS  Ann's group_membership data row points at the group         contains [raw_contact_id=79, mimetype=vnd.android.cursor.item/group_membership, data1=2]
-PASS  Bob's group_membership data row points at the group         contains [raw_contact_id=80, mimetype=vnd.android.cursor.item/group_membership, data1=2]
+Row: 0 raw_contact_id=120, mimetype=vnd.android.cursor.item/group_membership, data1=3
+Row: 1 raw_contact_id=121, mimetype=vnd.android.cursor.item/group_membership, data1=3
+PASS  Ann's group_membership data row points at the group         contains [raw_contact_id=120, mimetype=vnd.android.cursor.item/group_membership, data1=3]
+PASS  Bob's group_membership data row points at the group         contains [raw_contact_id=121, mimetype=vnd.android.cursor.item/group_membership, data1=3]
 PASS  the group's page lists Ann                                  = yes
 PASS  the group's page lists Bob                                  = yes
-    2026-10-01 13:01:34.778 wall=1790881294778 [people] action text -> org.fossify.messages/.activities.SplashActivity.Green smsto:+15550000001;+15550000002
+    2026-10-01 13:47:33.153 wall=1790884053153 [people] action text -> org.fossify.messages/.activities.SplashActivity.Green smsto:+15550000001;+15550000002
 PASS  the text line holds both numbers                            contains [smsto:+15550000001;+15550000002]
 PASS  it went to the SMS role holder                              contains [[people] action text -> org.fossify.messages]
 PASS  the SMS role holder is on top                               contains [org.fossify.messages/]
 RECORD  the compose intent as Android holds it                      
 PASS  the pivot lists the group                                   = yes
 PASS  with its member count                                       = 2 members
-Row: 0 _id=2, title=Home, account_type=NULL, account_name=NULL, deleted=0
-PASS  the provider's title reads Home                             contains [_id=2, title=Home]
-PASS  the rename line                                             contains [[people] group rename 2: ok]
+Row: 0 _id=3, title=Home, account_type=NULL, account_name=NULL, deleted=0
+PASS  the provider's title reads Home                             contains [_id=3, title=Home]
+PASS  the rename line                                             contains [[people] group rename 3: ok]
 PASS  Delete asks once                                            = yes
 after the delete: No result found.
 PASS  the group row is gone (or marked deleted)                   = yes
-PASS  the delete line                                             contains [[people] group delete 2: ok]
+PASS  the delete line                                             contains [[people] group delete 3: ok]
 PASS  both contacts are still present                             = 2
 PASS  their membership rows went with the group                   = 0
 PASS  the create is refused with the notice                       = People can't save this: it isn't allowed to change contacts.

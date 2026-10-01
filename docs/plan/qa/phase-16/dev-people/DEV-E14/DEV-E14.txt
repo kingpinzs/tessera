@@ -1,46 +1,46 @@
 ==============================================================================
 ROW DEV-E14 — Link and Unlink (E14)
-at            2026-10-01T12:48:33-06:00
+at            2026-10-01T13:35:59-06:00
 driver        e14.sh blob 375674a1b20548308b338c2d16ebe6c46913e111
 harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
-apk built     eefb6fb4c29462ec 339427186 bytes
-apk installed 56c626cba75ebe22
-apk match     yes (56c626cba75ebe22)
+apk built     0375f838a99c11d5 339427210 bytes
+apk installed 34b1373d4945c089
+apk match     yes (34b1373d4945c089)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 device already holds this build
 PASS  the device holds this build                                 contains [yes]
-Row: 0 _id=64, contact_id=65
-Row: 1 _id=65, contact_id=66
+Row: 0 _id=115, contact_id=119
+Row: 1 _id=116, contact_id=120
 PASS  two raw contacts named Sam Reed                             = 2
 PASS  two different contacts before the link                      = 2
-raw 64 -> contact 65 (0r64-4F2B434D333331); raw 65 -> contact 66 (0r65-4F2B434D333331)
+raw 115 -> contact 119 (0r115-4F2B434D333331); raw 116 -> contact 120 (0r116-4F2B434D333331)
 PASS  the first Sam Reed's card                                   = yes
 PASS  the linked-profiles page                                    = yes
 PASS  it lists the contact's one raw contact                      = yes
 PASS  a contact with one raw contact offers no Unlink             = 0
 PASS  the picker: select a contact to link                        = yes
 PASS  the picker does not offer the contact itself                = no
-Row: 0 type=1, raw_contact_id1=64, raw_contact_id2=65
-PASS  aggregation_exceptions: type 1 (KEEP_TOGETHER) for the pair  contains [type=1, raw_contact_id1=64, raw_contact_id2=65]
-PASS  the link line                                               contains [[people] link 64+65: ok]
-Row: 0 _id=64, contact_id=65
-Row: 1 _id=65, contact_id=65
+Row: 0 type=1, raw_contact_id1=115, raw_contact_id2=116
+PASS  aggregation_exceptions: type 1 (KEEP_TOGETHER) for the pair  contains [type=1, raw_contact_id1=115, raw_contact_id2=116]
+PASS  the link line                                               contains [[people] link 115+116: ok]
+Row: 0 _id=115, contact_id=119
+Row: 1 _id=116, contact_id=119
 PASS  one contact behind both raw contacts                        = 1
 PASS  back on the linked-profiles page with both                  = yes
 PASS  the joined card carries the number                          = yes
 PASS  and the e-mail                                              = yes
 PASS  the list shows one Sam Reed                                 = 1
-Row: 0 type=2, raw_contact_id1=64, raw_contact_id2=65
-PASS  aggregation_exceptions: type 2 (KEEP_SEPARATE) for the pair  contains [type=2, raw_contact_id1=64, raw_contact_id2=65]
-PASS  the unlink line                                             contains [[people] unlink 65+64: ok]
-Row: 0 _id=64, contact_id=67
-Row: 1 _id=65, contact_id=65
+Row: 0 type=2, raw_contact_id1=115, raw_contact_id2=116
+PASS  aggregation_exceptions: type 2 (KEEP_SEPARATE) for the pair  contains [type=2, raw_contact_id1=115, raw_contact_id2=116]
+PASS  the unlink line                                             contains [[people] unlink 116+115: ok]
+Row: 0 _id=115, contact_id=121
+Row: 1 _id=116, contact_id=119
 PASS  two contacts again                                          = 2
 PASS  the list shows two Sam Reed rows again                      = 2
 after the restore: No result found.
-PASS  aggregation_exceptions lists neither id (first)             does not contain [raw_contact_id1=64, raw_contact_id2=65]
+PASS  aggregation_exceptions lists neither id (first)             does not contain [raw_contact_id1=115, raw_contact_id2=116]
 PASS  raw_contacts count equals the count before the row          = 2
 ------------------------------------------------------------------------------
 DEV-E14: 22 passed, 0 failed, 0 recorded
