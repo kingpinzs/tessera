@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mutation proof for the fix round's parser and intent-rule tests (People's part of F4 and F11).
+"""Mutation proof for the fix round's parser and intent-rule tests (People's part of F4, F5 and F11).
 
 Each mutation is applied to the source file alone, one test class is run, the failing tests are read from its XML
 report, and the file is restored. Usage: mutate.py <test class> <id> [<id> ...]   (run from the repo root)."""
@@ -32,6 +32,17 @@ MUTATIONS = {
     'A3': ('the open line carries the lookup key the URI named', 'is PeopleRoute.Card -> "card"', 'is PeopleRoute.Card -> "card ${route.contact.encodedLookupKey}"'),
     'A4': ('the open line carries the name the caller prefilled (the reviewer\'s X6, on People)',
            'is PeopleRoute.Insert -> "insert (prefilled, unsaved)"', 'is PeopleRoute.Insert -> "insert ${route.prefill.name} (prefilled, unsaved)"'),
+    'K1': ('a PICK honoured with no caller', 'if (route is PeopleRoute.Pick && !hasCaller) PeopleRoute.Open(null) else route', 'route'),
+    'K2': ('a PICK refused even with a caller', 'if (route is PeopleRoute.Pick && !hasCaller) PeopleRoute.Open(null) else route',
+           'if (route is PeopleRoute.Pick) PeopleRoute.Open(null) else route'),
+    'K3': ('a caller turns another route into a pick', 'if (route is PeopleRoute.Pick && !hasCaller) PeopleRoute.Open(null) else route',
+           'if (route is PeopleRoute.Pick && !hasCaller) PeopleRoute.Open(null) else if (hasCaller && route is PeopleRoute.Open) PeopleRoute.Pick(PickKind.CONTACT) else route'),
+    'X1': ('the PICK result also grants write, persistable and prefix (the reviewer\'s X1)',
+           'const val PICK_RESULT_FLAGS = 0x1', 'const val PICK_RESULT_FLAGS = 0x1 or 0x2 or 0x40 or 0x80'),
+    'X1b': ('the PICK result grants a persistable read', 'const val PICK_RESULT_FLAGS = 0x1', 'const val PICK_RESULT_FLAGS = 0x1 or 0x40'),
+    'X1c': ('the PICK result grants nothing', 'const val PICK_RESULT_FLAGS = 0x1', 'const val PICK_RESULT_FLAGS = 0x0'),
+    'L1': ('the no-caller line says a URI was granted', 'const val PICK_NO_CALLER = "pick: no caller to return a result to; the list was opened"',
+           'const val PICK_NO_CALLER = "pick: one contact URI granted (read)"'),
 }
 
 def run(cls):

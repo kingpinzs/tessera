@@ -56,7 +56,10 @@ sealed interface PeopleRoute {
     /** `ACTION_INSERT_OR_EDIT`: the list, to choose "new contact" or an existing one the fields are added to. */
     data class InsertOrEdit(val prefill: ContactPrefill) : PeopleRoute
 
-    /** `ACTION_PICK`: the list in pick mode; the result grants its caller the one URI picked and nothing else. */
+    /**
+     * `ACTION_PICK`: the list in pick mode; the result grants its caller the one URI picked and nothing else. Only a
+     * caller that can receive a result gets this route ([PeopleIntents.honoured]).
+     */
     data class Pick(val kind: PickKind) : PeopleRoute
 }
 
@@ -114,6 +117,25 @@ object PeopleIntents {
     }
 
     private fun open(extras: Extras) = PeopleRoute.Open(PeopleShortcut.byId(extras.string(EXTRA_PAGE)))
+
+    /**
+     * A PICK is honoured only for a caller that can receive its result — an activity that started People for a result.
+     * A PICK with no caller (a plain `startActivity`, `am start`, a new task) has nobody to hand the picked URI to: it
+     * opens the plain list, [PICK_NO_CALLER] is logged, and pick mode is never entered, so it cannot be left behind.
+     */
+    fun honoured(route: PeopleRoute, hasCaller: Boolean): PeopleRoute =
+        if (route is PeopleRoute.Pick && !hasCaller) PeopleRoute.Open(null) else route
+
+    /**
+     * What a PICK's result carries beside the one URI picked: a read grant for that URI
+     * (`Intent.FLAG_GRANT_READ_URI_PERMISSION`) — no write, persistable or prefix grant.
+     */
+    const val PICK_RESULT_FLAGS = 0x1
+
+    /** The `[people] pick: …` lines. The first is written only when a result with its grant was set for a caller. */
+    fun pickGrantedLine(phone: Boolean): String = "pick: one ${if (phone) "phone" else "contact"} URI granted (read)"
+    const val PICK_CANCELLED = "pick: cancelled"
+    const val PICK_NO_CALLER = "pick: no caller to return a result to; the list was opened"
 
     /** The actions PeopleActivity handles: the launcher entry's and its five handlers'. */
     private val HANDLED_ACTIONS = setOf(ACTION_MAIN, ACTION_VIEW, ACTION_EDIT, ACTION_INSERT, ACTION_INSERT_OR_EDIT, ACTION_PICK)
