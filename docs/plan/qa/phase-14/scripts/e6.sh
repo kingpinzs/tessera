@@ -68,8 +68,13 @@ ensure_start
 tess_open
 voice_step pod_bay_neg1 11 neg1
 m="$(match_line "$VS_SLICE")"
-assert_contains "neg1: OpenApp(name=the pod)" "-> OpenApp(name=the pod)" "$m"
-assert_eq "neg1: the reply" "I don't see an app called the pod." "$VS_REPLY"
+# Ruled 2026-09-30 (Jeremy "A", INDEX Change Log): the spoken step asserts what the rule is about — phase 03's OpenApp
+# with a name that begins "the pod", its reply, and never the pod bay. The recogniser's exact words are not this row's to
+# pin: the same WAV gave "OPEN THE POD SHE", "OPEN THE POD AND" and "OPEN THE POD" in three tries
+# (BUILD-NOTES/e6-neg1-probe). The exact form is asserted typed, in EDGE P3.
+record "neg1: what the recogniser returned" "$m"
+assert_contains "neg1: OpenApp with a name beginning the pod" "-> OpenApp(name=the pod" "$m"
+assert_contains "neg1: the reply names an app called the pod…" "I don't see an app called the pod" "$VS_REPLY"
 assert_absent "neg1: no [podbay] opened" "[podbay] opened" "$VS_SLICE"
 dump_ui "$ROW_DIR/neg1-after.xml"
 assert_eq "neg1: no pod_bay" "no" "$(has_node "$ROW_DIR/neg1-after.xml" pod_bay)"

@@ -122,7 +122,18 @@ assert_eq "P2: the line is spoken" "Closing the pod bay." "$(reply_since "$MP")"
 assert_eq "P2: Start alone" "yes" "$(start_alone "$ROW_DIR/P2-after.xml")"
 assert_eq "P2: nothing moved (no page line)" "0" "$(count_in "$s" '[start] page=')"
 
-log "P3: open the bay is OpenApp; one-word podbay still opens"
+log "P3: open the pod and open the bay are OpenApp, exactly; one-word podbay still opens"
+# The exact form of E6's spoken negative (ruled 2026-09-30): typed, the request is word for word what was asked.
+tess_open
+MP="$(ring_mark)"
+type_request "open the pod" 9
+s="$(ring_since "$MP")"; printf '%s\n' "$s" > "$ROW_DIR/P3p-slice.txt"
+dump_ui "$ROW_DIR/P3p-after.xml"
+assert_contains "P3: open the pod → OpenApp(name=the pod)" "\"open the pod\" -> OpenApp(name=the pod)" "$(match_line "$s")"
+assert_eq "P3: its reply, exactly" "I don't see an app called the pod." "$(reply_since "$MP")"
+absent_in "P3: no [podbay] opened" "[podbay] opened" "$s"
+assert_eq "P3: no pod_bay" "no" "$(has_node "$ROW_DIR/P3p-after.xml" pod_bay)"
+cortana_close; ensure_start
 tess_open
 MP="$(ring_mark)"
 type_request "open the bay" 9
