@@ -103,6 +103,36 @@ object CalendarIntents {
         }
     }
 
+    /** The actions the activity handles; only these are ever written to the diagnostics ring by name. */
+    private val HANDLED_ACTIONS = setOf(ACTION_MAIN, ACTION_VIEW, ACTION_EDIT, ACTION_INSERT)
+
+    /**
+     * An intent's action as the diagnostics ring may hold it (fix round F4, trust review B-F3): an explicit intent to
+     * an exported activity can carry ANY action string — a forged ring line with a newline in it, or megabytes of text
+     * held in the launcher's memory. A handled action is logged by its own constant, none as "no action", and anything
+     * else as the one word "other".
+     */
+    fun loggedAction(action: String?): String = when (action) {
+        null -> "no action"
+        in HANDLED_ACTIONS -> action
+        else -> "other"
+    }
+
+    /**
+     * The route without what the caller typed into it: a page id from the shell's own list, or a number that was
+     * parsed and bounded. A title, a location, a note or a URI never reaches the diagnostics ring.
+     */
+    fun describe(route: CalendarRoute): String = when (route) {
+        is CalendarRoute.Open -> "open page=${route.page?.id ?: "default"}"
+        is CalendarRoute.Time -> "time ${route.millis}"
+        is CalendarRoute.Event -> "event ${route.id}"
+        is CalendarRoute.Edit -> "edit ${route.id}"
+        is CalendarRoute.Insert -> "insert (prefilled, unsaved)"
+    }
+
+    /** The one ring line an intent writes: `open <action> -> <route>`. */
+    fun openLine(action: String?, route: CalendarRoute): String = "open ${loggedAction(action)} -> ${describe(route)}"
+
     private fun open(extras: Extras) = CalendarRoute.Open(CalendarShortcut.byId(extras.string(EXTRA_PAGE)))
 
     private fun prefill(extras: Extras): EventPrefill {

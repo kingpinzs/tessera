@@ -107,4 +107,45 @@ class CalendarIntentsTest {
     @Test fun anUnknownActionOpensToday() {
         assertEquals(CalendarRoute.Open(null), route("android.intent.action.DELETE", "content://com.android.calendar/events/42"))
     }
+
+    // ---------------------------------------------------------------- fix round F4: what an intent may write to the ring
+
+    @Test fun onlyAHandledActionIsLoggedByName() {
+        for (action in listOf(CalendarIntents.ACTION_MAIN, CalendarIntents.ACTION_VIEW, CalendarIntents.ACTION_EDIT, CalendarIntents.ACTION_INSERT)) {
+            assertEquals(action, CalendarIntents.loggedAction(action))
+        }
+        assertEquals("no action", CalendarIntents.loggedAction(null))
+        // Any other string — another real action, a forged ring line, megabytes of text — is the one word "other".
+        for (action in listOf("android.intent.action.DELETE", "android.intent.action.PICK", "", " ", "x\n[calendar] write delete event=7: ok", "A".repeat(1_000_000), "android.intent.action.VIEW ", "ANDROID.INTENT.ACTION.VIEW")) {
+            assertEquals("other", CalendarIntents.loggedAction(action))
+        }
+    }
+
+    @Test fun theRingLineOfAnIntentHoldsNothingTheCallerTyped() {
+        val forged = "x\n2026-10-01 wall=1 [calendar] write delete event=7: ok"
+        val typed = route(
+            forged, null, CalendarIntents.TYPE_EVENT_DIR,
+            "title" to "SECRET TITLE", "eventLocation" to "SECRET PLACE", "description" to "SECRET NOTE", "page" to "SECRET PAGE",
+        )
+        assertEquals("open other -> open page=default", CalendarIntents.openLine(forged, typed))
+        val insert = route(
+            CalendarIntents.ACTION_INSERT, null, CalendarIntents.TYPE_EVENT_DIR,
+            "title" to "SECRET TITLE", "eventLocation" to "SECRET PLACE", "description" to "SECRET NOTE", "beginTime" to 1_790_000_000_000L,
+        )
+        assertEquals(CalendarRoute.Insert(EventPrefill("SECRET TITLE", "SECRET PLACE", "SECRET NOTE", 1_790_000_000_000L)), insert)
+        assertEquals("open android.intent.action.INSERT -> insert (prefilled, unsaved)", CalendarIntents.openLine(CalendarIntents.ACTION_INSERT, insert))
+        // Every route's line: the shell's own words and parsed numbers, one line, no caller text.
+        val lines = listOf(
+            CalendarIntents.openLine(CalendarIntents.ACTION_MAIN, route(CalendarIntents.ACTION_MAIN)) to "open android.intent.action.MAIN -> open page=default",
+            CalendarIntents.openLine(CalendarIntents.ACTION_VIEW, route(CalendarIntents.ACTION_VIEW, extras = arrayOf("page" to "month"))) to "open android.intent.action.VIEW -> open page=month",
+            CalendarIntents.openLine(CalendarIntents.ACTION_VIEW, route(CalendarIntents.ACTION_VIEW, "content://com.android.calendar/time/1790000000000")) to "open android.intent.action.VIEW -> time 1790000000000",
+            CalendarIntents.openLine(CalendarIntents.ACTION_VIEW, route(CalendarIntents.ACTION_VIEW, "content://com.android.calendar/events/42?x=SECRET#SECRET")) to "open android.intent.action.VIEW -> event 42",
+            CalendarIntents.openLine(CalendarIntents.ACTION_EDIT, route(CalendarIntents.ACTION_EDIT, "content://com.android.calendar/events/42")) to "open android.intent.action.EDIT -> edit 42",
+            CalendarIntents.openLine(null, CalendarRoute.Open(null)) to "open no action -> open page=default",
+        )
+        for ((line, expected) in lines) {
+            assertEquals(expected, line)
+            assertEquals(false, line.contains("SECRET") || line.contains('\n'))
+        }
+    }
 }
