@@ -10,6 +10,8 @@
 #   P2  "close" on Start: the line is spoken, nothing moves.
 #   P3  "open the bay" is phase 03's OpenApp, never the pod bay; "open the podbay doors" (one word) still opens it.
 #   P4  the session dismissed mid-line: the utterance is cancelled, the pending open is consumed when focus returns.
+#   R1  a pending request (Tess dismissed over another app) is dropped by another request; Start is not pulled over it.
+#   R2  a pending request lapses after 30 s: Home afterwards is Start alone.
 #   G1  a pan that starts on a bottom-row tile still opens the pod bay.
 #   C   content limits: 20 events today → 6 agenda rows; a long title stays one line inside the pod.
 # Typed requests only (no audio). Not drivable here, left to the owner's list: Home mid-swipe (this AVD does not re-deliver
@@ -153,6 +155,50 @@ assert_eq "P4: the dump shows pod_bay" "yes" "$(has_node "$ROW_DIR/P4-after.xml"
 assert_eq "P4: no session window" "no" "$(session_window)"
 ensure_start
 
+# ============================================================ R1, R2: a pending request does not wait for ever
+# Owner ruling 2026-09-30 (gate review r1 S2). Tess over DeskClock, dismissed mid-line: focus goes back to DeskClock, not
+# Start, so the request stays pending.
+pending_over_clock() { # label
+  adb shell am start -n com.android.deskclock/.DeskClock >/dev/null 2>&1; sleep 3
+  tess_open
+  type_request "open the pod bay doors" 1
+  adb shell input keyevent KEYCODE_BACK; sleep 0.4
+  adb shell input keyevent KEYCODE_BACK; sleep 3
+  assert_contains "$1: Tess dismissed over DeskClock" "com.android.deskclock/" "$(top_activity)"
+}
+log "R1: another request drops the pending one"
+MR="$(ring_mark)"
+pending_over_clock R1
+s="$(ring_since "$MR")"; printf '%s\n' "$s" > "$ROW_DIR/R1-pending-slice.txt"
+assert_contains "R1: the request was recorded" "[podbay] request recorded: open (doors)" "$s"
+absent_in "R1: and not consumed" "[podbay] opened" "$s"
+tess_open
+MR="$(ring_mark)"
+type_request "what time is it" 9
+s="$(ring_since "$MR")"; printf '%s\n' "$s" > "$ROW_DIR/R1-other-slice.txt"
+assert_contains "R1: the other request drops it" "[podbay] request dropped: open (doors) (another request)" "$s"
+assert_contains "R1: and is answered" "It's " "$(reply_since "$MR")"
+assert_contains "R1: Start was not pulled over its result (DeskClock is still on top)" "com.android.deskclock/" "$(top_activity)"
+absent_in "R1: nothing opened" "[podbay] opened" "$s"
+adb shell input keyevent KEYCODE_HOME; sleep 3
+dump_ui "$ROW_DIR/R1-home.xml"
+assert_eq "R1: Home afterwards is Start alone" "yes" "$(start_alone "$ROW_DIR/R1-home.xml")"
+
+log "R2: a pending request lapses after 30 s"
+MR="$(ring_mark)"
+pending_over_clock R2
+sleep 33
+adb shell input keyevent KEYCODE_HOME; sleep 4
+dump_ui "$ROW_DIR/R2-home.xml"
+s="$(ring_since "$MR")"; printf '%s\n' "$s" > "$ROW_DIR/R2-slice.txt"
+assert_contains "R2: the request was recorded" "[podbay] request recorded: open (doors)" "$s"
+assert_contains "R2: it lapsed" "[podbay] request lapsed: open (doors) after " "$s"
+absent_in "R2: nothing opened" "[podbay] opened" "$s"
+assert_eq "R2: Home is Start alone, not the pod bay" "yes" "$(start_alone "$ROW_DIR/R2-home.xml")"
+ring_save launcher
+adb shell am force-stop app.tileshell; adb shell input keyevent KEYCODE_HOME; sleep 5
+ensure_start
+
 # ============================================================ G1: a pan from a bottom-row tile
 log "G1: a pan that starts on a bottom-row tile"
 dump_ui "$ROW_DIR/G1-start.xml"
@@ -194,10 +240,18 @@ for i in $(seq 1 20); do
 done
 note "C: $n events inserted"
 assert_eq "C: more events than the cap" "yes" "$([ "$n" -gt 6 ] && echo yes || echo no)"
-sleep 6
-resume_start
-open_bay_at agenda "$ROW_DIR/C-01-agenda.xml"; screencap "$ROW_DIR/C-01-agenda.png"
-rows="$(grep -oE 'resource-id="pod_row:agenda:[0-9]+"' "$ROW_DIR/C-01-agenda.xml" | sort -u | wc -l | tr -d ' ')"
+# After case A's revoke and grant the feed reads the provider on its minute tick only (the run of 21:55 looked 20 s
+# after the inserts and found the empty line; the tick a minute later would have had the rows) — so the rows are
+# waited for, up to 80 s.
+rows=0
+for i in $(seq 1 16); do
+  sleep 5
+  open_bay_at agenda "$ROW_DIR/C-01-agenda.xml"
+  rows="$(grep -oE 'resource-id="pod_row:agenda:[0-9]+"' "$ROW_DIR/C-01-agenda.xml" | sort -u | wc -l | tr -d ' ')"
+  [ "$rows" -ge 6 ] && break
+done
+note "C: rows after $(( i * 5 )) s (plus the dumps): $rows"
+screencap "$ROW_DIR/C-01-agenda.png"
 assert_eq "C: the Agenda pod shows its cap of 6 rows" "6" "$rows"
 read -r l0 t0 r0 b0 <<< "$(bounds "$ROW_DIR/C-01-agenda.xml" pod_row:agenda:0)"
 read -r l1 t1 r1 b1 <<< "$(bounds "$ROW_DIR/C-01-agenda.xml" pod_row:agenda:1)"
