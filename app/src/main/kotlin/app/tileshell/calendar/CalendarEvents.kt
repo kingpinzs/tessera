@@ -83,25 +83,26 @@ object CalendarEvents {
      */
     fun save(context: Context, draft: EventDraft, zone: ZoneId, localCalendar: () -> Long?): SaveResult {
         if (!CalendarReads.canWrite(context)) return SaveResult.NeedsWrite
+        val access = CalendarAccess.of(context)
         val reminders = listOfNotNull(draft.reminder)
         val id = draft.eventId
         if (id == null) {
             val built = EventRules.build(draft, zone) as? EventRules.Built.Ok ?: return invalid(EventRules.build(draft, zone))
             val calendarId = localCalendar() ?: return SaveResult.NoCalendar
-            return result(CalendarWrites.insertEvent(context, Path.EDITOR, calendarId, built.values, reminders))
+            return result(CalendarWrites.insertEvent(access, Path.EDITOR, calendarId, built.values, reminders))
         }
         val keptReminders = if (draft.reminderChanged) reminders else null
         return when (draft.scope) {
             null -> {
                 val built = EventRules.build(draft, zone, recurring = draft.canRepeat && draft.repeat != Repeat.NONE) as? EventRules.Built.Ok
                     ?: return invalid(EventRules.build(draft, zone))
-                result(CalendarWrites.updateEvent(context, Path.EDITOR, id, built.values, keptReminders), id)
+                result(CalendarWrites.updateEvent(access, Path.EDITOR, id, built.values, keptReminders), id)
             }
-            EditScope.THIS -> saveThis(context, draft, id, zone, keptReminders)
-            EditScope.ALL -> saveAll(context, draft, id, zone, keptReminders)
+            EditScope.THIS -> saveThis(access, draft, id, zone, keptReminders)
+            EditScope.ALL -> saveAll(access, draft, id, zone, keptReminders)
             EditScope.FOLLOWING ->
-                if (draft.instanceBeginMs == null || draft.instanceBeginMs == draft.masterStartMs) saveAll(context, draft, id, zone, keptReminders)
-                else saveFollowing(context, draft, id, zone, keptReminders)
+                if (draft.instanceBeginMs == null || draft.instanceBeginMs == draft.masterStartMs) saveAll(access, draft, id, zone, keptReminders)
+                else saveFollowing(access, draft, id, zone, keptReminders)
         }
     }
 
@@ -120,7 +121,7 @@ object CalendarEvents {
     }
 
     /** "Edit this occurrence": an exception event (`ORIGINAL_ID` the master, `ORIGINAL_INSTANCE_TIME` the occurrence). */
-    private fun saveThis(context: Context, draft: EventDraft, masterId: Long, zone: ZoneId, reminders: List<Int>?): SaveResult {
+    private fun saveThis(access: CalendarAccess, draft: EventDraft, masterId: Long, zone: ZoneId, reminders: List<Int>?): SaveResult {
         val instance = draft.instanceBeginMs ?: return SaveResult.Failed("no occurrence")
         val built = EventRules.build(draft, zone, recurring = false) as? EventRules.Built.Ok ?: return invalid(EventRules.build(draft, zone, recurring = false))
         val v = built.values
@@ -131,37 +132,37 @@ object CalendarEvents {
             // The provider marks a new exception tentative unless told otherwise.
             status = CalendarContract.Events.STATUS_CONFIRMED,
         )
-        return result(CalendarWrites.insertException(context, Path.EDITOR, masterId, instance, values, reminders))
+        return result(CalendarWrites.insertException(access, Path.EDITOR, masterId, instance, values, reminders))
     }
 
     /** "All": the master, edited in place. A time changed on a later occurrence moves the whole series by as much. */
-    private fun saveAll(context: Context, draft: EventDraft, masterId: Long, zone: ZoneId, reminders: List<Int>?): SaveResult {
+    private fun saveAll(access: CalendarAccess, draft: EventDraft, masterId: Long, zone: ZoneId, reminders: List<Int>?): SaveResult {
         val built = EventRules.build(draft, zone) as? EventRules.Built.Ok ?: return invalid(EventRules.build(draft, zone))
         val shift = built.values.dtstart - (draft.loadedStartMs ?: built.values.dtstart)
         val values = built.values.copy(dtstart = (draft.masterStartMs ?: built.values.dtstart) + shift)
             .let { v -> if (v.dtend != null) v.copy(dtend = v.dtstart + (built.values.dtend!! - built.values.dtstart)) else v }
-        return result(CalendarWrites.updateEvent(context, Path.EDITOR, masterId, values, reminders), masterId)
+        return result(CalendarWrites.updateEvent(access, Path.EDITOR, masterId, values, reminders), masterId)
     }
 
     /**
      * "This and following": the master's rule ends just before the occurrence (`UNTIL`), and a new master starts at
      * it with what the editor holds. An exception event later than the split belongs to the new series from then on.
      */
-    private fun saveFollowing(context: Context, draft: EventDraft, masterId: Long, zone: ZoneId, reminders: List<Int>?): SaveResult {
-        val master = CalendarReads.event(context, masterId) ?: return SaveResult.Failed("the event is gone")
+    private fun saveFollowing(access: CalendarAccess, draft: EventDraft, masterId: Long, zone: ZoneId, reminders: List<Int>?): SaveResult {
+        val master = CalendarReads.event(access, masterId) ?: return SaveResult.Failed("the event is gone")
         val rrule = master.rrule ?: return SaveResult.Failed("the event does not repeat")
         val instance = draft.instanceBeginMs ?: return SaveResult.Failed("no occurrence")
         val built = EventRules.build(draft, zone) as? EventRules.Built.Ok ?: return invalid(EventRules.build(draft, zone))
-        val exceptions = CalendarReads.exceptions(context, masterId)
+        val exceptions = CalendarReads.exceptions(access, masterId)
         // A COUNT counts every occurrence the rule makes, the ones an exception replaced included.
-        val before = occurrencesBefore(context, master, instance) + exceptions.count { (it.originalInstanceTime ?: Long.MAX_VALUE) < instance }
+        val before = occurrencesBefore(access, master, instance) + exceptions.count { (it.originalInstanceTime ?: Long.MAX_VALUE) < instance }
         val tail = built.values.let { v -> if (v.rrule != null && draft.repeat == draft.loadedRepeat) v.copy(rrule = EventRules.tailOf(rrule, before)) else v }
         val calendarId = master.calendarId
 
-        val ended = CalendarWrites.setRule(context, Path.EDITOR, masterId, EventRules.endBefore(rrule, instance, master.allDay))
+        val ended = CalendarWrites.setRule(access, Path.EDITOR, masterId, EventRules.endBefore(rrule, instance, master.allDay))
         if (ended !is WriteResult.Ok) return result(ended, masterId)
-        val kept = reminders ?: CalendarReads.reminders(context, masterId).map { it.first }
-        val created = CalendarWrites.insertEvent(context, Path.EDITOR, calendarId, tail, kept)
+        val kept = reminders ?: CalendarReads.reminders(access, masterId).map { it.first }
+        val created = CalendarWrites.insertEvent(access, Path.EDITOR, calendarId, tail, kept)
         if (created !is WriteResult.Ok) return result(created)
         // An occurrence changed (or deleted) later than the split belongs to the new series: it is written again as
         // that series' exception, and its old row is removed.
@@ -173,43 +174,44 @@ object CalendarEvents {
                     title = e.title.orEmpty(), location = e.location.orEmpty(), description = e.description.orEmpty(), dtstart = e.dtstart,
                     duration = "P${((e.dtend ?: e.dtstart) - e.dtstart) / 1000}S", status = e.status ?: CalendarContract.Events.STATUS_CONFIRMED,
                 )
-                val moved = CalendarWrites.insertException(context, Path.EDITOR, created.value, time, values, CalendarReads.reminders(context, e.id).map { it.first })
-                if (moved is WriteResult.Ok) CalendarWrites.purgeRow(context, Path.EDITOR, e.id)
+                val moved = CalendarWrites.insertException(access, Path.EDITOR, created.value, time, values, CalendarReads.reminders(access, e.id).map { it.first })
+                if (moved is WriteResult.Ok) CalendarWrites.purgeRow(access, Path.EDITOR, e.id)
             }
         } else {
-            later.forEach { CalendarWrites.purgeRow(context, Path.EDITOR, it.id) }
+            later.forEach { CalendarWrites.purgeRow(access, Path.EDITOR, it.id) }
         }
         return SaveResult.Saved(created.value)
     }
 
     /** How many occurrences of [master] itself start before [instanceBeginMs]. */
-    private fun occurrencesBefore(context: Context, master: EventDetail, instanceBeginMs: Long): Int =
-        CalendarReads.instances(context, master.dtstart, instanceBeginMs)?.count { it.eventId == master.id && it.beginMs < instanceBeginMs } ?: 0
+    private fun occurrencesBefore(access: CalendarAccess, master: EventDetail, instanceBeginMs: Long): Int =
+        CalendarReads.instances(access, master.dtstart, instanceBeginMs)?.count { it.eventId == master.id && it.beginMs < instanceBeginMs } ?: 0
 
     /**
      * Delete, for the scope the occurrence prompt gave (null for an event that does not repeat).
      * @param both the delete choice of a synced event: "here and from <calendar>"
      */
     fun delete(context: Context, eventId: Long, scope: EditScope?, instanceBeginMs: Long?, both: Boolean): WriteResult<Unit> {
-        val event = CalendarReads.event(context, eventId) ?: return WriteResult.Failed("no such event")
+        val access = CalendarAccess.of(context)
+        val event = CalendarReads.event(access, eventId) ?: return WriteResult.Failed("no such event")
         if (!event.recurring || scope == null || scope == EditScope.ALL || instanceBeginMs == null) {
-            return CalendarSync.delete(context, Path.EDITOR, eventId, both)
+            return CalendarSync.delete(access, Path.EDITOR, eventId, both)
         }
         return when (scope) {
             EditScope.THIS -> when (val made = CalendarWrites.insertException(
-                context, Path.EDITOR, eventId, instanceBeginMs, ExceptionValues(status = CalendarContract.Events.STATUS_CANCELED), null,
+                access, Path.EDITOR, eventId, instanceBeginMs, ExceptionValues(status = CalendarContract.Events.STATUS_CANCELED), null,
             )) {
                 is WriteResult.Ok -> WriteResult.Ok(Unit)
                 is WriteResult.Refused -> made
                 is WriteResult.Failed -> made
             }
             else -> {
-                if (instanceBeginMs == event.dtstart) return CalendarSync.delete(context, Path.EDITOR, eventId, both)
+                if (instanceBeginMs == event.dtstart) return CalendarSync.delete(access, Path.EDITOR, eventId, both)
                 val rrule = event.rrule ?: return WriteResult.Failed("the event does not repeat")
-                val later = CalendarReads.exceptions(context, eventId).filter { (it.originalInstanceTime ?: Long.MIN_VALUE) >= instanceBeginMs }
-                val ended = CalendarWrites.setRule(context, Path.EDITOR, eventId, EventRules.endBefore(rrule, instanceBeginMs, event.allDay))
+                val later = CalendarReads.exceptions(access, eventId).filter { (it.originalInstanceTime ?: Long.MIN_VALUE) >= instanceBeginMs }
+                val ended = CalendarWrites.setRule(access, Path.EDITOR, eventId, EventRules.endBefore(rrule, instanceBeginMs, event.allDay))
                 // Their occurrences are past the series' new end: the rows go for good.
-                if (ended is WriteResult.Ok) later.forEach { CalendarWrites.purgeRow(context, Path.EDITOR, it.id) }
+                if (ended is WriteResult.Ok) later.forEach { CalendarWrites.purgeRow(access, Path.EDITOR, it.id) }
                 ended
             }
         }

@@ -265,9 +265,10 @@ object CalendarReminders {
             Diagnostics.add("calendar", "reminder poke: nothing read (READ_CALENDAR)")
             return
         }
+        val access = CalendarAccess.of(context)
         val now = System.currentTimeMillis()
         val since = countFrom(context, now, "a reminder before any start-up")
-        val due = CalendarReads.dueAlerts(context, now) ?: return
+        val due = CalendarReads.dueAlerts(access, now) ?: return
         val store = CalendarSyncStore.get(context)
         val live = due.mapTo(HashSet()) { it.key }
         val notified = store.current.notifiedAlerts
@@ -279,7 +280,7 @@ object CalendarReminders {
             store.update { SyncStateRules.keepNotified(it, live, emptySet()) }
             return
         }
-        val plan = ReminderRules.plan(due, notified, SyncedCopies.hiddenEventIds(context), since)
+        val plan = ReminderRules.plan(due, notified, SyncedCopies.hiddenEventIds(access), since)
         val handled = ReminderRules.recorded(plan.actions) { action ->
             val row = action.row
             when (action) {
@@ -294,7 +295,7 @@ object CalendarReminders {
                         Diagnostics.add("calendar", "reminder event=${row.eventId} minutes=${row.minutes}: failed notifications are off")
                         false
                     } else {
-                        CalendarWrites.setAlertState(context, ReminderRules.identity(row), CalendarContract.CalendarAlerts.STATE_FIRED)
+                        CalendarWrites.setAlertState(access, ReminderRules.identity(row), CalendarContract.CalendarAlerts.STATE_FIRED)
                         Diagnostics.add("calendar", "reminder event=${row.eventId} minutes=${row.minutes}: notified")
                         true
                     }
@@ -310,7 +311,7 @@ object CalendarReminders {
      * the ring and is not an error.
      */
     fun dismissed(context: Context, alert: ReminderRules.AlertIdentity, minutes: Int) {
-        val line = when (val written = CalendarWrites.setAlertState(context, alert, CalendarContract.CalendarAlerts.STATE_DISMISSED)) {
+        val line = when (val written = CalendarWrites.setAlertState(CalendarAccess.of(context), alert, CalendarContract.CalendarAlerts.STATE_DISMISSED)) {
             is WriteResult.Ok -> if (written.value > 0) "dismissed" else "swipe ignored (no such alert now)"
             is WriteResult.Refused -> "dismiss ${written.why.text}"
             is WriteResult.Failed -> "dismiss failed ${written.error}"

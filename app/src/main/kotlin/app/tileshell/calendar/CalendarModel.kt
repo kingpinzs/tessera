@@ -41,7 +41,8 @@ data class LoadedWindow(
  */
 class CalendarModel(context: Context) {
     private val app = context.applicationContext
-    val store = CalendarSyncStore.get(app)
+    private val access = CalendarAccess.of(app)
+    val store = access.store
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     var canRead by mutableStateOf(CalendarReads.canRead(app))
@@ -104,7 +105,7 @@ class CalendarModel(context: Context) {
         settle?.cancel()
         settle = scope.launch {
             delay(CHANGE_SETTLE_MS)
-            val result = withContext(Dispatchers.IO) { CalendarReads.calendars(app) }
+            val result = withContext(Dispatchers.IO) { CalendarReads.calendars(access) }
             apply(result)
             changes++
             reload()
@@ -164,15 +165,15 @@ class CalendarModel(context: Context) {
     }
 
     private fun readCalendars(mayCreate: Boolean): Pair<String, CalendarsResult> {
-        val local = when (val found = LocalCalendar.find(app)) {
+        val local = when (val found = LocalCalendar.find(access)) {
             is LocalCalendar.Lookup.Found -> "local present"
             LocalCalendar.Lookup.Absent ->
                 if (!mayCreate) "local missing: WRITE_CALENDAR"
-                else LocalCalendar.id(app)?.let { "local created id=$it" } ?: "local missing: it could not be created"
+                else LocalCalendar.id(access)?.let { "local created id=$it" } ?: "local missing: it could not be created"
             // The provider does not answer (it is off): nothing is created, and the page says so.
             is LocalCalendar.Lookup.Failed -> return "calendars: none (${found.error})" to CalendarsResult.Failed(found.error)
         }
-        return when (val result = CalendarReads.calendars(app)) {
+        return when (val result = CalendarReads.calendars(access)) {
             is CalendarsResult.Ok -> "calendars: ${result.calendars.size} ($local)" to result
             is CalendarsResult.Failed -> "calendars: none (${result.error})" to result
         }
@@ -216,9 +217,9 @@ class CalendarModel(context: Context) {
             val rows = withContext(Dispatchers.IO) {
                 val fromMs = from.atStartOfDay(zone).toInstant().toEpochMilli()
                 val toMs = to.atStartOfDay(zone).toInstant().toEpochMilli()
-                val all = CalendarReads.instances(app, fromMs, toMs) ?: return@withContext null
+                val all = CalendarReads.instances(access, fromMs, toMs) ?: return@withContext null
                 // Q-16-2: a synced copy is hidden while its Tessera original exists; the count is the count after the drop.
-                val copies = SyncedCopies.hiddenEventIds(app)
+                val copies = SyncedCopies.hiddenEventIds(access)
                 if (copies.isEmpty()) all else all.filter { it.eventId !in copies }
             }
             if (mine != token) return@launch
@@ -230,7 +231,7 @@ class CalendarModel(context: Context) {
     fun logCounts() {
         val list = calendars
         scope.launch {
-            val counts = withContext(Dispatchers.IO) { CalendarReads.eventCounts(app) }
+            val counts = withContext(Dispatchers.IO) { CalendarReads.eventCounts(access) }
             Diagnostics.add("calendar", "counts: " + list.joinToString(", ") { "${it.accountName}/${it.displayName}=${counts[it.id] ?: 0}" })
         }
     }

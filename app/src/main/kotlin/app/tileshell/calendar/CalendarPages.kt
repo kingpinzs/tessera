@@ -124,7 +124,7 @@ fun EventPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page: Cal
     // Read again on every provider change: an edit shows at once, and an event that went away — its account's
     // calendar removed while the page was open — closes the page with a notice.
     LaunchedEffect(page, model.changes) {
-        val read = withContext(Dispatchers.IO) { CalendarReads.event(context, page.eventId)?.let { EventData(it, CalendarReads.reminders(context, it.id)) } }
+        val read = withContext(Dispatchers.IO) { CalendarAccess.of(context).let { access -> CalendarReads.event(access, page.eventId)?.let { EventData(it, CalendarReads.reminders(access, it.id)) } } }
         if (read == null) {
             // Wherever the page is in the stack: under an open editor it would otherwise come back showing an event
             // that no longer exists.
@@ -174,7 +174,7 @@ fun EventPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page: Cal
 
     fun runSync(target: CalendarKey, name: String) {
         scope.launch {
-            val outcome = withContext(Dispatchers.IO) { CalendarSync.sync(context, masterId, target) }
+            val outcome = withContext(Dispatchers.IO) { CalendarSync.sync(CalendarAccess.of(context), masterId, target) }
             page.notice = CalNotices.of(outcome, name)
         }
     }
@@ -496,7 +496,7 @@ fun SyncPickerPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page
             calendars.forEach { calendar ->
                 CalendarRow(calendar.shownName, colorOf(calendar.color), null, "cal_sync_target:${calendar.id}") {
                     scope.launch {
-                        val outcome = withContext(Dispatchers.IO) { CalendarSync.sync(context, page.eventId, calendar.key) }
+                        val outcome = withContext(Dispatchers.IO) { CalendarSync.sync(CalendarAccess.of(context), page.eventId, calendar.key) }
                         if (nav.page === page) nav.pop()
                         (nav.page as? CalPage.Event)?.notice = CalNotices.of(outcome, calendar.shownName)
                     }
