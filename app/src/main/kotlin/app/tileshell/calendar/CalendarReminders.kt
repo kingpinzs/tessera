@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.Executors
 
-/** Which due alerts the receiver notifies and which it skips — pure, so the JVM test pins r3 D6 (c) and Q-16-2. */
+/** Which due alerts the receiver notifies and which it skips — pure, so the JVM test pins r3 D6 (c), Q-16-2 and Q-16-4. */
 object ReminderRules {
     sealed interface Action {
         val row: AlertRow
@@ -27,13 +27,33 @@ object ReminderRules {
     }
 
     /**
-     * [due]: the alert rows with `alarmTime` ≤ now in state SCHEDULED or FIRED. Less the alerts already handled
-     * ([notified], by [AlertRow.key]) — so a second or a forged broadcast for the same alert does nothing, and a new
-     * alert that was handed a deleted row's `_id` still notifies — and with a copy's alert
-     * ([copies]: the synced-copy event ids) skipped rather than shown.
+     * What one poke does: [actions] for the alerts to handle, and [skippedBeforeStart] — how many due rows came due
+     * before the shell's first start. Those get no notification, no write and no place in the notified set; the poke
+     * says so in one line.
      */
-    fun plan(due: List<AlertRow>, notified: Set<String>, copies: Set<Long>): List<Action> =
-        due.filter { it.key !in notified }.map { if (it.eventId in copies) Action.SkipCopy(it) else Action.Notify(it) }
+    data class Plan(val actions: List<Action>, val skippedBeforeStart: Int)
+
+    /** The rows a poke may act on: due at or after [sinceMs]. An alert due at the very instant of the first start counts. */
+    fun sinceStart(due: List<AlertRow>, sinceMs: Long): List<AlertRow> = due.filter { it.alarmTimeMs >= sinceMs }
+
+    /**
+     * [due]: the alert rows with `alarmTime` ≤ now in state SCHEDULED or FIRED.
+     *
+     * Q-16-4 first: a row whose `alarmTime` is before [sinceMs] — the shell's first start on this install — is dropped.
+     * On a phone that already had a calendar app, the provider holds about a week of alerts that app fired and nobody
+     * dismissed; the shell reminds only for what comes due after it first ran.
+     *
+     * Then, of the rest: less the alerts already handled ([notified], by [AlertRow.key]) — so a second or a forged
+     * broadcast for the same alert does nothing, and a new alert that was handed a deleted row's `_id` still notifies
+     * — and with a copy's alert ([copies]: the synced-copy event ids) skipped rather than shown.
+     */
+    fun plan(due: List<AlertRow>, notified: Set<String>, copies: Set<Long>, sinceMs: Long): Plan {
+        val current = sinceStart(due, sinceMs)
+        return Plan(
+            actions = current.filter { it.key !in notified }.map { if (it.eventId in copies) Action.SkipCopy(it) else Action.Notify(it) },
+            skippedBeforeStart = due.size - current.size,
+        )
+    }
 }
 
 /**
@@ -93,26 +113,58 @@ object CalendarReminders {
     val worker = Executors.newSingleThreadExecutor()
 
     /**
+     * The shell's first start on this install (Q-16-4): called from the launcher's process start, where the feeds
+     * start, with the time of that start. It writes `remindersSince` once, when the store has none, and lowers a stored
+     * time the clock has since been set back behind. It runs on the receiver's own thread, ahead of any poke that
+     * arrives later in this process — so a poke is never what decides the cut-off of the alert that woke it, except in
+     * a process no start-up ran in (see [poke]).
+     */
+    fun shellStarted(context: Context, nowMs: Long = System.currentTimeMillis()) {
+        val app = context.applicationContext
+        worker.execute { runCatching { countFrom(app, nowMs, "the shell's start") } }
+    }
+
+    /** Sets or lowers the cut-off as [SyncStateRules.remindersSince] says, logging only when it changes. */
+    private fun countFrom(context: Context, nowMs: Long, why: String): Long {
+        val store = CalendarSyncStore.get(context)
+        val before = store.current.remindersSince
+        val since = store.update { SyncStateRules.remindersSince(it, nowMs) }.remindersSince ?: nowMs
+        if (before == null) Diagnostics.add("calendar", "reminders count from $since ($why: first on this install)")
+        else if (before != since) Diagnostics.add("calendar", "reminders count from $since ($why: the clock was set back behind $before)")
+        return since
+    }
+
+    /**
      * Re-reads `CalendarAlerts` for what is due and unhandled, and for each alert left posts one notification, records
      * it in the shell's store (the receiver may run in a fresh process) and marks the row FIRED — the write guard's
      * case 4. Every calendar's alerts are shown, the account calendars' too (T16-4), except a synced copy's.
+     *
+     * Q-16-4: rows that came due before the shell's first start are dropped — no notification, no write of any kind
+     * to their alert rows, no place in the notified set — and counted in one line per poke. If this poke runs before
+     * any start-up has written the cut-off, the cut-off is now, and what was already due is skipped.
      */
     fun poke(context: Context) {
         if (!CalendarReads.canRead(context)) {
             Diagnostics.add("calendar", "reminder poke: nothing read (READ_CALENDAR)")
             return
         }
-        val due = CalendarReads.dueAlerts(context, System.currentTimeMillis()) ?: return
+        val now = System.currentTimeMillis()
+        val since = countFrom(context, now, "a reminder before any start-up")
+        val due = CalendarReads.dueAlerts(context, now) ?: return
         val store = CalendarSyncStore.get(context)
         val live = due.mapTo(HashSet()) { it.key }
-        val fresh = due.filter { it.key !in store.current.notifiedAlerts }
-        if (fresh.isEmpty()) {
+        val notified = store.current.notifiedAlerts
+        val current = ReminderRules.sinceStart(due, since)
+        if (current.size < due.size) {
+            Diagnostics.add("calendar", "reminder: ${due.size - current.size} skipped (due before the shell's first start)")
+        }
+        if (current.none { it.key !in notified }) {
             store.update { SyncStateRules.keepNotified(it, live, emptySet()) }
             return
         }
-        val plan = ReminderRules.plan(due, store.current.notifiedAlerts, SyncedCopies.hiddenEventIds(context))
+        val plan = ReminderRules.plan(due, notified, SyncedCopies.hiddenEventIds(context), since)
         val handled = HashSet<String>()
-        for (action in plan) {
+        for (action in plan.actions) {
             val row = action.row
             when (action) {
                 is ReminderRules.Action.SkipCopy -> {

@@ -376,37 +376,122 @@ class CalendarRulesTest {
 
     // ---------------------------------------------------------------- the reminder receiver's plan (r3 D6 (c), Q-16-2)
 
+    /** An alert of [event] whose occurrence begins at [begin] and whose alarm time is 600 ms before it. */
     private fun alert(id: Long, event: Long, state: Int = 0, begin: Long = 1000) = AlertRow(id, event, begin, begin + 1000, begin - 600, state, 10, "Standup", false)
 
+    /** The plan of a shell that first started long before every alert here (a cut-off of 0). */
+    private fun actions(due: List<AlertRow>, notified: Set<String> = emptySet(), copies: Set<Long> = emptySet()) =
+        ReminderRules.plan(due, notified, copies, sinceMs = 0).actions
+
     @Test fun oneNotificationPerDueAlertNotYetHandled() {
-        val plan = ReminderRules.plan(listOf(alert(1, 10), alert(2, 11)), notified = emptySet(), copies = emptySet())
+        val plan = actions(listOf(alert(1, 10), alert(2, 11)))
         assertEquals(listOf(1L, 2L), plan.filterIsInstance<ReminderRules.Action.Notify>().map { it.row.id })
     }
 
     @Test fun aRowAnotherAppAlreadyFiredIsStillNotified() {
-        val plan = ReminderRules.plan(listOf(alert(1, 10, state = 1)), notified = emptySet(), copies = emptySet())
+        val plan = actions(listOf(alert(1, 10, state = 1)))
         assertEquals(1, plan.filterIsInstance<ReminderRules.Action.Notify>().size)
     }
 
     @Test fun aSecondOrForgedPokeForAHandledAlertDoesNothing() {
-        assertEquals(emptyList<ReminderRules.Action>(), ReminderRules.plan(listOf(alert(1, 10, state = 1)), notified = setOf(alert(1, 10).key), copies = emptySet()))
+        assertEquals(emptyList<ReminderRules.Action>(), actions(listOf(alert(1, 10, state = 1)), notified = setOf(alert(1, 10).key)))
         // And with nothing due, nothing happens at all.
-        assertEquals(emptyList<ReminderRules.Action>(), ReminderRules.plan(emptyList(), notified = emptySet(), copies = emptySet()))
+        assertEquals(ReminderRules.Plan(emptyList(), 0), ReminderRules.plan(emptyList(), emptySet(), emptySet(), sinceMs = 0))
     }
 
     @Test fun aNewAlertThatInheritedAHandledRowsIdStillNotifies() {
         // The provider hands a deleted row's _id out again: alert 1 was event 10's and was handled; it is deleted, and
         // the next alert — another event, or the same event's next occurrence — is given id 1.
         val handled = setOf(alert(1, 10).key)
-        assertEquals(1, ReminderRules.plan(listOf(alert(1, 11)), handled, emptySet()).size)
-        assertEquals(1, ReminderRules.plan(listOf(alert(1, 10, begin = 9000)), handled, emptySet()).size)
+        assertEquals(1, actions(listOf(alert(1, 11)), handled).size)
+        assertEquals(1, actions(listOf(alert(1, 10, begin = 9000)), handled).size)
         // The same alert under a new row id (the provider wrote its row again) is still the alert that was handled.
-        assertEquals(0, ReminderRules.plan(listOf(alert(7, 10)), handled, emptySet()).size)
+        assertEquals(0, actions(listOf(alert(7, 10)), handled).size)
     }
 
     @Test fun aSyncedCopysAlertIsSkippedAndItsOriginalsIsNotified() {
-        val plan = ReminderRules.plan(listOf(alert(1, 10), alert(2, 77)), notified = emptySet(), copies = setOf(77))
+        val plan = actions(listOf(alert(1, 10), alert(2, 77)), copies = setOf(77))
         assertEquals(listOf(1L), plan.filterIsInstance<ReminderRules.Action.Notify>().map { it.row.id })
         assertEquals(listOf(77L), plan.filterIsInstance<ReminderRules.Action.SkipCopy>().map { it.row.eventId })
+    }
+
+    // ---------------------------------------------------------------- Q-16-4: alerts due before the shell's first start
+
+    @Test fun anAlertDueBeforeTheShellsFirstStartIsSkippedAndCounted() {
+        // The shell first started at 5000. Alarm times: 4400 (before), 5000 (at), 5400 (after).
+        val before = alert(1, 10, begin = 5000)
+        val at = alert(2, 11, begin = 5600)
+        val after = alert(3, 12, begin = 6000)
+        val plan = ReminderRules.plan(listOf(before, at, after), notified = emptySet(), copies = emptySet(), sinceMs = 5000)
+        // The one due before the first start gets no action at all — no notification, so no write and no record of it.
+        assertEquals(listOf(2L, 3L), plan.actions.map { it.row.id })
+        assertTrue(plan.actions.all { it is ReminderRules.Action.Notify })
+        assertEquals(1, plan.skippedBeforeStart)
+        assertEquals(listOf(at, after), ReminderRules.sinceStart(listOf(before, at, after), 5000))
+    }
+
+    @Test fun aWeekOfAnotherAppsFiredAlertsIsNotABurstOnTheFirstPoke() {
+        // What the phone's calendar app fired and nobody dismissed, all due before the shell first ran, and one new alert.
+        val backlog = (1L..40L).map { alert(it, 100 + it, state = 1, begin = 1000 + it) }
+        val fresh = alert(99, 500, begin = 90_000)
+        val plan = ReminderRules.plan(backlog + fresh, emptySet(), emptySet(), sinceMs = 50_000)
+        assertEquals(listOf(99L), plan.actions.map { it.row.id })
+        assertEquals(40, plan.skippedBeforeStart)
+    }
+
+    @Test fun everyPokeCountsTheOldRowsAgainBecauseNothingIsWrittenForThem() {
+        // An old row is never added to the notified set and its alert row is never touched, so the next poke finds it
+        // again: the "n skipped" line is one per poke.
+        val old = alert(1, 10, begin = 2000)
+        val first = ReminderRules.plan(listOf(old), emptySet(), emptySet(), sinceMs = 5000)
+        assertEquals(ReminderRules.Plan(emptyList(), 1), first)
+        val notifiedAfterFirst = SyncStateRules.keepNotified(SyncState(), live = setOf(old.key), added = first.actions.mapTo(HashSet()) { it.row.key }).notifiedAlerts
+        assertEquals(emptySet<String>(), notifiedAfterFirst)
+        assertEquals(1, ReminderRules.plan(listOf(old), notifiedAfterFirst, emptySet(), sinceMs = 5000).skippedBeforeStart)
+    }
+
+    @Test fun aSyncedCopysAlertAfterTheCutOffIsStillSkippedAsACopy() {
+        val copyAfter = alert(1, 77, begin = 6000)
+        val copyBefore = alert(2, 77, begin = 2000)
+        val plan = ReminderRules.plan(listOf(copyBefore, copyAfter), emptySet(), copies = setOf(77), sinceMs = 5000)
+        assertEquals(listOf<ReminderRules.Action>(ReminderRules.Action.SkipCopy(copyAfter)), plan.actions)
+        // A copy's alert from before the first start is one of the old rows: counted, not named.
+        assertEquals(1, plan.skippedBeforeStart)
+    }
+
+    @Test fun anAlertAlreadyHandledIsNotCountedAsOld() {
+        // Handled after the cut-off: it is neither notified again nor counted as due before the first start.
+        val handled = alert(1, 10, begin = 6000)
+        assertEquals(ReminderRules.Plan(emptyList(), 0), ReminderRules.plan(listOf(handled), setOf(handled.key), emptySet(), sinceMs = 5000))
+    }
+
+    @Test fun theCutOffIsWrittenOnceAtTheFirstStartAndKeptAfterIt() {
+        // Absent (a fresh install, a pm clear, or the first build that carries the field): the first start writes it.
+        val first = SyncStateRules.remindersSince(SyncState(), nowMs = 5000)
+        assertEquals(5000L, first.remindersSince)
+        // A later start, or an update, keeps it; nothing else in the store moves.
+        val state = first.copy(allowed = listOf(personal), notifiedAlerts = setOf("10:1000:400"))
+        assertEquals(state, SyncStateRules.remindersSince(state, nowMs = 9000))
+        assertEquals(state, SyncStateRules.remindersSince(state, nowMs = 5000))
+    }
+
+    @Test fun aCutOffLaterThanNowIsLoweredToNow() {
+        // The clock was set back behind the stored first start: left alone, every alert until then would be "old".
+        val state = SyncState(remindersSince = 9000)
+        assertEquals(4000L, SyncStateRules.remindersSince(state, nowMs = 4000).remindersSince)
+        // From then on an alert that comes due after the lowered cut-off notifies.
+        val plan = ReminderRules.plan(listOf(alert(1, 10, begin = 5000)), emptySet(), emptySet(), sinceMs = 4000)
+        assertEquals(1, plan.actions.size)
+        assertEquals(0, plan.skippedBeforeStart)
+    }
+
+    @Test fun aPokeBeforeAnyStartUpSetsTheCutOffToNowAndSkipsWhatWasAlreadyDue() {
+        // The receiver ran in a process no start-up ran in, and the store has no cut-off: it becomes now (7000).
+        val since = SyncStateRules.remindersSince(SyncState(), nowMs = 7000).remindersSince!!
+        val dueEarlier = alert(1, 10, begin = 6000)       // alarm time 5400
+        val dueThisInstant = alert(2, 11, begin = 7600)   // alarm time 7000
+        val plan = ReminderRules.plan(listOf(dueEarlier, dueThisInstant), emptySet(), emptySet(), since)
+        assertEquals(listOf(2L), plan.actions.map { it.row.id })
+        assertEquals(1, plan.skippedBeforeStart)
     }
 }

@@ -69,6 +69,8 @@ class CalendarSyncStore private constructor(context: Context) {
                 // Keys of the form <event>:<begin>:<alarmTime>; a bare row id an earlier build wrote names no alert now.
                 for (i in 0 until n.length()) n.optString(i).takeIf { ':' in it }?.let { add(it) }
             },
+            // Q-16-4: absent in a file an earlier build wrote; the next start of the shell writes it.
+            remindersSince = if (o.has("remindersSince") && !o.isNull("remindersSince")) o.getLong("remindersSince") else null,
         )
     }.getOrElse {
         // Unreadable reads as empty: nothing allowed, nothing mapped — the safe side of the gate.
@@ -87,6 +89,7 @@ class CalendarSyncStore private constructor(context: Context) {
             o.put("hidden", JSONArray().apply { state.hidden.forEach { put(json(it)) } })
             if (state.firstDayOfWeek != null) o.put("firstDayOfWeek", state.firstDayOfWeek)
             o.put("notifiedAlerts", JSONArray().apply { state.notifiedAlerts.sorted().forEach { put(it) } })
+            if (state.remindersSince != null) o.put("remindersSince", state.remindersSince)
             val tmp = File(file.parentFile, "$FILE.tmp")
             tmp.writeText(o.toString())
             if (!tmp.renameTo(file)) error("rename failed")
