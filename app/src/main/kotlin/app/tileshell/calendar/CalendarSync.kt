@@ -64,7 +64,11 @@ object CalendarSync {
         is WriteResult.Failed -> Outcome.Failed(result.error)
     }
 
-    /** The tapped push of [localEventId] to [target]. One `[calendar] sync …` line says how it ended. */
+    /**
+     * The tapped push of [localEventId] to [target]. One `[calendar] sync …` line says how it ended. One Sync at a time:
+     * a Sync tapped twice quickly makes one copy, and the second compares that copy with the local event (`ok`).
+     */
+    @Synchronized
     fun sync(context: Context, localEventId: Long, target: CalendarKey): Outcome {
         val outcome = push(context, localEventId, target)
         Diagnostics.add("calendar", "sync event=$localEventId -> calendar ${target.id}: ${outcome.text}")
@@ -194,6 +198,7 @@ object CalendarSync {
      * goes first, while its source exists — refused with `failed mapping stale` and nothing written when the copy is
      * no longer where the mapping says, or its calendar is no longer allowed (T16-12).
      */
+    @Synchronized
     fun delete(context: Context, path: Path, eventId: Long, both: Boolean): WriteResult<Unit> {
         val store = CalendarSyncStore.get(context)
         val mapping = store.current.mappings[eventId]

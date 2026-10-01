@@ -1,0 +1,88 @@
+==============================================================================
+ROW E19_GEOMETRY — the views' measured values, and the two motions
+at            2026-10-01T14:58:16-06:00
+driver        e19_geometry.sh blob c0927c189edfb15a5ef0e7e5b1e5b89a45f9acff
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     51741e5ee1d98804 342667572 bytes
+apk installed 03debb2c282f45a7
+apk match     yes (03debb2c282f45a7)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  the drawn status bar's bottom and the nav bar's top (epx)   28.00 / 732.00
+PASS  K1.2 the header band is 40 epx tall                         40.00 vs 40.00 +/- 1.0
+PASS  K1.2 and starts at the status bar's bottom                  28.00 vs 28.00 +/- 0.5
+PASS  K1.1 the menu bars start at x 16                            16.00 vs 16.00 +/- 1.0
+PASS  K1.1 and end at x 36                                        36.00 vs 36.00 +/- 1.0
+PASS  K1.1 the month and year: left 51.0                          51.00 vs 51.00 +/- 1.0
+PASS  K1.1 its cap top 15.5 below the status bar (box top + 0.2896 x 15.7)  15.55 vs 15.50 +/- 1.0
+PASS  K1.3 the page is (26,26,26)                                 26 26 26 ~ 26 26 26 +/- 2
+PASS  K1.3 the status bar is black                                0 0 0 ~ 0 0 0 +/- 2
+PASS  K1.3 the nav bar is black                                   0 0 0 ~ 0 0 0 +/- 2
+PASS  K2.1 strip column 0 centre 25.0                             25.16 vs 25.00 +/- 1.0
+PASS  K2.1 strip column 1 centre 76.6                             76.17 vs 76.60 +/- 1.0
+PASS  K2.1 strip column 2 centre 127.5                            127.17 vs 127.50 +/- 1.0
+PASS  K2.1 strip column 3 centre 178.4                            178.17 vs 178.40 +/- 1.0
+PASS  K2.1 strip column 4 centre 229.0                            229.17 vs 229.00 +/- 1.0
+PASS  K2.1 strip column 5 centre 280.4                            280.17 vs 280.40 +/- 1.0
+PASS  K2.1 strip column 6 centre 331.3                            331.17 vs 331.30 +/- 1.0
+RECORD  the strip's first day (the locale's week start on this AVD)  2026-09-27
+PASS  K2.5 the selected day's square is 32 epx wide               32.00 vs 32.00 +/- 2.0
+PASS  K2.5 and 32 epx tall                                        32.00 vs 32.00 +/- 2.0
+PASS  K2.4 two week rows: 14 strip days                           = 14
+PASS  K2.2 day names' cap top 51.3 below the status bar           51.34 vs 51.30 +/- 1.0
+PASS  K2.2 day names are (151,151,151): the ink's brightest pixel  151 151 151 ~ 151 151 151 +/- 4
+FAIL  K3.2 the day heading's left 24                              0.00 vs 24.00 +/- 1.0
+PASS  K3.8 the colour bar is flush left                           0.00 vs 0.00 +/- 0.5
+PASS  K3.8 and 8 epx wide                                         8.00 vs 8.00 +/- 1.0
+PASS  K3.5 an all-day bar is 40 epx                               40.00 vs 40.00 +/- 1.0
+PASS  K3.5 on a 44-epx pitch                                      44.00 vs 44.00 +/- 1.0
+FAIL  K3.6 a timed bar is 56 epx                                  24.00 vs 56.00 +/- 1.0
+RECORD  the timed rows' pitch (R11: 59.5 on the 432 canvas)         60.0
+PASS  K3.8 the bar is the calendar's colour (#0063B1)             0 99 177 ~ 0 99 177 +/- 4
+PASS  K3.7 the title's left 92.5                                  92.67 vs 92.50 +/- 1.0
+FAIL  K3.7 the timed label's left 24.3                            0.00 vs 24.30 +/- 1.0
+PASS  K3.5 the All day label's left 24.3                          24.33 vs 24.30 +/- 1.0
+PASS  K1.5 the app bar is 47 epx                                  47.00 vs 47.00 +/- 1.0
+PASS  K1.5 and ends at the nav bar's top                          732.00 vs 732.00 +/- 0.5
+PASS  K1.5 its fill is (33,33,33)                                 33 33 33 ~ 33 33 33 +/- 4
+PASS  K1.5 its top edge is (80,80,80)                             80 80 80 ~ 80 80 80 +/- 4
+PASS  K1.6 today's centre 217.9 epx from the right edge           218.00 vs 217.90 +/- 1.0
+PASS  K1.6 new's centre 150.2 epx from the right edge             150.00 vs 150.20 +/- 1.0
+PASS  K1.6 view's centre 82.6 epx from the right edge             82.00 vs 82.60 +/- 1.0
+PASS  K1.6 more's centre 24.5 epx from the right edge             24.00 vs 24.50 +/- 1.0
+PASS  K5.1 the panel's left 5                                     5.00 vs 5.00 +/- 1.0
+PASS  K5.1 its right 355                                          355.00 vs 355.00 +/- 1.0
+PASS  K5.1 its top at the header's bottom                         68.00 vs 68.00 +/- 1.0
+PASS  K5.1 235 epx tall                                           235.00 vs 235.00 +/- 1.0
+PASS  K5.1 a (80,80,80) border                                    80 80 80 ~ 80 80 80 +/- 4
+PASS  K5.2 the date rows' pitch 34.25                             34.00 vs 34.25 +/- 1.0
+PASS  K5.2 six rows: the sixth 171.25 below the first             171.00 vs 171.25 +/- 1.0
+PASS  K5.2 on the strip's columns: the first centre 25.0          25.16 vs 25.00 +/- 1.0
+[motion] cal_month_dropdown t0=8589349 peak=196 overshoot=0 settle=196 frames=13 maxGapMs=17
+PASS  U8 the drop-down settles in 200 ms                          196.00 vs 200.00 +/- 17.0
+PASS  C-31 with no frame gap over 33.4 ms                         17.00 vs 16.70 +/- 16.7
+PASS  K6.4 the rows' pitch 48.1                                   48.00 vs 48.10 +/- 1.0
+PASS  K6.4 the calendar's name at x 62                            62.00 vs 62.00 +/- 1.0
+PASS  U10 the pane's chrome #1F1F1F                               31 31 31 ~ 31 31 31 +/- 2
+PASS  K6.4 a checked box is filled with the calendar's colour     0 99 177 ~ 0 99 177 +/- 4
+FAIL  K4.2 the first cell's label at x 10                         0.00 vs 10.00 +/- 1.0
+FAIL  K4.2 the second cell's label at x 190 (W/2 + 10)            180.00 vs 190.00 +/- 1.0
+PASS  K4.1 the rows are 120 epx apart                             120.00 vs 120.00 +/- 1.0
+FAIL  K4.2 the label's cap top 11 under the cell's top rule (the header's bottom + 1)  5.39 vs 11.00 +/- 1.0
+PASS  K4.3 event lines at a 19-epx pitch                          19.00 vs 19.00 +/- 1.0
+PASS  K4.4 the mini month is in the eighth cell                   = yes
+PASS  K4.4 at x 180 (the right column)                            180.00 vs 180.00 +/- 1.0
+[motion] cal_day_page t0=8624015 peak=263 overshoot=0 settle=263 frames=17 maxGapMs=17
+PASS  U8 a day page settles in 250 ms                             263.00 vs 250.00 +/- 17.0
+PASS  C-31 with no frame gap over 33.4 ms                         17.00 vs 16.70 +/- 16.7
+PASS  the swipe paged to tomorrow                                 = yes
+PASS  U3 a field is 32 epx tall                                   32.00 vs 32.00 +/- 1.0
+PASS  U3 from x 12                                                12.00 vs 12.00 +/- 1.0
+PASS  U3 with a (133,133,133) border                              133 133 133 ~ 133 133 133 +/- 4
+RECORD  cal_editor_field:title's node height in the dump (the text field's accessibility bounds)  47.999999999999986
+PASS  U3 the title box's border, by pixel, 16 epx above the field's centre (a 32-epx box)  133 133 133 ~ 133 133 133 +/- 4
+PASS  the system bars are not visible on the Calendar's window    = false
+PASS  the fixtures are gone                                       = 0
+------------------------------------------------------------------------------
+E19_GEOMETRY: 51 passed, 6 failed, 4 recorded

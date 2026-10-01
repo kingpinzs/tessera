@@ -183,12 +183,15 @@ object CalGlyph {
     const val WEEK = "\ue330"              // CalendarWeek E8C0 — the View button, View > Week (the font's day-columns calendar)
 }
 
-/** Text placed by its cap top, [capTop] epx below the parent's top, at [x]. */
+/**
+ * Text placed by its cap top, [capTop] epx below the parent's top, at [x]. The offset comes first, so the caller's tag
+ * reports the box the text is drawn in, not where it would sit unplaced.
+ */
 @Composable
 fun CapText(text: String, x: Float, capTop: Float, style: TextStyle, modifier: Modifier = Modifier, maxLines: Int = 1) {
     BasicText(
         text,
-        modifier.offset(x = x.dp, y = CapMetrics.topPaddingForCapTop(capTop, style.fontSize.value).dp),
+        Modifier.offset(x = x.dp, y = CapMetrics.topPaddingForCapTop(capTop, style.fontSize.value).dp).then(modifier),
         style = style, maxLines = maxLines, overflow = TextOverflow.Ellipsis,
     )
 }
@@ -244,12 +247,12 @@ fun MenuBars(modifier: Modifier = Modifier, color: Color = Color.White) {
 @Composable
 fun CalHeader(title: String, monthOpen: Boolean, onMenu: () -> Unit, onTitle: () -> Unit) {
     val style = ShellType.base.copy(fontSize = CalMetrics.TITLE_SIZE.sp, color = Color.White)
-    Box(Modifier.fillMaxWidth().height(CalMetrics.HEADER).background(CalMetrics.PAGE)) {
+    Box(Modifier.fillMaxWidth().height(CalMetrics.HEADER).background(CalMetrics.PAGE).testTag("cal_header_band")) {
         Box(
             Modifier.width(48.dp).fillMaxHeight().testTag("cal_menu")
                 .clickable(remember { MutableInteractionSource() }, indication = null, onClick = onMenu),
         ) {
-            MenuBars(Modifier.offset(x = CalMetrics.MENU_X.dp, y = (CalMetrics.MENU_CY - 5.5f).dp))
+            MenuBars(Modifier.offset(x = CalMetrics.MENU_X.dp, y = (CalMetrics.MENU_CY - 5.5f).dp).testTag("cal_menu_glyph"))
         }
         Row(
             Modifier.offset(x = CalMetrics.TITLE_X.dp).fillMaxHeight().testTag("cal_header")
