@@ -1,0 +1,41 @@
+── BUILDSTART Verify at build start: five Android facts, on the AVD
+RECORD  image                                                       sdk 36, Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+RECORD  calendar provider                                           versionName=16
+PASS  fixture: BS Local exists                                    != 
+PASS  fixture: BS ReadOnly exists                                 != 
+PASS  fixture: BS Account exists                                  != 
+--- 1: the reminder broadcast's data URI
+PASS  1: the test event exists                                    != 
+RECORD  1: the provider's pending alarm                                 ELAPSED_WAKEUP #1: Alarm{56f976f type 2 origWhen 70437115 whenElapsed 70437115 com.android.providers.calendar}       tag=*walarm*:com.android.providers.calendar.intent.CalendarProvider2       type=ELAPSED_WAKEUP origWhen=+1s174ms window=0 exactAllowReason=allow-listed repeatInterval=0 count=0 fl
+RECORD  1: calendar_alerts before the alarm                         No result found. 
+waiting for the alarm (the event starts 11 minutes after 09:18:58 device time; the reminder is 10 minutes before)
+RECORD  1: the broadcast as the system logged it                    act=android.intent.action.EVENT_REMINDER dat=content://com.android.calendar/1790867998000 flg=0x1000010 xflg=0x4 (has extras) 
+PASS  1: the broadcast was sent                                   contains [act=android.intent.action.EVENT_REMINDER]
+PASS  1: its data is a content URI on com.android.calendar (the receiver's scheme + host filter)  contains [dat=content://com.android.calendar/]
+RECORD  1: flags (0x01000000 = FLAG_RECEIVER_INCLUDE_BACKGROUND, what lets a manifest receiver get it)  flg=0x1000010
+flg=0x4
+RECORD  1: who received it                                           nextReceiver=1| ActivityInfo:| name=com.android.calendar.alerts.AlertReceiver| Intent { act=com.android.providers.calendar.intent.CalendarProvider2 flg=0x10 xflg=0x4 cmp=com.android.providers.calendar/.CalendarProviderBroadcastReceiver }| nextReceiver=1| ActivityInfo:|
+RECORD  1: calendar_alerts after the alarm                          Row: 0 _id=1, event_id=152, alarmTime=1790867998000, state=0, minutes=10 
+--- 2: a normal (not sync-adapter) insert into a calendar of access level 200
+RECORD  2: the insert's own output                                  (none)
+RECORD  2: the row afterwards                                       Row: 0 _id=153, calendar_id=5, title=bs-readonly, dirty=1
+RECORD  2: ANSWER                                                   the provider ACCEPTS a normal insert into a level-200 calendar; the write layer's own re-read is the only gate (r3 D5), and the edge case expects no provider error
+--- 3: non-LOCAL calendars with no account, across a restart of the provider's process
+RECORD  3: provider pid before / after the force-stop               14366 / 14991
+PASS  3: the provider's process restarted                         != 14366
+RECORD  3: ANSWER                                                   account-less com.google calendars are DROPPED when the provider restarts: a Sync row creates its mkcal calendars after its last restart, never before (r3 V11)
+PASS  3: the LOCAL fixture survives either way                    contains [calendar_displayName=BS Local,]
+--- 4: a phone-only raw contact's account on this image
+RECORD  4: a raw contact inserted with no account reads             Row: 0 _id=3, account_name=NULL, account_type=NULL
+RECORD  4: the image's configured local account name                
+RECORD  4: the image's configured local account type                
+PASS  4: phone-only is a NULL account name on this image          contains [account_name=NULL]
+PASS  4: phone-only is a NULL account type on this image          contains [account_type=NULL]
+--- 5: FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1
+PASS  5: the yearly event exists                                  != 
+RECORD  5: the event row                                            Row: 0 _id=154, dtstart=699321600000, duration=P1D, allDay=1, rrule=FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1
+FAIL  5: February 2027 has one instance, on the 28th              expected [2027-02-28] got []
+PASS  5: February 2028 has one instance, on the 29th              = 2028-02-29
+FAIL  5: February 2100 (not a leap year) is the 28th              expected [2100-02-28] got []
+PASS  restore: no BS calendar is left                             does not contain [BS ]
+   BUILDSTART: 13 passed, 2 failed, 17 recorded

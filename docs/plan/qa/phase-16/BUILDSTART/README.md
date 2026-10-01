@@ -1,0 +1,14 @@
+# Phase 16 — Verify at build start (2026-10-01, emulator-5554, sdk 36)
+
+Driver: `qa/phase-16/scripts/buildstart.sh`. Evidence: `BUILDSTART.txt` (run 3: 18 passed, 0 failed, 20 recorded),
+`1-broadcasts.txt`, `1-event-reminder.txt`, `1-alarm-before.txt`. Earlier runs are kept beside this folder:
+`BUILDSTART-run1-driver-quoting/` (the driver's quoted where-clauses were eaten by the device shell; nothing about the
+product) and `BUILDSTART-run2-doc-leap-form-fails/` (the run that found item 5).
+
+| # | Question (Decisions "Verify at build start") | Answer on the AVD | What it changes |
+|---|---|---|---|
+| 1 | The reminder broadcast's data URI | `act=android.intent.action.EVENT_REMINDER dat=content://com.android.calendar/<alarmTime> flg=0x1000010`, with extras; the AOSP Calendar's manifest receiver got it. `0x01000000` is FLAG_RECEIVER_INCLUDE_BACKGROUND, so a manifest receiver is delivered to | Nothing: the receiver's `<data android:scheme="content" android:host="com.android.calendar"/>` filter matches (r3 D6). E6 (c)'s forged poke (`-d content://com.android.calendar/1`) has the same form |
+| 2 | Does the provider gate a normal app's insert on the calendar's access level | No. A normal insert into a level-200 calendar is ACCEPTED and left `dirty=1` | As r3 D5 expected: the write layer's own re-read of the level is the only gate, and the read-only edge case expects no provider error |
+| 3 | Do non-LOCAL calendars with no account survive a restart of the provider's process | No. Both `com.google` fixtures were gone at the first query after `am force-stop com.android.providers.calendar`; the LOCAL fixture stayed | r3 V11 holds: a row creates its `mkcal` calendars AFTER its last provider restart (a reboot, a `pm disable-user` / `enable` of the provider), never before, and `cal_lists` guards every count. Calendar ids are reused after a delete (the LOCAL fixture got `_id=4` three runs running), so E23's "new id ≠ old id" needs its Work-last order |
+| 4 | A phone-only raw contact's account | `account_name=NULL, account_type=NULL`; the image configures no local account name or type | Nothing on the AVD. The guard still compares against `RawContacts.getLocalAccountName` / `getLocalAccountType`, and P8 checks the S25 on the phone |
+| 5 | Does `FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1` land on February's last day | **No.** From a 29 February start it gives an instance in leap years only (2028: 29 February; 2027: none). Android's recurrence expander honours a negative BYMONTHDAY for MONTHLY rules alone | **The form is re-cut**, as the doc says it must be before task 3: a 29 February birthday is written `FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1`. Checked: one instance a year, 28 February in 2026, 2027, 2029–2031 and 2100, 29 February in 2028; the same from a 28 February 2026 start (the no-year form). INDEX Change Log 2026-10-01; E17's rrule clause follows |

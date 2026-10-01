@@ -302,9 +302,11 @@ adapter uploads).
   `CalendarFeed`, so the tile, the Agenda pod and Tess see birthdays with the Calendar app never opened; the calendar is
   created when the first birthday exists (never empty at first start) and is kept, empty, when the last one goes. Date
   forms: `yyyy-MM-dd` → a yearly all-day event from that date; `--MM-dd` (no year) → the same from this year's date; 29
-  February (either form) → `RRULE:FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1`, so it shows on 29 February in a leap year and on
-  28 February otherwise (approximation, H5; Verify at build start 5); a value in neither form is skipped and is not
-  counted in `birthdays: n synced`
+  February (either form) → ~~`RRULE:FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1`~~ `RRULE:FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1`
+  (RE-CUT 2026-10-01 by Verify at build start 5, INDEX Change Log: the provider gives the YEARLY form an instance in
+  leap years only; a no-year 29 February in a year without one starts on that year's 28 February), so it shows on 29
+  February in a leap year and on 28 February otherwise (approximation, H5; Verify at build start 5); a value in neither
+  form is skipped and is not counted in `birthdays: n synced`
 - 2026-09-22: People over the provider (agent; Q1 A, ruled 2026-09-23). List order and letter buckets come from
   the provider (`SORT_KEY_PRIMARY`, `PHONEBOOK_LABEL`), so non-Latin names file where Android files them, and People's own
   jump grid (r11/people.md §3, T16-13; was "the jump grid (X8)") is built from those labels rather than from phase 01's
@@ -672,6 +674,10 @@ adapter uploads).
   "phone-only" for Q-16-3 (P8 checks it on the phone); (5) that the provider expands
   `FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1` to February's last day (D14; E17 asserts it — if it does not, the 29 February
   form is re-cut before task 3 and Jeremy is told).
+  RESULTS 2026-10-01 (qa/phase-16/BUILDSTART/README.md): (1) `content://com.android.calendar/<alarmTime>`, delivered to
+  manifest receivers; (2) the provider does not gate — a normal insert into a level-200 calendar is accepted; (3) they
+  are dropped, and calendar ids are reused; (4) NULL / NULL on the AVD; (5) it does NOT — the form is re-cut to
+  `FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1` (INDEX Change Log 2026-10-01).
 
 ## Interview queue (Stage A step 4)
 Ask one at a time, in this order.
@@ -1200,7 +1206,8 @@ asserted relative to the drawn bar's bottom edge.
   removing the birthday row removes the event; the slice from the MARK holds `[calendar] birthdays: 1 synced`. **Date
   forms (r3 D14):** a no-year birthday on Bob (`data1:s:--<MM-dd of tomorrow>`) → a yearly all-day event on tomorrow's
   date; a 29 February birthday (`data1:s:1992-02-29` on a third fixture) → its event row's rrule is
-  `FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1`, and `content query --uri content://com.android.calendar/instances/when/<start>/<end>`
+  ~~`FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1`~~ `FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1` (RE-CUT 2026-10-01, Verify at build
+  start 5), and `content query --uri content://com.android.calendar/instances/when/<start>/<end>`
   over February 2027 gives one instance on 28 February and over February 2028 one on 29 February. The birthday event has no
   reminder rows (`content query --uri content://com.android.calendar/reminders --where "event_id=<its id>"` → "No result
   found"; T16-4), and a Tess "add" made while Birthdays exists lands in Tessera (T16-2 line 2). **Creation refused
