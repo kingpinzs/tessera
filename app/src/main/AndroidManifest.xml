@@ -39,6 +39,12 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- "Call/text <contact>" and person reminders resolve names through the Contacts provider. -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!--
+      Phase 16: People creates, edits and deletes contacts — only phone-only contacts and contacts in accounts on its
+      "Can edit" list (Q-16-3); every ContactsContract write goes through People's one write guard. Its Setup row is
+      "People" (READ + WRITE); Tess's `contacts` row stays READ only.
+    -->
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <!-- "What's on my calendar" reads; "add a calendar event" inserts after the confirmation card. -->
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
     <!-- The action layer sends the text itself (SmsManager) and places the call itself (TelecomManager). -->
@@ -480,6 +486,90 @@
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts_calculator" />
+        </activity>
+
+        <!-- ===== Phase 16: Calendar and People (build task 2) ===== -->
+
+        <!--
+          Calendar: an app in the app list like Music, with its own task, and one activity for every page (r3 D11).
+          APP_CALENDAR is what lets the CALENDAR slot point at it. Exported with handlers other apps reach, so it is on
+          qa/phase-03/exported-allowlist.txt and on the Trust list: an intent only chooses what is shown
+          (calendar/CalendarIntents). An INSERT fills the editor in and saves nothing without a tap, into the Tessera
+          calendar whatever calendar_id it carried; an EDIT on an event outside Tessera opens it read-only.
+          The time URI's type is what CalendarProvider reports for content://com.android.calendar/time/<ms>.
+        -->
+        <activity
+            android:name=".calendar.CalendarActivity"
+            android:exported="true"
+            android:label="@string/calendar_name"
+            android:icon="@drawable/ic_calendar"
+            android:taskAffinity="app.tileshell.calendar"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.APP_CALENDAR" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:host="com.android.calendar" android:mimeType="time/epoch" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.item/event" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.INSERT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.dir/event" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          People: the W10M People hub over Android's Contacts provider — an app in the app list with its own task, and
+          one activity for every page (r3 D11). APP_CONTACTS is what lets the PEOPLE slot point at it. Exported with
+          handlers other apps reach, so it is on qa/phase-03/exported-allowlist.txt and on the Trust list: an intent
+          only chooses what is shown (people/PeopleIntents). An INSERT fills the editor in and saves nothing without a
+          tap, on the phone whatever account it named; an EDIT on a contact People may not write opens its card; a PICK
+          grants its caller the one contact or phone URI the user tapped and nothing else.
+        -->
+        <activity
+            android:name=".people.PeopleActivity"
+            android:exported="true"
+            android:label="@string/people_name"
+            android:icon="@drawable/ic_people"
+            android:taskAffinity="app.tileshell.people"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.APP_CONTACTS" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+                <action android:name="android.intent.action.INSERT_OR_EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.item/contact" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.INSERT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.dir/contact" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.dir/contact" />
+                <data android:mimeType="vnd.android.cursor.dir/phone_v2" />
+            </intent-filter>
         </activity>
     </application>
 </manifest>

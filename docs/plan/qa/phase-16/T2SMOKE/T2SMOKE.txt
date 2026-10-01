@@ -1,0 +1,157 @@
+==============================================================================
+ROW T2SMOKE — build task 2: app identities and contracts (development smoke)
+at            2026-10-01T09:12:10-06:00
+driver        t2_smoke.sh blob d97b0bf5a5ad4bc40a847454f375c690ee54b203
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     2a178f0e7d55a13c 338136860 bytes
+apk installed c5ef7e2efedc98a7
+apk match     yes (c5ef7e2efedc98a7)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+installed before: c5ef7e2efedc98a7; adb install -r rc=0: Success
+PASS  adb install -r succeeded                                    = 0
+PASS  the device now holds this build                             contains [yes]
+assignSlotOnce lines since the install:
+    2026-10-01 09:12:03.349 wall=1790867523349 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-10-01 09:12:03.349 wall=1790867523349 [layout] assignSlotOnce slot:calendar:v1 CALENDAR -> app.tileshell/.calendar.CalendarActivity -> already run
+    2026-10-01 09:12:03.349 wall=1790867523349 [layout] assignSlotOnce slot:people:v1 PEOPLE -> app.tileshell/.people.PeopleActivity -> already run
+markers present before this install: 1 (expecting '-> already run')
+PASS  calendar slot seed line                                     contains [assignSlotOnce slot:calendar:v1 CALENDAR -> app.tileshell/.calendar.CalendarActivity -> already run]
+PASS  people slot seed line                                       contains [assignSlotOnce slot:people:v1 PEOPLE -> app.tileshell/.people.PeopleActivity -> already run]
+slots {"CALENDAR": "app.tileshell/app.tileshell.calendar.CalendarActivity", "MUSIC": "app.tileshell/app.tileshell.music.MusicActivity", "PEOPLE": "app.tileshell/app.tileshell.people.PeopleActivity"}
+addedOnce ['folder:games:v1', 'folder:office:v1', 'phase03:cortana', 'slot:calendar:v1', 'slot:music:v1', 'slot:people:v1']
+PASS  slots.CALENDAR is the shell's Calendar                      contains ["CALENDAR": "app.tileshell/app.tileshell.calendar.CalendarActivity"]
+PASS  slots.PEOPLE is the shell's People                          contains ["PEOPLE": "app.tileshell/app.tileshell.people.PeopleActivity"]
+PASS  marker slot:calendar:v1                                     contains [slot:calendar:v1]
+PASS  marker slot:people:v1                                       contains [slot:people:v1]
+APP_CALENDAR handlers: com.android.calendar/.AllInOneActivity app.tileshell/.calendar.CalendarActivity
+PASS  APP_CALENDAR has two handlers                               = 2
+PASS  APP_CALENDAR lists the shell                                contains [app.tileshell/]
+APP_CONTACTS handlers: com.android.contacts/.activities.PeopleActivity app.tileshell/.people.PeopleActivity
+PASS  APP_CONTACTS has two handlers                               = 2
+PASS  APP_CONTACTS lists the shell                                contains [app.tileshell/]
+exported surface against the allow-list:
+19 exported in app.tileshell, 19 on the allow-list
+  receiver       androidx.profileinstaller.ProfileInstallReceiver
+                 manifest permission: android.permission.DUMP
+                 allow-list: android.permission.DUMP - androidx.profileinstaller's baseline-profile trigger. Added by the library, guarded by DUMP.
+  activity       app.tileshell.StartActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (HOME intent filter) - The home screen. A launcher's HOME activity has to be exported or the platform cannot start it.
+  activity       app.tileshell.calculator.CalculatorActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - The Calculator app's own launcher entry (phase 15 build task 6). The `page` extra only chooses a mode or the Converter.
+  activity       app.tileshell.calendar.CalendarActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER / APP_CALENDAR; VIEW, EDIT, INSERT on events) - The Calendar app's one activity (phase 16 build task 2). An intent only chooses what is shown: VIEW a day or an event, EDIT an event (the editor only for an event in the Tessera calendar, any other opens read-only), INSERT fills the editor in and saves nothing without the user's tap, into Tessera whatever calendar_id it carried.
+  activity       app.tileshell.clock.AlarmApiActivity
+                 manifest permission: com.android.alarm.permission.SET_ALARM
+                 allow-list: com.android.alarm.permission.SET_ALARM - The AlarmClock API handler (T15-37): SET_ALARM / SET_TIMER / SHOW_ALARMS / SHOW_TIMERS. Every request is validated (hour, minutes, days, a message ≤ 64 characters, a length ≤ the timer ceiling) and logged with its caller; it never edits or deletes an existing alarm.
+  activity       app.tileshell.clock.ClockActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - The Alarms & Clock app's own launcher entry (phase 15 build task 4). The `page` and tile-id extras only choose a tab; nothing they carry creates, edits or deletes an alarm.
+  service        app.tileshell.cortana.CortanaRecognitionService
+                 manifest permission: android.permission.BIND_VOICE_INTERACTION
+                 allow-list: android.permission.BIND_VOICE_INTERACTION - The offline recogniser a VoiceInteractionService must name. It serves the same :speech process.
+  service        app.tileshell.cortana.CortanaService
+                 manifest permission: android.permission.BIND_VOICE_INTERACTION
+                 allow-list: android.permission.BIND_VOICE_INTERACTION - The assistant. Only the system holds the permission; this is what the assist gesture, the side key and KEYCODE_ASSIST reach.
+  service        app.tileshell.cortana.CortanaSessionService
+                 manifest permission: android.permission.BIND_VOICE_INTERACTION
+                 allow-list: android.permission.BIND_VOICE_INTERACTION - The session window the framework asks for.
+  service        app.tileshell.feeds.TileNotificationListener
+                 manifest permission: android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
+                 allow-list: android.permission.BIND_NOTIFICATION_LISTENER_SERVICE - The live-tile notification listener. Only the system holds the permission.
+  service        app.tileshell.ime.KeyboardService
+                 manifest permission: android.permission.BIND_INPUT_METHOD
+                 allow-list: android.permission.BIND_INPUT_METHOD - The keyboard (input method). Only the system holds the permission; nothing outside Android's input-method framework can bind it.
+  activity       app.tileshell.music.MusicActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - Music's own launcher entry (phase 10 build task 1).
+  service        app.tileshell.music.MusicService
+                 manifest permission: (none)
+                 allow-list: guard: none (MediaSessionService / MediaBrowserService filters) - The playback session other apps' media controllers bind; Media3 decides per controller what it may do.
+  activity       app.tileshell.people.PeopleActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER / APP_CONTACTS; VIEW, EDIT, INSERT, INSERT_OR_EDIT, PICK on contacts) - The People app's one activity (phase 16 build task 2). An intent only chooses what is shown: VIEW a card, EDIT (the editor only where the write guard allows, else the card), INSERT fills the editor in and saves nothing without the user's tap, on the phone whatever account it named; PICK returns the one contact or phone URI the user tapped, with a read grant for it alone.
+  activity       app.tileshell.recorder.RecorderActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - The Voice Recorder app's own launcher entry (phase 15 build task 7). The `page` extra only chooses the record or list state; it never starts a take (T15-33 (i)).
+  activity       app.tileshell.settings.SettingsActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - The Start settings launcher entry, and the settingsActivity the voice-interaction and recognition services point at.
+  receiver       app.tileshell.tiles.api.LegacyBadgeReceiver
+                 manifest permission: (none)
+                 allow-list: guard: none (legacy badge broadcasts) - Legacy badge senders resolve the shell through this entry. A sender that does not share its identity is refused by default (phase 01 adversarial review).
+  provider       app.tileshell.tiles.api.LiveTileProvider
+                 manifest permission: (none)
+                 allow-list: guard: none by design (R5 4b) - The public Live Tile API. Every call() verb authorises on the caller's Binder identity rather than on a manifest permission.
+  activity       app.tileshell.weather.WeatherActivity
+                 manifest permission: (none)
+                 allow-list: guard: none (LAUNCHER intent filter) - The Weather app's own launcher entry.
+PASS  exported.py rc                                              = 0
+PASS  launcher: resumed                                           = app.tileshell/.calendar.CalendarActivity
+PASS  launcher: route                                             contains [-> open page=default]
+PASS  calendar window draws the status bar                        = yes
+PASS  calendar window draws the nav bar                           = yes
+PASS  shortcut page: resumed                                      = app.tileshell/.calendar.CalendarActivity
+PASS  shortcut page: route                                        contains [-> open page=month]
+PASS  VIEW time: resumed                                          = app.tileshell/.calendar.CalendarActivity
+PASS  VIEW time: route                                            contains [-> time 1790000000000]
+PASS  VIEW event: resumed                                         = app.tileshell/.calendar.CalendarActivity
+PASS  VIEW event: route                                           contains [-> event 42]
+PASS  EDIT event: resumed                                         = app.tileshell/.calendar.CalendarActivity
+PASS  EDIT event: route                                           contains [-> edit 42]
+PASS  INSERT with a calendar_id: resumed                          = app.tileshell/.calendar.CalendarActivity
+PASS  INSERT with a calendar_id: route                            contains [-> insert (prefilled, unsaved)]
+PASS  malformed URI: resumed                                      = app.tileshell/.calendar.CalendarActivity
+PASS  malformed URI: route                                        contains [-> open page=default]
+PASS  a caller's title never reaches the ring                     does not contain [Intruder]
+PASS  resolver lists the shell for [-a android.intent.action.VIEW -d content://com.android.calendar/time/1790000000000 -t time/epoch]  contains [app.tileshell/.calendar.CalendarActivity]
+PASS  resolver lists the shell for [-a android.intent.action.INSERT -t vnd.android.cursor.dir/event]  contains [app.tileshell/.calendar.CalendarActivity]
+PASS  resolver lists the shell for [-a android.intent.action.EDIT -t vnd.android.cursor.item/event]  contains [app.tileshell/.calendar.CalendarActivity]
+PASS  resolver lists the shell for [-a android.intent.action.VIEW -t vnd.android.cursor.item/event]  contains [app.tileshell/.calendar.CalendarActivity]
+PASS  Back leaves Calendar                                        != app.tileshell/.calendar.CalendarActivity
+PASS  calendar: data-only VIEW reaches Android's resolver         contains [ResolverActivity]
+PASS  calendar: the resolver offers the shell                     contains [text="Tessera"]
+PASS  contact: data-only VIEW reaches Android's resolver          contains [ResolverActivity]
+PASS  contact: the resolver offers the shell                      contains [text="Tessera"]
+PASS  launcher: resumed                                           = app.tileshell/.people.PeopleActivity
+PASS  launcher: route                                             contains [-> open page=default]
+PASS  people window draws the status bar                          = yes
+PASS  people window draws the nav bar                             = yes
+PASS  shortcut page: resumed                                      = app.tileshell/.people.PeopleActivity
+PASS  shortcut page: route                                        contains [-> open page=groups]
+PASS  VIEW contact: resumed                                       = app.tileshell/.people.PeopleActivity
+PASS  VIEW contact: route                                         contains [-> card]
+PASS  VIEW lookup: resumed                                        = app.tileshell/.people.PeopleActivity
+PASS  VIEW lookup: route                                          contains [-> card]
+PASS  EDIT contact: resumed                                       = app.tileshell/.people.PeopleActivity
+PASS  EDIT contact: route                                         contains [-> edit]
+PASS  INSERT naming an account: resumed                           = app.tileshell/.people.PeopleActivity
+PASS  INSERT naming an account: route                             contains [-> insert (prefilled, unsaved)]
+PASS  INSERT_OR_EDIT: resumed                                     = app.tileshell/.people.PeopleActivity
+PASS  INSERT_OR_EDIT: route                                       contains [-> insert or edit (prefilled, unsaved)]
+PASS  PICK contact: resumed                                       = app.tileshell/.people.PeopleActivity
+PASS  PICK contact: route                                         contains [-> pick contact]
+PASS  PICK phone: resumed                                         = app.tileshell/.people.PeopleActivity
+PASS  PICK phone: route                                           contains [-> pick phone]
+PASS  malformed URI: resumed                                      = app.tileshell/.people.PeopleActivity
+PASS  malformed URI: route                                        contains [-> open page=default]
+PASS  a caller's name never reaches the ring                      does not contain [Intruder]
+PASS  resolver lists the shell for [-a android.intent.action.VIEW -d content://com.android.contacts/contacts/1 -t vnd.android.cursor.item/contact]  contains [app.tileshell/.people.PeopleActivity]
+PASS  resolver lists the shell for [-a android.intent.action.EDIT -t vnd.android.cursor.item/contact]  contains [app.tileshell/.people.PeopleActivity]
+PASS  resolver lists the shell for [-a android.intent.action.INSERT -t vnd.android.cursor.dir/contact]  contains [app.tileshell/.people.PeopleActivity]
+PASS  resolver lists the shell for [-a android.intent.action.INSERT_OR_EDIT -t vnd.android.cursor.item/contact]  contains [app.tileshell/.people.PeopleActivity]
+PASS  resolver lists the shell for [-a android.intent.action.PICK -t vnd.android.cursor.dir/contact]  contains [app.tileshell/.people.PeopleActivity]
+PASS  resolver lists the shell for [-a android.intent.action.PICK -t vnd.android.cursor.dir/phone_v2]  contains [app.tileshell/.people.PeopleActivity]
+READ_CONTACTS granted=true WRITE_CONTACTS granted=true
+PASS  WRITE_CONTACTS granted                                      = true
+PASS  people row with both held                                   = people=GRANTED
+      scroll_to_node checklist:people:granted: 1 swipe(s), found=yes
+PASS  checklist:people:granted on the Setup page                  = yes
+PASS  people row with WRITE held, READ revoked                    = people=MISSING
+PASS  READ_CONTACTS restored                                      = true
+------------------------------------------------------------------------------
+T2SMOKE: 73 passed, 0 failed, 0 recorded
