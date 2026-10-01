@@ -526,6 +526,13 @@ class CortanaModel(
     }
 
     fun goTo(destination: CortanaDestinationKey) {
+        // R6 §3.5.5, as openPane: over the keyguard there is no way into Settings, Reminders or the Notebook. The pane
+        // cannot open there, but a destination also arrives in the show's args (phase 14's Reminders pod), and any
+        // foreground activity can show the session with args of its own (gate review).
+        if (mutable.value.locked && destination != CortanaDestinationKey.HOME) {
+            Diagnostics.add("cortana", "locked: destination $destination ignored")
+            return
+        }
         // R7 §3.1.11: re-selecting Home leaves the pane open.
         if (destination == CortanaDestinationKey.HOME && mutable.value.destination == CortanaDestinationKey.HOME) return
         mutable.value = mutable.value.copy(

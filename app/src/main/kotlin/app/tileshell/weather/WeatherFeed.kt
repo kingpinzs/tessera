@@ -108,6 +108,23 @@ object WeatherFeed {
         scope.launch { if (mutableState.value.problems.isNotEmpty()) refresh("app resumed") else check("app resumed") }
     }
 
+    /**
+     * The pod bay's "Location is off" line is showing and Start resumed or the page came into view (phase 14). Look
+     * again only if access has CHANGED since the line went up — the permission granted, or Location switched on.
+     * While it has not, nothing leaves the device: the line is there on every Start resume, and [onAppResumed]'s retry
+     * fetches with the last place's coordinates, which made one request per Home press with Location off (gate review).
+     */
+    fun onAccessLineShown() {
+        val app = appContext ?: return
+        if (accessRestored(mutableState.value.problems, WeatherLocation.hasPermission(app), WeatherLocation.isEnabled(app))) {
+            scope.launch { refresh("access restored") }
+        }
+    }
+
+    /** Whether a problem the access line stands for has gone: the permission is back, or Location is on again. */
+    internal fun accessRestored(problems: Collection<Problem>, hasPermission: Boolean, locationOn: Boolean): Boolean =
+        (Problem.NO_PERMISSION in problems && hasPermission) || (Problem.LOCATION_OFF in problems && hasPermission && locationOn)
+
     /** A user tap on a retry row. */
     fun refreshNow(reason: String) {
         scope.launch { refresh(reason) }

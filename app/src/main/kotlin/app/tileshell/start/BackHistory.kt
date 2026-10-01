@@ -31,6 +31,15 @@ object BackHistory {
     internal fun systemSurfaces(shellPackage: String, imePackages: Set<String>): Set<String> =
         alwaysExcluded + (imePackages - shellPackage)
 
+    /**
+     * Of the shell's own activities only Start (a HOME activity, which ends an unlock's continuation) and the shell's
+     * apps in the catalog (Weather, Music, ...) are pages the user opens. The rest — the unlock prompt, a ring, a
+     * permission page — are plumbing: they neither count nor end a continuation, and must not become a Back target
+     * through the package fallback (gate review of L14-2: a ring over the lock screen made Back open an unrelated shell app).
+     */
+    internal fun shellPageCounts(cls: String, shellAppClasses: Set<String>): Boolean =
+        cls.endsWith(".StartActivity") || cls in shellAppClasses
+
     fun hasUsageAccess(context: Context): Boolean {
         val ops = context.getSystemService(android.app.AppOpsManager::class.java)
         val mode = ops.unsafeCheckOpNoThrow(android.app.AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), context.packageName)
@@ -52,6 +61,8 @@ object BackHistory {
             .toSet()
         val imePackages = context.getSystemService(InputMethodManager::class.java).inputMethodList.map { it.packageName }.toSet()
         val rules = BackRules(context.packageName, homeComponents, systemSurfaces(context.packageName, imePackages))
+        val shellAppClasses = catalog.apps.value
+            .filter { it.component.packageName == context.packageName }.map { it.component.className }.toSet()
         val stream = mutableListOf<BackRules.Event>()
         var keyguards = 0
         val e = UsageEvents.Event()
@@ -59,7 +70,12 @@ object BackHistory {
             events.getNextEvent(e)
             when (e.eventType) {
                 UsageEvents.Event.KEYGUARD_SHOWN -> { stream += BackRules.KeyguardShown; keyguards++ }
-                UsageEvents.Event.ACTIVITY_RESUMED -> stream += BackRules.Resumed(e.packageName, e.className ?: "")
+                UsageEvents.Event.ACTIVITY_RESUMED -> {
+                    val cls = e.className ?: ""
+                    if (e.packageName != context.packageName || shellPageCounts(cls, shellAppClasses)) {
+                        stream += BackRules.Resumed(e.packageName, cls)
+                    }
+                }
             }
         }
         var picked: BackRules.Resumed? = null
