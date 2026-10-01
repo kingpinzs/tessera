@@ -168,7 +168,13 @@ cal_lists() { [ -n "$1" ] && cals | grep -q "_id=$1,"; }
 # An event row, as a normal app's insert (what `content insert` is). calendar title dtstart dtend [extra binds...]; prints the new _id.
 mkevent() {
   local cal="$1" title="$2" start="$3" end="$4"; shift 4
-  adb shell "content insert --uri $EVENTS --bind calendar_id:i:$cal --bind title:s:'$title' --bind dtstart:l:$start --bind dtend:l:$end --bind eventTimezone:s:$(S getprop persist.sys.timezone) $*" < /dev/null
+  adb shell "content insert --uri $EVENTS --bind calendar_id:i:$cal --bind title:s:'$title' --bind dtstart:l:$start --bind dtend:l:$end --bind eventTimezone:s:$(S getprop persist.sys.timezone) $*" < /dev/null > /dev/null 2>&1
+  S "content query --uri $EVENTS --projection _id --where \"title='$title' AND calendar_id=$cal\"" | sed -n 's/.*_id=\([0-9]*\).*/\1/p' | tail -1
+}
+# A repeating event: RRULE + DURATION, no DTEND (the provider's rule). calendar title dtstart rrule duration [extra binds...]
+mkseries() {
+  local cal="$1" title="$2" start="$3" rrule="$4" duration="$5"; shift 5
+  adb shell "content insert --uri $EVENTS --bind calendar_id:i:$cal --bind title:s:'$title' --bind dtstart:l:$start --bind duration:s:$duration --bind rrule:s:'$rrule' --bind eventTimezone:s:$(S getprop persist.sys.timezone) $*" < /dev/null > /dev/null 2>&1
   S "content query --uri $EVENTS --projection _id --where \"title='$title' AND calendar_id=$cal\"" | sed -n 's/.*_id=\([0-9]*\).*/\1/p' | tail -1
 }
 event_ids() { # where
@@ -189,5 +195,69 @@ granted() { # permission -> true / false
 }
 # The device's local midnight today, and N days on, in epoch ms.
 day_ms() { # [days-from-today] [HH:MM]
-  S date -d "$(S date +%Y-%m-%d) ${2:-00:00}" +%s | awk -v d="${1:-0}" '{printf "%d\n", ($1 + d * 86400) * 1000}'
+  adb shell "date -d \"\$(date +%Y-%m-%d) ${2:-00:00}\" +%s" < /dev/null | tr -d '\r' | awk -v d="${1:-0}" '{printf "%d\n", ($1 + d * 86400) * 1000}'
+}
+# UTC midnight of the device's local date, N days on: an all-day event's dtstart.
+utc_day_ms() { # [days-from-today]
+  adb shell "date -u -d \"\$(date +%Y-%m-%d) 00:00\" +%s" < /dev/null | tr -d '\r' | awk -v d="${1:-0}" '{printf "%d\n", ($1 + d * 86400) * 1000}'
+}
+device_date() { # [days-from-today] -> yyyy-mm-dd
+  python3 -c 'import sys, datetime; print(datetime.date.fromisoformat(sys.argv[1]) + datetime.timedelta(days=int(sys.argv[2])))' "$(S date +%Y-%m-%d)" "${1:-0}"
+}
+
+# ---------------------------------------------------------------- the editor
+# Type into an editor field: tap it, type through the shell's own keyboard, Enter (Done gives the focus up and the keyboard goes).
+type_field() { # field text
+  tap "cal_editor_field:$1" 1.2 || return 1
+  adb shell input text "$(printf '%s' "$2" | sed 's/ /%s/g')"; sleep 1
+  adb shell input keyevent KEYCODE_ENTER; sleep 1.2
+}
+# Set a time field through the picker's loop spinners (12-hour form on this AVD). field hour(1-12) minute(00-59) AM|PM
+set_time() {
+  tap "cal_editor_field:$1" 1.5 || return 1
+  local hours="1,2,3,4,5,6,7,8,9,10,11,12" mins; mins="$(seq -w 0 59 | paste -sd,)"
+  if [ "$(S settings get system time_12_24)" = 24 ]; then
+    spin_to cal_time_spinner:hour "$2" "$(seq -w 0 23 | paste -sd,)"
+  else
+    spin_to cal_time_spinner:ampm "$4" "AM,PM"
+    spin_to cal_time_spinner:hour "$2" "$hours"
+  fi
+  spin_to cal_time_spinner:minute "$3" "$mins"
+  tap cal_time_ok 1.2
+}
+# The text a pick box shows (its tag is on the box; the text is the child under it).
+field_text() { # dump.xml field
+  python3 - "$1" "cal_editor_field:$2" <<'PY'
+import re, sys
+xml = open(sys.argv[1], encoding='utf-8', errors='replace').read()
+i = xml.find('resource-id="%s"' % sys.argv[2])
+if i < 0: print(""); sys.exit()
+start = xml.rfind('<node', 0, i)
+m = re.search(r'text="([^"]*)"', xml[start:xml.find('>', i)])
+if m and m.group(1): print(m.group(1)); sys.exit()
+t = re.findall(r'text="([^"]+)"', xml[i:i + 900])
+print(t[0] if t else "")
+PY
+}
+tessera_id() { cal_id Tessera; }
+# The Tessera calendar, gone (the Acceptance preamble's command): its events cascade.
+rm_tessera() { rmcal Tessera LOCAL; }
+
+# The Day view of the day holding an instant (the exported VIEW on a time URI).
+open_day() { # epoch-ms
+  adb shell am start -W -n "$CAL_ACT" -a android.intent.action.VIEW -d "content://com.android.calendar/time/$1" < /dev/null >/dev/null 2>&1
+  sleep 2.5
+}
+# An event's page (the exported VIEW on an event), optionally at one occurrence.
+open_event() { # id [begin end]
+  if [ -n "${2:-}" ]; then
+    adb shell am start -W -n "$CAL_ACT" -a android.intent.action.VIEW -d "content://com.android.calendar/events/$1" --el beginTime "$2" --el endTime "$3" < /dev/null >/dev/null 2>&1
+  else
+    adb shell am start -W -n "$CAL_ACT" -a android.intent.action.VIEW -d "content://com.android.calendar/events/$1" < /dev/null >/dev/null 2>&1
+  fi
+  sleep 2.5
+}
+# How many instances of an event the provider expands inside [from, to].
+instance_count() { # from to event_id
+  S "content query --uri content://com.android.calendar/instances/when/$1/$2 --projection event_id:begin --where \"event_id=$3\"" | grep -c 'event_id='
 }

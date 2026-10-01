@@ -3,7 +3,6 @@ package app.tileshell.calendar
 import android.content.Context
 import android.provider.CalendarContract
 import app.tileshell.calendar.CalendarWriteGuard.Path
-import app.tileshell.feeds.LocalCalendar
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -77,14 +76,18 @@ object CalendarEvents {
         )
     }
 
-    fun save(context: Context, draft: EventDraft, zone: ZoneId): SaveResult {
+    /**
+     * @param localCalendar finds — or, the first time, creates — the Tessera calendar; called only for a new event, and
+     *   only once WRITE_CALENDAR is known to be held. The app's is `CalendarModel.ensureLocal`, which is never asked while
+     *   READ_CALENDAR is denied (r3 D7).
+     */
+    fun save(context: Context, draft: EventDraft, zone: ZoneId, localCalendar: () -> Long?): SaveResult {
         if (!CalendarReads.canWrite(context)) return SaveResult.NeedsWrite
         val reminders = listOfNotNull(draft.reminder)
         val id = draft.eventId
         if (id == null) {
             val built = EventRules.build(draft, zone) as? EventRules.Built.Ok ?: return invalid(EventRules.build(draft, zone))
-            // Not while READ_CALENDAR is denied: a lookup that cannot answer must never be followed by a create (r3 D7).
-            val calendarId = (if (CalendarReads.canRead(context)) LocalCalendar.id(context) else null) ?: return SaveResult.NoCalendar
+            val calendarId = localCalendar() ?: return SaveResult.NoCalendar
             return result(CalendarWrites.insertEvent(context, Path.EDITOR, calendarId, built.values, reminders))
         }
         val keptReminders = if (draft.reminderChanged) reminders else null
