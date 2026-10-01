@@ -92,4 +92,83 @@ class PeopleIntentsTest {
         assertEquals(PeopleRoute.Open(null), route(PeopleIntents.ACTION_INSERT, "content://com.android.contacts/groups", null, "name" to "x"))
         assertEquals(PeopleRoute.Open(null), route("android.intent.action.DELETE", "content://com.android.contacts/contacts/7"))
     }
+
+    // ---- The fix round's F11 (trust review B-F10): the halves of the parser that no test pinned.
+
+    private val contacts = "content://com.android.contacts"
+
+    private fun assertOpensTheList(data: String) {
+        assertEquals(data, PeopleRoute.Open(null), route(PeopleIntents.ACTION_VIEW, data))
+        assertEquals(data, PeopleRoute.Open(null), route(PeopleIntents.ACTION_EDIT, data))
+    }
+
+    @Test fun anAuthorityThatOnlyBeginsLikeContactsIsAnotherProvider() {
+        // The authority ends at its slash: "com.android.contactscontacts" is a provider of its own, whatever its name starts with.
+        assertOpensTheList("content://com.android.contactscontacts/7")
+        assertOpensTheList("content://com.android.contactscontacts/lookup/0r3-2A4C/7")
+        assertEquals(PeopleRoute.Open(null), route(PeopleIntents.ACTION_INSERT, "content://com.android.contactscontacts", null, "name" to "x"))
+        assertEquals(PeopleRoute.Open(null), route(PeopleIntents.ACTION_INSERT_OR_EDIT, "content://com.android.contactscontacts", null, "name" to "x"))
+        assertEquals(PeopleRoute.Open(null), route(PeopleIntents.ACTION_PICK, "content://com.android.contactscontacts"))
+        assertEquals(PeopleRoute.Open(null), route(PeopleIntents.ACTION_PICK, "content://com.android.contactsdata/phones"))
+    }
+
+    @Test fun insertByTypeIsOnlyForAnIntentWithNoData() {
+        // The contact type alone asks for the editor; the same type on some other URI does not.
+        for (data in listOf("content://evil.example/contacts", "content://com.android.calendar/events", "file:///sdcard/x.vcf", "$contacts/groups", "$contacts/contacts/7")) {
+            assertEquals(data, PeopleRoute.Open(null), route(PeopleIntents.ACTION_INSERT, data, PeopleIntents.TYPE_CONTACT_DIR, "name" to "x"))
+        }
+    }
+
+    @Test fun insertOrEditNeedsTheContactTypeOrTheContactsUri() {
+        assertEquals(PeopleRoute.InsertOrEdit(ContactPrefill(phone = "5550002")), route(PeopleIntents.ACTION_INSERT_OR_EDIT, "$contacts/contacts", null, "phone" to "5550002"))
+        for ((data, type) in listOf(
+            null to null, null to "vnd.android.cursor.item/event", null to PeopleIntents.TYPE_CONTACT_DIR, null to PeopleIntents.TYPE_PHONE_DIR, null to "text/plain",
+            "content://com.android.calendar/events" to null, "$contacts/groups" to null, "$contacts/contacts/7" to null, "$contacts/data/phones" to PeopleIntents.TYPE_PHONE_DIR,
+        )) {
+            assertEquals("$data $type", PeopleRoute.Open(null), route(PeopleIntents.ACTION_INSERT_OR_EDIT, data, type, "phone" to "5550002"))
+        }
+    }
+
+    @Test fun aLookupUrisFourthSegmentIsAPositiveRowIdOrTheUriIsRefused() {
+        // `lookup/<key>/<id>` names a contact; `lookup/<key>/data`, `/photo`, `/entities` and an id of 0 or less do not.
+        for (tail in listOf("0", "-3", "abc", "data", "photo", "entities", "7x")) assertOpensTheList("$contacts/contacts/lookup/0r3-2A4C/$tail")
+        assertEquals(PeopleRoute.Card(ContactRef("0r3-2A4C", 1)), route(PeopleIntents.ACTION_VIEW, "$contacts/contacts/lookup/0r3-2A4C/1"))
+    }
+
+    @Test fun onlyTheWordLookupIntroducesAKey() {
+        // `contacts/<id>/data`, `contacts/<id>/photo` and the like are a contact's sub-tables, not `contacts/lookup/<key>`.
+        for (path in listOf("contacts/7/data", "contacts/7/photo", "contacts/7/7", "contacts/x/y", "contacts/x/y/7", "contacts/Lookup/0r3-2A4C", "contacts/filter/ann")) {
+            assertOpensTheList("$contacts/$path")
+        }
+    }
+
+    @Test fun aDotSegmentIsNotALookupKey() {
+        // `…/contacts/lookup/../5` is a path that climbs, not a key (the reviewer's probe read it as the key "..").
+        for (key in listOf(".", "..", "...", "%2e%2e", "%2E", ".%2e")) {
+            assertOpensTheList("$contacts/contacts/lookup/$key")
+            assertOpensTheList("$contacts/contacts/lookup/$key/5")
+        }
+        // Dots inside a key are the provider's own: a joined contact's key, a source id that held a dot.
+        assertEquals(PeopleRoute.Card(ContactRef("0r1-2A.0r2-4C", 7)), route(PeopleIntents.ACTION_VIEW, "$contacts/contacts/lookup/0r1-2A.0r2-4C/7"))
+        assertEquals(PeopleRoute.Card(ContactRef("0i12..34", null)), route(PeopleIntents.ACTION_VIEW, "$contacts/contacts/lookup/0i12..34"))
+    }
+
+    @Test fun aQueryOnTheUriIsNotPartOfThePath() {
+        assertEquals(PeopleRoute.Card(ContactRef(null, 7)), route(PeopleIntents.ACTION_VIEW, "$contacts/contacts/7?directory=0"))
+        assertEquals(PeopleRoute.Card(ContactRef("0r3-2A4C", null)), route(PeopleIntents.ACTION_VIEW, "$contacts/contacts/lookup/0r3-2A4C?directory=0"))
+        assertEquals(PeopleRoute.Edit(ContactRef("0r3-2A4C", 7)), route(PeopleIntents.ACTION_EDIT, "$contacts/contacts/lookup/0r3-2A4C/7?a=1&b=2"))
+        assertEquals(PeopleRoute.Insert(ContactPrefill(name = "Ned New")), route(PeopleIntents.ACTION_INSERT, "$contacts/contacts?a=1", null, "name" to "Ned New"))
+        assertEquals(PeopleRoute.Pick(PickKind.PHONE), route(PeopleIntents.ACTION_PICK, "$contacts/data/phones?a=1"))
+    }
+
+    @Test fun aFragmentOnTheUriIsNotPartOfThePath() {
+        assertEquals(PeopleRoute.Card(ContactRef(null, 7)), route(PeopleIntents.ACTION_VIEW, "$contacts/contacts/7#top"))
+        assertEquals(PeopleRoute.Card(ContactRef("0r3-2A4C", null)), route(PeopleIntents.ACTION_VIEW, "$contacts/contacts/lookup/0r3-2A4C#top"))
+        assertEquals(PeopleRoute.Edit(ContactRef("0r3-2A4C", 7)), route(PeopleIntents.ACTION_EDIT, "$contacts/contacts/lookup/0r3-2A4C/7#top"))
+        assertEquals(PeopleRoute.Insert(ContactPrefill(name = "Ned New")), route(PeopleIntents.ACTION_INSERT, "$contacts/contacts#top", null, "name" to "Ned New"))
+        assertEquals(PeopleRoute.Pick(PickKind.CONTACT), route(PeopleIntents.ACTION_PICK, "$contacts/contacts#top"))
+        // A fragment may itself hold a question mark; a query comes before the fragment.
+        assertEquals(PeopleRoute.Card(ContactRef(null, 7)), route(PeopleIntents.ACTION_VIEW, "$contacts/contacts/7#a?b"))
+        assertEquals(PeopleRoute.Card(ContactRef(null, 7)), route(PeopleIntents.ACTION_VIEW, "$contacts/contacts/7?a=1#top"))
+    }
 }

@@ -114,16 +114,28 @@ object PeopleIntents {
 
     private fun open(extras: Extras) = PeopleRoute.Open(PeopleShortcut.byId(extras.string(EXTRA_PAGE)))
 
-    /** `contacts/<id>`, `contacts/lookup/<key>` or `contacts/lookup/<key>/<id>`. */
+    /**
+     * `contacts/<id>`, `contacts/lookup/<key>` or `contacts/lookup/<key>/<id>`, and nothing else: a fourth segment that
+     * is not a row id above 0 (`…/data`, `…/photo`, `…/0`) names something other than a contact, so it is refused
+     * rather than read as the key alone.
+     */
     private fun contact(path: List<String>?): ContactRef? {
         if (path == null || path.firstOrNull() != "contacts") return null
         return when {
             path.size == 2 -> path[1].toLongOrNull()?.takeIf { it > 0 }?.let { ContactRef(null, it) }
-            path.size in 3..4 && path[1] == "lookup" && path[2].isNotEmpty() && path[2].length <= MAX_FIELD ->
-                ContactRef(path[2], path.getOrNull(3)?.toLongOrNull()?.takeIf { it > 0 })
+            path.size == 3 && path[1] == "lookup" && isLookupKey(path[2]) -> ContactRef(path[2], null)
+            path.size == 4 && path[1] == "lookup" && isLookupKey(path[2]) -> path[3].toLongOrNull()?.takeIf { it > 0 }?.let { ContactRef(path[2], it) }
             else -> null
         }
     }
+
+    /**
+     * A lookup key as a URI writes it: bounded, and not a path's dot segment (`.` or `..`, written out or as `%2E`), which
+     * climbs instead of naming. Dots inside a key are the provider's own (a joined contact's key), so only a segment of
+     * nothing but dots is refused.
+     */
+    private fun isLookupKey(segment: String): Boolean =
+        segment.isNotEmpty() && segment.length <= MAX_FIELD && segment.replace("%2e", ".", ignoreCase = true).any { it != '.' }
 
     private fun prefill(extras: Extras) = ContactPrefill(
         name = text(extras.string(EXTRA_NAME), MAX_FIELD),
