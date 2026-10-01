@@ -21,7 +21,9 @@ PKG=app.tileshell
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 QA="$(cd "$HERE/.." && pwd)"
 REPO="$(cd "$QA/../../../.." && pwd)"
-APK="$REPO/app/build/outputs/apk/debug/app-debug.apk"
+# Phase 16 build task 8 (C-19): TILESHELL_APK names another build for a row that must install one — E1's upgrade leg
+# provisions the last pre-phase-16 APK first. The default is unchanged for every other row.
+APK="${TILESHELL_APK:-$REPO/app/build/outputs/apk/debug/app-debug.apk}"
 
 ROW=""
 ROW_DIR=""
