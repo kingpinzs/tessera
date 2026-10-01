@@ -525,7 +525,8 @@ the swipes noted in the log).
   swipe to the pod bay → edges sharp and pixels 0.2 × checker ± 3, `acrylic:pod_bay` still present. Restore `set_pref
   transparency_effects boolean true` and the background (`clear_background`, `p13.sh:48-52`)
 - E15 RV10: `wm size 1440x3120` / `720x1560`, `wm density 560`, `font_scale 1.3` leave every pod node's bounds in epx unchanged ± 1 epx
-  (phase 01 E3's method, one dump each); restore
+  (phase 01 E3's method, one dump each); restore; ruled 2026-09-30 (Q-E15 (a), INDEX Change Log): ± 1 epx is each node's left, top and bottom, and its right
+  edge too unless the node carries text — a text node's right edge is the text's own width and has ± 1.5 epx
 - E16 Every diagnostics line in Decisions is asserted by at least one row above — grep the union of `qa/phase-14/*/ring-*.txt` saved
   by this build's run (the rows whose log's APK id matches), each pattern at least once; never one final ring, which every `am
   force-stop` / `layout_restore` resets (`diag/Diagnostics.kt:14-26`; C-20). The patterns, literally (r3 V13): `opened by swipe`,
