@@ -32,23 +32,32 @@ class SlotResolver(private val context: Context, private val catalog: AppCatalog
             Diagnostics.add("slots", "explicit ${slot.name} -> ${cn.flattenToShortString()} is not launchable; the slot is unassigned until it returns")
             return null
         }
-        val pkg = when {
-            slot.role != null -> roleHolderPackage(slot)
-            else -> uniqueHandlerPackage(slot)
-        } ?: return null
-        return catalog.firstForPackage(pkg)
+        if (slot.role != null && slot != Slot.BROWSER) {
+            return roleHolderPackage(slot)?.let { catalog.firstForPackage(it) }
+        }
+        return uniqueHandler(slot)?.let { entryFor(it) }
     }
 
-    /** Apps that handle the slot's intent (for the picker). */
-    fun candidates(slot: Slot): List<AppEntry> {
-        val packages = pm.queryIntentActivities(intentFor(slot), 0).map { it.activityInfo.packageName }.toSet()
-        return catalog.apps.value.filter { it.component.packageName in packages && it.profile == ProfileKind.MAIN }
-    }
+    /**
+     * Apps that handle the slot's intent (for the picker) — matched by the handler's COMPONENT, not its package (phase 16
+     * build task 1, r3 D3). The shell is one package with many launcher activities: matched by package, the CALENDAR
+     * picker listed every shell app (as MUSIC's did). A handler that is not itself a launcher entry — a browser's VIEW
+     * activity, a camera's still-image activity, an app whose category sits on another activity — still stands for its
+     * app, through the package's launcher entry.
+     */
+    fun candidates(slot: Slot): List<AppEntry> =
+        pm.queryIntentActivities(intentFor(slot), 0)
+            .mapNotNull { entryFor(ComponentName(it.activityInfo.packageName, it.activityInfo.name)) }
+            .filter { it.profile == ProfileKind.MAIN }
+            .distinctBy { it.key }
+
+    /** The catalog entry a handler activity stands for: itself when it is a launcher entry, else its package's first. */
+    private fun entryFor(handler: ComponentName): AppEntry? =
+        catalog.find(handler) ?: catalog.firstForPackage(handler.packageName)
 
     private fun roleHolderPackage(slot: Slot): String? = when (slot) {
         Slot.PHONE -> context.getSystemService(TelecomManager::class.java)?.defaultDialerPackage
         Slot.MESSAGING -> Telephony.Sms.getDefaultSmsPackage(context)
-        Slot.BROWSER -> uniqueHandlerPackage(slot)
         else -> null
     }
 
@@ -59,13 +68,12 @@ class SlotResolver(private val context: Context, private val catalog: AppCatalog
     }
 
     /** One handler, or a preferred handler (resolveActivity returns a real app, not the resolver). */
-    private fun uniqueHandlerPackage(slot: Slot): String? {
+    private fun uniqueHandler(slot: Slot): ComponentName? {
         val intent = intentFor(slot)
         val all = pm.queryIntentActivities(intent, 0)
-        if (all.size == 1) return all.first().activityInfo.packageName
+        if (all.size == 1) return all.first().activityInfo.let { ComponentName(it.packageName, it.name) }
         if (all.isEmpty()) return null
-        val best = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY) ?: return null
-        val pkg = best.activityInfo.packageName
-        return if (all.any { it.activityInfo.packageName == pkg }) pkg else null
+        val best = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo ?: return null
+        return if (all.any { it.activityInfo.packageName == best.packageName }) ComponentName(best.packageName, best.name) else null
     }
 }
