@@ -21,6 +21,7 @@ Process contract: `~/.claude/skills/phased-build/SKILL.md` (Stage C + Hard Rules
 | 5-6 Cross-model review of phase docs | done 2026-09-17: 3 rounds (cap reached), every finding triaged and applied; owner rulings applied (review/2026-09-16-phases-r2-owner.md, review/2026-09-17-phases-r3-owner.md) | review/2026-09-16-phases-{fable,fable2,triage}.md, review/2026-09-16-phases-r2-{opus-design,opus-test,triage}.md, review/2026-09-17-phases-r3-{opus-design,opus-test,triage}.md |
 | 7 FINALIZE | done 2026-09-17 (Jeremy: "A"): phases 01-03 and 05-09 FINAL; phase 04 stays DRAFT until R4 runs on the phone and its interview is done | |
 | 7 FINALIZE, phase 14 | done 2026-09-29 (Jeremy: "A"), after its round 3 (fable + fable) and Q-R3-1 / Q-R3-1a | review/2026-09-29-phase14-r3-{brief,design,testability,triage}.md |
+| 5 Cross-model review, phase 16, round 3 (the last) | STARTED 2026-09-30 21:46 while phase 14's QA gate runs (Jeremy: "While that runs why dont we plan the next phase instead of being idle" — planning only, nothing of phase 16 is built in this session; this sets aside the one-phase-per-session stop for planning, on his word). opus (design) + opus (testability); codex out until 2026-10-03 16:48; never Fable. Then: triage, Jeremy's questions one at a time (Stage A shape), FINAL on his word | review/2026-09-30-phase16-r3-brief.md |
 | 8-9 Build harness | done 2026-09-17: build-prompt.md written; phase rows ready | build-prompt.md |
 
 ## Research gating
