@@ -485,6 +485,22 @@ class CalendarRulesTest {
         assertEquals(0, plan.skippedBeforeStart)
     }
 
+    @Test fun aClockSetBackLowersTheCutOffBeforeAnyPokeAndNothingElseDoes() {
+        // The shell first started at 9000; the clock is set back to 4000 while its process stays alive.
+        val state = SyncState(remindersSince = 9000, notifiedAlerts = setOf("10:1000:400"))
+        val lowered = SyncStateRules.lowerRemindersSince(state, nowMs = 4000)
+        assertEquals(state.copy(remindersSince = 4000), lowered)
+        // The alert that then comes due a moment later (alarm time 4400) notifies: it is not "before the first start".
+        val next = alert(1, 10, begin = 5000)
+        assertEquals(1, ReminderRules.plan(listOf(next), lowered.notifiedAlerts, emptySet(), lowered.remindersSince!!).actions.size)
+        // Left to the poke itself (the backstop), the cut-off would be that poke's own now — after the alert's alarm time.
+        assertEquals(1, ReminderRules.plan(listOf(next), emptySet(), emptySet(), sinceMs = 4500).skippedBeforeStart)
+        // A clock set forward, or to the cut-off itself, changes nothing; and a clock change never SETS the cut-off.
+        assertEquals(state, SyncStateRules.lowerRemindersSince(state, nowMs = 12_000))
+        assertEquals(state, SyncStateRules.lowerRemindersSince(state, nowMs = 9000))
+        assertEquals(SyncState(), SyncStateRules.lowerRemindersSince(SyncState(), nowMs = 4000))
+    }
+
     @Test fun aPokeBeforeAnyStartUpSetsTheCutOffToNowAndSkipsWhatWasAlreadyDue() {
         // The receiver ran in a process no start-up ran in, and the store has no cut-off: it becomes now (7000).
         val since = SyncStateRules.remindersSince(SyncState(), nowMs = 7000).remindersSince!!

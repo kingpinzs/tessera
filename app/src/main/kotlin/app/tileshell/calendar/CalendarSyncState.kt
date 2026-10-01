@@ -82,6 +82,17 @@ object SyncStateRules {
     }
 
     /**
+     * The clock was changed (`TIME_SET`): a cut-off that is now in the future is lowered to [nowMs] at once, before any
+     * poke — left to the first poke, the lowering would make that poke's own alert (due a moment before "now") one of
+     * the rows "due before the first start". It only ever lowers: a store with no cut-off yet is left for the shell's
+     * start to fill, and a clock set forward changes nothing.
+     */
+    fun lowerRemindersSince(state: SyncState, nowMs: Long): SyncState {
+        val stored = state.remindersSince
+        return if (stored != null && stored > nowMs) state.copy(remindersSince = nowMs) else state
+    }
+
+    /**
      * The receiver's notified set stays as large as the alerts that can still come back: a key is kept only while its
      * alert row is still a candidate ([live]: the keys of the rows due now in state SCHEDULED or FIRED).
      */

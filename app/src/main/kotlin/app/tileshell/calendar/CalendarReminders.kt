@@ -101,6 +101,28 @@ class CalendarReminderDismissReceiver : BroadcastReceiver() {
     }
 }
 
+/**
+ * The clock was set (`android.intent.action.TIME_SET`, a broadcast only the system can send). Not exported. If the
+ * clock went back behind the stored first-start time, that cut-off is lowered now — before the provider's next
+ * reminder broadcast, so the alert that follows a clock change is not taken for one "due before the first start"
+ * (fix round F2). Nothing in the intent is read but its action.
+ */
+class CalendarClockReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != Intent.ACTION_TIME_CHANGED) return
+        val app = context.applicationContext
+        val now = System.currentTimeMillis()
+        val pending = goAsync()
+        CalendarReminders.worker.execute {
+            try {
+                CalendarReminders.clockChanged(app, now)
+            } finally {
+                pending.finish()
+            }
+        }
+    }
+}
+
 object CalendarReminders {
     /** The calendar channel (E6 reads it). */
     const val CHANNEL = "calendar_reminders"
@@ -122,6 +144,14 @@ object CalendarReminders {
     fun shellStarted(context: Context, nowMs: Long = System.currentTimeMillis()) {
         val app = context.applicationContext
         worker.execute { runCatching { countFrom(app, nowMs, "the shell's start") } }
+    }
+
+    /** The clock was set to [nowMs]: a cut-off left in the future by a clock set back is lowered to it (never set). */
+    fun clockChanged(context: Context, nowMs: Long) {
+        val store = CalendarSyncStore.get(context)
+        val before = store.current.remindersSince ?: return
+        val after = store.update { SyncStateRules.lowerRemindersSince(it, nowMs) }.remindersSince
+        if (after != before) Diagnostics.add("calendar", "reminders count from $after (the clock was set: it went back behind $before)")
     }
 
     /** Sets or lowers the cut-off as [SyncStateRules.remindersSince] says, logging only when it changes. */
