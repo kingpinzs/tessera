@@ -236,8 +236,13 @@ private suspend fun applyRoute(nav: CalendarNav, context: android.content.Contex
         }
         is CalendarRoute.Event -> {
             nav.showView(nav.mode)
-            route.beginMs?.let { nav.select(EventRules.local(it, zone).toLocalDate()) }
-            nav.push(CalPage.Event(route.id, route.beginMs, route.endMs))
+            // The occurrence times are the caller's: taken only when the provider holds that occurrence of that event
+            // (F12). Otherwise the page opens with none, as a VIEW without extras does.
+            val occurrence = route.beginMs?.let { begin ->
+                CalendarIntents.occurrence(route, withContext(Dispatchers.IO) { CalendarReads.instances(context, begin, begin + 1) })
+            }
+            occurrence?.let { nav.select(EventRules.local(it.beginMs, zone).toLocalDate()) }
+            nav.push(CalPage.Event(route.id, occurrence?.beginMs, occurrence?.endMs))
         }
         is CalendarRoute.Edit -> {
             nav.showView(nav.mode)
