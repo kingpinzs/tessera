@@ -1,10 +1,21 @@
 package app.tileshell.calendar
 
 /**
- * A calendar as the shell's own store names it: `_ID` + account name + account type (Decisions T16-1). An account that
- * is removed and added again gets new ids, so nothing the store held about it applies to the calendar that comes back.
+ * A calendar as the shell's own store names it: `_ID` + account name + account type + the calendar's own
+ * `Calendars.NAME` (Decisions T16-1; fix round F16). An account that is removed and added again gets new ids, so
+ * nothing the store held about it applies to the calendar that comes back.
+ *
+ * The [name] is part of the key because the provider hands a deleted calendar's `_ID` out again: when one account's
+ * calendars are dropped and re-made, another calendar of the SAME account can come back under a ticked calendar's id,
+ * account name and type — and if no prune ran in between (the shell was not running, or READ_CALENDAR was revoked),
+ * the tick would be read as that calendar's. With the name in the key it is not: a key equals a calendar only when
+ * all four parts match.
+ *
+ * [name] is null only in a mapping read from a file written before the key carried it. Such a key equals no calendar
+ * on the phone (a calendar read from the provider always has a name, empty when the provider holds none), so nothing
+ * is pushed to it and "Delete here and from" is not offered — while its copy stays hidden behind the local event.
  */
-data class CalendarKey(val id: Long, val accountName: String, val accountType: String)
+data class CalendarKey(val id: Long, val accountName: String, val accountType: String, val name: String?)
 
 /** One synced event: the local (Tessera) event id → the calendar it was copied to and the copy's event id. No hash (r3 V13). */
 data class SyncMapping(val localEventId: Long, val target: CalendarKey, val copyEventId: Long)

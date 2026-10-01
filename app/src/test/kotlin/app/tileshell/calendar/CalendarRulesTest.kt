@@ -13,8 +13,8 @@ import java.util.Locale
 
 /** Phase 16 build task 3: the Calendar data layer's pure rules — the store, the birthday forms, event values, Sync's compare, the receiver's plan. */
 class CalendarRulesTest {
-    private val personal = CalendarKey(5, "qa.personal@example.com", "com.google")
-    private val work = CalendarKey(6, "qa.work@example.com", "com.google")
+    private val personal = CalendarKey(5, "qa.personal@example.com", "com.google", "personal-cal")
+    private val work = CalendarKey(6, "qa.work@example.com", "com.google", "work-cal")
     private val denver: ZoneId = ZoneId.of("America/Denver")
 
     // ---------------------------------------------------------------- calendar_sync.json's rules
@@ -36,7 +36,65 @@ class CalendarRulesTest {
     @Test fun anIdHandedToAnotherAccountIsNotTheAllowedCalendar() {
         val state = SyncStateRules.setAllowed(SyncState(), personal, true)
         // Calendar ids are reused after a delete (Verify at build start 3): the same id under another account.
-        assertEquals(emptyList<CalendarKey>(), SyncStateRules.prune(state, setOf(CalendarKey(5, "qa.work@example.com", "com.google"))).allowed)
+        assertEquals(emptyList<CalendarKey>(), SyncStateRules.prune(state, setOf(CalendarKey(5, "qa.work@example.com", "com.google", "personal-cal"))).allowed)
+    }
+
+    // ---------------------------------------------------------------- fix round F16: the key names the calendar inside its account
+
+    @Test fun aTickDoesNotMoveToAnotherCalendarOfTheSameAccountUnderAReusedId() {
+        // The trust review's probe (A-F2). The user ticked "Personal", id 3. The account's calendars were then dropped
+        // and re-made with the ids swapped, and nothing pruned in between (one provider notification, the shell not
+        // running, or READ_CALENDAR revoked): id 3 is now "Team (shared)", a calendar the user never ticked.
+        val account = "me@example.com"
+        val ticked = CalendarInfo(3, account, "com.google", "Personal", null, 700, "me@example.com")
+        val state = SyncStateRules.setAllowed(SyncState(), ticked.key, true)
+        val nowOnPhone = listOf(
+            CalendarInfo(3, account, "com.google", "Team (shared)", null, 700, "team@group.calendar.example.com"),
+            CalendarInfo(4, account, "com.google", "Personal", null, 700, "me@example.com"),
+        )
+        val team = nowOnPhone[0]
+        // Before any prune has run, the tick is already not that calendar's: the picker offers nothing, the "Can sync
+        // to" row of id 3 is not ticked, and the facts the write layer would give the guard say "not allowed".
+        assertEquals(emptyList<CalendarInfo>(), CalendarSync.targets(nowOnPhone, state))
+        assertFalse(team.key in state.allowed)
+        assertFalse(nowOnPhone[1].key in state.allowed)
+        val firstPush = CalendarWriteGuard.SyncFacts(sourceInTessera = true, mapped = false, targetAllowed = team.key in state.allowed, mappingTarget = null, copyCalendarId = null)
+        assertEquals(
+            CalendarWriteGuard.Verdict.Refused(CalendarWriteGuard.Refusal.NOT_ALLOWED),
+            CalendarWriteGuard.check(CalendarWriteGuard.Request(CalendarWriteGuard.Path.SYNC, CalendarWriteGuard.Op.INSERT, CalendarWriteGuard.Table.EVENTS, team.facts, sync = firstPush)),
+        )
+        // The one prune that sees only the end state ends with nothing ticked.
+        val pruned = SyncStateRules.prune(state, nowOnPhone.mapTo(HashSet()) { it.key })
+        assertEquals(emptyList<CalendarKey>(), pruned.allowed)
+        assertEquals(emptyList<CalendarInfo>(), CalendarSync.targets(nowOnPhone, pruned))
+        // The same calendar still there under its own id and name keeps its tick.
+        assertEquals(listOf(ticked.key), SyncStateRules.prune(state, setOf(ticked.key, team.key.copy(id = 4))).allowed)
+    }
+
+    @Test fun aKeyEqualsACalendarOnlyWhenAllFourPartsMatch() {
+        val calendar = CalendarInfo(5, "qa.personal@example.com", "com.google", "Personal", null, 700, "personal-cal")
+        assertEquals(personal, calendar.key)
+        assertEquals(personal, calendar.facts.key)
+        for (other in listOf(calendar.copy(id = 9), calendar.copy(accountName = "qa.work@example.com"), calendar.copy(accountType = "com.example"), calendar.copy(name = "work-cal"), calendar.copy(name = ""))) {
+            assertFalse("$other", other.key == personal)
+            assertFalse("$other", other.facts.key == personal)
+            assertEquals(emptyList<CalendarKey>(), SyncStateRules.prune(SyncState(allowed = listOf(personal), hidden = listOf(personal)), setOf(other.key)).let { it.allowed + it.hidden })
+            assertEquals(emptyList<CalendarInfo>(), CalendarSync.targets(listOf(other), SyncState(allowed = listOf(personal))))
+        }
+        // The shown name is not part of the key: a calendar renamed on the other side is the same calendar.
+        assertEquals(personal, calendar.copy(displayName = "Private").key)
+    }
+
+    @Test fun aMappingFromAFileWithoutTheNameNamesNoCalendar() {
+        // A mapping an earlier build wrote has no name for its target (null). Its copy stays hidden, and the marker
+        // shows — with the warning, and without "Delete here and from".
+        val old = CalendarKey(5, "qa.personal@example.com", "com.google", null)
+        val calendar = CalendarInfo(5, "qa.personal@example.com", "com.google", "Personal", null, 700, "personal-cal")
+        val state = SyncStateRules.map(SyncState(allowed = listOf(personal)), SyncMapping(10, old, 77))
+        assertEquals(setOf(77L), SyncStateRules.copyIds(state))
+        assertEquals(SyncMarker(5, "qa.personal@example.com", "qa.personal@example.com", warning = true, targetAllowed = false), CalendarSync.marker(state, 10, listOf(calendar)))
+        assertFalse(calendar.key == old)
+        assertFalse(calendar.copy(name = "").key == old)
     }
 
     @Test fun allowingTwiceKeepsOneEntryAndUntickingRemovesIt() {
@@ -86,7 +144,7 @@ class CalendarRulesTest {
 
     @Test fun theMarkerNamesTheCalendarAndItsAccountAndWarnsWhenTheTargetIsGoneOrReadOnly() {
         val state = SyncStateRules.map(SyncState(allowed = listOf(personal)), SyncMapping(10, personal, 77))
-        val calendar = CalendarInfo(5, "qa.personal@example.com", "com.google", "Personal", null, 700)
+        val calendar = CalendarInfo(5, "qa.personal@example.com", "com.google", "Personal", null, 700, "personal-cal")
         assertEquals(SyncMarker(5, "Personal", "qa.personal@example.com", warning = false, targetAllowed = true), CalendarSync.marker(state, 10, listOf(calendar)))
         // Removed from the phone: the account's name is what is left, with the warning.
         assertEquals(SyncMarker(5, "qa.personal@example.com", "qa.personal@example.com", warning = true, targetAllowed = false), CalendarSync.marker(state, 10, emptyList()))
@@ -99,13 +157,13 @@ class CalendarRulesTest {
 
     @Test fun canSyncToListsOnlyNonLocalCalendarsThePhoneMayWrite() {
         val calendars = listOf(
-            CalendarInfo(1, "Tessera", "LOCAL", "Tessera", null, 700),
-            CalendarInfo(2, "Tessera Birthdays", "LOCAL", "Birthdays", null, 200),
-            CalendarInfo(5, "qa.personal@example.com", "com.google", "Personal", null, 700),
-            CalendarInfo(6, "qa.work@example.com", "com.google", "Work", null, 700),
-            CalendarInfo(7, "qa.personal@example.com", "com.google", "Shared", null, 200),
-            CalendarInfo(8, "qa", "LOCAL", "QA", null, 700),
-            CalendarInfo(9, "x@example.com", "com.example", "Contributor", null, 500),
+            CalendarInfo(1, "Tessera", "LOCAL", "Tessera", null, 700, "Tessera"),
+            CalendarInfo(2, "Tessera Birthdays", "LOCAL", "Birthdays", null, 200, "Birthdays"),
+            CalendarInfo(5, "qa.personal@example.com", "com.google", "Personal", null, 700, "personal-cal"),
+            CalendarInfo(6, "qa.work@example.com", "com.google", "Work", null, 700, "work-cal"),
+            CalendarInfo(7, "qa.personal@example.com", "com.google", "Shared", null, 200, "shared-cal"),
+            CalendarInfo(8, "qa", "LOCAL", "QA", null, 700, "qa"),
+            CalendarInfo(9, "x@example.com", "com.example", "Contributor", null, 500, "contributor-cal"),
         )
         assertEquals(listOf(5L, 6L, 9L), CalendarSync.candidates(calendars).map { it.id })
         // The picker: only what the user ticked.

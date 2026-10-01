@@ -17,9 +17,11 @@ data class CalendarInfo(
     /** Null when the provider holds no colour: the accent is drawn. */
     val color: Int?,
     val accessLevel: Int,
+    /** The provider's `Calendars.NAME` — the calendar's own name inside its account, never shown; empty when the provider holds none. */
+    val name: String,
 ) {
-    val key: CalendarKey get() = CalendarKey(id, accountName, accountType)
-    val facts: CalendarWriteGuard.CalendarFacts get() = CalendarWriteGuard.CalendarFacts(id, accountName, accountType, accessLevel)
+    val key: CalendarKey get() = CalendarKey(id, accountName, accountType, name)
+    val facts: CalendarWriteGuard.CalendarFacts get() = CalendarWriteGuard.CalendarFacts(id, accountName, accountType, accessLevel, name)
     val isTessera: Boolean get() = CalendarWriteGuard.isTessera(facts)
     val isBirthdays: Boolean get() = CalendarWriteGuard.isBirthdays(facts)
 
@@ -112,6 +114,7 @@ object CalendarReads {
         CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
         CalendarContract.Calendars.CALENDAR_COLOR,
         CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+        CalendarContract.Calendars.NAME,
     )
 
     private fun calendar(c: Cursor) = CalendarInfo(
@@ -121,6 +124,7 @@ object CalendarReads {
         displayName = c.getString(3).orEmpty(),
         color = if (c.isNull(4)) null else c.getInt(4),
         accessLevel = c.getInt(5),
+        name = c.getString(6).orEmpty(),
     )
 
     /** Every calendar, in the provider's order of account then name. A null cursor is a provider that is off. */

@@ -78,8 +78,8 @@ object CalendarSync {
     private fun push(context: Context, localEventId: Long, target: CalendarKey): Outcome {
         val store = CalendarSyncStore.get(context)
         val local = CalendarReads.event(context, localEventId) ?: return Outcome.Failed("the event is gone")
-        // The target must still be the calendar the user allowed: same id, same account. An account removed and
-        // added again has new ids, and an id that was handed to another calendar is not this one.
+        // The target must still be the calendar the user allowed: same id, same account, same name of its own. An
+        // account removed and added again has new ids, and an id that was handed to another calendar is not this one.
         val present = CalendarReads.calendar(context, target.id)
         if (present == null || present.key != target) return Outcome.CalendarGone
         // Synced to another calendar before: that copy stays where it is, as the account event it is, and this
