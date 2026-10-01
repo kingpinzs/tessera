@@ -1,0 +1,27 @@
+==============================================================================
+ROW E25_SHORTCUTS — Calendar's App Shortcuts: agenda, day, month, new_event
+at            2026-10-01T13:39:51-06:00
+driver        e25_shortcuts.sh blob 612ee0fa475c1413a2761705193a71802d4453e1
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     a5b3bdbffff0d744 339299596 bytes
+apk installed 2c802c043cb40279
+apk match     yes (2c802c043cb40279)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+Calendar's shortcuts in dumpsys shortcut (rank id):
+-1 agenda
+-1 day
+-1 month
+-1 new_event
+FAIL  four shortcuts in rank order                                expected [0 agenda|1 day|2 month|3 new_event] got [-1 agenda|-1 day|-1 month|-1 new_event]
+PASS  agenda: resumed                                             = app.tileshell/.calendar.CalendarActivity
+PASS  agenda: cal_view_mode:agenda selected, no drop-down         = true no
+PASS  day: cal_view_mode:day selected                             = true
+PASS  month: cal_view_mode:agenda selected AND cal_month_dropdown shown  = true yes
+PASS  new_event: cal_editor                                       = yes
+PASS  Back discards the editor                                    = no
+PASS  Tessera's event count is unchanged                          = 0
+PASS  a second intent re-routes the running app                   = true
+------------------------------------------------------------------------------
+E25_SHORTCUTS: 8 passed, 1 failed, 0 recorded
