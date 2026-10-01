@@ -86,7 +86,7 @@ tap_node "$D/confirm.xml" people_group_delete_confirm; sleep 3
 G="$(groups)"; log "after the delete: $G"
 assert_eq "the group row is gone (or marked deleted)" "yes" "$(echo "$G" | grep "_id=$GID," | grep -vq 'deleted=1' && echo no || echo yes)"
 assert_contains "the delete line" "[people] group delete $GID: ok" "$(ring_since "$MARK")"
-assert_eq "both contacts are still present" "2" "$(S content query --uri content://com.android.contacts/raw_contacts --projection _id:deleted --where "_id IN ($ANN,$BOB) AND deleted=0" | grep -c '_id=')"
+assert_eq "both contacts are still present" "2" "$(S content query --uri content://com.android.contacts/raw_contacts --projection _id:deleted --where "\"_id IN ($ANN,$BOB) AND deleted=0\"" | grep -c '_id=')"
 assert_eq "their membership rows went with the group" "0" "$(members "$GID" | grep -c 'raw_contact_id=')"
 
 # ---- WRITE_CONTACTS revoked: a create is refused with the editor's notice

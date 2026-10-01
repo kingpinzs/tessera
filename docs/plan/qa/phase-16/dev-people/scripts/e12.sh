@@ -39,28 +39,27 @@ SLOTS="$(layout_json | python3 -c 'import json,sys; print(json.dumps(json.load(s
 short() { python3 -c "
 import sys
 p,c=sys.argv[1].split('/'); print(p+'/'+(c[len(p):] if c.startswith(p+'.') else c))" "$1"; }
-calls_count() { adb shell dumpsys telecom 2>/dev/null | grep -cE 'Call id|mCallId'; }   # phase 03 e7.sh's count
-
 card() { adb shell am start -W -n "$PEOPLE" -a android.intent.action.VIEW -d "content://com.android.contacts/contacts/$ANN_C" >/dev/null 2>&1; sleep 2; dump_ui "$D/card.xml"; }
 card; screencap "$D/card.png"
 assert_eq "the VIEW intent opens Ann's card" "yes" "$(has_node "$D/card.xml" "people_card:$L_ANN")"
 log "action rows: $(grep -o 'resource-id="people_card_action:[^"]*"' "$D/card.xml" | tr '\n' ' ')"
 assert_eq "the card is a full accent page" "0,120,215" "$(px "$D/card.png" 1060 $(( $(status_bottom "$D/card.xml") + 6 )))"
 
-# ---- Call: through Telecom
-CALLS_BEFORE="$(calls_count)"
+# ---- Call: through Telecom. On this AVD the emulated network ends a call to "+1 555 000 0001" within a quarter of a
+# second (DisconnectCause REMOTE / NORMAL; DEV-CALLPROBE: a plain ten-digit number stays up), so what is read is
+# Telecom's own record that the shell handed it an outgoing call, not a call still in progress.
+CALLS_BEFORE="$(outgoing_calls)"
 MARK="$(ring_mark)"
-tap_node "$D/card.xml" people_card_action:call:0; sleep 6
+tap_node "$D/card.xml" people_card_action:call:0; sleep 4
 SLICE="$(ring_since "$MARK")"; log "$(echo "$SLICE" | grep -F '[people] action')"
 assert_contains "the call line" "[people] action call -> " "$SLICE"
 assert_contains "the call line names the number" "tel:+1 555 000 0001" "$SLICE"
 adb shell dumpsys telecom > "$D/telecom-after.txt" 2>/dev/null
-assert_ne "dumpsys telecom shows a call after the tap (phase 03 E7's count)" "$CALLS_BEFORE" "$(calls_count)"
-GSM="$(adb emu gsm list | tr -d '\r' | tr '\n' ' ')"
-record "adb emu gsm list after the call" "$GSM"
-adb shell input keyevent KEYCODE_ENDCALL; sleep 2
-for n in $(echo "$GSM" | grep -oE '\+?[0-9]{7,}'); do adb emu gsm cancel "$n" >/dev/null 2>&1; done
-sleep 1
+assert_eq "Telecom holds one more outgoing call than before the tap" "$((CALLS_BEFORE + 1))" "$(outgoing_calls)"
+record "Telecom's record of it" "$(grep -E 'CallTC@[0-9]+ \[' "$D/telecom-after.txt" | tail -1 | tr -d '\r' | sed 's/^ *//')"
+record "how it ended" "$(grep -E 'SET_DISCONNECTED' "$D/telecom-after.txt" | tail -1 | tr -d '\r' | sed 's/^ *//' | cut -c1-170)"
+record "adb emu gsm list after the call" "$(adb emu gsm list | tr -d '\r' | tr '\n' ' ')"
+end_call
 
 # ---- Text: ACTION_SENDTO smsto: to the SMS role holder
 card

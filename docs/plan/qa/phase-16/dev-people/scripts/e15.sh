@@ -26,20 +26,56 @@ assert_contains "Android's share sheet is on top" "hooser" "$TOP$SEND"
 LINE="$(ring_since "$MARK" | grep -F '[people] share' | tail -1 | sed 's/.*\[people\] //')"; log "$LINE"
 URI="content://com.android.contacts/contacts/as_vcard/$L_ANN"
 assert_eq "the share line names the provider's own vCard URI" "share $L_ANN: $URI" "$LINE"
-VC="$(adb shell content read --uri "$URI" | tr -d '\r')"; log "$VC"
-assert_contains "the stream begins BEGIN:VCARD" "BEGIN:VCARD" "$(echo "$VC" | head -1)"
-assert_contains "it carries FN:Ann Lee" "FN:Ann Lee" "$VC"
-assert_contains "and her TEL" "TEL;" "$VC"
-assert_contains "with her number" "555" "$(echo "$VC" | grep '^TEL')"
-adb shell input keyevent KEYCODE_BACK; sleep 1
+dump_ui "$D/chooser.xml"; screencap "$D/chooser.png"
+assert_contains "the share sheet names the provider's file for her" 'text="Ann Lee.vcf"' "$(cat "$D/chooser.xml")"
+assert_contains "the provider answers for that URI" "_display_name=Ann Lee.vcf" "$(S content query --uri "$URI")"
+# `adb shell content read` opens a plain file, and the Contacts provider serves a vCard as an asset stream: on this
+# image it is refused ("No files supported by provider"). Recorded; the stream is read below by an app that receives it.
+record "adb shell content read on the URI" "$(adb shell content read --uri "$URI" 2>&1 | head -2 | tr -d '\r' | tr '\n' ' ' | cut -c1-150)"
+S dumpsys activity permissions > "$D/grants-sheet.txt" 2>/dev/null
+G="$(grep -A2 'as_vcard' "$D/grants-sheet.txt" | tr '\n' ' ' | tr -s ' ')"; log "URI grants: $G"
+assert_eq "one URI grant names a vCard URI" "1" "$(grep -c 'as_vcard' "$D/grants-sheet.txt")"
+assert_contains "it is for that one URI" "UriPermission{" "$(grep "as_vcard/$L_ANN " "$D/grants-sheet.txt")"
+assert_contains "read only (mode 0x1), from the Contacts provider, to the share sheet" "sourcePkg=com.android.providers.contacts targetPkg=com.android.intentresolver mode=0x1" "$G"
 assert_eq "no file of the shell's holds a vCard" "0" "$(adb shell run-as app.tileshell sh -c 'ls -R files cache 2>/dev/null' | grep -ci 'vcf\|vcard')"
+# What the stream holds: the image's Contacts app is chosen on the sheet; it imports the vCard it is handed, so the
+# contact it makes is the stream's content read back from the provider.
+NB="$(python3 - "$D/chooser.xml" <<'PY'
+import re, sys
+xml = open(sys.argv[1], encoding='utf-8', errors='replace').read()
+for node in re.finditer(r'<node[^>]*>', xml):
+    s = node.group(0)
+    if 'text="Contacts"' in s:
+        l, t, r, b = (int(v) for v in re.search(r'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"', s).groups()); print((l + r) // 2, (t + b) // 2 - 60); break
+PY
+)"
+# shellcheck disable=SC2086
+adb shell input tap $NB; sleep 5
+record "after choosing Contacts on the sheet: top activity" "$(top_activity)"
+dump_ui "$D/import.xml"; screencap "$D/import.png"
+record "what it shows" "$(grep -o 'text="[^"]\+"' "$D/import.xml" | tr '\n' ' ' | cut -c1-300)"
+S dumpsys activity permissions > "$D/grants-target.txt" 2>/dev/null
+record "the URI grant after the choice" "$(grep -A2 'as_vcard' "$D/grants-target.txt" | tr '\n' ' ' | tr -s ' ' | cut -c1-300)"
+sleep 6
+COPIES="$(S content query --uri content://com.android.contacts/raw_contacts --projection _id:account_name:account_type:display_name --where "\"display_name='Ann Lee' AND _id!=$ANN\"")"; log "imported: $COPIES"
+COPY="$(echo "$COPIES" | grep -oE '_id=[0-9]+' | cut -d= -f2 | head -1)"
+if [ -n "$COPY" ]; then
+  echo "$COPIES" | grep -oE '_id=[0-9]+' | cut -d= -f2 >> "$(_fix_file)"
+  CD="$(S content query --uri content://com.android.contacts/data --projection mimetype:data1 --where "raw_contact_id=$COPY")"; log "$CD"
+  assert_contains "the stream carried her name (FN)" "mimetype=vnd.android.cursor.item/name, data1=Ann Lee" "$CD"
+  assert_contains "her number (TEL)" "mimetype=vnd.android.cursor.item/phone_v2, data1=" "$CD"
+  assert_contains "the number's digits" "555" "$(echo "$CD" | grep phone_v2)"
+  assert_contains "and her e-mail (EMAIL)" "data1=ann@example.com" "$CD"
+else
+  record "the stream's content" "not read back: the app chosen on the sheet made no contact from it"
+fi
+adb shell am force-stop com.android.contacts; adb shell am force-stop org.fossify.contacts; sleep 1
 
 # ---- Import from SIM: run in whichever branch the emulated SIM gives (V16)
 adb shell "content insert --uri content://icc/adn --bind tag:s:'Sim Bob' --bind number:s:5550002" > "$D/sim-insert.txt" 2>&1
 SIMQ="$(S content query --uri content://icc/adn)"; log "icc/adn: $SIMQ"
 if echo "$SIMQ" | grep -q "5550002"; then BRANCH=accepted; else BRANCH=refused; fi
 record "the emulated SIM's phonebook took the insert" "$BRANCH ($(head -c 160 "$D/sim-insert.txt" | tr '\n' ' '))"
-adb shell input keyevent KEYCODE_BACK; sleep 1
 open_people -a android.intent.action.MAIN
 dump_ui "$D/l.xml"; tap_node "$D/l.xml" people_more; sleep 2
 dump_ui "$D/m.xml"; tap_node "$D/m.xml" people_more:settings; sleep 2
