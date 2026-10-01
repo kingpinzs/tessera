@@ -1,0 +1,26 @@
+==============================================================================
+ROW DEV-VCARDPROBE — the provider's vCard stream for the shared URI, read back through an import
+at            2026-10-01T12:57:37-06:00
+driver        vcardprobe.sh blob 4f5db7daa3dcc55d15cf9940dc899236994bd933
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     eefb6fb4c29462ec 339427186 bytes
+apk installed 56c626cba75ebe22
+apk match     yes (56c626cba75ebe22)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+device already holds this build
+RECORD  handlers of VIEW text/x-vcard                                   com.android.contacts/.vcard.ImportVCardActivity     org.fossify.contacts/.activities.MainActivity     org.fossify.notes/.activities.MainActivity 
+RECORD  the image's Contacts import activity                        com.android.contacts/.vcard.ImportVCardActivity
+RECORD  top activity after the VIEW                                 app.tileshell/.StartActivity
+RECORD  what it shows                                               text="People" text="Browser" text="" text="Mail · Tap to choose" text="Calendar" text="Photos" text="Mountain View" text="66°" text="Sunny" text="76°/58°  Precip 0%  Wind N 4 mph" text="Weather" text="" text="" text="Alarms &amp; Clock" text="Auxio" text="" text="" text="" text
+imported: Row: 0 _id=76, account_name=NULL, account_type=NULL, display_name=Ann Lee
+Row: 0 mimetype=vnd.android.cursor.item/name, data1=Ann Lee
+Row: 1 mimetype=vnd.android.cursor.item/phone_v2, data1=+1-555-000-0001
+Row: 2 mimetype=vnd.android.cursor.item/email_v2, data1=ann@example.com
+PASS  the stream carried her name (FN)                            contains [mimetype=vnd.android.cursor.item/name, data1=Ann Lee]
+PASS  her number (TEL)                                            contains [555]
+PASS  and her e-mail (EMAIL)                                      contains [data1=ann@example.com]
+PASS  raw_contacts count equals the count before the row          = 2
+------------------------------------------------------------------------------
+DEV-VCARDPROBE: 4 passed, 0 failed, 4 recorded

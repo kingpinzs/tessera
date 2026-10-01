@@ -1,0 +1,46 @@
+==============================================================================
+ROW LOOK2 — development look: editor, settings pages, groups
+at            2026-10-01T10:17:18-06:00
+driver        look2.sh blob d87852b93b760bafcdd9a1d6d8cd9168b881030e
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     83b71377d749e2a6 339412874 bytes
+apk installed 6fdf8ea65a51c707
+apk match     NO (device 6fdf8ea65a51c707, built 6d389ec6497ea01a)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+Success
+PASS  people_page:editor                                          = yes
+      1 resource-id="people_add_field:address"
+      1 resource-id="people_add_field:email"
+      1 resource-id="people_add_field:phone"
+      1 resource-id="people_app_bar"
+      1 resource-id="people_editor"
+      1 resource-id="people_editor_account"
+      1 resource-id="people_editor_account_label"
+      1 resource-id="people_editor_cancel"
+      1 resource-id="people_editor_header"
+      1 resource-id="people_editor_photo"
+      1 resource-id="people_editor_save"
+      1 resource-id="people_field:email"
+      1 resource-id="people_field_label:name"
+      1 resource-id="people_field:name"
+      1 resource-id="people_field:phone"
+      1 resource-id="people_field_type:email"
+      1 resource-id="people_field_type:phone"
+      1 resource-id="people_more"
+      1 resource-id="people_page:editor"
+      4 resource-id="people_rule"
+account reads: Phone; header: NEW PHONE CONTACT
+ring after save:
+    2026-10-01 10:17:59.821 wall=1790871479821 [people] write insert raw=28: ok
+    2026-10-01 10:17:59.821 wall=1790871479821 [people] reload (provider change)
+    2026-10-01 10:17:59.828 wall=1790871479828 [people] tile: 0 photos
+    2026-10-01 10:17:59.833 wall=1790871479833 [people] list: 3 contacts read=true write=true
+Dan: Row: 2 _id=28, account_name=NULL, account_type=NULL, display_name=Dan Ford
+PASS  Dan is on the phone                                         contains [account_name=NULL, account_type=NULL]
+pivot motion:
+    2026-10-01 10:18:43.364 wall=1790871523364 [motion] people_pivot t0=1750037 peak=267 overshoot=0 settle=267 frames=17 maxGapMs=17
+PASS  raw_contacts count restored                                 = 2
+------------------------------------------------------------------------------
+LOOK2: 3 passed, 0 failed, 0 recorded

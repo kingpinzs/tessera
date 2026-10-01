@@ -1,0 +1,46 @@
+==============================================================================
+ROW DEV-E12 — card actions: call, text, mail, map (E12's core)
+at            2026-10-01T10:43:13-06:00
+driver        e12.sh blob cc777da209ee98b704b5b04730403a437ce23117
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     beb2159f687f6401 339413574 bytes
+apk installed 1b6d88d523add23b
+apk match     yes (1b6d88d523add23b)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+device already holds this build
+PASS  the device holds this build                                 contains [yes]
+K-9 launcher com.fsck.k9/net.thunderbird.app.common.MainActivity, OsmAnd launcher net.osmand.plus/net.osmand.plus.activities.MapActivity
+PASS  the slots were written                                      = 0
+slots: {"CALENDAR": "app.tileshell/app.tileshell.calendar.CalendarActivity", "MAIL": "com.fsck.k9/net.thunderbird.app.common.MainActivity", "MAPS": "net.osmand.plus/net.osmand.plus.activities.MapActivity", "MUSIC": "app.tileshell/app.tileshell.music.MusicActivity", "PEOPLE": "app.tileshell/app.tileshell.people.PeopleActivity"}
+PASS  the VIEW intent opens Ann's card                            = yes
+action rows: resource-id="people_card_action:text:0" resource-id="people_card_action:call:0" resource-id="people_card_action:mail:0" resource-id="people_card_action:map:0" 
+PASS  the card is a full accent page                              = 0,120,215
+    2026-10-01 10:43:37.973 wall=1790873017973 [people] action call -> com.android.dialer/.main.impl.MainActivity tel:+1 555 000 0001
+PASS  the call line                                               contains [[people] action call -> ]
+PASS  the call line names the number                              contains [tel:+1 555 000 0001]
+gsm list: OK
+FAIL  the emulator's modem lists the outgoing call                does not contain [outbound to]: OK
+telecom:     defaultOutgoing: ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}     outgoingPhoneAccountForTelScheme: ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}       [[X] PhoneAccount
+FAIL  Telecom holds a call                                        does not contain [Call TC@]:     defaultOutgoing: ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}     outgoingPhoneAccountForTelScheme: ComponentInfo{com.android.phone/com.android.services.telephony.Telephony
+RECORD  gsm cancel ; calls left                                     OK
+    2026-10-01 10:43:48.274 wall=1790873028274 [people] action text -> org.fossify.messages/.activities.SplashActivity.Green smsto:+15550000001
+PASS  the text line                                               contains [[people] action text -> org.fossify.messages]
+PASS  the text line names smsto: her number                       contains [smsto:+15550000001]
+PASS  the SMS role holder is on top                               contains [org.fossify.messages/]
+    2026-10-01 10:43:56.552 wall=1790873036552 [people] action mail -> resolver mailto:ann@example.com
+FAIL  the mail line names the Mail slot's component and the address  does not contain [[people] action mail -> com.fsck.k9/net.thunderbird.app.common.MainActivity mailto:ann@example.com]:     2026-10-01 10:43:56.552 wall=1790873036552 [people] action mail -> resolver mailto:ann@example.com
+    2026-10-01 10:43:57.695 wall=1790873037695 [apps] LauncherApps.onPackageChanged eu.faircode.email user=0
+    2026-10-01 10:43:57.736 
+FAIL  K-9 is the top package                                      does not contain [com.fsck.k9/]: eu.faircode.email/.ActivityCompose
+
+FAIL  the map line names the Maps slot's component and a geo: query  does not contain [[people] action map -> net.osmand.plus/.activities.MapActivity geo:0,0?q=1%20Main%20St%20Springfield]: 
+FAIL  OsmAnd is the top package                                   does not contain [net.osmand.plus/]: 
+FAIL  the layout is back                                          expected [0] got [1]
+FAIL  the slots equal the slots before the row                    expected [{"CALENDAR": "app.tileshell/app.tileshell.calendar.CalendarActivity", "MUSIC": "app.tileshell/app.tileshell.music.MusicActivity", "PEOPLE": "app.tileshell/app.tileshell.people.PeopleActivity"}] got []
+FAIL  raw_contacts count equals the count before the row          expected [2] got [0]
+PASS  no call is left on the modem                                = 
+FAIL  ensure_start: Start alone                                   start_page=no app_list=no pod_bay=no
+------------------------------------------------------------------------------
+DEV-E12: 10 passed, 10 failed, 1 recorded

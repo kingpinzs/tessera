@@ -1,0 +1,88 @@
+==============================================================================
+ROW DEV-E10 — People list, # bucket, jump grid, search (E10's core)
+at            2026-10-01T10:28:19-06:00
+driver        e10.sh blob 114b80da7a6b7294fa1327c814b2aa692f71ca57
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     68c1362ab1993eec 339413434 bytes
+apk installed 90bf544eb1cb49dc
+apk match     NO (device 90bf544eb1cb49dc, built b4096452f9b15ed4)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+Success
+PASS  the device holds this build                                 contains [yes]
+contacts listed before the fixtures: 2
+Row: 0 _id=48, contact_id=49, display_name=Cara Diaz
+Row: 1 _id=49, contact_id=49, display_name=Cara Diaz
+PASS  Cara Diaz: two raw contacts                                 = 2
+PASS  Cara Diaz: one contact id                                   = 1
+lookups ann=0r43-2B4545413333 zoe=0r45-5D47332B4D3345 wei=0r46-FAAB7AFA0C18 num=0r47-141C1C1C12121212121224 cara=0r48-2F2B4D2B313B2B5D.0r49-2F2B4D2B313B2B5D; the provider's label for 张伟 is […]
+[people] list: 8 contacts read=true write=true
+PASS  the list line: the fixtures are six more contacts, read and write held  = [people] list: 8 contacts read=true write=true
+PASS  one Cara Diaz row                                           = 1
+PASS  the number-only contact reads its number                    = +1 555 000 0009
+PASS  the number-only row is between # and A                      = yes
+PASS  Ann is between A and B                                      = yes
+the two # rows: [0 526 1080 676] [0 676 1080 826]
+PASS  row pitch 50 epx (P1.10)                                    50.00 vs 50.00 +/- 1.0
+PASS  avatar width 32 epx (P1.7)                                  32.00 vs 32.00 +/- 1.0
+PASS  avatar height 32 epx (P1.7)                                 32.00 vs 32.00 +/- 1.0
+PASS  avatar left edge at x 12 (P1.7)                             12.00 vs 12.00 +/- 1.0
+PASS  avatar corner is the page (a circle)                        (0,0,0) within 4 of (0,0,0)
+PASS  avatar without a photo is a grey disc                       (85,85,85) within 6 of (85,85,85)
+Ann's name box [172 1033 365 1098], its first glyph's ink [173 1049 207 1087] (ink.py prints screen pixels)
+PASS  the name's ink left edge at x 57.75 (P1.9)                  57.67 vs 57.75 +/- 1.0
+the A header's box [43 859 104 973], ink [44 886 103 953]
+PASS  letter header ink at x 14.75 (P1.5)                         14.67 vs 14.75 +/- 1.0
+PASS  letter cap 22.25 epx (P1.5)                                 22.33 vs 22.25 +/- 1.0
+PASS  letter cap top 43.5 epx above its first avatar's top (P1.6)  43.67 vs 43.50 +/- 1.0
+PASS  letter header in accent                                     (0,120,215) within 12 of (0,120,215)
+the CONTACTS header's box [36 129 278 186], ink [38 142 63 177]; the status bar ends at 84 px
+PASS  pivot header cap top 19.5 epx below the status bar (P1.1)   19.33 vs 19.50 +/- 1.0
+PASS  pivot header ink from x 12.5 (P1.1)                         12.67 vs 12.50 +/- 1.0
+PASS  pivot header cap 11.0 epx (P1.1)                            11.67 vs 11.00 +/- 1.0
+PASS  CONTACTS is the pivot on show                               contains [selected="true"]
+PASS  search box top 48 epx below the status bar (P1.3)           48.00 vs 48.00 +/- 1.0
+PASS  search box 36 epx tall (P1.3)                               36.00 vs 36.00 +/- 1.0
+PASS  search box from x 12 (P1.3)                                 12.00 vs 12.00 +/- 1.0
+PASS  search box to W − 12 (P1.3)                               348.00 vs 348.00 +/- 1.0
+PASS  search box border (133,133,133)                             (133,133,133) within 4 of (133,133,133)
+PASS  a letter header opens People's jump grid                    = yes
+PASS  28 cells: #, A–Z, the globe                               = 28
+PASS  cell # is in accent (contacts file there)                   (0,120,215) within 12 of (0,120,215)
+PASS  cell A is in accent (contacts file there)                   (0,120,215) within 12 of (0,120,215)
+PASS  cell B is in accent (contacts file there)                   (0,120,215) within 12 of (0,120,215)
+PASS  cell C is in accent (contacts file there)                   (0,120,215) within 12 of (0,120,215)
+PASS  cell M is in accent (contacts file there)                   (0,120,215) within 12 of (0,120,215)
+PASS  cell Z is in accent (contacts file there)                   (0,120,215) within 12 of (0,120,215)
+PASS  cell globe is in accent (contacts file there)               (0,120,215) within 12 of (0,120,215)
+PASS  cell D is (52,52,52) (none file there)                      (52,52,52) within 4 of (52,52,52)
+PASS  cell E is (52,52,52) (none file there)                      (52,52,52) within 4 of (52,52,52)
+PASS  cell K is (52,52,52) (none file there)                      (52,52,52) within 4 of (52,52,52)
+PASS  cell Q is (52,52,52) (none file there)                      (52,52,52) within 4 of (52,52,52)
+PASS  cell Y is (52,52,52) (none file there)                      (52,52,52) within 4 of (52,52,52)
+PASS  cell pitch across 72 epx (P2.2)                             72.00 vs 72.00 +/- 1.0
+PASS  cell pitch down 72 epx (P2.2)                               72.00 vs 72.00 +/- 1.0
+PASS  four columns at 360 epx: D starts the second row under #    = 98
+PASS  # is the first cell (top-left)                              = yes
+PASS  the globe is the last cell (after Z, on the last row)       = yes
+PASS  first row's cap top 119.5 epx below the status bar (P2.3)   119.67 vs 119.50 +/- 1.0
+PASS  grid letters cap 14.4 epx (P2.4)                            14.33 vs 14.40 +/- 1.0
+PASS  the pivot header stays above the grid (P2.1)                = yes
+PASS  the search box stays above the grid (P2.1)                  = yes
+PASS  the grid closed                                             = no
+PASS  the list landed on Z: Zoë's row is on screen               = yes
+PASS  the jump is logged                                          contains [[people] jump to Z]
+PASS  Zoë files under Z                                          = yes
+PASS  张伟's header reads the provider's phonebook label        = …
+PASS  张伟 is under that header                                 = yes
+PASS  search [555 000 0001]: one row                              = 1
+PASS  search [555 000 0001]: it is Ann Lee                        = yes
+PASS  search [555 000 0001]: the line                             contains [[people] search "555 000 0001": 1 (+0 enterprise)]
+PASS  search [ann]: one row                                       = 1
+PASS  search [ann]: it is Ann Lee                                 = yes
+PASS  search [ann]: the line                                      contains [[people] search "ann": 1 (+0 enterprise)]
+PASS  a number typed without spaces matches the one stored with them  = yes
+PASS  raw_contacts count equals the count before the row          = 2
+------------------------------------------------------------------------------
+DEV-E10: 65 passed, 0 failed, 0 recorded

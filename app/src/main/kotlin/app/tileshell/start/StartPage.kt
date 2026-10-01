@@ -161,6 +161,7 @@ class TileFactory(
                     Slot.PHOTOS -> LiveTileEngine.PHOTOS
                     Slot.CALENDAR -> LiveTileEngine.CALENDAR
                     Slot.MUSIC -> LiveTileEngine.MUSIC
+                    Slot.PEOPLE -> LiveTileEngine.PEOPLE
                     else -> null
                 }
                 val pkgContent = entry?.let { appContent(it.component) }
@@ -243,6 +244,7 @@ class TileFactory(
             Slot.PHOTOS -> content[LiveTileEngine.PHOTOS]
             Slot.CALENDAR -> content[LiveTileEngine.CALENDAR]
             Slot.MUSIC -> content[LiveTileEngine.MUSIC]
+            Slot.PEOPLE -> content[LiveTileEngine.PEOPLE]
             else -> resolver.resolve(key.slot, layout.explicitSlots)?.let { appContent(it.component) }
         }
         is TileKey.AppTile -> appContent(key.component)

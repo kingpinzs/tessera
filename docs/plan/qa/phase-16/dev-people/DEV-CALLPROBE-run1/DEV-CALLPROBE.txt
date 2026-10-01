@@ -1,0 +1,29 @@
+==============================================================================
+ROW DEV-CALLPROBE — what the emulated network does with a placed call (recorded)
+at            2026-10-01T12:43:25-06:00
+driver        callprobe.sh blob b1e9b3c06c6e36787f823468c5eea56d9ed4473e
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     eefb6fb4c29462ec 339427186 bytes
+apk installed 56c626cba75ebe22
+apk match     yes (56c626cba75ebe22)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+device already holds this build
+RECORD  spaced: gsm list 1 s after the tap                          OK 
+RECORD  spaced: gsm list 4 s after the tap                          OK 
+RECORD  spaced: the action line                                     action call -> com.android.dialer/.main.impl.MainActivity tel:+1 555 000 0001
+RECORD  spaced: top activity                                        app.tileshell/.people.PeopleActivity
+RECORD  spaced: Telecom's newest call                                   CallTC@2 [Oct 1, 2026 12:43:45 PM](MO - outgoing)(User=UserHandle{0})
+RECORD  spaced: its end                                                   12:43:45.286 - SET_DISCONNECTED (disconnected set explicitly> DisconnectCause [ Code: (REMOTE) Label: () Description: () Reason: (NORMAL) Tone: (27)  TelephonyCause: 2/-1 ImsReasonInfo: null]):C
+RECORD  plain: gsm list 1 s after the tap                           OK 
+RECORD  plain: gsm list 4 s after the tap                           OK 
+RECORD  plain: the action line                                      action call -> com.android.dialer/.main.impl.MainActivity tel:5551230001
+RECORD  plain: top activity                                         com.android.dialer/com.android.incallui.InCallActivity
+RECORD  plain: Telecom's newest call                                      CallTC@3 [Oct 1, 2026 12:43:57 PM](MO - outgoing)(User=UserHandle{0})
+RECORD  plain: its end                                                      12:43:45.286 - SET_DISCONNECTED (disconnected set explicitly> DisconnectCause [ Code: (REMOTE) Label: () Description: () Reason: (NORMAL) Tone: (27)  TelephonyCause: 2/-1 ImsReasonInfo: null])
+PASS  no call is left on the modem                                = 
+PASS  raw_contacts count equals the count before the row          = 2
+FAIL  ensure_start: Start alone                                   start_page=no app_list=no pod_bay=no
+------------------------------------------------------------------------------
+DEV-CALLPROBE: 2 passed, 1 failed, 12 recorded
