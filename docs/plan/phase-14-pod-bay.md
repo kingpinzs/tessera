@@ -458,7 +458,8 @@ the swipes noted in the log).
   from the host clock (T14-8, C-20); `dumpsys window` shows no session window and
   the dump shows `pod_bay`. Each of the following from its own MARK, each a `speak.sh` step: `pod_bay_open` → `OpenPodBay(doors=false)`, reply "Opening
   the pod bay.", `opened by voice`; `pod_bay_close` → `ClosePodBay`, reply "Closing the pod bay.", `start_page`, `[podbay] closed
-  by voice`. Negatives: `pod_bay_neg1` ("open the pod") → `[match] "…" -> OpenApp(name=the pod)` (phase 03's open-app rule,
+  by voice`. Negatives (ruled 2026-09-30, INDEX Change Log: spoken, the name BEGINS "the pod" and the reply begins "I don't see an
+  app called the pod"; the exact form is asserted typed in EDGE P3): `pod_bay_neg1` ("open the pod") → `[match] "…" -> OpenApp(name=the pod)` (phase 03's open-app rule,
   `CommandMatcher.kt:86`), `reply_since` MARK = "I don't see an app called the pod." (`ActionLayer.kt:212-219`), no `pod_bay` and no
   `[podbay] opened` in the slice (r3 D2 / V8); `pod_bay_doors_noart` → doors=true; no match line in the slices of the four
   pod-bay utterances contains `OpenApp`; every spoken step also passes the C-30
