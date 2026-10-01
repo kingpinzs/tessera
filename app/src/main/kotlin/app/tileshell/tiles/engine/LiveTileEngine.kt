@@ -46,6 +46,9 @@ object LiveTileEngine {
     const val MUSIC = "feed:music"
     const val WEATHER = "feed:weather"
 
+    /** Phase 16 (r3 D12): the People tile's face, the PEOPLE slot's as `CALENDAR` is the CALENDAR slot's. */
+    const val PEOPLE = "feed:people"
+
     /** Each package's content per producer; touched only by publishPackage / packages / forgetPackage, under the engine's lock. */
     private val packageSources = HashMap<String, MutableMap<PackageSource, TileContent>>()
 
