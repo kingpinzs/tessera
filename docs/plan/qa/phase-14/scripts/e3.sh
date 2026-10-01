@@ -38,9 +38,19 @@ open_bay_at() { # pod-id out.xml: the pod bay from Start, scrolled until the pod
 # ============================================================ Agenda
 q="$(adb shell cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.APP_CALENDAR | tr -d '\r')"
 printf '%s\n' "$q" > "$ROW_DIR/calendar-handlers.txt"
-assert_eq "precondition: exactly one APP_CALENDAR activity" "1 activities found:" "$(printf '%s\n' "$q" | head -1)"
-CAL_COMPONENT="$(printf '%s\n' "$q" | sed -n '/Activity #0/{n;n;p}' | tr -d ' ')"
-note "the CALENDAR slot's app, listed on the host: $CAL_COMPONENT"
+# RE-CUT 2026-10-01 by phase 16's build (its r3 D8; INDEX Change Log): from that build the shell's own Calendar handles
+# APP_CALENDAR beside the image's, so "exactly one APP_CALENDAR activity" is false for good and the slot is no longer a
+# category slot — phase 16 seeds it. The precondition is now that the baseline's `slots.CALENDAR` is the shell's Calendar,
+# and the expected component is read from the baseline FILE on the host, never from the app. The handlers Android lists
+# are still kept beside the row. (Was: assert "1 activities found:" and take Activity #0 as the component.)
+BASELINE16="$HERE/../../phase-16/baseline_layout.json"
+CAL_FLAT="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("slots", {}).get("CALENDAR", ""))' "$BASELINE16")"
+assert_eq "precondition: the baseline's slots.CALENDAR is the shell's Calendar" "app.tileshell/app.tileshell.calendar.CalendarActivity" "$CAL_FLAT"
+# The short form `dumpsys` and the [podbay] line print: <package>/.<the class less the package>.
+CAL_COMPONENT="$(python3 -c 'import sys; p, c = sys.argv[1].split("/"); print(p + "/" + (c[len(p):] if c.startswith(p + ".") else c))' "$CAL_FLAT")"
+note "the CALENDAR slot's app, read from $BASELINE16: $CAL_COMPONENT"
+DEVICE_SLOT="$(adb shell run-as app.tileshell cat files/start_layout.json | python3 -c 'import json, sys; print(json.load(sys.stdin).get("slots", {}).get("CALENDAR", ""))')"
+assert_eq "precondition: the device's layout holds the baseline's CALENDAR slot" "$CAL_FLAT" "$DEVICE_SLOT"
 
 adb shell content insert --uri "content://com.android.calendar/calendars?caller_is_syncadapter=true\&account_name=qa\&account_type=LOCAL" \
   --bind account_name:s:qa --bind account_type:s:LOCAL --bind name:s:qa --bind calendar_displayName:s:QA \
