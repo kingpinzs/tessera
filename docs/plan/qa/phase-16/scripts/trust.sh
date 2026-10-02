@@ -23,7 +23,8 @@ PROBE_APK="$REPO/testapps/pick-probe/build/outputs/apk/debug/pick-probe-debug.ap
 PROBE=app.tileshell.qa.pickprobe
 want() { [ -z "${TRUST_ONLY:-}" ] || echo ",$TRUST_ONLY," | grep -q ",$1,"; }
 probe_lines() { adb logcat -d -s PICKPROBE:I | tr -d '\r' | sed -n 's/.*PICKPROBE: //p'; }
-probe_get() { probe_lines | sed -n "s/^$1: //p" | tail -1; }
+# The key is matched as plain text: two of the probe's labels hold "(" and "/" (run 1 lost them to sed).
+probe_get() { probe_lines | awk -v k="$1: " 'index($0, k) == 1 { v = substr($0, length(k) + 1) } END { print v }'; }
 probe_start() { # kind mode
   adb logcat -c
   adb shell am force-stop "$PROBE"
