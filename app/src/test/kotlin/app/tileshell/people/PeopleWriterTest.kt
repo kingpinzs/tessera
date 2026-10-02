@@ -150,13 +150,38 @@ class PeopleWriterTest {
         assertEquals(listOf(newContactBatch(phone), Call.Stream("$RAW/100/display_photo", JPEG.toList())), fake.calls)
     }
 
-    @Test fun aNewContactsPhotoIsNotWrittenWhenItsRawContactIsNotInAnAccountPeopleMayWrite() {
-        // The photo write asks the guard itself, about the raw contact as the provider holds it — here the provider put
-        // the new raw contact somewhere other than the phone.
+    @Test fun aNewContactThePhoneFilesUnderAnotherAccountIsTakenBackAndTheSaveFails() {
+        // The provider put the new raw contact somewhere other than where it was asked to (a phone whose default account
+        // is a cloud account): that one row is deleted again, nothing more is written — no photo — and the save fails.
         val fake = FakeContacts().apply { newRawLandsIn = work }
-        assertEquals(WriteResult.Refused, PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact, JPEG))
-        assertEquals(listOf<Call>(newContactBatch(phone)), fake.calls)
-        assertEquals("write update raw=100: refused (not allowed)", fake.lines.last())
+        val result = PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact, JPEG)
+        assertEquals(WriteResult.Failed("the phone filed it under ${work.name}, not the phone; it was taken back"), result)
+        assertEquals(listOf(newContactBatch(phone), Call.Delete("$RAW/100", null, emptyList())), fake.calls)
+        assertEquals(listOf("write insert raw=100: failed the phone filed it under ${work.name}, not the phone; it was taken back"), fake.lines)
+    }
+
+    @Test fun aNewContactFiledUnderAnotherAccountIsTakenBackEvenWhenPeopleMayWriteThatAccount() {
+        // "Save to" said the phone; landing in an allowed account is still not what was asked.
+        val fake = FakeContacts(allowed = setOf(personal)).apply { newRawLandsIn = personal }
+        assertTrue(PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact) is WriteResult.Failed)
+        assertEquals(listOf(newContactBatch(phone), Call.Delete("$RAW/100", null, emptyList())), fake.calls)
+        // And the other way round: asked for the allowed account, filed on the phone.
+        val other = FakeContacts(allowed = setOf(personal)).apply { newRawLandsIn = phone }
+        assertEquals(
+            WriteResult.Failed("the phone filed it under the phone, not ${personal.name}; it was taken back"),
+            PeopleWrites(other).create(personal, NewContactSource.EDITOR, newContact),
+        )
+        assertEquals(listOf(newContactBatch(personal), Call.Delete("$RAW/100", null, emptyList())), other.calls)
+    }
+
+    @Test fun aNewContactThatCannotBeReadBackIsTakenBack() {
+        val fake = FakeContacts()
+        fake.afterBatch = { fake.raws.remove(100) }
+        assertEquals(
+            WriteResult.Failed("the new contact could not be read back; it was taken back"),
+            PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact, JPEG),
+        )
+        assertEquals(listOf(newContactBatch(phone), Call.Delete("$RAW/100", null, emptyList())), fake.calls)
     }
 
     // ---------------------------------------------------------------------------------------------- update
