@@ -175,6 +175,23 @@ data class ContactField(
     val customLabel: String? = null,
 )
 
+/** The contact editor's layout rules (r11/people.md §5), free of Compose so they are tested on the JVM. */
+object EditorRules {
+    /**
+     * Whether a 1-epx group rule (P4.7) is drawn between two neighbouring blocks of the editor, [above] and [below];
+     * [fields] is how many fields of a kind the draft holds.
+     *
+     * W10M's two captures: a contact with only a name (G1) shows "+ Phone" and "+ Email" as two rows of ONE group, 44
+     * epx apart with no rule between them (P4.6: 277 → 321, rules at 254 and 359); a contact with a mobile number and
+     * an e-mail (G2) shows a rule between the phone block and the e-mail block (451). So that one rule is drawn only
+     * when at least one of the two kinds has a field. A contact with a number and no e-mail, or an e-mail and no
+     * number, is in neither capture: drawing the rule there is an approximation (H2). Every other boundary — name |
+     * phone, e-mail | address, address | company — always has its rule.
+     */
+    fun ruleBetween(above: FieldKind, below: FieldKind, fields: (FieldKind) -> Int): Boolean =
+        !(above == FieldKind.PHONE && below == FieldKind.EMAIL && fields(FieldKind.PHONE) == 0 && fields(FieldKind.EMAIL) == 0)
+}
+
 /**
  * One raw contact behind an aggregate, with its account. [otherProfile] is set where the row is read: true for the one
  * stand-in a work-profile contact's card carries, and it goes with the row to the guard.

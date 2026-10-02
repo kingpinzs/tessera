@@ -133,6 +133,19 @@ MUTATIONS = {
             '        raws.firstOrNull { it.otherProfile }?.let { return aggregate("unlink", label, listOf(it to it), together = false) }\n', '', WRITES),
     'OA3': ('link / unlink: the guard not asked',
             'if (pairs.any { PeopleWriteGuard.check(PeopleWrite.Aggregation(it.first, it.second, together), policy) is GuardVerdict.Refused }) {', 'if (false) {', WRITES),
+    # ---- the editor's group rules (F31, defect D-E20-1)
+    'ER1': ('editor: a rule between Phone and Email always (the defect)',
+            '!(above == FieldKind.PHONE && below == FieldKind.EMAIL && fields(FieldKind.PHONE) == 0 && fields(FieldKind.EMAIL) == 0)', 'true', MODEL),
+    'ER2': ('editor: no rule between Phone and Email whatever fields they hold',
+            '!(above == FieldKind.PHONE && below == FieldKind.EMAIL && fields(FieldKind.PHONE) == 0 && fields(FieldKind.EMAIL) == 0)',
+            '!(above == FieldKind.PHONE && below == FieldKind.EMAIL)', MODEL),
+    'ER3': ('editor: the rule dropped when there is no number, whatever the e-mails',
+            ' && fields(FieldKind.PHONE) == 0 && fields(FieldKind.EMAIL) == 0)', ' && fields(FieldKind.PHONE) == 0)', MODEL),
+    'ER4': ('editor: the rule dropped when there is no e-mail, whatever the numbers',
+            ' && fields(FieldKind.PHONE) == 0 && fields(FieldKind.EMAIL) == 0)', ' && fields(FieldKind.EMAIL) == 0)', MODEL),
+    'ER5': ('editor: the rule dropped at every boundary whose blocks are empty',
+            '!(above == FieldKind.PHONE && below == FieldKind.EMAIL && fields(FieldKind.PHONE) == 0 && fields(FieldKind.EMAIL) == 0)',
+            '!(fields(above) == 0 && fields(below) == 0)', MODEL),
 }
 
 def run(classes):
