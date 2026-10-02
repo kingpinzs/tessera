@@ -1,0 +1,194 @@
+==============================================================================
+ROW E10 — People list, search, no-name and duplicates
+at            2026-10-01T16:22:59-06:00
+driver        e10.sh blob e4e8b7875b05b569763ad4324e9a55e0bb5cbb17
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     d008aec0c1318519 340591758 bytes
+apk installed 686506a7a7936b2e
+apk match     yes (686506a7a7936b2e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (686506a7a7936b2e)
+      the shell's accent: 0,120,215
+      people_filter.json at the start: 
+      contacts (aggregates) in the provider before the fixtures: 2; raw contacts: Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0;Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0;
+--- fixtures (people_fixtures_up), checked in the provider before the app is read
+      people_fixtures_up: raw ids ann=164 bob=165 zoe=166 zhang=167 number-only=168 cara=169,170 (raw contacts before: 2)
+Row: 0 _id=164, account_name=NULL, account_type=NULL, display_name=Ann Lee
+Row: 1 _id=165, account_name=NULL, account_type=NULL, display_name=Bob Stone
+Row: 2 _id=166, account_name=NULL, account_type=NULL, display_name=Zoë Ǻrén
+Row: 3 _id=167, account_name=NULL, account_type=NULL, display_name=张伟
+Row: 4 _id=168, account_name=NULL, account_type=NULL, display_name=+1 555 000 0009
+Row: 5 _id=169, account_name=NULL, account_type=NULL, display_name=Cara Diaz
+Row: 6 _id=170, account_name=NULL, account_type=NULL, display_name=Cara Diaz
+PASS  seven fixture raw contacts were inserted                    = 7
+PASS  all seven are phone-only (NULL account name and type)       = 7
+PASS  Ann Lee's number is in the provider                         contains [data1=+1 555 000 0001]
+PASS  Ann Lee's e-mail is in the provider                         contains [data1=ann@example.com]
+PASS  the number-only raw contact holds only its number           contains [data1=+1 555 000 0009]
+PASS  … and no name row                                         does not contain [vnd.android.cursor.item/name]
+Row: 0 _id=169, contact_id=176, display_name=Cara Diaz
+Row: 1 _id=170, contact_id=176, display_name=Cara Diaz
+PASS  provider: 'Cara Diaz' lists TWO raw contacts                = 2
+PASS  provider: … with ONE contact_id (the provider aggregated them)  = 1
+      lookups: ann=0r164-2B4545413333 bob=0r165-2D472D4F51474533 zoe=0r166-5D47332B4D3345 zhang=0r167-FAAB7AFA0C18 number-only=0r168-141C1C1C12121212121224 cara=0r169-2F2B4D2B313B2B5D.0r170-2F2B4D2B313B2B5D
+Row: 0 _id=1, display_name=Mom, phonebook_label=M
+Row: 1 _id=2, display_name=NULL, phonebook_label=#
+Row: 2 _id=170, display_name=Ann Lee, phonebook_label=A
+Row: 3 _id=171, display_name=Bob Stone, phonebook_label=B
+Row: 4 _id=172, display_name=Zoë Ǻrén, phonebook_label=Z
+Row: 5 _id=173, display_name=张伟, phonebook_label=…
+Row: 6 _id=174, display_name=+1 555 000 0009, phonebook_label=#
+Row: 7 _id=176, display_name=Cara Diaz, phonebook_label=C
+      the provider's PHONEBOOK_LABEL: 张伟 → […], Zoë Ǻrén → [Z]
+PASS  the provider gives 张伟 a phonebook label                 != 
+PASS  provider: the fixtures are six more contacts than before (seven raw contacts, Cara's two as one)  = 8
+--- the list
+PASS  People's list page is on show (people_page:list selected)   contains [selected="true"]
+[people] list: 8 contacts read=true write=true
+PASS  the list line counts what the provider holds, read and write held  = [people] list: 8 contacts read=true write=true
+PASS  Zoë's row is not laid out on the list's first screen (so the jump below is what brings it)  = no
+letter	#	
+row	0r2-	(No name)
+row	0r168-141C1C1C12121212121224	+1 555 000 0009
+letter	A	
+row	0r164-2B4545413333	Ann Lee
+letter	B	
+row	0r165-2D472D4F51474533	Bob Stone
+letter	C	
+row	0r169-2F2B4D2B313B2B5D.0r170-2F2B4D2B313B2B5D	Cara Diaz
+letter	M	
+row	0r1-434743	Mom
+letter	Z	
+row	0r166-5D47332B4D3345	Zoë Ǻrén
+letter	…	
+row	0r167-FAAB7AFA0C18	张伟
+PASS  the walked list holds one people_row per contact in the provider  = 8
+PASS  one Cara Diaz row (people_row: for her aggregate)           = 1
+PASS  … and one row reading Cara Diaz in the whole list         = 1
+PASS  the number-only contact files under "#"                     = #
+PASS  … and reads its number (people_name: text)                = +1 555 000 0009
+PASS  张伟 files under the provider's phonebook label           = …
+PASS  Zoë files under Z                                          = Z
+PASS  … the label the provider gives her                        = Z
+PASS  Ann Lee files under A (a control on the walk)               = A
+PASS  a dump holds 张伟's letter header                         != 
+PASS  the letter header's text equals PHONEBOOK_LABEL             = …
+PASS  … and 张伟's row reads 张伟                           = 张伟
+--- list geometry on the drawn pixels (r11/people.md P1.5–P1.10)
+PASS  the list's first screen holds rows to measure               5 rows, 5 letter headers fully on screen
+PASS  row '(No name)': row height 50 epx (P1.10)                  50.00 epx vs 50.00 ± 1
+PASS  row '(No name)': avatar width 32 epx (P1.7)                 32.00 epx vs 32.00 ± 1
+PASS  row '(No name)': avatar height 32 epx (P1.7)                32.00 epx vs 32.00 ± 1
+PASS  row '(No name)': avatar left edge at x 12 (P1.7)            12.00 epx vs 12.00 ± 1
+PASS  row '(No name)': the avatar is a circle (corners are the page, edge mid-points the disc)  corners [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)] mids [(85, 85, 85), (85, 85, 85), (85, 85, 85), (85, 85, 85)]
+PASS  row '(No name)': no photo → a grey disc (P1.8)            disc colour (85,85,85)
+PASS  row '(No name)': the initial is drawn on the disc           initial node text [#], bright ink box (72, 587, 97, 616)
+RECORD  row '(No name)': the initial drawn for a name with no Latin first letter  [#]
+PASS  row '(No name)': the name's left edge at x 57.75 (P1.9)     57.67 epx vs 57.75 ± 1
+PASS  row '+1 555 000 0009': row height 50 epx (P1.10)            50.00 epx vs 50.00 ± 1
+PASS  row '+1 555 000 0009': avatar width 32 epx (P1.7)           32.00 epx vs 32.00 ± 1
+PASS  row '+1 555 000 0009': avatar height 32 epx (P1.7)          32.00 epx vs 32.00 ± 1
+PASS  row '+1 555 000 0009': avatar left edge at x 12 (P1.7)      12.00 epx vs 12.00 ± 1
+PASS  row '+1 555 000 0009': the avatar is a circle (corners are the page, edge mid-points the disc)  corners [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)] mids [(85, 85, 85), (85, 85, 85), (85, 85, 85), (85, 85, 85)]
+PASS  row '+1 555 000 0009': no photo → a grey disc (P1.8)      disc colour (85,85,85)
+PASS  row '+1 555 000 0009': the initial is drawn on the disc     initial node text [#], bright ink box (72, 737, 97, 766)
+RECORD  row '+1 555 000 0009': the initial drawn for a name with no Latin first letter  [#]
+PASS  row '+1 555 000 0009': the name's left edge at x 57.75 (P1.9)  57.67 epx vs 57.75 ± 1
+PASS  pitch row '+1 555 000 0009' → the row above: 50 epx (P1.10)  50.00 epx vs 50.00 ± 1
+PASS  row 'Ann Lee': row height 50 epx (P1.10)                    50.00 epx vs 50.00 ± 1
+PASS  row 'Ann Lee': avatar width 32 epx (P1.7)                   32.00 epx vs 32.00 ± 1
+PASS  row 'Ann Lee': avatar height 32 epx (P1.7)                  32.00 epx vs 32.00 ± 1
+PASS  row 'Ann Lee': avatar left edge at x 12 (P1.7)              12.00 epx vs 12.00 ± 1
+PASS  row 'Ann Lee': the avatar is a circle (corners are the page, edge mid-points the disc)  corners [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)] mids [(85, 85, 85), (85, 85, 85), (85, 85, 85), (85, 85, 85)]
+PASS  row 'Ann Lee': no photo → a grey disc (P1.8)              disc colour (85,85,85)
+PASS  row 'Ann Lee': the initial is drawn on the disc             initial node text [A], bright ink box (71, 1051, 99, 1083)
+PASS  row 'Ann Lee': the initial is the name's first letter       [A]
+PASS  row 'Ann Lee': the name's left edge at x 57.75 (P1.9)       57.67 epx vs 57.75 ± 1
+PASS  row 'Bob Stone': row height 50 epx (P1.10)                  50.00 epx vs 50.00 ± 1
+PASS  row 'Bob Stone': avatar width 32 epx (P1.7)                 32.00 epx vs 32.00 ± 1
+PASS  row 'Bob Stone': avatar height 32 epx (P1.7)                32.00 epx vs 32.00 ± 1
+PASS  row 'Bob Stone': avatar left edge at x 12 (P1.7)            12.00 epx vs 12.00 ± 1
+PASS  row 'Bob Stone': the avatar is a circle (corners are the page, edge mid-points the disc)  corners [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)] mids [(85, 85, 85), (85, 85, 85), (85, 85, 85), (85, 85, 85)]
+PASS  row 'Bob Stone': no photo → a grey disc (P1.8)            disc colour (85,85,85)
+PASS  row 'Bob Stone': the initial is drawn on the disc           initial node text [B], bright ink box (75, 1365, 95, 1397)
+PASS  row 'Bob Stone': the initial is the name's first letter     [B]
+PASS  row 'Bob Stone': the name's left edge at x 57.75 (P1.9)     57.67 epx vs 57.75 ± 1
+PASS  row 'Cara Diaz': row height 50 epx (P1.10)                  50.00 epx vs 50.00 ± 1
+PASS  row 'Cara Diaz': avatar width 32 epx (P1.7)                 32.00 epx vs 32.00 ± 1
+PASS  row 'Cara Diaz': avatar height 32 epx (P1.7)                32.00 epx vs 32.00 ± 1
+PASS  row 'Cara Diaz': avatar left edge at x 12 (P1.7)            12.00 epx vs 12.00 ± 1
+PASS  row 'Cara Diaz': the avatar is a circle (corners are the page, edge mid-points the disc)  corners [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)] mids [(85, 85, 85), (85, 85, 85), (85, 85, 85), (85, 85, 85)]
+PASS  row 'Cara Diaz': no photo → a grey disc (P1.8)            disc colour (85,85,85)
+PASS  row 'Cara Diaz': the initial is drawn on the disc           initial node text [C], bright ink box (72, 1679, 96, 1712)
+PASS  row 'Cara Diaz': the initial is the name's first letter     [C]
+PASS  row 'Cara Diaz': the name's left edge at x 57.75 (P1.9)     57.67 epx vs 57.75 ± 1
+PASS  letter header '#' is drawn in the accent                    (0,120,215) vs accent (0,120,215) ± 4
+PASS  letter header '#': ink left edge at x 14.75 (P1.5)          14.67 epx vs 14.75 ± 1
+PASS  letter header 'A' is drawn in the accent                    (0,120,215) vs accent (0,120,215) ± 4
+PASS  letter header 'A': ink left edge at x 14.75 (P1.5)          14.67 epx vs 14.75 ± 1
+PASS  letter header 'B' is drawn in the accent                    (0,120,215) vs accent (0,120,215) ± 4
+PASS  letter header 'B': ink left edge at x 14.75 (P1.5)          14.67 epx vs 14.75 ± 1
+PASS  letter header 'C' is drawn in the accent                    (0,120,215) vs accent (0,120,215) ± 4
+PASS  letter header 'C': ink left edge at x 14.75 (P1.5)          14.67 epx vs 14.75 ± 1
+PASS  letter header 'M' is drawn in the accent                    (0,120,215) vs accent (0,120,215) ± 4
+PASS  letter header 'M': ink left edge at x 14.75 (P1.5)          14.67 epx vs 14.75 ± 1
+PASS  letter headers on screen to measure                         5
+--- the jump grid
+PASS  before the jump Zoë's row is not laid out                  = no
+PASS  a letter header's tap opens People's jump grid (people_jump_grid)  = yes
+PASS  … with people_jump_cell:<label> cells                     != 0
+PASS  the grid's cells in reading order: "#" first, A–Z, the globe last (P2.5)  # A B C D E F G H I J K L M N O P Q R S T U V W X Y Z globe
+      labels the provider holds: ['#', 'A', 'B', 'C', 'M', 'Z', '…'] → live cells ['#', 'A', 'B', 'C', 'M', 'Z', 'globe'] 
+PASS  cell # (contacts file there) is in the accent               (0,120,215) vs accent (0,120,215) ± 4
+PASS  cell A (contacts file there) is in the accent               (0,120,215) vs accent (0,120,215) ± 4
+PASS  cell B (contacts file there) is in the accent               (0,120,215) vs accent (0,120,215) ± 4
+PASS  cell C (contacts file there) is in the accent               (0,120,215) vs accent (0,120,215) ± 4
+PASS  cell D (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell E (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell F (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell G (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell H (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell I (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell J (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell K (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell L (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell M (contacts file there) is in the accent               (0,120,215) vs accent (0,120,215) ± 4
+PASS  cell N (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell O (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell P (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell Q (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell R (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell S (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell T (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell U (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell V (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell W (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell X (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell Y (no contact files there) is (52,52,52) ± 4          (52,52,52)
+PASS  cell Z (contacts file there) is in the accent               (0,120,215) vs accent (0,120,215) ± 4
+PASS  cell globe (contacts file there) is in the accent           (0,120,215) vs accent (0,120,215) ± 4
+PASS  tapping people_jump_cell:Z closes the grid                  = no
+PASS  … and lands the list on Z: the Z header is laid out       = yes
+PASS  … with Zoë's row (not laid out before the jump)          = yes
+PASS  … the Z header above her row, both above the app bar (on screen, not under it)  = yes
+      ring after the jump: [people] jump to Z (item 11);
+--- search by number and by name
+PASS  search "555 000 0001": exactly one row                      = 1
+PASS  search "555 000 0001": it is Ann Lee's                      = yes
+PASS  search "555 000 0001": the row reads Ann Lee                = Ann Lee
+[people] search "555 000 0001": 1 (+0 enterprise)
+PASS  search "555 000 0001": the ring line counts 1               contains [[people] search "555 000 0001": 1 ]
+PASS  search "ann": exactly one row                               = 1
+PASS  search "ann": it is Ann Lee's                               = yes
+PASS  search "ann": the row reads Ann Lee                         = Ann Lee
+[people] search "ann": 1 (+0 enterprise)
+PASS  search "ann": the ring line counts 1                        contains [[people] search "ann": 1 ]
+--- restore
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  restore: the contacts (aggregates) count is the count before the row  = 2
+PASS  restore: the raw_contacts rows equal the rows before the row  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0
+Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0
+------------------------------------------------------------------------------
+E10: 129 passed, 0 failed, 2 recorded

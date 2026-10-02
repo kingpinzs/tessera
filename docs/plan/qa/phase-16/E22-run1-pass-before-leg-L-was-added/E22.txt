@@ -1,0 +1,189 @@
+==============================================================================
+ROW E22 — Sync rules 1–2: no write reaches an account calendar by the app, Tess, the pane or the exported intents
+at            2026-10-01T16:40:05-06:00
+driver        e22.sh blob 3cfbb4a62e0b0a2ba73dad56d986ba057b67ab86
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     d008aec0c1318519 340591758 bytes
+apk installed 686506a7a7936b2e
+apk match     yes (686506a7a7936b2e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  precondition: Tessera exists                                != 
+      tessera=2 personal=3 work=4 offsite=326 (five days ahead)
+PASS  fixtures: Personal (qa.personal@example.com) exists         != 
+PASS  fixtures: Work (qa.work@example.com) exists                 != 
+PASS  fixtures: Work is the calendar marked primary               contains [isPrimary=1]
+PASS  fixtures: Offsite is driver-inserted into Work              != 
+PASS  cal_lists: calendar 3 (Personal, at the start) still lists  contains [_id=3,]
+PASS  at the start: Personal holds 0                              = 
+PASS  cal_lists: calendar 4 (Work, at the start) still lists      contains [_id=4,]
+PASS  at the start: Work holds exactly Offsite                    = Offsite
+PASS  at the start: Offsite's row (title, dtstart, dtend, calendar_id) is unchanged  = Row: 0 title=Offsite, dtstart=1791302400000, dtend=1791306000000, calendar_id=4
+--- R1: the app shows the account calendars and offers no write on them
+PASS  R1: Personal lists as cal_calendar_row:<id> inside cal_pane  = yes
+PASS  R1: Work lists as cal_calendar_row:<id> inside cal_pane     = yes
+PASS  R1: the Day view is showing                                 = true
+PASS  R1: "Offsite" shows in the day view                         = Offsite
+PASS  R1: tapped — the dump holds cal_event_page:<Offsite id> (asserted first, r3 V8)  = yes
+PASS  R1: … no cal_event_action:edit                            = no
+PASS  R1: … no cal_event_action:delete                          = no
+PASS  R1: … no cal_event_action:sync                            = no
+PASS  R1: the editor is open                                      = yes
+PASS  R1: the editor's calendar field reads Tessera               = Tessera
+PASS  R1: a tap on it opens no picker (cal_editor_options)        = no
+PASS  R1: no picker offers Personal                               does not contain [Personal]
+PASS  R1: no picker offers Work                                   does not contain [Work]
+PASS  R1: … nor either account's name                           does not contain [example.com]
+PASS  cal_lists: calendar 3 (Personal, after rule 1's reads) still lists  contains [_id=3,]
+PASS  after rule 1's reads: Personal holds 0                      = 
+PASS  cal_lists: calendar 4 (Work, after rule 1's reads) still lists  contains [_id=4,]
+PASS  after rule 1's reads: Work holds exactly Offsite            = Offsite
+PASS  after rule 1's reads: Offsite's row (title, dtstart, dtend, calendar_id) is unchanged  = Row: 0 title=Offsite, dtstart=1791302400000, dtend=1791306000000, calendar_id=4
+--- H: hide is not a write (r3 D4)
+PASS  H: Work's visible column reads 1 before                     contains [visible=1]
+PASS  H: before — Offsite is in the Day, Agenda and Week views  = yes yes yes
+PASS  H: Work's row is ticked in the pane                         = true
+PASS  H: Work un-ticked in cal_pane                               = false
+PASS  H: "Offsite" leaves the Calendar app's views (Day, Agenda, Week)  = no no no
+PASS  H: Work's visible column reads visible=1, unchanged         = Row: 0 _id=4, visible=1
+RECORD  H: the shell's own hidden list (calendar_sync.json)         [{"id":4,"accountName":"qa.work@example.com","accountType":"com.google"}]
+PASS  H: Work re-ticked                                           = true
+PASS  H: … and Offsite is back in the views                     = yes yes yes
+PASS  cal_lists: calendar 3 (Personal, after hide / show) still lists  contains [_id=3,]
+PASS  after hide / show: Personal holds 0                         = 
+PASS  cal_lists: calendar 4 (Work, after hide / show) still lists  contains [_id=4,]
+PASS  after hide / show: Work holds exactly Offsite               = Offsite
+PASS  after hide / show: Offsite's row (title, dtstart, dtend, calendar_id) is unchanged  = Row: 0 title=Offsite, dtstart=1791302400000, dtend=1791306000000, calendar_id=4
+--- T: Tess's delete of an event that is only on an account calendar (r3 D1)
+PASS  T: the reply (reply_since the MARK)                         = That event isn't in your Tessera calendar.
+PASS  T: Tess's window is the one dumped (cortana_session)        = yes
+PASS  T: … the dump holds no cortana_card:delete_confirm        = no
+PASS  T: … and no confirm button at all                         = no
+PASS  cal_lists: calendar 3 (Personal, after Tess's refused delete) still lists  contains [_id=3,]
+PASS  after Tess's refused delete: Personal holds 0               = 
+PASS  cal_lists: calendar 4 (Work, after Tess's refused delete) still lists  contains [_id=4,]
+PASS  after Tess's refused delete: Work holds exactly Offsite     = Offsite
+PASS  after Tess's refused delete: Offsite's row (title, dtstart, dtend, calendar_id) is unchanged  = Row: 0 title=Offsite, dtstart=1791302400000, dtend=1791306000000, calendar_id=4
+--- X: the exported EDIT and INSERT (r3 V18)
+PASS  X: EDIT on Offsite — the dump holds cal_event_page:<Offsite id>  = yes
+PASS  X: … and no cal_editor                                    = no
+PASS  X: … Offsite's events row equals its read before          = Row: 0 title=Offsite, dtstart=1791302400000, dtend=1791306000000, calendar_id=4
+PASS  X: INSERT naming Work — cal_editor opens                  = yes
+PASS  X: … with the title prefilled                             = Intruder
+PASS  X: … and its calendar field reading Tessera               = Tessera
+PASS  X: before Save, events holds no "Intruder" (a prefill saves nothing without a tap)  = 0
+PASS  X: Save → "Intruder" is in Tessera                        = calendar_id=2
+PASS  cal_lists: calendar 3 (Personal, after the exported INSERT's Save) still lists  contains [_id=3,]
+PASS  after the exported INSERT's Save: Personal holds 0          = 
+PASS  cal_lists: calendar 4 (Work, after the exported INSERT's Save) still lists  contains [_id=4,]
+PASS  after the exported INSERT's Save: Work holds exactly Offsite  = Offsite
+PASS  after the exported INSERT's Save: Offsite's row (title, dtstart, dtend, calendar_id) is unchanged  = Row: 0 title=Offsite, dtstart=1791302400000, dtend=1791306000000, calendar_id=4
+--- R2: everything the app and Tess create goes to Tessera
+      spin cal_time_spinner:ampm -> [AM] after 1 swipe(s)
+      spin cal_time_spinner:hour -> [9] after 2 swipe(s)
+      spin cal_time_spinner:minute -> [00] after 0 swipe(s)
+PASS  R2: "Standup" (tomorrow 09:00) created in the editor is in Tessera  = calendar_id=2, dtstart=1790953200000
+PASS  cal_lists: calendar 3 (Personal, after creating Standup) still lists  contains [_id=3,]
+PASS  after creating Standup: Personal holds 0                    = 
+PASS  cal_lists: calendar 4 (Work, after creating Standup) still lists  contains [_id=4,]
+PASS  after creating Standup: Work holds exactly Offsite          = Offsite
+PASS  after creating Standup: Offsite's row (title, dtstart, dtend, calendar_id) is unchanged  = Row: 0 title=Offsite, dtstart=1791302400000, dtend=1791306000000, calendar_id=4
+PASS  R2: renamed — the same row reads "Standup 2", still in Tessera  = title=Standup 2, calendar_id=2
+PASS  cal_lists: calendar 3 (Personal, after renaming it Standup 2) still lists  contains [_id=3,]
+PASS  after renaming it Standup 2: Personal holds 0               = 
+PASS  cal_lists: calendar 4 (Work, after renaming it Standup 2) still lists  contains [_id=4,]
+PASS  after renaming it Standup 2: Work holds exactly Offsite     = Offsite
+PASS  after renaming it Standup 2: Offsite's row (title, dtstart, dtend, calendar_id) is unchanged  = Row: 0 title=Offsite, dtstart=1791302400000, dtend=1791306000000, calendar_id=4
+PASS  R2: "Scratch" created in Tessera                            = calendar_id=2
+PASS  cal_lists: calendar 3 (Personal, after creating Scratch) still lists  contains [_id=3,]
+PASS  after creating Scratch: Personal holds 0                    = 
+PASS  cal_lists: calendar 4 (Work, after creating Scratch) still lists  contains [_id=4,]
+PASS  after creating Scratch: Work holds exactly Offsite          = Offsite
+PASS  after creating Scratch: Offsite's row (title, dtstart, dtend, calendar_id) is unchanged  = Row: 0 title=Offsite, dtstart=1791302400000, dtend=1791306000000, calendar_id=4
+PASS  R2: "Scratch" deleted from the app — its row is gone      = 0
+PASS  cal_lists: calendar 3 (Personal, after deleting Scratch) still lists  contains [_id=3,]
+PASS  after deleting Scratch: Personal holds 0                    = 
+PASS  cal_lists: calendar 4 (Work, after deleting Scratch) still lists  contains [_id=4,]
+PASS  after deleting Scratch: Work holds exactly Offsite          = Offsite
+PASS  after deleting Scratch: Offsite's row (title, dtstart, dtend, calendar_id) is unchanged  = Row: 0 title=Offsite, dtstart=1791302400000, dtend=1791306000000, calendar_id=4
+PASS  R2: Tess shows the confirm card                             = yes
+      Tess said after the tap: [Added to your calendar.]
+PASS  R2: Tess's "standup" is in Tessera                          = calendar_id=2
+PASS  cal_lists: calendar 3 (Personal, after Tess's add) still lists  contains [_id=3,]
+PASS  after Tess's add: Personal holds 0                          = 
+PASS  cal_lists: calendar 4 (Work, after Tess's add) still lists  contains [_id=4,]
+PASS  after Tess's add: Work holds exactly Offsite                = Offsite
+PASS  after Tess's add: Offsite's row (title, dtstart, dtend, calendar_id) is unchanged  = Row: 0 title=Offsite, dtstart=1791302400000, dtend=1791306000000, calendar_id=4
+Tessera holds: |Intruder|standup|Standup 2|
+PASS  R2: Tessera holds "Standup 2"                               contains [|Standup 2|]
+PASS  R2: Tessera holds "standup"                                 contains [|standup|]
+every [calendar] write line of the row:
+   [calendar] write insert event=327: ok
+   [calendar] write insert event=328: ok
+   [calendar] write update event=328: ok
+   [calendar] write insert event=329: ok
+   [calendar] write delete event=329: ok
+   [calendar] write insert event=330: ok
+PASS  R2: the row's slices hold write … ok lines (the check below is not vacuous)  != 0
+PASS  R2: every [calendar] write … event=<id>: ok line names a Tessera event (ids not seen in Tessera)  = 
+PASS  R2: no write line is anything but ok                        = 0
+--- J: the write guard's JVM test (CalendarWriteGuardTest), from the lead's test results
+suite app.tileshell.calendar.CalendarWriteGuardTest tests=32 failures=0 errors=0 skipped=0 timestamp=2026-10-01T21:38:18.979Z
+passed theBirthdaysWriterMayCreateItsCalendarAndWriteItsEvents
+passed syncMayPushANewCopyIntoAnAllowedTarget
+passed localCalendarMayCreateTesseraAsItsOwnSyncAdapterAndNothingElse
+passed syncOfAnEventThatIsNotInTesseraIsRefused
+passed theBirthdaysWriterIsRefusedOnAnAccountCalendar
+passed everyOpOnAnAccountCalendarIsRefusedForEveryPathButSync
+passed syncNeverWritesThroughTheSyncAdapterUriOrToAnotherTable
+passed syncToAnIdNotAllowedIsRefused
+passed syncMayRecreateACopyThatIsGoneInTheMappedTarget
+passed aStaleMappingIsRefused
+passed syncNeverWritesTesseraOrAnotherAppsLocalCalendar
+passed tessDeleteOfAnAccountCalendarEventIsRefused
+passed everyCombinationOutsideTheFourCasesIsRefused
+passed syncToAnAllowedIdButAnUnmappedEventIsRefused
+passed tessMayInsertIntoTessera
+passed theBirthdaysWriterIsRefusedOnTessera
+passed anyOtherWriteByTheReceiverIsRefused
+passed syncMayUpdateAndDeleteAMappedCopyAndWriteItsReminders
+passed aWriteToACalendarThatCannotBeReadIsRefused
+passed theEditorIsRefusedOnBirthdays
+passed theReceiverMayUpdateAnAlertsState
+passed tessAndSyncAreRefusedOnBirthdays
+passed theEditorMayInsertUpdateAndDeleteEventsAndRemindersInTessera
+passed nobodyButTheReceiverWritesTheAlerts
+passed tessDeleteOfATesseraEventIsAllowed
+passed tesserasEventRowsMayBeWrittenAsItsOwnSyncAdapterAndNothingElseMay
+passed aTableTheRuleDoesNotNameIsRefusedForEveryone
+passed theBirthdaysWriterWritesNoReminderRowsAndOnlyThroughTheSyncAdapterUri
+passed aSyncTargetThatIsGoneIsRefused
+passed syncToATargetWhoseAccessLevelFellBelow500IsRefusedAsReadOnly
+passed nobodyDeletesOrRewritesTheTesseraCalendarRow
+passed syncWithNoFactsIsRefused
+PASS  J: the test ran and passed — 0 failures                   contains [failures=0 ]
+PASS  J: … 0 errors                                             contains [errors=0 ]
+PASS  J: … none skipped                                         contains [skipped=0 ]
+PASS  J: the result is not older than the test's source or the guard's  = yes
+PASS  J: allowed — Tessera: every op (the editor)               contains [passed theEditorMayInsertUpdateAndDeleteEventsAndRemindersInTessera]
+PASS  J: allowed — Tessera: Tess's delete included              contains [passed tessDeleteOfATesseraEventIsAllowed]
+PASS  J: allowed — Tessera Birthdays by the Birthdays writer only  contains [passed theBirthdaysWriterMayCreateItsCalendarAndWriteItsEvents]
+PASS  J: allowed — an allowed Sync target for a mapped copy only  contains [passed syncMayUpdateAndDeleteAMappedCopyAndWriteItsReminders]
+PASS  J: allowed — the receiver's CalendarAlerts.STATE update   contains [passed theReceiverMayUpdateAnAlertsState]
+PASS  J: refused — the editor → Birthdays                     contains [passed theEditorIsRefusedOnBirthdays]
+PASS  J: refused — the Birthdays writer → Tessera             contains [passed theBirthdaysWriterIsRefusedOnTessera]
+PASS  J: refused — Sync → an id not allowed                   contains [passed syncToAnIdNotAllowedIsRefused]
+PASS  J: refused — Sync → an unmapped event                   contains [passed syncToAnAllowedIdButAnUnmappedEventIsRefused]
+PASS  J: refused — any op → an account calendar               contains [passed everyOpOnAnAccountCalendarIsRefusedForEveryPathButSync]
+PASS  J: refused — Tess delete → an account calendar          contains [passed tessDeleteOfAnAccountCalendarEventIsRefused]
+PASS  J: refused — any other write by the receiver              contains [passed anyOtherWriteByTheReceiverIsRefused]
+PASS  J: refused — Sync → a target whose access level fell below 500 (D5)  contains [passed syncToATargetWhoseAccessLevelFellBelow500IsRefusedAsReadOnly]
+PASS  J: refused — T16-12's stale mapping                       contains [passed aStaleMappingIsRefused]
+--- restore
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the test events — "Standup 2", "standup", "Intruder" — are deleted  = 0
+PASS  restore: Tessera's event count equals the count before the row  = 0
+------------------------------------------------------------------------------
+E22: 122 passed, 0 failed, 1 recorded
