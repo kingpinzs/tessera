@@ -461,6 +461,9 @@ private fun PagedView(name: String, onPage: (Int) -> Unit, content: @Composable 
 /** A timed event's block in the Day view: where it sits in the hour grid and which of its cluster's columns it takes. */
 private data class Block(val event: EventInstance, val startMs: Long, val endMs: Long, val column: Int, val columns: Int)
 
+/** How many of a day's blocks the Day view builds in one frame; the rest follow, a frame at a time. */
+private const val DAY_BLOCKS_PER_FRAME = 24
+
 /** Overlapping events share the width: each takes the first column free at its start, and a cluster's width is split by its widest moment. */
 private fun layoutBlocks(events: List<EventInstance>, dayStartMs: Long, dayEndMs: Long, minMs: Long): List<Block> {
     data class Open(val event: EventInstance, val start: Long, val end: Long, var column: Int = 0)
@@ -516,6 +519,18 @@ private fun DayView(day: LocalDate, instances: List<EventInstance>?, zone: ZoneI
             Box(Modifier.fillMaxWidth().height(1.dp).background(Color.Black))
         }
         val scroll = rememberScrollState()
+        // Where each timed event sits, worked out once per day's events — and built a frame's worth at a time, earliest
+        // first (the grid opens at the day's first event): a day of 200 events built in one frame took 345 ms on the UI
+        // thread (QA defect D-E7-1, the Day view; gate review A, note 4). A day of up to DAY_BLOCKS_PER_FRAME events is
+        // whole in its first frame, as before.
+        val blocks = remember(events, dayStart, dayEnd) { layoutBlocks(events.filter { !it.allDay }, dayStart, dayEnd, minMs = 1_500_000L) }
+        var built by remember(blocks) { mutableIntStateOf(minOf(blocks.size, DAY_BLOCKS_PER_FRAME)) }
+        LaunchedEffect(blocks) {
+            while (built < blocks.size) {
+                withFrameNanos { }
+                built = minOf(blocks.size, built + DAY_BLOCKS_PER_FRAME)
+            }
+        }
         // The grid opens an hour above the day's first timed event, or at 7:00 on a day with none.
         LaunchedEffect(day, instances != null) {
             val firstMs = timed.minOfOrNull { maxOf(it.beginMs, dayStart) }
@@ -536,7 +551,8 @@ private fun DayView(day: LocalDate, instances: List<EventInstance>?, zone: ZoneI
                         style = ShellType.caption.copy(color = CalMetrics.GREY), maxLines = 1,
                     )
                 }
-                layoutBlocks(timed, dayStart, dayEnd, minMs = 1_500_000L).forEach { b ->
+                for (i in 0 until built) {
+                    val b = blocks[i]
                     val topDp = CalMetrics.HOUR * ((b.startMs - dayStart) / 3_600_000f)
                     val heightDp = CalMetrics.HOUR * ((b.endMs - b.startMs) / 3_600_000f)
                     val widthDp = laneW / b.columns
