@@ -31,6 +31,8 @@
 # E19_LEGS=1 runs leg 1 alone (Agenda on today: the capture that draws today's empty day) with the row's own fixtures —
 # a narrow re-run after a failed one, as the owner's ruling of 2026-10-01 allows; the log's first RECORD says so, and
 # legs 2–8 then stand on the row's earlier run.
+# E19_LEGS=2,3 runs legs 2 and 3 alone (the month drop-down with its motion, then the Agenda's rows on the fixtures' day,
+# reached as leg 2 reaches it) — for a build that changed how the Agenda's rows are stacked (gate review B, blocking 1).
 set -uo pipefail
 LEGS="${E19_LEGS:-all}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -41,8 +43,12 @@ GEO="$HERE/cal_geo.py"
 
 row_begin E19 "Calendar geometry on the drawn pixels: Agenda, the month drop-down, the pane, Week, Day, the editor; two motions"
 if [ "$LEGS" != all ]; then
-  [ "$LEGS" = 1 ] || { _verdict FAIL "E19_LEGS" "only E19_LEGS=1 is a narrow run of this row (got $LEGS)"; row_end; exit 1; }
-  record "legs run" "1 ONLY (Agenda on today: the chrome, the strip, today's heading, the empty day's line) — a narrow re-run; legs 2–8 stand on the row's earlier run"
+  case "$LEGS" in
+    1) record "legs run" "1 ONLY (Agenda on today: the chrome, the strip, today's heading, the empty day's line) — a narrow re-run; legs 2–8 stand on the row's earlier run" ;;
+    2,3) record "legs run" "2 and 3 ONLY (the month drop-down and its motion; the Agenda's rows on the fixtures' day: the heading, the bars, the label, the title, the pitch) — a narrow re-run; legs 1 and 4–8 stand on the row's earlier runs" ;;
+    1,2,3) record "legs run" "1, 2 and 3 ONLY (Agenda on today with the empty day's line; the month drop-down and its motion; the Agenda's rows on the fixtures' day) — a narrow re-run; legs 4–8 stand on the row's earlier run" ;;
+    *) _verdict FAIL "E19_LEGS" "E19_LEGS is 1, 2,3 or 1,2,3 (got $LEGS)"; row_end; exit 1 ;;
+  esac
 fi
 # A colour within a tolerance per channel.
 crgb() { # name "r g b" "r g b" tol
@@ -132,10 +138,12 @@ log "--- 1: Agenda on today (the chrome, the strip, today's heading, the empty d
 ctap cal_bar:today 1.2; cview agenda 2.5
 shot 1-agenda-today
 assert_eq "1: Agenda is showing (cal_view_mode:agenda selected)" "true" "$(cattr "$ROW_DIR/1-agenda-today.xml" cal_view_mode:agenda selected)"
+if [ "$LEGS" != 2,3 ]; then
 geo 1-agenda-today agenda sections=chrome,today "status=$STATUS_EPX" "nav=$NAV_EPX" "today=$TODAY"
 sysbars "Agenda"
+fi
 
-if [ "$LEGS" = all ]; then
+if [ "$LEGS" = all ] || [ "$LEGS" = 2,3 ] || [ "$LEGS" = 1,2,3 ]; then
 # ----------------------------------------------------------------------------------------------- 2: the month drop-down
 log "--- 2: the month drop-down (K5) and its motion"
 M_MARK="$(ring_mark)"
@@ -157,7 +165,9 @@ shot 3-agenda-rows
 assert_eq "3: the Agenda shows the fixtures' day" "yes" "$(cunder "$ROW_DIR/3-agenda-rows.xml" cal_agenda "cal_day:$FIX")"
 geo 3-agenda-rows agenda sections=rows "today=$TODAY" "other=$FIX" "allday1=$A1" "allday2=$A2" "timed1=$T1" "colour=$COLOUR"
 TINT="$(awk -F'\t' '$1 == "R" && $2 ~ /label.s tint/ {print $3}' "$ROW_DIR/3-agenda-rows.geo.tsv")"
+fi   # legs 2 and 3
 
+if [ "$LEGS" = all ]; then
 # ----------------------------------------------------------------------------------------------- 4: the pane
 log "--- 4: the ≡ calendar pane (K6.4)"
 ctap cal_menu 1.8
@@ -200,7 +210,7 @@ shot 8-editor
 geo 8-editor editor "status=$STATUS_EPX" "nav=$NAV_EPX"
 sysbars "the editor"
 ctap cal_editor_cancel 1.5
-fi   # legs 2–8
+fi   # legs 4–8
 
 # ----------------------------------------------------------------------------------------------- restore
 log "--- restore"

@@ -52,8 +52,34 @@ remove_profile() {
   adb shell pm remove-user "$WU" 2>&1 | tr -d '\r' | head -1
 }
 
+dpc_switch_state() { # dump.xml -> true / false: the Switch widget on the "cross-profile contacts search" row
+  python3 - "$1" <<'PY2'
+import html, re, sys
+xml = open(sys.argv[1], encoding='utf-8', errors='replace').read()
+nodes = []
+for m in re.finditer(r'<node[^>]*>', xml):
+    s = m.group(0)
+    t = re.search(r' text="([^"]*)"', s); c = re.search(r' class="([^"]*)"', s); k = re.search(r' checked="([^"]*)"', s)
+    b = re.search(r'bounds="\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]"', s)
+    if b: nodes.append((html.unescape(t.group(1)) if t else "", c.group(1) if c else "", k.group(1) if k else "", [int(v) for v in b.groups()]))
+lab = next((n for n in nodes if re.search(r'cross.?profile contacts? search', n[0], re.I)), None)
+if lab:
+    cy = (lab[3][1] + lab[3][3]) // 2
+    sw = [n for n in nodes if 'Switch' in n[1] and n[3][1] - 40 <= cy <= n[3][3] + 40]
+    print(sw[0][2] if sw else "no switch widget on the label's row")
+else: print("label not on the page")
+PY2
+}
+
 row_begin E16 "work profile: enterprise search, the profile owner's switch, the read-only card"
 require_build
+# E16_LEGS=negative (the owner's ruling: only what changed is run again) runs the row WITHOUT its walk of the A–Z list:
+# the profile fixture, the search before the switch (+1 enterprise), her card's actions, the switch ON (+0 enterprise,
+# the page saying so), and the switch back OFF (+1 enterprise again), then the restore.
+if [ -n "${E16_LEGS:-}" ]; then
+  record "E16_LEGS — a NARROW run, only these legs of E16 ran (the counted whole-row run is E16/ on 6009c0b1)" "$E16_LEGS: the profile fixture; the search before the switch; the card's actions; the negative leg; the switch back off"
+  if [ "$E16_LEGS" != negative ]; then _verdict FAIL "E16_LEGS names a leg this driver has" "unknown: $E16_LEGS (known: negative)"; row_end; exit 1; fi
+fi
 D="$ROW_DIR"
 ensure_start
 USERS0="$(users)"; note "users before: $USERS0"
@@ -99,11 +125,13 @@ assert_absent "user 0's provider does not hold her" "Work Wren" "$(q "content qu
 # ------------------------------------------------------------------------------------------------ positive leg
 log "--- positive: not in the list; found by search with the briefcase"
 c6; ensure_start
+if [ "${E16_LEGS:-}" != negative ]; then
 open_people -a android.intent.action.MAIN; list_top
 list_walk "$D/walk" > "$D/list-merged.tsv"; cat "$D/list-merged.tsv" >> "$LOG"
 assert_eq "the walked A–Z list holds a row per contact of user 0 (the walk read the list)" "$(contacts_count)" "$(grep -c '^row' "$D/list-merged.tsv")"
 assert_eq "the A–Z list does NOT list Work Wren (no row reads her name)" "0" "$(awk -F'\t' '$1=="row" && $3=="Work Wren"' "$D/list-merged.tsv" | grep -c .)"
 assert_eq "… and no enterprise people_row: is in any dump of the list" "0" "$(cat "$D"/walk-*.xml | grep -o 'resource-id="people_row:enterprise:[^"]*"' | grep -c .)"
+fi
 search_wren pos-search
 POS_LINE="$(ring_since "$S_MARK" | grep -F '[people] search "Wren":' | tail -1 | sed 's/.*\[people\]/[people]/')"; log "$POS_LINE"
 ENT_ROW="$(ids_with_prefix "$D/pos-search.xml" people_row:enterprise: | head -1)"
@@ -130,7 +158,7 @@ assert_eq "no people_card_edit" "no" "$(has_node "$D/wren-card.xml" people_card_
 assert_eq "no people_card_delete" "no" "$(has_node "$D/wren-card.xml" people_card_delete)"
 assert_eq "the people_card_readonly line is shown" "yes" "$(has_node "$D/wren-card.xml" people_card_readonly)"
 record "the read-only line for another profile's contact" "$(xml_text "$D/wren-card.xml" people_card_readonly)"
-record "her card offers Link (people_card_link) — if it did, the guard's link refusal for another profile's contact would be reachable (E21 notrun.tsv)" "$(has_node "$D/wren-card.xml" people_card_link)"
+assert_eq "no people_card_link: another profile's contact cannot be linked from its card (so the guard's link refusal is not reachable from the UI; E21 notrun.tsv)" "no" "$(has_node "$D/wren-card.xml" people_card_link)"
 assert_contains "the profile's provider still holds her, unchanged" "display_name=Work Wren" "$(qu "content query --user $WU --uri $CONTACTS --projection _id:display_name:lookup")"
 back 1; back 1; back 1
 
@@ -177,23 +205,7 @@ fi
 # The switch's own state after the tap, from TestDPC's page (the Switch widget on the label's row). dumpsys
 # device_policy's legacy `disableContactsSearch` field stays false on this image whatever the switch says (run 2 on the
 # fix build: the search below found nothing with the field still false), so it is RECORDed, not graded.
-SWITCHED="$(python3 - "$D/dpc-after.xml" <<'PY2'
-import html, re, sys
-xml = open(sys.argv[1], encoding='utf-8', errors='replace').read()
-nodes = []
-for m in re.finditer(r'<node[^>]*>', xml):
-    s = m.group(0)
-    t = re.search(r' text="([^"]*)"', s); c = re.search(r' class="([^"]*)"', s); k = re.search(r' checked="([^"]*)"', s)
-    b = re.search(r'bounds="\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]"', s)
-    if b: nodes.append((html.unescape(t.group(1)) if t else "", c.group(1) if c else "", k.group(1) if k else "", [int(v) for v in b.groups()]))
-lab = next((n for n in nodes if re.search(r'cross.?profile contacts? search', n[0], re.I)), None)
-if lab:
-    cy = (lab[3][1] + lab[3][3]) // 2
-    sw = [n for n in nodes if 'Switch' in n[1] and n[3][1] - 40 <= cy <= n[3][3] + 40]
-    print(sw[0][2] if sw else "no switch widget on the label's row")
-else: print("label not on the page")
-PY2
-)"
+SWITCHED="$(dpc_switch_state "$D/dpc-after.xml")"
 assert_eq "TestDPC's switch reads on after the tap (its own page)" "true" "$SWITCHED"
 POLICY="$(adb shell dumpsys device_policy | tr -d '\r' | grep -i 'contactsSearch\|ContactsAccess\|contacts_access' | tr -s ' ' | sort -u | tr '\n' ' ')"
 record "dumpsys device_policy's contact-search lines after the switch (the legacy field is not the policy on this image)" "${POLICY:-no matching line}"
@@ -219,6 +231,39 @@ assert_eq "… and the line's bottom edge is above the keyboard's top edge (it c
 note "people_empty at [$EB]; the keyboard's top edge at y $IME_TOP"
 assert_eq "the slice holds [people] search \"Wren\": 0 (+0 enterprise)" "[people] search \"Wren\": 0 (+0 enterprise)" "$NEG_LINE"
 assert_contains "she is still in the profile's provider (the legs differ only by the switch)" "display_name=Work Wren" "$(qu "content query --user $WU --uri $CONTACTS --projection _id:display_name")"
+back 1; back 1
+
+# ------------------------------------------------------------------------------------------------ the switch back off
+# Gate review B, note 4: dumpsys device_policy's legacy field does not show the policy on this image, so the proof that
+# TestDPC's switch is what changed the result is the result changing BACK when the switch is turned off again.
+log "--- the switch turned off again: the enterprise match returns"
+adb shell am start --user "$WU" -n "$DPC/.PolicyManagementActivity" > "$D/dpc-start2.txt" 2>&1; sleep 5
+FOUND2="$(find_text 'cross.?profile contacts? search' 8 "$D/dpc-back.xml")"
+if [ -z "$FOUND2" ]; then      # TestDPC came back on its first page: to its top, the entry again, then the switch
+  note "the switch was not on the page TestDPC came back on: its first page from the top, then the entry"
+  for _ in $(seq 1 14); do adb shell input swipe 540 700 540 1900 120; sleep 0.3; done
+  ENTRY2="$(find_text 'profile specific polic' 200 "$D/dpc-main2.xml")"
+  # shellcheck disable=SC2086
+  if [ -n "$ENTRY2" ]; then set -- ${ENTRY2%%|*}; adb shell input tap "$1" "$2"; sleep 3; fi
+  FOUND2="$(find_text 'cross.?profile contacts? search' 30 "$D/dpc-back.xml")"
+fi
+assert_ne "TestDPC's switch is found again" "" "$FOUND2"
+assert_eq "… and still reads on before the second tap" "true" "$(dpc_switch_state "$D/dpc-back.xml")"
+if [ -n "$FOUND2" ]; then
+  # shellcheck disable=SC2086
+  set -- ${FOUND2%%|*}
+  adb shell input tap "$1" "$2"; sleep 2
+fi
+dump_ui "$D/dpc-back-after.xml"; screencap "$D/dpc-back-after.png"
+assert_eq "TestDPC's switch reads off after the second tap" "false" "$(dpc_switch_state "$D/dpc-back-after.xml")"
+adb shell input keyevent KEYCODE_HOME; sleep 2
+c6; ensure_start
+search_wren back-search
+BACK_LINE="$(ring_since "$S_MARK" | grep -F '[people] search "Wren":' | tail -1 | sed 's/.*\[people\]/[people]/')"; log "$BACK_LINE"
+assert_eq "with the switch off again the slice holds [people] search \"Wren\": 0 (+1 enterprise) — the switch is what changed it" "[people] search \"Wren\": 0 (+1 enterprise)" "$BACK_LINE"
+BACK_ROW="$(ids_with_prefix "$D/back-search.xml" people_row:enterprise: | head -1)"
+assert_ne "… and her enterprise row is listed again" "" "$BACK_ROW"
+assert_eq "… reading Work Wren" "Work Wren" "$(xml_text "$D/back-search.xml" "people_name:${BACK_ROW#people_row:enterprise:}")"
 back 1; back 1
 
 # ------------------------------------------------------------------------------------------------ restore

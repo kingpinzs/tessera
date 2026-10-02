@@ -1,11 +1,17 @@
 ==============================================================================
 ROW E3 — the local calendar: created at first open, beside another LOCAL calendar, by Tess first; read-only others
-at            2026-10-02T01:43:35-06:00
+at            2026-10-02T03:50:32-06:00
 driver        e3.sh blob 2be6f5709492825a5d8ddab38c295177326a1b0b
-harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
-apk built     5b485720363c32cb 339112630 bytes
-apk installed 2150eba004db6757
-apk match     yes (2150eba004db6757)
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob a01abd9075780a8e49193748ce5047031fe19181
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     182a7851a5c76400 339129014 bytes
+apk installed e03a1d233ee6ba0c
+apk match     yes (e03a1d233ee6ba0c)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -71,7 +77,7 @@ PASS  E: a driver-inserted event on it                            !=
 PASS  D: the editor is open (cal_editor)                          = yes
 PASS  D: the editor's calendar field reads Tessera                = Tessera
 PASS  D: a tap on the field opens no option list (cal_editor_options)  = no
-      the editor's texts after the tap:  |  |  | 1:46 AM | NEW EVENT | Title | Location | All day | Start | Fri 2 Oct 2026 | 2:00 AM | End | Fri 2 Oct 2026 | 3:00 AM | Repeat | Never |  | Reminder | None |  | Calendar | Tessera | Notes |  |  |  |  | 
+      the editor's texts after the tap:  |  |  | 3:53 AM | NEW EVENT | Title | Location | All day | Start | Fri 2 Oct 2026 | 4:00 AM | End | Fri 2 Oct 2026 | 5:00 AM | Repeat | Never |  | Reminder | None |  | Calendar | Tessera | Notes |  |  |  |  | 
 PASS  D: … and offers no QA calendar                            does not contain [QA]
 PASS  D: … nor the read-only one's account                      does not contain [qa.personal@example.com]
 PASS  D: … the field still reads Tessera                        = Tessera

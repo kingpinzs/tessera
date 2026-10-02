@@ -1,0 +1,46 @@
+==============================================================================
+ROW E27 — Groups: create, members, text the group, rename, delete; WRITE_CONTACTS revoked
+at            2026-10-02T04:01:09-06:00
+driver        e27.sh blob 4d43787d450ea680eb23cce2b4635dad31be6f1b
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob a01abd9075780a8e49193748ce5047031fe19181
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     182a7851a5c76400 339129014 bytes
+apk installed e03a1d233ee6ba0c
+apk match     yes (e03a1d233ee6ba0c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (e03a1d233ee6ba0c)
+RECORD  E27_LEGS — a NARROW run, only these legs of E27 ran (the counted whole-row run is E27/ on 3c1ad1e0)  create
+PASS  create: READ_CONTACTS and WRITE_CONTACTS held               = true true
+PASS  create: nothing is on "Can edit"                            = 
+      create: groups before (0): No result found.; — the highest groups _id is none
+PASS  create: no group is titled Solo before                      = 
+PASS  create: the GROUPS pivot is on show (people_pivot:groups selected)  contains [selected="true"]
+PASS  create: people_group_new is offered                         = yes
+PASS  create: "Solo" is in people_group_name                      = Solo
+Row: 0 _id=19, title=Solo, account_type=NULL, account_name=NULL
+PASS  create: the groups query lists "Solo"                       != 
+PASS  create: … in the phone's own account: account_type and account_name are NULL (Q-16-3)  contains [title=Solo, account_type=NULL, account_name=NULL]
+PASS  create: exactly ONE group was added and it is live (every groups row above the highest _id before Save, as _id:deleted)  = 19:0
+PASS  create: the group's page is on show (people_group:<id>)     = yes
+PASS  create: … with no people_notice (the save did not fail aloud)  = no
+[people] group create 19: ok
+PASS  create: the slice from the MARK before Save holds [people] group create <id>: ok  contains [[people] group create 19: ok]
+PASS  create: … exactly one group line is in that slice (the create)  = 1
+PASS  create: NO delete of it follows — no `[people] write delete group=<id>` line (the take-back's) in that slice, read 9 s after Save  does not contain [[people] write delete group=19:]
+PASS  create: … no `[people] group delete <id>` line            does not contain [[people] group delete 19:]
+PASS  create: … no write delete line of any kind                does not contain [[people] write delete]
+PASS  create: … and no People line in it reports a failure      does not contain [: failed]
+PASS  create: 9 s after Save the group is still live (deleted=0), in the phone's own account  = 1
+PASS  create: no raw contact was made or removed by it            = 2
+--- create: restore
+      restore: group 19 deleted by id
+PASS  create restore: the groups query equals its read before the leg  = No result found.
+------------------------------------------------------------------------------
+E27: 21 passed, 0 failed, 1 recorded

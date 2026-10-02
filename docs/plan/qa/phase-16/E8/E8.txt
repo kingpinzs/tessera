@@ -1,11 +1,17 @@
 ==============================================================================
 ROW E8 — time zone and DST: Tokyo wall time, the all-day event on its date, the fall-back night's 3-hour span
-at            2026-10-02T00:04:36-06:00
+at            2026-10-02T03:54:11-06:00
 driver        e8.sh blob e730d0f6f74a4eda01e20b3eeb02e87ec5e88985
-harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
-apk built     beccfe5de877e0da 341947382 bytes
-apk installed 3c1ad1e0e65bd919
-apk match     yes (3c1ad1e0e65bd919)
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob a01abd9075780a8e49193748ce5047031fe19181
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     182a7851a5c76400 339129014 bytes
+apk installed e03a1d233ee6ba0c
+apk match     yes (e03a1d233ee6ba0c)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -29,7 +35,7 @@ PASS  T: … inside cal_allday:2026-11-10                         = yes
 PASS  T: … and not on the next date (2026-11-11) in Tokyo       = no
 PASS  T: … nor on the date before (2026-11-09)                  = no
 PASS  T: back to Denver                                           = America/Denver
-RECORD  T: the shell's process across the two zone changes (before / after)  16624 / 16624
+RECORD  T: the shell's process across the two zone changes (before / after)  21711 / 21711
 --- N: an event across the fall-back night (2026-11-01), 23:30–01:30
 PASS  N: the fixture — 23:30 the evening before, ending at the SECOND 01:30 of the fall-back date, 3 hours on  = 2026-10-31 23:30 MDT / 2026-11-01 01:30 MST
 PASS  N: the event is inserted                                    != 
@@ -50,7 +56,7 @@ PASS  N: … and its start as stored (23:30 the evening before)   = Sat 31 Oct 2
 PASS  N: … the look changed nothing: the stored end is as inserted  = dtend=1793521800000
 --- restore
 PASS  restore: the events are deleted                             = 0
-PASS  restore: Tessera's event count equals the count before the row  = 1
+PASS  restore: Tessera's event count equals the count before the row  = 0
 PASS  restore: the recorded zone is set back                      = America/Boise
 PASS  restore: time_12_24 is as it was                            = null
 ------------------------------------------------------------------------------

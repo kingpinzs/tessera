@@ -43,6 +43,66 @@ new_group() { # name -> its _id
 row_begin E27 "Groups: create, members, text the group, rename, delete; WRITE_CONTACTS revoked"
 require_build
 D="$ROW_DIR"
+
+# ================================================================================================ E27_LEGS (a narrow run)
+# The owner's ruling (2026-10-01): only what changed is run again. E27_LEGS=create runs ONLY a group's create (product
+# commit b7c45a56: a new group is read back, and taken back if the phone filed it elsewhere): `[people] group create
+# <id>: ok`, the group in the phone's own account, exactly one group added, and no delete of it after.
+if [ -n "${E27_LEGS:-}" ]; then
+  record "E27_LEGS — a NARROW run, only these legs of E27 ran (the counted whole-row run is E27/ on 3c1ad1e0)" "$E27_LEGS"
+  if [ "$E27_LEGS" != create ]; then _verdict FAIL "E27_LEGS names a leg this driver has" "unknown: $E27_LEGS (known: create)"; row_end; exit 1; fi
+  TITLE="Solo"
+  ensure_start
+  perm_ensure READ_CONTACTS WRITE_CONTACTS
+  assert_eq "create: READ_CONTACTS and WRITE_CONTACTS held" "true true" "$(perm_granted READ_CONTACTS) $(perm_granted WRITE_CONTACTS)"
+  assert_eq "create: nothing is on \"Can edit\"" "" "$(people_allowed)"
+  groups_q > "$D/groups-before.txt"
+  GMAX0="$(q "content query --uri $GROUPS_URI --projection _id" | sed -n 's/.*Row: [0-9]* _id=\([0-9]*\).*/\1/p' | sort -n | tail -1)"
+  note "create: groups before ($(grep -c '_id=' "$D/groups-before.txt")): $(tr '\n' ';' < "$D/groups-before.txt") — the highest groups _id is ${GMAX0:-none}"
+  assert_eq "create: no group is titled $TITLE before" "" "$(group_id "$TITLE")"
+  RAW0="$(raw_count)"
+  open_groups "$D/groups.xml"; screencap "$D/groups.png"
+  assert_contains "create: the GROUPS pivot is on show (people_pivot:groups selected)" 'selected="true"' "$(node_tag "$D/groups.xml" people_pivot:groups)"
+  assert_eq "create: people_group_new is offered" "yes" "$(has_node "$D/groups.xml" people_group_new)"
+  tap_node "$D/groups.xml" people_group_new; sleep 2
+  set_field people_group_name "$TITLE"
+  dump_ui "$D/new2.xml"; screencap "$D/new2.png"
+  assert_eq "create: \"$TITLE\" is in people_group_name" "$TITLE" "$(xml_text "$D/new2.xml" people_group_name)"
+  MARK="$(ring_mark)"                                        # BEFORE Save: the slice below holds everything Save did
+  tap_node "$D/new2.xml" people_group_save; sleep 3
+  G="$(groups_q)"; printf '%s\n' "$G" > "$D/groups-after-create.txt"; printf '%s\n' "$G" >> "$LOG"
+  GID="$(group_id "$TITLE")"
+  assert_ne "create: the groups query lists \"$TITLE\"" "" "$GID"
+  assert_contains "create: … in the phone's own account: account_type and account_name are NULL (Q-16-3)" "title=$TITLE, account_type=NULL, account_name=NULL" "$G"
+  NEW_GROUPS="$(q "content query --uri $GROUPS_URI --projection _id:deleted" | sed -n 's/.*Row: [0-9]* _id=\([0-9]*\), deleted=\([0-9]*\).*/\1:\2/p' | awk -F: -v m="${GMAX0:-0}" '$1 > m' | tr '\n' ' ' | sed 's/ $//')"
+  assert_eq "create: exactly ONE group was added and it is live (every groups row above the highest _id before Save, as _id:deleted)" "${GID:-?}:0" "$NEW_GROUPS"
+  dump_ui "$D/group.xml"; screencap "$D/group.png"
+  assert_eq "create: the group's page is on show (people_group:<id>)" "yes" "$(has_node "$D/group.xml" "people_group:${GID:-?}")"
+  assert_eq "create: … with no people_notice (the save did not fail aloud)" "no" "$(has_node "$D/group.xml" people_notice)"
+  sleep 6
+  SLICE="$(ring_since "$MARK")"; printf '%s\n' "$SLICE" > "$D/slice-from-before-save.txt"
+  printf '%s\n' "$SLICE" | grep -E '\[people\] (group|write) ' | sed 's/^.*wall=[0-9]* //' >> "$LOG"
+  assert_contains "create: the slice from the MARK before Save holds [people] group create <id>: ok" "[people] group create ${GID:-?}: ok" "$SLICE"
+  assert_eq "create: … exactly one group line is in that slice (the create)" "1" "$(printf '%s\n' "$SLICE" | grep -cF '[people] group ')"
+  absent_in "create: NO delete of it follows — no \`[people] write delete group=<id>\` line (the take-back's) in that slice, read 9 s after Save" "[people] write delete group=${GID:-?}:" "$SLICE"
+  absent_in "create: … no \`[people] group delete <id>\` line" "[people] group delete ${GID:-?}:" "$SLICE"
+  absent_in "create: … no write delete line of any kind" "[people] write delete" "$SLICE"
+  absent_in "create: … and no People line in it reports a failure" ": failed" "$(printf '%s\n' "$SLICE" | grep -F '[people] ')"
+  assert_eq "create: 9 s after Save the group is still live (deleted=0), in the phone's own account" "1" "$(q "content query --uri $GROUPS_URI --projection _id:deleted:account_type:account_name --where \"_id=${GID:-0} AND deleted=0\"" | grep -c 'account_type=NULL, account_name=NULL')"
+  assert_eq "create: no raw contact was made or removed by it" "$RAW0" "$(raw_count)"
+
+  log "--- create: restore"
+  back 1; back 1
+  ring_save
+  for g in $(groups_q | sed -n 's/.*_id=\([0-9]*\),.*/\1/p'); do
+    grep -q "_id=$g," "$D/groups-before.txt" || { q "content delete --uri '$GROUPS_URI/$g?$SA'" >/dev/null; note "restore: group $g deleted by id"; }
+  done
+  assert_eq "create restore: the groups query equals its read before the leg" "$(cat "$D/groups-before.txt")" "$(groups_q)"
+  c6; ensure_start
+  row_end; exit $?
+fi
+
+# ================================================================================================ the whole row
 ensure_start
 perm_ensure READ_CONTACTS WRITE_CONTACTS
 assert_eq "precondition: WRITE_CONTACTS held" "true" "$(perm_granted WRITE_CONTACTS)"

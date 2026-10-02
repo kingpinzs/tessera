@@ -1,0 +1,61 @@
+==============================================================================
+ROW E7 — 5,000 events: the month drop-down, the busiest week, 12 weeks of paging, a 200-event day, the tile
+at            2026-10-02T03:08:15-06:00
+driver        e7.sh blob 35c1f19aef99473426a71ca6a01c35bcbad743f8
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob 37f8ca0771c000a3ace0ab481a2b94b60658ccfc
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     d3491c103c64871a 339129014 bytes
+apk installed 3c5e3199554038d1
+apk match     yes (3c5e3199554038d1)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  legs run                                                    fixtures and D ONLY, with frame stats (a diagnosis of the Day view on the 200-event day, NOT the gate row; no verdict on the 5 %); M, W, P and T not run
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+--- fixtures: 5,000 events across 24 months in the QA calendar
+PASS  fixtures: the QA calendar (qa / LOCAL)                      != 
+PASS  fixtures: the driver's loop holds 5,000 insert lines (the busy month is 2026-12, its 200-event day 2026-12-15)  = 5000 5000
+RECORD  fixtures: the insert loop's run time (one adb shell: 5,000 content insert lines, 16 workers)  296 s
+PASS  fixtures: the QA calendar holds 5,000 events                = 5000
+PASS  fixtures: one month holds 400 of them (the provider's instances over 2026-12)  = 400
+PASS  fixtures: a day with 200 events (2026-12-15)                = 200
+PASS  fixtures: exactly two events inside the next 24 hours (E7 soon 1 / 2)  = 2
+--- D: a day with 200 events lists them scrollably in the Day view
+RECORD  gfxinfo, leg D1-day-view-opens-on-the-200-event-day: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  13 / 11 / 10 / 6; 65ms 101ms 101ms; 100.1 ms = input 0.0 + animation 21.4 + traversal 0.0 + draw 30.9 (UI thread) | sync 0.1 + issue 0.7 + swap 9.7 (render thread); frame 7 of 13
+PASS  D: the Day view of 2026-12-15 is showing                    = true yes
+view day: 169 80 200 2026-12-15 2026-12-15
+PASS  D: its view day line counts 200 instances                   = 200
+RECORD  gfxinfo, leg D2-scroll-01: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  55 / 3 / 0 / 2; 16ms 16ms 16ms; 16.8 ms = input 0.0 + animation 0.5 + traversal 0.0 + draw 0.8 (UI thread) | sync 0.0 + issue 0.6 + swap 14.6 (render thread); frame 44 of 55
+RECORD  gfxinfo, leg D2-scroll-02: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  54 / 3 / 0 / 3; 16ms 16ms 16ms; 16.8 ms = input 0.6 + animation 0.6 + traversal 0.0 + draw 0.7 (UI thread) | sync 0.0 + issue 0.6 + swap 14.2 (render thread); frame 11 of 53
+RECORD  gfxinfo, leg D2-scroll-03: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  63 / 1 / 0 / 1; 16ms 16ms 16ms; 16.8 ms = input 0.4 + animation 0.2 + traversal 0.0 + draw 0.1 (UI thread) | sync 0.0 + issue 0.7 + swap 15.2 (render thread); frame 29 of 62
+RECORD  gfxinfo, leg D2-scroll-04: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  63 / 1 / 0 / 1; 16ms 16ms 16ms; 16.8 ms = input 0.8 + animation 0.4 + traversal 0.0 + draw 0.3 (UI thread) | sync 0.1 + issue 1.1 + swap 13.9 (render thread); frame 6 of 63
+RECORD  gfxinfo, leg D2-scroll-05: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  62 / 1 / 0 / 1; 16ms 16ms 16ms; 16.8 ms = input 0.5 + animation 0.3 + traversal 0.0 + draw 0.2 (UI thread) | sync 0.1 + issue 0.8 + swap 14.8 (render thread); frame 30 of 62
+      distinct cal_event nodes reached in 5 swipe(s) of the Day view: 200
+PASS  D: it lists them scrollably — all 200 events of the day are reached by scrolling the Day view  = 200
+PASS  D: … the list did scroll (more than one screen of them)   != 0
+leg D's frames (name, total frames, janky, slow UI thread, slow draw, 50th, 90th, 99th, the longest frame in ms, its stages):
+   D1-day-view-opens-on-the-200-event-day	13	11	10	6	65ms	101ms	101ms	100.1	input 0.0 + animation 21.4 + traversal 0.0 + draw 30.9 (UI thread) | sync 0.1 + issue 0.7 + swap 9.7 (render thread); frame 7 of 13
+   D2-scroll-01	55	3	0	2	16ms	16ms	16ms	16.8	input 0.0 + animation 0.5 + traversal 0.0 + draw 0.8 (UI thread) | sync 0.0 + issue 0.6 + swap 14.6 (render thread); frame 44 of 55
+   D2-scroll-02	54	3	0	3	16ms	16ms	16ms	16.8	input 0.6 + animation 0.6 + traversal 0.0 + draw 0.7 (UI thread) | sync 0.0 + issue 0.6 + swap 14.2 (render thread); frame 11 of 53
+   D2-scroll-03	63	1	0	1	16ms	16ms	16ms	16.8	input 0.4 + animation 0.2 + traversal 0.0 + draw 0.1 (UI thread) | sync 0.0 + issue 0.7 + swap 15.2 (render thread); frame 29 of 62
+   D2-scroll-04	63	1	0	1	16ms	16ms	16ms	16.8	input 0.8 + animation 0.4 + traversal 0.0 + draw 0.3 (UI thread) | sync 0.1 + issue 1.1 + swap 13.9 (render thread); frame 6 of 63
+   D2-scroll-05	62	1	0	1	16ms	16ms	16ms	16.8	input 0.5 + animation 0.3 + traversal 0.0 + draw 0.2 (UI thread) | sync 0.1 + issue 0.8 + swap 14.8 (render thread); frame 30 of 62
+RECORD  D: the Day view opening on the 200-event day — its longest frame and that frame's stages (no verdict)  100.1 ms = input 0.0 + animation 21.4 + traversal 0.0 + draw 30.9 (UI thread) | sync 0.1 + issue 0.7 + swap 9.7 (render thread); frame 7 of 13
+RECORD  D: the Day view's scroll — the longest frame of all its swipes and that frame's stages (no verdict)  16.8 ms in D2-scroll-05 = input 0.5 + animation 0.3 + traversal 0.0 + draw 0.2 (UI thread) | sync 0.1 + issue 0.8 + swap 14.8 (render thread); frame 30 of 62
+RECORD  D: the Day view opening — its first four frames (total ms = input + animation + traversal + draw | sync + issue + swap)  #1 36.9 (late) = 0.0 + 11.2 + 0.1 + 21.3 | 0.0 + 2.1 + 2.0; #2 50.1 (late) = 0.0 + 0.8 + 0.0 + 0.3 | 0.0 + 0.7 + 30.0; #3 64.1 (late) = 0.0 + 32.4 + 0.0 + 28.9 | 0.0 + 0.4 + 2.2; #4 50.1 (late) = 0.0 + 0.2 + 0.0 + 0.6 | 0.0 + 0.8 + 19.5
+RECORD  D: the Day view opening — how many frames it took and how many were late  13 frames, 11 late
+RECORD  D: leg D's frames summed (total frames / janky / slow UI thread)  310 / 20 / 10
+--- restore: the QA calendar deleted (its events cascade)
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+RECORD  restore: the delete's run time                              5 s
+PASS  restore: the QA calendar is gone                            = 
+PASS  restore: its events cascaded — no E7 event is left        = 0
+PASS  restore: Tessera's event count equals the count before the row  = 0
+PASS  restore: no new crash of the shell during the row           = 0
+------------------------------------------------------------------------------
+E7: 16 passed, 0 failed, 14 recorded

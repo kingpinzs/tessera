@@ -1,0 +1,50 @@
+==============================================================================
+ROW E18 — permission states: READ / WRITE_CALENDAR together and alone, READ_CONTACTS alone
+at            2026-10-02T03:57:22-06:00
+driver        e18.sh blob 15ace2e8005db23f9433fc1c8e7657b97c2dcf54
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob a01abd9075780a8e49193748ce5047031fe19181
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     182a7851a5c76400 339129014 bytes
+apk installed e03a1d233ee6ba0c
+apk match     yes (e03a1d233ee6ba0c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  legs run                                                    G ONLY (a READ_CALENDAR grant made in place starts the tile's observer) — a narrow run; legs A–E stand on the row's earlier run
+PASS  precondition: READ_CALENDAR is held at the start            = true
+PASS  precondition: WRITE_CALENDAR is held at the start           = true
+PASS  precondition: READ_CONTACTS is held at the start            = true
+PASS  precondition: WRITE_CONTACTS is held at the start           = true
+--- G: READ_CALENDAR granted in place (cal_grant, Android's dialog) starts the Calendar tile's observer
+PASS  G: precondition — Tessera exists                          != 
+PASS  G: precondition — READ and WRITE_CALENDAR are held        = true true
+PASS  G: READ_CALENDAR and WRITE_CALENDAR revoked                 = false false
+RECORD  G: the feed's refresh line at the shell's start without the read  [calendar] refresh (start): access=false faces=1 agenda=0
+PASS  G: Calendar's page offers the grant in place (cal_grant)    = yes
+PASS  G: the tap on cal_grant brings Android's own permission dialog (its Allow button)  = yes
+PASS  G: Allow → READ_CALENDAR is held                          = true
+PASS  G: the views load in place: the notice is gone, the week strip is drawn  = no yes
+PASS  G: the slice from the MARK before the tap holds [calendar] permission request READ_CALENDAR: granted  contains [[calendar] permission request READ_CALENDAR: granted]
+PASS  G: … and [app] feeds started (calendar grant)             contains [[app] feeds started (calendar grant)]
+PASS  G: … with no restart (the shell's pid is the same as before the tap)  = 24336
+PASS  G: the driver inserts an event one hour ahead (a provider change)  != 
+the feed after the insert: [calendar] refresh (provider change): access=true faces=2 agenda=1
+PASS  G: the insert reaches the feed through its observer: [calendar] refresh (provider change) …  contains [[calendar] refresh (provider change): access=true]
+the CALENDAR tile's texts over 14 dumps:       5 Calendar;      3 E18 grant | 4:58 AM | Calendar;      6 Friday | 2 | Calendar;
+PASS  G: … and the Calendar tile shows it (dumps of 14 in which the tile reads E18 grant)  != 0
+PASS  G: … all without a process restart since before the grant (the same pid)  = 24336
+--- restore (r3 V10)
+PASS  restore: pm grant READ_CALENDAR — granted=true            = true
+PASS  restore: pm grant WRITE_CALENDAR — granted=true           = true
+PASS  restore: pm grant READ_CONTACTS — granted=true            = true
+PASS  restore: pm grant WRITE_CONTACTS — granted=true           = true
+PASS  restore: the row's events are deleted                       = 0
+PASS  restore: exactly one Tessera calendar is left               = 1
+PASS  restore: no new crash of the shell during the row           = 0
+------------------------------------------------------------------------------
+E18: 25 passed, 0 failed, 2 recorded

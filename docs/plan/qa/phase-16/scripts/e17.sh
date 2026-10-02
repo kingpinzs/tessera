@@ -2,8 +2,8 @@
 # Phase 16 E17 — Birthdays (Q3; r3 D14, V4, V10, V15; the 29 February form re-cut 2026-10-01).
 #
 #   A  the first birthday   people_fixtures_up, no Birthdays calendar, the Calendar app NOT opened since the last
-#                           ensure_start; a MARK; a birthday on Ann (the device's UTC date's month-day, 1990 — time-proof,
-#                           see the note in leg A and clauses-open.tsv) → within 5 s a
+#                           ensure_start; a MARK; a birthday on Ann (the month-day of the DEVICE's own today, 1990 —
+#                           the doc's fixture) → within 5 s a
 #                           "Birthdays" LOCAL calendar under `Tessera Birthdays` (never Tessera; access 200) with a yearly
 #                           all-day "Ann Lee's birthday"; `[calendar] birthdays: 1 synced`; no reminder rows
 #   B  shown everywhere     the tile shows it today, phase 14's Agenda pod lists it, Tess's typed "what is on my
@@ -18,7 +18,16 @@
 #   restore                 the provider enabled (asserted), the birthday rows removed, the Birthdays calendar deleted,
 #                           Tess's event deleted, people_fixtures_down
 # The row makes no clock jump (r3 V4).
+#
+# E17_LEGS=T is a narrow run of one more leg, with its own fixtures and restore (gate review A, finding 1; the product
+# fix 53ca48dc reads all-day events by their DATE for the tile and Tess):
+#   T  after the zone's UTC midnight   a birthday on Ann on the device's LOCAL today and one on Bob on the local
+#                           TOMORROW; the clock moved FORWARD to 19:00 local (in a zone behind UTC the UTC date is
+#                           then tomorrow's, and today's all-day instance has ended): the tile shows Ann's and Tess's
+#                           typed "what is on my calendar" names it; Bob's is NOT on the tile and NOT named.
+#                           Restore: the birthday rows, the Birthdays calendar, people_fixtures_down, clock_restore.
 set -uo pipefail
+LEGS="${E17_LEGS:-all}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
 . "$HERE/p16.sh"
@@ -33,6 +42,83 @@ provider_enabled() { adb shell pm list packages -e "$CAL_PROVIDER" < /dev/null |
 tile_texts() { python3 "$TILES" "$1" "$2" | awk -F'\t' '{ print $6 }' | sed 's/^texts=//'; }
 utc_ms() { echo $(( $(date -u -d "$1" +%s) * 1000 )); }   # yyyy-mm-dd -> UTC midnight ms
 CRASH0="$(ccrashes)"
+
+if [ "$LEGS" != all ]; then
+[ "$LEGS" = T ] || { _verdict FAIL "E17_LEGS" "only E17_LEGS=T is a narrow run of this row (got $LEGS)"; row_end; exit 1; }
+# ----------------------------------------------------------------------------------------------- T: after UTC midnight
+record "legs run" "T ONLY (the doc's fixture — a birthday on the device's LOCAL today — read after the zone's UTC midnight, and one on the local tomorrow) — a narrow run with its own fixtures and restore; legs A–F stand on the row's earlier run"
+log "--- T: a birthday on the local today and one on the local tomorrow, read at 19:00 local"
+c6
+cal_fixtures_down
+ensure_start
+assert_eq "T: precondition — no contact carries a birthday yet" "0" "$(cbirthdays_on_phone)"
+TESS="$(tessera_id)"
+assert_ne "T: precondition — Tessera exists (the shell's own calendar)" "" "$TESS"
+people_fixtures_up
+assert_ne "T: people_fixtures_up — the row's own Ann" "" "$ANN"
+assert_ne "T: people_fixtures_up — the row's own Bob" "" "$BOB"
+LTODAY="$(cdate 0)"; LTOMORROW="$(cdate 1)"
+T19="$(clocal_ms "$LTODAY" 19:00)"
+JUMPED=no
+if [ "$(device_ms)" -lt "$T19" ]; then
+  ring_save
+  jump_clock "$T19" > "$ROW_DIR/T-jump.txt"; JUMPED=yes
+  sleep 3
+fi
+record "T: the device's time and zone now (the clock was moved forward to 19:00 local: $JUMPED)" "$(q "date '+%Y-%m-%d %H:%M %Z (%z)'")"
+assert_eq "T: the device's local date is still $LTODAY, at 19:00 or later" "$LTODAY yes" "$(cdate 0) $([ "$(device_ms)" -ge "$T19" ] && echo yes || echo no)"
+assert_eq "T: … which is after the zone's UTC midnight: the device's UTC date is the local tomorrow" "$LTOMORROW" "$(adb shell date -u +%Y-%m-%d < /dev/null | tr -d '\r')"
+PIDT="$(adb shell pidof app.tileshell < /dev/null | tr -d '\r')"
+T_MARK="$(ring_mark)"
+cbirthday "$ANN" "1990-$(echo "$LTODAY" | cut -c6-10)"
+cbirthday "$BOB" "1985-$(echo "$LTOMORROW" | cut -c6-10)"
+for i in 1 2 3 4 5 6 7 8; do sleep 1; B="$(cbirthdays_cal)"; [ -n "$B" ] && [ "$(bevents "$B" | grep -c 'birthday,')" = 2 ] && break; done
+B="$(cbirthdays_cal)"
+assert_ne "T: fixtures — the Birthdays calendar exists" "" "$B"
+ANN_EV="$(bev_id "${B:-0}" "Ann Lee's birthday")"; BOB_EV="$(bev_id "${B:-0}" "Bob Stone's birthday")"
+log "its events: $(bevents "${B:-0}" | tr '\n' ';')"
+assert_eq "T: fixtures — it holds both birthdays (Ann's and Bob's)" "yes yes" "$([ -n "$ANN_EV" ] && echo yes || echo no) $([ -n "$BOB_EV" ] && echo yes || echo no)"
+U0="$(utc_ms "$LTODAY")"; U1="$(utc_ms "$LTOMORROW")"
+assert_eq "T: fixtures — Ann's all-day instance is the UTC day of $LTODAY (the local today), Bob's the UTC day of $LTOMORROW (the local tomorrow)" "1 1" "$(cinstances "$U0" $(( U0 + 86400000 - 1 )) "${ANN_EV:-0}") $(cinstances "$U1" $(( U1 + 86400000 - 1 )) "${BOB_EV:-0}")"
+assert_eq "T: fixtures — now is past the end of Ann's instance and inside Bob's (what a now … now + 24 h read would see)" "yes yes" "$([ "$(device_ms)" -ge $(( U0 + 86400000 )) ] && echo yes || echo no) $([ "$(device_ms)" -ge "$U1" ] && [ "$(device_ms)" -lt $(( U1 + 86400000 )) ] && echo yes || echo no)"
+sleep 3
+log "the feed after the birthdays: $(cline "$(ring_since "$T_MARK")" '[calendar] refresh (')"
+SEEN_ANN=0; SEEN_BOB=0; : > "$ROW_DIR/T-tile-texts.txt"
+for i in $(seq 1 16); do
+  gdump "$ROW_DIR/T-start.xml"
+  T="$(tile_texts "$ROW_DIR/T-start.xml" slot:CALENDAR)"; echo "$T" >> "$ROW_DIR/T-tile-texts.txt"
+  case "$T" in *"Ann Lee"*) SEEN_ANN=$((SEEN_ANN + 1)); cp "$ROW_DIR/T-start.xml" "$ROW_DIR/T-start-ann.xml";; esac
+  case "$T" in *"Bob Stone"*) SEEN_BOB=$((SEEN_BOB + 1)); cp "$ROW_DIR/T-start.xml" "$ROW_DIR/T-start-bob.xml";; esac
+  sleep 1
+done
+screencap "$ROW_DIR/T-start.png"
+log "the CALENDAR tile's texts over 16 dumps: $(sort "$ROW_DIR/T-tile-texts.txt" | uniq -c | tr '\n' ';')"
+assert_ne "T: the tile shows the birthday of the local today (dumps of 16 in which the CALENDAR tile reads Ann Lee's birthday)" "0" "$SEEN_ANN"
+assert_eq "T: … and NOT the birthday of the local tomorrow (dumps of 16 in which it reads Bob Stone's)" "0" "$SEEN_BOB"
+tess_ask "what is on my calendar" 5
+TREPLY="$(reply_since "$TMARK" | sed "s/&apos;/'/g")"; log "Tess: [$TREPLY]"
+assert_contains "T: Tess's typed \"what is on my calendar\" names the birthday of the local today" "Ann Lee's birthday" "$TREPLY"
+assert_absent "T: … and does NOT name the birthday of the local tomorrow" "Bob Stone" "$TREPLY"
+ring_since "$TMARK" > "$ROW_DIR/T-tess-slice.txt"
+tess_close
+cpod_bay "$ROW_DIR/T-bay.xml"
+record "T: phase 14's Agenda pod at the same moment (every text of pod:agenda in order — its day groups: today's rows, then a Tomorrow sub-header and tomorrow's)" "$(ctexts "$ROW_DIR/T-bay.xml" pod:agenda)"
+assert_eq "T: all of it in one process (no restart of the shell since the clock moved)" "$PIDT" "$(adb shell pidof app.tileshell < /dev/null | tr -d '\r')"
+log "--- restore (leg T)"
+ring_save
+for r in "$ANN" "$BOB"; do rm_birthday "$r"; done
+assert_eq "restore: the birthday data rows are removed" "0" "$(cbirthdays_on_phone)"
+sleep 2
+c6
+cal_fixtures_down
+people_fixtures_down
+if [ "$JUMPED" = yes ]; then clock_restore; fi
+assert_eq "restore: the device's date is the host's again" "$(date +%Y-%m-%d)" "$(adb shell date +%Y-%m-%d < /dev/null | tr -d '\r')"
+assert_eq "restore: no new crash of the shell during the run" "$CRASH0" "$(ccrashes)"
+ensure_start
+row_end
+exit 0
+fi
 
 # ----------------------------------------------------------------------------------------------- A: the first birthday
 log "--- A: the first birthday, with the Calendar app not opened"
@@ -50,14 +136,13 @@ assert_ne "A: people_fixtures_up — the row's own Bob" "" "$BOB"
 assert_eq "A: no Birthdays calendar (asserted)" "" "$(cbirthdays_cal)"
 assert_eq "A: the Calendar app is NOT open (Start is on top since the last ensure_start)" "app.tileshell/.StartActivity" "$(top_activity)"
 PID0="$(adb shell pidof app.tileshell | tr -d '\r')"
-# The birthday's date, time-proof (clauses-open.tsv): the row words it as "the DEVICE's own today", but an all-day
-# event's instance is the UTC day [00:00, 24:00) of its date, and the tile's and Tess's reads are Instances over
-# [now, now + 24 h] — so in a zone behind UTC a birthday on the LOCAL today leaves both at 18:00 local (MDT). The date
-# used is the device's current UTC date: the local today before that hour, the local tomorrow after it; its all-day
-# instance always holds "now", so the clauses mean the same at any hour. TODAY below is that date.
-TODAY="$(adb shell date -u +%Y-%m-%d | tr -d '\r')"; MD="$(echo "$TODAY" | cut -c6-10)"; TOMORROW="$(date -u -d "$TODAY + 1 day" +%Y-%m-%d)"
-LOCAL_TODAY="$(cdate 0)"
-record "the birthday's date (the device's UTC date) against the device's local date" "$TODAY / $LOCAL_TODAY"
+# The birthday's date is the doc's: the month-day of the DEVICE's own today (its local date). Until the product fix
+# 53ca48dc the tile and Tess read Instances over now … now + 24 h, a today's all-day event left both at the zone's UTC
+# midnight (18:00 MDT), and this row used the device's UTC date instead (its kept run on 3c1ad1e0; clauses-open.tsv).
+# Leg T (E17_LEGS=T) drives the doc's fixture past that hour.
+TODAY="$(cdate 0)"; MD="$(echo "$TODAY" | cut -c6-10)"; TOMORROW="$(cdate 1)"
+LOCAL_TODAY="$TODAY"
+record "the birthday's date (the device's local today) against the device's UTC date" "$TODAY / $(adb shell date -u +%Y-%m-%d < /dev/null | tr -d '\r')"
 record "the device's time and zone at the row's start" "$(q "date '+%Y-%m-%d %H:%M %Z (%z)'")"
 A_MARK="$(ring_mark)"
 cbirthday "$ANN" "1990-$MD"

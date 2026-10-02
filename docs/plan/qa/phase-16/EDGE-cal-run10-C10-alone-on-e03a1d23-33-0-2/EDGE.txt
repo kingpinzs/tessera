@@ -1,0 +1,56 @@
+==============================================================================
+ROW EDGE — the Edge cases: every bullet, by the index
+at            2026-10-02T03:55:55-06:00
+driver        edge.sh blob 1d32d1f3e48005546ca8672499155dbb0e50965f
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob a01abd9075780a8e49193748ce5047031fe19181
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     182a7851a5c76400 339129014 bytes
+apk installed e03a1d233ee6ba0c
+apk match     yes (e03a1d233ee6ba0c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      time zone before: America/Boise; time_12_24 before: null
+PASS  the index covers the doc's 23 Edge-case bullets             = B01 B02 B03 B04 B05 B06 B07 B08 B09 B10 B11 B12 B13 B14 B15 B16 B17 B18 B19 B20 B21 B22 B23
+PASS  … and the doc's "Edge cases" has that many bullets        = 23
+PASS  no index line is without a place it is run                  = 0
+PASS  the index names row E1: its driver exists                   = yes
+PASS  the index names row E10: its driver exists                  = yes
+PASS  the index names row E11: its driver exists                  = yes
+PASS  the index names row E12: its driver exists                  = yes
+PASS  the index names row E16: its driver exists                  = yes
+PASS  the index names row E17: its driver exists                  = yes
+PASS  the index names row E18: its driver exists                  = yes
+PASS  the index names row E22: its driver exists                  = yes
+PASS  the index names row E24: its driver exists                  = yes
+PASS  the index names row E28: its driver exists                  = yes
+PASS  the index names row E6: its driver exists                   = yes
+PASS  the index names the JVM test PeopleTileRulesTest: it exists  != 
+PASS  the index names the JVM test PeopleWriteGuardTest: it exists  != 
+PASS  the index names the JVM test SlotSeedTest: it exists        != 
+RECORD  sub-steps                                                   EDGE_ONLY=C10: a development run, not the gate's
+--- C10: B08.1
+RECORD  C10: the insert loop of 50 events ran for                   23 s
+PASS  C10: fixtures — 50 events were inserted under the open view  = 50
+PASS  C10: the views refresh: the open Day view's last view line counts the 50 more  = 50
+PASS  C10: … the view is up and shows them (cal_view, some of their nodes)  = yes yes
+PASS  C10: without a crash (the same process, no new crash entry)  = 22563 0
+PASS  C10: restore — the 50 events are deleted                  = 0
+PASS  restore: the calendar provider is enabled                   does not contain [com.android.providers.calendar]
+PASS  restore: READ_CALENDAR held                                 = true
+PASS  restore: WRITE_CALENDAR held                                = true
+PASS  restore: READ_CONTACTS held                                 = true
+PASS  restore: WRITE_CONTACTS held                                = true
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the time zone                                      = America/Boise
+PASS  restore: time_12_24                                         = null
+PASS  device clock back within 2 s of the host (RV12)             1790935031.00 vs 1790935031.00 +/- 2.0
+PASS  restore: layout_restore of the baseline                     = 0
+PASS  restore: user 0 only                                        = 1
+------------------------------------------------------------------------------
+EDGE: 33 passed, 0 failed, 2 recorded

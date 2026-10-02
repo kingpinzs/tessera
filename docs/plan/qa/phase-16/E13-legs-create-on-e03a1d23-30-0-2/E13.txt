@@ -1,0 +1,59 @@
+==============================================================================
+ROW E13 — create, edit, photo, delete; WRITE_CONTACTS revoked
+at            2026-10-02T04:00:02-06:00
+driver        e13.sh blob 77b5008ff4bb719966176847fd337a12678922a8
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob a01abd9075780a8e49193748ce5047031fe19181
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     182a7851a5c76400 339129014 bytes
+apk installed e03a1d233ee6ba0c
+apk match     yes (e03a1d233ee6ba0c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (e03a1d233ee6ba0c)
+RECORD  E13_LEGS — a NARROW run, only these legs of E13 ran (the counted whole-row run is E13/ on 3c1ad1e0)  create
+=== leg create: New → name + number → Save on the phone's own account (gate review A, finding 3)
+PASS  create: READ_CONTACTS and WRITE_CONTACTS held               = true true
+PASS  create: nothing is on "Can edit" (people_edit.json allows no account)  = 
+      create: 2 live raw contacts before; the highest raw_contacts _id (deleted rows included) is 2
+PASS  create: no raw contact is named Eve Hart before (deleted rows included)  = 0
+PASS  create: no phone row holds +1 555 000 0142 before           = 0
+PASS  create: New opens the editor (people_page:editor selected)  contains [selected="true"]
+PASS  create: people_editor_account reads "Phone" (the phone's own account)  = Phone
+PASS  create: the name field holds what was typed                 = Eve Hart
+PASS  create: the phone field holds what was typed                = +1 555 000 0142
+PASS  create: nothing is in the provider before Save is tapped    = 2
+Row: 0 raw_contact_id=5452, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0142
+Row: 1 raw_contact_id=1, mimetype=vnd.android.cursor.item/phone_v2, data1=5551234567
+PASS  create: the data query shows the number under a raw contact  != 
+PASS  create: … exactly one phone row holds it                  = 1
+PASS  create: exactly ONE raw contact was added and it is live (every row above the highest _id before Save, as _id:deleted)  = 5452:0
+PASS  create: the live raw-contact count is one more than before Save  = 3
+Row: 0 _id=5452, contact_id=5462, account_name=NULL, account_type=NULL, display_name=Eve Hart, deleted=0
+PASS  create: it is named Eve Hart                                contains [display_name=Eve Hart]
+PASS  create: it is in the phone's own account: account_name and account_type are NULL (Q-16-3)  contains [account_name=NULL, account_type=NULL]
+[people] write insert raw=5452: ok
+PASS  create: the slice from the MARK before Save holds [people] write insert raw=<id>: ok  contains [[people] write insert raw=5452: ok]
+PASS  create: … exactly one write line is in that slice (the insert)  = 1
+PASS  create: NO delete of it follows — no `[people] write delete raw=<id>` line in that slice, read 9 s after Save  does not contain [[people] write delete raw=5452:]
+PASS  create: … and no write delete line for any raw contact    does not contain [[people] write delete]
+PASS  create: … and no People line in it reports a failure      does not contain [: failed]
+PASS  create: … or a refusal                                    does not contain [: refused]
+PASS  create: 9 s after Save the raw contact is still live (deleted=0)  = 1
+PASS  create: … still in the phone's account                    contains [account_name=NULL, account_type=NULL]
+RECORD  create: the People page on show after Save                  people_page:card people_card:0r5452-335533392B4D51
+PASS  create: People is the activity on show (the page read below is People's)  = app.tileshell/.people.PeopleActivity
+PASS  create: Save closed the editor (people_page:editor is not the page on show)  != true
+PASS  create: … and the page carries no people_notice (the save did not fail aloud)  = no
+--- create: restore
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  create restore: the raw_contacts rows equal the rows before the leg  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0
+Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0
+PASS  create restore: nothing is on "Can edit"                    = 
+------------------------------------------------------------------------------
+E13: 30 passed, 0 failed, 2 recorded

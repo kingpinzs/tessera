@@ -119,7 +119,10 @@ assert_contains "(a) … the reminders row as inserted" "event_id=$EV, minutes=1
 note "event $EV starts $START; T−10 min is $T10; alert rows now: $(calerts "$EV")"
 pending_of "$CAL_PROVIDER" > "$ROW_DIR/a-provider-alarms-after.txt"
 log "dumpsys alarm, pending under $CAL_PROVIDER: $(cat "$ROW_DIR/a-provider-alarms-after.txt" | cut -c1-200 | tr '\n' ';')"
-assert_ne "(a) dumpsys alarm shows the provider's alarm under com.android.providers.calendar" "0" "$(grep -c . "$ROW_DIR/a-provider-alarms-after.txt")"
+# Tied to THIS alert (gate review B, note 11): the provider's alarm for it is an RTC alarm at the alert's own time,
+# T − 10 min; any other pending alarm of the provider (its own housekeeping) does not count.
+assert_eq "(a) dumpsys alarm shows the provider's alarm for this alert under com.android.providers.calendar: an RTC alarm whose origWhen is T − 10 min ($T10)" "1" "$(grep -c "type 0 origWhen $T10 " "$ROW_DIR/a-provider-alarms-after.txt")"
+assert_eq "(a) … and no such alarm was pending before the reminder's insert" "0" "$(grep -c "type 0 origWhen $T10 " "$ROW_DIR/a-provider-alarms-before.txt")"
 assert_eq "(a) shell_alarms_pending reads the SAME count as before the insert (Rule 16)" "$PENDING0" "$(shell_alarms_pending)"
 assert_eq "(a) no calendar notification of the shell's before the time" "" "$(cnotes)"
 
@@ -204,7 +207,7 @@ pending_of "$CAL_PROVIDER" > "$ROW_DIR/d-provider-alarms-after-reboot.txt"
 log "dumpsys alarm after boot, pending under $CAL_PROVIDER: $(cut -c1-200 "$ROW_DIR/d-provider-alarms-after-reboot.txt" | tr '\n' ';')"
 LEFT=$(( (ALARM3 - $(device_ms)) / 1000 ))
 assert_eq "(d) the boot finished before the reminder's time (the alert is still ahead)" "yes" "$([ "$LEFT" -gt 0 ] && echo yes || echo "no ($LEFT s)")"
-assert_ne "(d) after boot the provider re-armed it (dumpsys alarm: a pending alarm under com.android.providers.calendar)" "0" "$(grep -c . "$ROW_DIR/d-provider-alarms-after-reboot.txt")"
+assert_eq "(d) after boot the provider re-armed it (dumpsys alarm: an RTC alarm under com.android.providers.calendar whose origWhen is this alert's time, $ALARM3)" "1" "$(grep -c "type 0 origWhen $ALARM3 " "$ROW_DIR/d-provider-alarms-after-reboot.txt")"
 assert_eq "(d) no notification for it before its time" "0" "$(cnotes | grep -cF 'title=[Standup three]')"
 [ "$LEFT" -gt 0 ] && sleep "$LEFT"
 W="$(wait_note 'Standup three' 40)"; sleep 3

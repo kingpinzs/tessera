@@ -1,0 +1,52 @@
+==============================================================================
+ROW E17 — Birthdays: a contact's birthday becomes a read-only calendar event with the Calendar app never opened
+at            2026-10-02T02:53:59-06:00
+driver        e17.sh blob 0ce6f8569960f947dfaa753a0fb02714899016b1
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob 37f8ca0771c000a3ace0ab481a2b94b60658ccfc
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     d3491c103c64871a 339129014 bytes
+apk installed 3c5e3199554038d1
+apk match     yes (3c5e3199554038d1)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  legs run                                                    T ONLY (the doc's fixture — a birthday on the device's LOCAL today — read after the zone's UTC midnight, and one on the local tomorrow) — a narrow run with its own fixtures and restore; legs A–F stand on the row's earlier run
+--- T: a birthday on the local today and one on the local tomorrow, read at 19:00 local
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  T: precondition — no contact carries a birthday yet       = 0
+PASS  T: precondition — Tessera exists (the shell's own calendar)  != 
+      people_fixtures_up: raw ids ann=5445 bob=5446 zoe=5447 zhang=5448 number-only=5449 cara=5450,5451 (raw contacts before: 2)
+PASS  T: people_fixtures_up — the row's own Ann                 != 
+PASS  T: people_fixtures_up — the row's own Bob                 != 
+RECORD  T: the device's time and zone now (the clock was moved forward to 19:00 local: yes)  2026-10-02 19:00 MDT (-0600)
+PASS  T: the device's local date is still 2026-10-02, at 19:00 or later  = 2026-10-02 yes
+PASS  T: … which is after the zone's UTC midnight: the device's UTC date is the local tomorrow  = 2026-10-03
+PASS  T: fixtures — the Birthdays calendar exists               != 
+its events: _id=20906, title=Ann Lee's birthday, dtstart=654825600000, allDay=1, rrule=FREQ=YEARLY, duration=P1D;_id=20907, title=Bob Stone's birthday, dtstart=497145600000, allDay=1, rrule=FREQ=YEARLY, duration=P1D;
+PASS  T: fixtures — it holds both birthdays (Ann's and Bob's)   = yes yes
+PASS  T: fixtures — Ann's all-day instance is the UTC day of 2026-10-02 (the local today), Bob's the UTC day of 2026-10-03 (the local tomorrow)  = 1 1
+PASS  T: fixtures — now is past the end of Ann's instance and inside Bob's (what a now … now + 24 h read would see)  = yes yes
+the feed after the birthdays: [calendar] refresh (minute): access=true faces=2 agenda=2
+the CALENDAR tile's texts over 16 dumps:       5 Calendar;      5 Calendar|Ann Lee's birthday|All day;      6 Calendar|Friday|2;
+PASS  T: the tile shows the birthday of the local today (dumps of 16 in which the CALENDAR tile reads Ann Lee's birthday)  != 0
+PASS  T: … and NOT the birthday of the local tomorrow (dumps of 16 in which it reads Bob Stone's)  = 0
+Tess: [You have Ann Lee's birthday.]
+PASS  T: Tess's typed "what is on my calendar" names the birthday of the local today  contains [Ann Lee's birthday]
+PASS  T: … and does NOT name the birthday of the local tomorrow  does not contain [Bob Stone]
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+RECORD  T: phase 14's Agenda pod at the same moment (its rows)      All day  Ann Lee's birthday;All day  Bob Stone's birthday
+PASS  T: all of it in one process (no restart of the shell since the clock moved)  = 31044
+--- restore (leg T)
+PASS  restore: the birthday data rows are removed                 = 0
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  device clock back within 2 s of the host (RV12)             1790931394.00 vs 1790931394.00 +/- 2.0
+PASS  restore: the device's date is the host's again              = 2026-10-02
+PASS  restore: no new crash of the shell during the run           = 0
+------------------------------------------------------------------------------
+E17: 22 passed, 0 failed, 3 recorded

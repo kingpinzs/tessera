@@ -151,3 +151,73 @@ and "+ Email" (14.00 in the counted run); each label's ink left edge is 37.33 ep
 (read from `E20-run1-pass-425-0-103/editor-nameonly.png` by the same reader), asserted ± 0.34 epx. "+ Phone" →
 "+ Email" 44.00 epx, across the rule 62.00. The counted whole-row E20 run stays `E20-run1-pass-425-0-103/`; the extra
 second run on 3c1ad1e0 is now `E20-run2-pass-425-0-103/`. Nothing else of the People rows is re-run.
+
+### 02:55 (2026-10-02) — gate round 1: driver work (no device), then the fourth build's narrow legs
+Driver changes, on the lead's list (a–e) and its two addenda:
+- **E13** `E13_LEGS=create` (New → name + number → Save on the phone: the `ok` line, NULL / NULL, exactly one raw
+  contact added, absent_in for any `write delete` in a slice from a MARK before Save, read 9 s after) and
+  `E13_LEGS=grant` (Contacts revoked → People's notice → the grant in place → `[app] feeds started (people grant)`; a
+  photo given afterwards reaches the People tile; a photo removed over adb leaves it; one pid throughout). The grant leg
+  lives in E13 (E18 is the lead's row).
+- **E16** `E16_LEGS=negative` (the row without its A–Z walk); the switch is now turned OFF again and `(+1 enterprise)`
+  asserted to return; "no people_card_link on the work card" is an assertion (was a RECORD).
+- **E27** `E27_LEGS=create` (a group's create alone: `group create <id>: ok`, NULL / NULL, exactly one group added, no
+  delete after). **E15** `E15_LEGS=sim` (two SIM entries → `sim import: 2 of 2`, both in the phone's account, one
+  `write insert … ok` each, no `write delete`).
+- Reviewer B note 12: `e28.sh` asserts the JVM result's tests count ≥ 1 and equal to the file's `<testcase>` count
+  (`jvm_ran`, both test classes); `e15.sh` anchors the imported copy to raw ids above the highest before the import and
+  asserts no other live "Ann Lee" before it; EDGE P04's three absences assert their page first; `e15.sh`'s record and
+  the clauses-open E15 APK line say 5 MB / code exempt / `scripts/e15_apk.sh`.
+- B20.1 (Share with no receiver): NOT produced and under no JVM test — `edge_index.tsv` says so and
+  `clauses-open.tsv` has an `EDGE P09` line with why (six packages to disable on the shared AVD, one of them
+  Bluetooth's, one the SMS role holder) and what is asserted instead. The lead rules.
+- `E21/notrun.tsv`: eleven People lines added for the take-back and cloud-default forms (b7c45a56), each with
+  PeopleWriterTest's path and case; two are marked NOT COVERED ("whether it was taken back is not known", "no id to
+  take back": no case reaches them).
+The lock: my runner's blocking hold of the real lock was refused by the session's safety check at 02:53 (it reads as
+interfering with the other writer's runs). The legs now run through each driver's own lock (lib.sh, non-blocking), after
+waiting for no driver to be running: `qapeople-legs-wait.sh` → `qapeople-legs2.sh`.
+03:18 — the lead: a FIFTH build went on at 03:17:18 (md5 e03a1d233ee6ba0c, commit ac4a972d; one Calendar Day-view
+constant, nothing of People's). No leg of mine ran on the fourth build (the device was in use each time my drivers
+asked for it: rc 3, nothing run); the five legs (E13 create, E27 create, E15 sim, E16 negative, E13 grant) wait for
+the device and will name e03a1d23.
+03:19 — the lead's two answers: (1) the two NOT COVERED lines of `E21/notrun.tsv` now name their cases
+(`aTakeBackWhoseOutcomeCannotBeReadSaysItIsNotKnown`, `anInsertThatReturnsNoRealIdIsNotFollowedByADelete`; commit
+100b7d8e; both are in the result file, 52 tests, 0 failures); (2) B20.1 is ruled an open clause as written — the
+clauses-open line and the index note stay, nothing to run.
+
+### 04:20 (2026-10-02) — the fifth build (md5 e03a1d233ee6ba0c): five narrow legs, each run once
+Run through each driver's own lock (`qapeople-legs2.sh`), after the Calendar writer's queue drained at 04:00.
+| leg | passed / failed / recorded | folder |
+|---|---|---|
+| E13 create | 30 / 0 / 2 | `E13-legs-create-on-e03a1d23-30-0-2/` |
+| E27 create (a group) | 21 / 0 / 1 | `E27-legs-create-on-e03a1d23-21-0-1/` |
+| E15 sim | 29 / 0 / 1 | `E15-legs-sim-on-e03a1d23-29-0-1/` |
+| E16 negative, with the switch back off | 48 / 0 / 7 | `E16-legs-negative-on-e03a1d23-48-0-7/` |
+| E13 grant | **21 / 24 / 2 — a PRODUCT defect** | `E13-legs-grant-run1-on-e03a1d23-FAIL-people-crashes-with-no-contacts-permission-21-24-2/` |
+
+**D-E13-1** (`defects/D-E13-1.md`): People crashes when opened with neither READ_CONTACTS nor WRITE_CONTACTS held
+(`SecurityException … requires android.permission.READ_CONTACTS or android.permission.WRITE_CONTACTS` at
+`PeopleData.observe(PeopleData.kt:43)` ← `PeopleApp.kt:265`). The leg's 24 failures are that one, seen again at each
+later step. `[app] feeds started (people grant)` was NOT seen: the notice was never drawn. The driver went on after the
+first crash and opened People a second time; the second crash cost the shell its place as the home app (Android's
+"Select a Home app" page). Put back by hand at 04:14 with provision.sh's command
+(`cmd package set-home-activity app.tileshell/app.tileshell.StartActivity`). The driver now stops the leg at the first
+crash and asserts the Home intent in its restore; it also takes `E13_GRANT_REVOKE=read` (READ alone revoked — the
+state in which People does open on its notice). Neither is run.
+Device at 04:15: build e03a1d23; Start resumed, the Home intent resolves to the shell; user 0 only; raw contacts Mom
+and the nameless raw; no group; icc/adn empty; READ / WRITE_CONTACTS granted; no pushed JPEG; awake; LatinIME.
+Driver blobs: the E27, E15 and E16 legs' headers name the drivers as they stand (4d43787d, 0ec917d4, a34a575d;
+people_lib.sh 7dd997df). The two E13 legs ran `e13.sh` blob 77b5008f; the file was edited AFTER both runs (the grant
+leg only: it stops at a People crash, checks the Home intent in its restore, takes E13_GRANT_REVOKE) and is now
+1a5c89e0 — `leg_create` is unchanged by that edit, but the blob in the create leg's header is not the file as it stands.
+
+### 04:23 (2026-10-02) — the sixth build (md5 585b457ffc29878c, commit e226bc68): the grant leg, once
+`E13_LEGS=grant` (both revoked): **49 / 0 / 4**, kept as `E13-legs-grant-on-585b457f-49-0-4/`. People opens on its
+cannot-read notice, no new crash-drop-box entry (2 before, 2 after), one pid (2891) throughout, Android's dialog
+tapped, `[app] feeds started (people grant)` in the slice, the photo reaches the PEOPLE tile and leaves it again in the
+same process. D-E13-1's fix result is appended to `defects/D-E13-1.md`. `e13.sh` gained the crash-drop-box checks
+before this run (blob f096c31b, the file as it stands). `E13_GRANT_REVOKE=read` was not run, on the lead's word.
+Open for the lead: `[people] observer not registered: <kind>` (new in e226bc68) has no producer on a device and no
+JVM test names it; it is in neither E21 table.
+Device after the run: the leg's restore passed (permissions, fixtures, JPEG, raw_contacts, layout, Home intent).

@@ -1,0 +1,60 @@
+==============================================================================
+ROW E15 — Share (the provider's vCard stream), SIM import, filter contact list
+at            2026-10-02T04:02:08-06:00
+driver        e15.sh blob 0ec917d452c198e6acbec3e612053da9bd605928
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob a01abd9075780a8e49193748ce5047031fe19181
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     182a7851a5c76400 339129014 bytes
+apk installed e03a1d233ee6ba0c
+apk match     yes (e03a1d233ee6ba0c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (e03a1d233ee6ba0c)
+RECORD  E15_LEGS — a NARROW run, only these legs of E15 ran (the counted whole-row run is E15/ on 3c1ad1e0)  sim
+PASS  sim: READ_CONTACTS and WRITE_CONTACTS held                  = true true
+PASS  sim: nothing is on "Can edit"                               = 
+      sim: 2 live raw contacts before; the highest raw_contacts _id is 2; icc/adn before: No result found.;
+PASS  sim: the SIM's phonebook is empty before the leg            = 0
+PASS  sim: no raw contact is named Sim Bob or Sim Cy before (deleted rows included)  = 0
+icc/adn: Row: 0 name=Sim Bob, number=5550002, emails=NULL, anrs=NULL, _id=0;Row: 1 name=Sim Cy, number=5550004, emails=NULL, anrs=NULL, _id=1;
+PASS  sim: the emulated SIM's phonebook took the two entries      = 2
+PASS  sim: People's Import from SIM page is on show (people_page:sim)  contains [selected="true"]
+PASS  sim: one people_sim_row: per SIM entry                      = 2
+[people] sim import: 2 of 2
+PASS  sim: diagnostics [people] sim import: n of m — every entry of the SIM  = sim import: 2 of 2
+      sim: raw_contacts rows above the highest _id before the import, as _id:deleted: 5453:0 5454:0
+PASS  sim: exactly 2 raw contacts were added (rows above the highest _id before the import)  = 2
+PASS  sim: … every one of them live (deleted=0)                 = 2
+PASS  sim: the live raw-contact count is 2 more than before the import  = 4
+Row: 0 _id=5453, contact_id=5463, account_name=NULL, account_type=NULL, display_name=Sim Bob, deleted=0
+PASS  sim: one live raw contact is named Sim Bob                  = 1
+PASS  sim: … in the phone's own account (account_name and account_type NULL; Q-16-3)  contains [account_name=NULL, account_type=NULL]
+PASS  sim: … one of the rows added by the import                contains [ 5453 ]
+PASS  sim: … with the SIM's number 5550002                      contains [data1=5550002]
+Row: 0 _id=5454, contact_id=5464, account_name=NULL, account_type=NULL, display_name=Sim Cy, deleted=0
+PASS  sim: one live raw contact is named Sim Cy                   = 1
+PASS  sim: … in the phone's own account (account_name and account_type NULL; Q-16-3)  contains [account_name=NULL, account_type=NULL]
+PASS  sim: … one of the rows added by the import                contains [ 5454 ]
+PASS  sim: … with the SIM's number 5550004                      contains [data1=5550004]
+[people] write insert raw=5453: ok
+[people] write insert raw=5454: ok
+[people] sim import: 2 of 2
+PASS  sim: the slice from the MARK before Import holds [people] write insert raw=5453: ok  contains [[people] write insert raw=5453: ok]
+PASS  sim: the slice from the MARK before Import holds [people] write insert raw=5454: ok  contains [[people] write insert raw=5454: ok]
+PASS  sim: … 2 write lines in that slice, no more (one insert per entry)  = 2
+PASS  sim: NO `[people] write delete` line in that slice, read 10 s after Import (nothing was taken back)  does not contain [[people] write delete]
+PASS  sim: … and no People line in it reports a failure         does not contain [: failed]
+PASS  sim: 10 s after Import the 2 raw contacts are still live    = 2
+--- sim: restore
+PASS  sim restore: icc/adn equals its read before the leg         = No result found.
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  sim restore: the raw_contacts rows equal the rows before the leg  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0
+Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0
+------------------------------------------------------------------------------
+E15: 29 passed, 0 failed, 1 recorded
