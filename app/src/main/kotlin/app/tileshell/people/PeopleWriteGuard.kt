@@ -96,6 +96,14 @@ sealed interface PeopleWrite {
     data class GroupRow(val op: WriteOp, val account: ContactAccount, val viaSyncAdapter: Boolean = false) : PeopleWrite
 }
 
+/**
+ * The one write that is not a user's edit: the delete of a row THIS op has just inserted (a raw contact or a group), by
+ * the id its own insert returned, because the provider filed it under another account than the one asked for. It is
+ * allowed whatever that account is — the alternative is a contact left in an account nobody allowed — and only for an
+ * id an insert really returned.
+ */
+data class TakeBack(val insertedId: Long)
+
 sealed interface GuardVerdict {
     data object Allowed : GuardVerdict
 
@@ -140,6 +148,10 @@ object PeopleWriteGuard {
             else -> GuardVerdict.Refused(null)
         }
     }
+
+    /** A take-back needs a real id: zero, a negative id or another profile's stand-in is never one an insert returned. */
+    fun check(takeBack: TakeBack): GuardVerdict =
+        if (takeBack.insertedId > 0) GuardVerdict.Allowed else GuardVerdict.Refused(takeBack.insertedId)
 
     private fun one(raw: RawRef, policy: EditPolicy): GuardVerdict =
         if (editable(raw, policy)) GuardVerdict.Allowed else GuardVerdict.Refused(raw.id)

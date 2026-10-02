@@ -34,6 +34,9 @@ interface ContactsPort {
     /** WRITE_CONTACTS is held. */
     fun mayWrite(): Boolean
 
+    /** The phone's default account for new contacts is a cloud account (Android 16's rule; false where there is none). */
+    fun newContactsGoToCloud(): Boolean
+
     // ---- what an op resolves from the provider before the guard is asked
 
     /** The contact id is one the provider gives another profile's contact (a work-profile row of the enterprise search). */
@@ -97,6 +100,9 @@ class PeopleWrites(private val port: ContactsPort) {
     fun create(account: ContactAccount, source: NewContactSource, fields: List<FieldEdit>, photo: ByteArray? = null): WriteResult {
         if (refused(PeopleWrite.NewRawContact(account, source))) return refusedLine("insert", "new")
         if (!port.mayWrite()) return failedLine("insert", "new", NOT_HELD, needsGrant = true)
+        // Said before anything is written, in words: Android 16 refuses a contact made in the phone's own account
+        // while the phone's default account for new contacts is a cloud one (adversarial review, finding 4).
+        if (port.policy().isPhone(account) && port.newContactsGoToCloud()) return WriteResult.Failed(CLOUD_DEFAULT, cloudDefault = true).also { port.line("write insert raw=new: failed $CLOUD_DEFAULT") }
         val rows = ArrayList<RowWrite>()
         rows += RowWrite(WriteOp.INSERT, RAW_CONTACTS, linkedMapOf(RawContacts.ACCOUNT_NAME to account.name, RawContacts.ACCOUNT_TYPE to account.type))
         fields.filter { it.value.isNotBlank() }.forEach { f ->
@@ -108,11 +114,10 @@ class PeopleWrites(private val port: ContactsPort) {
         // another account there. People never leaves a contact in an account it was not asked to write (Q-16-3): the
         // row this op has just made — that row alone, by the id the insert returned — is taken back, and the save
         // fails aloud (trust review A, "could not check" 2; gate review A, finding 3).
-        val landed = runCatching { port.rawContacts(listOf(rawId))[rawId]?.account }.getOrNull()
-        if (landed != account) {
-            runCatching { port.delete("$RAW_CONTACTS/$rawId") }
+        val landed = port.rawContacts(listOf(rawId))[rawId]?.account
+        if (!isWhereAsked(account, landed)) {
             val why = if (landed == null) "the new contact could not be read back" else "the phone filed it under ${accountWord(landed)}, not ${accountWord(account)}"
-            return failedLine("insert", rawId.toString(), "$why; it was taken back")
+            return takeBack("insert", "raw", "$RAW_CONTACTS/$rawId", rawId, why) { port.rawContacts(listOf(rawId))[rawId]?.account }
         }
         port.line("write insert raw=$rawId: ok")
         if (photo != null) {
@@ -270,7 +275,9 @@ class PeopleWrites(private val port: ContactsPort) {
             )
             when (val result = create(local, NewContactSource.SIM_IMPORT, fields)) {
                 is WriteResult.Ok -> imported++
-                is WriteResult.Failed -> { failure = result; if (result.needsGrant) break }
+                // What stopped this entry will stop the next: the grant, the phone's cloud default, or a phone that
+                // files new contacts elsewhere — one row written and taken back is enough to know.
+                is WriteResult.Failed -> { failure = result; if (result.needsGrant || result.cloudDefault || result.takenBack || result.leftBehind != null) break }
                 WriteResult.Refused -> Unit
             }
         }
@@ -285,12 +292,19 @@ class PeopleWrites(private val port: ContactsPort) {
         if (title.isBlank()) return groupFailed("create", "new", "a group needs a name")
         if (refused(PeopleWrite.GroupRow(WriteOp.INSERT, account))) return groupFailed("create", "new", "refused (not allowed)", refused = true)
         if (!port.mayWrite()) return groupFailed("create", "new", NOT_HELD, needsGrant = true)
-        return runCatching {
+        if (port.policy().isPhone(account) && port.newContactsGoToCloud()) return WriteResult.Failed(CLOUD_DEFAULT, cloudDefault = true).also { port.line("group create new: failed $CLOUD_DEFAULT") }
+        val id = runCatching {
             val values = linkedMapOf<String, Any?>(Groups.TITLE to title.trim(), Groups.ACCOUNT_NAME to account.name, Groups.ACCOUNT_TYPE to account.type, Groups.GROUP_VISIBLE to 1)
-            val id = port.insert(GROUPS, values) ?: error("no group was made")
-            port.line("group create $id: ok")
-            WriteResult.Ok(id = id) as WriteResult
-        }.getOrElse { groupFailed("create", "new", describe(it)) }
+            port.insert(GROUPS, values) ?: error("no group was made")
+        }.getOrElse { return groupFailed("create", "new", describe(it)) }
+        // A group's account is resolved by the provider as a raw contact's is: the same read-back, the same take-back.
+        val landed = port.group(id)?.account
+        if (!isWhereAsked(account, landed)) {
+            val why = if (landed == null) "the new group could not be read back" else "the phone filed it under ${accountWord(landed)}, not ${accountWord(account)}"
+            return takeBack("group create", "group", "$GROUPS/$id", id, why) { port.group(id)?.account }
+        }
+        port.line("group create $id: ok")
+        return WriteResult.Ok(id = id)
     }
 
     fun renameGroup(groupId: Long, title: String): WriteResult {
@@ -451,7 +465,47 @@ class PeopleWrites(private val port: ContactsPort) {
         return WriteResult.Refused
     }
 
-    private fun accountWord(account: ContactAccount): String = account.name?.takeIf { it.isNotBlank() } ?: "the phone"
+    /** The account as a line names it: its `type:name`, so two accounts with one name are told apart. */
+    private fun accountWord(account: ContactAccount): String = if (account.isNull) "the phone (no account)" else account.id
+
+    /** The row is where it was asked to go: the phone's own account by the policy's rule, any other account exactly. */
+    private fun isWhereAsked(asked: ContactAccount, landed: ContactAccount?): Boolean {
+        if (landed == null) return false
+        val policy = port.policy()
+        return if (policy.isPhone(asked)) policy.isPhone(landed) else landed == asked
+    }
+
+    /**
+     * Takes back the row this op has just inserted ([uri], the id its own insert returned) and says what happened,
+     * truthfully: removed, or still there. The delete is the one write that asks the guard nothing about an account
+     * ([TakeBack]): leaving the row would leave a contact where nobody allowed one.
+     */
+    private fun takeBack(op: String, what: String, uri: String, id: Long, why: String, stillThere: () -> ContactAccount?): WriteResult.Failed {
+        val line = if (op == "insert") "write insert raw=$id" else "$op $id"
+        if (PeopleWriteGuard.check(TakeBack(id)) is GuardVerdict.Refused) {
+            port.line("$line: failed $why; no id to take back")
+            return WriteResult.Failed("$why; no id to take back", leftBehind = id)
+        }
+        val removed = runCatching { port.delete(uri) }.getOrDefault(-1)
+        val still = stillThere()
+        return when {
+            removed >= 1 && still == null -> {
+                port.line("write delete $what=$id: ok (taken back)")
+                port.line("$line: failed $why; it was taken back")
+                WriteResult.Failed("$why; it was taken back", takenBack = true)
+            }
+            still != null -> {
+                port.line("write delete $what=$id: failed (removed $removed)")
+                port.line("$line: failed $why; it could NOT be taken back - still in ${accountWord(still)}")
+                WriteResult.Failed("$why; it could NOT be taken back - still in ${accountWord(still)}", leftBehind = id)
+            }
+            else -> {
+                port.line("write delete $what=$id: failed (removed $removed)")
+                port.line("$line: failed $why; whether it was taken back is not known")
+                WriteResult.Failed("$why; whether it was taken back is not known", leftBehind = id)
+            }
+        }
+    }
 
     private fun failedLine(op: String, raw: String, error: String, needsGrant: Boolean = false): WriteResult.Failed {
         port.line("write $op raw=$raw: failed $error")
@@ -464,10 +518,15 @@ class PeopleWrites(private val port: ContactsPort) {
     }
 
     /** An error as the ring states it: the exception's kind, never a caller's text. */
-    private fun describe(error: Throwable): String = error.message?.takeIf { it.length <= 80 && '\n' !in it } ?: error.javaClass.simpleName
+    private fun describe(error: Throwable): String = when {
+        // Android 16's refusal, in case the pre-check could not see it coming: its own message is a word too long.
+        error is IllegalArgumentException && error.message?.contains("default account is set to cloud") == true -> CLOUD_DEFAULT
+        else -> error.message?.takeIf { it.length <= 80 && '\n' !in it } ?: error.javaClass.simpleName
+    }
 
     companion object {
         const val NOT_HELD = "WRITE_CONTACTS not held"
+        const val CLOUD_DEFAULT = "the phone's default account for new contacts is a cloud account, so it refuses one saved to the phone"
 
         /** The Contacts provider's tables, as URIs. */
         private const val BASE = "content://${PeopleIntents.AUTHORITY}"

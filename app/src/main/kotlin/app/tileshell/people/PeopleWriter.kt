@@ -17,8 +17,16 @@ sealed interface WriteResult {
     /** [rawId] is the raw contact a create made; [id] the group a group create made. */
     data class Ok(val rawId: Long? = null, val id: Long? = null) : WriteResult
 
-    /** [needsGrant]: WRITE_CONTACTS is not held, so the page offers the grant in place. */
-    data class Failed(val error: String, val needsGrant: Boolean = false) : WriteResult
+    /**
+     * [needsGrant]: WRITE_CONTACTS is not held, so the page offers the grant in place. [cloudDefault]: the phone's
+     * default account for new contacts is a cloud account, so it refuses one saved to the phone — nothing was written.
+     * [takenBack]: the provider filed the new row under another account than asked and the row was removed again.
+     * [leftBehind]: it was filed elsewhere and could NOT be removed — the id of what is still there.
+     */
+    data class Failed(
+        val error: String, val needsGrant: Boolean = false, val cloudDefault: Boolean = false,
+        val takenBack: Boolean = false, val leftBehind: Long? = null,
+    ) : WriteResult
 
     /** The write guard refused it: an account that is not on "Can edit". Nothing was written. */
     data object Refused : WriteResult
@@ -97,6 +105,16 @@ private class ResolverContacts(private val context: Context) : ContactsPort {
     override fun policy(): EditPolicy = PeopleEditStore.policy(context)
 
     override fun mayWrite(): Boolean = PeopleData.canWrite(context)
+
+    /**
+     * Android 16's own answer (`RawContacts.DefaultAccount`): the phone's default account for new contacts is a cloud
+     * account. With that set, its provider refuses a contact or group made in the local account by an app that targets
+     * API 36. Before API 36 there is no such rule, and a read that fails says "no".
+     */
+    override fun newContactsGoToCloud(): Boolean = android.os.Build.VERSION.SDK_INT >= 36 && runCatching {
+        val state = android.provider.ContactsContract.RawContacts.DefaultAccount.getDefaultAccountForNewContacts(resolver)
+        state.state == android.provider.ContactsContract.RawContacts.DefaultAccount.DefaultAccountAndState.DEFAULT_ACCOUNT_STATE_CLOUD
+    }.getOrDefault(false)
 
     override fun isOtherProfile(contactId: Long): Boolean = Contacts.isEnterpriseContactId(contactId)
 
