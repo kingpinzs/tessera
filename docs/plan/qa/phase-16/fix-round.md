@@ -63,3 +63,10 @@ A-F15 below.
 - APK: commit 6e524e56, 341,947,382 bytes, md5 3c1ad1e0e65bd919 (`fixbuild/apk.txt`); `exported.py` rc 0, "20 exported in app.tileshell, 20 on the allow-list" (`fixbuild/exported.out`).
 - Installed over 686506a7 on emulator-5554 (`fixbuild/install.out`): apk match yes, the four contacts / calendar permissions granted, 0 crashes, the store carries `remindersSince`.
 - Every row run before this build was on 686506a7 and does not count for the gate; the rows are run again on this build.
+
+## After the fix build (found by the rows on 3c1ad1e0; each is verified by the one row it touches — the owner's ruling of 2026-10-01, "only test the fixes")
+| # | From | What | Disposition | State |
+|---|---|---|---|---|
+| F32 | Row defect `defects/D-E16-1.md` (People row writer, E16 run 2 on the fix build) | A People search that finds nothing looked blank: its line, `No contacts match "<query>".`, was the page's notice band, which sits above the app bar — behind the keyboard that is up while a query is typed (the dump held it at y 1968–2022, the keyboard covers from about y 1423). The line is now drawn where the first result would be, tag `people_empty`, and the band no longer carries it | FIX (`people/PeopleListPage.kt` only) | BUILT on `phase-16` 1a82e59c (unit suite 1266 / 0, `fixbuild/unit-D-E16-1.out`); NOT in an APK yet — one more build is made when the never-run rows have run, then E16 runs once on it (asserting the line by tag, text and its bottom edge above the keyboard); every other row's run on 3c1ad1e0 stands (`E21/builds.txt`, `E21/rerun.txt`) |
+| F33 | The lead's E1, first run with its children on the fix build (87 / 6) | Not the product: four driver faults (a child script's exit code that is 1 on success; a label a small tile never draws; two expectations about an emptied layout that phase 01's resolver does not meet) and a fixture (Auxio had no music source on this AVD) | DRIVER + FIXTURE (INDEX Change Log 2026-10-01, "E1's children"; `fixtures/README.md`) | DONE: the children part judged again alone, `E1_CHILDREN/` 22 / 0 on 3c1ad1e0; E1's legs passed in the first run (`E21/partials.txt`) |
+
