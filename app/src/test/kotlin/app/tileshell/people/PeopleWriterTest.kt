@@ -279,6 +279,28 @@ class PeopleWriterTest {
         assertNothingWritten(cloud)
     }
 
+    @Test fun aTakeBackWhoseOutcomeCannotBeReadSaysItIsNotKnown() {
+        // The new row could not be read back, the delete says it removed nothing, and the row still cannot be read:
+        // neither "taken back" nor "still in <account>" is known, and the result says so (leftBehind, to be safe).
+        val fake = FakeContacts().apply { deleteBehaviour = "removes nothing" }
+        fake.afterBatch = { fake.raws.remove(100) }
+        val result = PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact) as WriteResult.Failed
+        assertEquals("the new contact could not be read back; whether it was taken back is not known", result.error)
+        assertEquals(100L, result.leftBehind)
+        assertEquals(false, result.takenBack)
+        assertEquals("write insert raw=100: failed the new contact could not be read back; whether it was taken back is not known", fake.lines.last())
+    }
+
+    @Test fun anInsertThatReturnsNoRealIdIsNotFollowedByADelete() {
+        // The provider answered the insert with id 0 and the row is not where it was asked to go: there is nothing the
+        // take-back may name (0 is no id an insert returns), so no delete is issued and the result says so.
+        val fake = FakeContacts().apply { nextId = 0; newRawLandsIn = work }
+        val result = PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact) as WriteResult.Failed
+        assertTrue(result.error, result.error.endsWith("no id to take back"))
+        assertEquals("the batch alone: no delete", listOf<Call>(newContactBatch(phone)), fake.calls)
+        assertTrue(fake.lines.last(), fake.lines.last().endsWith("no id to take back"))
+    }
+
     @Test fun aTakeBackNeedsAnIdAnInsertReallyReturned() {
         assertEquals(GuardVerdict.Allowed, PeopleWriteGuard.check(TakeBack(100)))
         assertEquals(GuardVerdict.Refused(0), PeopleWriteGuard.check(TakeBack(0)))
