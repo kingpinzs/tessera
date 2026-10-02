@@ -99,6 +99,6 @@ class PeopleEditStore private constructor(private val file: File) {
         fun localAccount(context: Context): ContactAccount = ContactAccount(
             ContactsContract.RawContacts.getLocalAccountName(context),
             ContactsContract.RawContacts.getLocalAccountType(context),
-        )
+        ).also { CardRules.phoneAccount = it }
     }
 }
