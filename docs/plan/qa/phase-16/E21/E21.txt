@@ -1,0 +1,105 @@
+==============================================================================
+ROW E21 — every diagnostics alternative is in this build's saved ring slices
+at            2026-10-02T02:07:13-06:00
+driver        e21.sh blob 64ae805994fc4b003e1f80a3f10c6824f47ddd66
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     5b485720363c32cb 339112630 bytes
+apk installed 2150eba004db6757
+apk match     yes (2150eba004db6757)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      this build (installed): 2150eba004db6757
+      also counting E25 on build 686506a7a7936b2e: the fix round changed nothing the row drives: feeds/PeopleFeed.kt, feeds/PeopleTileRules.kt and start/PeopleTileFace.kt are identical in b854c074 and 6e524e56 (git diff --stat b854c074..6e524e56 -- app/src/main lists none of them)
+      also counting * on build 3c1ad1e0e65bd919: the first fix build: the later builds change only what rerun.txt's rows drive (git diff --stat 6e524e56..dacca941 -- app/src/main: PeopleListPage.kt's empty-search line, CommandMatcher.kt's calendar-add title strip, three position constants in CalendarWidgets.kt / CalendarViews.kt)
+      also counting * on build 6009c0b14a87039f: the second fix build: the third changes only what rerun.txt names for 2150eba0 (git diff --stat dacca941..a91837fd -- app/src/main: CalendarViews.kt's Agenda items and the empty-day x, CalendarWidgets.kt's one constant, PeopleEditorPage.kt's plus-glyph x)
+      run folders counted: E10 E11 E11-run1-driver-capture-burst-took-a-stray-frame E11-run2-driver-a-late-dump-missed-the-resting-bubble E12 E12-run1-driver-three-reads-and-a-call-left-up E13 E14 E15_APK E15 E16 E16-run1-driver-testdpc-switch-is-on-its-second-page E16-run2-empty-search-says-nothing-and-a-driver-dumpsys-read E16-run3-driver-misread-the-keyboard-line E17 E18 E18-run1-killed-mid-leg-C-by-my-runner E19-legs-1-on-2150eba0-64-0-7 E19-run1-ink-positions-and-a-leftover-event-today E19-run2-no-events-today-ink-at-25.67 E1_CHILDREN E1-fixbuild-run1-driver-faults-and-auxio-fixture-87-6 E20-legs-plus-glyph-40-0-19 E20-run1-pass-425-0-103 E20-run2-pass-425-0-103 E22 E23 E24 E24-run1-standup-crossed-midnight E25-build-686506a7-run1-pass-58-0-0 E25 E26 E27 E28 E2 E3 E3-run1-on-3c1ad1e0-68-0-1 E4 E5 E6 E6-run1-leg-e-precondition-failed-pm-clear-restarts-the-shell E7-baseline-empty-calendar-49-of-435-janky-11.26-percent E7-baseline-empty-calendar-on-2150eba0-48-of-432-janky-11.11-percent E7-legs-jank-on-2150eba0-32-1-21-janky-14.58-percent E7-run1-janky-frames-14-percent E7-run2-per-leg-diagnosis-janky-14.38-percent E8 E9-legs-A-W-on-2150eba0-17-0-4 E9-legs-A-W-run1-no-summary-the-restore-was-skipped-12-0 E9-run1-add-title-keeps-the-phrase E9-run2-dentist-outside-tess-24-hours-at-0026 EDGE-cal-run1-C01-to-C17-220-7-14 EDGE-cal-run2-C01-alone-41-0-3 EDGE-cal-run3-C05-alone-41-0-2 EDGE-cal-run4-C09-alone-41-0-2 EDGE-cal-run5-C14-alone-39-0-1 EDGE-cal-run6-C16-alone-39-0-2 EDGE-cal-run7-C12-C14-C15-C17-on-2150eba0-79-0-1 EDGE-people-run1-P01-to-P10-181-1-21 EDGE-people-run2-P10-58-0-4 T2SMOKE TRUST-run1-driver-faults-100-4 TRUST-run3-driver-fault-103-1 TRUST 
+PASS  at least one row ran on this build                          != 0
+RECORD  ring slices read                                            169 files in 64 rows
+PASS  at least one slice                                          != 0
+PASS  [people] list: n contacts read=true …                     in E10/ring-launcher.txt (producer: E10)
+PASS  [people] list: n contacts read=false …                    in E18/ring-launcher.txt (producer: EDGE P06 (also E18, the Calendar writer's row))
+PASS  [people] list: … write=true                               in E10/ring-launcher.txt (producer: E10)
+PASS  [people] list: … write=false                              in E13/ring-launcher.txt (producer: E13)
+PASS  [people] search "<q>": n (+0 enterprise)                    in E10/ring-launcher.txt (producer: E10)
+PASS  [people] search "<q>": n (+m enterprise), m ≥ 1           in E16/ring-launcher.txt (producer: E16)
+PASS  [people] write insert raw=<id>: ok                          in E13/ring-launcher.txt (producer: E13)
+PASS  [people] write update raw=<id>: ok                          in E11/ring-launcher.txt (producer: E13)
+PASS  [people] write delete raw=<id>: ok                          in E13/ring-launcher.txt (producer: E13)
+PASS  [people] write <op> raw=<id>: failed <err> (WRITE_CONTACTS not held)  in E13/ring-launcher.txt (producer: E13)
+PASS  [people] write update raw=<id>: failed <err> (the raw contact deleted while its editor is open)  in EDGE-people-run1-P01-to-P10-181-1-21/ring-launcher.txt (producer: EDGE P03)
+PASS  [people] write <op> raw=<id>: refused (not allowed)         in E28/ring-launcher.txt (producer: E28 (leg X, fix-round F15))
+PASS  [people] edit <lookup>: refused (account not allowed)       in E28/ring-launcher.txt (producer: E28)
+PASS  [people] link <a>+<b>: ok                                   in E14/ring-launcher.txt (producer: E14)
+PASS  [people] link <a>+<b>: failed                               in EDGE-people-run1-P01-to-P10-181-1-21/ring-launcher.txt (producer: EDGE P03)
+PASS  [people] unlink <a>+<b>: ok (the build's added line)        in E14/ring-launcher.txt (producer: E14)
+PASS  [people] sim import: n of m (n ≥ 1)                       in E15/ring-launcher.txt (producer: E15)
+PASS  [people] sim import: 0 of 0                                 in E15/ring-launcher.txt (producer: E15)
+PASS  [people] tile: n photos (n ≥ 1)                           in E11/ring-launcher.txt (producer: E11)
+PASS  [people] tile: 0 photos                                     in E10/ring-launcher.txt (producer: E11)
+PASS  [people] tile event <n> t0=<uptime> lookup=<key>            in E11/ring-launcher.txt (producer: E11)
+PASS  [people] group create <id>: ok                              in E20-run1-pass-425-0-103/ring-launcher.txt (producer: E27)
+PASS  [people] group create …: failed <err>                     in E27/ring-launcher.txt (producer: E27)
+PASS  [people] group rename <id>: ok                              in E27/ring-launcher.txt (producer: E27)
+PASS  [people] group rename <id>: failed <err>                    in E27/ring-launcher.txt (producer: E27)
+PASS  [people] group delete <id>: ok                              in E27/ring-launcher.txt (producer: E27)
+PASS  [people] group delete <id>: failed <err>                    in E27/ring-launcher.txt (producer: E27)
+PASS  [people] share <lookup>: <uri>                              in E15/ring-launcher.txt (producer: E15)
+PASS  [people] action call -> <component> <uri>                   in E12/ring-launcher.txt (producer: E12)
+PASS  [people] action text -> <component> <uri>                   in E12/ring-launcher.txt (producer: E27 (and E12))
+PASS  [people] action mail -> <component> <uri>                   in E12/ring-launcher.txt (producer: E12)
+PASS  [people] action map -> <component> <uri>                    in E12/ring-launcher.txt (producer: E12)
+PASS  [motion] people_bubble_out                                  in E11/ring-launcher.txt (producer: E11)
+PASS  [motion] people_bubble_in                                   in E11/ring-launcher.txt (producer: E11)
+PASS  [motion] people_pivot                                       in E20-run1-pass-425-0-103/ring-launcher.txt (producer: E20)
+PASS  [people] open other -> <route> (an unhandled intent action is logged as `other`; fix-round F4)  in TRUST-run1-driver-faults-100-4/ring-launcher.txt (producer: TRUST)
+PASS  [people] pick: no caller to return a result to; the list was opened (fix-round F5)  in TRUST-run1-driver-faults-100-4/ring-launcher.txt (producer: TRUST)
+PASS  [people] pick: cancelled (fix-round F5)                     in TRUST-run1-driver-faults-100-4/ring-launcher.txt (producer: TRUST)
+PASS  [people] pick: one contact URI granted (read)               in TRUST-run1-driver-faults-100-4/ring-launcher.txt (producer: TRUST)
+PASS  [people] pick: one phone URI granted (read)                 in TRUST-run1-driver-faults-100-4/ring-launcher.txt (producer: TRUST)
+PASS  [calendar] calendars: n (local created id=<id>)             in E18/C2-slice.txt (producer: E3)
+PASS  [calendar] calendars: n (local present)                     in E17/ring-launcher.txt (producer: E3)
+PASS  [calendar] calendars: none (<why>)                          in EDGE-cal-run1-C01-to-C17-220-7-14/C01-slice.txt (producer: EDGE C01)
+PASS  [calendar] calendars: n (local missing: WRITE_CALENDAR)     in E18/C-slice.txt (producer: E18)
+PASS  [calendar] calendars: denied (READ_CALENDAR)                in E18/A-slice.txt (producer: E18)
+PASS  [calendar] local calendar created: <uri>                    in E18/C2-slice.txt (producer: E3)
+PASS  [calendar] local calendar lookup failed: <err>              in E18/D-slice.txt (producer: E18)
+PASS  [calendar] local calendar could not be created: <err>       in E18/C-tess-slice.txt (producer: E18)
+PASS  [calendar] view agenda <from>..<to>: n instances in <ms> ms  in E17/ring-launcher.txt (producer: E5)
+PASS  [calendar] view day <from>..<to>: n instances in <ms> ms    in E17/ring-launcher.txt (producer: E4)
+PASS  [calendar] view week <from>..<to>: n instances in <ms> ms   in E19-run1-ink-positions-and-a-leftover-event-today/ring-launcher.txt (producer: E7)
+PASS  [calendar] write insert event=<id>: ok                      in E17/ring-launcher.txt (producer: E4)
+PASS  [calendar] write update event=<id>: ok                      in E22/ring-launcher.txt (producer: E22)
+PASS  [calendar] write delete event=<id>: ok                      in E22/ring-launcher.txt (producer: E4)
+PASS  [calendar] write update event=<id>: failed <err> (the event deleted while its editor is open)  in E22/L-slice.txt (producer: EDGE C11)
+PASS  [calendar] write update event=<id>: failed refused (not allowed) (the guard's refusal is always said; fix-round F15)  in E22/L-slice.txt (producer: E22 (leg L))
+PASS  [calendar] reminder event=<id> minutes=<n>: notified        in E24/N-slice.txt (producer: E6)
+PASS  [calendar] reminder event=<id> minutes=<n>: dismissed       in E6/d-slice.txt (producer: E6)
+PASS  [calendar] reminder event=<id> minutes=<n>: swipe ignored (no such alert now) (fix-round F3)  in TRUST-run1-driver-faults-100-4/S-slice.txt (producer: TRUST)
+PASS  [calendar] reminder event=<copy id> minutes=<n>: skipped (synced copy)  in E24/N-slice.txt (producer: E24)
+PASS  [calendar] reminder: n skipped (due before the shell's first start)  in E6/e-slice.txt (producer: E6)
+PASS  [calendar] reminders count from <ms> (the shell's start: first on this install)  in E1-fixbuild-run1-driver-faults-and-auxio-fixture-87-6/ring-launcher.txt (producer: EDGE C16 (also EDGE C06; the lead's E1 on a fresh install))
+PASS  [calendar] reminders count from <ms> (the clock was set: it went back behind <old>)  in EDGE-cal-run6-C16-alone-39-0-2/C16-set-back-slice.txt (producer: EDGE C16)
+PASS  [calendar] birthdays: n synced                              in E10/ring-launcher.txt (producer: E17)
+PASS  [calendar] birthdays calendar could not be created: <err>   in E17/F-slice.txt (producer: E17)
+PASS  [calendar] sync event=<id> -> calendar <id>: ok             in E24/ring-launcher.txt (producer: E24)
+PASS  [calendar] sync event=<id> -> calendar <id>: updated        in E24/ring-launcher.txt (producer: E24)
+PASS  [calendar] sync event=<id> -> calendar <id>: recreated      in E24/ring-launcher.txt (producer: E24)
+PASS  [calendar] sync event=<id> -> calendar <id>: failed <err> (failed calendar gone)  in E24/ring-launcher.txt (producer: E24)
+PASS  [calendar] sync event=<id> -> calendar <id>: failed mapping stale  in EDGE-cal-run1-C01-to-C17-220-7-14/C04-delete-slice.txt (producer: EDGE C04)
+PASS  [calendar] sync event=<id> -> calendar <id>: failed calendar read-only  in EDGE-cal-run1-C01-to-C17-220-7-14/C07-readonly-slice.txt (producer: EDGE C07)
+PASS  [calendar] sync event=<id>: no calendar allowed -> can sync to  in E23/ring-launcher.txt (producer: E23)
+PASS  [calendar] counts: <account name>/<displayName>=<n>, …    in E17/ring-launcher.txt (producer: E22)
+PASS  [motion] cal_month_dropdown t0=… settle=<ms> frames=<n> maxGapMs=<ms>  in E19-run1-ink-positions-and-a-leftover-event-today/ring-launcher.txt (producer: E19)
+PASS  [motion] cal_day_page t0=… settle=<ms> frames=<n> maxGapMs=<ms>  in E19-run1-ink-positions-and-a-leftover-event-today/ring-launcher.txt (producer: E19)
+PASS  [calendar] open other -> <route> (an unhandled intent action is logged as `other`; fix-round F4)  in TRUST-run1-driver-faults-100-4/ring-launcher.txt (producer: TRUST)
+RECORD  alternatives with a producer                                76
+RECORD  NOT RUN: [people] tile: photo <lookup> skipped: <why>       the Contacts provider decodes a photo when it is written, so no fixture can store an undecodable one (r3 V6) — JVM: PeopleTileRulesTest (app/src/test/kotlin/app/tileshell/feeds/PeopleTileRulesTest.kt)
+RECORD  NOT RUN: [people] link <a>+<b>: refused (not allowed)       Link / Unlink with another profile's contact is refused by the guard (fix-round F23), and no page offers it: a work-profile card has no Link action (E16 asserts its card's actions), so the refusal cannot be reached from the UI — JVM: PeopleWriterTest (app/src/test/kotlin/app/tileshell/people/PeopleWriterTest.kt)
+RECORD  NOT RUN: [calendar] sync event=<id> -> calendar <id>: refused (not allowed)  no page offers a Sync the guard refuses: the picker lists only the calendars allowed on "Can sync to", and a synced event whose target left that list opens "Can sync to" instead of writing (E23, E24), so the refusal cannot be reached from the app — JVM: CalendarWriteGuardTest (app/src/test/kotlin/app/tileshell/calendar/CalendarWriteGuardTest.kt)
+RECORD  NOT RUN: [calendar] sync event=<id> -> calendar <id>: failed the copy could not be read  a copy row the provider cannot return while its mapping stands cannot be made from adb: a copy deleted or moved on the other side reads as gone (recreated, E24) or stale (EDGE C04), never unreadable (fix-round F30) — JVM: CalendarWriteLayerTest (app/src/test/kotlin/app/tileshell/calendar/CalendarWriteLayerTest.kt)
+RECORD  NOT RUN: [calendar] reminders count from <ms> (the shell's start: the clock was set back behind <old>)  the clock would have to go back while the shell is not running, and the system restarts the Home app within a second of a stop; set back under the running shell, the same rule logs its other form (EDGE C16: the clock was set: it went back behind <old>) — JVM: CalendarRulesTest (app/src/test/kotlin/app/tileshell/calendar/CalendarRulesTest.kt)
+RECORD  alternatives not run on a device                            5
+PASS  no alternative is in both tables                            = 0
+------------------------------------------------------------------------------
+E21: 79 passed, 0 failed, 8 recorded

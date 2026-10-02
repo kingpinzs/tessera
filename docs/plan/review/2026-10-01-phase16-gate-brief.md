@@ -17,7 +17,7 @@ never print `local.properties`.
    (E1–E28), Edge cases, QA evidence.
 2. `docs/plan/INDEX.md`: row 16, and every Change Log entry dated 2026-10-01 (rulings Q-16-4 and Q-16-5, the fix
    round, the readings and re-cuts, "only test the fixes").
-3. The evidence table: `docs/plan/review/2026-10-01-phase16-gate-evidence.md` (generated from the run folders by
+3. The evidence table: `docs/plan/review/2026-10-02-phase16-gate-evidence.md` (generated from the run folders by
    `qa/phase-16/scripts/gate_evidence.py`; regenerate it if you doubt it). Each row names ONE evidence run folder under
    `docs/plan/qa/phase-16/`; the row's log is `<ROW>.txt` inside it, with the APK id in its header.
 4. `docs/plan/qa/phase-16/`: `fix-round.md` (F1–F31 and what came after), `clauses-open.tsv` (clauses asserted in
@@ -43,6 +43,21 @@ never print `local.properties`.
 - No reflex rounds: this is one review. Mark a finding **BLOCKING** only if the product misses the doc in a way a user
   or another app can hit, or a trust property is unproven, or a row's evidence cannot show what the row claims.
   Everything else is a **NOTE**.
+
+## The builds, and the one clause that is with the owner
+
+- Three fix builds, in order: `3c1ad1e0` (commit 6e524e56) → `6009c0b1` (dacca941) → `2150eba0` (a91837fd, packaged
+  afresh; the gate's build). `E21/builds.txt` and `E21/rerun.txt` say which runs on the earlier two stand and why;
+  `fix-round.md`'s last section lists each product fix made after the first fix build (F32–F38) with the one row or
+  leg that verified it.
+- **E7's janky-frames clause is OPEN and is the owner's (question Q-16-6, put to him 2026-10-02 01:25, not yet
+  answered).** As the doc words it (≤ 5 % over the run) it FAILS: 64 of 439 = 14.58 % on the gate build — and the SAME
+  legs on an EMPTY calendar read 48 of 432 = 11.11 % on that build (`defects/D-E7-1.md`, the per-leg tables and the
+  per-frame files). The lead's lean, option A: judge the row against the empty-calendar run (at most 5 points above it,
+  and no single frame over 100 ms — today 3.5 points and 66.8 ms). Do not count this clause as a BLOCKING finding of
+  yours; do say, under your lens, whether the comparison is a sound measure of "thousands of events" and whether the
+  remaining per-swipe cost (the first drag frame builds the neighbour page; about one settle frame per swipe with
+  events) should be a product fix now or a recorded finding. E7's other clauses are yours to judge as any row's.
 
 ## Lens A — design and correctness
 

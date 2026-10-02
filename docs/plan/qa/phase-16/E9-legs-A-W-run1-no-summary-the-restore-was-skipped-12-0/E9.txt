@@ -1,0 +1,31 @@
+==============================================================================
+ROW E9 — Tess on this AVD: J6 twice, the typed add / read / delete, the gated commands, text / call / reminder by name
+at            2026-10-02T00:46:09-06:00
+driver        e9.sh blob 5ff2b442dafd6b1cc79d60e786804393986f21fc
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     03c09e0494b33ec0 343237622 bytes
+apk installed 6009c0b14a87039f
+apk match     yes (6009c0b14a87039f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  legs run                                                    A,W ONLY — a narrow re-run; the children and the other legs stand on the row's earlier run
+PASS  precondition: Tessera exists                                != 
+PASS  precondition: no standup event is left by the children (purged; j6.sh's own restore deletes nothing)  = 0
+--- A: the typed "add a calendar event called dentist tomorrow at 2 pm"
+RECORD  the device's time at this leg (the dentist is in Tess's 24-hour read after 14:00 only)  2026-10-02 00:46 MDT
+PASS  A: the confirmation card (phase 03 E7's form: cortana_card:calendar_confirm)  = yes
+PASS  A: … with its confirm button                              = yes
+PASS  A: … and nothing is added before the tap                  = 0
+RECORD  A: the card's texts                                         Add this to your calendar? | Event | dentist | 2:00 PM | Tomorrow | you can say Yes, No, or Cancel | Add | Cancel
+events: Row: 0 _id=10783, calendar_id=1, title=dentist, dtstart=1791057600000
+PASS  A: after the tap on cortana_card_button:confirm, events lists "dentist" — one row  = 1
+PASS  A: … with Tessera's id (read from the account_name=Tessera query)  contains [calendar_id=1,]
+PASS  A: … tomorrow at 2 pm                                     contains [dtstart=1791057600000]
+PASS  A: the reply (reply_since the MARK) "Added to your calendar."  = Added to your calendar.
+PASS  A: Tess wrote an event (its id is known to the legs below)  != 
+--- W: the typed "what is on my calendar"
+Tess: [You have E9 checkup.]
+PASS  W: it names the events inserted for the test — the driver's "E9 checkup"  contains [E9 checkup]
+RECORD  W: the dentist starts 37 h from now — outside the 24 hours Tess reads  tomorrow 14:00, asked at 00:47
+PASS  W: … and not "dentist", which starts outside Tess's 24 hours at this hour  does not contain [dentist]

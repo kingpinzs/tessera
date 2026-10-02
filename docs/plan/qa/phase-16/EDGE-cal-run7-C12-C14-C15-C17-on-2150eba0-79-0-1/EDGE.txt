@@ -1,0 +1,105 @@
+==============================================================================
+ROW EDGE — the Edge cases: every bullet, by the index
+at            2026-10-02T01:47:15-06:00
+driver        edge.sh blob 1d32d1f3e48005546ca8672499155dbb0e50965f
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     5b485720363c32cb 339112630 bytes
+apk installed 2150eba004db6757
+apk match     yes (2150eba004db6757)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      time zone before: America/Boise; time_12_24 before: null
+PASS  the index covers the doc's 23 Edge-case bullets             = B01 B02 B03 B04 B05 B06 B07 B08 B09 B10 B11 B12 B13 B14 B15 B16 B17 B18 B19 B20 B21 B22 B23
+PASS  … and the doc's "Edge cases" has that many bullets        = 23
+PASS  no index line is without a place it is run                  = 0
+PASS  the index names row E1: its driver exists                   = yes
+PASS  the index names row E10: its driver exists                  = yes
+PASS  the index names row E11: its driver exists                  = yes
+PASS  the index names row E12: its driver exists                  = yes
+PASS  the index names row E16: its driver exists                  = yes
+PASS  the index names row E17: its driver exists                  = yes
+PASS  the index names row E18: its driver exists                  = yes
+PASS  the index names row E22: its driver exists                  = yes
+PASS  the index names row E24: its driver exists                  = yes
+PASS  the index names row E28: its driver exists                  = yes
+PASS  the index names row E6: its driver exists                   = yes
+PASS  the index names the JVM test PeopleTileRulesTest: it exists  != 
+PASS  the index names the JVM test PeopleWriteGuardTest: it exists  != 
+PASS  the index names the JVM test SlotSeedTest: it exists        != 
+RECORD  sub-steps                                                   EDGE_ONLY=C12,C14,C15,C17: a development run, not the gate's
+--- C12: B09.2, B09.3, B09.4
+PASS  C12: fixtures — a 10-year daily series with no COUNT      contains [rrule=FREQ=DAILY;UNTIL=20361002T000000Z]
+[calendar] view agenda 2026-09-27..2027-10-23: 387 instances in 61 ms
+PASS  C12: the Agenda still renders with the series in it         = yes
+PASS  C12: … its view agenda line: in <ms> ms ≤ 3000          = yes
+[calendar] view week 2026-09-27..2026-10-03: 2 instances in 20 ms
+PASS  C12: the Week view still renders with the series in it      = yes
+PASS  C12: … its view week line: in <ms> ms ≤ 3000            = yes
+PASS  C12: fixtures — an RRULE with BYDAY=2TU expands (the provider) on the second Tuesdays  = 2026-11-10 2026-12-08 2027-01-12 2027-02-09
+PASS  C12: BYDAY=2TU shows on the right days (the Day view of each of the four second Tuesdays)  = 4
+PASS  C12: … and not on the first or the third Tuesday          = no no
+      C12: the editor after the date pick: start [Mon 12 Oct 2026 10:00 AM] end [Mon 12 Oct 2026 11:00 AM]
+PASS  C12: fixtures — the second occurrence is moved to another day in the app (an exception row)  != 
+PASS  C12: … to 2026-10-12                                      = 2026-10-12
+PASS  C12: an exception that moves an occurrence to another day shows on the new day  = yes
+PASS  C12: … only: the old day shows neither it nor the series' own occurrence  = no no
+PASS  C12: … and the series' other occurrences are still shown (the first, the third)  = yes yes
+PASS  C12: restore — no event of the sub-step is left           = 0
+--- C14: B11.1, B11.2, B11.3
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C14: fixtures — a calendar with a NULL colour (the QA calendar)  contains [calendar_color=NULL]
+PASS  C14: fixtures — two calendars with one colour (Personal, Work)  = calendar_color=-16776961
+PASS  C14: fixtures — a calendar whose display name is empty    contains [calendar_displayName=,]
+      C14: the accent on this screen (the selected day's square) [0 120 215]; the null-colour calendar's event bar [0 120 215]
+PASS  C14: the accent is read from the screen                     != 
+PASS  C14: a calendar with a null colour — the accent is drawn (its event's bar is the accent's colour)  = 0 120 215
+PASS  C14: two calendars with one colour — both listed, by name (Personal)  = Personal
+PASS  C14: … (Work)                                             = Work
+      scroll_to_node cal_calendar_row:6: 0 swipe(s), found=yes
+PASS  C14: a calendar whose display name is empty — its account name is shown  = qa.empty@example.com
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C14: restore — the empty-named calendar is gone too       = 
+--- C15: B12.1, B12.2
+PASS  C15: with time_12_24 = 24 the Agenda's time label reads H:mm (13:00 over 14:00)  = 13:00 14:00
+PASS  C15: … the Day view's block                               = 13:00 – 14:00
+PASS  C15: … the event's page                                   contains [13:00 – 14:00]
+PASS  C15: … the editor's time fields                           = 13:00 14:00
+PASS  C15: every time reads H:mm — no AM or PM on any of the four screens  = 0
+PASS  C15: … with no restart of the shell                       = 1298
+PASS  C15: restore — time_12_24 as it was                       = null
+      C15: before — the header [OCTOBER 2026], the strip's first day 2026-09-27 (Sunday); app locales: Locales for app.tileshell for user 0 are []
+      C15: after de-DE — the header [OKTOBER 2026], the strip's first day 2026-09-28 (Monday); set-app-locales said []
+PASS  C15: a locale change re-labels months (the header in German)  = OKTOBER 2026
+PASS  C15: … and the first day of the week (Sunday in en-US, Monday in de-DE)  = Sunday Monday
+PASS  C15: … without a restart (the shell's process is the same)  = 1298
+PASS  C15: restore — the app's locale back: the header as before  = OCTOBER 2026
+PASS  C15: restore — the event deleted                          = 0
+--- C17: B13.1, B13.3, B13.5
+PASS  C17: fixtures — the app is left on another day (2026-10-05)  = true
+PASS  C17: the Calendar tile's tap resumes the shell's Calendar   = app.tileshell/.calendar.CalendarActivity
+PASS  C17: … and lands on today (the strip's selected day is today)  = true
+PASS  C17: a content://com.android.calendar/events/<id> VIEW opens that event  = yes
+PASS  C17: a malformed URI (content://com.android.calendar/events/notanumber) opens today: the views, no event page  = yes 0
+PASS  C17: … on today (cal_day:2026-10-02 is showing)           = yes
+PASS  C17: … with no crash (the same process, no new crash entry)  = 2548 0
+PASS  C17: a malformed URI (content://com.android.calendar/time/xyz) opens today: the views, no event page  = yes 0
+PASS  C17: … on today (cal_day:2026-10-02 is showing)           = yes
+PASS  C17: … with no crash (the same process, no new crash entry)  = 2548 0
+PASS  C17: a malformed URI (content://com.android.calendar/nonsense/1/2/3) opens today: the views, no event page  = yes 0
+PASS  C17: … on today (cal_day:2026-10-02 is showing)           = yes
+PASS  C17: … with no crash (the same process, no new crash entry)  = 2548 0
+PASS  C17: restore — the event deleted                          = 0
+PASS  restore: the calendar provider is enabled                   does not contain [com.android.providers.calendar]
+PASS  restore: READ_CALENDAR held                                 = true
+PASS  restore: WRITE_CALENDAR held                                = true
+PASS  restore: READ_CONTACTS held                                 = true
+PASS  restore: WRITE_CONTACTS held                                = true
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the time zone                                      = America/Boise
+PASS  restore: time_12_24                                         = null
+PASS  device clock back within 2 s of the host (RV12)             1790927640.00 vs 1790927640.00 +/- 2.0
+PASS  restore: layout_restore of the baseline                     = 0
+PASS  restore: user 0 only                                        = 1
+------------------------------------------------------------------------------
+EDGE: 79 passed, 0 failed, 1 recorded

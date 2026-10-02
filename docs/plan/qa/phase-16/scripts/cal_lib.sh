@@ -444,6 +444,23 @@ cdate_of() { adb shell "date -d @$(( $1 / 1000 )) +%Y-%m-%d" < /dev/null | tr -d
 # Edge-case bullets to them.
 
 csync_line() { cline "$1" "[calendar] sync event=" | sed 's/^\[calendar\] //'; }
+# A node's texts without its glyphs (a text made only of the icon font's private-use characters: a tick box, a chevron).
+cnames() { # dump.xml resource-id
+  ctexts "$1" "$2" | python3 -c '
+import sys
+t = sys.stdin.read().rstrip("\n").split(" | ")
+print(" | ".join(x for x in t if x and not all(0xE000 <= ord(c) <= 0xF8FF for c in x)))'
+}
+# The live ring's lines stamped inside [from, to] ms. (ring_since and ring_save keep wall >= a MARK, so the lines of a
+# clock set BACK behind the row's MARK are in neither: C16 keeps its own.)
+cring_between() { # from-ms to-ms
+  diag | python3 -c '
+import re, sys
+a, b = int(sys.argv[1]), int(sys.argv[2])
+for line in sys.stdin:
+    m = re.search(r"\bwall=(\d+)", line)
+    if m and a <= int(m.group(1)) <= b: sys.stdout.write(line)' "$1" "$2"
+}
 # Wait up to N s for the shell to post a calendar notification with a title; prints the seconds it took, or "none".
 cwait_note() { # title seconds
   local i
@@ -489,7 +506,7 @@ cedge_resync() { # id event-id label
 
 # ---- C01 (B01.1, B01.2): no calendar and the calendar provider's package disabled
 edge_C01() {
-  local m slice notice pid faces i reply
+  local m slice notice pid faces i reply dayname
   c6; ensure_start
   cal_fixtures_down; tessera_down
   assert_eq "C01: fixtures — no calendar at all" "No result found." "$(q "content query --uri $CAL --projection _id")"
@@ -510,8 +527,11 @@ edge_C01() {
     gdump "$ROW_DIR/C01-start.xml"; ctile_texts "$ROW_DIR/C01-start.xml" slot:CALENDAR >> "$ROW_DIR/C01-tile.txt"; sleep 1
   done
   faces="$(grep -v '^$' "$ROW_DIR/C01-tile.txt" | sort -u | paste -sd';')"; note "the CALENDAR tile's texts over 8 dumps: $faces"
-  assert_contains "C01: the tile's face is the day (the day name and number)" "$(adb shell date +%A | tr -d '\r') | $(adb shell date +%-d | tr -d '\r')" "$faces"
-  assert_eq "C01: … the day only (one face, no event text)" "1" "$(grep -v '^$' "$ROW_DIR/C01-tile.txt" | grep -F "$(adb shell date +%A | tr -d '\r')" | sort -u | wc -l | tr -d ' ')"
+  dayname="$(adb shell date +%A < /dev/null | tr -d '\r')"
+  assert_contains "C01: the tile's face is the day (the day name and number)" "$dayname | $(adb shell date +%-d < /dev/null | tr -d '\r')" "$faces"
+  assert_eq "C01: … the day only: one distinct text with the day in it over the 8 dumps" "1" "$(grep -F "$dayname" "$ROW_DIR/C01-tile.txt" | sort -u | wc -l | tr -d ' ')"
+  assert_eq "C01: … and no event text: every other dump reads the tile's name alone" "" "$(grep -v '^$' "$ROW_DIR/C01-tile.txt" | grep -vF "$dayname" | grep -vx 'Calendar' | sort -u | paste -sd';')"
+  record "C01: the feed's refresh line with the provider off" "$(cline "$(csince "$m")" '[calendar] refresh (')"
   tess_ask "add a meeting called standup to my calendar at ten AM"
   tess_card "$ROW_DIR/C01-card.xml"
   if [ "$(has_node "$ROW_DIR/C01-card.xml" cortana_card_button:confirm)" = yes ]; then tess_confirm "$ROW_DIR/C01-card.xml"; reply="$(reply_since "$CMARK")"; else reply="$(reply_since "$TMARK")"; fi
@@ -638,22 +658,23 @@ edge_C05() {
   # shellcheck disable=SC2086
   set -- $b; x=$(( ($1 + $3) / 2 )); y=$(( ($2 + $4) / 2 ))
   m="$(ring_mark)"
-  adb shell "input tap $x $y & input tap $x $y & wait" < /dev/null; sleep 4
+  adb shell "input tap $x $y & sleep 0.2; input tap $x $y; wait" < /dev/null; sleep 4
   ring_since "$m" | grep -F '[calendar] sync event=' > "$ROW_DIR/C05-first-lines.txt"
-  record "C05: the sync lines of a first Sync whose target was tapped twice at once" "$(sed 's/^.*\[calendar\] //' "$ROW_DIR/C05-first-lines.txt" | tr '\n' ';')"
+  record "C05: the sync lines of a first Sync whose target was tapped twice, 0.2 s apart" "$(sed 's/^.*\[calendar\] //' "$ROW_DIR/C05-first-lines.txt" | tr '\n' ';')"
   cal_lists "$PERSONAL" Personal
   assert_eq "C05: a first Sync tapped twice: one copy" "Edge C05" "$(ctitles "$PERSONAL")"
-  # an already-synced event with something to push: the Sync action tapped twice at once
+  # an already-synced event with something to push: the Sync action tapped twice, the second tap's process started
+  # 0.2 s after the first's (two `input` processes started together interleave their DOWN and UP: one click)
   q "content update --uri $EVENTS/$ev --bind title:s:'Edge C05 b'" >/dev/null; sleep 1
   copen_event "$ev"; dump_ui "$ROW_DIR/C05-page.xml"
   b="$(bounds "$ROW_DIR/C05-page.xml" cal_event_action:sync)"
   # shellcheck disable=SC2086
   set -- $b; x=$(( ($1 + $3) / 2 )); y=$(( ($2 + $4) / 2 ))
   m="$(ring_mark)"
-  adb shell "input tap $x $y & input tap $x $y & wait" < /dev/null; sleep 5
+  adb shell "input tap $x $y & sleep 0.2; input tap $x $y; wait" < /dev/null; sleep 5
   ring_since "$m" | grep -F '[calendar] sync event=' > "$ROW_DIR/C05-second-lines.txt"
   lines="$(sed 's/^.*\[calendar\] //' "$ROW_DIR/C05-second-lines.txt" | tr '\n' ';')"; log "the two taps' sync lines: $lines"
-  assert_eq "C05: a Sync tapped twice quickly gives two sync lines" "2" "$(grep -c . "$ROW_DIR/C05-second-lines.txt")"
+  assert_eq "C05: a Sync tapped twice quickly (0.2 s apart) gives two sync lines" "2" "$(grep -c . "$ROW_DIR/C05-second-lines.txt")"
   assert_contains "C05: the first pushes the change (updated)" "-> calendar $PERSONAL: updated" "$(sed -n 1p "$ROW_DIR/C05-second-lines.txt")"
   assert_contains "C05: the second compares the copy with the local event and writes nothing (ok)" "-> calendar $PERSONAL: ok" "$(sed -n 2p "$ROW_DIR/C05-second-lines.txt")"
   cal_lists "$PERSONAL" Personal
@@ -769,7 +790,7 @@ edge_C08() {
 
 # ---- C09 (B07.1): the Birthdays calendar deleted by another app
 edge_C09() {
-  local r1 r2 b md tess0 i
+  local r1 r2 b md tess0 i pid0
   c6; ensure_start; cal_fixtures_down
   assert_eq "C09: fixtures — no contact carries a birthday yet" "0" "$(cbirthdays_on_phone)"
   : > "$ROW_DIR/people-fixtures.ids"; RAW_BEFORE="$(raw_count)"
@@ -789,12 +810,18 @@ edge_C09() {
   assert_contains "C09: … under Tessera Birthdays, access 200" "account_name=Tessera Birthdays, account_type=LOCAL, calendar_displayName=Birthdays, calendar_access_level=200" "$(cals | grep "_id=${b:-x},")"
   sleep 2
   assert_eq "C09: … holding both birthdays" "2" "$(cevent_count "calendar_id=${b:-0} AND deleted=0")"
-  ring_save
-  adb shell am force-stop app.tileshell; sleep 1
+  # Deleted under the RUNNING shell first (a provider change alone does not bring it back — the RECORD above), then
+  # the shell is stopped: the system restarts the Home app within a second of a force-stop, so a delete made after
+  # the stop lands after that start has already looked.
   q "content delete --uri '$CAL?$SA&account_name=Tessera%20Birthdays&account_type=LOCAL' --where \"account_name='Tessera Birthdays'\"" >/dev/null
-  assert_eq "C09: deleted again, the shell stopped" "" "$(cbirthdays_cal)"
+  sleep 2
+  assert_eq "C09: deleted again (the shell running, no contacts change)" "" "$(cbirthdays_cal)"
+  ring_save
+  pid0="$(adb shell pidof app.tileshell < /dev/null | tr -d '\r')"
+  adb shell am force-stop app.tileshell; sleep 1
   adb shell input keyevent KEYCODE_HOME
   for i in 1 2 3 4 5 6 7 8 9 10; do sleep 1; [ -n "$(cbirthdays_cal)" ] && break; done
+  assert_ne "C09: the shell was restarted (a new process)" "$pid0" "$(adb shell pidof app.tileshell < /dev/null | tr -d '\r')"
   assert_ne "C09: recreated at the next start" "" "$(cbirthdays_cal)"
   assert_eq "C09: Tessera is untouched" "$tess0" "$(cals | grep -F 'account_name=Tessera,')"
   q "content delete --uri $DATA --where \"raw_contact_id IN ($r1,$r2) AND mimetype='vnd.android.cursor.item/contact_event'\"" >/dev/null
@@ -895,10 +922,16 @@ edge_C13() {
 
 # ---- C16 (B12.3): the clock jumped backwards a year — the one backwards jump of the phase (r3 V4)
 edge_C16() {
-  local now ev start n0 back m d title want_title day
+  local now ev start n0 back m d title want_title day since0 setline
+  # The reminders' cut-off (calendar_sync.json's remindersSince) is made this start's, so the jump goes behind it
+  # whatever an earlier jump left: the file removed (C06's way), the shell restarted.
+  ring_save
+  adb shell "run-as app.tileshell rm -f files/calendar_sync.json" < /dev/null
   c6; ensure_start
   copen; TESS="$(tessera_id)"; adb shell input keyevent KEYCODE_HOME; sleep 1
   now="$(device_ms)"
+  since0="$(csync_get remindersSince)"
+  assert_within "C16: fixtures — the reminders' cut-off is this start's (remindersSince against now)" "$now" "$since0" 120000
   start="$(clocal_ms "$(cdate 0)" 12:00)"
   ev="$(cmkevent "$TESS" 'Edge C16' "$start" $(( start + 3600000 )))"
   n0="$(ctessera_count)"
@@ -906,6 +939,12 @@ edge_C16() {
   back=$(( now - 365 * 86400000 ))
   ring_save
   ALLOW_BACKWARDS=1 jump_clock "$back" > "$ROW_DIR/C16-jump.txt"
+  sleep 2
+  cring_between $(( back - 60000 )) $(( back + 600000 )) > "$ROW_DIR/C16-set-back-slice.txt"
+  setline="$(grep -F '[calendar] reminders count from' "$ROW_DIR/C16-set-back-slice.txt" | tail -1 | sed 's/^.*wall=[0-9]* //')"
+  log "$setline"
+  assert_eq "C16: the clock set back under the running shell lowers the reminders' cut-off: reminders count from <ms> (the clock was set: it went back behind <the cut-off before>)" "yes" "$(printf '%s' "$setline" | grep -Eq "^\[calendar\] reminders count from [0-9]+ \(the clock was set: it went back behind $since0\)$" && echo yes || echo "no ($setline)")"
+  assert_within "C16: … to the jumped time (remindersSince against the target)" "$back" "$(csync_get remindersSince)" 60000
   adb shell am force-stop app.tileshell
   ensure_start
   m="$(ring_mark)"
@@ -919,7 +958,8 @@ edge_C16() {
   assert_eq "C16: no event is lost: Tessera holds what it held" "$n0" "$(ctessera_count)"
   copen_day "$start"; dump_ui "$ROW_DIR/C16-event-day.xml"
   assert_eq "C16: … and the event still shows on its own day (a year ahead of the clock now)" "yes" "$(has_node "$ROW_DIR/C16-event-day.xml" "cal_event:$ev")"
-  record "C16: the reminders-count line after a clock set back (the Q-16-4 build's; empty on a build without it)" "$(cline "$(csince "$m")" '[calendar] reminders count from')"
+  cring_between $(( back - 60000 )) $(( back + 600000 )) > "$ROW_DIR/C16-back-start-slice.txt"
+  record "C16: a reminders-count line at the shell's start on the jumped clock (none is expected: the cut-off was already lowered)" "[$(grep -F '[calendar] reminders count from' "$ROW_DIR/C16-back-start-slice.txt" | tail -1 | sed 's/^.*wall=[0-9]* //')]"
   ring_save
   cpurge "title='Edge C16'"
   clock_restore
@@ -1126,11 +1166,11 @@ edge_C14() {
   assert_ne "C14: the accent is read from the screen" "" "$acc"
   assert_eq "C14: a calendar with a null colour — the accent is drawn (its event's bar is the accent's colour)" "$acc" "$bar"
   ctap cal_menu 1.5; dump_ui "$ROW_DIR/C14-pane.xml"; screencap "$ROW_DIR/C14-pane.png"
-  assert_eq "C14: two calendars with one colour — both listed, by name (Personal)" "Personal" "$(ctexts "$ROW_DIR/C14-pane.xml" "cal_calendar_row:$PERSONAL")"
-  assert_eq "C14: … (Work)" "Work" "$(ctexts "$ROW_DIR/C14-pane.xml" "cal_calendar_row:$WORK")"
+  assert_eq "C14: two calendars with one colour — both listed, by name (Personal)" "Personal" "$(cnames "$ROW_DIR/C14-pane.xml" "cal_calendar_row:$PERSONAL")"
+  assert_eq "C14: … (Work)" "Work" "$(cnames "$ROW_DIR/C14-pane.xml" "cal_calendar_row:$WORK")"
   scroll_to_node "$ROW_DIR/C14-pane2.xml" "cal_calendar_row:$empty" 4 >/dev/null 2>&1 || true
   dump_ui "$ROW_DIR/C14-pane2.xml"
-  assert_eq "C14: a calendar whose display name is empty — its account name is shown" "qa.empty@example.com" "$(ctexts "$ROW_DIR/C14-pane2.xml" "cal_calendar_row:$empty")"
+  assert_eq "C14: a calendar whose display name is empty — its account name is shown" "qa.empty@example.com" "$(cnames "$ROW_DIR/C14-pane2.xml" "cal_calendar_row:$empty")"
   cback
   c6
   crmcal qa.empty@example.com com.google

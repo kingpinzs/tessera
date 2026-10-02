@@ -1,0 +1,294 @@
+==============================================================================
+ROW EDGE — the Edge cases: every bullet, by the index
+at            2026-10-02T00:50:37-06:00
+driver        edge.sh blob 1d32d1f3e48005546ca8672499155dbb0e50965f
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     03c09e0494b33ec0 343237622 bytes
+apk installed 6009c0b14a87039f
+apk match     yes (6009c0b14a87039f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      time zone before: America/Boise; time_12_24 before: null
+PASS  the index covers the doc's 23 Edge-case bullets             = B01 B02 B03 B04 B05 B06 B07 B08 B09 B10 B11 B12 B13 B14 B15 B16 B17 B18 B19 B20 B21 B22 B23
+PASS  … and the doc's "Edge cases" has that many bullets        = 23
+PASS  no index line is without a place it is run                  = 0
+PASS  the index names row E1: its driver exists                   = yes
+PASS  the index names row E10: its driver exists                  = yes
+PASS  the index names row E11: its driver exists                  = yes
+PASS  the index names row E12: its driver exists                  = yes
+PASS  the index names row E16: its driver exists                  = yes
+PASS  the index names row E17: its driver exists                  = yes
+PASS  the index names row E18: its driver exists                  = yes
+PASS  the index names row E22: its driver exists                  = yes
+PASS  the index names row E24: its driver exists                  = yes
+PASS  the index names row E28: its driver exists                  = yes
+PASS  the index names row E6: its driver exists                   = yes
+PASS  the index names the JVM test PeopleTileRulesTest: it exists  != 
+PASS  the index names the JVM test PeopleWriteGuardTest: it exists  != 
+PASS  the index names the JVM test SlotSeedTest: it exists        != 
+RECORD  sub-steps                                                   EDGE_ONLY=C01,C02,C03,C04,C05,C06,C07,C08,C09,C10,C11,C12,C13,C14,C15,C16,C17: a development run, not the gate's
+--- C01: B01.1, B01.2
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C01: fixtures — no calendar at all                        = No result found.
+PASS  C01: the calendar provider's package is disabled            = 0
+RECORD  C01: the provider-off notice's wording (H20)                The phone's calendar storage is turned off, so there are no events to show.
+PASS  C01: the app says the calendar provider is off (cal_notice)  = yes
+[calendar] calendars: none (java.lang.IllegalStateException: the calendar provider gave no answer)
+PASS  C01: [calendar] calendars: none is logged with the reason   = yes
+PASS  C01: it creates nothing (no local calendar created line)    does not contain [local calendar created]
+      the CALENDAR tile's texts over 8 dumps: Calendar;Friday | 2 | Calendar
+PASS  C01: the tile's face is the day (the day name and number)   contains [Friday | 2]
+FAIL  C01: … the day only (one face, no event text)             expected [1] got [0]
+PASS  C01: Tess's "add" answers "I don't have a calendar to add that to."  = I don't have a calendar to add that to.
+PASS  C01: restore — the calendar provider is enabled again     = 1
+PASS  C01: … and Tess wrote nowhere else: no standup event, and no calendar was made while it was off  = 0 No result found.
+PASS  C01: restore — the next start makes the shell's own calendar again (one Tessera)  = 1
+--- C02: B02.1, B02.2, B02.3
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C02: fixtures — a synced local event (its mapping is in calendar_sync.json), a QA calendar present  contains ["local":10785,]
+PASS  C02: fixtures — the QA calendar                           != 
+PASS  C02: the event shows in the open Day view                   = yes
+PASS  C02: Tessera is deleted by another app (the bullet's command)  = 0
+PASS  C02: its events vanish from the views through the observer (no cal_event node, the view still up)  = no yes
+PASS  C02: … with no restart (same pid)                         = 15533
+PASS  C02: the next write recreates Tessera (LocalCalendar.id), whatever else remains  != 
+PASS  C02: … [calendar] local calendar created: …             contains [[calendar] local calendar created: content://com.android.calendar/calendars/5]
+PASS  C02: … and the written event is in it                     = 1
+PASS  C02: … the QA calendar is still there and was not taken for it  != 
+PASS  C02: Tessera deleted again, the app closed                  = 0
+PASS  C02: the next start recreates it: calendars: n (local created id=<id>)  contains [(local created id=5)]
+PASS  C02: … [calendar] local calendar created: …             contains [[calendar] local calendar created: content://com.android.calendar/calendars/5]
+PASS  C02: the synced marker whose local event went with Tessera is dropped from calendar_sync.json  does not contain ["local":10785,]
+RECORD  C02: the dropped-mapping line                               [calendar] sync mappings dropped (the local event is gone): [10785]
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C02: restore — the sub-step's events are deleted, one Tessera left  = 0 1
+--- C03: B03.2
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C03: fixtures — Work's event is open read-only (its page, no actions)  = yes 0
+PASS  C03: the account calendar is removed                        = 
+PASS  C03: that page closes                                       = no
+RECORD  C03: the notice's wording                                   That event is no longer on this phone.
+PASS  C03: … with a notice (cal_notice)                         != 
+PASS  C03: the view refreshes: the views are up and the event is not in them  = yes no
+PASS  C03: no crash, the same process                             = 16497 0
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+--- C04: B04.2
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C04: fixtures — Personal allowed on "Can sync to", Work not  = true false
+PASS  C04: fixtures — a synced event, its copy in Personal      != 
+PASS  C04: the copy is moved on the other side (its calendar_id is Work's now)  contains [calendar_id=7]
+sync: sync event=10790 -> calendar 6: failed mapping stale
+PASS  C04: the next Sync refuses: failed mapping stale            contains [sync event=10790 -> calendar 6: failed mapping stale]
+PASS  C04: … and writes nothing: the moved copy keeps its title  contains [title=Edge C04]
+RECORD  C04: the notice after the refused Sync                      The copy is no longer in Personal, so nothing was changed.
+RECORD  C04: the delete choices offered for a stale mapping         cal_delete_choice:both cal_delete_choice:here
+PASS  C04: delete-"both" refuses: failed mapping stale            contains [failed mapping stale]
+PASS  C04: … and writes nothing: the local event and the moved copy are both still there  = 1 1
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C04: restore — the sub-step's events are deleted          = 0
+--- C05: B04.3
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C05: fixtures — Personal allowed on "Can sync to", Work not  = true false
+RECORD  C05: the sync lines of a first Sync whose target was tapped twice at once  sync event=10793 -> calendar 6: ok;
+PASS  cal_lists: calendar 6 (Personal) still lists                contains [_id=6,]
+PASS  C05: a first Sync tapped twice: one copy                    = Edge C05
+the two taps' sync lines: sync event=10793 -> calendar 6: updated;
+FAIL  C05: a Sync tapped twice quickly gives two sync lines       expected [2] got [1]
+PASS  C05: the first pushes the change (updated)                  contains [-> calendar 6: updated]
+FAIL  C05: the second compares the copy with the local event and writes nothing (ok)  does not contain [-> calendar 6: ok]: 
+PASS  cal_lists: calendar 6 (Personal) still lists                contains [_id=6,]
+PASS  C05: … one copy, carrying the pushed title                = Edge C05 b
+PASS  cal_lists: calendar 7 (Work, C05) still lists               contains [_id=7,]
+PASS  C05: Work holds exactly Offsite                             = Offsite
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C05: restore — the sub-step's events are deleted          = 0
+--- C06: B04.5
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C06: fixtures — Personal allowed on "Can sync to", Work not  = true false
+PASS  C06: fixtures — a synced event with its marker            = yes
+PASS  C06: calendar_sync.json is lost (run-as … rm): no mapping in it  does not contain ["local":10796,]
+PASS  C06: markers vanish (the event's page is up, no cal_synced_marker)  = yes no
+RECORD  C06: the old copy, no longer mapped, shows in the shell beside the original (cal_event:<original> / cal_event:<old copy> in the Day view)  yes / yes
+RECORD  C06: the next Sync, with the allowed list lost too, opens   Can sync to
+PASS  cal_lists: calendar 6 (Personal) still lists                contains [_id=6,]
+PASS  C06: the next Sync makes a new copy — the old one stays on the other side (two in Personal)  = 2
+PASS  C06: … and the mapping names the new copy, not the old one  = yes
+PASS  cal_lists: calendar 7 (Work, C06) still lists               contains [_id=7,]
+PASS  C06: Work holds exactly Offsite                             = Offsite
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C06: restore — the sub-step's events are deleted          = 0
+--- C07: B04.6
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C07: fixtures — Personal allowed on "Can sync to", Work not  = true false
+PASS  C07: fixtures — a first Sync made the copy                != 
+PASS  C07: the target's calendar_access_level is lowered to 200 through the sync-adapter URI  contains [calendar_access_level=200]
+sync: sync event=10800 -> calendar 6: failed calendar read-only
+PASS  C07: the write layer's own re-read refuses: failed calendar read-only  contains [sync event=10800 -> calendar 6: failed calendar read-only]
+PASS  C07: "That calendar is read-only now" (cal_notice)          = That calendar is read-only now
+PASS  C07: nothing written: the copy keeps its old title          = Edge C07
+PASS  C07: the marker is kept, with its warning glyph             = yes yes
+PASS  cal_lists: calendar 7 (Work, C07) still lists               contains [_id=7,]
+PASS  C07: Work holds exactly Offsite                             = Offsite
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C07: restore — the sub-step's events are deleted          = 0
+--- C08: B05.1, B05.2, B05.3
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C08: fixtures — Personal allowed on "Can sync to", Work not  = true false
+PASS  C08: fixtures — a synced event                            != 
+PASS  C08: the copy edited on the other side to another time — the shell still shows only the original  = yes no
+PASS  C08: … at the local time                                  contains [3:31 AM]
+sync: sync event=10803 -> calendar 6: updated
+PASS  C08: … until the next Sync overwrites the copy (updated)  contains [-> calendar 6: updated]
+PASS  C08: … the copy is at the local time again                = dtstart=1790933460000, dtend=1790937060000
+PASS  C08: the original deleted by another app — the copy shows as the account's event  = yes
+PASS  C08: … and the mapping is dropped at the next read        does not contain ["local":10803,]
+PASS  C08: fixtures — a second synced event shows once, the original  = yes no
+PASS  C08: Tessera is hidden in the ≡ pane                      = false
+PASS  C08: the original leaves the Calendar app's views           = no
+PASS  C08: … and its copy stays hidden (the mapping, not the pane, decides)  = no
+PASS  C08: the tile still shows the original (dumps of 12 in which it reads Edge C08 b)  != 0
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  C08: the Agenda pod still shows it                          contains [Edge C08 b]
+PASS  C08: Tess still names it, once                              = 1
+PASS  C08: restore — Tessera shown again in the pane            = true
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C08: restore — the sub-step's events are deleted          = 0
+--- C09: B07.1
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C09: fixtures — no contact carries a birthday yet         = 0
+PASS  C09: fixtures — a Birthdays calendar exists               != 
+RECORD  C09: Birthdays right after another app deleted it, before any contacts change or start  []
+PASS  C09: recreated at the next contacts change                  != 
+PASS  C09: … under Tessera Birthdays, access 200                contains [account_name=Tessera Birthdays, account_type=LOCAL, calendar_displayName=Birthdays, calendar_access_level=200]
+PASS  C09: … holding both birthdays                             = 2
+PASS  C09: deleted again, the shell stopped                       = 
+FAIL  C09: recreated at the next start                            should not be []
+PASS  C09: Tessera is untouched                                   = Row: 0 _id=5, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700, visible=1
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  C09: restore — no birthday row is left                    = 0
+--- C10: B08.1
+RECORD  C10: the insert loop of 50 events ran for                   23 s
+PASS  C10: fixtures — 50 events were inserted under the open view  = 50
+PASS  C10: the views refresh: the open Day view's last view line counts the 50 more  = 50
+PASS  C10: … the view is up and shows them (cal_view, some of their nodes)  = yes yes
+PASS  C10: without a crash (the same process, no new crash entry)  = 23310 0
+PASS  C10: restore — the 50 events are deleted                  = 0
+--- C11: B09.1
+      spin cal_time_spinner:ampm -> [PM] after 1 swipe(s)
+      spin cal_time_spinner:hour -> [3] after 1 swipe(s)
+      spin cal_time_spinner:minute -> [00] after 0 swipe(s)
+      spin cal_time_spinner:ampm -> [PM] after 0 swipe(s)
+      spin cal_time_spinner:hour -> [2] after 1 swipe(s)
+      spin cal_time_spinner:minute -> [00] after 0 swipe(s)
+      C11: the editor before Save: start [Fri 2 Oct 2026 3:00 PM] end [Fri 2 Oct 2026 2:00 PM]
+PASS  C11: fixtures — the editor holds an end before its start (3:00 PM → 2:00 PM, one date)  = 3:00 PM 2:00 PM yes
+RECORD  C11: the refusal's wording                                  The end is before the start.
+PASS  C11: an event whose end is before its start is refused by the editor (cal_notice, the editor still open)  = yes yes
+PASS  C11: … the notice says why                                = yes
+PASS  C11: … and nothing is written                             = 0
+[calendar] write update event=10860: failed the event is gone
+PASS  C11: Save of an event the driver deleted under its open editor: [calendar] write update event=<id>: failed <err>  contains [[calendar] write update event=10860: failed ]
+PASS  C11: … with a notice on the editor                        != 
+PASS  C11: … and nothing written                                = 0
+PASS  C11: restore — no event of the sub-step is left           = 0
+--- C12: B09.2, B09.3, B09.4
+PASS  C12: fixtures — a 10-year daily series with no COUNT      contains [rrule=FREQ=DAILY;UNTIL=20361002T000000Z]
+[calendar] view agenda 2026-09-27..2027-10-23: 387 instances in 51 ms
+PASS  C12: the Agenda still renders with the series in it         = yes
+PASS  C12: … its view agenda line: in <ms> ms ≤ 3000          = yes
+[calendar] view week 2026-09-27..2026-10-03: 2 instances in 33 ms
+PASS  C12: the Week view still renders with the series in it      = yes
+PASS  C12: … its view week line: in <ms> ms ≤ 3000            = yes
+PASS  C12: fixtures — an RRULE with BYDAY=2TU expands (the provider) on the second Tuesdays  = 2026-11-10 2026-12-08 2027-01-12 2027-02-09
+PASS  C12: BYDAY=2TU shows on the right days (the Day view of each of the four second Tuesdays)  = 4
+PASS  C12: … and not on the first or the third Tuesday          = no no
+      C12: the editor after the date pick: start [Mon 12 Oct 2026 10:00 AM] end [Mon 12 Oct 2026 11:00 AM]
+PASS  C12: fixtures — the second occurrence is moved to another day in the app (an exception row)  != 
+PASS  C12: … to 2026-10-12                                      = 2026-10-12
+PASS  C12: an exception that moves an occurrence to another day shows on the new day  = yes
+PASS  C12: … only: the old day shows neither it nor the series' own occurrence  = no no
+PASS  C12: … and the series' other occurrences are still shown (the first, the third)  = yes yes
+PASS  C12: restore — no event of the sub-step is left           = 0
+--- C13: B10.1, B10.2, B10.3
+PASS  C13: fixtures — no calendar notification of the shell's is up, the AOSP Calendar disabled  = 
+RECORD  C13: the past event's calendar_alerts rows                  [No result found.;]
+PASS  C13: a reminder on an event already past — calendar_alerts has no scheduled row for it  = 0
+PASS  C13: … it never notifies (no notification, even after a poke)  = 0
+PASS  C13: … and no notified line for it                        does not contain [reminder event=10865 ]
+PASS  C13: a reminder 0 minutes before notifies at the event's start  != none
+PASS  C13: … once (minutes=0: notified)                         = 1
+PASS  C13: two reminders on one event — the first notifies at T−10  = 1
+PASS  C13: … and the second at T−5: two notifications         = 2
+PASS  C13: … one notified line for each (minutes=10, minutes=5)  = 1 1
+PASS  C13: restore — the AOSP Calendar as it was, the events deleted  = 1 0
+PASS  device clock back within 2 s of the host (RV12)             1790925158.00 vs 1790925158.00 +/- 2.0
+PASS  C13: restore — no calendar notification of the shell's is left  = 
+--- C14: B11.1, B11.2, B11.3
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C14: fixtures — a calendar with a NULL colour (the QA calendar)  contains [calendar_color=NULL]
+PASS  C14: fixtures — two calendars with one colour (Personal, Work)  = calendar_color=-16776961
+PASS  C14: fixtures — a calendar whose display name is empty    contains [calendar_displayName=,]
+      C14: the accent on this screen (the selected day's square) [0 120 215]; the null-colour calendar's event bar [0 120 215]
+PASS  C14: the accent is read from the screen                     != 
+PASS  C14: a calendar with a null colour — the accent is drawn (its event's bar is the accent's colour)  = 0 120 215
+FAIL  C14: two calendars with one colour — both listed, by name (Personal)  expected [Personal] got [ | Personal]
+FAIL  C14: … (Work)                                             expected [Work] got [ | Work]
+      scroll_to_node cal_calendar_row:9: 0 swipe(s), found=yes
+FAIL  C14: a calendar whose display name is empty — its account name is shown  expected [qa.empty@example.com] got [ | qa.empty@example.com]
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C14: restore — the empty-named calendar is gone too       = 
+--- C15: B12.1, B12.2
+PASS  C15: with time_12_24 = 24 the Agenda's time label reads H:mm (13:00 over 14:00)  = 13:00 14:00
+PASS  C15: … the Day view's block                               = 13:00 – 14:00
+PASS  C15: … the event's page                                   contains [13:00 – 14:00]
+PASS  C15: … the editor's time fields                           = 13:00 14:00
+PASS  C15: every time reads H:mm — no AM or PM on any of the four screens  = 0
+PASS  C15: … with no restart of the shell                       = 27592
+PASS  C15: restore — time_12_24 as it was                       = null
+      C15: before — the header [OCTOBER 2026], the strip's first day 2026-09-27 (Sunday); app locales: Locales for app.tileshell for user 0 are []
+      C15: after de-DE — the header [OKTOBER 2026], the strip's first day 2026-09-28 (Monday); set-app-locales said []
+PASS  C15: a locale change re-labels months (the header in German)  = OKTOBER 2026
+PASS  C15: … and the first day of the week (Sunday in en-US, Monday in de-DE)  = Sunday Monday
+PASS  C15: … without a restart (the shell's process is the same)  = 27592
+PASS  C15: restore — the app's locale back: the header as before  = OCTOBER 2026
+PASS  C15: restore — the event deleted                          = 0
+--- C16: B12.3
+PASS  C16: fixtures — an event today                            != 
+PASS  C16: the clock is a year back (the device's ms against the target)  1759389351478.00 vs 1759389346977.00 +/- 60000.0
+PASS  C16: the views follow: the header reads the jumped month and year  = OCTOBER 2025
+PASS  C16: … today (the strip's selected day) is the jumped date  = true
+PASS  C16: no event is lost: Tessera holds what it held           = 1
+PASS  C16: … and the event still shows on its own day (a year ahead of the clock now)  = yes
+RECORD  C16: the reminders-count line after a clock set back (the Q-16-4 build's; empty on a build without it)  [calendar] reminders count from 1790924373414 (the shell's start: first on this install)
+PASS  device clock back within 2 s of the host (RV12)             1790925374.00 vs 1790925374.00 +/- 2.0
+PASS  C16: restore — the event deleted, the clock back on the host's  = 0
+--- C17: B13.1, B13.3, B13.5
+PASS  C17: fixtures — the app is left on another day (2026-10-05)  = true
+PASS  C17: the Calendar tile's tap resumes the shell's Calendar   = app.tileshell/.calendar.CalendarActivity
+PASS  C17: … and lands on today (the strip's selected day is today)  = true
+PASS  C17: a content://com.android.calendar/events/<id> VIEW opens that event  = yes
+PASS  C17: a malformed URI (content://com.android.calendar/events/notanumber) opens today: the views, no event page  = yes 0
+PASS  C17: … on today (cal_day:2026-10-02 is showing)           = yes
+PASS  C17: … with no crash (the same process, no new crash entry)  = 28807 0
+PASS  C17: a malformed URI (content://com.android.calendar/time/xyz) opens today: the views, no event page  = yes 0
+PASS  C17: … on today (cal_day:2026-10-02 is showing)           = yes
+PASS  C17: … with no crash (the same process, no new crash entry)  = 28807 0
+PASS  C17: a malformed URI (content://com.android.calendar/nonsense/1/2/3) opens today: the views, no event page  = yes 0
+PASS  C17: … on today (cal_day:2026-10-02 is showing)           = yes
+PASS  C17: … with no crash (the same process, no new crash entry)  = 28807 0
+PASS  C17: restore — the event deleted                          = 0
+PASS  restore: the calendar provider is enabled                   does not contain [com.android.providers.calendar]
+PASS  restore: READ_CALENDAR held                                 = true
+PASS  restore: WRITE_CALENDAR held                                = true
+PASS  restore: READ_CONTACTS held                                 = true
+PASS  restore: WRITE_CONTACTS held                                = true
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the time zone                                      = America/Boise
+PASS  restore: time_12_24                                         = null
+PASS  device clock back within 2 s of the host (RV12)             1790925469.00 vs 1790925469.00 +/- 2.0
+PASS  restore: layout_restore of the baseline                     = 0
+PASS  restore: user 0 only                                        = 1
+------------------------------------------------------------------------------
+EDGE: 220 passed, 7 failed, 14 recorded

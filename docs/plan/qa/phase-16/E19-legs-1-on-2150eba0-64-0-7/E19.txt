@@ -1,0 +1,87 @@
+==============================================================================
+ROW E19 — Calendar geometry on the drawn pixels: Agenda, the month drop-down, the pane, Week, Day, the editor; two motions
+at            2026-10-02T01:34:13-06:00
+driver        e19.sh blob 32163d1e5c4ac575d569034425724c1d2fecf19f
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     5b485720363c32cb 339112630 bytes
+apk installed 2150eba004db6757
+apk match     yes (2150eba004db6757)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  legs run                                                    1 ONLY (Agenda on today: the chrome, the strip, today's heading, the empty day's line) — a narrow re-run; legs 2–8 stand on the row's earlier run
+RECORD  BarMetrics.STATUS_EPX / NAV_EPX, read from bars/SystemBars.kt (C-17)  28 / 48
+PASS  BarMetrics.STATUS_EPX is read from the source               != 
+PASS  BarMetrics.NAV_EPX is read from the source                  != 
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  precondition: Tessera exists                                != 
+PASS  precondition: no event today (today's group is the empty day)  = 0
+RECORD  the calendar's colour, from the provider's calendar_color (r g b)  0 99 177
+      today 2026-10-02; the fixtures' day 2026-10-24 (Saturday); all-day 10884 10885, timed 10886 10887; Tessera 1
+PASS  fixtures: two all-day and two timed events on 2026-10-24    = 4
+--- 1: Agenda on today (the chrome, the strip, today's heading, the empty day, the app bar)
+PASS  1: Agenda is showing (cal_view_mode:agenda selected)        = true
+PASS  Agenda: the drawn status bar is on the view (w10m_status_bar)  = yes
+PASS  Agenda: the drawn nav bar is on the view (w10m_nav_bar)     = yes
+PASS  Agenda: the status bar's height is BarMetrics.STATUS_EPX (28)  28.00 vs 28.00 +/- 0.34
+PASS  Agenda: the nav bar's height is BarMetrics.NAV_EPX (48)     48.00 vs 48.00 +/- 0.34
+PASS  Agenda: the nav bar ends at the screen's bottom edge        780.00 vs 780.00 +/- 0.34
+PASS  Agenda: the status bar is drawn black down to its bottom edge (px column 6)  28.00 vs 28.00 +/- 0.34
+PASS  Agenda: the nav bar is drawn black from its top edge (px column 6)  732.00 vs 732.00 +/- 0.34
+PASS  K1.1 ≡ is three bars                                      = 3
+PASS  K1.1 ≡ bar 1 is 1 epx thick                               1.00 vs 1.00 +/- 0.34
+PASS  K1.1 ≡ bar 2 is 1 epx thick                               1.00 vs 1.00 +/- 0.34
+PASS  K1.1 ≡ bar 3 is 1 epx thick                               1.00 vs 1.00 +/- 0.34
+PASS  K1.1 ≡ bars 1–2 at a 5-epx pitch                        5.00 vs 5.00 +/- 0.5
+PASS  K1.1 ≡ bars 2–3 at a 5-epx pitch                        5.00 vs 5.00 +/- 0.5
+PASS  K1.1 ≡ starts at x 16                                     16.00 vs 16.00 +/- 1.0
+PASS  K1.1 ≡ ends at x 36                                       36.00 vs 36.00 +/- 1.0
+PASS  K1.1 the month and year in caps ("OCTOBER 2026")            = OCTOBER 2026
+PASS  K1.1 … a month name and a year                            = yes
+PASS  K1.1 … at x 51.0 (the ink's left edge)                    51.67 vs 51.00 +/- 1.0
+PASS  K1.1 … its cap top 15.5 epx below the status bar          15.33 vs 15.50 +/- 1.0
+PASS  K1.1 … cap 11.0                                           11.67 vs 11.00 +/- 1.0
+PASS  K1.1 … semibold (its stems at least 0.16 of the cap height; a regular line reads 0.09–0.15 here)  = yes
+RECORD  K1.1 the title's stroke / cap ratio                         0.200
+PASS  K1.2 the header band starts at the status bar's bottom      28.00 vs 28.00 +/- 0.34
+PASS  K1.2 the band is 40 epx tall                                40.00 vs 40.00 +/- 1.0
+PASS  K1.1 the chevron after the title is ⌄                     = down
+PASS  K1.3 the page is (26,26,26)                                 (26 26 26) ~ (26 26 26) +/- 2
+PASS  K1.3 the status bar is black                                (0 0 0) ~ (0 0 0) +/- 2
+PASS  K1.3 the nav bar is black                                   (0 0 0) ~ (0 0 0) +/- 2
+PASS  K2.1 seven day names over the strip                         = 7
+PASS  K2.1 the week strip on W/7: column 1 (Sun), its drawn centre 25.0  24.50 vs 25.00 +/- 1.0
+PASS  K2.1 the week strip on W/7: column 2 (Mon), its drawn centre 76.6  76.33 vs 76.60 +/- 1.0
+PASS  K2.1 the week strip on W/7: column 3 (Tue), its drawn centre 127.5  127.00 vs 127.50 +/- 1.0
+PASS  K2.1 the week strip on W/7: column 4 (Wed), its drawn centre 178.4  177.83 vs 178.40 +/- 1.0
+PASS  K2.1 the week strip on W/7: column 5 (Thu), its drawn centre 229.0  228.83 vs 229.00 +/- 1.0
+PASS  K2.1 the week strip on W/7: column 6 (Fri), its drawn centre 280.4  280.33 vs 280.40 +/- 1.0
+PASS  K2.1 the week strip on W/7: column 7 (Sat), its drawn centre 331.3  331.17 vs 331.30 +/- 1.0
+PASS  K2.2 day names are (151,151,151)                            (151 151 151) ~ (151 151 151) +/- 4
+PASS  K2.4 the 15063 form: two week rows of seven days            = 2 14
+PASS  K2.5 the selected day's accent square is 32 epx wide        32.00 vs 32.00 +/- 2.0
+PASS  K2.5 … and 32 epx tall                                    32.00 vs 32.00 +/- 2.0
+RECORD  K2.5 the accent on this screen (the selected square's fill)  0 120 215
+RECORD  K2.4 a first-row date's colour and a second-row date's      255 255 255 / 141 141 141
+PASS  K2.4 the second week row is dimmed (its dates at least 60 levels darker than the first row's)  = yes
+PASS  K1.5 the app bar's top edge is 1 epx of (80,80,80) ± 4     1.00 vs 1.00 +/- 0.34
+PASS  K1.5 the app bar is 47 epx (its top edge to the nav bar's top)  47.00 vs 47.00 +/- 1.0
+PASS  K1.5 its fill is (33,33,33)                                 (33 33 33) ~ (33 33 33) +/- 4
+PASS  K1.6 Today: its glyph's centre 217.9 epx from the right edge (the 68-epx CommandBar, 15063 form)  218.00 vs 217.90 +/- 1.0
+PASS  K1.6 New: its glyph's centre 150.2 epx from the right edge (the 68-epx CommandBar, 15063 form)  149.83 vs 150.20 +/- 1.0
+PASS  K1.6 View: its glyph's centre 82.6 epx from the right edge (the 68-epx CommandBar, 15063 form)  82.00 vs 82.60 +/- 1.0
+PASS  K1.6 …: its glyph's centre 24.5 epx from the right edge (the 68-epx CommandBar, 15063 form)  24.00 vs 24.50 +/- 1.0
+PASS  K3.3 today's heading ("Friday 2") at x 24 (its text box's left edge; R11's sample is a Wednesday)  24.00 vs 24.00 +/- 1.0
+RECORD  K3.3 … its ink's left edge (epx; another leading glyph than R11's "W")  26.00
+PASS  K3.3 today's heading is in the accent (the selected square's colour on this screen)  (0 120 215) ~ (0 120 215) +/- 4
+PASS  K3.4 an empty day reads "No events today"                   = No events today
+PASS  K3.4 … in grey (151,151,151)                              (151 151 151) ~ (151 151 151) +/- 4
+PASS  K3.4 … at x 24 (the ink's left edge)                      24.00 vs 24.00 +/- 1.0
+PASS  Agenda: dumpsys window — the system status bar is not visible  = visible=false
+PASS  Agenda: dumpsys window — the system nav bar is not visible  = visible=false
+--- restore
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the row's events are deleted                       = 0
+PASS  restore: Tessera's event count equals the count before the row  = 0
+------------------------------------------------------------------------------
+E19: 64 passed, 0 failed, 7 recorded

@@ -1,0 +1,57 @@
+==============================================================================
+ROW EDGE — the Edge cases: every bullet, by the index
+at            2026-10-02T01:27:25-06:00
+driver        edge.sh blob 1d32d1f3e48005546ca8672499155dbb0e50965f
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     03c09e0494b33ec0 343237622 bytes
+apk installed 6009c0b14a87039f
+apk match     yes (6009c0b14a87039f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      time zone before: America/Boise; time_12_24 before: null
+PASS  the index covers the doc's 23 Edge-case bullets             = B01 B02 B03 B04 B05 B06 B07 B08 B09 B10 B11 B12 B13 B14 B15 B16 B17 B18 B19 B20 B21 B22 B23
+PASS  … and the doc's "Edge cases" has that many bullets        = 23
+PASS  no index line is without a place it is run                  = 0
+PASS  the index names row E1: its driver exists                   = yes
+PASS  the index names row E10: its driver exists                  = yes
+PASS  the index names row E11: its driver exists                  = yes
+PASS  the index names row E12: its driver exists                  = yes
+PASS  the index names row E16: its driver exists                  = yes
+PASS  the index names row E17: its driver exists                  = yes
+PASS  the index names row E18: its driver exists                  = yes
+PASS  the index names row E22: its driver exists                  = yes
+PASS  the index names row E24: its driver exists                  = yes
+PASS  the index names row E28: its driver exists                  = yes
+PASS  the index names row E6: its driver exists                   = yes
+PASS  the index names the JVM test PeopleTileRulesTest: it exists  != 
+PASS  the index names the JVM test PeopleWriteGuardTest: it exists  != 
+PASS  the index names the JVM test SlotSeedTest: it exists        != 
+RECORD  sub-steps                                                   EDGE_ONLY=C14: a development run, not the gate's
+--- C14: B11.1, B11.2, B11.3
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C14: fixtures — a calendar with a NULL colour (the QA calendar)  contains [calendar_color=NULL]
+PASS  C14: fixtures — two calendars with one colour (Personal, Work)  = calendar_color=-16776961
+PASS  C14: fixtures — a calendar whose display name is empty    contains [calendar_displayName=,]
+      C14: the accent on this screen (the selected day's square) [0 120 215]; the null-colour calendar's event bar [0 120 215]
+PASS  C14: the accent is read from the screen                     != 
+PASS  C14: a calendar with a null colour — the accent is drawn (its event's bar is the accent's colour)  = 0 120 215
+PASS  C14: two calendars with one colour — both listed, by name (Personal)  = Personal
+PASS  C14: … (Work)                                             = Work
+      scroll_to_node cal_calendar_row:5: 0 swipe(s), found=yes
+PASS  C14: a calendar whose display name is empty — its account name is shown  = qa.empty@example.com
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C14: restore — the empty-named calendar is gone too       = 
+PASS  restore: the calendar provider is enabled                   does not contain [com.android.providers.calendar]
+PASS  restore: READ_CALENDAR held                                 = true
+PASS  restore: WRITE_CALENDAR held                                = true
+PASS  restore: READ_CONTACTS held                                 = true
+PASS  restore: WRITE_CONTACTS held                                = true
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the time zone                                      = America/Boise
+PASS  restore: time_12_24                                         = null
+PASS  device clock back within 2 s of the host (RV12)             1790926130.00 vs 1790926130.00 +/- 2.0
+PASS  restore: layout_restore of the baseline                     = 0
+PASS  restore: user 0 only                                        = 1
+------------------------------------------------------------------------------
+EDGE: 39 passed, 0 failed, 1 recorded
