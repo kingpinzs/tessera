@@ -18,12 +18,18 @@
 #   restore            pm clear → provision.sh → ensure_start → layout_restore of the baseline
 #
 # E1_CHILDREN=0 skips the children (driver development); the gate run never sets it.
+# E1_PART=children judges ONLY the children, as row E1_CHILDREN (the owner's ruling of 2026-10-01, "only test the
+#   fixes": a part that failed is run again alone, the legs that passed are not). With E1_REUSE=<an earlier E1 run's
+#   folder> the children that passed there (phase 01 E4 / E4b, phase 14 E3) are read from that folder and only
+#   phase 15's E0 runs again; the log says which is which.
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
 . "$HERE/p16.sh"
 QAR="$(cd "$QA/.." && pwd)"
-OUT="$QA/E1"; mkdir -p "$OUT"
+PART="${E1_PART:-all}"
+ROWID=E1; [ "$PART" = children ] && ROWID=E1_CHILDREN
+OUT="$QA/$ROWID"; mkdir -p "$OUT"
 TILES="$QAR/phase-15/scripts/tiles.py"
 OLD_APK="$QA/upgrade/phase-14-aaf9a1d8.apk"
 NEW_APK="$REPO/app/build/outputs/apk/debug/app-debug.apk"
@@ -75,7 +81,17 @@ run_row() { # phase row script [env...]
   [ -e "$keep" ] && mv "$keep" "$dir"
   adb shell am force-stop app.tileshell; adb shell input keyevent KEYCODE_HOME; sleep 5
 }
-if [ "${E1_CHILDREN:-1}" = "1" ]; then
+REUSED=""
+if [ "${E1_CHILDREN:-1}" = "1" ] && [ "$PART" = children ] && [ -n "${E1_REUSE:-}" ]; then
+  # Only phase 15's E0 runs; the other children's evidence is the earlier run's, copied as it was.
+  REUSED="$E1_REUSE"
+  for f in children-seed.out children-seed.rc children-seed2.out children-seed2.rc phase-01-E04 phase-01-E04-part1.out phase-01-E04-part1.rc \
+           phase-01-E04-part2.out phase-01-E04-part2.rc phase-14-E3 phase-14-E3.out phase-14-E3.rc; do
+    rm -rf "$OUT/$f"; cp -a "$E1_REUSE/$f" "$OUT/$f"
+  done
+  layout_restore "$BASELINE" > "$OUT/children-seed3.out" 2>&1; echo $? > "$OUT/children-seed3.rc"
+  run_row phase-15 E0 e0.sh "E0_BASELINE=$BASELINE"
+elif [ "${E1_CHILDREN:-1}" = "1" ]; then
   # The children read Start's grid: they start from this phase's baseline (an older baseline lacks the two markers).
   layout_restore "$BASELINE" > "$OUT/children-seed.out" 2>&1; echo $? > "$OUT/children-seed.rc"
   # Phase 01 E4 / E4b: its drivers log to <dir>/E04.txt and restore the layout they found (e4_part2.sh ends with it).
@@ -90,7 +106,13 @@ if [ "${E1_CHILDREN:-1}" = "1" ]; then
 fi
 
 # =============================================================================================== the row
-row_begin E1 "slot takeover and the guard: wiped, upgrade, point back, guard, Agenda pod, Music negative"
+if [ "$PART" = children ]; then
+  row_begin "$ROWID" "E1's children only: phase 01 E4 / E4b, phase 14 E3, phase 15 E0 on this build"
+  [ -n "$REUSED" ] && record "children read from an earlier run, not run again" "phase 01 E4 / E4b and phase 14 E3, from ${REUSED#"$QA"/} (its log names the same APK: $(grep -m1 '^apk installed' "$REUSED/E1.txt" | awk '{print $3}')); phase 15 E0 ran now"
+  [ -n "$REUSED" ] && assert_eq "the reused children ran on the APK installed now" "$(grep -m1 '^apk installed' "$LOG" | awk '{print $3}')" "$(grep -m1 '^apk installed' "$REUSED/E1.txt" | awk '{print $3}')"
+else
+  row_begin E1 "slot takeover and the guard: wiped, upgrade, point back, guard, Agenda pod, Music negative"
+fi
 record "this build" "$(md5sum "$NEW_APK" | cut -c1-16) $(stat -c%s "$NEW_APK") bytes ($(git -C "$REPO" rev-parse --short HEAD))"
 record "the pre-16 build for the upgrade leg" "$(md5sum "$OLD_APK" 2>/dev/null | cut -c1-16) $(stat -c%s "$OLD_APK" 2>/dev/null) bytes — phase-14's c0d094ad app tree (T16-7)"
 assert_eq "the pre-16 APK is the kept one (md5 aaf9a1d8ed536d25)" "aaf9a1d8ed536d25" "$(md5sum "$OLD_APK" | cut -c1-16)"
@@ -138,6 +160,7 @@ if [ "${E1_CHILDREN:-1}" = "1" ]; then
 else
   record "children" "SKIPPED (E1_CHILDREN=0): a development run, not the gate's"
 fi
+if [ "$PART" = children ]; then row_end; exit $?; fi
 
 # ----------------------------------------------------------------------------------------------- W: wiped state
 log "--- W: wiped state (pm clear → provision.sh → ensure_start)"
