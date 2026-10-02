@@ -1,8 +1,9 @@
 package app.tileshell.feeds
 
-import android.content.Context
-import android.provider.CalendarContract
+import app.tileshell.calendar.CalendarAccess
+import app.tileshell.calendar.CalendarReads
 import app.tileshell.calendar.CalendarWrites
+import app.tileshell.calendar.rowIdOf
 import app.tileshell.diag.Diagnostics
 
 /**
@@ -40,35 +41,29 @@ object LocalCalendar {
      * The calendar's id, creating it the first time. Null when the lookup failed (logged) or the provider refuses the
      * create (logged): the caller then has no calendar to write to, and never falls back to another one (J6's rule).
      */
-    fun id(context: Context): Long? = when (val found = find(context)) {
+    fun id(access: CalendarAccess): Long? = when (val found = find(access)) {
         is Lookup.Found -> found.id
-        Lookup.Absent -> create(context)
+        Lookup.Absent -> create(access)
         is Lookup.Failed -> null
     }
 
     /** The calendar's id when it exists; never creates. Null when it is absent or the lookup failed (logged). */
-    fun existingId(context: Context): Long? = (find(context) as? Lookup.Found)?.id
+    fun existingId(access: CalendarAccess): Long? = (find(access) as? Lookup.Found)?.id
 
     /** Finds the calendar by account type LOCAL + account name `Tessera` — never "any LOCAL calendar" (T16-2 line 2). */
-    fun find(context: Context): Lookup = runCatching {
-        val cursor = context.contentResolver.query(
-            CalendarContract.Calendars.CONTENT_URI,
-            arrayOf(CalendarContract.Calendars._ID),
-            "${CalendarContract.Calendars.ACCOUNT_TYPE} = ? AND ${CalendarContract.Calendars.ACCOUNT_NAME} = ?",
-            arrayOf(CalendarContract.ACCOUNT_TYPE_LOCAL, ACCOUNT_NAME),
-            null,
-        ) ?: error("the calendar provider gave no answer")
-        cursor.use { c -> if (c.moveToFirst()) Lookup.Found(c.getLong(0)) else Lookup.Absent }
-    }.getOrElse {
-        Diagnostics.add("calendar", "local calendar lookup failed: $it")
-        Lookup.Failed(it.toString())
-    }
+    fun find(access: CalendarAccess): Lookup = CalendarReads.findByAccount(access, ACCOUNT_NAME).fold(
+        onSuccess = { id -> if (id != null) Lookup.Found(id) else Lookup.Absent },
+        onFailure = {
+            Diagnostics.add("calendar", "local calendar lookup failed: $it")
+            Lookup.Failed(it.toString())
+        },
+    )
 
-    private fun create(context: Context): Long? = runCatching {
+    private fun create(access: CalendarAccess): Long? = runCatching {
         // A calendar can only be created by a sync adapter, which for a LOCAL account is the app itself. The insert is
         // the calendar write layer's, behind the write guard, as every CalendarContract write of the shell is.
-        val created = CalendarWrites.createLocalCalendar(context, ACCOUNT_NAME, COLOR)
+        val created = CalendarWrites.createLocalCalendar(access, ACCOUNT_NAME, COLOR)
         Diagnostics.add("calendar", "local calendar created: $created")
-        created?.lastPathSegment?.toLongOrNull()
+        rowIdOf(created)
     }.onFailure { Diagnostics.add("calendar", "local calendar could not be created: $it") }.getOrNull()
 }

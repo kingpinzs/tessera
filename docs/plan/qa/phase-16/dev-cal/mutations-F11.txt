@@ -1,0 +1,5 @@
+C4 | authority prefix without the trailing slash | CAUGHT (gradle rc=1, class app.tileshell.calendar.CalendarIntentsTest, compile errors 0) | CalendarIntentsTest > anAuthorityThatOnlyStartsWithTheCalendarsIsForeign;
+C6 | INSERT by type when the data is a foreign URI | CAUGHT (gradle rc=1, class app.tileshell.calendar.CalendarIntentsTest, compile errors 0) | CalendarIntentsTest > insertByTypeIsNotAnInsertWhenTheDataIsAnotherUri;
+C11 | fragment not stripped | CAUGHT (gradle rc=1, class app.tileshell.calendar.CalendarIntentsTest, compile errors 0) | CalendarIntentsTest > aFragmentOnTheUriIsNotPartOfTheId;
+C15 | VIEW begin/end extras not range-checked | CAUGHT (gradle rc=1, class app.tileshell.calendar.CalendarIntentsTest, compile errors 0) | CalendarIntentsTest > viewsOccurrenceTimesOutsideTheRangeAreDropped;
+C15b | the range ends one short | CAUGHT (gradle rc=1, class app.tileshell.calendar.CalendarIntentsTest, compile errors 0) | CalendarIntentsTest > viewsOccurrenceTimesOutsideTheRangeAreDropped;

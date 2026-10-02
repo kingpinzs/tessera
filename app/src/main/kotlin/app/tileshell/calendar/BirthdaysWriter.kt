@@ -75,8 +75,9 @@ object BirthdaysWriter {
             Diagnostics.add("calendar", "birthdays: not synced (${if (!CalendarReads.canRead(context)) "READ_CALENDAR" else "WRITE_CALENDAR"})")
             return
         }
+        val access = CalendarAccess.of(context)
         val wanted = birthdays(context, LocalDate.now())
-        val found = CalendarReads.findByAccount(context, CalendarWriteGuard.BIRTHDAYS_ACCOUNT)
+        val found = CalendarReads.findByAccount(access, CalendarWriteGuard.BIRTHDAYS_ACCOUNT)
         val calendarId = found.getOrElse {
             // A lookup that did not answer is not an empty one: nothing is created after it (the same rule as Tessera's,
             // r3 D7 — a second Birthdays calendar is no better than a second Tessera).
@@ -88,16 +89,16 @@ object BirthdaysWriter {
                 Diagnostics.add("calendar", "birthdays: 0 synced")
                 return
             }
-            runCatching { CalendarWrites.createBirthdaysCalendar(context, DISPLAY_NAME, COLOR) }.getOrElse {
+            runCatching { CalendarWrites.createBirthdaysCalendar(access, DISPLAY_NAME, COLOR) }.getOrElse {
                 Diagnostics.add("calendar", "birthdays calendar could not be created: $it")
                 return
             }
         }
         val (delete, insert) = BirthdayRules.diff(existing(context, calendarId), wanted)
-        delete.forEach { CalendarWrites.birthdayDelete(context, it) }
+        delete.forEach { CalendarWrites.birthdayDelete(access, it) }
         insert.forEach { entry ->
             CalendarWrites.birthdayInsert(
-                context, calendarId,
+                access, calendarId,
                 EventValues(
                     title = entry.title, location = "", description = "", dtstart = entry.startMs, dtend = null, duration = "P1D",
                     allDay = true, timezone = "UTC", rrule = entry.rrule, availability = CalendarContract.Events.AVAILABILITY_FREE,

@@ -219,6 +219,9 @@ class ShellApp : Application() {
         CalendarFeed.start(this)
         // Phase 16 (r3 D14): the Birthdays calendar's one writer and its Contacts observer, beside the feed that shows it.
         app.tileshell.calendar.BirthdaysWriter.start(this)
+        // Phase 16 (Q-16-4): the time of the shell's first start on this install, written once; Calendar's reminder
+        // receiver reminds only for alerts that come due after it.
+        app.tileshell.calendar.CalendarReminders.shellStarted(this)
         MusicFeed.start(this)
         app.tileshell.feeds.PeopleFeed.start(this)
         app.tileshell.weather.WeatherFeed.start(this)

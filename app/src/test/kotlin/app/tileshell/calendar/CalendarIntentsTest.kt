@@ -107,4 +107,132 @@ class CalendarIntentsTest {
     @Test fun anUnknownActionOpensToday() {
         assertEquals(CalendarRoute.Open(null), route("android.intent.action.DELETE", "content://com.android.calendar/events/42"))
     }
+
+    // ---------------------------------------------------------------- fix round F11: the parser halves the trust review found unpinned
+
+    /** The review's C4: the authority is matched WITH its trailing slash, so a longer authority that starts with it is foreign. */
+    @Test fun anAuthorityThatOnlyStartsWithTheCalendarsIsForeign() {
+        for (data in listOf(
+            "content://com.android.calendarevents/42", "content://com.android.calendartime/1790000000000",
+            "content://com.android.calendarevents", "content://com.android.calendar", "content://com.android.calendar2/events/42",
+        )) {
+            assertEquals(data, CalendarRoute.Open(null), route(CalendarIntents.ACTION_VIEW, data))
+            assertEquals(data, CalendarRoute.Open(null), route(CalendarIntents.ACTION_EDIT, data))
+            assertEquals(data, CalendarRoute.Open(null), route(CalendarIntents.ACTION_INSERT, data, null, "title" to "x"))
+        }
+    }
+
+    /** The review's C6: the event-directory TYPE makes an INSERT only when the intent has no data at all. */
+    @Test fun insertByTypeIsNotAnInsertWhenTheDataIsAnotherUri() {
+        for (data in listOf(
+            "content://evil.example/events", "content://com.android.contacts/events", "content://com.android.calendar/calendars",
+            "content://com.android.calendar/time/1790000000000", "content://com.android.calendar/events/42", "file:///sdcard/events", "",
+        )) {
+            assertEquals(data, CalendarRoute.Open(null), route(CalendarIntents.ACTION_INSERT, data, CalendarIntents.TYPE_EVENT_DIR, "title" to "x"))
+        }
+        // The two forms that ARE an insert: the events URI (whatever the type), or the type with no data.
+        assertEquals(CalendarRoute.Insert(EventPrefill(title = "x")), route(CalendarIntents.ACTION_INSERT, "content://com.android.calendar/events", null, "title" to "x"))
+        assertEquals(CalendarRoute.Insert(EventPrefill(title = "x")), route(CalendarIntents.ACTION_INSERT, null, CalendarIntents.TYPE_EVENT_DIR, "title" to "x"))
+    }
+
+    /** The review's C11: a fragment is not part of the id, with or without a query before it. */
+    @Test fun aFragmentOnTheUriIsNotPartOfTheId() {
+        assertEquals(CalendarRoute.Event(42, null, null), route(CalendarIntents.ACTION_VIEW, "content://com.android.calendar/events/42#frag"))
+        assertEquals(CalendarRoute.Event(42, null, null), route(CalendarIntents.ACTION_VIEW, "content://com.android.calendar/events/42?a=b#frag"))
+        assertEquals(CalendarRoute.Edit(42), route(CalendarIntents.ACTION_EDIT, "content://com.android.calendar/events/42#frag"))
+        assertEquals(CalendarRoute.Edit(42), route(CalendarIntents.ACTION_EDIT, "content://com.android.calendar/events/42?a=b"))
+        assertEquals(CalendarRoute.Time(1_790_000_000_000L), route(CalendarIntents.ACTION_VIEW, "content://com.android.calendar/time/1790000000000#frag"))
+        assertEquals(CalendarRoute.Time(1_790_000_000_000L), route(CalendarIntents.ACTION_VIEW, "content://com.android.calendar/time/1790000000000?a=b"))
+        assertEquals(CalendarRoute.Insert(EventPrefill()), route(CalendarIntents.ACTION_INSERT, "content://com.android.calendar/events#frag"))
+        // What follows the "?" or the "#" is never read as a path: an id there names nothing.
+        assertEquals(CalendarRoute.Open(null), route(CalendarIntents.ACTION_VIEW, "content://com.android.calendar/events#/42"))
+        assertEquals(CalendarRoute.Open(null), route(CalendarIntents.ACTION_VIEW, "content://com.android.calendar/events?/42"))
+    }
+
+    /** The review's C15: a VIEW's occurrence times are bounded like every other time a caller sends (1970 .. 2200). */
+    @Test fun viewsOccurrenceTimesOutsideTheRangeAreDropped() {
+        val uri = "content://com.android.calendar/events/42"
+        val max = 7_258_118_400_000L   // 2200-01-01T00:00Z
+        fun view(begin: Any?, end: Any?) = route(CalendarIntents.ACTION_VIEW, uri, null, "beginTime" to begin, "endTime" to end)
+        assertEquals(CalendarRoute.Event(42, null, 1_790_003_600_000L), view(-5L, 1_790_003_600_000L))
+        assertEquals(CalendarRoute.Event(42, null, 1_790_003_600_000L), view(max + 1, 1_790_003_600_000L))
+        assertEquals(CalendarRoute.Event(42, null, 1_790_003_600_000L), view(Long.MAX_VALUE, 1_790_003_600_000L))
+        assertEquals(CalendarRoute.Event(42, null, 1_790_003_600_000L), view(Long.MIN_VALUE, 1_790_003_600_000L))
+        assertEquals(CalendarRoute.Event(42, 1_790_000_000_000L, null), view(1_790_000_000_000L, -1L))
+        assertEquals(CalendarRoute.Event(42, 1_790_000_000_000L, null), view(1_790_000_000_000L, max + 1))
+        assertEquals(CalendarRoute.Event(42, null, null), view(-1L, Long.MAX_VALUE))
+        // The two ends of the range are inside it.
+        assertEquals(CalendarRoute.Event(42, 0L, max), view(0L, max))
+        // A time of another type is no time.
+        assertEquals(CalendarRoute.Event(42, null, null), view("1790000000000", 1_790_003_600_000.0))
+    }
+
+    // ---------------------------------------------------------------- fix round F12: an occurrence only the provider can vouch for
+
+    private fun instance(event: Long, begin: Long, end: Long) = EventInstance(event, "Standup", begin, end, false, 3, null, null, false)
+
+    @Test fun aViewsOccurrenceIsTakenOnlyWhenTheProviderHoldsThatOccurrenceOfThatEvent() {
+        val begin = 1_790_000_000_000L
+        val end = begin + 1_800_000
+        val held = listOf(instance(7, begin - 600_000, begin + 600_000), instance(42, begin, end), instance(8, begin, begin + 60_000))
+        // Held: the event's own instance begins exactly there. The end is the provider's, whatever the caller said.
+        assertEquals(CalendarIntents.Occurrence(begin, end), CalendarIntents.occurrence(CalendarRoute.Event(42, begin, end), held))
+        assertEquals(CalendarIntents.Occurrence(begin, end), CalendarIntents.occurrence(CalendarRoute.Event(42, begin, begin + 999_999_999), held))
+        assertEquals(CalendarIntents.Occurrence(begin, end), CalendarIntents.occurrence(CalendarRoute.Event(42, begin, null), held))
+        // Not held — each opens the page with no occurrence:
+        // a time the event has no occurrence at, though another event has one there,
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, begin, end), listOf(instance(7, begin, end), instance(8, begin, end))))
+        // an occurrence of this event that overlaps the claimed time but began at another,
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, begin + 60_000, end), held))
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, begin - 1, end), held))
+        // an occurrence since changed into its own row (the provider lists it under that row's id, 43),
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, begin, end), listOf(instance(43, begin, end))))
+        // nothing at that time at all, or a read that failed (READ_CALENDAR denied),
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, begin, end), emptyList()))
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, begin, end), null))
+        // and a VIEW with no beginTime, whatever the provider holds and whatever endTime said.
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, null, end), held))
+        assertEquals(null, CalendarIntents.occurrence(CalendarRoute.Event(42, null, null), held))
+    }
+
+    // ---------------------------------------------------------------- fix round F4: what an intent may write to the ring
+
+    @Test fun onlyAHandledActionIsLoggedByName() {
+        for (action in listOf(CalendarIntents.ACTION_MAIN, CalendarIntents.ACTION_VIEW, CalendarIntents.ACTION_EDIT, CalendarIntents.ACTION_INSERT)) {
+            assertEquals(action, CalendarIntents.loggedAction(action))
+        }
+        assertEquals("no action", CalendarIntents.loggedAction(null))
+        // Any other string — another real action, a forged ring line, megabytes of text — is the one word "other".
+        for (action in listOf("android.intent.action.DELETE", "android.intent.action.PICK", "", " ", "x\n[calendar] write delete event=7: ok", "A".repeat(1_000_000), "android.intent.action.VIEW ", "ANDROID.INTENT.ACTION.VIEW")) {
+            assertEquals("other", CalendarIntents.loggedAction(action))
+        }
+    }
+
+    @Test fun theRingLineOfAnIntentHoldsNothingTheCallerTyped() {
+        val forged = "x\n2026-10-01 wall=1 [calendar] write delete event=7: ok"
+        val typed = route(
+            forged, null, CalendarIntents.TYPE_EVENT_DIR,
+            "title" to "SECRET TITLE", "eventLocation" to "SECRET PLACE", "description" to "SECRET NOTE", "page" to "SECRET PAGE",
+        )
+        assertEquals("open other -> open page=default", CalendarIntents.openLine(forged, typed))
+        val insert = route(
+            CalendarIntents.ACTION_INSERT, null, CalendarIntents.TYPE_EVENT_DIR,
+            "title" to "SECRET TITLE", "eventLocation" to "SECRET PLACE", "description" to "SECRET NOTE", "beginTime" to 1_790_000_000_000L,
+        )
+        assertEquals(CalendarRoute.Insert(EventPrefill("SECRET TITLE", "SECRET PLACE", "SECRET NOTE", 1_790_000_000_000L)), insert)
+        assertEquals("open android.intent.action.INSERT -> insert (prefilled, unsaved)", CalendarIntents.openLine(CalendarIntents.ACTION_INSERT, insert))
+        // Every route's line: the shell's own words and parsed numbers, one line, no caller text.
+        val lines = listOf(
+            CalendarIntents.openLine(CalendarIntents.ACTION_MAIN, route(CalendarIntents.ACTION_MAIN)) to "open android.intent.action.MAIN -> open page=default",
+            CalendarIntents.openLine(CalendarIntents.ACTION_VIEW, route(CalendarIntents.ACTION_VIEW, extras = arrayOf("page" to "month"))) to "open android.intent.action.VIEW -> open page=month",
+            CalendarIntents.openLine(CalendarIntents.ACTION_VIEW, route(CalendarIntents.ACTION_VIEW, "content://com.android.calendar/time/1790000000000")) to "open android.intent.action.VIEW -> time 1790000000000",
+            CalendarIntents.openLine(CalendarIntents.ACTION_VIEW, route(CalendarIntents.ACTION_VIEW, "content://com.android.calendar/events/42?x=SECRET#SECRET")) to "open android.intent.action.VIEW -> event 42",
+            CalendarIntents.openLine(CalendarIntents.ACTION_EDIT, route(CalendarIntents.ACTION_EDIT, "content://com.android.calendar/events/42")) to "open android.intent.action.EDIT -> edit 42",
+            CalendarIntents.openLine(null, CalendarRoute.Open(null)) to "open no action -> open page=default",
+        )
+        for ((line, expected) in lines) {
+            assertEquals(expected, line)
+            assertEquals(false, line.contains("SECRET") || line.contains('\n'))
+        }
+    }
 }

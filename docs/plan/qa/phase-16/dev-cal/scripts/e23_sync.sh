@@ -35,7 +35,8 @@ assert_contains "the routed line" "[calendar] sync event=$L: no calendar allowed
 tap "cal_settings_can_sync:$PERSONAL" 1.5; dump_ui "$ROW_DIR/can_sync_ticked.xml"
 assert_eq "Personal is ticked" true "$(node_attr "$ROW_DIR/can_sync_ticked.xml" "cal_settings_can_sync:$PERSONAL" checked)"
 J="$(sync_json)"; log "calendar_sync.json: $J"
-assert_contains "calendar_sync.json lists Personal's _ID, account name and type under allowed" "\"allowed\":[{\"id\":$PERSONAL,\"accountName\":\"$PERSONAL_ACCT\",\"accountType\":\"com.google\"}]" "$J"
+# Fix round F16: the key carries the calendar's own name (the fixture's mkcal binds name = the display name).
+assert_contains "calendar_sync.json lists Personal's _ID, account name, type and name under allowed" "\"allowed\":[{\"id\":$PERSONAL,\"accountName\":\"$PERSONAL_ACCT\",\"accountType\":\"com.google\",\"name\":\"QA Personal\"}]" "$J"
 adb shell input keyevent KEYCODE_BACK; sleep 1.5; dump_ui "$ROW_DIR/picker.xml"
 assert_eq "Back lands on the Sync picker" yes "$(has_node "$ROW_DIR/picker.xml" cal_sync)"
 assert_eq "which lists Personal only" "cal_sync_target:$PERSONAL " "$(ids_prefix "$ROW_DIR/picker.xml" cal_sync_target:)"
@@ -53,7 +54,7 @@ work_holds_offsite "after the Sync"
 assert_eq "the marker" "synced to QA Personal" "$(node_text "$ROW_DIR/synced.xml" "cal_synced_marker:$L")"
 assert_eq "with its account beside it" yes "$(has_node "$ROW_DIR/synced.xml" "cal_account:$PERSONAL_ACCT")"
 J="$(sync_json)"
-assert_contains "calendar_sync.json maps the local id to Personal and the copy" "{\"id\":$PERSONAL,\"accountName\":\"$PERSONAL_ACCT\",\"accountType\":\"com.google\",\"local\":$L,\"copy\":$C}" "$J"
+assert_contains "calendar_sync.json maps the local id to Personal and the copy" "{\"id\":$PERSONAL,\"accountName\":\"$PERSONAL_ACCT\",\"accountType\":\"com.google\",\"name\":\"QA Personal\",\"local\":$L,\"copy\":$C}" "$J"
 assert_contains "the copy has its own reminder row" "minutes=10" "$(S "content query --uri content://com.android.calendar/reminders --projection event_id:minutes --where \"event_id=$C\"")"
 record "the copy's dirty flag (a normal insert: the account's adapter uploads it)" "$(event_rows dirty "_id=$C" | sed 's/^Row: 0 //')"
 
