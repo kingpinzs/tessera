@@ -866,6 +866,18 @@ class CalendarWriteLayerTest {
         assertEquals(TessCalendar.DeleteMatch.Elsewhere, TessCalendar.matchForDelete(events, null, "Dentist"))
     }
 
+    @Test fun tessNamesTodaysAllDayEventByItsDateWhateverTheZone() {
+        // 19:00 MDT: the UTC day of today's date ended an hour ago by the clock, and tomorrow's has begun (gate review A, 1).
+        val denver = java.time.ZoneId.of("America/Denver")
+        val now = java.time.LocalDateTime.of(2026, 10, 1, 19, 0).atZone(denver).toInstant().toEpochMilli()
+        fun utcDay(d: java.time.LocalDate) = d.atStartOfDay(java.time.ZoneOffset.UTC).toInstant().toEpochMilli()
+        val today = java.time.LocalDate.of(2026, 10, 1)
+        fake.instance(80, "Ann Lee's birthday", utcDay(today), tessera.id, end = utcDay(today.plusDays(1)), allDay = true)
+        fake.instance(81, "Bob's birthday", utcDay(today.plusDays(1)), tessera.id, end = utcDay(today.plusDays(2)), allDay = true)
+        assertEquals(listOf(80L), TessCalendar.events(access, now, 86_400_000L, denver).map { it.id })
+        noWrites()
+    }
+
     @Test fun tessFindsTheEventThroughTheProviderAndNeverCreatesACalendarToDoIt() {
         fake.instance(WORK_EVENT, "Standup", 1_790_000_000_000L, work.id)
         fake.instance(LOCAL, "Dentist", 1_790_000_100_000L, tessera.id)

@@ -25,16 +25,23 @@ object TessCalendar {
 
     /**
      * The events with an instance inside [windowMs] from [fromMs], every calendar's — less a synced copy while its
-     * Tessera original exists (Q-16-2: one event, named once).
+     * Tessera original exists (Q-16-2: one event, named once). A timed instance counts by the clock, an all-day one by
+     * its date ([InstanceWindow]): "today" holds today's birthday all day, in any zone.
      */
-    fun events(access: CalendarAccess, fromMs: Long, windowMs: Long): List<Event> = runCatching {
+    fun events(access: CalendarAccess, fromMs: Long, windowMs: Long, zone: java.time.ZoneId = java.time.ZoneId.systemDefault()): List<Event> = runCatching {
         val copies = SyncedCopies.hiddenEventIds(access)
+        val (rangeFrom, rangeTo) = InstanceWindow.queryRange(fromMs, windowMs, zone)
         access.provider.query(
-            ProviderUri(ProviderTable.INSTANCES, listOf(fromMs, fromMs + windowMs)),
-            listOf(CalendarContract.Instances.EVENT_ID, CalendarContract.Instances.TITLE, CalendarContract.Instances.BEGIN, CalendarContract.Instances.CALENDAR_ID),
+            ProviderUri(ProviderTable.INSTANCES, listOf(rangeFrom, rangeTo)),
+            listOf(
+                CalendarContract.Instances.EVENT_ID, CalendarContract.Instances.TITLE, CalendarContract.Instances.BEGIN,
+                CalendarContract.Instances.CALENDAR_ID, CalendarContract.Instances.END, CalendarContract.Instances.ALL_DAY,
+            ),
             sort = "${CalendarContract.Instances.BEGIN} ASC",
         )?.mapNotNull { row ->
             val title = row.string(1) ?: return@mapNotNull null
+            val allDay = !row.isNull(5) && row.long(5) == 1L
+            if (!InstanceWindow.shows(row.long(2), row.long(4), allDay, fromMs, windowMs, zone)) return@mapNotNull null
             if (row.long(0) in copies) null else Event(row.long(0), title, row.long(3))
         }.orEmpty()
     }.onFailure { Diagnostics.add("cortana", "calendar instances failed: $it") }.getOrDefault(emptyList())
