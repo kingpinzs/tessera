@@ -258,7 +258,15 @@ object CardRules {
     }
 
     /** An account as People names it to the user: its name, or "Phone" for the phone's own contacts. */
-    fun accountName(account: ContactAccount?): String = account?.name?.takeIf { it.isNotBlank() } ?: PHONE
+    fun accountName(account: ContactAccount?): String =
+        if (account == null || account == phoneAccount) PHONE else account.name?.takeIf { it.isNotBlank() } ?: PHONE
+
+    /**
+     * The device's local account, as it was last read (`PeopleEditStore.localAccount`). AOSP's has no name; a phone
+     * whose maker names it would otherwise show that raw name wherever the account is written out — the card, the
+     * editor's header and "Save to", the filter, the groups (gate review A, finding 8).
+     */
+    @Volatile var phoneAccount: ContactAccount? = null
 
     const val PHONE = "Phone"
 

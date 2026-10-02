@@ -167,6 +167,16 @@ class PeopleModelTest {
     fun `account names`() {
         assertEquals("Phone", CardRules.accountName(ContactAccount(null, null)))
         assertEquals("Phone", CardRules.accountName(null))
+        // A phone whose maker names its local account: it still reads "Phone", and only that account does.
+        val named = ContactAccount("vnd.sec.contact.phone", "vnd.sec.contact.phone")
+        assertEquals("vnd.sec.contact.phone", CardRules.accountName(named))
+        CardRules.phoneAccount = named
+        try {
+            assertEquals("Phone", CardRules.accountName(named))
+            assertEquals("me@example.com", CardRules.accountName(ContactAccount("me@example.com", "com.example")))
+        } finally {
+            CardRules.phoneAccount = null
+        }
         assertEquals("qa.work@example.com", CardRules.accountName(ContactAccount("qa.work@example.com", "com.example")))
     }
 
