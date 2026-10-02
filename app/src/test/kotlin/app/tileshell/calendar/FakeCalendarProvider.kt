@@ -63,8 +63,8 @@ class FakeCalendarProvider : CalendarProvider {
         reminders += mutableMapOf("_id" to nextId++, "event_id" to eventId, "minutes" to minutes, "method" to method)
     }
 
-    fun instance(eventId: Long, title: String?, begin: Long, calendarId: Long) {
-        instances += mutableMapOf("event_id" to eventId, "title" to title, "begin" to begin, "end" to begin + 3_600_000L, "calendar_id" to calendarId)
+    fun instance(eventId: Long, title: String?, begin: Long, calendarId: Long, end: Long = begin + 3_600_000L, allDay: Boolean = false) {
+        instances += mutableMapOf("event_id" to eventId, "title" to title, "begin" to begin, "end" to end, "calendar_id" to calendarId, "allDay" to if (allDay) 1 else 0)
     }
 
     fun eventRow(id: Long): MutableMap<String, Any?>? = events.firstOrNull { it["_id"] == id }

@@ -9,6 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.CalendarContract
 import app.tileshell.calendar.CalendarAccess
+import app.tileshell.calendar.InstanceWindow
 import app.tileshell.calendar.SyncAllowList
 import app.tileshell.calendar.SyncedCopies
 import app.tileshell.diag.Diagnostics
@@ -97,13 +98,21 @@ object CalendarFeed {
             val copies = if (hasAccess(context)) SyncedCopies.hiddenEventIds(CalendarAccess.of(context)) else emptySet()
             if (hasAccess(context)) {
                 runCatching {
+                    // The next 24 hours: timed events by the clock, all-day ones (a birthday is one) by their date —
+                    // today's, whatever the zone (InstanceWindow).
                     val start = System.currentTimeMillis()
+                    val day = 24L * 60 * 60 * 1000
+                    val zone = java.time.ZoneId.systemDefault()
+                    val (rangeFrom, rangeTo) = InstanceWindow.queryRange(start, day, zone)
                     val builder = CalendarContract.Instances.CONTENT_URI.buildUpon()
-                    ContentUris.appendId(builder, start)
-                    ContentUris.appendId(builder, start + 24L * 60 * 60 * 1000)
+                    ContentUris.appendId(builder, rangeFrom)
+                    ContentUris.appendId(builder, rangeTo)
                     context.contentResolver.query(
                         builder.build(),
-                        arrayOf(CalendarContract.Instances.TITLE, CalendarContract.Instances.BEGIN, CalendarContract.Instances.ALL_DAY, CalendarContract.Instances.EVENT_LOCATION, CalendarContract.Instances.EVENT_ID),
+                        arrayOf(
+                            CalendarContract.Instances.TITLE, CalendarContract.Instances.BEGIN, CalendarContract.Instances.ALL_DAY,
+                            CalendarContract.Instances.EVENT_LOCATION, CalendarContract.Instances.EVENT_ID, CalendarContract.Instances.END,
+                        ),
                         null, null, "${CalendarContract.Instances.BEGIN} ASC",
                     )?.use { c ->
                         val timeFmt = DateFormat.getTimeInstance(DateFormat.SHORT)
@@ -111,6 +120,7 @@ object CalendarFeed {
                             if (c.getLong(4) in copies) continue
                             val title = c.getString(0) ?: continue
                             val allDay = c.getInt(2) == 1
+                            if (!InstanceWindow.shows(c.getLong(1), c.getLong(5), allDay, start, day, zone)) continue
                             val whenText = if (allDay) "All day" else timeFmt.format(Date(c.getLong(1)))
                             val location = c.getString(3).orEmpty()
                             faces += TileFace.CalendarDay(dayName, dayNumber, listOf(title, whenText, location).filter { it.isNotBlank() })
