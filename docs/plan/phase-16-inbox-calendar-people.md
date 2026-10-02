@@ -122,6 +122,16 @@ adapter uploads).
 - Alarms & Clock, Calculator, Voice Recorder (15), Photos / Camera / video (17), Files (18), the Settings front (19)
 
 ## Decisions
+- 2026-10-02: Build question Q-16-6 — E7's janky-frames clause stays as written and is recorded as FAILED on the
+  emulator; smoothness is judged by the owner on the phone (Jeremy: "C", 06:43; rejected: A, judge it against the same
+  run on an empty calendar — at most 5 points above it and no frame over 100 ms; B, keep 5 % on the frames late through
+  the app's own work, after a rework of week paging). Why it was asked: "≤ 5 % janky frames over the run" reads
+  14.98 % with 5,000 events on the gate's line of builds and 11.55 % with an EMPTY calendar on the same build — about
+  two frames of every 32-frame swipe are late at the finger's lift with under 3 ms of app work in them, so the bound
+  cannot be met on this emulator whatever the product does (`qa/phase-16/defects/D-E7-1.md`, every frame on file). What
+  the measurement did find and the build fixed: a 267 ms frame when the Agenda landed on a 200-event day and a 345 ms
+  frame when the Day view opened on it (now 50.1 ms each at most). The numbers stay on record; nothing is re-cut to
+  make the row pass. Phone row P11 (`qa/phase-16/NEEDS-HUMAN.md`) is the judgment.
 - 2026-10-01: Build question Q-16-5 — E15's APK growth bound is 5 MB, and code files (`classes*.dex`) are exempt from
   the "no new entry ≥ 1 MB" check (Jeremy: "A"; rejected: B, keep 2 MB and shrink the code; C, drop the growth bound
   for this phase). Why it was asked: the fix build's file is 4,761,142 bytes larger than the APK before task 2, and a
@@ -1085,7 +1095,7 @@ asserted relative to the drawn bar's bottom edge.
   line has ms ≤ 3000 and `wall=` − MARK ≤ 3000; the Week view of that month's busiest week, from its own MARK, the same with
   its `view week` line and n equal to the host's `content query …/instances/when/<week start>/<week end>` count; paging 12
   weeks forward with `input swipe` (a MARK before each swipe) gives every `view week` line ms ≤ 3000 and `wall=` − that
-  swipe's MARK ≤ 3000, and `dumpsys gfxinfo app.tileshell` janky frames ≤ 5 % over the run (phase 01's threshold, applied on
+  swipe's MARK ≤ 3000, and `dumpsys gfxinfo app.tileshell` janky frames ≤ 5 % over the run (RULED 2026-10-02, Q-16-6, Jeremy: "C": this clause stays as written, is recorded FAILED on the emulator — 14.98 % with 5,000 events, 11.55 % on an empty calendar — and is judged by the owner on the phone, P11) (phase 01's threshold, applied on
   the emulator as a bound not a phone measurement); a day with 200 events lists them scrollably in the Day view; the
   Calendar tile still shows only the next 24 hours' events (`CalendarFeed`'s window); delete the QA calendar afterwards (its
   events cascade). (Was "the month view … within 3 s of the page change (screenrecord frame count)" and "view month …: 400

@@ -60,6 +60,16 @@ if os.path.exists(st):
             supplements.setdefault(row, []).append((prefix, [x for x in shas.split(",") if x], why))
 
 
+# E21/ruled.txt: a row with a clause the owner has ruled on — printed as ruled, with every kept run, not as OPEN.
+ruled = {}
+rl = os.path.join(QA, "E21", "ruled.txt")
+if os.path.exists(rl):
+    for line in open(rl, encoding="utf-8"):
+        if line.strip() and not line.startswith("#"):
+            row, text = line.rstrip("\n").split("\t", 1)
+            ruled[row] = text
+
+
 def builds_for(row):
     if row in rerun:
         return [(b, "") for b in rerun[row][0]]
@@ -100,6 +110,7 @@ print("whose run on an earlier build stands (the owner's ruling of 2026-10-01, \
 print("| row | evidence run | result | other kept runs (oldest first) |")
 print("|---|---|---|---|")
 open_rows = []
+ruled_rows = []
 for row in ROWS:
     rs = runs(row)
     if not rs and row in ("E1_CHILDREN", "T2SMOKE", "E21"):
@@ -115,7 +126,10 @@ for row in ROWS:
             continue
         s = "%s/%s/%s" % r["sum"] if r["sum"] else "no summary"
         others.append("`%s` %s on %s%s" % (r["dir"], s, r["apk"][:8], (" only=" + r["only"]) if r["only"] else ""))
-    if ev:
+    if row in ruled:
+        ruled_rows.append(row)
+        print("| %s | **RULED** | %s | %s |" % (row, ruled[row], "; ".join(others) or "–"))
+    elif ev:
         why = [w[1] for w in wants if w[1] and ev["apk"].startswith(w[0])]
         note = " (build %s: %s)" % (ev["apk"][:8], why[0][:110]) if why and not ev["apk"].startswith(GATE) else ""
         sup = ""
@@ -195,3 +209,4 @@ if os.path.exists(idx):
             open_rows.append("EDGE " + i)
 
 print("\n## Open: %s" % (", ".join(open_rows) if open_rows else "nothing"))
+print("\n## With a clause failed by the owner's ruling: %s" % (", ".join(ruled_rows) if ruled_rows else "nothing"))

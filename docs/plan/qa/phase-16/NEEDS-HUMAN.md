@@ -1,20 +1,12 @@
 # Phase 16 (Calendar and People) — Jeremy's sign-off checklist
 
 **Ready for you.** The emulator gate has passed: both gate reviewers (Opus + Opus, two rounds) say GATE: PASS on the
-build `app-debug.apk` md5 585b457ffc29878c (branch `phase-16`, commit e226bc68; 1,285 unit tests, 0 failures). One
-thing is still yours before the phase can go `done`: **Q-16-6**, row E7's frame-smoothness limit (below). After that the
-phase goes `done` when every row below is signed off — reply with the ids that pass, and what you saw for any that do
-not. Phone rows need a build on the S25 Ultra: CI builds one when the `phase-16` branch is pushed, which needs your
-word and your `touch ~/.claude/push-approved`.
-
-**Q-16-6 (answer A, B, C or D).** E7 asks for at most 5 % late frames while paging months and weeks with 5,000
-events. On the emulator that limit fails even with an EMPTY calendar (11.6 % late), because about two frames per
-swipe are late at finger-lift with almost no work in them. With 5,000 events it reads 15.0 %, and no single frame is
-over 100 ms (the worst were a 267 ms and a 345 ms frame, both fixed). A — judge it against the empty-calendar run: at
-most 5 points above it and no frame over 100 ms (it passes today; my lean, and both reviewers call the comparison
-sound). B — keep 5 %, counting only frames late through the app's own work, after a rework of week paging (1–2 more
-hours, uncertain on this emulator). C — leave it failed on the emulator and judge smoothness yourself on the phone
-(H17). D — other.
+build `app-debug.apk` md5 585b457ffc29878c (branch `phase-16`, commit e226bc68; 1,285 unit tests, 0 failures).
+Your ruling on Q-16-6 is recorded ("C", 2026-10-02): row E7's frame-smoothness limit stays as written, is on record
+as FAILED on the emulator, and smoothness is yours to judge on the phone — row P11 below. The phase goes `done` when
+every row below is signed off: reply with the ids that pass, and what you saw for any that do not. Phone rows need a
+build on the S25 Ultra: CI builds one when the `phase-16` branch is pushed, which needs your word ("push") and your
+`touch ~/.claude/push-approved` on this machine.
 
 Everything in the phone rows is done on the phone alone — nothing over a cable, adb or a PC. Where a row needs a value,
 it is read on a page of the shell (Start settings > Diagnostics) and pasted back.
@@ -62,3 +54,4 @@ it is read on a page of the shell (Start settings > Diagnostics) and pasted back
 | P8 | with nothing ticked on People's "Can edit": in People tap New, check that "Save to" reads "Phone" (say what it reads if not), enter a name and Save; then open Start settings > Diagnostics and paste the newest `[people] write insert …` line; then find that contact in Samsung Contacts and read where it is stored, and say whether Samsung Contacts itself lets you save a new contact to "Phone". Then open a contact saved to "Phone" in Samsung Contacts, edit it in People; open a Google-account contact and (if any) a work-account contact; tick your personal account only | the new contact is stored on the phone ("Phone"), or People said it could not save it and nothing was left behind in a Google or work account — both are a pass; a contact left in an account you did not tick is a fail. If People refuses while Samsung Contacts CAN save to "Phone", say so: People's check of the phone's default account is then too strict and is re-cut (the pasted line shows which case it was). The "Phone" contact has Edit and Delete and the edit shows in Samsung Contacts; the Google and work contacts show no Edit, no Delete and the line naming the account; "Can edit" lists the phone's accounts, all unticked; after ticking, the personal account's contacts become editable and an edit shows in Samsung Contacts (or contacts.google.com in the phone's browser); the work account's stay read-only. If the "Phone" contact is NOT editable with nothing ticked, say so: the rule for Samsung's local account is then re-cut |
 | P9 | make a weekly repeating event in the local (Tessera) calendar, change ONE of its occurrences ("this occurrence"), then Sync it to your personal calendar; after that account has synced, look at the series in Google Calendar on the phone (or calendar.google.com in the phone's browser) | say what you see: every week's occurrence is there and the changed one is changed, or only some are. On the emulator, which has no account to sync with, the copy shows a single occurrence until an account's sync gives it ids — the phone decides whether the design holds or is re-cut |
 | P10 | after 6 pm on a day that has an all-day event or a birthday in your calendar (and another one tomorrow): look at the Calendar tile and ask Tess "what is on my calendar" | today's all-day event or birthday is still on the tile and named by Tess; tomorrow's is not shown as today's (the gate review found the emulator build dropping today's at 6 pm Mountain time; fixed, and checked on the emulator with the clock moved) |
+| P11 | (your ruling Q-16-6) in Calendar, with your real calendars: swipe through a dozen weeks in the Week view; open the month drop-down and swipe a few months; scroll the Agenda down for several weeks; open the Day view on your busiest day and scroll it | say whether it is smooth, and where it is not (which view, which gesture). For scale, the emulator read 15 % late frames with 5,000 events and 11.6 % with an empty calendar — most of that is the emulator's own timing at finger-lift — and no single frame over 67 ms; a stutter you can see when a swipe STARTS is the one thing I expect (the next page is built as the drag begins) |
