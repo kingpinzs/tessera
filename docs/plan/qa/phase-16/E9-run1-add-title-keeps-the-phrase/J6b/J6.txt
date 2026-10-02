@@ -1,0 +1,26 @@
+==============================================================================
+ROW J6 — Tess's calendar events go to the shell's local calendar, never an account calendar
+at            2026-10-01T23:55:52-06:00
+driver        j6.sh blob 50efb343141846045d84905e493ffd5c285b73a0
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      calendars before: Row: 0 _id=1, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera Row: 1 _id=2, account_name=Tessera Birthdays, account_type=LOCAL, calendar_displayName=Birthdays Row: 2 _id=3, account_name=qa.work@example.com, account_type=com.google, calendar_displayName=QA Work Row: 3 _id=4, account_name=qa.personal@example.com, account_type=com.google, calendar_displayName=QA Personal 
+PASS  the QA work calendar exists                                 != 
+PASS  Tess shows the confirm card                                 = yes
+      Tess said: [Added to your calendar.]
+      calendars after: Row: 0 _id=1, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera Row: 1 _id=2, account_name=Tessera Birthdays, account_type=LOCAL, calendar_displayName=Birthdays Row: 2 _id=3, account_name=qa.work@example.com, account_type=com.google, calendar_displayName=QA Work Row: 3 _id=4, account_name=qa.personal@example.com, account_type=com.google, calendar_displayName=QA Personal 
+      work=3 personal=4 local=1
+PASS  nothing was written to the account calendar marked primary (QA Work)  = 0
+PASS  nothing was written to the other account calendar (QA Personal)  = 0
+PASS  the shell has a local calendar                              != 
+FAIL  the event is in the shell's local calendar                  expected [1] got [2]
+PASS  the diagnostics name the local calendar                     contains [local]
+      calendars after the restore: Row: 0 _id=1, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera Row: 1 _id=2, account_name=Tessera Birthdays, account_type=LOCAL, calendar_displayName=Birthdays 
+      restored: QA calendars and the test event deleted; the shell's local calendar stays (it is the shell's own)
+------------------------------------------------------------------------------
+J6: 6 passed, 1 failed, 0 recorded

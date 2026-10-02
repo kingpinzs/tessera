@@ -64,7 +64,8 @@ import html, re, sys
 xml = open(sys.argv[1], encoding='utf-8', errors='replace').read()
 for m in re.finditer(r'<node[^>]*>', xml):
     s = m.group(0)
-    if html.unescape(re.search(r'text="([^"]*)"', s).group(1)) == sys.argv[2]:
+    t = re.search(r' text="([^"]*)"', s) or re.search(r" text='([^']*)'", s)     # a text holding a double quote is dumped single-quoted
+    if t and html.unescape(t.group(1)) == sys.argv[2]:
         l, t, r, b = (int(v) for v in re.search(r'bounds="\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]"', s).groups())
         print((l + r) // 2, (t + b) // 2); break
 PY
@@ -129,15 +130,16 @@ assert_contains "the action line names the kept-up number" "tel:$KEPT_UP" "$(rin
 assert_eq "dumpsys telecom: one more outgoing call" "$((CALLS0 + 1))" "$(outgoing_calls)"
 assert_contains "dumpsys telecom: placed by the shell" "CREATED (app.tileshell;" "$NEWEST"
 assert_eq "dumpsys telecom: the call is up (a foreground call exists while it is read)" "yes" "$(call_is_up && echo yes || echo no)"
+assert_contains "… the foreground call is this one, dialing or active" "state=" "$(grep -A1 'Foreground call:' "$D/telecom-call-up.txt" | tail -1 | grep -oE 'Call id=TC@[0-9]+, state=(DIALING|ACTIVE|CONNECTING)')"
 assert_absent "… its record holds no SET_DISCONNECTED yet" "SET_DISCONNECTED" "$NEWEST"
-record "the call's state lines" "$(grep -m2 -E 'mForegroundCall|SET_DIALING|SET_ACTIVE' "$D/telecom-call-up.txt" | tr -s ' ' | tr '\n' ';' | cut -c1-240)"
+record "the foreground call as Telecom dumps it" "$(grep -A1 'Foreground call:' "$D/telecom-call-up.txt" | tail -1 | sed 's/^ *//' | cut -c1-120)"
 record "the resumed activity while the call is up" "$(top_activity)"
 record "adb emu gsm list while the call is up (the doc's read; this image prints only OK)" "$(adb emu gsm list 2>&1 | tr -d '\r' | tr '\n' ' ')"
 record "adb emu gsm cancel $KEPT_UP" "$(adb emu gsm cancel "$KEPT_UP" 2>&1 | tr -d '\r' | tr '\n' ' ')"
 sleep 2
 end_call
-sleep 1
-assert_eq "no call is left up" "no" "$(call_is_up && echo yes || echo no)"
+sleep 2
+assert_eq "no call is left up (Telecom's mCalls is empty)" "0" "$(adb shell dumpsys telecom | tr -d '\r' | grep -c '\[Call id=TC@')"
 assert_eq "the device is awake after the call" "Awake" "$(wake_device)"
 adb shell am force-stop com.android.dialer
 c6; ensure_start
@@ -196,7 +198,19 @@ tap_node "$D/card-e.xml" people_card_action:mail:0; sleep 4
 TOP="$(top_activity)"; log "resumed: $TOP"
 adb shell dumpsys activity activities | tr -d '\r' | grep -m1 -E 'Intent \{ act=android.intent.action.(CHOOSER|SENDTO)' | sed 's/^ *//' | cut -c1-240 >> "$LOG"
 dump_ui "$D/mail-resolver.xml"; screencap "$D/mail-resolver.png"
-assert_eq "with the slot unassigned: Android's resolver is resumed" "yes" "$(is_resolver "$TOP")"
+# "→ Android's resolver": the shell names no component and leaves the choice to Android. Android shows its resolver
+# only when two or more activities can take the intent; with ONE handler of SENDTO mailto: on the image it starts that
+# one with no page of its own (clauses-open.tsv).
+MAILTO_HANDLERS="$(adb shell cmd package query-activities --brief -a android.intent.action.SENDTO -d mailto:ann@example.com | tr -d '\r' | grep '/' | tr -d ' ' | tr '\n' ' ' | sed 's/ $//')"
+record "the image's handlers of ACTION_SENDTO mailto:" "$MAILTO_HANDLERS"
+MAIL_LINE="$(ring_since "$MARK" | grep -F '[people] action mail' | tail -1 | sed 's/.*\[people\]/[people]/')"
+assert_eq "with the slot unassigned the shell names no component: it hands mailto: to Android's resolver" "[people] action mail -> resolver mailto:ann@example.com" "$MAIL_LINE"
+if [ "$(echo "$MAILTO_HANDLERS" | wc -w)" -ge 2 ]; then
+  assert_eq "with the slot unassigned: Android's resolver is resumed (two or more handlers)" "yes" "$(is_resolver "$TOP")"
+else
+  assert_eq "with the slot unassigned and ONE mailto: handler on the image, Android's resolution starts that handler" "$MAILTO_HANDLERS" "$TOP"
+  assert_contains "… with the SENDTO the shell sent (dumpsys activity activities)" "act=android.intent.action.SENDTO dat=mailto:ann@example.com" "$(adb shell dumpsys activity activities | tr -d '\r' | grep -m1 -E 'Intent \{ act=android.intent.action.SENDTO')"
+fi
 log "$(ring_since "$MARK" | grep -F '[people] action' | sed 's/.*\[people\]/[people]/')"
 back 2
 adb shell am force-stop com.fsck.k9; adb shell am force-stop eu.faircode.email
@@ -259,6 +273,7 @@ assert_eq "the card has the address action (people_card_action:map:0)" "yes" "$(
 ring_save
 record "the host's free disk before the map action" "$(df -h / | awk 'NR==2 {print $4 " free, " $5 " used"}')"
 assert_eq "the emulator is alive before the map action" "yes" "$(emulator_alive)"
+T_DEV="$(dev_time)"
 MARK="$(ring_mark)"
 tap_node "$D/card-f.xml" people_card_action:map:0
 sleep 6
@@ -277,8 +292,15 @@ TOP="$(top_activity)"; log "resumed: $TOP"
 adb shell dumpsys activity activities | tr -d '\r' > "$D/activities-map.txt"
 SLICE="$(ring_since "$MARK")"; MAP_LINE="$(printf '%s\n' "$SLICE" | grep -F '[people] action map -> ' | tail -1 | sed 's/.*\[people\]/[people]/')"; log "$MAP_LINE"
 assert_contains "OsmAnd is resumed" "net.osmand.plus/" "$TOP"
-GEO="$(grep -m1 -E 'Intent \{[^}]*dat=geo:' "$D/activities-map.txt" | sed 's/^ *//' | cut -c1-240)"; log "its intent: $GEO"
-assert_contains "… with a geo: query (dumpsys activity activities)" "dat=geo:0,0?q=" "$GEO"
+# OsmAnd takes VIEW geo: in a trampoline (GeoIntentActivity) that hands on to its map page and finishes, so a dump
+# taken seconds later holds only the map page's own intent; and Android prints a geo: URI redacted ("dat=geo:"). The
+# start is read from the activity manager's own log line; the query's text is in the shell's line (clauses-open.tsv).
+record "dumpsys activity activities, 6 s on: the resumed activity's own intent" "$(grep -m1 'Intent {' "$D/activities-map.txt" | sed 's/^ *//' | cut -c1-160)"
+starts_since "$T_DEV" > "$D/starts-map.txt"
+GEO="$(grep -m1 -F 'dat=geo:' "$D/starts-map.txt" | sed 's/^.*START u0/START u0/' | cut -c1-300)"; log "the activity manager's start line: $GEO"
+assert_contains "… started with ACTION_VIEW on a geo: URI" "act=android.intent.action.VIEW dat=geo:" "$GEO"
+assert_contains "… into OsmAnd" "cmp=net.osmand.plus/" "$GEO"
+assert_contains "… by the shell (from uid <the shell's uid>)" "from uid $(shell_uid) " "$GEO"
 assert_contains "the slice holds [people] action map -> <OsmAnd's component> geo:0,0?q=…" "[people] action map -> $(short "$(flat "$OSMAND")") geo:0,0?q=" "$MAP_LINE"
 assert_contains "… the query is her address" "Main" "$MAP_LINE"
 screencap "$D/osmand.png"
@@ -297,7 +319,7 @@ people_fixtures_down
 q "content query --uri $RAW --projection _id:contact_id:account_name:account_type:display_name:deleted" > "$D/raw-after.txt"
 assert_eq "restore: the raw_contacts rows equal the rows before the row" "$(cat "$D/raw-before.txt")" "$(cat "$D/raw-after.txt")"
 for p in com.fsck.k9 eu.faircode.email "$HOLDER" com.android.dialer net.osmand.plus com.android.contacts; do adb shell am force-stop "$p"; done
-assert_eq "restore: no call is up" "no" "$(call_is_up && echo yes || echo no)"
+assert_eq "restore: no call is up (Telecom's mCalls is empty)" "0" "$(adb shell dumpsys telecom | tr -d '\r' | grep -c '\[Call id=TC@')"
 assert_eq "restore: the device is awake" "Awake" "$(wake_device)"
 ensure_start
 row_end

@@ -97,7 +97,12 @@ assert_eq "P: Personal holds 0" "" "$(ctitles "$PERSONAL")"
 cwork_offsite "P: after backing out"
 J="$(csync_json)"; log "calendar_sync.json: $J"
 ALLOWED="$(csync_get allowed)"
-assert_eq "P: calendar_sync.json lists Personal's _ID, account name and type under allowed — and nothing else" "[{\"id\":$PERSONAL,\"accountName\":\"$PERSONAL_ACCT\",\"accountType\":\"com.google\"}]" "$ALLOWED"
+ALLOWED_IS="$(printf '%s' "$ALLOWED" | python3 -c '
+import json, sys
+try: a = json.load(sys.stdin)
+except Exception: print("(unreadable)"); sys.exit()
+print(";".join("%s|%s|%s|%s" % (e.get("id"), e.get("accountName"), e.get("accountType"), e.get("name")) for e in a))')"
+assert_eq "P: calendar_sync.json lists Personal's _ID, account name and type under allowed (and, since the fix build, the calendar's own name) — and nothing else" "$PERSONAL|$PERSONAL_ACCT|com.google|Personal" "$ALLOWED_IS"
 assert_eq "P: no mapping was made (nothing was synced)" "[]" "$(csync_get mappings)"
 
 # ----------------------------------------------------------------------------------------------- R: the re-added account

@@ -311,7 +311,12 @@ def agenda(s, a):
         th = s.b("cal_day:%s" % today)
         tn = s.node("cal_day:%s" % today)
         ib = s.ink(th) if th else None
-        out("W", "K3.3 today's heading (\"%s\") at x 24 (the ink's left edge)" % (tn.get("text") if tn is not None else ""), 24, epx(ib[0]) if ib else "", 1)
+        ttext = tn.get("text") if tn is not None else ""
+        if ttext.startswith("W"):   # R11's sample is "Wednesday 2": the same leading glyph, so the ink is compared
+            out("W", "K3.3 today's heading (\"%s\") at x 24 (the ink's left edge)" % ttext, 24, epx(ib[0]) if ib else "", 1)
+        else:                       # another weekday's first letter has another side bearing: the text's own box
+            out("W", "K3.3 today's heading (\"%s\") at x 24 (its text box's left edge; R11's sample is a Wednesday)" % ttext, 24, epx(th[0]) if th else "", 1)
+            out("R", "K3.3 … its ink's left edge (epx; another leading glyph than R11's \"W\")", epx(ib[0]) if ib else "")
         out("C", "K3.3 today's heading is in the accent (the selected square's colour on this screen)", rgb(acc) if acc else "", rgb(s.core(th)) if th else "", 4)
         em = s.node("cal_empty:%s" % today)
         eb = s._b(em) if em is not None else None

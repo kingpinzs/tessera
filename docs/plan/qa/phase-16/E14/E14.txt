@@ -1,19 +1,19 @@
 ==============================================================================
 ROW E14 — Link and unlink
-at            2026-10-01T17:03:45-06:00
+at            2026-10-01T21:07:25-06:00
 driver        e14.sh blob 863f510a984cbf96e8cdba1f362a28f2d3742c23
 harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
-apk built     d008aec0c1318519 340591758 bytes
-apk installed 686506a7a7936b2e
-apk match     yes (686506a7a7936b2e)
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-PASS  the device holds the build under test                       yes (686506a7a7936b2e)
+PASS  the device holds the build under test                       yes (3c1ad1e0e65bd919)
       aggregation_exceptions before the row: No result found.;
 --- fixtures: two phone-only Sam Reeds, checked in the provider before the app is read
-Row: 0 _id=191, contact_id=198, account_name=NULL, account_type=NULL, display_name=Sam Reed
-Row: 1 _id=192, contact_id=199, account_name=NULL, account_type=NULL, display_name=Sam Reed
+Row: 0 _id=318, contact_id=327, account_name=NULL, account_type=NULL, display_name=Sam Reed
+Row: 1 _id=319, contact_id=328, account_name=NULL, account_type=NULL, display_name=Sam Reed
 PASS  provider: two raw_contacts rows named Sam Reed              = 2
 PASS  provider: both are phone-only (one account for both: NULL / NULL)  = 2
 PASS  provider: two DIFFERENT contact_ids before the link         = 2
@@ -21,22 +21,22 @@ PASS  the first holds only the number                             contains [data
 PASS  … and no e-mail                                           does not contain [email_v2]
 PASS  the second holds only the e-mail                            contains [data1=sam@example.com]
 PASS  … and no number                                           does not contain [phone_v2]
-      raw 191 → contact 198 (0r191-4F2B434D333331); raw 192 → contact 199 (0r192-4F2B434D333331)
-PASS  no aggregation exception names the pair before the link     does not contain [raw_contact_id1=191, raw_contact_id2=192]
+      raw 318 → contact 327 (0r318-4F2B434D333331); raw 319 → contact 328 (0r319-4F2B434D333331)
+PASS  no aggregation exception names the pair before the link     does not contain [raw_contact_id1=318, raw_contact_id2=319]
 PASS  the list shows two Sam Reed rows before the link            = 2
 --- Link from the first card picks the second
 PASS  the first Sam Reed's card (people_card:<lookup>)            = yes
 PASS  … it carries the number                                   contains [+1 555 000 0011]
 PASS  … and not the e-mail                                      does not contain [sam@example.com]
 PASS  the linked-profiles page is on show                         contains [selected="true"]
-PASS  it lists the contact's one raw contact (people_link_row:<raw>)  = people_link_row:191
+PASS  it lists the contact's one raw contact (people_link_row:<raw>)  = people_link_row:318
 PASS  the picker was the page the pick was made on                contains [selected="true"]
-Row: 0 type=1, raw_contact_id1=191, raw_contact_id2=192
-PASS  aggregation_exceptions: type 1 (KEEP_TOGETHER) for the pair  contains [type=1, raw_contact_id1=191, raw_contact_id2=192]
-[people] link 191+192: ok
-PASS  diagnostics: [people] link <a>+<b>: ok                      = [people] link 191+192: ok
-Row: 0 _id=191, contact_id=198, account_name=NULL, account_type=NULL, display_name=Sam Reed
-Row: 1 _id=192, contact_id=198, account_name=NULL, account_type=NULL, display_name=Sam Reed
+Row: 0 type=1, raw_contact_id1=318, raw_contact_id2=319
+PASS  aggregation_exceptions: type 1 (KEEP_TOGETHER) for the pair  contains [type=1, raw_contact_id1=318, raw_contact_id2=319]
+[people] link 318+319: ok
+PASS  diagnostics: [people] link <a>+<b>: ok                      = [people] link 318+319: ok
+Row: 0 _id=318, contact_id=327, account_name=NULL, account_type=NULL, display_name=Sam Reed
+Row: 1 _id=319, contact_id=327, account_name=NULL, account_type=NULL, display_name=Sam Reed
 PASS  provider: one contact behind both raw contacts              = 1
 PASS  the list shows ONE Sam Reed                                 = 1
 PASS  the joined card (people_card:<its lookup>)                  = yes
@@ -46,22 +46,22 @@ PASS  the card carries the e-mail                                 contains [sam@
 PASS  … as a call action                                        = yes
 PASS  … and a mail action                                       = yes
 --- Unlink
-PASS  the linked-profiles page lists both raw contacts            = people_link_row:191 people_link_row:192
-Row: 0 type=2, raw_contact_id1=191, raw_contact_id2=192
-PASS  aggregation_exceptions: type 2 (KEEP_SEPARATE) for the pair  contains [type=2, raw_contact_id1=191, raw_contact_id2=192]
-PASS  … and no type 1 row left for it                           does not contain [type=1, raw_contact_id1=191, raw_contact_id2=192]
-[people] unlink 192+191: ok
+PASS  the linked-profiles page lists both raw contacts            = people_link_row:318 people_link_row:319
+Row: 0 type=2, raw_contact_id1=318, raw_contact_id2=319
+PASS  aggregation_exceptions: type 2 (KEEP_SEPARATE) for the pair  contains [type=2, raw_contact_id1=318, raw_contact_id2=319]
+PASS  … and no type 1 row left for it                           does not contain [type=1, raw_contact_id1=318, raw_contact_id2=319]
+[people] unlink 319+318: ok
 PASS  diagnostics: the build's unlink line, ok (Change Log 2026-10-01, P2)  contains [[people] unlink ]
 PASS  … ok                                                      contains [: ok]
-Row: 0 _id=191, contact_id=200, account_name=NULL, account_type=NULL, display_name=Sam Reed
-Row: 1 _id=192, contact_id=198, account_name=NULL, account_type=NULL, display_name=Sam Reed
+Row: 0 _id=318, contact_id=329, account_name=NULL, account_type=NULL, display_name=Sam Reed
+Row: 1 _id=319, contact_id=327, account_name=NULL, account_type=NULL, display_name=Sam Reed
 PASS  provider: two contacts again                                = 2
 PASS  the list shows two Sam Reed rows again                      = 2
 --- restore
 PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
 aggregation_exceptions after the restore: No result found.;
-PASS  restore: the aggregation_exceptions query lists no row with the first id  does not contain [raw_contact_id1=191,]
-PASS  restore: … nor with the second                            does not contain [raw_contact_id2=192]
+PASS  restore: the aggregation_exceptions query lists no row with the first id  does not contain [raw_contact_id1=318,]
+PASS  restore: … nor with the second                            does not contain [raw_contact_id2=319]
 PASS  restore: aggregation_exceptions equals its read before the row  = No result found.
 PASS  restore: the raw_contacts rows equal the rows before the row  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0
 Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0

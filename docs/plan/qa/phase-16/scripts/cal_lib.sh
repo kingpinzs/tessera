@@ -320,6 +320,7 @@ import re, sys
 text = sys.stdin.read()
 for block in re.split(r"(?=\n\s*NotificationRecord\()", text):
     if "pkg=app.tileshell" not in block or "calendar_reminders" not in block: continue
+    if "ranker_group" in block or "GROUP_SUMMARY" in block: continue   # the system auto-group summary, not a reminder
     title = re.search(r"android\.title=\S+ \((.*?)\)\n", block)
     body = re.search(r"android\.text=\S+ \((.*?)\)\n", block)
     vis = re.search(r"\bvis=(\w+)", block)
@@ -343,7 +344,16 @@ tess_ask() { # request [settle=1]
   type_request "$1" "${2:-1}"
 }
 # Poll for the card and its confirm button; the dump is left in out.xml. Tapped the moment it is up, as j6.sh does.
-tess_card() { cwait "$1" cortana_card_button:confirm 10 0.4; }   # out.xml
+tess_card() { # out.xml  — the card slides in: its button is tapped only once two dumps running read it at one place
+  local i prev="" b
+  for i in $(seq 1 14); do
+    dump_ui "$1" || true
+    b="$(bounds "$1" cortana_card_button:confirm)"
+    if [ -n "$b" ] && [ "$b" = "$prev" ]; then return 0; fi
+    prev="$b"; sleep 0.3
+  done
+  [ -n "$prev" ]
+}
 tess_confirm() { # card.xml -> taps confirm; CMARK is the device clock just before the tap
   CMARK="$(ring_mark)"
   tap_node "$1" cortana_card_button:confirm; sleep "${2:-3.5}"

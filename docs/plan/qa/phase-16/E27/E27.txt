@@ -1,21 +1,21 @@
 ==============================================================================
 ROW E27 — Groups: create, members, text the group, rename, delete; WRITE_CONTACTS revoked
-at            2026-10-01T17:19:21-06:00
+at            2026-10-01T21:30:04-06:00
 driver        e27.sh blob 2ac17b614c4c28fb57b62ed341e085a2e66645a6
 harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
-apk built     d008aec0c1318519 340591758 bytes
-apk installed 686506a7a7936b2e
-apk match     yes (686506a7a7936b2e)
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-PASS  the device holds the build under test                       yes (686506a7a7936b2e)
+PASS  the device holds the build under test                       yes (3c1ad1e0e65bd919)
 PASS  precondition: WRITE_CONTACTS held                           = true
 PASS  precondition: nothing is on "Can edit"                      = 
       groups before the row (0): No result found.;
       the SMS role holder: org.fossify.messages
 --- fixtures
-      people_fixtures_up: raw ids ann=200 bob=201 zoe=202 zhang=203 number-only=204 cara=205,206 (raw contacts before: 2)
+      people_fixtures_up: raw ids ann=327 bob=328 zoe=329 zhang=330 number-only=331 cara=332,333 (raw contacts before: 2)
 PASS  Ann Lee: phone-only, mobile +1 555 000 0001                 contains [data1=+1 555 000 0001]
 PASS  Bob Stone: phone-only, mobile +1 555 000 0002               contains [data1=+1 555 000 0002]
 PASS  both numbers are stored as mobile (data2 = 2)               = 2
@@ -24,16 +24,16 @@ PASS  the GROUPS pivot is on show (people_pivot:groups selected)  contains [sele
 PASS  people_group_new is offered                                 = yes
 PASS  the group editor has people_group_name                      = yes
 PASS  "Family" is in people_group_name                            = Family
-Row: 0 _id=6, title=Family, account_type=NULL, account_name=NULL
+Row: 0 _id=11, title=Family, account_type=NULL, account_name=NULL
 PASS  the groups query lists "Family"                             != 
 PASS  … with NULL account name and type (the phone; Q-16-3)     contains [title=Family, account_type=NULL, account_name=NULL]
-[people] group create 6: ok
-PASS  the slice holds [people] group create <id>: ok              = [people] group create 6: ok
+[people] group create 11: ok
+PASS  the slice holds [people] group create <id>: ok              = [people] group create 11: ok
 PASS  the group's page is on show (people_group:<id>)             = yes
-Row: 0 raw_contact_id=200, mimetype=vnd.android.cursor.item/group_membership, data1=6
-Row: 1 raw_contact_id=201, mimetype=vnd.android.cursor.item/group_membership, data1=6
-PASS  Ann's group_membership data row points at the group's _id   contains [raw_contact_id=200, mimetype=vnd.android.cursor.item/group_membership, data1=6]
-PASS  Bob's group_membership data row points at the group's _id   contains [raw_contact_id=201, mimetype=vnd.android.cursor.item/group_membership, data1=6]
+Row: 0 raw_contact_id=327, mimetype=vnd.android.cursor.item/group_membership, data1=11
+Row: 1 raw_contact_id=328, mimetype=vnd.android.cursor.item/group_membership, data1=11
+PASS  Ann's group_membership data row points at the group's _id   contains [raw_contact_id=327, mimetype=vnd.android.cursor.item/group_membership, data1=11]
+PASS  Bob's group_membership data row points at the group's _id   contains [raw_contact_id=328, mimetype=vnd.android.cursor.item/group_membership, data1=11]
 PASS  exactly two membership rows point at it                     = 2
 --- people_group:<id> lists Ann and Bob
 PASS  the page is people_group:<id>                               = yes
@@ -44,11 +44,11 @@ PASS  … and no one else                                         = 2
 resumed: org.fossify.messages/.activities.ThreadActivity
 PASS  the SMS role holder (the Fossify Messages fixture) is resumed (dumpsys activity activities)  contains [org.fossify.messages/]
 RECORD  dumpsys activity activities, 5 s on: the resumed activity's own intent (Fossify forwarded the SENDTO and finished the activity that received it; clauses-open.tsv)  Intent { xflg=0x4 cmp=org.fossify.messages/.activities.ThreadActivity (has extras) }
-the activity manager's start line: START u0 {act=android.intent.action.SENDTO dat=smsto:xxxxxxxxxxxxxxxxxxxxxxxxx xflg=0x4 pkg=org.fossify.messages cmp=org.fossify.messages/.activities.NewConversationActivity} with LAUNCH_MULTIPLE from uid 10170 (sr=34028351) (BAL_ALLOW_VISIBLE_WINDOW) result code=0
+the activity manager's start line: START u0 {act=android.intent.action.SENDTO dat=smsto:xxxxxxxxxxxxxxxxxxxxxxxxx xflg=0x4 pkg=org.fossify.messages cmp=org.fossify.messages/.activities.NewConversationActivity} with LAUNCH_MULTIPLE from uid 10173 (sr=230470522) (BAL_ALLOW_VISIBLE_WINDOW) result code=0
 PASS  the compose was started with ACTION_SENDTO                  contains [act=android.intent.action.SENDTO]
 PASS  … a smsto: URI                                            contains [dat=smsto:]
 PASS  … to the SMS role holder                                  contains [cmp=org.fossify.messages/]
-PASS  … by the shell (from uid <the shell's uid>)               contains [from uid 10170 ]
+PASS  … by the shell (from uid <the shell's uid>)               contains [from uid 10173 ]
 RECORD  the intent's data as the activity manager prints it (redacted by Android)  smsto:xxxxxxxxxxxxxxxxxxxxxxxxx
 PASS  … whose data is as long as both members' numbers joined (25 characters)  = 25
 [people] action text -> org.fossify.messages/.activities.SplashActivity.Green smsto:+15550000001;+15550000002
@@ -58,20 +58,20 @@ PASS  … sent to the SMS role holder                             contains [[peo
 PASS  the compose window names Ann (her name or her number)       = yes
 PASS  the compose window names Bob (his name or his number)       = yes
 --- people_group_action:rename to "Home"
-Row: 0 _id=6, title=Home, account_type=NULL, account_name=NULL
-PASS  the provider's title reads Home                             contains [_id=6, title=Home,]
+Row: 0 _id=11, title=Home, account_type=NULL, account_name=NULL
+PASS  the provider's title reads Home                             contains [_id=11, title=Home,]
 PASS  … and no group is titled Family any more                  does not contain [title=Family,]
-PASS  group rename <id>: ok                                       contains [[people] group rename 6: ok]
+PASS  group rename <id>: ok                                       contains [[people] group rename 11: ok]
 --- people_group_action:delete
 RECORD  Delete asks once before it deletes (built so; Change Log 2026-10-01, P2)  people_group_delete_dialog shown; confirm tapped
 live groups after the delete: No result found.;
-PASS  the group row is gone (or marked deleted)                   does not contain [_id=6,]
+PASS  the group row is gone (or marked deleted)                   does not contain [_id=11,]
 RECORD  the group row after the delete (removed outright, or kept with deleted=1)  No result found. 
 PASS  both contacts are still present                             = 2
 PASS  … each still its own contact row                          = 2
-PASS  group delete <id>: ok                                       contains [[people] group delete 6: ok]
+PASS  group delete <id>: ok                                       contains [[people] group delete 11: ok]
 --- with WRITE_CONTACTS revoked: a create is refused with the editor's notice
-      the spare group for the failed-op producers: _id=7
+      the spare group for the failed-op producers: _id=12
 PASS  WRITE_CONTACTS is revoked                                   = false
 people_notice: [People can't save this: it isn't allowed to change contacts.]
 PASS  the create is refused with the notice (people_notice on the page)  = yes
@@ -79,15 +79,15 @@ PASS  … the editor's cannot-save notice                         contains [can'
 [people] group create new: failed WRITE_CONTACTS not held
 PASS  group create …: failed <err>                              contains [[people] group create ]
 PASS  … failed, with its reason                                 contains [: failed ]
-PASS  no group was made: the groups query equals its read before the attempt  = Row: 0 _id=7, title=Spare, account_type=NULL, account_name=NULL
+PASS  no group was made: the groups query equals its read before the attempt  = Row: 0 _id=12, title=Spare, account_type=NULL, account_name=NULL
 --- E21 producers: rename and delete with WRITE_CONTACTS revoked
-PASS  E21: group rename <id>: failed <err>                        contains [[people] group rename 7: failed ]
-PASS  … and the provider's title is unchanged                   contains [_id=7, title=Spare,]
-PASS  E21: group delete <id>: failed <err>                        contains [[people] group delete 7: failed ]
-PASS  … and the group is still there                            contains [_id=7, title=Spare,]
+PASS  E21: group rename <id>: failed <err>                        contains [[people] group rename 12: failed ]
+PASS  … and the provider's title is unchanged                   contains [_id=12, title=Spare,]
+PASS  E21: group delete <id>: failed <err>                        contains [[people] group delete 12: failed ]
+PASS  … and the group is still there                            contains [_id=12, title=Spare,]
 --- restore
 PASS  restore: WRITE_CONTACTS held                                = true
-      restore: group 7 deleted by id
+      restore: group 12 deleted by id
 PASS  restore: the groups query equals its read before the row    = No result found.
 PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
 PASS  restore: the raw_contacts rows equal the rows before the row  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0

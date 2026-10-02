@@ -1,0 +1,278 @@
+==============================================================================
+ROW EDGE — the Edge cases: every bullet, by the index
+at            2026-10-01T23:05:32-06:00
+driver        edge.sh blob 1d32d1f3e48005546ca8672499155dbb0e50965f
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      time zone before: America/Boise; time_12_24 before: null
+PASS  the index covers the doc's 23 Edge-case bullets             = B01 B02 B03 B04 B05 B06 B07 B08 B09 B10 B11 B12 B13 B14 B15 B16 B17 B18 B19 B20 B21 B22 B23
+PASS  … and the doc's "Edge cases" has that many bullets        = 23
+PASS  no index line is without a place it is run                  = 0
+PASS  the index names row E1: its driver exists                   = yes
+PASS  the index names row E10: its driver exists                  = yes
+PASS  the index names row E11: its driver exists                  = yes
+PASS  the index names row E12: its driver exists                  = yes
+PASS  the index names row E16: its driver exists                  = yes
+PASS  the index names row E17: its driver exists                  = yes
+PASS  the index names row E18: its driver exists                  = yes
+PASS  the index names row E22: its driver exists                  = yes
+PASS  the index names row E24: its driver exists                  = yes
+PASS  the index names row E28: its driver exists                  = yes
+PASS  the index names row E6: its driver exists                   = yes
+PASS  the index names the JVM test PeopleTileRulesTest: it exists  != 
+PASS  the index names the JVM test PeopleWriteGuardTest: it exists  != 
+PASS  the index names the JVM test SlotSeedTest: it exists        != 
+RECORD  sub-steps                                                   EDGE_ONLY=P01,P02,P03,P04,P05,P06,P07,P08,P09,P10: a development run, not the gate's
+--- P01: B14.1
+      P01: the vCard file's content URI: content://media/external/file/3089
+RECORD  P01: what the image's Contacts import shows                 text="People" text="Browser" text="" text="Mail · Tap to choose" text="Thursday" text="1" text="Calendar" text="Photos" text="Mountain View" text="60°" text="Clear" text="79°/58°  Precip 0%  Wi
+RECORD  P01: the import of 5,000 contacts took (the driver loop's run time)  19 s; 5000 raw contacts named '… E5K…'
+PASS  P01: the provider holds the 5,000 fixture contacts          = 5000
+P01: [people] list: 5002 contacts read=true write=true
+PASS  P01: the list read every contact (its line's n = the provider's count)  = 5002
+PASS  P01: the list line is written within 3 s of the launch's MARK (wall − MARK ≤ 3000 ms)  = yes
+RECORD  P01: wall − MARK of the list line                         175 ms
+PASS  P01: the dump taken then holds the list's top rows (people_row: nodes)  != 0
+PASS  P01: am start -W reports the launch complete                contains [Status: ok]
+RECORD  P01: am start -W's own times                                TotalTime: 97 WaitTime: 98 
+PASS  P01: a letter header still opens the jump grid              = yes
+PASS  P01: tapping M closes the grid                              = no
+PASS  P01: … and the list lands on M: the M header is laid out  = yes
+PASS  P01: the first row under the M header is an M name          contains [Mike E5K]
+      P01: ring after the jump: [people] jump to M (item 2326);
+PASS  P01 restore: the contacts count is the count before         = 2
+PASS  P01 restore: the raw_contacts count is the count before the sub-step  = 2
+PASS  P01 restore: the groups equal the groups before the sub-step  = No result found.
+PASS  P01 restore: WRITE_CONTACTS and READ_CONTACTS held          = true true
+--- P02: B14.2, B14.3
+PASS  P02: the provider holds her 20 numbers                      = 20
+PASS  P02: her card (people_card:<lookup>)                        = yes
+people_card_action:call:0	Call Mobile	+1 555 020 0000
+people_card_action:call:1	Call Home	+1 555 020 0001
+people_card_action:call:2	Call Work	+1 555 020 0002
+people_card_action:call:3	Call Other	+1 555 020 0003
+people_card_action:call:4	Call Mobile	+1 555 020 0004
+people_card_action:call:5	Call Home	+1 555 020 0005
+people_card_action:call:6	Call Work	+1 555 020 0006
+people_card_action:call:7	Call Other	+1 555 020 0007
+people_card_action:call:8	Call Mobile	+1 555 020 0008
+people_card_action:call:9	Call Home	+1 555 020 0009
+people_card_action:call:10	Call Work	+1 555 020 0010
+people_card_action:call:11	Call Other	+1 555 020 0011
+people_card_action:call:12	Call Mobile	+1 555 020 0012
+people_card_action:call:13	Call Home	+1 555 020 0013
+people_card_action:call:14	Call Work	+1 555 020 0014
+people_card_action:call:15	Call Other	+1 555 020 0015
+people_card_action:call:16	Call Mobile	+1 555 020 0016
+people_card_action:call:17	Call Home	+1 555 020 0017
+people_card_action:call:18	Call Work	+1 555 020 0018
+people_card_action:call:19	Call Other	+1 555 020 0019
+PASS  P02: all 20 numbers are listed on the card (people_card_action:call:0..19, each with its number)  = 20
+PASS  P02: … each with its label (a "Call <type>" title)        = 20
+RECORD  P02: the labels drawn                                        5 Call Home; 5 Call Mobile; 5 Call Other; 5 Call Work;
+PASS  P02: the four types read four different labels              = 4
+RECORD  P02: the photo fixture's size                               20856284 bytes (3100 × 3100, a solid (254,0,0) centre)
+PASS  P02: the photo fixture is at least 20 MB                    = yes
+PASS  P02: Android's photo picker opened                          contains [photopicker]
+PASS  P02: a photo data row exists (the 20 MB picture was taken)  = 1
+PASS  P02: the card draws the full photo (people_card_photo's centre pixel is the picture's centre colour ± 8)  (254,0,0) within 8 of (254,0,0)
+PASS  P02: her row has an avatar in the list                      != 
+PASS  P02: the list draws the provider's thumbnail (the avatar's centre pixel is the picture's centre colour ± 12)  (254,0,0) within 12 of (254,0,0)
+PASS  P02: decoded at bounds — the shell's process is the one it was before the picture was picked (no crash)  = 22363
+PASS  P02: … and logcat holds no fatal exception of the shell's  = 0
+PASS  P02 restore: the raw_contacts count is the count before the sub-step  = 2
+PASS  P02 restore: the groups equal the groups before the sub-step  = No result found.
+PASS  P02 restore: WRITE_CONTACTS and READ_CONTACTS held          = true true
+--- P03: B14.4, B14.5
+PASS  P03a: the card is open (people_card:<lookup>)               = yes
+PASS  P03a: the contact deleted elsewhere: the card closes (no people_card: on show)  = 0
+P03a: page on show: people_page:list; people_notice: [That contact is no longer on this phone.]
+PASS  P03a: … with a notice (people_notice)                     = yes
+PASS  P03a: no crash: People is still the resumed activity        = app.tileshell/.people.PeopleActivity
+PASS  P03b: linked across the two accounts (one contact behind both raw contacts)  = 5392
+PASS  P03b: the removed account's raw contact is gone             = 0
+PASS  P03b: the remaining raw contact still stands behind a contact  != 
+PASS  P03b: … a contacts row named for it                       = 1
+PASS  P03b: People shows its card                                 = TWIN ACCT
+PASS  P03b: … with its own number                               contains [+1 555 030 0002]
+PASS  P03b: … and without the removed account's e-mail          does not contain [twin@example.com]
+RECORD  P03c: the page on show after the raw contact was deleted under the editor  people_page:editor
+P03c: [people] write update raw=5384: failed the field is gone
+PASS  P03c: Save on a vanished raw contact: [people] write update raw=<id>: failed <err>  contains [[people] write update raw=5384: failed ]
+PASS  P03c: … with a notice, no crash                           = yes
+PASS  P03c: … nothing was written: no phone row holds the unsaved number  = 0
+PASS  P03d: the picker lists the second contact                   = yes
+P03d: [people] link 5385+gone: failed
+PASS  P03d: the link of a vanished contact: [people] link <a>+<b>: failed  contains [: failed]
+PASS  P03d: … with a notice                                     = yes
+PASS  P03d: … and no aggregation exception was written for the first contact  does not contain [raw_contact_id1=5385,]
+PASS  P03 restore: the raw_contacts count is the count before the sub-step  = 2
+PASS  P03 restore: the groups equal the groups before the sub-step  = No result found.
+PASS  P03 restore: WRITE_CONTACTS and READ_CONTACTS held          = true true
+--- P04: B15.1, B15.2
+PASS  P04: the account is listed on Can edit, unticked            contains [checked="false"]
+PASS  P04: ticked: people_edit.json lists it                      = com.example:qa.edge@example.com
+PASS  P04: the removed account's row leaves the list              = no
+PASS  P04: … and people_edit.json                               = 
+RECORD  P04: people_edit.json after the account went                [{"allowed":[]}]
+PASS  P04: re-added, the account starts unticked                  contains [checked="false"]
+PASS  P04: … and is not in people_edit.json                     = 
+PASS  P04: … so its contact is read-only (no people_card_edit)  = no
+PASS  P04: ticked again before the file is lost                   = com.example:qa.edge@example.com
+PASS  P04: people_edit.json lost: the account is unticked again   contains [checked="false"]
+PASS  P04: … nothing is allowed                                 = 
+PASS  P04: … its contact is read-only                           = no
+PASS  P04: … and a phone-only contact is still editable (people_card_edit)  = yes
+PASS  P04: … and deletable (people_card_delete)                 = yes
+PASS  P04 restore: the raw_contacts count is the count before the sub-step  = 2
+PASS  P04 restore: the groups equal the groups before the sub-step  = No result found.
+PASS  P04 restore: WRITE_CONTACTS and READ_CONTACTS held          = true true
+PASS  P04 restore: nothing is on Can edit                         = 
+--- P05: B16.2, B16.3
+P05: provider: [Row: 0 display_name=Ærøskøbing, phonebook_label=A] [Row: 0 display_name=Solo, phonebook_label=S] [Row: 0 display_name=Quill Works, phonebook_label=Q]
+letter	#	
+row	0r2-	(No name)
+letter	A	
+row	0r5390-2B334D474F3F472D3B4537	Ærøskøbing
+letter	D	
+row	0r5393-312B4F394553432D334D	Dash Number
+letter	M	
+row	0r1-434743	Mom
+letter	Q	
+row	0r5392-4B533B414157474D3F4F	Quill Works
+letter	S	
+row	0r5391-4F474147	Solo
+PASS  P05: "Ærøskøbing" files wherever PHONEBOOK_LABEL puts it  = A
+PASS  P05: … and reads its name                                 = Ærøskøbing
+PASS  P05: a name with only a family name is listed by it         = Solo
+PASS  P05: … under the provider's label for it                  = S
+PASS  P05: a company-only contact shows its organisation as the name  = Quill Works
+PASS  P05: … under the provider's label for it                  = Q
+PASS  P05: a number stored "+1 555-050 00-77" matches the search "15550500077"  = yes
+PASS  P05: … and only it                                        = 1
+P05: [people] search "15550500077": 1 (+0 enterprise)
+PASS  P05 restore: the raw_contacts count is the count before the sub-step  = 2
+PASS  P05 restore: the groups equal the groups before the sub-step  = No result found.
+PASS  P05 restore: WRITE_CONTACTS and READ_CONTACTS held          = true true
+--- P06: B17.2
+PASS  P06: the editor holds an unsaved edit                       = +1 555 060 0099
+PASS  P06: READ_CONTACTS revoked, WRITE_CONTACTS still held       = false true
+PASS  P06: the revoke ended the shell's process (the edit is lost)  != 27065
+PASS  P06: nothing half-written is in the provider (the data rows equal their read before the edit)  = Row: 0 _id=10770, raw_contact_id=5394, mimetype=vnd.android.cursor.item/name, data1=Mid Edit
+Row: 1 _id=10771, raw_contact_id=5394, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 060 0001
+P06: people_notice: [People can't read your contacts. Allow Contacts to see them here.] action: [allow access]
+PASS  P06: People reopens on its cannot-read notice (people_notice)  = yes
+PASS  P06: … offering the grant (people_notice_action)          = yes
+PASS  P06: … and lists no contact                               = 0
+P06: [people] list: 0 contacts read=false write=true
+PASS  P06: [people] list: 0 contacts read=false write=true        = [people] list: 0 contacts read=false write=true
+PASS  P06 restore: READ_CONTACTS held                             = true
+PASS  P06 restore: the raw_contacts count is the count before the sub-step  = 2
+PASS  P06 restore: the groups equal the groups before the sub-step  = No result found.
+PASS  P06 restore: WRITE_CONTACTS and READ_CONTACTS held          = true true
+--- P07: B18.2
+P07: icc/adn: Row: 0 name=Sim Nonum, number=, emails=NULL, anrs=NULL, _id=0;Row: 1 name=Sim Dup, number=5550703, emails=NULL, anrs=NULL, _id=1;
+RECORD  P07: the emulated SIM took the entry with no number         accepted
+RECORD  P07: the emulated SIM took "Sim Dup"                        accepted
+RECORD  P07: the first import's line                                sim import: 1 of 2
+PASS  P07: the first import writes its sim import line            contains [sim import: ]
+PASS  P07: no crash on the first import: People is still resumed  = app.tileshell/.people.PeopleActivity
+RECORD  P07: the second import's line                               sim import: 1 of 2
+PASS  P07: the second import writes its sim import line           contains [sim import: ]
+PASS  P07: no crash on the second import: People is still resumed  = app.tileshell/.people.PeopleActivity
+RECORD  P07: "Sim Dup" imported twice: raw contacts / contacts      2 raw, 1 contact(s) (the provider aggregated them or not: either is recorded)
+PASS  P07: the second import made a second raw contact            = 2
+PASS  P07: both are phone-only                                    = 2
+RECORD  P07: the entry with no number                               0 raw contact(s) were made from it
+RECORD  P07 restore: icc/adn                                        No result found.;
+PASS  P07 restore: icc/adn equals its read before the sub-step    = No result found.
+PASS  P07 restore: the raw_contacts count is the count before the sub-step  = 2
+PASS  P07 restore: the groups equal the groups before the sub-step  = No result found.
+PASS  P07 restore: WRITE_CONTACTS and READ_CONTACTS held          = true true
+--- P08: B19.1, B19.2, B19.3, B19.4
+      P08: groups empty=14 mixed=15 nomobile=16 work=18 doomed=17
+PASS  P08: empty group: no compose is opened (People stays resumed)  = app.tileshell/.people.PeopleActivity
+P08: empty group: people_notice [This group has no members to text.]
+PASS  P08: empty group: a notice instead (people_notice)          = yes
+PASS  P08: empty group: no [people] action text line              does not contain [[people] action text ->]
+P08: [people] action text -> org.fossify.messages/.activities.SplashActivity.Green smsto:+15550800001
+PASS  P08: mixed group: the compose opens for the member with a mobile number  contains [smsto:+15550800001]
+PASS  P08: mixed group: the member with no mobile number is left out  does not contain [5550800002]
+PASS  P08: mixed group: the SMS role holder is resumed            contains [org.fossify.messages/]
+PASS  P08: no member with a mobile number: no compose             = app.tileshell/.people.PeopleActivity
+PASS  P08: … the notice                                         = yes
+PASS  P08: the read-only group's page is on show                  = yes
+PASS  P08: … no rename action                                   = no
+PASS  P08: … no delete action                                   = no
+P08: people_group_readonly: [This group is in qa.work@example.com. To change it, allow that account in Can edit.]
+PASS  P08: … and the page says why (people_group_readonly)      = yes
+PASS  P08: … naming the account                                 contains [qa.work@example.com]
+PASS  P08: the group's page is open                               = yes
+P08: after the delete: page people_page:list; people_notice [That group is no longer on this phone.]
+PASS  P08: the deleted group's page closes (people_page:group is no longer the page on show)  != people_page:group
+PASS  P08: … with a notice                                      = yes
+PASS  P08: … and the list no longer shows it                    = no
+PASS  P08 restore: the raw_contacts count is the count before the sub-step  = 2
+PASS  P08 restore: the groups equal the groups before the sub-step  = No result found.
+PASS  P08 restore: WRITE_CONTACTS and READ_CONTACTS held          = true true
+--- P09: B20.1, B20.2
+RECORD  P09: B20.1 Share when no app receives text/x-vcard          not produced on this AVD: it has receivers (com.android.bluetooth/.opp.BluetoothOppLauncherActivity com.android.messaging/.ui.conversationlist.ShareIntentActivity eu.faircode.email/.ActivityCompose org.fossify.contacts/.activities.MainActivity org.fossify.messages/.activities.NewConversationActivity org.fossify.notes/.activities.MainActivity ); the empty state is Android's resolver's own
+PASS  P09: Photo Share: Android's photo picker opened             contains [photopicker]
+PASS  P09: Photo Share: a vnd.android.cursor.item/photo data row exists (the red JPEG, given through the editor)  = 1
+PASS  P09: the share line names the provider's vCard stream for her  = content://com.android.contacts/contacts/as_vcard/0r5399-49394751474F392B4D33
+RECORD  P09: adb shell content read on it (refused on this image; clauses-open.tsv, E15)  Error while accessing provider:com.android.contacts java.io.FileNotFoundException: No files supported by provider at content://com.android.contacts/contacts/as_
+PASS  P09: the stream was imported by the image's Contacts app    != 
+PASS  P09: the vCard of a contact with a photo carries the photo (the imported contact holds a photo data row: PHOTO;ENCODING=b was in the stream)  = 1
+PASS  P09 restore: the raw_contacts count is the count before the sub-step  = 2
+PASS  P09 restore: the groups equal the groups before the sub-step  = No result found.
+PASS  P09 restore: WRITE_CONTACTS and READ_CONTACTS held          = true true
+--- P10: B21.1, B21.4
+PASS  P10: Tile Ann: Android's photo picker opened                contains [photopicker]
+PASS  P10: Tile Ann: a vnd.android.cursor.item/photo data row exists (the red JPEG, given through the editor)  = 1
+PASS  P10: Tile Bob: Android's photo picker opened                contains [photopicker]
+PASS  P10: Tile Bob: a vnd.android.cursor.item/photo data row exists (the green JPEG, given through the editor)  = 1
+PASS  P10: after a force-stop the feed is back with the shell ([people] tile: 2 photos)  contains [[people] tile: 2 photos]
+PASS  P10: … and the tile cycles again (a tile event)           contains [[people] tile event]
+PASS  P10: SMALL tile: the People face is drawn (people_tile_face)  != 
+RECORD  P10: SMALL tile                                             tile 165x165 bubble 109x109 fraction-of-short-side 0.661 centred-x yes
+PASS  P10: SMALL tile: a settled bubble, centred across the tile  contains [centred-x yes]
+PASS  P10: SMALL tile: the bubble is a circle's box (as wide as tall, ± 1 px)  = yes
+PASS  P10: MEDIUM tile: the People face is drawn (people_tile_face)  != 
+RECORD  P10: MEDIUM tile                                            tile 343x343 bubble 192x192 fraction-of-short-side 0.560 centred-x yes
+PASS  P10: MEDIUM tile: a settled bubble, centred across the tile  contains [centred-x yes]
+PASS  P10: MEDIUM tile: the bubble is a circle's box (as wide as tall, ± 1 px)  = yes
+PASS  P10: WIDE tile: the People face is drawn (people_tile_face)  != 
+RECORD  P10: WIDE tile                                              tile 699x343 bubble 192x192 fraction-of-short-side 0.560 centred-x yes
+PASS  P10: WIDE tile: a settled bubble, centred across the tile   contains [centred-x yes]
+PASS  P10: WIDE tile: the bubble is a circle's box (as wide as tall, ± 1 px)  = yes
+PASS  P10: the bubble is the same fraction of the tile's short side on a medium and a wide tile (the face scales with the tile)  = 0.560
+PASS  P10: … and a larger fraction on a small tile, which carries no label  = yes
+      P10: the bubble on screen is lookup= (raw 5402); the other contact is 0r5401-513B41332B4545
+FAIL  P10: its photo removed while its bubble is on screen: the current bubble finishes its turn (still drawn)  expected [] got [0r5401-513B41332B4545]
+P10: [people] tile event 3 t0=5704810 lookup=0r5401-513B41332B4545
+PASS  P10: … and the next event uses the other contact's photo  contains [lookup=0r5401-513B41332B4545]
+PASS  P10: … whose colour the settled bubble shows              (254,0,0) within 8 of (254,0,0)
+PASS  P10: every photo removed: [people] tile: 0 photos           contains [[people] tile: 0 photos]
+PASS  P10: … the static pattern is drawn (people_tile_pattern)  != 
+PASS  P10: … and no tile event follows the 0-photos read in the next 12 s (more than one period)  does not contain [[people] tile event]
+PASS  P10 restore: the raw_contacts count is the count before the sub-step  = 2
+PASS  P10 restore: the groups equal the groups before the sub-step  = No result found.
+PASS  P10 restore: WRITE_CONTACTS and READ_CONTACTS held          = true true
+PASS  restore: the calendar provider is enabled                   does not contain [com.android.providers.calendar]
+PASS  restore: READ_CALENDAR held                                 = true
+PASS  restore: WRITE_CALENDAR held                                = true
+PASS  restore: READ_CONTACTS held                                 = true
+PASS  restore: WRITE_CONTACTS held                                = true
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the time zone                                      = America/Boise
+PASS  restore: time_12_24                                         = null
+PASS  device clock back within 2 s of the host (RV12)             1790918742.00 vs 1790918742.00 +/- 2.0
+PASS  restore: layout_restore of the baseline                     = 0
+PASS  restore: user 0 only                                        = 1
+------------------------------------------------------------------------------
+EDGE: 181 passed, 1 failed, 21 recorded

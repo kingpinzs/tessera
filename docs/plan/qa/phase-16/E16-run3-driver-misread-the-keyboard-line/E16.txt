@@ -1,0 +1,89 @@
+==============================================================================
+ROW E16 — work profile: enterprise search, the profile owner's switch, the read-only card
+at            2026-10-02T00:20:07-06:00
+driver        e16.sh blob fb95a858354b9d2fb810e767316bf1050571be3f
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     03c09e0494b33ec0 343237622 bytes
+apk installed 6009c0b14a87039f
+apk match     yes (6009c0b14a87039f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (6009c0b14a87039f)
+      users before: UserInfo{0:Owner:4c13}
+PASS  before the row: user 0 only                                 = 1
+PASS  the TestDPC fixture is on the host (qa/phase-16/fixtures; not committed)  = yes
+PASS  TestDPC is not installed in user 0 before the row           = 
+--- the managed profile (phase 01 E18's commands), TestDPC inside it, its owner
+$ pm create-user --profileOf 0 --managed work: Success: created user id 10
+PASS  the image made a managed profile (its user id)              != 
+$ am start-user 10: Success: user started
+PASS  the profile is running and unlocked                         = RUNNING_UNLOCKED
+      users now: UserInfo{0:Owner:4c13} UserInfo{10:work:1030}
+$ adb install --user 10 TestDPC_9.0.12.apk: Success
+PASS  TestDPC installed into the profile                          = Success
+PASS  … listed in the profile                                   = package:com.afwsamples.testdpc
+PASS  … and NOT in user 0 (r3 V17)                              = 
+$ dpm set-profile-owner --user 10 com.afwsamples.testdpc/.DeviceAdminReceiver: Success: Active admin and profile owner set to com.afwsamples.testdpc/.DeviceAdminReceiver for user 10
+PASS  TestDPC is made the profile's owner                         contains [Success]
+PASS  dumpsys device_policy names it the profile owner            contains [com.afwsamples.testdpc]
+--- Work Wren, inserted in the profile's provider
+the profile's contacts: Row: 0 _id=1, display_name=Work Wren, lookup=0r1-57474D3F574D3345
+PASS  the profile's provider holds Work Wren                      contains [display_name=Work Wren]
+PASS  user 0's provider does not hold her                         does not contain [Work Wren]
+--- positive: not in the list; found by search with the briefcase
+letter	#	
+row	0r2-	(No name)
+letter	M	
+row	0r1-434743	Mom
+PASS  the walked A–Z list holds a row per contact of user 0 (the walk read the list)  = 2
+PASS  the A–Z list does NOT list Work Wren (no row reads her name)  = 0
+PASS  … and no enterprise people_row: is in any dump of the list  = 0
+[people] search "Wren": 0 (+1 enterprise)
+      rows in the results: people_row:enterprise:c-0r1-57474D3F574D3345 
+PASS  search "Wren" lists her: a people_row: with an enterprise marker in its tag  != 
+PASS  … reading Work Wren                                       = Work Wren
+PASS  … with the briefcase glyph (people_row_briefcase:<lookup>)  = yes
+PASS  … drawn: ink inside the briefcase node                    != 0,0,0
+PASS  exactly one row in the results                              = 1
+PASS  diagnostics: [people] search "Wren": 0 (+1 enterprise)      = [people] search "Wren": 0 (+1 enterprise)
+--- her card, opened from the search result: read-only
+PASS  Work Wren's card is on show (people_card:<lookup>, asserted first)  != 
+PASS  … it is hers (people_card_name)                           = WORK WREN
+PASS  no people_card_edit                                         = no
+PASS  no people_card_delete                                       = no
+PASS  the people_card_readonly line is shown                      = yes
+RECORD  the read-only line for another profile's contact            This contact is in your work profile. It can't be changed here.
+RECORD  her card offers Link (people_card_link) — if it did, the guard's link refusal for another profile's contact would be reachable (E21 notrun.tsv)  no
+PASS  the profile's provider still holds her, unchanged           contains [display_name=Work Wren]
+--- negative: TestDPC's own switch — cross-profile contacts search disabled
+RECORD  TestDPC's policy page (top activity)                        topResumedActivity=ActivityRecord{197831744 u10 com.afwsamples.testdpc/.PolicyManagementActivity t8447}
+      find_text [profile specific polic]: 27 swipe(s), found [Managed work profile specific policies]
+RECORD  TestDPC's first-page entry that opens the profile's policies  Managed work profile specific policies
+PASS  TestDPC's policy page lists the entry for the managed profile's own policies  != 
+      find_text [cross.?profile contacts? search]: 1 swipe(s), found [Disable cross-profile contacts search]
+RECORD  TestDPC's switch label                                      Disable cross-profile contacts search
+PASS  TestDPC's cross-profile contacts search switch is on its policy page  != 
+PASS  TestDPC's switch reads on after the tap (its own page)      = true
+RECORD  dumpsys device_policy's contact-search lines after the switch (the legacy field is not the policy on this image)   disableContactsSearch=false 
+[people] search "Wren": 0 (+0 enterprise)
+PASS  with the search disabled: no row is listed                  = 0
+people_empty: [No contacts match "Wren".]
+PASS  … and the page says so: people_empty is on the results page  = yes
+PASS  … reading No contacts match "Wren".                       = No contacts match "Wren".
+RECORD  the keyboard's window while the query is typed (its top edge in px, visible)          InsetsSource id=3 type=ime frame=[0,1422][1080,2340] visibleFrame=[0,1422][1080,2340] visible=true flags= sideHint=BOTTOM boundingRects=null
+FAIL  the keyboard is up over the results (the state a user is in while typing)  expected [true] got []
+FAIL  … and the line's bottom edge is above the keyboard's top edge (it can be seen)  expected [yes] got [no (line 36 398 573 452, keyboard top )]
+PASS  the slice holds [people] search "Wren": 0 (+0 enterprise)   = [people] search "Wren": 0 (+0 enterprise)
+PASS  she is still in the profile's provider (the legs differ only by the switch)  contains [display_name=Work Wren]
+--- restore: the profile removed
+$ pm remove-user 10: Success: removed user
+PASS  pm remove-user succeeded                                    contains [Success]
+PASS  pm list users shows user 0 only                             = 1
+PASS  … the owner                                               contains [UserInfo{0:]
+PASS  pm list packages --user 0 com.afwsamples.testdpc lists nothing  = 
+PASS  restore: user 0's raw_contacts rows equal the rows before the row  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0
+Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0
+PASS  restore: the device is awake                                = Awake
+------------------------------------------------------------------------------
+E16: 42 passed, 2 failed, 7 recorded

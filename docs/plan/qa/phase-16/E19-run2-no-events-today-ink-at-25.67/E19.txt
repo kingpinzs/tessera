@@ -1,0 +1,283 @@
+==============================================================================
+ROW E19 — Calendar geometry on the drawn pixels: Agenda, the month drop-down, the pane, Week, Day, the editor; two motions
+at            2026-10-02T00:31:30-06:00
+driver        e19.sh blob 53aa7d1bf3d24b8aee5089ca29df859503d8592c
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     03c09e0494b33ec0 343237622 bytes
+apk installed 6009c0b14a87039f
+apk match     yes (6009c0b14a87039f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  BarMetrics.STATUS_EPX / NAV_EPX, read from bars/SystemBars.kt (C-17)  28 / 48
+PASS  BarMetrics.STATUS_EPX is read from the source               != 
+PASS  BarMetrics.NAV_EPX is read from the source                  != 
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  precondition: Tessera exists                                != 
+PASS  precondition: no event today (today's group is the empty day)  = 0
+RECORD  the calendar's colour, from the provider's calendar_color (r g b)  0 99 177
+      today 2026-10-02; the fixtures' day 2026-10-24 (Saturday); all-day 5776 5777, timed 5778 5779; Tessera 1
+PASS  fixtures: two all-day and two timed events on 2026-10-24    = 4
+--- 1: Agenda on today (the chrome, the strip, today's heading, the empty day, the app bar)
+PASS  1: Agenda is showing (cal_view_mode:agenda selected)        = true
+PASS  Agenda: the drawn status bar is on the view (w10m_status_bar)  = yes
+PASS  Agenda: the drawn nav bar is on the view (w10m_nav_bar)     = yes
+PASS  Agenda: the status bar's height is BarMetrics.STATUS_EPX (28)  28.00 vs 28.00 +/- 0.34
+PASS  Agenda: the nav bar's height is BarMetrics.NAV_EPX (48)     48.00 vs 48.00 +/- 0.34
+PASS  Agenda: the nav bar ends at the screen's bottom edge        780.00 vs 780.00 +/- 0.34
+PASS  Agenda: the status bar is drawn black down to its bottom edge (px column 6)  28.00 vs 28.00 +/- 0.34
+PASS  Agenda: the nav bar is drawn black from its top edge (px column 6)  732.00 vs 732.00 +/- 0.34
+PASS  K1.1 ≡ is three bars                                      = 3
+PASS  K1.1 ≡ bar 1 is 1 epx thick                               1.00 vs 1.00 +/- 0.34
+PASS  K1.1 ≡ bar 2 is 1 epx thick                               1.00 vs 1.00 +/- 0.34
+PASS  K1.1 ≡ bar 3 is 1 epx thick                               1.00 vs 1.00 +/- 0.34
+PASS  K1.1 ≡ bars 1–2 at a 5-epx pitch                        5.00 vs 5.00 +/- 0.5
+PASS  K1.1 ≡ bars 2–3 at a 5-epx pitch                        5.00 vs 5.00 +/- 0.5
+PASS  K1.1 ≡ starts at x 16                                     16.00 vs 16.00 +/- 1.0
+PASS  K1.1 ≡ ends at x 36                                       36.00 vs 36.00 +/- 1.0
+PASS  K1.1 the month and year in caps ("OCTOBER 2026")            = OCTOBER 2026
+PASS  K1.1 … a month name and a year                            = yes
+PASS  K1.1 … at x 51.0 (the ink's left edge)                    51.67 vs 51.00 +/- 1.0
+PASS  K1.1 … its cap top 15.5 epx below the status bar          15.33 vs 15.50 +/- 1.0
+PASS  K1.1 … cap 11.0                                           11.67 vs 11.00 +/- 1.0
+PASS  K1.1 … semibold (its stems at least 0.16 of the cap height; a regular line reads 0.09–0.15 here)  = yes
+RECORD  K1.1 the title's stroke / cap ratio                         0.200
+PASS  K1.2 the header band starts at the status bar's bottom      28.00 vs 28.00 +/- 0.34
+PASS  K1.2 the band is 40 epx tall                                40.00 vs 40.00 +/- 1.0
+PASS  K1.1 the chevron after the title is ⌄                     = down
+PASS  K1.3 the page is (26,26,26)                                 (26 26 26) ~ (26 26 26) +/- 2
+PASS  K1.3 the status bar is black                                (0 0 0) ~ (0 0 0) +/- 2
+PASS  K1.3 the nav bar is black                                   (0 0 0) ~ (0 0 0) +/- 2
+PASS  K2.1 seven day names over the strip                         = 7
+PASS  K2.1 the week strip on W/7: column 1 (Sun), its drawn centre 25.0  24.50 vs 25.00 +/- 1.0
+PASS  K2.1 the week strip on W/7: column 2 (Mon), its drawn centre 76.6  76.33 vs 76.60 +/- 1.0
+PASS  K2.1 the week strip on W/7: column 3 (Tue), its drawn centre 127.5  127.00 vs 127.50 +/- 1.0
+PASS  K2.1 the week strip on W/7: column 4 (Wed), its drawn centre 178.4  177.83 vs 178.40 +/- 1.0
+PASS  K2.1 the week strip on W/7: column 5 (Thu), its drawn centre 229.0  228.83 vs 229.00 +/- 1.0
+PASS  K2.1 the week strip on W/7: column 6 (Fri), its drawn centre 280.4  280.33 vs 280.40 +/- 1.0
+PASS  K2.1 the week strip on W/7: column 7 (Sat), its drawn centre 331.3  331.17 vs 331.30 +/- 1.0
+PASS  K2.2 day names are (151,151,151)                            (151 151 151) ~ (151 151 151) +/- 4
+PASS  K2.4 the 15063 form: two week rows of seven days            = 2 14
+PASS  K2.5 the selected day's accent square is 32 epx wide        32.00 vs 32.00 +/- 2.0
+PASS  K2.5 … and 32 epx tall                                    32.00 vs 32.00 +/- 2.0
+RECORD  K2.5 the accent on this screen (the selected square's fill)  0 120 215
+RECORD  K2.4 a first-row date's colour and a second-row date's      255 255 255 / 141 141 141
+PASS  K2.4 the second week row is dimmed (its dates at least 60 levels darker than the first row's)  = yes
+PASS  K1.5 the app bar's top edge is 1 epx of (80,80,80) ± 4     1.00 vs 1.00 +/- 0.34
+PASS  K1.5 the app bar is 47 epx (its top edge to the nav bar's top)  47.00 vs 47.00 +/- 1.0
+PASS  K1.5 its fill is (33,33,33)                                 (33 33 33) ~ (33 33 33) +/- 4
+PASS  K1.6 Today: its glyph's centre 217.9 epx from the right edge (the 68-epx CommandBar, 15063 form)  218.00 vs 217.90 +/- 1.0
+PASS  K1.6 New: its glyph's centre 150.2 epx from the right edge (the 68-epx CommandBar, 15063 form)  149.83 vs 150.20 +/- 1.0
+PASS  K1.6 View: its glyph's centre 82.6 epx from the right edge (the 68-epx CommandBar, 15063 form)  82.00 vs 82.60 +/- 1.0
+PASS  K1.6 …: its glyph's centre 24.5 epx from the right edge (the 68-epx CommandBar, 15063 form)  24.00 vs 24.50 +/- 1.0
+PASS  K3.3 today's heading ("Friday 2") at x 24 (its text box's left edge; R11's sample is a Wednesday)  24.00 vs 24.00 +/- 1.0
+RECORD  K3.3 … its ink's left edge (epx; another leading glyph than R11's "W")  26.00
+PASS  K3.3 today's heading is in the accent (the selected square's colour on this screen)  (0 120 215) ~ (0 120 215) +/- 4
+PASS  K3.4 an empty day reads "No events today"                   = No events today
+PASS  K3.4 … in grey (151,151,151)                              (151 151 151) ~ (151 151 151) +/- 4
+FAIL  K3.4 … at x 24 (the ink's left edge)                      25.67 vs 24.00 +/- 1.0
+PASS  Agenda: dumpsys window — the system status bar is not visible  = visible=false
+PASS  Agenda: dumpsys window — the system nav bar is not visible  = visible=false
+--- 2: the month drop-down (K5) and its motion
+PASS  K1.1 (drop-down open) ≡ is three bars                     = 3
+PASS  K1.1 (drop-down open) ≡ bar 1 is 1 epx thick              1.00 vs 1.00 +/- 0.34
+PASS  K1.1 (drop-down open) ≡ bar 2 is 1 epx thick              1.00 vs 1.00 +/- 0.34
+PASS  K1.1 (drop-down open) ≡ bar 3 is 1 epx thick              1.00 vs 1.00 +/- 0.34
+PASS  K1.1 (drop-down open) ≡ bars 1–2 at a 5-epx pitch       5.00 vs 5.00 +/- 0.5
+PASS  K1.1 (drop-down open) ≡ bars 2–3 at a 5-epx pitch       5.00 vs 5.00 +/- 0.5
+PASS  K1.1 (drop-down open) ≡ starts at x 16                    16.00 vs 16.00 +/- 1.0
+PASS  K1.1 (drop-down open) ≡ ends at x 36                      36.00 vs 36.00 +/- 1.0
+PASS  K1.1 (drop-down open) the month and year in caps ("OCTOBER 2026")  = OCTOBER 2026
+PASS  K1.1 (drop-down open) … a month name and a year           = yes
+PASS  K1.1 (drop-down open) … at x 51.0 (the ink's left edge)   51.67 vs 51.00 +/- 1.0
+PASS  K1.1 (drop-down open) … its cap top 15.5 epx below the status bar  15.33 vs 15.50 +/- 1.0
+PASS  K1.1 (drop-down open) … cap 11.0                          11.67 vs 11.00 +/- 1.0
+PASS  K1.1 (drop-down open) … semibold (its stems at least 0.16 of the cap height; a regular line reads 0.09–0.15 here)  = yes
+RECORD  K1.1 (drop-down open) the title's stroke / cap ratio        0.200
+PASS  K1.2 (drop-down open) the header band starts at the status bar's bottom  28.00 vs 28.00 +/- 0.34
+PASS  K1.2 (drop-down open) the band is 40 epx tall               40.00 vs 40.00 +/- 1.0
+PASS  K1.1 (drop-down open) the chevron after the title is ⌃ (the drop-down is open)  = up
+PASS  K5.1 the drop-down is open (cal_month_dropdown)             = yes
+PASS  K5.1 the panel's border starts at x 5                       5.00 vs 5.00 +/- 1.0
+PASS  K5.1 … and ends at x 355                                  355.00 vs 355.00 +/- 1.0
+PASS  K5.1 … from the header's bottom (40 epx below the status bar)  40.00 vs 40.00 +/- 1.0
+PASS  K5.1 … down 235 epx                                       235.00 vs 235.00 +/- 1.0
+PASS  K5.1 a 1-epx border (its left edge's thickness)             1.00 vs 1.00 +/- 0.34
+PASS  K5.1 the border is (80,80,80)                               (80 80 80) ~ (80 80 80) +/- 4
+PASS  K5.1 the panel's fill is the page colour                    (26 26 26) ~ (26 26 26) +/- 2
+PASS  K5.2 six date rows of seven (42 cal_month_cell nodes inside the panel)  = 42
+PASS  K5.2 date rows 1–2 at a 34.25-epx pitch (the digits' centres)  33.83 vs 34.25 +/- 1.0
+PASS  K5.2 date rows 2–3 at a 34.25-epx pitch (the digits' centres)  34.33 vs 34.25 +/- 1.0
+PASS  K5.2 date rows 3–4 at a 34.25-epx pitch (the digits' centres)  34.33 vs 34.25 +/- 1.0
+PASS  K5.2 date rows 4–5 at a 34.25-epx pitch (the digits' centres)  34.50 vs 34.25 +/- 1.0
+PASS  K5.2 date rows 5–6 at a 34.25-epx pitch (the digits' centres)  34.00 vs 34.25 +/- 1.0
+PASS  K5.2 on the strip's W/7 columns: column 1 centre 25.0       24.50 vs 25.00 +/- 1.0
+PASS  K5.2 on the strip's W/7 columns: column 2 centre 76.6       76.83 vs 76.60 +/- 1.0
+PASS  K5.2 on the strip's W/7 columns: column 3 centre 127.5      127.67 vs 127.50 +/- 1.0
+PASS  K5.2 on the strip's W/7 columns: column 4 centre 178.4      179.00 vs 178.40 +/- 1.0
+PASS  K5.2 on the strip's W/7 columns: column 5 centre 229.0      229.67 vs 229.00 +/- 1.0
+PASS  K5.2 on the strip's W/7 columns: column 6 centre 280.4      281.00 vs 280.40 +/- 1.0
+PASS  K5.2 on the strip's W/7 columns: column 7 centre 331.3      331.83 vs 331.30 +/- 1.0
+PASS  K5.3 the panel shows dates of another month                 = yes
+PASS  K5.3 other-month dates are (110,110,110)                    (110 110 110) ~ (110 110 110) +/- 4
+RECORD  K5.3 an in-month date's colour (R11: white)                 255 255 255
+[motion] cal_month_dropdown t0=3339427 peak=185 overshoot=0 settle=185 frames=13 maxGapMs=17
+PASS  U8 the drop-down (R7 §2.2.6): the [motion] line is in the slice  != 
+PASS  U8 the drop-down (R7 §2.2.6): settle=<ms> is 200 ± 17 ms  185.00 vs 200.00 +/- 17.0
+PASS  U8 the drop-down (R7 §2.2.6): maxGapMs ≤ 33.4 (C-31)     = yes
+--- 3: Agenda at 2026-10-24 (a day heading, the event rows)
+PASS  3: the Agenda shows the fixtures' day                       = yes
+PASS  K3.2 a day heading ("Saturday 24", R11's own sample is a Saturday) at x 24 (the ink's left edge)  24.67 vs 24.00 +/- 1.0
+PASS  K3.2 a day heading is white                                 (255 255 255) ~ (255 255 255) +/- 4
+PASS  K3.2 … semibold (its stems at least 0.16 of the cap height; a regular line reads 0.09–0.15 here)  = yes
+PASS  K3.8 an all-day row: cal_event_bar's colour bar starts at x 0  0.00 vs 0.00 +/- 0.34
+PASS  K3.8 an all-day row: … and is 8 epx wide                  8.00 vs 8.00 +/- 1.0
+PASS  K3.8 an all-day row: … in the calendar's colour           (0 99 177) ~ (0 99 177) +/- 4
+PASS  K3.5 an all-day row: its bar is 40 epx tall                 40.00 vs 40.00 +/- 1.0
+PASS  K3.5 an all-day row's label reads "All day"                 = yes
+PASS  K3.7 an all-day row: the "All day" label at x 24.3 (the ink's left edge)  24.67 vs 24.30 +/- 1.0
+PASS  K3.7 an all-day row: the title ("Pay rent") at x 92.5 (the ink's left edge)  92.33 vs 92.50 +/- 1.0
+RECORD  K3.7 an all-day row: the title's text box starts at (epx)   90.67
+PASS  K3.5 an all-day row: the title is white                     (255 255 255) ~ (255 255 255) +/- 4
+PASS  K3.8 a timed row: cal_event_bar's colour bar starts at x 0  0.00 vs 0.00 +/- 0.34
+PASS  K3.8 a timed row: … and is 8 epx wide                     8.00 vs 8.00 +/- 1.0
+PASS  K3.8 a timed row: … in the calendar's colour              (0 99 177) ~ (0 99 177) +/- 4
+PASS  K3.6 a timed row: its bar is 56 epx tall                    56.00 vs 56.00 +/- 1.0
+PASS  K3.7 a timed row: the time label at x 24.3 (the ink's left edge)  25.00 vs 24.30 +/- 1.0
+PASS  K3.7 a timed row: the title ("Pay day") at x 92.5 (the ink's left edge)  92.33 vs 92.50 +/- 1.0
+RECORD  K3.7 a timed row: the title's text box starts at (epx)      90.67
+PASS  K3.5 a timed row: the title is white                        (255 255 255) ~ (255 255 255) +/- 4
+PASS  K3.5 all-day bars on a 44-epx pitch (the second bar's top below the first's)  44.00 vs 44.00 +/- 1.0
+RECORD  K3.5 the label's tint on this screen (the calendar colour's light tint)  107 164 210
+--- 4: the ≡ calendar pane (K6.4)
+PASS  K6.4 the ≡ pane is open (cal_pane)                        = yes
+PASS  K6.4 the pane's rows at a 48.1-epx pitch (cal_account:Tessera → cal_calendar_row:1)  48.00 vs 48.10 +/- 1.0
+PASS  K6.4 the pane's rows at a 48.1-epx pitch (cal_calendar_row:1 → cal_account:qa.personal@example.com)  48.00 vs 48.10 +/- 1.0
+PASS  K6.4 the pane's rows at a 48.1-epx pitch (cal_account:qa.personal@example.com → cal_calendar_row:2)  48.00 vs 48.10 +/- 1.0
+PASS  K6.4 the pane's rows at a 48.1-epx pitch (cal_calendar_row:2 → cal_account:qa.work@example.com)  48.00 vs 48.10 +/- 1.0
+PASS  K6.4 the pane's rows at a 48.1-epx pitch (cal_account:qa.work@example.com → cal_calendar_row:3)  48.00 vs 48.10 +/- 1.0
+PASS  U10 the pane's chrome is #1F1F1F                            (31 31 31) ~ (31 31 31) +/- 2
+PASS  K6.4 the account header Tessera starts at x 14 (its chevron's ink)  14.00 vs 14.00 +/- 1.0
+RECORD  K6.4 … its chevron's glyph box and its name's ink start at (epx)  11.67 / 34.33
+PASS  K6.4 the calendar name "Tessera" at x 62 (the ink's left edge)  61.00 vs 62.00 +/- 1.0
+PASS  K6.4 the row is ticked                                      = true
+PASS  K6.4 a checked box is filled with the calendar's colour (a box of it left of the name)  = yes
+RECORD  K6.4 the checkbox's filled box (epx: left top right bottom)  22.00 130.00 42.33 150.33
+PASS  K6.4 the account header qa.personal@example.com starts at x 14 (its chevron's ink)  14.00 vs 14.00 +/- 1.0
+RECORD  K6.4 … its chevron's glyph box and its name's ink start at (epx)  11.67 / 34.67
+PASS  K6.4 the calendar name "MoNa Events" at x 62 (the ink's left edge)  62.00 vs 62.00 +/- 1.0
+PASS  K6.4 the account header qa.work@example.com starts at x 14 (its chevron's ink)  14.00 vs 14.00 +/- 1.0
+RECORD  K6.4 … its chevron's glyph box and its name's ink start at (epx)  11.67 / 34.67
+PASS  K6.4 the calendar name "mark guim" at x 62 (the ink's left edge)  62.00 vs 62.00 +/- 1.0
+--- 5: the Week view (K4) of 2026-10-24's week
+PASS  5: Week is showing, on the fixtures' week                   = true yes
+PASS  Week: the drawn status bar is on the view (w10m_status_bar)  = yes
+PASS  Week: the drawn nav bar is on the view (w10m_nav_bar)       = yes
+PASS  Week: the status bar's height is BarMetrics.STATUS_EPX (28)  28.00 vs 28.00 +/- 0.34
+PASS  Week: the nav bar's height is BarMetrics.NAV_EPX (48)       48.00 vs 48.00 +/- 0.34
+PASS  Week: the nav bar ends at the screen's bottom edge          780.00 vs 780.00 +/- 0.34
+PASS  Week: the status bar is drawn black down to its bottom edge (px column 6)  28.00 vs 28.00 +/- 0.34
+PASS  Week: the nav bar is drawn black from its top edge (px column 6)  732.00 vs 732.00 +/- 0.34
+PASS  K1.2 the header band is 40 epx: the black rule under it in week view is 40 epx below the status bar  40.00 vs 40.00 +/- 1.0
+PASS  K4.1 the cells are split at W/2: a (80,80,80) rule at x 179–180  179.67 vs 179.00 +/- 1.0
+PASS  K4.1 … 1 epx wide                                         0.67 vs 1.00 +/- 0.34
+PASS  K4.1 2 × 4 cells: at least the three rules between the four rows (down the left column)  = yes
+PASS  K4.1 cell row 1 is 120 epx (rule to rule)                   120.00 vs 120.00 +/- 1.0
+PASS  K4.1 cell row 2 is 120 epx (rule to rule)                   120.00 vs 120.00 +/- 1.0
+PASS  K4.1 cell row 3 is 120 epx (rule to rule)                   120.00 vs 120.00 +/- 1.0
+PASS  K4.1 cell row 4 is 120 epx (a rule closes it on this taller screen)  120.00 vs 120.00 +/- 1.0
+PASS  K4.1 seven day cells (cal_day labels)                       = 7
+PASS  K4.2 every cell is labelled "23 MON"-style (18 SUN, 19 MON, 20 TUE, 21 WED, 22 THU, 23 FRI, 24 SAT)  = 7
+RECORD  K4.2 the label "18 SUN": its ink's left edge inside its cell (epx; another leading glyph than R11's "2")  12.00
+RECORD  K4.2 the label "19 MON": its ink's left edge inside its cell (epx; another leading glyph than R11's "2")  12.00
+PASS  K4.2 the label "20 TUE" at x 10 inside its cell (x 10; the ink's left edge)  11.00 vs 10.00 +/- 1.0
+PASS  K4.2 the label "21 WED" at x 10 inside its cell (x 190; the ink's left edge)  191.00 vs 190.00 +/- 1.0
+PASS  K4.2 the label "22 THU" at x 10 inside its cell (x 10; the ink's left edge)  11.00 vs 10.00 +/- 1.0
+PASS  K4.2 the label "23 FRI" at x 10 inside its cell (x 190; the ink's left edge)  191.00 vs 190.00 +/- 1.0
+PASS  K4.2 the label "24 SAT" at x 10 inside its cell (x 10; the ink's left edge)  11.00 vs 10.00 +/- 1.0
+PASS  K4.2 the week shown holds labels that start with R11's glyph "2"  = yes
+PASS  K4.2 the labels are grey (151,151,151)                      (151 151 151) ~ (151 151 151) +/- 4
+RECORD  K4.2 the first label's cap top under its cell's top rule (R11: 11 epx)  10.67
+PASS  K4.3 events in a cell are lines at a 19-epx pitch           19.00 vs 19.00 +/- 1.0
+RECORD  K4.3 the two lines' ink tops (px)                           1408 / 1463
+PASS  K4.3 … tinted: the line's colour is the calendar colour's tint (the Agenda label's on this run)  (107 164 210) ~ (107 164 210) +/- 4
+PASS  K4.3 … with no colour bar in the cell (no cal_event_bar node)  = 0
+PASS  K4.4 the mini month is in the eighth cell (right column, fourth row)  = yes
+PASS  Week: dumpsys window — the system status bar is not visible  = visible=false
+PASS  Week: dumpsys window — the system nav bar is not visible  = visible=false
+--- 6: the Day view (U1's structure) and a day page's motion
+PASS  6: Day is showing                                           = true
+PASS  Day: the drawn status bar is on the view (w10m_status_bar)  = yes
+PASS  Day: the drawn nav bar is on the view (w10m_nav_bar)        = yes
+PASS  Day: the status bar's height is BarMetrics.STATUS_EPX (28)  28.00 vs 28.00 +/- 0.34
+PASS  Day: the nav bar's height is BarMetrics.NAV_EPX (48)        48.00 vs 48.00 +/- 0.34
+PASS  Day: the nav bar ends at the screen's bottom edge           780.00 vs 780.00 +/- 0.34
+PASS  Day: the status bar is drawn black down to its bottom edge (px column 6)  28.00 vs 28.00 +/- 0.34
+PASS  Day: the nav bar is drawn black from its top edge (px column 6)  732.00 vs 732.00 +/- 0.34
+PASS  U1 the Day view's header is the week-cell label ("24 SAT")  = yes
+PASS  U1 the all-day band is there (cal_allday:2026-10-24)        = yes
+PASS  U1 the hour grid is there (cal_day_grid)                    = yes
+PASS  U1 the grid draws hour rules                                = yes
+PASS  U1 hour rows at 48 epx (the rules' pitch)                   48.00 vs 48.00 +/- 1.0
+PASS  Day: dumpsys window — the system status bar is not visible  = visible=false
+PASS  Day: dumpsys window — the system nav bar is not visible   = visible=false
+[motion] cal_day_page t0=3389248 peak=264 overshoot=0 settle=264 frames=17 maxGapMs=17
+PASS  U8 a day page (X13): the [motion] line is in the slice      != 
+PASS  U8 a day page (X13): settle=<ms> is 250 ± 17 ms            264.00 vs 250.00 +/- 17.0
+PASS  U8 a day page (X13): maxGapMs ≤ 33.4 (C-31)               = yes
+PASS  6: the swipe paged to the next day (cal_day:2026-10-25)     = yes
+--- 7: the event page (U2's structure)
+PASS  U2 the event page carries cal_event_page:5778               = yes
+PASS  U2 the event page carries cal_event_title:5778              = yes
+PASS  U2 the event page carries cal_event_time:5778               = yes
+PASS  U2 the event page carries cal_event_calendar                = yes
+PASS  U2 the event page carries cal_event_action:edit             = yes
+PASS  U2 the event page carries cal_event_action:delete           = yes
+PASS  U2 the event page carries cal_event_action:sync             = yes
+RECORD  U2 the title's left edge (epx)                              13.67
+--- 8: the editor (U3: People's 32-epx fields with a 2-epx (133,133,133) border)
+PASS  the editor: the drawn status bar is on the view (w10m_status_bar)  = yes
+PASS  the editor: the drawn nav bar is on the view (w10m_nav_bar)  = yes
+PASS  the editor: the status bar's height is BarMetrics.STATUS_EPX (28)  28.00 vs 28.00 +/- 0.34
+PASS  the editor: the nav bar's height is BarMetrics.NAV_EPX (48)  48.00 vs 48.00 +/- 0.34
+PASS  the editor: the nav bar ends at the screen's bottom edge    780.00 vs 780.00 +/- 0.34
+PASS  the editor: the status bar is drawn black down to its bottom edge (px column 6)  28.00 vs 28.00 +/- 0.34
+PASS  the editor: the nav bar is drawn black from its top edge (px column 6)  732.00 vs 732.00 +/- 0.34
+PASS  U3 the editor is open (cal_editor)                          = yes
+PASS  U3 the title field's drawn box is 32 epx tall (its (133,133,133) border, edge to edge)  32.00 vs 32.00 +/- 1.0
+PASS  U3 … with a 2-epx border (its top edge's thickness)       2.00 vs 2.00 +/- 0.34
+PASS  U3 … of (133,133,133)                                     (133 133 133) ~ (133 133 133) +/- 4
+RECORD  U3 the title field: its drawn box (epx l t r b) against its dump node's height  20.00 110.67 340.00 142.67 / 48.00
+PASS  U3 the location field's drawn box is 32 epx tall (its (133,133,133) border, edge to edge)  32.00 vs 32.00 +/- 1.0
+PASS  U3 … with a 2-epx border (its top edge's thickness)       2.00 vs 2.00 +/- 0.34
+PASS  U3 … of (133,133,133)                                     (133 133 133) ~ (133 133 133) +/- 4
+PASS  U3 the start_date field's drawn box is 32 epx tall (its (133,133,133) border, edge to edge)  32.00 vs 32.00 +/- 1.0
+PASS  U3 … with a 2-epx border (its top edge's thickness)       2.00 vs 2.00 +/- 0.34
+PASS  U3 … of (133,133,133)                                     (133 133 133) ~ (133 133 133) +/- 4
+RECORD  U3 the start_date field: its drawn box (epx l t r b) against its dump node's height  12.00 321.00 201.00 353.00 / 32.00
+PASS  U3 the start_time field's drawn box is 32 epx tall (its (133,133,133) border, edge to edge)  32.00 vs 32.00 +/- 1.0
+PASS  U3 … with a 2-epx border (its top edge's thickness)       2.00 vs 2.00 +/- 0.34
+PASS  U3 … of (133,133,133)                                     (133 133 133) ~ (133 133 133) +/- 4
+PASS  U3 the end_date field's drawn box is 32 epx tall (its (133,133,133) border, edge to edge)  32.00 vs 32.00 +/- 1.0
+PASS  U3 … with a 2-epx border (its top edge's thickness)       2.00 vs 2.00 +/- 0.34
+PASS  U3 … of (133,133,133)                                     (133 133 133) ~ (133 133 133) +/- 4
+PASS  U3 the end_time field's drawn box is 32 epx tall (its (133,133,133) border, edge to edge)  32.00 vs 32.00 +/- 1.0
+PASS  U3 … with a 2-epx border (its top edge's thickness)       2.00 vs 2.00 +/- 0.34
+PASS  U3 … of (133,133,133)                                     (133 133 133) ~ (133 133 133) +/- 4
+PASS  U3 the repeat field's drawn box is 32 epx tall (its (133,133,133) border, edge to edge)  32.00 vs 32.00 +/- 1.0
+PASS  U3 … with a 2-epx border (its top edge's thickness)       2.00 vs 2.00 +/- 0.34
+PASS  U3 … of (133,133,133)                                     (133 133 133) ~ (133 133 133) +/- 4
+PASS  U3 the reminder field's drawn box is 32 epx tall (its (133,133,133) border, edge to edge)  32.00 vs 32.00 +/- 1.0
+PASS  U3 … with a 2-epx border (its top edge's thickness)       2.00 vs 2.00 +/- 0.34
+PASS  U3 … of (133,133,133)                                     (133 133 133) ~ (133 133 133) +/- 4
+PASS  U3 the calendar field's drawn box is 32 epx tall (its (133,133,133) border, edge to edge)  32.00 vs 32.00 +/- 1.0
+PASS  U3 … with a 2-epx border (its top edge's thickness)       2.00 vs 2.00 +/- 0.34
+PASS  U3 … of (133,133,133)                                     (133 133 133) ~ (133 133 133) +/- 4
+PASS  the editor: dumpsys window — the system status bar is not visible  = visible=false
+PASS  the editor: dumpsys window — the system nav bar is not visible  = visible=false
+--- restore
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the row's events are deleted                       = 0
+PASS  restore: Tessera's event count equals the count before the row  = 0
+------------------------------------------------------------------------------
+E19: 235 passed, 1 failed, 22 recorded

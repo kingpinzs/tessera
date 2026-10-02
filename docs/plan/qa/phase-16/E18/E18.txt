@@ -1,11 +1,11 @@
 ==============================================================================
 ROW E18 — permission states: READ / WRITE_CALENDAR together and alone, READ_CONTACTS alone
-at            2026-10-01T18:07:46-06:00
+at            2026-10-01T23:45:35-06:00
 driver        e18.sh blob 9933984e64d6b65d1c87e5ed3e4cc58bdb59de5d
 harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
-apk built     d008aec0c1318519 340591758 bytes
-apk installed 686506a7a7936b2e
-apk match     yes (686506a7a7936b2e)
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
@@ -31,7 +31,7 @@ PASS  B: Calendar is in front, still on its cannot-read notice    = yes
 PASS  B: pm grant restores it — both held                       = true true
 PASS  B: the views load: the notice is gone                       = no
 PASS  B: … and the week strip is drawn (cal_strip inside cal_view)  = yes
-PASS  B: … without a restart (the shell's pid is the same)      = 10577
+PASS  B: … without a restart (the shell's pid is the same)      = 6671
 after the grant: [calendar] calendars: 1 (local present)
 PASS  B: the slice from the grant's MARK holds a [calendar] calendars: n (…) line  = yes
 PASS  B: … and no denied line                                   does not contain [denied]

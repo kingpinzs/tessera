@@ -1,0 +1,83 @@
+==============================================================================
+ROW E23 — Sync rule 4 and the first Sync: nothing allowed at first, the opt-in list, a re-added account
+at            2026-10-01T21:27:07-06:00
+driver        e23.sh blob 7c342b6a3f6f383700b63b623eb7e08bd1abf4a7
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  start: pm clear → provision.sh rc                         = 0
+PASS  start: the device still holds the build under test          contains [yes]
+RECORD  start: calendar_sync.json after the clear                   {"version":1,"allowed":[],"mappings":[],"hidden":[],"notifiedAlerts":[],"remindersSince":1790911641613}
+--- fixtures
+PASS  fixtures: Personal exists                                   != 
+PASS  fixtures: Shared exists under Personal's account            != 
+PASS  fixtures: … at calendar_access_level 200                  contains [calendar_access_level=200]
+PASS  fixtures: Work exists                                       != 
+PASS  fixtures: Work was created last (the highest _id)           = yes
+PASS  fixtures: Offsite is driver-inserted into Work              != 
+PASS  fixtures: no Birthdays calendar before the row's birthday   = 
+      people_fixtures_up: raw ids ann=320 bob=321 zoe=322 zhang=323 number-only=324 cara=325,326 (raw contacts before: 2)
+PASS  fixtures: the row's own birthday — Tessera Birthdays lists  != 
+PASS  fixtures: Tessera exists once Calendar has opened           != 
+PASS  fixtures: a local event "Standup"                           != 
+      tessera=1 personal=2 shared=3 work=4 birthdays=5 offsite=696 standup=698
+      calendar_sync.json's allowed before the first Sync: []
+PASS  fixtures: nothing is allowed yet (calendar_sync.json's allowed list is empty, or the file does not exist yet)  = yes
+--- F: the first Sync, with nothing allowed
+PASS  F: Standup's page is open                                   = yes
+PASS  F: the "Can sync to" page opens directly (cal_can_sync)     = yes
+PASS  F: cal_settings_can_sync:<personal id> is listed, unchecked  = false
+PASS  F: cal_settings_can_sync:<work id> is listed, unchecked     = false
+PASS  F: Personal's row sits under its account's cal_account:<name> header  = qa.personal@example.com
+PASS  F: Work's row sits under its account's cal_account:<name> header  = qa.work@example.com
+PASS  F: the line "Choose which calendars Sync may use"           = Choose which calendars Sync may use
+PASS  F: no cal_sync_target:* node                                = 0
+PASS  F: diagnostics — sync event=<id>: no calendar allowed -> can sync to  contains [[calendar] sync event=698: no calendar allowed -> can sync to]
+PASS  F: Tessera is not listed there                              = no
+PASS  F: Birthdays is not listed there                            = no
+PASS  F: no cal_settings_can_sync:<shared id> — a calendar the phone may not write is never offered (r3 D5)  = no
+PASS  F: … exactly the two writable account calendars are listed  = cal_settings_can_sync:2 cal_settings_can_sync:4
+--- P: Personal ticked, Back → the Sync picker
+PASS  P: Personal is ticked                                       = true
+PASS  P: … and Work stays unticked                              = false
+PASS  P: Back returns to the Sync picker (cal_sync)               = yes
+PASS  P: the picker lists cal_sync_target:<personal id> only (no Work, Shared, Tessera or Birthdays)  = cal_sync_target:2
+PASS  P: … no cal_sync_target for Work                          = no
+PASS  P: … no cal_sync_target for Shared                        = no
+PASS  P: … no cal_sync_target for Tessera                       = no
+PASS  P: … no cal_sync_target for Birthdays                     = no
+PASS  P: Back out without syncing — the picker is closed        = no
+PASS  cal_lists: calendar 2 (Personal) still lists                contains [_id=2,]
+PASS  P: Personal holds 0                                         = 
+PASS  cal_lists: calendar 4 (Work, P: after backing out) still lists  contains [_id=4,]
+PASS  P: after backing out: Work holds exactly Offsite            = Offsite
+calendar_sync.json: {"version":1,"allowed":[{"id":2,"accountName":"qa.personal@example.com","accountType":"com.google","name":"Personal"}],"mappings":[],"hidden":[],"notifiedAlerts":[],"remindersSince":1790911641613}
+PASS  P: calendar_sync.json lists Personal's _ID, account name and type under allowed (and, since the fix build, the calendar's own name) — and nothing else  = 2|qa.personal@example.com|com.google|Personal
+PASS  P: no mapping was made (nothing was synced)                 = []
+--- R: Personal deleted and created again
+PASS  R: Personal is deleted (sync-adapter URI)                   = 
+PASS  R: Personal is created again                                != 
+PASS  R: its new _ID differs from the old one (V15)               != 2
+PASS  R: Sync on "Standup" opens "Can sync to" again              = yes
+PASS  R: … with the new Personal unchecked                      = false
+PASS  R: … and no Sync target offered                           = 0
+PASS  R: … the routed line again                                contains [[calendar] sync event=698: no calendar allowed -> can sync to]
+RECORD  R: calendar_sync.json's allowed after the account came back  []
+PASS  cal_lists: calendar 6 (the new Personal) still lists        contains [_id=6,]
+PASS  R: the new Personal holds 0                                 = 
+PASS  cal_lists: calendar 4 (Work, R: at the end) still lists     contains [_id=4,]
+PASS  R: at the end: Work holds exactly Offsite                   = Offsite
+--- restore
+PASS  restore: the birthday row is removed                        = 0
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the test event is deleted                          = 0
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  restore: Tessera's event count equals the count before the row  = 0
+PASS  restore: layout_restore of the baseline (the row cleared the shell)  = 0
+------------------------------------------------------------------------------
+E23: 59 passed, 0 failed, 2 recorded

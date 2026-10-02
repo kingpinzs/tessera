@@ -37,6 +37,22 @@ else:
 PY
 }
 gfx_janky() { adb shell dumpsys gfxinfo app.tileshell < /dev/null | tr -d '\r' | awk '/^Total frames rendered:/ {t=$4} /^Janky frames:/ {j=$3; p=$4} END {gsub(/[()%]/, "", p); print t, j, p}'; }
+# The diagnosis the lead asked for (D-E7-1): one leg's frames. Saves `dumpsys gfxinfo` and its `framestats` under the
+# leg's name, adds the leg's totals to P-legs.tsv, RECORDs them, and resets the counters for the next leg.
+: > "$ROW_DIR/P-legs.tsv"
+gfx_leg() { # name
+  adb shell dumpsys gfxinfo app.tileshell < /dev/null | tr -d '\r' > "$ROW_DIR/$1.gfxinfo.txt"
+  adb shell dumpsys gfxinfo app.tileshell framestats < /dev/null | tr -d '\r' > "$ROW_DIR/$1.framestats.txt"
+  adb shell dumpsys gfxinfo app.tileshell reset >/dev/null 2>&1
+  local t j u d p50 p90 p99
+  t="$(sed -n 's/^Total frames rendered: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
+  j="$(sed -n 's/^Janky frames: \([0-9]*\).*/\1/p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
+  u="$(sed -n 's/^Number Slow UI thread: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
+  d="$(sed -n 's/^Number Slow issue draw commands: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
+  p50="$(sed -n 's/^50th percentile: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"; p90="$(sed -n 's/^90th percentile: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"; p99="$(sed -n 's/^99th percentile: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$1" "${t:-0}" "${j:-0}" "${u:-0}" "${d:-0}" "$p50" "$p90" "$p99" >> "$ROW_DIR/P-legs.tsv"
+  record "gfxinfo, leg $1: total frames / janky / slow UI thread / slow draw; 50th 90th 99th" "${t:-0} / ${j:-0} / ${u:-0} / ${d:-0}; $p50 $p90 $p99"
+}
 CRASH0="$(ccrashes)"
 c6; ensure_start
 cal_fixtures_down
@@ -120,12 +136,14 @@ for i in $(seq 1 "$BUSY_K"); do
   adb shell input swipe $(( $3 - 120 )) $(( ($2 + $4) / 2 )) $(( $1 + 120 )) $(( ($2 + $4) / 2 )) 300; sleep 1.5
 done
 dump_ui "$ROW_DIR/M-month.xml"; screencap "$ROW_DIR/M-month.png"
+gfx_leg P1-dropdown-to-the-busy-month
 assert_eq "M: cal_month_dropdown is open and dumped" "yes" "$(has_node "$ROW_DIR/M-month.xml" cal_month_dropdown)"
 assert_eq "M: … showing the busy month: cal_month_cell:$BUSY_FIRST" "yes" "$(cunder "$ROW_DIR/M-month.xml" cal_month_dropdown "cal_month_cell:$BUSY_FIRST")"
 M_MARK="$(ring_mark)"
 tap_node "$ROW_DIR/M-month.xml" "cal_month_cell:$BUSY_FIRST"; sleep 3
 dump_ui "$ROW_DIR/M-agenda.xml"; screencap "$ROW_DIR/M-agenda.png"
 ring_since "$M_MARK" > "$ROW_DIR/M-slice.txt"
+gfx_leg P2-agenda-busy-month-first-day
 assert_eq "M: Agenda at that day — its dump is available: cal_view_mode:agenda selected" "true" "$(cattr "$ROW_DIR/M-agenda.xml" cal_view_mode:agenda selected)"
 assert_eq "M: … with that day's heading in the list (cal_day:$BUSY_FIRST inside cal_agenda)" "yes" "$(cunder "$ROW_DIR/M-agenda.xml" cal_agenda "cal_day:$BUSY_FIRST")"
 assert_eq "M: … and the drop-down closed" "no" "$(has_node "$ROW_DIR/M-agenda.xml" cal_month_dropdown)"
@@ -141,11 +159,13 @@ record "M: the agenda's window and its instance count" "${4:-}..${5:-}: ${3:-} i
 log "--- W: the Week view of the busy month's busiest week (the week of $BUSY_DAY)"
 ctap cal_header 1.5; dump_ui "$ROW_DIR/W-month.xml"
 tap_node "$ROW_DIR/W-month.xml" "cal_month_cell:$BUSY_DAY"; sleep 2.5
+gfx_leg P3-dropdown-to-the-200-event-day
 ctap cal_bar:view 1.2; dump_ui "$ROW_DIR/W-menu.xml"
 W_MARK="$(ring_mark)"
 tap_node "$ROW_DIR/W-menu.xml" cal_view_pick:week; sleep 3
 dump_ui "$ROW_DIR/W-week.xml"; screencap "$ROW_DIR/W-week.png"
 ring_since "$W_MARK" > "$ROW_DIR/W-slice.txt"
+gfx_leg P4-week-busiest
 assert_eq "W: the Week view is showing (cal_view_mode:week selected)" "true" "$(cattr "$ROW_DIR/W-week.xml" cal_view_mode:week selected)"
 assert_eq "W: … of the week that holds $BUSY_DAY" "yes" "$(has_node "$ROW_DIR/W-week.xml" "cal_day:$BUSY_DAY")"
 VL="$(view_line "$ROW_DIR/W-slice.txt" "$W_MARK" week)"; log "view week after the tap: $VL"
@@ -169,6 +189,7 @@ for i in $(seq 1 12); do
   adb shell input swipe 900 1200 200 1200 250
   sleep 2.2
   ring_since "$P_MARK" > "$ROW_DIR/.p-slice.txt"
+  gfx_leg "P5-swipe-$(printf '%02d' "$i")"
   VL="$(view_line "$ROW_DIR/.p-slice.txt" "$P_MARK" week)"
   echo "$i $VL" >> "$ROW_DIR/P-lines.txt"
   [ "$VL" = none ] && continue
@@ -183,8 +204,9 @@ assert_eq "P: every one of the 12 swipes gave a view week line" "12" "$P_LINES"
 assert_eq "P: … twelve different weeks, each seven days on from the last" "12" "$(awk 'NF >= 6 {print $5}' "$ROW_DIR/P-lines.txt" | sort -u | wc -l | tr -d ' ')"
 assert_eq "P: every view week line has ms ≤ 3000" "12" "$P_OK_MS"
 assert_eq "P: … and wall= − that swipe's MARK ≤ 3000" "12" "$P_OK_WALL"
-GFX="$(gfx_janky)"; adb shell dumpsys gfxinfo app.tileshell < /dev/null > "$ROW_DIR/P-gfxinfo.txt" 2>&1
-log "dumpsys gfxinfo app.tileshell over the run (total frames, janky frames, janky %): $GFX"
+log "the legs (name, total frames, janky, slow UI thread, slow draw, 50th, 90th, 99th):"; sed 's/^/   /' "$ROW_DIR/P-legs.tsv" | tee -a "$LOG" >/dev/null
+GFX="$(awk -F'\t' '{t += $2; j += $3} END {printf "%d %d %.2f", t, j, (t ? 100 * j / t : 100)}' "$ROW_DIR/P-legs.tsv")"
+log "dumpsys gfxinfo app.tileshell over the run = the sum of its legs (total frames, janky frames, janky %): $GFX"
 # shellcheck disable=SC2086
 set -- $GFX
 assert_ne "P: gfxinfo counted frames over the run" "0" "${1:-0}"

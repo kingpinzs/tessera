@@ -28,18 +28,32 @@ on_screen() { # dump.xml tile-id -> yes when the tile's bounds lie wholly betwee
   local b sb nt; b="$(bounds "$1" "$2")"; sb="$(status_bottom "$1")"; nt="$(nav_top "$1")"
   [ -n "$b" ] && [ "$(bfield "$b" 2)" -ge "${sb:-0}" ] && [ "$(bfield "$b" 4)" -le "${nt:-2340}" ] && echo yes || echo no
 }
-# One event, read after its in-slide settled: a screencap, then a gdump; for each tile named, its settled bubble names
-# the event's contact and its centre pixel is that contact's fixture colour ± 8.
-check_event() { # label lookup file-prefix tile-id...
-  local label="$1" lookup="$2" p="$3" t nb b desc; shift 3
+# One event, read after its in-slide settled. The clause is the SCREENCAP: taken at once, its settled bubble's centre
+# pixel (at the bubble's bounds, read from a dump before the window — a resting bubble does not move) is the fixture
+# colour of the contact the event names, ± 8. Then a gdump: the settled bubble's content-desc is that contact's lookup.
+# The gesture driver's dump can need several attempts on a Start that never idles; one that took more than 4 s came
+# after the bubble's rest (5.8 s from the settle, less the wait and the screencap) and is RECORDed, not graded — run 2
+# on the fix build failed an event on exactly that, with the screencap showing the right colour.
+GRADED=0
+check_event() { # label lookup file-prefix "known bubble bounds of the first tile, or empty" tile-id...
+  local label="$1" lookup="$2" p="$3" known="$4" t nb b desc t0 ms first=yes; shift 4
   screencap "$p.png"
-  gdump "$p.xml" || true
+  [ -n "$known" ] && assert_color "$label: the screencap's settled bubble centre is the fixture colour of lookup=$lookup, ± 8" "${COLOUR[$lookup]:-?}" "$(centre_px "$p.png" "$known")" 8
+  t0="$(date +%s%3N)"; gdump "$p.xml" || true; ms=$(( $(date +%s%3N) - t0 ))
+  if [ "$ms" -gt 4000 ]; then
+    record "$label: the dump took $ms ms ($(grep -c 'read no nodes' "$p.xml.drv" 2>/dev/null) empty attempts) and came after the bubble's rest; its content-desc is not read for this event" "not graded"
+    return 0
+  fi
   for t in "$@"; do
     nb="$(node_inside "$p.xml" "$t" people_tile_bubble)"
     b="${nb%%|*}"; desc="${nb#*|}"
-    if [ -z "$b" ]; then _verdict FAIL "$label: a settled bubble (people_tile_bubble) in $t" "none in the dump taken after the in-slide settled"; continue; fi
+    if [ -z "$b" ]; then _verdict FAIL "$label: a settled bubble (people_tile_bubble) in $t" "none in a dump taken within $ms ms of the screencap"; continue; fi
     assert_eq "$label: the settled bubble in $t is the contact the event names (its content-desc)" "$lookup" "$desc"
-    assert_color "$label: its centre pixel is the fixture colour of lookup=$lookup, ± 8 ($t)" "${COLOUR[$lookup]:-?}" "$(centre_px "$p.png" "$b")" 8
+    if [ -z "$known" ] || [ "$first" != yes ]; then
+      assert_color "$label: its centre pixel is the fixture colour of lookup=$lookup, ± 8 ($t)" "${COLOUR[$lookup]:-?}" "$(centre_px "$p.png" "$b")" 8
+    fi
+    first=no
+    GRADED=$((GRADED + 1))
   done
 }
 # Wait (up to n seconds) until the slice from a mark holds k people_bubble_in lines.
@@ -95,6 +109,17 @@ assert_contains "the feed read the three photos ([people] tile: 3 photos)" "[peo
 log "--- 40 s on Start: the events, their motion lines, a screencap per event, the screenrecord"
 W_MARK="$(ring_mark)"
 wait_ins "$W_MARK" 1 14 || note "no in-slide settled within 14 s of the warm-up"
+# The resting bubble's bounds, read before the window (a dump that lands outside a rest is tried again at the next).
+BB=""
+for k in 1 2 3 4; do
+  gdump "$D/warm-$k.xml" || true
+  BB="$(node_inside "$D/warm-$k.xml" "$PEOPLE_SLOT_TILE" people_tile_bubble)"; BB="${BB%%|*}"
+  [ -n "$BB" ] && break
+  wait_ins "$W_MARK" $((k + 1)) 12 || true
+done
+note "the resting bubble's bounds in the slot tile: [$BB]"
+assert_ne "the resting bubble's bounds were read before the window (people_tile_bubble)" "" "$BB"
+W_MARK="$(ring_mark)"; wait_ins "$W_MARK" 1 14 || note "no in-slide settled before the window opened"
 # The window opens while a bubble rests (an in-slide has just settled), so its first event line is a whole event.
 adb shell rm -f /sdcard/Download/qa-e11.mp4
 adb shell screenrecord --size 540x1170 --bit-rate 6000000 --time-limit 47 /sdcard/Download/qa-e11.mp4 &
@@ -108,7 +133,7 @@ while [ $(( $(date +%s) - T0 )) -lt 40 ]; do
   if [ "$N" -gt "$SEEN" ]; then
     SEEN="$N"
     LK="$(printf '%s\n' "$SL" | grep -F '[people] tile event' | sed -n "${N}p" | sed -E 's/.*lookup=([^ ]+).*/\1/')"
-    check_event "event $N of the window" "$LK" "$D/event-$N" "$PEOPLE_SLOT_TILE"
+    check_event "event $N of the window" "$LK" "$D/event-$N" "$BB" "$PEOPLE_SLOT_TILE"
   fi
   sleep 0.5
 done
@@ -124,6 +149,7 @@ wait "$REC" 2>/dev/null
 emit_verdicts "tile timing" < <(tile_times "$D/events.txt" 4 "$L_ANN $L_BOB $L_ZOE")
 EVENTS="$(grep -c '\[people\] tile event' "$D/events.txt")"
 assert_eq "a screencap was graded for every event whose in-slide settled inside the 40 s" "yes" "$([ "$SEEN" -ge 4 ] && [ "$SEEN" -ge $(( EVENTS - 1 )) ] && echo yes || echo no)"
+assert_eq "the settled bubble's content-desc was read in a timely dump for at least three of those events" "yes" "$([ "$GRADED" -ge 3 ] && echo yes || echo "no ($GRADED)")"
 
 # The screenrecord of those 40 s (540 x 1170; the emulator's capture is variable-rate): its motion bursts inside the
 # tile, in order — out, in, out, in, … Phase 05's rule: a slide whose source frames lie more than 18.2 ms apart is
@@ -140,7 +166,11 @@ ROI="$(( $1 / 2 )) $(( $2 / 2 )) $(( ($3 + 1) / 2 )) $(( ($4 + 1) / 2 ))"
 # motion's span is its first to its last changed frame. (Run 1 used phase 13's 0.2-level threshold and cut each slide
 # where its ease moves the bubble by less than a capture pixel a frame — the in-slide's last third; that reading is
 # kept below as a RECORD, since it is what an eye or a camera would call the settle.)
-record_bursts "$D/tile-40s.mp4" "$ROI" 0.002 > "$D/bursts.txt" 2> "$D/bursts.err"
+# A slide is a run of changed frames with no pause longer than two source frames (40 ms): on the fix build's first run
+# one more changed frame came 50 ms AFTER an in-slide's last (the bubble redrawn at rest), and a 100-ms split counted it
+# into the slide (window 650 ms against a logged 589). A real stall of that length inside a slide would split it and
+# leave its window short of the logged settle — it would not corroborate.
+record_bursts "$D/tile-40s.mp4" "$ROI" 0.002 40 > "$D/bursts.txt" 2> "$D/bursts.err"
 cat "$D/bursts.txt" >> "$LOG"
 record_bursts "$D/tile-40s.mp4" "$ROI" 0.2 > "$D/bursts-visible.txt" 2>> "$D/bursts.err"
 record "for H3: the slides as far as they move the bubble by more than 0.2 levels a frame (window ms of each burst ≥ 120 ms, in order out, in, out, …)" "$(awk '!/^#/ && $2 >= 120 {printf "%s ", $2}' "$D/bursts-visible.txt")— the in-slide's ease-out spends its last third inside the last capture pixel"
@@ -202,21 +232,21 @@ assert_eq "the pinned People app tile is on screen (gdump)" "yes" "$(on_screen "
 assert_ne "its face is the People face" "" "$(node_inside "$D/pinned-start.xml" "$PIN_TILE" people_tile_face)"
 BOTH="$(on_screen "$D/pinned-start.xml" "$PEOPLE_SLOT_TILE")"
 record "the PEOPLE slot tile is on screen beside the pinned tile" "$BOTH"
-P_MARK="$(ring_mark)"; T0="$(date +%s)"; SEEN=0
-while [ $(( $(date +%s) - T0 )) -lt 26 ] && [ "$SEEN" -lt 3 ]; do
+P_MARK="$(ring_mark)"; T0="$(date +%s)"; SEEN=0; GRADED=0
+while [ $(( $(date +%s) - T0 )) -lt 40 ] && [ "$GRADED" -lt 4 ]; do
   SL="$(ring_since "$P_MARK")"
   N="$(printf '%s\n' "$SL" | grep -c 'people_bubble_in')"; NE="$(printf '%s\n' "$SL" | grep -c '\[people\] tile event')"
   if [ "$N" -gt "$SEEN" ] && [ "$N" = "$NE" ]; then
     SEEN="$N"
     LK="$(printf '%s\n' "$SL" | grep -F '[people] tile event' | sed -n "${N}p" | sed -E 's/.*lookup=([^ ]+).*/\1/')"
-    if [ "$BOTH" = yes ]; then check_event "pinned leg, event $N" "$LK" "$D/pinned-event-$N" "$PIN_TILE" "$PEOPLE_SLOT_TILE"
-    else check_event "pinned leg, event $N" "$LK" "$D/pinned-event-$N" "$PIN_TILE"; fi
+    if [ "$BOTH" = yes ]; then check_event "pinned leg, event $N" "$LK" "$D/pinned-event-$N" "" "$PIN_TILE" "$PEOPLE_SLOT_TILE"
+    else check_event "pinned leg, event $N" "$LK" "$D/pinned-event-$N" "" "$PIN_TILE"; fi
   elif [ "$N" -gt "$SEEN" ]; then SEEN="$N"     # an in-slide whose event began before the mark: not graded
   fi
   sleep 0.5
 done
 ring_since "$P_MARK" | grep -E '\[people\] tile event|\[motion\] people_bubble' | sed 's/^.*wall=[0-9]* //' >> "$LOG"
-assert_eq "at least two bubble events were read on the pinned tile" "yes" "$([ "$(ls "$D"/pinned-event-*.png 2>/dev/null | wc -l)" -ge 2 ] && echo yes || echo no)"
+assert_eq "at least two bubble events were read on the pinned tile in timely dumps" "yes" "$([ "$GRADED" -ge 2 ] && echo yes || echo "no ($GRADED tile reads)")"
 
 # ------------------------------------------------------------------------------------------------ no photo
 log "--- every photo removed: the static pattern, 40 s"

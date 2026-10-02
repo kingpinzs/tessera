@@ -9,7 +9,7 @@
 [people] write update raw=<id>: ok	E13	\[people\] write update raw=[0-9]+: ok
 [people] write delete raw=<id>: ok	E13	\[people\] write delete raw=[0-9]+: ok
 [people] write <op> raw=<id>: failed <err> (WRITE_CONTACTS not held)	E13	\[people\] write update raw=[0-9]+: failed WRITE_CONTACTS not held
-[people] write update raw=<id>: failed <err> (the raw contact deleted while its editor is open)	EDGE P03	\[people\] write update raw=[0-9]+: failed 
+[people] write update raw=<id>: failed <err> (the raw contact deleted while its editor is open)	EDGE P03	\[people\] write update raw=[0-9]+: failed the (field|raw contact) is gone
 [people] write <op> raw=<id>: refused (not allowed)	E28 (leg X, fix-round F15)	\[people\] write update raw=[0-9]+: refused \(not allowed\)
 [people] edit <lookup>: refused (account not allowed)	E28	\[people\] edit [^ ]+: refused \(account not allowed\)
 [people] link <a>+<b>: ok	E14	\[people\] link [0-9]+\+[0-9]+: ok
@@ -34,3 +34,8 @@
 [motion] people_bubble_out	E11	\[motion\] people_bubble_out t0=[0-9]+ peak=[0-9]+ overshoot=[0-9]+ settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
 [motion] people_bubble_in	E11	\[motion\] people_bubble_in t0=[0-9]+ peak=[0-9]+ overshoot=[0-9]+ settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
 [motion] people_pivot	E20	\[motion\] people_pivot t0=[0-9]+ peak=[0-9]+ overshoot=[0-9]+ settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
+[people] open other -> <route> (an unhandled intent action is logged as `other`; fix-round F4)	TRUST	\[people\] open other -> 
+[people] pick: no caller to return a result to; the list was opened (fix-round F5)	TRUST	\[people\] pick: no caller to return a result to; the list was opened
+[people] pick: cancelled (fix-round F5)	TRUST	\[people\] pick: cancelled
+[people] pick: one contact URI granted (read)	TRUST	\[people\] pick: one contact URI granted \(read\)
+[people] pick: one phone URI granted (read)	TRUST	\[people\] pick: one phone URI granted \(read\)

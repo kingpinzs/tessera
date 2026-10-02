@@ -147,6 +147,20 @@ for i in 1 2 3; do
   emit_verdicts "editor geometry (scrolled $i)" < <(people_geo editor "$D/editor-scroll-$i.xml" "$D/editor-scroll-$i.png" "$ACCENT" scrolled 2>>"$D/geometry.err" | sed "s/^\(PASS\|FAIL\|RECORD\)|/\1|scrolled $i: /")
 done
 back 1; back 1
+assert_ne "the editor of a contact WITH a number and an e-mail: \"+ Email\" → \"+ Address\" was measured across its rule" "0" "$(grep -c '"+ email" → "+ address" across their group rule' "$LOG")"
+
+# The 44-epx pitch (re-cut with the fix build, fix-round F31 / D-E20-1): r11's G1 shows it between "+ Phone" and "+ Email"
+# of a contact that has neither a number nor an e-mail, so the row's own name-only fixture (Bob Stone gets no data but
+# his name and number in the standing set; a contact with only a name is made here) is opened in the editor.
+log "--- the editor of a name-only contact: \"+ Phone\" → \"+ Email\" in one group"
+NAMEONLY="$(people_add 'Nomi Only')"; sleep 2
+card_of "$NAMEONLY" "$D/.card3.xml"
+tap_node "$D/.card3.xml" people_card_edit; sleep 2
+dump_ui "$D/editor-nameonly.xml"; screencap "$D/editor-nameonly.png"
+assert_contains "the name-only contact's editor is on show" 'selected="true"' "$(node_tag "$D/editor-nameonly.xml" people_page:editor)"
+assert_eq "… it holds her name and nothing else of hers" "Nomi Only" "$(xml_text "$D/editor-nameonly.xml" people_field:name)"
+emit_verdicts "editor geometry (name-only)" < <(people_geo editor "$D/editor-nameonly.xml" "$D/editor-nameonly.png" "$ACCENT" nameonly 2>>"$D/geometry.err" | sed "s/^\(PASS\|FAIL\|RECORD\)|/\1|name-only: /")
+back 1; back 1
 
 # ------------------------------------------------------------------------------------------------ the settings pages
 log "--- People's settings pages (their bars)"

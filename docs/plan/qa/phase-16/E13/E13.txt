@@ -1,20 +1,20 @@
 ==============================================================================
 ROW E13 — create, edit, photo, delete; WRITE_CONTACTS revoked
-at            2026-10-01T16:50:24-06:00
+at            2026-10-01T20:35:16-06:00
 driver        e13.sh blob a364aeff27e3d68c3ce5608a27c91ad63db5a2f6
 harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
-apk built     d008aec0c1318519 340591758 bytes
-apk installed 686506a7a7936b2e
-apk match     yes (686506a7a7936b2e)
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-PASS  the device holds the build under test                       yes (686506a7a7936b2e)
+PASS  the device holds the build under test                       yes (3c1ad1e0e65bd919)
 PASS  precondition: READ_CONTACTS and WRITE_CONTACTS held         = true true
 PASS  precondition: nothing is on "Can edit" (people_edit.json allows no account)  = 
       people_edit.json: 
 --- fixtures
-      people_fixtures_up: raw ids ann=178 bob=179 zoe=180 zhang=181 number-only=182 cara=183,184 (raw contacts before: 2)
+      people_fixtures_up: raw ids ann=298 bob=299 zoe=300 zhang=301 number-only=302 cara=303,304 (raw contacts before: 2)
 PASS  Ann Lee is phone-only (Q-16-3: editable with nothing allowed)  contains [account_name=NULL, account_type=NULL]
       pushed /sdcard/Pictures/qa-solid-red.jpg
 PASS  the solid-red fixture is on the device                      = 1
@@ -26,39 +26,39 @@ PASS  its menu offers the phone's row                             = yes
 PASS  … and no other row while nothing is allowed               = 1
 PASS  the phone field's type reads Mobile (a mobile number)       = Mobile phone
 PASS  nothing is in the provider before Save is tapped            = 0
-Row: 0 raw_contact_id=178, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0001
-Row: 1 raw_contact_id=179, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0002
-Row: 2 raw_contact_id=183, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0003
-Row: 3 raw_contact_id=184, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0003
-Row: 4 raw_contact_id=182, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0009
-Row: 5 raw_contact_id=185, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0042
+Row: 0 raw_contact_id=298, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0001
+Row: 1 raw_contact_id=299, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0002
+Row: 2 raw_contact_id=303, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0003
+Row: 3 raw_contact_id=304, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0003
+Row: 4 raw_contact_id=302, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0009
+Row: 5 raw_contact_id=305, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0042
 Row: 6 raw_contact_id=1, mimetype=vnd.android.cursor.item/phone_v2, data1=5551234567
 PASS  the data query shows the number under a raw contact         != 
 PASS  … exactly one phone row holds it                          = 1
 PASS  … a NEW raw contact (its _id is above every _id before New)  = yes
-Row: 0 _id=185, contact_id=191, account_name=NULL, account_type=NULL, display_name=Dan Ford, deleted=0
+Row: 0 _id=305, contact_id=313, account_name=NULL, account_type=NULL, display_name=Dan Ford, deleted=0
 PASS  … named Dan Ford                                          contains [display_name=Dan Ford]
 PASS  … whose account_name and account_type are NULL (the phone, Q-16-3)  contains [account_name=NULL, account_type=NULL]
 PASS  … the number stored as a mobile (data2 = 2)               contains [data2=2]
-PASS  E21: [people] write insert raw=<id>: ok                     contains [[people] write insert raw=185: ok]
+PASS  E21: [people] write insert raw=<id>: ok                     contains [[people] write insert raw=305: ok]
 --- edit Ann's number
-before: Row: 0 _id=344, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0001
+before: Row: 0 _id=567, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0001
 PASS  Ann's card (people_card:<lookup>)                           = yes
 PASS  the editor shows her stored number                          = +1 555 000 0001
-after:  Row: 0 _id=344, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0077
+after:  Row: 0 _id=567, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0077
 PASS  her phone data row holds the new number                     contains [data1=+1 555 000 0077]
 PASS  … and the old number is gone                              does not contain [data1=+1 555 000 0001]
 PASS  … still one phone row for her                             = 1
-RECORD  the phone data row's _id before → after the edit          344 → 344
+RECORD  the phone data row's _id before → after the edit          567 → 567
 PASS  her e-mail row is untouched                                 contains [data1=ann@example.com]
-PASS  E21: [people] write update raw=<id>: ok                     contains [[people] write update raw=178: ok]
+PASS  E21: [people] write update raw=<id>: ok                     contains [[people] write update raw=298: ok]
 --- Photo: Android's photo picker, a pushed JPEG, the photo data row, the card
 PASS  Ann has no photo data row before                            = 0
 after the Photo tap, dumpsys activity activities shows: com.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerActivity
 PASS  Android's photo picker is the resumed activity              contains [photopicker]
 PASS  … not an activity of the shell's                          does not contain [app.tileshell/]
 PASS  after the choice People's editor is back                    = app.tileshell/.people.PeopleActivity
-Row: 0 _id=357, raw_contact_id=178, mimetype=vnd.android.cursor.item/photo
+Row: 0 _id=580, raw_contact_id=298, mimetype=vnd.android.cursor.item/photo
 PASS  a vnd.android.cursor.item/photo data row exists for Ann     = 1
 PASS  her card is on show (people_card:<lookup>)                  = yes
 PASS  the card has people_card_photo                              != 
@@ -70,7 +70,7 @@ PASS  Dan's card (asserted first)                                 = yes
 RECORD  Delete asks once before it deletes (built so; Change Log 2026-10-01, P2)  people_delete_dialog shown; confirm tapped
 PASS  Dan's contact row is gone                                   = 0
 PASS  … and no live raw contact of his is left                  = 0
-PASS  E21: [people] write delete raw=<id>: ok                     contains [[people] write delete raw=185: ok]
+PASS  E21: [people] write delete raw=<id>: ok                     contains [[people] write delete raw=305: ok]
 PASS  Ann is still there (the delete took Dan only)               = 1
 --- pm revoke WRITE_CONTACTS: the cannot-save notice, the two checklists, pm grant
 PASS  WRITE_CONTACTS is revoked                                   = false
@@ -80,11 +80,11 @@ PASS  people_notice is on the editor                              = yes
 PASS  … and says it cannot save                                 contains [can't save]
 PASS  … with the grant offered in place (people_notice_action)  = yes
 PASS  the editor is still the page on show, the edit kept         contains [selected="true"]
-PASS  nothing was written: Ann's data rows equal their read before Save  = Row: 0 _id=343, raw_contact_id=178, mimetype=vnd.android.cursor.item/name, data1=Ann Lee
-Row: 1 _id=344, raw_contact_id=178, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0077
-Row: 2 _id=345, raw_contact_id=178, mimetype=vnd.android.cursor.item/email_v2, data1=ann@example.com
-PASS  E21: [people] write update raw=<id>: failed <err>           contains [[people] write update raw=178: failed ]
-[people] write update raw=178: failed WRITE_CONTACTS not held
+PASS  nothing was written: Ann's data rows equal their read before Save  = Row: 0 _id=566, raw_contact_id=298, mimetype=vnd.android.cursor.item/name, data1=Ann Lee
+Row: 1 _id=567, raw_contact_id=298, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0077
+Row: 2 _id=568, raw_contact_id=298, mimetype=vnd.android.cursor.item/email_v2, data1=ann@example.com
+PASS  E21: [people] write update raw=<id>: failed <err>           contains [[people] write update raw=298: failed ]
+[people] write update raw=298: failed WRITE_CONTACTS not held
 PASS  the notice is still on the page 6 s later (a node, not a toast)  = yes
 PASS  the Setup checklist shows checklist:people:partial (READ held, WRITE not)  = checklist:people:partial
 PASS  Tess's contacts row still reads granted (cortana_check:contacts:granted; T16-15)  = cortana_check:contacts:granted

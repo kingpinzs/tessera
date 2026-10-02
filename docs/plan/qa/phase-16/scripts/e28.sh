@@ -349,6 +349,14 @@ assert_eq "JVM: the result is newer than the guard, its test and the write layer
   "$(jvm_fresh "$T" "$REPO/app/src/main/kotlin/app/tileshell/people/PeopleWriteGuard.kt" "$REPO/app/src/test/kotlin/app/tileshell/people/PeopleWriteGuardTest.kt")"
 CASES="$(jvm_cases "$T")"
 record "JVM: test cases in the result" "$(printf '%s\n' "$CASES" | grep -c .)"
+# Fix-round F15: the write layer's own tests (a recording fake behind the PeopleWrites port: "the guard refuses → zero
+# provider writes"), beside this row's leg X on the device.
+TW=app.tileshell.people.PeopleWriterTest
+RESW="$(jvm_result "$TW")"; log "PeopleWriterTest: ${RESW:-no result file}"
+jvm_cases "$TW" >> "$LOG"
+assert_contains "JVM (fix-round F15): the write layer's test ran with no failure and no error" "failures=0 errors=0" "$RESW"
+assert_eq "JVM (fix-round F15): … none skipped, and the result is newer than the writer and its test" "skipped=0 yes" \
+  "$(echo "$RESW" | grep -o 'skipped=[0-9]*') $(jvm_fresh "$TW" "$REPO/app/src/main/kotlin/app/tileshell/people/PeopleWriter.kt" "$REPO/app/src/test/kotlin/app/tileshell/people/PeopleWriterTest.kt")"
 
 # ------------------------------------------------------------------------------------------------ restore
 log "--- restore"

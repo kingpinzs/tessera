@@ -117,7 +117,12 @@ PY
 )"; note "marker and account bounds: $BESIDE"
 assert_eq "S: … beside it (to the marker's right, on its line; r3 D5)" "yes" "${BESIDE%% *}"
 J="$(csync_json)"; log "calendar_sync.json: $J"
-assert_contains "S: calendar_sync.json maps the local id to Personal's _ID and the copy's id" "{\"id\":$PERSONAL,\"accountName\":\"$PERSONAL_ACCT\",\"accountType\":\"com.google\",\"local\":$STANDUP,\"copy\":$COPY}" "$J"
+MAP_IS="$(printf '%s' "$J" | python3 -c '
+import json, sys
+try: d = json.load(sys.stdin)
+except Exception: print("(unreadable)"); sys.exit()
+print(";".join("local=%s copy=%s calendar=%s %s/%s" % (m.get("local"), m.get("copy"), m.get("id"), m.get("accountName"), m.get("accountType")) for m in d.get("mappings", [])))')"
+assert_eq "S: calendar_sync.json maps the local id to Personal's _ID and the copy's id (its one mapping)" "local=$STANDUP copy=$COPY calendar=$PERSONAL $PERSONAL_ACCT/com.google" "$MAP_IS"
 assert_contains "S: diagnostics — sync event=<id> -> calendar <personal id>: ok" "[calendar] sync event=$STANDUP -> calendar $PERSONAL: ok" "$S_SLICE"
 BYTES1="$(shell_bytes)"; note "shell_bytes after the Sync (rx tx): $BYTES1"
 assert_eq "S: shell_bytes reads the same rx and tx as before the Sync" "$BYTES0" "$BYTES1"
@@ -126,9 +131,22 @@ assert_contains "S: the copy has its own reminder row (asserted from reminders)"
 
 # ----------------------------------------------------------------------------------------------- H: hidden everywhere
 log "--- H: the copy is hidden everywhere in the shell (Q-16-2; r3 D2)"
+# "2 hours from the device's now, 1 hour long" crosses midnight when the row runs between 21:00 and 23:00, and an event
+# on two days is listed on each of them (E5's multi-day clause). So "exactly ONE node reading Standup" is asserted per
+# day the event covers: one node for each such day on the view, every one of them the local id's (clauses-open.tsv).
+COVERED="$(cdate_of "$START")"; [ "$(cdate_of $(( END - 1 )))" != "$COVERED" ] && COVERED="$COVERED $(cdate_of $(( END - 1 )))"
+NDAYS="$(echo $COVERED | wc -w | tr -d ' ')"
+record "H: the days Standup covers (it starts 2 h from now, 1 h long)" "$COVERED"
+want_titled() { # dump.xml -> "<n> <local id repeated n times>" for the covered days this view shows
+  local n=0 d out=""
+  for d in $COVERED; do
+    if [ "$2" = all ] || [ "$(has_node "$1" "cal_day:$d")" = yes ]; then n=$((n + 1)); out="$out $STANDUP"; fi
+  done
+  echo "$n$out"
+}
 copen; ctap cal_bar:today 1.2; cview agenda 2.5; dump_ui "$ROW_DIR/H-agenda.xml"
 assert_eq "H: Agenda is showing" "true" "$(cattr "$ROW_DIR/H-agenda.xml" cal_view_mode:agenda selected)"
-assert_eq "H: the Agenda dump holds exactly ONE cal_event_title: node reading \"Standup\", the local id's" "1 $STANDUP" "$(titled "$ROW_DIR/H-agenda.xml" Standup)"
+assert_eq "H: the Agenda dump holds exactly ONE cal_event_title: node reading \"Standup\" for each day it covers ($NDAYS), every one the local id's" "$(want_titled "$ROW_DIR/H-agenda.xml" all)" "$(titled "$ROW_DIR/H-agenda.xml" Standup)"
 assert_eq "H: … and no cal_event:<copy id> node" "no" "$(has_node "$ROW_DIR/H-agenda.xml" "cal_event:$COPY")"
 copen_day "$START"; dump_ui "$ROW_DIR/H-day.xml"
 assert_eq "H: Day is showing" "true" "$(cattr "$ROW_DIR/H-day.xml" cal_view_mode:day selected)"
@@ -136,7 +154,7 @@ assert_eq "H: the Day view the same — one Standup, the local id's" "1 $STANDUP
 assert_eq "H: … and no cal_event:<copy id> node" "no" "$(has_node "$ROW_DIR/H-day.xml" "cal_event:$COPY")"
 cview week 2.5; dump_ui "$ROW_DIR/H-week.xml"
 assert_eq "H: Week is showing" "true" "$(cattr "$ROW_DIR/H-week.xml" cal_view_mode:week selected)"
-assert_eq "H: the Week view the same — one Standup, the local id's" "1 $STANDUP" "$(titled "$ROW_DIR/H-week.xml" Standup)"
+assert_eq "H: the Week view the same — one Standup for each day it covers in this week, every one the local id's" "$(want_titled "$ROW_DIR/H-week.xml" week)" "$(titled "$ROW_DIR/H-week.xml" Standup)"
 assert_eq "H: … and no cal_event:<copy id> node" "no" "$(has_node "$ROW_DIR/H-week.xml" "cal_event:$COPY")"
 POST="$(ring_since "$S_MARK")"
 log "the feed after the Sync: $(cline "$POST" '[calendar] refresh (')"
