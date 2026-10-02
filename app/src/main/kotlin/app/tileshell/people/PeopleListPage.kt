@@ -138,12 +138,9 @@ fun ContactsPage(env: PeopleEnv, mode: ListMode) {
         }
     }
 
-    val notice = when {
-        repo.loaded && !repo.canRead -> PeopleNotices.CANNOT_READ
-        nav.pivot == PeoplePivot.CONTACTS && results != null && results!!.local.isEmpty() && results!!.enterprise.isEmpty() ->
-            PeopleNotice("No contacts match \"${query.trim()}\".")
-        else -> nav.notice
-    }
+    // A search that finds nothing says so in the results' own place (SearchResults), not here: this band sits above
+    // the app bar, behind the keyboard that is up while a query is typed (QA defect D-E16-1).
+    val notice = if (repo.loaded && !repo.canRead) PeopleNotices.CANNOT_READ else nav.notice
 
     PeopleScaffold(
         tag = "people_page:list",
@@ -333,7 +330,7 @@ private fun ContactsPivot(
         }
         Box(Modifier.fillMaxSize().padding(top = listTop)) {
             when {
-                searching -> SearchResults(mode, results, onChoose)
+                searching -> SearchResults(mode, query, results, onChoose)
                 sections.isEmpty() && mode !is ListMode.InsertOrEdit -> {
                     if (env.repo.loaded && env.repo.canRead) {
                         BasicText(
@@ -416,11 +413,20 @@ private fun AzList(mode: ListMode, sections: List<ContactSection>, state: LazyLi
 
 /** What a search found: this profile's matches, then the work profile's with the briefcase (H10). */
 @Composable
-private fun SearchResults(mode: ListMode, results: PeopleData.SearchResult?, onChoose: (ContactRow) -> Unit) {
+private fun SearchResults(mode: ListMode, query: String, results: PeopleData.SearchResult?, onChoose: (ContactRow) -> Unit) {
     val found = results ?: return
     // A phone PICK chooses only among contacts with a number; another profile's contact cannot be picked or edited.
     val local = if (mode is ListMode.Pick && mode.kind == PickKind.PHONE) found.local.filter { it.hasPhone } else found.local
     val enterprise = if (mode == ListMode.Browse) found.enterprise else emptyList()
+    if (local.isEmpty() && enterprise.isEmpty()) {
+        // Nothing to list: the line stands where the first result would, above the keyboard (the list's own empty line's place).
+        BasicText(
+            "No contacts match \"${query.trim()}\".",
+            Modifier.padding(start = PeopleMetrics.SIDE, top = PeopleMetrics.LIST_PAD + 12.dp, end = PeopleMetrics.SIDE).testTag("people_empty"),
+            style = ShellType.body.copy(color = LocalShellColors.current.subtleText),
+        )
+        return
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize().testTag("people_results"),
         contentPadding = WindowInsets.ime.asPaddingValues(),
