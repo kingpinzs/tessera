@@ -1,17 +1,18 @@
 # <row> <builds that count, comma-separated md5 prefixes> <why>   (read by scripts/gate_evidence.py; "EDGE:C12" = an edge-case sub-step)
 # Build order: 3c1ad1e0 (first fix build, 6e524e56) -> 6009c0b1 (second, dacca941) -> 2150eba0 (third, a91837fd)
-#              -> 3c5e3199 (fourth, 3573219e: the gate round's fixes) -> e03a1d23 (fifth, ac4a972d: the gate's build).
+#              -> 3c5e3199 (fourth, 3573219e: the gate round's fixes) -> e03a1d23 (fifth, ac4a972d: the Day view's batch)
+#              -> 585b457f (sixth, e226bc68: D-E13-1; the gate's build).
 # A row named here counts only on the builds listed: a fix touched what it drives. A row whose WHOLE run stands on an
 # earlier build and whose changed part was run again alone is in supplements.txt or partials.txt instead.
-E9 e03a1d23 D-E9-1 (33944662) and the gate round's strip without an article (b9d77a4b); Tess's read by date (53ca48dc): legs A and W alone on the fifth build, the rest on its whole run (partials.txt)
-E16 6009c0b1,2150eba0,3c5e3199,e03a1d23 D-E16-1: the empty-search line moved in the second build (1a82e59c); nothing it drives changed after
-E19 3c5e3199,e03a1d23 D-E19-1 (dacca941), D-E19-2 (eff112b7), the Agenda's list (0889d45b, 639fef18): legs 1, 2 and 3 alone on the fourth build, the rest on its whole run (partials.txt)
-E7 e03a1d23 D-E7-1: the Agenda's items (0889d45b), its load-more window (639fef18), the Day view's blocks (3573219e, ac4a972d); the janky-frames clause is with the owner (Q-16-6)
-E3 e03a1d23 the views row: CalendarViews.kt changed in the third, fourth and fifth builds (the Day view's blocks last)
-E8 e03a1d23 it measures the Day view's blocks across the DST night; the Day view's block building changed in the fourth and fifth builds
-EDGE:C10 e03a1d23 it changes a day under an open Day view, whose layout is memoised since the fourth build
-EDGE:C12 2150eba0,3c5e3199,e03a1d23 reads the Agenda, whose list structure changed in the third build (0889d45b); what changed after is driven by E5 leg D and E19 legs 1 to 3
-EDGE:C14 2150eba0,3c5e3199,e03a1d23 reads the Agenda (0889d45b)
-EDGE:C15 2150eba0,3c5e3199,e03a1d23 reads the Agenda (0889d45b)
-EDGE:C17 2150eba0,3c5e3199,e03a1d23 reads the Agenda (0889d45b)
-E15_APK e03a1d23 the size clause is about the gate's build
+E9 e03a1d23,585b457f D-E9-1 (33944662) and the gate round's strip without an article (b9d77a4b); Tess's read by date (53ca48dc): legs A and W alone on the fifth build, the rest on its whole run (partials.txt)
+E16 6009c0b1,2150eba0,3c5e3199,e03a1d23,585b457f D-E16-1: the empty-search line moved in the second build (1a82e59c); nothing it drives changed after
+E19 3c5e3199,e03a1d23,585b457f D-E19-1 (dacca941), D-E19-2 (eff112b7), the Agenda's list (0889d45b, 639fef18): legs 1, 2 and 3 alone on the fourth build, the rest on its whole run (partials.txt)
+E7 e03a1d23,585b457f D-E7-1: the Agenda's items (0889d45b), its load-more window (639fef18), the Day view's blocks (3573219e, ac4a972d); the janky-frames clause is with the owner (Q-16-6)
+E3 e03a1d23,585b457f the views row: CalendarViews.kt changed in the third, fourth and fifth builds (the Day view's blocks last)
+E8 e03a1d23,585b457f it measures the Day view's blocks across the DST night; the Day view's block building changed in the fourth and fifth builds
+EDGE:C10 e03a1d23,585b457f it changes a day under an open Day view, whose layout is memoised since the fourth build
+EDGE:C12 2150eba0,3c5e3199,e03a1d23,585b457f reads the Agenda, whose list structure changed in the third build (0889d45b); what changed after is driven by E5 leg D and E19 legs 1 to 3
+EDGE:C14 2150eba0,3c5e3199,e03a1d23,585b457f reads the Agenda (0889d45b)
+EDGE:C15 2150eba0,3c5e3199,e03a1d23,585b457f reads the Agenda (0889d45b)
+EDGE:C17 2150eba0,3c5e3199,e03a1d23,585b457f reads the Agenda (0889d45b)
+E15_APK 585b457f the size clause is about the gate's build
