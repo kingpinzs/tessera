@@ -1,0 +1,6 @@
+ER1 editor: a rule between Phone and Email always (the defect) | CAUGHT (gradle rc=1, 27 tests run, 1 failed) | PeopleModelTest.editor - no rule between Phone and Email when neither has a field, a rule when either has one
+ER2 editor: no rule between Phone and Email whatever fields they hold | CAUGHT (gradle rc=1, 27 tests run, 1 failed) | PeopleModelTest.editor - no rule between Phone and Email when neither has a field, a rule when either has one
+ER3 editor: the rule dropped when there is no number, whatever the e-mails | CAUGHT (gradle rc=1, 27 tests run, 1 failed) | PeopleModelTest.editor - no rule between Phone and Email when neither has a field, a rule when either has one
+ER4 editor: the rule dropped when there is no e-mail, whatever the numbers | CAUGHT (gradle rc=1, 27 tests run, 1 failed) | PeopleModelTest.editor - no rule between Phone and Email when neither has a field, a rule when either has one
+ER5 editor: the rule dropped at every boundary whose blocks are empty | CAUGHT (gradle rc=1, 27 tests run, 1 failed) | PeopleModelTest.editor - every other boundary always has its rule
+unmutated | gradle rc=0, 27 tests run, 0 failed

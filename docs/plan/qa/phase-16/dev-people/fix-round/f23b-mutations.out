@@ -1,0 +1,7 @@
+GA1 guard: the other-profile check removed from the aggregation case (Link and Unlink allowed on any contact) | CAUGHT (gradle rc=1, 70 tests run, 2 failed) | PeopleWriterTest.linkWithAnotherProfilesContactWritesNothing; PeopleWriteGuardTest.refused - another profile's contact, whatever is allowed
+GA2 guard: only the first raw contact of the pair checked | CAUGHT (gradle rc=1, 70 tests run, 2 failed) | PeopleWriterTest.linkWithAnotherProfilesContactWritesNothing; PeopleWriteGuardTest.refused - another profile's contact, whatever is allowed
+GA3 guard: only the second raw contact of the pair checked | CAUGHT (gradle rc=1, 70 tests run, 2 failed) | PeopleWriterTest.linkWithAnotherProfilesContactWritesNothing; PeopleWriteGuardTest.refused - another profile's contact, whatever is allowed
+OA1 link(): another profile's contact looked up like any other (it finds nothing) | CAUGHT (gradle rc=1, 70 tests run, 1 failed) | PeopleWriterTest.linkWithAnotherProfilesContactWritesNothing
+OA2 unlink(): another profile's contact not put to the guard | CAUGHT (gradle rc=1, 70 tests run, 1 failed) | PeopleWriterTest.linkWithAnotherProfilesContactWritesNothing
+OA3 link / unlink: the guard not asked | CAUGHT (gradle rc=1, 70 tests run, 1 failed) | PeopleWriterTest.linkWithAnotherProfilesContactWritesNothing
+unmutated | gradle rc=0, 70 tests run, 0 failed

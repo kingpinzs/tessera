@@ -25,7 +25,8 @@ import app.tileshell.ui.components.dismissOverlay
  * It is exported with VIEW / EDIT / INSERT / INSERT_OR_EDIT / PICK handlers, so any app can start it. What an intent
  * may do is [PeopleIntents]' and nothing more (Decisions "Trust" (c)): it chooses what is shown. An INSERT fills the
  * editor in and saves nothing without the user's tap, on the phone whatever account it named; an EDIT on a contact the
- * write guard keeps read-only opens its card; a PICK hands back the one contact or phone URI the user tapped.
+ * write guard keeps read-only opens its card; a PICK hands back the one contact or phone URI the user tapped, and only
+ * to a caller that started People for a result — with no caller it is the plain list.
  *
  * `testTagsAsResourceId` on the root is the QA contract every shell-owned window signs.
  */
@@ -43,7 +44,8 @@ class PeopleActivity : ComponentActivity() {
             override fun handleOnBackPressed() {
                 var handled = false
                 dismissOverlay { handled = nav.back() }
-                if (!handled) finish()
+                // Back out of the last page: a PICK ends cancelled, so pick mode is never left behind.
+                if (!handled) { if (nav.route is PeopleRoute.Pick) finishPick(null) else finish() }
             }
         })
         setContent {
@@ -75,8 +77,12 @@ class PeopleActivity : ComponentActivity() {
     }
 
     private fun route(intent: Intent?) {
-        val route = if (intent == null) PeopleRoute.Open(null) else PeopleIntents.route(intent.action, intent.dataString, resolvedType(intent), IntentExtras(intent))
-        Diagnostics.add("people", "open ${intent?.action ?: "no action"} -> ${describe(route)}")
+        val asked = if (intent == null) PeopleRoute.Open(null) else PeopleIntents.route(intent.action, intent.dataString, resolvedType(intent), IntentExtras(intent))
+        // A PICK is honoured only for a caller that can receive its result; with none it is the plain list.
+        val route = PeopleIntents.honoured(asked, hasCaller = callingActivity != null)
+        // The action is the caller's text: the line holds it only when it is one the activity handles (PeopleIntents.loggedAction).
+        Diagnostics.add("people", PeopleIntents.openLine(intent?.action, route))
+        if (route != asked) Diagnostics.add("people", PeopleIntents.PICK_NO_CALLER)
         nav.open(route)
     }
 
@@ -86,31 +92,23 @@ class PeopleActivity : ComponentActivity() {
 
     /**
      * Ends an `ACTION_PICK` (Trust (c)): the result is the ONE contact lookup URI or phone data URI the user tapped,
-     * with a read grant for that URI alone. Null — Back, or nothing to pick — cancels.
+     * with a read grant for that URI alone ([PeopleIntents.PICK_RESULT_FLAGS]) and nothing else — no ClipData, no
+     * extras. Null — Back — cancels. Pick mode is entered only with a caller ([route]); the result and its "granted"
+     * line are held to the same rule here, so neither exists without one.
      */
     private fun finishPick(picked: Uri?) {
-        if (picked == null) {
+        if (picked == null || callingActivity == null) {
             setResult(RESULT_CANCELED)
-            Diagnostics.add("people", "pick: cancelled")
+            Diagnostics.add("people", PeopleIntents.PICK_CANCELLED)
         } else {
-            setResult(RESULT_OK, Intent().setData(picked).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
-            Diagnostics.add("people", "pick: one ${if (picked.pathSegments.firstOrNull() == "data") "phone" else "contact"} URI granted (read)")
+            setResult(RESULT_OK, Intent().setData(picked).addFlags(PeopleIntents.PICK_RESULT_FLAGS))
+            Diagnostics.add("people", PeopleIntents.pickGrantedLine(phone = picked.pathSegments.firstOrNull() == "data"))
         }
         finish()
     }
 
     private fun goHome() {
         startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-    }
-
-    /** The route without what the caller typed into it: a name or a number never reaches the diagnostics ring. */
-    private fun describe(route: PeopleRoute): String = when (route) {
-        is PeopleRoute.Open -> "open page=${route.page?.id ?: "default"}"
-        is PeopleRoute.Card -> "card"
-        is PeopleRoute.Edit -> "edit"
-        is PeopleRoute.Insert -> "insert (prefilled, unsaved)"
-        is PeopleRoute.InsertOrEdit -> "insert or edit (prefilled, unsaved)"
-        is PeopleRoute.Pick -> "pick ${route.kind.name.lowercase()}"
     }
 
     /**

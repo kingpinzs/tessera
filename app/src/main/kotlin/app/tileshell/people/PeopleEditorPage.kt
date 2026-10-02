@@ -152,7 +152,7 @@ class EditorDraft private constructor(
          * its values as new fields; nothing existing is replaced.
          */
         fun edit(card: ContactCard, policy: EditPolicy, prefill: ContactPrefill): EditorDraft {
-            val editable = card.raws.filter { PeopleWriteGuard.editable(it.ref(card.enterprise), policy) }
+            val editable = card.raws.filter { PeopleWriteGuard.editable(it.ref(), policy) }
             val target = editable.first()
             val editableIds = editable.map { it.id }.toSet()
             val accountOf = card.raws.associate { it.id to it.account }
@@ -344,9 +344,16 @@ fun EditorPage(env: PeopleEnv, draft: EditorDraft) {
                 // P4.7: a rule sits 20–22 epx under the box above it (G2: the Name box ends at 290, its rule is at 310).
                 Spacer(Modifier.height(EditorRhythm.BOX_TO_RULE - EditorRhythm.BEFORE_ADD_ROW))
 
-                TypedGroup(draft, FieldKind.PHONE, "Phone", KeyboardType.Phone) { key, y -> openOverlay(key, y) }
-                TypedGroup(draft, FieldKind.EMAIL, "Email", KeyboardType.Email) { key, y -> openOverlay(key, y) }
-                TypedGroup(draft, FieldKind.ADDRESS, "Address", KeyboardType.Text) { key, y -> openOverlay(key, y) }
+                // Which blocks a rule divides is EditorRules' decision: with no number and no e-mail, "+ Phone" and
+                // "+ Email" are two rows of one group (P4.6, G1); every other boundary has its rule.
+                val fieldsOf: (FieldKind) -> Int = { draft.of(it).size }
+                val namePhone = EditorRules.ruleBetween(FieldKind.NAME, FieldKind.PHONE, fieldsOf)
+                val phoneEmail = EditorRules.ruleBetween(FieldKind.PHONE, FieldKind.EMAIL, fieldsOf)
+                val emailAddress = EditorRules.ruleBetween(FieldKind.EMAIL, FieldKind.ADDRESS, fieldsOf)
+                val addressCompany = EditorRules.ruleBetween(FieldKind.ADDRESS, FieldKind.COMPANY, fieldsOf)
+                TypedGroup(draft, FieldKind.PHONE, "Phone", KeyboardType.Phone, ruleAbove = namePhone, ruleBelow = phoneEmail) { key, y -> openOverlay(key, y) }
+                TypedGroup(draft, FieldKind.EMAIL, "Email", KeyboardType.Email, ruleAbove = phoneEmail, ruleBelow = emailAddress) { key, y -> openOverlay(key, y) }
+                TypedGroup(draft, FieldKind.ADDRESS, "Address", KeyboardType.Text, ruleAbove = emailAddress, ruleBelow = addressCompany) { key, y -> openOverlay(key, y) }
 
                 Spacer(Modifier.height(EditorRhythm.BEFORE_ADD_ROW))
                 GroupRule()
@@ -465,14 +472,20 @@ private fun TextField(draft: EditorDraft, field: DraftField, label: String, keyb
 }
 
 /**
- * A group of typed fields (phones, e-mails, addresses): each under its accent type label with a ⌄ that opens the type
- * list, then the "+ field" row (P4.3, P4.6), all under one rule (P4.7).
+ * A block of typed fields (phones, e-mails, addresses): each under its accent type label with a ⌄ that opens the type
+ * list, then the "+ field" row (P4.3, P4.6). [ruleAbove] / [ruleBelow]: whether a rule (P4.7) divides it from the
+ * block before and the block after ([EditorRules.ruleBetween]). With no rule above, its "+ field" row is the next row
+ * of the group above it, 44 epx under that group's own "+ field" row.
  */
 @Composable
-private fun TypedGroup(draft: EditorDraft, kind: FieldKind, word: String, keyboard: KeyboardType, onType: (String, Float) -> Unit) {
+private fun TypedGroup(
+    draft: EditorDraft, kind: FieldKind, word: String, keyboard: KeyboardType, ruleAbove: Boolean, ruleBelow: Boolean, onType: (String, Float) -> Unit,
+) {
     val density = LocalDensity.current
-    Spacer(Modifier.height(EditorRhythm.BEFORE_ADD_ROW))
-    GroupRule()
+    if (ruleAbove) {
+        Spacer(Modifier.height(EditorRhythm.BEFORE_ADD_ROW))
+        GroupRule()
+    }
     val fields = draft.of(kind)
     fields.forEachIndexed { i, field ->
         Spacer(Modifier.height(if (i == 0) EditorRhythm.AFTER_RULE else EditorRhythm.BETWEEN_FIELDS))
@@ -488,9 +501,11 @@ private fun TypedGroup(draft: EditorDraft, kind: FieldKind, word: String, keyboa
             modifier = Modifier.padding(horizontal = PeopleMetrics.SIDE).fillMaxWidth(), keyboardType = keyboard,
         )
     }
-    Spacer(Modifier.height(if (fields.isEmpty()) 6.dp else EditorRhythm.BEFORE_ADD_ROW))
+    // Under a rule the row keeps its clearance, and under a field its gap; straight under another "+ field" row it has
+    // none, so the two are one row pitch (44 epx) apart.
+    if (ruleAbove || fields.isNotEmpty()) Spacer(Modifier.height(if (fields.isEmpty()) 6.dp else EditorRhythm.BEFORE_ADD_ROW))
     AddRow(word, "people_add_field:${kind.id}") { draft.add(kind) }
-    Spacer(Modifier.height(EditorRhythm.AFTER_ADD_ROW - EditorRhythm.BEFORE_ADD_ROW))
+    if (ruleBelow) Spacer(Modifier.height(EditorRhythm.AFTER_ADD_ROW - EditorRhythm.BEFORE_ADD_ROW))
 }
 
 /**

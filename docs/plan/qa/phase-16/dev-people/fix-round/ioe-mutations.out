@@ -1,0 +1,5 @@
+P8 INSERT_OR_EDIT whatever the type or data | CAUGHT (gradle rc=1, 26 tests run, 3 failed) | PeopleIntentsTest.anAuthorityThatOnlyBeginsLikeContactsIsAnotherProvider; PeopleIntentsTest.insertOrEditNeedsTheContactTypeOrTheContactsUri; PeopleIntentsTest.insertOrEditByTypeIsOnlyForAnIntentWithNoData
+P8b INSERT_OR_EDIT by type while the data is a foreign URI | CAUGHT (gradle rc=1, 26 tests run, 1 failed) | PeopleIntentsTest.insertOrEditByTypeIsOnlyForAnIntentWithNoData
+P8c INSERT_OR_EDIT by type only: the contacts URI no longer asks for it | CAUGHT (gradle rc=1, 26 tests run, 2 failed) | PeopleIntentsTest.insertOrEditNeedsTheContactTypeOrTheContactsUri; PeopleIntentsTest.insertOrEditByTypeIsOnlyForAnIntentWithNoData
+P7 INSERT by type while the data is a foreign URI | CAUGHT (gradle rc=1, 26 tests run, 1 failed) | PeopleIntentsTest.insertByTypeIsOnlyForAnIntentWithNoData
+unmutated | gradle rc=0, 26 tests run, 0 failed

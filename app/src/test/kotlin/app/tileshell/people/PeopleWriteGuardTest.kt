@@ -64,9 +64,10 @@ class PeopleWriteGuardTest {
     fun `allowed - Link and Unlink on a read-only contact`() {
         assertTrue(allowed(PeopleWrite.Aggregation(lou, wade, together = true), nothingAllowed))
         assertTrue(allowed(PeopleWrite.Aggregation(lou, wade, together = false), nothingAllowed))
-        // Two read-only contacts, and another profile's: the exception row is local to the phone either way.
+        // Two read-only contacts of this profile: the exception row is local to the phone either way.
         assertTrue(allowed(PeopleWrite.Aggregation(wade, pia, together = true), nothingAllowed))
-        assertTrue(allowed(PeopleWrite.Aggregation(wade, wade.copy(id = 99, otherProfile = true), together = false), nothingAllowed))
+        assertTrue(allowed(PeopleWrite.Aggregation(wade, pia, together = false), nothingAllowed))
+        assertTrue(allowed(PeopleWrite.Aggregation(wade, wade.copy(id = 99), together = false), nothingAllowed))
     }
 
     @Test
@@ -149,7 +150,69 @@ class PeopleWriteGuardTest {
             assertTrue("$op", refused(PeopleWrite.RawContactRow(op, workProfile), allAllowed))
         }
         assertTrue(refused(PeopleWrite.DeleteContact(listOf(workProfile)), allAllowed))
+        // Link and Unlink too: an aggregation exception across profiles cannot exist (the fix round's ruling on F23).
+        for (together in listOf(true, false)) {
+            assertEquals(GuardVerdict.Refused(-1), PeopleWriteGuard.check(PeopleWrite.Aggregation(lou, workProfile, together), allAllowed))
+            assertEquals(GuardVerdict.Refused(-1), PeopleWriteGuard.check(PeopleWrite.Aggregation(workProfile, lou, together), allAllowed))
+            assertEquals(GuardVerdict.Refused(-1), PeopleWriteGuard.check(PeopleWrite.Aggregation(workProfile, workProfile, together), nothingAllowed))
+            assertEquals(GuardVerdict.Refused(99), PeopleWriteGuard.check(PeopleWrite.Aggregation(wade, wade.copy(id = 99, otherProfile = true), together), allAllowed))
+        }
         assertFalse(PeopleWriteGuard.editable(wade.copy(otherProfile = true), allAllowed))
+    }
+
+    // ------------------------------------------------------------------------------------------- another profile's rows (fix round F23)
+
+    @Test
+    fun `another profile - the reference a read gives it is refused whatever is allowed`() {
+        val allAllowed = EditPolicy(local = phone, allowed = setOf(work, personal))
+        assertEquals(RawRef(-1, ContactAccount(null, null), otherProfile = true), OtherProfile.REF)
+        assertTrue(OtherProfile.isRaw(-1))
+        for (id in listOf(0L, 1L, -2L, 1_000_000_000L)) assertFalse("$id", OtherProfile.isRaw(id))
+        assertFalse(PeopleWriteGuard.editable(OtherProfile.REF, allAllowed))
+        assertEquals(GuardVerdict.Refused(-1), PeopleWriteGuard.check(PeopleWrite.DeleteContact(listOf(OtherProfile.REF)), allAllowed))
+        // The read model carries the mark to the guard: the card's stand-in raw contact, then its reference.
+        val standIn = RawContact(OtherProfile.RAW, ContactAccount(null, null), "Wendy Work", otherProfile = true)
+        assertEquals(OtherProfile.REF, standIn.ref())
+        val actions = PeopleWriteGuard.cardActions(listOf(standIn.ref()), allAllowed)
+        assertFalse(actions.edit)
+        assertFalse(actions.delete)
+        assertTrue(actions.otherProfile)
+        // A row of this profile carries no mark.
+        assertEquals(RawRef(11, phone), RawContact(11, phone, "Lou Local").ref())
+    }
+
+    // ------------------------------------------------------------------------------------------- the sync-adapter URI (fix round F22)
+
+    @Test
+    fun `allowed - the delete of a phone group through the sync-adapter URI`() {
+        val delete = PeopleWrite.GroupRow(WriteOp.DELETE, phone, viaSyncAdapter = true)
+        assertTrue(allowed(delete, nothingAllowed))
+        assertTrue(allowed(delete, personalAllowed))
+        // A phone whose maker names its local account: that account's group is the phone group, a null-account one is not.
+        val maker = ContactAccount("Phone", "vnd.sec.contact.phone")
+        val named = EditPolicy(local = maker, allowed = setOf(personal))
+        assertTrue(allowed(PeopleWrite.GroupRow(WriteOp.DELETE, maker, viaSyncAdapter = true), named))
+        assertTrue(refused(delete, named))
+    }
+
+    @Test
+    fun `refused - any other group write through the sync-adapter URI, whatever is allowed`() {
+        val allAllowed = EditPolicy(local = phone, allowed = setOf(work, personal))
+        for (policy in listOf(nothingAllowed, personalAllowed, allAllowed)) {
+            // A group in an account, allowed or not: removing its row outright is that account's own adapter's work.
+            for (account in listOf(personal, work)) for (op in WriteOp.entries) {
+                assertTrue("$op ${account.id}", refused(PeopleWrite.GroupRow(op, account, viaSyncAdapter = true), policy))
+            }
+            // On the phone, only the delete: a group is not created or renamed as a sync adapter.
+            assertTrue(refused(PeopleWrite.GroupRow(WriteOp.INSERT, phone, viaSyncAdapter = true), policy))
+            assertTrue(refused(PeopleWrite.GroupRow(WriteOp.UPDATE, phone, viaSyncAdapter = true), policy))
+        }
+        // The plain URI's rule is as it was: an allowed account's group, every op; the phone's, every op.
+        for (op in WriteOp.entries) {
+            assertTrue(allowed(PeopleWrite.GroupRow(op, personal), personalAllowed))
+            assertTrue(allowed(PeopleWrite.GroupRow(op, phone), nothingAllowed))
+            assertTrue(refused(PeopleWrite.GroupRow(op, work), personalAllowed))
+        }
     }
 
     // ------------------------------------------------------------------------------------------- the local account

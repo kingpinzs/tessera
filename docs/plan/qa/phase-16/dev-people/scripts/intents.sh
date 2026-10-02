@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # DEV-INTENTS (development proof; Trust (c), build task 9, E18's contacts clause): the exported INSERT, INSERT_OR_EDIT
-# and PICK handlers, the three App Shortcuts' pages, and the cannot-read state with its grant offered in place.
+# and PICK handlers (PICK as `am start` sends it: with no caller), the three App Shortcuts' pages, and the cannot-read
+# state with its grant offered in place.
 . "$(dirname "$0")/lib.sh"
 . "$(dirname "$0")/people.sh"
 row_begin DEV-INTENTS "INSERT, INSERT_OR_EDIT, PICK, the shortcuts, the cannot-read state"
@@ -60,32 +61,44 @@ assert_eq "and the intent's number added as a new field" "5550777" "$(node_text 
 assert_absent "before Save the provider does not hold it" "5550777" "$(S content query --uri content://com.android.contacts/data --projection data1 --where "raw_contact_id=$LOU")"
 adb shell input keyevent KEYCODE_BACK; sleep 1; adb shell input keyevent KEYCODE_BACK; sleep 1
 
-# ---- PICK: the list in pick mode; a tap ends it with the one URI; Back cancels
+# ---- PICK with no caller (fix round F5): `am start` cannot receive a result, so People opens the plain list and says
+# so; nothing is said to be granted, a tap opens a card as it does in the list, and no pick mode is left behind.
+# Pick mode itself — the chooser's header, the one URI and its read grant, the two-number page, Back's cancel — exists
+# only for a caller that used startActivityForResult: that is the lead's caller test app (testapps/pick-probe) and its
+# row, not this script. (Before F5 this section asserted the "granted (read)" line here, with no caller to grant to.)
+NO_CALLER="[people] pick: no caller to return a result to; the list was opened"
 MARK="$(ring_mark)"
 adb shell am start -W -n "$PEOPLE" -a android.intent.action.PICK -t vnd.android.cursor.dir/contact >/dev/null 2>&1; sleep 3
 dump_ui "$D/pick.xml"; screencap "$D/pick.png"
-assert_eq "PICK opens the list" "yes" "$(has_node "$D/pick.xml" people_page:list)"
-assert_eq "in pick mode (no app bar, a chooser's header)" "CHOOSE A CONTACT" "$(node_text "$D/pick.xml" people_pick_header)"
-assert_eq "no add button in pick mode" "no" "$(has_node "$D/pick.xml" people_bar:add)"
-adb shell input keyevent KEYCODE_BACK; sleep 2
-assert_ne "Back cancels and leaves People" "app.tileshell/.people.PeopleActivity" "$(top_activity)"
-MARK="$(ring_mark)"
-adb shell am start -W -n "$PEOPLE" -a android.intent.action.PICK -t vnd.android.cursor.dir/contact >/dev/null 2>&1; sleep 3
+SLICE="$(ring_since "$MARK")"; log "$(echo "$SLICE" | grep -F '[people]' | sed 's/.*wall=[0-9]* //')"
+assert_eq "a contact PICK with no caller opens the list" "yes" "$(has_node "$D/pick.xml" people_page:list)"
+assert_eq "not in pick mode: no chooser's header" "no" "$(has_node "$D/pick.xml" people_pick_header)"
+assert_eq "the plain list's add button is there" "yes" "$(has_node "$D/pick.xml" people_bar:add)"
+assert_contains "the no-caller line" "$NO_CALLER" "$SLICE"
+assert_contains "the open line names the plain list" "[people] open android.intent.action.PICK -> open page=default" "$SLICE"
 scroll_to_node "$D/pick2.xml" "people_row:$L_LOU" 4 >/dev/null 2>&1
 tap_node "$D/pick2.xml" "people_row:$L_LOU"; sleep 2
-assert_contains "a tap ends the pick with one contact URI, read-granted" "[people] pick: one contact URI granted (read)" "$(ring_since "$MARK")"
-assert_ne "and People finished" "app.tileshell/.people.PeopleActivity" "$(top_activity)"
+dump_ui "$D/pick_card.xml"
+assert_eq "a tap opens the contact's card, as in the list" "yes" "$(has_node "$D/pick_card.xml" people_page:card)"
+assert_eq "People is still on top: nothing was returned to anyone" "app.tileshell/.people.PeopleActivity" "$(top_activity)"
+assert_absent "nothing is said to be granted (contact)" "URI granted" "$(ring_since "$MARK")"
+adb shell input keyevent KEYCODE_BACK; sleep 1
 MARK="$(ring_mark)"
 adb shell am start -W -n "$PEOPLE" -a android.intent.action.PICK -t vnd.android.cursor.dir/phone_v2 >/dev/null 2>&1; sleep 3
-scroll_to_node "$D/pickp.xml" "people_row:$L_TWO" 4 >/dev/null 2>&1
-assert_eq "a phone PICK's header" "CHOOSE A PHONE NUMBER" "$(node_text "$D/pickp.xml" people_pick_header)"
-tap_node "$D/pickp.xml" "people_row:$L_TWO"; sleep 3
-dump_ui "$D/pick_number.xml"; screencap "$D/pick_number.png"
-assert_eq "a contact with two numbers asks which" "yes" "$(has_node "$D/pick_number.xml" people_page:pick_number)"
-assert_eq "both numbers are offered" "2" "$(grep -o 'resource-id="people_pick_number:[^"]*"' "$D/pick_number.xml" | wc -l)"
-FIRST="$(grep -o 'resource-id="people_pick_number:[^"]*"' "$D/pick_number.xml" | head -1 | sed 's/resource-id="//; s/"$//')"
-tap_node "$D/pick_number.xml" "$FIRST"; sleep 2
-assert_contains "the tap ends the pick with one phone URI, read-granted" "[people] pick: one phone URI granted (read)" "$(ring_since "$MARK")"
+dump_ui "$D/pickp.xml"; screencap "$D/pickp.png"
+assert_eq "a phone PICK with no caller opens the list" "yes" "$(has_node "$D/pickp.xml" people_page:list)"
+assert_eq "not in pick mode: no chooser's header (phone)" "no" "$(has_node "$D/pickp.xml" people_pick_header)"
+assert_contains "the no-caller line (phone)" "$NO_CALLER" "$(ring_since "$MARK")"
+scroll_to_node "$D/pickp2.xml" "people_row:$L_TWO" 4 >/dev/null 2>&1
+tap_node "$D/pickp2.xml" "people_row:$L_TWO"; sleep 3
+dump_ui "$D/pickp_card.xml"
+assert_eq "a contact with two numbers opens its card, not the which-number page" "yes no" "$(has_node "$D/pickp_card.xml" people_page:card) $(has_node "$D/pickp_card.xml" people_page:pick_number)"
+assert_absent "nothing is said to be granted (phone)" "URI granted" "$(ring_since "$MARK")"
+adb shell input keyevent KEYCODE_BACK; sleep 1; adb shell input keyevent KEYCODE_BACK; sleep 2
+assert_ne "Back from the list leaves People" "app.tileshell/.people.PeopleActivity" "$(top_activity)"
+# No pick mode lingers: the next ordinary launch is the plain list.
+open_people -a android.intent.action.MAIN; dump_ui "$D/after_pick.xml"
+assert_eq "the next launch is the plain list" "yes no" "$(has_node "$D/after_pick.xml" people_page:list) $(has_node "$D/after_pick.xml" people_pick_header)"
 
 # ---- the App Shortcuts: declared, and each page opens
 SC="$(S dumpsys shortcut | grep -A400 'Package: app.tileshell' | grep -E 'ShortcutInfo \{id=(contacts|new_contact|groups),|activity=ComponentInfo\{app.tileshell/app.tileshell.people.PeopleActivity\}' | head -12)"

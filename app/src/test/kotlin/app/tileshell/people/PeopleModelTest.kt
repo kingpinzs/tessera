@@ -249,6 +249,33 @@ class PeopleModelTest {
         assertEquals("some contacts", FilterRules.caption(ContactFilter(hiddenAccounts = setOf(x))))
     }
 
+    // ------------------------------------------------------------------------------------------- the editor's group rules (defect D-E20-1)
+
+    @Test
+    fun `editor - no rule between Phone and Email when neither has a field, a rule when either has one`() {
+        fun between(phones: Int, emails: Int) = EditorRules.ruleBetween(FieldKind.PHONE, FieldKind.EMAIL) { kind ->
+            when (kind) { FieldKind.PHONE -> phones; FieldKind.EMAIL -> emails; else -> 3 }
+        }
+        // G1, a contact with only a name: "+ Phone" and "+ Email" are two rows of one group.
+        assertFalse(between(0, 0))
+        // G2, a number and an e-mail: a rule between the two blocks. One without the other: the same (approximation, H2).
+        assertTrue(between(1, 1))
+        assertTrue(between(1, 0))
+        assertTrue(between(0, 1))
+        assertTrue(between(3, 2))
+    }
+
+    @Test
+    fun `editor - every other boundary always has its rule`() {
+        val boundaries = listOf(FieldKind.NAME to FieldKind.PHONE, FieldKind.EMAIL to FieldKind.ADDRESS, FieldKind.ADDRESS to FieldKind.COMPANY)
+        for ((above, below) in boundaries) for (phones in 0..2) for (emails in 0..2) for (addresses in 0..2) {
+            val fields: (FieldKind) -> Int = { kind ->
+                when (kind) { FieldKind.PHONE -> phones; FieldKind.EMAIL -> emails; FieldKind.ADDRESS -> addresses; else -> 0 }
+            }
+            assertTrue("$above | $below with $phones $emails $addresses", EditorRules.ruleBetween(above, below, fields))
+        }
+    }
+
     // ------------------------------------------------------------------------------------------- photos
 
     @Test
