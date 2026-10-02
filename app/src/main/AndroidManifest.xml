@@ -556,6 +556,19 @@
             android:exported="false" />
 
         <!--
+          The clock was set (fix round F2): Calendar lowers its reminders' first-start cut-off when the clock goes back
+          behind it, before the provider's next reminder broadcast. TIME_SET is a protected broadcast (only the system
+          sends it) and the receiver is not exported.
+        -->
+        <receiver
+            android:name=".calendar.CalendarClockReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+            </intent-filter>
+        </receiver>
+
+        <!--
           People: the W10M People hub over Android's Contacts provider — an app in the app list with its own task, and
           one activity for every page (r3 D11). APP_CONTACTS is what lets the PEOPLE slot point at it. Exported with
           handlers other apps reach, so it is on qa/phase-03/exported-allowlist.txt and on the Trust list: an intent

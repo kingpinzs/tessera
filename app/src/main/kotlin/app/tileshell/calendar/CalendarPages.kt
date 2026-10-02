@@ -84,6 +84,7 @@ internal object CalNotices {
     const val READ_ONLY = "That calendar is read-only now"
     const val CHOOSE = "Choose which calendars Sync may use"
     const val EVENT_GONE = "That event is no longer on this phone."
+    const val COPY_UNREADABLE = "That event's copy couldn't be read. Try again."
 
     fun recreated(calendar: String) = "The copy in $calendar was gone, so Sync made it again."
     fun stale(calendar: String) = "The copy is no longer in $calendar, so nothing was changed."
@@ -95,6 +96,7 @@ internal object CalNotices {
         CalendarSync.Outcome.ReadOnly -> READ_ONLY
         CalendarSync.Outcome.MappingStale -> stale(calendar)
         CalendarSync.Outcome.Refused -> "Sync isn't allowed for that calendar."
+        CalendarSync.Outcome.CopyUnreadable -> COPY_UNREADABLE
         is CalendarSync.Outcome.Failed -> "That event couldn't be synced."
     }
 }
@@ -124,7 +126,7 @@ fun EventPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page: Cal
     // Read again on every provider change: an edit shows at once, and an event that went away — its account's
     // calendar removed while the page was open — closes the page with a notice.
     LaunchedEffect(page, model.changes) {
-        val read = withContext(Dispatchers.IO) { CalendarReads.event(context, page.eventId)?.let { EventData(it, CalendarReads.reminders(context, it.id)) } }
+        val read = withContext(Dispatchers.IO) { CalendarAccess.of(context).let { access -> CalendarReads.event(access, page.eventId)?.let { EventData(it, CalendarReads.reminders(access, it.id)) } } }
         if (read == null) {
             // Wherever the page is in the stack: under an open editor it would otherwise come back showing an event
             // that no longer exists.
@@ -156,6 +158,7 @@ fun EventPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page: Cal
                     CalendarWriteGuard.Refusal.MAPPING_STALE -> CalNotices.stale(marker?.calendarName ?: "that calendar")
                     CalendarWriteGuard.Refusal.READ_ONLY -> CalNotices.READ_ONLY
                     CalendarWriteGuard.Refusal.CALENDAR_GONE -> CalNotices.CALENDAR_GONE
+                    CalendarWriteGuard.Refusal.COPY_UNREADABLE -> CalNotices.COPY_UNREADABLE
                     CalendarWriteGuard.Refusal.NOT_ALLOWED -> "That event can't be deleted here."
                 }
                 is WriteResult.Failed -> page.notice = "That event couldn't be deleted."
@@ -174,7 +177,7 @@ fun EventPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page: Cal
 
     fun runSync(target: CalendarKey, name: String) {
         scope.launch {
-            val outcome = withContext(Dispatchers.IO) { CalendarSync.sync(context, masterId, target) }
+            val outcome = withContext(Dispatchers.IO) { CalendarSync.sync(CalendarAccess.of(context), masterId, target) }
             page.notice = CalNotices.of(outcome, name)
         }
     }
@@ -496,7 +499,7 @@ fun SyncPickerPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page
             calendars.forEach { calendar ->
                 CalendarRow(calendar.shownName, colorOf(calendar.color), null, "cal_sync_target:${calendar.id}") {
                     scope.launch {
-                        val outcome = withContext(Dispatchers.IO) { CalendarSync.sync(context, page.eventId, calendar.key) }
+                        val outcome = withContext(Dispatchers.IO) { CalendarSync.sync(CalendarAccess.of(context), page.eventId, calendar.key) }
                         if (nav.page === page) nav.pop()
                         (nav.page as? CalPage.Event)?.notice = CalNotices.of(outcome, calendar.shownName)
                     }

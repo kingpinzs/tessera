@@ -103,6 +103,55 @@ object CalendarIntents {
         }
     }
 
+    /** The actions the activity handles; only these are ever written to the diagnostics ring by name. */
+    private val HANDLED_ACTIONS = setOf(ACTION_MAIN, ACTION_VIEW, ACTION_EDIT, ACTION_INSERT)
+
+    /**
+     * An intent's action as the diagnostics ring may hold it (fix round F4, trust review B-F3): an explicit intent to
+     * an exported activity can carry ANY action string — a forged ring line with a newline in it, or megabytes of text
+     * held in the launcher's memory. A handled action is logged by its own constant, none as "no action", and anything
+     * else as the one word "other".
+     */
+    fun loggedAction(action: String?): String = when (action) {
+        null -> "no action"
+        in HANDLED_ACTIONS -> action
+        else -> "other"
+    }
+
+    /**
+     * The route without what the caller typed into it: a page id from the shell's own list, or a number that was
+     * parsed and bounded. A title, a location, a note or a URI never reaches the diagnostics ring.
+     */
+    fun describe(route: CalendarRoute): String = when (route) {
+        is CalendarRoute.Open -> "open page=${route.page?.id ?: "default"}"
+        is CalendarRoute.Time -> "time ${route.millis}"
+        is CalendarRoute.Event -> "event ${route.id}"
+        is CalendarRoute.Edit -> "edit ${route.id}"
+        is CalendarRoute.Insert -> "insert (prefilled, unsaved)"
+    }
+
+    /** The one ring line an intent writes: `open <action> -> <route>`. */
+    fun openLine(action: String?, route: CalendarRoute): String = "open ${loggedAction(action)} -> ${describe(route)}"
+
+    /** An occurrence the provider itself holds: its begin and its end, as `Instances` gives them. */
+    data class Occurrence(val beginMs: Long, val endMs: Long)
+
+    /**
+     * The occurrence a VIEW may open an event's page on (fix round F12, trust review B-F11). The intent's `beginTime`
+     * is a number any app chose; on a repeating event the page would show it as the event's time, and "this
+     * occurrence" — an edit or a delete — would be written against it. It is accepted only when the provider's own
+     * `Instances` holds an occurrence of THAT event beginning at exactly that time; the end is then the provider's,
+     * whatever `endTime` said. Anything else — no `beginTime`, another event's instance at that time, an instance of
+     * this event that began at another time, an occurrence since changed into its own row, a read that failed — is no
+     * occurrence, and the page opens as a VIEW without extras opens it.
+     *
+     * @param instances the provider's instances around the claimed begin (every event's); null when the read failed
+     */
+    fun occurrence(route: CalendarRoute.Event, instances: List<EventInstance>?): Occurrence? {
+        val claimed = route.beginMs ?: return null
+        return instances?.firstOrNull { it.eventId == route.id && it.beginMs == claimed }?.let { Occurrence(it.beginMs, it.endMs) }
+    }
+
     private fun open(extras: Extras) = CalendarRoute.Open(CalendarShortcut.byId(extras.string(EXTRA_PAGE)))
 
     private fun prefill(extras: Extras): EventPrefill {
