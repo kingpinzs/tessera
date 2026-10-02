@@ -417,7 +417,10 @@ the swipes noted in the log).
   `slots` holds MUSIC only), so the slot is a category slot (`SlotResolver.kt:34-37`) and the driver asserts that
   `adb shell cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.APP_CALENDAR`
   lists exactly one activity (phase 01's form, `qa/phase-01/scripts/e4_part1.sh:15-16`; `com.android.calendar/.AllInOneActivity`
-  on this AVD, `qa/phase-01/FINAL/E04/E04.txt:15`) — any other count fails the precondition, not the pod (lead, r3 V13);
+  on this AVD, `qa/phase-01/FINAL/E04/E04.txt:15`) — any other count fails the precondition, not the pod (lead, r3 V13;
+  RE-CUT 2026-10-01 by phase 16's build, its r3 D8, INDEX Change Log: from that build the shell's Calendar is a second
+  APP_CALENDAR handler and phase 16 seeds the slot, so the precondition is "the baseline's `slots.CALENDAR` is the shell's
+  Calendar" — `qa/phase-16/baseline_layout.json` — and the expected component is read from that file on the host);
   `tap_node pod_header:weather` → `WeatherActivity` resumed and `launch weather -> …`; with a reminder present, `tap_node
   pod_row:reminders:0` → `cortana_session` on the Reminders page and `launch reminders -> …`; C-6 after each
 - E4 Denied and empty states with diagnostics, both directions (a runtime revoke kills the process and resets the ring, so each

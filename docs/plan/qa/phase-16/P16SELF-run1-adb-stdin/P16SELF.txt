@@ -1,0 +1,57 @@
+==============================================================================
+ROW P16SELF — p16.sh: the driver floor's helpers, each run and read back
+at            2026-10-01T09:38:05-06:00
+driver        p16_selftest.sh blob 984ec0eb91249f35e04bc61891d22458ba874ef7
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     2a178f0e7d55a13c 338136860 bytes
+apk installed c5ef7e2efedc98a7
+apk match     yes (c5ef7e2efedc98a7)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      calendars before: Row: 0 _id=3, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700, visible=1 
+PASS  mkcal_qa / cal_id: the QA calendar                          != 
+PASS  mkcal: Personal                                             != 
+PASS  mkcal: Work                                                 != 
+PASS  mkcal with a level: Shared                                  != 
+PASS  mkcal's fourth argument is the access level                 contains [calendar_displayName=Shared, calendar_access_level=200]
+PASS  mkcal's default level is 700                                contains [calendar_displayName=Work, calendar_access_level=700]
+PASS  mkevent / event_id: Offsite in Work                         != 
+PASS  cal_lists: calendar 6 (Work) still lists                    contains [_id=6,]
+PASS  cal_count: Work holds one event                             = 1
+PASS  cal_events: it is Offsite                                   = 163|Offsite
+PASS  cal_lists: calendar 5 (Personal) still lists                contains [_id=5,]
+PASS  cal_count: Personal holds none                              = 0
+PASS  event_row                                                   contains [title=Offsite]
+PASS  mkevent: a title with a space                               != 
+PASS  rm_event: the row is gone                                   = 
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  cal_fixtures_down: Offsite went with its calendar           = 
+PASS  cal_fixtures_down keeps Tessera                             = 3
+      people_fixtures_up: raw ids ann=5 bob=6 zoe=7 zhang=8 number-only=9 cara=10,11 (raw contacts before: 2)
+PASS  people_fixtures_up: seven raw contacts recorded             = 7
+PASS  raw_count rose by seven                                     = 9
+PASS  raw_of: Ann Lee                                             = 5
+PASS  raw_of: a non-Latin name (张伟)                           = 8
+PASS  raw_of: an accented name (Zoë Ǻrén)                      = 7
+PASS  Cara Diaz is two raw contacts                               = 10 11
+PASS  …aggregated into one contact (r3 V15)                     = 11
+PASS  contact_of / lookup_of: Ann                                 != 
+      Ann: raw 5 contact 5 lookup 0r5-2B4545413333
+PASS  Ann is phone-only (NULL account)                            contains [account_name=NULL, account_type=NULL]
+PASS  Ann's number                                                contains [data1=+1 555 000 0001]
+PASS  people_add with an account                                  contains [account_name=qa.work@example.com, account_type=com.example]
+FAIL  people_fixtures_down: the raw_contacts count is the count before the row  expected [2] got [9]
+PASS  people_fixtures_down: Ann is gone                           = 
+PASS  provision's Mom is untouched                                contains [display_name=Mom]
+PASS  shell_alarms_pending prints a count                         contains [0]
+PASS  shell_bytes prints rx and tx                                = 2
+      shell_alarms_pending=0 shell_bytes=[1557278 404871]
+PASS  perm_granted: READ_CALENDAR                                 = true
+PASS  gdump reads Start                                           = yes
+PASS  absent_in on a readable slice                               does not contain [no such line anywhere]
+PASS  jump_clock: one hour forwards                               1790872768432.00 vs 1790872767422.00 +/- 5000.0
+PASS  jump_clock refuses a backwards jump                         = 2
+PASS  device clock back within 2 s of the host (RV12)             1790869171.00 vs 1790869172.00 +/- 2.0
+------------------------------------------------------------------------------
+P16SELF: 37 passed, 1 failed, 0 recorded

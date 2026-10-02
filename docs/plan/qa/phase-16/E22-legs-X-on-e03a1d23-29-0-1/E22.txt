@@ -1,0 +1,52 @@
+==============================================================================
+ROW E22 — Sync rules 1–2: no write reaches an account calendar by the app, Tess, the pane or the exported intents
+at            2026-10-02T03:43:56-06:00
+driver        e22.sh blob ff749392ee38c8867928e400a67231071fac77c6
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob a01abd9075780a8e49193748ce5047031fe19181
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     182a7851a5c76400 339129014 bytes
+apk installed e03a1d233ee6ba0c
+apk match     yes (e03a1d233ee6ba0c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  legs run                                                    the fixtures and X (the exported EDIT and INSERT) ONLY — a narrow re-run; legs R1, H, T, R2, J and L stand on the row's earlier run
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  precondition: Tessera exists                                != 
+      tessera=2 personal=3 work=4 offsite=40939 (five days ahead)
+PASS  fixtures: Personal (qa.personal@example.com) exists         != 
+PASS  fixtures: Work (qa.work@example.com) exists                 != 
+PASS  fixtures: Work is the calendar marked primary               contains [isPrimary=1]
+PASS  fixtures: Offsite is driver-inserted into Work              != 
+PASS  cal_lists: calendar 3 (Personal, at the start) still lists  contains [_id=3,]
+PASS  at the start: Personal holds 0                              = 
+PASS  cal_lists: calendar 4 (Work, at the start) still lists      contains [_id=4,]
+PASS  at the start: Work holds exactly Offsite                    = Offsite
+PASS  at the start: Offsite's row (title, dtstart, dtend, calendar_id) is unchanged  = Row: 0 title=Offsite, dtstart=1791388800000, dtend=1791392400000, calendar_id=4
+--- X: the exported EDIT and INSERT (r3 V18)
+PASS  X: EDIT on Offsite — the dump holds cal_event_page:<Offsite id>  = yes
+PASS  X: … and no cal_editor                                    = no
+PASS  X: … Offsite's events row equals its read before          = Row: 0 title=Offsite, dtstart=1791388800000, dtend=1791392400000, calendar_id=4
+PASS  X: INSERT naming Work — cal_editor opens                  = yes
+PASS  X: … with the title prefilled                             = Intruder
+PASS  X: … and beginTime / endTime prefilled: the editor's start reads that date and 4:00 PM, its end the same date and 5:30 PM  = Mon 5 Oct 2026 4:00 PM | Mon 5 Oct 2026 5:30 PM
+PASS  X: … and its calendar field reading Tessera               = Tessera
+PASS  X: before Save, events holds no "Intruder" (a prefill saves nothing without a tap)  = 0
+PASS  X: Save → "Intruder" is in Tessera                        = calendar_id=2
+PASS  X: … saved at the prefilled times (dtstart, dtend)        = dtstart=1791237600000, dtend=1791243000000
+PASS  cal_lists: calendar 3 (Personal, after the exported INSERT's Save) still lists  contains [_id=3,]
+PASS  after the exported INSERT's Save: Personal holds 0          = 
+PASS  cal_lists: calendar 4 (Work, after the exported INSERT's Save) still lists  contains [_id=4,]
+PASS  after the exported INSERT's Save: Work holds exactly Offsite  = Offsite
+PASS  after the exported INSERT's Save: Offsite's row (title, dtstart, dtend, calendar_id) is unchanged  = Row: 0 title=Offsite, dtstart=1791388800000, dtend=1791392400000, calendar_id=4
+--- restore
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the test events — "Standup 2", "standup", "Intruder" — are deleted  = 0
+PASS  restore: Tessera's event count equals the count before the row  = 0
+------------------------------------------------------------------------------
+E22: 29 passed, 0 failed, 1 recorded

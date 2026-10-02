@@ -1,0 +1,119 @@
+==============================================================================
+ROW E12 — card actions: call, text, mail (slot assigned / unassigned), the VIEW intent and Always, map (last)
+at            2026-10-01T23:50:09-06:00
+driver        e12.sh blob f9a05164205d49be06dda181c978bd0bd1375702
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (3c1ad1e0e65bd919)
+PASS  layout_restore of the baseline                              = 0
+      SMS role holder: org.fossify.messages; K-9's launcher: com.fsck.k9/net.thunderbird.app.common.MainActivity; OsmAnd's launcher: net.osmand.plus/.activities.MapActivity
+PASS  the K-9 fixture is installed                                != 
+PASS  OsmAnd is installed                                         != 
+PASS  the Fossify Messages fixture holds the SMS role             = org.fossify.messages
+--- fixtures
+      people_fixtures_up: raw ids ann=5405 bob=5406 zoe=5407 zhang=5408 number-only=5409 cara=5410,5411 (raw contacts before: 2)
+Row: 0 _id=10797, raw_contact_id=5405, mimetype=vnd.android.cursor.item/name, data1=Ann Lee
+Row: 1 _id=10798, raw_contact_id=5405, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0001
+Row: 2 _id=10799, raw_contact_id=5405, mimetype=vnd.android.cursor.item/email_v2, data1=ann@example.com
+Row: 3 _id=10809, raw_contact_id=5405, mimetype=vnd.android.cursor.item/postal-address_v2, data1=1 Main St Springfield
+Row: 4 _id=10810, raw_contact_id=5405, mimetype=vnd.android.cursor.item/phone_v2, data1=5551230001
+PASS  the Mail slot → K-9 and the Maps slot → OsmAnd were written  = 0
+PASS  slots.MAIL is K-9                                           = com.fsck.k9/net.thunderbird.app.common.MainActivity
+PASS  slots.MAPS is OsmAnd                                        = net.osmand.plus/net.osmand.plus.activities.MapActivity
+PASS  Ann Lee's card (people_card:<lookup>)                       = yes
+      action rows: people_card_action:text:0 people_card_action:call:0 people_card_action:call:1 people_card_action:text:1 people_card_action:mail:0 people_card_action:map:0 
+--- Call (her own number)
+[people] action call -> com.android.dialer/.main.impl.MainActivity tel:+1 555 000 0001
+PASS  dumpsys telecom: one more outgoing call than before the tap  = 1
+PASS  dumpsys telecom: the newest call is outgoing                contains [(MO - outgoing)]
+PASS  dumpsys telecom: … and was placed by the shell (CREATED (app.tileshell; …))  contains [CREATED (app.tileshell;]
+RECORD  Telecom's record of it                                      CallTC@1 [Oct 1, 2026 11:51:10 PM](MO - outgoing)(User=UserHandle{0})
+RECORD  how the emulated network ended it                           23:51:10.861 - SET_DISCONNECTED (disconnected set explicitly> DisconnectCause [ Code: (REMOTE) Label: () Description: () Reason: (NORMAL) Tone: (27)  TelephonyCause: 2/-1
+RECORD  adb emu gsm list after the tap (the doc's read; this image prints only OK)  OK 
+PASS  the slice holds [people] action call -> <component> tel:<her number>  contains [tel:+1 555 000 0001]
+--- Call (the number the emulated network keeps up; clauses-open.tsv)
+[people] action call -> com.android.dialer/.main.impl.MainActivity tel:5551230001
+PASS  the action line names the kept-up number                    contains [tel:5551230001]
+PASS  dumpsys telecom: one more outgoing call                     = 2
+PASS  dumpsys telecom: placed by the shell                        contains [CREATED (app.tileshell;]
+FAIL  dumpsys telecom: the call is up (a foreground call exists while it is read)  expected [yes] got [no]
+PASS  … its record holds no SET_DISCONNECTED yet                does not contain [SET_DISCONNECTED]
+RECORD  the call's state lines                                       23:51:10.839 - SET_DIALING (dialing set explicitly):(...->CS.crCo->H.CS.crCo->H.CS.crCo.pICR)->CSW.hCCC(cap/cast)@E-E-AR8; 23:51:28.796 - SET_DIALING (dialing set explicitly):(...->CS.crCo->H.CS.crCo->H.CS.crCo.pICR)->CSW.hCCC(cap/cast)@E-
+RECORD  the resumed activity while the call is up                   com.android.dialer/com.android.incallui.InCallActivity
+RECORD  adb emu gsm list while the call is up (the doc's read; this image prints only OK)  OK 
+RECORD  adb emu gsm cancel 5551230001                               OK 
+PASS  no call is left up                                          = no
+PASS  the device is awake after the call                          = Awake
+--- Text
+resumed: org.fossify.messages/.activities.ThreadActivity
+PASS  the SMS role holder's compose is resumed (dumpsys activity activities)  contains [org.fossify.messages/]
+the activity manager's start line: START u0 {act=android.intent.action.SENDTO dat=smsto:xxxxxxxxxxxx xflg=0x4 pkg=org.fossify.messages cmp=org.fossify.messages/.activities.NewConversationActivity} with LAUNCH_MULTIPLE from uid 10174 (sr=55333896) (BAL_ALLOW_VISIBLE_WINDOW) result code=0
+PASS  … started with ACTION_SENDTO                              contains [act=android.intent.action.SENDTO]
+PASS  … to the SMS role holder, by the shell                    contains [cmp=org.fossify.messages/]
+PASS  … from the shell's uid                                    contains [from uid 10174 ]
+RECORD  the intent's data as the activity manager prints it (Android redacts an smsto: URI)  smsto:xxxxxxxxxxxx
+PASS  … with smsto: data as long as her number ("+15550000001", 12 characters)  = 12
+[people] action text -> org.fossify.messages/.activities.SplashActivity.Green smsto:+15550000001
+PASS  the shell's own line names smsto: her number and the role holder (V21)  contains [[people] action text -> org.fossify.messages]
+PASS  … smsto:+15550000001                                      contains [smsto:+15550000001]
+PASS  the compose window names her (her name or her number)       = yes
+--- Mail with K-9 in the Mail slot
+[people] action mail: com.fsck.k9/net.thunderbird.app.common.MainActivity has no handler for it; the app was opened
+[people] action mail -> com.fsck.k9/net.thunderbird.app.common.MainActivity mailto:ann@example.com
+PASS  the slice holds [people] action mail -> <K-9's component> mailto:ann@example.com  contains [[people] action mail -> com.fsck.k9/net.thunderbird.app.common.MainActivity mailto:ann@example.com]
+resumed: com.fsck.k9/app.k9mail.feature.launcher.FeatureLauncherActivity
+PASS  the top package is K-9's                                    contains [com.fsck.k9/]
+--- Mail with the Mail slot unassigned → Android's resolver
+PASS  the Mail slot is unassigned again (the Maps slot kept on OsmAnd)  = 0
+PASS  slots.MAIL is empty                                         = 
+resumed: eu.faircode.email/.ActivityCompose
+Intent { act=android.intent.action.SENDTO dat=mailto:ann@example.com flg=0x10000000 xflg=0x4 cmp=eu.faircode.email/.ActivityCompose }
+FAIL  with the slot unassigned: Android's resolver is resumed     expected [yes] got [no]
+[people] action mail -> resolver mailto:ann@example.com
+--- am start -a VIEW -d content://com.android.contacts/contacts/<Ann's id>: the resolver, Always, then no resolver
+RECORD  the handlers of that VIEW on this image                     
+after the first am start: android/com.android.internal.app.ResolverActivity
+RECORD  Android's resolver appeared first (the AOSP Contacts fixture is the other handler); the shell's entry and Always were tapped  yes — android/com.android.internal.app.ResolverActivity
+PASS  the resolver lists the shell's entry ("People")             != 
+PASS  the resolver offers Always                                  != 
+PASS  the shell's People card is resumed (dumpsys activity activities)  = app.tileshell/.people.PeopleActivity
+PASS  … on Ann's card (people_card:<lookup>)                    = yes
+after the second am start: app.tileshell/.people.PeopleActivity
+PASS  a second am start resumes the shell's card with no resolver  = app.tileshell/.people.PeopleActivity
+PASS  … Ann's card                                              = yes
+--- restore, part 1 (before the map action): gsm cancel, the Always cleared, the home activity set back
+RECORD  adb emu gsm cancel (restore)                                OK 
+      pm clear-package-preferred-activities: ; set-home-activity: Success 
+PASS  restore: ensure_start after the home activity was set back  Start alone
+PASS  restore: Home resolves to the shell's Start                 contains [app.tileshell/.StartActivity]
+PASS  restore: the Always is cleared (the same VIEW raises Android's resolver again)  = yes
+--- Address with OsmAnd in the Maps slot (the last action of the row)
+PASS  slots.MAPS is OsmAnd                                        = net.osmand.plus/net.osmand.plus.activities.MapActivity
+PASS  the card has the address action (people_card_action:map:0)  = yes
+RECORD  the host's free disk before the map action                  31G free, 97% used
+PASS  the emulator is alive before the map action                 = yes
+PASS  the emulator is alive after the map action                  = yes
+resumed: net.osmand.plus/.activities.MapActivity
+[people] action map -> net.osmand.plus/.activities.MapActivity geo:0,0?q=1%20Main%20St%20Springfield
+PASS  OsmAnd is resumed                                           contains [net.osmand.plus/]
+its intent: 
+FAIL  … with a geo: query (dumpsys activity activities)         does not contain [dat=geo:0,0?q=]: 
+PASS  the slice holds [people] action map -> <OsmAnd's component> geo:0,0?q=…  contains [[people] action map -> net.osmand.plus/.activities.MapActivity geo:0,0?q=]
+PASS  … the query is her address                                contains [Main]
+PASS  the emulator is still alive 12 s after the map action       = yes
+--- restore, part 2: the slots, the fixtures
+PASS  restore: layout_restore of the baseline (the Mail and Maps slots)  = 0
+PASS  restore: slots.MAIL is the baseline's (none)                = 
+PASS  restore: slots.MAPS is the baseline's (none: one handler, auto-assigned)  = 
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  restore: the raw_contacts rows equal the rows before the row  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0
+Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0
+PASS  restore: no call is up                                      = no
+PASS  restore: the device is awake                                = Awake
+------------------------------------------------------------------------------
+E12: 55 passed, 3 failed, 12 recorded

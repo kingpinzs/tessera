@@ -1,0 +1,135 @@
+==============================================================================
+ROW E24 — Sync rule 3: the tapped push, the copy hidden everywhere, one reminder, re-Sync, a series, the deletes
+at            2026-10-02T03:00:03-06:00
+driver        e24.sh blob 2e81ab7d255616aafbe8e71150acc85219297ac7
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob 37f8ca0771c000a3ace0ab481a2b94b60658ccfc
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     d3491c103c64871a 339129014 bytes
+apk installed 3c5e3199554038d1
+apk match     yes (3c5e3199554038d1)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  legs run                                                    the fixtures, S and W (the synced event and the synced series leg D needs) and D ONLY — a narrow re-run; legs H, N, U and G stand on the row's earlier run
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  precondition: Tessera exists                                != 
+--- fixtures
+PASS  fixtures: Personal exists                                   != 
+PASS  fixtures: Work exists, created after Personal               != 
+PASS  fixtures: "Offsite" in Work five days ahead                 != 
+PASS  fixtures: no other event in the next two days (the provider's instances)  = 0
+PASS  fixtures: a local event "Standup" starting 2 hours from the device's now, 1 hour long  != 
+PASS  fixtures: … with a 10-minute reminder                     contains [minutes=10]
+      tessera=2 personal=3 work=4 offsite=20919 standup=20920 start=1790938800000
+PASS  fixtures: the first Sync opens "Can sync to" (nothing allowed yet)  = yes
+PASS  fixtures: Personal ticked on "Can sync to"                  = true
+PASS  fixtures: … Work left unticked                            = false
+PASS  fixtures: Back lands on the Sync picker, Personal its only target  = cal_sync_target:3
+the feed before the Sync: [calendar] refresh (provider change): access=true faces=2 agenda=1
+PASS  before the Sync: the last [calendar] refresh line reads faces=2 agenda=1  = faces=2 agenda=1
+PASS  before the Sync: … with access=true                       contains [access=true]
+      shell_bytes before the Sync (rx tx): 1565512 384709
+PASS  cal_lists: calendar 3 (Personal) still lists                contains [_id=3,]
+PASS  before the Sync: Personal holds nothing                     = 
+--- S: Sync "Standup"
+PASS  cal_lists: calendar 3 (Personal) still lists                contains [_id=3,]
+PASS  S: Personal holds ONE event, titled Standup (the copy exists)  = Standup
+PASS  S: … its dtstart / dtend equal the local event's          = dtstart=1790938800000, dtend=1790942400000
+PASS  cal_lists: calendar 4 (Work, S: after the Sync) still lists  contains [_id=4,]
+PASS  S: after the Sync: Work holds exactly Offsite               = Offsite
+PASS  S: the local event's page is showing                        = yes
+PASS  S: cal_synced_marker:<id> reads "synced to Personal"        = synced to Personal
+PASS  S: … with cal_account:qa.personal@example.com on the page  = yes
+      marker and account bounds: yes [39, 586, 411, 640] [435, 590, 898, 637]
+PASS  S: … beside it (to the marker's right, on its line; r3 D5)  = yes
+calendar_sync.json: {"version":1,"allowed":[{"id":3,"accountName":"qa.personal@example.com","accountType":"com.google","name":"Personal"}],"mappings":[{"id":3,"accountName":"qa.personal@example.com","accountType":"com.google","name":"Personal","local":20920,"copy":20921}],"hidden":[],"notifiedAlerts":["20905:1790932980000:1790932380000"],"remindersSince":1790927897447}
+PASS  S: calendar_sync.json maps the local id to Personal's _ID and the copy's id (its one mapping)  = local=20920 copy=20921 calendar=3 qa.personal@example.com/com.google
+PASS  S: diagnostics — sync event=<id> -> calendar <personal id>: ok  contains [[calendar] sync event=20920 -> calendar 3: ok]
+      shell_bytes after the Sync (rx tx): 1565512 384709
+PASS  S: shell_bytes reads the same rx and tx as before the Sync  = 1565512 384709
+PASS  S: the copy has its own reminder row (asserted from reminders)  contains [event_id=20921, minutes=10]
+--- W: a weekly local series (COUNT=5), its third occurrence retitled, a 10-minute reminder
+PASS  W: the local series expands to five instances               = 5
+PASS  W: the third occurrence is retitled (a local exception row)  != 
+Personal's rows for the series: Row: 0 _id=20924, title=E24 weekly, rrule=FREQ=WEEKLY;COUNT=5, duration=PT1H, original_id=NULL, originalInstanceTime=NULL
+Row: 1 _id=20925, title=E24 weeklyX, rrule=NULL, duration=NULL, original_id=20924, originalInstanceTime=1792249200000
+PASS  W: Personal holds a master with the rrule                   != 
+PASS  W: … the rrule as the local one (FREQ=WEEKLY;COUNT=5)     contains [rrule=FREQ=WEEKLY;COUNT=5]
+PASS  W: … and the duration (not NULL)                          = yes
+PASS  W: … one exception                                        = 1
+PASS  W: … whose original_id is the copy's master               contains [original_id=20924,]
+PASS  W: … and a reminders row of 10 minutes on the copy        contains [event_id=20924, minutes=10]
+RECORD  W: the provider's instances of the COPY in Personal over the series' weeks — count (the local series has 5)  1
+RECORD  W: … their event ids and titles                                 1 event_id=20925, title=E24 weeklyX;
+      cagenda_walk: 7 (date, event) rows after 4 swipe(s)
+the Agenda's rows titled E24 weekly…: 2026-10-03=E24 weekly(20922) 2026-10-10=E24 weekly(20922) 2026-10-17=E24 weeklyX(20923) 2026-10-24=E24 weekly(20922) 2026-10-31=E24 weekly(20922) 
+PASS  W: the views show each occurrence once (five days, one row each, in the Agenda)  = 5
+PASS  W: … the copy's master and its exception are both hidden (no row with their ids)  = 0
+PASS  W: … the third occurrence's Day view holds one event row, the local exception's  = cal_event:20923
+PASS  cal_lists: calendar 4 (Work, W: after the series' Sync) still lists  contains [_id=4,]
+PASS  W: after the series' Sync: Work holds exactly Offsite       = Offsite
+--- D: deleting a synced local event
+PASS  D: the delete shows cal_delete_choice:here                  = yes
+PASS  D: … and cal_delete_choice:both                           = yes
+PASS  D: … "here" is the default: the first of the two choices  = yes
+RECORD  D: the two choices' wording                                 Delete here / Delete here and from Personal
+PASS  D: "here" → the local event is gone                       = 0
+PASS  cal_lists: calendar 3 (Personal) still lists                contains [_id=3,]
+PASS  D: … the copy is kept                                     contains [|Standup|]
+PASS  D: … its mapping is gone from calendar_sync.json          does not contain ["local":20920,]
+PASS  D: … the copy now SHOWS in the views as Personal's event (cal_event:<copy id> present)  = yes
+PASS  D: … its cal_event_page: is open                          = yes
+PASS  D: … and has no cal_event_action:* (the original no longer exists)  = 0
+PASS  cal_lists: calendar 4 (Work, D: after delete here) still lists  contains [_id=4,]
+PASS  D: after delete here: Work holds exactly Offsite            = Offsite
+PASS  D: a second synced event (its copy is in Personal)          != 
+PASS  D: "both" → the local event is gone                       = 0
+PASS  D: … and the copy is gone                                 = 0
+PASS  D: … and its mapping                                      does not contain ["local":20926,]
+PASS  cal_lists: calendar 4 (Work, D: after delete both) still lists  contains [_id=4,]
+PASS  D: after delete both: Work holds exactly Offsite            = Offsite
+PASS  D: a third synced event (its copy is in Personal)           != 
+PASS  D: Personal then un-ticked in "Can sync to"                 = false
+PASS  D: the delete prompt is up (cal_delete)                     = yes
+PASS  D: … it offers cal_delete_choice:here                     = yes
+PASS  D: … and NO cal_delete_choice:both (T16-12)               = no
+PASS  D: … nothing was deleted by looking                       = 1 1
+PASS  D: un-ticked — the third event's copy has dirty 0 before the Sync  contains [dirty=0]
+PASS  D: un-ticked — the marker stays on the synced event's page (cal_synced_marker:<id>)  = yes
+RECORD  D: un-ticked — the marker's text, and whether it carries the warning glyph  synced to Personal / no
+PASS  D: un-ticked — Sync on the synced event opens "Can sync to" (cal_can_sync)  = yes
+PASS  D: … the ring holds sync event=<id>: no calendar allowed -> can sync to  contains [[calendar] sync event=20928: no calendar allowed -> can sync to]
+PASS  D: … and NO sync event=<id> -> calendar <id>: line (no ok, no updated, no outcome at all) since the MARK before the tap  does not contain [sync event=20928 -> calendar]
+PASS  D: … and no [calendar] write line                         does not contain [[calendar] write ]
+PASS  D: … the copy's row is as it was, dirty still 0 (nothing was written to Personal)  = title=E24 third, dtstart=1791061200000, dtend=1791064800000, dirty=0, calendar_id=3
+PASS  D: … the mapping is kept in calendar_sync.json            contains ["local":20928,]
+PASS  D: … and the marker is still on the event's page          = yes
+PASS  D: Personal re-ticked                                       = true
+PASS  cal_lists: calendar 4 (Work, D: after the un-ticked delete prompt) still lists  contains [_id=4,]
+PASS  D: after the un-ticked delete prompt: Work holds exactly Offsite  = Offsite
+PASS  D: the changed occurrence of the synced series shows on its day (cal_event:<the local exception>)  = yes
+PASS  D: … its page is open                                     = yes
+PASS  D: … its Delete offers NO "here and from <calendar>" choice (no cal_delete_choice:both)  = no
+RECORD  D: … what its Delete showed (the delete prompt's nodes; none = it deleted at the tap)  [] []
+PASS  D: … it is deleted here: that day shows neither the changed occurrence nor the series' own  = no no
+RECORD  D: … the local exception's row after the delete (deleted / eventStatus)  _id=20923, deleted=0, eventStatus=2, original_id=20922
+PASS  D: … and here only: Personal's copy keeps its master and its changed occurrence (both rows live)  = 2 2
+PASS  D: … the series' other four occurrences still stand here (the provider's instances of the local master)  = 4
+PASS  cal_lists: calendar 4 (Work, D: after the changed occurrence's delete) still lists  contains [_id=4,]
+PASS  D: after the changed occurrence's delete: Work holds exactly Offsite  = Offsite
+--- restore (as E22, clock_restore, then pm clear → provision.sh → ensure_start)
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the test events are deleted                        = 0
+PASS  restore: Tessera's event count equals the count before the row  = 0
+PASS  device clock back within 2 s of the host (RV12)             1790931941.00 vs 1790931941.00 +/- 2.0
+PASS  restore: pm clear → provision.sh rc                       = 0
+PASS  restore: calendar_sync.json holds no mapping and nothing allowed after the clear  does not contain [accountName]
+PASS  restore: no calendar notification of the shell's is left    = 
+PASS  restore: layout_restore of the baseline (the row cleared the shell)  = 0
+------------------------------------------------------------------------------
+E24: 94 passed, 0 failed, 7 recorded

@@ -29,7 +29,7 @@ PY
 # Rows start from the baseline and restore what they change (PLAN RV12). This script used to run on whatever
 # Start the device happened to show, and step 5's press target was not on it (2026-09-22).
 layout_save "$OUT/r_layout_device.json"
-layout_restore "$HERE/../baseline_layout.json" || { say "FAIL could not seed the baseline"; exit 1; }
+layout_restore "${REGRESS_BASELINE:-$HERE/../baseline_layout.json}" || { say "FAIL could not seed the baseline"; exit 1; }
 
 adb shell input keyevent KEYCODE_HOME; sleep 2.5
 dump "$OUT/r_start.xml"

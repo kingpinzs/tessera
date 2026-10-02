@@ -1,0 +1,44 @@
+==============================================================================
+ROW E1_CHILDREN — E1's children only: phase 01 E4 / E4b, phase 14 E3, phase 15 E0 on this build
+at            2026-10-01T22:59:41-06:00
+driver        e1.sh blob 8f3486ba7871aa69c0825eee77e16d26f75fc1d7
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  children read from an earlier run, not run again            phase 01 E4 / E4b and phase 14 E3, from E1-fixbuild-run1-driver-faults-and-auxio-fixture-87-6 (its log names the same APK: 3c1ad1e0e65bd919); phase 15 E0 ran now
+PASS  the reused children ran on the APK installed now            = 3c1ad1e0e65bd919
+RECORD  this build                                                  3c1ad1e0e65bd919 341947382 bytes (66072974)
+RECORD  the pre-16 build for the upgrade leg                        aaf9a1d8ed536d25 341942604 bytes — phase-14's c0d094ad app tree (T16-7)
+PASS  the pre-16 APK is the kept one (md5 aaf9a1d8ed536d25)       = aaf9a1d8ed536d25
+      the image's Contacts: com.android.contacts/.activities.PeopleActivity; the AOSP Calendar: com.android.calendar/.AllInOneActivity
+--- children: phase 01 E4 / E4b, phase 14 E3, phase 15 E0 (phase 10 E10–E13's tile rule) on this build
+PASS  children-seed: layout_restore of the baseline               = 0
+PASS  children-seed2: layout_restore of the baseline              = 0
+PASS  children-seed3: layout_restore of the baseline              = 0
+PASS  phase 01 e4_part1.sh rc                                     = 0
+RECORD  phase 01 e4_part2.sh rc (its last command is grep -c: 1 = it counted no crash)  1
+PASS  E4b ran to its end: the crash-buffer count it logged is 0   = 0
+PASS  E4: APP_MAPS has one handler                                = 1
+PASS  E4: the Maps tile is auto-assigned (no Tap to choose)       contains [tile:slot:MAPS]
+PASS  E4: the Mail tile is unassigned                             contains [Tap to choose]
+PASS  E4: … and its Tile apps row says so                       contains [not chosen yet]
+PASS  E4: the Store tile is unassigned (its desc is the slot's label)  contains [desc=Store]
+PASS  E4: … and its Tile apps row says so                       contains [Store / None · not chosen yet]
+PASS  E4: APP_CALENDAR has two handlers on this build             = 2
+PASS  E4: APP_CONTACTS has two handlers on this build             = 2
+RECORD  E4's emptied layout: the Calendar tile                      tile:slot:CALENDAR | desc=Calendar | texts=Thursday / 1 / Calendar
+RECORD  E4's emptied layout: the People tile and its Tile apps row  tile:slot:PEOPLE | desc=People | texts=People ; tile_app_slot:PEOPLE | desc= | texts= / People / Contacts · Android's default
+PASS  E4b: the Mail picker lists K-9 by component                 contains [com.fsck.k9/]
+PASS  E4b: choosing K-9 assigned the slot                         contains [com.fsck.k9]
+      E04.txt: 76 lines; kept at /home/jeremyking/projects/metro-launcher-p16/docs/plan/qa/phase-16/E1_CHILDREN/phase-01-E04/
+PASS  phase 14 e3.sh (precondition re-cut) rc                     = 0
+PASS  phase 14 E3: 0 failed                                       contains [ passed, 0 failed]
+PASS  phase 14 E3 asserted the re-cut precondition                contains [PASS  precondition: the baseline's slots.CALENDAR is the shell's Calendar]
+PASS  phase 15 e0.sh (phase 10 E10–E13's tile rule) rc          = 0
+PASS  phase 15 E0: 0 failed                                       contains [ passed, 0 failed]
+------------------------------------------------------------------------------
+E1_CHILDREN: 22 passed, 0 failed, 6 recorded

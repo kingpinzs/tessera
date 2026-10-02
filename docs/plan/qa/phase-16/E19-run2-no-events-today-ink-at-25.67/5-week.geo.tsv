@@ -1,0 +1,32 @@
+E	Week: the drawn status bar is on the view (w10m_status_bar)	yes	yes
+E	Week: the drawn nav bar is on the view (w10m_nav_bar)	yes	yes
+W	Week: the status bar's height is BarMetrics.STATUS_EPX (28)	28	28.00	0.34
+W	Week: the nav bar's height is BarMetrics.NAV_EPX (48)	48	48.00	0.34
+W	Week: the nav bar ends at the screen's bottom edge	780.00	780.00	0.34
+W	Week: the status bar is drawn black down to its bottom edge (px column 6)	28.00	28.00	0.34
+W	Week: the nav bar is drawn black from its top edge (px column 6)	732.00	732.00	0.34
+W	K1.2 the header band is 40 epx: the black rule under it in week view is 40 epx below the status bar	40	40.00	1
+W	K4.1 the cells are split at W/2: a (80,80,80) rule at x 179–180	179	179.67	1
+W	K4.1 … 1 epx wide	1	0.67	0.34
+E	K4.1 2 × 4 cells: at least the three rules between the four rows (down the left column)	yes	yes
+W	K4.1 cell row 1 is 120 epx (rule to rule)	120	120.00	1
+W	K4.1 cell row 2 is 120 epx (rule to rule)	120	120.00	1
+W	K4.1 cell row 3 is 120 epx (rule to rule)	120	120.00	1
+W	K4.1 cell row 4 is 120 epx (a rule closes it on this taller screen)	120	120.00	1
+E	K4.1 seven day cells (cal_day labels)	7	7
+E	K4.2 every cell is labelled "23 MON"-style (18 SUN, 19 MON, 20 TUE, 21 WED, 22 THU, 23 FRI, 24 SAT)	7	7
+R	K4.2 the label "18 SUN": its ink's left edge inside its cell (epx; another leading glyph than R11's "2")	12.00
+R	K4.2 the label "19 MON": its ink's left edge inside its cell (epx; another leading glyph than R11's "2")	12.00
+W	K4.2 the label "20 TUE" at x 10 inside its cell (x 10; the ink's left edge)	10	11.00	1
+W	K4.2 the label "21 WED" at x 10 inside its cell (x 190; the ink's left edge)	190	191.00	1
+W	K4.2 the label "22 THU" at x 10 inside its cell (x 10; the ink's left edge)	10	11.00	1
+W	K4.2 the label "23 FRI" at x 10 inside its cell (x 190; the ink's left edge)	190	191.00	1
+W	K4.2 the label "24 SAT" at x 10 inside its cell (x 10; the ink's left edge)	10	11.00	1
+E	K4.2 the week shown holds labels that start with R11's glyph "2"	yes	yes
+C	K4.2 the labels are grey (151,151,151)	151 151 151	151 151 151	4
+R	K4.2 the first label's cap top under its cell's top rule (R11: 11 epx)	10.67
+W	K4.3 events in a cell are lines at a 19-epx pitch	19	19.00	1
+R	K4.3 the two lines' ink tops (px)	1408 / 1463
+C	K4.3 … tinted: the line's colour is the calendar colour's tint (the Agenda label's on this run)	107 164 210	107 164 210	4
+E	K4.3 … with no colour bar in the cell (no cal_event_bar node)	0	0
+E	K4.4 the mini month is in the eighth cell (right column, fourth row)	yes	yes

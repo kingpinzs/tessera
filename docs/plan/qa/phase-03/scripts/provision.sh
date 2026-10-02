@@ -66,6 +66,10 @@ adb shell cmd notification allow_listener app.tileshell/app.tileshell.feeds.Tile
 adb shell appops set app.tileshell GET_USAGE_STATS allow
 adb shell ime enable app.tileshell/.ime.KeyboardService
 adb shell ime set app.tileshell/.ime.KeyboardService
+# Phase 16 (C-4): People's Setup row asks READ_CONTACTS + WRITE_CONTACTS. `install -r -g` above grants both; this is
+# belt-and-braces beside it, so a provisioned AVD never shows the wizard's People step.
+adb shell pm grant app.tileshell android.permission.WRITE_CONTACTS
+echo "write contacts: $(adb shell dumpsys package app.tileshell | grep -m1 'android.permission.WRITE_CONTACTS: granted' | tr -d '\r' | xargs)"
 echo "usage access: $(adb shell appops get app.tileshell GET_USAGE_STATS | tr -d '\r')"
 echo "keyboard: $(adb shell settings get secure default_input_method | tr -d '\r')"
 

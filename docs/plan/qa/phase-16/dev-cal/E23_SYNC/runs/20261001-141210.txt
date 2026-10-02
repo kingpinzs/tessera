@@ -1,0 +1,63 @@
+==============================================================================
+ROW E23_SYNC — the first Sync, the tapped push, the hidden copy, re-Sync, delete here
+at            2026-10-01T14:12:07-06:00
+driver        e23_sync.sh blob 1453fad9a009cae4c7ab8e7efd2fa947b9025bd0
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     79cd257f3f46ca49 339305256 bytes
+apk installed c4f1563a77205e6c
+apk match     yes (c4f1563a77205e6c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      personal=3 work=4 shared(read-only)=5 offsite=206
+PASS  the fixtures exist                                          != ||
+PASS  nothing is allowed before the first Sync                    does not contain [qa.personal@example.com]
+PASS  Can sync to opened directly                                 = yes
+PASS  Personal and Work are listed, both unchecked                = false false
+PASS  each under its account's header                             = yes yes
+PASS  its one line                                                = Choose which calendars Sync may use
+PASS  no Sync target is offered yet                               = 0
+PASS  a calendar the phone may only read is not listed; nor is Tessera  = no no
+PASS  the routed line                                             contains [[calendar] sync event=207: no calendar allowed -> can sync to]
+PASS  Personal is ticked                                          = true
+calendar_sync.json: {"version":1,"allowed":[{"id":3,"accountName":"qa.personal@example.com","accountType":"com.google"}],"mappings":[],"hidden":[],"notifiedAlerts":[]}
+PASS  calendar_sync.json lists Personal's _ID, account name and type under allowed  contains ["allowed":[{"id":3,"accountName":"qa.personal@example.com","accountType":"com.google"}]]
+PASS  Back lands on the Sync picker                               = yes
+PASS  which lists Personal only                                   = cal_sync_target:3 
+PASS  under its account                                           = yes
+PASS  before any Sync, Personal holds nothing                     = 
+PASS  the sync line                                               contains [sync event=207 -> calendar 3: ok]
+PASS  Personal holds ONE event, the copy                          = E24 standup
+PASS  with the local event's start and end                        = dtstart=1790892720000, dtend=1790896320000
+PASS  after the Sync: Work holds exactly Offsite                  = Offsite
+PASS  the marker                                                  = synced to QA Personal
+PASS  with its account beside it                                  = yes
+PASS  calendar_sync.json maps the local id to Personal and the copy  contains [{"id":3,"accountName":"qa.personal@example.com","accountType":"com.google","local":207,"copy":208}]
+PASS  the copy has its own reminder row                           contains [minutes=10]
+RECORD  the copy's dirty flag (a normal insert: the account's adapter uploads it)  dirty=1
+PASS  the Day view shows Standup once, the local one              = 1 yes no
+PASS  Agenda the same                                             = yes no
+PASS  Week the same                                               = yes no
+PASS  the feed's tile and agenda gained nothing: one event        contains [agenda=1]
+PASS  the local event renamed, Sync: updated                      contains [-> calendar 3: updated]
+PASS  the copy reads the new title, still one row                 = E24 standup 2
+PASS  nothing changed on either side, Sync: ok                    contains [-> calendar 3: ok]
+PASS  the copy's title changed on the other side                  = Edited elsewhere
+PASS  Sync overwrites the other side's edit: updated              contains [-> calendar 3: updated]
+PASS  the copy's title is the local title again                   = E24 standup 2
+PASS  the copy deleted on the other side                          = 
+PASS  Sync makes it again: recreated                              contains [-> calendar 3: recreated]
+PASS  one copy again                                              = E24 standup 2
+PASS  and the notice says so                                      contains [made it again]
+PASS  after the re-Syncs: Work holds exactly Offsite              = Offsite
+PASS  the delete choice offers here and both                      = yes yes
+PASS  the local event is gone                                     = 0
+PASS  the copy is kept                                            = E24 standup 2
+PASS  its mapping is gone from calendar_sync.json                 does not contain ["local":207]
+PASS  the copy now shows in the views as Personal's event         = yes
+PASS  read-only: its page has no actions                          = yes 0
+PASS  at the end: Work holds exactly Offsite                      = Offsite
+PASS  the account calendars are gone                              = 
+PASS  Tessera holds what it held before the session               = 0
+------------------------------------------------------------------------------
+E23_SYNC: 47 passed, 0 failed, 1 recorded

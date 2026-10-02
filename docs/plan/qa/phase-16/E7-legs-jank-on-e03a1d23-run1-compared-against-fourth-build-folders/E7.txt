@@ -1,0 +1,121 @@
+==============================================================================
+ROW E7 — 5,000 events: the month drop-down, the busiest week, 12 weeks of paging, a 200-event day, the tile
+at            2026-10-02T03:17:31-06:00
+driver        e7.sh blob 35c1f19aef99473426a71ca6a01c35bcbad743f8
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob 37f8ca0771c000a3ace0ab481a2b94b60658ccfc
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     182a7851a5c76400 339129014 bytes
+apk installed e03a1d233ee6ba0c
+apk match     yes (e03a1d233ee6ba0c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  legs run                                                    fixtures, M, W, P ONLY (the janky-frames clause's run) — a narrow re-run; D (the 200-event day) and T (the tile) stand on the row's earlier run
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+--- fixtures: 5,000 events across 24 months in the QA calendar
+PASS  fixtures: the QA calendar (qa / LOCAL)                      != 
+PASS  fixtures: the driver's loop holds 5,000 insert lines (the busy month is 2026-12, its 200-event day 2026-12-15)  = 5000 5000
+RECORD  fixtures: the insert loop's run time (one adb shell: 5,000 content insert lines, 16 workers)  297 s
+PASS  fixtures: the QA calendar holds 5,000 events                = 5000
+PASS  fixtures: one month holds 400 of them (the provider's instances over 2026-12)  = 400
+PASS  fixtures: a day with 200 events (2026-12-15)                = 200
+PASS  fixtures: exactly two events inside the next 24 hours (E7 soon 1 / 2)  = 2
+--- M: the month drop-down to the busy month, then its first day's cell
+RECORD  gfxinfo, leg P1-dropdown-to-the-busy-month: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  15 / 4 / 4 / 2; 16ms 48ms 65ms; 66.7 ms = input 0.0 + animation 7.8 + traversal 0.0 + draw 46.7 (UI thread) | sync 0.0 + issue 0.7 + swap 11.4 (render thread); frame 1 of 15
+PASS  M: cal_month_dropdown is open and dumped                    = yes
+PASS  M: … showing the busy month: cal_month_cell:2026-12-01    = yes
+RECORD  gfxinfo, leg P2-agenda-busy-month-first-day: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  3 / 3 / 2 / 2; 48ms 48ms 48ms; 50.1 ms = input 0.0 + animation 22.3 + traversal 0.1 + draw 11.4 (UI thread) | sync 0.1 + issue 1.8 + swap 14.2 (render thread); frame 1 of 3
+PASS  M: Agenda at that day — its dump is available: cal_view_mode:agenda selected  = true
+PASS  M: … with that day's heading in the list (cal_day:2026-12-01 inside cal_agenda)  = yes
+PASS  M: … and the drop-down closed                             = no
+view agenda after the tap: 211 53 568 2026-11-29 2027-01-23 (wall−MARK ms, in-ms, n, from, to)
+PASS  M: the slice holds a [calendar] view agenda <from>..<to>: n instances in <ms> ms line  != none
+PASS  M: … its ms ≤ 3000                                      = yes
+PASS  M: … and wall= − MARK ≤ 3000                          = yes
+RECORD  M: the agenda's window and its instance count               2026-11-29..2027-01-23: 568 instances
+--- W: the Week view of the busy month's busiest week (the week of 2026-12-15)
+RECORD  gfxinfo, leg P3-dropdown-to-the-200-event-day: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  16 / 5 / 4 / 2; 16ms 48ms 48ms; 50.1 ms = input 0.0 + animation 21.2 + traversal 0.0 + draw 11.7 (UI thread) | sync 0.1 + issue 1.4 + swap 15.5 (render thread); frame 14 of 16
+RECORD  gfxinfo, leg P4-week-busiest: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  19 / 5 / 2 / 3; 16ms 42ms 48ms; 50.1 ms = input 0.0 + animation 19.9 + traversal 0.0 + draw 12.9 (UI thread) | sync 0.0 + issue 1.4 + swap 15.6 (render thread); frame 19 of 19
+PASS  W: the Week view is showing (cal_view_mode:week selected)   = true
+PASS  W: … of the week that holds 2026-12-15                    = yes
+view week after the tap: 203 42 248 2026-12-13 2026-12-19
+PASS  W: the slice holds its [calendar] view week line            != none
+PASS  W: … its ms ≤ 3000                                      = yes
+PASS  W: … and wall= − MARK ≤ 3000                          = yes
+      the week 2026-12-13..2026-12-19: the line's n 248; the host's instances/when/1797145200000/1797749999999 count 248
+PASS  W: … its n equals the host's content query …/instances/when/<week start>/<week end> count  = 248
+PASS  W: … and it is the busiest week (it holds the 200-event day: n ≥ 200)  = yes
+--- P: paging 12 weeks forward, a MARK before each swipe
+RECORD  gfxinfo, leg P5-swipe-01: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  32 / 4 / 2 / 2; 18ms 32ms 48ms; 49.7 ms = input 1.1 + animation 8.9 + traversal 0.0 + draw 31.2 (UI thread) | sync 0.1 + issue 1.3 + swap 6.9 (render thread); frame 1 of 32
+RECORD  gfxinfo, leg P5-swipe-02: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  32 / 3 / 1 / 2; 16ms 19ms 32ms; 33.4 ms = input 0.5 + animation 1.4 + traversal 0.0 + draw 0.2 (UI thread) | sync 0.0 + issue 0.3 + swap 30.9 (render thread); frame 15 of 32
+RECORD  gfxinfo, leg P5-swipe-03: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  31 / 5 / 4 / 2; 16ms 32ms 32ms; 33.4 ms = input 0.0 + animation 10.9 + traversal 0.0 + draw 13.9 (UI thread) | sync 0.0 + issue 1.5 + swap 6.8 (render thread); frame 30 of 31
+RECORD  gfxinfo, leg P5-swipe-04: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  31 / 4 / 3 / 3; 16ms 16ms 32ms; 33.4 ms = input 0.0 + animation 10.6 + traversal 0.0 + draw 9.5 (UI thread) | sync 0.0 + issue 0.4 + swap 12.8 (render thread); frame 31 of 31
+RECORD  gfxinfo, leg P5-swipe-05: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  31 / 4 / 3 / 2; 16ms 16ms 32ms; 33.4 ms = input 0.0 + animation 11.6 + traversal 0.0 + draw 10.9 (UI thread) | sync 0.0 + issue 0.3 + swap 10.5 (render thread); frame 31 of 31
+RECORD  gfxinfo, leg P5-swipe-06: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  32 / 3 / 1 / 2; 16ms 19ms 32ms; 33.4 ms = input 0.4 + animation 1.0 + traversal 0.0 + draw 0.2 (UI thread) | sync 0.0 + issue 0.3 + swap 31.4 (render thread); frame 15 of 32
+RECORD  gfxinfo, leg P5-swipe-07: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  32 / 4 / 2 / 2; 18ms 20ms 32ms; 33.4 ms = input 0.0 + animation 9.0 + traversal 0.0 + draw 12.9 (UI thread) | sync 0.0 + issue 1.1 + swap 10.3 (render thread); frame 31 of 32
+RECORD  gfxinfo, leg P5-swipe-08: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  32 / 4 / 2 / 2; 18ms 19ms 32ms; 33.4 ms = input 0.0 + animation 10.7 + traversal 0.0 + draw 10.0 (UI thread) | sync 0.0 + issue 0.3 + swap 12.1 (render thread); frame 32 of 32
+RECORD  gfxinfo, leg P5-swipe-09: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  32 / 4 / 2 / 2; 18ms 21ms 32ms; 33.4 ms = input 0.0 + animation 11.0 + traversal 0.0 + draw 9.9 (UI thread) | sync 0.0 + issue 0.4 + swap 11.9 (render thread); frame 32 of 32
+RECORD  gfxinfo, leg P5-swipe-10: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  32 / 4 / 2 / 3; 18ms 20ms 32ms; 33.4 ms = input 0.0 + animation 8.7 + traversal 0.0 + draw 8.6 (UI thread) | sync 0.0 + issue 0.3 + swap 15.6 (render thread); frame 32 of 32
+RECORD  gfxinfo, leg P5-swipe-11: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  33 / 4 / 2 / 3; 18ms 19ms 32ms; 33.4 ms = input 0.5 + animation 0.9 + traversal 0.0 + draw 0.1 (UI thread) | sync 0.0 + issue 0.3 + swap 31.4 (render thread); frame 16 of 33
+RECORD  gfxinfo, leg P5-swipe-12: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages  32 / 4 / 2 / 3; 18ms 19ms 32ms; 33.4 ms = input 0.0 + animation 8.5 + traversal 0.0 + draw 8.3 (UI thread) | sync 0.0 + issue 0.4 + swap 16.1 (render thread); frame 32 of 32
+the 12 swipes (swipe, wall−MARK, in-ms, n, from, to):
+   1 645 52 56 2026-12-20 2026-12-26
+   2 599 19 8 2026-12-27 2027-01-02
+   3 632 33 56 2027-01-03 2027-01-09
+   4 605 24 56 2027-01-10 2027-01-16
+   5 605 25 56 2027-01-17 2027-01-23
+   6 596 21 32 2027-01-24 2027-01-30
+   7 618 28 32 2027-01-31 2027-02-06
+   8 608 26 56 2027-02-07 2027-02-13
+   9 601 24 56 2027-02-14 2027-02-20
+   10 609 25 56 2027-02-21 2027-02-27
+   11 626 35 32 2027-02-28 2027-03-06
+   12 607 23 56 2027-03-07 2027-03-13
+PASS  P: every one of the 12 swipes gave a view week line         = 12
+PASS  P: … twelve different weeks, each seven days on from the last  = 12
+PASS  P: every view week line has ms ≤ 3000                     = 12
+PASS  P: … and wall= − that swipe's MARK ≤ 3000             = 12
+the legs (name, total frames, janky, slow UI thread, slow draw, 50th, 90th, 99th, the longest frame in ms, its stages):
+   P1-dropdown-to-the-busy-month	15	4	4	2	16ms	48ms	65ms	66.7	input 0.0 + animation 7.8 + traversal 0.0 + draw 46.7 (UI thread) | sync 0.0 + issue 0.7 + swap 11.4 (render thread); frame 1 of 15
+   P2-agenda-busy-month-first-day	3	3	2	2	48ms	48ms	48ms	50.1	input 0.0 + animation 22.3 + traversal 0.1 + draw 11.4 (UI thread) | sync 0.1 + issue 1.8 + swap 14.2 (render thread); frame 1 of 3
+   P3-dropdown-to-the-200-event-day	16	5	4	2	16ms	48ms	48ms	50.1	input 0.0 + animation 21.2 + traversal 0.0 + draw 11.7 (UI thread) | sync 0.1 + issue 1.4 + swap 15.5 (render thread); frame 14 of 16
+   P4-week-busiest	19	5	2	3	16ms	42ms	48ms	50.1	input 0.0 + animation 19.9 + traversal 0.0 + draw 12.9 (UI thread) | sync 0.0 + issue 1.4 + swap 15.6 (render thread); frame 19 of 19
+   P5-swipe-01	32	4	2	2	18ms	32ms	48ms	49.7	input 1.1 + animation 8.9 + traversal 0.0 + draw 31.2 (UI thread) | sync 0.1 + issue 1.3 + swap 6.9 (render thread); frame 1 of 32
+   P5-swipe-02	32	3	1	2	16ms	19ms	32ms	33.4	input 0.5 + animation 1.4 + traversal 0.0 + draw 0.2 (UI thread) | sync 0.0 + issue 0.3 + swap 30.9 (render thread); frame 15 of 32
+   P5-swipe-03	31	5	4	2	16ms	32ms	32ms	33.4	input 0.0 + animation 10.9 + traversal 0.0 + draw 13.9 (UI thread) | sync 0.0 + issue 1.5 + swap 6.8 (render thread); frame 30 of 31
+   P5-swipe-04	31	4	3	3	16ms	16ms	32ms	33.4	input 0.0 + animation 10.6 + traversal 0.0 + draw 9.5 (UI thread) | sync 0.0 + issue 0.4 + swap 12.8 (render thread); frame 31 of 31
+   P5-swipe-05	31	4	3	2	16ms	16ms	32ms	33.4	input 0.0 + animation 11.6 + traversal 0.0 + draw 10.9 (UI thread) | sync 0.0 + issue 0.3 + swap 10.5 (render thread); frame 31 of 31
+   P5-swipe-06	32	3	1	2	16ms	19ms	32ms	33.4	input 0.4 + animation 1.0 + traversal 0.0 + draw 0.2 (UI thread) | sync 0.0 + issue 0.3 + swap 31.4 (render thread); frame 15 of 32
+   P5-swipe-07	32	4	2	2	18ms	20ms	32ms	33.4	input 0.0 + animation 9.0 + traversal 0.0 + draw 12.9 (UI thread) | sync 0.0 + issue 1.1 + swap 10.3 (render thread); frame 31 of 32
+   P5-swipe-08	32	4	2	2	18ms	19ms	32ms	33.4	input 0.0 + animation 10.7 + traversal 0.0 + draw 10.0 (UI thread) | sync 0.0 + issue 0.3 + swap 12.1 (render thread); frame 32 of 32
+   P5-swipe-09	32	4	2	2	18ms	21ms	32ms	33.4	input 0.0 + animation 11.0 + traversal 0.0 + draw 9.9 (UI thread) | sync 0.0 + issue 0.4 + swap 11.9 (render thread); frame 32 of 32
+   P5-swipe-10	32	4	2	3	18ms	20ms	32ms	33.4	input 0.0 + animation 8.7 + traversal 0.0 + draw 8.6 (UI thread) | sync 0.0 + issue 0.3 + swap 15.6 (render thread); frame 32 of 32
+   P5-swipe-11	33	4	2	3	18ms	19ms	32ms	33.4	input 0.5 + animation 0.9 + traversal 0.0 + draw 0.1 (UI thread) | sync 0.0 + issue 0.3 + swap 31.4 (render thread); frame 16 of 33
+   P5-swipe-12	32	4	2	3	18ms	19ms	32ms	33.4	input 0.0 + animation 8.5 + traversal 0.0 + draw 8.3 (UI thread) | sync 0.0 + issue 0.4 + swap 16.1 (render thread); frame 32 of 32
+RECORD  the longest frame of every leg: the longest of all; the legs with a frame of 100 ms or more  66.7 ms in P1-dropdown-to-the-busy-month; []
+RECORD  P3: the longest frame when the Agenda lands on the 200-event day (266.7 ms on build 6009c0b1 with 5,000 events, 50.1 ms on its empty calendar)  50.1 ms — the long frame is gone (under 100 ms)
+dumpsys gfxinfo app.tileshell over the run = the sum of its legs (total frames, janky frames, janky %): 435 64 14.71
+PASS  P: gfxinfo counted frames over the run                      != 0
+RECORD  P: the doc's clause as worded (janky frames ≤ 5 % over the run) reads  14.71% — NOT asserted in this run (E7_MEASURE=compare)
+FAIL  P: compare — the baseline folder is a BASELINE run of this row on the build installed now  expected [yes yes] got [yes no]
+RECORD  P: compare — the baseline's sum (total frames, janky, janky %) from E7-baseline-empty-calendar-on-3c5e3199  431 49 11.37
+FAIL  P: compare — the Dframes folder is a Dframes run of this row on the build installed now  expected [yes yes] got [yes no]
+RECORD  P: compare — the Day view's legs from E7-legs-D-frames-on-3c5e3199 (leg: longest frame)  D1-day-view-opens-on-the-200-event-day: 100.1 ms; D2-scroll-01: 16.8 ms; D2-scroll-02: 16.8 ms; D2-scroll-03: 16.8 ms; D2-scroll-04: 16.8 ms; D2-scroll-05: 16.8 ms
+PASS  P: compare — every leg's longest frame is under 100 ms: this run's legs (P1–P5)  = 
+FAIL  P: compare — … and the Day view's legs (D1 the open on the 200-event day, D2 its scroll)  expected [] got [D1-day-view-opens-on-the-200-event-day (100.1 ms)]
+PASS  P: compare — … the Day view's legs were read (their count)  != 0
+PASS  P: compare — the run's janky share (14.71%) is no more than the baseline's (11.37%) + 5 points  = yes
+--- restore: the QA calendar deleted (its events cascade)
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+RECORD  restore: the delete's run time                              4 s
+PASS  restore: the QA calendar is gone                            = 
+PASS  restore: its events cascaded — no E7 event is left        = 0
+PASS  restore: Tessera's event count equals the count before the row  = 0
+PASS  restore: no new crash of the shell during the row           = 0
+------------------------------------------------------------------------------
+E7: 35 passed, 3 failed, 25 recorded

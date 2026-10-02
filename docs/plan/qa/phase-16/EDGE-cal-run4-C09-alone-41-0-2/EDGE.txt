@@ -1,0 +1,58 @@
+==============================================================================
+ROW EDGE — the Edge cases: every bullet, by the index
+at            2026-10-02T01:26:02-06:00
+driver        edge.sh blob 1d32d1f3e48005546ca8672499155dbb0e50965f
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     03c09e0494b33ec0 343237622 bytes
+apk installed 6009c0b14a87039f
+apk match     yes (6009c0b14a87039f)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      time zone before: America/Boise; time_12_24 before: null
+PASS  the index covers the doc's 23 Edge-case bullets             = B01 B02 B03 B04 B05 B06 B07 B08 B09 B10 B11 B12 B13 B14 B15 B16 B17 B18 B19 B20 B21 B22 B23
+PASS  … and the doc's "Edge cases" has that many bullets        = 23
+PASS  no index line is without a place it is run                  = 0
+PASS  the index names row E1: its driver exists                   = yes
+PASS  the index names row E10: its driver exists                  = yes
+PASS  the index names row E11: its driver exists                  = yes
+PASS  the index names row E12: its driver exists                  = yes
+PASS  the index names row E16: its driver exists                  = yes
+PASS  the index names row E17: its driver exists                  = yes
+PASS  the index names row E18: its driver exists                  = yes
+PASS  the index names row E22: its driver exists                  = yes
+PASS  the index names row E24: its driver exists                  = yes
+PASS  the index names row E28: its driver exists                  = yes
+PASS  the index names row E6: its driver exists                   = yes
+PASS  the index names the JVM test PeopleTileRulesTest: it exists  != 
+PASS  the index names the JVM test PeopleWriteGuardTest: it exists  != 
+PASS  the index names the JVM test SlotSeedTest: it exists        != 
+RECORD  sub-steps                                                   EDGE_ONLY=C09: a development run, not the gate's
+--- C09: B07.1
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  C09: fixtures — no contact carries a birthday yet         = 0
+PASS  C09: fixtures — a Birthdays calendar exists               != 
+RECORD  C09: Birthdays right after another app deleted it, before any contacts change or start  []
+PASS  C09: recreated at the next contacts change                  != 
+PASS  C09: … under Tessera Birthdays, access 200                contains [account_name=Tessera Birthdays, account_type=LOCAL, calendar_displayName=Birthdays, calendar_access_level=200]
+PASS  C09: … holding both birthdays                             = 2
+PASS  C09: deleted again (the shell running, no contacts change)  = 
+PASS  C09: the shell was restarted (a new process)                != 2895
+PASS  C09: recreated at the next start                            != 
+PASS  C09: Tessera is untouched                                   = Row: 0 _id=1, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700, visible=1
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  C09: restore — no birthday row is left                    = 0
+PASS  restore: the calendar provider is enabled                   does not contain [com.android.providers.calendar]
+PASS  restore: READ_CALENDAR held                                 = true
+PASS  restore: WRITE_CALENDAR held                                = true
+PASS  restore: READ_CONTACTS held                                 = true
+PASS  restore: WRITE_CONTACTS held                                = true
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the time zone                                      = America/Boise
+PASS  restore: time_12_24                                         = null
+PASS  device clock back within 2 s of the host (RV12)             1790926033.00 vs 1790926033.00 +/- 2.0
+PASS  restore: layout_restore of the baseline                     = 0
+PASS  restore: user 0 only                                        = 1
+------------------------------------------------------------------------------
+EDGE: 41 passed, 0 failed, 2 recorded

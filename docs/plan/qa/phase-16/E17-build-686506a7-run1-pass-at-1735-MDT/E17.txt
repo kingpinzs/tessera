@@ -1,0 +1,103 @@
+==============================================================================
+ROW E17 — Birthdays: a contact's birthday becomes a read-only calendar event with the Calendar app never opened
+at            2026-10-01T17:34:17-06:00
+driver        e17.sh blob 2aca7714b2de98996f95c31193cf5ba0ccb221d9
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     d008aec0c1318519 340591758 bytes
+apk installed 686506a7a7936b2e
+apk match     yes (686506a7a7936b2e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+--- A: the first birthday, with the Calendar app not opened
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  A: precondition — no contact carries a birthday yet       = 0
+PASS  A: precondition — Tessera exists (the shell's own calendar)  != 
+      people_fixtures_up: raw ids ann=224 bob=225 zoe=226 zhang=227 number-only=228 cara=229,230 (raw contacts before: 2)
+PASS  A: people_fixtures_up — the row's own Ann                 != 
+PASS  A: people_fixtures_up — the row's own Bob                 != 
+PASS  A: no Birthdays calendar (asserted)                         = 
+PASS  A: the Calendar app is NOT open (Start is on top since the last ensure_start)  = app.tileshell/.StartActivity
+RECORD  the device's time and zone at the row's start               2026-10-01 17:35 MDT (-0600)
+      the Birthdays calendar's id [3] after 1 s
+PASS  A: within 5 s the provider has a "Birthdays" local calendar  != 
+its row: Row: 1 _id=3, account_name=Tessera Birthdays, account_type=LOCAL, calendar_displayName=Birthdays, calendar_access_level=200, visible=1
+PASS  A: … account_name Tessera Birthdays                       contains [account_name=Tessera Birthdays,]
+PASS  A: … a LOCAL calendar                                     contains [account_type=LOCAL,]
+PASS  A: … named Birthdays                                      contains [calendar_displayName=Birthdays,]
+PASS  A: … access 200                                           contains [calendar_access_level=200,]
+PASS  A: … never Tessera: Tessera's own row is untouched, still the only one of its account  = Row: 0 _id=2, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700, visible=1
+its events: _id=666, title=Ann Lee's birthday, dtstart=654739200000, allDay=1, rrule=FREQ=YEARLY, duration=P1D
+PASS  A: an event "Ann Lee's birthday" in it                      != 
+PASS  A: … all-day                                              contains [allDay=1,]
+PASS  A: … yearly: the events query shows the rrule FREQ=YEARLY  contains [rrule=FREQ=YEARLY]
+PASS  A: … from the birthday's own date (1990-10-01, UTC midnight)  contains [dtstart=654739200000,]
+PASS  A: … with an instance today                               = 1
+PASS  A: the slice from the MARK holds [calendar] birthdays: 1 synced  contains [[calendar] birthdays: 1 synced]
+PASS  A: the birthday event has no reminder rows (T16-4)          = No result found.
+PASS  A: all of it with the Calendar app never opened and the shell never restarted (same pid, Start on top)  = 16739 app.tileshell/.StartActivity
+--- B: the tile, the Agenda pod, Tess, the Calendar app
+the feed after the birthday: [calendar] refresh (provider change): access=true faces=2 agenda=1
+the CALENDAR tile's texts over 16 dumps:       4 Calendar;      5 Calendar|Ann Lee's birthday|All day;      7 Calendar|Thursday|1;
+PASS  B: the tile shows it today (dumps of 16 in which the CALENDAR tile reads Ann Lee's birthday)  != 0
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  B: the pod bay is showing, its Agenda pod on screen         = yes yes
+the Agenda pod's rows: All day  Ann Lee's birthday
+PASS  B: phase 14's Agenda pod lists it (a pod_row:agenda: text)  contains [Ann Lee's birthday]
+Tess: [You have Ann Lee's birthday.]
+PASS  B: Tess's typed "what is on my calendar" names it           contains [Ann Lee's birthday]
+PASS  B: the Calendar app shows it on today's date — today's Day view holds its cal_event node  = yes
+PASS  B: … reading its title                                    = Ann Lee's birthday
+PASS  B: … in today's all-day band (cal_allday:2026-10-01)      = yes
+PASS  B: … and the Agenda lists it under today's heading        contains [2026-10-01	666	]
+PASS  B: the editor refuses to edit it — cal_event_page:<id> present  = yes
+PASS  B: … and no cal_event_action:edit (a read-only calendar)  = no
+RECORD  B: every cal_event_action node on the birthday's page       []
+RECORD  B: the pane lists Birthdays under its own account (row / header)  yes / Tessera Birthdays
+--- C: removing the birthday row removes the event
+PASS  C: Ann's event is gone from the Birthdays calendar          = 
+PASS  C: … no events row of it is left                          = 0
+RECORD  C: the birthdays line after the removal, and the calendar (kept, empty, when the last one goes — r3 D14)  [calendar] birthdays: 0 synced / calendar id [3]
+--- D: the date forms (r3 D14)
+events after the date forms: _id=667, title=Bob Stone's birthday, dtstart=1790899200000, allDay=1, rrule=FREQ=YEARLY, duration=P1D
+_id=668, title=Zoë Ǻrén's birthday, dtstart=699321600000, allDay=1, rrule=FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1, duration=P1D
+PASS  D: a no-year birthday on Bob (--MM-dd of tomorrow) → an event  != 
+PASS  D: … yearly                                               contains [rrule=FREQ=YEARLY]
+PASS  D: … all-day                                              contains [allDay=1,]
+PASS  D: … on tomorrow's date (this year's: dtstart = tomorrow's UTC midnight)  contains [dtstart=1790899200000,]
+PASS  D: … with an instance tomorrow                            = 1
+PASS  D: a 29 February birthday (1992-02-29 on a third fixture) → an event from that date  != 
+PASS  D: … its rrule is FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1  contains [rrule=FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1]
+PASS  D: … instances over February 2027: one, on 28 February    = 2027-02-28
+PASS  D: … instances over February 2028: one, on 29 February    = 2028-02-29
+PASS  D: the line counts both                                     contains [[calendar] birthdays: 2 synced]
+PASS  D: no birthday event has a reminder row                     = No result found.
+--- E: a Tess "add" made while Birthdays exists lands in Tessera (T16-2 line 2)
+PASS  E: Birthdays exists                                         != 
+PASS  E: Tess shows the confirm card                              = yes
+      Tess said after the tap: [Added to your calendar.]
+PASS  E: standup lands in Tessera                                 = calendar_id=2
+PASS  E: … and the Birthdays calendar holds only its birthdays  = 2
+PASS  E: … nothing else                                         = 2
+--- F: creation refused (T16-19)
+PASS  F: Birthdays is deleted                                     = 
+PASS  F: pm disable-user com.android.providers.calendar           = 0
+[calendar] birthdays calendar could not be created: java.lang.IllegalStateException: the calendar provider gave no answer
+PASS  F: a birthday added to Bob → [calendar] birthdays calendar could not be created: <err>  contains [[calendar] birthdays calendar could not be created: ]
+PASS  F: … and no crash (no new crash entry)                    = 0
+PASS  F: … the shell's process is the same one                  = 18941
+PASS  F: pm enable com.android.providers.calendar                 = 1
+RECORD  F: Birthdays right after the enable, before any contacts change  []
+PASS  F: the next contacts change creates Tessera Birthdays again  != 
+PASS  F: … under its own account, access 200                    contains [account_name=Tessera Birthdays, account_type=LOCAL, calendar_displayName=Birthdays, calendar_access_level=200]
+PASS  F: … holding the birthdays the contacts carry now (Ann's and Bob's)  = 2
+PASS  F: Tessera is still the one calendar of its account (a LOCAL calendar survives the provider's restart)  = 1
+--- restore (r3 V10)
+PASS  restore: pm enable com.android.providers.calendar (asserted enabled)  = 1
+PASS  restore: the birthday data rows are removed                 = 0
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: Tess's added event is deleted                      = 0
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  restore: no new crash of the shell during the row           = 0
+------------------------------------------------------------------------------
+E17: 65 passed, 0 failed, 5 recorded

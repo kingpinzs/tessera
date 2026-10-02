@@ -122,6 +122,41 @@ adapter uploads).
 - Alarms & Clock, Calculator, Voice Recorder (15), Photos / Camera / video (17), Files (18), the Settings front (19)
 
 ## Decisions
+- 2026-10-02: Build question Q-16-6 — E7's janky-frames clause stays as written and is recorded as FAILED on the
+  emulator; smoothness is judged by the owner on the phone (Jeremy: "C", 06:43; rejected: A, judge it against the same
+  run on an empty calendar — at most 5 points above it and no frame over 100 ms; B, keep 5 % on the frames late through
+  the app's own work, after a rework of week paging). Why it was asked: "≤ 5 % janky frames over the run" reads
+  14.98 % with 5,000 events on the gate's line of builds and 11.55 % with an EMPTY calendar on the same build — about
+  two frames of every 32-frame swipe are late at the finger's lift with under 3 ms of app work in them, so the bound
+  cannot be met on this emulator whatever the product does (`qa/phase-16/defects/D-E7-1.md`, every frame on file). What
+  the measurement did find and the build fixed: a 267 ms frame when the Agenda landed on a 200-event day and a 345 ms
+  frame when the Day view opened on it (now 50.1 ms each at most). The numbers stay on record; nothing is re-cut to
+  make the row pass. Phone row P11 (`qa/phase-16/NEEDS-HUMAN.md`) is the judgment.
+- 2026-10-01: Build question Q-16-5 — E15's APK growth bound is 5 MB, and code files (`classes*.dex`) are exempt from
+  the "no new entry ≥ 1 MB" check (Jeremy: "A"; rejected: B, keep 2 MB and shrink the code; C, drop the growth bound
+  for this phase). Why it was asked: the fix build's file is 4,761,142 bytes larger than the APK before task 2, and a
+  debug build shards its code into `classes<n>.dex` files whose numbers move from build to build, so two code files
+  of 1 MB or more appear under names the earlier APK did not have. FACT FOUND AFTER the ruling (agent; told to the
+  owner the same day): the 4.76 MB is mostly packaging, not content — the entries' own bytes grew 1,934,084 (all of it
+  `classes*.dex`: 37.7 MB → 39.6 MB), and the rest is dead space an incremental build leaves in a debug APK (the same
+  content measured 1.6 MB to 5.1 MB of overhead across this phase's builds; the "before" APK was a first build, 0.4 MB).
+  The ruling stands as given; E15's clause is asserted on the final APK as `stat -c%s` after − before ≤ 5 MB with no
+  new entry ≥ 1 MB other than `classes*.dex`, and the entries' own growth is recorded beside it (INDEX Change Log
+  2026-10-01).
+- 2026-10-01: Build question Q-16-4 — alerts that were due before the shell's first start are skipped (Jeremy: "a";
+  rejected: B, build r3 D6 (c) as written and see on the phone whether a burst happens; C, skip any alert whose event has
+  already ended). The reminder receiver, as r3 D6 (c) specified it, notifies for every alert that is due and not yet
+  handled by the shell; on a phone that already has a calendar app, its first run after install would notify for every
+  alert of the provider's retention window (about a week) that the other app fired and the user never dismissed. The
+  shell reminds only for alerts that come due AFTER its first start on this install. How it is built (agent; INDEX
+  Change Log 2026-10-01): the shell's store keeps the wall-clock time of its first start (`remindersSince`, written
+  once, when the store is first created — a `pm clear` or a fresh install starts it again; an update keeps it, and the
+  first build that carries the field sets it at its own first start); the receiver's re-read keeps the rows with
+  `alarmTime` ≥ that time and drops the older ones without a notification and without a write, logging once per poke
+  `[calendar] reminder: n skipped (due before the shell's first start)` when n > 0; a stored time later than the
+  device's now (the clock was set back) is lowered to now, so a clock change can never silence reminders for good. A
+  reminder that came due while the phone was off, after the first start, still arrives late (P7 unchanged). The pure
+  rule has a JVM test; E6 gains leg (e).
 - 2026-09-30: Round 3 Q-16-1 — the shell's Calendar and People take their slots once (Jeremy: "(A)", Q-16-1,
   review/2026-09-30-phase16-r3-triage.md; rejected: B, keep the earlier pick with a phone row to re-point; C, a prompt on
   first Start). On the update that brings them, the shell's Calendar and People take the CALENDAR and PEOPLE slots ONCE,
@@ -302,9 +337,11 @@ adapter uploads).
   `CalendarFeed`, so the tile, the Agenda pod and Tess see birthdays with the Calendar app never opened; the calendar is
   created when the first birthday exists (never empty at first start) and is kept, empty, when the last one goes. Date
   forms: `yyyy-MM-dd` → a yearly all-day event from that date; `--MM-dd` (no year) → the same from this year's date; 29
-  February (either form) → `RRULE:FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1`, so it shows on 29 February in a leap year and on
-  28 February otherwise (approximation, H5; Verify at build start 5); a value in neither form is skipped and is not
-  counted in `birthdays: n synced`
+  February (either form) → ~~`RRULE:FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1`~~ `RRULE:FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1`
+  (RE-CUT 2026-10-01 by Verify at build start 5, INDEX Change Log: the provider gives the YEARLY form an instance in
+  leap years only; a no-year 29 February in a year without one starts on that year's 28 February), so it shows on 29
+  February in a leap year and on 28 February otherwise (approximation, H5; Verify at build start 5); a value in neither
+  form is skipped and is not counted in `birthdays: n synced`
 - 2026-09-22: People over the provider (agent; Q1 A, ruled 2026-09-23). List order and letter buckets come from
   the provider (`SORT_KEY_PRIMARY`, `PHONEBOOK_LABEL`), so non-Latin names file where Android files them, and People's own
   jump grid (r11/people.md §3, T16-13; was "the jump grid (X8)") is built from those labels rather than from phase 01's
@@ -376,6 +413,7 @@ adapter uploads).
   Start while the People tile cycles never idles, so its dumps go through phase 05's gesture driver (C-10, Acceptance
   preamble). The tags and lines round 3 added are the "Harness, round 3" line at the end of Decisions
 - 2026-09-22: APK budget (agent; phase 03's ≤ 600 MB): code only; E15 records the delta, ≤ 2 MB, no new asset ≥ 1 MB
+  (RE-CUT 2026-10-01 by ruling Q-16-5, Jeremy: "A": ≤ 5 MB, and code files are exempt from the 1 MB check)
 - 2026-09-22: App-list regression (agent; R10 testability 35): two new entries; E2 runs the phase-02 `regress.sh` pattern
   and asserts no "New" caption (X14)
 - 2026-09-23 (review triage T16-2, doc update; J6 is built in code, outside the phase docs): **the shell's local calendar is
@@ -538,7 +576,9 @@ adapter uploads).
   SCHEDULED or FIRED — another calendar app may have flipped the row to FIRED first, so a SCHEDULED-only read can find
   nothing — less the alert ids in its own notified set (kept in the shell's store, since the receiver may run in a fresh
   process) and less a synced copy's alerts (Q-16-2). It posts one notification per remaining alert, records the id and
-  marks the row FIRED; dismissing the notification marks it DISMISSED. (d) That state update is the write guard's case
+  marks the row FIRED; dismissing the notification marks it DISMISSED. ADDED 2026-10-01 (Q-16-4, Jeremy: "a"): the
+  re-read also drops every row whose `alarmTime` is before the shell's first start on this install — no notification,
+  no write, one `skipped (due before the shell's first start)` line per poke. (d) That state update is the write guard's case
   (4). (e) The notification is `VISIBILITY_PRIVATE`: over a locked screen it shows that a calendar reminder fired, not
   the event's title (H7). Reason: the four gaps r3 D6 found; a forged poke can then do no more than make the receiver
   re-read the provider.
@@ -672,6 +712,10 @@ adapter uploads).
   "phone-only" for Q-16-3 (P8 checks it on the phone); (5) that the provider expands
   `FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1` to February's last day (D14; E17 asserts it — if it does not, the 29 February
   form is re-cut before task 3 and Jeremy is told).
+  RESULTS 2026-10-01 (qa/phase-16/BUILDSTART/README.md): (1) `content://com.android.calendar/<alarmTime>`, delivered to
+  manifest receivers; (2) the provider does not gate — a normal insert into a level-200 calendar is accepted; (3) they
+  are dropped, and calendar ids are reused; (4) NULL / NULL on the AVD; (5) it does NOT — the form is re-cut to
+  `FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1` (INDEX Change Log 2026-10-01).
 
 ## Interview queue (Stage A step 4)
 Ask one at a time, in this order.
@@ -1033,7 +1077,14 @@ asserted relative to the drawn bar's bottom edge.
   from a MARK, `adb shell am broadcast -a android.intent.action.EVENT_REMINDER -d content://com.android.calendar/1 -n
   app.tileshell/.calendar.CalendarReminderReceiver` with no alert due → no new notification and no `notified` line
   (`absent_in`). **(d) Reboot:** `adb reboot` with a reminder 3 min ahead, the boot poll and `wake_device`
-  asserting `Awake` (C-25) → after boot the provider re-armed it (`dumpsys alarm`) and it notifies at its time. Restore
+  asserting `Awake` (C-25) → after boot the provider re-armed it (`dumpsys alarm`) and it notifies at its time. **(e) Due
+  before the shell's first start (added 2026-10-01, Q-16-4):** with the AOSP Calendar disabled, event A with a 10-minute
+  reminder; Android's Settings in front, `pm clear app.tileshell` (the shell is stopped, its store gone); `jump_clock`
+  past A's T−10 min, so A's alert comes due while no shell runs (its `calendar_alerts` row asserted present, state 0 or
+  1); `provision.sh` → `ensure_start` — the shell's first start is now AFTER A's alert came due; event B with a
+  10-minute reminder, `jump_clock` to 5 s before B's T−10 min, a MARK → within 10 s exactly ONE notification of the
+  shell's, titled B; none titled A; A's alert row's state unchanged from its read before the poke; and the slice holds
+  `[calendar] reminder: 1 skipped (due before the shell's first start)` and one `notified` line, B's. Restore
   (r3 V10): `pm enable com.android.calendar`, the events and their reminders deleted, `clock_restore` (its force-stop also
   removes the shell's notifications — asserted: `dumpsys notification --noredact` then holds none on the calendar channel)
 - E7 Thousands of events: a driver loop inserts 5,000 events across 24 months into the QA calendar (run time `record`ed),
@@ -1044,7 +1095,7 @@ asserted relative to the drawn bar's bottom edge.
   line has ms ≤ 3000 and `wall=` − MARK ≤ 3000; the Week view of that month's busiest week, from its own MARK, the same with
   its `view week` line and n equal to the host's `content query …/instances/when/<week start>/<week end>` count; paging 12
   weeks forward with `input swipe` (a MARK before each swipe) gives every `view week` line ms ≤ 3000 and `wall=` − that
-  swipe's MARK ≤ 3000, and `dumpsys gfxinfo app.tileshell` janky frames ≤ 5 % over the run (phase 01's threshold, applied on
+  swipe's MARK ≤ 3000, and `dumpsys gfxinfo app.tileshell` janky frames ≤ 5 % over the run (RULED 2026-10-02, Q-16-6, Jeremy: "C": this clause stays as written, is recorded FAILED on the emulator — 14.98 % with 5,000 events, 11.55 % on an empty calendar — and is judged by the owner on the phone, P11) (phase 01's threshold, applied on
   the emulator as a bound not a phone measurement); a day with 200 events lists them scrollably in the Day view; the
   Calendar tile still shows only the next 24 hours' events (`CalendarFeed`'s window); delete the QA calendar afterwards (its
   events cascade). (Was "the month view … within 3 s of the page change (screenrecord frame count)" and "view month …: 400
@@ -1164,7 +1215,8 @@ asserted relative to the drawn bar's bottom edge.
   hides that contact and the row count drops by one (re-ticked). Restore (r3 V10): `people_fixtures_down`, the
   `com.example` raw contact and the imported contact deleted by id, the SIM entry deleted (`content delete --uri
   content://icc/adn --where "tag='Sim Bob' AND number='5550002'"`, `record`ed if the SIM refuses). APK: `stat -c%s` before task 2 and after task 8 differ by
-  ≤ 2 MB, `unzip -l` shows no new entry ≥ 1 MB
+  ≤ 2 MB, `unzip -l` shows no new entry ≥ 1 MB (RE-CUT 2026-10-01, Q-16-5, Jeremy: "A": ≤ 5 MB, and no new entry ≥ 1 MB other than
+  `classes*.dex`; the lead's `scripts/e15_apk.sh` asserts it and records the entries' own growth)
 - E16 Work profile (phase 01 E18's commands to create, start and later remove a managed profile; P4 design H10): TestDPC
   is installed into the profile and made its owner FIRST (the policy fixture below), before the positive leg, so the two
   legs differ only by the switch (r3 V17); a contact
@@ -1200,7 +1252,8 @@ asserted relative to the drawn bar's bottom edge.
   removing the birthday row removes the event; the slice from the MARK holds `[calendar] birthdays: 1 synced`. **Date
   forms (r3 D14):** a no-year birthday on Bob (`data1:s:--<MM-dd of tomorrow>`) → a yearly all-day event on tomorrow's
   date; a 29 February birthday (`data1:s:1992-02-29` on a third fixture) → its event row's rrule is
-  `FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1`, and `content query --uri content://com.android.calendar/instances/when/<start>/<end>`
+  ~~`FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1`~~ `FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1` (RE-CUT 2026-10-01, Verify at build
+  start 5), and `content query --uri content://com.android.calendar/instances/when/<start>/<end>`
   over February 2027 gives one instance on 28 February and over February 2028 one on 29 February. The birthday event has no
   reminder rows (`content query --uri content://com.android.calendar/reminders --where "event_id=<its id>"` → "No result
   found"; T16-4), and a Tess "add" made while Birthdays exists lands in Tessera (T16-2 line 2). **Creation refused

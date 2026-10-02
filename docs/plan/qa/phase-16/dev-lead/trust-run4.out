@@ -1,0 +1,114 @@
+lock taken at 2026-10-01T20:23:13-06:00; private lock dir /tmp/claude-1000/-home-jeremyking/94273004-6013-4029-a961-ffb26e4dcb1f/scratchpad/tileshell-lead-lock.3RcmN5
+── TRUST the trust review's device proof: PICK from a real caller, the ring, the reminder notification, the stale swipe
+--- P: ACTION_PICK from a caller that holds no permission
+PASS  the probe APK is built                                      = yes
+PASS  the probe installs                                          contains [Success]
+PASS  the probe holds no permission                               = 0
+PASS  P1: the shell's People is in front, in the probe's task     = app.tileshell/.people.PeopleActivity
+PASS  P1: pick mode (people_pick_header)                          = yes
+PASS  P1: before the pick the probe can read nothing              contains [DENIED]
+PASS  P1: the probe got its result                                = 0
+PASS  P1: RESULT_OK                                               = RESULT_OK
+PASS  P1: the data is Ann's lookup URI and nothing else           = content://com.android.contacts/contacts/lookup/0r284-2B4545413333/292
+PASS  P1: the flags are FLAG_GRANT_READ_URI_PERMISSION alone      = 0x1
+PASS  P1: no ClipData                                             = none
+PASS  P1: no extras                                               = none
+PASS  P1: the one row picked is readable                          contains [OK 1 row(s)]
+PASS  P1: … and it is Ann                                       contains [display_name=Ann Lee]
+PASS  P1: contacts table is refused                               contains [DENIED]
+PASS  P1: data table is refused                                   contains [DENIED]
+PASS  P1: phones table is refused                                 contains [DENIED]
+PASS  P1: raw contacts table is refused                           contains [DENIED]
+PASS  P1: under the granted uri (/data) is refused                contains [DENIED]
+PASS  P1: under the granted uri (/entities) is refused            contains [DENIED]
+PASS  P1: write through the grant is refused                      contains [DENIED]
+PASS  P1: delete through the grant is refused                     contains [DENIED]
+PASS  P1: persist the grant is refused                            contains [DENIED]
+PASS  P1: the photo under the grant is not readable               does not contain [OK]
+PASS  P1: no persisted grant                                      = 0
+PASS  P1: no write grant in dumpsys                               does not contain [mode=0x3]
+PASS  P1: nothing persistable in dumpsys                          does not contain [persistable=0x1]
+PASS  P1: Ann still exists and is unchanged                       contains [display_name=Ann Lee]
+PASS  P1: the line names one contact URI                          contains [[people] pick: one contact URI granted (read)]
+PASS  P2: pick mode                                               = yes
+PASS  P2: the probe got its result                                = 0
+PASS  P2: RESULT_OK                                               = RESULT_OK
+PASS  P2: the data is Ann's phone data row and nothing else       = content://com.android.contacts/data/543
+PASS  P2: the flags are read alone                                = 0x1
+PASS  P2: the one number picked is readable                       contains [data1=+1 555 000 0001]
+PASS  P2: contacts table is refused                               contains [DENIED]
+PASS  P2: data table is refused                                   contains [DENIED]
+PASS  P2: phones table is refused                                 contains [DENIED]
+PASS  P2: raw contacts table is refused                           contains [DENIED]
+PASS  P2: write through the grant is refused                      contains [DENIED]
+PASS  P2: delete through the grant is refused                     contains [DENIED]
+PASS  P2: persist the grant is refused                            contains [DENIED]
+PASS  P2: the line names one phone URI                            contains [[people] pick: one phone URI granted (read)]
+PASS  P3: the probe got its result                                = 0
+PASS  P3: Back in pick mode is RESULT_CANCELED                    = RESULT_CANCELED
+PASS  P3: no data                                                 = none
+PASS  P4: the caller is told CANCELED                             = RESULT_CANCELED
+PASS  P4: with no caller to answer, People is its plain list (no pick header)  = no
+PASS  P4: a row tap opens the card, it hands nothing back         = yes
+PASS  P4: the shell says there was no caller                      contains [[people] pick: no caller to return a result to; the list was opened]
+PASS  P4: no 'granted' line                                       does not contain [URI granted (read)]
+PASS  P4: no grant to the probe was added                         = 0
+PASS  P5: People is in front                                      = app.tileshell/.people.PeopleActivity
+PASS  P5: the plain list, no pick header                          = no
+PASS  P5: the shell says there was no caller                      contains [[people] pick: no caller to return a result to; the list was opened]
+PASS  P5: no 'granted' line                                       does not contain [URI granted (read)]
+PASS  P5: a later launch is the plain list                        = no
+PASS  restore: the probe is uninstalled                           = 0
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+--- R: nothing a caller sends reaches the diagnostics ring
+PASS  R: the routes were logged (the slice is about these intents)  contains [[people] open]
+PASS  R: … Calendar's too                                       contains [[calendar] open]
+PASS  R: [forged.ACTION] is not in the ring                       does not contain [forged.ACTION]
+PASS  R: [write delete raw=1: ok] is not in the ring              does not contain [write delete raw=1: ok]
+PASS  R: [sync event=1 -> calendar 1: ok] is not in the ring      does not contain [sync event=1 -> calendar 1: ok]
+PASS  R: [ForgedNameZQ] is not in the ring                        does not contain [ForgedNameZQ]
+PASS  R: [ForgedTitleZQ] is not in the ring                       does not contain [ForgedTitleZQ]
+PASS  R: [ForgedPlaceZQ] is not in the ring                       does not contain [ForgedPlaceZQ]
+PASS  R: [ForgedNotesZQ] is not in the ring                       does not contain [ForgedNotesZQ]
+PASS  R: [forged@zq.example] is not in the ring                   does not contain [forged@zq.example]
+PASS  R: [5550009999] is not in the ring                          does not contain [5550009999]
+PASS  R: an unknown action is logged as the word other            contains [open other]
+PASS  R: nothing was saved by the prefills (no ForgedNameZQ raw contact)  = 
+PASS  R: … and no ForgedTitleZQ event                           = 
+--- N: the reminder notification, and a flood of forged pokes
+PASS  N: Tessera exists                                           != 
+PASS  N: the test event exists                                    != 
+PASS  N: the reminder notified                                    != none
+PASS  N: VISIBILITY_PRIVATE                                       contains [vis=PRIVATE]
+PASS  N: the record has a public version                          contains [publicVersion=Notification]
+RECORD  N: the public version as dumpsys prints it                  NotificationRecord(0x0fdd0131: pkg=app.tileshell user=UserHandle{0} id=1 tag=calendar_reminder importance=4 key=0|app.tileshell|1|calendar_reminder|10170: Notification(channel=calendar_reminders short
+PASS  N: the shell holds PendingIntents for the reminder (the read found them)  != TOTAL 0 BAD 0
+PASS  N: every one is immutable and names its component           contains [BAD 0]
+PASS  N: the swipe's receiver is not exported                     = 0
+RECORD  N: 100 forged pokes took                                    1 s; ring lines since: 3
+PASS  N: the flood posts no new notification                      = 1
+PASS  N: … logs no notified line                                = 0
+PASS  N: … leaves the alert's state as it was                   = 1
+PASS  N: … writes nothing to the shell's store (same stamp and size)  = 1790909160 136
+PASS  N: … and the shell's process is the same one (no crash)   = 30078
+PASS  N: no new crash of the shell in the dropbox                 = 0
+PASS  device clock back within 2 s of the host (RV12)             1790908001.00 vs 1790908001.00 +/- 2.0
+PASS  N restore: no calendar notification of the shell's is left  = 
+--- S: a stale reminder's swipe and a reused alert row id
+PASS  S: no alert row before the leg (so the ids below are this leg's)  = 
+PASS  S: A's reminder notified                                    != none
+PASS  S: A's alert row id                                         != 
+PASS  S: A's alert row is gone with the event                     = 
+PASS  S: A's notification is still up (stale)                     = 1
+PASS  S: precondition — B's alert row reuses A's id             = 1
+PASS  S: precondition — B's alert is SCHEDULED (0)              = 0
+PASS  S: A's stale notification was in the shade and swiped       = 0
+PASS  S: A's notification is gone                                 = 0
+PASS  S: B's alert row is STILL SCHEDULED (the swipe did not dismiss another event's alert)  = 0
+PASS  S: the shell says the swipe matched no alert                contains [swipe ignored (no such alert now)]
+PASS  S: no dismissed line for B                                  does not contain [reminder event=686 minutes=10: dismissed]
+PASS  device clock back within 2 s of the host (RV12)             1790908062.00 vs 1790908063.00 +/- 2.0
+PASS  S restore: no calendar notification of the shell's is left  = 
+/home/jeremyking/projects/metro-launcher-p16/docs/plan/qa/phase-16/baseline_layout.json: 1 file pushed, 0 skipped. 41.9 MB/s (2054 bytes in 0.000s)
+PASS  restore: layout_restore of the baseline                     = 0
+   TRUST: 104 passed, 0 failed, 2 recorded

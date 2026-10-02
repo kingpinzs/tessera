@@ -1,0 +1,44 @@
+==============================================================================
+ROW E17_BIRTHDAY — a contact's birthday becomes a Birthdays calendar event with the Calendar app never opened
+at            2026-10-01T14:40:00-06:00
+driver        e17_birthday.sh blob 0cedfd9fb3066a7bd6111006f2cb681ac944a2cd
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     bf4db91ef1047968 340872568 bytes
+apk installed 6d900c7f719db122
+apk match     yes (6d900c7f719db122)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  birthdays already on the phone's contacts before the session  0
+PASS  no Birthdays calendar before the first birthday             = 
+      Birthdays calendar id [3] after 1 s
+PASS  within 5 s the provider has a Birthdays calendar            != 
+its row: Row: 1 _id=3, account_name=Tessera Birthdays, account_type=LOCAL, calendar_displayName=Birthdays, calendar_access_level=200, calendar_color=-7904072
+PASS  under its own account, never Tessera                        contains [account_name=Tessera Birthdays, account_type=LOCAL, calendar_displayName=Birthdays, calendar_access_level=200]
+PASS  Tessera is untouched: still one, another id                 = 1 yes
+its events: _id=241, title=Ann Lee's birthday, dtstart=654739200000, allDay=1, rrule=FREQ=YEARLY, duration=P1D
+PASS  a yearly all-day event for Ann from 1990                    contains [title=Ann Lee's birthday, dtstart=654739200000, allDay=1, rrule=FREQ=YEARLY]
+PASS  the synced line                                             contains [[calendar] birthdays: 1 synced]
+PASS  no reminder rows on a birthday                              contains [No result found]
+PASS  an instance today, with the Calendar app never opened       = 1
+PASS  the feed (the tile and the Agenda pod) sees it              contains [agenda=]
+RECORD  the feed's refresh line after the birthday                  [calendar] refresh (provider change): access=true faces=2 agenda=1
+events after the date forms: _id=241, title=Ann Lee's birthday, dtstart=654739200000, allDay=1, rrule=FREQ=YEARLY, duration=P1D
+_id=242, title=Bob Stone's birthday, dtstart=1790899200000, allDay=1, rrule=FREQ=YEARLY, duration=P1D
+_id=243, title=Lea Leap's birthday, dtstart=699321600000, allDay=1, rrule=FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1, duration=P1D
+PASS  no year: a yearly event from this year's date (tomorrow)    contains [title=Bob Stone's birthday, dtstart=1790899200000, allDay=1, rrule=FREQ=YEARLY]
+PASS  29 February: February's last day every twelve months        contains [title=Lea Leap's birthday, dtstart=699321600000, allDay=1, rrule=FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1]
+PASS  one instance in February 2027, on the 28th                  = 2027-02-28
+PASS  one instance in February 2028, on the 29th                  = 2028-02-29
+PASS  a value in neither form makes no event                      does not contain [Odd Form]
+PASS  and is not counted                                          contains [[calendar] birthdays: 3 synced]
+PASS  today's Day view shows Ann's birthday in the all-day band   = yes Ann Lee's birthday
+PASS  its page is read-only (the Birthdays calendar is not Tessera)  = yes 0
+PASS  the pane lists Birthdays under its own account              = yes yes
+PASS  Ann's birthday removed: her event is gone                   does not contain [Ann Lee]
+PASS  the count follows                                           contains [[calendar] birthdays: 2 synced]
+PASS  the session's raw contacts are gone                         = 0
+FAIL  the calendar is kept, empty, when the last birthday goes    expected [3/0] got [3/2]
+PASS  the Birthdays calendar is deleted at the end                = 
+------------------------------------------------------------------------------
+E17_BIRTHDAY: 22 passed, 1 failed, 2 recorded

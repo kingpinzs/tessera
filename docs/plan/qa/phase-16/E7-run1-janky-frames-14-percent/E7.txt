@@ -1,0 +1,84 @@
+==============================================================================
+ROW E7 — 5,000 events: the month drop-down, the busiest week, 12 weeks of paging, a 200-event day, the tile
+at            2026-10-02T00:06:20-06:00
+driver        e7.sh blob a1dddbe23c9806349bfa10b1f3f2bba525fd5112
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+--- fixtures: 5,000 events across 24 months in the QA calendar
+PASS  fixtures: the QA calendar (qa / LOCAL)                      != 
+PASS  fixtures: the driver's loop holds 5,000 insert lines (the busy month is 2026-12, its 200-event day 2026-12-15)  = 5000 5000
+RECORD  fixtures: the insert loop's run time (one adb shell: 5,000 content insert lines, 16 workers)  299 s
+PASS  fixtures: the QA calendar holds 5,000 events                = 5000
+PASS  fixtures: one month holds 400 of them (the provider's instances over 2026-12)  = 400
+PASS  fixtures: a day with 200 events (2026-12-15)                = 200
+PASS  fixtures: exactly two events inside the next 24 hours (E7 soon 1 / 2)  = 2
+--- M: the month drop-down to the busy month, then its first day's cell
+PASS  M: cal_month_dropdown is open and dumped                    = yes
+PASS  M: … showing the busy month: cal_month_cell:2026-12-01    = yes
+PASS  M: Agenda at that day — its dump is available: cal_view_mode:agenda selected  = true
+PASS  M: … with that day's heading in the list (cal_day:2026-12-01 inside cal_agenda)  = yes
+PASS  M: … and the drop-down closed                             = no
+view agenda after the tap: 202 54 568 2026-11-29 2027-01-23 (wall−MARK ms, in-ms, n, from, to)
+PASS  M: the slice holds a [calendar] view agenda <from>..<to>: n instances in <ms> ms line  != none
+PASS  M: … its ms ≤ 3000                                      = yes
+PASS  M: … and wall= − MARK ≤ 3000                          = yes
+RECORD  M: the agenda's window and its instance count               2026-11-29..2027-01-23: 568 instances
+--- W: the Week view of the busy month's busiest week (the week of 2026-12-15)
+PASS  W: the Week view is showing (cal_view_mode:week selected)   = true
+PASS  W: … of the week that holds 2026-12-15                    = yes
+view week after the tap: 201 31 248 2026-12-13 2026-12-19
+PASS  W: the slice holds its [calendar] view week line            != none
+PASS  W: … its ms ≤ 3000                                      = yes
+PASS  W: … and wall= − MARK ≤ 3000                          = yes
+      the week 2026-12-13..2026-12-19: the line's n 248; the host's instances/when/1797145200000/1797749999999 count 248
+PASS  W: … its n equals the host's content query …/instances/when/<week start>/<week end> count  = 248
+PASS  W: … and it is the busiest week (it holds the 200-event day: n ≥ 200)  = yes
+--- P: paging 12 weeks forward, a MARK before each swipe
+the 12 swipes (swipe, wall−MARK, in-ms, n, from, to):
+   1 616 41 56 2026-12-20 2026-12-26
+   2 615 35 8 2026-12-27 2027-01-02
+   3 616 34 56 2027-01-03 2027-01-09
+   4 599 23 56 2027-01-10 2027-01-16
+   5 614 23 56 2027-01-17 2027-01-23
+   6 595 21 32 2027-01-24 2027-01-30
+   7 613 30 32 2027-01-31 2027-02-06
+   8 611 23 56 2027-02-07 2027-02-13
+   9 611 24 56 2027-02-14 2027-02-20
+   10 598 25 56 2027-02-21 2027-02-27
+   11 601 19 32 2027-02-28 2027-03-06
+   12 599 24 56 2027-03-07 2027-03-13
+PASS  P: every one of the 12 swipes gave a view week line         = 12
+PASS  P: … twelve different weeks, each seven days on from the last  = 12
+PASS  P: every view week line has ms ≤ 3000                     = 12
+PASS  P: … and wall= − that swipe's MARK ≤ 3000             = 12
+dumpsys gfxinfo app.tileshell over the run (total frames, janky frames, janky %): 437 62 14.19
+PASS  P: gfxinfo counted frames over the run                      != 0
+FAIL  P: janky frames ≤ 5 % over the run (phase 01's threshold, as a bound on the emulator)  expected [yes] got [no (14.19%)]
+--- D: a day with 200 events lists them scrollably in the Day view
+PASS  D: the Day view of 2026-12-15 is showing                    = true yes
+view day: 255 187 200 2026-12-15 2026-12-15
+PASS  D: its view day line counts 200 instances                   = 200
+      distinct cal_event nodes reached in 5 swipe(s) of the Day view: 200
+PASS  D: it lists them scrollably — all 200 events of the day are reached by scrolling the Day view  = 200
+PASS  D: … the list did scroll (more than one screen of them)   != 0
+--- T: the Calendar tile still shows only the next 24 hours' events
+the CALENDAR tile's faces over 18 dumps: Calendar;Calendar|E7 soon 1|1:41 AM;Calendar|E7 soon 2|4:41 AM;Calendar|Friday|2
+PASS  T: the tile shows an event of the next 24 hours (E7 soon 1)  contains [E7 soon 1]
+PASS  T: … and the other (E7 soon 2)                            contains [E7 soon 2]
+PASS  T: … and none of the 5,000 outside its window (titles E7 <n> seen on the tile)  = 
+PASS  T: the feed's faces: the day face and the two (faces=3)     = faces=3
+--- restore: the QA calendar deleted (its events cascade)
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+RECORD  restore: the delete's run time                              5 s
+PASS  restore: the QA calendar is gone                            = 
+PASS  restore: its events cascaded — no E7 event is left        = 0
+PASS  restore: Tessera's event count equals the count before the row  = 0
+PASS  restore: no new crash of the shell during the row           = 0
+------------------------------------------------------------------------------
+E7: 40 passed, 1 failed, 3 recorded

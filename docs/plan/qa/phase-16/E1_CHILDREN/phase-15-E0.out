@@ -1,0 +1,75 @@
+── E0 live-tile routing: Music to its slot tile, Auxio to its tile, recordings and shell notifications to none
+PASS  baseline: no shell alarm or timer pending                   = 0
+PASS  baseline: alarm and timer stores empty                      = empty
+/home/jeremyking/projects/metro-launcher-p16/docs/plan/qa/phase-16/baseline_layout.json: 1 file pushed, 0 skipped. 50.6 MB/s (2054 bytes in 0.000s)
+PASS  baseline layout restored (the three apps and Auxio pinned)  = 0
+/home/jeremyking/projects/metro-launcher-p16/docs/plan/qa/phase-15/fixtures/other.m4a: 1 file pushed, 0 skipped. 456.1 MB/s (26883 bytes in 0.000s)
+/home/jeremyking/projects/metro-launcher-p16/docs/plan/qa/phase-15/fixtures/song.m4a: 1 file pushed, 0 skipped. 568.6 MB/s (26058 bytes in 0.000s)
+PASS  tile slot:MUSIC is on Start before                          != 
+PASS  tile app:app.tileshell/app.tileshell.clock.ClockActivity:0 is on Start before  != 
+PASS  tile app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 is on Start before  != 
+PASS  tile app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 is on Start before  != 
+PASS  tile app:org.oxycblt.auxio/org.oxycblt.auxio.MainActivity:0 is on Start before  != 
+PASS  the shell's Music session is playing                        = PLAYING
+PASS  routing line names Music's component                        contains [[music] session app.tileshell id=music -> cmp:app.tileshell/app.tileshell.music.MusicActivity]
+PASS  the MUSIC slot tile grew                                    contains [tiles for cmp:app.tileshell/app.tileshell.music.MusicActivity grew]
+PASS  the MUSIC tile is drawn bigger while playing                = yes
+PASS  the MUSIC tile carries the transport strip                  = controls=yes
+PASS  the MUSIC tile shows the playing track                      contains [Bloom]
+PASS  app:app.tileshell/app.tileshell.clock.ClockActivity:0 keeps its size while Music plays  = w=699 h=343
+PASS  app:app.tileshell/app.tileshell.clock.ClockActivity:0 carries no transport  = controls=no
+PASS  app:app.tileshell/app.tileshell.clock.ClockActivity:0 shows no now-playing text  does not contain [Bloom]
+PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 keeps its size while Music plays  = w=165 h=165
+PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 carries no transport  = controls=no
+PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 shows no now-playing text  does not contain [Bloom]
+PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 keeps its size while Music plays  = w=165 h=165
+PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 carries no transport  = controls=no
+PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 shows no now-playing text  does not contain [Bloom]
+PASS  the tile's play/pause paused the shell's Music              = PAUSED
+PASS  paused: the MUSIC tile carries no transport (phase 10's paused plan)  = controls=no
+PASS  paused: the MUSIC tile is back at its stored size           = w=165 h=165
+PASS  Auxio is playing                                            = PLAYING
+PASS  the face moved to Auxio's tile                              = controls=yes
+PASS  and left the MUSIC tile                                     = controls=no
+PASS  app:app.tileshell/app.tileshell.clock.ClockActivity:0 carries no transport while Auxio plays  = controls=no
+PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 carries no transport while Auxio plays  = controls=no
+PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 carries no transport while Auxio plays  = controls=no
+PASS  Auxio paused from its tile                                  = PAUSED
+PASS  the recorder session played                                 = PLAYING
+PASS  the recorder session is alive (paused) before and after the Start dump  = PAUSED PAUSED
+PASS  the recorder session routes to no tile                      contains [[music] session app.tileshell id=recorder -> none]
+PASS  no tile grew for it                                         does not contain [ grew ]
+PASS  no face was made of the recording                           does not contain [title=Other recording]
+PASS  every tile's bounds and tags equal the capture before       = slot:PEOPLE	9,84,352,427	w=343 h=343	controls=no	badge=no
+slot:BROWSER	365,84,708,427	w=343 h=343	controls=no	badge=no
+slot:MAIL	721,84,1064,427	w=343 h=343	controls=no	badge=no
+slot:CALENDAR	9,439,708,782	w=699 h=343	controls=no	badge=no
+slot:PHOTOS	721,439,1064,782	w=343 h=343	controls=no	badge=no
+shell:weather	9,795,708,1138	w=699 h=343	controls=no	badge=no
+slot:STORE	721,795,886,960	w=165 h=165	controls=no	badge=no
+slot:MAPS	899,795,1064,960	w=165 h=165	controls=no	badge=no
+slot:MUSIC	721,973,886,1138	w=165 h=165	controls=no	badge=no
+shell:settings	899,973,1064,1138	w=165 h=165	controls=no	badge=no
+app:app.tileshell/app.tileshell.clock.ClockActivity:0	9,1151,708,1494	w=699 h=343	controls=no	badge=no
+app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0	721,1151,886,1316	w=165 h=165	controls=no	badge=no
+app:app.tileshell/app.tileshell.recorder.RecorderActivity:0	899,1151,1064,1316	w=165 h=165	controls=no	badge=no
+app:org.oxycblt.auxio/org.oxycblt.auxio.MainActivity:0	721,1329,1064,1672	w=343 h=343	controls=no	badge=no
+dock:slot:PHONE	9,1935,352,2182	w=343 h=247	controls=no	badge=no
+dock:slot:MESSAGING	365,1935,708,2182	w=343 h=247	controls=no	badge=no
+dock:slot:CAMERA	721,1935,1064,2182	w=343 h=247	controls=no	badge=no
+PASS  a timer is running                                          != 
+PASS  the shell has notifications posted (timer, take)            != 0
+PASS  positive control: the listener is connected                 contains [listener connected=true]
+PASS  positive control: the listener counted the shell's notifications  = yes
+PASS  slot:MUSIC shows no count                                   = badge=no
+PASS  slot:MUSIC shows no timer content                           does not contain [E0timer]
+PASS  app:app.tileshell/app.tileshell.clock.ClockActivity:0 shows no count  = badge=no
+PASS  app:app.tileshell/app.tileshell.clock.ClockActivity:0 shows no timer content  does not contain [E0timer]
+PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 shows no count  = badge=no
+PASS  app:app.tileshell/app.tileshell.calculator.CalculatorActivity:0 shows no timer content  does not contain [E0timer]
+PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 shows no count  = badge=no
+PASS  app:app.tileshell/app.tileshell.recorder.RecorderActivity:0 shows no timer content  does not contain [E0timer]
+/home/jeremyking/projects/metro-launcher-p16/docs/plan/qa/phase-16/baseline_layout.json: 1 file pushed, 0 skipped. 53.2 MB/s (2054 bytes in 0.000s)
+PASS  restore: no shell alarm or timer pending                    = 0
+PASS  restore: alarm and timer stores empty                       = empty
+   E0: 53 passed, 0 failed, 0 recorded

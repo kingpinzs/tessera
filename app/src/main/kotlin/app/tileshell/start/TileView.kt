@@ -487,6 +487,7 @@ internal fun LiveFace(face: TileFace, model: TileModel, widthDp: Dp, heightDp: D
                 }
             }
             is TileFace.Clock -> ClockFace(face, model, widthDp, heightDp)
+            is TileFace.People -> PeopleTileFace(face, model, widthDp, heightDp)
         }
         if (model.size != TileSize.SMALL && !hasControls) {
             BasicText(model.label, style = ShellType.caption.copy(color = white), maxLines = 1,

@@ -1,0 +1,59 @@
+==============================================================================
+ROW DEV-E15 — Share, SIM import, filter (E15's core)
+at            2026-10-01T13:37:18-06:00
+driver        e15.sh blob 8d128603db2e8f5de980ec452b17bf7c5e9d2e1a
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     0375f838a99c11d5 339427210 bytes
+apk installed 34b1373d4945c089
+apk match     yes (34b1373d4945c089)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+device already holds this build
+PASS  the device holds this build                                 contains [yes]
+PASS  the card's … menu offers share contact                    = yes
+RECORD  what ACTION_SEND text/x-vcard reached                       com.android.intentresolver/.ChooserActivityLauncher
+intent on top:       Intent { act=android.intent.action.CHOOSER flg=0x800001 xflg=0x4 cmp=com.android.intentresolver/.ChooserActivityLauncher clip={text/uri-list {U(content)}} (has extras) }
+PASS  Android's share sheet is on top                             contains [hooser]
+share 0r117-2B4545413333: content://com.android.contacts/contacts/as_vcard/0r117-2B4545413333
+PASS  the share line names the provider's own vCard URI           = share 0r117-2B4545413333: content://com.android.contacts/contacts/as_vcard/0r117-2B4545413333
+PASS  the share sheet names the provider's file for her           contains [text="Ann Lee.vcf"]
+PASS  the provider answers for that URI                           contains [_display_name=Ann Lee.vcf]
+RECORD  adb shell content read on the URI                           Error while accessing provider:com.android.contacts java.io.FileNotFoundException: No files supported by provider at content://com.android.contacts/co
+URI grants:  UriPermission{14ce3b7 content://com.android.contacts/contacts/as_vcard/0r117-2B4545413333 [user 0]} targetUserId=0 sourcePkg=com.android.providers.contacts targetPkg=com.android.intentresolver mode=0x1 owned=0x1 global=0x0 persistable=0x0 persisted=0x0 
+PASS  one URI grant names a vCard URI                             = 1
+PASS  it is for that one URI                                      contains [UriPermission{]
+PASS  read only (mode 0x1), from the Contacts provider, to the share sheet  contains [sourcePkg=com.android.providers.contacts targetPkg=com.android.intentresolver mode=0x1]
+PASS  no file of the shell's holds a vCard                        = 0
+RECORD  after choosing Contacts on the sheet: top activity          org.fossify.contacts/.activities.MainActivity
+RECORD  what it shows                                               text="Import contacts" text="Phone storage (not visible by other apps)" text="Cancel" text="OK" 
+RECORD  the URI grant after the choice                              
+imported: No result found.
+RECORD  the stream's content                                        not read back: the app chosen on the sheet made no contact from it
+icc/adn: Row: 0 name=Sim Bob, number=5550002, emails=NULL, anrs=NULL, _id=0
+RECORD  the emulated SIM's phonebook took the insert                accepted ()
+PASS  People's settings page                                      = yes
+PASS  the SIM import page                                         = yes
+sim import: 1 of 1
+PASS  the page lists the SIM's entry                              = Sim Bob
+PASS  the import line                                             = sim import: 1 of 1
+Row: 0 _id=118, account_name=NULL, account_type=NULL, display_name=Sim Bob
+PASS  the imported contact is on the phone (NULL account)         contains [account_name=NULL, account_type=NULL]
+PASS  with the SIM's number                                       contains [data1=5550002]
+PASS  the filter page                                             = yes
+PASS  the com.example account is listed, ticked                   contains [checked="true"]
+PASS  the phone is listed too                                     = yes
+PASS  Xena is listed before the filter                            = yes
+PASS  unticked                                                    contains [checked="false"]
+listed before 5, after the untick 4
+PASS  the row count drops by one                                  = 4
+PASS  Xena's row is hidden                                        = no
+PASS  the list says a filter is on (P1.4's caption)               = yes
+PASS  nothing was written to the provider: her raw contact is as it was  contains [account_name=x, account_type=com.example]
+PASS  re-ticked: the row count is back                            = 5
+RECORD  the SIM entry's delete                                      ok
+people_filter.json: {"hideWithoutPhones":false,"hiddenAccounts":[],"hiddenGroups":[]}
+PASS  the filter is back to hiding no account                     contains ["hiddenAccounts":[]]
+PASS  raw_contacts count equals the count before the row          = 2
+------------------------------------------------------------------------------
+DEV-E15: 28 passed, 0 failed, 8 recorded

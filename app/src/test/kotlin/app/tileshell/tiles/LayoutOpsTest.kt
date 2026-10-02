@@ -75,6 +75,19 @@ class LayoutOpsTest {
     }
 
     @Test
+    fun `uninstalling an app leaves a slot's explicit assignment as it was`() {
+        // Phase 16's Edge case: a slot hand-pointed at an app that is later uninstalled keeps naming that component, so
+        // the one-time seed still sees a hand pick there (SlotSeedTest) and its line names what it replaced.
+        val picked = android.content.ComponentName("com.one", "com.one.Main")
+        val start = LayoutStore.Layout(LayoutStore.VERSION, listOf(Sized(app("com.one"), TileSize.MEDIUM), b), mapOf(Slot.PEOPLE to picked), emptyList(), emptyMap())
+        val next = LayoutOps.removePackages(start, setOf("com.one"))
+        assertEquals(listOf("shell:b"), next.order.map { it.key.id })
+        // The same object, not an equal one: ComponentName is an unmocked framework class here, so its equals() is a stub.
+        assertEquals(setOf(Slot.PEOPLE), next.explicitSlots.keys)
+        assertTrue(next.explicitSlots[Slot.PEOPLE] === picked)
+    }
+
+    @Test
     fun `an update keeps the tiles - only a removal drops them`() {
         val start = layout(Sized(app("com.one"), TileSize.MEDIUM))
         assertEquals(start, LayoutOps.removePackages(start, setOf("com.other")))

@@ -1,0 +1,24 @@
+CAL missing -> allowed=[] mappings=[] notified=[]
+CAL sanity-valid -> allowed=[CalendarKey(id=5, accountName=me@example.com, accountType=com.google)] mappings=[SyncMapping(localEventId=10, target=CalendarKey(id=5, accountName=me@example.com, accountType=com.google), copyEventId=77)] notified=[10:1:2]
+CAL truncated-half -> allowed=[] mappings=[] notified=[]
+CAL truncated-last-brace -> allowed=[] mappings=[] notified=[]
+CAL empty-file -> allowed=[] mappings=[] notified=[]
+CAL garbage -> allowed=[] mappings=[] notified=[]
+CAL top-level-array -> allowed=[] mappings=[] notified=[]
+CAL allowed-not-an-array -> allowed=[] mappings=[SyncMapping(localEventId=10, target=CalendarKey(id=5, accountName=me@example.com, accountType=com.google), copyEventId=77)] notified=[10:1:2]
+CAL allowed-entry-missing-accountType -> allowed=[] mappings=[] notified=[]
+CAL allowed-entry-id-as-string -> allowed=[CalendarKey(id=5, accountName=me@example.com, accountType=com.google)] mappings=[SyncMapping(localEventId=10, target=CalendarKey(id=5, accountName=me@example.com, accountType=com.google), copyEventId=77)] notified=[10:1:2]
+CAL allowed-entry-is-a-number -> allowed=[] mappings=[] notified=[]
+CAL hand-edited-adds-work -> allowed=[CalendarKey(id=6, accountName=work@example.com, accountType=com.google), CalendarKey(id=5, accountName=me@example.com, accountType=com.google)] mappings=[SyncMapping(localEventId=10, target=CalendarKey(id=5, accountName=me@example.com, accountType=com.google), copyEventId=77)] notified=[10:1:2]
+CAL mapping-entry-missing-copy -> allowed=[] mappings=[] notified=[]
+CAL corrupt-then-update: before=0 mappings, file bytes=232
+CAL corrupt-then-update: file now={"notifiedAlerts":["1:2:3"],"mappings":[],"hidden":[],"allowed":[],"version":1}
+CAL running: allowed=[CalendarKey(id=5, accountName=me@example.com, accountType=com.google)]
+CAL running, file deleted: allowed=[]
+CAL same-stamp: allowed before=[CalendarKey(id=5, accountName=me@example.com, accountType=com.google)]
+CAL same-stamp: file says xx@, store says allowed=[CalendarKey(id=5, accountName=me@example.com, accountType=com.google)]
+CAL untick-save-fails: allowed before=[CalendarKey(id=5, accountName=me@example.com, accountType=com.google)]
+CAL untick-save-fails: update returned allowed=[]; store.current.allowed=[]; file={"version":1,"allowed":[{"id":5,"accountName":"me@example.com","accountType":"com.google"}
+CAL untick-save-fails: after a restart allowed=[CalendarKey(id=5, accountName=me@example.com, accountType=com.google)]
+CAL tick-save-fails: store.current.allowed=[CalendarKey(id=5, accountName=me@example.com, accountType=com.google)]; file exists=false
+CAL map: {10=SyncMapping(localEventId=10, target=CalendarKey(id=5, accountName=me@example.com, accountType=com.google), copyEventId=77)}

@@ -1,0 +1,56 @@
+    2026-10-02 02:00:56.444 wall=1790928056444 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=5724716 faceIndex=2 next=3 faces=3
+    2026-10-02 02:00:56.736 wall=1790928056736 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=5725007 faceIndex=2 next=3 faces=6
+    2026-10-02 02:00:57.027 wall=1790928057027 [tile_anim] tile=shell:weather kind=FLIP uptime=5725298 faceIndex=1 next=0 faces=1
+    2026-10-02 02:00:58.674 wall=1790928058674 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-10-02 02:00:58.674 wall=1790928058674 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-10-02 02:00:59.939 wall=1790928059939 [weather] fetch ok provider=open-meteo ms=1265 grid=37.4162,-122.0803 tz=America/Los_Angeles current=45/58.8 hourly=240 daily=10 place=true
+    2026-10-02 02:00:59.942 wall=1790928059942 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790928059937
+    2026-10-02 02:00:59.942 wall=1790928059942 [weather] publish tile faces=1 temp=59° condition=45 sky=FOG/night/0.6 stale=false fetchedAt=1790928059937
+    2026-10-02 02:00:59.944 wall=1790928059944 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=5728216 faceIndex=0 next=1 faces=1
+    2026-10-02 02:00:59.962 wall=1790928059962 [render] tile=shell:weather sourceTime=1790928059937 renderedAt=1790928059962 faces=1
+    2026-10-02 02:01:00.744 wall=1790928060744 [calendar] reminder event=10867 minutes=10: notified
+    2026-10-02 02:01:00.761 wall=1790928060761 [engine] publish feed:calendar faces=3 front=false source=calendar sourceTime=1790928060761
+    2026-10-02 02:01:00.761 wall=1790928060761 [engine] publish cmp:app.tileshell/app.tileshell.calendar.CalendarActivity faces=3 front=false source=calendar sourceTime=1790928060761
+    2026-10-02 02:01:00.761 wall=1790928060761 [calendar] refresh (provider change): access=true faces=3 agenda=2
+    2026-10-02 02:01:00.779 wall=1790928060779 [render] tile=slot:CALENDAR sourceTime=1790928060761 renderedAt=1790928060779 faces=3
+    2026-10-02 02:01:00.957 wall=1790928060957 [notif] posted app.tileshell key=0|app.tileshell|2|calendar_reminder|10174 postTime=1790928060742
+    2026-10-02 02:01:00.958 wall=1790928060958 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-10-02 02:01:00.958 wall=1790928060958 [engine] publish pkg:app.tileshell from=notifications faces=2 front=false source=notification sourceTime=1790928060742 -> shows notifications
+    2026-10-02 02:01:00.959 wall=1790928060959 [badge] set org.fossify.messages NOTIFICATIONS=1 -> effective 1
+    2026-10-02 02:01:00.959 wall=1790928060959 [engine] publish pkg:org.fossify.messages from=notifications faces=1 front=false source=notification sourceTime=1790922643071 -> shows notifications
+    2026-10-02 02:01:00.959 wall=1790928060959 [badge] set android NOTIFICATIONS=0 -> effective 0
+    2026-10-02 02:01:00.959 wall=1790928060959 [engine] publish pkg:android from=notifications faces=0 front=false source=null sourceTime=null -> shows nothing
+    2026-10-02 02:01:00.959 wall=1790928060959 [notif] rescan (ranking): 3 packages with notifications
+    2026-10-02 02:01:01.157 wall=1790928061157 [notif] posted app.tileshell key=0|app.tileshell|0|0|app.tileshell|g:Aggregate_AlertingSection|10174|0|app.tileshell|g:Aggregate_AlertingSection postTime=1790928060943
+    2026-10-02 02:01:01.158 wall=1790928061158 [badge] set app.tileshell NOTIFICATIONS=2 -> effective 2
+    2026-10-02 02:01:01.158 wall=1790928061158 [engine] publish pkg:app.tileshell from=notifications faces=2 front=false source=notification sourceTime=1790928060943 -> shows notifications
+    2026-10-02 02:01:01.404 wall=1790928061404 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=5729675 faceIndex=3 next=0 faces=3
+    2026-10-02 02:01:01.695 wall=1790928061695 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=5729967 faceIndex=3 next=4 faces=6
+    2026-10-02 02:01:01.986 wall=1790928061986 [tile_anim] tile=shell:weather kind=FLIP uptime=5730258 faceIndex=0 next=1 faces=1
+    2026-10-02 02:05:55.002 wall=1790928355002 [engine] publish cmp:app.tileshell/app.tileshell.clock.ClockActivity faces=0 front=false source=null sourceTime=null
+    2026-10-02 02:05:55.002 wall=1790928355002 [clock] tile: no next alarm, face cleared
+    2026-10-02 02:05:55.004 wall=1790928355004 [alarms] rearm (time set): 0 alarms, 0 timers, exact=true
+    2026-10-02 02:05:55.122 wall=1790928355122 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=5733176 faceIndex=1 next=0 faces=1
+    2026-10-02 02:05:56.581 wall=1790928356581 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=5734635 faceIndex=0 next=1 faces=3
+    2026-10-02 02:05:56.873 wall=1790928356873 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=5734927 faceIndex=4 next=5 faces=6
+    2026-10-02 02:05:57.164 wall=1790928357164 [tile_anim] tile=shell:weather kind=FLIP uptime=5735218 faceIndex=1 next=0 faces=1
+    2026-10-02 02:06:00.010 wall=1790928360010 [engine] publish feed:calendar faces=3 front=false source=calendar sourceTime=1790928360010
+    2026-10-02 02:06:00.010 wall=1790928360010 [engine] publish cmp:app.tileshell/app.tileshell.calendar.CalendarActivity faces=3 front=false source=calendar sourceTime=1790928360010
+    2026-10-02 02:06:00.010 wall=1790928360010 [calendar] refresh (provider change): access=true faces=3 agenda=2
+    2026-10-02 02:06:00.028 wall=1790928360028 [render] tile=slot:CALENDAR sourceTime=1790928360010 renderedAt=1790928360028 faces=3
+    2026-10-02 02:06:00.082 wall=1790928360082 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=5738136 faceIndex=0 next=1 faces=1
+    2026-10-02 02:06:01.541 wall=1790928361541 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=5739595 faceIndex=1 next=2 faces=3
+    2026-10-02 02:06:01.833 wall=1790928361833 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=5739887 faceIndex=5 next=6 faces=6
+    2026-10-02 02:06:02.124 wall=1790928362124 [tile_anim] tile=shell:weather kind=FLIP uptime=5740179 faceIndex=0 next=1 faces=1
+    2026-10-02 02:06:05.010 wall=1790928365010 [calendar] reminder event=10867 minutes=5: notified
+    2026-10-02 02:06:05.012 wall=1790928365012 [engine] publish feed:calendar faces=3 front=false source=calendar sourceTime=1790928365012
+    2026-10-02 02:06:05.012 wall=1790928365012 [engine] publish cmp:app.tileshell/app.tileshell.calendar.CalendarActivity faces=3 front=false source=calendar sourceTime=1790928365012
+    2026-10-02 02:06:05.012 wall=1790928365012 [calendar] refresh (provider change): access=true faces=3 agenda=2
+    2026-10-02 02:06:05.031 wall=1790928365031 [render] tile=slot:CALENDAR sourceTime=1790928365012 renderedAt=1790928365030 faces=3
+    2026-10-02 02:06:05.042 wall=1790928365042 [tile_anim] tile=dock:slot:MESSAGING kind=FLIP uptime=5743096 faceIndex=1 next=0 faces=1
+    2026-10-02 02:06:05.210 wall=1790928365210 [notif] posted app.tileshell key=0|app.tileshell|3|calendar_reminder|10174 postTime=1790928365008
+    2026-10-02 02:06:05.211 wall=1790928365211 [badge] set app.tileshell NOTIFICATIONS=3 -> effective 3
+    2026-10-02 02:06:05.211 wall=1790928365211 [engine] publish pkg:app.tileshell from=notifications faces=3 front=false source=notification sourceTime=1790928365008 -> shows notifications
+2026-10-02 02:06:06.501 wall=1790928366501 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=5744555 faceIndex=2 next=3 faces=3
+    2026-10-02 02:06:06.793 wall=1790928366793 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=5744847 faceIndex=6 next=0 faces=6
+    2026-10-02 02:06:07.084 wall=1790928367084 [tile_anim] tile=shell:weather kind=FLIP uptime=5745138 faceIndex=1 next=0 faces=1

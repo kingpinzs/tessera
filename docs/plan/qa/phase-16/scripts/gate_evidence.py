@@ -1,0 +1,212 @@
+#!/usr/bin/env python3
+"""Phase 16 — the gate's evidence table, read from the run folders (never from memory).
+
+For every row id it lists each kept run folder (<ROW> or <ROW>-<what the run was>) with the APK the run's log names,
+its summary line and its FAIL count, and marks the ONE run that is the row's evidence: the newest run on the gate's
+build with 0 failed (or, for a row named in E21/builds.txt, on the build named there). A row with no such run is
+printed as OPEN. EDGE is listed per sub-step from the runs' logs.
+
+    gate_evidence.py <gate build md5 prefix> > review/<date>-phase16-gate-evidence.md
+"""
+import os
+import re
+import sys
+
+QA = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+GATE = sys.argv[1]
+# EDGE has no line of its own: its evidence is per sub-step (the grouped runs and the single re-runs), in its own section.
+ROWS = ["E1", "E1_CHILDREN"] + ["E%d" % n for n in range(2, 29)] + ["E15_APK", "TRUST", "T2SMOKE"]
+
+# E21/builds.txt: "<md5 prefix> <row|*> <why>" — a run on that earlier build stands for that row ("*": for every row).
+# E21/rerun.txt: "<row> <builds that count, comma-separated md5 prefixes> <why>" — a row whose code a fix touched: only a
+#   run on one of those builds counts for it ("EDGE:C12" names an edge-case sub-step).
+also = {}
+bt = os.path.join(QA, "E21", "builds.txt")
+if os.path.exists(bt):
+    for line in open(bt, encoding="utf-8"):
+        if line.strip() and not line.startswith("#"):
+            sha, row, why = line.split(None, 2)
+            also.setdefault(row, []).append((sha, why.strip()))
+rerun = {}
+rt = os.path.join(QA, "E21", "rerun.txt")
+if os.path.exists(rt):
+    for line in open(rt, encoding="utf-8"):
+        if line.strip() and not line.startswith("#"):
+            row, shas, why = line.split(None, 2)
+            rerun[row] = ([x for x in shas.split(",") if x], why.strip())
+
+
+# E21/partials.txt: a row whose run failed only in one part, with that part run again alone. Tab-separated:
+#   <row> <base run folder> <the part: a row id, or "dir:<folder prefix>" for a narrow run of the same row>
+#   <regex of the log line that ENDS the part in the base run, or "-"> <why>
+partials = {}
+pt = os.path.join(QA, "E21", "partials.txt")
+if os.path.exists(pt):
+    for line in open(pt, encoding="utf-8"):
+        if line.strip() and not line.startswith("#"):
+            row, base, part, end, why = line.rstrip("\n").split("\t")
+            partials[row] = (base, part, end, why)
+
+
+# E21/supplements.txt: a row whose whole run stands on an earlier build, plus one narrow run on the gate build for the
+# one thing a later fix changed. Tab-separated: <row> <narrow run's folder prefix> <builds that count, comma-separated>
+# <why>. A row may have several lines (one per narrow run).
+supplements = {}
+st = os.path.join(QA, "E21", "supplements.txt")
+if os.path.exists(st):
+    for line in open(st, encoding="utf-8"):
+        if line.strip() and not line.startswith("#"):
+            row, prefix, shas, why = line.rstrip("\n").split("\t")
+            supplements.setdefault(row, []).append((prefix, [x for x in shas.split(",") if x], why))
+
+
+# E21/ruled.txt: a row with a clause the owner has ruled on — printed as ruled, with every kept run, not as OPEN.
+ruled = {}
+rl = os.path.join(QA, "E21", "ruled.txt")
+if os.path.exists(rl):
+    for line in open(rl, encoding="utf-8"):
+        if line.strip() and not line.startswith("#"):
+            row, text = line.rstrip("\n").split("\t", 1)
+            ruled[row] = text
+
+
+def builds_for(row):
+    if row in rerun:
+        return [(b, "") for b in rerun[row][0]]
+    return [(GATE, "")] + also.get(row, []) + also.get("*", [])
+
+
+# A narrow run (some legs only, or a diagnosis) is never a row's whole evidence; it can be the part of a partial.
+NARROW = re.compile(r"_LEGS=|legs run .* ONLY|a narrow re-run|BASELINE", re.I)
+
+
+def runs(row):
+    out = []
+    for name in sorted(os.listdir(QA)):
+        d = os.path.join(QA, name)
+        if not os.path.isdir(d) or not (name == row or name.startswith(row + "-")):
+            continue
+        log = os.path.join(d, row + ".txt")
+        if not os.path.exists(log):
+            continue
+        text = open(log, encoding="utf-8", errors="replace").read()
+        apk = re.search(r"^apk installed (\S+)", text, re.M)
+        at = re.search(r"^at\s+(\S+)", text, re.M)
+        summ = re.findall(r"^\s*%s: (\d+) passed, (\d+) failed, (\d+) recorded" % re.escape(row), text, re.M)
+        only = re.search(r"(EDGE_ONLY|TRUST_ONLY)=(\S+?):", text)
+        records = "\n".join(l for l in text.splitlines() if l.startswith("RECORD"))
+        narrow = "-legs-" in name or "baseline" in name or bool(NARROW.search(records))
+        out.append({
+            "dir": name, "apk": apk.group(1) if apk else "?", "at": at.group(1) if at else "?",
+            "sum": summ[-1] if summ else None, "fails": len(re.findall(r"^FAIL ", text, re.M)),
+            "only": only.group(2) if only else ("narrow" if narrow else ""), "mtime": os.path.getmtime(log), "text": text,
+        })
+    return sorted(out, key=lambda r: r["mtime"])
+
+
+print("# Phase 16 — the gate's evidence, one line per kept run (generated by qa/phase-16/scripts/gate_evidence.py)\n")
+print("Gate build: `%s`. A row's evidence is its newest run on that build with 0 failed; `E21/builds.txt` names the rows" % GATE)
+print("whose run on an earlier build stands (the owner's ruling of 2026-10-01, \"only test the fixes\").\n")
+print("| row | evidence run | result | other kept runs (oldest first) |")
+print("|---|---|---|---|")
+open_rows = []
+ruled_rows = []
+for row in ROWS:
+    rs = runs(row)
+    if not rs and row in ("E1_CHILDREN", "T2SMOKE", "E21"):
+        continue
+    wants = builds_for(row)
+    want = " / ".join(w[0][:8] for w in wants)
+    # 0 failed in the summary AND no FAIL line anywhere in the log (a child's verdict can be printed after the summary).
+    good = [r for r in rs if any(r["apk"].startswith(w[0]) for w in wants) and r["sum"] and r["sum"][1] == "0" and r["fails"] == 0 and not r["only"]]
+    ev = good[-1] if good else None
+    others = []
+    for r in rs:
+        if r is ev:
+            continue
+        s = "%s/%s/%s" % r["sum"] if r["sum"] else "no summary"
+        others.append("`%s` %s on %s%s" % (r["dir"], s, r["apk"][:8], (" only=" + r["only"]) if r["only"] else ""))
+    if row in ruled:
+        ruled_rows.append(row)
+        print("| %s | **RULED** | %s | %s |" % (row, ruled[row], "; ".join(others) or "–"))
+    elif ev:
+        why = [w[1] for w in wants if w[1] and ev["apk"].startswith(w[0])]
+        note = " (build %s: %s)" % (ev["apk"][:8], why[0][:110]) if why and not ev["apk"].startswith(GATE) else ""
+        sup = ""
+        for prefix, shas, swhy in supplements.get(row, []):
+            srs = [r for r in rs if r["dir"].startswith(prefix) and r is not ev and r["sum"] and r["sum"][1] == "0" and r["fails"] == 0
+                   and any(r["apk"].startswith(b) for b in shas)]
+            if srs:
+                sup += " + `%s/` on %s: %s passed, 0 failed — %s" % (srs[-1]["dir"], srs[-1]["apk"][:8], srs[-1]["sum"][0], swhy[:170])
+                others = [o for o in others if ("`%s`" % srs[-1]["dir"]) not in o]
+            else:
+                sup += " + **MISSING** a narrow run `%s…` with 0 failed on %s (%s)" % (prefix, "/".join(b[:8] for b in shas), swhy[:90])
+                if row not in open_rows:
+                    open_rows.append(row)
+        print("| %s | `%s/` %s%s | %s passed, %s failed, %s recorded%s | %s |" % (
+            row, ev["dir"], ev["at"], sup, ev["sum"][0], ev["sum"][1], ev["sum"][2], note, "; ".join(others) or "–"))
+    elif row in partials and any(r["dir"] == partials[row][0] for r in rs):
+        base_dir, part, end, why = partials[row]
+        base = [r for r in rs if r["dir"] == base_dir][0]
+        if part.startswith("dir:"):
+            prs = [r for r in rs if r["dir"].startswith(part[4:]) and r is not base and r["mtime"] > base["mtime"]
+                   and any(r["apk"].startswith(w[0]) for w in wants) and r["sum"] and r["sum"][1] == "0" and r["fails"] == 0]
+        else:
+            prs = [r for r in runs(part) if any(r["apk"].startswith(w[0]) for w in builds_for(part)) and r["sum"] and r["sum"][1] == "0" and r["fails"] == 0]
+        lines = base["text"].splitlines()
+        cut = len(lines) if end == "-" else next((i for i, l in enumerate(lines) if re.search(end, l)), len(lines))
+        late = [l for l in lines[cut:] if l.startswith("FAIL ")]
+        # The base run stands for the legs that were NOT run again: it may be on any counted build (the gate's, one
+        # builds.txt names for every row, or one of this row's own); the part must be on the builds rerun.txt names.
+        on_build = any(base["apk"].startswith(w[0]) for w in wants + [(GATE, "")] + also.get("*", []))
+        if prs and not late and on_build:
+            print("| %s | `%s/` (%d FAIL lines there%s) + `%s/` %s | the rest of the row passed in the first (%s passed); the failed part judged again alone: %s passed, %s failed, %s recorded — %s | %s |" % (
+                row, base_dir, base["fails"], "" if end == "-" else ", all before `%s`" % end.strip("^ "), prs[-1]["dir"], prs[-1]["at"], base["sum"][0],
+                prs[-1]["sum"][0], prs[-1]["sum"][1], prs[-1]["sum"][2], why[:260], "; ".join(o for o in others if base_dir not in o) or "–"))
+        else:
+            open_rows.append(row)
+            print("| %s | **OPEN** | partial evidence does not hold (part row passed: %s; failures after the part: %d; base on a counted build: %s) | %s |" % (
+                row, bool(prs), len(late), on_build, "; ".join(others) or "none"))
+    else:
+        open_rows.append(row)
+        print("| %s | **OPEN** | no run on %s with 0 failed%s | %s |" % (
+            row, want, (" (a fix touched it: " + rerun[row][1][:90] + ")") if row in rerun else "", "; ".join(others) or "none"))
+
+# EDGE per sub-step: the newest PASS / FAIL verdict lines that name the sub-step, over every EDGE run on the gate build.
+idx = os.path.join(QA, "scripts", "edge_index.tsv")
+if os.path.exists(idx):
+    ids = []
+    for line in open(idx, encoding="utf-8"):
+        ids += re.findall(r"\b([CP]\d\d)\b", line)
+    ids = sorted(set(ids))
+    print("\n## EDGE sub-steps (from every EDGE run on a counted build, grouped and single; every run is an EDGE_ONLY run —")
+    print("no run of all 27 together exists, by the owner's ruling; a sub-step named in rerun.txt counts on the builds named there)\n")
+    print("| sub-step | newest run that ran it | PASS lines | FAIL lines |")
+    print("|---|---|---|---|")
+    edge_runs = []
+    for root, _dirs, files in os.walk(QA):
+        for f in files:
+            if re.match(r"EDGE.*\.txt$", f) and "ring" not in f:
+                p = os.path.join(root, f)
+                t = open(p, encoding="utf-8", errors="replace").read()
+                got = re.search(r"^apk installed (\S+)", t, re.M)
+                edge_runs.append((os.path.getmtime(p), os.path.relpath(p, QA), t, got.group(1) if got else "?"))
+    edge_runs.sort()
+    for i in ids:
+        hit = None
+        for _m, rel, t, got in edge_runs:
+            if not any(got.startswith(w[0]) for w in builds_for("EDGE:" + i)):
+                continue
+            ps = len(re.findall(r"^PASS\s+%s\b" % i, t, re.M)); fs = len(re.findall(r"^FAIL\s+%s\b" % i, t, re.M))
+            if ps or fs:
+                hit = (rel, ps, fs)
+        if hit:
+            print("| %s | `%s` | %d | %d |" % (i, hit[0], hit[1], hit[2]))
+            if hit[2]:
+                open_rows.append("EDGE " + i)
+        else:
+            print("| %s | **OPEN** — no run on the gate build | – | – |" % i)
+            open_rows.append("EDGE " + i)
+
+print("\n## Open: %s" % (", ".join(open_rows) if open_rows else "nothing"))
+print("\n## With a clause failed by the owner's ruling: %s" % (", ".join(ruled_rows) if ruled_rows else "nothing"))

@@ -1,0 +1,40 @@
+==============================================================================
+ROW E4_EVENTS — an event from the editor, and the provider followed with no restart
+at            2026-10-01T15:19:08-06:00
+driver        e4_events.sh blob 6e50b257fa4a2f2a7f1c6d32d9272e0579bc4c2f
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     264210e3d9c6823b 342668288 bytes
+apk installed 1c0b1b18e29cac25
+apk match     yes (1c0b1b18e29cac25)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  Tessera exists                                              != 
+PASS  the editor opened                                           = yes
+PASS  its calendar field reads Tessera                            = Tessera
+      spin cal_time_spinner:ampm -> [AM] after 1 swipe(s)
+      spin cal_time_spinner:hour -> [9] after 3 swipe(s)
+      spin cal_time_spinner:minute -> [00] after 0 swipe(s)
+PASS  title typed                                                 = Standup
+PASS  start time                                                  = 9:00 AM
+PASS  the end keeps its hour from the start                       = 10:00 AM
+PASS  nothing is saved before Save                                = 0
+provider: Row: 0 title=Standup, dtstart=1790953200000, dtend=1790956800000, calendar_id=2, eventTimezone=America/Boise, eventLocation=Room 2
+PASS  the event is in Tessera                                     contains [calendar_id=2,]
+PASS  at tomorrow 09:00 in the device zone                        contains [dtstart=1790953200000, dtend=1790956800000]
+PASS  with the device zone                                        contains [eventTimezone=America/Boise]
+PASS  and its location                                            contains [eventLocation=Room 2]
+PASS  the write line names the event                              contains [[calendar] write insert event=287: ok]
+PASS  the editor closed onto the views                            = no yes
+PASS  the agenda lists it                                         = Standup
+observer: 332 ms after the MARK (n 0 -> 1, in 26 ms)
+PASS  the next view line with one more instance is within 2000 ms of the insert's MARK  332.00 vs 1000.00 +/- 1000.0
+PASS  the Day view lists Dentist with no restart                  = Dentist
+PASS  Dentist's provider row is gone                              = 0
+PASS  the delete's write line                                     contains [[calendar] write delete event=288: ok]
+PASS  its page closed and its node left the view                  = no no
+PASS  Standup's node is gone after a driver delete                = no
+PASS  a view line followed the delete                             contains [[calendar] view agenda]
+PASS  Tessera holds what it held before the session               = 0
+------------------------------------------------------------------------------
+E4_EVENTS: 22 passed, 0 failed, 0 recorded

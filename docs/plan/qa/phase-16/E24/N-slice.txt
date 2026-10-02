@@ -1,0 +1,21 @@
+    2026-10-02 01:15:57.686 wall=1790925357686 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=5908236 faceIndex=2 next=0 faces=2
+    2026-10-02 01:15:57.977 wall=1790925357977 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=5908527 faceIndex=1 next=2 faces=6
+    2026-10-02 01:15:58.268 wall=1790925358268 [tile_anim] tile=shell:weather kind=FLIP uptime=5908819 faceIndex=1 next=0 faces=1
+    2026-10-02 01:15:59.530 wall=1790925359530 [weather] location providers=[passive, fused, gps] lastKnown=gps fresh=gps via=fused
+    2026-10-02 01:15:59.531 wall=1790925359531 [weather] fetch provider=open-meteo request=https://api.open-meteo.com/v1/forecast?latitude=37.4200&longitude=-122.0800&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=10&timezone=auto&timeformat=unixtime&temperature_unit=fahrenheit&wind_speed_unit=mph
+    2026-10-02 01:16:00.026 wall=1790925360026 [calendar] reminder event=737 minutes=10: notified
+    2026-10-02 01:16:00.026 wall=1790925360026 [calendar] reminder event=738 minutes=10: skipped (synced copy)
+    2026-10-02 01:16:00.035 wall=1790925360035 [engine] publish feed:calendar faces=2 front=false source=calendar sourceTime=1790925360035
+    2026-10-02 01:16:00.035 wall=1790925360035 [engine] publish cmp:app.tileshell/app.tileshell.calendar.CalendarActivity faces=2 front=false source=calendar sourceTime=1790925360035
+    2026-10-02 01:16:00.035 wall=1790925360035 [calendar] refresh (provider change): access=true faces=2 agenda=1
+    2026-10-02 01:16:00.053 wall=1790925360053 [render] tile=slot:CALENDAR sourceTime=1790925360035 renderedAt=1790925360053 faces=2
+    2026-10-02 01:16:00.230 wall=1790925360230 [notif] posted app.tileshell key=0|app.tileshell|1|calendar_reminder|10173 postTime=1790925360023
+    2026-10-02 01:16:00.231 wall=1790925360231 [badge] set app.tileshell NOTIFICATIONS=1 -> effective 1
+    2026-10-02 01:16:00.231 wall=1790925360231 [engine] publish pkg:app.tileshell from=notifications faces=1 front=false source=notification sourceTime=1790925360023 -> shows notifications
+    2026-10-02 01:16:00.765 wall=1790925360765 [weather] fetch ok provider=open-meteo ms=1234 grid=37.4162,-122.0803 tz=America/Los_Angeles current=0/60.5 hourly=240 daily=10 place=true
+    2026-10-02 01:16:00.767 wall=1790925360767 [engine] publish feed:weather faces=1 front=true source=weather:open-meteo sourceTime=1790925360763
+    2026-10-02 01:16:00.767 wall=1790925360767 [weather] publish tile faces=1 temp=61° condition=0 sky=CLEAR/night/0.0 stale=false fetchedAt=1790925360763
+    2026-10-02 01:16:00.786 wall=1790925360786 [render] tile=shell:weather sourceTime=1790925360763 renderedAt=1790925360786 faces=1
+    2026-10-02 01:16:02.645 wall=1790925362645 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=5913196 faceIndex=0 next=1 faces=2
+    2026-10-02 01:16:02.937 wall=1790925362937 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=5913487 faceIndex=2 next=3 faces=6
+    2026-10-02 01:16:03.228 wall=1790925363228 [tile_anim] tile=shell:weather kind=FLIP uptime=5913778 faceIndex=0 next=1 faces=1

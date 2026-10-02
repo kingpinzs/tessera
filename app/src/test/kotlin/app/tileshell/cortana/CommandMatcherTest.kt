@@ -107,6 +107,13 @@ class CommandMatcherTest {
     fun `calendar add and delete, and the day's list`() {
         val add = match("add a meeting called standup to my calendar at 10 am") as Request.AddCalendarEvent
         assertTrue("the calendar words are stripped from the title: '${add.title}'", "calendar" !in add.title)
+        assertEquals("standup", add.title)
+        // The thing named twice ("a calendar event called …") leaves only the title (phase 16 E9; QA defect D-E9-1).
+        assertEquals("dentist", (match("add a calendar event called dentist tomorrow at 2 pm") as Request.AddCalendarEvent).title)
+        assertEquals("dentist", (match("add an event called dentist tomorrow at 2 pm") as Request.AddCalendarEvent).title)
+        assertEquals("dentist", (match("add calendar event called dentist tomorrow at 2 pm") as Request.AddCalendarEvent).title)
+        // A kind of event with no "called" keeps its words: the title is what was said.
+        assertEquals("lunch meeting", (match("add lunch meeting to my calendar tomorrow at noon") as Request.AddCalendarEvent).title)
         assertEquals(Request.DeleteCalendarEvent("standup"), match("delete the event standup"))
         assertEquals(Request.WhatsOnMyCalendar, match("what's on my calendar"))
     }

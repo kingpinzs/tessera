@@ -1,0 +1,86 @@
+==============================================================================
+ROW E13 — create, edit, photo, delete; WRITE_CONTACTS revoked
+at            2026-10-02T04:07:39-06:00
+driver        e13.sh blob 77b5008ff4bb719966176847fd337a12678922a8
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob a01abd9075780a8e49193748ce5047031fe19181
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     182a7851a5c76400 339129014 bytes
+apk installed e03a1d233ee6ba0c
+apk match     yes (e03a1d233ee6ba0c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (e03a1d233ee6ba0c)
+RECORD  E13_LEGS — a NARROW run, only these legs of E13 ran (the counted whole-row run is E13/ on 3c1ad1e0)  grant
+=== leg grant: Contacts allowed in place, from People's notice, starts the People tile's observer (gate review A, finding 10)
+PASS  grant: layout_restore of the baseline (the PEOPLE slot tile is on Start)  = 0
+      people_fixtures_up: raw ids ann=5455 bob=5456 zoe=5457 zhang=5458 number-only=5459 cara=5460,5461 (raw contacts before: 2)
+      grant: Ann Lee is raw=5455 lookup=0r5455-2B4545413333
+PASS  grant: the solid-red JPEG is pushed                         = 1
+PASS  grant: no contact holds a photo data row before the leg     = 0
+--- grant: Contacts taken away (pm revoke ends the shell's process; Android starts the home app again)
+      grant: dumpsys package's lines for the two permissions:  android.permission.WRITE_CONTACTS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED]; android.permission.READ_CONTACTS: granted=false, flags=[ USER_SENSITIVE_WHEN_GRANTED|USER_SENSITIVE_WHEN_DENIED];
+PASS  grant: READ_CONTACTS and WRITE_CONTACTS are revoked (a phone on which Contacts was never allowed)  = false false
+      grant: the shell's pid after the revoke: 31540
+PASS  grant: the shell is running                                 != 
+PASS  grant: the process started without the read — [app] feeds started (process start)  contains [[app] feeds started (process start)]
+PASS  grant: … and its People feed read nothing — [people] tile: 0 photos (no contacts access, start)  contains [[people] tile: 0 photos (no contacts access, start)]
+PASS  grant: the PEOPLE slot tile is on Start                     != 
+PASS  grant: … showing the static pattern (people_tile_pattern inside the tile)  != 
+--- grant: People's notice, the grant made in place
+people_notice: []  people_notice_action: []
+FAIL  grant: People says it cannot read the contacts (people_notice)  does not contain [can't read your contacts]: 
+FAIL  grant: … and offers the grant in place (people_notice_action)  expected [yes] got [no]
+PASS  grant: no contact is listed while the read is not held      = 0
+FAIL  grant: the shell's process is still the one that started after the revoke  expected [31540] got [31691]
+RECORD  grant: the in-place offer raised Android's permission dialog  no dialog in the dump; top activity app.tileshell/.StartActivity
+FAIL  grant: READ_CONTACTS and WRITE_CONTACTS are held after the in-place grant  expected [true true] got [false false]
+FAIL  grant: the slice holds People's own line for the answer: READ_CONTACTS=true  does not contain [READ_CONTACTS=true]: 
+FAIL  grant: A-10 — the slice holds [app] feeds started (people grant)  does not contain [[app] feeds started (people grant)]:     2026-10-02 04:09:05.732 wall=1790935745732 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=2619755 faceIndex=1 next=0 faces=1
+    2026-10-02 04:09:06.024 wall=1790935746024 [tile_anim] tile=slot:PHOTOS kind=CROSSFADE uptime=2620047 face
+FAIL  grant: … once                                             expected [1] got [0]
+PASS  grant: no `[app] feeds started (process start)` in that slice — the process did not start again  does not contain [feeds started (process start)]
+PASS  grant: the shell's pid is unchanged by the grant            = 31691
+FAIL  grant: People is the activity on show (the page read below is People's)  expected [app.tileshell/.people.PeopleActivity] got [app.tileshell/.StartActivity]
+FAIL  grant: People now lists the contacts (people_row: nodes)    should not be [0]
+PASS  grant: … and the notice is gone                           = no
+--- grant: a photo given to Ann afterwards reaches the People tile, no process restart
+FAIL  grant: Ann (red), given after the grant: Android's photo picker opened  does not contain [photopicker]: app.tileshell/.startactivity
+FAIL  grant: Ann (red), given after the grant: a vnd.android.cursor.item/photo data row exists (the red JPEG, given through the editor)  expected [1] got [0]
+FAIL  grant: the feed read the new photo — [people] tile: 1 photos, in a slice from a MARK taken after the grant  does not contain [[people] tile: 1 photos]: 
+FAIL  grant: … and no `[app] feeds started` line of any kind is in that slice: the read came from the observer  the ring slice is empty or unreadable, so the absence proves nothing
+FAIL  ensure_start: Start alone                                   start_page=no app_list=no pod_bay=no
+      g-tile try 1: no in-slide was logged in 10 s (a bubble that is not sliding rests)
+      g-tile try 1: the dump holds no people_tile_bubble in the tile (taken mid-slide, or no bubble)
+      g-tile try 2: no in-slide was logged in 10 s (a bubble that is not sliding rests)
+      g-tile try 2: the dump holds no people_tile_bubble in the tile (taken mid-slide, or no bubble)
+      g-tile try 3: no in-slide was logged in 10 s (a bubble that is not sliding rests)
+      g-tile try 3: the dump holds no people_tile_bubble in the tile (taken mid-slide, or no bubble)
+      grant: the tile's settled bubble: bounds [] content-desc [] ()
+FAIL  grant: the PEOPLE slot tile shows a bubble (people_tile_bubble inside the tile)  should not be []
+FAIL  grant: … whose content-desc is Ann's lookup key           expected [0r5455-2B4545413333] got []
+FAIL  grant: … and whose centre pixel is the red JPEG's colour ± 8 (the screencap taken at the bubble's rest)  expected (254,0,0) ± 8, got (0,0,0)
+FAIL  grant: the shell's pid is still the one from before the grant (no process restart between the grant and the photo on the tile)  expected [31691] got [32244]
+--- grant: a photo removed from OUTSIDE the shell (content delete over adb) leaves the tile: only the observer can carry it
+PASS  grant: Ann holds no photo data row any more                 = 0
+FAIL  grant: the feed read the removal — a [people] tile: 0 photos line (with access; not the no-access form)  expected [yes] got [no]
+FAIL  grant: … with no `[app] feeds started` line in that slice  the ring slice is empty or unreadable, so the absence proves nothing
+FAIL  grant: the PEOPLE slot tile is on Start                     should not be []
+FAIL  grant: … back to the static pattern (people_tile_pattern inside the tile)  should not be []
+PASS  grant: … and no bubble                                    = 
+FAIL  grant: the shell's pid is still the same                    expected [31691] got [32244]
+--- grant: restore
+PASS  grant restore: READ_CONTACTS and WRITE_CONTACTS held        = true true
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  grant restore: the pushed JPEG is removed                   = 0
+PASS  grant restore: the raw_contacts rows equal the rows before the leg  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0
+Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0
+PASS  grant restore: layout_restore of the baseline               = 0
+FAIL  ensure_start: Start alone                                   start_page=no app_list=no pod_bay=no
+------------------------------------------------------------------------------
+E13: 21 passed, 24 failed, 2 recorded

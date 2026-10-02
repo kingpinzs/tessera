@@ -1,0 +1,100 @@
+[
+ [
+  "C4 authority prefix without the trailing slash",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.c4_anAuthorityThatOnlyStartsWithTheCalendarsIsForeign"
+  ]
+ ],
+ [
+  "C6 INSERT by type even when the data is a foreign URI",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.c6_insertByTypeWithForeignDataOpensToday"
+  ]
+ ],
+ [
+  "C11 fragment not stripped from the path",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.c11_aFragmentIsNotPartOfTheId"
+  ]
+ ],
+ [
+  "C15 VIEW event: begin/end extras not range-checked",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.c15_viewDropsAnOccurrenceTimeOutOfRange"
+  ]
+ ],
+ [
+  "P6 authority prefix without the trailing slash",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.p6_anAuthorityThatOnlyStartsWithContactsIsForeign"
+  ]
+ ],
+ [
+  "P7 INSERT by type even when the data is a foreign URI",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.p7_insertByTypeWithForeignDataOpensTheList"
+  ]
+ ],
+ [
+  "P8 INSERT_OR_EDIT whatever the type or data",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.p8_insertOrEditOnAnythingElseOpensTheList"
+  ]
+ ],
+ [
+  "P9 lookup/<key>/<id> accepts id <= 0",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.p9_aLookupUrisRowIdMustBePositive"
+  ]
+ ],
+ [
+  "P11 query not stripped from the path",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.p11_p12_aQueryOrFragmentIsNotPartOfTheId"
+  ]
+ ],
+ [
+  "P12 fragment not stripped from the path",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.p11_p12_aQueryOrFragmentIsNotPartOfTheId"
+  ]
+ ],
+ [
+  "P13 contacts/<x>/<y> taken as a lookup key whatever <x> is",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.p13_aSubPathOfAContactIsNotALookupKey"
+  ]
+ ],
+ [
+  "R4 alert key without the alarm time",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.r4_aSecondReminderOfTheSameOccurrenceStillNotifies"
+  ]
+ ],
+ [
+  "R5 alert key without the begin",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.r5_twoOccurrencesWithOneAlarmTimeAreTwoAlerts"
+  ]
+ ],
+ [
+  "R8 notified set = every live alert (a failed post is recorded too)",
+  "CAUGHT (gradle rc=1, 1126 tests run, 1 failed)",
+  [
+   "TrustBProbeTest.r8_anAlertThatCouldNotBePostedIsNotRecorded"
+  ]
+ ]
+]

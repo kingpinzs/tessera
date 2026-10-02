@@ -1,0 +1,151 @@
+Applications Graphics Acceleration Info:
+Uptime: 8414506 Realtime: 8414506
+
+** Graphics info for pid 4919 [app.tileshell] **
+
+Stats since: 8408704182801ns
+Total frames rendered: 10
+Janky frames: 3 (30.00%)
+Janky frames (legacy): 1 (10.00%)
+50th percentile: 16ms
+90th percentile: 32ms
+95th percentile: 32ms
+99th percentile: 32ms
+Number Missed Vsync: 0
+Number High input latency: 7
+Number Slow UI thread: 1
+Number Slow bitmap uploads: 0
+Number Slow issue draw commands: 1
+Number Frame deadline missed: 3
+Number Frame deadline missed (legacy): 1
+HISTOGRAM: 5ms=0 6ms=0 7ms=0 8ms=0 9ms=0 10ms=0 11ms=0 12ms=0 13ms=0 14ms=0 15ms=0 16ms=9 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 26ms=0 27ms=0 28ms=0 29ms=0 30ms=0 31ms=0 32ms=1 34ms=0 36ms=0 38ms=0 40ms=0 42ms=0 44ms=0 46ms=0 48ms=0 53ms=0 57ms=0 61ms=0 65ms=0 69ms=0 73ms=0 77ms=0 81ms=0 85ms=0 89ms=0 93ms=0 97ms=0 101ms=0 105ms=0 109ms=0 113ms=0 117ms=0 121ms=0 125ms=0 129ms=0 133ms=0 150ms=0 200ms=0 250ms=0 300ms=0 350ms=0 400ms=0 450ms=0 500ms=0 550ms=0 600ms=0 650ms=0 700ms=0 750ms=0 800ms=0 850ms=0 900ms=0 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=0 1200ms=0 1250ms=0 1300ms=0 1350ms=0 1400ms=0 1450ms=0 1500ms=0 1550ms=0 1600ms=0 1650ms=0 1700ms=0 1750ms=0 1800ms=0 1850ms=0 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 13ms
+90th gpu percentile: 16ms
+95th gpu percentile: 16ms
+99th gpu percentile: 16ms
+GPU HISTOGRAM: 1ms=0 2ms=1 3ms=0 4ms=0 5ms=0 6ms=0 7ms=0 8ms=0 9ms=0 10ms=0 11ms=0 12ms=2 13ms=5 14ms=1 15ms=0 16ms=1 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 4950ms=0
+
+Pipeline=Skia (OpenGL)
+Memory policy:
+  Max surface area: 2527200
+  Max resource usage: 121.31MB (x48)
+  Background retention: 50% (altUiHidden = true)
+  GPU Context timeout: 10
+Contexts: 2 (stopped = 1)
+CPU Caches:
+  Glyph Cache: 266.85 KB (1 entry)
+  Glyph Count: 58 
+Total CPU memory usage:
+  273259 bytes, 266.85 KB (0.00 bytes is purgeable)
+GPU Caches:
+  Other:
+    Other: 16.69 KB (1 entry)
+    Buffer Object: 38.05 KB (3 entries)
+  Image:
+    Texture: 2.58 MB (24 entries)
+  Scratch:
+    RenderTarget: 1.12 MB (2 entries)
+    Texture: 2.00 MB (1 entry)
+    Buffer Object: 142.00 KB (4 entries)
+Total GPU memory usage:
+  6186932 bytes, 5.90 MB (3.81 MB is purgeable)
+
+GraphicBufferAllocator buffers:
+            Handle |         Size |     W (Stride) x H | Layers |   Format |      Usage | Requestor
+    0x70b6dc3848d0 |      unknown | 1080 (   0) x 2340 |      1 |        1 | 0x     b00 | VRI[CalendarActivity]#1(BLAST Consumer)1
+    0x70b6dc384fd0 |      unknown | 1080 (   0) x 2340 |      1 |        1 | 0x     b00 | VRI[CalendarActivity]#1(BLAST Consumer)1
+    0x70b6dc387180 |      unknown | 1080 (   0) x 2340 |      1 |        1 | 0x     b00 | VRI[CalendarActivity]#1(BLAST Consumer)1
+Total allocated by GraphicBufferAllocator (estimate): 0.00 KB
+Imported gralloc buffers:
++ name:VRI[CalendarActivity]#1(BLAST Consumer)1, id:2650, size:9872.19KiB, w/h:1080x2340, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
++ name:VRI[CalendarActivity]#1(BLAST Consumer)1, id:2649, size:9872.19KiB, w/h:1080x2340, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
++ name:VRI[CalendarActivity]#1(BLAST Consumer)1, id:2648, size:9872.19KiB, w/h:1080x2340, usage: 0xb00, req fmt:1, fourcc/mod:875708993/0, dataspace: 0x8810000, compressed: false
+Total imported by gralloc: 29616.56KiB
+
+Profile data in ms:
+
+	app.tileshell/app.tileshell.StartActivity/android.view.ViewRootImpl@5bb0af2 (visibility=8)
+Window: app.tileshell/app.tileshell.StartActivity
+Stats since: 8408704144089ns
+Total frames rendered: 0
+Janky frames: 0 (0.00%)
+Janky frames (legacy): 0 (0.00%)
+50th percentile: 4950ms
+90th percentile: 4950ms
+95th percentile: 4950ms
+99th percentile: 4950ms
+Number Missed Vsync: 0
+Number High input latency: 0
+Number Slow UI thread: 0
+Number Slow bitmap uploads: 0
+Number Slow issue draw commands: 0
+Number Frame deadline missed: 0
+Number Frame deadline missed (legacy): 0
+HISTOGRAM: 5ms=0 6ms=0 7ms=0 8ms=0 9ms=0 10ms=0 11ms=0 12ms=0 13ms=0 14ms=0 15ms=0 16ms=0 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 26ms=0 27ms=0 28ms=0 29ms=0 30ms=0 31ms=0 32ms=0 34ms=0 36ms=0 38ms=0 40ms=0 42ms=0 44ms=0 46ms=0 48ms=0 53ms=0 57ms=0 61ms=0 65ms=0 69ms=0 73ms=0 77ms=0 81ms=0 85ms=0 89ms=0 93ms=0 97ms=0 101ms=0 105ms=0 109ms=0 113ms=0 117ms=0 121ms=0 125ms=0 129ms=0 133ms=0 150ms=0 200ms=0 250ms=0 300ms=0 350ms=0 400ms=0 450ms=0 500ms=0 550ms=0 600ms=0 650ms=0 700ms=0 750ms=0 800ms=0 850ms=0 900ms=0 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=0 1200ms=0 1250ms=0 1300ms=0 1350ms=0 1400ms=0 1450ms=0 1500ms=0 1550ms=0 1600ms=0 1650ms=0 1700ms=0 1750ms=0 1800ms=0 1850ms=0 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 4950ms
+90th gpu percentile: 4950ms
+95th gpu percentile: 4950ms
+99th gpu percentile: 4950ms
+GPU HISTOGRAM: 1ms=0 2ms=0 3ms=0 4ms=0 5ms=0 6ms=0 7ms=0 8ms=0 9ms=0 10ms=0 11ms=0 12ms=0 13ms=0 14ms=0 15ms=0 16ms=0 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 4950ms=0
+
+
+
+---PROFILEDATA---
+Flags,FrameTimelineVsyncId,IntendedVsync,Vsync,InputEventId,HandleInputStart,AnimationStart,PerformTraversalsStart,DrawStart,FrameDeadline,FrameStartTime,FrameInterval,WorkloadTarget,SyncQueued,SyncStart,IssueDrawCommandsStart,SwapBuffers,FrameCompleted,DequeueBufferDuration,QueueBufferDuration,GpuCompleted,SwapBuffersCompleted,DisplayPresentTime,CommandSubmissionCompleted,
+---PROFILEDATA---
+
+
+	app.tileshell/app.tileshell.calendar.CalendarActivity/android.view.ViewRootImpl@7259543 (visibility=0)
+Window: app.tileshell/app.tileshell.calendar.CalendarActivity
+Stats since: 8408704182612ns
+Total frames rendered: 10
+Janky frames: 3 (30.00%)
+Janky frames (legacy): 1 (10.00%)
+50th percentile: 16ms
+90th percentile: 32ms
+95th percentile: 32ms
+99th percentile: 32ms
+Number Missed Vsync: 0
+Number High input latency: 7
+Number Slow UI thread: 1
+Number Slow bitmap uploads: 0
+Number Slow issue draw commands: 1
+Number Frame deadline missed: 3
+Number Frame deadline missed (legacy): 1
+HISTOGRAM: 5ms=0 6ms=0 7ms=0 8ms=0 9ms=0 10ms=0 11ms=0 12ms=0 13ms=0 14ms=0 15ms=0 16ms=9 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 26ms=0 27ms=0 28ms=0 29ms=0 30ms=0 31ms=0 32ms=1 34ms=0 36ms=0 38ms=0 40ms=0 42ms=0 44ms=0 46ms=0 48ms=0 53ms=0 57ms=0 61ms=0 65ms=0 69ms=0 73ms=0 77ms=0 81ms=0 85ms=0 89ms=0 93ms=0 97ms=0 101ms=0 105ms=0 109ms=0 113ms=0 117ms=0 121ms=0 125ms=0 129ms=0 133ms=0 150ms=0 200ms=0 250ms=0 300ms=0 350ms=0 400ms=0 450ms=0 500ms=0 550ms=0 600ms=0 650ms=0 700ms=0 750ms=0 800ms=0 850ms=0 900ms=0 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=0 1200ms=0 1250ms=0 1300ms=0 1350ms=0 1400ms=0 1450ms=0 1500ms=0 1550ms=0 1600ms=0 1650ms=0 1700ms=0 1750ms=0 1800ms=0 1850ms=0 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 13ms
+90th gpu percentile: 16ms
+95th gpu percentile: 16ms
+99th gpu percentile: 16ms
+GPU HISTOGRAM: 1ms=0 2ms=1 3ms=0 4ms=0 5ms=0 6ms=0 7ms=0 8ms=0 9ms=0 10ms=0 11ms=0 12ms=2 13ms=5 14ms=1 15ms=0 16ms=1 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 4950ms=0
+
+
+
+---PROFILEDATA---
+Flags,FrameTimelineVsyncId,IntendedVsync,Vsync,InputEventId,HandleInputStart,AnimationStart,PerformTraversalsStart,DrawStart,FrameDeadline,FrameStartTime,FrameInterval,WorkloadTarget,SyncQueued,SyncStart,IssueDrawCommandsStart,SwapBuffers,FrameCompleted,DequeueBufferDuration,QueueBufferDuration,GpuCompleted,SwapBuffersCompleted,DisplayPresentTime,CommandSubmissionCompleted,
+0,2320722,8409044671748,8409044671748,-854941966,8409044828725,8409044829276,8409061789732,8409061887395,8409061338414,8409044826261,16666666,16666666,8409073882931,8409073941160,8409074036559,8409076127160,8409078070006,6662,175177,8409078070006,8409076704440,0,8409076127160,
+0,2320744,8409094671746,8409094671746,0,8409094834956,8409094835227,8409097093763,8409097115293,8409111338412,8409094833995,16666666,16666666,8409099302236,8409099314559,8409099332882,8409099564987,8409111473841,1222,57298,8409111473841,8409099850842,0,8409099564987,
+0,2320752,8409111338412,8409111338412,0,8409111495391,8409111495932,8409114599620,8409114617834,8409144671744,8409111493838,16666666,16666666,8409115504233,8409115524951,8409115537335,8409115730966,8409128135518,982,43591,8409128135518,8409115994510,0,8409115730966,
+0,2320760,8409128005078,8409128005078,0,8409128223663,8409128224063,8409130286012,8409130298876,8409161338410,8409128222480,16666666,16666666,8409132574655,8409132586797,8409132599731,8409132788154,8409144734157,951,46306,8409144734157,8409133013215,0,8409132788154,
+0,2320768,8409144671744,8409144671744,0,8409144829726,8409144829987,8409147597245,8409147615960,8409178005076,8409144828834,16666666,16666666,8409148537013,8409148558023,8409148570475,8409148776832,8409161408468,1403,107921,8409161408468,8409149106038,0,8409148776832,
+0,2320776,8409161338410,8409161338410,0,8409161501933,8409161502313,8409163559814,8409163572518,8409194671742,8409161500730,16666666,16666666,8409165506516,8409165518188,8409165529800,8409165710147,8409178093209,952,84478,8409178093209,8409165962820,0,8409165710147,
+0,2320784,8409178005076,8409178005076,0,8409178184629,8409178184970,8409181158293,8409181182910,8409211338408,8409178182886,16666666,16666666,8409182100797,8409182124441,8409182141854,8409182409154,8409194745067,1603,53901,8409194745067,8409182699788,0,8409182409154,
+0,2320792,8409194671742,8409194671742,0,8409194816321,8409194816691,8409197016999,8409197036064,8409228005074,8409194814647,16666666,16666666,8409199073086,8409199085209,8409199100277,8409199307424,8409211395172,1153,49082,8409211395172,8409199545499,0,8409199307424,
+0,2320800,8409211338408,8409211338408,0,8409211433544,8409211433795,8409211875121,8409211890740,8409244671740,8409211432683,16666666,16666666,8409211945392,8409211962825,8409211974156,8409212169872,8409228054956,24655,84307,8409228054956,8409212499900,0,8409212169872,
+0,2320999,8413528004902,8413528004902,0,8413528167445,8413528168006,8413529230735,8413529256152,8413544671568,8413528164720,16666666,16666666,8413531010225,8413531046021,8413531077620,8413531392460,8413544781113,1473,73377,8413544781113,8413531842703,0,8413531392460,
+---PROFILEDATA---
+
+
+View hierarchy:
+
+  app.tileshell/app.tileshell.StartActivity/android.view.ViewRootImpl@5bb0af2
+  8 views, 11.32 kB of render nodes
+
+  app.tileshell/app.tileshell.calendar.CalendarActivity/android.view.ViewRootImpl@7259543
+  8 views, 13.28 kB of render nodes
+
+
+Total ViewRootImpl   : 2
+Total attached Views : 16
+Total RenderNode     : 24.60 kB (used) / 48.67 kB (capacity)
+

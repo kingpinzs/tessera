@@ -1,0 +1,192 @@
+── BUILDSTART Verify at build start: five Android facts, on the AVD
+RECORD  image                                                       sdk 36, Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+RECORD  calendar provider                                           versionName=16
+PASS  fixture: BS Local exists                                    != 
+PASS  fixture: BS ReadOnly exists                                 != 
+PASS  fixture: BS Account exists                                  != 
+--- 1: the reminder broadcast's data URI
+Error while accessing provider:com.android.calendar
+android.database.sqlite.SQLiteException: no such column: bs (code 1 SQLITE_ERROR): , while compiling: SELECT _id, title FROM view_events WHERE (lastSynced = 0 AND (title=bs-reminder))
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:197)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:153)
+	at android.content.ContentProviderProxy.query(ContentProviderNative.java:495)
+	at com.android.commands.content.Content$QueryCommand.onExecute(Content.java:661)
+	at com.android.commands.content.Content$Command.execute(Content.java:522)
+	at com.android.commands.content.Content.main(Content.java:735)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+FAIL  1: the test event exists                                    should not be []
+usage: adb shell content [subcommand] [options]
+
+usage: adb shell content insert --uri <URI> [--user <USER_ID>] --bind <BINDING> [--bind <BINDING>...] [--extra <BINDING>...]
+  <URI> a content provider URI.
+  <BINDING> binds a typed value to a column and is formatted:
+  <COLUMN_NAME>:<TYPE>:<COLUMN_VALUE> where:
+  <TYPE> specifies data type such as:
+  b - boolean, s - string, i - integer, l - long, f - float, d - double, n - null
+  Note: Omit the value for passing an empty string, e.g column:s:
+  Example:
+  # Add "new_setting" secure setting with value "new_value".
+  adb shell content insert --uri content://settings/secure --bind name:s:new_setting --bind value:s:new_value
+
+usage: adb shell content update --uri <URI> [--user <USER_ID>] [--where <WHERE>] [--extra <BINDING>...]
+  <WHERE> is a SQL style where clause in quotes (You have to escape single quotes - see example below).
+  Example:
+  # Change "new_setting" secure setting to "newer_value".
+  adb shell content update --uri content://settings/secure --bind value:s:newer_value --where "name='new_setting'"
+
+usage: adb shell content delete --uri <URI> [--user <USER_ID>] --bind <BINDING> [--bind <BINDING>...] [--where <WHERE>] [--extra <BINDING>...]
+  Example:
+  # Remove "new_setting" secure setting.
+  adb shell content delete --uri content://settings/secure --where "name='new_setting'"
+
+usage: adb shell content query --uri <URI> [--user <USER_ID>] [--projection <PROJECTION>] [--where <WHERE>] [--sort <SORT_ORDER>] [--extra <BINDING>...]
+  <PROJECTION> is a list of colon separated column names and is formatted:
+  <COLUMN_NAME>[:<COLUMN_NAME>...]
+  <SORT_ORDER> is the order in which rows in the result should be sorted.
+  Example:
+  # Select "name" and "value" columns from secure settings where "name" is equal to "new_setting" and sort the result by name in ascending order.
+  adb shell content query --uri content://settings/secure --projection name:value --where "name='new_setting'" --sort "name ASC"
+
+usage: adb shell content call --uri <URI> --method <METHOD> [--arg <ARG>]
+       [--extra <BINDING> ...]
+  <METHOD> is the name of a provider-defined method
+  <ARG> is an optional string argument
+  <BINDING> is like --bind above, typed data of the form <KEY>:{b,s,i,l,f,d}:<VAL>
+
+usage: adb shell content read --uri <URI> [--user <USER_ID>]
+  Example:
+  adb shell 'content read --uri content://settings/system/ringtone_cache' > host.ogg
+
+usage: adb shell content write --uri <URI> [--user <USER_ID>]
+  Example:
+  adb shell 'content write --uri content://settings/system/ringtone_cache' < host.ogg
+
+usage: adb shell content gettype --uri <URI> [--user <USER_ID>]
+  Example:
+  adb shell content gettype --uri content://media/internal/audio/media/
+
+
+[ERROR] For input string: ""
+RECORD  1: the provider's pending alarm                                 ELAPSED_WAKEUP #9: Alarm{6f5dd3e type 2 origWhen 86400000 whenElapsed 86400000 com.android.providers.calendar}       tag=*walarm*:com.android.providers.calendar.intent.CalendarProvider2       type=ELAPSED_WAKEUP origWhen=+4h28m54s851ms window=+4h30m0s0ms repeatInterval=21600000 count=0 flags=0x0
+Error while accessing provider:com.android.calendar
+android.database.sqlite.SQLiteException: near ")": syntax error (code 1 SQLITE_ERROR): , while compiling: SELECT CalendarAlerts._id AS _id, event_id, alarmTime, state, minutes FROM CalendarAlerts, view_events WHERE (view_events._id=CalendarAlerts.event_id) AND (event_id=)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:197)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:153)
+	at android.content.ContentProviderProxy.query(ContentProviderNative.java:495)
+	at com.android.commands.content.Content$QueryCommand.onExecute(Content.java:661)
+	at com.android.commands.content.Content$Command.execute(Content.java:522)
+	at com.android.commands.content.Content.main(Content.java:735)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+RECORD  1: calendar_alerts before the alarm                         
+waiting for the alarm (the event starts 11 minutes after 09:16:07 device time; the reminder is 10 minutes before)
+RECORD  1: the broadcast as the system logged it                    
+FAIL  1: the broadcast was sent                                   does not contain [act=android.intent.action.EVENT_REMINDER]: 
+FAIL  1: its data is a content URI on com.android.calendar (the receiver's scheme + host filter)  does not contain [dat=content://com.android.calendar/]: 
+RECORD  1: flags (0x01000000 = FLAG_RECEIVER_INCLUDE_BACKGROUND, what lets a manifest receiver get it)  
+RECORD  1: who received it                                          
+Error while accessing provider:com.android.calendar
+android.database.sqlite.SQLiteException: near ")": syntax error (code 1 SQLITE_ERROR): , while compiling: SELECT CalendarAlerts._id AS _id, event_id, alarmTime, state, minutes FROM CalendarAlerts, view_events WHERE (view_events._id=CalendarAlerts.event_id) AND (event_id=)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:197)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:153)
+	at android.content.ContentProviderProxy.query(ContentProviderNative.java:495)
+	at com.android.commands.content.Content$QueryCommand.onExecute(Content.java:661)
+	at com.android.commands.content.Content$Command.execute(Content.java:522)
+	at com.android.commands.content.Content.main(Content.java:735)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+RECORD  1: calendar_alerts after the alarm                          
+--- 2: a normal (not sync-adapter) insert into a calendar of access level 200
+Error while accessing provider:com.android.calendar
+android.database.sqlite.SQLiteException: no such column: bs (code 1 SQLITE_ERROR): , while compiling: SELECT _id, calendar_id, title, dirty FROM view_events WHERE (lastSynced = 0 AND (title=bs-readonly))
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:197)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:153)
+	at android.content.ContentProviderProxy.query(ContentProviderNative.java:495)
+	at com.android.commands.content.Content$QueryCommand.onExecute(Content.java:661)
+	at com.android.commands.content.Content$Command.execute(Content.java:522)
+	at com.android.commands.content.Content.main(Content.java:735)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+RECORD  2: the insert's own output                                  (none)
+RECORD  2: the row afterwards                                       
+RECORD  2: ANSWER                                                   the provider REFUSES a normal insert into a level-200 calendar; the write layer's re-read is still built (r3 D5)
+--- 3: non-LOCAL calendars with no account, across a restart of the provider's process
+RECORD  3: provider pid before / after the force-stop               1828 / 14366
+PASS  3: the provider's process restarted                         != 1828
+RECORD  3: ANSWER                                                   account-less com.google calendars are DROPPED when the provider restarts: a Sync row creates its mkcal calendars after its last restart, never before (r3 V11)
+PASS  3: the LOCAL fixture survives either way                    contains [calendar_displayName=BS Local,]
+--- 4: a phone-only raw contact's account on this image
+Error while accessing provider:com.android.contacts
+android.database.sqlite.SQLiteException: near ")": syntax error (code 1 SQLITE_ERROR): , while compiling: SELECT _id, account_name, account_type FROM view_raw_contacts WHERE (1) AND (_id=)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:197)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:153)
+	at android.content.ContentProviderProxy.query(ContentProviderNative.java:495)
+	at com.android.commands.content.Content$QueryCommand.onExecute(Content.java:661)
+	at com.android.commands.content.Content$Command.execute(Content.java:522)
+	at com.android.commands.content.Content.main(Content.java:735)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+RECORD  4: a raw contact inserted with no account reads             
+RECORD  4: the image's configured local account name                
+RECORD  4: the image's configured local account type                
+FAIL  4: phone-only is a NULL account name on this image          does not contain [account_name=NULL]: 
+FAIL  4: phone-only is a NULL account type on this image          does not contain [account_type=NULL]: 
+--- 5: FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1
+Error while accessing provider:com.android.calendar
+android.database.sqlite.SQLiteException: no such column: bs (code 1 SQLITE_ERROR): , while compiling: SELECT _id, title FROM view_events WHERE (lastSynced = 0 AND (title=bs-leap))
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:197)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:153)
+	at android.content.ContentProviderProxy.query(ContentProviderNative.java:495)
+	at com.android.commands.content.Content$QueryCommand.onExecute(Content.java:661)
+	at com.android.commands.content.Content$Command.execute(Content.java:522)
+	at com.android.commands.content.Content.main(Content.java:735)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+FAIL  5: the yearly event exists                                  should not be []
+Error while accessing provider:com.android.calendar
+android.database.sqlite.SQLiteException: near ")": syntax error (code 1 SQLITE_ERROR): , while compiling: SELECT _id, dtstart, duration, allDay, rrule FROM view_events WHERE (lastSynced = 0 AND (_id=))
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:197)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:153)
+	at android.content.ContentProviderProxy.query(ContentProviderNative.java:495)
+	at com.android.commands.content.Content$QueryCommand.onExecute(Content.java:661)
+	at com.android.commands.content.Content$Command.execute(Content.java:522)
+	at com.android.commands.content.Content.main(Content.java:735)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+RECORD  5: the event row                                            
+Error while accessing provider:com.android.calendar
+android.database.sqlite.SQLiteException: near ")": syntax error (code 1 SQLITE_ERROR): , while compiling: SELECT Instances.event_id AS event_id, begin FROM Instances INNER JOIN view_events AS Events ON (Instances.event_id=Events._id) WHERE (begin<=? AND end>=?) AND (event_id=)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:197)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:153)
+	at android.content.ContentProviderProxy.query(ContentProviderNative.java:495)
+	at com.android.commands.content.Content$QueryCommand.onExecute(Content.java:661)
+	at com.android.commands.content.Content$Command.execute(Content.java:522)
+	at com.android.commands.content.Content.main(Content.java:735)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+FAIL  5: February 2027 has one instance, on the 28th              expected [2027-02-28] got []
+Error while accessing provider:com.android.calendar
+android.database.sqlite.SQLiteException: near ")": syntax error (code 1 SQLITE_ERROR): , while compiling: SELECT Instances.event_id AS event_id, begin FROM Instances INNER JOIN view_events AS Events ON (Instances.event_id=Events._id) WHERE (begin<=? AND end>=?) AND (event_id=)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:197)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:153)
+	at android.content.ContentProviderProxy.query(ContentProviderNative.java:495)
+	at com.android.commands.content.Content$QueryCommand.onExecute(Content.java:661)
+	at com.android.commands.content.Content$Command.execute(Content.java:522)
+	at com.android.commands.content.Content.main(Content.java:735)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+FAIL  5: February 2028 has one instance, on the 29th              expected [2028-02-29] got []
+Error while accessing provider:com.android.calendar
+android.database.sqlite.SQLiteException: near ")": syntax error (code 1 SQLITE_ERROR): , while compiling: SELECT Instances.event_id AS event_id, begin FROM Instances INNER JOIN view_events AS Events ON (Instances.event_id=Events._id) WHERE (begin<=? AND end>=?) AND (event_id=)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:197)
+	at android.database.DatabaseUtils.readExceptionFromParcel(DatabaseUtils.java:153)
+	at android.content.ContentProviderProxy.query(ContentProviderNative.java:495)
+	at com.android.commands.content.Content$QueryCommand.onExecute(Content.java:661)
+	at com.android.commands.content.Content$Command.execute(Content.java:522)
+	at com.android.commands.content.Content.main(Content.java:735)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:371)
+FAIL  5: February 2100 (not a leap year) is the 28th              expected [2100-02-28] got []
+PASS  restore: no BS calendar is left                             does not contain [BS ]
+   : 6 passed, 9 failed, 17 recorded

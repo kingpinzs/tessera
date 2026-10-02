@@ -1,0 +1,72 @@
+==============================================================================
+ROW B_LOOK — the views, panels and pages carry their tags
+at            2026-10-01T15:16:09-06:00
+driver        b_look.sh blob 3f776ae65aabe18af844456fed402bf2055d4e36
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     264210e3d9c6823b 342668288 bytes
+apk installed 1c0b1b18e29cac25
+apk match     yes (1c0b1b18e29cac25)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  Tessera exists once Calendar has opened                     != 
+      fixtures: all-day 283 timed 284 free 285 in Tessera 1
+PASS  cal_view                                                    = yes
+PASS  cal_view_mode:agenda selected                               = true
+PASS  cal_strip_day:2026-10-01 selected                           = true
+PASS  cal_day:2026-10-01 heading                                  = yes
+PASS  cal_event:283                                               = yes
+PASS  cal_event_bar:283                                           = yes
+PASS  cal_event:284                                               = yes
+PASS  cal_event_bar:284                                           = yes
+PASS  cal_event:285                                               = yes
+PASS  cal_event_bar:285                                           = yes
+PASS  cal_event_title:284 text                                    = Look timed
+PASS  an all-day row has no cal_event_time                        = no
+PASS  a timed row has cal_event_time                              = yes
+agenda time label: 1:00 PM&#10;2:30 PM
+view line: [calendar] view agenda 2026-09-27..2027-10-23: 3 instances in 32 ms
+calendars line: [calendar] calendars: 1 (local present)
+PASS  app bar buttons                                             = yes yes yes yes
+PASS  View list: Agenda / Day / Week                              = yes yes yes
+PASS  cal_view_mode:day selected                                  = true
+PASS  cal_allday:2026-10-01                                       = yes
+PASS  the all-day event has no cal_event_time in the Day view     = no
+PASS  the timed event's time                                      = yes
+day time text: 1:00 PM – 2:30 PM
+PASS  the all-day event's node lies inside the all-day band       contains [yes]
+PASS  cal_view_mode:week selected                                 = true
+PASS  week cell cal_day:2026-10-01                                = yes
+PASS  week event line                                             = Look timed
+PASS  cal_month_dropdown                                          = yes
+PASS  cal_month_cell:2026-10-01                                   = yes
+PASS  42 month cells                                              = 42
+motion: [motion] cal_month_dropdown t0=9674883 peak=195 overshoot=0 settle=195 frames=13 maxGapMs=17
+PASS  the drop-down's motion line                                 contains [[motion] cal_month_dropdown]
+PASS  cal_pane                                                    = yes
+PASS  cal_account:Tessera                                         = yes
+PASS  cal_calendar_row:1 checked                                  = true
+PASS  the counts line, written when the pane opens                contains [[calendar] counts: Tessera/Tessera=]
+counts: [calendar] counts: Tessera/Tessera=3
+PASS  cal_event_page:284                                          = yes
+PASS  local event actions                                         = yes yes yes
+event page time: Thu 1 Oct 2026, 1:00 PM – 2:30 PM
+PASS  cal_editor                                                  = yes
+PASS  cal_editor_field:title                                      = yes
+PASS  cal_editor_field:location                                   = yes
+PASS  cal_editor_field:all_day                                    = yes
+PASS  cal_editor_field:start_date                                 = yes
+PASS  cal_editor_field:start_time                                 = yes
+PASS  cal_editor_field:end_date                                   = yes
+PASS  cal_editor_field:end_time                                   = yes
+PASS  cal_editor_field:repeat                                     = yes
+PASS  cal_editor_field:reminder                                   = yes
+PASS  cal_editor_field:calendar                                   = yes
+PASS  the editor's calendar field reads Tessera                   = Tessera
+PASS  … menu: Settings                                          = yes
+PASS  cal_settings                                                = yes
+PASS  cal_can_sync with its notice                                = yes Choose which calendars Sync may use
+PASS  the fixtures are gone                                       = 0
+PASS  no new crash of the shell                                   = 0
+------------------------------------------------------------------------------
+B_LOOK: 51 passed, 0 failed, 0 recorded

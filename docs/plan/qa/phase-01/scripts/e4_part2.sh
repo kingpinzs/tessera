@@ -4,6 +4,10 @@ source "$(dirname "$0")/ui.sh"
 OUT=$1; LOG=$OUT/E04.txt; N="python3 $(dirname "$0")/nodes.py"
 slotdesc() { dump "$OUT/$1.xml"; $N "$OUT/$1.xml" "tile:slot:MAIL"; }
 echo "# E4b $(date -Iseconds)" >> "$LOG"
+# RE-CUT 2026-10-01 by phase 16's build task 1 / 8 (its r3 D3; INDEX Change Log): the picker's rows are tagged by the
+# handler's COMPONENT, `slot_candidate:<package>/<activity, short form>`, since one package may hold several handlers
+# (the shell's own apps). The driver names the package it means and reads that package's candidate tag from the dump.
+candidate() { grep -o "slot_candidate:$2/[^\"]*" "$1" | head -1; }
 bars() { echo "status_bar=$(grep -c 'resource-id="w10m_status_bar"' "$1") nav_back=$(grep -c 'resource-id="nav_back"' "$1") nav_windows=$(grep -c 'resource-id="nav_windows"' "$1")"; }
 adb shell am force-stop app.tileshell
 adb shell "run-as app.tileshell sh -c 'cat > files/start_layout.json'" < "$OUT/layout_no_slots.json"
@@ -16,7 +20,7 @@ dump "$OUT/e4b_picker_mail.xml"; adb exec-out screencap -p > "$OUT/e4b_picker_ma
 echo "picker shown: $(grep -c 'resource-id="slot_picker"' "$OUT/e4b_picker_mail.xml"); bars on the picker: $(bars "$OUT/e4b_picker_mail.xml")" >> "$LOG"
 echo "picker candidates: $(grep -o 'slot_candidate:[^"]*' "$OUT/e4b_picker_mail.xml" | sort | tr '\n' ' ')" >> "$LOG"
 echo "APP_EMAIL handlers: $(adb shell cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.APP_EMAIL | grep '/' | cut -d/ -f1 | tr -d ' ' | sort | tr '\n' ' ')" >> "$LOG"
-tap_id "$OUT/e4b_picker_mail.xml" slot_candidate:com.fsck.k9; sleep 2
+tap_id "$OUT/e4b_picker_mail.xml" "$(candidate "$OUT/e4b_picker_mail.xml" com.fsck.k9)"; sleep 2
 echo "after choosing com.fsck.k9: $(slotdesc e4b_after_choose)" >> "$LOG"
 echo "layout slots: $(adb shell run-as app.tileshell cat files/start_layout.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["slots"])')" >> "$LOG"
 echo '## tap unassigned Camera row tile, then Back closes the picker' >> "$LOG"
@@ -50,7 +54,7 @@ adb exec-out screencap -p > "$OUT/e4b_tile_apps_picker.png"
 adb shell input keyevent KEYCODE_BACK; sleep 2; dump "$OUT/e4b_tile_apps_picker_back.xml"
 echo "Back on the Settings picker: picker=$(grep -c 'resource-id="slot_picker"' "$OUT/e4b_tile_apps_picker_back.xml") tile_apps_rows=$(grep -c 'resource-id="tile_app_slot:MAIL"' "$OUT/e4b_tile_apps_picker_back.xml")" >> "$LOG"
 tap_id "$OUT/e4b_tile_apps_picker_back.xml" tile_app_slot:MAIL; sleep 2; dump "$OUT/e4b_tile_apps_picker.xml"
-tap_id "$OUT/e4b_tile_apps_picker.xml" slot_candidate:eu.faircode.email; sleep 2
+tap_id "$OUT/e4b_tile_apps_picker.xml" "$(candidate "$OUT/e4b_tile_apps_picker.xml" eu.faircode.email)"; sleep 2
 dump "$OUT/e4b_tile_apps_after.xml"; echo "after: $($N "$OUT/e4b_tile_apps_after.xml" tile_app_slot:MAIL)" >> "$LOG"
 adb shell input keyevent KEYCODE_HOME; sleep 3
 echo "Start after reassign: $(slotdesc e4b_start_after_reassign)" >> "$LOG"

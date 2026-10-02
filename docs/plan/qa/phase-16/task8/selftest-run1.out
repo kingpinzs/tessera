@@ -1,0 +1,40 @@
+── P16SELF p16.sh: the driver floor's helpers, each run and read back
+PASS  mkcal_qa / cal_id: the QA calendar                          != 
+PASS  mkcal: Personal                                             != 
+PASS  mkcal: Work                                                 != 
+PASS  mkcal with a level: Shared                                  != 
+PASS  mkcal's fourth argument is the access level                 contains [calendar_displayName=Shared, calendar_access_level=200]
+PASS  mkcal's default level is 700                                contains [calendar_displayName=Work, calendar_access_level=700]
+PASS  mkevent / event_id: Offsite in Work                         != 
+PASS  cal_count: Work holds one event                             = 1
+PASS  cal_events: it is Offsite                                   = 163|Offsite
+PASS  cal_count: Personal holds none                              = 0
+PASS  event_row                                                   contains [title=Offsite]
+PASS  mkevent: a title with a space                               != 
+PASS  rm_event: the row is gone                                   = 
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  cal_fixtures_down: Offsite went with its calendar           = 
+PASS  cal_fixtures_down keeps Tessera                             = 3
+PASS  people_fixtures_up: seven raw contacts recorded             = 7
+PASS  raw_count rose by seven                                     = 9
+PASS  raw_of: Ann Lee                                             = 5
+PASS  raw_of: a non-Latin name (张伟)                           = 8
+PASS  raw_of: an accented name (Zoë Ǻrén)                      = 7
+PASS  Cara Diaz is two raw contacts                               = 10 11
+PASS  …aggregated into one contact (r3 V15)                     = 11
+PASS  contact_of / lookup_of: Ann                                 != 
+PASS  Ann is phone-only (NULL account)                            contains [account_name=NULL, account_type=NULL]
+PASS  Ann's number                                                contains [data1=+1 555 000 0001]
+PASS  people_add with an account                                  contains [account_name=qa.work@example.com, account_type=com.example]
+FAIL  people_fixtures_down: the raw_contacts count is the count before the row  expected [2] got [9]
+PASS  people_fixtures_down: Ann is gone                           = 
+PASS  provision's Mom is untouched                                contains [display_name=Mom]
+PASS  shell_alarms_pending prints a count                         contains [0]
+PASS  shell_bytes prints rx and tx                                = 2
+PASS  perm_granted: READ_CALENDAR                                 = true
+PASS  gdump reads Start                                           = yes
+PASS  absent_in on a readable slice                               does not contain [no such line anywhere]
+PASS  jump_clock: one hour forwards                               1790872768432.00 vs 1790872767422.00 +/- 5000.0
+PASS  jump_clock refuses a backwards jump                         = 2
+PASS  device clock back within 2 s of the host (RV12)             1790869171.00 vs 1790869172.00 +/- 2.0
+   P16SELF: 37 passed, 1 failed, 0 recorded

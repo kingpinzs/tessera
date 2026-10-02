@@ -1,0 +1,92 @@
+==============================================================================
+ROW E18 — permission states: READ / WRITE_CALENDAR together and alone, READ_CONTACTS alone
+at            2026-10-01T18:07:46-06:00
+driver        e18.sh blob 9933984e64d6b65d1c87e5ed3e4cc58bdb59de5d
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     d008aec0c1318519 340591758 bytes
+apk installed 686506a7a7936b2e
+apk match     yes (686506a7a7936b2e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  precondition: READ_CALENDAR is held at the start            = true
+PASS  precondition: WRITE_CALENDAR is held at the start           = true
+PASS  precondition: READ_CONTACTS is held at the start            = true
+PASS  precondition: WRITE_CONTACTS is held at the start           = true
+--- A: READ_CALENDAR and WRITE_CALENDAR revoked
+PASS  A: both are revoked                                         = false false
+RECORD  A: the cannot-read notice's wording (H20)                   Calendar can't read your calendar. Allow it to see your events.
+PASS  A: Calendar's page says it cannot read the calendar (cal_notice)  = yes
+PASS  A: … and offers the grant in place (cal_grant)            = yes
+PASS  A: … with no view drawn behind it (no week strip)         = no
+PASS  A: the slice from the revoke's MARK holds [calendar] calendars: denied (READ_CALENDAR)  contains [[calendar] calendars: denied (READ_CALENDAR)]
+PASS  A: … and no calendars: none                               does not contain [calendars: none]
+PASS  A: … no query runs: no [calendar] view line               does not contain [[calendar] view ]
+      scroll_to_node checklist:calendar:missing: 0 swipe(s), found=yes
+PASS  A: the checklist's calendar row (phase 01's) reads missing (checklist:calendar:missing)  = yes
+PASS  A: … and is red (red pixels inside the row's drawn box)   != 0
+      red pixels in the calendar row: 512; rows on this screen: checklist:calendar:missing checklist:home:granted checklist:keyboard_enabled:granted checklist:keyboard_selected:missing checklist:legacy_badges:missing checklist:location:granted checklist:music:granted checklist:notifications:granted checklist:photos:granted checklist:samsung_badges:missing checklist:usage:granted
+--- B: pm grant restores it, with no restart
+PASS  B: Calendar is in front, still on its cannot-read notice    = yes
+PASS  B: pm grant restores it — both held                       = true true
+PASS  B: the views load: the notice is gone                       = no
+PASS  B: … and the week strip is drawn (cal_strip inside cal_view)  = yes
+PASS  B: … without a restart (the shell's pid is the same)      = 10577
+after the grant: [calendar] calendars: 1 (local present)
+PASS  B: the slice from the grant's MARK holds a [calendar] calendars: n (…) line  = yes
+PASS  B: … and no denied line                                   does not contain [denied]
+--- C: WRITE_CALENDAR alone revoked, Tessera deleted first (r3 D7)
+PASS  C: Tessera is deleted (the preamble's command)              = 0
+PASS  C: READ held, WRITE revoked                                 = true false
+PASS  C: Calendar opened → the views load (the strip, no notice)  = yes no
+PASS  C: the slice holds [calendar] calendars: n (local missing: WRITE_CALENDAR)  contains [[calendar] calendars: 0 (local missing: WRITE_CALENDAR)]
+PASS  C: the calendars query lists no Tessera row (nothing was created)  = 0
+RECORD  C: the cannot-save notice's wording (H20)                   Calendar can't save events. Allow it to add them to your Tessera calendar.
+PASS  C: New → a title → Save → cal_notice says it cannot save  = yes
+PASS  C: … and offers the grant in place (cal_grant)            = yes
+PASS  C: … events holds no such title                           = 0
+PASS  C: … and still no Tessera row                             = 0
+PASS  C: Tess shows the confirm card                              = yes
+PASS  C: Tess's add, confirm tapped → "I don't have a calendar to add that to."  = I don't have a calendar to add that to.
+PASS  C: … and [calendar] local calendar could not be created: (T16-2 line 3)  contains [[calendar] local calendar could not be created:]
+PASS  C: … still no Tessera row                                 = 0
+PASS  C: … and no standup event anywhere                        = 0
+PASS  C: pm grant WRITE_CALENDAR                                  = true
+      the editor was not left open with its title; New and the title again
+PASS  C: Save again → one Tessera row                           = 1
+PASS  C: … (local created)                                      contains [(local created id=1)]
+PASS  C: … holding the event                                    = 1
+--- D: READ_CALENDAR alone revoked — never a second Tessera (r3 D7)
+PASS  D: precondition — that one Tessera row                    = 1
+PASS  D: READ revoked, WRITE held                                 = false true
+PASS  D: Tess shows the confirm card                              = yes
+PASS  D: Calendar opened and closed three times, then Tess's add → the reply  = I don't have a calendar to add that to.
+PASS  D: the slice holds [calendar] local calendar lookup failed:  contains [[calendar] local calendar lookup failed:]
+PASS  D: … and no local calendar created                        does not contain [local calendar created]
+RECORD  D: what Calendar's own start logged each time while READ was denied        3 calendars: denied (READ_CALENDAR);
+PASS  D: pm grant READ_CALENDAR                                   = true
+PASS  D: the calendars query lists EXACTLY one account_name=Tessera row  = 1
+PASS  D: … and no "standup" event                               = 0
+--- E: READ_CONTACTS alone revoked (WRITE_CONTACTS stays held — r3 V12)
+PASS  E: READ_CONTACTS is revoked                                 = false
+PASS  E: WRITE_CONTACTS stays held (dumpsys package: granted=true)  = true
+RECORD  E: People's cannot-read notice's wording (H20)              People can't read your contacts. Allow Contacts to see them here.
+PASS  E: People says so (people_notice: it cannot read contacts)  = yes
+PASS  E: … and offers the grant (people_notice_action)          = yes
+      scroll_to_node checklist:people:missing: 1 swipe(s), found=yes
+PASS  E: the Setup checklist shows checklist:people:missing       = yes
+      people rows on this screen: checklist:people:missing
+      scroll_to_node cortana_check:contacts:missing: 2 swipe(s), found=yes
+PASS  E: Tess's contacts row reads missing (cortana_check:contacts:missing)  = yes
+PASS  E: … and is red (red pixels inside the row's drawn box)   != 0
+      red pixels in Tess's contacts row: 396; her rows on this screen: cortana_check:assistant:granted cortana_check:background_location:granted cortana_check:calendar:granted cortana_check:call_log:granted cortana_check:call_phone:granted cortana_check:contacts:missing cortana_check:exact_alarms:granted cortana_check:microphone:granted cortana_check:sms_read:granted cortana_check:sms_send:granted
+--- restore (r3 V10)
+PASS  restore: pm grant READ_CALENDAR — granted=true            = true
+PASS  restore: pm grant WRITE_CALENDAR — granted=true           = true
+PASS  restore: pm grant READ_CONTACTS — granted=true            = true
+PASS  restore: pm grant WRITE_CONTACTS — granted=true           = true
+PASS  restore: the row's event is deleted                         = 0
+PASS  restore: exactly one Tessera calendar is left               = 1
+PASS  restore: no new crash of the shell during the row           = 0
+------------------------------------------------------------------------------
+E18: 61 passed, 0 failed, 4 recorded

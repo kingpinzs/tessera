@@ -1,0 +1,75 @@
+==============================================================================
+ROW DEV-INTENTS — INSERT, INSERT_OR_EDIT, PICK, the shortcuts, the cannot-read state
+at            2026-10-01T13:12:59-06:00
+driver        intents.sh blob 64e3dfcb5098bb8f4785d2cac84f423d9acc3887
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     14089ecd3aa13b71 339427170 bytes
+apk installed 8ea53aa597b6c63d
+apk match     yes (8ea53aa597b6c63d)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+device already holds this build
+PASS  the device holds this build                                 contains [yes]
+PASS  INSERT opens the editor                                     = yes
+PASS  prefilled with the name                                     = Intruder
+PASS  and the number                                              = 5550666
+PASS  it starts on the phone, not the account the caller named    = Phone
+PASS  before Save nothing is in the provider                      = 0
+PASS  the account choice offers only the phone                    = 1
+PASS  Back discards it: still nothing in the provider             = 0
+Row: 0 _id=94, account_name=NULL, account_type=NULL, display_name=Intruder
+PASS  saved by the user's tap, it lands on the phone (NULL account)  contains [account_name=NULL, account_type=NULL]
+PASS  never in the account the intent named                       does not contain [qa.work@example.com]
+PASS  the caller's text is not in the ring                        does not contain [Intruder]
+PASS  INSERT_OR_EDIT opens the list                               = yes
+PASS  with a new-contact row first                                = yes
+      scroll_to_node people_row:3473r92-572B313357474D3F: 1 swipe(s), found=yes
+PASS  a read-only contact does not open the editor                = no
+PASS  the page says why (people_notice)                           contains [allow that account in Can edit]
+PASS  and logs the refusal                                        contains [[people] edit 3473r92-572B313357474D3F: refused (account not allowed)]
+      scroll_to_node people_row:0r91-41475341472F2B41: 0 swipe(s), found=yes
+PASS  an editable contact opens the editor                        = yes
+PASS  with its own number kept                                    = +1 555 000 0021
+PASS  and the intent's number added as a new field                = 5550777
+PASS  before Save the provider does not hold it                   does not contain [5550777]
+PASS  PICK opens the list                                         = yes
+PASS  in pick mode (no app bar, a chooser's header)               = CHOOSE A CONTACT
+PASS  no add button in pick mode                                  = no
+PASS  Back cancels and leaves People                              != app.tileshell/.people.PeopleActivity
+      scroll_to_node people_row:0r91-41475341472F2B41: 0 swipe(s), found=yes
+PASS  a tap ends the pick with one contact URI, read-granted      contains [[people] pick: one contact URI granted (read)]
+PASS  and People finished                                         != app.tileshell/.people.PeopleActivity
+      scroll_to_node people_row:0r93-51334F4F515747: 0 swipe(s), found=yes
+PASS  a phone PICK's header                                       = CHOOSE A PHONE NUMBER
+PASS  a contact with two numbers asks which                       = yes
+PASS  both numbers are offered                                    = 2
+PASS  the tap ends the pick with one phone URI, read-granted      contains [[people] pick: one phone URI granted (read)]
+          ShortcutInfo {id=new_contact, flags=0x1a4 [ImManIc-rStr]
+            activity=ComponentInfo{app.tileshell/app.tileshell.people.PeopleActivity}
+          ShortcutInfo {id=contacts, flags=0x1a4 [ImManIc-rStr]
+            activity=ComponentInfo{app.tileshell/app.tileshell.people.PeopleActivity}
+          ShortcutInfo {id=groups, flags=0x1a4 [ImManIc-rStr]
+            activity=ComponentInfo{app.tileshell/app.tileshell.people.PeopleActivity}
+PASS  dumpsys shortcut lists contacts                             contains [id=contacts,]
+PASS  dumpsys shortcut lists new_contact                          contains [id=new_contact,]
+PASS  dumpsys shortcut lists groups                               contains [id=groups,]
+PASS  contacts: the list, CONTACTS on show                        contains [selected="true"]
+PASS  new_contact: the editor                                     = yes
+PASS  Back discards it and shows the list                         = yes
+PASS  groups: the GROUPS pivot on show                            contains [selected="true"]
+PASS  READ_CONTACTS is revoked                                    = false
+PASS  WRITE_CONTACTS is still held                                = true
+PASS  People says it cannot read (people_notice)                  = People can't read your contacts. Allow Contacts to see them here.
+PASS  and offers the grant in place                               = allow access
+PASS  no contact row is shown                                     = 0
+PASS  the list line says so                                       contains [[people] list: 0 contacts read=false write=true]
+RECORD  what Android showed for the grant                           app.tileshell/.people.PeopleActivity
+PASS  READ_CONTACTS is granted from the notice                    = true
+PASS  the notice is gone                                          = no
+PASS  and the list loads without a restart                        contains [read=true write=true]
+PASS  READ_CONTACTS held at the end                               = true
+PASS  WRITE_CONTACTS held at the end                              = true
+PASS  raw_contacts count equals the count before the row          = 2
+------------------------------------------------------------------------------
+Row: 0 _id=94, account_name=NULL, account_type=NULL, display_name=Intruder: 49 passed, 0 failed, 1 recorded

@@ -1,0 +1,286 @@
+==============================================================================
+ROW E28 — People's write guard and "Can edit" (Q-16-3)
+at            2026-10-01T20:45:34-06:00
+driver        e28.sh blob 53e66a9d5d27e95aed22e75e39516aaad9da132a
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (3c1ad1e0e65bd919)
+      raw contacts before the row (2): Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0;Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0;
+--- pm clear → provision.sh → ensure_start (nothing allowed)
+PASS  provision.sh rc                                             = 0
+PASS  the device still holds the build under test after provision.sh  contains [yes]
+PASS  nothing allowed: people_edit.json holds no allowed account (or does not exist yet)  = 
+RECORD  people_edit.json after the wipe                             [] (empty = the file does not exist yet)
+PASS  READ_CONTACTS and WRITE_CONTACTS held                       = true true
+--- fixtures and their BEFORE files
+BEFORE lou (raw 313):
+Row: 0 _id=313, account_name=NULL, account_type=NULL, deleted=0
+Row: 0 _id=593, mimetype=vnd.android.cursor.item/name, data1=Lou Local
+Row: 1 _id=594, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0021
+BEFORE wade (raw 314):
+Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+BEFORE pia (raw 315):
+Row: 0 _id=315, account_name=qa.personal@example.com, account_type=com.example, deleted=0
+Row: 0 _id=597, mimetype=vnd.android.cursor.item/name, data1=Pia Personal
+Row: 1 _id=598, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0023
+PASS  BEFORE: Lou's raw contact is phone-only                     contains [account_name=NULL, account_type=NULL, deleted=0]
+PASS  BEFORE: Wade's raw contact is in qa.work@example.com / com.example  contains [account_name=qa.work@example.com, account_type=com.example, deleted=0]
+PASS  BEFORE: Pia's raw contact is in qa.personal@example.com / com.example  contains [account_name=qa.personal@example.com, account_type=com.example, deleted=0]
+PASS  BEFORE: Wade's mobile number is a data row                  contains [mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022]
+PASS  BEFORE: Wade's name is a data row                           contains [mimetype=vnd.android.cursor.item/name, data1=Wade Work]
+PASS  three contacts for three fixtures (none aggregated with another)  = 3
+      lou=313 (0r313-41475341472F2B41) wade=314 (3473r314-572B313357474D3F) pia=315 (4070r315-493B2B49334D4F47452B41)
+--- A: People's settings → Can edit
+PASS  A: people_page:can_edit is the page on show                 contains [selected="true"]
+      rows: people_can_edit:com.example:qa.personal@example.com people_can_edit:com.example:qa.work@example.com people_can_edit:qa:qa 
+PASS  A: people_can_edit:com.example:qa.work@example.com is listed, unticked  contains [checked="false"]
+PASS  A: people_can_edit:com.example:qa.personal@example.com is listed, unticked  contains [checked="false"]
+PASS  A: provision.sh's Mom gives a third row, people_can_edit:qa:qa, unticked  contains [checked="false"]
+PASS  A: exactly those three rows — the phone has no row        = people_can_edit:com.example:qa.personal@example.com people_can_edit:com.example:qa.work@example.com people_can_edit:qa:qa
+PASS  A: no row is ticked                                         = 0
+PASS  A: people_edit.json holds no allowed account                = 
+RECORD  A: people_edit.json                                         []
+PASS  Wade's rows unchanged and still present — after opening Can edit  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+--- B: the read-only card (Wade's row tapped), and Lou's as the positive control
+PASS  B: Wade's row tapped → people_card:<Wade's lookup> (asserted first)  = yes
+PASS  B: no people_card_edit                                      = no
+PASS  B: no people_card_delete                                    = no
+people_card_readonly: [This contact is in qa.work@example.com. To change it, allow that account in Can edit.]
+PASS  B: people_card_readonly is on the card                      = yes
+PASS  B: … naming qa.work@example.com                           contains [qa.work@example.com]
+PASS  B: … the line as the doc words it (approximation, H21)    = This contact is in qa.work@example.com. To change it, allow that account in Can edit.
+PASS  B: its tap opens people_page:can_edit                       contains [selected="true"]
+PASS  Wade's rows unchanged and still present — after his card and the read-only line's tap  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+PASS  B: Lou's card (people_card:<Lou's lookup>)                  = yes
+PASS  B: Lou's card holds people_card_edit                        = yes
+PASS  B: Lou's card holds people_card_delete                      = yes
+PASS  B: … and no read-only line                                = no
+PASS  Wade's rows unchanged and still present — after Lou's card  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+--- C: the exported EDIT intent
+PASS  C: EDIT on Wade → people_card:<Wade's lookup>             = yes
+PASS  C: … with no people_page:editor node                      = no
+[people] edit 3473r314-572B313357474D3F: refused (account not allowed)
+PASS  C: the slice holds the refusal                              contains [[people] edit 3473r314-572B313357474D3F: refused (account not allowed)]
+PASS  Wade's rows unchanged and still present — after the exported EDIT intent  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+PASS  C: the same intent on Lou opens people_page:editor          contains [selected="true"]
+PASS  C: … on Lou's own number                                  = +1 555 000 0021
+PASS  Wade's rows unchanged and still present — after the EDIT intent on Lou  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+--- D: New → the phone only → Ned New
+PASS  D: New opens the editor                                     contains [selected="true"]
+PASS  D: people_editor_account offers people_editor_account_row:phone  = yes
+PASS  D: … only                                                 = people_editor_account_row:phone
+Row: 0 _id=316, account_name=NULL, account_type=NULL, display_name=Ned New, deleted=0
+PASS  D: "Ned New" is saved (one raw contact)                     = 1
+PASS  D: his raw contact's account is NULL                        contains [account_name=NULL, account_type=NULL]
+PASS  Wade's rows unchanged and still present — after the new contact  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+--- E: Link Lou with Wade; Edit, no Delete; Lou's number edited; Unlink
+aggregation_exceptions: Row: 0 type=1, raw_contact_id1=313, raw_contact_id2=314;
+PASS  E: Link (allowed on any contact): aggregation_exceptions shows type 1 for the pair  contains [type=1, raw_contact_id1=313, raw_contact_id2=314]
+PASS  E: [people] link <a>+<b>: ok                                contains [[people] link 313+314: ok]
+PASS  E: one contact now stands behind both raw contacts          = 321
+PASS  Wade's rows unchanged and still present — after the Link  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+PASS  E: the joined card (people_card:<its lookup>, asserted first)  = yes
+PASS  E: the joined card holds people_card_edit                   = yes
+PASS  E: … and NO people_card_delete                            = no
+PASS  E: the editor opens Lou's number                            = +1 555 000 0021
+      scroll_to_node people_editor_readonly:com.example:qa.work@example.com: 1 swipe(s), found=yes
+PASS  E: … and shows the work account's part read-only (people_editor_readonly)  = yes
+PASS  E: … Wade's number is in no editable field                does not contain [+1 555 000 0022]
+Lou now: Row: 0 _id=313, account_name=NULL, account_type=NULL, deleted=0;Row: 0 _id=593, mimetype=vnd.android.cursor.item/name, data1=Lou Local;Row: 1 _id=594, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0091;
+PASS  E: Lou's data row changed                                   contains [data1=+1 555 000 0091]
+PASS  E: … his old number is gone                               does not contain [data1=+1 555 000 0021]
+[people] write update raw=313: ok
+PASS  E: the write names Lou's raw contact                        contains [[people] write update raw=313: ok]
+PASS  E: no write names Wade's raw contact                        does not contain [raw=314:]
+PASS  Wade's rows unchanged and still present — after the mixed contact's edit  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+PASS  E: the edit did not split the aggregate                     = 321
+aggregation_exceptions: Row: 0 type=2, raw_contact_id1=313, raw_contact_id2=314;
+PASS  E: Unlink: type 2 for the pair                              contains [type=2, raw_contact_id1=313, raw_contact_id2=314]
+PASS  E: … and no type 1 left for it                            does not contain [type=1, raw_contact_id1=313, raw_contact_id2=314]
+      ring: [people] reload (provider change);[people] unlink 314+313: ok;[people] tile: 0 photos;[people] list: 6 contacts read=true write=true;
+PASS  Wade's rows unchanged and still present — after the Unlink  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+PASS  Pia's rows unchanged and still present — before her account is allowed  = Row: 0 _id=315, account_name=qa.personal@example.com, account_type=com.example, deleted=0
+Row: 0 _id=597, mimetype=vnd.android.cursor.item/name, data1=Pia Personal
+Row: 1 _id=598, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0023
+--- F: the personal account ticked
+PASS  F: people_can_edit:com.example:qa.personal@example.com is ticked  contains [checked="true"]
+PASS  F: the work account is still unticked                       contains [checked="false"]
+people_edit.json: {"allowed":[{"name":"qa.personal@example.com","type":"com.example"}]}
+PASS  F: people_edit.json lists that account and only it          = com.example:qa.personal@example.com
+PASS  Wade's rows unchanged and still present — after the personal account was ticked  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+PASS  F: Pia's card (asserted first)                              = yes
+PASS  F: Pia's card now holds people_card_edit                    = yes
+PASS  F: … and people_card_delete                               = yes
+Pia now: Row: 0 _id=315, account_name=qa.personal@example.com, account_type=com.example, deleted=0;Row: 0 _id=597, mimetype=vnd.android.cursor.item/name, data1=Pia Personal;Row: 1 _id=598, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0093;
+PASS  F: her number edited → her data row changes               contains [data1=+1 555 000 0093]
+PASS  F: … still in her account                                 contains [account_name=qa.personal@example.com, account_type=com.example, deleted=0]
+PASS  F: [people] write update raw=<id>: ok                       contains [[people] write update raw=315: ok]
+PASS  Wade's rows unchanged and still present — after Pia's edit  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+PASS  F: New → people_editor_account now offers the phone and com.example:qa.personal@example.com (and nothing else)  = people_editor_account_row:com.example:qa.personal@example.com people_editor_account_row:phone
+Row: 0 _id=317, account_name=qa.personal@example.com, account_type=com.example, display_name=Pat Personal, deleted=0
+PASS  F: a contact saved with the second lands in that account    contains [account_name=qa.personal@example.com, account_type=com.example]
+PASS  Wade's rows unchanged and still present — after the contact saved into the personal account  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+PASS  F: Wade's card (asserted first)                             = yes
+PASS  F: Wade's card is still read-only: no people_card_edit      = no
+PASS  F: … no people_card_delete                                = no
+PASS  F: … and the read-only line                               = yes
+PASS  Wade's rows unchanged and still present — with the personal account allowed, after his card  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+PASS  F: Pia deleted from her card → her contact row gone       = 0
+[people] write delete raw=315: ok
+PASS  F: … through the write layer (write delete raw=<id>: ok)  contains [[people] write delete raw=315: ok]
+PASS  Wade's rows unchanged and still present — after Pia's delete  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+--- G: un-tick → a remaining contact of that account is read-only again
+PASS  G: the personal account is unticked                         contains [checked="false"]
+PASS  G: people_edit.json holds no allowed account again          = 
+PASS  G: the remaining contact's card (Pat Personal; asserted first)  = yes
+PASS  G: … is read-only again: no people_card_edit              = no
+PASS  G: … no people_card_delete                                = no
+PASS  G: … and the read-only line names its account             contains [qa.personal@example.com]
+PASS  Wade's rows unchanged and still present — at the end, after the un-tick  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+PASS  Wade's rows were re-read after every step (the count of reads)  = yes
+--- X (fix-round F15): Save on an editor whose raw contact was re-homed to an account not allowed
+      Lou's phone row before the leg: Row: 0 _id=594, data1=+1 555 000 0091
+PASS  X: Lou's card offers Edit (he is phone-only and editable)   = yes
+PASS  X: the editor holds the changed number, not saved           = +1 555 000 0055
+PASS  X: the provider still holds the old number before Save      = Row: 0 _id=594, data1=+1 555 000 0091
+RECORD  X: the sync-adapter content update that re-homes Lou's raw contact said  [no output]; his row then: Row: 0 _id=313, account_name=qa.work@example.com, account_type=com.example, deleted=0
+RECORD  X: the page on show after the re-home, before Save          people_page:editor 
+PASS  X: Lou's raw contact is now in the work account (not allowed)  contains [account_name=qa.work@example.com, account_type=com.example, deleted=0]
+[people] write update raw=313: refused (not allowed)
+PASS  X: the slice holds [people] write update raw=<id>: refused (not allowed)  contains [[people] write update raw=313: refused (not allowed)]
+PASS  X: people_notice shows                                      = yes
+X: people_notice: [That account isn't on Can edit, so People can't change it.]
+PASS  X: Lou's data row still holds the OLD number (read from the provider)  = Row: 0 _id=594, data1=+1 555 000 0091
+PASS  X: no write … ok line for Lou's raw contact               does not contain [raw=313: ok]
+PASS  Wade's rows unchanged and still present — after the refused Save (leg X)  = Row: 0 _id=314, account_name=qa.work@example.com, account_type=com.example, deleted=0
+Row: 0 _id=595, mimetype=vnd.android.cursor.item/name, data1=Wade Work
+Row: 1 _id=596, mimetype=vnd.android.cursor.item/phone_v2, data1=+1 555 000 0022
+--- the guard's JVM test (PeopleWriteGuardTest) — the lead's result on this tree; the QA writers never run ./gradlew
+PeopleWriteGuardTest: tests=28 failures=0 errors=0 skipped=0 at 2026-10-01 19:54:36
+  "refused - the STARRED update with one raw contact not editable"
+  "allowed - a group on the phone, every op"
+  "can edit - the rows are the distinct non-null account pairs, and the phone has none"
+  "refused - insert, update and delete of a raw contact in an account not allowed"
+  "allowed - an account on Can edit, every op"
+  "can edit - ticking and unticking, and nothing without a name and a type"
+  "refused - a SIM import naming an account, allowed or not"
+  "can edit - an account the provider no longer names is dropped, so re-added it starts not allowed"
+  "allowed - the delete of a phone group through the sync-adapter URI"
+  "allowed - a phone-only raw contact, every op, with nothing on Can edit"
+  "refused - insert, update and delete of a data row in an account not allowed"
+  "refused - a group op in an account not allowed"
+  "allowed - a new contact, a SIM import and an INSERT prefill on the phone"
+  "refused - the aggregate delete with one raw contact not editable"
+  "card - a mixed contact has Edit and no Delete"
+  "another profile - the reference a read gives it is refused whatever is allowed"
+  "card - allowing the account brings Edit and Delete, and unticking takes them away"
+  "can edit - a phone that names its local account gets no row for it"
+  "allowed - Link and Unlink on a read-only contact"
+  "card - a phone-only contact has Edit and Delete and no read-only line"
+  "nothing is allowed by default"
+  "card - a work-profile contact is read-only and says so"
+  "refused - an INSERT prefill naming an account not allowed"
+  "refused - any other group write through the sync-adapter URI, whatever is allowed"
+  "phone-only is the device's local account, never a literal null"
+  "refused - another profile's contact, whatever is allowed"
+  "refused - a new contact naming an account not allowed"
+  "card - a read-only contact has no Edit and no Delete and names its account"
+PASS  JVM: the guard's test ran                                   contains [tests=]
+PASS  JVM: … with no failure and no error                       contains [failures=0 errors=0]
+PASS  JVM: … none skipped                                       = skipped=0
+PASS  JVM: the result is newer than the guard, its test and the write layer (the code under test)  = yes
+RECORD  JVM: test cases in the result                               28
+PeopleWriterTest: tests=42 failures=0 errors=0 skipped=0 at 2026-10-01 19:54:36
+  "aMemberIsAddedAsOneMembershipRowOnItsRawContactInTheGroupsAccount"
+  "deleteOfAContactThatIsGoneOrWithoutWriteContactsWritesNothing"
+  "aRawContactTheReadMarkedAsAnotherProfilesIsNeverWritten"
+  "deleteRemovesEveryRawContactBehindTheContact"
+  "aGroupOpInAnAccountNotAllowedWritesNothing"
+  "aSimImportMakesEachEntryWithANumberAContactOnThePhoneWhateverIsAllowed"
+  "aGroupIsRenamedByItsOwnRow"
+  "onAPhoneThatNamesItsLocalAccountItsGroupIsThePhoneGroup"
+  "unlinkIsAllowedOnAReadOnlyContactAndWritesKeepSeparate"
+  "aMixedContactsEditWritesTheEditableRawContactAndLeavesTheOtherUntouched"
+  "createInAnAllowedAccountWritesThatAccountAndNoOther"
+  "aGroupIsCreatedInThePhoneOrAnAllowedAccount"
+  "aSimImportIntoAnAccountWritesNothingEvenWhenThatAccountIsAllowed"
+  "createWithoutWriteContactsWritesNothingAndAsksForTheGrant"
+  "aPhoneGroupIsDeletedOutright"
+  "linkAndUnlinkWithNothingToJoinOrWithoutWriteContactsWriteNothing"
+  "anEditThatAlsoTouchesTheReadOnlyHalfOfAMixedContactWritesNothingAtAll"
+  "updateWritesEachChangeOnTheRawContactThatOwnsIt"
+  "linkWithAnotherProfilesContactWritesNothing"
+  "createOnThePhoneWritesOneBatchTheRawContactAndItsFields"
+  "anotherProfilesContactIsRefusedByTheGuardNotBecauseItCannotBeFound"
+  "aPhotoOnAnEditableRawContactIsWrittenToThatRawContactsStream"
+  "aNewContactsPhotoIsNotWrittenWhenItsRawContactIsNotInAnAccountPeopleMayWrite"
+  "aSimImportOnAPhoneThatNamesItsLocalAccountLandsInThatAccount"
+  "updateOfAFieldOrARawContactThatIsGoneWritesNothing"
+  "noGroupInAnAccountIsEverWrittenThroughTheSyncAdapterUri"
+  "aPhotoChangeOnARawContactNotAllowedWritesNothingNotEvenTheFieldsBesideIt"
+  "aSimImportWithoutWriteContactsWritesNothingAndAsksForTheGrant"
+  "createInAnAccountNotAllowedWritesNothing"
+  "anAllowedAccountsGroupIsDeletedThroughThePlainUriForItsOwnAdapterToFinish"
+  "aGroupOpOnAGroupThatIsGoneOrWithNoNameOrWithoutWriteContactsWritesNothing"
+  "updateOfARawContactInAnAccountNotAllowedWritesNothing"
+  "linkIsAllowedOnAReadOnlyContactAndWritesKeepTogetherForEveryPair"
+  "updateWithoutWriteContactsWritesNothingAndAsksForTheGrant"
+  "addingSomeoneWhoIsAlreadyAMemberWritesNothingMore"
+  "whichRawContactAFieldBelongsToIsTheProvidersAnswerNotTheDrafts"
+  "aNewContactsPhotoGoesToTheStreamOfTheRawContactTheBatchMade"
+  "aMemberIsRemovedByThatRawContactsMembershipRowOfThatGroup"
+  "updateOfTheSameRawContactIsWrittenOnceItsAccountIsAllowed"
+  "deleteOfAContactWithOneRawContactNotEditableWritesNothing"
+  "removingAPhotoDeletesThatRawContactsPhotoRowAndNoOther"
+  "thePhotoWriteAndThePhotoRemovalEachAskTheGuardThemselves"
+PASS  JVM (fix-round F15): the write layer's test ran with no failure and no error  contains [failures=0 errors=0]
+PASS  JVM (fix-round F15): … none skipped, and the result is newer than the writer and its test  = skipped=0 yes
+--- restore
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  restore: the raw_contacts count equals the count before the row  = 2
+PASS  restore: the raw_contacts rows equal the rows before the row  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0
+Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0
+PASS  restore: aggregation_exceptions lists neither fixture id    does not contain [raw_contact_id1=313, raw_contact_id2=314]
+PASS  restore: provision.sh rc                                    = 0
+PASS  restore: people_edit.json is cleared (no allowed account)   = 
+PASS  restore: layout_restore of the baseline                     = 0
+PASS  restore: READ_CONTACTS and WRITE_CONTACTS held              = true true
+------------------------------------------------------------------------------
+E28: 118 passed, 0 failed, 5 recorded

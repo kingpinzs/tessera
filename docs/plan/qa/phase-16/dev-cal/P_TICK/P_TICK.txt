@@ -1,0 +1,19 @@
+==============================================================================
+ROW P_TICK — probe: the Can sync to tick from the settings page
+at            2026-10-01T14:20:37-06:00
+driver        p_tick.sh blob f23ce28f77084cab8058b6800881ee60aeaef9af
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     79cd257f3f46ca49 339305256 bytes
+apk installed c4f1563a77205e6c
+apk match     yes (c4f1563a77205e6c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  json at the start                                           {"version":1,"allowed":[],"mappings":[],"hidden":[],"notifiedAlerts":[]}
+RECORD  before the tick                                             false 0 450 1080 594
+RECORD  right after the tick                                        true json: {"version":1,"allowed":[{"id":3,"accountName":"qa.personal@example.com","accountType":"com.google"}],"mappings":[],"hidden":[],"notifiedAlerts":[]}
+RECORD  two seconds later                                           true json: {"version":1,"allowed":[{"id":3,"accountName":"qa.personal@example.com","accountType":"com.google"}],"mappings":[],"hidden":[],"notifiedAlerts":[]}
+RECORD  ring since the tick                                         
+------------------------------------------------------------------------------
+P_TICK: 0 passed, 0 failed, 5 recorded
+P_TICK: recorded only (5 facts)

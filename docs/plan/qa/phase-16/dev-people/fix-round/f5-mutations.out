@@ -1,0 +1,8 @@
+K1 a PICK honoured with no caller | CAUGHT (gradle rc=1, 25 tests run, 2 failed) | aPickWithNoCallerSaysSoAndNothingIsSaidToBeGranted; aPickIsHonouredOnlyForACallerThatCanReceiveAResult
+K2 a PICK refused even with a caller | CAUGHT (gradle rc=1, 25 tests run, 1 failed) | aPickIsHonouredOnlyForACallerThatCanReceiveAResult
+K3 a caller turns another route into a pick | CAUGHT (gradle rc=1, 25 tests run, 1 failed) | aCallerChangesNoOtherRoute
+X1 the PICK result also grants write, persistable and prefix (the reviewer's X1) | CAUGHT (gradle rc=1, 25 tests run, 1 failed) | aPickResultGrantsAReadOfTheOneUriAndNothingElse
+X1b the PICK result grants a persistable read | CAUGHT (gradle rc=1, 25 tests run, 1 failed) | aPickResultGrantsAReadOfTheOneUriAndNothingElse
+X1c the PICK result grants nothing | CAUGHT (gradle rc=1, 25 tests run, 1 failed) | aPickResultGrantsAReadOfTheOneUriAndNothingElse
+L1 the no-caller line says a URI was granted | CAUGHT (gradle rc=1, 25 tests run, 1 failed) | aPickWithNoCallerSaysSoAndNothingIsSaidToBeGranted
+unmutated | gradle rc=0, 25 tests run, 0 failed

@@ -83,6 +83,17 @@ object WizardRules {
         else -> Visibility.Show(rows.filter(::needsStep).map { it.key })
     }
 
+    /**
+     * A row that asks to read and to write one thing (People's contacts, phase 16 T16-15 / r3 V12): MISSING whenever the
+     * read is not held, whatever the write is — `pm revoke` is per permission, so "write held, read revoked" is
+     * reachable — PARTIAL with the read alone, GRANTED with both.
+     */
+    fun readWriteState(readHeld: Boolean, writeHeld: Boolean): RowState = when {
+        !readHeld -> RowState.MISSING
+        !writeHeld -> RowState.PARTIAL
+        else -> RowState.GRANTED
+    }
+
     fun start(steps: List<String>) = RunState(seq = steps)
 
     /**
@@ -233,6 +244,7 @@ object WizardRules {
         "$SETUP:usage" to "Back on Start returns to the app you were using. Without it Back stays on Start.",
         "$SETUP:keyboard_enabled" to "This turns on the Windows-style keyboard. Without it the keyboard cannot be chosen.",
         "$SETUP:keyboard_selected" to "This makes it the keyboard wherever you type. Without it your old keyboard stays.",
+        "$SETUP:people" to "People shows and edits your contacts. Without it People can't see them.",
         "$SETUP:full_screen_alarms" to "Alarms ring over the lock screen. Without it an alarm still sounds, but shows only as a notification.",
         "$SETUP:overlay" to "Alarms ring over the app you're using. Without it an alarm shows as a notification.",
         "$TESS:assistant" to "The side key and the assist gesture open Tess. Without it they open another assistant.",

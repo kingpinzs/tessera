@@ -1,0 +1,48 @@
+==============================================================================
+ROW E18 — permission states: READ / WRITE_CALENDAR together and alone, READ_CONTACTS alone
+at            2026-10-01T22:48:31-06:00
+driver        e18.sh blob 9933984e64d6b65d1c87e5ed3e4cc58bdb59de5d
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  precondition: READ_CALENDAR is held at the start            = true
+PASS  precondition: WRITE_CALENDAR is held at the start           = true
+PASS  precondition: READ_CONTACTS is held at the start            = true
+PASS  precondition: WRITE_CONTACTS is held at the start           = true
+--- A: READ_CALENDAR and WRITE_CALENDAR revoked
+PASS  A: both are revoked                                         = false false
+RECORD  A: the cannot-read notice's wording (H20)                   Calendar can't read your calendar. Allow it to see your events.
+PASS  A: Calendar's page says it cannot read the calendar (cal_notice)  = yes
+PASS  A: … and offers the grant in place (cal_grant)            = yes
+PASS  A: … with no view drawn behind it (no week strip)         = no
+PASS  A: the slice from the revoke's MARK holds [calendar] calendars: denied (READ_CALENDAR)  contains [[calendar] calendars: denied (READ_CALENDAR)]
+PASS  A: … and no calendars: none                               does not contain [calendars: none]
+PASS  A: … no query runs: no [calendar] view line               does not contain [[calendar] view ]
+      scroll_to_node checklist:calendar:missing: 0 swipe(s), found=yes
+PASS  A: the checklist's calendar row (phase 01's) reads missing (checklist:calendar:missing)  = yes
+PASS  A: … and is red (red pixels inside the row's drawn box)   != 0
+      red pixels in the calendar row: 512; rows on this screen: checklist:calendar:missing checklist:home:granted checklist:keyboard_enabled:granted checklist:keyboard_selected:missing checklist:legacy_badges:missing checklist:location:granted checklist:music:granted checklist:notifications:granted checklist:photos:granted checklist:samsung_badges:missing checklist:usage:granted
+--- B: pm grant restores it, with no restart
+PASS  B: Calendar is in front, still on its cannot-read notice    = yes
+PASS  B: pm grant restores it — both held                       = true true
+PASS  B: the views load: the notice is gone                       = no
+PASS  B: … and the week strip is drawn (cal_strip inside cal_view)  = yes
+PASS  B: … without a restart (the shell's pid is the same)      = 32655
+after the grant: [calendar] calendars: 1 (local present)
+PASS  B: the slice from the grant's MARK holds a [calendar] calendars: n (…) line  = yes
+PASS  B: … and no denied line                                   does not contain [denied]
+--- C: WRITE_CALENDAR alone revoked, Tessera deleted first (r3 D7)
+PASS  C: Tessera is deleted (the preamble's command)              = 0
+PASS  C: READ held, WRITE revoked                                 = true false
+PASS  C: Calendar opened → the views load (the strip, no notice)  = yes no
+PASS  C: the slice holds [calendar] calendars: n (local missing: WRITE_CALENDAR)  contains [[calendar] calendars: 0 (local missing: WRITE_CALENDAR)]
+PASS  C: the calendars query lists no Tessera row (nothing was created)  = 0
+RECORD  C: the cannot-save notice's wording (H20)                   Calendar can't save events. Allow it to add them to your Tessera calendar.
+PASS  C: New → a title → Save → cal_notice says it cannot save  = yes
+PASS  C: … and offers the grant in place (cal_grant)            = yes
+PASS  C: … events holds no such title                           = 0
+PASS  C: … and still no Tessera row                             = 0

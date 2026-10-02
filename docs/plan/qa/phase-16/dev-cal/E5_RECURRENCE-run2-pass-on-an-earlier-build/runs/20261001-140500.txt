@@ -1,0 +1,57 @@
+==============================================================================
+ROW E5_RECURRENCE — all-day, multi-day, a weekly series and the three occurrence edits
+at            2026-10-01T14:04:57-06:00
+driver        e5_recurrence.sh blob 138c5ff7b1e0b1f3f32b5684daf5131a0d5e3374
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     79cd257f3f46ca49 339305256 bytes
+apk installed c4f1563a77205e6c
+apk match     yes (c4f1563a77205e6c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  Tessera exists                                              != 
+      all-day 198 three-day 199 series 200 (first at 1790899200000)
+PASS  the series was inserted                                     != 
+PASS  the all-day event lies inside cal_allday:2026-10-01         contains [yes]
+PASS  and has no cal_event_time node                              = no
+PASS  the 3-day event shows on day 0 (2026-10-01)                 = yes
+PASS  the 3-day event shows on day 1 (2026-10-02)                 = yes
+PASS  the 3-day event shows on day 2 (2026-10-03)                 = yes
+PASS  and not on the day after                                    = no
+PASS  the provider expands ten instances                          = 10
+PASS  the Day view shows the series on each of its ten days       = 10
+PASS  and not in the eleventh week                                = no
+agenda view line: [calendar] view agenda 2026-09-27..2026-11-21: 10 instances in 44 ms
+RECORD  cal_event:200 nodes in the agenda's first screen            2
+PASS  the Repeat field reads                                      = Every week
+app weekly: Row: 0 _id=201, rrule=FREQ=WEEKLY, duration=P3600S, dtend=NULL
+PASS  an rrule                                                    contains [rrule=FREQ=WEEKLY]
+PASS  a duration                                                  contains [duration=P3600S]
+PASS  and no dtend                                                contains [dtend=NULL]
+PASS  the occurrence prompt offers this / following / all         = yes yes yes
+exception: Row: 0 _id=202, title=E5 weeklyX, original_id=200, originalInstanceTime=1792108800000, dtstart=1792108800000, dtend=1792112400000, rrule=NULL
+PASS  an exception row of the master                              contains [original_id=200, originalInstanceTime=1792108800000]
+PASS  with the changed title                                      contains [title=E5 weeklyX]
+PASS  the write line                                              contains [[calendar] write insert event=202: ok]
+PASS  the third day shows the exception, not the master's instance  = yes no
+PASS  with the changed title on that day only                     = E5 weeklyX
+PASS  the second day keeps the series' title                      = E5 weekly
+master after the split: Row: 0 _id=200, title=E5 weekly, rrule=FREQ=WEEKLY;UNTIL=20261029T235959Z
+PASS  UNTIL on the master                                         contains [UNTIL=]
+PASS  and no COUNT left on it                                     does not contain [COUNT=]
+new master: Row: 0 _id=203, title=E5 weeklyT, rrule=FREQ=WEEKLY;COUNT=6, dtstart=1793318400000, duration=P3600S
+PASS  a new master starts at the fifth occurrence                 contains [dtstart=1793318400000]
+PASS  keeping what is left of the count (10 less the four before)  contains [rrule=FREQ=WEEKLY;COUNT=6]
+PASS  the old master now expands to three instances (the third is the exception's)  = 3
+PASS  the new master to six                                       = 6
+PASS  delete this occurrence: the new series loses one instance   = 5
+PASS  the changed occurrence deleted: its instance is gone        = 0
+PASS  and the series' own occurrence on that day does not come back  = 3
+PASS  the new master is gone                                      = 0
+PASS  with every instance                                         = 0
+PASS  the old master is gone                                      = 0
+PASS  no exception row of either series is left                   = 0
+PASS  no instance of the exception is left                        = 0
+PASS  Tessera holds what it held before the session               = 0
+------------------------------------------------------------------------------
+E5_RECURRENCE: 37 passed, 0 failed, 1 recorded

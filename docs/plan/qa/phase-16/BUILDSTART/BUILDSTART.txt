@@ -1,0 +1,63 @@
+==============================================================================
+ROW BUILDSTART — Verify at build start: five Android facts, on the AVD
+at            2026-10-01T09:22:26-06:00
+driver        buildstart.sh blob a54dfeb9c95109fa02b5c6dc250391fe23b85e4f
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     2a178f0e7d55a13c 338136860 bytes
+apk installed c5ef7e2efedc98a7
+apk match     yes (c5ef7e2efedc98a7)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  image                                                       sdk 36, Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+RECORD  calendar provider                                           versionName=16
+      calendars before: Row: 0 _id=3, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700 
+PASS  fixture: BS Local exists                                    != 
+PASS  fixture: BS ReadOnly exists                                 != 
+PASS  fixture: BS Account exists                                  != 
+      fixtures: local=4 readonly=5 account=6
+--- 1: the reminder broadcast's data URI
+PASS  1: the test event exists                                    != 
+RECORD  1: the provider's pending alarm                                 ELAPSED_WAKEUP #1: Alarm{ee0f632 type 2 origWhen 70656940 whenElapsed 70656940 com.android.providers.calendar}       tag=*walarm*:com.android.providers.calendar.intent.CalendarProvider2       type=ELAPSED_WAKEUP origWhen=+1s176ms window=0 exactAllowReason=allow-listed repeatInterval=0 count=0 fl
+RECORD  1: calendar_alerts before the alarm                         No result found. 
+waiting for the alarm (the event starts 11 minutes after 09:22:38 device time; the reminder is 10 minutes before)
+RECORD  1: the broadcast as the system logged it                    act=android.intent.action.EVENT_REMINDER dat=content://com.android.calendar/1790868218000 flg=0x1000010 xflg=0x4 (has extras) 
+PASS  1: the broadcast was sent                                   contains [act=android.intent.action.EVENT_REMINDER]
+PASS  1: its data is a content URI on com.android.calendar (the receiver's scheme + host filter)  contains [dat=content://com.android.calendar/]
+RECORD  1: flags (0x01000000 = FLAG_RECEIVER_INCLUDE_BACKGROUND, what lets a manifest receiver get it)  flg=0x1000010
+flg=0x4
+RECORD  1: who received it                                           nextReceiver=1| ActivityInfo:| name=com.android.calendar.alerts.AlertReceiver| options=Bundle[{android:broadcast.deferralPolicy=2, android:broadcast.deliveryGroupPolicy=1}]| nextReceiver=4| DELIVERED scheduled 0 terminal 0 (-1) #0: BroadcastFilter{5300365 10124/u0 ReceiverList{583b45c 955 com.android.systemui/10124/u0 remote:e7a42cf}}|
+RECORD  1: calendar_alerts after the alarm                          Row: 0 _id=1, event_id=158, alarmTime=1790868218000, state=0, minutes=10 
+--- 2: a normal (not sync-adapter) insert into a calendar of access level 200
+RECORD  2: the insert's own output                                  (none)
+RECORD  2: the row afterwards                                       Row: 0 _id=159, calendar_id=5, title=bs-readonly, dirty=1
+RECORD  2: ANSWER                                                   the provider ACCEPTS a normal insert into a level-200 calendar; the write layer's own re-read is the only gate (r3 D5), and the edge case expects no provider error
+--- 3: non-LOCAL calendars with no account, across a restart of the provider's process
+RECORD  3: provider pid before / after the force-stop               14991 / 15873
+      calendars right after the restart: Row: 0 _id=3, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700 Row: 1 _id=4, account_name=bs.local, account_type=LOCAL, calendar_displayName=BS Local, calendar_access_level=700 
+      calendars 20 s later: Row: 0 _id=3, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700 Row: 1 _id=4, account_name=bs.local, account_type=LOCAL, calendar_displayName=BS Local, calendar_access_level=700 
+PASS  3: the provider's process restarted                         != 14991
+RECORD  3: ANSWER                                                   account-less com.google calendars are DROPPED when the provider restarts: a Sync row creates its mkcal calendars after its last restart, never before (r3 V11)
+PASS  3: the LOCAL fixture survives either way                    contains [calendar_displayName=BS Local,]
+--- 4: a phone-only raw contact's account on this image
+RECORD  4: a raw contact inserted with no account reads             Row: 0 _id=4, account_name=NULL, account_type=NULL
+RECORD  4: the image's configured local account name                
+RECORD  4: the image's configured local account type                
+PASS  4: phone-only is a NULL account name on this image          contains [account_name=NULL]
+PASS  4: phone-only is a NULL account type on this image          contains [account_type=NULL]
+--- 5: a 29 February birthday, yearly, on February's last day
+PASS  5: the doc's form inserts                                   != 
+RECORD  5: the doc's form, FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1, in 2027  []
+RECORD  5: the doc's form in 2028                                   [2028-02-29]
+RECORD  5: ANSWER                                                   the doc's form gives NO instance in a year without a 29 February when it is empty above; the form is re-cut to FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1
+PASS  5: the re-cut form inserts                                  != 
+RECORD  5: the re-cut event row                                     Row: 0 _id=161, dtstart=699321600000, duration=P1D, allDay=1, rrule=FREQ=MONTHLY;INTERVAL=12;BYMONTHDAY=-1
+PASS  5: the whole of 2027 has one instance, on 28 February       = 2027-02-28
+PASS  5: the whole of 2028 has one instance, on 29 February       = 2028-02-29
+PASS  5: 2100 (not a leap year) has one instance, on 28 February  = 2100-02-28
+PASS  5: 2026 to 2032, one a year, the 29th only in 2028          = 2026-02-28 2027-02-28 2028-02-29 2029-02-28 2030-02-28 2031-02-28
+PASS  5: the same rule from a 28 February 2026 start              = 2026-02-28 2027-02-28 2028-02-29 2029-02-28
+      calendars after the restore: Row: 0 _id=3, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700 
+PASS  restore: no BS calendar is left                             does not contain [BS ]
+------------------------------------------------------------------------------
+BUILDSTART: 18 passed, 0 failed, 20 recorded

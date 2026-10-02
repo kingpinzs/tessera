@@ -1,0 +1,93 @@
+==============================================================================
+ROW E3 — the local calendar: created at first open, beside another LOCAL calendar, by Tess first; read-only others
+at            2026-10-01T15:58:27-06:00
+driver        e3.sh blob 2be6f5709492825a5d8ddab38c295177326a1b0b
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     d008aec0c1318519 340591758 bytes
+apk installed 686506a7a7936b2e
+apk match     yes (686506a7a7936b2e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+--- A: no calendar at all; opening Calendar creates Tessera
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  A: precondition — no contact carries a birthday (so no Birthdays calendar can appear, r3 V15)  = 0
+      calendars before: No result found.
+PASS  A: asserted first — the calendars query returns "No result found"  = No result found.
+calendars after the first open: Row: 0 _id=1, account_name=Tessera, account_type=LOCAL, name=Tessera, calendar_access_level=700, calendar_color=-16751695
+PASS  A: opening Calendar creates it — the query lists exactly one row  = 1
+PASS  A: … account_name Tessera                                 contains [account_name=Tessera,]
+PASS  A: … account_type LOCAL                                   contains [account_type=LOCAL,]
+PASS  A: … name Tessera                                         contains [name=Tessera,]
+PASS  A: … access 700                                           contains [calendar_access_level=700,]
+PASS  A: … colour -16751695 (#0063B1)                           contains [calendar_color=-16751695]
+PASS  A: diagnostics hold [calendar] local calendar created: …  contains [[calendar] local calendar created: content://com.android.calendar/calendars/1]
+PASS  A: diagnostics hold [calendar] calendars: 1 (local created id=<id>)  contains [[calendar] calendars: 1 (local created id=1)]
+PASS  A: force-stop and reopen → still one row                  = 1
+PASS  A: … and it is the same Tessera row                       = 1
+PASS  A: … the line reads local present                         contains [[calendar] calendars: 1 (local present)]
+PASS  A: … and no second create                                 does not contain [local calendar created]
+--- B: inverted (T16-2 line 4): the QA calendar first, pm clear → provision.sh → ensure_start
+PASS  B: the QA calendar (qa / LOCAL) is inserted first           != 
+PASS  B: … with Tessera deleted                                 = 0
+PASS  B: pm clear → provision.sh rc                             = 0
+PASS  B: the device still holds the build under test after provision.sh  contains [yes]
+PASS  B: precondition — still no Tessera row before Calendar is opened  = 0
+PASS  B: precondition — the QA calendar survived the clear      != 
+PASS  B: a driver-inserted event on the QA calendar               != 
+calendars, inverted: Row: 0 _id=1, account_name=qa, account_type=LOCAL, name=QA, calendar_access_level=700, calendar_color=NULL
+Row: 1 _id=2, account_name=Tessera, account_type=LOCAL, name=Tessera, calendar_access_level=700, calendar_color=-16751695
+PASS  B: opening Calendar STILL creates Tessera — two rows      = 2
+PASS  B: … one of them Tessera                                  = 1
+PASS  B: … and LocalCalendar did not take the QA calendar for its own  != 1
+PASS  B: … local created                                        contains [[calendar] calendars: 2 (local created id=2)]
+PASS  B: … with LocalCalendar's own line                        contains [[calendar] local calendar created: content://com.android.calendar/calendars/2]
+PASS  B: the ≡ pane is open (cal_pane)                          = yes
+PASS  B: Tessera lists as cal_calendar_row:<id> inside cal_pane   = yes
+PASS  B: the QA calendar lists as cal_calendar_row:<id> inside cal_pane  = yes
+PASS  B: the header cal_account:Tessera is in the pane            = yes
+PASS  B: the header cal_account:qa is in the pane                 = yes
+PASS  B: Tessera's row sits under its account's header            = Tessera
+PASS  B: the QA row sits under its account's header               = qa
+PASS  B: the QA event tapped — the dump holds cal_event_page:<its id> (asserted first, r3 V8)  = yes
+PASS  B: … and no cal_event_action:edit                         = no
+PASS  B: … and no cal_event_action:delete                       = no
+RECORD  B: every cal_event_action node on the QA event's page       []
+--- C: Tess first — Tessera deleted, J6's typed request creates it
+PASS  C: Tessera is deleted before the request                    = 0
+PASS  C: Tess shows the confirm card                              = yes
+      Tess said after the tap: [Added to your calendar.]
+PASS  C: J6's typed request creates Tessera — one Tessera row   = 1
+PASS  C: … created by LocalCalendar (its own line, from Tess's write)  contains [[calendar] local calendar created: content://com.android.calendar/calendars/2]
+PASS  C: … and standup is in it                                 = 1
+PASS  C: opening Calendar then logs local present                 contains [(local present)]
+PASS  C: … and creates nothing                                  does not contain [local calendar created]
+PASS  C: the query still shows one Tessera row                    = 1
+PASS  C: … the one Tess made                                    = 2
+--- E / D: a calendar with access level 200, and the editor's calendar field
+PASS  E: a calendar with access level 200 (READ) is inserted by the driver  != 
+PASS  E: … its level reads 200 in the provider                  contains [calendar_access_level=200]
+PASS  E: a driver-inserted event on it                            != 
+PASS  D: the editor is open (cal_editor)                          = yes
+PASS  D: the editor's calendar field reads Tessera                = Tessera
+PASS  D: a tap on the field opens no option list (cal_editor_options)  = no
+      the editor's texts after the tap:  |  |  | 4:01 PM | NEW EVENT | Title | Location | All day | Start | Thu 1 Oct 2026 | 5:00 PM | End | Thu 1 Oct 2026 | 6:00 PM | Repeat | Never |  | Reminder | None |  | Calendar | Tessera | Notes |  |  |  |  | 
+PASS  D: … and offers no QA calendar                            does not contain [QA]
+PASS  D: … nor the read-only one's account                      does not contain [qa.personal@example.com]
+PASS  D: … the field still reads Tessera                        = Tessera
+PASS  E: the level-200 calendar lists in the pane (cal_calendar_row:<id> inside cal_pane)  = yes
+PASS  E: its event tapped — cal_event_page:<id> (asserted first)  = yes
+PASS  E: … read-only: no cal_event_action:edit                  = no
+PASS  E: … read-only: no cal_event_action:delete                = no
+PASS  E: the control — Tessera's own event page (cal_event_page:<standup>)  = yes
+PASS  E: … does carry cal_event_action:edit                     = yes
+PASS  E: … and cal_event_action:delete                          = yes
+--- restore (r3 V10)
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: Tess's standup event is deleted (j6.sh's form)     = 0
+PASS  restore: Tessera is kept — exactly one row                = 1
+PASS  restore: Tessera holds no event of the row                  = 0
+PASS  restore: no new crash of the shell during the row           = 0
+PASS  restore: layout_restore of the baseline (the row cleared the shell)  = 0
+------------------------------------------------------------------------------
+E3: 68 passed, 0 failed, 1 recorded

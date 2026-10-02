@@ -1,0 +1,46 @@
+==============================================================================
+ROW E22_TESS — Tess, the exported intents and the pane never write an account calendar
+at            2026-10-01T14:36:12-06:00
+driver        e22_tess.sh blob 2079e01fb5ead4f0829ff79f3040dc1ae14113b9
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     bf4db91ef1047968 340872568 bytes
+apk installed 6d900c7f719db122
+apk match     yes (6d900c7f719db122)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+      personal=3 work=4 offsite=237 dentist=238
+PASS  the reply                                                   = That event isn't in your Tessera calendar.
+PASS  no Delete card                                              = no
+PASS  and no confirm button                                       = no
+PASS  after Tess's refused delete: Work holds exactly Offsite     = Offsite
+PASS  a title on no calendar keeps its reply                      = I don't see nonesuch on your calendar.
+PASS  the Delete card                                             = yes
+PASS  the reply                                                   = Deleted.
+PASS  the events row is gone                                      = 0
+PASS  through the write layer, naming a Tessera event             contains [[calendar] write delete event=238: ok]
+PASS  the confirm card                                            = yes
+PASS  the reply                                                   = Added to your calendar.
+PASS  standup is in Tessera                                       != 
+PASS  the write line names it                                     contains [[calendar] write insert event=239: ok]
+PASS  J6's line still names the local calendar                    contains [calendar event inserted into the shell's local calendar (2)]
+PASS  Personal holds nothing                                      = 
+PASS  after Tess's add: Work holds exactly Offsite                = Offsite
+PASS  EDIT on Offsite opens its page, not the editor              = yes no
+PASS  with no edit, delete or sync action                         = 0
+PASS  Offsite's row is unchanged                                  = Row: 0 title=Offsite, dtstart=1791302400000, dtend=1791306000000, calendar_id=4
+PASS  INSERT opens the editor with the title prefilled            = yes Intruder
+PASS  its calendar field reads Tessera                            = Tessera
+PASS  before Save, no Intruder anywhere (a prefill saves nothing)  = 0
+PASS  after Save, Intruder is in Tessera                          = 2
+PASS  after the INSERT: Work holds exactly Offsite                = Offsite
+PASS  Offsite shows in the Day view                               = yes
+PASS  both account calendars list in the pane                     = yes yes
+PASS  Work un-ticked: Offsite leaves the view                     = no
+PASS  and Work's visible column is unchanged                      contains [visible=1]
+PASS  Work re-ticked: Offsite is back                             = yes
+every write line of the session: write delete event=238: ok;write insert event=239: ok;write insert event=240: ok;
+PASS  at the end: Work holds exactly Offsite                      = Offsite
+PASS  Tessera holds what it held before the session               = 0
+------------------------------------------------------------------------------
+E22_TESS: 31 passed, 0 failed, 0 recorded

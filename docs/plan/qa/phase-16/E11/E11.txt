@@ -1,0 +1,158 @@
+==============================================================================
+ROW E11 — the People tile: bubble events, their colours, a pinned app tile, the static pattern
+at            2026-10-01T22:59:46-06:00
+driver        e11.sh blob dc6a7a4550ff40dc2950dd3ae998d89b8bd87754
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (3c1ad1e0e65bd919)
+PASS  layout_restore of the baseline (the row reads Start's layout)  = 0
+--- fixtures; three photos through People's editor and Android's photo picker
+      people_fixtures_up: raw ids ann=373 bob=374 zoe=375 zhang=376 number-only=377 cara=378,379 (raw contacts before: 2)
+PASS  the three solid-colour JPEGs are pushed                     = 3
+PASS  Ann (red): Android's photo picker opened                    contains [photopicker]
+PASS  Ann (red): a vnd.android.cursor.item/photo data row exists (the red JPEG, given through the editor)  = 1
+PASS  Bob (green): Android's photo picker opened                  contains [photopicker]
+PASS  Bob (green): a vnd.android.cursor.item/photo data row exists (the green JPEG, given through the editor)  = 1
+PASS  Zoë (blue): Android's photo picker opened                  contains [photopicker]
+PASS  Zoë (blue): a vnd.android.cursor.item/photo data row exists (the blue JPEG, given through the editor)  = 1
+      lookups: ann=0r373-2B4545413333 (red) bob=0r374-2D472D4F51474533 (green) zoe=0r375-5D47332B4D3345 (blue)
+PASS  before Start is read: exactly three contacts hold a photo data row  = 3
+--- Start: the feed, the tile
+      the PEOPLE slot tile: [9 84 352 427]
+PASS  the PEOPLE slot tile is on Start (gdump)                    != 
+PASS  … wholly on screen                                        = yes
+PASS  its face is the People face (people_tile_face inside the tile)  != 
+[people] tile: 3 photos
+PASS  the feed read the three photos ([people] tile: 3 photos)    contains [[people] tile: 3 photos]
+--- 40 s on Start: the events, their motion lines, a screencap per event, the screenrecord
+      the resting bubble's bounds in the slot tile: [84 139 276 331]
+PASS  the resting bubble's bounds were read before the window (people_tile_bubble)  != 
+PASS  event 1 of the window: the screencap's settled bubble centre is the fixture colour of lookup=0r374-2D472D4F51474533, ± 8  (0,255,1) within 8 of (0,255,1)
+PASS  event 1 of the window: the settled bubble in tile:slot:PEOPLE is the contact the event names (its content-desc)  = 0r374-2D472D4F51474533
+PASS  event 2 of the window: the screencap's settled bubble centre is the fixture colour of lookup=0r373-2B4545413333, ± 8  (254,0,0) within 8 of (254,0,0)
+PASS  event 2 of the window: the settled bubble in tile:slot:PEOPLE is the contact the event names (its content-desc)  = 0r373-2B4545413333
+PASS  event 3 of the window: the screencap's settled bubble centre is the fixture colour of lookup=0r374-2D472D4F51474533, ± 8  (0,255,1) within 8 of (0,255,1)
+PASS  event 3 of the window: the settled bubble in tile:slot:PEOPLE is the contact the event names (its content-desc)  = 0r374-2D472D4F51474533
+PASS  event 4 of the window: the screencap's settled bubble centre is the fixture colour of lookup=0r373-2B4545413333, ± 8  (254,0,0) within 8 of (254,0,0)
+RECORD  event 4 of the window: the dump took 4062 ms (5 empty attempts) and came after the bubble's rest; its content-desc is not read for this event  not graded
+PASS  event 5 of the window: the screencap's settled bubble centre is the fixture colour of lookup=0r374-2D472D4F51474533, ± 8  (0,255,1) within 8 of (0,255,1)
+PASS  event 5 of the window: the settled bubble in tile:slot:PEOPLE is the contact the event names (its content-desc)  = 0r374-2D472D4F51474533
+[people] tile event 4 t0=4366608 lookup=0r374-2D472D4F51474533
+[motion] people_bubble_out t0=4366608 peak=338 overshoot=0 settle=338 frames=21 maxGapMs=17
+[motion] people_bubble_in t0=4367905 peak=591 overshoot=0 settle=591 frames=36 maxGapMs=17
+[people] tile event 5 t0=4374309 lookup=0r373-2B4545413333
+[motion] people_bubble_out t0=4374309 peak=337 overshoot=0 settle=337 frames=21 maxGapMs=17
+[motion] people_bubble_in t0=4375606 peak=590 overshoot=0 settle=590 frames=36 maxGapMs=17
+[people] tile event 6 t0=4382010 lookup=0r374-2D472D4F51474533
+[motion] people_bubble_out t0=4382010 peak=336 overshoot=0 settle=336 frames=21 maxGapMs=17
+[motion] people_bubble_in t0=4383307 peak=589 overshoot=0 settle=589 frames=36 maxGapMs=17
+[people] tile event 7 t0=4389711 lookup=0r373-2B4545413333
+[motion] people_bubble_out t0=4389711 peak=335 overshoot=0 settle=335 frames=21 maxGapMs=17
+[motion] people_bubble_in t0=4391009 peak=587 overshoot=0 settle=587 frames=36 maxGapMs=17
+[people] tile event 8 t0=4397411 lookup=0r374-2D472D4F51474533
+[motion] people_bubble_out t0=4397411 peak=335 overshoot=0 settle=335 frames=21 maxGapMs=17
+[motion] people_bubble_in t0=4398708 peak=588 overshoot=0 settle=588 frames=36 maxGapMs=17
+PASS  the ring holds at least 4 `[people] tile event <n> t0=<uptime> lookup=<key>` lines  5 events: [4, 5, 6, 7, 8]
+PASS  the events are numbered consecutively                       [4, 5, 6, 7, 8]
+PASS  consecutive events are 7.7 s apart (± 0.2 s + one frame)   t0 differences ms: [7701, 7701, 7701, 7700]
+PASS  at least two different lookups appear                       ['0r373-2B4545413333', '0r374-2D472D4F51474533']
+PASS  every event names one of the three fixtures                 ['0r374-2D472D4F51474533', '0r373-2B4545413333', '0r374-2D472D4F51474533', '0r373-2B4545413333', '0r374-2D472D4F51474533']
+PASS  event 4: people_bubble_out settle ≈ 333 ms (± 42 ms + one frame)  338 ms over 21 frames
+PASS  event 4: people_bubble_in settle ≈ 583 ms (± 42 ms + one frame)  591 ms over 36 frames
+PASS  event 4: 1.88 s from the out's t0 to the in's settle (± 0.04 s + one frame)  1888 ms
+PASS  event 4: people_bubble_out maxGapMs ≤ 33.4 (C-31)         17.0
+PASS  event 4: people_bubble_in maxGapMs ≤ 33.4 (C-31)          17.0
+PASS  event 5: people_bubble_out settle ≈ 333 ms (± 42 ms + one frame)  337 ms over 21 frames
+PASS  event 5: people_bubble_in settle ≈ 583 ms (± 42 ms + one frame)  590 ms over 36 frames
+PASS  event 5: 1.88 s from the out's t0 to the in's settle (± 0.04 s + one frame)  1887 ms
+PASS  event 5: people_bubble_out maxGapMs ≤ 33.4 (C-31)         17.0
+PASS  event 5: people_bubble_in maxGapMs ≤ 33.4 (C-31)          17.0
+PASS  event 6: people_bubble_out settle ≈ 333 ms (± 42 ms + one frame)  336 ms over 21 frames
+PASS  event 6: people_bubble_in settle ≈ 583 ms (± 42 ms + one frame)  589 ms over 36 frames
+PASS  event 6: 1.88 s from the out's t0 to the in's settle (± 0.04 s + one frame)  1886 ms
+PASS  event 6: people_bubble_out maxGapMs ≤ 33.4 (C-31)         17.0
+PASS  event 6: people_bubble_in maxGapMs ≤ 33.4 (C-31)          17.0
+PASS  event 7: people_bubble_out settle ≈ 333 ms (± 42 ms + one frame)  335 ms over 21 frames
+PASS  event 7: people_bubble_in settle ≈ 583 ms (± 42 ms + one frame)  587 ms over 36 frames
+PASS  event 7: 1.88 s from the out's t0 to the in's settle (± 0.04 s + one frame)  1885 ms
+PASS  event 7: people_bubble_out maxGapMs ≤ 33.4 (C-31)         17.0
+PASS  event 7: people_bubble_in maxGapMs ≤ 33.4 (C-31)          17.0
+PASS  event 8: people_bubble_out settle ≈ 333 ms (± 42 ms + one frame)  335 ms over 21 frames
+PASS  event 8: people_bubble_in settle ≈ 583 ms (± 42 ms + one frame)  588 ms over 36 frames
+PASS  event 8: 1.88 s from the out's t0 to the in's settle (± 0.04 s + one frame)  1885 ms
+PASS  event 8: people_bubble_out maxGapMs ≤ 33.4 (C-31)         17.0
+PASS  event 8: people_bubble_in maxGapMs ≤ 33.4 (C-31)          17.0
+PASS  a screencap was graded for every event whose in-slide settled inside the 40 s  = yes
+PASS  the settled bubble's content-desc was read in a timely dump for at least three of those events  = yes
+PASS  the screenrecord of the 40 s was captured                   = yes
+# frames=1812 pts=1812 moving=344
+0.038 83.3 6 16.9
+4.471 0.0 1 0.0
+5.405 316.4 20 17.3
+6.671 599.7 36 17.2
+13.104 316.8 20 17.0
+14.371 600.2 36 17.1
+20.804 317.4 20 17.4
+22.071 600.0 36 17.4
+28.505 316.5 20 17.7
+29.773 598.9 36 17.0
+31.921 0.0 1 0.0
+36.205 316.5 20 17.3
+37.472 599.4 36 17.1
+43.904 316.9 20 17.1
+45.171 600.3 36 17.5
+RECORD  for H3: the slides as far as they move the bubble by more than 0.2 levels a frame (window ms of each burst ≥ 120 ms, in order out, in, out, …)  283.2 366.1 299.8 332.8 284.0 383.5 300.1 316.7 283.4 383.3 300.2 399.9 — the in-slide's ease-out spends its last third inside the last capture pixel
+      bursts in the tile's region ≥ 120 ms: 12; slides logged in the window: 10 
+PASS  the window holds at least four events' slides to corroborate  10 slides
+RECORD  slides corroborated by an accepted capture (out / in)       5 / 5
+RECORD  slides whose capture phase 05's rule rejects, source frames > 18.2 ms apart (out / in)  0 / 0
+RECORD  slides with no burst at their time in the capture           0
+PASS  the screenrecord corroborates an out-slide under phase 05's rule (window = settle − 1 frame ± 2 frames)  5 accepted
+PASS  the screenrecord corroborates an in-slide under phase 05's rule  5 accepted
+PASS  no accepted capture contradicts the shell's clock           none
+--- the tile's tap resumes the shell's People
+PASS  the PEOPLE tile's tap resumes the shell's People            = app.tileshell/.people.PeopleActivity
+--- a People app tile pinned from the app list shows the same bubble events (r3 D12)
+      scroll_to_node applist_name:app.tileshell/.people.PeopleActivity: 0 swipe(s), found=yes
+PASS  the layout holds the pinned People app tile                 contains [ app:app.tileshell/app.tileshell.people.PeopleActivity:0 ]
+PASS  the pinned People app tile is on screen (gdump)             = yes
+PASS  its face is the People face                                 != 
+RECORD  the PEOPLE slot tile is on screen beside the pinned tile    yes
+PASS  pinned leg, event 1: the settled bubble in tile:app:app.tileshell/app.tileshell.people.PeopleActivity:0 is the contact the event names (its content-desc)  = 0r374-2D472D4F51474533
+PASS  pinned leg, event 1: its centre pixel is the fixture colour of lookup=0r374-2D472D4F51474533, ± 8 (tile:app:app.tileshell/app.tileshell.people.PeopleActivity:0)  (0,255,1) within 8 of (0,255,1)
+PASS  pinned leg, event 1: the settled bubble in tile:slot:PEOPLE is the contact the event names (its content-desc)  = 0r374-2D472D4F51474533
+PASS  pinned leg, event 1: its centre pixel is the fixture colour of lookup=0r374-2D472D4F51474533, ± 8 (tile:slot:PEOPLE)  (0,255,1) within 8 of (0,255,1)
+PASS  pinned leg, event 2: the settled bubble in tile:app:app.tileshell/app.tileshell.people.PeopleActivity:0 is the contact the event names (its content-desc)  = 0r373-2B4545413333
+PASS  pinned leg, event 2: its centre pixel is the fixture colour of lookup=0r373-2B4545413333, ± 8 (tile:app:app.tileshell/app.tileshell.people.PeopleActivity:0)  (254,0,0) within 8 of (254,0,0)
+PASS  pinned leg, event 2: the settled bubble in tile:slot:PEOPLE is the contact the event names (its content-desc)  = 0r373-2B4545413333
+PASS  pinned leg, event 2: its centre pixel is the fixture colour of lookup=0r373-2B4545413333, ± 8 (tile:slot:PEOPLE)  (254,0,0) within 8 of (254,0,0)
+[people] tile event 4 t0=4457600 lookup=0r374-2D472D4F51474533
+[motion] people_bubble_out t0=4457600 peak=346 overshoot=0 settle=346 frames=21 maxGapMs=17
+[motion] people_bubble_in t0=4458897 peak=599 overshoot=0 settle=599 frames=36 maxGapMs=17
+[people] tile event 5 t0=4465300 lookup=0r373-2B4545413333
+[motion] people_bubble_out t0=4465300 peak=346 overshoot=0 settle=346 frames=21 maxGapMs=17
+[motion] people_bubble_in t0=4466598 peak=598 overshoot=0 settle=598 frames=36 maxGapMs=17
+PASS  at least two bubble events were read on the pinned tile in timely dumps  = yes
+--- every photo removed: the static pattern, 40 s
+PASS  no fixture holds a photo data row any more                  = 0
+PASS  diagnostics [people] tile: 0 photos                         contains [[people] tile: 0 photos]
+PASS  the PEOPLE slot tile is on screen for the 40 s              = yes
+PASS  the tile shows the static pattern (people_tile_pattern inside the tile)  != 
+PASS  … and no bubble                                           = 
+PASS  40 screencaps at 1-s intervals show no change on the tile   = 40 screencaps, 0 differ from the first on the tile
+PASS  no tile event is logged while there is no photo             does not contain [[people] tile event]
+--- restore
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  restore: the pushed JPEGs are removed                       = 0
+PASS  restore: the raw_contacts rows equal the rows before the row  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0
+Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0
+PASS  restore: layout_restore of the baseline (removes the pin)   = 0
+PASS  restore: the layout no longer holds the pinned People tile  does not contain [ app:app.tileshell/app.tileshell.people.PeopleActivity:0 ]
+PASS  restore: … and holds the PEOPLE slot tile (the read is a real one)  contains [ slot:PEOPLE ]
+------------------------------------------------------------------------------
+E11: 87 passed, 0 failed, 6 recorded

@@ -1,0 +1,83 @@
+==============================================================================
+ROW E25 — App Shortcuts: the Calendar and People tiles' bursts, each satellite's page, dumpsys shortcut
+at            2026-10-01T22:13:59-06:00
+driver        e25.sh blob 72e9c2a2eb20d7cd4e3eebc2043c0e0b458b624c
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (3c1ad1e0e65bd919)
+PASS  layout_restore of the baseline                              = 0
+PASS  the baseline's CALENDAR slot is the shell's Calendar        = app.tileshell/app.tileshell.calendar.CalendarActivity
+PASS  the baseline's PEOPLE slot is the shell's People            = app.tileshell/app.tileshell.people.PeopleActivity
+--- the CALENDAR tile's burst: Agenda, Day, Month, New event
+PASS  cal-0-agenda: the burst's labels in rank order              = Agenda,Day,Month,New event
+PASS  cal-0-agenda: the burst's ring line names only this activity's ids (T11-12)  = [quick] shortcuts for app.tileshell/.calendar.CalendarActivity/0: 4 (4 shown: agenda,day,month,new_event)
+PASS  cal-0-agenda: quick_sat:0 is in the burst                   = yes
+PASS  Agenda: the shell's Calendar is resumed (dumpsys activity activities)  = app.tileshell/.calendar.CalendarActivity
+PASS  Agenda: cal_view_mode:agenda is selected                    = true
+PASS  Agenda: … and the month drop-down is not shown            = no
+PASS  Agenda: no fourth-and-a-half satellite: the burst holds exactly quick_sat_label:0..3  = 4
+PASS  cal-1-day: the burst's labels in rank order                 = Agenda,Day,Month,New event
+PASS  cal-1-day: the burst's ring line names only this activity's ids (T11-12)  = [quick] shortcuts for app.tileshell/.calendar.CalendarActivity/0: 4 (4 shown: agenda,day,month,new_event)
+PASS  cal-1-day: quick_sat:1 is in the burst                      = yes
+PASS  Day: the shell's Calendar is resumed                        = app.tileshell/.calendar.CalendarActivity
+PASS  Day: cal_view_mode:day is selected                          = true
+PASS  cal-2-month: the burst's labels in rank order               = Agenda,Day,Month,New event
+PASS  cal-2-month: the burst's ring line names only this activity's ids (T11-12)  = [quick] shortcuts for app.tileshell/.calendar.CalendarActivity/0: 4 (4 shown: agenda,day,month,new_event)
+PASS  cal-2-month: quick_sat:2 is in the burst                    = yes
+PASS  Month: the shell's Calendar is resumed                      = app.tileshell/.calendar.CalendarActivity
+PASS  Month: cal_view_mode:agenda is selected (T16-13: no Month page)  = true
+PASS  Month: … AND cal_month_dropdown is shown                  = yes
+PASS  Tessera exists (the Calendar launches above ran LocalCalendar.id)  != 
+PASS  cal_lists: calendar 2 (Tessera) still lists                 contains [_id=2,]
+      Tessera (_id=2) holds 0 events before New event
+PASS  cal-3-new-event: the burst's labels in rank order           = Agenda,Day,Month,New event
+PASS  cal-3-new-event: the burst's ring line names only this activity's ids (T11-12)  = [quick] shortcuts for app.tileshell/.calendar.CalendarActivity/0: 4 (4 shown: agenda,day,month,new_event)
+PASS  cal-3-new-event: quick_sat:3 is in the burst                = yes
+PASS  New event: the shell's Calendar is resumed                  = app.tileshell/.calendar.CalendarActivity
+PASS  New event: cal_editor is shown                              = yes
+PASS  New event: Back discards it (cal_editor gone)               = no
+PASS  cal_lists: calendar 2 (Tessera) still lists                 contains [_id=2,]
+PASS  New event: Tessera's event count is unchanged               = 0
+--- the PEOPLE tile's burst: Contacts, New contact, Groups
+PASS  ppl-0-contacts: the burst's labels in rank order            = Contacts,New contact,Groups
+PASS  ppl-0-contacts: the burst's ring line names only this activity's ids (T11-12)  = [quick] shortcuts for app.tileshell/.people.PeopleActivity/0: 3 (3 shown: contacts,new_contact,groups)
+PASS  ppl-0-contacts: quick_sat:0 is in the burst                 = yes
+PASS  PEOPLE: no quick_sat_label:3                                = no
+PASS  PEOPLE: no quick_sat:3                                      = no
+PASS  Contacts: the shell's People is resumed (dumpsys activity activities)  = app.tileshell/.people.PeopleActivity
+PASS  Contacts: people_page:list is selected                      = true
+PASS  Contacts: … on the CONTACTS pivot                         = true
+PASS  ppl-1-new-contact: the burst's labels in rank order         = Contacts,New contact,Groups
+PASS  ppl-1-new-contact: the burst's ring line names only this activity's ids (T11-12)  = [quick] shortcuts for app.tileshell/.people.PeopleActivity/0: 3 (3 shown: contacts,new_contact,groups)
+PASS  ppl-1-new-contact: quick_sat:1 is in the burst              = yes
+PASS  New contact: the shell's People is resumed                  = app.tileshell/.people.PeopleActivity
+PASS  New contact: people_page:editor is selected                 = true
+PASS  New contact: Back discards it (the editor is no longer the page on show)  != true
+PASS  New contact: the raw_contacts count is unchanged            = 2
+PASS  ppl-2-groups: the burst's labels in rank order              = Contacts,New contact,Groups
+PASS  ppl-2-groups: the burst's ring line names only this activity's ids (T11-12)  = [quick] shortcuts for app.tileshell/.people.PeopleActivity/0: 3 (3 shown: contacts,new_contact,groups)
+PASS  ppl-2-groups: quick_sat:2 is in the burst                   = yes
+PASS  Groups: the shell's People is resumed                       = app.tileshell/.people.PeopleActivity
+PASS  Groups: people_pivot:groups is selected                     = true
+--- adb shell dumpsys shortcut
+app.tileshell/app.tileshell.calendar.CalendarActivity	0	agenda
+app.tileshell/app.tileshell.calendar.CalendarActivity	1	day
+app.tileshell/app.tileshell.calendar.CalendarActivity	2	month
+app.tileshell/app.tileshell.calendar.CalendarActivity	3	new_event
+app.tileshell/app.tileshell.people.PeopleActivity	0	contacts
+app.tileshell/app.tileshell.people.PeopleActivity	1	new_contact
+app.tileshell/app.tileshell.people.PeopleActivity	2	groups
+PASS  dumpsys shortcut: the Calendar activity's ids with ranks 0–3  = 0=agenda 1=day 2=month 3=new_event
+PASS  dumpsys shortcut: the People activity's ids with ranks 0–2  = 0=contacts 1=new_contact 2=groups
+PASS  dumpsys shortcut: the seven ids, each once, on those two activities  = agenda contacts day groups month new_contact new_event
+PASS  dumpsys shortcut: none of the seven ids is declared on another activity  = 0
+--- restore
+PASS  restore: layout_restore of the baseline                     = 0
+PASS  restore: the raw_contacts count is the count before the row  = 2
+------------------------------------------------------------------------------
+E25: 58 passed, 0 failed, 0 recorded

@@ -1,0 +1,48 @@
+==============================================================================
+ROW E5 — all-day, multi-day and recurring events; the three occurrence scopes
+at            2026-10-02T02:56:41-06:00
+driver        e5.sh blob 0a75cb9e354b32500630fa8fb7e40a20d8bac7bc
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob 37f8ca0771c000a3ace0ab481a2b94b60658ccfc
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     d3491c103c64871a 339129014 bytes
+apk installed 3c5e3199554038d1
+apk match     yes (3c5e3199554038d1)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  legs run                                                    A (the driver's inserts) and D (the series in the Agenda; the walk past weeks 8, 16 and 32) ONLY — a narrow re-run; legs B, C, E–I stand on the row's earlier run
+PASS  precondition: Tessera exists                                != 
+--- A: the driver's inserts
+      the far events (week:id:date): 9:20911:2026-12-04 17:20912:2027-01-29 33:20913:2027-05-21 40:20914:2027-07-09
+PASS  A: an event in each of weeks 9, 17, 33 and 40 from today    = 4
+      all-day 20908, three-day 20909, series 20910 (first at 1790985600000)
+PASS  A: the all-day event — allDay 1, dtstart at UTC midnight, eventTimezone UTC  contains [allDay=1, dtstart=1790899200000, eventTimezone=UTC]
+PASS  A: the 3-day timed event is inserted                        != 
+PASS  A: the weekly series — rrule FREQ=WEEKLY;COUNT=10, duration PT1H, no dtend  contains [rrule=FREQ=WEEKLY;COUNT=10, duration=PT1H, dtend=NULL]
+      the series' instances from the provider: 1790985600000 1790989200000;1791590400000 1791594000000;1792195200000 1792198800000;1792800000000 1792803600000;1793404800000 1793408400000;1794013200000 1794016800000;1794618000000 1794621600000;1795222800000 1795226400000;1795827600000 1795831200000;1796432400000 1796436000000;
+--- D: the Agenda lists ten instances of the series; the provider agrees
+PASS  D: content query instances/when/<start>/<end> — ten instances of the series  = 10
+      cagenda_walk: 18 (date, event) rows after 10 swipe(s)
+the Agenda's rows for the series: 2026-10-02 2026-10-09 2026-10-16 2026-10-23 2026-10-30 2026-11-06 2026-11-13 2026-11-20 2026-11-27 2026-12-04 
+PASS  D: the agenda lists ten cal_event: instances of the series  = 10
+PASS  D: … the provider's count agrees with the agenda's        = 10
+PASS  D: … on the provider's ten days                           = 2026-10-02 2026-10-09 2026-10-16 2026-10-23 2026-10-30 2026-11-06 2026-11-13 2026-11-20 2026-11-27 2026-12-04
+the first date of each dump of the walk: 2026-10-02 2026-10-03 2026-10-09 2026-10-16 2026-10-30 2026-11-13 2026-11-20 2026-12-04 2027-01-29 2027-01-29 2027-01-29
+RECORD  D: the Agenda's loaded windows during the walk (view agenda lines: from..to)  
+PASS  D: the walk — the first date of each dump never goes backwards (the list is not thrown back when more weeks load)  = yes
+PASS  D: … it made more than one dump (the list did scroll)     = yes
+PASS  D: … the walk gets past week 8: the event of week 9 is reached, on its date  = 2026-12-04
+PASS  D: … the walk gets past week 16: the event of week 17 is reached, on its date  = 2027-01-29
+PASS  D: … the walk gets past week 32: the event of week 33 is reached, on its date  = 2027-05-21
+PASS  D: … the walk gets past week 39: the event of week 40 is reached, on its date  = 2027-07-09
+--- restore (r3 V10): every event the row inserted or created, by id
+      ids made by the row: 20908,20909,20910,20911,20912,20913,20914
+PASS  restore: none of the row's events is left (any state)       = 0
+PASS  restore: the count of Tessera's events equals the count before the row  = 0
+------------------------------------------------------------------------------
+E5: 17 passed, 0 failed, 2 recorded

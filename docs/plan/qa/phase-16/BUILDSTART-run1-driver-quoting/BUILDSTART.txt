@@ -1,0 +1,56 @@
+==============================================================================
+ROW BUILDSTART — Verify at build start: five Android facts, on the AVD
+at            2026-10-01T09:15:55-06:00
+driver        buildstart.sh blob d3c6017d4f811ecb57059554dd7f485e2bea9f9b
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     2a178f0e7d55a13c 338136860 bytes
+apk installed c5ef7e2efedc98a7
+apk match     yes (c5ef7e2efedc98a7)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  image                                                       sdk 36, Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+RECORD  calendar provider                                           versionName=16
+      calendars before: Row: 0 _id=3, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700 
+PASS  fixture: BS Local exists                                    != 
+PASS  fixture: BS ReadOnly exists                                 != 
+PASS  fixture: BS Account exists                                  != 
+      fixtures: local=4 readonly=5 account=6
+--- 1: the reminder broadcast's data URI
+FAIL  1: the test event exists                                    should not be []
+RECORD  1: the provider's pending alarm                                 ELAPSED_WAKEUP #9: Alarm{6f5dd3e type 2 origWhen 86400000 whenElapsed 86400000 com.android.providers.calendar}       tag=*walarm*:com.android.providers.calendar.intent.CalendarProvider2       type=ELAPSED_WAKEUP origWhen=+4h28m54s851ms window=+4h30m0s0ms repeatInterval=21600000 count=0 flags=0x0
+RECORD  1: calendar_alerts before the alarm                         
+waiting for the alarm (the event starts 11 minutes after 09:16:07 device time; the reminder is 10 minutes before)
+RECORD  1: the broadcast as the system logged it                    
+FAIL  1: the broadcast was sent                                   does not contain [act=android.intent.action.EVENT_REMINDER]: 
+FAIL  1: its data is a content URI on com.android.calendar (the receiver's scheme + host filter)  does not contain [dat=content://com.android.calendar/]: 
+RECORD  1: flags (0x01000000 = FLAG_RECEIVER_INCLUDE_BACKGROUND, what lets a manifest receiver get it)  
+RECORD  1: who received it                                          
+RECORD  1: calendar_alerts after the alarm                          
+--- 2: a normal (not sync-adapter) insert into a calendar of access level 200
+RECORD  2: the insert's own output                                  (none)
+RECORD  2: the row afterwards                                       
+RECORD  2: ANSWER                                                   the provider REFUSES a normal insert into a level-200 calendar; the write layer's re-read is still built (r3 D5)
+--- 3: non-LOCAL calendars with no account, across a restart of the provider's process
+RECORD  3: provider pid before / after the force-stop               1828 / 14366
+      calendars right after the restart: Row: 0 _id=3, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700 Row: 1 _id=4, account_name=bs.local, account_type=LOCAL, calendar_displayName=BS Local, calendar_access_level=700 
+      calendars 20 s later: Row: 0 _id=3, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700 Row: 1 _id=4, account_name=bs.local, account_type=LOCAL, calendar_displayName=BS Local, calendar_access_level=700 
+PASS  3: the provider's process restarted                         != 1828
+RECORD  3: ANSWER                                                   account-less com.google calendars are DROPPED when the provider restarts: a Sync row creates its mkcal calendars after its last restart, never before (r3 V11)
+PASS  3: the LOCAL fixture survives either way                    contains [calendar_displayName=BS Local,]
+--- 4: a phone-only raw contact's account on this image
+RECORD  4: a raw contact inserted with no account reads             
+RECORD  4: the image's configured local account name                
+RECORD  4: the image's configured local account type                
+FAIL  4: phone-only is a NULL account name on this image          does not contain [account_name=NULL]: 
+FAIL  4: phone-only is a NULL account type on this image          does not contain [account_type=NULL]: 
+--- 5: FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=-1
+FAIL  5: the yearly event exists                                  should not be []
+RECORD  5: the event row                                            
+FAIL  5: February 2027 has one instance, on the 28th              expected [2027-02-28] got []
+FAIL  5: February 2028 has one instance, on the 29th              expected [2028-02-29] got []
+FAIL  5: February 2100 (not a leap year) is the 28th              expected [2100-02-28] got []
+      calendars after the restore: Row: 0 _id=3, account_name=Tessera, account_type=LOCAL, calendar_displayName=Tessera, calendar_access_level=700 
+PASS  restore: no BS calendar is left                             does not contain [BS ]
+------------------------------------------------------------------------------
+: 6 passed, 9 failed, 17 recorded

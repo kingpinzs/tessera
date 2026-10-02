@@ -1,0 +1,57 @@
+==============================================================================
+ROW E8 — time zone and DST: Tokyo wall time, the all-day event on its date, the fall-back night's 3-hour span
+at            2026-10-02T00:04:36-06:00
+driver        e8.sh blob e730d0f6f74a4eda01e20b3eeb02e87ec5e88985
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  Z: the zone recorded at the start (getprop persist.sys.timezone)  America/Boise
+PASS  Z: the zone is set to America/Denver                        = America/Denver
+RECORD  Z: the next DST change in America/Denver, the date used after it, the next fall-back date  2026-11-01 / 2026-11-10 / 2026-11-01
+PASS  precondition: Tessera exists                                != 
+--- T: an event at 09:00 America/Denver on 2026-11-10, the row's own all-day event that day, then Asia/Tokyo
+PASS  T: an event at 09:00 America/Denver on a date after the next DST change  != 
+PASS  T: the row's OWN all-day event on that date (allDay 1, UTC midnight, eventTimezone UTC)  != 
+PASS  T: in Denver the Day view of 2026-11-10 shows it (cal_day:2026-11-10)  = yes
+PASS  T: … at its Denver wall time                              = 9:00 AM – 10:00 AM
+PASS  T: … and the all-day event in that date's band            = yes
+PASS  T: cmd alarm set-timezone Asia/Tokyo                        = Asia/Tokyo
+the timed event's time text: [9:00 AM – 10:00 AM] in America/Denver, [1:00 AM – 2:00 AM] in Asia/Tokyo
+PASS  T: in Tokyo the event is on the Day view of its Tokyo date (cal_day:2026-11-11)  = yes
+PASS  T: the event shows at its Tokyo wall time (the text of cal_event_time:<id>, r3 V8)  = 1:00 AM – 2:00 AM
+PASS  T: … which is not its Denver text                         != 9:00 AM – 10:00 AM
+PASS  T: while the all-day event stays on its date — the Day view of 2026-11-10 (Tokyo) holds its node  = yes
+PASS  T: … inside cal_allday:2026-11-10                         = yes
+PASS  T: … and not on the next date (2026-11-11) in Tokyo       = no
+PASS  T: … nor on the date before (2026-11-09)                  = no
+PASS  T: back to Denver                                           = America/Denver
+RECORD  T: the shell's process across the two zone changes (before / after)  16624 / 16624
+--- N: an event across the fall-back night (2026-11-01), 23:30–01:30
+PASS  N: the fixture — 23:30 the evening before, ending at the SECOND 01:30 of the fall-back date, 3 hours on  = 2026-10-31 23:30 MDT / 2026-11-01 01:30 MST
+PASS  N: the event is inserted                                    != 
+PASS  N: the provider's instance is 3 hours long (its end − its begin, ms)  = 10800000
+PASS  N: the evening's Day view (2026-10-31) shows its block      = yes yes
+PASS  N: the fall-back date's Day view (2026-11-01) shows its block  = yes yes
+      drawn block heights (px): the evening's part 69, the fall-back date's part 357, the one-hour control 141; dump boxes: eve [168 1946 1050 2090] fall-back [168 327 1050 684] control [168 902 1050 1046]
+PASS  N: the one-hour control block is drawn and measured         != 
+the span drawn across the two days: 3.00 hours (0.5 h before midnight + 2.5 h after, on a 25-hour day)
+PASS  N: it shows a 3-hour span in the day view (drawn hours, the two days' blocks together)  3.00 vs 3.00 +/- 0.1
+PASS  N: … the part on the fall-back date is 2.5 hours (the repeated hour is drawn)  2.50 vs 2.50 +/- 0.1
+RECORD  N: the block's own time text on the fall-back date          11:30 PM – 1:30 AM
+PASS  N: the editor is open on it                                 = yes
+      the editor: start [Sat 31 Oct 2026 11:30 PM] end [Sun 1 Nov 2026 1:30 AM]
+PASS  N: the editor shows its stored end wall time (01:30)        = 1:30 AM
+PASS  N: … on the fall-back date                                = Sun 1 Nov 2026
+PASS  N: … and its start as stored (23:30 the evening before)   = Sat 31 Oct 2026 11:30 PM
+PASS  N: … the look changed nothing: the stored end is as inserted  = dtend=1793521800000
+--- restore
+PASS  restore: the events are deleted                             = 0
+PASS  restore: Tessera's event count equals the count before the row  = 1
+PASS  restore: the recorded zone is set back                      = America/Boise
+PASS  restore: time_12_24 is as it was                            = null
+------------------------------------------------------------------------------
+E8: 33 passed, 0 failed, 4 recorded

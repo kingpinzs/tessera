@@ -1,0 +1,43 @@
+==============================================================================
+ROW E4 — events both ways: the editor, the observer with no restart, app and driver deletes, the pinned app tile
+at            2026-10-02T03:47:09-06:00
+driver        e4.sh blob 513f5a3ae4fe065587604d696de062eebf32a263
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob a01abd9075780a8e49193748ce5047031fe19181
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     182a7851a5c76400 339129014 bytes
+apk installed e03a1d233ee6ba0c
+apk match     yes (e03a1d233ee6ba0c)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  legs run                                                    W ONLY (the tile's and Tess's window: an event that ended today, one in 2 hours, one in 25 hours) — a narrow run; legs A–E stand on the row's earlier run
+RECORD  the device's time at the row's start (the spec's tomorrow-09:00 event is in the feed's 24 h after 09:00 only)  2026-10-02 03:47 MDT
+PASS  precondition: Tessera exists once Calendar has opened       != 
+      Tessera id 2 holds 0 event(s) before the row; zone America/Boise; today 2026-10-02, tomorrow 2026-10-03
+--- W: what the tile and Tess keep — an event that ended today, one in 2 hours, one in 25 hours
+RECORD  W: the device's time                                        2026-10-02 03:47 MDT
+PASS  W: precondition — it is at least 30 minutes after local midnight (an event can have ended today)  = yes
+PASS  W: fixtures — three events in Tessera: ended today (10 min ago), starting in 2 hours, starting in 25 hours  = 3
+PASS  W: fixtures — the ended one began after the local start of today  = yes
+the feed after the three inserts: [calendar] refresh (provider change): access=true faces=2 agenda=2
+PASS  W: the feed's last refresh counts two faces — the day face and the event in 2 hours  = faces=2
+the CALENDAR tile's texts over 16 dumps:       4 Calendar;      7 Calendar|E4 soon|5:47 AM;      5 Calendar|Friday|2;
+PASS  W: the tile shows the timed event inside the next 24 hours (dumps of 16 reading E4 soon)  != 0
+PASS  W: … the one that ended earlier today does not come back (dumps reading E4 ended)  = 0
+PASS  W: … and the one starting in 25 hours is not shown (dumps reading E4 later)  = 0
+Tess: [You have E4 soon.]
+PASS  W: Tess's typed "what is on my calendar" names the event in 2 hours  contains [E4 soon]
+PASS  W: … not the one that ended earlier today                 does not contain [E4 ended]
+PASS  W: … and not the one starting in 25 hours                 does not contain [E4 later]
+--- restore
+PASS  restore: the test events are deleted                        = 0
+PASS  restore: Tessera holds what it held before the row          = 0
+PASS  restore: layout_restore of the baseline (removes the pin)   = 0
+PASS  restore: … the pinned tile is gone from the layout        does not contain ["app:app.tileshell/app.tileshell.calendar.CalendarActivity:0"]
+------------------------------------------------------------------------------
+E4: 15 passed, 0 failed, 3 recorded

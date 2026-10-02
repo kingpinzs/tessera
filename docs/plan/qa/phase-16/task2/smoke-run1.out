@@ -1,0 +1,84 @@
+── T2SMOKE build task 2: app identities and contracts (development smoke)
+installed before: aaf9a1d8ed536d25; adb install -r rc=0: Success
+PASS  adb install -r succeeded                                    = 0
+PASS  the device now holds this build                             contains [yes]
+assignSlotOnce lines since the install:
+    2026-10-01 09:09:53.445 wall=1790867393445 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-10-01 09:09:53.446 wall=1790867393446 [layout] assignSlotOnce slot:calendar:v1 CALENDAR -> app.tileshell/.calendar.CalendarActivity -> assigned
+    2026-10-01 09:09:53.447 wall=1790867393447 [layout] assignSlotOnce slot:people:v1 PEOPLE -> app.tileshell/.people.PeopleActivity -> assigned
+PASS  calendar slot seeded                                        contains [assignSlotOnce slot:calendar:v1 CALENDAR -> app.tileshell/.calendar.CalendarActivity -> assigned]
+PASS  people slot seeded                                          contains [assignSlotOnce slot:people:v1 PEOPLE -> app.tileshell/.people.PeopleActivity -> assigned]
+slots {"CALENDAR": "app.tileshell/app.tileshell.calendar.CalendarActivity", "MUSIC": "app.tileshell/app.tileshell.music.MusicActivity", "PEOPLE": "app.tileshell/app.tileshell.people.PeopleActivity"}
+addedOnce ['folder:games:v1', 'folder:office:v1', 'phase03:cortana', 'slot:calendar:v1', 'slot:music:v1', 'slot:people:v1']
+PASS  slots.CALENDAR is the shell's Calendar                      contains ["CALENDAR": "app.tileshell/app.tileshell.calendar.CalendarActivity"]
+PASS  slots.PEOPLE is the shell's People                          contains ["PEOPLE": "app.tileshell/app.tileshell.people.PeopleActivity"]
+PASS  marker slot:calendar:v1                                     contains [slot:calendar:v1]
+PASS  marker slot:people:v1                                       contains [slot:people:v1]
+APP_CALENDAR handlers: com.android.calendar/.AllInOneActivity app.tileshell/.calendar.CalendarActivity
+PASS  APP_CALENDAR has two handlers                               = 2
+PASS  APP_CALENDAR lists the shell                                contains [app.tileshell/]
+APP_CONTACTS handlers: com.android.contacts/.activities.PeopleActivity app.tileshell/.people.PeopleActivity
+PASS  APP_CONTACTS has two handlers                               = 2
+PASS  APP_CONTACTS lists the shell                                contains [app.tileshell/]
+exported surface against the allow-list:
+PASS  exported.py rc                                              = 0
+PASS  launcher: resumed                                           = app.tileshell/.calendar.CalendarActivity
+PASS  launcher: route                                             contains [-> open page=default]
+PASS  calendar window draws the status bar                        = yes
+PASS  calendar window draws the nav bar                           = yes
+PASS  shortcut page: resumed                                      = app.tileshell/.calendar.CalendarActivity
+PASS  shortcut page: route                                        contains [-> open page=month]
+PASS  VIEW time: resumed                                          = app.tileshell/.calendar.CalendarActivity
+PASS  VIEW time: route                                            contains [-> time 1790000000000]
+PASS  VIEW event: resumed                                         = app.tileshell/.calendar.CalendarActivity
+PASS  VIEW event: route                                           contains [-> event 42]
+PASS  EDIT event: resumed                                         = app.tileshell/.calendar.CalendarActivity
+PASS  EDIT event: route                                           contains [-> edit 42]
+PASS  INSERT with a calendar_id: resumed                          = app.tileshell/.calendar.CalendarActivity
+PASS  INSERT with a calendar_id: route                            contains [-> insert (prefilled, unsaved)]
+PASS  malformed URI: resumed                                      = app.tileshell/.calendar.CalendarActivity
+PASS  malformed URI: route                                        contains [-> open page=default]
+PASS  a caller's title never reaches the ring                     does not contain [Intruder]
+FAIL  resolver lists the shell for [-a android.intent.action.VIEW -d content://com.android.calendar/time/1790000000000]  does not contain [app.tileshell/.calendar.CalendarActivity]: 
+PASS  resolver lists the shell for [-a android.intent.action.INSERT -t vnd.android.cursor.dir/event]  contains [app.tileshell/.calendar.CalendarActivity]
+PASS  resolver lists the shell for [-a android.intent.action.EDIT -t vnd.android.cursor.item/event]  contains [app.tileshell/.calendar.CalendarActivity]
+PASS  resolver lists the shell for [-a android.intent.action.VIEW -t vnd.android.cursor.item/event]  contains [app.tileshell/.calendar.CalendarActivity]
+PASS  Back leaves Calendar                                        != app.tileshell/.calendar.CalendarActivity
+PASS  launcher: resumed                                           = app.tileshell/.people.PeopleActivity
+PASS  launcher: route                                             contains [-> open page=default]
+PASS  people window draws the status bar                          = yes
+PASS  people window draws the nav bar                             = yes
+PASS  shortcut page: resumed                                      = app.tileshell/.people.PeopleActivity
+PASS  shortcut page: route                                        contains [-> open page=groups]
+PASS  VIEW contact: resumed                                       = app.tileshell/.people.PeopleActivity
+PASS  VIEW contact: route                                         contains [-> card]
+PASS  VIEW lookup: resumed                                        = app.tileshell/.people.PeopleActivity
+PASS  VIEW lookup: route                                          contains [-> card]
+PASS  EDIT contact: resumed                                       = app.tileshell/.people.PeopleActivity
+PASS  EDIT contact: route                                         contains [-> edit]
+PASS  INSERT naming an account: resumed                           = app.tileshell/.people.PeopleActivity
+PASS  INSERT naming an account: route                             contains [-> insert (prefilled, unsaved)]
+PASS  INSERT_OR_EDIT: resumed                                     = app.tileshell/.people.PeopleActivity
+PASS  INSERT_OR_EDIT: route                                       contains [-> insert or edit (prefilled, unsaved)]
+PASS  PICK contact: resumed                                       = app.tileshell/.people.PeopleActivity
+PASS  PICK contact: route                                         contains [-> pick contact]
+PASS  PICK phone: resumed                                         = app.tileshell/.people.PeopleActivity
+PASS  PICK phone: route                                           contains [-> pick phone]
+PASS  malformed URI: resumed                                      = app.tileshell/.people.PeopleActivity
+PASS  malformed URI: route                                        contains [-> open page=default]
+PASS  a caller's name never reaches the ring                      does not contain [Intruder]
+FAIL  resolver lists the shell for [-a android.intent.action.VIEW -d content://com.android.contacts/contacts/1]  does not contain [app.tileshell/.people.PeopleActivity]: 
+PASS  resolver lists the shell for [-a android.intent.action.EDIT -t vnd.android.cursor.item/contact]  contains [app.tileshell/.people.PeopleActivity]
+PASS  resolver lists the shell for [-a android.intent.action.INSERT -t vnd.android.cursor.dir/contact]  contains [app.tileshell/.people.PeopleActivity]
+PASS  resolver lists the shell for [-a android.intent.action.INSERT_OR_EDIT -t vnd.android.cursor.item/contact]  contains [app.tileshell/.people.PeopleActivity]
+PASS  resolver lists the shell for [-a android.intent.action.PICK -t vnd.android.cursor.dir/contact]  contains [app.tileshell/.people.PeopleActivity]
+PASS  resolver lists the shell for [-a android.intent.action.PICK -t vnd.android.cursor.dir/phone_v2]  contains [app.tileshell/.people.PeopleActivity]
+READ_CONTACTS granted=true WRITE_CONTACTS granted=false
+PASS  people row with READ held, WRITE not                        = people=PARTIAL
+PASS  a PARTIAL People row does not summon the wizard             contains [[wizard] not shown]
+PASS  WRITE_CONTACTS granted                                      = true
+PASS  people row with both held                                   = people=GRANTED
+PASS  checklist:people:granted on the Setup page                  = yes
+PASS  people row with WRITE held, READ revoked                    = people=MISSING
+PASS  READ_CONTACTS restored                                      = true
+   T2SMOKE: 69 passed, 2 failed, 0 recorded

@@ -1,0 +1,114 @@
+==============================================================================
+ROW E6 — reminders through the provider: the shell alone, the race, a forged poke, reboot, due before the first start
+at            2026-10-01T23:34:53-06:00
+driver        e6.sh blob 678352f02de2e1c107d862b9fba0c6405f65aa9e
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+--- (a) the shell alone
+PASS  (a) the AOSP Calendar is disabled (only the shell can mark the alert)  = 0
+PASS  (a) precondition: Tessera exists                            != 
+PASS  (a) precondition: no calendar notification of the shell's is up  = 
+      shell_alarms_pending: 0 before, 1 with the shell's own alarm af1da7bef armed for 1:35
+PASS  (a) shell_alarms_pending can count: it reads one more with one of the shell's own alarms armed  = 1
+      scroll_to_node alarm_row:af1da7bef: 0 swipe(s), found=yes
+PASS  (a) … and the same as before once that alarm is deleted (the read before the reminder insert)  = 0
+PASS  (a) a local event "Standup" 30 min ahead, with its reminders row (minutes 10, method 1)  != 
+PASS  (a) … the reminders row as inserted                       contains [event_id=748, minutes=10, method=1]
+      event 748 starts 1790921100000; T−10 min is 1790920500000; alert rows now: No result found.;
+dumpsys alarm, pending under com.android.providers.calendar: RTC_WAKEUP #5: Alarm{7b03c74 type 0 origWhen 1790920500000 whenElapsed 7510608 com.android.providers.calendar};ELAPSED_WAKEUP #10: Alarm{e3d60d6 type 2 origWhen 21600000 whenElapsed 21600000 com.android.providers.calendar};
+PASS  (a) dumpsys alarm shows the provider's alarm under com.android.providers.calendar  != 0
+PASS  (a) shell_alarms_pending reads the SAME count as before the insert (Rule 16)  = 0
+PASS  (a) no calendar notification of the shell's before the time  = 
+the shell's calendar notifications: title=[Standup] text=[Fri 2 Oct, 12:05 AM – 1:05 AM] vis=PRIVATE channel=calendar_reminders; (after 5 s)
+PASS  (a) a notification of the shell's shows after the jump      != none
+PASS  (a) … within 10 s                                         5.00 vs 5.00 +/- 5.0
+PASS  (a) dumpsys notification --noredact shows ONE notification of the shell's  = 1
+PASS  (a) … its title "Standup"                                 contains [title=[Standup]]
+PASS  (a) … the time (the event's own)                          contains [text=[Fri 2 Oct, 12:05 AM – 1:05 AM]]
+PASS  (a) … on the calendar channel                             contains [channel=calendar_reminders]
+PASS  (a) … visibility PRIVATE                                  contains [vis=PRIVATE]
+PASS  (a) the slice holds [calendar] reminder event=<id> minutes=10: notified — once  = 1
+calendar_alerts: Row: 0 event_id=748, state=1
+PASS  (a) calendar_alerts shows state 1 (FIRED) — only the shell can have written it  contains [event_id=748, state=1]
+PASS  (a) … one alert row                                       = 1
+PASS  (a) still no alarm of the shell's own after the reminder fired  = 0
+      the notification's title node in the shade: [191 662 337 715]
+PASS  (a) the notification's node is in the shade (the swipe is at its dump bounds)  = 0
+PASS  (a) dismissing it removes it                                = 
+PASS  (a) … → state 2 (DISMISSED)                             contains [event_id=748, state=2]
+PASS  (a) … and the line reminder event=<id> minutes=10: dismissed  contains [[calendar] reminder event=748 minutes=10: dismissed]
+--- (b) the race and the double (the AOSP Calendar enabled)
+PASS  (b) pm enable com.android.calendar                          = 1
+PASS  (b) a second event and reminder                             != 
+the shell's calendar notifications: title=[Standup two] text=[Fri 2 Oct, 12:25 AM – 1:25 AM] vis=PRIVATE channel=calendar_reminders; (after 7 s)
+PASS  (b) the shell still posts exactly one notification for it   = 1
+PASS  (b) … and no other notification of the shell's            = 1
+PASS  (b) … and logs notified once, whichever app flipped the alert row first  = 1
+RECORD  (b) the AOSP Calendar fixture's own notification is ALSO present (Decisions; C-26)  none
+RECORD  (b) the alert row after both apps handled it                _id=2, event_id=749, state=1, minutes=10, alarmTime=1790921700000;
+--- (c) a forged poke with no alert due
+PASS  (c) the broadcast reached the receiver                      contains [Broadcast completed]
+PASS  (c) no new notification (the shell's count is as before the poke)  = 1
+PASS  (c) no notified line                                        does not contain [: notified]
+--- (d) reboot with a reminder 3 min ahead
+RECORD  (d) the device clock before the driver's restore (jumped by legs (a) and (b))  2026-10-02 00:15:21 against the host's 2026-10-01 23:36:30
+PASS  device clock back within 2 s of the host (RV12)             1790919392.00 vs 1790919392.00 +/- 2.0
+PASS  (d) an event whose reminder is about 3 min ahead            != 
+      event 750: the alert is due at 1790919600000, 201 s from the insert; alert rows: No result found.;
+PASS  (d) the device is awake after the reboot (wake_device; C-25)  = Awake
+RECORD  (d) the device clock after the reboot                       2026-10-01 23:37:17 against the host's 2026-10-01 23:37:18
+dumpsys alarm after boot, pending under com.android.providers.calendar: RTC_WAKEUP #5: Alarm{45ca5db type 0 origWhen 1790919600000 whenElapsed 192975 com.android.providers.calendar};ELAPSED_WAKEUP #12: Alarm{4553ac1 type 2 origWhen 21600000 whenElapsed 21600000 com.android.providers.calendar};
+PASS  (d) the boot finished before the reminder's time (the alert is still ahead)  = yes
+PASS  (d) after boot the provider re-armed it (dumpsys alarm: a pending alarm under com.android.providers.calendar)  != 0
+PASS  (d) no notification for it before its time                  = 0
+the shell's calendar notifications: title=[Standup three] text=[Thu 1 Oct, 11:50 PM – 12:50 AM] vis=PRIVATE channel=calendar_reminders; (2 s after its time)
+PASS  (d) it notifies at its time: one notification of the shell's titled "Standup three"  = 1
+PASS  (d) … within 40 s of the alert's time                     != none
+PASS  (d) … notified once                                       = 1
+--- (e) due before the shell's first start (Q-16-4)
+PASS  (e) the AOSP Calendar is disabled                           = 0
+PASS  (e) the earlier legs' events are deleted and calendar_alerts holds no row (so the line's n can be exactly 1)  = No result found.
+PASS  (e) event A with a 10-minute reminder                       != 
+PASS  (e) Android's Settings is in front                          contains [com.android.settings]
+RECORD  (e) the shell's pid 3 s after pm clear (empty = pm clear left no process)  [2464]
+      pm clear did not leave the shell stopped (pid 2464, store: {"version":1,"allowed":[],"mappings":[],"hidden":[],"notifiedAlerts":[],"remindersSince":1790919620301}); uninstalling it instead (clauses-open.tsv)
+PASS  (e) the shell is uninstalled (pm clear alone lets the system restart it)  contains [Success]
+PASS  (e) precondition — no process of the shell runs right before the jump  = 
+PASS  (e) … and its store is gone (no calendar_sync.json)       = 
+A's calendar_alerts row once it came due: Row: 0 event_id=751, state=0, alarmTime=1790920800000
+PASS  (e) A's alert came due while no shell ran: its calendar_alerts row is present, state 0 or 1  = yes
+PASS  (e) … and still no process of the shell after the jump (A came due with no shell running)  = 
+PASS  (e) provision.sh rc                                         = 0
+PASS  (e) the device still holds the build under test             contains [yes]
+RECORD  (e) the shell's own line at its first start (csince the row's MARK)  
+RECORD  (e) remindersSince in calendar_sync.json after the first start (A's alarm time is 1790920800000)  [1790920884397]
+PASS  (e) the shell's first start is AFTER A's alert came due: remindersSince is later than A's alarm time  = yes
+PASS  (e) event B with a 10-minute reminder                       != 
+RECORD  (e) the shell's calendar notifications before B's poke      
+the shell's calendar notifications: title=[Event B] text=[Fri 2 Oct, 12:31 AM – 1:31 AM] vis=PRIVATE channel=calendar_reminders; (B after 6 s)
+PASS  (e) B's notification shows                                  != none
+PASS  (e) … within 10 s                                         6.00 vs 5.00 +/- 5.0
+PASS  (e) exactly ONE notification of the shell's                 = 1
+PASS  (e) … titled B                                            = 1
+PASS  (e) … none titled A                                       = 0
+PASS  (e) A's alert row's state is unchanged from its read before the poke  = event_id=751, state=0;
+PASS  (e) the slice holds [calendar] reminder: 1 skipped (due before the shell's first start)  contains [[calendar] reminder: 1 skipped (due before the shell's first start)]
+PASS  (e) … and one notified line                               = 1
+PASS  (e) … B's                                                 = 1
+PASS  (e) … and no notified line for A at any time since the shell's first start  = 0
+--- restore (r3 V10)
+PASS  restore: pm enable com.android.calendar                     = 1
+PASS  restore: the events are deleted                             = 0
+PASS  restore: … and their reminders                            = No result found.
+PASS  device clock back within 2 s of the host (RV12)             1790919696.00 vs 1790919696.00 +/- 2.0
+PASS  restore: dumpsys notification --noredact holds none on the calendar channel  = 
+PASS  restore: no alarm of the shell's own is left by the row     = 0
+PASS  restore: no new crash of the shell during the row           = 0
+PASS  restore: layout_restore of the baseline (leg (e) cleared the shell)  = 0
+------------------------------------------------------------------------------
+E6: 73 passed, 0 failed, 8 recorded

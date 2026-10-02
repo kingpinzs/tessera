@@ -1,0 +1,46 @@
+==============================================================================
+ROW DEV-E14 — Link and Unlink (E14)
+at            2026-10-01T12:47:00-06:00
+driver        e14.sh blob a1e8f2feb021d674d975b8ffa305459f9d5a231a
+harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
+apk built     eefb6fb4c29462ec 339427186 bytes
+apk installed 56c626cba75ebe22
+apk match     yes (56c626cba75ebe22)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+device already holds this build
+PASS  the device holds this build                                 contains [yes]
+Row: 0 _id=62, contact_id=62
+Row: 1 _id=63, contact_id=63
+PASS  two raw contacts named Sam Reed                             = 2
+PASS  two different contacts before the link                      = 2
+raw 62 -> contact 62 (0r62-4F2B434D333331); raw 63 -> contact 63 (0r63-4F2B434D333331)
+PASS  the first Sam Reed's card                                   = yes
+PASS  the linked-profiles page                                    = yes
+PASS  it lists the contact's one raw contact                      = yes
+PASS  a contact with one raw contact offers no Unlink             = 0
+PASS  the picker: select a contact to link                        = yes
+PASS  the picker does not offer the contact itself                = no
+Row: 0 type=1, raw_contact_id1=62, raw_contact_id2=63
+PASS  aggregation_exceptions: type 1 (KEEP_TOGETHER) for the pair  contains [type=1, raw_contact_id1=62, raw_contact_id2=63]
+PASS  the link line                                               contains [[people] link 62+63: ok]
+Row: 0 _id=62, contact_id=62
+Row: 1 _id=63, contact_id=62
+PASS  one contact behind both raw contacts                        = 1
+PASS  back on the linked-profiles page with both                  = yes
+PASS  the joined card carries the number                          = yes
+PASS  and the e-mail                                              = yes
+PASS  the list shows one Sam Reed                                 = 1
+Row: 0 type=2, raw_contact_id1=62, raw_contact_id2=63
+PASS  aggregation_exceptions: type 2 (KEEP_SEPARATE) for the pair  contains [type=2, raw_contact_id1=62, raw_contact_id2=63]
+PASS  the unlink line                                             contains [[people] unlink 63+62: ok]
+Row: 0 _id=62, contact_id=64
+Row: 1 _id=63, contact_id=62
+PASS  two contacts again                                          = 2
+FAIL  the list shows two Sam Reed rows again                      expected [2] got [1]
+after the restore: No result found.
+PASS  aggregation_exceptions lists neither id (first)             does not contain [raw_contact_id1=62, raw_contact_id2=63]
+PASS  raw_contacts count equals the count before the row          = 2
+------------------------------------------------------------------------------
+DEV-E14: 21 passed, 1 failed, 0 recorded

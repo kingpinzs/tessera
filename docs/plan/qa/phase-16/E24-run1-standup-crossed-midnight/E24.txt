@@ -1,0 +1,185 @@
+==============================================================================
+ROW E24 — Sync rule 3: the tapped push, the copy hidden everywhere, one reminder, re-Sync, a series, the deletes
+at            2026-10-01T21:38:56-06:00
+driver        e24.sh blob 519c80f0c213499603fb9499c0d8f70ae7ea4e2c
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  precondition: Tessera exists                                != 
+--- fixtures
+PASS  fixtures: Personal exists                                   != 
+PASS  fixtures: Work exists, created after Personal               != 
+PASS  fixtures: "Offsite" in Work five days ahead                 != 
+PASS  fixtures: no other event in the next two days (the provider's instances)  = 0
+PASS  fixtures: a local event "Standup" starting 2 hours from the device's now, 1 hour long  != 
+PASS  fixtures: … with a 10-minute reminder                     contains [minutes=10]
+      tessera=1 personal=2 work=3 offsite=699 standup=700 start=1790919540000
+PASS  fixtures: the first Sync opens "Can sync to" (nothing allowed yet)  = yes
+PASS  fixtures: Personal ticked on "Can sync to"                  = true
+PASS  fixtures: … Work left unticked                            = false
+PASS  fixtures: Back lands on the Sync picker, Personal its only target  = cal_sync_target:2
+the feed before the Sync: [calendar] refresh (provider change): access=true faces=2 agenda=1
+PASS  before the Sync: the last [calendar] refresh line reads faces=2 agenda=1  = faces=2 agenda=1
+PASS  before the Sync: … with access=true                       contains [access=true]
+      shell_bytes before the Sync (rx tx): 37832 9313
+PASS  cal_lists: calendar 2 (Personal) still lists                contains [_id=2,]
+PASS  before the Sync: Personal holds nothing                     = 
+--- S: Sync "Standup"
+PASS  cal_lists: calendar 2 (Personal) still lists                contains [_id=2,]
+PASS  S: Personal holds ONE event, titled Standup (the copy exists)  = Standup
+PASS  S: … its dtstart / dtend equal the local event's          = dtstart=1790919540000, dtend=1790923140000
+PASS  cal_lists: calendar 3 (Work, S: after the Sync) still lists  contains [_id=3,]
+PASS  S: after the Sync: Work holds exactly Offsite               = Offsite
+PASS  S: the local event's page is showing                        = yes
+PASS  S: cal_synced_marker:<id> reads "synced to Personal"        = synced to Personal
+PASS  S: … with cal_account:qa.personal@example.com on the page  = yes
+      marker and account bounds: yes [39, 586, 411, 640] [435, 590, 898, 637]
+PASS  S: … beside it (to the marker's right, on its line; r3 D5)  = yes
+calendar_sync.json: {"version":1,"allowed":[{"id":2,"accountName":"qa.personal@example.com","accountType":"com.google","name":"Personal"}],"mappings":[{"id":2,"accountName":"qa.personal@example.com","accountType":"com.google","name":"Personal","local":700,"copy":701}],"hidden":[],"notifiedAlerts":[],"remindersSince":1790911641613}
+PASS  S: calendar_sync.json maps the local id to Personal's _ID and the copy's id (its one mapping)  = local=700 copy=701 calendar=2 qa.personal@example.com/com.google
+PASS  S: diagnostics — sync event=<id> -> calendar <personal id>: ok  contains [[calendar] sync event=700 -> calendar 2: ok]
+      shell_bytes after the Sync (rx tx): 37832 9313
+PASS  S: shell_bytes reads the same rx and tx as before the Sync  = 37832 9313
+PASS  S: the copy has its own reminder row (asserted from reminders)  contains [event_id=701, minutes=10]
+--- H: the copy is hidden everywhere in the shell (Q-16-2; r3 D2)
+PASS  H: Agenda is showing                                        = true
+FAIL  H: the Agenda dump holds exactly ONE cal_event_title: node reading "Standup", the local id's  expected [1 700] got [2 700 700]
+PASS  H: … and no cal_event:<copy id> node                      = no
+PASS  H: Day is showing                                           = true
+PASS  H: the Day view the same — one Standup, the local id's    = 1 700
+PASS  H: … and no cal_event:<copy id> node                      = no
+PASS  H: Week is showing                                          = true
+FAIL  H: the Week view the same — one Standup, the local id's   expected [1 700] got [2 700 700]
+PASS  H: … and no cal_event:<copy id> node                      = no
+the feed after the Sync: [calendar] refresh (minute): access=true faces=2 agenda=1
+PASS  H: a [calendar] refresh line follows the Sync               contains [[calendar] refresh (]
+PASS  H: … it still reads faces=2 agenda=1 (the tile and the feed's agenda gained nothing)  = faces=2 agenda=1
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  H: the pod bay is showing, its Agenda pod on screen         = yes yes
+PASS  H: pod_row:agenda:0 reads Standup                           contains [Standup]
+PASS  H: … and there is no pod_row:agenda:1                     = no
+Tess: [You have Standup.]
+PASS  H: Tess's typed "what is on my calendar" names Standup once (occurrences in reply_since)  = 1
+PASS  cal_lists: calendar 3 (Work, H: after the reads) still lists  contains [_id=3,]
+PASS  H: after the reads: Work holds exactly Offsite              = Offsite
+--- N: one event, one reminder (jump_clock forwards to 5 s before start − 10 min)
+PASS  N: no calendar notification of the shell's before the time  = 
+      the shell's first calendar notification showed after 5 s
+the shell's calendar notifications: title=[Standup] text=[Thu 1 Oct, 11:39 PM – 12:39 AM] vis=PRIVATE channel=calendar_reminders;
+PASS  N: the notification showed within 10 s                      5.00 vs 5.00 +/- 5.0
+PASS  N: dumpsys notification holds exactly ONE notification of the shell's  = 1
+PASS  N: … titled Standup                                       contains [title=[Standup]]
+PASS  N: the slice holds reminder event=<local id> minutes=10: notified — once  = 1
+PASS  N: … and reminder event=<copy id> minutes=10: skipped (synced copy)  contains [[calendar] reminder event=701 minutes=10: skipped (synced copy)]
+PASS  N: the copy's alert did fire (it has an alert row of its own)  contains [event_id=701, state=]
+RECORD  N: the two alert rows                                       event_id=700, state=1;event_id=701, state=0;
+RECORD  N: the AOSP Calendar's own notifications at this point (another app reads the provider unfiltered)  
+PASS  cal_lists: calendar 3 (Work, N: after the reminder) still lists  contains [_id=3,]
+PASS  N: after the reminder: Work holds exactly Offsite           = Offsite
+--- U: a later Sync updates the copy
+PASS  U: the local event is renamed "Standup 2"                   = title=Standup 2
+sync: sync event=700 -> calendar 2: updated
+PASS  U: Sync → updated                                         contains [sync event=700 -> calendar 2: updated]
+PASS  cal_lists: calendar 2 (Personal) still lists                contains [_id=2,]
+PASS  U: … the copy reads Standup 2, still one row              = Standup 2
+PASS  U: … the same copy row                                    = 701
+PASS  cal_lists: calendar 3 (Work, U: after the renamed Sync) still lists  contains [_id=3,]
+PASS  U: after the renamed Sync: Work holds exactly Offsite       = Offsite
+PASS  cal_lists: calendar 2 (Personal) still lists                contains [_id=2,]
+PASS  U: the copy deleted on the other side (sync-adapter delete on Personal)  = 
+sync: sync event=700 -> calendar 2: recreated
+PASS  U: Sync → recreated                                       contains [sync event=700 -> calendar 2: recreated]
+PASS  cal_lists: calendar 2 (Personal) still lists                contains [_id=2,]
+PASS  U: … one copy again                                       = Standup 2
+RECORD  U: the recreated notice's wording (H20)                     The copy in Personal was gone, so Sync made it again.
+PASS  U: … and the notice says so (cal_notice names the copy made again)  = yes
+PASS  cal_lists: calendar 3 (Work, U: after the recreated Sync) still lists  contains [_id=3,]
+PASS  U: after the recreated Sync: Work holds exactly Offsite     = Offsite
+PASS  U: the copy's title changed on the other side (sync-adapter update)  = Edited elsewhere
+sync: sync event=700 -> calendar 2: updated
+PASS  U: Sync → the line reads updated (r3 V13)                 contains [sync event=700 -> calendar 2: updated]
+PASS  cal_lists: calendar 2 (Personal) still lists                contains [_id=2,]
+PASS  U: … the copy's title is the local title again            = Standup 2
+PASS  cal_lists: calendar 3 (Work, U: after the other side's edit was overwritten) still lists  contains [_id=3,]
+PASS  U: after the other side's edit was overwritten: Work holds exactly Offsite  = Offsite
+PASS  U: the copy's dirty flag is 0 before a Sync with nothing changed  contains [dirty=0]
+sync: sync event=700 -> calendar 2: ok
+PASS  U: a Sync with nothing changed on either side → ok        contains [sync event=700 -> calendar 2: ok]
+PASS  U: … no write: the copy's row is as it was, dirty still 0  = title=Standup 2, dtstart=1790919540000, dtend=1790923140000, dirty=0, calendar_id=2
+PASS  U: … and no [calendar] write line in the Sync's slice     does not contain [[calendar] write ]
+PASS  cal_lists: calendar 3 (Work, U: after the unchanged Sync) still lists  contains [_id=3,]
+PASS  U: after the unchanged Sync: Work holds exactly Offsite     = Offsite
+--- W: a weekly local series (COUNT=5), its third occurrence retitled, a 10-minute reminder
+PASS  W: the local series expands to five instances               = 5
+PASS  W: the third occurrence is retitled (a local exception row)  != 
+Personal's rows for the series: Row: 0 _id=705, title=E24 weekly, rrule=FREQ=WEEKLY;COUNT=5, duration=PT1H, original_id=NULL, originalInstanceTime=NULL
+Row: 1 _id=706, title=E24 weeklyX, rrule=NULL, duration=NULL, original_id=705, originalInstanceTime=1792162800000
+PASS  W: Personal holds a master with the rrule                   != 
+PASS  W: … the rrule as the local one (FREQ=WEEKLY;COUNT=5)     contains [rrule=FREQ=WEEKLY;COUNT=5]
+PASS  W: … and the duration (not NULL)                          = yes
+PASS  W: … one exception                                        = 1
+PASS  W: … whose original_id is the copy's master               contains [original_id=705,]
+PASS  W: … and a reminders row of 10 minutes on the copy        contains [event_id=705, minutes=10]
+RECORD  W: the provider's instances of the COPY in Personal over the series' weeks — count (the local series has 5)  1
+RECORD  W: … their event ids and titles                                 1 event_id=706, title=E24 weeklyX;
+      cagenda_walk: 8 (date, event) rows after 8 swipe(s)
+the Agenda's rows titled E24 weekly…: 2026-10-02=E24 weekly(703) 2026-10-09=E24 weekly(703) 2026-10-16=E24 weeklyX(704) 2026-10-23=E24 weekly(703) 2026-10-30=E24 weekly(703) 
+PASS  W: the views show each occurrence once (five days, one row each, in the Agenda)  = 5
+PASS  W: … the copy's master and its exception are both hidden (no row with their ids)  = 0
+PASS  W: … the third occurrence's Day view holds one event row, the local exception's  = cal_event:704
+PASS  cal_lists: calendar 3 (Work, W: after the series' Sync) still lists  contains [_id=3,]
+PASS  W: after the series' Sync: Work holds exactly Offsite       = Offsite
+--- D: deleting a synced local event
+PASS  D: the delete shows cal_delete_choice:here                  = yes
+PASS  D: … and cal_delete_choice:both                           = yes
+PASS  D: … "here" is the default: the first of the two choices  = yes
+RECORD  D: the two choices' wording                                 Delete here / Delete here and from Personal
+PASS  D: "here" → the local event is gone                       = 0
+PASS  cal_lists: calendar 2 (Personal) still lists                contains [_id=2,]
+PASS  D: … the copy is kept                                     contains [|Standup 2|]
+PASS  D: … its mapping is gone from calendar_sync.json          does not contain ["local":700,]
+PASS  D: … the copy now SHOWS in the views as Personal's event (cal_event:<copy id> present)  = yes
+PASS  D: … its cal_event_page: is open                          = yes
+PASS  D: … and has no cal_event_action:* (the original no longer exists)  = 0
+PASS  cal_lists: calendar 3 (Work, D: after delete here) still lists  contains [_id=3,]
+PASS  D: after delete here: Work holds exactly Offsite            = Offsite
+PASS  D: a second synced event (its copy is in Personal)          != 
+PASS  D: "both" → the local event is gone                       = 0
+PASS  D: … and the copy is gone                                 = 0
+PASS  D: … and its mapping                                      does not contain ["local":707,]
+PASS  cal_lists: calendar 3 (Work, D: after delete both) still lists  contains [_id=3,]
+PASS  D: after delete both: Work holds exactly Offsite            = Offsite
+PASS  D: a third synced event (its copy is in Personal)           != 
+PASS  D: Personal then un-ticked in "Can sync to"                 = false
+PASS  D: the delete prompt is up (cal_delete)                     = yes
+PASS  D: … it offers cal_delete_choice:here                     = yes
+PASS  D: … and NO cal_delete_choice:both (T16-12)               = no
+PASS  D: … nothing was deleted by looking                       = 1 1
+PASS  D: Personal re-ticked                                       = true
+PASS  cal_lists: calendar 3 (Work, D: after the un-ticked delete prompt) still lists  contains [_id=3,]
+PASS  D: after the un-ticked delete prompt: Work holds exactly Offsite  = Offsite
+--- G: Personal removed from the phone
+PASS  G: Personal is removed (sync-adapter delete of the calendar)  = 
+sync: sync event=709 -> calendar 2: failed calendar gone
+PASS  G: Sync on a synced event → cal_notice "That calendar is no longer on this phone"  = That calendar is no longer on this phone
+PASS  G: the marker stays (cal_synced_marker:<id>)                = yes
+PASS  G: … and keeps a warning glyph (cal_synced_warning)       = yes
+PASS  G: the line — failed calendar gone                        contains [failed calendar gone]
+PASS  cal_lists: calendar 3 (Work, G: at the end) still lists     contains [_id=3,]
+PASS  G: at the end: Work holds exactly Offsite                   = Offsite
+--- restore (as E22, clock_restore, then pm clear → provision.sh → ensure_start)
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  restore: the test events are deleted                        = 0
+PASS  restore: Tessera's event count equals the count before the row  = 0
+PASS  device clock back within 2 s of the host (RV12)             1790912826.00 vs 1790912826.00 +/- 2.0
+PASS  restore: pm clear → provision.sh rc                       = 0
+PASS  restore: calendar_sync.json holds no mapping and nothing allowed after the clear  does not contain [accountName]
+PASS  restore: no calendar notification of the shell's is left    = 
+PASS  restore: layout_restore of the baseline (the row cleared the shell)  = 0
+------------------------------------------------------------------------------
+E24: 135 passed, 2 failed, 6 recorded

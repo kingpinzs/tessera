@@ -1,0 +1,102 @@
+==============================================================================
+ROW E9 — Tess on this AVD: J6 twice, the typed add / read / delete, the gated commands, text / call / reminder by name
+at            2026-10-01T23:56:32-06:00
+driver        e9.sh blob 09ad9f0ee36ac9532d16001dfe9ca31fa675f550
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+--- children: J6 on this build, and again with a Birthdays calendar present
+PASS  J6: j6.sh rc                                                = 0
+PASS  J6: the run is on the build under test                      contains [apk match     yes]
+PASS  J6: 0 failed                                                contains [ passed, 0 failed]
+PASS  J6: nothing in the account calendar marked primary (QA Work)  contains [PASS  nothing was written to the account calendar marked primary (QA Work)]
+PASS  J6: nothing in the other account calendar (QA Personal)     contains [PASS  nothing was written to the other account calendar (QA Personal)]
+PASS  J6: Tess's event lands in Tessera (its lookup keyed on account_name=Tessera)  contains [PASS  the event is in the shell's local calendar]
+FAIL  J6b: j6.sh rc                                               expected [0] got [1]
+PASS  J6b: the run is on the build under test                     contains [apk match     yes]
+FAIL  J6b: 0 failed                                               does not contain [ passed, 0 failed]: ------------------------------------------------------------------------------
+J6: 6 passed, 1 failed, 0 recorded
+PASS  J6b: nothing in the account calendar marked primary (QA Work)  contains [PASS  nothing was written to the account calendar marked primary (QA Work)]
+PASS  J6b: nothing in the other account calendar (QA Personal)    contains [PASS  nothing was written to the other account calendar (QA Personal)]
+FAIL  J6b: Tess's event lands in Tessera (its lookup keyed on account_name=Tessera)  does not contain [PASS  the event is in the shell's local calendar]: ==============================================================================
+ROW J6 — Tess's calendar events go to the shell's local calendar, never an account calendar
+at            2026-10-01T23:55:52-06:00
+driver        j6.sh blob 50ef
+PASS  J6b: the Birthdays calendar was present before the child ran (the fixture's log)  contains [account_name=Tessera Birthdays,]
+PASS  precondition: Tessera exists                                != 
+--- B: with a Birthdays calendar present, Tess's add still lands in Tessera
+PASS  B: the row's own fixture contact has a birthday and Tessera Birthdays lists  != 
+PASS  B: Tess shows the confirm card                              = yes
+FAIL  B: the event is in Tessera                                  expected [calendar_id=1] got [calendar_id=1;calendar_id=1;calendar_id=1]
+PASS  B: … never in Birthdays (its events are as before)        = 1
+PASS  B: … Birthdays holds no standup                           does not contain [standup]
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  B: then Tessera is the only calendar (no fixture calendar)  = 1
+--- A: the typed "add a calendar event called dentist tomorrow at 2 pm"
+RECORD  the device's time at this leg (the dentist is in Tess's 24-hour read after 14:00 only)  2026-10-01 23:57 MDT
+PASS  A: the confirmation card (phase 03 E7's form: cortana_card:calendar_confirm)  = yes
+PASS  A: … with its confirm button                              = yes
+PASS  A: … and nothing is added before the tap                  = 0
+RECORD  A: the card's texts                                         Add this to your calendar? | Event | a calendar event called dentist | 2:00 PM | Tomorrow | you can say Yes, No, or Cancel | Add | Cancel
+events: No result found.
+FAIL  A: after the tap on cortana_card_button:confirm, events lists "dentist" — one row  expected [1] got [0]
+FAIL  A: … with Tessera's id (read from the account_name=Tessera query)  does not contain [calendar_id=1,]: No result found.
+FAIL  A: … tomorrow at 2 pm                                     does not contain [dtstart=1790971200000]: No result found.
+PASS  A: the reply (reply_since the MARK) "Added to your calendar."  = Added to your calendar.
+--- W: the typed "what is on my calendar"
+Tess: [You have E9 checkup and a calendar event called dentist.]
+PASS  W: it names the events inserted for the test — the driver's "E9 checkup"  contains [E9 checkup]
+PASS  W: … and "dentist"                                        contains [dentist]
+--- V: the Calendar app's Day view lists the same event
+PASS  V: the Day view is showing                                  = true
+FAIL  V: it lists the same event (cal_event_title:<dentist id>)   expected [dentist] got []
+--- D: Tess's delete, the allowed case (r3 D1)
+PASS  D: the Delete card (cortana_card:delete_confirm)            = yes
+FAIL  D: … nothing is deleted before the tap                    expected [1] got [0]
+FAIL  D: cortana_card_button:confirm → the reply "Deleted."     expected [Deleted.] got []
+PASS  D: the events row is gone                                   = 0
+FAIL  D: [calendar] write delete event=<id>: ok — naming a Tessera event (the dentist's id)  does not contain [[calendar] write delete event=: ok]:     2026-10-01 23:58:37.558 wall=1790920717558 [tile_anim] tile=slot:CALENDAR kind=FLIP uptime=1310329 faceIndex=2 next=3 faces=3
+    2026-10-01 23:58:37.798 wall=1790920717798 [cortana] touch 0 at 486,2124 handled=true childCount=1 compose
+--- G: phase 03 E10's gated calendar commands, typed, over the keyguard
+PASS  G: a PIN is set and the lock screen enabled                 = yes false
+PASS  G: Tess is open over the keyguard                           = yes
+PASS  G: … the keyguard is showing                              contains [isKeyguardShowing=true]
+PASS  G: locked, "what is on my calendar" shows the Unlock card (cortana_card:unlock)  = yes
+PASS  G: … reading "Unlock to continue"                         contains [Unlock to continue]
+      matcher: [match] "what is on my calendar" -> WhatsOnMyCalendar
+PASS  G: locked, "add a meeting called standup to my calendar at ten AM" shows the Unlock card (cortana_card:unlock)  = yes
+PASS  G: … reading "Unlock to continue"                         contains [Unlock to continue]
+      matcher: [match] "add a meeting called standup to my calendar at ten AM" -> AddCalendarEvent(title=standup, beginMs=1790956800000)
+PASS  G: nothing was added to the calendar                        = 2
+PASS  G: … the keyguard never came down                         contains [isKeyguardShowing=true]
+PASS  G: restored — the PIN cleared and the lock screen disabled again  = no true
+PASS  G: … the device awake                                     = Awake
+--- N: phase 03 E7 (text / call by name) and E14 (person reminder), typed, on provision.sh's Mom
+PASS  N: the fixture contact Mom (5551234567) exists              contains [display_name=Mom]
+PASS  N: "text Mom running late" → the read-back card (cortana_card:text_readback)  = yes
+      the read-back: Send it, add more, or try again? | Message | To |  | Mom | mobile | running late | you can say Send it, Add more, or Try again | Send | Cancel / Okay, I'll text Mom: running late. Send it, add more, or try again?
+PASS  N: … the contact resolved by name: Mom                    contains [Mom]
+PASS  N: "call Mom" → the call card (cortana_card:call_confirm)  = yes
+      the call card: Call Mom | Call | To |  | Mom | mobile | you can say Call, or Cancel | Call | Cancel / Okay, I'll call Mom, mobile. Call, or try again?
+PASS  N: … the contact resolved by name: Mom                    contains [Mom]
+PASS  N: nothing was sent and nothing dialled (both cancelled)    = 0 2
+PASS  N: the person reminder card (cortana_card:reminder_confirm)  = yes
+PASS  N: … with a contact chip (cortana_card_contact)           = yes
+PASS  N: … for Mom                                              contains [Mom]
+PASS  N: the saved card's subline                                 contains [Next time I talk to]
+PASS  N: one reminder stored                                      = 1
+PASS  N: a text received from Mom's number fires the person reminder (the shell's notifications grew)  != 0
+FAIL  N: … and it leaves the active list                        expected [0] got [1]
+--- restore (r3 V10)
+PASS  restore: the row's events are deleted                       = 0
+PASS  restore: the birthday row is removed                        = 0
+PASS  cal_fixtures_down: no QA, account or Birthdays calendar is left  = 
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+FAIL  restore: Tessera's event count equals the count before the row  expected [2] got [1]
+PASS  restore: no new crash of the shell during the row           = 0
+------------------------------------------------------------------------------
+E9: 54 passed, 13 failed, 2 recorded

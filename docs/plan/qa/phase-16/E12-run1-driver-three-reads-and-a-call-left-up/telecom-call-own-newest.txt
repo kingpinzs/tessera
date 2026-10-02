@@ -1,0 +1,15 @@
+    CallTC@1 [Oct 1, 2026 11:51:10 PM](MO - outgoing)(User=UserHandle{0})
+    	>>>Target PhoneAccount: ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0} (T-Mobile)
+    	>>>Conn mgr: ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}
+    	To address: tel:**********01 Presentation: Allowed
+      23:51:10.613 - CREATED (app.tileshell;requestedAcct:none, selfMgd:false):TSI.pC(at)@ARk
+      23:51:10.615 - SET_CONNECTING (ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}):TSI.pC->CM.fOCP->CM.sOCPA->CM.dSMCP->CM.mROC->CM.dSPA->CM.pASP(at)@ARk
+      23:51:10.655 - AUDIO_ROUTE (Entering audio route: AudioRoute[Type=TYPE_SPEAKER, Address=invalid] (active=true)):TSI.pC->CM.fOCP->CM.sOCPA->CM.dSMCP->CM.mROC->CM.dSPA->CM.pASP->CAMSM.pM_2001->CARC.pM_SWITCH_FOCUS->CARC.pM_EXIT_PENDING_ROUTE(at)@ARk
+      23:51:10.657 - START_CONNECTION (tel:**********01 via:com.android.phone):SBC.oSC(cap)@AR8
+      23:51:10.838 - CAPABILITY_CHANGE (Current: [[ sup_hld mut !v2a]], Removed [[]], Added [[ sup_hld mut !v2a]]):(...->CS.crCo->H.CS.crCo->H.CS.crCo.pICR)->CSW.hCCC(cap/cast)@E-E-AR8
+      23:51:10.839 - SET_DIALING (dialing set explicitly):(...->CS.crCo->H.CS.crCo->H.CS.crCo.pICR)->CSW.hCCC(cap/cast)@E-E-AR8
+      23:51:10.861 - SET_DISCONNECTED (disconnected set explicitly> DisconnectCause [ Code: (REMOTE) Label: () Description: () Reason: (NORMAL) Tone: (27)  TelephonyCause: 2/-1 ImsReasonInfo: null]):CSW.sDc(cap)@ATU
+      23:51:10.886 - LOG_CALL (number=**********01,postDial=,pres=1):CSW.sDc(cap)@ATU
+      23:51:10.894 - CONF_CALLS_CHANGED ():CSW.sCC(cap)@ATg
+      23:51:10.895 - CONF_CALLS_CHANGED ():CSW.sCC(cap)@ATo
+      23:51:10.899 - DESTROYED:CSW.rC->CM.pR(cap)@ATw

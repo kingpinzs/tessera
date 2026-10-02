@@ -1,0 +1,45 @@
+── E2 Calendar and People in the app list, their windows, the exported surface, the baseline
+--- phase 02's regress.sh on this build (seeded with phase 02's baseline + this phase's two markers)
+PASS  regress.sh exits 0                                          = 0
+PASS  regress.sh: 0 failed                                        contains [ passed, 0 failed]
+PASS  regress.sh: its slice covers a restore (assignSlotOnce lines in it)  != 0
+PASS  regress.sh: zero assignSlotOnce -> assigned after its restores (C-3)  = 0
+--- the baseline (C-3)
+/home/jeremyking/projects/metro-launcher-p16/docs/plan/qa/phase-16/baseline_layout.json: 1 file pushed, 0 skipped. 56.5 MB/s (2054 bytes in 0.000s)
+PASS  layout_restore of qa/phase-16/baseline_layout.json          = 0
+PASS  the slice holds at least one assignSlotOnce line            != 0
+PASS  ZERO assignSlotOnce … -> assigned lines after the restore  does not contain [-> assigned]
+PASS  slot:calendar:v1 reports already run                        contains [already run]
+PASS  slot:people:v1 reports already run                          contains [already run]
+PASS  slot:music:v1 reports already run                           contains [already run]
+PASS  the restored addedOnce equals the file's                    = ['folder:games:v1', 'folder:office:v1', 'phase03:cortana', 'slot:calendar:v1', 'slot:music:v1', 'slot:people:v1']
+PASS  … with slot:calendar:v1                                   contains [slot:calendar:v1]
+PASS  … and slot:people:v1                                      contains [slot:people:v1]
+--- the app list
+PASS  Calendar sits under C                                       = C
+PASS  People sits under P                                         = P
+PASS  no New caption on any in-APK row (X14)                      = 0
+PASS  Calendar row found by applist_name                          = Calendar
+PASS  Calendar hold menu offers Pin to Start                      = yes
+PASS  Calendar hold menu does NOT offer Uninstall                 = no
+PASS  People row found by applist_name                            = People
+PASS  People hold menu offers Pin to Start                        = yes
+PASS  People hold menu does NOT offer Uninstall                   = no
+PASS  the jump grid's C cell is available (a tap jumps)           contains [jump to C]
+PASS  after the jump, Calendar's row is on screen                 = yes
+PASS  the jump grid's P cell is available (a tap jumps)           contains [jump to P]
+PASS  after the jump, People's row is on screen                   = yes
+--- the two windows
+PASS  Calendar's window dump carries resource-id cal_view         = yes
+PASS  People's window dump carries resource-id people_letter:A    = yes
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+--- the exported surface against qa/phase-03/exported-allowlist.txt
+PASS  exported.py: the APK's exported components equal the allow-list (rc)  = 0
+PASS  the allow-list carries the ADD app.tileshell.calendar.CalendarActivity  = 1
+PASS  the allow-list carries the ADD app.tileshell.people.PeopleActivity  = 1
+PASS  the allow-list carries the ADD app.tileshell.calendar.CalendarReminderReceiver  = 1
+PASS  the device holds the APK that was checked                   contains [yes]
+FAIL  dumpsys package: the reminder receiver is registered for EVENT_REMINDER  does not contain [app.tileshell/.calendar.CalendarReminderReceiver]: 
+/home/jeremyking/projects/metro-launcher-p16/docs/plan/qa/phase-16/baseline_layout.json: 1 file pushed, 0 skipped. 34.9 MB/s (2054 bytes in 0.000s)
+PASS  restore: layout_restore of the baseline                     = 0
+   E2: 35 passed, 1 failed, 0 recorded

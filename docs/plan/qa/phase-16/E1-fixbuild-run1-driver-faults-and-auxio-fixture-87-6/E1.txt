@@ -1,0 +1,138 @@
+==============================================================================
+ROW E1 — slot takeover and the guard: wiped, upgrade, point back, guard, Agenda pod, Music negative
+at            2026-10-01T21:20:32-06:00
+driver        e1.sh blob 7107b9bb2367485b934a3988882ee3b7d7c1bdf7
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  this build                                                  3c1ad1e0e65bd919 341947382 bytes (8285d416)
+RECORD  the pre-16 build for the upgrade leg                        aaf9a1d8ed536d25 341942604 bytes — phase-14's c0d094ad app tree (T16-7)
+PASS  the pre-16 APK is the kept one (md5 aaf9a1d8ed536d25)       = aaf9a1d8ed536d25
+      the image's Contacts: com.android.contacts/.activities.PeopleActivity; the AOSP Calendar: com.android.calendar/.AllInOneActivity
+--- children: phase 01 E4 / E4b, phase 14 E3, phase 15 E0 (phase 10 E10–E13's tile rule) on this build
+PASS  children-seed: layout_restore of the baseline               = 0
+PASS  children-seed2: layout_restore of the baseline              = 0
+PASS  children-seed3: layout_restore of the baseline              = 0
+PASS  phase 01 e4_part1.sh rc                                     = 0
+FAIL  phase 01 e4_part2.sh rc                                     expected [0] got [1]
+PASS  E4: APP_MAPS has one handler                                = 1
+PASS  E4: the Maps tile is auto-assigned (no Tap to choose)       contains [tile:slot:MAPS]
+PASS  E4: the Mail tile is unassigned                             contains [Tap to choose]
+FAIL  E4: the Store tile is unassigned                            does not contain [Tap to choose]: tile:slot:STORE | desc=Store | texts=
+PASS  E4: APP_CALENDAR has two handlers on this build             = 2
+PASS  E4: APP_CONTACTS has two handlers on this build             = 2
+FAIL  E4: with no explicit slot the Calendar tile is unassigned (two handlers, no seed in an emptied layout)  does not contain [Tap to choose]: tile:slot:CALENDAR | desc=Calendar | texts=Thursday / 1 / Calendar
+FAIL  E4: … and the People tile                                 does not contain [Tap to choose]: tile:slot:PEOPLE | desc=People | texts=People
+PASS  E4b: the Mail picker lists K-9 by component                 contains [com.fsck.k9/]
+PASS  E4b: choosing K-9 assigned the slot                         contains [com.fsck.k9]
+      E04.txt: 76 lines; kept at /home/jeremyking/projects/metro-launcher-p16/docs/plan/qa/phase-16/E1/phase-01-E04/
+PASS  phase 14 e3.sh (precondition re-cut) rc                     = 0
+PASS  phase 14 E3: 0 failed                                       contains [ passed, 0 failed]
+PASS  phase 14 E3 asserted the re-cut precondition                contains [PASS  precondition: the baseline's slots.CALENDAR is the shell's Calendar]
+FAIL  phase 15 e0.sh (phase 10 E10–E13's tile rule) rc          expected [0] got [1]
+FAIL  phase 15 E0: 0 failed                                       does not contain [ passed, 0 failed]: PASS  restore: alarm and timer stores empty                       = empty
+------------------------------------------------------------------------------
+E0: 50 passed, 3 failed, 0 recorded
+--- W: wiped state (pm clear → provision.sh → ensure_start)
+PASS  W: provision.sh rc                                          = 0
+PASS  W: Start, no wizard                                         = yes
+PASS  W: the CALENDAR slot tile reads Calendar                    = Calendar
+PASS  W: the PEOPLE slot tile reads People                        = People
+PASS  W: the CALENDAR tile is assigned (no Tap to choose)         does not contain [Tap to choose]
+PASS  W: the PEOPLE tile is assigned (no Tap to choose)           does not contain [Tap to choose]
+PASS  W: addedOnce holds slot:calendar:v1                         contains [slot:calendar:v1]
+PASS  W: addedOnce holds slot:people:v1                           contains [slot:people:v1]
+PASS  W: slots.CALENDAR is the shell's Calendar                   = app.tileshell/app.tileshell.calendar.CalendarActivity
+PASS  W: slots.PEOPLE is the shell's People                       = app.tileshell/app.tileshell.people.PeopleActivity
+      APP_CALENDAR handlers: com.android.calendar/.AllInOneActivity app.tileshell/.calendar.CalendarActivity
+PASS  W: APP_CALENDAR lists two handlers (so neither auto-assigns)  = 2
+PASS  W: … one of them the shell                                contains [app.tileshell/]
+      APP_CONTACTS handlers: com.android.contacts/.activities.PeopleActivity app.tileshell/.people.PeopleActivity
+PASS  W: APP_CONTACTS lists two handlers (so neither auto-assigns)  = 2
+PASS  W: … one of them the shell                                contains [app.tileshell/]
+PASS  W: the CALENDAR tile's tap resumes the shell's Calendar     = app.tileshell/.calendar.CalendarActivity
+PASS  W: the PEOPLE tile's tap resumes the shell's People         = app.tileshell/.people.PeopleActivity
+      scroll_to_node tile_app_slot:CALENDAR: 0 swipe(s), found=yes
+PASS  W: the CALENDAR picker holds exactly the shell's Calendar and the AOSP Calendar (r3 D3)  = app.tileshell/.calendar.CalendarActivity com.android.calendar/.AllInOneActivity
+      scroll_to_node tile_app_slot:PEOPLE: 0 swipe(s), found=yes
+PASS  W: the PEOPLE picker holds exactly the shell's People and the image's Contacts (r3 D3)  = app.tileshell/.people.PeopleActivity com.android.contacts/.activities.PeopleActivity
+      scroll_to_node tile_app_slot:CALENDAR: 0 swipe(s), found=yes
+PASS  W: the tap re-points CALENDAR at the AOSP Calendar          = com.android.calendar/com.android.calendar.AllInOneActivity
+PASS  W: … and it sticks across am force-stop                   = com.android.calendar/com.android.calendar.AllInOneActivity
+PASS  W: the device is awake after the reboot (C-25)              = Awake
+PASS  W: … and across adb reboot                                = com.android.calendar/com.android.calendar.AllInOneActivity
+PASS  W: … the tile's tap resumes the AOSP Calendar             = com.android.calendar/.AllInOneActivity
+--- U: upgrade (uninstall; provision the pre-16 build; a hand pick; adb install -r this build)
+PASS  U: provision.sh with the pre-16 APK rc                      = 0
+PASS  U: the device holds the pre-16 build                        = aaf9a1d8ed536d25
+PASS  U: the old build shows Start and no wizard (the leg starts where a user's phone would)  = yes
+      scroll_to_node tile_app_slot:PEOPLE: 0 swipe(s), found=yes
+      the old build's PEOPLE picker: com.android.contacts
+PASS  U: the hand pick is explicit before the update: slots.PEOPLE is the image's Contacts  = com.android.contacts/com.android.contacts.activities.PeopleActivity
+PASS  U: … and there is no slots.CALENDAR                       = 
+      adb install -r: Success
+PASS  U: adb install -r of this build succeeds (the same debug key)  = 0
+PASS  U: no INSTALL_FAILED_UPDATE_INCOMPATIBLE                    does not contain [INSTALL_FAILED]
+PASS  U: the device now holds this build                          contains [yes]
+the seed's lines after the update:
+    2026-10-01 21:24:10.789 wall=1790911450789 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-10-01 21:24:10.790 wall=1790911450790 [layout] assignSlotOnce slot:calendar:v1 CALENDAR -> app.tileshell/.calendar.CalendarActivity -> assigned
+    2026-10-01 21:24:10.791 wall=1790911450791 [layout] assignSlotOnce slot:people:v1 PEOPLE -> app.tileshell/.people.PeopleActivity -> assigned, replaced user's com.android.contacts/.activities.PeopleActivity
+PASS  U: PEOPLE taken over once, the line naming what it replaced (Q-16-1)  contains [assignSlotOnce slot:people:v1 PEOPLE -> app.tileshell/.people.PeopleActivity -> assigned, replaced user's com.android.contacts/.activities.PeopleActivity]
+PASS  U: CALENDAR, never touched by hand, is assigned             contains [assignSlotOnce slot:calendar:v1 CALENDAR -> app.tileshell/.calendar.CalendarActivity -> assigned]
+PASS  U: … with no 'replaced'                                   does not contain [replaced]
+PASS  U: slots.PEOPLE is the shell's People                       = app.tileshell/app.tileshell.people.PeopleActivity
+PASS  U: slots.CALENDAR is the shell's Calendar                   = app.tileshell/app.tileshell.calendar.CalendarActivity
+PASS  U: both markers recorded (calendar)                         contains [slot:calendar:v1]
+PASS  U: both markers recorded (people)                           contains [slot:people:v1]
+PASS  U: the PEOPLE tile reads People                             = People
+PASS  U: … and its tap resumes the shell's People               = app.tileshell/.people.PeopleActivity
+--- U: pointing it back sticks
+      scroll_to_node tile_app_slot:PEOPLE: 0 swipe(s), found=yes
+PASS  U: pointed back: slots.PEOPLE is the image's Contacts       = com.android.contacts/com.android.contacts.activities.PeopleActivity
+PASS  U: after a restart slots.PEOPLE is still the image's Contacts  = com.android.contacts/com.android.contacts.activities.PeopleActivity
+RECORD  U: the PEOPLE tile's label (the slot's own, whichever app holds it)  People
+PASS  U: the marker has run: slot:people:v1 … -> already run    contains [assignSlotOnce slot:people:v1 PEOPLE -> app.tileshell/.people.PeopleActivity -> already run]
+PASS  U: no assignSlotOnce … -> assigned line after the restart  does not contain [-> assigned]
+PASS  U: the PEOPLE tile now stands for the image's Contacts: its tap resumes it  = com.android.contacts/.activities.PeopleActivity
+--- G: the guard on the one other marker (slot:music:v1 over a hand pick)
+PASS  G: slots.MUSIC is still Auxio's                             = org.oxycblt.auxio/org.oxycblt.auxio.MainActivity
+PASS  G: addedOnce holds slot:music:v1 again                      contains [slot:music:v1]
+PASS  G: the guard's line                                         contains [assignSlotOnce slot:music:v1 MUSIC -> kept user's org.oxycblt.auxio/.MainActivity]
+--- A: phase 14's Agenda pod opens the shell's Calendar (r3 D8)
+PASS  A: layout_restore of the baseline                           = 0
+PASS  A: the pod bay is showing                                   = yes
+      scroll_to_node pod:agenda: 0 swipe(s), found=yes
+PASS  A: with no event in its window the pod reads phase 14's empty line  = Nothing on your calendar today
+PASS  A: the header's tap resumes the component the baseline FILE's slots.CALENDAR names  = app.tileshell/.calendar.CalendarActivity
+PASS  A: the pod's line                                           contains [[podbay] launch agenda -> app.tileshell/.calendar.CalendarActivity]
+--- M: the shell's Music playing puts nothing on the Calendar and People tiles (phase 15 task 0's routing)
+      media volume before: 0; Music fixtures present before: 6
+PASS  M: tile slot:MUSIC is on Start                              != 
+PASS  M: tile slot:CALENDAR is on Start                           != 
+PASS  M: tile slot:PEOPLE is on Start                             != 
+      before: CALENDAR [texts=Calendar] PEOPLE [texts=People]
+PASS  M: the shell's Music session is playing                     = PLAYING
+PASS  M: only the MUSIC tile carries the now-playing transport    = controls=yes
+PASS  M: the MUSIC tile shows the playing track                   contains [Bloom]
+PASS  M: slot:CALENDAR carries no transport                       = controls=no
+PASS  M: slot:CALENDAR shows no now-playing text                  does not contain [Bloom]
+PASS  M: slot:CALENDAR has not grown (ActiveTiles: its size unchanged)  = w=699 h=343
+PASS  M: slot:PEOPLE carries no transport                         = controls=no
+PASS  M: slot:PEOPLE shows no now-playing text                    does not contain [Bloom]
+PASS  M: slot:PEOPLE has not grown (ActiveTiles: its size unchanged)  = w=343 h=343
+PASS  M: the CALENDAR tile still shows its day face (today's number, 1)  contains [1]
+PASS  M: the PEOPLE tile still shows its People face              = yes
+      playing: CALENDAR [texts=Calendar|Thursday|1] PEOPLE [texts=People]
+--- restore: pm clear → provision.sh → ensure_start → the baseline (undoes the three legs' re-pointed slots)
+PASS  restore: provision.sh rc                                    = 0
+PASS  restore: layout_restore of the baseline                     = 0
+PASS  restore: slots.PEOPLE is the shell's People                 = app.tileshell/app.tileshell.people.PeopleActivity
+PASS  restore: slots.CALENDAR is the shell's Calendar             = app.tileshell/app.tileshell.calendar.CalendarActivity
+PASS  restore: WRITE_CONTACTS held                                = true
+------------------------------------------------------------------------------
+E1: 87 passed, 6 failed, 3 recorded
