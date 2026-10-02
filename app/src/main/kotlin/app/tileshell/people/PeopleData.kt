@@ -35,13 +35,17 @@ object PeopleData {
     fun canWrite(context: Context): Boolean =
         context.checkSelfPermission(Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED
 
-    /** Calls [onChange] on the main thread whenever the Contacts provider changes; returns what to unregister. */
-    fun observe(context: Context, onChange: () -> Unit): ContentObserver {
+    /**
+     * Calls [onChange] on the main thread whenever the Contacts provider changes; returns what to unregister, or null
+     * when the provider refused the observer (neither Contacts permission is held — it throws then; said, not thrown on).
+     */
+    fun observe(context: Context, onChange: () -> Unit): ContentObserver? {
         val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) = onChange()
         }
-        context.contentResolver.registerContentObserver(ContactsContract.AUTHORITY_URI, true, observer)
-        return observer
+        return runCatching { context.contentResolver.registerContentObserver(ContactsContract.AUTHORITY_URI, true, observer); observer }
+            .onFailure { Diagnostics.add("people", "observer not registered: ${it.javaClass.simpleName}") }
+            .getOrNull()
     }
 
     private val ROW_PROJECTION = arrayOf(

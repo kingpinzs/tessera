@@ -261,9 +261,13 @@ fun PeopleApp(nav: PeopleNav, host: PeopleHost) {
     val policy = remember(allowed, repo.local) { EditPolicy(repo.local, allowed) }
 
     // The pages follow the provider (a ContentObserver, no timer) and the grants (re-read when the app comes back).
-    DisposableEffect(context) {
-        val observer = PeopleData.observe(context) { repo.refresh("provider change") }
-        onDispose { context.contentResolver.unregisterContentObserver(observer) }
+    // The provider refuses an observer to an app that holds NEITHER Contacts permission — a SecurityException that took
+    // People down each time it was opened in that state (QA defect D-E13-1). The observer is registered once one of
+    // the two is held, and again when a grant changes that.
+    val mayObserve = repo.canRead || repo.canWrite
+    DisposableEffect(context, mayObserve) {
+        val observer = if (mayObserve) PeopleData.observe(context) { repo.refresh("provider change") } else null
+        onDispose { observer?.let { context.contentResolver.unregisterContentObserver(it) } }
     }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle) {
