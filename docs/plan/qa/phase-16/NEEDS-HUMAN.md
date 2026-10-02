@@ -1,9 +1,20 @@
 # Phase 16 (Calendar and People) — Jeremy's sign-off checklist
 
-**DRAFT — not yet yours to sign.** This list is written from the FINAL doc while the phase is still building. It becomes
-live when the emulator gate has passed on one final build; this header is then replaced by the build's id and the
-gate's result. The phase goes `done` when every row below is signed off (reply with the ids that pass, and what you saw
-for any that do not). Phone rows need a build on the S25 Ultra: CI builds one when the `phase-16` branch is pushed.
+**Ready for you.** The emulator gate has passed: both gate reviewers (Opus + Opus, two rounds) say GATE: PASS on the
+build `app-debug.apk` md5 585b457ffc29878c (branch `phase-16`, commit e226bc68; 1,285 unit tests, 0 failures). One
+thing is still yours before the phase can go `done`: **Q-16-6**, row E7's frame-smoothness limit (below). After that the
+phase goes `done` when every row below is signed off — reply with the ids that pass, and what you saw for any that do
+not. Phone rows need a build on the S25 Ultra: CI builds one when the `phase-16` branch is pushed, which needs your
+word and your `touch ~/.claude/push-approved`.
+
+**Q-16-6 (answer A, B, C or D).** E7 asks for at most 5 % late frames while paging months and weeks with 5,000
+events. On the emulator that limit fails even with an EMPTY calendar (11.6 % late), because about two frames per
+swipe are late at finger-lift with almost no work in them. With 5,000 events it reads 15.0 %, and no single frame is
+over 100 ms (the worst were a 267 ms and a 345 ms frame, both fixed). A — judge it against the empty-calendar run: at
+most 5 points above it and no frame over 100 ms (it passes today; my lean, and both reviewers call the comparison
+sound). B — keep 5 %, counting only frames late through the app's own work, after a rework of week paging (1–2 more
+hours, uncertain on this emulator). C — leave it failed on the emulator and judge smoothness yourself on the phone
+(H17). D — other.
 
 Everything in the phone rows is done on the phone alone — nothing over a cable, adb or a PC. Where a row needs a value,
 it is read on a page of the shell (Start settings > Diagnostics) and pasted back.

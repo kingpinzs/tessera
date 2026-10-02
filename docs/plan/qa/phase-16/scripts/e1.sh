@@ -135,6 +135,7 @@ if [ "${E1_CHILDREN:-1}" = "1" ]; then
   # the tile's content-desc is the slot's label and the Tile apps row says "not chosen yet".
   assert_eq "E4: APP_MAPS has one handler" "1" "$(grep -m1 '^APP_MAPS:' "$E04" | tr ' ' '\n' | grep -c '/')"
   assert_contains "E4: the Maps tile is auto-assigned (no Tap to choose)" "tile:slot:MAPS" "$(grep 'tile:slot:MAPS' "$E04" | grep -v 'Tap to choose' | head -1)"
+  assert_contains "E4: … and its Tile apps row names Android's default (the one handler)" "Android's default" "$(grep -m1 'tile_app_slot:MAPS' "$E04")"
   assert_contains "E4: the Mail tile is unassigned" "Tap to choose" "$(grep -m1 'tile:slot:MAIL' "$E04")"
   assert_contains "E4: … and its Tile apps row says so" "not chosen yet" "$(grep -m1 'tile_app_slot:MAIL' "$E04")"
   assert_contains "E4: the Store tile is unassigned (its desc is the slot's label)" "desc=Store" "$(grep -m1 'tile:slot:STORE' "$E04")"

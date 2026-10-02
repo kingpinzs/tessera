@@ -253,6 +253,9 @@ assert_eq "P: … twelve different weeks, each seven days on from the last" "12"
 assert_eq "P: every view week line has ms ≤ 3000" "12" "$P_OK_MS"
 assert_eq "P: … and wall= − that swipe's MARK ≤ 3000" "12" "$P_OK_WALL"
 log "the legs (name, total frames, janky, slow UI thread, slow draw, 50th, 90th, 99th, the longest frame in ms, its stages):"; sed 's/^/   /' "$ROW_DIR/P-legs.tsv" | tee -a "$LOG" >/dev/null
+# A leg whose frame stats could not be read prints 0 frames and a 0.0 ms longest frame, which every bound would pass
+# (gate review B, round 2, note 3): each leg must have been read.
+assert_eq "P: every leg's frame stats were read (the legs with 0 frames)" "" "$(awk -F'\t' '$2 + 0 == 0 {printf "%s ", $1}' "$ROW_DIR/P-legs.tsv")"
 LONGEST="$(sort -t$'\t' -k9,9 -g -r "$ROW_DIR/P-legs.tsv" | head -1 | awk -F'\t' '{print $9 " ms in " $1}')"
 OVER100="$(awk -F'\t' '$9 + 0 >= 100 {printf "%s%s (%s ms)", s, $1, $9; s = ", "}' "$ROW_DIR/P-legs.tsv")"
 record "the longest frame of every leg: the longest of all; the legs with a frame of 100 ms or more" "$LONGEST; [${OVER100}]"
@@ -279,6 +282,7 @@ elif [ "${E7_MEASURE:-doc}" = compare ]; then
   assert_eq "P: compare — every leg's longest frame is under 100 ms: this run's legs (P1–P5)" "" "$OVER100"
   assert_eq "P: compare — … and the Day view's legs (D1 the open on the 200-event day, D2 its scroll)" "" "$D_OVER100"
   assert_ne "P: compare — … the Day view's legs were read (their count)" "0" "$(grep -c . "$DF_DIR/D-legs.tsv" 2>/dev/null || echo 0)"
+  assert_eq "P: compare — … each with frames (the Day-view legs with 0 frames)" "" "$(awk -F'\t' '$2 + 0 == 0 {printf "%s ", $1}' "$DF_DIR/D-legs.tsv" 2>/dev/null)"
   assert_eq "P: compare — the run's janky share (${3:-}%) is no more than the baseline's ($(echo "$BASE_GFX" | awk '{print $3}')%) + 5 points" "yes" "$(python3 -c "
 import sys
 try: print('yes' if float(sys.argv[1]) <= float(sys.argv[2]) + 5.0 else 'no (%s%% against %s%% + 5)' % (sys.argv[1], sys.argv[2]))
