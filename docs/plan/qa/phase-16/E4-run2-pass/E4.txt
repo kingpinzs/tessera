@@ -1,0 +1,81 @@
+==============================================================================
+ROW E4 — events both ways: the editor, the observer with no restart, app and driver deletes, the pinned app tile
+at            2026-10-01T16:09:31-06:00
+driver        e4.sh blob 1b473ffb6c8f6ecbca9fd47c4ec554fceeb866e8
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     d008aec0c1318519 340591758 bytes
+apk installed 686506a7a7936b2e
+apk match     yes (686506a7a7936b2e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+RECORD  the device's time at the row's start (the spec's tomorrow-09:00 event is in the feed's 24 h after 09:00 only)  2026-10-01 16:09 MDT
+PASS  precondition: Tessera exists once Calendar has opened       != 
+      Tessera id 2 holds 0 event(s) before the row; zone America/Boise; today 2026-10-01, tomorrow 2026-10-02
+--- A: an event created in the editor (Standup, tomorrow 09:00–10:00, Room 2)
+PASS  A: the editor opened (cal_editor)                           = yes
+      spin cal_time_spinner:ampm -> [AM] after 1 swipe(s)
+      spin cal_time_spinner:hour -> [9] after 2 swipe(s)
+      spin cal_time_spinner:minute -> [00] after 0 swipe(s)
+      the editor before Save: title [Standup] location [Room 2] start [Fri 2 Oct 2026 9:00 AM] end [Fri 2 Oct 2026 10:00 AM]
+PASS  A: the driver's own step — nothing is in the provider before Save  = 0
+provider: Row: 0 title=Standup, dtstart=1790953200000, dtend=1790956800000, calendar_id=2, eventTimezone=America/Boise, eventLocation=Room 2
+PASS  A: the events query lists it — exactly one row titled Standup  = 1
+PASS  A: … dtstart is tomorrow 09:00                            contains [dtstart=1790953200000,]
+PASS  A: … dtend is tomorrow 10:00                              contains [dtend=1790956800000,]
+PASS  A: … in the local calendar (calendar_id = Tessera's)      contains [calendar_id=2,]
+PASS  A: … with the device zone                                 contains [eventTimezone=America/Boise,]
+PASS  A: … and its location                                     contains [eventLocation=Room 2]
+the CALENDAR tile's texts over 14 dumps:       6 Calendar;      4 Calendar|Standup|9:00 AM|Room 2;      4 Calendar|Thursday|1;
+PASS  A: phase 01's Calendar tile shows the event's face within its next flip (dumps holding Standup, of 14)  != 0
+PASS  A: … from CalendarFeed's observer: a refresh (provider change) line after the Save  contains [[calendar] refresh (provider change): access=true faces=]
+PASS  A: … the feed holds the day face and Standup's (faces=2)  = 2
+PASS  A: … with no restart of the shell (same pid as before the Save)  = 26470
+--- B: a driver content insert of Dentist today 14:00 → the Day view, no restart
+PASS  B: the Day view is showing (cal_view_mode:day selected)     = true
+      the last view day line before the MARK: [calendar] view day 2026-10-01..2026-10-01: 0 instances in 22 ms
+PASS  B: a view day line exists before the MARK (its n is the base)  != 
+PASS  B: the driver's insert landed (Dentist, today 14:00)        != 
+PASS  B: the day view lists cal_event_title: "Dentist"            = Dentist
+PASS  B: … with no restart (same pid)                           = 27776
+observer: 328 2026-10-01 16:11:43.766 wall=1790892703766 [calendar] view day 2026-10-01..2026-10-01: 1 instances in 34 ms
+PASS  B: a view day line with n one more than before the MARK (0 → 1) follows the insert  != none
+PASS  B: … its wall − MARK ≤ 2000 ms (T16-17)               328.00 vs 1000.00 +/- 1000.0
+--- C: delete from the app → the provider row is gone
+PASS  C: Dentist's page is open (cal_event_page:<id>)             = yes
+PASS  C: the provider row is gone (no events row with its _id, deleted or not)  = 0
+PASS  C: … through the write layer                              contains [[calendar] write delete event=309: ok]
+--- D: a driver content delete of Standup → its node is gone, the view line follows
+PASS  D: precondition — tomorrow's Day view shows Standup's cal_event node  = yes
+      the last view day line before the MARK: [calendar] view day 2026-10-02..2026-10-02: 1 instances in 27 ms
+PASS  D: Standup's cal_event node is gone                         = no
+observer: 290 2026-10-01 16:12:09.749 wall=1790892729749 [calendar] view day 2026-10-02..2026-10-02: 0 instances in 23 ms
+PASS  D: the next view line with n one fewer (1 → 0)            != none
+PASS  D: … its wall − MARK ≤ 2000 ms                        290.00 vs 1000.00 +/- 1000.0
+PASS  D: … with no restart (same pid)                           = 27776
+--- E: Calendar pinned from the app list — the pinned tile's face is the slot tile's (r3 D12)
+PASS  E: a Dentist inside the feed's 24 hours (2 h from the device's now; clauses-open.tsv)  != 
+      scroll_to_node applist_name:app.tileshell/.calendar.CalendarActivity: 0 swipe(s), found=yes
+PASS  E: the app list's row reads Calendar                        = Calendar
+PASS  E: its hold menu offers Pin to Start                        = yes
+PASS  E: the layout holds the pinned Calendar app tile (its size, as pinned)  != 
+      sizes: the slot tile WIDE, the pinned tile MEDIUM
+PASS  E: the pinned tile is on Start (tile:app:app.tileshell/app.tileshell.calendar.CalendarActivity:0)  = yes
+RECORD  E: at the pinned size (MEDIUM) — the slot tile's faces (WIDE)  Calendar;Calendar|Dentist|6:12 PM;Calendar|Thursday|1
+RECORD  E: at the pinned size (MEDIUM) — the pinned tile's faces  Calendar;Calendar|Thursday|1
+PASS  E: the pinned tile is live: it shows CalendarFeed's day face (the day name and number)  contains [Calendar|Thursday|1]
+PASS  E: the pinned tile set to the slot tile's size (WIDE) — layout_restore  = 0
+the slot tile's faces:   Calendar;Calendar|Dentist|6:12 PM;Calendar|Thursday|1
+the pinned tile's faces: Calendar;Calendar|Dentist|6:12 PM;Calendar|Thursday|1
+PASS  E: with "Dentist" inside the feed's 24 hours, the CALENDAR slot tile shows Dentist's face  contains [Dentist]
+PASS  E: the pinned tile's dump holds Dentist's face              contains [Dentist]
+PASS  E: the pinned tile's dump holds the same face text as the CALENDAR slot tile (every face seen in 16 dumps)  = Calendar;Calendar|Dentist|6:12 PM;Calendar|Thursday|1
+PASS  E: … both published by CalendarFeed: under the slot key   contains [[engine] publish feed:calendar faces=2]
+PASS  E: … and under the component key                          contains [[engine] publish cmp:app.tileshell/app.tileshell.calendar.CalendarActivity faces=2]
+--- restore
+PASS  restore: the test events are deleted                        = 0
+PASS  restore: Tessera holds what it held before the row          = 0
+PASS  restore: layout_restore of the baseline (removes the pin)   = 0
+PASS  restore: … the pinned tile is gone from the layout        does not contain ["app:app.tileshell/app.tileshell.calendar.CalendarActivity:0"]
+------------------------------------------------------------------------------
+E4: 44 passed, 0 failed, 3 recorded

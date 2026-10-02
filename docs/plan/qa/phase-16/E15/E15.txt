@@ -1,0 +1,97 @@
+==============================================================================
+ROW E15 — Share (the provider's vCard stream), SIM import, filter contact list
+at            2026-10-01T17:38:54-06:00
+driver        e15.sh blob a026eb7c63ee3f21978bafbb4adcea71e044add5
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     d008aec0c1318519 340591758 bytes
+apk installed 686506a7a7936b2e
+apk match     yes (686506a7a7936b2e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (686506a7a7936b2e)
+RECORD  the APK clause (size delta ≤ 2 MB, no new entry ≥ 1 MB)  NOT asserted here: it is the lead's clause (QA brief; Change Log 2026-10-01 puts the measured delta to the owner)
+      icc/adn before the row: No result found.;
+      people_filter.json before the row: [{"hideWithoutPhones":false,"hiddenAccounts":[],"hiddenGroups":[]}]
+--- fixtures
+      people_fixtures_up: raw ids ann=231 bob=232 zoe=233 zhang=234 number-only=235 cara=236,237 (raw contacts before: 2)
+      Ann: raw 231, contact 239, lookup 0r231-2B4545413333
+--- Share on Ann
+PASS  Ann's card (people_card:<lookup>)                           = yes
+PASS  the card's … menu offers Share (people_card_share)        = yes
+resumed after Share: com.android.intentresolver/.ChooserActivityLauncher
+PASS  dumpsys activity activities: Android's resolver (its chooser) is resumed  contains [com.android.intentresolver/]
+its intent: Intent { act=android.intent.action.CHOOSER flg=0x800001 xflg=0x4 cmp=com.android.intentresolver/.ChooserActivityLauncher clip={text/uri-list {U(content)}} (has extras) }
+PASS  … started with ACTION_CHOOSER (the resolver for an ACTION_SEND)  contains [act=android.intent.action.CHOOSER]
+PASS  … and what it offers to send is Ann's vCard ("Ann Lee.vcf")  contains [Ann Lee.vcf]
+RECORD  the apps that receive ACTION_SEND text/x-vcard on this image  com.android.bluetooth/.opp.BluetoothOppLauncherActivity com.android.messaging/.ui.conversationlist.ShareIntentActivity eu.faircode.email/.ActivityCompose org.fossify.contacts/.activities.MainActivity org.fossify.messages/.activities.NewConversationActivity org.fossify.notes/.activities.MainActivity 
+[people] share 0r231-2B4545413333: content://com.android.contacts/contacts/as_vcard/0r231-2B4545413333
+PASS  the slice holds [people] share <Ann's lookup>: <uri>        = share 0r231-2B4545413333: content://com.android.contacts/contacts/as_vcard/0r231-2B4545413333
+PASS  … the Contacts provider's own vCard stream URI (as_vcard/<lookup>)  = content://com.android.contacts/contacts/as_vcard/0r231-2B4545413333
+      URI grants naming a vCard:  UriPermission{848b639 content://com.android.contacts/contacts/as_vcard/0r231-2B4545413333 [user 0]} targetUserId=0 sourcePkg=com.android.providers.contacts targetPkg=com.android.intentresolver mode=0x1 owned=0x1 global=0x0 persistable=0x0 persisted=0x0 
+PASS  one URI grant names a vCard URI                             = 1
+PASS  … and it is that one URI                                  contains [as_vcard/0r231-2B4545413333]
+PASS  … read only (mode 0x1), sourced by the Contacts provider  contains [sourcePkg=com.android.providers.contacts]
+PASS  … mode 0x1                                                contains [mode=0x1]
+PASS  no file of the shell's holds a vCard (files/, cache/)       = 0
+--- the stream of the logged URI
+RECORD  adb shell content read --uri <the logged uri> (the doc's command)  Error while accessing provider:com.android.contacts java.io.FileNotFoundException: No files supported by provider at content://com.android.contacts/contacts/as_vcard/0r231-2B4545413333 
+      content read is refused on this image (clauses-open.tsv, E15): the stream is read back through content query and an import
+content query on the logged URI: Row: 0 _size=NULL, _display_name=Ann Lee.vcf, _id=239
+PASS  content query on the logged URI: the provider answers with her vCard file  contains [_display_name=Ann Lee.vcf]
+content gettype on the logged URI: Result: text/x-vcard
+PASS  content gettype on the logged URI: what is shared is text/x-vcard  contains [text/x-vcard]
+RECORD  the image's Contacts import activity (VIEW text/x-vcard)    com.android.contacts/.vcard.ImportVCardActivity
+RECORD  after the VIEW: top activity                                app.tileshell/.people.PeopleActivity
+RECORD  what the import shows                                       text="" text="" text="" text="5:39 PM" text="ANN LEE" text="Profile" text="A" text="Phone" text="Send message" text="Call Mobile" text="+1 555 000 0001" text="Call Mobile" text="+1-555-000-0001" text="Text Mobile" text="+1-555-000-0001" text="Email Personal" text="ann@example.com" text="Ema
+PASS  the image's Contacts app imported a contact from the stream  != 
+Row: 0 mimetype=vnd.android.cursor.item/name, data1=Ann Lee
+Row: 1 mimetype=vnd.android.cursor.item/phone_v2, data1=+1-555-000-0001
+Row: 2 mimetype=vnd.android.cursor.item/email_v2, data1=ann@example.com
+PASS  the stream carried her name (FN:Ann Lee)                    contains [mimetype=vnd.android.cursor.item/name, data1=Ann Lee]
+PASS  the stream carried her TEL (the digits of +1 555 000 0001)  = 15550000001
+PASS  … and her e-mail                                          contains [data1=ann@example.com]
+--- SIM: the insert, the branch, Import from SIM
+icc/adn: Row: 0 name=Sim Bob, number=5550002, emails=NULL, anrs=NULL, _id=0;
+RECORD  the emulated SIM's phonebook took the insert (decides the branch)  accepted — insert said: 
+PASS  People's Import from SIM page is on show (people_page:sim)  contains [selected="true"]
+      people_sim_row nodes: people_sim_row:0 
+PASS  accepted: the page lists a people_sim_row: reading "Sim Bob"  contains [Sim Bob]
+PASS  accepted: one row per SIM entry the host's query lists      = 1
+[people] sim import: 1 of 1
+PASS  accepted: diagnostics [people] sim import: n of n for the SIM's 1 entry  = sim import: 1 of 1
+PASS  accepted: … which is 1 of 1                               = sim import: 1 of 1
+Row: 0 _id=239, contact_id=247, account_name=NULL, account_type=NULL, display_name=Sim Bob, deleted=0
+PASS  accepted: one raw contact was imported                      = 1
+PASS  accepted: … phone-only (NULL account; Q-16-3)             contains [account_name=NULL, account_type=NULL]
+PASS  accepted: … with the SIM's number                         contains [data1=5550002]
+PASS  accepted: a contact row exists for it                       = 1
+RECORD  the SIM entry's delete (content delete on icc/adn)          no output (deleted)
+--- E21 producer: Import from SIM with nothing on the SIM
+PASS  with the SIM emptied the page lists no people_sim_row:      = 0
+[people] sim import: 0 of 0
+PASS  E21: [people] sim import: 0 of 0                            = sim import: 0 of 0
+--- filter contact list: an account group, unticked, hides its contact
+PASS  the raw contact is in account x / com.example               contains [account_name=x, account_type=com.example]
+PASS  before the filter: the list holds one row per contact in the provider  = 10
+PASS  before the filter: Xena's row is in the list                = 1
+PASS  the "filter contact list" page is on show                   contains [selected="true"]
+PASS  it shows an account group for com.example / x (people_filter_account:com.example:x)  = yes
+PASS  … ticked (its contacts are shown)                         contains [checked="true"]
+PASS  unticked                                                    contains [checked="false"]
+PASS  the row count drops by one                                  = 9
+PASS  … and it is that contact that is hidden                   = 0
+PASS  the filter is the shell's own state: her raw contact is as it was in the provider  contains [account_name=x, account_type=com.example]
+      list line while filtered: [people] list: 9 contacts read=true write=true
+PASS  re-ticked                                                   contains [checked="true"]
+PASS  re-ticked: the row count is back                            = 10
+--- restore
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  restore: no Ann Lee, Sim Bob or Xena Example raw contact is left  = 0
+PASS  restore: the raw_contacts rows equal the rows before the row  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0
+Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0
+PASS  restore: icc/adn equals its read before the row             = No result found.
+PASS  restore: people_filter.json hides what it hid before the row  = [] False
+      people_filter.json after the row: [{"hideWithoutPhones":false,"hiddenAccounts":[],"hiddenGroups":[]}]
+------------------------------------------------------------------------------
+E15: 47 passed, 0 failed, 8 recorded

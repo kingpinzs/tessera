@@ -1,0 +1,36 @@
+# alternative	row or EDGE sub-step that produces it	regex (grep -E) for that row's ring-launcher.txt
+[people] list: n contacts read=true …	E10	\[people\] list: [0-9]+ contacts read=true write=(true|false)
+[people] list: n contacts read=false …	EDGE P06 (also E18, the Calendar writer's row)	\[people\] list: [0-9]+ contacts read=false write=(true|false)
+[people] list: … write=true	E10	\[people\] list: [0-9]+ contacts read=(true|false) write=true
+[people] list: … write=false	E13	\[people\] list: [0-9]+ contacts read=(true|false) write=false
+[people] search "<q>": n (+0 enterprise)	E10	\[people\] search \"[^\"]*\": [0-9]+ \(\+0 enterprise\)
+[people] search "<q>": n (+m enterprise), m ≥ 1	E16	\[people\] search \"Wren\": 0 \(\+1 enterprise\)
+[people] write insert raw=<id>: ok	E13	\[people\] write insert raw=[0-9]+: ok
+[people] write update raw=<id>: ok	E13	\[people\] write update raw=[0-9]+: ok
+[people] write delete raw=<id>: ok	E13	\[people\] write delete raw=[0-9]+: ok
+[people] write <op> raw=<id>: failed <err> (WRITE_CONTACTS not held)	E13	\[people\] write update raw=[0-9]+: failed WRITE_CONTACTS not held
+[people] write update raw=<id>: failed <err> (the raw contact deleted while its editor is open)	EDGE P03	\[people\] write update raw=[0-9]+: failed 
+[people] write <op> raw=<id>: refused (not allowed)	E28 (leg X, fix-round F15)	\[people\] write update raw=[0-9]+: refused \(not allowed\)
+[people] edit <lookup>: refused (account not allowed)	E28	\[people\] edit [^ ]+: refused \(account not allowed\)
+[people] link <a>+<b>: ok	E14	\[people\] link [0-9]+\+[0-9]+: ok
+[people] link <a>+<b>: failed	EDGE P03	\[people\] link [0-9a-z]+\+[0-9a-z]+: failed
+[people] unlink <a>+<b>: ok (the build's added line)	E14	\[people\] unlink [0-9]+\+[0-9]+: ok
+[people] sim import: n of m (n ≥ 1)	E15	\[people\] sim import: [1-9][0-9]* of [1-9][0-9]*
+[people] sim import: 0 of 0	E15	\[people\] sim import: 0 of 0
+[people] tile: n photos (n ≥ 1)	E11	\[people\] tile: [1-9][0-9]* photos
+[people] tile: 0 photos	E11	\[people\] tile: 0 photos
+[people] tile event <n> t0=<uptime> lookup=<key>	E11	\[people\] tile event [0-9]+ t0=[0-9]+ lookup=[^ ]+
+[people] group create <id>: ok	E27	\[people\] group create [0-9]+: ok
+[people] group create …: failed <err>	E27	\[people\] group create [^:]+: failed 
+[people] group rename <id>: ok	E27	\[people\] group rename [0-9]+: ok
+[people] group rename <id>: failed <err>	E27	\[people\] group rename [0-9]+: failed 
+[people] group delete <id>: ok	E27	\[people\] group delete [0-9]+: ok
+[people] group delete <id>: failed <err>	E27	\[people\] group delete [0-9]+: failed 
+[people] share <lookup>: <uri>	E15	\[people\] share [^ ]+: content://com\.android\.contacts/contacts/as_vcard/
+[people] action call -> <component> <uri>	E12	\[people\] action call -> [^ ]+ tel:
+[people] action text -> <component> <uri>	E27 (and E12)	\[people\] action text -> [^ ]+ smsto:
+[people] action mail -> <component> <uri>	E12	\[people\] action mail -> [^ ]+ mailto:
+[people] action map -> <component> <uri>	E12	\[people\] action map -> [^ ]+ geo:
+[motion] people_bubble_out	E11	\[motion\] people_bubble_out t0=[0-9]+ peak=[0-9]+ overshoot=[0-9]+ settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
+[motion] people_bubble_in	E11	\[motion\] people_bubble_in t0=[0-9]+ peak=[0-9]+ overshoot=[0-9]+ settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
+[motion] people_pivot	E20	\[motion\] people_pivot t0=[0-9]+ peak=[0-9]+ overshoot=[0-9]+ settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+

@@ -1,0 +1,621 @@
+==============================================================================
+ROW E20 — People geometry on the drawn pixels, the bars on every page, the pivot's motion
+at            2026-10-01T17:49:10-06:00
+driver        e20.sh blob 45d62cf815d92add7fcf3dbbe9a1d12732e73259
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     d008aec0c1318519 340591758 bytes
+apk installed 686506a7a7936b2e
+apk match     yes (686506a7a7936b2e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (686506a7a7936b2e)
+      accent 0,120,215; BarMetrics STATUS_EPX,NAV_EPX = 28,48 (read from bars/SystemBars.kt)
+PASS  BarMetrics.STATUS_EPX and NAV_EPX were read from the code   != ,
+      people_fixtures_up: raw ids ann=248 bob=249 zoe=250 zhang=251 number-only=252 cara=253,254 (raw contacts before: 2)
+--- the list: per E10, P1.6, the pivot header, the search box
+PASS  list: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  list: the drawn nav bar is in the dump (w10m_nav_bar)       [0, 2196, 1080, 2340]
+PASS  list: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  list: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  list: the status bar starts at the screen's top             [36, 0, 1044, 84]
+PASS  list: the nav bar ends at the screen's bottom               [0, 2196, 1080, 2340], screen 2340
+PASS  list: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  list: pixels: … and at its right edge                     (0,0,0) vs (0,0,0) ± 2
+PASS  list: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  list: pixels: … and at its bottom-right corner            (0,0,0) vs (0,0,0) ± 2
+PASS  list: pixels: the nav bar's keys are drawn (white ink on it)  2773 white pixels
+PASS  list: dumpsys window shows the system's status and nav bars not visible  = navigationBars=false statusBars=false
+RECORD  list: the app bar's buttons, left to right (glyph centres in epx)  [('people_bar:add', 278.17), ('people_more', 336.0)]
+PASS  list: every button's glyph is drawn                         2
+RECORD  list: buttons beside "…"                                  1 — no pair to take a pitch from on this bar
+RECORD  list: the button next to "…" centred at x 278 (P0.4) (r11 value, not worded in the row)  278.17 epx vs r11 278.00 (within 1 epx)
+PASS  list: "…" centred 24 epx from the right edge (P0.4)       24.00 epx vs 24.00 ± 1.0
+RECORD  list: the app bar is 48 epx tall above the nav bar (P0.4) (r11 value, not worded in the row)  48.00 epx vs r11 48.00 (within 1 epx)
+PASS  the list's first screen holds rows to measure               5 rows, 5 letter headers fully on screen
+PASS  row '(No name)': row height 50 epx (P1.10)                  50.00 epx vs 50.00 ± 1
+PASS  row '(No name)': avatar width 32 epx (P1.7)                 32.00 epx vs 32.00 ± 1
+PASS  row '(No name)': avatar height 32 epx (P1.7)                32.00 epx vs 32.00 ± 1
+PASS  row '(No name)': avatar left edge at x 12 (P1.7)            12.00 epx vs 12.00 ± 1
+PASS  row '(No name)': the avatar is a circle (corners are the page, edge mid-points the disc)  corners [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)] mids [(85, 85, 85), (85, 85, 85), (85, 85, 85), (85, 85, 85)]
+PASS  row '(No name)': no photo → a grey disc (P1.8)            disc colour (85,85,85)
+PASS  row '(No name)': the initial is drawn on the disc           initial node text [#], bright ink box (72, 587, 97, 616)
+RECORD  row '(No name)': the initial drawn for a name with no Latin first letter  [#]
+PASS  row '(No name)': the name's left edge at x 57.75 (P1.9)     57.67 epx vs 57.75 ± 1
+PASS  row '+1 555 000 0009': row height 50 epx (P1.10)            50.00 epx vs 50.00 ± 1
+PASS  row '+1 555 000 0009': avatar width 32 epx (P1.7)           32.00 epx vs 32.00 ± 1
+PASS  row '+1 555 000 0009': avatar height 32 epx (P1.7)          32.00 epx vs 32.00 ± 1
+PASS  row '+1 555 000 0009': avatar left edge at x 12 (P1.7)      12.00 epx vs 12.00 ± 1
+PASS  row '+1 555 000 0009': the avatar is a circle (corners are the page, edge mid-points the disc)  corners [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)] mids [(85, 85, 85), (85, 85, 85), (85, 85, 85), (85, 85, 85)]
+PASS  row '+1 555 000 0009': no photo → a grey disc (P1.8)      disc colour (85,85,85)
+PASS  row '+1 555 000 0009': the initial is drawn on the disc     initial node text [#], bright ink box (72, 737, 97, 766)
+RECORD  row '+1 555 000 0009': the initial drawn for a name with no Latin first letter  [#]
+PASS  row '+1 555 000 0009': the name's left edge at x 57.75 (P1.9)  57.67 epx vs 57.75 ± 1
+PASS  pitch row '+1 555 000 0009' → the row above: 50 epx (P1.10)  50.00 epx vs 50.00 ± 1
+PASS  row 'Ann Lee': row height 50 epx (P1.10)                    50.00 epx vs 50.00 ± 1
+PASS  row 'Ann Lee': avatar width 32 epx (P1.7)                   32.00 epx vs 32.00 ± 1
+PASS  row 'Ann Lee': avatar height 32 epx (P1.7)                  32.00 epx vs 32.00 ± 1
+PASS  row 'Ann Lee': avatar left edge at x 12 (P1.7)              12.00 epx vs 12.00 ± 1
+PASS  row 'Ann Lee': the avatar is a circle (corners are the page, edge mid-points the disc)  corners [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)] mids [(85, 85, 85), (85, 85, 85), (85, 85, 85), (85, 85, 85)]
+PASS  row 'Ann Lee': no photo → a grey disc (P1.8)              disc colour (85,85,85)
+PASS  row 'Ann Lee': the initial is drawn on the disc             initial node text [A], bright ink box (71, 1051, 99, 1083)
+PASS  row 'Ann Lee': the initial is the name's first letter       [A]
+PASS  row 'Ann Lee': the name's left edge at x 57.75 (P1.9)       57.67 epx vs 57.75 ± 1
+RECORD  row 'Ann Lee': the name's cap (P1.9 gives 12.75; an r11 value the row does not word)  12.67 epx (within 1 epx)
+PASS  row 'Bob Stone': row height 50 epx (P1.10)                  50.00 epx vs 50.00 ± 1
+PASS  row 'Bob Stone': avatar width 32 epx (P1.7)                 32.00 epx vs 32.00 ± 1
+PASS  row 'Bob Stone': avatar height 32 epx (P1.7)                32.00 epx vs 32.00 ± 1
+PASS  row 'Bob Stone': avatar left edge at x 12 (P1.7)            12.00 epx vs 12.00 ± 1
+PASS  row 'Bob Stone': the avatar is a circle (corners are the page, edge mid-points the disc)  corners [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)] mids [(85, 85, 85), (85, 85, 85), (85, 85, 85), (85, 85, 85)]
+PASS  row 'Bob Stone': no photo → a grey disc (P1.8)            disc colour (85,85,85)
+PASS  row 'Bob Stone': the initial is drawn on the disc           initial node text [B], bright ink box (75, 1365, 95, 1397)
+PASS  row 'Bob Stone': the initial is the name's first letter     [B]
+PASS  row 'Bob Stone': the name's left edge at x 57.75 (P1.9)     57.67 epx vs 57.75 ± 1
+RECORD  row 'Bob Stone': the name's cap (P1.9 gives 12.75; an r11 value the row does not word)  12.67 epx (within 1 epx)
+PASS  row 'Cara Diaz': row height 50 epx (P1.10)                  50.00 epx vs 50.00 ± 1
+PASS  row 'Cara Diaz': avatar width 32 epx (P1.7)                 32.00 epx vs 32.00 ± 1
+PASS  row 'Cara Diaz': avatar height 32 epx (P1.7)                32.00 epx vs 32.00 ± 1
+PASS  row 'Cara Diaz': avatar left edge at x 12 (P1.7)            12.00 epx vs 12.00 ± 1
+PASS  row 'Cara Diaz': the avatar is a circle (corners are the page, edge mid-points the disc)  corners [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)] mids [(85, 85, 85), (85, 85, 85), (85, 85, 85), (85, 85, 85)]
+PASS  row 'Cara Diaz': no photo → a grey disc (P1.8)            disc colour (85,85,85)
+PASS  row 'Cara Diaz': the initial is drawn on the disc           initial node text [C], bright ink box (72, 1679, 96, 1712)
+PASS  row 'Cara Diaz': the initial is the name's first letter     [C]
+PASS  row 'Cara Diaz': the name's left edge at x 57.75 (P1.9)     57.67 epx vs 57.75 ± 1
+RECORD  row 'Cara Diaz': the name's cap (P1.9 gives 12.75; an r11 value the row does not word)  13.33 epx (within 1 epx)
+PASS  letter header '#' is drawn in the accent                    (0,120,215) vs accent (0,120,215) ± 4
+PASS  letter header '#': ink left edge at x 14.75 (P1.5)          14.67 epx vs 14.75 ± 1
+PASS  letter header 'A' is drawn in the accent                    (0,120,215) vs accent (0,120,215) ± 4
+PASS  letter header 'A': ink left edge at x 14.75 (P1.5)          14.67 epx vs 14.75 ± 1
+RECORD  letter header 'A': cap (P1.5 gives 22.25; an r11 value the row does not word)  22.33 epx (within 1 epx)
+PASS  letter 'A': cap top → its group's first avatar top 43.5 epx (P1.6)  43.67 epx vs 43.50 ± 0.5
+PASS  letter header 'B' is drawn in the accent                    (0,120,215) vs accent (0,120,215) ± 4
+PASS  letter header 'B': ink left edge at x 14.75 (P1.5)          14.67 epx vs 14.75 ± 1
+RECORD  letter header 'B': cap (P1.5 gives 22.25; an r11 value the row does not word)  22.33 epx (within 1 epx)
+PASS  letter 'B': cap top → its group's first avatar top 43.5 epx (P1.6)  43.67 epx vs 43.50 ± 0.5
+PASS  letter header 'C' is drawn in the accent                    (0,120,215) vs accent (0,120,215) ± 4
+PASS  letter header 'C': ink left edge at x 14.75 (P1.5)          14.67 epx vs 14.75 ± 1
+RECORD  letter header 'C': cap (P1.5 gives 22.25; an r11 value the row does not word)  23.00 epx (within 1 epx)
+PASS  letter 'C': cap top → its group's first avatar top 43.5 epx (P1.6)  44.00 epx vs 43.50 ± 0.5
+PASS  letter header 'M' is drawn in the accent                    (0,120,215) vs accent (0,120,215) ± 4
+PASS  letter header 'M': ink left edge at x 14.75 (P1.5)          14.67 epx vs 14.75 ± 1
+RECORD  letter header 'M': cap (P1.5 gives 22.25; an r11 value the row does not word)  22.33 epx (within 1 epx)
+PASS  letter headers on screen to measure                         5
+PASS  the pivot header reads CONTACTS in caps                     [CONTACTS]
+PASS  the selected pivot (CONTACTS) is white (P1.2)               (255,255,255) vs (255,255,255) ± 4
+PASS  CONTACTS: cap 11.0 epx (P1.1)                               11.67 epx vs 11.00 ± 1.0
+PASS  CONTACTS: cap top 19.5 epx below the status bar (P1.1)      19.33 epx vs 19.50 ± 1.0
+PASS  CONTACTS is semibold: its stems are heavier than the regular-weight name text's (stem / cap ≥ 1.2 ×)  header 0.200 vs name 'Ann Lee' 0.132 (× 1.52)
+PASS  the pivot header reads GROUPS in caps                       [GROUPS]
+PASS  the other pivot (GROUPS) is (156,156,156) ± 4 (P1.2)       (156,156,156) vs (156,156,156) ± 4
+PASS  GROUPS: cap 11.0 epx (P1.1)                                 11.33 epx vs 11.00 ± 1.0
+PASS  GROUPS: cap top 19.5 epx below the status bar (P1.1)        19.33 epx vs 19.50 ± 1.0
+PASS  GROUPS is semibold: its stems are heavier than the regular-weight name text's (stem / cap ≥ 1.2 ×)  header 0.176 vs name 'Ann Lee' 0.132 (× 1.34)
+RECORD  CONTACTS: ink from x 12.5 (P1.1) (r11 value, not worded in the row)  12.67 epx vs r11 12.50 (within 1 epx)
+PASS  exactly one pivot is selected                               ['people_pivot:contacts']
+PASS  search box: top 48 epx below the status bar (P1.3)          48.00 epx vs 48.00 ± 1.0
+PASS  search box: 36 epx tall (P1.3)                              36.00 epx vs 36.00 ± 1.0
+PASS  search box: from x 12 (P1.3)                                12.00 epx vs 12.00 ± 1.0
+PASS  search box: to W − 12 (348 at 360 epx; P1.3)              348.00 epx vs 348.00 ± 1.0
+PASS  search box: a 2-epx border on all four sides (6 px ± 1 px)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  search box: the border is (133,133,133)                     (133,133,133) vs (133,133,133) ± 4
+PASS  search box: black fill inside the border                    (0,0,0) vs (0,0,0) ± 2
+PASS  search box: the placeholder reads "Search"                  Search
+PASS  search box: "Search" at x 25 (P1.3)                         25.33 epx vs 25.00 ± 1.0
+RECORD  search box: the placeholder's colour (r11: grey 142)        (142, 142, 142)
+--- the jump grid
+PASS  jump grid: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  jump grid: the drawn nav bar is in the dump (w10m_nav_bar)  [0, 2196, 1080, 2340]
+PASS  jump grid: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  jump grid: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  jump grid: the status bar starts at the screen's top        [36, 0, 1044, 84]
+PASS  jump grid: the nav bar ends at the screen's bottom          [0, 2196, 1080, 2340], screen 2340
+PASS  jump grid: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  jump grid: pixels: … and at its right edge                (0,0,0) vs (0,0,0) ± 2
+PASS  jump grid: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  jump grid: pixels: … and at its bottom-right corner       (0,0,0) vs (0,0,0) ± 2
+PASS  jump grid: pixels: the nav bar's keys are drawn (white ink on it)  2773 white pixels
+PASS  jump grid: dumpsys window shows the system's status and nav bars not visible  = navigationBars=false statusBars=false
+RECORD  jump grid: the app bar's buttons, left to right (glyph centres in epx)  [('people_bar:add', 278.17), ('people_more', 336.0)]
+PASS  jump grid: every button's glyph is drawn                    2
+RECORD  jump grid: buttons beside "…"                             1 — no pair to take a pitch from on this bar
+RECORD  jump grid: the button next to "…" centred at x 278 (P0.4) (r11 value, not worded in the row)  278.17 epx vs r11 278.00 (within 1 epx)
+PASS  jump grid: "…" centred 24 epx from the right edge (P0.4)  24.00 epx vs 24.00 ± 1.0
+RECORD  jump grid: the app bar is 48 epx tall above the nav bar (P0.4) (r11 value, not worded in the row)  48.00 epx vs r11 48.00 (within 1 epx)
+PASS  the jump grid is on show                                    = yes
+PASS  the grid holds 28 cells (#, A–Z, the globe)               28
+PASS  4 columns at the AVD's 360 epx (P2.2)                       ['#', 'A', 'B', 'C']
+PASS  cell pitch across, H → I: 1 × 72 epx (the letters' ink centres; P2.2)  71.83 epx vs 72.00 ± 1.0
+PASS  cell pitch across, T → U: 1 × 72 epx (the letters' ink centres; P2.2)  72.00 epx vs 72.00 ± 1.0
+PASS  cell pitch across, U → V: 1 × 72 epx (the letters' ink centres; P2.2)  72.00 epx vs 72.00 ± 1.0
+PASS  cell pitch across, V → W: 1 × 72 epx (the letters' ink centres; P2.2)  72.33 epx vs 72.00 ± 1.0
+PASS  cell pitch across, X → Y: 1 × 72 epx (the letters' ink centres; P2.2)  72.00 epx vs 72.00 ± 1.0
+PASS  cell pitch across, M → O: 2 × 72 epx (the letters' ink centres; P2.2)  143.83 epx vs 144.00 ± 1.0
+PASS  the four columns' cells start 72 epx apart                  [98, 314, 530, 746]
+PASS  cell pitch down, A → E: 72 epx (cap tops; P2.2)           72.00 epx vs 72.00 ± 1.0
+PASS  cell pitch down, E → I: 72 epx (cap tops; P2.2)           72.00 epx vs 72.00 ± 1.0
+PASS  cell pitch down, I → M: 72 epx (cap tops; P2.2)           72.00 epx vs 72.00 ± 1.0
+PASS  cell pitch down, B → F: 72 epx (cap tops; P2.2)           72.00 epx vs 72.00 ± 1.0
+PASS  cell pitch down, D → H: 72 epx (cap tops; P2.2)           72.00 epx vs 72.00 ± 1.0
+PASS  cell pitch down, H → L: 72 epx (cap tops; P2.2)           72.00 epx vs 72.00 ± 1.0
+PASS  every cell node is a 72 × 72 epx square                    28 cells of 216 × 216 px
+PASS  first row: cap top of A 119.5 epx below the status bar (P2.3)  119.67 epx vs 119.50 ± 1.0
+PASS  first row: cap top of B 119.5 epx below the status bar (P2.3)  119.67 epx vs 119.50 ± 1.0
+PASS  letter A: cap 14.4 epx (P2.4)                               14.33 epx vs 14.40 ± 1.0
+PASS  letter B: cap 14.4 epx (P2.4)                               14.33 epx vs 14.40 ± 1.0
+PASS  letter D: cap 14.4 epx (P2.4)                               14.33 epx vs 14.40 ± 1.0
+PASS  letter E: cap 14.4 epx (P2.4)                               14.33 epx vs 14.40 ± 1.0
+PASS  letter F: cap 14.4 epx (P2.4)                               14.33 epx vs 14.40 ± 1.0
+PASS  letter H: cap 14.4 epx (P2.4)                               14.33 epx vs 14.40 ± 1.0
+PASS  letter K: cap 14.4 epx (P2.4)                               15.00 epx vs 14.40 ± 1.0
+PASS  letter L: cap 14.4 epx (P2.4)                               14.33 epx vs 14.40 ± 1.0
+PASS  letter M: cap 14.4 epx (P2.4)                               14.33 epx vs 14.40 ± 1.0
+PASS  letter N: cap 14.4 epx (P2.4)                               14.33 epx vs 14.40 ± 1.0
+PASS  letter T: cap 14.4 epx (P2.4)                               14.33 epx vs 14.40 ± 1.0
+PASS  letter Z: cap 14.4 epx (P2.4)                               14.33 epx vs 14.40 ± 1.0
+RECORD  the grid block's centre against the screen's (P2.3: about 3 epx left of centre) (r11 value, not worded in the row)  176.67 epx vs r11 177.00 (within 1 epx)
+PASS  the pivot header and the search box stay above the grid (P2.1)  present
+PASS  search results: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  search results: the drawn nav bar is in the dump (w10m_nav_bar)  [0, 2196, 1080, 2340]
+PASS  search results: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  search results: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  search results: the status bar starts at the screen's top   [36, 0, 1044, 84]
+PASS  search results: the nav bar ends at the screen's bottom     [0, 2196, 1080, 2340], screen 2340
+PASS  search results: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  search results: pixels: … and at its right edge           (0,0,0) vs (0,0,0) ± 2
+PASS  search results: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  search results: pixels: … and at its bottom-right corner  (0,0,0) vs (0,0,0) ± 2
+PASS  search results: pixels: the nav bar's keys are drawn (white ink on it)  15383 white pixels
+FAIL  search results: dumpsys window shows the system's status and nav bars not visible  expected [navigationBars=false statusBars=false] got [navigationBars=true statusBars=false]
+RECORD  search results: the app bar's buttons, left to right (glyph centres in epx)  [('people_bar:add', 287.83), ('people_more', 332.83)]
+PASS  search results: every button's glyph is drawn               2
+RECORD  search results: buttons beside "…"                        1 — no pair to take a pitch from on this bar
+RECORD  search results: the button next to "…" centred at x 278 (P0.4) (r11 value, not worded in the row)  287.83 epx vs r11 278.00 (DIFFERS by 9.83)
+FAIL  search results: "…" centred 24 epx from the right edge (P0.4)  27.17 epx vs 24.00 ± 1.0
+RECORD  search results: the app bar is 48 epx tall above the nav bar (P0.4) (r11 value, not worded in the row)  48.00 epx vs r11 48.00 (within 1 epx)
+--- motion: CONTACTS → GROUPS
+PASS  before the swipe CONTACTS is the pivot on show              contains [selected="true"]
+PASS  after the swipe people_pivot:groups is selected             contains [selected="true"]
+[motion] people_pivot t0=18879631 peak=263 overshoot=0 settle=263 frames=17 maxGapMs=17
+PASS  the slice holds [motion] people_pivot … with every field of the motion clock  contains [[motion] people_pivot t0=]
+PASS  … its peak field                                          contains [ peak=]
+PASS  … its overshoot field                                     contains [ overshoot=]
+PASS  … its settle field                                        contains [ settle=]
+PASS  … its frames field                                        contains [ frames=]
+PASS  … its maxGapMs field                                      contains [ maxGapMs=]
+PASS  people_pivot settle 250 ± 17 ms (X13; a tagged approximation, H17)  263.00 vs 250.00 +/- 17.0
+PASS  people_pivot maxGapMs ≤ 33.4 (C-31)                       = yes
+PASS  GROUPS pivot: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  GROUPS pivot: the drawn nav bar is in the dump (w10m_nav_bar)  [0, 2196, 1080, 2340]
+PASS  GROUPS pivot: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  GROUPS pivot: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  GROUPS pivot: the status bar starts at the screen's top     [36, 0, 1044, 84]
+PASS  GROUPS pivot: the nav bar ends at the screen's bottom       [0, 2196, 1080, 2340], screen 2340
+PASS  GROUPS pivot: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  GROUPS pivot: pixels: … and at its right edge             (0,0,0) vs (0,0,0) ± 2
+PASS  GROUPS pivot: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  GROUPS pivot: pixels: … and at its bottom-right corner    (0,0,0) vs (0,0,0) ± 2
+PASS  GROUPS pivot: pixels: the nav bar's keys are drawn (white ink on it)  2773 white pixels
+PASS  GROUPS pivot: dumpsys window shows the system's status and nav bars not visible  = navigationBars=false statusBars=false
+RECORD  GROUPS pivot: the app bar's buttons, left to right (glyph centres in epx)  [('people_group_new', 278.17), ('people_more', 336.0)]
+PASS  GROUPS pivot: every button's glyph is drawn                 2
+RECORD  GROUPS pivot: buttons beside "…"                          1 — no pair to take a pitch from on this bar
+RECORD  GROUPS pivot: the button next to "…" centred at x 278 (P0.4) (r11 value, not worded in the row)  278.17 epx vs r11 278.00 (within 1 epx)
+PASS  GROUPS pivot: "…" centred 24 epx from the right edge (P0.4)  24.00 epx vs 24.00 ± 1.0
+RECORD  GROUPS pivot: the app bar is 48 epx tall above the nav bar (P0.4) (r11 value, not worded in the row)  48.00 epx vs r11 48.00 (within 1 epx)
+--- the group editor and a group's page (their bars and app bars)
+PASS  group editor: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  group editor: the drawn nav bar is in the dump (w10m_nav_bar)  [0, 2196, 1080, 2340]
+PASS  group editor: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  group editor: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  group editor: the status bar starts at the screen's top     [36, 0, 1044, 84]
+PASS  group editor: the nav bar ends at the screen's bottom       [0, 2196, 1080, 2340], screen 2340
+PASS  group editor: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  group editor: pixels: … and at its right edge             (0,0,0) vs (0,0,0) ± 2
+PASS  group editor: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  group editor: pixels: … and at its bottom-right corner    (0,0,0) vs (0,0,0) ± 2
+PASS  group editor: pixels: the nav bar's keys are drawn (white ink on it)  2773 white pixels
+PASS  group editor: dumpsys window shows the system's status and nav bars not visible  = navigationBars=false statusBars=false
+RECORD  group editor: the app bar's buttons, left to right (glyph centres in epx)  [('people_group_save', 210.0), ('people_group_cancel', 278.0), ('people_more', 336.0)]
+PASS  group editor: every button's glyph is drawn                 3
+PASS  group editor: people_group_save → people_group_cancel at a 68-epx pitch (P0.4)  68.00 epx vs 68.00 ± 1.0
+RECORD  group editor: the button next to "…" centred at x 278 (P0.4) (r11 value, not worded in the row)  278.00 epx vs r11 278.00 (within 1 epx)
+PASS  group editor: "…" centred 24 epx from the right edge (P0.4)  24.00 epx vs 24.00 ± 1.0
+RECORD  group editor: the app bar is 48 epx tall above the nav bar (P0.4) (r11 value, not worded in the row)  48.00 epx vs r11 48.00 (within 1 epx)
+      the row's own group: Geo, _id=8
+PASS  group page: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  group page: the drawn nav bar is in the dump (w10m_nav_bar)  [0, 2196, 1080, 2340]
+PASS  group page: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  group page: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  group page: the status bar starts at the screen's top       [36, 0, 1044, 84]
+PASS  group page: the nav bar ends at the screen's bottom         [0, 2196, 1080, 2340], screen 2340
+PASS  group page: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  group page: pixels: … and at its right edge               (0,0,0) vs (0,0,0) ± 2
+PASS  group page: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  group page: pixels: … and at its bottom-right corner      (0,0,0) vs (0,0,0) ± 2
+PASS  group page: pixels: the nav bar's keys are drawn (white ink on it)  2773 white pixels
+PASS  group page: dumpsys window shows the system's status and nav bars not visible  = navigationBars=false statusBars=false
+RECORD  group page: the app bar's buttons, left to right (glyph centres in epx)  [('people_group_action:text', 74.0), ('people_group_add_member', 142.17), ('people_group_action:rename', 210.0), ('people_group_action:delete', 278.0), ('people_more', 336.0)]
+PASS  group page: every button's glyph is drawn                   5
+PASS  group page: people_group_action:text → people_group_add_member at a 68-epx pitch (P0.4)  68.17 epx vs 68.00 ± 1.0
+PASS  group page: people_group_add_member → people_group_action:rename at a 68-epx pitch (P0.4)  67.83 epx vs 68.00 ± 1.0
+PASS  group page: people_group_action:rename → people_group_action:delete at a 68-epx pitch (P0.4)  68.00 epx vs 68.00 ± 1.0
+RECORD  group page: the button next to "…" centred at x 278 (P0.4) (r11 value, not worded in the row)  278.00 epx vs r11 278.00 (within 1 epx)
+PASS  group page: "…" centred 24 epx from the right edge (P0.4)  24.00 epx vs 24.00 ± 1.0
+RECORD  group page: the app bar is 48 epx tall above the nav bar (P0.4) (r11 value, not worded in the row)  48.00 epx vs r11 48.00 (within 1 epx)
+--- the card
+PASS  card: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  card: the drawn nav bar is in the dump (w10m_nav_bar)       [0, 2196, 1080, 2340]
+PASS  card: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  card: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  card: the status bar starts at the screen's top             [36, 0, 1044, 84]
+PASS  card: the nav bar ends at the screen's bottom               [0, 2196, 1080, 2340], screen 2340
+PASS  card: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  card: pixels: … and at its right edge                     (0,0,0) vs (0,0,0) ± 2
+PASS  card: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  card: pixels: … and at its bottom-right corner            (0,0,0) vs (0,0,0) ± 2
+PASS  card: pixels: the nav bar's keys are drawn (white ink on it)  2773 white pixels
+PASS  card: dumpsys window shows the system's status and nav bars not visible  = navigationBars=false statusBars=false
+RECORD  card: the app bar's buttons, left to right (glyph centres in epx)  [('people_card_link', 142.0), ('people_card_edit', 210.0), ('people_card_delete', 278.0), ('people_more', 336.0)]
+PASS  card: every button's glyph is drawn                         4
+PASS  card: people_card_link → people_card_edit at a 68-epx pitch (P0.4)  68.00 epx vs 68.00 ± 1.0
+PASS  card: people_card_edit → people_card_delete at a 68-epx pitch (P0.4)  68.00 epx vs 68.00 ± 1.0
+RECORD  card: the button next to "…" centred at x 278 (P0.4) (r11 value, not worded in the row)  278.00 epx vs r11 278.00 (within 1 epx)
+PASS  card: "…" centred 24 epx from the right edge (P0.4)       24.00 epx vs 24.00 ± 1.0
+RECORD  card: the app bar is 48 epx tall above the nav bar (P0.4) (r11 value, not worded in the row)  48.00 epx vs r11 48.00 (within 1 epx)
+PASS  the card on show is Ann's (people_card:<lookup>)            = yes
+PASS  the card is an accent page from the status bar's bottom to the nav bar's top (column x = W − 6 epx; P3.1)  2112 of 2112 pixels are the accent ± 4
+PASS  … and down the left edge (column x = 6 epx)               2112 of 2112
+PASS  the status bar above it is black                            (0,0,0) vs (0,0,0) ± 2
+PASS  the nav bar below it is black                               (0,0,0) vs (0,0,0) ± 2
+PASS  the name is in caps                                         [ANN LEE]
+PASS  the name's left edge at x 13.25 (P3.2)                      13.33 epx vs 13.25 ± 1.0
+PASS  the name's cap top 26 epx below the status bar (P3.2)       26.00 epx vs 26.00 ± 1.0
+RECORD  the name's cap 10.4 (P3.2) (r11 value, not worded in the row)  10.67 epx vs r11 10.40 (within 1 epx)
+PASS  the name is white                                           (255,255,255) vs (255,255,255) ± 4
+PASS  people_card_photo: 124 epx wide (P3.4)                      124.00 epx vs 124.00 ± 1.0
+PASS  people_card_photo: 124 epx tall (P3.4)                      124.00 epx vs 124.00 ± 1.0
+PASS  people_card_photo: at x 12 (P3.4)                           12.00 epx vs 12.00 ± 1.0
+PASS  people_card_photo: its top 96 epx below the status bar (P3.4)  96.00 epx vs 96.00 ± 1.0
+PASS  people_card_photo is a circle (its box's corners are the page, its edge mid-points are not)  corners [(0, 120, 215), (0, 120, 215), (0, 120, 215), (0, 120, 215)] mids [(85, 85, 85), (85, 85, 85), (85, 85, 85), (85, 85, 85)]
+PASS  the card holds action rows to measure (a one-line row and two-line rows)  [('Send message', 'one line'), ('Call Mobile', 'two lines'), ('Email Personal', 'two lines')]
+PASS  action row "Send message": the label's left edge at x 13 ± 1 (P3.6)  13.00 epx vs 13.00 ± 1.0
+PASS  action pitch "Send message" (one line) → "Call Mobile": 48 epx (P3.7)  48.00 epx vs 48.00 ± 1.0
+PASS  action row "Call Mobile": the label's left edge at x 13 ± 1 (P3.6)  13.00 epx vs 13.00 ± 1.0
+PASS  action pitch "Call Mobile" (two lines) → "Email Personal": 65.5 ± 1 epx (P3.7)  65.67 epx vs 65.50 ± 1.0
+PASS  action row "Email Personal": the label's left edge at x 13 ± 1 (P3.6)  13.00 epx vs 13.00 ± 1.0
+PASS  a one-line row's pitch was measured                         
+PASS  a two-line row's pitch was measured                         
+PASS  linked profiles: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  linked profiles: the drawn nav bar is in the dump (w10m_nav_bar)  [0, 2196, 1080, 2340]
+PASS  linked profiles: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  linked profiles: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  linked profiles: the status bar starts at the screen's top  [36, 0, 1044, 84]
+PASS  linked profiles: the nav bar ends at the screen's bottom    [0, 2196, 1080, 2340], screen 2340
+PASS  linked profiles: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  linked profiles: pixels: … and at its right edge          (0,0,0) vs (0,0,0) ± 2
+PASS  linked profiles: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  linked profiles: pixels: … and at its bottom-right corner  (0,0,0) vs (0,0,0) ± 2
+PASS  linked profiles: pixels: the nav bar's keys are drawn (white ink on it)  2773 white pixels
+PASS  linked profiles: dumpsys window shows the system's status and nav bars not visible  = navigationBars=false statusBars=false
+RECORD  linked profiles: the app bar's buttons, left to right (glyph centres in epx)  [('people_link_add', 278.17), ('people_more', 336.0)]
+PASS  linked profiles: every button's glyph is drawn              2
+RECORD  linked profiles: buttons beside "…"                       1 — no pair to take a pitch from on this bar
+RECORD  linked profiles: the button next to "…" centred at x 278 (P0.4) (r11 value, not worded in the row)  278.17 epx vs r11 278.00 (within 1 epx)
+PASS  linked profiles: "…" centred 24 epx from the right edge (P0.4)  24.00 epx vs 24.00 ± 1.0
+RECORD  linked profiles: the app bar is 48 epx tall above the nav bar (P0.4) (r11 value, not worded in the row)  48.00 epx vs r11 48.00 (within 1 epx)
+--- the editor
+PASS  editor: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  editor: the drawn nav bar is in the dump (w10m_nav_bar)     [0, 2196, 1080, 2340]
+PASS  editor: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  editor: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  editor: the status bar starts at the screen's top           [36, 0, 1044, 84]
+PASS  editor: the nav bar ends at the screen's bottom             [0, 2196, 1080, 2340], screen 2340
+PASS  editor: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  editor: pixels: … and at its right edge                   (0,0,0) vs (0,0,0) ± 2
+PASS  editor: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  editor: pixels: … and at its bottom-right corner          (0,0,0) vs (0,0,0) ± 2
+PASS  editor: pixels: the nav bar's keys are drawn (white ink on it)  2773 white pixels
+PASS  editor: dumpsys window shows the system's status and nav bars not visible  = navigationBars=false statusBars=false
+RECORD  editor: the app bar's buttons, left to right (glyph centres in epx)  [('people_editor_save', 210.0), ('people_editor_cancel', 278.0), ('people_more', 336.0)]
+PASS  editor: every button's glyph is drawn                       3
+PASS  editor: people_editor_save → people_editor_cancel at a 68-epx pitch (P0.4)  68.00 epx vs 68.00 ± 1.0
+RECORD  editor: the button next to "…" centred at x 278 (P0.4) (r11 value, not worded in the row)  278.00 epx vs r11 278.00 (within 1 epx)
+PASS  editor: "…" centred 24 epx from the right edge (P0.4)     24.00 epx vs 24.00 ± 1.0
+RECORD  editor: the app bar is 48 epx tall above the nav bar (P0.4) (r11 value, not worded in the row)  48.00 epx vs r11 48.00 (within 1 epx)
+PASS  the editor is the page on show                              contains [selected="true"]
+PASS  the header reads "EDIT <ACCOUNT> CONTACT" in caps (P4.1)    [EDIT PHONE CONTACT]
+PASS  the header's left edge at x 13 (P4.1)                       13.00 epx vs 13.00 ± 1.0
+RECORD  the header's cap top below the status bar (P4.1: 45.5 under a 24-epx bar = 21.5) (r11 value, not worded in the row)  21.67 epx vs r11 21.50 (within 1 epx)
+RECORD  the header's cap 11.0 (P4.1) (r11 value, not worded in the row)  11.00 epx vs r11 11.00 (within 1 epx)
+PASS  field name: 32 epx tall (P4.4)                              32.00 epx vs 32.00 ± 1.0
+PASS  field name: from x 12 (P4.4)                                12.00 epx vs 12.00 ± 1.0
+PASS  field name: to W − 12 (348; P4.4)                         348.00 epx vs 348.00 ± 1.0
+PASS  field name: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  field name: black fill                                      (0,0,0) vs (0,0,0) ± 2
+PASS  field name: label "Name" cap top → box top 22.75 epx (P4.5)  22.67 epx vs 22.75 ± 1.0
+RECORD  field name: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  field phone: 32 epx tall (P4.4)                             32.00 epx vs 32.00 ± 1.0
+PASS  field phone: from x 12 (P4.4)                               12.00 epx vs 12.00 ± 1.0
+PASS  field phone: to W − 12 (348; P4.4)                        348.00 epx vs 348.00 ± 1.0
+PASS  field phone: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  field phone: black fill                                     (0,0,0) vs (0,0,0) ± 2
+PASS  field phone: label "Mobile phone" cap top → box top 22.75 epx (P4.5)  22.33 epx vs 22.75 ± 1.0
+RECORD  field phone: its type label's colour (P4.3: the type in accent)  (0,120,215) vs accent (0,120,215)
+RECORD  field phone: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  field email: 32 epx tall (P4.4)                             32.00 epx vs 32.00 ± 1.0
+PASS  field email: from x 12 (P4.4)                               12.00 epx vs 12.00 ± 1.0
+PASS  field email: to W − 12 (348; P4.4)                        348.00 epx vs 348.00 ± 1.0
+PASS  field email: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  field email: black fill                                     (0,0,0) vs (0,0,0) ± 2
+PASS  field email: label "Personal email" cap top → box top 22.75 epx (P4.5)  22.33 epx vs 22.75 ± 1.0
+RECORD  field email: its type label's colour (P4.3: the type in accent)  (0,120,215) vs accent (0,120,215)
+RECORD  field email: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  at least two field boxes were measured on this screen       3
+RECORD  "+ field" rows on this screen                               [('phone', '+ glyph y 1505', 'node 44 epx tall'), ('email', '+ glyph y 1934', 'node 44 epx tall')]
+PASS  "+ phone": the row is 44 epx tall                           44.00 epx vs 44.00 ± 1.0
+RECORD  "+ phone": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  "+ email": the row is 44 epx tall                           44.00 epx vs 44.00 ± 1.0
+RECORD  "+ email": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  group rule at y 896: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  group rule at y 896: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  group rule at y 896: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  group rule at y 1193: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  group rule at y 1193: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  group rule at y 1193: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  group rule at y 1622: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  group rule at y 1622: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  group rule at y 1622: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  at least one group rule was measured on this screen         3
+PASS  as built: no edit (pencil) button node beside the Name field (the 34-epx variant is not built; clauses-open.tsv)  = 0
+PASS  scrolled 1: field name: 32 epx tall (P4.4)                  32.00 epx vs 32.00 ± 1.0
+PASS  scrolled 1: field name: from x 12 (P4.4)                    12.00 epx vs 12.00 ± 1.0
+PASS  scrolled 1: field name: to W − 12 (348; P4.4)             348.00 epx vs 348.00 ± 1.0
+PASS  scrolled 1: field name: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  scrolled 1: field name: black fill                          (0,0,0) vs (0,0,0) ± 2
+PASS  scrolled 1: field name: label "Name" cap top → box top 22.75 epx (P4.5)  22.67 epx vs 22.75 ± 1.0
+RECORD  scrolled 1: field name: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  scrolled 1: field phone: 32 epx tall (P4.4)                 32.00 epx vs 32.00 ± 1.0
+PASS  scrolled 1: field phone: from x 12 (P4.4)                   12.00 epx vs 12.00 ± 1.0
+PASS  scrolled 1: field phone: to W − 12 (348; P4.4)            348.00 epx vs 348.00 ± 1.0
+PASS  scrolled 1: field phone: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  scrolled 1: field phone: black fill                         (0,0,0) vs (0,0,0) ± 2
+PASS  scrolled 1: field phone: label "Mobile phone" cap top → box top 22.75 epx (P4.5)  22.33 epx vs 22.75 ± 1.0
+RECORD  scrolled 1: field phone: its type label's colour (P4.3: the type in accent)  (0,120,215) vs accent (0,120,215)
+RECORD  scrolled 1: field phone: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  scrolled 1: field email: 32 epx tall (P4.4)                 32.00 epx vs 32.00 ± 1.0
+PASS  scrolled 1: field email: from x 12 (P4.4)                   12.00 epx vs 12.00 ± 1.0
+PASS  scrolled 1: field email: to W − 12 (348; P4.4)            348.00 epx vs 348.00 ± 1.0
+PASS  scrolled 1: field email: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  scrolled 1: field email: black fill                         (0,0,0) vs (0,0,0) ± 2
+PASS  scrolled 1: field email: label "Personal email" cap top → box top 22.75 epx (P4.5)  22.33 epx vs 22.75 ± 1.0
+RECORD  scrolled 1: field email: its type label's colour (P4.3: the type in accent)  (0,120,215) vs accent (0,120,215)
+RECORD  scrolled 1: field email: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  scrolled 1: field company: 32 epx tall (P4.4)               32.00 epx vs 32.00 ± 1.0
+PASS  scrolled 1: field company: from x 12 (P4.4)                 12.00 epx vs 12.00 ± 1.0
+PASS  scrolled 1: field company: to W − 12 (348; P4.4)          348.00 epx vs 348.00 ± 1.0
+PASS  scrolled 1: field company: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  scrolled 1: field company: black fill                       (0,0,0) vs (0,0,0) ± 2
+PASS  scrolled 1: field company: label "Company" cap top → box top 22.75 epx (P4.5)  22.67 epx vs 22.75 ± 1.0
+RECORD  scrolled 1: field company: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+RECORD  scrolled 1: "+ field" rows on this screen                   [('phone', '+ glyph y 852', 'node 44 epx tall'), ('email', '+ glyph y 1281', 'node 44 epx tall'), ('address', '+ glyph y 1467', 'node 44 epx tall'), ('other', '+ glyph y 1896', 'node 44 epx tall')]
+FAIL  scrolled 1: "+ email" → "+ address" (consecutive "+ field" rows): 44-epx pitch (P4.6)  62.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 1: between "+ email" and "+ address"               1 group rule(s) drawn
+PASS  scrolled 1: "+ phone": the row is 44 epx tall               44.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 1: "+ phone": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  scrolled 1: "+ email": the row is 44 epx tall               44.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 1: "+ email": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  scrolled 1: "+ address": the row is 44 epx tall             44.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 1: "+ address": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  scrolled 1: "+ other": the row is 44 epx tall               44.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 1: "+ other": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  scrolled 1: group rule at y 243: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 1: group rule at y 243: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 1: group rule at y 243: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 1: group rule at y 540: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 1: group rule at y 540: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 1: group rule at y 540: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 1: group rule at y 969: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 1: group rule at y 969: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 1: group rule at y 969: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 1: group rule at y 1398: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 1: group rule at y 1398: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 1: group rule at y 1398: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 1: group rule at y 1584: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 1: group rule at y 1584: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 1: group rule at y 1584: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 2: field name: 32 epx tall (P4.4)                  32.00 epx vs 32.00 ± 1.0
+PASS  scrolled 2: field name: from x 12 (P4.4)                    12.00 epx vs 12.00 ± 1.0
+PASS  scrolled 2: field name: to W − 12 (348; P4.4)             348.00 epx vs 348.00 ± 1.0
+PASS  scrolled 2: field name: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  scrolled 2: field name: black fill                          (0,0,0) vs (0,0,0) ± 2
+PASS  scrolled 2: field name: label "Name" cap top → box top 22.75 epx (P4.5)  22.67 epx vs 22.75 ± 1.0
+RECORD  scrolled 2: field name: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  scrolled 2: field phone: 32 epx tall (P4.4)                 32.00 epx vs 32.00 ± 1.0
+PASS  scrolled 2: field phone: from x 12 (P4.4)                   12.00 epx vs 12.00 ± 1.0
+PASS  scrolled 2: field phone: to W − 12 (348; P4.4)            348.00 epx vs 348.00 ± 1.0
+PASS  scrolled 2: field phone: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  scrolled 2: field phone: black fill                         (0,0,0) vs (0,0,0) ± 2
+PASS  scrolled 2: field phone: label "Mobile phone" cap top → box top 22.75 epx (P4.5)  22.33 epx vs 22.75 ± 1.0
+RECORD  scrolled 2: field phone: its type label's colour (P4.3: the type in accent)  (0,120,215) vs accent (0,120,215)
+RECORD  scrolled 2: field phone: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  scrolled 2: field email: 32 epx tall (P4.4)                 32.00 epx vs 32.00 ± 1.0
+PASS  scrolled 2: field email: from x 12 (P4.4)                   12.00 epx vs 12.00 ± 1.0
+PASS  scrolled 2: field email: to W − 12 (348; P4.4)            348.00 epx vs 348.00 ± 1.0
+PASS  scrolled 2: field email: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  scrolled 2: field email: black fill                         (0,0,0) vs (0,0,0) ± 2
+PASS  scrolled 2: field email: label "Personal email" cap top → box top 22.75 epx (P4.5)  22.33 epx vs 22.75 ± 1.0
+RECORD  scrolled 2: field email: its type label's colour (P4.3: the type in accent)  (0,120,215) vs accent (0,120,215)
+RECORD  scrolled 2: field email: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  scrolled 2: field company: 32 epx tall (P4.4)               32.00 epx vs 32.00 ± 1.0
+PASS  scrolled 2: field company: from x 12 (P4.4)                 12.00 epx vs 12.00 ± 1.0
+PASS  scrolled 2: field company: to W − 12 (348; P4.4)          348.00 epx vs 348.00 ± 1.0
+PASS  scrolled 2: field company: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  scrolled 2: field company: black fill                       (0,0,0) vs (0,0,0) ± 2
+PASS  scrolled 2: field company: label "Company" cap top → box top 22.75 epx (P4.5)  22.67 epx vs 22.75 ± 1.0
+RECORD  scrolled 2: field company: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+RECORD  scrolled 2: "+ field" rows on this screen                   [('phone', '+ glyph y 852', 'node 44 epx tall'), ('email', '+ glyph y 1281', 'node 44 epx tall'), ('address', '+ glyph y 1467', 'node 44 epx tall'), ('other', '+ glyph y 1896', 'node 44 epx tall')]
+FAIL  scrolled 2: "+ email" → "+ address" (consecutive "+ field" rows): 44-epx pitch (P4.6)  62.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 2: between "+ email" and "+ address"               1 group rule(s) drawn
+PASS  scrolled 2: "+ phone": the row is 44 epx tall               44.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 2: "+ phone": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  scrolled 2: "+ email": the row is 44 epx tall               44.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 2: "+ email": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  scrolled 2: "+ address": the row is 44 epx tall             44.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 2: "+ address": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  scrolled 2: "+ other": the row is 44 epx tall               44.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 2: "+ other": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  scrolled 2: group rule at y 243: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 2: group rule at y 243: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 2: group rule at y 243: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 2: group rule at y 540: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 2: group rule at y 540: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 2: group rule at y 540: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 2: group rule at y 969: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 2: group rule at y 969: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 2: group rule at y 969: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 2: group rule at y 1398: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 2: group rule at y 1398: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 2: group rule at y 1398: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 2: group rule at y 1584: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 2: group rule at y 1584: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 2: group rule at y 1584: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 3: field name: 32 epx tall (P4.4)                  32.00 epx vs 32.00 ± 1.0
+PASS  scrolled 3: field name: from x 12 (P4.4)                    12.00 epx vs 12.00 ± 1.0
+PASS  scrolled 3: field name: to W − 12 (348; P4.4)             348.00 epx vs 348.00 ± 1.0
+PASS  scrolled 3: field name: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  scrolled 3: field name: black fill                          (0,0,0) vs (0,0,0) ± 2
+PASS  scrolled 3: field name: label "Name" cap top → box top 22.75 epx (P4.5)  22.67 epx vs 22.75 ± 1.0
+RECORD  scrolled 3: field name: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  scrolled 3: field phone: 32 epx tall (P4.4)                 32.00 epx vs 32.00 ± 1.0
+PASS  scrolled 3: field phone: from x 12 (P4.4)                   12.00 epx vs 12.00 ± 1.0
+PASS  scrolled 3: field phone: to W − 12 (348; P4.4)            348.00 epx vs 348.00 ± 1.0
+PASS  scrolled 3: field phone: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  scrolled 3: field phone: black fill                         (0,0,0) vs (0,0,0) ± 2
+PASS  scrolled 3: field phone: label "Mobile phone" cap top → box top 22.75 epx (P4.5)  22.33 epx vs 22.75 ± 1.0
+RECORD  scrolled 3: field phone: its type label's colour (P4.3: the type in accent)  (0,120,215) vs accent (0,120,215)
+RECORD  scrolled 3: field phone: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  scrolled 3: field email: 32 epx tall (P4.4)                 32.00 epx vs 32.00 ± 1.0
+PASS  scrolled 3: field email: from x 12 (P4.4)                   12.00 epx vs 12.00 ± 1.0
+PASS  scrolled 3: field email: to W − 12 (348; P4.4)            348.00 epx vs 348.00 ± 1.0
+PASS  scrolled 3: field email: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  scrolled 3: field email: black fill                         (0,0,0) vs (0,0,0) ± 2
+PASS  scrolled 3: field email: label "Personal email" cap top → box top 22.75 epx (P4.5)  22.33 epx vs 22.75 ± 1.0
+RECORD  scrolled 3: field email: its type label's colour (P4.3: the type in accent)  (0,120,215) vs accent (0,120,215)
+RECORD  scrolled 3: field email: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  scrolled 3: field company: 32 epx tall (P4.4)               32.00 epx vs 32.00 ± 1.0
+PASS  scrolled 3: field company: from x 12 (P4.4)                 12.00 epx vs 12.00 ± 1.0
+PASS  scrolled 3: field company: to W − 12 (348; P4.4)          348.00 epx vs 348.00 ± 1.0
+PASS  scrolled 3: field company: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  scrolled 3: field company: black fill                       (0,0,0) vs (0,0,0) ± 2
+PASS  scrolled 3: field company: label "Company" cap top → box top 22.75 epx (P4.5)  22.67 epx vs 22.75 ± 1.0
+RECORD  scrolled 3: field company: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+RECORD  scrolled 3: "+ field" rows on this screen                   [('phone', '+ glyph y 852', 'node 44 epx tall'), ('email', '+ glyph y 1281', 'node 44 epx tall'), ('address', '+ glyph y 1467', 'node 44 epx tall'), ('other', '+ glyph y 1896', 'node 44 epx tall')]
+FAIL  scrolled 3: "+ email" → "+ address" (consecutive "+ field" rows): 44-epx pitch (P4.6)  62.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 3: between "+ email" and "+ address"               1 group rule(s) drawn
+PASS  scrolled 3: "+ phone": the row is 44 epx tall               44.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 3: "+ phone": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  scrolled 3: "+ email": the row is 44 epx tall               44.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 3: "+ email": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  scrolled 3: "+ address": the row is 44 epx tall             44.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 3: "+ address": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  scrolled 3: "+ other": the row is 44 epx tall               44.00 epx vs 44.00 ± 1.0
+RECORD  scrolled 3: "+ other": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  14.00 epx vs r11 12.00 (DIFFERS by 2.00)
+PASS  scrolled 3: group rule at y 243: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 3: group rule at y 243: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 3: group rule at y 243: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 3: group rule at y 540: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 3: group rule at y 540: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 3: group rule at y 540: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 3: group rule at y 969: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 3: group rule at y 969: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 3: group rule at y 969: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 3: group rule at y 1398: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 3: group rule at y 1398: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 3: group rule at y 1398: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  scrolled 3: group rule at y 1584: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  scrolled 3: group rule at y 1584: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  scrolled 3: group rule at y 1584: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+--- People's settings pages (their bars)
+PASS  settings: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  settings: the drawn nav bar is in the dump (w10m_nav_bar)   [0, 2196, 1080, 2340]
+PASS  settings: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  settings: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  settings: the status bar starts at the screen's top         [36, 0, 1044, 84]
+PASS  settings: the nav bar ends at the screen's bottom           [0, 2196, 1080, 2340], screen 2340
+PASS  settings: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  settings: pixels: … and at its right edge                 (0,0,0) vs (0,0,0) ± 2
+PASS  settings: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  settings: pixels: … and at its bottom-right corner        (0,0,0) vs (0,0,0) ± 2
+PASS  settings: pixels: the nav bar's keys are drawn (white ink on it)  2773 white pixels
+PASS  settings: dumpsys window shows the system's status and nav bars not visible  = navigationBars=false statusBars=false
+PASS  settings can_edit: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  settings can_edit: the drawn nav bar is in the dump (w10m_nav_bar)  [0, 2196, 1080, 2340]
+PASS  settings can_edit: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  settings can_edit: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  settings can_edit: the status bar starts at the screen's top  [36, 0, 1044, 84]
+PASS  settings can_edit: the nav bar ends at the screen's bottom  [0, 2196, 1080, 2340], screen 2340
+PASS  settings can_edit: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  settings can_edit: pixels: … and at its right edge        (0,0,0) vs (0,0,0) ± 2
+PASS  settings can_edit: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  settings can_edit: pixels: … and at its bottom-right corner  (0,0,0) vs (0,0,0) ± 2
+PASS  settings can_edit: pixels: the nav bar's keys are drawn (white ink on it)  2773 white pixels
+PASS  settings can_edit: dumpsys window shows the system's status and nav bars not visible  = navigationBars=false statusBars=false
+PASS  settings filter: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  settings filter: the drawn nav bar is in the dump (w10m_nav_bar)  [0, 2196, 1080, 2340]
+PASS  settings filter: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  settings filter: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  settings filter: the status bar starts at the screen's top  [36, 0, 1044, 84]
+PASS  settings filter: the nav bar ends at the screen's bottom    [0, 2196, 1080, 2340], screen 2340
+PASS  settings filter: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  settings filter: pixels: … and at its right edge          (0,0,0) vs (0,0,0) ± 2
+PASS  settings filter: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  settings filter: pixels: … and at its bottom-right corner  (0,0,0) vs (0,0,0) ± 2
+PASS  settings filter: pixels: the nav bar's keys are drawn (white ink on it)  2773 white pixels
+PASS  settings filter: dumpsys window shows the system's status and nav bars not visible  = navigationBars=false statusBars=false
+PASS  settings sim: the drawn status bar is in the dump (w10m_status_bar)  [36, 0, 1044, 84]
+PASS  settings sim: the drawn nav bar is in the dump (w10m_nav_bar)  [0, 2196, 1080, 2340]
+PASS  settings sim: the drawn status bar's height = BarMetrics.STATUS_EPX (28)  28.00 epx vs 28.00 ± 0.34
+PASS  settings sim: the drawn nav bar's height = BarMetrics.NAV_EPX (48)  48.00 epx vs 48.00 ± 0.34
+PASS  settings sim: the status bar starts at the screen's top     [36, 0, 1044, 84]
+PASS  settings sim: the nav bar ends at the screen's bottom       [0, 2196, 1080, 2340], screen 2340
+PASS  settings sim: pixels: the status bar's ground is black (left edge, mid height)  (0,0,0) vs (0,0,0) ± 2
+PASS  settings sim: pixels: … and at its right edge             (0,0,0) vs (0,0,0) ± 2
+PASS  settings sim: pixels: the nav bar's ground is black (between its keys)  (0,0,0) vs (0,0,0) ± 2
+PASS  settings sim: pixels: … and at its bottom-right corner    (0,0,0) vs (0,0,0) ± 2
+PASS  settings sim: pixels: the nav bar's keys are drawn (white ink on it)  2773 white pixels
+PASS  settings sim: dumpsys window shows the system's status and nav bars not visible  = navigationBars=false statusBars=false
+RECORD  settings sim: the app bar's buttons, left to right (glyph centres in epx)  [('people_sim_import', 210.0), ('people_sim_clear', 278.0), ('people_more', 336.0)]
+PASS  settings sim: every button's glyph is drawn                 3
+PASS  settings sim: people_sim_import → people_sim_clear at a 68-epx pitch (P0.4)  68.00 epx vs 68.00 ± 1.0
+RECORD  settings sim: the button next to "…" centred at x 278 (P0.4) (r11 value, not worded in the row)  278.00 epx vs r11 278.00 (within 1 epx)
+PASS  settings sim: "…" centred 24 epx from the right edge (P0.4)  24.00 epx vs 24.00 ± 1.0
+RECORD  settings sim: the app bar is 48 epx tall above the nav bar (P0.4) (r11 value, not worded in the row)  48.00 epx vs r11 48.00 (within 1 epx)
+PASS  the bars were asserted on every People page reached (list, grid, search, GROUPS, group editor, group page, card, linked profiles, editor, settings and its three pages)  = 13
+RECORD  app bars measured                                           10
+--- restore
+PASS  restore: the groups query equals its read before the row    = No result found.
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  restore: the raw_contacts rows equal the rows before the row  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0
+Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0
+------------------------------------------------------------------------------
+E20: 459 passed, 5 failed, 131 recorded

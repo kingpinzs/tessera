@@ -1,0 +1,82 @@
+==============================================================================
+ROW E5 — all-day, multi-day and recurring events; the three occurrence scopes
+at            2026-10-01T16:14:37-06:00
+driver        e5.sh blob 3a8b17fd58671c2c8f2b0ff8b8dea899188f6297
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     d008aec0c1318519 340591758 bytes
+apk installed 686506a7a7936b2e
+apk match     yes (686506a7a7936b2e)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  precondition: Tessera exists                                != 
+--- A: the driver's inserts
+      all-day 311, three-day 312, series 313 (first at 1790899200000)
+PASS  A: the all-day event — allDay 1, dtstart at UTC midnight, eventTimezone UTC  contains [allDay=1, dtstart=1790812800000, eventTimezone=UTC]
+PASS  A: the 3-day timed event is inserted                        != 
+PASS  A: the weekly series — rrule FREQ=WEEKLY;COUNT=10, duration PT1H, no dtend  contains [rrule=FREQ=WEEKLY;COUNT=10, duration=PT1H, dtend=NULL]
+      the series' instances from the provider: 1790899200000 1790902800000;1791504000000 1791507600000;1792108800000 1792112400000;1792713600000 1792717200000;1793318400000 1793322000000;1793926800000 1793930400000;1794531600000 1794535200000;1795136400000 1795140000000;1795741200000 1795744800000;1796346000000 1796349600000;
+--- B: the Day view's all-day band
+PASS  B: the Day view is showing (cal_view_mode:day selected)     = true
+PASS  B: the band cal_allday:2026-10-01 exists                    = yes
+PASS  B: the all-day event's cal_event:<id> node is on the Day view  = yes
+      band, event bounds: yes [0, 324, 1080, 459] [0, 324, 1080, 456]
+PASS  B: … and lies inside cal_allday:<that date>'s bounds      = yes
+PASS  B: … and not at a time: no cal_event_time:<id> node exists for it (r3 V8)  = no
+PASS  B: the control — a timed event on the same view does carry cal_event_time (the 3-day event)  = yes
+RECORD  B: the timed 3-day event against the band (its first day; the band holds all-day events)  no [0, 324, 1080, 459] [168, 603, 606, 2055]
+--- C: the 3-day event appears on each of its days
+PASS  C: the 3-day event shows on day 1 of 3 (2026-10-01)         = yes
+PASS  C: the 3-day event shows on day 2 of 3 (2026-10-02)         = yes
+PASS  C: the 3-day event shows on day 3 of 3 (2026-10-03)         = yes
+PASS  C: the control — and not on the day after (2026-10-04)    = no
+--- D: the Agenda lists ten instances of the series; the provider agrees
+PASS  D: content query instances/when/<start>/<end> — ten instances of the series  = 10
+      cagenda_walk: 16 (date, event) rows after 10 swipe(s)
+the Agenda's rows for the series: 2026-10-01 2026-10-08 2026-10-15 2026-10-15 2026-10-22 2026-10-22 2026-10-29 2026-11-05 2026-11-05 2026-11-12 2026-11-19 2026-11-26 
+FAIL  D: the agenda lists ten cal_event: instances of the series  expected [10] got [12]
+FAIL  D: … the provider's count agrees with the agenda's        expected [10] got [12]
+FAIL  D: … on the provider's ten days                           expected [2026-10-01 2026-10-08 2026-10-15 2026-10-22 2026-10-29 2026-11-05 2026-11-12 2026-11-19 2026-11-26 2026-12-03] got [2026-10-01 2026-10-08 2026-10-15 2026-10-15 2026-10-22 2026-10-22 2026-10-29 2026-11-05 2026-11-05 2026-11-12 2026-11-19 2026-11-26]
+--- E: Repeat = weekly on a new event, in the app
+      the Repeat field reads [Every week]
+the app's weekly event: Row: 0 _id=314, rrule=FREQ=WEEKLY, duration=P3600S, dtend=NULL
+PASS  E: it writes an rrule (weekly)                              contains [rrule=FREQ=WEEKLY]
+PASS  E: … and a duration (not NULL)                            does not contain [duration=NULL]
+PASS  E: … a duration of the default hour                       contains [duration=P]
+PASS  E: … and no dtend                                         contains [dtend=NULL]
+--- F: "edit this occurrence" on the third instance
+PASS  F: the prompt offers this occurrence                        = yes
+exception rows: Row: 0 _id=315, title=E5 weeklyX, original_id=313, originalInstanceTime=1792108800000, dtstart=1792108800000
+PASS  F: it writes an exception row — exactly one row whose original_id is the master  = 1
+PASS  F: … original_id = the master                             contains [original_id=313,]
+PASS  F: … originalInstanceTime = that instance                 contains [originalInstanceTime=1792108800000,]
+PASS  F: … with a changed title                                 != E5 weekly
+      cagenda_walk: 32 (date, event) rows after 14 swipe(s)
+the Agenda after the edit: 2026-10-01=E5 weekly(313) 2026-10-08=E5 weekly(313) 2026-10-15=E5 weeklyX(315) 2026-10-22=E5 weekly(313) 2026-10-29=E5 weekly(313) 2026-11-05=E5 weekly(313) 2026-11-12=E5 weekly(313) 2026-11-19=E5 weekly(313) 2026-11-26=E5 weekly(313) 2026-12-03=E5 weekly(313) 
+PASS  F: the agenda shows the changed title on that day (2026-10-15)  = E5 weeklyX
+PASS  F: … on that day only: the changed title appears once in the whole agenda  = 1
+PASS  F: … that day no longer shows the series' own instance    = 0
+PASS  F: … and the series' other nine days keep the series' title  = 9
+--- G: "this and following" from the fifth
+the master after the split: Row: 0 _id=313, title=E5 weekly, rrule=FREQ=WEEKLY;UNTIL=20261029T235959Z
+PASS  G: it sets UNTIL on the master (the query shows it)         contains [UNTIL=]
+the new master: Row: 0 _id=316, title=E5 weeklyT, rrule=FREQ=WEEKLY;COUNT=6, dtstart=1793318400000, original_id=NULL
+PASS  G: … and creates a new master — one new repeating row starting at the fifth occurrence  = 1
+PASS  G: … a master, not an exception (original_id NULL)        contains [original_id=NULL]
+RECORD  G: the old master's and the new master's instances after the split (provider)  3 + exception 1 / new 6
+PASS  G: … the old master's last instance is the fourth (nothing of it at or after the fifth)  = 0
+PASS  G: … the fourth still stands                              = 1
+--- H: "delete all" removes the master and every instance
+PASS  H: the prompt offers all                                    = yes
+PASS  H: the master is removed (no live events row)               = 0
+PASS  H: … and every instance of it                             = 0
+PASS  H: … the changed occurrence's instance too (it was the series')  = 0
+RECORD  H: rows left that name the old master (any state)           No result found.;
+      cagenda_walk: 26 (date, event) rows after 13 swipe(s)
+PASS  H: … and the Agenda lists no row of the deleted series    = 0
+--- restore (r3 V10): every event the row inserted or created, by id
+      ids made by the row: 311,312,313,314,315,316
+PASS  restore: none of the row's events is left (any state)       = 0
+PASS  restore: the count of Tessera's events equals the count before the row  = 0
+------------------------------------------------------------------------------
+E5: 40 passed, 3 failed, 3 recorded
