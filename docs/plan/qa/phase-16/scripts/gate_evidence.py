@@ -34,6 +34,16 @@ if os.path.exists(rt):
             rerun[row] = why.strip()
 
 
+# E21/partials.txt: a row whose run failed only in one part, with that part run again alone as its own row.
+partials = {}
+pt = os.path.join(QA, "E21", "partials.txt")
+if os.path.exists(pt):
+    for line in open(pt, encoding="utf-8"):
+        if line.strip() and not line.startswith("#"):
+            row, base, part, end, why = line.rstrip("\n").split("\t")
+            partials[row] = (base, part, end, why)
+
+
 def builds_for(row):
     if row in rerun:
         return [(GATE, "")]
@@ -87,6 +97,22 @@ for row in ROWS:
         note = " (build %s: %s)" % (ev["apk"][:8], why[0][:110]) if why and not ev["apk"].startswith(GATE) else ""
         print("| %s | `%s/` %s | %s passed, %s failed, %s recorded%s | %s |" % (
             row, ev["dir"], ev["at"], ev["sum"][0], ev["sum"][1], ev["sum"][2], note, "; ".join(others) or "–"))
+    elif row in partials and any(r["dir"] == partials[row][0] for r in rs):
+        base_dir, part, end, why = partials[row]
+        base = [r for r in rs if r["dir"] == base_dir][0]
+        prs = [r for r in runs(part) if any(r["apk"].startswith(w[0]) for w in builds_for(part)) and r["sum"] and r["sum"][1] == "0"]
+        lines = base["text"].splitlines()
+        cut = next((i for i, l in enumerate(lines) if re.search(end, l)), len(lines))
+        late = [l for l in lines[cut:] if l.startswith("FAIL ")]
+        on_build = any(base["apk"].startswith(w[0]) for w in wants)
+        if prs and not late and on_build:
+            print("| %s | `%s/` (the part before `%s` failed there, %d FAIL lines) + `%s/` %s | the rest of the row passed in the first (%s passed); the failed part run again alone: %s passed, %s failed, %s recorded — %s | %s |" % (
+                row, base_dir, end.strip("^ "), base["fails"], prs[-1]["dir"], prs[-1]["at"], base["sum"][0],
+                prs[-1]["sum"][0], prs[-1]["sum"][1], prs[-1]["sum"][2], why[:160], "; ".join(o for o in others if base_dir not in o) or "–"))
+        else:
+            open_rows.append(row)
+            print("| %s | **OPEN** | partial evidence does not hold (part row passed: %s; failures after the part: %d; base on a counted build: %s) | %s |" % (
+                row, bool(prs), len(late), on_build, "; ".join(others) or "none"))
     else:
         open_rows.append(row)
         print("| %s | **OPEN** | no run on %s with 0 failed%s | %s |" % (

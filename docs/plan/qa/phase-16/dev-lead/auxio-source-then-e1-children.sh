@@ -12,6 +12,13 @@ export PATH="$HOME/Android/Sdk/platform-tools:$PATH"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 P16="$(cd "$HERE/.." && pwd)"
 D="$HERE/probe-auxio"; mkdir -p "$D"
+# The centre of the node whose text is $2 in dump $1 ("x y"): the dialog re-lays itself out when the source changes
+# (run 1 tapped Save where it had been and dismissed the dialog unsaved).
+centre() { python3 -c '
+import re, sys
+x = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+m = re.search(r"<node[^>]*text=\"%s\"[^>]*bounds=\"\[(\d+),(\d+)\]\[(\d+),(\d+)\]\"" % re.escape(sys.argv[2]), x)
+print("%d %d" % ((int(m.group(1)) + int(m.group(3))) // 2, (int(m.group(2)) + int(m.group(4))) // 2) if m else "")' "$1" "$2"; }
 state() { adb shell dumpsys media_session | tr -d '\r' | grep -A12 'org.oxycblt.auxio/' | grep -o 'state=PlaybackState {state=[A-Z_]*' | head -1; }
 echo "--- 1. Auxio: Music sources -> System -> Save ($(date -Is))"
 adb shell am force-stop org.oxycblt.auxio
@@ -19,10 +26,12 @@ adb shell am start -W -n org.oxycblt.auxio/.MainActivity > /dev/null 2>&1; sleep
 adb shell input tap 540 1519; sleep 3                       # "Music sources" on the empty library page
 adb shell uiautomator dump /sdcard/qa-auxio.xml > /dev/null 2>&1; adb shell cat /sdcard/qa-auxio.xml > "$D/set-1-dialog.xml"
 grep -q 'text="System"' "$D/set-1-dialog.xml" || { echo "the Music sources dialog did not open; stopping before any tap"; adb shell input keyevent KEYCODE_HOME; exit 5; }
-adb shell input tap 730 902; sleep 1                        # "System"
+adb shell input tap $(centre "$D/set-1-dialog.xml" System); sleep 2
 adb shell uiautomator dump /sdcard/qa-auxio.xml > /dev/null 2>&1; adb shell cat /sdcard/qa-auxio.xml > "$D/set-2-system.xml"
 echo "System checked: $(grep -o 'text="System"[^>]*checked="[a-z]*"' "$D/set-2-system.xml" | grep -o 'checked="[a-z]*"')"
-adb shell input tap 826 1740; sleep 10                      # "Save", then the library loads
+save="$(centre "$D/set-2-system.xml" Save)"; echo "Save at: $save"
+[ -n "$save" ] || { echo "no Save button in the dump; stopping"; adb shell input keyevent KEYCODE_HOME; exit 5; }
+adb shell input tap $save; sleep 12                         # then the library loads
 adb exec-out screencap -p > "$D/set-3-after-save.png"
 adb shell uiautomator dump /sdcard/qa-auxio.xml > /dev/null 2>&1; adb shell cat /sdcard/qa-auxio.xml > "$D/set-3-after-save.xml"
 echo "library shows Zoo Station: $(grep -c 'Zoo Station' "$D/set-3-after-save.xml"); empty-library line still there: $(grep -c 'Your songs will show up here' "$D/set-3-after-save.xml")"
