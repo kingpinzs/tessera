@@ -120,6 +120,19 @@ MUTATIONS = {
             'fun ref() = RawRef(id, account, otherProfile)', 'fun ref() = RawRef(id, account)', MODEL),
     'OP7': ('setMember(): another profile\'s contact looked for by the group\'s account like any other',
             'val raw = raws.firstOrNull { it.otherProfile } ?: raws.firstOrNull { it.account == group.account }', 'val raw = raws.firstOrNull { it.account == group.account }', WRITES),
+    # ---- Link and Unlink with another profile's contact (the lead's ruling on F23)
+    'GA1': ('guard: the other-profile check removed from the aggregation case (Link and Unlink allowed on any contact)',
+            '            write.a.otherProfile -> GuardVerdict.Refused(write.a.id)\n            write.b.otherProfile -> GuardVerdict.Refused(write.b.id)\n', '', GUARD),
+    'GA2': ('guard: only the first raw contact of the pair checked',
+            '            write.b.otherProfile -> GuardVerdict.Refused(write.b.id)\n', '', GUARD),
+    'GA3': ('guard: only the second raw contact of the pair checked',
+            '            write.a.otherProfile -> GuardVerdict.Refused(write.a.id)\n', '', GUARD),
+    'OA1': ('link(): another profile\'s contact looked up like any other (it finds nothing)',
+            '        val a = rawsBehind(contactA)\n        val b = rawsBehind(contactB)\n', '        val a = port.rawContactsOf(contactA)\n        val b = port.rawContactsOf(contactB)\n', WRITES),
+    'OA2': ('unlink(): another profile\'s contact not put to the guard',
+            '        raws.firstOrNull { it.otherProfile }?.let { return aggregate("unlink", label, listOf(it to it), together = false) }\n', '', WRITES),
+    'OA3': ('link / unlink: the guard not asked',
+            'if (pairs.any { PeopleWriteGuard.check(PeopleWrite.Aggregation(it.first, it.second, together), policy) is GuardVerdict.Refused }) {', 'if (false) {', WRITES),
 }
 
 def run(classes):

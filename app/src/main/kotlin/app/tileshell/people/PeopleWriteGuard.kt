@@ -82,7 +82,10 @@ sealed interface PeopleWrite {
     /** Updating a `Contacts` column that syncs upstream (STARRED, for example): a write to every raw contact behind it. */
     data class ContactColumn(val column: String, val raws: List<RawRef>) : PeopleWrite
 
-    /** Link (`TYPE_KEEP_TOGETHER`) or Unlink (`TYPE_KEEP_SEPARATE`): an `AggregationExceptions` row, local to the phone. */
+    /**
+     * Link (`TYPE_KEEP_TOGETHER`) or Unlink (`TYPE_KEEP_SEPARATE`): an `AggregationExceptions` row, local to the phone.
+     * Allowed between any two raw contacts of this profile, whatever their accounts; never with another profile's.
+     */
     data class Aggregation(val a: RawRef, val b: RawRef, val together: Boolean) : PeopleWrite
 
     /**
@@ -122,8 +125,13 @@ object PeopleWriteGuard {
         is PeopleWrite.DataRow -> one(write.raw, policy)
         is PeopleWrite.DeleteContact -> all(write.raws, policy)
         is PeopleWrite.ContactColumn -> all(write.raws, policy)
-        // AggregationExceptions are local to the phone and reach no account: allowed on any contact.
-        is PeopleWrite.Aggregation -> GuardVerdict.Allowed
+        // AggregationExceptions are local to the phone and reach no account: allowed on any contact of this profile,
+        // read-only or not. Another profile's contact never — an exception across profiles cannot exist.
+        is PeopleWrite.Aggregation -> when {
+            write.a.otherProfile -> GuardVerdict.Refused(write.a.id)
+            write.b.otherProfile -> GuardVerdict.Refused(write.b.id)
+            else -> GuardVerdict.Allowed
+        }
         is PeopleWrite.GroupRow -> when {
             // As a sync adapter People does one thing: it finishes the delete of a group of the phone's own account,
             // which has no adapter to do it. In an account, allowed or not, that is the account's own adapter's work.

@@ -391,12 +391,26 @@ class PeopleWriterTest {
     }
 
     @Test fun linkWithAnotherProfilesContactWritesNothing() {
-        // Link is the one op the guard allows on any contact (Decisions), so this is not the guard's refusal: a
-        // work-profile contact has no raw contact here to keep together with anything.
-        val fake = louAndWade(allowed = everyAccount).apply { otherProfileContacts += workProfileContact }
-        assertEquals(WriteResult.Failed("a contact is gone"), PeopleWrites(fake).link(1, workProfileContact))
-        assertEquals(WriteResult.Failed("nothing is linked"), PeopleWrites(fake).unlink(workProfileContact, -1))
-        assertNothingWritten(fake)
+        // An aggregation exception is allowed on any contact of this profile; one that names another profile's contact
+        // cannot exist, and it is the guard that refuses it — not a raw contact that could not be found.
+        val ops = listOf<Pair<String, (PeopleWrites) -> WriteResult>>(
+            "link 1+-1: refused (not allowed)" to { it.link(1, workProfileContact) },
+            "link -1+1: refused (not allowed)" to { it.link(workProfileContact, 1) },
+            "unlink -1+gone: refused (not allowed)" to { it.unlink(workProfileContact, -1) },
+            // A raw contact the read itself marked as another profile's, whatever account it claims.
+            "link 1+9: refused (not allowed)" to { it.link(1, 9) },
+            "unlink 4+9: refused (not allowed)" to { it.unlink(7, 4) },
+        )
+        for ((line, op) in ops) {
+            val fake = louAndWade(allowed = everyAccount).apply {
+                otherProfileContacts += workProfileContact
+                raw(9, phone, otherProfile = true)
+                raw(4, phone, contact = 7); raw(9, phone, contact = 7, otherProfile = true)
+            }
+            assertEquals(line, WriteResult.Refused, op(PeopleWrites(fake)))
+            assertNothingWritten(fake)
+            assertEquals(listOf(line), fake.lines)
+        }
     }
 
     // ---------------------------------------------------------------------------------------------- SIM

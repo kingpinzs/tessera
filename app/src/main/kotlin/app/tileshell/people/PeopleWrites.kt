@@ -190,11 +190,12 @@ class PeopleWrites(private val port: ContactsPort) {
     /**
      * Link: every raw contact behind [contactA] is kept together with every one behind [contactB]
      * (`TYPE_KEEP_TOGETHER`). Aggregation exceptions are local to the phone and reach no account, so the guard allows
-     * them on any contact — it is still asked. `[people] link <a>+<b>: ok | failed`.
+     * them on any contact of this profile — it is still asked, and refuses another profile's.
+     * `[people] link <a>+<b>: ok | failed | refused (not allowed)`.
      */
     fun link(contactA: Long, contactB: Long): WriteResult {
-        val a = port.rawContactsOf(contactA)
-        val b = port.rawContactsOf(contactB)
+        val a = rawsBehind(contactA)
+        val b = rawsBehind(contactB)
         val label = "${a.firstOrNull()?.id ?: "gone"}+${b.firstOrNull()?.id ?: "gone"}"
         if (a.isEmpty() || b.isEmpty() || contactA == contactB) return linkFailed("link", label, "a contact is gone")
         return aggregate("link", label, a.flatMap { x -> b.map { y -> x to y } }, together = true)
@@ -202,10 +203,12 @@ class PeopleWrites(private val port: ContactsPort) {
 
     /** Unlink: [rawId] is kept separate from every other raw contact behind [contactId] (`TYPE_KEEP_SEPARATE`). */
     fun unlink(contactId: Long, rawId: Long): WriteResult {
-        val raws = port.rawContactsOf(contactId)
+        val raws = rawsBehind(contactId)
         val one = raws.firstOrNull { it.id == rawId }
         val others = raws.filter { it.id != rawId }
         val label = "$rawId+${others.firstOrNull()?.id ?: "gone"}"
+        // Another profile's contact has nothing linked here: the guard is asked about it as what it is, and refuses.
+        raws.firstOrNull { it.otherProfile }?.let { return aggregate("unlink", label, listOf(it to it), together = false) }
         if (one == null || others.isEmpty()) return linkFailed("unlink", label, "nothing is linked")
         return aggregate("unlink", label, others.map { one to it }, together = false)
     }
@@ -213,7 +216,7 @@ class PeopleWrites(private val port: ContactsPort) {
     private fun aggregate(word: String, label: String, pairs: List<Pair<RawRef, RawRef>>, together: Boolean): WriteResult {
         val policy = port.policy()
         if (pairs.any { PeopleWriteGuard.check(PeopleWrite.Aggregation(it.first, it.second, together), policy) is GuardVerdict.Refused }) {
-            port.line("$word $label: failed")
+            port.line("$word $label: refused (not allowed)")
             return WriteResult.Refused
         }
         if (!port.mayWrite()) {
@@ -346,12 +349,9 @@ class PeopleWrites(private val port: ContactsPort) {
     // ---------------------------------------------------------------------------------------------- inside
 
     /**
-     * The raw contacts behind a contact, for an op the guard decides per raw contact. Another profile's contact has
-     * none in this profile's provider: it is named as what it is ([OtherProfile.REF]), so the guard's "another
-     * profile's contact never" refuses it, rather than the op failing because nothing was found.
-     *
-     * Link and Unlink do not use this: the guard allows an aggregation exception on any contact (Decisions), so for
-     * them a contact with no raw contact here stays "gone" and nothing is written.
+     * The raw contacts behind a contact. Another profile's contact has none in this profile's provider: it is named as
+     * what it is ([OtherProfile.REF]), so the guard's "another profile's contact never" refuses it, rather than the op
+     * failing because nothing was found.
      */
     private fun rawsBehind(contactId: Long): List<RawRef> =
         if (port.isOtherProfile(contactId)) listOf(OtherProfile.REF) else port.rawContactsOf(contactId)
