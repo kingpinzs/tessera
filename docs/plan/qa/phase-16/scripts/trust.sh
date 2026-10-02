@@ -74,9 +74,11 @@ if want P; then
   done
   assert_absent "P1: the photo under the grant is not readable" "OK" "$(probe_get 'the photo under it')"
   assert_eq "P1: no persisted grant" "0" "$(probe_get 'persisted grants')"
-  G="$(grant_lines)"; printf '%s\n' "$G" > "$ROW_DIR/P1-grants.txt"; note "grants: $G"
-  assert_absent "P1: no write grant in dumpsys" "mode=0x3" "$G"
-  assert_absent "P1: nothing persistable in dumpsys" "persistable=0x1" "$G"
+  # RECORDED, not asserted (gate review B, note 3): by now the probe has finished and the system has dropped its
+  # grant, so dumpsys has nothing to say either way. "One read of one row" is the probe's own lines above, read while
+  # it held the grant: the row is readable, every table and the write, delete and persist are refused.
+  G="$(grant_lines)"; printf '%s\n' "$G" > "$ROW_DIR/P1-grants.txt"
+  record "P1: grants to the probe in dumpsys after it finished" "${G:-none}"
   assert_contains "P1: Ann still exists and is unchanged" "display_name=Ann Lee" "$(q "content query --uri $RAW --projection _id:display_name:starred --where \"_id=$ANN\"")"
   assert_contains "P1: the line names one contact URI" "[people] pick: one contact URI granted (read)" "$(ring_since "$MARK")"
   c6; ensure_start
@@ -131,7 +133,7 @@ if want P; then
   fi
   assert_contains "P4: the shell says there was no caller" "[people] pick: no caller to return a result to; the list was opened" "$(ring_since "$MARK")"
   absent_in "P4: no 'granted' line" "URI granted (read)" "$(ring_since "$MARK")"
-  assert_eq "P4: no grant to the probe was added" "$BEFORE_G" "$(grants_to_probe)"
+  record "P4: grants to the probe in dumpsys before / after (the probe's own lines above are the proof)" "$BEFORE_G / $(grants_to_probe)"
   c6; ensure_start
 
   # ---- P5: no caller at all (a plain startActivity)

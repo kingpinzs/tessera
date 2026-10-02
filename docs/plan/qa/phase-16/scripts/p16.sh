@@ -20,6 +20,8 @@ P01S="$(cd "$P16/../phase-01/scripts" && pwd)"
 P12S="$(cd "$P16/../phase-12/scripts" && pwd)"
 P14S="$(cd "$P16/../phase-14/scripts" && pwd)"
 BASELINE="$P16/baseline_layout.json"
+# Every include a phase 16 driver may source is stamped in the log's header (lib.sh row_begin; gate review B, note 7).
+STAMP_FILES="$P16/scripts/p16.sh $P16/scripts/cal_lib.sh $P16/scripts/people_lib.sh $P16/scripts/trust_lib.sh $P16/scripts/cal_geo.py $P16/scripts/cal_px.py"
 CALENDAR_ACTIVITY="app.tileshell/.calendar.CalendarActivity"
 PEOPLE_ACTIVITY="app.tileshell/.people.PeopleActivity"
 DRV_RUNNER="app.tileshell.qa.imefixture.test/androidx.test.runner.AndroidJUnitRunner"
