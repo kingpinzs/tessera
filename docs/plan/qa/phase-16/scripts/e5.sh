@@ -159,6 +159,35 @@ copen; ctap cal_bar:today 1.2; cview agenda 2.5
 cagenda_walk "$ROW_DIR/H-agenda.tsv"
 assert_eq "H: … and the Agenda lists no row of the deleted series" "0" "$(awk -F'\t' -v a="$SERIES" -v b="$EXID" '$2 == a || $2 == b' "$ROW_DIR/H-agenda.tsv" | wc -l | tr -d ' ')"
 
+# ----------------------------------------------------------------------------------------------- I: a scoped delete with no occurrence
+# The lead's added step (fix-round.md F29, found by the builder as a data-loss defect and fixed in build 3c1ad1e0): a
+# weekly Tessera series opened by a VIEW with NO occurrence extras, Delete → "this occurrence" — it is about the first
+# occurrence, never the whole series.
+log "--- I: a series page opened with no occurrence: Delete → this occurrence leaves the series (F29)"
+I0="$(clocal_ms "$(cdate 1)" 08:00)"
+ISER="$(cmkseries "$TESS" 'E5 scoped' "$I0" 'FREQ=WEEKLY;COUNT=4' PT1H)"; MADE="$MADE $ISER"
+cinstance_times "$I0" $(( I0 + 5 * WEEK )) "$ISER" > "$ROW_DIR/I-instances.txt"
+assert_eq "I: a weekly Tessera series of four" "4" "$(grep -c . "$ROW_DIR/I-instances.txt")"
+read -r IB1 IE1 <<< "$(sed -n 1p "$ROW_DIR/I-instances.txt")"
+adb shell am start -W -n "$CALENDAR_ACTIVITY" -a android.intent.action.VIEW -d "content://com.android.calendar/events/$ISER" < /dev/null > "$ROW_DIR/I-view.out" 2>&1; sleep 2.5
+dump_ui "$ROW_DIR/I-page.xml"
+assert_eq "I: a VIEW with no extras opens the series' page (cal_event_page:<id>)" "yes" "$(has_node "$ROW_DIR/I-page.xml" "cal_event_page:$ISER")"
+record "I: the time the page shows (no occurrence was named)" "$(ctext "$ROW_DIR/I-page.xml" "cal_event_time:$ISER")"
+ctap cal_event_action:delete 1.5; dump_ui "$ROW_DIR/I-prompt.xml"
+assert_eq "I: Delete offers \"this occurrence\"" "yes" "$(has_node "$ROW_DIR/I-prompt.xml" cal_occurrence:this)"
+I_MARK="$(ring_mark)"
+ctap cal_occurrence:this 3
+log "$(cline "$(ring_since "$I_MARK")" '[calendar] write ')"
+assert_eq "I: the master row is still there" "1" "$(cevent_count "_id=$ISER AND deleted=0")"
+assert_contains "I: … its rule untouched" "rrule=FREQ=WEEKLY;COUNT=4" "$(cevents rrule "_id=$ISER")"
+IEX="$(cevents _id:original_id:originalInstanceTime:eventStatus "original_id=$ISER")"; log "exception rows: $IEX"
+assert_eq "I: one exception row" "1" "$(printf '%s\n' "$IEX" | grep -c '_id=')"
+assert_contains "I: … cancelled (eventStatus 2), for the first occurrence" "originalInstanceTime=$IB1, eventStatus=2" "$IEX"
+MADE="$MADE $(printf '%s\n' "$IEX" | sed -n 's/^Row: [0-9]* _id=\([0-9]*\),.*/\1/p' | head -1)"
+cinstance_times "$I0" $(( I0 + 5 * WEEK )) "$ISER" > "$ROW_DIR/I-instances-after.txt"
+assert_eq "I: the other occurrences are still there (three instances left)" "3" "$(grep -c . "$ROW_DIR/I-instances-after.txt")"
+assert_eq "I: … exactly the second, third and fourth" "$(sed -n '2,4p' "$ROW_DIR/I-instances.txt")" "$(cat "$ROW_DIR/I-instances-after.txt")"
+
 # ----------------------------------------------------------------------------------------------- restore
 log "--- restore (r3 V10): every event the row inserted or created, by id"
 c6

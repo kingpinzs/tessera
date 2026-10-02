@@ -33,6 +33,11 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 QAR="$(cd "$QA/.." && pwd)"
 OUT="$QA/E9"; mkdir -p "$OUT"
 PIN=1234
+# E9_LEGS=A,W runs only those legs (a narrow re-run after a failed one, as the owner's ruling of 2026-10-01 allows); the
+# children (J6, J6b) are then not run again either. The log says which legs ran. Unset = the whole row.
+LEGS="${E9_LEGS:-all}"
+[ "$LEGS" = all ] || E9_CHILDREN=0
+leg() { [ "$LEGS" = all ] || case ",$LEGS," in *",$1,"*) return 0;; *) return 1;; esac; }
 
 # =============================================================================================== children
 run_row() { # phase row script label
@@ -49,8 +54,22 @@ run_row() { # phase row script label
   [ -e "$keep" ] && mv "$keep" "$dir"
   adb shell am force-stop app.tileshell; adb shell input keyevent KEYCODE_HOME; sleep 5
 }
+# j6.sh's own restore deletes nothing (its `content delete … --where "title='standup'"` reaches the device shell as
+# separate words), so the event of one run is still there for the next: every "standup" is purged here, under the
+# device lock, before each child and before the row.
+purge_standup() {
+  (
+    exec 9>"$DEVICE_LOCK"
+    for i in $(seq 1 60); do flock -n 9 && break; sleep 10; done
+    cpurge "title='standup'"
+    echo "standup events after the purge ($1): $(cevent_count "title='standup'")" >> "$OUT/children-purge.txt"
+  )
+}
 if [ "${E9_CHILDREN:-1}" = "1" ]; then
+  : > "$OUT/children-purge.txt"
+  purge_standup "before J6"
   run_row phase-03 J6 j6.sh J6
+  purge_standup "after J6"
   # The Birthdays calendar for the second run: the row's own contacts, Ann given a birthday (E17's insert). Under the
   # device lock, which is released before the child takes it.
   (
@@ -65,6 +84,7 @@ if [ "${E9_CHILDREN:-1}" = "1" ]; then
     cals >> "$LOG"
   )
   run_row phase-03 J6 j6.sh J6b
+  purge_standup "after J6b"
 fi
 
 # =============================================================================================== the row
@@ -99,17 +119,22 @@ if [ "${E9_CHILDREN:-1}" = "1" ]; then
   assert_contains "J6b: the Birthdays calendar was present before the child ran (the fixture's log)" "account_name=Tessera Birthdays," "$(cat "$OUT/children-fixtures.txt" 2>/dev/null)"
   # shellcheck disable=SC1091
   . "$OUT/children-fixtures.env"
-else
+elif [ "$LEGS" = all ]; then
   record "children" "SKIPPED (E9_CHILDREN=0): a development run, not the gate's"
   people_fixtures_up
   cbirthday "$ANN" "1990-$(adb shell date +%m-%d | tr -d '\r')"; sleep 5
+else
+  record "legs run" "$LEGS ONLY — a narrow re-run; the children and the other legs stand on the row's earlier run"
 fi
 c6; ensure_start
 TESS="$(tessera_id)"
 assert_ne "precondition: Tessera exists" "" "$TESS"
+assert_eq "precondition: no standup event is left by the children (purged; j6.sh's own restore deletes nothing)" "0" "$(cevent_count "title='standup'")"
 BEFORE="$(ctessera_count)"
+REM0="$(reminders_json)"
 
 # ----------------------------------------------------------------------------------------------- B: Birthdays present
+if leg B; then
 log "--- B: with a Birthdays calendar present, Tess's add still lands in Tessera"
 BDAY="$(cbirthdays_cal)"
 assert_ne "B: the row's own fixture contact has a birthday and Tessera Birthdays lists" "" "$BDAY"
@@ -128,8 +153,10 @@ q "content delete --uri $DATA --where \"raw_contact_id=$ANN AND mimetype='vnd.an
 sleep 3
 cal_fixtures_down
 assert_eq "B: then Tessera is the only calendar (no fixture calendar)" "1" "$(cals | grep -c '_id=')"
+fi
 
 # ----------------------------------------------------------------------------------------------- A: the typed add
+if leg A; then
 log "--- A: the typed \"add a calendar event called dentist tomorrow at 2 pm\""
 record "the device's time at this leg (the dentist is in Tess's 24-hour read after 14:00 only)" "$(q "date '+%Y-%m-%d %H:%M %Z'")"
 NOW="$(device_ms)"; CK=$(( (NOW / 60000 + 60) * 60000 ))
@@ -148,25 +175,46 @@ assert_contains "A: … with Tessera's id (read from the account_name=Tessera qu
 assert_contains "A: … tomorrow at 2 pm" "dtstart=$(clocal_ms "$(cdate 1)" 14:00)" "$DROW"
 assert_eq "A: the reply (reply_since the MARK) \"Added to your calendar.\"" "Added to your calendar." "$A_REPLY"
 DENTIST="$(event_id dentist "$TESS")"
+if [ -z "$DENTIST" ]; then
+  # The title clause above has failed; the legs below go on with the row Tess did write, so they test their own clauses.
+  DENTIST="$(q "content query --uri $EVENTS --projection _id:title --where \"title LIKE '%dentist%' AND calendar_id=$TESS AND deleted=0\" --sort '_id DESC'" | sed -n 's/.*_id=\([0-9]*\),.*/\1/p' | head -1)"
+  record "A: no event is titled \"dentist\"; the row Tess wrote, used by the legs below" "$(cevents _id:title "_id=${DENTIST:-0}" | sed 's/^Row: 0 //')"
+fi
+assert_ne "A: Tess wrote an event (its id is known to the legs below)" "" "$DENTIST"
 ring_since "$TMARK" > "$ROW_DIR/A-slice.txt"
 tess_close
+fi
 
 # ----------------------------------------------------------------------------------------------- W: the read
+if leg W; then
 log "--- W: the typed \"what is on my calendar\""
 tess_ask "what is on my calendar" 5
 W_REPLY="$(reply_since "$TMARK")"; log "Tess: [$W_REPLY]"
 assert_contains "W: it names the events inserted for the test — the driver's \"E9 checkup\"" "E9 checkup" "$W_REPLY"
-assert_contains "W: … and \"dentist\"" "dentist" "$W_REPLY"
+# Tess reads the next 24 hours (ActionLayer.calendarToday). "Tomorrow at 2 pm" is inside them only when the request is
+# made after 14:00; before that hour the dentist is rightly not named (clauses-open.tsv).
+DSTART="$(cevents dtstart "_id=${DENTIST:-0}" | sed -n 's/.*dtstart=\([0-9]*\).*/\1/p')"
+if [ -n "$DSTART" ] && [ $(( DSTART - $(device_ms) )) -lt 86400000 ]; then
+  assert_contains "W: … and \"dentist\" (it starts inside Tess's 24 hours)" "dentist" "$W_REPLY"
+else
+  record "W: the dentist starts $(( (${DSTART:-0} - $(device_ms)) / 3600000 )) h from now — outside the 24 hours Tess reads" "tomorrow 14:00, asked at $(q "date '+%H:%M'")"
+  assert_absent "W: … and not \"dentist\", which starts outside Tess's 24 hours at this hour" "dentist" "$W_REPLY"
+fi
 tess_close
+fi
 
 # ----------------------------------------------------------------------------------------------- V: the Calendar app
+if leg V; then
 log "--- V: the Calendar app's Day view lists the same event"
 copen_day "$(clocal_ms "$(cdate 1)" 12:00)"; dump_ui "$ROW_DIR/V-day.xml"
 assert_eq "V: the Day view is showing" "true" "$(cattr "$ROW_DIR/V-day.xml" cal_view_mode:day selected)"
-assert_eq "V: it lists the same event (cal_event_title:<dentist id>)" "dentist" "$(ctext "$ROW_DIR/V-day.xml" "cal_event_title:$DENTIST")"
+assert_eq "V: it lists the same event (cal_event:<its id>)" "yes" "$(has_node "$ROW_DIR/V-day.xml" "cal_event:${DENTIST:-none}")"
+assert_eq "V: … under the title the provider holds" "$(cevents title "_id=${DENTIST:-0}" | sed 's/^Row: 0 title=//')" "$(ctext "$ROW_DIR/V-day.xml" "cal_event_title:${DENTIST:-none}")"
 c6
+fi
 
 # ----------------------------------------------------------------------------------------------- D: Tess's delete
+if leg D; then
 log "--- D: Tess's delete, the allowed case (r3 D1)"
 tess_ask "delete the event dentist"
 tess_card "$ROW_DIR/D-card.xml"; screencap "$ROW_DIR/D-card.png"
@@ -174,12 +222,14 @@ assert_eq "D: the Delete card (cortana_card:delete_confirm)" "yes" "$(has_node "
 assert_eq "D: … nothing is deleted before the tap" "1" "$(cevent_count "_id=${DENTIST:-0} AND deleted=0")"
 tess_confirm "$ROW_DIR/D-card.xml"
 assert_eq "D: cortana_card_button:confirm → the reply \"Deleted.\"" "Deleted." "$(reply_since "$CMARK")"
-assert_eq "D: the events row is gone" "0" "$(cevent_count "_id=${DENTIST:-0}")"
+assert_eq "D: the events row is gone" "0 known" "$(cevent_count "_id=${DENTIST:-0}") $([ -n "$DENTIST" ] && echo known || echo unknown)"
 D_SLICE="$(ring_since "$TMARK")"; printf '%s\n' "$D_SLICE" > "$ROW_DIR/D-slice.txt"
 assert_contains "D: [calendar] write delete event=<id>: ok — naming a Tessera event (the dentist's id)" "[calendar] write delete event=$DENTIST: ok" "$D_SLICE"
 tess_close
+fi
 
 # ----------------------------------------------------------------------------------------------- G: the gated commands
+if leg G; then
 log "--- G: phase 03 E10's gated calendar commands, typed, over the keyguard"
 EV0="$(cevent_count "deleted=0")"
 adb shell locksettings set-disabled false >/dev/null 2>&1
@@ -210,8 +260,10 @@ assert_eq "G: restored — the PIN cleared and the lock screen disabled again" "
 assert_eq "G: … the device awake" "Awake" "$(wake_device)"
 adb shell wm dismiss-keyguard >/dev/null 2>&1; sleep 1
 ensure_start
+fi
 
 # ----------------------------------------------------------------------------------------------- N: by name
+if leg N; then
 log "--- N: phase 03 E7 (text / call by name) and E14 (person reminder), typed, on provision.sh's Mom"
 assert_contains "N: the fixture contact Mom (5551234567) exists" "display_name=Mom" "$(q "content query --uri content://com.android.contacts/data/phones --projection display_name:data1")"
 SENT0="$(sms_sent)"; CALLS0="$(calls)"
@@ -246,14 +298,18 @@ adb emu sms send 5551234567 hi >/dev/null 2>&1
 sleep 14
 adb shell dumpsys notification --noredact > "$ROW_DIR/N-notifications.txt" 2>/dev/null
 assert_ne "N: a text received from Mom's number fires the person reminder (the shell's notifications grew)" "$NB" "$(shell_notifs)"
-assert_eq "N: … and it leaves the active list" "$R0" "$(reminder_count)"
+assert_eq "N: … and it is done with: the reminder reads completed in Tess's store" "true" "$(reminders_json | python3 -c '
+import json, sys
+try: print(str(next(r["completed"] for r in reversed(json.load(sys.stdin)["reminders"]) if r["text"] == "ask about dinner")).lower())
+except Exception as e: print("unreadable")')"
+record "N: Tess's reminder store before the row / after (a fired person reminder stays, completed — as phase 03 E14 leaves its own)" "$(printf '%s' "$REM0" | grep -o '"id"' | wc -l | tr -d ' ') / $(reminder_count) reminder(s)"
 sleep 3; adb shell cmd statusbar collapse >/dev/null 2>&1
 
 # ----------------------------------------------------------------------------------------------- restore
 log "--- restore (r3 V10)"
 c6
-cpurge "title IN ('dentist','standup','E9 checkup')"
-assert_eq "restore: the row's events are deleted" "0" "$(cevent_count "title IN ('dentist','standup','E9 checkup')")"
+cpurge "title IN ('dentist','standup','E9 checkup') OR title LIKE '%dentist%'"
+assert_eq "restore: the row's events are deleted" "0" "$(cevent_count "title IN ('dentist','standup','E9 checkup') OR title LIKE '%dentist%'")"
 assert_eq "restore: the birthday row is removed" "0" "$(cbirthdays_on_phone)"
 cal_fixtures_down
 people_fixtures_down
@@ -262,3 +318,5 @@ assert_eq "restore: no new crash of the shell during the row" "$CRASH0" "$(ccras
 adb shell am force-stop app.tileshell; adb shell input keyevent KEYCODE_HOME; sleep 4   # clears the fired reminder's notification
 ensure_start
 row_end
+fi
+

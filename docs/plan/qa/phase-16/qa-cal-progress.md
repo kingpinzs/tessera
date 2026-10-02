@@ -1,48 +1,53 @@
 # Phase 16 QA — the Calendar rows: running progress (the QA row-driver writer's own file)
 
-STOPPED 2026-10-01 about 18:10 MDT on the lead's order (the account's usage limit). Everything below is the state at the stop.
-
-Build under test: `app/build/outputs/apk/debug/app-debug.apk` md5 686506a7a7936b2e. Every run listed logs `apk match yes (686506a7a7936b2e)`.
+RESUMED 2026-10-01 19:57 MDT on the FIX BUILD: `app/build/outputs/apk/debug/app-debug.apk` md5 **3c1ad1e0e65bd919** (commit 6e524e56). Only runs on this build count for the gate; every folder named `E<n>-build-686506a7-…` is a kept run on the earlier build.
 Include: `scripts/cal_lib.sh` (helpers prefixed `c` / `tess_`; EDGE sub-steps `edge_C01`…`edge_C17`). Pixel helpers: `scripts/cal_px.py` (E8, E18), `scripts/cal_geo.py` (E19).
-Run folders: `E<n>/` is the row's last run; an earlier run is kept beside it as `E<n>-run<k>-<what it found>`.
+Run folders: `E<n>/` is the row's last run on the fix build; an earlier run on it is `E<n>-run<k>-<what it found>`.
+Order (the lead's): E22, E23, E24, E6; second runs of E3, E4, E5, E17, E18; E9, E19, E8, E7; EDGE C01–C17; E21.
 
-## Where each row stands
+**OWNER'S RULING 22:14 (relayed by the lead): "Only test the fixes not EVERY THING" — no second pass; a row that passed ONCE on 3c1ad1e0 is done and is not run again; EDGE is one grouped run of C01–C17 plus single re-runs of what fails; then the E21 lines.**
 
-| Row | Driver | Runs so far (PASS / FAIL / recorded) | Passed alone, in a row | What is next |
-|---|---|---|---|---|
-| E3 | `scripts/e3.sh` | run 1 67/1/1 (driver helper), run 2 68/0/1, run 3 `E3/` 68/0/1 | **2** | nothing |
-| E4 | `scripts/e4.sh` | run 1 38/3/1 (pinned tile compared at different sizes — see clauses-open), run 2 44/0/3, run 3 `E4/` 44/0/3 | **2** | nothing (owner's call on the MEDIUM pinned tile) |
-| E5 | `scripts/e5.sh` | run 1 40/3/3 (driver: agenda walk flung past day groups), run 2 `E5/` 43/0/3 | 1 | one more run |
-| E22 | `scripts/e22.sh` | run 1 122/0/1 — BEFORE leg L (fix-round F15) was added; kept as `E22-run1-pass-before-leg-L-was-added` | 0 with leg L | run it (leg L has never run); if leg L yields `write update … failed refused (not allowed)`, move that alternative from `E21/notrun.tsv` to `producers.tsv` |
-| E23 | `scripts/e23.sh` | run 1 58/1/2 (driver: no calendar_sync.json after pm clear read as "(no file)"; fixed) kept as `E23-run1-driver-no-sync-file-after-pm-clear` | 0 | run twice |
-| E24 | `scripts/e24.sh` | run 1 134/3/6 (driver: the copy's master row was matched by the exception's `original_id=`; fixed) kept as `E24-run1-driver-series-rows-matched-by-original-id`. The product rows were right. | 0 | run twice |
-| E17 | `scripts/e17.sh` | run 1 `E17/` 65/0/5, at 17:35 MDT | 1 | run again AFTER 18:00 MDT (see "time of day" below) |
-| E18 | `scripts/e18.sh` | run 1 `E18/` 61/0/4 (finished 18:12 MDT, the last thing run) | 1 | one more run |
-| E6 | `scripts/e6.sh` (legs a–e; leg (e) with the lead's two guards) | never run | 0 | run; leg (e) is expected to FAIL until the Q-16-4 build (report so, no defect file) |
-| E9 | `scripts/e9.sh` | never run | 0 | run; children J6, J6b run before row_begin |
-| E8 | `scripts/e8.sh` | never run | 0 | run |
-| E7 | `scripts/e7.sh` | never run (insert speed probed: 160 `content insert` in 11.3 s with 16 workers → about 6 min for 5,000) | 0 | run |
-| E19 | `scripts/e19.sh` + `scripts/cal_geo.py` | never run on the device. `cal_geo.py` was developed against exploration captures (not evidence) | 0 | run; expect FAILs on ink positions (below) → defect files |
-| EDGE C01–C17 | all 17 `edge_C*` functions are in `scripts/cal_lib.sh` | none has ever run | – | `EDGE_ONLY=C01,… bash scripts/edge.sh`; expect driver fixes |
-| E21 share | NOT written | – | – | `E21/producers.tsv`, `E21/notrun.tsv` (list below) |
+## Where each row stands on the fix build (PASS / FAIL / recorded)
 
-## Findings so far (none is a defect file yet — no product clause has failed in a kept run)
-- **E24 / F26 (recorded, as the lead asked):** after the Sync of a weekly series (COUNT=5) with one retitled occurrence, the provider's own `instances` for the COPY in Personal holds **1** row over the series' weeks (the exception, "E24 weeklyX"), not 5. In `E24-run1-…/W-copy-instances.txt`. The shell's own views showed each occurrence once.
-- **E24:** the AOSP Calendar posted no notification of its own for the synced event's alerts (the copy's alert row stayed state 0); recorded.
-- **E4:** a Calendar tile pinned from the app list is MEDIUM and shows only the day face; event text is drawn on WIDE tiles only (phase 01's rule). clauses-open.tsv, for the owner.
-- **Diagnostics lines in the code that neither the spec nor the Change Log names** (a finding for the lead; they need a producer or a notrun line if E21 is to cover them): `edit <id>: not a Tessera event, opened read-only`; `instances query failed`; `alerts query failed`; `sync mappings dropped (the local event is gone): […]`; `can sync to: n calendar(s) no longer on this phone left the list`; `the provider cannot be observed`; `reminder poke: nothing read (READ_CALENDAR)`; `birthdays: not synced (<reason>)` (three forms); `permission request <p>: granted|denied`; `the permission will not be asked again: opening the app's settings`; `CalendarActivity created`; `open <action> -> <route>`; `calendar_sync.json could not be read` / `could not be written`; `[motion] appbar_menu`.
-- **E19, predicted from the exploration captures (NOT evidence, the row has not run):** measured at the ink's edge as R11 measured, the pane's account-header chevron starts at x 16.33 (R11: 14), and text sits right of R11's x by its glyph's side bearing (title "Geo…" 93.67 against 92.5; the text BOX is at 92.67). The editor's Title / Location boxes are drawn x 20–340 while its pick boxes are x 12–201. Motions read 190 ms (drop-down, 200 ± 17) and 264 ms (day page, 250 ± 17).
+| Row | Runs on 3c1ad1e0, oldest first (PASS / FAIL / recorded) | Passes (ONE is enough — the ruling of 22:14) | Note |
+|---|---|---|---|
+| E22 | `E22/` 134/0/4 (20:59) | 1 | leg L (F15) ran: `write update … failed refused (not allowed)` |
+| E23 | `E23/` 59/0/2 (21:27) | 1 |  |
+| E24 | `E24-run1-standup-crossed-midnight/` 135/2/6 (21:38); `E24/` 137/0/7 (23:25) | 1 | run 1 failed on a midnight-crossing fixture (driver made time-proof, clauses-open); run 2 passes |
+| E6 | `E6-run1-leg-e-precondition-failed-pm-clear-restarts-the-shell/` 62/9/8 (21:47); `E6/` 73/0/8 (23:34) | 1 | run 1: leg (e) precondition failed (pm clear restarts the shell); run 2 passes all five legs (the driver uninstalls instead — clauses-open) |
+| E3 | `E3/` 68/0/1 (21:59) | 1 |  |
+| E4 | `E4/` 44/0/3 (22:02) | 1 |  |
+| E5 | `E5/` 52/0/4 (22:33) | 1 | leg I (F29) passes |
+| E17 | `E17/` 65/0/6 (22:43) | 1 | fixture time-proof (the UTC date); run at 22:44 MDT |
+| E18 | `E18-run1-killed-mid-leg-C-by-my-runner/` unfinished (22:48); `E18/` 61/0/4 (23:45) | 1 | run 1 was KILLED mid-leg by my own runner (not a result); permissions re-granted at 22:59 |
+| E9 | `E9-run1-add-title-keeps-the-phrase/` 54/13/2 (23:56) | 0 | run 1 FAILED: product defect D-E9-1 (title keeps "a calendar event called") plus driver faults, fixed; to run ONCE on fix build 2 |
+| E19 | `E19-run1-ink-positions-and-a-leftover-event-today/` 224/12/21 (00:02) | 0 | run 1 FAILED: product defect D-E19-1 (ink positions: pane chevron 16.33, names 63.33, titles 94.33) plus a leftover event today; to run ONCE on fix build 2 |
+| E8 | `E8/` 33/0/4 (00:04) | 1 | passes (DST night 3.00 h) |
+| E7 | `E7-run1-janky-frames-14-percent/` 40/1/3 (00:06) | 0 | run 1: 40 pass, 1 FAIL — product defect D-E7-1 (14.19 % janky frames, bound 5 %); awaiting the lead's ruling |
+| EDGE C01–C17 | none has run | – | `EDGE_ONLY=…` runs, then the lead's full EDGE |
+| E21 share | not written (draft list in the scratchpad: qacal-e21-producers.tsv) | – | write after the rows have slices |
+
+## Defect files of mine
+- `defects/D-E9-1.md` — Tess's typed "add a calendar event called dentist …" writes the title "a calendar event called dentist". Lead: fixed in commit 33944662 (fix build 2).
+- `defects/D-E19-1.md` — at the ink, the pane's chevron (16.33 vs 14), the names "MoNa Events" / "mark guim" (63.33 vs 62) and titles (94.33 vs 92.5) sit right of R11. Lead: ruled a product miss, fixed in dacca941 (fix build 2).
+- `defects/D-E7-1.md` — 14.19 % janky frames over E7's run (bound 5 %). Lead told 00:20; no ruling yet.
+
+## Findings recorded, not defects
+- **E24 / F26:** the provider's `instances` for the synced series' COPY in Personal holds 1 row over the series' weeks, not 5 (`E24/W-copy-instances.txt`). The shell's own views show each occurrence once.
+- **E24 / E6:** the AOSP Calendar posts no notification of its own for these alerts on this AVD (recorded; the spec expected a double).
+- **E4:** a Calendar tile pinned from the app list is MEDIUM and shows only the day face (phase 01 draws event text on WIDE tiles only). clauses-open.tsv, for the owner.
+- **E6:** `pm clear` does not leave the shell stopped — the system restarts it within 3 s — so leg (e) uninstalls instead (clauses-open.tsv).
+- **j6.sh (phase 03, not mine):** its restore's `content delete … --where "title='standup'"` deletes nothing; every J6 run leaves a `standup` event in Tessera. e9.sh purges it around its children.
+- **The editor:** Title / Location boxes are drawn x 20–340, the pick boxes x 12–201 (recorded in E19; no clause names the x).
+- **Diagnostics lines in the code that neither the spec nor the Change Log names:** `edit <id>: not a Tessera event, opened read-only`; `instances query failed`; `alerts query failed`; `sync mappings dropped (the local event is gone): […]`; `can sync to: n calendar(s) no longer on this phone left the list`; `the provider cannot be observed`; `reminder poke: nothing read (READ_CALENDAR)`; `birthdays: not synced (<reason>)`; `permission request <p>: granted|denied`; `the permission will not be asked again: …`; `CalendarActivity created`; `open <action> -> <route>`; `calendar_sync.json could not be read / written`; `[motion] appbar_menu`.
 
 ## Time-of-day dependencies in the spec's own fixtures (tell the lead)
 - E4: the "tomorrow 09:00" Standup is inside the tile's 24 hours only when the row runs after 09:00.
 - E9: the "tomorrow at 2 pm" dentist is inside Tess's 24-hour read only after 14:00 (the driver also inserts "E9 checkup" one hour ahead).
 - E17: the tile's and Tess's reads are `Instances` over [now, now + 24 h]; an all-day event's instance is UTC [00:00, 24:00) of its date, so in a zone behind UTC TODAY's birthday leaves that range at 18:00 MDT. E17 passed at 17:35. If it fails after 18:00 on "the tile shows it today" / "Tess names it", that is a product finding (phase 14's pod already reads from the start of today).
 
-## clauses-open.tsv lines of mine
-Written: E4 ×2, E22 ×1. Still to add when their rows run:
-- E6: "every clock move here is FORWARDS" against leg (d) — `adb reboot` puts the emulator's clock back on the host's, so the driver runs `clock_restore` before leg (d) and takes its MARK after boot.
-- E9: phase 03's `e7.sh`, `e10.sh`, `e14.sh` speak every request (speak.sh), and no row may use the microphone — legs G and N assert the same with typed requests.
-- E19: text positions are asserted at the ink's left edge with R11's own sample glyphs; 1-epx / 2-epx lines are held to one device pixel.
+## clauses-open.tsv lines of mine (all written)
+E4 ×2 (pinned-tile Dentist; pinned tile compared at the slot tile's size), E22 (JVM test read from the lead's result file), E17 (time-proof birthday date), E9 (typed stand-ins for phase 03's spoken rows), E19 (ink positions with R11's own samples), E24 (one Standup per day it covers), E6 ×2 (leg (e) uninstalls; the clock is restored before the reboot leg).
 
 ## E21 — what my share must hold (not written yet)
 producers: `calendars: n (local created id=…)`, `(local present)` → E3; `calendars: none (…)` → EDGE C01; `(local missing: WRITE_CALENDAR)`, `denied (READ_CALENDAR)` → E18; `view agenda|day|week` → E5 / E4 / E7; `write insert|update|delete … ok` → E4, E22; `write update … failed <err>` → EDGE C11 (and E22 leg L); `reminder … notified`, `dismissed` → E6; `skipped (synced copy)` → E24; `birthdays: n synced`, `birthdays calendar could not be created` → E17; `local calendar created`, `lookup failed`, `could not be created` → E3, E18; sync `ok`, `updated`, `recreated`, `failed calendar gone`, `no calendar allowed -> can sync to` → E24 / E23; `failed mapping stale` → EDGE C04; `failed calendar read-only` → EDGE C07; `counts: …` → E3 / E22 (the pane opened); `[motion] cal_month_dropdown`, `cal_day_page` → E19; `reminder: n skipped (due before the shell's first start)` and `reminders count from <ms> (the shell's start: first on this install)` → E6 (the Q-16-4 build); `… the clock was set back behind <old>` → EDGE C16 if it appears, else notrun with CalendarRulesTest.

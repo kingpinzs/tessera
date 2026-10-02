@@ -2,7 +2,8 @@
 # Phase 16 E17 — Birthdays (Q3; r3 D14, V4, V10, V15; the 29 February form re-cut 2026-10-01).
 #
 #   A  the first birthday   people_fixtures_up, no Birthdays calendar, the Calendar app NOT opened since the last
-#                           ensure_start; a MARK; a birthday on Ann (the DEVICE's own month-day, 1990) → within 5 s a
+#                           ensure_start; a MARK; a birthday on Ann (the device's UTC date's month-day, 1990 — time-proof,
+#                           see the note in leg A and clauses-open.tsv) → within 5 s a
 #                           "Birthdays" LOCAL calendar under `Tessera Birthdays` (never Tessera; access 200) with a yearly
 #                           all-day "Ann Lee's birthday"; `[calendar] birthdays: 1 synced`; no reminder rows
 #   B  shown everywhere     the tile shows it today, phase 14's Agenda pod lists it, Tess's typed "what is on my
@@ -49,7 +50,14 @@ assert_ne "A: people_fixtures_up — the row's own Bob" "" "$BOB"
 assert_eq "A: no Birthdays calendar (asserted)" "" "$(cbirthdays_cal)"
 assert_eq "A: the Calendar app is NOT open (Start is on top since the last ensure_start)" "app.tileshell/.StartActivity" "$(top_activity)"
 PID0="$(adb shell pidof app.tileshell | tr -d '\r')"
-MD="$(adb shell date +%m-%d | tr -d '\r')"; TODAY="$(cdate 0)"; TOMORROW="$(cdate 1)"
+# The birthday's date, time-proof (clauses-open.tsv): the row words it as "the DEVICE's own today", but an all-day
+# event's instance is the UTC day [00:00, 24:00) of its date, and the tile's and Tess's reads are Instances over
+# [now, now + 24 h] — so in a zone behind UTC a birthday on the LOCAL today leaves both at 18:00 local (MDT). The date
+# used is the device's current UTC date: the local today before that hour, the local tomorrow after it; its all-day
+# instance always holds "now", so the clauses mean the same at any hour. TODAY below is that date.
+TODAY="$(adb shell date -u +%Y-%m-%d | tr -d '\r')"; MD="$(echo "$TODAY" | cut -c6-10)"; TOMORROW="$(date -u -d "$TODAY + 1 day" +%Y-%m-%d)"
+LOCAL_TODAY="$(cdate 0)"
+record "the birthday's date (the device's UTC date) against the device's local date" "$TODAY / $LOCAL_TODAY"
 record "the device's time and zone at the row's start" "$(q "date '+%Y-%m-%d %H:%M %Z (%z)'")"
 A_MARK="$(ring_mark)"
 cbirthday "$ANN" "1990-$MD"
@@ -70,7 +78,8 @@ AROW="$(printf '%s\n' "$EV" | grep "^_id=$ANN_EV,")"
 assert_contains "A: … all-day" "allDay=1," "$AROW"
 assert_contains "A: … yearly: the events query shows the rrule FREQ=YEARLY" "rrule=FREQ=YEARLY" "$AROW"
 assert_contains "A: … from the birthday's own date (1990-$MD, UTC midnight)" "dtstart=$(utc_ms "1990-$MD")," "$AROW"
-assert_eq "A: … with an instance today" "1" "$(cinstances "$(cutc_day_ms 0)" $(( $(cutc_day_ms 1) - 1 )) "$ANN_EV")"
+TODAY_UTC=$(( $(date -u -d "$TODAY" +%s) * 1000 ))
+assert_eq "A: … with an instance on that date" "1" "$(cinstances "$TODAY_UTC" $(( TODAY_UTC + 86400000 - 1 )) "$ANN_EV")"
 A_SLICE="$(ring_since "$A_MARK")"; printf '%s\n' "$A_SLICE" > "$ROW_DIR/A-slice.txt"
 assert_contains "A: the slice from the MARK holds [calendar] birthdays: 1 synced" "[calendar] birthdays: 1 synced" "$A_SLICE"
 assert_eq "A: the birthday event has no reminder rows (T16-4)" "No result found." "$(q "content query --uri $REMINDERS --where \"event_id=$ANN_EV\"")"
@@ -99,12 +108,12 @@ assert_contains "B: Tess's typed \"what is on my calendar\" names it" "Ann Lee's
 ring_since "$TMARK" > "$ROW_DIR/B-tess-slice.txt"
 tess_close
 copen_day "$(clocal_ms "$TODAY" 12:00)"; dump_ui "$ROW_DIR/B-day.xml"; screencap "$ROW_DIR/B-day.png"
-assert_eq "B: the Calendar app shows it on today's date — today's Day view holds its cal_event node" "yes" "$(has_node "$ROW_DIR/B-day.xml" "cal_event:$ANN_EV")"
+assert_eq "B: the Calendar app shows it on its date ($TODAY) — that day's Day view holds its cal_event node" "yes" "$(has_node "$ROW_DIR/B-day.xml" "cal_event:$ANN_EV")"
 assert_eq "B: … reading its title" "Ann Lee's birthday" "$(ctext "$ROW_DIR/B-day.xml" "cal_event_title:$ANN_EV")"
 W="$(cwithin "$ROW_DIR/B-day.xml" "cal_allday:$TODAY" "cal_event:$ANN_EV")"
-assert_eq "B: … in today's all-day band (cal_allday:$TODAY)" "yes" "${W%% *}"
+assert_eq "B: … in that day's all-day band (cal_allday:$TODAY)" "yes" "${W%% *}"
 cview agenda 2.5; dump_ui "$ROW_DIR/B-agenda.xml"
-assert_contains "B: … and the Agenda lists it under today's heading" "$TODAY	$ANN_EV	" "$(cagenda_dump "$ROW_DIR/B-agenda.xml")"
+assert_contains "B: … and the Agenda lists it under that day's heading" "$TODAY	$ANN_EV	" "$(cagenda_dump "$ROW_DIR/B-agenda.xml")"
 ctap "cal_event:$ANN_EV" 2; dump_ui "$ROW_DIR/B-page.xml"
 assert_eq "B: the editor refuses to edit it — cal_event_page:<id> present" "yes" "$(has_node "$ROW_DIR/B-page.xml" "cal_event_page:$ANN_EV")"
 assert_eq "B: … and no cal_event_action:edit (a read-only calendar)" "no" "$(has_node "$ROW_DIR/B-page.xml" cal_event_action:edit)"
@@ -137,8 +146,8 @@ BROW="$(printf '%s\n' "$EV" | grep "^_id=${BOB_EV:-x},")"
 assert_ne "D: a no-year birthday on Bob (--MM-dd of tomorrow) → an event" "" "$BOB_EV"
 assert_contains "D: … yearly" "rrule=FREQ=YEARLY" "$BROW"
 assert_contains "D: … all-day" "allDay=1," "$BROW"
-assert_contains "D: … on tomorrow's date (this year's: dtstart = tomorrow's UTC midnight)" "dtstart=$(cutc_day_ms 1)," "$BROW"
-assert_eq "D: … with an instance tomorrow" "1" "$(cinstances "$(cutc_day_ms 1)" $(( $(cutc_day_ms 2) - 1 )) "${BOB_EV:-0}")"
+assert_contains "D: … on the next date (this year's: dtstart = that date's UTC midnight)" "dtstart=$(( TODAY_UTC + 86400000 ))," "$BROW"
+assert_eq "D: … with an instance on it" "1" "$(cinstances $(( TODAY_UTC + 86400000 )) $(( TODAY_UTC + 2 * 86400000 - 1 )) "${BOB_EV:-0}")"
 LEAP_EV="$(printf '%s\n' "$EV" | grep "dtstart=$(utc_ms 1992-02-29)," | sed -n 's/^_id=\([0-9]*\),.*/\1/p' | head -1)"
 LROW="$(printf '%s\n' "$EV" | grep "^_id=${LEAP_EV:-x},")"
 assert_ne "D: a 29 February birthday (1992-02-29 on a third fixture) → an event from that date" "" "$LEAP_EV"

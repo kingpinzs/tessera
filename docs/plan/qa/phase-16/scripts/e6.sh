@@ -14,7 +14,7 @@
 #                         it and it notifies at its time
 #   (e) due before the shell's first start (Q-16-4, added 2026-10-01): A's alert comes due while no shell runs; after
 #                         provision.sh the shell reminds for B only and logs `1 skipped (due before the shell's first
-#                         start)`. EXPECTED TO FAIL on build 686506a7 (the lead: the change lands in the fix round).
+#                         start)`. (Build 686506a7 did not have the rule; it is in the fix build, 3c1ad1e0.)
 #   restore               the AOSP Calendar enabled, the events and their reminders deleted, clock_restore, no notification
 #                         left on the calendar channel, the baseline layout (leg (e) cleared the shell)
 #
@@ -216,7 +216,7 @@ assert_eq "(d) … notified once" "1" "$(clines "$D_SLICE" "[calendar] reminder 
 sleep 4; adb shell cmd statusbar collapse >/dev/null 2>&1
 
 # =============================================================================================== (e) due before the first start
-log "--- (e) due before the shell's first start (Q-16-4) — expected to FAIL until the Q-16-4 build"
+log "--- (e) due before the shell's first start (Q-16-4)"
 adb shell pm disable-user --user 0 "$AOSP_CAL" > /dev/null 2>&1
 assert_eq "(e) the AOSP Calendar is disabled" "0" "$(enabled "$AOSP_CAL")"
 ring_save
@@ -231,19 +231,32 @@ adb shell am start -W -n com.android.settings/.Settings >/dev/null 2>&1; sleep 2
 assert_contains "(e) Android's Settings is in front" "com.android.settings" "$(top_activity)"
 adb shell pm clear app.tileshell > "$ROW_DIR/e-pm-clear.txt" 2>&1
 sleep 3
+PID_CLEAR="$(adb shell pidof app.tileshell | tr -d '\r')"
+record "(e) the shell's pid 3 s after pm clear (empty = pm clear left no process)" "[$PID_CLEAR]"
+if [ -n "$PID_CLEAR" ]; then
+  # The system starts the shell again within seconds of a pm clear — it holds the HOME and ASSISTANT roles, the
+  # notification listener and the keyboard — and that start would write the cut-off BEFORE A comes due, so the leg
+  # would test nothing (run 1 on build 3c1ad1e0). "The shell is stopped, its store gone" is then made true the only
+  # way that holds: the package is uninstalled (provision.sh installs the build under test again below).
+  note "pm clear did not leave the shell stopped (pid $PID_CLEAR, store: $(csync_json | head -c 120)); uninstalling it instead (clauses-open.tsv)"
+  adb uninstall app.tileshell > "$ROW_DIR/e-uninstall.txt" 2>&1
+  sleep 2
+  assert_contains "(e) the shell is uninstalled (pm clear alone lets the system restart it)" "Success" "$(cat "$ROW_DIR/e-uninstall.txt")"
+fi
 PID_E="$(adb shell pidof app.tileshell | tr -d '\r')"
-assert_eq "(e) precondition — no process of the shell runs right before the jump (pm clear stopped it; a pid here means the system restarted it and the leg's precondition failed, not the product)" "" "$PID_E"
+assert_eq "(e) precondition — no process of the shell runs right before the jump" "" "$PID_E"
 assert_eq "(e) … and its store is gone (no calendar_sync.json)" "" "$(csync_json)"
 jump_clock $(( A_ALARM + 60000 )) > "$ROW_DIR/e-jump-a.txt"
 sleep 6
 A_ROW="$(q "content query --uri $ALERTS --projection event_id:state:alarmTime --where \"event_id=$EVA\"")"; log "A's calendar_alerts row once it came due: $A_ROW"
 assert_eq "(e) A's alert came due while no shell ran: its calendar_alerts row is present, state 0 or 1" "yes" "$(printf '%s' "$A_ROW" | grep -Eq "event_id=$EVA, state=[01]," && echo yes || echo no)"
-record "(e) the shell's pid after the jump, before provision.sh (empty = still no shell)" "[$(adb shell pidof app.tileshell | tr -d '\r')]"
+assert_eq "(e) … and still no process of the shell after the jump (A came due with no shell running)" "" "$(adb shell pidof app.tileshell | tr -d '\r')"
 ( bash "$P03S/provision.sh" > "$ROW_DIR/provision-e.out" 2>&1; echo $? > "$ROW_DIR/provision-e.rc" )
 assert_eq "(e) provision.sh rc" "0" "$(cat "$ROW_DIR/provision-e.rc")"
 ensure_start
 assert_contains "(e) the device still holds the build under test" "yes" "$(apk_matches)"
 E_ROWMARK="$(ring_mark)"
+record "(e) the shell's own line at its first start (csince the row's MARK)" "$(cline "$(csince "$ROW_MARK")" '[calendar] reminders count from')"
 SINCE="$(csync_json | python3 -c '
 import json, sys
 try: print(json.load(sys.stdin).get("remindersSince", ""))

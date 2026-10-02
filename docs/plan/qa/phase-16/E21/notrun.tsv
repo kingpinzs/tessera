@@ -1,2 +1,3 @@
 # alternative	why no row can produce it on a device	the JVM test that covers it
 [people] tile: photo <lookup> skipped: <why>	the Contacts provider decodes a photo when it is written, so no fixture can store an undecodable one (r3 V6)	PeopleTileRulesTest (app/src/test/kotlin/app/tileshell/feeds/PeopleTileRulesTest.kt)
+[people] link <a>+<b>: refused (not allowed)	Link / Unlink with another profile's contact is refused by the guard (fix-round F23), and no page offers it: a work-profile card has no Link action (E16 asserts its card's actions), so the refusal cannot be reached from the UI	PeopleWriterTest (app/src/test/kotlin/app/tileshell/people/PeopleWriterTest.kt)

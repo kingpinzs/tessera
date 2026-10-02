@@ -33,7 +33,7 @@ import html, re, sys
 xml = open(sys.argv[1], encoding='utf-8', errors='replace').read()
 for m in re.finditer(r'<node[^>]*>', xml):
     s = m.group(0)
-    t = html.unescape(re.search(r'text="([^"]*)"', s).group(1))
+    t = html.unescape((re.search(r' text="([^"]*)"', s) or re.search(r" text='([^']*)'", s) or re.search(r'()', s)).group(1))
     if t and re.search(sys.argv[2], t, re.I):
         l, tp, r, b = (int(v) for v in re.search(r'bounds="\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]"', s).groups())
         print((l + r) // 2, (tp + b) // 2, "|", t); break
@@ -130,6 +130,7 @@ assert_eq "no people_card_edit" "no" "$(has_node "$D/wren-card.xml" people_card_
 assert_eq "no people_card_delete" "no" "$(has_node "$D/wren-card.xml" people_card_delete)"
 assert_eq "the people_card_readonly line is shown" "yes" "$(has_node "$D/wren-card.xml" people_card_readonly)"
 record "the read-only line for another profile's contact" "$(xml_text "$D/wren-card.xml" people_card_readonly)"
+record "her card offers Link (people_card_link) — if it did, the guard's link refusal for another profile's contact would be reachable (E21 notrun.tsv)" "$(has_node "$D/wren-card.xml" people_card_link)"
 assert_contains "the profile's provider still holds her, unchanged" "display_name=Work Wren" "$(qu "content query --user $WU --uri $CONTACTS --projection _id:display_name:lookup")"
 back 1; back 1; back 1
 
@@ -139,16 +140,33 @@ qu "pm grant --user $WU $DPC android.permission.POST_NOTIFICATIONS" >/dev/null
 adb shell am start --user "$WU" -n "$DPC/.PolicyManagementActivity" > "$D/dpc-start.txt" 2>&1; sleep 5
 record "TestDPC's policy page (top activity)" "$(adb shell dumpsys activity activities | tr -d '\r' | grep -m1 topResumedActivity | sed 's/^ *//')"
 FOUND=""
-# Short SLOW swipes (600 px in 700 ms: a drag, no fling), a dump after each: run 1's fast swipes flung the long policy
-# list past the switch between two dumps and reached the list's end without ever reading its label.
-for i in $(seq 0 220); do
-  dump_ui "$D/dpc.xml" || true
-  FOUND="$(text_centre "$D/dpc.xml" 'cross.?profile contacts? search')"
-  [ -n "$FOUND" ] && break
-  adb shell input swipe 540 1500 540 900 700; sleep 0.5
-done
+# The switch is not on TestDPC's first page: its policy list has an entry "Managed work profile specific policies"
+# (string/managed_profile_specific_policy_title in the fixture APK) that opens a second page, and "Disable
+# cross-profile contacts search" (string/disable_cross_profile_contacts_search) is a switch there. (Runs 1 scrolled the
+# first page to its end twice — once with fast swipes, once with slow ones — and never could have read the label.)
+# Short SLOW swipes (600 px in 700 ms: a drag, no fling), a dump after each.
+find_text() { # regex max-swipes out.xml -> "x y | text" of the first match, scrolling down slowly
+  local i hit=""
+  for i in $(seq 0 "$2"); do
+    dump_ui "$3" || true
+    hit="$(text_centre "$3" "$1")"
+    [ -n "$hit" ] && break
+    adb shell input swipe 540 1500 540 900 700; sleep 0.5
+  done
+  note "find_text [$1]: $i swipe(s), found [${hit#*| }]"
+  echo "$hit"
+}
+ENTRY="$(find_text 'profile specific polic' 200 "$D/dpc-main.xml")"
+record "TestDPC's first-page entry that opens the profile's policies" "${ENTRY#*| }"
+assert_ne "TestDPC's policy page lists the entry for the managed profile's own policies" "" "$ENTRY"
+if [ -n "$ENTRY" ]; then
+  # shellcheck disable=SC2086
+  set -- ${ENTRY%%|*}
+  adb shell input tap "$1" "$2"; sleep 3
+fi
+FOUND="$(find_text 'cross.?profile contacts? search' 30 "$D/dpc.xml")"
 cp "$D/dpc.xml" "$D/dpc-switch.xml" 2>/dev/null; screencap "$D/dpc-switch.png"
-record "TestDPC's switch label (found after $i swipes)" "${FOUND#*| }"
+record "TestDPC's switch label" "${FOUND#*| }"
 assert_ne "TestDPC's cross-profile contacts search switch is on its policy page" "" "$FOUND"
 if [ -n "$FOUND" ]; then
   # shellcheck disable=SC2086
@@ -156,16 +174,49 @@ if [ -n "$FOUND" ]; then
   adb shell input tap "$1" "$2"; sleep 2
   dump_ui "$D/dpc-after.xml"; screencap "$D/dpc-after.png"
 fi
-POLICY="$(adb shell dumpsys device_policy | tr -d '\r' | grep -i -m3 'crossProfileContactsSearch\|disableContactsSearch' | tr '\n' ' ')"
-record "dumpsys device_policy after the switch" "${POLICY:-no matching line}"
+# The switch's own state after the tap, from TestDPC's page (the Switch widget on the label's row). dumpsys
+# device_policy's legacy `disableContactsSearch` field stays false on this image whatever the switch says (run 2 on the
+# fix build: the search below found nothing with the field still false), so it is RECORDed, not graded.
+SWITCHED="$(python3 - "$D/dpc-after.xml" <<'PY2'
+import html, re, sys
+xml = open(sys.argv[1], encoding='utf-8', errors='replace').read()
+nodes = []
+for m in re.finditer(r'<node[^>]*>', xml):
+    s = m.group(0)
+    t = re.search(r' text="([^"]*)"', s); c = re.search(r' class="([^"]*)"', s); k = re.search(r' checked="([^"]*)"', s)
+    b = re.search(r'bounds="\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]"', s)
+    if b: nodes.append((html.unescape(t.group(1)) if t else "", c.group(1) if c else "", k.group(1) if k else "", [int(v) for v in b.groups()]))
+lab = next((n for n in nodes if re.search(r'cross.?profile contacts? search', n[0], re.I)), None)
+if lab:
+    cy = (lab[3][1] + lab[3][3]) // 2
+    sw = [n for n in nodes if 'Switch' in n[1] and n[3][1] - 40 <= cy <= n[3][3] + 40]
+    print(sw[0][2] if sw else "no switch widget on the label's row")
+else: print("label not on the page")
+PY2
+)"
+assert_eq "TestDPC's switch reads on after the tap (its own page)" "true" "$SWITCHED"
+POLICY="$(adb shell dumpsys device_policy | tr -d '\r' | grep -i 'contactsSearch\|ContactsAccess\|contacts_access' | tr -s ' ' | sort -u | tr '\n' ' ')"
+record "dumpsys device_policy's contact-search lines after the switch (the legacy field is not the policy on this image)" "${POLICY:-no matching line}"
 adb shell input keyevent KEYCODE_HOME; sleep 2
 c6; ensure_start
 search_wren neg-search
 NEG_LINE="$(ring_since "$S_MARK" | grep -F '[people] search "Wren":' | tail -1 | sed 's/.*\[people\]/[people]/')"; log "$NEG_LINE"
 assert_eq "with the search disabled: no row is listed" "0" "$(count_ids "$D/neg-search.xml" people_row:)"
+# "and says so" (re-cut on the lead's word, 2026-10-01, with D-E16-1's fix): the line is `people_empty`, it reads
+# `No contacts match "Wren".`, and it is drawn where a user can see it — its bottom edge above the keyboard's top edge
+# (the keyboard is up while a query is typed; on 3c1ad1e0 the line sat in the notice band, under the keyboard).
 EMPTY="$(xml_text "$D/neg-search.xml" people_empty)"; log "people_empty: [$EMPTY]"
-assert_eq "… and the page says so (its empty line is shown)" "yes" "$(has_node "$D/neg-search.xml" people_empty)"
-assert_ne "… with words" "" "$EMPTY"
+assert_eq "… and the page says so: people_empty is on the results page" "yes" "$(has_node "$D/neg-search.xml" people_empty)"
+assert_eq "… reading No contacts match \"Wren\"." 'No contacts match "Wren".' "$EMPTY"
+IME_LINE="$(adb shell dumpsys window | tr -d '\r' | grep -m1 -E 'InsetsSource id=[0-9a-f]+ type=ime ' | sed 's/^ *//')"
+IME_TOP="$(printf '%s' "$IME_LINE" | sed -nE 's/.*visibleFrame=\[[0-9-]+,([0-9-]+)\].*/\1/p')"
+IME_VIS="$(printf '%s' "$IME_LINE" | sed -nE 's/.* visible=([a-z]+).*/\1/p')"
+record "the keyboard's window while the query is typed (dumpsys window's ime insets source)" "${IME_LINE:-not found} → top ${IME_TOP:-?} px, visible ${IME_VIS:-?}"
+EB="$(bounds "$D/neg-search.xml" people_empty)"
+assert_eq "the keyboard is up over the results (the state a user is in while typing)" "true" "$IME_VIS"
+assert_eq "… and the line's bottom edge is above the keyboard's top edge (it can be seen)" "yes" \
+  "$([ -n "$EB" ] && [ -n "$IME_TOP" ] && [ "$(bfield "$EB" 4)" -le "$IME_TOP" ] && echo yes || echo "no (line $EB, keyboard top $IME_TOP)")"
+note "people_empty at [$EB]; the keyboard's top edge at y $IME_TOP"
 assert_eq "the slice holds [people] search \"Wren\": 0 (+0 enterprise)" "[people] search \"Wren\": 0 (+0 enterprise)" "$NEG_LINE"
 assert_contains "she is still in the profile's provider (the legs differ only by the switch)" "display_name=Work Wren" "$(qu "content query --user $WU --uri $CONTACTS --projection _id:display_name")"
 back 1; back 1

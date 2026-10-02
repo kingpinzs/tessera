@@ -221,7 +221,7 @@ for i in range(int(sys.argv[2]) + 1):
         s = m.group(0)
         rid = re.search(r'resource-id="([^"]*)"', s).group(1)
         if rid.startswith("people_name:"):
-            names[rid[len("people_name:"):]] = html.unescape(re.search(r'text="([^"]*)"', s).group(1))
+            names[rid[len("people_name:"):]] = html.unescape((re.search(r' text="([^"]*)"', s) or re.search(r" text='([^']*)'", s) or re.search(r'()', s)).group(1))
     items = []
     for m in re.finditer(r'<node[^>]*>', xml):
         s = m.group(0)
@@ -266,7 +266,7 @@ nodes = []
 for m in re.finditer(r'<node[^>]*>', xml):
     s = m.group(0)
     rid = re.search(r'resource-id="([^"]*)"', s).group(1)
-    text = html.unescape(re.search(r'text="([^"]*)"', s).group(1))
+    text = html.unescape((re.search(r' text="([^"]*)"', s) or re.search(r" text='([^']*)'", s) or re.search(r'()', s)).group(1))
     b = [int(v) for v in re.search(r'bounds="\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]"', s).groups()]
     nodes.append((rid, text, b))
 by = {rid: (text, b) for rid, text, b in nodes if rid}
@@ -447,7 +447,12 @@ photo_rows() { # raw -> the number of vnd.android.cursor.item/photo data rows it
 # ---------------------------------------------------------------- calls (E12)
 # Telecom's own record of the calls it was handed: each is a "CallTC@<n> [<time>](MO - outgoing)" entry in dumpsys.
 outgoing_calls() { adb shell dumpsys telecom | tr -d '\r' | grep -cE 'CallTC@[0-9]+ \[.*\]\(MO - outgoing\)'; }
-call_is_up() { adb shell dumpsys telecom | tr -d '\r' | grep -q 'mForegroundCall: \[Call'; }
+# A call is up when Telecom's dump names a foreground call: on this image "Foreground call:" and, on the next line,
+# "[Call id=TC@n, state=…]" (older images print "mForegroundCall: [Call …"). E12's first run on the fix build looked
+# for the older form only, read "no call" with one up, and so never ended it.
+call_is_up() {
+  adb shell dumpsys telecom | tr -d '\r' | awk '/mForegroundCall: \[Call/ {f=1} /Foreground call:/ {getline n; if (n ~ /\[Call id=/) f=1} END {exit f ? 0 : 1}'
+}
 # The END CALL key only while a call is up: with none it puts the screen to sleep (the builder's DEV-E12 run 2).
 end_call() {
   if call_is_up; then adb shell input keyevent KEYCODE_ENDCALL; sleep 2; fi
@@ -603,11 +608,12 @@ PY
 # every SOURCE frame with its presentation time; a frame moves when its region differs from the frame before by more
 # than the threshold; moving frames more than 100 ms apart are separate bursts. One line per burst:
 #   "<start s> <window ms> <frames> <max source-frame gap ms inside the window>"
-record_bursts() { # mp4 "x0 y0 x1 y1" (capture pixels) [threshold]
+record_bursts() { # mp4 "x0 y0 x1 y1" (capture pixels) [threshold] [split ms: a pause longer than this ends a burst; default 100]
   python3 - "$@" <<'PY'
 import subprocess, sys
 import numpy as np
 mp4 = sys.argv[1]; x0, y0, x1, y1 = (int(v) for v in sys.argv[2].split()); thr = float(sys.argv[3]) if len(sys.argv) > 3 else 0.2
+split = float(sys.argv[4]) if len(sys.argv) > 4 else 100.0
 w, h = x1 - x0, y1 - y0
 pts = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "frame=best_effort_timestamp_time",
                       "-of", "csv=p=0", mp4], capture_output=True, text=True, check=True).stdout.split()
@@ -626,7 +632,7 @@ print("# frames=%d pts=%d moving=%d" % (i, len(pts), len(moving)))
 moving = [m for m in moving if m < len(pts)]
 bursts = []
 for m in moving:
-    if bursts and (pts[m] - pts[bursts[-1][-1]]) * 1000 <= 100: bursts[-1].append(m)
+    if bursts and (pts[m] - pts[bursts[-1][-1]]) * 1000 <= split: bursts[-1].append(m)
     else: bursts.append([m])
 for b in bursts:
     gaps = [(pts[k] - pts[k - 1]) * 1000 for k in range(b[0] + 1, b[-1] + 1)]
@@ -702,7 +708,7 @@ nodes = []
 for m in re.finditer(r'<node[^>]*>', xml):
     s = m.group(0)
     b = [int(v) for v in re.search(r'bounds="\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]"', s).groups()]
-    nodes.append(dict(id=re.search(r'resource-id="([^"]*)"', s).group(1), text=html.unescape(re.search(r'text="([^"]*)"', s).group(1)),
+    nodes.append(dict(id=re.search(r'resource-id="([^"]*)"', s).group(1), text=html.unescape((re.search(r' text="([^"]*)"', s) or re.search(r" text='([^']*)'", s) or re.search(r'()', s)).group(1)),
                       b=b, sel=re.search(r'selected="([^"]*)"', s).group(1) == "true", en=re.search(r'enabled="([^"]*)"', s).group(1) == "true"))
 def node(i): return next((x for x in nodes if x["id"] == i), None)
 def all_nodes(prefix): return [x for x in nodes if x["id"].startswith(prefix)]
@@ -920,7 +926,8 @@ elif kind == "card":
 
 elif kind == "editor":
     hd = node("people_editor_header")
-    scrolled = extra == "scrolled"          # a second screen of the same editor, scrolled: only what is on it
+    scrolled = extra in ("scrolled", "nameonly")   # scrolled: a second screen of the same editor, only what is on it;
+    nameonly = extra == "nameonly"                 # nameonly: an existing contact with no number and no e-mail (r11 G1's case)
     if scrolled and (hd is None or hd["b"][1] < SB): pass
     elif hd is None: out(False, "the editor has its header", "none")
     else:
@@ -975,14 +982,28 @@ elif kind == "editor":
         between = None
         plus.append((a["id"].split(":", 1)[1], g, ab))
     rec("\"+ field\" rows on this screen", [(p[0], "+ glyph y %s" % (p[1][1] if p[1] else None), "node %d epx tall" % round((p[2][3] - p[2][1]) / PX)) for p in plus])
+    # r11 P4.6 / P4.7 as G1 shows them (re-cut with the fix build, fix-round F31; D-E20-1): two "+ field" rows of ONE
+    # group are 44 epx apart (G1 277 → 321, "+ Phone" → "+ Email" of a contact with no number and no e-mail); two that
+    # follow one another ACROSS a group rule are 61 epx apart (G1 321 → rule 359 → 382).
+    same_group = 0
     for i in range(len(plus) - 1):
         a, b2 = plus[i], plus[i + 1]
         fields_between = [x["id"] for x in all_nodes("people_field:") if a[2][3] <= x["b"][1] < b2[2][1]]
         rules_between = [x for x in all_nodes("people_rule") if a[2][3] <= x["b"][1] < b2[2][1]]
         if fields_between: continue      # a field sits between them: not consecutive rows
         if a[1] and b2[1]:
-            within("\"+ %s\" → \"+ %s\" (consecutive \"+ field\" rows): 44-epx pitch (P4.6)" % (a[0], b2[0]), 44, b2[1][1] - a[1][1])
-            if rules_between: rec("between \"+ %s\" and \"+ %s\"" % (a[0], b2[0]), "%d group rule(s) drawn" % len(rules_between))
+            if not rules_between:
+                same_group += 1
+                within("\"+ %s\" → \"+ %s\" (two \"+ field\" rows of one group): 44-epx pitch (P4.6)" % (a[0], b2[0]), 44, b2[1][1] - a[1][1])
+            elif len(rules_between) == 1:
+                within("\"+ %s\" → \"+ %s\" across their group rule: 61 epx (r11 G1 321 → 382; P4.6 / P4.7)" % (a[0], b2[0]), 61, b2[1][1] - a[1][1])
+            else:
+                out(False, "\"+ %s\" → \"+ %s\": one rule at most between two \"+ field\" rows" % (a[0], b2[0]), "%d rules" % len(rules_between))
+    if nameonly:
+        names = [p_[0] for p_ in plus]
+        out("phone" in names and "email" in names and same_group >= 1,
+            "a contact with no number and no e-mail: \"+ Phone\" and \"+ Email\" share one group (no rule between them)", "rows %s; pairs in one group: %d" % (names, same_group))
+        out(not [x["id"] for x in all_nodes("people_field:") if x["id"].split(":")[1] in ("phone", "email")], "… and its editor shows no phone or e-mail box", [x["id"] for x in all_nodes("people_field:")])
     for a in plus:
         within("\"+ %s\": the row is 44 epx tall" % a[0], 44, a[2][3] - a[2][1])
         cited("\"+ %s\": the + glyph at x 12 (P4.6)" % a[0], 12, a[1][0] if a[1] else None)
@@ -1120,7 +1141,7 @@ PY
   log "P01: $(printf '%s' "$line" | sed 's/.*\[people\]/[people]/')"
   assert_eq "P01: the list read every contact (its line's n = the provider's count)" "$(contacts_count)" "$(printf '%s' "$line" | sed -E 's/.*list: ([0-9]+) contacts.*/\1/')"
   local wall; wall="$(printf '%s' "$line" | sed -n 's/.*wall=\([0-9]*\).*/\1/p')"
-  assert_eq "P01: the list line is written within 3 s of the launch's MARK (wall − MARK ≤ 3000 ms)" "yes" "$([ -n "$wall" ] && [ $((wall - mark)) -le 3000 ] && echo yes || echo no) "
+  assert_eq "P01: the list line is written within 3 s of the launch's MARK (wall − MARK ≤ 3000 ms)" "yes" "$([ -n "$wall" ] && [ $((wall - mark)) -le 3000 ] && echo yes || echo no)"
   record "P01: wall − MARK of the list line" "$([ -n "$wall" ] && echo $((wall - mark)) || echo none) ms"
   assert_ne "P01: the dump taken then holds the list's top rows (people_row: nodes)" "0" "$(count_ids "$d/list.xml" people_row:)"
   assert_contains "P01: am start -W reports the launch complete" "Status: ok" "$(cat "$d/am-start.txt")"
@@ -1143,7 +1164,7 @@ for m in re.finditer(r'<node[^>]*>', xml):
     s = m.group(0); rid = re.search(r'resource-id="([^"]*)"', s).group(1)
     top = int(re.search(r'bounds="\[-?\d+,(-?\d+)\]', s).group(1))
     if rid == "people_letter:M": mtop = top
-    if rid.startswith("people_name:"): rows.append((top, html.unescape(re.search(r'text="([^"]*)"', s).group(1))))
+    if rid.startswith("people_name:"): rows.append((top, html.unescape((re.search(r' text="([^"]*)"', s) or re.search(r" text='([^']*)'", s) or re.search(r'()', s)).group(1))))
 after = sorted(r for r in rows if mtop is not None and r[0] > mtop)
 print(after[0][1] if after else "")
 PY
@@ -1173,7 +1194,7 @@ edge_P02() {
   assert_eq "P02: the provider holds her 20 numbers" "20" "$(q "content query --uri $DATA --projection _id --where \"raw_contact_id=$raw AND mimetype='vnd.android.cursor.item/phone_v2'\"" | grep -c '_id=')"
   card_of "$raw" "$d/card-0.xml"; screencap "$d/card-0.png"
   assert_eq "P02: her card (people_card:<lookup>)" "yes" "$(has_node "$d/card-0.xml" "people_card:$lk")"
-  for i in 1 2 3 4 5 6 7 8; do adb shell input swipe 540 1700 540 900 600; sleep 1.2; dump_ui "$d/card-$i.xml"; done
+  for i in $(seq 1 16); do adb shell input swipe 540 1700 540 900 600; sleep 1.2; dump_ui "$d/card-$i.xml"; done   # 41 action rows: a long card
   seen="$(python3 - "$d" <<'PY'
 import glob, html, re, sys
 found = {}
@@ -1182,7 +1203,7 @@ for f in sorted(glob.glob(sys.argv[1] + "/card-*.xml")):
     nodes = []
     for m in re.finditer(r'<node[^>]*>', xml):
         s = m.group(0)
-        nodes.append((re.search(r'resource-id="([^"]*)"', s).group(1), html.unescape(re.search(r'text="([^"]*)"', s).group(1)),
+        nodes.append((re.search(r'resource-id="([^"]*)"', s).group(1), html.unescape((re.search(r' text="([^"]*)"', s) or re.search(r" text='([^']*)'", s) or re.search(r'()', s)).group(1)),
                       [int(v) for v in re.search(r'bounds="\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]"', s).groups()]))
     for rid, _, b in nodes:
         if rid.startswith("people_card_action:call:"):
@@ -1613,23 +1634,43 @@ print('yes' if abs((b[2]-b[0])-(b[3]-b[1]))<=1 else 'no')" "$b")"
   assert_eq "P10: … and a larger fraction on a small tile, which carries no label" "yes" "$(python3 -c "import sys; print('yes' if float(sys.argv[1]) > float(sys.argv[2]) else 'no')" "${FR_SMALL:-0}" "${FR_MEDIUM:-1}")"
   ring_save
   layout_restore "$BASELINE" >/dev/null 2>&1; ensure_start; sleep 2
-  # B21.1: a photo removed while its bubble is on screen — the current bubble finishes, the next event uses another photo
+  # B21.1: a photo removed while its bubble is on screen — the current bubble finishes, the next event uses another photo.
+  # Which bubble is on screen is read from the ring at a rest: the last `tile event` line, once its in-slide has
+  # settled (the first run of this sub-step read it from a slice that began after that line, removed the OTHER
+  # contact's photo and so never drove the case). The resting bubble's bounds are read from a dump first; the checks
+  # that must land inside one rest (5.8 s) are screencaps at those bounds, a dump only where it is timely.
+  local bbx="" t0 ms
+  for _ in 1 2 3 4; do
+    mark="$(ring_mark)"
+    for _ in $(seq 1 30); do [ "$(ring_since "$mark" | grep -c 'people_bubble_in')" -ge 1 ] && break; sleep 0.5; done
+    gdump "$d/rest.xml" || true
+    nb="$(node_inside "$d/rest.xml" "$PEOPLE_SLOT_TILE" people_tile_bubble)"; bbx="${nb%%|*}"
+    [ -n "$bbx" ] && break
+  done
+  assert_ne "P10: the resting bubble's bounds were read (people_tile_bubble)" "" "$bbx"
   mark="$(ring_mark)"
   for _ in $(seq 1 30); do [ "$(ring_since "$mark" | grep -c 'people_bubble_in')" -ge 1 ] && break; sleep 0.5; done
-  cur="$(ring_since "$mark" | grep -F '[people] tile event' | tail -1 | sed -E 's/.*lookup=([^ ]+).*/\1/')"
+  cur="$(diag | tr -d '\r' | grep -F '[people] tile event' | tail -1 | sed -E 's/.*lookup=([^ ]+).*/\1/')"
   if [ "$cur" = "$la" ]; then k="$ann"; other="$lb"; else k="$bob"; other="$la"; fi
-  note "P10: the bubble on screen is lookup=$cur (raw $k); the other contact is $other"
   mark="$(ring_mark)"
   q "content delete --uri $DATA --where \"mimetype='vnd.android.cursor.item/photo' AND raw_contact_id=$k\"" >/dev/null
-  sleep 1.5; gdump "$d/removed-now.xml" || true; screencap "$d/removed-now.png"
+  sleep 1.2; screencap "$d/removed-now.png"
+  note "P10: the bubble on screen is lookup=$cur (raw $k); its photo row was deleted; the other contact is $other"
+  assert_contains "P10: the bubble on screen is one of the two fixtures'" "$cur" "$la $lb"
+  assert_eq "P10: the photo of the contact on screen is removed from the provider" "0" "$(photo_rows "$k")"
+  assert_color "P10: its photo removed while its bubble is on screen: the current bubble finishes its turn (still drawn, in its colour)" "${col[$cur]:-?}" "$(centre_px "$d/removed-now.png" "$bbx")" 8
+  t0="$(date +%s%3N)"; gdump "$d/removed-now.xml" || true; ms=$(( $(date +%s%3N) - t0 ))
   nb="$(node_inside "$d/removed-now.xml" "$PEOPLE_SLOT_TILE" people_tile_bubble)"
-  assert_eq "P10: its photo removed while its bubble is on screen: the current bubble finishes its turn (still drawn)" "$cur" "${nb#*|}"
+  if [ "$ms" -le 3000 ] && [ "$(ring_since "$mark" | grep -c '\[people\] tile event')" = 0 ]; then
+    assert_eq "P10: … the bubble still drawn is that contact's (its content-desc, in a dump taken inside the same rest)" "$cur" "${nb#*|}"
+  else
+    record "P10: the dump after the removal took $ms ms or ran into the next event; the bubble's content-desc is not read" "not graded (the screencap above is)"
+  fi
   for _ in $(seq 1 30); do [ "$(ring_since "$mark" | grep -c 'people_bubble_in')" -ge 1 ] && break; sleep 0.5; done
+  screencap "$d/next.png"
   line="$(ring_since "$mark" | grep -F '[people] tile event' | head -1 | sed 's/.*\[people\]/[people]/')"; log "P10: $line"
   assert_contains "P10: … and the next event uses the other contact's photo" "lookup=$other" "$line"
-  screencap "$d/next.png"; gdump "$d/next.xml" || true
-  nb="$(node_inside "$d/next.xml" "$PEOPLE_SLOT_TILE" people_tile_bubble)"
-  assert_color "P10: … whose colour the settled bubble shows" "${col[$other]}" "$(centre_px "$d/next.png" "${nb%%|*}")" 8
+  assert_color "P10: … whose colour the settled bubble shows" "${col[$other]:-?}" "$(centre_px "$d/next.png" "$bbx")" 8
   # B21.2: every photo removed mid-cycle: the static pattern after the current event
   mark="$(ring_mark)"
   q "content delete --uri $DATA --where \"mimetype='vnd.android.cursor.item/photo' AND raw_contact_id IN ($ann,$bob)\"" >/dev/null

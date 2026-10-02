@@ -71,3 +71,75 @@ producers.tsv (E28 leg X produced it), not in notrun.tsv.
   awake on Start; the build is 686506a7a7936b2e. NOT restored by me: the default input method is the image's LatinIME
   (every force-stop deselects the shell's keyboard; `adb shell ime enable app.tileshell/.ime.KeyboardService; adb
   shell ime set app.tileshell/.ime.KeyboardService` puts it back — not sent, the other writer's row held the device).
+
+## RESUMED 19:56 on the FIX BUILD — md5 3c1ad1e0e65bd919 (commit 6e524e56). Runs on 686506a7 no longer count.
+Every 686506a7 folder is renamed `E<n>-build-686506a7-…` (the tables above name them without that part).
+Runner: `qapeople-queue.sh <driver> …` (scratch) — keeps a row's last run as `E<n>-run<k>-<pass|FAIL>-<p>-<f>-<r>`,
+then runs it through `qapeople-run4.sh` (blocking flock on the real device lock for the whole run; the lead agreed).
+Driver changes at the resume: `people_geo editor` re-cut for D-E20-1's fix (two "+ field" rows of one group 44 epx;
+across a rule 61 epx; `nameonly` mode for a contact with no number and no e-mail) and `e20.sh` opens a name-only
+fixture's editor; `e16.sh` records whether the work card offers Link; `e28.sh` also reads PeopleWriterTest (F15);
+`E21/notrun.tsv` gained `[people] link …: refused (not allowed)` (PeopleWriterTest).
+Order: E16, E20, then E10, E13, E28, E14, E27, E15, E11, E25 (each twice alone), EDGE P01–P10, E12 LAST.
+
+| row | fix-build runs (PASS / FAIL / recorded) | evidence | passes alone in a row |
+|---|---|---|---|
+| E16 | run 1: 35 / 5 / 5 (driver: the switch is on TestDPC's second page); run 2: 39 / **3** / 6 — the switch driven, `0 (+0 enterprise)` passes, but an empty search shows NO line of text ("says so" fails: `defects/D-E16-1.md`); the third failure was the driver's own extra dumpsys read, removed | `E16-run1-driver-testdpc-switch-is-on-its-second-page/`, `E16-run2-empty-search-says-nothing-and-a-driver-dumpsys-read/` | 0 — FAILS on the product (D-E16-1); a third run is queued last |
+| E20 | run 1 (re-cut for F31): 425 / 0 / 103 — D-E20-1 fixed ("+ Phone" → "+ Email" 44.0 epx on the name-only editor; across a rule 62.0 against 61 ± 1) | `E20/` until its second run renames it | 1 |
+| E10 | run 1: 129 / 0 / 2 | `E10/` | 1 |
+| E13 | run 1: 61 / 0 / 3 | `E13/` | 1 |
+| E28 | run 1: 118 / 0 / 5 (leg X refused line produced again; PeopleWriterTest read) | `E28/` | 1 |
+| E14 | run 1: 37 / 0 / 0 | `E14/` | 1 |
+| E27 | run 1: 52 / 0 / 4 | `E27/` | 1 |
+| E15 | run 1: 47 / 0 / 8 | `E15/` | 1 |
+| E11 | run 1: 89 / 1 / 5 and run 2: 88 / 1 / 5 (both the driver's: a stray changed frame counted into a slide; a gesture-driver dump that came after the bubble's rest); run 3: 87 / 0 / 6 | `E11/`; `E11-run1-driver-capture-burst-took-a-stray-frame/`, `E11-run2-driver-a-late-dump-missed-the-resting-bubble/` | 1 |
+| E25 | 58 / 0 / 0 on the fix build (run before the owner's ruling arrived; the ruling says its 686506a7 run stands) | `E25/`; `E25-build-686506a7-run1-pass-58-0-0/` | 1 |
+| E20 | a second run, 425 / 0 / 103, also happened before the ruling was read | `E20/` (second), `E20-run1-pass-425-0-103/` (first) | 2 |
+
+### 22:14 — the owner's ruling, relayed by the lead: "Only test the fixes not EVERY THING"
+No second passes; no final run of every row. Done once on 3c1ad1e0 and NOT to be touched: E10, E13, E14, E15, E20, E27,
+E28 (and E11 now, E25 by its 686506a7 run). Still to do, each once: the ONE EDGE run with P01–P10 (kept as
+`EDGE-people-run1-…`; a failing sub-step fixed and re-run alone), E12 LAST, the E21 check, and E16 once on the build
+that carries D-E16-1's fix (the lead installs it and says so; do not run E16 before).
+D-E16-1 (corrected): an empty search DOES draw `No contacts match "<q>".` — as `people_notice`, in the band above the
+app bar, under the keyboard that is up while a query is typed. `e16.sh` is re-cut to: `people_empty` exists, reads
+`No contacts match "Wren".`, its bottom edge above the keyboard's top (the IME's visible frame from dumpsys window).
+Helper fix: an attribute whose text holds a double quote is dumped single-quoted — the text reads in `people_lib.sh`
+and `e16.sh` now take either quote.
+E21: producers.tsv gained five lines the lead's TRUST row produces (`open other`, the three `pick:` lines of the fix
+build and the two granted lines); notrun.tsv has `link …: refused (not allowed)` (PeopleWriterTest).
+Runner now: `qapeople-batch.sh` (scratch) — one hold of the real lock for a short batch; an `edge:<ids>` item runs
+`EDGE_ONLY=<ids> edge.sh` and keeps the run as `EDGE-people-run<k>-…`.
+| EDGE P01–P10 | the one grouped run: 181 / 1 / 21 — P01…P09 0 failed; P10's one failure was the driver's (it removed the photo of the contact NOT on screen). P10 fixed and re-run alone: 58 / 0 / 4 | `EDGE-people-run1-P01-to-P10-181-1-21/`, `EDGE-people-run2-P10-58-0-4/` | each sub-step once |
+| E12 | run 1: 55 / 3 / 12 (driver: three reads — Telecom's foreground-call form, one mailto: handler on the image so no resolver page, OsmAnd's trampoline; and it left the kept-up call up, ended by hand under the lock at 00:04); run 2: 63 / 0 / 14 on 3c1ad1e0. The emulator stayed up through the OsmAnd map action both times | `E12/`; `E12-run1-driver-three-reads-and-a-call-left-up/` | 1 |
+
+### 00:19 — the SECOND fix build is installed: md5 6009c0b14a87039f (commit dacca941; `fixbuild2/apk.txt`)
+It carries D-E16-1's fix. Rows that passed on 3c1ad1e0 stand (E10, E13, E14, E15, E20, E25, E27, E28, E11, E12, EDGE).
+On it, once: E16 (running 00:21), then the E21 check.
+| E16 | on 6009c0b1: run 3: 42 / 2 / 7 (driver: misread dumpsys window's ime line); run 4: 44 / 0 / 7 — D-E16-1 fixed (`people_empty` reads `No contacts match "Wren".` at y 398–452, the keyboard's top at y 1422) | `E16/`; `E16-run3-driver-misread-the-keyboard-line/` | 1 |
+
+## DONE 00:38 (2026-10-02). Final state of the People rows — one passing run each, as the owner's ruling asks
+| row | counted run | build | folder |
+|---|---|---|---|
+| E10 | 129 / 0 / 2 | 3c1ad1e0 | `E10/` |
+| E11 | 87 / 0 / 6 | 3c1ad1e0 | `E11/` |
+| E12 | 63 / 0 / 14 | 3c1ad1e0 | `E12/` |
+| E13 | 61 / 0 / 3 | 3c1ad1e0 | `E13/` |
+| E14 | 37 / 0 / 0 | 3c1ad1e0 | `E14/` |
+| E15 | 47 / 0 / 8 | 3c1ad1e0 | `E15/` |
+| E16 | 44 / 0 / 7 | 6009c0b1 | `E16/` |
+| E20 | 425 / 0 / 103 | 3c1ad1e0 | `E20-run1-pass-425-0-103/` (and a second, identical, in `E20/`) |
+| E25 | 58 / 0 / 0 | 686506a7 by the ruling (`E25-build-686506a7-run1-pass-58-0-0/`); also 58 / 0 / 0 on 3c1ad1e0 in `E25/` | |
+| E27 | 52 / 0 / 4 | 3c1ad1e0 | `E27/` |
+| E28 | 118 / 0 / 5 | 3c1ad1e0 | `E28/` |
+| EDGE P01–P09 | in the grouped run, 181 / 1 / 21 (the 1 is P10's) | 3c1ad1e0 | `EDGE-people-run1-P01-to-P10-181-1-21/` |
+| EDGE P10 | 58 / 0 / 4, alone | 3c1ad1e0 | `EDGE-people-run2-P10-58-0-4/` |
+
+Defects: `defects/D-E20-1.md` (fixed in 3c1ad1e0, re-run passes), `defects/D-E16-1.md` (fixed in 6009c0b1, re-run passes).
+E21: every People line of `E21/producers.tsv` (40) is found in a kept slice of the two fix builds (checked offline
+with e21.sh's own folder rule at 00:30); `E21/notrun.tsv` holds two People lines.
+Device at 00:38: build 6009c0b1; user 0 only; raw contacts Mom and the nameless raw; no group, no aggregation
+exception, icc/adn empty; READ / WRITE_CONTACTS granted; people_edit.json and people_filter.json absent; baseline
+layout; no call; awake on Start. The default input method is the image's LatinIME (every force-stop deselects the
+shell's keyboard; not put back by me).
+Nothing of mine is left to run.
