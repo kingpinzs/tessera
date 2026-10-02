@@ -14,7 +14,8 @@ import sys
 
 QA = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 GATE = sys.argv[1]
-ROWS = ["E1", "E1_CHILDREN"] + ["E%d" % n for n in range(2, 29)] + ["E15_APK", "TRUST", "EDGE", "T2SMOKE"]
+# EDGE has no line of its own: its evidence is per sub-step (the grouped runs and the single re-runs), in its own section.
+ROWS = ["E1", "E1_CHILDREN"] + ["E%d" % n for n in range(2, 29)] + ["E15_APK", "TRUST", "T2SMOKE"]
 
 # E21/builds.txt: "<md5 prefix> <row|*> <why>" — a run on that earlier build stands for that row ("*": for every row).
 # E21/rerun.txt: "<row> <why>" — a row whose code a later fix touched: only a run on the gate build counts for it.
