@@ -10,7 +10,7 @@ B02.2	the next start or write recreates Tessera whatever else remains (QA calend
 B02.3	synced markers whose local event went with it are dropped from calendar_sync.json	edge.sh:C02
 B03.1	an allowed calendar removed from the phone refuses the Sync ("That calendar is no longer on this phone")	E24	`failed calendar gone`
 B03.2	an account calendar removed while one of its events is open read-only: the page closes with a notice, the view refreshes	edge.sh:C03
-B04.1	the allow-list cleared after a sync: the marker stays; the next Sync opens "Can sync to"; delete offers "here" only	E24	the un-ticked Personal step (T16-12)
+B04.1	the allow-list cleared after a sync: the marker stays; the next Sync opens "Can sync to"; delete offers "here" only	E24	leg D, Personal un-ticked: the delete prompt offers "here" only (T16-12), and Sync on the synced event opens cal_can_sync, writes nothing, keeps the marker
 B04.2	a copy whose calendar_id no longer matches the mapping's target: Sync / delete-"both" refuse, `failed mapping stale`	edge.sh:C04	produces `failed mapping stale`
 B04.3	a Sync tapped twice quickly: one copy; the second writes nothing (`ok`)	edge.sh:C05
 B04.4	a local event edited while its Sync runs: the next Sync pushes the edit	E24	the rename-then-Sync step (`updated`)
@@ -40,8 +40,9 @@ B11.3	a calendar whose display name is empty: its account name is shown	edge.sh:
 B12.1	time_12_24 = 24: every time reads "H:mm"	edge.sh:C15
 B12.2	a locale change re-labels months and the first day of the week without a restart	edge.sh:C15
 B12.3	the clock jumped backwards a year: the views follow, no event is lost	edge.sh:C16	the one backwards jump: ring_save, force-stop, ensure_start before its MARK (r3 V4)
+B12.3	(not a clause of the bullet: the clock put back with NO shell running — a reboot after a forward jump — and the reminders' cut-off lowered at the shell's next start)	edge.sh:C18	produces `reminders count from <ms> (the shell's start: the clock was set back behind <old>)`: the shell stopped and the clock set back in one device command (a reboot keeps a jumped clock on this emulator)
 B13.1	the Calendar tile's tap lands on today	edge.sh:C17
-B13.2	ACTION_INSERT with title / beginTime / endTime opens the editor prefilled, saves nothing until Save; calendar_id ignored	E22	its exported-intents step
+B13.2	ACTION_INSERT with title / beginTime / endTime opens the editor prefilled, saves nothing until Save; calendar_id ignored	E22	leg X: the INSERT carries calendar_id, title, beginTime and endTime; the editor's title, start and end are asserted, and the saved row's dtstart / dtend; also JVM: CalendarIntentsTest
 B13.3	a content://com.android.calendar/events/<id> VIEW opens that event	edge.sh:C17
 B13.4	an EDIT on an event outside Tessera opens it read-only	E22
 B13.5	a malformed URI opens today with no crash	edge.sh:C17	also JVM: CalendarIntentsTest
@@ -67,7 +68,7 @@ B19.1	a group with no members: "Text the group" shows a notice, no compose	edge.
 B19.2	a member with no mobile number is left out of the smsto: list; none left → the notice	edge.sh:P08
 B19.3	a group under an account not on "Can edit": no rename or delete action, the page says why	edge.sh:P08
 B19.4	a group deleted by another app while its page is open: the page closes with a notice	edge.sh:P08
-B20.1	Share when no app receives text/x-vcard: Android's resolver empty state	edge.sh:P09	recorded: the AVD has receivers (the fixture apps)
+B20.1	Share when no app receives text/x-vcard: Android's resolver empty state	edge.sh:P09	NOT PRODUCED and under no JVM test — an open clause (clauses-open.tsv, EDGE P09): P09 records the six receivers of this AVD; the empty state needs all six packages disabled for user 0 (the shell uid cannot disable one activity), among them Bluetooth's and the SMS role holder; what is asserted is that Share starts Android's chooser (e15.sh) with the provider's vCard stream (P09)
 B20.2	share of a contact with a photo: the vCard carries PHOTO;ENCODING=b	edge.sh:P09
 B21.1	the People tile: a photo removed while its bubble is on screen (the next event uses another photo)	edge.sh:P10
 B21.2	every photo removed mid-cycle: the static pattern after the current event	E11	its no-photo leg, plus edge.sh:P10

@@ -15,9 +15,17 @@
 #                                        pm grant READ → EXACTLY one Tessera row and no "standup"
 #   E  READ_CONTACTS alone revoked       WRITE_CONTACTS still held (asserted); People says so and offers the grant;
 #                                        `checklist:people:missing`; Tess's `contacts` row is red
-#   restore                              pm grant ×4, each asserted; the row's event deleted; ensure_start
+#   G  the grant made IN PLACE           READ and WRITE_CALENDAR revoked (with WRITE still held Android grants READ
+#                                        at the request, with no dialog), Calendar's cal_grant tapped and Android's dialog
+#                                        allowed: the views load, `permission request READ_CALENDAR: granted` and
+#                                        `[app] feeds started (calendar grant)`; an event the driver then inserts
+#                                        reaches the Calendar tile (`refresh (provider change)`, the tile's text) with
+#                                        no restart of the shell since before the grant (gate review A, finding 10)
+#   restore                              pm grant ×4, each asserted; the row's events deleted; ensure_start
+# E18_LEGS=G runs leg G and the restore alone — a narrow run; the log's first RECORD says so.
 # `pm revoke` ends the shell's process and empties its ring, so every slice here is the row's saved ring plus the live one.
 set -uo pipefail
+LEGS="${E18_LEGS:-all}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
 . "$HERE/p16.sh"
@@ -25,6 +33,10 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PXPY="$HERE/cal_px.py"
 
 row_begin E18 "permission states: READ / WRITE_CALENDAR together and alone, READ_CONTACTS alone"
+if [ "$LEGS" != all ]; then
+  [ "$LEGS" = G ] || { _verdict FAIL "E18_LEGS" "only E18_LEGS=G is a narrow run of this row (got $LEGS)"; row_end; exit 1; }
+  record "legs run" "G ONLY (a READ_CALENDAR grant made in place starts the tile's observer) — a narrow run; legs A–E stand on the row's earlier run"
+fi
 revoke() { ring_save; adb shell pm revoke app.tileshell "android.permission.$1"; }
 grant() { adb shell pm grant app.tileshell "android.permission.$1"; }
 tess_rows() { cals | grep -cF 'account_name=Tessera,'; }
@@ -41,9 +53,10 @@ for p in READ_CALENDAR WRITE_CALENDAR READ_CONTACTS WRITE_CONTACTS; do
   assert_eq "precondition: $p is held at the start" "true" "$(perm_granted "$p")"
 done
 c6; ensure_start
-cpurge "title IN ('E18 save','standup')"
+cpurge "title IN ('E18 save','standup','E18 grant')"
 CRASH0="$(ccrashes)"
 
+if [ "$LEGS" = all ]; then
 # ----------------------------------------------------------------------------------------------- A: READ and WRITE revoked
 log "--- A: READ_CALENDAR and WRITE_CALENDAR revoked"
 A_MARK="$(ring_mark)"
@@ -189,6 +202,56 @@ RED="$(red_in "$ROW_DIR/E-tess-contacts.xml" cortana_check:contacts:missing "$RO
 assert_ne "E: … and is red (red pixels inside the row's drawn box)" "0" "$RED"
 note "red pixels in Tess's contacts row: $RED; her rows on this screen: $(cids "$ROW_DIR/E-tess-contacts.xml" cortana_check:)"
 cortana_close; adb shell input keyevent KEYCODE_BACK; sleep 1
+fi   # legs A to E
+
+# ----------------------------------------------------------------------------------------------- G: the grant in place
+log "--- G: READ_CALENDAR granted in place (cal_grant, Android's dialog) starts the Calendar tile's observer"
+ALLOW="com.android.permissioncontroller:id/permission_allow_button"
+c6; ensure_start
+copen; TESS="$(tessera_id)"; adb shell input keyevent KEYCODE_HOME; sleep 1
+assert_ne "G: precondition — Tessera exists" "" "$TESS"
+assert_eq "G: precondition — READ and WRITE_CALENDAR are held" "true true" "$(perm_granted READ_CALENDAR) $(perm_granted WRITE_CALENDAR)"
+G0_MARK="$(ring_mark)"
+# Both, so that Android asks: with WRITE_CALENDAR still held it grants READ_CALENDAR at the request without a dialog
+# (one permission group) — the kept run E18-legs-G-run1-… shows that path: granted, feeds started, no dialog.
+revoke READ_CALENDAR; revoke WRITE_CALENDAR
+settle_home
+assert_eq "G: READ_CALENDAR and WRITE_CALENDAR revoked" "false false" "$(perm_granted READ_CALENDAR) $(perm_granted WRITE_CALENDAR)"
+record "G: the feed's refresh line at the shell's start without the read" "$(cline "$(csince "$G0_MARK")" '[calendar] refresh (')"
+copen; dump_ui "$ROW_DIR/G-denied.xml"
+assert_eq "G: Calendar's page offers the grant in place (cal_grant)" "yes" "$(has_node "$ROW_DIR/G-denied.xml" cal_grant)"
+PIDG="$(adb shell pidof app.tileshell < /dev/null | tr -d '\r')"
+G_MARK="$(ring_mark)"
+ctap cal_grant 2; dump_ui "$ROW_DIR/G-dialog.xml"; screencap "$ROW_DIR/G-dialog.png"
+assert_eq "G: the tap on cal_grant brings Android's own permission dialog (its Allow button)" "yes" "$(has_node "$ROW_DIR/G-dialog.xml" "$ALLOW")"
+tap_node "$ROW_DIR/G-dialog.xml" "$ALLOW"; sleep 3.5
+dump_ui "$ROW_DIR/G-granted.xml"
+assert_eq "G: Allow → READ_CALENDAR is held" "true" "$(perm_granted READ_CALENDAR)"
+assert_eq "G: the views load in place: the notice is gone, the week strip is drawn" "no yes" "$(has_node "$ROW_DIR/G-granted.xml" cal_notice) $(cunder "$ROW_DIR/G-granted.xml" cal_view cal_strip)"
+G_SLICE="$(ring_since "$G_MARK")"; printf '%s\n' "$G_SLICE" > "$ROW_DIR/G-slice.txt"
+assert_contains "G: the slice from the MARK before the tap holds [calendar] permission request READ_CALENDAR: granted" "[calendar] permission request READ_CALENDAR: granted" "$G_SLICE"
+assert_contains "G: … and [app] feeds started (calendar grant)" "[app] feeds started (calendar grant)" "$G_SLICE"
+assert_eq "G: … with no restart (the shell's pid is the same as before the tap)" "$PIDG" "$(adb shell pidof app.tileshell < /dev/null | tr -d '\r')"
+# A provider change then reaches the tile: an event the driver inserts, one hour from now.
+ensure_start
+GT_MARK="$(ring_mark)"
+GS=$(( ($(device_ms) / 60000 + 60) * 60000 ))
+GEV="$(cmkevent "$TESS" 'E18 grant' "$GS" $(( GS + 1800000 )))"
+assert_ne "G: the driver inserts an event one hour ahead (a provider change)" "" "$GEV"
+for i in 1 2 3 4 5 6 7 8 9 10; do sleep 1; ring_since "$GT_MARK" | grep -qF '[calendar] refresh (provider change)' && break; done
+GT_SLICE="$(ring_since "$GT_MARK")"; printf '%s\n' "$GT_SLICE" > "$ROW_DIR/G-tile-slice.txt"
+log "the feed after the insert: $(cline "$GT_SLICE" '[calendar] refresh (')"
+assert_contains "G: the insert reaches the feed through its observer: [calendar] refresh (provider change) …" "[calendar] refresh (provider change): access=true" "$GT_SLICE"
+SEEN=0; : > "$ROW_DIR/G-tile-texts.txt"
+for i in $(seq 1 14); do
+  gdump "$ROW_DIR/G-start.xml"
+  T="$(ctile_texts "$ROW_DIR/G-start.xml" slot:CALENDAR)"; echo "$T" >> "$ROW_DIR/G-tile-texts.txt"
+  case "$T" in *"E18 grant"*) SEEN=$((SEEN + 1)); cp "$ROW_DIR/G-start.xml" "$ROW_DIR/G-start-event.xml";; esac
+  sleep 1
+done
+log "the CALENDAR tile's texts over 14 dumps: $(sort "$ROW_DIR/G-tile-texts.txt" | uniq -c | tr '\n' ';')"
+assert_ne "G: … and the Calendar tile shows it (dumps of 14 in which the tile reads E18 grant)" "0" "$SEEN"
+assert_eq "G: … all without a process restart since before the grant (the same pid)" "$PIDG" "$(adb shell pidof app.tileshell < /dev/null | tr -d '\r')"
 
 # ----------------------------------------------------------------------------------------------- restore
 log "--- restore (r3 V10)"
@@ -197,8 +260,8 @@ for p in READ_CALENDAR WRITE_CALENDAR READ_CONTACTS WRITE_CONTACTS; do
   grant "$p"
   assert_eq "restore: pm grant $p — granted=true" "true" "$(perm_granted "$p")"
 done
-cpurge "title IN ('E18 save','standup')"
-assert_eq "restore: the row's event is deleted" "0" "$(cevent_count "title IN ('E18 save','standup')")"
+cpurge "title IN ('E18 save','standup','E18 grant')"
+assert_eq "restore: the row's events are deleted" "0" "$(cevent_count "title IN ('E18 save','standup','E18 grant')")"
 assert_eq "restore: exactly one Tessera calendar is left" "1" "$(tess_rows)"
 assert_eq "restore: no new crash of the shell during the row" "$CRASH0" "$(ccrashes)"
 c6; ensure_start

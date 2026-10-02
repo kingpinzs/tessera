@@ -18,7 +18,15 @@
 #   restore            the test events deleted, layout_restore of the baseline (removes the pin)
 #
 # The spec's "tomorrow 09:00" Standup is inside the feed's 24 hours only when the row runs after 09:00 device time.
+#
+#   W  the tile's window  (added for the fourth fix build, whose tile read starts at the local start of today and keeps
+#                      an instance by `InstanceWindow`) three driver events with times relative to the device's now:
+#                      one that ENDED earlier today, one starting in 2 hours, one starting in 25 hours → the tile shows
+#                      the second only (the feed's faces = the day face and that one), and Tess's typed "what is on my
+#                      calendar" names the second only. Time-proof: it reads the same at any hour after 00:30.
+# E4_LEGS=W runs leg W and the restore alone — a narrow run; the log's first RECORD says so.
 set -uo pipefail
+LEGS="${E4_LEGS:-all}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
 . "$HERE/p16.sh"
@@ -28,6 +36,10 @@ PIN_KEY="app:app.tileshell/app.tileshell.calendar.CalendarActivity:0"
 SLOT_KEY="slot:CALENDAR"
 
 row_begin E4 "events both ways: the editor, the observer with no restart, app and driver deletes, the pinned app tile"
+if [ "$LEGS" != all ]; then
+  [ "$LEGS" = W ] || { _verdict FAIL "E4_LEGS" "only E4_LEGS=W is a narrow run of this row (got $LEGS)"; row_end; exit 1; }
+  record "legs run" "W ONLY (the tile's and Tess's window: an event that ended today, one in 2 hours, one in 25 hours) — a narrow run; legs A–E stand on the row's earlier run"
+fi
 tile_texts() { python3 "$TILES" "$1" "$2" | awk -F'\t' '{ print $6 }' | sed 's/^texts=//'; }   # dump.xml tile-id
 # The first `view <mode>` line of a slice whose n equals `want`: prints "<wall − mark> <the line>", or "none".
 view_delta() { # slice-file mark mode want-n
@@ -63,6 +75,7 @@ assert_ne "precondition: Tessera exists once Calendar has opened" "" "$TESS"
 BEFORE="$(ctessera_count)"
 note "Tessera id $TESS holds $BEFORE event(s) before the row; zone $TZ_ID; today $TODAY, tomorrow $TOMORROW"
 
+if [ "$LEGS" = all ]; then
 # ----------------------------------------------------------------------------------------------- A: the editor
 log "--- A: an event created in the editor (Standup, tomorrow 09:00–10:00, Room 2)"
 ctap "cal_strip_day:$TOMORROW" 1.5
@@ -252,11 +265,56 @@ PUB="$(csince "$ROW_MARK")"
 assert_contains "E: … both published by CalendarFeed: under the slot key" "[engine] publish feed:calendar faces=2" "$PUB"
 assert_contains "E: … and under the component key" "[engine] publish cmp:app.tileshell/app.tileshell.calendar.CalendarActivity faces=2" "$PUB"
 
+cpurge "title IN ('Standup','Dentist')"
+ring_save
+layout_restore "$BASELINE"; assert_eq "E: the baseline layout again before leg W (the pin removed)" "0" "$?"
+fi   # legs A to E
+
+# ----------------------------------------------------------------------------------------------- W: the tile's window
+log "--- W: what the tile and Tess keep — an event that ended today, one in 2 hours, one in 25 hours"
+c6; ensure_start
+cpurge "title IN ('E4 ended','E4 soon','E4 later')"
+WNOW="$(device_ms)"; WMID="$(clocal_ms "$(cdate 0)" 00:00)"
+record "W: the device's time" "$(q "date '+%Y-%m-%d %H:%M %Z'")"
+assert_eq "W: precondition — it is at least 30 minutes after local midnight (an event can have ended today)" "yes" "$([ $(( WNOW - WMID )) -ge 1800000 ] && echo yes || echo no)"
+WE_S=$(( WNOW - 7200000 )); [ "$WE_S" -lt $(( WMID + 60000 )) ] && WE_S=$(( WMID + 60000 ))
+WE_E=$(( WNOW - 600000 ))
+WS_S=$(( (WNOW / 60000 + 120) * 60000 )); WL_S=$(( (WNOW / 60000 + 1500) * 60000 ))
+W_MARK="$(ring_mark)"
+W_ENDED="$(cmkevent "$TESS" 'E4 ended' "$WE_S" "$WE_E")"
+W_SOON="$(cmkevent "$TESS" 'E4 soon' "$WS_S" $(( WS_S + 3600000 )))"
+W_LATER="$(cmkevent "$TESS" 'E4 later' "$WL_S" $(( WL_S + 3600000 )))"
+assert_eq "W: fixtures — three events in Tessera: ended today ($(( (WNOW - WE_E) / 60000 )) min ago), starting in 2 hours, starting in 25 hours" "3" "$(cevent_count "_id IN (${W_ENDED:-0},${W_SOON:-0},${W_LATER:-0}) AND deleted=0")"
+assert_eq "W: fixtures — the ended one began after the local start of today" "yes" "$([ "$WE_S" -ge "$WMID" ] && echo yes || echo no)"
+for i in 1 2 3 4 5 6 7 8; do sleep 1; ring_since "$W_MARK" | grep -F '[calendar] refresh (' | tail -1 | grep -q 'faces=' && [ "$(ring_since "$W_MARK" | grep -cF '[calendar] refresh (')" -ge 3 ] && break; done
+sleep 2
+W_SLICE="$(ring_since "$W_MARK")"; printf '%s\n' "$W_SLICE" > "$ROW_DIR/W-slice.txt"
+log "the feed after the three inserts: $(cline "$W_SLICE" '[calendar] refresh (')"
+assert_eq "W: the feed's last refresh counts two faces — the day face and the event in 2 hours" "faces=2" "$(cline "$W_SLICE" '[calendar] refresh (' | grep -oE 'faces=[0-9]+')"
+: > "$ROW_DIR/W-tile-texts.txt"
+for i in $(seq 1 16); do
+  gdump "$ROW_DIR/W-start.xml"
+  tile_texts "$ROW_DIR/W-start.xml" "$SLOT_KEY" >> "$ROW_DIR/W-tile-texts.txt"
+  sleep 1
+done
+screencap "$ROW_DIR/W-start.png"
+log "the CALENDAR tile's texts over 16 dumps: $(sort "$ROW_DIR/W-tile-texts.txt" | uniq -c | tr '\n' ';')"
+assert_ne "W: the tile shows the timed event inside the next 24 hours (dumps of 16 reading E4 soon)" "0" "$(grep -cF 'E4 soon' "$ROW_DIR/W-tile-texts.txt")"
+assert_eq "W: … the one that ended earlier today does not come back (dumps reading E4 ended)" "0" "$(grep -cF 'E4 ended' "$ROW_DIR/W-tile-texts.txt")"
+assert_eq "W: … and the one starting in 25 hours is not shown (dumps reading E4 later)" "0" "$(grep -cF 'E4 later' "$ROW_DIR/W-tile-texts.txt")"
+tess_ask "what is on my calendar" 5
+W_REPLY="$(reply_since "$TMARK" | sed "s/&apos;/'/g")"; log "Tess: [$W_REPLY]"
+assert_contains "W: Tess's typed \"what is on my calendar\" names the event in 2 hours" "E4 soon" "$W_REPLY"
+assert_absent "W: … not the one that ended earlier today" "E4 ended" "$W_REPLY"
+assert_absent "W: … and not the one starting in 25 hours" "E4 later" "$W_REPLY"
+ring_since "$TMARK" > "$ROW_DIR/W-tess-slice.txt"
+tess_close
+
 # ----------------------------------------------------------------------------------------------- restore
 log "--- restore"
 ring_save
-cpurge "title IN ('Standup','Dentist')"
-assert_eq "restore: the test events are deleted" "0" "$(cevent_count "title IN ('Standup','Dentist')")"
+cpurge "title IN ('Standup','Dentist','E4 ended','E4 soon','E4 later')"
+assert_eq "restore: the test events are deleted" "0" "$(cevent_count "title IN ('Standup','Dentist','E4 ended','E4 soon','E4 later')")"
 assert_eq "restore: Tessera holds what it held before the row" "$BEFORE" "$(ctessera_count)"
 layout_restore "$BASELINE"; assert_eq "restore: layout_restore of the baseline (removes the pin)" "0" "$?"
 assert_absent "restore: … the pinned tile is gone from the layout" "\"$PIN_KEY\"" "$(layout_json | tr -d ' \r\n')"

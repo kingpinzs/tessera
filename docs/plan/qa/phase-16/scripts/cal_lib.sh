@@ -967,6 +967,47 @@ edge_C16() {
   ensure_start
 }
 
+# ---- C18 (B12.3, its other form; gate review B, note 9): the clock goes back with NO shell running. The reminders'
+#      cut-off is first written while the clock is three days ahead; then the shell is stopped and the clock set back
+#      in ONE device shell command (the system restarts the Home app about a second after a stop — C09 — so the clock
+#      is back before that start), and the shell's next start finds the cut-off in the future and lowers it:
+#      `[calendar] reminders count from <ms> (the shell's start: the clock was set back behind <old>)`.
+#      (A reboot does NOT do it: with automatic time off this emulator keeps a jumped clock across `adb reboot` — the
+#      kept run EDGE-cal-run8-C18-alone-on-e03a1d23-the-reboot-kept-the-jumped-clock-34-3-2.)
+edge_C18() {
+  local now fwd back since0 since1 line other slice
+  c6; ensure_start
+  now="$(device_ms)"; fwd=$(( now + 3 * 86400000 ))
+  ring_save
+  jump_clock "$fwd" > "$ROW_DIR/C18-jump.txt"
+  adb shell "run-as app.tileshell rm -f files/calendar_sync.json" < /dev/null
+  c6; ensure_start
+  since0="$(csync_get remindersSince)"
+  assert_within "C18: fixtures — with the clock three days ahead and no store, this start writes the reminders' cut-off at that time" "$fwd" "$since0" 180000
+  assert_contains "C18: fixtures — … logged as first on this install" "(the shell's start: first on this install)" "$(cline "$(csince "$ROW_MARK")" '[calendar] reminders count from')"
+  ring_save
+  back="$(date +%s%3N)"
+  adb shell "am force-stop app.tileshell; cmd alarm set-time $back" < /dev/null > "$ROW_DIR/C18-stop-and-set.txt" 2>&1
+  sleep 1.5; adb shell input keyevent KEYCODE_HOME; sleep 4
+  now="$(device_ms)"
+  assert_within "C18: the shell stopped and the clock set back in one command — the device is on the host's clock again" "$(date +%s%3N)" "$now" 60000
+  ensure_start
+  sleep 2
+  slice="$(ring_since "$ROW_MARK")"; printf '%s\n' "$slice" | grep -F '[calendar] reminders count from' > "$ROW_DIR/C18-after-stop-slice.txt"
+  record "C18: every reminders-count line of the shell's process started after the stop" "$(sed 's/^.*wall=[0-9]* //' "$ROW_DIR/C18-after-stop-slice.txt" | tr '\n' ';')"
+  line="$(grep -F "the shell's start: the clock was set back behind" "$ROW_DIR/C18-after-stop-slice.txt" | tail -1 | sed 's/^.*wall=[0-9]* //')"
+  other="$(grep -F "the clock was set: it went back behind" "$ROW_DIR/C18-after-stop-slice.txt" | tail -1 | sed 's/^.*wall=[0-9]* //')"
+  log "$line"
+  assert_eq "C18: the shell's first start after the clock went back lowers the cut-off: reminders count from <ms> (the shell's start: the clock was set back behind <the cut-off before>)" "yes" "$(printf '%s' "$line" | grep -Eq "^\[calendar\] reminders count from [0-9]+ \(the shell's start: the clock was set back behind $since0\)$" && echo yes || echo "no (start form [$line]; set form [$other])")"
+  since1="$(csync_get remindersSince)"
+  assert_within "C18: … to the time of that start (remindersSince against the device's now)" "$now" "$since1" 180000
+  assert_eq "C18: … which is behind the cut-off before" "yes" "$([ "${since1:-0}" -lt "${since0:-0}" ] 2>/dev/null && echo yes || echo no)"
+  ring_save
+  clock_restore
+  assert_eq "C18: restore — automatic time is on again" "1" "$(adb shell settings get global auto_time < /dev/null | tr -d '\r')"
+  ensure_start
+}
+
 # ---- C17 (B13.1, B13.3, B13.5): the tile's tap lands on today; VIEW on an event; a malformed URI
 edge_C17() {
   local ev start today pid crash u

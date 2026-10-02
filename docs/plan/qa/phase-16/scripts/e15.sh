@@ -36,8 +36,81 @@ list_rows() { # prefix -> the list opened fresh and walked: its row count
 row_begin E15 "Share (the provider's vCard stream), SIM import, filter contact list"
 require_build
 D="$ROW_DIR"
+
+# ================================================================================================ E15_LEGS (a narrow run)
+# The owner's ruling (2026-10-01): only what changed is run again. E15_LEGS=sim runs ONLY Import from SIM (product commit
+# b7c45a56: a SIM import goes through the same create, read-back included, and stops at the first entry the phone files
+# elsewhere): the `[people] sim import: n of m` line, the contacts in the phone's own account, exactly n raw contacts
+# added, a `write insert raw=<id>: ok` line for each and NO `write delete` line.
+if [ -n "${E15_LEGS:-}" ]; then
+  record "E15_LEGS — a NARROW run, only these legs of E15 ran (the counted whole-row run is E15/ on 3c1ad1e0)" "$E15_LEGS"
+  if [ "$E15_LEGS" != sim ]; then _verdict FAIL "E15_LEGS names a leg this driver has" "unknown: $E15_LEGS (known: sim)"; row_end; exit 1; fi
+  ensure_start
+  perm_ensure READ_CONTACTS WRITE_CONTACTS
+  assert_eq "sim: READ_CONTACTS and WRITE_CONTACTS held" "true true" "$(perm_granted READ_CONTACTS) $(perm_granted WRITE_CONTACTS)"
+  assert_eq "sim: nothing is on \"Can edit\"" "" "$(people_allowed)"
+  q "content query --uri $RAW --projection _id:contact_id:account_name:account_type:display_name:deleted" > "$D/raw-before.txt"
+  q "content query --uri $ADN" > "$D/adn-before.txt" 2>&1
+  LIVE0="$(raw_count)"; RAW_BEFORE="$LIVE0"
+  MAX0="$(q "content query --uri $RAW --projection _id" | sed -n 's/.*Row: [0-9]* _id=\([0-9]*\).*/\1/p' | sort -n | tail -1)"
+  note "sim: $LIVE0 live raw contacts before; the highest raw_contacts _id is ${MAX0:-none}; icc/adn before: $(tr '\n' ';' < "$D/adn-before.txt" | cut -c1-200)"
+  assert_eq "sim: the SIM's phonebook is empty before the leg" "0" "$(grep -c 'Row:' "$D/adn-before.txt")"
+  assert_eq "sim: no raw contact is named Sim Bob or Sim Cy before (deleted rows included)" "0" "$(q "content query --uri $RAW --projection _id --where \"display_name IN ('Sim Bob','Sim Cy')\"" | grep -c '_id=')"
+  q "content insert --uri $ADN --bind tag:s:'Sim Bob' --bind number:s:5550002" > "$D/sim-insert.txt" 2>&1
+  q "content insert --uri $ADN --bind tag:s:'Sim Cy' --bind number:s:5550004" >> "$D/sim-insert.txt" 2>&1
+  SIMQ="$(q "content query --uri $ADN")"; printf '%s\n' "$SIMQ" > "$D/adn-after-insert.txt"; log "icc/adn: $(echo "$SIMQ" | tr '\n' ';' | cut -c1-300)"
+  SIM_N="$(printf '%s\n' "$SIMQ" | grep -c 'Row:')"
+  assert_eq "sim: the emulated SIM's phonebook took the two entries" "2" "$SIM_N"
+  open_people_settings sim "$D/sim.xml"; screencap "$D/sim.png"
+  assert_contains "sim: People's Import from SIM page is on show (people_page:sim)" 'selected="true"' "$(node_tag "$D/sim.xml" people_page:sim)"
+  assert_eq "sim: one people_sim_row: per SIM entry" "$SIM_N" "$(count_ids "$D/sim.xml" people_sim_row:)"
+  MARK="$(ring_mark)"                                        # BEFORE Import: the slice below holds everything it did
+  tap_node "$D/sim.xml" people_sim_import; sleep 5
+  dump_ui "$D/sim-after.xml"; screencap "$D/sim-after.png"
+  SIMLINE="$(ring_since "$MARK" | grep -F '[people] sim import' | tail -1 | sed 's/.*\[people\] //')"; log "[people] $SIMLINE"
+  assert_eq "sim: diagnostics [people] sim import: n of m — every entry of the SIM" "sim import: $SIM_N of $SIM_N" "$SIMLINE"
+  NEW_ROWS="$(q "content query --uri $RAW --projection _id:deleted" | sed -n 's/.*Row: [0-9]* _id=\([0-9]*\), deleted=\([0-9]*\).*/\1:\2/p' | awk -F: -v m="${MAX0:-0}" '$1 > m' | sort -n | tr '\n' ' ' | sed 's/ $//')"
+  note "sim: raw_contacts rows above the highest _id before the import, as _id:deleted: $NEW_ROWS"
+  NEW_IDS="$(printf '%s' "$NEW_ROWS" | tr ' ' '\n' | sed 's/:.*//' | tr '\n' ' ' | sed 's/ $//')"
+  for id in $NEW_IDS; do echo "$id" >> "$ROW_DIR/people-fixtures.ids"; done     # removed by people_fixtures_down in the restore
+  assert_eq "sim: exactly $SIM_N raw contacts were added (rows above the highest _id before the import)" "$SIM_N" "$(printf '%s' "$NEW_ROWS" | tr ' ' '\n' | grep -c .)"
+  assert_eq "sim: … every one of them live (deleted=0)" "$SIM_N" "$(printf '%s' "$NEW_ROWS" | tr ' ' '\n' | grep -c ':0$')"
+  assert_eq "sim: the live raw-contact count is $SIM_N more than before the import" "$((LIVE0 + SIM_N))" "$(raw_count)"
+  for nm in "Sim Bob:5550002" "Sim Cy:5550004"; do
+    ROWN="$(q "content query --uri $RAW --projection _id:contact_id:account_name:account_type:display_name:deleted --where \"display_name='${nm%%:*}' AND deleted=0\"")"; log "$ROWN"
+    RID="$(printf '%s\n' "$ROWN" | sed -n 's/.*Row: [0-9]* _id=\([0-9]*\),.*/\1/p' | head -1)"
+    assert_eq "sim: one live raw contact is named ${nm%%:*}" "1" "$(printf '%s\n' "$ROWN" | grep -c '_id=')"
+    assert_contains "sim: … in the phone's own account (account_name and account_type NULL; Q-16-3)" "account_name=NULL, account_type=NULL" "$ROWN"
+    assert_contains "sim: … one of the rows added by the import" " ${RID:-?} " " $NEW_IDS "
+    assert_contains "sim: … with the SIM's number ${nm##*:}" "data1=${nm##*:}" "$(data_rows "${RID:-0}")"
+  done
+  sleep 5
+  SLICE="$(ring_since "$MARK")"; printf '%s\n' "$SLICE" > "$D/slice-from-before-import.txt"
+  printf '%s\n' "$SLICE" | grep -E '\[people\] (write|sim) ' | sed 's/^.*wall=[0-9]* //' >> "$LOG"
+  for id in $NEW_IDS; do
+    assert_contains "sim: the slice from the MARK before Import holds [people] write insert raw=$id: ok" "[people] write insert raw=$id: ok" "$SLICE"
+  done
+  assert_eq "sim: … $SIM_N write lines in that slice, no more (one insert per entry)" "$SIM_N" "$(printf '%s\n' "$SLICE" | grep -cF '[people] write ')"
+  absent_in "sim: NO \`[people] write delete\` line in that slice, read 10 s after Import (nothing was taken back)" "[people] write delete" "$SLICE"
+  absent_in "sim: … and no People line in it reports a failure" ": failed" "$(printf '%s\n' "$SLICE" | grep -F '[people] ')"
+  assert_eq "sim: 10 s after Import the $SIM_N raw contacts are still live" "$SIM_N" "$(q "content query --uri $RAW --projection _id:deleted --where \"deleted=0 AND _id>${MAX0:-0}\"" | grep -c '_id=')"
+
+  log "--- sim: restore"
+  back 1; back 1; back 1
+  q "content delete --uri $ADN --where \"tag='Sim Bob' AND number='5550002'\"" > "$D/sim-delete.txt" 2>&1
+  q "content delete --uri $ADN --where \"tag='Sim Cy' AND number='5550004'\"" >> "$D/sim-delete.txt" 2>&1
+  q "content query --uri $ADN" > "$D/adn-after.txt" 2>&1
+  assert_eq "sim restore: icc/adn equals its read before the leg" "$(cat "$D/adn-before.txt")" "$(cat "$D/adn-after.txt")"
+  people_fixtures_down
+  q "content query --uri $RAW --projection _id:contact_id:account_name:account_type:display_name:deleted" > "$D/raw-after.txt"
+  assert_eq "sim restore: the raw_contacts rows equal the rows before the leg" "$(cat "$D/raw-before.txt")" "$(cat "$D/raw-after.txt")"
+  c6; ensure_start
+  row_end; exit $?
+fi
+
+# ================================================================================================ the whole row
 ensure_start
-record "the APK clause (size delta ≤ 2 MB, no new entry ≥ 1 MB)" "NOT asserted here: it is the lead's clause (QA brief; Change Log 2026-10-01 puts the measured delta to the owner)"
+record "the APK clause (as re-cut by the owner's ruling Q-16-5: growth ≤ 5 MB over the pre-task-2 APK, no new entry ≥ 1 MB other than code files)" "NOT asserted here: it is the lead's clause, asserted by scripts/e15_apk.sh (evidence in E15_APK/)"
 q "content query --uri $RAW --projection _id:contact_id:account_name:account_type:display_name:deleted" > "$D/raw-before.txt"
 q "content query --uri $ADN" > "$D/adn-before.txt" 2>&1
 note "icc/adn before the row: $(tr '\n' ';' < "$D/adn-before.txt" | cut -c1-300)"
@@ -101,6 +174,12 @@ assert_contains "content gettype on the logged URI: what is shared is text/x-vca
 IMPORT="$(adb shell cmd package query-activities --brief -a android.intent.action.VIEW -t text/x-vcard | tr -d '\r' | grep '^ *com.android.contacts/' | head -1 | tr -d ' ')"
 record "the image's Contacts import activity (VIEW text/x-vcard)" "${IMPORT:-none}"
 ANN_RAWS_BEFORE="$(q "content query --uri $RAW --projection _id --where \"display_name='Ann Lee' AND deleted=0\"" | sed -n 's/.*_id=\([0-9]*\).*/\1/p' | sort -n | tr '\n' ' ')"
+# Gate review B, note 12: an "Ann Lee" left by an earlier run must not pass for this run's import. The only live raw
+# contact of that name before the import is this run's fixture, and the copy is looked for only ABOVE the highest
+# raw_contacts _id (deleted rows included) read before the import.
+assert_eq "before the import the only live raw contact named Ann Lee is this run's fixture" "$ANN" "$(echo $ANN_RAWS_BEFORE)"
+MAX_BEFORE_IMPORT="$(q "content query --uri $RAW --projection _id" | sed -n 's/.*Row: [0-9]* _id=\([0-9]*\).*/\1/p' | sort -n | tail -1)"
+note "the highest raw_contacts _id before the import: ${MAX_BEFORE_IMPORT:-none}"
 COPY=""
 if [ -n "$IMPORT" ]; then
   adb shell am start -W -n "$IMPORT" -a android.intent.action.VIEW -d "$URI" -t text/x-vcard --grant-read-uri-permission > "$D/import-am.txt" 2>&1
@@ -109,14 +188,14 @@ if [ -n "$IMPORT" ]; then
   dump_ui "$D/import.xml"; screencap "$D/import.png"
   record "what the import shows" "$(grep -o 'text="[^"]\+"' "$D/import.xml" | tr '\n' ' ' | cut -c1-300)"
   for _ in 1 2 3 4 5 6 7 8 9 10; do
-    COPY="$(q "content query --uri $RAW --projection _id --where \"display_name='Ann Lee' AND deleted=0 AND _id!=$ANN\"" | sed -n 's/.*_id=\([0-9]*\).*/\1/p' | sort -n | tail -1)"
+    COPY="$(q "content query --uri $RAW --projection _id --where \"display_name='Ann Lee' AND deleted=0 AND _id>${MAX_BEFORE_IMPORT:-0}\"" | sed -n 's/.*Row: [0-9]* _id=\([0-9]*\).*/\1/p' | sort -n | tail -1)"
     [ -n "$COPY" ] && break
     sleep 2
   done
 fi
-assert_ne "the image's Contacts app imported a contact from the stream" "" "$COPY"
+assert_ne "the image's Contacts app imported a contact from the stream (a raw contact named Ann Lee whose _id is above every _id before the import)" "" "$COPY"
 if [ -n "$COPY" ]; then
-  q "content query --uri $RAW --projection _id --where \"display_name='Ann Lee' AND deleted=0 AND _id!=$ANN\"" | sed -n 's/.*_id=\([0-9]*\).*/\1/p' >> "$ROW_DIR/people-fixtures.ids"
+  q "content query --uri $RAW --projection _id --where \"display_name='Ann Lee' AND deleted=0 AND _id>${MAX_BEFORE_IMPORT:-0}\"" | sed -n 's/.*Row: [0-9]* _id=\([0-9]*\).*/\1/p' >> "$ROW_DIR/people-fixtures.ids"
   CD="$(q "content query --uri $DATA --projection mimetype:data1 --where \"raw_contact_id=$COPY\"")"; printf '%s\n' "$CD" > "$D/imported-data.txt"; printf '%s\n' "$CD" >> "$LOG"
   assert_contains "the stream carried her name (FN:Ann Lee)" "mimetype=vnd.android.cursor.item/name, data1=Ann Lee" "$CD"
   TEL="$(printf '%s\n' "$CD" | sed -n 's/.*phone_v2, data1=\(.*\)$/\1/p' | head -1)"

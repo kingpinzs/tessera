@@ -527,6 +527,15 @@ jvm_result() { # fully-qualified test class
   echo "$(grep -o '<testsuite[^>]*>' "$xml" | sed -E 's/.*tests="([0-9]+)" skipped="([0-9]+)" failures="([0-9]+)" errors="([0-9]+)".*/tests=\1 failures=\3 errors=\4 skipped=\2/') at $(date -r "$xml" '+%F %T')"
 }
 jvm_cases() { grep -o 'testcase name="[^"]*"' "$REPO/app/build/test-results/testDebugUnitTest/TEST-$1.xml" 2>/dev/null | sed 's/testcase name=/  /'; }
+# "yes (<n> tests)" only when the suite's tests attribute is at least 1 AND equals the number of <testcase> elements in
+# the same file; a result with tests="0" — a class whose tests were all filtered out — says no (gate review B, note 12).
+jvm_ran() { # fully-qualified test class
+  local xml="$REPO/app/build/test-results/testDebugUnitTest/TEST-$1.xml" n c
+  [ -f "$xml" ] || { echo "no (no result file)"; return; }
+  n="$(grep -o '<testsuite[^>]*>' "$xml" | sed -nE 's/.* tests="([0-9]+)".*/\1/p' | head -1)"
+  c="$(grep -o '<testcase ' "$xml" | grep -c .)"
+  if [ -n "$n" ] && [ "$n" -ge 1 ] && [ "$n" = "$c" ]; then echo "yes ($n tests)"; else echo "no (tests=\"${n:-?}\", $c testcase elements)"; fi
+}
 # yes when the result file is newer than every file named (the test's source, the code it tests).
 jvm_fresh() { # class file...
   local xml="$REPO/app/build/test-results/testDebugUnitTest/TEST-$1.xml" f; shift
@@ -1343,6 +1352,8 @@ edge_P04() {
   q "content delete --uri '$RAW/$r?$SA'" >/dev/null; sleep 3
   c6; ensure_start
   open_people_settings can_edit "$d/b.xml"; screencap "$d/b.png"
+  # The page first (gate review B, note 12): a dump of some other page has no such row either.
+  assert_eq "P04: \"Can edit\" is the page on show (people_page:can_edit selected)" "true" "$(node_attr "$d/b.xml" people_page:can_edit selected)"
   assert_eq "P04: the removed account's row leaves the list" "no" "$(has_node "$d/b.xml" "people_can_edit:$typ:$acct")"
   assert_eq "P04: … and people_edit.json" "" "$(people_allowed)"
   record "P04: people_edit.json after the account went" "[$(people_edit_json)]"
@@ -1353,6 +1364,7 @@ edge_P04() {
   assert_contains "P04: re-added, the account starts unticked" 'checked="false"' "$(node_tag "$d/c.xml" "people_can_edit:$typ:$acct")"
   assert_eq "P04: … and is not in people_edit.json" "" "$(people_allowed)"
   card_of "$r" "$d/c-card.xml"
+  assert_eq "P04: its contact's card is on show (people_card:<lookup>, asserted first)" "yes" "$(has_node "$d/c-card.xml" "people_card:$(lookup_of "$(contact_of "$r")")")"
   assert_eq "P04: … so its contact is read-only (no people_card_edit)" "no" "$(has_node "$d/c-card.xml" people_card_edit)"
   # B15.2: people_edit.json lost: nothing is allowed again, phone-only contacts still editable
   open_people_settings can_edit "$d/d.xml"; tap_node "$d/d.xml" "people_can_edit:$typ:$acct"; sleep 2
@@ -1366,6 +1378,7 @@ edge_P04() {
   assert_contains "P04: people_edit.json lost: the account is unticked again" 'checked="false"' "$(node_tag "$d/e.xml" "people_can_edit:$typ:$acct")"
   assert_eq "P04: … nothing is allowed" "" "$(people_allowed)"
   card_of "$r" "$d/e-card.xml"
+  assert_eq "P04: its contact's card is on show (people_card:<lookup>, asserted first)" "yes" "$(has_node "$d/e-card.xml" "people_card:$(lookup_of "$(contact_of "$r")")")"
   assert_eq "P04: … its contact is read-only" "no" "$(has_node "$d/e-card.xml" people_card_edit)"
   card_of "$lou" "$d/e-local.xml"
   assert_eq "P04: … and a phone-only contact is still editable (people_card_edit)" "yes" "$(has_node "$d/e-local.xml" people_card_edit)"
@@ -1557,7 +1570,7 @@ edge_P09() {
   _pe_begin P09
   local d="$PE_D" raw lk mark uri imp copy handlers
   handlers="$(adb shell cmd package query-activities --brief -a android.intent.action.SEND -t text/x-vcard | tr -d '\r' | grep '/' | tr -d ' ' | tr '\n' ' ')"
-  record "P09: B20.1 Share when no app receives text/x-vcard" "not produced on this AVD: it has receivers ($handlers); the empty state is Android's resolver's own"
+  record "P09: B20.1 Share when no app receives text/x-vcard" "not produced on this AVD: it has receivers ($handlers); the empty state is Android's resolver's own — an open clause (clauses-open.tsv, EDGE P09)"
   raw="$(people_add 'Photo Share' '+1 555 090 0001')"; sleep 2
   push_photo red >/dev/null
   give_photo "$raw" red "P09: Photo Share"

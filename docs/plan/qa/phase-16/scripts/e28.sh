@@ -342,7 +342,7 @@ log "--- the guard's JVM test (PeopleWriteGuardTest) — the lead's result on th
 T=app.tileshell.people.PeopleWriteGuardTest
 RES="$(jvm_result "$T")"; log "PeopleWriteGuardTest: ${RES:-no result file}"
 jvm_cases "$T" >> "$LOG"
-assert_contains "JVM: the guard's test ran" "tests=" "$RES"
+assert_contains "JVM: the guard's test ran: its tests count is at least 1 and equals the result file's <testcase> count" "yes (" "$(jvm_ran "$T")"
 assert_contains "JVM: … with no failure and no error" "failures=0 errors=0" "$RES"
 assert_eq "JVM: … none skipped" "skipped=0" "$(echo "$RES" | grep -o 'skipped=[0-9]*')"
 assert_eq "JVM: the result is newer than the guard, its test and the write layer (the code under test)" "yes" \
@@ -354,7 +354,8 @@ record "JVM: test cases in the result" "$(printf '%s\n' "$CASES" | grep -c .)"
 TW=app.tileshell.people.PeopleWriterTest
 RESW="$(jvm_result "$TW")"; log "PeopleWriterTest: ${RESW:-no result file}"
 jvm_cases "$TW" >> "$LOG"
-assert_contains "JVM (fix-round F15): the write layer's test ran with no failure and no error" "failures=0 errors=0" "$RESW"
+assert_contains "JVM (fix-round F15): the write layer's test ran: its tests count is at least 1 and equals the result file's <testcase> count" "yes (" "$(jvm_ran "$TW")"
+assert_contains "JVM (fix-round F15): … with no failure and no error" "failures=0 errors=0" "$RESW"
 assert_eq "JVM (fix-round F15): … none skipped, and the result is newer than the writer and its test" "skipped=0 yes" \
   "$(echo "$RESW" | grep -o 'skipped=[0-9]*') $(jvm_fresh "$TW" "$REPO/app/src/main/kotlin/app/tileshell/people/PeopleWriter.kt" "$REPO/app/src/test/kotlin/app/tileshell/people/PeopleWriterTest.kt")"
 

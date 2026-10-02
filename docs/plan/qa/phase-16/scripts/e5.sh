@@ -14,13 +14,23 @@
 #   restore             every event the row inserted or created deleted by id; Tessera's count as before the row
 #
 # An occurrence's time is read from Instances, never start + k weeks: the zone's DST change falls inside the series.
+#
+# Leg D also walks the Agenda PAST its loading steps (gate review A, finding 2: the list was thrown back to the selected
+# day each time it loaded more weeks — 8 → 16 → 32 → 56): leg A inserts one event in week 9, 17, 33 and 40 from today,
+# and the walk asserts that the first date of each dump never goes backwards and that all four are reached.
+# E5_LEGS=D runs legs A and D and the restore alone — a narrow re-run; the log's first RECORD says so.
 set -uo pipefail
+LEGS="${E5_LEGS:-all}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
 . "$HERE/p16.sh"
 . "$HERE/cal_lib.sh"
 
 row_begin E5 "all-day, multi-day and recurring events; the three occurrence scopes"
+if [ "$LEGS" != all ]; then
+  [ "$LEGS" = D ] || { _verdict FAIL "E5_LEGS" "only E5_LEGS=D is a narrow run of this row (got $LEGS)"; row_end; exit 1; }
+  record "legs run" "A (the driver's inserts) and D (the series in the Agenda; the walk past weeks 8, 16 and 32) ONLY — a narrow re-run; legs B, C, E–I stand on the row's earlier run"
+fi
 c6; ensure_start
 copen
 TESS="$(tessera_id)"
@@ -37,6 +47,15 @@ THREE="$(cmkevent "$TESS" 'E5 three days' "$(clocal_ms "$TODAY" 10:00)" "$(cloca
 S0="$(clocal_ms "$TODAY" 18:00)"
 SERIES="$(cmkseries "$TESS" 'E5 weekly' "$S0" 'FREQ=WEEKLY;COUNT=10' PT1H)"
 MADE="$ALLDAY $THREE $SERIES"
+# One event in each of weeks 9, 17, 33 and 40 from today: past each step of the Agenda's loaded window (8, 16, 32 weeks).
+FAR=""
+for wk in 9 17 33 40; do
+  fs="$(clocal_ms "$(cdate $(( wk * 7 )))" 09:00)"
+  fid="$(cmkevent "$TESS" "E5 week $wk" "$fs" $(( fs + 3600000 )))"
+  FAR="$FAR $wk:$fid:$(cdate $(( wk * 7 )))"; MADE="$MADE $fid"
+done
+note "the far events (week:id:date):$FAR"
+assert_eq "A: an event in each of weeks 9, 17, 33 and 40 from today" "4" "$(cevent_count "calendar_id=$TESS AND deleted=0 AND title LIKE 'E5 week %'")"
 note "all-day $ALLDAY, three-day $THREE, series $SERIES (first at $S0)"
 RA="$(cevents _id:allDay:dtstart:eventTimezone "_id=${ALLDAY:-0}")"
 assert_contains "A: the all-day event — allDay 1, dtstart at UTC midnight, eventTimezone UTC" "allDay=1, dtstart=$(cutc_day_ms 0), eventTimezone=UTC" "$RA"
@@ -48,6 +67,7 @@ cinstance_times "$S0" "$RANGE_TO" "$SERIES" > "$ROW_DIR/A-instances.txt"
 note "the series' instances from the provider: $(tr '\n' ';' < "$ROW_DIR/A-instances.txt")"
 inst() { sed -n "${1}p" "$ROW_DIR/A-instances.txt"; }   # k (1-based) -> "begin end"
 
+if [ "$LEGS" = all ]; then
 # ----------------------------------------------------------------------------------------------- B: the all-day band
 log "--- B: the Day view's all-day band"
 copen_day "$(clocal_ms "$TODAY" 12:00)"; dump_ui "$ROW_DIR/B-day.xml"; screencap "$ROW_DIR/B-day.png"
@@ -71,18 +91,38 @@ done
 copen_day "$(clocal_ms "$(cdate 3)" 12:00)"; dump_ui "$ROW_DIR/C-day3.xml"
 assert_eq "C: the control — and not on the day after ($(cdate 3))" "no" "$(has_node "$ROW_DIR/C-day3.xml" "cal_event:$THREE")"
 
+fi   # legs B and C
 # ----------------------------------------------------------------------------------------------- D: the series in the Agenda
 log "--- D: the Agenda lists ten instances of the series; the provider agrees"
 PN="$(cinstances "$S0" "$RANGE_TO" "$SERIES")"
 assert_eq "D: content query instances/when/<start>/<end> — ten instances of the series" "10" "$PN"
+# A fresh Agenda, so its window starts at its first step and the further weeks are loaded BY the walk: the shell is
+# stopped and Calendar opened again (an Agenda left open over the empty calendar had already loaded every step).
+c6; copen
 ctap cal_bar:today 1.2; cview agenda 2.5
-cagenda_walk "$ROW_DIR/D-agenda.tsv"
+D_MARK="$(ring_mark)"
+cagenda_walk "$ROW_DIR/D-agenda.tsv" 60
+ring_since "$D_MARK" | grep -F '[calendar] view agenda ' > "$ROW_DIR/D-view-slice.txt"
 AN="$(awk -F'\t' -v id="$SERIES" '$2 == id' "$ROW_DIR/D-agenda.tsv" | wc -l | tr -d ' ')"
 log "the Agenda's rows for the series: $(awk -F'\t' -v id="$SERIES" '$2 == id {printf "%s ", $1}' "$ROW_DIR/D-agenda.tsv")"
 assert_eq "D: the agenda lists ten cal_event: instances of the series" "10" "$AN"
 assert_eq "D: … the provider's count agrees with the agenda's" "$PN" "$AN"
 WANT_DAYS="$(while read -r b e; do cdate_of "$b"; done < "$ROW_DIR/A-instances.txt" | tr '\n' ' ' | sed 's/ $//')"
 assert_eq "D: … on the provider's ten days" "$WANT_DAYS" "$(awk -F'\t' -v id="$SERIES" '$2 == id {print $1}' "$ROW_DIR/D-agenda.tsv" | sort | tr '\n' ' ' | sed 's/ $//')"
+# The walk itself: the list of day groups scrolls on while more weeks load — it is never thrown back.
+FIRSTS="$(awk -F'\t' 'NF >= 3 && !($1 in f) { f[$1] = $2; n[++k] = $1 } END { for (i = 1; i <= k; i++) printf "%s%s", (i > 1 ? " " : ""), f[n[i]] }' "$ROW_DIR/D-agenda.tsv.dumps")"
+log "the first date of each dump of the walk: $FIRSTS"
+WINDOWS="$(sed -n 's/.*view agenda \([0-9-]*\.\.[0-9-]*\):.*/\1/p' "$ROW_DIR/D-view-slice.txt" | awk '!seen[$0]++' | tr '\n' ' ' | sed 's/ $//')"
+record "D: the Agenda's windows loaded DURING the walk (view agenda lines since the walk's MARK: from..to, in order)" "$WINDOWS"
+assert_eq "D: the walk — more weeks were loaded while it scrolled: at least three wider windows since its MARK (the steps past weeks 8, 16 and 32)" "yes" "$([ "$(echo "$WINDOWS" | wc -w)" -ge 3 ] && echo yes || echo "no ($WINDOWS)")"
+assert_eq "D: the walk — the first date of each dump never goes backwards (the list is not thrown back when more weeks load)" "yes" "$(echo "$FIRSTS" | tr ' ' '\n' | awk 'NR > 1 && $1 < prev { printf "no (dump %d shows %s after %s)", NR - 1, $1, prev; bad = 1; exit } { prev = $1 } END { if (!bad) print "yes" }')"
+assert_eq "D: … it made more than one dump (the list did scroll)" "yes" "$([ "$(echo "$FIRSTS" | wc -w)" -gt 3 ] && echo yes || echo "no ($FIRSTS)")"
+for f in $FAR; do
+  wk="${f%%:*}"; rest="${f#*:}"; fid="${rest%%:*}"; fdate="${rest#*:}"
+  assert_eq "D: … the walk gets past week $(( wk - 1 )): the event of week $wk is reached, on its date" "$fdate" "$(awk -F'\t' -v id="$fid" '$2 == id {print $1}' "$ROW_DIR/D-agenda.tsv")"
+done
+
+if [ "$LEGS" = all ]; then
 
 # ----------------------------------------------------------------------------------------------- E: Repeat = weekly in the app
 log "--- E: Repeat = weekly on a new event, in the app"
@@ -188,6 +228,7 @@ cinstance_times "$I0" $(( I0 + 5 * WEEK )) "$ISER" > "$ROW_DIR/I-instances-after
 assert_eq "I: the other occurrences are still there (three instances left)" "3" "$(grep -c . "$ROW_DIR/I-instances-after.txt")"
 assert_eq "I: … exactly the second, third and fourth" "$(sed -n '2,4p' "$ROW_DIR/I-instances.txt")" "$(cat "$ROW_DIR/I-instances-after.txt")"
 
+fi   # legs E to I
 # ----------------------------------------------------------------------------------------------- restore
 log "--- restore (r3 V10): every event the row inserted or created, by id"
 c6

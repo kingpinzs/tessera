@@ -7,8 +7,10 @@
 #                       delete or sync action; the editor's calendar field reads Tessera and no picker offers the others
 #   H   hide            Work un-ticked in the pane → Offsite leaves the app's views; Work's `visible` column still 1
 #   T   Tess's delete   "delete the event Offsite" → "That event isn't in your Tessera calendar.", no Delete card
-#   X   the intents     EDIT on Offsite opens its page, never the editor, the row unchanged; INSERT naming Work prefills,
-#                       saves nothing before Save, then saves into Tessera
+#   X   the intents     EDIT on Offsite opens its page, never the editor, the row unchanged; INSERT naming Work, with
+#                       a title and beginTime / endTime, prefills the title AND the editor's start and end (the
+#                       Edge-case bullet B13.2; gate review B, note 10), saves nothing before Save, then saves into
+#                       Tessera at those times
 #   R2  rule 2          the editor: create Standup, rename it Standup 2, create and delete Scratch; Tess's add — after
 #                       every step Personal 0, Work exactly Offsite; every `write … ok` line names a Tessera event
 #   J   the JVM test    the write guard's test, each case the row names (clauses-open.tsv: read from the lead's result
@@ -16,13 +18,19 @@
 #   L   the refusal     the trust review's extra leg (fix-round.md F15): a Tessera event moved to Work under its open
 #                       editor, then Save → `write update … failed refused (not allowed)`, cal_notice, Work untouched
 #   restore    cal_fixtures_down, the test events deleted, Tessera's count as before the row
+# E22_LEGS=X runs the fixtures, leg X and the restore alone — a narrow re-run; the log's first RECORD says so.
 set -uo pipefail
+LEGS="${E22_LEGS:-all}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
 . "$HERE/p16.sh"
 . "$HERE/cal_lib.sh"
 
 row_begin E22 "Sync rules 1–2: no write reaches an account calendar by the app, Tess, the pane or the exported intents"
+if [ "$LEGS" != all ]; then
+  [ "$LEGS" = X ] || { _verdict FAIL "E22_LEGS" "only E22_LEGS=X is a narrow run of this row (got $LEGS)"; row_end; exit 1; }
+  record "legs run" "the fixtures and X (the exported EDIT and INSERT) ONLY — a narrow re-run; legs R1, H, T, R2, J and L stand on the row's earlier run"
+fi
 c6; ensure_start
 cal_fixtures_down
 copen
@@ -49,6 +57,7 @@ accounts_untouched() { # label
 }
 accounts_untouched "at the start"
 
+if [ "$LEGS" = all ]; then
 # ----------------------------------------------------------------------------------------------- R1: rule 1
 log "--- R1: the app shows the account calendars and offers no write on them"
 c6; copen
@@ -116,6 +125,7 @@ ring_since "$TMARK" > "$ROW_DIR/T-slice.txt"
 tess_close
 accounts_untouched "after Tess's refused delete"
 
+fi   # legs R1, H, T
 # ----------------------------------------------------------------------------------------------- X: the exported intents
 log "--- X: the exported EDIT and INSERT (r3 V18)"
 adb shell am start -n "$CALENDAR_ACTIVITY" -a android.intent.action.EDIT -d "content://com.android.calendar/events/$OFFSITE" > "$ROW_DIR/X-edit.out" 2>&1; sleep 3
@@ -123,16 +133,22 @@ dump_ui "$ROW_DIR/X-edit.xml"
 assert_eq "X: EDIT on Offsite — the dump holds cal_event_page:<Offsite id>" "yes" "$(has_node "$ROW_DIR/X-edit.xml" "cal_event_page:$OFFSITE")"
 assert_eq "X: … and no cal_editor" "no" "$(has_node "$ROW_DIR/X-edit.xml" cal_editor)"
 assert_eq "X: … Offsite's events row equals its read before" "$OFFSITE_ROW" "$(cevents title:dtstart:dtend:calendar_id "_id=$OFFSITE")"
-adb shell am start -n "$CALENDAR_ACTIVITY" -a android.intent.action.INSERT -t vnd.android.cursor.dir/event --el calendar_id "$WORK" --es title Intruder > "$ROW_DIR/X-insert.out" 2>&1; sleep 3
+# beginTime / endTime: three days ahead, 16:00 to 17:30 local — not the editor's own default (the next hour, one hour long).
+XB="$(clocal_ms "$(cdate 3)" 16:00)"; XE="$(clocal_ms "$(cdate 3)" 17:30)"
+adb shell am start -n "$CALENDAR_ACTIVITY" -a android.intent.action.INSERT -t vnd.android.cursor.dir/event --el calendar_id "$WORK" --es title Intruder --el beginTime "$XB" --el endTime "$XE" > "$ROW_DIR/X-insert.out" 2>&1; sleep 3
 dump_ui "$ROW_DIR/X-insert.xml"
 assert_eq "X: INSERT naming Work — cal_editor opens" "yes" "$(has_node "$ROW_DIR/X-insert.xml" cal_editor)"
 assert_eq "X: … with the title prefilled" "Intruder" "$(ctext "$ROW_DIR/X-insert.xml" cal_editor_field:title)"
+XDATE="$(TZ="$(ctz)" date -d "@$(( XB / 1000 ))" '+%a %-d %b %Y')"
+assert_eq "X: … and beginTime / endTime prefilled: the editor's start reads that date and 4:00 PM, its end the same date and 5:30 PM" "$XDATE 4:00 PM | $XDATE 5:30 PM" "$(cfield "$ROW_DIR/X-insert.xml" start_date) $(cfield "$ROW_DIR/X-insert.xml" start_time) | $(cfield "$ROW_DIR/X-insert.xml" end_date) $(cfield "$ROW_DIR/X-insert.xml" end_time)"
 assert_eq "X: … and its calendar field reading Tessera" "Tessera" "$(cfield "$ROW_DIR/X-insert.xml" calendar)"
 assert_eq "X: before Save, events holds no \"Intruder\" (a prefill saves nothing without a tap)" "0" "$(cevent_count "title='Intruder'")"
 ctap cal_editor_save 2.5
 assert_eq "X: Save → \"Intruder\" is in Tessera" "calendar_id=$TESS" "$(cevents calendar_id "title='Intruder' AND deleted=0" | sed -n 's/^Row: [0-9]* //p' | paste -sd';')"
+assert_eq "X: … saved at the prefilled times (dtstart, dtend)" "dtstart=$XB, dtend=$XE" "$(cevents dtstart:dtend "title='Intruder' AND deleted=0" | sed -n 's/^Row: [0-9]* //p' | paste -sd';')"
 accounts_untouched "after the exported INSERT's Save"
 
+if [ "$LEGS" = all ]; then
 # ----------------------------------------------------------------------------------------------- R2: rule 2
 log "--- R2: everything the app and Tess create goes to Tessera"
 TOMORROW="$(cdate 1)"
@@ -272,6 +288,7 @@ assert_eq "L: Offsite's own row is still unchanged" "$OFFSITE_ROW" "$(cevents ti
 cal_lists "$PERSONAL" "Personal, after the refused Save"
 assert_eq "L: Personal still holds 0" "" "$(ctitles "$PERSONAL")"
 
+fi   # legs R2, J, L
 # ----------------------------------------------------------------------------------------------- restore
 log "--- restore"
 c6

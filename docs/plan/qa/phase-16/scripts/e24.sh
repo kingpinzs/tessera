@@ -18,18 +18,31 @@
 #   W   a series        COUNT=5, its third occurrence retitled, a 10-minute reminder → a master with the rrule and
 #                       duration, one exception whose original_id is the COPY's master, a reminders row; shown once
 #   D   delete          here / both offered; "here" keeps the copy, which then shows as Personal's event; "both" removes
-#                       both; with Personal un-ticked only "here" is offered (T16-12)
+#                       both; with Personal un-ticked only "here" is offered (T16-12) — and, still un-ticked, Sync on
+#                       that synced event opens "Can sync to" and writes nothing: the `no calendar allowed -> can sync
+#                       to` line, no `-> calendar <id>:` line, the copy's row untouched (its dirty flag), the marker
+#                       kept (the Edge-case bullet "the allow-list cleared after a sync"; gate review B, blocking 2);
+#                       re-ticked, the changed occurrence of the synced series: its Delete offers no "here and from
+#                       <calendar>" and deletes here only (gate review A, finding 9)
 #   G   calendar gone   Personal removed → Sync says "That calendar is no longer on this phone", `failed calendar gone`,
 #                       the marker keeps its warning glyph
 #   Work holds exactly "Offsite" after every step (cal_lists first).
 #   restore   as E22, clock_restore, then pm clear → provision.sh → ensure_start (clears calendar_sync.json)
+#
+# E24_LEGS=D runs the fixtures, S and W (they make the synced event and the synced series leg D needs), D and the
+# restore, and skips H, N, U and G — a narrow re-run; the log's first RECORD says so.
 set -uo pipefail
+LEGS="${E24_LEGS:-all}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
 . "$HERE/p16.sh"
 . "$HERE/cal_lib.sh"
 
 row_begin E24 "Sync rule 3: the tapped push, the copy hidden everywhere, one reminder, re-Sync, a series, the deletes"
+if [ "$LEGS" != all ]; then
+  [ "$LEGS" = D ] || { _verdict FAIL "E24_LEGS" "only E24_LEGS=D is a narrow run of this row (got $LEGS)"; row_end; exit 1; }
+  record "legs run" "the fixtures, S and W (the synced event and the synced series leg D needs) and D ONLY — a narrow re-run; legs H, N, U and G stand on the row's earlier run"
+fi
 sync_line() { cline "$1" "[calendar] sync event=" | sed 's/^\[calendar\] //'; }
 # Sync on an already-synced event (it pushes straight to its mapped calendar): prints the sync line; the page's dump is kept.
 resync() { # event-id label [begin end]
@@ -128,7 +141,9 @@ BYTES1="$(shell_bytes)"; note "shell_bytes after the Sync (rx tx): $BYTES1"
 assert_eq "S: shell_bytes reads the same rx and tx as before the Sync" "$BYTES0" "$BYTES1"
 COPY_REM="$(q "content query --uri $REMINDERS --projection event_id:minutes:method --where \"event_id=${COPY:-0}\"")"
 assert_contains "S: the copy has its own reminder row (asserted from reminders)" "event_id=$COPY, minutes=10" "$COPY_REM"
+DCOPY="$COPY"; DTITLE="Standup"   # the copy and the title leg D deletes "here" (leg U renames and recreates them)
 
+if [ "$LEGS" = all ]; then
 # ----------------------------------------------------------------------------------------------- H: hidden everywhere
 log "--- H: the copy is hidden everywhere in the shell (Q-16-2; r3 D2)"
 # "2 hours from the device's now, 1 hour long" crosses midnight when the row runs between 21:00 and 23:00, and an event
@@ -237,6 +252,8 @@ assert_contains "U: a Sync with nothing changed on either side → ok" "sync eve
 assert_eq "U: … no write: the copy's row is as it was, dirty still 0" "$ROW0" "$(cevents title:dtstart:dtend:dirty:calendar_id "_id=$COPY2" | sed 's/^Row: 0 //')"
 absent_in "U: … and no [calendar] write line in the Sync's slice" "[calendar] write " "$(cat "$ROW_DIR/U-same-slice.txt")"
 cwork_offsite "U: after the unchanged Sync"
+DCOPY="$COPY2"; DTITLE="Standup 2"
+fi   # legs H, N, U
 
 # ----------------------------------------------------------------------------------------------- W: a weekly series
 log "--- W: a weekly local series (COUNT=5), its third occurrence retitled, a 10-minute reminder"
@@ -301,12 +318,12 @@ record "D: the two choices' wording" "$(ctexts "$ROW_DIR/D-choice.xml" cal_delet
 ctap cal_delete_choice:here 2.5
 assert_eq "D: \"here\" → the local event is gone" "0" "$(cevent_count "_id=$STANDUP AND deleted=0")"
 cal_lists "$PERSONAL" Personal
-assert_contains "D: … the copy is kept" "|Standup 2|" "|$(ctitles "$PERSONAL")|"
+assert_contains "D: … the copy is kept" "|$DTITLE|" "|$(ctitles "$PERSONAL")|"
 assert_absent "D: … its mapping is gone from calendar_sync.json" "\"local\":$STANDUP," "$(csync_json)"
 copen_day "$START"; dump_ui "$ROW_DIR/D-day-after.xml"
-assert_eq "D: … the copy now SHOWS in the views as Personal's event (cal_event:<copy id> present)" "yes" "$(has_node "$ROW_DIR/D-day-after.xml" "cal_event:$COPY2")"
-ctap "cal_event:$COPY2" 2; dump_ui "$ROW_DIR/D-copy-page.xml"
-assert_eq "D: … its cal_event_page: is open" "yes" "$(has_node "$ROW_DIR/D-copy-page.xml" "cal_event_page:$COPY2")"
+assert_eq "D: … the copy now SHOWS in the views as Personal's event (cal_event:<copy id> present)" "yes" "$(has_node "$ROW_DIR/D-day-after.xml" "cal_event:$DCOPY")"
+ctap "cal_event:$DCOPY" 2; dump_ui "$ROW_DIR/D-copy-page.xml"
+assert_eq "D: … its cal_event_page: is open" "yes" "$(has_node "$ROW_DIR/D-copy-page.xml" "cal_event_page:$DCOPY")"
 assert_eq "D: … and has no cal_event_action:* (the original no longer exists)" "0" "$(ccount_prefix "$ROW_DIR/D-copy-page.xml" cal_event_action:)"
 cback
 cwork_offsite "D: after delete here"
@@ -333,10 +350,50 @@ assert_eq "D: … it offers cal_delete_choice:here" "yes" "$(has_node "$ROW_DIR/
 assert_eq "D: … and NO cal_delete_choice:both (T16-12)" "no" "$(has_node "$ROW_DIR/D-unticked-choice.xml" cal_delete_choice:both)"
 ctap cal_delete_cancel 1.5
 assert_eq "D: … nothing was deleted by looking" "1 1" "$(cevent_count "_id=$THIRD AND deleted=0") $(cevent_count "_id=${C3RD:-0} AND deleted=0")"
+# The allow-list cleared after a sync: the marker stays, and the next Sync opens "Can sync to" instead of writing.
+# The copy's dirty flag is cleared first, as its account's adapter would after an upload: any write by the shell
+# would set it again, so "writes nothing" is read from the provider, not from the absence of a line alone.
+cother_side "$PERSONAL_ACCT" update "$C3RD" "--bind dirty:i:0"
+ROW3="$(cevents title:dtstart:dtend:dirty:calendar_id "_id=${C3RD:-0}" | sed 's/^Row: 0 //')"
+assert_contains "D: un-ticked — the third event's copy has dirty 0 before the Sync" "dirty=0" "$ROW3"
+copen_event "$THIRD"; dump_ui "$ROW_DIR/D-unticked-page.xml"
+assert_eq "D: un-ticked — the marker stays on the synced event's page (cal_synced_marker:<id>)" "yes" "$(has_node "$ROW_DIR/D-unticked-page.xml" "cal_synced_marker:$THIRD")"
+record "D: un-ticked — the marker's text, and whether it carries the warning glyph" "$(ctext "$ROW_DIR/D-unticked-page.xml" "cal_synced_marker:$THIRD") / $(has_node "$ROW_DIR/D-unticked-page.xml" cal_synced_warning)"
+US_MARK="$(ring_mark)"
+ctap cal_event_action:sync 2.5; dump_ui "$ROW_DIR/D-unticked-sync.xml"; screencap "$ROW_DIR/D-unticked-sync.png"
+ring_since "$US_MARK" > "$ROW_DIR/D-unticked-sync-slice.txt"
+assert_eq "D: un-ticked — Sync on the synced event opens \"Can sync to\" (cal_can_sync)" "yes" "$(has_node "$ROW_DIR/D-unticked-sync.xml" cal_can_sync)"
+assert_contains "D: … the ring holds sync event=<id>: no calendar allowed -> can sync to" "[calendar] sync event=$THIRD: no calendar allowed -> can sync to" "$(cat "$ROW_DIR/D-unticked-sync-slice.txt")"
+absent_in "D: … and NO sync event=<id> -> calendar <id>: line (no ok, no updated, no outcome at all) since the MARK before the tap" "sync event=$THIRD -> calendar" "$(cat "$ROW_DIR/D-unticked-sync-slice.txt")"
+absent_in "D: … and no [calendar] write line" "[calendar] write " "$(cat "$ROW_DIR/D-unticked-sync-slice.txt")"
+assert_eq "D: … the copy's row is as it was, dirty still 0 (nothing was written to Personal)" "$ROW3" "$(cevents title:dtstart:dtend:dirty:calendar_id "_id=${C3RD:-0}" | sed 's/^Row: 0 //')"
+assert_contains "D: … the mapping is kept in calendar_sync.json" "\"local\":$THIRD," "$(csync_json)"
+copen_event "$THIRD"; dump_ui "$ROW_DIR/D-unticked-page-after.xml"
+assert_eq "D: … and the marker is still on the event's page" "yes" "$(has_node "$ROW_DIR/D-unticked-page-after.xml" "cal_synced_marker:$THIRD")"
 copen; copen_can_sync; cset_can_sync "$PERSONAL" true; dump_ui "$ROW_DIR/D-reticked.xml"
 assert_eq "D: Personal re-ticked" "true" "$(cattr "$ROW_DIR/D-reticked.xml" "cal_settings_can_sync:$PERSONAL" checked)"
 cwork_offsite "D: after the un-ticked delete prompt"
+# The changed occurrence of the synced series (leg W's third, a row of its own with no copy of its own), Personal
+# ticked again — so a "both" choice would be offered if the page took the series' marker for its own.
+copen_day "$WB3"; dump_ui "$ROW_DIR/D-changed-day.xml"
+assert_eq "D: the changed occurrence of the synced series shows on its day (cal_event:<the local exception>)" "yes" "$(has_node "$ROW_DIR/D-changed-day.xml" "cal_event:$LEX")"
+ctap "cal_event:$LEX" 2; dump_ui "$ROW_DIR/D-changed-page.xml"
+assert_eq "D: … its page is open" "yes" "$(has_node "$ROW_DIR/D-changed-page.xml" "cal_event_page:$LEX")"
+CM_ROWS0="$(cevent_count "_id IN (${CM:-0},${CEX:-0}) AND deleted=0")"
+ctap cal_event_action:delete 1.5; dump_ui "$ROW_DIR/D-changed-delete.xml"; screencap "$ROW_DIR/D-changed-delete.png"
+assert_eq "D: … its Delete offers NO \"here and from <calendar>\" choice (no cal_delete_choice:both)" "no" "$(has_node "$ROW_DIR/D-changed-delete.xml" cal_delete_choice:both)"
+record "D: … what its Delete showed (the delete prompt's nodes; none = it deleted at the tap)" "[$(cids "$ROW_DIR/D-changed-delete.xml" cal_delete | cut -c1-200)] [$(cids "$ROW_DIR/D-changed-delete.xml" cal_occurrence: | cut -c1-120)]"
+if [ "$(has_node "$ROW_DIR/D-changed-delete.xml" cal_occurrence:this)" = yes ]; then ctap cal_occurrence:this 2; dump_ui "$ROW_DIR/D-changed-delete2.xml"; assert_eq "D: … nor after the occurrence prompt" "no" "$(has_node "$ROW_DIR/D-changed-delete2.xml" cal_delete_choice:both)"; fi
+if [ "$(has_node "$ROW_DIR/D-changed-delete.xml" cal_delete_choice:here)" = yes ]; then ctap cal_delete_choice:here 2.5; fi
+sleep 1.5
+copen_day "$WB3"; dump_ui "$ROW_DIR/D-changed-day-after.xml"
+assert_eq "D: … it is deleted here: that day shows neither the changed occurrence nor the series' own" "no no" "$(has_node "$ROW_DIR/D-changed-day-after.xml" "cal_event:$LEX") $(has_node "$ROW_DIR/D-changed-day-after.xml" "cal_event:$WK")"
+record "D: … the local exception's row after the delete (deleted / eventStatus)" "$(cevents _id:deleted:eventStatus:original_id "_id=$LEX" | sed 's/^Row: 0 //')"
+assert_eq "D: … and here only: Personal's copy keeps its master and its changed occurrence (both rows live)" "2 2" "$CM_ROWS0 $(cevent_count "_id IN (${CM:-0},${CEX:-0}) AND deleted=0")"
+assert_eq "D: … the series' other four occurrences still stand here (the provider's instances of the local master)" "4" "$(cinstances "$S0" $(( S0 + 6 * WEEK )) "$WK")"
+cwork_offsite "D: after the changed occurrence's delete"
 
+if [ "$LEGS" = all ]; then
 # ----------------------------------------------------------------------------------------------- G: the calendar gone
 log "--- G: Personal removed from the phone"
 crmcal "$PERSONAL_ACCT" com.google; sleep 1.5
@@ -347,6 +404,7 @@ assert_eq "G: the marker stays (cal_synced_marker:<id>)" "yes" "$(has_node "$ROW
 assert_eq "G: … and keeps a warning glyph (cal_synced_warning)" "yes" "$(has_node "$ROW_DIR/U-gone.xml" cal_synced_warning)"
 assert_contains "G: the line — failed calendar gone" "failed calendar gone" "$L"
 cwork_offsite "G: at the end"
+fi   # leg G
 
 # ----------------------------------------------------------------------------------------------- restore
 log "--- restore (as E22, clock_restore, then pm clear → provision.sh → ensure_start)"

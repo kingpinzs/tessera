@@ -23,6 +23,17 @@
 # M, W and P legs — the same months, the same weeks, the same twelve swipes at the same pace, the same resets and the
 # same per-leg gfxinfo + framestats files — on a QA calendar holding NO events (the inserts are skipped). It RECORDs the
 # legs' sum and has no verdict line for the 5 %; its folder is kept as E7-baseline-empty-calendar-….
+#
+# E7_LEGS=Dframes is a DIAGNOSIS run of leg D alone, with the row's fixtures (gate review A, note 4: the Day view composes
+# every block of the day at once and no leg took frame stats there): the counters are reset before the Day view opens on
+# the 200-event day, gfxinfo + framestats are saved after it has drawn (D1) and after every swipe of its scroll (D2-…),
+# and the longest frame of each with its stage split is RECORDed (D-legs.tsv). No verdict on the 5 %.
+#
+# E7_MEASURE=compare (with E7_BASELINE_DIR=<a baseline run's folder> and E7_DFRAMES_DIR=<a Dframes run's folder>, both
+# on the build installed now) asserts the comparison instead of the doc's absolute 5 %: every leg's longest frame under
+# 100 ms — the legs of this run (P1–P5) AND the Day view's legs of the Dframes run (D1, D2-…) — and the run's janky
+# share no more than the baseline's + 5 points. The doc's 5 % reading is RECORDed. The default is the doc's clause as
+# worded; the owner has not ruled on the measure.
 set -uo pipefail
 LEGS="${E7_LEGS:-all}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -36,7 +47,8 @@ if [ "$LEGS" != all ]; then
   case "$LEGS" in
     jank) record "legs run" "fixtures, M, W, P ONLY (the janky-frames clause's run) — a narrow re-run; D (the 200-event day) and T (the tile) stand on the row's earlier run" ;;
     baseline) record "legs run" "BASELINE — a diagnosis for D-E7-1, NOT the gate row: M, W, P on a QA calendar holding NO events (no inserts); no verdict on the 5 %; D and T not run" ;;
-    *) _verdict FAIL "E7_LEGS" "E7_LEGS is jank or baseline (got $LEGS)"; row_end; exit 1 ;;
+    Dframes) record "legs run" "fixtures and D ONLY, with frame stats (a diagnosis of the Day view on the 200-event day, NOT the gate row; no verdict on the 5 %); M, W, P and T not run" ;;
+    *) _verdict FAIL "E7_LEGS" "E7_LEGS is jank, baseline or Dframes (got $LEGS)"; row_end; exit 1 ;;
   esac
 fi
 tile_texts() { python3 "$TILES" "$1" "$2" | awk -F'\t' '{ print $6 }' | sed 's/^texts=//'; }
@@ -55,38 +67,27 @@ PY
 }
 gfx_janky() { adb shell dumpsys gfxinfo app.tileshell < /dev/null | tr -d '\r' | awk '/^Total frames rendered:/ {t=$4} /^Janky frames:/ {j=$3; p=$4} END {gsub(/[()%]/, "", p); print t, j, p}'; }
 # The diagnosis the lead asked for (D-E7-1): one leg's frames. Saves `dumpsys gfxinfo` and its `framestats` under the
-# leg's name, adds the leg's totals to P-legs.tsv, RECORDs them, and resets the counters for the next leg.
-: > "$ROW_DIR/P-legs.tsv"
+# leg's name, adds the leg's totals to the legs file (P-legs.tsv; D-legs.tsv for leg D), RECORDs them with the leg's
+# longest frame and that frame's stage split (scripts/cal_frames.py), and resets the counters for the next leg.
+FRAMES="$HERE/cal_frames.py"
+LEGS_TSV="$ROW_DIR/P-legs.tsv"
+: > "$LEGS_TSV"
 gfx_leg() { # name
   adb shell dumpsys gfxinfo app.tileshell < /dev/null | tr -d '\r' > "$ROW_DIR/$1.gfxinfo.txt"
   adb shell dumpsys gfxinfo app.tileshell framestats < /dev/null | tr -d '\r' > "$ROW_DIR/$1.framestats.txt"
   adb shell dumpsys gfxinfo app.tileshell reset >/dev/null 2>&1
-  local t j u d p50 p90 p99 long
+  local t j u d p50 p90 p99 long stages
   t="$(sed -n 's/^Total frames rendered: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
   j="$(sed -n 's/^Janky frames: \([0-9]*\).*/\1/p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
   u="$(sed -n 's/^Number Slow UI thread: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
   d="$(sed -n 's/^Number Slow issue draw commands: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
   p50="$(sed -n 's/^50th percentile: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"; p90="$(sed -n 's/^90th percentile: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"; p99="$(sed -n 's/^99th percentile: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
-  # the leg's longest frame, from its framestats (FrameCompleted - IntendedVsync, ms)
-  long="$(python3 - "$ROW_DIR/$1.framestats.txt" <<'PY'
-import sys
-hdr, inb, best = None, False, 0.0
-for l in open(sys.argv[1], errors="replace").read().splitlines():
-    if l.startswith("---PROFILEDATA---"):
-        inb = not inb; continue
-    if not inb: continue
-    if l.startswith("Flags"):
-        hdr = l.rstrip(",").split(","); continue
-    v = l.rstrip(",").split(",")
-    if hdr and len(v) >= len(hdr):
-        try: r = dict(zip(hdr, (int(x) for x in v[:len(hdr)])))
-        except ValueError: continue
-        best = max(best, (r["FrameCompleted"] - r["IntendedVsync"]) / 1e6)
-print("%.1f" % best)
-PY
-)"
-  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$1" "${t:-0}" "${j:-0}" "${u:-0}" "${d:-0}" "$p50" "$p90" "$p99" "$long" >> "$ROW_DIR/P-legs.tsv"
-  record "gfxinfo, leg $1: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame" "${t:-0} / ${j:-0} / ${u:-0} / ${d:-0}; $p50 $p90 $p99; $long ms"
+  # the leg's longest frame (FrameCompleted - IntendedVsync, ms) and its stages: input animation traversal draw | sync issue swap
+  stages="$(python3 "$FRAMES" longest "$ROW_DIR/$1.framestats.txt")"
+  long="$(printf '%s' "$stages" | cut -f1)"
+  stages="$(printf '%s' "$stages" | awk -F'\t' '{printf "input %s + animation %s + traversal %s + draw %s (UI thread) | sync %s + issue %s + swap %s (render thread); frame %s of %s", $2, $3, $4, $5, $6, $7, $8, $9, $10}')"
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$1" "${t:-0}" "${j:-0}" "${u:-0}" "${d:-0}" "$p50" "$p90" "$p99" "$long" "$stages" >> "$LEGS_TSV"
+  record "gfxinfo, leg $1: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame and its stages" "${t:-0} / ${j:-0} / ${u:-0} / ${d:-0}; $p50 $p90 $p99; $long ms = $stages"
 }
 CRASH0="$(ccrashes)"
 c6; ensure_start
@@ -165,6 +166,7 @@ assert_eq "fixtures: exactly two events inside the next 24 hours (E7 soon 1 / 2)
 sleep 5
 fi   # the inserts
 
+if [ "$LEGS" != Dframes ]; then
 # ----------------------------------------------------------------------------------------------- M: the month drop-down
 log "--- M: the month drop-down to the busy month, then its first day's cell"
 c6; ensure_start
@@ -250,7 +252,10 @@ assert_eq "P: every one of the 12 swipes gave a view week line" "12" "$P_LINES"
 assert_eq "P: … twelve different weeks, each seven days on from the last" "12" "$(awk 'NF >= 6 {print $5}' "$ROW_DIR/P-lines.txt" | sort -u | wc -l | tr -d ' ')"
 assert_eq "P: every view week line has ms ≤ 3000" "12" "$P_OK_MS"
 assert_eq "P: … and wall= − that swipe's MARK ≤ 3000" "12" "$P_OK_WALL"
-log "the legs (name, total frames, janky, slow UI thread, slow draw, 50th, 90th, 99th, the longest frame in ms):"; sed 's/^/   /' "$ROW_DIR/P-legs.tsv" | tee -a "$LOG" >/dev/null
+log "the legs (name, total frames, janky, slow UI thread, slow draw, 50th, 90th, 99th, the longest frame in ms, its stages):"; sed 's/^/   /' "$ROW_DIR/P-legs.tsv" | tee -a "$LOG" >/dev/null
+LONGEST="$(sort -t$'\t' -k9,9 -g -r "$ROW_DIR/P-legs.tsv" | head -1 | awk -F'\t' '{print $9 " ms in " $1}')"
+OVER100="$(awk -F'\t' '$9 + 0 >= 100 {printf "%s%s (%s ms)", s, $1, $9; s = ", "}' "$ROW_DIR/P-legs.tsv")"
+record "the longest frame of every leg: the longest of all; the legs with a frame of 100 ms or more" "$LONGEST; [${OVER100}]"
 P3_LONG="$(awk -F'\t' '$1 == "P3-dropdown-to-the-200-event-day" {print $9}' "$ROW_DIR/P-legs.tsv")"
 record "P3: the longest frame when the Agenda lands on the 200-event day (266.7 ms on build 6009c0b1 with 5,000 events, 50.1 ms on its empty calendar)" "$P3_LONG ms — $(python3 -c "print('the long frame is gone (under 100 ms)' if float('${P3_LONG:-999}') < 100 else 'the long frame is still there (100 ms or more)')")"
 GFX="$(awk -F'\t' '{t += $2; j += $3} END {printf "%d %d %.2f", t, j, (t ? 100 * j / t : 100)}' "$ROW_DIR/P-legs.tsv")"
@@ -260,15 +265,38 @@ set -- $GFX
 assert_ne "P: gfxinfo counted frames over the run" "0" "${1:-0}"
 if [ "$LEGS" = baseline ]; then
   record "P: baseline — the legs' sum on an empty calendar: total frames / janky / janky % (no verdict: a diagnosis)" "${1:-0} / ${2:-0} / ${3:-}%"
+elif [ "${E7_MEASURE:-doc}" = compare ]; then
+  # The comparison (the lead's option A, asserted only when asked for): against a baseline run of the same legs on an
+  # empty calendar, on the same build.
+  BASE_DIR="${E7_BASELINE_DIR:-}"; DF_DIR="${E7_DFRAMES_DIR:-}"
+  record "P: the doc's clause as worded (janky frames ≤ 5 % over the run) reads" "${3:-}% — NOT asserted in this run (E7_MEASURE=compare)"
+  assert_eq "P: compare — the baseline folder is a BASELINE run of this row on the build installed now" "yes yes" "$([ -f "$BASE_DIR/P-legs.tsv" ] && grep -q 'RECORD  legs run .*BASELINE' "$BASE_DIR/E7.txt" 2>/dev/null && echo yes || echo no) $([ "$(grep -m1 '^apk installed' "$BASE_DIR/E7.txt" 2>/dev/null | awk '{print $3}')" = "$(installed_apk_id)" ] && echo yes || echo no)"
+  BASE_GFX="$(awk -F'\t' '{t += $2; j += $3} END {printf "%d %d %.2f", t, j, (t ? 100 * j / t : 100)}' "$BASE_DIR/P-legs.tsv" 2>/dev/null)"
+  record "P: compare — the baseline's sum (total frames, janky, janky %) from $(basename "${BASE_DIR:-none}")" "$BASE_GFX"
+  assert_eq "P: compare — the Dframes folder is a Dframes run of this row on the build installed now" "yes yes" "$([ -f "$DF_DIR/D-legs.tsv" ] && grep -q 'RECORD  legs run .*fixtures and D ONLY' "$DF_DIR/E7.txt" 2>/dev/null && echo yes || echo no) $([ "$(grep -m1 '^apk installed' "$DF_DIR/E7.txt" 2>/dev/null | awk '{print $3}')" = "$(installed_apk_id)" ] && echo yes || echo no)"
+  D_OVER100="$(awk -F'\t' '$9 + 0 >= 100 {printf "%s%s (%s ms)", s, $1, $9; s = ", "}' "$DF_DIR/D-legs.tsv" 2>/dev/null)"
+  record "P: compare — the Day view's legs from $(basename "${DF_DIR:-none}") (leg: longest frame)" "$(awk -F'\t' '{printf "%s%s: %s ms", s, $1, $9; s = "; "}' "$DF_DIR/D-legs.tsv" 2>/dev/null)"
+  assert_eq "P: compare — every leg's longest frame is under 100 ms: this run's legs (P1–P5)" "" "$OVER100"
+  assert_eq "P: compare — … and the Day view's legs (D1 the open on the 200-event day, D2 its scroll)" "" "$D_OVER100"
+  assert_ne "P: compare — … the Day view's legs were read (their count)" "0" "$(grep -c . "$DF_DIR/D-legs.tsv" 2>/dev/null || echo 0)"
+  assert_eq "P: compare — the run's janky share (${3:-}%) is no more than the baseline's ($(echo "$BASE_GFX" | awk '{print $3}')%) + 5 points" "yes" "$(python3 -c "
+import sys
+try: print('yes' if float(sys.argv[1]) <= float(sys.argv[2]) + 5.0 else 'no (%s%% against %s%% + 5)' % (sys.argv[1], sys.argv[2]))
+except Exception: print('no (unreadable)')" "${3:-x}" "$(echo "$BASE_GFX" | awk '{print $3}')")"
 else
   assert_eq "P: janky frames ≤ 5 % over the run (phase 01's threshold, as a bound on the emulator)" "yes" "$(python3 -c "print('yes' if float('${3:-100}' or 100) <= 5.0 else 'no (${3:-}%)')")"
 fi
+fi   # legs M, W, P (not in a Dframes run)
 
-if [ "$LEGS" = all ]; then
+if [ "$LEGS" = all ] || [ "$LEGS" = Dframes ]; then
 # ----------------------------------------------------------------------------------------------- D: the 200-event day
 log "--- D: a day with 200 events lists them scrollably in the Day view"
+if [ "$LEGS" = Dframes ]; then c6; ensure_start; copen; ctap cal_bar:today 1.2; sleep 1; fi
+LEGS_TSV="$ROW_DIR/D-legs.tsv"; : > "$LEGS_TSV"
+adb shell dumpsys gfxinfo app.tileshell reset >/dev/null 2>&1
 D_MARK="$(ring_mark)"
 copen_day "$(clocal_ms "$BUSY_DAY" 00:30)"; sleep 1
+gfx_leg D1-day-view-opens-on-the-200-event-day
 dump_ui "$ROW_DIR/D-day.xml"; screencap "$ROW_DIR/D-day.png"
 assert_eq "D: the Day view of $BUSY_DAY is showing" "true yes" "$(cattr "$ROW_DIR/D-day.xml" cal_view_mode:day selected) $(has_node "$ROW_DIR/D-day.xml" "cal_day:$BUSY_DAY")"
 ring_since "$D_MARK" > "$ROW_DIR/D-slice.txt"
@@ -282,13 +310,24 @@ for i in $(seq 0 60); do
   if [ "$cur" = "$prev" ]; then same=$((same + 1)); else same=0; fi
   [ "$same" -ge 2 ] && break
   prev="$cur"
+  adb shell dumpsys gfxinfo app.tileshell reset >/dev/null 2>&1
   adb shell input swipe 540 1700 540 1000 700; sleep 0.9
+  gfx_leg "D2-scroll-$(printf '%02d' "$(( i + 1 ))")"
 done
 SEEN="$(grep -c . <(sort -u "$ROW_DIR/D-ids.txt" | grep cal_event))"
 note "distinct cal_event nodes reached in $i swipe(s) of the Day view: $SEEN"
 assert_eq "D: it lists them scrollably — all 200 events of the day are reached by scrolling the Day view" "200" "$SEEN"
 assert_ne "D: … the list did scroll (more than one screen of them)" "0" "$i"
+log "leg D's frames (name, total frames, janky, slow UI thread, slow draw, 50th, 90th, 99th, the longest frame in ms, its stages):"; sed 's/^/   /' "$ROW_DIR/D-legs.tsv" | tee -a "$LOG" >/dev/null
+record "D: the Day view opening on the 200-event day — its longest frame and that frame's stages (no verdict)" "$(awk -F'\t' '$1 ~ /^D1/ {print $9 " ms = " $10}' "$ROW_DIR/D-legs.tsv")"
+record "D: the Day view's scroll — the longest frame of all its swipes and that frame's stages (no verdict)" "$(grep '^D2' "$ROW_DIR/D-legs.tsv" | sort -t$'\t' -k9,9 -g -r | head -1 | awk -F'\t' '{print $9 " ms in " $1 " = " $10}')"
+record "D: the Day view opening — its first four frames (total ms = input + animation + traversal + draw | sync + issue + swap)" "$(python3 "$FRAMES" table "$ROW_DIR/D1-day-view-opens-on-the-200-event-day.framestats.txt" | head -4 | awk -F'\t' '{printf "%s#%s %s %s = %s + %s + %s + %s | %s + %s + %s", s, $1, $3, ($2 == "LATE" ? "(late)" : ""), $4, $5, $6, $7, $8, $9, $10; s = "; "}')"
+record "D: the Day view opening — how many frames it took and how many were late" "$(python3 "$FRAMES" longest "$ROW_DIR/D1-day-view-opens-on-the-200-event-day.framestats.txt" | awk -F'\t' '{print $10 " frames, " $11 " late"}')"
+record "D: leg D's frames summed (total frames / janky / slow UI thread)" "$(awk -F'\t' '{t += $2; j += $3; u += $4} END {printf "%d / %d / %d", t, j, u}' "$ROW_DIR/D-legs.tsv")"
+LEGS_TSV="$ROW_DIR/P-legs.tsv"
+fi   # leg D
 
+if [ "$LEGS" = all ]; then
 # ----------------------------------------------------------------------------------------------- T: the tile
 log "--- T: the Calendar tile still shows only the next 24 hours' events"
 c6; ensure_start
@@ -306,7 +345,7 @@ assert_contains "T: … and the other (E7 soon 2)" "E7 soon 2" "$FACES"
 OTHER="$(grep -o 'E7 [0-9][0-9]*' "$ROW_DIR/T-tile-texts.txt" | sort -u | paste -sd' ')"
 assert_eq "T: … and none of the 5,000 outside its window (titles E7 <n> seen on the tile)" "" "$OTHER"
 assert_eq "T: the feed's faces: the day face and the two (faces=3)" "faces=3" "$(cline "$(csince "$ROW_MARK")" '[calendar] refresh (' | grep -oE 'faces=[0-9]+')"
-fi   # legs D and T
+fi   # leg T
 
 # ----------------------------------------------------------------------------------------------- restore
 log "--- restore: the QA calendar deleted (its events cascade)"
