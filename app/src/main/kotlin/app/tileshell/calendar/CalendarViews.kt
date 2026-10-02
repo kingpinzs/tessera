@@ -115,7 +115,9 @@ fun CalendarViews(nav: CalendarNav, model: CalendarModel, sync: SyncState, clock
         ViewMode.WEEK -> weekStart to weekStart.plusDays(7)
     }
     LaunchedEffect(mode, from, to, model.canRead, clock) { model.want(mode, from, to) }
-    val loaded = model.loaded?.takeIf { it.view == mode && it.from == from && it.to == to }
+    // The agenda's window grows at its end and keeps its start: while the wider one loads, the weeks already loaded
+    // stay on show, so the list neither empties nor goes back to the selected day (gate review A, finding 2).
+    val loaded = model.loaded?.takeIf { it.view == mode && it.from == from && (it.to == to || (mode == ViewMode.AGENDA && it.to < to)) }
     // `[calendar] view <name> <from>..<to>: n instances in <ms> ms` (T16-17): the query plus the first frame that shows it.
     LaunchedEffect(loaded?.token) {
         val window = loaded ?: return@LaunchedEffect
@@ -161,8 +163,9 @@ fun CalendarViews(nav: CalendarNav, model: CalendarModel, sync: SyncState, clock
                         nav.notice?.let { CalNotice(it, Modifier.padding(start = CalMetrics.HEADING_X.dp, top = 8.dp, end = 24.dp, bottom = 8.dp)) }
                         when (mode) {
                             ViewMode.AGENDA -> AgendaView(
-                                nav, shown, from, to, today, zone, first, locale,
-                                onMore = { if (loaded != null && agendaWeeks < AGENDA_MAX_WEEKS) agendaWeeks = minOf(agendaWeeks * 2, AGENDA_MAX_WEEKS) },
+                                nav, shown, from, to, loaded?.to, today, zone, first, locale,
+                                // Only the end of a window that is wholly loaded asks for more: one doubling at a time.
+                                onMore = { if (loaded != null && loaded.to == to && agendaWeeks < AGENDA_MAX_WEEKS) agendaWeeks = minOf(agendaWeeks * 2, AGENDA_MAX_WEEKS) },
                                 onEvent = openEvent,
                             )
                             ViewMode.DAY -> PagedView("cal_day_page", onPage = { nav.select(selected.plusDays(it.toLong())) }) { offset ->
@@ -213,7 +216,7 @@ private const val AGENDA_MAX_WEEKS = 56
  */
 @Composable
 private fun AgendaView(
-    nav: CalendarNav, instances: List<EventInstance>?, from: LocalDate, to: LocalDate, today: LocalDate, zone: ZoneId,
+    nav: CalendarNav, instances: List<EventInstance>?, from: LocalDate, to: LocalDate, loadedTo: LocalDate?, today: LocalDate, zone: ZoneId,
     first: DayOfWeek, locale: Locale, onMore: () -> Unit, onEvent: (EventInstance) -> Unit,
 ) {
     val selected = nav.selected
@@ -250,16 +253,18 @@ private fun AgendaView(
         LazyColumn(Modifier.fillMaxSize().testTag("cal_agenda"), state = list) {
             days.forEach { day ->
                 val events = byDay[day].orEmpty()
-                item(key = day.toString(), contentType = "head") { DayHead(day, events.isEmpty(), day == today, locale) }
-                items(events.size, key = { "$day:${events[it].eventId}:${events[it].beginMs}" }, contentType = { "event" }) {
+                // A day with nothing loaded for it yet says nothing; "No events" is for a day that was read and is empty.
+                item(key = day.toString(), contentType = "head") { DayHead(day, instances != null && events.isEmpty(), day == today, locale) }
+                // The index is in the key: two rows of one day can never share a key, whatever the provider returns.
+                items(events.size, key = { "$day:$it:${events[it].eventId}:${events[it].beginMs}" }, contentType = { "event" }) {
                     EventRow(events[it], zone, locale, onEvent)
                 }
                 item(key = "foot:$day", contentType = "foot") { Spacer(Modifier.height(CalMetrics.GROUP_FOOT)) }
             }
             if (instances != null) {
                 // The end of what is loaded: seeing it loads the next weeks.
-                item(key = "more:$to") {
-                    LaunchedEffect(to) { onMore() }
+                item(key = "more:$loadedTo") {
+                    LaunchedEffect(loadedTo) { onMore() }
                     Spacer(Modifier.height(CalMetrics.ALL_DAY_PITCH))
                 }
             }
