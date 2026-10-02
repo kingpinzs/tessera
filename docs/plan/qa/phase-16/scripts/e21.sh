@@ -14,14 +14,28 @@ row_begin E21 "every diagnostics alternative is in this build's saved ring slice
 
 build="$(adb shell md5sum "$(adb shell pm path app.tileshell | head -1 | tr -d '\r' | sed 's/^package://')" < /dev/null | cut -c1-16 | tr -d '\r')"
 note "this build (installed): $build"
+# Earlier builds whose rows still count, each with its reason (E21/builds.txt: "<md5 prefix> <row> <reason>") — the
+# owner's ruling of 2026-10-01 ("Only test the fixes not EVERY THING"; the same as 2026-09-25): a row whose code the
+# fix round did not touch is not run again, and its run on the earlier build is its evidence.
+declare -A also=()
+if [ -f "$P16/E21/builds.txt" ]; then
+  while read -r sha row why; do
+    case "$sha" in ""|\#*) continue ;; esac
+    also["$row"]="$sha"; note "also counting $row on build $sha: $why"
+  done < "$P16/E21/builds.txt"
+fi
+# A run's folder is <ROW> or <ROW>-<what the run was>; its log is <ROW>.txt inside it. A kept run that failed on this
+# build still shows what the build logged, so its slices count; a run on another build counts only when builds.txt
+# names its row.
 rows=()
 for log in "$P16"/*/*.txt; do
-  d="$(dirname "$log")"; r="$(basename "$d")"
-  [ "$log" = "$d/$r.txt" ] || continue
+  d="$(dirname "$log")"; r="$(basename "$log" .txt)"; dn="$(basename "$d")"
+  case "$dn" in "$r"|"$r"-*) ;; *) continue ;; esac
   [ "$r" = E21 ] && continue
-  grep -q "^apk installed $build" "$log" && rows+=("$d")
+  if grep -q "^apk installed $build" "$log"; then rows+=("$d")
+  elif [ -n "${also[$r]:-}" ] && grep -q "^apk installed ${also[$r]}" "$log"; then rows+=("$d"); fi
 done
-note "rows on this build: $(for d in "${rows[@]}"; do basename "$d"; done | tr '\n' ' ')"
+note "run folders counted: $(for d in "${rows[@]}"; do basename "$d"; done | tr '\n' ' ')"
 assert_ne "at least one row ran on this build" 0 "${#rows[@]}"
 files=()
 for d in "${rows[@]}"; do

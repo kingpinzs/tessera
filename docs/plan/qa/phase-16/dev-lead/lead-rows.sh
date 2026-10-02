@@ -3,6 +3,8 @@
 # Starts once TRUST run 4 has ended. Outputs and exit codes: dev-lead/fix-<row>.out / .rc.
 #   lead-rows.sh [driver ...]     default: e15_apk t2_smoke e2 e26 e1
 set -u
+export ANDROID_SERIAL=emulator-5554
+export PATH="$HOME/Android/Sdk/platform-tools:$PATH"   # the first lead-rows run stopped on "adb: not found", read as a dead emulator
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 S="$HERE/../scripts"
 until [ -f "$HERE/trust-run4.rc" ]; do sleep 5; done
