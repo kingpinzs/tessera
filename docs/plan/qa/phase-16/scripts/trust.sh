@@ -18,6 +18,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
 . "$HERE/p16.sh"
 [ -f "$HERE/cal_lib.sh" ] && . "$HERE/cal_lib.sh"
+[ -f "$HERE/trust_lib.sh" ] && . "$HERE/trust_lib.sh"
 PROBE_APK="$REPO/testapps/pick-probe/build/outputs/apk/debug/pick-probe-debug.apk"
 PROBE=app.tileshell.qa.pickprobe
 want() { [ -z "${TRUST_ONLY:-}" ] || echo ",$TRUST_ONLY," | grep -q ",$1,"; }
@@ -175,8 +176,7 @@ if want R; then
 fi
 
 # ============================================================================================ N and S: the reminder
-# These lean on the Calendar row writer's helpers for making a reminder fire (cal_lib.sh); they are written when that
-# include and the fix build exist, and are named here so the row cannot pass without them.
+# In scripts/trust_lib.sh, on the Calendar row writer's helpers (cal_lib.sh). Named here so the row cannot pass without them.
 if want N; then
   if declare -F trust_N >/dev/null; then trust_N; else _verdict FAIL "N: the reminder notification's PendingIntents, visibility and the forged-poke flood" "not written yet"; fi
 fi
