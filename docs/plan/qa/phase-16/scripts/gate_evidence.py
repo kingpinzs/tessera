@@ -142,7 +142,9 @@ for row in ROWS:
         lines = base["text"].splitlines()
         cut = len(lines) if end == "-" else next((i for i, l in enumerate(lines) if re.search(end, l)), len(lines))
         late = [l for l in lines[cut:] if l.startswith("FAIL ")]
-        on_build = any(base["apk"].startswith(w[0]) for w in wants)
+        # The base run stands for the legs that were NOT run again: it may be on any counted build (the gate's, one
+        # builds.txt names for every row, or one of this row's own); the part must be on the builds rerun.txt names.
+        on_build = any(base["apk"].startswith(w[0]) for w in wants + [(GATE, "")] + also.get("*", []))
         if prs and not late and on_build:
             print("| %s | `%s/` (%d FAIL lines there%s) + `%s/` %s | the rest of the row passed in the first (%s passed); the failed part judged again alone: %s passed, %s failed, %s recorded — %s | %s |" % (
                 row, base_dir, base["fails"], "" if end == "-" else ", all before `%s`" % end.strip("^ "), prs[-1]["dir"], prs[-1]["at"], base["sum"][0],
