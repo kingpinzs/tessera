@@ -73,6 +73,9 @@ class CalendarActivity : ComponentActivity() {
         Diagnostics.add("calendar", "permission request ${permission.substringAfterLast('.')}: ${if (granted) "granted" else "denied"}")
         if (granted) {
             model.checkPermissions("permission granted")
+            // The Calendar tile's observer registers only once the read is held: a grant made here starts it, as the
+            // Setup checklist's does (gate review A, finding 10).
+            (applicationContext as? app.tileshell.ShellApp)?.startFeeds("calendar grant")
         } else if (!shouldShowRequestPermissionRationale(permission)) {
             Diagnostics.add("calendar", "the permission will not be asked again: opening the app's settings")
             startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(Uri.fromParts("package", packageName, null)))
