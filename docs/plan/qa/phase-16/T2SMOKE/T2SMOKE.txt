@@ -1,21 +1,21 @@
 ==============================================================================
 ROW T2SMOKE — build task 2: app identities and contracts (development smoke)
-at            2026-10-01T09:12:10-06:00
-driver        t2_smoke.sh blob d97b0bf5a5ad4bc40a847454f375c690ee54b203
-harness       lib.sh blob b4535d2354c95e1e352675fc8273e8357de6cb9a
-apk built     2a178f0e7d55a13c 338136860 bytes
-apk installed c5ef7e2efedc98a7
-apk match     yes (c5ef7e2efedc98a7)
+at            2026-10-01T20:33:57-06:00
+driver        t2_smoke.sh blob e0274b6da41aed2d8cfda5d99b9fb5fd116377ce
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     beccfe5de877e0da 341947382 bytes
+apk installed 3c1ad1e0e65bd919
+apk match     yes (3c1ad1e0e65bd919)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
-installed before: c5ef7e2efedc98a7; adb install -r rc=0: Success
+installed before: 3c1ad1e0e65bd919; adb install -r rc=0: Success
 PASS  adb install -r succeeded                                    = 0
 PASS  the device now holds this build                             contains [yes]
 assignSlotOnce lines since the install:
-    2026-10-01 09:12:03.349 wall=1790867523349 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
-    2026-10-01 09:12:03.349 wall=1790867523349 [layout] assignSlotOnce slot:calendar:v1 CALENDAR -> app.tileshell/.calendar.CalendarActivity -> already run
-    2026-10-01 09:12:03.349 wall=1790867523349 [layout] assignSlotOnce slot:people:v1 PEOPLE -> app.tileshell/.people.PeopleActivity -> already run
+    2026-10-01 20:33:50.567 wall=1790908430567 [layout] assignSlotOnce slot:music:v1 MUSIC -> app.tileshell/.music.MusicActivity -> already run
+    2026-10-01 20:33:50.567 wall=1790908430567 [layout] assignSlotOnce slot:calendar:v1 CALENDAR -> app.tileshell/.calendar.CalendarActivity -> already run
+    2026-10-01 20:33:50.567 wall=1790908430567 [layout] assignSlotOnce slot:people:v1 PEOPLE -> app.tileshell/.people.PeopleActivity -> already run
 markers present before this install: 1 (expecting '-> already run')
 PASS  calendar slot seed line                                     contains [assignSlotOnce slot:calendar:v1 CALENDAR -> app.tileshell/.calendar.CalendarActivity -> already run]
 PASS  people slot seed line                                       contains [assignSlotOnce slot:people:v1 PEOPLE -> app.tileshell/.people.PeopleActivity -> already run]
@@ -32,7 +32,7 @@ APP_CONTACTS handlers: com.android.contacts/.activities.PeopleActivity app.tiles
 PASS  APP_CONTACTS has two handlers                               = 2
 PASS  APP_CONTACTS lists the shell                                contains [app.tileshell/]
 exported surface against the allow-list:
-19 exported in app.tileshell, 19 on the allow-list
+20 exported in app.tileshell, 20 on the allow-list
   receiver       androidx.profileinstaller.ProfileInstallReceiver
                  manifest permission: android.permission.DUMP
                  allow-list: android.permission.DUMP - androidx.profileinstaller's baseline-profile trigger. Added by the library, guarded by DUMP.
@@ -45,6 +45,9 @@ exported surface against the allow-list:
   activity       app.tileshell.calendar.CalendarActivity
                  manifest permission: (none)
                  allow-list: guard: none (LAUNCHER / APP_CALENDAR; VIEW, EDIT, INSERT on events) - The Calendar app's one activity (phase 16 build task 2). An intent only chooses what is shown: VIEW a day or an event, EDIT an event (the editor only for an event in the Tessera calendar, any other opens read-only), INSERT fills the editor in and saves nothing without the user's tap, into Tessera whatever calendar_id it carried.
+  receiver       app.tileshell.calendar.CalendarReminderReceiver
+                 manifest permission: (none)
+                 allow-list: guard: none (the calendar provider's process sends EVENT_REMINDER, so any app can) - Calendar's event reminders (phase 16 build task 3). The broadcast is a poke only: nothing in the intent is read. Each poke re-reads CalendarAlerts for rows due now in state SCHEDULED or FIRED, less the alerts already notified and less a synced copy's, posts one notification per alert left and marks that row's state FIRED; it writes no other column or table.
   activity       app.tileshell.clock.AlarmApiActivity
                  manifest permission: com.android.alarm.permission.SET_ALARM
                  allow-list: com.android.alarm.permission.SET_ALARM - The AlarmClock API handler (T15-37): SET_ALARM / SET_TIMER / SHOW_ALARMS / SHOW_TIMERS. Every request is validated (hour, minutes, days, a message ≤ 64 characters, a length ≤ the timer ceiling) and logged with its caller; it never edits or deletes an existing alarm.
@@ -133,10 +136,11 @@ PASS  INSERT naming an account: resumed                           = app.tileshel
 PASS  INSERT naming an account: route                             contains [-> insert (prefilled, unsaved)]
 PASS  INSERT_OR_EDIT: resumed                                     = app.tileshell/.people.PeopleActivity
 PASS  INSERT_OR_EDIT: route                                       contains [-> insert or edit (prefilled, unsaved)]
-PASS  PICK contact: resumed                                       = app.tileshell/.people.PeopleActivity
-PASS  PICK contact: route                                         contains [-> pick contact]
-PASS  PICK phone: resumed                                         = app.tileshell/.people.PeopleActivity
-PASS  PICK phone: route                                           contains [-> pick phone]
+PASS  PICK contact, no caller: resumed                            = app.tileshell/.people.PeopleActivity
+PASS  PICK contact, no caller: route                              contains [-> open page=default]
+PASS  PICK phone, no caller: resumed                              = app.tileshell/.people.PeopleActivity
+PASS  PICK phone, no caller: route                                contains [-> open page=default]
+PASS  PICK with no caller: the shell says so                      contains [[people] pick: no caller to return a result to; the list was opened]
 PASS  malformed URI: resumed                                      = app.tileshell/.people.PeopleActivity
 PASS  malformed URI: route                                        contains [-> open page=default]
 PASS  a caller's name never reaches the ring                      does not contain [Intruder]
@@ -154,4 +158,4 @@ PASS  checklist:people:granted on the Setup page                  = yes
 PASS  people row with WRITE held, READ revoked                    = people=MISSING
 PASS  READ_CONTACTS restored                                      = true
 ------------------------------------------------------------------------------
-T2SMOKE: 73 passed, 0 failed, 0 recorded
+T2SMOKE: 74 passed, 0 failed, 0 recorded

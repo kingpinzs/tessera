@@ -103,18 +103,29 @@ if [ "${E1_CHILDREN:-1}" = "1" ]; then
   for f in children-seed children-seed2 children-seed3; do assert_eq "$f: layout_restore of the baseline" "0" "$(cat "$OUT/$f.rc")"; done
   E04="$OUT/phase-01-E04/E04.txt"
   assert_eq "phase 01 e4_part1.sh rc" "0" "$(cat "$OUT/phase-01-E04-part1.rc")"
-  assert_eq "phase 01 e4_part2.sh rc" "0" "$(cat "$OUT/phase-01-E04-part2.rc")"
+  # e4_part2.sh's exit code is its last command's — `grep -c FATAL` over the crash buffer, which exits 1 when it counts
+  # 0 — so the verdict is the count it logged, and the code is recorded (the fix build's first run asserted the code).
+  record "phase 01 e4_part2.sh rc (its last command is grep -c: 1 = it counted no crash)" "$(cat "$OUT/phase-01-E04-part2.rc")"
+  assert_eq "E4b ran to its end: the crash-buffer count it logged is 0" "0" "$(grep -A1 -F '$ crash buffer since this run' "$E04" | tail -1)"
   # E4's remaining proofs (Decisions "Phase 01 E4 / E4b re-cut"): the one-handler category auto-assigns (Maps); the
   # 2+-handler categories stay unassigned (Mail, Store) — and, with the shell's own apps declared, Calendar and People
-  # are 2-handler categories too, unassigned when no explicit slot holds them (E4 runs with `slots` emptied).
+  # are 2-handler categories too. A SMALL tile draws no label, so "unassigned" is read where E4 reads it for every size:
+  # the tile's content-desc is the slot's label and the Tile apps row says "not chosen yet".
   assert_eq "E4: APP_MAPS has one handler" "1" "$(grep -m1 '^APP_MAPS:' "$E04" | tr ' ' '\n' | grep -c '/')"
   assert_contains "E4: the Maps tile is auto-assigned (no Tap to choose)" "tile:slot:MAPS" "$(grep 'tile:slot:MAPS' "$E04" | grep -v 'Tap to choose' | head -1)"
   assert_contains "E4: the Mail tile is unassigned" "Tap to choose" "$(grep -m1 'tile:slot:MAIL' "$E04")"
-  assert_contains "E4: the Store tile is unassigned" "Tap to choose" "$(grep -m1 'tile:slot:STORE' "$E04")"
+  assert_contains "E4: … and its Tile apps row says so" "not chosen yet" "$(grep -m1 'tile_app_slot:MAIL' "$E04")"
+  assert_contains "E4: the Store tile is unassigned (its desc is the slot's label)" "desc=Store" "$(grep -m1 'tile:slot:STORE' "$E04")"
+  assert_contains "E4: … and its Tile apps row says so" "Store / None · not chosen yet" "$(grep -m1 'tile_app_slot:STORE' "$E04")"
   assert_eq "E4: APP_CALENDAR has two handlers on this build" "2" "$(grep -m1 '^APP_CALENDAR:' "$E04" | tr ' ' '\n' | grep -c '/')"
   assert_eq "E4: APP_CONTACTS has two handlers on this build" "2" "$(grep -m1 '^APP_CONTACTS:' "$E04" | tr ' ' '\n' | grep -c '/')"
-  assert_contains "E4: with no explicit slot the Calendar tile is unassigned (two handlers, no seed in an emptied layout)" "Tap to choose" "$(grep -m1 'tile:slot:CALENDAR' "$E04")"
-  assert_contains "E4: … and the People tile" "Tap to choose" "$(grep -m1 'tile:slot:PEOPLE' "$E04")"
+  # RECORDED, not asserted (INDEX Change Log 2026-10-01, "E1's children"): the doc's "two handlers each, so neither
+  # auto-assigns" cannot be seen on a device. In the state a user can reach, the seed has pointed both slots at the
+  # shell's apps (legs W and U assert that). In E4's emptied layout — `slots` {} with the markers kept, a state only the
+  # harness can make — phase 01's resolver asks Android for a default (`resolveActivity`, MATCH_DEFAULT_ONLY) and gets
+  # the image's app, whose filter alone carries CATEGORY_DEFAULT: the row reads "Android's default", not "Tap to choose".
+  record "E4's emptied layout: the Calendar tile" "$(grep -m1 'tile:slot:CALENDAR' "$E04")"
+  record "E4's emptied layout: the People tile and its Tile apps row" "$(grep -m1 'tile:slot:PEOPLE' "$E04") ; $(grep -m1 'tile_app_slot:PEOPLE' "$E04")"
   # E4b: the picker lists the category's handlers by component, and the re-cut taps chose K-9 and FairEmail.
   assert_contains "E4b: the Mail picker lists K-9 by component" "com.fsck.k9/" "$(grep -m1 '^picker candidates:' "$E04")"
   assert_contains "E4b: choosing K-9 assigned the slot" "com.fsck.k9" "$(grep -m1 '^layout slots:' "$E04")"

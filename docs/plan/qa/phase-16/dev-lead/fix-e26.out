@@ -1,0 +1,59 @@
+lock taken at 2026-10-01T20:53:05-06:00; private lock dir /tmp/claude-1000/-home-jeremyking/94273004-6013-4029-a961-ffb26e4dcb1f/scratchpad/tileshell-lead-lock.aokKiZ
+── E26 wizard step added: setup:people (phase 12 E14's template, re-cut to phase 12 as built)
+PASS  phase 12's why table holds the T16-15 line for setup:people  = People shows and edits your contacts. Without it People can't see them.
+(a) pm clear -> PROVISION_FINISH_WIZARD=0 provision.sh -> revoke READ_CONTACTS and WRITE_CONTACTS -> Home
+PASS  (a) no-marker provision rc                                  = 0
+PASS  (a) provision wrote no marker                               contains [PROVISION_FINISH_WIZARD=0: no marker written]
+PASS  (a) READ_CONTACTS revoked                                   = false
+PASS  (a) WRITE_CONTACTS revoked                                  = false
+PASS  (a) wizard_page                                             = yes
+PASS  (a) wizard_step:setup:people is the first step              = setup:people
+PASS  (a) its why line = phase 12's table                         = People shows and edits your contacts. Without it People can't see them.
+PASS  (a) wizard_progress                                         = Step 1 of 3
+PASS  start ring readable ((a) shown)                             header present
+PASS  (a) shown with People's step and Tess's contacts step       contains [[wizard] shown: missing=setup:people,tess:contacts]
+PASS  start ring readable ((a) READ granted)                      header present
+PASS  (a) READ alone: [wizard] step setup:people: partial         contains [[wizard] step setup:people: partial]
+PASS  (a) READ alone: the step is still showing (PARTIAL is not done for this row)  = yes
+PASS  start ring readable ((a) WRITE granted)                     header present
+PASS  (a) both held: [wizard] step setup:people: granted          contains [[wizard] step setup:people: granted]
+PASS  (a) the step is gone                                        = no
+PASS  (a) wizard_presets shows                                    = yes
+(a') the same state again; the step's own action tapped once (what Android does is recorded)
+PASS  (a') no-marker provision rc                                 = 0
+PASS  (a') wizard_step:setup:people showing                       = setup:people
+RECORD  (a') the step's action raised Android's permission dialog   yes: Allow Tessera to access your contacts?
+RECORD  (a') Android asked a second time (one dialog per permission)  no: one Allow granted the group
+RECORD  (a') after the action: READ_CONTACTS / WRITE_CONTACTS granted  true / true
+PASS  (a') the step's own action granted READ_CONTACTS            = true
+PASS  (a') … and WRITE_CONTACTS                                 = true
+PASS  start ring readable ((a') action)                           header present
+PASS  (a') [wizard] step setup:people: granted                    contains [[wizard] step setup:people: granted]
+PASS  (a') the step is gone                                       = no
+(b) pm clear -> provision.sh (its new line grants WRITE_CONTACTS; it writes the marker) -> Home
+PASS  (b) provision rc                                            = 0
+PASS  (b) provision.sh's WRITE_CONTACTS line ran                  contains [write contacts: android.permission.WRITE_CONTACTS: granted=true]
+PASS  (b) no wizard_page                                          = no
+PASS  start ring readable ((b) resume)                            header present
+PASS  (b) [wizard] not shown: core held                           contains [[wizard] not shown: core held]
+PASS  (b) checklist:people:granted on the Setup page              = yes
+(c) the finished-install rule, from (b)'s marker
+PASS  (c) both revoked: no wizard_page                            = no
+PASS  start ring readable ((c) both revoked)                      header present
+PASS  (c) both revoked: [wizard] not shown: finished              contains [[wizard] not shown: finished]
+PASS  (c) both revoked: checklist:people:missing                  = yes
+PASS  (c) READ held, WRITE still revoked                          = true false
+PASS  (c) READ only: no wizard_page                               = no
+PASS  start ring readable ((c) READ only)                         header present
+PASS  (c) READ only: [wizard] not shown: core held                contains [[wizard] not shown: core held]
+PASS  (c) READ only: checklist:people:partial                     = yes
+PASS  (c) READ only: Tess's contacts row reads granted (cortana_check:contacts:granted)  = yes
+PASS  (c) restore: both held                                      = true true
+restore: pm clear -> provision.sh -> ensure_start
+PASS  restore: provision rc                                       = 0
+/home/jeremyking/projects/metro-launcher-p16/docs/plan/qa/phase-16/baseline_layout.json: 1 file pushed, 0 skipped. 50.0 MB/s (2054 bytes in 0.000s)
+PASS  restore: layout_restore of the baseline                     = 0
+   E26: 44 passed, 0 failed, 3 recorded
+------------------------------------------------------------------------------
+child: phase 12 E1 on this build: rc=0 E1: 20 passed, 0 failed, 0 recorded (kept at /home/jeremyking/projects/metro-launcher-p16/docs/plan/qa/phase-16/E26/phase-12-E1/)
+PASS  phase 12 E1 re-run passes on this build

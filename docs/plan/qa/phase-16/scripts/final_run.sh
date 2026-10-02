@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# NOT USED for phase 16's gate (the owner's ruling, 2026-10-01 22:14: "Only test the fixes not EVERY THING" — INDEX
+# Change Log). Each row's one passing run on the fix build is its evidence; nothing runs every row again. Kept as a
+# runner for a NAMED list of rows (final_run.sh E5 E17), never the default list.
 # Phase 16 — every row on ONE final APK (the gate's precondition; phase 14's form). Each row's earlier run directory is
 # kept under <row>-apk-<its apk id>, then the row's own driver runs unchanged; exit codes go to FINAL/<row>.rc and are
 # read from the files. E12 runs last (its map action once coincided with an emulator exit). E21 is not a driver: its

@@ -6,6 +6,8 @@
 # at a time still drives the device. The adb server must already be running (a server started under this would
 # inherit fd 8 and keep the lock).
 set -u
+export ANDROID_SERIAL=emulator-5554
+export PATH="$HOME/Android/Sdk/platform-tools:$PATH"   # the first lead-rows run stopped on "adb: not found", read as a dead emulator
 OUT="$1"; RC="$2"; shift 2
 adb start-server > /dev/null 2>&1 8>&-
 exec 8> /tmp/tileshell-qa-device.lock
