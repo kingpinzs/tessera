@@ -283,6 +283,9 @@ fun PeopleApp(nav: PeopleNav, host: PeopleHost) {
         }
         if (refused.isEmpty()) nav.notice = null
         repo.refresh("grant")
+        // The People tile's and the Birthdays calendar's observers register only once the read is held: a grant made
+        // here starts them, as the Setup checklist's does (gate review A, finding 10).
+        if (result.any { it.value }) (context.applicationContext as? app.tileshell.ShellApp)?.startFeeds("people grant")
     }
     val onNoticeAction: (NoticeAction) -> Unit = { action ->
         when (action) {
