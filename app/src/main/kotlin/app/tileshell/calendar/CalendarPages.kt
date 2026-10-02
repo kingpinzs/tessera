@@ -167,7 +167,9 @@ fun EventPage(nav: CalendarNav, model: CalendarModel, sync: SyncState, page: Cal
     }
 
     fun askDelete(scope_: EditScope?) {
-        if (marker != null && (scope_ == null || scope_ == EditScope.ALL)) {
+        // A changed occurrence is a row of its own, with no copy of its own: its delete is "this occurrence, here". The
+        // choice is the series' (gate review A, finding 9: offered there, "both" deleted here only).
+        if (marker != null && event?.originalId == null && (scope_ == null || scope_ == EditScope.ALL)) {
             // "Delete here and from <calendar>" is never offered for a target that is no longer allowed (T16-12).
             nav.dialog = CalDialog.DeleteChoice(marker.calendarName, offerBoth = marker.targetAllowed) { both -> delete(scope_, both) }
         } else {
