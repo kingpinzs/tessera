@@ -35,6 +35,22 @@ data class EditPolicy(val local: ContactAccount, val allowed: Set<ContactAccount
  */
 data class RawRef(val id: Long, val account: ContactAccount, val otherProfile: Boolean = false)
 
+/**
+ * Another profile's rows as the reads name them (a work-profile contact found by the enterprise search), so the write
+ * layer can carry that fact to the guard instead of merely failing to find the row.
+ *
+ * Such a contact has no raw contact in this profile's provider: the read stands [RAW] in for it, and [REF] is that one
+ * reference as the guard sees it. Which contact ids are another profile's is the provider's own answer
+ * (`Contacts.isEnterpriseContactId`), asked where the row is read.
+ */
+object OtherProfile {
+    const val RAW = -1L
+
+    fun isRaw(rawId: Long): Boolean = rawId == RAW
+
+    val REF = RawRef(RAW, ContactAccount(null, null), otherProfile = true)
+}
+
 enum class WriteOp(val word: String) { INSERT("insert"), UPDATE("update"), DELETE("delete") }
 
 /** Where a new raw contact comes from. Each has its own rule for the account it may land in. */
@@ -66,11 +82,18 @@ sealed interface PeopleWrite {
     /** Updating a `Contacts` column that syncs upstream (STARRED, for example): a write to every raw contact behind it. */
     data class ContactColumn(val column: String, val raws: List<RawRef>) : PeopleWrite
 
-    /** Link (`TYPE_KEEP_TOGETHER`) or Unlink (`TYPE_KEEP_SEPARATE`): an `AggregationExceptions` row, local to the phone. */
+    /**
+     * Link (`TYPE_KEEP_TOGETHER`) or Unlink (`TYPE_KEEP_SEPARATE`): an `AggregationExceptions` row, local to the phone.
+     * Allowed between any two raw contacts of this profile, whatever their accounts; never with another profile's.
+     */
     data class Aggregation(val a: RawRef, val b: RawRef, val together: Boolean) : PeopleWrite
 
-    /** Creating, renaming or deleting a group in [account] (the group's own account). */
-    data class GroupRow(val op: WriteOp, val account: ContactAccount) : PeopleWrite
+    /**
+     * Creating, renaming or deleting a group in [account] (the group's own account). [viaSyncAdapter]: the write goes
+     * through the provider's sync-adapter URI (`caller_is_syncadapter=true`), where a delete removes the group's row
+     * outright instead of marking it deleted for an adapter to finish.
+     */
+    data class GroupRow(val op: WriteOp, val account: ContactAccount, val viaSyncAdapter: Boolean = false) : PeopleWrite
 }
 
 sealed interface GuardVerdict {
@@ -102,9 +125,20 @@ object PeopleWriteGuard {
         is PeopleWrite.DataRow -> one(write.raw, policy)
         is PeopleWrite.DeleteContact -> all(write.raws, policy)
         is PeopleWrite.ContactColumn -> all(write.raws, policy)
-        // AggregationExceptions are local to the phone and reach no account: allowed on any contact.
-        is PeopleWrite.Aggregation -> GuardVerdict.Allowed
-        is PeopleWrite.GroupRow -> if (policy.canWrite(write.account)) GuardVerdict.Allowed else GuardVerdict.Refused(null)
+        // AggregationExceptions are local to the phone and reach no account: allowed on any contact of this profile,
+        // read-only or not. Another profile's contact never — an exception across profiles cannot exist.
+        is PeopleWrite.Aggregation -> when {
+            write.a.otherProfile -> GuardVerdict.Refused(write.a.id)
+            write.b.otherProfile -> GuardVerdict.Refused(write.b.id)
+            else -> GuardVerdict.Allowed
+        }
+        is PeopleWrite.GroupRow -> when {
+            // As a sync adapter People does one thing: it finishes the delete of a group of the phone's own account,
+            // which has no adapter to do it. In an account, allowed or not, that is the account's own adapter's work.
+            write.viaSyncAdapter -> if (write.op == WriteOp.DELETE && policy.isPhone(write.account)) GuardVerdict.Allowed else GuardVerdict.Refused(null)
+            policy.canWrite(write.account) -> GuardVerdict.Allowed
+            else -> GuardVerdict.Refused(null)
+        }
     }
 
     private fun one(raw: RawRef, policy: EditPolicy): GuardVerdict =

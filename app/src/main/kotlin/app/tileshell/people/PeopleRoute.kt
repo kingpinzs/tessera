@@ -56,7 +56,10 @@ sealed interface PeopleRoute {
     /** `ACTION_INSERT_OR_EDIT`: the list, to choose "new contact" or an existing one the fields are added to. */
     data class InsertOrEdit(val prefill: ContactPrefill) : PeopleRoute
 
-    /** `ACTION_PICK`: the list in pick mode; the result grants its caller the one URI picked and nothing else. */
+    /**
+     * `ACTION_PICK`: the list in pick mode; the result grants its caller the one URI picked and nothing else. Only a
+     * caller that can receive a result gets this route ([PeopleIntents.honoured]).
+     */
     data class Pick(val kind: PickKind) : PeopleRoute
 }
 
@@ -65,6 +68,7 @@ sealed interface PeopleRoute {
  * Every caller-supplied value is bounded here; anything this does not recognise opens the list, never a crash.
  */
 object PeopleIntents {
+    const val ACTION_MAIN = "android.intent.action.MAIN"
     const val ACTION_VIEW = "android.intent.action.VIEW"
     const val ACTION_EDIT = "android.intent.action.EDIT"
     const val ACTION_INSERT = "android.intent.action.INSERT"
@@ -101,8 +105,10 @@ object PeopleIntents {
             ACTION_INSERT ->
                 if (path == listOf("contacts") || path == listOf("raw_contacts") || (data == null && type == TYPE_CONTACT_DIR)) PeopleRoute.Insert(prefill(extras))
                 else open(extras)
+            // As INSERT: the contacts URI asks for it, or the contact type on an intent with no data. The type on some
+            // other URI — another provider's, a file — is the plain list, and nothing the caller suggested is kept.
             ACTION_INSERT_OR_EDIT ->
-                if (type == TYPE_CONTACT_ITEM || path == listOf("contacts")) PeopleRoute.InsertOrEdit(prefill(extras)) else open(extras)
+                if (path == listOf("contacts") || (data == null && type == TYPE_CONTACT_ITEM)) PeopleRoute.InsertOrEdit(prefill(extras)) else open(extras)
             ACTION_PICK -> when {
                 type == TYPE_PHONE_DIR || path == listOf("data", "phones") -> PeopleRoute.Pick(PickKind.PHONE)
                 type == TYPE_CONTACT_DIR || path == listOf("contacts") -> PeopleRoute.Pick(PickKind.CONTACT)
@@ -114,16 +120,79 @@ object PeopleIntents {
 
     private fun open(extras: Extras) = PeopleRoute.Open(PeopleShortcut.byId(extras.string(EXTRA_PAGE)))
 
-    /** `contacts/<id>`, `contacts/lookup/<key>` or `contacts/lookup/<key>/<id>`. */
+    /**
+     * A PICK is honoured only for a caller that can receive its result — an activity that started People for a result.
+     * A PICK with no caller (a plain `startActivity`, `am start`, a new task) has nobody to hand the picked URI to: it
+     * opens the plain list, [PICK_NO_CALLER] is logged, and pick mode is never entered, so it cannot be left behind.
+     */
+    fun honoured(route: PeopleRoute, hasCaller: Boolean): PeopleRoute =
+        if (route is PeopleRoute.Pick && !hasCaller) PeopleRoute.Open(null) else route
+
+    /**
+     * What a PICK's result carries beside the one URI picked: a read grant for that URI
+     * (`Intent.FLAG_GRANT_READ_URI_PERMISSION`) — no write, persistable or prefix grant.
+     */
+    const val PICK_RESULT_FLAGS = 0x1
+
+    /** The `[people] pick: …` lines. The first is written only when a result with its grant was set for a caller. */
+    fun pickGrantedLine(phone: Boolean): String = "pick: one ${if (phone) "phone" else "contact"} URI granted (read)"
+    const val PICK_CANCELLED = "pick: cancelled"
+    const val PICK_NO_CALLER = "pick: no caller to return a result to; the list was opened"
+
+    /** The actions PeopleActivity handles: the launcher entry's and its five handlers'. */
+    private val HANDLED_ACTIONS = setOf(ACTION_MAIN, ACTION_VIEW, ACTION_EDIT, ACTION_INSERT, ACTION_INSERT_OR_EDIT, ACTION_PICK)
+
+    const val NO_ACTION = "no action"
+    const val OTHER_ACTION = "other"
+
+    /**
+     * An intent's action as the diagnostics ring may hold it. Any app may send any action string to an exported
+     * activity — a line break and a forged line, a megabyte of text — so the string is written only when it is one of
+     * the six the activity handles; any other is the word `other`, and an intent without one reads `no action`.
+     */
+    fun loggedAction(action: String?): String = when {
+        action == null -> NO_ACTION
+        action in HANDLED_ACTIONS -> action
+        else -> OTHER_ACTION
+    }
+
+    /**
+     * The `[people] open …` line: the action as [loggedAction] gives it and the kind of route — never what the caller
+     * typed into it (a name, a number, a lookup key).
+     */
+    fun openLine(action: String?, route: PeopleRoute): String = "open ${loggedAction(action)} -> ${describe(route)}"
+
+    private fun describe(route: PeopleRoute): String = when (route) {
+        is PeopleRoute.Open -> "open page=${route.page?.id ?: "default"}"
+        is PeopleRoute.Card -> "card"
+        is PeopleRoute.Edit -> "edit"
+        is PeopleRoute.Insert -> "insert (prefilled, unsaved)"
+        is PeopleRoute.InsertOrEdit -> "insert or edit (prefilled, unsaved)"
+        is PeopleRoute.Pick -> "pick ${route.kind.name.lowercase()}"
+    }
+
+    /**
+     * `contacts/<id>`, `contacts/lookup/<key>` or `contacts/lookup/<key>/<id>`, and nothing else: a fourth segment that
+     * is not a row id above 0 (`…/data`, `…/photo`, `…/0`) names something other than a contact, so it is refused
+     * rather than read as the key alone.
+     */
     private fun contact(path: List<String>?): ContactRef? {
         if (path == null || path.firstOrNull() != "contacts") return null
         return when {
             path.size == 2 -> path[1].toLongOrNull()?.takeIf { it > 0 }?.let { ContactRef(null, it) }
-            path.size in 3..4 && path[1] == "lookup" && path[2].isNotEmpty() && path[2].length <= MAX_FIELD ->
-                ContactRef(path[2], path.getOrNull(3)?.toLongOrNull()?.takeIf { it > 0 })
+            path.size == 3 && path[1] == "lookup" && isLookupKey(path[2]) -> ContactRef(path[2], null)
+            path.size == 4 && path[1] == "lookup" && isLookupKey(path[2]) -> path[3].toLongOrNull()?.takeIf { it > 0 }?.let { ContactRef(path[2], it) }
             else -> null
         }
     }
+
+    /**
+     * A lookup key as a URI writes it: bounded, and not a path's dot segment (`.` or `..`, written out or as `%2E`), which
+     * climbs instead of naming. Dots inside a key are the provider's own (a joined contact's key), so only a segment of
+     * nothing but dots is refused.
+     */
+    private fun isLookupKey(segment: String): Boolean =
+        segment.isNotEmpty() && segment.length <= MAX_FIELD && segment.replace("%2e", ".", ignoreCase = true).any { it != '.' }
 
     private fun prefill(extras: Extras) = ContactPrefill(
         name = text(extras.string(EXTRA_NAME), MAX_FIELD),

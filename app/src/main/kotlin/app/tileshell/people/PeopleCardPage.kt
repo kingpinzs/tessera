@@ -87,7 +87,7 @@ fun CardPage(env: PeopleEnv, page: PeoplePage.Card) {
     }
 
     val shown = card
-    val actions = shown?.let { c -> PeopleWriteGuard.cardActions(c.raws.map { it.ref(c.enterprise) }, env.policy) }
+    val actions = shown?.let { c -> PeopleWriteGuard.cardActions(c.raws.map { it.ref() }, env.policy) }
     val readOnlyLine = actions?.takeIf { !it.edit }?.let { CardRules.readOnlyLine(it.readOnlyAccount, it.otherProfile) }
 
     fun delete() {
