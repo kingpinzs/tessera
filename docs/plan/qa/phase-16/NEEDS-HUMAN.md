@@ -4,9 +4,13 @@
 build `app-debug.apk` md5 585b457ffc29878c (branch `phase-16`, commit e226bc68; 1,285 unit tests, 0 failures).
 Your ruling on Q-16-6 is recorded ("C", 2026-10-02): row E7's frame-smoothness limit stays as written, is on record
 as FAILED on the emulator, and smoothness is yours to judge on the phone — row P11 below. The phase goes `done` when
-every row below is signed off: reply with the ids that pass, and what you saw for any that do not. Phone rows need a
-build on the S25 Ultra: CI builds one when the `phase-16` branch is pushed, which needs your word ("push") and your
-`touch ~/.claude/push-approved` on this machine.
+every row below is signed off: reply with the ids that pass, and what you saw for any that do not.
+
+**The phone build exists (corrected 2026-10-02 09:33).** You merged `phase-16` into `main` (pull request 6, commit
+9b86c7ed), and CI build 44 of that commit passed: `tessera-44-9b86c7ed-release.apk` (release-signed, 321,779,101 bytes)
+is the download on the repository's "latest" release page. Its code is the gate build's: no file outside `docs/` differs
+between e226bc68 and 9b86c7ed. An earlier version of this page said CI builds when the `phase-16` branch is pushed; that
+was wrong — the workflow runs only on a push to `main`, on a `v*` tag, or when started by hand.
 
 Everything in the phone rows is done on the phone alone — nothing over a cable, adb or a PC. Where a row needs a value,
 it is read on a page of the shell (Start settings > Diagnostics) and pasted back.
