@@ -1,225 +1,227 @@
 ACTIVITY MANAGER PENDING INTENTS (dumpsys activity intents)
-  * org.fossify.messages: 3 items
-    #0: PendingIntentRecord{754ce91 org.fossify.messages startActivity (allowlist: 40b52e6:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}
-      uid=10166 packageName=org.fossify.messages featureId=null type=startActivity flags=0x2000000
-      requestCode=1 requestResolvedType=null
-      requestIntent=xflg=0x4 cmp=org.fossify.messages/.activities.ThreadActivity (has extras)
-      allowlistDuration=40b52e6:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService
-    #1: PendingIntentRecord{3aa09f7 org.fossify.messages broadcastIntent (allowlist: 40b52e6:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}
-      uid=10166 packageName=org.fossify.messages featureId=null type=broadcastIntent flags=0x2000000
-      requestCode=1 requestResolvedType=null
-      requestIntent=act=org.fossify.org.fossify.messages.action.mark_as_read xflg=0x4 cmp=org.fossify.messages/.receivers.MarkAsReadReceiver (has extras)
-      allowlistDuration=40b52e6:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService
-      mCancelCallbacks:
-        #0: com.android.internal.os.IResultReceiver$Stub$Proxy@6fc1427
-    #2: PendingIntentRecord{b3251f6 org.fossify.messages broadcastIntent (allowlist: 40b52e6:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}
-      uid=10166 packageName=org.fossify.messages featureId=null type=broadcastIntent flags=0x2000000
-      requestCode=1 requestResolvedType=null
-      requestIntent=xflg=0x4 cmp=org.fossify.messages/.receivers.DirectReplyReceiver (has extras)
-      allowlistDuration=40b52e6:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService
-      mCancelCallbacks:
-        #0: com.android.internal.os.IResultReceiver$Stub$Proxy@4a2a6d4
   * com.android.healthconnect.controller: 1 items
-    #0: PendingIntentRecord{40dd07d com.android.healthconnect.controller startActivity}
+    #0: PendingIntentRecord{404d9c2 com.android.healthconnect.controller startActivity}
       uid=10148 packageName=com.android.healthconnect.controller featureId=null type=startActivity flags=0x4000000
       requestIntent=act=android.health.connect.action.HEALTH_HOME_SETTINGS xflg=0x4
-  * com.android.providers.calendar: 4 items
-    #0: PendingIntentRecord{d160b72 com.android.providers.calendar broadcastIntent}
+  * com.android.providers.calendar: 8 items
+    #0: PendingIntentRecord{fff98a1 com.android.providers.calendar broadcastIntent}
+      uid=10079 packageName=com.android.providers.calendar featureId=null type=broadcastIntent flags=0x4000000
+      requestIntent=act=android.intent.action.EVENT_REMINDER dat=content://com.android.calendar/1790918880000 flg=0x1000000 xflg=0x4 (has extras)
+    #1: PendingIntentRecord{7b5f9d0 com.android.providers.calendar broadcastIntent}
+      uid=10079 packageName=com.android.providers.calendar featureId=null type=broadcastIntent flags=0x4000000
+      requestIntent=act=android.intent.action.EVENT_REMINDER dat=content://com.android.calendar/1790917740000 flg=0x1000000 xflg=0x4 (has extras)
+    #2: PendingIntentRecord{ddb3ac6 com.android.providers.calendar broadcastIntent}
       uid=10079 packageName=com.android.providers.calendar featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=com.android.providers.calendar.intent.CalendarProvider2 xflg=0x4 cmp=com.android.providers.calendar/.CalendarProviderBroadcastReceiver
       sent=true canceled=false cancelReason=NULL
-    #1: PendingIntentRecord{60bcbc3 com.android.providers.calendar broadcastIntent}
+    #3: PendingIntentRecord{d648a87 com.android.providers.calendar broadcastIntent}
+      uid=10079 packageName=com.android.providers.calendar featureId=null type=broadcastIntent flags=0x4000000
+      requestIntent=act=android.intent.action.EVENT_REMINDER dat=content://com.android.calendar/1790909160000 flg=0x1000000 xflg=0x4 (has extras)
+      sent=true canceled=false cancelReason=NULL
+    #4: PendingIntentRecord{315e06a com.android.providers.calendar broadcastIntent}
+      uid=10079 packageName=com.android.providers.calendar featureId=null type=broadcastIntent flags=0x4000000
+      requestIntent=act=android.intent.action.EVENT_REMINDER dat=content://com.android.calendar/1790952600000 flg=0x1000000 xflg=0x4 (has extras)
+    #5: PendingIntentRecord{16e4db4 com.android.providers.calendar broadcastIntent}
       uid=10079 packageName=com.android.providers.calendar featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=android.intent.action.PROVIDER_CHANGED dat=content://com.android.calendar flg=0x21000000 xflg=0x4
       sent=true canceled=false cancelReason=NULL
-    #2: PendingIntentRecord{6ed5c40 com.android.providers.calendar broadcastIntent}
+    #6: PendingIntentRecord{4dc1ddd com.android.providers.calendar broadcastIntent}
       uid=10079 packageName=com.android.providers.calendar featureId=null type=broadcastIntent flags=0x4000000
-      requestIntent=act=android.intent.action.EVENT_REMINDER dat=content://com.android.calendar/1790932380000 flg=0x1000000 xflg=0x4 (has extras)
+      requestIntent=act=android.intent.action.EVENT_REMINDER dat=content://com.android.calendar/1790908680000 flg=0x1000000 xflg=0x4 (has extras)
       sent=true canceled=false cancelReason=NULL
-    #3: PendingIntentRecord{4b49a7 com.android.providers.calendar broadcastIntent}
+    #7: PendingIntentRecord{f6d834e com.android.providers.calendar broadcastIntent}
       uid=10079 packageName=com.android.providers.calendar featureId=null type=broadcastIntent flags=0x4000000
       requestCode=100 requestResolvedType=null
       requestIntent=act=com.android.providers.calendar.intent.CalendarProvider2 xflg=0x4 cmp=com.android.providers.calendar/.CalendarProviderBroadcastReceiver
+      sent=true canceled=false cancelReason=NULL
   * app.tileshell: 2 items
-    #0: PendingIntentRecord{d357377 app.tileshell startActivity (allowlist: 40b52e6:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}
-      uid=10174 packageName=app.tileshell featureId=null type=startActivity flags=0x4000000
+    #0: PendingIntentRecord{e73e2ef app.tileshell startActivity (allowlist: a44048:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}
+      uid=10170 packageName=app.tileshell featureId=null type=startActivity flags=0x4000000
       requestCode=1 requestResolvedType=null
-      requestIntent=act=android.intent.action.VIEW dat=content://com.android.calendar/events/20905 flg=0x10000000 xflg=0x4 cmp=app.tileshell/.calendar.CalendarActivity (has extras)
-      allowlistDuration=40b52e6:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService
-    #1: PendingIntentRecord{68b7176 app.tileshell broadcastIntent (allowlist: 40b52e6:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}
-      uid=10174 packageName=app.tileshell featureId=null type=broadcastIntent flags=0x4000000
+      requestIntent=act=android.intent.action.VIEW dat=content://com.android.calendar/events/684 flg=0x10000000 xflg=0x4 cmp=app.tileshell/.calendar.CalendarActivity (has extras)
+      allowlistDuration=a44048:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService
+    #1: PendingIntentRecord{a56a1fc app.tileshell broadcastIntent (allowlist: a44048:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService)}
+      uid=10170 packageName=app.tileshell featureId=null type=broadcastIntent flags=0x4000000
       requestCode=1 requestResolvedType=null
       requestIntent=xflg=0x4 cmp=app.tileshell/.calendar.CalendarReminderDismissReceiver (has extras)
-      allowlistDuration=40b52e6:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService
+      allowlistDuration=a44048:+30s0ms/0/NOTIFICATION_SERVICE/NotificationManagerService
   * com.android.quicksearchbox: 1 items
-    #0: PendingIntentRecord{eabf779 com.android.quicksearchbox startActivity}
+    #0: PendingIntentRecord{94ad00e com.android.quicksearchbox startActivity}
       uid=10107 packageName=com.android.quicksearchbox featureId=null type=startActivity flags=0x0
       requestIntent=act=android.search.action.GLOBAL_SEARCH flg=0x14200000 xflg=0x4 pkg=com.android.quicksearchbox (has extras)
   * android: 13 items
-    #0: PendingIntentRecord{5356cbe android broadcastIntent}
+    #0: PendingIntentRecord{9130a2f android broadcastIntent}
       uid=1000 packageName=android featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=android.app.backup.intent.INIT flg=0x40000000 xflg=0x4
-    #1: PendingIntentRecord{7d5611f android startActivity}
+    #1: PendingIntentRecord{98fd83c android startActivity}
       uid=1000 packageName=android featureId=null type=startActivity flags=0x4000000
       requestIntent=act=android.intent.action.CHOOSER xflg=0x4 (has extras)
-    #2: PendingIntentRecord{66bfc6c android startActivity}
+    #2: PendingIntentRecord{8989c5 android startActivity}
       uid=1000 packageName=android featureId=null type=startActivity flags=0x4000000
       requestIntent=act=android.settings.INPUT_METHOD_SETTINGS xflg=0x4
-    #3: PendingIntentRecord{a6b9235 android broadcastIntent}
+    #3: PendingIntentRecord{5e7df1a android broadcastIntent}
       uid=1000 packageName=android featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=android.net.proxy.PAC_REFRESH xflg=0x4
-    #4: PendingIntentRecord{3ab9a69 android broadcastIntent}
+    #4: PendingIntentRecord{7cf0062 android broadcastIntent}
       uid=1000 packageName=android featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=android.intent.action.UPDATE_CT_LOGS xflg=0x4
       sent=true canceled=false cancelReason=NULL
-    #5: PendingIntentRecord{449a389 android broadcastIntent}
+    #5: PendingIntentRecord{3ad1eaa android broadcastIntent}
       uid=1000 packageName=android featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=com.android.server.action.NETWORK_STATS_POLL xflg=0x4
       sent=true canceled=false cancelReason=NULL
-    #6: PendingIntentRecord{b591bc0 android broadcastIntent}
+    #6: PendingIntentRecord{6893d81 android broadcastIntent}
       uid=1000 packageName=android featureId=null type=broadcastIntent flags=0x4000000
       requestCode=1 requestResolvedType=null
       requestIntent=act=ScheduleConditionProvider.EVALUATE flg=0x10000000 xflg=0x4 pkg=android (has extras)
-      sent=true canceled=false cancelReason=NULL
-    #7: PendingIntentRecord{ed47208 android broadcastIntent}
+    #7: PendingIntentRecord{397706b android broadcastIntent}
       uid=1000 packageName=android featureId=null type=broadcastIntent flags=0x4000000
       requestCode=1 requestResolvedType=null
       requestIntent=act=com.android.server.notification.TimeToLiveHelper dat=timeout:/-1%7Candroid%7C55%7Cnull%7C1000 flg=0x10000000 xflg=0x4 pkg=android (has extras)
-    #8: PendingIntentRecord{5796ca android startActivity}
+    #8: PendingIntentRecord{1d01a4b android startActivity}
       uid=1000 packageName=android featureId=null type=startActivity flags=0x4000000
       requestIntent=act=android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS xflg=0x4
-    #9: PendingIntentRecord{f78f03b android broadcastIntent}
+    #9: PendingIntentRecord{ea03c28 android broadcastIntent}
       uid=1000 packageName=android featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=com.android.server.wifi.scanner.WifiPnoScanStateMachine.SwPnoScanState.SW_PNO_ALARM xflg=0x4 pkg=android
-    #10: PendingIntentRecord{d99a142 android broadcastIntent}
+    #10: PendingIntentRecord{ecb86b2 android broadcastIntent}
       uid=1000 packageName=android featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=android.intent.action.DATE_CHANGED flg=0x20200000 xflg=0x4
-      sent=true canceled=false cancelReason=NULL
-    #11: PendingIntentRecord{8527358 android broadcastIntent}
+    #11: PendingIntentRecord{b7dfd41 android broadcastIntent}
       uid=1000 packageName=android featureId=null type=broadcastIntent flags=0x4000000
       requestCode=1 requestResolvedType=null
       requestIntent=act=com.android.server.wifi.scanner.WifiPnoScanStateMachine.SwPnoScanState.SW_PNO_UPPERBOUND_ALARM xflg=0x4 pkg=android
-    #12: PendingIntentRecord{8501cb1 android startActivity}
+    #12: PendingIntentRecord{914d2e6 android startActivity}
       uid=1000 packageName=android featureId=null type=startActivity flags=0x4000000
       requestIntent=act=android.settings.MANAGE_DEFAULT_APPS_SETTINGS xflg=0x4
   * com.android.launcher3: 1 items
-    #0: PendingIntentRecord{4c05596 com.android.launcher3 broadcastIntent}
+    #0: PendingIntentRecord{a041027 com.android.launcher3 broadcastIntent}
       uid=10122 packageName=com.android.launcher3 featureId=null type=broadcastIntent flags=0x4000000
       requestCode=499 requestResolvedType=null
       requestIntent=act=ACTION_SHOW_TASKBAR xflg=0x4 pkg=com.android.launcher3
+  * com.android.calendar: 1 items
+    #0: PendingIntentRecord{8bf1bb9 com.android.calendar broadcastIntent}
+      uid=10112 packageName=com.android.calendar featureId=null type=broadcastIntent flags=0x4000000
+      requestCode=0 requestResolvedType=vnd.android.data/update
+      requestIntent=act=com.android.calendar.APPWIDGET_SCHEDULED_UPDATE dat=content://com.android.calendar typ=vnd.android.data/update xflg=0x4
+  * org.oxycblt.auxio: 1 items
+    #0: PendingIntentRecord{5d0f2d4 org.oxycblt.auxio broadcastIntent}
+      uid=10169 packageName=org.oxycblt.auxio featureId=null type=broadcastIntent flags=0x2000000
+      requestIntent=act=android.intent.action.MEDIA_BUTTON xflg=0x4 cmp=org.oxycblt.auxio/.playback.service.MediaButtonReceiver
   * com.android.settings: 4 items
-    #0: PendingIntentRecord{7fc5517 com.android.settings broadcastIntent}
+    #0: PendingIntentRecord{8c03d52 com.android.settings broadcastIntent}
       uid=1000 packageName=com.android.settings featureId=null type=broadcastIntent flags=0x4000000
       requestCode=-1521404341 requestResolvedType=null
       requestIntent=act=com.android.settings.battery.action.PERIODIC_JOB_UPDATE xflg=0x4 cmp=com.android.settings/.fuelgauge.batteryusage.PeriodicJobReceiver
-    #1: PendingIntentRecord{f276d04 com.android.settings startActivity}
+    #1: PendingIntentRecord{acb3772 com.android.settings startActivity}
       uid=1000 packageName=com.android.settings featureId=null type=startActivity flags=0x4000000
       requestCode=30 requestResolvedType=null
       requestIntent=id=0 xflg=0x4 cmp=com.android.settings/.biometrics.fingerprint.FingerprintSettings (has extras)
-    #2: PendingIntentRecord{c18d2ed com.android.settings startActivity}
+    #2: PendingIntentRecord{79787c3 com.android.settings startActivity}
       uid=1000 packageName=com.android.settings featureId=null type=startActivity flags=0x4000000
       requestIntent=id=AndroidPrivateSpace xflg=0x4 cmp=com.android.settings/.privatespace.PrivateSpaceAuthenticationActivity
-    #3: PendingIntentRecord{7243522 com.android.settings startActivity}
+    #3: PendingIntentRecord{ab46840 com.android.settings startActivity}
       uid=1000 packageName=com.android.settings featureId=null type=startActivity flags=0x4000000
       requestCode=1 requestResolvedType=null
       requestIntent=act=android.intent.action.MAIN xflg=0x4 cmp=com.android.settings/.SubSettings (has extras)
   * com.android.music: 1 items
-    #0: PendingIntentRecord{ce72bb3 com.android.music startActivity}
+    #0: PendingIntentRecord{8141379 com.android.music startActivity}
       uid=10102 packageName=com.android.music featureId=null type=startActivity flags=0x0
       requestCode=99 requestResolvedType=null
       requestIntent=xflg=0x4 cmp=com.android.music/.MusicBrowserActivity
   * com.android.systemui: 22 items
-    #0: PendingIntentRecord{d305570 com.android.systemui broadcastIntent}
+    #0: PendingIntentRecord{71158be com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_DPAD_DOWN flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #1: PendingIntentRecord{c3cb0e9 com.android.systemui broadcastIntent}
+    #1: PendingIntentRecord{c60dd1f com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_DPAD_LEFT flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #2: PendingIntentRecord{f4816e com.android.systemui broadcastIntent}
+    #2: PendingIntentRecord{d97c86c com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_LOCK_SCREEN flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #3: PendingIntentRecord{9ed00f com.android.systemui broadcastIntent}
+    #3: PendingIntentRecord{8396e35 com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=com.android.wm.shell.pip.PLAY xflg=0x4 pkg=com.android.systemui
-    #4: PendingIntentRecord{19d589c com.android.systemui broadcastIntent}
+    #4: PendingIntentRecord{20642ca com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_BACK flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #5: PendingIntentRecord{5a672a5 com.android.systemui broadcastIntent}
+    #5: PendingIntentRecord{7402c3b com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_DPAD_RIGHT flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #6: PendingIntentRecord{f6b467a com.android.systemui broadcastIntent}
+    #6: PendingIntentRecord{46eff58 com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_DPAD_UP flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #7: PendingIntentRecord{c825e2b com.android.systemui broadcastIntent}
+    #7: PendingIntentRecord{b1fb8b1 com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_HOME flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #8: PendingIntentRecord{c756288 com.android.systemui broadcastIntent}
+    #8: PendingIntentRecord{adc196 com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_HEADSET_HOOK flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #9: PendingIntentRecord{f309421 com.android.systemui broadcastIntent}
+    #9: PendingIntentRecord{afb5117 com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_MEDIA_PLAY_PAUSE flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #10: PendingIntentRecord{7575046 com.android.systemui broadcastIntent}
+    #10: PendingIntentRecord{e80b904 com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_NOTIFICATIONS flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #11: PendingIntentRecord{6c6b207 com.android.systemui broadcastIntent}
+    #11: PendingIntentRecord{2462eed com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_TAKE_SCREENSHOT flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #12: PendingIntentRecord{5421f34 com.android.systemui broadcastIntent}
+    #12: PendingIntentRecord{27c6122 com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_POWER_DIALOG flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #13: PendingIntentRecord{8e1515d com.android.systemui broadcastIntent}
+    #13: PendingIntentRecord{6d9e7b3 com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_MENU flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #14: PendingIntentRecord{9a82ad2 com.android.systemui broadcastIntent}
+    #14: PendingIntentRecord{6d26170 com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_ACCESSIBILITY_SHORTCUT flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #15: PendingIntentRecord{a1267a3 com.android.systemui broadcastIntent}
+    #15: PendingIntentRecord{de3cce9 com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=com.android.wm.shell.pip.PAUSE xflg=0x4 pkg=com.android.systemui
-    #16: PendingIntentRecord{7bfaa0 com.android.systemui broadcastIntent}
+    #16: PendingIntentRecord{7a36d6e com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_RECENTS flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #17: PendingIntentRecord{2e6a659 com.android.systemui startActivity}
+    #17: PendingIntentRecord{d014c0f com.android.systemui startActivity}
       uid=10124 packageName=com.android.systemui featureId=null type=startActivity flags=0x4000000
       requestIntent=xflg=0x4 cmp=com.android.systemui/.keyguard.KeyguardSliceProvider
-    #18: PendingIntentRecord{4ba221e com.android.systemui broadcastIntent}
+    #18: PendingIntentRecord{154249c com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=com.android.wm.shell.pip.PREV xflg=0x4 pkg=com.android.systemui
-    #19: PendingIntentRecord{ad9daff com.android.systemui broadcastIntent}
+    #19: PendingIntentRecord{a34ea5 com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_DPAD_CENTER flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #20: PendingIntentRecord{fb620cc com.android.systemui broadcastIntent}
+    #20: PendingIntentRecord{1cf27a com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=SYSTEM_ACTION_QUICK_SETTINGS flg=0x10000000 xflg=0x4 pkg=com.android.systemui
-    #21: PendingIntentRecord{8524f15 com.android.systemui broadcastIntent}
+    #21: PendingIntentRecord{2909a2b com.android.systemui broadcastIntent}
       uid=10124 packageName=com.android.systemui featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=com.android.wm.shell.pip.NEXT xflg=0x4 pkg=com.android.systemui
   * com.android.permissioncontroller: 4 items
-    #0: PendingIntentRecord{e62422a com.android.permissioncontroller startActivity}
+    #0: PendingIntentRecord{eccee88 com.android.permissioncontroller startActivity}
       uid=10127 packageName=com.android.permissioncontroller featureId=null type=startActivity flags=0x4000000
       requestIntent=act=android.intent.action.REVIEW_PERMISSION_HISTORY xflg=0x4 (has extras)
-    #1: PendingIntentRecord{67b281b com.android.permissioncontroller startActivity}
+    #1: PendingIntentRecord{31f3021 com.android.permissioncontroller startActivity}
       uid=10127 packageName=com.android.permissioncontroller featureId=null type=startActivity flags=0x4000000
       requestIntent=act=android.intent.action.REVIEW_APP_DATA_SHARING_UPDATES xflg=0x4
-    #2: PendingIntentRecord{88a7db8 com.android.permissioncontroller broadcastIntent}
+    #2: PendingIntentRecord{f77bc46 com.android.permissioncontroller broadcastIntent}
       uid=10127 packageName=com.android.permissioncontroller featureId=null type=broadcastIntent flags=0x44000000
       requestIntent=id=app.tileshellUserHandle{0} flg=0x10000000 xflg=0x4 cmp=com.android.permissioncontroller/.permission.service.LocationAccessCheck$SafetyCenterPrimaryActionHandler (has extras)
-    #3: PendingIntentRecord{995c791 com.android.permissioncontroller broadcastIntent}
+    #3: PendingIntentRecord{57cae07 com.android.permissioncontroller broadcastIntent}
       uid=10127 packageName=com.android.permissioncontroller featureId=null type=broadcastIntent flags=0x44000000
       requestIntent=id=app.tileshellUserHandle{0} flg=0x10000000 xflg=0x4 cmp=com.android.permissioncontroller/.permission.service.LocationAccessCheck$WarningCardDismissalHandler (has extras)
   * com.android.bluetooth: 1 items
-    #0: PendingIntentRecord{2ba56f6 com.android.bluetooth broadcastIntent}
+    #0: PendingIntentRecord{3866b34 com.android.bluetooth broadcastIntent}
       uid=1002 packageName=com.android.bluetooth featureId=null type=broadcastIntent flags=0x4000000
       requestIntent=act=com.android.bluetooth.gatt.REFRESH_BATCHED_SCAN xflg=0x4
-  * UID: 1000 total: 19
+  * UID: 1000 total: 18
   * UID: 1002 total: 1
-  * UID: 10079 total: 4
+  * UID: 10079 total: 8
   * UID: 10102 total: 1
   * UID: 10107 total: 1
+  * UID: 10112 total: 1
   * UID: 10122 total: 1
   * UID: 10124 total: 22
   * UID: 10127 total: 4
   * UID: 10148 total: 1
-  * UID: 10166 total: 3
-  * UID: 10174 total: 4
+  * UID: 10169 total: 1
+  * UID: 10170 total: 13

@@ -1,52 +1,14 @@
-==============================================================================
-ROW TRUST — the trust review's device proof: PICK from a real caller, the ring, the reminder notification, the stale swipe
-at            2026-10-02T02:50:37-06:00
-driver        trust.sh blob 2dad882329d7dd1c47a374974f998369cdb7d217
-harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
-include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
-include       cal_lib.sh blob 0ccd242b6ae1a82009cdedb3e5f2b32b3e7764f2
-include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
-include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
-include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
-include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
-apk built     d3491c103c64871a 339129014 bytes
-apk installed 3c5e3199554038d1
-apk match     yes (3c5e3199554038d1)
-device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
-awake         Awake
-==============================================================================
+lock taken at 2026-10-02T02:50:37-06:00; private lock dir /tmp/claude-1000/-home-jeremyking/94273004-6013-4029-a961-ffb26e4dcb1f/scratchpad/tileshell-lead-lock.XoFOAV
+── TRUST the trust review's device proof: PICK from a real caller, the ring, the reminder notification, the stale swipe
 RECORD  parts                                                       TRUST_ONLY=P,N: a development run, not the gate's
 --- P: ACTION_PICK from a caller that holds no permission
 PASS  the probe APK is built                                      = yes
 PASS  the probe installs                                          contains [Success]
 PASS  the probe holds no permission                               = 0
-      people_fixtures_up: raw ids ann=5438 bob=5439 zoe=5440 zhang=5441 number-only=5442 cara=5443,5444 (raw contacts before: 2)
-      Ann: raw 5438 contact 5448 lookup 0r5438-2B4545413333 phone data row 10861
 PASS  P1: the shell's People is in front, in the probe's task     = app.tileshell/.people.PeopleActivity
 PASS  P1: pick mode (people_pick_header)                          = yes
 PASS  P1: before the pick the probe can read nothing              contains [DENIED]
-      scroll_to_node people_row:0r5438-2B4545413333: 0 swipe(s), found=yes
 PASS  P1: the probe got its result                                = 0
-start: kind=contact mode=result
-before contacts table: DENIED SecurityException
-result code: RESULT_OK
-result data: content://com.android.contacts/contacts/lookup/0r5438-2B4545413333/5448
-result flags: 0x1
-result clip: none
-result extras: none
-granted uri: OK 1 row(s) lookup=0r5438-2B4545413333 display_name=Ann Lee _id=5448
-contacts table: DENIED SecurityException
-data table: DENIED SecurityException
-phones table: DENIED SecurityException
-raw contacts table: DENIED SecurityException
-under the granted uri (/data): DENIED SecurityException
-under the granted uri (/entities): DENIED SecurityException
-the photo under it: DENIED SecurityException
-write through the grant: DENIED SecurityException
-delete through the grant: DENIED SecurityException
-persist the grant: DENIED SecurityException
-persisted grants: 0
-done: kind=contact
 PASS  P1: RESULT_OK                                               = RESULT_OK
 PASS  P1: the data is Ann's lookup URI and nothing else           = content://com.android.contacts/contacts/lookup/0r5438-2B4545413333/5448
 PASS  P1: the flags are FLAG_GRANT_READ_URI_PERMISSION alone      = 0x1
@@ -69,28 +31,7 @@ RECORD  P1: grants to the probe in dumpsys after it finished        none
 PASS  P1: Ann still exists and is unchanged                       contains [display_name=Ann Lee]
 PASS  P1: the line names one contact URI                          contains [[people] pick: one contact URI granted (read)]
 PASS  P2: pick mode                                               = yes
-      scroll_to_node people_row:0r5438-2B4545413333: 0 swipe(s), found=yes
 PASS  P2: the probe got its result                                = 0
-start: kind=phone mode=result
-before contacts table: DENIED SecurityException
-result code: RESULT_OK
-result data: content://com.android.contacts/data/10861
-result flags: 0x1
-result clip: none
-result extras: none
-granted uri: OK 1 row(s) display_name=Ann Lee _id=10861 lookup=0r5438-2B4545413333 data1=+1 555 000 0001
-contacts table: DENIED SecurityException
-data table: DENIED SecurityException
-phones table: DENIED SecurityException
-raw contacts table: DENIED SecurityException
-under the granted uri (/data): DENIED SecurityException
-under the granted uri (/entities): DENIED SecurityException
-the photo under it: DENIED SecurityException
-write through the grant: DENIED SecurityException
-delete through the grant: DENIED SecurityException
-persist the grant: DENIED SecurityException
-persisted grants: 0
-done: kind=phone
 PASS  P2: RESULT_OK                                               = RESULT_OK
 PASS  P2: the data is Ann's phone data row and nothing else       = content://com.android.contacts/data/10861
 PASS  P2: the flags are read alone                                = 0x1
@@ -106,17 +47,8 @@ PASS  P2: the line names one phone URI                            contains [[peo
 PASS  P3: the probe got its result                                = 0
 PASS  P3: Back in pick mode is RESULT_CANCELED                    = RESULT_CANCELED
 PASS  P3: no data                                                 = none
-start: kind=contact mode=newtask
-before contacts table: DENIED SecurityException
-result code: RESULT_CANCELED
-result data: none
-result flags: 0x0
-result clip: none
-result extras: none
-done: kind=contact
 PASS  P4: the caller is told CANCELED                             = RESULT_CANCELED
 PASS  P4: with no caller to answer, People is its plain list (no pick header)  = no
-      scroll_to_node people_row:0r5438-2B4545413333: 0 swipe(s), found=yes
 PASS  P4: a row tap opens the card, it hands nothing back         = yes
 PASS  P4: the shell says there was no caller                      contains [[people] pick: no caller to return a result to; the list was opened]
 PASS  P4: no 'granted' line                                       does not contain [URI granted (read)]
@@ -131,7 +63,6 @@ PASS  people_fixtures_down: the raw_contacts count is the count before the row  
 --- N: the reminder notification, and a flood of forged pokes
 PASS  N: Tessera exists                                           != 
 PASS  N: the test event exists                                    != 
-      the shell's calendar notifications: title=[Trust N] text=[Fri 2 Oct, 3:23 AM – 4:23 AM] vis=PRIVATE channel=calendar_reminders; (after 5 s)
 PASS  N: the reminder notified                                    != none
 PASS  N: VISIBILITY_PRIVATE                                       contains [vis=PRIVATE]
 PASS  N: the record has a public version                          contains [publicVersion=Notification]
@@ -139,9 +70,6 @@ RECORD  N: the public version as dumpsys prints it                  Notification
 PASS  N: the public version's title is the generic one            contains [android.title=String (Calendar reminder)]
 PASS  N: … and it holds nothing of the event's title            does not contain [Trust N]
 PASS  N: (the private version does hold the title: the read can tell them apart)  contains [Trust N]
-pending flags=0x4000000 immutable=True explicit=True act=android.intent.action.VIEW dat=content://com.android.calendar/events/20905 flg=0x10000000 xflg=0x4 cmp=app.tileshell/.calendar.CalendarA
-pending flags=0x4000000 immutable=True explicit=True xflg=0x4 cmp=app.tileshell/.calendar.CalendarReminderDismissReceiver (has extras)
-TOTAL 2 BAD 0
 PASS  N: the shell holds PendingIntents for the reminder (the read found them)  != TOTAL 0 BAD 0
 PASS  N: every one is immutable and names its component           contains [BAD 0]
 PASS  N: exported.py passes on this APK                           = 0
@@ -157,6 +85,6 @@ PASS  N: … and the shell's process is the same one (no crash)   = 30038
 PASS  N: no new crash of the shell in the dropbox                 = 0
 PASS  device clock back within 2 s of the host (RV12)             1790931224.00 vs 1790931224.00 +/- 2.0
 PASS  N restore: no calendar notification of the shell's is left  = 
+/home/jeremyking/projects/metro-launcher-p16/docs/plan/qa/phase-16/baseline_layout.json: 1 file pushed, 0 skipped. 61.1 MB/s (2054 bytes in 0.000s)
 PASS  restore: layout_restore of the baseline                     = 0
-------------------------------------------------------------------------------
-TRUST: 79 passed, 0 failed, 5 recorded
+   TRUST: 79 passed, 0 failed, 5 recorded

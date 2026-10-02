@@ -1,17 +1,23 @@
 ==============================================================================
 ROW E15_APK — E15's APK clause: growth over the pre-task-2 APK, and no new large entry that is not code
-at            2026-10-02T01:33:36-06:00
+at            2026-10-02T02:50:33-06:00
 driver        e15_apk.sh blob a1bc67d23b7749b61cc24b21d86b39c76c2f04ce
-harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
-apk built     5b485720363c32cb 339112630 bytes
-apk installed 2150eba004db6757
-apk match     yes (2150eba004db6757)
+harness       lib.sh blob ebac71e767b4f8c01e9bacc3e219817ec035ccb7
+include       p16.sh blob 54c10c413fb6c2d65e274044e0793338defa0ee0
+include       cal_lib.sh blob 0ccd242b6ae1a82009cdedb3e5f2b32b3e7764f2
+include       people_lib.sh blob 7dd997df9c60d7e5334980de0c1973de42b90575
+include       trust_lib.sh blob dca9279e2c39327d3ece6a017a37f307eb042d27
+include       cal_geo.py blob 47022a3855f13202198bd5a471d10e76d8a8bca4
+include       cal_px.py blob f570bebb41699de4d1ed7e58d32bf9d2dc05dbc0
+apk built     d3491c103c64871a 339129014 bytes
+apk installed 3c5e3199554038d1
+apk match     yes (3c5e3199554038d1)
 device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
 awake         Awake
 ==============================================================================
 PASS  the before size is on file                                  != 
 PASS  the before entries' total is on file                        != 
-RECORD  file size before task 2 / now / delta                       337186240 / 339112630 / 1926390 bytes
+RECORD  file size before task 2 / now / delta                       337186240 / 339129014 / 1942774 bytes
 PASS  the APK measured is the one installed (the row's header says apk match)  = yes
 PASS  growth is at most 5 MB (5,000,000 bytes; Q-16-5)            = yes
 PASS  the whole APK is within phase 03's 600 MB                   = yes
@@ -19,8 +25,8 @@ RECORD  entries of 1 MB or more now                                 20 (before: 
 RECORD  new names among them                                        classes13.dex classes15.dex 
 PASS  no new entry of 1 MB or more other than classes*.dex        = 
 PASS  every large entry that is not code is byte-for-byte the size it was  = 
-RECORD  the entries' own bytes before / now / growth                339553995 / 341493147 / 1939152
-RECORD  code (classes*.dex) now                                     39646052 bytes in 21 files
-RECORD  packaging overhead of this file (file size − the entries' stored bytes)  358036 bytes
+RECORD  the entries' own bytes before / now / growth                339553995 / 341511427 / 1957432
+RECORD  code (classes*.dex) now                                     39664332 bytes in 21 files
+RECORD  packaging overhead of this file (file size − the entries' stored bytes)  356140 bytes
 ------------------------------------------------------------------------------
 E15_APK: 7 passed, 0 failed, 6 recorded
