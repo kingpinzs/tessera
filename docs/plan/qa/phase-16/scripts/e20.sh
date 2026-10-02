@@ -51,6 +51,77 @@ D="$ROW_DIR"; PAGES=0; APPBARS=0
 ACCENT="$(accent_rgb)"; BARS="$(bar_metrics)"
 note "accent $ACCENT; BarMetrics STATUS_EPX,NAV_EPX = $BARS (read from bars/SystemBars.kt)"
 assert_ne "BarMetrics.STATUS_EPX and NAV_EPX were read from the code" "," "$BARS"
+
+# ------------------------------------------------------------------------------------------------ E20_LEGS (a narrow run)
+# E20_LEGS=plus-glyph runs ONE leg of the row and nothing else (the owner's ruling of 2026-10-01: only what a fix
+# changed is run again): the "+ field" rows on a name-only contact's editor. The third fix build (commit 6ccf7479)
+# moves the "+" glyph so its ink starts at r11 P4.6's x 12 and widens the gap so the label stays where it was; what
+# the whole row RECORDs about the glyph is ASSERTED here: the "+" glyph's ink left edge is 12 ± 1 epx for "+ Phone" and
+# "+ Email", and each label's ink left edge is where it was in the counted run (E20-run1-pass-425-0-103, measured from
+# that run's own capture by the same reader) ± 0.34 epx — one device pixel.
+plus_rows() { # dump.xml png -> "kind<TAB>glyph ink left px<TAB>label ink left px<TAB>label text" per "+ field" row
+  python3 - "$1" "$2" <<'PY2'
+import html, re, sys
+import numpy as np
+from PIL import Image
+xml = open(sys.argv[1], encoding='utf-8', errors='replace').read()
+img = np.asarray(Image.open(sys.argv[2]).convert('RGB')).astype(int)
+nodes = []
+for m in re.finditer(r'<node[^>]*>', xml):
+    s = m.group(0)
+    t = (re.search(r' text="([^"]*)"', s) or re.search(r" text='([^']*)'", s) or re.search(r'()', s)).group(1)
+    b = [int(v) for v in re.search(r'bounds="\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]"', s).groups()]
+    nodes.append((re.search(r'resource-id="([^"]*)"', s).group(1), html.unescape(t), b))
+for rid, _, b in nodes:
+    if not rid.startswith("people_add_field:"): continue
+    lab = next((x for x in nodes if not x[0] and x[1] and not (0xE000 <= ord(x[1][0]) <= 0xF8FF) and x[2][1] >= b[1] and x[2][3] <= b[3]), None)
+    if lab is None: continue
+    split = lab[2][0] - 6                       # the label's text node starts here; the glyph's ink lies left of it
+    white = (img[b[1]:b[3], :].sum(axis=2) * 2 >= 765)        # half-way from the black page to white
+    xs = np.where(white.any(axis=0))[0]
+    g, l = xs[xs < split], xs[xs >= split]
+    print("%s\t%s\t%s\t%s" % (rid.split(":", 1)[1], g.min() if len(g) else "", l.min() if len(l) else "", lab[1]))
+PY2
+}
+if [ -n "${E20_LEGS:-}" ]; then
+  record "E20_LEGS — a NARROW run, only these legs of E20 ran (the counted whole-row run is E20-run1-pass-425-0-103)" "$E20_LEGS"
+  if [ "$E20_LEGS" != plus-glyph ]; then _verdict FAIL "E20_LEGS names a leg this driver has" "unknown: $E20_LEGS (known: plus-glyph)"; row_end; exit 1; fi
+  REF="$QA/E20-run1-pass-425-0-103"
+  assert_eq "the counted run's capture of the name-only editor is kept (the label's reference)" "yes" "$([ -s "$REF/editor-nameonly.png" ] && [ -s "$REF/editor-nameonly.xml" ] && echo yes || echo no)"
+  plus_rows "$REF/editor-nameonly.xml" "$REF/editor-nameonly.png" > "$D/plus-rows-reference.tsv"
+  note "the counted run (build $(grep -m1 '^apk installed' "$REF/E20.txt" | awk '{print $3}')): $(tr '\t' ' ' < "$D/plus-rows-reference.tsv" | tr '\n' ';')"
+  ensure_start
+  perm_ensure READ_CONTACTS WRITE_CONTACTS
+  q "content query --uri $RAW --projection _id:contact_id:account_name:account_type:display_name:deleted" > "$D/raw-before.txt"
+  : > "$ROW_DIR/people-fixtures.ids"; RAW_BEFORE="$(raw_count)"
+  log "--- leg plus-glyph: the editor of a name-only contact, its \"+ field\" rows"
+  NAMEONLY="$(people_add 'Nomi Only')"; sleep 2
+  card_of "$NAMEONLY" "$D/.card.xml"
+  tap_node "$D/.card.xml" people_card_edit; sleep 2
+  dump_ui "$D/editor-nameonly.xml"; screencap "$D/editor-nameonly.png"
+  assert_contains "the name-only contact's editor is on show" 'selected="true"' "$(node_tag "$D/editor-nameonly.xml" people_page:editor)"
+  assert_eq "… it holds her name and nothing else of hers" "Nomi Only" "$(xml_text "$D/editor-nameonly.xml" people_field:name)"
+  emit_verdicts "editor geometry (name-only)" < <(people_geo editor "$D/editor-nameonly.xml" "$D/editor-nameonly.png" "$ACCENT" nameonly 2>>"$D/geometry.err" | sed "s/^\(PASS\|FAIL\|RECORD\)|/\1|name-only: /")
+  plus_rows "$D/editor-nameonly.xml" "$D/editor-nameonly.png" > "$D/plus-rows.tsv"
+  note "this build: $(tr '\t' ' ' < "$D/plus-rows.tsv" | tr '\n' ';')"
+  for k in phone email; do
+    G="$(awk -F'\t' -v k="$k" '$1==k {print $2}' "$D/plus-rows.tsv")"; L="$(awk -F'\t' -v k="$k" '$1==k {print $3}' "$D/plus-rows.tsv")"
+    L0="$(awk -F'\t' -v k="$k" '$1==k {print $3}' "$D/plus-rows-reference.tsv")"; G0="$(awk -F'\t' -v k="$k" '$1==k {print $2}' "$D/plus-rows-reference.tsv")"
+    assert_ne "\"+ $k\": the row is drawn with its glyph and its label" "" "$G$L"
+    assert_within "\"+ $k\": the \"+\" glyph's ink left edge at x 12 ± 1 epx (r11 P4.6)" 12 "$(epx "${G:-9999}")" 1
+    record "\"+ $k\": the glyph's ink left edge in the counted run (3c1ad1e0) → on this build" "$(epx "${G0:-0}") → $(epx "${G:-0}") epx"
+    assert_ne "\"+ $k\": the counted run gives the label's ink left edge" "" "$L0"
+    assert_within "\"+ $k\": the label's ink left edge is where it was in the counted run ($(epx "${L0:-0}") epx) ± 0.34 epx" "$(epx "${L0:-0}")" "$(epx "${L:-9999}")" 0.34
+  done
+  log "--- restore"
+  back 1; back 1
+  people_fixtures_down
+  q "content query --uri $RAW --projection _id:contact_id:account_name:account_type:display_name:deleted" > "$D/raw-after.txt"
+  assert_eq "restore: the raw_contacts rows equal the rows before the run" "$(cat "$D/raw-before.txt")" "$(cat "$D/raw-after.txt")"
+  [ -s "$D/geometry.err" ] && { note "measuring-script stderr:"; cat "$D/geometry.err" >> "$LOG"; }
+  c6; ensure_start
+  row_end; exit $?
+fi
 ensure_start
 perm_ensure READ_CONTACTS WRITE_CONTACTS
 q "content query --uri $RAW --projection _id:contact_id:account_name:account_type:display_name:deleted" > "$D/raw-before.txt"

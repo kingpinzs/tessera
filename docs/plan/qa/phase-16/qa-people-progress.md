@@ -143,3 +143,11 @@ exception, icc/adn empty; READ / WRITE_CONTACTS granted; people_edit.json and pe
 layout; no call; awake on Start. The default input method is the image's LatinIME (every force-stop deselects the
 shell's keyboard; not put back by me).
 Nothing of mine is left to run.
+
+### 01:36 (2026-10-02) — the third build (md5 2150eba004db6757): ONE narrow run, on the lead's word
+`E20_LEGS=plus-glyph bash scripts/e20.sh` (a new mode of e20.sh: only the name-only contact's editor and its "+ field"
+rows): 40 / 0 / 19, kept as `E20-legs-plus-glyph-40-0-19/`. The "+" glyph's ink left edge is 12.00 epx for "+ Phone"
+and "+ Email" (14.00 in the counted run); each label's ink left edge is 37.33 epx, equal to the counted run's
+(read from `E20-run1-pass-425-0-103/editor-nameonly.png` by the same reader), asserted ± 0.34 epx. "+ Phone" →
+"+ Email" 44.00 epx, across the rule 62.00. The counted whole-row E20 run stays `E20-run1-pass-425-0-103/`; the extra
+second run on 3c1ad1e0 is now `E20-run2-pass-425-0-103/`. Nothing else of the People rows is re-run.

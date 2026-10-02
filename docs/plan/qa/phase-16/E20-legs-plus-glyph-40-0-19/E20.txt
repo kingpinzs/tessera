@@ -1,0 +1,78 @@
+==============================================================================
+ROW E20 — People geometry on the drawn pixels, the bars on every page, the pivot's motion
+at            2026-10-02T01:35:25-06:00
+driver        e20.sh blob 086dacd91bfb4b00d2dddae8b23070903edc48a5
+harness       lib.sh blob 93b0046981b0c0171f22311462007cc1694a7f75
+apk built     5b485720363c32cb 339112630 bytes
+apk installed 2150eba004db6757
+apk match     yes (2150eba004db6757)
+device        Android/sdk_phone64_x86_64/emu64x:16/BE2A.250530.026.D1/13818094:userdebug/test-keys
+awake         Awake
+==============================================================================
+PASS  the device holds the build under test                       yes (2150eba004db6757)
+      accent 0,120,215; BarMetrics STATUS_EPX,NAV_EPX = 28,48 (read from bars/SystemBars.kt)
+PASS  BarMetrics.STATUS_EPX and NAV_EPX were read from the code   != ,
+RECORD  E20_LEGS — a NARROW run, only these legs of E20 ran (the counted whole-row run is E20-run1-pass-425-0-103)  plus-glyph
+PASS  the counted run's capture of the name-only editor is kept (the label's reference)  = yes
+      the counted run (build 3c1ad1e0e65bd919): phone 42 112 Phone;email 42 112 Email;address 42 109 Address;other 42 110 Other;
+--- leg plus-glyph: the editor of a name-only contact, its "+ field" rows
+PASS  the name-only contact's editor is on show                   contains [selected="true"]
+PASS  … it holds her name and nothing else of hers              = Nomi Only
+PASS  name-only: the header reads "EDIT <ACCOUNT> CONTACT" in caps (P4.1)  [EDIT PHONE CONTACT]
+PASS  name-only: the header's left edge at x 13 (P4.1)            13.00 epx vs 13.00 ± 1.0
+RECORD  name-only: the header's cap top below the status bar (P4.1: 45.5 under a 24-epx bar = 21.5) (r11 value, not worded in the row)  21.67 epx vs r11 21.50 (within 1 epx)
+RECORD  name-only: the header's cap 11.0 (P4.1) (r11 value, not worded in the row)  11.00 epx vs r11 11.00 (within 1 epx)
+PASS  name-only: field name: 32 epx tall (P4.4)                   32.00 epx vs 32.00 ± 1.0
+PASS  name-only: field name: from x 12 (P4.4)                     12.00 epx vs 12.00 ± 1.0
+PASS  name-only: field name: to W − 12 (348; P4.4)              348.00 epx vs 348.00 ± 1.0
+PASS  name-only: field name: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  name-only: field name: black fill                           (0,0,0) vs (0,0,0) ± 2
+PASS  name-only: field name: label "Name" cap top → box top 22.75 epx (P4.5)  22.67 epx vs 22.75 ± 1.0
+RECORD  name-only: field name: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+PASS  name-only: field company: 32 epx tall (P4.4)                32.00 epx vs 32.00 ± 1.0
+PASS  name-only: field company: from x 12 (P4.4)                  12.00 epx vs 12.00 ± 1.0
+PASS  name-only: field company: to W − 12 (348; P4.4)           348.00 epx vs 348.00 ± 1.0
+PASS  name-only: field company: a 2-epx (133,133,133) border on all four sides (6 px ± 1 px; P4.4)  {'top': 6, 'bottom': 6, 'left': 6, 'right': 6}
+PASS  name-only: field company: black fill                        (0,0,0) vs (0,0,0) ± 2
+PASS  name-only: field company: label "Company" cap top → box top 22.75 epx (P4.5)  22.67 epx vs 22.75 ± 1.0
+RECORD  name-only: field company: an edit (pencil) button beside the box (P4.4's 34-epx form)  none drawn — the box is the 32-epx form
+RECORD  name-only: "+ field" rows on this screen                    [('phone', '+ glyph y 1262', 'node 44 epx tall'), ('email', '+ glyph y 1394', 'node 44 epx tall'), ('address', '+ glyph y 1580', 'node 44 epx tall')]
+PASS  name-only: "+ phone" → "+ email" (two "+ field" rows of one group): 44-epx pitch (P4.6)  44.00 epx vs 44.00 ± 1.0
+PASS  name-only: "+ email" → "+ address" across their group rule: 61 epx (r11 G1 321 → 382; P4.6 / P4.7)  62.00 epx vs 61.00 ± 1.0
+PASS  name-only: a contact with no number and no e-mail: "+ Phone" and "+ Email" share one group (no rule between them)  rows ['phone', 'email', 'address']; pairs in one group: 1
+PASS  name-only: … and its editor shows no phone or e-mail box  ['people_field:name', 'people_field:company']
+PASS  name-only: "+ phone": the row is 44 epx tall                44.00 epx vs 44.00 ± 1.0
+RECORD  name-only: "+ phone": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+PASS  name-only: "+ email": the row is 44 epx tall                44.00 epx vs 44.00 ± 1.0
+RECORD  name-only: "+ email": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+PASS  name-only: "+ address": the row is 44 epx tall              44.00 epx vs 44.00 ± 1.0
+RECORD  name-only: "+ address": the + glyph at x 12 (P4.6) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+PASS  name-only: group rule at y 896: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  name-only: group rule at y 896: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  name-only: group rule at y 896: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  name-only: group rule at y 1193: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  name-only: group rule at y 1193: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  name-only: group rule at y 1193: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  name-only: group rule at y 1511: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  name-only: group rule at y 1511: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  name-only: group rule at y 1511: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+PASS  name-only: group rule at y 1697: 1 epx (3 px ± 1 px) of (103,103,103) ± 4 (P4.7)  3 px of that colour; column [(0, 0, 0), (0, 0, 0), (103, 103, 103), (103, 103, 103), (103, 103, 103), (0, 0, 0)]
+RECORD  name-only: group rule at y 1697: from x 12 (P4.7) (r11 value, not worded in the row)  12.00 epx vs r11 12.00 (within 1 epx)
+RECORD  name-only: group rule at y 1697: to W − 12 (P4.7) (r11 value, not worded in the row)  348.00 epx vs r11 348.00 (within 1 epx)
+      this build: phone 36 112 Phone;email 36 112 Email;address 36 109 Address;other 36 110 Other;
+PASS  "+ phone": the row is drawn with its glyph and its label    != 
+PASS  "+ phone": the "+" glyph's ink left edge at x 12 ± 1 epx (r11 P4.6)  12.00 vs 12.00 +/- 1.0
+RECORD  "+ phone": the glyph's ink left edge in the counted run (3c1ad1e0) → on this build  14.00 → 12.00 epx
+PASS  "+ phone": the counted run gives the label's ink left edge  != 
+PASS  "+ phone": the label's ink left edge is where it was in the counted run (37.33 epx) ± 0.34 epx  37.33 vs 37.33 +/- 0.34
+PASS  "+ email": the row is drawn with its glyph and its label    != 
+PASS  "+ email": the "+" glyph's ink left edge at x 12 ± 1 epx (r11 P4.6)  12.00 vs 12.00 +/- 1.0
+RECORD  "+ email": the glyph's ink left edge in the counted run (3c1ad1e0) → on this build  14.00 → 12.00 epx
+PASS  "+ email": the counted run gives the label's ink left edge  != 
+PASS  "+ email": the label's ink left edge is where it was in the counted run (37.33 epx) ± 0.34 epx  37.33 vs 37.33 +/- 0.34
+--- restore
+PASS  people_fixtures_down: the raw_contacts count is the count before the row  = 2
+PASS  restore: the raw_contacts rows equal the rows before the run  = Row: 0 _id=1, contact_id=1, account_name=qa, account_type=qa, display_name=Mom, deleted=0
+Row: 1 _id=2, contact_id=2, account_name=NULL, account_type=NULL, display_name=NULL, deleted=0
+------------------------------------------------------------------------------
+E20: 40 passed, 0 failed, 19 recorded
