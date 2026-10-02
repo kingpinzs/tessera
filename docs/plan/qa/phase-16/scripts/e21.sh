@@ -17,23 +17,30 @@ note "this build (installed): $build"
 # Earlier builds whose rows still count, each with its reason (E21/builds.txt: "<md5 prefix> <row> <reason>") — the
 # owner's ruling of 2026-10-01 ("Only test the fixes not EVERY THING"; the same as 2026-09-25): a row whose code the
 # fix round did not touch is not run again, and its run on the earlier build is its evidence.
+# A row of "*" counts every row's run on that build (a later build whose diff touches one row's code: that row is run
+# again on the installed build, the others stand).
 declare -A also=()
+allrows=()
 if [ -f "$P16/E21/builds.txt" ]; then
   while read -r sha row why; do
     case "$sha" in ""|\#*) continue ;; esac
-    also["$row"]="$sha"; note "also counting $row on build $sha: $why"
+    if [ "$row" = "*" ]; then allrows+=("$sha"); else also["$row"]="${also[$row]:-} $sha"; fi
+    note "also counting $row on build $sha: $why"
   done < "$P16/E21/builds.txt"
 fi
-# A run's folder is <ROW> or <ROW>-<what the run was>; its log is <ROW>.txt inside it. A kept run that failed on this
-# build still shows what the build logged, so its slices count; a run on another build counts only when builds.txt
-# names its row.
+# A run's folder is <ROW> or <ROW>-<what the run was>; its log is <ROW>.txt inside it. A kept run that failed on a
+# counted build still shows what the build logged, so its slices count.
 rows=()
 for log in "$P16"/*/*.txt; do
   d="$(dirname "$log")"; r="$(basename "$log" .txt)"; dn="$(basename "$d")"
   case "$dn" in "$r"|"$r"-*) ;; *) continue ;; esac
   [ "$r" = E21 ] && continue
-  if grep -q "^apk installed $build" "$log"; then rows+=("$d")
-  elif [ -n "${also[$r]:-}" ] && grep -q "^apk installed ${also[$r]}" "$log"; then rows+=("$d"); fi
+  got="$(grep -m1 '^apk installed' "$log" | awk '{print $3}')"
+  [ -n "$got" ] || continue
+  ok=no
+  case "$got" in "$build"*) ok=yes ;; esac
+  for b in ${allrows[@]+"${allrows[@]}"} ${also[$r]:-}; do case "$got" in "$b"*) ok=yes ;; esac; done
+  [ "$ok" = yes ] && rows+=("$d")
 done
 note "run folders counted: $(for d in "${rows[@]}"; do basename "$d"; done | tr '\n' ' ')"
 assert_ne "at least one row ran on this build" 0 "${#rows[@]}"
