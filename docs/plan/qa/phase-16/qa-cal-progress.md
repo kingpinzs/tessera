@@ -61,9 +61,8 @@ behind <old>)` → EDGE C18, moved from not-run after `EDGE-cal-run9-…` produc
 (`sync … refused (not allowed)` → CalendarWriteLayerTest — the test corrected, the reason now names E24 leg D; `sync …
 failed the copy could not be read` → CalendarWriteLayerTest). Checked with e21.sh's rule over every counted build's
 folders: all 37 Calendar producer lines have a hit; nothing is in both tables. **e21.sh itself has not been run by me.**
-`E21/builds.txt` (the lead's) names 3c1ad1e0 and 6009c0b1 with `*`; producers that live only in 2150eba0 or 3c5e3199
-folders need those builds there too — none of the Calendar lines depends on a 2150eba0-only or 3c5e3199-only folder
-that I know of, but the lead should check after the last install.
+`E21/builds.txt` (the lead's) names 3c1ad1e0 and 6009c0b1 with `*`; checked again over those two and the installed
+e03a1d23 ALONE (no 2150eba0 or 3c5e3199 folder counted): all 37 Calendar lines still hit.
 In neither table (no device producer, no JVM test named): `reminder poke failed: …`; `reminder …: failed notifications
 are off`; `reminder …: dismiss refused / dismiss failed`; `calendars: n (local missing: it could not be created)`;
 `calendar_sync.json: allowed: n of m entries dropped (…)` and the unreadable-store line; the raw-exception forms of
