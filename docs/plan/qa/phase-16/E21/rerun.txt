@@ -1,5 +1,11 @@
-# <row> <why only a run on the gate build counts for it>   (read by scripts/gate_evidence.py)
-E9 D-E9-1: the calendar-add title strip changed (cortana/match/CommandMatcher.kt, 33944662)
-E16 D-E16-1: the empty-search line moved (people/PeopleListPage.kt, 1a82e59c)
-E19 D-E19-1: three Calendar text positions moved (calendar/CalendarWidgets.kt, CalendarViews.kt, dacca941)
-E7 D-E7-1: the janky-frames clause failed on 3c1ad1e0; a product fix is owed
+# <row> <builds that count, comma-separated md5 prefixes> <why>   (read by scripts/gate_evidence.py; "EDGE:C12" = an edge-case sub-step)
+# Build order: 3c1ad1e0 (the first fix build) -> 6009c0b1 (the second) -> 2150eba0 (the third, the gate's).
+E9 6009c0b1,2150eba0 D-E9-1: the calendar-add title strip changed in the second build (cortana/match/CommandMatcher.kt, 33944662)
+E16 6009c0b1,2150eba0 D-E16-1: the empty-search line moved in the second build (people/PeopleListPage.kt, 1a82e59c)
+E19 6009c0b1,2150eba0 D-E19-1: three Calendar text positions moved in the second build (dacca941); D-E19-2's line moved in the third (eff112b7), its leg alone on the third
+E7 2150eba0 D-E7-1: the Agenda's items changed in the third build (0889d45b); the janky-frames clause is with the owner (Q-16-6)
+E3 2150eba0 the Agenda's list structure and its scroll-to-the-selected-day changed in the third build (0889d45b); E3 is the row that drives them
+EDGE:C12 2150eba0 reads the Agenda, whose list structure changed in the third build (0889d45b)
+EDGE:C14 2150eba0 reads the Agenda (0889d45b)
+EDGE:C15 2150eba0 reads the Agenda (0889d45b)
+EDGE:C17 2150eba0 reads the Agenda (0889d45b)
