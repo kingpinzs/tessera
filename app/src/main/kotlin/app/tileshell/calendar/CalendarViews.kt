@@ -380,7 +380,8 @@ internal fun EventRow(event: EventInstance, zone: ZoneId, locale: Locale, onEven
         }
         BasicText(
             EventRules.shownTitle(event.title),
-            Modifier.offset(x = CalMetrics.EVENT_TITLE_X.dp, y = capTop((bar.value - 14f) / 2f, 20f)).padding(end = (CalMetrics.EVENT_TITLE_X + 8).dp)
+            Modifier.offset(x = (CalMetrics.EVENT_TITLE_X - CalMetrics.EVENT_TITLE_BEARING).dp, y = capTop((bar.value - 14f) / 2f, 20f))
+                .padding(end = (CalMetrics.EVENT_TITLE_X + 8).dp)
                 .testTag("cal_event_title:${event.eventId}"),
             style = ShellType.subtitle.copy(color = Color.White), maxLines = 1, overflow = TextOverflow.Ellipsis,
         )

@@ -128,6 +128,15 @@ object CalMetrics {
     const val HEADING_X = 24f
     const val LABEL_X = 24.3f
     const val EVENT_TITLE_X = 92.5f
+
+    /**
+     * r11/calendar.md's x values are where the INK of its sample text starts (half-level crossings in its captures); a
+     * glyph's box starts one side bearing earlier. These are the bearings of R11's own samples at these sizes, read on
+     * this build (QA defect D-E19-1): the box goes that much left, so the sample's ink lands on R11's x.
+     */
+    const val EVENT_TITLE_BEARING = 1.7f   // the "P" of "Pay rent" at the title's size
+    const val PANE_CHEVRON_BEARING = 2.3f  // the collapse chevron glyph at 12 epx
+    const val PANE_NAME_BEARING = 1.3f     // the "M" of "MoNa Events" / the "m" of "mark guim" at the name's size
     val EVENT_BAR_W = 8.dp
     val ALL_DAY_BAR = 40.dp
     val ALL_DAY_PITCH = 44.dp
@@ -416,7 +425,7 @@ fun CalendarRow(name: String, color: Color, checked: Boolean?, tag: String, onCl
             Box(Modifier.align(Alignment.CenterStart).offset(x = 22.dp).size(ClockMetrics.CHECKBOX).background(color))
         }
         BasicText(
-            name, Modifier.align(Alignment.CenterStart).offset(x = CalMetrics.PANE_NAME_X.dp).padding(end = 70.dp),
+            name, Modifier.align(Alignment.CenterStart).offset(x = (CalMetrics.PANE_NAME_X - CalMetrics.PANE_NAME_BEARING).dp).padding(end = 70.dp),
             style = ShellType.body.copy(color = Color.White), maxLines = 1, overflow = TextOverflow.Ellipsis,
         )
     }
@@ -432,7 +441,8 @@ fun AccountHeader(name: String, collapsed: Boolean? = null, onClick: (() -> Unit
         val textX = if (collapsed != null) {
             BasicText(
                 CalGlyph.CHEVRON_UP,
-                Modifier.align(Alignment.CenterStart).offset(x = CalMetrics.PANE_ACCOUNT_X.dp).graphicsLayer { rotationZ = if (collapsed) 180f else 0f },
+                Modifier.align(Alignment.CenterStart).offset(x = (CalMetrics.PANE_ACCOUNT_X - CalMetrics.PANE_CHEVRON_BEARING).dp)
+                    .graphicsLayer { rotationZ = if (collapsed) 180f else 0f },
                 style = glyphStyle(12f, Color.White),
             )
             CalMetrics.PANE_ACCOUNT_X + 20f
