@@ -1,15 +1,15 @@
 # <row> <TAB> <the narrow run's folder prefix> <TAB> <builds that count, comma-separated md5 prefixes> <TAB> <why>   (read by scripts/gate_evidence.py)
 # A row whose whole run stands on an earlier build, plus the one leg a later fix changed, run again alone.
-E20	E20-legs-plus-glyph	2150eba0,3c5e3199,e03a1d23	the third build moved the "+ field" row's plus glyph (6ccf7479): the counted run read it at 14.00, the narrow leg asserts 12 ± 1 and the label unmoved
-E17	E17-legs-T	3c5e3199,e03a1d23	gate review A-1 (53ca48dc): the tile and Tess show an all-day event by its date — the doc's fixture (a birthday on the device's local today) with the clock at 19:00 local, and tomorrow's birthday not shown
-E5	E5-legs-D-on-	e03a1d23	gate review A-2 (639fef18): the Agenda no longer goes back to the selected day when it loads more weeks — the walk asserts three wider windows loaded during it and no first date going backwards
-E24	E24-legs-D-on-	3c5e3199,e03a1d23	gate review B-2 (an edge bullet never driven before): Sync on a synced event whose target is un-ticked opens "Can sync to" and writes nothing; and A-9 (3d394473): a changed occurrence's delete offers no both-calendars choice
-E18	E18-legs-G-on-	3c5e3199,e03a1d23	gate review A-10 (dcf28edc): a calendar grant made in place starts the tile's observer — the dialog tapped, the "feeds started (calendar grant)" line, a change reaching the tile in the same process
-E4	E4-legs-W-on-	3c5e3199,e03a1d23	the tile's read changed (53ca48dc: its range and InstanceWindow): of three events relative to now, only the one inside the next 24 hours is on the tile and named by Tess
-E22	E22-legs-X-on-	3c1ad1e0,6009c0b1,2150eba0,3c5e3199,e03a1d23	gate review B note 10: the INSERT leg now sends beginTime / endTime and asserts the editor's times (a driver addition; the product did not change)
-E13	E13-legs-create	3c5e3199,e03a1d23	gate review A-3 (edc15843, b7c45a56): a new contact is read back after its insert — the normal path still saves to the phone and no delete follows
-E13	E13-legs-grant	3c5e3199,e03a1d23	gate review A-10 (dcf28edc): a contacts grant made in place starts the People tile's observer
-E27	E27-legs-create	3c5e3199,e03a1d23	a new group is read back after its insert (b7c45a56): the normal path still makes it on the phone and no delete follows
-E15	E15-legs-sim	3c5e3199,e03a1d23	a SIM import goes through the same create with its read-back (b7c45a56)
-E16	E16-legs-negative	3c5e3199,e03a1d23	gate review B note 4: the policy switch is toggled back and the work contact returns, so the switch is shown to be what changes the result
-TRUST	TRUST	3c5e3199,e03a1d23	gate review B notes 2, 3, 12: the pick and notification legs with the strengthened checks (TRUST_ONLY=P,N); the whole row stands on its 3c1ad1e0 run
+E20	E20-legs-plus-glyph	2150eba0,3c5e3199,e03a1d23,585b457f	the third build moved the "+ field" row's plus glyph (6ccf7479): the counted run read it at 14.00, the narrow leg asserts 12 ± 1 and the label unmoved
+E17	E17-legs-T	3c5e3199,e03a1d23,585b457f	gate review A-1 (53ca48dc): the tile and Tess show an all-day event by its date — the doc's fixture (a birthday on the device's local today) with the clock at 19:00 local, and tomorrow's birthday not shown
+E5	E5-legs-D-on-	e03a1d23,585b457f	gate review A-2 (639fef18): the Agenda no longer goes back to the selected day when it loads more weeks — the walk asserts three wider windows loaded during it and no first date going backwards
+E24	E24-legs-D-on-	3c5e3199,e03a1d23,585b457f	gate review B-2 (an edge bullet never driven before): Sync on a synced event whose target is un-ticked opens "Can sync to" and writes nothing; and A-9 (3d394473): a changed occurrence's delete offers no both-calendars choice
+E18	E18-legs-G-on-	3c5e3199,e03a1d23,585b457f	gate review A-10 (dcf28edc): a calendar grant made in place starts the tile's observer — the dialog tapped, the "feeds started (calendar grant)" line, a change reaching the tile in the same process
+E4	E4-legs-W-on-	3c5e3199,e03a1d23,585b457f	the tile's read changed (53ca48dc: its range and InstanceWindow): of three events relative to now, only the one inside the next 24 hours is on the tile and named by Tess
+E22	E22-legs-X-on-	3c1ad1e0,6009c0b1,2150eba0,3c5e3199,e03a1d23,585b457f	gate review B note 10: the INSERT leg now sends beginTime / endTime and asserts the editor's times (a driver addition; the product did not change)
+E13	E13-legs-create	3c5e3199,e03a1d23,585b457f	gate review A-3 (edc15843, b7c45a56): a new contact is read back after its insert — the normal path still saves to the phone and no delete follows
+E13	E13-legs-grant	585b457f	gate review A-10 (dcf28edc) and D-E13-1 (e226bc68): with BOTH Contacts permissions revoked People opens on its notice and does not crash; the grant made there starts the People tile's observer
+E27	E27-legs-create	3c5e3199,e03a1d23,585b457f	a new group is read back after its insert (b7c45a56): the normal path still makes it on the phone and no delete follows
+E15	E15-legs-sim	3c5e3199,e03a1d23,585b457f	a SIM import goes through the same create with its read-back (b7c45a56)
+E16	E16-legs-negative	3c5e3199,e03a1d23,585b457f	gate review B note 4: the policy switch is toggled back and the work contact returns, so the switch is shown to be what changes the result
+TRUST	TRUST	3c5e3199,e03a1d23,585b457f	gate review B notes 2, 3, 12: the pick and notification legs with the strengthened checks (TRUST_ONLY=P,N); the whole row stands on its 3c1ad1e0 run
