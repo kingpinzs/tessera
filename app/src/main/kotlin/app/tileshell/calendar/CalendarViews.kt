@@ -461,8 +461,12 @@ private fun PagedView(name: String, onPage: (Int) -> Unit, content: @Composable 
 /** A timed event's block in the Day view: where it sits in the hour grid and which of its cluster's columns it takes. */
 private data class Block(val event: EventInstance, val startMs: Long, val endMs: Long, val column: Int, val columns: Int)
 
-/** How many of a day's blocks the Day view builds in one frame; the rest follow, a frame at a time. */
-private const val DAY_BLOCKS_PER_FRAME = 24
+/**
+ * How many of a day's blocks the Day view builds in one frame; the rest follow, a frame at a time. A block costs about
+ * 2 ms of UI-thread work on the QA emulator: 24 to a frame made 50-ms frames that queued behind each other (the
+ * longest read 100.1 ms from its intended vsync); 8 keeps a frame's own work near one vsync.
+ */
+private const val DAY_BLOCKS_PER_FRAME = 8
 
 /** Overlapping events share the width: each takes the first column free at its start, and a cluster's width is split by its widest moment. */
 private fun layoutBlocks(events: List<EventInstance>, dayStartMs: Long, dayEndMs: Long, minMs: Long): List<Block> {
