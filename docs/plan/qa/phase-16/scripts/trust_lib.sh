@@ -84,7 +84,8 @@ PY
 import re, sys
 text = open(sys.argv[1], encoding='utf-8', errors='replace').read()
 n = bad = 0
-for block in re.split(r"(?=\n\s*\* PendingIntentRecord\{)", text):
+# dumpsys lists a package's records as "#0: PendingIntentRecord{…}" under "* <package>: n items" (run 1 split on "* ").
+for block in re.split(r"(?=\n\s*#\d+: PendingIntentRecord\{)", text):
     if "app.tileshell" not in block: continue
     req = re.search(r"requestIntent=(.*)", block)
     if not req or ".calendar." not in req.group(1): continue
@@ -147,8 +148,10 @@ trust_S() {
   now="$(device_ms)"; start=$(( (now / 60000 + 180) * 60000 ))
   b="$(cmkevent "$TESS" "Trust B" "$start" $(( start + 3600000 )))"
   q "content insert --uri content://com.android.calendar/reminders --bind event_id:i:$b --bind minutes:i:10 --bind method:i:1" > /dev/null
-  sleep 4
-  b_alert="$(trust_alert "$b" _id)"; b_state="$(trust_alert "$b" state)"
+  # The provider writes the alert row a few seconds after the reminder (run 1 read the id before the row was there).
+  local i
+  for i in $(seq 1 20); do b_alert="$(trust_alert "$b" _id)"; [ -n "$b_alert" ] && break; sleep 1; done
+  b_state="$(trust_alert "$b" state)"
   note "A's alert row id was $a_alert; B's is ${b_alert:-none} (state ${b_state:-none})"
   assert_eq "S: precondition — B's alert row reuses A's id" "$a_alert" "$b_alert"
   assert_eq "S: precondition — B's alert is SCHEDULED (0)" "0" "$b_state"
