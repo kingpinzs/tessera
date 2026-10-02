@@ -188,6 +188,8 @@ object CommandMatcher {
             .replace(Regex("\\b(to|on|in)? ?my calendar\\b"), "")
             // "a calendar event called dentist" names the thing twice: both words go (phase 16 E9's request).
             .replace(Regex("\\ban? (calendar )?(appointment|meeting|event)( (called|named|for))?\\b"), "")
+            // Without the article only where the phrase itself names the title: "add calendar event called dentist".
+            .replace(Regex("\\b(calendar )?(appointment|meeting|event) (called|named)\\b"), "")
             .trim()
         return Request.AddCalendarEvent(title.ifBlank { "Appointment" }, time.value)
     }
