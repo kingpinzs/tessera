@@ -97,3 +97,9 @@ A-F15 below.
 - F44: TRUST's P and N legs `TRUST/` 79 / 0 on 3c5e3199; E21 84 / 0 on 585b457f (81 producers, 15 JVM-covered); E15_APK 7 / 0 on 585b457f.
 - E7 under the comparison (the owner has not ruled, Q-16-6): `E7-legs-jank-on-e03a1d23-compare-38-0-25-janky-14.98-percent/` against `E7-baseline-empty-calendar-on-e03a1d23/`.
 
+## Gate round 2 (2026-10-02)
+| # | From | What | Disposition | State |
+|---|---|---|---|---|
+| F48 | Gate review A, round 2 (GATE: PASS), note 1 | P8 did not ask for the diagnostics line, which is what tells a needless refusal (the pre-check predicts the provider's refusal from the default-account state alone) from a real one | SIGN-OFF LIST | DONE: P8 asks for the `[people] write insert …` line and whether Samsung Contacts itself can save to "Phone" |
+| F49 | Gate review A, round 2, note 2 | With WRITE_CONTACTS held and READ_CONTACTS revoked (an adb-only state: People asks for both together) a new contact is inserted, cannot be read back, is taken back, and the notice says the phone "filed that under another account" — wording only, it fails closed | RECORDED, not changed: a product change after the gate's build for a notice no user reaches; to do with the keyboard follow-up (H2) | OPEN (follow-up) |
+
