@@ -136,9 +136,9 @@ for row in ROWS:
         base = [r for r in rs if r["dir"] == base_dir][0]
         if part.startswith("dir:"):
             prs = [r for r in rs if r["dir"].startswith(part[4:]) and r is not base and r["mtime"] > base["mtime"]
-                   and any(r["apk"].startswith(w[0]) for w in wants) and r["sum"] and r["sum"][1] == "0"]
+                   and any(r["apk"].startswith(w[0]) for w in wants) and r["sum"] and r["sum"][1] == "0" and r["fails"] == 0]
         else:
-            prs = [r for r in runs(part) if any(r["apk"].startswith(w[0]) for w in builds_for(part)) and r["sum"] and r["sum"][1] == "0"]
+            prs = [r for r in runs(part) if any(r["apk"].startswith(w[0]) for w in builds_for(part)) and r["sum"] and r["sum"][1] == "0" and r["fails"] == 0]
         lines = base["text"].splitlines()
         cut = len(lines) if end == "-" else next((i for i, l in enumerate(lines) if re.search(end, l)), len(lines))
         late = [l for l in lines[cut:] if l.startswith("FAIL ")]
