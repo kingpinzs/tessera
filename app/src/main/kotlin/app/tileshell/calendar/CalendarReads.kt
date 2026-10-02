@@ -1,10 +1,8 @@
 package app.tileshell.calendar
 
 import android.Manifest
-import android.content.ContentUris
 import android.content.Context
 import android.content.pm.PackageManager
-import android.database.Cursor
 import android.provider.CalendarContract
 import app.tileshell.diag.Diagnostics
 
@@ -17,9 +15,11 @@ data class CalendarInfo(
     /** Null when the provider holds no colour: the accent is drawn. */
     val color: Int?,
     val accessLevel: Int,
+    /** The provider's `Calendars.NAME` — the calendar's own name inside its account, never shown; empty when the provider holds none. */
+    val name: String,
 ) {
-    val key: CalendarKey get() = CalendarKey(id, accountName, accountType)
-    val facts: CalendarWriteGuard.CalendarFacts get() = CalendarWriteGuard.CalendarFacts(id, accountName, accountType, accessLevel)
+    val key: CalendarKey get() = CalendarKey(id, accountName, accountType, name)
+    val facts: CalendarWriteGuard.CalendarFacts get() = CalendarWriteGuard.CalendarFacts(id, accountName, accountType, accessLevel, name)
     val isTessera: Boolean get() = CalendarWriteGuard.isTessera(facts)
     val isBirthdays: Boolean get() = CalendarWriteGuard.isBirthdays(facts)
 
@@ -97,7 +97,10 @@ sealed interface CalendarsResult {
     data class Failed(val error: String) : CalendarsResult
 }
 
-/** Every read the Calendar app, Sync, the Birthdays writer and the receiver make of `CalendarContract`. Nothing here writes. */
+/**
+ * Every read the Calendar app, Sync, the Birthdays writer and the receiver make of `CalendarContract`, each through
+ * [CalendarAccess]'s provider (F15). Nothing here writes.
+ */
 object CalendarReads {
     fun canRead(context: Context): Boolean =
         context.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
@@ -105,50 +108,51 @@ object CalendarReads {
     fun canWrite(context: Context): Boolean =
         context.checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
 
-    private val CALENDAR_COLUMNS = arrayOf(
+    private val CALENDAR_COLUMNS = listOf(
         CalendarContract.Calendars._ID,
         CalendarContract.Calendars.ACCOUNT_NAME,
         CalendarContract.Calendars.ACCOUNT_TYPE,
         CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
         CalendarContract.Calendars.CALENDAR_COLOR,
         CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+        CalendarContract.Calendars.NAME,
     )
 
-    private fun calendar(c: Cursor) = CalendarInfo(
-        id = c.getLong(0),
-        accountName = c.getString(1).orEmpty(),
-        accountType = c.getString(2).orEmpty(),
-        displayName = c.getString(3).orEmpty(),
-        color = if (c.isNull(4)) null else c.getInt(4),
-        accessLevel = c.getInt(5),
+    private fun calendar(c: ProviderRow) = CalendarInfo(
+        id = c.long(0),
+        accountName = c.string(1).orEmpty(),
+        accountType = c.string(2).orEmpty(),
+        displayName = c.string(3).orEmpty(),
+        color = if (c.isNull(4)) null else c.int(4),
+        accessLevel = c.int(5),
+        name = c.string(6).orEmpty(),
     )
 
-    /** Every calendar, in the provider's order of account then name. A null cursor is a provider that is off. */
-    fun calendars(context: Context): CalendarsResult = runCatching {
-        val cursor = context.contentResolver.query(
-            CalendarContract.Calendars.CONTENT_URI, CALENDAR_COLUMNS, null, null,
-            "${CalendarContract.Calendars.ACCOUNT_NAME} COLLATE NOCASE ASC, ${CalendarContract.Calendars.CALENDAR_DISPLAY_NAME} COLLATE NOCASE ASC",
+    /** Every calendar, in the provider's order of account then name. No answer is a provider that is off. */
+    fun calendars(access: CalendarAccess): CalendarsResult = runCatching {
+        val rows = access.provider.query(
+            ProviderUri(ProviderTable.CALENDARS), CALENDAR_COLUMNS,
+            sort = "${CalendarContract.Calendars.ACCOUNT_NAME} COLLATE NOCASE ASC, ${CalendarContract.Calendars.CALENDAR_DISPLAY_NAME} COLLATE NOCASE ASC",
         ) ?: return@runCatching CalendarsResult.Failed("the calendar provider gave no answer")
-        cursor.use { c -> CalendarsResult.Ok(buildList { while (c.moveToNext()) add(calendar(c)) }) }
+        CalendarsResult.Ok(rows.map { calendar(it) })
     }.getOrElse { CalendarsResult.Failed(it.toString()) }
 
     /** One calendar row, re-read; null when it does not list (or cannot be read). */
-    fun calendar(context: Context, id: Long): CalendarInfo? = runCatching {
-        context.contentResolver.query(
-            ContentUris.withAppendedId(CalendarContract.Calendars.CONTENT_URI, id), CALENDAR_COLUMNS, null, null, null,
-        )?.use { c -> if (c.moveToFirst()) calendar(c) else null }
+    fun calendar(access: CalendarAccess, id: Long): CalendarInfo? = runCatching {
+        access.provider.query(ProviderUri(ProviderTable.CALENDARS, id), CALENDAR_COLUMNS)?.firstOrNull()?.let { calendar(it) }
     }.getOrNull()
 
-    /** The Birthdays calendar's lookup: its id, null when a successful query found none, or the error of a failed one. */
-    fun findByAccount(context: Context, accountName: String): Result<Long?> = runCatching {
-        val cursor = context.contentResolver.query(
-            CalendarContract.Calendars.CONTENT_URI,
-            arrayOf(CalendarContract.Calendars._ID),
+    /**
+     * The id of the LOCAL calendar under [accountName] (Tessera's lookup, and the Birthdays calendar's): null when a
+     * successful query found none, or the error of a failed one — a lookup that did not answer is not an empty one.
+     */
+    fun findByAccount(access: CalendarAccess, accountName: String): Result<Long?> = runCatching {
+        val rows = access.provider.query(
+            ProviderUri(ProviderTable.CALENDARS), listOf(CalendarContract.Calendars._ID),
             "${CalendarContract.Calendars.ACCOUNT_TYPE} = ? AND ${CalendarContract.Calendars.ACCOUNT_NAME} = ?",
-            arrayOf(CalendarContract.ACCOUNT_TYPE_LOCAL, accountName),
-            null,
+            listOf(CalendarContract.ACCOUNT_TYPE_LOCAL, accountName),
         ) ?: error("the calendar provider gave no answer")
-        cursor.use { c -> if (c.moveToFirst()) c.getLong(0) else null }
+        rows.firstOrNull()?.long(0)
     }
 
     /**
@@ -157,13 +161,10 @@ object CalendarReads {
      * provider's, unfiltered, so their count is the count `content query …/instances/when/<from>/<to − 1>` gives.
      * Null when the query failed.
      */
-    fun instances(context: Context, fromMs: Long, toMs: Long): List<EventInstance>? = runCatching {
-        val builder = CalendarContract.Instances.CONTENT_URI.buildUpon()
-        ContentUris.appendId(builder, fromMs)
-        ContentUris.appendId(builder, toMs - 1)
-        context.contentResolver.query(
-            builder.build(),
-            arrayOf(
+    fun instances(access: CalendarAccess, fromMs: Long, toMs: Long): List<EventInstance>? = runCatching {
+        access.provider.query(
+            ProviderUri(ProviderTable.INSTANCES, listOf(fromMs, toMs - 1)),
+            listOf(
                 CalendarContract.Instances.EVENT_ID,
                 CalendarContract.Instances.TITLE,
                 CalendarContract.Instances.BEGIN,
@@ -174,30 +175,24 @@ object CalendarReads {
                 CalendarContract.Instances.EVENT_LOCATION,
                 CalendarContract.Instances.AVAILABILITY,
             ),
-            null, null, "${CalendarContract.Instances.BEGIN} ASC, ${CalendarContract.Instances.TITLE} ASC",
-        )?.use { c ->
-            buildList {
-                while (c.moveToNext()) {
-                    val availability = c.getInt(8)
-                    add(
-                        EventInstance(
-                            eventId = c.getLong(0),
-                            title = c.getString(1),
-                            beginMs = c.getLong(2),
-                            endMs = c.getLong(3),
-                            allDay = c.getInt(4) == 1,
-                            calendarId = c.getLong(5),
-                            color = if (c.isNull(6) || c.getInt(6) == 0) null else c.getInt(6),
-                            location = c.getString(7),
-                            free = availability == CalendarContract.Events.AVAILABILITY_FREE || availability == CalendarContract.Events.AVAILABILITY_TENTATIVE,
-                        ),
-                    )
-                }
-            }
+            sort = "${CalendarContract.Instances.BEGIN} ASC, ${CalendarContract.Instances.TITLE} ASC",
+        )?.map { c ->
+            val availability = c.int(8)
+            EventInstance(
+                eventId = c.long(0),
+                title = c.string(1),
+                beginMs = c.long(2),
+                endMs = c.long(3),
+                allDay = c.int(4) == 1,
+                calendarId = c.long(5),
+                color = if (c.isNull(6) || c.int(6) == 0) null else c.int(6),
+                location = c.string(7),
+                free = availability == CalendarContract.Events.AVAILABILITY_FREE || availability == CalendarContract.Events.AVAILABILITY_TENTATIVE,
+            )
         }
     }.onFailure { Diagnostics.add("calendar", "instances query failed: $it") }.getOrNull()
 
-    private val EVENT_COLUMNS = arrayOf(
+    private val EVENT_COLUMNS = listOf(
         CalendarContract.Events._ID,
         CalendarContract.Events.CALENDAR_ID,
         CalendarContract.Events.TITLE,
@@ -219,85 +214,87 @@ object CalendarReads {
         CalendarContract.Events.DISPLAY_COLOR,
     )
 
-    private fun event(c: Cursor) = EventDetail(
-        id = c.getLong(0),
-        calendarId = c.getLong(1),
-        title = c.getString(2),
-        location = c.getString(3),
-        description = c.getString(4),
-        dtstart = c.getLong(5),
-        dtend = if (c.isNull(6)) null else c.getLong(6),
-        duration = c.getString(7),
-        allDay = c.getInt(8) == 1,
-        timezone = c.getString(9),
-        rrule = c.getString(10),
-        rdate = c.getString(11),
-        exrule = c.getString(12),
-        exdate = c.getString(13),
-        originalId = if (c.isNull(14)) null else c.getLong(14),
-        originalInstanceTime = if (c.isNull(15)) null else c.getLong(15),
-        availability = c.getInt(16),
-        status = if (c.isNull(17)) null else c.getInt(17),
-        color = if (c.isNull(18) || c.getInt(18) == 0) null else c.getInt(18),
+    private fun event(c: ProviderRow) = EventDetail(
+        id = c.long(0),
+        calendarId = c.long(1),
+        title = c.string(2),
+        location = c.string(3),
+        description = c.string(4),
+        dtstart = c.long(5),
+        dtend = if (c.isNull(6)) null else c.long(6),
+        duration = c.string(7),
+        allDay = c.int(8) == 1,
+        timezone = c.string(9),
+        rrule = c.string(10),
+        rdate = c.string(11),
+        exrule = c.string(12),
+        exdate = c.string(13),
+        originalId = if (c.isNull(14)) null else c.long(14),
+        originalInstanceTime = if (c.isNull(15)) null else c.long(15),
+        availability = c.int(16),
+        status = if (c.isNull(17)) null else c.int(17),
+        color = if (c.isNull(18) || c.int(18) == 0) null else c.int(18),
     )
 
     private const val NOT_DELETED = "${CalendarContract.Events.DELETED} != 1"
 
     /** An event row that still exists (a row marked deleted for its sync adapter does not). */
-    fun event(context: Context, id: Long): EventDetail? = runCatching {
-        context.contentResolver.query(
-            CalendarContract.Events.CONTENT_URI, EVENT_COLUMNS,
-            "${CalendarContract.Events._ID} = ? AND $NOT_DELETED", arrayOf(id.toString()), null,
-        )?.use { c -> if (c.moveToFirst()) event(c) else null }
-    }.getOrNull()
+    fun event(access: CalendarAccess, id: Long): EventDetail? = eventRead(access, id).getOrNull()
+
+    /**
+     * [event], telling the two nulls apart: success with null when the query answered and holds no such row, failure
+     * when it did not answer. Sync asks this of a mapped copy — a read that failed is not "the copy is gone" (F20).
+     */
+    fun eventRead(access: CalendarAccess, id: Long): Result<EventDetail?> = runCatching {
+        val rows = access.provider.query(
+            ProviderUri(ProviderTable.EVENTS), EVENT_COLUMNS, "${CalendarContract.Events._ID} = ? AND $NOT_DELETED", listOf(id.toString()),
+        ) ?: error("the calendar provider gave no answer")
+        rows.firstOrNull()?.let { event(it) }
+    }
 
     /** The exception events of [masterId]: the rows whose `ORIGINAL_ID` it is. */
-    fun exceptions(context: Context, masterId: Long): List<EventDetail> = runCatching {
-        context.contentResolver.query(
-            CalendarContract.Events.CONTENT_URI, EVENT_COLUMNS,
-            "${CalendarContract.Events.ORIGINAL_ID} = ? AND $NOT_DELETED", arrayOf(masterId.toString()), null,
-        )?.use { c -> buildList { while (c.moveToNext()) add(event(c)) } }
+    fun exceptions(access: CalendarAccess, masterId: Long): List<EventDetail> = runCatching {
+        access.provider.query(
+            ProviderUri(ProviderTable.EVENTS), EVENT_COLUMNS, "${CalendarContract.Events.ORIGINAL_ID} = ? AND $NOT_DELETED", listOf(masterId.toString()),
+        )?.map { event(it) }
     }.getOrNull().orEmpty()
 
     /** (minutes, method) of every reminder row of [eventId]. */
-    fun reminders(context: Context, eventId: Long): List<Pair<Int, Int>> = runCatching {
-        context.contentResolver.query(
-            CalendarContract.Reminders.CONTENT_URI,
-            arrayOf(CalendarContract.Reminders.MINUTES, CalendarContract.Reminders.METHOD),
-            "${CalendarContract.Reminders.EVENT_ID} = ?", arrayOf(eventId.toString()),
-            "${CalendarContract.Reminders.MINUTES} ASC",
-        )?.use { c -> buildList { while (c.moveToNext()) add(c.getInt(0) to c.getInt(1)) } }
+    fun reminders(access: CalendarAccess, eventId: Long): List<Pair<Int, Int>> = runCatching {
+        access.provider.query(
+            ProviderUri(ProviderTable.REMINDERS), listOf(CalendarContract.Reminders.MINUTES, CalendarContract.Reminders.METHOD),
+            "${CalendarContract.Reminders.EVENT_ID} = ?", listOf(eventId.toString()), "${CalendarContract.Reminders.MINUTES} ASC",
+        )?.map { it.int(0) to it.int(1) }
     }.getOrNull().orEmpty()
 
     /** Calendar id → how many events it holds. One read of the calendar-id column, counted here (r3 V3). */
-    fun eventCounts(context: Context): Map<Long, Int> = runCatching {
+    fun eventCounts(access: CalendarAccess): Map<Long, Int> = runCatching {
         val counts = HashMap<Long, Int>()
-        context.contentResolver.query(
-            CalendarContract.Events.CONTENT_URI, arrayOf(CalendarContract.Events.CALENDAR_ID), NOT_DELETED, null, null,
-        )?.use { c -> while (c.moveToNext()) counts.merge(c.getLong(0), 1, Int::plus) }
+        access.provider.query(ProviderUri(ProviderTable.EVENTS), listOf(CalendarContract.Events.CALENDAR_ID), NOT_DELETED)
+            ?.forEach { counts.merge(it.long(0), 1, Int::plus) }
         counts
     }.getOrDefault(emptyMap())
 
     /** Which of [ids] are events that still exist; null when the query failed (nothing is concluded from that). */
-    fun existingEvents(context: Context, ids: Collection<Long>): Set<Long>? {
+    fun existingEvents(access: CalendarAccess, ids: Collection<Long>): Set<Long>? {
         if (ids.isEmpty()) return emptySet()
         return runCatching {
-            context.contentResolver.query(
-                CalendarContract.Events.CONTENT_URI, arrayOf(CalendarContract.Events._ID),
-                "${CalendarContract.Events._ID} IN (${ids.joinToString(",")}) AND $NOT_DELETED", null, null,
-            )?.use { c -> buildSet { while (c.moveToNext()) add(c.getLong(0)) } }
+            access.provider.query(
+                ProviderUri(ProviderTable.EVENTS), listOf(CalendarContract.Events._ID),
+                "${CalendarContract.Events._ID} IN (${ids.joinToString(",")}) AND $NOT_DELETED",
+            )?.mapTo(HashSet()) { it.long(0) }
         }.getOrNull()
     }
 
     /** master id → its exception event ids, for the masters in [masters]. */
-    fun exceptionIds(context: Context, masters: Collection<Long>): Map<Long, List<Long>> {
+    fun exceptionIds(access: CalendarAccess, masters: Collection<Long>): Map<Long, List<Long>> {
         if (masters.isEmpty()) return emptyMap()
         return runCatching {
             val out = HashMap<Long, MutableList<Long>>()
-            context.contentResolver.query(
-                CalendarContract.Events.CONTENT_URI, arrayOf(CalendarContract.Events._ID, CalendarContract.Events.ORIGINAL_ID),
-                "${CalendarContract.Events.ORIGINAL_ID} IN (${masters.joinToString(",")})", null, null,
-            )?.use { c -> while (c.moveToNext()) out.getOrPut(c.getLong(1)) { mutableListOf() }.add(c.getLong(0)) }
+            access.provider.query(
+                ProviderUri(ProviderTable.EVENTS), listOf(CalendarContract.Events._ID, CalendarContract.Events.ORIGINAL_ID),
+                "${CalendarContract.Events.ORIGINAL_ID} IN (${masters.joinToString(",")})",
+            )?.forEach { out.getOrPut(it.long(1)) { mutableListOf() }.add(it.long(0)) }
             out
         }.getOrDefault(emptyMap())
     }
@@ -306,10 +303,10 @@ object CalendarReads {
      * The alert rows due at [nowMs] in state SCHEDULED or FIRED (r3 D6 (c)): another calendar app may have flipped a
      * row to FIRED first, so a SCHEDULED-only read can find nothing.
      */
-    fun dueAlerts(context: Context, nowMs: Long): List<AlertRow>? = runCatching {
-        context.contentResolver.query(
-            CalendarContract.CalendarAlerts.CONTENT_URI,
-            arrayOf(
+    fun dueAlerts(access: CalendarAccess, nowMs: Long): List<AlertRow>? = runCatching {
+        access.provider.query(
+            ProviderUri(ProviderTable.ALERTS),
+            listOf(
                 CalendarContract.CalendarAlerts._ID,
                 CalendarContract.CalendarAlerts.EVENT_ID,
                 CalendarContract.CalendarAlerts.BEGIN,
@@ -322,15 +319,9 @@ object CalendarReads {
             ),
             "${CalendarContract.CalendarAlerts.ALARM_TIME} <= ? AND ${CalendarContract.CalendarAlerts.STATE} IN " +
                 "(${CalendarContract.CalendarAlerts.STATE_SCHEDULED}, ${CalendarContract.CalendarAlerts.STATE_FIRED})",
-            arrayOf(nowMs.toString()),
+            listOf(nowMs.toString()),
             "${CalendarContract.CalendarAlerts.ALARM_TIME} ASC",
-        )?.use { c ->
-            buildList {
-                while (c.moveToNext()) {
-                    add(AlertRow(c.getLong(0), c.getLong(1), c.getLong(2), c.getLong(3), c.getLong(4), c.getInt(5), c.getInt(6), c.getString(7), c.getInt(8) == 1))
-                }
-            }
-        }
+        )?.map { c -> AlertRow(c.long(0), c.long(1), c.long(2), c.long(3), c.long(4), c.int(5), c.int(6), c.string(7), c.int(8) == 1) }
     }.onFailure { Diagnostics.add("calendar", "alerts query failed: $it") }.getOrNull()
 }
 
@@ -343,18 +334,18 @@ object CalendarReads {
  * A mapping whose local event is gone is dropped here, at the read: the copy then shows as the account event it is.
  */
 object SyncedCopies {
-    fun hiddenEventIds(context: Context): Set<Long> {
-        val store = CalendarSyncStore.get(context)
+    fun hiddenEventIds(access: CalendarAccess): Set<Long> {
+        val store = access.store
         val before = store.current
         if (before.mappings.isEmpty()) return emptySet()
         // A failed query concludes nothing: the mappings are kept and the copies stay hidden.
-        val existing = CalendarReads.existingEvents(context, before.mappings.keys)
+        val existing = CalendarReads.existingEvents(access, before.mappings.keys)
         val state = if (existing == null) before else store.update { SyncStateRules.dropGoneOriginals(it, existing) }
         if (existing != null && state.mappings.size != before.mappings.size) {
             Diagnostics.add("calendar", "sync mappings dropped (the local event is gone): ${(before.mappings.keys - state.mappings.keys).sorted()}")
         }
         val copies = SyncStateRules.copyIds(state)
-        return SyncStateRules.hiddenEventIds(state, CalendarReads.exceptionIds(context, copies))
+        return SyncStateRules.hiddenEventIds(state, CalendarReads.exceptionIds(access, copies))
     }
 }
 
@@ -365,12 +356,12 @@ object SyncedCopies {
  * hands out again after a delete (Verify at build start 3) — starts NOT allowed (T16-1; the Trust line (e)).
  */
 object SyncAllowList {
-    fun followProvider(context: Context) {
-        val store = CalendarSyncStore.get(context)
+    fun followProvider(access: CalendarAccess) {
+        val store = access.store
         val state = store.current
         if (state.allowed.isEmpty() && state.hidden.isEmpty()) return
         // A read that did not answer concludes nothing.
-        val present = (CalendarReads.calendars(context) as? CalendarsResult.Ok)?.calendars?.mapTo(HashSet()) { it.key } ?: return
+        val present = (CalendarReads.calendars(access) as? CalendarsResult.Ok)?.calendars?.mapTo(HashSet()) { it.key } ?: return
         val after = store.update { SyncStateRules.prune(it, present) }
         if (after.allowed.size != state.allowed.size) {
             Diagnostics.add("calendar", "can sync to: ${state.allowed.size - after.allowed.size} calendar(s) no longer on this phone left the list")

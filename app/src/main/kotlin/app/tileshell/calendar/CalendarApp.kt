@@ -236,14 +236,20 @@ private suspend fun applyRoute(nav: CalendarNav, context: android.content.Contex
         }
         is CalendarRoute.Event -> {
             nav.showView(nav.mode)
-            route.beginMs?.let { nav.select(EventRules.local(it, zone).toLocalDate()) }
-            nav.push(CalPage.Event(route.id, route.beginMs, route.endMs))
+            // The occurrence times are the caller's: taken only when the provider holds that occurrence of that event
+            // (F12). Otherwise the page opens with none, as a VIEW without extras does.
+            val occurrence = route.beginMs?.let { begin ->
+                CalendarIntents.occurrence(route, withContext(Dispatchers.IO) { CalendarReads.instances(CalendarAccess.of(context), begin, begin + 1) })
+            }
+            occurrence?.let { nav.select(EventRules.local(it.beginMs, zone).toLocalDate()) }
+            nav.push(CalPage.Event(route.id, occurrence?.beginMs, occurrence?.endMs))
         }
         is CalendarRoute.Edit -> {
             nav.showView(nav.mode)
             val (event, calendar, reminders) = withContext(Dispatchers.IO) {
-                val e = CalendarReads.event(context, route.id)
-                Triple(e, e?.let { CalendarReads.calendar(context, it.calendarId) }, e?.let { CalendarReads.reminders(context, it.id) }.orEmpty())
+                val access = CalendarAccess.of(context)
+                val e = CalendarReads.event(access, route.id)
+                Triple(e, e?.let { CalendarReads.calendar(access, it.calendarId) }, e?.let { CalendarReads.reminders(access, it.id) }.orEmpty())
             }
             if (event == null) {
                 nav.notice = "That event isn't on this phone."

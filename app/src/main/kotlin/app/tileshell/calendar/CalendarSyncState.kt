@@ -1,10 +1,21 @@
 package app.tileshell.calendar
 
 /**
- * A calendar as the shell's own store names it: `_ID` + account name + account type (Decisions T16-1). An account that
- * is removed and added again gets new ids, so nothing the store held about it applies to the calendar that comes back.
+ * A calendar as the shell's own store names it: `_ID` + account name + account type + the calendar's own
+ * `Calendars.NAME` (Decisions T16-1; fix round F16). An account that is removed and added again gets new ids, so
+ * nothing the store held about it applies to the calendar that comes back.
+ *
+ * The [name] is part of the key because the provider hands a deleted calendar's `_ID` out again: when one account's
+ * calendars are dropped and re-made, another calendar of the SAME account can come back under a ticked calendar's id,
+ * account name and type — and if no prune ran in between (the shell was not running, or READ_CALENDAR was revoked),
+ * the tick would be read as that calendar's. With the name in the key it is not: a key equals a calendar only when
+ * all four parts match.
+ *
+ * [name] is null only in a mapping read from a file written before the key carried it. Such a key equals no calendar
+ * on the phone (a calendar read from the provider always has a name, empty when the provider holds none), so nothing
+ * is pushed to it and "Delete here and from" is not offered — while its copy stays hidden behind the local event.
  */
-data class CalendarKey(val id: Long, val accountName: String, val accountType: String)
+data class CalendarKey(val id: Long, val accountName: String, val accountType: String, val name: String?)
 
 /** One synced event: the local (Tessera) event id → the calendar it was copied to and the copy's event id. No hash (r3 V13). */
 data class SyncMapping(val localEventId: Long, val target: CalendarKey, val copyEventId: Long)
@@ -15,7 +26,9 @@ data class SyncMapping(val localEventId: Long, val target: CalendarKey, val copy
  *  - [mappings]: the synced events, by local event id;
  *  - [hidden]: the ≡ pane's un-ticked calendars — the shell's own state, never `Calendars.VISIBLE` (r3 D4);
  *  - [firstDayOfWeek]: 1 (Monday) … 7 (Sunday), or null to follow the locale;
- *  - [notifiedAlerts]: the alerts the reminder receiver has already handled (r3 D6), each by its [AlertRow.key].
+ *  - [notifiedAlerts]: the alerts the reminder receiver has already handled (r3 D6), each by its [AlertRow.key];
+ *  - [remindersSince]: the wall-clock time of the shell's first start on this install (Q-16-4) — the receiver reminds
+ *    only for alerts that come due at or after it. Null until the first start writes it.
  */
 data class SyncState(
     val allowed: List<CalendarKey> = emptyList(),
@@ -23,6 +36,7 @@ data class SyncState(
     val hidden: List<CalendarKey> = emptyList(),
     val firstDayOfWeek: Int? = null,
     val notifiedAlerts: Set<String> = emptySet(),
+    val remindersSince: Long? = null,
 )
 
 /** The store's rules, pure over their inputs so the JVM tests pin them. */
@@ -66,6 +80,28 @@ object SyncStateRules {
 
     /** The mapping whose copy (or whose copy's master) is [eventId], if any. */
     fun mappingOfCopy(state: SyncState, eventId: Long): SyncMapping? = state.mappings.values.firstOrNull { it.copyEventId == eventId }
+
+    /**
+     * Q-16-4 (the owner, 2026-10-01: "a"): the time reminders count from. Written ONCE — at the shell's first start on
+     * this install, or at the first start of the first build that carries the field; an update keeps it, and a
+     * `pm clear` or a fresh install starts it again (the file is gone). A stored time later than [nowMs] means the
+     * clock was set back: it is lowered to now, so a clock change can never silence reminders for good.
+     */
+    fun remindersSince(state: SyncState, nowMs: Long): SyncState {
+        val stored = state.remindersSince
+        return if (stored == null || stored > nowMs) state.copy(remindersSince = nowMs) else state
+    }
+
+    /**
+     * The clock was changed (`TIME_SET`): a cut-off that is now in the future is lowered to [nowMs] at once, before any
+     * poke — left to the first poke, the lowering would make that poke's own alert (due a moment before "now") one of
+     * the rows "due before the first start". It only ever lowers: a store with no cut-off yet is left for the shell's
+     * start to fill, and a clock set forward changes nothing.
+     */
+    fun lowerRemindersSince(state: SyncState, nowMs: Long): SyncState {
+        val stored = state.remindersSince
+        return if (stored != null && stored > nowMs) state.copy(remindersSince = nowMs) else state
+    }
 
     /**
      * The receiver's notified set stays as large as the alerts that can still come back: a key is kept only while its
