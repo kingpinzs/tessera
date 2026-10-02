@@ -122,6 +122,17 @@ adapter uploads).
 - Alarms & Clock, Calculator, Voice Recorder (15), Photos / Camera / video (17), Files (18), the Settings front (19)
 
 ## Decisions
+- 2026-10-01: Build question Q-16-5 — E15's APK growth bound is 5 MB, and code files (`classes*.dex`) are exempt from
+  the "no new entry ≥ 1 MB" check (Jeremy: "A"; rejected: B, keep 2 MB and shrink the code; C, drop the growth bound
+  for this phase). Why it was asked: the fix build's file is 4,761,142 bytes larger than the APK before task 2, and a
+  debug build shards its code into `classes<n>.dex` files whose numbers move from build to build, so two code files
+  of 1 MB or more appear under names the earlier APK did not have. FACT FOUND AFTER the ruling (agent; told to the
+  owner the same day): the 4.76 MB is mostly packaging, not content — the entries' own bytes grew 1,934,084 (all of it
+  `classes*.dex`: 37.7 MB → 39.6 MB), and the rest is dead space an incremental build leaves in a debug APK (the same
+  content measured 1.6 MB to 5.1 MB of overhead across this phase's builds; the "before" APK was a first build, 0.4 MB).
+  The ruling stands as given; E15's clause is asserted on the final APK as `stat -c%s` after − before ≤ 5 MB with no
+  new entry ≥ 1 MB other than `classes*.dex`, and the entries' own growth is recorded beside it (INDEX Change Log
+  2026-10-01).
 - 2026-10-01: Build question Q-16-4 — alerts that were due before the shell's first start are skipped (Jeremy: "a";
   rejected: B, build r3 D6 (c) as written and see on the phone whether a burst happens; C, skip any alert whose event has
   already ended). The reminder receiver, as r3 D6 (c) specified it, notifies for every alert that is due and not yet
@@ -392,6 +403,7 @@ adapter uploads).
   Start while the People tile cycles never idles, so its dumps go through phase 05's gesture driver (C-10, Acceptance
   preamble). The tags and lines round 3 added are the "Harness, round 3" line at the end of Decisions
 - 2026-09-22: APK budget (agent; phase 03's ≤ 600 MB): code only; E15 records the delta, ≤ 2 MB, no new asset ≥ 1 MB
+  (RE-CUT 2026-10-01 by ruling Q-16-5, Jeremy: "A": ≤ 5 MB, and code files are exempt from the 1 MB check)
 - 2026-09-22: App-list regression (agent; R10 testability 35): two new entries; E2 runs the phase-02 `regress.sh` pattern
   and asserts no "New" caption (X14)
 - 2026-09-23 (review triage T16-2, doc update; J6 is built in code, outside the phase docs): **the shell's local calendar is
@@ -1193,7 +1205,8 @@ asserted relative to the drawn bar's bottom edge.
   hides that contact and the row count drops by one (re-ticked). Restore (r3 V10): `people_fixtures_down`, the
   `com.example` raw contact and the imported contact deleted by id, the SIM entry deleted (`content delete --uri
   content://icc/adn --where "tag='Sim Bob' AND number='5550002'"`, `record`ed if the SIM refuses). APK: `stat -c%s` before task 2 and after task 8 differ by
-  ≤ 2 MB, `unzip -l` shows no new entry ≥ 1 MB
+  ≤ 2 MB, `unzip -l` shows no new entry ≥ 1 MB (RE-CUT 2026-10-01, Q-16-5, Jeremy: "A": ≤ 5 MB, and no new entry ≥ 1 MB other than
+  `classes*.dex`; the lead's `scripts/e15_apk.sh` asserts it and records the entries' own growth)
 - E16 Work profile (phase 01 E18's commands to create, start and later remove a managed profile; P4 design H10): TestDPC
   is installed into the profile and made its owner FIRST (the policy fixture below), before the positive leg, so the two
   legs differ only by the switch (r3 V17); a contact
