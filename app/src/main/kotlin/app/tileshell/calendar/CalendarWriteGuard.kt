@@ -9,16 +9,18 @@ package app.tileshell.calendar
  * The owner, 2026-09-23: "I dont want to add anything to my work calander from my phone ever." So nothing is allowed
  * by default, and the allow set is exactly four cases:
  *
- *  1. the `Tessera` calendar (the shell's own LOCAL calendar): every event and reminder op of the editor and of Tess —
- *     as a normal app or, for its event rows, as the LOCAL account's own sync adapter — and the one insert that
- *     creates the calendar;
+ *  1. the `Tessera` calendar (the shell's own LOCAL calendar): every event and reminder op of the editor and of Tess
+ *     as a normal app; as the LOCAL account's own sync adapter only the two writes the provider needs it for — the
+ *     delete of an event row (editor, Tess) and the editor's update of an event's `_sync_id` alone; and the one
+ *     insert that creates the calendar;
  *  2. the `Tessera Birthdays` calendar: the Birthdays writer's path only, through the sync-adapter URI;
  *  3. an allowed Sync target: only a push, update or delete of a copy `calendar_sync.json` maps, only while the copy's
  *     re-read `calendar_id` equals the mapping's target, the target is still on the allowed list and its re-read
  *     access level is at least CONTRIBUTOR (500);
  *  4. the reminder receiver's update of `CalendarAlerts.STATE`, and no other column or table.
  *
- * Every other combination is refused.
+ * Every other combination is refused — and whatever the case, an update that names `calendar_id` among its columns
+ * (a row moved to another calendar) is refused for every path.
  */
 object CalendarWriteGuard {
     /** Who is writing: the code path, never a value a caller outside the shell can choose. */
@@ -41,8 +43,13 @@ object CalendarWriteGuard {
 
     enum class Table { CALENDARS, EVENTS, REMINDERS, CALENDAR_ALERTS, OTHER }
 
-    /** A calendar row as the write layer has just re-read it. */
-    data class CalendarFacts(val id: Long, val accountName: String?, val accountType: String?, val accessLevel: Int)
+    /**
+     * A calendar row as the write layer has just re-read it. [name] is the provider's `Calendars.NAME`; with the id,
+     * the account name and the account type it is the calendar's [key], the form the store's lists and mappings hold.
+     */
+    data class CalendarFacts(val id: Long, val accountName: String?, val accountType: String?, val accessLevel: Int, val name: String?) {
+        val key: CalendarKey get() = CalendarKey(id, accountName.orEmpty(), accountType.orEmpty(), name.orEmpty())
+    }
 
     /**
      * What Sync's write is about, each fact re-read just before the guard is asked.
@@ -50,16 +57,25 @@ object CalendarWriteGuard {
      * @param sourceInTessera the local event being pushed is an event of the Tessera calendar
      * @param mapped `calendar_sync.json` maps the row this write touches — the copy, an exception of the copy, or
      *   their reminders. False for the first insert of a copy (there is nothing to map yet)
-     * @param targetAllowed the calendar's `_ID` + account name + account type is on the allowed list now
-     * @param mappingTarget the calendar id the mapping names as its target; null when no mapping exists yet
+     * @param targetAllowed the calendar's whole key — `_ID` + account name + account type + its own name — is on the
+     *   allowed list now
+     * @param mappingTarget the calendar the mapping names as its target, by its whole key; null when no mapping exists yet
      * @param copyCalendarId the copy's `calendar_id` as re-read from the provider; null when there is no copy row
+     * @param copyReadFailed a mapping exists and its copy row — or the row of the copy this write touches — could NOT
+     *   be read (the query failed): where the copy sits is unknown. It is never taken for "there is no copy" —
+     *   nothing is written, a new copy included
+     * @param onExistingRow the write names an existing row: the copy or an exception of it (an update, a delete, a
+     *   reminder of either), or the master an inserted exception is to hang on. False only for the insert of a new
+     *   copy, which names no row at all
      */
     data class SyncFacts(
         val sourceInTessera: Boolean,
         val mapped: Boolean,
         val targetAllowed: Boolean,
-        val mappingTarget: Long?,
+        val mappingTarget: CalendarKey?,
         val copyCalendarId: Long?,
+        val copyReadFailed: Boolean,
+        val onExistingRow: Boolean,
     )
 
     /**
@@ -89,6 +105,8 @@ object CalendarWriteGuard {
         READ_ONLY("failed calendar read-only"),
         /** T16-1: the Sync target is no longer on this phone. */
         CALENDAR_GONE("failed calendar gone"),
+        /** F20: a mapping exists and its copy row could not be read — nothing is known of the copy, so nothing is written. */
+        COPY_UNREADABLE("failed the copy could not be read"),
     }
 
     sealed interface Verdict {
@@ -111,11 +129,20 @@ object CalendarWriteGuard {
     /** CalendarContract.CalendarAlerts.STATE: the one column the receiver may set. */
     const val ALERT_STATE_COLUMN = "state"
 
+    /** CalendarContract.Events.CALENDAR_ID: no update of the shell may set it — a row never changes calendars. */
+    const val CALENDAR_ID_COLUMN = "calendar_id"
+
+    /** CalendarContract.Events._SYNC_ID: the one column the editor may set as Tessera's own sync adapter. */
+    const val SYNC_ID_COLUMN = "_sync_id"
+
     fun isTessera(c: CalendarFacts): Boolean = c.accountType == ACCOUNT_TYPE_LOCAL && c.accountName == TESSERA_ACCOUNT
 
     fun isBirthdays(c: CalendarFacts): Boolean = c.accountType == ACCOUNT_TYPE_LOCAL && c.accountName == BIRTHDAYS_ACCOUNT
 
     fun check(r: Request): Verdict {
+        // No write of the shell moves a row to another calendar: the provider would let a sync adapter re-home an
+        // event with one column, so the column is refused in every update, whoever asks and whatever the calendar.
+        if (r.op == Op.UPDATE && CALENDAR_ID_COLUMN in r.columns) return refused(Refusal.NOT_ALLOWED)
         // Case 4, and the receiver's only case: the state of an alert row. `calendar_alerts` is a table local to the
         // phone that no sync adapter uploads; any other column, table or op by the receiver is refused.
         if (r.path == Path.RECEIVER) {
@@ -125,7 +152,15 @@ object CalendarWriteGuard {
         // Nobody but the receiver writes the alerts, and no path writes a table this rule does not name.
         if (r.table == Table.CALENDAR_ALERTS || r.table == Table.OTHER) return refused(Refusal.NOT_ALLOWED)
 
-        val calendar = r.calendar ?: return refused(if (r.path == Path.SYNC) Refusal.CALENDAR_GONE else Refusal.NOT_ALLOWED)
+        // No calendar could be read for the row. For Sync that is a target that is gone — unless the row itself could
+        // not be read, in which case nothing is known of its calendar and "gone" would be the wrong thing to say.
+        val calendar = r.calendar ?: return refused(
+            when {
+                r.path != Path.SYNC -> Refusal.NOT_ALLOWED
+                r.sync?.copyReadFailed == true -> Refusal.COPY_UNREADABLE
+                else -> Refusal.CALENDAR_GONE
+            },
+        )
         return when {
             isTessera(calendar) -> tessera(r)
             isBirthdays(calendar) -> birthdays(r)
@@ -137,10 +172,18 @@ object CalendarWriteGuard {
     private fun tessera(r: Request): Verdict = when (r.path) {
         // The calendar row itself is only ever created, by its one creator, as its own sync adapter.
         Path.LOCAL_CALENDAR -> allowIf(r.table == Table.CALENDARS && r.op == Op.INSERT && r.viaSyncAdapter)
-        // Events and their reminders: every op. An event row may also be written as the calendar's own sync adapter (a
-        // LOCAL account's adapter is the app itself): the provider pairs an occurrence's exception with its series by
-        // `_sync_id`, and removes a row for good only for its adapter (qa/phase-16/dev-cal/P_EXCEPTION*).
-        Path.EDITOR, Path.TESS -> allowIf(r.table == Table.EVENTS || (r.table == Table.REMINDERS && !r.viaSyncAdapter))
+        Path.EDITOR, Path.TESS -> when {
+            // As a normal app: events and their reminders, every op.
+            !r.viaSyncAdapter -> allowIf(r.table == Table.EVENTS || r.table == Table.REMINDERS)
+            // As the calendar's own sync adapter (a LOCAL account's adapter is the app itself), only the two writes
+            // the provider needs an adapter for (qa/phase-16/dev-cal/P_EXCEPTION*): it removes a row for good only
+            // for its adapter, and it pairs an occurrence's exception with its series by `_sync_id`, which the editor
+            // gives a series before its first exception. No insert, and no other column.
+            r.table != Table.EVENTS -> refused(Refusal.NOT_ALLOWED)
+            r.op == Op.DELETE -> Verdict.Allowed
+            r.op == Op.UPDATE -> allowIf(r.path == Path.EDITOR && r.columns == setOf(SYNC_ID_COLUMN))
+            else -> refused(Refusal.NOT_ALLOWED)
+        }
         else -> refused(Refusal.NOT_ALLOWED)
     }
 
@@ -161,12 +204,17 @@ object CalendarWriteGuard {
         val sync = r.sync ?: return refused(Refusal.NOT_ALLOWED)
         // Sync only ever copies an event of the shell's own calendar.
         if (!sync.sourceInTessera) return refused(Refusal.NOT_ALLOWED)
-        // Only the first insert of a copy may touch a row the store does not map.
-        val firstInsert = r.op == Op.INSERT && r.table == Table.EVENTS && !sync.mapped
+        // A copy row that could not be read may sit anywhere: a failed read is not "no copy" (F20), and a new copy
+        // made on the strength of it would be a second one.
+        if (sync.copyReadFailed) return refused(Refusal.COPY_UNREADABLE)
+        // Only the first insert of a copy — a new row that names no existing one — may be a write the store does not
+        // map. An exception event is an insert too, but it hangs on a row: on the mapped copy, or it is refused.
+        val firstInsert = r.op == Op.INSERT && r.table == Table.EVENTS && !sync.mapped && !sync.onExistingRow
         if (!firstInsert && !sync.mapped) return refused(Refusal.NOT_ALLOWED)
-        // T16-12: the copy must still be where the mapping says, and the write must be to that calendar.
-        if (sync.mappingTarget != null && sync.mappingTarget != calendar.id) return refused(Refusal.MAPPING_STALE)
-        if (sync.copyCalendarId != null && sync.copyCalendarId != sync.mappingTarget) return refused(Refusal.MAPPING_STALE)
+        // T16-12: the copy must still be where the mapping says, and the write must be to that calendar — the calendar
+        // the mapping names by its whole key, not whichever calendar holds its id now (F16).
+        if (sync.mappingTarget != null && sync.mappingTarget != calendar.key) return refused(Refusal.MAPPING_STALE)
+        if (sync.copyCalendarId != null && sync.copyCalendarId != sync.mappingTarget?.id) return refused(Refusal.MAPPING_STALE)
         if (sync.mapped && sync.mappingTarget == null) return refused(Refusal.MAPPING_STALE)
         if (!sync.targetAllowed) return refused(Refusal.NOT_ALLOWED)
         // r3 D5: the provider accepts a normal insert whatever the level, and the copy would sit dirty and never upload.
