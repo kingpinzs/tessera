@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -234,16 +233,29 @@ private fun AgendaView(
     val days = remember(byDay, today, selected, from, to) {
         (byDay.keys + listOf(today, selected).filter { it >= from && it < to }).distinct().sorted()
     }
+    // A day group is its heading, its events and its foot as items of their own: the list builds the rows on show, not
+    // every row of a day (QA defect D-E7-1: a 200-event day built as one item took a 267 ms frame).
+    val headIndex = remember(days, byDay) {
+        var index = 0
+        days.associateWith { day -> index.also { index += byDay[day].orEmpty().size + 2 } }
+    }
     Column(Modifier.fillMaxSize()) {
         WeekStrip(nav, today, first, locale, byDay.keys)
         val list = rememberLazyListState()
         // The selected day's group to the top: when the day is picked, and when its window first has something to show.
         LaunchedEffect(selected, from, instances != null) {
-            val index = days.indexOfFirst { it >= selected }
-            if (index >= 0) list.scrollToItem(index)
+            val day = days.firstOrNull { it >= selected }
+            headIndex[day]?.let { list.scrollToItem(it) }
         }
         LazyColumn(Modifier.fillMaxSize().testTag("cal_agenda"), state = list) {
-            items(days, key = { it.toString() }) { day -> DayGroup(day, byDay[day].orEmpty(), day == today, zone, locale, onEvent) }
+            days.forEach { day ->
+                val events = byDay[day].orEmpty()
+                item(key = day.toString(), contentType = "head") { DayHead(day, events.isEmpty(), day == today, locale) }
+                items(events.size, key = { "$day:${events[it].eventId}:${events[it].beginMs}" }, contentType = { "event" }) {
+                    EventRow(events[it], zone, locale, onEvent)
+                }
+                item(key = "foot:$day", contentType = "foot") { Spacer(Modifier.height(CalMetrics.GROUP_FOOT)) }
+            }
             if (instances != null) {
                 // The end of what is loaded: seeing it loads the next weeks.
                 item(key = "more:$to") {
@@ -327,24 +339,23 @@ private fun WeekStrip(nav: CalendarNav, today: LocalDate, first: DayOfWeek, loca
 private fun capTop(capTopEpx: Float, sizeEpx: Float): Dp = app.tileshell.ui.tokens.CapMetrics.topPaddingForCapTop(capTopEpx, sizeEpx).dp
 
 /**
- * One day of the agenda (K3.2–K3.5; C1 083's rules): a 1-epx black rule, the heading — "Saturday 12" in white semibold,
- * today's in accent and larger — its events, or for a day with none "No events today" in grey.
+ * The head of one day of the agenda (K3.2–K3.5; C1 083's rules): a 1-epx black rule and the heading — "Saturday 12" in
+ * white semibold, today's in accent and larger — and, for a day with no events, "No events today" in grey. The day's
+ * events follow as the list's next items, then its foot.
  */
 @Composable
-private fun DayGroup(day: LocalDate, events: List<EventInstance>, isToday: Boolean, zone: ZoneId, locale: Locale, onEvent: (EventInstance) -> Unit) {
+private fun DayHead(day: LocalDate, empty: Boolean, isToday: Boolean, locale: Locale) {
     val accent = LocalShellColors.current.accent
     Column(Modifier.fillMaxWidth().drawBehind { drawRect(Color.Black, size = Size(size.width, 1.dp.toPx())) }) {
         Box(Modifier.fillMaxWidth().height(CalMetrics.GROUP_HEAD)) {
             val style = if (isToday) ShellType.subtitle.copy(color = accent) else ShellType.base.copy(color = Color.White)
             CapText(CalText.dayHeading(day, locale), CalMetrics.HEADING_X, if (isToday) 18f else 16f, style, Modifier.testTag("cal_day:${CalText.iso(day)}"))
         }
-        if (events.isEmpty()) {
+        if (empty) {
             Box(Modifier.fillMaxWidth().height(CalMetrics.ALL_DAY_PITCH)) {
                 CapText(if (isToday) "No events today" else "No events", CalMetrics.HEADING_X - CalMetrics.EMPTY_DAY_BEARING, 12f, ShellType.subtitle.copy(color = CalMetrics.GREY), Modifier.testTag("cal_empty:${CalText.iso(day)}"))
             }
         }
-        events.forEach { EventRow(it, zone, locale, onEvent) }
-        Spacer(Modifier.height(CalMetrics.GROUP_FOOT))
     }
 }
 
