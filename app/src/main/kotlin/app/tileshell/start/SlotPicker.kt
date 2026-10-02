@@ -52,7 +52,7 @@ fun SlotPicker(slot: Slot, onDone: () -> Unit) {
                 PressRow(onClick = {
                     LayoutStore.get(context).assignSlot(slot, entry.component)
                     onDone()
-                }, modifier = Modifier.fillMaxWidth().height(44.dp).testTag("slot_candidate:${entry.component.packageName}")) {
+                }, modifier = Modifier.fillMaxWidth().height(44.dp).testTag("slot_candidate:${entry.component.flattenToShortString()}")) {
                     Row(Modifier.fillMaxSize().padding(start = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                         catalog.icon(entry, 120)?.let { Image(it, null, Modifier.size(41.dp)) } ?: Box(Modifier.size(41.dp))
                         Spacer(Modifier.width(10.dp))

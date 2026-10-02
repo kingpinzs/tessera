@@ -62,6 +62,7 @@ class ShellApp : Application() {
         addCortanaTile()
         addCategoryFolders()
         claimMusicSlot()
+        claimCalendarAndPeopleSlots()
         startFeeds("process start")
         // Phase 13: the acrylic on / off rule, followed from here for the life of the launcher's process; it writes
         // its first `[fluent] acrylic=… reason=…` line now.
@@ -157,6 +158,21 @@ class ShellApp : Application() {
     }
 
     /**
+     * Point the CALENDAR and PEOPLE slots at the shell's own Calendar and People, once (phase 16 build task 1).
+     *
+     * With the shell declaring APP_CALENDAR and APP_CONTACTS beside the phone's own apps, neither category has one
+     * handler, so without a seed both tiles would read "Tap to choose" (the Music precedent above). Unlike every other
+     * seed these two pass `takeOver` (the owner's ruling Q-16-1): on the update that brings the apps they take their
+     * slots even over a pick made by hand, the line names the app that was replaced, and from then on a hand pick is
+     * kept — pointing a slot back in Settings > Tile apps sticks, because the marker has run.
+     */
+    private fun claimCalendarAndPeopleSlots() {
+        val store = LayoutStore.get(this)
+        store.assignSlotOnce(CALENDAR_SLOT_CLAIM, Slot.CALENDAR, ComponentName(this, app.tileshell.calendar.CalendarActivity::class.java), takeOver = true)
+        store.assignSlotOnce(PEOPLE_SLOT_CLAIM, Slot.PEOPLE, ComponentName(this, app.tileshell.people.PeopleActivity::class.java), takeOver = true)
+    }
+
+    /**
      * Package changes drive the Start layout (phase 02 build task 5, Decisions "App uninstall/update handling is
      * in (M12)"). The wiring lives in the process, not in StartActivity, so an uninstall is followed while the
      * shell is alive with no UI at all; [AppCatalog] owns the one LauncherApps callback and reports only
@@ -201,7 +217,13 @@ class ShellApp : Application() {
     fun startFeeds(reason: String) {
         PhotosFeed.start(this)
         CalendarFeed.start(this)
+        // Phase 16 (r3 D14): the Birthdays calendar's one writer and its Contacts observer, beside the feed that shows it.
+        app.tileshell.calendar.BirthdaysWriter.start(this)
+        // Phase 16 (Q-16-4): the time of the shell's first start on this install, written once; Calendar's reminder
+        // receiver reminds only for alerts that come due after it.
+        app.tileshell.calendar.CalendarReminders.shellStarted(this)
         MusicFeed.start(this)
+        app.tileshell.feeds.PeopleFeed.start(this)
         app.tileshell.weather.WeatherFeed.start(this)
         Diagnostics.add("app", "feeds started ($reason)")
     }
@@ -212,5 +234,9 @@ class ShellApp : Application() {
 
         /** The one-shot marker for phase 10's MUSIC slot claim; versioned like the folder ADDs. */
         const val MUSIC_SLOT_CLAIM = "slot:music:v1"
+
+        /** Phase 16's one-shot markers for the CALENDAR and PEOPLE slots; the only two that take a slot over (Q-16-1). */
+        const val CALENDAR_SLOT_CLAIM = "slot:calendar:v1"
+        const val PEOPLE_SLOT_CLAIM = "slot:people:v1"
     }
 }

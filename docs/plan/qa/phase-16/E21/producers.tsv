@@ -1,0 +1,82 @@
+# alternative	row or EDGE sub-step that produces it	regex (grep -E) for that row's ring-launcher.txt
+[people] list: n contacts read=true …	E10	\[people\] list: [0-9]+ contacts read=true write=(true|false)
+[people] list: n contacts read=false …	EDGE P06 (also E18, the Calendar writer's row)	\[people\] list: [0-9]+ contacts read=false write=(true|false)
+[people] list: … write=true	E10	\[people\] list: [0-9]+ contacts read=(true|false) write=true
+[people] list: … write=false	E13	\[people\] list: [0-9]+ contacts read=(true|false) write=false
+[people] search "<q>": n (+0 enterprise)	E10	\[people\] search \"[^\"]*\": [0-9]+ \(\+0 enterprise\)
+[people] search "<q>": n (+m enterprise), m ≥ 1	E16	\[people\] search \"Wren\": 0 \(\+1 enterprise\)
+[people] write insert raw=<id>: ok	E13	\[people\] write insert raw=[0-9]+: ok
+[people] write update raw=<id>: ok	E13	\[people\] write update raw=[0-9]+: ok
+[people] write delete raw=<id>: ok	E13	\[people\] write delete raw=[0-9]+: ok
+[people] write <op> raw=<id>: failed <err> (WRITE_CONTACTS not held)	E13	\[people\] write update raw=[0-9]+: failed WRITE_CONTACTS not held
+[people] write update raw=<id>: failed <err> (the raw contact deleted while its editor is open)	EDGE P03	\[people\] write update raw=[0-9]+: failed the (field|raw contact) is gone
+[people] write <op> raw=<id>: refused (not allowed)	E28 (leg X, fix-round F15)	\[people\] write update raw=[0-9]+: refused \(not allowed\)
+[people] edit <lookup>: refused (account not allowed)	E28	\[people\] edit [^ ]+: refused \(account not allowed\)
+[people] link <a>+<b>: ok	E14	\[people\] link [0-9]+\+[0-9]+: ok
+[people] link <a>+<b>: failed	EDGE P03	\[people\] link [0-9a-z]+\+[0-9a-z]+: failed
+[people] unlink <a>+<b>: ok (the build's added line)	E14	\[people\] unlink [0-9]+\+[0-9]+: ok
+[people] sim import: n of m (n ≥ 1)	E15	\[people\] sim import: [1-9][0-9]* of [1-9][0-9]*
+[people] sim import: 0 of 0	E15	\[people\] sim import: 0 of 0
+[people] tile: n photos (n ≥ 1)	E11	\[people\] tile: [1-9][0-9]* photos
+[people] tile: 0 photos	E11	\[people\] tile: 0 photos
+[people] tile event <n> t0=<uptime> lookup=<key>	E11	\[people\] tile event [0-9]+ t0=[0-9]+ lookup=[^ ]+
+[people] group create <id>: ok	E27	\[people\] group create [0-9]+: ok
+[people] group create …: failed <err>	E27	\[people\] group create [^:]+: failed 
+[people] group rename <id>: ok	E27	\[people\] group rename [0-9]+: ok
+[people] group rename <id>: failed <err>	E27	\[people\] group rename [0-9]+: failed 
+[people] group delete <id>: ok	E27	\[people\] group delete [0-9]+: ok
+[people] group delete <id>: failed <err>	E27	\[people\] group delete [0-9]+: failed 
+[people] share <lookup>: <uri>	E15	\[people\] share [^ ]+: content://com\.android\.contacts/contacts/as_vcard/
+[people] action call -> <component> <uri>	E12	\[people\] action call -> [^ ]+ tel:
+[people] action text -> <component> <uri>	E27 (and E12)	\[people\] action text -> [^ ]+ smsto:
+[people] action mail -> <component> <uri>	E12	\[people\] action mail -> [^ ]+ mailto:
+[people] action map -> <component> <uri>	E12	\[people\] action map -> [^ ]+ geo:
+[motion] people_bubble_out	E11	\[motion\] people_bubble_out t0=[0-9]+ peak=[0-9]+ overshoot=[0-9]+ settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
+[motion] people_bubble_in	E11	\[motion\] people_bubble_in t0=[0-9]+ peak=[0-9]+ overshoot=[0-9]+ settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
+[motion] people_pivot	E20	\[motion\] people_pivot t0=[0-9]+ peak=[0-9]+ overshoot=[0-9]+ settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
+[people] open other -> <route> (an unhandled intent action is logged as `other`; fix-round F4)	TRUST	\[people\] open other -> 
+[people] pick: no caller to return a result to; the list was opened (fix-round F5)	TRUST	\[people\] pick: no caller to return a result to; the list was opened
+[people] pick: cancelled (fix-round F5)	TRUST	\[people\] pick: cancelled
+[people] pick: one contact URI granted (read)	TRUST	\[people\] pick: one contact URI granted \(read\)
+[people] pick: one phone URI granted (read)	TRUST	\[people\] pick: one phone URI granted \(read\)
+[calendar] calendars: n (local created id=<id>)	E3	\[calendar\] calendars: [0-9]+ \(local created id=[0-9]+\)
+[calendar] calendars: n (local present)	E3	\[calendar\] calendars: [0-9]+ \(local present\)
+[calendar] calendars: none (<why>)	EDGE C01	\[calendar\] calendars: none \(.+\)
+[calendar] calendars: n (local missing: WRITE_CALENDAR)	E18	\[calendar\] calendars: [0-9]+ \(local missing: WRITE_CALENDAR\)
+[calendar] calendars: denied (READ_CALENDAR)	E18	\[calendar\] calendars: denied \(READ_CALENDAR\)
+[calendar] local calendar created: <uri>	E3	\[calendar\] local calendar created: content://com\.android\.calendar/calendars/[0-9]+
+[calendar] local calendar lookup failed: <err>	E18	\[calendar\] local calendar lookup failed: .+
+[calendar] local calendar could not be created: <err>	E18	\[calendar\] local calendar could not be created: .+
+[calendar] view agenda <from>..<to>: n instances in <ms> ms	E5	\[calendar\] view agenda [0-9-]+\.\.[0-9-]+: [0-9]+ instances in [0-9]+ ms
+[calendar] view day <from>..<to>: n instances in <ms> ms	E4	\[calendar\] view day [0-9-]+\.\.[0-9-]+: [0-9]+ instances in [0-9]+ ms
+[calendar] view week <from>..<to>: n instances in <ms> ms	E7	\[calendar\] view week [0-9-]+\.\.[0-9-]+: [0-9]+ instances in [0-9]+ ms
+[calendar] write insert event=<id>: ok	E4	\[calendar\] write insert event=[0-9]+: ok
+[calendar] write update event=<id>: ok	E22	\[calendar\] write update event=[0-9]+: ok
+[calendar] write delete event=<id>: ok	E4	\[calendar\] write delete event=[0-9]+: ok
+[calendar] write update event=<id>: failed <err> (the event deleted while its editor is open)	EDGE C11	\[calendar\] write update event=[0-9]+: failed .+
+[calendar] write update event=<id>: failed refused (not allowed) (the guard's refusal is always said; fix-round F15)	E22 (leg L)	\[calendar\] write update event=[0-9]+: failed refused \(not allowed\)
+[calendar] reminder event=<id> minutes=<n>: notified	E6	\[calendar\] reminder event=[0-9]+ minutes=[0-9]+: notified
+[calendar] reminder event=<id> minutes=<n>: dismissed	E6	\[calendar\] reminder event=[0-9]+ minutes=[0-9]+: dismissed
+[calendar] reminder event=<id> minutes=<n>: swipe ignored (no such alert now) (fix-round F3)	TRUST	\[calendar\] reminder event=[0-9]+ minutes=[0-9]+: swipe ignored \(no such alert now\)
+[calendar] reminder event=<copy id> minutes=<n>: skipped (synced copy)	E24	\[calendar\] reminder event=[0-9]+ minutes=[0-9]+: skipped \(synced copy\)
+[calendar] reminder: n skipped (due before the shell's first start)	E6	\[calendar\] reminder: [0-9]+ skipped \(due before the shell's first start\)
+[calendar] reminders count from <ms> (the shell's start: first on this install)	EDGE C16 (also EDGE C06; the lead's E1 on a fresh install)	\[calendar\] reminders count from [0-9]+ \(.*: first on this install\)
+[calendar] reminders count from <ms> (the clock was set: it went back behind <old>)	EDGE C16	\[calendar\] reminders count from [0-9]+ \(the clock was set: it went back behind [0-9]+\)
+[calendar] birthdays: n synced	E17	\[calendar\] birthdays: [0-9]+ synced
+[calendar] birthdays calendar could not be created: <err>	E17	\[calendar\] birthdays calendar could not be created: .+
+[calendar] sync event=<id> -> calendar <id>: ok	E24	\[calendar\] sync event=[0-9]+ -> calendar [0-9]+: ok
+[calendar] sync event=<id> -> calendar <id>: updated	E24	\[calendar\] sync event=[0-9]+ -> calendar [0-9]+: updated
+[calendar] sync event=<id> -> calendar <id>: recreated	E24	\[calendar\] sync event=[0-9]+ -> calendar [0-9]+: recreated
+[calendar] sync event=<id> -> calendar <id>: failed <err> (failed calendar gone)	E24	\[calendar\] sync event=[0-9]+ -> calendar [0-9]+: failed calendar gone
+[calendar] sync event=<id> -> calendar <id>: failed mapping stale	EDGE C04	\[calendar\] sync event=[0-9]+ -> calendar [0-9]+: failed mapping stale
+[calendar] sync event=<id> -> calendar <id>: failed calendar read-only	EDGE C07	\[calendar\] sync event=[0-9]+ -> calendar [0-9]+: failed calendar read-only
+[calendar] sync event=<id>: no calendar allowed -> can sync to	E23	\[calendar\] sync event=[0-9]+: no calendar allowed -> can sync to
+[calendar] counts: <account name>/<displayName>=<n>, …	E22	\[calendar\] counts: .+/.+=[0-9]+
+[motion] cal_month_dropdown t0=… settle=<ms> frames=<n> maxGapMs=<ms>	E19	\[motion\] cal_month_dropdown t0=[0-9]+ .*settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
+[motion] cal_day_page t0=… settle=<ms> frames=<n> maxGapMs=<ms>	E19	\[motion\] cal_day_page t0=[0-9]+ .*settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
+[calendar] open other -> <route> (an unhandled intent action is logged as `other`; fix-round F4)	TRUST	\[calendar\] open other -> 
+[layout] assignSlotOnce <marker> <slot> -> <component> -> assigned (E1's first form)	E1 (leg U: the CALENDAR slot nobody touched)	assignSlotOnce slot:calendar:v1 CALENDAR -> app\.tileshell/\.calendar\.CalendarActivity -> assigned$
+[layout] assignSlotOnce … -> assigned, replaced user's <component> (Q-16-1)	E1 (leg U: PEOPLE, pointed at the image's Contacts by hand before the update)	assignSlotOnce slot:people:v1 PEOPLE -> app\.tileshell/\.people\.PeopleActivity -> assigned, replaced user's 
+[layout] assignSlotOnce … -> already run	E1 (leg U: pointing it back sticks)	assignSlotOnce slot:people:v1 PEOPLE -> .* -> already run
+[layout] assignSlotOnce … -> kept user's <component> (the guard, on the one other marker)	E1 (leg G)	assignSlotOnce slot:music:v1 MUSIC -> kept user's 
+[calendar] reminders count from <ms> (the shell's start: the clock was set back behind <old>)	EDGE C18 (the shell stopped and the clock set back in one device command)	\[calendar\] reminders count from [0-9]+ \(the shell's start: the clock was set back behind [0-9]+\)

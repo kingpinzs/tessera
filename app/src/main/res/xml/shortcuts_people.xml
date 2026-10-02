@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  People's static App Shortcuts (phase 16 build task 9, phase 11 Q1's standing rule; Decisions 2026-09-23, T16-14):
+  its top-level screens — Contacts, New contact and Groups. Declaration order is the rank (0–2). Each opens
+  PeopleActivity with the extra "page" (the key SettingsActivity.EXTRA_PAGE uses): "contacts" the list, "new_contact"
+  the editor for a new contact on the phone (nothing is saved until Save), "groups" the GROUPS pivot.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="contacts"
+        android:enabled="true"
+        android:icon="@drawable/ic_people_glyph"
+        android:shortcutShortLabel="@string/people_shortcut_contacts"
+        android:shortcutLongLabel="@string/people_shortcut_contacts">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.people.PeopleActivity">
+            <extra android:name="page" android:value="contacts" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="new_contact"
+        android:enabled="true"
+        android:icon="@drawable/ic_people_glyph"
+        android:shortcutShortLabel="@string/people_shortcut_new_contact"
+        android:shortcutLongLabel="@string/people_shortcut_new_contact">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.people.PeopleActivity">
+            <extra android:name="page" android:value="new_contact" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="groups"
+        android:enabled="true"
+        android:icon="@drawable/ic_people_glyph"
+        android:shortcutShortLabel="@string/people_shortcut_groups"
+        android:shortcutLongLabel="@string/people_shortcut_groups">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.people.PeopleActivity">
+            <extra android:name="page" android:value="groups" />
+        </intent>
+    </shortcut>
+</shortcuts>

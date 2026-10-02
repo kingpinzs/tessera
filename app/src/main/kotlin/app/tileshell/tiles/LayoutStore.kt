@@ -122,20 +122,37 @@ class LayoutStore private constructor(private val context: Context) {
      * is what the user would otherwise have to do by hand, and re-pointing the slot at another player
      * still works and still sticks.
      *
+     * Phase 16 build task 1 ([SlotSeed] holds the rule). **The guard:** a slot the user has already pointed at an app by
+     * hand is kept — the marker is recorded and the line says `-> kept user's <component>`; before, the seed wrote over
+     * that pick. **[takeOver]** (the owner's ruling Q-16-1): the shell's Calendar and People take their slots once even
+     * over a hand pick, and the line names what was replaced (`-> assigned, replaced user's <earlier>`), which is how the
+     * earlier app is found again to point the slot back in Settings > Tile apps. Only those two markers pass it.
+     *
      * @return true when this call made the assignment
      */
-    fun assignSlotOnce(marker: String, slot: Slot, component: ComponentName): Boolean {
-        var assigned = false
+    fun assignSlotOnce(marker: String, slot: Slot, component: ComponentName, takeOver: Boolean = false): Boolean {
+        var outcome: SlotSeed.Outcome<ComponentName> = SlotSeed.Outcome.AlreadyRun
         mutate { layout ->
-            if (marker in layout.addedOnce) return@mutate layout
-            assigned = true
-            layout.copy(
-                addedOnce = layout.addedOnce + marker,
-                explicitSlots = layout.explicitSlots + (slot to component),
-            )
+            val decided = SlotSeed.decide(marker in layout.addedOnce, layout.explicitSlots[slot], component, takeOver)
+            outcome = decided
+            when {
+                decided is SlotSeed.Outcome.AlreadyRun -> layout
+                SlotSeed.writesSlot(decided) -> layout.copy(
+                    addedOnce = layout.addedOnce + marker,
+                    explicitSlots = layout.explicitSlots + (slot to component),
+                )
+                else -> layout.copy(addedOnce = layout.addedOnce + marker)
+            }
         }
-        Diagnostics.add("layout", "assignSlotOnce $marker ${slot.name} -> ${component.flattenToShortString()} -> ${if (assigned) "assigned" else "already run"}")
-        return assigned
+        val to = component.flattenToShortString()
+        val result = when (val o = outcome) {
+            SlotSeed.Outcome.AlreadyRun -> "-> $to -> already run"
+            SlotSeed.Outcome.Assigned -> "-> $to -> assigned"
+            is SlotSeed.Outcome.AssignedReplacing -> "-> $to -> assigned, replaced user's ${o.earlier.flattenToShortString()}"
+            is SlotSeed.Outcome.KeptUsers -> "-> kept user's ${o.kept.flattenToShortString()}"
+        }
+        Diagnostics.add("layout", "assignSlotOnce $marker ${slot.name} $result")
+        return SlotSeed.writesSlot(outcome)
     }
 
     fun clearSlot(slot: Slot) {

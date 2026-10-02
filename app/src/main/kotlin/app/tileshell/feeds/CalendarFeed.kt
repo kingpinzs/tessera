@@ -8,11 +8,16 @@ import android.database.ContentObserver
 import android.os.Handler
 import android.os.Looper
 import android.provider.CalendarContract
+import app.tileshell.calendar.CalendarAccess
+import app.tileshell.calendar.InstanceWindow
+import app.tileshell.calendar.SyncAllowList
+import app.tileshell.calendar.SyncedCopies
 import app.tileshell.diag.Diagnostics
 import app.tileshell.tiles.engine.FaceTransition
 import app.tileshell.tiles.engine.LiveTileEngine
 import app.tileshell.tiles.engine.TileContent
 import app.tileshell.tiles.engine.TileFace
+import app.tileshell.tiles.engine.TileRouting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -50,6 +55,9 @@ object CalendarFeed {
      */
     val agenda: StateFlow<List<AgendaItem>> = agendaState.asStateFlow()
 
+    /** The shell's Calendar app: its pinned app tile reads the face under this activity's component key (r3 D12). */
+    private const val CALENDAR_ACTIVITY = "app.tileshell.calendar.CalendarActivity"
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var observer: ContentObserver? = null
     private var ticking = false
@@ -82,21 +90,37 @@ object CalendarFeed {
             val dayName = SimpleDateFormat("EEEE", Locale.getDefault()).format(now)
             val dayNumber = Calendar.getInstance().get(Calendar.DAY_OF_MONTH).toString()
             val faces = mutableListOf<TileFace>(TileFace.CalendarDay(dayName, dayNumber, emptyList()))
+            // Phase 16 (Q-16-2): a synced copy is hidden everywhere in the shell while its Tessera original exists, so the
+            // tile and the agenda (phase 14's pod) show a synced event once. One reader gives the ids for both queries.
+            // Phase 16 (T16-1): a calendar that left the phone leaves Sync's allowed list here, whether or not the Calendar
+            // app is open — this observer is the one that is always running.
+            if (hasAccess(context)) SyncAllowList.followProvider(CalendarAccess.of(context))
+            val copies = if (hasAccess(context)) SyncedCopies.hiddenEventIds(CalendarAccess.of(context)) else emptySet()
             if (hasAccess(context)) {
                 runCatching {
+                    // The next 24 hours: timed events by the clock, all-day ones (a birthday is one) by their date —
+                    // today's, whatever the zone (InstanceWindow).
                     val start = System.currentTimeMillis()
+                    val day = 24L * 60 * 60 * 1000
+                    val zone = java.time.ZoneId.systemDefault()
+                    val (rangeFrom, rangeTo) = InstanceWindow.queryRange(start, day, zone)
                     val builder = CalendarContract.Instances.CONTENT_URI.buildUpon()
-                    ContentUris.appendId(builder, start)
-                    ContentUris.appendId(builder, start + 24L * 60 * 60 * 1000)
+                    ContentUris.appendId(builder, rangeFrom)
+                    ContentUris.appendId(builder, rangeTo)
                     context.contentResolver.query(
                         builder.build(),
-                        arrayOf(CalendarContract.Instances.TITLE, CalendarContract.Instances.BEGIN, CalendarContract.Instances.ALL_DAY, CalendarContract.Instances.EVENT_LOCATION),
+                        arrayOf(
+                            CalendarContract.Instances.TITLE, CalendarContract.Instances.BEGIN, CalendarContract.Instances.ALL_DAY,
+                            CalendarContract.Instances.EVENT_LOCATION, CalendarContract.Instances.EVENT_ID, CalendarContract.Instances.END,
+                        ),
                         null, null, "${CalendarContract.Instances.BEGIN} ASC",
                     )?.use { c ->
                         val timeFmt = DateFormat.getTimeInstance(DateFormat.SHORT)
                         while (c.moveToNext() && faces.size < 4) {
+                            if (c.getLong(4) in copies) continue
                             val title = c.getString(0) ?: continue
                             val allDay = c.getInt(2) == 1
+                            if (!InstanceWindow.shows(c.getLong(1), c.getLong(5), allDay, start, day, zone)) continue
                             val whenText = if (allDay) "All day" else timeFmt.format(Date(c.getLong(1)))
                             val location = c.getString(3).orEmpty()
                             faces += TileFace.CalendarDay(dayName, dayNumber, listOf(title, whenText, location).filter { it.isNotBlank() })
@@ -104,8 +128,12 @@ object CalendarFeed {
                     }
                 }.onFailure { Diagnostics.add("calendar", "query failed: $it") }
             }
-            agendaState.value = if (hasAccess(context)) queryAgenda(context) else emptyList()
-            LiveTileEngine.publish(LiveTileEngine.CALENDAR, TileContent(faces, FaceTransition.FLIP, System.currentTimeMillis(), "calendar"))
+            agendaState.value = if (hasAccess(context)) queryAgenda(context, copies) else emptyList()
+            val content = TileContent(faces, FaceTransition.FLIP, System.currentTimeMillis(), "calendar")
+            LiveTileEngine.publish(LiveTileEngine.CALENDAR, content)
+            // Phase 16 (r3 D12): one publisher, two keys. The CALENDAR slot tile reads the slot key; a Calendar app tile
+            // pinned from the app list reads its component key, which nothing else publishes — so it is live too.
+            LiveTileEngine.publish(TileRouting.componentKey(context.packageName, CALENDAR_ACTIVITY), content)
             Diagnostics.add("calendar", "refresh ($reason): access=${hasAccess(context)} faces=${faces.size} agenda=${agendaState.value.size}")
         }
     }
@@ -116,7 +144,7 @@ object CalendarFeed {
      * evening and a range from now drops it (phase 14 build probe, qa/phase-14/BUILD-NOTES/cal_probe.out). A timed
      * instance is kept while its END is at or after now — exactly what a range from now returns.
      */
-    private fun queryAgenda(context: Context): List<AgendaItem> = runCatching {
+    private fun queryAgenda(context: Context, copies: Set<Long>): List<AgendaItem> = runCatching {
         val now = System.currentTimeMillis()
         val (startOfToday, endOfTomorrow) = AgendaRules.window(now, java.util.TimeZone.getDefault())
         val builder = CalendarContract.Instances.CONTENT_URI.buildUpon()
@@ -125,10 +153,11 @@ object CalendarFeed {
         val rows = mutableListOf<AgendaRules.Instance>()
         context.contentResolver.query(
             builder.build(),
-            arrayOf(CalendarContract.Instances.TITLE, CalendarContract.Instances.BEGIN, CalendarContract.Instances.END, CalendarContract.Instances.ALL_DAY),
+            arrayOf(CalendarContract.Instances.TITLE, CalendarContract.Instances.BEGIN, CalendarContract.Instances.END, CalendarContract.Instances.ALL_DAY, CalendarContract.Instances.EVENT_ID),
             null, null, "${CalendarContract.Instances.BEGIN} ASC",
         )?.use { c ->
             while (c.moveToNext()) {
+                if (c.getLong(4) in copies) continue
                 val title = c.getString(0) ?: continue
                 rows += AgendaRules.Instance(title, c.getLong(1), c.getLong(2), c.getInt(3) == 1)
             }
