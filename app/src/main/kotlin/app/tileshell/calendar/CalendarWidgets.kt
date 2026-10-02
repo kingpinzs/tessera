@@ -137,6 +137,7 @@ object CalMetrics {
     const val EVENT_TITLE_BEARING = 1.7f   // the "P" of "Pay rent" at the title's size
     const val PANE_CHEVRON_BEARING = 2.3f  // the collapse chevron glyph at 12 epx
     const val PANE_NAME_BEARING = 1.3f     // the "M" of "MoNa Events" / the "m" of "mark guim" at the name's size
+    const val EMPTY_DAY_BEARING = 1.7f     // the "N" of "No events today" at its size (D-E19-2); the heading's "W" has none
     val EVENT_BAR_W = 8.dp
     val ALL_DAY_BAR = 40.dp
     val ALL_DAY_PITCH = 44.dp

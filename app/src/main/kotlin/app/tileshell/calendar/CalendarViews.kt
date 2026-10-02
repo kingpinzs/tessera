@@ -340,7 +340,7 @@ private fun DayGroup(day: LocalDate, events: List<EventInstance>, isToday: Boole
         }
         if (events.isEmpty()) {
             Box(Modifier.fillMaxWidth().height(CalMetrics.ALL_DAY_PITCH)) {
-                CapText(if (isToday) "No events today" else "No events", CalMetrics.HEADING_X, 12f, ShellType.subtitle.copy(color = CalMetrics.GREY), Modifier.testTag("cal_empty:${CalText.iso(day)}"))
+                CapText(if (isToday) "No events today" else "No events", CalMetrics.HEADING_X - CalMetrics.EMPTY_DAY_BEARING, 12f, ShellType.subtitle.copy(color = CalMetrics.GREY), Modifier.testTag("cal_empty:${CalText.iso(day)}"))
             }
         }
         events.forEach { EventRow(it, zone, locale, onEvent) }
