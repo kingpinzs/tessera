@@ -111,6 +111,9 @@ class CommandMatcherTest {
         // The thing named twice ("a calendar event called …") leaves only the title (phase 16 E9; QA defect D-E9-1).
         assertEquals("dentist", (match("add a calendar event called dentist tomorrow at 2 pm") as Request.AddCalendarEvent).title)
         assertEquals("dentist", (match("add an event called dentist tomorrow at 2 pm") as Request.AddCalendarEvent).title)
+        assertEquals("dentist", (match("add calendar event called dentist tomorrow at 2 pm") as Request.AddCalendarEvent).title)
+        // A kind of event with no "called" keeps its words: the title is what was said.
+        assertEquals("lunch meeting", (match("add lunch meeting to my calendar tomorrow at noon") as Request.AddCalendarEvent).title)
         assertEquals(Request.DeleteCalendarEvent("standup"), match("delete the event standup"))
         assertEquals(Request.WhatsOnMyCalendar, match("what's on my calendar"))
     }
