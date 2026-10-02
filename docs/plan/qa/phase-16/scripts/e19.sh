@@ -27,7 +27,12 @@
 #   8  the editor         fields 32 ± 1 epx with a 2-epx (133,133,133) border, by pixel
 #   the drawn bars (BarMetrics.STATUS_EPX / NAV_EPX, read from the source, never a literal) and `dumpsys window`'s
 #   system bars not visible, on every view and the editor
+#
+# E19_LEGS=1 runs leg 1 alone (Agenda on today: the capture that draws today's empty day) with the row's own fixtures —
+# a narrow re-run after a failed one, as the owner's ruling of 2026-10-01 allows; the log's first RECORD says so, and
+# legs 2–8 then stand on the row's earlier run.
 set -uo pipefail
+LEGS="${E19_LEGS:-all}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
 . "$HERE/p16.sh"
@@ -35,6 +40,10 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GEO="$HERE/cal_geo.py"
 
 row_begin E19 "Calendar geometry on the drawn pixels: Agenda, the month drop-down, the pane, Week, Day, the editor; two motions"
+if [ "$LEGS" != all ]; then
+  [ "$LEGS" = 1 ] || { _verdict FAIL "E19_LEGS" "only E19_LEGS=1 is a narrow run of this row (got $LEGS)"; row_end; exit 1; }
+  record "legs run" "1 ONLY (Agenda on today: the chrome, the strip, today's heading, the empty day's line) — a narrow re-run; legs 2–8 stand on the row's earlier run"
+fi
 # A colour within a tolerance per channel.
 crgb() { # name "r g b" "r g b" tol
   local v
@@ -126,6 +135,7 @@ assert_eq "1: Agenda is showing (cal_view_mode:agenda selected)" "true" "$(cattr
 geo 1-agenda-today agenda sections=chrome,today "status=$STATUS_EPX" "nav=$NAV_EPX" "today=$TODAY"
 sysbars "Agenda"
 
+if [ "$LEGS" = all ]; then
 # ----------------------------------------------------------------------------------------------- 2: the month drop-down
 log "--- 2: the month drop-down (K5) and its motion"
 M_MARK="$(ring_mark)"
@@ -190,6 +200,7 @@ shot 8-editor
 geo 8-editor editor "status=$STATUS_EPX" "nav=$NAV_EPX"
 sysbars "the editor"
 ctap cal_editor_cancel 1.5
+fi   # legs 2–8
 
 # ----------------------------------------------------------------------------------------------- restore
 log "--- restore"

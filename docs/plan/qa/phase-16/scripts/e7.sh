@@ -14,7 +14,17 @@
 #   D  the 200-event day     the Day view lists them scrollably (every one of the 200 reached by scrolling)
 #   T  the tile              still shows only the next 24 hours' events (CalendarFeed's window)
 #   restore                  the QA calendar deleted (its events cascade)
+#
+# E7_LEGS=jank runs the fixtures, M, W, P (the legs whose frames are "the run" of the janky-frames clause) and the
+# restore, and skips D and T — a narrow re-run after a failed one, as the owner's ruling of 2026-10-01 allows; the
+# log's first RECORD says so, and D and T then stand on the row's earlier run.
+#
+# E7_LEGS=baseline is a DIAGNOSIS run for defects/D-E7-1.md, not the gate row (the lead's order of 2026-10-02): the same
+# M, W and P legs — the same months, the same weeks, the same twelve swipes at the same pace, the same resets and the
+# same per-leg gfxinfo + framestats files — on a QA calendar holding NO events (the inserts are skipped). It RECORDs the
+# legs' sum and has no verdict line for the 5 %; its folder is kept as E7-baseline-empty-calendar-….
 set -uo pipefail
+LEGS="${E7_LEGS:-all}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
 . "$HERE/p16.sh"
@@ -22,6 +32,13 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TILES="$P16/../phase-15/scripts/tiles.py"
 
 row_begin E7 "5,000 events: the month drop-down, the busiest week, 12 weeks of paging, a 200-event day, the tile"
+if [ "$LEGS" != all ]; then
+  case "$LEGS" in
+    jank) record "legs run" "fixtures, M, W, P ONLY (the janky-frames clause's run) — a narrow re-run; D (the 200-event day) and T (the tile) stand on the row's earlier run" ;;
+    baseline) record "legs run" "BASELINE — a diagnosis for D-E7-1, NOT the gate row: M, W, P on a QA calendar holding NO events (no inserts); no verdict on the 5 %; D and T not run" ;;
+    *) _verdict FAIL "E7_LEGS" "E7_LEGS is jank or baseline (got $LEGS)"; row_end; exit 1 ;;
+  esac
+fi
 tile_texts() { python3 "$TILES" "$1" "$2" | awk -F'\t' '{ print $6 }' | sed 's/^texts=//'; }
 # The first `view <mode>` line of a slice at or after a MARK: "<wall − mark> <ms> <n> <from> <to>", or "none".
 view_line() { # slice-file mark mode
@@ -44,14 +61,32 @@ gfx_leg() { # name
   adb shell dumpsys gfxinfo app.tileshell < /dev/null | tr -d '\r' > "$ROW_DIR/$1.gfxinfo.txt"
   adb shell dumpsys gfxinfo app.tileshell framestats < /dev/null | tr -d '\r' > "$ROW_DIR/$1.framestats.txt"
   adb shell dumpsys gfxinfo app.tileshell reset >/dev/null 2>&1
-  local t j u d p50 p90 p99
+  local t j u d p50 p90 p99 long
   t="$(sed -n 's/^Total frames rendered: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
   j="$(sed -n 's/^Janky frames: \([0-9]*\).*/\1/p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
   u="$(sed -n 's/^Number Slow UI thread: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
   d="$(sed -n 's/^Number Slow issue draw commands: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
   p50="$(sed -n 's/^50th percentile: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"; p90="$(sed -n 's/^90th percentile: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"; p99="$(sed -n 's/^99th percentile: //p' "$ROW_DIR/$1.gfxinfo.txt" | head -1)"
-  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$1" "${t:-0}" "${j:-0}" "${u:-0}" "${d:-0}" "$p50" "$p90" "$p99" >> "$ROW_DIR/P-legs.tsv"
-  record "gfxinfo, leg $1: total frames / janky / slow UI thread / slow draw; 50th 90th 99th" "${t:-0} / ${j:-0} / ${u:-0} / ${d:-0}; $p50 $p90 $p99"
+  # the leg's longest frame, from its framestats (FrameCompleted - IntendedVsync, ms)
+  long="$(python3 - "$ROW_DIR/$1.framestats.txt" <<'PY'
+import sys
+hdr, inb, best = None, False, 0.0
+for l in open(sys.argv[1], errors="replace").read().splitlines():
+    if l.startswith("---PROFILEDATA---"):
+        inb = not inb; continue
+    if not inb: continue
+    if l.startswith("Flags"):
+        hdr = l.rstrip(",").split(","); continue
+    v = l.rstrip(",").split(",")
+    if hdr and len(v) >= len(hdr):
+        try: r = dict(zip(hdr, (int(x) for x in v[:len(hdr)])))
+        except ValueError: continue
+        best = max(best, (r["FrameCompleted"] - r["IntendedVsync"]) / 1e6)
+print("%.1f" % best)
+PY
+)"
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$1" "${t:-0}" "${j:-0}" "${u:-0}" "${d:-0}" "$p50" "$p90" "$p99" "$long" >> "$ROW_DIR/P-legs.tsv"
+  record "gfxinfo, leg $1: total frames / janky / slow UI thread / slow draw; 50th 90th 99th; the longest frame" "${t:-0} / ${j:-0} / ${u:-0} / ${d:-0}; $p50 $p90 $p99; $long ms"
 }
 CRASH0="$(ccrashes)"
 c6; ensure_start
@@ -101,6 +136,12 @@ PY
 # shellcheck disable=SC1091
 . "$ROW_DIR/plan.env"
 assert_eq "fixtures: the driver's loop holds 5,000 insert lines (the busy month is $BUSY_YM, its 200-event day $BUSY_DAY)" "5000 5000" "$TOTAL $(grep -c '^content insert' "$ROW_DIR/insert.sh")"
+if [ "$LEGS" = baseline ]; then
+  BS="$(clocal_ms "$BUSY_FIRST" 00:00)"; BE="$(clocal_ms "$(date -d "$BUSY_FIRST + 1 month" +%Y-%m-%d)" 00:00)"
+  assert_eq "baseline: the inserts are skipped — the QA calendar holds no event" "0" "$(cevent_count "calendar_id=$QA_ID AND deleted=0")"
+  assert_eq "baseline: … and no calendar has an instance in the month the legs go to ($BUSY_YM)" "0" "$(call_instances "$BS" $(( BE - 1 )))"
+  sleep 5
+else
 # `content` starts a process per insert, so the one device-side loop runs its 5,000 lines as 16 workers side by side.
 rm -rf "$ROW_DIR/workers"; mkdir -p "$ROW_DIR/workers"
 awk -v d="$ROW_DIR/workers" '{ print > (d "/w" (NR % 16) ".sh") }' "$ROW_DIR/insert.sh"
@@ -122,6 +163,7 @@ NOW="$(device_ms)"; S1=$(( (NOW / 60000 + 90) * 60000 )); S2=$(( S1 + 3 * 360000
 SOON1="$(cmkevent "$QA_ID" 'E7 soon 1' "$S1" $(( S1 + 1800000 )))"; SOON2="$(cmkevent "$QA_ID" 'E7 soon 2' "$S2" $(( S2 + 1800000 )))"
 assert_eq "fixtures: exactly two events inside the next 24 hours (E7 soon 1 / 2)" "2" "$(call_instances "$NOW" $(( NOW + 86400000 )))"
 sleep 5
+fi   # the inserts
 
 # ----------------------------------------------------------------------------------------------- M: the month drop-down
 log "--- M: the month drop-down to the busy month, then its first day's cell"
@@ -179,7 +221,11 @@ HS="$(clocal_ms "$WK_FROM" 00:00)"; HE="$(clocal_ms "$(date -d "$WK_TO + 1 day" 
 HOST_N="$(call_instances "$HS" $(( HE - 1 )))"
 note "the week $WK_FROM..$WK_TO: the line's n $WK_N; the host's instances/when/$HS/$(( HE - 1 )) count $HOST_N"
 assert_eq "W: … its n equals the host's content query …/instances/when/<week start>/<week end> count" "$HOST_N" "$WK_N"
-assert_eq "W: … and it is the busiest week (it holds the 200-event day: n ≥ 200)" "yes" "$([ "${WK_N:-0}" -ge 200 ] && echo yes || echo no)"
+if [ "$LEGS" = baseline ]; then
+  assert_eq "W: baseline — that week holds no instance" "0" "${WK_N:-}"
+else
+  assert_eq "W: … and it is the busiest week (it holds the 200-event day: n ≥ 200)" "yes" "$([ "${WK_N:-0}" -ge 200 ] && echo yes || echo no)"
+fi
 
 # ----------------------------------------------------------------------------------------------- P: paging 12 weeks
 log "--- P: paging 12 weeks forward, a MARK before each swipe"
@@ -204,14 +250,21 @@ assert_eq "P: every one of the 12 swipes gave a view week line" "12" "$P_LINES"
 assert_eq "P: … twelve different weeks, each seven days on from the last" "12" "$(awk 'NF >= 6 {print $5}' "$ROW_DIR/P-lines.txt" | sort -u | wc -l | tr -d ' ')"
 assert_eq "P: every view week line has ms ≤ 3000" "12" "$P_OK_MS"
 assert_eq "P: … and wall= − that swipe's MARK ≤ 3000" "12" "$P_OK_WALL"
-log "the legs (name, total frames, janky, slow UI thread, slow draw, 50th, 90th, 99th):"; sed 's/^/   /' "$ROW_DIR/P-legs.tsv" | tee -a "$LOG" >/dev/null
+log "the legs (name, total frames, janky, slow UI thread, slow draw, 50th, 90th, 99th, the longest frame in ms):"; sed 's/^/   /' "$ROW_DIR/P-legs.tsv" | tee -a "$LOG" >/dev/null
+P3_LONG="$(awk -F'\t' '$1 == "P3-dropdown-to-the-200-event-day" {print $9}' "$ROW_DIR/P-legs.tsv")"
+record "P3: the longest frame when the Agenda lands on the 200-event day (266.7 ms on build 6009c0b1 with 5,000 events, 50.1 ms on its empty calendar)" "$P3_LONG ms — $(python3 -c "print('the long frame is gone (under 100 ms)' if float('${P3_LONG:-999}') < 100 else 'the long frame is still there (100 ms or more)')")"
 GFX="$(awk -F'\t' '{t += $2; j += $3} END {printf "%d %d %.2f", t, j, (t ? 100 * j / t : 100)}' "$ROW_DIR/P-legs.tsv")"
 log "dumpsys gfxinfo app.tileshell over the run = the sum of its legs (total frames, janky frames, janky %): $GFX"
 # shellcheck disable=SC2086
 set -- $GFX
 assert_ne "P: gfxinfo counted frames over the run" "0" "${1:-0}"
-assert_eq "P: janky frames ≤ 5 % over the run (phase 01's threshold, as a bound on the emulator)" "yes" "$(python3 -c "print('yes' if float('${3:-100}' or 100) <= 5.0 else 'no (${3:-}%)')")"
+if [ "$LEGS" = baseline ]; then
+  record "P: baseline — the legs' sum on an empty calendar: total frames / janky / janky % (no verdict: a diagnosis)" "${1:-0} / ${2:-0} / ${3:-}%"
+else
+  assert_eq "P: janky frames ≤ 5 % over the run (phase 01's threshold, as a bound on the emulator)" "yes" "$(python3 -c "print('yes' if float('${3:-100}' or 100) <= 5.0 else 'no (${3:-}%)')")"
+fi
 
+if [ "$LEGS" = all ]; then
 # ----------------------------------------------------------------------------------------------- D: the 200-event day
 log "--- D: a day with 200 events lists them scrollably in the Day view"
 D_MARK="$(ring_mark)"
@@ -253,6 +306,7 @@ assert_contains "T: … and the other (E7 soon 2)" "E7 soon 2" "$FACES"
 OTHER="$(grep -o 'E7 [0-9][0-9]*' "$ROW_DIR/T-tile-texts.txt" | sort -u | paste -sd' ')"
 assert_eq "T: … and none of the 5,000 outside its window (titles E7 <n> seen on the tile)" "" "$OTHER"
 assert_eq "T: the feed's faces: the day face and the two (faces=3)" "faces=3" "$(cline "$(csince "$ROW_MARK")" '[calendar] refresh (' | grep -oE 'faces=[0-9]+')"
+fi   # legs D and T
 
 # ----------------------------------------------------------------------------------------------- restore
 log "--- restore: the QA calendar deleted (its events cascade)"

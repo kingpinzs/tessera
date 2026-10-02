@@ -304,8 +304,10 @@ try: print(str(next(r["completed"] for r in reversed(json.load(sys.stdin)["remin
 except Exception as e: print("unreadable")')"
 record "N: Tess's reminder store before the row / after (a fired person reminder stays, completed — as phase 03 E14 leaves its own)" "$(printf '%s' "$REM0" | grep -o '"id"' | wc -l | tr -d ' ') / $(reminder_count) reminder(s)"
 sleep 3; adb shell cmd statusbar collapse >/dev/null 2>&1
+fi   # leg N
 
 # ----------------------------------------------------------------------------------------------- restore
+# Every run ends here, a narrow one too: the restore, then row_end's summary line.
 log "--- restore (r3 V10)"
 c6
 cpurge "title IN ('dentist','standup','E9 checkup') OR title LIKE '%dentist%'"
@@ -318,5 +320,3 @@ assert_eq "restore: no new crash of the shell during the row" "$CRASH0" "$(ccras
 adb shell am force-stop app.tileshell; adb shell input keyevent KEYCODE_HOME; sleep 4   # clears the fired reminder's notification
 ensure_start
 row_end
-fi
-

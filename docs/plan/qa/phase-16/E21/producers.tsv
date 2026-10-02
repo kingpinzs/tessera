@@ -39,3 +39,39 @@
 [people] pick: cancelled (fix-round F5)	TRUST	\[people\] pick: cancelled
 [people] pick: one contact URI granted (read)	TRUST	\[people\] pick: one contact URI granted \(read\)
 [people] pick: one phone URI granted (read)	TRUST	\[people\] pick: one phone URI granted \(read\)
+[calendar] calendars: n (local created id=<id>)	E3	\[calendar\] calendars: [0-9]+ \(local created id=[0-9]+\)
+[calendar] calendars: n (local present)	E3	\[calendar\] calendars: [0-9]+ \(local present\)
+[calendar] calendars: none (<why>)	EDGE C01	\[calendar\] calendars: none \(.+\)
+[calendar] calendars: n (local missing: WRITE_CALENDAR)	E18	\[calendar\] calendars: [0-9]+ \(local missing: WRITE_CALENDAR\)
+[calendar] calendars: denied (READ_CALENDAR)	E18	\[calendar\] calendars: denied \(READ_CALENDAR\)
+[calendar] local calendar created: <uri>	E3	\[calendar\] local calendar created: content://com\.android\.calendar/calendars/[0-9]+
+[calendar] local calendar lookup failed: <err>	E18	\[calendar\] local calendar lookup failed: .+
+[calendar] local calendar could not be created: <err>	E18	\[calendar\] local calendar could not be created: .+
+[calendar] view agenda <from>..<to>: n instances in <ms> ms	E5	\[calendar\] view agenda [0-9-]+\.\.[0-9-]+: [0-9]+ instances in [0-9]+ ms
+[calendar] view day <from>..<to>: n instances in <ms> ms	E4	\[calendar\] view day [0-9-]+\.\.[0-9-]+: [0-9]+ instances in [0-9]+ ms
+[calendar] view week <from>..<to>: n instances in <ms> ms	E7	\[calendar\] view week [0-9-]+\.\.[0-9-]+: [0-9]+ instances in [0-9]+ ms
+[calendar] write insert event=<id>: ok	E4	\[calendar\] write insert event=[0-9]+: ok
+[calendar] write update event=<id>: ok	E22	\[calendar\] write update event=[0-9]+: ok
+[calendar] write delete event=<id>: ok	E4	\[calendar\] write delete event=[0-9]+: ok
+[calendar] write update event=<id>: failed <err> (the event deleted while its editor is open)	EDGE C11	\[calendar\] write update event=[0-9]+: failed .+
+[calendar] write update event=<id>: failed refused (not allowed) (the guard's refusal is always said; fix-round F15)	E22 (leg L)	\[calendar\] write update event=[0-9]+: failed refused \(not allowed\)
+[calendar] reminder event=<id> minutes=<n>: notified	E6	\[calendar\] reminder event=[0-9]+ minutes=[0-9]+: notified
+[calendar] reminder event=<id> minutes=<n>: dismissed	E6	\[calendar\] reminder event=[0-9]+ minutes=[0-9]+: dismissed
+[calendar] reminder event=<id> minutes=<n>: swipe ignored (no such alert now) (fix-round F3)	TRUST	\[calendar\] reminder event=[0-9]+ minutes=[0-9]+: swipe ignored \(no such alert now\)
+[calendar] reminder event=<copy id> minutes=<n>: skipped (synced copy)	E24	\[calendar\] reminder event=[0-9]+ minutes=[0-9]+: skipped \(synced copy\)
+[calendar] reminder: n skipped (due before the shell's first start)	E6	\[calendar\] reminder: [0-9]+ skipped \(due before the shell's first start\)
+[calendar] reminders count from <ms> (the shell's start: first on this install)	EDGE C16 (also EDGE C06; the lead's E1 on a fresh install)	\[calendar\] reminders count from [0-9]+ \(.*: first on this install\)
+[calendar] reminders count from <ms> (the clock was set: it went back behind <old>)	EDGE C16	\[calendar\] reminders count from [0-9]+ \(the clock was set: it went back behind [0-9]+\)
+[calendar] birthdays: n synced	E17	\[calendar\] birthdays: [0-9]+ synced
+[calendar] birthdays calendar could not be created: <err>	E17	\[calendar\] birthdays calendar could not be created: .+
+[calendar] sync event=<id> -> calendar <id>: ok	E24	\[calendar\] sync event=[0-9]+ -> calendar [0-9]+: ok
+[calendar] sync event=<id> -> calendar <id>: updated	E24	\[calendar\] sync event=[0-9]+ -> calendar [0-9]+: updated
+[calendar] sync event=<id> -> calendar <id>: recreated	E24	\[calendar\] sync event=[0-9]+ -> calendar [0-9]+: recreated
+[calendar] sync event=<id> -> calendar <id>: failed <err> (failed calendar gone)	E24	\[calendar\] sync event=[0-9]+ -> calendar [0-9]+: failed calendar gone
+[calendar] sync event=<id> -> calendar <id>: failed mapping stale	EDGE C04	\[calendar\] sync event=[0-9]+ -> calendar [0-9]+: failed mapping stale
+[calendar] sync event=<id> -> calendar <id>: failed calendar read-only	EDGE C07	\[calendar\] sync event=[0-9]+ -> calendar [0-9]+: failed calendar read-only
+[calendar] sync event=<id>: no calendar allowed -> can sync to	E23	\[calendar\] sync event=[0-9]+: no calendar allowed -> can sync to
+[calendar] counts: <account name>/<displayName>=<n>, …	E22	\[calendar\] counts: .+/.+=[0-9]+
+[motion] cal_month_dropdown t0=… settle=<ms> frames=<n> maxGapMs=<ms>	E19	\[motion\] cal_month_dropdown t0=[0-9]+ .*settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
+[motion] cal_day_page t0=… settle=<ms> frames=<n> maxGapMs=<ms>	E19	\[motion\] cal_day_page t0=[0-9]+ .*settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
+[calendar] open other -> <route> (an unhandled intent action is logged as `other`; fix-round F4)	TRUST	\[calendar\] open other -> 
