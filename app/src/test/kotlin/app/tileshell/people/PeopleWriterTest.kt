@@ -41,6 +41,15 @@ class PeopleWriterTest {
         /** Runs after each batch is recorded: the provider changing under the write layer between two of its writes. */
         var afterBatch: () -> Unit = {}
 
+        /** The account a group made by an insert ends up in; null is the account the insert named. */
+        var newGroupLandsIn: ContactAccount? = null
+
+        /** What a delete does: remove the row and say 1 (the default), say 0 and leave it, or throw. */
+        var deleteBehaviour = "removes"
+
+        /** The phone's default account for new contacts is a cloud account (Android 16). */
+        var cloudDefault = false
+
         fun raw(id: Long, account: ContactAccount, contact: Long = id, otherProfile: Boolean = false) {
             raws[id] = RawRef(id, account, otherProfile)
             contacts[contact] = contacts[contact].orEmpty() + id
@@ -54,15 +63,33 @@ class PeopleWriterTest {
         override fun policy() = policy
         override fun isOtherProfile(contactId: Long) = contactId in otherProfileContacts
         override fun mayWrite() = held
+        override fun newContactsGoToCloud() = cloudDefault
         override fun rawContactsOf(contactId: Long) = contacts[contactId].orEmpty().mapNotNull { raws[it] }
         override fun rawContacts(ids: List<Long>) = ids.mapNotNull { raws[it] }.associateBy { it.id }
         override fun dataOwners(dataIds: List<Long>) = dataIds.filter { it in owners }.associateWith { owners.getValue(it) }
         override fun group(groupId: Long) = groups[groupId]
         override fun isMember(rawId: Long, groupId: Long) = (rawId to groupId) in memberships
 
-        override fun insert(uri: String, values: Map<String, Any?>): Long? { calls += Call.Insert(uri, values); return nextId++ }
+        override fun insert(uri: String, values: Map<String, Any?>): Long? {
+            calls += Call.Insert(uri, values)
+            val id = nextId++
+            if (uri == GROUPS) {
+                groups[id] = ContactGroup(id, values["title"] as String, newGroupLandsIn ?: ContactAccount(values["account_name"] as String?, values["account_type"] as String?), 0)
+            }
+            return id
+        }
         override fun update(uri: String, values: Map<String, Any?>, where: String?, args: List<String>): Int { calls += Call.Update(uri, values, where, args); return 1 }
-        override fun delete(uri: String, where: String?, args: List<String>): Int { calls += Call.Delete(uri, where, args); return 1 }
+        override fun delete(uri: String, where: String?, args: List<String>): Int {
+            calls += Call.Delete(uri, where, args)
+            when (deleteBehaviour) {
+                "throws" -> error("the provider refused the delete")
+                "removes nothing" -> return 0
+            }
+            val id = uri.substringAfterLast('/').substringBefore('?').toLongOrNull()
+            if (uri.startsWith("$RAW/")) raws.remove(id)
+            if (uri.startsWith("$GROUPS/")) groups.remove(id)
+            return 1
+        }
         override fun applyBatch(rows: List<RowWrite>): List<Long?> {
             calls += Call.Batch(rows)
             val made = rows.map { row ->
@@ -151,24 +178,25 @@ class PeopleWriterTest {
     }
 
     @Test fun aNewContactThePhoneFilesUnderAnotherAccountIsTakenBackAndTheSaveFails() {
-        // The provider put the new raw contact somewhere other than where it was asked to (a phone whose default account
-        // is a cloud account): that one row is deleted again, nothing more is written — no photo — and the save fails.
+        // The provider put the new raw contact somewhere other than where it was asked to: that one row is deleted
+        // again, nothing more is written — no photo — and the save fails, saying what happened.
         val fake = FakeContacts().apply { newRawLandsIn = work }
-        val result = PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact, JPEG)
-        assertEquals(WriteResult.Failed("the phone filed it under ${work.name}, not the phone; it was taken back"), result)
+        val why = "the phone filed it under ${work.id}, not the phone (no account); it was taken back"
+        assertEquals(WriteResult.Failed(why, takenBack = true), PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact, JPEG))
         assertEquals(listOf(newContactBatch(phone), Call.Delete("$RAW/100", null, emptyList())), fake.calls)
-        assertEquals(listOf("write insert raw=100: failed the phone filed it under ${work.name}, not the phone; it was taken back"), fake.lines)
+        assertEquals(listOf("write delete raw=100: ok (taken back)", "write insert raw=100: failed $why"), fake.lines)
+        assertTrue("the row is gone", 100L !in fake.raws)
     }
 
     @Test fun aNewContactFiledUnderAnotherAccountIsTakenBackEvenWhenPeopleMayWriteThatAccount() {
         // "Save to" said the phone; landing in an allowed account is still not what was asked.
         val fake = FakeContacts(allowed = setOf(personal)).apply { newRawLandsIn = personal }
-        assertTrue(PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact) is WriteResult.Failed)
+        assertEquals(true, (PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact) as WriteResult.Failed).takenBack)
         assertEquals(listOf(newContactBatch(phone), Call.Delete("$RAW/100", null, emptyList())), fake.calls)
         // And the other way round: asked for the allowed account, filed on the phone.
         val other = FakeContacts(allowed = setOf(personal)).apply { newRawLandsIn = phone }
         assertEquals(
-            WriteResult.Failed("the phone filed it under the phone, not ${personal.name}; it was taken back"),
+            WriteResult.Failed("the phone filed it under the phone (no account), not ${personal.id}; it was taken back", takenBack = true),
             PeopleWrites(other).create(personal, NewContactSource.EDITOR, newContact),
         )
         assertEquals(listOf(newContactBatch(personal), Call.Delete("$RAW/100", null, emptyList())), other.calls)
@@ -178,10 +206,83 @@ class PeopleWriterTest {
         val fake = FakeContacts()
         fake.afterBatch = { fake.raws.remove(100) }
         assertEquals(
-            WriteResult.Failed("the new contact could not be read back; it was taken back"),
+            WriteResult.Failed("the new contact could not be read back; it was taken back", takenBack = true),
             PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact, JPEG),
         )
         assertEquals(listOf(newContactBatch(phone), Call.Delete("$RAW/100", null, emptyList())), fake.calls)
+    }
+
+    @Test fun aTakeBackThatFailsSaysTheContactIsStillThere() {
+        // The delete throws, or removes nothing: the result and the line say the row was LEFT, and where — never "taken
+        // back" (adversarial review, finding 1).
+        for (behaviour in listOf("throws", "removes nothing")) {
+            val fake = FakeContacts().apply { newRawLandsIn = work; deleteBehaviour = behaviour }
+            val result = PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact, JPEG) as WriteResult.Failed
+            assertEquals(behaviour, 100L, result.leftBehind)
+            assertEquals(behaviour, false, result.takenBack)
+            assertTrue(behaviour, result.error.endsWith("it could NOT be taken back - still in ${work.id}"))
+            assertTrue(behaviour, fake.lines.last().endsWith("it could NOT be taken back - still in ${work.id}"))
+            assertTrue(behaviour, fake.lines.none { "it was taken back" in it || "ok" in it.substringAfter(": ").take(2) })
+            assertEquals(behaviour, listOf(newContactBatch(phone), Call.Delete("$RAW/100", null, emptyList())), fake.calls)
+        }
+    }
+
+    @Test fun aNewContactOnAPhoneWhoseMakerNamesItsLocalAccountIsNotTakenBack() {
+        // The policy's own rule decides "the phone": asked for the device's local account, stored as exactly that.
+        val maker = ContactAccount("vnd.sec.contact.phone", "vnd.sec.contact.phone")
+        val fake = FakeContacts().apply { policy = EditPolicy(maker, emptySet()) }
+        assertEquals(WriteResult.Ok(rawId = 100), PeopleWrites(fake).create(maker, NewContactSource.EDITOR, newContact))
+        assertEquals(listOf<Call>(newContactBatch(maker)), fake.calls)
+        // A NULL / NULL landing on such a phone is NOT its local account: taken back.
+        val odd = FakeContacts().apply { policy = EditPolicy(maker, emptySet()); newRawLandsIn = phone }
+        assertEquals(true, (PeopleWrites(odd).create(maker, NewContactSource.EDITOR, newContact) as WriteResult.Failed).takenBack)
+    }
+
+    @Test fun aPhoneWhoseDefaultAccountIsACloudOneRefusesASaveToThePhoneBeforeAnythingIsWritten() {
+        val fake = FakeContacts(allowed = setOf(personal)).apply { cloudDefault = true }
+        val result = PeopleWrites(fake).create(phone, NewContactSource.EDITOR, newContact, JPEG)
+        assertEquals(WriteResult.Failed(PeopleWrites.CLOUD_DEFAULT, cloudDefault = true), result)
+        assertNothingWritten(fake)
+        assertEquals(listOf("write insert raw=new: failed ${PeopleWrites.CLOUD_DEFAULT}"), fake.lines)
+        // A save to an ALLOWED account is not the phone's to refuse on that ground.
+        assertEquals(WriteResult.Ok(rawId = 100), PeopleWrites(fake).create(personal, NewContactSource.EDITOR, newContact))
+    }
+
+    @Test fun aSimImportStopsAtTheFirstContactThePhoneFilesElsewhere() {
+        // One row written and taken back is enough to know: the next entry would be filed the same way.
+        val fake = FakeContacts().apply { newRawLandsIn = work }
+        val result = PeopleWrites(fake).importSim(listOf(SimContact(0, "Sim Bob", "5550002"), SimContact(1, "Sim Cy", "5550004"), SimContact(2, "Sim Di", "5550006")))
+        assertEquals(true, (result as WriteResult.Failed).takenBack)
+        assertEquals("one batch and its take-back, no more", 2, fake.calls.size)
+        assertTrue(fake.calls[0] is Call.Batch)
+        assertEquals(Call.Delete("$RAW/100", null, emptyList()), fake.calls[1])
+        // And with the phone's default account a cloud one, nothing is written at all.
+        val cloud = FakeContacts().apply { cloudDefault = true }
+        assertEquals(true, (PeopleWrites(cloud).importSim(listOf(SimContact(0, "Sim Bob", "5550002"), SimContact(1, "Sim Cy", "5550004"))) as WriteResult.Failed).cloudDefault)
+        assertNothingWritten(cloud)
+    }
+
+    @Test fun aNewGroupThePhoneFilesUnderAnotherAccountIsTakenBack() {
+        val fake = FakeContacts().apply { newGroupLandsIn = work }
+        val result = PeopleWrites(fake).createGroup("Family", phone) as WriteResult.Failed
+        assertEquals(true, result.takenBack)
+        assertEquals(2, fake.calls.size)
+        assertEquals(Call.Delete("$GROUPS/100", null, emptyList()), fake.calls[1])
+        assertTrue("the group is gone", 100L !in fake.groups)
+        assertEquals("group create 100: failed the phone filed it under ${work.id}, not the phone (no account); it was taken back", fake.lines.last())
+        // A take-back that fails says so.
+        val stuck = FakeContacts().apply { newGroupLandsIn = work; deleteBehaviour = "removes nothing" }
+        assertEquals(100L, (PeopleWrites(stuck).createGroup("Family", phone) as WriteResult.Failed).leftBehind)
+        // And the cloud default refuses a phone group before anything is written.
+        val cloud = FakeContacts().apply { cloudDefault = true }
+        assertEquals(WriteResult.Failed(PeopleWrites.CLOUD_DEFAULT, cloudDefault = true), PeopleWrites(cloud).createGroup("Family", phone))
+        assertNothingWritten(cloud)
+    }
+
+    @Test fun aTakeBackNeedsAnIdAnInsertReallyReturned() {
+        assertEquals(GuardVerdict.Allowed, PeopleWriteGuard.check(TakeBack(100)))
+        assertEquals(GuardVerdict.Refused(0), PeopleWriteGuard.check(TakeBack(0)))
+        assertEquals(GuardVerdict.Refused(-1), PeopleWriteGuard.check(TakeBack(-1)))
     }
 
     // ---------------------------------------------------------------------------------------------- update

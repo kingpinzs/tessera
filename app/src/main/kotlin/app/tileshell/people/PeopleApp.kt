@@ -330,6 +330,9 @@ object PeopleNotices {
     val CANNOT_SAVE = PeopleNotice("People can't save this: it isn't allowed to change contacts.", NoticeAction.GRANT_CONTACTS)
     val NOT_ALLOWED = PeopleNotice("That account isn't on Can edit, so People can't change it.", NoticeAction.CAN_EDIT)
     val CONTACT_GONE = PeopleNotice("That contact is no longer on this phone.")
+    val CLOUD_DEFAULT = PeopleNotice("This phone saves new contacts to its default account, not to Phone. Allow that account in Can edit to save there.", NoticeAction.CAN_EDIT)
+    val FILED_ELSEWHERE = PeopleNotice("This phone filed that under another account, so People removed it again. Nothing was kept.")
+    val LEFT_BEHIND = PeopleNotice("This phone filed that under another account and People couldn't remove it. Look for it in your contacts.")
     val GROUP_GONE = PeopleNotice("That group is no longer on this phone.")
 
     fun failed(what: String) = PeopleNotice("People couldn't $what. Nothing was changed.")
@@ -338,7 +341,13 @@ object PeopleNotices {
     fun of(result: WriteResult, what: String): PeopleNotice? = when (result) {
         is WriteResult.Ok -> null
         WriteResult.Refused -> NOT_ALLOWED
-        is WriteResult.Failed -> if (result.needsGrant) CANNOT_SAVE else failed(what)
+        is WriteResult.Failed -> when {
+            result.needsGrant -> CANNOT_SAVE
+            result.cloudDefault -> CLOUD_DEFAULT
+            result.leftBehind != null -> LEFT_BEHIND
+            result.takenBack -> FILED_ELSEWHERE
+            else -> failed(what)
+        }
     }
 }
 
