@@ -64,9 +64,10 @@ class PeopleWriteGuardTest {
     fun `allowed - Link and Unlink on a read-only contact`() {
         assertTrue(allowed(PeopleWrite.Aggregation(lou, wade, together = true), nothingAllowed))
         assertTrue(allowed(PeopleWrite.Aggregation(lou, wade, together = false), nothingAllowed))
-        // Two read-only contacts, and another profile's: the exception row is local to the phone either way.
+        // Two read-only contacts of this profile: the exception row is local to the phone either way.
         assertTrue(allowed(PeopleWrite.Aggregation(wade, pia, together = true), nothingAllowed))
-        assertTrue(allowed(PeopleWrite.Aggregation(wade, wade.copy(id = 99, otherProfile = true), together = false), nothingAllowed))
+        assertTrue(allowed(PeopleWrite.Aggregation(wade, pia, together = false), nothingAllowed))
+        assertTrue(allowed(PeopleWrite.Aggregation(wade, wade.copy(id = 99), together = false), nothingAllowed))
     }
 
     @Test
@@ -149,6 +150,13 @@ class PeopleWriteGuardTest {
             assertTrue("$op", refused(PeopleWrite.RawContactRow(op, workProfile), allAllowed))
         }
         assertTrue(refused(PeopleWrite.DeleteContact(listOf(workProfile)), allAllowed))
+        // Link and Unlink too: an aggregation exception across profiles cannot exist (the fix round's ruling on F23).
+        for (together in listOf(true, false)) {
+            assertEquals(GuardVerdict.Refused(-1), PeopleWriteGuard.check(PeopleWrite.Aggregation(lou, workProfile, together), allAllowed))
+            assertEquals(GuardVerdict.Refused(-1), PeopleWriteGuard.check(PeopleWrite.Aggregation(workProfile, lou, together), allAllowed))
+            assertEquals(GuardVerdict.Refused(-1), PeopleWriteGuard.check(PeopleWrite.Aggregation(workProfile, workProfile, together), nothingAllowed))
+            assertEquals(GuardVerdict.Refused(99), PeopleWriteGuard.check(PeopleWrite.Aggregation(wade, wade.copy(id = 99, otherProfile = true), together), allAllowed))
+        }
         assertFalse(PeopleWriteGuard.editable(wade.copy(otherProfile = true), allAllowed))
     }
 
