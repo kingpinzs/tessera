@@ -526,14 +526,18 @@ private fun FieldLabel(text: String, accent: Boolean, tag: String, chevron: Bool
     }
 }
 
+private val ADD_GLYPH_BEARING = 2.dp
+
 /** P4.6: a "+ field" row — a 16-epx "+" and a 15-epx label at x 12, 44 epx tall. */
 @Composable
 private fun AddRow(word: String, tag: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val colors = LocalShellColors.current
     PressBox(modifier.fillMaxWidth().height(PeopleMetrics.ADD_ROW).testTag(tag), onClick = onClick) {
-        Row(Modifier.align(Alignment.CenterStart).padding(start = PeopleMetrics.SIDE), verticalAlignment = Alignment.CenterVertically) {
+        // P4.6's x 12 is where the "+" is drawn; the glyph's box starts its 2-epx side bearing earlier (QA: its ink read
+        // 14). The label stays where it was: the gap takes the 2 epx back.
+        Row(Modifier.align(Alignment.CenterStart).padding(start = PeopleMetrics.SIDE - ADD_GLYPH_BEARING), verticalAlignment = Alignment.CenterVertically) {
             PeopleGlyph(Glyph.ADD, 16f, colors.text)
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(8.dp + ADD_GLYPH_BEARING))
             BasicText(word, style = ShellType.body.copy(color = colors.text), maxLines = 1)
         }
     }
