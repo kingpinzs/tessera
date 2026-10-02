@@ -104,6 +104,16 @@ class PeopleWrites(private val port: ContactsPort) {
         }
         val rawId = runCatching { port.applyBatch(rows).firstOrNull() ?: error("no raw contact was made") }
             .getOrElse { return failedLine("insert", "new", describe(it)) }
+        // Where did the provider put it? A phone whose default account is a cloud account may file a row made for
+        // another account there. People never leaves a contact in an account it was not asked to write (Q-16-3): the
+        // row this op has just made — that row alone, by the id the insert returned — is taken back, and the save
+        // fails aloud (trust review A, "could not check" 2; gate review A, finding 3).
+        val landed = runCatching { port.rawContacts(listOf(rawId))[rawId]?.account }.getOrNull()
+        if (landed != account) {
+            runCatching { port.delete("$RAW_CONTACTS/$rawId") }
+            val why = if (landed == null) "the new contact could not be read back" else "the phone filed it under ${accountWord(landed)}, not ${accountWord(account)}"
+            return failedLine("insert", rawId.toString(), "$why; it was taken back")
+        }
         port.line("write insert raw=$rawId: ok")
         if (photo != null) {
             // The photo asks the guard itself, about the raw contact this op made as the provider holds it now.
@@ -440,6 +450,8 @@ class PeopleWrites(private val port: ContactsPort) {
         port.line("write $op raw=$raw: refused (not allowed)")
         return WriteResult.Refused
     }
+
+    private fun accountWord(account: ContactAccount): String = account.name?.takeIf { it.isNotBlank() } ?: "the phone"
 
     private fun failedLine(op: String, raw: String, error: String, needsGrant: Boolean = false): WriteResult.Failed {
         port.line("write $op raw=$raw: failed $error")
