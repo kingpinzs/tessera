@@ -49,14 +49,15 @@ if os.path.exists(pt):
 
 
 # E21/supplements.txt: a row whose whole run stands on an earlier build, plus one narrow run on the gate build for the
-# one thing a later fix changed. Tab-separated: <row> <narrow run's folder prefix> <why>.
+# one thing a later fix changed. Tab-separated: <row> <narrow run's folder prefix> <builds that count, comma-separated>
+# <why>. A row may have several lines (one per narrow run).
 supplements = {}
 st = os.path.join(QA, "E21", "supplements.txt")
 if os.path.exists(st):
     for line in open(st, encoding="utf-8"):
         if line.strip() and not line.startswith("#"):
-            row, prefix, why = line.rstrip("\n").split("\t")
-            supplements[row] = (prefix, why)
+            row, prefix, shas, why = line.rstrip("\n").split("\t")
+            supplements.setdefault(row, []).append((prefix, [x for x in shas.split(",") if x], why))
 
 
 def builds_for(row):
@@ -118,14 +119,16 @@ for row in ROWS:
         why = [w[1] for w in wants if w[1] and ev["apk"].startswith(w[0])]
         note = " (build %s: %s)" % (ev["apk"][:8], why[0][:110]) if why and not ev["apk"].startswith(GATE) else ""
         sup = ""
-        if row in supplements:
-            srs = [r for r in rs if r["dir"].startswith(supplements[row][0]) and r["sum"] and r["sum"][1] == "0" and r["fails"] == 0
-                   and r["apk"].startswith(GATE[:8])]
-            sup = (" + `%s/` on %s: %s passed, 0 failed — %s" % (srs[-1]["dir"], srs[-1]["apk"][:8], srs[-1]["sum"][0], supplements[row][1][:150])) if srs \
-                else " + **MISSING** the narrow run `%s…` on the gate build (%s)" % (supplements[row][0], supplements[row][1][:90])
-            if not srs:
-                open_rows.append(row)
-            others = [o for o in others if not (srs and srs[-1]["dir"] in o)]
+        for prefix, shas, swhy in supplements.get(row, []):
+            srs = [r for r in rs if r["dir"].startswith(prefix) and r is not ev and r["sum"] and r["sum"][1] == "0" and r["fails"] == 0
+                   and any(r["apk"].startswith(b) for b in shas)]
+            if srs:
+                sup += " + `%s/` on %s: %s passed, 0 failed — %s" % (srs[-1]["dir"], srs[-1]["apk"][:8], srs[-1]["sum"][0], swhy[:170])
+                others = [o for o in others if ("`%s`" % srs[-1]["dir"]) not in o]
+            else:
+                sup += " + **MISSING** a narrow run `%s…` with 0 failed on %s (%s)" % (prefix, "/".join(b[:8] for b in shas), swhy[:90])
+                if row not in open_rows:
+                    open_rows.append(row)
         print("| %s | `%s/` %s%s | %s passed, %s failed, %s recorded%s | %s |" % (
             row, ev["dir"], ev["at"], sup, ev["sum"][0], ev["sum"][1], ev["sum"][2], note, "; ".join(others) or "–"))
     elif row in partials and any(r["dir"] == partials[row][0] for r in rs):
