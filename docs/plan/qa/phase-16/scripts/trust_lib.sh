@@ -78,6 +78,12 @@ for block in re.split(r"(?=\n\s*NotificationRecord\()", text):
 PY
   assert_contains "N: the record has a public version" "publicVersion=Notification" "$(grep -o 'publicVersion=[A-Za-z]*' "$ROW_DIR/N-record.txt" | head -1)"
   record "N: the public version as dumpsys prints it" "$(grep -m1 'publicVersion=' "$ROW_DIR/N-record.txt" | sed 's/^ *//' | cut -c1-200)"
+  # What the public version SAYS (gate review B, note 2: its existence alone was asserted): the block dumpsys prints
+  # under "publicNotification=" holds the generic title and nothing of the event's.
+  sed -n '/publicNotification=/,$p' "$ROW_DIR/N-record.txt" > "$ROW_DIR/N-public.txt"
+  assert_contains "N: the public version's title is the generic one" "android.title=String (Calendar reminder)" "$(cat "$ROW_DIR/N-public.txt")"
+  assert_absent "N: … and it holds nothing of the event's title" "Trust N" "$(cat "$ROW_DIR/N-public.txt")"
+  assert_contains "N: (the private version does hold the title: the read can tell them apart)" "Trust N" "$(sed '/publicNotification=/,$d' "$ROW_DIR/N-record.txt")"
   # The PendingIntents the shell holds for its calendar parts: each immutable (0x04000000) and naming its component.
   adb shell dumpsys activity intents < /dev/null | tr -d '\r' > "$ROW_DIR/N-intents.txt"
   python3 - "$ROW_DIR/N-intents.txt" > "$ROW_DIR/N-pending.txt" <<'PY'
@@ -104,15 +110,23 @@ PY
   cat "$ROW_DIR/N-pending.txt" >> "$LOG"
   assert_ne "N: the shell holds PendingIntents for the reminder (the read found them)" "TOTAL 0 BAD 0" "$(tail -1 "$ROW_DIR/N-pending.txt")"
   assert_contains "N: every one is immutable and names its component" "BAD 0" "$(tail -1 "$ROW_DIR/N-pending.txt")"
-  assert_eq "N: the swipe's receiver is not exported" "0" "$(grep -c 'CalendarReminderDismissReceiver' "$REPO/docs/plan/qa/phase-03/exported-allowlist.txt")"
+  # Read from the BUILD (gate review B, note 12: the allow-list file was read): exported.py lists the APK's exported
+  # components; the row's header has tied that APK file to the one installed (apk match yes).
+  python3 "$REPO/docs/plan/qa/phase-03/scripts/exported.py" "$APK" "$REPO/docs/plan/qa/phase-03/exported-allowlist.txt" > "$ROW_DIR/N-exported.txt" 2>&1; echo $? > "$ROW_DIR/N-exported.rc"
+  assert_eq "N: exported.py passes on this APK" "0" "$(cat "$ROW_DIR/N-exported.rc")"
+  assert_contains "N: (the read lists receivers: the reminder receiver, which is exported, is in it)" "app.tileshell.calendar.CalendarReminderReceiver" "$(cat "$ROW_DIR/N-exported.txt")"
+  assert_absent "N: the swipe's receiver is not among the APK's exported components" "CalendarReminderDismissReceiver" "$(cat "$ROW_DIR/N-exported.txt")"
 
   # The flood: 100 forged pokes with nothing new due.
   local pid0 stamp0 state0 count0 t0 t1 slice crash0
   crash0="$(ccrashes)"
   pid0="$(trust_shell_pid)"; stamp0="$(trust_store_stamp)"; state0="$(trust_alert "$EV" state)"; count0="$(cnotes | grep -c 'title=')"
   mark="$(ring_mark)"; t0="$(date +%s)"
-  adb shell 'i=0; while [ $i -lt 100 ]; do am broadcast -a android.intent.action.EVENT_REMINDER -d content://com.android.calendar/1 -n app.tileshell/.calendar.CalendarReminderReceiver >/dev/null 2>&1; i=$((i+1)); done' < /dev/null
+  # Each broadcast's own answer is kept: "Broadcast completed" is the activity manager saying the receiver ran
+  # (gate review B, note 12: nothing showed the pokes were delivered).
+  adb shell 'i=0; while [ $i -lt 100 ]; do am broadcast -a android.intent.action.EVENT_REMINDER -d content://com.android.calendar/1 -n app.tileshell/.calendar.CalendarReminderReceiver 2>&1; i=$((i+1)); done' < /dev/null | tr -d '\r' > "$ROW_DIR/N-flood-broadcasts.txt"
   t1="$(date +%s)"; sleep 3
+  assert_eq "N: all 100 forged pokes were delivered (Broadcast completed)" "100" "$(grep -c 'Broadcast completed' "$ROW_DIR/N-flood-broadcasts.txt")"
   slice="$(ring_since "$mark")"; printf '%s\n' "$slice" > "$ROW_DIR/N-flood-slice.txt"
   record "N: 100 forged pokes took" "$(( t1 - t0 )) s; ring lines since: $(printf '%s\n' "$slice" | grep -c 'wall=')"
   assert_eq "N: the flood posts no new notification" "$count0" "$(cnotes | grep -c 'title=')"

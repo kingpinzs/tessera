@@ -76,6 +76,9 @@ row_begin() { # id description
     # produced it is not evidence of anything.
     echo "driver        $(basename "$0") blob $(git -C "$REPO" hash-object "$HERE/$(basename "$0")")"
     echo "harness       lib.sh blob $(git -C "$REPO" hash-object "$HERE/lib.sh")"
+    # The files a driver sources besides this one (STAMP_FILES, set by a phase's own include): two logs with the same
+    # driver blob can still come from different code (phase 16 gate review B, note 7).
+    for _f in ${STAMP_FILES:-}; do [ -f "$_f" ] && echo "include       $(basename "$_f") blob $(git -C "$REPO" hash-object "$_f")"; done
     echo "apk built     $(sha256sum "$APK" 2>/dev/null | cut -c1-16) $(stat -c%s "$APK" 2>/dev/null) bytes"
     echo "apk installed $(installed_apk_id)"
     echo "apk match     $(apk_matches)"

@@ -1,4 +1,3 @@
 # <apk md5 prefix> <row> <why its run on that build still counts>   (read by scripts/e21.sh)
-686506a7a7936b2e E25 the fix round changed nothing the row drives: feeds/PeopleFeed.kt, feeds/PeopleTileRules.kt and start/PeopleTileFace.kt are identical in b854c074 and 6e524e56 (git diff --stat b854c074..6e524e56 -- app/src/main lists none of them)
 3c1ad1e0e65bd919 * the first fix build: the later builds change only what rerun.txt's rows drive (git diff --stat 6e524e56..dacca941 -- app/src/main: PeopleListPage.kt's empty-search line, CommandMatcher.kt's calendar-add title strip, three position constants in CalendarWidgets.kt / CalendarViews.kt)
 6009c0b14a87039f * the second fix build: the third changes only what rerun.txt names for 2150eba0 (git diff --stat dacca941..a91837fd -- app/src/main: CalendarViews.kt's Agenda items and the empty-day x, CalendarWidgets.kt's one constant, PeopleEditorPage.kt's plus-glyph x)
