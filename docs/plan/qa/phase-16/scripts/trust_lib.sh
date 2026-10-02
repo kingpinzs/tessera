@@ -86,7 +86,10 @@ text = open(sys.argv[1], encoding='utf-8', errors='replace').read()
 n = bad = 0
 # dumpsys lists a package's records as "#0: PendingIntentRecord{…}" under "* <package>: n items" (run 1 split on "* ").
 for block in re.split(r"(?=\n\s*#\d+: PendingIntentRecord\{)", text):
-    if "app.tileshell" not in block: continue
+    # The record's OWN package line (run 3 took the calendar provider's last record: its block ends with the next
+    # package's "* app.tileshell: n items" header, and its component holds ".calendar.").
+    block = re.split(r"\n\s*\* \S+: \d+ items", block)[0]
+    if not re.search(r"packageName=app\.tileshell\b", block): continue
     req = re.search(r"requestIntent=(.*)", block)
     if not req or ".calendar." not in req.group(1): continue
     flags = re.search(r"flags=0x([0-9a-fA-F]+)", block)
