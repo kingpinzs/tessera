@@ -29,7 +29,7 @@ class AndroidMediaStorePort(context: Context) : MediaStorePort<IntentSender> {
         return runCatching { resolver.insert(collection(item.kind), values) }.getOrNull()?.toString()
     }
 
-    override fun openWrite(uri: String): OutputStream? = resolver.openOutputStream(Uri.parse(uri), "w")
+    override fun openWrite(uri: String, mode: String): OutputStream? = resolver.openOutputStream(Uri.parse(uri), mode)
 
     override fun publish(uri: String): Boolean = runCatching {
         resolver.update(Uri.parse(uri), ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null) == 1

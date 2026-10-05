@@ -43,15 +43,14 @@ import app.tileshell.ui.components.PressRow
 import app.tileshell.ui.tokens.ShellType
 import app.tileshell.video.catalogue.CatalogueItem
 import app.tileshell.video.catalogue.CatalogueNotice
+import app.tileshell.video.catalogue.CatalogueResult
 import app.tileshell.video.catalogue.TitleDetails
 import app.tileshell.video.handoff.ServicesTable
 import app.tileshell.video.handoff.StreamingHandoff
 import app.tileshell.video.handoff.StreamingService
 import app.tileshell.video.handoff.TitleRef
 import app.tileshell.BuildConfig
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /** A title's page, opened from Browse. */
 data class TitleSub(val item: CatalogueItem) : HubSub {
@@ -98,13 +97,13 @@ fun TitlePage(nav: VideoNav, model: BrowseModel, sub: TitleSub) {
         onDispose { runCatching { context.unregisterReceiver(receiver) } }
     }
     LaunchedEffect(sub) {
-        val r = withContext(Dispatchers.IO) { model.catalogue.lookup(sub.item.type, sub.item.id, sub.item.title) }
+        val r = VideoCalls.io("catalogue lookup", CatalogueResult<TitleDetails>(null, CatalogueNotice.NOT_ANSWERING, true)) { model.catalogue.lookup(sub.item.type, sub.item.id, sub.item.title) }
         details = r.value
         notice = r.notice
     }
     LaunchedEffect(details, packages, nav.resumes) {
         val d = details ?: return@LaunchedEffect
-        rows = withContext(Dispatchers.IO) {
+        rows = VideoCalls.io("watch rows", WatchRows(emptyList(), emptyList())) {
             val named = d.providers.mapNotNull { ServicesTable.match(it, BuildConfig.DEBUG) }.distinctBy { it.id }
             val (here, away) = named.partition { StreamingHandoff.installed(context, it) }
             // Each service the catalogue names that is not on the phone gets its line; it gets no row.
@@ -150,7 +149,7 @@ fun TitlePage(nav: VideoNav, model: BrowseModel, sub: TitleSub) {
                 for (service in r.installed) {
                     WatchRow(service) {
                         scope.launch {
-                            val opened = withContext(Dispatchers.IO) { StreamingHandoff.open(context, service, ref) }
+                            val opened = VideoCalls.io("hand-off", StreamingHandoff.Opened.NOT_INSTALLED) { StreamingHandoff.open(context, service, ref) }
                             if (opened == StreamingHandoff.Opened.NOT_INSTALLED) { gone = true; packages++ }
                         }
                     }

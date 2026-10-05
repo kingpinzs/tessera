@@ -1,8 +1,11 @@
 package app.tileshell.video
 
+import app.tileshell.video.server.PromptAnswer
+import app.tileshell.video.server.ServerConfig
 import app.tileshell.video.server.ServerItem
 import app.tileshell.video.server.ServerRules
 import app.tileshell.video.server.ServerState
+import app.tileshell.video.server.SignInAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -72,6 +75,62 @@ class ServerRulesTest {
         assertEquals("server 192.0.2.10:8096: insecure, asked", ServerRules.line(ServerRules.parse("http://192.0.2.10:8096")!!.label, "insecure, asked"))
     }
 
+    @Test fun `an insecure address is asked about, and only Continue lets a request be made`() {
+        val public = ServerRules.parse("http://192.0.2.10:8096")!!
+        // Just submitted: the prompt, and no request may be made.
+        assertEquals(SignInAction.ASK, ServerRules.signInAction(public, answer = null))
+        // Continue: the request. Cancel: nothing at all.
+        assertEquals(SignInAction.SEND, ServerRules.signInAction(public, PromptAnswer.CONTINUE))
+        assertEquals(SignInAction.NOTHING, ServerRules.signInAction(public, PromptAnswer.CANCEL))
+        // Every address the prompt rule names is asked about first, whatever its form.
+        for (typed in listOf("media.example.org", "nas", "http://[2001:db8::1]:8096", "8.8.8.8", "127.1", "2130706433")) {
+            val a = ServerRules.parse(typed)!!
+            assertTrue(typed, ServerRules.needsInsecurePrompt(a))
+            assertEquals(typed, SignInAction.ASK, ServerRules.signInAction(a, null))
+            assertEquals(typed, SignInAction.NOTHING, ServerRules.signInAction(a, PromptAnswer.CANCEL))
+        }
+        // A home address and an https one are not asked about: the request is made at once, and an answer changes nothing.
+        for (typed in listOf("10.0.2.2:8096", "192.168.1.10", "jellyfin.local", "https://media.example.org")) {
+            val a = ServerRules.parse(typed)!!
+            for (answer in listOf(null, PromptAnswer.CONTINUE, PromptAnswer.CANCEL)) assertEquals(typed, SignInAction.SEND, ServerRules.signInAction(a, answer))
+        }
+        // SEND is the only action that sends, and exactly one of the three per state.
+        assertEquals(listOf(SignInAction.ASK, SignInAction.SEND, SignInAction.NOTHING), SignInAction.entries)
+    }
+
+    @Test fun `only a debug build sends the sign-in to the QA pref's address`() {
+        val typed = "https://media.example.org"
+        // A release build is never redirected, whatever the pref holds.
+        assertEquals(typed, ServerRules.signInBase(false, "http://10.0.2.2:8097/", typed))
+        assertEquals(typed, ServerRules.signInBase(false, "http://attacker.example", typed))
+        assertEquals("http://10.0.2.2:8097", ServerRules.signInBase(true, "http://10.0.2.2:8097/", typed))
+        assertEquals("http://10.0.2.2:8097", ServerRules.signInBase(true, " http://10.0.2.2:8097 ", typed))
+        assertEquals(typed, ServerRules.signInBase(true, null, typed))
+        assertEquals(typed, ServerRules.signInBase(true, "  ", typed))
+        // Only an http(s) address redirects, as for the catalogue's pref.
+        assertEquals(typed, ServerRules.signInBase(true, "file:///sdcard/x", typed))
+        assertEquals(typed, ServerRules.signInBase(true, "10.0.2.2:8097", typed))
+    }
+
+    @Test fun `sign in again is prefilled with the saved server's scheme, host and port`() {
+        for (typed in listOf("https://media.example.org", "https://media.example.org:8920", "https://[2001:db8::1]:8920", "http://192.168.1.10", "nas.local:8097", "HTTPS://Media.Example.ORG/")) {
+            val first = ServerRules.parse(typed)!!
+            // What a sign-in saves for the pages: the label and the address as it was read.
+            val saved = ServerConfig(first.label, "qa", first.base)
+            val again = ServerRules.parse(ServerRules.signInAgainPrefill(saved))!!
+            assertEquals(typed, first.scheme, again.scheme)
+            assertEquals(typed, first.host, again.host)
+            assertEquals(typed, first.port, again.port)
+            assertEquals(typed, first.base, again.base)
+            // So an https server is never asked for its password over plain http.
+            assertEquals(typed, ServerRules.needsInsecurePrompt(first), ServerRules.needsInsecurePrompt(again))
+        }
+        assertEquals("https://media.example.org", ServerRules.signInAgainPrefill(ServerConfig("media.example.org", "qa", "https://media.example.org")))
+        assertEquals("", ServerRules.signInAgainPrefill(null))
+        // A file with no address (none was kept before this fix) falls back to the label.
+        assertEquals("10.0.2.2:8096", ServerRules.signInAgainPrefill(ServerConfig("10.0.2.2:8096", "qa", "")))
+    }
+
     @Test fun `the three states have their words and their lines`() {
         assertEquals("server 10.0.2.2:8096: connected", ServerRules.line("10.0.2.2:8096", ServerRules.stateOf(200).word))
         assertEquals("server 10.0.2.2:8096: unauthorised", ServerRules.line("10.0.2.2:8096", ServerRules.stateOf(401).word))
@@ -98,6 +157,28 @@ class ServerRulesTest {
         )
     }
 
+    @Test fun `no control character of any field reaches the sign-in header`() {
+        val everyControl = (0..0x1f).map { it.toChar() }.joinToString("") + "\u007f"
+        val header = ServerRules.authorization("Pix" + everyControl + "el", "abc" + everyControl + "-123", "0.1" + everyControl + ".0", "t0" + everyControl + "k")
+        assertEquals("MediaBrowser Client=\"Tessera\", Device=\"Pixel\", DeviceId=\"abc-123\", Version=\"0.1.0\", Token=\"t0k\"", header)
+        assertTrue(app.tileshell.net.HeaderText.isHeaderSafe(header))
+        // A carriage return is what HttpURLConnection refuses, quoting the whole header: none may be left.
+        assertFalse(ServerRules.authorization("Pixel\r", "d\r\n", "1", "tok\ren").contains('\r'))
+    }
+
+    @Test fun `a sign-in answer whose token is not a plain token is a failed sign-in`() {
+        fun answer(token: String) = app.tileshell.net.MiniJson.write(mapOf("User" to mapOf("Id" to "7e0a575717d34c8292ee80ac53cc1ee3"), "AccessToken" to token))
+        assertEquals("0123456789abcdef" to "7e0a575717d34c8292ee80ac53cc1ee3", ServerRules.parseSignIn(answer("0123456789abcdef")))
+        for (bad in listOf("abc\rdef", "abc\ndef", "abc\tdef", "abc def", "abc\"def", "abc\u007fdef", "abc\u0000def", "abcédef", "a,b", "a=b")) {
+            assertNull(bad.take(8), ServerRules.parseSignIn(answer(bad)))
+        }
+        // The user's id becomes part of an address: it is an id or the sign-in fails.
+        assertNull(ServerRules.parseSignIn("""{"User":{"Id":"u1&x=\r\ny"},"AccessToken":"0123456789abcdef"}"""))
+        assertNull(ServerRules.parseSignIn("""{"User":{"Id":"../Users"},"AccessToken":"0123456789abcdef"}"""))
+        // The line a failed sign-in writes holds the host and the words, and no part of the answer.
+        assertEquals("server 10.0.2.2:8096: sign-in answer not usable", ServerRules.line("10.0.2.2:8096", ServerRules.WORD_BAD_ANSWER))
+    }
+
     @Test fun `Jellyfin's sign-in and library answers are read`() {
         val signIn = """{"User":{"Name":"qa","Id":"7e0a575717d34c8292ee80ac53cc1ee3"},"SessionInfo":{},"AccessToken":"0123456789abcdef0123456789abcdef","ServerId":"x"}"""
         assertEquals("0123456789abcdef0123456789abcdef" to "7e0a575717d34c8292ee80ac53cc1ee3", ServerRules.parseSignIn(signIn))
@@ -115,6 +196,23 @@ class ServerRulesTest {
         val url = ServerRules.streamUrl("http://10.0.2.2:8096", "e90356d9dbdedc30a27710927ef3ac87")
         assertEquals("http://10.0.2.2:8096/Videos/e90356d9dbdedc30a27710927ef3ac87/stream?static=true", url)
         assertEquals("http://10.0.2.2:8096/Videos/e90356d9dbdedc30a27710927ef3ac87/stream", ServerRules.withoutQuery("$url&ApiKey=SECRET"))
+    }
+
+    @Test fun `the address the player reports has no ApiKey`() {
+        val plain = "http://10.0.2.2:8096/Videos/e90356d9dbdedc30a27710927ef3ac87/stream"
+        assertEquals("$plain?static=true", ServerRules.reportedUrl("$plain?static=true&ApiKey=QA-SECRET"))
+        assertEquals("$plain?static=true", ServerRules.reportedUrl("$plain?ApiKey=QA-SECRET&static=true"))
+        assertEquals(plain, ServerRules.reportedUrl("$plain?ApiKey=QA-SECRET"))
+        assertEquals("$plain?a=1&b=2#t=5", ServerRules.reportedUrl("$plain?a=1&apikey=QA-SECRET&b=2&api_key=QA-SECRET#t=5"))
+        assertEquals("$plain#frag", ServerRules.reportedUrl("$plain?API_KEY=QA-SECRET#frag"))
+        assertEquals(plain, ServerRules.reportedUrl("$plain?Api%4Bey=QA-SECRET"))
+        // What has no key is reported as it is.
+        for (same in listOf(plain, "$plain?static=true", "$plain?static=true&MyApiKey=x#ApiKey=y", "content://media/external/video/media/4", "")) {
+            assertEquals(same, ServerRules.reportedUrl(same))
+        }
+        for (url in listOf("$plain?static=true&ApiKey=QA-SECRET", "$plain?ApiKey=QA-SECRET", "$plain?x=1&api_key=QA-SECRET#f")) {
+            assertFalse(url, ServerRules.reportedUrl(url).contains("QA-SECRET"))
+        }
     }
 
     @Test fun `the token may ride only on the saved server's own direct-play address`() {

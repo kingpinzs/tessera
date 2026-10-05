@@ -9,6 +9,8 @@ import app.tileshell.BuildConfig
 import app.tileshell.diag.Diagnostics
 import app.tileshell.net.CredentialStore
 import app.tileshell.net.FixedEndpoints
+import app.tileshell.net.HeaderText
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -30,16 +32,27 @@ object QaBases {
     }
 }
 
-/** One GET, off the main thread, with the project's 10-s timeouts. Nothing here logs: a URL may carry a query. */
+/**
+ * One GET or POST, off the main thread, with the project's 10-s timeouts. TRUST-TOUCHING: a request's address may carry
+ * a query and its headers a credential, so nothing here logs either, and NO exception leaves a call — the platform's
+ * IllegalArgumentException for a header or an address it refuses quotes the whole value in its message (B-1). Such a
+ * request is "no connection", and its one line names the exception's class.
+ */
 object VideoHttp {
     const val TIMEOUT_MS = 10_000
 
-    fun get(url: String, headers: Map<String, String>): FetchOutcome = send(url, headers, null)
+    /** The longest JSON answer kept (B-9): a whole library's list fits; a server that streams without end does not. */
+    const val MAX_JSON_BYTES = 16L * 1024 * 1024
+
+    /** The longest image kept (B-9): a poster or a thumbnail is a few hundred kilobytes. */
+    const val MAX_IMAGE_BYTES = 8L * 1024 * 1024
+
+    fun get(url: String, headers: Map<String, String>, maxBytes: Long = MAX_JSON_BYTES): FetchOutcome = send(url, headers, null, maxBytes)
 
     /** A JSON POST. The body may hold a password: it goes to the socket and nowhere else. */
-    fun post(url: String, headers: Map<String, String>, json: String): FetchOutcome = send(url, headers, json)
+    fun post(url: String, headers: Map<String, String>, json: String, maxBytes: Long = MAX_JSON_BYTES): FetchOutcome = send(url, headers, json, maxBytes)
 
-    private fun send(url: String, headers: Map<String, String>, json: String?): FetchOutcome {
+    private fun send(url: String, headers: Map<String, String>, json: String?, maxBytes: Long): FetchOutcome {
         val conn = try {
             URL(url).openConnection() as HttpURLConnection
         } catch (e: Exception) {
@@ -57,24 +70,57 @@ object VideoHttp {
                 conn.outputStream.use { it.write(json.toByteArray(Charsets.UTF_8)) }
             }
             val code = conn.responseCode
-            if (code in 200..299) FetchOutcome.Answer(conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() })
+            if (code in 200..299) readCapped(conn, maxBytes)?.let { FetchOutcome.Answer(String(it, Charsets.UTF_8)) } ?: FetchOutcome.TooLarge
             else FetchOutcome.Status(code, conn.getHeaderField("Retry-After")?.trim()?.toLongOrNull())
         } catch (e: IOException) {
+            FetchOutcome.NoConnection
+        } catch (e: RuntimeException) {
+            notSent(e)
             FetchOutcome.NoConnection
         } finally {
             conn.disconnect()
         }
     }
 
-    fun bytes(url: String, headers: Map<String, String> = emptyMap()): ByteArray? {
+    /**
+     * The answer's body, or null when it is longer than [maxBytes] (B-9): by its declared length before a byte is read,
+     * else as soon as the count passes the cap — so a server cannot make the hub hold an answer without end.
+     */
+    private fun readCapped(conn: HttpURLConnection, maxBytes: Long): ByteArray? {
+        var over = conn.contentLengthLong > maxBytes
+        val out = ByteArrayOutputStream()
+        if (!over) {
+            conn.inputStream.use { input ->
+                val buffer = ByteArray(16 * 1024)
+                while (true) {
+                    val n = input.read(buffer)
+                    if (n < 0) break
+                    if (out.size() + n.toLong() > maxBytes) { over = true; break }
+                    out.write(buffer, 0, n)
+                }
+            }
+        }
+        if (over) Diagnostics.add("video", "http: answer over the size cap")
+        return if (over) null else out.toByteArray()
+    }
+
+    /** The class only — never `e.message`, which quotes the header or the address that was refused. */
+    private fun notSent(e: RuntimeException) {
+        Diagnostics.add("video", "http: request not sent (${e.javaClass.simpleName})")
+    }
+
+    fun bytes(url: String, headers: Map<String, String> = emptyMap(), maxBytes: Long = MAX_IMAGE_BYTES): ByteArray? {
         val conn = try { URL(url).openConnection() as HttpURLConnection } catch (e: Exception) { return null }
         return try {
             conn.connectTimeout = TIMEOUT_MS
             conn.readTimeout = TIMEOUT_MS
             conn.instanceFollowRedirects = headers.isEmpty()   // headers are never carried to a redirect's host
             for ((k, v) in headers) conn.setRequestProperty(k, v)
-            if (conn.responseCode in 200..299) conn.inputStream.use { it.readBytes() } else null
+            if (conn.responseCode in 200..299) readCapped(conn, maxBytes) else null
         } catch (e: IOException) {
+            null
+        } catch (e: RuntimeException) {
+            notSent(e)
             null
         } finally {
             conn.disconnect()
@@ -143,6 +189,11 @@ class Catalogue(context: Context) {
         }
         val entry = cache.read(kind, key)
         val cached = entry?.let { parse(it.body) }
+        if (!HeaderText.isHeaderSafe(token)) {
+            // A key saved before the key page refused such values: it is never put into a header (B-1).
+            if (!quiet) Diagnostics.add("video", CatalogueRules.LINE_UNUSABLE_KEY)
+            return CatalogueResult(cached, CatalogueNotice.BAD_KEY, true)
+        }
         if (!VideoHttp.online(app)) {
             say("offline")
             return CatalogueResult(cached, CatalogueNotice.OFFLINE, true)
@@ -174,8 +225,19 @@ class Catalogue(context: Context) {
         return fresh
     }
 
-    /** The image base last read for this API base, with no request. */
-    private fun imageBase(): String? = cache.read("config", sha1(apiBase()))?.let { TmdbParse.imageBase(it.body) }
+    /**
+     * The image base last read for this API base, with no request — and only one posters may be fetched from
+     * ([CatalogueRules.posterBase]; B-6): outside a debug build, TMDB's own image host. A refused base is said once.
+     */
+    private fun imageBase(): String? {
+        val named = cache.read("config", sha1(apiBase()))?.let { TmdbParse.imageBase(it.body) } ?: return null
+        val allowed = CatalogueRules.posterBase(BuildConfig.DEBUG, named, FixedEndpoints.TMDB_IMAGES)
+        if (allowed == null && !saidImageBaseRefused) {
+            saidImageBaseRefused = true
+            Diagnostics.add("video", CatalogueRules.LINE_IMAGE_BASE_REFUSED)
+        }
+        return allowed
+    }
 
     /**
      * A poster, from the image cache or the network (no token is sent: the image host is another host). Null when the
@@ -215,6 +277,9 @@ class Catalogue(context: Context) {
 
     companion object {
         const val DIR = "video_catalogue"
+
+        /** The refusal's line is written once per process, not once per poster. */
+        @Volatile private var saidImageBaseRefused = false
         private const val LAST_QUERY = "last_query.txt"
     }
 }

@@ -130,6 +130,22 @@ class ServicesTableTest {
         assertNull(ServicesTable.titleUrl(service("hulu"), TitleType.TV, mapOf("huluMovie" to "uuid-m")))
     }
 
+    @Test fun `an id cannot climb out of its place in the address`() {
+        fun max(value: String) = ServicesTable.titleUrl(service("max"), TitleType.MOVIE, mapOf("hboMax" to value))
+        assertEquals("https://play.hbomax.com/movie/abc-123", max("movie/abc-123"))
+        // A `..` segment anywhere, and a leading slash, would steer the link to another path of the service's host.
+        for (bad in listOf("..", "../account", "movie/../account", "movie/..", "movie/../../x", "/account", "//attacker.example/x", "/")) {
+            assertNull(bad, max(bad))
+        }
+        assertNull(ServicesTable.titleUrl(service("netflix"), TitleType.MOVIE, mapOf("netflix" to "../browse")))
+        assertNull(ServicesTable.titleUrl(service("disney-plus"), TitleType.MOVIE, mapOf("disneyBrowse" to "entity-9/../../account")))
+        // Dots that are not a `..` segment are an id's own.
+        assertEquals("https://play.hbomax.com/movie/a..b", max("movie/a..b"))
+        assertEquals("https://www.netflix.com/title/80.1", ServicesTable.titleUrl(service("netflix"), TitleType.MOVIE, mapOf("netflix" to "80.1")))
+        // With no usable id the row falls back to the service's search.
+        assertTrue(ServicesTable.plan(service("max"), TitleRef(TitleType.MOVIE, 1, "Dune", "2021"), mapOf("hboMax" to "movie/../account")) is HandoffPlan.Search)
+    }
+
     @Test fun `a title with odd characters is encoded into the search`() {
         val odd = TitleRef(TitleType.MOVIE, 1, "Amélie & Co: #1?", "2001")
         assertEquals("https://qa-flix.test/search?q=Am%C3%A9lie+%26+Co%3A+%231%3F+2001", ServicesTable.searchUrl(service("qa-flix"), odd))

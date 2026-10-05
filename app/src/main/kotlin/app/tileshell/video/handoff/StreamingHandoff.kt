@@ -148,6 +148,10 @@ object StreamingHandoff {
                     Diagnostics.add("video", "wikidata: error connect")
                     cached.orEmpty()
                 }
+                FetchOutcome.TooLarge -> {
+                    Diagnostics.add("video", "wikidata: error too large")
+                    cached.orEmpty()
+                }
             }
         }
         Diagnostics.add("video", ServicesTable.idLine(service, title, ServicesTable.titleUrl(service, title.type, ids) != null))

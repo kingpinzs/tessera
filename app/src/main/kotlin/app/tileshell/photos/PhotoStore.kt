@@ -193,11 +193,7 @@ object PhotoStore {
         }.getOrNull()?.takeIf { uriOf(it).toString() == canonical(uri) }
     }
 
-    /** `content://media/external/images/media/<id>` for any volume spelling of the same row (`external_primary`). */
-    private fun canonical(uri: Uri): String {
-        val segments = uri.pathSegments
-        return if (segments.size == 4) "content://media/external/${segments[1]}/${segments[2]}/${segments[3]}" else uri.toString()
-    }
+    private fun canonical(uri: Uri): String = MediaRowUri.canonical(uri.toString(), uri.pathSegments)
 
     fun uriOf(item: MediaEntry): Uri = ContentUris.withAppendedId(
         if (item.video) MediaStore.Video.Media.EXTERNAL_CONTENT_URI else MediaStore.Images.Media.EXTERNAL_CONTENT_URI,

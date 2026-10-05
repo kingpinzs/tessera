@@ -99,6 +99,7 @@
     <application
         android:name=".ShellApp"
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:label="@string/app_name"
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.TileShell">
@@ -653,7 +654,8 @@
         <!--
           The viewer other apps reach: VIEW on an image content URI. Standard launch mode and no task affinity of its
           own, so it runs in its caller's task and is not an app in the catalog (L14-2). On the exported allow-list:
-          the intent only names the one picture shown, read under the caller's grant.
+          the intent only names the one picture; it is read with the shell's identity, so another app's URI is shown
+          only when the platform says that app could read it itself, and then read-only (photos/ViewerRules.kt).
         -->
         <activity
             android:name=".photos.ViewerActivity"
@@ -759,7 +761,9 @@
         <!--
           The one player of the shell: what Photos and the hub start by explicit component, and what VIEW video/* from
           another app opens, for content and http(s) sources (plain http plays: the owner's ruling Q-D (a)). Standard
-          launch mode in :video, in its caller's task. On the exported allow-list: the intent only names what is played.
+          launch mode in :video, in its caller's task. On the exported allow-list: the intent only names what is played,
+          and the activity checks who started it (PlayerAccess): a file source and the autoplay queue are the shell's
+          own uid's alone, and another app's content source is opened only when that app could read it itself.
           Rotation follows the video, so no portrait lock.
         -->
         <activity

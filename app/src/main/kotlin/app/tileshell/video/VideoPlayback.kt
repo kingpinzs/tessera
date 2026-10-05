@@ -1,6 +1,7 @@
 package app.tileshell.video
 
 import android.content.Context
+import android.net.Uri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.datasource.DataSource
@@ -13,6 +14,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.session.MediaSession
 import app.tileshell.diag.Diagnostics
+import app.tileshell.video.server.ServerRules
 
 /**
  * The video player's own ExoPlayer and its own Media3 session (Decisions "the video player owns its own ExoPlayer";
@@ -74,7 +76,14 @@ class VideoPlayback private constructor(context: Context, resolver: ResolvingDat
          */
         fun acquire(context: Context, resolver: ((DataSpec) -> DataSpec)? = null): VideoPlayback {
             live?.release()
-            val r = resolver?.let { fn -> ResolvingDataSource.Resolver { spec -> fn(spec) } }
+            val r = resolver?.let { fn ->
+                object : ResolvingDataSource.Resolver {
+                    override fun resolveDataSpec(dataSpec: DataSpec): DataSpec = fn(dataSpec)
+
+                    /** B-5: what the player reports as the opened address never carries the token [fn] added. */
+                    override fun resolveReportedUri(uri: Uri): Uri = Uri.parse(ServerRules.reportedUrl(uri.toString()))
+                }
+            }
             return VideoPlayback(context.applicationContext, r).also { live = it }
         }
     }
