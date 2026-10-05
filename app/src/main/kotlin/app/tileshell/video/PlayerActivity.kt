@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
+import android.os.Process
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.view.SurfaceView
@@ -75,10 +76,15 @@ interface PlayerActions {
 
 /**
  * The one player of the shell (phase 17, Q4 A; r3 D6): what a video tapped in Photos, in the hub or (phase 18) in Files
- * plays in, and what `ACTION_VIEW` on a video from another app opens — `content://` and `http(s)://` sources, and
- * `file://` only for the shell's own files. A helper in standard launch mode in `:video`, so it runs in its caller's
- * task and is not a catalog entry. Exported, so it is on qa/phase-03/exported-allowlist.txt: the intent only names what
- * is played.
+ * plays in, and what `ACTION_VIEW` on a video from another app opens. A helper in standard launch mode in `:video`, so
+ * it runs in its caller's task and is not a catalog entry. Exported, so it is on qa/phase-03/exported-allowlist.txt.
+ *
+ * TRUST-TOUCHING (C-M4): a source is opened with the shell's identity, so who started the player decides what it may
+ * name ([PlayerAccess], read once in `onCreate` from `getLaunchedFromUid()`): `http(s)://` from anyone; `file://` —
+ * under the shell's own directories only — and `EXTRA_QUEUE` from the shell's own uid alone; `content://` from the
+ * shell, and from another app only when that app could read it itself ([AndroidPlayerCaller]), else "Can't play this
+ * address" and `[video] refused source: no grant` with nothing opened. Caller-supplied text reaches a line or the
+ * session only through [PlayerRules.lineText].
  *
  * The player and its session live from `onStart` to `onStop` ([VideoPlayback]), so no session outlives the page.
  */
@@ -94,6 +100,9 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
     private var subtitle: Uri? = null
     private var lookedUp = false
     private var started = false
+
+    /** True when the shell itself started this activity; false for another app and when Android does not say. */
+    private var ownCaller = false
 
     private var playback: VideoPlayback? = null
     private var surface: SurfaceView? = null
@@ -113,7 +122,10 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
         ui.zoomFill = prefs.getBoolean(KEY_ZOOM, false)
         ui.repeat = prefs.getBoolean(KEY_REPEAT, false)
         ui.autoplay = prefs.getBoolean(KEY_AUTOPLAY, false)
-        queue = runCatching { intent?.getLongArrayExtra(EXTRA_QUEUE) }.getOrNull()
+        ownCaller = PlayerAccess.isOwnUid(runCatching { launchedFromUid }.getOrDefault(PlayerAccess.UNKNOWN_UID), Process.myUid())
+        // Autoplay's queue names MediaStore ids the shell would open with its own access: the shell's own launches only.
+        queue = if (PlayerAccess.queueHonoured(ownCaller)) runCatching { intent?.getLongArrayExtra(EXTRA_QUEUE) }.getOrNull() else null
+        if (!ownCaller && runCatching { intent?.hasExtra(EXTRA_QUEUE) }.getOrNull() == true) Diagnostics.add("video", "queue ignored: not the shell's own launch")
         open(intent?.data)
         setShellAppContent(statusBar = false) { PlayerScreen(ui, this) }
     }
@@ -132,11 +144,24 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
         ui.durationMs = 0L
         ui.hasText = false
         ui.cue = ""
-        val path = source?.path?.let { p -> if (source.scheme.equals("file", true)) runCatching { File(p).canonicalPath }.getOrDefault(p) else p }
-        val req = PlayerRules.classify(source?.scheme, source?.encodedAuthority, path, ownRoots())
+        val scheme = source?.scheme
+        val path = PlayerRules.sourcePath(scheme, source?.path) { File(it).canonicalPath }
+        // Another app's content source: may that app read it itself? Asked for nothing else.
+        var callerMayRead = false
+        if (source != null && !ownCaller && scheme.equals("content", ignoreCase = true)) {
+            val read = PlayerAccess.callerMayRead(AndroidPlayerCaller(this, source))
+            callerMayRead = read != CallerRead.NONE
+            if (callerMayRead) Diagnostics.add("video", PlayerAccess.line(read))
+        }
+        val req = PlayerRules.request(scheme, source?.encodedAuthority, path, ownRoots(), ownCaller, callerMayRead)
         request = req
-        if (req is PlayerRequest.Unsupported) {
-            val f = PlayerRules.unsupported(req)
+        val refusal = when (req) {
+            is PlayerRequest.Unsupported -> PlayerRules.unsupported(req)
+            PlayerRequest.Refused -> PlayerRules.refused
+            is PlayerRequest.Play -> null
+        }
+        if (refusal != null) {
+            val f = refusal
             Diagnostics.add("video", f.line)
             ui.failure = f
             ui.hasSurface = false
@@ -250,10 +275,9 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
         p.exo.prepare()
     }
 
+    /** Bounded and free of control characters, whoever sent `EXTRA_TITLE` (B-11, C-L7). */
     private fun titleOf(req: PlayerRequest.Play): String =
-        runCatching { intent?.getStringExtra(EXTRA_TITLE) }.getOrNull()?.takeIf { it.isNotBlank() }
-            ?: displayName?.substringBeforeLast('.')?.takeIf { it.isNotBlank() }
-            ?: req.name
+        PlayerRules.sessionTitle(runCatching { intent?.getStringExtra(EXTRA_TITLE) }.getOrNull(), displayName, req.name)
 
     private val listener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -421,7 +445,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
     }
 
     companion object {
-        /** The ids of the My videos group the video was opened from, in order (Autoplay). */
+        /** The ids of the My videos group the video was opened from, in order (Autoplay). The shell's own launches only. */
         const val EXTRA_QUEUE = "queue"
 
         /** The title the session shows for a source whose address says nothing (a media-server item). */

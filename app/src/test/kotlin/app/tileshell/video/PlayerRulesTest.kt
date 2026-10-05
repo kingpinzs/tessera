@@ -47,6 +47,83 @@ class PlayerRulesTest {
         assertEquals("example.org:8096", r.host)
     }
 
+    @Test fun `a password holding an at sign never reaches the host label`() {
+        // C-L6: everything before the LAST @ is the user part, whatever it holds.
+        assertEquals("example.org:8096", (classify("http://user:p@ss@example.org:8096/v.mp4") as PlayerRequest.Play).host)
+        assertEquals("example.org", PlayerRules.hostLabel("user:p@ss:w@rd@example.org"))
+        assertEquals("example.org", PlayerRules.hostLabel("@example.org"))
+        val failure = PlayerRules.failure(PlayerErrorKind.UNREACHABLE, classify("http://u:hunter@2@example.org/v.mp4") as PlayerRequest.Play, null, null)
+        assertEquals("cannot reach example.org", failure.line)
+        // An address that is all user part has no host: it is not played.
+        assertEquals(PlayerRequest.Unsupported("http"), PlayerRules.classify("http", "user:pw@", "/x", roots))
+    }
+
+    @Test fun `another provider's path that only looks like MediaStore's is not a MediaStore id`() {
+        // C-L6: the id starts provider queries with the shell's own access — only the real MediaStore authority has one.
+        for (uri in listOf(
+            "content://com.attacker.files/external/video/media/7", "content://media.attacker/external/video/media/7",
+            "content://mediax/external/video/media/7", "content://10@media/external/video/media/7", "content://MEDIA/external/video/media/7",
+        )) {
+            assertNull(uri, (classify(uri) as PlayerRequest.Play).mediaStoreId)
+        }
+        assertNull((classify("content://media/x/external/video/media/7") as PlayerRequest.Play).mediaStoreId)
+        assertNull((classify("content://media/external/video/media/7x") as PlayerRequest.Play).mediaStoreId)
+        assertEquals(7L, (classify("content://media/external/video/media/7") as PlayerRequest.Play).mediaStoreId)
+    }
+
+    @Test fun `an own-root that is empty or only slashes matches nothing`() {
+        // C-L6: a directory that could not be read must not turn into "the whole disk is the shell's".
+        for (bad in listOf(listOf(""), listOf("/"), listOf("//"), listOf(" "), listOf("", "/", "///"), emptyList())) {
+            assertEquals("$bad", PlayerRequest.Unsupported("file"), PlayerRules.classify("file", null, "/sdcard/Movies/x.mp4", bad))
+            assertEquals("$bad", PlayerRequest.Unsupported("file"), PlayerRules.classify("file", null, "/data/user/0/app.tileshell/files/a.mp4", bad))
+        }
+        // A real root beside a bad one still works, with or without its closing slash.
+        assertTrue(PlayerRules.classify("file", null, "/data/user/0/app.tileshell/files/a.mp4", listOf("", "/data/user/0/app.tileshell/")) is PlayerRequest.Play)
+    }
+
+    @Test fun `caller-supplied text is bounded and has no control character before it reaches a line`() {
+        // C-L1: a `%0A` in an address is a newline once decoded, and would start a forged line in the ring.
+        val forged = "\n2026-10-05 12:00:00.000 wall=1 [cred] tmdb: saved"
+        val request = PlayerRules.classify("http", "user@example.org$forged", "/a/clip$forged.mp4", roots) as PlayerRequest.Play
+        val lines = listOf(
+            PlayerRules.failure(PlayerErrorKind.UNREACHABLE, request, null, null).line,
+            PlayerRules.failure(PlayerErrorKind.UNDECODABLE, request, null, null).line,
+            PlayerRules.failure(PlayerErrorKind.UNDECODABLE, request, null, "qa$forged\r\u0000\u007f\u0085\u2028\u2029.mp4").line,
+            PlayerRules.unsupported(PlayerRules.classify("rtsp$forged", "h", "/x", roots) as PlayerRequest.Unsupported).line,
+            PlayerRules.unsupported(PlayerRules.request("rtsp$forged", "h", "/x", roots, false, false) as PlayerRequest.Unsupported).line,
+            "playing scheme=${request.scheme}",
+        )
+        for (line in lines) {
+            assertTrue(line, line.none { it < ' ' || it in '\u007f'..'\u009f' || it == '\u2028' || it == '\u2029' })
+            assertTrue(line, line.length <= 20 + PlayerRules.LINE_MAX)
+        }
+        assertEquals("cannot reach example.org2026-10-05 12:00:00.000 wall=1 [cred] tmdb: saved", lines[0])
+        // Bounded: 80 characters of each piece and no more.
+        val long = PlayerRules.classify("https", "h".repeat(500), "/" + "n".repeat(500), roots) as PlayerRequest.Play
+        assertEquals(80, long.host!!.length)
+        assertEquals(80, long.name.length)
+        assertEquals(80, (PlayerRules.classify("s".repeat(500), "h", "/x", roots) as PlayerRequest.Unsupported).scheme.length)
+        assertEquals("cannot decode " + "d".repeat(80), PlayerRules.failure(PlayerErrorKind.UNDECODABLE, long, null, "d".repeat(500)).line)
+        assertEquals(80, PlayerRules.LINE_MAX)
+        // Ordinary text is untouched.
+        assertEquals("Blade Runner 2049 — the final cut.mkv", PlayerRules.lineText("Blade Runner 2049 — the final cut.mkv"))
+        assertEquals("", PlayerRules.lineText(null))
+    }
+
+    @Test fun `the session title is bounded and has no control character`() {
+        // B-11, C-L7: EXTRA_TITLE is any caller's text.
+        assertEquals("Blade Runner", PlayerRules.sessionTitle("Blade Runner", "file.mp4", "video"))
+        assertEquals("line oneline two", PlayerRules.sessionTitle("line one\r\nline\u0000 two\u2028", null, "video"))
+        assertEquals(PlayerRules.TITLE_MAX, PlayerRules.sessionTitle("t".repeat(100_000), null, "video").length)
+        assertEquals(200, PlayerRules.TITLE_MAX)
+        // No title, or one that is only control characters: the source's own name, then the fallback.
+        assertEquals("qa-steps", PlayerRules.sessionTitle(null, "qa-steps.mp4", "video"))
+        assertEquals("qa-steps", PlayerRules.sessionTitle(" \n\t ", "qa-steps.mp4", "video"))
+        assertEquals("qasteps", PlayerRules.sessionTitle("", "qa\nsteps.mp4", "video"))
+        assertEquals("video", PlayerRules.sessionTitle(null, null, "video"))
+        assertEquals("video", PlayerRules.sessionTitle(null, ".mp4", "video"))
+    }
+
     @Test fun `file is played only for the shell's own files`() {
         assertTrue(classify("file:///data/user/0/app.tileshell/files/clip.mp4") is PlayerRequest.Play)
         assertTrue(classify("file:///storage/emulated/0/Android/data/app.tileshell/files/a.mp4") is PlayerRequest.Play)
