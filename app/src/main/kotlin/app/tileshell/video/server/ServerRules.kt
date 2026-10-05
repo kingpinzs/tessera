@@ -2,6 +2,7 @@ package app.tileshell.video.server
 
 import app.tileshell.net.HeaderText
 import app.tileshell.net.MiniJson
+import app.tileshell.video.catalogue.CatalogueRules
 import app.tileshell.net.jsonArray
 import app.tileshell.net.jsonObject
 import app.tileshell.net.jsonString
@@ -16,6 +17,12 @@ data class ServerAddress(val scheme: String, val host: String, val port: Int?, v
 
 /** One video of the server's library. */
 data class ServerItem(val id: String, val name: String, val type: String)
+
+/** What the sign-in form may do with an address: see [ServerRules.signInAction]. */
+enum class SignInAction { ASK, SEND, NOTHING }
+
+/** The user's answer to "This server isn't secure". */
+enum class PromptAnswer { CONTINUE, CANCEL }
 
 /** How a sign-in or a library read ended (`[video] server <host>: connected | unreachable | unauthorised`). */
 enum class ServerState(val word: String) { CONNECTED("connected"), UNREACHABLE("unreachable"), UNAUTHORISED("unauthorised") }
@@ -110,6 +117,26 @@ object ServerRules {
 
     /** C-16 (5): a sign-in over plain http to an address that is not private asks first, and sends nothing until Continue. */
     fun needsInsecurePrompt(address: ServerAddress): Boolean = address.scheme == "http" && !isPrivate(address.host)
+
+    /**
+     * What the sign-in form does next (C-16 (5); B-3). [answer] is null when the user has just pressed Connect, else
+     * what he chose on the "isn't secure" prompt. Only [SignInAction.SEND] lets a request of any kind leave the phone:
+     * an address that needs the prompt is ASKED about first, Cancel sends NOTHING, and only Continue sends.
+     */
+    fun signInAction(address: ServerAddress, answer: PromptAnswer?): SignInAction = when {
+        !needsInsecurePrompt(address) -> SignInAction.SEND
+        answer == null -> SignInAction.ASK
+        answer == PromptAnswer.CONTINUE -> SignInAction.SEND
+        else -> SignInAction.NOTHING
+    }
+
+    /**
+     * Where the sign-in is sent: the address the user typed, or — in a DEBUG build only — the `qa_server_base` pref's
+     * value. The same gate as the catalogue's and Wikidata's QA prefs ([CatalogueRules.base]): a release build cannot
+     * be redirected, whatever the pref holds.
+     */
+    fun signInBase(debug: Boolean, qaPref: String?, typedBase: String): String =
+        CatalogueRules.base(debug, qaPref, typedBase).trimEnd('/')
 
     /** `[video] server <host>: <state>` — the host and the state only. */
     fun line(label: String, state: String): String = "server $label: $state"

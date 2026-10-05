@@ -56,11 +56,13 @@ import app.tileshell.ui.components.OutlinedField
 import app.tileshell.ui.tokens.CapMetrics
 import app.tileshell.ui.tokens.ShellType
 import app.tileshell.video.server.MediaServer
+import app.tileshell.video.server.PromptAnswer
 import app.tileshell.video.server.ServerAddress
 import app.tileshell.video.server.ServerConfig
 import app.tileshell.video.server.ServerItem
 import app.tileshell.video.server.ServerRules
 import app.tileshell.video.server.ServerState
+import app.tileshell.video.server.SignInAction
 import kotlinx.coroutines.launch
 
 /** Movies & TV's media server setting: "Add a server", or the server that is set up and its removal. */
@@ -118,13 +120,21 @@ fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?,
         val address = ServerRules.parse(host)
         if (address == null) { error = "That isn't a server address"; return }
         if (user.isBlank()) { error = "Enter the user name"; return }
-        if (ServerRules.needsInsecurePrompt(address)) {
-            // Asked first: nothing is sent — not the sign-in, not a probe — until Continue.
-            Diagnostics.add("video", ServerRules.line(address.label, "insecure, asked"))
-            asking = address
-            return
+        when (ServerRules.signInAction(address, answer = null)) {
+            SignInAction.ASK -> {
+                // Asked first: nothing is sent — not the sign-in, not a probe — until Continue.
+                Diagnostics.add("video", ServerRules.line(address.label, "insecure, asked"))
+                asking = address
+            }
+            SignInAction.SEND -> signIn(address)
+            SignInAction.NOTHING -> Unit
         }
-        signIn(address)
+    }
+
+    /** The prompt's two buttons: only an answer the rule turns into SEND makes the request. */
+    fun answer(address: ServerAddress, answer: PromptAnswer) {
+        asking = null
+        if (ServerRules.signInAction(address, answer) == SignInAction.SEND) signIn(address) else password = ""
     }
 
     Column(Modifier.fillMaxWidth()) {
@@ -133,9 +143,9 @@ fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?,
             BasicText(ServerRules.TEXT_INSECURE, Modifier.testTag("server_insecure"), style = ShellType.subtitle.copy(color = Color.White))
             BasicText(waiting.label, Modifier.padding(top = 8.dp), style = ShellType.body.copy(color = LocalShellColors.current.subtleText))
             Row(Modifier.padding(top = 16.dp)) {
-                HubButton("Continue", "server_insecure_continue") { asking = null; signIn(waiting) }
+                HubButton("Continue", "server_insecure_continue") { answer(waiting, PromptAnswer.CONTINUE) }
                 Spacer(Modifier.width(12.dp))
-                HubButton("Cancel", "server_insecure_cancel") { asking = null; password = "" }
+                HubButton("Cancel", "server_insecure_cancel") { answer(waiting, PromptAnswer.CANCEL) }
             }
             return@Column
         }

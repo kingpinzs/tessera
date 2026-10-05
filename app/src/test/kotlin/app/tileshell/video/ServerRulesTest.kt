@@ -1,8 +1,10 @@
 package app.tileshell.video
 
+import app.tileshell.video.server.PromptAnswer
 import app.tileshell.video.server.ServerItem
 import app.tileshell.video.server.ServerRules
 import app.tileshell.video.server.ServerState
+import app.tileshell.video.server.SignInAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -70,6 +72,43 @@ class ServerRulesTest {
         assertFalse(asks("https://media.example.org"))
         assertEquals("This server isn't secure — your password would be sent unencrypted", ServerRules.TEXT_INSECURE)
         assertEquals("server 192.0.2.10:8096: insecure, asked", ServerRules.line(ServerRules.parse("http://192.0.2.10:8096")!!.label, "insecure, asked"))
+    }
+
+    @Test fun `an insecure address is asked about, and only Continue lets a request be made`() {
+        val public = ServerRules.parse("http://192.0.2.10:8096")!!
+        // Just submitted: the prompt, and no request may be made.
+        assertEquals(SignInAction.ASK, ServerRules.signInAction(public, answer = null))
+        // Continue: the request. Cancel: nothing at all.
+        assertEquals(SignInAction.SEND, ServerRules.signInAction(public, PromptAnswer.CONTINUE))
+        assertEquals(SignInAction.NOTHING, ServerRules.signInAction(public, PromptAnswer.CANCEL))
+        // Every address the prompt rule names is asked about first, whatever its form.
+        for (typed in listOf("media.example.org", "nas", "http://[2001:db8::1]:8096", "8.8.8.8", "127.1", "2130706433")) {
+            val a = ServerRules.parse(typed)!!
+            assertTrue(typed, ServerRules.needsInsecurePrompt(a))
+            assertEquals(typed, SignInAction.ASK, ServerRules.signInAction(a, null))
+            assertEquals(typed, SignInAction.NOTHING, ServerRules.signInAction(a, PromptAnswer.CANCEL))
+        }
+        // A home address and an https one are not asked about: the request is made at once, and an answer changes nothing.
+        for (typed in listOf("10.0.2.2:8096", "192.168.1.10", "jellyfin.local", "https://media.example.org")) {
+            val a = ServerRules.parse(typed)!!
+            for (answer in listOf(null, PromptAnswer.CONTINUE, PromptAnswer.CANCEL)) assertEquals(typed, SignInAction.SEND, ServerRules.signInAction(a, answer))
+        }
+        // SEND is the only action that sends, and exactly one of the three per state.
+        assertEquals(listOf(SignInAction.ASK, SignInAction.SEND, SignInAction.NOTHING), SignInAction.entries)
+    }
+
+    @Test fun `only a debug build sends the sign-in to the QA pref's address`() {
+        val typed = "https://media.example.org"
+        // A release build is never redirected, whatever the pref holds.
+        assertEquals(typed, ServerRules.signInBase(false, "http://10.0.2.2:8097/", typed))
+        assertEquals(typed, ServerRules.signInBase(false, "http://attacker.example", typed))
+        assertEquals("http://10.0.2.2:8097", ServerRules.signInBase(true, "http://10.0.2.2:8097/", typed))
+        assertEquals("http://10.0.2.2:8097", ServerRules.signInBase(true, " http://10.0.2.2:8097 ", typed))
+        assertEquals(typed, ServerRules.signInBase(true, null, typed))
+        assertEquals(typed, ServerRules.signInBase(true, "  ", typed))
+        // Only an http(s) address redirects, as for the catalogue's pref.
+        assertEquals(typed, ServerRules.signInBase(true, "file:///sdcard/x", typed))
+        assertEquals(typed, ServerRules.signInBase(true, "10.0.2.2:8097", typed))
     }
 
     @Test fun `the three states have their words and their lines`() {

@@ -60,7 +60,7 @@ class MediaServer(context: Context) {
      * token. The caller has already asked about an insecure address (C-16 (5)) — this sends at once.
      */
     fun connect(address: ServerAddress, user: String, password: String): ServerState {
-        val base = QaBases.read(app, QaBases.SERVER)?.trimEnd('/') ?: address.base
+        val base = ServerRules.signInBase(BuildConfig.DEBUG, QaBases.read(app, QaBases.SERVER), address.base)
         val body = MiniJson.write(linkedMapOf("Username" to user, "Pw" to password))
         val outcome = VideoHttp.post("$base/Users/AuthenticateByName", mapOf("Authorization" to header(null), "Accept" to "application/json"), body)
         val state = when (outcome) {
