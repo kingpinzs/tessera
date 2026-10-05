@@ -9,8 +9,9 @@ package app.tileshell.tiles
  *   over that pick.
  * - **Take-over (Q-16-1, the owner's ruling of 2026-09-30):** on the update that brings them, the shell's Calendar and
  *   People take their slots once, even over a pick made by hand — as Music took its slot — and the outcome names what was
- *   replaced so it can be pointed back in Settings > Tile apps. Only those two markers pass `takeOver`. The marker is
- *   recorded in the same write, so it happens once: a slot pointed back afterwards is a hand pick like any other.
+ *   replaced so it can be pointed back in Settings > Tile apps. The marker is recorded in the same write, so it
+ *   happens once: a slot pointed back afterwards is a hand pick like any other. Four markers pass `takeOver`: those
+ *   two, and phase 17's Photos and Camera (`slot:photos:v1`, `slot:camera:v1`; the owner's ruling Q-17-3 (a)).
  */
 object SlotSeed {
     sealed interface Outcome<out C> {

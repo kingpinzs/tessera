@@ -19,6 +19,7 @@ P13, which the owner does on the phone.
 | So on the AVD | r3 D10's gates | the Pro dial shows all five controls (E19's dial sub-row runs here); Slow motion is hidden; Panorama is hidden (x86_64); zoom is present |
 | STILL_IMAGE_CAMERA / VIDEO_CAMERA handlers | `cmd package query-activities` | com.android.camera2, net.sourceforge.opencamera, org.fossify.camera (three, before the shell's) |
 | IMAGE_CAPTURE / VIDEO_CAPTURE handlers | same | com.android.camera2 only |
+| Capture requests after the shell declares them (build task 1) | `cmd package query-activities -a android.media.action.IMAGE_CAPTURE`, then with `-p app.tileshell` | The implicit query still lists `com.android.camera2/com.android.camera.CaptureActivity` ONLY — Android 11's rule filters the shell's own query too — and the query that names the package resolves to `app.tileshell/.camera.CaptureActivity`. So E9's recorded fact is those two lists; the shell is not "among" the implicit one (Q-17-2 (b)'s premise, seen) |
 | APP_GALLERY handlers | same | com.android.gallery3d, deckers.thibault.aves.libre |
 | VIEW video/mp4 handlers | same | com.android.gallery3d, deckers.thibault.aves.libre, org.fossify.gallery |
 | Decoders | `/vendor/etc/media_codecs.xml` | c2.goldfish h264, hevc, vp8, vp9 |

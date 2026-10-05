@@ -126,7 +126,8 @@ class LayoutStore private constructor(private val context: Context) {
      * hand is kept — the marker is recorded and the line says `-> kept user's <component>`; before, the seed wrote over
      * that pick. **[takeOver]** (the owner's ruling Q-16-1): the shell's Calendar and People take their slots once even
      * over a hand pick, and the line names what was replaced (`-> assigned, replaced user's <earlier>`), which is how the
-     * earlier app is found again to point the slot back in Settings > Tile apps. Only those two markers pass it.
+     * earlier app is found again to point the slot back in Settings > Tile apps. Four markers pass it: those two, and
+     * phase 17's Photos and Camera (the owner's ruling Q-17-3 (a)).
      *
      * @return true when this call made the assignment
      */

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Movies &amp; TV's static App Shortcuts (phase 17 build task 15): My videos and Browse. Media server is DYNAMIC, published when a server is set up and removed when it is not.
+  Declaration order is the rank. Each opens VideoActivity with the extra "page".
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="video_myvideos"
+        android:enabled="true"
+        android:icon="@drawable/ic_video_glyph"
+        android:shortcutShortLabel="@string/video_shortcut_myvideos"
+        android:shortcutLongLabel="@string/video_shortcut_myvideos">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.video.VideoActivity">
+            <extra android:name="page" android:value="myvideos" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="video_browse"
+        android:enabled="true"
+        android:icon="@drawable/ic_video_glyph"
+        android:shortcutShortLabel="@string/video_shortcut_browse"
+        android:shortcutLongLabel="@string/video_shortcut_browse">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.video.VideoActivity">
+            <extra android:name="page" android:value="browse" />
+        </intent>
+    </shortcut>
+</shortcuts>

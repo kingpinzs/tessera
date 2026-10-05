@@ -45,6 +45,12 @@ object Brand {
     fun presetPicture(name: String) = "preset_$name"
 
     const val PRODUCT_NAME = "Tessera"
+
+    /**
+     * Phase 17: the video app's name — W10M's en-US "Movies & TV" (en-GB shipped "Films & TV"); swappable here like
+     * every Microsoft name (H7). The launcher label is the string resource `video_name`, which must say the same.
+     */
+    const val VIDEO_APP_NAME = "Movies & TV"
     const val ASSISTANT_NAME = "Tess"
 
     /**

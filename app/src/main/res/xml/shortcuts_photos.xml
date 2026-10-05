@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Photos' static App Shortcuts (phase 17 build task 15, phase 11 Q1's standing rule): its two pivots, Collection and Albums.
+  Declaration order is the rank. Each opens PhotosActivity with the extra "page".
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="photos_collection"
+        android:enabled="true"
+        android:icon="@drawable/ic_photos_glyph"
+        android:shortcutShortLabel="@string/photos_shortcut_collection"
+        android:shortcutLongLabel="@string/photos_shortcut_collection">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.photos.PhotosActivity">
+            <extra android:name="page" android:value="collection" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="photos_albums"
+        android:enabled="true"
+        android:icon="@drawable/ic_photos_glyph"
+        android:shortcutShortLabel="@string/photos_shortcut_albums"
+        android:shortcutLongLabel="@string/photos_shortcut_albums">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.photos.PhotosActivity">
+            <extra android:name="page" android:value="albums" />
+        </intent>
+    </shortcut>
+</shortcuts>
