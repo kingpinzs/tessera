@@ -28,3 +28,4 @@ include(":testapps:tileclient-a", ":testapps:tileclient-b", ":testapps:tileclien
 include(":testapps:ime-fixture")
 // Phase 16 QA tooling, never shipped: a permission-less caller for People's ACTION_PICK (the TRUST row's probe).
 include(":testapps:pick-probe")
+include(":testapps:qa-flix") // Phase 17 QA tooling, never shipped: the stand-in streaming app of the "Watch on" row (E21).
