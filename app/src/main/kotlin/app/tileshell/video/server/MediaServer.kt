@@ -77,7 +77,7 @@ class MediaServer(context: Context) {
                 }
             }
             is FetchOutcome.Status -> ServerRules.stateOf(outcome.code)
-            FetchOutcome.NoConnection -> ServerState.UNREACHABLE
+            FetchOutcome.NoConnection, FetchOutcome.TooLarge -> ServerState.UNREACHABLE
         }
         Diagnostics.add("video", ServerRules.line(address.label, state.word))
         if (state == ServerState.CONNECTED) MediaServerShortcut.publish(app)

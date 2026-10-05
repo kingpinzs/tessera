@@ -10,6 +10,7 @@ import app.tileshell.diag.Diagnostics
 import app.tileshell.net.CredentialStore
 import app.tileshell.net.FixedEndpoints
 import app.tileshell.net.HeaderText
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -40,12 +41,18 @@ object QaBases {
 object VideoHttp {
     const val TIMEOUT_MS = 10_000
 
-    fun get(url: String, headers: Map<String, String>): FetchOutcome = send(url, headers, null)
+    /** The longest JSON answer kept (B-9): a whole library's list fits; a server that streams without end does not. */
+    const val MAX_JSON_BYTES = 16L * 1024 * 1024
+
+    /** The longest image kept (B-9): a poster or a thumbnail is a few hundred kilobytes. */
+    const val MAX_IMAGE_BYTES = 8L * 1024 * 1024
+
+    fun get(url: String, headers: Map<String, String>, maxBytes: Long = MAX_JSON_BYTES): FetchOutcome = send(url, headers, null, maxBytes)
 
     /** A JSON POST. The body may hold a password: it goes to the socket and nowhere else. */
-    fun post(url: String, headers: Map<String, String>, json: String): FetchOutcome = send(url, headers, json)
+    fun post(url: String, headers: Map<String, String>, json: String, maxBytes: Long = MAX_JSON_BYTES): FetchOutcome = send(url, headers, json, maxBytes)
 
-    private fun send(url: String, headers: Map<String, String>, json: String?): FetchOutcome {
+    private fun send(url: String, headers: Map<String, String>, json: String?, maxBytes: Long): FetchOutcome {
         val conn = try {
             URL(url).openConnection() as HttpURLConnection
         } catch (e: Exception) {
@@ -63,7 +70,7 @@ object VideoHttp {
                 conn.outputStream.use { it.write(json.toByteArray(Charsets.UTF_8)) }
             }
             val code = conn.responseCode
-            if (code in 200..299) FetchOutcome.Answer(conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() })
+            if (code in 200..299) readCapped(conn, maxBytes)?.let { FetchOutcome.Answer(String(it, Charsets.UTF_8)) } ?: FetchOutcome.TooLarge
             else FetchOutcome.Status(code, conn.getHeaderField("Retry-After")?.trim()?.toLongOrNull())
         } catch (e: IOException) {
             FetchOutcome.NoConnection
@@ -75,19 +82,41 @@ object VideoHttp {
         }
     }
 
+    /**
+     * The answer's body, or null when it is longer than [maxBytes] (B-9): by its declared length before a byte is read,
+     * else as soon as the count passes the cap — so a server cannot make the hub hold an answer without end.
+     */
+    private fun readCapped(conn: HttpURLConnection, maxBytes: Long): ByteArray? {
+        var over = conn.contentLengthLong > maxBytes
+        val out = ByteArrayOutputStream()
+        if (!over) {
+            conn.inputStream.use { input ->
+                val buffer = ByteArray(16 * 1024)
+                while (true) {
+                    val n = input.read(buffer)
+                    if (n < 0) break
+                    if (out.size() + n.toLong() > maxBytes) { over = true; break }
+                    out.write(buffer, 0, n)
+                }
+            }
+        }
+        if (over) Diagnostics.add("video", "http: answer over the size cap")
+        return if (over) null else out.toByteArray()
+    }
+
     /** The class only — never `e.message`, which quotes the header or the address that was refused. */
     private fun notSent(e: RuntimeException) {
         Diagnostics.add("video", "http: request not sent (${e.javaClass.simpleName})")
     }
 
-    fun bytes(url: String, headers: Map<String, String> = emptyMap()): ByteArray? {
+    fun bytes(url: String, headers: Map<String, String> = emptyMap(), maxBytes: Long = MAX_IMAGE_BYTES): ByteArray? {
         val conn = try { URL(url).openConnection() as HttpURLConnection } catch (e: Exception) { return null }
         return try {
             conn.connectTimeout = TIMEOUT_MS
             conn.readTimeout = TIMEOUT_MS
             conn.instanceFollowRedirects = headers.isEmpty()   // headers are never carried to a redirect's host
             for ((k, v) in headers) conn.setRequestProperty(k, v)
-            if (conn.responseCode in 200..299) conn.inputStream.use { it.readBytes() } else null
+            if (conn.responseCode in 200..299) readCapped(conn, maxBytes) else null
         } catch (e: IOException) {
             null
         } catch (e: RuntimeException) {

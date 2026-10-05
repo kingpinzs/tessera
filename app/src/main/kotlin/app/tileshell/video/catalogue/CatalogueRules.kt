@@ -93,6 +93,9 @@ sealed interface FetchOutcome {
 
     /** No connection could be made (a stopped server, no route, a timeout). */
     data object NoConnection : FetchOutcome
+
+    /** The answer was longer than the caller's cap (B-9): none of it is kept. */
+    data object TooLarge : FetchOutcome
 }
 
 /** The catalogue's rules that need no network (build task 12): the cache's age rule, the lines and the notices. */
@@ -120,6 +123,7 @@ object CatalogueRules {
     fun errorStatus(outcome: FetchOutcome): String = when (outcome) {
         is FetchOutcome.Status -> "error ${outcome.code}"
         FetchOutcome.NoConnection -> "error connect"
+        FetchOutcome.TooLarge -> "error too large"
         is FetchOutcome.Answer -> "error parse"
     }
 

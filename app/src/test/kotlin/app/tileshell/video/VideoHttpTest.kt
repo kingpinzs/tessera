@@ -38,6 +38,15 @@ class VideoHttpTest {
             ex.sendResponseHeaders(404, -1)
             ex.close()
         }
+        // An answer of the length the query names: with a Content-Length, or (`/stream`) chunked with none.
+        for (path in listOf("/sized", "/stream")) {
+            server.createContext(path) { ex ->
+                requests.incrementAndGet()
+                val length = ex.requestURI.query.toInt()
+                ex.sendResponseHeaders(200, if (path == "/sized") length.toLong() else 0L)
+                ex.responseBody.use { out -> runCatching { out.write(ByteArray(length) { 'a'.code.toByte() }) } }
+            }
+        }
         server.start()
     }
 
@@ -90,6 +99,33 @@ class VideoHttpTest {
         val lines = linesSince(mark)
         assertTrue(lines.toString(), lines.none { it.contains("QA-SECRET") })
         assertTrue(lines.toString(), lines.any { it == "http: request not sent (IllegalArgumentException)" })
+    }
+
+    @Test fun `a JSON answer up to the cap is kept, and one byte over is the error state`() {
+        val cap = 4096L
+        for (path in listOf("/sized", "/stream")) {
+            val atCap = VideoHttp.get("$base$path?4096", emptyMap(), maxBytes = cap)
+            assertEquals(path, 4096, (atCap as FetchOutcome.Answer).body.length)
+            assertEquals(path, FetchOutcome.TooLarge, VideoHttp.get("$base$path?4097", emptyMap(), maxBytes = cap))
+            assertEquals(path, FetchOutcome.TooLarge, VideoHttp.post("$base$path?100000", emptyMap(), "{}", maxBytes = cap))
+        }
+        assertEquals("error too large", app.tileshell.video.catalogue.CatalogueRules.errorStatus(FetchOutcome.TooLarge))
+        assertEquals("The catalogue isn't answering", app.tileshell.video.catalogue.CatalogueRules.notice(FetchOutcome.TooLarge).text)
+    }
+
+    @Test fun `an image up to the cap is kept, and one byte over is nothing`() {
+        val cap = 4096L
+        for (path in listOf("/sized", "/stream")) {
+            assertEquals(path, 4096, VideoHttp.bytes("$base$path?4096", maxBytes = cap)!!.size)
+            val mark = Diagnostics.snapshot().size
+            assertNull(path, VideoHttp.bytes("$base$path?4097", maxBytes = cap))
+            assertTrue(path, linesSince(mark).any { it == "http: answer over the size cap" })
+        }
+    }
+
+    @Test fun `the caps are what the hub's answers need and no more`() {
+        assertEquals(16L * 1024 * 1024, VideoHttp.MAX_JSON_BYTES)
+        assertEquals(8L * 1024 * 1024, VideoHttp.MAX_IMAGE_BYTES)
     }
 
     @Test fun `an address that is not one is no connection`() {
