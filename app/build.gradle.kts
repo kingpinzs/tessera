@@ -79,6 +79,10 @@ android {
         // Phase 03: the speech engines live in their own process (Decisions "Model storage and process"),
         // so the shell reaches them across a Binder.
         aidl = true
+        // Phase 17 (r3 D14): BuildConfig.DEBUG gates the QA base-URL prefs (qa_catalogue_base, qa_wikidata_base,
+        // qa_server_base), so a release build cannot be redirected. It carries no other field: no key or token is
+        // ever a build input (the owner's ruling Q-17-1 (a)).
+        buildConfig = true
     }
 }
 

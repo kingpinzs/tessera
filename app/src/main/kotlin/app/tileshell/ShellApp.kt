@@ -54,6 +54,8 @@ class ShellApp : Application() {
             return
         }
         Diagnostics.add("app", "process start")
+        // Phase 17 build task 17 (C-16): what the installed network security config says for each fixed host.
+        app.tileshell.net.FixedEndpoints.logPolicy()
         startLauncher()
     }
 

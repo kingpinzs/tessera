@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The one network security config of the shell (phase 17 build task 17; Decisions C-16, base policy Q-D: A).
+  Phase 20 reuses this file and adds no second config.
+
+  Base: cleartext is permitted, because a radio station's stream, a home media server and an http:// video another
+  app hands the player are hosts nobody can list (the owner's ruling Q-D (a): plain http for MEDIA only).
+
+  Fixed endpoints: every host the shell itself calls is https-only BY THE PLATFORM: the domain-config below denies
+  cleartext to each and to its subdomains. The list is app.tileshell.net.FixedEndpoints.HOSTS; a JVM test holds the
+  two equal (FixedEndpointsTest). archive.org is where coverartarchive.org redirects its images (checked 2026-10-05).
+
+  THIS IS THE DEBUG SOURCE SET'S COPY (it replaces main's in a debug build): the same config plus the QA exception
+  for the emulator's host address 10.0.2.2, where the fixture servers run. A release APK never holds that line
+  (E17 reads the release APK's compiled file).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">api.open-meteo.com</domain>
+        <domain includeSubdomains="true">nominatim.openstreetmap.org</domain>
+        <domain includeSubdomains="true">api.themoviedb.org</domain>
+        <domain includeSubdomains="true">image.tmdb.org</domain>
+        <domain includeSubdomains="true">query.wikidata.org</domain>
+        <domain includeSubdomains="true">api.radio-browser.info</domain>
+        <domain includeSubdomains="true">musicbrainz.org</domain>
+        <domain includeSubdomains="true">coverartarchive.org</domain>
+        <domain includeSubdomains="true">archive.org</domain>
+    </domain-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>
