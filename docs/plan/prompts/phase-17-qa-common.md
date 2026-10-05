@@ -1,8 +1,8 @@
 # Phase 17 QA — rules for the three row writers (Photos rows, Camera rows, Movies & TV rows)
 
 You write and run the GATE's row drivers for one app of phase 17 of metro-launcher (package `app.tileshell`). The three
-apps are built and merged on `phase-17` (commit 25921fd7; debug APK md5 `dc1b8118bbc4c3ac`; 1,470 unit tests). You do
-not change app code. A product defect you find is evidence to report, never something to fix or to assert around.
+apps are built and merged on `phase-17`, with the fixes of three adversarial reviews (commit ba28432b; the CLEAN debug
+APK is md5 `c7336aca6b63d61b`, 355,474,253 bytes; 1,579 unit tests). You do not change app code. A product defect you find is evidence to report, never something to fix or to assert around.
 
 ## Read first, fully
 1. `/home/jeremyking/projects/metro-launcher-p17/docs/plan/prompts/phase-17-build-common.md` — "Hard rules", "Commits"
@@ -11,7 +11,10 @@ not change app code. A product defect you find is evidence to report, never some
    `git commit -F <file>` with no backtick in the command; never commit run evidence; no credential in any log).
 2. `docs/plan/phase-17-inbox-photos-camera-video.md` — the Acceptance preamble (from "## Acceptance criteria" through
    "Upgrade:"), your rows in full, the Decisions they cite, the Edge cases, and the Decisions lines dated 2026-10-05.
-3. `docs/plan/INDEX.md`'s two Change Log lines dated 2026-10-05 14:27: the doc clauses the device contradicted and the
+3. `docs/plan/review/2026-10-05-phase17-trust-fixes.md` — what the reviews' fixes changed (lines, texts, who may open
+   what) and the DEVICE LEGS they owe: every leg there that names one of your rows or your app is yours to write and
+   run. And the doc's top Decisions line of 2026-10-05 16:32, which governs where it differs from an older line.
+   Then `docs/plan/INDEX.md`'s two Change Log lines dated 2026-10-05 14:27: the doc clauses the device contradicted and the
    readings the rows assert (port 8091, the guard's condition (d), E20's bearer scope, E22's token read, and more).
    Where a Change Log line re-reads a clause, the row asserts the re-read form and says so in a comment.
 4. Your app's builder's development proof — the scripts under `docs/plan/qa/phase-17/dev-<app>/scripts/` and (video)
@@ -37,9 +40,17 @@ not change app code. A product defect you find is evidence to report, never some
   reason), and report it with the evidence — the lead rules on it. Do not loosen a tolerance on your own.
 - A row's evidence is ONE passing run on the gate build. Iterate until it passes or until what fails is the product
   or the doc. Rename each earlier run's folder (`E<N>-run<k>-<why>`) before the next run; never delete one.
-- Your build: `./gradlew :app:assembleDebug --offline` in your worktree. It must come out as md5 `dc1b8118bbc4c3ac`
-  (the build is reproducible); assert that in each row's log with a `record` of the installed APK id, and tell the
-  lead at once if yours differs.
+- Your build: a CLEAN `./gradlew :app:assembleDebug --offline` in your worktree (run `tools/fetch-opencv.sh` first if
+  the build asks for it; it only verifies what is linked in). It must come out as md5 `c7336aca6b63d61b` — a clean
+  build reproduces it, an incremental one may not (stale dex shards); assert the id in each row with an `assert_eq`
+  on the installed APK id, and tell the lead at once if a clean build of yours differs.
+- Disk discipline (the PC's disk filled on 2026-10-05; the owner's rule, said twice: clean up after yourself): never
+  copy an APK anywhere; write no large scratch file; a row that generates many or large fixtures removes them from
+  the device AND the host in the same step; stop every server and container you start, by recorded pid or id, and
+  remove the container's volumes; uninstall fixture apps at each row's end; and BEFORE you hand back delete your
+  worktree's build outputs except the one debug APK your rows' logs name (`rm -rf app/build/intermediates
+  app/build/tmp app/build/kotlin app/build/generated build .gradle testapps/*/build calc/build app/.cxx`, inside your
+  worktree only). Run folders are evidence and are never deleted.
 - Also write, per app: `e19_<app>.sh` (your app's part of E19, as row `E19_<APP>`), `e23_<app>.sh` (your app's part of
   E23, as row `E23_<APP>`), and `edge_<app>.sh` — one function `edge_<ID>` per Edge-cases bullet that is yours, each
   from its own MARK with its own restore, runnable alone (`edge_<app>.sh <ID>`) or all together — plus your lines of
@@ -56,8 +67,10 @@ exits 3, wait in the lock's own queue (`flock -w 540 /tmp/tileshell-qa-device.lo
 driver as `env -u TMPDIR bash docs/plan/qa/phase-17/scripts/<driver>`. Never `pm clear`, `adb uninstall
 app.tileshell`, or `adb reboot`. `adb root` only where a row's clause needs it (the doc says where), undone at once
 inside the same script (`adb unroot`, `adb wait-for-device`), and never while you do not hold the lock. Another
-session may install the Living Images build (a different md5) between your runs: your install-on-mismatch puts yours
-back; do not treat the other build as a fault.
+session may install another build (an older one, or the Living Images build) between your runs: your
+install-on-mismatch puts yours back; do not treat the other build as a fault. `adb shell am start` VIEWs of a content
+item at ViewerActivity or PlayerActivity are now judged like any other app's launch (the fixes file, leg (m)): record
+what the shell uid's launch does before a row relies on it.
 
 ## Your report (final message, plain text)
 Commits; per row — the last run's totals, its folder, clauses recorded instead of asserted and why, clauses that FAIL
