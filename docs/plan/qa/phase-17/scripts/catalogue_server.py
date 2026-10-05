@@ -11,7 +11,7 @@ TMDB, the live Wikidata or a real service. The AVD reaches it at http://10.0.2.2
   /qa-steps.mp4        the video file given with --video (E13), with Range support.
   /500/… /404/… /429/… /401/…   every path under these answers that status (the app's base URL is pointed at one).
 
-usage: catalogue_server.py [--port 8090] [--token qa-dummy-token] [--video PATH] [--log FILE]
+usage: catalogue_server.py [--port 8090] [--public-host 10.0.2.2] [--token qa-dummy-token] [--video PATH] [--log FILE]
 
 THE LOG (T17-13, C-32). One line per request, to stdout and to --log:
 
@@ -62,6 +62,8 @@ def png(rgb, width=228, height=320):
 class Fixture(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     token = "qa-dummy-token"
+    port = 8090
+    public_host = "10.0.2.2"
     video = None
     log_file = None
     lock = threading.Lock()
@@ -137,7 +139,10 @@ class Fixture(BaseHTTPRequestHandler):
             rest = "/".join(parts[1:])
             body = None
             if rest == "configuration":
+                # The image base is THIS server, whatever port it runs on (T17-20): the recorded file names 8090.
                 body = fixture("configuration.json")
+                base = "http://%s:%d/img/" % (Fixture.public_host, Fixture.port)
+                body["images"]["base_url"] = body["images"]["secure_base_url"] = base
             elif rest == "search/multi":
                 q = " ".join(query.get("query", [])).strip().lower()
                 body = fixture({"blade runner": "search_blade_runner.json", "no artwork": "search_no_artwork.json"}.get(q, "search_empty.json"))
@@ -176,10 +181,12 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--port", type=int, default=8090)
     ap.add_argument("--token", default="qa-dummy-token", help="the bearer token the TMDB paths accept (never logged)")
+    ap.add_argument("--public-host", default="10.0.2.2", help="the host the DEVICE reaches this server at (the image base in /3/configuration)")
     ap.add_argument("--video", help="the file served at /qa-steps.mp4")
     ap.add_argument("--log", help="append the request log to this file as well as stdout")
     args = ap.parse_args()
     Fixture.token, Fixture.video, Fixture.log_file = args.token, args.video, args.log
+    Fixture.port, Fixture.public_host = args.port, args.public_host
     server = ThreadingHTTPServer(("127.0.0.1", args.port), Fixture)  # the AVD's 10.0.2.2 is the host's loopback
     print("catalogue fixture on :%d pid %d" % (args.port, os.getpid()), file=sys.stderr, flush=True)
     try:

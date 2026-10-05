@@ -5,7 +5,8 @@
 export ANDROID_SERIAL=emulator-5554
 V17_HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 V17_TREE="$(cd "$V17_HERE/../../../../../.." && pwd)"
-export TILESHELL_APK="$V17_TREE/app/build/outputs/apk/debug/app-debug.apk"
+# V17_APK names another build of this worktree (a copy kept while the tree is rebuilt); the default is the build output.
+export TILESHELL_APK="${V17_APK:-$V17_TREE/app/build/outputs/apk/debug/app-debug.apk}"
 . "$V17_HERE/lib.sh"
 take_device_lock
 [ -f "$APK" ] || { echo "no APK at $APK" >&2; exit 4; }
@@ -136,3 +137,63 @@ await_vline() { # mark text [tenths]
   printf '%s' "$line"
 }
 no_crash() { adb logcat -d -t 1500 -s AndroidRuntime | grep -F 'app.tileshell' | head -3; }
+
+# ---- the hub's QA prefs, the TMDB key setting and the credential store (briefs C and D)
+PREFS_EDIT="$V17_HERE/../../../phase-01/scripts/prefs_edit.py"
+DUMMY_TOKEN="qa-dummy-token"
+# Set or remove one debug-only QA pref (qa_catalogue_base, qa_wikidata_base, qa_server_base) in start_theme.xml, the
+# file prefs_edit.py's rows write. The shell is stopped first and another app is in front, so no process of the shell
+# holds a stale copy or rewrites the file (phase 12's form).
+qa_pref() { # key value|--remove
+  adb shell am start -W -n com.android.settings/.Settings >/dev/null 2>&1; sleep 0.5
+  adb shell am force-stop app.tileshell; sleep 0.5
+  adb shell run-as app.tileshell cat shared_prefs/start_theme.xml > "$ROW_DIR/.prefs-in.xml" 2>/dev/null
+  python3 "$PREFS_EDIT" "$ROW_DIR/.prefs-in.xml" "$1" string "$2" > "$ROW_DIR/.prefs-out.xml"
+  adb shell "run-as app.tileshell sh -c 'cat > shared_prefs/start_theme.xml'" < "$ROW_DIR/.prefs-out.xml"
+}
+qa_pref_now() { adb shell run-as app.tileshell cat shared_prefs/start_theme.xml 2>/dev/null | tr -d '\r' | sed -n "s/.*name=\"$1\">\([^<]*\)<.*/\1/p"; }
+hub() { adb shell am start -W -n app.tileshell/.video.VideoActivity -a android.intent.action.VIEW --es page "$1" >/dev/null; sleep "${2:-2.5}"; }
+# The names the credential file holds (never a value): "tmdb jellyfin", or empty.
+cred_names() { adb shell run-as app.tileshell cat files/credentials_v1.json 2>/dev/null | python3 -c 'import json,sys
+try: print(" ".join(sorted(json.load(sys.stdin).keys())))
+except Exception: print("")'; }
+# Type the dummy TMDB token into the key setting (opened already) and save it.
+key_type_and_save() { # dump-prefix
+  dump_ui "$1-key.xml"; tap_node "$1-key.xml" tmdb_key_field; sleep 0.8
+  adb shell input text "$DUMMY_TOKEN"; sleep 0.8
+  dump_ui "$1-typed.xml"
+  tap_node "$1-typed.xml" tmdb_key_save; sleep 1.2
+  dump_ui "$1-saved.xml"
+}
+key_remove_if_saved() { # removes the TMDB key through the setting, when one is saved
+  [[ " $(cred_names) " == *" tmdb "* ]] || return 0
+  hub settings 2; dump_ui "$ROW_DIR/.rm1.xml"; tap_node "$ROW_DIR/.rm1.xml" hub_settings:tmdbkey; sleep 1
+  dump_ui "$ROW_DIR/.rm2.xml"; tap_node "$ROW_DIR/.rm2.xml" tmdb_key_remove; sleep 1.2
+}
+
+# A secret must not be in a text — and the verdict line must not print the secret either (assert_absent would).
+assert_no_secret() { # name secret haystack
+  case "$3" in *"$2"*) _verdict FAIL "$1" "the secret IS there" ;; *) _verdict PASS "$1" "the secret is not there" ;; esac
+}
+
+# ---- the media-server fixture (../../fixtures/jellyfin/jellyfin_fixture.sh): the pinned Jellyfin 12.1 container on 8096
+JF="$V17_HERE/../../fixtures/jellyfin/jellyfin_fixture.sh"
+JF_WORK="${V17_JF_WORK:-$(dirname "$FIX")/video-jf}"
+jf() { bash "$JF" "$1" "$JF_WORK" "${@:2}"; }
+jf_up() { [ -f "$JF_WORK/container.id" ] && jf down >/dev/null; jf up "$FIX/qa-steps.mp4" > "$ROW_DIR/jellyfin-up.txt" 2>&1; }
+# Type a server sign-in into the form that is on screen and tap Connect (the password goes through the keyboard).
+server_form() { # dump-prefix host user password
+  dump_ui "$1-form.xml"
+  tap_node "$1-form.xml" server_host; sleep 0.6; for _ in $(seq 1 40); do adb shell input keyevent KEYCODE_DEL; done; adb shell input text "$2"; sleep 0.4
+  tap_node "$1-form.xml" server_user; sleep 0.6; for _ in $(seq 1 12); do adb shell input keyevent KEYCODE_DEL; done; adb shell input text "$3"; sleep 0.4
+  tap_node "$1-form.xml" server_password; sleep 0.6; adb shell input text "$4"; sleep 0.4
+  adb shell input keyevent KEYCODE_BACK; sleep 0.6          # the keyboard away, so Connect is on screen
+  dump_ui "$1-typed.xml"
+  tap_node "$1-typed.xml" server_connect
+}
+# Files under the app's own data (credential-encrypted and device-protected) that hold a text: none expected. run-as
+# reads everything the app's uid owns, so this needs no root (adb root would restart adbd under the other builders).
+app_files_holding() { # text
+  adb shell "run-as app.tileshell sh -c 'grep -rlF -- \"$1\" /data/data/app.tileshell /data/user_de/0/app.tileshell 2>/dev/null'" | tr -d '\r' | head -5
+}
+shortcut_dump() { adb shell dumpsys shortcut | tr -d '\r' | awk '/Package: app.tileshell /,/Package: [^a]/' ; }

@@ -6,7 +6,7 @@ a key: the values are fixtures, the SHAPES are TMDB's (`BUILDSTART/README.md` BS
 
 | File | Route | What it is |
 |---|---|---|
-| `configuration.json` | `/3/configuration` | `images.secure_base_url` = `http://10.0.2.2:8090/img/` (T17-20) |
+| `configuration.json` | `/3/configuration` | `images.secure_base_url` = `http://10.0.2.2:8090/img/` (T17-20); the server answers with its OWN port in it, so a fixture run on another port never sends the app to 8090 |
 | `search_blade_runner.json` | `/3/search/multi?query=Blade Runner` | exactly three titles: "Blade Runner" 1982 (movie 78), "Blade Runner 2049" 2017 (movie 335984), "Blade Runner: Black Lotus" 2021 (tv 117884), plus a person row the app must drop |
 | `search_no_artwork.json` | `/3/search/multi?query=No Artwork` | one title whose `poster_path` is null (the poster placeholder) |
 | `search_empty.json` | any other query | no result (the empty line) |
