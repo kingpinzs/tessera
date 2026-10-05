@@ -653,7 +653,8 @@
         <!--
           The viewer other apps reach: VIEW on an image content URI. Standard launch mode and no task affinity of its
           own, so it runs in its caller's task and is not an app in the catalog (L14-2). On the exported allow-list:
-          the intent only names the one picture shown, read under the caller's grant.
+          the intent only names the one picture; it is read with the shell's identity, so another app's URI is shown
+          only when the platform says that app could read it itself, and then read-only (photos/ViewerRules.kt).
         -->
         <activity
             android:name=".photos.ViewerActivity"
