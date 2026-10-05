@@ -29,6 +29,16 @@ android {
         // Phase 03: the speech runtime ships native code. arm64-v8a is the S25 Ultra, x86_64 is the AVD;
         // the other two ABIs in the AAR would add ~58 MB for hardware this plan never targets.
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+        // Phase 17 (build task 6b, BS-1): the panorama stitcher, libopencv_pano.so, is BUILT for arm64-v8a only — the
+        // filter above still packages the other libraries for both ABIs, so the emulator's APK simply holds no
+        // lib/x86_64/libopencv* and hides Panorama with its reason (E7, E17). The C++ runtime is linked statically,
+        // so no libc++_shared.so is added to the APK.
+        externalNativeBuild {
+            cmake {
+                abiFilters("arm64-v8a")
+                arguments("-DANDROID_STL=c++_static")
+            }
+        }
     }
 
     // Phase 03 Decisions "Model variants and budget": the ASR and TTS models are read straight out of the
@@ -38,6 +48,17 @@ android {
         // "model" is the BPE vocabulary's extension: sherpa-onnx may read it through a file descriptor
         // rather than the asset stream, and a deflated asset has no usable fd.
         noCompress += listOf("onnx", "bin", "zip", "model")
+    }
+
+    // Phase 17 (BS-1): the one native library this project compiles. Its input, the OpenCV Android SDK, is fetched by
+    // tools/fetch-opencv.sh (git-ignored, pinned by sha256), as the speech runtime is; the versions are the ones the
+    // build-start trial link used.
+    ndkVersion = "30.0.16248370"
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.31.6"
+        }
     }
 
     signingConfigs {

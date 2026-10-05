@@ -2,21 +2,17 @@ package app.tileshell.camera
 
 import android.content.Intent
 import android.provider.MediaStore
-import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import app.tileshell.diag.Diagnostics
 
 /**
- * The capture modes (Q2 C). A mode the phone's camera cannot do is not shown and logs why; the App Shortcuts' `mode`
- * extra names one (build task 15) and a mode that is not available opens Photo.
+ * The modes an intent or an App Shortcut can name (build task 15): the `mode` extra's ids. A mode the phone's camera
+ * cannot do opens Photo (the dynamic shortcuts of such a mode are never published — `CameraGates.dynamicShortcuts`).
  */
 enum class CameraMode(val id: String, val title: String) {
     PHOTO("photo", "Photo"),
@@ -52,6 +48,11 @@ class CameraNav {
 
 /** The viewfinder and its pages inside the frame [CameraActivity] sets (no status bar, the nav bar drawn — Y7). */
 @Composable
-fun CameraApp(nav: CameraNav, activity: ComponentActivity) {
-    Box(Modifier.fillMaxSize().testTag("camera_root"))
+fun CameraApp(engine: CameraEngine, state: ViewfinderState, sink: CaptureSink, onRoll: () -> Unit) {
+    val context = engine.context
+    val caps = engine.caps
+    val env = engine.env
+    // Build task 15 (C-9): the dynamic shortcuts follow the gates of the camera that is open now.
+    LaunchedEffect(caps, env) { if (caps != null) CameraShortcuts.publish(context, caps, env) }
+    Viewfinder(engine, state, sink, captureKind = null, onRoll = onRoll)
 }
