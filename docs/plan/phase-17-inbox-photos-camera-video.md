@@ -82,6 +82,49 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
 "local-only" Movies & TV build (Hard Rule 16 — the interview ruled the fuller forms).
 
 ## Decisions
+- 2026-10-05 16:32 (agent, after the adversarial reviews of this date — `review/2026-10-05-phase17-trust-triage.md` for every
+  finding, `review/2026-10-05-phase17-trust-fixes.md` for every fix and the device legs it owes; INDEX Change Log):
+  **the trust rules as built now. Where a line below differs from an earlier Decisions line, this one governs.**
+  - **The capture output guard has FOUR conditions** (every "three-condition" in this doc reads "four-condition": the
+    Q-17-2 line, T17-4, build task 6 and the Edge cases). Condition (d) of the 10:59 line is corrected: its sentence
+    "or `checkUriPermission(uri, callerUid, WRITE)` is granted (… MediaStore does for a row the caller owns)" was wrong —
+    that call answers explicit URI grants only and never asks the provider. As built: the caller may write when the
+    provider is the caller's own, or the caller holds a write grant for the URI, or — Android 15 (API 35) and later
+    only — the provider itself, asked, says the caller may. On Android 14 a caller that hands the Camera a MediaStore
+    row it owns, without a grant, is REFUSED (it fails closed; the owner's phone is on Android 16). An EXTRA_OUTPUT
+    that is not a Uri, a request that cannot be read, and an authority carrying `@` or `%` are refused; the output is
+    read once and everything is decided from that one value; the caller's file is opened truncating. A capture for a
+    caller carries no GPS tag (the whole GPS group is stripped). A result forwarded by a go-between is refused where
+    the platform names who started the activity. New lines: `[camera] capture request: EXTRA_OUTPUT is not a Uri`,
+    `[camera] capture request forwarded: started by <pkg>, result to <pkg>`, `[camera] capture guard inputs: …`.
+  - **The two helpers other apps reach show or play another app's `content:` item only when THAT app may read it**
+    (r3 D6's helpers; the reviews found both opened any MediaStore item with the shell's own access). Player: a
+    `file:` source and an autoplay queue only when the shell itself started it; `[video] refused source: no grant`,
+    `[video] source from another app: <which rule admitted it>`, `[video] queue ignored: not the shell's own launch`.
+    Viewer: another app's picture is shown READ-ONLY — Share and File information, never Edit, Delete or Set as;
+    `[photosapp] viewer request from <the shell|another app|an unnamed app>: <shown|shown read-only|refused>`,
+    `[photosapp] refused view: no grant`. On Android 14 the platform does not name an ordinary launcher, so another
+    app's content item is refused there unless it is that app's own provider; on Android 15 and later the platform
+    is asked whether the launcher could read it. http(s) sources are unchanged.
+  - **Credentials.** A pasted TMDB key must be printable characters with no space inside, else it is refused on the
+    page (`tmdb_key_error`; `[video] TMDB key refused: not a key's characters`) and nothing is stored — a key with a
+    stray control character could crash the hub and put the key in the system log. No exception message from a
+    request is ever logged or shown (`[video] http: request not sent (<Class>)`; `<what>: failed (<Class>)`). The
+    media server's token is sealed TOGETHER with its server's address and is given only to that address (`[video]
+    server token withheld: the address is not the signed-in server's`); "Sign in again" keeps the saved scheme (its
+    host field now shows the scheme); the token and server files are excluded from backup and device transfer;
+    answers are capped (16 MiB JSON, 8 MiB an image: `[video] http: answer over the size cap`); in a release build
+    posters come from TMDB's image host only; caller-supplied text in a `[video]` line is cut to 80 characters with
+    control characters removed.
+  - **Network policy tests.** A test scans every URL literal in the app against the fixed-endpoint list; the config
+    tests also refuse user-added certificate authorities, a padded host name and a missing manifest attribute. Build
+    task 17's "the `[video] cleartext refused <host>` line" is struck (Q-D A is the only form built; r3 V6). The
+    `[net]` lines are also written after a start deferred to the first unlock.
+  - **CI** publishes to the "latest" release only a release-signed APK (never a debug one when the signing material
+    is missing). Not run: CI runs on a push to main.
+  - **Not done, the owner's to rule at the gate:** blocking screenshots on the key and password pages; moving the
+    exported viewer out of the launcher's process; whether a caller that holds a permission-wide access (say
+    WRITE_CONTACTS) may be answered on Android 15+ where the provider says yes.
 - 2026-10-05 10:59 (agent, at the build — **the capture output guard gains a fourth condition, (d): the caller itself may write
   the URI.** It CORRECTS the premise of r3 D1's condition (b) below ("which Android checks against the caller's own
   access when the activity starts"): Android does that check only when the app being started does not already hold the
