@@ -22,6 +22,7 @@ class EditActivity : ComponentActivity() {
         Diagnostics.add("photosapp", "EditActivity created")
         hideSystemBars()
         ring = RemoteRings.hold(this, PhotosEditDumpService::class.java)
+        cleanUpOnce()
         nav.open(intent)
         setShellAppContent(statusBar = false) { EditScreen(nav, this) }
     }
@@ -31,8 +32,28 @@ class EditActivity : ComponentActivity() {
         hideSystemBars()
     }
 
+    /**
+     * On each start of `:photosedit`: a pending row of the shell's that an earlier, killed write left behind is removed
+     * (Edge cases, "a process killed mid-write"). Once per process, off the main thread.
+     */
+    private fun cleanUpOnce() {
+        if (cleaned) return
+        cleaned = true
+        val app = applicationContext
+        Thread {
+            val n = runCatching { EditRender.writes(app).cleanUpPending() }.getOrDefault(-1)
+            Diagnostics.add("photosapp", "pending cleanup: $n")
+            runCatching { java.io.File(app.cacheDir, "trim").listFiles()?.forEach { it.delete() } }
+        }.start()
+    }
+
     override fun onDestroy() {
         RemoteRings.release(this, ring)
         super.onDestroy()
+    }
+
+    private companion object {
+        @Volatile
+        var cleaned = false
     }
 }
