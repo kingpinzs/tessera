@@ -28,11 +28,19 @@ for LEG in clip-noflag clip-flag; do
   record "$LEG: startActivityForResult on the sender threw" "${THREW:-(no line)}"
   record "$LEG: the request as sent" "$(echo "$L" | grep -o 'start action=.*' | head -1)"
   S="$(cam_since "$MARK")"
+  INPUTS="$(echo "$S" | grep -o 'capture guard inputs: .*' | head -1)"; record "$LEG: what the guard weighed" "$INPUTS"
   if [ "$THREW" = "none" ]; then
     assert_contains "$LEG: RESULT_CANCELED" "result=RESULT_CANCELED" "$L"
     assert_contains "$LEG: the guard's line" "[camera] refused output: no grant" "$S"
     assert_contains "$LEG: the request was refused before anything was shown" "capture request image from $QAC: refused" "$S"
     assert_absent "$LEG: no camera was opened" "[camera] devices=" "$S"
+    assert_contains "$LEG: the platform's answer for the caller's own access" "callerMayWrite=false" "$INPUTS"
+    if [ "$LEG" = clip-flag ]; then
+      # The leg the fourth condition exists for: the start succeeded, conditions (a)-(c) all hold, and (d) alone refuses.
+      assert_contains "$LEG: (a), (b) and (c) hold — only (d) stands between the caller and the write" "startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=false" "$INPUTS"
+    else
+      assert_contains "$LEG: no write-grant flag" "writeGrantFlag=false" "$INPUTS"
+    fi
   else
     record "$LEG: the platform stopped the start on the sender; the shell's ring since the start" "$(echo "$S" | grep -F '[camera]' | sed 's/^[^[]*//' | tr '\n' ';')"
     assert_absent "$LEG: nothing was written by the shell" "the caller's output" "$S"

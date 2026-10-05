@@ -134,7 +134,7 @@ V="$(cam_since "$M4")"
 MOTION="$(echo "$V" | grep -o '\[motion\] mode_switch .*' | head -1)"; record "motion" "$MOTION"
 SETTLE="$(echo "$MOTION" | grep -o 'settle=[0-9]*' | cut -d= -f2)"; GAP="$(echo "$MOTION" | grep -o 'maxGapMs=[0-9]*' | cut -d= -f2)"
 assert_within "mode switch settles in 300 ms (+/- 33)" 300 "${SETTLE:-0}" 33
-record "mode switch maxGapMs (the gate's bound is 33.4; the camera re-binds mid-slide)" "${GAP:-none}"
+record "mode switch maxGapMs (the gate's bound is 33.4; the camera is re-bound before the slide starts)" "${GAP:-none}"
 gdump "$ROW_DIR/video.xml"
 assert_contains "video is the selected mode" 'selected="true"' "$(grep -o '<node[^>]*camera_mode:video"[^>]*>' "$ROW_DIR/video.xml")"
 assert_eq "the shutter is camera_record in video" "yes no" "$(has_node "$ROW_DIR/video.xml" camera_record) $(has_node "$ROW_DIR/video.xml" camera_shutter)"

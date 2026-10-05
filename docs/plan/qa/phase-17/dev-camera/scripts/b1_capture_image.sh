@@ -41,6 +41,7 @@ assert_contains "$LEG: no GPS EXIF" "gps_tags=0" "$EXIF"
 assert_eq "$LEG: images count unchanged (no DCIM copy)" "$COUNT0" "$(count_rows $IMAGES)"
 S="$(cam_since "$MARK")"
 assert_contains "$LEG: the guard accepted" "capture request image from $QAC: output accepted" "$S"
+assert_contains "$LEG: all four conditions held for the caller's own provider" "authority=app.tileshell.testclient.qacapture.output startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=true" "$S"
 assert_contains "$LEG: written through the write layer" "[camera] capture image -> the caller's output, $SIZE bytes" "$S"
 assert_absent "$LEG: nothing saved to MediaStore" "[camera] saved " "$S"
 

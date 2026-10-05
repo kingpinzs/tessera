@@ -155,6 +155,18 @@ class CaptureActivity : ComponentActivity() {
             val own = packageManager.getPackageInfo(packageName, PackageManager.GET_PROVIDERS).providers.orEmpty()
                 .flatMap { it.authority.orEmpty().split(';') }.filter { it.isNotEmpty() }.toSet()
             val caller = callingPackage
+            val callerMayWrite = output != null && CaptureCallerAccess.callerMayWrite(this, output, caller)
+            if (output != null) {
+                // What the guard is about to weigh, for the row and the review to read (the authority only: no path).
+                Diagnostics.add(
+                    "camera",
+                    "capture guard inputs: scheme=${CaptureOutputGuard.lineForScheme(output.scheme.orEmpty()).substringAfter('=')} " +
+                        "authority=${output.authority.orEmpty().filter { it.isLetterOrDigit() || it in ".-_@" }.take(80)} " +
+                        "startedForResult=${caller != null} clipHoldsOutput=${clipUris.any { it == output.toString() }} " +
+                        "writeGrantFlag=${(request.flags and Intent.FLAG_GRANT_WRITE_URI_PERMISSION) != 0} " +
+                        "ownAuthority=${own.any { it.equals(output.authority.orEmpty().substringAfterLast('@'), ignoreCase = true) }} callerMayWrite=$callerMayWrite",
+                )
+            }
             CaptureOutputGuard.decide(
                 output = output?.toString(),
                 outputScheme = output?.scheme?.lowercase(),
@@ -163,7 +175,7 @@ class CaptureActivity : ComponentActivity() {
                 clipUris = clipUris,
                 intentFlags = request.flags,
                 ownAuthorities = own,
-                callerMayWrite = output != null && CaptureCallerAccess.callerMayWrite(this, output, caller),
+                callerMayWrite = callerMayWrite,
             )
         }
     } catch (e: Exception) {

@@ -258,23 +258,6 @@ fun Viewfinder(engine: CameraEngine, state: ViewfinderState, sink: CaptureSink, 
         val fiveRings = state.dialOpen
         val pano = state.panorama
 
-        // ---- the mode list, as semantics (E7 reads exactly the modes this camera admits) -----------------------------
-        // Below the top 48 epx: Android's own status-bar window lies over that strip even while it is hidden, and the
-        // accessibility framework reports a node wholly under another window as not visible, so a dump would lose it.
-        Row(Modifier.align(Alignment.TopStart).offset(y = 50.dp).testTag("camera_modes")) {
-            gates.filter { it.available }.forEach { gate ->
-                val on = when (gate.id) {
-                    "photo", "video", "panorama" -> engine.mode == gate.id && !(gate.id == "video" && engine.slowMotion)
-                    "slowmo" -> engine.mode == "video" && engine.slowMotion
-                    "hdr" -> engine.hdr
-                    "pro" -> state.dialOpen || state.single != null || engine.pro.isNotEmpty()
-                    "livingimages" -> engine.settings.livingImages
-                    else -> false
-                }
-                Box(Modifier.size(8.dp).testTag("camera_mode:${gate.id}").semantics { role = Role.Tab; selected = on; contentDescription = gate.id })
-            }
-        }
-
         // ---- the dial (Y4), under the shutter ------------------------------------------------------------------------
         if (caps != null && proAvailable && (fiveRings || state.single != null)) ProDial(engine, state, g, caps)
 
@@ -478,6 +461,25 @@ fun Viewfinder(engine: CameraEngine, state: ViewfinderState, sink: CaptureSink, 
             }
         }
         if (state.busySaving) Centred(Pt(g.w / 2f, 78f)) { BasicText("Saving…", Modifier.testTag("camera_saving"), style = ShellType.caption.copy(color = Color.White)) }
+
+        // ---- the mode list, as semantics (E7 reads exactly the modes this camera admits) -----------------------------
+        // Composed after the dial and the rest of the chrome: Compose leaves a node that another node wholly covers out
+        // of the accessibility tree, and the open dial covers the screen.
+        // Below the top 48 epx: Android's own status-bar window lies over that strip even while it is hidden, and the
+        // accessibility framework reports a node wholly under another window as not visible, so a dump would lose it.
+        Row(Modifier.align(Alignment.TopStart).offset(y = 50.dp).testTag("camera_modes")) {
+            gates.filter { it.available }.forEach { gate ->
+                val on = when (gate.id) {
+                    "photo", "video", "panorama" -> engine.mode == gate.id && !(gate.id == "video" && engine.slowMotion)
+                    "slowmo" -> engine.mode == "video" && engine.slowMotion
+                    "hdr" -> engine.hdr
+                    "pro" -> state.dialOpen || state.single != null || engine.pro.isNotEmpty()
+                    "livingimages" -> engine.settings.livingImages
+                    else -> false
+                }
+                Box(Modifier.size(8.dp).testTag("camera_mode:${gate.id}").semantics { role = Role.Tab; selected = on; contentDescription = gate.id })
+            }
+        }
 
         if (state.settingsOpen) CameraSettingsPage(engine) { state.settingsOpen = false }
     }
