@@ -36,8 +36,11 @@ interface MediaStorePort<C> {
     /** Inserts a row with IS_PENDING = 1 and returns its URI, or null when the provider refused it. */
     fun insertPending(item: NewMedia): String?
 
-    /** Opens [uri] for writing ("w": truncating), or null when it cannot be opened. */
-    fun openWrite(uri: String): OutputStream?
+    /**
+     * Opens [uri] for writing in [mode] (a `ContentResolver.openOutputStream` mode: [MediaWrites.MODE_NEW_ROW] or
+     * [MediaWrites.MODE_CALLER_OUTPUT]), or null when it cannot be opened.
+     */
+    fun openWrite(uri: String, mode: String): OutputStream?
 
     /** Clears IS_PENDING. */
     fun publish(uri: String): Boolean
@@ -86,7 +89,7 @@ class MediaWrites<C>(private val port: MediaStorePort<C>, private val shellPacka
             ledger.remove(uri)
             return Result.Failed(why)
         }
-        val out = try { port.openWrite(uri) } catch (e: Exception) { null } ?: return abandoned("the new file could not be opened")
+        val out = try { port.openWrite(uri, MODE_NEW_ROW) } catch (e: Exception) { null } ?: return abandoned("the new file could not be opened")
         try {
             out.use(write)
         } catch (e: Exception) {
@@ -113,10 +116,11 @@ class MediaWrites<C>(private val port: MediaStorePort<C>, private val shellPacka
     /**
      * Writes a capture into the caller's own URI — the one write to a row this layer did not insert. It takes the
      * output guard's [accepted] token and nothing else, so no code path reaches an existing row without the guard.
+     * The caller's file is opened truncating ([MODE_CALLER_OUTPUT]): nothing of what it held before is left.
      * Returns null when written, else the reason.
      */
     fun writeCaptureOutput(accepted: CaptureOutputGuard.Decision.Accepted, write: (OutputStream) -> Unit): String? {
-        val out = try { port.openWrite(accepted.uri) } catch (e: Exception) { null } ?: return "the caller's output could not be opened"
+        val out = try { port.openWrite(accepted.uri, MODE_CALLER_OUTPUT) } catch (e: Exception) { null } ?: return "the caller's output could not be opened"
         return try {
             out.use(write)
             null
@@ -160,6 +164,15 @@ class MediaWrites<C>(private val port: MediaStorePort<C>, private val shellPacka
             val clean = path.isNotEmpty() && path.split('/').none { it == ".." } && allowed.any { path.startsWith(it) }
             return if (clean) path else if (kind == MediaKind.IMAGE) "Pictures/" else "Movies/"
         }
+
+        /** A row this layer has just inserted: an empty pending file, written from its start. */
+        const val MODE_NEW_ROW = "w"
+
+        /**
+         * The capture caller's own URI (A-L6): it may already hold a file, and "w" alone does not truncate on every
+         * provider — a shorter capture would leave the old file's tail behind it. "wt" writes and truncates.
+         */
+        const val MODE_CALLER_OUTPUT = "wt"
 
         /** The Camera's folder: every capture of the shell's own Camera lands here. */
         const val CAMERA_PATH = "DCIM/Camera/"
