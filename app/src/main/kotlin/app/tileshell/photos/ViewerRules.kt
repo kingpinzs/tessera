@@ -24,26 +24,29 @@ object ViewerRules {
     /**
      * @param uri the intent's data, read from its text once
      * @param launchedFromUid `Activity.getLaunchedFromUid()`, null when the platform does not say (-1). The platform
-     *   gives it only for a starter that shares its identity, and for the shell itself — so an unknown uid is always
-     *   ANOTHER app, never the shell
+     *   gives it only for a starter that shares its identity (`ActivityOptions.setShareIdentityEnabled`) and for the
+     *   shell itself — so an unknown uid is always ANOTHER app, never the shell
      * @param shellUid the shell's own uid
+     * @param hadAccessAtLaunch API 35+ `Activity.getInitialCaller().checkContentUriPermission(uri, READ)`: the platform's
+     *   own answer to "could whoever started this activity read the URI when it did", which needs no uid. False below
+     *   API 35 and whenever the call throws. The same question the player asks (`video/PlayerRules.kt`, `PlayerAccess`).
      *
      * Another app's URI is shown when one of these holds, each the platform's word and none the intent's:
      *  1. the launching uid is known and may read the URI itself ([UriAccessRules.mayRead]: its own provider, an
      *     explicit read grant it holds, or — API 35+ — the provider, asked, says it may);
-     *  2. the SHELL holds an explicit read grant for exactly this URI. The platform issues that grant when an activity
-     *     is started with FLAG_GRANT_READ_URI_PERMISSION, and only after it has checked that the sender itself could
-     *     read the URI; it issues none where the shell could read the URI anyway by a permission of its own (contacts),
-     *     so a grant is never a by-product of the shell's own reach. This is the only way an app the platform does not
-     *     name (nearly every app: few share their identity) can have a picture shown.
+     *  2. with or without a known uid, on API 35+: the platform says the launcher had read access at launch.
      * Anything else is refused: the viewer's error state and [LINE_NO_GRANT].
+     *
+     * ON AN API 34 PHONE (Android 14) neither the provider nor the launch can be asked, so a content URI from another
+     * app that does not share its identity — nearly every app — is REFUSED, whatever that app could read. It fails
+     * closed. On API 35 and later (the owner's phone is API 36) such an app's picture is shown when it could read it.
      */
-    fun open(uri: ContentUriText, launchedFromUid: Int?, shellUid: Int, access: UriAccessPort): Open {
+    fun open(uri: ContentUriText, launchedFromUid: Int?, shellUid: Int, access: UriAccessPort, hadAccessAtLaunch: (String) -> Boolean): Open {
         if (launchedFromUid != null && launchedFromUid == shellUid) return Open(show = true, mayChange = true, line = null, request = "viewer request from the shell: shown")
         val who = if (launchedFromUid == null) "an unnamed app" else "another app"
         val callerMayRead = launchedFromUid != null && UriAccessRules.mayRead(access, uri, launchedFromUid)
-        val handedOver = uri.scheme == "content" && uri.plainAuthority != null && access.holdsReadGrant(uri.text, shellUid)
-        return if (callerMayRead || handedOver) {
+        val mayRead = callerMayRead || (uri.scheme == "content" && uri.plainAuthority != null && hadAccessAtLaunch(uri.text))
+        return if (mayRead) {
             Open(show = true, mayChange = false, line = null, request = "viewer request from $who: shown read-only")
         } else {
             Open(show = false, mayChange = false, line = LINE_NO_GRANT, request = "viewer request from $who: refused")

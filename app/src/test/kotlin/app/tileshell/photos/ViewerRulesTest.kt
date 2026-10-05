@@ -16,7 +16,11 @@ class ViewerRulesTest {
     private val othersFile = "content://com.other.files/share/p.jpg"
     private val callersFile = "content://com.caller.files/share/p.jpg"
 
-    private fun open(uri: String, from: Int?, access: FakeUriAccess = FakeUriAccess()) = ViewerRules.open(ContentUriText.parse(uri), from, shell, access)
+    /** [launch]: the URIs the platform says the launcher could read at launch (API 35+); empty = API 34, or "no". */
+    private fun open(uri: String, from: Int?, access: FakeUriAccess = FakeUriAccess(), launch: Set<String> = emptySet()) =
+        ViewerRules.open(ContentUriText.parse(uri), from, shell, access) { asked += it; it in launch }
+
+    private val asked = mutableListOf<String>()
 
     private val refused = ViewerRules.Open(show = false, mayChange = false, line = "refused view: no grant", request = "viewer request from another app: refused")
     private val refusedUnnamed = refused.copy(request = "viewer request from an unnamed app: refused")
@@ -28,6 +32,7 @@ class ViewerRulesTest {
         val access = FakeUriAccess()
         assertEquals(ViewerRules.Open(show = true, mayChange = true, line = null, request = "viewer request from the shell: shown"), open(mediaRow, shell, access))
         assertEquals(emptyList<String>(), access.asked)
+        assertEquals(emptyList<String>(), asked)
     }
 
     @Test
@@ -63,22 +68,29 @@ class ViewerRulesTest {
     }
 
     @Test
-    fun `the shell holds a read grant for exactly this URI - shown read-only, for a named and an unnamed app`() {
-        val handed = FakeUriAccess(readGrants = setOf(othersFile to shell))
-        assertEquals(readOnlyUnnamed, open(othersFile, null, handed))
-        assertEquals(readOnly, open(othersFile, FakeUriAccess.CALLER, handed))
-        // A grant for another URI, and a write grant, are not a read grant for this one.
-        assertEquals(refusedUnnamed, open(mediaRow, null, handed))
-        assertEquals(refusedUnnamed, open(othersFile, null, FakeUriAccess(writeGrants = setOf(othersFile to shell))))
+    fun `API 35 and later - the platform says the launcher had access at launch - shown read-only, for a named and an unnamed app`() {
+        assertEquals(readOnlyUnnamed, open(mediaRow, null, launch = setOf(mediaRow)))
+        assertEquals(readOnly, open(mediaRow, other, launch = setOf(mediaRow)))
+        // Access to another URI is not access to this one.
+        assertEquals(refusedUnnamed, open(othersFile, null, launch = setOf(mediaRow)))
+    }
+
+    @Test
+    fun `API 34 - nothing can be asked for an unnamed app, so its content URI is refused - and the shell's own grants do not count`() {
+        // The shell holding a read grant (or being able to read everything) says nothing about the launcher.
+        val shellCan = FakeUriAccess(readGrants = setOf(othersFile to shell, mediaRow to shell), owners = mapOf("com.other.files" to shell))
+        assertEquals(refusedUnnamed, open(othersFile, null, shellCan))
+        assertEquals(refusedUnnamed, open(mediaRow, null, shellCan))
     }
 
     @Test
     fun `another user's provider and an escaped authority are refused whatever the platform would say`() {
         for (uri in listOf("content://10@media/external/images/media/41", "content://10%40media/external/images/media/41", "content:///x", "content:x")) {
             val yes = FakeUriAccess(owners = mapOf("media" to other, "10@media" to other, "" to other), readGrants = setOf(uri to other, uri to shell), providerRead = { _, _ -> true })
-            assertEquals(uri, refused, open(uri, other, yes))
-            assertEquals(uri, refusedUnnamed, open(uri, null, yes))
+            assertEquals(uri, refused, open(uri, other, yes, launch = setOf(uri)))
+            assertEquals(uri, refusedUnnamed, open(uri, null, yes, launch = setOf(uri)))
             assertEquals("$uri: the platform was not asked", emptyList<String>(), yes.asked)
+            assertEquals("$uri: nor about the launch", emptyList<String>(), asked)
         }
     }
 
@@ -86,16 +98,17 @@ class ViewerRulesTest {
     fun `every combination - only the shell may change anything, and nothing is shown without the platform's word`() {
         val uris = listOf(mediaRow, othersFile, callersFile)
         for (uri in uris) for (from in listOf<Int?>(shell, other, FakeUriAccess.CALLER, null, 0, 10999)) {
-            for (callerGrant in listOf(false, true)) for (shellGrant in listOf(false, true)) for (provider in listOf<Boolean?>(null, false, true)) {
+            for (callerGrant in listOf(false, true)) for (shellGrant in listOf(false, true)) for (atLaunch in listOf(false, true)) for (provider in listOf<Boolean?>(null, false, true)) {
                 val access = FakeUriAccess(
                     readGrants = buildSet { if (callerGrant && from != null) add(uri to from); if (shellGrant) add(uri to shell) },
                     providerRead = provider?.let { answer -> { _: String, _: Int -> answer } },
                 )
-                val d = open(uri, from, access)
-                val case = "uri=$uri from=$from callerGrant=$callerGrant shellGrant=$shellGrant provider=$provider"
+                val d = open(uri, from, access, launch = if (atLaunch) setOf(uri) else emptySet())
+                val case = "uri=$uri from=$from callerGrant=$callerGrant shellGrant=$shellGrant atLaunch=$atLaunch provider=$provider"
                 val isShell = from == shell
                 val owns = from != null && access.owners[ContentUriText.parse(uri).authority] == from
-                val expectShow = isShell || shellGrant || (from != null && (owns || callerGrant || provider == true))
+                // A grant the SHELL holds never counts; the launch answer counts with or without a known uid.
+                val expectShow = isShell || atLaunch || (from != null && (owns || callerGrant || provider == true))
                 assertEquals(case, expectShow, d.show)
                 assertEquals(case, isShell, d.mayChange)
                 assertEquals(case, if (expectShow) null else "refused view: no grant", d.line)
