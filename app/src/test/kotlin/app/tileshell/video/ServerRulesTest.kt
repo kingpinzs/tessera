@@ -1,0 +1,145 @@
+package app.tileshell.video
+
+import app.tileshell.video.server.ServerItem
+import app.tileshell.video.server.ServerRules
+import app.tileshell.video.server.ServerState
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * Phase 17 build task 13 and C-16 (5): the media server's address rule — which hosts are on the home network, and so
+ * which plain-http sign-ins are asked about first — its lines, Jellyfin 12.1's answers, and the rule for the one place
+ * the token may ride in an address.
+ */
+class ServerRulesTest {
+    @Test fun `an address is read from what the user types`() {
+        val a = ServerRules.parse("10.0.2.2:8096")!!
+        assertEquals(listOf("http", "10.0.2.2", 8096, "http://10.0.2.2:8096", "10.0.2.2:8096"), listOf(a.scheme, a.host, a.port, a.base, a.label))
+        assertEquals("http://192.168.1.10:8096", ServerRules.parse("192.168.1.10")!!.base)
+        assertEquals("http://192.0.2.10:8096", ServerRules.parse(" http://192.0.2.10:8096/ ")!!.base)
+        val s = ServerRules.parse("HTTPS://Media.Example.org")!!
+        assertEquals(listOf("https", "media.example.org", null, "https://media.example.org", "media.example.org"), listOf(s.scheme, s.host, s.port, s.base, s.label))
+        assertEquals("https://media.example.org:8920", ServerRules.parse("https://media.example.org:8920")!!.base)
+        assertEquals("http://[fe80::1]:8096", ServerRules.parse("[fe80::1]")!!.base)
+        assertEquals("http://[2001:db8::7]:8000", ServerRules.parse("http://[2001:db8::7]:8000")!!.base)
+    }
+
+    @Test fun `what is not a plain server address is refused`() {
+        for (bad in listOf(
+            "", "   ", "ftp://host", "file:///sdcard", "http://", "http://user:pw@host:8096", "user@host", "host/path", "http://host:8096/web",
+            "host:0", "host:65536", "host:80a", "host:-1", "ho st", "host?x=1", "host#f", "fe80::1", "[fe80::1", "[nothex]:8096", "-host", "host-", "a:b:c",
+        )) {
+            assertNull(bad, ServerRules.parse(bad))
+        }
+    }
+
+    @Test fun `private hosts are RFC 1918, link-local, loopback, dot-local and the emulator's host`() {
+        for (h in listOf(
+            "10.0.2.2", "10.255.255.255", "172.16.0.1", "172.31.255.254", "192.168.0.1", "192.168.255.255", "169.254.1.1", "127.0.0.1", "127.255.0.1",
+            "localhost", "LOCALHOST", "nas.local", "Jellyfin.Local", "media.local.", "::1", "[::1]", "fe80::1", "[fe80::abcd:1]", "febf::1", "fd00::1", "fc12:3456::1",
+        )) {
+            assertTrue(h, ServerRules.isPrivate(h))
+        }
+    }
+
+    @Test fun `a public name, a public IPv4 and a global IPv6 are not private`() {
+        for (h in listOf(
+            "192.0.2.10", "8.8.8.8", "172.15.0.1", "172.32.0.1", "192.169.0.1", "169.255.0.1", "11.0.0.1", "126.0.0.1", "128.0.0.1", "100.64.0.1",
+            "media.example.org", "jellyfin", "nas", "local", ".local", "notlocal", "10.0.0.1.example.org", "192.168.1.1.nip.io", "localhost.example.org",
+            "2001:db8::1", "[2606:4700::1111]", "fec0::1", "fe00::1", "::ffff:10.0.0.1", "::",
+            // Odd spellings a resolver may read as an address are treated as names: asked about, never trusted.
+            "127.1", "0x7f.0.0.1", "2130706433", "010.0.0.1", "10.0.0", "10.0.0.256", "10.0.0.1.2",
+        )) {
+            assertFalse(h, ServerRules.isPrivate(h))
+        }
+    }
+
+    @Test fun `only a plain-http sign-in to a host that is not private is asked about first`() {
+        fun asks(typed: String) = ServerRules.needsInsecurePrompt(ServerRules.parse(typed)!!)
+        assertTrue(asks("http://192.0.2.10:8096"))
+        assertTrue(asks("media.example.org"))
+        assertTrue(asks("http://[2001:db8::1]:8096"))
+        assertTrue(asks("nas"))
+        assertFalse(asks("10.0.2.2:8096"))
+        assertFalse(asks("192.168.1.10"))
+        assertFalse(asks("jellyfin.local:8096"))
+        assertFalse(asks("[fe80::1]"))
+        assertFalse(asks("https://media.example.org"))
+        assertEquals("This server isn't secure — your password would be sent unencrypted", ServerRules.TEXT_INSECURE)
+        assertEquals("server 192.0.2.10:8096: insecure, asked", ServerRules.line(ServerRules.parse("http://192.0.2.10:8096")!!.label, "insecure, asked"))
+    }
+
+    @Test fun `the three states have their words and their lines`() {
+        assertEquals("server 10.0.2.2:8096: connected", ServerRules.line("10.0.2.2:8096", ServerRules.stateOf(200).word))
+        assertEquals("server 10.0.2.2:8096: unauthorised", ServerRules.line("10.0.2.2:8096", ServerRules.stateOf(401).word))
+        assertEquals(ServerState.UNAUTHORISED, ServerRules.stateOf(403))
+        assertEquals("server 10.0.2.2:8096: unreachable", ServerRules.line("10.0.2.2:8096", ServerRules.stateOf(503).word))
+        assertEquals(ServerState.UNREACHABLE, ServerRules.stateOf(404))
+        assertEquals("That password isn't right", ServerRules.TEXT_BAD_PASSWORD)
+        assertEquals("Can't reach your media server", ServerRules.TEXT_UNREACHABLE)
+    }
+
+    @Test fun `the sign-in header names the client, and carries the token only when there is one`() {
+        assertEquals(
+            "MediaBrowser Client=\"Tessera\", Device=\"Pixel\", DeviceId=\"abc-123\", Version=\"0.1.0\"",
+            ServerRules.authorization("Pixel", "abc-123", "0.1.0", null),
+        )
+        assertEquals(
+            "MediaBrowser Client=\"Tessera\", Device=\"Pixel\", DeviceId=\"abc-123\", Version=\"0.1.0\", Token=\"t0k\"",
+            ServerRules.authorization("Pixel", "abc-123", "0.1.0", "t0k"),
+        )
+        // A quote in a device's name cannot open a second field.
+        assertEquals(
+            "MediaBrowser Client=\"Tessera\", Device=\"A, Token=x\", DeviceId=\"d\", Version=\"1\"",
+            ServerRules.authorization("A\", Token=\"x", "d", "1", null),
+        )
+    }
+
+    @Test fun `Jellyfin's sign-in and library answers are read`() {
+        val signIn = """{"User":{"Name":"qa","Id":"7e0a575717d34c8292ee80ac53cc1ee3"},"SessionInfo":{},"AccessToken":"0123456789abcdef0123456789abcdef","ServerId":"x"}"""
+        assertEquals("0123456789abcdef0123456789abcdef" to "7e0a575717d34c8292ee80ac53cc1ee3", ServerRules.parseSignIn(signIn))
+        assertNull(ServerRules.parseSignIn("""{"User":{"Id":"u"}}"""))
+        assertNull(ServerRules.parseSignIn("""{"AccessToken":"t"}"""))
+        assertNull(ServerRules.parseSignIn("Error processing request."))
+        val items = """{"Items":[{"Name":"qa-steps","Id":"e90356d9dbdedc30a27710927ef3ac87","Type":"Movie","MediaType":"Video"},{"Name":"","Id":"aa11","Type":"Episode"},{"Name":"bad id","Id":"../../x","Type":"Movie"},{"Id":5}],"TotalRecordCount":4,"StartIndex":0}"""
+        assertEquals(listOf(ServerItem("e90356d9dbdedc30a27710927ef3ac87", "qa-steps", "Movie"), ServerItem("aa11", "aa11", "Episode")), ServerRules.parseItems(items))
+        assertEquals(emptyList<ServerItem>(), ServerRules.parseItems("""{"Items":[],"TotalRecordCount":0}"""))
+        assertNull(ServerRules.parseItems("""{"error":"x"}"""))
+        assertEquals("/Items?userId=u1&recursive=true&includeItemTypes=Movie,Episode,Video&sortBy=SortName", ServerRules.libraryPath("u1"))
+    }
+
+    @Test fun `a stream address carries no token, and a logged one no query`() {
+        val url = ServerRules.streamUrl("http://10.0.2.2:8096", "e90356d9dbdedc30a27710927ef3ac87")
+        assertEquals("http://10.0.2.2:8096/Videos/e90356d9dbdedc30a27710927ef3ac87/stream?static=true", url)
+        assertEquals("http://10.0.2.2:8096/Videos/e90356d9dbdedc30a27710927ef3ac87/stream", ServerRules.withoutQuery("$url&ApiKey=SECRET"))
+    }
+
+    @Test fun `the token may ride only on the saved server's own direct-play address`() {
+        val base = "http://10.0.2.2:8096"
+        fun may(url: String, saved: String = base) = ServerRules.mayCarryToken(url, saved)
+        assertTrue(may("http://10.0.2.2:8096/Videos/e90356d9dbdedc30a27710927ef3ac87/stream?static=true"))
+        assertTrue(may("HTTP://10.0.2.2:8096/Videos/ab12/stream"))
+        assertTrue(may("https://media.example.org/Videos/ab12/stream?static=true", "https://media.example.org"))
+        assertTrue(may("https://media.example.org:443/Videos/ab12/stream", "https://media.example.org"))
+        // Another host, port or scheme — and a host that only starts like the saved one.
+        assertFalse(may("http://10.0.2.3:8096/Videos/ab12/stream"))
+        assertFalse(may("http://10.0.2.2:8097/Videos/ab12/stream"))
+        assertFalse(may("https://10.0.2.2:8096/Videos/ab12/stream"))
+        assertFalse(may("http://10.0.2.2:8096.evil.example/Videos/ab12/stream"))
+        assertFalse(may("http://10.0.2.2:8096@evil.example/Videos/ab12/stream"))
+        assertFalse(may("http://evil.example/Videos/ab12/stream?x=http://10.0.2.2:8096/"))
+        // Another path of the same server, a path that only ends like it, an id that is not one.
+        assertFalse(may("http://10.0.2.2:8096/Users/Me"))
+        assertFalse(may("http://10.0.2.2:8096/x/Videos/ab12/stream"))
+        assertFalse(may("http://10.0.2.2:8096/Videos/../Users/stream"))
+        assertFalse(may("http://10.0.2.2:8096/Videos/ab12/stream/extra"))
+        // An address that already names a key is left alone.
+        assertFalse(may("http://10.0.2.2:8096/Videos/ab12/stream?static=true&ApiKey=other"))
+        assertFalse(may("http://10.0.2.2:8096/Videos/ab12/stream?api_key=other"))
+        assertFalse(may("rtsp://10.0.2.2:8096/Videos/ab12/stream"))
+        assertFalse(may("not a url"))
+    }
+}

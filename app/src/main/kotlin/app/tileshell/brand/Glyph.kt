@@ -126,19 +126,14 @@ object Glyph {
     const val IMPORT = "\ue111"             // Import E8B5 — "import from SIM"
     const val PEOPLE_TEAM = "\ueda9"        // a group's round avatar (P5.2)
 
-    // Phase 17 (Photos). Same font, same source; code points read from the shipped TTF's cmap
-    // (ic_fluent_<name>_20_regular). The MDL2 glyph each stands in for is r11/photos.md §3. SHARE, EDIT, DELETE,
-    // MORE_HORIZONTAL, SYNC, CHECKMARK, DISMISS, IMAGE and INFO are above.
-    const val CROP = "\ue5e9"               // Crop E7A8
-    const val WAND = "\uf55f"               // the editor's Enhance (the wand of r11/photos-pass2.md's strip)
-    const val ROTATE_RIGHT = "\uef87"       // Rotate E7AD
-    const val SAVE_COPY = "\uef9d"          // SaveCopy EA35
-    const val SLIDESHOW = "\uf0bd"          // Slideshow E786
-    const val ASPECT_RATIO = "\uef19"       // the crop bar's Aspect ratio
-    const val IMAGE_OFF = "\uea6e"          // a tile or a photo whose file cannot be read
-    const val STRAIGHTEN = "\ue057"         // the editor's Straighten (P4)
-    const val PHOTO_FILTER = "\uee69"       // Filter E71C in the editor (P4)
-    const val EYE = "\ue883"                // RedEye E7B3 (P4)
-    const val WALLPAPER = "\uf55d"          // Set as
-    const val PLAY_OUTLINE = "\uf4ad"       // Play E768 as the video tile draws it: an outline triangle
-    const val VIDEO_CLIP = "\uf50b"         // Trim E78A
+    // Phase 17 (Movies & TV). Code points read from the shipped TTF's cmap (ic_fluent_<name>_20_regular); the MDL2
+    // glyph each stands in for is r11/movies-tv.md §3. NAVIGATION (GlobalNavigationButton E700), SEARCH, SETTINGS,
+    // PLAY, PAUSE, EXPAND / COLLAPSE (FullScreen E740 / BackToWindow E73F), MORE_HORIZONTAL and CHECKMARK are above.
+    const val VIDEO = "\uf4fb"              // Video E714 — the pane's My videos row
+    const val MOVIES_TV = "\uec7c"          // Movies E8B2 — the pane's Browse row, the poster placeholder
+    const val SERVER = "\uf005"             // the pane's Media server row (no W10M counterpart; a P4 page)
+    const val SKIP_BACK_10 = "\uf095"       // SkipBack10 ED3C
+    const val SKIP_FORWARD_30 = "\uf09d"    // SkipForward30 ED3D
+    const val CLOSED_CAPTION = "\ue51c"     // CC E7F0
+    const val KEY = "\ueaa7"                // the TMDB key setting's row
+}
