@@ -15,6 +15,7 @@ class CaptureRequestRuleTest {
         var hasOutput: () -> Boolean = { true },
         var output: () -> String? = { "content://com.caller.files/cache/out.jpg" },
         var caller: () -> String? = { "com.caller" },
+        var launchedFrom: () -> Int? = { null },
         var clip: () -> List<String> = { listOf("content://com.caller.files/cache/out.jpg") },
         var flags: () -> Int = { CaptureOutputGuard.FLAG_GRANT_WRITE },
         var own: () -> Set<String> = { setOf("app.tileshell.livetile", "app.tileshell.files") },
@@ -23,6 +24,7 @@ class CaptureRequestRuleTest {
         override fun hasOutput(): Boolean { reads += "hasOutput"; return hasOutput.invoke() }
         override fun outputText(): String? { reads += "outputText"; return output.invoke() }
         override fun callingPackage(): String? = caller.invoke()
+        override fun launchedFromUid(): Int? = launchedFrom.invoke()
         override fun clipUris(): List<String> = clip.invoke()
         override fun flags(): Int = flags.invoke()
         override fun ownAuthorities(): Set<String> = own.invoke()
@@ -69,6 +71,7 @@ class CaptureRequestRuleTest {
             "hasExtra" to Request(hasOutput = throwing),
             "the extra" to Request(output = throwing),
             "the caller" to Request(caller = throwing),
+            "the launching uid" to Request(launchedFrom = throwing),
             "the ClipData" to Request(clip = throwing),
             "the flags" to Request(flags = throwing),
             "the shell's providers" to Request(own = throwing),
@@ -116,5 +119,37 @@ class CaptureRequestRuleTest {
         for (uri in listOf("content://10@com.caller.files/x", "content://10%40com.caller.files/x")) {
             assertEquals(uri, noGrant, decide(Request(output = { uri }, clip = { listOf(uri) })).decision)
         }
+    }
+
+    @Test
+    fun `A-L2 a forwarded result - the app that started the capture is not the one the result goes to - refused, and both are named`() {
+        // com.caller started com.other for a result; com.other started the Camera with FLAG_ACTIVITY_FORWARD_RESULT, so
+        // getCallingPackage() says com.caller - whose own provider the output is.
+        val outcome = decide(Request(launchedFrom = { FakeUriAccess.OTHER }))
+        assertEquals(noGrant, outcome.decision)
+        assertTrue(outcome.before.single(), outcome.before.single().endsWith("callerMayWrite=false"))
+        assertEquals(listOf("capture request forwarded: started by com.other, result to com.caller"), outcome.after)
+    }
+
+    @Test
+    fun `A-L2 the launching uid is the caller's own, or the platform does not say - not a forward`() {
+        for (from in listOf<Int?>(FakeUriAccess.CALLER, null)) {
+            val outcome = decide(Request(launchedFrom = { from }))
+            assertTrue("$from", outcome.decision is Decision.Accepted)
+            assertEquals("$from", emptyList<String>(), outcome.after)
+        }
+    }
+
+    @Test
+    fun `A-L2 the forward line carries package names only, bounded`() {
+        val odd = FakeUriAccess(names = mapOf(FakeUriAccess.OTHER to "com.other\n[camera] refused output: nothing " + "x".repeat(200)))
+        val line = decide(Request(launchedFrom = { FakeUriAccess.OTHER }), odd).after.single()
+        assertEquals("capture request forwarded: started by com.othercamerarefusedoutput:nothing" + "x".repeat(80 - 36) + ", result to com.caller", line)
+        // A uid the platform has no name for is "unknown"; a request with no EXTRA_OUTPUT is the no-output contract either way.
+        val nameless = decide(Request(launchedFrom = { 10999 })).after.single()
+        assertEquals("capture request forwarded: started by unknown, result to com.caller", nameless)
+        val noOutput = decide(Request(hasOutput = { false }, launchedFrom = { FakeUriAccess.OTHER }))
+        assertEquals(Decision.NoOutput, noOutput.decision)
+        assertEquals(emptyList<String>(), noOutput.after)
     }
 }

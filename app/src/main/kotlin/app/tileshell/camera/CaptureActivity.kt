@@ -110,7 +110,8 @@ class CaptureActivity : ComponentActivity() {
             return
         }
         video = action == MediaStore.ACTION_VIDEO_CAPTURE
-        decision = decide(intent)
+        val outcome = decide(intent)
+        decision = outcome.decision
         val d = decision
         Diagnostics.add("camera", "capture request ${if (video) "video" else "image"} from ${callingPackage ?: "no caller"}: " + when (d) {
             is CaptureOutputGuard.Decision.Accepted -> "output accepted"
@@ -119,6 +120,7 @@ class CaptureActivity : ComponentActivity() {
         })
         if (d is CaptureOutputGuard.Decision.Refused) {
             Diagnostics.add("camera", d.line)
+            outcome.after.forEach { Diagnostics.add("camera", it) }
             finish()
             return
         }
@@ -148,6 +150,7 @@ class CaptureActivity : ComponentActivity() {
         override fun hasOutput(): Boolean = request.hasExtra(MediaStore.EXTRA_OUTPUT)
         override fun outputText(): String? = request.getParcelableExtra(MediaStore.EXTRA_OUTPUT, Uri::class.java)?.toString()
         override fun callingPackage(): String? = activity.callingPackage
+        override fun launchedFromUid(): Int? = activity.launchedFromUid.takeIf { it >= 0 }
         override fun clipUris(): List<String> {
             val clip = request.clipData ?: return emptyList()
             return (0 until clip.itemCount).mapNotNull { clip.getItemAt(it)?.uri?.toString() }
@@ -159,10 +162,10 @@ class CaptureActivity : ComponentActivity() {
     }
 
     /** The guard's decision over the real intent, with the lines `CaptureRequestRule` wrote on the way. */
-    private fun decide(request: Intent): CaptureOutputGuard.Decision {
+    private fun decide(request: Intent): CaptureRequestRule.Outcome {
         val outcome = CaptureRequestRule.decide(IntentCaptureRequest(this, request), AndroidUriAccess(this))
         outcome.before.forEach { Diagnostics.add("camera", it) }
-        return outcome.decision
+        return outcome
     }
 
     /** `EXTRA_USE_FRONT_CAMERA` and the older forms callers still send. Where there is no front camera the back one answers. */
