@@ -4,7 +4,8 @@ import java.util.Locale
 
 /**
  * What [PlayerActivity] was asked to play, decided before any ExoPlayer source exists (phase 17 build task 7; T17-1
- * "the VIEW schemes"). Pure: no Android type, so the scheme rule is unit-tested.
+ * "the VIEW schemes"). Pure: no Android type, so the scheme rule is unit-tested. Every text here that came from the
+ * caller has been through [PlayerRules.lineText].
  */
 sealed interface PlayerRequest {
     /**
@@ -19,6 +20,93 @@ sealed interface PlayerRequest {
 
     /** Anything else: "Can't play this address", `[video] unsupported scheme=<s>`, and no source is created. */
     data class Unsupported(val scheme: String) : PlayerRequest
+
+    /**
+     * A `content` source another app named that it may not read itself: "Can't play this address",
+     * `[video] refused source: no grant`, and nothing is opened — not the source, not a provider query (C-M4).
+     */
+    data object Refused : PlayerRequest
+}
+
+/** What [PlayerAccess.decide] says about a source, before the scheme rule's own checks. */
+enum class SourceDecision { ALLOWED, UNSUPPORTED, NO_GRANT }
+
+/** Why another app's `content` source may be played — or [NONE]: it may not. The word is what the line says. */
+enum class CallerRead(val word: String) {
+    NONE("no grant"),
+    OWN_PROVIDER("its own provider"),
+    URI_GRANT("a read grant"),
+    PROVIDER_ALLOWS("the provider allows it"),
+    LAUNCH_ACCESS("it had access at launch"),
+}
+
+/**
+ * What the player asks Android about who started it, for ONE source (the port behind [PlayerAccess.callerMayRead];
+ * [PlayerActivity] holds the implementation). Every answer fails closed: an error or a missing API is "no".
+ */
+interface PlayerCallerPort {
+    /** `Activity.getLaunchedFromUid()`: the uid that started the player, or [PlayerAccess.UNKNOWN_UID]. */
+    val launchedFromUid: Int
+
+    /** The uid of the provider behind the source's authority, or null when it cannot be seen. */
+    fun providerUid(): Int?
+
+    /** `checkUriPermission(uri, -1, uid, READ)`: [uid] holds an explicit read grant for the source. */
+    fun holdsReadGrant(uid: Int): Boolean
+
+    /** API 35+ `checkContentUriPermissionFull`: the provider itself lets [uid] read the source. False below 35. */
+    fun providerAllowsRead(uid: Int): Boolean
+
+    /**
+     * API 35+ `Activity.getInitialCaller().checkContentUriPermission(uri, READ)`: whoever started the player could
+     * read the source when it did — the platform's own answer, which needs no uid. False below 35.
+     */
+    fun hadAccessAtLaunch(): Boolean
+}
+
+/**
+ * Who may make the player open what (trust review C-M4 (a), (b), (d)). TRUST-TOUCHING. PlayerActivity is exported and
+ * opens a source with the SHELL's identity — its media permission, its own files — so what it opens for another app
+ * must be something that app could open itself. Pure: no Android type, every combination unit-tested.
+ */
+object PlayerAccess {
+    /** `Process.INVALID_UID`: Android did not say who started the activity. Treated as another app. */
+    const val UNKNOWN_UID = -1
+
+    /** True only when the launcher is known and is the shell itself (the hub, Photos, a tile — the same uid). */
+    fun isOwnUid(launchedFromUid: Int, ownUid: Int): Boolean = launchedFromUid != UNKNOWN_UID && ownUid != UNKNOWN_UID && launchedFromUid == ownUid
+
+    /**
+     * Whether the app that started the player may itself read the `content` source — asked only for another app's
+     * launch. With a known uid: the source is its own provider's, or it holds a read grant, or (API 35+) the provider
+     * allows it. With or without one: (API 35+) the platform says the launcher had access at launch.
+     */
+    fun callerMayRead(port: PlayerCallerPort): CallerRead {
+        val uid = port.launchedFromUid
+        if (uid != UNKNOWN_UID) {
+            if (port.providerUid() == uid) return CallerRead.OWN_PROVIDER
+            if (port.holdsReadGrant(uid)) return CallerRead.URI_GRANT
+            if (port.providerAllowsRead(uid)) return CallerRead.PROVIDER_ALLOWS
+        }
+        return if (port.hadAccessAtLaunch()) CallerRead.LAUNCH_ACCESS else CallerRead.NONE
+    }
+
+    /**
+     * The rule: `http` and `https` are open to every caller (the address is the caller's own to fetch); `file` only to
+     * the shell's own uid; `content` to the shell's own uid, and to another app only when that app may read it.
+     */
+    fun decide(scheme: String?, isOwnUid: Boolean, callerMayRead: Boolean): SourceDecision = when (scheme?.lowercase(Locale.ROOT)) {
+        "http", "https" -> SourceDecision.ALLOWED
+        "file" -> if (isOwnUid) SourceDecision.ALLOWED else SourceDecision.UNSUPPORTED
+        "content" -> if (isOwnUid || callerMayRead) SourceDecision.ALLOWED else SourceDecision.NO_GRANT
+        else -> SourceDecision.UNSUPPORTED
+    }
+
+    /** `EXTRA_QUEUE` — which MediaStore ids Autoplay goes on to — is taken from the shell's own uid only. */
+    fun queueHonoured(isOwnUid: Boolean): Boolean = isOwnUid
+
+    /** `[video] source from another app: <why it may be played>`. */
+    fun line(read: CallerRead): String = "source from another app: ${read.word}"
 }
 
 /** Why a source stopped (the three error states of build task 7). */
@@ -34,15 +122,62 @@ object PlayerRules {
     /** E14 writes this one in lower case, and a row reads the text as written. */
     const val TEXT_UNDECODABLE = "can't play this file"
 
+    const val LINE_NO_GRANT = "refused source: no grant"
+
+    /** The longest piece of caller-supplied text a `[video]` line carries, and the longest session title. */
+    const val LINE_MAX = 80
+    const val TITLE_MAX = 200
+
     private val MEDIA_VIDEO_PATH = Regex("^/[^/]+/video/media/(\\d+)$")
+
+    /**
+     * THE one place caller-supplied text is made fit for a line or a title (C-L1, C-L7): every control character is
+     * dropped — C0 and C1, DEL, and the Unicode line and paragraph separators, so a `%0A` in an address cannot start a
+     * forged line — and what is left is cut to [max] characters. A scheme, a host label, a last path segment, a
+     * provider's display name and `EXTRA_TITLE` all pass through here before they are kept.
+     */
+    fun lineText(text: String?, max: Int = LINE_MAX): String = buildString {
+        for (c in text.orEmpty()) {
+            if (length >= max) break
+            val control = c < ' ' || c in '\u007f'..'\u009f' || c == '\u2028' || c == '\u2029'
+            if (!control) append(c)
+        }
+    }
+
+    /**
+     * The whole decision for a source: who may open it ([PlayerAccess.decide]), then the scheme rule ([classify]).
+     * [path] must already be canonical for a `file` source ([sourcePath]).
+     */
+    fun request(scheme: String?, authority: String?, path: String?, ownFileRoots: List<String>, isOwnUid: Boolean, callerMayRead: Boolean): PlayerRequest =
+        when (PlayerAccess.decide(scheme, isOwnUid, callerMayRead)) {
+            SourceDecision.NO_GRANT -> PlayerRequest.Refused
+            SourceDecision.UNSUPPORTED -> PlayerRequest.Unsupported(lineText(scheme?.lowercase(Locale.ROOT)).ifEmpty { "none" })
+            SourceDecision.ALLOWED -> classify(scheme, authority, path, ownFileRoots)
+        }
+
+    /**
+     * The path the scheme rule is given: a `file` source's CANONICAL path (links and `..` resolved by [canonical],
+     * `File.getCanonicalPath`), or null — nothing is played — when it cannot be resolved; any other source's path as
+     * it is.
+     */
+    fun sourcePath(scheme: String?, path: String?, canonical: (String) -> String?): String? =
+        if (scheme.equals("file", ignoreCase = true)) path?.let { p -> runCatching { canonical(p) }.getOrNull() } else path
+
+    val refused = PlayerFailure(TEXT_BAD_ADDRESS, LINE_NO_GRANT)
+
+    /** The session's title: the caller's `EXTRA_TITLE`, else the source's own name — fit for a title either way. */
+    fun sessionTitle(extra: String?, displayName: String?, fallback: String): String =
+        lineText(extra, TITLE_MAX).takeIf { it.isNotBlank() }
+            ?: lineText(displayName?.substringBeforeLast('.'), TITLE_MAX).takeIf { it.isNotBlank() }
+            ?: lineText(fallback, TITLE_MAX)
 
     /**
      * The scheme rule: `content`, `http`, `https`, and `file` only for a file under one of [ownFileRoots] (the shell's
      * own directories; [path] must already be canonical for a `file` source). A missing scheme reads `none`.
      */
     fun classify(scheme: String?, authority: String?, path: String?, ownFileRoots: List<String>): PlayerRequest {
-        val s = scheme?.lowercase(Locale.ROOT)?.takeIf { it.isNotEmpty() } ?: return PlayerRequest.Unsupported("none")
-        val name = path?.trimEnd('/')?.substringAfterLast('/').orEmpty().ifEmpty { "video" }
+        val s = lineText(scheme?.lowercase(Locale.ROOT)).takeIf { it.isNotEmpty() } ?: return PlayerRequest.Unsupported("none")
+        val name = lineText(path?.trimEnd('/')?.substringAfterLast('/')).ifEmpty { "video" }
         return when (s) {
             "content" -> {
                 val id = if (authority == "media") MEDIA_VIDEO_PATH.find(path.orEmpty())?.groupValues?.get(1)?.toLongOrNull() else null
@@ -54,7 +189,8 @@ object PlayerRules {
             }
             "file" -> {
                 val p = path.orEmpty()
-                val own = ownFileRoots.any { root -> root.isNotEmpty() && p.startsWith(root.trimEnd('/') + "/") } && !p.contains("/../")
+                // A root that is empty or only slashes names the whole disk: it matches nothing (C-L6).
+                val own = ownFileRoots.any { root -> root.trimEnd('/').let { r -> r.isNotBlank() && p.startsWith("$r/") } } && !p.contains("/../")
                 if (own) PlayerRequest.Play(s, null, null, name) else PlayerRequest.Unsupported(s)
             }
             else -> PlayerRequest.Unsupported(s)
@@ -62,7 +198,7 @@ object PlayerRules {
     }
 
     /** `host[:port]` of a URI authority, the `user:password@` part dropped (a credential never reaches a line). */
-    fun hostLabel(authority: String?): String = authority.orEmpty().substringAfterLast('@')
+    fun hostLabel(authority: String?): String = lineText(authority.orEmpty().substringAfterLast('@'))
 
     fun unsupported(request: PlayerRequest.Unsupported) = PlayerFailure(TEXT_BAD_ADDRESS, "unsupported scheme=${request.scheme}")
 
@@ -81,7 +217,8 @@ object PlayerRules {
     fun failure(kind: PlayerErrorKind, request: PlayerRequest.Play, httpStatus: Int?, displayName: String?): PlayerFailure = when (kind) {
         PlayerErrorKind.UNREACHABLE -> PlayerFailure(TEXT_UNREACHABLE, "cannot reach ${request.host}")
         PlayerErrorKind.HTTP_STATUS -> PlayerFailure(TEXT_UNDECODABLE, "cannot decode ${httpStatus ?: 0}")
-        PlayerErrorKind.UNDECODABLE -> PlayerFailure(TEXT_UNDECODABLE, "cannot decode ${displayName?.takeIf { it.isNotBlank() } ?: request.name}")
+        // The display name is the provider's text — another app's, for another app's source: fit for a line first.
+        PlayerErrorKind.UNDECODABLE -> PlayerFailure(TEXT_UNDECODABLE, "cannot decode ${lineText(displayName).takeIf { it.isNotBlank() } ?: request.name}")
     }
 
     /** Autoplay: the id after [current] in its My videos group, or null at the group's end or outside one. */

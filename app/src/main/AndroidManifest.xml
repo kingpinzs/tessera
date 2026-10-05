@@ -99,6 +99,7 @@
     <application
         android:name=".ShellApp"
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:label="@string/app_name"
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.TileShell">
@@ -759,7 +760,9 @@
         <!--
           The one player of the shell: what Photos and the hub start by explicit component, and what VIEW video/* from
           another app opens, for content and http(s) sources (plain http plays: the owner's ruling Q-D (a)). Standard
-          launch mode in :video, in its caller's task. On the exported allow-list: the intent only names what is played.
+          launch mode in :video, in its caller's task. On the exported allow-list: the intent only names what is played,
+          and the activity checks who started it (PlayerAccess): a file source and the autoplay queue are the shell's
+          own uid's alone, and another app's content source is opened only when that app could read it itself.
           Rotation follows the video, so no portrait lock.
         -->
         <activity

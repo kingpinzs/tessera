@@ -93,6 +93,9 @@ sealed interface FetchOutcome {
 
     /** No connection could be made (a stopped server, no route, a timeout). */
     data object NoConnection : FetchOutcome
+
+    /** The answer was longer than the caller's cap (B-9): none of it is kept. */
+    data object TooLarge : FetchOutcome
 }
 
 /** The catalogue's rules that need no network (build task 12): the cache's age rule, the lines and the notices. */
@@ -101,6 +104,9 @@ object CatalogueRules {
     const val CACHE_MS = CACHE_DAYS * 24 * 60 * 60 * 1000
 
     const val LINE_NO_KEY = "catalogue: no TMDB key saved"
+
+    /** The saved key cannot be a header's value, so no request is made with it (B-1). The line holds no part of it. */
+    const val LINE_UNUSABLE_KEY = "catalogue: the saved TMDB key cannot be sent"
 
     /**
      * An entry older than 7 days is stale. The catalogue is asked whenever the phone is online — a saved answer is
@@ -117,6 +123,7 @@ object CatalogueRules {
     fun errorStatus(outcome: FetchOutcome): String = when (outcome) {
         is FetchOutcome.Status -> "error ${outcome.code}"
         FetchOutcome.NoConnection -> "error connect"
+        FetchOutcome.TooLarge -> "error too large"
         is FetchOutcome.Answer -> "error parse"
     }
 
@@ -127,6 +134,21 @@ object CatalogueRules {
             else -> CatalogueNotice.NOT_ANSWERING
         }
         else -> CatalogueNotice.NOT_ANSWERING
+    }
+
+    const val LINE_IMAGE_BASE_REFUSED = "catalogue: image base is not TMDB's, posters are not fetched"
+
+    /**
+     * The image base posters may be fetched from (B-6): `/3/configuration` names it, and in a build that is not a debug
+     * build it must be on TMDB's own image host ([fixedImages], `FixedEndpoints.TMDB_IMAGES`) — else null, and no
+     * poster is asked for. A DEBUG build takes the configuration's base as it is: the QA catalogue serves its own.
+     */
+    fun posterBase(debug: Boolean, imageBase: String?, fixedImages: String): String? = when {
+        imageBase.isNullOrBlank() -> null
+        debug -> imageBase
+        // The whole fixed prefix, its closing slash included: "https://image.tmdb.org.other.example/" is not it.
+        fixedImages.endsWith("/") && imageBase.startsWith(fixedImages) -> imageBase
+        else -> null
     }
 
     /** An image's address: the configuration's base, a size, the title's poster path. */
