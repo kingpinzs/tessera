@@ -31,3 +31,4 @@ include(":testapps:pick-probe")
 // Phase 17 QA tooling, never shipped: the capture-intent caller (E9) and ACTION_SEND receiver (E5).
 include(":testapps:qa-capture")
 include(":testapps:qa-flix") // Phase 17 QA tooling, never shipped: the stand-in streaming app of the "Watch on" row (E21).
+include(":testapps:qa-photoview") // Phase 17 QA tooling, never shipped: the image VIEW sender of the trust row TRUST_PHOTOS.

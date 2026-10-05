@@ -4,8 +4,9 @@
 # form: every ring read is ring_since from a MARK, nothing here asserts on its own except where its name says so.
 # Nothing is simulated; no microphone, no host audio.
 STAMP_FILES="$STAMP_FILES $P17/scripts/p17_photos.sh"
-# The gate build (the lead's ruling, 2026-10-05: the CLEAN build of phase-17 at 25921fd7, 355,408,182 bytes).
-GATE_APK_ID="e8c26851363882da"
+# The gate build (the lead's rulings of 2026-10-05): the CLEAN build of phase-17 with the trust fixes merged (e5e30678;
+# 355,474,253 bytes). Before that merge it was e8c26851363882da (25921fd7): rows_photos.md says which build each row ran on.
+GATE_APK_ID="c7336aca6b63d61b"
 PHOTOS_TILE="tile:slot:PHOTOS"
 VIEWER_ACTIVITY="app.tileshell/.photos.ViewerActivity"
 EDIT_ACTIVITY="app.tileshell/.photos.EditActivity"
