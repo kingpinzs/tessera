@@ -28,6 +28,7 @@ cam_install() { # row-name
 }
 # The first assertions of every row: the build, and an awake device (C-25).
 cam_preamble() {
+  CRASH_T0="$(adb shell "date '+%m-%d %H:%M:%S.000'" | tr -d '\r')"
   record "the installed APK id" "$(installed_apk_id) (built $(md5sum "$APK" | cut -c1-16), $(stat -c%s "$APK") bytes, $(git -C "$REPO" rev-parse --short HEAD))"
   assert_contains "the device holds this worktree's build" "yes" "$(apk_matches)"
   assert_eq "… and it is the gate build" "$GATE_APK_ID" "$(installed_apk_id)"
@@ -113,7 +114,13 @@ pending_rows() { q "content query --uri content://media/external/file --projecti
 pull_dcim() { adb shell "cat '/sdcard/DCIM/Camera/$1'" > "$2"; }
 streams() { ffprobe -v error -show_entries stream=codec_type -of csv=p=0 "$1" 2>/dev/null | grep -v '^$' | sort | uniq -c | xargs; }
 stream_facts() { ffprobe -v error -show_streams "$1" 2>/dev/null | grep -E '^(codec_name|codec_type|width|height|r_frame_rate|rotation|duration|nb_frames)=' | xargs; }
-crash_lines() { adb logcat -d -t 800 -s AndroidRuntime | grep -F 'app.tileshell' | head -3; }
+# A crash of any of the shell's processes since CRASH_T0 (set by cam_preamble at the row's start, and by a sub-step at
+# its own): read from logcat's CRASH buffer by time. (The builder's `logcat -t 800 -s AndroidRuntime` reads only the
+# last 800 lines of the log, and missed the :camera crashes of 2026-10-05 16:26 and 16:35.)
+crash_lines() {
+  adb logcat -d -b crash -v threadtime -T "${CRASH_T0:-01-01 00:00:00.000}" 2>/dev/null | tr -d '\r' \
+    | grep -A1 -F 'Process: app.tileshell' | grep -v '^--' | sed 's/^.*AndroidRuntime: //' | head -6 | tr '\n' ' ' | sed 's/ *$//'
+}
 no_crash() { assert_eq "${1:-no crash of the shell in logcat}" "" "$(crash_lines)"; }
 
 # ---- the settings page ---------------------------------------------------------------------------------------------

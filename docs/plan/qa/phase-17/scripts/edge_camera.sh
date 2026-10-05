@@ -40,11 +40,14 @@ INDEX="$HERE/edge_index_camera.tsv"
 # A sub-step's start: the baseline's Start, the census, a fresh ring folder name.
 sub_begin() { # id
   E="$1"; D="$ROW_DIR"
+  CRASH_T0="$(qa_time)"
   ensure_start
   media_up
 }
 sub_end() {
-  assert_eq "$E: no crash of the shell in logcat" "" "$(crash_lines)"
+  # The crash buffer since the sub-step began, kept beside the row when it holds a crash of the shell's.
+  [ -n "$(crash_lines)" ] && adb logcat -d -b crash -v threadtime -T "$CRASH_T0" 2>/dev/null | tr -d '\r' > "$D/$E-crash.txt"
+  assert_eq "$E: no crash of the shell in logcat (the crash buffer since the sub-step began)" "" "$(crash_lines)"
   assert_eq "$E: no pending row of the shell's at the end" "0" "$(pending_rows)"
   c6; ensure_start
   media_down
@@ -66,21 +69,38 @@ assert_plays() { # label row out.mp4
 edge_STORAGE() {
   sub_begin STORAGE
   rings_save; mic_off
-  video_ready STORAGE
   record "STORAGE: df /sdcard before the fill" "$(adb shell df -k /sdcard | awk 'NR==2 {print $4 " KB free"}' | tr -d '\r')"
+  c6; ensure_start
   fill_volume 3000000; assert_eq "STORAGE: fill_volume 3000000 took (free ≤ leave + 5 MB, its own check)" "0" "$?"
   record "STORAGE: df /sdcard after the fill" "$(adb shell df -k /sdcard | awk 'NR==2 {print $4 " KB free"}' | tr -d '\r')"
+  # The Camera is opened on the full volume and the take started (the bullet's order: fill, then start recording).
+  OPEN_MARK="$(ring_mark)"
+  open_camera video
+  record "STORAGE: camera ready on the full volume after (s)" "$(wait_camera "$OPEN_MARK")"
+  cgdump "$D/STORAGE-video.xml" || true
+  cam_since "$OPEN_MARK" > "$D/STORAGE-slice-open.txt"
+  assert_eq "STORAGE: the viewfinder is in Video on the full volume (camera_record)" "true yes" "$(node_attr "$D/STORAGE-video.xml" camera_mode:video selected) $(has_node "$D/STORAGE-video.xml" camera_record)"
   local MARK S i ROW
-  MARK="$(ring_mark)"
+  MARK="$OPEN_MARK"
   tap_node "$D/STORAGE-video.xml" camera_record
+  local CP0; CP0="$(adb shell pidof app.tileshell:camera | tr -d '\r')"
+  : > "$D/STORAGE-slice.txt"
   for i in $(seq 1 45); do
     S="$(cam_since "$MARK")"
-    printf '%s\n' "$S" | grep -qE 'recording ended|save failed|\[camera\] saved ' && break
+    # Kept at every poll: if the process dies with the disk full, its ring dies with it.
+    [ -n "$S" ] && printf '%s\n' "$S" > "$D/STORAGE-slice.txt"
+    grep -qE 'recording ended|save failed|\[camera\] saved ' "$D/STORAGE-slice.txt" && break
+    [ -z "$(adb shell pidof app.tileshell:camera | tr -d '\r')" ] && break
     sleep 1
   done
   record "STORAGE: seconds until the recorder ended by itself" "$i"
   sleep 3
-  S="$(cam_since "$MARK")"; printf '%s\n' "$S" > "$D/STORAGE-slice.txt"
+  S="$(cam_since "$MARK")"; [ -n "$S" ] && printf '%s\n' "$S" > "$D/STORAGE-slice.txt"
+  S="$(cat "$D/STORAGE-slice.txt")"
+  record "STORAGE: the :camera pid before the take / after it" "$CP0 / $(adb shell pidof app.tileshell:camera | tr -d '\r')"
+  adb logcat -d -t 600 2>/dev/null | tr -d '\r' | grep -E 'app.tileshell|Recorder|ENOSPC|No space|CameraX|lowmemorykiller|am_kill|Process .* has died' | tail -60 > "$D/STORAGE-logcat.txt"
+  cgdump "$D/STORAGE-after.xml" || true
+  record "STORAGE: what is on screen after (top activity; saving / toast nodes)" "$(top_activity) saving=$(has_node "$D/STORAGE-after.xml" camera_saving) toast=[$(node_text "$D/STORAGE-after.xml" camera_toast)] rec_time=$(has_node "$D/STORAGE-after.xml" camera_rec_time)"
   screencap "$D/STORAGE-after.png"
   record "STORAGE: the :camera lines of the take" "$(printf '%s\n' "$S" | grep -F '[camera]' | sed 's/^[^[]*//; s/ *wall=.*//' | tr '\n' ';')"
   assert_contains "STORAGE: the recorder stops with \"storage full\"" "storage full" "$S"
@@ -89,6 +109,7 @@ edge_STORAGE() {
   unfill_volume
   record "STORAGE: df /sdcard after unfill_volume" "$(adb shell df -k /sdcard | awk 'NR==2 {print $4 " KB free"}' | tr -d '\r')"
   assert_eq "STORAGE: restore — fill.bin is gone" "" "$(adb shell ls /sdcard/fill.bin 2>/dev/null | tr -d '\r')"
+  assert_eq "STORAGE: … never left pending: no pending file of a take on disk (root's read)" "files=0 rows=0" "$(root_pending "$D/STORAGE-pending-after.txt")"
   assert_eq "STORAGE: restore — adb is not root" "shell" "$(adb shell whoami | tr -d '\r')"
   if [ "$(media_count video)" -gt "$CENSUS_VIDEO" ]; then
     ROW="$(shell_rows video | head -1)"; record "STORAGE: the partial file was finalised as a row" "$ROW"
@@ -219,9 +240,21 @@ edge_CALL() {
 }
 
 # ---------------------------------------------------------------------------------------------------- KILLWRITE
+# What is really pending, read as root (the shell user's `content query` and its view of /sdcard do not show another
+# package's pending rows and files — the sub-step's own control shows that): the `.pending-` files on disk under
+# DCIM/Camera and MediaStore's is_pending=1 video rows. Root is undone at once. Prints "files=<n> rows=<n>"; the
+# listing goes to <out>.
+root_pending() { # out.txt
+  adb root >/dev/null 2>&1; sleep 2; adb wait-for-device
+  { echo "# ls -a /data/media/0/DCIM/Camera | grep '^\\.pending-'"; adb shell "ls -la /data/media/0/DCIM/Camera | grep '\\.pending-'" | tr -d '\r'
+    echo "# content query (as root) … video/media --where is_pending=1"; adb shell "content query --uri content://media/external/video/media --projection _id:_display_name:is_pending:owner_package_name:_size --where 'is_pending=1'" | tr -d '\r'; } > "$1" 2>&1
+  adb unroot >/dev/null 2>&1; sleep 2; adb wait-for-device; sleep 1
+  echo "files=$(grep -c '\.pending-.*VID_' "$1") rows=$(grep -c 'owner_package_name=app.tileshell' "$1")"
+}
+ledger() { adb shell run-as app.tileshell cat files/media_pending/app.tileshell_camera.txt 2>/dev/null | tr -d '\r'; adb shell run-as app.tileshell cat files/media_pending/camera.txt 2>/dev/null | tr -d '\r'; }
 edge_KILLWRITE() {
   sub_begin KILLWRITE
-  local CPID MARK S HIT PENDING_AFTER
+  local CPID MARK S HIT SEEN AFTER
   rings_save; mic_off
   video_ready KILLWRITE
   tap_node "$D/KILLWRITE-video.xml" camera_record; sleep 12       # a long take: a longer copy through the write layer
@@ -229,27 +262,47 @@ edge_KILLWRITE() {
   case "$CPID" in ''|*[!0-9]*) _verdict FAIL "KILLWRITE: a single numeric :camera pid" "[$CPID]"; c6; mic_on; sub_end; return ;; esac
   rings_save
   adb root >/dev/null 2>&1; sleep 2; adb wait-for-device
-  # On the device, as root: wait (at most ~8 s) for MediaStore's pending file to appear in DCIM/Camera — the write
-  # layer's "pending" stage — and kill the recorded pid at once. The stop tap is sent from here just after the watch starts.
+  # On the device, as root: wait (at most 20 s) for MediaStore's pending file to appear in DCIM/Camera — the write layer's "pending"
+  # stage — and kill the recorded pid at once. The stop tap is sent from here just after the watch starts.
+  # shellcheck disable=SC2046
   ( sleep 1; adb shell input tap $(centre_px "$D/KILLWRITE-video.xml" camera_record) ) &
-  HIT="$(adb shell "i=0; while [ \$i -lt 4000 ]; do f=\$(ls -a /data/media/0/DCIM/Camera 2>/dev/null | grep -m1 '^\.pending-'); if [ -n \"\$f\" ]; then kill -9 $CPID; echo \"killed with \$f on disk\"; break; fi; i=\$((i+1)); done; [ -n \"\$f\" ] || echo 'no pending file seen'" | tr -d '\r')"
+  HIT="$(adb shell "end=\$(( \$(date +%s) + 20 )); f=; while [ \$(date +%s) -lt \$end ]; do f=\$(ls -a /data/media/0/DCIM/Camera 2>/dev/null | grep -m1 '^\.pending-'); if [ -n \"\$f\" ]; then kill -9 $CPID; echo \"killed with \$f on disk\"; break; fi; done; [ -n \"\$f\" ] || echo 'no pending file seen in 20 s'" | tr -d '\r')"
   wait
   adb unroot >/dev/null 2>&1; sleep 2; adb wait-for-device; sleep 1
   assert_eq "KILLWRITE: adb is unrooted again" "shell" "$(adb shell whoami | tr -d '\r')"
   record "KILLWRITE: the watch" "$HIT"
   assert_contains "KILLWRITE: :camera was killed while its pending file was on disk (mid-write)" "killed with .pending-" "$HIT"
   assert_ne "KILLWRITE: the killed process is gone" "$CPID" "$(adb shell pidof app.tileshell:camera | tr -d '\r')"
-  PENDING_AFTER="$(pending_rows)"; record "KILLWRITE: is_pending=1 rows of the shell's after the kill" "$PENDING_AFTER"
-  assert_ne "KILLWRITE: the kill left a pending row (the state the bullet starts from)" "0" "$PENDING_AFTER"
+  SEEN="$(root_pending "$D/KILLWRITE-pending-after-kill.txt")"
+  record "KILLWRITE: pending after the kill, read as root" "$SEEN"
+  record "KILLWRITE: … the same read by the shell user (content query --where is_pending=1)" "$(pending_rows) — the control: the shell user's read is blind to it when root's is not"
+  record "KILLWRITE: the :camera process's pending ledger after the kill" "$(ledger | tr '\n' ' ')"
+  # `content query` cannot ask MediaStore to match pending rows (root's read shows none either), so the state is read
+  # from what it leaves: the pending file on disk and the URI in the process's own pending ledger.
+  assert_eq "KILLWRITE: the kill left the pending file on disk (the state the bullet starts from)" "files=1" "$(echo "$SEEN" | cut -d' ' -f1)"
+  assert_contains "KILLWRITE: … and its row's URI in :camera's pending ledger" "content://media/" "$(ledger)"
+  assert_eq "KILLWRITE: adb is unrooted after the read" "shell" "$(adb shell whoami | tr -d '\r')"
   # The next start cleans it.
   MARK="$(ring_mark)"
   open_camera; record "KILLWRITE: camera ready after (s)" "$(wait_camera "$MARK")"
   sleep 2
   S="$(cam_since "$MARK")"; printf '%s\n' "$S" > "$D/KILLWRITE-slice.txt"
-  assert_contains "KILLWRITE: the next start cleans its own leftover" "[camera] cleaned " "$S"
-  record "KILLWRITE: the cleaning line" "$(printf '%s\n' "$S" | grep -o 'cleaned [0-9]* pending row(s)[a-z ]*' | head -1)"
-  assert_eq "KILLWRITE: content query … is_pending shows none of the shell's" "0" "$(pending_rows)"
-  record "KILLWRITE: pending files left in DCIM/Camera" "$(adb shell 'ls -a /sdcard/DCIM/Camera' 2>/dev/null | tr -d '\r' | grep -c '^\.pending-')"
+  record "KILLWRITE: the next start's first :camera lines" "$(printf '%s\n' "$S" | head -6 | sed 's/^[^[]*//; s/ *wall=.*//' | tr '\n' ';')"
+  assert_contains "KILLWRITE: the next start says it cleaned its leftover" "[camera] cleaned 1 pending row(s) left by an earlier run" "$S"
+  rings_save
+  AFTER="$(root_pending "$D/KILLWRITE-pending-after-restart.txt")"
+  record "KILLWRITE: pending after the next start, read as root" "$AFTER"
+  assert_eq "KILLWRITE: on the next start the shell's pending row is cleaned (no pending file left, root's read)" "files=0 rows=0" "$AFTER"
+  assert_eq "KILLWRITE: … and the ledger is empty" "" "$(ledger)"
+  assert_eq "KILLWRITE: content query … is_pending shows none (the shell user's read, as the doc words it)" "0" "$(pending_rows)"
+  # Whatever is still pending is removed here, as root, so the device is left clean whatever the product did.
+  if [ "$AFTER" != "files=0 rows=0" ]; then
+    adb root >/dev/null 2>&1; sleep 2; adb wait-for-device
+    adb shell "content delete --uri content://media/external/video/media --where \"is_pending=1 AND owner_package_name='app.tileshell'\"" >/dev/null 2>&1
+    adb shell "rm -f /data/media/0/DCIM/Camera/.pending-*VID_*" >/dev/null 2>&1
+    adb unroot >/dev/null 2>&1; sleep 2; adb wait-for-device; sleep 1
+    record "KILLWRITE: restore — what was left pending was removed as root" "$(root_pending "$D/KILLWRITE-pending-after-restore.txt")"
+  fi
   c6; mic_on
   sub_end
 }
