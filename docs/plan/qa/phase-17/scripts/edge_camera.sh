@@ -415,7 +415,7 @@ adb shell pm grant app.tileshell android.permission.CAMERA >/dev/null 2>&1
 assert_eq "restore: RECORD_AUDIO and CAMERA held" "true true" "$(perm_granted RECORD_AUDIO) $(perm_granted CAMERA)"
 assert_eq "restore: adb is not root" "shell" "$(adb shell whoami | tr -d '\r')"
 assert_eq "restore: no fill file" "" "$(adb shell ls /sdcard/fill.bin 2>/dev/null | tr -d '\r')"
-assert_eq "restore: qa-capture is not installed" "" "$(adb shell pm list packages "$QAC" | tr -d '\r')"
+assert_eq "restore: qa-capture is not installed" "" "$(adb shell pm list packages "$QAC" | tr -d '\r' | grep -x "package:$QAC")"
 layout_restore "$BASELINE" > "$ROW_DIR/restore-end.out" 2>&1; assert_eq "restore: layout_restore of the baseline" "0" "$?"
 ensure_start
 row_end

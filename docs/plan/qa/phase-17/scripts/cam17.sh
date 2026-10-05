@@ -8,11 +8,15 @@ CAM_DEV="$P17/dev-camera/scripts"        # derive_modes.py, exif_read.py, zoom_r
 IMAGES="content://media/external/images/media"
 VIDEOS="content://media/external/video/media"
 TILES_PY="$P17/../phase-15/scripts/tiles.py"
-# The gate build (the lead's ruling of 2026-10-05: the CLEAN build of 25921fd7; the lead tree's dc1b8118 was an
-# incremental build carrying two stale dex shards).
-GATE_APK_ID="e8c26851363882da"
+# The gate build: the CLEAN build of the tree with the trust fixes merged (phase-17 at e5e30678; the lead's word of
+# 2026-10-05). Rows run before the merge carry e8c26851363882da in their logs (the clean build of 25921fd7): a kept
+# run is re-read with GATE_APK_ID set to the id it ran on.
+GATE_APK_ID="${GATE_APK_ID:-c7336aca6b63d61b}"
 QAC=app.tileshell.testclient.qacapture
 QAC_APK="$REPO/testapps/qa-capture/build/outputs/apk/debug/qa-capture-debug.apk"
+# The second app of the forwarded-result leg (testapps/qa-capture-fwd).
+QAF=app.tileshell.testclient.qacapturefwd
+QAF_APK="$REPO/testapps/qa-capture-fwd/build/outputs/apk/debug/qa-capture-fwd-debug.apk"
 
 # The lock, then this worktree's APK when the device holds another build (never -g).
 cam_install() { # row-name
@@ -145,12 +149,22 @@ set_combo() { # id item-index prefix
 install_qac() {
   [ -f "$QAC_APK" ] || { _verdict FAIL "qa-capture is built" "missing $QAC_APK (./gradlew :testapps:qa-capture:assembleDebug --offline)"; return 1; }
   adb install -r "$QAC_APK" > "$ROW_DIR/qa-capture-install.out" 2>&1
-  assert_contains "qa-capture installed for the row" "$QAC" "$(adb shell pm list packages "$QAC" | tr -d '\r')"
+  assert_contains "qa-capture installed for the row" "$QAC" "$(adb shell pm list packages "$QAC" | tr -d '\r' | grep -x "package:$QAC")"
 }
 uninstall_qac() {
   adb shell am force-stop "$QAC" >/dev/null 2>&1
   adb uninstall "$QAC" > /dev/null 2>&1
-  assert_eq "qa-capture uninstalled" "" "$(adb shell pm list packages "$QAC" | tr -d '\r')"
+  assert_eq "qa-capture uninstalled" "" "$(adb shell pm list packages "$QAC" | tr -d '\r' | grep -x "package:$QAC")"
+}
+install_qaf() {
+  [ -f "$QAF_APK" ] || { _verdict FAIL "qa-capture-fwd is built" "missing $QAF_APK (./gradlew :testapps:qa-capture-fwd:assembleDebug --offline)"; return 1; }
+  adb install -r "$QAF_APK" > "$ROW_DIR/qa-capture-fwd-install.out" 2>&1
+  assert_contains "qa-capture-fwd installed for the row" "$QAF" "$(adb shell pm list packages "$QAF" | tr -d '\r' | grep -x "package:$QAF")"
+}
+uninstall_qaf() {
+  adb shell am force-stop "$QAF" >/dev/null 2>&1
+  adb uninstall "$QAF" > /dev/null 2>&1
+  assert_eq "qa-capture-fwd uninstalled" "" "$(adb shell pm list packages "$QAF" | tr -d '\r' | grep -x "package:$QAF")"
 }
 # The fixture's TileShellQa lines since a device time ("MM-DD HH:MM:SS.mmm").
 qa_time() { adb shell "date '+%m-%d %H:%M:%S.000'" | tr -d '\r'; }
