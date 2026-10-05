@@ -29,8 +29,10 @@
 #                   dialog → "Allow limited access" → the selected-photos picker; qa-photo-1 and qa-photo-2 tapped (the
 #                   newest green and the newest blue thumbnail), Allow → `images=2`, and exactly those two photos_item:
 #                   nodes. Asserted twice: of the IMAGE tiles (they are exactly the two), and as the doc words it (the
-#                   page's photos_item: nodes are exactly the two) — with READ_MEDIA_VIDEO held the collection also
-#                   lists the videos (Q4 A), which the second form does not allow for; both verdicts are kept.
+#                   page's photos_item: nodes are exactly the two). READING: READ_MEDIA_VIDEO is revoked for this leg —
+#                   held, it makes Android grant the link's request in full with no dialog and no picker (one
+#                   permission group; run 1 of this row, kept, shows it), and the state Android's own "Allow limited
+#                   access" leaves has both denied. The doc's sequence revokes IMAGES only: the lead rules.
 #   restore         READ_MEDIA_IMAGES granted back (asserted), every permission as found, media_down, the baseline.
 #
 # Changes on the device: the Start layout (baseline, restored), media (media_down), three permissions (restored), the
@@ -206,6 +208,13 @@ assert_contains "F: [photosapp] access=DENIED" "[photosapp] access=DENIED" "$(ri
 # ----------------------------------------------------------------------------------------------- G: partial
 log "--- G: READ_MEDIA_VISUAL_USER_SELECTED granted, IMAGES still revoked"
 rings_save
+# READING (run 1 of this row is the evidence, kept as E3-run1-…): with READ_MEDIA_VIDEO still held, Android answers the
+# link's permission request at once and in full, with no dialog and no picker (the two permissions are one group:
+# `[photosapp] permission request: access=GRANTED`). The state Android's own "Allow limited access" leaves is IMAGES and
+# VIDEO both denied with VISUAL_USER_SELECTED held, so READ_MEDIA_VIDEO is revoked for this leg and granted back by
+# the restore. The doc's sequence revokes IMAGES only; the lead rules on the clause.
+record "G: READING — READ_MEDIA_VIDEO revoked for the partial leg (held, it makes Android grant the link's request in full with no picker: run 1)" "$(perm_granted READ_MEDIA_VIDEO) -> false"
+perm_set READ_MEDIA_VIDEO false
 adb shell pm grant app.tileshell android.permission.READ_MEDIA_VISUAL_USER_SELECTED
 assert_eq "G: READ_MEDIA_IMAGES is still revoked" "false" "$(perm_granted READ_MEDIA_IMAGES)"
 adb shell am force-stop app.tileshell; sleep 1

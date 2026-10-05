@@ -47,7 +47,7 @@ tap_node "$X" "photos_item:$ID0"; sleep 2
 SLICE="$(ring_since "$MARK")"
 screencap "$D/viewer0.png"; dump_ui "$D/viewer.xml"
 assert_eq "the viewer is up (its node)" "yes" "$(has_node "$D/viewer.xml" viewer)"
-assert_eq "… full screen (viewer_root covers the page down to the nav bar)" "0 0 1080" "$(bounds "$D/viewer.xml" viewer_root | cut -d' ' -f1-3)"
+assert_eq "… full screen (the viewer covers the page from 0,0 down to the nav bar's top)" "0 0 1080 $(bounds "$D/viewer.xml" w10m_nav_bar | cut -d' ' -f2)" "$(bounds "$D/viewer.xml" viewer)"
 record "the viewer_open line" "$(motion_line "$SLICE" viewer_open)"
 assert_contains "[motion] viewer_open t0=<uptime> …" "[motion] viewer_open t0=" "$SLICE"
 assert_within "viewer_open settle = 250 ± 17 ms (Y6)" 250 "$(motion_field "$SLICE" viewer_open settle)" 17

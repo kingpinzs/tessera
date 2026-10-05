@@ -173,15 +173,12 @@ viewer_open "$X.show" "$ID1"
 viewer_menu
 MARK="$(ring_mark)"
 tap_node "$D/menu.xml" viewer_menu_slideshow
-SHOT=no
-for i in $(seq 1 60); do
-  SLICE="$(ring_since "$MARK")"
-  N="$(printf '%s\n' "$SLICE" | grep -cF '[photosapp] slideshow next ')"
-  if [ "$N" -ge 2 ] && [ "$SHOT" = no ]; then sleep 1; screencap "$D/slide2.png"; SHOT=yes; fi
-  [ "$N" -ge 3 ] && break
-  sleep 0.5
-done
-sleep 1.5
+# No ring read and no dump while the steps run: a `dumpsys` of the shell is answered on its main thread, and run 1 of
+# this row (kept) read a 50-ms frame gap in a step that the driver's own half-second polling overlapped. The steps are
+# 5 s apart from the tap: the screencap is taken between the second (10 s) and the third (15 s), the ring read after it.
+sleep 11.6
+screencap "$D/slide2.png"; SHOT=yes
+sleep 4.9
 SLICE="$(ring_since "$MARK")"
 printf '%s\n' "$SLICE" | grep -E '\[photosapp\] slideshow|\[motion\] slideshow_step' > "$D/slideshow-lines.txt"
 sed 's/^/        /' "$D/slideshow-lines.txt" >> "$LOG"
