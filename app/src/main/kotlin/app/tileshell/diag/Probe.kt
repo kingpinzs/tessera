@@ -88,7 +88,7 @@ object Probe {
     )
 
     /**
-     * The facts of one picked picture or video. [motionPhoto] reads the Motion Photo marker from the file's bytes (the
+     * The facts of one picked picture or video. [motionPhoto] reads the Motion Photo marker from the file's first bytes (the
      * Camera's own reader, passed in so this object needs nothing of the Camera's). GPS is reported as present or
      * absent, never its value.
      */
@@ -112,9 +112,9 @@ object Probe {
                 }
             }.onFailure { append("exif: unreadable (${it.javaClass.simpleName})\n") }
             runCatching {
-                // The marker and the directory sit in the first segment and the clip at the end: the whole file is read
-                // only up to a bound, which a still with a short clip stays under.
-                val bytes = resolver.openInputStream(uri)?.use { it.readNBytes(MOTION_PHOTO_READ_LIMIT) } ?: ByteArray(0)
+                // The marker sits in the XMP packet, in the file's first segments: only that head is read, never the
+                // picture another app owns in full (C-L2: this runs in the launcher's process).
+                val bytes = resolver.openInputStream(uri)?.use(ProbeMotionPhoto::readHead) ?: ByteArray(0)
                 append("motionPhoto: ${motionPhoto(bytes)}\n")
             }.onFailure { append("motionPhoto: unreadable (${it.javaClass.simpleName})\n") }
         }
@@ -134,7 +134,4 @@ object Probe {
         }.onFailure { if (mime?.startsWith("image/") != true) append("tracks: unreadable (${it.javaClass.simpleName})\n") }
         runCatching { extractor.release() }
     }.also { lastFile = it }
-
-    /** 64 MB: more than any still with a one-second clip; a larger file reads as its first 64 MB. */
-    private const val MOTION_PHOTO_READ_LIMIT = 64 * 1024 * 1024
 }

@@ -54,12 +54,13 @@ class ShellApp : Application() {
             return
         }
         Diagnostics.add("app", "process start")
-        // Phase 17 build task 17 (C-16): what the installed network security config says for each fixed host.
-        app.tileshell.net.FixedEndpoints.logPolicy()
         startLauncher()
     }
 
     private fun startLauncher() {
+        // Phase 17 build task 17 (C-16): what the installed network security config says for each fixed host. Here, not
+        // in onCreate, so the lines are also written when this start-up was deferred to the first unlock (C-L5).
+        app.tileshell.net.FixedEndpoints.logPolicy()
         followPackageChanges(AppCatalog.get(this))
         addCortanaTile()
         addCategoryFolders()

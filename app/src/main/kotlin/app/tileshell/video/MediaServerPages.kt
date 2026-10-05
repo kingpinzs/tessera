@@ -56,14 +56,14 @@ import app.tileshell.ui.components.OutlinedField
 import app.tileshell.ui.tokens.CapMetrics
 import app.tileshell.ui.tokens.ShellType
 import app.tileshell.video.server.MediaServer
+import app.tileshell.video.server.PromptAnswer
 import app.tileshell.video.server.ServerAddress
 import app.tileshell.video.server.ServerConfig
 import app.tileshell.video.server.ServerItem
 import app.tileshell.video.server.ServerRules
 import app.tileshell.video.server.ServerState
-import kotlinx.coroutines.Dispatchers
+import app.tileshell.video.server.SignInAction
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /** Movies & TV's media server setting: "Add a server", or the server that is set up and its removal. */
 data object ServerSub : HubSub {
@@ -104,7 +104,7 @@ fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?,
         busy = true
         error = null
         scope.launch {
-            val state = withContext(Dispatchers.IO) { MediaServer(context).connect(address, user.trim(), secret) }
+            val state = VideoCalls.io("server sign-in", ServerState.UNREACHABLE) { MediaServer(context).connect(address, user.trim(), secret) }
             busy = false
             when (state) {
                 ServerState.CONNECTED -> onConnected()
@@ -120,13 +120,21 @@ fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?,
         val address = ServerRules.parse(host)
         if (address == null) { error = "That isn't a server address"; return }
         if (user.isBlank()) { error = "Enter the user name"; return }
-        if (ServerRules.needsInsecurePrompt(address)) {
-            // Asked first: nothing is sent — not the sign-in, not a probe — until Continue.
-            Diagnostics.add("video", ServerRules.line(address.label, "insecure, asked"))
-            asking = address
-            return
+        when (ServerRules.signInAction(address, answer = null)) {
+            SignInAction.ASK -> {
+                // Asked first: nothing is sent — not the sign-in, not a probe — until Continue.
+                Diagnostics.add("video", ServerRules.line(address.label, "insecure, asked"))
+                asking = address
+            }
+            SignInAction.SEND -> signIn(address)
+            SignInAction.NOTHING -> Unit
         }
-        signIn(address)
+    }
+
+    /** The prompt's two buttons: only an answer the rule turns into SEND makes the request. */
+    fun answer(address: ServerAddress, answer: PromptAnswer) {
+        asking = null
+        if (ServerRules.signInAction(address, answer) == SignInAction.SEND) signIn(address) else password = ""
     }
 
     Column(Modifier.fillMaxWidth()) {
@@ -135,9 +143,9 @@ fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?,
             BasicText(ServerRules.TEXT_INSECURE, Modifier.testTag("server_insecure"), style = ShellType.subtitle.copy(color = Color.White))
             BasicText(waiting.label, Modifier.padding(top = 8.dp), style = ShellType.body.copy(color = LocalShellColors.current.subtleText))
             Row(Modifier.padding(top = 16.dp)) {
-                HubButton("Continue", "server_insecure_continue") { asking = null; signIn(waiting) }
+                HubButton("Continue", "server_insecure_continue") { answer(waiting, PromptAnswer.CONTINUE) }
                 Spacer(Modifier.width(12.dp))
-                HubButton("Cancel", "server_insecure_cancel") { asking = null; password = "" }
+                HubButton("Cancel", "server_insecure_cancel") { answer(waiting, PromptAnswer.CANCEL) }
             }
             return@Column
         }
@@ -162,7 +170,7 @@ fun ServerSettingsPage(nav: VideoNav) {
     var config by remember { mutableStateOf<ServerConfig?>(null) }
     var loaded by remember { mutableStateOf(false) }
     suspend fun reload() {
-        val (setUp, cfg) = withContext(Dispatchers.IO) { MediaServer(context).let { it.isSetUp() to it.config() } }
+        val (setUp, cfg) = VideoCalls.io("server read", false to null) { MediaServer(context).let { it.isSetUp() to it.config() } }
         nav.serverSetUp = setUp
         config = if (setUp) cfg else null
         loaded = true
@@ -180,7 +188,7 @@ fun ServerSettingsPage(nav: VideoNav) {
             Row(Modifier.padding(top = 16.dp)) {
                 HubButton("Remove this server", "server_remove") {
                     scope.launch {
-                        withContext(Dispatchers.IO) { MediaServer(context).remove() }
+                        VideoCalls.io("server remove", Unit) { MediaServer(context).remove() }
                         reload()
                     }
                 }
@@ -199,12 +207,13 @@ fun ServerSettingsPage(nav: VideoNav) {
 @Composable
 fun MediaServerPage(nav: VideoNav, activity: ComponentActivity) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var state by remember { mutableStateOf<ServerState?>(null) }
     var items by remember { mutableStateOf<List<ServerItem>>(emptyList()) }
     var config by remember { mutableStateOf<ServerConfig?>(null) }
     var reloads by remember { mutableStateOf(0) }
     LaunchedEffect(nav.resumes, reloads) {
-        val (cfg, result) = withContext(Dispatchers.IO) { MediaServer(context).let { it.config() to it.library() } }
+        val (cfg, result) = VideoCalls.io("server library", null to (ServerState.UNREACHABLE to emptyList())) { MediaServer(context).let { it.config() to it.library() } }
         config = cfg
         items = result.second
         state = result.first
@@ -218,7 +227,7 @@ fun MediaServerPage(nav: VideoNav, activity: ComponentActivity) {
             )
             ServerState.UNAUTHORISED -> Column(Modifier.fillMaxSize().focusable().verticalScroll(rememberScrollState()).padding(start = 12.dp, end = 12.dp, top = 16.dp)) {
                 BasicText("Sign in again", Modifier.padding(bottom = 16.dp).testTag("server_notice"), style = ShellType.subtitle.copy(color = Color.White))
-                AddServerForm(config?.label.orEmpty(), config?.userName.orEmpty(), null) { reloads++ }
+                AddServerForm(ServerRules.signInAgainPrefill(config), config?.userName.orEmpty(), null) { reloads++ }
             }
             ServerState.CONNECTED -> if (items.isEmpty()) {
                 BasicText("There are no videos on this server.", Modifier.padding(start = 12.dp, top = 20.dp).testTag("server_notice"), style = ShellType.subtitle.copy(color = Color.White))
@@ -239,7 +248,13 @@ fun MediaServerPage(nav: VideoNav, activity: ComponentActivity) {
                         Row(Modifier.fillMaxWidth().height(MyVideosMetrics.ROW_PITCH.dp).padding(start = VideoGroups.MARGIN.dp)) {
                             for ((i, item) in rows[index].withIndex()) {
                                 if (i > 0) Spacer(Modifier.width((VideoGroups.PITCH - VideoGroups.TILE).dp))
-                                ServerTile(item) { playFromServer(activity, item) }
+                                ServerTile(item) {
+                                    // The address is built on the sealed server's (a store read): off the main thread.
+                                    scope.launch {
+                                        val url = VideoCalls.io<String?>("server stream address", null) { MediaServer(context).streamUrl(item) }
+                                        if (url != null) playFromServer(activity, item, url)
+                                    }
+                                }
                             }
                         }
                     }
@@ -255,7 +270,7 @@ private fun ServerTile(item: ServerItem, onTap: () -> Unit) {
     Column(Modifier.width(VideoGroups.TILE.dp).pointerInput(item.id) { detectTapGestures { onTap() } }) {
         Box(Modifier.size(VideoGroups.TILE.dp).background(Color.Black).testTag("server_item:${item.id}"), contentAlignment = Alignment.Center) {
             val thumb by produceState<ImageBitmap?>(null, item.id) {
-                value = withContext(Dispatchers.IO) { MediaServer(context).thumbnail(item)?.asImageBitmap() }
+                value = VideoCalls.io("server picture", null) { MediaServer(context).thumbnail(item)?.asImageBitmap() }
             }
             val t = thumb
             if (t != null) Image(t, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
@@ -271,8 +286,7 @@ private fun ServerTile(item: ServerItem, onTap: () -> Unit) {
 }
 
 /** Direct play in the shared player: the address carries no token (the player's data source adds it as it opens). */
-private fun playFromServer(activity: ComponentActivity, item: ServerItem) {
-    val url = MediaServer(activity).config()?.let { ServerRules.streamUrl(it.base, item.id) } ?: return
+private fun playFromServer(activity: ComponentActivity, item: ServerItem, url: String) {
     val intent = Intent(Intent.ACTION_VIEW)
         .setClass(activity, PlayerActivity::class.java)
         .setDataAndType(Uri.parse(url), "video/*")

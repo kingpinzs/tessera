@@ -95,7 +95,7 @@ object PlaceSaver {
     private suspend fun search(context: Context, address: String): List<Candidate>? = withContext(Dispatchers.IO) {
         runCatching {
             val url = URL(
-                "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=" +
+                app.tileshell.net.FixedEndpoints.NOMINATIM + "search?format=jsonv2&limit=5&q=" +
                     java.net.URLEncoder.encode(address, "UTF-8") +
                     "&accept-language=" + Locale.getDefault().toLanguageTag()
             )

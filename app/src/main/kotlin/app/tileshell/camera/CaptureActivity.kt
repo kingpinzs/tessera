@@ -16,8 +16,10 @@ import androidx.compose.runtime.setValue
 import app.tileshell.bars.hideSystemBars
 import app.tileshell.diag.Diagnostics
 import app.tileshell.diag.RemoteRings
-import app.tileshell.media.CaptureCallerAccess
+import app.tileshell.media.AndroidUriAccess
 import app.tileshell.media.CaptureOutputGuard
+import app.tileshell.media.CaptureRequestPort
+import app.tileshell.media.CaptureRequestRule
 import app.tileshell.ui.setShellAppContent
 import kotlinx.coroutines.MainScope
 import java.io.File
@@ -59,10 +61,8 @@ class CaptureActivity : ComponentActivity() {
     private var review: CaptureReview? by mutableStateOf(null)
     private var finishing by mutableStateOf(false)
 
-    private val sink = object : CaptureSink {
-        /** T17-4: a capture for another app carries no location. */
-        override val keepsLocation = false
-
+    /** T17-4: a capture for another app carries no location — a [CallerCaptureSink] cannot keep one. */
+    private val sink = object : CallerCaptureSink() {
         override fun photo(shot: PhotoShot, clip: LivingClip.Encoded?, panorama: Boolean) {
             clip?.file?.delete()
             worker.execute {
@@ -108,7 +108,8 @@ class CaptureActivity : ComponentActivity() {
             return
         }
         video = action == MediaStore.ACTION_VIDEO_CAPTURE
-        decision = decide(intent)
+        val outcome = decide(intent)
+        decision = outcome.decision
         val d = decision
         Diagnostics.add("camera", "capture request ${if (video) "video" else "image"} from ${callingPackage ?: "no caller"}: " + when (d) {
             is CaptureOutputGuard.Decision.Accepted -> "output accepted"
@@ -117,6 +118,7 @@ class CaptureActivity : ComponentActivity() {
         })
         if (d is CaptureOutputGuard.Decision.Refused) {
             Diagnostics.add("camera", d.line)
+            outcome.after.forEach { Diagnostics.add("camera", it) }
             finish()
             return
         }
@@ -139,48 +141,29 @@ class CaptureActivity : ComponentActivity() {
     }
 
     /**
-     * The guard's inputs, each read from the platform's own account of the request: EXTRA_OUTPUT, who started the
-     * activity for a result, every URI of the intent's ClipData, the intent's flags, the authorities of the shell's
-     * own providers, and whether the caller's own uid may write the output. An intent that cannot be read is refused.
+     * The request as the platform gives it, one read per method (`CaptureRequestRule` holds every rule over them, and
+     * its tests). EXTRA_OUTPUT is turned to its string here ONCE; nothing else in this class reads the caller's Uri.
      */
-    private fun decide(request: Intent): CaptureOutputGuard.Decision = try {
-        val hasOutput = request.hasExtra(MediaStore.EXTRA_OUTPUT)
-        val output: Uri? = if (hasOutput) request.getParcelableExtra(MediaStore.EXTRA_OUTPUT, Uri::class.java) else null
-        if (hasOutput && output == null) {
-            // EXTRA_OUTPUT is present and is not a Uri: never the no-output contract by accident.
-            CaptureOutputGuard.Decision.Refused(CaptureOutputGuard.LINE_NO_GRANT)
-        } else {
-            val clip = request.clipData
-            val clipUris = if (clip == null) emptyList() else (0 until clip.itemCount).mapNotNull { clip.getItemAt(it)?.uri?.toString() }
-            val own = packageManager.getPackageInfo(packageName, PackageManager.GET_PROVIDERS).providers.orEmpty()
-                .flatMap { it.authority.orEmpty().split(';') }.filter { it.isNotEmpty() }.toSet()
-            val caller = callingPackage
-            val callerMayWrite = output != null && CaptureCallerAccess.callerMayWrite(this, output, caller)
-            if (output != null) {
-                // What the guard is about to weigh, for the row and the review to read (the authority only: no path).
-                Diagnostics.add(
-                    "camera",
-                    "capture guard inputs: scheme=${CaptureOutputGuard.lineForScheme(output.scheme.orEmpty()).substringAfter('=')} " +
-                        "authority=${output.authority.orEmpty().filter { it.isLetterOrDigit() || it in ".-_@" }.take(80)} " +
-                        "startedForResult=${caller != null} clipHoldsOutput=${clipUris.any { it == output.toString() }} " +
-                        "writeGrantFlag=${(request.flags and Intent.FLAG_GRANT_WRITE_URI_PERMISSION) != 0} " +
-                        "ownAuthority=${own.any { it.equals(output.authority.orEmpty().substringAfterLast('@'), ignoreCase = true) }} callerMayWrite=$callerMayWrite",
-                )
-            }
-            CaptureOutputGuard.decide(
-                output = output?.toString(),
-                outputScheme = output?.scheme?.lowercase(),
-                outputAuthority = output?.authority,
-                callingPackage = caller,
-                clipUris = clipUris,
-                intentFlags = request.flags,
-                ownAuthorities = own,
-                callerMayWrite = callerMayWrite,
-            )
+    private class IntentCaptureRequest(private val activity: Activity, private val request: Intent) : CaptureRequestPort {
+        override fun hasOutput(): Boolean = request.hasExtra(MediaStore.EXTRA_OUTPUT)
+        override fun outputText(): String? = request.getParcelableExtra(MediaStore.EXTRA_OUTPUT, Uri::class.java)?.toString()
+        override fun callingPackage(): String? = activity.callingPackage
+        override fun launchedFromUid(): Int? = activity.launchedFromUid.takeIf { it >= 0 }
+        override fun clipUris(): List<String> {
+            val clip = request.clipData ?: return emptyList()
+            return (0 until clip.itemCount).mapNotNull { clip.getItemAt(it)?.uri?.toString() }
         }
-    } catch (e: Exception) {
-        Diagnostics.add("camera", "capture request unreadable (${e.javaClass.simpleName})")
-        CaptureOutputGuard.Decision.Refused(CaptureOutputGuard.LINE_NO_GRANT)
+        override fun flags(): Int = request.flags
+        override fun ownAuthorities(): Set<String> =
+            activity.packageManager.getPackageInfo(activity.packageName, PackageManager.GET_PROVIDERS).providers.orEmpty()
+                .flatMap { it.authority.orEmpty().split(';') }.filter { it.isNotEmpty() }.toSet()
+    }
+
+    /** The guard's decision over the real intent, with the lines `CaptureRequestRule` wrote on the way. */
+    private fun decide(request: Intent): CaptureRequestRule.Outcome {
+        val outcome = CaptureRequestRule.decide(IntentCaptureRequest(this, request), AndroidUriAccess(this))
+        outcome.before.forEach { Diagnostics.add("camera", it) }
+        return outcome
     }
 
     /** `EXTRA_USE_FRONT_CAMERA` and the older forms callers still send. Where there is no front camera the back one answers. */

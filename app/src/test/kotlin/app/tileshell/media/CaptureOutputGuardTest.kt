@@ -12,15 +12,14 @@ class CaptureOutputGuardTest {
     private val write = CaptureOutputGuard.FLAG_GRANT_WRITE
     private val read = 0x1
 
+    /** The guard reads the scheme and the authority from the output's own text: no test hands it a second opinion. */
     private fun decide(
         output: String? = out,
-        scheme: String? = "content",
-        authority: String? = "com.caller.files",
         caller: String? = "com.caller",
         clip: List<String> = listOf(out),
         flags: Int = write,
         callerMayWrite: Boolean = true,
-    ) = CaptureOutputGuard.decide(output, scheme, authority, caller, clip, flags, own, callerMayWrite)
+    ) = CaptureOutputGuard.decide(output?.let(ContentUriText::parse), caller, clip, flags, own, callerMayWrite)
 
     private val noGrant = Decision.Refused("refused output: no grant")
 
@@ -28,7 +27,7 @@ class CaptureOutputGuardTest {
     fun `(d) the caller itself may not write the URI - refused, even with the flag and its own ClipData`() {
         // The case that broke r3 D1's premise: the shell holds WRITE_CONTACTS, so Android checks nothing at the start.
         val contact = "content://com.android.contacts/contacts/7/display_photo"
-        assertEquals(noGrant, decide(output = contact, authority = "com.android.contacts", clip = listOf(contact), flags = write, callerMayWrite = false))
+        assertEquals(noGrant, decide(output = contact, clip = listOf(contact), flags = write, callerMayWrite = false))
         assertEquals(noGrant, decide(callerMayWrite = false))
         // (d) alone is not enough either: every other condition still has to hold.
         assertEquals(noGrant, decide(caller = null, callerMayWrite = true))
@@ -40,7 +39,7 @@ class CaptureOutputGuardTest {
     fun `another user's provider is refused`() {
         for (authority in listOf("10@media", "0@com.caller.files", "10@com.android.contacts")) {
             val uri = "content://$authority/x"
-            assertEquals(authority, noGrant, decide(output = uri, authority = authority, clip = listOf(uri)))
+            assertEquals(authority, noGrant, decide(output = uri, clip = listOf(uri)))
         }
     }
 
@@ -54,7 +53,7 @@ class CaptureOutputGuardTest {
 
     @Test
     fun `no EXTRA_OUTPUT is the no-output contract, whatever else the intent holds`() {
-        assertEquals(Decision.NoOutput, decide(output = null, scheme = null, authority = null, caller = null, clip = emptyList(), flags = 0))
+        assertEquals(Decision.NoOutput, decide(output = null, caller = null, clip = emptyList(), flags = 0))
         assertEquals(Decision.NoOutput, decide(output = null))
     }
 
@@ -76,9 +75,9 @@ class CaptureOutputGuardTest {
         assertEquals(noGrant, decide(clip = listOf("content://com.caller.files/cache/other.jpg")))
         // The display_photo negative (E9): the caller's ClipData names its own file, the output a contact's photo.
         val contact = "content://com.android.contacts/contacts/7/display_photo"
-        assertEquals(noGrant, decide(output = contact, authority = "com.android.contacts", clip = listOf(out)))
+        assertEquals(noGrant, decide(output = contact, clip = listOf(out)))
         // The same aim with the caller's own ClipData and no flag: Android checked nothing, so neither is it accepted.
-        assertEquals(noGrant, decide(output = contact, authority = "com.android.contacts", clip = listOf(contact), flags = 0))
+        assertEquals(noGrant, decide(output = contact, clip = listOf(contact), flags = 0))
         // A URI that only looks alike is another URI.
         assertEquals(noGrant, decide(clip = listOf("$out/")))
         assertEquals(noGrant, decide(clip = listOf(out.uppercase())))
@@ -89,20 +88,58 @@ class CaptureOutputGuardTest {
     fun `(c) one of the shell's own authorities - refused, however it is spelled`() {
         for (authority in listOf("app.tileshell.files", "APP.TILESHELL.FILES", "0@app.tileshell.files", "10@app.tileshell.livetile")) {
             val uri = "content://$authority/x"
-            assertEquals(authority, noGrant, decide(output = uri, authority = authority, clip = listOf(uri)))
+            assertEquals(authority, noGrant, decide(output = uri, clip = listOf(uri)))
         }
-        assertEquals(noGrant, decide(output = "content:///x", authority = "", clip = listOf("content:///x")))
-        assertEquals(noGrant, decide(output = "content:x", authority = null, clip = listOf("content:x")))
+        assertEquals(noGrant, decide(output = "content:///x", clip = listOf("content:///x")))
+        assertEquals(noGrant, decide(output = "content:x", clip = listOf("content:x")))
     }
 
     @Test
     fun `a file output is refused by its scheme line, and so is every other scheme`() {
-        assertEquals(Decision.Refused("refused output scheme=file"), decide(output = "file:///sdcard/DCIM/x.jpg", scheme = "file", authority = "", clip = listOf("file:///sdcard/DCIM/x.jpg")))
-        assertEquals(Decision.Refused("refused output scheme=file"), decide(output = "FILE:///x", scheme = "FILE", authority = ""))
-        assertEquals(Decision.Refused("refused output scheme=http"), decide(output = "http://h/x", scheme = "http", authority = "h"))
-        assertEquals(Decision.Refused("refused output scheme=none"), decide(output = "/sdcard/x.jpg", scheme = null, authority = null))
-        assertEquals(Decision.Refused("refused output scheme=android.resource"), decide(output = "android.resource://p/1", scheme = "android.resource", authority = "p"))
+        assertEquals(Decision.Refused("refused output scheme=file"), decide(output = "file:///sdcard/DCIM/x.jpg", clip = listOf("file:///sdcard/DCIM/x.jpg")))
+        assertEquals(Decision.Refused("refused output scheme=file"), decide(output = "FILE:///x"))
+        assertEquals(Decision.Refused("refused output scheme=http"), decide(output = "http://h/x"))
+        assertEquals(Decision.Refused("refused output scheme=none"), decide(output = "/sdcard/x.jpg"))
+        assertEquals(Decision.Refused("refused output scheme=android.resource"), decide(output = "android.resource://p/1"))
         // The scheme is the caller's text: the line carries letters, digits and + - . only, and at most 16 of them.
-        assertEquals(Decision.Refused("refused output scheme=abcdefghijklmnop"), decide(output = "x", scheme = "ab cd\nefghijklmnopqrstuvwxyz", authority = null))
+        assertEquals(Decision.Refused("refused output scheme=abcdefghijklmnop"), decide(output = "ab cd\nefghijklmnopqrstuvwxyz:x"))
+    }
+
+    @Test
+    fun `A-S the accepted URI is EXTRA_OUTPUT, wherever it stands in a ClipData of several URIs`() {
+        val other = "content://com.caller.files/cache/other.jpg"
+        for (clip in listOf(listOf(other, out), listOf(out, other), listOf(other, out, other))) {
+            val d = decide(clip = clip)
+            assertTrue("$clip", d is Decision.Accepted)
+            assertEquals("$clip", out, (d as Decision.Accepted).uri)
+        }
+        // And a ClipData of several URIs that does not hold the output is still refused.
+        assertEquals(noGrant, decide(clip = listOf(other, "$out.bak")))
+    }
+
+    @Test
+    fun `A-L1 an authority that hides a user id behind a percent-escape is refused`() {
+        for (uri in listOf("content://10%40media/external/images/media/1", "content://10%40com.caller.files/x", "content://com.caller.files%2Fx/y", "content://%61pp.tileshell.files/x")) {
+            assertEquals(uri, noGrant, decide(output = uri, clip = listOf(uri)))
+        }
+    }
+
+    @Test
+    fun `A-L1 the scheme and the authority are the ones the output's text has`() {
+        fun parts(text: String) = ContentUriText.parse(text).let { it.scheme to it.authority }
+        assertEquals("content" to "com.caller.files", parts(out))
+        assertEquals("content" to "media", parts("content://media/external/images/media/7?x=1#f"))
+        assertEquals("content" to "a", parts("content://a\\b/x"))
+        assertEquals("content" to "10@media", parts("content://10@media/x"))
+        assertEquals("content" to "", parts("content:///x"))
+        assertEquals("content" to null, parts("content:x"))
+        assertEquals("content" to null, parts("content:/x"))
+        assertEquals(null to null, parts("/sdcard/x.jpg"))
+        assertEquals(null to "h", parts("//h/x"))
+        assertEquals("a/b" to null, parts("a/b:c"))
+        assertEquals("" to "h", parts("://h"))
+        assertEquals(null, ContentUriText.parse("content:///x").plainAuthority)
+        assertEquals(null, ContentUriText.parse("content://10@media/x").plainAuthority)
+        assertEquals("media", ContentUriText.parse("content://media/x").plainAuthority)
     }
 }

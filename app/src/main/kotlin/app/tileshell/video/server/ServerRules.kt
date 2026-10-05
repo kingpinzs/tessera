@@ -1,6 +1,8 @@
 package app.tileshell.video.server
 
+import app.tileshell.net.HeaderText
 import app.tileshell.net.MiniJson
+import app.tileshell.video.catalogue.CatalogueRules
 import app.tileshell.net.jsonArray
 import app.tileshell.net.jsonObject
 import app.tileshell.net.jsonString
@@ -16,6 +18,12 @@ data class ServerAddress(val scheme: String, val host: String, val port: Int?, v
 /** One video of the server's library. */
 data class ServerItem(val id: String, val name: String, val type: String)
 
+/** What the sign-in form may do with an address: see [ServerRules.signInAction]. */
+enum class SignInAction { ASK, SEND, NOTHING }
+
+/** The user's answer to "This server isn't secure". */
+enum class PromptAnswer { CONTINUE, CANCEL }
+
 /** How a sign-in or a library read ended (`[video] server <host>: connected | unreachable | unauthorised`). */
 enum class ServerState(val word: String) { CONNECTED("connected"), UNREACHABLE("unreachable"), UNAUTHORISED("unauthorised") }
 
@@ -30,6 +38,9 @@ object ServerRules {
     const val TEXT_INSECURE = "This server isn't secure — your password would be sent unencrypted"
     const val TEXT_BAD_PASSWORD = "That password isn't right"
     const val TEXT_UNREACHABLE = "Can't reach your media server"
+
+    /** The state word of a sign-in whose answer cannot be used (no token, or one that is not a plain token). */
+    const val WORD_BAD_ANSWER = "sign-in answer not usable"
 
     private val HOST_NAME = Regex("[A-Za-z0-9]([A-Za-z0-9.-]{0,251}[A-Za-z0-9])?")
     private val IPV6_CHARS = Regex("[0-9A-Fa-f:.]{2,45}")
@@ -107,6 +118,32 @@ object ServerRules {
     /** C-16 (5): a sign-in over plain http to an address that is not private asks first, and sends nothing until Continue. */
     fun needsInsecurePrompt(address: ServerAddress): Boolean = address.scheme == "http" && !isPrivate(address.host)
 
+    /**
+     * What the sign-in form does next (C-16 (5); B-3). [answer] is null when the user has just pressed Connect, else
+     * what he chose on the "isn't secure" prompt. Only [SignInAction.SEND] lets a request of any kind leave the phone:
+     * an address that needs the prompt is ASKED about first, Cancel sends NOTHING, and only Continue sends.
+     */
+    fun signInAction(address: ServerAddress, answer: PromptAnswer?): SignInAction = when {
+        !needsInsecurePrompt(address) -> SignInAction.SEND
+        answer == null -> SignInAction.ASK
+        answer == PromptAnswer.CONTINUE -> SignInAction.SEND
+        else -> SignInAction.NOTHING
+    }
+
+    /**
+     * Where the sign-in is sent: the address the user typed, or — in a DEBUG build only — the `qa_server_base` pref's
+     * value. The same gate as the catalogue's and Wikidata's QA prefs ([CatalogueRules.base]): a release build cannot
+     * be redirected, whatever the pref holds.
+     */
+    fun signInBase(debug: Boolean, qaPref: String?, typedBase: String): String =
+        CatalogueRules.base(debug, qaPref, typedBase).trimEnd('/')
+
+    /**
+     * What "Sign in again" puts in the address field (B-2): the saved server's whole address — scheme and port kept —
+     * so a server saved as https is signed in to over https again. [parse] reads it back to the same server.
+     */
+    fun signInAgainPrefill(saved: ServerConfig?): String = saved?.address?.takeIf { it.isNotBlank() } ?: saved?.label.orEmpty()
+
     /** `[video] server <host>: <state>` — the host and the state only. */
     fun line(label: String, state: String): String = "server $label: $state"
 
@@ -117,9 +154,14 @@ object ServerRules {
         else -> ServerState.UNREACHABLE
     }
 
-    /** Jellyfin's sign-in header (BS-5): who is calling; with a token, the same line carries it. Values are quoted. */
+    /**
+     * Jellyfin's sign-in header (BS-5): who is calling; with a token, the same line carries it. Values are quoted, and
+     * what comes back is always a value a header can carry ([HeaderText.isHeaderSafe]).
+     */
     fun authorization(deviceName: String, deviceId: String, version: String, token: String?): String {
-        fun q(v: String) = v.replace("\"", "").replace("\\", "").replace("\n", " ")
+        // Every control character, the quote and the backslash are dropped from every field (B-1): a value the
+        // platform would refuse as a header is one whose exception quotes the token.
+        fun q(v: String) = HeaderText.quoted(v)
         val base = "MediaBrowser Client=\"$CLIENT\", Device=\"${q(deviceName)}\", DeviceId=\"${q(deviceId)}\", Version=\"${q(version)}\""
         return if (token == null) base else "$base, Token=\"${q(token)}\""
     }
@@ -127,11 +169,15 @@ object ServerRules {
     /** The name the server lists the shell under (`AppName`). */
     const val CLIENT = "Tessera"
 
-    /** `POST /Users/AuthenticateByName`'s answer → the access token and the user's id. */
+    /**
+     * `POST /Users/AuthenticateByName`'s answer → the access token and the user's id. Null — a failed sign-in — when
+     * either is missing, when the token is anything but a plain token (letters, digits, `.`, `_`, `-`: it is sent in a
+     * header and in a stream's query), or when the user's id is not an id (it becomes part of an address). B-1.
+     */
     fun parseSignIn(body: String): Pair<String, String>? {
         val o = MiniJson.parseOrNull(body).jsonObject() ?: return null
-        val token = o.jsonString("AccessToken")?.takeIf { it.isNotBlank() } ?: return null
-        val user = o["User"].jsonObject()?.jsonString("Id")?.takeIf { it.isNotBlank() } ?: return null
+        val token = o.jsonString("AccessToken")?.takeIf(HeaderText::isSafeToken) ?: return null
+        val user = o["User"].jsonObject()?.jsonString("Id")?.takeIf(SAFE_ID::matches) ?: return null
         return token to user
     }
 
@@ -172,6 +218,28 @@ object ServerRules {
         return query.split('&').none { it.substringBefore('=').equals("ApiKey", ignoreCase = true) || it.substringBefore('=').equals("api_key", ignoreCase = true) }
     }
 
+    /**
+     * Whether [url] is an address of the server at [base]: the same scheme, host and port (a scheme's default port
+     * made explicit), with no user part. What every request that carries the token is checked with (B-4).
+     */
+    fun sameServer(url: String, base: String): Boolean {
+        val origin = split(url)?.first ?: return false
+        return origin == split(base)?.first
+    }
+
+    /** A sealed server's parts as one text, and back. Null from [openCredential] when any part is not what it must be. */
+    fun sealCredential(credential: ServerCredential): String =
+        MiniJson.write(linkedMapOf("token" to credential.token, "base" to credential.base, "userId" to credential.userId))
+
+    fun openCredential(text: String): ServerCredential? {
+        val o = MiniJson.parseOrNull(text).jsonObject() ?: return null
+        val token = o.jsonString("token")?.takeIf(HeaderText::isSafeToken) ?: return null
+        // A server's address and nothing more: http(s), a host, a port — no user part, no path, no query.
+        val base = o.jsonString("base")?.takeIf { parse(it) != null && it.contains("://") } ?: return null
+        val userId = o.jsonString("userId")?.takeIf(SAFE_ID::matches) ?: return null
+        return ServerCredential(token, base, userId)
+    }
+
     /** `scheme://authority` in lower case with the scheme's default port made explicit, and what follows it. */
     private fun split(url: String): Pair<String, String>? {
         val schemeEnd = url.indexOf("://")
@@ -185,6 +253,25 @@ object ServerRules {
         val hasPort = if (authority.startsWith("[")) authority.substringAfter(']').startsWith(":") else authority.contains(':')
         if (!hasPort) authority += if (scheme == "http") ":80" else ":443"
         return "$scheme://$authority" to (if (cut < 0) "" else after.substring(cut))
+    }
+
+    /**
+     * The address the player REPORTS for a request it opened (B-5): the same address with any `ApiKey` / `api_key`
+     * parameter taken out, so the token the data source added is in nothing the player hands on — an error, a load
+     * event, a listener.
+     */
+    fun reportedUrl(url: String): String {
+        val q = url.indexOf('?')
+        if (q < 0) return url
+        val hash = url.indexOf('#', q).let { if (it < 0) url.length else it }
+        val kept = url.substring(q + 1, hash).split('&').filterNot { isKeyParameter(it.substringBefore('=')) }
+        return url.substring(0, q) + (if (kept.isEmpty()) "" else "?" + kept.joinToString("&")) + url.substring(hash)
+    }
+
+    /** `ApiKey` or `api_key` in any case, as written or percent-encoded. */
+    private fun isKeyParameter(name: String): Boolean {
+        val plain = runCatching { java.net.URLDecoder.decode(name, "UTF-8") }.getOrDefault(name)
+        return plain.equals("ApiKey", ignoreCase = true) || plain.equals("api_key", ignoreCase = true)
     }
 
     /** A stream address as a line may show it: the query string (the token's place) removed (C-32). */

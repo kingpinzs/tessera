@@ -13,7 +13,9 @@ package app.tileshell.media
  *      (the form Android gives a capture request; it is also what lets the shell write a caller's private provider);
  *  (c) the URI's authority is not one of the shell's own, and names no other user's provider;
  *  (d) THE CALLER ITSELF MAY WRITE THAT URI ([callerMayWrite], computed by `CaptureCallerAccess`): the provider
- *      belongs to the caller's own uid, or the platform says the caller's uid holds write access to that URI.
+ *      belongs to the caller's own uid, or the caller's uid holds an explicit write grant for that URI, or (API 35+)
+ *      the provider, asked, says the caller's uid may write it. On API 34 the provider cannot be asked, so a MediaStore
+ *      row the caller owns is refused unless the caller holds a grant for it: the guard fails closed.
  * Anything else is refused and nothing is written.
  *
  * Why (d) exists (build, 2026-10-05; it corrects r3 D1's premise): (b) was written as "Android checked the grant
@@ -43,9 +45,9 @@ object CaptureOutputGuard {
     }
 
     /**
-     * @param output EXTRA_OUTPUT as the caller wrote it (`Uri.toString()`), null when absent
-     * @param outputScheme its scheme, lower-cased by the caller of this function from `Uri.getScheme()`
-     * @param outputAuthority its authority as `Uri.getAuthority()` gives it (user-info included when present)
+     * @param output EXTRA_OUTPUT, read from its text ONCE ([ContentUriText.parse] of `Uri.toString()`); null when the
+     *   request names none. Its scheme and authority are weighed here and its [ContentUriText.text] is what an
+     *   [Decision.Accepted] carries to the write — one value, so the check and the write cannot disagree (A-L1)
      * @param callingPackage `Activity.getCallingPackage()`: null unless started for a result
      * @param clipUris every URI in the intent's ClipData, as `Uri.toString()`
      * @param intentFlags `Intent.getFlags()`
@@ -54,9 +56,7 @@ object CaptureOutputGuard {
      *   reads it from the platform. False whenever there is no caller.
      */
     fun decide(
-        output: String?,
-        outputScheme: String?,
-        outputAuthority: String?,
+        output: ContentUriText?,
         callingPackage: String?,
         clipUris: List<String>,
         intentFlags: Int,
@@ -64,19 +64,19 @@ object CaptureOutputGuard {
         callerMayWrite: Boolean,
     ): Decision {
         if (output == null) return Decision.NoOutput
-        val scheme = outputScheme?.lowercase().orEmpty()
+        val scheme = output.scheme?.lowercase().orEmpty()
         if (scheme != "content") return Decision.Refused(lineForScheme(scheme.ifEmpty { "none" }))
-        val authority = outputAuthority.orEmpty()
-        // An authority may carry a user id ("10@media"): another user's provider is never written, and the shell's own
-        // authority is refused however it is spelled.
+        val authority = output.authority.orEmpty()
+        // An authority may carry a user id ("10@media", or "10%40media" before it is decoded): another user's provider
+        // is never written, and the shell's own authority is refused however it is spelled.
         val provider = authority.substringAfterLast('@').lowercase()
         val granted = callingPackage != null &&
             (intentFlags and FLAG_GRANT_WRITE) != 0 &&
-            clipUris.any { it == output } &&
+            clipUris.any { it == output.text } &&
             provider.isNotEmpty() &&
-            '@' !in authority &&
+            output.plainAuthority != null &&
             ownAuthorities.none { it.lowercase() == provider } &&
             callerMayWrite
-        return if (granted) Decision.Accepted(output) else Decision.Refused(LINE_NO_GRANT)
+        return if (granted) Decision.Accepted(output.text) else Decision.Refused(LINE_NO_GRANT)
     }
 }

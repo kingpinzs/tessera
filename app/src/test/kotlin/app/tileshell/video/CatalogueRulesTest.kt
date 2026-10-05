@@ -118,6 +118,26 @@ class CatalogueRulesTest {
         assertEquals(fixed, CatalogueRules.base(true, "file:///sdcard/x", fixed))
     }
 
+    @Test fun `outside a debug build posters come from TMDB's image host only`() {
+        val fixed = app.tileshell.net.FixedEndpoints.TMDB_IMAGES
+        assertEquals("https://image.tmdb.org/", fixed)
+        fun release(base: String?) = CatalogueRules.posterBase(false, base, fixed)
+        assertEquals("https://image.tmdb.org/t/p/", release("https://image.tmdb.org/t/p/"))
+        // Another host, plain http, a host that only starts like TMDB's, a user part, nothing.
+        for (bad in listOf(
+            "https://images.attacker.example/t/p/", "http://image.tmdb.org/t/p/", "https://image.tmdb.org.attacker.example/t/p/",
+            "https://image.tmdb.org@attacker.example/", "https://image.tmdb.org", "HTTPS://IMAGE.TMDB.ORG/t/p/", "http://10.0.2.2:8090/img/", "", null,
+        )) {
+            assertNull(bad, release(bad))
+        }
+        // The QA catalogue's own image base is followed by a debug build only.
+        assertEquals("http://10.0.2.2:8090/img/", CatalogueRules.posterBase(true, "http://10.0.2.2:8090/img/", fixed))
+        assertNull(CatalogueRules.posterBase(true, null, fixed))
+        // No base, no address: the poster is not fetched.
+        assertNull(CatalogueRules.imageUrl(release("https://images.attacker.example/t/p/"), "/abc.jpg"))
+        assertEquals("catalogue: image base is not TMDB's, posters are not fetched", CatalogueRules.LINE_IMAGE_BASE_REFUSED)
+    }
+
     @Test fun `the cache keeps an entry per key, ages it by its file's time, and writes through a rename`() {
         val dir = Files.createTempDirectory("cat").toFile()
         var now = 1_000_000_000_000L

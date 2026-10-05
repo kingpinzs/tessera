@@ -57,12 +57,11 @@ import app.tileshell.video.catalogue.BrowseSection
 import app.tileshell.video.catalogue.Catalogue
 import app.tileshell.video.catalogue.CatalogueItem
 import app.tileshell.video.catalogue.CatalogueNotice
+import app.tileshell.video.catalogue.CatalogueResult
 import app.tileshell.video.catalogue.CatalogueRules
 import app.tileshell.video.handoff.StreamingHandoff
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /** Browse's measured and designed places (Y8; r11/movies-tv.md 1.5.2 and r11/movies-tv-pass2.md 1.5.5), in epx. */
 object BrowseMetrics {
@@ -109,18 +108,18 @@ class BrowseModel(context: Context) {
             if (!restored) {
                 restored = true
                 if (q.isEmpty()) {
-                    val last = withContext(Dispatchers.IO) { catalogue.lastQuery }
+                    val last = VideoCalls.io("catalogue last search", "") { catalogue.lastQuery }
                     if (last.isNotEmpty()) { q = last; query = last; text = last }
                 }
             }
             if (q.isNotEmpty()) {
-                val r = withContext(Dispatchers.IO) { catalogue.search(q) }
+                val r = VideoCalls.io("catalogue search", failed<List<CatalogueItem>>()) { catalogue.search(q) }
                 hasKey = r.notice != CatalogueNotice.NO_KEY
                 notice = r.notice
                 results = r.value.orEmpty()
-                if (submitted && hasKey == true) withContext(Dispatchers.IO) { catalogue.lastQuery = q }
+                if (submitted && hasKey == true) VideoCalls.io("catalogue last search", Unit) { catalogue.lastQuery = q }
             } else {
-                val key = withContext(Dispatchers.IO) { catalogue.hasKey() }
+                val key = VideoCalls.io("catalogue key read", false) { catalogue.hasKey() }
                 hasKey = key
                 results = emptyList()
                 if (!key) {
@@ -130,7 +129,7 @@ class BrowseModel(context: Context) {
                 } else {
                     notice = CatalogueNotice.NONE
                     for (section in BrowseSection.entries) {
-                        val r = withContext(Dispatchers.IO) { catalogue.section(section) }
+                        val r = VideoCalls.io("catalogue section", failed<List<CatalogueItem>>()) { catalogue.section(section) }
                         sections[section] = r.value.orEmpty()
                         if (r.notice != CatalogueNotice.NONE) notice = r.notice
                     }
@@ -140,11 +139,14 @@ class BrowseModel(context: Context) {
         }
     }
 
+    /** What a catalogue call that threw gives the page: nothing new, and "The catalogue isn't answering". */
+    private fun <T> failed(): CatalogueResult<T> = CatalogueResult(null, CatalogueNotice.NOT_ANSWERING, true)
+
     fun clearSearch(scope: CoroutineScope) {
         text = ""
         query = ""
         shownAll = null
-        scope.launch { withContext(Dispatchers.IO) { catalogue.lastQuery = "" } }
+        scope.launch { VideoCalls.io("catalogue last search", Unit) { catalogue.lastQuery = "" } }
         load(scope, submitted = false)
     }
 }
@@ -283,7 +285,7 @@ private fun Strip(model: BrowseModel, section: BrowseSection, items: List<Catalo
 fun Poster(model: BrowseModel, item: CatalogueItem, width: Float, height: Float, imageTag: String, placeholderTag: String) {
     val bitmap by produceState<ImageBitmap?>(PosterMemory.get(item.posterPath), item.posterPath) {
         if (value == null && item.posterPath != null) {
-            value = withContext(Dispatchers.IO) { model.catalogue.poster(item.posterPath)?.asImageBitmap() }?.also { PosterMemory.put(item.posterPath, it) }
+            value = VideoCalls.io("catalogue poster", null) { model.catalogue.poster(item.posterPath)?.asImageBitmap() }?.also { PosterMemory.put(item.posterPath, it) }
         }
     }
     val b = bitmap

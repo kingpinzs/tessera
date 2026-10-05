@@ -69,6 +69,8 @@ import app.tileshell.calculator.InkText
 import app.tileshell.clock.ClockMetrics
 import app.tileshell.diag.Diagnostics
 import app.tileshell.feeds.PhotosFeed
+import app.tileshell.media.ContentUriText
+import app.tileshell.media.UriAccessPort
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.MotionClock
 import app.tileshell.ui.components.OverlayLayer
@@ -90,16 +92,46 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-/** What [ViewerActivity] was asked to show: one `content://` picture, or nothing it can show. */
+/**
+ * What [ViewerActivity] was asked to show: one `content://` picture, or nothing it can show. Whether it is shown, and
+ * whether anything may be changed from here, is [ViewerRules.open]'s answer for who started the activity.
+ */
 class ViewerNav {
     var uri by mutableStateOf<Uri?>(null)
         private set
     var mime by mutableStateOf<String?>(null)
         private set
 
-    fun open(intent: Intent?) {
-        uri = intent?.data?.takeIf { it.scheme == "content" }
+    /** The picture was named and refused: the caller could not have read it itself. */
+    var refused by mutableStateOf(false)
+        private set
+
+    /** Whether Edit, Delete and Set as are offered: only when the shell itself opened the viewer. */
+    var mayChange by mutableStateOf(false)
+        private set
+
+    /**
+     * @param launchedFromUid `Activity.getLaunchedFromUid()`, null when the platform does not say
+     * @param hadAccessAtLaunch the platform's answer for the launcher, by URI text ([ViewerRules.open])
+     * The intent's data is turned to its string once; the rule's scheme and authority and the URI that is opened both
+     * come from that one text.
+     */
+    fun open(intent: Intent?, launchedFromUid: Int?, shellUid: Int, access: UriAccessPort, hadAccessAtLaunch: (String) -> Boolean) {
         mime = runCatching { intent?.type }.getOrNull()
+        val named = runCatching { intent?.data?.toString() }.getOrNull()?.let(ContentUriText::parse)?.takeIf { it.scheme == "content" }
+        if (named == null) {
+            uri = null
+            refused = false
+            mayChange = false
+            return
+        }
+        val decision = runCatching { ViewerRules.open(named, launchedFromUid, shellUid, access, hadAccessAtLaunch) }
+            .getOrElse { ViewerRules.Open(show = false, mayChange = false, line = ViewerRules.LINE_NO_GRANT, request = "viewer request unreadable (${it.javaClass.simpleName})") }
+        Diagnostics.add("photosapp", decision.request)
+        decision.line?.let { Diagnostics.add("photosapp", it) }
+        refused = !decision.show
+        mayChange = decision.show && decision.mayChange
+        uri = if (decision.show) Uri.parse(named.text) else null
     }
 }
 
@@ -124,21 +156,25 @@ private val HEADER_DATE = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy", Loca
 private val INFO_DATE = DateTimeFormatter.ofPattern("M/d/yyyy h:mm a", Locale.getDefault())
 private val EDITABLE = setOf("image/jpeg", "image/png", "image/webp", "image/heic", "image/heif")
 
-/** The other apps' viewer ([ViewerActivity]): the one picture the intent names, read under the caller's grant. */
+/**
+ * The other apps' viewer ([ViewerActivity]): the one picture the intent names — shown only when [ViewerRules.open] found
+ * that whoever started the viewer could read it, and read-only unless that was the shell itself.
+ */
 @Composable
 fun ViewerScreen(nav: ViewerNav, activity: ComponentActivity) {
     val uri = nav.uri
     Box(Modifier.fillMaxSize().background(Color.Black).testTag("viewer_root")) {
         if (uri == null) {
             ViewerError()
-            LaunchedEffect(Unit) { Diagnostics.add("photosapp", "viewer: nothing to show (no content URI)") }
+            // A refusal wrote its own line when it was decided.
+            if (!nav.refused) LaunchedEffect(Unit) { Diagnostics.add("photosapp", "viewer: nothing to show (no content URI)") }
         } else {
             // The row only when the shell can read it by itself (its own query, not the caller's grant on this URI).
             val item = remember(uri) {
                 val entry = if (PhotosFeed.access(activity) == PhotosFeed.Access.DENIED) null else PhotoStore.readOne(activity, uri)?.takeIf { !it.video }
                 ViewerItem("u:$uri", uri, entry, entry?.mime ?: nav.mime, entry?.id?.toString() ?: "external")
             }
-            PhotoViewer(listOf(item), item.key, null, false, { null }, activity) { activity.finish() }
+            PhotoViewer(listOf(item), item.key, null, false, { null }, activity, mayChange = nav.mayChange) { activity.finish() }
         }
     }
 }
@@ -164,7 +200,8 @@ private fun BoxScope.ViewerError() {
  * The full-screen viewer (build task 5, Y2, Y6): the photo fitted to the width and centred on the whole screen, the
  * 50-epx date header and the 48-epx black bar over it, a swipe to the next and previous picture with a 20-epx gap,
  * pinch and double-tap zoom, and the actions. It opens by expanding from [origin] (the tapped tile) and closes by
- * shrinking back to the tile [tileBounds] gives for the picture then shown.
+ * shrinking back to the tile [tileBounds] gives for the picture then shown. [mayChange] is false in the viewer another
+ * app opened: Edit, Delete and Set as are then not offered ([ViewerRules.actions]).
  */
 @Composable
 fun BoxScope.PhotoViewer(
@@ -174,6 +211,7 @@ fun BoxScope.PhotoViewer(
     startSlideshow: Boolean,
     tileBounds: (ViewerItem) -> Rect?,
     activity: ComponentActivity,
+    mayChange: Boolean = true,
     onClosed: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -522,10 +560,11 @@ fun BoxScope.PhotoViewer(
                     style = ShellType.body.copy(color = Color.White))
             }
             val entry = current.entry
+            val offered = ViewerRules.actions(hasRow = entry != null, editable = entry != null && entry.mime in EDITABLE, several = items.size > 1, mayChange = mayChange)
             val buttons = buildList {
                 add(PhotoBarButton(Glyph.SHARE, "Share", "viewer_share") { PhotoActions.share(activity, current.uri, current.mime, current.id) })
-                if (entry != null && entry.mime in EDITABLE) add(PhotoBarButton(Glyph.EDIT, "Edit", "viewer_edit") { sheetOpen = true })
-                if (entry != null) add(PhotoBarButton(Glyph.DELETE, "Delete", "viewer_delete") {
+                if (ViewerRules.Action.EDIT in offered) add(PhotoBarButton(Glyph.EDIT, "Edit", "viewer_edit") { sheetOpen = true })
+                if (ViewerRules.Action.DELETE in offered) add(PhotoBarButton(Glyph.DELETE, "Delete", "viewer_delete") {
                     PhotoActions.deleteConsent(activity, current.uri, current.id)?.let { consent ->
                         pendingDelete = current
                         runCatching { deleteLauncher.launch(IntentSenderRequest.Builder(consent).build()) }
@@ -534,13 +573,13 @@ fun BoxScope.PhotoViewer(
                 })
             }
             val menu = buildList {
-                if (items.size > 1) add(PhotoMenuEntry("Slideshow", "viewer_menu_slideshow") { chrome = true; slideshow = true })
-                if (entry != null) add(PhotoMenuEntry("Set as", "viewer_menu_setas") { setAsOpen = true })
-                if (entry != null) add(PhotoMenuEntry("File information", "viewer_menu_info", ruleAbove = size > 0) { infoOpen = true })
+                if (ViewerRules.Action.SLIDESHOW in offered) add(PhotoMenuEntry("Slideshow", "viewer_menu_slideshow") { chrome = true; slideshow = true })
+                if (ViewerRules.Action.SET_AS in offered) add(PhotoMenuEntry("Set as", "viewer_menu_setas") { setAsOpen = true })
+                if (ViewerRules.Action.FILE_INFORMATION in offered) add(PhotoMenuEntry("File information", "viewer_menu_info", ruleAbove = size > 0) { infoOpen = true })
             }
             PhotoBar(buttons, menu, PhotosMetrics.VIEWER_BAR_FILL, "viewer", isExpanded = { barExpanded }, onExpand = { barExpanded = it })
 
-            if (setAsOpen && entry != null) {
+            if (setAsOpen && entry != null && ViewerRules.Action.SET_AS in offered) {
                 val choices = listOf(
                     PhotoMenuEntry("Start background", "viewer_setas_background") {
                         scope.launch { status = PhotoActions.setAsBackground(activity, current.uri, entry.id)?.let { "Couldn't set the background: $it" } ?: "Set as Start background" }
@@ -588,7 +627,7 @@ fun BoxScope.PhotoViewer(
                     }
                 }
             }
-            if (sheetOpen && entry != null) {
+            if (sheetOpen && entry != null && ViewerRules.Action.EDIT in offered) {
                 EditSheet(
                     rows = listOf(EditSheetRow(Glyph.CROP, "Crop, Rotate, Auto-enhance", "edit_sheet_editor") { startEditor(activity, entry, trim = false) }),
                     isOpen = { sheetOpen },

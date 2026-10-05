@@ -15,6 +15,7 @@ class MediaWritesTest {
     /** A MediaStore that records every call and can be told to fail at one step. */
     private class FakePort : MediaStorePort<String> {
         val calls = mutableListOf<String>()
+        val modes = mutableListOf<String>()
         val rows = linkedMapOf<String, MediaRow>()
         val bytes = mutableMapOf<String, ByteArrayOutputStream>()
         val inserted = mutableListOf<String>()
@@ -34,8 +35,9 @@ class MediaWritesTest {
             return uri
         }
 
-        override fun openWrite(uri: String): OutputStream? {
+        override fun openWrite(uri: String, mode: String): OutputStream? {
             calls += "open $uri"
+            modes += mode
             if (refuseOpen) return null
             return ByteArrayOutputStream().also { bytes[uri] = it }
         }
@@ -66,6 +68,7 @@ class MediaWritesTest {
         val result = MediaWrites(port, shell, MemoryPendingLedger()).save(photo) { it.write(byteArrayOf(1, 2, 3)) }
         val uri = port.inserted.single()
         assertEquals(listOf("insert DCIM/Camera/IMG_1.jpg", "open $uri", "publish $uri"), port.calls)
+        assertEquals(listOf("w"), port.modes)
         val saved = result as MediaWrites.Result.Saved
         assertEquals(MediaRow(uri, pending = false, size = 3, mime = "image/jpeg", relativePath = "DCIM/Camera/", ownerPackage = shell), saved.row)
     }
@@ -136,10 +139,12 @@ class MediaWritesTest {
     fun `rule 1's one exception - a capture output is written only with the guard's token`() {
         val port = FakePort()
         val callers = "content://com.caller.files/cache/out.jpg"
-        val decision = CaptureOutputGuard.decide(callers, "content", "com.caller.files", "com.caller", listOf(callers), CaptureOutputGuard.FLAG_GRANT_WRITE, setOf("app.tileshell.files"), callerMayWrite = true)
+        val decision = CaptureOutputGuard.decide(ContentUriText.parse(callers), "com.caller", listOf(callers), CaptureOutputGuard.FLAG_GRANT_WRITE, setOf("app.tileshell.files"), callerMayWrite = true)
         val accepted = decision as CaptureOutputGuard.Decision.Accepted
         assertNull(MediaWrites(port, shell, MemoryPendingLedger()).writeCaptureOutput(accepted) { it.write(byteArrayOf(9, 9)) })
         assertEquals(listOf("open $callers"), port.calls)
+        // A-L6: the caller's file may already hold a longer one; it is opened truncating.
+        assertEquals(listOf("wt"), port.modes)
         assertEquals(2, port.bytes.getValue(callers).size())
         assertTrue("no MediaStore row was made for it", port.inserted.isEmpty())
     }
@@ -147,7 +152,7 @@ class MediaWritesTest {
     @Test
     fun `a capture output that cannot be opened or written reports why and inserts nothing`() {
         val callers = "content://com.caller.files/cache/out.jpg"
-        val accepted = CaptureOutputGuard.decide(callers, "content", "com.caller.files", "com.caller", listOf(callers), 2, emptySet(), callerMayWrite = true) as CaptureOutputGuard.Decision.Accepted
+        val accepted = CaptureOutputGuard.decide(ContentUriText.parse(callers), "com.caller", listOf(callers), 2, emptySet(), callerMayWrite = true) as CaptureOutputGuard.Decision.Accepted
         val closed = FakePort().apply { refuseOpen = true }
         assertEquals("the caller's output could not be opened", MediaWrites(closed, shell, MemoryPendingLedger()).writeCaptureOutput(accepted) { it.write(1) })
         val port = FakePort()
