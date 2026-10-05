@@ -97,6 +97,14 @@ dependencies {
     // Phase 10: playback and the media session the tile rule keys on (build tasks 3 and 4).
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.session)
+    // Phase 17: video trim in Photos' editor (Media3 Transformer), and the Camera app (CameraX).
+    implementation(libs.media3.transformer)
+    implementation(libs.camerax.core)
+    implementation(libs.camerax.camera2)
+    implementation(libs.camerax.lifecycle)
+    implementation(libs.camerax.video)
+    implementation(libs.camerax.view)
+    implementation(libs.camerax.extensions)
     // Phase 15: Calculator's engine, converter and date calculation (pure Kotlin, JVM-tested), also Tess's arithmetic.
     implementation(project(":calc"))
     testImplementation(libs.junit)
