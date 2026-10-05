@@ -89,8 +89,36 @@ class CredentialFileTest {
         File(dir, "credentials_v1.json.tmp").writeText("left by a killed process")
         s.set("tmdb", "qa-dummy-token")
         assertFalse(File(dir, "credentials_v1.json.tmp").exists())
-        assertEquals(listOf("credentials_v1.json"), dir.list()!!.toList())
+        // The store's file and its (empty) lock file - and no temp file.
+        assertEquals(listOf("credentials_v1.json", "credentials_v1.json.lock"), dir.list()!!.sorted())
         assertEquals("qa-dummy-token", s.get("tmdb"))
+    }
+
+    @Test fun `a write is made under the store's file lock, so two processes cannot interleave a read-modify-write`() {
+        // B-8: the lock another process would hold is held here, on the same lock file. A write must wait for it or
+        // fail - inside one JVM the platform answers a second lock on the file at once, with an exception - and must
+        // never go ahead beside it.
+        val s = store()
+        assertTrue(s.set("tmdb", "first-value"))
+        val lockFile = File(dir, "credentials_v1.json.lock")
+        assertTrue("the store made its lock file", lockFile.isFile)
+        java.io.RandomAccessFile(lockFile, "rw").channel.use { channel ->
+            val held = channel.lock()
+            lines.clear()
+            assertFalse(s.set("tmdb", "second-value"))
+            assertFalse(s.set("jellyfin", "other-value"))
+            assertFalse(s.remove("tmdb"))
+            assertEquals(listOf("tmdb: not saved (OverlappingFileLockException)", "jellyfin: not saved (OverlappingFileLockException)", "tmdb: not removed (OverlappingFileLockException)"), lines)
+            // A read needs no lock: the rename keeps every read whole.
+            assertEquals("first-value", s.get("tmdb"))
+            held.release()
+        }
+        // The lock given back, the store writes again; the lock file holds nothing.
+        assertTrue(s.set("tmdb", "second-value"))
+        assertEquals("second-value", s.get("tmdb"))
+        assertTrue(s.remove("tmdb"))
+        assertEquals(0L, lockFile.length())
+        assertTrue(lines.none { it.contains("first-value") || it.contains("second-value") || it.contains("other-value") })
     }
 
     @Test fun `the file is re-read on every use, so two holders never disagree`() {
