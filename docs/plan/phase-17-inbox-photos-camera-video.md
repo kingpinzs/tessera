@@ -82,6 +82,42 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
 "local-only" Movies & TV build (Hard Rule 16 — the interview ruled the fuller forms).
 
 ## Decisions
+- 2026-10-05 10:39 (agent, build task 0 — **the build-start checks**; every source and the AVD's facts are in
+  `qa/phase-17/BUILDSTART/README.md`; INDEX Change Log of this date):
+  - **BS-1 (panorama's library).** OpenCV 4.14.0, Apache-2.0 (its LICENSE file at the tag). Not the Maven AAR: its Java
+    bindings do not wrap `Stitcher`, its arm64 library exports no stitch symbol, and that library alone is 24,657,160
+    bytes, over E17's bound. The route is the official Android SDK's static libraries (`core imgproc features2d flann
+    calib3d stitching`) linked into ONE JNI library, `libopencv_pano.so`, arm64-v8a only, `c++_static`; a trial link
+    measured 5,809,048 bytes. The SDK zip is a git-ignored build input fetched by a script, as the speech AAR is, on
+    the PC and in CI. No x86_64 library is built, so Panorama is hidden on the AVD with its reason (E7, E17).
+  - **BS-2 (slow motion's route).** CameraX is pinned at 1.6.2 and reaches the constrained high-speed session by its own
+    stable API — `Recorder.getHighSpeedVideoCapabilities`, `HighSpeedVideoSessionConfig(…, isSlowMotionEnabled = true)`,
+    which saves the take at 30 fps (r3 D11's form). No raw Camera2 and no interop for this mode. The pro dial's
+    `Camera2CameraControl` and the Extensions API are present in 1.6.2.
+  - **BS-3 (the credential store).** Android Keystore alias `tessera_credentials_v1` (AES-256-GCM, non-exportable); file
+    `files/credentials_v1.json`, a map from a name (`jellyfin`, `tmdb`) to an IV and ciphertext, written temp-and-rename
+    and re-read on use.
+  - **BS-4 (the services table).** Packages confirmed on Google Play; every title and search PATH is UNVERIFIED until
+    P13 (a host's assetlinks file proves the host, not the path — BS-4's "verified by starting each on a phone" is the
+    owner's P13, since nothing is done to the phone from the PC). Title ids come from Wikidata by the TMDB id (P4947
+    film, P4983 series): Netflix P1874, Prime Video P14462 (P14440 the same form), Disney+ P13902, Hulu P6466 / P6467,
+    Max P8298 (stale `feature/urn:` / `series/urn:` values skipped), Apple TV P9586 / P9751. Agent calls, each judged by
+    H11 / P13: **Paramount+, Peacock, YouTube and Plex have no usable title id, so their row always opens the service's
+    search**; **Disney+ has no search address, so with no id its row opens the app** (`getLaunchIntentForPackage`, the
+    line reads `-> launch`); **Jellyfin's app is left out of the per-title rows** (it has no link or search intent; the
+    user's Jellyfin is the Media server page). The query, its response shape and Wikidata's limits (a descriptive
+    User-Agent, one query at a time, 429 with Retry-After) are in the README; the answer is cached with the title page.
+  - **BS-5 (terms and versions).** TMDB: free for non-commercial use with the attribution text in an About section and
+    an unmodified logo; cache limit 6 months (ours is 7 days); about 40 requests a second, 429 when exceeded; a refused
+    token is HTTP 401 with `status_code` 7; watch-provider data is credited to JustWatch. Jellyfin: the latest stable is
+    12.1; the fixture image is `jellyfin/jellyfin:12.1@sha256:78d3ea1207d1322471fcac39a614f004f2ccf7e878f95ab2977d752f07e4dd7e`,
+    seeded over its REST start-up calls into an empty config volume (not a shipped config dir, which holds a database
+    tied to one version). **Jellyfin 12 facts that correct this doc's Jellyfin line (T17-14):** the library is `GET
+    /Items?userId=<id>` — `/Users/<id>/Items` is not in 12.1's API; the legacy token forms are off by default, so
+    calls send `Authorization: MediaBrowser Token="…"` and a stream URL carries `ApiKey=<token>` (logged with the query
+    string removed, C-32). Direct play (`/Videos/<id>/stream?static=true`) is the form built; no transcode.
+  - **C-16 (1)'s redirect host.** coverartarchive.org redirects to `archive.org` and its download subdomains; `archive.org`
+    with subdomains is on the fixed-host list.
 - 2026-10-05 09:05: Review question Q-17-3 (round 3, D15: phase 16's Q-16-1 had Calendar and People take their slots once
   even over a hand pick; this doc seeded PHOTOS and CAMERA without it, so on the owner's phone, where both slots are
   very likely hand-pointed at Samsung's apps, the tiles and "take a photo" would stay on Samsung's) — **the shell's Photos
