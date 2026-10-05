@@ -79,6 +79,20 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
 "local-only" Movies & TV build (Hard Rule 16 — the interview ruled the fuller forms).
 
 ## Decisions
+- 2026-10-05 09:04: Review question Q-17-2 (round 3, V3 (a) / D1: since Android 11 an implicit `IMAGE_CAPTURE` /
+  `VIDEO_CAPTURE` from a caller targeting API 30+ resolves only to preinstalled system cameras, so Q5 A's "one of
+  Android's camera choices beside Samsung Camera" reaches almost no app; and the capture answer is the phase's riskiest
+  surface) — **keep the capture-intent answer as Q5 A ruled, with round 3's fixes** (Jeremy: "(b)"). What it is now, said
+  plainly: the shell's Camera answers a capture request from an app that names it (`setPackage("app.tileshell")` or its
+  component) or that targets API 29 or lower; Android's own resolver does not offer it to other apps, and nothing in this
+  phase tries to change that. The fixes applied with round 3's "A after Q-17-2" rows: D1's three-condition output guard
+  (started for a result; the intent's own ClipData holds the same URI with FLAG_GRANT_WRITE_URI_PERMISSION; not one of
+  the shell's own authorities) or RESULT_CANCELED with `[camera] refused output: no grant`; the no-output contract
+  (IMAGE_CAPTURE without EXTRA_OUTPUT returns a thumbnail Bitmap in `data` and writes no file; VIDEO_CAPTURE without it
+  saves to DCIM/Camera and returns that row's URI with a read grant); E9 per V3 (b)–(d) (qa-capture names the shell's
+  package; the resolver clause becomes a recorded `query-activities` fact; the fixture logs its own output's
+  `exists=` / `size=`; a GPS control capture; the display_photo negative). The helper is `.camera.CaptureActivity` in
+  `:camera` (D6), not a catalog entry. Q5 A's line is not edited; this entry corrects the premise it stated.
 - 2026-10-05 09:01: Review question Q-17-1 (round 3, D2 / V15: as ruled under Q-A2 B, film search could never work on the
   phone — the phone installs only CI builds, a PC build is versionCode 1 and is refused over them, and no route gets a PC
   build onto the phone without a cable) — **the owner pastes his TMDB read token once into Movies & TV's settings on the
