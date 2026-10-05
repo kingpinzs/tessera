@@ -172,14 +172,14 @@ assert_eq "aapt2 dump xmltree of the release APK's network security config rc" "
 assert_eq "aapt2 dump xmltree of the debug APK's network security config rc" "0" "$(cat "$OUT/nsc-debug.rc")"
 assert_contains "the release dump is a network-security-config" "E: network-security-config" "$(cat "$OUT/nsc-release.txt")"
 assert_absent "the release APK's config holds no 10.0.2.2" "10.0.2.2" "$(cat "$OUT/nsc-release.txt")"
-nsc_domains "$OUT/nsc-release.txt" > "$OUT/nsc-release-domains.tsv"; nsc_domains "$OUT/nsc-debug.txt" > "$OUT/nsc-debug-domains.tsv"
-cat "$OUT/nsc-release-domains.tsv" >> "$LOG"
+nsc_domains "$OUT/nsc-release.txt" > "$OUT/nsc-release-domains.txt"; nsc_domains "$OUT/nsc-debug.txt" > "$OUT/nsc-debug-domains.txt"
+cat "$OUT/nsc-release-domains.txt" >> "$LOG"
 for h in $HOSTS; do
-  assert_eq "release: $h is under cleartextTrafficPermitted=false" "1" "$(grep -cxF "false	$h" "$OUT/nsc-release-domains.tsv")"
-  assert_eq "release: $h is under no domain-config that permits cleartext" "0" "$(grep -cxF "true	$h" "$OUT/nsc-release-domains.tsv")"
+  assert_eq "release: $h is under cleartextTrafficPermitted=false" "1" "$(grep -cxF "false	$h" "$OUT/nsc-release-domains.txt")"
+  assert_eq "release: $h is under no domain-config that permits cleartext" "0" "$(grep -cxF "true	$h" "$OUT/nsc-release-domains.txt")"
 done
-assert_eq "release: no domain-config permits cleartext to any host" "0" "$(grep -c '^true	' "$OUT/nsc-release-domains.tsv")"
-assert_contains "control: the debug APK's config holds the 10.0.2.2 exception" "true	10.0.2.2" "$(cat "$OUT/nsc-debug-domains.tsv")"
+assert_eq "release: no domain-config permits cleartext to any host" "0" "$(grep -c '^true	' "$OUT/nsc-release-domains.txt")"
+assert_contains "control: the debug APK's config holds the 10.0.2.2 exception" "true	10.0.2.2" "$(cat "$OUT/nsc-debug-domains.txt")"
 
 # ----------------------------------------------------------------------------------------------- no TMDB token
 log "--- no TMDB token in any build (Q-17-1 (a); r3 D14)"
