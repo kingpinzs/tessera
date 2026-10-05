@@ -60,6 +60,7 @@ tap_node "$D/browse.xml" hub_search_box; sleep 0.8
 adb shell input text "Blade%sRunner"; sleep 0.5
 adb shell input keyevent KEYCODE_ENTER; sleep 3
 dump_ui "$D/results.xml"; screencap "$D/results.png"
+record "the keyboard after the search is sent (mInputShown)" "$(adb shell dumpsys input_method | grep -o 'mInputShown=[a-z]*' | head -1 | tr -d '\r')"
 ROWS="$(grep -o 'resource-id="hub_result:[a-z0-9-]*"' "$D/results.xml" | sed 's/.*hub_result://;s/"//' | xargs)"
 assert_eq "exactly three result rows" "78 335984 tv-117884" "$ROWS"
 for spec in "78|Blade Runner|1982|180 40 40" "335984|Blade Runner 2049|2017|40 120 200" "tv-117884|Blade Runner: Black Lotus|2021|60 170 90"; do
