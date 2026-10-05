@@ -154,11 +154,17 @@ object ServicesTable {
     /** What a service's id may be made of: Wikidata is public data, and the value becomes part of an address. */
     private val SAFE_ID = Regex("[A-Za-z0-9._:/-]{1,200}")
 
+    /**
+     * An id that stays where the service's address puts it (B-10): the safe characters, no leading `/` and no `..`
+     * segment — either would steer a "Watch on" link to another path of the service's own host.
+     */
+    fun isSafeId(value: String): Boolean = SAFE_ID.matches(value) && !value.startsWith("/") && value.split('/').none { it == ".." }
+
     /** The service's own id for the title among Wikidata's [ids], as the title's address; null when it has none. */
     fun titleUrl(service: StreamingService, type: TitleType, ids: Map<String, String>): String? {
         for (p in service.ids) {
             if (p.type != null && p.type != type) continue
-            val value = ids[p.variable]?.takeIf(SAFE_ID::matches) ?: continue
+            val value = ids[p.variable]?.takeIf(::isSafeId) ?: continue
             service.titleUrl(p.variable, value)?.let { return it }
         }
         return null
