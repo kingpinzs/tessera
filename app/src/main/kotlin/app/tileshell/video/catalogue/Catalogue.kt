@@ -225,8 +225,19 @@ class Catalogue(context: Context) {
         return fresh
     }
 
-    /** The image base last read for this API base, with no request. */
-    private fun imageBase(): String? = cache.read("config", sha1(apiBase()))?.let { TmdbParse.imageBase(it.body) }
+    /**
+     * The image base last read for this API base, with no request — and only one posters may be fetched from
+     * ([CatalogueRules.posterBase]; B-6): outside a debug build, TMDB's own image host. A refused base is said once.
+     */
+    private fun imageBase(): String? {
+        val named = cache.read("config", sha1(apiBase()))?.let { TmdbParse.imageBase(it.body) } ?: return null
+        val allowed = CatalogueRules.posterBase(BuildConfig.DEBUG, named, FixedEndpoints.TMDB_IMAGES)
+        if (allowed == null && !saidImageBaseRefused) {
+            saidImageBaseRefused = true
+            Diagnostics.add("video", CatalogueRules.LINE_IMAGE_BASE_REFUSED)
+        }
+        return allowed
+    }
 
     /**
      * A poster, from the image cache or the network (no token is sent: the image host is another host). Null when the
@@ -266,6 +277,9 @@ class Catalogue(context: Context) {
 
     companion object {
         const val DIR = "video_catalogue"
+
+        /** The refusal's line is written once per process, not once per poster. */
+        @Volatile private var saidImageBaseRefused = false
         private const val LAST_QUERY = "last_query.txt"
     }
 }

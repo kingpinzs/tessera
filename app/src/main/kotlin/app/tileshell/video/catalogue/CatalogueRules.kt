@@ -136,6 +136,21 @@ object CatalogueRules {
         else -> CatalogueNotice.NOT_ANSWERING
     }
 
+    const val LINE_IMAGE_BASE_REFUSED = "catalogue: image base is not TMDB's, posters are not fetched"
+
+    /**
+     * The image base posters may be fetched from (B-6): `/3/configuration` names it, and in a build that is not a debug
+     * build it must be on TMDB's own image host ([fixedImages], `FixedEndpoints.TMDB_IMAGES`) — else null, and no
+     * poster is asked for. A DEBUG build takes the configuration's base as it is: the QA catalogue serves its own.
+     */
+    fun posterBase(debug: Boolean, imageBase: String?, fixedImages: String): String? = when {
+        imageBase.isNullOrBlank() -> null
+        debug -> imageBase
+        // The whole fixed prefix, its closing slash included: "https://image.tmdb.org.other.example/" is not it.
+        fixedImages.endsWith("/") && imageBase.startsWith(fixedImages) -> imageBase
+        else -> null
+    }
+
     /** An image's address: the configuration's base, a size, the title's poster path. */
     fun imageUrl(imageBase: String?, posterPath: String?, size: String = "w342"): String? {
         if (imageBase.isNullOrBlank() || posterPath.isNullOrBlank()) return null
