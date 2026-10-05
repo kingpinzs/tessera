@@ -24,6 +24,9 @@ enum class SignInAction { ASK, SEND, NOTHING }
 /** The user's answer to "This server isn't secure". */
 enum class PromptAnswer { CONTINUE, CANCEL }
 
+/** What the Media server setting shows: see [ServerRules.settingsView]. */
+enum class ServerSettingsView { SERVER, LEFT_OVER, FORM }
+
 /** How a sign-in or a library read ended (`[video] server <host>: connected | unreachable | unauthorised`). */
 enum class ServerState(val word: String) { CONNECTED("connected"), UNREACHABLE("unreachable"), UNAUTHORISED("unauthorised") }
 
@@ -227,18 +230,52 @@ object ServerRules {
         return origin == split(base)?.first
     }
 
-    /** A sealed server's parts as one text, and back. Null from [openCredential] when any part is not what it must be. */
-    fun sealCredential(credential: ServerCredential): String =
-        MiniJson.write(linkedMapOf("token" to credential.token, "base" to credential.base, "userId" to credential.userId))
+    /**
+     * A sealed server's parts as one text, and back. [pair] is the save's own id, written into the pages' file too
+     * ([isPair]): it is what says the two belong to one save (B2-M1). Null from [openCredential] when any part is not
+     * what it must be — so the bare token an earlier build stored, and an entry sealed before the pair id was kept,
+     * are not sealed servers.
+     */
+    fun sealCredential(credential: ServerCredential, pair: String): String =
+        MiniJson.write(linkedMapOf("token" to credential.token, "base" to credential.base, "userId" to credential.userId, "pair" to pair))
 
-    fun openCredential(text: String): ServerCredential? {
+    fun openCredential(text: String): SealedServer? {
         val o = MiniJson.parseOrNull(text).jsonObject() ?: return null
         val token = o.jsonString("token")?.takeIf(HeaderText::isSafeToken) ?: return null
         // A server's address and nothing more: http(s), a host, a port — no user part, no path, no query.
         val base = o.jsonString("base")?.takeIf { parse(it) != null && it.contains("://") } ?: return null
         val userId = o.jsonString("userId")?.takeIf(SAFE_ID::matches) ?: return null
-        return ServerCredential(token, base, userId)
+        val pair = o.jsonString("pair")?.takeIf(::isPair) ?: return null
+        return SealedServer(ServerCredential(token, base, userId), pair)
     }
+
+    private val PAIR = Regex("[0-9a-f]{32}")
+
+    /** A save's id: 32 hex digits, made new for every save. Not a secret — it names nothing and opens nothing. */
+    fun isPair(value: String): Boolean = PAIR.matches(value)
+
+    /**
+     * Whether the sealed server and the pages' file are ONE saved server (B2-M1): both are there and carry the same
+     * save's id. Anything else — no file, a file from another save, a file whose removal was asked for — is not a
+     * set-up server, and no token is given for it.
+     */
+    fun paired(sealedPair: String?, filePair: String?): Boolean = sealedPair != null && isPair(sealedPair) && sealedPair == filePair
+
+    const val TEXT_LEFT_OVER = "A saved sign-in that isn't in use is still on this phone. Remove it, or sign in again."
+
+    /**
+     * What the Media server setting shows (B2-M1). Whenever an entry is stored under the server's name — whether or
+     * not it is a whole saved server — the page offers "Remove this server" ([offersRemove]), so a half-saved or
+     * half-removed state can always be cleared by hand: the server itself while one is set up, else [TEXT_LEFT_OVER]
+     * above the sign-in form, else the form alone.
+     */
+    fun settingsView(setUp: Boolean, entryHeld: Boolean): ServerSettingsView = when {
+        setUp -> ServerSettingsView.SERVER
+        entryHeld -> ServerSettingsView.LEFT_OVER
+        else -> ServerSettingsView.FORM
+    }
+
+    fun offersRemove(view: ServerSettingsView): Boolean = view != ServerSettingsView.FORM
 
     /** `scheme://authority` in lower case with the scheme's default port made explicit, and what follows it. */
     private fun split(url: String): Pair<String, String>? {

@@ -1,5 +1,6 @@
 package app.tileshell.video.server
 
+import android.app.KeyguardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -44,8 +45,17 @@ class MediaServer(context: Context) {
     /** What the pages show about the saved server, or null when none is set up. Reads the file every time. */
     fun config(): ServerConfig? = store.display()
 
-    /** True while a server is set up: its token and address open from the store, and its page has what it shows. */
-    fun isSetUp(): Boolean = store.display() != null && store.credential() != null
+    /**
+     * True while a server is set up: its token and address open from the store AND its page's file is the same save's
+     * ([ServerStore.credential]) — the one meaning every token is given under (B2-M1).
+     */
+    fun isSetUp(): Boolean = store.credential() != null
+
+    /** True when anything is stored under the server's name, set up or not: the setting then offers Remove. */
+    fun entryHeld(): Boolean = store.entryHeld()
+
+    /** On the hub's start: a left-over entry that is not a set-up server is cleared ([ServerStore.sweep]). */
+    fun sweep(): Boolean = store.sweep(app.getSystemService(KeyguardManager::class.java)?.isDeviceLocked == true)
 
     /**
      * `mediaServer.connect(host, user, password)`: signs in and, when the server accepts, saves the server and its
@@ -109,11 +119,15 @@ class MediaServer(context: Context) {
         return runCatching { BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }.getOrNull()
     }
 
-    /** Removes the server: its token leaves the store (`[video] server token cleared`), its config and its shortcut go. */
-    fun remove() {
-        store.remove()
-        Diagnostics.add("video", "server token cleared")
-        MediaServerShortcut.remove(app)
+    /**
+     * Removes the server and says whether its token really left the store (B2-M1): `[video] server token cleared`, its
+     * file and its shortcut gone — or `[video] server not removed: its token could not be cleared`, written by
+     * [ServerStore.remove], with the setting still offering Remove.
+     */
+    fun remove(): Boolean {
+        val cleared = store.remove()
+        if (!isSetUp()) MediaServerShortcut.remove(app)
+        return cleared
     }
 
     private fun header(token: String?): String = ServerRules.authorization(Build.MODEL ?: "phone", deviceId(), BuildConfig.VERSION_NAME, token)
@@ -129,7 +143,7 @@ class MediaServer(context: Context) {
 
     companion object {
         const val CONFIG_FILE = ServerStore.CONFIG_FILE
-        private const val DEVICE_FILE = "media_server_device.txt"
+        private const val DEVICE_FILE = ServerStore.DEVICE_FILE
 
         private fun storeOf(app: Context): ServerStore =
             ServerStore(app.filesDir, CredentialStore.of(app)) { Diagnostics.add("video", it) }

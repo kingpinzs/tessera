@@ -176,6 +176,38 @@ class CredentialFileTest {
         assertNull(s.get("tmdb"))
     }
 
+    @Test fun `holds says an entry is stored whether or not it opens, and clear says whether nothing is left`() {
+        val s = store()
+        assertFalse(s.holds("tmdb"))
+        s.set("tmdb", "qa-dummy-token")
+        assertTrue(s.holds("tmdb"))
+        // An entry that does not open (moved under another name) is still an entry.
+        val root = MiniJson.parse(file.readText()).jsonObject()!!
+        file.writeText(MiniJson.write(mapOf("jellyfin" to root["tmdb"])))
+        assertNull(s.get("jellyfin"))
+        assertTrue(s.holds("jellyfin"))
+        assertFalse(s.holds("tmdb"))
+        assertTrue(s.clear("jellyfin"))
+        assertFalse(s.holds("jellyfin"))
+        assertTrue("nothing to remove is nothing left", s.clear("jellyfin"))
+        // A removal that cannot be written leaves the entry, and clear says so.
+        s.set("tmdb", "qa-dummy-token")
+        java.io.RandomAccessFile(File(dir, "credentials_v1.json.lock"), "rw").channel.use { channel ->
+            val held = channel.lock()
+            assertFalse(s.clear("tmdb"))
+            held.release()
+        }
+        assertTrue(s.holds("tmdb"))
+        // A file that is not the store's JSON holds nothing that could ever open.
+        file.writeText("{ not json")
+        assertFalse(s.holds("tmdb"))
+        // A store that is there and cannot be read (a directory in its place) is not known to be empty.
+        file.delete()
+        file.mkdirs()
+        assertTrue(s.holds("tmdb"))
+        assertFalse(s.clear("tmdb"))
+    }
+
     @Test fun `no line ever carries a value`() {
         val s = store()
         s.set("tmdb", "SECRET-VALUE-1")

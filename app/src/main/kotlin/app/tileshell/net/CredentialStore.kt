@@ -43,8 +43,14 @@ interface CredentialCipher {
  * the temp-and-rename write and the failure rules are unit-tested with a stand-in cipher.
  *
  * @param log one diagnostics message per event; it is given the entry's name and the outcome only
+ * @param rename the write's last step, `File.renameTo` — a parameter so a test can make it fail
  */
-class CredentialFile(private val file: File, private val cipher: CredentialCipher, private val log: (String) -> Unit) {
+class CredentialFile(
+    private val file: File,
+    private val cipher: CredentialCipher,
+    private val rename: (File, File) -> Boolean = { from, to -> from.renameTo(to) },
+    private val log: (String) -> Unit,
+) {
 
     /** The value saved under [name], or null when there is none or it cannot be read. Reads the file every time. */
     fun get(name: String): String? {
@@ -60,6 +66,26 @@ class CredentialFile(private val file: File, private val cipher: CredentialCiphe
 
     /** True when an entry is saved under [name] and opens. */
     fun has(name: String): Boolean = get(name) != null
+
+    /**
+     * True when an entry is saved under [name], WHETHER OR NOT IT OPENS (B2-M1): what a removal must make false, and
+     * what tells a caller that something is still stored under a name whose value reads as absent. A store's file that
+     * is there and cannot be read is not known to be empty: true.
+     */
+    fun holds(name: String): Boolean = synchronized(LOCK) {
+        if (!file.exists()) return false
+        val text = try { file.readText(Charsets.UTF_8) } catch (e: Exception) { return true }
+        entries(text).containsKey(name)
+    }
+
+    /**
+     * Removes [name] and says whether NOTHING is saved under it afterwards (B2-M1): true when it was removed and when
+     * there was nothing to remove, false when the removal could not be written — the entry is then still in the store.
+     */
+    fun clear(name: String): Boolean {
+        remove(name)
+        return !holds(name)
+    }
 
     /** Saves [value] under [name], replacing what was there. False (and nothing changed) when it could not be written. */
     fun set(name: String, value: String): Boolean = try {
@@ -107,10 +133,21 @@ class CredentialFile(private val file: File, private val cipher: CredentialCiphe
     }
 
     private fun read(): MutableMap<String, CredentialCipher.Sealed> {
+        if (!file.exists()) return LinkedHashMap()
+        val text = try {
+            file.readText(Charsets.UTF_8)
+        } catch (e: Exception) {
+            log("store unreadable (${e.javaClass.simpleName})")
+            return LinkedHashMap()
+        }
+        return entries(text)
+    }
+
+    /** The entries of the store's text; none when it is not the store's JSON (one line says so, with the class only). */
+    private fun entries(text: String): MutableMap<String, CredentialCipher.Sealed> {
         val out = LinkedHashMap<String, CredentialCipher.Sealed>()
-        if (!file.exists()) return out
         val root = try {
-            MiniJson.parse(file.readText(Charsets.UTF_8)).jsonObject()
+            MiniJson.parse(text).jsonObject()
         } catch (e: Exception) {
             log("store unreadable (${e.javaClass.simpleName})")
             null
@@ -128,13 +165,13 @@ class CredentialFile(private val file: File, private val cipher: CredentialCiphe
     private fun write(all: Map<String, CredentialCipher.Sealed>) {
         val json = MiniJson.write(all.mapValues { (_, s) -> linkedMapOf("iv" to encode(s.iv), "ct" to encode(s.ciphertext)) })
         file.parentFile?.mkdirs()
-        val temp = File(file.parentFile, file.name + ".tmp")
+        val temp = File(file.parentFile, file.name + TEMP_SUFFIX)
         FileOutputStream(temp).use { out ->
             out.write(json.toByteArray(Charsets.UTF_8))
             out.flush()
             runCatching { out.fd.sync() }
         }
-        if (!temp.renameTo(file)) {
+        if (!rename(temp, file)) {
             temp.delete()
             throw java.io.IOException("rename failed")
         }
@@ -143,10 +180,13 @@ class CredentialFile(private val file: File, private val cipher: CredentialCiphe
     private fun encode(b: ByteArray): String = Base64.getEncoder().encodeToString(b)
     private fun decode(s: String): ByteArray? = try { Base64.getDecoder().decode(s) } catch (e: IllegalArgumentException) { null }
 
-    private companion object {
+    companion object {
         /** One writer at a time inside a process (a second file lock from one process is an error, not a wait). */
-        val LOCK = Any()
+        private val LOCK = Any()
+
+        /** What the store's two side files are named after the store's own name (the extraction rules name them, B2-L3). */
         const val LOCK_SUFFIX = ".lock"
+        const val TEMP_SUFFIX = ".tmp"
     }
 }
 
@@ -202,5 +242,5 @@ object CredentialStore {
 
     /** The store over `files/credentials_v1.json`. Its calls touch the disk and the Keystore: off the main thread. */
     fun of(context: Context): CredentialFile =
-        CredentialFile(File(context.applicationContext.filesDir, FILE_NAME), KeystoreCipher(KEY_ALIAS)) { Diagnostics.add("cred", it) }
+        CredentialFile(File(context.applicationContext.filesDir, FILE_NAME), KeystoreCipher(KEY_ALIAS), log = { Diagnostics.add("cred", it) })
 }

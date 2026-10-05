@@ -42,6 +42,8 @@ class VideoActivity : ComponentActivity() {
      */
     private fun route(intent: Intent?) {
         Thread {
+            // First, a left-over entry that is not a set-up server is cleared (B2-M1): no token outlives its server's page.
+            runCatching { MediaServer(this).sweep() }
             val setUp = runCatching { MediaServer(this).isSetUp() }.getOrDefault(false)
             runCatching { MediaServerShortcut.sync(this, setUp) }
             runOnUiThread {

@@ -38,6 +38,12 @@ data object TmdbKeySub : HubSub {
     override val title = "TMDB key"
 }
 
+/** The key setting's lines that say how something ended. Pure, so what is said for what is unit-tested. */
+object TmdbKeyLines {
+    /** `[video] TMDB key removed` only when no key is left in the store; else `[video] TMDB key not removed`. */
+    fun removal(gone: Boolean): String = if (gone) "TMDB key removed" else "TMDB key not removed"
+}
+
 /**
  * The TMDB key setting: enter (typed or pasted), replace, remove. TRUST-TOUCHING.
  *
@@ -107,8 +113,9 @@ fun TmdbKeyPage() {
             Spacer(Modifier.width(12.dp))
             HubButton("Remove", "tmdb_key_remove", enabled = saved == true) {
                 scope.launch {
-                    VideoCalls.io("TMDB key remove", false) { CredentialStore.of(context).remove(CredentialStore.TMDB) }
-                    Diagnostics.add("video", "TMDB key removed")
+                    // Said only when it is true (B2-M1): the key is gone from the store, or it is still there.
+                    val gone = VideoCalls.io("TMDB key remove", false) { CredentialStore.of(context).clear(CredentialStore.TMDB) }
+                    Diagnostics.add("video", TmdbKeyLines.removal(gone))
                     saved = VideoCalls.io("TMDB key read", false) { CredentialStore.of(context).has(CredentialStore.TMDB) }
                 }
             }
