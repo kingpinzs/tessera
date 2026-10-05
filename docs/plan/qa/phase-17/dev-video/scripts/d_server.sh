@@ -3,6 +3,15 @@
 # a wrong password, "Add a server", the library, direct play, the token persisting across a force-stop and held only as
 # ciphertext, the stopped container, a token the server no longer accepts, removal clearing the token and the dynamic
 # shortcut. Restores: the server removed from the app, the TMDB key removed, the container and its volumes removed.
+#
+# CHANGED SINCE THIS SCRIPT RAN (trust review round 2, B2-M2; this script is development history and is not rewritten):
+# the server's token now rides ONLY on the shell's own launch of the player (the hub's Media server page). The block
+# "an error on a request that carries the token" below starts the player with adb on a direct-play address and asserts
+# "[video] server stream …" — the token riding on another launcher's request. That is the behaviour the fix removed: the
+# same start now plays the address as it is, with no token, and writes
+# "[video] server token not given: not the shell's own launch"; that assert fails on a build with the fix.
+# Also changed (B2-M1): a removal that could not clear the token writes
+# "[video] server not removed: its token could not be cleared" in place of "[video] server token cleared".
 . "$(dirname "$0")/v17.sh"
 row_begin D_SERVER "the media server: sign-in, library, play, persistence, plaintext, failures, removal"
 D="$ROW_DIR"

@@ -9,7 +9,6 @@ import android.content.pm.ShortcutManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Icon
-import android.net.Uri
 import android.os.Build
 import androidx.media3.datasource.DataSpec
 import app.tileshell.BuildConfig
@@ -35,8 +34,8 @@ import java.util.UUID
  * this class. The access token lives in the credential store alone, SEALED WITH the server it was given by
  * ([ServerStore]; B-4): every request that carries it is built on the sealed address and asks [ServerStore.tokenFor] or
  * [ServerStore.streamToken] for it, which refuse any other server. It is sent as the `Authorization` header and, for a
- * stream, added as `ApiKey` by the player's data source ([streamResolver]) — so it is in no intent, no saved URL and
- * no line. Every line names the host and a state only.
+ * stream, added as `ApiKey` by the player's data source ([streamResolver]; the shell's own launches only) — so it is in
+ * no intent, no saved URL and no line. Every line names the host and a state only.
  */
 class MediaServer(context: Context) {
     private val app = context.applicationContext
@@ -151,12 +150,12 @@ class MediaServer(context: Context) {
         /**
          * What the player's data source does to a request as it opens: a direct-play request to the server the token
          * was SEALED WITH gets the token as `ApiKey` (BS-5; [ServerStore.streamToken]); every other request is passed
-         * on untouched. Null when [source] could never qualify, so an ordinary video is played with no resolver at all.
+         * on untouched. The player makes one ONLY for the shell's own launch of a source that could be a stream
+         * ([app.tileshell.video.PlayerAccess.serverToken], B2-M2): an ordinary video, and any other app's launch, is
+         * played with no resolver at all.
          */
-        fun streamResolver(context: Context, source: Uri): ((DataSpec) -> DataSpec)? {
+        fun streamResolver(context: Context): (DataSpec) -> DataSpec {
             val app = context.applicationContext
-            if (source.scheme != "http" && source.scheme != "https") return null
-            if (source.path?.endsWith("/stream") != true) return null
             return { spec ->
                 val url = spec.uri.toString()
                 // On the player's loading thread: an unexpected exception is "no token", named by its class only.

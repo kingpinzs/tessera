@@ -40,6 +40,9 @@ enum class CallerRead(val word: String) {
     LAUNCH_ACCESS("it had access at launch"),
 }
 
+/** What the player does about the media server's token for one source: see [PlayerAccess.serverToken]. */
+enum class ServerTokenUse { RESOLVE, NOT_GIVEN, NONE }
+
 /**
  * What the player asks Android about who started it, for ONE source (the port behind [PlayerAccess.callerMayRead];
  * [PlayerActivity] holds the implementation). Every answer fails closed: an error or a missing API is "no".
@@ -104,6 +107,26 @@ object PlayerAccess {
 
     /** `EXTRA_QUEUE` — which MediaStore ids Autoplay goes on to — is taken from the shell's own uid only. */
     fun queueHonoured(isOwnUid: Boolean): Boolean = isOwnUid
+
+    /**
+     * Whether the saved media server's token may ride on this player's requests (B2-M2). The token is the owner's, and
+     * the player is exported: ONLY a launch by the shell itself — the hub's Media server page — gets the resolver that
+     * adds it ([ServerTokenUse.RESOLVE]). For any other launch, and when Android does not say who launched, a source
+     * that looks like a server's stream is played as it is, with no token, and [LINE_TOKEN_NOT_GIVEN] is written
+     * ([ServerTokenUse.NOT_GIVEN]) — so no other app, and no link, can make the owner's token travel, whatever item
+     * and stream parameters it names. A source that could never be a server's stream needs nothing
+     * ([ServerTokenUse.NONE]).
+     *
+     * @param isOwnUid [isOwnUid]'s answer for this launch
+     * @param couldBeServerStream the source is http(s) and its path ends `/stream`
+     */
+    fun serverToken(isOwnUid: Boolean, couldBeServerStream: Boolean): ServerTokenUse = when {
+        !couldBeServerStream -> ServerTokenUse.NONE
+        isOwnUid -> ServerTokenUse.RESOLVE
+        else -> ServerTokenUse.NOT_GIVEN
+    }
+
+    const val LINE_TOKEN_NOT_GIVEN = "server token not given: not the shell's own launch"
 
     /** `[video] source from another app: <why it may be played>`. */
     fun line(read: CallerRead): String = "source from another app: ${read.word}"

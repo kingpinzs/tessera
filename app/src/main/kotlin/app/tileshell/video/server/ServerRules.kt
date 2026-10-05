@@ -204,6 +204,13 @@ object ServerRules {
     /** Direct play (BS-5): the address the player is given. The token is NOT in it — the player's data source adds `ApiKey`. */
     fun streamUrl(base: String, itemId: String): String = "$base/Videos/$itemId/stream?static=true"
 
+    /**
+     * Whether a source could be a media server's direct-play address at all: http(s), and a path that ends `/stream`.
+     * Only such a source is ever looked at for the token ([mayCarryToken] then decides, per request).
+     */
+    fun couldBeStream(scheme: String?, path: String?): Boolean =
+        (scheme.equals("http", ignoreCase = true) || scheme.equals("https", ignoreCase = true)) && path?.endsWith("/stream") == true
+
     private val STREAM_PATH = Regex("/Videos/[0-9A-Fa-f-]{1,64}/stream")
 
     /**

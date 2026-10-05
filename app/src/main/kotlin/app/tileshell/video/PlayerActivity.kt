@@ -33,6 +33,7 @@ import app.tileshell.diag.Diagnostics
 import app.tileshell.diag.RemoteRings
 import app.tileshell.ui.setShellAppContent
 import app.tileshell.video.server.MediaServer
+import app.tileshell.video.server.ServerRules
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -83,8 +84,9 @@ interface PlayerActions {
  * name ([PlayerAccess], read once in `onCreate` from `getLaunchedFromUid()`): `http(s)://` from anyone; `file://` —
  * under the shell's own directories only — and `EXTRA_QUEUE` from the shell's own uid alone; `content://` from the
  * shell, and from another app only when that app could read it itself ([AndroidPlayerCaller]), else "Can't play this
- * address" and `[video] refused source: no grant` with nothing opened. Caller-supplied text reaches a line or the
- * session only through [PlayerRules.lineText].
+ * address" and `[video] refused source: no grant` with nothing opened. The saved media server's token rides only on the
+ * shell's own launch ([PlayerAccess.serverToken], B2-M2). Caller-supplied text reaches a line or the session only
+ * through [PlayerRules.lineText].
  *
  * The player and its session live from `onStart` to `onStop` ([VideoPlayback]), so no session outlives the page.
  */
@@ -109,6 +111,9 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
     private var resumePositionMs = 0L
     private var resumePlay = true
     private var announced = false
+
+    /** [PlayerAccess.LINE_TOKEN_NOT_GIVEN] is written once per source, not once per return to the page. */
+    private var tokenLineSaid = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -135,6 +140,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
         uri = source
         lookedUp = false
         announced = false
+        tokenLineSaid = false
         displayName = null
         subtitle = null
         resumePositionMs = 0L
@@ -254,8 +260,18 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
         val source = uri ?: return
         val req = request as? PlayerRequest.Play ?: return
         if (ui.failure != null) return
-        // A direct-play request to the saved media server gets its token as it opens; nothing else is touched.
-        val p = VideoPlayback.acquire(this, MediaServer.streamResolver(this, source))
+        // A direct-play request to the saved media server gets its token as it opens — for the shell's own launch only
+        // (B2-M2); any other launch plays the address as it is. Nothing else is touched.
+        val resolver = when (PlayerAccess.serverToken(ownCaller, ServerRules.couldBeStream(source.scheme, source.path))) {
+            ServerTokenUse.RESOLVE -> MediaServer.streamResolver(this)
+            ServerTokenUse.NOT_GIVEN -> {
+                if (!tokenLineSaid) Diagnostics.add("video", PlayerAccess.LINE_TOKEN_NOT_GIVEN)
+                tokenLineSaid = true
+                null
+            }
+            ServerTokenUse.NONE -> null
+        }
+        val p = VideoPlayback.acquire(this, resolver)
         playback = p
         p.exo.addListener(listener)
         surface?.let { p.exo.setVideoSurfaceView(it) }
