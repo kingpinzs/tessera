@@ -125,4 +125,26 @@ object Glyph {
     const val FILTER = "\ue8a7"             // Filter E71C — "filter contact list"
     const val IMPORT = "\ue111"             // Import E8B5 — "import from SIM"
     const val PEOPLE_TEAM = "\ueda9"        // a group's round avatar (P5.2)
+
+    // Phase 17, Camera (r11/camera.md §3: the MDL2 code point names the W10M glyph; the Fluent glyph of the same meaning).
+    const val CAMERA_FILLED = "\ue3c1"        // Camera E722 — the shutter's glyph
+    const val VIDEO = "\uf4fb"                // Video E714 — the video mode
+    const val VIDEO_FILLED = "\uf4fa"
+    const val PANORAMA = "\uea6a"             // W10M's panorama frame (no public MDL2 name) — "image multiple"
+    const val CAMERA_SWITCH = "\ue3d0"        // RotateCamera E89E
+    const val FLASH = "\ue8c3"                // LightningBolt E945 — flash on
+    const val FLASH_AUTO = "\ue8c7"
+    const val FLASH_OFF = "\ue8cd"
+    const val FLASHLIGHT = "\ue8d5"           // Flashlight E754 — the video light
+    const val FLASHLIGHT_OFF = "\ue8d7"
+    const val HDR = "\ue9fb"                  // the capsule's HDR item (W10M drew its own; A = auto, slash = off)
+    const val HDR_OFF = "\ue9fd"
+    const val TIMER_OFF = "\uf483"            // Stopwatch E916 with its slash — "Timer off"
+    const val SLOW_MOTION = "\ue069"          // SlowMotionOn EA79 — W10M's own glyph was a turtle (camera-pass2 1.8.5)
+    const val CHEVRON_UP = "\ue490"           // ChevronUp E70E — the capsule's collapse
+    const val SUBTRACT = "\uf1a3"             // the zoom slider's "−"
+    const val EXPOSURE = "\ue017"             // the dial's exposure (±) control
+    const val FOCUS = "\uf2a2"                // the dial's focus ring
+    const val RETAKE = "\ue0c7"               // the capture answer's Retake (Y14)
+    const val LIVING_IMAGE = "\ueb84"         // Living Images (W10M's wand slot, 1.3.3)
 }
