@@ -136,7 +136,7 @@ class MediaWritesTest {
     fun `rule 1's one exception - a capture output is written only with the guard's token`() {
         val port = FakePort()
         val callers = "content://com.caller.files/cache/out.jpg"
-        val decision = CaptureOutputGuard.decide(callers, "content", "com.caller.files", "com.caller", listOf(callers), CaptureOutputGuard.FLAG_GRANT_WRITE, setOf("app.tileshell.files"), callerMayWrite = true)
+        val decision = CaptureOutputGuard.decide(ContentUriText.parse(callers), "com.caller", listOf(callers), CaptureOutputGuard.FLAG_GRANT_WRITE, setOf("app.tileshell.files"), callerMayWrite = true)
         val accepted = decision as CaptureOutputGuard.Decision.Accepted
         assertNull(MediaWrites(port, shell, MemoryPendingLedger()).writeCaptureOutput(accepted) { it.write(byteArrayOf(9, 9)) })
         assertEquals(listOf("open $callers"), port.calls)
@@ -147,7 +147,7 @@ class MediaWritesTest {
     @Test
     fun `a capture output that cannot be opened or written reports why and inserts nothing`() {
         val callers = "content://com.caller.files/cache/out.jpg"
-        val accepted = CaptureOutputGuard.decide(callers, "content", "com.caller.files", "com.caller", listOf(callers), 2, emptySet(), callerMayWrite = true) as CaptureOutputGuard.Decision.Accepted
+        val accepted = CaptureOutputGuard.decide(ContentUriText.parse(callers), "com.caller", listOf(callers), 2, emptySet(), callerMayWrite = true) as CaptureOutputGuard.Decision.Accepted
         val closed = FakePort().apply { refuseOpen = true }
         assertEquals("the caller's output could not be opened", MediaWrites(closed, shell, MemoryPendingLedger()).writeCaptureOutput(accepted) { it.write(1) })
         val port = FakePort()
