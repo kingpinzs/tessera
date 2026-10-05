@@ -255,6 +255,25 @@ object ServerRules {
         return "$scheme://$authority" to (if (cut < 0) "" else after.substring(cut))
     }
 
+    /**
+     * The address the player REPORTS for a request it opened (B-5): the same address with any `ApiKey` / `api_key`
+     * parameter taken out, so the token the data source added is in nothing the player hands on — an error, a load
+     * event, a listener.
+     */
+    fun reportedUrl(url: String): String {
+        val q = url.indexOf('?')
+        if (q < 0) return url
+        val hash = url.indexOf('#', q).let { if (it < 0) url.length else it }
+        val kept = url.substring(q + 1, hash).split('&').filterNot { isKeyParameter(it.substringBefore('=')) }
+        return url.substring(0, q) + (if (kept.isEmpty()) "" else "?" + kept.joinToString("&")) + url.substring(hash)
+    }
+
+    /** `ApiKey` or `api_key` in any case, as written or percent-encoded. */
+    private fun isKeyParameter(name: String): Boolean {
+        val plain = runCatching { java.net.URLDecoder.decode(name, "UTF-8") }.getOrDefault(name)
+        return plain.equals("ApiKey", ignoreCase = true) || plain.equals("api_key", ignoreCase = true)
+    }
+
     /** A stream address as a line may show it: the query string (the token's place) removed (C-32). */
     fun withoutQuery(url: String): String = url.substringBefore('?').substringBefore('#')
 }

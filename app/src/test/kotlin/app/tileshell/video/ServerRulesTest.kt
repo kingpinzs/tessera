@@ -198,6 +198,23 @@ class ServerRulesTest {
         assertEquals("http://10.0.2.2:8096/Videos/e90356d9dbdedc30a27710927ef3ac87/stream", ServerRules.withoutQuery("$url&ApiKey=SECRET"))
     }
 
+    @Test fun `the address the player reports has no ApiKey`() {
+        val plain = "http://10.0.2.2:8096/Videos/e90356d9dbdedc30a27710927ef3ac87/stream"
+        assertEquals("$plain?static=true", ServerRules.reportedUrl("$plain?static=true&ApiKey=QA-SECRET"))
+        assertEquals("$plain?static=true", ServerRules.reportedUrl("$plain?ApiKey=QA-SECRET&static=true"))
+        assertEquals(plain, ServerRules.reportedUrl("$plain?ApiKey=QA-SECRET"))
+        assertEquals("$plain?a=1&b=2#t=5", ServerRules.reportedUrl("$plain?a=1&apikey=QA-SECRET&b=2&api_key=QA-SECRET#t=5"))
+        assertEquals("$plain#frag", ServerRules.reportedUrl("$plain?API_KEY=QA-SECRET#frag"))
+        assertEquals(plain, ServerRules.reportedUrl("$plain?Api%4Bey=QA-SECRET"))
+        // What has no key is reported as it is.
+        for (same in listOf(plain, "$plain?static=true", "$plain?static=true&MyApiKey=x#ApiKey=y", "content://media/external/video/media/4", "")) {
+            assertEquals(same, ServerRules.reportedUrl(same))
+        }
+        for (url in listOf("$plain?static=true&ApiKey=QA-SECRET", "$plain?ApiKey=QA-SECRET", "$plain?x=1&api_key=QA-SECRET#f")) {
+            assertFalse(url, ServerRules.reportedUrl(url).contains("QA-SECRET"))
+        }
+    }
+
     @Test fun `the token may ride only on the saved server's own direct-play address`() {
         val base = "http://10.0.2.2:8096"
         fun may(url: String, saved: String = base) = ServerRules.mayCarryToken(url, saved)
