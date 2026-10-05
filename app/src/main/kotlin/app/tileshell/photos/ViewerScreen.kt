@@ -112,10 +112,11 @@ class ViewerNav {
 
     /**
      * @param launchedFromUid `Activity.getLaunchedFromUid()`, null when the platform does not say
+     * @param hadAccessAtLaunch the platform's answer for the launcher, by URI text ([ViewerRules.open])
      * The intent's data is turned to its string once; the rule's scheme and authority and the URI that is opened both
      * come from that one text.
      */
-    fun open(intent: Intent?, launchedFromUid: Int?, shellUid: Int, access: UriAccessPort) {
+    fun open(intent: Intent?, launchedFromUid: Int?, shellUid: Int, access: UriAccessPort, hadAccessAtLaunch: (String) -> Boolean) {
         mime = runCatching { intent?.type }.getOrNull()
         val named = runCatching { intent?.data?.toString() }.getOrNull()?.let(ContentUriText::parse)?.takeIf { it.scheme == "content" }
         if (named == null) {
@@ -124,7 +125,7 @@ class ViewerNav {
             mayChange = false
             return
         }
-        val decision = runCatching { ViewerRules.open(named, launchedFromUid, shellUid, access) }
+        val decision = runCatching { ViewerRules.open(named, launchedFromUid, shellUid, access, hadAccessAtLaunch) }
             .getOrElse { ViewerRules.Open(show = false, mayChange = false, line = ViewerRules.LINE_NO_GRANT, request = "viewer request unreadable (${it.javaClass.simpleName})") }
         Diagnostics.add("photosapp", decision.request)
         decision.line?.let { Diagnostics.add("photosapp", it) }
