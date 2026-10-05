@@ -86,3 +86,62 @@ push_six() {
   scan; sleep 2
   IDS=""; for i in 0 1 2; do IDS="$IDS $(img_id DCIM/Camera/ qa-photo-$i.png)"; done; for i in 3 4 5; do IDS="$IDS $(img_id Pictures/QA-Album/ qa-photo-$i.png)"; done; IDS="${IDS# }"
 }
+
+# ---- the editor (build task 5, second half). The editor runs in :photosedit; its ring is read through its dump service,
+# which lives while EditActivity does — so every read below happens with the editor still on screen.
+EDIT_RING="app.tileshell/.photos.PhotosEditDumpService"
+# The gate's expected values, computed from the phase doc's own matrices (the lead's script, read only).
+EE="${EDIT_EXPECT:-/home/jeremyking/projects/metro-launcher-p17/docs/plan/qa/phase-17/scripts/edit_expect.py}"
+E="" # the editor's latest dump
+edump() { E="$ROW_DIR/e.xml"; dump_ui "$E"; }
+etap() { edump; tap_node "$E" "$1"; sleep "${2:-1}"; }
+# open_editor <image id>: from Photos' collection through the viewer's Edit and the Edit sheet.
+open_editor() {
+  photos_start
+  # An older picture is below the fold: the collection is scrolled to its tile (run 1 of C3 tapped nothing for one).
+  scroll_to_node "$ROW_DIR/c.xml" "photos_item:$1" 12; tap_node "$ROW_DIR/c.xml" "photos_item:$1"; sleep 2
+  dump_ui "$ROW_DIR/v.xml"; tap_node "$ROW_DIR/v.xml" viewer_edit; sleep 1
+  dump_ui "$ROW_DIR/s.xml"; tap_node "$ROW_DIR/s.xml" edit_sheet_editor; sleep 3
+  edump
+}
+# open_tool <straighten|light|colour|filters|redeye>: from the strip's More.
+open_tool() { etap edit_more; etap "edit_tool:$1"; edump; }
+# edit_save: taps Save a copy and waits for the result's status; sets ESLICE (the :photosedit ring since the tap),
+# COPY_URI and COPY_ROW (empty when no copy was made).
+edit_save() {
+  local i
+  EMARK="$(ring_mark)"
+  etap edit_save 1
+  for i in $(seq 1 20); do edump; [ "$(has_node "$E" edit_status)" = yes ] && break; sleep 1; done
+  ESTATUS="$(node_text "$E" edit_status)"
+  ESLICE="$(ring_since "$EMARK" "$EDIT_RING")"
+  COPY_URI="$(echo "$ESLICE" | grep -F '[photosapp] edit ' | grep -oE 'content://media/[a-z_]+/images/media/[0-9]+' | tail -1)"
+  COPY_ROW=""
+  [ -n "$COPY_URI" ] && COPY_ROW="$(adb shell content query --uri "$COPY_URI" --projection _display_name:relative_path:is_pending:width:height:mime_type:datetaken:owner_package_name | tr -d '\r')"
+}
+copy_field() { echo "$COPY_ROW" | sed -n "s/.*[ ,]$1=\([^,]*\).*/\1/p" | head -1; }
+# copy_pull <local name>: pulls the copy's file; prints the local path.
+copy_pull() {
+  local dst="$ROW_DIR/$1.$(copy_field _display_name | sed 's/.*\.//')"
+  adb pull "/sdcard/$(copy_field relative_path)$(copy_field _display_name)" "$dst" >/dev/null 2>&1
+  echo "$dst"
+}
+img_size() { python3 -c "from PIL import Image; import sys; im = Image.open(sys.argv[1]); print('%dx%d' % im.size)" "$1"; }
+differs16() { python3 -c "import sys; a=[int(v) for v in sys.argv[1].split(',')]; b=[int(v) for v in sys.argv[2].split(',')]; print('yes' if max(abs(x-y) for x,y in zip(a,b)) >= 16 else 'no')" "$1" "$2"; }
+# colour_copy <label> <tool id as the line names it> <expected tool for edit_expect> <original r,g,b> <original folder>:
+# the assertions every colour tool's copy must pass (E6's form).
+colour_copy() {
+  local label="$1" tool="$2" expect orig="$4" f got
+  expect="$(python3 "$EE" pixel "$3" "$orig")"
+  assert_contains "$label: the op's line in the :photosedit ring" "[photosapp] edit $tool -> content://media/" "$ESLICE"
+  assert_ne "$label: a new row" "" "$COPY_ROW"
+  assert_eq "$label: the copy is published (is_pending 0)" "0" "$(copy_field is_pending)"
+  assert_eq "$label: the copy is in the original's folder" "$5" "$(copy_field relative_path)"
+  assert_eq "$label: a PNG original gives a PNG copy, same size" "image/png 640 480" "$(copy_field mime_type) $(copy_field width) $(copy_field height)"
+  assert_eq "$label: the copy is the shell's own row" "app.tileshell" "$(copy_field owner_package_name)"
+  f="$(copy_pull "$label")"; got="$(px "$f" 320 240)"
+  record "$label: expected (edit_expect.py pixel $3 $orig) / got" "$expect / $got"
+  assert_rgb "$label: the centre pixel is the doc's matrix result" "$expect" "$got" 4
+  assert_eq "$label: it differs from the original by >= 16 on a channel" "yes" "$(differs16 "$orig" "$got")"
+}
+orig_md5() { adb shell md5sum "$@" | awk '{print $1}' | xargs; }
