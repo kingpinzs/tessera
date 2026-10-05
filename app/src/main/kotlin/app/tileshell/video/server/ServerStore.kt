@@ -40,8 +40,8 @@ class SealedServer(val credential: ServerCredential, val pair: String) {
  * ONE meaning of "a server is set up" (B2-M1): the sealed entry opens AND the pages' file is there AND both carry the
  * id of the same save ([ServerRules.paired]). [credential] is that and nothing less, and every token is given through
  * it — so there is never a token in use for a server the pages do not show. What can be left behind by a save or a
- * removal cut in half is cleared three ways: [remove] says whether the sealed entry really went, and the pages' file
- * goes only after it; the setting offers Remove whenever [entryHeld]; and [sweep] clears a left-over entry when the hub
+ * removal cut in half is cleared three ways: [remove] always deletes the pages' file and says whether the sealed entry
+ * really went; the setting offers Remove whenever [entryHeld]; and [sweep] clears a left-over entry when the hub
  * starts.
  *
  * @param log one `[video]` message per event; none holds the token or any other value
@@ -92,13 +92,11 @@ class ServerStore(private val dir: File, private val credentials: CredentialFile
         false
     }
 
-    /** Temp file, then a rename over the old one; false when either step fails. [pair] null: the file of no save. */
-    private fun writeDisplay(display: ServerConfig, pair: String?): Boolean {
+    /** Temp file, then a rename over the old one; false when either step fails. */
+    private fun writeDisplay(display: ServerConfig, pair: String): Boolean {
         val temp = File(dir, TEMP_FILE)
         return try {
-            val fields = linkedMapOf("label" to display.label, "userName" to display.userName, "address" to display.address)
-            if (pair != null) fields["pair"] = pair
-            temp.writeText(MiniJson.write(fields), Charsets.UTF_8)
+            temp.writeText(MiniJson.write(linkedMapOf("label" to display.label, "userName" to display.userName, "address" to display.address, "pair" to pair)), Charsets.UTF_8)
             if (temp.renameTo(file)) true else { temp.delete(); false }
         } catch (e: Exception) {
             temp.delete()
@@ -107,20 +105,17 @@ class ServerStore(private val dir: File, private val credentials: CredentialFile
     }
 
     /**
-     * Removes the server and says whether its SEALED ENTRY is gone (B2-M1). Only then is the pages' file deleted and
-     * [LINE_CLEARED] written. When the entry could not be removed (a full disk, the store's lock held) the file stays,
-     * so the page still has the server to show and still offers Remove; [LINE_NOT_REMOVED] is written; and the file's
-     * save id is taken out where that can be written, so the token the owner asked to remove is given to nothing more.
+     * Removes the server and says whether its SEALED ENTRY is gone (B2-M1). The pages' file is deleted either way —
+     * a delete needs no room on the disk, and with no file there is no set-up server ([credential]), so after a Remove
+     * the token is given to nothing whatever else failed. [LINE_CLEARED] is written only when the sealed entry really
+     * went; when it could not be removed (a full disk, the store's lock held) the line is [LINE_NOT_REMOVED], the
+     * entry is still held ([entryHeld]) so the setting still offers Remove, and [sweep] tries again at the next start.
      */
     fun remove(): Boolean = synchronized(LOCK) {
-        if (!credentials.clear(CredentialStore.JELLYFIN)) {
-            shown()?.let { writeDisplay(it.config, pair = null) }
-            log(LINE_NOT_REMOVED)
-            return false
-        }
+        val cleared = credentials.clear(CredentialStore.JELLYFIN)
         file.delete()
-        log(LINE_CLEARED)
-        true
+        log(if (cleared) LINE_CLEARED else LINE_NOT_REMOVED)
+        cleared
     }
 
     /**

@@ -244,27 +244,42 @@ class ServerStoreTest {
         assertFalse(ServerRules.paired("", ""))
     }
 
-    @Test fun `a removal whose credential write fails says not removed, keeps the page's file, and the token is given to nothing`() {
+    @Test fun `a removal whose credential write fails says not removed, still offers Remove, and the token is given to nothing`() {
         assertTrue(store().save(home, shown))
         lines.clear()
         whileCredentialWritesFail { assertFalse(store().remove()) }
         assertEquals(listOf("cred jellyfin: not removed (OverlappingFileLockException)", ServerStore.LINE_NOT_REMOVED), lines)
         assertEquals("server not removed: its token could not be cleared", ServerStore.LINE_NOT_REMOVED)
         assertTrue(lines.none { it == ServerStore.LINE_CLEARED })
-        // The entry is still sealed in the store, and the page still has the server to show and offers Remove …
+        // The entry is still sealed in the store, so the setting reads "left over" and offers Remove; the file is gone …
         assertTrue(store().entryHeld())
-        assertEquals(shown, store().display())
-        assertTrue(ServerRules.offersRemove(ServerRules.settingsView(setUp = store().credential() != null, entryHeld = store().entryHeld())))
+        assertFalse(config.exists())
+        assertEquals(ServerSettingsView.LEFT_OVER, ServerRules.settingsView(setUp = store().credential() != null, entryHeld = store().entryHeld()))
+        assertTrue(ServerRules.offersRemove(ServerSettingsView.LEFT_OVER))
         // … but the token the owner asked to remove is given to nothing.
         assertNull("the stream token after the failed removal", store().streamToken(stream("https://media.example.org")))
         assertNull("the header token after the failed removal", store().tokenFor(library("https://media.example.org")))
-        // Remove again, the store writable: now it is gone, and only now is the file deleted.
+        // Remove again, the store writable: now it is gone, and only now is "cleared" said.
         lines.clear()
         assertTrue(store().remove())
         assertFalse(store().entryHeld())
         assertFalse(config.exists())
         assertTrue(lines.toString(), lines.last() == ServerStore.LINE_CLEARED)
         assertTrue(lines.none { it.contains(token) })
+    }
+
+    @Test fun `a removal that can write nothing at all still leaves the token given to nothing`() {
+        // The lead's ruling on B2-M1: the credential removal fails AND no file could be written either (a full disk).
+        assertTrue(store().save(home, shown))
+        File(File(dir, "media_server.json.tmp"), "in-the-way").apply { parentFile.mkdirs(); writeText("x") }
+        lines.clear()
+        whileCredentialWritesFail { assertFalse(store().remove()) }
+        assertNull("the stream token after the failed removal", store().streamToken(stream("https://media.example.org")))
+        assertNull(store().tokenFor(library("https://media.example.org")))
+        assertEquals(ServerSettingsView.LEFT_OVER, ServerRules.settingsView(setUp = store().credential() != null, entryHeld = store().entryHeld()))
+        assertFalse("the pages' file is deleted: it needs no room", config.exists())
+        assertEquals(ServerStore.LINE_NOT_REMOVED, lines.last())
+        assertTrue(lines.none { it == ServerStore.LINE_CLEARED })
     }
 
     @Test fun `a save whose file fails while the entry cannot be taken back out leaves no server and no token`() {

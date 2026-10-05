@@ -119,9 +119,9 @@ class MediaServer(context: Context) {
     }
 
     /**
-     * Removes the server and says whether its token really left the store (B2-M1): `[video] server token cleared`, its
-     * file and its shortcut gone — or `[video] server not removed: its token could not be cleared`, written by
-     * [ServerStore.remove], with the setting still offering Remove.
+     * Removes the server and says whether its token really left the store (B2-M1): `[video] server token cleared` —
+     * or `[video] server not removed: its token could not be cleared`, written by [ServerStore.remove], with the
+     * setting still offering Remove. Either way its file and its shortcut go and the token is given to nothing.
      */
     fun remove(): Boolean {
         val cleared = store.remove()

@@ -274,8 +274,8 @@ object ServerRules {
 
     /**
      * Whether the sealed server and the pages' file are ONE saved server (B2-M1): both are there and carry the same
-     * save's id. Anything else — no file, a file from another save, a file whose removal was asked for — is not a
-     * set-up server, and no token is given for it.
+     * save's id. Anything else — no file (a save cut in half, a removal that could not clear the entry), a file from
+     * another save — is not a set-up server, and no token is given for it.
      */
     fun paired(sealedPair: String?, filePair: String?): Boolean = sealedPair != null && isPair(sealedPair) && sealedPair == filePair
 
