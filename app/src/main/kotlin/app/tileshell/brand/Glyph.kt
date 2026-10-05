@@ -125,4 +125,15 @@ object Glyph {
     const val FILTER = "\ue8a7"             // Filter E71C — "filter contact list"
     const val IMPORT = "\ue111"             // Import E8B5 — "import from SIM"
     const val PEOPLE_TEAM = "\ueda9"        // a group's round avatar (P5.2)
+
+    // Phase 17 (Movies & TV). Code points read from the shipped TTF's cmap (ic_fluent_<name>_20_regular); the MDL2
+    // glyph each stands in for is r11/movies-tv.md §3. NAVIGATION (GlobalNavigationButton E700), SEARCH, SETTINGS,
+    // PLAY, PAUSE, EXPAND / COLLAPSE (FullScreen E740 / BackToWindow E73F), MORE_HORIZONTAL and CHECKMARK are above.
+    const val VIDEO = "\uf4fb"              // Video E714 — the pane's My videos row
+    const val MOVIES_TV = "\uec7c"          // Movies E8B2 — the pane's Browse row, the poster placeholder
+    const val SERVER = "\uf005"             // the pane's Media server row (no W10M counterpart; a P4 page)
+    const val SKIP_BACK_10 = "\uf095"       // SkipBack10 ED3C
+    const val SKIP_FORWARD_30 = "\uf09d"    // SkipForward30 ED3D
+    const val CLOSED_CAPTION = "\ue51c"     // CC E7F0
+    const val KEY = "\ueaa7"                // the TMDB key setting's row
 }
