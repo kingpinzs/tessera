@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -72,8 +74,18 @@ fun startEditor(activity: ComponentActivity, item: MediaEntry, trim: Boolean) {
 /** What lies over the library: the viewer, and a held video tile's Edit sheet. */
 @Composable
 fun BoxScope.PhotosOverlays(nav: PhotosNav, library: Library, activity: ComponentActivity) {
+    val request = nav.viewer
+    if (request != null) {
+        key(request.token) {
+            // The viewer walks the pictures of what it was opened from — the collection or one album; a video is the player's.
+            val items = remember(library.items, request.albumId) {
+                library.items.filter { !it.video && (request.albumId == null || it.bucketId == request.albumId) }.map(::viewerItem)
+            }
+            PhotoViewer(items, "m:${request.startId}", request.origin, request.slideshow, { item -> item.entry?.let { nav.tileBounds[it.id] } }, activity) { nav.closeViewer() }
+        }
+    }
     val held = nav.sheetFor
-    if (held != null) {
+    if (held != null && request == null) {
         EditSheet(
             rows = listOf(EditSheetRow(Glyph.VIDEO_CLIP, "Trim", "edit_sheet_trim") { startEditor(activity, held, trim = true) }),
             isOpen = { nav.sheetFor != null },

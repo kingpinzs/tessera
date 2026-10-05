@@ -69,3 +69,20 @@ media_clean() {
   assert_eq "restore: videos back to the census" "$CENSUS_VID" "$(vid_count)"
 }
 no_crash() { assert_eq "no crash of the shell in this run" "" "$(adb logcat -d -t "$1" -s AndroidRuntime | grep -F 'app.tileshell' | head -3)"; }
+px() { python3 "$PDEV_HERE/ppx.py" "$1" "$2" "$3"; }
+assert_rgb() { # name expected actual tolerance
+  if [ "$(python3 "$PDEV_HERE/ppx.py" near "$2" "${3:-0,0,0}" "$4")" = yes ] && [ -n "$3" ]; then _verdict PASS "$1" "$3 within $4 of $2"; else _verdict FAIL "$1" "expected $2 +/- $4 got [$3]"; fi
+}
+DRV_RUNNER="app.tileshell.qa.imefixture.test/androidx.test.runner.AndroidJUnitRunner"
+# The phase 05 gesture driver's timed script ("tap x y; sleep 60; tap x y").
+gesture() { adb shell am instrument -r -w -e op script -e script "\"$1\"" "$DRV_RUNNER" > "$ROW_DIR/.gesture.txt" 2>&1; grep -q 'gesture.ok=true' "$ROW_DIR/.gesture.txt"; }
+motion_field() { # slice name field -> the last matching [motion] line's field value
+  echo "$1" | grep -F "[motion] $2 " | tail -1 | grep -oE "$3=[0-9.]+" | cut -d= -f2
+}
+# The six flat-colour fixtures in the gate's two folders, and their ids in push order (qa-photo-0 the newest).
+push_six() {
+  media_push /sdcard/DCIM/Camera qa-photo-0.png qa-photo-1.png qa-photo-2.png
+  media_push /sdcard/Pictures/QA-Album qa-photo-3.png qa-photo-4.png qa-photo-5.png
+  scan; sleep 2
+  IDS=""; for i in 0 1 2; do IDS="$IDS $(img_id DCIM/Camera/ qa-photo-$i.png)"; done; for i in 3 4 5; do IDS="$IDS $(img_id Pictures/QA-Album/ qa-photo-$i.png)"; done; IDS="${IDS# }"
+}

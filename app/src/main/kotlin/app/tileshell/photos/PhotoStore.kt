@@ -229,7 +229,13 @@ object PhotoThumbs {
     suspend fun load(context: Context, item: MediaEntry): ImageBitmap? {
         cache.get(item.id)?.let { return it.asImageBitmap() }
         return withContext(loader) {
-            val bitmap = runCatching { context.contentResolver.loadThumbnail(PhotoStore.uriOf(item), SIZE, null) }.getOrNull()
+            val uri = PhotoStore.uriOf(item)
+            // MediaStore keeps serving a thumbnail it cached after the file itself is gone, so the file is opened first:
+            // a row with no file is a placeholder, not a picture that then fails to open (Edge cases).
+            val bitmap = runCatching {
+                context.contentResolver.openFileDescriptor(uri, "r")!!.close()
+                context.contentResolver.loadThumbnail(uri, SIZE, null)
+            }.getOrNull()
             if (bitmap == null) {
                 if (unreadable.add(item.id)) Diagnostics.add("photosapp", "thumbnail ${item.id}: unreadable")
                 null

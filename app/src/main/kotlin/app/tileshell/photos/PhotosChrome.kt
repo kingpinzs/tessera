@@ -121,11 +121,15 @@ object PhotosMetrics {
     const val TRIM_RING_BELOW = 24f
 
     // Y6 — motion.
-    const val VIEWER_MS = 250                        // open / close: an approximation (H4)
+    // The motion clock times a motion from its call to the frame that shows its end, and the first value is drawn one
+    // frame after the call: a 250-ms settle ON THAT CLOCK is 228 ms of easing begun right after a frame (60 Hz: 16.7 +
+    // 233.3; 120 Hz: 8.3 + 233.3). Every 250-ms Photos motion uses this value and starts frame-aligned.
+    const val SETTLE_250 = 228
+    const val VIEWER_MS = SETTLE_250                 // open / close: 250 ms, an approximation (H4)
     const val SWIPE_SETTLE_MS = 167                  // the whole fling ≤ 234 ms (pass 2 §5)
     val SWIPE_GAP = 20.dp
     const val SLIDESHOW_STEP_MS = 5_000L
-    const val SLIDESHOW_SETTLE_MS = 250
+    const val SLIDESHOW_SETTLE_MS = SETTLE_250
 }
 
 /** One button of a Photos bar. */
@@ -149,7 +153,7 @@ fun PhotoMenuRows(menu: List<PhotoMenuEntry>, onPicked: () -> Unit) {
             }
         }
         PressBox(Modifier.fillMaxWidth().height(PhotosMetrics.MENU_ROW).testTag(entry.tag), onClick = { onPicked(); entry.onPick() }) {
-            BasicText(entry.label, Modifier.align(Alignment.CenterStart).offset(x = PhotosMetrics.MENU_TEXT_LEFT.dp), style = ShellType.body.copy(color = Color.White))
+            BasicText(entry.label, Modifier.align(Alignment.CenterStart).offset(x = PhotosMetrics.MENU_TEXT_LEFT.dp).testTag("${entry.tag}_text"), style = ShellType.body.copy(color = Color.White))
         }
     }
 }
