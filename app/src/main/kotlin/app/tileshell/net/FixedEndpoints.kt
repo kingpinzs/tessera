@@ -10,10 +10,14 @@ import app.tileshell.diag.Diagnostics
  * another app hands the player (the owner's ruling Q-D (a): plain http for media only).
  *
  * A host is added HERE and in both copies of the config (main and the debug source set's); `FixedEndpointsTest` fails
- * a build where the three disagree or where a URL below is not `https://`.
+ * a build where the three disagree or where a URL below is not `https://`, and `EndpointLiteralScanTest` one where a
+ * URL literal anywhere in the shell's sources names a host that is not here.
  */
 object FixedEndpoints {
-    /** The base URL of each fixed endpoint (weather and the place search, phases 01 and 03, hold their own literals). */
+    /**
+     * The base URL of each fixed endpoint. Weather and the place search (phases 01 and 03) build their URLs from the
+     * first two; `EndpointLiteralScanTest` fails a build where any other `http(s)://` literal names a host of its own.
+     */
     const val OPEN_METEO = "https://api.open-meteo.com/"
     const val NOMINATIM = "https://nominatim.openstreetmap.org/"
     const val TMDB_API = "https://api.themoviedb.org/"

@@ -135,7 +135,7 @@ class OpenMeteoProvider : WeatherProvider {
     private fun JSONArray.longOrNull(i: Int): Long? = if (i >= length() || isNull(i)) null else getLong(i)
 
     private companion object {
-        const val ENDPOINT = "https://api.open-meteo.com/v1/forecast"
+        const val ENDPOINT = app.tileshell.net.FixedEndpoints.OPEN_METEO + "v1/forecast"
         const val CURRENT_FIELDS = "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl"
         const val HOURLY_FIELDS = "temperature_2m,weather_code,precipitation_probability,is_day"
         const val DAILY_FIELDS = "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset"

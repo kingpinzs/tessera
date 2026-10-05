@@ -1,37 +1,28 @@
 package app.tileshell.media
 
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-
 /**
  * Condition (d) of [CaptureOutputGuard]: may the app that asked for a capture write the output URI ITSELF? Asked of
- * the platform, never inferred from the intent's flags — an intent's grant flag is not checked against the caller when
- * the shell already holds the access (the guard's doc says why). TRUST: under the adversarial review with the guard.
+ * the platform through [UriAccessPort], never inferred from the intent's flags — an intent's grant flag is not checked
+ * against the caller when the shell already holds the access (the guard's doc says why). Pure, so every branch is
+ * unit-tested (`CaptureCallerAccessTest`). TRUST: under the adversarial review with the guard.
  */
 object CaptureCallerAccess {
     /**
-     * True only when [callingPackage] (`Activity.getCallingPackage()`, the platform's own word for who started the
-     * activity for a result) resolves to a uid and either
+     * True only when [callingPackage] (`Activity.getCallingPackage()`, the platform's word for who receives the
+     * result) resolves to a uid and that uid may write [output] by [UriAccessRules.mayWrite]:
      *  - the provider behind [output] is declared by an app of that same uid (its own FileProvider: the owner of a
-     *    provider may always write it), or
-     *  - the platform says that uid may write [output]: it holds a write grant for it, or the provider itself answers
-     *    that this uid may (MediaStore does for a row the caller owns).
-     * A URI of another user's provider, an unknown authority or an unknown package is false.
+     *    provider may always write it); or
+     *  - that uid holds an explicit write grant for [output] (`Context.checkUriPermission` answers URI grants only: it
+     *    never asks the provider); or
+     *  - on API 35 and later, the provider itself, asked, says that uid may write it
+     *    (`Context.checkContentUriPermissionFull`) — a MediaStore row the caller owns.
+     * So on API 34, where the provider cannot be asked, a MediaStore row the caller inserted and passed with no grant
+     * of its own is REFUSED: it fails closed. A URI of another user's provider, an unknown authority and an unknown
+     * package are false.
      */
-    fun callerMayWrite(context: Context, output: Uri, callingPackage: String?): Boolean {
-        if (callingPackage == null || output.scheme != "content") return false
-        val authority = output.authority ?: return false
-        if (authority.isEmpty() || '@' in authority) return false
-        val pm = context.packageManager
-        val callerUid = try {
-            pm.getPackageUid(callingPackage, 0)
-        } catch (e: PackageManager.NameNotFoundException) {
-            return false
-        }
-        val owner = pm.resolveContentProvider(authority, 0)?.applicationInfo?.uid
-        if (owner != null && owner == callerUid) return true
-        return context.checkUriPermission(output, -1, callerUid, Intent.FLAG_GRANT_WRITE_URI_PERMISSION) == PackageManager.PERMISSION_GRANTED
+    fun callerMayWrite(access: UriAccessPort, output: ContentUriText, callingPackage: String?): Boolean {
+        if (callingPackage == null) return false
+        val callerUid = access.uidOf(callingPackage) ?: return false
+        return UriAccessRules.mayWrite(access, output, callerUid)
     }
 }
