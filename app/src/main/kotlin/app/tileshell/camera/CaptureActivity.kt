@@ -61,10 +61,8 @@ class CaptureActivity : ComponentActivity() {
     private var review: CaptureReview? by mutableStateOf(null)
     private var finishing by mutableStateOf(false)
 
-    private val sink = object : CaptureSink {
-        /** T17-4: a capture for another app carries no location. */
-        override val keepsLocation = false
-
+    /** T17-4: a capture for another app carries no location — a [CallerCaptureSink] cannot keep one. */
+    private val sink = object : CallerCaptureSink() {
         override fun photo(shot: PhotoShot, clip: LivingClip.Encoded?, panorama: Boolean) {
             clip?.file?.delete()
             worker.execute {
