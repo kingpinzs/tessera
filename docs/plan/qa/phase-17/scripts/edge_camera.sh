@@ -139,6 +139,7 @@ for line in sys.stdin:
     if "[camera] busy: " in line: seen = True
     elif seen and "[camera] devices=1" in line: ok = "yes"
 print(ok)')"
+  assert_contains "INUSE: … and the camera service shows ours holding the device again" "Client package: app.tileshell" "$(media_camera)"
   assert_eq "INUSE: ours shows the viewfinder again on resume" "yes no" "$(has_node "$D/INUSE-resumed.xml" camera_shutter) $(has_node "$D/INUSE-resumed.xml" camera_busy)"
   # The reverse order: ours first, then the other app → ours is evicted cleanly.
   adb shell am start -n "$OC" >/dev/null 2>&1; sleep 5
