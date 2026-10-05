@@ -15,6 +15,8 @@
 #            second double-tap returns to the fit, so Back below is the viewer's own.
 #   Back     → the collection (photos_pivot:collection asserted) with the tapped tile's bounds as before the open,
 #            the viewer's node gone, `[motion] viewer_close …` (settle 250 ± 17 — E19's Y6 value — and maxGapMs).
+#   VIEW     RECORDED: ViewerActivity started as the shell uid on a MediaStore image — which actions its bar offers
+#            (the lead's order of 2026-10-05, ahead of a fix to that exported activity).
 #   restore  media_down; the shell stopped; Start.
 #
 # Changes on the device: media (media_down), READ_MEDIA_IMAGES granted if it was not (restored). No wipe, no root.
@@ -94,6 +96,28 @@ assert_contains "[motion] viewer_close …" "[motion] viewer_close t0=" "$SLICE"
 assert_within "viewer_close settle = 250 ± 17 ms (Y6)" 250 "$(motion_field "$SLICE" viewer_close settle)" 17
 assert_gap "viewer_close" "$SLICE" viewer_close
 record "pinch zoom" "not driven: adb's input is one pointer — P5 / H9"
+
+# ----------------------------------------------------------------------------------------------- the VIEW helper
+# RECORDED on today's build (the lead's order, 2026-10-05): a fix to the exported ViewerActivity is being made — a
+# foreign caller's content URI shown only when that caller may read it, and Edit / Delete / Set as not offered to a
+# foreign caller. This leg starts it as the shell uid (a foreign caller) on a MediaStore image and writes down what the
+# bar offers; on the fixed build the records become the assertions.
+log "--- ViewerActivity on another caller's VIEW (recorded)"
+rings_save
+MARK="$(ring_mark)"
+adb shell am start -a android.intent.action.VIEW -d "content://media/external/images/media/$ID1" -t image/png -n "$VIEWER_ACTIVITY" > "$D/view-start.out" 2>&1; sleep 3
+record "VIEW as the shell uid: am start" "$(tr -d '\r' < "$D/view-start.out" | xargs)"
+record "VIEW: what is resumed" "$(top_activity)"
+dump_ui "$D/view.xml"; screencap "$D/view.png"
+record "VIEW: the picture is shown (viewer_image / viewer_error; the centre pixel, qa-photo-1 is 40,180,80)" "$(has_node "$D/view.xml" viewer_image) / $(has_node "$D/view.xml" viewer_error); $(px "$D/view.png" 540 1170)"
+record "VIEW: the bar offers Share / Edit / Delete / More" "$(has_node "$D/view.xml" viewer_share) / $(has_node "$D/view.xml" viewer_edit) / $(has_node "$D/view.xml" viewer_delete) / $(has_node "$D/view.xml" viewer_more)"
+if [ "$(has_node "$D/view.xml" viewer_more)" = yes ]; then
+  tap_node "$D/view.xml" viewer_more; sleep 1; dump_ui "$D/view-menu.xml"
+  record "VIEW: the overflow offers Slideshow / Set as / File information" "$(has_node "$D/view-menu.xml" viewer_menu_slideshow) / $(has_node "$D/view-menu.xml" viewer_menu_setas) / $(has_node "$D/view-menu.xml" viewer_menu_info)"
+  adb shell input keyevent KEYCODE_BACK; sleep 1
+fi
+record "VIEW: the shell's lines" "$(ring_since "$MARK" | grep -F '[photosapp] ' | sed 's/.*\[photosapp\] //' | tr '\n' '|' | cut -c1-300)"
+adb shell input keyevent KEYCODE_BACK; sleep 1
 
 no_crash
 c6
