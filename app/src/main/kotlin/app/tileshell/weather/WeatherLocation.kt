@@ -68,7 +68,7 @@ object WeatherLocation {
      */
     suspend fun placeName(context: Context, latitude: Double, longitude: Double): String? = withContext(Dispatchers.IO) {
         runCatching {
-            val url = URL("https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&lat=$latitude&lon=$longitude&accept-language=" + java.util.Locale.getDefault().toLanguageTag())
+            val url = URL(app.tileshell.net.FixedEndpoints.NOMINATIM + "reverse?format=jsonv2&zoom=10&lat=$latitude&lon=$longitude&accept-language=" + java.util.Locale.getDefault().toLanguageTag())
             val conn = url.openConnection() as HttpURLConnection
             conn.connectTimeout = GEOCODE_TIMEOUT_MS.toInt()
             conn.readTimeout = GEOCODE_TIMEOUT_MS.toInt()
