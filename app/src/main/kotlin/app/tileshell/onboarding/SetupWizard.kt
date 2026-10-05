@@ -247,6 +247,8 @@ object WizardRules {
         "$SETUP:people" to "People shows and edits your contacts. Without it People can't see them.",
         "$SETUP:full_screen_alarms" to "Alarms ring over the lock screen. Without it an alarm still sounds, but shows only as a notification.",
         "$SETUP:overlay" to "Alarms ring over the app you're using. Without it an alarm shows as a notification.",
+        "$SETUP:camera" to "Camera takes your photos and videos. Without it the Camera tile can't open the shell's camera.",
+        "$SETUP:videos" to "Movies & TV and Photos show the videos on this phone. Without it they show none.",
         "$TESS:assistant" to "The side key and the assist gesture open Tess. Without it they open another assistant.",
         "$TESS:microphone" to "Tess hears what you ask. Without it you can only type to her.",
         "$TESS:contacts" to "Tess calls and texts people by name. Without it she cannot find them.",

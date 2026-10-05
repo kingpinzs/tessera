@@ -28,6 +28,18 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <!--
+      Phase 17 (build task 1). CAMERA: the shell's Camera app (its Setup row "Camera"). READ_MEDIA_VIDEO: Movies & TV's
+      My videos and the videos in Photos (its Setup row "Videos"; the Photos row stays READ_MEDIA_IMAGES). SET_WALLPAPER:
+      Photos' "Set as lock screen" (WallpaperManager, FLAG_LOCK), a normal permission granted at install. There is no
+      FOREGROUND_SERVICE_CAMERA: a recording stops when the screen goes off, so no camera foreground service exists.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <!-- The Camera works on a phone with no camera at all (it says so), so the feature is not required. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
