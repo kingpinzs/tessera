@@ -9,7 +9,9 @@ every row below is signed off: reply with the ids that pass, and what you saw fo
 **The phone build exists (corrected 2026-10-02 09:33).** You merged `phase-16` into `main` (pull request 6, commit
 9b86c7ed), and CI build 44 of that commit passed: `tessera-44-9b86c7ed-release.apk` (release-signed, 321,779,101 bytes)
 is the download on the repository's "latest" release page. Its code is the gate build's: no file outside `docs/` differs
-between e226bc68 and 9b86c7ed. An earlier version of this page said CI builds when the `phase-16` branch is pushed; that
+between e226bc68 and 9b86c7ed. Since 2026-10-04 19:22 the "latest" page offers CI build 45 instead,
+`tessera-45-4662711-release.apk`, built from the cleaned history of the same code (same size); either build serves the
+phone rows, and 45 installs over 44. An earlier version of this page said CI builds when the `phase-16` branch is pushed; that
 was wrong — the workflow runs only on a push to `main`, on a `v*` tag, or when started by hand.
 
 Everything in the phone rows is done on the phone alone — nothing over a cable, adb or a PC. Where a row needs a value,
