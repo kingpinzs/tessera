@@ -79,6 +79,17 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
 "local-only" Movies & TV build (Hard Rule 16 — the interview ruled the fuller forms).
 
 ## Decisions
+- 2026-10-05 09:05: Review question Q-17-3 (round 3, D15: phase 16's Q-16-1 had Calendar and People take their slots once
+  even over a hand pick; this doc seeded PHOTOS and CAMERA without it, so on the owner's phone, where both slots are
+  very likely hand-pointed at Samsung's apps, the tiles and "take a photo" would stay on Samsung's) — **the shell's Photos
+  and Camera take the PHOTOS and CAMERA slots once, on the update that brings them, even over a hand pick, as Calendar and
+  People did** (Jeremy: "(a)"). Task 3 seeds both markers with `takeOver = true` (`tiles/LayoutStore.kt`
+  `assignSlotOnce(…, takeOver)`; the pass list that today admits only Calendar's and People's markers gains
+  `slot:photos:v1` and `slot:camera:v1`); the line names what was replaced (`-> assigned, replaced user's <earlier>`), so
+  the earlier app can be found again and the slot pointed back in Settings > Tile apps; a later re-point by hand is kept
+  (the marker has run). E1's upgrade half expects the takeover line, not `kept user's`; a phone row in phase 16 P0's form
+  records both slots' lines after the update and that pointing one back holds across a restart and the next update.
+  Tess's "take a photo" follows the CAMERA slot, so it opens the shell's Camera after the update.
 - 2026-10-05 09:04: Review question Q-17-2 (round 3, V3 (a) / D1: since Android 11 an implicit `IMAGE_CAPTURE` /
   `VIDEO_CAPTURE` from a caller targeting API 30+ resolves only to preinstalled system cameras, so Q5 A's "one of
   Android's camera choices beside Samsung Camera" reaches almost no app; and the capture answer is the phase's riskiest
