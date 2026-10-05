@@ -88,7 +88,8 @@ enum class CatalogueNotice(val text: String?) {
 /** How one catalogue request ended. */
 sealed interface FetchOutcome {
     data class Answer(val body: String) : FetchOutcome
-    data class Status(val code: Int) : FetchOutcome
+    /** @param retryAfterSeconds the answer's `Retry-After`, when it sent one (a 429) */
+    data class Status(val code: Int, val retryAfterSeconds: Long? = null) : FetchOutcome
 
     /** No connection could be made (a stopped server, no route, a timeout). */
     data object NoConnection : FetchOutcome
@@ -101,16 +102,14 @@ object CatalogueRules {
 
     const val LINE_NO_KEY = "catalogue: no TMDB key saved"
 
-    /** An entry older than 7 days is stale: it is still shown when nothing better can be had, and re-fetched when it can. */
+    /**
+     * An entry older than 7 days is stale. The catalogue is asked whenever the phone is online — a saved answer is
+     * what the page falls back on offline or when the catalogue fails — and an answer that replaces a stale entry is
+     * logged as `<n> (refreshed)`.
+     */
     fun isStale(ageMs: Long): Boolean = ageMs > CACHE_MS
 
-    /**
-     * Whether a request goes out. A search the user submits always asks the catalogue; a page that only comes back
-     * (the app reopened on its last search, a title opened again) is served from an entry younger than 7 days.
-     */
-    fun shouldFetch(submitted: Boolean, cacheAgeMs: Long?): Boolean = submitted || cacheAgeMs == null || isStale(cacheAgeMs)
-
-    /** `[video] catalogue "<q>": <n> | <n> (refreshed) | <n> (cached) | offline | error <code>` — the query and the status only (C-32). */
+    /** `[video] catalogue "<q>": <n> | <n> (refreshed) | offline | error <code>` — the query and the status only (C-32). */
     fun line(subject: String, status: String): String = "catalogue \"$subject\": $status"
 
     fun countStatus(count: Int, replacedStale: Boolean): String = if (replacedStale) "$count (refreshed)" else count.toString()

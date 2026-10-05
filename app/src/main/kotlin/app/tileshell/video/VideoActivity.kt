@@ -7,6 +7,8 @@ import app.tileshell.bars.hideSystemBars
 import app.tileshell.diag.Diagnostics
 import app.tileshell.diag.RemoteRings
 import app.tileshell.ui.setShellAppContent
+import app.tileshell.video.server.MediaServer
+import app.tileshell.video.server.MediaServerShortcut
 
 /**
  * Movies & TV (phase 17, Q3b A): the hub — My videos, Browse and the Media server page behind W10M's pane — an app
@@ -22,19 +24,38 @@ class VideoActivity : ComponentActivity() {
         Diagnostics.add("video", "VideoActivity created")
         hideSystemBars()
         ring = RemoteRings.hold(this, VideoDumpService::class.java)
-        nav.open(intent)
-        setShellAppContent(statusBar = true) { VideoApp(nav, this) }
+        route(intent)
+        // Y7: the status bar and the header are one #171717 band; each page draws its own black under them.
+        val browse = BrowseModel(this)
+        setShellAppContent(statusBar = true, background = HubMetrics.CHROME) { VideoApp(nav, this, browse) }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        nav.open(intent)
+        route(intent)
+    }
+
+    /**
+     * Opens the page the intent asks for once it is known whether a media server is set up (a file and a Keystore read,
+     * off the main thread): the Media server page exists only then, and its dynamic shortcut is kept in step.
+     */
+    private fun route(intent: Intent?) {
+        Thread {
+            val setUp = runCatching { MediaServer(this).isSetUp() }.getOrDefault(false)
+            runCatching { MediaServerShortcut.sync(this, setUp) }
+            runOnUiThread {
+                nav.serverSetUp = setUp
+                nav.open(intent)
+                nav.ready = true
+            }
+        }.start()
     }
 
     override fun onResume() {
         super.onResume()
         hideSystemBars()
+        nav.resumes++
     }
 
     override fun onDestroy() {

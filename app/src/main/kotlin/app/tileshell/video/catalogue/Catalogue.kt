@@ -34,7 +34,12 @@ object QaBases {
 object VideoHttp {
     const val TIMEOUT_MS = 10_000
 
-    fun get(url: String, headers: Map<String, String>): FetchOutcome {
+    fun get(url: String, headers: Map<String, String>): FetchOutcome = send(url, headers, null)
+
+    /** A JSON POST. The body may hold a password: it goes to the socket and nowhere else. */
+    fun post(url: String, headers: Map<String, String>, json: String): FetchOutcome = send(url, headers, json)
+
+    private fun send(url: String, headers: Map<String, String>, json: String?): FetchOutcome {
         val conn = try {
             URL(url).openConnection() as HttpURLConnection
         } catch (e: Exception) {
@@ -45,9 +50,15 @@ object VideoHttp {
             conn.readTimeout = TIMEOUT_MS
             conn.instanceFollowRedirects = false   // a redirect would carry the request's headers to another host
             for ((k, v) in headers) conn.setRequestProperty(k, v)
+            if (json != null) {
+                conn.requestMethod = "POST"
+                conn.doOutput = true
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.outputStream.use { it.write(json.toByteArray(Charsets.UTF_8)) }
+            }
             val code = conn.responseCode
             if (code in 200..299) FetchOutcome.Answer(conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() })
-            else FetchOutcome.Status(code).also { conn.headerFields["Retry-After"]?.firstOrNull()?.toLongOrNull()?.let { s -> lastRetryAfterSeconds = s } }
+            else FetchOutcome.Status(code, conn.getHeaderField("Retry-After")?.trim()?.toLongOrNull())
         } catch (e: IOException) {
             FetchOutcome.NoConnection
         } finally {
@@ -55,14 +66,13 @@ object VideoHttp {
         }
     }
 
-    /** The last `Retry-After` a server sent, in seconds (Wikidata's 429). */
-    @Volatile var lastRetryAfterSeconds: Long = 0
-
-    fun bytes(url: String): ByteArray? {
+    fun bytes(url: String, headers: Map<String, String> = emptyMap()): ByteArray? {
         val conn = try { URL(url).openConnection() as HttpURLConnection } catch (e: Exception) { return null }
         return try {
             conn.connectTimeout = TIMEOUT_MS
             conn.readTimeout = TIMEOUT_MS
+            conn.instanceFollowRedirects = headers.isEmpty()   // headers are never carried to a redirect's host
+            for ((k, v) in headers) conn.setRequestProperty(k, v)
             if (conn.responseCode in 200..299) conn.inputStream.use { it.readBytes() } else null
         } catch (e: IOException) {
             null
@@ -97,22 +107,22 @@ class Catalogue(context: Context) {
 
     fun hasKey(): Boolean = CredentialStore.of(app).has(CredentialStore.TMDB)
 
-    /** `catalogue.search`: films and series for [query]. [submitted] is true for a search the user just sent. */
-    fun search(query: String, submitted: Boolean): CatalogueResult<List<CatalogueItem>> {
+    /** `catalogue.search`: films and series for [query]. */
+    fun search(query: String): CatalogueResult<List<CatalogueItem>> {
         val q = query.trim()
-        return request(q, "search", q, submitted, "3/search/multi?query=${enc(q)}&include_adult=false") { TmdbParse.items(it) }
+        return request(q, "search", q, "3/search/multi?query=${enc(q)}&include_adult=false") { TmdbParse.items(it) }
     }
 
     /** One of Browse's strips. */
     fun section(section: BrowseSection): CatalogueResult<List<CatalogueItem>> =
-        request(section.title, "section", section.id, submitted = false, path = "3/${section.path}") { TmdbParse.items(it, section.defaultType) }
+        request(section.title, "section", section.id, path = "3/${section.path}") { TmdbParse.items(it, section.defaultType) }
 
     /** `catalogue.lookup`: a title's page — its details and the services its watch-provider data names. */
     fun lookup(type: TitleType, id: Long, title: String): CatalogueResult<TitleDetails> {
         val key = "${type.path}-$id"
-        val details = request(title, "title", key, submitted = false, path = "3/${type.path}/$id") { TmdbParse.details(it, type) }
+        val details = request(title, "title", key, path = "3/${type.path}/$id") { TmdbParse.details(it, type) }
         val pair = details.value ?: return CatalogueResult(null, details.notice, details.fromCache)
-        val providers = request(title, "providers", key, submitted = false, path = "3/${type.path}/$id/watch/providers", quiet = true) {
+        val providers = request(title, "providers", key, path = "3/${type.path}/$id/watch/providers", quiet = true) {
             TmdbParse.providers(it, country())
         }
         return CatalogueResult(TitleDetails(pair.first, pair.second, providers.value.orEmpty()), details.notice, details.fromCache)
@@ -121,10 +131,10 @@ class Catalogue(context: Context) {
     private fun country(): String = Locale.getDefault().country.takeIf { it.length == 2 } ?: "US"
 
     /**
-     * One cached GET and its diagnostics line: no key → no request at all; offline → the cache; a fresh entry on a page
-     * that only came back → the cache; else the network, the cache staying on screen when the network fails.
+     * One GET over the cache, and its diagnostics line: no key → no request at all; offline → the saved answer; else
+     * the catalogue is asked, and the saved answer stays on screen when it fails.
      */
-    private fun <T> request(subject: String, kind: String, key: String, submitted: Boolean, path: String, quiet: Boolean = false, parse: (String) -> T?): CatalogueResult<T> {
+    private fun <T> request(subject: String, kind: String, key: String, path: String, quiet: Boolean = false, parse: (String) -> T?): CatalogueResult<T> {
         fun say(status: String) { if (!quiet) Diagnostics.add("video", CatalogueRules.line(subject, status)) }
         val token = CredentialStore.of(app).get(CredentialStore.TMDB)
         if (token == null) {
@@ -136,10 +146,6 @@ class Catalogue(context: Context) {
         if (!VideoHttp.online(app)) {
             say("offline")
             return CatalogueResult(cached, CatalogueNotice.OFFLINE, true)
-        }
-        if (cached != null && !CatalogueRules.shouldFetch(submitted, entry.ageMs)) {
-            say("${count(cached)} (cached)")
-            return CatalogueResult(cached, CatalogueNotice.NONE, true)
         }
         val headers = mapOf("Authorization" to "Bearer $token", "Accept" to "application/json")
         if (kind == "search" || kind == "section") configuration(headers)

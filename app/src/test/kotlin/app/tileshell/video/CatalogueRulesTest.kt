@@ -83,14 +83,11 @@ class CatalogueRulesTest {
         assertEquals(listOf("A", "B", "Z"), TmdbParse.providers(mixed, "US"))
     }
 
-    @Test fun `an entry is stale after seven days, and only a submitted search always asks`() {
+    @Test fun `an entry is stale after seven days`() {
         val day = 24L * 60 * 60 * 1000
         assertFalse(CatalogueRules.isStale(7 * day))
         assertTrue(CatalogueRules.isStale(7 * day + 1))
-        assertTrue(CatalogueRules.shouldFetch(submitted = true, cacheAgeMs = 1000))
-        assertFalse(CatalogueRules.shouldFetch(submitted = false, cacheAgeMs = 6 * day))
-        assertTrue(CatalogueRules.shouldFetch(submitted = false, cacheAgeMs = 8 * day))
-        assertTrue(CatalogueRules.shouldFetch(submitted = false, cacheAgeMs = null))
+        assertFalse(CatalogueRules.isStale(0))
     }
 
     @Test fun `the lines carry the query and the status only`() {

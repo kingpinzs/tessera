@@ -31,6 +31,7 @@ import app.tileshell.bars.hideSystemBars
 import app.tileshell.diag.Diagnostics
 import app.tileshell.diag.RemoteRings
 import app.tileshell.ui.setShellAppContent
+import app.tileshell.video.server.MediaServer
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -228,7 +229,8 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
         val source = uri ?: return
         val req = request as? PlayerRequest.Play ?: return
         if (ui.failure != null) return
-        val p = VideoPlayback.acquire(this)
+        // A direct-play request to the saved media server gets its token as it opens; nothing else is touched.
+        val p = VideoPlayback.acquire(this, MediaServer.streamResolver(this, source))
         playback = p
         p.exo.addListener(listener)
         surface?.let { p.exo.setVideoSurfaceView(it) }

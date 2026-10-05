@@ -13,6 +13,7 @@ import app.tileshell.video.catalogue.CatalogueRules
 import app.tileshell.video.catalogue.FetchOutcome
 import app.tileshell.video.catalogue.QaBases
 import app.tileshell.video.catalogue.VideoHttp
+import app.tileshell.video.server.MediaServer
 import java.io.File
 import java.net.URLEncoder
 
@@ -29,6 +30,9 @@ object StreamingHandoff {
 
     /** `catalogue.search(query)` / `catalogue.lookup(id)`: TMDB behind the 7-day cache. */
     fun catalogue(context: Context): Catalogue = Catalogue(context)
+
+    /** `mediaServer`: the Jellyfin client — `connect(host, user, password)`, `library()`, `streamUrl(item)`. */
+    fun mediaServer(context: Context): MediaServer = MediaServer(context)
 
     /**
      * The table's services that are on the phone NOW: resolved against the package manager at every call, never kept
@@ -131,7 +135,8 @@ object StreamingHandoff {
                 }
                 is FetchOutcome.Status -> {
                     if (outcome.code == 429) {
-                        val wait = VideoHttp.lastRetryAfterSeconds.coerceIn(1, 3600)
+                        // Wikidata's rule: a 429 says when to come back. With no Retry-After, a minute.
+                        val wait = (outcome.retryAfterSeconds ?: 60L).coerceIn(1, 3600)
                         wikidataQuietUntil = now + wait * 1000
                         Diagnostics.add("video", "wikidata: busy, not asked again for $wait s")
                     } else {
