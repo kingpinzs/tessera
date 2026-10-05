@@ -190,7 +190,11 @@ class CredentialFile(
     }
 }
 
-/** AES-256-GCM under a non-exportable Android Keystore key (BS-3): a fresh 12-byte IV per value, the entry's name as AAD. */
+/**
+ * AES-256-GCM under a non-exportable Android Keystore key (BS-3): a fresh 12-byte IV per value, the entry's name as
+ * AAD. A newly made key can be used only while the phone is unlocked (B2-L8); while it is locked a value reads as
+ * absent, and nothing is judged stale then ([app.tileshell.video.server.ServerStore.sweep]).
+ */
 class KeystoreCipher(private val alias: String) : CredentialCipher {
     /**
      * The key. It is MADE only for a seal ([create]) — which the store calls under its file lock, so two processes
@@ -204,7 +208,11 @@ class KeystoreCipher(private val alias: String) : CredentialCipher {
             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
             .setKeySize(256)
-            // No user authentication: the player reads the server's token with the screen locked (BS-3).
+            // No user authentication (no prompt, no time limit) — but the phone must be UNLOCKED for the key to be used
+            // (B2-L8): everything that reads a credential, the player included, runs on an unlocked phone and stops
+            // when it locks. This holds for a key made from now on; a key that already exists under this alias keeps
+            // the properties it was made with (a Keystore key's properties cannot be changed) and is used as it is.
+            .setUnlockedDeviceRequired(true)
             .build()
         return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, PROVIDER).apply { init(spec) }.generateKey()
     }
