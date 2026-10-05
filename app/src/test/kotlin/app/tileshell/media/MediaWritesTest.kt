@@ -63,7 +63,7 @@ class MediaWritesTest {
     @Test
     fun `a save goes pending, written, published and is read back`() {
         val port = FakePort()
-        val result = MediaWrites(port, shell).save(photo) { it.write(byteArrayOf(1, 2, 3)) }
+        val result = MediaWrites(port, shell, MemoryPendingLedger()).save(photo) { it.write(byteArrayOf(1, 2, 3)) }
         val uri = port.inserted.single()
         assertEquals(listOf("insert DCIM/Camera/IMG_1.jpg", "open $uri", "publish $uri"), port.calls)
         val saved = result as MediaWrites.Result.Saved
@@ -73,7 +73,7 @@ class MediaWritesTest {
     @Test
     fun `a refused insert leaves nothing and says so`() {
         val port = FakePort().apply { refuseInsert = true }
-        val result = MediaWrites(port, shell).save(photo) { error("never written") }
+        val result = MediaWrites(port, shell, MemoryPendingLedger()).save(photo) { error("never written") }
         assertEquals(MediaWrites.Result.Failed("the media store refused the new image in DCIM/Camera/"), result)
         assertTrue(port.rows.isEmpty())
     }
@@ -81,7 +81,7 @@ class MediaWritesTest {
     @Test
     fun `a write that throws abandons its own pending row`() {
         val port = FakePort()
-        val result = MediaWrites(port, shell).save(photo) { throw IOException("disk full") }
+        val result = MediaWrites(port, shell, MemoryPendingLedger()).save(photo) { throw IOException("disk full") }
         assertEquals(MediaWrites.Result.Failed("write failed (IOException)"), result)
         assertEquals("abandon ${port.inserted.single()}", port.calls.last())
         assertTrue("no row and no pending row is left", port.rows.isEmpty())
@@ -91,7 +91,7 @@ class MediaWritesTest {
     fun `a file that cannot be opened or published is abandoned`() {
         for (breakIt in listOf<FakePort.() -> Unit>({ refuseOpen = true }, { refusePublish = true })) {
             val port = FakePort().apply(breakIt)
-            val result = MediaWrites(port, shell).save(photo) { it.write(1) }
+            val result = MediaWrites(port, shell, MemoryPendingLedger()).save(photo) { it.write(1) }
             assertTrue(result is MediaWrites.Result.Failed)
             assertTrue(port.rows.isEmpty())
             assertEquals("abandon ${port.inserted.single()}", port.calls.last())
@@ -108,7 +108,7 @@ class MediaWritesTest {
         )
         for ((breakIt, why) in cases) {
             val port = FakePort().apply(breakIt)
-            val result = MediaWrites(port, shell).save(photo) { it.write(1) }
+            val result = MediaWrites(port, shell, MemoryPendingLedger()).save(photo) { it.write(1) }
             assertEquals(MediaWrites.Result.Failed(why), result)
             assertTrue("$why: nothing is left behind", port.rows.isEmpty())
         }
@@ -120,7 +120,7 @@ class MediaWritesTest {
         // Rows that already exist: another app's photo, and an earlier photo of the shell's own.
         port.rows["content://media/external/images/media/7"] = MediaRow("content://media/external/images/media/7", false, 10, "image/jpeg", "DCIM/Camera/", "com.other")
         port.rows["content://media/external/images/media/8"] = MediaRow("content://media/external/images/media/8", false, 10, "image/jpeg", "DCIM/Camera/", shell)
-        val writes = MediaWrites(port, shell)
+        val writes = MediaWrites(port, shell, MemoryPendingLedger())
         writes.save(photo) { it.write(1) }
         writes.save(photo.copy(kind = MediaKind.VIDEO, displayName = "VID_1.mp4", mime = "video/mp4")) { it.write(1) }
         writes.save(photo) { throw IOException() }
@@ -138,7 +138,7 @@ class MediaWritesTest {
         val callers = "content://com.caller.files/cache/out.jpg"
         val decision = CaptureOutputGuard.decide(callers, "content", "com.caller.files", "com.caller", listOf(callers), CaptureOutputGuard.FLAG_GRANT_WRITE, setOf("app.tileshell.files"), callerMayWrite = true)
         val accepted = decision as CaptureOutputGuard.Decision.Accepted
-        assertNull(MediaWrites(port, shell).writeCaptureOutput(accepted) { it.write(byteArrayOf(9, 9)) })
+        assertNull(MediaWrites(port, shell, MemoryPendingLedger()).writeCaptureOutput(accepted) { it.write(byteArrayOf(9, 9)) })
         assertEquals(listOf("open $callers"), port.calls)
         assertEquals(2, port.bytes.getValue(callers).size())
         assertTrue("no MediaStore row was made for it", port.inserted.isEmpty())
@@ -149,25 +149,53 @@ class MediaWritesTest {
         val callers = "content://com.caller.files/cache/out.jpg"
         val accepted = CaptureOutputGuard.decide(callers, "content", "com.caller.files", "com.caller", listOf(callers), 2, emptySet(), callerMayWrite = true) as CaptureOutputGuard.Decision.Accepted
         val closed = FakePort().apply { refuseOpen = true }
-        assertEquals("the caller's output could not be opened", MediaWrites(closed, shell).writeCaptureOutput(accepted) { it.write(1) })
+        assertEquals("the caller's output could not be opened", MediaWrites(closed, shell, MemoryPendingLedger()).writeCaptureOutput(accepted) { it.write(1) })
         val port = FakePort()
-        assertEquals("write failed (IOException)", MediaWrites(port, shell).writeCaptureOutput(accepted) { throw IOException() })
+        assertEquals("write failed (IOException)", MediaWrites(port, shell, MemoryPendingLedger()).writeCaptureOutput(accepted) { throw IOException() })
         assertTrue(port.inserted.isEmpty())
     }
 
     @Test
-    fun `rule 3 - the cleanup deletes only the shell's own pending rows`() {
+    fun `rule 3 - the cleanup deletes only this process's own leftover pending rows`() {
         val port = FakePort()
         fun row(id: Int, pending: Boolean, owner: String?) = "content://media/external/images/media/$id".also {
             port.rows[it] = MediaRow(it, pending, 5, "image/jpeg", "DCIM/Camera/", owner)
         }
-        val ownPending = row(1, true, shell)
-        val ownPublished = row(2, false, shell)
-        val othersPending = row(3, true, "com.other")
-        val unownedPending = row(4, true, null)
-        assertEquals(1, MediaWrites(port, shell).cleanUpPending())
-        assertEquals(listOf("abandon $ownPending"), port.calls)
-        assertEquals(setOf(ownPublished, othersPending, unownedPending), port.rows.keys)
+        val mineLeftOver = row(1, true, shell)
+        val otherProcessWritingNow = row(2, true, shell)   // the shell's own, pending, but not in THIS process's ledger
+        val minePublishedSince = row(3, false, shell)      // in the ledger, yet no longer pending: kept
+        val othersPending = row(4, true, "com.other")      // in the ledger by some accident: another app's, kept
+        val gone = "content://media/external/images/media/99"
+        val ledger = MemoryPendingLedger(listOf(mineLeftOver, minePublishedSince, othersPending, gone))
+        assertEquals(1, MediaWrites(port, shell, ledger).cleanUpPending())
+        assertEquals(listOf("abandon $mineLeftOver"), port.calls)
+        assertEquals(setOf(otherProcessWritingNow, minePublishedSince, othersPending), port.rows.keys)
+        assertTrue("the ledger is empty after the cleanup", ledger.all().isEmpty())
+    }
+
+    @Test
+    fun `the ledger holds a row only while its save is in flight`() {
+        val ledger = MemoryPendingLedger()
+        val port = FakePort()
+        var during: List<String> = emptyList()
+        MediaWrites(port, shell, ledger).save(photo) { during = ledger.all(); it.write(1) }
+        assertEquals(port.inserted, during)
+        assertTrue(ledger.all().isEmpty())
+        MediaWrites(port, shell, ledger).save(photo) { throw IOException() }
+        assertTrue("a failed save leaves nothing in the ledger", ledger.all().isEmpty())
+        MediaWrites(FakePort().apply { publishKeepsPending = true }, shell, ledger).save(photo) { it.write(1) }
+        assertTrue(ledger.all().isEmpty())
+    }
+
+    @Test
+    fun `the file ledger survives a restart and ignores a damaged file`() {
+        val dir = java.nio.file.Files.createTempDirectory("ledger").toFile()
+        val file = java.io.File(dir, "media_pending/camera.txt")
+        FilePendingLedger(file).apply { add("content://media/external/video/media/1"); add("content://media/external/video/media/2"); remove("content://media/external/video/media/1") }
+        assertEquals(listOf("content://media/external/video/media/2"), FilePendingLedger(file).all())
+        file.writeText("garbage\n\ncontent://media/external/video/media/3\nfile:///x\n")
+        assertEquals(listOf("content://media/external/video/media/3"), FilePendingLedger(file).all())
+        dir.deleteRecursively()
     }
 
     @Test
@@ -191,6 +219,6 @@ class MediaWritesTest {
 
     @Test
     fun `a delete is the platform's consent for exactly the rows named`() {
-        assertEquals("consent for a, b", MediaWrites(FakePort(), shell).deleteRequest(listOf("a", "b")))
+        assertEquals("consent for a, b", MediaWrites(FakePort(), shell, MemoryPendingLedger()).deleteRequest(listOf("a", "b")))
     }
 }

@@ -22,7 +22,7 @@ import java.io.File
  */
 object PhotoActions {
     /** The shell's one MediaStore write layer (r3 D7), as Photos' main process uses it: the delete consent. */
-    fun writes(context: Context): MediaWrites<IntentSender> = MediaWrites(AndroidMediaStorePort(context), context.packageName)
+    fun writes(context: Context): MediaWrites<IntentSender> = app.tileshell.media.ShellMediaWrites.of(context)
 
     /**
      * Share: `ACTION_SEND` with the content URI and a read grant, through the system chooser. The ClipData carries the

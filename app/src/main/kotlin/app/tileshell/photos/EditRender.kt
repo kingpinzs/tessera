@@ -54,7 +54,7 @@ data class EditState(
  * COPY through the shell's one write layer. Runs in `:photosedit`.
  */
 object EditRender {
-    fun writes(context: Context): MediaWrites<IntentSender> = MediaWrites(AndroidMediaStorePort(context), context.packageName)
+    fun writes(context: Context): MediaWrites<IntentSender> = app.tileshell.media.ShellMediaWrites.of(context)
 
     /** [state] applied to a whole in-memory upright source: the preview's pixels. Returns the output's size. */
     fun renderInto(state: EditState, src: IntArray, srcW: Int, srcH: Int, applyCrop: Boolean): Triple<IntArray, Int, Int> {

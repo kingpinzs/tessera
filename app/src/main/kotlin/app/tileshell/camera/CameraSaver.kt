@@ -22,7 +22,7 @@ import java.util.Locale
  */
 class CameraSaver(context: Context) {
     private val cacheDir = File(context.cacheDir, "camera")
-    val writes: MediaWrites<IntentSender> = MediaWrites(AndroidMediaStorePort(context), context.packageName)
+    val writes: MediaWrites<IntentSender> = app.tileshell.media.ShellMediaWrites.of(context)
 
     /** Start-up cleanup (build task 6 clause 7; Edge cases "a process killed mid-write"). */
     fun cleanUpPending() {

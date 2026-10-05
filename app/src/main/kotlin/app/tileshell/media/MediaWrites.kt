@@ -62,11 +62,12 @@ interface MediaStorePort<C> {
  *     exception, [writeCaptureOutput], which takes the capture caller's own URI and only as the output guard's
  *     [CaptureOutputGuard.Decision.Accepted] token, which nothing else can make (Q-17-2 (b)).
  *  2. Every insert goes pending → written → published, and a failed write abandons its own pending row.
- *  3. [cleanUpPending] deletes only pending rows whose OWNER_PACKAGE_NAME is the shell.
+ *  3. [cleanUpPending] deletes only pending rows whose OWNER_PACKAGE_NAME is the shell AND that THIS process's own
+ *     earlier run left behind (its [PendingLedger]): never a row another process of the shell is writing right now.
  * Every publish is read back (row present, IS_PENDING 0, SIZE > 0, the MIME and RELATIVE_PATH asked for), or the save
  * fails with its reason — the caller writes that reason into its own `failed:` line.
  */
-class MediaWrites<C>(private val port: MediaStorePort<C>, private val shellPackage: String) {
+class MediaWrites<C>(private val port: MediaStorePort<C>, private val shellPackage: String, private val ledger: PendingLedger) {
 
     sealed interface Result {
         /** Published and read back. [row] says where it is (`relativePath`) for the op's line. */
@@ -79,8 +80,10 @@ class MediaWrites<C>(private val port: MediaStorePort<C>, private val shellPacka
     /** Creates [item] and writes it with [write]. A [write] that throws fails the save with the exception's name. */
     fun save(item: NewMedia, write: (OutputStream) -> Unit): Result {
         val uri = port.insertPending(item) ?: return Result.Failed("the media store refused the new ${item.kind.name.lowercase()} in ${item.relativePath}")
+        ledger.add(uri)
         fun abandoned(why: String): Result {
             port.abandon(uri)
+            ledger.remove(uri)
             return Result.Failed(why)
         }
         val out = try { port.openWrite(uri) } catch (e: Exception) { null } ?: return abandoned("the new file could not be opened")
@@ -90,7 +93,11 @@ class MediaWrites<C>(private val port: MediaStorePort<C>, private val shellPacka
             return abandoned("write failed (${e.javaClass.simpleName})")
         }
         if (!port.publish(uri)) return abandoned("the new file could not be published")
-        val row = port.readBack(uri) ?: return Result.Failed("the new file is gone after publishing")
+        val row = port.readBack(uri)
+        if (row == null) {
+            ledger.remove(uri)
+            return Result.Failed("the new file is gone after publishing")
+        }
         val wrong = when {
             row.pending -> "still pending after publishing"
             row.size <= 0L -> "the new file is empty"
@@ -98,7 +105,9 @@ class MediaWrites<C>(private val port: MediaStorePort<C>, private val shellPacka
             row.relativePath != item.relativePath -> "saved in ${row.relativePath}, not ${item.relativePath}"
             else -> null
         }
-        return if (wrong == null) Result.Saved(row) else abandoned(wrong)
+        if (wrong != null) return abandoned(wrong)
+        ledger.remove(uri)
+        return Result.Saved(row)
     }
 
     /**
@@ -117,10 +126,20 @@ class MediaWrites<C>(private val port: MediaStorePort<C>, private val shellPacka
     }
 
     /**
-     * Start-up cleanup (Edge cases: a process killed mid-write): deletes the shell's own pending rows and returns how
-     * many. A pending row another app owns is never touched.
+     * Start-up cleanup (Edge cases: a process killed mid-write): deletes the pending rows THIS process's earlier run
+     * inserted and never published or abandoned, and returns how many. Only rows named in this process's [ledger] are
+     * looked at, so a row another process of the shell is writing at this moment (a recording in `:camera` while
+     * `:photosedit` starts) is never touched; and a row is deleted only when it is still pending and the shell's own.
      */
-    fun cleanUpPending(): Int = port.pendingRows().count { it.pending && it.ownerPackage == shellPackage && port.abandon(it.uri) }
+    fun cleanUpPending(): Int {
+        var deleted = 0
+        for (uri in ledger.all()) {
+            val row = port.readBack(uri)
+            if (row != null && row.pending && row.ownerPackage == shellPackage && port.abandon(uri)) deleted++
+            ledger.remove(uri)
+        }
+        return deleted
+    }
 
     /** The consent to delete [uris]; the delete itself is the platform's, after the user accepts. */
     fun deleteRequest(uris: List<String>): C = port.deleteRequest(uris)
@@ -144,5 +163,40 @@ class MediaWrites<C>(private val port: MediaStorePort<C>, private val shellPacka
 
         /** The Camera's folder: every capture of the shell's own Camera lands here. */
         const val CAMERA_PATH = "DCIM/Camera/"
+    }
+}
+
+/**
+ * The rows one process has inserted and not yet published or abandoned. It outlives the process (a file), so the next
+ * start of that same process knows exactly which pending rows are its own leftovers.
+ */
+interface PendingLedger {
+    fun add(uri: String)
+    fun remove(uri: String)
+    fun all(): List<String>
+}
+
+/** A ledger kept in memory: the tests', and never a process's real one. */
+class MemoryPendingLedger(initial: List<String> = emptyList()) : PendingLedger {
+    private val uris = LinkedHashSet(initial)
+    @Synchronized override fun add(uri: String) { uris += uri }
+    @Synchronized override fun remove(uri: String) { uris -= uri }
+    @Synchronized override fun all(): List<String> = uris.toList()
+}
+
+/** One URI per line in [file], written temp-and-rename; an unreadable file is an empty ledger. */
+class FilePendingLedger(private val file: java.io.File) : PendingLedger {
+    @Synchronized override fun add(uri: String) = write(all() + uri)
+    @Synchronized override fun remove(uri: String) = write(all() - uri)
+    @Synchronized override fun all(): List<String> =
+        runCatching { file.readLines().map { it.trim() }.filter { it.startsWith("content://") }.distinct() }.getOrDefault(emptyList())
+
+    private fun write(uris: List<String>) {
+        runCatching {
+            file.parentFile?.mkdirs()
+            val tmp = java.io.File(file.parentFile, file.name + ".tmp")
+            tmp.writeText(uris.distinct().joinToString("") { it + "\n" })
+            if (!tmp.renameTo(file)) { file.delete(); tmp.renameTo(file) }
+        }
     }
 }
