@@ -170,7 +170,7 @@ fixture_up() { # [video file]
   local i; for i in $(seq 1 40); do curl -s -o /dev/null "http://127.0.0.1:$VPORT/ready" && { : > "$FIXTURE_LOG"; return 0; }; sleep 0.2; done
   echo "the catalogue fixture did not start: $(cat "$ROW_DIR/fixture.err")" >&2; return 1
 }
-fixture_down() { [ -f "$ROW_DIR/fixture.pid" ] && kill "$(cat "$ROW_DIR/fixture.pid")" 2>/dev/null; rm -f "$ROW_DIR/fixture.pid"; return 0; }
+fixture_down() { [ -f "$ROW_DIR/fixture.pid" ] && kill "$(cat "$ROW_DIR/fixture.pid")" 2>/dev/null; rm -f "${ROW_DIR:?}/fixture.pid"; return 0; }
 # The same server again after a stop, its log kept (the offset form reads one growing file).
 fixture_again() {
   python3 "$P17/scripts/catalogue_server.py" --port "$VPORT" --video "$GEN/qa-steps.mp4" --log "$FIXTURE_LOG" >/dev/null 2>>"$ROW_DIR/fixture.err" &
@@ -248,7 +248,8 @@ jf_up() { # the container, seeded; its image and id into the row log (T17-21). N
   record "its container" "$(cut -c1-12 "$JF_WORK/container.id")"
   SERVER_ITEM="$(cat "$JF_WORK/item.id")"
 }
-jf_down() { jf down > "$ROW_DIR/jellyfin-down.txt" 2>&1; rm -rf "$JF_WORK/media" "$JF_WORK/seed.log"; rmdir "$JF_WORK" 2>/dev/null; return 0; }
+# (${JF_WORK:?}: the shell stops rather than run a removal on a path built from an empty name.)
+jf_down() { jf down > "$ROW_DIR/jellyfin-down.txt" 2>&1; rm -rf "${JF_WORK:?}/media" "${JF_WORK:?}/seed.log"; rmdir "${JF_WORK:?}" 2>/dev/null; return 0; }
 jf_wait() { local i; for i in $(seq 1 90); do [ "$(curl -s -o /dev/null -w '%{http_code}' -m 3 http://127.0.0.1:8096/System/Info/Public)" = 200 ] && { sleep 3; return 0; }; sleep 1; done; return 1; }
 # Type a server sign-in into the form that is on screen and tap Connect (the password goes through the keyboard).
 server_form() { # dump-prefix host user password
@@ -374,3 +375,87 @@ guard_restart() { # name — rings saved, force-stop, Home, the two assertions o
   assert_contains "$1: after the restart inside the guard, [weather] refresh ended without new data: no coordinates" "[weather] refresh ended without new data: no coordinates" "$line"
   absent_in "$1: … and no [weather] fetch provider= line" "[weather] fetch provider=" "$(ring_since "$mark" launcher)"
 }
+
+# A row's EXIT trap: whatever was left on by a driver that died mid-way is undone — the guard's rule and root, airplane
+# mode, the fixture server, the container. A normal run has already undone each (the trap then finds nothing to do).
+GUARD_ON=0
+guard_on() { egress_guard_on; GUARD_ON=1; record "inside the guard: adbd's uid (root for the span)" "$(adb shell id -u | tr -d '\r')"; }
+guard_off() { egress_guard_off; GUARD_ON=0; assert_eq "adbd is back to the shell uid (adb unroot)" "2000" "$(adb shell id -u | tr -d '\r')"; }
+video_cleanup() {
+  if [ "$GUARD_ON" = 1 ] && [ -n "$APP_UID" ]; then
+    adb shell iptables -D OUTPUT -m owner --uid-owner "$APP_UID" ! -d 10.0.2.2 -j REJECT >/dev/null 2>&1
+    adb unroot >/dev/null 2>&1; adb wait-for-device
+    adb shell pm grant app.tileshell android.permission.ACCESS_COARSE_LOCATION; adb shell pm grant app.tileshell android.permission.ACCESS_FINE_LOCATION 2>/dev/null
+    echo "video_cleanup: the egress guard was still on at exit; removed, unrooted, location granted back" | tee -a "${LOG:-/dev/null}"
+  fi
+  [ "$(airplane_now)" = 1 ] && { airplane disable; echo "video_cleanup: airplane mode was still on at exit; off" | tee -a "${LOG:-/dev/null}"; }
+  [ -n "${ROW_DIR:-}" ] && fixture_down
+  [ -f "$JF_WORK/container.id" ] && jf_down
+  [ -n "${EXTRA_PIDS:-}" ] && kill $EXTRA_PIDS 2>/dev/null
+  return 0
+}
+
+# Browse with the search "Blade Runner" run: the page re-runs its last search on open (the cache folder keeps it);
+# when it did not (no line for the query since the MARK), the query is typed and sent.
+browse_blade_runner() { # mark dump(out) [settle]
+  hub browse "${3:-3}"; dump_ui "$2"
+  if [ -z "$(vline "$1" 'catalogue "Blade Runner"')" ]; then
+    tap_node "$2" hub_search_box; sleep 0.8
+    case "$(node_text "$2" hub_search_box)" in *"Blade Runner"*) : ;; *) adb shell input text "Blade%sRunner"; sleep 0.5 ;; esac
+    adb shell input keyevent KEYCODE_ENTER; sleep 3
+    dump_ui "$2"
+  fi
+}
+# The leak scan every credential row ends with (gated): the row's folder — its log, dumps, saved ring slices — and
+# `adb logcat -d`, for the secrets given and any tmdb.* value local.properties still holds. Its output names files
+# only; it is kept in a scratch file until the scan is over (so the scan does not read its own report) and then
+# copied beside the row.
+leak_scan_row() { # secrets…
+  local tmp rc
+  rings_save
+  tmp="$(mktemp)"
+  bash "$P17/scripts/leak_scan.sh" --logcat --path "$ROW_DIR" -- "$@" > "$tmp" 2>&1; rc=$?
+  cp "$tmp" "$ROW_DIR/leak_scan.txt"; rm -f "$tmp"
+  assert_eq "leak scan (leak_scan.sh --logcat --path <the row's folder> -- <$# secrets>): nothing matched" "0" "$rc"
+  record "leak scan: clean / MATCH lines" "$(grep -c '^clean' "$ROW_DIR/leak_scan.txt") / $(grep -c '^MATCH' "$ROW_DIR/leak_scan.txt")"
+}
+
+# Files under the shell's data that hold a text, read AS ROOT (E22's own clause: `adb root`, `grep -rlF … /data/data/
+# app.tileshell/`). Only inside the guard's span, where adbd is root. Prints file names, never the text.
+root_files_holding() { # text
+  [ "$(adb shell id -u | tr -d '\r')" = 0 ] || { echo "(adbd is not root: the grep did not run)"; return; }
+  adb shell "grep -rlF -- '$1' /data/data/app.tileshell/ /data/user_de/0/app.tileshell/ 2>/dev/null" | tr -d '\r' | head -5
+}
+# "Add a server" with the fixture's account; asserts the connected line. Leaves the Media server page up.
+server_add() { # dump-prefix
+  local mark; mark="$(ring_mark)"
+  server_page "$1"
+  server_form "$1" "$SERVER_HOST" "$SERVER_USER" "$SERVER_PW"; sleep 4.5
+  dump_ui "$1-library.xml"
+  SERVER_SLICE="$(vring "$mark")"
+  assert_contains "Add a server: [video] server $SERVER_HOST: connected" "[video] server $SERVER_HOST: connected" "$SERVER_SLICE"
+}
+
+# ---------------------------------------------------------------- the fake media server (fixtures/jellyfin/fake_jellyfin.py)
+FAKE_PORT=8097; FAKE_HOST="10.0.2.2:$FAKE_PORT"
+FAKE_ITEM="00112233445566778899aabbccddeeff"
+FAKE_TOKEN="qafaketoken0123456789abcdef012345"      # the fixture's own value (fake_jellyfin.py); never printed by a row
+EXTRA_PIDS=""
+fake_up() { # port log [mode]
+  python3 "$P17/fixtures/jellyfin/fake_jellyfin.py" --port "$1" --video "$GEN/qa-steps.mp4" --log "$2" --mode "${3:-ok}" 2>>"$ROW_DIR/fake.err" &
+  local pid=$! i
+  EXTRA_PIDS="$EXTRA_PIDS $pid"; echo "$pid" > "$ROW_DIR/fake-$1.pid"
+  for i in $(seq 1 40); do curl -s -o /dev/null "http://127.0.0.1:$1/__ready" && return 0; sleep 0.2; done
+  return 1
+}
+fake_down() { [ -f "$ROW_DIR/fake-$1.pid" ] && kill "$(cat "$ROW_DIR/fake-$1.pid")" 2>/dev/null; rm -f "${ROW_DIR:?}/fake-$1.pid"; return 0; }
+fake_mode() { curl -s -o /dev/null "http://127.0.0.1:$FAKE_PORT/__mode/$1"; }
+flines() { [ -f "$1" ] && wc -l < "$1" | tr -d ' ' || echo 0; }
+fsince() { [ -f "$1" ] && tail -n +"$(( $2 + 1 ))" "$1"; }
+# Put a text on the device's clipboard through the QA View app (base64, so a control character survives), and paste
+# it into the focused field (KEYCODE_PASTE). The text is never in a command line in the clear, and never logged.
+clip_set() { adb shell am start -W -n "$QAVIEW/.ViewProbeActivity" --es clip_b64 "$(printf '%s' "$1" | base64 -w0)" >/dev/null 2>&1; sleep 1.5; }
+clip_clear() { adb shell am start -W -n "$QAVIEW/.ViewProbeActivity" --ez clip_clear true >/dev/null 2>&1; sleep 1.2; }
+# logcat since a MARK (every tag), in logcat's epoch form. The device's log is never cleared: other rows read it too,
+# and a leak scan at a row's end must still see everything the row did.
+logcat_since() { adb logcat -d -T "$(( $1 / 1000 )).$(printf '%03d' $(( $1 % 1000 )))" 2>/dev/null | tr -d '\r'; }
