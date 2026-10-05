@@ -227,7 +227,7 @@ fun MediaServerPage(nav: VideoNav, activity: ComponentActivity) {
             )
             ServerState.UNAUTHORISED -> Column(Modifier.fillMaxSize().focusable().verticalScroll(rememberScrollState()).padding(start = 12.dp, end = 12.dp, top = 16.dp)) {
                 BasicText("Sign in again", Modifier.padding(bottom = 16.dp).testTag("server_notice"), style = ShellType.subtitle.copy(color = Color.White))
-                AddServerForm(config?.label.orEmpty(), config?.userName.orEmpty(), null) { reloads++ }
+                AddServerForm(ServerRules.signInAgainPrefill(config), config?.userName.orEmpty(), null) { reloads++ }
             }
             ServerState.CONNECTED -> if (items.isEmpty()) {
                 BasicText("There are no videos on this server.", Modifier.padding(start = 12.dp, top = 20.dp).testTag("server_notice"), style = ShellType.subtitle.copy(color = Color.White))

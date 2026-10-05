@@ -39,7 +39,11 @@ class ServerStore(private val dir: File, private val credentials: CredentialFile
     /** What the pages show, or null when no server's file is there. Reads the file every time. */
     fun display(): ServerConfig? {
         val o = runCatching { MiniJson.parseOrNull(file.readText(Charsets.UTF_8)).jsonObject() }.getOrNull() ?: return null
-        return ServerConfig(o.jsonString("label") ?: return null, o.jsonString("userName").orEmpty(), o.jsonString("address").orEmpty())
+        return ServerConfig(
+            o.jsonString("label") ?: return null, o.jsonString("userName").orEmpty(),
+            // A file written before the address was kept has the server's base under its old name.
+            o.jsonString("address") ?: o.jsonString("base").orEmpty(),
+        )
     }
 
     /**

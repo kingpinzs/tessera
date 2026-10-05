@@ -138,6 +138,12 @@ object ServerRules {
     fun signInBase(debug: Boolean, qaPref: String?, typedBase: String): String =
         CatalogueRules.base(debug, qaPref, typedBase).trimEnd('/')
 
+    /**
+     * What "Sign in again" puts in the address field (B-2): the saved server's whole address — scheme and port kept —
+     * so a server saved as https is signed in to over https again. [parse] reads it back to the same server.
+     */
+    fun signInAgainPrefill(saved: ServerConfig?): String = saved?.address?.takeIf { it.isNotBlank() } ?: saved?.label.orEmpty()
+
     /** `[video] server <host>: <state>` — the host and the state only. */
     fun line(label: String, state: String): String = "server $label: $state"
 

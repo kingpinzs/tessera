@@ -1,6 +1,7 @@
 package app.tileshell.video
 
 import app.tileshell.video.server.PromptAnswer
+import app.tileshell.video.server.ServerConfig
 import app.tileshell.video.server.ServerItem
 import app.tileshell.video.server.ServerRules
 import app.tileshell.video.server.ServerState
@@ -109,6 +110,25 @@ class ServerRulesTest {
         // Only an http(s) address redirects, as for the catalogue's pref.
         assertEquals(typed, ServerRules.signInBase(true, "file:///sdcard/x", typed))
         assertEquals(typed, ServerRules.signInBase(true, "10.0.2.2:8097", typed))
+    }
+
+    @Test fun `sign in again is prefilled with the saved server's scheme, host and port`() {
+        for (typed in listOf("https://media.example.org", "https://media.example.org:8920", "https://[2001:db8::1]:8920", "http://192.168.1.10", "nas.local:8097", "HTTPS://Media.Example.ORG/")) {
+            val first = ServerRules.parse(typed)!!
+            // What a sign-in saves for the pages: the label and the address as it was read.
+            val saved = ServerConfig(first.label, "qa", first.base)
+            val again = ServerRules.parse(ServerRules.signInAgainPrefill(saved))!!
+            assertEquals(typed, first.scheme, again.scheme)
+            assertEquals(typed, first.host, again.host)
+            assertEquals(typed, first.port, again.port)
+            assertEquals(typed, first.base, again.base)
+            // So an https server is never asked for its password over plain http.
+            assertEquals(typed, ServerRules.needsInsecurePrompt(first), ServerRules.needsInsecurePrompt(again))
+        }
+        assertEquals("https://media.example.org", ServerRules.signInAgainPrefill(ServerConfig("media.example.org", "qa", "https://media.example.org")))
+        assertEquals("", ServerRules.signInAgainPrefill(null))
+        // A file with no address (none was kept before this fix) falls back to the label.
+        assertEquals("10.0.2.2:8096", ServerRules.signInAgainPrefill(ServerConfig("10.0.2.2:8096", "qa", "")))
     }
 
     @Test fun `the three states have their words and their lines`() {

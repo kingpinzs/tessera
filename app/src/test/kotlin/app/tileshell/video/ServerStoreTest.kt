@@ -180,6 +180,12 @@ class ServerStoreTest {
         assertNull(sealed(5, "http://10.0.2.2:8096", "ab12"))
     }
 
+    @Test fun `the pages' file from before the address was kept still names its server's scheme`() {
+        config.writeText(MiniJson.write(mapOf("base" to "https://media.example.org", "label" to "media.example.org", "userId" to "a1ab", "userName" to "qa")))
+        assertEquals(ServerConfig("media.example.org", "qa", "https://media.example.org"), store().display())
+        assertEquals("https://media.example.org", app.tileshell.video.server.ServerRules.signInAgainPrefill(store().display()))
+    }
+
     @Test fun `removing the server removes the sealed entry and the file`() {
         assertTrue(store().save(home, shown))
         store().remove()
