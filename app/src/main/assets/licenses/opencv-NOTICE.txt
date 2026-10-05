@@ -1,0 +1,21 @@
+OpenCV 4.14.0 (https://opencv.org) — the panorama stitcher of the Camera app.
+
+The Camera's Panorama mode is stitched by OpenCV's `stitching` module. The official OpenCV 4.14.0 Android SDK's
+static libraries (core, imgproc, features2d, flann, calib3d, stitching) are linked into one library,
+libopencv_pano.so, for arm64-v8a. OpenCV is licensed under the Apache License 2.0 (opencv-4.14.0-LICENSE.txt).
+
+Third-party code the SDK links into that library, each under its own licence:
+  - Intel Threading Building Blocks (TBB) — Apache License 2.0 (opencv-tbb-LICENSE.txt)
+  - Android NDK cpufeatures — BSD 2-Clause (opencv-cpufeatures-LICENSE.txt)
+  - Intel ITT Notify (ittnotify) — dual licensed GPL-2.0-only / BSD 3-Clause; used under the BSD 3-Clause licence
+    (opencv-ittnotify-BSD-3-Clause.txt)
+  - AKAZE and KAZE features (features2d) — BSD 3-Clause (opencv-features2d-AKAZE-LICENSE.txt,
+    opencv-features2d-KAZE-LICENSE.txt)
+  - MSCR chi table (features2d) — BSD 3-Clause (opencv-mscr-chi_table-LICENSE.txt)
+  - Berkeley SoftFloat (core) — BSD 3-Clause (opencv-SoftFloat-COPYING.txt)
+  - Arm KleidiCV (the arm64 hardware-acceleration layer) — Apache License 2.0, Copyright Arm Limited and/or its
+    affiliates; the same licence text as opencv-4.14.0-LICENSE.txt. The SDK ships no separate licence file for it.
+  - The Tegra hardware-acceleration layer (carotene) — BSD 3-Clause, Copyright NVIDIA Corporation; its terms are in
+    the source files of OpenCV's hal/carotene. The SDK ships no separate licence file for it.
+
+No non-free algorithm is linked (the official binary is built with "Non-free algorithms: NO").
