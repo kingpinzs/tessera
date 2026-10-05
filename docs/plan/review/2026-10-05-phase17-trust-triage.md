@@ -93,3 +93,35 @@ config is the nine denied hosts plus 10.0.2.2; no phase 17 activity starts an In
    reviewers' reports as quoted in `.claude-build-state.md`'s entry of this date.
 4. OWNER items, each asked one at a time at the gate if not ruled before: A-M1's API 34 edge; B-11's FLAG_SECURE;
    C-L2's process move; C-M1's CI rule.
+
+---
+
+# Round 2 — review B re-run in full on the fixed code (e5e30678), 2026-10-05
+
+Verdict: **FAIL — no HIGH, four MEDIUM.** Everything was RUN this time: 128 baseline tests of `net` + `video`, then 175
+single-change runs (53 guard-removed, 106 subtly-wrong, 16 call-site): 91 mutations caught, 14 survived. Round 1's HIGH
+(B-1) is fixed at the rule level and its tests were seen to fail without the fix; **its call sites are proven by
+nothing until the device legs run.** No JVM test pins a defect as correct; one dev script does (B2-M2).
+
+| # | Sev | Finding | Triage |
+|---|---|---|---|
+| B2-M1 | MEDIUM | A live server token can exist while the hub says "no server" and offers no Remove: "set up" needs the pages' file AND the sealed entry, but the player's token path reads the sealed entry alone; `ServerStore.remove()` ignores a failed credential removal, deletes the pages' file, and `[video] server token cleared` is written regardless (probe run: storage full → the token still rides). The same after a kill between `save()`'s two writes. An earlier build's bare token, or an entry whose key is gone, is never deleted. `TMDB key removed` is also written whether or not it worked. | FIX: `remove()` reports whether the sealed entry went; the line is written only then and the pages' file deleted only after it; the stream token also needs the pages' file; on hub start an entry with no file, or one that does not open as a sealed server, is removed; the TMDB line likewise. Tests for each. |
+| B2-M2 | MEDIUM | Any app with no permission (or a web link) can make the stored token travel: a VIEW of the saved server's own `/Videos/<hex>/stream?…` gets the owner's token attached and the item played. Only to the saved server, nothing returns to the caller, but the caller picks the item and the stream parameters. | FIX: the token resolver only for the shell's own launch, as a tested rule. |
+| B2-M3 | MEDIUM | Every fix's CALL SITE is unproven: 14 of 14 wiring mutations survive (the key page storing an unvalidated paste; the form sending at once; the debug gates; the resolver using the wrong token function; the reported URI; `ownCaller = true`; the secret field in the clear; the cipher with no AAD or a 128-bit key). | ROW (the fixes file's device legs, plus: a sealed entry moved under the other name reads as absent) + FIX (JVM source-scan tests: the three QA-pref reads pass `BuildConfig.DEBUG`; the key page stores only the validator's result). |
+| B2-M4 | MEDIUM | Test gaps on rules that hold today: redirects with headers not followed (two sites); the check of an already-stored key in `Catalogue.request`; a failed rename in `CredentialFile.write`; the private-address rule's 172.16–31 bound for other first octets and "any name ending localhost"; `posterBase` with `contains`. | FIX: a test each. |
+| B2-L1 | LOW | `FetchOutcome.Answer`'s `toString()` is the body (a sign-in answer holds the token). Nothing prints it. | FIX. |
+| B2-L2 | LOW | Evidence: `dev-video/C_CATALOGUE-run1/C_CATALOGUE.txt` holds the fixture's DUMMY TMDB token in two PASS lines (the harness printed its needle). | NOTE: evidence stays; the gate's leak scans run over the gate rows' folders; this file is a known dev-proof match of a dummy. |
+| B2-L3 | LOW | The extraction rules omit the `.tmp` / `.lock` files, `media_server_device.txt` and `video_catalogue/`. | FIX. |
+| B2-L4 | LOW | No total deadline on a response read. | FIX if small, else NOTE. |
+| B2-L5 | LOW | Server-supplied text (a title, the query) reaches `[video]` lines unbounded outside the player. | FIX: the same cleaner. |
+| B2-L6 | LOW | `mayCarryToken` does not percent-decode the caller's own key name; `reportedUrl` misses a `;`-separated key. | FIX. |
+| B2-L7 | LOW | The key field cuts a paste at the cap: an over-long paste is stored truncated. | FIX: refuse, do not truncate. |
+| B2-L8 | LOW | The Keystore key allows use while locked "for the player", which never runs over the keyguard. | FIX: unlocked-device-required for a newly made key; say what happens to an existing key. |
+| B2-L9 | LOW | The doc says on Android 14 another app's item is refused "unless it is that app's own provider"; by the code an unnamed app's own provider is refused too. | DOC. |
+| B2-L10 | LOW | The pasted token stays on the clipboard. | OWNER (with the screenshots question). |
+
+Held: the IV is Keystore-made per seal; base, token and user id are one plaintext, so the base cannot be swapped; the
+origin compare survives trailing dots, IPv6 default ports, user-info and case; the private rule fails toward asking;
+the JSON reader survives 200k nested brackets; only `VideoHttp` sets headers, each a constant or guarded; no intent,
+MediaItem or session metadata carries a token; the secret field reads as dots in all 140 UI dumps. The search of all
+807 dev-video files found no real credential (the redaction in D_SERVER-run2 confirmed; the one dummy match is B2-L2).
