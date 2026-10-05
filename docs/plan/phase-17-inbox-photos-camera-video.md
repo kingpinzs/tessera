@@ -82,6 +82,34 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
 "local-only" Movies & TV build (Hard Rule 16 — the interview ruled the fuller forms).
 
 ## Decisions
+- 2026-10-05 10:50 (agent, r3 V12 — **the editor's colour matrices, fixed before build task 5 starts**; the look is H13b's
+  call). Each is a 4 × 5 matrix in Android's `ColorMatrix` order — rows R′ G′ B′ A′, columns r g b a and a constant
+  on the 0–255 scale — applied to each pixel's 8-bit sRGB values as they are (no linearising), each result rounded to
+  the nearest integer and clamped to 0–255; alpha is unchanged. `qa/phase-17/scripts/edit_expect.py` reads the
+  `matrix` lines of the block below from this doc, and the app's table (`photos/EditMatrices.kt`) holds the same
+  numbers with a JVM test that reads this block too, so neither the driver nor the build can drift from it.
+  **Tools:** auto-enhance is the one `enhance` matrix (contrast 1.2 about mid-grey, then saturation 1.15). **Light** has
+  steps −5 … +5; step k is the identity with the constant 20·k on R, G and B (`light:+1` and `light:-1` below are k = ±1).
+  **Colour** has steps −4 … +4; step k is the saturation matrix for s = 1 + 0.25·k with the luma weights 0.213 / 0.715 /
+  0.072 — R′ = (0.213·(1 − s) + s)·r + 0.715·(1 − s)·g + 0.072·(1 − s)·b, and G′, B′ alike (`colour:+1`, `colour:-1`
+  below; k = −4 is greyscale). **Filters** (six, one at a time, "None" removes it): Mono, Sepia, Warm, Cool, Vivid,
+  Fade. Tools compose in the fixed order filter → light → colour → enhance, whatever order they were tapped in. On the
+  flat fixtures qa-photo-0..2 every matrix below moves at least one channel by ≥ 16 (computed on the host when this
+  line was written), so E6's identity check can fail.
+
+```
+  matrix enhance       1.3417 -0.1287 -0.013 0 -25.6 -0.0383 1.2513 -0.013 0 -25.6 -0.0383 -0.1287 1.367 0 -25.6 0 0 0 1 0
+  matrix light:+1      1 0 0 0 20 0 1 0 0 20 0 0 1 0 20 0 0 0 1 0
+  matrix light:-1      1 0 0 0 -20 0 1 0 0 -20 0 0 1 0 -20 0 0 0 1 0
+  matrix colour:+1     1.1967 -0.1787 -0.018 0 0 -0.0532 1.0713 -0.018 0 0 -0.0532 -0.1787 1.232 0 0 0 0 0 1 0
+  matrix colour:-1     0.8033 0.1787 0.018 0 0 0.0532 0.9287 0.018 0 0 0.0532 0.1787 0.768 0 0 0 0 0 1 0
+  matrix filter:mono   0.213 0.715 0.072 0 0 0.213 0.715 0.072 0 0 0.213 0.715 0.072 0 0 0 0 0 1 0
+  matrix filter:sepia  0.393 0.769 0.189 0 0 0.349 0.686 0.168 0 0 0.272 0.534 0.131 0 0 0 0 0 1 0
+  matrix filter:warm   1.1 0 0 0 10 0 1 0 0 0 0 0 0.9 0 -10 0 0 0 1 0
+  matrix filter:cool   0.9 0 0 0 -10 0 1 0 0 0 0 0 1.1 0 10 0 0 0 1 0
+  matrix filter:vivid  1.3935 -0.3575 -0.036 0 0 -0.1065 1.1425 -0.036 0 0 -0.1065 -0.3575 1.464 0 0 0 0 0 1 0
+  matrix filter:fade   0.8 0 0 0 38 0 0.8 0 0 38 0 0 0.8 0 38 0 0 0 1 0
+```
 - 2026-10-05 10:39 (agent, build task 0 — **the build-start checks**; every source and the AVD's facts are in
   `qa/phase-17/BUILDSTART/README.md`; INDEX Change Log of this date):
   - **BS-1 (panorama's library).** OpenCV 4.14.0, Apache-2.0 (its LICENSE file at the tag). Not the Maven AAR: its Java
