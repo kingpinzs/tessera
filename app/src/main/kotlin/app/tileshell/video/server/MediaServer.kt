@@ -73,7 +73,7 @@ class MediaServer(context: Context) {
                     ServerState.UNREACHABLE
                 } else {
                     // Connected only when the token, the address it belongs to and the page's file are all written.
-                    val saved = store.save(ServerCredential(signIn.first, base, signIn.second), ServerConfig(address.label, user, address.base))
+                    val saved = store.save(ServerCredential(signIn.token, base, signIn.userId), ServerConfig(address.label, user, address.base))
                     if (saved) ServerState.CONNECTED else ServerState.UNREACHABLE
                 }
             }
@@ -162,7 +162,7 @@ class MediaServer(context: Context) {
                 val token = VideoCalls.guarded<String?>("server stream token", null, { Diagnostics.add("video", it) }) { storeOf(app).streamToken(url) }
                 if (token != null) {
                     // The line shows the address with its query string removed: the token's place (C-32).
-                    Diagnostics.add("video", "server stream ${ServerRules.withoutQuery(url)}")
+                    Diagnostics.add("video", ServerRules.streamLine(url))
                     spec.withUri(spec.uri.buildUpon().appendQueryParameter("ApiKey", token).build())
                 } else spec
             }

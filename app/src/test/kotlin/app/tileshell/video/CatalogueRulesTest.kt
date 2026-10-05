@@ -92,6 +92,9 @@ class CatalogueRulesTest {
 
     @Test fun `the lines carry the query and the status only`() {
         assertEquals("catalogue \"Blade Runner\": 3", CatalogueRules.line("Blade Runner", CatalogueRules.countStatus(3, false)))
+        // B2-L5: the query is the user's text and a title is the catalogue's: one line, bounded, whatever it holds.
+        assertEquals("catalogue \"blade[video] server x: connected\": 3", CatalogueRules.line("blade\n[video] server x: connected\r\u2028", "3"))
+        assertEquals("catalogue \"${"q".repeat(80)}\": offline", CatalogueRules.line("q".repeat(500), "offline"))
         assertEquals("catalogue \"Blade Runner\": 3 (refreshed)", CatalogueRules.line("Blade Runner", CatalogueRules.countStatus(3, true)))
         assertEquals("catalogue \"Blade Runner\": error 500", CatalogueRules.line("Blade Runner", CatalogueRules.errorStatus(FetchOutcome.Status(500))))
         assertEquals("error connect", CatalogueRules.errorStatus(FetchOutcome.NoConnection))

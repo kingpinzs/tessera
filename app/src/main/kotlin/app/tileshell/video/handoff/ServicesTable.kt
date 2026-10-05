@@ -4,6 +4,7 @@ import app.tileshell.net.MiniJson
 import app.tileshell.net.jsonArray
 import app.tileshell.net.jsonObject
 import app.tileshell.net.jsonString
+import app.tileshell.video.VideoLines
 import app.tileshell.video.catalogue.TitleType
 import java.net.URLEncoder
 import java.util.Locale
@@ -189,9 +190,9 @@ object ServicesTable {
 
     /** `[video] watch-on <service> "<title>": id <found|none> (wikidata)`. */
     fun idLine(service: StreamingService, title: TitleRef, found: Boolean): String =
-        "watch-on ${service.id} \"${title.name}\": id ${if (found) "found" else "none"} (wikidata)"
+        "watch-on ${service.id} \"${VideoLines.text(title.name)}\": id ${if (found) "found" else "none"} (wikidata)"
 
     /** `[video] watch-on <service> "<title>" -> <intent> | not installed`: the address opened, `launch`, or `not installed`. */
     fun openLine(service: StreamingService, title: TitleRef, opened: String): String =
-        "watch-on ${service.id} \"${title.name}\" -> $opened"
+        "watch-on ${service.id} \"${VideoLines.text(title.name)}\" -> ${VideoLines.text(opened, VideoLines.ADDRESS_MAX)}"
 }

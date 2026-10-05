@@ -5,6 +5,7 @@ import app.tileshell.video.server.ServerConfig
 import app.tileshell.video.server.ServerItem
 import app.tileshell.video.server.ServerRules
 import app.tileshell.video.server.ServerState
+import app.tileshell.video.server.SignIn
 import app.tileshell.video.server.SignInAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -170,9 +171,64 @@ class ServerRulesTest {
         assertFalse(ServerRules.authorization("Pixel\r", "d\r\n", "1", "tok\ren").contains('\r'))
     }
 
+    // ---- B2-L1, B2-L5, B2-L6
+
+    @Test fun `no text form of an answer or of a sign-in holds the body, the token or the user's id`() {
+        val body = """{"User":{"Id":"7e0a575717d34c8292ee80ac53cc1ee3"},"AccessToken":"QA-SECRET-0123456789abcdef"}"""
+        val answer = app.tileshell.video.catalogue.FetchOutcome.Answer(body)
+        assertEquals("Answer(${body.length} chars)", answer.toString())
+        assertEquals("Answer(0 chars)", app.tileshell.video.catalogue.FetchOutcome.Answer("").toString())
+        // Printed as part of something else, too.
+        assertFalse(listOf<Any>(answer, "x" to answer).toString().contains("QA-SECRET"))
+        // The answer is still its body to the code that reads it, and equal to an answer with the same body.
+        assertEquals(body, answer.body)
+        assertEquals(app.tileshell.video.catalogue.FetchOutcome.Answer(body), answer)
+        val signIn = ServerRules.parseSignIn(body)!!
+        assertEquals("QA-SECRET-0123456789abcdef", signIn.token)
+        assertEquals("SignIn", signIn.toString())
+        assertFalse("$signIn ${listOf(signIn)}".contains("QA-SECRET") || "$signIn".contains("7e0a5757"))
+    }
+
+    @Test fun `a server's name with a line break in it is one bounded line`() {
+        // The label is read from the pages' file - a plain file - on every library read.
+        val line = ServerRules.line("nas.local\n[video] server token cleared\r\u2028\u0085x", "connected")
+        assertEquals("server nas.local[video] server token clearedx: connected", line)
+        assertEquals("server ${"h".repeat(80)}: unreachable", ServerRules.line("h".repeat(500), "unreachable"))
+        assertEquals("server 10.0.2.2:8096: connected", ServerRules.line("10.0.2.2:8096", "connected"))
+        val stream = ServerRules.streamLine("http://10.0.2.2:8096/Videos/e9/stream%0A\n[cred] x?ApiKey=QA-SECRET")
+        assertEquals("server stream http://10.0.2.2:8096/Videos/e9/stream%0A[cred] x", stream)
+        assertEquals(300, ServerRules.streamLine("http://10.0.2.2:8096/" + "a".repeat(900) + "/stream").removePrefix("server stream ").length)
+    }
+
+    @Test fun `the caller's own key stops the token however its name is spelled or separated`() {
+        val base = "http://10.0.2.2:8096"
+        val plain = "$base/Videos/e90356d9dbdedc30a27710927ef3ac87/stream"
+        assertTrue(ServerRules.mayCarryToken("$plain?static=true", base))
+        assertTrue(ServerRules.mayCarryToken("$plain?static=true;container=mp4", base))
+        for (query in listOf(
+            "static=true&Api%4Bey=x", "static=true&%41piKey=x", "%61pi_key=x", "api%5Fkey=x", "static=true&%41%50%49%4B%45%59=x",
+            "static=true;ApiKey=x", "static=true;api_key=x", "a=1;b=2;Api%4bey=x", "ApiKey=x;static=true", "static=true&a=1;APIKEY",
+        )) {
+            assertFalse(query, ServerRules.mayCarryToken("$plain?$query", base))
+        }
+    }
+
+    @Test fun `the reported address loses a key that follows a semicolon, and keeps every other separator`() {
+        val plain = "http://10.0.2.2:8096/Videos/e90356d9dbdedc30a27710927ef3ac87/stream"
+        assertEquals("$plain?static=true", ServerRules.reportedUrl("$plain?static=true;ApiKey=QA-SECRET"))
+        assertEquals("$plain?static=true", ServerRules.reportedUrl("$plain?ApiKey=QA-SECRET;static=true"))
+        assertEquals("$plain?a=1;b=2&c=3#t=5", ServerRules.reportedUrl("$plain?a=1;api_key=QA-SECRET;b=2&Api%4Bey=QA-SECRET&c=3#t=5"))
+        assertEquals("$plain?a=1&b=2;c=3", ServerRules.reportedUrl("$plain?a=1&b=2;c=3;ApiKey=QA-SECRET"))
+        assertEquals(plain, ServerRules.reportedUrl("$plain?ApiKey=QA-SECRET;api_key=QA-SECRET"))
+        for (same in listOf("$plain?a=1;b=2", "$plain?", "$plain?a=1&&b=2", "$plain?a;b#x;ApiKey=in-the-fragment")) assertEquals(same, ServerRules.reportedUrl(same))
+        for (url in listOf("$plain?x;ApiKey=QA-SECRET", "$plain?;ApiKey=QA-SECRET;", "$plain?x=1;%41piKey=QA-SECRET")) {
+            assertFalse(url, ServerRules.reportedUrl(url).contains("QA-SECRET"))
+        }
+    }
+
     @Test fun `a sign-in answer whose token is not a plain token is a failed sign-in`() {
         fun answer(token: String) = app.tileshell.net.MiniJson.write(mapOf("User" to mapOf("Id" to "7e0a575717d34c8292ee80ac53cc1ee3"), "AccessToken" to token))
-        assertEquals("0123456789abcdef" to "7e0a575717d34c8292ee80ac53cc1ee3", ServerRules.parseSignIn(answer("0123456789abcdef")))
+        assertEquals(SignIn("0123456789abcdef", "7e0a575717d34c8292ee80ac53cc1ee3"), ServerRules.parseSignIn(answer("0123456789abcdef")))
         for (bad in listOf("abc\rdef", "abc\ndef", "abc\tdef", "abc def", "abc\"def", "abc\u007fdef", "abc\u0000def", "abcédef", "a,b", "a=b")) {
             assertNull(bad.take(8), ServerRules.parseSignIn(answer(bad)))
         }
@@ -185,7 +241,7 @@ class ServerRulesTest {
 
     @Test fun `Jellyfin's sign-in and library answers are read`() {
         val signIn = """{"User":{"Name":"qa","Id":"7e0a575717d34c8292ee80ac53cc1ee3"},"SessionInfo":{},"AccessToken":"0123456789abcdef0123456789abcdef","ServerId":"x"}"""
-        assertEquals("0123456789abcdef0123456789abcdef" to "7e0a575717d34c8292ee80ac53cc1ee3", ServerRules.parseSignIn(signIn))
+        assertEquals(SignIn("0123456789abcdef0123456789abcdef", "7e0a575717d34c8292ee80ac53cc1ee3"), ServerRules.parseSignIn(signIn))
         assertNull(ServerRules.parseSignIn("""{"User":{"Id":"u"}}"""))
         assertNull(ServerRules.parseSignIn("""{"AccessToken":"t"}"""))
         assertNull(ServerRules.parseSignIn("Error processing request."))

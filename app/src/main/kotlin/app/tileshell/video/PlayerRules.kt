@@ -148,24 +148,17 @@ object PlayerRules {
     const val LINE_NO_GRANT = "refused source: no grant"
 
     /** The longest piece of caller-supplied text a `[video]` line carries, and the longest session title. */
-    const val LINE_MAX = 80
+    const val LINE_MAX = VideoLines.MAX
     const val TITLE_MAX = 200
 
     private val MEDIA_VIDEO_PATH = Regex("^/[^/]+/video/media/(\\d+)$")
 
     /**
-     * THE one place caller-supplied text is made fit for a line or a title (C-L1, C-L7): every control character is
-     * dropped — C0 and C1, DEL, and the Unicode line and paragraph separators, so a `%0A` in an address cannot start a
-     * forged line — and what is left is cut to [max] characters. A scheme, a host label, a last path segment, a
-     * provider's display name and `EXTRA_TITLE` all pass through here before they are kept.
+     * Caller-supplied text made fit for a line or a title (C-L1, C-L7) by the hub's one cleaner, [VideoLines.text]: a
+     * scheme, a host label, a last path segment, a provider's display name and `EXTRA_TITLE` all pass through here
+     * before they are kept.
      */
-    fun lineText(text: String?, max: Int = LINE_MAX): String = buildString {
-        for (c in text.orEmpty()) {
-            if (length >= max) break
-            val control = c < ' ' || c in '\u007f'..'\u009f' || c == '\u2028' || c == '\u2029'
-            if (!control) append(c)
-        }
-    }
+    fun lineText(text: String?, max: Int = LINE_MAX): String = VideoLines.text(text, max)
 
     /**
      * The whole decision for a source: who may open it ([PlayerAccess.decide]), then the scheme rule ([classify]).

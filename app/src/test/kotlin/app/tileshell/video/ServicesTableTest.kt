@@ -82,6 +82,14 @@ class ServicesTableTest {
         val plan = ServicesTable.plan(service("qa-flix"), film, mapOf("primeGti" to "amzn1.dv.gti.qa-78"))
         assertEquals(HandoffPlan.Search("https://qa-flix.test/search?q=Blade+Runner+1982"), plan)
         assertEquals("watch-on qa-flix \"Blade Runner\": id none (wikidata)", ServicesTable.idLine(service("qa-flix"), film, false))
+        // B2-L5: a title is the catalogue's text. With a line break in it the line is still one line, and bounded.
+        val forged = film.copy(name = "Blade\n[cred] tmdb: saved\r\u2029 Runner")
+        assertEquals("watch-on qa-flix \"Blade[cred] tmdb: saved Runner\" -> not installed", ServicesTable.openLine(service("qa-flix"), forged, "not installed"))
+        assertEquals("watch-on qa-flix \"Blade[cred] tmdb: saved Runner\": id found (wikidata)", ServicesTable.idLine(service("qa-flix"), forged, true))
+        assertEquals("watch-on qa-flix \"${"T".repeat(80)}\" -> launch", ServicesTable.openLine(service("qa-flix"), film.copy(name = "T".repeat(400)), "launch"))
+        val opened = ServicesTable.openLine(service("qa-flix"), film, "https://qa-flix.test/search?q=x\n[video] forged" + "y".repeat(900))
+        assertFalse(opened.contains('\n'))
+        assertEquals(300, opened.substringAfter("-> ").length)
         assertEquals("watch-on qa-flix \"Blade Runner\" -> not installed", ServicesTable.openLine(service("qa-flix"), film, "not installed"))
     }
 

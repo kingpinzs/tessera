@@ -6,6 +6,7 @@ import app.tileshell.net.jsonArray
 import app.tileshell.net.jsonLong
 import app.tileshell.net.jsonObject
 import app.tileshell.net.jsonString
+import app.tileshell.video.VideoLines
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
@@ -88,7 +89,10 @@ enum class CatalogueNotice(val text: String?) {
 
 /** How one catalogue request ended. */
 sealed interface FetchOutcome {
-    data class Answer(val body: String) : FetchOutcome
+    data class Answer(val body: String) : FetchOutcome {
+        /** Never the body (B2-L1): a sign-in's answer holds the server's token, and a text form is what gets printed. */
+        override fun toString(): String = "Answer(${body.length} chars)"
+    }
     /** @param retryAfterSeconds the answer's `Retry-After`, when it sent one (a 429) */
     data class Status(val code: Int, val retryAfterSeconds: Long? = null) : FetchOutcome
 
@@ -125,7 +129,7 @@ object CatalogueRules {
     fun isStale(ageMs: Long): Boolean = ageMs > CACHE_MS
 
     /** `[video] catalogue "<q>": <n> | <n> (refreshed) | offline | error <code>` — the query and the status only (C-32). */
-    fun line(subject: String, status: String): String = "catalogue \"$subject\": $status"
+    fun line(subject: String, status: String): String = "catalogue \"${VideoLines.text(subject)}\": $status"
 
     fun countStatus(count: Int, replacedStale: Boolean): String = if (replacedStale) "$count (refreshed)" else count.toString()
 
