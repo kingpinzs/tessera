@@ -79,6 +79,18 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
 "local-only" Movies & TV build (Hard Rule 16 — the interview ruled the fuller forms).
 
 ## Decisions
+- 2026-10-05 09:01: Review question Q-17-1 (round 3, D2 / V15: as ruled under Q-A2 B, film search could never work on the
+  phone — the phone installs only CI builds, a PC build is versionCode 1 and is refused over them, and no route gets a PC
+  build onto the phone without a cable) — **the owner pastes his TMDB read token once into Movies & TV's settings on the
+  phone; it is stored encrypted on the device (an Android Keystore key) and is never in any build, the repo, CI or a log**
+  (Jeremy: "(a)"). SUPERSEDES Q-A2 B's "the key is built in only in builds made on Jeremy's PC" and its recorded
+  consequence; Q-A2's purpose stands — no key in the public repo or in any APK. Consequences, applied with round 3's
+  "A after Q-17-1" rows: no TMDB field in BuildConfig (D14 keeps `buildConfig = true` for the `BuildConfig.DEBUG` gates
+  only); with no token saved, Browse says film search needs a key and links to the setting (diagnostics: "catalogue: no
+  TMDB key saved"); a bad token is reported from TMDB's 401 and the token can be replaced or removed; P13, P15, H10 and H11
+  run on the CI build the owner installs, after he pastes the token; the AVD's catalogue rows type a dummy token into the
+  same setting against the local stand-in. The stored token is trust-touching (a credential): it joins the adversarial
+  review's list, with the Jellyfin token.
 - 2026-09-23: Review question Q-D — plain http is allowed for MEDIA only (Jeremy: "(a)"): radio stream URLs and the user's
   Jellyfin server may use http; the shell's own fixed endpoints (TMDB, radio-browser's directory, MusicBrainz / Cover Art
   Archive, weather) stay https-only, enforced by Android's network security config (cleartext denied by default, permitted
