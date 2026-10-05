@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Phase 17 trust review, B-7. What never leaves this phone, by a cloud backup or by a device-to-device transfer: the
-  credential store's file (ciphertext whose key stays in this phone's Keystore, so it could not be opened elsewhere
-  anyway) and the media server's file (the server's host and the user's name). The application also sets
-  allowBackup="false"; on Android 12 and later that alone does not stop a device-to-device transfer - these rules do.
-  DataExtractionRulesTest holds the two names to the constants the stores write with.
+  Phase 17 trust review, B-7 and B2-L3. What never leaves this phone, by a cloud backup or by a device-to-device
+  transfer:
+   - the credential store's file (ciphertext whose key stays in this phone's Keystore, so it could not be opened
+     elsewhere anyway), with the temp file it is written through and its lock file;
+   - the media server's file (the server's host and the user's name), with its temp file, and the random device id the
+     server knows this install by;
+   - the catalogue's directory: saved answers, posters and the last search.
+  The application also sets allowBackup="false"; on Android 12 and later that alone does not stop a device-to-device
+  transfer - these rules do. DataExtractionRulesTest holds every name to the constant its writer uses.
 -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="file" path="credentials_v1.json" />
+        <exclude domain="file" path="credentials_v1.json.tmp" />
+        <exclude domain="file" path="credentials_v1.json.lock" />
         <exclude domain="file" path="media_server.json" />
+        <exclude domain="file" path="media_server.json.tmp" />
+        <exclude domain="file" path="media_server_device.txt" />
+        <exclude domain="file" path="video_catalogue" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="file" path="credentials_v1.json" />
+        <exclude domain="file" path="credentials_v1.json.tmp" />
+        <exclude domain="file" path="credentials_v1.json.lock" />
         <exclude domain="file" path="media_server.json" />
+        <exclude domain="file" path="media_server.json.tmp" />
+        <exclude domain="file" path="media_server_device.txt" />
+        <exclude domain="file" path="video_catalogue" />
     </device-transfer>
 </data-extraction-rules>
