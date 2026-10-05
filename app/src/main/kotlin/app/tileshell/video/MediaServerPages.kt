@@ -207,6 +207,7 @@ fun ServerSettingsPage(nav: VideoNav) {
 @Composable
 fun MediaServerPage(nav: VideoNav, activity: ComponentActivity) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var state by remember { mutableStateOf<ServerState?>(null) }
     var items by remember { mutableStateOf<List<ServerItem>>(emptyList()) }
     var config by remember { mutableStateOf<ServerConfig?>(null) }
@@ -247,7 +248,13 @@ fun MediaServerPage(nav: VideoNav, activity: ComponentActivity) {
                         Row(Modifier.fillMaxWidth().height(MyVideosMetrics.ROW_PITCH.dp).padding(start = VideoGroups.MARGIN.dp)) {
                             for ((i, item) in rows[index].withIndex()) {
                                 if (i > 0) Spacer(Modifier.width((VideoGroups.PITCH - VideoGroups.TILE).dp))
-                                ServerTile(item) { playFromServer(activity, item) }
+                                ServerTile(item) {
+                                    // The address is built on the sealed server's (a store read): off the main thread.
+                                    scope.launch {
+                                        val url = VideoCalls.io<String?>("server stream address", null) { MediaServer(context).streamUrl(item) }
+                                        if (url != null) playFromServer(activity, item, url)
+                                    }
+                                }
                             }
                         }
                     }
@@ -279,8 +286,7 @@ private fun ServerTile(item: ServerItem, onTap: () -> Unit) {
 }
 
 /** Direct play in the shared player: the address carries no token (the player's data source adds it as it opens). */
-private fun playFromServer(activity: ComponentActivity, item: ServerItem) {
-    val url = MediaServer(activity).config()?.let { ServerRules.streamUrl(it.base, item.id) } ?: return
+private fun playFromServer(activity: ComponentActivity, item: ServerItem, url: String) {
     val intent = Intent(Intent.ACTION_VIEW)
         .setClass(activity, PlayerActivity::class.java)
         .setDataAndType(Uri.parse(url), "video/*")

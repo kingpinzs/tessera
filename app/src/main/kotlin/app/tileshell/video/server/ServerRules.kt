@@ -212,6 +212,28 @@ object ServerRules {
         return query.split('&').none { it.substringBefore('=').equals("ApiKey", ignoreCase = true) || it.substringBefore('=').equals("api_key", ignoreCase = true) }
     }
 
+    /**
+     * Whether [url] is an address of the server at [base]: the same scheme, host and port (a scheme's default port
+     * made explicit), with no user part. What every request that carries the token is checked with (B-4).
+     */
+    fun sameServer(url: String, base: String): Boolean {
+        val origin = split(url)?.first ?: return false
+        return origin == split(base)?.first
+    }
+
+    /** A sealed server's parts as one text, and back. Null from [openCredential] when any part is not what it must be. */
+    fun sealCredential(credential: ServerCredential): String =
+        MiniJson.write(linkedMapOf("token" to credential.token, "base" to credential.base, "userId" to credential.userId))
+
+    fun openCredential(text: String): ServerCredential? {
+        val o = MiniJson.parseOrNull(text).jsonObject() ?: return null
+        val token = o.jsonString("token")?.takeIf(HeaderText::isSafeToken) ?: return null
+        // A server's address and nothing more: http(s), a host, a port — no user part, no path, no query.
+        val base = o.jsonString("base")?.takeIf { parse(it) != null && it.contains("://") } ?: return null
+        val userId = o.jsonString("userId")?.takeIf(SAFE_ID::matches) ?: return null
+        return ServerCredential(token, base, userId)
+    }
+
     /** `scheme://authority` in lower case with the scheme's default port made explicit, and what follows it. */
     private fun split(url: String): Pair<String, String>? {
         val schemeEnd = url.indexOf("://")
