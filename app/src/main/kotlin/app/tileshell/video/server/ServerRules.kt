@@ -1,5 +1,6 @@
 package app.tileshell.video.server
 
+import app.tileshell.net.HeaderText
 import app.tileshell.net.MiniJson
 import app.tileshell.net.jsonArray
 import app.tileshell.net.jsonObject
@@ -30,6 +31,9 @@ object ServerRules {
     const val TEXT_INSECURE = "This server isn't secure — your password would be sent unencrypted"
     const val TEXT_BAD_PASSWORD = "That password isn't right"
     const val TEXT_UNREACHABLE = "Can't reach your media server"
+
+    /** The state word of a sign-in whose answer cannot be used (no token, or one that is not a plain token). */
+    const val WORD_BAD_ANSWER = "sign-in answer not usable"
 
     private val HOST_NAME = Regex("[A-Za-z0-9]([A-Za-z0-9.-]{0,251}[A-Za-z0-9])?")
     private val IPV6_CHARS = Regex("[0-9A-Fa-f:.]{2,45}")
@@ -117,9 +121,14 @@ object ServerRules {
         else -> ServerState.UNREACHABLE
     }
 
-    /** Jellyfin's sign-in header (BS-5): who is calling; with a token, the same line carries it. Values are quoted. */
+    /**
+     * Jellyfin's sign-in header (BS-5): who is calling; with a token, the same line carries it. Values are quoted, and
+     * what comes back is always a value a header can carry ([HeaderText.isHeaderSafe]).
+     */
     fun authorization(deviceName: String, deviceId: String, version: String, token: String?): String {
-        fun q(v: String) = v.replace("\"", "").replace("\\", "").replace("\n", " ")
+        // Every control character, the quote and the backslash are dropped from every field (B-1): a value the
+        // platform would refuse as a header is one whose exception quotes the token.
+        fun q(v: String) = HeaderText.quoted(v)
         val base = "MediaBrowser Client=\"$CLIENT\", Device=\"${q(deviceName)}\", DeviceId=\"${q(deviceId)}\", Version=\"${q(version)}\""
         return if (token == null) base else "$base, Token=\"${q(token)}\""
     }
@@ -127,11 +136,15 @@ object ServerRules {
     /** The name the server lists the shell under (`AppName`). */
     const val CLIENT = "Tessera"
 
-    /** `POST /Users/AuthenticateByName`'s answer → the access token and the user's id. */
+    /**
+     * `POST /Users/AuthenticateByName`'s answer → the access token and the user's id. Null — a failed sign-in — when
+     * either is missing, when the token is anything but a plain token (letters, digits, `.`, `_`, `-`: it is sent in a
+     * header and in a stream's query), or when the user's id is not an id (it becomes part of an address). B-1.
+     */
     fun parseSignIn(body: String): Pair<String, String>? {
         val o = MiniJson.parseOrNull(body).jsonObject() ?: return null
-        val token = o.jsonString("AccessToken")?.takeIf { it.isNotBlank() } ?: return null
-        val user = o["User"].jsonObject()?.jsonString("Id")?.takeIf { it.isNotBlank() } ?: return null
+        val token = o.jsonString("AccessToken")?.takeIf(HeaderText::isSafeToken) ?: return null
+        val user = o["User"].jsonObject()?.jsonString("Id")?.takeIf(SAFE_ID::matches) ?: return null
         return token to user
     }
 

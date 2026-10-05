@@ -98,6 +98,28 @@ class ServerRulesTest {
         )
     }
 
+    @Test fun `no control character of any field reaches the sign-in header`() {
+        val everyControl = (0..0x1f).map { it.toChar() }.joinToString("") + "\u007f"
+        val header = ServerRules.authorization("Pix" + everyControl + "el", "abc" + everyControl + "-123", "0.1" + everyControl + ".0", "t0" + everyControl + "k")
+        assertEquals("MediaBrowser Client=\"Tessera\", Device=\"Pixel\", DeviceId=\"abc-123\", Version=\"0.1.0\", Token=\"t0k\"", header)
+        assertTrue(app.tileshell.net.HeaderText.isHeaderSafe(header))
+        // A carriage return is what HttpURLConnection refuses, quoting the whole header: none may be left.
+        assertFalse(ServerRules.authorization("Pixel\r", "d\r\n", "1", "tok\ren").contains('\r'))
+    }
+
+    @Test fun `a sign-in answer whose token is not a plain token is a failed sign-in`() {
+        fun answer(token: String) = app.tileshell.net.MiniJson.write(mapOf("User" to mapOf("Id" to "7e0a575717d34c8292ee80ac53cc1ee3"), "AccessToken" to token))
+        assertEquals("0123456789abcdef" to "7e0a575717d34c8292ee80ac53cc1ee3", ServerRules.parseSignIn(answer("0123456789abcdef")))
+        for (bad in listOf("abc\rdef", "abc\ndef", "abc\tdef", "abc def", "abc\"def", "abc\u007fdef", "abc\u0000def", "abcédef", "a,b", "a=b")) {
+            assertNull(bad.take(8), ServerRules.parseSignIn(answer(bad)))
+        }
+        // The user's id becomes part of an address: it is an id or the sign-in fails.
+        assertNull(ServerRules.parseSignIn("""{"User":{"Id":"u1&x=\r\ny"},"AccessToken":"0123456789abcdef"}"""))
+        assertNull(ServerRules.parseSignIn("""{"User":{"Id":"../Users"},"AccessToken":"0123456789abcdef"}"""))
+        // The line a failed sign-in writes holds the host and the words, and no part of the answer.
+        assertEquals("server 10.0.2.2:8096: sign-in answer not usable", ServerRules.line("10.0.2.2:8096", ServerRules.WORD_BAD_ANSWER))
+    }
+
     @Test fun `Jellyfin's sign-in and library answers are read`() {
         val signIn = """{"User":{"Name":"qa","Id":"7e0a575717d34c8292ee80ac53cc1ee3"},"SessionInfo":{},"AccessToken":"0123456789abcdef0123456789abcdef","ServerId":"x"}"""
         assertEquals("0123456789abcdef0123456789abcdef" to "7e0a575717d34c8292ee80ac53cc1ee3", ServerRules.parseSignIn(signIn))

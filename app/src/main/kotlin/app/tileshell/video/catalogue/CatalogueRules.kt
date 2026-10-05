@@ -102,6 +102,9 @@ object CatalogueRules {
 
     const val LINE_NO_KEY = "catalogue: no TMDB key saved"
 
+    /** The saved key cannot be a header's value, so no request is made with it (B-1). The line holds no part of it. */
+    const val LINE_UNUSABLE_KEY = "catalogue: the saved TMDB key cannot be sent"
+
     /**
      * An entry older than 7 days is stale. The catalogue is asked whenever the phone is online — a saved answer is
      * what the page falls back on offline or when the catalogue fails — and an answer that replaces a stale entry is

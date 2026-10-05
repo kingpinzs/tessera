@@ -9,6 +9,7 @@ import app.tileshell.BuildConfig
 import app.tileshell.diag.Diagnostics
 import app.tileshell.net.CredentialStore
 import app.tileshell.net.FixedEndpoints
+import app.tileshell.net.HeaderText
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -30,7 +31,12 @@ object QaBases {
     }
 }
 
-/** One GET, off the main thread, with the project's 10-s timeouts. Nothing here logs: a URL may carry a query. */
+/**
+ * One GET or POST, off the main thread, with the project's 10-s timeouts. TRUST-TOUCHING: a request's address may carry
+ * a query and its headers a credential, so nothing here logs either, and NO exception leaves a call — the platform's
+ * IllegalArgumentException for a header or an address it refuses quotes the whole value in its message (B-1). Such a
+ * request is "no connection", and its one line names the exception's class.
+ */
 object VideoHttp {
     const val TIMEOUT_MS = 10_000
 
@@ -61,9 +67,17 @@ object VideoHttp {
             else FetchOutcome.Status(code, conn.getHeaderField("Retry-After")?.trim()?.toLongOrNull())
         } catch (e: IOException) {
             FetchOutcome.NoConnection
+        } catch (e: RuntimeException) {
+            notSent(e)
+            FetchOutcome.NoConnection
         } finally {
             conn.disconnect()
         }
+    }
+
+    /** The class only — never `e.message`, which quotes the header or the address that was refused. */
+    private fun notSent(e: RuntimeException) {
+        Diagnostics.add("video", "http: request not sent (${e.javaClass.simpleName})")
     }
 
     fun bytes(url: String, headers: Map<String, String> = emptyMap()): ByteArray? {
@@ -75,6 +89,9 @@ object VideoHttp {
             for ((k, v) in headers) conn.setRequestProperty(k, v)
             if (conn.responseCode in 200..299) conn.inputStream.use { it.readBytes() } else null
         } catch (e: IOException) {
+            null
+        } catch (e: RuntimeException) {
+            notSent(e)
             null
         } finally {
             conn.disconnect()
@@ -143,6 +160,11 @@ class Catalogue(context: Context) {
         }
         val entry = cache.read(kind, key)
         val cached = entry?.let { parse(it.body) }
+        if (!HeaderText.isHeaderSafe(token)) {
+            // A key saved before the key page refused such values: it is never put into a header (B-1).
+            if (!quiet) Diagnostics.add("video", CatalogueRules.LINE_UNUSABLE_KEY)
+            return CatalogueResult(cached, CatalogueNotice.BAD_KEY, true)
+        }
         if (!VideoHttp.online(app)) {
             say("offline")
             return CatalogueResult(cached, CatalogueNotice.OFFLINE, true)

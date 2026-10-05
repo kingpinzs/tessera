@@ -61,9 +61,7 @@ import app.tileshell.video.server.ServerConfig
 import app.tileshell.video.server.ServerItem
 import app.tileshell.video.server.ServerRules
 import app.tileshell.video.server.ServerState
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /** Movies & TV's media server setting: "Add a server", or the server that is set up and its removal. */
 data object ServerSub : HubSub {
@@ -104,7 +102,7 @@ fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?,
         busy = true
         error = null
         scope.launch {
-            val state = withContext(Dispatchers.IO) { MediaServer(context).connect(address, user.trim(), secret) }
+            val state = VideoCalls.io("server sign-in", ServerState.UNREACHABLE) { MediaServer(context).connect(address, user.trim(), secret) }
             busy = false
             when (state) {
                 ServerState.CONNECTED -> onConnected()
@@ -162,7 +160,7 @@ fun ServerSettingsPage(nav: VideoNav) {
     var config by remember { mutableStateOf<ServerConfig?>(null) }
     var loaded by remember { mutableStateOf(false) }
     suspend fun reload() {
-        val (setUp, cfg) = withContext(Dispatchers.IO) { MediaServer(context).let { it.isSetUp() to it.config() } }
+        val (setUp, cfg) = VideoCalls.io("server read", false to null) { MediaServer(context).let { it.isSetUp() to it.config() } }
         nav.serverSetUp = setUp
         config = if (setUp) cfg else null
         loaded = true
@@ -180,7 +178,7 @@ fun ServerSettingsPage(nav: VideoNav) {
             Row(Modifier.padding(top = 16.dp)) {
                 HubButton("Remove this server", "server_remove") {
                     scope.launch {
-                        withContext(Dispatchers.IO) { MediaServer(context).remove() }
+                        VideoCalls.io("server remove", Unit) { MediaServer(context).remove() }
                         reload()
                     }
                 }
@@ -204,7 +202,7 @@ fun MediaServerPage(nav: VideoNav, activity: ComponentActivity) {
     var config by remember { mutableStateOf<ServerConfig?>(null) }
     var reloads by remember { mutableStateOf(0) }
     LaunchedEffect(nav.resumes, reloads) {
-        val (cfg, result) = withContext(Dispatchers.IO) { MediaServer(context).let { it.config() to it.library() } }
+        val (cfg, result) = VideoCalls.io("server library", null to (ServerState.UNREACHABLE to emptyList())) { MediaServer(context).let { it.config() to it.library() } }
         config = cfg
         items = result.second
         state = result.first
@@ -255,7 +253,7 @@ private fun ServerTile(item: ServerItem, onTap: () -> Unit) {
     Column(Modifier.width(VideoGroups.TILE.dp).pointerInput(item.id) { detectTapGestures { onTap() } }) {
         Box(Modifier.size(VideoGroups.TILE.dp).background(Color.Black).testTag("server_item:${item.id}"), contentAlignment = Alignment.Center) {
             val thumb by produceState<ImageBitmap?>(null, item.id) {
-                value = withContext(Dispatchers.IO) { MediaServer(context).thumbnail(item)?.asImageBitmap() }
+                value = VideoCalls.io("server picture", null) { MediaServer(context).thumbnail(item)?.asImageBitmap() }
             }
             val t = thumb
             if (t != null) Image(t, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)

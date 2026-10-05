@@ -27,12 +27,11 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import app.tileshell.diag.Diagnostics
 import app.tileshell.net.CredentialStore
+import app.tileshell.net.HeaderText
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.components.OutlinedField
 import app.tileshell.ui.tokens.ShellType
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /** Movies & TV's TMDB key setting (Q-17-1 (a); build task 12). */
 data object TmdbKeySub : HubSub {
@@ -47,7 +46,10 @@ data object TmdbKeySub : HubSub {
  * shown again — the page only says that one is saved — and the lines written here say "saved" or "removed", never
  * what. Saving over a saved token replaces it.
  *
- * Tags: `tmdb_key_status`, `tmdb_key_field`, `tmdb_key_save`, `tmdb_key_remove`.
+ * A value that is not printable ASCII with no space inside (the ends are trimmed) is refused: the page says so
+ * (`tmdb_key_error`), the field is emptied and nothing is stored.
+ *
+ * Tags: `tmdb_key_status`, `tmdb_key_field`, `tmdb_key_error`, `tmdb_key_save`, `tmdb_key_remove`.
  */
 @Composable
 fun TmdbKeyPage() {
@@ -58,18 +60,27 @@ fun TmdbKeyPage() {
     val keyboard = LocalSoftwareKeyboardController.current
     var saved by remember { mutableStateOf<Boolean?>(null) }
     var typed by remember { mutableStateOf("") }
-    LaunchedEffect(Unit) { saved = withContext(Dispatchers.IO) { CredentialStore.of(context).has(CredentialStore.TMDB) } }
+    var refused by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { saved = VideoCalls.io("TMDB key read", false) { CredentialStore.of(context).has(CredentialStore.TMDB) } }
 
     fun save() {
-        val token = typed.trim()
-        if (token.isEmpty()) return
+        if (typed.isBlank()) return
+        // Printable ASCII with no space inside, or nothing is stored (B-1): a key with a line break in it would be
+        // refused as a header by the platform, in an exception that quotes it.
+        val token = HeaderText.pastedSecret(typed)
         typed = ""
         focus.clearFocus(force = true)
         keyboard?.hide()
+        if (token == null) {
+            refused = true
+            Diagnostics.add("video", "TMDB key refused: not a key's characters")
+            return
+        }
+        refused = false
         scope.launch {
-            val ok = withContext(Dispatchers.IO) { CredentialStore.of(context).set(CredentialStore.TMDB, token) }
+            val ok = VideoCalls.io("TMDB key save", false) { CredentialStore.of(context).set(CredentialStore.TMDB, token) }
             Diagnostics.add("video", if (ok) "TMDB key saved" else "TMDB key not saved")
-            saved = withContext(Dispatchers.IO) { CredentialStore.of(context).has(CredentialStore.TMDB) }
+            saved = VideoCalls.io("TMDB key read", false) { CredentialStore.of(context).has(CredentialStore.TMDB) }
         }
     }
 
@@ -85,17 +96,20 @@ fun TmdbKeyPage() {
         )
         BasicText(if (saved == true) "Replace it with another key" else "Your key", Modifier.padding(top = 20.dp, bottom = 6.dp), style = ShellType.body.copy(color = Color.White))
         OutlinedField(
-            value = typed, onValueChange = { typed = it }, tag = "tmdb_key_field", modifier = Modifier.fillMaxWidth(),
-            maxLength = 2000, placeholder = "TMDB read access token", onImeAction = { save() }, secret = true,
+            value = typed, onValueChange = { typed = it; if (it.isNotEmpty()) refused = false }, tag = "tmdb_key_field", modifier = Modifier.fillMaxWidth(),
+            maxLength = HeaderText.MAX_SECRET, placeholder = "TMDB read access token", onImeAction = { save() }, secret = true,
         )
+        if (refused) {
+            BasicText(HeaderText.TEXT_BAD_SECRET, Modifier.padding(top = 12.dp).testTag("tmdb_key_error"), style = ShellType.body.copy(color = Color.White))
+        }
         Row(Modifier.padding(top = 16.dp)) {
             HubButton(if (saved == true) "Replace" else "Save", "tmdb_key_save", enabled = typed.isNotBlank()) { save() }
             Spacer(Modifier.width(12.dp))
             HubButton("Remove", "tmdb_key_remove", enabled = saved == true) {
                 scope.launch {
-                    withContext(Dispatchers.IO) { CredentialStore.of(context).remove(CredentialStore.TMDB) }
+                    VideoCalls.io("TMDB key remove", false) { CredentialStore.of(context).remove(CredentialStore.TMDB) }
                     Diagnostics.add("video", "TMDB key removed")
-                    saved = withContext(Dispatchers.IO) { CredentialStore.of(context).has(CredentialStore.TMDB) }
+                    saved = VideoCalls.io("TMDB key read", false) { CredentialStore.of(context).has(CredentialStore.TMDB) }
                 }
             }
         }

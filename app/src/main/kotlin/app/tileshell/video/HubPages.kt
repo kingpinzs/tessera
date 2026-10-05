@@ -24,8 +24,6 @@ import app.tileshell.brand.Glyph
 import app.tileshell.net.CredentialStore
 import app.tileshell.settings.TwoLineItem
 import app.tileshell.ui.tokens.ShellType
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /** Movies & TV's About page: what the catalogue's terms ask the app to say (BS-5). */
 data object AboutSub : HubSub {
@@ -65,7 +63,7 @@ fun HubPages(nav: VideoNav, activity: ComponentActivity, browse: BrowseModel) {
 @Composable
 fun HubSettingsPage(nav: VideoNav) {
     val context = LocalContext.current
-    val keySaved by produceState<Boolean?>(null, nav.resumes) { value = withContext(Dispatchers.IO) { CredentialStore.of(context).has(CredentialStore.TMDB) } }
+    val keySaved by produceState<Boolean?>(null, nav.resumes) { value = VideoCalls.io("TMDB key read", false) { CredentialStore.of(context).has(CredentialStore.TMDB) } }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = 8.dp).testTag("hub_page:settings")) {
         TwoLineItem(
             Glyph.KEY, "TMDB key", when (keySaved) { true -> "A key is saved"; false -> "Not set — film search needs one"; null -> "" }, "hub_settings:tmdbkey",

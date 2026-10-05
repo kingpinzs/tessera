@@ -66,7 +66,11 @@ class MediaServer(context: Context) {
         val state = when (outcome) {
             is FetchOutcome.Answer -> {
                 val signIn = ServerRules.parseSignIn(outcome.body)
-                if (signIn == null) ServerState.UNREACHABLE else {
+                if (signIn == null) {
+                    // An answer with no token, or with one that is not a plain token: the words only (B-1).
+                    Diagnostics.add("video", ServerRules.line(address.label, ServerRules.WORD_BAD_ANSWER))
+                    ServerState.UNREACHABLE
+                } else {
                     val saved = CredentialStore.of(app).set(CredentialStore.JELLYFIN, signIn.first)
                     if (saved) write(ServerConfig(base, address.label, signIn.second, user))
                     if (saved) ServerState.CONNECTED else ServerState.UNREACHABLE
