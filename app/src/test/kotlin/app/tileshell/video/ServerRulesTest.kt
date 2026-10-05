@@ -53,6 +53,10 @@ class ServerRulesTest {
             "192.0.2.10", "8.8.8.8", "172.15.0.1", "172.32.0.1", "192.169.0.1", "169.255.0.1", "11.0.0.1", "126.0.0.1", "128.0.0.1", "100.64.0.1",
             "media.example.org", "jellyfin", "nas", "local", ".local", "notlocal", "10.0.0.1.example.org", "192.168.1.1.nip.io", "localhost.example.org",
             "2001:db8::1", "[2606:4700::1111]", "fec0::1", "fe00::1", "::ffff:10.0.0.1", "::",
+            // B2-M4: the 16-31 and 168 second-octet bounds belong to 172 and 192 alone …
+            "8.20.1.1", "11.16.0.1", "192.16.0.1", "172.168.0.1", "10.example.org",
+            // … and a name that merely ends in, or holds, "localhost" or "local" is a public name.
+            "notlocalhost", "evil-localhost.example", "localhost.evil.example", "xlocalhost", "my.notlocalhost", "notlocal.", "evil.locale",
             // Odd spellings a resolver may read as an address are treated as names: asked about, never trusted.
             "127.1", "0x7f.0.0.1", "2130706433", "010.0.0.1", "10.0.0", "10.0.0.256", "10.0.0.1.2",
         )) {

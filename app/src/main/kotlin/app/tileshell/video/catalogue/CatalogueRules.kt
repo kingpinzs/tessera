@@ -1,5 +1,6 @@
 package app.tileshell.video.catalogue
 
+import app.tileshell.net.HeaderText
 import app.tileshell.net.MiniJson
 import app.tileshell.net.jsonArray
 import app.tileshell.net.jsonLong
@@ -107,6 +108,14 @@ object CatalogueRules {
 
     /** The saved key cannot be a header's value, so no request is made with it (B-1). The line holds no part of it. */
     const val LINE_UNUSABLE_KEY = "catalogue: the saved TMDB key cannot be sent"
+
+    /**
+     * The headers of a catalogue request made with the saved key — or null, and then NO request is made: a key that
+     * cannot be a header's value ([HeaderText.isHeaderSafe]; one saved before the key page refused such values) is
+     * never handed to the platform, whose refusal would quote it (B-1). The only place the key becomes a header.
+     */
+    fun headers(token: String): Map<String, String>? =
+        if (HeaderText.isHeaderSafe(token)) mapOf("Authorization" to "Bearer $token", "Accept" to "application/json") else null
 
     /**
      * An entry older than 7 days is stale. The catalogue is asked whenever the phone is online — a saved answer is

@@ -9,7 +9,6 @@ import app.tileshell.BuildConfig
 import app.tileshell.diag.Diagnostics
 import app.tileshell.net.CredentialStore
 import app.tileshell.net.FixedEndpoints
-import app.tileshell.net.HeaderText
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -189,7 +188,8 @@ class Catalogue(context: Context) {
         }
         val entry = cache.read(kind, key)
         val cached = entry?.let { parse(it.body) }
-        if (!HeaderText.isHeaderSafe(token)) {
+        val headers = CatalogueRules.headers(token)
+        if (headers == null) {
             // A key saved before the key page refused such values: it is never put into a header (B-1).
             if (!quiet) Diagnostics.add("video", CatalogueRules.LINE_UNUSABLE_KEY)
             return CatalogueResult(cached, CatalogueNotice.BAD_KEY, true)
@@ -198,7 +198,6 @@ class Catalogue(context: Context) {
             say("offline")
             return CatalogueResult(cached, CatalogueNotice.OFFLINE, true)
         }
-        val headers = mapOf("Authorization" to "Bearer $token", "Accept" to "application/json")
         if (kind == "search" || kind == "section") configuration(headers)
         val outcome = VideoHttp.get(apiBase() + path, headers)
         val fresh = (outcome as? FetchOutcome.Answer)?.let { parse(it.body) }

@@ -47,11 +47,61 @@ class VideoHttpTest {
                 ex.responseBody.use { out -> runCatching { out.write(ByteArray(length) { 'a'.code.toByte() }) } }
             }
         }
+        // B2-M4: a redirect to ANOTHER host (the second server), and what that host would see.
+        other = HttpServer.create(InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0)
+        other.createContext("/") { ex ->
+            otherRequests.incrementAndGet()
+            ex.requestHeaders.getFirst("Authorization")?.let { otherSawAuthorization.incrementAndGet() }
+            val body = "{\"landed\":true}".toByteArray()
+            ex.sendResponseHeaders(200, body.size.toLong())
+            ex.responseBody.use { it.write(body) }
+        }
+        other.start()
+        server.createContext("/away") { ex ->
+            requests.incrementAndGet()
+            ex.requestBody.use { it.readBytes() }
+            ex.responseHeaders.add("Location", "http://127.0.0.1:${other.address.port}/landed")
+            ex.sendResponseHeaders(302, -1)
+            ex.close()
+        }
         server.start()
     }
 
     @After fun stop() {
         server.stop(0)
+        other.stop(0)
+    }
+
+    private lateinit var other: HttpServer
+    private val otherRequests = AtomicInteger(0)
+    private val otherSawAuthorization = AtomicInteger(0)
+
+    @Test fun `the control - the redirect is real, and an image request with no header follows it`() {
+        // A poster has no header to carry: it may follow a redirect, and that is how this test knows the 302 works.
+        assertEquals("{\"landed\":true}", VideoHttp.bytes("$base/away")?.let { String(it) })
+        assertEquals(1, otherRequests.get())
+        assertEquals(0, otherSawAuthorization.get())
+    }
+
+    @Test fun `a GET that carries headers does not follow a redirect, and the second host sees no request`() {
+        val before = requests.get()
+        assertEquals(FetchOutcome.Status(302), VideoHttp.get("$base/away", mapOf("Authorization" to "Bearer QA-SECRET-ONE", "Accept" to "application/json")))
+        assertEquals("the first host was asked once", before + 1, requests.get())
+        assertEquals("the second host", 0, otherRequests.get())
+        // With no header of its own either: one rule for every JSON request.
+        assertEquals(FetchOutcome.Status(302), VideoHttp.get("$base/away", emptyMap()))
+        assertEquals("the second host", 0, otherRequests.get())
+    }
+
+    @Test fun `a POST that carries headers does not follow a redirect, and the second host sees no request`() {
+        assertEquals(FetchOutcome.Status(302), VideoHttp.post("$base/away", mapOf("Authorization" to "MediaBrowser Token=\"QA-SECRET-ONE\""), "{\"Pw\":\"QA-PASSWORD\"}"))
+        assertEquals("the second host", 0, otherRequests.get())
+    }
+
+    @Test fun `an image request that carries headers does not follow a redirect, and the second host sees no request`() {
+        assertNull(VideoHttp.bytes("$base/away", mapOf("Authorization" to "MediaBrowser Token=\"QA-SECRET-ONE\"")))
+        assertEquals("the second host", 0, otherRequests.get())
+        assertEquals(0, otherSawAuthorization.get())
     }
 
     /** A secret with a line feed inside: `setRequestProperty` throws IllegalArgumentException quoting the whole value. */

@@ -176,6 +176,26 @@ class CredentialFileTest {
         assertNull(s.get("tmdb"))
     }
 
+    @Test fun `a rename that fails is a failed save - nothing changed, no temp file, and the line says so`() {
+        // B2-M4: the write's last step fails (the store's file cannot be replaced).
+        var fail = false
+        val s = CredentialFile(file, FakeCipher(), rename = { from, to -> !fail && from.renameTo(to) }) { lines += it }
+        assertTrue(s.set("tmdb", "first-value"))
+        fail = true
+        lines.clear()
+        assertFalse("a save", s.set("tmdb", "second-value"))
+        assertFalse("a save under a new name", s.set("jellyfin", "other-value"))
+        assertFalse("a removal", s.remove("tmdb"))
+        assertEquals(listOf("tmdb: not saved (IOException)", "jellyfin: not saved (IOException)", "tmdb: not removed (IOException)"), lines)
+        assertEquals("the value before the failed save", "first-value", s.get("tmdb"))
+        assertNull(s.get("jellyfin"))
+        assertFalse(File(dir, "credentials_v1.json.tmp").exists())
+        assertTrue(lines.none { it.contains("first-value") || it.contains("second-value") || it.contains("other-value") })
+        fail = false
+        assertTrue(s.set("tmdb", "second-value"))
+        assertEquals("second-value", s.get("tmdb"))
+    }
+
     @Test fun `holds says an entry is stored whether or not it opens, and clear says whether nothing is left`() {
         val s = store()
         assertFalse(s.holds("tmdb"))
