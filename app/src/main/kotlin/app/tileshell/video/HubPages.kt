@@ -66,7 +66,7 @@ fun HubPages(nav: VideoNav, activity: ComponentActivity, browse: BrowseModel) {
 fun HubSettingsPage(nav: VideoNav) {
     val context = LocalContext.current
     val keySaved by produceState<Boolean?>(null, nav.resumes) { value = withContext(Dispatchers.IO) { CredentialStore.of(context).has(CredentialStore.TMDB) } }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).testTag("hub_page:settings")) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = 8.dp).testTag("hub_page:settings")) {
         TwoLineItem(
             Glyph.KEY, "TMDB key", when (keySaved) { true -> "A key is saved"; false -> "Not set — film search needs one"; null -> "" }, "hub_settings:tmdbkey",
         ) { nav.openSub(TmdbKeySub) }

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -163,10 +165,13 @@ fun BrowsePage(nav: VideoNav, model: BrowseModel) {
     val scope = rememberCoroutineScope()
     val focus = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
     LaunchedEffect(nav.resumes) { model.load(scope, submitted = false) }
     LaunchedEffect(nav.searchRequests) { if (nav.searchRequests > 0 && model.hasKey == true) runCatching { focus.requestFocus() } }
 
-    Column(Modifier.fillMaxSize().testTag("hub_page:browse")) {
+    // The page itself takes the focus first: when a field's focus is cleared Compose gives it to the first focusable
+    // node, and with the search box in that place the keyboard came straight back after a search was sent.
+    Column(Modifier.fillMaxSize().focusable().testTag("hub_page:browse")) {
         val keyMissing = model.hasKey == false
         if (!keyMissing) {
             OutlinedField(
@@ -174,7 +179,9 @@ fun BrowsePage(nav: VideoNav, model: BrowseModel) {
                 modifier = Modifier.padding(start = BrowseMetrics.SIDE.dp, end = BrowseMetrics.SIDE.dp, top = 12.dp).fillMaxWidth().focusRequester(focus),
                 maxLength = 100, placeholder = "Search films and TV", imeAction = ImeAction.Search,
                 onImeAction = {
-                    focusManager.clearFocus()
+                    // force: the box is the page's first focusable, and a plain clear hands the focus straight back to it.
+                    focusManager.clearFocus(force = true)
+                    keyboard?.hide()
                     val q = model.text.trim()
                     if (q.isEmpty()) model.clearSearch(scope) else { model.query = q; model.shownAll = null; model.load(scope, submitted = true) }
                 },

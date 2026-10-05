@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -40,6 +41,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -88,6 +90,7 @@ fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?,
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val focus = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
     var host by remember { mutableStateOf(prefillHost) }
     var user by remember { mutableStateOf(prefillUser) }
     var password by remember { mutableStateOf("") }
@@ -112,7 +115,8 @@ fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?,
     }
 
     fun submit() {
-        focus.clearFocus()
+        focus.clearFocus(force = true)
+        keyboard?.hide()
         val address = ServerRules.parse(host)
         if (address == null) { error = "That isn't a server address"; return }
         if (user.isBlank()) { error = "Enter the user name"; return }
@@ -164,7 +168,7 @@ fun ServerSettingsPage(nav: VideoNav) {
         loaded = true
     }
     LaunchedEffect(nav.resumes) { reload() }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 12.dp, end = 12.dp, top = 16.dp).testTag("hub_page:server")) {
+    Column(Modifier.fillMaxSize().focusable().verticalScroll(rememberScrollState()).padding(start = 12.dp, end = 12.dp, top = 16.dp).testTag("hub_page:server")) {
         if (!loaded) return@Column
         val cfg = config
         if (cfg == null) {
@@ -212,7 +216,7 @@ fun MediaServerPage(nav: VideoNav, activity: ComponentActivity) {
                 ServerRules.TEXT_UNREACHABLE, Modifier.padding(start = 12.dp, end = 12.dp, top = 20.dp).testTag("server_notice"),
                 style = ShellType.subtitle.copy(color = Color.White),
             )
-            ServerState.UNAUTHORISED -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 12.dp, end = 12.dp, top = 16.dp)) {
+            ServerState.UNAUTHORISED -> Column(Modifier.fillMaxSize().focusable().verticalScroll(rememberScrollState()).padding(start = 12.dp, end = 12.dp, top = 16.dp)) {
                 BasicText("Sign in again", Modifier.padding(bottom = 16.dp).testTag("server_notice"), style = ShellType.subtitle.copy(color = Color.White))
                 AddServerForm(config?.label.orEmpty(), config?.userName.orEmpty(), null) { reloads++ }
             }

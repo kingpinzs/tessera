@@ -1,5 +1,6 @@
 package app.tileshell.video
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import app.tileshell.diag.Diagnostics
@@ -53,6 +55,7 @@ fun TmdbKeyPage() {
     val colors = LocalShellColors.current
     val scope = rememberCoroutineScope()
     val focus = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
     var saved by remember { mutableStateOf<Boolean?>(null) }
     var typed by remember { mutableStateOf("") }
     LaunchedEffect(Unit) { saved = withContext(Dispatchers.IO) { CredentialStore.of(context).has(CredentialStore.TMDB) } }
@@ -61,7 +64,8 @@ fun TmdbKeyPage() {
         val token = typed.trim()
         if (token.isEmpty()) return
         typed = ""
-        focus.clearFocus()
+        focus.clearFocus(force = true)
+        keyboard?.hide()
         scope.launch {
             val ok = withContext(Dispatchers.IO) { CredentialStore.of(context).set(CredentialStore.TMDB, token) }
             Diagnostics.add("video", if (ok) "TMDB key saved" else "TMDB key not saved")
@@ -69,7 +73,8 @@ fun TmdbKeyPage() {
         }
     }
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 12.dp, end = 12.dp, top = 16.dp).testTag("hub_page:tmdbkey")) {
+    // focusable: the page, not the field, is what a cleared focus falls back to (see BrowsePage).
+    Column(Modifier.fillMaxSize().focusable().verticalScroll(rememberScrollState()).padding(start = 12.dp, end = 12.dp, top = 16.dp).testTag("hub_page:tmdbkey")) {
         BasicText(
             "Film search uses The Movie Database (TMDB). Paste your own TMDB API read access token here. It is kept encrypted on this phone and is never shown again.",
             style = ShellType.body.copy(color = Color.White),
