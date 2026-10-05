@@ -7,13 +7,21 @@ package app.tileshell.media
  *
  * `ContentResolver.openOutputStream(uri)` runs as the shell, so it succeeds wherever the SHELL can write — contacts,
  * calendars, after phase 18 all files — whatever the caller itself may reach. The guard therefore accepts a
- * `content://` EXTRA_OUTPUT only when all three hold:
- *  (a) the activity was started for a result (`callingPackage != null`);
- *  (b) the intent's own ClipData holds that same URI and the intent's flags include FLAG_GRANT_WRITE_URI_PERMISSION —
- *      which Android checked against the CALLER's own access when the activity started (it builds that ClipData itself
- *      only when the caller set none; a caller that sets its own without the flag is never checked, and is refused here);
- *  (c) the URI's authority is not one of the shell's own.
+ * `content://` EXTRA_OUTPUT only when ALL of these hold:
+ *  (a) the activity was started for a result (`callingPackage != null`), so the platform names the caller;
+ *  (b) the intent's own ClipData holds that same URI and the intent's flags include FLAG_GRANT_WRITE_URI_PERMISSION
+ *      (the form Android gives a capture request; it is also what lets the shell write a caller's private provider);
+ *  (c) the URI's authority is not one of the shell's own, and names no other user's provider;
+ *  (d) THE CALLER ITSELF MAY WRITE THAT URI ([callerMayWrite], computed by `CaptureCallerAccess`): the provider
+ *      belongs to the caller's own uid, or the platform says the caller's uid holds write access to that URI.
  * Anything else is refused and nothing is written.
+ *
+ * Why (d) exists (build, 2026-10-05; it corrects r3 D1's premise): (b) was written as "Android checked the grant
+ * against the CALLER's own access when the activity started". It does not always. When the app being started already
+ * holds the access itself, the platform decides that no grant is needed and returns before it ever looks at the caller —
+ * and the shell holds WRITE_CONTACTS and WRITE_CALENDAR. So a caller with no contacts permission could set the flag and
+ * its own ClipData on a contact's `display_photo` URI, the start would succeed, and (a)–(c) alone would accept it. (b)
+ * therefore proves nothing about the caller; (d) asks the question directly.
  */
 object CaptureOutputGuard {
     /** `Intent.FLAG_GRANT_WRITE_URI_PERMISSION`. */
@@ -42,6 +50,8 @@ object CaptureOutputGuard {
      * @param clipUris every URI in the intent's ClipData, as `Uri.toString()`
      * @param intentFlags `Intent.getFlags()`
      * @param ownAuthorities the authorities of every provider the shell's package declares
+     * @param callerMayWrite condition (d): whether the caller's own uid may write [output], as `CaptureCallerAccess`
+     *   reads it from the platform. False whenever there is no caller.
      */
     fun decide(
         output: String?,
@@ -51,18 +61,22 @@ object CaptureOutputGuard {
         clipUris: List<String>,
         intentFlags: Int,
         ownAuthorities: Set<String>,
+        callerMayWrite: Boolean,
     ): Decision {
         if (output == null) return Decision.NoOutput
         val scheme = outputScheme?.lowercase().orEmpty()
         if (scheme != "content") return Decision.Refused(lineForScheme(scheme.ifEmpty { "none" }))
         val authority = outputAuthority.orEmpty()
-        // An authority may carry a user id ("10@media"); the part after the last '@' is the provider's name.
+        // An authority may carry a user id ("10@media"): another user's provider is never written, and the shell's own
+        // authority is refused however it is spelled.
         val provider = authority.substringAfterLast('@').lowercase()
         val granted = callingPackage != null &&
             (intentFlags and FLAG_GRANT_WRITE) != 0 &&
             clipUris.any { it == output } &&
             provider.isNotEmpty() &&
-            ownAuthorities.none { it.lowercase() == provider }
+            '@' !in authority &&
+            ownAuthorities.none { it.lowercase() == provider } &&
+            callerMayWrite
         return if (granted) Decision.Accepted(output) else Decision.Refused(LINE_NO_GRANT)
     }
 }

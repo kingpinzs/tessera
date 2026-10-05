@@ -5,7 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Phase 17, r3 D1 (Q-17-2 (b)): the capture answer's three-condition output guard. */
+/** Phase 17, r3 D1 (Q-17-2 (b)) with condition (d) added at the build: the capture answer's output guard. */
 class CaptureOutputGuardTest {
     private val own = setOf("app.tileshell.livetile", "app.tileshell.files")
     private val out = "content://com.caller.files/cache/out.jpg"
@@ -19,12 +19,33 @@ class CaptureOutputGuardTest {
         caller: String? = "com.caller",
         clip: List<String> = listOf(out),
         flags: Int = write,
-    ) = CaptureOutputGuard.decide(output, scheme, authority, caller, clip, flags, own)
+        callerMayWrite: Boolean = true,
+    ) = CaptureOutputGuard.decide(output, scheme, authority, caller, clip, flags, own, callerMayWrite)
 
     private val noGrant = Decision.Refused("refused output: no grant")
 
     @Test
-    fun `all three conditions - accepted, and only that URI`() {
+    fun `(d) the caller itself may not write the URI - refused, even with the flag and its own ClipData`() {
+        // The case that broke r3 D1's premise: the shell holds WRITE_CONTACTS, so Android checks nothing at the start.
+        val contact = "content://com.android.contacts/contacts/7/display_photo"
+        assertEquals(noGrant, decide(output = contact, authority = "com.android.contacts", clip = listOf(contact), flags = write, callerMayWrite = false))
+        assertEquals(noGrant, decide(callerMayWrite = false))
+        // (d) alone is not enough either: every other condition still has to hold.
+        assertEquals(noGrant, decide(caller = null, callerMayWrite = true))
+        assertEquals(noGrant, decide(flags = 0, callerMayWrite = true))
+        assertEquals(noGrant, decide(clip = emptyList(), callerMayWrite = true))
+    }
+
+    @Test
+    fun `another user's provider is refused`() {
+        for (authority in listOf("10@media", "0@com.caller.files", "10@com.android.contacts")) {
+            val uri = "content://$authority/x"
+            assertEquals(authority, noGrant, decide(output = uri, authority = authority, clip = listOf(uri)))
+        }
+    }
+
+    @Test
+    fun `every condition holds - accepted, and only that URI`() {
         val d = decide()
         assertTrue(d is Decision.Accepted)
         assertEquals(out, (d as Decision.Accepted).uri)

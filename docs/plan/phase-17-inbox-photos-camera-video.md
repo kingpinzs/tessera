@@ -82,6 +82,28 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
 "local-only" Movies & TV build (Hard Rule 16 — the interview ruled the fuller forms).
 
 ## Decisions
+- 2026-10-05 10:59 (agent, at the build — **the capture output guard gains a fourth condition, (d): the caller itself may write
+  the URI.** It CORRECTS the premise of r3 D1's condition (b) below ("which Android checks against the caller's own
+  access when the activity starts"): Android does that check only when the app being started does not already hold the
+  access. When it does, the platform decides no grant is needed and returns before it looks at the caller — and the
+  shell holds `WRITE_CONTACTS` and `WRITE_CALENDAR` (after phase 18, all files). So a caller with no contacts permission
+  could set FLAG_GRANT_WRITE_URI_PERMISSION and its own ClipData on a contact's `display_photo` URI, the start would
+  succeed, and conditions (a)–(c) would accept it: the very write D1 set out to stop. Found by the automated security
+  review of `media/CaptureOutputGuard.kt` on the day it was written; stated from the platform's grant code as the lead
+  knows it and NOT yet seen on the device — E9's new leg below is where it is seen. The guard now accepts a `content://`
+  EXTRA_OUTPUT only when (a), (b) and (c) hold AND **(d) the caller's own uid may write that URI**, asked of the platform
+  and never inferred from the intent: the provider behind the URI belongs to the caller's uid (its own FileProvider), or
+  `checkUriPermission(uri, callerUid, WRITE)` is granted (a write grant it holds, or a provider that answers for it —
+  MediaStore does for a row the caller owns). The caller is `getCallingPackage()`, the platform's word. A URI of
+  another user's provider (`10@…`) is refused. (b) stays: it is the form Android gives a capture request and it is what
+  lets the shell write a caller's private provider. Stricter than D1 in every case, so no ruled behaviour is lost; a
+  caller that holds a permission-wide access (say `WRITE_CONTACTS`) but no grant and does not own the provider is
+  refused too — the conservative reading, which the owner may overrule. Code: `media/CaptureOutputGuard.kt` (pure, JVM
+  tests), `media/CaptureCallerAccess.kt` (the platform read). **E9 gains a leg** (the display_photo negative, second
+  form): qa-capture sets its own ClipData WITH the write-grant flag on the contact's `display_photo` URI → the row
+  `record`s whether the start threw on the sender, and where it did not: RESULT_CANCELED, `[camera] refused output: no
+  grant`, the contact's `photo_file_id` unchanged. The guard, the caller-access read and this leg are in the T17-4
+  adversarial review.
 - 2026-10-05 10:50 (agent, r3 V12 — **the editor's colour matrices, fixed before build task 5 starts**; the look is H13b's
   call). Each is a 4 × 5 matrix in Android's `ColorMatrix` order — rows R′ G′ B′ A′, columns r g b a and a constant
   on the 0–255 scale — applied to each pixel's 8-bit sRGB values as they are (no linearising), each result rounded to
