@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Phase 17 trust review, B-7. What never leaves this phone, by a cloud backup or by a device-to-device transfer: the
+  credential store's file (ciphertext whose key stays in this phone's Keystore, so it could not be opened elsewhere
+  anyway) and the media server's file (the server's host and the user's name). The application also sets
+  allowBackup="false"; on Android 12 and later that alone does not stop a device-to-device transfer - these rules do.
+  DataExtractionRulesTest holds the two names to the constants the stores write with.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="credentials_v1.json" />
+        <exclude domain="file" path="media_server.json" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="credentials_v1.json" />
+        <exclude domain="file" path="media_server.json" />
+    </device-transfer>
+</data-extraction-rules>
