@@ -47,6 +47,23 @@ class VideoHttpTest {
                 ex.responseBody.use { out -> runCatching { out.write(ByteArray(length) { 'a'.code.toByte() }) } }
             }
         }
+        // B2-L4: an answer that arrives one byte every 40 ms, as many bytes as the query names (each read is far
+        // inside the read timeout; only a total deadline ends it).
+        server.createContext("/drip") { ex ->
+            requests.incrementAndGet()
+            val count = ex.requestURI.query.toInt()
+            ex.sendResponseHeaders(200, 0L)
+            runCatching {
+                ex.responseBody.use { out ->
+                    repeat(count) {
+                        out.write('a'.code)
+                        out.flush()
+                        Thread.sleep(40)
+                    }
+                }
+            }
+            ex.close()
+        }
         // B2-M4: a redirect to ANOTHER host (the second server), and what that host would see.
         other = HttpServer.create(InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0)
         other.createContext("/") { ex ->
@@ -75,6 +92,27 @@ class VideoHttpTest {
     private lateinit var other: HttpServer
     private val otherRequests = AtomicInteger(0)
     private val otherSawAuthorization = AtomicInteger(0)
+
+    @Test fun `an answer that is still arriving after the total deadline is given up, however regular its bytes`() {
+        assertEquals(60_000L, VideoHttp.TOTAL_READ_MS)
+        // The control: a short slow answer inside the deadline is read whole.
+        assertEquals(FetchOutcome.Answer("aaaaa"), VideoHttp.get("$base/drip?5", emptyMap()))
+        assertEquals(5, VideoHttp.bytes("$base/drip?5")!!.size)
+        // Three seconds of bytes against a 300 ms deadline: "no connection", well before the answer would have ended.
+        for (call in listOf<() -> Any?>(
+            { VideoHttp.get("$base/drip?75", mapOf("Accept" to "application/json"), totalReadMs = 300) },
+            { VideoHttp.post("$base/drip?75", emptyMap(), "{}", totalReadMs = 300) },
+            { VideoHttp.bytes("$base/drip?75", totalReadMs = 300) },
+        )) {
+            val mark = Diagnostics.snapshot().size
+            val started = System.nanoTime()
+            val outcome = call()
+            val tookMs = (System.nanoTime() - started) / 1_000_000
+            assertTrue("$outcome", outcome == FetchOutcome.NoConnection || outcome == null)
+            assertTrue("gave up after $tookMs ms", tookMs in 300..1500)
+            assertTrue(linesSince(mark).toString(), linesSince(mark).any { it == "http: answer not finished in time" })
+        }
+    }
 
     @Test fun `the control - the redirect is real, and an image request with no header follows it`() {
         // A poster has no header to carry: it may follow a redirect, and that is how this test knows the 302 works.
