@@ -1,0 +1,42 @@
+# QA run evidence stays on disk and OUT of git: screenshots, UI dumps, logs, ring slices, recordings, captured
+# output. The owner, 2026-10-02: "DO NOT PUSH ANY LOGS OR SCREENSHOTS no need to track any of that".
+#
+# What git keeps under docs/plan/qa: the drivers and the harness, documents, tables, diagnostic patches, and test
+# inputs. A gate's evidence table still cites run folders by path; they are paths on the machine that ran them.
+#
+# The same rule removed the evidence from the branch's history (2026-10-02); keep the two in step.
+
+# Everything is ignored ...
+*
+# ... but git still walks every folder ...
+!*/
+# ... and keeps these kinds wherever they sit:
+!.gitignore
+!*.md
+!*.tsv
+!*.sh
+!*.py
+!*.patch
+# the drivers and the harness
+!**/scripts/**
+# test inputs
+!**/fixtures/**
+!**/MUSIC6-fixtures/**
+!**/utterances/**
+# a phase's own inputs, at its top level only: the baseline layouts and three named files
+!/*/*.json
+!/*/exported-allowlist.txt
+!/*/apk-size-before.txt
+!/*/apk-entries-1mb-before.txt
+# phase 16's hand-kept bookkeeping tables (read by scripts/e21.sh and scripts/gate_evidence.py)
+!/phase-16/E21/builds.txt
+!/phase-16/E21/rerun.txt
+!/phase-16/E21/supplements.txt
+!/phase-16/E21/partials.txt
+!/phase-16/E21/ruled.txt
+
+# Never, whatever the lines above say:
+__pycache__/
+*.pyc
+# R4 runs on the phone carry the LAN address and the adb pairing identity (the repository's own .gitignore says why)
+/r4/runs/*-SM-S938*/

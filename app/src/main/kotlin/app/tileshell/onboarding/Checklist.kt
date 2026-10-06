@@ -162,6 +162,16 @@ object Checklist {
         ChecklistRow("overlay", "Display over other apps", if (Settings.canDrawOverlays(context)) RowState.GRANTED else RowState.MISSING, "Alarms ring over the app you're using", grant = true) {
             context.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).setData(Uri.parse("package:${context.packageName}")))
         },
+        // Phase 17 build task 8 (C-4): the shell's Camera, and the videos Movies & TV and Photos show. Two grant rows, so
+        // two wizard steps. The Photos row above is unchanged (r3 V20): READ_MEDIA_VIDEO is the Videos row's alone.
+        ChecklistRow("camera", "Camera", if (granted(context, Manifest.permission.CAMERA)) RowState.GRANTED else RowState.MISSING, "Camera takes your photos and videos",
+            permissions = listOf(Manifest.permission.CAMERA), grant = true) {
+            requestPermissions(arrayOf(Manifest.permission.CAMERA))
+        },
+        ChecklistRow("videos", "Videos", if (granted(context, Manifest.permission.READ_MEDIA_VIDEO)) RowState.GRANTED else RowState.MISSING, "Movies & TV and Photos show the videos on this phone",
+            permissions = listOf(Manifest.permission.READ_MEDIA_VIDEO), grant = true) {
+            requestPermissions(arrayOf(Manifest.permission.READ_MEDIA_VIDEO))
+        },
         ChecklistRow("listener", "Live tiles running", if (TileNotificationListener.connected) RowState.GRANTED else RowState.MISSING, if (TileNotificationListener.connected) "Connected" else "Not connected") {
             context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         },

@@ -58,11 +58,15 @@ class ShellApp : Application() {
     }
 
     private fun startLauncher() {
+        // Phase 17 build task 17 (C-16): what the installed network security config says for each fixed host. Here, not
+        // in onCreate, so the lines are also written when this start-up was deferred to the first unlock (C-L5).
+        app.tileshell.net.FixedEndpoints.logPolicy()
         followPackageChanges(AppCatalog.get(this))
         addCortanaTile()
         addCategoryFolders()
         claimMusicSlot()
         claimCalendarAndPeopleSlots()
+        claimPhotosAndCameraSlots()
         startFeeds("process start")
         // Phase 13: the acrylic on / off rule, followed from here for the life of the launcher's process; it writes
         // its first `[fluent] acrylic=… reason=…` line now.
@@ -173,6 +177,20 @@ class ShellApp : Application() {
     }
 
     /**
+     * Point the PHOTOS and CAMERA slots at the shell's own Photos and Camera, once (phase 17 build task 3).
+     *
+     * APP_GALLERY and STILL_IMAGE_CAMERA each have several handlers on any phone, so without a seed both tiles would
+     * read "Tap to choose". Like Calendar and People, these two pass `takeOver` (the owner's ruling Q-17-3 (a)): on the
+     * update that brings the apps they take their slots even over a pick made by hand, the line names the app that was
+     * replaced, and from then on a hand pick is kept. Tess's "take a photo" follows the CAMERA slot.
+     */
+    private fun claimPhotosAndCameraSlots() {
+        val store = LayoutStore.get(this)
+        store.assignSlotOnce(PHOTOS_SLOT_CLAIM, Slot.PHOTOS, ComponentName(this, app.tileshell.photos.PhotosActivity::class.java), takeOver = true)
+        store.assignSlotOnce(CAMERA_SLOT_CLAIM, Slot.CAMERA, ComponentName(this, app.tileshell.camera.CameraActivity::class.java), takeOver = true)
+    }
+
+    /**
      * Package changes drive the Start layout (phase 02 build task 5, Decisions "App uninstall/update handling is
      * in (M12)"). The wiring lives in the process, not in StartActivity, so an uninstall is followed while the
      * shell is alive with no UI at all; [AppCatalog] owns the one LauncherApps callback and reports only
@@ -235,8 +253,12 @@ class ShellApp : Application() {
         /** The one-shot marker for phase 10's MUSIC slot claim; versioned like the folder ADDs. */
         const val MUSIC_SLOT_CLAIM = "slot:music:v1"
 
-        /** Phase 16's one-shot markers for the CALENDAR and PEOPLE slots; the only two that take a slot over (Q-16-1). */
+        /** Phase 16's one-shot markers for the CALENDAR and PEOPLE slots; they take a slot over once (Q-16-1). */
         const val CALENDAR_SLOT_CLAIM = "slot:calendar:v1"
         const val PEOPLE_SLOT_CLAIM = "slot:people:v1"
+
+        /** Phase 17's one-shot markers for the PHOTOS and CAMERA slots; they take a slot over once too (Q-17-3 (a)). */
+        const val PHOTOS_SLOT_CLAIM = "slot:photos:v1"
+        const val CAMERA_SLOT_CLAIM = "slot:camera:v1"
     }
 }

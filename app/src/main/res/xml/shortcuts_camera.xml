@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Camera's static App Shortcuts (phase 17 build task 15): Photo and Video. Panorama and Slow motion are DYNAMIC, published by CameraActivity only where the phone's camera can do the mode (a manifest shortcut cannot be withdrawn).
+  Declaration order is the rank. Each opens CameraActivity with the extra "mode".
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="camera_photo"
+        android:enabled="true"
+        android:icon="@drawable/ic_camera_glyph"
+        android:shortcutShortLabel="@string/camera_shortcut_photo"
+        android:shortcutLongLabel="@string/camera_shortcut_photo">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.camera.CameraActivity">
+            <extra android:name="mode" android:value="photo" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="camera_video"
+        android:enabled="true"
+        android:icon="@drawable/ic_camera_glyph"
+        android:shortcutShortLabel="@string/camera_shortcut_video"
+        android:shortcutLongLabel="@string/camera_shortcut_video">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.camera.CameraActivity">
+            <extra android:name="mode" android:value="video" />
+        </intent>
+    </shortcut>
+</shortcuts>

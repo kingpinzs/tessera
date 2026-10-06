@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- It HOLDS no permission: whatever the shell's Camera writes for this app, it writes through this app's own grant.
+         WRITE_CONTACTS is declared and never granted at install (the rows install without -g); E9's second
+         display_photo leg grants it with `pm grant` for its span, to record what the guard reads then. -->
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+
+    <queries>
+        <package android:name="app.tileshell" />
+    </queries>
+
+    <application
+        android:icon="@android:drawable/sym_def_app_icon"
+        android:label="QA Capture">
+
+        <!-- No LAUNCHER entry: it never shows in the shell's app list. Started by the row with `am start -n`. -->
+        <activity
+            android:name=".CaptureProbeActivity"
+            android:exported="true" />
+
+        <!-- E5: Photos' Share picks this in the system chooser; it logs what it was sent. -->
+        <activity
+            android:name=".SendProbeActivity"
+            android:exported="true"
+            android:label="QA Capture">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+        </activity>
+
+        <!-- Its own file provider: the capture's output lives in this app's cache and is reached only by a URI grant. -->
+        <provider
+            android:name=".OutputProvider"
+            android:authorities="app.tileshell.testclient.qacapture.output"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+    </application>
+</manifest>

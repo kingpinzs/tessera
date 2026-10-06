@@ -29,6 +29,16 @@ android {
         // Phase 03: the speech runtime ships native code. arm64-v8a is the S25 Ultra, x86_64 is the AVD;
         // the other two ABIs in the AAR would add ~58 MB for hardware this plan never targets.
         ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+        // Phase 17 (build task 6b, BS-1): the panorama stitcher, libopencv_pano.so, is BUILT for arm64-v8a only — the
+        // filter above still packages the other libraries for both ABIs, so the emulator's APK simply holds no
+        // lib/x86_64/libopencv* and hides Panorama with its reason (E7, E17). The C++ runtime is linked statically,
+        // so no libc++_shared.so is added to the APK.
+        externalNativeBuild {
+            cmake {
+                abiFilters("arm64-v8a")
+                arguments("-DANDROID_STL=c++_static")
+            }
+        }
     }
 
     // Phase 03 Decisions "Model variants and budget": the ASR and TTS models are read straight out of the
@@ -38,6 +48,17 @@ android {
         // "model" is the BPE vocabulary's extension: sherpa-onnx may read it through a file descriptor
         // rather than the asset stream, and a deflated asset has no usable fd.
         noCompress += listOf("onnx", "bin", "zip", "model")
+    }
+
+    // Phase 17 (BS-1): the one native library this project compiles. Its input, the OpenCV Android SDK, is fetched by
+    // tools/fetch-opencv.sh (git-ignored, pinned by sha256), as the speech runtime is; the versions are the ones the
+    // build-start trial link used.
+    ndkVersion = "30.0.16248370"
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.31.6"
+        }
     }
 
     signingConfigs {
@@ -79,6 +100,10 @@ android {
         // Phase 03: the speech engines live in their own process (Decisions "Model storage and process"),
         // so the shell reaches them across a Binder.
         aidl = true
+        // Phase 17 (r3 D14): BuildConfig.DEBUG gates the QA base-URL prefs (qa_catalogue_base, qa_wikidata_base,
+        // qa_server_base), so a release build cannot be redirected. It carries no other field: no key or token is
+        // ever a build input (the owner's ruling Q-17-1 (a)).
+        buildConfig = true
     }
 }
 
@@ -93,6 +118,14 @@ dependencies {
     // Phase 10: playback and the media session the tile rule keys on (build tasks 3 and 4).
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.session)
+    // Phase 17: video trim in Photos' editor (Media3 Transformer), and the Camera app (CameraX).
+    implementation(libs.media3.transformer)
+    implementation(libs.camerax.core)
+    implementation(libs.camerax.camera2)
+    implementation(libs.camerax.lifecycle)
+    implementation(libs.camerax.video)
+    implementation(libs.camerax.view)
+    implementation(libs.camerax.extensions)
     // Phase 15: Calculator's engine, converter and date calculation (pure Kotlin, JVM-tested), also Tess's arithmetic.
     implementation(project(":calc"))
     testImplementation(libs.junit)

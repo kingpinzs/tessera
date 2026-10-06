@@ -28,3 +28,11 @@ include(":testapps:tileclient-a", ":testapps:tileclient-b", ":testapps:tileclien
 include(":testapps:ime-fixture")
 // Phase 16 QA tooling, never shipped: a permission-less caller for People's ACTION_PICK (the TRUST row's probe).
 include(":testapps:pick-probe")
+// Phase 17 QA tooling, never shipped: the capture-intent caller (E9) and ACTION_SEND receiver (E5).
+include(":testapps:qa-capture")
+// Phase 17 QA tooling, never shipped: the second app of E9's forwarded-result leg (the trust fixes' leg (e)).
+include(":testapps:qa-capture-fwd")
+include(":testapps:qa-flix") // Phase 17 QA tooling, never shipped: the stand-in streaming app of the "Watch on" row (E21).
+include(":testapps:qa-photoview") // Phase 17 QA tooling, never shipped: the image VIEW sender of the trust row TRUST_PHOTOS.
+// Phase 17 QA tooling, never shipped: another app that starts the shell's player with a VIEW (row TRUST_VIDEO, C-M4's legs).
+include(":testapps:qa-view")

@@ -28,6 +28,18 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <!--
+      Phase 17 (build task 1). CAMERA: the shell's Camera app (its Setup row "Camera"). READ_MEDIA_VIDEO: Movies & TV's
+      My videos and the videos in Photos (its Setup row "Videos"; the Photos row stays READ_MEDIA_IMAGES). SET_WALLPAPER:
+      Photos' "Set as lock screen" (WallpaperManager, FLAG_LOCK), a normal permission granted at install. There is no
+      FOREGROUND_SERVICE_CAMERA: a recording stops when the screen goes off, so no camera foreground service exists.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <!-- The Camera works on a phone with no camera at all (it says so), so the feature is not required. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -87,7 +99,9 @@
     <application
         android:name=".ShellApp"
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.TileShell">
 
         <activity
@@ -612,5 +626,170 @@
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts_people" />
         </activity>
+
+        <!-- ===== Phase 17: Photos, Camera, Movies & TV (build task 1; r3 D6, D8) ===== -->
+
+        <!--
+          Photos: an app in the app list like Music, with its own task; APP_GALLERY is what lets the PHOTOS slot point
+          at it. Exported only as a launcher activity: its extras ("page") only choose a pivot. Other apps' pictures
+          arrive at ViewerActivity, never here.
+        -->
+        <activity
+            android:name=".photos.PhotosActivity"
+            android:exported="true"
+            android:label="@string/photos_name"
+            android:icon="@drawable/ic_photos"
+            android:taskAffinity="app.tileshell.photos"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.APP_GALLERY" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_photos" />
+        </activity>
+
+        <!--
+          The viewer other apps reach: VIEW on an image content URI. Standard launch mode and no task affinity of its
+          own, so it runs in its caller's task and is not an app in the catalog (L14-2). On the exported allow-list:
+          the intent only names the one picture; it is read with the shell's identity, so another app's URI is shown
+          only when the platform says that app could read it itself, and then read-only (photos/ViewerRules.kt).
+        -->
+        <activity
+            android:name=".photos.ViewerActivity"
+            android:exported="true"
+            android:label="@string/photos_name"
+            android:icon="@drawable/ic_photos"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="image/*" />
+            </intent-filter>
+        </activity>
+
+        <!-- Photos' editor and video trim, in their own process (r3 D8). Not exported: only Photos starts it. -->
+        <activity
+            android:name=".photos.EditActivity"
+            android:process=":photosedit"
+            android:exported="false"
+            android:label="@string/photos_name"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode" />
+        <service
+            android:name=".photos.PhotosEditDumpService"
+            android:process=":photosedit"
+            android:exported="false" />
+
+        <!--
+          Camera: an app in the app list with its own task and its own process. STILL_IMAGE_CAMERA and VIDEO_CAMERA
+          are what let the CAMERA slot point at it. Exported only as a launcher activity: its extra ("mode") only
+          chooses a capture mode. Another app's capture request arrives at CaptureActivity, never here.
+        -->
+        <activity
+            android:name=".camera.CameraActivity"
+            android:process=":camera"
+            android:exported="true"
+            android:label="@string/camera_name"
+            android:icon="@drawable/ic_camera"
+            android:taskAffinity="app.tileshell.camera"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.media.action.STILL_IMAGE_CAMERA" />
+                <action android:name="android.media.action.VIDEO_CAMERA" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_camera" />
+        </activity>
+
+        <!--
+          The capture answer (Q5 A, kept by Q-17-2 (b)): IMAGE_CAPTURE / VIDEO_CAPTURE from an app that names the shell
+          or targets API 29 or lower. Standard launch mode in :camera, in its caller's task. TRUST-TOUCHING and on the
+          exported allow-list: it writes only where the output guard allows (the caller's own granted content URI, or
+          DCIM/Camera for a video request with no output) and returns nothing else.
+        -->
+        <activity
+            android:name=".camera.CaptureActivity"
+            android:process=":camera"
+            android:exported="true"
+            android:label="@string/camera_name"
+            android:icon="@drawable/ic_camera"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.media.action.IMAGE_CAPTURE" />
+                <action android:name="android.media.action.VIDEO_CAPTURE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <service
+            android:name=".camera.CameraDumpService"
+            android:process=":camera"
+            android:exported="false" />
+
+        <!--
+          Movies & TV: the hub, an app in the app list with its own task and its own process. Exported only as a
+          launcher activity: its extra ("page") only chooses a pane page.
+        -->
+        <activity
+            android:name=".video.VideoActivity"
+            android:process=":video"
+            android:exported="true"
+            android:label="@string/video_name"
+            android:icon="@drawable/ic_video"
+            android:taskAffinity="app.tileshell.video"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_video" />
+        </activity>
+
+        <!--
+          The one player of the shell: what Photos and the hub start by explicit component, and what VIEW video/* from
+          another app opens, for content and http(s) sources (plain http plays: the owner's ruling Q-D (a)). Standard
+          launch mode in :video, in its caller's task. On the exported allow-list: the intent only names what is played,
+          and the activity checks who started it (PlayerAccess): a file source and the autoplay queue are the shell's
+          own uid's alone, and another app's content source is opened only when that app could read it itself.
+          Rotation follows the video, so no portrait lock.
+        -->
+        <activity
+            android:name=".video.PlayerActivity"
+            android:process=":video"
+            android:exported="true"
+            android:label="@string/video_name"
+            android:icon="@drawable/ic_video"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="video/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+        </activity>
+        <service
+            android:name=".video.VideoDumpService"
+            android:process=":video"
+            android:exported="false" />
     </application>
 </manifest>

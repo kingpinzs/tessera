@@ -16,9 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.password
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.tileshell.ui.tokens.ShellType
@@ -62,6 +66,12 @@ fun OutlinedField(
     imeAction: ImeAction = ImeAction.Done,
     onImeAction: (() -> Unit)? = null,
     textStyle: TextStyle = ShellType.body.copy(color = Color.White),
+    /**
+     * Phase 17: a field that holds a credential (a password, a pasted token). The characters are drawn as dots, the
+     * keyboard is asked for its password form (no suggestions, nothing learnt), and accessibility — so a UI dump too —
+     * reads the dots, never the value.
+     */
+    secret: Boolean = false,
 ) {
     Box(
         modifier
@@ -84,11 +94,13 @@ fun OutlinedField(
                 val kept = if (singleLine) typed.replace("\n", "") else typed
                 onValueChange(kept.take(maxLength))
             },
-            modifier = Modifier.fillMaxSize().padding(horizontal = OutlinedFieldMetrics.TEXT_INSET).testTag(tag),
+            modifier = Modifier.fillMaxSize().padding(horizontal = OutlinedFieldMetrics.TEXT_INSET).testTag(tag)
+                .then(if (secret) Modifier.semantics { password() } else Modifier),
             enabled = enabled,
             textStyle = textStyle,
             singleLine = singleLine,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
+            keyboardOptions = KeyboardOptions(keyboardType = if (secret) KeyboardType.Password else keyboardType, imeAction = imeAction, autoCorrectEnabled = if (secret) false else null),
+            visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardActions = KeyboardActions(onAny = { onImeAction?.invoke() }),
             cursorBrush = SolidColor(Color.White),
             decorationBox = { inner -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { inner() } },

@@ -7,7 +7,12 @@ junit = "4.13.2"
 # Phase 10: the playback engine and its media session (Q8). R9 found no permissively licensed player
 # to adopt, but Media3 itself is Apache-2.0 and is what both the one credible look-alike and Google's
 # own archived sample are built on.
-media3 = "1.8.0"
+# Phase 17 raised it from 1.8.0: CameraX 1.6.2's camera-video depends on media3-muxer 1.9.0, which lifts every Media3
+# module to 1.9.0 whatever is written here, so the pin says what the build really holds (INDEX Change Log 2026-10-05).
+media3 = "1.9.0"
+# Phase 17: the Camera app's library (Decisions 2026-09-22: a Jetpack library, Apache-2.0, no Play services, no
+# network). 1.6.2 is the build-start pin (BS-2): its HighSpeedVideoSessionConfig is the slow-motion route.
+camerax = "1.6.2"
 # Phase 05 QA tooling (testapps/ime-fixture): the gesture driver is an instrumentation APK on UiAutomator.
 androidxTestRunner = "1.7.0"
 androidxTestExtJunit = "1.3.0"
@@ -22,6 +27,14 @@ activity-compose = { group = "androidx.activity", name = "activity-compose", ver
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
+# Phase 17: video trim (Photos' editor, T17-3) — a module of the library already in the build.
+media3-transformer = { group = "androidx.media3", name = "media3-transformer", version.ref = "media3" }
+camerax-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
+camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+camerax-video = { group = "androidx.camera", name = "camera-video", version.ref = "camerax" }
+camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
+camerax-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "camerax" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }

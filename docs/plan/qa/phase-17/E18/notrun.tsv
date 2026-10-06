@@ -1,0 +1,12 @@
+# E18 - the join of the three notrun_<app>.tsv files, written by e18.py
+# the line pattern	the reason, and its P row or JVM test
+[camera] devices=<n> front=present	the AVD has ONE emulated back camera and no front camera (E7 asserts devices=1 front=absent and no camera_switch node) | P1 (the phone)
+[camera] slowmo <n> fps captured, encoded at 30 -> <uri>	no high-speed session on the AVD: REQUEST_AVAILABLE_CAPABILITIES holds no CONSTRAINED_HIGH_SPEED_VIDEO (E7 records the key and asserts `[camera] mode slowmo: unavailable (no high-speed session)`) | P11 (the phone); JVM: CameraGatesTest (the gate)
+[camera] capture guard inputs: … starterAtLaunch=<threw X|not available>	the launch answer did not throw in any leg on API 36 (E9 reads granted, denied and not asked); "not available" is API 34 only | JVM: UriAccessRulesTest; an API 34 device (none in this gate)
+[video] library	no such bare line is written: the line is always "[video] library: <n>" (the doc's E18 lists both spellings); produced as that form by E11 | E11
+[video] catalogue: no TMDB key in this build	SUPERSEDED 2026-10-05 by Q-17-1 (a): no build carries a token and there is no CI-form APK; the line as built is "[video] catalogue: no TMDB key saved", produced by E20 (no key; remove) | E20
+[video] cleartext refused <host>	Q-D A is the only form built (r3 V6): the line is never written, and E13 / E22 FAIL on it (asserted absent in both) | E13, E22 (absent_in)
+[video] refused scheme=<s>	SUPERSEDED 2026-09-23 (E13's struck 127.0.0.1 clause): http is open to every caller; the refusals as built are "unsupported scheme=<s>" (E13) and "refused source: no grant" (TRUST_VIDEO C-M4 (i)) | PlayerRulesTest (JVM)
+[video] server not removed: its token could not be cleared	needs the Keystore / file removal to fail (storage full, a broken key): no AVD row can make it fail on demand | ServerStoreTest (JVM)
+[video] TMDB key not removed	the same: a removal that fails | the key page's JVM tests (TrustWiringScanTest / CredentialFileTest)
+[video] http: answer not finished in time	a 60-s total deadline on one response read: no row holds a response open that long | VideoHttp's JVM test

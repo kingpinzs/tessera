@@ -1,0 +1,34 @@
+# Session prompt — phase 17 (inbox apps III: Photos, Camera and Movies & TV), the build
+
+Paste into a fresh Claude Code session started in ~/projects/metro-launcher-p17 (the worktree already exists):
+
+---
+Work in ~/projects/metro-launcher-p17 only (git worktree, branch phase-17). Never edit ~/projects/metro-launcher or ~/projects/metro-launcher-p16. Load the phased-build skill, read docs/plan/INDEX.md (master), and follow docs/plan/build-prompt.md — with this session's scope fixed to **phase 17, inbox apps III: Photos, Camera and Movies & TV** (docs/plan/phase-17-inbox-photos-camera-video.md, FINAL 2026-10-05 — read it fully before building: Goal, Scope, Decisions, Build tasks, Acceptance criteria, Edge cases). INDEX's row 17 and the Change Log say where the build stands.
+
+**Where it stands (2026-10-05):**
+- The worktree was cut from the tip of phase-16 (the commit that set phase 17 FINAL and wrote this prompt) (phase 16 is "QA", its emulator gate passed and it is merged into GitHub's main; its sign-offs are open). The git-ignored build inputs are hard-linked in (local.properties, keystore.properties, app/libs/, app/src/main/assets/keyboard/, app/src/main/assets/speech/, the licence files).
+- The pre-17 APK for E1's upgrade leg is kept locally at docs/plan/qa/phase-17/upgrade/phase-16-585b457f.apk (md5 585b457ffc29878c, phase 16's gate build, commit e226bc68; git-ignored, never commit it).
+- Nothing of phase 17 is built. Start with build task 0, then the doc's "Verify at build start" checks on the AVD, then the tasks in order.
+- The plan's last review round (round 3, 2026-10-04, opus + opus; review/2026-10-04-phase17-r3-{brief,design,testability,triage}.md) and the owner's three answers of 2026-10-05 are in the doc: Q-17-1 (a) the TMDB token is pasted once on the phone and kept encrypted there, never in any build; Q-17-2 (b) the Camera keeps answering capture requests, with the round-3 output guard; Q-17-3 (a) Photos and Camera take their slots once over a hand pick.
+
+**Standing rules (Jeremy):**
+- NEVER use Fable for anything — reviewers, subagents, forks, the main loop. NEVER use codex in this project: it runs on his work account (his ruling, 2026-10-04). Reviews are two Opus subagents (pass model: opus), each with a different lens (design / correctness; testability / evidence). Never Gemini, never Sonnet.
+- Never touch the host's audio (no pactl, no audio.sh setup, no hostmicon). No microphone in QA: rows are typed (type_request) and tapped, and video rows run with RECORD_AUDIO revoked (the doc says how). If a spoken step is ever needed, only the emulator's own gRPC route (AUDIO_ROUTE=emu, qa/phase-03/scripts/emu_audio.py).
+- ANDROID_SERIAL=emulator-5554 only (AVD tileshell_fhd; emulated back camera, NO front camera). If it is down, relaunch it with exactly: QEMU_AUDIO_DRV=none ~/Android/Sdk/emulator/emulator -avd tileshell_fhd -no-snapshot-load (in the background), wait for sys.boot_completed, and tell Jeremy you did. If a step crashes the emulator twice, stop and tell him rather than relaunching again.
+- Phone checks are phone-only: anything on the S25 Ultra is something Jeremy does on the phone and reports back; never a PC / USB / adb step. The phone runs the CI build from the repository's "latest" release, which CI makes only on a push to main.
+- QA run evidence (screenshots, UI dumps, logs, ring slices, recordings, captured output) is NEVER committed and never pushed (his ruling, 2026-10-02): it stays on disk, ignored by docs/plan/qa/.gitignore. Commit only drivers, tables and documents. Before any push, list what it carries.
+- Never push without Jeremy saying push. The push hook also needs him to run `touch ~/.claude/push-approved` on this machine himself — you cannot create that flag, and any session on this machine can use it up, so push the moment it exists, with a command that holds the push and nothing else. He merges a branch into main through a pull request on GitHub and deletes the branch there; check `git ls-remote origin` before saying what a remote holds.
+- The repository's history was rewritten on 2026-10-02 (INDEX Change Log): ids cited before then are old ids (review/2026-10-02-history-rewrite-commit-map.txt). Never check out an old-history commit in a worktree: moving back to the new history would delete that worktree's evidence files.
+- Stage A question shape for anything you must ask him: one question per message, at least three lettered one-line choices with your lean marked, "D. Other / let me clarify" last, in plain prose (never the AskUserQuestion tool); record his answer, dated, before the next question.
+- Verify by running; quote real output. Read exit codes from captured files, never through a pipe. Kill processes only by recorded pid. Keep all QA evidence and earlier runs on disk (rename, never delete). Timestamps you write come from `date`, read before you write them.
+- Only test what a change touches (his ruling, three times, last 2026-10-01): each row's one passing run is its evidence; after a fix, re-run only the rows or legs the fix touches; a row never run still runs once. No final all-rows pass.
+- Commit logically on phase-17 (never squash, never `git add -A` / `git add .` — a hook blocks them; add explicit paths). A hook also blocks a commit command that contains backticks anywhere in it: write the message to a file and use `git commit -F <file>`. End every commit message with the attribution lines the session's system reminder gives.
+- State lives in files: update INDEX.md's row 17 and .claude-build-state.md every iteration; an out-of-scope defect (a `done` phase's part, a tool, a dependency) goes on INDEX's Blocked-on ledger — stop, log, report, plan the fix with Jeremy, then fix and resume.
+- The project's tracking page is https://claude.ai/artifact/3JgyGQ999cbUZ9nJtdX6aD. Update it with the ArtifactData tool at every step (board/now, board/log, phases/17), never by republishing; read its sign-off rows back before asking him for sign-offs, and add phase 17's NEEDS-HUMAN and phone rows to it (signoffs/p17-<id>) when the phase reaches its gate.
+- Any trust-touching part (permissions, the camera and media access, the capture-intent output guard, the MediaStore write layer, exported components, the network security config, the stored TMDB and Jellyfin tokens, anything over the keyguard) gets an adversarial Opus review before `done`.
+- HARD STOP when phase 17's row is `done` (which needs Jeremy's sign-off on every NEEDS-HUMAN and phone row): write the handoff summary and end. Never begin, prep or read the next phase.
+---
+
+Notes for Jeremy (not part of the prompt):
+- Written at the end of the phase 16 session's planning of phase 17, 2026-10-05. If phase 17 has moved on since, INDEX.md wins over anything above.
+- The emulator was left running with phase 16's gate build installed.

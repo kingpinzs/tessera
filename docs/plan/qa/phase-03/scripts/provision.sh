@@ -69,6 +69,11 @@ adb shell ime set app.tileshell/.ime.KeyboardService
 # Phase 16 (C-4): People's Setup row asks READ_CONTACTS + WRITE_CONTACTS. `install -r -g` above grants both; this is
 # belt-and-braces beside it, so a provisioned AVD never shows the wizard's People step.
 adb shell pm grant app.tileshell android.permission.WRITE_CONTACTS
+# Phase 17 (C-4 a): the Camera and Videos Setup rows. `install -r -g` grants both on a fresh install; these lines
+# re-grant after a `pm clear`, which resets runtime grants. On a pre-17 build (E1's upgrade leg) the manifest lacks
+# them and the two lines fail harmlessly.
+adb shell pm grant app.tileshell android.permission.CAMERA
+adb shell pm grant app.tileshell android.permission.READ_MEDIA_VIDEO
 echo "write contacts: $(adb shell dumpsys package app.tileshell | grep -m1 'android.permission.WRITE_CONTACTS: granted' | tr -d '\r' | xargs)"
 echo "usage access: $(adb shell appops get app.tileshell GET_USAGE_STATS | tr -d '\r')"
 echo "keyboard: $(adb shell settings get secure default_input_method | tr -d '\r')"

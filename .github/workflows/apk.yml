@@ -48,9 +48,30 @@ jobs:
           python3 -m pip install --quiet sentencepiece
           bash tools/fetch-speech.sh
 
+      # Phase 17 (BS-1): the panorama stitcher is linked from the official OpenCV Android SDK, a 319 MB pinned release
+      # asset that is deliberately not in git (tools/fetch-opencv.sh, pinned by sha256). Cached like the speech payload.
+      - name: Cache the OpenCV SDK
+        uses: actions/cache@v4
+        with:
+          path: .opencvsrc
+          key: opencv-${{ hashFiles('tools/fetch-opencv.sh') }}
+
+      - name: Fetch the OpenCV SDK
+        run: bash tools/fetch-opencv.sh
+
+      # The one native library this project compiles (app/src/main/cpp, arm64-v8a only) needs the NDK and CMake at the
+      # versions app/build.gradle.kts names. Without this step the phone build has no panorama.
+      - name: NDK and CMake for the panorama library
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;30.0.16248370" "cmake;3.31.6"
+
       # Phase 01 Decisions: "Phone installs are always release-signed and non-debuggable." The keystore
-      # cannot live in git, so it comes from repository secrets. Without them this still produces
-      # something installable, but it says so loudly rather than quietly shipping a debug build.
+      # cannot live in git, so it comes from repository secrets. Without them the job still builds and
+      # tests a debug APK and keeps it as a workflow artifact (behind a login, 30 days) — and PUBLISHES
+      # NOTHING: the two release steps below run only for the release variant. A debug APK is debuggable,
+      # trusts cleartext to the emulator's host and honours the QA base-URL prefs (the catalogue base
+      # receives the TMDB token), so it never goes onto the public release page (phase 17 trust review C-M1).
       - name: Signing material
         id: signing
         env:
@@ -71,10 +92,12 @@ jobs:
             echo "signed release build" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "variant=debug" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Nothing published::No signing secrets are set: this run builds a debug APK as a workflow artifact only. The release page is left as it was."
             {
-              echo "### DEBUG BUILD"
+              echo "### DEBUG BUILD — NOT PUBLISHED"
               echo
-              echo "No signing secrets are set, so this is a **debug** APK."
+              echo "No signing secrets are set, so this is a **debug** APK. It is kept as a workflow artifact only;"
+              echo "the release page is NOT updated by this run and still shows the last release-signed build."
               echo "Phase 01's Decisions say phone installs are always release-signed and non-debuggable."
               echo
               echo "To get a release build, add these repository secrets:"
@@ -101,12 +124,33 @@ jobs:
       - name: Name the APK
         id: apk
         run: |
-          src="$(find app/build/outputs/apk -name '*.apk' | head -1)"
+          # The APK of the variant this run built, by its own output path - never "whichever APK is found first"
+          # (phase 17 trust review C2-L6): a stale or other-variant APK in the outputs must not be the one published.
+          variant="${{ steps.signing.outputs.variant }}"
+          src="app/build/outputs/apk/$variant/app-$variant.apk"
+          if [ ! -f "$src" ]; then
+            echo "::error title=No APK::$src was not built"
+            exit 1
+          fi
           name="tessera-${{ github.run_number }}-$(git rev-parse --short HEAD)-${{ steps.signing.outputs.variant }}.apk"
           mkdir -p out && cp "$src" "out/$name"
           echo "path=out/$name" >> "$GITHUB_OUTPUT"
           echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "- \`$name\` ($(du -h "out/$name" | cut -f1))" >> "$GITHUB_STEP_SUMMARY"
+
+      # What is published must not be debuggable (C2-L6; phase 01: "phone installs are always release-signed and
+      # non-debuggable"). Asked of the APK itself, not of the variant's name: the job fails here, before the release
+      # page is touched, when the APK's own manifest says it is debuggable or cannot be read.
+      - name: Refuse a debuggable APK
+        if: ${{ steps.signing.outputs.variant == 'release' }}
+        run: |
+          aapt2="$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)"
+          badging="$("$aapt2" dump badging "${{ steps.apk.outputs.path }}")"
+          if [ -z "$badging" ] || printf '%s\n' "$badging" | grep -q '^application-debuggable'; then
+            echo "::error title=Debuggable APK::The APK to publish is debuggable, or its badging could not be read. Nothing is published."
+            exit 1
+          fi
+          echo "- not debuggable (aapt2 dump badging holds no application-debuggable line)" >> "$GITHUB_STEP_SUMMARY"
 
       # THE fingerprint, printed where a human will see it. A debug build is signed with
       # ~/.android/debug.keystore, which the Android Gradle Plugin GENERATES if it is missing — and a
@@ -134,8 +178,9 @@ jobs:
       # so without this the page collects one file per push — and with debug builds each of those is
       # signed with a different key, which is how you pick the wrong one and are told it is not
       # installed. A tagged release is left alone: those are meant to be permanent.
+      # Release variant only: a debug run must not touch the release page at all, not even to empty it.
       - name: Clear the old assets from the rolling release
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        if: ${{ steps.signing.outputs.variant == 'release' && !startsWith(github.ref, 'refs/tags/') }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -148,7 +193,10 @@ jobs:
           done
 
       # A tag gets its own permanent release; a push to main moves the rolling "latest" one.
+      # ONLY a release-signed build is published (C-M1): with the signing secrets absent this step is
+      # skipped, on a push to main and on a tag alike, and the debug APK stays a workflow artifact.
       - name: Release
+        if: ${{ steps.signing.outputs.variant == 'release' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest' }}
@@ -159,7 +207,7 @@ jobs:
 
             Signing certificate SHA-256: `${{ steps.fingerprint.outputs.sha256 }}`
 
-            ${{ steps.signing.outputs.variant == 'debug' && 'WARNING: this is a DEBUG build. Every CI run generates its own debug key, so this APK CANNOT be installed over an earlier one — Android refuses it with "App not installed". Uninstall the app first, or add the release signing secrets so every build shares one key.' || 'Release-signed: this installs straight over the previous build.' }}
+            Release-signed: this installs straight over the previous build.
 
             Open this page on the phone and tap the `.apk` to install it. Sideloading needs
             "Install unknown apps" allowed for the browser, and the shell needs to be made the default

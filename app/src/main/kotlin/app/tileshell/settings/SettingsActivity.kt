@@ -39,7 +39,7 @@ import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.ShellRoot
 import app.tileshell.ui.motion.Motion
 
-enum class SettingsPage { HOME, START_THEME, TILE_APPS, LIVE_TILE_ACCESS, POD_BAY, KEYBOARD, CHECKLIST, DIAGNOSTICS, ABOUT }
+enum class SettingsPage { HOME, START_THEME, TILE_APPS, LIVE_TILE_ACCESS, POD_BAY, KEYBOARD, CHECKLIST, DIAGNOSTICS, ABOUT, PROBE }
 
 /** An entry on the Settings page stack: a page, or the slot app picker opened from Tile apps (its own list, not scrolled by the page). */
 private sealed interface Route {
@@ -78,7 +78,9 @@ class SettingsActivity : ComponentActivity() {
                                             SettingsPage.POD_BAY -> PodBaySettingsPage()
                                             SettingsPage.KEYBOARD -> KeyboardPage()
                                             SettingsPage.CHECKLIST -> ChecklistPage()
-                                            SettingsPage.DIAGNOSTICS -> DiagnosticsPage()
+                                            SettingsPage.DIAGNOSTICS -> DiagnosticsPage { stack += Route.Page(SettingsPage.PROBE) }
+                                            // Phase 17 (r3 V15): reached from Diagnostics; phone rows read their facts here.
+                                            SettingsPage.PROBE -> ProbePage()
                                             SettingsPage.ABOUT -> AboutPage()
                                         }
                                     }

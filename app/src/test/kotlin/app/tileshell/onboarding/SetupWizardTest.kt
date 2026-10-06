@@ -19,7 +19,7 @@ class SetupWizardTest {
 
     private val setupGrant = listOf("home", "notifications", "photos", "music", "calendar", "location", "usage")
     private val setupObservationsMid = listOf("samsung_badges", "legacy_badges")
-    private val setupGrantLate = listOf("keyboard_enabled", "keyboard_selected", "people", "full_screen_alarms", "overlay")
+    private val setupGrantLate = listOf("keyboard_enabled", "keyboard_selected", "people", "full_screen_alarms", "overlay", "camera", "videos")
     private val tessGrantEarly = listOf("assistant", "microphone", "contacts", "calendar", "sms_send", "call_phone")
     private val tessGrantLate = listOf("background_location", "call_log", "sms_read")
     private val observations = listOf("setup:samsung_badges", "setup:legacy_badges", "setup:listener", "tess:exact_alarms", "tess:models", "tess:service", "tess:speech_process", "tess:person_triggers")
@@ -30,6 +30,8 @@ class SetupWizardTest {
         "setup:calendar" to listOf("READ_CALENDAR"),
         "setup:location" to listOf("ACCESS_COARSE_LOCATION"),
         "setup:people" to listOf("READ_CONTACTS", "WRITE_CONTACTS"),
+        "setup:camera" to listOf("CAMERA"),
+        "setup:videos" to listOf("READ_MEDIA_VIDEO"),
         "tess:microphone" to listOf("RECORD_AUDIO"),
         "tess:contacts" to listOf("READ_CONTACTS"),
         "tess:calendar" to listOf("READ_CALENDAR", "WRITE_CALENDAR"),
@@ -62,6 +64,7 @@ class SetupWizardTest {
     private val e2Steps = listOf(
         "setup:notifications", "setup:photos", "setup:music", "setup:calendar", "setup:location", "setup:usage",
         "setup:keyboard_enabled", "setup:keyboard_selected", "setup:people", "setup:full_screen_alarms", "setup:overlay",
+        "setup:camera", "setup:videos",
         "tess:assistant", "tess:microphone", "tess:contacts", "tess:calendar", "tess:sms_send", "tess:call_phone",
         "tess:background_location", "tess:call_log", "tess:sms_read",
     )
@@ -71,9 +74,9 @@ class SetupWizardTest {
 
     // ------------------------------------------------------------------ visibility and precedence
 
-    @Test fun `twenty-one core rows - twelve Setup (People's since phase 16) and Tess's nine`() {
-        assertEquals(21, rows().count { it.grant })
-        assertEquals(12, rows().count { it.grant && it.ns == "setup" })
+    @Test fun `twenty-three core rows - fourteen Setup (Camera and Videos since phase 17) and Tess's nine`() {
+        assertEquals(23, rows().count { it.grant })
+        assertEquals(14, rows().count { it.grant && it.ns == "setup" })
         assertEquals(9, rows().count { it.grant && it.ns == "tess" })
     }
 
@@ -102,12 +105,12 @@ class SetupWizardTest {
 
     // ------------------------------------------------------------------ steps: order, namespacing, observations, partial
 
-    @Test fun `the E2 state walks twenty steps, Setup order then Tess's, namespaced`() {
+    @Test fun `the E2 state walks twenty-two steps, Setup order then Tess's, namespaced`() {
         val v = WizardRules.visibility(e2(), false) as Visibility.Show
         assertEquals(e2Steps, v.steps)
         val run = WizardRules.start(v.steps)
         assertEquals(1, run.stepNumber)
-        assertEquals(21, run.total)
+        assertEquals(23, run.total)
     }
 
     @Test fun `both lists' calendar rows are separate steps`() {
@@ -145,8 +148,8 @@ class SetupWizardTest {
         }
         assertTrue("the walk ends on the presets page within 40 steps", run.onPresets)
         assertEquals(e2Steps, seen)
-        assertEquals(21, run.stepNumber)
-        assertEquals(21, run.total)
+        assertEquals(23, run.stepNumber)
+        assertEquals(23, run.total)
         assertEquals("step setup:notifications: not now", lines.first())
     }
 
@@ -158,7 +161,7 @@ class SetupWizardTest {
         assertEquals(listOf("step setup:notifications: granted"), lines)
         assertEquals("setup:photos", run.current)
         assertEquals(2, run.stepNumber)
-        assertEquals(21, run.total)
+        assertEquals(23, run.total)
     }
 
     @Test fun `Photos answered Select photos - PARTIAL advances with a partial line`() {
@@ -197,7 +200,7 @@ class SetupWizardTest {
         rowsNow = e2() // notification access revoked again
         run = WizardRules.reconcile(run, rowsNow, noRationale, noneGranted).first
         assertEquals("setup:photos", run.current) // the current step stays
-        assertEquals(22, run.total)                // N grew by one
+        assertEquals(24, run.total)                // N grew by one
         val seen = ArrayList<String>()
         repeat(40) {
             if (run.onPresets) return@repeat
@@ -219,7 +222,7 @@ class SetupWizardTest {
         val r = e2().map { if (it.key == "setup:photos") it.copy(state = RowState.GRANTED) else it }
         val steps = (WizardRules.visibility(r, false) as Visibility.Show).steps
         assertFalse("setup:photos" in steps)
-        assertEquals(20, WizardRules.start(steps).total) // E4: one fewer N
+        assertEquals(22, WizardRules.start(steps).total) // E4: one fewer N
     }
 
     @Test fun `E14's template on setup usage - Step 1 of 2`() {
@@ -239,7 +242,7 @@ class SetupWizardTest {
         assertEquals("setup:notifications", back.current)
         assertEquals(1, back.stepNumber)
         assertFalse("setup:notifications" in back.declined)
-        assertEquals(21, back.total)
+        assertEquals(23, back.total)
     }
 
     // ------------------------------------------------------------------ People's row (phase 16, T16-15 / r3 V12)
@@ -381,9 +384,12 @@ class SetupWizardTest {
         assertEquals("Allow all the time", verb("tess:background_location"))
     }
 
-    @Test fun `every step has a why line - the twenty-one grant rows`() {
+    @Test fun `every step has a why line - the twenty-three grant rows`() {
         rows().filter { it.grant }.forEach { assertTrue(it.key, WizardRules.WHY[it.key].orEmpty().isNotBlank()) }
-        assertEquals(21, WizardRules.WHY.size)
+        assertEquals(23, WizardRules.WHY.size)
+        // Phase 17 build task 8: the two lines E25 (a) reads, word for word.
+        assertEquals("Camera takes your photos and videos. Without it the Camera tile can't open the shell's camera.", WizardRules.WHY["setup:camera"])
+        assertEquals("Movies & TV and Photos show the videos on this phone. Without it they show none.", WizardRules.WHY["setup:videos"])
         assertEquals("People shows and edits your contacts. Without it People can't see them.", WizardRules.WHY["setup:people"])
         assertEquals("Live tiles and unread counts come from your notifications. Without it the tiles stay still.", WizardRules.WHY["setup:notifications"])
     }
