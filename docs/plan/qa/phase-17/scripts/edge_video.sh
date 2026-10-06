@@ -350,13 +350,24 @@ edge_OFFLINE() {
   assert_eq "airplane mode is off again" "0" "$(airplane_now)"
 
   log "--- a catalogue that accepts the connection and never answers: the 10-s timeout, off the main thread"
+  # The silent server: it accepts, never answers, and writes how long each connection stayed open before the CLIENT
+  # gave it up — one call, one line "<n> held <ms>". That is the call's own timeout, read where it cannot be confused
+  # with two calls made one after the other.
+  : > "$D/silent.log"
   python3 -c '
-import socket, sys, time
+import socket, sys, threading, time
 s = socket.socket(); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(("127.0.0.1", int(sys.argv[1]))); s.listen(16)
-held = []
+n = 0
+def hold(c, i):
+    t0 = time.time()
+    try:
+        while c.recv(65536): pass          # the request arrives; nothing is ever sent back
+    except OSError: pass
+    open(sys.argv[2], "a").write("%d held %d\n" % (i, (time.time() - t0) * 1000))
 while True:
-    c, _ = s.accept(); held.append(c)       # accepted, never answered, never closed
-' "$PORT" &
+    c, _ = s.accept(); n += 1
+    threading.Thread(target=hold, args=(c, n), daemon=True).start()
+' "$PORT" "$D/silent.log" &
   PID=$!; EXTRA_PIDS="$EXTRA_PIDS $PID"
   qa_pref qa_catalogue_base "http://10.0.2.2:$PORT/"
   adb shell run-as app.tileshell rm -rf files/video_catalogue
@@ -366,11 +377,14 @@ while True:
   hub myvideos 1.5; dump_ui "$D/during.xml"
   assert_eq "while the catalogue call hangs (≈4 s in): the My videos page is drawn and lists the tile" "yes" "$(has_node "$D/during.xml" hub_page:myvideos)"
   record "while it hangs: ms since Browse was opened, and the catalogue lines so far" "$(( $(device_ms) - T0 )) / $(vring "$MARK" | grep -F '[video] catalogue' | sed 's/.*\[video\] //' | tr '\n' '|')"
-  LINE="$(await_vline "$MARK" ": error " 250)"
+  LINE="$(await_vline "$MARK" ": error " 300)"
   T1="$(wall_of "$LINE")"
-  record "the call's end: the line, and ms after Browse was opened" "$(echo "$LINE" | sed 's/.*\[video\] //') / $(( ${T1:-0} - T0 ))"
-  assert_contains "the hanging call ends by itself with an error line" ": error " "$LINE"
-  assert_eq "… at the 10-s timeout (between 9 and 14 s after Browse was opened)" "yes" "$([ -n "$T1" ] && [ $(( T1 - T0 )) -ge 9000 ] && [ $(( T1 - T0 )) -le 14000 ] && echo yes || echo no)"
+  record "the first error line, and ms after Browse was opened (the page makes its calls one after another)" "$(echo "$LINE" | sed 's/.*\[video\] //') / $(( ${T1:-0} - T0 ))"
+  assert_contains "the hanging calls end by themselves with an error line" ": error " "$LINE"
+  sleep 1
+  record "the silent server's connections (each: how long the shell held it before giving up, ms)" "$(tr '\n' '|' < "$D/silent.log")"
+  assert_ne "the silent server saw the shell's calls end (connections given up)" "0" "$(grep -c held "$D/silent.log")"
+  assert_eq "every network call that ended was given up at the 10-s timeout (held 9.5 to 12 s)" "$(grep -c held "$D/silent.log")" "$(awk '$3 >= 9500 && $3 <= 12000' "$D/silent.log" | grep -c held)"
   assert_eq "no StrictMode / main-thread crash: logcat -T <the row's MARK> -s AndroidRuntime is empty of app.tileshell" "" "$(crash_since "$ROW_MARK")"
   assert_ne "the hub's process is still the one that made the call" "" "$(adb shell pidof app.tileshell:video | tr -d '\r')"
 

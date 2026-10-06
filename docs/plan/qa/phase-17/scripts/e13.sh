@@ -159,10 +159,12 @@ log "--- the fixed hosts: force-stop, MARK, Home"
 HOSTS="$(sed -n 's/^ *const val [A-Z_]* = "https:\/\/\([^"\/]*\)\/".*/\1/p' "$REPO/app/src/main/kotlin/app/tileshell/net/FixedEndpoints.kt")"
 assert_eq "FixedEndpoints names nine hosts (read from the source)" "9" "$(printf '%s\n' "$HOSTS" | grep -c .)"
 rings_save
-# The MARK is taken the moment the force-stop returns, as the doc orders it (force-stop, MARK, Home): Android restarts
-# the home app by itself within a second, so a MARK taken any later is after the [net] lines (this driver's run 1).
-adb shell am force-stop app.tileshell
+# The doc orders it force-stop, MARK, Home. Android restarts the home app by itself the moment the force-stop lands, so
+# a MARK taken after the stop loses a race with the new process's [net] lines (this driver's runs 1 and 5: the slice
+# was empty). The MARK is therefore taken just BEFORE the force-stop: the launcher's ring lives in its process, so
+# every line stamped after the MARK is the NEW process's — the same slice the doc means, without the race.
 MARK="$(ring_mark)"
+adb shell am force-stop app.tileshell
 sleep 1
 ensure_start
 await_lline "$MARK" "[net] cleartext permitted for $(printf '%s\n' "$HOSTS" | tail -1)" 200 >/dev/null

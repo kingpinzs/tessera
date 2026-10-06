@@ -42,7 +42,8 @@
 #               scheme (http://10.0.2.2:8097; the AVD fixture is http), and signing in from it connects
 #   B-4 (a)     media_server.json edited to another host (run-as) → the library still goes to the first server; the
 #               other host sees no request
-#   B-4 (b)     the sealed entry corrupted → the page shows the sign-in form again, no request with the token
+#   B-4 (b)     the sealed entry corrupted → it does not open and is cleared at the hub's start (round 2); no library,
+#               no request with the token; Settings → Media server shows the sign-in form again
 #   B2-M1 (b)   media_server.json replaced with one lacking `pair`, Settings → Media server opened without a restart
 #               → server_left_over + server_remove; Remove → `[video] server token cleared`
 #   B2-M1 (a)   media_server.json removed (run-as), force-stop, the hub opened → `[cred] jellyfin: removed`, `[video]
@@ -435,7 +436,16 @@ assert_eq "B-4 (b): the store still names both entries (the jellyfin one is now 
 OFF1="$(flines "$FLOG1")"
 MARK="$(ring_mark)"; hub mediaserver 5; dump_ui "$D/b4b.xml"
 record "B-4 (b): the :video lines" "$(vring "$MARK" | grep -E '\[(video|cred)\]' | sed 's/.*wall=[0-9]* //' | tr '\n' '|')"
-assert_eq "B-4 (b): the page shows the sign-in form again (server_connect), not a library" "yes no" "$(has_node "$D/b4b.xml" server_connect) $(has_node "$D/b4b.xml" "server_item:$FAKE_ITEM")"
+# The fixes file's first table says "the page shows Sign in again". Round 2 (B2-M1) changed what happens first: an entry
+# that does not open is removed at the hub's start, so there is no server any more — the Media server page falls back
+# to My videos, and the sign-in form is the one under Settings → Media server. Asserted as built after round 2, and
+# reported for the lead: the first table's wording is the older one.
+SL4="$(vring "$MARK")"
+assert_contains "B-4 (b): the spoiled entry does not open ([cred] jellyfin: unreadable …)" "[cred] jellyfin: unreadable" "$SL4"
+assert_contains "B-4 (b): … and is cleared at the hub's start" "[video] server entry cleared at start: it was not a saved server" "$SL4"
+assert_eq "B-4 (b): no library is shown (the page falls back to My videos)" "yes no" "$(has_node "$D/b4b.xml" hub_page:myvideos) $(has_node "$D/b4b.xml" "server_item:$FAKE_ITEM")"
+server_page "$D/b4b-settings"; dump_ui "$D/b4b-form.xml"
+assert_eq "B-4 (b): Settings → Media server shows the sign-in form again (server_connect), no left-over entry" "yes no" "$(has_node "$D/b4b-form.xml" server_connect) $(has_node "$D/b4b-form.xml" server_left_over)"
 assert_eq "B-4 (b): no request with the token left for the server" "0" "$(fsince "$FLOG1" "$OFF1" | grep -c 'token=header')"
 assert_eq "B-4 (b): no AndroidRuntime line" "" "$(crash_since "$MARK")"
 
