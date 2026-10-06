@@ -58,8 +58,14 @@
 #                         neither, and this row's writer may not change a fixture app.
 #             X own       V's OWN FileProvider URI (V starts T for a result with it and a write grant — without one T's
 #                         start would throw; T forwards with FLAG_ACTIVITY_FORWARD_RESULT): T's start does not throw;
-#                         `recipientMayWrite=true starterAtLaunch=denied`, refused, RESULT_CANCELED, no camera opened,
-#                         nothing in V's file — asserted as the fixes file words it.
+#                         `recipientMayWrite=true starterAtLaunch=granted`, `output accepted`, the capture page opens;
+#                         the row presses Back, never Done: RESULT_CANCELED and nothing in V's file.
+#                         THE LEAD'S RULING, 2026-10-06: the product is right, and the fixes file's "starterAtLaunch=
+#                         denied, refused" for this leg was a wrong prediction (run 1 on 95b54303, kept, is the device's
+#                         reading; an INDEX Change Log line records the ruling). Both halves of the one rule hold: the
+#                         app that receives the result owns the provider, and the app that really started the capture
+#                         holds the write grant the receiver handed it — it could write that file itself, so nothing is
+#                         gained through the Camera.
 #             X share     the same with setShareIdentityEnabled(true): the platform names the starter and it is not the
 #                         receiver → refused, `[camera] capture request forwarded: started by <T>, result to <V>`.
 #   restore   media_down (removes the control's row and V2's video); the fixtures' MediaStore rows and the contact
@@ -442,14 +448,20 @@ for mode in own share; do
   assert_contains "X ($mode): V's start of the go-between did not throw" "start threw=none" "$LV"
   assert_contains "X ($mode): the go-between's forwarded start did not throw" "forward start threw=none" "$LT"
   assert_contains "X ($mode): the result goes to V — the capture page names V as the caller" "from $QAF: " "$(decision_of)"
-  assert_contains "X ($mode): refused" "capture request image from $QAF: refused" "$S"
-  assert_contains "X ($mode): [camera] refused output: no grant" "[camera] refused output: no grant" "$S"
-  absent_in "X ($mode): no camera was opened" "[camera] devices=" "$S"
   assert_contains "X ($mode): V receives RESULT_CANCELED" "result=RESULT_CANCELED" "$LV"
   if [ "$mode" = own ]; then
-    assert_contains "X (own): V owns the provider and the starter, T, could not write it at launch — recipientMayWrite=true starterAtLaunch=denied" "capture guard inputs: scheme=content authority=$QAF.output startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=false recipientMayWrite=true starterAtLaunch=denied" "$INPUTS"
+    # The lead's ruling of 2026-10-06 (the header): accepted is the rule's answer here — V owns the provider and T,
+    # the starter, holds the write grant V handed it. The row leaves with Back, so nothing is written.
+    assert_contains "X (own): V owns the provider and the starter, T, holds V's write grant — recipientMayWrite=true starterAtLaunch=granted" "capture guard inputs: scheme=content authority=$QAF.output startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=true recipientMayWrite=true starterAtLaunch=granted" "$INPUTS"
+    assert_contains "X (own): output accepted" "capture request image from $QAF: output accepted" "$S"
+    assert_eq "X (own): the capture page opened" "$CAPTURE_ACTIVITY" "$TOPX"
+    absent_in "X (own): no refusal line" "[camera] refused output" "$S"
     absent_in "X (own): the platform names no starter — no forwarded line" "capture request forwarded" "$S"
+    absent_in "X (own): after Back nothing was written by the shell" "the caller's output" "$S"
   else
+    assert_contains "X (share): refused" "capture request image from $QAF: refused" "$S"
+    assert_contains "X (share): [camera] refused output: no grant" "[camera] refused output: no grant" "$S"
+    absent_in "X (share): no camera was opened" "[camera] devices=" "$S"
     assert_contains "X (share): [camera] capture request forwarded: started by <T>, result to <V>" "[camera] capture request forwarded: started by $QAC, result to $QAF" "$S"
     assert_contains "X (share): refused before (d1) and (d2) are asked" "callerMayWrite=false recipientMayWrite=false starterAtLaunch=not asked" "$INPUTS"
   fi

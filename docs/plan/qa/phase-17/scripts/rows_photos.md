@@ -38,7 +38,7 @@ worktree** (`.claude/worktrees/qa-rerun/docs/plan/qa/phase-17/`), not beside the
 |---|---|---|---|---|
 | E3 | 95b54303 | 82 passed, 0 failed, 25 recorded — with the same reading the lead must rule on (below); it now also asserts that no `photos_living:` node exists for the six plain fixtures (first dump, and every dump of the scroll) | `E3-build-95b54303-run1-pass-82-0-25` | on e8c26851: `E3-run2-pass-with-the-VIDEO-reading-79-0-23`, and `E3-run1-FAIL-doc-sequence-VIDEO-held-the-link-grants-in-full-no-picker-72-7-22` (the doc's sequence as written) |
 | E4 | 95b54303 | 32 passed, 0 failed, 16 recorded | `E4-build-95b54303-run1-pass-32-0-16` | `E4-run3-pass-build-c7336aca-32-0-16`; run 1 (harness: a tag of ViewerActivity read on Photos' own viewer); `E4-run2-pass-32-0-17` on e8c26851 |
-| E5 | **no passing run on 95b54303** — the standing pass is c7336aca's | on 95b54303: **66 passed, 3 failed**, 18 recorded (run 2) and 67 passed, 2 failed, 18 recorded (run 1) — every failure but one is a slideshow step's timing (below); on c7336aca: 69 passed, 0 failed, 18 recorded | `E5-build-95b54303-run2-FAIL-slideshow-step1-maxGap150-settle228-host-load-9-66-3-18`, `E5-build-95b54303-run1-FAIL-slideshow-step2-maxGap67-and-harness-lock-state-wording-67-2-18`; `E5-run3-pass-build-c7336aca-69-0-18` | run 1 on e8c26851 (harness: the driver polled the ring while a step ran; that step read maxGapMs=50); `E5-run2-pass-build-e8c26851-69-0-18` |
+| E5 | 95b54303 | 69 passed, 0 failed, 18 recorded (run 3, 2026-10-06 10:14, the host quiet: load average 2.0 before, 3.1 after) | `E5-build-95b54303-run3-pass-69-0-18` | on 95b54303, on a loaded host: `E5-build-95b54303-run2-FAIL-slideshow-step1-maxGap150-settle228-host-load-9-66-3-18`, `E5-build-95b54303-run1-FAIL-slideshow-step2-maxGap67-and-harness-lock-state-wording-67-2-18`; `E5-run3-pass-build-c7336aca-69-0-18`; run 1 on e8c26851 (harness: the driver polled the ring while a step ran; that step read maxGapMs=50); `E5-run2-pass-build-e8c26851-69-0-18` |
 | E6 | c7336aca | 190 passed, 0 failed, 20 recorded | `E6-run2-pass-190-0-20` | run 1 (harness: the crop drag landed one screen pixel off, 320 × 241) |
 | E6b | c7336aca | 36 passed, 0 failed, 12 recorded | `E6b-run1-pass-36-0-12` | — |
 | E19_PHOTOS | 95b54303 | 96 passed, 0 failed, 19 recorded | `E19_PHOTOS-build-95b54303-run1-pass-96-0-19` (before it: `E19_PHOTOS-run3-pass-96-0-19` on c7336aca) | runs 1 and 2 (harness: the screenrecord's frames were not decoded, then the gap matcher was too strict; everything else passed in both) |
@@ -57,18 +57,15 @@ No run of these rows was in flight when the host's disk filled (about 14:34): th
 
 ## For the lead to rule
 
-0. **E5 has no passing run on 95b54303: a slideshow step's timing, twice, on a loaded host.** Run 1 (09:17): step 2
-   `[motion] slideshow_step t0=362365347 peak=244 overshoot=0 settle=244 frames=12 maxGapMs=67` (steps 1 and 3:
-   `frames=15 maxGapMs=17`). Run 2 (09:39): step 1 `… peak=228 overshoot=0 settle=228 frames=5 maxGapMs=150` and step 2
-   `… settle=227 frames=15 maxGapMs=17` (settle outside 250 ± 17). Every other clause of the row passes in both runs
-   (share, delete, background, lock screen, the 5-s interval, the restores). The host's load average was 7 to 12
-   through the second run (an `ollama` `llama-server` at 560–660 % CPU, started about 09:27 — not a process of these
-   rows); the first run's hitch came before that process started. E19_PHOTOS, between the two (09:21), read
-   `slideshow_step … settle=245 frames=15 maxGapMs=17`. The assertions are not loosened; whether this is the host or
-   the build (Living Images added a read per picture shown) the two runs cannot say — it needs a run on a quiet host.
-   Run 1's second failure was the harness's: after the row cleared the lock wallpaper, `dumpsys wallpaper` printed no
-   entry at all under "Lock wallpaper state:" where before it printed `(null entry)`; `p17_photos.sh`'s `lock_state`
-   now reads both as "(no lock wallpaper)" (run 2 passes that clause).
+0. **E5 on 95b54303: two runs missed a slideshow step's timing on a loaded host; the third, on a quiet host, passes
+   with nothing loosened.** Run 1 (09:17): step 2 `[motion] slideshow_step t0=362365347 peak=244 overshoot=0 settle=244
+   frames=12 maxGapMs=67`. Run 2 (09:39; load average 7 to 12, an `ollama` `llama-server` at 560–660 % CPU, not a
+   process of these rows): step 1 `… peak=228 overshoot=0 settle=228 frames=5 maxGapMs=150`, step 2 `… settle=227
+   frames=15 maxGapMs=17`. Run 3 (10:14, load average 2.0): the three steps read `settle=243 frames=15 maxGapMs=17`,
+   `settle=242 frames=15 maxGapMs=17`, `settle=240 frames=15 maxGapMs=17`. Both failing folders are kept. Run 1's
+   second failure was the harness's: after the row cleared the lock wallpaper, `dumpsys wallpaper` printed no entry at
+   all under "Lock wallpaper state:" where before it printed `(null entry)`; `p17_photos.sh`'s `lock_state` now reads
+   both as "(no lock wallpaper)".
 1. **E3, the partial leg — the doc's sequence cannot reach the picker on this device.** The row revokes READ_MEDIA_IMAGES
    only, grants READ_MEDIA_VISUAL_USER_SELECTED and expects the link to open the selected-photos picker. With
    READ_MEDIA_VIDEO still held (the baseline holds it), Android answers the link's permission request at once and in
