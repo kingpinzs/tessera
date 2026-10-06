@@ -45,6 +45,8 @@ object FolderReader {
      * entries come before anything deeper. [stopped] is asked at every folder and every 256 entries; a stopped walk
      * returns false. [skip] names the folders never entered (the shell's `.Tessera`); a dot-file is neither matched nor
      * entered unless [showHidden]. [onFolder] is told how many folders have been read so far — the progress line.
+     * [entriesPerSecond] is the debug-only QA pace (Q-18-5): when set, the walk sleeps so that it examines at most
+     * that many entries a second and asks [stopped] at each pause; null or 0 = unpaced. Nothing else changes.
      */
     fun search(
         root: File,
@@ -53,9 +55,12 @@ object FolderReader {
         skip: (File) -> Boolean,
         stopped: () -> Boolean,
         onFolder: (Int) -> Unit = {},
+        entriesPerSecond: Long? = null,
         onHit: (Hit) -> Unit,
     ): Boolean {
         val base = root.path.trimEnd('/')
+        val eps = entriesPerSecond?.takeIf { it > 0 }
+        val t0 = System.nanoTime()
         val queue = ArrayDeque<File>()
         queue += root
         var folders = 0
@@ -71,6 +76,11 @@ object FolderReader {
             entries.use { stream ->
                 for (p in stream) {
                     if (++seen % 256 == 0 && stopped()) return false
+                    if (eps != null && seen % PACE_EVERY == 0) {
+                        if (stopped()) return false
+                        val due = seen * 1000L / eps - (System.nanoTime() - t0) / 1_000_000L
+                        if (due > 0) Thread.sleep(due)
+                    }
                     val name = p.fileName.toString()
                     if (!showHidden && FileListing.isHidden(name)) continue
                     val rank = FileListing.searchRank(name, query)
@@ -87,6 +97,9 @@ object FolderReader {
         }
         return true
     }
+
+    /** The paced walk (Q-18-5) checks its clock this often, so a cancel is never more than a pause away. */
+    private const val PACE_EVERY = 16
 
     private fun mayBeFolder(p: Path): Boolean = Files.isDirectory(p, LinkOption.NOFOLLOW_LINKS)
 

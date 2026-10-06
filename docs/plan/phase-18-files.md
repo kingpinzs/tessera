@@ -78,6 +78,35 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
 ~~a recycle bin unless Q3 rules one; zip handling unless Q2 rules it~~ SUPERSEDED 2026-09-23 by Q3 C / Q2 C (T18-7).
 
 ## Decisions
+- 2026-10-06: Q-18-5 — the search row catches a running search through the debug-only pace, extended to the search walk
+  (Jeremy: "(a)"). Asked at the build because E8's premise failed: the walk over a 10,000-entry folder ends in about
+  0.25 s, so no dump can hold `files_search_progress`; a 250,000-file tree showed it, and removing that tree with one
+  `rm -rf` crashed the platform's MediaProvider on the AVD (`qa/phase-18/TASK2-smoke/18-rm-incident.txt`).
+- 2026-10-06 (agent, below Q-18-5): **the search pace.** `QaBases.FILES_SEARCH_RATE` = the pref `qa_files_search_eps` (entries
+  examined per second), read through `QaBases.read` (null in a release build) when a search starts; the walk then
+  sleeps to stay at or under that rate and asks its stop flag at every pause; hits, order and cancel are unchanged
+  (`FolderReaderTest`: a paced search finds the same hits). The page logs `[files] qa search pace <eps>` once per search
+  when it is on. E8 sets 1000 (`p18.sh` `search_pace_set`), so its 10,000-entry folder takes about 10 s; `files_down`
+  clears it. Reason: the same form he ruled for the copy (Q-18-3), under its own key because a walk has no bytes.
+- 2026-10-06 (agent; build-time calls, each measured or forced at the build — detail in `qa/phase-18/BUILD-NOTES.md`):
+  (1) **Absolute y values** in E11 / E14 (pane rows "from 72", Recent's empty line "cap top 88.8") were read on W10M's
+  24-epx status bar; they are built and asserted relative to phase 01's bar: + (`BarMetrics.STATUS_EPX` − 24), today 76
+  and 92.8 (C-17: the bar is cited, not hard-coded). (2) **The platform's zip path validator is cleared** for the main
+  process (`dalvik.system.ZipPathValidator.clearCallback()`, in `FilesEnv`): on target 36 `ZipFile` otherwise refuses
+  `qa-bad.zip` at open, and T18-2 requires the other entries to extract; Files' own entry-name guard is then the guard
+  (GATE (c) reviews it, with the speech models' unzip in the same process, which keeps its own `ZipSafety.resolve`).
+  (3) **A same-volume move is a rename** and has no progress bytes: E4's and E11's "Moving files…" legs use a move
+  ACROSS volumes (to the row's public volume). (4) **The hidden-files setting** lives on a fifth overflow line
+  "Settings" (`files_more:settings`, `files_setting_hidden`; P4, H4). (5) **Back with an empty history** sends the task
+  to the back (a warm return shows the page left; a new process is the cold start) — H4. (6) **Lines beyond E12's
+  list:** `rename <path> -> <name>: ok | failed <why>`, `new folder <path>: ok | failed <why>`, `zip create progress
+  <bytes>/<total>`, `zip: platform path validator cleared`, `<verb> not started: <why>`, `<verb> ended on an error:
+  <class>`, `qa search pace <eps>`; a skipped conflict writes none. (7) **Sizes round to nearest** (3 significant
+  figures, binary units, "bytes" under 1,024); search matches a case-insensitive substring of the name. (8) **A central
+  directory over 256 MB is not read** ("too many entries"). (9) **The floor:** the snapshot is `find /sdcard/ …` (a
+  symlink otherwise prints one line); the image fixtures are `make_fixtures.py`'s (make_photos.py's are one size);
+  `media_up` puts `qa-steps.mp4` in Movies; the MP3s come from `qa/phase-01/MUSIC6-fixtures`; `files_up` snapshots
+  first. Reason: none changes a ruling; each makes a row runnable or names what was built where the doc was silent.
 - 2026-10-06: Q-18-4 — the grant link opens the app's OWN All-files switch page (Jeremy: "(a)"): the action
   `android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION` with `package:app.tileshell`, which resolves to
   `com.android.settings/.Settings$AppManageExternalStorageActivity` on the AVD (API 36; `cmd package resolve-activity`,
@@ -916,7 +945,8 @@ Recent no longer reads modified dates or MediaStore.
 - E8 **Search.** "b" from the QA-Files root lists `b.bin` and `sub/b.bin` with their paths; a term with no match
   shows the empty line (`files_search_empty`); searching while the walk runs (over the row's own 10,000-entry folder, so
   the walk outlasts a dump) shows the progress line (`files_search_progress`) and `files_search_cancel` stops it (`[files]
-  search cancelled`); the term is typed into `files_search_box` and the sort line reads "Sort by: Relevance" (r3 V7).
+  search cancelled`); the term is typed into `files_search_box` and the sort line reads "Sort by: Relevance" (r3 V7). [2026-10-06, Q-18-5 (a): the row sets `search_pace_set 1000` first, so the walk lasts about 10 s, and the slice holds
+  `[files] qa search pace 1000`; the hits are files and folders whose NAME contains the term, so "b" also lists `sub`.]
 - E9 **MediaStore in step.** The images are the row's own, put in `DCIM/Camera` by `media_up` (r3 V12 / V3). Move
   `qa-photo-0.png` from `DCIM/Camera` to `Pictures/QA-Album` in Files → `adb
   shell content query --uri content://media/external/images/media --projection _display_name:relative_path`

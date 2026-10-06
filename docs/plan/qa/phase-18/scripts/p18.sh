@@ -12,6 +12,7 @@
 #   files_down                     removes them; asserts both snapshots equal the ones files_up took
 #   fx_names / fx_bytes / fx_date / fx_detail / fx_md5 / fx_order   the fixture table's readers
 #   pace_set <bps> / pace_now / pace_clear                          the debug-only pacing pref (qa_files_rate_bps)
+#   search_pace_set <eps> / search_pace_now / search_pace_clear     the search walk's (qa_files_search_eps; Q-18-5)
 #   mid_progress <op> <mark> [timeout_s]                            the floor's meaning of "mid"
 #   jvm_gate <tests pattern> <report glob> <case>…                  a JVM gate: gradle.rc AND the TEST-*.xml reports
 #   absent_in, c6, gdump, top_activity, q, rings_save               copies (below)
@@ -338,6 +339,21 @@ pace_clear() {
   assert_eq "pace_clear: $PACE_KEY is gone from start_theme.xml" "" "$(pace_now)"
 }
 
+# The search walk's debug-only pace (Q-18-5): qa_files_search_eps, entries examined per second. The same prefs file and
+# the same writer as the copy pace, under its own key; E8 sets 1000, so its 10,000-entry folder takes about 10 s to walk.
+SEARCH_PACE_KEY=qa_files_search_eps
+SEARCH_PACE_EPS=1000
+search_pace_now() { PACE_KEY=$SEARCH_PACE_KEY pace_now; }
+search_pace_set() { # [entries per second]
+  local eps="${1:-$SEARCH_PACE_EPS}"
+  PACE_KEY=$SEARCH_PACE_KEY _pace_write "$eps"
+  assert_eq "search_pace_set: $SEARCH_PACE_KEY read back from start_theme.xml" "$eps" "$(search_pace_now)"
+}
+search_pace_clear() {
+  PACE_KEY=$SEARCH_PACE_KEY _pace_write --remove
+  assert_eq "search_pace_clear: $SEARCH_PACE_KEY is gone from start_theme.xml" "" "$(search_pace_now)"
+}
+
 # ---------------------------------------------------------------- the fixture table (Fixtures; r3 V13 / V12)
 
 # ONE table: every order and detail assertion of every row reads from it. No two fixtures share a date or a size.
@@ -649,6 +665,7 @@ files_down() {
   local i s f extra
   [ -n "${FX_SNAPPED:-}" ] || { echo "files_down: files_up has not run" >&2; return 1; }
   if _fx_has paced || [ -n "$(pace_now)" ]; then pace_clear; ensure_start; fi
+  if [ -n "$(search_pace_now)" ]; then search_pace_clear; ensure_start; fi
   adb shell rm -rf "$QA_FILES" "$QA_BIG"
   for extra in /sdcard/.Tessera /sdcard/qa.xml; do
     grep -qxF "$extra" "$ROW_DIR/snap-sdcard-before.txt" || adb shell rm -rf "$extra"

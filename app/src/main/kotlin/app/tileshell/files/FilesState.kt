@@ -1,5 +1,6 @@
 package app.tileshell.files
 
+import app.tileshell.video.catalogue.QaBases
 import android.content.Context
 import android.os.FileObserver
 import android.os.Handler
@@ -588,8 +589,11 @@ class FilesState(context: Context, val actions: FilesActions) {
             }
             search = SearchState(query, hits, running, folders.get())
         }
+        // The debug-only QA pace (Q-18-5): null in a release build, which never reads the pref.
+        val eps = QaBases.read(app, QaBases.FILES_SEARCH_RATE)?.trim()?.toLongOrNull()?.takeIf { it > 0 }
         searchJob = scope.launch {
             delay(SEARCH_TYPING_MS)
+            if (eps != null) say("qa search pace $eps")
             val ticker = launch {
                 while (isActive) {
                     delay(SEARCH_PUBLISH_MS)
@@ -602,6 +606,7 @@ class FilesState(context: Context, val actions: FilesActions) {
                     skip = { FilePaths.inShellDir(it.path, volume, FilesStores::canonical) },
                     stopped = { stop.get() },
                     onFolder = { folders.set(it) },
+                    entriesPerSecond = eps,
                     onHit = { synchronized(found) { found += it } },
                 )
             }

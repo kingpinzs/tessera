@@ -93,4 +93,25 @@ class FolderReaderTest {
         val (whole, _) = search("f", stopAfter = 1)
         assertFalse(whole)
     }
+
+    @Test
+    fun `a paced search finds the same hits, is held to its rate and stops at a pause`() {
+        val dir = File(bed.root, "QA-Pace").apply { mkdirs() }
+        repeat(200) { File(dir, "f$it.txt").writeText("x") }
+        fun run(eps: Long?, stopAfter: Int = Int.MAX_VALUE): Triple<Boolean, Int, Long> {
+            var hits = 0
+            var asked = 0
+            val t0 = System.nanoTime()
+            val whole = FolderReader.search(dir, "f", false, skip = { false }, stopped = { ++asked > stopAfter }, entriesPerSecond = eps, onHit = { hits++ })
+            return Triple(whole, hits, (System.nanoTime() - t0) / 1_000_000L)
+        }
+        val plain = run(null)
+        val paced = run(400)
+        assertEquals("the unpaced walk finds every file", true to 200, plain.first to plain.second)
+        assertEquals("the paced walk finds the same", true to 200, paced.first to paced.second)
+        assertTrue("200 entries at 400 a second take about half a second (took ${paced.third} ms)", paced.third in 400..2000)
+        val stopped = run(400, stopAfter = 3)
+        assertEquals("a stop asked at a pause ends the walk", false, stopped.first)
+        assertTrue("... before the whole folder was read (${stopped.second} hits)", stopped.second < 200)
+    }
 }

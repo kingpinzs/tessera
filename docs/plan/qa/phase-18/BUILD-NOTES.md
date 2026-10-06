@@ -110,3 +110,8 @@ OWED Change Log lines / rulings (the lead):
 NOT verified by it: the shortcut reconcile with the process truly dead; the Files tile's burst (E2 / E16); the hold
 gesture; video thumbnails; Icons view's two-line wrap and the 172 pitch in DCIM/Camera.
 QA RULE from its incident: never bulk-delete a huge tree in one command on the AVD.
+
+## 2026-10-06 16:11: Change Log lines written
+
+Q-18-5 (a) and the nine build-time calls are in the doc's Decisions and INDEX's Change Log (2026-10-06 16:11). Still OWED from
+the lists above: the E12 producers.tsv rows for the extra lines; the device checks; H4 / H5 wording for the P4 calls.
