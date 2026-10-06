@@ -38,11 +38,16 @@ edge_VIDEOS() {
   record "4K: the AVD's h264 decoders and their size limits (media_codecs*.xml)" "$(adb shell "cat /vendor/etc/media_codecs*.xml" 2>/dev/null | tr -d '\r' | grep -A6 'type="video/avc"' | grep -oE 'name="[^"]*"|Limit name="size"[^/]*' | tr '\n' ' ' | cut -c1-300)"
   MARK="$(ring_mark)"
   open_video "$ID" "$D/4k"; record "4K: opened by" "$OPENED_BY"
-  LINE="$(await_vline "$MARK" "[video] cannot decode" 200)"
+  # Lead's ruling, 2026-10-06 (INDEX Change Log): the doc's premise "above the AVD decoder's capability" is false on
+  # this AVD - its decoder plays the 3840x2160 fixture (run 1, kept, read "playing"). The sub-step asserts what the
+  # device does: the file plays, the player stays up, no crash. The error state itself is E14's (a file no decoder
+  # takes) and E13's (404); a 4K file a phone cannot decode is P3's.
+  LINE="$(await_vline "$MARK" "[video] playing $ID" 200)"
   record "4K: the :video lines" "$(vring "$MARK" | grep -F '[video]' | sed 's/.*\[video\] //' | tr '\n' '|')"
   gdump "$D/4k.xml"
-  assert_contains "4K: the error state's line ([video] cannot decode …)" "[video] cannot decode" "$LINE"
-  assert_eq "4K: the error state's text" "can't play this file" "$(node_text "$D/4k.xml" player_error)"
+  assert_contains "4K: this AVD decodes it - it plays" "[video] playing $ID" "$LINE"
+  absent_in "4K: no [video] cannot decode line" "[video] cannot decode" "$(vring "$MARK")"
+  record "4K: the doc's error-state clause" "NOT PRODUCIBLE on this AVD (the decoder takes 3840x2160); the error state is asserted by E14 and E13"
   assert_eq "4K: the player is still resumed" "$PLAYER_ACTIVITY" "$(top_activity)"
   assert_eq "4K: no crash (logcat -T <MARK> -s AndroidRuntime)" "" "$(crash_since "$MARK")"
   leave
