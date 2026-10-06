@@ -1,7 +1,7 @@
 ---
 phase: 18
 slug: files
-status: DRAFT   # split 2026-09-22; interview DONE 2026-09-23; review triage round 1 applied 2026-09-23 (review/2026-09-23-phases11-19-triage.md); round 2 applied 2026-09-23 (review/2026-09-23-phases11-20-r2-triage.md); r11/files.md landed 2026-09-23 and is applied (T18-8; E11 written); DRAFT → FINAL after Stage A step 7; round 3 applied 2026-10-06 (review/2026-10-06-phase18-r3-triage.md; r11/files-pass2.md applied); two questions asked and ruled 2026-10-06: Q-18-1 (a), Q-18-2 (a)
+status: FINAL   # FINAL 2026-10-06 14:08 (Jeremy: "(a)") after review round 3 (opus + opus) and Q-18-1 (a) / Q-18-2 (a); changes from here only through a dated INDEX Change Log entry. History: split 2026-09-22; interview DONE 2026-09-23; review triage round 1 applied 2026-09-23 (review/2026-09-23-phases11-19-triage.md); round 2 applied 2026-09-23 (review/2026-09-23-phases11-20-r2-triage.md); r11/files.md landed 2026-09-23 and is applied (T18-8; E11 written); round 3 applied 2026-10-06 (review/2026-10-06-phase18-r3-triage.md; r11/files-pass2.md applied); two questions asked and ruled 2026-10-06: Q-18-1 (a), Q-18-2 (a)
 depends-on: [01, 02, 10, 11, 12, 13, 15, 17]   # C-23: 11 for the E2 / E16 bursts (per-activity shortcut query), 12 for the E15 template and C-15's provisioning marker; r3 D14: 13 for `record`'s first use (C-26), 15 for the Voice Recorder ADD (task 13, E17) and `fill_volume` (C-27)
 ---
 
