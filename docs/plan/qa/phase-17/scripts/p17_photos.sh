@@ -4,9 +4,10 @@
 # form: every ring read is ring_since from a MARK, nothing here asserts on its own except where its name says so.
 # Nothing is simulated; no microphone, no host audio.
 STAMP_FILES="$STAMP_FILES $P17/scripts/p17_photos.sh"
-# The gate build (the lead's rulings of 2026-10-05): the CLEAN build of phase-17 with the trust fixes merged (e5e30678;
-# 355,474,253 bytes). Before that merge it was e8c26851363882da (25921fd7): rows_photos.md says which build each row ran on.
-GATE_APK_ID="c7336aca6b63d61b"
+# The gate build (the lead's rulings of 2026-10-05): the CLEAN build of phase-17 at bb154e06 — the three rounds of trust
+# fixes, Living Images and the Camera's toast fix merged (355,589,093 bytes). Before it: c7336aca6b63d61b (e5e30678, round
+# 1 of the fixes) and e8c26851363882da (25921fd7): rows_photos.md says which build each row's evidence is from.
+GATE_APK_ID="95b543037345b851"
 PHOTOS_TILE="tile:slot:PHOTOS"
 VIEWER_ACTIVITY="app.tileshell/.photos.ViewerActivity"
 EDIT_ACTIVITY="app.tileshell/.photos.EditActivity"
