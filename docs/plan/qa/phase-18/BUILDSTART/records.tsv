@@ -1,0 +1,16 @@
+# Phase 18 build task 0: the AVD probes' records (2026-10-06 14:38; AVD tileshell_fhd, API 36; probe build md5 907822c5, a throwaway debug build with MANAGE_EXTERNAL_STORAGE declared, removed after). Raw outputs sit beside this file (on disk, not in git).
+name	value	source
+pubvol_mounts	yes (sm set-virtual-disk true -> disk:7,416; sm partition disk:7,416 public -> public:7,417 mounted 3842-1609 within 3 s)	a-pubvol-1-create.txt, a-pubvol-2-partition.txt
+pubvol_fs	vfat	a-pubvol-2-partition.txt
+pubvol_size_bytes	536870912 (df: 523072 KB usable; the size is the platform's, fixed)	a-pubvol-2-partition.txt, a-pubvol-3-shell-access.txt
+pubvol_in_getStorageVolumes	yes (uuid 3842-1609, dir /storage/3842-1609, removable, not primary)	abc-app-probe-1.txt
+pubvol_description	Virtual SD card	abc-app-probe-1.txt
+primary_description	Internal shared storage	abc-app-probe-1.txt
+pubvol_shell_ls	works (the shell uid lists and writes /storage/<UUID>)	a-pubvol-3-shell-access.txt
+android_data_as_app	null (File.list() = null, canRead=false, with the appop allow and with default; Android/obb the same; /sdcard/Android itself lists data,media,obb; /sdcard/Android/data/app.tileshell does not exist) -> E5's SECOND form: the Android/data entry itself carries the line	abc-app-probe-1.txt, b-android-data-1-runas-phase17-build.txt
+appop_revoke_kills	yes (allow -> default: ActivityManager 'Killing 26962:app.tileshell/u0a177 (adj 0): MANAGE_EXTERNAL_STORAGE changed.', new pid 27260 within 1 s; default -> allow does NOT kill and takes effect in the running process)	c-appop-revoke-pid.txt
+fuse_row_on_create	yes (a file made by adb shell echo with no scan has a files-collection row 3 s later: mime_type text/plain, date_modified NULL)	d-fuse-row-on-create.txt
+copy_rate_sdcard	about 800-980 MB/s by the app (2 GB of urandom, cold cache, 64 KB buffer + fd.sync: 2693 ms, 2186 ms; 200 MB: 186-344 ms); shell cp 200 MB 196-269 ms	e-throughput-2-app.txt, e-throughput-3-app-cold-large.txt, e-throughput-1-shell.txt
+copy_rate_pubvol	about 360-570 MB/s by the app (480 MB of urandom, cold cache: 1328 ms, 844 ms; 200 MB: 309-818 ms)	e-throughput-2-app.txt, e-throughput-3-app-cold-large.txt
+big_bin_size	NOT SET: a copy that runs >= 15 s needs about 15 GB on /sdcard (source + copy = 30 GB; the AVD's shared storage is 16 GB with 14 GB free) and cannot exist on the 512 MB public volume (a full-volume copy takes about 1 s). Contradicts task 0 (e)'s premise; asked of the owner 2026-10-06 14:38	e-throughput-3-app-cold-large.txt
+teardown	QA-Files removed, virtual disk removed (sm list-disks empty), appop back to default, phase 17's gate build 95b54303 reinstalled	z-teardown.txt
