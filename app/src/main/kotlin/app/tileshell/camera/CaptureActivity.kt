@@ -21,7 +21,6 @@ import app.tileshell.media.CaptureOutputGuard
 import app.tileshell.media.CaptureRequestPort
 import app.tileshell.media.CaptureRequestRule
 import app.tileshell.ui.setShellAppContent
-import kotlinx.coroutines.MainScope
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -53,7 +52,6 @@ class CaptureActivity : ComponentActivity() {
     private var engine: CameraEngine? = null
     private lateinit var saver: CameraSaver
     private val state = ViewfinderState()
-    private val scope = MainScope()
     private val worker = Executors.newSingleThreadExecutor()
     private var interruptions: CameraInterruptions? = null
     private var decision: CaptureOutputGuard.Decision = CaptureOutputGuard.Decision.Refused(CaptureOutputGuard.LINE_NO_GRANT)
@@ -82,7 +80,7 @@ class CaptureActivity : ComponentActivity() {
                         take.file.delete()
                         failed(take.error ?: "nothing was recorded")
                     } else {
-                        if (take.error != null) state.say(scope, if (take.error == "storage full") "Storage full" else "Recording stopped")
+                        if (take.error != null) state.say(if (take.error == "storage full") "Storage full" else "Recording stopped")
                         review = CaptureReview.Video(take, frame)
                     }
                 }
@@ -91,7 +89,7 @@ class CaptureActivity : ComponentActivity() {
 
         override fun failed(why: String) {
             Diagnostics.add("camera", "capture failed: $why")
-            state.say(scope, why)
+            state.say(why)
         }
     }
 

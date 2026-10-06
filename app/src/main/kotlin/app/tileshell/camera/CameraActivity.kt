@@ -17,7 +17,6 @@ import app.tileshell.bars.hideSystemBars
 import app.tileshell.diag.Diagnostics
 import app.tileshell.diag.RemoteRings
 import app.tileshell.ui.setShellAppContent
-import kotlinx.coroutines.MainScope
 import java.util.concurrent.Executors
 
 /**
@@ -36,7 +35,6 @@ class CameraActivity : ComponentActivity() {
     private lateinit var engine: CameraEngine
     private lateinit var saver: CameraSaver
     private val state = ViewfinderState()
-    private val scope = MainScope()
     private val saving = Executors.newSingleThreadExecutor()
     private val interruptions = CameraInterruptions(this) { interrupt(it) }
     private val locations = CameraLocation(this)
@@ -51,26 +49,26 @@ class CameraActivity : ComponentActivity() {
                 val uri = saver.savePhoto(shot, clip, if (panorama) "PANO" else "IMG")
                 runOnUiThread {
                     state.busySaving = false
-                    if (uri != null) state.lastThumb = thumb else state.say(scope, "Couldn't save")
+                    if (uri != null) state.lastThumb = thumb else state.say("Couldn't save")
                 }
             }
         }
 
         override fun video(take: VideoTake) {
             state.busySaving = true
-            if (take.error == "storage full") state.say(scope, "Storage full")
+            if (take.error == "storage full") state.say("Storage full")
             saving.execute {
                 val uri = saver.saveVideo(take)
                 runOnUiThread {
                     state.busySaving = false
-                    if (uri == null && take.error != "storage full") state.say(scope, "Couldn't save")
+                    if (uri == null && take.error != "storage full") state.say("Couldn't save")
                 }
             }
         }
 
         override fun failed(why: String) {
             Diagnostics.add("camera", "capture failed: $why")
-            state.say(scope, why)
+            state.say(why)
         }
     }
 
