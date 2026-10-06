@@ -6,7 +6,10 @@
 #                   is the driver's reading). The six are the first six photos_item:<id> nodes in media_up order under
 #                   ONE month header; `[photosapp] library: images=<census + 6> videos=<census + 2> access=GRANTED`; the
 #                   grid is 3 columns (three nodes share a row's top ± 1 px, the fourth is on the next row); both videos
-#                   are tiles with the video disc (its 36-epx size is E19_PHOTOS's).
+#                   are tiles with the video disc (its 36-epx size is E19_PHOTOS's). The collection gained the Living
+#                   Images glyph (build task 6d, `photos_living:<id>`): none of the six plain fixtures carries one — in
+#                   the first dump and in every dump of A2's scroll (dev-living's L1 is the control that the node exists
+#                   for a Living Image).
 #   A2 the whole    the collection scrolled end to end: the union of its photos_item: ids is exactly MediaStore's image
 #      list         and video ids (the census's plus the row's own — "lists the census's images plus the six").
 #   B  albums       `Camera` and `QA-Album` with counts census + 3 each (the census of each bucket read before media_up).
@@ -86,14 +89,19 @@ assert_within "A: the third tile shares the first's top (± 1 px)" "${1:-}" "${3
 assert_ne "A: the fourth tile is on the next row" "${1:-}" "${4:-}"
 LEFTS="$(for i in $ID0 $ID1 $ID2; do bounds "$X" "photos_item:$i" | cut -d' ' -f1; done | sort -un | grep -c .)"
 assert_eq "A: … at three different lefts (3 columns)" "3" "$LEFTS"
+# The Living Images glyph: the page's tag is asserted above and the six tiles are in this dump.
+assert_eq "A: the six plain fixtures are tiles of this dump" "6" "$(for i in $IDS; do has_node "$X" "photos_item:$i"; done | grep -c yes)"
+assert_eq "A: no photos_living: node exists for any of the six plain fixtures" "" "$(for i in $IDS; do [ "$(has_node "$X" "photos_living:$i")" = yes ] && echo "$i"; done | xargs)"
+record "A: photos_living: nodes in the first dump (any tile)" "$(pnodes "$X" photos_living: | cut -f1 | xargs)"
 
 # ----------------------------------------------------------------------------------------------- A2: the whole list
 log "--- A2: the collection end to end"
-: > "$D/union.txt"
+: > "$D/union.txt"; : > "$D/living-union.txt"
 LAST=-1; SAME=0
 for i in $(seq 1 60); do
   dump_ui "$D/scroll.xml"
   item_ids "$D/scroll.xml" | tr ' ' '\n' >> "$D/union.txt"
+  pnodes "$D/scroll.xml" photos_living: | cut -f1 | sed 's/^photos_living://' >> "$D/living-union.txt"
   N="$(sort -u "$D/union.txt" | grep -c .)"
   if [ "$N" = "$LAST" ]; then SAME=$((SAME + 1)); else SAME=0; fi
   [ "$SAME" -ge 2 ] && break
@@ -111,6 +119,8 @@ assert_eq "A: qa-steps.mp4 is a tile of the collection with the video disc" "yes
 assert_eq "A: qa-steps.webm is a tile of the collection with the video disc" "yes" "$([ -f "$D/video-tile2.xml" ] && has_node "$D/video-tile2.xml" "photos_item:$VID2" || echo no)"
 [ -f "$D/video-tile.xml" ] && record "A: qa-steps.mp4's disc (px; its size is E19_PHOTOS's)" "$(bounds "$D/video-tile.xml" "photos_video_disc:$VID")"
 assert_eq "A: an image tile carries no video disc" "no" "$(has_node "$X" "photos_video_disc:$ID0")"
+record "A2: photos_living: ids seen in any dump of the scroll" "$(sort -un "$D/living-union.txt" | xargs)"
+assert_eq "A2: none of the six plain fixtures carried photos_living: in any dump of the scroll" "" "$(for i in $IDS; do grep -qx "$i" "$D/living-union.txt" && echo "$i"; done | xargs)"
 
 # ----------------------------------------------------------------------------------------------- B: albums
 log "--- B: the albums pivot"
