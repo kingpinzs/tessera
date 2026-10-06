@@ -105,7 +105,7 @@ class FilesActivity : ComponentActivity() {
     private fun requestOf(intent: Intent?) = FilesRequest(intent?.getStringExtra(EXTRA_PAGE), intent?.getStringExtra(EXTRA_PATH))
 
     private fun openAllFilesAccess() {
-        runCatching { startActivity(Checklist.allFilesAccessIntent()) }
+        runCatching { startActivity(Checklist.allFilesAccessIntent(this)) }
             .onFailure { Diagnostics.add("files", "grant link failed: $it") }
     }
 

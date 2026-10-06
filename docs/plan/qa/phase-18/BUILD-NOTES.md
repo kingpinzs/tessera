@@ -33,9 +33,11 @@ keeps detail that would be lost with the conversation. Each line says who must a
 
 ## From task 1 (commit 03c924af), 2026-10-06
 
-- Q-18-4 (asked, open): which settings page the grant link opens. Built today: the list action with no data.
+- Q-18-4 RULED (a) 2026-10-06 15:23: the per-app page (`MANAGE_APP_ALL_FILES_ACCESS_PERMISSION` + package). Code changed in
+  `Checklist.allFilesAccessIntent()`; OWED: one device check that the link, the checklist row and the wizard step start
+  `Settings$AppManageExternalStorageActivity` (the emulator was busy when it was changed).
 - E1 / E15: Settings forwards `Settings$ManageExternalStorageActivity` to `.spa.SpaActivity`; the rows must assert the
   START line (logcat `START u0 {… cmp=com.android.settings/.Settings$ManageExternalStorageActivity}`), not top-resumed.
-  OWED: a Change Log re-cut with Q-18-4's answer.
+  DONE: Change Log 2026-10-06 15:23.
 - A root tag `files_root` exists that the doc's tag list does not name (harmless; drivers may use it).
 - E15's wizard legs and `provision.sh`'s new line are NOT run yet.

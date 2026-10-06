@@ -78,6 +78,21 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
 ~~a recycle bin unless Q3 rules one; zip handling unless Q2 rules it~~ SUPERSEDED 2026-09-23 by Q3 C / Q2 C (T18-7).
 
 ## Decisions
+- 2026-10-06: Q-18-4 — the grant link opens the app's OWN All-files switch page (Jeremy: "(a)"): the action
+  `android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION` with `package:app.tileshell`, which resolves to
+  `com.android.settings/.Settings$AppManageExternalStorageActivity` on the AVD (API 36; `cmd package resolve-activity`,
+  2026-10-06). Asked at build task 1 because this doc's form cannot exist: `MANAGE_ALL_FILES_ACCESS_PERMISSION` WITH a
+  `package:` URI resolves to no activity (the link threw `ActivityNotFoundException`), and without data it opens the
+  "All files access" LIST. One intent serves the checklist row, the wizard step and the link in Files. SUPERSEDES every
+  mention of `MANAGE_ALL_FILES_ACCESS_PERMISSION` and of `Settings$ManageExternalStorageActivity` in Scope, the T18-3
+  entry, build task 1, E1, E15 and P1: they read the per-app action and `Settings$AppManageExternalStorageActivity`.
+- 2026-10-06 (agent, below Q-18-4; r3-style testability re-cut): **E1 and E15 assert the START, not top-resumed.** Settings on
+  API 36 forwards its storage-access activities to `com.android.settings/.spa.SpaActivity`, so `dumpsys activity
+  activities`' top-resumed never names them. The rows assert, from a logcat MARK before the tap, the line
+  `START u0 {act=android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION dat=package:app.tileshell …
+  cmp=com.android.settings/.Settings$AppManageExternalStorageActivity}` with `result code=0`, and that the resumed
+  package is `com.android.settings`. Reason: measured at task 1 (`qa/phase-18/TASK1-smoke/b-link-starts.txt`). What One
+  UI opens is P1's report.
 - 2026-10-06: Q-18-3 — the mid-copy rows get their window from a debug-only pacing switch (Jeremy: "(a)"), asked at the
   build's start because task 0 (e) contradicted this doc: the app copies at about 800-980 MB/s on `/sdcard` and 360-570
   MB/s onto the public volume (`qa/phase-18/BUILDSTART/records.tsv`), so no file that fits runs >= 15 s — `/sdcard`
@@ -744,7 +759,8 @@ Recent no longer reads modified dates or MediaStore.
   of `/sdcard` are listed; `appops set … default`, then a fresh MARK and a relaunch (the pid before and after recorded
   with `record` — r3 V10) → the row is red,
   the app shows "Files can't see this phone's storage" (`files_ungranted`) with a link (`files_grant_link`), the link starts
-  `Settings$ManageExternalStorageActivity` (`dumpsys activity activities`), diagnostics `[files] access=denied` in the
+  `Settings$ManageExternalStorageActivity` (`dumpsys activity activities`) [2026-10-06, Q-18-4 (a): the per-app page
+  `Settings$AppManageExternalStorageActivity`, asserted from the START line — Decisions], diagnostics `[files] access=denied` in the
   slice from that MARK; restore `appops set … allow` (RV12).
 - E2 **Removable volume and the SD card shortcut.** With the grant: tap `files_menu` → the ≡ pane (`files_pane`) lists
   exactly `files_pane:recent`, `files_pane:device`, `files_pane:bin` in that order and no volume row (`sm list-volumes` =
@@ -1047,7 +1063,8 @@ Recent no longer reads modified dates or MediaStore.
 - E15 **Wizard step added (phase 12 E14's three-part template; T18-3, C-4 b, C-15).** (a) `pm clear app.tileshell` →
   `PROVISION_FINISH_WIZARD=0 qa/phase-03/scripts/provision.sh` → `adb shell appops set app.tileshell MANAGE_EXTERNAL_STORAGE
   default` → Home: `wizard_step:setup:files` present with its `wizard_why` equal to Decisions' line, its action starts
-  `Settings$ManageExternalStorageActivity`, `wizard_progress` reads "Step 1 of 2" (the step and the presets page); `appops set
+  `Settings$ManageExternalStorageActivity` [2026-10-06, Q-18-4 (a): `Settings$AppManageExternalStorageActivity`, from the
+  START line — Decisions], `wizard_progress` reads "Step 1 of 2" (the step and the presets page); `appops set
   … allow` and resume → the step gone and `wizard_presets` shows. (b) `pm clear` → `provision.sh` (marker written) → Home →
   no `wizard_page`, `[wizard] not shown: core held` (phase 12 E1 re-run on this build). (c) the finished-install rule: with
   the marker set (after (b)), `appops set … default` → Home → no `wizard_page`, `[wizard] not shown: finished`, the checklist

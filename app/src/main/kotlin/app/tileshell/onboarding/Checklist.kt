@@ -94,12 +94,12 @@ object Checklist {
     fun allFilesAccess(): Boolean = Environment.isExternalStorageManager()
 
     /**
-     * Phase 18 (T18-3): Android's "All files access" page, as the Files row, the wizard's step and the link in Files
-     * itself open it — one intent for the three. The action carries no data: on the AVD (API 36) it resolves to
-     * `Settings$ManageExternalStorageActivity`, the page E1 and E15 name, only without a `package:` URI — with one,
-     * nothing handles it (measured at build task 1).
+     * Phase 18 (T18-3; Q-18-4 A): the app's own "All files access" switch page, as the Files row, the wizard's step and
+     * the link in Files itself open it — one intent for the three. The per-app action with the package: on API 36 the
+     * list action with a `package:` URI resolves to nothing (measured at build task 1).
      */
-    fun allFilesAccessIntent(): Intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+    fun allFilesAccessIntent(context: Context): Intent =
+        Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:${context.packageName}"))
 
     /** The status glyph and colour a row's state draws with — the checklist's, and the wizard's step page (H1). */
     fun glyphFor(state: RowState): Pair<String, Color> = when (state) {
@@ -187,7 +187,7 @@ object Checklist {
         // Phase 18 build task 1 (Q1 A, T18-3 / C-4): Files' grant is All-files access, a Settings-page row like Usage
         // access — no runtime permission, so the wizard's step reads "Open settings".
         ChecklistRow("files", "Files", if (allFilesAccess()) RowState.GRANTED else RowState.MISSING, "Files browses everything on this phone", grant = true) {
-            context.startActivity(allFilesAccessIntent())
+            context.startActivity(allFilesAccessIntent(context))
         },
         ChecklistRow("listener", "Live tiles running", if (TileNotificationListener.connected) RowState.GRANTED else RowState.MISSING, if (TileNotificationListener.connected) "Connected" else "Not connected") {
             context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
