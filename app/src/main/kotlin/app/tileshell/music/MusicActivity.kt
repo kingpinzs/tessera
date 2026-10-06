@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import app.tileshell.bars.hideSystemBars
 import app.tileshell.diag.Diagnostics
 import app.tileshell.files.FilesProvider
+import app.tileshell.media.AndroidUriAccess
 import app.tileshell.ui.ShellRoot
 
 /**
@@ -138,7 +139,7 @@ class MusicActivity : ComponentActivity() {
         MusicPlayer.connect(this)
         takePivot(intent)
         // Only a fresh launch: a re-creation carries the same intent, and replaying it would restart the track.
-        if (savedInstanceState == null) takePlay(intent, launchedFromUid)
+        if (savedInstanceState == null) takePlay(intent, MusicPlayExtra.launchCaller(AndroidUriAccess(this)))
         setContent {
             ShellRoot {
                 Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {

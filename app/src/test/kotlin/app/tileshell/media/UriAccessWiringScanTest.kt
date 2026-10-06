@@ -20,7 +20,10 @@ import org.junit.Test
  *  - each activity hands the rule the REAL launch (never a constant) and does exactly what the rule's answer says: a
  *    refused URI is never opened, the refused branch finishes and returns, `mayChange` is the rule's and has no default;
  *  - both location strips are called, and a capture is written to a caller only through the strip-then-write order;
- *  - every process builds its write layer through `ShellMediaWrites.of` (one layer, one ledger file per process).
+ *  - every process builds its write layer through `ShellMediaWrites.of` (one layer, one ledger file per process);
+ *  - (phase 18) Music's play extra is weighed by `MusicPlayExtra.decide` against the uid that sent THAT intent, and the
+ *    uid has three sources and no other: the port for the launch, the platform's own caller for a new intent on API
+ *    35+, and nobody below it.
  * Each check has its twin: the same source with the site changed (the reviewers' surviving mutations, applied to a copy
  * in memory) must be caught, so a clean result is never an empty one. That the device does what the source says is
  * still the device legs'.
@@ -67,9 +70,11 @@ class UriAccessWiringScanTest {
             platformReads.findAll(text).forEach { problems += "$file reads ${it.value} itself: only media/AndroidUriAccess.kt asks the platform" }
         }
         val made = sources.mapValues { (_, text) -> count(text, "AndroidUriAccess(this)") }.filterValues { it > 0 }
-        if (made != mapOf("camera/CaptureActivity.kt" to 1, "photos/ViewerActivity.kt" to 1, "video/PlayerActivity.kt" to 2)) problems += "the port is made other than by the three activities, each for itself: $made"
+        // Phase 18: Music is the fourth activity another app can start with something to weigh (its play extra); it
+        // makes the port once, for the launch's caller (`musicProblems` holds that one expression).
+        if (made != mapOf("camera/CaptureActivity.kt" to 1, "photos/ViewerActivity.kt" to 1, "video/PlayerActivity.kt" to 2, "music/MusicActivity.kt" to 1)) problems += "the port is made other than by the four activities, each for itself: $made"
         val all = sources.filterKeys { it != "media/AndroidUriAccess.kt" }.values.sumOf { Regex("(?<!class )AndroidUriAccess\\(").findAll(it).count() }
-        if (all != 4) problems += "AndroidUriAccess is constructed $all times, not the four of the three activities"
+        if (all != 5) problems += "AndroidUriAccess is constructed $all times, not the five of the four activities"
         return problems
     }
 
@@ -111,6 +116,114 @@ class UriAccessWiringScanTest {
         assertTrue(with("camera/CaptureActivity.kt", "decision = outcome.decision", "decision = outcome.decision; initialCaller").isNotEmpty())
         assertTrue(with("photos/ViewerActivity.kt", "nav.open(intent, AndroidUriAccess(this))", "nav.open(intent, AndroidUriAccess(this)); checkUriPermission(intent.data, -1, 0, 1)").isNotEmpty())
         assertTrue(with("photos/PhotosActivity.kt", "super.onCreate(savedInstanceState)", "super.onCreate(savedInstanceState); AndroidUriAccess(this)").isNotEmpty())
+        // Phase 18: Music reading who launched it itself (the form this scan first caught), a second port made there,
+        // and the rule's parameter named back into a platform read.
+        assertTrue(with("music/MusicActivity.kt", "MusicPlayExtra.launchCaller(AndroidUriAccess(this))", "launchedFromUid").isNotEmpty())
+        assertTrue(with("music/MusicActivity.kt", "MusicPlayExtra.launchCaller(AndroidUriAccess(this))", "getLaunchedFromUid()").isNotEmpty())
+        assertTrue(with("music/MusicActivity.kt", "super.onNewIntent(intent, caller)", "super.onNewIntent(intent, caller); AndroidUriAccess(this)").isNotEmpty())
+        assertTrue(with("music/MusicActivity.kt", "takePlay(intent, caller.uid)", "takePlay(intent, currentCaller.uid)").isNotEmpty())
+        assertTrue(with("music/MusicService.kt", "val me = Process.myUid()", "val me = Process.myUid(); AndroidUriAccess(null!!)").isNotEmpty())
+    }
+
+    // ------------------------------------------------------------------------------------------- Music's play extra
+
+    /**
+     * Phase 18 (r3 D5, "below Q-18-2"): MusicActivity is exported and its play extra starts playback, so the extra is
+     * honoured only when the uid that sent THAT intent is the shell's own. `MusicPlayExtra.decide` is the rule
+     * (`MusicPlayExtraTest`); held here is what no unit test runs — where the uid it is handed comes from:
+     *  - the launch: the platform port, through `MusicPlayExtra.launchCaller` (no name, a negative answer or a throw is
+     *    [MusicPlayExtra.NO_CALLER]);
+     *  - a new intent on API 35+: the `ComponentCaller` the platform hands `onNewIntent`, its uid and nothing else;
+     *  - a new intent below API 35: nobody (the platform does not say who sent it), so its extra is ignored;
+     *  - the session's custom command: the controller's uid, as the session reports it.
+     */
+    private fun musicProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val activity = sources["music/MusicActivity.kt"].orEmpty()
+        val extra = sources["music/MusicPlayExtra.kt"].orEmpty()
+        val service = sources["music/MusicService.kt"].orEmpty()
+        // The three calls, each with its one source of the caller's uid; no fourth.
+        if (count(activity, "takePlay(") != 4 || !activity.contains("private fun takePlay(intent: Intent?, callerUid: Int) {")) problems += "the play extra is taken other than by the three calls of takePlay(intent, callerUid)"
+        if (!activity.contains("if (savedInstanceState == null) takePlay(intent, MusicPlayExtra.launchCaller(AndroidUriAccess(this)))")) problems += "the launch's play extra is not weighed against the port's answer, on a fresh launch only"
+        if (!activity.contains("override fun onNewIntent(intent: Intent) { super.onNewIntent(intent) takePivot(intent) if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) takePlay(intent, Process.INVALID_UID) }")) {
+            problems += "below API 35 a new intent's play extra is given a caller"
+        }
+        if (!activity.contains("@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM) override fun onNewIntent(intent: Intent, caller: ComponentCaller) { super.onNewIntent(intent, caller) takePlay(intent, caller.uid) }")) {
+            problems += "on API 35+ a new intent's play extra is not weighed against that intent's own caller"
+        }
+        // The uid goes to the rule untouched, beside the shell's real uid, and nothing plays before the rule answers.
+        val take = body(activity, "private fun takePlay(intent: Intent?, callerUid: Int)")
+        val decided = "when (val decision = MusicPlayExtra.decide(callerUid, Process.myUid(), id, uri, FilesProvider.AUTHORITY)) {"
+        val at = take.indexOf(decided)
+        if (at < 0 || count(activity, "MusicPlayExtra.decide(") != 1) problems += "the activity's play extra is not decided by MusicPlayExtra.decide(callerUid, Process.myUid(), …)"
+        if (Regex("\\bcallerUid\\b").findAll(activity).count() != 2) problems += "the caller's uid is read, compared or replaced outside the rule's call"
+        if (Regex("\\.uid\\b").findAll(activity).count() != 1 || count(activity, "myUid(") != 1 || count(activity, "INVALID_UID") != 1) problems += "a uid is read in the activity outside the three calls and the rule's"
+        for (played in listOf("MusicPlayer.play(listOf(track), 0)", "MusicPlayer.playFile(decision.uri)")) {
+            if (count(activity, played) != 1 || at < 0 || take.indexOf(played) < at) problems += "$played is reached other than by the rule's answer"
+        }
+        if (count(activity, "MusicPlayer.playFile(") != 1 || !take.contains("is MusicPlayExtra.Decision.PlayUri -> { MusicPlayer.playFile(decision.uri)") ||
+            !take.contains("is MusicPlayExtra.Decision.PlayId -> { val track = MusicStore.library.value.firstOrNull { it.id == decision.id }")
+        ) problems += "what is played is not what the rule's answer named"
+        // The platform's per-intent caller: only that override, only its uid.
+        val callers = sources.mapValues { (_, text) -> count(text, "ComponentCaller") }.filterValues { it > 0 }
+        if (callers != mapOf("music/MusicActivity.kt" to 2)) problems += "a ComponentCaller is used outside Music's one onNewIntent: $callers"
+        if (Regex("\\bcaller\\b").findAll(activity).count() != 3) problems += "the new intent's caller is used for something other than its uid"
+        // The rule's side: the port's answer or nobody, and the caller weighed before the extra's contents are looked at.
+        val asked = sources.mapValues { (_, text) -> count(text, "launchCaller(") }.filterValues { it > 0 }
+        if (asked != mapOf("music/MusicActivity.kt" to 1, "music/MusicPlayExtra.kt" to 1) ||
+            !extra.contains("fun launchCaller(access: UriAccessPort): Int = UriAccessRules.starterUid(access) ?: NO_CALLER") || !extra.contains("const val NO_CALLER = -1")
+        ) problems += "the launch's caller is not the port's named starter, or nobody: $asked"
+        val decide = body(extra, "fun decide(callerUid: Int, myUid: Int, id: Long?, uri: String?, providerAuthority: String): Decision")
+        if (!decide.startsWith("{ if (id == null && uri == null) return Decision.None if (callerUid != myUid) return Decision.Ignored(WHY_NOT_SHELL) ") || Regex("\\bcallerUid\\b").findAll(decide).count() != 1) {
+            problems += "the rule does not refuse every caller but the shell before it looks at the extra"
+        }
+        // The other caller of the rule: the session's command, weighed against the controller the session names.
+        val deciders = sources.mapValues { (_, text) -> count(text, "MusicPlayExtra.decide(") }.filterValues { it > 0 }
+        if (deciders != mapOf("music/MusicActivity.kt" to 1, "music/MusicService.kt" to 1) ||
+            !body(service, "private fun playFile(controller: MediaSession.ControllerInfo, raw: String?): Int").startsWith(
+                "{ val me = Process.myUid() val decision = MusicPlayExtra.decide(controller.uid, me, null, raw.orEmpty(), FilesProvider.AUTHORITY) if (decision !is MusicPlayExtra.Decision.PlayUri) { ",
+            )
+        ) problems += "the rule is asked somewhere else, or the session's command is not weighed against its controller: $deciders"
+        return problems
+    }
+
+    @Test fun `Music's play extra is weighed against the uid that sent that intent - the port's for the launch, the intent's own caller on API 35+, nobody below`() {
+        assertEquals(emptyList<String>(), musicProblems(SourceScan.all()))
+    }
+
+    @Test fun `a play extra honoured for a caller the platform did not name, or a caller's uid read or compared outside the rule, is caught`() {
+        val sources = SourceScan.all()
+        fun with(file: String, old: String, new: String) = musicProblems(sources + (file to mutate(sources.getValue(file), old, new)))
+        fun activity(old: String, new: String) = with("music/MusicActivity.kt", old, new)
+        // The launch's caller a constant, the shell's own uid, or weighed on a re-creation too.
+        assertTrue(activity("takePlay(intent, MusicPlayExtra.launchCaller(AndroidUriAccess(this)))", "takePlay(intent, Process.myUid())").isNotEmpty())
+        assertTrue(activity("takePlay(intent, MusicPlayExtra.launchCaller(AndroidUriAccess(this)))", "takePlay(intent, 10077)").isNotEmpty())
+        assertTrue(activity("if (savedInstanceState == null) takePlay(intent, MusicPlayExtra", "takePlay(intent, MusicPlayExtra").isNotEmpty())
+        // A new intent below API 35 given the LAUNCH's caller (the form the stricter rule replaced), or the gate dropped.
+        assertTrue(activity("takePlay(intent, Process.INVALID_UID)", "takePlay(intent, MusicPlayExtra.launchCaller(AndroidUriAccess(this)))").isNotEmpty())
+        assertTrue(activity("takePlay(intent, Process.INVALID_UID)", "takePlay(intent, Process.myUid())").isNotEmpty())
+        assertTrue(activity("if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) takePlay(intent, Process.INVALID_UID)", "takePlay(intent, Process.INVALID_UID)").isNotEmpty())
+        // The per-intent caller moved out of its expression: another uid in its place, compared in the activity, or kept.
+        assertTrue(activity("takePlay(intent, caller.uid)", "takePlay(intent, Process.myUid())").isNotEmpty())
+        assertTrue(activity("takePlay(intent, caller.uid)", "takePlay(intent, if (caller.uid >= 0) Process.myUid() else -1)").isNotEmpty())
+        assertTrue(activity("takePlay(intent, caller.uid)", "takePlay(intent, caller.uid); lastCaller = caller").isNotEmpty())
+        assertTrue(activity("super.onNewIntent(intent, caller) takePlay(intent, caller.uid)", "super.onNewIntent(intent, caller)").isNotEmpty())
+        // The rule handed something other than the caller and the shell's real uid; the compare made in the activity.
+        assertTrue(activity("MusicPlayExtra.decide(callerUid, Process.myUid(), id, uri,", "MusicPlayExtra.decide(Process.myUid(), Process.myUid(), id, uri,").isNotEmpty())
+        assertTrue(activity("MusicPlayExtra.decide(callerUid, Process.myUid(), id, uri,", "MusicPlayExtra.decide(callerUid, callerUid, id, uri,").isNotEmpty())
+        assertTrue(activity("if (intent == null) return", "if (intent == null) return if (callerUid != Process.myUid()) { MusicPlayer.playFile(intent.getStringExtra(MusicPlayExtra.EXTRA_PLAY_URI).orEmpty()); return }").isNotEmpty())
+        assertTrue(activity("if (intent == null) return", "if (intent == null) return MusicPlayer.playFile(intent.getStringExtra(MusicPlayExtra.EXTRA_PLAY_URI).orEmpty())").isNotEmpty())
+        assertTrue(activity("MusicPlayer.playFile(decision.uri)", "MusicPlayer.playFile(uri.orEmpty())").isNotEmpty())
+        // The rule's side: an unnamed starter taken for the shell, the caller compared the wrong way or after the extra.
+        assertTrue(with("music/MusicPlayExtra.kt", "UriAccessRules.starterUid(access) ?: NO_CALLER", "UriAccessRules.starterUid(access) ?: access.shellUid()").isNotEmpty())
+        assertTrue(with("music/MusicPlayExtra.kt", "const val NO_CALLER = -1", "const val NO_CALLER = 10077").isNotEmpty())
+        assertTrue(with("music/MusicPlayExtra.kt", "if (callerUid != myUid) return Decision.Ignored(WHY_NOT_SHELL)", "if (callerUid == myUid) return Decision.Ignored(WHY_NOT_SHELL)").isNotEmpty())
+        assertTrue(with("music/MusicPlayExtra.kt", "if (callerUid != myUid) return Decision.Ignored(WHY_NOT_SHELL)", "if (callerUid < 0) return Decision.Ignored(WHY_NOT_SHELL)").isNotEmpty())
+        assertTrue(with("music/MusicPlayExtra.kt", "if (callerUid != myUid) return Decision.Ignored(WHY_NOT_SHELL) ", "").isNotEmpty())
+        // The session's command weighed against the shell itself, and a third asker of the rule.
+        assertTrue(with("music/MusicService.kt", "MusicPlayExtra.decide(controller.uid, me, null,", "MusicPlayExtra.decide(me, me, null,").isNotEmpty())
+        assertTrue(musicProblems(sources + ("music/MusicSearch.kt" to sources.getValue("music/MusicSearch.kt") + " fun x(u: String) = MusicPlayExtra.decide(1, 1, null, u, \"a\")")).isNotEmpty())
+        assertTrue(musicProblems(sources + ("files/FilesOpenWith.kt" to sources.getValue("files/FilesOpenWith.kt") + " fun x(c: android.app.ComponentCaller) = c.uid")).isNotEmpty())
     }
 
     // ---------------------------------------------------------------------------------------------- the capture answer

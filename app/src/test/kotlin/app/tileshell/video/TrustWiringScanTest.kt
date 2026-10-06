@@ -119,11 +119,23 @@ class TrustWiringScanTest {
 
     private fun count(text: String, piece: String): Int = Regex(Regex.escape(piece)).findAll(text).count()
 
-    // ---- the three QA prefs: read only behind BuildConfig.DEBUG
+    // ---- the five QA prefs (phase 17's three redirects, phase 18's two paces): read only behind BuildConfig.DEBUG
 
-    private val GATED = listOf("CatalogueRules.base(BuildConfig.DEBUG, ", "ServerRules.signInBase(BuildConfig.DEBUG, ")
-    private val PREF_NAMES = Regex("QaBases\\.(CATALOGUE|WIKIDATA|SERVER)\\b")
-    private val PREF_READ = Regex("QaBases\\.read\\(\\w+, QaBases\\.(CATALOGUE|WIKIDATA|SERVER)\\)")
+    /**
+     * Each pref's ONE read: the file it is in and the rule it is the second argument of. Phase 18 added the two paces
+     * (Q-18-3, Q-18-5), and with them the pairing: a pref read behind another pref's rule, or in another file, is not
+     * its site.
+     */
+    private val SITES = mapOf(
+        "CATALOGUE" to ("video/catalogue/Catalogue.kt" to "CatalogueRules.base(BuildConfig.DEBUG, "),
+        "WIKIDATA" to ("video/handoff/StreamingHandoff.kt" to "CatalogueRules.base(BuildConfig.DEBUG, "),
+        "SERVER" to ("video/server/MediaServer.kt" to "ServerRules.signInBase(BuildConfig.DEBUG, "),
+        "FILES_RATE" to ("files/FileOpsService.kt" to "FilePace.rate(BuildConfig.DEBUG, "),
+        "FILES_SEARCH_RATE" to ("files/FilesState.kt" to "FilePace.searchRate(BuildConfig.DEBUG, "),
+    )
+    private val GATED = listOf("CatalogueRules.base(BuildConfig.DEBUG, ", "ServerRules.signInBase(BuildConfig.DEBUG, ", "FilePace.rate(BuildConfig.DEBUG, ", "FilePace.searchRate(BuildConfig.DEBUG, ")
+    private val PREF_NAMES = Regex("QaBases\\.(CATALOGUE|WIKIDATA|SERVER|FILES_RATE|FILES_SEARCH_RATE)\\b")
+    private val PREF_READ = Regex("QaBases\\.read\\(\\w+, QaBases\\.(CATALOGUE|WIKIDATA|SERVER|FILES_RATE|FILES_SEARCH_RATE)\\)")
 
     /** What is wrong with how the sources read the QA prefs; empty when nothing is. */
     private fun qaPrefProblems(sources: Map<String, String>): List<String> {
@@ -133,7 +145,12 @@ class TrustWiringScanTest {
         for ((file, text) in sources) {
             for (m in Regex("QaBases\\.read\\(").findAll(text)) {
                 reads++
-                if (GATED.none { text.startsWith(it, m.range.first - it.length) }) problems += "$file: QaBases.read is not the second argument of a rule that is given BuildConfig.DEBUG"
+                val gate = GATED.firstOrNull { text.startsWith(it, m.range.first - it.length) }
+                if (gate == null) problems += "$file: QaBases.read is not the second argument of a rule that is given BuildConfig.DEBUG"
+                else {
+                    val pref = PREF_READ.matchEntire(call(text, m.range.first))?.groupValues?.get(1)
+                    if (pref == null || SITES[pref] != (file to gate)) problems += "$file: QaBases.read($pref) behind $gate… is not that pref's one site, behind its own rule"
+                }
             }
             val named = PREF_NAMES.findAll(text).count()
             val readProperly = PREF_READ.findAll(text).onEach { prefsRead += it.groupValues[1] }.count()
@@ -141,9 +158,9 @@ class TrustWiringScanTest {
             // The prefs' names as text: only the three constants, in the one file.
             for (literal in Regex("\"qa_[a-z_]*").findAll(text)) if (file != "video/catalogue/Catalogue.kt") problems += "$file: ${literal.value}\" is spelled outside QaBases"
         }
-        if (reads != 3 || prefsRead != setOf("CATALOGUE", "WIKIDATA", "SERVER")) problems += "the three QA prefs are each read once (reads=$reads, prefs=$prefsRead)"
+        if (reads != 5 || prefsRead != setOf("CATALOGUE", "WIKIDATA", "SERVER", "FILES_RATE", "FILES_SEARCH_RATE")) problems += "the five QA prefs are each read once (reads=$reads, prefs=$prefsRead)"
         val qa = sources["video/catalogue/Catalogue.kt"].orEmpty()
-        if (Regex("\"qa_[a-z_]*\"").findAll(qa).map { it.value }.toList() != listOf("\"qa_catalogue_base\"", "\"qa_wikidata_base\"", "\"qa_server_base\"")) problems += "QaBases names exactly the three prefs"
+        if (Regex("\"qa_[a-z_]*\"").findAll(qa).map { it.value }.toList() != listOf("\"qa_catalogue_base\"", "\"qa_wikidata_base\"", "\"qa_server_base\"", "\"qa_files_rate_bps\"", "\"qa_files_search_eps\"")) problems += "QaBases names exactly the five prefs"
         if (!body(qa, "fun read(context: Context, key: String): String?").startsWith("{ if (!BuildConfig.DEBUG) return null ")) problems += "QaBases.read does not begin by returning null outside a debug build"
         return problems
     }
@@ -166,6 +183,88 @@ class TrustWiringScanTest {
         assertTrue(with("video/catalogue/Catalogue.kt", "if (!BuildConfig.DEBUG) return null ", "").isNotEmpty())
         assertTrue(with("video/VideoActivity.kt", "nav.ready = true", "nav.ready = getSharedPreferences(\"start_theme\", 0).getString(\"qa_server_base\", null) == null").isNotEmpty())
         assertTrue(with("video/VideoActivity.kt", "nav.ready = true", "nav.ready = prefs.getString(QaBases.SERVER, null) == null").isNotEmpty())
+        // Phase 18's two paces, the same mutations: the debug flag a constant or negated at each new site …
+        assertEquals(1, with("files/FileOpsService.kt", "FilePace.rate(BuildConfig.DEBUG, QaBases.read(", "FilePace.rate(true, QaBases.read(").size)
+        assertEquals(1, with("files/FileOpsService.kt", "FilePace.rate(BuildConfig.DEBUG, QaBases.read(", "FilePace.rate(!BuildConfig.DEBUG, QaBases.read(").size)
+        assertEquals(1, with("files/FilesState.kt", "FilePace.searchRate(BuildConfig.DEBUG, QaBases.read(", "FilePace.searchRate(true, QaBases.read(").size)
+        assertEquals(1, with("files/FilesState.kt", "FilePace.searchRate(BuildConfig.DEBUG, QaBases.read(", "FilePace.searchRate(!BuildConfig.DEBUG, QaBases.read(").size)
+        // … the pace pref used with no rule at all (the form phase 18 first wrote, which this scan caught) …
+        assertTrue(with("files/FileOpsService.kt", "FilePace.rate(BuildConfig.DEBUG, QaBases.read(this, QaBases.FILES_RATE))", "QaBases.read(this, QaBases.FILES_RATE)?.trim()?.toLongOrNull()").isNotEmpty())
+        assertTrue(with("files/FilesState.kt", "FilePace.searchRate(BuildConfig.DEBUG, QaBases.read(app, QaBases.FILES_SEARCH_RATE))", "QaBases.read(app, QaBases.FILES_SEARCH_RATE)?.trim()?.toLongOrNull()?.takeIf { it > 0 }").isNotEmpty())
+        // … read straight from SharedPreferences, by its text or by its constant, and spelled outside Catalogue.kt …
+        assertTrue(with("files/FileOpsService.kt", "FilePace.rate(BuildConfig.DEBUG, QaBases.read(this, QaBases.FILES_RATE))", "getSharedPreferences(\"start_theme\", 0).getString(\"qa_files_rate_bps\", null)?.toLongOrNull()").isNotEmpty())
+        assertTrue(with("files/FilesState.kt", "FilePace.searchRate(BuildConfig.DEBUG, QaBases.read(app, QaBases.FILES_SEARCH_RATE))", "app.getSharedPreferences(\"start_theme\", 0).getString(QaBases.FILES_SEARCH_RATE, null)?.toLongOrNull()").isNotEmpty())
+        assertTrue(with("files/FilesSearch.kt", "package app.tileshell.files", "package app.tileshell.files const val PACE = \"qa_files_search_eps\"").isNotEmpty())
+        // … a second read of a pace beside its one site, a pace behind the other pace's rule or behind a redirect's
+        // rule, one pace's pref at the other's site, and a sixth pref.
+        assertTrue(with("files/FilesState.kt", "FilePace.searchRate(BuildConfig.DEBUG, QaBases.read(app, QaBases.FILES_SEARCH_RATE))", "FilePace.searchRate(BuildConfig.DEBUG, QaBases.read(app, QaBases.FILES_SEARCH_RATE)) ?: FilePace.rate(BuildConfig.DEBUG, QaBases.read(app, QaBases.FILES_RATE))").isNotEmpty())
+        assertEquals(1, with("files/FileOpsService.kt", "FilePace.rate(BuildConfig.DEBUG, QaBases.read(", "FilePace.searchRate(BuildConfig.DEBUG, QaBases.read(").size)
+        assertEquals(1, with("video/server/MediaServer.kt", "ServerRules.signInBase(BuildConfig.DEBUG, QaBases.read(app, QaBases.SERVER), address.base)", "CatalogueRules.base(BuildConfig.DEBUG, QaBases.read(app, QaBases.SERVER), address.base)").size)
+        assertTrue(with("files/FileOpsService.kt", "QaBases.read(this, QaBases.FILES_RATE)", "QaBases.read(this, QaBases.FILES_SEARCH_RATE)").isNotEmpty())
+        assertTrue(with("video/catalogue/Catalogue.kt", "const val FILES_RATE = \"qa_files_rate_bps\"", "const val FILES_RATE = \"qa_files_rate_bps\" const val FILES_FLOOR = \"qa_files_floor\"").isNotEmpty())
+        assertTrue(with("video/catalogue/Catalogue.kt", "const val FILES_SEARCH_RATE = \"qa_files_search_eps\"", "").isNotEmpty())
+    }
+
+    // ---- the two paces (phase 18): what paces a copy or a search is the rule's answer and nothing else
+
+    /**
+     * `qaPrefProblems` holds each pace's pref to its rule and its debug flag; `FilePaceRulesTest` holds the rules (null
+     * in a release build whatever the pref says). Held here is the rest of the way: the rule's answer, untouched, is
+     * the only thing a `FilePace` is made from and the only thing the search walk is paced by — so a release build,
+     * where the answer is null, has no pace to apply.
+     */
+    private fun paceProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val service = sources["files/FileOpsService.kt"].orEmpty()
+        val state = sources["files/FilesState.kt"].orEmpty()
+        val paths = sources["files/FilePaths.kt"].orEmpty()
+        // The copy's pace: FilePace.of(the rule's answer), the one FilePace any process makes.
+        if (!service.contains("val rate = FilePace.rate(BuildConfig.DEBUG, QaBases.read(this, QaBases.FILES_RATE)) val pace = FilePace.of(rate) if (pace != null && rate != null) say(FileOpsText.paceLine(rate)) ")) {
+            problems += "the copy's pace is not FilePace.of(FilePace.rate(BuildConfig.DEBUG, the pref))"
+        }
+        if (Regex("\\brate\\s*=[^=]").findAll(service).count() != 1 || Regex("\\bpace\\s*=[^=]").findAll(service).count() != 2 || !service.contains("stopped = run::stopped, pace = pace, )")) problems += "the operation is run with a pace other than the rule's"
+        val made = sources.mapValues { (_, text) -> Regex("(?<!class )\\bFilePace\\(").findAll(text).count() }.filterValues { it > 0 }
+        val asked = sources.mapValues { (_, text) -> count(text, "FilePace.of(") }.filterValues { it > 0 }
+        if (made != mapOf("files/FilePaths.kt" to 1) || asked != mapOf("files/FileOpsService.kt" to 1) ||
+            !paths.contains("fun of(bytesPerSecond: Long?): FilePace? = if (bytesPerSecond == null || bytesPerSecond <= 0) null else FilePace(bytesPerSecond)")
+        ) problems += "a FilePace is made other than by FilePace.of at the copy service's one site (made=$made, of=$asked)"
+        val paced = sources.mapValues { (_, text) -> Regex("\\bpace\\s*=[^=]").findAll(text).count() }.filterValues { it > 0 }
+        if (paced != mapOf("files/FileOpsService.kt" to 2)) problems += "an OpControl is given a pace somewhere else: $paced"
+        // The search walk's pace: the rule's answer, handed to the one walk.
+        if (!state.contains("val eps = FilePace.searchRate(BuildConfig.DEBUG, QaBases.read(app, QaBases.FILES_SEARCH_RATE)) searchJob = scope.launch {") || Regex("\\beps\\s*=[^=]").findAll(state).count() != 1) {
+            problems += "the search's pace is not FilePace.searchRate(BuildConfig.DEBUG, the pref)"
+        }
+        val walks = sources.mapValues { (_, text) -> Regex("\\bentriesPerSecond\\s*=[^=]").findAll(text).count() }.filterValues { it > 0 }
+        if (walks != mapOf("files/FilesState.kt" to 1) || !state.contains("onFolder = { folders.set(it) }, entriesPerSecond = eps, onHit = ")) problems += "a search walk is paced by something other than the rule's answer: $walks"
+        // The rules give no pace outside a debug build (their unit tests run them; this is the form they must keep).
+        for (rule in listOf("fun rate(debug: Boolean, pref: String?): Long?", "fun searchRate(debug: Boolean, pref: String?): Long?")) {
+            if (!paths.contains("$rule = if (debug) pref?.trim()?.toLongOrNull()?.takeIf { it > 0 } else null")) problems += "FilePace.${rule.substringAfter("fun ").substringBefore('(')} gives a pace outside a debug build"
+        }
+        return problems
+    }
+
+    @Test fun `a copy and a search are paced by the rule's answer and nothing else`() {
+        assertEquals(emptyList<String>(), paceProblems(all()))
+    }
+
+    @Test fun `a pace with a fallback, made by hand, or handed to the walk as a constant is caught`() {
+        val sources = all()
+        fun with(file: String, old: String, new: String) = paceProblems(sources + (file to mutate(sources.getValue(file), old, new)))
+        // The debug flag a constant or negated at each site (qaPrefProblems' mutation, seen from this side too).
+        assertTrue(with("files/FileOpsService.kt", "FilePace.rate(BuildConfig.DEBUG, QaBases.read(", "FilePace.rate(true, QaBases.read(").isNotEmpty())
+        assertTrue(with("files/FilesState.kt", "FilePace.searchRate(BuildConfig.DEBUG, QaBases.read(", "FilePace.searchRate(!BuildConfig.DEBUG, QaBases.read(").isNotEmpty())
+        // A release build paced all the same: a fallback after the rule, a pace made by hand, a constant to the walk.
+        assertTrue(with("files/FileOpsService.kt", "QaBases.read(this, QaBases.FILES_RATE)) val pace", "QaBases.read(this, QaBases.FILES_RATE)) ?: 1_000_000L val pace").isNotEmpty())
+        assertTrue(with("files/FileOpsService.kt", "val pace = FilePace.of(rate)", "val pace = FilePace.of(rate ?: 1_000_000L)").isNotEmpty())
+        assertTrue(with("files/FileOpsService.kt", "val pace = FilePace.of(rate)", "val pace = FilePace(1_000_000L)").isNotEmpty())
+        assertTrue(with("files/FileOpsService.kt", "stopped = run::stopped, pace = pace,", "stopped = run::stopped, pace = FilePace.of(1_000_000L),").isNotEmpty())
+        assertTrue(with("files/FileOps.kt", "package app.tileshell.files", "package app.tileshell.files val always = OpControl(pace = FilePace.of(1L))").isNotEmpty())
+        assertTrue(with("files/FilesState.kt", "QaBases.read(app, QaBases.FILES_SEARCH_RATE)) searchJob", "QaBases.read(app, QaBases.FILES_SEARCH_RATE)) ?: 50L searchJob").isNotEmpty())
+        assertTrue(with("files/FilesState.kt", "entriesPerSecond = eps,", "entriesPerSecond = 50L,").isNotEmpty())
+        assertTrue(with("files/FilesState.kt", "entriesPerSecond = eps,", "entriesPerSecond = eps ?: 50L,").isNotEmpty())
+        // The rule itself opened to a release build.
+        assertTrue(with("files/FilePaths.kt", "fun rate(debug: Boolean, pref: String?): Long? = if (debug) pref", "fun rate(debug: Boolean, pref: String?): Long? = if (true) pref").isNotEmpty())
+        assertTrue(with("files/FilePaths.kt", "fun searchRate(debug: Boolean, pref: String?): Long? = if (debug) pref", "fun searchRate(debug: Boolean, pref: String?): Long? = if (!debug) pref").isNotEmpty())
     }
 
     // ---- the key page: only the validator's result is stored; the field is a secret one that does not cut a key

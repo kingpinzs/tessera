@@ -1,5 +1,7 @@
 package app.tileshell.music
 
+import app.tileshell.media.FakeUriAccess
+import app.tileshell.media.Platform
 import app.tileshell.music.MusicPlayExtra.Decision
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -88,5 +90,26 @@ class MusicPlayExtraTest {
     @Test
     fun `an empty authority honours nothing`() {
         assertEquals(Decision.Ignored("not the shell's file provider"), MusicPlayExtra.decide(me, me, null, "content:///root/a.mp3", ""))
+    }
+
+    // ---- who launched: the platform port's answer, or nobody (media/UriAccessWiringScanTest holds the call sites)
+
+    @Test
+    fun `the launch's caller is the uid the port names - the shell's own launch is honoured`() {
+        val shell = FakeUriAccess(launchedFrom = Platform.Said(FakeUriAccess.SHELL))
+        assertEquals(FakeUriAccess.SHELL, MusicPlayExtra.launchCaller(shell))
+        assertEquals(Decision.PlayId(42), MusicPlayExtra.decide(MusicPlayExtra.launchCaller(shell), shell.shellUid(), 42, null, authority))
+        assertEquals(FakeUriAccess.CALLER, MusicPlayExtra.launchCaller(FakeUriAccess(launchedFrom = Platform.Said(FakeUriAccess.CALLER))))
+    }
+
+    @Test
+    fun `a starter the platform does not name, or a port that throws, is nobody - the extra is ignored`() {
+        for (answer in listOf<Platform<Int>>(Platform.Said(-1), Platform.Said(-10077), Platform.Threw("SecurityException"), Platform.Threw("OutOfMemoryError"))) {
+            val port = FakeUriAccess(launchedFrom = answer)
+            assertEquals("$answer", MusicPlayExtra.NO_CALLER, MusicPlayExtra.launchCaller(port))
+            assertEquals("$answer", Decision.Ignored("not the shell"), MusicPlayExtra.decide(MusicPlayExtra.launchCaller(port), port.shellUid(), 42, null, authority))
+        }
+        // Nobody is the platform's own "no uid", and never a uid an app can have.
+        assertEquals(-1, MusicPlayExtra.NO_CALLER)
     }
 }

@@ -63,6 +63,17 @@ class FilePace(
     }
 
     companion object {
+        /**
+         * Q-18-3's QA pace as a rule (the form of `CatalogueRules.base`): [pref] as bytes a second, and ONLY in a debug
+         * build — a release build is unpaced whatever the pref holds. Null (unpaced) too for a pref that is not a
+         * number above 0. The one site that reads the pref hands it here with `BuildConfig.DEBUG`
+         * (`video/TrustWiringScanTest`).
+         */
+        fun rate(debug: Boolean, pref: String?): Long? = if (debug) pref?.trim()?.toLongOrNull()?.takeIf { it > 0 } else null
+
+        /** Q-18-5's QA pace for the search walk, as entries a second: the same rule as [rate], for its own pref. */
+        fun searchRate(debug: Boolean, pref: String?): Long? = if (debug) pref?.trim()?.toLongOrNull()?.takeIf { it > 0 } else null
+
         /** The pref's value as a pace: null or 0 (or less) is unpaced. */
         fun of(bytesPerSecond: Long?): FilePace? = if (bytesPerSecond == null || bytesPerSecond <= 0) null else FilePace(bytesPerSecond)
     }

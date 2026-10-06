@@ -15,6 +15,7 @@ import android.os.PowerManager
 import androidx.annotation.RequiresApi
 import app.tileshell.R
 import app.tileshell.diag.Diagnostics
+import app.tileshell.BuildConfig
 import app.tileshell.video.catalogue.QaBases
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
@@ -122,7 +123,7 @@ class FileOpsService : Service() {
         val run = FileOpsClient.run
         val kind = request.kind
         val ops = FilesEnv.ops(this)
-        val rate = QaBases.read(this, QaBases.FILES_RATE)?.trim()?.toLongOrNull()
+        val rate = FilePace.rate(BuildConfig.DEBUG, QaBases.read(this, QaBases.FILES_RATE))
         val pace = FilePace.of(rate)
         if (pace != null && rate != null) say(FileOpsText.paceLine(rate))
         val beat = ProgressBeat()

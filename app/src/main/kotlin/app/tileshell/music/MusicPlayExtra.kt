@@ -1,15 +1,19 @@
 package app.tileshell.music
 
+import app.tileshell.media.UriAccessPort
+import app.tileshell.media.UriAccessRules
+
 /**
  * What a play extra on MusicActivity's launch does (phase 18's ADD to phase 10: r3 D5, "below Q-18-2"; a trust rule).
  *
  * MusicActivity is exported, so an extra that starts playback must not be any app's to send: it is honoured ONLY for the
- * shell's own launch (`getLaunchedFromUid() == myUid`). It carries either one MediaStore audio id (a library track) or
+ * shell's own launch (the uid that started the activity is the shell's own). It carries either one MediaStore audio id (a library track) or
  * one `content://` URI — and the URI form only when its authority is the shell's own FileProvider (a file with no
  * library row, handed over by Files; Q-18-2). Anything else is ignored and Music opens as it always does, with
  * `[music] play extra ignored: <why>`.
  *
- * Pure: the activity reads the two extras and the two uids and asks [decide]; `MusicPlayExtraTest` holds the rule.
+ * Pure: the activity reads the two extras and asks [decide]; who launched it comes from the one platform port, through
+ * [launchCaller]. `MusicPlayExtraTest` holds the rule; `media/UriAccessWiringScanTest` holds the activity's three calls.
  */
 object MusicPlayExtra {
     /** Intent extra: one MediaStore audio id (a `Long`). */
@@ -23,6 +27,16 @@ object MusicPlayExtra {
     const val WHY_BAD_ID = "not an audio id"
     const val WHY_NOT_CONTENT = "not a content uri"
     const val WHY_AUTHORITY = "not the shell's file provider"
+
+    /** No caller the platform names: never the shell's own uid, so [decide] ignores the extra. */
+    const val NO_CALLER = -1
+
+    /**
+     * Who started the activity, asked of the one platform port ([UriAccessPort.launchedFromUid]): the uid the platform
+     * names, else [NO_CALLER] — when it names none, answers below 0, or throws. Fail-closed: only a named uid can be
+     * the shell's.
+     */
+    fun launchCaller(access: UriAccessPort): Int = UriAccessRules.starterUid(access) ?: NO_CALLER
 
     sealed interface Decision {
         /** The launch carries no play extra: Music opens as it always does, and nothing is written. */
@@ -41,16 +55,17 @@ object MusicPlayExtra {
     }
 
     /**
-     * @param launchedFromUid `Activity.getLaunchedFromUid()` (-1 when the platform does not say)
+     * @param callerUid the uid that sent this intent: [launchCaller] for the launch, the intent's own caller for a new
+     *   intent on API 35+, [NO_CALLER] when the platform does not say
      * @param myUid `Process.myUid()`
      * @param id [EXTRA_PLAY_ID] when the launch has it, else null
      * @param uri [EXTRA_PLAY_URI] when the launch has it, else null
      * @param providerAuthority the shell FileProvider's authority, exactly as the manifest declares it
      */
-    fun decide(launchedFromUid: Int, myUid: Int, id: Long?, uri: String?, providerAuthority: String): Decision {
+    fun decide(callerUid: Int, myUid: Int, id: Long?, uri: String?, providerAuthority: String): Decision {
         if (id == null && uri == null) return Decision.None
         // The caller first: for anyone but the shell the extra's contents are not even looked at.
-        if (launchedFromUid != myUid) return Decision.Ignored(WHY_NOT_SHELL)
+        if (callerUid != myUid) return Decision.Ignored(WHY_NOT_SHELL)
         if (id != null && uri != null) return Decision.Ignored(WHY_TWO)
         if (id != null) return if (id > 0) Decision.PlayId(id) else Decision.Ignored(WHY_BAD_ID)
         val u = uri!!
