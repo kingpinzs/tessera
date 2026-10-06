@@ -34,3 +34,5 @@ include(":testapps:qa-capture")
 include(":testapps:qa-capture-fwd")
 include(":testapps:qa-flix") // Phase 17 QA tooling, never shipped: the stand-in streaming app of the "Watch on" row (E21).
 include(":testapps:qa-photoview") // Phase 17 QA tooling, never shipped: the image VIEW sender of the trust row TRUST_PHOTOS.
+// Phase 17 QA tooling, never shipped: another app that starts the shell's player with a VIEW (row TRUST_VIDEO, C-M4's legs).
+include(":testapps:qa-view")

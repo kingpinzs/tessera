@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- A runtime permission: NOT held after a plain `adb install`. A row grants it for the one leg that needs it. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+    <queries>
+        <package android:name="app.tileshell" />
+    </queries>
+
+    <application
+        android:icon="@android:drawable/sym_def_app_icon"
+        android:label="QA View">
+
+        <!-- No LAUNCHER entry: it never shows in the shell's app list. Started by the row with `am start -n`. -->
+        <activity
+            android:name=".ViewProbeActivity"
+            android:exported="true" />
+
+        <!-- Its own file provider: a file of this app's filesDir, reached by another app only through a URI grant. -->
+        <provider
+            android:name=".OwnProvider"
+            android:authorities="app.tileshell.testclient.qaview.files"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+    </application>
+</manifest>
