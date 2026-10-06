@@ -159,3 +159,8 @@ OPEN: Q-18-6 (asked): selection mode on the Recent page shows the folder page's 
 so a file CAN be binned from Recent; the Decisions' reason says Recent "can never delete a file".
 WHOLE SUITE: 1913 tests, 3 FAIL — phase 17's scan guards (UriAccessWiringScanTest; TrustWiringScanTest ×2) tripped by
 phase 18's caller-uid reads and its two QA prefs. A builder is conforming phase 18's code to the guards' form.
+
+## 2026-10-06 17:54: Q-18-6 RULED (b)
+
+Recent's selection bar stays the folder page's (Delete → the bin, Move to, Copy to, Share). No code change. E14 gains nothing new;
+H8's wording says a file can be binned from Recent's selection and that Remove from recent never touches the file.

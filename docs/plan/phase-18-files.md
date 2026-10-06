@@ -78,6 +78,12 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
 ~~a recycle bin unless Q3 rules one; zip handling unless Q2 rules it~~ SUPERSEDED 2026-09-23 by Q3 C / Q2 C (T18-7).
 
 ## Decisions
+- 2026-10-06: Q-18-6 — selection mode on the Recent page keeps the folder page's full bar (Jeremy: "(b)"): Delete / Move
+  to / Copy to / Share act on the selected FILES, and Delete sends them to the Recycle Bin (recoverable; the file's
+  Recent entry is dropped, as for any delete made in Files). Asked at the build because the "below Q-18-1" entry's
+  reason says the mechanics "can never delete a file from the Recent page", and the built page can; the research did not
+  capture W10M's selection bar on Recent (r11/files-pass2.md §4.8). SUPERSEDES that clause of the reason only: what
+  never deletes a file is the hold menu's "Remove from recent". H8 states it.
 - 2026-10-06: Q-18-5 — the search row catches a running search through the debug-only pace, extended to the search walk
   (Jeremy: "(a)"). Asked at the build because E8's premise failed: the walk over a 10,000-entry folder ends in about
   0.25 s, so no dump can hold `files_search_progress`; a 250,000-file tree showed it, and removing that tree with one
@@ -497,7 +503,7 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
   approximation (what W10M's date meant is unmeasured; H8). Diagnostics `[files] recent: <n>`, `[files] recent add|remove
   <path>`; tags `files_recent_row:<name>`, `files_recent_empty`, `files_hold:remove_recent`. No MediaStore query and no
   ContentObserver. Reason: the ruling names the meaning; these are the smallest mechanics that keep the list true to the
-  files (a path that moved, a file that is gone) and can never delete a file from the Recent page.
+  files (a path that moved, a file that is gone) and can never delete a file from the Recent page. [2026-10-06, Q-18-6 (b): "never" holds for Remove from recent only; the selection bar's Delete bins the file.]
 - 2026-10-06 (agent, below Q-18-2; an ADD to phase 10's part and a trust change): **Music plays one file by URI.** The
   play extra carries either one MediaStore audio id (a library track) or one `content://` URI of the shell's FileProvider
   (a file with no library row). Both are honoured only for the shell's own launch (`getLaunchedFromUid() == myUid`, r3 D5),
