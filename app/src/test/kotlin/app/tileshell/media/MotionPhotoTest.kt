@@ -120,4 +120,103 @@ class MotionPhotoTest {
         assertTrue(runCatching { MotionPhoto.write(mp4, mp4, 0L) }.isFailure)
         assertTrue(runCatching { MotionPhoto.write(jpeg, jpeg, 0L) }.isFailure)
     }
+
+    // ---- the reader on a file's head and size (Photos and the probe page: the file is never read whole) ----------------
+
+    /** [file] as a reader that holds only its head sees it; [asked] collects what was asked of the rest. */
+    private fun headRead(file: ByteArray, headBytes: Int = MotionPhoto.HEAD_BYTES, asked: MutableList<Pair<Long, Int>> = mutableListOf()): MotionPhoto.Info? =
+        MotionPhoto.read(file.copyOf(minOf(file.size, headBytes)), file.size.toLong()) { offset, count ->
+            asked += offset to count
+            if (offset < 0 || offset + count > file.size) null else file.copyOfRange(offset.toInt(), offset.toInt() + count)
+        }
+
+    @Test fun `the head and the size give the same answer as the whole file`() {
+        val file = MotionPhoto.write(jpeg, mp4, 933_000L)
+        assertEquals(MotionPhoto.read(file), headRead(file))
+        // A long picture: the clip is megabytes past the head that was read.
+        val longScan = segment(0xDA, ByteArray(10)) + ByteArray(3 * 1024 * 1024) { (it % 251).toByte() } + bytes(0xFF, 0xD9)
+        val big = MotionPhoto.write(bytes(0xFF, 0xD8) + jfif + exif + dqt + longScan, mp4, 1L)
+        assertTrue(big.size > 10 * MotionPhoto.HEAD_BYTES)
+        val info = headRead(big)!!
+        assertEquals((big.size - mp4.size).toLong(), info.videoOffset)
+        assertEquals(mp4.size.toLong(), info.videoLength)
+        assertEquals(MotionPhoto.read(big), info)
+    }
+
+    @Test fun `beyond the head only one box header at the clip's place is asked for`() {
+        val file = MotionPhoto.write(jpeg, mp4, 0L)
+        val asked = mutableListOf<Pair<Long, Int>>()
+        assertNotNull(headRead(file, asked = asked))
+        assertEquals(listOf((file.size - mp4.size).toLong() to 8), asked)
+        assertEquals(8, MotionPhoto.CLIP_PROBE_BYTES)
+        assertEquals(256 * 1024, MotionPhoto.HEAD_BYTES)
+        // A plain still asks for nothing past its head.
+        asked.clear()
+        assertNull(headRead(jpeg, asked = asked))
+        assertTrue(asked.isEmpty())
+    }
+
+    @Test fun `xmp past the head, a head cut inside the xmp and a rest that cannot be read are not motion photos`() {
+        val file = MotionPhoto.write(jpeg, mp4, 0L)
+        assertNull(headRead(file, headBytes = 40))                 // the head ends before the XMP segment does
+        assertNull(MotionPhoto.read(file, file.size.toLong()) { _, _ -> null })
+        assertNull(MotionPhoto.read(file, file.size.toLong()) { _, _ -> ByteArray(3) })
+        assertNull(MotionPhoto.read(file, 0L) { _, _ -> mp4 })
+        assertNull(MotionPhoto.read(file, -1L) { _, _ -> mp4 })
+    }
+
+    @Test fun `stated lengths and paddings that leave the file are refused before any read`() {
+        fun withItem(length: String, padding: String, after: String = "") = bytes(0xFF, 0xD8) + segment(
+            0xE1,
+            ("http://ns.adobe.com/xap/1.0/\u0000" + MotionPhoto.xmp(mp4.size.toLong(), 0L)
+                .replace("Item:Length=\"${mp4.size}\" Item:Padding=\"0\"", "Item:Length=\"$length\" Item:Padding=\"$padding\"")
+                .replace("</rdf:Seq>", "$after</rdf:Seq>")).toByteArray(),
+        ) + scan + mp4
+        fun item(length: String, padding: String) =
+            "<rdf:li rdf:parseType=\"Resource\"><Container:Item Item:Mime=\"image/jpeg\" Item:Semantic=\"GainMap\" Item:Length=\"$length\" Item:Padding=\"$padding\"/></rdf:li>"
+        assertNotNull(MotionPhoto.read(withItem(mp4.size.toString(), "0")))
+        for (length in listOf("0", "-1", "-${mp4.size}", "99999999", "9223372036854775807", "-9223372036854775808")) {
+            val asked = mutableListOf<Pair<Long, Int>>()
+            assertNull("length $length", headRead(withItem(length, "0"), asked = asked))
+            assertTrue("length $length read $asked", asked.isEmpty())
+        }
+        // An item after the clip whose numbers would move the clip's start out of the file, or wrap the sum.
+        for ((length, padding) in listOf("-500" to "0", "0" to "-500", "9223372036854775807" to "0", "10" to "9223372036854775807", "99999999" to "0")) {
+            val asked = mutableListOf<Pair<Long, Int>>()
+            assertNull("later item $length/$padding", headRead(withItem(mp4.size.toString(), "0", item(length, padding)), asked = asked))
+            assertTrue(asked.isEmpty())
+        }
+    }
+
+    @Test fun `every answer of the head reader lies inside the file`() {
+        val file = MotionPhoto.write(jpeg, mp4, 0L)
+        // The same head against other file sizes, as if the file had been cut or grown since: wherever an answer comes
+        // back (the rest is said to be an MP4 everywhere), it is inside the size asked about.
+        for (size in listOf(1L, 8L, mp4.size.toLong() - 1, mp4.size.toLong(), mp4.size.toLong() + 1, file.size.toLong(), file.size + 5_000L, Long.MAX_VALUE)) {
+            val info = MotionPhoto.read(file, size) { _, _ -> mp4.copyOf(8) } ?: continue
+            assertTrue("size $size: $info", info.videoOffset >= 0 && info.videoLength > 0 && info.videoLength <= size - info.videoOffset)
+        }
+    }
+
+    @Test fun `the older micro video form's offset from the end is bounded by the file too`() {
+        fun micro(offset: String) = bytes(0xFF, 0xD8) + segment(
+            0xE1,
+            ("http://ns.adobe.com/xap/1.0/\u0000<x:xmpmeta><rdf:Description GCamera:MicroVideo=\"1\" GCamera:MicroVideoOffset=\"$offset\"/></x:xmpmeta>").toByteArray(),
+        ) + scan + mp4
+        assertNotNull(headRead(micro(mp4.size.toString())))
+        for (offset in listOf("0", "-1", "99999999", "9223372036854775807", "-9223372036854775808")) assertNull("offset $offset", headRead(micro(offset)))
+    }
+
+    @Test fun `the marker is read from the xmp segment only`() {
+        assertEquals(MotionPhoto.Marker("MotionPhoto", "1"), MotionPhoto.marker(MotionPhoto.write(jpeg, mp4, 0L)))
+        val zero = bytes(0xFF, 0xD8) + segment(0xE1, ("http://ns.adobe.com/xap/1.0/\u0000<x:xmpmeta><rdf:Description GCamera:MotionPhoto = \"0\"/></x:xmpmeta>").toByteArray()) + scan
+        assertEquals(MotionPhoto.Marker("MotionPhoto", "0"), MotionPhoto.marker(zero))
+        val micro = bytes(0xFF, 0xD8) + segment(0xE1, ("http://ns.adobe.com/xap/1.0/\u0000<x:xmpmeta><rdf:Description GCamera:MicroVideo=\"1\"/></x:xmpmeta>").toByteArray()) + scan
+        assertEquals(MotionPhoto.Marker("MicroVideo", "1"), MotionPhoto.marker(micro))
+        assertNull(MotionPhoto.marker(jpeg))
+        // The words in a picture's other bytes (a comment, the scan) are not a marker.
+        assertNull(MotionPhoto.marker(bytes(0xFF, 0xD8) + segment(0xFE, "Camera:MotionPhoto=\"1\"".toByteArray()) + scan))
+        assertNull(MotionPhoto.marker("Camera:MotionPhoto=\"1\"".toByteArray()))
+        assertNull(MotionPhoto.marker(ByteArray(0)))
+    }
 }

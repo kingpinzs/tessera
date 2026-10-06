@@ -8,7 +8,9 @@ import java.time.ZoneId
 /**
  * One row of Photos' library index (phase 17, Q4 A: images and videos together), free of Android types so the grouping
  * below is unit-tested. [id] is the MediaStore row id (the same id in the files, images and video tables); [dateMs] is
- * what the collection sorts and groups by — DATE_TAKEN where the file carries one, else the file's modified time.
+ * what the collection sorts and groups by — DATE_TAKEN where the file carries one, else the file's modified time;
+ * [dateModifiedS] is MediaStore's DATE_MODIFIED itself (seconds), which with [id] and [size] names one state of the file
+ * (what the Living Images check is remembered by — [LivingRules.key]).
  */
 data class MediaEntry(
     val id: Long,
@@ -24,6 +26,7 @@ data class MediaEntry(
     val relativePath: String,
     val durationMs: Long,
     val dateTakenMs: Long?,
+    val dateModifiedS: Long = 0L,
 )
 
 /** A row of the collection list (Y1): a month header, a day row with its count, or up to three tiles. */
