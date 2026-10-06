@@ -7,7 +7,7 @@
 # THE CATALOGUE FIXTURE'S PORT (INDEX Change Log 2026-10-05 14:27 (2)): port 8090 is held on this PC by another service,
 # so catalogue_server.py runs on 8091 and every `10.0.2.2:8090` of E13, E20–E22 reads `10.0.2.2:8091` in these rows.
 STAMP_FILES="$STAMP_FILES $P17/scripts/p17_video.sh"
-GATE_APK_MD5="c7336aca6b63d61b"                 # the clean debug build of phase-17 at ba28432b (the QA brief)
+GATE_APK_MD5="95b543037345b851"                 # the clean debug build of phase-17 at 7bd9f961 (355,589,093 bytes; the lead, 19:1x)
 VPORT="${P17_VIDEO_PORT:-8091}"
 FIXTURE_URL="http://10.0.2.2:$VPORT"
 FIXTURE_HOST="10.0.2.2:$VPORT"
@@ -22,6 +22,18 @@ JF="$P17/fixtures/jellyfin/jellyfin_fixture.sh"
 # never a row folder (leak_scan reads the row folder; the admin's token is a credential of the fixture's).
 JF_WORK="${P17_JF_WORK:-/tmp/claude-1000/-home-jeremyking/b5b8c63b-5d38-49e9-84f3-de917a96acb2/scratchpad/qavideo-jf}"
 SERVER_HOST="10.0.2.2:8096"; SERVER_USER="qa"; SERVER_PW="qa-password"
+
+# The lock is taken ONCE per process (the lead's note; p17_photos.sh's form): lib.sh's take_device_lock re-opens the
+# lock file each time it is called — row_begin calls it again — which lets go of the lock for a moment.
+take_device_lock() {
+  [ -n "${VIDEO_LOCK_HELD:-}" ] && return 0
+  exec 9>"$DEVICE_LOCK"
+  if ! flock -n 9; then
+    echo "another QA driver is already driving the device (lock $DEVICE_LOCK); refusing to start" >&2
+    exit 3
+  fi
+  VIDEO_LOCK_HELD=1
+}
 
 # ---------------------------------------------------------------- the build
 
@@ -312,9 +324,10 @@ vol_now() { adb shell cmd media_session volume --stream 3 --get 2>/dev/null | tr
 quiet_on() { VOL_WAS="$(vol_now)"; adb shell cmd media_session volume --stream 3 --set 0 >/dev/null 2>&1; record "device media volume before the row (0 for the row, put back at its end)" "${VOL_WAS:-?}"; }
 quiet_off() { [ -n "$VOL_WAS" ] && adb shell cmd media_session volume --stream 3 --set "$VOL_WAS" >/dev/null 2>&1; assert_eq "device media volume put back" "${VOL_WAS:-?}" "$(vol_now)"; }
 
-# E11's pixel rule, as the doc words it: the centre pixel = colour k ± 8 per channel. On this AVD the decoder's colour
-# conversion is off by up to 17 a channel (measured per colour by E11), so beside the doc's assertion — never instead
-# of it — the row asserts which of the fixture's ten colours the pixel is NEAREST to (the frame is the right second).
+# E11's pixel rule ON THE EMULATOR, as the lead ruled it (INDEX Change Log 2026-10-06): the centre pixel is nearer to
+# colour k than to any other of the fixture's ten colours, AND within ± 20 per channel of colour k, with the measured
+# value recorded. The doc's ± 8 does not hold on this AVD — its decoder lifts every dark channel by 14 to 17 and white
+# by 1 (E11's ten measurements; the ± 8 runs are kept on disk) — so the old comparison stays as a RECORD line.
 nearest_colour() { # "r,g,b" -> the index 0..9 of the nearest of qa-steps.colours, and the largest channel difference to it
   python3 - "$1" "$GEN/qa-steps.colours" <<'PY'
 import sys
@@ -327,10 +340,14 @@ print(best, max(abs(a - b) for a, b in zip(cols[best], p)))
 PY
 }
 assert_pixel_rule() { # name k "r,g,b"
-  local near; near="$(nearest_colour "$3")"
-  assert_rgb "$1: the centre pixel = colour $2 ± 8 per channel (E11's pixel rule, as the doc words it)" "$(colour "$2")" "$3" 8
-  assert_eq "$1: the nearest of the fixture's ten colours is colour $2 (the row writer's corroboration, not the doc's rule)" "$2" "${near%% *}"
-  record "$1: largest channel difference to colour $2's nominal value" "${near##* }"
+  local near old; near="$(nearest_colour "$3")"
+  assert_eq "$1: the centre pixel is nearer to colour $2 than to any other of the fixture's ten colours" "$2" "${near%% *}"
+  assert_rgb "$1: … and within ± 20 per channel of colour $2 (the pixel rule as ruled for the emulator, 2026-10-06)" "$(colour "$2")" "$3" 20
+  record "$1: the measured centre pixel, and its largest channel difference to colour $2 ($(colour "$2"))" "$3 / ${near##* }"
+  old="$(python3 -c 'import sys
+e=[int(v) for v in sys.argv[1].split(",")]; a=[int(v) for v in sys.argv[2].split(",")] if sys.argv[2].count(",")==2 else None
+print("holds" if a and all(abs(x-y)<=8 for x,y in zip(e,a)) else "does NOT hold")' "$(colour "$2")" "$3")"
+  record "$1: the doc's own ± 8 per channel (kept visible, not graded)" "$old"
 }
 record_pixel() { # name k "r,g,b" — a RECORDED sub-row (E14's vp9 / hevc)
   local near; near="$(nearest_colour "$3")"
@@ -340,8 +357,10 @@ record_pixel() { # name k "r,g,b" — a RECORDED sub-row (E14's vp9 / hevc)
 # Another app that MAY read a MediaStore video (testapps/qa-view holding READ_MEDIA_VIDEO) starts the player with a
 # VIEW. Since the trust fixes the shell uid's own `am start` of a content item is refused (C-M4 leg (vi), recorded by
 # TRUST_VIDEO): a row whose clause starts the player with a VIEW of a content item uses this app instead and says so.
-# The reader starts the player WITH ITS IDENTITY SHARED (ActivityOptions.setShareIdentityEnabled): on this build an
-# app that holds the permission but does not share its identity is refused (TRUST_VIDEO's leg (v) shows and reports it).
+# The reader starts the player WITH ITS IDENTITY SHARED (ActivityOptions.setShareIdentityEnabled): the one access rule
+# (Decisions 2026-10-05 19:09) admits a NAMED starter on MediaStore's own answer for it; an app that only holds the
+# permission and does not share its identity is refused — the platform's launch answer is "denied" for any MediaStore
+# item (TRUST_VIDEO's leg (v) asserts that refusal).
 reader_up() {
   [ -f "$QAVIEW_APK" ] || { _verdict FAIL "the QA View fixture APK" "missing: ./gradlew :testapps:qa-view:assembleDebug --offline"; return 1; }
   adb install -r "$QAVIEW_APK" > "$ROW_DIR/qaview-install.out" 2>&1

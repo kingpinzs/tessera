@@ -4,7 +4,9 @@
 #   tile      qa-steps.mp4 on the My videos page (hub_pane:myvideos selected) as video_tile:<id>; its caption node reads
 #             "qa-steps" and carries no duration (Y5; T17-16)
 #   play      a MARK, a tap on the tile → app.tileshell/.video.PlayerActivity on top (top_activity; r3 D6)
-#   3.5 s     a screencap 3.5 s after the `[video] playing` line: the centre pixel = colour 3 ± 8 per channel (r3 V9)
+#   3.5 s     a screencap 3.5 s after the `[video] playing` line: the centre pixel = colour 3 under the pixel rule as
+#             RULED FOR THE EMULATOR (INDEX Change Log 2026-10-06): nearest of the ten colours AND within ± 20 per
+#             channel; the doc's ± 8 (r3 V9) is kept as a record line (p17_video.sh, assert_pixel_rule)
 #   routing   while it plays, the launcher's slice from the MARK holds `[music] session app.tileshell id=video -> none`
 #             and no `id=video -> cmp:` (absent_in) (r3 V5, D16)
 #   session   `dumpsys media_session` shows an active session of app.tileshell — the video's
@@ -149,7 +151,7 @@ for k in 0 1 2 3 4 5 6 7 8 9; do
   while [ "$(device_ms)" -lt $(( ${T1:-0} + k * 1000 + 500 - 300 )) ]; do sleep 0.03; done
   screencap "$D/k$k.png"; DONE+=("$(( $(device_ms) - ${T1:-0} ))")
 done
-sleep 1.2; screencap "$D/k-end.png"; DONE+=("$(( $(device_ms) - ${T1:-0} ))")      # the last frame, held after the end
+sleep 1.2; screencap "$D/kend.png"; DONE+=("$(( $(device_ms) - ${T1:-0} ))")      # the last frame, held after the end
 for k in 0 1 2 3 4 5 6 7 8 9 end; do
   i="$k"; [ "$k" = end ] && i=10
   RGB="$(px "$D/k$k.png" "$CX" "$CY")"; NEAR="$(nearest_colour "$RGB")"

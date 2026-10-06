@@ -15,6 +15,8 @@
 #   play        a tap on the item ON THE HUB'S OWN PAGE (the token rides only on the shell's own launch) → it plays
 #               under E11's pixel rule with `[video] playing scheme=http`; the stream URL in the :video slice carries
 #               no query string
+#   not ours    round 2 (B2-M2): the same stream address by `adb shell am start` → `[video] server token not given: not
+#               the shell's own launch`, no `server stream` line; the server's answer to it RECORDED
 #   token       Change Log (4): read with jellyfin_fixture.sh token-of (the server's own database; GET /Devices
 #               carries none on 12.1), asserted non-empty, NEVER printed (compared without printing)
 #   persisted   am force-stop and reopen → still connected
@@ -104,6 +106,18 @@ record "play: the :video lines that name the stream" "$(printf '%s' "$STREAM" | 
 assert_ne "play: the :video slice names the stream URL" "" "$STREAM"
 assert_eq "play: the stream URL in the :video slice carries no query string (no '?' in those lines)" "0" "$(printf '%s\n' "$STREAM" | grep -c '?')"
 assert_no_secret "play: the token is in no :video line" "$TOKEN" "$SLICE"
+rings_save
+adb shell input keyevent KEYCODE_BACK; sleep 1.2
+# Round 2 (B2-M2 (e)): the same stream address by `adb shell am start` — not the shell's own launch, so no token rides.
+# What the real server then answers is RECORDED (the fixer expected 401; 12.1 serves a direct-play stream with no key).
+MARK="$(ring_mark)"
+view_shell "http://$SERVER_HOST/Videos/$ITEM/stream?static=true"
+sleep 5
+SLICE="$(vring "$MARK")"
+assert_contains "the stream address by adb shell am start: [video] server token not given: not the shell's own launch" "[video] server token not given: not the shell's own launch" "$SLICE"
+absent_in "… and no [video] server stream line for it" "[video] server stream" "$SLICE"
+record "RECORDED — what Jellyfin 12.1 answers a stream request with no token (the player's lines)" "$(printf '%s\n' "$SLICE" | grep -E '\[video\] (playing|cannot)' | sed 's/.*\[video\] //' | tr '\n' '|')"
+assert_no_secret "… the token is in no :video line of that launch" "$TOKEN" "$SLICE"
 rings_save
 adb shell input keyevent KEYCODE_BACK; sleep 1.2
 

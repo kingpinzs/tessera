@@ -4,15 +4,20 @@
 # Each leg is named by its finding. What a leg asserts is the fixes file's own wording; a leg the file says to RECORD
 # is recorded.
 #
+# The legs are the fixes file's as it stands after rounds 2 and 3 (its "Round 2" letters a, b, c, e, g; "Round 3":
+# the same legs for the player under the ONE access rule, Decisions 2026-10-05 19:09).
+#
 #   outside the guard (the callers' uids matter: inside it adbd is root)
 #   C-M4 (i)    another app with NO media permission VIEWs content://media/external/video/media/<id> → refused,
-#               "Can't play this address", `[video] refused source: no grant`
-#   C-M4 (ii)   it VIEWs its own provider's URI with a read grant → plays, the line names the branch; and with its
-#               identity shared → `its own provider`
+#               "Can't play this address", `[video] launch answer read: denied`, `[video] refused source: no grant`
+#   C-M4 (ii)   it VIEWs its own provider's URI with a read grant → plays (the launch-answer line recorded); and with
+#               its identity shared → plays
 #   C-M4 (iii)  it VIEWs file:///data/user/0/app.tileshell/files/x.mp4 → `[video] unsupported scheme=file`
-#   C-M4 (iv)   (i) with a long-array extra `queue` → `[video] queue ignored: not the shell's own launch`, no autoplay
-#   C-M4 (v)    the same app WITH READ_MEDIA_VIDEO → plays (asserted as the fixes file words it); RECORDED beside it:
-#               the same with the read flag, and with its identity shared
+#   C-M4 (iv)   (i) with a long-array extra `queue` and a `title` → both ignored: no autoplay, refused as (i)
+#   C-M4 (v)    the same app WITH READ_MEDIA_VIDEO → REFUSED (the platform limit of the 19:09 line: the launch answer
+#               is "denied" for any MediaStore item); RECORDED beside it: the same with the read flag; with its
+#               identity shared it plays (MediaStore's own answer for a named starter) and shows NO subtitle line
+#               although a .srt is beside the file (the .srt is looked up only for the shell's own launch)
 #   C-M4 (vi)   RECORDED: `adb shell am start` VIEW of the content item (the shell uid; and, inside the guard, root)
 #   C-M4 (vii)  from the hub → plays, the queue honoured (`[video] autoplay next <id>` with Autoplay on); from Photos
 #               → plays
@@ -21,27 +26,31 @@
 #   inside the egress guard (the fake media server of fixtures/jellyfin/fake_jellyfin.py on 10.0.2.2:8097, whose
 #   request log says whether a request carried the token; the catalogue fixture on 8091)
 #   B-1 (1)     a key with an interior CR pasted into tmdb_key_field, Save → tmdb_key_error shown, tmdb_key_status
-#               "No key is saved.", `[video] TMDB key refused: not a key's characters`, the :video pid unchanged,
-#               logcat holds no part of the key
-#   B2-L7       an over-long pasted key is refused, not truncated (round 2)
+#               "No key is saved.", the :video pid unchanged, nothing stored, logcat holds no part of the key
+#   B2-L7 (g)   2,001 pasted characters → refused, "No key is saved."; 2,000 → saved (then removed)
 #   B-1 (2)     with a valid key, Browse opens with no crash
 #   B-1 (3)     the server answering an AccessToken with \r inside → "Can't reach your media server",
 #               `sign-in answer not usable`, no AndroidRuntime line
 #   B-9         a sign-in answer over the size cap → "Can't reach your media server", `[video] http: answer over the
 #               size cap`
-#   B2-M2       (round 2) a permission-less app VIEWs the saved server's stream address → `[video] server token not
-#               given: not the shell's own launch`, and that request carries no token (the fake server's log; no
-#               ApiKey in the :video ring); the control: the hub's own play DOES carry it
-#   B-5         a server item played from the hub, the server stopped mid-play → the :video ring and logcat hold no
-#               `ApiKey=`
+#   B2-M2 (e)   from the hub's Media server page the item plays with `[video] server stream …` and the token on the
+#               request; then the same address by `adb shell am start` and from a permission-less app → `[video]
+#               server token not given: not the shell's own launch`, no `server stream` line, no token and no ApiKey
+#               on those requests (the fake server's log)
+#   B-5         the hub's play, the server stopped mid-play → the :video ring and logcat hold no `ApiKey=`
 #   B-2         the token made invalid, the page reopened → the sign-in form's server_host reads the address WITH its
-#               scheme (http://10.0.2.2:8097; the AVD fixture is http)
+#               scheme (http://10.0.2.2:8097; the AVD fixture is http), and signing in from it connects
 #   B-4 (a)     media_server.json edited to another host (run-as) → the library still goes to the first server; the
 #               other host sees no request
-#   B-4 (b)     the sealed entry corrupted → the page shows the sign-in form again
-#   B2-M1 (a)   (round 2) media_server.json deleted while a server is set up → the hub's start sweeps the sealed entry
-#               (its line RECORDED until the round-2 build names it), and a later stream VIEW carries no token
-#   B2-M1 (b)   (round 2) the sealed `jellyfin` entry's fields moved under the `tmdb` name → both read as absent
+#   B-4 (b)     the sealed entry corrupted → the page shows the sign-in form again, no request with the token
+#   B2-M1 (b)   media_server.json replaced with one lacking `pair`, Settings → Media server opened without a restart
+#               → server_left_over + server_remove; Remove → `[video] server token cleared`
+#   B2-M1 (a)   media_server.json removed (run-as), force-stop, the hub opened → `[cred] jellyfin: removed`, `[video]
+#               server entry cleared at start: it was not a saved server`, no Media server row, no shortcut; a later
+#               stream carries no token
+#   B2-M1 (c)   a normal removal writes `[video] server token cleared`
+#   B2-M3       the sealed `jellyfin` entry's fields moved under the `tmdb` name → both read as absent
+#   B2-L8 (h)   NOT RUN: it needs a fresh install with a PIN (a wipe of the shared device) — the lead's
 #   leak scan   over this row's folder and logcat: the fake server's token, the passwords, the TMDB token, the pasted keys
 #
 # Restores: the fixture app uninstalled, the clipboard emptied, the server and the key removed (the two store files
@@ -54,7 +63,8 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/p17_video.sh"
 trap 'video_cleanup; adb uninstall "$QAVIEW" >/dev/null 2>&1' EXIT
 CR_A="qa-cr-key-AAAAAAAA"; CR_B="BBBBBBBB-tail"                    # the two halves of the pasted key (a CR between)
-LONG_KEY="$(python3 -c 'print("qa-long-key-" + "k" * 2600)')"      # over HeaderText.MAX_SECRET (2000)
+KEY_2001="$(python3 -c 'print("qa-long-key-" + "k" * 1989)')"      # 2,001 characters: one over HeaderText.MAX_SECRET
+KEY_2000="$(python3 -c 'print("qa-full-key-" + "f" * 1988)')"      # 2,000 characters: the longest key the setting takes
 FAKE_PW="fake-password-17"
 store_files() { adb shell "run-as app.tileshell sh -c 'ls files/credentials_v1.json files/media_server.json 2>/dev/null'" | tr -d '\r' | xargs; }
 vtext() { vring "$1" | grep -F '[video]' | sed 's/.*\[video\] //' | tr '\n' '|'; }
@@ -76,7 +86,7 @@ video_row_begin TRUST_VIDEO "the Movies & TV trust fixes' device legs: the playe
 [ -f "$QAVIEW_APK" ] || { _verdict FAIL "the QA View fixture APK" "missing: ./gradlew :testapps:qa-view:assembleDebug --offline"; row_end; exit 4; }
 quiet_on
 videos_grant
-media_up qa-steps.mp4 qa-rot90.mp4
+media_up qa-steps.mp4 qa-rot90.mp4 qa-steps.srt
 ID="$(media_id video qa-steps.mp4 Movies/)"; ID2="$(media_id video qa-rot90.mp4 Movies/)"
 assert_ne "qa-steps.mp4 is in MediaStore" "" "$ID"
 assert_ne "qa-rot90.mp4 is in MediaStore" "" "$ID2"
@@ -84,7 +94,9 @@ record "the store's files before the row" "$(store_files)"
 adb uninstall "$QAVIEW" >/dev/null 2>&1
 adb install "$QAVIEW_APK" > "$D/qaview-install.out" 2>&1
 adb shell "run-as $QAVIEW sh -c 'mkdir -p files && cat > files/own.mp4'" < "$GEN/qa-steps.mp4"
-qgranted() { adb shell dumpsys package "$QAVIEW" | tr -d '\r' | grep -m1 "android.permission.$1: granted" | sed -E 's/.*granted=([a-z]+).*/\1/'; }
+# Whether the fixture app holds a runtime permission: dumpsys lists it under "runtime permissions" once it has a state;
+# a permission never granted and never asked for has no line there, which is "false".
+qgranted() { local v; v="$(adb shell dumpsys package "$QAVIEW" | tr -d '\r' | grep -m1 "android.permission.$1: granted=" | sed -E 's/.*granted=([a-z]+).*/\1/')"; echo "${v:-false}"; }
 assert_eq "the fixture app holds NO media permission (READ_MEDIA_VIDEO, READ_MEDIA_AUDIO)" "false false" "$(qgranted READ_MEDIA_VIDEO) $(qgranted READ_MEDIA_AUDIO)"
 adb shell am force-stop app.tileshell; sleep 1; ensure_start
 CONTENT="content://media/external/video/media/$ID"
@@ -93,6 +105,7 @@ CONTENT="content://media/external/video/media/$ID"
 log "--- C-M4 (i): no media permission, a MediaStore item"
 qa_leg cm4-i 3.5 --es uri "$CONTENT"
 assert_contains "(i): the app itself cannot read the item" "own read=DENIED" "$LEG_APP"
+assert_contains "(i): [video] launch answer read: denied" "[video] launch answer read: denied" "$LEG_SLICE"
 assert_contains "(i): [video] refused source: no grant" "[video] refused source: no grant" "$LEG_SLICE"
 assert_eq "(i): the page's text" "Can't play this address" "$LEG_TEXT"
 absent_in "(i): nothing played" "[video] playing" "$LEG_SLICE"
@@ -101,11 +114,11 @@ leave
 log "--- C-M4 (ii): its own provider's URI with a read grant"
 qa_leg cm4-ii 4 --es uri own:own.mp4 --ez grant true
 assert_contains "(ii): it plays" "[video] playing scheme=content" "$LEG_SLICE"
-assert_contains "(ii): the line names the branch (source from another app: …)" "[video] source from another app: " "$LEG_SLICE"
-record "(ii): the branch named" "$(printf '%s\n' "$LEG_SLICE" | grep -F 'source from another app' | sed 's/.*source from another app: //' | tail -1)"
+assert_contains "(ii): the platform's launch answer is read first ([video] launch answer read: …)" "[video] launch answer read: " "$LEG_SLICE"
+record "(ii): the launch answer" "$(printf '%s\n' "$LEG_SLICE" | grep -F 'launch answer read' | sed 's/.*launch answer read: //' | tail -1)"
+absent_in "(ii): not refused" "refused source" "$LEG_SLICE"
 leave
 qa_leg cm4-ii-shared 4 --es uri own:own.mp4 --ez grant true --ez share true
-assert_contains "(ii), its identity shared: the branch is its own provider" "[video] source from another app: its own provider" "$LEG_SLICE"
 assert_contains "(ii), its identity shared: it plays" "[video] playing scheme=content" "$LEG_SLICE"
 leave
 
@@ -118,7 +131,7 @@ leave
 
 log "--- C-M4 (iv): (i) with a long-array extra queue"
 qa_leg cm4-iv 3.5 --es uri "$CONTENT" --es queue "$ID,$ID2"
-assert_contains "(iv): [video] queue ignored: not the shell's own launch" "[video] queue ignored: not the shell's own launch" "$LEG_SLICE"
+record "(iv): the line about the queue, if one is written" "$(printf '%s\n' "$LEG_SLICE" | grep -F 'queue' | sed 's/.*\[video\] //' | tr '\n' '|')"
 assert_contains "(iv): still refused" "[video] refused source: no grant" "$LEG_SLICE"
 absent_in "(iv): no autoplay" "autoplay next" "$LEG_SLICE"
 leave
@@ -128,14 +141,21 @@ adb shell pm grant "$QAVIEW" android.permission.READ_MEDIA_VIDEO
 assert_eq "(v): the fixture app now holds READ_MEDIA_VIDEO" "true" "$(qgranted READ_MEDIA_VIDEO)"
 qa_leg cm4-v 4 --es uri "$CONTENT"
 assert_contains "(v): the app itself can read the item now" "own read=OK" "$LEG_APP"
-assert_contains "(v): it plays (the fixes file: 'the same app WITH READ_MEDIA_VIDEO → plays')" "[video] playing $ID" "$LEG_SLICE"
-record "(v): the page's text" "$LEG_TEXT"
+assert_contains "(v): [video] launch answer read: denied (the platform limit, Decisions 19:09)" "[video] launch answer read: denied" "$LEG_SLICE"
+assert_contains "(v): REFUSED — [video] refused source: no grant" "[video] refused source: no grant" "$LEG_SLICE"
+assert_eq "(v): the page's text" "Can't play this address" "$LEG_TEXT"
+absent_in "(v): nothing played" "[video] playing" "$LEG_SLICE"
+record "(v): logcat lines naming the WM lock since the leg (the platform's own reason, recorded)" "$(logcat_since "$LEG_MARK" | grep -ci 'holding WM lock')"
 leave
 qa_leg cm4-v-flag 4 --es uri "$CONTENT" --ez grant true
 record "(v) RECORDED, with FLAG_GRANT_READ_URI_PERMISSION: plays?" "$(printf '%s\n' "$LEG_SLICE" | grep -qF "[video] playing $ID" && echo yes || echo "no — $LEG_TEXT")"
 leave
-qa_leg cm4-v-shared 4 --es uri "$CONTENT" --ez share true
-record "(v) RECORDED, its identity shared (setShareIdentityEnabled): plays?" "$(printf '%s\n' "$LEG_SLICE" | grep -qF "[video] playing $ID" && echo yes || echo "no — $LEG_TEXT")"
+qa_leg cm4-v-shared 4 --es uri "$CONTENT" --ez share true --es title "A title another app chose" --es queue "$ID2"
+assert_contains "(v), its identity shared (a NAMED starter): it plays on MediaStore's own answer" "[video] playing $ID" "$LEG_SLICE"
+absent_in "(v), another app's launch of a MediaStore item: NO subtitle line, though qa-steps.srt is beside the file" "subtitle file beside" "$LEG_SLICE"
+absent_in "(v), another app's queue is ignored: no autoplay" "autoplay next" "$LEG_SLICE"
+adb shell dumpsys media_session | tr -d '\r' > "$D/cm4-v-shared-session.txt"
+assert_absent "(v), another app's title is ignored: the session's metadata does not carry it" "A title another app chose" "$(cat "$D/cm4-v-shared-session.txt")"
 leave
 adb shell pm revoke "$QAVIEW" android.permission.READ_MEDIA_VIDEO
 
@@ -149,10 +169,16 @@ record "(vi) … the caller's uid (adb shell id -u)" "$(adb shell id -u | tr -d 
 leave
 
 log "--- C-M4 (vii): from the hub (the queue honoured) and from Photos"
+# Autoplay goes on to the NEXT video of the same My videos group, so the one opened is whichever of the row's two
+# fixtures the page lists first.
+hub myvideos 2.5; scroll_to_node "$D/cm4-vii-order.xml" "video_tile:$ID" 12
+ORDER="$(grep -o 'resource-id="video_tile:[0-9]*"' "$D/cm4-vii-order.xml" | sed 's/.*video_tile:\([0-9]*\)"/\1/' | grep -E "^($ID|$ID2)$" | xargs)"
+record "(vii): the two fixtures in the page's order" "$ORDER"
+HUB_ID="$ID"; [ "${ORDER%% *}" = "$ID2" ] && HUB_ID="$ID2"
 MARK="$(ring_mark)"
-play_from_hub "$ID" "$D/cm4-vii"
-LINE="$(await_vline "$MARK" "[video] playing $ID" 100)"
-assert_contains "(vii) from the hub: it plays" "[video] playing $ID" "$LINE"
+play_from_hub "$HUB_ID" "$D/cm4-vii"
+LINE="$(await_vline "$MARK" "[video] playing $HUB_ID" 100)"
+assert_contains "(vii) from the hub: it plays" "[video] playing $HUB_ID" "$LINE"
 absent_in "(vii) from the hub: no 'queue ignored' and no 'source from another app' line" "queue ignored" "$(vring "$MARK")"
 absent_in "(vii) from the hub: the launch is the shell's own" "source from another app" "$(vring "$MARK")"
 show_paused "$D/cm4-vii-p.xml"
@@ -240,12 +266,19 @@ assert_no_secret "B-1 (1): logcat holds no part of the key (its first half)" "$C
 assert_no_secret "B-1 (1): … nor its second half" "$CR_B" "$B1_LOG"
 assert_eq "B-1 (1): no AndroidRuntime line names the shell" "" "$(crash_since "$PASTE_MARK")"
 
-log "--- B2-L7 (round 2): an over-long pasted key"
-paste_key b2l7-long "$LONG_KEY"
-assert_eq "B2-L7: an over-long pasted key is refused (tmdb_key_error shown)" "yes" "$(has_node "$D/b2l7-long-saved.xml" tmdb_key_error)"
-assert_eq "B2-L7: … not stored truncated (tmdb_key_status)" "No key is saved." "$(node_text "$D/b2l7-long-saved.xml" tmdb_key_status)"
-record "B2-L7: the :video lines" "$(vtext "$PASTE_MARK")"
-[[ " $(cred_names) " == *" tmdb "* ]] && { dump_ui "$D/b2l7-rm.xml"; tap_node "$D/b2l7-rm.xml" tmdb_key_remove; sleep 1.2; }
+log "--- B2-L7 (g): 2,001 pasted characters are refused; 2,000 are saved"
+paste_key g-2001 "$KEY_2001"
+assert_eq "(g) 2,001: the paste reached the field" "yes" "$([ "${PASTED_LEN:-0}" -gt 100 ] && echo yes || echo no)"
+assert_eq "(g) 2,001: refused (tmdb_key_error shown)" "yes" "$(has_node "$D/g-2001-saved.xml" tmdb_key_error)"
+assert_eq "(g) 2,001: tmdb_key_status" "No key is saved." "$(node_text "$D/g-2001-saved.xml" tmdb_key_status)"
+assert_absent "(g) 2,001: nothing is stored (never stored cut)" "tmdb" "$(cred_names)"
+record "(g) 2,001: the :video lines" "$(vtext "$PASTE_MARK")"
+paste_key g-2000 "$KEY_2000"
+assert_eq "(g) 2,000: saved (tmdb_key_status)" "A key is saved." "$(node_text "$D/g-2000-saved.xml" tmdb_key_status)"
+assert_eq "(g) 2,000: no error is shown" "no" "$(has_node "$D/g-2000-saved.xml" tmdb_key_error)"
+assert_eq "(g) 2,000: the store names the entry" "tmdb" "$(cred_names)"
+tap_node "$D/g-2000-saved.xml" tmdb_key_remove; sleep 1.2
+assert_absent "(g): the 2,000-character key is removed again" "tmdb" "$(cred_names)"
 clip_clear
 record "the clipboard emptied" "$(qaview_log 1 | sed 's/.*qa-view: //')"
 
@@ -290,28 +323,51 @@ sign_in_fake() { # name — the form on screen
 sign_in_fake signin
 STREAM="http://$FAKE_HOST/Videos/$FAKE_ITEM/stream"
 
-log "--- B2-M2 (round 2): another app VIEWs the saved server's stream address"
-OFF="$(flines "$FLOG1")"
-qa_leg b2m2 5 --es uri "$STREAM?static=true"
-REQ="$(fsince "$FLOG1" "$OFF" | grep -F "/Videos/$FAKE_ITEM/stream")"
-printf '%s\n' "$REQ" > "$D/b2m2-requests.txt"
-assert_ne "B2-M2: the stream request reached the fake server (its log after the offset)" "" "$REQ"
-assert_contains "B2-M2: [video] server token not given: not the shell's own launch" "[video] server token not given: not the shell's own launch" "$LEG_SLICE"
-assert_eq "B2-M2: no request of that launch carried the token (the fake server's log: token=header / apikey=present lines)" "0" "$(printf '%s\n' "$REQ" | grep -cE 'token=header|apikey=present')"
-absent_in "B2-M2: no ApiKey in the :video ring for it" "ApiKey" "$LEG_SLICE"
-leave
-
-log "--- the control, and B-5: the hub's own play carries the token; the server stopped mid-play"
+log "--- B2-M2 (e): the hub's own play carries the token"
 hub mediaserver 4; dump_ui "$D/b5-library.xml"
 OFF="$(flines "$FLOG1")"
 MARK="$(ring_mark)"
 tap_node "$D/b5-library.xml" "server_item:$FAKE_ITEM"
 LINE="$(await_vline "$MARK" "[video] playing scheme=http" 120)"
+assert_contains "(e) from the hub's Media server page: the item plays" "[video] playing scheme=http" "$LINE"
+sleep 1.5
+assert_contains "(e) from the hub: [video] server stream <the address, no query>" "[video] server stream $STREAM" "$(vring "$MARK")"
+REQ="$(fsince "$FLOG1" "$OFF" | grep -F "/Videos/$FAKE_ITEM/stream")"
+assert_ne "(e) from the hub: the request DOES carry the token (token=header or apikey=present in the fake server's log)" "0" "$(printf '%s\n' "$REQ" | grep -cE 'token=header|apikey=present')"
+record "(e) from the hub: how the token rode (the log's fields of the first stream request)" "$(printf '%s\n' "$REQ" | head -1 | sed 's/^[0-9]* //')"
+leave
+
+log "--- B2-M2 (e): the same address by adb shell am start, and from a permission-less app"
+OFF="$(flines "$FLOG1")"
+MARK="$(ring_mark)"
+view_shell "$STREAM?static=true"; sleep 5
+SL="$(vring "$MARK")"
+REQ="$(fsince "$FLOG1" "$OFF" | grep -F "/Videos/$FAKE_ITEM/stream")"
+record "(e) adb shell am start (adbd's uid $(adb shell id -u | tr -d '\r')): the :video lines" "$(printf '%s\n' "$SL" | grep -F '[video]' | sed 's/.*\[video\] //' | tr '\n' '|')"
+assert_contains "(e) adb shell am start: [video] server token not given: not the shell's own launch" "[video] server token not given: not the shell's own launch" "$SL"
+absent_in "(e) adb shell am start: no [video] server stream line" "[video] server stream" "$SL"
+assert_ne "(e) adb shell am start: the request reached the fake server" "" "$REQ"
+assert_eq "(e) adb shell am start: no token and no ApiKey on it" "0" "$(printf '%s\n' "$REQ" | grep -cE 'token=header|apikey=present')"
+leave
+OFF="$(flines "$FLOG1")"
+qa_leg b2m2 5 --es uri "$STREAM?static=true"
+REQ="$(fsince "$FLOG1" "$OFF" | grep -F "/Videos/$FAKE_ITEM/stream")"
+printf '%s\n' "$REQ" > "$D/b2m2-requests.txt"
+assert_eq "(e) the app holds no permission" "false" "$(qgranted READ_MEDIA_VIDEO)"
+assert_contains "(e) a permission-less app: [video] server token not given: not the shell's own launch" "[video] server token not given: not the shell's own launch" "$LEG_SLICE"
+absent_in "(e) a permission-less app: no [video] server stream line" "[video] server stream" "$LEG_SLICE"
+assert_ne "(e) a permission-less app: the request reached the fake server" "" "$REQ"
+assert_eq "(e) a permission-less app: no token and no ApiKey on it" "0" "$(printf '%s\n' "$REQ" | grep -cE 'token=header|apikey=present')"
+absent_in "(e) a permission-less app: no ApiKey in the :video ring" "ApiKey" "$LEG_SLICE"
+leave
+
+log "--- B-5: the hub's play, the server stopped mid-play"
+hub mediaserver 4; dump_ui "$D/b5b-library.xml"
+MARK="$(ring_mark)"
+tap_node "$D/b5b-library.xml" "server_item:$FAKE_ITEM"
+LINE="$(await_vline "$MARK" "[video] playing scheme=http" 120)"
 assert_contains "B-5: the server's item plays from the hub's page" "[video] playing scheme=http" "$LINE"
 sleep 1.5
-REQ="$(fsince "$FLOG1" "$OFF" | grep -F "/Videos/$FAKE_ITEM/stream")"
-assert_ne "the control: the hub's own play DOES carry the token (token=header or apikey=present in the fake server's log)" "0" "$(printf '%s\n' "$REQ" | grep -cE 'token=header|apikey=present')"
-record "the control: how the token rode (the log's fields of the first stream request)" "$(printf '%s\n' "$REQ" | head -1 | sed 's/^[0-9]* //')"
 fake_down "$FAKE_PORT"
 sleep 6
 SL="$(vring "$MARK")"
@@ -357,12 +413,17 @@ adb shell "run-as app.tileshell sh -c 'cat > files/media_server.json'" < "$D/med
 
 log "--- B-4 (b): the sealed entry corrupted"
 # The store's file never leaves the device: it is edited there (a few characters of the jellyfin entry swapped).
-edit_store() { # python expression over d (the parsed file) — run on the device's copy through run-as, by way of a pipe
-  adb shell run-as app.tileshell cat files/credentials_v1.json 2>/dev/null | python3 -c '
+edit_store() { # python statements over d (the parsed file). The file is READ first, whole, into this shell (it holds
+  # ciphertext only), then written back: a single pipe would truncate it before it was read (this driver's run 1).
+  local before after
+  before="$(adb shell run-as app.tileshell cat files/credentials_v1.json 2>/dev/null)"
+  after="$(printf '%s' "$before" | python3 -c '
 import json, sys
 d = json.load(sys.stdin)
 exec(sys.argv[1])
-sys.stdout.write(json.dumps(d))' "$1" | adb shell "run-as app.tileshell sh -c 'cat > files/credentials_v1.json'"
+sys.stdout.write(json.dumps(d))' "$1")" || return 1
+  [ -n "$after" ] || return 1
+  printf '%s' "$after" | adb shell "run-as app.tileshell sh -c 'cat > files/credentials_v1.json'"
 }
 edit_store '
 def spoil(v):
@@ -378,36 +439,73 @@ assert_eq "B-4 (b): the page shows the sign-in form again (server_connect), not 
 assert_eq "B-4 (b): no request with the token left for the server" "0" "$(fsince "$FLOG1" "$OFF1" | grep -c 'token=header')"
 assert_eq "B-4 (b): no AndroidRuntime line" "" "$(crash_since "$MARK")"
 
-log "--- B2-M1 (a) (round 2): media_server.json deleted while a server is set up"
+log "--- B2-M1 (b): media_server.json replaced with one lacking pair, no restart"
+dump_ui "$D/m1b-form.xml"
+[ "$(has_node "$D/m1b-form.xml" server_connect)" = yes ] || server_page "$D/m1bp"
+sign_in_fake m1b
+adb shell run-as app.tileshell cat files/media_server.json 2>/dev/null | tr -d '\r' > "$D/media_server-paired.json"
+assert_contains "(b): the pages' file carries the save id (pair)" "pair" "$(python3 -c 'import json, sys; print(" ".join(sorted(json.load(open(sys.argv[1])).keys())))' "$D/media_server-paired.json" 2>/dev/null)"
+python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); d.pop("pair", None); sys.stdout.write(json.dumps(d))' "$D/media_server-paired.json" | adb shell "run-as app.tileshell sh -c 'cat > files/media_server.json'"
+# "Without restarting": the page is reached through the hub's own pane (≡ → Settings → Media server), not by a new
+# start of the activity — a start is when the sweep of leg (a) runs.
+dump_ui "$D/m1b-0.xml"; tap_node "$D/m1b-0.xml" hub_menu; sleep 0.9
+dump_ui "$D/m1b-pane.xml"; tap_node "$D/m1b-pane.xml" hub_pane:settings; sleep 1
+dump_ui "$D/m1b-s.xml"; tap_node "$D/m1b-s.xml" hub_settings:server; sleep 1.2
+dump_ui "$D/m1b-page.xml"
+assert_eq "(b): Settings → Media server shows server_left_over and server_remove" "yes yes" "$(has_node "$D/m1b-page.xml" server_left_over) $(has_node "$D/m1b-page.xml" server_remove)"
+record "(b): server_left_over's text" "$(node_text "$D/m1b-page.xml" server_left_over)"
+MARK="$(ring_mark)"
+tap_node "$D/m1b-page.xml" server_remove; sleep 1.8
+assert_contains "(b): Remove → [video] server token cleared" "[video] server token cleared" "$(vring "$MARK")"
+assert_absent "(b): the sealed entry is gone" "jellyfin" "$(cred_names)"
+
+log "--- B2-M1 (a): media_server.json removed while a server is set up"
 dump_ui "$D/m1a-form.xml"
 [ "$(has_node "$D/m1a-form.xml" server_connect)" = yes ] || server_page "$D/m1a"
 sign_in_fake m1a
+assert_contains "(a): the dynamic shortcut is published before the removal" "video_mediaserver" "$(shortcut_dump)"
 rings_save; adb shell am force-stop app.tileshell; sleep 0.5
 adb shell run-as app.tileshell rm -f files/media_server.json
-assert_contains "B2-M1 (a): the sealed entry is there, the pages' file is not" "jellyfin" "$(cred_names) / $(store_files)"
+assert_contains "(a): the sealed entry is there, the pages' file is not" "jellyfin" "$(cred_names) / $(store_files)"
 MARK="$(ring_mark)"; hub myvideos 4
-record "B2-M1 (a): the :video and [cred] lines at the hub's start (the sweep's line is asserted once the round-2 build names it)" "$(vring "$MARK" | grep -E '\[(video|cred)\]' | sed 's/.*wall=[0-9]* //' | tr '\n' '|')"
-assert_absent "B2-M1 (a): the hub's start swept the sealed entry (the store no longer names it)" "jellyfin" "$(cred_names)"
+SL="$(vring "$MARK")"
+record "(a): the :video and [cred] lines at the hub's start" "$(printf '%s\n' "$SL" | grep -E '\[(video|cred)\]' | sed 's/.*wall=[0-9]* //' | tr '\n' '|')"
+assert_contains "(a): [cred] jellyfin: removed" "[cred] jellyfin: removed" "$SL"
+assert_contains "(a): [video] server entry cleared at start: it was not a saved server" "[video] server entry cleared at start: it was not a saved server" "$SL"
+assert_absent "(a): the store no longer names the entry" "jellyfin" "$(cred_names)"
+assert_eq "(a): no Media server row in the pane (My videos' row read first)" "myvideos no" "$(pane_current "$D/m1a-pane") $(has_node "$D/m1a-pane-pane.xml" hub_pane:mediaserver)"
+SC="$(shortcut_dump)"
+assert_contains "(a): the shortcut dump is the shell's" "video_myvideos" "$SC"
+assert_absent "(a): no Media server shortcut" "video_mediaserver" "$SC"
 OFF1="$(flines "$FLOG1")"
-MARK="$(ring_mark)"
 view_shell "$STREAM?static=true"; sleep 5
-assert_eq "B2-M1 (a): a later stream carries no token (the fake server's log)" "0" "$(fsince "$FLOG1" "$OFF1" | grep -cE 'token=header|apikey=present')"
-assert_ne "B2-M1 (a): … and that stream request is in the log read" "0" "$(fsince "$FLOG1" "$OFF1" | grep -c '/stream')"
+assert_eq "(a): a later stream carries no token (the fake server's log)" "0" "$(fsince "$FLOG1" "$OFF1" | grep -cE 'token=header|apikey=present')"
+assert_ne "(a): … and that stream request is in the log read" "0" "$(fsince "$FLOG1" "$OFF1" | grep -c '/stream')"
 leave
 
-log "--- B2-M1 (b) (round 2): the sealed jellyfin entry's fields moved under the tmdb name"
-if [[ " $(cred_names) " != *" jellyfin "* ]]; then server_page "$D/m1b"; sign_in_fake m1b; fi
+log "--- B2-M1 (c): a normal removal"
+server_page "$D/m1c"; sign_in_fake m1c
+server_page "$D/m1c-rm"; dump_ui "$D/m1c-rm.xml"
+MARK="$(ring_mark)"
+tap_node "$D/m1c-rm.xml" server_remove; sleep 1.8
+assert_contains "(c): a normal removal writes [video] server token cleared" "[video] server token cleared" "$(vring "$MARK")"
+absent_in "(c): … and not the not-removed line" "server not removed" "$(vring "$MARK")"
+assert_absent "(c): the sealed entry is gone" "jellyfin" "$(cred_names)"
+record "B2-L8 (h) NOT RUN" "a fresh install with a PIN needs a wipe of the shared device (pm clear / uninstall are forbidden to this row): the lead's liveness edge or a phone row"
+
+log "--- B2-M3: the sealed jellyfin entry's fields moved under the tmdb name"
+server_page "$D/m3"; sign_in_fake m3
 rings_save; adb shell am force-stop app.tileshell; sleep 0.5
 edit_store 'd["tmdb"] = d.pop("jellyfin")'
-assert_eq "B2-M1 (b): the store names one entry, tmdb, holding the server's sealed fields" "tmdb" "$(cred_names)"
+assert_eq "B2-M3: the store names one entry, tmdb, holding the server's sealed fields" "tmdb" "$(cred_names)"
 OFF="$(fixture_lines)"; OFF1="$(flines "$FLOG1")"
 MARK="$(ring_mark)"; hub browse 4; dump_ui "$D/m1b-browse.xml"
-record "B2-M1 (b): Browse's line, and the :video / [cred] lines" "$(node_text "$D/m1b-browse.xml" hub_browse_notice) — $(vring "$MARK" | grep -E '\[(video|cred)\]' | sed 's/.*wall=[0-9]* //' | tr '\n' '|')"
-assert_eq "B2-M1 (b): the key reads as absent: Browse offers the link to the setting and no search box" "yes no" "$(has_node "$D/m1b-browse.xml" hub_key_link) $(has_node "$D/m1b-browse.xml" hub_search_box)"
-assert_eq "B2-M1 (b): no request carrying a bearer left for the catalogue" "0" "$(fixture_since "$OFF" | grep -c 'bearer ok')"
+record "B2-M3: Browse's line, and the :video / [cred] lines" "$(node_text "$D/m1b-browse.xml" hub_browse_notice) — $(vring "$MARK" | grep -E '\[(video|cred)\]' | sed 's/.*wall=[0-9]* //' | tr '\n' '|')"
+assert_eq "B2-M3: the key reads as absent: Browse offers the link to the setting and no search box" "yes no" "$(has_node "$D/m1b-browse.xml" hub_key_link) $(has_node "$D/m1b-browse.xml" hub_search_box)"
+assert_eq "B2-M3: no request carrying a bearer left for the catalogue" "0" "$(fixture_since "$OFF" | grep -c 'bearer ok')"
 MARK="$(ring_mark)"; hub mediaserver 4; dump_ui "$D/m1b-server.xml"
-assert_eq "B2-M1 (b): the server reads as absent: no library, no request with the token" "no 0" "$(has_node "$D/m1b-server.xml" "server_item:$FAKE_ITEM") $(fsince "$FLOG1" "$OFF1" | grep -c 'token=header')"
-assert_eq "B2-M1 (b): no AndroidRuntime line" "" "$(crash_since "$MARK")"
+assert_eq "B2-M3: the server reads as absent: no library, no request with the token" "no 0" "$(has_node "$D/m1b-server.xml" "server_item:$FAKE_ITEM") $(fsince "$FLOG1" "$OFF1" | grep -c 'token=header')"
+assert_eq "B2-M3: no AndroidRuntime line" "" "$(crash_since "$MARK")"
 
 # ================================================================================================ restore, leak scan
 log "--- restore"
@@ -431,5 +529,5 @@ media_down
 videos_grant_restore
 quiet_off
 c6; ensure_start
-leak_scan_row "$FAKE_TOKEN" "$FAKE_PW" "$DUMMY_TOKEN" "$CR_A" "$CR_B" "qa-long-key-kkkkkkkk"
+leak_scan_row "$FAKE_TOKEN" "$FAKE_PW" "$DUMMY_TOKEN" "$CR_A" "$CR_B" "qa-long-key-kkkkkkkk" "qa-full-key-ffffffff"
 row_end
