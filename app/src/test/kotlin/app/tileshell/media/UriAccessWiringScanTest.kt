@@ -257,6 +257,21 @@ class UriAccessWiringScanTest {
             "\"viewer_menu_info\"" to "if (ViewerRules.Action.FILE_INFORMATION in offered) add(PhotoMenuEntry(\"File information\", \"viewer_menu_info\"",
         )) if (count(viewer, tag) != 1 || !viewer.contains(gate)) problems += "$tag is offered other than by the rule's list"
         if (!viewer.contains("if (setAsOpen && entry != null && ViewerRules.Action.SET_AS in offered)")) problems += "the Set as choices open without the rule"
+        // Living Images (the head read and the clip's playback open the picture's URI with the shell's identity): only
+        // inside PhotoViewer, on an item it was given — and the other apps' viewer is given the one item made from the
+        // nav's URI, which is null unless the rule said the picture is shown. Never from the intent, never before.
+        if (!view.contains("ViewerItem(\"u:\$uri\", uri, entry, entry?.mime ?: nav.mime, entry?.id?.toString() ?: \"external\")") || count(view, "ViewerItem(") != 1 || view.contains("Living")) {
+            problems += "the other apps' viewer builds its item from something other than the nav's URI, or opens a Living Image itself"
+        }
+        val byUri = Regex("LivingImages\\.of\\([^()]*\\buri\\b[^()]*\\)|LivingPlayback\\.start\\(")
+        val livingSites = sources.flatMap { (file, text) -> byUri.findAll(text).map { file } }
+        if (livingSites != listOf("photos/ViewerScreen.kt", "photos/ViewerScreen.kt") ||
+            !viewer.contains("val clip = if (item.entry != null) LivingImages.of(activity, item.entry) else LivingImages.of(activity, item.uri, item.mime)") ||
+            !viewer.contains("living = LivingPlayback.start(activity, item.key, item.id, item.uri, clip)")
+        ) problems += "a Living Image is read or played from a URI other than a shown item's: $livingSites"
+        for ((file, text) in sources) if (file != "photos/LivingImages.kt" && file != "photos/LivingPlayback.kt" && file != "photos/ViewerScreen.kt" && file != "photos/LibraryPages.kt" && Regex("\\bLiving(Images|Playback)\\.").containsMatchIn(text)) {
+            problems += "$file opens a Living Image"
+        }
         return problems
     }
 
@@ -279,6 +294,12 @@ class UriAccessWiringScanTest {
         assertTrue(screen("if (ViewerRules.Action.DELETE in offered) add(", "if (entry != null) add(").isNotEmpty())
         assertTrue(screen("if (ViewerRules.Action.SET_AS in offered) add(", "if (entry != null) add(").isNotEmpty())
         assertTrue(screen("if (setAsOpen && entry != null && ViewerRules.Action.SET_AS in offered)", "if (setAsOpen && entry != null)").isNotEmpty())
+        // Living Images: the clip read or played from the intent's own URI, before or beside the rule.
+        assertTrue(screen("else LivingImages.of(activity, item.uri, item.mime)", "else LivingImages.of(activity, activity.intent.data!!, item.mime)").isNotEmpty())
+        assertTrue(screen("LivingPlayback.start(activity, item.key, item.id, item.uri, clip)", "LivingPlayback.start(activity, item.key, item.id, activity.intent.data!!, clip)").isNotEmpty())
+        assertTrue(screen("val uri = nav.uri Box(", "val uri = nav.uri LaunchedEffect(Unit) { LivingImages.of(activity, activity.intent.data!!, nav.mime) } Box(").isNotEmpty())
+        assertTrue(screen("ViewerItem(\"u:\$uri\", uri, entry,", "ViewerItem(\"u:\$uri\", activity.intent.data!!, entry,").isNotEmpty())
+        assertTrue(viewerProblems(activity, screen, sources + ("photos/ViewerActivity.kt" to sources.getValue("photos/ViewerActivity.kt") + " suspend fun x(a: ViewerActivity) = LivingImages.of(a, a.intent.data!!, null)")).isNotEmpty())
         // The fail-open default back; a field opened to the outside; the rule handed something other than the launch.
         assertTrue(screen("mayChange: Boolean, onClosed: () -> Unit,", "mayChange: Boolean = true, onClosed: () -> Unit,").isNotEmpty())
         assertTrue(screen("var mayChange by mutableStateOf(false) private set", "var mayChange by mutableStateOf(true) private set").isNotEmpty())

@@ -34,12 +34,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -63,6 +65,8 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import app.tileshell.bars.BarMetrics
 import app.tileshell.brand.Glyph
 import app.tileshell.calculator.InkText
@@ -191,6 +195,11 @@ private fun BoxScope.ViewerError() {
  * shrinking back to the tile [tileBounds] gives for the picture then shown. [mayChange] is false in the viewer another
  * app opened: Edit, Delete and Set as are then not offered ([ViewerRules.actions]). It has no default: every caller
  * says which it is (C2-M1).
+ *
+ * A still that is a Living Image (build task 6d; [LivingImages]) carries the glyph `viewer_living` in the header, and a
+ * press-and-hold on it plays its clip in place over the still ([LivingPlayback]) until the finger lifts or the clip
+ * ends; the player is also released when another picture is shown, on Back, when the viewer closes and when the
+ * activity stops. It reads and changes nothing, so it is the same in the viewer another app opened.
  */
 @Composable
 fun BoxScope.PhotoViewer(
@@ -243,6 +252,18 @@ fun BoxScope.PhotoViewer(
     var detail by remember { mutableStateOf<Detail?>(null) }
     val loads = remember { mutableStateMapOf<String, Load>() }
     var pendingDelete by remember { mutableStateOf<ViewerItem?>(null) }
+    // Living Images: the clip of the picture shown (with the item it was read for), and the clip playing under a hold.
+    var living by remember { mutableStateOf<LivingPlayback?>(null) }
+    val clipRead by produceState<Pair<String, LivingRules.Clip>?>(null, current?.key, current?.entry?.size, current?.entry?.dateModifiedS) {
+        val item = current
+        value = item?.entry?.let(LivingImages::cached)?.let { item.key to it }
+        if (item != null && value == null) {
+            val clip = if (item.entry != null) LivingImages.of(activity, item.entry) else LivingImages.of(activity, item.uri, item.mime)
+            value = clip?.let { item.key to it }
+        }
+    }
+    val livingClip = clipRead?.takeIf { it.first == current?.key }?.second
+    val livingClipNow by rememberUpdatedState(clipRead)
 
     // What is shown NOW, read from state: the gesture handlers below live across recompositions and must not hold a
     // composition's own `current` / `index`.
@@ -250,6 +271,15 @@ fun BoxScope.PhotoViewer(
     fun now(): ViewerItem? = currentItems.getOrNull(nowIndex())
 
     fun resetZoom() { scale = 1f; panX = 0f; panY = 0f; detail = null }
+
+    /** The hold began: the shown picture's clip plays, when it has one. False for a plain still (nothing is logged). */
+    fun startLiving(): Boolean {
+        val item = now() ?: return false
+        val clip = livingClipNow?.takeIf { it.first == item.key }?.second ?: return false
+        if (!opened || closing || settling || slideshow || living != null) return false
+        living = LivingPlayback.start(activity, item.key, item.id, item.uri, clip) { ended -> if (living === ended) living = null }
+        return living != null
+    }
 
     fun close() {
         if (closing) return
@@ -276,6 +306,10 @@ fun BoxScope.PhotoViewer(
         if (startSlideshow) slideshow = true
     }
     LaunchedEffect(status) { if (status != null) { delay(2500); status = null } }
+    // A clip never outlives its picture's turn on screen: another picture, the slideshow, the close, the activity's stop.
+    LaunchedEffect(currentKey, slideshow, closing) { living?.let { if (it.itemKey != currentKey || slideshow || closing) it.stop(LivingRules.Stop.LEFT) } }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { living?.stop(LivingRules.Stop.LEFT) }
+    DisposableEffect(Unit) { onDispose { living?.stop(LivingRules.Stop.LEFT) } }
 
     val deleteLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
         val item = pendingDelete ?: return@rememberLauncherForActivityResult
@@ -449,6 +483,9 @@ fun BoxScope.PhotoViewer(
                             .size(with(density) { (d.rect.width * sx).toDp() }, with(density) { (d.rect.height * sy).toDp() }).testTag("viewer_detail"),
                     )
                 }
+                // The Living Image's clip, in the still's own box while the hold lasts.
+                val play = living
+                if (isCurrent && play != null && play.itemKey == item.key && !moving) LivingSurface(play)
               }
             }
         }
@@ -464,7 +501,18 @@ fun BoxScope.PhotoViewer(
         Box(
             Modifier.fillMaxSize().testTag("viewer_touch")
                 .pointerInput(Unit) {
+                    // A hold plays a Living Image's clip until the finger lifts; on a plain still a hold stays what it
+                    // was — a slow tap.
+                    var plainHold = false
                     detectTapGestures(
+                        onPress = {
+                            plainHold = false
+                            val released = tryAwaitRelease()
+                            living?.stop(if (released) LivingRules.Stop.RELEASED else LivingRules.Stop.LEFT)
+                            if (released && plainHold) { if (slideshow) stopSlideshow() else if (!closing) chrome = !chrome }
+                            plainHold = false
+                        },
+                        onLongPress = { plainHold = !startLiving() },
                         onTap = { if (slideshow) stopSlideshow() else if (!closing) chrome = !chrome },
                         onDoubleTap = { at ->
                             val item = currentItems.firstOrNull { it.key == currentKey }
@@ -485,7 +533,8 @@ fun BoxScope.PhotoViewer(
                         do {
                             val event = awaitPointerEvent()
                             val pressed = event.changes.filter { it.pressed }
-                            if (closing || settling || slideshow) continue
+                            // While a clip plays the finger is holding, not swiping: its drift moves nothing.
+                            if (closing || settling || slideshow || living != null) continue
                             val item = currentItems.firstOrNull { it.key == currentKey }
                             val ready = item?.let { loads[it.key] as? Load.Ready }
                             val fit = ready?.let { ViewerMath.fit(it.shown.width, it.shown.height, viewW, screenH) }
@@ -543,6 +592,10 @@ fun BoxScope.PhotoViewer(
                 val text = current.entry?.let { Instant.ofEpochMilli(it.dateMs).atZone(ZoneId.systemDefault()).format(HEADER_DATE) }.orEmpty()
                 InkText(text, ShellType.body.copy(color = Color.White), reference = "H", modifier = Modifier.testTag("viewer_date"),
                     inkLeftEpx = PhotosMetrics.VIEWER_DATE_LEFT, inkTopEpx = PhotosMetrics.VIEWER_DATE_CAP_TOP)
+                // A Living Image says so at the header's right end, as far in as the date is from the left.
+                if (livingClip != null) {
+                    PhotoGlyph(Glyph.LIVING_IMAGE, 20f, Color.White, Modifier.align(Alignment.CenterEnd).padding(end = PhotosMetrics.VIEWER_DATE_LEFT.dp).size(20.dp).testTag("viewer_living"))
+                }
             }
             status?.let {
                 BasicText(it, Modifier.align(Alignment.BottomCenter).padding(bottom = PhotosMetrics.BAR_EXPANDED + 12.dp).background(Color.Black.copy(alpha = 0.6f)).padding(horizontal = 8.dp, vertical = 4.dp).testTag("viewer_status"),
@@ -626,6 +679,7 @@ fun BoxScope.PhotoViewer(
         }
 
         BackHandler {
+            living?.stop(LivingRules.Stop.LEFT)
             when {
                 sheetOpen -> dismissOverlay { sheetOpen = false }
                 infoOpen -> infoOpen = false
