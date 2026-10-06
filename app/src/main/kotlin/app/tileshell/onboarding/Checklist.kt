@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Environment
 import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -88,6 +89,17 @@ object Checklist {
 
     fun keyboardSelected(context: Context): Boolean =
         context.getSystemService(InputMethodManager::class.java).currentInputMethodInfo?.id == keyboardId(context)
+
+    /** Phase 18 (Q1 A): All-files access, the special app access Files browses the phone under. It follows the appop. */
+    fun allFilesAccess(): Boolean = Environment.isExternalStorageManager()
+
+    /**
+     * Phase 18 (T18-3): Android's "All files access" page, as the Files row, the wizard's step and the link in Files
+     * itself open it — one intent for the three. The action carries no data: on the AVD (API 36) it resolves to
+     * `Settings$ManageExternalStorageActivity`, the page E1 and E15 name, only without a `package:` URI — with one,
+     * nothing handles it (measured at build task 1).
+     */
+    fun allFilesAccessIntent(): Intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
 
     /** The status glyph and colour a row's state draws with — the checklist's, and the wizard's step page (H1). */
     fun glyphFor(state: RowState): Pair<String, Color> = when (state) {
@@ -171,6 +183,11 @@ object Checklist {
         ChecklistRow("videos", "Videos", if (granted(context, Manifest.permission.READ_MEDIA_VIDEO)) RowState.GRANTED else RowState.MISSING, "Movies & TV and Photos show the videos on this phone",
             permissions = listOf(Manifest.permission.READ_MEDIA_VIDEO), grant = true) {
             requestPermissions(arrayOf(Manifest.permission.READ_MEDIA_VIDEO))
+        },
+        // Phase 18 build task 1 (Q1 A, T18-3 / C-4): Files' grant is All-files access, a Settings-page row like Usage
+        // access — no runtime permission, so the wizard's step reads "Open settings".
+        ChecklistRow("files", "Files", if (allFilesAccess()) RowState.GRANTED else RowState.MISSING, "Files browses everything on this phone", grant = true) {
+            context.startActivity(allFilesAccessIntent())
         },
         ChecklistRow("listener", "Live tiles running", if (TileNotificationListener.connected) RowState.GRANTED else RowState.MISSING, if (TileNotificationListener.connected) "Connected" else "Not connected") {
             context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))

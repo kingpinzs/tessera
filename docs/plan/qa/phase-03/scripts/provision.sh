@@ -74,8 +74,12 @@ adb shell pm grant app.tileshell android.permission.WRITE_CONTACTS
 # them and the two lines fail harmlessly.
 adb shell pm grant app.tileshell android.permission.CAMERA
 adb shell pm grant app.tileshell android.permission.READ_MEDIA_VIDEO
+# Phase 18 (C-4 a): the Files Setup row is All-files access, a special app access `install -r -g` does not grant. On a
+# pre-18 build the manifest lacks the permission; the op is set all the same and nothing reads it.
+adb shell appops set app.tileshell MANAGE_EXTERNAL_STORAGE allow
 echo "write contacts: $(adb shell dumpsys package app.tileshell | grep -m1 'android.permission.WRITE_CONTACTS: granted' | tr -d '\r' | xargs)"
 echo "usage access: $(adb shell appops get app.tileshell GET_USAGE_STATS | tr -d '\r')"
+echo "all-files access: $(adb shell appops get app.tileshell MANAGE_EXTERNAL_STORAGE | tr -d '\r')"
 echo "keyboard: $(adb shell settings get secure default_input_method | tr -d '\r')"
 
 say "roles"

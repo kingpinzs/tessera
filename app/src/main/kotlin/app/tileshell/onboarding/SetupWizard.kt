@@ -249,6 +249,7 @@ object WizardRules {
         "$SETUP:overlay" to "Alarms ring over the app you're using. Without it an alarm shows as a notification.",
         "$SETUP:camera" to "Camera takes your photos and videos. Without it the Camera tile can't open the shell's camera.",
         "$SETUP:videos" to "Movies & TV and Photos show the videos on this phone. Without it they show none.",
+        "$SETUP:files" to "Files can browse everything on this phone. Without it Files sees nothing.",
         "$TESS:assistant" to "The side key and the assist gesture open Tess. Without it they open another assistant.",
         "$TESS:microphone" to "Tess hears what you ask. Without it you can only type to her.",
         "$TESS:contacts" to "Tess calls and texts people by name. Without it she cannot find them.",

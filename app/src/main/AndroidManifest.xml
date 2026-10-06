@@ -96,6 +96,16 @@
     <!-- The take is a foreground service of type microphone in its own :recorder process (build task 7). -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
 
+    <!-- ===== Phase 18: Files ===== -->
+    <!--
+      All-files access (interview Q1 A): Files reads and writes by path across the phone's shared storage and every
+      removable volume. A special app access, never granted at install: the user turns it on from the Setup checklist's
+      Files row, the setup wizard's step or the link in Files itself; without it Files says so and lists nothing.
+    -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
+    <!-- A copy, move or extract outlives the page in a foreground service of type dataSync (r3 D8). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
     <application
         android:name=".ShellApp"
         android:allowBackup="false"
@@ -790,6 +800,39 @@
         <service
             android:name=".video.VideoDumpService"
             android:process=":video"
+            android:exported="false" />
+
+        <!-- ===== Phase 18: Files (build task 1) ===== -->
+
+        <!--
+          Files: an app in the app list like Music and Voice Recorder, with its own task, in the main process.
+          Exported only because it is a launcher entry. ONE activity for every page (r3 D12): singleTask, so an App
+          Shortcut or Voice Recorder's "Open file location" re-routes the running app (onNewIntent) instead of
+          stacking a second one. The `page` / `path` extras only choose what is shown.
+        -->
+        <activity
+            android:name=".files.FilesActivity"
+            android:exported="true"
+            android:label="@string/files_name"
+            android:icon="@drawable/ic_files"
+            android:taskAffinity="app.tileshell.files"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:configChanges="density|fontScale|screenSize|smallestScreenSize|screenLayout|orientation|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.APP_FILES" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          The copy / move / extract service (r3 D8): a foreground service of type dataSync in the main process.
+          Not exported: only a visible FilesActivity starts it.
+        -->
+        <service
+            android:name=".files.FileOpsService"
+            android:foregroundServiceType="dataSync"
             android:exported="false" />
     </application>
 </manifest>
