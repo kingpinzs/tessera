@@ -1,7 +1,7 @@
 ---
 phase: 18
 slug: files
-status: DRAFT   # split 2026-09-22; interview DONE 2026-09-23; review triage round 1 applied 2026-09-23 (review/2026-09-23-phases11-19-triage.md); round 2 applied 2026-09-23 (review/2026-09-23-phases11-20-r2-triage.md); r11/files.md landed 2026-09-23 and is applied (T18-8; E11 written); DRAFT → FINAL after Stage A step 7; round 3 applied 2026-10-06 (review/2026-10-06-phase18-r3-triage.md; r11/files-pass2.md applied); two questions asked (Q-18-1, Q-18-2): Q-18-1 ruled 2026-10-06 (a), Q-18-2 open
+status: DRAFT   # split 2026-09-22; interview DONE 2026-09-23; review triage round 1 applied 2026-09-23 (review/2026-09-23-phases11-19-triage.md); round 2 applied 2026-09-23 (review/2026-09-23-phases11-20-r2-triage.md); r11/files.md landed 2026-09-23 and is applied (T18-8; E11 written); DRAFT → FINAL after Stage A step 7; round 3 applied 2026-10-06 (review/2026-10-06-phase18-r3-triage.md; r11/files-pass2.md applied); two questions asked and ruled 2026-10-06: Q-18-1 (a), Q-18-2 (a)
 depends-on: [01, 02, 10, 11, 12, 13, 15, 17]   # C-23: 11 for the E2 / E16 bursts (per-activity shortcut query), 12 for the E15 template and C-15's provisioning marker; r3 D14: 13 for `record`'s first use (C-26), 15 for the Voice Recorder ADD (task 13, E17) and `fill_volume` (C-27)
 ---
 
@@ -61,7 +61,7 @@ row. Nothing here reaches the internet — out: offline preferred (A11 as amende
   (`MediaScannerConnection.scanFile`) so the Photos tile, Photos and Music see moves and deletes at once — belt-and-braces,
   since MediaProvider already follows renames and deletes made by path on Android 11+ (Decisions, T18-4).
 - The ADD to phase 10 that lets Files hand an audio file to the shell's Music player by explicit component
-  (Decisions; honoured only for the shell's own launch — r3 D5; an audio file with no MediaStore row is `[PENDING Q-18-2]`);
+  (Decisions; honoured only for the shell's own launch — r3 D5; an audio file with no MediaStore row plays in Music too, by URI — Q-18-2, Jeremy: "(a)");
   a `FileProvider` for Share and for handing an unindexed image or video to the shell's viewer / player (a manifest ADD,
   not exported; it hands out and serves a URI only for a file under a `StorageVolume.getDirectory()` — T18-11, r3 D1, D10);
   static App Shortcuts plus the dynamic "SD card"
@@ -78,6 +78,9 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
 ~~a recycle bin unless Q3 rules one; zip handling unless Q2 rules it~~ SUPERSEDED 2026-09-23 by Q3 C / Q2 C (T18-7).
 
 ## Decisions
+- 2026-10-06: Q-18-2 — an audio file the music library does not list plays in Music anyway (Jeremy: "(a)"): Music gains
+  a "play this one file" path for a file outside its library — the same player and Now Playing, and the file is not added
+  to the library. Q4 A ("audio in Music") stays whole; no Android chooser and no second player for audio.
 - 2026-10-06: Q-18-1 — Recent lists the files opened in Files (Jeremy: "(a)"): W10M's meaning ("You haven't opened any
   files recently.", r11/files-pass2.md §1 / §4.8), not "recently changed across the phone". Android keeps no phone-wide
   recently-opened list, so Recent knows only what was opened from Files (stated to him in the question).
@@ -141,7 +144,7 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
   "play this file" is an **ADD to phase 10's part**: MusicActivity accepts a play intent for one MediaStore
   audio id (played through the existing MusicService session; nothing about the queue or the tile rule
   changes), recorded in the INDEX Change Log when built [2026-10-06, r3 D5: the play extra is honoured only for the shell's
-  own launch; an audio file with NO MediaStore row is `[PENDING Q-18-2]` — the r3 D5 entry below]. Everything else goes
+  own launch; an audio file with NO MediaStore row plays in Music by URI — Q-18-2 (a), the entries at the top and end of Decisions]. Everything else goes
   to Android's resolver
   (`com.android.intentresolver`) with `ACTION_VIEW` and the file's MIME type; a type nothing handles shows
   "No app on this phone opens this". ~~Q4 asks whether this is the behaviour Jeremy wants.~~ Q4 ruled A 2026-09-23 (above).
@@ -306,10 +309,8 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
 - 2026-10-06 (agent, r3 triage D5): **the Music play extra is honoured only for the shell's own launch**
   (`getLaunchedFromUid() == myUid`; MusicActivity is `exported="true"`, `AndroidManifest.xml:143-146`); from any other
   caller the extra is ignored and Music opens as it always does, with `[music] play extra ignored: not the shell`. It
-  carries one MediaStore audio id. **`[PENDING Q-18-2]`: what Files does with an audio file that has NO MediaStore row** (a
-  hidden folder, a folder marked no-media, an unscanned file) is not decided here — it touches Q4 A ("audio in Music") and
-  was asked 2026-10-06 (review/2026-10-06-phase18-r3-triage.md). Until it is ruled the build does not pick a form: build
-  task 4 and E6 carry the same marker. Reason: an exported activity must not start playback for any app that names an id.
+  carries one MediaStore audio id, or (Q-18-2) one FileProvider URI. An audio file with NO MediaStore row (a hidden folder, a folder marked no-media, an unscanned file): RULED 2026-10-06, Q-18-2 (a) — Music plays it by URI (the "below Q-18-2" entry at the end of Decisions). ~~Until it is ruled the build does not pick a form~~ SUPERSEDED 2026-10-06 by Q-18-2.
+  Reason: an exported activity must not start playback for any app that names an id.
 - 2026-10-06 (agent, r3 triage D2 / V6): **r11/files-pass2.md applied (its §4 governs over files.md).** (1) Cold start:
   the pane's first entry (Recent) with the pane OPEN and that row selected (§1 UNMEASURED-4, two captures). A warm return
   shows the page that was left; the shortcuts and the `page` / `path` extras open their own page with the pane closed.
@@ -374,7 +375,7 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
   phase 17's evidence or its open rows); (b) the FileProvider — its subclass repeats the canonical-path check in `openFile`
   and `query`, so a `root-path` provider serves nothing outside a `StorageVolume.getDirectory()` even to a grant holder
   (this also closes check-then-use); (c) zip extraction; (d) delete / purge / `empty(volume)`; (e) FilesActivity's `path`
-  extra. Reason: phase 17's doc defers the All-files re-check to this phase in four places.
+  extra; (f) Music's play extra in its URI form (Q-18-2). Reason: phase 17's doc defers the All-files re-check to this phase in four places.
 - 2026-10-06 (agent, r3 triage D11 / V5): ~~Recent's query filters (`MIME_TYPE IS NOT NULL`, no dot-segment, no `.nomedia`
   ancestor)~~ SUPERSEDED 2026-10-06 by Q-18-1: Recent runs no MediaStore query, so the filters are not applied. What stays
   from D11 / V5: build task 0 records whether a file written through FUSE with no scan gets a MediaStore row — E9's
@@ -436,6 +437,21 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
   <path>`; tags `files_recent_row:<name>`, `files_recent_empty`, `files_hold:remove_recent`. No MediaStore query and no
   ContentObserver. Reason: the ruling names the meaning; these are the smallest mechanics that keep the list true to the
   files (a path that moved, a file that is gone) and can never delete a file from the Recent page.
+- 2026-10-06 (agent, below Q-18-2; an ADD to phase 10's part and a trust change): **Music plays one file by URI.** The
+  play extra carries either one MediaStore audio id (a library track) or one `content://` URI of the shell's FileProvider
+  (a file with no library row). Both are honoured only for the shell's own launch (`getLaunchedFromUid() == myUid`, r3 D5),
+  and the URI form only when its authority is the shell's FileProvider — any other URI is ignored with `[music] play extra
+  ignored: <why>` (a pure rule with a JVM test, `MusicPlayExtra`). MusicService plays the file as a one-item queue through
+  its existing session, notification and Now Playing: the title is the file's tag title, else its name without the
+  extension; artist and album from its tags, else blank; art from its tags, else Music's placeholder. Nothing is written:
+  the file is not scanned into MediaStore, not added to a playlist, and no library pivot lists it. The Music tile and the
+  lock screen show it as any playing track (they read the session). When it ends, playback stops; the queue that was
+  playing before is replaced, as tapping a song in the library replaces it. A file that vanishes mid-play (deleted, its
+  volume pulled) stops with Music's existing error state. Line `[music] play file <path> (not in library)`. Files chooses
+  the form: a path query that finds an audio row sends the id, otherwise the URI. The URI rule joins the adversarial GATE
+  list as (f). Recorded in the INDEX Change Log for phase 10's part when built. Reason: the ruling names the behaviour;
+  one player and one session (P2), and a file outside the library stays outside it — Music's library is MediaStore's, and
+  a `.nomedia` folder is the user's own statement that its contents are not library media.
 
 ### Approximations (re-cut 2026-09-23 against r11/files.md, T18-8; re-cut 2026-10-06 against r11/files-pass2.md, r3 D2 /
 V6; each has an H-row)
@@ -485,8 +501,8 @@ Load-bearing first. Implementation mechanics are the agent's (P3).
    D. Other / let me clarify.
 5. ~~Q-18-1 — what "Recent" means~~ RULED 2026-10-06: (a), files opened in Files (see Decisions) — asked 2026-10-06, see
    review/2026-10-06-phase18-r3-triage.md.
-6. **Q-18-2 — an audio file with no MediaStore row** — OPEN: asked 2026-10-06, see
-   review/2026-10-06-phase18-r3-triage.md. Marked `[PENDING Q-18-2]` in Decisions, build task 4 and E6.
+6. ~~Q-18-2 — an audio file with no MediaStore row~~ RULED 2026-10-06: (a), Music plays it anyway (see Decisions) —
+   asked 2026-10-06, see review/2026-10-06-phase18-r3-triage.md.
 
 ## Build tasks
 0. **The AVD probes, before any code** (r3 D13 / V4 / V9 / V10 / V5c / V7; each output saved with `lib.sh` `record` under
@@ -562,9 +578,10 @@ Load-bearing first. Implementation mechanics are the agent's (P3).
    `getLaunchedFromUid() == myUid` — r3 D5) and phase 17's explicit components: `photos.ViewerActivity` for an image,
    `video.PlayerActivity` for a video, `ACTION_VIEW` with a `content://` URI (the MediaStore row's when a path query finds
    one, else the shell FileProvider's — r3 D1, which supersedes the `PhotosActivity` / `VideoActivity` reading of this
-   task). Every hand-off to an opener adds the file to Recent (below Q-18-1). **An audio
-   file with no MediaStore row: `[PENDING Q-18-2]`** — not built until ruled; the build stops at this leg and asks if the
-   answer has not been recorded in Decisions.
+   task). Every hand-off to an opener adds the file to Recent (below Q-18-1). **An audio file with no MediaStore row
+   (Q-18-2 (a)):** the same play extra carries the shell FileProvider's `content://` URI instead of an id, and Music plays
+   that one file through MusicService's session and Now Playing, outside its library ("below Q-18-2" in Decisions) — the
+   second half of the phase 10 ADD, recorded in the INDEX Change Log when built.
 5. **Diagnostics and states.** `[files]` lines for every silent-empty state; error states for a vanished
    folder, a pulled volume, a full volume, a denied grant (re-checked on every resume and before each operation; whether
    a revoke also kills the process is task 0 (c)'s record — r3 V10).
@@ -829,8 +846,16 @@ Recent no longer reads modified dates or MediaStore.
   D5):** the same play extra sent with `adb shell am start -n app.tileshell/.music.MusicActivity` (the shell uid, not
   the app's)
   → Music opens, the session is NOT playing that track,
-  `[music] play extra ignored: not the shell`. **An MP3 with no MediaStore row (in `hidden/`): `[PENDING Q-18-2]`** — no
-  assertion is written until it is ruled; the row is not `done` without it. Every opener hand-off above also logs `[files]
+  `[music] play extra ignored: not the shell`. **An MP3 with no MediaStore row (Q-18-2 (a)):** `qa-hidden.mp3` in
+  `/sdcard/QA-Files/hidden/` (the `.nomedia` folder; `content query` on the audio collection lists no row with that
+  `_display_name` BEFORE the tap — the precondition, asserted) → tap it: topResumed = `app.tileshell/.music.MusicActivity`,
+  `dumpsys media_session` shows the shell's music session PLAYING with the title `qa-hidden` (the fixture carries no tags),
+  the slice from a MARK before the tap holds `[music] play file /storage/emulated/0/QA-Files/hidden/qa-hidden.mp3 (not in
+  library)`, and AFTER it the same `content query` still lists no row (Music did not add it); the Songs pivot's count
+  (`[music] library …: <n> tracks`) is unchanged. Negative, the own-launch check on the URI form: the same extra with a
+  URI sent by `adb shell am start` → not played, `[music] play extra ignored: not the shell`; and a URI whose authority is
+  not the shell's FileProvider, sent from the shell's own uid in the JVM test of the rule (`*MusicPlayExtra*`, the floor's
+  gradle gate) → refused. Every opener hand-off above also logs `[files]
   recent add <path>` (E14). `a.txt` →
   the system chooser (`com.android.intentresolver`) with `text/plain`; a `.xyz` file → "No app on this phone
   opens this" (dump text), diagnostics `[files] no handler for application/octet-stream`. After each launch `c6`
