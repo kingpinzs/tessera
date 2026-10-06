@@ -136,6 +136,24 @@ class FixedEndpointsTest {
         assertEquals("no build-type manifest overlays the application element", emptyList<String>(), overlays)
     }
 
+    /** Every file named like the config, in any source set's any `res/xml*` folder: path under `app/src`. */
+    private fun configCopies(): List<String> {
+        val src = listOf(File("src"), File("app/src")).first { File(it, "main/res/xml/network_security_config.xml").isFile }
+        return src.walkTopDown()
+            .filter { it.isFile && it.name == "network_security_config.xml" && it.parentFile.name.startsWith("xml") && it.parentFile.parentFile.name == "res" }
+            .map { it.relativeTo(src).invariantSeparatorsPath }.sorted().toList()
+    }
+
+    @Test
+    fun `C2-M2 the only network security configs are main's and debug's - no other source set or qualified folder shadows them`() {
+        // A copy in src/release/res/xml/ would replace main's in the release build, and one in res/xml-v34/ would win
+        // on every phone the shell runs on (minSdk 34) — and none of the checks above would read either.
+        assertEquals(listOf("debug/res/xml/network_security_config.xml", "main/res/xml/network_security_config.xml"), configCopies())
+        // The manifest names the config by that one resource name, so a copy under another name is not the config.
+        assertEquals(1, Regex("android:networkSecurityConfig=\"@xml/network_security_config\"").findAll(read("src/main/AndroidManifest.xml")).count())
+        assertEquals(1, Regex("networkSecurityConfig").findAll(read("src/main/AndroidManifest.xml")).count())
+    }
+
     @Test
     fun `every fixed endpoint is an https URL with a host`() {
         assertTrue(FixedEndpoints.URLS.isNotEmpty())
