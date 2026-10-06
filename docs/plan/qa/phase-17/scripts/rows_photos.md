@@ -73,7 +73,7 @@ No run of these rows was in flight when the host's disk filled (about 14:34): th
 
 ## The edge sub-steps (the index is `edge_index_photos.tsv`)
 
-- **THOUSANDS.** `am start -W` reports `LaunchState: WARM` and TotalTime 111–131 ms: the shell is the home app, so its
+- **THOUSANDS.** `am start -W` reports `LaunchState: WARM` and TotalTime 66–131 ms over the three runs: the shell is the home app, so its
   process is up again the moment it is stopped; a cold start of Photos cannot be made on this device without it.
   gfxinfo over the 20 swipes: 376 frames, 14 janky (3.72 %), 99th percentile 24 ms. The six fixtures are pushed first
   so that the tile's line reads its full count before the 3,000 arrive (`photos=8` before and after).
