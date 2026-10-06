@@ -125,3 +125,33 @@ origin compare survives trailing dots, IPv6 default ports, user-info and case; t
 the JSON reader survives 200k nested brackets; only `VideoHttp` sets headers, each a constant or guarded; no intent,
 MediaItem or session metadata carries a token; the secret field reads as dots in all 140 UI dumps. The search of all
 807 dev-video files found no real credential (the redaction in D_SERVER-run2 confirmed; the one dummy match is B2-L2).
+
+---
+
+# Round 2 — review A's re-review of the capture fixes (87a71840), 2026-10-05
+
+Verdict: **FAIL — one HIGH (from platform source, not seen on a device), two MEDIUM, six LOW.** Real Gradle runs this
+time: every fix's removal fails a named test; 58 mutations, 41 caught, 17 survived (11 of them on the Android-side
+ports and call sites, which no JVM test executes). Round 1's A-M1, A-M2, A-L1, A-S, A-L5, A-L6 are closed.
+
+| # | Sev | Finding | Triage |
+|---|---|---|---|
+| A2-F1 | HIGH | The forwarded-result case is not closed, and round 1's API 35+ branch widened it. Condition (d) is asked about `getCallingPackage()` — the app that RECEIVES the result — never about the app that started the capture; `getLaunchedFromUid()` is -1 unless the starter shares its identity (verified in ActivityClientController on android14 / android16: a for-result start makes no difference), so the cross-check never fires against an attacker. A permission-less app T, itself started for a result by an app V that holds WRITE_CONTACTS or runs as the system uid, starts the Camera with FLAG_ACTIVITY_FORWARD_RESULT and a contact's `display_photo` URI: T's start does not throw (the shell holds WRITE_CONTACTS), the caller reads as V, the platform says V may write, and after the user shoots and taps Accept another contact's photo is overwritten. MediaStore rows cannot be reached this way. | FIX (round 3, the last): on API 35+ the REAL starter must pass too — `getInitialCaller().checkContentUriPermission(uri, WRITE)`; refuse on false or any throw; both the recipient and the starter must pass. And A2-F2's narrowing removes the permission-wide recipient altogether. On API 34 only "the provider is the caller's own" or an explicit grant remain; the residual (a victim that owns the provider and starts the attacker for a result) is recorded for the owner. E9's forward leg is rewritten with a URI the SHELL can already write (the leg as written would throw on the sender and falsely reassure). |
+| A2-F2 | MEDIUM | "The provider itself, asked, says the caller may" is false for every provider but MediaStore: `checkContentUriPermissionFull` is a MANIFEST answer (system uid; the owner; an exported provider whose write permission the uid holds — or that declares NO write permission at all), and runs the provider's own code only for a `forceUriPermissions` provider. So it says yes for any uid on `content://mms/part/<n>` (guarded by an app op in code, not by a manifest permission). Not exploitable today only because the shell itself cannot write those. | FIX: the third branch only when the provider is `forceUriPermissions` (MediaStore); the port method renamed; the KDoc and the Decisions line corrected. A caller holding a permission-wide access with no grant is REFUSED on every Android version — the conservative reading of the 10:59 line, which closes that owner item unless he rules otherwise. |
+| A2-F3 | MEDIUM | The real ports and call sites have no test: eleven mutations applied together (the port failing OPEN on an exception, the grant check inverted, a String extra taken as the output, both strips deleted, the refused branch not finishing, one ledger file for all processes …) and the whole suite still passed. | FIX: the ports thinned so the logic sits in tested rules (the port returns the raw answer or the thrown class; the rule maps it, failing closed); source-scan tests of the call sites in the form of `video/TrustWiringScanTest`; device legs for the rest (the ledger across two processes; the refusal on an unreadable request). |
+| A2-L1 | LOW | The second location strip (`writeToCaller`) swallows a failure and still writes. Not reachable with a location today (the capture answer never starts a location feed). | FIX: fail closed (RESULT_CANCELED with a reason). E9's leg (f) shows absence of GPS, not that the strip works: said so in the row. |
+| A2-L2 | LOW | `CaptureRequestRule.decide` catches Exception; an Error while unparcelling hostile extras would crash `:camera`. | FIX: catch Throwable. |
+| A2-L3 | LOW | The pending ledger accepts any `content://` line and the cleanup would hand it to `delete` (only the shell can write that file; the row must also read back as the shell's pending row). | FIX: only `content://media/` lines. |
+| A2-L4 | LOW | Several `MediaWrites` objects per process over one ledger file can lose each other's updates (worst case a leaked pending row). | FIX: one ledger object per process. |
+| A2-L5 | LOW | Work-profile, clone and private-space callers that pass EXTRA_OUTPUT are always refused (the platform rewrites the URI with the user id). Fails closed. | NOTE for the owner at sign-off. |
+| A2-L6 | LOW | `"wt"` may be refused by a provider that takes only `"w"`. Fails closed. | ROW: the display_photo leg records it. |
+| A2-S | — | Survivors worth a test: `?` and `#` ending the authority in `ContentUriText.parse`; the rule parsing a trimmed or lower-cased text; the guard-inputs line's authority unbounded (caller text into a `[camera]` line). | FIX: tests, and bound that line. |
+
+For the other parts (not reviewed by A): the viewer and the player use the same manifest answer for READING, so A2-F2
+applies there (yes for every uid on an exported provider with no read permission, and for a system-uid launcher), the
+read then being made with the shell's identity — review C's second round has this; the two access ports should be
+joined in the same change. `CameraProcess.startOnce` wipes `cacheDir/camera` at process start in a cache dir all the
+shell's processes share.
+
+Side effect reported by the reviewer: it ran `./gradlew --stop` at about 17:50, which stops every Gradle daemon of
+this user; a build of another session that failed then with a vanished daemon is re-run, not a defect.
