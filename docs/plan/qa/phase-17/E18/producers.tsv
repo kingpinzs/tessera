@@ -1,24 +1,32 @@
 # E18 - the join of producers_photos.tsv, producers_camera.tsv and producers_video.tsv, written by e18.py
 # the line pattern	the row or edge sub-step that produces it	the ring slice that holds it
-[photosapp] library: images=<n> videos=<n> access=GRANTED	E3 leg A (ring-launcher.txt)	E19_PHOTOS-build-95b54303-run1-pass-96-0-19/ring-launcher.txt
+[photosapp] library: images=<n> videos=<n> access=GRANTED	E3 leg A (ring-launcher.txt)	E1-build-95b54303-run3-pass-61-0-7/ring-launcher.txt
 [photosapp] library: images=<n> videos=<n> access=PARTIAL	E3 leg G (ring-launcher.txt)	E3-build-95b54303-run1-pass-82-0-25/ring-launcher.txt
 [photosapp] library: images=<n> videos=<n> access=DENIED	E3 leg F (ring-launcher.txt)	E3-build-95b54303-run1-pass-82-0-25/ring-launcher.txt
 [photosapp] slideshow next <id>	E5 slideshow (ring-launcher.txt)	E19_PHOTOS-build-95b54303-run1-pass-96-0-19/ring-launcher.txt
-[photosapp] edit <tool> -> <uri>	E6, every tool's copy (ring-app.tileshell_.photos.PhotosEditDumpService.txt)	E6-run1-harness-crop-drag-one-pixel-off-320x241-187-2-20/ring-app.tileshell_.photos.PhotosEditDumpService.txt (earlier build)
-[photosapp] trim <id> <from>..<to> -> <uri>	E6b trim (ring-app.tileshell_.photos.PhotosEditDumpService.txt)	E6b-run1-pass-36-0-12/ring-app.tileshell_.photos.PhotosEditDumpService.txt (earlier build)
+[photosapp] edit <tool> -> <uri>	E6, every tool's copy (ring-app.tileshell_.photos.PhotosEditDumpService.txt)	NO SLICE OF THE GATE BUILD
+[photosapp] trim <id> <from>..<to> -> <uri>	E6b trim (ring-app.tileshell_.photos.PhotosEditDumpService.txt)	NO SLICE OF THE GATE BUILD
 [photosapp] delete <id>: refused by user	E5 delete, Deny (ring-launcher.txt)	E5-build-95b54303-run3-pass-69-0-18/ring-launcher.txt
-[photosapp] edit <tool> failed: <why>	E6 the failed save (ring-app.tileshell_.photos.PhotosEditDumpService.txt)	E6-run1-harness-crop-drag-one-pixel-off-320x241-187-2-20/ring-app.tileshell_.photos.PhotosEditDumpService.txt (earlier build)
-[photosapp] trim <id> failed: <why>	E6b truncated (ring-app.tileshell_.photos.PhotosEditDumpService.txt)	E6b-run1-pass-36-0-12/ring-app.tileshell_.photos.PhotosEditDumpService.txt (earlier build)
+[photosapp] edit <tool> failed: <why>	E6 the failed save (ring-app.tileshell_.photos.PhotosEditDumpService.txt)	NO SLICE OF THE GATE BUILD
+[photosapp] trim <id> failed: <why>	E6b truncated (ring-app.tileshell_.photos.PhotosEditDumpService.txt)	NO SLICE OF THE GATE BUILD
 [photosapp] set as background <id> -> <file>	E5 background (ring-launcher.txt)	E5-build-95b54303-run3-pass-69-0-18/ring-launcher.txt
 [motion] viewer_open …	E4 open; E19_PHOTOS (ring-launcher.txt)	E19_PHOTOS-build-95b54303-run1-pass-96-0-19/ring-launcher.txt
 [motion] photo_swipe …	E4 swipe; E19_PHOTOS (ring-launcher.txt)	E19_PHOTOS-build-95b54303-run1-pass-96-0-19/ring-launcher.txt
 [motion] viewer_close …	E4 Back; E19_PHOTOS (ring-launcher.txt)	E19_PHOTOS-build-95b54303-run1-pass-96-0-19/ring-launcher.txt
 [motion] slideshow_step …	E5 slideshow; E19_PHOTOS (ring-launcher.txt)	E19_PHOTOS-build-95b54303-run1-pass-96-0-19/ring-launcher.txt
+[photosapp] viewer request from another app: shown read-only	TRUST_PHOTOS (l)	TRUST_PHOTOS-build-95b54303-run1-pass-74-0-37/ring-launcher.txt
+[photosapp] viewer request from an unnamed app: shown read-only	TRUST_PHOTOS (k)	TRUST_PHOTOS-build-95b54303-run1-pass-74-0-37/ring-launcher.txt
+[photosapp] viewer request from an unnamed app: refused	TRUST_PHOTOS (h), (j)	E4-build-95b54303-run1-pass-32-0-16/ring-launcher.txt
+[photosapp] refused view: no grant	TRUST_PHOTOS (h), (j)	E4-build-95b54303-run1-pass-32-0-16/ring-launcher.txt
+[photosapp] launch answer read: granted	TRUST_PHOTOS (k)	TRUST_PHOTOS-build-95b54303-run1-pass-74-0-37/ring-launcher.txt
+[photosapp] launch answer read: denied	TRUST_PHOTOS (h), (j)	E4-build-95b54303-run1-pass-32-0-16/ring-launcher.txt
+[motion] photos_menu …	E19_PHOTOS	E19_PHOTOS-build-95b54303-run1-pass-96-0-19/ring-launcher.txt
+[motion] viewer_zoom …	E4	E4-build-95b54303-run1-pass-32-0-16/ring-launcher.txt
 [camera] devices=<n> front=absent	E7 (A: open)	E10-build-95b54303-run1-pass-32-0-1/ring-app.tileshell_.camera.CameraDumpService.txt
 [camera] busy: <reason>	EDGE_CAMERA (edge_INUSE)	EDGE_CAMERA-build-95b54303-run1-STORAGE-CALLER-INUSE-FRONT-pass-73-0-22/ring-app.tileshell_.camera.CameraDumpService.txt
 [camera] saved <uri> <w>x<h>	E7 (B: a still)	E9-build-95b54303-run2-pass-162-0-77/ring-app.tileshell_.camera.CameraDumpService.txt
-[camera] timer <n>s -> shutter	E7 (C: the 2-s timer)	E7-build-e8c26851-run1-pass-101-0-35/ring-app.tileshell_.camera.CameraDumpService.txt (earlier build)
-[camera] focus at <x>,<y>: <state>	E7 (E: tap to focus)	E7-build-e8c26851-run1-pass-101-0-35/ring-app.tileshell_.camera.CameraDumpService.txt (earlier build)
+[camera] timer <n>s -> shutter	E7 (C: the 2-s timer)	NO SLICE OF THE GATE BUILD
+[camera] focus at <x>,<y>: <state>	E7 (E: tap to focus)	NO SLICE OF THE GATE BUILD
 [camera] mode <x>: unavailable (<reason>)	E7 (G: mode availability)	E10-build-95b54303-run1-pass-32-0-1/ring-app.tileshell_.camera.CameraDumpService.txt
 [camera] mode hdr: unavailable	E7 (G: mode availability)	E10-build-95b54303-run1-pass-32-0-1/ring-app.tileshell_.camera.CameraDumpService.txt
 [camera] refused output scheme=<s>	E9 (F: a file:// output)	E9-build-95b54303-run2-pass-162-0-77/ring-app.tileshell_.camera.CameraDumpService.txt
@@ -28,8 +36,8 @@
 [camera] capture request forwarded: started by <pkg>, result to <pkg> (Decisions 2026-10-05 16:32)	E9 (X share: a forwarded result with a shared identity)	E9-build-95b54303-run2-pass-162-0-77/ring-app.tileshell_.camera.CameraDumpService.txt
 [camera] capture guard inputs: … recipientMayWrite=<b> starterAtLaunch=<granted|denied|not asked> (Decisions 2026-10-05 16:32 and 19:09)	E9 (granted: I1, W, X own; denied: M; not asked: N1, N2, N3, X share)	E9-build-95b54303-run2-pass-162-0-77/ring-app.tileshell_.camera.CameraDumpService.txt
 [motion] capture_feedback …	E19_CAMERA (motion: capture feedback)	E9-build-95b54303-run2-pass-162-0-77/ring-app.tileshell_.camera.CameraDumpService.txt
-[motion] mode_switch …	E19_CAMERA (motion: the mode switch)	E19_CAMERA-build-e8c26851-run1-pass-112-0-22/ring-app.tileshell_.camera.CameraDumpService.txt (earlier build)
-[motion] dial_open …	E19_CAMERA (Y4: the Pro dial)	E19_CAMERA-build-e8c26851-run1-pass-112-0-22/ring-app.tileshell_.camera.CameraDumpService.txt (earlier build)
+[motion] mode_switch …	E19_CAMERA (motion: the mode switch)	NO SLICE OF THE GATE BUILD
+[motion] dial_open …	E19_CAMERA (Y4: the Pro dial)	NO SLICE OF THE GATE BUILD
 [video] library: <n>	E11 (the tile leg: the census + the row's fixture); EDGE_VIDEO_OFFLINE (the start with no network)	E11-build-95b54303-run4-pass-33-0-24/ring-app.tileshell_.video.VideoDumpService.txt
 [video] playing <id>	E11 (play); E12; E14 (rot90); E19_VIDEO	E11-build-95b54303-run4-pass-33-0-24/ring-app.tileshell_.video.VideoDumpService.txt
 [video] playing scheme=<s>	E11 (scheme=content); E13 (scheme=http); E22 (scheme=http, the server's item)	E11-build-95b54303-run4-pass-33-0-24/ring-app.tileshell_.video.VideoDumpService.txt
@@ -47,12 +55,17 @@
 [video] shortcut mediaserver removed	E23_VIDEO (remove); EDGE_VIDEO_MEDIA_SERVER (remove)	E22-build-95b54303-run3-pass-67-0-9/ring-app.tileshell_.video.VideoDumpService.txt
 [video] server token not given: not the shell's own launch	E22 (the stream address by adb shell am start); TRUST_VIDEO B2-M2 (e)	E22-build-95b54303-run3-pass-67-0-9/ring-app.tileshell_.video.VideoDumpService.txt
 [video] server entry cleared at start: it was not a saved server	TRUST_VIDEO B2-M1 (a)	TRUST_VIDEO-build-95b54303-run3-pass-151-0-55/ring-app.tileshell_.video.VideoDumpService.txt
-[video] launch answer read: <granted|denied|threw X|not available>	TRUST_VIDEO C-M4 (i), (v) (denied); (ii) (the answer for the app's own provider, recorded)	TRUST_VIDEO-build-95b54303-run3-pass-151-0-55/ring-app.tileshell_.video.VideoDumpService.txt
 [video] cannot decode <name>	E13 (404); E14 (qa-truncated.mp4, qa-empty.mp4)	E13-build-95b54303-run6-pass-63-0-14/ring-app.tileshell_.video.VideoDumpService.txt
 [video] catalogue: no TMDB key saved	E20 (no key; remove)	E20-build-95b54303-run2-pass-91-0-9/ring-app.tileshell_.video.VideoDumpService.txt
 [video] watch-on <service> "<title>" -> https<intent>	E21 (the service installed: the deep link, and the search link)	E21-build-95b54303-run1-pass-42-0-5/ring-app.tileshell_.video.VideoDumpService.txt
 [video] watch-on <service> "<title>" -> not installed	E21 (the service not installed); EDGE_VIDEO_WATCH_ON	E20-build-95b54303-run2-pass-91-0-9/ring-app.tileshell_.video.VideoDumpService.txt
 [video] watch-on <service> "<title>": id found (wikidata)	E21	E21-build-95b54303-run1-pass-42-0-5/ring-app.tileshell_.video.VideoDumpService.txt
 [video] watch-on <service> "<title>": id none (wikidata)	E21	E21-build-95b54303-run1-pass-42-0-5/ring-app.tileshell_.video.VideoDumpService.txt
-[net] cleartext permitted for <host>: false	E13 (the fixed hosts, after the restart)	E10-build-95b54303-run1-pass-32-0-1/ring-launcher.txt
+[net] cleartext permitted for <host>: false	E13 (the fixed hosts, after the restart)	E1-build-95b54303-run3-pass-61-0-7/ring-launcher.txt
 [music] session app.tileshell id=video -> none	E11 (D16: the player publishes no Music session)	E11-build-95b54303-run4-pass-33-0-24/ring-launcher.txt
+[video] launch answer read: granted	TRUST_VIDEO C-M4 (ii) (the app's own provider with a read grant)	TRUST_VIDEO-build-95b54303-run3-pass-151-0-55/ring-app.tileshell_.video.VideoDumpService.txt
+[video] launch answer read: denied	TRUST_VIDEO C-M4 (i), (v)	TRUST_VIDEO-build-95b54303-run3-pass-151-0-55/ring-app.tileshell_.video.VideoDumpService.txt
+[video] catalogue "<q>": <n> (refreshed)	E20 (the 7-day leg)	E20-build-95b54303-run2-pass-91-0-9/ring-app.tileshell_.video.VideoDumpService.txt
+[motion] controls_fade …	E19_VIDEO	E11-build-95b54303-run4-pass-33-0-24/ring-app.tileshell_.video.VideoDumpService.txt
+[motion] pane_open …	E19_VIDEO	E11-build-95b54303-run4-pass-33-0-24/ring-app.tileshell_.video.VideoDumpService.txt
+[motion] pane_close …	E19_VIDEO	E11-build-95b54303-run4-pass-33-0-24/ring-app.tileshell_.video.VideoDumpService.txt

@@ -54,7 +54,8 @@ adb shell appops set "$PKG" GET_USAGE_STATS allow
 adb shell appops set "$PKG" USE_FULL_SCREEN_INTENT allow
 adb shell appops set "$PKG" SYSTEM_ALERT_WINDOW allow
 for p in READ_MEDIA_IMAGES READ_MEDIA_AUDIO READ_CALENDAR ACCESS_COARSE_LOCATION \
-         RECORD_AUDIO READ_CONTACTS WRITE_CALENDAR SEND_SMS READ_SMS CALL_PHONE READ_CALL_LOG ACCESS_FINE_LOCATION ACCESS_BACKGROUND_LOCATION; do
+         RECORD_AUDIO READ_CONTACTS WRITE_CALENDAR SEND_SMS READ_SMS CALL_PHONE READ_CALL_LOG ACCESS_FINE_LOCATION ACCESS_BACKGROUND_LOCATION \
+         CAMERA READ_MEDIA_VIDEO; do   # phase 17 added the setup:camera and setup:videos steps: "every grant" now includes these two (INDEX Change Log 2026-10-06)
   adb shell pm grant "$PKG" "android.permission.$p"
 done
 adb shell ime enable "$KEYBOARD" >/dev/null

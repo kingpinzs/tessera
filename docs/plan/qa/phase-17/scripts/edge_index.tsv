@@ -1,0 +1,31 @@
+# Phase 17 - the edge index: the join of scripts/edge_index_{photos,camera,video}.tsv with each line's last run, written by the lead 2026-10-06
+# the bullet's first words	the sub-step, row, P row or JVM test that covers it	status
+Thousands of photos	edge_THOUSANDS (edge_photos.sh THOUSANDS; row EDGE_THOUSANDS); the phone's own DCIM is P6	run on an earlier build (code unchanged since): EDGE_THOUSANDS-run3-pass-21-0-7
+HEIC and RAW	edge_HEIC_RAW (row EDGE_HEIC_RAW) with host-made stills (make_stills.sh; gen/media/qa-stills.source); a HEIC from the S25U and a camera DNG's embedded preview: P3	run on an earlier build (code unchanged since): EDGE_HEIC_RAW-run1-pass-30-0-11
+A MediaStore row whose file is gone	edge_FILE_GONE (row EDGE_FILE_GONE)	run on an earlier build (code unchanged since): EDGE_FILE_GONE-run2-pass-24-0-7
+Permission revoked mid-session	the READ_MEDIA_IMAGES half: edge_REVOKE_VIEWER (row EDGE_REVOKE_VIEWER); the CAMERA half: the Camera rows' edge index	run on an earlier build (code unchanged since): EDGE_REVOKE_VIEWER-run1-pass-21-0-6
+A `:camera`, `:video` or `:photosedit` (r3 D8) process killed	the :photosedit third: edge_KILL_PHOTOSEDIT (row EDGE_KILL_PHOTOSEDIT); :camera and :video: those rows' edge indexes	run on an earlier build (code unchanged since): EDGE_KILL_PHOTOSEDIT-run1-pass-18-0-7
+The picture-frame photo deleted in Photos	edge_FRAME_DELETED (row EDGE_FRAME_DELETED)	run on an earlier build (code unchanged since): EDGE_FRAME_DELETED-run2-pass-20-0-4
+Storage full while recording	edge_STORAGE	run on 95b54303: pass (EDGE_CAMERA-build-95b54303-run1-STORAGE-CALLER-INUSE-FRONT-pass-73-0-22)
+Camera in use by another app	edge_INUSE	run on 95b54303: pass (EDGE_CAMERA-build-95b54303-run1-STORAGE-CALLER-INUSE-FRONT-pass-73-0-22)
+Permission revoked mid-session: `pm revoke … CAMERA` with the viewfinder open	edge_REVOKE	run on c7336aca: pass (not run again: the code it exercises did not change after that build)
+Permission revoked mid-session: `pm revoke … READ_MEDIA_IMAGES` with the viewer open	the Photos row writer's (edge_photos.sh)	not this writer's
+Screen off or an incoming call mid-recording: `input keyevent KEYCODE_SLEEP`	edge_SCREENOFF	run on c7336aca: pass (not run again: the code it exercises did not change after that build)
+Screen off or an incoming call mid-recording: `adb emu gsm call 5551234`	edge_CALL	run on c7336aca: pass (not run again: the code it exercises did not change after that build)
+Screen off or an incoming call mid-recording: the same mid-panorama and mid-slow-motion on the phone	P10 / P11 (panorama is never on x86_64; no high-speed session on the AVD)	phone
+A `:camera`, `:video` or `:photosedit` process killed by the system mid-write: `:camera`	edge_KILLWRITE	run on c7336aca: pass (not run again: the code it exercises did not change after that build)
+A `:camera`, `:video` or `:photosedit` process killed by the system mid-write: each process cleans only its own leftovers	JVM: MediaWritesTest	JVM
+A `:camera`, `:video` or `:photosedit` process killed by the system mid-write: `:video`, `:photosedit`	the Video and Photos row writers'	not this writer's
+PHOTOS or CAMERA re-pointed to another app	edge_REPOINT	run on c7336aca: pass (not run again: the code it exercises did not change after that build)
+A capture-intent caller cancelled or killed mid-capture: no orphan file	edge_CALLER	run on 95b54303: pass (EDGE_CAMERA-build-95b54303-run1-STORAGE-CALLER-INUSE-FRONT-pass-73-0-22)
+A capture-intent caller cancelled or killed mid-capture: a `content://` URI it has no write grant for	E9 (legs N1, N2: the display_photo negatives)	run on c7336aca: pass (E9 run 3)
+A capture-intent caller that asks for the front camera on the AVD	edge_FRONT	run on 95b54303: pass (EDGE_CAMERA-build-95b54303-run1-STORAGE-CALLER-INUSE-FRONT-pass-73-0-22)
+Videos: a 4K fixture above the AVD decoder's capability	edge_VIDEOS (edge_video.sh VIDEOS; row EDGE_VIDEO_VIDEOS): 4K, no audio track, two audio tracks, the .srt toggle; an embedded text track: RECORDED (no fixture carries one)	run on 95b54303: EDGE_VIDEO_VIDEOS-build-95b54303-run2-pass-29-0-10
+A :camera, :video or :photosedit process killed by the system mid-write	the :video process writes no media row (the player and the hub only read): the Camera and Photos rows' edge indexes hold this bullet	not a Movies & TV sub-step
+APK updated (adb install -r) while a video plays	edge_APK_UPDATE (row EDGE_VIDEO_APK_UPDATE)	run on 95b54303: EDGE_VIDEO_APK_UPDATE-build-95b54303-run1-pass-15-0-4
+USB OTG drive holding a video (P)	phone only (the AVD has no OTG): the phone session's P rows	not run on the AVD
+Catalogue (the dummy token saved first)	edge_CATALOGUE (row EDGE_VIDEO_CATALOGUE): 429, 401 and Replace, no artwork, no result	run on 95b54303: EDGE_VIDEO_CATALOGUE-build-95b54303-run1-pass-26-0-2
+"Watch on": the service uninstalled between the page draw and the tap	edge_WATCH_ON (row EDGE_VIDEO_WATCH_ON); the deep link answered by the service's home: P13; a service that answers no intent at all: ServicesTableTest (JVM) — not producible with the fixture, RECORDED in the row	run on 95b54303: EDGE_VIDEO_WATCH_ON-build-95b54303-run1-pass-11-0-4
+Media server: the token invalid after a password change	edge_MEDIA_SERVER (row EDGE_VIDEO_MEDIA_SERVER): a real password change over REST, no route (airplane mode), removal; a stopped server is E22's; the owner's own server is P14	run on 95b54303: EDGE_VIDEO_MEDIA_SERVER-build-95b54303-run1-pass-23-0-5
+Offline preferred	edge_OFFLINE (row EDGE_VIDEO_OFFLINE): My videos and the player with no network; each call given up at 10 s (the silent server's own timing); no AndroidRuntime line	run on 95b54303: EDGE_VIDEO_OFFLINE-build-95b54303-run2-pass-21-0-8
+Liveness (N-01): reboot and Device care	edge_liveness.sh (row EDGE_LIVENESS, the lead's; it reboots the AVD): the slots, the seed markers, the grants, the sealed TMDB key and the MediaStore observer across adb reboot; the catalogue cache and the server token recorded (E20, E22 after a force-stop); Device care is the phone's	run on 95b54303: EDGE_LIVENESS-build-95b54303-run1-pass-25-0-5

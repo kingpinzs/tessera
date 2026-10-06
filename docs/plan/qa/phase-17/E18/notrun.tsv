@@ -1,5 +1,7 @@
 # E18 - the join of the three notrun_<app>.tsv files, written by e18.py
 # the line pattern	the reason, and its P row or JVM test
+[photosapp] launch answer read: threw X	the platform call would have to throw: no AVD row can make it | UriAccessRulesTest (JVM)
+[photosapp] launch answer read: not available	written only below API 35; the AVD and the phone are above it | UriAccessRulesTest (JVM)
 [camera] devices=<n> front=present	the AVD has ONE emulated back camera and no front camera (E7 asserts devices=1 front=absent and no camera_switch node) | P1 (the phone)
 [camera] slowmo <n> fps captured, encoded at 30 -> <uri>	no high-speed session on the AVD: REQUEST_AVAILABLE_CAPABILITIES holds no CONSTRAINED_HIGH_SPEED_VIDEO (E7 records the key and asserts `[camera] mode slowmo: unavailable (no high-speed session)`) | P11 (the phone); JVM: CameraGatesTest (the gate)
 [camera] capture guard inputs: … starterAtLaunch=<threw X|not available>	the launch answer did not throw in any leg on API 36 (E9 reads granted, denied and not asked); "not available" is API 34 only | JVM: UriAccessRulesTest; an API 34 device (none in this gate)
@@ -10,3 +12,5 @@
 [video] server not removed: its token could not be cleared	needs the Keystore / file removal to fail (storage full, a broken key): no AVD row can make it fail on demand | ServerStoreTest (JVM)
 [video] TMDB key not removed	the same: a removal that fails | the key page's JVM tests (TrustWiringScanTest / CredentialFileTest)
 [video] http: answer not finished in time	a 60-s total deadline on one response read: no row holds a response open that long | VideoHttp's JVM test
+[video] launch answer read: threw X	the platform call would have to throw: no AVD row can make it | UriAccessRulesTest (JVM)
+[video] launch answer read: not available	written only below API 35; the AVD and the phone are above it | UriAccessRulesTest (JVM)

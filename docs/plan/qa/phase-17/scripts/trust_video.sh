@@ -137,6 +137,16 @@ assert_contains "(iv): still refused" "[video] refused source: no grant" "$LEG_S
 absent_in "(iv): no autoplay" "autoplay next" "$LEG_SLICE"
 leave
 
+# Added 2026-10-06 after the gate review (reviewer A, finding 6): a NAMED starter with no access is a no on the device
+# too - until now every shared-identity leg was a positive.
+log "--- C-M4 (i-shared): (i) with the app's identity shared, still holding no READ_MEDIA_VIDEO"
+assert_eq "(i-shared): the fixture app does not hold READ_MEDIA_VIDEO" "false" "$(qgranted READ_MEDIA_VIDEO)"
+qa_leg cm4-i-shared 3.5 --es uri "$CONTENT" --ez share true
+assert_contains "(i-shared): a named starter MediaStore says no to is REFUSED — [video] refused source: no grant" "[video] refused source: no grant" "$LEG_SLICE"
+assert_eq "(i-shared): the page's text" "Can't play this address" "$LEG_TEXT"
+absent_in "(i-shared): nothing played" "[video] playing" "$LEG_SLICE"
+leave
+
 log "--- C-M4 (v): the same app WITH READ_MEDIA_VIDEO"
 adb shell pm grant "$QAVIEW" android.permission.READ_MEDIA_VIDEO
 assert_eq "(v): the fixture app now holds READ_MEDIA_VIDEO" "true" "$(qgranted READ_MEDIA_VIDEO)"

@@ -16,7 +16,6 @@
 [video] shortcut mediaserver removed	E23_VIDEO (remove); EDGE_VIDEO_MEDIA_SERVER (remove)
 [video] server token not given: not the shell's own launch	E22 (the stream address by adb shell am start); TRUST_VIDEO B2-M2 (e)
 [video] server entry cleared at start: it was not a saved server	TRUST_VIDEO B2-M1 (a)
-[video] launch answer read: <granted|denied|threw X|not available>	TRUST_VIDEO C-M4 (i), (v) (denied); (ii) (the answer for the app's own provider, recorded)
 # added by the lead, 2026-10-06: the doc's E18 lines this table did not name (the join, e18.py, found them missing)
 [video] cannot decode <name>	E13 (404); E14 (qa-truncated.mp4, qa-empty.mp4)
 [video] catalogue: no TMDB key saved	E20 (no key; remove)
@@ -26,3 +25,10 @@
 [video] watch-on <service> "<title>": id none (wikidata)	E21
 [net] cleartext permitted for <host>: false	E13 (the fixed hosts, after the restart)
 [music] session app.tileshell id=video -> none	E11 (D16: the player publishes no Music session)
+# added by the lead, 2026-10-06, after the gate review (one alternative per line; the join needs each named)
+[video] launch answer read: granted	TRUST_VIDEO C-M4 (ii) (the app's own provider with a read grant)
+[video] launch answer read: denied	TRUST_VIDEO C-M4 (i), (v)
+[video] catalogue "<q>": <n> (refreshed)	E20 (the 7-day leg)
+[motion] controls_fade …	E19_VIDEO
+[motion] pane_open …	E19_VIDEO
+[motion] pane_close …	E19_VIDEO
