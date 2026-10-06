@@ -109,7 +109,11 @@ W_MARK="$(ring_mark)"
 # process's ring (run 1 on 95b54303, kept, read only "-> already run" after it). So the wiped shell is started once
 # and its seed lines are read BEFORE provision.sh; the doc's order (pm clear -> provision.sh -> Start) holds for
 # everything else in this leg. Lead's re-cut, 2026-10-06 (INDEX Change Log).
-adb shell am start -W -n app.tileshell/app.tileshell.StartActivity >/dev/null 2>&1; sleep 4
+# The launcher's ring is read through its notification listener (lib.sh diag), which Android binds only once the
+# listener is allowed - one of provision.sh's own steps, done here first so the wiped process's ring can be read
+# (run 2, kept: without it the slice was empty).
+adb shell cmd notification allow_listener app.tileshell/app.tileshell.feeds.TileNotificationListener >/dev/null 2>&1
+adb shell am start -W -n app.tileshell/app.tileshell.StartActivity >/dev/null 2>&1; sleep 6
 W_SLICE="$(ring_since "$W_MARK")"; printf '%s\n' "$W_SLICE" > "$OUT/W-slice.txt"
 rings_save
 assert_eq "W: provision.sh rc" "0" "$(provision wiped)"
