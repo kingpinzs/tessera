@@ -137,3 +137,25 @@ Seam for the next builder: FilesBehaviour(activity, opening: FilesOpening) — F
 .holdRecent(behaviour, state, press); helpers behaviour.showMenu / share / showProperties.
 ENVIRONMENT: a safety check refused two inline adb rm commands of that builder; drivers must be script files.
 The qa-capture test app was left installed on the AVD (uninstall at the end of the build's device work).
+
+## From the open-with / Recent builder (tasks 4 / 10 + owed device checks), 2026-10-06 17:50 — run on the AVD, APK 7339f9d1; TASK4-smoke/<leg>/
+
+Smoke-verified: E6 (95 pass), E14 (65 / 0), bursts E16 / E2 (39), E17 (22), the Q-18-4 intent (13), provision.sh's first run.
+For the row drivers (facts measured):
+1. Phase 17 writes "[photosapp] viewer open <id>" at an open ("show" is its swipe line); for a provider URI the id is "external".
+2. ".xyz" maps to chemical/x-xyz: the no-handler line reads that type; application/octet-stream HAS handlers on the AVD.
+3. On a public volume the APP's MediaStore query finds no row (the shell's does), so every public-volume file opens via
+   the provider (Share only in the viewer) — r3 D1's "a volume MediaStore has not indexed".
+4. logcat REDACTS the START line's data to "dat=package:": E1 / E15 prove the package by the settings page's own text.
+5. "pm clear" does NOT reset the MANAGE_EXTERNAL_STORAGE appop. 6. Music is started NEW_TASK | SINGLE_TOP.
+7. MediaProvider leaves /sdcard/Pictures/.thumbnails/<id>.jpg for a public-volume picture; files_down flags it.
+8. A plain "am start" to a RUNNING Music delivers no new intent (0 lines); the negatives use a cold start or -f flags.
+9. The chooser's PendingIntent is MUTABLE | ONE_SHOT | CANCEL_CURRENT, its path re-checked in the receiver — GATE list.
+10. Extra lines: "open <path> not started: <Exception>", "open <path>: media query failed: …".
+NOT verified on a device: the provider's OWN refusal line (the framework refuses an ungranted URI before FilesProvider
+runs; only the JVM test reaches the check); a true dead-process shortcut reconcile; the wizard step's intent; the
+recording-from-Files leg's session read (a 3-s clip ended before the read — driver timing).
+OPEN: Q-18-6 (asked): selection mode on the Recent page shows the folder page's bar (Delete / Move to / Copy to / Share),
+so a file CAN be binned from Recent; the Decisions' reason says Recent "can never delete a file".
+WHOLE SUITE: 1913 tests, 3 FAIL — phase 17's scan guards (UriAccessWiringScanTest; TrustWiringScanTest ×2) tripped by
+phase 18's caller-uid reads and its two QA prefs. A builder is conforming phase 18's code to the guards' form.
