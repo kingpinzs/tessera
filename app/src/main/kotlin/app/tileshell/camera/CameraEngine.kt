@@ -139,6 +139,7 @@ class CameraEngine(private val activity: ComponentActivity, private val captureO
     private var stateListener: Consumer<CameraState>? = null
     private var stateInfo: CameraInfo? = null
     private var announced = false
+    private val reopen = CameraReopen()
     private var heldIso: Int? = null
     private var heldExposureNs: Long? = null
     @Volatile private var lastResult: TotalCaptureResult? = null
@@ -346,10 +347,13 @@ class CameraEngine(private val activity: ComponentActivity, private val captureO
             when {
                 error != null && error.code in BUSY_CODES -> busy(busyReason(error.code))
                 error != null && error.type == CameraState.ErrorType.CRITICAL -> busy(busyReason(error.code))
-                state.type == CameraState.Type.OPEN && status is CameraStatus.Busy -> {
-                    // The camera came back (the other app left): say so the way a start does (Edge cases).
-                    Diagnostics.add("camera", "devices=${provider?.availableCameraInfos?.size ?: 0} front=${if (hasFront) "present" else "absent"}")
-                    status = CameraStatus.Ready
+                state.type == CameraState.Type.OPEN -> {
+                    // The camera came back (the other app left): say so the way a start does (Edge cases). What says a
+                    // re-open is the loss itself (reopen), never the status: a return to the Camera re-binds (openMode
+                    // on the new intent, start on the resume) and bind() sets Ready before the camera has opened, so
+                    // the status this listener reads is already Ready when OPEN arrives.
+                    if (reopen.opened()) Diagnostics.add("camera", "devices=${provider?.availableCameraInfos?.size ?: 0} front=${if (hasFront) "present" else "absent"}")
+                    if (status is CameraStatus.Busy) status = CameraStatus.Ready
                 }
             }
         }
@@ -360,6 +364,7 @@ class CameraEngine(private val activity: ComponentActivity, private val captureO
 
     private fun busy(reason: String) {
         if (status != CameraStatus.Busy(reason)) Diagnostics.add("camera", "busy: $reason")
+        reopen.lost()
         if (recording) stopVideo("camera lost")
         status = CameraStatus.Busy(reason)
     }
@@ -719,6 +724,26 @@ class CameraEngine(private val activity: ComponentActivity, private val captureO
 
         /** Removes every GPS tag (a capture for another app carries no location — T17-4); the rule is [ExifLocation]'s. */
         fun stripLocation(exif: ExifInterface) = ExifLocation.strip(exif::setAttribute)
+    }
+}
+
+/**
+ * Whether a camera that opens now is one that comes BACK (Edge cases "Camera in use by another app": `[camera] busy`,
+ * then `[camera] devices=1` when ours re-opens). The loss is remembered here, apart from the status the chrome draws,
+ * because a re-bind resets that status before the camera has opened. Pure (JVM-tested): an ordinary start, with no
+ * loss before it, is never a re-open, and one loss is answered by one line however many times "busy" was reported.
+ */
+class CameraReopen {
+    private var lost = false
+
+    /** The camera was lost or could not be opened ("busy"). */
+    fun lost() { lost = true }
+
+    /** The camera is open: true once per loss — the caller writes the `devices=` line then. */
+    fun opened(): Boolean {
+        val was = lost
+        lost = false
+        return was
     }
 }
 
