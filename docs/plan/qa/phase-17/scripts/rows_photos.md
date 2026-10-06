@@ -7,10 +7,21 @@ debug APK when the device holds another build, and restores what it changes. Run
 `env -u TMPDIR bash docs/plan/qa/phase-17/scripts/<driver>`; a busy lock is exit 3. A run's folder is
 `docs/plan/qa/phase-17/<ROW>/`; every earlier run is kept beside it as `<ROW>-run<k>-<why>-<pass>-<fail>-<recorded>`.
 
-**Two builds.** The gate build was the clean build of 25921fd7, md5 `e8c26851363882da`, until the trust fixes were merged;
-since then it is the clean build of e5e30678, md5 `c7336aca6b63d61b`, which the drivers now assert. By the lead's rule
-(2026-10-05) a row the fixes do not touch keeps its run on the first build; E4 and E5 (the viewer and its actions) were
-run again on the second. The table says which build each row's evidence is from.
+**Three builds.** The gate build was the clean build of 25921fd7, md5 `e8c26851363882da`, until the trust fixes were
+merged; then the clean build of e5e30678, md5 `c7336aca6b63d61b` (round 1 of the fixes); it is now the clean build of
+`phase-17` at bb154e06, md5 `95b543037345b851` (355,589,093 bytes: the three rounds of trust fixes, Living Images, the
+Camera's toast fix), which `p17_photos.sh` asserts. By the lead's rule (2026-10-05) a row the fixes do not touch keeps
+its run on an earlier build. The table says which build each row's standing evidence is from.
+
+**The re-run on 95b54303 (branch `phase-17-qa-rerun`, 2026-10-05 19:38 on) stopped after its first row.** TRUST_PHOTOS
+ran and passed. Then the Movies & TV writer's `e23_video.sh` held the device lock; the host was suspended overnight,
+and since it resumed (2026-10-06 07:34) the emulator answers `adb shell date` and file reads but no binder service:
+`dumpsys power`, `activity`, `display` and `SurfaceFlinger` each end in `DUMP TIMEOUT (10000ms) EXPIRED`,
+`adb exec-out screencap -p` never returns, and logcat repeats `IPCThreadState: Binder transaction failure … error: -28
+(No space left on device)` from pid 491 every 16 ms. The lock is still held by that driver, stuck in a screencap. The
+rows below marked "not re-run" are owed on 95b54303 once the emulator is restarted (the lead's or the owner's call: a
+row writer never reboots it). **A run folder of the re-run is in the re-run's worktree**
+(`.claude/worktrees/qa-rerun/docs/plan/qa/phase-17/`), not beside the earlier ones.
 
 | Row | Driver | What it changes on the device (all restored and asserted) | A run takes | Recorded instead of asserted, and why |
 |---|---|---|---|---|
@@ -22,20 +33,22 @@ run again on the second. The table says which build each row's evidence is from.
 | E19_PHOTOS | `e19_photos.sh` | Media. | 2 min 25 s | LOW values, as the row sets them: the bar's and the strip's centres from the right (recorded: 218 / 150 / 82 / 24 and 286 / 218 / 150 / 82 / 24), the strip's fill, Set as → File information (159 px = 53 epx; Change Log (9)), the gap's width in the screenrecord (60 px = 20 epx; presence asserted). |
 | E23_PHOTOS | `e23_photos.sh` | The Start layout (baseline). | 1 min 10 s | The two shortcuts' flag strings. |
 | EDGE_* | `edge_photos.sh [<ID>…]` | Per sub-step: media; READ_MEDIA_IMAGES; the shell's prefs (FRAME_DELETED); root for one `rm` (FILE_GONE; off again at once, asserted); 3,000 files in a host temp folder and on the device, both removed in the sub-step (THOUSANDS). | 1–2 min each | See "The edge sub-steps". |
-| TRUST_PHOTOS | `trust_photos.sh` | Media, `testapps/qa-photoview` (installed without -g, uninstalled). | 1 min 50 s | Legs (i) and (m) by the fix file's own words; (p) not run. |
+| TRUST_PHOTOS | `trust_photos.sh` | Media (the Living Image of leg (p) too), `testapps/qa-photoview` (installed without -g, uninstalled), RECORD_AUDIO revoked and granted back, the Camera's Living Images setting on and off again. | 3 min 40 s | Legs (i) and (m) by the fix file's own words; after leg (j) the count of `holding WM lock` lines in logcat (124 before, 128 after) and the last such line. |
 
 ## Run or not run (2026-10-05)
 
 | Row | Build | Last run | Folder | Earlier runs (kept) |
 |---|---|---|---|---|
-| E3 | e8c26851 | 79 passed, 0 failed, 23 recorded — **with a reading the lead must rule on** (below) | `E3-run2-pass-with-the-VIDEO-reading-79-0-23` | `E3-run1-FAIL-doc-sequence-VIDEO-held-the-link-grants-in-full-no-picker-72-7-22`: the doc's sequence as written |
-| E4 | c7336aca | 32 passed, 0 failed, 16 recorded | `E4-run3-pass-build-c7336aca-32-0-16` | run 1 (harness: a tag of ViewerActivity read on Photos' own viewer); `E4-run2-pass-32-0-17` on e8c26851 |
-| E5 | c7336aca | 69 passed, 0 failed, 18 recorded | `E5-run3-pass-build-c7336aca-69-0-18` | run 1 (harness: the driver polled the ring while a step ran; that step read maxGapMs=50); `E5-run2-pass-build-e8c26851-69-0-18` |
+| E3 | e8c26851 — **not re-run on 95b54303** (owed: the driver now also asserts that no `photos_living:` node exists for the six plain fixtures) | 79 passed, 0 failed, 23 recorded — **with a reading the lead must rule on** (below) | `E3-run2-pass-with-the-VIDEO-reading-79-0-23` | `E3-run1-FAIL-doc-sequence-VIDEO-held-the-link-grants-in-full-no-picker-72-7-22`: the doc's sequence as written |
+| E4 | c7336aca — **not re-run on 95b54303** (owed; the driver is unchanged) | 32 passed, 0 failed, 16 recorded | `E4-run3-pass-build-c7336aca-32-0-16` | run 1 (harness: a tag of ViewerActivity read on Photos' own viewer); `E4-run2-pass-32-0-17` on e8c26851 |
+| E5 | c7336aca — **not re-run on 95b54303** (owed; the driver is unchanged) | 69 passed, 0 failed, 18 recorded | `E5-run3-pass-build-c7336aca-69-0-18` | run 1 (harness: the driver polled the ring while a step ran; that step read maxGapMs=50); `E5-run2-pass-build-e8c26851-69-0-18` |
 | E6 | c7336aca | 190 passed, 0 failed, 20 recorded | `E6-run2-pass-190-0-20` | run 1 (harness: the crop drag landed one screen pixel off, 320 × 241) |
 | E6b | c7336aca | 36 passed, 0 failed, 12 recorded | `E6b-run1-pass-36-0-12` | — |
-| E19_PHOTOS | c7336aca | 96 passed, 0 failed, 19 recorded | `E19_PHOTOS-run3-pass-96-0-19` | runs 1 and 2 (harness: the screenrecord's frames were not decoded, then the gap matcher was too strict; everything else passed in both) |
+| E19_PHOTOS | c7336aca — **not re-run on 95b54303** (owed; the driver is unchanged) | 96 passed, 0 failed, 19 recorded | `E19_PHOTOS-run3-pass-96-0-19` | runs 1 and 2 (harness: the screenrecord's frames were not decoded, then the gap matcher was too strict; everything else passed in both) |
 | E23_PHOTOS | e8c26851 | 35 passed, 0 failed, 3 recorded | `E23_PHOTOS-run1-pass-35-0-3` | — |
-| TRUST_PHOTOS | c7336aca | **41 passed, 6 failed**, 26 recorded — all six are leg (j) | `TRUST_PHOTOS-run3-FAIL-leg-j-an-app-holding-READ_MEDIA_IMAGES-is-refused-41-6-26` | runs 1 and 2 (harness: the sender's task was reused; a permission read through a closed pipe) |
+| TRUST_PHOTOS | 95b54303 | 74 passed, 0 failed, 37 recorded (2026-10-05 19:38) | `TRUST_PHOTOS-build-95b54303-run1-pass-74-0-37` (in the re-run's worktree) | on c7336aca: `TRUST_PHOTOS-run3-FAIL-leg-j-an-app-holding-READ_MEDIA_IMAGES-is-refused-41-6-26` (leg (j) as round 1 worded it), and runs 1 and 2 (harness: the sender's task was reused; a permission read through a closed pipe) |
+| L1 (dev-living, as a row) | — **not run on 95b54303** (owed; the builder's run, 41 passed, 0 failed, 20 recorded, is `dev-living/L1` in the lead's tree) | — | — | — |
+| L2 (dev-living, as a row) | — **not run on 95b54303** (owed) | — | — | — |
 | EDGE_FILE_GONE | c7336aca | 24 passed, 0 failed, 7 recorded | `EDGE_FILE_GONE-run2-pass-24-0-7` | run 1 (harness: `ls` through /sdcard still names the file) |
 | EDGE_REVOKE_VIEWER | c7336aca | 21 passed, 0 failed, 6 recorded | `EDGE_REVOKE_VIEWER-run1-pass-21-0-6` | — |
 | EDGE_KILL_PHOTOSEDIT | c7336aca | 18 passed, 0 failed, 7 recorded | `EDGE_KILL_PHOTOSEDIT-run1-pass-18-0-7` | — |
@@ -57,19 +70,26 @@ No run of these rows was in flight when the host's disk filled (about 14:34): th
    Also a reading: the device held READ_MEDIA_VISUAL_USER_SELECTED from the start (Android grants it with "Allow all"),
    so the denied leg revokes it too — the doc's next step grants it, so its sequence presupposes it is not held.
 2. **E3, "the two `qa-steps` videos".** The row names no second file; the driver pushes `qa-steps.mp4` and `qa-steps.webm`.
-3. **TRUST_PHOTOS leg (j) FAILS on c7336aca.** An app holding READ_MEDIA_IMAGES that does not share its identity is
-   refused: `viewer request from an unnamed app: refused`, `refused view: no grant`, the error state — where the fix
-   file expects "shown read-only". The same app WITH `setShareIdentityEnabled(true)` (leg (l)) is shown read-only as
-   "another app". So `getInitialCaller().checkContentUriPermission` did not answer "granted" for a permission holder
-   on API 36; the build writes no line saying whether it answered "denied" or threw, so the row cannot tell which.
-   The failure is in the closed direction (nothing is shown that should not be).
-4. **TRUST_PHOTOS leg (m) and E4's VIEW leg:** `adb shell am start` of ViewerActivity (the shell uid) is now refused as
-   "an unnamed app" (the error state, no actions). On e8c26851 the same start showed the picture with Share, Edit,
-   Delete and Set as (`E4-run2-pass-32-0-17`). No Photos row depends on it; any row that opens the viewer that way does.
+3. **TRUST_PHOTOS leg (j) — settled by round 3; on 95b54303 the leg asserts the refusal and passes.** An app holding
+   READ_MEDIA_IMAGES that does not share its identity is refused, and the build now says why:
+   `viewer request from an unnamed app: refused|launch answer read: denied|refused view: no grant`. Logcat's
+   `holding WM lock` count went from 124 to 128 over the leg; the last line: `E ContentProviderHelper:
+   java.lang.IllegalStateException: Unable to check Uri permission because caller is holding WM lock; assuming
+   permission denied`. The same app WITH `setShareIdentityEnabled(true)` (leg (l)) is shown read-only as "another app".
+   **Where the device differs from the fixes file's round-3 wording** ("(h), (k), (l), (n) as before, each with its
+   launch-answer line"): (h) writes `launch answer read: denied` and (k) `launch answer read: granted`, but (l) and (n)
+   write NO launch-answer line — for a named starter the rule decides before it asks (`UriAccessRules.starterMayRead`),
+   and Photos' own viewer is not ViewerActivity. The row asserts the absence in both.
+4. **TRUST_PHOTOS leg (m) and E4's VIEW leg:** `adb shell am start` of ViewerActivity (the shell uid) is refused as
+   "an unnamed app" (the error state, no actions); on 95b54303 its launch answer reads `launch answer read: denied`.
+   On e8c26851 the same start showed the picture with Share, Edit, Delete and Set as (`E4-run2-pass-32-0-17`). No
+   Photos row depends on it; any row that opens the viewer that way does.
 5. **TRUST_PHOTOS leg (i):** with FLAG_GRANT_READ_URI_PERMISSION on a MediaStore URI it cannot read, the SENDER's own
    `startActivity` throws SecurityException; nothing reaches the viewer.
-6. **TRUST_PHOTOS leg (p)** (the Probe page on a picked Living Image) is **not run**: no fixture of these rows is a
-   Living Image.
+6. **TRUST_PHOTOS leg (p)** (the Probe page on a picked Living Image) runs since 95b54303: the Camera takes one
+   (`saved … 1856x1392 living image clip=33 frames`), the host reads the file (`MotionPhoto=1 item_length=45213
+   trailing_mp4=45213 length_matches=yes timestamp_us=1068992 jpeg_bytes=62524`), and the Probe page's line is
+   `motionPhoto: MotionPhoto=1 offset=62524 length=45213 timestampUs=1068992` — asserted equal, field by field.
 
 ## The edge sub-steps (the index is `edge_index_photos.tsv`)
 

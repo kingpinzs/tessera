@@ -14,6 +14,31 @@ Two builds carry this evidence, both CLEAN builds (`./gradlew clean`, then `:app
 The fixes touch the capture answer, the viewer and the player, not the Camera's own viewfinder: the rows run before
 the merge and not touched by it keep their run, as the lead ruled.
 
+**A third build, and a re-run that did not happen.** `cam17.sh` now asserts **95b543037345b851** (355,589,093 bytes) —
+the clean build of `phase-17` at bb154e06: the three rounds of trust fixes, Living Images and the Camera's toast fix —
+and takes the device lock once per process (`lib.sh`'s `take_device_lock` lets go of it when `row_begin` calls it a
+second time). On branch `phase-17-qa-rerun` E9 was re-cut for round 3 (below) and E9 and the edge sub-steps STORAGE,
+CALLER, INUSE and FRONT were to run on that build. **None of them ran:** the Movies & TV writer's `e23_video.sh` held
+the device lock, the host was suspended overnight, and since it resumed (2026-10-06 07:34) the emulator answers no
+binder service (`dumpsys power / activity / display / SurfaceFlinger`: `DUMP TIMEOUT (10000ms) EXPIRED`; `adb exec-out
+screencap -p` never returns; logcat repeats `IPCThreadState: Binder transaction failure … error: -28`). The rows keep
+their earlier lines in the table; E9 and the four sub-steps are owed on 95b54303 once the emulator is restarted.
+
+**E9 as re-cut for round 3 (`e9.sh`; written against `media/UriAccess.kt`, `media/CaptureRequest.kt` and
+`camera/CaptureActivity.kt`; NOT RUN on a device yet, so every expectation below is a prediction):**
+
+| Leg | What it asserts now |
+|---|---|
+| I1 (the own-FileProvider leg) | `capture guard inputs: scheme=content authority=<qa-capture>.output startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=true recipientMayWrite=true starterAtLaunch=granted`, RESULT_OK |
+| M (a) the caller's own MediaStore row | REFUSED: `… callerMayWrite=false recipientMayWrite=true starterAtLaunch=denied`, `refused output: no grant`, RESULT_CANCELED, no camera opened, the row left at 0 bytes |
+| W (b) the grant-only URI | the rule's reading: (d1) passes (the receiver holds a write grant) and (d2) is the launch answer for the starter — the same app, holding the same grant — predicted `granted` ("denied … unless the starter holds a grant"): `callerMayWrite=true recipientMayWrite=true starterAtLaunch=granted`, accepted, RESULT_OK, size > 0. A device that disagrees fails the leg. |
+| N2 (c) without WRITE_CONTACTS | as before, the line ending `callerMayWrite=false recipientMayWrite=false starterAtLaunch=not asked` |
+| N3 (c) WITH WRITE_CONTACTS | REFUSED (was recorded): `recipientMayWrite=false … starterAtLaunch=not asked`, the refusal line, RESULT_CANCELED, no camera opened, the photo unchanged |
+| X own (e) V's own FileProvider URI forwarded by T | as the fixes file words it: T's start does not throw, `recipientMayWrite=true starterAtLaunch=denied`, refused, RESULT_CANCELED. V hands T a write grant with the URI (without one T's start would throw), so the launch answer may well read `granted` for T: if it does, the leg fails and the line is the evidence. |
+| X share | refused with `capture request forwarded: started by <T>, result to <V>`, the line ending `recipientMayWrite=false starterAtLaunch=not asked` |
+| **X contacts (e) — NOT WRITTEN AS A LEG, recorded as not run** | "go-between T (no permission), receiver V holding WRITE_CONTACTS, a contact's display_photo" needs a receiver that can hold WRITE_CONTACTS and can be given a URI. `qa-capture-fwd` (V) declares no permission and names only its own provider URI; `qa-capture` declares WRITE_CONTACTS but is the go-between. The leg needs a fixture change (a declared, never-granted WRITE_CONTACTS and a `uri` extra in `qa-capture-fwd`), which the re-run's writer was not allowed to make. |
+| S (d), G / I1 (f), T (g), F, B, V1, I2, V2, R | as they were |
+
 | Row | Driver | Build of the evidence | Last run | Folder | What it changes on the device (all restored) |
 |---|---|---|---|---|---|
 | E7 | `e7.sh` | e8c26851 | 101 passed, 0 failed, 35 recorded | `E7-build-e8c26851-run1-pass-101-0-35` | stills in DCIM/Camera; the grid, timer and Living Images settings |
