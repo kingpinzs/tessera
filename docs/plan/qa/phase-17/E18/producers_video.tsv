@@ -17,3 +17,12 @@
 [video] server token not given: not the shell's own launch	E22 (the stream address by adb shell am start); TRUST_VIDEO B2-M2 (e)
 [video] server entry cleared at start: it was not a saved server	TRUST_VIDEO B2-M1 (a)
 [video] launch answer read: <granted|denied|threw X|not available>	TRUST_VIDEO C-M4 (i), (v) (denied); (ii) (the answer for the app's own provider, recorded)
+# added by the lead, 2026-10-06: the doc's E18 lines this table did not name (the join, e18.py, found them missing)
+[video] cannot decode <name>	E13 (404); E14 (qa-truncated.mp4, qa-empty.mp4)
+[video] catalogue: no TMDB key saved	E20 (no key; remove)
+[video] watch-on <service> "<title>" -> https<intent>	E21 (the service installed: the deep link, and the search link)
+[video] watch-on <service> "<title>" -> not installed	E21 (the service not installed); EDGE_VIDEO_WATCH_ON
+[video] watch-on <service> "<title>": id found (wikidata)	E21
+[video] watch-on <service> "<title>": id none (wikidata)	E21
+[net] cleartext permitted for <host>: false	E13 (the fixed hosts, after the restart)
+[music] session app.tileshell id=video -> none	E11 (D16: the player publishes no Music session)
