@@ -232,7 +232,13 @@ prefs_restore() { # in.tar — with the shell stopped
   assert_eq "restore: the shell's prefs are the backup's files" "$(tar tf "$1" | grep 'shared_prefs/.' | sort | xargs)" "$(adb shell run-as app.tileshell ls shared_prefs | tr -d '\r' | sed 's|^|shared_prefs/|' | sort | xargs)"
 }
 backgrounds() { adb shell run-as app.tileshell ls files/backgrounds 2>/dev/null | tr -d '\r' | grep -v 'No such' | xargs; }
-lock_state() { adb shell dumpsys wallpaper | tr -d '\r' | grep -A1 'Lock wallpaper state' | tail -1 | sed 's/^ *//'; }
+# The lock wallpaper's entry in `dumpsys wallpaper`, or "(no lock wallpaper)". The dump says "no lock wallpaper" two
+# ways — a `(null entry)` line under the header, or no line at all before the next header (seen after lock_clear on
+# 2026-10-06: E5's restore compared "(null entry)" with the next section's title and failed on a cleared wallpaper).
+lock_state() {
+  local l; l="$(adb shell dumpsys wallpaper | tr -d '\r' | grep -A1 'Lock wallpaper state' | tail -1 | sed 's/^ *//')"
+  case "$l" in "User "*) echo "$l" ;; *) echo "(no lock wallpaper)" ;; esac
+}
 # IWallpaperManager.clearWallpaper(callingPackage, which = FLAG_LOCK, userId): transaction 15 on this image (API 36; the
 # Photos builder read it from the device's framework.jar). `cmd wallpaper` has no clear.
 lock_clear() { adb shell service call wallpaper 15 s16 com.android.shell i32 2 i32 0 | tr -d '\r'; }

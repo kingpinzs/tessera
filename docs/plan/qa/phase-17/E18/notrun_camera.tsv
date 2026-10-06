@@ -2,3 +2,4 @@
 # columns: the line pattern <TAB> why no AVD row produces it <TAB> where it is produced
 [camera] devices=<n> front=present	the AVD has ONE emulated back camera and no front camera (E7 asserts devices=1 front=absent and no camera_switch node)	P1 (the phone)
 [camera] slowmo <n> fps captured, encoded at 30 -> <uri>	no high-speed session on the AVD: REQUEST_AVAILABLE_CAPABILITIES holds no CONSTRAINED_HIGH_SPEED_VIDEO (E7 records the key and asserts `[camera] mode slowmo: unavailable (no high-speed session)`)	P11 (the phone); JVM: CameraGatesTest (the gate)
+[camera] capture guard inputs: … starterAtLaunch=<threw X|not available>	the launch answer did not throw in any leg on API 36 (E9 reads granted, denied and not asked); "not available" is API 34 only	JVM: UriAccessRulesTest; an API 34 device (none in this gate)

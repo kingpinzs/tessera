@@ -13,15 +13,12 @@ merged; then the clean build of e5e30678, md5 `c7336aca6b63d61b` (round 1 of the
 Camera's toast fix), which `p17_photos.sh` asserts. By the lead's rule (2026-10-05) a row the fixes do not touch keeps
 its run on an earlier build. The table says which build each row's standing evidence is from.
 
-**The re-run on 95b54303 (branch `phase-17-qa-rerun`, 2026-10-05 19:38 on) stopped after its first row.** TRUST_PHOTOS
-ran and passed. Then the Movies & TV writer's `e23_video.sh` held the device lock; the host was suspended overnight,
-and since it resumed (2026-10-06 07:34) the emulator answers `adb shell date` and file reads but no binder service:
-`dumpsys power`, `activity`, `display` and `SurfaceFlinger` each end in `DUMP TIMEOUT (10000ms) EXPIRED`,
-`adb exec-out screencap -p` never returns, and logcat repeats `IPCThreadState: Binder transaction failure … error: -28
-(No space left on device)` from pid 491 every 16 ms. The lock is still held by that driver, stuck in a screencap. The
-rows below marked "not re-run" are owed on 95b54303 once the emulator is restarted (the lead's or the owner's call: a
-row writer never reboots it). **A run folder of the re-run is in the re-run's worktree**
-(`.claude/worktrees/qa-rerun/docs/plan/qa/phase-17/`), not beside the earlier ones.
+**The re-run on 95b54303 (branch `phase-17-qa-rerun`; TRUST_PHOTOS on 2026-10-05 19:38, the rest on 2026-10-06 09:13
+to 09:43).** Between the two the host was suspended overnight and the emulator answered no binder service for a while
+after the resume (`dumpsys …: DUMP TIMEOUT (10000ms) EXPIRED`, `IPCThreadState: Binder transaction failure … error:
+-28`); it answered again from 09:11 on the same boot, with no restart, and a health check (Awake; `dumpsys activity
+activities` in under a second; a screencap) ran before the first row. **A run folder of the re-run is in the re-run's
+worktree** (`.claude/worktrees/qa-rerun/docs/plan/qa/phase-17/`), not beside the earlier ones.
 
 | Row | Driver | What it changes on the device (all restored and asserted) | A run takes | Recorded instead of asserted, and why |
 |---|---|---|---|---|
@@ -39,16 +36,16 @@ row writer never reboots it). **A run folder of the re-run is in the re-run's wo
 
 | Row | Build | Last run | Folder | Earlier runs (kept) |
 |---|---|---|---|---|
-| E3 | e8c26851 — **not re-run on 95b54303** (owed: the driver now also asserts that no `photos_living:` node exists for the six plain fixtures) | 79 passed, 0 failed, 23 recorded — **with a reading the lead must rule on** (below) | `E3-run2-pass-with-the-VIDEO-reading-79-0-23` | `E3-run1-FAIL-doc-sequence-VIDEO-held-the-link-grants-in-full-no-picker-72-7-22`: the doc's sequence as written |
-| E4 | c7336aca — **not re-run on 95b54303** (owed; the driver is unchanged) | 32 passed, 0 failed, 16 recorded | `E4-run3-pass-build-c7336aca-32-0-16` | run 1 (harness: a tag of ViewerActivity read on Photos' own viewer); `E4-run2-pass-32-0-17` on e8c26851 |
-| E5 | c7336aca — **not re-run on 95b54303** (owed; the driver is unchanged) | 69 passed, 0 failed, 18 recorded | `E5-run3-pass-build-c7336aca-69-0-18` | run 1 (harness: the driver polled the ring while a step ran; that step read maxGapMs=50); `E5-run2-pass-build-e8c26851-69-0-18` |
+| E3 | 95b54303 | 82 passed, 0 failed, 25 recorded — with the same reading the lead must rule on (below); it now also asserts that no `photos_living:` node exists for the six plain fixtures (first dump, and every dump of the scroll) | `E3-build-95b54303-run1-pass-82-0-25` | on e8c26851: `E3-run2-pass-with-the-VIDEO-reading-79-0-23`, and `E3-run1-FAIL-doc-sequence-VIDEO-held-the-link-grants-in-full-no-picker-72-7-22` (the doc's sequence as written) |
+| E4 | 95b54303 | 32 passed, 0 failed, 16 recorded | `E4-build-95b54303-run1-pass-32-0-16` | `E4-run3-pass-build-c7336aca-32-0-16`; run 1 (harness: a tag of ViewerActivity read on Photos' own viewer); `E4-run2-pass-32-0-17` on e8c26851 |
+| E5 | **no passing run on 95b54303** — the standing pass is c7336aca's | on 95b54303: **66 passed, 3 failed**, 18 recorded (run 2) and 67 passed, 2 failed, 18 recorded (run 1) — every failure but one is a slideshow step's timing (below); on c7336aca: 69 passed, 0 failed, 18 recorded | `E5-build-95b54303-run2-FAIL-slideshow-step1-maxGap150-settle228-host-load-9-66-3-18`, `E5-build-95b54303-run1-FAIL-slideshow-step2-maxGap67-and-harness-lock-state-wording-67-2-18`; `E5-run3-pass-build-c7336aca-69-0-18` | run 1 on e8c26851 (harness: the driver polled the ring while a step ran; that step read maxGapMs=50); `E5-run2-pass-build-e8c26851-69-0-18` |
 | E6 | c7336aca | 190 passed, 0 failed, 20 recorded | `E6-run2-pass-190-0-20` | run 1 (harness: the crop drag landed one screen pixel off, 320 × 241) |
 | E6b | c7336aca | 36 passed, 0 failed, 12 recorded | `E6b-run1-pass-36-0-12` | — |
-| E19_PHOTOS | c7336aca — **not re-run on 95b54303** (owed; the driver is unchanged) | 96 passed, 0 failed, 19 recorded | `E19_PHOTOS-run3-pass-96-0-19` | runs 1 and 2 (harness: the screenrecord's frames were not decoded, then the gap matcher was too strict; everything else passed in both) |
+| E19_PHOTOS | 95b54303 | 96 passed, 0 failed, 19 recorded | `E19_PHOTOS-build-95b54303-run1-pass-96-0-19` (before it: `E19_PHOTOS-run3-pass-96-0-19` on c7336aca) | runs 1 and 2 (harness: the screenrecord's frames were not decoded, then the gap matcher was too strict; everything else passed in both) |
 | E23_PHOTOS | e8c26851 | 35 passed, 0 failed, 3 recorded | `E23_PHOTOS-run1-pass-35-0-3` | — |
 | TRUST_PHOTOS | 95b54303 | 74 passed, 0 failed, 37 recorded (2026-10-05 19:38) | `TRUST_PHOTOS-build-95b54303-run1-pass-74-0-37` (in the re-run's worktree) | on c7336aca: `TRUST_PHOTOS-run3-FAIL-leg-j-an-app-holding-READ_MEDIA_IMAGES-is-refused-41-6-26` (leg (j) as round 1 worded it), and runs 1 and 2 (harness: the sender's task was reused; a permission read through a closed pipe) |
-| L1 (dev-living, as a row) | — **not run on 95b54303** (owed; the builder's run, 41 passed, 0 failed, 20 recorded, is `dev-living/L1` in the lead's tree) | — | — | — |
-| L2 (dev-living, as a row) | — **not run on 95b54303** (owed) | — | — | — |
+| L1 (`dev-living/scripts/l1_living.sh`, unchanged, as a row) | 95b54303 | 41 passed, 0 failed, 20 recorded | `dev-living/L1-build-95b54303-run1-pass-41-0-20` (in the re-run's worktree) | the builder's own run: `dev-living/L1` in the lead's tree |
+| L2 (`dev-living/scripts/l2_hostile.sh`, unchanged, as a row) | 95b54303 | 20 passed, 0 failed, 6 recorded | `dev-living/L2-build-95b54303-run1-pass-20-0-6` (in the re-run's worktree) | the builder's own run: `dev-living/L2` in the lead's tree |
 | EDGE_FILE_GONE | c7336aca | 24 passed, 0 failed, 7 recorded | `EDGE_FILE_GONE-run2-pass-24-0-7` | run 1 (harness: `ls` through /sdcard still names the file) |
 | EDGE_REVOKE_VIEWER | c7336aca | 21 passed, 0 failed, 6 recorded | `EDGE_REVOKE_VIEWER-run1-pass-21-0-6` | — |
 | EDGE_KILL_PHOTOSEDIT | c7336aca | 18 passed, 0 failed, 7 recorded | `EDGE_KILL_PHOTOSEDIT-run1-pass-18-0-7` | — |
@@ -60,6 +57,18 @@ No run of these rows was in flight when the host's disk filled (about 14:34): th
 
 ## For the lead to rule
 
+0. **E5 has no passing run on 95b54303: a slideshow step's timing, twice, on a loaded host.** Run 1 (09:17): step 2
+   `[motion] slideshow_step t0=362365347 peak=244 overshoot=0 settle=244 frames=12 maxGapMs=67` (steps 1 and 3:
+   `frames=15 maxGapMs=17`). Run 2 (09:39): step 1 `… peak=228 overshoot=0 settle=228 frames=5 maxGapMs=150` and step 2
+   `… settle=227 frames=15 maxGapMs=17` (settle outside 250 ± 17). Every other clause of the row passes in both runs
+   (share, delete, background, lock screen, the 5-s interval, the restores). The host's load average was 7 to 12
+   through the second run (an `ollama` `llama-server` at 560–660 % CPU, started about 09:27 — not a process of these
+   rows); the first run's hitch came before that process started. E19_PHOTOS, between the two (09:21), read
+   `slideshow_step … settle=245 frames=15 maxGapMs=17`. The assertions are not loosened; whether this is the host or
+   the build (Living Images added a read per picture shown) the two runs cannot say — it needs a run on a quiet host.
+   Run 1's second failure was the harness's: after the row cleared the lock wallpaper, `dumpsys wallpaper` printed no
+   entry at all under "Lock wallpaper state:" where before it printed `(null entry)`; `p17_photos.sh`'s `lock_state`
+   now reads both as "(no lock wallpaper)" (run 2 passes that clause).
 1. **E3, the partial leg — the doc's sequence cannot reach the picker on this device.** The row revokes READ_MEDIA_IMAGES
    only, grants READ_MEDIA_VISUAL_USER_SELECTED and expects the link to open the selected-photos picker. With
    READ_MEDIA_VIDEO still held (the baseline holds it), Android answers the link's permission request at once and in
