@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Declared, never granted at install: the row grants it with `pm grant` for the one leg that needs it. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <queries>
+        <package android:name="app.tileshell" />
+    </queries>
+
+    <application
+        android:icon="@android:drawable/sym_def_app_icon"
+        android:label="QA Photo View">
+
+        <!-- No LAUNCHER entry: it never shows in the shell's app list. Started by the row with `am start -n`. -->
+        <activity
+            android:name=".ViewProbeActivity"
+            android:exported="true" />
+
+        <!-- Its own picture, reached by another app only through a URI grant this app gives. -->
+        <provider
+            android:name=".OwnPictureProvider"
+            android:authorities="app.tileshell.testclient.qaphotoview.own"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+    </application>
+</manifest>
