@@ -73,7 +73,6 @@ import app.tileshell.calculator.InkText
 import app.tileshell.clock.ClockMetrics
 import app.tileshell.diag.Diagnostics
 import app.tileshell.feeds.PhotosFeed
-import app.tileshell.media.ContentUriText
 import app.tileshell.media.UriAccessPort
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.MotionClock
@@ -115,27 +114,16 @@ class ViewerNav {
         private set
 
     /**
-     * @param launchedFromUid `Activity.getLaunchedFromUid()`, null when the platform does not say
-     * @param hadAccessAtLaunch the platform's answer for the launcher, by URI text ([ViewerRules.open])
-     * The intent's data is turned to its string once; the rule's scheme and authority and the URI that is opened both
-     * come from that one text.
+     * Takes [ViewerRules.state]'s answer for this launch and nothing else: the rule reads who started the activity from
+     * [access], decides, and names the one URI that may be opened. No decision is made here.
      */
-    fun open(intent: Intent?, launchedFromUid: Int?, shellUid: Int, access: UriAccessPort, hadAccessAtLaunch: (String) -> Boolean) {
+    fun open(intent: Intent?, access: UriAccessPort) {
         mime = runCatching { intent?.type }.getOrNull()
-        val named = runCatching { intent?.data?.toString() }.getOrNull()?.let(ContentUriText::parse)?.takeIf { it.scheme == "content" }
-        if (named == null) {
-            uri = null
-            refused = false
-            mayChange = false
-            return
-        }
-        val decision = runCatching { ViewerRules.open(named, launchedFromUid, shellUid, access, hadAccessAtLaunch) }
-            .getOrElse { ViewerRules.Open(show = false, mayChange = false, line = ViewerRules.LINE_NO_GRANT, request = "viewer request unreadable (${it.javaClass.simpleName})") }
-        Diagnostics.add("photosapp", decision.request)
-        decision.line?.let { Diagnostics.add("photosapp", it) }
-        refused = !decision.show
-        mayChange = decision.show && decision.mayChange
-        uri = if (decision.show) Uri.parse(named.text) else null
+        val state = ViewerRules.state({ intent?.data?.toString() }, access)
+        state.lines.forEach { Diagnostics.add("photosapp", it) }
+        refused = state.refused
+        mayChange = state.mayChange
+        uri = state.uri?.let(Uri::parse)
     }
 }
 
@@ -205,7 +193,8 @@ private fun BoxScope.ViewerError() {
  * 50-epx date header and the 48-epx black bar over it, a swipe to the next and previous picture with a 20-epx gap,
  * pinch and double-tap zoom, and the actions. It opens by expanding from [origin] (the tapped tile) and closes by
  * shrinking back to the tile [tileBounds] gives for the picture then shown. [mayChange] is false in the viewer another
- * app opened: Edit, Delete and Set as are then not offered ([ViewerRules.actions]).
+ * app opened: Edit, Delete and Set as are then not offered ([ViewerRules.actions]). It has no default: every caller
+ * says which it is (C2-M1).
  *
  * A still that is a Living Image (build task 6d; [LivingImages]) carries the glyph `viewer_living` in the header, and a
  * press-and-hold on it plays its clip in place over the still ([LivingPlayback]) until the finger lifts or the clip
@@ -220,7 +209,7 @@ fun BoxScope.PhotoViewer(
     startSlideshow: Boolean,
     tileBounds: (ViewerItem) -> Rect?,
     activity: ComponentActivity,
-    mayChange: Boolean = true,
+    mayChange: Boolean,
     onClosed: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()

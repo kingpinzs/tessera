@@ -124,12 +124,33 @@ jobs:
       - name: Name the APK
         id: apk
         run: |
-          src="$(find app/build/outputs/apk -name '*.apk' | head -1)"
+          # The APK of the variant this run built, by its own output path - never "whichever APK is found first"
+          # (phase 17 trust review C2-L6): a stale or other-variant APK in the outputs must not be the one published.
+          variant="${{ steps.signing.outputs.variant }}"
+          src="app/build/outputs/apk/$variant/app-$variant.apk"
+          if [ ! -f "$src" ]; then
+            echo "::error title=No APK::$src was not built"
+            exit 1
+          fi
           name="tessera-${{ github.run_number }}-$(git rev-parse --short HEAD)-${{ steps.signing.outputs.variant }}.apk"
           mkdir -p out && cp "$src" "out/$name"
           echo "path=out/$name" >> "$GITHUB_OUTPUT"
           echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "- \`$name\` ($(du -h "out/$name" | cut -f1))" >> "$GITHUB_STEP_SUMMARY"
+
+      # What is published must not be debuggable (C2-L6; phase 01: "phone installs are always release-signed and
+      # non-debuggable"). Asked of the APK itself, not of the variant's name: the job fails here, before the release
+      # page is touched, when the APK's own manifest says it is debuggable or cannot be read.
+      - name: Refuse a debuggable APK
+        if: ${{ steps.signing.outputs.variant == 'release' }}
+        run: |
+          aapt2="$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)"
+          badging="$("$aapt2" dump badging "${{ steps.apk.outputs.path }}")"
+          if [ -z "$badging" ] || printf '%s\n' "$badging" | grep -q '^application-debuggable'; then
+            echo "::error title=Debuggable APK::The APK to publish is debuggable, or its badging could not be read. Nothing is published."
+            exit 1
+          fi
+          echo "- not debuggable (aapt2 dump badging holds no application-debuggable line)" >> "$GITHUB_STEP_SUMMARY"
 
       # THE fingerprint, printed where a human will see it. A debug build is signed with
       # ~/.android/debug.keystore, which the Android Gradle Plugin GENERATES if it is missing — and a
