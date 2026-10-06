@@ -61,6 +61,7 @@ import app.tileshell.video.server.ServerAddress
 import app.tileshell.video.server.ServerConfig
 import app.tileshell.video.server.ServerItem
 import app.tileshell.video.server.ServerRules
+import app.tileshell.video.server.ServerSettingsView
 import app.tileshell.video.server.ServerState
 import app.tileshell.video.server.SignInAction
 import kotlinx.coroutines.launch
@@ -162,37 +163,54 @@ fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?,
     }
 }
 
-/** The setting's page: the form while no server is set up, else the server and "Remove this server". Tags: `server_current`, `server_remove`. */
+/**
+ * The setting's page ([ServerRules.settingsView]): the server and "Remove this server" while one is set up; the form
+ * while none is; and, when an entry is still stored under the server's name without being a set-up server (a save or a
+ * removal cut in half, B2-M1), a line saying so with the same Remove above the form. Remove reloads the page from the
+ * store, so a removal that did not work leaves Remove on the page.
+ *
+ * Tags: `server_current`, `server_left_over`, `server_remove`.
+ */
 @Composable
 fun ServerSettingsPage(nav: VideoNav) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var config by remember { mutableStateOf<ServerConfig?>(null) }
+    var view by remember { mutableStateOf(ServerSettingsView.FORM) }
     var loaded by remember { mutableStateOf(false) }
     suspend fun reload() {
-        val (setUp, cfg) = VideoCalls.io("server read", false to null) { MediaServer(context).let { it.isSetUp() to it.config() } }
+        val (setUp, held, cfg) = VideoCalls.io("server read", Triple(false, false, null)) { MediaServer(context).let { Triple(it.isSetUp(), it.entryHeld(), it.config()) } }
         nav.serverSetUp = setUp
         config = if (setUp) cfg else null
+        view = ServerRules.settingsView(setUp, held)
         loaded = true
+    }
+    val removeButton: @Composable () -> Unit = {
+        Row(Modifier.padding(top = 16.dp)) {
+            HubButton("Remove this server", "server_remove") {
+                scope.launch {
+                    VideoCalls.io("server remove", false) { MediaServer(context).remove() }
+                    reload()
+                }
+            }
+        }
     }
     LaunchedEffect(nav.resumes) { reload() }
     Column(Modifier.fillMaxSize().focusable().verticalScroll(rememberScrollState()).padding(start = 12.dp, end = 12.dp, top = 16.dp).testTag("hub_page:server")) {
         if (!loaded) return@Column
         val cfg = config
-        if (cfg == null) {
+        if (view == ServerSettingsView.SERVER && cfg != null) {
+            BasicText("${cfg.label} — signed in as ${cfg.userName}", Modifier.testTag("server_current"), style = ShellType.body.copy(color = Color.White))
+            if (ServerRules.offersRemove(view)) removeButton()
+        } else {
+            if (ServerRules.offersRemove(view)) {
+                BasicText(ServerRules.TEXT_LEFT_OVER, Modifier.testTag("server_left_over"), style = ShellType.body.copy(color = Color.White))
+                removeButton()
+                Spacer(Modifier.height(24.dp))
+            }
             BasicText("Add a server", Modifier.padding(bottom = 4.dp), style = ShellType.subtitle.copy(color = Color.White))
             BasicText("Your own Jellyfin server. The password is used once to sign in and is not kept.", Modifier.padding(bottom = 16.dp), style = ShellType.body.copy(color = LocalShellColors.current.subtleText))
             AddServerForm("", "", null) { nav.serverSetUp = true; nav.go(HubPage.MEDIA_SERVER) }
-        } else {
-            BasicText("${cfg.label} — signed in as ${cfg.userName}", Modifier.testTag("server_current"), style = ShellType.body.copy(color = Color.White))
-            Row(Modifier.padding(top = 16.dp)) {
-                HubButton("Remove this server", "server_remove") {
-                    scope.launch {
-                        VideoCalls.io("server remove", Unit) { MediaServer(context).remove() }
-                        reload()
-                    }
-                }
-            }
         }
     }
 }

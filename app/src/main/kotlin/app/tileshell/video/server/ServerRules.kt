@@ -6,6 +6,7 @@ import app.tileshell.video.catalogue.CatalogueRules
 import app.tileshell.net.jsonArray
 import app.tileshell.net.jsonObject
 import app.tileshell.net.jsonString
+import app.tileshell.video.VideoLines
 import java.util.Locale
 
 /**
@@ -23,6 +24,14 @@ enum class SignInAction { ASK, SEND, NOTHING }
 
 /** The user's answer to "This server isn't secure". */
 enum class PromptAnswer { CONTINUE, CANCEL }
+
+/** A sign-in's answer, read: the token and the user's id. [toString] holds neither (B2-L1). */
+data class SignIn(val token: String, val userId: String) {
+    override fun toString(): String = "SignIn"
+}
+
+/** What the Media server setting shows: see [ServerRules.settingsView]. */
+enum class ServerSettingsView { SERVER, LEFT_OVER, FORM }
 
 /** How a sign-in or a library read ended (`[video] server <host>: connected | unreachable | unauthorised`). */
 enum class ServerState(val word: String) { CONNECTED("connected"), UNREACHABLE("unreachable"), UNAUTHORISED("unauthorised") }
@@ -145,7 +154,10 @@ object ServerRules {
     fun signInAgainPrefill(saved: ServerConfig?): String = saved?.address?.takeIf { it.isNotBlank() } ?: saved?.label.orEmpty()
 
     /** `[video] server <host>: <state>` — the host and the state only. */
-    fun line(label: String, state: String): String = "server $label: $state"
+    fun line(label: String, state: String): String = "server ${VideoLines.text(label)}: $state"
+
+    /** `[video] server stream <address>`: the address with its query string — the token's place — removed (C-32). */
+    fun streamLine(url: String): String = "server stream ${VideoLines.text(withoutQuery(url), VideoLines.ADDRESS_MAX)}"
 
     /** A sign-in's or a read's HTTP status as a state: 401 and 403 are the server refusing who we are. */
     fun stateOf(status: Int): ServerState = when (status) {
@@ -174,11 +186,11 @@ object ServerRules {
      * either is missing, when the token is anything but a plain token (letters, digits, `.`, `_`, `-`: it is sent in a
      * header and in a stream's query), or when the user's id is not an id (it becomes part of an address). B-1.
      */
-    fun parseSignIn(body: String): Pair<String, String>? {
+    fun parseSignIn(body: String): SignIn? {
         val o = MiniJson.parseOrNull(body).jsonObject() ?: return null
         val token = o.jsonString("AccessToken")?.takeIf(HeaderText::isSafeToken) ?: return null
         val user = o["User"].jsonObject()?.jsonString("Id")?.takeIf(SAFE_ID::matches) ?: return null
-        return token to user
+        return SignIn(token, user)
     }
 
     /** `GET /Items?userId=…` → the library's videos, in the server's order. */
@@ -201,12 +213,20 @@ object ServerRules {
     /** Direct play (BS-5): the address the player is given. The token is NOT in it — the player's data source adds `ApiKey`. */
     fun streamUrl(base: String, itemId: String): String = "$base/Videos/$itemId/stream?static=true"
 
+    /**
+     * Whether a source could be a media server's direct-play address at all: http(s), and a path that ends `/stream`.
+     * Only such a source is ever looked at for the token ([mayCarryToken] then decides, per request).
+     */
+    fun couldBeStream(scheme: String?, path: String?): Boolean =
+        (scheme.equals("http", ignoreCase = true) || scheme.equals("https", ignoreCase = true)) && path?.endsWith("/stream") == true
+
     private val STREAM_PATH = Regex("/Videos/[0-9A-Fa-f-]{1,64}/stream")
 
     /**
      * Whether the player may add the server's token to a request: only for the direct-play path, only on the saved
-     * server's own scheme, host and port, and only when the address carries no `ApiKey` of its own. So the token can
-     * never be attached to an address another app made up for another host.
+     * server's own scheme, host and port, and only when the address carries no `ApiKey` / `api_key` of its own — the
+     * key's name read as the server would read it: percent-decoded, in any case, separated by `&` or `;` (B2-L6). So
+     * the token can never be attached to an address another app made up for another host.
      */
     fun mayCarryToken(url: String, savedBase: String): Boolean {
         val (origin, rest) = split(url) ?: return false
@@ -215,7 +235,8 @@ object ServerRules {
         val path = rest.substringBefore('?').substringBefore('#')
         val query = rest.substringAfter('?', "").substringBefore('#')
         if (!STREAM_PATH.matches(path)) return false
-        return query.split('&').none { it.substringBefore('=').equals("ApiKey", ignoreCase = true) || it.substringBefore('=').equals("api_key", ignoreCase = true) }
+        // The caller's own key, however it is spelled (B2-L6): percent-encoded, in any case, after `&` or `;`.
+        return query.split('&', ';').none { isKeyParameter(it.substringBefore('=')) }
     }
 
     /**
@@ -227,18 +248,52 @@ object ServerRules {
         return origin == split(base)?.first
     }
 
-    /** A sealed server's parts as one text, and back. Null from [openCredential] when any part is not what it must be. */
-    fun sealCredential(credential: ServerCredential): String =
-        MiniJson.write(linkedMapOf("token" to credential.token, "base" to credential.base, "userId" to credential.userId))
+    /**
+     * A sealed server's parts as one text, and back. [pair] is the save's own id, written into the pages' file too
+     * ([isPair]): it is what says the two belong to one save (B2-M1). Null from [openCredential] when any part is not
+     * what it must be — so the bare token an earlier build stored, and an entry sealed before the pair id was kept,
+     * are not sealed servers.
+     */
+    fun sealCredential(credential: ServerCredential, pair: String): String =
+        MiniJson.write(linkedMapOf("token" to credential.token, "base" to credential.base, "userId" to credential.userId, "pair" to pair))
 
-    fun openCredential(text: String): ServerCredential? {
+    fun openCredential(text: String): SealedServer? {
         val o = MiniJson.parseOrNull(text).jsonObject() ?: return null
         val token = o.jsonString("token")?.takeIf(HeaderText::isSafeToken) ?: return null
         // A server's address and nothing more: http(s), a host, a port — no user part, no path, no query.
         val base = o.jsonString("base")?.takeIf { parse(it) != null && it.contains("://") } ?: return null
         val userId = o.jsonString("userId")?.takeIf(SAFE_ID::matches) ?: return null
-        return ServerCredential(token, base, userId)
+        val pair = o.jsonString("pair")?.takeIf(::isPair) ?: return null
+        return SealedServer(ServerCredential(token, base, userId), pair)
     }
+
+    private val PAIR = Regex("[0-9a-f]{32}")
+
+    /** A save's id: 32 hex digits, made new for every save. Not a secret — it names nothing and opens nothing. */
+    fun isPair(value: String): Boolean = PAIR.matches(value)
+
+    /**
+     * Whether the sealed server and the pages' file are ONE saved server (B2-M1): both are there and carry the same
+     * save's id. Anything else — no file (a save cut in half, a removal that could not clear the entry), a file from
+     * another save — is not a set-up server, and no token is given for it.
+     */
+    fun paired(sealedPair: String?, filePair: String?): Boolean = sealedPair != null && isPair(sealedPair) && sealedPair == filePair
+
+    const val TEXT_LEFT_OVER = "A saved sign-in that isn't in use is still on this phone. Remove it, or sign in again."
+
+    /**
+     * What the Media server setting shows (B2-M1). Whenever an entry is stored under the server's name — whether or
+     * not it is a whole saved server — the page offers "Remove this server" ([offersRemove]), so a half-saved or
+     * half-removed state can always be cleared by hand: the server itself while one is set up, else [TEXT_LEFT_OVER]
+     * above the sign-in form, else the form alone.
+     */
+    fun settingsView(setUp: Boolean, entryHeld: Boolean): ServerSettingsView = when {
+        setUp -> ServerSettingsView.SERVER
+        entryHeld -> ServerSettingsView.LEFT_OVER
+        else -> ServerSettingsView.FORM
+    }
+
+    fun offersRemove(view: ServerSettingsView): Boolean = view != ServerSettingsView.FORM
 
     /** `scheme://authority` in lower case with the scheme's default port made explicit, and what follows it. */
     private fun split(url: String): Pair<String, String>? {
@@ -257,15 +312,26 @@ object ServerRules {
 
     /**
      * The address the player REPORTS for a request it opened (B-5): the same address with any `ApiKey` / `api_key`
-     * parameter taken out, so the token the data source added is in nothing the player hands on — an error, a load
+     * parameter taken out — after `&` or after `;` — so the token the data source added is in nothing the player hands on — an error, a load
      * event, a listener.
      */
     fun reportedUrl(url: String): String {
         val q = url.indexOf('?')
         if (q < 0) return url
         val hash = url.indexOf('#', q).let { if (it < 0) url.length else it }
-        val kept = url.substring(q + 1, hash).split('&').filterNot { isKeyParameter(it.substringBefore('=')) }
-        return url.substring(0, q) + (if (kept.isEmpty()) "" else "?" + kept.joinToString("&")) + url.substring(hash)
+        // Each parameter with the separator before it, `&` or `;` (B2-L6); what is kept keeps its own separator.
+        val kept = mutableListOf<String>()
+        var start = q + 1
+        var separator = ""
+        while (true) {
+            val end = (start until hash).firstOrNull { url[it] == '&' || url[it] == ';' } ?: hash
+            val parameter = url.substring(start, end)
+            if (!isKeyParameter(parameter.substringBefore('='))) kept += if (kept.isEmpty()) parameter else separator + parameter
+            if (end >= hash) break
+            separator = url[end].toString()
+            start = end + 1
+        }
+        return url.substring(0, q) + (if (kept.isEmpty()) "" else "?" + kept.joinToString("")) + url.substring(hash)
     }
 
     /** `ApiKey` or `api_key` in any case, as written or percent-encoded. */

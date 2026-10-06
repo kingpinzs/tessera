@@ -12,15 +12,28 @@ object HeaderText {
     /** What a pasted secret may be: longer than this is not a key. */
     const val MAX_SECRET = 2000
 
+    /**
+     * How many characters the key's field keeps (B2-L7): ONE MORE than a key may have. A field that cut a paste at
+     * [MAX_SECRET] would hand [pastedSecret] a cut key that looks whole; with one more, anything the field cut is
+     * still over the cap when it gets there, and is refused.
+     */
+    const val FIELD_MAX = MAX_SECRET + 1
+
     const val TEXT_BAD_SECRET = "That isn't a key: it holds a space, a line break or a character a key can't have. Nothing was saved."
 
     /**
      * A secret as the user pasted it, ready to store: the ends trimmed, and then printable ASCII only with no space
      * inside (0x21–0x7e). Null — store nothing — for an empty value and for one holding anything else: an interior
      * space, tab, CR, LF, another control character, 0x7f, or a character outside ASCII.
+     *
+     * A paste longer than [MAX_SECRET] is REFUSED, never cut to fit (B2-L7) — and it is the whole paste that is
+     * measured, the white space at its ends included: the field keeps [FIELD_MAX] characters, so a text of that length
+     * may be a longer one already cut, and trimming it first would let a cut key through.
      */
-    fun pastedSecret(typed: String): String? =
-        typed.trim().takeIf { it.isNotEmpty() && it.length <= MAX_SECRET && it.all { c -> c in '!'..'~' } }
+    fun pastedSecret(typed: String): String? {
+        if (typed.length > MAX_SECRET) return null
+        return typed.trim().takeIf { it.isNotEmpty() && it.all { c -> c in '!'..'~' } }
+    }
 
     private val SAFE_TOKEN = Regex("[A-Za-z0-9._-]{1,1024}")
 

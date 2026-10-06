@@ -25,6 +25,31 @@ class PlayerAccessTest {
         assertEquals(-1, PlayerAccess.UNKNOWN_UID)
     }
 
+    // ---- B2-M2: the saved media server's token rides only on the shell's own launch
+
+    @Test fun `the server's token is resolved only for the shell's own launch of a source that could be a stream`() {
+        val other = 10999
+        fun use(launchedFrom: Int, stream: Boolean) = PlayerAccess.serverToken(PlayerAccess.isOwnUid(launchedFrom, shell), stream)
+        // Own launch (the hub's Media server page): the resolver.
+        assertEquals(ServerTokenUse.RESOLVE, use(shell, true))
+        // Another app's launch, with its uid known (it shared its identity): no token, and the line.
+        assertEquals(ServerTokenUse.NOT_GIVEN, use(other, true))
+        // Android did not say who launched (any ordinary app, a link, adb): no token, and the line.
+        assertEquals(ServerTokenUse.NOT_GIVEN, use(PlayerAccess.UNKNOWN_UID, true))
+        // A source that could never be a server's stream: nothing to resolve and nothing to say, whoever launched.
+        for (from in listOf(shell, other, PlayerAccess.UNKNOWN_UID)) assertEquals("$from", ServerTokenUse.NONE, use(from, false))
+        assertEquals("server token not given: not the shell's own launch", PlayerAccess.LINE_TOKEN_NOT_GIVEN)
+    }
+
+    @Test fun `a source could be a server's stream only as http or https with a path ending in stream`() {
+        val rules = app.tileshell.video.server.ServerRules
+        assertTrue(rules.couldBeStream("http", "/Videos/e90356d9dbdedc30a27710927ef3ac87/stream"))
+        assertTrue(rules.couldBeStream("HTTPS", "/Videos/e9/stream"))
+        for ((scheme, path) in listOf("content" to "/Videos/e9/stream", "file" to "/Videos/e9/stream", null to "/Videos/e9/stream", "http" to "/Videos/e9/stream.mp4", "http" to "/qa-steps.mp4", "http" to null, "http" to "")) {
+            assertFalse("$scheme $path", rules.couldBeStream(scheme, path))
+        }
+    }
+
     @Test fun `every combination of scheme, own uid and caller-may-read`() {
         val table = listOf(
             // scheme, own, mayRead -> decision
