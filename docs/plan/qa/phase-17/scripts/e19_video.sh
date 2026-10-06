@@ -97,7 +97,8 @@ set -- $(epx "$D/caps.xml" "video_caption:$LID"); CL="${1:-0}"; CR="${3:-0}"; CH
 set -- $(epx "$D/caps.xml" "video_caption:$ID"); H1="$(python3 -c "print(round(${4:-0} - ${2:-0}, 1))")"
 record "a long caption's box (left, right, height) and a one-line caption's height (epx)" "$CL $CR $CH / $H1"
 assert_near "a caption starts at its tile's left and is clipped at tile left + 100" "$TL $(python3 -c "print($TL + 100)")" "$CL $CR" 1
-assert_eq "a long caption wraps, and to no more than 2 lines (its height against a one-line caption's)" "yes" "$(python3 -c "print('yes' if $H1 > 0 and $H1 * 1.5 < $CH <= $H1 * 2 + 1 else 'no')")"
+# Two lines are one line's box plus one line pitch (38.6 against 18.0 epx on this build); a third line would add another.
+assert_eq "a long caption wraps, and to no more than 2 lines (its box is more than 1.5 and less than 2.5 one-line boxes)" "yes" "$(python3 -c "print('yes' if $H1 > 0 and $H1 * 1.5 < $CH < $H1 * 2.5 else 'no')")"
 
 # ------------------------------------------------------------------------------------------------ the pane
 log "--- the ≡ pane"
@@ -125,7 +126,8 @@ GLYPH="$(python3 - "$D/pane.png" $(( (STATUS + 48) * 3 )) $(( (STATUS + 96) * 3 
 import sys
 from PIL import Image
 im = Image.open(sys.argv[1]).convert("RGB"); top, bottom = int(sys.argv[2]), int(sys.argv[3]); px = im.load()
-xs = [x for x in range(18, 132) for y in range(top + 6, bottom - 6) if min(px[x, y]) > 150]
+# The glyph's ink: whatever differs from the pane's fill, right of the 4-epx accent bar and left of the label (x 48).
+xs = [x for x in range(18, 132) for y in range(top + 6, bottom - 6) if max(abs(c - 23) for c in px[x, y]) > 60]
 print("%.1f" % ((min(xs) + max(xs) + 1) / 6) if xs else "")
 PY
 )"

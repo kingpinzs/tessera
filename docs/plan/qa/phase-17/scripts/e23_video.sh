@@ -75,13 +75,13 @@ hold_video v2-browse "My videos,Browse" 2 "$LINE2" 1
 assert_eq "Browse: VideoActivity is resumed" "$VIDEO_ACTIVITY" "$(top_activity)"
 assert_eq "Browse: its pane row is current (hub_pane:browse)" "browse" "$(pane_current "$D/v2-browse-app")"
 c6; ensure_start
-shortcut_table "$D/shortcuts-none.tsv"
+shortcut_table "$D/shortcuts-none.tab"
 of() { awk -F'\t' -v a="$VA_FLAT" '$1==a {print $2 "=" $3}' "$1" | sort | tr '\n' ' ' | sed 's/ $//'; }
 flags_of() { awk -F'\t' -v i="$2" '$3==i {print $4}' "$1"; }
-assert_eq "dumpsys shortcut: video_myvideos rank 0, video_browse rank 1, and no video_mediaserver" "0=video_myvideos 1=video_browse" "$(of "$D/shortcuts-none.tsv")"
-assert_contains "dumpsys shortcut: video_myvideos is a manifest shortcut" "Man" "$(flags_of "$D/shortcuts-none.tsv" video_myvideos)"
-assert_contains "dumpsys shortcut: video_browse is a manifest shortcut" "Man" "$(flags_of "$D/shortcuts-none.tsv" video_browse)"
-assert_eq "dumpsys shortcut: no video_ id on another activity" "0" "$(awk -F'\t' -v a="$VA_FLAT" '$1!=a && $3 ~ /^video_/' "$D/shortcuts-none.tsv" | grep -c .)"
+assert_eq "dumpsys shortcut: video_myvideos rank 0, video_browse rank 1, and no video_mediaserver" "0=video_myvideos 1=video_browse" "$(of "$D/shortcuts-none.tab")"
+assert_contains "dumpsys shortcut: video_myvideos is a manifest shortcut" "Man" "$(flags_of "$D/shortcuts-none.tab" video_myvideos)"
+assert_contains "dumpsys shortcut: video_browse is a manifest shortcut" "Man" "$(flags_of "$D/shortcuts-none.tab" video_browse)"
+assert_eq "dumpsys shortcut: no video_ id on another activity" "0" "$(awk -F'\t' -v a="$VA_FLAT" '$1!=a && $3 ~ /^video_/' "$D/shortcuts-none.tab" | grep -c .)"
 
 # ------------------------------------------------------------------------------------------------ the server
 log "--- this row's own server set-up, inside the egress guard"
@@ -94,11 +94,14 @@ c6; ensure_start
 hold_video v3 "My videos,Browse,Media server" 3 "$LINE3" 2
 record "the third satellite's tap: on top, and the pane's current row" "$(top_activity) $(pane_current "$D/v3-app")"
 c6; ensure_start
-shortcut_table "$D/shortcuts-server.tsv"
-assert_eq "dumpsys shortcut: the three ids on VideoActivity" "0=video_myvideos 1=video_browse 2=video_mediaserver" "$(of "$D/shortcuts-server.tsv" | sed 's/[0-9]*=video_mediaserver/2=video_mediaserver/')"
-record "dumpsys shortcut: video_mediaserver's rank and flags" "$(awk -F'\t' '$3=="video_mediaserver" {print $2 " [" $4 "]"}' "$D/shortcuts-server.tsv")"
-assert_contains "dumpsys shortcut: video_mediaserver is a dynamic shortcut" "Dyn" "$(flags_of "$D/shortcuts-server.tsv" video_mediaserver)"
-assert_eq "… whose activity is .video.VideoActivity" "$VA_FLAT" "$(awk -F'\t' '$3=="video_mediaserver" {print $1}' "$D/shortcuts-server.tsv")"
+shortcut_table "$D/shortcuts-server.tab"
+# The doc fixes the two manifest ranks and that the dynamic one exists on this activity; the dynamic shortcut's own rank
+# is Android's (dynamic ranks are counted apart from manifest ones) and is recorded below.
+assert_eq "dumpsys shortcut: the three ids on VideoActivity" "video_browse video_mediaserver video_myvideos" "$(awk -F'\t' -v a="$VA_FLAT" '$1==a {print $3}' "$D/shortcuts-server.tab" | sort | xargs)"
+assert_contains "dumpsys shortcut: the two manifest ranks are unchanged" "0=video_myvideos 1=video_browse" "$(of "$D/shortcuts-server.tab" | tr ' ' '\n' | grep -v mediaserver | xargs)"
+record "dumpsys shortcut: video_mediaserver's rank and flags" "$(awk -F'\t' '$3=="video_mediaserver" {print $2 " [" $4 "]"}' "$D/shortcuts-server.tab")"
+assert_contains "dumpsys shortcut: video_mediaserver is a dynamic shortcut" "Dyn" "$(flags_of "$D/shortcuts-server.tab" video_mediaserver)"
+assert_eq "… whose activity is .video.VideoActivity" "$VA_FLAT" "$(awk -F'\t' '$3=="video_mediaserver" {print $1}' "$D/shortcuts-server.tab")"
 
 # ------------------------------------------------------------------------------------------------ the Music tile
 log "--- the Music tile, while the dynamic shortcut exists"
@@ -119,8 +122,8 @@ tap_node "$D/rm.xml" server_remove; sleep 1.8
 assert_contains "removed: [video] shortcut mediaserver removed" "[video] shortcut mediaserver removed" "$(vring "$MARK")"
 c6; ensure_start
 hold_video v2-again "My videos,Browse" 2 "$LINE2"
-shortcut_table "$D/shortcuts-after.tsv"
-assert_eq "dumpsys shortcut: back to the two static ones" "0=video_myvideos 1=video_browse" "$(of "$D/shortcuts-after.tsv")"
+shortcut_table "$D/shortcuts-after.tab"
+assert_eq "dumpsys shortcut: back to the two static ones" "0=video_myvideos 1=video_browse" "$(of "$D/shortcuts-after.tab")"
 
 log "--- restore"
 assert_absent "the server is removed from the store" "jellyfin" "$(cred_names)"

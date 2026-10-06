@@ -36,7 +36,9 @@ ensure_start
 
 # ------------------------------------------------------------------------------------------------ the tile
 log "--- the tile on My videos"
+MARK0="$(ring_mark)"
 hub myvideos 2.5
+assert_contains "the :video slice holds [video] library: <the census + this row's one fixture>" "[video] library: $((CENSUS_VIDEO + 1))" "$(vring "$MARK0")"
 assert_eq "the pane's current row is hub_pane:myvideos (selected)" "myvideos" "$(pane_current "$D/pane")"
 scroll_to_node "$D/mine.xml" "video_tile:$ID" 12
 assert_eq "the My videos page is the one read" "yes" "$(has_node "$D/mine.xml" hub_page:myvideos)"
@@ -56,6 +58,7 @@ shot_at "${T0:-0}" 3500 "$D/at-3.5s.png"
 record "the screencap for t = 3.5 s returned (ms after the [video] playing line)" "$SHOT_DONE"
 assert_eq "it plays in app.tileshell/.video.PlayerActivity (top_activity)" "$PLAYER_ACTIVITY" "$(top_activity)"
 assert_pixel_rule "t = 3.5 s" 3 "$SHOT_RGB"
+assert_contains "the :video slice holds [video] playing scheme=content" "[video] playing scheme=content" "$(vring "$MARK")"
 
 # ------------------------------------------------------------------------------------------------ routing, session
 LL="$(await_lline "$MARK" "[music] session app.tileshell id=video" 60)"
