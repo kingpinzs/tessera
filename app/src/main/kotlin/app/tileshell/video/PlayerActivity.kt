@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
-import android.os.Process
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.view.SurfaceView
@@ -31,6 +30,7 @@ import androidx.media3.datasource.HttpDataSource
 import app.tileshell.bars.hideSystemBars
 import app.tileshell.diag.Diagnostics
 import app.tileshell.diag.RemoteRings
+import app.tileshell.media.AndroidUriAccess
 import app.tileshell.ui.setShellAppContent
 import app.tileshell.video.server.MediaServer
 import app.tileshell.video.server.ServerRules
@@ -80,13 +80,15 @@ interface PlayerActions {
  * plays in, and what `ACTION_VIEW` on a video from another app opens. A helper in standard launch mode in `:video`, so
  * it runs in its caller's task and is not a catalog entry. Exported, so it is on qa/phase-03/exported-allowlist.txt.
  *
- * TRUST-TOUCHING (C-M4): a source is opened with the shell's identity, so who started the player decides what it may
- * name ([PlayerAccess], read once in `onCreate` from `getLaunchedFromUid()`): `http(s)://` from anyone; `file://` —
- * under the shell's own directories only — and `EXTRA_QUEUE` from the shell's own uid alone; `content://` from the
- * shell, and from another app only when that app could read it itself ([AndroidPlayerCaller]), else "Can't play this
- * address" and `[video] refused source: no grant` with nothing opened. The saved media server's token rides only on the
- * shell's own launch ([PlayerAccess.serverToken], B2-M2). Caller-supplied text reaches a line or the session only
- * through [PlayerRules.lineText].
+ * TRUST-TOUCHING (C-M4, C2-M1): a source is opened with the shell's identity, so who started the player decides what it
+ * may name — and this class decides none of it. Who started it is read once in `onCreate` ([PlayerAccess.launch], over
+ * the platform port `media/AndroidUriAccess`); each source is decided by [PlayerRules.source]: `http(s)://` from
+ * anyone; `file://` — under the shell's own directories only — `EXTRA_QUEUE` and `EXTRA_TITLE` from the shell's own
+ * uid alone; `content://` from the shell, and from another app only when that app could read it itself
+ * (`media/UriAccessRules.starterMayRead`), else "Can't play this address" and `[video] refused source: no grant` with
+ * nothing opened. While it plays, the data source opens only what [PlayerAccess.mayOpen] allows (C2-M3). The saved
+ * media server's token rides only on the shell's own launch ([PlayerAccess.serverToken], B2-M2). Caller-supplied text
+ * reaches a line or the session only through [PlayerRules.lineText].
  *
  * The player and its session live from `onStart` to `onStop` ([VideoPlayback]), so no session outlives the page.
  */
@@ -103,8 +105,8 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
     private var lookedUp = false
     private var started = false
 
-    /** True when the shell itself started this activity; false for another app and when Android does not say. */
-    private var ownCaller = false
+    /** Who started this activity: [PlayerAccess.launch]'s answer, read once. Another app until then. */
+    private var launch = PlayerLaunch.OTHER
 
     private var playback: VideoPlayback? = null
     private var surface: SurfaceView? = null
@@ -127,10 +129,10 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
         ui.zoomFill = prefs.getBoolean(KEY_ZOOM, false)
         ui.repeat = prefs.getBoolean(KEY_REPEAT, false)
         ui.autoplay = prefs.getBoolean(KEY_AUTOPLAY, false)
-        ownCaller = PlayerAccess.isOwnUid(runCatching { launchedFromUid }.getOrDefault(PlayerAccess.UNKNOWN_UID), Process.myUid())
         // Autoplay's queue names MediaStore ids the shell would open with its own access: the shell's own launches only.
-        queue = if (PlayerAccess.queueHonoured(ownCaller)) runCatching { intent?.getLongArrayExtra(EXTRA_QUEUE) }.getOrNull() else null
-        if (!ownCaller && runCatching { intent?.hasExtra(EXTRA_QUEUE) }.getOrNull() == true) Diagnostics.add("video", "queue ignored: not the shell's own launch")
+        launch = PlayerAccess.launch(AndroidUriAccess(this), { intent?.hasExtra(EXTRA_QUEUE) == true }, { intent?.getLongArrayExtra(EXTRA_QUEUE) })
+        launch.lines.forEach { Diagnostics.add("video", it) }
+        queue = launch.queue
         open(intent?.data)
         setShellAppContent(statusBar = false) { PlayerScreen(ui, this) }
     }
@@ -150,32 +152,19 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
         ui.durationMs = 0L
         ui.hasText = false
         ui.cue = ""
-        val scheme = source?.scheme
-        val path = PlayerRules.sourcePath(scheme, source?.path) { File(it).canonicalPath }
-        // Another app's content source: may that app read it itself? Asked for nothing else.
-        var callerMayRead = false
-        if (source != null && !ownCaller && scheme.equals("content", ignoreCase = true)) {
-            val read = PlayerAccess.callerMayRead(AndroidPlayerCaller(this, source))
-            callerMayRead = read != CallerRead.NONE
-            if (callerMayRead) Diagnostics.add("video", PlayerAccess.line(read))
-        }
-        val req = PlayerRules.request(scheme, source?.encodedAuthority, path, ownRoots(), ownCaller, callerMayRead)
-        request = req
-        val refusal = when (req) {
-            is PlayerRequest.Unsupported -> PlayerRules.unsupported(req)
-            PlayerRequest.Refused -> PlayerRules.refused
-            is PlayerRequest.Play -> null
-        }
-        if (refusal != null) {
-            val f = refusal
-            Diagnostics.add("video", f.line)
-            ui.failure = f
+        // The whole decision is PlayerRules.source's; a refused source is never opened, looked up or queried.
+        val opened = PlayerRules.source(source?.toString(), source?.scheme, source?.encodedAuthority, source?.path, ownRoots(), launch.own, AndroidUriAccess(this)) { File(it).canonicalPath }
+        opened.lines.forEach { Diagnostics.add("video", it) }
+        request = opened.request
+        val req = opened.request
+        if (opened.failure != null || req !is PlayerRequest.Play) {
+            ui.failure = opened.failure ?: PlayerRules.refused
             ui.hasSurface = false
             return
         }
         ui.hasSurface = true
         io.execute {
-            val meta = runCatching { lookUp(source!!, req as PlayerRequest.Play) }.getOrNull()
+            val meta = runCatching { lookUp(source!!, req) }.getOrNull()
             runOnUiThread {
                 if (uri != source || isDestroyed) return@runOnUiThread
                 displayName = meta?.first
@@ -191,7 +180,9 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
         if (req.scheme != "content") return null to null
         var name: String? = null
         var folder: String? = null
-        val columns = if (req.mediaStoreId != null) arrayOf(OpenableColumns.DISPLAY_NAME, MediaStore.MediaColumns.RELATIVE_PATH) else arrayOf(OpenableColumns.DISPLAY_NAME)
+        // The .srt beside it is a query made with the shell's own access: for the shell's own MediaStore launch only.
+        val sidecar = PlayerAccess.subtitleLookedUp(launch.own, req.mediaStoreId)
+        val columns = if (sidecar) arrayOf(OpenableColumns.DISPLAY_NAME, MediaStore.MediaColumns.RELATIVE_PATH) else arrayOf(OpenableColumns.DISPLAY_NAME)
         contentResolver.query(source, columns, null, null, null)?.use { c ->
             if (c.moveToFirst()) {
                 name = c.getString(0)
@@ -262,7 +253,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
         if (ui.failure != null) return
         // A direct-play request to the saved media server gets its token as it opens — for the shell's own launch only
         // (B2-M2); any other launch plays the address as it is. Nothing else is touched.
-        val resolver = when (PlayerAccess.serverToken(ownCaller, ServerRules.couldBeStream(source.scheme, source.path))) {
+        val resolver = when (PlayerAccess.serverToken(launch.own, ServerRules.couldBeStream(source.scheme, source.path))) {
             ServerTokenUse.RESOLVE -> MediaServer.streamResolver(this)
             ServerTokenUse.NOT_GIVEN -> {
                 if (!tokenLineSaid) Diagnostics.add("video", PlayerAccess.LINE_TOKEN_NOT_GIVEN)
@@ -271,7 +262,10 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
             }
             ServerTokenUse.NONE -> null
         }
-        val p = VideoPlayback.acquire(this, resolver)
+        // What the data source may open while this source plays (C2-M3): the rule's answer, for every address asked.
+        val launchUri = source.toString()
+        val sidecar = subtitle?.toString()
+        val p = VideoPlayback.acquire(this, resolver) { asked -> PlayerAccess.mayOpen(req.scheme, launchUri, sidecar, asked) }
         playback = p
         p.exo.addListener(listener)
         surface?.let { p.exo.setVideoSurfaceView(it) }
@@ -291,9 +285,9 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
         p.exo.prepare()
     }
 
-    /** Bounded and free of control characters, whoever sent `EXTRA_TITLE` (B-11, C-L7). */
+    /** Bounded and free of control characters (B-11, C-L7); `EXTRA_TITLE` only for the shell's own launch (C2-L3). */
     private fun titleOf(req: PlayerRequest.Play): String =
-        PlayerRules.sessionTitle(runCatching { intent?.getStringExtra(EXTRA_TITLE) }.getOrNull(), displayName, req.name)
+        PlayerRules.sessionTitle(launch.own, { intent?.getStringExtra(EXTRA_TITLE) }, displayName, req.name)
 
     private val listener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -464,7 +458,7 @@ class PlayerActivity : ComponentActivity(), PlayerActions {
         /** The ids of the My videos group the video was opened from, in order (Autoplay). The shell's own launches only. */
         const val EXTRA_QUEUE = "queue"
 
-        /** The title the session shows for a source whose address says nothing (a media-server item). */
+        /** The title the session shows for a source whose address says nothing (a media-server item). The shell's own launches only. */
         const val EXTRA_TITLE = "title"
 
         const val ACTION_CAST_SETTINGS = "android.settings.CAST_SETTINGS"

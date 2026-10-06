@@ -285,18 +285,19 @@ class TrustWiringScanTest {
 
     private fun callSiteProblems(player: String, playback: String, server: String, pages: String, hub: String): List<String> {
         val problems = mutableListOf<String>()
-        // Who started the player is read once, from Android, through the rule.
-        val assignments = Regex("\\bownCaller\\s*=[^=]").findAll(player).count()
-        if (assignments != 2 || !player.contains("private var ownCaller = false") ||
-            !player.contains("ownCaller = PlayerAccess.isOwnUid(runCatching { launchedFromUid }.getOrDefault(PlayerAccess.UNKNOWN_UID), Process.myUid())")
-        ) problems += "ownCaller is not set once, from getLaunchedFromUid through PlayerAccess.isOwnUid"
+        // Who started the player is read once, from Android's port, through the rule (`media/UriAccessWiringScanTest`
+        // holds the port and the rest of the player's wiring).
+        val assignments = Regex("\\blaunch\\s*=[^=]").findAll(player).count()
+        if (assignments != 2 || !player.contains("private var launch = PlayerLaunch.OTHER") ||
+            !player.contains("launch = PlayerAccess.launch(AndroidUriAccess(this), { intent?.hasExtra(EXTRA_QUEUE) == true }, { intent?.getLongArrayExtra(EXTRA_QUEUE) })")
+        ) problems += "the launch is not read once, from the platform port through PlayerAccess.launch"
         // The token's resolver exists only on the rule's RESOLVE (B2-M2).
         if (count(player, "MediaServer.streamResolver(") != 1 || !player.contains("ServerTokenUse.RESOLVE -> MediaServer.streamResolver(this)") ||
-            !player.contains("when (PlayerAccess.serverToken(ownCaller, ServerRules.couldBeStream(source.scheme, source.path))) {") ||
-            count(player, "VideoPlayback.acquire(") != 1 || !player.contains("VideoPlayback.acquire(this, resolver)")
+            !player.contains("when (PlayerAccess.serverToken(launch.own, ServerRules.couldBeStream(source.scheme, source.path))) {") ||
+            count(player, "VideoPlayback.acquire(") != 1 || !player.contains("VideoPlayback.acquire(this, resolver) {")
         ) problems += "the player makes the token's resolver other than on PlayerAccess.serverToken's RESOLVE"
-        if (!player.contains("queue = if (PlayerAccess.queueHonoured(ownCaller))")) problems += "the queue is not taken through PlayerAccess.queueHonoured"
-        if (!player.contains("PlayerRules.request(scheme, source?.encodedAuthority, path, ownRoots(), ownCaller, callerMayRead)")) problems += "the source is not decided by PlayerRules.request with who launched"
+        if (!player.contains("queue = launch.queue") || count(player, "getLongArrayExtra(") != 1) problems += "the queue is not the one PlayerAccess.launch honoured"
+        if (!player.contains("PlayerRules.source(source?.toString(), source?.scheme, source?.encodedAuthority, source?.path, ownRoots(), launch.own, AndroidUriAccess(this))")) problems += "the source is not decided by PlayerRules.source with who launched"
         // The resolver asks for the STREAM token, and what the player reports has no key.
         val resolver = body(server, "fun streamResolver(context: Context): (DataSpec) -> DataSpec")
         if (!resolver.contains("storeOf(app).streamToken(url)") || resolver.contains("tokenFor(") || resolver.contains("credential()")) problems += "the resolver takes the token other than from ServerStore.streamToken"
@@ -329,12 +330,12 @@ class TrustWiringScanTest {
         val pages = read("video/MediaServerPages.kt")
         val hub = read("video/VideoActivity.kt")
         fun player(old: String, new: String) = callSiteProblems(mutate(player, old, new), playback, server, pages, hub)
-        assertTrue(player("ownCaller = PlayerAccess.isOwnUid(runCatching { launchedFromUid }.getOrDefault(PlayerAccess.UNKNOWN_UID), Process.myUid())", "ownCaller = true").isNotEmpty())
-        assertTrue(player("PlayerAccess.serverToken(ownCaller, ServerRules", "PlayerAccess.serverToken(true, ServerRules").isNotEmpty())
+        assertTrue(player("launch = PlayerAccess.launch(AndroidUriAccess(this), { intent?.hasExtra(EXTRA_QUEUE) == true }, { intent?.getLongArrayExtra(EXTRA_QUEUE) })", "launch = PlayerLaunch(true, intent?.getLongArrayExtra(EXTRA_QUEUE), emptyList())").isNotEmpty())
+        assertTrue(player("PlayerAccess.serverToken(launch.own, ServerRules", "PlayerAccess.serverToken(true, ServerRules").isNotEmpty())
         assertTrue(player("ServerTokenUse.NONE -> null", "ServerTokenUse.NONE -> MediaServer.streamResolver(this)").isNotEmpty())
-        assertTrue(player("VideoPlayback.acquire(this, resolver)", "VideoPlayback.acquire(this, MediaServer.streamResolver(this))").isNotEmpty())
-        assertTrue(player("if (PlayerAccess.queueHonoured(ownCaller))", "if (true)").isNotEmpty())
-        assertTrue(player("ownRoots(), ownCaller, callerMayRead)", "ownRoots(), true, callerMayRead)").isNotEmpty())
+        assertTrue(player("VideoPlayback.acquire(this, resolver) {", "VideoPlayback.acquire(this, MediaServer.streamResolver(this)) {").isNotEmpty())
+        assertTrue(player("queue = launch.queue", "queue = intent?.getLongArrayExtra(EXTRA_QUEUE)").isNotEmpty())
+        assertTrue(player("ownRoots(), launch.own, AndroidUriAccess(this))", "ownRoots(), true, AndroidUriAccess(this))").isNotEmpty())
         assertTrue(callSiteProblems(player, mutate(playback, "Uri.parse(ServerRules.reportedUrl(uri.toString()))", "uri"), server, pages, hub).isNotEmpty())
         assertTrue(callSiteProblems(player, playback, mutate(server, "storeOf(app).streamToken(url)", "storeOf(app).tokenFor(url)"), pages, hub).isNotEmpty())
         // The form sending at once: on the ASK branch, or whatever the prompt's answer.

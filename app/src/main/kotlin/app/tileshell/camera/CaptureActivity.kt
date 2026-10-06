@@ -148,7 +148,6 @@ class CaptureActivity : ComponentActivity() {
         override fun hasOutput(): Boolean = request.hasExtra(MediaStore.EXTRA_OUTPUT)
         override fun outputText(): String? = request.getParcelableExtra(MediaStore.EXTRA_OUTPUT, Uri::class.java)?.toString()
         override fun callingPackage(): String? = activity.callingPackage
-        override fun launchedFromUid(): Int? = activity.launchedFromUid.takeIf { it >= 0 }
         override fun clipUris(): List<String> {
             val clip = request.clipData ?: return emptyList()
             return (0 until clip.itemCount).mapNotNull { clip.getItemAt(it)?.uri?.toString() }
@@ -232,11 +231,16 @@ class CaptureActivity : ComponentActivity() {
 
     /**
      * Writes [file] into the caller's output — through `MediaWrites.writeCaptureOutput` and the guard's [accepted]
-     * token, the only route there is. Returns null when written, else why. A still loses any location tag first.
+     * token, the only route there is. Returns null when written, else why. A still loses any location tag first, and
+     * a still whose tags could not be removed is NOT written (`CallerCaptureWrite`, A2-L1): the caller's output is
+     * then never opened, so it holds exactly what it held before.
      */
     private fun writeToCaller(accepted: CaptureOutputGuard.Decision.Accepted, file: File, isImage: Boolean): String? {
-        if (isImage) runCatching { ExifInterface(file.path).apply { CameraEngine.stripLocation(this); saveAttributes() } }
-        val why = saver.writes.writeCaptureOutput(accepted) { out -> file.inputStream().use { it.copyTo(out, 1 shl 16) } }
+        val why = CallerCaptureWrite.run(
+            isImage,
+            strip = { ExifInterface(file.path).apply { CameraEngine.stripLocation(this); saveAttributes() } },
+            write = { saver.writes.writeCaptureOutput(accepted) { out -> file.inputStream().use { it.copyTo(out, 1 shl 16) } } },
+        )
         Diagnostics.add("camera", if (why == null) "capture ${if (isImage) "image" else "video"} -> the caller's output, ${file.length()} bytes" else "capture output failed: $why")
         return why
     }

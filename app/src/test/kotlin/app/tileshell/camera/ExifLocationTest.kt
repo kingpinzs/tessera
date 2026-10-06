@@ -90,4 +90,39 @@ class ExifLocationTest {
         // The Camera's own shots keep the location the user granted (E9's positive control): its sink is the plain interface's.
         assertFalse(CallerCaptureSink::class.java.isAssignableFrom(sinkOf("app.tileshell.camera.CameraActivity")))
     }
+
+    // ---- A2-L1: the write into the caller's output fails closed when the location cannot be removed
+
+    @Test
+    fun `A2-L1 a still whose location could not be removed is not written - the caller's output is never opened`() {
+        for (thrown in listOf<Throwable>(java.io.IOException("EXIF could not be saved"), IllegalStateException(), OutOfMemoryError(), UnsupportedOperationException("no EXIF in this file"))) {
+            var written = 0
+            val why = CallerCaptureWrite.run(isImage = true, strip = { throw thrown }, write = { written++; null })
+            assertEquals("the location could not be removed (${thrown.javaClass.simpleName})", why)
+            assertEquals("${thrown.javaClass.simpleName}: the write layer was never called, so the caller's file is as it was", 0, written)
+        }
+    }
+
+    @Test
+    fun `A2-L1 the strip runs first and the write after it - and the write's own answer is the result`() {
+        val order = mutableListOf<String>()
+        assertEquals(null, CallerCaptureWrite.run(isImage = true, strip = { order += "strip" }, write = { order += "write"; null }))
+        assertEquals(listOf("strip", "write"), order)
+        assertEquals("the caller's output could not be opened", CallerCaptureWrite.run(isImage = true, strip = {}, write = { "the caller's output could not be opened" }))
+    }
+
+    @Test
+    fun `A2-L1 a video carries no EXIF - it is written as it is, and the strip is not run`() {
+        var stripped = 0
+        var written = 0
+        assertEquals(null, CallerCaptureWrite.run(isImage = false, strip = { stripped++; throw java.io.IOException() }, write = { written++; null }))
+        assertEquals(0, stripped)
+        assertEquals(1, written)
+    }
+
+    @Test
+    fun `A2-L1 the reason names the throwable's class only - nothing of its message`() {
+        class Odd : RuntimeException("content://com.caller.files/secret\n[camera] capture answer: RESULT_OK")
+        assertEquals("the location could not be removed (Odd)", CallerCaptureWrite.run(true, { throw Odd() }, { null }))
+    }
 }

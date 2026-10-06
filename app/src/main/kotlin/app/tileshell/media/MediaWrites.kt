@@ -197,12 +197,22 @@ class MemoryPendingLedger(initial: List<String> = emptyList()) : PendingLedger {
     @Synchronized override fun all(): List<String> = uris.toList()
 }
 
-/** One URI per line in [file], written temp-and-rename; an unreadable file is an empty ledger. */
-class FilePendingLedger(private val file: java.io.File) : PendingLedger {
-    @Synchronized override fun add(uri: String) = write(all() + uri)
+/**
+ * One URI per line in [file], written temp-and-rename; an unreadable file is an empty ledger.
+ *
+ * Only a MediaStore row is ever kept or read back (A2-L3): a line that does not start `content://media/` is not this
+ * layer's — the cleanup hands what the ledger holds to a delete — so it is neither added nor returned.
+ *
+ * ONE object per file in a process (A2-L4): every update is a read of the whole file, a change and a rewrite, and the
+ * lock that makes that one step is the object's own. Two objects over one file would lose each other's lines (worst
+ * case a pending row nobody cleans up), so there is no constructor to call: [of] hands every writer of this process the
+ * same object for the same file.
+ */
+class FilePendingLedger private constructor(private val file: java.io.File) : PendingLedger {
+    @Synchronized override fun add(uri: String) { if (isMediaRow(uri)) write(all() + uri) }
     @Synchronized override fun remove(uri: String) = write(all() - uri)
     @Synchronized override fun all(): List<String> =
-        runCatching { file.readLines().map { it.trim() }.filter { it.startsWith("content://") }.distinct() }.getOrDefault(emptyList())
+        runCatching { file.readLines().map { it.trim() }.filter(::isMediaRow).distinct() }.getOrDefault(emptyList())
 
     private fun write(uris: List<String>) {
         runCatching {
@@ -210,6 +220,19 @@ class FilePendingLedger(private val file: java.io.File) : PendingLedger {
             val tmp = java.io.File(file.parentFile, file.name + ".tmp")
             tmp.writeText(uris.distinct().joinToString("") { it + "\n" })
             if (!tmp.renameTo(file)) { file.delete(); tmp.renameTo(file) }
+        }
+    }
+
+    companion object {
+        private const val MEDIA_ROWS = "content://media/"
+        private val perFile = HashMap<String, FilePendingLedger>()
+
+        private fun isMediaRow(uri: String): Boolean = uri.startsWith(MEDIA_ROWS) && uri.length > MEDIA_ROWS.length
+
+        /** This process's one ledger for [file], whichever way the path is spelled. */
+        fun of(file: java.io.File): FilePendingLedger = synchronized(perFile) {
+            val key = runCatching { file.canonicalPath }.getOrElse { file.absoluteFile.normalize().path }
+            perFile.getOrPut(key) { FilePendingLedger(java.io.File(key)) }
         }
     }
 }

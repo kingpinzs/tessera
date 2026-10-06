@@ -81,7 +81,8 @@ fun BoxScope.PhotosOverlays(nav: PhotosNav, library: Library, activity: Componen
             val items = remember(library.items, request.albumId) {
                 library.items.filter { !it.video && (request.albumId == null || it.bucketId == request.albumId) }.map(::viewerItem)
             }
-            PhotoViewer(items, "m:${request.startId}", request.origin, request.slideshow, { item -> item.entry?.let { nav.tileBounds[it.id] } }, activity) { nav.closeViewer() }
+            // Photos' own viewer, inside Photos' own activity: the shell's pictures, every action.
+            PhotoViewer(items, "m:${request.startId}", request.origin, request.slideshow, { item -> item.entry?.let { nav.tileBounds[it.id] } }, activity, mayChange = true) { nav.closeViewer() }
         }
     }
     val held = nav.sheetFor

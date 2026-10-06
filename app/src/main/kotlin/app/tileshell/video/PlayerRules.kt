@@ -1,5 +1,8 @@
 package app.tileshell.video
 
+import app.tileshell.media.ContentUriText
+import app.tileshell.media.UriAccessPort
+import app.tileshell.media.UriAccessRules
 import java.util.Locale
 
 /**
@@ -31,67 +34,43 @@ sealed interface PlayerRequest {
 /** What [PlayerAccess.decide] says about a source, before the scheme rule's own checks. */
 enum class SourceDecision { ALLOWED, UNSUPPORTED, NO_GRANT }
 
-/** Why another app's `content` source may be played — or [NONE]: it may not. The word is what the line says. */
-enum class CallerRead(val word: String) {
-    NONE("no grant"),
-    OWN_PROVIDER("its own provider"),
-    URI_GRANT("a read grant"),
-    PROVIDER_ALLOWS("the provider allows it"),
-    LAUNCH_ACCESS("it had access at launch"),
-}
-
 /** What the player does about the media server's token for one source: see [PlayerAccess.serverToken]. */
 enum class ServerTokenUse { RESOLVE, NOT_GIVEN, NONE }
 
 /**
- * What the player asks Android about who started it, for ONE source (the port behind [PlayerAccess.callerMayRead];
- * [PlayerActivity] holds the implementation). Every answer fails closed: an error or a missing API is "no".
+ * Who started the player, read ONCE at its creation ([PlayerAccess.launch]): whether it was the shell itself, the
+ * autoplay queue it may use (null for every other starter) and the `[video]` lines to write.
  */
-interface PlayerCallerPort {
-    /** `Activity.getLaunchedFromUid()`: the uid that started the player, or [PlayerAccess.UNKNOWN_UID]. */
-    val launchedFromUid: Int
-
-    /** The uid of the provider behind the source's authority, or null when it cannot be seen. */
-    fun providerUid(): Int?
-
-    /** `checkUriPermission(uri, -1, uid, READ)`: [uid] holds an explicit read grant for the source. */
-    fun holdsReadGrant(uid: Int): Boolean
-
-    /** API 35+ `checkContentUriPermissionFull`: the provider itself lets [uid] read the source. False below 35. */
-    fun providerAllowsRead(uid: Int): Boolean
-
-    /**
-     * API 35+ `Activity.getInitialCaller().checkContentUriPermission(uri, READ)`: whoever started the player could
-     * read the source when it did — the platform's own answer, which needs no uid. False below 35.
-     */
-    fun hadAccessAtLaunch(): Boolean
+class PlayerLaunch(val own: Boolean, val queue: LongArray?, val lines: List<String>) {
+    companion object {
+        /** Before the launch is read, and whenever it cannot be: another app, with nothing honoured. */
+        val OTHER = PlayerLaunch(own = false, queue = null, lines = emptyList())
+    }
 }
 
+/** What [PlayerRules.source] decided for one source: the request, its error state when refused, and the lines. */
+class PlayerSource(val request: PlayerRequest, val failure: PlayerFailure?, val lines: List<String>)
+
 /**
- * Who may make the player open what (trust review C-M4 (a), (b), (d)). TRUST-TOUCHING. PlayerActivity is exported and
- * opens a source with the SHELL's identity — its media permission, its own files — so what it opens for another app
- * must be something that app could open itself. Pure: no Android type, every combination unit-tested.
+ * Who may make the player open what (trust reviews C-M4 (a), (b), (d); C2-M1, C2-M3, C2-L1, C2-L3). TRUST-TOUCHING.
+ * PlayerActivity is exported and opens a source with the SHELL's identity — its media permission, its own files — so
+ * what it opens for another app must be something that app could open itself. Whether another app may read a `content`
+ * source is not decided here: it is `media/UriAccessRules.starterMayRead`, the ONE rule the viewer and the capture
+ * answer read by too, over the one platform port. Pure: no Android type, every combination unit-tested.
  */
 object PlayerAccess {
-    /** `Process.INVALID_UID`: Android did not say who started the activity. Treated as another app. */
-    const val UNKNOWN_UID = -1
-
-    /** True only when the launcher is known and is the shell itself (the hub, Photos, a tile — the same uid). */
-    fun isOwnUid(launchedFromUid: Int, ownUid: Int): Boolean = launchedFromUid != UNKNOWN_UID && ownUid != UNKNOWN_UID && launchedFromUid == ownUid
+    const val LINE_QUEUE_IGNORED = "queue ignored: not the shell's own launch"
 
     /**
-     * Whether the app that started the player may itself read the `content` source — asked only for another app's
-     * launch. With a known uid: the source is its own provider's, or it holds a read grant, or (API 35+) the provider
-     * allows it. With or without one: (API 35+) the platform says the launcher had access at launch.
+     * The launch, from the platform port and the intent's two reads. [hasQueue] is `Intent.hasExtra(EXTRA_QUEUE)` and
+     * [queue] `Intent.getLongArrayExtra(EXTRA_QUEUE)`; [queue] is not even read unless the shell itself started the
+     * player. Anything that throws is another app's launch.
      */
-    fun callerMayRead(port: PlayerCallerPort): CallerRead {
-        val uid = port.launchedFromUid
-        if (uid != UNKNOWN_UID) {
-            if (port.providerUid() == uid) return CallerRead.OWN_PROVIDER
-            if (port.holdsReadGrant(uid)) return CallerRead.URI_GRANT
-            if (port.providerAllowsRead(uid)) return CallerRead.PROVIDER_ALLOWS
-        }
-        return if (port.hadAccessAtLaunch()) CallerRead.LAUNCH_ACCESS else CallerRead.NONE
+    fun launch(access: UriAccessPort, hasQueue: () -> Boolean, queue: () -> LongArray?): PlayerLaunch {
+        val own = try { UriAccessRules.isOwnLaunch(access) } catch (e: Throwable) { false }
+        if (queueHonoured(own)) return PlayerLaunch(own, try { queue() } catch (e: Throwable) { null }, emptyList())
+        val named = try { hasQueue() } catch (e: Throwable) { false }
+        return PlayerLaunch(own, null, if (named) listOf(LINE_QUEUE_IGNORED) else emptyList())
     }
 
     /**
@@ -108,6 +87,36 @@ object PlayerAccess {
     /** `EXTRA_QUEUE` — which MediaStore ids Autoplay goes on to — is taken from the shell's own uid only. */
     fun queueHonoured(isOwnUid: Boolean): Boolean = isOwnUid
 
+    /** `EXTRA_TITLE` sets the session's title — shown in the system's media controls — for the shell's own launch only (C2-L3). */
+    fun titleHonoured(isOwnUid: Boolean): Boolean = isOwnUid
+
+    /**
+     * The `.srt` beside a MediaStore video is looked for — a query made with the shell's own access — only for a
+     * MediaStore item the shell itself launched (C2-M3).
+     */
+    fun subtitleLookedUp(isOwnUid: Boolean, mediaStoreId: Long?): Boolean = isOwnUid && mediaStoreId != null
+
+    /**
+     * What the player's data source may OPEN while it plays one launch (C2-M3). The access rule covers the launch URI;
+     * a media source can ask for more — a playlist's entries, a redirect, a nested reference — and the data source
+     * would open any `content:`, `file:`, `asset:` or `android.resource:` address with the shell's identity. So:
+     *  - a network launch (`http` / `https`) opens only `http` and `https` addresses;
+     *  - any other launch (`content`, or the shell's own `file`) opens only the launch URI itself, and the `.srt` the
+     *    shell found beside its own MediaStore item ([subtitle], null when there is none).
+     * Everything else is refused before it is opened.
+     *
+     * @param launchScheme the launch's scheme as [PlayerRequest.Play.scheme] has it (lower case)
+     * @param launchUri the launch URI's text
+     * @param asked the address the data source is about to open, as `Uri.toString()`
+     */
+    fun mayOpen(launchScheme: String, launchUri: String, subtitle: String?, asked: String): Boolean {
+        if (launchScheme == "http" || launchScheme == "https") {
+            val scheme = ContentUriText.parse(asked).scheme?.lowercase(Locale.ROOT)
+            return scheme == "http" || scheme == "https"
+        }
+        return asked == launchUri || (subtitle != null && asked == subtitle)
+    }
+
     /**
      * Whether the saved media server's token may ride on this player's requests (B2-M2). The token is the owner's, and
      * the player is exported: ONLY a launch by the shell itself — the hub's Media server page — gets the resolver that
@@ -117,7 +126,7 @@ object PlayerAccess {
      * and stream parameters it names. A source that could never be a server's stream needs nothing
      * ([ServerTokenUse.NONE]).
      *
-     * @param isOwnUid [isOwnUid]'s answer for this launch
+     * @param isOwnUid [PlayerLaunch.own] for this launch
      * @param couldBeServerStream the source is http(s) and its path ends `/stream`
      */
     fun serverToken(isOwnUid: Boolean, couldBeServerStream: Boolean): ServerTokenUse = when {
@@ -129,7 +138,7 @@ object PlayerAccess {
     const val LINE_TOKEN_NOT_GIVEN = "server token not given: not the shell's own launch"
 
     /** `[video] source from another app: <why it may be played>`. */
-    fun line(read: CallerRead): String = "source from another app: ${read.word}"
+    fun line(read: UriAccessRules.ReadWhy): String = "source from another app: ${read.word}"
 }
 
 /** Why a source stopped (the three error states of build task 7). */
@@ -161,15 +170,52 @@ object PlayerRules {
     fun lineText(text: String?, max: Int = LINE_MAX): String = VideoLines.text(text, max)
 
     /**
-     * The whole decision for a source: who may open it ([PlayerAccess.decide]), then the scheme rule ([classify]).
-     * [path] must already be canonical for a `file` source ([sourcePath]).
+     * The whole decision for a source: who may open it ([PlayerAccess.decide]) FIRST, then — only for a source that
+     * may be opened — the scheme rule ([classify]) over the path [sourcePath] gives. So a `file` path another app
+     * named is never resolved on the disk (C2-L9): [canonical] is not called for it.
      */
-    fun request(scheme: String?, authority: String?, path: String?, ownFileRoots: List<String>, isOwnUid: Boolean, callerMayRead: Boolean): PlayerRequest =
-        when (PlayerAccess.decide(scheme, isOwnUid, callerMayRead)) {
-            SourceDecision.NO_GRANT -> PlayerRequest.Refused
-            SourceDecision.UNSUPPORTED -> PlayerRequest.Unsupported(lineText(scheme?.lowercase(Locale.ROOT)).ifEmpty { "none" })
-            SourceDecision.ALLOWED -> classify(scheme, authority, path, ownFileRoots)
+    fun request(
+        scheme: String?, authority: String?, path: String?, ownFileRoots: List<String>, isOwnUid: Boolean, callerMayRead: Boolean,
+        canonical: (String) -> String?,
+    ): PlayerRequest = when (PlayerAccess.decide(scheme, isOwnUid, callerMayRead)) {
+        SourceDecision.NO_GRANT -> PlayerRequest.Refused
+        SourceDecision.UNSUPPORTED -> PlayerRequest.Unsupported(lineText(scheme?.lowercase(Locale.ROOT)).ifEmpty { "none" })
+        SourceDecision.ALLOWED -> classify(scheme, authority, sourcePath(scheme, path, canonical), ownFileRoots)
+    }
+
+    /**
+     * From a launch's source to what the player does with it — the whole mapping, so no decision is left to the
+     * Android side (C2-M1). [text] is the source as its string (`Uri.toString()`, null when the intent names none):
+     * the access rule reads the scheme and authority from that one text, and it is the text the player opens.
+     * [scheme], [authority] and [path] are `Uri.getScheme()`, `getEncodedAuthority()` and `getPath()` of the same URI,
+     * for the scheme rule's names and lines. Another app's `content` source is asked about
+     * (`UriAccessRules.starterMayRead`) and nothing else is; a rule or a platform read that throws refuses.
+     */
+    fun source(
+        text: String?, scheme: String?, authority: String?, path: String?, ownFileRoots: List<String>, own: Boolean, access: UriAccessPort,
+        canonical: (String) -> String?,
+    ): PlayerSource {
+        val lines = mutableListOf<String>()
+        var callerMayRead = false
+        if (text != null && !own && scheme.equals("content", ignoreCase = true)) {
+            val read = try {
+                UriAccessRules.starterMayRead(access, ContentUriText.parse(text))
+            } catch (e: Throwable) {
+                UriAccessRules.Read(UriAccessRules.ReadWhy.NONE, UriAccessRules.LAUNCH_NOT_ASKED)
+            }
+            callerMayRead = read.allowed
+            if (read.launch != UriAccessRules.LAUNCH_NOT_ASKED) lines += UriAccessRules.launchLine(UriAccessRules.READ, read.launch)
+            if (read.allowed) lines += PlayerAccess.line(read.why)
         }
+        val request = if (text == null) PlayerRequest.Unsupported("none") else request(scheme, authority, path, ownFileRoots, own, callerMayRead, canonical)
+        val failure = when (request) {
+            is PlayerRequest.Unsupported -> unsupported(request)
+            PlayerRequest.Refused -> refused
+            is PlayerRequest.Play -> null
+        }
+        failure?.let { lines += it.line }
+        return PlayerSource(request, failure, lines)
+    }
 
     /**
      * The path the scheme rule is given: a `file` source's CANONICAL path (links and `..` resolved by [canonical],
@@ -181,9 +227,13 @@ object PlayerRules {
 
     val refused = PlayerFailure(TEXT_BAD_ADDRESS, LINE_NO_GRANT)
 
-    /** The session's title: the caller's `EXTRA_TITLE`, else the source's own name — fit for a title either way. */
-    fun sessionTitle(extra: String?, displayName: String?, fallback: String): String =
-        lineText(extra, TITLE_MAX).takeIf { it.isNotBlank() }
+    /**
+     * The session's title: `EXTRA_TITLE` when the shell itself started the player ([own]; C2-L3 — another app's title
+     * would show in the system's media controls under the shell's name, so [extra] is not even read for it), else the
+     * source's own name — fit for a title either way.
+     */
+    fun sessionTitle(own: Boolean, extra: () -> String?, displayName: String?, fallback: String): String =
+        (if (PlayerAccess.titleHonoured(own)) lineText(try { extra() } catch (e: Throwable) { null }, TITLE_MAX).takeIf { it.isNotBlank() } else null)
             ?: lineText(displayName?.substringBeforeLast('.'), TITLE_MAX).takeIf { it.isNotBlank() }
             ?: lineText(fallback, TITLE_MAX)
 

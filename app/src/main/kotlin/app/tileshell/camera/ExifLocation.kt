@@ -40,3 +40,27 @@ abstract class CallerCaptureSink : CaptureSink {
     /** T17-4: a capture for another app carries no location. */
     final override val keepsLocation: Boolean get() = false
 }
+
+/**
+ * The write of a capture into the caller's own output, in its one order (A2-L1): a still's location tags are removed
+ * FIRST, and when that fails — the strip throws — nothing is written at all. Fail closed: the caller's output is not
+ * even opened, so it is neither truncated nor changed, and the capture answers RESULT_CANCELED. A video carries no EXIF
+ * and is written as it is. Pure, so the order and the refusal are unit-tested (`ExifLocationTest`).
+ */
+object CallerCaptureWrite {
+    /**
+     * @param strip removes every GPS tag from the capture's cache file and saves it; may throw
+     * @param write `MediaWrites.writeCaptureOutput` over that file: null when written, else why not
+     * @return null when written, else the reason — for a failed strip one that names the throwable's class only
+     */
+    fun run(isImage: Boolean, strip: () -> Unit, write: () -> String?): String? {
+        if (isImage) {
+            try {
+                strip()
+            } catch (e: Throwable) {
+                return "the location could not be removed (${e.javaClass.simpleName.filter { it.isLetterOrDigit() }.take(60)})"
+            }
+        }
+        return write()
+    }
+}
