@@ -155,3 +155,32 @@ shell's processes share.
 
 Side effect reported by the reviewer: it ran `./gradlew --stop` at about 17:50, which stops every Gradle daemon of
 this user; a build of another session that failed then with a vanished daemon is re-run, not a defect.
+
+---
+
+# Round 2 — review C's re-review of the viewer, player, network and CI fixes (87a71840), 2026-10-05
+
+Verdict: **FAIL — no HIGH, three MEDIUM, nine LOW.** Real Gradle runs: 18 of 18 guards removed fail a named test; rule
+mutations 56 of 61 caught; the network config 24 of 24 caught in the two known files. Round 1's C-M4, C-M1, C-M3, C-L1,
+C-L6, C-L7 are closed at the rule level. Nothing found lets another app read, write or take anything. Nothing is opened
+before the decision; the refused paths are no oracle; the viewer's read-only mode reaches only Share, File
+information, zoom and Back; the built APK's 26 exported components equal the allow-list's 26 lines.
+
+| # | Sev | Finding | Triage |
+|---|---|---|---|
+| C2-M1 | MEDIUM | Every call site of the C-M4 fix is proven by nothing: 11 of 11 wiring mutations survive (`ownCaller = true`, `callerMayRead = true`, the queue read for every caller, the launch answer true on an exception, the grant check asking WRITE, the viewer passing its own uid as the launcher, a refused URI still opened, `mayChange = true`, the bar ignoring the rule, the provider question true on an exception). `mayChange` has a fail-OPEN default value. The API 35+ branches have never been seen to answer on a device. | FIX: `mayChange` required; the decision-to-state mappings as pure, tested functions; source-scan tests of both activities (the form of `video/TrustWiringScanTest`); the device legs. |
+| C2-M2 | MEDIUM | A shadow copy of the network security config in `src/release/res/xml/` or `res/xml-v34/` would replace the checked one and no test sees it. | FIX: a test that the only files of that name under `app/src/*/res/xml*/` are the two known ones. |
+| C2-M3 | MEDIUM (latent) | The player's rule covers only the launch URI: its data source opens `content:` / `file:` / `asset:` for anything the media source asks for, with the shell's identity. Safe today only because no playlist format (HLS, DASH) is linked; the day one is (phase 20's radio), any caller's playlist can name the shell's files or any MediaStore item. | FIX: the upstream wrapped so a network source opens only http(s) and a content source only its own launch URI; a test that pins it. |
+| C2-L1 | LOW | The two helpers implement one rule twice and differ: the viewer refuses an authority with `@` or `%` (so a work-profile / clone / Secure Folder "Open with" is refused on every Android version), the player passes it to the platform (verified correct: the platform splits user and authority itself). | FIX: ONE rule and ONE port for both helpers and the capture answer. `@`: the platform's own handling for the two readers (so a cross-profile "Open with" works where the platform says the launcher could read it); the capture answer keeps refusing it (a write). |
+| C2-L2 | LOW | Docs: the 16:32 Decisions line and the fixes file say on Android 14 another app's item is refused "unless it is that app's own provider" — by the code an unnamed app's own provider is refused too; "a test scans every URL literal" scans Kotlin under app/src/main only; the allow-list's PlayerActivity line omits that a caller's `title` sets the session title. | DOC (the lead), after C2-L3 / L7. |
+| C2-L3 | LOW | `EXTRA_TITLE` is honoured from any caller (200 cleaned characters in the system media controls under the shell's name). | FIX: the shell's own launches only. |
+| C2-L4 | LOW | On Android 14 both helpers stay registered VIEW handlers yet refuse every other app's content URI. | NOTE for the owner (his phone is on Android 16). |
+| C2-L5 | LOW | The viewer still decodes another app's image in the LAUNCHER's process (which holds SMS, call, contacts and location access); the probe still runs ExifInterface and MediaExtractor on the whole picked file there. | OWNER — asked at the gate; the reviewer presses for moving the viewer to `:photosedit`. |
+| C2-L6 | LOW | CI: the debug APK no longer reaches a release, but: `r4probe-debug.apk` (debuggable, throwaway key) is still published; the APK is chosen by `find … | head -1`, not by variant path, and nothing asserts it is non-debuggable or signed by the expected certificate; a debug APK already on "latest" stays until a signed run; the keystore sits on disk for every later step; actions are pinned by tag. Not run. | FIX (small, unrunnable here): the APK taken from the release output path; the job fails unless the published APK is not debuggable. The rest is NOTED for the owner: it is phase 01's CI and he should look at the "latest" page. |
+| C2-L7 | LOW | The URL-literal scan is a tripwire, not a guard: 10 of 12 hiding forms survive (a built scheme, `URL("http", host, …)`, a Java source, a string resource, the `:calc` module). | FIX (cheap half): also scan `*.java`, `res/values*`, the manifest and `:calc`; flag `"://"` and `URL(` / `Uri.Builder().scheme(` outside `net/`; the doc says "tripwire". |
+| C2-L8 | LOW | The platform's read answer trusts manifest permissions and asks the provider only for MediaStore; a provider that enforces reads only in code would be answered "any uid may read". None known in AOSP's media providers. | FIX with A2-F2: the "provider says" branch for `forceUriPermissions` providers only; other providers need the caller's own provider or a grant, or the launch answer. |
+| C2-L9 | LOW | The player resolves a caller-named `file:` path before the decision; a cleaned line can still read like another line within its 80 characters; `?` / `#` authority terminators untested. | FIX: decide first; the tests. Rows match whole lines. |
+
+Device evidence since (the Photos row writer's TRUST_PHOTOS, run 3, build c7336aca): leg (j) FAILS — an app holding
+READ_MEDIA_IMAGES that VIEWs a MediaStore image is REFUSED, where the fix expects it shown read-only. The first time
+the API 35+ launch answer was asked on a device, it did not say yes. The round-3 fixer reads that run's folder.
