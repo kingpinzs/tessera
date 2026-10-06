@@ -38,7 +38,9 @@ fun FilesPage(state: FilesState) {
     // The folder may have gone, and Recent and the bin may have changed, while Files was away.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { state.revalidate() }
     val box = remember { FilesBox() }
-    val chrome = if (state.location == FilesLocation.Settings) null else state.actions.chrome(state, browseChrome(state))
+    val at = state.location
+    // Settings and Properties are pages with no app bar (r11/files.md 1.10.1).
+    val chrome = if (at == FilesLocation.Settings || at is FilesLocation.Properties) null else state.actions.chrome(state, browseChrome(state))
     CompositionLocalProvider(LocalFilesBox provides box) {
         Box(Modifier.fillMaxSize().onGloballyPositioned { box.coords = it }) {
             Column(Modifier.fillMaxSize()) {
@@ -96,14 +98,22 @@ private fun browseChrome(state: FilesState): FilesChrome {
         }
         FilesLocation.Bin -> FilesChrome(Headline.Text(BIN_NOTE, "files_bin_note", FilesMetrics.SORT_LABEL), listOf(select, view, search), more)
         FilesLocation.Settings -> FilesChrome(Headline.None, emptyList(), emptyList())
+        is FilesLocation.Properties -> FilesChrome(Headline.None, emptyList(), emptyList())
+        // A zip's virtual folder is the folder page with nothing that writes: no Select, no New folder (T18-2).
+        is FilesLocation.Zip -> FilesChrome(if (listed) Headline.Sort else Headline.None, listOf(view, search), more.filter { it.tag == "files_more:refresh" || it.tag == "files_more:settings" })
     }
 }
 
 /** Under the location bar: the search box when one is open, the headline, then the rows — or the page's error line. */
 @Composable
 private fun FilesPageBody(state: FilesState, chrome: FilesChrome?) {
-    if (state.location == FilesLocation.Settings) {
+    val at = state.location
+    if (at == FilesLocation.Settings) {
         FilesSettingsPage(state)
+        return
+    }
+    if (at is FilesLocation.Properties) {
+        state.actions.PageContent(state, at)
         return
     }
     val body = state.body
@@ -129,7 +139,7 @@ private fun FilesPageBody(state: FilesState, chrome: FilesChrome?) {
         if (state.searching && search != null && !search.running && entries.isEmpty()) {
             SearchEmptyLine()
         } else if (body is PageBody.Rows) {
-            FileEntryList(state, entries, Modifier.weight(1f), listTag = if (state.location == FilesLocation.Bin) "files_bin" else null)
+            FileEntryList(state, entries, Modifier.weight(1f), listTag = if (at == FilesLocation.Bin) "files_bin" else if (at is FilesLocation.Zip) "files_zip_root" else null)
         }
     }
 }

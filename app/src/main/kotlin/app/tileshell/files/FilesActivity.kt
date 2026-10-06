@@ -70,8 +70,8 @@ class FilesActivity : ComponentActivity() {
         // ShellApp started the tracker with the process; a second call is a no-op, and covers a process whose launcher
         // start-up is still waiting for the first unlock.
         FileVolumes.start(this)
-        // Build tasks 3, 4, 8, 9 and 10 pass their FilesActions here.
-        state = FilesState(this, FilesActions.None)
+        // Build tasks 3, 8 and 9 are FilesBehaviour; tasks 4 and 10 (open-with, Recent's writes) join it there.
+        state = FilesState(this, FilesBehaviour(this))
         val request = requestOf(intent)
         pending = request to true
         Diagnostics.add("files", "FilesActivity created page=${request.page ?: "none"}")
@@ -168,6 +168,7 @@ private fun FilesScreen(granted: Boolean, state: FilesState, onGrant: () -> Unit
             }
             W10mNavBar(onBack = onBack, onWindows = onHome)
         }
+        if (granted) state.actions.ScreenOverlays(state)
     }
 }
 

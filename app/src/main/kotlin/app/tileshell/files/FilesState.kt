@@ -62,7 +62,10 @@ class Notice(val text: String, val tag: String)
 class FilesState(context: Context, val actions: FilesActions) {
     private val app = context.applicationContext
     private val prefs = FilesPrefs(app)
-    private val history = FilesHistory(FilesLocation.Recent)
+    private var history = FilesHistory(FilesLocation.Recent)
+
+    /** The browse history and page set aside while the Move to / Copy to picker runs on its own (r3 D12). */
+    private var browse: Pair<FilesHistory, FilesLocation>? = null
     private val main = Handler(Looper.getMainLooper())
     private val zone: ZoneId get() = ZoneId.systemDefault()
 
@@ -165,6 +168,10 @@ class FilesState(context: Context, val actions: FilesActions) {
         when (val asked = FilesNav.resolve(request.page, request.path, all, FilesStores::canonical) { File(it).isDirectory }) {
             is FilesOpen.Go -> {
                 closeOverlays()
+                // The picker's own history goes with the page it was opened from.
+                browse?.let { history = it.first }
+                browse = null
+                actions.onReset(this)
                 history.reset(asked.location)
                 paneOpen = false
                 if (asked.location is FilesLocation.Folder && request.from != null) {
@@ -201,11 +208,45 @@ class FilesState(context: Context, val actions: FilesActions) {
             }
             at is FilesLocation.Folder && body is PageBody.Error -> load()
             at == FilesLocation.Recent || at == FilesLocation.Bin -> load()
+            at is FilesLocation.Zip && !File(at.file).isFile -> load()
             else -> Unit
         }
     }
 
     // ---------------------------------------------------------------------------------------------- navigation
+
+    /** How many locations Back can still return to. */
+    val historyDepth: Int get() = history.depth
+
+    /** True while the picker's own history is the one in use. */
+    val inSubHistory: Boolean get() = browse != null
+
+    /**
+     * The Move to / Copy to picker opens (r3 D2 (3), D12): the browse history and page are set aside and [start] is
+     * shown on a history of its own, so Back walks the picker's folders only.
+     */
+    fun beginSubHistory(start: FilesLocation) {
+        if (browse != null) return
+        closeOverlays()
+        browse = history to location
+        history = FilesHistory(start)
+        show(start)
+    }
+
+    /**
+     * The picker closes: the browse history is back. With [landOn] the page goes there as a tap would (the page left
+     * joins the history); without it the page the picker was opened from is shown again.
+     */
+    fun endSubHistory(landOn: FilesLocation? = null) {
+        val (saved, page) = browse ?: return
+        browse = null
+        closeOverlays()
+        if (paneOpen) paneOpen = false
+        history = saved
+        if (landOn != null && landOn != page) history.go(landOn)
+        show(landOn ?: page)
+    }
+
 
     /** A tap on a folder, a breadcrumb segment, ↑: the location left goes on the history. */
     fun go(to: FilesLocation) {
@@ -276,7 +317,9 @@ class FilesState(context: Context, val actions: FilesActions) {
     }
 
     private fun show(to: FilesLocation) {
+        val from = location
         location = to
+        if (from != to) actions.onLocation(this, from, to)
         stopSearch()
         search = null
         notice = null
@@ -383,7 +426,7 @@ class FilesState(context: Context, val actions: FilesActions) {
         val t0 = SystemClock.uptimeMillis()
         body = PageBody.Loading
         enter.floatValue = 0f
-        if (at == FilesLocation.Settings) {
+        if (at == FilesLocation.Settings || at is FilesLocation.Properties) {
             body = PageBody.Rows(emptyList())
             enter.floatValue = 1f
             return
@@ -465,6 +508,14 @@ class FilesState(context: Context, val actions: FilesActions) {
             Loaded(PageBody.Rows(rows), null, Cached(at, rows, 0))
         }
         FilesLocation.Settings -> Loaded(PageBody.Rows(emptyList()), null, null)
+        is FilesLocation.Properties -> Loaded(PageBody.Rows(emptyList()), null, null)
+        is FilesLocation.Zip -> when {
+            mounted.none { it.uuid == at.volumeUuid } -> Loaded(PageBody.Error(STORAGE_REMOVED), null, null)
+            else -> when (val page = actions.rows(this, at)) {
+                is PageBody.Rows -> Loaded(PageBody.Rows(ordered(at, page.entries, by)), null, Cached(at, page.entries, 0))
+                else -> Loaded(page, null, null)
+            }
+        }
     }
 
     private fun readFolder(at: FilesLocation.Folder, mounted: List<MountedVolume>, hidden: Boolean, by: FileSort): Loaded {
@@ -503,7 +554,7 @@ class FilesState(context: Context, val actions: FilesActions) {
 
     /** A folder's rows in the sort's order (r3 V13); Recent and the bin keep their own (newest first). */
     private fun ordered(at: FilesLocation, entries: List<FileEntry>, by: FileSort): List<FileEntry> {
-        if (at !is FilesLocation.Folder) return entries
+        if (at !is FilesLocation.Folder && at !is FilesLocation.Zip) return entries
         val rows = FileListing.comparator(by)
         return entries.sortedWith { a, b -> rows.compare(a.row, b.row) }
     }
@@ -539,6 +590,7 @@ class FilesState(context: Context, val actions: FilesActions) {
             at is FilesLocation.Folder && now.none { it.uuid == at.volumeUuid } -> gone(at)
             at is FilesLocation.Folder && before.none { it.uuid == at.volumeUuid } -> load()
             at == FilesLocation.Recent || at == FilesLocation.Bin -> load()
+            at is FilesLocation.Zip && now.none { it.uuid == at.volumeUuid } -> load()
             else -> Unit
         }
     }

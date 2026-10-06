@@ -304,7 +304,6 @@ fun FileGridCell(state: FilesState, entry: FileEntry) {
     val density = LocalDensity.current.density
     val fill = state.actions.rowFill(state, entry) ?: if (pressed) FilesMetrics.ROW_PRESSED else Color.Transparent
     Box(Modifier.fillMaxWidth().height(FilesMetrics.GRID_ROW.dp).background(fill).rowTouch(state, entry) { pressed = it }) {
-        state.actions.RowLeading(state, entry)
         Column(
             Modifier.fillMaxSize().padding(top = FilesMetrics.GRID_TOP_PAD.dp)
                 .graphicsLayer { translationY = Entrance.offsetEpx(state.enter.floatValue) * density },
@@ -328,6 +327,8 @@ fun FileGridCell(state: FilesState, entry: FileEntry) {
                 maxLines = 2, overflow = TextOverflow.Ellipsis,
             )
         }
+        // Over the cell: its content does not move aside for the checkbox as a list row's does.
+        state.actions.RowLeading(state, entry)
     }
 }
 

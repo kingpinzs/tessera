@@ -19,6 +19,16 @@ sealed interface FilesLocation {
 
     /** Files' own settings (hidden files). */
     data object Settings : FilesLocation
+
+    /**
+     * A zip opened as a folder (Q2 C, T18-2): the virtual folder [dir] (`""` is its root) of the zip at [file], a real
+     * file on a mounted volume — or, when [chain] is not empty, of a zip nested inside it: each element of [chain] is
+     * the entry path of a zip inside the one before it (r3 D6).
+     */
+    data class Zip(val volumeUuid: String, val file: String, val chain: List<String> = emptyList(), val dir: String = "") : FilesLocation
+
+    /** The Properties PAGE of one file or folder (r11/files.md 1.10): [path] is a real path on a mounted volume. */
+    data class Properties(val volumeUuid: String, val path: String, val name: String, val isDirectory: Boolean) : FilesLocation
 }
 
 /**
@@ -79,8 +89,12 @@ object FilesNav {
         FilesLocation.Recent -> PANE_RECENT
         FilesLocation.Bin -> PANE_BIN
         FilesLocation.Settings -> null
-        is FilesLocation.Folder -> if (location.volumeUuid == FilePaths.PRIMARY) PANE_DEVICE else location.volumeUuid
+        is FilesLocation.Folder -> volumePane(location.volumeUuid)
+        is FilesLocation.Zip -> volumePane(location.volumeUuid)
+        is FilesLocation.Properties -> volumePane(location.volumeUuid)
     }
+
+    private fun volumePane(uuid: String): String = if (uuid == FilePaths.PRIMARY) PANE_DEVICE else uuid
 
     /**
      * The breadcrumb (r11/files.md 1.2): the volume's pane name first ("This Device", a card's label), then one segment
@@ -107,14 +121,49 @@ object FilesNav {
                 out
             }
         }
+        is FilesLocation.Zip -> {
+            // The folder the zip lies in, the zip, each zip nested in it, then the folders of the innermost one.
+            val out = ArrayList(crumbs(FilesLocation.Folder(location.volumeUuid, location.file.substringBeforeLast('/')), labelOf, rootOf))
+            out += Crumb(location.file.substringAfterLast('/'), FilesLocation.Zip(location.volumeUuid, location.file))
+            for (i in location.chain.indices) {
+                out += Crumb(location.chain[i].substringAfterLast('/'), FilesLocation.Zip(location.volumeUuid, location.file, location.chain.take(i + 1)))
+            }
+            var at = ""
+            for (segment in location.dir.split('/').filter { it.isNotEmpty() }) {
+                at = if (at.isEmpty()) segment else "$at/$segment"
+                out += Crumb(segment, location.copy(dir = at))
+            }
+            out
+        }
+        is FilesLocation.Properties -> {
+            // The breadcrumb ends in the item's name (r11/files.md 1.10.1); a volume's own root is its one segment.
+            val root = rootOf(location.volumeUuid)?.trimEnd('/')
+            if (root == null || !FilePaths.under(location.path, root)) {
+                listOf(Crumb(labelOf(location.volumeUuid)?.takeIf { location.path == root } ?: location.name, location))
+            } else {
+                crumbs(FilesLocation.Folder(location.volumeUuid, location.path.substringBeforeLast('/')), labelOf, rootOf) + Crumb(location.name, location)
+            }
+        }
     }
 
     /** ↑ (1.2.8): the parent folder, or null at a volume's root and on every page that is not a folder (↑ is dimmed). */
-    fun parent(location: FilesLocation, rootOf: (String) -> String?): FilesLocation.Folder? {
-        if (location !is FilesLocation.Folder) return null
-        val root = rootOf(location.volumeUuid)?.trimEnd('/') ?: return null
-        if (!FilePaths.under(location.path, root)) return null
-        return FilesLocation.Folder(location.volumeUuid, location.path.substringBeforeLast('/'))
+    fun parent(location: FilesLocation, rootOf: (String) -> String?): FilesLocation? = when (location) {
+        is FilesLocation.Folder -> folderOf(location.volumeUuid, location.path, rootOf)
+        // Inside a zip ↑ walks its folders, then the zip it is nested in, then the folder the zip lies in.
+        is FilesLocation.Zip -> when {
+            location.dir.isNotEmpty() -> location.copy(dir = location.dir.substringBeforeLast('/', ""))
+            location.chain.isNotEmpty() -> location.copy(chain = location.chain.dropLast(1), dir = location.chain.last().substringBeforeLast('/', ""))
+            else -> folderOf(location.volumeUuid, location.file, rootOf)
+        }
+        is FilesLocation.Properties -> folderOf(location.volumeUuid, location.path, rootOf)
+        else -> null
+    }
+
+    /** The folder [path] lies in, on its volume — null for the volume's root and for a path outside it. */
+    private fun folderOf(uuid: String, path: String, rootOf: (String) -> String?): FilesLocation.Folder? {
+        val root = rootOf(uuid)?.trimEnd('/') ?: return null
+        if (!FilePaths.under(path, root)) return null
+        return FilesLocation.Folder(uuid, path.substringBeforeLast('/'))
     }
 
     /**

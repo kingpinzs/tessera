@@ -151,4 +151,42 @@ class FilesNavTest {
         assertFalse(FileKind.isZip("qa.zip", true))
         assertFalse(FileKind.isZip("a.apk", false))
     }
+
+    @Test
+    fun `a zip's crumbs are its folder's, the zip, each nested zip, then its own folders`() {
+        val zip = "$root/QA-Files/zips/qa-nested.zip"
+        val at = FilesLocation.Zip(FilePaths.PRIMARY, zip, listOf("inner/qa.zip"), "dir/deep")
+        val crumbs = FilesNav.crumbs(at, labelOf, rootOf)
+        assertEquals(listOf("This Device", "QA-Files", "zips", "qa-nested.zip", "qa.zip", "dir", "deep"), crumbs.map { it.label })
+        assertEquals(folder("$root/QA-Files/zips"), crumbs[2].location)
+        assertEquals(FilesLocation.Zip(FilePaths.PRIMARY, zip), crumbs[3].location)
+        assertEquals(FilesLocation.Zip(FilePaths.PRIMARY, zip, listOf("inner/qa.zip")), crumbs[4].location)
+        assertEquals(at.copy(dir = "dir"), crumbs[5].location)
+        assertEquals(at, crumbs.last().location)
+        assertEquals(FilesNav.PANE_DEVICE, FilesNav.paneId(at))
+    }
+
+    @Test
+    fun `up inside a zip walks its folders, then the zip around it, then the folder it lies in`() {
+        val zip = "$root/QA-Files/zips/qa-nested.zip"
+        val deep = FilesLocation.Zip(FilePaths.PRIMARY, zip, listOf("inner/qa.zip"), "dir/deep")
+        assertEquals(deep.copy(dir = "dir"), FilesNav.parent(deep, rootOf))
+        assertEquals(deep.copy(dir = ""), FilesNav.parent(deep.copy(dir = "dir"), rootOf))
+        assertEquals(FilesLocation.Zip(FilePaths.PRIMARY, zip, emptyList(), "inner"), FilesNav.parent(deep.copy(dir = ""), rootOf))
+        assertEquals(folder("$root/QA-Files/zips"), FilesNav.parent(FilesLocation.Zip(FilePaths.PRIMARY, zip), rootOf))
+        assertNull("a zip on a volume that is gone", FilesNav.parent(FilesLocation.Zip("AAAA-0000", "/storage/AAAA-0000/a.zip"), rootOf))
+    }
+
+    @Test
+    fun `Properties' breadcrumb ends in the item's name and up is its folder`() {
+        val at = FilesLocation.Properties(FilePaths.PRIMARY, "$root/QA-Files/b.bin", "b.bin", isDirectory = false)
+        val crumbs = FilesNav.crumbs(at, labelOf, rootOf)
+        assertEquals(listOf("This Device", "QA-Files", "b.bin"), crumbs.map { it.label })
+        assertEquals(folder("$root/QA-Files"), crumbs[1].location)
+        assertEquals(folder("$root/QA-Files"), FilesNav.parent(at, rootOf))
+        // A volume's own root: its one segment is the volume's name, and there is nothing above it.
+        val whole = FilesLocation.Properties(FilePaths.PRIMARY, root, "This Device", isDirectory = true)
+        assertEquals(listOf("This Device"), FilesNav.crumbs(whole, labelOf, rootOf).map { it.label })
+        assertNull(FilesNav.parent(whole, rootOf))
+    }
 }

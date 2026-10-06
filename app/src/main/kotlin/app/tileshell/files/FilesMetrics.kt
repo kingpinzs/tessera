@@ -85,8 +85,11 @@ object FilesMetrics {
     /** P2 §5 row 4.6: a pressed row's fill, about (55,55,55), full width. */
     val ROW_PRESSED = Color(0xFF373737)
 
-    /** P2 §5 row 4.5: the hold menu's first frame comes 700 ms after the press. */
-    const val HOLD_MS = 700L
+    /**
+     * P2 §5 row 4.5: the hold menu's first frame comes 700 ± 33 ms after the press. The menu is drawn one to two frames
+     * after the hold is recognised (measured 711–719 with 700 here), so the hold is recognised a frame-step early.
+     */
+    const val HOLD_MS = 688L
 
     // ---- icons view (F 1.6; P2 §1 UNMEASURED-8, §4.6)
     /** Three per row (pitch W/3). A thumbnail about 96 square; a type icon 67 × 84 in the same box. */

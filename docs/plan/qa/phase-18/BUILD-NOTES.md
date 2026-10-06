@@ -115,3 +115,25 @@ QA RULE from its incident: never bulk-delete a huge tree in one command on the A
 
 Q-18-5 (a) and the nine build-time calls are in the doc's Decisions and INDEX's Change Log (2026-10-06 16:11). Still OWED from
 the lists above: the E12 producers.tsv rows for the extra lines; the device checks; H4 / H5 wording for the P4 calls.
+
+## From the screens builder (tasks 3 / 8 / 9), 2026-10-06 16:55 — run on the AVD, APK 291d1bc4; smoke evidence TASK3-smoke/<leg>/
+
+NOT verified by it (each still owed by a row or an edge sub-step): the full-volume legs; qa-huge.zip; the symlink and CP437
+zips; the 255-byte name; the same-ms twin delete; the unindexed restore to Download/Restored; the audio Properties section;
+the 70,000-entry zip's LAST row; the uninstall leg; a public-volume share; restore into a folder removed by adb rm -r
+(it removed the folder through Files); the dim glyph's colour; floor_selftest.sh after its p18.sh fix.
+Floor fix it made: _pace_write force-stops again AFTER the pref write (HOME restarts between stop and write and kept the
+old prefs: the first paced run copied unpaced — f-big/out-copy-run1-unpaced.txt).
+Calls it made (P4 / silent in the doc — H rows to carry them; OWED a Change Log line with the next batch):
+1. files_zip_create = the last line of the selection's overflow ("Create zip"). 2. files_bin_empty in the bin's overflow;
+files_bin_restore / files_bin_delete are the bin's selection bar; a hold on a bin row or inside a zip does nothing.
+3. [motion] files_hold carries t0 = the press and an appended first=<ms>. 4. The dialog's text box is a local field in
+OutlinedField's metrics (rename selects the whole name). 5. Dialog scrim black 60 %. 6. Back during an operation does
+nothing; Back on a conflict = Skip. 7. A nested zip has Extract dimmed; an operation lands on the folder HOLDING the
+output. 8. Failure text "Couldn't copy the files: <reason>". 9. Picker overflow = Refresh only; bar labels Done / Cancel;
+no New folder in the picker (open question). 10. Zip pages have no Select / New folder; a new line "properties <path>".
+11. HOLD_MS is 688 so the first frame lands at 700 (measured 701-719). 12. The progress box's top = STATUS_EPX (28).
+Seam for the next builder: FilesBehaviour(activity, opening: FilesOpening) — FilesOpening.open(state, entry) and
+.holdRecent(behaviour, state, press); helpers behaviour.showMenu / share / showProperties.
+ENVIRONMENT: a safety check refused two inline adb rm commands of that builder; drivers must be script files.
+The qa-capture test app was left installed on the AVD (uninstall at the end of the build's device work).

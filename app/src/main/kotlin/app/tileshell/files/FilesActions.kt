@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 /** Where a row came from: it picks the row's tag and what its detail line says. */
-enum class EntrySource { FOLDER, SEARCH, RECENT, BIN }
+enum class EntrySource { FOLDER, SEARCH, RECENT, BIN, ZIP }
 
 /**
  * One row as a page draws it — a folder's entry, a search hit, a Recent entry, a binned file. [path] is where the file
@@ -21,6 +21,8 @@ data class FileEntry(
     val unreadable: Boolean = false,
     /** A bin row's record ([RecycleBin.Entry]); null everywhere else. */
     val bin: RecycleBin.Entry? = null,
+    /** A row inside a zip ([EntrySource.ZIP]): its path in the archive; null everywhere else. */
+    val zipPath: String? = null,
 ) {
     val name: String get() = row.name
     val isDirectory: Boolean get() = row.isDirectory
@@ -140,6 +142,29 @@ interface FilesActions {
     /** Drawn over the whole page (the box between the status bar and the nav bar), above everything Files draws: the hold menu, the dialogs, the progress box. */
     @Composable
     fun Overlays(state: FilesState) {}
+
+    /**
+     * Drawn over the whole SCREEN, the status and nav bars included, and under nothing: the part of the progress wash
+     * that lies on the bars (pass 2 §1: "the whole screen, bars included"). It takes no touch.
+     */
+    @Composable
+    fun ScreenOverlays(state: FilesState) {}
+
+    /**
+     * What a page that is not Files' own holds — a zip's virtual folder ([FilesLocation.Zip]). Called OFF the main
+     * thread; the rows come back unsorted, the page sorts them like a folder's.
+     */
+    fun rows(state: FilesState, at: FilesLocation): PageBody = PageBody.Error(FilesState.FOLDER_GONE)
+
+    /** The body of a page that is not a list — Properties ([FilesLocation.Properties]). */
+    @Composable
+    fun PageContent(state: FilesState, at: FilesLocation) {}
+
+    /** The location changed (after the change): modes that belong to the page left — selection, an open zip — end here. */
+    fun onLocation(state: FilesState, from: FilesLocation, to: FilesLocation) {}
+
+    /** A launch reset the history (r3 D12): selection, the picker and every dialog are dropped. */
+    fun onReset(state: FilesState) {}
 
     /** The default holder: nothing happens and nothing is logged. */
     object None : FilesActions

@@ -327,6 +327,10 @@ _pace_write() { # value|--remove
   else
     adb shell "run-as app.tileshell sh -c 'mkdir -p shared_prefs && cat > shared_prefs/start_theme.xml'" < "$ROW_DIR/.prefs-out.xml"
   fi
+  # The shell is the HOME app: the system can bring its process back between the stop above and the write, and that
+  # process has then read the OLD file and keeps it in memory (TASK3-smoke/f-big/out-copy-run1-unpaced.txt: the pref
+  # read back 8388608 and the copy ran unpaced, with no `qa pace` line). Stopped again, the next process reads the new file.
+  adb shell am force-stop app.tileshell; sleep 0.5
 }
 pace_now() { _pace_file | tr -d '\r' | sed -n "s/.*name=\"$PACE_KEY\">\([^<]*\)<.*/\1/p"; }
 pace_set() { # [bps]
