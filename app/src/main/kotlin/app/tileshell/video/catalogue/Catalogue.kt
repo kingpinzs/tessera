@@ -9,11 +9,11 @@ import app.tileshell.BuildConfig
 import app.tileshell.diag.Diagnostics
 import app.tileshell.net.CredentialStore
 import app.tileshell.net.FixedEndpoints
-import app.tileshell.net.HeaderText
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
+import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.URLEncoder
 import java.security.MessageDigest
@@ -47,12 +47,22 @@ object VideoHttp {
     /** The longest image kept (B-9): a poster or a thumbnail is a few hundred kilobytes. */
     const val MAX_IMAGE_BYTES = 8L * 1024 * 1024
 
-    fun get(url: String, headers: Map<String, String>, maxBytes: Long = MAX_JSON_BYTES): FetchOutcome = send(url, headers, null, maxBytes)
+    /**
+     * The longest ONE answer's body may take to arrive, first read to last (B2-L4). The 10-s read timeout bounds a
+     * single read only, so a server that sends a byte every few seconds could hold a call — and the thread it runs
+     * on — for as long as it liked; past this the answer is dropped and the call ends as "no connection". Checked
+     * between reads, so the real bound is this plus one read's timeout.
+     */
+    const val TOTAL_READ_MS = 60_000L
+
+    fun get(url: String, headers: Map<String, String>, maxBytes: Long = MAX_JSON_BYTES, totalReadMs: Long = TOTAL_READ_MS): FetchOutcome =
+        send(url, headers, null, maxBytes, totalReadMs)
 
     /** A JSON POST. The body may hold a password: it goes to the socket and nowhere else. */
-    fun post(url: String, headers: Map<String, String>, json: String, maxBytes: Long = MAX_JSON_BYTES): FetchOutcome = send(url, headers, json, maxBytes)
+    fun post(url: String, headers: Map<String, String>, json: String, maxBytes: Long = MAX_JSON_BYTES, totalReadMs: Long = TOTAL_READ_MS): FetchOutcome =
+        send(url, headers, json, maxBytes, totalReadMs)
 
-    private fun send(url: String, headers: Map<String, String>, json: String?, maxBytes: Long): FetchOutcome {
+    private fun send(url: String, headers: Map<String, String>, json: String?, maxBytes: Long, totalReadMs: Long): FetchOutcome {
         val conn = try {
             URL(url).openConnection() as HttpURLConnection
         } catch (e: Exception) {
@@ -70,7 +80,7 @@ object VideoHttp {
                 conn.outputStream.use { it.write(json.toByteArray(Charsets.UTF_8)) }
             }
             val code = conn.responseCode
-            if (code in 200..299) readCapped(conn, maxBytes)?.let { FetchOutcome.Answer(String(it, Charsets.UTF_8)) } ?: FetchOutcome.TooLarge
+            if (code in 200..299) readCapped(conn, maxBytes, totalReadMs)?.let { FetchOutcome.Answer(String(it, Charsets.UTF_8)) } ?: FetchOutcome.TooLarge
             else FetchOutcome.Status(code, conn.getHeaderField("Retry-After")?.trim()?.toLongOrNull())
         } catch (e: IOException) {
             FetchOutcome.NoConnection
@@ -84,17 +94,24 @@ object VideoHttp {
 
     /**
      * The answer's body, or null when it is longer than [maxBytes] (B-9): by its declared length before a byte is read,
-     * else as soon as the count passes the cap — so a server cannot make the hub hold an answer without end.
+     * else as soon as the count passes the cap — so a server cannot make the hub hold an answer without end. An
+     * answer still arriving [totalReadMs] after its first read began is given up as a timeout (B2-L4): an IOException,
+     * which every caller already reads as "no connection".
      */
-    private fun readCapped(conn: HttpURLConnection, maxBytes: Long): ByteArray? {
+    private fun readCapped(conn: HttpURLConnection, maxBytes: Long, totalReadMs: Long): ByteArray? {
         var over = conn.contentLengthLong > maxBytes
         val out = ByteArrayOutputStream()
         if (!over) {
+            val deadline = System.nanoTime() + totalReadMs * 1_000_000L
             conn.inputStream.use { input ->
                 val buffer = ByteArray(16 * 1024)
                 while (true) {
                     val n = input.read(buffer)
                     if (n < 0) break
+                    if (System.nanoTime() - deadline > 0) {
+                        Diagnostics.add("video", LINE_TOO_SLOW)
+                        throw SocketTimeoutException("answer not finished in time")
+                    }
                     if (out.size() + n.toLong() > maxBytes) { over = true; break }
                     out.write(buffer, 0, n)
                 }
@@ -109,14 +126,16 @@ object VideoHttp {
         Diagnostics.add("video", "http: request not sent (${e.javaClass.simpleName})")
     }
 
-    fun bytes(url: String, headers: Map<String, String> = emptyMap(), maxBytes: Long = MAX_IMAGE_BYTES): ByteArray? {
+    const val LINE_TOO_SLOW = "http: answer not finished in time"
+
+    fun bytes(url: String, headers: Map<String, String> = emptyMap(), maxBytes: Long = MAX_IMAGE_BYTES, totalReadMs: Long = TOTAL_READ_MS): ByteArray? {
         val conn = try { URL(url).openConnection() as HttpURLConnection } catch (e: Exception) { return null }
         return try {
             conn.connectTimeout = TIMEOUT_MS
             conn.readTimeout = TIMEOUT_MS
             conn.instanceFollowRedirects = headers.isEmpty()   // headers are never carried to a redirect's host
             for ((k, v) in headers) conn.setRequestProperty(k, v)
-            if (conn.responseCode in 200..299) readCapped(conn, maxBytes) else null
+            if (conn.responseCode in 200..299) readCapped(conn, maxBytes, totalReadMs) else null
         } catch (e: IOException) {
             null
         } catch (e: RuntimeException) {
@@ -189,7 +208,8 @@ class Catalogue(context: Context) {
         }
         val entry = cache.read(kind, key)
         val cached = entry?.let { parse(it.body) }
-        if (!HeaderText.isHeaderSafe(token)) {
+        val headers = CatalogueRules.headers(token)
+        if (headers == null) {
             // A key saved before the key page refused such values: it is never put into a header (B-1).
             if (!quiet) Diagnostics.add("video", CatalogueRules.LINE_UNUSABLE_KEY)
             return CatalogueResult(cached, CatalogueNotice.BAD_KEY, true)
@@ -198,7 +218,6 @@ class Catalogue(context: Context) {
             say("offline")
             return CatalogueResult(cached, CatalogueNotice.OFFLINE, true)
         }
-        val headers = mapOf("Authorization" to "Bearer $token", "Accept" to "application/json")
         if (kind == "search" || kind == "section") configuration(headers)
         val outcome = VideoHttp.get(apiBase() + path, headers)
         val fresh = (outcome as? FetchOutcome.Answer)?.let { parse(it.body) }

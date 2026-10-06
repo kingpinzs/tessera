@@ -60,3 +60,52 @@ source is its own provider; on Android 15+ the platform is asked instead. The S2
 - (n) Photos' own viewer still offers Edit, Delete, Set as.
 - (o) C-L5 needs a reboot before the first unlock (the lead's liveness edge): `[app] user unlocked: launcher start-up` followed by the nine `[net]` lines.
 - (p) The Probe page on a picked Living Image still reads `motionPhoto: MotionPhoto=1`.
+
+## Round 2 — Movies & TV credentials again (review B's second round; branch phase-17-fix-video2)
+
+Every fix has a test seen to fail first, and each mutation the reviewer saw SURVIVE is now killed by a named test
+(`video/TrustWiringScanTest` holds each rule's call site to its one form). 1,614 unit tests at the fixer's report.
+
+| Finding | Fix | Device check owed |
+|---|---|---|
+| B2-M1 | "Set up" has one meaning: the sealed entry opens, the pages' file exists, and both carry the same save id (`pair`). The stream token is given only then. `ServerStore.remove()` says whether the sealed entry went; `[video] server token cleared` is written only when it did, else `[video] server not removed: its token could not be cleared` — and the pages' file is deleted either way, so the token is dead after any Remove tap (the lead's ruling). At the hub's start a stored entry that is not a set-up server (no file, another save's file, a bare token from an earlier build, one that does not open) is removed: `[video] server entry cleared at start: it was not a saved server` (not while the phone is locked). The settings page shows `server_left_over` with `server_remove` whenever an entry is stored but no server is set up. `[video] TMDB key removed` only when it went, else `[video] TMDB key not removed`. A server signed in under an earlier build reads as signed out. | (a) sign in; `run-as` remove `files/media_server.json`; force-stop; open the hub → `[cred] jellyfin: removed`, the cleared-at-start line, no Media server row, no shortcut. (b) sign in; replace the file with one lacking `pair`; open Settings → Media server without restarting → `server_left_over` + `server_remove`; Remove → `server token cleared`. (c) a normal removal still writes `server token cleared`. |
+| B2-M2 | The server's token is attached only when the shell itself started the player (`PlayerAccess.serverToken`). Any other launch of the server's stream address plays without it: `[video] server token not given: not the shell's own launch` (then Jellyfin's own answer decides: the fixer expects 401 → `cannot decode 401`; round 1's fixture notes say 12.1 serves a direct-play stream with no key — the row RECORDS which). | (e) from the hub's Media server page an item plays with `[video] server stream …`; then the same address by `adb shell am start` and from a permission-less app → the not-given line, no `server stream` line, the fixture's log shows no ApiKey on that request. |
+| B2-M3 (JVM half) | `TrustWiringScanTest` (11 tests): the three QA-pref reads pass `BuildConfig.DEBUG`; the key page stores only the validator's result; the password and key fields are secret; the cipher's key is 256-bit, GCM, with the name as AAD on seal and open; the player's own-launch flag, the resolver and the reported URI are wired one way. | The fixes file's legs above, plus: the sealed `jellyfin` entry's fields moved under `tmdb` (run-as) → both read as absent. |
+| B2-M4 | Tests: a 302 is not followed where a header is sent (GET, POST, image), a stored key that is not header-safe is not sent, a failed rename is a failed save, the private-address bounds, the poster base. No rule needed changing. | — |
+| B2-L1, L5, L6 | No response body or token in any `toString`; ONE cleaner (`video/VideoLines.kt`) for every foreign text in a `[video]` line — titles, queries, service and server names (80 characters; an address 300); the token key's name is percent-decoded before comparing; a `;`-separated key is stripped from the reported URL. | — |
+| B2-L3 | The extraction rules also exclude the store's `.tmp` and `.lock` files, `media_server.json.tmp`, `media_server_device.txt` and `video_catalogue/`. | `dumpsys package` names the rules resource (E17). |
+| B2-L4 | One response read has a 60-s total deadline (`[video] http: answer not finished in time`). | — |
+| B2-L7 | A paste over 2,000 characters is refused (`tmdb_key_error`), never stored cut. | (g) 2,001 characters → refused, "No key is saved."; 2,000 → saved. |
+| B2-L8 | A NEWLY made credential key needs an unlocked phone; a key made before keeps its properties (the emulator's key predates this). | (h) fresh install with a PIN: save a key, lock, start the hub → no sweep line, the entry still there after unlock; RECORD the locked read's line. |
+
+Lines new since round 1 (E18's tables must name them): `server not removed: its token could not be cleared`, `server
+entry cleared at start: it was not a saved server`, `server token not given: not the shell's own launch`, `TMDB key not
+removed`, `http: answer not finished in time`. A row that starts a server item by `adb shell am start` must go through
+the hub's Media server page instead.
+
+## Round 3 — ONE access rule for the capture answer, the viewer and the player (merged 73640460; 1,715 unit tests)
+
+The rule's table is the phase doc's top Decisions line of 2026-10-05 19:09. Deleted: the player's own port and rule,
+`media/CaptureCallerAccess.kt`. 44 of 44 reviewer mutations are killed by a named test (`media/UriAccessWiringScanTest`
+holds each activity's wiring to one form). Not device-proven yet.
+
+**The platform limit** (leg (j)'s refusal, explained from android16's source: `ContentProviderHelper
+.checkContentProviderUriPermission` returns DENIED when called while the window-manager lock is held, which it is when
+the launch answer is computed): the launch answer is `denied` for any MediaStore item unless the starter holds a grant.
+So on Android 15+ too: another app that only HOLDS the media permission and opens a MediaStore item with the viewer or
+player is refused; a capture into the caller's own MediaStore row is refused. An app's own provider is admitted.
+
+Device legs owed (they REPLACE the earlier wording of the same letters):
+- E9 (e): go-between T (no permission), receiver V holding WRITE_CONTACTS; V starts T for a result; T starts the
+  capture with FLAG_ACTIVITY_FORWARD_RESULT and a contact's display_photo URI in EXTRA_OUTPUT and ClipData with the
+  write flag. Expect: T's start does not throw; `capture guard inputs: … recipientMayWrite=false starterAtLaunch=not
+  asked`; refused; RESULT_CANCELED; no camera opened; the photo unchanged. Again with V's OWN FileProvider URI:
+  `recipientMayWrite=true starterAtLaunch=denied`, refused.
+- E9 (a) the caller's own MediaStore row: REFUSED now; assert `starterAtLaunch=denied` and the refusal.
+- E9 (c) with the caller holding WRITE_CONTACTS: REFUSED now (`recipientMayWrite=false`).
+- E9: qa-capture's own FileProvider output: `recipientMayWrite=true starterAtLaunch=granted`, RESULT_OK.
+- TRUST_PHOTOS (j): expect `[photosapp] launch answer read: denied` and the refusal (and `adb logcat -d | grep
+  "holding WM lock"` after the leg, recorded). (h), (k), (l), (n) as before, each with its launch-answer line.
+- TRUST_VIDEO: the same legs for the player; a MediaStore launch by another app shows no subtitle line; a network and
+  a content source still play through the guarded data source.
+- The ledger across two real processes; the refusal on an unreadable capture request.

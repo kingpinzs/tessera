@@ -1,10 +1,12 @@
 package app.tileshell.video.catalogue
 
+import app.tileshell.net.HeaderText
 import app.tileshell.net.MiniJson
 import app.tileshell.net.jsonArray
 import app.tileshell.net.jsonLong
 import app.tileshell.net.jsonObject
 import app.tileshell.net.jsonString
+import app.tileshell.video.VideoLines
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
@@ -87,7 +89,10 @@ enum class CatalogueNotice(val text: String?) {
 
 /** How one catalogue request ended. */
 sealed interface FetchOutcome {
-    data class Answer(val body: String) : FetchOutcome
+    data class Answer(val body: String) : FetchOutcome {
+        /** Never the body (B2-L1): a sign-in's answer holds the server's token, and a text form is what gets printed. */
+        override fun toString(): String = "Answer(${body.length} chars)"
+    }
     /** @param retryAfterSeconds the answer's `Retry-After`, when it sent one (a 429) */
     data class Status(val code: Int, val retryAfterSeconds: Long? = null) : FetchOutcome
 
@@ -109,6 +114,14 @@ object CatalogueRules {
     const val LINE_UNUSABLE_KEY = "catalogue: the saved TMDB key cannot be sent"
 
     /**
+     * The headers of a catalogue request made with the saved key — or null, and then NO request is made: a key that
+     * cannot be a header's value ([HeaderText.isHeaderSafe]; one saved before the key page refused such values) is
+     * never handed to the platform, whose refusal would quote it (B-1). The only place the key becomes a header.
+     */
+    fun headers(token: String): Map<String, String>? =
+        if (HeaderText.isHeaderSafe(token)) mapOf("Authorization" to "Bearer $token", "Accept" to "application/json") else null
+
+    /**
      * An entry older than 7 days is stale. The catalogue is asked whenever the phone is online — a saved answer is
      * what the page falls back on offline or when the catalogue fails — and an answer that replaces a stale entry is
      * logged as `<n> (refreshed)`.
@@ -116,7 +129,7 @@ object CatalogueRules {
     fun isStale(ageMs: Long): Boolean = ageMs > CACHE_MS
 
     /** `[video] catalogue "<q>": <n> | <n> (refreshed) | offline | error <code>` — the query and the status only (C-32). */
-    fun line(subject: String, status: String): String = "catalogue \"$subject\": $status"
+    fun line(subject: String, status: String): String = "catalogue \"${VideoLines.text(subject)}\": $status"
 
     fun countStatus(count: Int, replacedStale: Boolean): String = if (replacedStale) "$count (refreshed)" else count.toString()
 

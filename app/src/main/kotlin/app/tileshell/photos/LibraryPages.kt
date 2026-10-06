@@ -322,7 +322,9 @@ private data class TileThumb(val bitmap: androidx.compose.ui.graphics.ImageBitma
 /**
  * One square tile: MediaStore's thumbnail centre-cropped; a video carries W10M's dark disc with the outline play
  * triangle (1.3.14); a row whose file cannot be read is a placeholder (Edge cases). A tap opens it; a hold on a video
- * raises the Edit sheet (Trim). Tags `photos_item:<id>`, `photos_video_disc:<id>`, `photos_item_missing:<id>`.
+ * raises the Edit sheet (Trim). A still that is a Living Image (build task 6d; [LivingImages] — read off the main thread,
+ * once per state of the row) carries the Living Images glyph on a dark disc in its lower left corner. Tags
+ * `photos_item:<id>`, `photos_video_disc:<id>`, `photos_item_missing:<id>`, `photos_living:<id>`.
  */
 @Composable
 fun PhotoTile(nav: PhotosNav, item: MediaEntry, modifier: Modifier, onTap: () -> Unit) {
@@ -330,6 +332,11 @@ fun PhotoTile(nav: PhotosNav, item: MediaEntry, modifier: Modifier, onTap: () ->
     val loaded by produceState(TileThumb(PhotoThumbs.cached(item.id), PhotoThumbs.knownUnreadable(item.id)), item.id, item.dateMs, item.size) {
         val bitmap = PhotoThumbs.load(context, item)
         value = TileThumb(bitmap, bitmap == null)
+    }
+    // The key the answer was read for comes back with it, so a tile reused for another row never shows the last one's.
+    val key = LivingRules.key(item)
+    val livingFor by produceState(if (LivingImages.cached(item) != null) key else null, key) {
+        value = if (LivingImages.of(context, item) != null) key else null
     }
     val thumb = loaded.bitmap
     val missing = loaded.missing
@@ -350,6 +357,12 @@ fun PhotoTile(nav: PhotosNav, item: MediaEntry, modifier: Modifier, onTap: () ->
                 Modifier.align(Alignment.Center).size(PhotosMetrics.VIDEO_DISC).background(Color.Black.copy(alpha = 0.58f), CircleShape).testTag("photos_video_disc:${item.id}"),
                 contentAlignment = Alignment.Center,
             ) { PhotoGlyph(Glyph.PLAY_OUTLINE, 18f, Color.White, Modifier.offset(x = 1.dp)) }
+        }
+        if (!item.video && livingFor == key) {
+            Box(
+                Modifier.align(Alignment.BottomStart).padding(4.dp).size(PhotosMetrics.LIVING_DISC).background(Color.Black.copy(alpha = 0.58f), CircleShape).testTag("photos_living:${item.id}"),
+                contentAlignment = Alignment.Center,
+            ) { PhotoGlyph(Glyph.LIVING_IMAGE, 14f, Color.White) }
         }
     }
 }

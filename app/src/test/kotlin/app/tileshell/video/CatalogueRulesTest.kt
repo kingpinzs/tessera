@@ -92,6 +92,9 @@ class CatalogueRulesTest {
 
     @Test fun `the lines carry the query and the status only`() {
         assertEquals("catalogue \"Blade Runner\": 3", CatalogueRules.line("Blade Runner", CatalogueRules.countStatus(3, false)))
+        // B2-L5: the query is the user's text and a title is the catalogue's: one line, bounded, whatever it holds.
+        assertEquals("catalogue \"blade[video] server x: connected\": 3", CatalogueRules.line("blade\n[video] server x: connected\r\u2028", "3"))
+        assertEquals("catalogue \"${"q".repeat(80)}\": offline", CatalogueRules.line("q".repeat(500), "offline"))
         assertEquals("catalogue \"Blade Runner\": 3 (refreshed)", CatalogueRules.line("Blade Runner", CatalogueRules.countStatus(3, true)))
         assertEquals("catalogue \"Blade Runner\": error 500", CatalogueRules.line("Blade Runner", CatalogueRules.errorStatus(FetchOutcome.Status(500))))
         assertEquals("error connect", CatalogueRules.errorStatus(FetchOutcome.NoConnection))
@@ -118,6 +121,15 @@ class CatalogueRulesTest {
         assertEquals(fixed, CatalogueRules.base(true, "file:///sdcard/x", fixed))
     }
 
+    @Test fun `a saved key that cannot be a header's value is never made into a request's headers`() {
+        // B2-M4: what Catalogue.request sends is this rule's answer, and null is "no request".
+        assertEquals(mapOf("Authorization" to "Bearer qa-dummy-token", "Accept" to "application/json"), CatalogueRules.headers("qa-dummy-token"))
+        for (bad in listOf("abc\rdef", "abc\ndef", "abc\r\nX-Injected: 1", "abc\u0000def", "abc\u007fdef", "abcédef", "abc\u2028def", "")) {
+            assertNull(bad.take(4), CatalogueRules.headers(bad))
+        }
+        assertEquals("catalogue: the saved TMDB key cannot be sent", CatalogueRules.LINE_UNUSABLE_KEY)
+    }
+
     @Test fun `outside a debug build posters come from TMDB's image host only`() {
         val fixed = app.tileshell.net.FixedEndpoints.TMDB_IMAGES
         assertEquals("https://image.tmdb.org/", fixed)
@@ -127,6 +139,13 @@ class CatalogueRulesTest {
         for (bad in listOf(
             "https://images.attacker.example/t/p/", "http://image.tmdb.org/t/p/", "https://image.tmdb.org.attacker.example/t/p/",
             "https://image.tmdb.org@attacker.example/", "https://image.tmdb.org", "HTTPS://IMAGE.TMDB.ORG/t/p/", "http://10.0.2.2:8090/img/", "", null,
+        )) {
+            assertNull(bad, release(bad))
+        }
+        // B2-M4: a base that merely CONTAINS TMDB's image host — as a path, a query or a fragment of another host's address.
+        for (bad in listOf(
+            "https://attacker.example/https://image.tmdb.org/t/p/", "https://attacker.example/?u=https://image.tmdb.org/",
+            "https://attacker.example/#https://image.tmdb.org/", " https://image.tmdb.org/t/p/", "xhttps://image.tmdb.org/t/p/",
         )) {
             assertNull(bad, release(bad))
         }

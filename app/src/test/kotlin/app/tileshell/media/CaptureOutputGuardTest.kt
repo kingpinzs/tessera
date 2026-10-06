@@ -142,4 +142,24 @@ class CaptureOutputGuardTest {
         assertEquals(null, ContentUriText.parse("content://10@media/x").plainAuthority)
         assertEquals("media", ContentUriText.parse("content://media/x").plainAuthority)
     }
+
+    @Test
+    fun `conditions (a) to (c) alone accept exactly what the guard accepts with (d) met - and make no decision of their own`() {
+        val contact = "content://com.android.contacts/contacts/7/display_photo"
+        val cases = listOf<List<Any?>>(
+            listOf(out, "com.caller", listOf(out), write), listOf(contact, "com.caller", listOf(contact), write), listOf(out, null, listOf(out), write),
+            listOf(out, "com.caller", listOf(out), read), listOf(out, "com.caller", emptyList<String>(), write), listOf("content://app.tileshell.files/x", "com.caller", listOf("content://app.tileshell.files/x"), write),
+            listOf("content://10@media/x", "com.caller", listOf("content://10@media/x"), write), listOf("file:///sdcard/x.jpg", "com.caller", listOf("file:///sdcard/x.jpg"), write),
+            listOf("content:///x", "com.caller", listOf("content:///x"), write),
+        )
+        for ((output, caller, clip, flags) in cases) {
+            @Suppress("UNCHECKED_CAST")
+            val meets = CaptureOutputGuard.meetsAToC(ContentUriText.parse(output as String), caller as String?, clip as List<String>, flags as Int, own)
+            val withD = CaptureOutputGuard.decide(ContentUriText.parse(output), caller, clip, flags, own, callerMayWrite = true)
+            assertEquals("$output $caller $clip $flags", meets, withD is Decision.Accepted)
+            // Without (d) nothing is accepted, whatever (a) to (c) say.
+            assertTrue(CaptureOutputGuard.decide(ContentUriText.parse(output), caller, clip, flags, own, callerMayWrite = false) !is Decision.Accepted)
+        }
+        assertTrue(CaptureOutputGuard.meetsAToC(ContentUriText.parse(out), "com.caller", listOf(out), write, own))
+    }
 }

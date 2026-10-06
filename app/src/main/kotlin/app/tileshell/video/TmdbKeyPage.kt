@@ -38,6 +38,12 @@ data object TmdbKeySub : HubSub {
     override val title = "TMDB key"
 }
 
+/** The key setting's lines that say how something ended. Pure, so what is said for what is unit-tested. */
+object TmdbKeyLines {
+    /** `[video] TMDB key removed` only when no key is left in the store; else `[video] TMDB key not removed`. */
+    fun removal(gone: Boolean): String = if (gone) "TMDB key removed" else "TMDB key not removed"
+}
+
 /**
  * The TMDB key setting: enter (typed or pasted), replace, remove. TRUST-TOUCHING.
  *
@@ -46,8 +52,9 @@ data object TmdbKeySub : HubSub {
  * shown again — the page only says that one is saved — and the lines written here say "saved" or "removed", never
  * what. Saving over a saved token replaces it.
  *
- * A value that is not printable ASCII with no space inside (the ends are trimmed) is refused: the page says so
- * (`tmdb_key_error`), the field is emptied and nothing is stored.
+ * A value that is not printable ASCII with no space inside (the ends are trimmed), or that is longer than a key may be
+ * (B2-L7: it is refused, never cut to fit), is refused: the page says so (`tmdb_key_error`), the field is emptied and
+ * nothing is stored.
  *
  * Tags: `tmdb_key_status`, `tmdb_key_field`, `tmdb_key_error`, `tmdb_key_save`, `tmdb_key_remove`.
  */
@@ -97,7 +104,8 @@ fun TmdbKeyPage() {
         BasicText(if (saved == true) "Replace it with another key" else "Your key", Modifier.padding(top = 20.dp, bottom = 6.dp), style = ShellType.body.copy(color = Color.White))
         OutlinedField(
             value = typed, onValueChange = { typed = it; if (it.isNotEmpty()) refused = false }, tag = "tmdb_key_field", modifier = Modifier.fillMaxWidth(),
-            maxLength = HeaderText.MAX_SECRET, placeholder = "TMDB read access token", onImeAction = { save() }, secret = true,
+            // One more than a key may have, so a paste that is too long is refused by the rule, never stored cut (B2-L7).
+            maxLength = HeaderText.FIELD_MAX, placeholder = "TMDB read access token", onImeAction = { save() }, secret = true,
         )
         if (refused) {
             BasicText(HeaderText.TEXT_BAD_SECRET, Modifier.padding(top = 12.dp).testTag("tmdb_key_error"), style = ShellType.body.copy(color = Color.White))
@@ -107,8 +115,9 @@ fun TmdbKeyPage() {
             Spacer(Modifier.width(12.dp))
             HubButton("Remove", "tmdb_key_remove", enabled = saved == true) {
                 scope.launch {
-                    VideoCalls.io("TMDB key remove", false) { CredentialStore.of(context).remove(CredentialStore.TMDB) }
-                    Diagnostics.add("video", "TMDB key removed")
+                    // Said only when it is true (B2-M1): the key is gone from the store, or it is still there.
+                    val gone = VideoCalls.io("TMDB key remove", false) { CredentialStore.of(context).clear(CredentialStore.TMDB) }
+                    Diagnostics.add("video", TmdbKeyLines.removal(gone))
                     saved = VideoCalls.io("TMDB key read", false) { CredentialStore.of(context).has(CredentialStore.TMDB) }
                 }
             }

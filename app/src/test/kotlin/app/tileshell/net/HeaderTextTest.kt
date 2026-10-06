@@ -32,6 +32,33 @@ class HeaderTextTest {
         assertNull("too long", HeaderText.pastedSecret("a".repeat(HeaderText.MAX_SECRET + 1)))
     }
 
+    /** What the key's field hands the page for a paste: it keeps [HeaderText.FIELD_MAX] characters. */
+    private fun asTheFieldHandsIt(paste: String): String = paste.take(HeaderText.FIELD_MAX)
+
+    @Test fun `a paste longer than the cap is refused, never stored cut - exactly the cap is a key, one more is not`() {
+        // B2-L7. The boundary:
+        assertEquals(2000, HeaderText.MAX_SECRET)
+        assertEquals(2001, HeaderText.FIELD_MAX)
+        assertEquals(2000, HeaderText.pastedSecret(asTheFieldHandsIt("k".repeat(2000)))!!.length)
+        assertNull("one more", HeaderText.pastedSecret(asTheFieldHandsIt("k".repeat(2001))))
+        // Far over: the field cuts it, and what the field hands on is still refused.
+        assertNull(HeaderText.pastedSecret(asTheFieldHandsIt("k".repeat(3000))))
+        assertNull(HeaderText.pastedSecret(asTheFieldHandsIt("k".repeat(100_000))))
+        // White space at the ends does not let a cut key through: the whole paste is what is measured.
+        assertNull(HeaderText.pastedSecret(asTheFieldHandsIt(" ".repeat(10) + "k".repeat(2000))))
+        assertNull(HeaderText.pastedSecret(asTheFieldHandsIt(" " + "k".repeat(2000))))
+        assertNull(HeaderText.pastedSecret(asTheFieldHandsIt("k".repeat(1999) + " ".repeat(500))))
+        assertNull(HeaderText.pastedSecret(" ".repeat(2001)))
+        // Whatever the field hands on for whatever paste, what is stored is the whole key or nothing.
+        for (length in listOf(1, 1999, 2000, 2001, 2002, 4000)) for (pad in listOf(0, 1, 5)) {
+            val key = "k".repeat(length)
+            val stored = HeaderText.pastedSecret(asTheFieldHandsIt(" ".repeat(pad) + key + " ".repeat(pad)))
+            assertTrue("length $length pad $pad", stored == null || stored == key)
+        }
+        // A key of the cap's length with room to spare for the white space a copy brings is still a key.
+        assertEquals("k".repeat(1990), HeaderText.pastedSecret(asTheFieldHandsIt("  " + "k".repeat(1990) + "\r\n")))
+    }
+
     @Test fun `every key the validator keeps is one a header can carry`() {
         for (typed in listOf("abc", " a.b_c-d ", "A1!#\$%&'()*+,/:;<=>?@[]^`{|}~")) {
             assertTrue(typed, HeaderText.isHeaderSafe("Bearer " + HeaderText.pastedSecret(typed)!!))

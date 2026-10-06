@@ -90,7 +90,7 @@ class PlayerRulesTest {
             PlayerRules.failure(PlayerErrorKind.UNDECODABLE, request, null, null).line,
             PlayerRules.failure(PlayerErrorKind.UNDECODABLE, request, null, "qa$forged\r\u0000\u007f\u0085\u2028\u2029.mp4").line,
             PlayerRules.unsupported(PlayerRules.classify("rtsp$forged", "h", "/x", roots) as PlayerRequest.Unsupported).line,
-            PlayerRules.unsupported(PlayerRules.request("rtsp$forged", "h", "/x", roots, false, false) as PlayerRequest.Unsupported).line,
+            PlayerRules.unsupported(PlayerRules.request("rtsp$forged", "h", "/x", roots, false, false) { it } as PlayerRequest.Unsupported).line,
             "playing scheme=${request.scheme}",
         )
         for (line in lines) {
@@ -111,17 +111,31 @@ class PlayerRulesTest {
     }
 
     @Test fun `the session title is bounded and has no control character`() {
-        // B-11, C-L7: EXTRA_TITLE is any caller's text.
-        assertEquals("Blade Runner", PlayerRules.sessionTitle("Blade Runner", "file.mp4", "video"))
-        assertEquals("line oneline two", PlayerRules.sessionTitle("line one\r\nline\u0000 two\u2028", null, "video"))
-        assertEquals(PlayerRules.TITLE_MAX, PlayerRules.sessionTitle("t".repeat(100_000), null, "video").length)
+        // B-11, C-L7: EXTRA_TITLE is text from an intent.
+        fun title(extra: String?, displayName: String?, fallback: String) = PlayerRules.sessionTitle(true, { extra }, displayName, fallback)
+        assertEquals("Blade Runner", title("Blade Runner", "file.mp4", "video"))
+        assertEquals("line oneline two", title("line one\r\nline\u0000 two\u2028", null, "video"))
+        assertEquals(PlayerRules.TITLE_MAX, title("t".repeat(100_000), null, "video").length)
         assertEquals(200, PlayerRules.TITLE_MAX)
         // No title, or one that is only control characters: the source's own name, then the fallback.
-        assertEquals("qa-steps", PlayerRules.sessionTitle(null, "qa-steps.mp4", "video"))
-        assertEquals("qa-steps", PlayerRules.sessionTitle(" \n\t ", "qa-steps.mp4", "video"))
-        assertEquals("qasteps", PlayerRules.sessionTitle("", "qa\nsteps.mp4", "video"))
-        assertEquals("video", PlayerRules.sessionTitle(null, null, "video"))
-        assertEquals("video", PlayerRules.sessionTitle(null, ".mp4", "video"))
+        assertEquals("qa-steps", title(null, "qa-steps.mp4", "video"))
+        assertEquals("qa-steps", title(" \n\t ", "qa-steps.mp4", "video"))
+        assertEquals("qasteps", title("", "qa\nsteps.mp4", "video"))
+        assertEquals("video", title(null, null, "video"))
+        assertEquals("video", title(null, ".mp4", "video"))
+        // An extra that cannot be read is no title.
+        assertEquals("qa-steps", PlayerRules.sessionTitle(true, { throw RuntimeException("BadParcelableException") }, "qa-steps.mp4", "video"))
+    }
+
+    @Test fun `C2-L3 EXTRA_TITLE names the session only for the shell's own launch - another app's is not even read`() {
+        var reads = 0
+        val extra = { reads++; "Your bank: tap to verify" }
+        assertEquals("qa-steps", PlayerRules.sessionTitle(false, extra, "qa-steps.mp4", "video"))
+        assertEquals("video", PlayerRules.sessionTitle(false, extra, null, "video"))
+        assertEquals("another app's title was never read", 0, reads)
+        assertEquals("Your bank: tap to verify", PlayerRules.sessionTitle(true, extra, "qa-steps.mp4", "video"))
+        assertTrue(PlayerAccess.titleHonoured(isOwnUid = true))
+        assertTrue(!PlayerAccess.titleHonoured(isOwnUid = false))
     }
 
     @Test fun `file is played only for the shell's own files`() {

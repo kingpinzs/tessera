@@ -88,11 +88,12 @@ object Probe {
     )
 
     /**
-     * The facts of one picked picture or video. [motionPhoto] reads the Motion Photo marker from the file's first bytes (the
-     * Camera's own reader, passed in so this object needs nothing of the Camera's). GPS is reported as present or
-     * absent, never its value.
+     * The facts of one picked picture or video. [motionPhoto] says what the file's Motion Photo form is from its first
+     * bytes, its length and a read of a few bytes by position ([ProbeMotionPhoto.describe], which asks the Camera's own
+     * reader; passed in so this object needs nothing of the Camera's). GPS is reported as present or absent, never its
+     * value.
      */
-    fun file(context: Context, uri: Uri, motionPhoto: (ByteArray) -> String): String = buildString {
+    fun file(context: Context, uri: Uri, motionPhoto: (head: ByteArray, fileSize: Long, bytesAt: (Long, Int) -> ByteArray?) -> String): String = buildString {
         val resolver = context.contentResolver
         val mime = runCatching { resolver.getType(uri) }.getOrNull()
         var name: String? = null
@@ -112,10 +113,28 @@ object Probe {
                 }
             }.onFailure { append("exif: unreadable (${it.javaClass.simpleName})\n") }
             runCatching {
-                // The marker sits in the XMP packet, in the file's first segments: only that head is read, never the
-                // picture another app owns in full (C-L2: this runs in the launcher's process).
-                val bytes = resolver.openInputStream(uri)?.use(ProbeMotionPhoto::readHead) ?: ByteArray(0)
-                append("motionPhoto: ${motionPhoto(bytes)}\n")
+                // The marker and the clip's directory sit in the XMP packet, in the file's first segments: that head is
+                // read, and one box header at the clip's stated place — never the picture another app owns in full
+                // (C-L2: this runs in the launcher's process). The file's length is the provider's word (its SIZE
+                // column, else the descriptor's), not a count of bytes read.
+                val line = resolver.openFileDescriptor(uri, "r")?.use { pfd ->
+                    java.io.FileInputStream(pfd.fileDescriptor).use { stream ->
+                        val head = ProbeMotionPhoto.readHead(stream)
+                        motionPhoto(head, size ?: pfd.statSize) { offset, count ->
+                            runCatching {
+                                val buffer = java.nio.ByteBuffer.allocate(count)
+                                var at = offset
+                                while (buffer.hasRemaining()) {
+                                    val n = stream.channel.read(buffer, at)
+                                    if (n <= 0) break
+                                    at += n
+                                }
+                                if (buffer.hasRemaining()) null else buffer.array()
+                            }.getOrNull()
+                        }
+                    }
+                } ?: "unreadable (no file)"
+                append("motionPhoto: $line\n")
             }.onFailure { append("motionPhoto: unreadable (${it.javaClass.simpleName})\n") }
         }
         // Tracks: a video's, and a Motion Photo's none (its clip is inside the still) — an image simply lists no track.

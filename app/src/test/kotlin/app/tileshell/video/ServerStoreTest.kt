@@ -6,6 +6,8 @@ import app.tileshell.net.MiniJson
 import app.tileshell.net.jsonObject
 import app.tileshell.video.server.ServerConfig
 import app.tileshell.video.server.ServerCredential
+import app.tileshell.video.server.ServerRules
+import app.tileshell.video.server.ServerSettingsView
 import app.tileshell.video.server.ServerStore
 import java.io.File
 import java.nio.file.Files
@@ -108,13 +110,12 @@ class ServerStoreTest {
     @Test fun `the sealed entry holds the server's address, and the plain file holds no token, no user id and no base`() {
         assertTrue(store().save(home, shown))
         val plain = MiniJson.parse(config.readText()).jsonObject()!!
-        assertEquals(setOf("label", "userName", "address"), plain.keys)
+        assertEquals(setOf("label", "userName", "address", "pair"), plain.keys)
+        assertTrue("the save's id names nothing", ServerRules.isPair(plain["pair"] as String))
         assertFalse(config.readText().contains(token))
         assertFalse(File(dir, "credentials_v1.json").readText().contains(token))
         // One entry: token, base and user id open together or not at all.
         assertEquals(setOf("jellyfin"), MiniJson.parse(File(dir, "credentials_v1.json").readText()).jsonObject()!!.keys)
-        config.delete()
-        assertEquals("https://media.example.org", store().credential()!!.base)
     }
 
     @Test fun `a save whose file cannot be written is not a sign-in`() {
@@ -165,11 +166,12 @@ class ServerStoreTest {
     }
 
     @Test fun `a sealed server whose parts are not what they must be is not one`() {
-        fun sealed(token: Any?, base: Any?, userId: Any?): ServerCredential? {
-            credentials.set("jellyfin", MiniJson.write(mapOf("token" to token, "base" to base, "userId" to userId)))
-            return store().credential()
-        }
+        val pair = "0123456789abcdef0123456789abcdef"
+        fun sealed(token: Any?, base: Any?, userId: Any?, id: Any? = pair): ServerCredential? =
+            ServerRules.openCredential(MiniJson.write(mapOf("token" to token, "base" to base, "userId" to userId, "pair" to id)))?.credential
         assertEquals("http://10.0.2.2:8096", sealed("t0k", "http://10.0.2.2:8096", "ab12")!!.base)
+        // The save's id: 32 hex digits, or it is not a sealed server of this build.
+        for (bad in listOf(null, "", "0123", pair.uppercase(), pair + "0", "../" + pair.drop(3), 5)) assertNull("$bad", sealed("t0k", "http://10.0.2.2:8096", "ab12", bad))
         assertNull(sealed("t0k\rINJECT", "http://10.0.2.2:8096", "ab12"))
         assertNull(sealed("", "http://10.0.2.2:8096", "ab12"))
         assertNull(sealed("t0k", "ftp://10.0.2.2", "ab12"))
@@ -183,16 +185,206 @@ class ServerStoreTest {
     @Test fun `the pages' file from before the address was kept still names its server's scheme`() {
         config.writeText(MiniJson.write(mapOf("base" to "https://media.example.org", "label" to "media.example.org", "userId" to "a1ab", "userName" to "qa")))
         assertEquals(ServerConfig("media.example.org", "qa", "https://media.example.org"), store().display())
-        assertEquals("https://media.example.org", app.tileshell.video.server.ServerRules.signInAgainPrefill(store().display()))
+        assertEquals("https://media.example.org", ServerRules.signInAgainPrefill(store().display()))
     }
 
-    @Test fun `removing the server removes the sealed entry and the file`() {
+    @Test fun `removing the server removes the sealed entry and the file, and says so`() {
         assertTrue(store().save(home, shown))
-        store().remove()
+        lines.clear()
+        assertTrue(store().remove())
         assertNull(store().credential())
         assertNull(store().display())
         assertNull(credentials.get("jellyfin"))
+        assertFalse(store().entryHeld())
         assertFalse(config.exists())
+        assertEquals(listOf("cred jellyfin: removed", "server token cleared"), lines)
+        // Nothing there: nothing is left, which is what was asked.
+        assertTrue(store().remove())
+    }
+
+    // ---- B2-M1: a token is in use only for a server the pages show, and what a half-done save or removal leaves is cleared
+
+    /** The store's own lock, held as another process would hold it: every credential write fails while [block] runs. */
+    private fun whileCredentialWritesFail(block: () -> Unit) {
+        java.io.RandomAccessFile(File(dir, "credentials_v1.json.lock"), "rw").channel.use { channel ->
+            val held = channel.lock()
+            try { block() } finally { held.release() }
+        }
+    }
+
+    @Test fun `a sealed entry with no pages' file is no server - no stream token, no header token`() {
+        assertTrue(store().save(home, shown))
+        assertEquals(token, store().streamToken(stream("https://media.example.org")))
+        config.delete()
+        assertNull("the stream token", store().streamToken(stream("https://media.example.org")))
+        assertNull("the header token", store().tokenFor(library("https://media.example.org")))
+        assertNull(store().credential())
+        // It is still stored, so the setting offers Remove.
+        assertTrue(store().entryHeld())
+        assertEquals(ServerSettingsView.LEFT_OVER, ServerRules.settingsView(setUp = store().credential() != null, entryHeld = store().entryHeld()))
+    }
+
+    @Test fun `a pages' file from another save does not make a sealed entry a server`() {
+        // A sign-in again, killed between its two writes: the new server's entry beside the old server's file.
+        assertTrue(store().save(home, shown))
+        val oldFile = config.readText()
+        assertTrue(store().save(ServerCredential("OTHER-TOKEN-1", "http://10.0.2.2:8096", "a2ab"), ServerConfig("10.0.2.2:8096", "x", "http://10.0.2.2:8096")))
+        config.writeText(oldFile)
+        assertNull(store().credential())
+        assertNull(store().streamToken(stream("http://10.0.2.2:8096")))
+        assertNull(store().tokenFor(library("http://10.0.2.2:8096")))
+        assertNull(store().streamToken(stream("https://media.example.org")))
+        // And a file with no save's id at all (written by hand, or by an earlier build).
+        config.writeText(MiniJson.write(mapOf("label" to "10.0.2.2:8096", "userName" to "x", "address" to "http://10.0.2.2:8096")))
+        assertNull(store().streamToken(stream("http://10.0.2.2:8096")))
+        assertTrue(ServerRules.paired("0123456789abcdef0123456789abcdef", "0123456789abcdef0123456789abcdef"))
+        assertFalse(ServerRules.paired("0123456789abcdef0123456789abcdef", "1123456789abcdef0123456789abcdef"))
+        assertFalse(ServerRules.paired("0123456789abcdef0123456789abcdef", null))
+        assertFalse(ServerRules.paired(null, null))
+        assertFalse(ServerRules.paired("", ""))
+    }
+
+    @Test fun `a removal whose credential write fails says not removed, still offers Remove, and the token is given to nothing`() {
+        assertTrue(store().save(home, shown))
+        lines.clear()
+        whileCredentialWritesFail { assertFalse(store().remove()) }
+        assertEquals(listOf("cred jellyfin: not removed (OverlappingFileLockException)", ServerStore.LINE_NOT_REMOVED), lines)
+        assertEquals("server not removed: its token could not be cleared", ServerStore.LINE_NOT_REMOVED)
+        assertTrue(lines.none { it == ServerStore.LINE_CLEARED })
+        // The entry is still sealed in the store, so the setting reads "left over" and offers Remove; the file is gone …
+        assertTrue(store().entryHeld())
+        assertFalse(config.exists())
+        assertEquals(ServerSettingsView.LEFT_OVER, ServerRules.settingsView(setUp = store().credential() != null, entryHeld = store().entryHeld()))
+        assertTrue(ServerRules.offersRemove(ServerSettingsView.LEFT_OVER))
+        // … but the token the owner asked to remove is given to nothing.
+        assertNull("the stream token after the failed removal", store().streamToken(stream("https://media.example.org")))
+        assertNull("the header token after the failed removal", store().tokenFor(library("https://media.example.org")))
+        // Remove again, the store writable: now it is gone, and only now is "cleared" said.
+        lines.clear()
+        assertTrue(store().remove())
+        assertFalse(store().entryHeld())
+        assertFalse(config.exists())
+        assertTrue(lines.toString(), lines.last() == ServerStore.LINE_CLEARED)
+        assertTrue(lines.none { it.contains(token) })
+    }
+
+    @Test fun `a removal that can write nothing at all still leaves the token given to nothing`() {
+        // The lead's ruling on B2-M1: the credential removal fails AND no file could be written either (a full disk).
+        assertTrue(store().save(home, shown))
+        File(File(dir, "media_server.json.tmp"), "in-the-way").apply { parentFile.mkdirs(); writeText("x") }
+        lines.clear()
+        whileCredentialWritesFail { assertFalse(store().remove()) }
+        assertNull("the stream token after the failed removal", store().streamToken(stream("https://media.example.org")))
+        assertNull(store().tokenFor(library("https://media.example.org")))
+        assertEquals(ServerSettingsView.LEFT_OVER, ServerRules.settingsView(setUp = store().credential() != null, entryHeld = store().entryHeld()))
+        assertFalse("the pages' file is deleted: it needs no room", config.exists())
+        assertEquals(ServerStore.LINE_NOT_REMOVED, lines.last())
+        assertTrue(lines.none { it == ServerStore.LINE_CLEARED })
+    }
+
+    @Test fun `a save whose file fails while the entry cannot be taken back out leaves no server and no token`() {
+        // The sealed entry is written, the file's rename fails, and the credential store cannot be written again.
+        val stuck = object : CredentialCipher by cipher {}
+        var writes = 0
+        val once = CredentialFile(File(dir, "credentials_v1.json"), stuck, rename = { from, to -> writes++ == 0 && from.renameTo(to) }) { lines += "cred $it" }
+        File(config, "in-the-way").apply { parentFile.mkdirs(); writeText("x") }
+        assertFalse(ServerStore(dir, once) { lines += it }.save(home, shown))
+        config.deleteRecursively()
+        assertTrue("the entry is left behind", store().entryHeld())
+        assertNull(store().credential())
+        assertNull(store().streamToken(stream("https://media.example.org")))
+        assertTrue(store().sweep(deviceLocked = false))
+        assertFalse(store().entryHeld())
+    }
+
+    @Test fun `the start-up sweep removes each stale form with one line that names no value, and leaves a good pair alone`() {
+        // A good pair: left alone, no line.
+        assertTrue(store().save(home, shown))
+        lines.clear()
+        assertFalse(store().sweep(deviceLocked = false))
+        assertEquals(emptyList<String>(), lines)
+        assertEquals(token, store().streamToken(stream("https://media.example.org")))
+
+        // (1) A sealed entry with no pages' file.
+        config.delete()
+        lines.clear()
+        assertTrue(store().sweep(deviceLocked = false))
+        assertFalse(store().entryHeld())
+        assertEquals(listOf("cred jellyfin: removed", ServerStore.LINE_SWEPT), lines)
+
+        // (2) An earlier build's bare token under the server's name, with that build's file.
+        credentials.set("jellyfin", token)
+        config.writeText(MiniJson.write(mapOf("base" to "http://10.0.2.2:8096", "label" to "10.0.2.2:8096", "userId" to "a1ab", "userName" to "qa")))
+        lines.clear()
+        assertTrue(store().sweep(deviceLocked = false))
+        assertFalse(store().entryHeld())
+        assertFalse("its file goes with it", config.exists())
+        assertEquals(listOf("cred jellyfin: removed", ServerStore.LINE_SWEPT), lines)
+
+        // (3) A sealed server that no longer opens (its key is gone, a byte changed).
+        assertTrue(store().save(home, shown))
+        val file = File(dir, "credentials_v1.json")
+        val root = MiniJson.parse(file.readText()).jsonObject()!!.toMutableMap()
+        val entry = root["jellyfin"].jsonObject()!!.toMutableMap()
+        val ct = java.util.Base64.getDecoder().decode(entry["ct"] as String)
+        ct[3] = (ct[3] + 1).toByte()
+        entry["ct"] = java.util.Base64.getEncoder().encodeToString(ct)
+        file.writeText(MiniJson.write(root + ("jellyfin" to entry)))
+        lines.clear()
+        assertTrue(store().sweep(deviceLocked = false))
+        assertFalse(store().entryHeld())
+        assertTrue(lines.toString(), lines.last() == ServerStore.LINE_SWEPT)
+        assertTrue(lines.toString(), lines.none { it.contains(token) || it.contains("bad tag") || it.contains("media.example.org") })
+
+        // (4) A sealed entry beside another save's file, and one whose removal failed.
+        assertTrue(store().save(home, shown))
+        whileCredentialWritesFail { assertFalse(store().remove()) }
+        assertTrue(store().entryHeld())
+        lines.clear()
+        assertTrue(store().sweep(deviceLocked = false))
+        assertFalse(store().entryHeld())
+        assertFalse(config.exists())
+
+        // Nothing stored: nothing to do, no line. Another name's entry is never touched.
+        credentials.set("tmdb", "qa-dummy-token")
+        lines.clear()
+        assertFalse(store().sweep(deviceLocked = false))
+        assertEquals(emptyList<String>(), lines)
+        assertEquals("qa-dummy-token", credentials.get("tmdb"))
+        assertEquals("server entry cleared at start: it was not a saved server", ServerStore.LINE_SWEPT)
+    }
+
+    @Test fun `the sweep judges nothing while the phone is locked, and says not removed when it cannot write`() {
+        assertTrue(store().save(home, shown))
+        config.delete()
+        lines.clear()
+        assertFalse(store().sweep(deviceLocked = true))
+        assertTrue("left for the next unlocked start", store().entryHeld())
+        assertEquals(emptyList<String>(), lines)
+        whileCredentialWritesFail { assertFalse(store().sweep(deviceLocked = false)) }
+        assertTrue(store().entryHeld())
+        assertEquals(ServerStore.LINE_NOT_REMOVED, lines.last())
+        assertNull(store().streamToken(stream("https://media.example.org")))
+    }
+
+    @Test fun `the setting offers Remove whenever anything is stored under the server's name`() {
+        assertEquals(ServerSettingsView.SERVER, ServerRules.settingsView(setUp = true, entryHeld = true))
+        assertEquals(ServerSettingsView.LEFT_OVER, ServerRules.settingsView(setUp = false, entryHeld = true))
+        assertEquals(ServerSettingsView.FORM, ServerRules.settingsView(setUp = false, entryHeld = false))
+        assertTrue(ServerRules.offersRemove(ServerSettingsView.SERVER))
+        assertTrue(ServerRules.offersRemove(ServerSettingsView.LEFT_OVER))
+        assertFalse(ServerRules.offersRemove(ServerSettingsView.FORM))
+    }
+
+    @Test fun `the key page says removed only when the key is gone`() {
+        assertEquals("TMDB key removed", TmdbKeyLines.removal(gone = true))
+        assertEquals("TMDB key not removed", TmdbKeyLines.removal(gone = false))
+        credentials.set("tmdb", "qa-dummy-token")
+        whileCredentialWritesFail { assertFalse(credentials.clear("tmdb")) }
+        assertTrue(credentials.holds("tmdb"))
+        assertTrue(credentials.clear("tmdb"))
+        assertFalse(credentials.holds("tmdb"))
+        assertTrue("nothing there is nothing left", credentials.clear("tmdb"))
     }
 
     @Test fun `no line and no text form ever carries the token`() {

@@ -196,10 +196,65 @@ class MediaWritesTest {
     fun `the file ledger survives a restart and ignores a damaged file`() {
         val dir = java.nio.file.Files.createTempDirectory("ledger").toFile()
         val file = java.io.File(dir, "media_pending/camera.txt")
-        FilePendingLedger(file).apply { add("content://media/external/video/media/1"); add("content://media/external/video/media/2"); remove("content://media/external/video/media/1") }
-        assertEquals(listOf("content://media/external/video/media/2"), FilePendingLedger(file).all())
+        FilePendingLedger.of(file).apply { add("content://media/external/video/media/1"); add("content://media/external/video/media/2"); remove("content://media/external/video/media/1") }
+        assertEquals(listOf("content://media/external/video/media/2"), FilePendingLedger.of(file).all())
+        assertEquals("the file itself holds it: a new process reads the same", "content://media/external/video/media/2\n", file.readText())
         file.writeText("garbage\n\ncontent://media/external/video/media/3\nfile:///x\n")
-        assertEquals(listOf("content://media/external/video/media/3"), FilePendingLedger(file).all())
+        assertEquals(listOf("content://media/external/video/media/3"), FilePendingLedger.of(file).all())
+        dir.deleteRecursively()
+    }
+
+    @Test
+    fun `A2-L3 the ledger takes only MediaStore rows - no other content URI is kept, read back or handed to the cleanup`() {
+        val dir = java.nio.file.Files.createTempDirectory("ledger").toFile()
+        val file = java.io.File(dir, "media_pending/camera.txt")
+        val ledger = FilePendingLedger.of(file)
+        val foreign = listOf(
+            "content://com.android.contacts/contacts/7", "content://com.android.calendar/events/3", "content://app.tileshell.files/x",
+            "content://mediax/external/images/media/1", "content://media", "content://10@media/external/images/media/1", "CONTENT://media/external/images/media/1",
+        )
+        foreign.forEach(ledger::add)
+        ledger.add("content://media/external/images/media/5")
+        assertEquals(listOf("content://media/external/images/media/5"), ledger.all())
+        assertEquals("nothing else was written to the file", "content://media/external/images/media/5\n", file.readText())
+        // A file that holds such lines (only the shell can write it; still): they are not read back …
+        file.writeText(foreign.joinToString("\n") + "\ncontent://media/external/video/media/6\n")
+        assertEquals(listOf("content://media/external/video/media/6"), ledger.all())
+        // … so the cleanup never asks the port about them, let alone deletes them.
+        val port = FakePort()
+        foreign.forEach { port.rows[it] = MediaRow(it, pending = true, size = 1, mime = "image/jpeg", relativePath = "DCIM/Camera/", ownerPackage = shell) }
+        assertEquals(0, MediaWrites(port, shell, ledger).cleanUpPending())
+        assertEquals("no row was abandoned", emptyList<String>(), port.calls)
+        assertEquals(foreign.toSet(), port.rows.keys)
+        dir.deleteRecursively()
+    }
+
+    @Test
+    fun `A2-L4 one ledger object per file in a process - two writers do not lose each other's lines`() {
+        val dir = java.nio.file.Files.createTempDirectory("ledger").toFile()
+        val file = java.io.File(dir, "media_pending/camera.txt")
+        // Two writers of one process (the viewer's and the editor's write layers, say), each taking its ledger the way
+        // ShellMediaWrites does, each adding and removing rows at once.
+        val perWriter = 150
+        val start = java.util.concurrent.CountDownLatch(1)
+        val writers = (0 until 2).map { w ->
+            Thread {
+                val ledger = FilePendingLedger.of(file)
+                start.await()
+                for (i in 0 until perWriter) {
+                    ledger.add("content://media/external/images/media/${w * 1000 + i}")
+                    if (i % 3 == 0) ledger.remove("content://media/external/images/media/${w * 1000 + i}")
+                }
+            }.apply { start() }
+        }
+        start.countDown()
+        writers.forEach { it.join() }
+        val expected = (0 until 2).flatMap { w -> (0 until perWriter).filter { it % 3 != 0 }.map { "content://media/external/images/media/${w * 1000 + it}" } }.toSet()
+        val kept = FilePendingLedger.of(file).all().toSet()
+        assertEquals("rows lost between the two writers (of ${expected.size})", emptySet<String>(), (expected - kept).take(3).toSet())
+        assertEquals(expected, kept)
+        assertTrue("the same object for the same file, however the path is spelled", FilePendingLedger.of(file) === FilePendingLedger.of(java.io.File(dir, "media_pending/../media_pending/camera.txt")))
+        assertTrue("another file has its own", FilePendingLedger.of(file) !== FilePendingLedger.of(java.io.File(dir, "media_pending/photosedit.txt")))
         dir.deleteRecursively()
     }
 

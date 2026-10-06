@@ -1,5 +1,6 @@
 package app.tileshell.video.server
 
+import android.app.KeyguardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -8,7 +9,6 @@ import android.content.pm.ShortcutManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Icon
-import android.net.Uri
 import android.os.Build
 import androidx.media3.datasource.DataSpec
 import app.tileshell.BuildConfig
@@ -34,8 +34,8 @@ import java.util.UUID
  * this class. The access token lives in the credential store alone, SEALED WITH the server it was given by
  * ([ServerStore]; B-4): every request that carries it is built on the sealed address and asks [ServerStore.tokenFor] or
  * [ServerStore.streamToken] for it, which refuse any other server. It is sent as the `Authorization` header and, for a
- * stream, added as `ApiKey` by the player's data source ([streamResolver]) — so it is in no intent, no saved URL and
- * no line. Every line names the host and a state only.
+ * stream, added as `ApiKey` by the player's data source ([streamResolver]; the shell's own launches only) — so it is in
+ * no intent, no saved URL and no line. Every line names the host and a state only.
  */
 class MediaServer(context: Context) {
     private val app = context.applicationContext
@@ -44,8 +44,17 @@ class MediaServer(context: Context) {
     /** What the pages show about the saved server, or null when none is set up. Reads the file every time. */
     fun config(): ServerConfig? = store.display()
 
-    /** True while a server is set up: its token and address open from the store, and its page has what it shows. */
-    fun isSetUp(): Boolean = store.display() != null && store.credential() != null
+    /**
+     * True while a server is set up: its token and address open from the store AND its page's file is the same save's
+     * ([ServerStore.credential]) — the one meaning every token is given under (B2-M1).
+     */
+    fun isSetUp(): Boolean = store.credential() != null
+
+    /** True when anything is stored under the server's name, set up or not: the setting then offers Remove. */
+    fun entryHeld(): Boolean = store.entryHeld()
+
+    /** On the hub's start: a left-over entry that is not a set-up server is cleared ([ServerStore.sweep]). */
+    fun sweep(): Boolean = store.sweep(app.getSystemService(KeyguardManager::class.java)?.isDeviceLocked == true)
 
     /**
      * `mediaServer.connect(host, user, password)`: signs in and, when the server accepts, saves the server and its
@@ -64,7 +73,7 @@ class MediaServer(context: Context) {
                     ServerState.UNREACHABLE
                 } else {
                     // Connected only when the token, the address it belongs to and the page's file are all written.
-                    val saved = store.save(ServerCredential(signIn.first, base, signIn.second), ServerConfig(address.label, user, address.base))
+                    val saved = store.save(ServerCredential(signIn.token, base, signIn.userId), ServerConfig(address.label, user, address.base))
                     if (saved) ServerState.CONNECTED else ServerState.UNREACHABLE
                 }
             }
@@ -109,11 +118,15 @@ class MediaServer(context: Context) {
         return runCatching { BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }.getOrNull()
     }
 
-    /** Removes the server: its token leaves the store (`[video] server token cleared`), its config and its shortcut go. */
-    fun remove() {
-        store.remove()
-        Diagnostics.add("video", "server token cleared")
-        MediaServerShortcut.remove(app)
+    /**
+     * Removes the server and says whether its token really left the store (B2-M1): `[video] server token cleared` —
+     * or `[video] server not removed: its token could not be cleared`, written by [ServerStore.remove], with the
+     * setting still offering Remove. Either way its file and its shortcut go and the token is given to nothing.
+     */
+    fun remove(): Boolean {
+        val cleared = store.remove()
+        if (!isSetUp()) MediaServerShortcut.remove(app)
+        return cleared
     }
 
     private fun header(token: String?): String = ServerRules.authorization(Build.MODEL ?: "phone", deviceId(), BuildConfig.VERSION_NAME, token)
@@ -129,7 +142,7 @@ class MediaServer(context: Context) {
 
     companion object {
         const val CONFIG_FILE = ServerStore.CONFIG_FILE
-        private const val DEVICE_FILE = "media_server_device.txt"
+        private const val DEVICE_FILE = ServerStore.DEVICE_FILE
 
         private fun storeOf(app: Context): ServerStore =
             ServerStore(app.filesDir, CredentialStore.of(app)) { Diagnostics.add("video", it) }
@@ -137,19 +150,19 @@ class MediaServer(context: Context) {
         /**
          * What the player's data source does to a request as it opens: a direct-play request to the server the token
          * was SEALED WITH gets the token as `ApiKey` (BS-5; [ServerStore.streamToken]); every other request is passed
-         * on untouched. Null when [source] could never qualify, so an ordinary video is played with no resolver at all.
+         * on untouched. The player makes one ONLY for the shell's own launch of a source that could be a stream
+         * ([app.tileshell.video.PlayerAccess.serverToken], B2-M2): an ordinary video, and any other app's launch, is
+         * played with no resolver at all.
          */
-        fun streamResolver(context: Context, source: Uri): ((DataSpec) -> DataSpec)? {
+        fun streamResolver(context: Context): (DataSpec) -> DataSpec {
             val app = context.applicationContext
-            if (source.scheme != "http" && source.scheme != "https") return null
-            if (source.path?.endsWith("/stream") != true) return null
             return { spec ->
                 val url = spec.uri.toString()
                 // On the player's loading thread: an unexpected exception is "no token", named by its class only.
                 val token = VideoCalls.guarded<String?>("server stream token", null, { Diagnostics.add("video", it) }) { storeOf(app).streamToken(url) }
                 if (token != null) {
                     // The line shows the address with its query string removed: the token's place (C-32).
-                    Diagnostics.add("video", "server stream ${ServerRules.withoutQuery(url)}")
+                    Diagnostics.add("video", ServerRules.streamLine(url))
                     spec.withUri(spec.uri.buildUpon().appendQueryParameter("ApiKey", token).build())
                 } else spec
             }

@@ -4,7 +4,8 @@ package app.tileshell.media
  * A capture request as the platform hands it over — the real Intent and Activity behind a port, so the mapping from the
  * request to the output guard's inputs is unit-tested (the trust review's A-M2). The real port is `CaptureActivity`'s
  * `IntentCaptureRequest`, a one-line read per method. Any method may throw (an extras Bundle that cannot be
- * unparcelled): [CaptureRequestRule] refuses such a request.
+ * unparcelled): [CaptureRequestRule] refuses such a request. Who STARTED the activity is not read here: that is
+ * [UriAccessPort]'s, the one port the viewer and the player ask too.
  */
 interface CaptureRequestPort {
     /** Whether the intent carries EXTRA_OUTPUT at all. */
@@ -15,12 +16,6 @@ interface CaptureRequestPort {
 
     /** `Activity.getCallingPackage()`: who receives the result; null unless started for a result. */
     fun callingPackage(): String?
-
-    /**
-     * `Activity.getLaunchedFromUid()` (API 34): the uid that really started the activity, or null when the platform
-     * does not say (it returns -1 unless the starter shares its identity or is the shell itself).
-     */
-    fun launchedFromUid(): Int?
 
     /** Every URI in the intent's ClipData, as `Uri.toString()`. */
     fun clipUris(): List<String>
@@ -33,17 +28,21 @@ interface CaptureRequestPort {
 }
 
 /**
- * From a capture request to the output guard's decision (phase 17; A-M2, A-L1). TRUST: with [CaptureOutputGuard] and
- * [CaptureCallerAccess] this is everything that decides whether the Camera writes into another app's URI; the activity
- * only carries the outcome out.
+ * From a capture request to the output guard's decision (phase 17; A-M2, A-L1, A2-F1, A2-L2). TRUST: with
+ * [CaptureOutputGuard] and [UriAccessRules.captureMayWrite] this is everything that decides whether the Camera writes
+ * into another app's URI; the activity only carries the outcome out.
  *
  *  - No EXTRA_OUTPUT → the guard's NoOutput (the no-output contract).
  *  - EXTRA_OUTPUT present and not a Uri → refused. Never the no-output contract by accident.
- *  - EXTRA_OUTPUT a Uri → its text is parsed ONCE ([ContentUriText]); the guard's scheme and authority, condition (d)
- *    and the string the write layer opens all come from that one value.
- *  - A forwarded result (A-L2): the uid that started the activity is known and is not the calling package's → refused
- *    with the guard's no-grant line, and a second line that names the two packages.
- *  - A request that cannot be read (any read throws) → refused, with a line that names the exception's class only.
+ *  - EXTRA_OUTPUT a Uri → its text is parsed ONCE ([ContentUriText]), exactly as it is; the guard's scheme and
+ *    authority, condition (d) and the string the write layer opens all come from that one value.
+ *  - Condition (d) is asked only for a request that passes the guard's other conditions — the platform's launch answer
+ *    throws for a URI the intent's ClipData does not hold, and a request that fails (a) to (c) is refused whatever (d).
+ *  - A forwarded result (A-L2, A2-F1): the platform names who started the activity and it is not the calling package,
+ *    or (API 35+) the platform says the starter could not write the output → refused with the guard's no-grant line;
+ *    the first also writes a line that names the two packages.
+ *  - A request that cannot be read (any read throws — an Error too: a hostile extras Bundle must not crash `:camera`)
+ *    → refused, with a line that names the throwable's class only.
  */
 object CaptureRequestRule {
     /**
@@ -69,28 +68,27 @@ object CaptureRequestRule {
                 val clipUris = request.clipUris()
                 val flags = request.flags()
                 val own = request.ownAuthorities()
-                // A-L2: getCallingPackage() names who RECEIVES the result. With FLAG_ACTIVITY_FORWARD_RESULT another app
-                // can start the capture and leave a third app as that "caller"; where the platform says who really
-                // started the activity and it is not the caller's uid, the request is not the caller's own.
-                val startedBy = request.launchedFromUid()
-                val callerUid = caller?.let(access::uidOf)
-                val forwarded = startedBy != null && callerUid != null && startedBy != callerUid
-                val callerMayWrite = !forwarded && CaptureCallerAccess.callerMayWrite(access, output, caller)
+                // Only a request that meets (a) to (c) is worth asking (d) about.
+                val write = if (CaptureOutputGuard.meetsAToC(output, caller, clipUris, flags, own)) {
+                    UriAccessRules.captureMayWrite(access, output, caller)
+                } else {
+                    UriAccessRules.Write(allowed = false, recipientMayWrite = false, starter = UriAccessRules.LAUNCH_NOT_ASKED)
+                }
                 // What the guard is about to weigh, for the row and the review to read (the authority only: no path).
                 val inputs = "capture guard inputs: scheme=${CaptureOutputGuard.lineForScheme(output.scheme.orEmpty()).substringAfter('=')} " +
-                    "authority=${output.authority.orEmpty().filter { it.isLetterOrDigit() || it in ".-_@" }.take(80)} " +
+                    "authority=${UriAccessRules.lineAuthority(output.authority)} " +
                     "startedForResult=${caller != null} clipHoldsOutput=${clipUris.any { it == output.text }} " +
                     "writeGrantFlag=${(flags and CaptureOutputGuard.FLAG_GRANT_WRITE) != 0} " +
-                    "ownAuthority=${own.any { it.equals(output.authority.orEmpty().substringAfterLast('@'), ignoreCase = true) }} callerMayWrite=$callerMayWrite"
-                val after = if (forwarded && startedBy != null) {
-                    listOf("capture request forwarded: started by ${boundedName(access.nameOfUid(startedBy))}, result to ${boundedName(caller)}")
-                } else {
-                    emptyList()
-                }
-                Outcome(CaptureOutputGuard.decide(output, caller, clipUris, flags, own, callerMayWrite), listOf(inputs), after)
+                    "ownAuthority=${own.any { it.equals(output.authority.orEmpty().substringAfterLast('@'), ignoreCase = true) }} callerMayWrite=${write.allowed} " +
+                    "recipientMayWrite=${write.recipientMayWrite} starterAtLaunch=${write.starter}"
+                val after = write.forwardedFromUid?.let { startedBy ->
+                    val name = (access.nameOfUid(startedBy) as? Platform.Said)?.value
+                    listOf("capture request forwarded: started by ${boundedName(name)}, result to ${boundedName(caller)}")
+                }.orEmpty()
+                Outcome(CaptureOutputGuard.decide(output, caller, clipUris, flags, own, write.allowed), listOf(inputs), after)
             }
         }
-    } catch (e: Exception) {
-        Outcome(CaptureOutputGuard.Decision.Refused(CaptureOutputGuard.LINE_NO_GRANT), listOf("capture request unreadable (${e.javaClass.simpleName})"))
+    } catch (e: Throwable) {
+        Outcome(CaptureOutputGuard.Decision.Refused(CaptureOutputGuard.LINE_NO_GRANT), listOf("capture request unreadable (${UriAccessRules.className(e.javaClass.simpleName)})"))
     }
 }

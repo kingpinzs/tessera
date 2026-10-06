@@ -176,6 +176,58 @@ class CredentialFileTest {
         assertNull(s.get("tmdb"))
     }
 
+    @Test fun `a rename that fails is a failed save - nothing changed, no temp file, and the line says so`() {
+        // B2-M4: the write's last step fails (the store's file cannot be replaced).
+        var fail = false
+        val s = CredentialFile(file, FakeCipher(), rename = { from, to -> !fail && from.renameTo(to) }) { lines += it }
+        assertTrue(s.set("tmdb", "first-value"))
+        fail = true
+        lines.clear()
+        assertFalse("a save", s.set("tmdb", "second-value"))
+        assertFalse("a save under a new name", s.set("jellyfin", "other-value"))
+        assertFalse("a removal", s.remove("tmdb"))
+        assertEquals(listOf("tmdb: not saved (IOException)", "jellyfin: not saved (IOException)", "tmdb: not removed (IOException)"), lines)
+        assertEquals("the value before the failed save", "first-value", s.get("tmdb"))
+        assertNull(s.get("jellyfin"))
+        assertFalse(File(dir, "credentials_v1.json.tmp").exists())
+        assertTrue(lines.none { it.contains("first-value") || it.contains("second-value") || it.contains("other-value") })
+        fail = false
+        assertTrue(s.set("tmdb", "second-value"))
+        assertEquals("second-value", s.get("tmdb"))
+    }
+
+    @Test fun `holds says an entry is stored whether or not it opens, and clear says whether nothing is left`() {
+        val s = store()
+        assertFalse(s.holds("tmdb"))
+        s.set("tmdb", "qa-dummy-token")
+        assertTrue(s.holds("tmdb"))
+        // An entry that does not open (moved under another name) is still an entry.
+        val root = MiniJson.parse(file.readText()).jsonObject()!!
+        file.writeText(MiniJson.write(mapOf("jellyfin" to root["tmdb"])))
+        assertNull(s.get("jellyfin"))
+        assertTrue(s.holds("jellyfin"))
+        assertFalse(s.holds("tmdb"))
+        assertTrue(s.clear("jellyfin"))
+        assertFalse(s.holds("jellyfin"))
+        assertTrue("nothing to remove is nothing left", s.clear("jellyfin"))
+        // A removal that cannot be written leaves the entry, and clear says so.
+        s.set("tmdb", "qa-dummy-token")
+        java.io.RandomAccessFile(File(dir, "credentials_v1.json.lock"), "rw").channel.use { channel ->
+            val held = channel.lock()
+            assertFalse(s.clear("tmdb"))
+            held.release()
+        }
+        assertTrue(s.holds("tmdb"))
+        // A file that is not the store's JSON holds nothing that could ever open.
+        file.writeText("{ not json")
+        assertFalse(s.holds("tmdb"))
+        // A store that is there and cannot be read (a directory in its place) is not known to be empty.
+        file.delete()
+        file.mkdirs()
+        assertTrue(s.holds("tmdb"))
+        assertFalse(s.clear("tmdb"))
+    }
+
     @Test fun `no line ever carries a value`() {
         val s = store()
         s.set("tmdb", "SECRET-VALUE-1")

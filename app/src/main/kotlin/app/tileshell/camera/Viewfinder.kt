@@ -64,7 +64,6 @@ import app.tileshell.diag.Diagnostics
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.MotionClock
 import app.tileshell.ui.tokens.ShellType
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -106,7 +105,9 @@ class ViewfinderState {
     var panorama: PanoramaCapture? by mutableStateOf(null)
 
     internal var countdownJob: Job? = null
-    internal var toastJob: Job? = null
+
+    /** How many toasts were said: the key of the effect that fades the newest one. */
+    var toastSaid by mutableIntStateOf(0); private set
 
     /** Back: closes the topmost overlay; false when there is nothing of the viewfinder's to close. */
     fun back(): Boolean = when {
@@ -124,18 +125,29 @@ class ViewfinderState {
         countdown = null
     }
 
-    /** camera-pass2 §5 "Toast": fades in over ≈150 ms, holds ≈850 ms, fades out over ≈180 ms. */
-    fun say(scope: CoroutineScope, text: String) {
-        toastJob?.cancel()
+    /**
+     * Says [text] in the viewfinder's toast. It only sets state: the fade is run by the viewfinder's own effect
+     * ([ToastMotion]), in the composition's coroutine context — the one context that always carries the frame clock
+     * `MotionClock.animate` waits on. So a caller hands over no scope and cannot hand over a wrong one: an activity's
+     * `MainScope()` has no frame clock, and animating in it killed the process (the edge rows STORAGE and CALLER).
+     */
+    fun say(text: String) {
         // The toast is on screen for about a second: the line lets a row read what it said.
         Diagnostics.add("camera", "toast: $text")
         toast = text
-        toastJob = scope.launch {
-            MotionClock.animate("camera_toast_in", 150, LinearEasing) { toastAlpha = it }
-            delay(850)
-            MotionClock.animate("camera_toast_out", 180, LinearEasing) { toastAlpha = 1f - it }
-            toast = null
-        }
+        toastSaid++
+    }
+}
+
+/** camera-pass2 §5 "Toast": fades in over ≈150 ms, holds ≈850 ms, fades out over ≈180 ms. A newer toast restarts it. */
+@Composable
+private fun ToastMotion(state: ViewfinderState) {
+    LaunchedEffect(state.toastSaid) {
+        if (state.toast == null) return@LaunchedEffect
+        MotionClock.animate("camera_toast_in", 150, LinearEasing) { state.toastAlpha = it }
+        delay(850)
+        MotionClock.animate("camera_toast_out", 180, LinearEasing) { state.toastAlpha = 1f - it }
+        state.toast = null
     }
 }
 
@@ -179,6 +191,7 @@ internal fun Modifier.tap(onTap: () -> Unit): Modifier = pointerInput(onTap) {
 fun Viewfinder(engine: CameraEngine, state: ViewfinderState, sink: CaptureSink, captureKind: String? = null, onRoll: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
     val colors = LocalShellColors.current
+    ToastMotion(state)
     BackHandler(enabled = state.settingsOpen || state.panorama != null || state.countdown != null || state.dialOpen || state.single != null || state.capsuleExpanded) { state.back() }
     BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black).clipToBounds().testTag("camera_root")) {
         val g = remember(maxWidth, maxHeight) { CameraGeometry(maxWidth.value, maxHeight.value + BarMetrics.NAV_EPX, BarMetrics.NAV_EPX.toFloat()) }
@@ -389,7 +402,7 @@ fun Viewfinder(engine: CameraEngine, state: ViewfinderState, sink: CaptureSink, 
                     }
                     engine.shownMode = target
                     state.slide = 0f
-                    state.say(scope, when (target) { "video" -> "Video"; "panorama" -> "Panorama"; else -> "Camera" })
+                    state.say(when (target) { "video" -> "Video"; "panorama" -> "Panorama"; else -> "Camera" })
                 }
             }
             listOf(discs.left to false, discs.right to true).forEach { (id, right) ->
@@ -410,13 +423,13 @@ fun Viewfinder(engine: CameraEngine, state: ViewfinderState, sink: CaptureSink, 
         }
         if (engine.hasFront && !engine.recording && pano == null) {
             At(g.switchCentre, CameraGeometry.CORNER_DISC, Modifier.background(DISC_FILL, CircleShape).testTag("camera_switch").tap {
-                engine.switchCamera(); state.say(scope, if (engine.front) "Front-facing camera" else "Main camera")
+                engine.switchCamera(); state.say(if (engine.front) "Front-facing camera" else "Main camera")
             }) { BasicText(Glyph.CAMERA_SWITCH, style = glyph(18f, Color.White)) }
         }
 
         // ---- the capsule (Y3) ----------------------------------------------------------------------------------------
         if (caps != null && engine.mode != "panorama" && state.countdown == null) {
-            Capsule(engine, state, g, caps, proAvailable) { state.say(scope, it) }
+            Capsule(engine, state, g, caps, proAvailable) { state.say(it) }
         }
 
         // ---- the zoom slider (camera-pass2 UNMEASURED-3, LOW) and its readout ----------------------------------------
