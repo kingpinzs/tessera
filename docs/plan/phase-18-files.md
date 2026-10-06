@@ -78,6 +78,23 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
 ~~a recycle bin unless Q3 rules one; zip handling unless Q2 rules it~~ SUPERSEDED 2026-09-23 by Q3 C / Q2 C (T18-7).
 
 ## Decisions
+- 2026-10-06: Q-18-3 — the mid-copy rows get their window from a debug-only pacing switch (Jeremy: "(a)"), asked at the
+  build's start because task 0 (e) contradicted this doc: the app copies at about 800-980 MB/s on `/sdcard` and 360-570
+  MB/s onto the public volume (`qa/phase-18/BUILDSTART/records.tsv`), so no file that fits runs >= 15 s — `/sdcard`
+  would need about 30 GB of a 16 GB volume and the 512 MB public volume fills in about 1 s. The catch stated to him: a
+  test-only branch in product code; a release build ignores it.
+- 2026-10-06 (agent, below Q-18-3): **the pacing switch.** `QaBases.FILES_RATE` = the pref `qa_files_rate_bps` in the
+  `start_theme` prefs file, read through `QaBases.read` (phase 17's debug-only reader: a release build returns null
+  without reading) and written by the drivers with `prefs_edit.py`. When set, the copy service's byte loop (copy, the
+  copy half of a cross-volume move, zip extract and zip create — every loop that writes `[files] … progress`) sleeps so
+  its average rate stays at or under that many bytes a second; nothing else changes — the same temp names, journal,
+  progress lines, cancel and failure paths run. `FileOps` takes the pace as an injected function (r3 D7's shape), so the
+  JVM tests run unpaced and one case proves a paced copy is byte-equal. The service logs `[files] qa pace <bps>` once per
+  operation when the switch is on, so a paced run can never be read as an unpaced one. Rows that need "mid" set 8,388,608
+  (8 MB/s) in `files_up` and clear it in `files_down`; every other row runs unpaced. Sizes: `big.bin` stays 200 MB
+  (`count=200`) and `qa-big.zip` 200 MB — about 25 s each at 8 MB/s, on `/sdcard` and on the public volume alike (200 MB
+  fits its 512 MB). Reason: the ruling names the form; a rate cap, not a per-chunk sleep, makes the run time a plain
+  bytes / rate on both volumes.
 - 2026-10-06: Q-18-2 — an audio file the music library does not list plays in Music anyway (Jeremy: "(a)"): Music gains
   a "play this one file" path for a file outside its library — the same player and Now Playing, and the file is not added
   to the library. Q4 A ("audio in Music") stays whole; no Android chooser and no second player for audio.
@@ -695,7 +712,9 @@ Evidence is kept on disk under qa/phase-18/.
 `qa-steps.mp4` from phase 17, one MP3 from qa/phase-01/MUSIC6's fixtures; md5s recorded with `adb shell
 md5sum`. A big file for progress: `adb shell "dd if=/dev/zero of=/sdcard/QA-Files/big.bin bs=1m count=200"`
 (~~count=200~~ SUPERSEDED 2026-10-06 by r3 V7: the count is whatever task 0 (e) measured to make the copy run ≥ 15 s,
-written here at build start). **r3 V13 / V12 (2026-10-06):** `a.txt` holds 10 bytes (`printf 0123456789`), not 0; EVERY
+written here at build start. WRITTEN 2026-10-06, Q-18-3 (a): `count=200` stands — 200 MB, copied at the debug-only
+pace of 8 MB/s (`qa_files_rate_bps` = 8388608, set by `files_up` for the rows that need "mid"), about 25 s on either
+volume; unpaced it takes 0.2-0.8 s, task 0 (e)). **r3 V13 / V12 (2026-10-06):** `a.txt` holds 10 bytes (`printf 0123456789`), not 0; EVERY
 fixture, pushed ones included, gets its own distinct `touch -d` date on the device after it is written (`adb push` keeps
 the host's mtime) and a distinct size; the driver holds one table (name, bytes, date, the literal detail string per
 r11/files.md 1.5.8 — size to 3 significant figures, en-US short date, e.g. `b.bin` "300 KB 1/2/2026", `one.txt`
@@ -709,7 +728,7 @@ removed by `files_down`, per row. **Zips**
 local-header uncompressed sizes are patched to 1,024), `qa-huge.zip` (one 3 GB entry of zeros, about 3 MB compressed,
 declared honestly), `qa-big.zip` (200 MB of `/dev/urandom`, stored, for progress and cancel), `qa-cp437.zip` (`café.txt`, its
 name encoded in CP437 with the UTF-8 flag clear — the edge case's fixture, lead 2026-10-06), `qa-nested.zip` (holding
-`qa.zip`; `qa-big.zip` sized by task 0 (e) as `big.bin` is). **Recent (re-cut 2026-10-06, Q-18-1):** `r1.png`, `r2.png`,
+`qa.zip`; `qa-big.zip` sized by task 0 (e) as `big.bin` is — 2026-10-06: 200 MB stands, extracted at the same pace). **Recent (re-cut 2026-10-06, Q-18-1):** `r1.png`, `r2.png`,
 `r3.png` and `never.png` (make_photos.py's images) under `/sdcard/QA-Files/recent/` (md5s recorded), `never.png`
 `touch`ed on the device last so it
 is the newest file on the phone and is never opened. ~~with `touch -d` at 2026-09-01, -02, -03 12:00, plus `r4.txt` `adb
@@ -980,7 +999,7 @@ Recent no longer reads modified dates or MediaStore.
   uris=<list>` (r3 V2, E7), `[files] copy|move|zip extract progress <bytes>/<total>` (r3 V7, E4 / E13), `[files] sweep:
   removed <n>` (r3 D4, E4), `[files] open <path> via provider` (r3 D1, E6), `[files] open ignored: <why>` (r3 D12, E17),
   `[files] recent add|remove <path>` (below Q-18-1, E14), `[files] shortcut sdcard failed (rate limit)` (r3 D9, notrun),
-  `[files] copy … failed time limit` (r3 D8, notrun), `[music] play extra ignored: not the shell` (r3 D5, E6).
+  `[files] copy … failed time limit` (r3 D8, notrun), `[music] play extra ignored: not the shell` (r3 D5, E6). **Added 2026-10-06 (Q-18-3):** `[files] qa pace <bps>` (E4).
 - E13 **Zip (T18-2).** Open `qa.zip` → a virtual root (`files_zip_root`) listing `one.txt` "1.00 KB" (~~1,024 bytes~~
   SUPERSEDED 2026-10-06 by r3 V13: 3 significant figures, r11/files.md 1.5.8), `dir`, `ü-name.txt`
   (dump `files_row:` / `files_detail:` text), `[files] zip open …: 3 entries`; tapping `one.txt` inside it → "Extract
