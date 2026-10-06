@@ -75,3 +75,18 @@ the URI form; PLAY_ID is a Long, PLAY_URI a String from `FilesProvider.uriFor`.
 For the adversarial review (GATE b, f): the symlink swap between canonicalise and open is NOT closed by an fd re-check
 (emulated and FAT volumes hold no symlinks); a grant holder can flood the ring with refusal lines; paths under
 `<volume>/Android/data/app.tileshell` count as "under a volume"; the onNewIntent caller rule (Change Log 2026-10-06 15:30).
+
+## From the service builder (FileOpsService, FilesEnv, FileOpsClient, FileOpsRun), 2026-10-06 15:43 — compiled, 160 files.* unit tests pass, NOT run on a device, NOT YET COMMITTED (it depends on the UI builder's uncommitted FilesStores.kt / FileVolumes.kt; commit together)
+
+- The zip path validator is cleared process-wide in FilesEnv's init (line "zip: platform path validator cleared"). The main
+  process's other unzip, cortana/speech/SpeechModels.kt (phase 03's part), then relies on its own ZipSafety.resolve alone.
+  OWED: an INDEX Change Log line (a trust change touching a built part) and the adversarial review's eye (GATE c).
+- Extra lines not in E12's list: "zip create progress", "zip: platform path validator cleared", "<verb> not started: <why>",
+  "<verb> ended on an error: <Exception>". OWED: producers.tsv / a Change Log line.
+- Built where the doc is silent: a partial wake lock while bytes move; a sweep also when FilesActivity comes on screen with
+  a non-empty journal and nothing running (re-grant restarts nothing); no progress line during a same-volume move (a
+  rename has no bytes) — so E4's "Move of big.bin reads Moving files…" needs a CROSS-volume move or the box will flash;
+  OWED: the lead checks E4 / E11's move legs against this before the drivers are written.
+- Without POST_NOTIFICATIONS the notification's Cancel cannot be reached; the doc puts Cancel only there (H5).
+- Device checks owed: E4's service legs (pace line + mid progress, Home mid-copy isForeground + dataSync, Cancel action,
+  no .part after cancel, force-stop then sweep, revoke / unmount / screen-off, qa-bad.zip partial extract).
