@@ -176,6 +176,7 @@ object PhotoStore {
             relativePath = relative,
             durationMs = c.getLong(12),
             dateTakenMs = taken,
+            dateModifiedS = c.getLong(3),
         )
     }
 

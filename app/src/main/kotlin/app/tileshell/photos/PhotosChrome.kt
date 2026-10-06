@@ -65,6 +65,7 @@ object PhotosMetrics {
     val GUTTER = 2.dp
     val GRID_LEFT = 11.dp
     val VIDEO_DISC = 36.dp                           // 1.3.14
+    val LIVING_DISC = 22.dp                          // a Living Image's glyph disc on its tile (task 6d; no W10M measure — H16)
     val ALBUM_H = 60.dp                              // 1.4.1
     val ALBUM_W = 162.dp
     val ALBUM_MARGIN = 12.dp
