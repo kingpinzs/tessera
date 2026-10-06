@@ -845,6 +845,15 @@
         </provider>
 
         <!--
+          Open-with's chooser callback (phase 18 build task 4; below Q-18-1): Android's chooser reports the app the
+          user picked (EXTRA_CHOSEN_COMPONENT) so the file joins Recent. Not exported and no filter: reached only
+          through the PendingIntent Files hands the chooser.
+        -->
+        <receiver
+            android:name=".files.FilesOpenReceiver"
+            android:exported="false" />
+
+        <!--
           The copy / move / extract service (r3 D8): a foreground service of type dataSync in the main process.
           Not exported: only a visible FilesActivity starts it.
         -->

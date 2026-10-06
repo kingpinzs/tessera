@@ -70,8 +70,8 @@ class FilesActivity : ComponentActivity() {
         // ShellApp started the tracker with the process; a second call is a no-op, and covers a process whose launcher
         // start-up is still waiting for the first unlock.
         FileVolumes.start(this)
-        // Build tasks 3, 8 and 9 are FilesBehaviour; tasks 4 and 10 (open-with, Recent's writes) join it there.
-        state = FilesState(this, FilesBehaviour(this))
+        // Build tasks 3, 8 and 9 are FilesBehaviour; tasks 4 and 10 (open-with, Recent's menu) join it as FilesOpener.
+        state = FilesState(this, FilesBehaviour(this, FilesOpener(this)))
         val request = requestOf(intent)
         pending = request to true
         Diagnostics.add("files", "FilesActivity created page=${request.page ?: "none"}")
