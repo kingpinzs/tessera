@@ -82,3 +82,30 @@ Lines new since round 1 (E18's tables must name them): `server not removed: its 
 entry cleared at start: it was not a saved server`, `server token not given: not the shell's own launch`, `TMDB key not
 removed`, `http: answer not finished in time`. A row that starts a server item by `adb shell am start` must go through
 the hub's Media server page instead.
+
+## Round 3 — ONE access rule for the capture answer, the viewer and the player (merged 73640460; 1,715 unit tests)
+
+The rule's table is the phase doc's top Decisions line of 2026-10-05 19:09. Deleted: the player's own port and rule,
+`media/CaptureCallerAccess.kt`. 44 of 44 reviewer mutations are killed by a named test (`media/UriAccessWiringScanTest`
+holds each activity's wiring to one form). Not device-proven yet.
+
+**The platform limit** (leg (j)'s refusal, explained from android16's source: `ContentProviderHelper
+.checkContentProviderUriPermission` returns DENIED when called while the window-manager lock is held, which it is when
+the launch answer is computed): the launch answer is `denied` for any MediaStore item unless the starter holds a grant.
+So on Android 15+ too: another app that only HOLDS the media permission and opens a MediaStore item with the viewer or
+player is refused; a capture into the caller's own MediaStore row is refused. An app's own provider is admitted.
+
+Device legs owed (they REPLACE the earlier wording of the same letters):
+- E9 (e): go-between T (no permission), receiver V holding WRITE_CONTACTS; V starts T for a result; T starts the
+  capture with FLAG_ACTIVITY_FORWARD_RESULT and a contact's display_photo URI in EXTRA_OUTPUT and ClipData with the
+  write flag. Expect: T's start does not throw; `capture guard inputs: … recipientMayWrite=false starterAtLaunch=not
+  asked`; refused; RESULT_CANCELED; no camera opened; the photo unchanged. Again with V's OWN FileProvider URI:
+  `recipientMayWrite=true starterAtLaunch=denied`, refused.
+- E9 (a) the caller's own MediaStore row: REFUSED now; assert `starterAtLaunch=denied` and the refusal.
+- E9 (c) with the caller holding WRITE_CONTACTS: REFUSED now (`recipientMayWrite=false`).
+- E9: qa-capture's own FileProvider output: `recipientMayWrite=true starterAtLaunch=granted`, RESULT_OK.
+- TRUST_PHOTOS (j): expect `[photosapp] launch answer read: denied` and the refusal (and `adb logcat -d | grep
+  "holding WM lock"` after the leg, recorded). (h), (k), (l), (n) as before, each with its launch-answer line.
+- TRUST_VIDEO: the same legs for the player; a MediaStore launch by another app shows no subtitle line; a network and
+  a content source still play through the guarded data source.
+- The ledger across two real processes; the refusal on an unreadable capture request.

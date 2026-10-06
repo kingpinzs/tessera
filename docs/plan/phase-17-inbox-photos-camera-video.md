@@ -82,6 +82,33 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
 "local-only" Movies & TV build (Hard Rule 16 — the interview ruled the fuller forms).
 
 ## Decisions
+- 2026-10-05 19:09 (agent, after review rounds 2 and 3 of this date — `review/2026-10-05-phase17-trust-triage.md`,
+  `review/2026-10-05-phase17-trust-fixes.md`; INDEX Change Log): **ONE access rule for the three places another app can
+  make the shell touch a URI it names** — the Camera's capture answer (a write), Photos' viewer and the player (reads).
+  It replaces the 16:32 line's wording wherever the two differ; `media/UriAccess.kt` holds the rule, one port asks the
+  platform, and every unknown, null or thrown answer is a NO.
+
+  | Who asks | Android 14 (API 34) | Android 15 and later |
+  |---|---|---|
+  | READ — the viewer or the player, started by another app with a `content:` item | Only for a starter the platform names (an app that shares its identity): its own provider, or a read grant it holds. Any other starter: refused. | When the platform's own launch answer says the starter could read the item; or, for a named starter, its own provider, a read grant, or MediaStore's own answer for it. Nothing else. |
+  | READ — the shell's own launch | everything | everything |
+  | WRITE — the capture answer's condition (d) | (d1) alone: the app that receives the result owns the provider, or holds a write grant. | (d1) the app that receives the result owns the provider, holds a write grant, or MediaStore itself says it may; AND (d2) the platform's launch answer says the app that really STARTED the capture could write it. |
+  | Both | A starter the platform names that is not the receiver: refused. A receiver with only a permission-wide access (contacts write, a system app) and no grant: refused. A write to another user's provider: refused. | the same |
+
+  **A platform limit seen on the emulator and explained from Android 16's source:** the launch answer is "denied" for
+  ANY MediaStore item, whoever asks, unless the starter holds a grant for it (the platform cannot ask MediaStore while
+  it is starting the activity and assumes no). So, as built, on the owner's phone too: (1) another app that merely
+  HOLDS the photos or videos permission and opens a MediaStore picture or video "with" the shell's viewer or player is
+  REFUSED (an app's own files, shared with a read grant, are shown); (2) an app that hands the Camera a MediaStore row
+  it inserted itself — the usual way since Android 10 — is REFUSED (an app's own file provider, the other usual way,
+  is accepted). Both fail closed. A further rule that would admit them (the shell holding a grant the platform issued
+  for that launch) is NOT built: it is a question for the owner at the gate, and would need its own review.
+  The forwarded-request hole of round 2 (a go-between sending the result to an app with contacts access) and the
+  permission-wide receiver are both closed by this rule; E9's legs assert them refused. The player's data source now
+  opens only http(s) for a network launch and only the launch item for a content launch; another app's title and
+  queue are ignored. New lines: `[photosapp] launch answer read: <granted|denied|threw X|not available>`, the same
+  under `[video]`; `[camera] capture guard inputs: …` ends `recipientMayWrite=<b> starterAtLaunch=<…>`; `[camera]
+  capture output failed: the location could not be removed (<Class>)`.
 - 2026-10-05 16:32 (agent, after the adversarial reviews of this date — `review/2026-10-05-phase17-trust-triage.md` for every
   finding, `review/2026-10-05-phase17-trust-fixes.md` for every fix and the device legs it owes; INDEX Change Log):
   **the trust rules as built now. Where a line below differs from an earlier Decisions line, this one governs.**
