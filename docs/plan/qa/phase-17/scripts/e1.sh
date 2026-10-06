@@ -105,10 +105,16 @@ log "--- W: wiped state (pm clear → provision.sh → Start)"
 rings_save
 adb shell pm clear app.tileshell >/dev/null
 W_MARK="$(ring_mark)"
+# The seed runs in the FIRST process after the wipe, and provision.sh ends on a force-stop, which empties that
+# process's ring (run 1 on 95b54303, kept, read only "-> already run" after it). So the wiped shell is started once
+# and its seed lines are read BEFORE provision.sh; the doc's order (pm clear -> provision.sh -> Start) holds for
+# everything else in this leg. Lead's re-cut, 2026-10-06 (INDEX Change Log).
+adb shell am start -W -n app.tileshell/app.tileshell.StartActivity >/dev/null 2>&1; sleep 4
+W_SLICE="$(ring_since "$W_MARK")"; printf '%s\n' "$W_SLICE" > "$OUT/W-slice.txt"
+rings_save
 assert_eq "W: provision.sh rc" "0" "$(provision wiped)"
 start_dump "$OUT/W-start.xml"
 assert_eq "W: Start, no wizard" "yes" "$(wizard_absent "$OUT/W-start.xml")"
-W_SLICE="$(ring_since "$W_MARK")"; printf '%s\n' "$W_SLICE" > "$OUT/W-slice.txt"
 log "the seed's lines on the wiped install:"; grep -F 'assignSlotOnce slot:photos:v1' "$OUT/W-slice.txt" | tee -a "$LOG"; grep -F 'assignSlotOnce slot:camera:v1' "$OUT/W-slice.txt" | tee -a "$LOG"
 assert_contains "W: the PHOTOS seed line" "[layout] assignSlotOnce slot:photos:v1 PHOTOS -> $PHOTOS_ACTIVITY -> assigned" "$W_SLICE"
 assert_contains "W: the CAMERA seed line" "[layout] assignSlotOnce slot:camera:v1 CAMERA -> $CAMERA_ACTIVITY -> assigned" "$W_SLICE"
