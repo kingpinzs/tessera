@@ -4,9 +4,10 @@
 # form: every ring read is ring_since from a MARK, nothing here asserts on its own except where its name says so.
 # Nothing is simulated; no microphone, no host audio.
 STAMP_FILES="$STAMP_FILES $P17/scripts/p17_photos.sh"
-# The gate build (the lead's rulings of 2026-10-05): the CLEAN build of phase-17 with the trust fixes merged (e5e30678;
-# 355,474,253 bytes). Before that merge it was e8c26851363882da (25921fd7): rows_photos.md says which build each row ran on.
-GATE_APK_ID="c7336aca6b63d61b"
+# The gate build (the lead's rulings of 2026-10-05): the CLEAN build of phase-17 at bb154e06 — the three rounds of trust
+# fixes, Living Images and the Camera's toast fix merged (355,589,093 bytes). Before it: c7336aca6b63d61b (e5e30678, round
+# 1 of the fixes) and e8c26851363882da (25921fd7): rows_photos.md says which build each row's evidence is from.
+GATE_APK_ID="95b543037345b851"
 PHOTOS_TILE="tile:slot:PHOTOS"
 VIEWER_ACTIVITY="app.tileshell/.photos.ViewerActivity"
 EDIT_ACTIVITY="app.tileshell/.photos.EditActivity"
@@ -231,7 +232,13 @@ prefs_restore() { # in.tar — with the shell stopped
   assert_eq "restore: the shell's prefs are the backup's files" "$(tar tf "$1" | grep 'shared_prefs/.' | sort | xargs)" "$(adb shell run-as app.tileshell ls shared_prefs | tr -d '\r' | sed 's|^|shared_prefs/|' | sort | xargs)"
 }
 backgrounds() { adb shell run-as app.tileshell ls files/backgrounds 2>/dev/null | tr -d '\r' | grep -v 'No such' | xargs; }
-lock_state() { adb shell dumpsys wallpaper | tr -d '\r' | grep -A1 'Lock wallpaper state' | tail -1 | sed 's/^ *//'; }
+# The lock wallpaper's entry in `dumpsys wallpaper`, or "(no lock wallpaper)". The dump says "no lock wallpaper" two
+# ways — a `(null entry)` line under the header, or no line at all before the next header (seen after lock_clear on
+# 2026-10-06: E5's restore compared "(null entry)" with the next section's title and failed on a cleared wallpaper).
+lock_state() {
+  local l; l="$(adb shell dumpsys wallpaper | tr -d '\r' | grep -A1 'Lock wallpaper state' | tail -1 | sed 's/^ *//')"
+  case "$l" in "User "*) echo "$l" ;; *) echo "(no lock wallpaper)" ;; esac
+}
 # IWallpaperManager.clearWallpaper(callingPackage, which = FLAG_LOCK, userId): transaction 15 on this image (API 36; the
 # Photos builder read it from the device's framework.jar). `cmd wallpaper` has no clear.
 lock_clear() { adb shell service call wallpaper 15 s16 com.android.shell i32 2 i32 0 | tr -d '\r'; }

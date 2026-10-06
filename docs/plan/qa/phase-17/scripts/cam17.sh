@@ -8,15 +8,28 @@ CAM_DEV="$P17/dev-camera/scripts"        # derive_modes.py, exif_read.py, zoom_r
 IMAGES="content://media/external/images/media"
 VIDEOS="content://media/external/video/media"
 TILES_PY="$P17/../phase-15/scripts/tiles.py"
-# The gate build: the CLEAN build of the tree with the trust fixes merged (phase-17 at e5e30678; the lead's word of
-# 2026-10-05). Rows run before the merge carry e8c26851363882da in their logs (the clean build of 25921fd7): a kept
-# run is re-read with GATE_APK_ID set to the id it ran on.
-GATE_APK_ID="${GATE_APK_ID:-c7336aca6b63d61b}"
+# The gate build: the CLEAN build of phase-17 at bb154e06 — the three rounds of trust fixes, Living Images and the
+# Camera's toast fix merged (355,589,093 bytes; the lead's word of 2026-10-05). Earlier rows carry c7336aca6b63d61b
+# (e5e30678) or e8c26851363882da (25921fd7) in their logs: a kept run is re-read with GATE_APK_ID set to the id it ran on.
+GATE_APK_ID="${GATE_APK_ID:-95b543037345b851}"
 QAC=app.tileshell.testclient.qacapture
 QAC_APK="$REPO/testapps/qa-capture/build/outputs/apk/debug/qa-capture-debug.apk"
 # The second app of the forwarded-result leg (testapps/qa-capture-fwd).
 QAF=app.tileshell.testclient.qacapturefwd
 QAF_APK="$REPO/testapps/qa-capture-fwd/build/outputs/apk/debug/qa-capture-fwd-debug.apk"
+
+# The lock is taken ONCE per process (as p17_photos.sh does): lib.sh's take_device_lock re-opens the lock file each time
+# it is called, and row_begin calls it again after cam_install — which lets go of the lock for a moment, so a driver
+# waiting in the lock's queue can take the device between two rows of edge_camera.sh.
+take_device_lock() {
+  [ -n "${CAM_LOCK_HELD:-}" ] && return 0
+  exec 9>"$DEVICE_LOCK"
+  if ! flock -n 9; then
+    echo "another QA driver is already driving the device (lock $DEVICE_LOCK); refusing to start" >&2
+    exit 3
+  fi
+  CAM_LOCK_HELD=1
+}
 
 # The lock, then this worktree's APK when the device holds another build (never -g).
 cam_install() { # row-name

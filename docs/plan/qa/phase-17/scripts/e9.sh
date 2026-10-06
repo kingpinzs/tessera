@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 # Phase 17 E9 — the capture-intent contract and its guards (T17-4, T17-6; r3 D1, V3; Q-17-2 (b); the Decisions lines of
 # 2026-10-05 10:59 and 16:32: the guard has FOUR conditions), with the device legs the trust fixes owe
-# (docs/plan/review/2026-10-05-phase17-trust-fixes.md, "Device legs these fixes owe", (a)–(g)).
+# (docs/plan/review/2026-10-05-phase17-trust-fixes.md, "Device legs these fixes owe", (a)–(g), as its "Round 3" section
+# REPLACES them) under the ONE access rule (the Decisions line of 2026-10-05 19:09; media/UriAccess.kt):
+# condition (d) is (d1) the app the result goes to may write the URI — its own provider, a write grant it holds, or
+# MediaStore's own answer — AND (d2) the platform's launch answer says the app that STARTED the capture could write it.
+# The guard's line as built (media/CaptureRequest.kt):
+#   [camera] capture guard inputs: scheme=<s> authority=<a> startedForResult=<b> clipHoldsOutput=<b> writeGrantFlag=<b>
+#            ownAuthority=<b> callerMayWrite=<(d) as a whole> recipientMayWrite=<(d1)> starterAtLaunch=<granted|denied|
+#            threw X|not available|not asked>          ("not asked": (a)–(c) or (d1) had already refused)
 #
 #   start     media_up with no names (the census); `adb emu geo fix -122.08 37.42` for the whole row; RECORD_AUDIO
 #             revoked for the row (the floor; the video legs); qa-capture and qa-capture-fwd installed (no -g).
@@ -14,7 +21,8 @@
 #             cache and no ClipData of its own: top_activity = CaptureActivity; shutter, then Done (capture_accept) →
 #             RESULT_OK, `exists=true size=<n>` for its own path; the file pulled (run-as on the debuggable fixture), its
 #             md5 FIRST asserted equal to the logged one, then: a decodable JPEG with NO GPS tag (exif_read.py:
-#             gps_tags=0; no exiftool on this host); the images count UNCHANGED; the guard's inputs show (a)–(d).
+#             gps_tags=0; no exiftool on this host); the images count UNCHANGED; the guard's inputs show (a)–(d):
+#             round 3's own-FileProvider leg — `recipientMayWrite=true starterAtLaunch=granted`, RESULT_OK.
 #   T   (g)   truncation: the caller's output pre-filled with 3,000,000 bytes; after Done its size equals the capture's
 #             (the shell's own `… -> the caller's output, <n> bytes`) and the file is a JPEG from its first byte to its end.
 #   V1        the same with VIDEO_CAPTURE → RESULT_OK, an mp4 ffprobe decodes at that URI; the videos count unchanged.
@@ -25,24 +33,41 @@
 #   F         a file:// output → RESULT_CANCELED at once, `[camera] refused output scheme=file`, `exists=false`.
 #   S   (d)   EXTRA_OUTPUT as a String extra → RESULT_CANCELED, `[camera] capture request: EXTRA_OUTPUT is not a Uri`,
 #             `[camera] refused output: no grant`, no camera opened.
-#   M   (a)   the caller's OWN MediaStore row as EXTRA_OUTPUT (its ClipData, the write flag): expected `capture guard
-#             inputs: … callerMayWrite=true`, RESULT_OK, the row's size > 0 — asserted as the fixes file words it.
+#   M   (a)   the caller's OWN MediaStore row as EXTRA_OUTPUT (its ClipData, the write flag): REFUSED since round 3 (the
+#             platform limit: the launch answer is "denied" for a MediaStore item unless the starter holds a grant) —
+#             `… callerMayWrite=false recipientMayWrite=true starterAtLaunch=denied`, `refused output: no grant`,
+#             RESULT_CANCELED, no camera opened, the row left empty.
 #   W   (b)   a URI the caller holds only a write grant for: a MediaStore row the SHELL USER (adb) inserts and grants
 #             with `am start --grant-write-uri-permission` — the grantor is another uid, which is what "a second app
-#             grants it" asks; no further fixture app is needed for it. Expected: accepted, RESULT_OK, size > 0.
+#             grants it" asks. What the rule says (UriAccessRules.captureMayWrite, and the fixes file's "unless the
+#             starter holds a grant"): (d1) passes — the receiver holds a write grant — and (d2), the launch answer for
+#             the starter, which is that same app holding that same grant, is PREDICTED `granted`: accepted, RESULT_OK,
+#             size > 0. Asserted as predicted; a device that disagrees fails the leg and is reported.
 #   N1  (c)   the display_photo negative: a fixture contact inserted (removed at the end); qa-capture, holding no
 #             contacts permission, sets its OWN ClipData with NO grant flag → RESULT_CANCELED, `[camera] refused output:
 #             no grant`, photo_file_id unchanged.
 #   N2  (c)   the same WITH FLAG_GRANT_WRITE_URI_PERMISSION → whether the start threw on the sender is RECORDED; where it
 #             did not: RESULT_CANCELED, the refusal line, photo_file_id unchanged, (a)–(c) holding and (d) refusing.
-#   N3  (c)   N2 again with WRITE_CONTACTS granted to the caller (`pm grant`, revoked after): `callerMayWrite` and the
-#             decision are RECORDED (the owner's item); asserted only: the photo is unchanged (the row never presses Done).
-#   X   (e)   a forwarded result: qa-capture-fwd (V) starts qa-capture's go-between (T) for a result with V's own
-#             provider URI; T starts the capture with FLAG_ACTIVITY_FORWARD_RESULT. Plain: whether the start threw, the
-#             decision and the guard's inputs are RECORDED (the platform names no starter unless it shares its
-#             identity). With setShareIdentityEnabled(true): refused, with `[camera] capture request forwarded: started
-#             by <T>, result to <V>`. The `capture guard inputs:` line as built carries NO raw launched-from value —
-#             recorded as that.
+#   N3  (c)   N2 again with WRITE_CONTACTS granted to the caller (`pm grant`, revoked after): REFUSED since round 3 — a
+#             permission-wide access with no grant is never enough: `recipientMayWrite=false`, the refusal line,
+#             RESULT_CANCELED, no camera opened, the photo unchanged.
+#   X   (e)   a forwarded result, as round 3 words it. The fixtures as they are: V = qa-capture-fwd (the receiver; it
+#             declares NO permission and always names its own provider URI), T = qa-capture (the go-between).
+#             X contacts  NOT RUN, recorded: "receiver V holding WRITE_CONTACTS, a contact's display_photo" needs a V
+#                         that can hold WRITE_CONTACTS and can name a URI the row gives it; qa-capture-fwd can do
+#                         neither, and this row's writer may not change a fixture app.
+#             X own       V's OWN FileProvider URI (V starts T for a result with it and a write grant — without one T's
+#                         start would throw; T forwards with FLAG_ACTIVITY_FORWARD_RESULT): T's start does not throw;
+#                         `recipientMayWrite=true starterAtLaunch=granted`, `output accepted`, the capture page opens;
+#                         the row presses Back, never Done: RESULT_CANCELED and nothing in V's file.
+#                         THE LEAD'S RULING, 2026-10-06: the product is right, and the fixes file's "starterAtLaunch=
+#                         denied, refused" for this leg was a wrong prediction (run 1 on 95b54303, kept, is the device's
+#                         reading; an INDEX Change Log line records the ruling). Both halves of the one rule hold: the
+#                         app that receives the result owns the provider, and the app that really started the capture
+#                         holds the write grant the receiver handed it — it could write that file itself, so nothing is
+#                         gained through the Camera.
+#             X share     the same with setShareIdentityEnabled(true): the platform names the starter and it is not the
+#                         receiver → refused, `[camera] capture request forwarded: started by <T>, result to <V>`.
 #   restore   media_down (removes the control's row and V2's video); the fixtures' MediaStore rows and the contact
 #             removed; both fixture apps uninstalled; RECORD_AUDIO granted back; Start.
 set -uo pipefail
@@ -165,7 +190,7 @@ print(1 if 0x8825 in Image.open('$D/I1-out.jpg').getexif() else 0)")"
 assert_eq "I1: the images count is UNCHANGED (no DCIM copy)" "$IMG_BASE" "$(media_count images)"
 assert_contains "I1: the guard accepted" "capture request image from $QAC: output accepted" "$S"
 record "I1: what the guard weighed" "$INPUTS"
-assert_contains "I1: (a)–(d) all hold for the caller's own provider" "authority=$QAC.output startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=true" "$INPUTS"
+assert_contains "I1: (a)–(d) all hold for the caller's own provider — recipientMayWrite=true starterAtLaunch=granted" "capture guard inputs: scheme=content authority=$QAC.output startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=true recipientMayWrite=true starterAtLaunch=granted" "$INPUTS"
 absent_in "I1: nothing saved to MediaStore" "[camera] saved " "$S"
 
 # ----------------------------------------------------------------------------------------------- T: truncation
@@ -268,28 +293,36 @@ assert_contains "S: nothing at the caller's path" "output exists=false" "$L"
 assert_eq "S: the images count is unchanged (never the no-output contract by accident)" "$IMG_BASE" "$(media_count images)"
 
 # ----------------------------------------------------------------------------------------------- M: the caller's own MediaStore row
-log "--- M (a): the caller's OWN MediaStore row as EXTRA_OUTPUT"
+log "--- M (a): the caller's OWN MediaStore row as EXTRA_OUTPUT (round 3: refused — the platform limit)"
 begin_leg own-media; sleep 3
 MURI="$(qa_log "$T0" | grep -o 'media inserted uri=[^ ]*' | head -1 | cut -d= -f2)"; record "M: the row the fixture inserted" "${MURI:-none}"
 assert_contains "M: the fixture inserted its own MediaStore image row" "content://media/" "${MURI:-}"
-if [ "$(top_activity)" = "$CAPTURE_ACTIVITY" ]; then
-  wait_camera "$MARK" >/dev/null
-  cgdump "$D/M-vf.xml"; tap_node "$D/M-vf.xml" camera_shutter; sleep 3
-  cgdump "$D/M-review.xml"; tap_node "$D/M-review.xml" capture_accept
-fi
-end_leg own-media M
+TOPM="$(top_activity)"; record "M: what was in front 3 s after the start" "$TOPM"
+[ "$TOPM" = "$CAPTURE_ACTIVITY" ] && { screencap "$D/M-capture-page.png"; adb shell input keyevent KEYCODE_BACK; }   # never Done
+end_leg own-media M 10
 record "M: the request as sent" "$(printf '%s\n' "$L" | grep -o 'start action=.*' | head -1)"
 record "M: startActivityForResult on the sender threw" "$(printf '%s\n' "$L" | grep -o 'start threw=[A-Za-z]*' | cut -d= -f2)"
 record "M: what the guard weighed" "$INPUTS"
 record "M: the decision" "$(decision_of)"
-assert_contains "M: capture guard inputs: … callerMayWrite=true (the API 35+ branch asks the provider)" "callerMayWrite=true" "$INPUTS"
-assert_contains "M: RESULT_OK" "result=RESULT_OK" "$L"
+assert_contains "M: the sender's start did not throw" "start threw=none" "$L"
+assert_contains "M: capture guard inputs: … starterAtLaunch=denied" "starterAtLaunch=denied" "$INPUTS"
+assert_contains "M: (a)–(c) and (d1) hold — MediaStore says the row's owner may write it — and (d2), the launch answer, refuses" "capture guard inputs: scheme=content authority=media startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=false recipientMayWrite=true starterAtLaunch=denied" "$INPUTS"
+assert_contains "M: refused" "capture request image from $QAC: refused" "$S"
+assert_contains "M: [camera] refused output: no grant" "[camera] refused output: no grant" "$S"
+absent_in "M: no camera was opened for it" "[camera] devices=" "$S"
+assert_contains "M: RESULT_CANCELED" "result=RESULT_CANCELED" "$L"
 MSIZE="$(printf '%s\n' "$L" | grep -o 'media uri=[^ ]* size=[0-9]*' | head -1 | sed 's/.*size=//')"; record "M: the row's bytes, read by its owner after the result" "${MSIZE:-none}"
-if [ "${MSIZE:-0}" -gt 0 ] 2>/dev/null; then _verdict PASS "M: the row's size > 0" "$MSIZE"; else _verdict FAIL "M: the row's size > 0" "${MSIZE:-none}"; fi
+assert_eq "M: nothing was written into the row (0 bytes)" "0" "${MSIZE:-none}"
+assert_ne "M: the capture page is not left on top" "$CAPTURE_ACTIVITY" "$(top_activity)"
 [ -n "${MURI:-}" ] && q "content delete --uri $MURI" >/dev/null
+adb shell rmdir /sdcard/Pictures/QaCapture >/dev/null 2>&1
 assert_eq "M: restore — the fixture's row is removed (the images count is back)" "$IMG_BASE" "$(media_count images)"
 
 # ----------------------------------------------------------------------------------------------- W: a grant-only URI
+# What the rule says for this leg (media/UriAccess.kt, captureMayWrite): (d1) the receiver holds an explicit write grant
+# for the URI -> recipientMayWrite=true; (d2) the launch answer is asked for the STARTER, which here is that same app,
+# holding that same grant — and the fixes file's platform limit reads "denied for any MediaStore item UNLESS the
+# starter holds a grant". Predicted: starterAtLaunch=granted, accepted. Asserted as predicted.
 log "--- W (b): a URI the caller holds only a write grant for (granted by the shell user's own start)"
 q "content insert --uri content://media/external/images/media --bind _display_name:s:qa-grant-only.jpg --bind mime_type:s:image/jpeg --bind relative_path:s:Pictures/QaCapture/" > "$D/W-insert.out"
 WID="$(media_id images qa-grant-only.jpg Pictures/QaCapture/)"; WURI="content://media/external/images/media/$WID"
@@ -311,7 +344,9 @@ record "W: the grants the platform holds for the fixture" "$(adb shell dumpsys a
 record "W: startActivityForResult on the sender threw" "$(printf '%s\n' "$L" | grep -o 'start threw=[A-Za-z]*' | cut -d= -f2)"
 record "W: what the guard weighed" "$INPUTS"
 record "W: the decision" "$(decision_of)"
-assert_contains "W: accepted — the caller holds a write grant (callerMayWrite=true)" "callerMayWrite=true" "$INPUTS"
+assert_contains "W: (d1) passes — the receiver holds a write grant (recipientMayWrite=true)" "recipientMayWrite=true" "$INPUTS"
+assert_contains "W: (d2) as the rule predicts for a starter that holds the grant — starterAtLaunch=granted" "starterAtLaunch=granted" "$INPUTS"
+assert_contains "W: the whole line" "capture guard inputs: scheme=content authority=media startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=true recipientMayWrite=true starterAtLaunch=granted" "$INPUTS"
 assert_contains "W: the guard accepted" "capture request image from $QAC: output accepted" "$S"
 assert_contains "W: RESULT_OK" "result=RESULT_OK" "$L"
 WSIZE="$(q "content query --uri $WURI --projection _size" | sed -n 's/.*_size=\([0-9]*\).*/\1/p')"; record "W: the row's _size after" "${WSIZE:-none}"
@@ -361,17 +396,22 @@ for T in N1 N2 N3; do
       if [ "$THREW" = none ]; then
         assert_contains "N2: RESULT_CANCELED" "result=RESULT_CANCELED" "$L"
         assert_contains "N2: [camera] refused output: no grant" "[camera] refused output: no grant" "$S"
-        assert_contains "N2: (a), (b), (c) hold — condition (d) alone refuses" "startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=false" "$INPUTS"
+        assert_contains "N2: (a), (b), (c) hold — condition (d) alone refuses, at (d1)" "startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=false recipientMayWrite=false starterAtLaunch=not asked" "$INPUTS"
         absent_in "N2: no camera was opened for it" "[camera] devices=" "$S"
       else
         record "N2: the platform stopped the start on the sender; the :camera lines since" "$(printf '%s\n' "$S" | grep -F '[camera]' | sed 's/^[^[]*//' | tr '\n' ';')"
         assert_absent "N2: nothing was written by the shell" "the caller's output" "$S"
       fi ;;
     N3)
-      record "N3: callerMayWrite for a caller that holds WRITE_CONTACTS (the owner's item)" "$(echo "$INPUTS" | grep -o 'callerMayWrite=[a-z]*')"
       record "N3: what was in front 2 s after the start" "$TOPN"
-      record "N3: the fixture's result" "$(printf '%s\n' "$L" | grep -o 'result=[A-Z_]*' | head -1)"
-      assert_absent "N3: nothing was written (the row never presses Done)" "the caller's output" "$S" ;;
+      assert_eq "N3: the start did not throw" "none" "$THREW"
+      assert_contains "N3: recipientMayWrite=false — WRITE_CONTACTS with no grant is not enough" "recipientMayWrite=false" "$INPUTS"
+      assert_contains "N3: (a), (b), (c) hold — condition (d) refuses at (d1), the launch answer never asked" "startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=false recipientMayWrite=false starterAtLaunch=not asked" "$INPUTS"
+      assert_contains "N3: refused" "capture request image from $QAC: refused" "$S"
+      assert_contains "N3: [camera] refused output: no grant" "[camera] refused output: no grant" "$S"
+      absent_in "N3: no camera was opened for it" "[camera] devices=" "$S"
+      assert_contains "N3: RESULT_CANCELED" "result=RESULT_CANCELED" "$L"
+      assert_absent "N3: nothing was written" "the caller's output" "$S" ;;
   esac
   assert_eq "$T: the contact's photo_file_id is unchanged" "$PHOTO0" "$(photo_id)"
   assert_ne "$T: the capture page is not left on top" "$CAPTURE_ACTIVITY" "$(top_activity)"
@@ -383,7 +423,10 @@ assert_eq "N: restore — the fixture contact is removed" "" "$(q "content query
 
 # ----------------------------------------------------------------------------------------------- X: a forwarded result
 log "--- X (e): a forwarded result — V (qa-capture-fwd) starts the go-between T (qa-capture), T forwards the result"
-for mode in plain share; do
+record "X (contacts): go-between with no permission, receiver V holding WRITE_CONTACTS, a contact's display_photo" "NOT RUN: qa-capture-fwd (V) declares no permission, so pm cannot grant it WRITE_CONTACTS, and it names only its own provider URI; the leg needs a fixture change (a declared WRITE_CONTACTS and a URI extra in qa-capture-fwd), which this row's writer may not make"
+record "X: pm grant $QAF WRITE_CONTACTS answers" "$(adb shell pm grant "$QAF" android.permission.WRITE_CONTACTS 2>&1 | tr -d '\r' | head -2 | tr '\n' ' ' | cut -c1-220)"
+record "X: T ($QAC) holds WRITE_CONTACTS" "$(caller_contacts)"
+for mode in own share; do
   adb shell am force-stop "$QAC" >/dev/null 2>&1; adb shell am force-stop "$QAF" >/dev/null 2>&1
   T0="$(qa_time)"; MARK="$(ring_mark)"
   if [ "$mode" = share ]; then adb shell am start -n "$QAF/.ForwardStartActivity" --ez share true >/dev/null; else adb shell am start -n "$QAF/.ForwardStartActivity" >/dev/null; fi
@@ -397,17 +440,30 @@ for mode in plain share; do
   record "X ($mode): the go-between's forwarded start threw" "$(printf '%s\n' "$LT" | grep -o 'forward start threw=[A-Za-z]*' | cut -d= -f2)"
   record "X ($mode): who the go-between was started for" "$(printf '%s\n' "$LT" | grep -o 'forward for=[^ ]*' | head -1)"
   record "X ($mode): what the guard weighed" "${INPUTS:-(no guard inputs line)}"
-  record "X ($mode): the raw launched-from uid in the guard-inputs line" "the line as built carries none (uids: T=$(adb shell cmd package list packages -U "$QAC" | tr -d '\r' | grep -x "package:$QAC uid:[0-9]*" | sed 's/.*uid://'), V=$(adb shell cmd package list packages -U "$QAF" | tr -d '\r' | sed -n "s/^package:$QAF uid://p"))"
+  record "X ($mode): the uids" "T=$(adb shell cmd package list packages -U "$QAC" | tr -d '\r' | grep -x "package:$QAC uid:[0-9]*" | sed 's/.*uid://'), V=$(adb shell cmd package list packages -U "$QAF" | tr -d '\r' | sed -n "s/^package:$QAF uid://p")"
+  record "X ($mode): the grants the platform holds for T on V's provider" "$(adb shell dumpsys activity permissions | tr -d '\r' | grep -B2 -A2 "qacapturefwd.output" | xargs | cut -c1-300)"
   record "X ($mode): the decision" "$(decision_of)"
   record "X ($mode): what was in front 3 s after the start" "$TOPX"
   record "X ($mode): V's result" "$(printf '%s\n' "$LV" | grep -o 'result=[A-Z_]*' | head -1) $(printf '%s\n' "$LV" | grep -o 'output exists=[a-z]* size=[0-9]*' | head -1)"
+  assert_contains "X ($mode): V's start of the go-between did not throw" "start threw=none" "$LV"
+  assert_contains "X ($mode): the go-between's forwarded start did not throw" "forward start threw=none" "$LT"
   assert_contains "X ($mode): the result goes to V — the capture page names V as the caller" "from $QAF: " "$(decision_of)"
-  if [ "$mode" = share ]; then
+  assert_contains "X ($mode): V receives RESULT_CANCELED" "result=RESULT_CANCELED" "$LV"
+  if [ "$mode" = own ]; then
+    # The lead's ruling of 2026-10-06 (the header): accepted is the rule's answer here — V owns the provider and T,
+    # the starter, holds the write grant V handed it. The row leaves with Back, so nothing is written.
+    assert_contains "X (own): V owns the provider and the starter, T, holds V's write grant — recipientMayWrite=true starterAtLaunch=granted" "capture guard inputs: scheme=content authority=$QAF.output startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=true recipientMayWrite=true starterAtLaunch=granted" "$INPUTS"
+    assert_contains "X (own): output accepted" "capture request image from $QAF: output accepted" "$S"
+    assert_eq "X (own): the capture page opened" "$CAPTURE_ACTIVITY" "$TOPX"
+    absent_in "X (own): no refusal line" "[camera] refused output" "$S"
+    absent_in "X (own): the platform names no starter — no forwarded line" "capture request forwarded" "$S"
+    absent_in "X (own): after Back nothing was written by the shell" "the caller's output" "$S"
+  else
     assert_contains "X (share): refused" "capture request image from $QAF: refused" "$S"
-    assert_contains "X (share): [camera] capture request forwarded: started by <T>, result to <V>" "[camera] capture request forwarded: started by $QAC, result to $QAF" "$S"
     assert_contains "X (share): [camera] refused output: no grant" "[camera] refused output: no grant" "$S"
     absent_in "X (share): no camera was opened" "[camera] devices=" "$S"
-    assert_contains "X (share): V receives RESULT_CANCELED" "result=RESULT_CANCELED" "$LV"
+    assert_contains "X (share): [camera] capture request forwarded: started by <T>, result to <V>" "[camera] capture request forwarded: started by $QAC, result to $QAF" "$S"
+    assert_contains "X (share): refused before (d1) and (d2) are asked" "callerMayWrite=false recipientMayWrite=false starterAtLaunch=not asked" "$INPUTS"
   fi
   assert_contains "X ($mode): nothing was written to V's file (the row never presses Done)" "output exists=false" "$LV"
   assert_ne "X ($mode): the capture page is not left on top" "$CAPTURE_ACTIVITY" "$(top_activity)"

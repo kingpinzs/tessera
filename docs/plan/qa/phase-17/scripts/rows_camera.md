@@ -14,20 +14,50 @@ Two builds carry this evidence, both CLEAN builds (`./gradlew clean`, then `:app
 The fixes touch the capture answer, the viewer and the player, not the Camera's own viewfinder: the rows run before
 the merge and not touched by it keep their run, as the lead ruled.
 
+**A third build.** `cam17.sh` now asserts **95b543037345b851** (355,589,093 bytes) — the clean build of `phase-17` at
+bb154e06: the three rounds of trust fixes, Living Images and the Camera's toast fix — and takes the device lock once
+per process (`lib.sh`'s `take_device_lock` lets go of it when `row_begin` calls it a second time). On branch
+`phase-17-qa-rerun` E9 was re-cut for round 3 and run, and the edge sub-steps STORAGE, CALLER, INUSE and FRONT were
+run again, on 2026-10-06 09:23 to 09:31 (the emulator had stopped answering binder calls after the host's overnight
+suspend and answered again from 09:11, same boot; a health check ran first). **The re-run's folders are in the re-run's
+worktree** (`.claude/worktrees/qa-rerun/docs/plan/qa/phase-17/`).
+
+**E9 as re-cut for round 3 (`e9.sh`; written against `media/UriAccess.kt`, `media/CaptureRequest.kt` and
+`camera/CaptureActivity.kt`), with what the device read on 95b54303:**
+
+| Leg | What it asserts now |
+|---|---|
+| I1 (the own-FileProvider leg) | `capture guard inputs: scheme=content authority=<qa-capture>.output startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=true recipientMayWrite=true starterAtLaunch=granted`, RESULT_OK — **read so, passes** |
+| M (a) the caller's own MediaStore row | REFUSED: `… callerMayWrite=false recipientMayWrite=true starterAtLaunch=denied`, `refused output: no grant`, RESULT_CANCELED, no camera opened, the row left at 0 bytes — **read so, passes** (`… authority=media … callerMayWrite=false recipientMayWrite=true starterAtLaunch=denied`) |
+| W (b) the grant-only URI | the rule's reading: (d1) passes (the receiver holds a write grant) and (d2) is the launch answer for the starter — the same app, holding the same grant — predicted `granted` ("denied … unless the starter holds a grant"): `callerMayWrite=true recipientMayWrite=true starterAtLaunch=granted`, accepted, RESULT_OK, size > 0. **The device agrees, passes:** `capture guard inputs: scheme=content authority=media startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=true recipientMayWrite=true starterAtLaunch=granted`, `output accepted`. |
+| N2 (c) without WRITE_CONTACTS | as before, the line ending `callerMayWrite=false recipientMayWrite=false starterAtLaunch=not asked` — passes |
+| N3 (c) WITH WRITE_CONTACTS | REFUSED (was recorded): `recipientMayWrite=false … starterAtLaunch=not asked`, the refusal line, RESULT_CANCELED, no camera opened, the photo unchanged — **read so, passes** (`… authority=com.android.contacts … writeGrantFlag=true ownAuthority=false callerMayWrite=false recipientMayWrite=false starterAtLaunch=not asked`) |
+| X own (e) V's own FileProvider URI forwarded by T | **the lead's ruling of 2026-10-06: the product is right, the fixes file's "`starterAtLaunch=denied`, refused" for this leg was a wrong prediction** (run 1, kept, asserted it and failed 4 clauses). Both halves of the one rule hold: V owns the provider, and T, the starter, holds the write grant V handed it — it could write the file itself. Asserted since run 2, and passes: `capture guard inputs: scheme=content authority=app.tileshell.testclient.qacapturefwd.output startedForResult=true clipHoldsOutput=true writeGrantFlag=true ownAuthority=false callerMayWrite=true recipientMayWrite=true starterAtLaunch=granted`, `capture request image from app.tileshell.testclient.qacapturefwd: output accepted`, the capture page opened; after Back `result=RESULT_CANCELED output exists=false size=0`. |
+| X share | refused with `capture request forwarded: started by <T>, result to <V>`, the line ending `recipientMayWrite=false starterAtLaunch=not asked` — passes |
+| **X contacts (e) — NOT WRITTEN AS A LEG, recorded as not run** | "go-between T (no permission), receiver V holding WRITE_CONTACTS, a contact's display_photo" needs a receiver that can hold WRITE_CONTACTS and can be given a URI. `qa-capture-fwd` (V) declares no permission and names only its own provider URI; `qa-capture` declares WRITE_CONTACTS but is the go-between. The leg needs a fixture change (a declared, never-granted WRITE_CONTACTS and a `uri` extra in `qa-capture-fwd`), which the re-run's writer was not allowed to make. |
+| S (d), G / I1 (f), T (g), F, B, V1, I2, V2, R | as they were |
+
 | Row | Driver | Build of the evidence | Last run | Folder | What it changes on the device (all restored) |
 |---|---|---|---|---|---|
 | E7 | `e7.sh` | e8c26851 | 101 passed, 0 failed, 35 recorded | `E7-build-e8c26851-run1-pass-101-0-35` | stills in DCIM/Camera; the grid, timer and Living Images settings |
 | E8 | `e8.sh` | e8c26851 | 28 passed, 0 failed, 9 recorded | `E8-build-e8c26851-run1-pass-28-0-9` | one video; RECORD_AUDIO revoked for the row |
-| E9 | `e9.sh` | c7336aca | 135 passed, 0 failed, 73 recorded (run 3; run 2 the same totals) | `E9-build-c7336aca-run3-pass-135-0-73` | a still, a video, two MediaStore rows of the fixtures', one contact; RECORD_AUDIO revoked; `qa-capture` and `qa-capture-fwd` installed and removed |
+| E9 | `e9.sh` | 95b54303 | 162 passed, 0 failed, 77 recorded (run 2, 2026-10-06 10:17; the display_photo half of leg (e) recorded as NOT RUN) | `E9-build-95b54303-run2-pass-162-0-77` (before it: `E9-build-95b54303-run1-FAIL-leg-e-own-provider-forwarded-is-accepted-starterAtLaunch-granted-157-4-77`, leg (e) as the fixes file predicted it; and `E9-build-c7336aca-run3-pass-135-0-73`, the legs as round 1 worded them) | a still, a video, two MediaStore rows of the fixtures', one contact; RECORD_AUDIO revoked; `qa-capture` and `qa-capture-fwd` installed and removed |
 | E15 | `e15.sh` | e8c26851 | 65 passed, 0 failed, 13 recorded | `E15-build-e8c26851-run1-pass-65-0-13` | CAMERA, READ_MEDIA_VIDEO, READ_MEDIA_IMAGES revoked and granted; `adb root` for the two kills, undone at once; two test notifications |
 | E19_CAMERA | `e19_camera.sh` | e8c26851 | 112 passed, 0 failed, 22 recorded | `E19_CAMERA-build-e8c26851-run1-pass-112-0-22` | two stills; two 5-s screenrecords (pulled, removed) |
 | E23_CAMERA | `e23_camera.sh` | e8c26851 | 35 passed, 0 failed, 7 recorded | `E23_CAMERA-build-e8c26851-run1-pass-35-0-7` | nothing (the bottom-row tile bursts, so no pin was needed) |
-| EDGE_CAMERA | `edge_camera.sh` (nine sub-steps; `edge_index_camera.tsv`) | c7336aca | **150 passed, 5 failed, 50 recorded** — STORAGE 3, INUSE 1, CALLER 1 | `EDGE_CAMERA-build-c7336aca-run2-FAIL-camera-crash-STORAGE-CALLER-no-devices-line-INUSE-150-5-50` | takes and stills; RECORD_AUDIO and CAMERA revoked and granted; the volume filled and freed (`adb root`, undone); a call made and cancelled; a copy of the baseline with two slots re-pointed |
+| EDGE_CAMERA | `edge_camera.sh` (nine sub-steps; `edge_index_camera.tsv`) | STORAGE, CALLER, INUSE, FRONT: 95b54303; REVOKE, SCREENOFF, CALL, KILLWRITE, REPOINT: c7336aca | on 95b54303, the four sub-steps in one run: 73 passed, 0 failed, 22 recorded (each sub-step 0 failed). On c7336aca, all nine: **150 passed, 5 failed, 50 recorded** — STORAGE 3, INUSE 1, CALLER 1, the five that the Camera's toast fix and the devices line on a re-open were made for | `EDGE_CAMERA-build-95b54303-run1-STORAGE-CALLER-INUSE-FRONT-pass-73-0-22`; `EDGE_CAMERA-build-c7336aca-run2-FAIL-camera-crash-STORAGE-CALLER-no-devices-line-INUSE-150-5-50` | takes and stills; RECORD_AUDIO and CAMERA revoked and granted; the volume filled and freed (`adb root`, undone); a call made and cancelled; a copy of the baseline with two slots re-pointed |
 
 Earlier runs are kept beside these (`…-dev<k>-…`, `…-run<k>-FAIL-…`), each named with why it was superseded.
 
 ## What FAILS, and what it is
 
+0. **On 95b54303 nothing of the Camera rows fails.** E9 leg (e), the receiver's own FileProvider URI forwarded by a
+   go-between, is ACCEPTED where the fixes file's round 3 predicted a refusal; the lead ruled on 2026-10-06 that the
+   product is right (the E9 table above) and the leg asserts the device's reading since run 2. The other half of (e)
+   (a contact's display_photo, the receiver holding WRITE_CONTACTS) is not run: it needs a fixture change.
+   Items 1 and 2 below are the c7336aca findings; on 95b54303 the three sub-steps pass (STORAGE: `storage full` said
+   and no crash; CALLER: no crash; INUSE: `[camera] devices=1 front=absent;[camera] busy: camera in use by another
+   app;[camera] devices=1 front=absent`).
 1. **`:camera` crashes whenever the activity shows a toast of its own** — product defect, not asserted around.
    `java.lang.IllegalStateException: A MonotonicFrameClock is not available in this CoroutineContext` at
    `ui/MotionClock.animate` ← `camera/Viewfinder.kt:134` (`ViewfinderState.say`). `CameraActivity` and
@@ -57,13 +87,9 @@ Earlier runs are kept beside these (`…-dev<k>-…`, `…-run<k>-FAIL-…`), ea
   camera ONLY (`com.android.camera2/…`): the platform filters the shell user's implicit query as it does an app's.
   Run 1 asserted the expectation and failed (kept). Now the list and "among them: no" are recorded, and the route the
   fixture takes is asserted: the same query with `-p app.tileshell` resolves to `.camera.CaptureActivity`.
-- **E9 N3 (leg (c), the owner's item).** With WRITE_CONTACTS granted to the caller, its own ClipData with the write
-  flag on a contact's `display_photo` URI reads `callerMayWrite=true` and the request is **accepted** (the capture
-  page opens). The row never presses Done, so the photo is unchanged; recorded, not graded.
-- **E9 X plain (leg (e)).** A result forwarded by a go-between that does not share its identity is **accepted** with
-  `callerMayWrite=true` (the platform names no starter); recorded. With `setShareIdentityEnabled(true)` it is refused
-  with the forwarded line — asserted. The `capture guard inputs:` line as built carries no raw launched-from value,
-  so none can be recorded from it (the two uids are recorded beside it).
+- **E9 N3 (leg (c)) and E9 X (leg (e))** were recorded on c7336aca (N3 accepted with `callerMayWrite=true`; the plain
+  forwarded result accepted). Since round 3 both are asserted (the E9 table above); only the display_photo half of (e)
+  is recorded, as NOT RUN.
 - **E9 N2 / W / M, the sender's side.** Whether `startActivityForResult` threw on the sender (it did not, in any leg).
 - **E15 G, Videos.** On the first request Android grants READ_MEDIA_VIDEO with NO dialog while READ_MEDIA_IMAGES is
   held (recorded). The leg then runs again with the photos-and-videos grants revoked for its span, where the real
