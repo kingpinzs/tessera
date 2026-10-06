@@ -2,17 +2,17 @@
 # recording, a capture-intent caller, or the PHOTOS / CAMERA slots re-pointed. A bullet with several clauses has one
 # line per clause. Sub-steps are functions of scripts/edge_camera.sh (row EDGE_CAMERA).
 # columns: the bullet's first words <TAB> edge_<ID>, or the row / P row / JVM test that covers it <TAB> status
-Storage full while recording	edge_STORAGE	written
-Camera in use by another app	edge_INUSE	written
-Permission revoked mid-session: `pm revoke … CAMERA` with the viewfinder open	edge_REVOKE	written
+Storage full while recording	edge_STORAGE	run on c7336aca: FAIL (3) — :camera crashes when the take is started on the full volume
+Camera in use by another app	edge_INUSE	run on c7336aca: FAIL (1) — no `[camera] devices=1` line after `[camera] busy` (the camera does re-open)
+Permission revoked mid-session: `pm revoke … CAMERA` with the viewfinder open	edge_REVOKE	run on c7336aca: pass
 Permission revoked mid-session: `pm revoke … READ_MEDIA_IMAGES` with the viewer open	the Photos row writer's (edge_photos.sh)	not this writer's
-Screen off or an incoming call mid-recording: `input keyevent KEYCODE_SLEEP`	edge_SCREENOFF	written
-Screen off or an incoming call mid-recording: `adb emu gsm call 5551234`	edge_CALL	written
+Screen off or an incoming call mid-recording: `input keyevent KEYCODE_SLEEP`	edge_SCREENOFF	run on c7336aca: pass
+Screen off or an incoming call mid-recording: `adb emu gsm call 5551234`	edge_CALL	run on c7336aca: pass
 Screen off or an incoming call mid-recording: the same mid-panorama and mid-slow-motion on the phone	P10 / P11 (panorama is never on x86_64; no high-speed session on the AVD)	phone
-A `:camera`, `:video` or `:photosedit` process killed by the system mid-write: `:camera`	edge_KILLWRITE	written
+A `:camera`, `:video` or `:photosedit` process killed by the system mid-write: `:camera`	edge_KILLWRITE	run on c7336aca: pass
 A `:camera`, `:video` or `:photosedit` process killed by the system mid-write: each process cleans only its own leftovers	JVM: MediaWritesTest	JVM
 A `:camera`, `:video` or `:photosedit` process killed by the system mid-write: `:video`, `:photosedit`	the Video and Photos row writers'	not this writer's
-PHOTOS or CAMERA re-pointed to another app	edge_REPOINT	written
-A capture-intent caller cancelled or killed mid-capture: no orphan file	edge_CALLER	written
-A capture-intent caller cancelled or killed mid-capture: a `content://` URI it has no write grant for	E9 (legs N1, N2: the display_photo negatives)	row
-A capture-intent caller that asks for the front camera on the AVD	edge_FRONT	written
+PHOTOS or CAMERA re-pointed to another app	edge_REPOINT	run on c7336aca: pass
+A capture-intent caller cancelled or killed mid-capture: no orphan file	edge_CALLER	run on c7336aca: FAIL (1) — :camera crashes after the cancelled take (no orphan file or row is left)
+A capture-intent caller cancelled or killed mid-capture: a `content://` URI it has no write grant for	E9 (legs N1, N2: the display_photo negatives)	run on c7336aca: pass (E9 run 3)
+A capture-intent caller that asks for the front camera on the AVD	edge_FRONT	run on c7336aca: pass

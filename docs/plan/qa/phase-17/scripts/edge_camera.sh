@@ -262,12 +262,17 @@ edge_KILLWRITE() {
   case "$CPID" in ''|*[!0-9]*) _verdict FAIL "KILLWRITE: a single numeric :camera pid" "[$CPID]"; c6; mic_on; sub_end; return ;; esac
   rings_save
   adb root >/dev/null 2>&1; sleep 2; adb wait-for-device
-  # On the device, as root: wait (at most 20 s) for MediaStore's pending file to appear in DCIM/Camera — the write layer's "pending"
-  # stage — and kill the recorded pid at once. The stop tap is sent from here just after the watch starts.
+  # On the device, as root: a watch that waits (at most 25 s) for MediaStore's pending file to appear in DCIM/Camera —
+  # the write layer's "pending" stage — and kills the recorded pid at once. The watch is started FIRST and is looping
+  # before the stop tap is sent. The window is a few milliseconds (the copy of a short take), so the watch is a loop of
+  # shell built-ins only: a loop that forked `ls | grep` or `date` each turn missed it in dev5, run 1 and dev7 (kept).
+  adb shell "timeout 25 sh -c 'while :; do for f in /data/media/0/DCIM/Camera/.pending-*; do if [ -e \"\$f\" ]; then kill -9 $CPID; echo \"killed with \${f##*/} on disk\"; exit 0; fi; done; done' || echo 'no pending file seen in 25 s'" > "$D/KILLWRITE-watch.txt" 2>&1 &
+  local WATCH=$!
+  sleep 3
   # shellcheck disable=SC2046
-  ( sleep 1; adb shell input tap $(centre_px "$D/KILLWRITE-video.xml" camera_record) ) &
-  HIT="$(adb shell "end=\$(( \$(date +%s) + 20 )); f=; while [ \$(date +%s) -lt \$end ]; do f=\$(ls -a /data/media/0/DCIM/Camera 2>/dev/null | grep -m1 '^\.pending-'); if [ -n \"\$f\" ]; then kill -9 $CPID; echo \"killed with \$f on disk\"; break; fi; done; [ -n \"\$f\" ] || echo 'no pending file seen in 20 s'" | tr -d '\r')"
-  wait
+  adb shell input tap $(centre_px "$D/KILLWRITE-video.xml" camera_record)
+  wait "$WATCH"
+  HIT="$(tr -d '\r' < "$D/KILLWRITE-watch.txt")"
   adb unroot >/dev/null 2>&1; sleep 2; adb wait-for-device; sleep 1
   assert_eq "KILLWRITE: adb is unrooted again" "shell" "$(adb shell whoami | tr -d '\r')"
   record "KILLWRITE: the watch" "$HIT"
