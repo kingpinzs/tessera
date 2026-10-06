@@ -29,6 +29,12 @@ object MusicCommands {
     const val EQUALISER = "app.tileshell.music.EQUALISER"
     /** Set the crossfade. [ARG_MS]: one of [Crossfade.Choice]'s lengths, 0 for off (E17). */
     const val CROSSFADE = "app.tileshell.music.CROSSFADE"
+    /**
+     * Play one file that is not in the library (phase 18, "below Q-18-2"). [ARG_URI]: a `content://` URI of the
+     * shell's FileProvider. Offered only to the shell's own controller, and the service checks the URI again.
+     */
+    const val PLAY_FILE = "app.tileshell.music.PLAY_FILE"
+    const val ARG_URI = "uri"
     const val ARG_MINUTES = "minutes"
     const val ARG_PRESET = "preset"
     const val ARG_MS = "ms"

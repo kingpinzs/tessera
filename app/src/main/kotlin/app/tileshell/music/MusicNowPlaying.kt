@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -309,8 +310,16 @@ private fun BoxWithConstraintsScope.AlbumArt(top: Dp, side: Dp, width: Dp) {
     val context = LocalContext.current
     val albumId = MusicPlayer.albumId
     val px = with(LocalDensity.current) { (width - side * 2).roundToPx() }
-    val art by produceState<ImageBitmap?>(null, albumId, px) {
-        value = if (albumId == null) null else withContext(Dispatchers.IO) { MusicArt.loadById(context, albumId, px) }
+    // Phase 18: a file played outside the library has no album row; its art, when its tags hold any, comes with the item.
+    val fileArt = MusicPlayer.fileArt
+    val art by produceState<ImageBitmap?>(null, albumId, fileArt, px) {
+        value = when {
+            albumId != null -> withContext(Dispatchers.IO) { MusicArt.loadById(context, albumId, px) }
+            fileArt != null -> withContext(Dispatchers.IO) {
+                runCatching { android.graphics.BitmapFactory.decodeByteArray(fileArt, 0, fileArt.size)?.asImageBitmap() }.getOrNull()
+            }
+            else -> null
+        }
     }
     val box = Modifier
         .offset(x = side, y = top)

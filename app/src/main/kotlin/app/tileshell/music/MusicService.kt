@@ -1,10 +1,15 @@
 package app.tileshell.music
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.media.audiofx.Equalizer
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.Process
 import android.os.SystemClock
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -22,8 +27,11 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import app.tileshell.tiles.engine.TileRouting
 import app.tileshell.diag.Diagnostics
+import app.tileshell.files.FilesProvider
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import java.io.ByteArrayOutputStream
+import java.io.File
 
 /**
  * The shell's own playback (phase 10 build tasks 3 and 4).
@@ -66,6 +74,11 @@ class MusicService : MediaSessionService() {
     private val sleepCommand = SessionCommand(MusicCommands.SLEEP, Bundle.EMPTY)
     private val eqCommand = SessionCommand(MusicCommands.EQUALISER, Bundle.EMPTY)
     private val crossfadeCommand = SessionCommand(MusicCommands.CROSSFADE, Bundle.EMPTY)
+    private val playFileCommand = SessionCommand(MusicCommands.PLAY_FILE, Bundle.EMPTY)
+
+    // ---- phase 18: one file outside the library ---------------------------------------------------
+    /** Counts the asks; the newest one wins when two files' tags are being read at once, and it numbers the media id. */
+    private var fileAsk = 0L
 
     // ---- E17: crossfade ---------------------------------------------------------------------------
     private var crossfade: CrossfadeFader? = null
@@ -131,6 +144,9 @@ class MusicService : MediaSessionService() {
                         .add(sleepCommand)
                         .add(eqCommand)
                         .add(crossfadeCommand)
+                        // Phase 18: playing a file by URI is the shell's own to ask for. This service is exported,
+                        // so any app can connect a controller; only one running as the shell is offered the command.
+                        .apply { if (controller.uid == Process.myUid()) add(playFileCommand) }
                         .build(),
                 )
                 .build()
@@ -145,6 +161,7 @@ class MusicService : MediaSessionService() {
                 MusicCommands.SLEEP -> setSleep(args.getInt(MusicCommands.ARG_MINUTES, SleepTimer.OFF))
                 MusicCommands.EQUALISER -> applyEqualiser(args.getInt(MusicCommands.ARG_PRESET, Equaliser.OFF), save = true)
                 MusicCommands.CROSSFADE -> setCrossfade(args.getInt(MusicCommands.ARG_MS, Crossfade.OFF))
+                MusicCommands.PLAY_FILE -> return Futures.immediateFuture(SessionResult(playFile(controller, args.getString(MusicCommands.ARG_URI))))
                 else -> return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
@@ -202,6 +219,97 @@ class MusicService : MediaSessionService() {
         if (MusicStore.library.value.isEmpty()) MusicStore.refresh(this, "a search")
         return MusicStore.library.value
     }
+
+    /**
+     * Phase 18 ("below Q-18-2"; a trust rule): play one file that has no library row, as a ONE-ITEM queue through
+     * this session — the same player, notification and Now Playing as any track. Nothing is written: no scan, no
+     * playlist, and the item's id is not a library id, so no pivot lists it. When it ends the queue ends.
+     *
+     * The ask is checked again here, whoever sent it: the controller must be the shell's own; the URI must pass
+     * [MusicPlayExtra] (a `content://` URI of the shell's FileProvider and nothing else); and the provider must
+     * resolve it to a file under a storage volume ([FilesProvider.fileFor], the rule the provider serves by). The
+     * player is then handed that same URI, so every open goes back through the provider's own check.
+     */
+    private fun playFile(controller: MediaSession.ControllerInfo, raw: String?): Int {
+        val me = Process.myUid()
+        val decision = MusicPlayExtra.decide(controller.uid, me, null, raw.orEmpty(), FilesProvider.AUTHORITY)
+        if (decision !is MusicPlayExtra.Decision.PlayUri) {
+            (decision as? MusicPlayExtra.Decision.Ignored)?.let { Diagnostics.add("music", it.line) }
+            return if (controller.uid != me) SessionResult.RESULT_ERROR_PERMISSION_DENIED else SessionResult.RESULT_ERROR_BAD_VALUE
+        }
+        val uri = Uri.parse(decision.uri)
+        val file = FilesProvider.fileFor(this, uri) ?: run {
+            Diagnostics.add("music", "play extra ignored: outside shared storage")
+            return SessionResult.RESULT_ERROR_BAD_VALUE
+        }
+        val ask = ++fileAsk
+        // The tags are a disk read: off the main thread, and back on it to touch the player.
+        Thread({
+            val item = fileItem(uri, file, ask)
+            handler.post {
+                val player = session?.player
+                if (player == null || ask != fileAsk) return@post
+                player.setMediaItems(listOf(item))
+                player.prepare()
+                player.play()
+                Diagnostics.add("music", MusicFile.line(file.path))
+            }
+        }, "music-file-tags").start()
+        return SessionResult.RESULT_SUCCESS
+    }
+
+    /**
+     * The file as Media3 sees it: title from its tags, else its name without the extension; artist and album from
+     * its tags, else blank; art from its tags, else none (Now Playing then draws Music's placeholder). A file whose
+     * tags cannot be read still gets its name — whether it plays is the player's to find out.
+     */
+    private fun fileItem(uri: Uri, file: File, ask: Long): MediaItem {
+        var title: String? = null
+        var artist: String? = null
+        var album: String? = null
+        var durationMs: Long? = null
+        var art: ByteArray? = null
+        val tags = MediaMetadataRetriever()
+        runCatching {
+            tags.setDataSource(file.path)
+            title = tags.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+            artist = tags.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+            album = tags.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
+            durationMs = tags.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()?.takeIf { it > 0L }
+            art = tags.embeddedPicture?.let { boundedArt(it) }
+        }
+        runCatching { tags.release() }
+        val meta = MediaMetadata.Builder()
+            .setTitle(MusicFile.title(title, file.name))
+            .setArtist(MusicFile.text(artist))
+            .setAlbumTitle(MusicFile.text(album))
+            .setDurationMs(durationMs)
+            .setIsBrowsable(false)
+            .setIsPlayable(true)
+        art?.let { meta.setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER) }
+        return MediaItem.Builder()
+            .setMediaId(MusicFile.mediaId(ask))
+            .setUri(uri)
+            .setMediaMetadata(meta.build())
+            .build()
+    }
+
+    /**
+     * Embedded art re-encoded no larger than [FILE_ART_PX] a side. A tag can hold megabytes, and the session sends an
+     * item's metadata to every controller over Binder, where a transaction that large fails.
+     */
+    private fun boundedArt(raw: ByteArray): ByteArray? = runCatching {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(raw, 0, raw.size, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return@runCatching null
+        val opts = BitmapFactory.Options().apply { inSampleSize = MusicFile.sampleSize(bounds.outWidth, bounds.outHeight, FILE_ART_PX) }
+        val bitmap = BitmapFactory.decodeByteArray(raw, 0, raw.size, opts) ?: return@runCatching null
+        ByteArrayOutputStream().use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+            bitmap.recycle()
+            out.toByteArray()
+        }
+    }.getOrNull()
 
     private fun setSleep(minutes: Int) {
         clearSleep()
@@ -323,6 +431,9 @@ class MusicService : MediaSessionService() {
         private const val PREFS = "music_playback"
         private const val KEY_EQ = "equaliser_preset"
         private const val KEY_CROSSFADE = "crossfade_ms"
+
+        /** The longer side, in pixels, of a played file's embedded art as the session carries it. */
+        private const val FILE_ART_PX = 512
 
         /** A track as Media3 sees it: the MediaStore URI, and the metadata the notification shows. */
         fun mediaItem(track: Track): MediaItem = MediaItem.Builder()

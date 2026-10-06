@@ -824,7 +824,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.APP_FILES" />
             </intent-filter>
+            <!-- Build task 11 (r3 D9 / V20): This Device, Recent and Recycle Bin as static App Shortcuts, on this activity for the per-activity query. -->
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts_files" />
         </activity>
+
+        <!--
+          The shell's FileProvider (phase 18 build task 3; T18-11, r3 D10): Share and open-with hand out its URIs.
+          Not exported - reached only through a URI grant. Its root-path reaches /storage/<UUID> and therefore the
+          whole disk, so files/FilesProvider.kt hands out AND serves only a file whose canonical path lies under a
+          StorageVolume.getDirectory(), read-only.
+        -->
+        <provider
+            android:name=".files.FilesProvider"
+            android:authorities="app.tileshell.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/files_provider_paths" />
+        </provider>
 
         <!--
           The copy / move / extract service (r3 D8): a foreground service of type dataSync in the main process.

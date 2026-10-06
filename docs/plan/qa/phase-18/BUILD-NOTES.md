@@ -59,3 +59,19 @@ Where the doc's text could not be met as written; each is OWED a Change Log line
 Not proved by the floor (needs app code): mid_progress on a real progress line; the pace pref being READ by the app
 (`QaBases.FILES_RATE` is not in app source yet — the service builder adds it); two-stream cross-app grants (E7).
 `pubvol_up` must be called directly, never in `$(…)`. `jvm_gate` runs cleanTestDebugUnitTest (wipes test-results).
+
+## From the ADDs builder (provider, Music, recorder, static shortcuts), 2026-10-06 15:30 — compiled and unit-tested, NOT run on a device
+
+Device checks OWED (the lead or the E6 / E7 / E16 / E17 drivers):
+- E6 own-launch negatives: `am start -n app.tileshell/.music.MusicActivity --el app.tileshell.music.PLAY_ID <id>` and
+  `… --es app.tileshell.music.PLAY_URI content://app.tileshell.files/root/storage/emulated/0/QA-Files/hidden/qa-hidden.mp3`
+  → Music opens, not playing, `[music] play extra ignored: not the shell`; repeat with Music already open and with
+  `-f 0x20000000` (onNewIntent).
+- Provider: `content read --uri content://app.tileshell.files/root/data/data/app.tileshell/files/files-recent.json` fails;
+  through qa-capture with a grant, a rewritten path logs `[files] share refused: outside shared storage`.
+- `dumpsys shortcut`: three manifest shortcuts, ranks 0, 1, 2. E17: rec_row hold → `rec_menu:location`.
+For the open-with builder: Files sends PLAY_ID only when Music's library holds the id (Music skips IS_RECORDING), else
+the URI form; PLAY_ID is a Long, PLAY_URI a String from `FilesProvider.uriFor`.
+For the adversarial review (GATE b, f): the symlink swap between canonicalise and open is NOT closed by an fd re-check
+(emulated and FAT volumes hold no symlinks); a grant holder can flood the ring with refusal lines; paths under
+`<volume>/Android/data/app.tileshell` count as "under a volume"; the onNewIntent caller rule (Change Log 2026-10-06 15:30).
