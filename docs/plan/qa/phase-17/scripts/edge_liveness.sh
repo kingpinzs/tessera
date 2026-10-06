@@ -61,6 +61,8 @@ done
 absent_in "after: no assignSlotOnce … -> assigned line" "-> assigned" "$SEED"
 assert_eq "after: the grants are the ones held before" "$G0" "$(grants)"
 assert_contains "after: the new process wrote its [net] lines" "[net] cleartext permitted for api.themoviedb.org: false" "$SEED"
+assert_eq "after: all nine fixed hosts read false in the new process (the fixes file's leg (o), its unlocked form)" "9" "$(printf '%s\n' "$SEED" | grep -F '[net] cleartext permitted for ' | grep -F ': false' | sed 's/.*permitted for //' | sort -u | grep -c .)"
+record "leg (o)'s locked form" "NOT RUN: the line [app] user unlocked: launcher start-up is written only when the phone boots locked; this AVD has no lock credential (phone row P17)"
 
 assert_contains "after: the sealed store still names tmdb" "tmdb" "$(cred_names)"
 VMARK="$(ring_mark)"

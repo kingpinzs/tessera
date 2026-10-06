@@ -3,7 +3,7 @@
 
 usage: gate_table.py <qa/phase-17 dir> <gate build id, 8 hex>     prints Markdown; exit 1 if a row has no passing run
 A folder is <ROW>-build-<id>-run<k>-pass-<p>-<f>-<r> (older ones: <ROW>-run<k>-pass-…). A row whose only passing run
-is an earlier build's is marked: its code did not change after that build, so it was not run again.
+is an earlier build's is marked as such; this script makes no claim about why.
 """
 import os, re, sys
 
@@ -39,6 +39,6 @@ for row in ROWS + extra:
         print(f'| {row} | **NO PASSING RUN** | — |')
     else:
         m = re.search(r'build-([0-9a-f]{8})', d)
-        b = GATE if on_gate else ((m.group(1) if m else 'pre-merge') + ' (earlier build; code unchanged since)')
+        b = GATE if on_gate else ('**' + (m.group(1) if m else 'pre-merge') + ' — an EARLIER build** (not the gate build; INDEX row 17 says why each such row was not run again)')
         print(f'| {row} | `{d}` | {b} |')
 sys.exit(1 if missing else 0)

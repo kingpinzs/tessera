@@ -6,3 +6,6 @@
 [video] server not removed: its token could not be cleared	needs the Keystore / file removal to fail (storage full, a broken key): no AVD row can make it fail on demand	ServerStoreTest (JVM)
 [video] TMDB key not removed	the same: a removal that fails	the key page's JVM tests (TrustWiringScanTest / CredentialFileTest)
 [video] http: answer not finished in time	a 60-s total deadline on one response read: no row holds a response open that long	VideoHttp's JVM test
+# added by the lead, 2026-10-06, after the gate review (one alternative per line; the join needs each named)
+[video] launch answer read: threw X	the platform call would have to throw: no AVD row can make it	UriAccessRulesTest (JVM)
+[video] launch answer read: not available	written only below API 35; the AVD and the phone are above it	UriAccessRulesTest (JVM)

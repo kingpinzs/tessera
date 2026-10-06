@@ -94,6 +94,17 @@ send i --es uri "$URI" --ez flag true
 record "(i) the viewer: error state / picture; the bar" "viewer_error=$(has_node "$V" viewer_error) viewer_image=$(has_node "$V" viewer_image); $(offers "$V")"
 assert_absent "(i) whatever the start did, nothing that changes a file is offered" "edit=yes" "$(offers "$V")"
 
+# Added 2026-10-06 after the gate review (reviewer A, finding 6): a NAMED starter with no access is a no on the device
+# too - (l), the only shared-identity leg until now, is a positive.
+log "--- (h-shared) (h) with setShareIdentityEnabled(true), the app still holding no READ_MEDIA_IMAGES"
+assert_eq "(h-shared) qa-photoview does not hold READ_MEDIA_IMAGES" "false" "$(qv_held)"
+send hshared --es uri "$URI" --ez share true
+assert_contains "(h-shared) the request line reads another app … refused" "[photosapp] viewer request from another app: refused" "$SLICE"
+assert_contains "(h-shared) [photosapp] refused view: no grant" "[photosapp] refused view: no grant" "$SLICE"
+absent_in "(h-shared) not shown" "shown read-only" "$SLICE"
+assert_eq "(h-shared) the viewer shows its error state (viewer_error)" "yes" "$(has_node "$V" viewer_error)"
+assert_eq "(h-shared) … and no picture (viewer_image)" "no" "$(has_node "$V" viewer_image)"
+
 log "--- (j) the app holding READ_MEDIA_IMAGES (round 3: refused — the platform limit)"
 adb shell pm grant "$QV_PKG" android.permission.READ_MEDIA_IMAGES
 assert_eq "(j) qa-photoview holds READ_MEDIA_IMAGES" "true" "$(qv_held)"

@@ -104,7 +104,7 @@ photos" is not in the ruled list, phase 03 Decisions); any interim "viewer-only"
   is accepted). Both fail closed. A further rule that would admit them (the shell holding a grant the platform issued
   for that launch) is NOT built: it is a question for the owner at the gate, and would need its own review.
   The forwarded-request hole of round 2 (a go-between sending the result to an app with contacts access) and the
-  permission-wide receiver are both closed by this rule; E9's legs assert them refused. The player's data source now
+  permission-wide receiver are both closed by this rule; ~~E9's legs assert them refused~~ (CORRECTED 2026-10-06 after the gate review: E9 asserts the permission-wide receiver refused (N3) and the forwarded request to a shared-identity receiver refused (X share); the forwarded display_photo leg to a receiver with contacts access — round 2's own scenario — is NOT RUN on the device, its fixture change was not made, and the refusal is shown there only by those two legs together and by the JVM tests; it is the owner's item D4). The player's data source now
   opens only http(s) for a network launch and only the launch item for a content launch; another app's title and
   queue are ignored. New lines: `[photosapp] launch answer read: <granted|denied|threw X|not available>`, the same
   under `[video]`; `[camera] capture guard inputs: …` ends `recipientMayWrite=<b> starterAtLaunch=<…>`; `[camera]

@@ -13,3 +13,12 @@ line pattern (one alternative per row)	produced by
 [motion] photo_swipe …	E4 swipe; E19_PHOTOS (ring-launcher.txt)
 [motion] viewer_close …	E4 Back; E19_PHOTOS (ring-launcher.txt)
 [motion] slideshow_step …	E5 slideshow; E19_PHOTOS (ring-launcher.txt)
+# added by the lead, 2026-10-06, after the gate review (one alternative per line; the join needs each named)
+[photosapp] viewer request from another app: shown read-only	TRUST_PHOTOS (l)
+[photosapp] viewer request from an unnamed app: shown read-only	TRUST_PHOTOS (k)
+[photosapp] viewer request from an unnamed app: refused	TRUST_PHOTOS (h), (j)
+[photosapp] refused view: no grant	TRUST_PHOTOS (h), (j)
+[photosapp] launch answer read: granted	TRUST_PHOTOS (k)
+[photosapp] launch answer read: denied	TRUST_PHOTOS (h), (j)
+[motion] photos_menu …	E19_PHOTOS
+[motion] viewer_zoom …	E4
