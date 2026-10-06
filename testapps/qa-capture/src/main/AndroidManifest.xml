@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- No permission at all: whatever the shell's Camera writes for this app, it writes through this app's own grant. -->
+    <!-- It HOLDS no permission: whatever the shell's Camera writes for this app, it writes through this app's own grant.
+         WRITE_CONTACTS is declared and never granted at install (the rows install without -g); E9's second
+         display_photo leg grants it with `pm grant` for its span, to record what the guard reads then. -->
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
 
     <queries>
         <package android:name="app.tileshell" />

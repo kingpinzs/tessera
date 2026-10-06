@@ -1,0 +1,19 @@
+# Phase 17 E18 — the Camera row writer's producers: for every alternative of every [camera] line in the doc's E18 (each
+# `|` choice separately), and the [motion] lines the Camera's rows time, the row or edge sub-step whose ring slice holds it.
+# columns: the line pattern (the doc's words) <TAB> the row or edge sub-step that produces it <TAB> regex (grep -E over that row's ring-*.txt)
+[camera] devices=<n> front=absent	E7 (A: open)	\[camera\] devices=1 front=absent
+[camera] busy: <reason>	EDGE_CAMERA (edge_INUSE)	\[camera\] busy: camera in use by another app
+[camera] saved <uri> <w>x<h>	E7 (B: a still)	\[camera\] saved content://media/[a-z_]+/images/media/[0-9]+ [0-9]+x[0-9]+
+[camera] timer <n>s -> shutter	E7 (C: the 2-s timer)	\[camera\] timer 2s -> shutter
+[camera] focus at <x>,<y>: <state>	E7 (E: tap to focus)	\[camera\] focus at 180,390: locked
+[camera] mode <x>: unavailable (<reason>)	E7 (G: mode availability)	\[camera\] mode (slowmo|panorama): unavailable \([^)]+\)
+[camera] mode hdr: unavailable	E7 (G: mode availability)	\[camera\] mode hdr: unavailable
+[camera] refused output scheme=<s>	E9 (F: a file:// output)	\[camera\] refused output scheme=file
+[camera] refused output: no grant	E9 (N1, N2: the display_photo negatives; S; X share)	\[camera\] refused output: no grant
+[camera] video sound: off (no microphone permission)	E8	\[camera\] video sound: off \(no microphone permission\)
+[camera] capture request: EXTRA_OUTPUT is not a Uri (Decisions 2026-10-05 16:32)	E9 (S: EXTRA_OUTPUT as a String)	\[camera\] capture request: EXTRA_OUTPUT is not a Uri
+[camera] capture request forwarded: started by <pkg>, result to <pkg> (Decisions 2026-10-05 16:32)	E9 (X share: a forwarded result with a shared identity)	\[camera\] capture request forwarded: started by app\.tileshell\.testclient\.qacapture, result to app\.tileshell\.testclient\.qacapturefwd
+[camera] capture guard inputs: … (Decisions 2026-10-05 16:32)	E9 (I1 and every leg with an EXTRA_OUTPUT Uri)	\[camera\] capture guard inputs: scheme=content authority=
+[motion] capture_feedback …	E19_CAMERA (motion: capture feedback)	\[motion\] capture_feedback t0=[0-9]+ peak=[0-9]+ overshoot=[0-9.]+ settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
+[motion] mode_switch …	E19_CAMERA (motion: the mode switch)	\[motion\] mode_switch t0=[0-9]+ peak=[0-9]+ overshoot=[0-9.]+ settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
+[motion] dial_open …	E19_CAMERA (Y4: the Pro dial)	\[motion\] dial_open t0=[0-9]+ peak=[0-9]+ overshoot=[0-9.]+ settle=[0-9]+ frames=[0-9]+ maxGapMs=[0-9.]+
