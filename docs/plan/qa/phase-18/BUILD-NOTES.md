@@ -41,3 +41,21 @@ keeps detail that would be lost with the conversation. Each line says who must a
   DONE: Change Log 2026-10-06 15:23.
 - A root tag `files_root` exists that the doc's tag list does not name (harmless; drivers may use it).
 - E15's wizard legs and `provision.sh`'s new line are NOT run yet.
+
+## From the QA floor (task 12), 2026-10-06 — self-test `FLOOR: 181 passed, 0 failed, 25 recorded`
+
+Where the doc's text could not be met as written; each is OWED a Change Log line by the lead before the gate:
+1. `find /sdcard …` prints one line (a symlink): the snapshot uses `find /sdcard/ …`.
+2. make_photos.py's images are nearly one size, so the fixtures are `make_fixtures.py`'s (same png() and colours, distinct
+   dimensions): img-0..5.png, r1/r2/r3/never.png, qa-hidden.png.
+3. media_up puts qa-steps.mp4 in Movies, not DCIM/Camera; only qa-photo-0..2 reach DCIM/Camera.
+4. files_up snapshots FIRST, then makes fixtures (the Acceptance text; the Decisions entry says the other order).
+5. Sizes round to nearest (the pure layer's rule); r11 1.5.8 does not say.
+6. MediaProvider's scan rewrites hidden/.nomedia (35 bytes, mtime now): files_up scans before dating.
+7. files_down removes /sdcard/qa.xml and /sdcard/.Tessera when the before-snapshot did not hold them.
+8. E12 gaps: no producer for `move … cancelled|failed`, none written for `bin restore|purge|empty … failed`.
+9. E20 names "restore on the public volume" and "keep-both naming" with no Edge bullet: BIN_PUBVOL and KEEP_BOTH added.
+10. MP3 fixtures are under qa/phase-01/MUSIC6-fixtures: 03.mp3 in QA-Files, 04.mp3 stripped of tags as qa-hidden.mp3.
+Not proved by the floor (needs app code): mid_progress on a real progress line; the pace pref being READ by the app
+(`QaBases.FILES_RATE` is not in app source yet — the service builder adds it); two-stream cross-app grants (E7).
+`pubvol_up` must be called directly, never in `$(…)`. `jvm_gate` runs cleanTestDebugUnitTest (wipes test-results).

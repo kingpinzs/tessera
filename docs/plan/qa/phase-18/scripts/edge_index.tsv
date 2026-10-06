@@ -1,0 +1,21 @@
+# Phase 18 - the edge index (E20; phase 17's form): one line per bullet of "Edge cases", written by the floor's builder 2026-10-06 14:59
+# the bullet's first words	the sub-step, row, P row or JVM test that covers it	last run
+10,000 files in one folder	edge TENK (edge_files.sh TENK; row EDGE_TENK)	never
+Names: unicode, emoji, a 255-byte name	edge NAMES (row EDGE_NAMES: unicode, emoji, the 255-byte name listed and renamed, the hidden-files setting off / on / off, the case-only rename on the sub-step's own FAT volume); the 255-byte name deleted to the bin and restored: E4b (r3 D3) and FileOps' JVM case (E18)	never
+A folder deleted underneath an open listing	edge GONE (row EDGE_GONE: the folder removed under the listing; a file removed between list and tap)	never
+Back after a breadcrumb jump	edge BACK (row EDGE_BACK: the crumb jump, ↑, Back out of selection mode, Back in the picker — Y3, r3 D12)	never
+Copy onto a full volume	edge FULL_VOLUME (row EDGE_FULL_VOLUME: files_up big, fill_volume 1048576, unfill_volume)	never
+Volume unmounted mid-copy	edge UNMOUNT (row EDGE_UNMOUNT: files_up paced big zips, pubvol_up, sm unmount mid-copy and mid-extract, the sweep on remount)	never
+Grant revoked mid-session	edge REVOKE (row EDGE_REVOKE: files_up paced big; appops … default mid-copy, fresh MARK, relaunch; appops … allow)	never
+Move across volumes = copy then delete	edge XMOVE (row EDGE_XMOVE: /sdcard to the sub-step's own public volume, md5 equal, the source gone); a failure after the copy leaves both: FileOps' JVM case (E18)	never
+`.nomedia` folders	edge NOMEDIA (row EDGE_NOMEDIA: hidden/'s rows in Files; absent from content query on images and audio; opened through the provider it IS in Recent)	never
+Symlinks and special files are not present	JVM: FileShareGuard's symlink case (E7, through the floor's gate) and FileOps' path guards (E18) — FUSE holds no symlink, so there is no AVD sub-step	never
+A file opened in Photos, then deleted in Files	edge STALE_PHOTO (row EDGE_STALE_PHOTO: files_up media; phase 17's edge case seen from Files)	never
+Screen off, an incoming call	edge INTERRUPT (row EDGE_INTERRUPT: files_up paced big; KEYCODE_SLEEP, `adb emu gsm call` / `cancel`, and a reboot mid-copy; wake_device asserted Awake; the sweep; the bin untouched)	never
+The app list's hold menu on Files	the hold menu: E10; the pinned tile opening on Recent with the pane open on a cold start: edge TILE_COLD (row EDGE_TILE_COLD)	never
+Properties' values (r3 V17)	edge PROPS (row EDGE_PROPS: b.bin's size, date and path segments from the fixture table; no size row asserted for sub)	never
+Recycle Bin: `.index.json` deleted by hand	edge BIN (row EDGE_BIN: index missing, a record whose file is gone, the original folder now a FILE, two same-named files, a bin file with no record); the same-millisecond pair: FileOps' JVM case (E18)	never
+Zip: a zip64 archive	edge ZIP (row EDGE_ZIP: files_up zips; qa-zip64.zip's 70,000 entries inside 5 s, qa-cp437.zip's café.txt, a zip in the bin opens nothing)	never
+Liveness (N-01)	edge LIVENESS (row EDGE_LIVENESS: a reboot and a force-stop; the grant, the checklist row, each .index.json's md5, the Recent list, an empty journal); Device care: P1 (the phone)	never
+(E20's list, no bullet) restore on the public volume	edge BIN_PUBVOL (row EDGE_BIN_PUBVOL: pubvol_up; delete and Restore on /storage/<UUID>)	never
+(E20's list, no bullet) keep-both naming	edge KEEP_BOTH (row EDGE_KEEP_BOTH: a conflict answered keep both leaves `b (2).bin`, r3 D6); also E4	never
