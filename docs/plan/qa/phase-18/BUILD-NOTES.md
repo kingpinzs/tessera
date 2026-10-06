@@ -90,3 +90,23 @@ For the adversarial review (GATE b, f): the symlink swap between canonicalise an
 - Without POST_NOTIFICATIONS the notification's Cancel cannot be reached; the doc puts Cancel only there (H5).
 - Device checks owed: E4's service legs (pace line + mid progress, Home mid-copy isForeground + dataSync, Cancel action,
   no .part after cancel, force-stop then sweep, revoke / unmount / screen-off, qa-bad.zip partial extract).
+
+## From the UI builder (tasks 2 / 5 / 7 + the dynamic sdcard shortcut), 2026-10-06 16:05 — run on the AVD, APK 61ce7af5; smoke evidence TASK2-smoke/
+
+OWED Change Log lines / rulings (the lead):
+1. E11 / E14's ABSOLUTE y values (pane rows "from 72", Recent's empty line "cap top 88.8") are on W10M's 24-epx status bar.
+   Built relative to our bar (BarMetrics.STATUS_EPX = 28): rows start at 76, the empty line's cap top 92.6. C-17 says the
+   status bar is cited, never hard-coded — the rows read "+ (STATUS_EPX - 24)".
+2. E8: the search walk over a 10,000-entry folder finishes in about 0.25 s, so no dump can catch files_search_progress.
+   A 250,000-file tree showed it, but removing that tree with one rm -rf SEGFAULTED the platform's MediaProvider
+   (TASK2-smoke/18-rm-incident.txt). Q-18-5 asked of Jeremy.
+3. The hidden-files setting's home (the doc names none): a fifth overflow line "Settings" (files_more:settings) with
+   files_setting_hidden. P4; goes on H4.
+4. Back with an empty history calls moveTaskToBack (a warm return next time), not finish(). Goes on H4 (Y3).
+5. Bin row detail = "<deleted date> <volume name>"; a search hit's detail = its path relative to the searched folder.
+6. dumpsys reports rank 0 for files_sdcard though rank 3 is set (the platform renumbers dynamic shortcuts per activity;
+   manifest ones sort first) — E2's order assertion is on the burst's order, not the dumpsys rank.
+7. Type icons are drawn in code; the SD-card pane glyph is a stand-in (no such glyph in the font). H1 / H4.
+NOT verified by it: the shortcut reconcile with the process truly dead; the Files tile's burst (E2 / E16); the hold
+gesture; video thumbnails; Icons view's two-line wrap and the 172 pitch in DCIM/Camera.
+QA RULE from its incident: never bulk-delete a huge tree in one command on the AVD.

@@ -33,10 +33,10 @@ import app.tileshell.ui.ShellRoot
 import app.tileshell.ui.tokens.ShellType
 
 /**
- * What an intent asked Files to show (r3 D12): the `page` and `path` extras, as they came. They only ever choose
- * what is shown; the page that reads them decides whether a path is one it may open.
+ * What an intent asked Files to show (r3 D12): the extras of [FilesIntents], as they came. They only ever choose what
+ * is shown; [FilesState.open] decides whether a path is one it may open ([FilesNav.resolve]).
  */
-data class FilesRequest(val page: String?, val path: String?)
+class FilesRequest(val page: String?, val path: String?, val name: String? = null, val from: String? = null)
 
 /**
  * Files (phase 18 build task 1): W10M's File Explorer as an app in the shell APK with its own task, in the app list
@@ -52,8 +52,14 @@ data class FilesRequest(val page: String?, val path: String?)
  */
 class FilesActivity : ComponentActivity() {
 
-    /** The latest intent's request; a new intent replaces it. */
-    private val request = mutableStateOf(FilesRequest(null, null))
+    /** Where Files is and what it shows: made once, kept for the activity's life (a warm return shows the page left). */
+    private lateinit var state: FilesState
+
+    /**
+     * A launch not yet acted on, and whether it is the cold one. Without All-files access no folder can be checked, so
+     * the request waits for the grant; with it, it is taken at once.
+     */
+    private var pending: Pair<FilesRequest, Boolean>? = null
 
     /** All-files access as last read; null before the first read. */
     private val access = mutableStateOf<Boolean?>(null)
@@ -61,16 +67,23 @@ class FilesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         hideSystemBars()
-        request.value = requestOf(intent)
-        Diagnostics.add("files", "FilesActivity created page=${request.value.page ?: "none"}")
+        // ShellApp started the tracker with the process; a second call is a no-op, and covers a process whose launcher
+        // start-up is still waiting for the first unlock.
+        FileVolumes.start(this)
+        // Build tasks 3, 4, 8, 9 and 10 pass their FilesActions here.
+        state = FilesState(this, FilesActions.None)
+        val request = requestOf(intent)
+        pending = request to true
+        Diagnostics.add("files", "FilesActivity created page=${request.page ?: "none"}")
         setContent {
             ShellRoot {
                 Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
                     FilesScreen(
                         granted = access.value == true,
-                        request = request.value,
+                        state = state,
                         onGrant = { openAllFilesAccess() },
-                        onBack = { finish() },
+                        // Back is the page's first (Y3); with nothing left it leaves the app.
+                        onBack = { if (access.value != true || !state.back()) leave() },
                         onHome = { goHome() },
                     )
                 }
@@ -81,7 +94,8 @@ class FilesActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        request.value = requestOf(intent)
+        pending = requestOf(intent) to false
+        takePending()
     }
 
     override fun onStart() {
@@ -100,9 +114,32 @@ class FilesActivity : ComponentActivity() {
         val now = Checklist.allFilesAccess()
         if (atStart || now != access.value) Diagnostics.add("files", "access=${if (now) "granted" else "denied"}")
         access.value = now
+        takePending()
     }
 
-    private fun requestOf(intent: Intent?) = FilesRequest(intent?.getStringExtra(EXTRA_PAGE), intent?.getStringExtra(EXTRA_PATH))
+    /** Acts on the waiting launch once the grant is held. */
+    private fun takePending() {
+        if (access.value != true) return
+        val (request, cold) = pending ?: return
+        pending = null
+        state.open(request, cold)
+    }
+
+    private fun requestOf(intent: Intent?) = FilesRequest(
+        page = intent?.getStringExtra(FilesIntents.EXTRA_PAGE),
+        path = intent?.getStringExtra(FilesIntents.EXTRA_PATH),
+        name = intent?.getStringExtra(FilesIntents.EXTRA_NAME),
+        from = intent?.getStringExtra(FilesIntents.EXTRA_FROM),
+    )
+
+    /**
+     * Back with nothing left in Files' history: the task goes behind the one that was there before it (Voice Recorder
+     * after "Open file location", Start otherwise) and Files stays as it is, so a return to it is a warm one — W10M
+     * resumed File Explorer where it was left (pass 2 §3 #4).
+     */
+    private fun leave() {
+        moveTaskToBack(true)
+    }
 
     private fun openAllFilesAccess() {
         runCatching { startActivity(Checklist.allFilesAccessIntent(this)) }
@@ -114,30 +151,24 @@ class FilesActivity : ComponentActivity() {
     }
 
     companion object {
-        /** The extras' keys — `page` is the key SettingsActivity.EXTRA_PAGE and the other shell apps already use. */
-        const val EXTRA_PAGE = "page"
-        const val EXTRA_PATH = "path"
+        /** The extras' keys live in [FilesIntents]; these two names are kept for the callers that already use them. */
+        const val EXTRA_PAGE = FilesIntents.EXTRA_PAGE
+        const val EXTRA_PATH = FilesIntents.EXTRA_PATH
     }
 }
 
 @Composable
-private fun FilesScreen(granted: Boolean, request: FilesRequest, onGrant: () -> Unit, onBack: () -> Unit, onHome: () -> Unit) {
+private fun FilesScreen(granted: Boolean, state: FilesState, onGrant: () -> Unit, onBack: () -> Unit, onHome: () -> Unit) {
     BackHandler(enabled = true) { onBack() }
     Box(Modifier.fillMaxSize().background(Color.Black).testTag("files_root")) {
         Column(Modifier.fillMaxSize()) {
             W10mStatusBar()
             Box(Modifier.fillMaxWidth().weight(1f)) {
-                if (granted) FilesPage(request) else UngrantedPage(onGrant)
+                if (granted) FilesPage(state) else UngrantedPage(onGrant)
             }
             W10mNavBar(onBack = onBack, onWindows = onHome)
         }
     }
-}
-
-/** Everything Files shows once it holds All-files access: the one call the pages hang from. Empty in build task 1. */
-@Composable
-private fun FilesPage(request: FilesRequest) {
-    Box(Modifier.fillMaxSize())
 }
 
 /** Without All-files access: what is wrong, where the grant lives, and the grant itself (E1). */
