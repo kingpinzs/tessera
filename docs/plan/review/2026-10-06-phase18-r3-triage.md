@@ -17,6 +17,8 @@ are the review ids prefixed `r3` (for example "r3 D3", "r3 V5").
 | Q-18-1 | D2.6, V6 (Recent), pass-2 §4.4 / §4.8 | Q2 C: "a Recent view across the phone", which the agent built as "recently CHANGED files" from MediaStore | W10M's Recent is footage now: files you OPENED ("You haven't opened any files recently.", a "Remove from recent" entry), and the app starts on it. The agent's form and W10M's differ in what the page means; which one is the ruled "Recent" is his call |
 | Q-18-2 | D5 | Q4 A: "audio in Music" | An audio file the phone's music library has no row for (a hidden folder, a file inside a folder marked no-media) cannot be played by Music's "one library id" ADD. Either that file goes to Android's chooser (narrows Q4 A) or Music learns to play a file that is not in its library (a bigger ADD to phase 10's part) |
 
+**Answers.** Q-18-1 — 2026-10-06 12:48, Jeremy: "(a)": Recent lists the files opened in Files (W10M's meaning; it starts empty with W10M's wording, and has "Remove from recent"). Applied to the doc by the doc writer in the same pass (Decisions, build task 10, E14, H8); r3 D11's MediaStore filters fall away with the query.
+
 ## Agent fixes (all accepted)
 
 | Id | Sev | Fix as applied | Lead's note |
