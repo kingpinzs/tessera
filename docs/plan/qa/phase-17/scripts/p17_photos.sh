@@ -11,6 +11,19 @@ PHOTOS_TILE="tile:slot:PHOTOS"
 VIEWER_ACTIVITY="app.tileshell/.photos.ViewerActivity"
 EDIT_ACTIVITY="app.tileshell/.photos.EditActivity"
 
+# The lock is taken ONCE per process. lib.sh's take_device_lock re-opens the lock file each time it is called (row_begin
+# calls it again), which lets go of the lock for a moment: a script with several rows (edge_photos.sh) lost the device
+# to another driver between two of its rows on 2026-10-05 and exited 3 after its first.
+take_device_lock() {
+  [ -n "${PHOTOS_LOCK_HELD:-}" ] && return 0
+  exec 9>"$DEVICE_LOCK"
+  if ! flock -n 9; then
+    echo "another QA driver is already driving the device (lock $DEVICE_LOCK); refusing to start" >&2
+    exit 3
+  fi
+  PHOTOS_LOCK_HELD=1
+}
+
 # photos_row_begin <ID> <what>: the lock, this worktree's APK on a mismatch (never -g), the row's stamp, the build and
 # the wake asserted.
 photos_row_begin() {

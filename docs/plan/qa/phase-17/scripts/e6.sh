@@ -111,16 +111,18 @@ IB="$(bounds "$E" edit_image)"
 set -- $IB; IW=$(( ${3:-0} - ${1:-0} )); IH=$(( ${4:-0} - ${2:-0} ))
 record "crop page: the picture and the rectangle (px)" "[$IB] [$(bounds "$E" edit_crop_rect)]"
 hc() { bounds "$E" "edit_crop_handle:$1" | awk '{print int(($1+$3)/2), int(($2+$4)/2)}'; }
-# The rectangle is brought to 25 % .. 75 % of each side whatever it opened at: each handle dragged to its target.
-# shellcheck disable=SC2086
-set -- $IB; TLX=$(( $1 + IW / 4 )); TLY=$(( $2 + IH / 4 )); BRX=$(( $1 + IW * 3 / 4 )); BRY=$(( $2 + IH * 3 / 4 ))
+# The rectangle opens at 70 % of the picture (asserted), so each of the two handles is dragged inwards by 10 % of the
+# picture's side: 15 % .. 85 % becomes 25 % .. 75 %. (Run 1 of this row dragged to absolute targets and landed one
+# screen pixel off — 320 x 241; the picture is 657 px tall on screen, so its half is not a whole pixel.)
+assert_eq "crop: the rectangle opens at 70 % of the picture" "$(python3 -c "print(round($IW*0.7), round($IH*0.7))")" "$(bounds "$E" edit_crop_rect | awk '{print $3-$1, $4-$2}')"
+DX=$(python3 -c "print(round($IW*0.10))"); DY=$(python3 -c "print(round($IH*0.10))")
 # shellcheck disable=SC2046
-set -- $(hc tl); adb shell input swipe "$1" "$2" "$TLX" "$TLY" 600; sleep 1
+set -- $(hc tl); adb shell input swipe "$1" "$2" $(( $1 + DX )) $(( $2 + DY )) 600; sleep 1
 edump
 # shellcheck disable=SC2046
-set -- $(hc br); adb shell input swipe "$1" "$2" "$BRX" "$BRY" 600; sleep 1
+set -- $(hc br); adb shell input swipe "$1" "$2" $(( $1 - DX )) $(( $2 - DY )) 600; sleep 1
 edump; screencap "$D/crop-set.png"
-record "crop page: the rectangle after the drags (px; the target is $TLX $TLY $BRX $BRY)" "$(bounds "$E" edit_crop_rect)"
+record "crop page: the rectangle after the drags (px)" "$(bounds "$E" edit_crop_rect)"
 etap edit_accept
 COUNT_BEFORE="$(media_count images)"
 edit_save

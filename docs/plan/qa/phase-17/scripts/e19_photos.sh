@@ -160,12 +160,13 @@ import subprocess, sys
 # run, then the incoming one (green).
 w = 1080
 try:
-    raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", sys.argv[1], "-vf", "crop=%d:1:0:1170" % w, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True).stdout
+    raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", sys.argv[1], "-vf", "crop=%d:2:0:1170" % w, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True).stdout
 except Exception as e:
     print("unreadable"); sys.exit()
 best = None
-for f in range(len(raw) // (w * 3)):
-    row = raw[f * w * 3:(f + 1) * w * 3]
+fs = w * 2 * 3   # two rows a frame (yuv420 cannot be cropped to one); the first is read
+for f in range(len(raw) // fs):
+    row = raw[f * fs:f * fs + w * 3]
     kinds = []
     for x in range(w):
         r, g, b = row[x * 3:x * 3 + 3]
@@ -175,10 +176,12 @@ for f in range(len(raw) // (w * 3)):
     if i < 0 or j < 0 or j <= i: continue
     mid = s[i + 1:j]
     red, green = s.count("R"), s.count("G")
-    if mid.count("K") >= max(1, len(mid) - 8) and min(red, green) > 60:
+    # The encoder blurs each edge over a few pixels (neither colour nor black): the run is the black pixels between.
+    black = mid.count("K")
+    if black >= 20 and black * 2 >= len(mid) and min(red, green) >= 5:
         score = min(red, green)
-        if best is None or score > best[0]: best = (score, f, len(mid))
-print("frame %d: black run %d px between the two photos" % (best[1], best[2]) if best else "none")
+        if best is None or score > best[0]: best = (score, f, black, len(mid))
+print("frame %d: black run %d px (%d px from the last red pixel to the first green one) between the two photos" % best[1:] if best else "none")
 PY
 )"
 record "the gap between photos in the screenrecord's mid-swipe frame (20 epx = 60 px; LOW: presence)" "$GAP"

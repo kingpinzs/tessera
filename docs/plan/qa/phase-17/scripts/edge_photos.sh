@@ -54,7 +54,10 @@ edge_THOUSANDS() {
   # The 3,000 files live in a temp folder for this sub-step only: removed from the device AND the host at its end.
   big="$(mktemp -d /dev/shm/qaphotos-3000.XXXXXX)"
   perm_set READ_MEDIA_IMAGES true
-  media_up
+  # The six fixtures come first, so the tile already reads as many photos as it ever does BEFORE the 3,000 arrive (the
+  # census alone is fewer than the tile shows: run 2 of this sub-step read photos=6 before and photos=8 after).
+  # shellcheck disable=SC2086
+  media_up $SIX
   python3 - "$big" <<'PY'
 import pathlib, struct, sys, zlib
 out = pathlib.Path(sys.argv[1])
@@ -68,25 +71,26 @@ PY
   assert_eq "3,000 fixtures generated (make_photos.py's method in a loop)" "3000" "$(ls "$big" | grep -c '\.png$')"
   record "the fixtures' size on the host" "$(du -sh "$big" | cut -f1)"
   # The tile's line before the push.
-  rings_save; adb shell am force-stop app.tileshell; sleep 1
-  MARK="$(ring_mark)"; ensure_start; sleep 4
+  # (Each MARK is taken before the stop: the shell is the home app and starts again by itself at once.)
+  rings_save; MARK="$(ring_mark)"; adb shell am force-stop app.tileshell; sleep 1
+  ensure_start; sleep 4
   before="$(ring_since "$MARK" | grep -F '[photos] refresh (start)' | tail -1 | sed 's/.*\[photos\] //')"
   record "PhotosFeed's line before the push" "$before"
   adb shell mkdir -p /sdcard/Pictures/QA-3000
   adb push "$big/." /sdcard/Pictures/QA-3000/ > "$D/push.out" 2>&1; assert_eq "adb push of the 3,000" "0" "$?"
   media_scan
-  for i in $(seq 1 90); do n="$(media_count images)"; [ "$n" -ge $((CENSUS_IMAGES + 3000)) ] && break; sleep 2; done
-  assert_eq "MediaStore holds the census + 3,000 images" "$((CENSUS_IMAGES + 3000))" "$(media_count images)"
+  for i in $(seq 1 90); do n="$(media_count images)"; [ "$n" -ge $((CENSUS_IMAGES + 3006)) ] && break; sleep 2; done
+  assert_eq "MediaStore holds the census + the six + 3,000 images" "$((CENSUS_IMAGES + 3006))" "$(media_count images)"
   rings_save; adb shell am force-stop app.tileshell; sleep 2
   MARK="$(ring_mark)"
   adb shell am start -W -n "$PHOTOS_ACTIVITY" | tr -d '\r' > "$D/am-start.txt"
   total="$(sed -n 's/^TotalTime: //p' "$D/am-start.txt")"
-  record "am start -W" "$(xargs < "$D/am-start.txt")"
+  record "am start -W (the shell is the home app: its process is already up again after the stop, so the launch state is the platform's to name)" "$(xargs < "$D/am-start.txt")"
   assert_eq "am start -W of PhotosActivity: TotalTime < 2000 ms" "yes" "$([ -n "$total" ] && [ "$total" -lt 2000 ] && echo yes || echo "no: ${total:-none}")"
   sleep 5
   dump_ui "$D/collection.xml"
   assert_eq "photos_pivot:collection is selected" "true" "$(selected "$D/collection.xml" photos_pivot:collection)"
-  assert_contains "the library line counts them" "[photosapp] library: images=$((CENSUS_IMAGES + 3000)) " "$(ring_since "$MARK")"
+  assert_contains "the library line counts them" "[photosapp] library: images=$((CENSUS_IMAGES + 3006)) " "$(ring_since "$MARK")"
   mode0="$(adb shell dumpsys display | tr -d '\r' | grep -m1 -oE 'mActiveModeId=[0-9]+|activeModeId=[0-9]+')"
   adb shell dumpsys gfxinfo app.tileshell reset >/dev/null 2>&1
   for i in $(seq 1 20); do adb shell input swipe 540 1755 540 585 300; done
@@ -102,11 +106,12 @@ PY
   assert_within "phase 01 P4: janky frames <= 5 %" 2.5 "$pct" 2.5
   assert_within "phase 01 P4: 99th percentile <= 2 vsync (34 ms at 60 Hz)" 17 "$p99" 17
   # The tile's line after the push.
-  rings_save; adb shell am force-stop app.tileshell; sleep 1
-  MARK="$(ring_mark)"; ensure_start; sleep 5
+  rings_save; MARK="$(ring_mark)"; adb shell am force-stop app.tileshell; sleep 1
+  ensure_start; sleep 5
   after="$(ring_since "$MARK" | grep -F '[photos] refresh (start)' | tail -1 | sed 's/.*\[photos\] //')"
   record "PhotosFeed's line after the push" "$after"
   assert_ne "PhotosFeed wrote its tile line with the 3,000 present" "" "$after"
+  assert_ne "PhotosFeed wrote its tile line before the push too" "" "$before"
   assert_eq "PhotosFeed's tile line is unaffected" "$before" "$after"
   # restore
   c6
@@ -114,7 +119,7 @@ PY
   rm -rf "$big"
   assert_eq "restore: the 3,000 are gone from the host's temp folder and from the device's folder" "no 0" "$([ -e "$big" ] && echo yes || echo no) $(adb shell 'ls /sdcard/Pictures/QA-3000 2>/dev/null' | grep -c .)"
   media_scan
-  for i in $(seq 1 90); do [ "$(media_count images)" -le "$CENSUS_IMAGES" ] && break; sleep 2; done
+  for i in $(seq 1 90); do [ "$(media_count images)" -le "$((CENSUS_IMAGES + 6))" ] && break; sleep 2; done
   media_down
   perm_restore
   ensure_start
@@ -198,7 +203,11 @@ edge_FILE_GONE() {
   adb shell rm /data/media/0/DCIM/Camera/qa-photo-2.png; record "rm under /data/media/0 as root, rc" "$?"
   adb unroot >/dev/null 2>&1; adb wait-for-device; sleep 2
   assert_absent "root is off again" "uid=0" "$(adb shell id | tr -d '\r')"
-  assert_eq "the file is gone" "" "$(adb shell ls /sdcard/DCIM/Camera/qa-photo-2.png 2>/dev/null | tr -d '\r')"
+  # `ls` through /sdcard still names it (the FUSE view lists what MediaStore holds — run 1 of this sub-step): the file
+  # being gone is read by opening it.
+  record "ls /sdcard/…/qa-photo-2.png (the FUSE view, from MediaStore's row)" "$(adb shell ls /sdcard/DCIM/Camera/qa-photo-2.png 2>&1 | tr -d '\r')"
+  assert_ne "the file is gone (it cannot be opened)" "0" "$(adb shell 'cat /sdcard/DCIM/Camera/qa-photo-2.png >/dev/null 2>&1; echo $?' | tr -d '\r')"
+  assert_eq "(control) its neighbour can be opened" "0" "$(adb shell 'cat /sdcard/DCIM/Camera/qa-photo-1.png >/dev/null 2>&1; echo $?' | tr -d '\r')"
   assert_eq "its MediaStore row is still there (no scan has run)" "$ID2" "$(img_id DCIM/Camera/ qa-photo-2.png)"
   assert_eq "wake (after the adbd restarts)" "Awake" "$(wake_device)"
   MARK="$(ring_mark)"
@@ -351,8 +360,10 @@ edge_FRAME_DELETED() {
   assert_ne "start_theme.xml was read" "0" "$(stat -c%s "$D/prefs-in.xml" 2>/dev/null || echo 0)"
   python3 "$P01S/prefs_edit.py" "$D/prefs-in.xml" photo_frame string "$uri" > "$D/prefs-out.xml"
   if [ -s "$D/prefs-in.xml" ] && [ -s "$D/prefs-out.xml" ]; then adb shell "run-as app.tileshell sh -c 'cat > shared_prefs/start_theme.xml'" < "$D/prefs-out.xml"; fi
-  adb shell am force-stop app.tileshell; sleep 1
+  # The MARK comes BEFORE the stop: the shell is the home app and starts again by itself at once (run 1 of this
+  # sub-step took it after, and the start's own line was already behind it).
   MARK="$(ring_mark)"
+  adb shell am force-stop app.tileshell; sleep 1
   ensure_start; sleep 4
   assert_contains "(precondition) the tile is the picture frame on the fixture" "[photos] picture frame (" "$(ring_since "$MARK")"
   photos_start; sleep 1
