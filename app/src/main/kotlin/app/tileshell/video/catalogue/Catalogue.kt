@@ -133,19 +133,36 @@ object VideoHttp {
 
     const val LINE_TOO_SLOW = "http: answer not finished in time"
 
-    fun bytes(url: String, headers: Map<String, String> = emptyMap(), maxBytes: Long = MAX_IMAGE_BYTES, totalReadMs: Long = TOTAL_READ_MS): ByteArray? {
-        val conn = try { URL(url).openConnection() as HttpURLConnection } catch (e: Exception) { return null }
+    fun bytes(url: String, headers: Map<String, String> = emptyMap(), maxBytes: Long = MAX_IMAGE_BYTES, totalReadMs: Long = TOTAL_READ_MS): ByteArray? =
+        // Headers are never carried to a redirect's host: a request that has any follows none.
+        (image(url, headers, maxBytes, totalReadMs, follow = headers.isEmpty()) as? ImageHop.Body)?.bytes
+
+    /**
+     * [bytes] that follows NO redirect and says where one points (phase 20, r3 D13): for the one caller whose image
+     * sits behind a chain it must walk by its own rule (the Cover Art Archive; `music/catalogue/CoverArt.kt`). The
+     * address of the next request, and what headers it carries, are that caller's to decide.
+     */
+    fun hop(url: String, headers: Map<String, String> = emptyMap(), maxBytes: Long = MAX_IMAGE_BYTES, totalReadMs: Long = TOTAL_READ_MS): ImageHop =
+        image(url, headers, maxBytes, totalReadMs, follow = false)
+
+    private fun image(url: String, headers: Map<String, String>, maxBytes: Long, totalReadMs: Long, follow: Boolean): ImageHop {
+        val conn = try { URL(url).openConnection() as HttpURLConnection } catch (e: Exception) { return ImageHop.Failed }
         return try {
             conn.connectTimeout = TIMEOUT_MS
             conn.readTimeout = TIMEOUT_MS
-            conn.instanceFollowRedirects = headers.isEmpty()   // headers are never carried to a redirect's host
+            conn.instanceFollowRedirects = follow
             for ((k, v) in headers) conn.setRequestProperty(k, v)
-            if (conn.responseCode in 200..299) readCapped(conn, maxBytes, totalReadMs) else null
+            val code = conn.responseCode
+            when {
+                code in 200..299 -> readCapped(conn, maxBytes, totalReadMs)?.let { ImageHop.Body(it) } ?: ImageHop.Failed
+                !follow && code in 300..399 -> conn.getHeaderField("Location")?.trim()?.takeIf { it.isNotEmpty() }?.let { ImageHop.Redirect(it) } ?: ImageHop.Failed
+                else -> ImageHop.Failed
+            }
         } catch (e: IOException) {
-            null
+            ImageHop.Failed
         } catch (e: RuntimeException) {
             notSent(e)
-            null
+            ImageHop.Failed
         } finally {
             conn.disconnect()
         }

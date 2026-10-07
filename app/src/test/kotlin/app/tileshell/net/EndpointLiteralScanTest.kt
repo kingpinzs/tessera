@@ -47,6 +47,7 @@ class EndpointLiteralScanTest {
     private val DYNAMIC: Map<String, String> = mapOf(
         "video/server/ServerRules.kt" to "reads the scheme off the media server address the user typed (Q-D A: the user's own server)",
         "video/catalogue/CatalogueRules.kt" to "accepts a QA base URL pref by its scheme, in a debug build only",
+        "music/catalogue/CoverArt.kt" to "reads the scheme off a Cover Art redirect's Location, to refuse every host but https archive.org (phase 20, r3 D13)",
     )
 
     private data class Literal(val line: Int, val text: String)
