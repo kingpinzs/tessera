@@ -24,6 +24,8 @@ import org.junit.Test
  *  - (phase 18) Music's play extra is weighed by `MusicPlayExtra.decide` against the uid that sent THAT intent, and the
  *    uid has three sources and no other: the port for the launch, the platform's own caller for a new intent on API
  *    35+, and nobody below it.
+ *  - (ledger L18-1) a controller's item reaches Music's player only as `MusicItemRule` says — a URI is kept for the
+ *    shell's own controller and for nobody else — and PLAY_FILE is the shell's alone, through the provider's own rule.
  * Each check has its twin: the same source with the site changed (the reviewers' surviving mutations, applied to a copy
  * in memory) must be caught, so a clean result is never an empty one. That the device does what the source says is
  * still the device legs'.
@@ -224,6 +226,123 @@ class UriAccessWiringScanTest {
         assertTrue(with("music/MusicService.kt", "MusicPlayExtra.decide(controller.uid, me, null,", "MusicPlayExtra.decide(me, me, null,").isNotEmpty())
         assertTrue(musicProblems(sources + ("music/MusicSearch.kt" to sources.getValue("music/MusicSearch.kt") + " fun x(u: String) = MusicPlayExtra.decide(1, 1, null, u, \"a\")")).isNotEmpty())
         assertTrue(musicProblems(sources + ("files/FilesOpenWith.kt" to sources.getValue("files/FilesOpenWith.kt") + " fun x(c: android.app.ComponentCaller) = c.uid")).isNotEmpty())
+    }
+
+    // ------------------------------------------------------------------------------------- Music's session (L18-1)
+
+    /** The whole of `onAddMediaItems`, as code: every item of every controller is the rule's to decide, and nothing else's. */
+    private val addItemsForm = "{ val lib by lazy { library() } var notKept = 0 val out = mediaItems.flatMap { item -> " +
+        "val hasUri = item.localConfiguration != null " +
+        "val decision = MusicItemRule.decide(controller.uid, Process.myUid(), item.mediaId, hasUri, item.requestMetadata.searchQuery != null) " +
+        "if (hasUri && decision != MusicItemRule.Decision.Keep) notKept++ " +
+        "when (decision) { " +
+        "MusicItemRule.Decision.Keep -> listOf(item) " +
+        "MusicItemRule.Decision.Search -> MusicSearch.resolve(item.requestMetadata.searchQuery.orEmpty(), lib)?.queue.orEmpty().map { mediaItem(it) } " +
+        "is MusicItemRule.Decision.Rebuild -> lib.firstOrNull { it.id == decision.id }?.let { listOf(mediaItem(it)) }.orEmpty() " +
+        "MusicItemRule.Decision.Drop -> emptyList() } } " +
+        "if (notKept > 0) Diagnostics.add(\"music\", \"controller uid \${controller.uid}: \$notKept item(s) came with a uri of their own, none used (\${out.size} from the library)\") " +
+        "if (out.isEmpty()) return Futures.immediateFailedFuture(UnsupportedOperationException(\"nothing to add\")) " +
+        "return Futures.immediateFuture(out.toMutableList()) }"
+
+    /** `playFile` from its first line to the file the provider's own rule resolves: the caller, the URI, then the provider. */
+    private val playFileForm = "{ val me = Process.myUid() val decision = MusicPlayExtra.decide(controller.uid, me, null, raw.orEmpty(), FilesProvider.AUTHORITY) " +
+        "if (decision !is MusicPlayExtra.Decision.PlayUri) { (decision as? MusicPlayExtra.Decision.Ignored)?.let { Diagnostics.add(\"music\", it.line) } " +
+        "return if (controller.uid != me) SessionResult.RESULT_ERROR_PERMISSION_DENIED else SessionResult.RESULT_ERROR_BAD_VALUE } " +
+        "val uri = Uri.parse(decision.uri) " +
+        "val file = FilesProvider.fileFor(this, uri) ?: run { Diagnostics.add(\"music\", \"play extra ignored: outside shared storage\") return SessionResult.RESULT_ERROR_BAD_VALUE } " +
+        "val ask = ++fileAsk Thread({ val item = fileItem(uri, file, ask) handler.post { "
+
+    /**
+     * Ledger L18-1 (the adversarial GATE review's H1 and its two surviving mutants): MusicService is exported, so any
+     * app's controller reaches the session. `MusicItemRule` is the rule (`MusicItemRuleTest`); held here is what no
+     * unit test runs — every way a controller's item, or a URI, can reach the player:
+     *  - `onAddMediaItems` (where Media3 sends every set, add and replace of a Media3 controller, and every play-from
+     *    and queue request of a legacy one): each item is the rule's to decide, with the controller's uid as the session
+     *    reports it beside the shell's real uid, and only the rule's Keep hands an item back as it arrived;
+     *  - `onSetMediaItems`: a search answered from the library, else Media3's default, which is `onAddMediaItems`;
+     *  - playback resumption is not answered at all (Media3's default refuses), so it hands the player nothing;
+     *  - the PLAY_FILE command is offered only to a controller running as the shell, is weighed again in `playFile`
+     *    against that controller's uid, and the file is the one the shell's FileProvider resolves by its own rule;
+     *  - nothing else in the service reads an item's URI or sets an item on the player.
+     */
+    private fun musicSessionProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val service = sources["music/MusicService.kt"].orEmpty()
+        val add = body(service, "override fun onAddMediaItems(")
+        if (add != addItemsForm) problems += "onAddMediaItems is not its one form:\n  is:      $add\n  must be: $addItemsForm"
+        val deciders = sources.mapValues { (_, text) -> count(text, "MusicItemRule.decide(") }.filterValues { it > 0 }
+        if (deciders != mapOf("music/MusicService.kt" to 1)) problems += "the item rule is asked other than once, by the session: $deciders"
+        if (count(service, "localConfiguration") != 1 || service.contains("mediaUri")) problems += "the service reads a controller's URI outside the rule's one question"
+        // A search is the library's answer; anything else is Media3's default, which asks onAddMediaItems.
+        val set = body(service, "override fun onSetMediaItems(")
+        if (!set.startsWith("{ val query = mediaItems.singleOrNull()?.requestMetadata?.searchQuery ?: return super.onSetMediaItems(mediaSession, controller, mediaItems, startIndex, startPositionMs) val match = MusicSearch.resolve(query, library()) ") ||
+            !set.endsWith("return Futures.immediateFuture( MediaSession.MediaItemsWithStartPosition(match.queue.map { mediaItem(it) }, match.startIndex, 0L), ) }") ||
+            count(service, "MediaItemsWithStartPosition(") != 1 || count(set, "mediaItems") != 2
+        ) problems += "onSetMediaItems hands the player something other than a library search or Media3's default"
+        if (service.contains("onPlaybackResumption")) problems += "playback resumption is answered: what it hands the player is not held here"
+        // The player is handed items by the session (above) and by playFile's one-item queue; nothing else.
+        if (count(service, "setMediaItems(") != 1 || !service.contains("player.setMediaItems(listOf(item))") || service.contains("setMediaItem(") || service.contains("addMediaItem") || service.contains("replaceMediaItem")) {
+            problems += "an item is set on the player outside the session's callbacks and playFile"
+        }
+        if (count(service, ".setUri(") != 2 || !service.contains(".setUri(MusicStore.uriOf(track))") || !body(service, "private fun fileItem(uri: Uri, file: File, ask: Long): MediaItem").contains(".setMediaId(MusicFile.mediaId(ask)) .setUri(uri) ")) {
+            problems += "an item is given a URI other than a library track's or playFile's checked one"
+        }
+        // PLAY_FILE: offered to the shell's own controller only, routed to playFile only, checked there again.
+        if (count(service, "playFileCommand") != 2 || !service.contains(".add(crossfadeCommand) .apply { if (controller.uid == Process.myUid()) add(playFileCommand) } .build(), ) .build()")) {
+            problems += "PLAY_FILE is offered to a controller that is not the shell's own"
+        }
+        if (count(service, "MusicCommands.PLAY_FILE") != 2 || count(service, "playFile(") != 2 ||
+            !service.contains("MusicCommands.PLAY_FILE -> return Futures.immediateFuture(SessionResult(playFile(controller, args.getString(MusicCommands.ARG_URI))))")
+        ) problems += "PLAY_FILE reaches something other than playFile(controller, its uri)"
+        val play = body(service, "private fun playFile(controller: MediaSession.ControllerInfo, raw: String?): Int")
+        if (!play.startsWith(playFileForm) || count(service, "FilesProvider.fileFor(") != 1 || count(service, "Uri.parse(") != 1 || count(service, "fileItem(") != 2 ||
+            Regex("\\bFile\\(").containsMatchIn(service) || service.contains("uri.path") || service.contains("getPath") || service.contains("pathSegments")
+        ) problems += "playFile's file is not the one FilesProvider.fileFor resolves from the checked URI"
+        return problems
+    }
+
+    @Test fun `L18-1 a controller's item reaches the player only as the item rule says, and PLAY_FILE only for the shell through the provider's rule`() {
+        assertEquals(emptyList<String>(), musicSessionProblems(SourceScan.all()))
+    }
+
+    @Test fun `L18-1 a session that keeps a stranger's URI, ignores the rule's answer, offers PLAY_FILE to anyone or resolves the file by hand is caught`() {
+        val sources = SourceScan.all()
+        fun with(file: String, old: String, new: String) = musicSessionProblems(sources + (file to mutate(sources.getValue(file), old, new)))
+        fun service(old: String, new: String) = with("music/MusicService.kt", old, new)
+        // The defect itself (H1): items that all carry a URI handed back untouched, before the rule is asked.
+        assertTrue(service("{ val lib by lazy { library() } var notKept = 0", "{ if (mediaItems.all { it.localConfiguration != null }) return Futures.immediateFuture(mediaItems) val lib by lazy { library() } var notKept = 0").isNotEmpty())
+        // The rule asked about the wrong controller, with the uids swapped round, or with a constant for the shell.
+        assertTrue(service("MusicItemRule.decide(controller.uid, Process.myUid(), item.mediaId,", "MusicItemRule.decide(Process.myUid(), Process.myUid(), item.mediaId,").isNotEmpty())
+        assertTrue(service("MusicItemRule.decide(controller.uid, Process.myUid(), item.mediaId,", "MusicItemRule.decide(Process.myUid(), controller.uid, item.mediaId,").isNotEmpty())
+        assertTrue(service("MusicItemRule.decide(controller.uid, Process.myUid(), item.mediaId,", "MusicItemRule.decide(controller.uid, controller.uid, item.mediaId,").isNotEmpty())
+        assertTrue(service("item.mediaId, hasUri, item.requestMetadata.searchQuery != null)", "item.mediaId, false, item.requestMetadata.searchQuery != null)").isNotEmpty())
+        // The rule's answer ignored at the call site: a rebuilt or dropped item handed back as it arrived.
+        assertTrue(service("MusicItemRule.Decision.Drop -> emptyList()", "MusicItemRule.Decision.Drop -> listOf(item)").isNotEmpty())
+        assertTrue(service("is MusicItemRule.Decision.Rebuild -> lib.firstOrNull { it.id == decision.id }?.let { listOf(mediaItem(it)) }.orEmpty()", "is MusicItemRule.Decision.Rebuild -> listOf(item)").isNotEmpty())
+        assertTrue(service("lib.firstOrNull { it.id == decision.id }?.let { listOf(mediaItem(it)) }.orEmpty()", "lib.firstOrNull { it.id == decision.id }?.let { listOf(mediaItem(it)) } ?: listOf(item)").isNotEmpty())
+        assertTrue(service("when (decision) { MusicItemRule.Decision.Keep ->", "when (if (hasUri) MusicItemRule.Decision.Keep else decision) { MusicItemRule.Decision.Keep ->").isNotEmpty())
+        assertTrue(service("return Futures.immediateFuture(out.toMutableList())", "return Futures.immediateFuture(if (out.size == mediaItems.size) out.toMutableList() else mediaItems)").isNotEmpty())
+        // A second path round the rule: the set callback answering with the controller's own items, a resumption
+        // answered, an item set on the player or given a URI somewhere else, the request's URI read.
+        assertTrue(service("?: return super.onSetMediaItems(mediaSession, controller, mediaItems, startIndex, startPositionMs)", "?: return Futures.immediateFuture(MediaSession.MediaItemsWithStartPosition(mediaItems, startIndex, startPositionMs))").isNotEmpty())
+        assertTrue(service("match.queue.map { mediaItem(it) }, match.startIndex, 0L)", "mediaItems, match.startIndex, 0L)").isNotEmpty())
+        assertTrue(service("override fun onGetSession(", "fun onPlaybackResumption() = Unit override fun onGetSession(").isNotEmpty())
+        assertTrue(service("Diagnostics.add(\"music\", MusicFile.line(file.path))", "Diagnostics.add(\"music\", MusicFile.line(file.path)); player.setMediaItem(MediaItem.fromUri(raw.orEmpty()))").isNotEmpty())
+        assertTrue(service(".setUri(MusicStore.uriOf(track))", ".setUri(track.path)").isNotEmpty())
+        assertTrue(service("val hasUri = item.localConfiguration != null", "val hasUri = item.localConfiguration != null && item.requestMetadata.mediaUri == null").isNotEmpty())
+        assertTrue(musicSessionProblems(sources + ("music/MusicSearch.kt" to sources.getValue("music/MusicSearch.kt") + " fun x() = MusicItemRule.decide(1, 1, \"\", true, false)")).isNotEmpty())
+        // The review's surviving mutant: PLAY_FILE offered to every controller, or to every controller BUT the shell.
+        assertTrue(service(".apply { if (controller.uid == Process.myUid()) add(playFileCommand) }", ".add(playFileCommand)").isNotEmpty())
+        assertTrue(service("if (controller.uid == Process.myUid()) add(playFileCommand)", "if (controller.uid != Process.myUid()) add(playFileCommand)").isNotEmpty())
+        assertTrue(service("if (controller.uid == Process.myUid()) add(playFileCommand)", "if (controller.uid >= 0) add(playFileCommand)").isNotEmpty())
+        assertTrue(service("SessionResult(playFile(controller, args.getString(MusicCommands.ARG_URI)))", "SessionResult(playFile(session.mediaNotificationControllerInfo ?: controller, args.getString(MusicCommands.ARG_URI)))").isNotEmpty())
+        // The review's other surviving mutant: the file resolved by hand from the URI instead of by the provider's rule.
+        assertTrue(service("val file = FilesProvider.fileFor(this, uri) ?: run {", "val file = uri.path?.removePrefix(\"/root\")?.let { File(it) } ?: run {").isNotEmpty())
+        assertTrue(service("val file = FilesProvider.fileFor(this, uri) ?: run {", "val file = java.io.File(uri.pathSegments.drop(1).joinToString(\"/\", \"/\")).takeIf { it.exists() } ?: run {").isNotEmpty())
+        assertTrue(service("val uri = Uri.parse(decision.uri)", "val uri = Uri.parse(raw)").isNotEmpty())
+        assertTrue(service("val item = fileItem(uri, file, ask)", "val item = fileItem(uri, File(raw.orEmpty()), ask)").isNotEmpty())
+        // The caller check dropped from playFile, or its refusal turned into the play.
+        assertTrue(service("if (decision !is MusicPlayExtra.Decision.PlayUri) {", "if (false) {").isNotEmpty())
     }
 
     // ---------------------------------------------------------------------------------------------- the capture answer

@@ -44,6 +44,12 @@
             android:name=".SendDriverActivity"
             android:exported="true" />
 
+        <!-- Ledger L18-1: another app's controller on the shell's exported music session (a Media3 controller and a legacy
+             MediaBrowser), handing it an item that carries a URI. Started by the row with `am start -n`. No filter. -->
+        <activity
+            android:name=".MediaProbeActivity"
+            android:exported="true" />
+
         <!-- Its own file provider: the capture's output lives in this app's cache and is reached only by a URI grant. -->
         <provider
             android:name=".OutputProvider"
