@@ -36,9 +36,12 @@ import app.tileshell.clock.AlarmSound
 import app.tileshell.clock.ClockStore
 import app.tileshell.diag.Diagnostics
 import app.tileshell.feeds.TileNotificationListener
+import app.tileshell.music.handoff.MusicHandoff
+import app.tileshell.music.handoff.MusicServicesTable
 import app.tileshell.tiles.LayoutStore
 import app.tileshell.tiles.Slot
 import app.tileshell.tiles.SlotResolver
+import app.tileshell.video.handoff.StreamingHandoff
 import app.tileshell.weather.WeatherFeed
 import app.tileshell.weather.WmoCodes
 import java.text.SimpleDateFormat
@@ -116,6 +119,7 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
             is Request.TimeQuery -> answer("It's ${ReminderText.time(context, System.currentTimeMillis())}.")
             is Request.DateQuery -> answer("Today is ${DATE_FORMAT.format(System.currentTimeMillis())}.")
             is Request.PlayMusic -> playMusic(request.query)
+            is Request.ListenOn -> listenOn(request.query, request.app)
             is Request.Directions -> directions(request.destination)
             is Request.TakePhoto -> takePhoto()
             is Request.TakeNote -> takeNote(request.text)
@@ -604,6 +608,20 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
             ?: return answer("I couldn't open ${entry.label}.")
         host.launch(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         return Outcome("Playing $query.", null, close = true)
+    }
+
+    /**
+     * Phase 20 (Q5 A; r3 D7): "listen to <x> on <app>". The app is found by code among the music hand-off's entries as
+     * the phone is now (P6), then opened on its own search for the words — the hand-off a "Listen on" tap makes. It
+     * starts an activity, so [LockGate] has already asked for an unlock by the time this runs.
+     */
+    private fun listenOn(query: String, app: String): Outcome {
+        val entry = MusicServicesTable.byLabel(app, MusicHandoff.entries(context))
+            ?: return answer("I couldn't find $app on this phone.")
+        return when (MusicHandoff.open(context, entry, query, artist = "")) {
+            StreamingHandoff.Opened.NOT_INSTALLED -> answer("${MusicServicesTable.TEXT_NOT_INSTALLED}.")
+            else -> Outcome("Opening ${entry.label}.", null, close = true)
+        }
     }
 
     /**
