@@ -117,6 +117,8 @@ dependencies {
     implementation(files("libs/sherpa-onnx-1.13.8.aar"))
     // Phase 10: playback and the media session the tile rule keys on (build tasks 3 and 4).
     implementation(libs.media3.exoplayer)
+    // Phase 20 (r3 D10): HLS radio stations — the same library's own module, not a second engine.
+    implementation(libs.media3.exoplayer.hls)
     implementation(libs.media3.session)
     // Phase 17: video trim in Photos' editor (Media3 Transformer), and the Camera app (CameraX).
     implementation(libs.media3.transformer)
