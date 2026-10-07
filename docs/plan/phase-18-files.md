@@ -78,6 +78,17 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
 ~~a recycle bin unless Q3 rules one; zip handling unless Q2 rules it~~ SUPERSEDED 2026-09-23 by Q3 C / Q2 C (T18-7).
 
 ## Decisions
+- 2026-10-07: Q-18-8 — the two further defects the second adversarial pass found in built phases' parts (ledger L18-3, the
+  Clock's exported activities; L18-4, Music's player) are fixed in this session (Jeremy: "A"), as Q-18-7 ruled for L18-1
+  and L18-2 (INDEX's Blocked-on ledger holds both; Q-18-7 was ruled "A" on 2026-10-06).
+- 2026-10-07 (agent, found by E20's EDGE_NAMES and fixed, 8e91700a; amends r3 D4): **a case-only rename really renames.** On a
+  case-folding volume `a.txt` → `A.TXT` goes through a journalled in-between name `.<name>.<opid>.rename` in the same
+  folder; every rename is read back from the folder's listing and reports `failed the name did not change` rather than
+  `ok` when the name is not the new one. The journal gains a second entry kind (the in-between name with its
+  destination): the sweep FINISHES such an entry (moves the file on to its new name, a keep-both name if that is taken)
+  and never deletes it — it is the user's file, not a copy. New line `[files] rename recovered <temp> -> <name>`. A
+  case-only rename onto a DIFFERENT file on a case-sensitive volume stays "the name is taken". Reason: the Edge case
+  "Names" requires it, and a write must never report a success it did not make.
 - 2026-10-06 (agent, after the adversarial GATE review — review/2026-10-06-phase18-gate-adversarial.md; trust changes, each
   with JVM tests that fail without it and a mutation round, 94 of 94 mutants red): **what the review changed in Files.**
   (1) **Replace never deletes** (review H3): in copy, move, restore, extract and create, whatever a "Replace" answer
