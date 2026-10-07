@@ -88,6 +88,8 @@ object CommandMatcher {
 
         after(text, "open ", "launch ", "run ")?.let { return Request.OpenApp(it) }
         after(text, "directions to ", "navigate to ", "how do i get to ", "take me to ")?.let { return Request.Directions(it) }
+        // Phase 20 (r3 D7): before the play rule, and only for its own verb — "play …" is never this request.
+        listenOn(text)?.let { return it }
         after(text, "play ")?.let { rest ->
             return if (rest == "music" || rest == "some music" || rest == "my music") Request.PlayMusic(null)
             else Request.PlayMusic(rest)
@@ -111,6 +113,19 @@ object CommandMatcher {
         if (WEATHER_WORDS.any { text.contains(it) }) return Request.Weather
 
         return null
+    }
+
+    /**
+     * Phase 20 (r3 D7): "listen to <x> on <app>" → [Request.ListenOn]. The LAST " on " splits, so a title with the
+     * word in it stays whole ("listen to come on eileen on pandora"). With no " on <app>" it is not this request.
+     */
+    private fun listenOn(text: String): Request? {
+        val rest = after(text, "listen to ") ?: return null
+        val split = rest.lastIndexOf(" on ")
+        if (split <= 0) return null
+        val query = rest.substring(0, split).trim()
+        val app = rest.substring(split + " on ".length).trim()
+        return if (query.isEmpty() || app.isEmpty()) null else Request.ListenOn(query, app)
     }
 
     /**

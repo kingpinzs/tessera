@@ -30,6 +30,8 @@ object LockGate {
         is Request.TimeQuery, is Request.DateQuery, is Request.Weather -> true
         is Request.SetAlarm, is Request.SetTimer -> true
         is Request.PlayMusic -> true
+        // Phase 20 (r3 D7): a hand-off starts another app's activity — unlike PlayMusic, which goes to a session.
+        is Request.ListenOn -> false
         // Phase 15 T15-2: deterministic, no personal data, opens nothing.
         is Request.Arithmetic -> true
         // Answers to a card that is already showing are not themselves requests to gate.
@@ -54,6 +56,7 @@ object LockGate {
         is Request.DeleteCalendarEvent -> "Delete ${request.title}"
         is Request.SetReminder -> "Remind you to ${request.text}"
         is Request.DeleteReminder -> "Delete the reminder to ${request.text}"
+        is Request.ListenOn -> "Listen to ${request.query} on ${request.app}"
         is Request.Directions -> "Directions to ${request.destination}"
         is Request.TakePhoto -> "Take a photo"
         is Request.TakeNote -> "Take a note"

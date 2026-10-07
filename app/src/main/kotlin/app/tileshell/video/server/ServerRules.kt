@@ -4,6 +4,7 @@ import app.tileshell.net.HeaderText
 import app.tileshell.net.MiniJson
 import app.tileshell.video.catalogue.CatalogueRules
 import app.tileshell.net.jsonArray
+import app.tileshell.net.jsonLong
 import app.tileshell.net.jsonObject
 import app.tileshell.net.jsonString
 import app.tileshell.video.VideoLines
@@ -18,6 +19,12 @@ data class ServerAddress(val scheme: String, val host: String, val port: Int?, v
 
 /** One video of the server's library. */
 data class ServerItem(val id: String, val name: String, val type: String)
+
+/**
+ * One song of the server's music library (phase 20, r3 D4). [durationMs] is the server's own measure of the file
+ * (`RunTimeTicks / 10_000`), 0 when it gave none; [index] is the track's number on its album.
+ */
+data class ServerTrack(val id: String, val title: String, val album: String, val albumArtist: String, val index: Int?, val durationMs: Long)
 
 /** What the sign-in form may do with an address: see [ServerRules.signInAction]. */
 enum class SignInAction { ASK, SEND, NOTHING }
@@ -209,6 +216,41 @@ object ServerRules {
 
     fun libraryPath(userId: String): String =
         "/Items?userId=$userId&recursive=true&includeItemTypes=Movie,Episode,Video&sortBy=SortName"
+
+    /** Phase 20: the server's songs — the same listing as [libraryPath], asked for `Audio` items. */
+    fun musicPath(userId: String): String =
+        "/Items?userId=$userId&recursive=true&includeItemTypes=Audio&sortBy=SortName"
+
+    /**
+     * `GET /Items?…includeItemTypes=Audio` → the library's songs, in the server's order: each with its album, its
+     * album artist (the first of `Artists` when the album has none), its number on the album and its length. Null when
+     * the body is not a listing; a row whose id is not an id is dropped, as [parseItems] drops it.
+     */
+    fun parseTracks(body: String): List<ServerTrack>? {
+        val o = MiniJson.parseOrNull(body).jsonObject() ?: return null
+        if (!o.containsKey("Items")) return null
+        return o["Items"].jsonArray().mapNotNull { row ->
+            val item = row.jsonObject() ?: return@mapNotNull null
+            val id = item.jsonString("Id")?.takeIf(SAFE_ID::matches) ?: return@mapNotNull null
+            val artist = item.jsonString("AlbumArtist")?.takeIf { it.isNotBlank() }
+                ?: item["Artists"].jsonArray().firstNotNullOfOrNull { (it as? String)?.takeIf(String::isNotBlank) }
+            ServerTrack(
+                id, item.jsonString("Name").orEmpty().ifBlank { id }, item.jsonString("Album").orEmpty(), artist.orEmpty(),
+                item.jsonLong("IndexNumber")?.takeIf { it in 1..9999 }?.toInt(),
+                // Jellyfin counts in ticks of 100 ns.
+                (item.jsonLong("RunTimeTicks") ?: 0L).coerceAtLeast(0L) / TICKS_PER_MS,
+            )
+        }
+    }
+
+    const val TICKS_PER_MS = 10_000L
+
+    /**
+     * Phase 20 (r3 D4): a song's direct-play address. It carries NO token and none is ever added to it: Jellyfin 12.1
+     * serves `/Audio/<id>/stream` without one, and [mayCarryToken] refuses the path — so the shared music player holds
+     * no credential, and a radio host can never be sent one.
+     */
+    fun audioStreamUrl(base: String, itemId: String): String = "$base/Audio/$itemId/stream?static=true"
 
     /** Direct play (BS-5): the address the player is given. The token is NOT in it — the player's data source adds `ApiKey`. */
     fun streamUrl(base: String, itemId: String): String = "$base/Videos/$itemId/stream?static=true"

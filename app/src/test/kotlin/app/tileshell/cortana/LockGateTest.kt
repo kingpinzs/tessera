@@ -52,6 +52,17 @@ class LockGateTest {
     }
 
     @Test
+    fun `phase 20 - a hand-off to a music app is gated, and playing music still is not`() {
+        // "listen to <x> on <app>" starts another app's activity; "play <x>" goes to a media session.
+        val listen = Request.ListenOn("qa artist", "qa tunes")
+        assertFalse(LockGate.allowedWhileLocked(listen))
+        assertTrue(LockGate.allowedWhileLocked(Request.PlayMusic("qa artist")))
+        assertTrue(LockGate.allowedWhileLocked(Request.PlayMusic("jazz radio")))
+        assertTrue(LockGate.allowedWhileLocked(Request.PlayMusic(null)))
+        assertEquals("Listen to qa artist on qa tunes", LockGate.restate(listen))
+    }
+
+    @Test
     fun `an answer to a card that is already showing is not itself gated`() {
         listOf(Request.Confirm, Request.Cancel, Request.AddMore, Request.TryAgain, Request.Whenever)
             .forEach { assertTrue("$it is an answer, not a request to gate", LockGate.allowedWhileLocked(it)) }
