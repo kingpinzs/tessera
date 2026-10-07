@@ -72,13 +72,32 @@ class FileOpsBinTest {
 
     @Test
     fun `the same-millisecond bin pair - a name already in the bin under another case is never renamed onto`() {
-        // What FAT would call the same file: the name is taken whatever its case.
+        // What FAT would call the same file: the name is taken whatever its case. The deleted file's own name holds
+        // capitals, so its first bin name differs from the one there ONLY by case (a lower-case name would compare
+        // equal to the lower-cased "taken" set whether or not the comparison folds case — the GATE review's mutant).
         bin.mkdirs()
-        File(bin, "1000-0-B.BIN").writeText("already here")
-        val file = bed.file("QA-Files/b.bin", "new".toByteArray())
+        File(bin, "1000-0-b.BIN").writeText("already here")
+        val file = bed.file("QA-Files/B.bin", "new".toByteArray())
         assertEquals(OpResult.Done(), bed.ops.binDelete(file))
-        assertEquals(listOf("1000-0-B.BIN", "1000-1-b.bin"), binned())
-        assertEquals("already here", File(bin, "1000-0-B.BIN").readText())
+        assertEquals(listOf("1000-0-b.BIN", "1000-1-B.bin"), binned())
+        assertEquals("already here", File(bin, "1000-0-b.BIN").readText())
+        assertEquals("new", File(bin, "1000-1-B.bin").readText())
+    }
+
+    @Test
+    fun `two records naming one bin file under two cases - the second is no record, so no file is restored twice over`() {
+        // On a case-folding volume both records are the same file; here the twin is a file of its own with no record.
+        bed.ops.binDelete(bed.file("QA-Files/a.txt", bytes))
+        File(bin, "1000-0-A.TXT").writeText("the twin")
+        val twice = listOf(
+            mapOf("bin" to "1000-0-a.txt", "path" to File(bed.root, "QA-Files/a.txt").path, "deletedAt" to 1000L, "size" to 4000L),
+            mapOf("bin" to "1000-0-A.TXT", "path" to File(bed.root, "QA-Files/elsewhere.txt").path, "deletedAt" to 1000L, "size" to 8L),
+        )
+        index.writeText(MiniJson.write(mapOf("version" to 1, "records" to twice)))
+
+        val rows = bed.ops.bin.list(bed.primary)
+        assertEquals(listOf("a.txt" to true, "1000-0-A.TXT" to false), rows.map { it.name to it.indexed })
+        assertEquals(listOf("1000-0-a.txt"), records().map { it["bin"] })
     }
 
     @Test
