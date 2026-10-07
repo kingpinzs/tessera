@@ -2,6 +2,7 @@ package app.tileshell.music.server
 
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import app.tileshell.music.MusicSources
 import app.tileshell.video.server.MediaServer
 import app.tileshell.video.server.ServerRules
 import app.tileshell.video.server.ServerTrack
@@ -43,7 +44,7 @@ object ServerTrackItem {
         if (url == null || !accepts(url, track)) return null
         return MediaItem.Builder()
             .setMediaId(mediaId(track))
-            .setUri(url)
+            .setUri(MusicSources.own.queued(url))
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(track.title)

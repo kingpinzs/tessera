@@ -18,6 +18,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.Util
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.DefaultExtractorsFactory
@@ -27,6 +29,7 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import app.tileshell.tiles.engine.TileRouting
+import app.tileshell.video.GuardedDataSource
 import app.tileshell.diag.Diagnostics
 import app.tileshell.files.FilesProvider
 import app.tileshell.music.radio.RadioDirectoryStore
@@ -120,8 +123,14 @@ class MusicService : MediaSessionService() {
         // seek to where the fader has got to; a VBR file without a seek table otherwise seeks to an
         // ESTIMATE, and two copies of one song a second apart cannot be swapped without hearing it. Index
         // seeking reads up to the target instead, which on a local file is fast.
+        // Phase 20 (r3 D11 / D12): outermost, so every address a media source asks for — a station's playlist names
+        // segments, keys and playlists of its own — is weighed by MusicSourceRule before anything opens it. The
+        // crossfade's fader is handed this same factory.
+        val upstream = DefaultDataSource.Factory(this)
+        val qaHost = RadioNet.qaHost(this)
+        val sources = DataSource.Factory { GuardedDataSource(upstream.createDataSource()) { asked -> MusicSources.own.mayOpen(asked, qaHost) } }
         val mediaSourceFactory = DefaultMediaSourceFactory(
-            this,
+            sources,
             DefaultExtractorsFactory().setMp3ExtractorFlags(Mp3Extractor.FLAG_ENABLE_INDEX_SEEKING),
         )
         val exo = ExoPlayer.Builder(this, mediaSourceFactory)
@@ -421,7 +430,7 @@ class MusicService : MediaSessionService() {
         art?.let { meta.setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER) }
         return MediaItem.Builder()
             .setMediaId(MusicFile.mediaId(ask))
-            .setUri(uri)
+            .setUri(queued(uri))
             .setMediaMetadata(meta.build())
             .build()
     }
@@ -581,10 +590,13 @@ class MusicService : MediaSessionService() {
             return stations.mapNotNull { (StationItem.build(it, qaHost) as? StationItem.Built.Item)?.item }
         }
 
+        /** The address the shell is giving one of its own items, told to the data source's guard ([MusicSources]) on the way. */
+        private fun queued(uri: Uri): Uri = uri.also { MusicSources.own.queued(it.toString()) }
+
         /** A track as Media3 sees it: the MediaStore URI, and the metadata the notification shows. */
         fun mediaItem(track: Track): MediaItem = MediaItem.Builder()
             .setMediaId(track.id.toString())
-            .setUri(MusicStore.uriOf(track))
+            .setUri(queued(MusicStore.uriOf(track)))
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(track.title)

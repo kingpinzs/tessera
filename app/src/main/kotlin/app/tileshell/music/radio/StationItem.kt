@@ -3,6 +3,7 @@ package app.tileshell.music.radio
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import app.tileshell.music.MusicLive
+import app.tileshell.music.MusicSources
 
 /**
  * The ONLY place a station's `MediaItem` is built (phase 20 build task 3; r3 D1 / D2 / D9 / D10 / D11; a trust
@@ -73,7 +74,7 @@ object StationItem {
         logo?.let { meta.setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER) }
         val item = MediaItem.Builder()
             .setMediaId(play.mediaId)
-            .setUri(play.url)
+            .setUri(MusicSources.own.queued(play.url))
             .setMediaMetadata(meta.build())
         play.mimeType?.let { item.setMimeType(it) }
         return Built.Item(item.build())

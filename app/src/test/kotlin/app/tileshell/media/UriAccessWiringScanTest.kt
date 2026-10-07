@@ -321,7 +321,7 @@ class UriAccessWiringScanTest {
     private val stationBuildForm = "{ val play = when (val p = plan(station, qaHost)) { is Plan.Refused -> return Built.Refused(p.line) is Plan.Play -> p } " +
         "val meta = MediaMetadata.Builder() .setAlbumTitle(play.name) .setArtist(play.name) .setIsBrowsable(false) .setIsPlayable(true) " +
         "logo?.let { meta.setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER) } " +
-        "val item = MediaItem.Builder() .setMediaId(play.mediaId) .setUri(play.url) .setMediaMetadata(meta.build()) " +
+        "val item = MediaItem.Builder() .setMediaId(play.mediaId) .setUri(MusicSources.own.queued(play.url)) .setMediaMetadata(meta.build()) " +
         "play.mimeType?.let { item.setMimeType(it) } return Built.Item(item.build()) }"
 
     /** The whole of `StationItem.plan`: the one address the directory's row gives, and only when the URL rule accepts it. */
@@ -335,7 +335,7 @@ class UriAccessWiringScanTest {
         "StationUrl.Accept.Ok -> Plan.Play( mediaId = MusicLive.stationId(station.uuid), url = stream.url, mimeType = stream.mimeType, name = RadioText.shown(station.name, RadioText.NAME_MAX), ) } }"
 
     /** `ServerTrackItem.build(url, track)` from its first line to the address: no item unless `accepts` took THAT address. */
-    private val serverBuildForm = "{ if (url == null || !accepts(url, track)) return null return MediaItem.Builder() .setMediaId(mediaId(track)) .setUri(url) "
+    private val serverBuildForm = "{ if (url == null || !accepts(url, track)) return null return MediaItem.Builder() .setMediaId(mediaId(track)) .setUri(MusicSources.own.queued(url)) "
 
     /** The whole of `started`: the one place a list with a start is made for the player — the rule's index and position, or a refusal. */
     private val startedForm = "{ return when (start) { " +
@@ -365,7 +365,9 @@ class UriAccessWiringScanTest {
      *    against that controller's uid, and the file is the one the shell's FileProvider resolves by its own rule;
      *  - nothing else in the service reads an item's URI or sets an item on the player;
      *  - (phase 20, r3 D1) an item gets a URI in the service at its two sites and, anywhere else under `music/`, only in
-     *    the two builders (`stationProblems`).
+     *    the two builders (`stationProblems`);
+     *  - (phase 20, r3 D11 / D12) each of those two sites tells the data source's guard the address it gives
+     *    (`queued(…)`), and the player opens nothing else that is not http(s) (`musicSourceProblems`).
      */
     private fun musicSessionProblems(sources: Map<String, String>): List<String> {
         val problems = mutableListOf<String>()
@@ -395,7 +397,7 @@ class UriAccessWiringScanTest {
         if (count(service, "setMediaItems(") != 1 || !service.contains("player.setMediaItems(listOf(item))") || service.contains("setMediaItem(") || service.contains("addMediaItem") || service.contains("replaceMediaItem")) {
             problems += "an item is set on the player outside the session's callbacks and playFile"
         }
-        if (count(service, ".setUri(") != 2 || !service.contains(".setUri(MusicStore.uriOf(track))") || !body(service, "private fun fileItem(uri: Uri, file: File, ask: Long): MediaItem").contains(".setMediaId(MusicFile.mediaId(ask)) .setUri(uri) ")) {
+        if (count(service, ".setUri(") != 2 || !service.contains(".setUri(queued(MusicStore.uriOf(track)))") || !body(service, "private fun fileItem(uri: Uri, file: File, ask: Long): MediaItem").contains(".setMediaId(MusicFile.mediaId(ask)) .setUri(queued(uri)) ")) {
             problems += "an item is given a URI other than a library track's or playFile's checked one"
         }
         // PLAY_FILE: offered to the shell's own controller only, routed to playFile only, checked there again.
@@ -535,8 +537,8 @@ class UriAccessWiringScanTest {
         for (file in listOf("music/radio/StationItem.kt", "music/server/ServerTrackItem.kt", "music/radio/RadioSearchRule.kt", "music/radio/StreamWatch.kt", "music/MusicPlayer.kt", "music/KnownDurationPlayer.kt", "cortana/action/ActionLayer.kt")) {
             assertTrue("$file was read", sources.getValue(file).length > 200)
         }
-        assertEquals(1, count(sources.getValue("music/radio/StationItem.kt"), ".setMediaId(play.mediaId) .setUri(play.url) "))
-        assertEquals(1, count(sources.getValue("music/server/ServerTrackItem.kt"), ".setMediaId(mediaId(track)) .setUri(url) "))
+        assertEquals(1, count(sources.getValue("music/radio/StationItem.kt"), ".setMediaId(play.mediaId) .setUri(MusicSources.own.queued(play.url)) "))
+        assertEquals(1, count(sources.getValue("music/server/ServerTrackItem.kt"), ".setMediaId(mediaId(track)) .setUri(MusicSources.own.queued(url)) "))
     }
 
     @Test fun `phase 20 D1 a third builder, a station found for a stranger, an unchecked address, or an item set somewhere else is caught`() {
@@ -563,8 +565,8 @@ class UriAccessWiringScanTest {
         assertTrue(added("music/KnownDurationPlayer.kt", "fun x(m: MediaMetadata.Builder, u: android.net.Uri) = m.setArtworkUri(u)").isNotEmpty())
 
         // ---- the builders: the address not the accepted one, the URL rule not asked or its answer ignored, the override's host a constant.
-        assertTrue(station(".setMediaId(play.mediaId) .setUri(play.url)", ".setMediaId(play.mediaId) .setUri(station.url)").isNotEmpty())
-        assertTrue(station(".setMediaId(play.mediaId) .setUri(play.url)", ".setMediaId(play.mediaId) .setUri(station.urlResolved.ifEmpty { play.url })").isNotEmpty())
+        assertTrue(station(".setMediaId(play.mediaId) .setUri(MusicSources.own.queued(play.url))", ".setMediaId(play.mediaId) .setUri(MusicSources.own.queued(station.url))").isNotEmpty())
+        assertTrue(station(".setMediaId(play.mediaId) .setUri(MusicSources.own.queued(play.url))", ".setMediaId(play.mediaId) .setUri(MusicSources.own.queued(station.urlResolved.ifEmpty { play.url }))").isNotEmpty())
         assertTrue(station("is Plan.Refused -> return Built.Refused(p.line) is Plan.Play -> p }", "is Plan.Refused -> Plan.Play(MusicLive.stationId(station.uuid), station.url, null, station.name) is Plan.Play -> p }").isNotEmpty())
         assertTrue(station("return when (val a = StationUrl.accept(stream.url, qaHost)) {", "return when (val a = StationUrl.Accept.Ok as StationUrl.Accept) {").isNotEmpty())
         assertTrue(station("StationUrl.accept(stream.url, qaHost)", "StationUrl.accept(stream.url, StationUrl.qaHost(stream.url))").isNotEmpty())
@@ -573,7 +575,7 @@ class UriAccessWiringScanTest {
         assertTrue(station("url = stream.url,", "url = station.url,").isNotEmpty())
         assertTrue(server("if (url == null || !accepts(url, track)) return null", "if (url == null) return null").isNotEmpty())
         assertTrue(server("if (url == null || !accepts(url, track)) return null", "if (url == null || accepts(url, track)) return null").isNotEmpty())
-        assertTrue(server(".setMediaId(mediaId(track)) .setUri(url)", ".setMediaId(mediaId(track)) .setUri(url + \"&ApiKey=\" + track.id)").isNotEmpty())
+        assertTrue(server(".setMediaId(mediaId(track)) .setUri(MusicSources.own.queued(url))", ".setMediaId(mediaId(track)) .setUri(url + \"&ApiKey=\" + track.id)").isNotEmpty())
         assertTrue(server("= build(server.audioStreamUrl(track), track)", "= MediaItem.Builder().setMediaId(mediaId(track)).setUri(server.audioStreamUrl(track)).build()").isNotEmpty())
         assertTrue(service("(StationItem.build(it, qaHost) as? StationItem.Built.Item)?.item", "MediaItem.Builder().setMediaId(MusicLive.stationId(it.uuid)).setUri(it.url).build()").isNotEmpty())
         assertTrue(service("(StationItem.build(it, qaHost) as? StationItem.Built.Item)?.item", "(StationItem.build(it, \"10.0.2.2\") as? StationItem.Built.Item)?.item").isNotEmpty())
@@ -667,7 +669,7 @@ class UriAccessWiringScanTest {
         assertTrue(service("return started(match.queue.map { mediaItem(it) }, MusicQueueStart.search(", "return started(mediaItems, MusicQueueStart.search(").isNotEmpty())
         assertTrue(service("override fun onGetSession(", "fun onPlaybackResumption() = Unit override fun onGetSession(").isNotEmpty())
         assertTrue(service("Diagnostics.add(\"music\", MusicFile.line(file.path))", "Diagnostics.add(\"music\", MusicFile.line(file.path)); player.setMediaItem(MediaItem.fromUri(raw.orEmpty()))").isNotEmpty())
-        assertTrue(service(".setUri(MusicStore.uriOf(track))", ".setUri(track.path)").isNotEmpty())
+        assertTrue(service(".setUri(queued(MusicStore.uriOf(track)))", ".setUri(track.path)").isNotEmpty())
         assertTrue(service("val hasUri = item.localConfiguration != null", "val hasUri = item.localConfiguration != null && item.requestMetadata.mediaUri == null").isNotEmpty())
         assertTrue(musicSessionProblems(sources + ("music/MusicSearch.kt" to sources.getValue("music/MusicSearch.kt") + " fun x() = MusicItemRule.decide(1, 1, \"\", true, false)")).isNotEmpty())
         // The review's surviving mutant: PLAY_FILE offered to every controller, or to every controller BUT the shell.
@@ -682,6 +684,121 @@ class UriAccessWiringScanTest {
         assertTrue(service("val item = fileItem(uri, file, ask)", "val item = fileItem(uri, File(raw.orEmpty()), ask)").isNotEmpty())
         // The caller check dropped from playFile, or its refusal turned into the play.
         assertTrue(service("if (decision !is MusicPlayExtra.Decision.PlayUri) {", "if (false) {").isNotEmpty())
+    }
+
+    // ------------------------------------------------------------- the music player's data source (phase 20, D11 / D12)
+
+    /** The whole of `MusicSourceRule.mayOpen`: an address the shell queued; else http(s) on a host `StationUrl.accept` takes; else nothing. */
+    private val sourceRuleForm = "{ if (asked in queued) return true " +
+        "val scheme = ContentUriText.parse(asked).scheme?.lowercase(Locale.ROOT) " +
+        "if (scheme != \"http\" && scheme != \"https\") return false " +
+        "return StationUrl.accept(asked, qaHost) == StationUrl.Accept.Ok }"
+
+    /** The service's data source, as code: the default one, the guard outermost, and that factory the media source factory's. */
+    private val sourceWiringForm = "val upstream = DefaultDataSource.Factory(this) " +
+        "val qaHost = RadioNet.qaHost(this) " +
+        "val sources = DataSource.Factory { GuardedDataSource(upstream.createDataSource()) { asked -> MusicSources.own.mayOpen(asked, qaHost) } } " +
+        "val mediaSourceFactory = DefaultMediaSourceFactory( sources, DefaultExtractorsFactory().setMp3ExtractorFlags(Mp3Extractor.FLAG_ENABLE_INDEX_SEEKING), ) " +
+        "val exo = ExoPlayer.Builder(this, mediaSourceFactory)"
+
+    /**
+     * Phase 20 (r3 D11 / D12; `docs/plan/qa/phase-20/hls-rereview.md` (b)): with HLS linked, a station's PLAYLIST names
+     * segments, keys, init segments and nested playlists of its own, and the player's `DefaultDataSource` opens `file:`,
+     * `content:`, `asset:`, `android.resource:` and `data:` with the shell's identity. `MusicSourceRule` is the rule
+     * (`MusicSourceRuleTest`); held here is what no unit test runs — that every open of the music player is asked:
+     *  - the service makes ONE data source factory — `DefaultDataSource` wrapped, outermost, in `GuardedDataSource`
+     *    with `MusicSources.own.mayOpen(asked, qaHost)`, `qaHost` being `RadioNet.qaHost`'s (null in a release build) —
+     *    and hands that to its one `DefaultMediaSourceFactory`, which is the factory
+     *    of the service's player AND of the crossfade's fader; nothing else under `music/` makes a data source, a media
+     *    source or a player;
+     *  - the guard asks before the upstream opens anything (`playerProblems` holds `GuardedDataSource.open`'s one form);
+     *  - the guard's set is told an address at the four `.setUri(` sites under `music/` alone (`stationProblems` holds
+     *    that there are four): the service's two through `queued(…)` — a library track's MediaStore URI and the checked
+     *    file's — and the two builders', each the address its URL rule accepted; the rule is its one form, asked by
+     *    `MusicSources.mayOpen` alone. Any other http(s) address is `StationUrl.accept`'s to take (`StationUrlTest`).
+     */
+    private fun musicSourceProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val service = sources["music/MusicService.kt"].orEmpty()
+        val fader = sources["music/CrossfadeFader.kt"].orEmpty()
+        val rule = sources["music/MusicSourceRule.kt"].orEmpty()
+        val music = sources.filterKeys { it.startsWith("music/") }
+        fun where(piece: Regex, among: Map<String, String> = music) = among.mapValues { (_, text) -> piece.findAll(text).count() }.filterValues { it > 0 }
+
+        // One guarded factory, the media source factory's; no other data source, media source or player under music/.
+        if (!service.contains(sourceWiringForm)) problems += "the music player's media source factory is not given the guarded data source"
+        // The five: DefaultDataSource.Factory(, DataSource.Factory {, GuardedDataSource(, its upstream.createDataSource( —
+        // and the tag reader's setDataSource(.
+        val dataSources = where(Regex("\\b\\w*DataSource\\b\\s*(?:\\.\\s*Factory\\s*)?[({]"))
+        if (dataSources != mapOf("music/MusicService.kt" to 5) || count(service, "tags.setDataSource(file.path)") != 1) problems += "a data source is made under music/ outside the service's guarded one: $dataSources"
+        val mediaSources = where(Regex("\\b\\w*MediaSourceFactory\\s*\\(|\\b\\w+MediaSource\\b|\\bsetDataSourceFactory\\b|\\bsetMediaSourceFactory\\b|\\bcreateMediaSource\\b|\\bsetMediaSource\\w*\\b"))
+        if (mediaSources != mapOf("music/MusicService.kt" to 1)) problems += "a media source or its factory is made under music/ outside the service's one: $mediaSources"
+        val players = where(Regex("\\bExoPlayer\\s*\\.\\s*Builder\\b|\\bSimpleExoPlayer\\b|\\bMediaPlayer\\s*\\("))
+        if (players != mapOf("music/MusicService.kt" to 1, "music/CrossfadeFader.kt" to 1) || !fader.contains("val f = ExoPlayer.Builder(context, mediaSourceFactory)") ||
+            !fader.contains("private val mediaSourceFactory: MediaSource.Factory,") || Regex("\\bmediaSourceFactory\\b").findAll(fader).count() != 2 ||
+            !service.contains("CrossfadeFader(this, known, audioSession, mediaSourceFactory, attributes)") || Regex("\\bmediaSourceFactory\\b").findAll(service).count() != 3 ||
+            Regex("\\bsources\\b").findAll(service).count() != 2 || Regex("\\bupstream\\b").findAll(service).count() != 2
+        ) problems += "a player under music/ is built with something other than the service's guarded media source factory: $players"
+
+        // What the guard is told, and by whom; the rule's one form and its one asker.
+        // By name: the service's two (the guard's question, its `queued` helper) and each builder's one, its import beside it.
+        val told = where(Regex("\\bMusicSources\\b"), sources.filterKeys { it != "music/MusicSourceRule.kt" })
+        val tellers = where(Regex("\\.\\s*queued\\s*\\("), sources.filterKeys { it != "music/MusicSourceRule.kt" })
+        if (told != mapOf("music/MusicService.kt" to 2, "music/radio/StationItem.kt" to 2, "music/server/ServerTrackItem.kt" to 2) ||
+            tellers != mapOf("music/MusicService.kt" to 1, "music/radio/StationItem.kt" to 1, "music/server/ServerTrackItem.kt" to 1) ||
+            !service.contains("private fun queued(uri: Uri): Uri = uri.also { MusicSources.own.queued(it.toString()) }") || Regex("(?<!\\.)\\bqueued\\s*\\(").findAll(service).count() != 3 ||
+            Regex("\\bqaHost\\b").findAll(service).count() != 7 || count(service, "RadioNet.qaHost(") != 3
+        ) problems += "the guard's set is told an address outside the four item builders, or its fixture host is not RadioNet's: $told $tellers"
+        if (body(rule, "fun mayOpen(asked: String, queued: Set<String>, qaHost: String?): Boolean") != sourceRuleForm) problems += "MusicSourceRule.mayOpen is not its one form:\n  is:      ${body(rule, "fun mayOpen(asked: String, queued: Set<String>, qaHost: String?): Boolean")}\n  must be: $sourceRuleForm"
+        if (!rule.contains("fun mayOpen(asked: String, qaHost: String?): Boolean = MusicSourceRule.mayOpen(asked, queued, qaHost)") ||
+            !rule.contains("fun queued(address: String): String = address.also { queued.add(it) }") || Regex("\\bqueued\\b").findAll(rule).count() != 6 || count(rule, "StationUrl.accept(") != 1 || where(Regex("MusicSourceRule\\s*\\.\\s*mayOpen"), sources) != mapOf("music/MusicSourceRule.kt" to 1)
+        ) problems += "the music source rule is asked, or its set changed, other than by MusicSources"
+        return problems
+    }
+
+    @Test fun `phase 20 D11 the music player opens every address through the guarded data source, told only the shell's own queued addresses`() {
+        val sources = SourceScan.all()
+        assertEquals(emptyList<String>(), musicSourceProblems(sources))
+        // Not vacuous: the video player's guard — the same class — is held to its one form by playerProblems.
+        assertEquals(emptyList<String>(), playerProblems(read("video/PlayerActivity.kt"), read("video/VideoPlayback.kt")))
+    }
+
+    @Test fun `phase 20 D11 an unguarded factory, a second data source or player, a set told a stranger's address, a made-up fixture host or a looser rule is caught`() {
+        val sources = SourceScan.all()
+        fun with(file: String, old: String, new: String) = musicSourceProblems(sources + (file to mutate(sources.getValue(file), old, new)))
+        fun service(old: String, new: String) = with("music/MusicService.kt", old, new)
+        fun added(file: String, code: String) = musicSourceProblems(sources + (file to sources.getValue(file) + " " + code))
+        // The guard left out of the factory, asked nothing, or put under a second, unguarded source.
+        assertTrue(service("DefaultMediaSourceFactory( sources,", "DefaultMediaSourceFactory( upstream,").isNotEmpty())
+        assertTrue(service("DefaultMediaSourceFactory( sources,", "DefaultMediaSourceFactory( this,").isNotEmpty())
+        assertTrue(service("{ asked -> MusicSources.own.mayOpen(asked, qaHost) }", "{ true }").isNotEmpty())
+        assertTrue(service("GuardedDataSource(upstream.createDataSource()) { asked -> MusicSources.own.mayOpen(asked, qaHost) }", "upstream.createDataSource()").isNotEmpty())
+        // The fixture host made up, so a private host is let through in a release build.
+        assertTrue(service("val qaHost = RadioNet.qaHost(this) val sources", "val qaHost = \"192.168.1.1\" val sources").isNotEmpty())
+        assertTrue(service("MusicSources.own.mayOpen(asked, qaHost)", "MusicSources.own.mayOpen(asked, Uri.parse(asked).host)").isNotEmpty())
+        assertTrue(service("val exo = ExoPlayer.Builder(this, mediaSourceFactory)", "val exo = ExoPlayer.Builder(this)").isNotEmpty())
+        assertTrue(service("val exo = ExoPlayer.Builder(this, mediaSourceFactory)", "val exo = ExoPlayer.Builder(this, DefaultMediaSourceFactory(this))").isNotEmpty())
+        assertTrue(service("CrossfadeFader(this, known, audioSession, mediaSourceFactory, attributes)", "CrossfadeFader(this, known, audioSession, DefaultMediaSourceFactory(this), attributes)").isNotEmpty())
+        assertTrue(with("music/CrossfadeFader.kt", "val f = ExoPlayer.Builder(context, mediaSourceFactory)", "val f = ExoPlayer.Builder(context)").isNotEmpty())
+        assertTrue(with("music/CrossfadeFader.kt", "val f = ExoPlayer.Builder(context, mediaSourceFactory)", "val f = ExoPlayer.Builder(context, androidx.media3.exoplayer.source.DefaultMediaSourceFactory(context))").isNotEmpty())
+        assertTrue(added("music/radio/StreamWatch.kt", "fun x(c: android.content.Context) = androidx.media3.exoplayer.ExoPlayer.Builder(c).build()").isNotEmpty())
+        assertTrue(added("music/radio/StationLogos.kt", "fun x(c: android.content.Context) = androidx.media3.datasource.DefaultDataSource.Factory(c).createDataSource()").isNotEmpty())
+        assertTrue(added("music/MusicPlayer.kt", "fun x(f: androidx.media3.datasource.DataSource.Factory) = androidx.media3.exoplayer.hls.HlsMediaSource.Factory(f)").isNotEmpty())
+        assertTrue(added("music/radio/StreamWatch.kt", "fun x(e: androidx.media3.exoplayer.ExoPlayer, s: androidx.media3.exoplayer.source.MediaSource) = e.setMediaSource(s)").isNotEmpty())
+        // The set told something else: a controller's own item, a station's address, from another file.
+        assertTrue(service("MusicItemRule.Decision.Keep -> listOf(item)", "MusicItemRule.Decision.Keep -> listOf(item).also { MusicSources.own.queued(item.mediaId) }").isNotEmpty())
+        assertTrue(added("music/radio/StationItem.kt", "fun x(u: String) = MusicSources.own.queued(u)").isNotEmpty())
+        assertTrue(added("music/radio/StreamWatch.kt", "fun x(u: String) = app.tileshell.music.MusicSources.own.queued(u)").isNotEmpty())
+        assertTrue(added("music/MusicPlayer.kt", "fun x(u: String) = MusicSources.own.queued(u)").isNotEmpty())
+        assertTrue(added("music/MusicService.kt", "fun x(u: Uri) = queued(u)").isNotEmpty())
+        // A looser rule: every scheme, a prefix instead of the address itself, or the rule asked round the set.
+        assertTrue(with("music/MusicSourceRule.kt", "if (asked in queued) return true", "if (queued.any { asked.startsWith(it) }) return true").isNotEmpty())
+        assertTrue(with("music/MusicSourceRule.kt", "if (scheme != \"http\" && scheme != \"https\") return false", "if (scheme == \"file\") return false").isNotEmpty())
+        // The review's finding: every http(s) address opened, private literals with the rest.
+        assertTrue(with("music/MusicSourceRule.kt", "return StationUrl.accept(asked, qaHost) == StationUrl.Accept.Ok }", "return true }").isNotEmpty())
+        assertTrue(with("music/MusicSourceRule.kt", "return StationUrl.accept(asked, qaHost) == StationUrl.Accept.Ok }", "return StationUrl.accept(asked, qaHost) !is StationUrl.Accept.UnsupportedScheme }").isNotEmpty())
+        assertTrue(with("music/MusicSourceRule.kt", "= MusicSourceRule.mayOpen(asked, queued, qaHost)", "= MusicSourceRule.mayOpen(asked, queued + asked, qaHost)").isNotEmpty())
+        assertTrue(added("music/MusicSourceRule.kt", "fun x(a: String) = MusicSourceRule.mayOpen(a, setOf(a), null)").isNotEmpty())
     }
 
     // ------------------------------------------------------------------------------------ Music's queue start (L18-4)
