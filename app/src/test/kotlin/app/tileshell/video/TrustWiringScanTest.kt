@@ -119,7 +119,7 @@ class TrustWiringScanTest {
 
     private fun count(text: String, piece: String): Int = Regex(Regex.escape(piece)).findAll(text).count()
 
-    // ---- the five QA prefs (phase 17's three redirects, phase 18's two paces): read only behind BuildConfig.DEBUG
+    // ---- the QA prefs (phase 17's three redirects, phase 18's two paces, phase 20's three bases): read only behind BuildConfig.DEBUG
 
     /**
      * Each pref's ONE read: the file it is in and the rule it is the second argument of. Phase 18 added the two paces
@@ -132,10 +132,13 @@ class TrustWiringScanTest {
         "SERVER" to ("video/server/MediaServer.kt" to "ServerRules.signInBase(BuildConfig.DEBUG, "),
         "FILES_RATE" to ("files/FileOpsService.kt" to "FilePace.rate(BuildConfig.DEBUG, "),
         "FILES_SEARCH_RATE" to ("files/FilesState.kt" to "FilePace.searchRate(BuildConfig.DEBUG, "),
+        // Phase 20 (T20-6, r3 D16): the radio directory's base. MUSIC_CATALOGUE and COVERART are named and not read
+        // yet: each gets its one site here with the task that reads it (build task 8).
+        "RADIO" to ("music/radio/RadioNet.kt" to "CatalogueRules.base(BuildConfig.DEBUG, "),
     )
     private val GATED = listOf("CatalogueRules.base(BuildConfig.DEBUG, ", "ServerRules.signInBase(BuildConfig.DEBUG, ", "FilePace.rate(BuildConfig.DEBUG, ", "FilePace.searchRate(BuildConfig.DEBUG, ")
-    private val PREF_NAMES = Regex("QaBases\\.(CATALOGUE|WIKIDATA|SERVER|FILES_RATE|FILES_SEARCH_RATE)\\b")
-    private val PREF_READ = Regex("QaBases\\.read\\(\\w+, QaBases\\.(CATALOGUE|WIKIDATA|SERVER|FILES_RATE|FILES_SEARCH_RATE)\\)")
+    private val PREF_NAMES = Regex("QaBases\\.(CATALOGUE|WIKIDATA|SERVER|FILES_RATE|FILES_SEARCH_RATE|RADIO|MUSIC_CATALOGUE|COVERART)\\b")
+    private val PREF_READ = Regex("QaBases\\.read\\(\\w+, QaBases\\.(CATALOGUE|WIKIDATA|SERVER|FILES_RATE|FILES_SEARCH_RATE|RADIO|MUSIC_CATALOGUE|COVERART)\\)")
 
     /** What is wrong with how the sources read the QA prefs; empty when nothing is. */
     private fun qaPrefProblems(sources: Map<String, String>): List<String> {
@@ -158,9 +161,9 @@ class TrustWiringScanTest {
             // The prefs' names as text: only the three constants, in the one file.
             for (literal in Regex("\"qa_[a-z_]*").findAll(text)) if (file != "video/catalogue/Catalogue.kt") problems += "$file: ${literal.value}\" is spelled outside QaBases"
         }
-        if (reads != 5 || prefsRead != setOf("CATALOGUE", "WIKIDATA", "SERVER", "FILES_RATE", "FILES_SEARCH_RATE")) problems += "the five QA prefs are each read once (reads=$reads, prefs=$prefsRead)"
+        if (reads != 6 || prefsRead != setOf("CATALOGUE", "WIKIDATA", "SERVER", "FILES_RATE", "FILES_SEARCH_RATE", "RADIO")) problems += "the six QA prefs that are read are each read once (reads=$reads, prefs=$prefsRead)"
         val qa = sources["video/catalogue/Catalogue.kt"].orEmpty()
-        if (Regex("\"qa_[a-z_]*\"").findAll(qa).map { it.value }.toList() != listOf("\"qa_catalogue_base\"", "\"qa_wikidata_base\"", "\"qa_server_base\"", "\"qa_files_rate_bps\"", "\"qa_files_search_eps\"")) problems += "QaBases names exactly the five prefs"
+        if (Regex("\"qa_[a-z_]*\"").findAll(qa).map { it.value }.toList() != listOf("\"qa_catalogue_base\"", "\"qa_wikidata_base\"", "\"qa_server_base\"", "\"qa_files_rate_bps\"", "\"qa_files_search_eps\"", "\"qa_radio_base\"", "\"qa_music_catalogue_base\"", "\"qa_coverart_base\"")) problems += "QaBases names exactly the eight prefs"
         if (!body(qa, "fun read(context: Context, key: String): String?").startsWith("{ if (!BuildConfig.DEBUG) return null ")) problems += "QaBases.read does not begin by returning null outside a debug build"
         return problems
     }
@@ -203,6 +206,17 @@ class TrustWiringScanTest {
         assertTrue(with("files/FileOpsService.kt", "QaBases.read(this, QaBases.FILES_RATE)", "QaBases.read(this, QaBases.FILES_SEARCH_RATE)").isNotEmpty())
         assertTrue(with("video/catalogue/Catalogue.kt", "const val FILES_RATE = \"qa_files_rate_bps\"", "const val FILES_RATE = \"qa_files_rate_bps\" const val FILES_FLOOR = \"qa_files_floor\"").isNotEmpty())
         assertTrue(with("video/catalogue/Catalogue.kt", "const val FILES_SEARCH_RATE = \"qa_files_search_eps\"", "").isNotEmpty())
+        // Phase 20's radio base, the same mutations: the debug flag a constant or negated, the pref with no rule, read
+        // by its constant elsewhere, read a second time, another phase-20 pref at its site, and its name removed.
+        val radio = "CatalogueRules.base(BuildConfig.DEBUG, QaBases.read(app, QaBases.RADIO), FixedEndpoints.RADIO_BROWSER)"
+        assertEquals(1, with("music/radio/RadioNet.kt", radio, radio.replace("BuildConfig.DEBUG", "true")).size)
+        assertEquals(1, with("music/radio/RadioNet.kt", radio, radio.replace("BuildConfig.DEBUG", "!BuildConfig.DEBUG")).size)
+        assertTrue(with("music/radio/RadioNet.kt", radio, "(QaBases.read(app, QaBases.RADIO) ?: FixedEndpoints.RADIO_BROWSER)").isNotEmpty())
+        assertTrue(with("music/radio/RadioNet.kt", radio, "app.getSharedPreferences(\"start_theme\", 0).getString(QaBases.RADIO, null).orEmpty()").isNotEmpty())
+        assertTrue(with("music/radio/RadioNet.kt", radio, "$radio + $radio").isNotEmpty())
+        assertTrue(with("music/radio/RadioNet.kt", "QaBases.read(app, QaBases.RADIO)", "QaBases.read(app, QaBases.COVERART)").isNotEmpty())
+        assertTrue(with("music/radio/StationUrl.kt", "const val NO_SCHEME = \"none\"", "const val NO_SCHEME = \"none\" const val BASE = \"qa_radio_base\"").isNotEmpty())
+        assertTrue(with("video/catalogue/Catalogue.kt", "const val RADIO = \"qa_radio_base\"", "").isNotEmpty())
     }
 
     // ---- the two paces (phase 18): what paces a copy or a search is the rule's answer and nothing else

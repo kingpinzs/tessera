@@ -19,7 +19,7 @@ import java.net.URLEncoder
 import java.security.MessageDigest
 import java.util.Locale
 
-/** The three debug-only QA redirects (build tasks 11–13): read from the prefs file `prefs_edit.py` writes, DEBUG builds only. */
+/** The debug-only QA redirects (build tasks 11–13; phase 20 adds three): read from the prefs file `prefs_edit.py` writes, DEBUG builds only. */
 object QaBases {
     const val CATALOGUE = "qa_catalogue_base"
     const val WIKIDATA = "qa_wikidata_base"
@@ -29,6 +29,13 @@ object QaBases {
     const val FILES_RATE = "qa_files_rate_bps"
     /** Phase 18, Q-18-5: Files' search walk examines at most this many entries a second. */
     const val FILES_SEARCH_RATE = "qa_files_search_eps"
+
+    /** Phase 20 (T20-6, r3 D16): the radio directory's fixture base — it also carries the click call and bypasses the mirror lookup. */
+    const val RADIO = "qa_radio_base"
+    /** Phase 20: the music catalogue's (MusicBrainz) fixture base. */
+    const val MUSIC_CATALOGUE = "qa_music_catalogue_base"
+    /** Phase 20: the Cover Art Archive's fixture base. */
+    const val COVERART = "qa_coverart_base"
 
     /** The pref's value in a DEBUG build, else null: a release build never reads it. */
     fun read(context: Context, key: String): String? {
