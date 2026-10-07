@@ -1,7 +1,7 @@
 ---
 phase: 20
 slug: music-streaming-radio
-status: DRAFT   # 2026-09-23; interview DONE 2026-09-23 (Q1 C, Q2 A, Q3 A, Q4 A, Q5 A + Pandora); review triage round 2 applied 2026-09-23 (review/2026-09-23-phases11-20-r2-triage.md); Q-D: A (plain-http streams, with phase 17); ADDS to phase 10's FINAL part, never rebuilds it; round 3 applied 2026-10-07 (review/2026-10-07-phase20-r3-triage.md; r11/music-radio-addendum-2026-10-07.md); Q-20-1 pending
+status: DRAFT   # 2026-09-23; interview DONE 2026-09-23 (Q1 C, Q2 A, Q3 A, Q4 A, Q5 A + Pandora); review triage round 2 applied 2026-09-23 (review/2026-09-23-phases11-20-r2-triage.md); Q-D: A (plain-http streams, with phase 17); ADDS to phase 10's FINAL part, never rebuilds it; round 3 applied 2026-10-07 (review/2026-10-07-phase20-r3-triage.md; r11/music-radio-addendum-2026-10-07.md); Q-20-1 answered 2026-10-07 (offline browsing is not a goal)
 depends-on: [03, 10, 12, 15, 17, 18]   # C-23 / T20-7: 15 for its build task 0 (shell-session routing by tag), which "must be in first"; 12 for C-4's `pm clear` → `provision.sh` form and C-15; 17 for StreamingHandoff, the network security config (C-16) and the Jellyfin fixture; 11 is not needed (T20-3: no shortcut is declared); 18 added 2026-10-07 (r3 D1): the station / server item rule is an ADD to phase 18's `MusicItemRule` (ledger L18-1) and rewrites clauses of its `UriAccessWiringScanTest`, and the harness reuses `p18.sh`'s `baseline_start` / `absent_in` and `qa/phase-18/baseline_layout.json` — NOT for phase 18's `QaBases` constants or `MusicPlayExtra`, which this phase does not touch
 ---
 
@@ -25,7 +25,7 @@ and the local library never needs one.
 **In:**
 - Radio (Q2 A, Q3 A): a radio-browser.info station directory (browse, search, genre / country, favourites) in a fifth Music
   pivot, the stations played as live items through `MusicService`, with the live-stream forms of the now-playing screen, the
-  tile face and the `•••` menu that a stream with no end needs; the directory cached for offline browsing; reconnect,
+  tile face and the `•••` menu that a stream with no end needs; the popular part of the directory cached for speed (Q-20-1: offline browsing is not a goal); reconnect,
   metered-data and captive-portal behaviour; station ~~and playlist~~ URLs accepted only as `http` / `https` (T20-5;
   SUPERSEDED 2026-10-07 by r3 D11: no playlist is fetched or parsed — the directory's `url_resolved` is played, and a
   leftover `.pls` / `.m3u` / `.asx` is "can't play this station"); HLS stations play (r3 D10).
@@ -55,6 +55,19 @@ forms); a Plex client (phase 17 Q-B: Jellyfin only); pinning a station to Start 
 change to phase 10's measured now-playing geometry for local tracks (R8, H-M1 signed off).
 
 ## Decisions
+- 2026-10-07 09:25: **Q-20-1 ANSWERED — browsing stations offline is not a goal** (Jeremy, asked how much of the directory lives
+  on the phone, first "will the stations work offline?" — no, a station is a live stream — then: "why would it matter
+  since you can't paly any of them offline so having a list offline does not help anyone it can cache the whole thing but
+  no reason to be offline since you have to be online to listen to it"). Read by the lead as (he may overrule): Radio is
+  an ONLINE feature. This supersedes the "browsable offline" half of Q4 A and the last sentence of Q2 A below for the
+  station directory (the rest of both stands: internet radio, favourites, play on any network, the mobile-data line, no
+  setting). What is built is option A's mechanism, kept for speed and not as an offline promise: the 2,000 most popular
+  stations, the top genres and the countries are kept on the phone so the pivot opens at once and Tess resolves a
+  station by code with no round trip; search, genre and country also ask the full directory. The whole directory is NOT
+  downloaded (about 20 MB in 50+ requests to one volunteer-run server, every day, for a list that is one search away
+  when the phone is online — and it has to be online to play). With no network the pivot shows favourites and whatever
+  the cache holds under the line "No connection — stations need the internet"; nothing is designed, drawn or tested for
+  browsing offline: A1 has no offline leg, and H2 no longer asks him to accept an offline arrangement.
 - 2026-10-07 (round 3 triage, the last round; review/2026-10-07-phase20-r3-triage.md): 25 review findings (D1–D17, V1–V8) and
   the fifteen items of r11/music-radio-addendum-2026-10-07.md §7 are applied, none rejected. **Trust:** D1 (station / server
   items come from two builders only, a stranger's search stays library-only), D2 (logos fetched by the shell, never
@@ -73,8 +86,7 @@ change to phase 10's measured now-playing geometry for local tracks (R8, H-M1 si
   phone only, one listen in P1, the AOSP rule cited and not asserted on the AVD; Pandora — the JVM plan test carries the form
   and P3 proves the installed app; crossfade between two server tracks — P1's listening plus the existing crossfade unit
   tests, no device row; no FM receiver — one process-start line `[music] radio: fm feature=<bool>` read on the Diagnostics
-  page in P1. **Q-20-1 PENDING** (asked 2026-10-07): how much of the directory lives on the phone — written below with the
-  lean, A. The entries below keep their dates; each amended one says which r3 id amended it, and the new agent entries are at
+  page in P1. **Q-20-1** (asked 2026-10-07) is answered in the entry above: offline browsing is not a goal; option A's mechanism is built as a speed cache. The entries below keep their dates; each amended one says which r3 id amended it, and the new agent entries are at
   the end of Decisions.
 - 2026-09-23: Review question Q-D — plain http is allowed for MEDIA only (Jeremy: "(a)"): radio stream URLs and the user's
   Jellyfin server may use http; the shell's own fixed endpoints (TMDB, radio-browser's directory, MusicBrainz / Cover Art
@@ -220,7 +232,7 @@ change to phase 10's measured now-playing geometry for local tracks (R8, H-M1 si
   `ALBUM` off the session and republishes on any change, so the Music tile shows the song now on air. Checked by A2 (the
   title switch and the album line) and the two JVM rules. (r3 D9, addendum §7.2, 2026-10-07; the 2026-09-23 wording is in
   git, commit d6602757 and earlier)
-- 2026-09-23 (agent; amended 2026-10-07): **the station directory** (Q2 A) **[Q-20-1 pending: A assumed]**:
+- 2026-09-23 (agent; amended 2026-10-07): **the station directory** (Q2 A) **[Q-20-1 answered 2026-10-07: the entry at the top of Decisions — the cache is for speed, not an offline promise]**:
   radio-browser.info — an open, community directory with a free JSON API, no key and no Google. Recorded facts
   (r11/music-radio-addendum-2026-10-07.md §1): data public domain, no stated rate limit, "can be used freely but without
   guarantee"; about 53,000 working stations (roughly 20 MB slim, 50+ pages), ONE mirror today; a list call with no `limit`
@@ -230,7 +242,7 @@ change to phase 10's measured now-playing geometry for local tracks (R8, H-M1 si
   `/json/tags?order=stationcount&reverse=true&limit=500`, `/json/countries`. **Cached** (`AtomicFile`,
   `radio_directory_v1.json`): 11 slim fields per station (~0.8 MB), the 500 tags, the countries; video-codec rows dropped
   at parse. **Caps:** any directory response over 4 MiB → `[music] radio: directory too large`, cache kept; cache file ≤ 2
-  MiB. **Offline, and Tess always (P6):** search / genre / country run over the cached 2,000 plus favourites. **Online, in
+  MiB. **Tess always (P6), and the pivot with no network:** search / genre / country run over the cached 2,000 plus favourites. **Online, in
   the app only:** search, genre and country also ask `/json/stations/search?…&limit=100&order=clickcount&reverse=true`,
   shown after the cached hits (a row already among the cached hits, by `stationuuid`, is not shown twice), not cached.
   **Favourites** (`radio_favourites.json`, ≤ 200; a temp file and a rename like `PlaylistStore`'s) store the full slim row
@@ -243,10 +255,7 @@ change to phase 10's measured now-playing geometry for local tracks (R8, H-M1 si
   list → `all.api.radio-browser.info` (JVM-tested, T20-10; a debug `qa_radio_base` override bypasses the lookup). **Click:**
   `GET /json/url/<uuid>` on each user-initiated start (tap, next / previous, Tess), never on a reconnect. All through
   `VideoHttp.get(url, headers, maxBytes)` (`video/catalogue/Catalogue.kt:63`: capped, logs no URL), not a new
-  `HttpURLConnection` path; no HTTP library is added. Option A of Q-20-1 is what this entry says (the 2,000 most popular
-  on the phone, the full directory asked only when online); B (the whole directory, ~20 MB in pages) or C (no online
-  search) would change the Fetched / Online sentences, `RadioDirectory.request`, A1's offline pass and H2, and nothing
-  else. (r3 D5 / V7, addendum §7.3–7.5, 2026-10-07; the 2026-09-23 wording is in git, commit d6602757 and earlier)
+  `HttpURLConnection` path; no HTTP library is added. This is option A of Q-20-1 as mechanism; Jeremy's answer (top of Decisions) makes the cache a speed cache — the whole directory is not downloaded and no offline browsing is promised. (r3 D5 / V7, addendum §7.3–7.5, 2026-10-07; the 2026-09-23 wording is in git, commit d6602757 and earlier)
 - 2026-09-23 (agent): **the music catalogue** (Q1 C; the database is the Q1 Decision's agent call): MusicBrainz (open data,
   no key) with the Cover Art Archive for artwork, ~~the terms re-read at build start and recorded here~~ (SUPERSEDED
   2026-10-07 by r3 D17: the terms are recorded in the amendment below) (P5: not a Google API);
@@ -490,7 +499,7 @@ change to phase 10's measured now-playing geometry for local tracks (R8, H-M1 si
 | # | Value | Status | Stand-in | H-row |
 |---|---|---|---|---|
 | Y1 | Live now-playing form: live bar, "LIVE" caption, omitted end-of-track entry | P4 design, no source | R8's screen with the scrubber and labels replaced as described | H1 |
-| Y2 | Radio pivot rows and the favourites / browse arrangement (incl. what is browsable offline, and logos only on favourites and the playing station) | P4 design, no source | app-list rows (R3 C2 / R6 §5.1.4); MusicMetrics for the header | H2 |
+| Y2 | Radio pivot rows and the favourites / browse arrangement (incl. logos only on favourites and the playing station) | P4 design, no source | app-list rows (R3 C2 / R6 §5.1.4); MusicMetrics for the header | H2 |
 | Y3 | Metered-data line, wording and placement | P4 design | one caption line under the metadata block | H1 |
 | Y4 | Reconnect window and back-off (60 s; 2/4/8/16/30 s) | agent pick | as stated | H5 |
 | Y5 | Catalogue and "Listen on" pages (Q1 C), and the entry order | P4 design: phase 17's Y8 / Y9 forms (R11 measured no Browse / Store half — T20-7, T20-14) | phase 17's Y8 / Y9 forms in the Music idiom | H3 |
@@ -558,7 +567,7 @@ re-verified early. Every task is built in the form the interview ruled (Q1 C, Q2
 conditional on Q-D any more (A is built, phase 17). Rewritten 2026-10-07 by r3 (the triage's "where it lands" column; the
 2026-09-23 task text is in git, commit d6602757 and earlier). **Every task that owns a pure rule names it and says
 "JVM-tested": the build session writes that test WITH the task**, with the cases in Acceptance's unit-test table; the
-names here, in Decisions and in that table are the same names. The one open question, Q-20-1, touches task 5 only.
+names here, in Decisions and in that table are the same names. No question is open (Q-20-1 answered 2026-10-07).
 Order of work under the owner's rule (2026-10-07): build all twelve, push, then ONE round of testing (Acceptance).
 
 1. **Build-start checks — only what still needs the device** (r11/music-radio-addendum-2026-10-07.md §8); each result is
@@ -613,7 +622,7 @@ Order of work under the owner's rule (2026-10-07): build all twelve, push, then 
    returns for a live item. Tags: `nowplaying_live`, `nowplaying_live_caption`, `nowplaying_metered`. JVM-tested:
    `MusicLive.isLive`, `moreEntries` (the live case), the crossfade rule's live case (beside the existing crossfade unit
    tests).
-5. **The directory** (Q2 A; r3 D5 — **the scope is Q-20-1, built as A unless he rules otherwise**): the three fetches and
+5. **The directory** (Q2 A; r3 D5 — Q-20-1 answered 2026-10-07: the cache is a speed cache, no offline promise): the three fetches and
    the online search call exactly as Decisions "the station directory" states them, through `VideoHttp.get` with the
    `Tessera/<version> (…)` User-Agent; the mirror order; parse to the 11 slim fields with the 4 MiB response cap (`[music]
    radio: directory too large`) and the 2 MiB cache cap; the cache (`AtomicFile`, `radio_directory_v1.json`) and the 24 h /
@@ -733,21 +742,19 @@ Evidence is never committed.
 
 ### Device rows (A1–A7; the review's R1–R7)
 
-**A1 — Browse radio, favourite a station, come back offline.**
+**A1 — Browse radio, favourite a station, come back.**
 1. Fresh data and prefs (`pm clear app.tileshell` → `qa/phase-03/scripts/provision.sh` → Home, the fixture prefs written).
 2. Open Music; go to radio.
 3. Search "jazz".
 4. Hold QA Jazz One → add to favourites.
-5. Airplane mode on; force-stop; reopen radio; search "jazz" again. Restore airplane mode.
+5. Force-stop; reopen radio (the network stays on — Q-20-1: no offline leg).
 
 Pass:
 - (a) five `music_pivot_header:*` nodes with radio last, its bounds inside 0–1080;
 - (b) the fixture stations are listed (`radio_row:<id>`), `[music] radio: directory fetched 4 stations` is in the slice,
   and the search shows only the two jazz rows, each once (the online hits repeat no cached row);
 - (c) the hold menu has add to favourites and no pin entry;
-- (d) offline — read against Decisions "the station directory" as written (Q-20-1: A assumed): QA Jazz One is first under
-  favourites (`radio_fav:<id>`), the rows of the cached fetch (the fixture's `topclick` answer, standing in for the 2,000)
-  are still listed, and the offline search still shows the two jazz rows from the cache and the favourites;
+- (d) after the reopen QA Jazz One is first under favourites (`radio_fav:<id>`) and the stations are listed;
 - (e) host side: every fixture request carries `User-Agent: Tessera/`.
 
 **A2 — Play a station.**
@@ -948,7 +955,7 @@ phone rows P1–P11 and H-rows H1–H10; in git, commit d6602757 and earlier) an
 
 ### NEEDS-HUMAN (H1–H5)
 - **H1** *accept* — the live now-playing form plus the metered line (Y1, Y3).
-- **H2** *accept* — the radio pivot and what is browsable offline (Y2; Q-20-1), with logos on favourites and the playing
+- **H2** *accept* — the radio pivot (Y2), with logos on favourites and the playing
   station only.
 - **H3** *accept* — the catalogue and Listen-on pages and the entry order (Y5).
 - **H4** *accept* — the server music view (Y7).
@@ -969,7 +976,7 @@ Kept from 2026-09-23; on 2026-10-07 (r3 V1, D11, D12, D14, D15) each bullet gain
   empty state that names the cause ("No connection yet — stations will appear when there is one"), not a blank pivot; a
   station tap with no network shows the gave-up state at once, not after 60 s. A network that is only not validated is
   not "captive" (r3 D14): the station plays into the reconnect path. (JVM: `StreamGate.decide`, `MusicCollection.page`;
-  A1 for the cache offline; P4 for a real portal)
+  no device row for the pivot with no network — Q-20-1, 2026-10-07; P4 for a real portal)
 - A station that stops for good (server gone, 404, DNS failure) versus one that stops and returns: the one reconnect clock
   (Decisions "reconnect"); a 30x redirect to another host is followed when the scheme is the same and ~~(`DefaultHttpDataSource`
   cross-protocol redirects allowed, the final URL logged without its query string)~~ SUPERSEDED 2026-10-07 by r3 D12:
