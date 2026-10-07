@@ -41,6 +41,11 @@ class EndpointLiteralScanTest {
         )) put(service, "a streaming service's link, handed to that service's app" to "video/handoff/ServicesTable.kt")
         // The QA fixture service of the same table: offered in a debug build only, and a reserved name (.test) that resolves nowhere.
         put("qa-flix.test", "the debug-only fixture service's link" to "video/handoff/ServicesTable.kt")
+        // "Listen on" (phase 20): a music service's own search, handed to THAT service's app with a VIEW intent. The shell requests none of them.
+        for (service in listOf("www.pandora.com", "music.youtube.com", "music.amazon.com", "music.apple.com", "www.deezer.com", "soundcloud.com")) {
+            put(service, "a music service's search link, handed to that service's app" to "music/handoff/MusicServicesTable.kt")
+        }
+        put("qa-tunes.test", "the debug-only fixture music service's link" to "music/handoff/MusicServicesTable.kt")
     }
 
     /** Files that hold a scheme prefix or a URL whose host is not in the literal: file to why. */
