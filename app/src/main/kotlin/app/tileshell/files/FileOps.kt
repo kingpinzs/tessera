@@ -28,6 +28,10 @@ import java.util.zip.ZipFile
  *     failure after the copy leaves both, never neither.
  *  5. **A delete goes to the bin** ([RecycleBin]'s rules), never straight off the disk.
  *  6. **Every write is followed by a scan** of the paths it touched ([scan]; T18-4), and by Recent's upkeep ([recent]).
+ *  7. **The shell's own folder is not the user's.** No write here has a source, a destination or a resulting path inside
+ *     `<volume>/.Tessera` ([FilePaths.inShellDir]: any case, as written and as resolved) — refused with [SHELL] — and a
+ *     whole volume is never a source (it holds that folder). The bin's writes ([RecycleBin]) and the nested-zip copy
+ *     ([ZipWrites.openNested]) are the only code that writes there.
  * Each operation writes its one `[files]` line through [say] and returns the same outcome as an [OpResult].
  *
  * @param volumes the volumes mounted NOW (`StorageManager.getStorageVolumes()`); asked again when a write fails, so a
@@ -75,11 +79,13 @@ class FileOps(
         var bytes = 0L
         val result = guarded(destDir, sources) {
             val dest = volumeFor(destDir) ?: throw Refused(OUTSIDE)
+            notShell(destDir)
             if (!destDir.isDirectory) throw Refused("the destination folder is gone")
             val destCanon = canonical(destDir.path) ?: throw Refused(OUTSIDE)
             var toCopy = 0L
             val plan = sources.map { src ->
                 val volume = volumeFor(src) ?: throw Refused(OUTSIDE)
+                notSource(src, volume)
                 if (!FilePaths.existsNoFollow(src)) throw Refused("${FilePaths.lineText(src.name)} is gone")
                 val srcCanon = canonical(src.path) ?: throw Refused(OUTSIDE)
                 if (FilePaths.isRealDirectory(src) && (destCanon == srcCanon || FilePaths.under(destCanon, srcCanon))) {
@@ -118,14 +124,17 @@ class FileOps(
 
         /** One selected item into [dir]. */
         fun top(src: File, dir: File, cross: Boolean) {
-            val target = place(src, dir, cross, forced = null)
+            val target = place(src, dir, cross, forced = null, top = true)
             if (target == null) { skipped++; return }
             outputs += target.path
             if (move) recent?.renamePath(src.path, target.path, destVolume.uuid)
         }
 
-        /** Puts [src] in [dir] and returns where it went, or null when it was skipped. [forced] answers for a merge's contents. */
-        private fun place(src: File, dir: File, cross: Boolean, forced: Conflict?): File? {
+        /**
+         * Puts [src] in [dir] and returns where it went, or null when it was skipped. [forced] answers for a merge's
+         * contents. [top] is a selected item: its resulting path is asked rule 7 (what lies under it follows it).
+         */
+        private fun place(src: File, dir: File, cross: Boolean, forced: Conflict?, top: Boolean = false): File? {
             meter.check()
             // A link is never followed and never copied (shared storage holds none — FUSE; Edge cases).
             if (FilePaths.isSymlink(src)) return null
@@ -133,6 +142,8 @@ class FileOps(
             var target = File(dir, src.name)
             var displace = false
             var merge = false
+            // An item named like the shell's folder, landing at a volume's root, would BE that folder.
+            if (top) notShell(target)
             if (FilePaths.existsNoFollow(target)) {
                 if (sameFile(src, target)) {
                     // Onto itself: a move has nothing to do; a copy beside its original is "keep both".
@@ -205,6 +216,7 @@ class FileOps(
         val result = guarded(file) {
             volumeFor(file) ?: throw Refused(OUTSIDE)
             if (!FilePaths.validName(newName)) throw Refused("not a name a file can have")
+            notShell(file, target)
             if (!FilePaths.existsNoFollow(file)) throw Refused("${FilePaths.lineText(file.name)} is gone")
             val before = if (FilePaths.isRealDirectory(file)) filesUnder(file) else listOf(file.path)
             if (FilePaths.existsNoFollow(target)) {
@@ -230,6 +242,7 @@ class FileOps(
         val result = guarded(parent) {
             volumeFor(parent) ?: throw Refused(OUTSIDE)
             if (!FilePaths.validName(name)) throw Refused("not a name a folder can have")
+            notShell(parent, target)
             if (!parent.isDirectory) throw Refused("the folder is gone")
             if (FilePaths.existsNoFollow(target)) throw Refused("the name is taken")
             if (!target.mkdir()) throw java.io.IOException("mkdir")
@@ -346,6 +359,20 @@ class FileOps(
 
     internal fun canonicalOf(file: File): String? = runCatching { canonical(file.path) }.getOrNull()
 
+    /** [file] is a mounted volume's shell folder, or inside one (rule 7). */
+    internal fun inShell(file: File): Boolean = volumes().any { FilePaths.inShellDir(file.path, it, canonical) }
+
+    /** Rule 7: none of [files] — a source, a destination, a path about to be made — is in a volume's shell folder. */
+    internal fun notShell(vararg files: File) {
+        if (files.any(::inShell)) throw Refused(SHELL)
+    }
+
+    /** Rule 7 for a source on [volume]: not in the shell's folder, and not the volume itself (which holds it). */
+    internal fun notSource(src: File, volume: FileVolume) {
+        notShell(src)
+        if (canonicalOf(src) == canonicalOf(File(volume.root))) throw Refused(VOLUME_SOURCE)
+    }
+
     internal fun scanPaths(paths: List<String>) = scan(paths)
 
     private fun mounted(volume: FileVolume) {
@@ -407,6 +434,12 @@ class FileOps(
 
         /** A path that resolves under no mounted volume (rule 1; T18-11's words). */
         const val OUTSIDE = "outside shared storage"
+
+        /** A source, a destination or a resulting path in a volume's `.Tessera` (rule 7; the GATE review's M4). */
+        const val SHELL = "inside the shell's own folder"
+
+        /** A volume's root handed in as a source (rule 7). */
+        const val VOLUME_SOURCE = "a whole volume cannot be the source"
 
         /** `done | cancelled | failed <reason>`: the end of a copy, move, extract or create line. */
         internal fun tail(result: OpResult): String = when (result) {

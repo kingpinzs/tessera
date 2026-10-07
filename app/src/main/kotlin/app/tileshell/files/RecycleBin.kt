@@ -142,6 +142,8 @@ class RecycleBin(
         val volume = entry.volume
         val source = binFile(volume, entry.binName) ?: return Restored.Failed("not a bin entry", entry.binName)
         var target = entry.originalPath?.let(::File)?.takeIf { restorable(it, volume) } ?: File(File(volume.root, RESTORED_DIR), entry.binName)
+        // Whatever the record says and wherever a folder on the way leads: never back into the shell's own folder.
+        if (FilePaths.inShellDir(target.path, volume, canonical)) return Restored.Failed(FileOps.SHELL, target.path)
         if (!FilePaths.existsNoFollow(source)) return Restored.Failed("not in the bin any more", target.path)
         val isDir = FilePaths.isRealDirectory(source)
 

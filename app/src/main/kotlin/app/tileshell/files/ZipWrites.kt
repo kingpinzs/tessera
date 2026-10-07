@@ -42,6 +42,9 @@ internal class ZipWrites(
         val result = ops.guarded(destDir, zip) {
             ops.volumeFor(zip) ?: throw Refused(FileOps.OUTSIDE)
             val volume = ops.volumeFor(destDir) ?: throw Refused(FileOps.OUTSIDE)
+            // FileOps' rule 7: not a zip lying in the shell's folder, and not an output that would BE that folder —
+            // `.Tessera.zip` at a volume's root is refused (not renamed "keep both": nothing of it is written).
+            ops.notShell(zip, destDir, target)
             val archive = when (val opened = ops.zipOpen(zip)) {
                 is ZipOpen.Opened -> opened.archive
                 ZipOpen.Encrypted -> throw Refused("password-protected")
@@ -117,12 +120,13 @@ internal class ZipWrites(
         var files = 0
         val result = ops.guarded(destDir, sources) {
             val volume = ops.volumeFor(destDir) ?: throw Refused(FileOps.OUTSIDE)
+            ops.notShell(destDir, target)
             if (sources.isEmpty()) throw Refused("nothing selected")
             if (!destDir.isDirectory) throw Refused("the folder is gone")
             val destCanon = ops.canonicalOf(destDir) ?: throw Refused(FileOps.OUTSIDE)
             var bytes = 0L
             for (src in sources) {
-                ops.volumeFor(src) ?: throw Refused(FileOps.OUTSIDE)
+                ops.notSource(src, ops.volumeFor(src) ?: throw Refused(FileOps.OUTSIDE))
                 if (!FilePaths.existsNoFollow(src)) throw Refused("${FilePaths.lineText(src.name)} is gone")
                 val srcCanon = ops.canonicalOf(src) ?: throw Refused(FileOps.OUTSIDE)
                 // The zip is written in destDir: inside one of its own sources it would be zipping itself.
@@ -190,6 +194,9 @@ internal class ZipWrites(
         val result = ops.guarded(outer.file) {
             val entry = row.entry?.takeIf { !row.isDirectory } ?: throw Refused("not a file")
             val volume = ops.volumeFor(outer.file) ?: throw Refused(FileOps.OUTSIDE)
+            // FileOps' rule 7. The one archive that may lie in the shell's folder is this layer's own open copy (a zip
+            // in a zip in a zip) — known by the journal, which is private storage, naming exactly that path.
+            if (ops.inShell(outer.file) && journal.entries().none { it.path == outer.file.path }) throw Refused(FileOps.SHELL)
             // The same three guards as an extract: the name, the room, the declared size.
             if (ZipNames.normalise(entry.name) == null) { refused(entry); throw Refused("refused entry") }
             val dir = tmpDir(volume)
