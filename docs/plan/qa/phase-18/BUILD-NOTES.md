@@ -164,3 +164,18 @@ phase 18's caller-uid reads and its two QA prefs. A builder is conforming phase 
 
 Recent's selection bar stays the folder page's (Delete → the bin, Move to, Copy to, Share). No code change. E14 gains nothing new;
 H8's wording says a file can be binned from Recent's selection and that Remove from recent never touches the file.
+
+## L18-1 / L18-2 fixes, 2026-10-06 19:17 — on branch phase-18-fix (a4721a5e, 6aa3bfb2), unit-tested, NOT merged, NOT run on a device
+
+Builder's evidence copied to qa/phase-18/L18-fix/ (on disk). Whole suite there: 2007 tests, 0 failures (includes the other
+fix builder's uncommitted tests). Mutations: L18-1 10/10 red, L18-2 16/16 red.
+- L18-1: MusicItemRule.decide(controllerUid, myUid, mediaId, hasUri, hasQuery) -> Keep | Search | Rebuild(id) | Drop; Keep only
+  for the shell's own uid. Driver scripts/l18_1.sh needs rowsb.sh (row writer B's, untracked when the fix branch was cut).
+- L18-2: AlarmRingtoneRules.fromApi(ringtone, access) keeps settings / internal-media ringtones by form and external media
+  only when the caller could read it; everything else -> the default sound (the alarm is still made). RingService refuses a
+  non-content or shell-authority URI at the sink. ALSO changed: ClockActivity re-checks the handler's api_edit bundle (it is
+  exported and read that bundle from any intent). Driver scripts/l18_2.sh.
+OWED: run l18_1.sh and l18_2.sh after the merge; the sink has no device leg (JVM + scan only); a possible pre-existing
+crash to check — a foreign setMediaItems(items, startIndex) whose items are dropped may hand the player an out-of-range
+startIndex (not changed; verify on the device with the l18_1 probe or log it on the ledger).
+Change Log line OWED at the merge (phase 10's and phase 15's parts changed).
