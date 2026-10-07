@@ -44,6 +44,7 @@ object FilesStores {
             journal = journal(app),
             recent = recent(app),
             access = { Checklist.allFilesAccess() },
+            label = { v -> FileVolumes.byUuid(v.uuid)?.paneLabel ?: v.root },
         ).also { ops = it }
     }
 

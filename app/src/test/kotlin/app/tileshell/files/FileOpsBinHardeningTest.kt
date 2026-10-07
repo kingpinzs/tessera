@@ -19,7 +19,10 @@ class FileOpsBinHardeningTest {
     private val shell: File get() = File(bed.root, ".Tessera")
     private val bin: File get() = RecycleBin.binDir(bed.primary)
     private val index: File get() = File(bin, ".index.json")
-    private val unusable = OpResult.Failed("the bin folder is not the shell's own")
+    /** The reason names what is in the bin's way (the GATE review's N6): a link named `bin` in `.Tessera`, or one named `.Tessera`. */
+    private fun way(name: String, inShell: Boolean) = BinObstacle.message(BinObstacle(BinObstacle.Kind.LINK, name, inShell), bed.primary.root)
+    private val unusableText get() = way("bin", inShell = true)
+    private val unusable get() = OpResult.Failed(unusableText)
 
     @After fun tearDown() = bed.close()
 
@@ -69,7 +72,7 @@ class FileOpsBinHardeningTest {
 
         assertEquals("a", file.readText())
         assertEquals(listOf("IMG_0.jpg", "IMG_1.jpg", "IMG_2.jpg"), bed.names(pictures))
-        assertEquals("bin delete ${file.path}: failed the bin folder is not the shell's own", bed.lines.last())
+        assertEquals("bin delete ${file.path}: failed $unusableText", bed.lines.last())
     }
 
     @Test
@@ -88,9 +91,9 @@ class FileOpsBinHardeningTest {
         assertEquals("photo 1", photo.readText())
         assertEquals(
             listOf(
-                "bin empty ${bed.primary.root}: failed the bin folder is not the shell's own",
-                "bin purge ${File(bin, photo.name).path}: failed the bin folder is not the shell's own",
-                "bin restore ${photo.name}: failed the bin folder is not the shell's own",
+                "bin empty ${bed.primary.root}: failed $unusableText",
+                "bin purge ${File(bin, photo.name).path}: failed $unusableText",
+                "bin restore ${photo.name}: failed $unusableText",
                 "bin index ${bed.primary.root}: unusable (the bin folder is not the shell's own)",
             ),
             bed.lines,
@@ -104,6 +107,7 @@ class FileOpsBinHardeningTest {
         val keep = bed.file("Other/bin/keep.txt", "the user's".toByteArray())
         Files.createSymbolicLink(shell.toPath(), elsewhere.toPath())
         val file = bed.file("QA-Files/a.txt", "a".toByteArray())
+        val unusable = OpResult.Failed(way(".Tessera", inShell = false))
 
         assertEquals(unusable, bed.ops.binDelete(file))
         assertEquals(unusable, bed.ops.binEmpty(bed.primary))

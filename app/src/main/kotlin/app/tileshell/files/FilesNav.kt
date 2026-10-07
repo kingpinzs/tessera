@@ -192,12 +192,13 @@ object FilesNav {
         path: String?,
         volumes: List<FileVolume>,
         canonical: (String) -> String?,
+        id: FileIdentity = FileIdentity.Real,
         isDirectory: (String) -> Boolean,
     ): FilesOpen {
         if (path != null) {
             val real = runCatching { canonical(path) }.getOrNull() ?: return FilesOpen.Ignored("the path cannot be resolved")
             val volume = FilePaths.volumeOf(real, volumes, canonical) ?: return FilesOpen.Ignored("outside every mounted volume")
-            if (FilePaths.inShellDir(real, volume, canonical)) return FilesOpen.Ignored("inside the shell's own folder")
+            if (FilePaths.inShellDir(real, volume, canonical, id)) return FilesOpen.Ignored("inside the shell's own folder")
             if (!isDirectory(real)) return FilesOpen.Ignored("not a folder")
             return FilesOpen.Go(FilesLocation.Folder(volume.uuid, real.trimEnd('/')))
         }

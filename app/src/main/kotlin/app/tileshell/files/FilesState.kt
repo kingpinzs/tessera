@@ -534,7 +534,7 @@ class FilesState(context: Context, val actions: FilesActions) {
             return Loaded(PageBody.Error(FOLDER_UNREADABLE), null, null)
         }
         val atRoot = at.path == volume.root
-        val shown = FileListing.visible(rows, hidden).filterNot { atRoot && it.name.equals(FilePaths.SHELL_DIR, ignoreCase = true) }
+        val shown = FileListing.visible(rows, hidden).filterNot { atRoot && FilePaths.isShellDir(File(dir, it.name), volume.volume) }
         // E5 (task 0 (b): the SECOND form on this image): `<volume>/Android/data` and `/obb` list as null for every
         // app, All-files access included, so the entry itself says so.
         val androidDir = at.path == "${volume.root}/Android"
