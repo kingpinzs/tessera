@@ -12,7 +12,9 @@ package app.tileshell.music
  *    items are built by `MusicService.mediaItem` from the library);
  *  - for every other controller the URI — and with it the metadata and everything else the item carried — is never
  *    used: the item is REBUILT from the library by its media id (as an item that arrives without a URI always was), a
- *    search is answered from the library, and anything else is dropped.
+ *    search is answered from the library, and anything else is dropped;
+ *  - (phase 20, r3 D1) a station (`station:<uuid>`) or a home-server track (`server:<id>`) is such an item of the
+ *    shell's own: kept from the shell's controller, and dropped outright from anyone else's.
  *
  * The rule never looks at the URI itself, only at whether there is one: what a stranger's URI says cannot change the
  * answer, so the answer cannot tell a stranger anything about the file it names.
@@ -45,6 +47,10 @@ object MusicItemRule {
     fun decide(controllerUid: Int, myUid: Int, mediaId: String?, hasUri: Boolean, hasQuery: Boolean): Decision {
         // The one way an item keeps what it arrived with: the shell's own controller. A uid below 0 is nobody's.
         if (hasUri && myUid >= 0 && controllerUid == myUid) return Decision.Keep
+        // Phase 20 (r3 D1): a station or a home-server track is the shell's own to build (`StationItem`,
+        // `ServerTrackItem`) and reaches the player only by the line above. Anyone else naming one gets nothing —
+        // not a search, and never a library row: neither id is a library id.
+        if (MusicLive.isLive(mediaId) || MusicLive.isServer(mediaId)) return Decision.Drop
         if (hasQuery) return Decision.Search
         val id = libraryId(mediaId) ?: return Decision.Drop
         return Decision.Rebuild(id)
