@@ -40,6 +40,8 @@ up_one() {
   if listening "$port"; then echo "$name: port $port is already in use by something else — set P20_${name^^}_PORT" >&2; return 3; fi
   mkdir -p "$logdir"
   local extra=(); [ "$name" = radio ] && extra=(--page-cap "${P20_RADIO_PAGE_CAP:-0}")
+  # P20_RADIO_FAVICON (default unset = no logo on any station, as the rows expect): QA Jazz One's favicon address.
+  [ "$name" = radio ] && [ -n "${P20_RADIO_FAVICON:-}" ] && extra+=(--favicon-one "$P20_RADIO_FAVICON")
   nohup python3 "$HERE/$(script_of "$name")" --port "$port" --log "$logdir/$name.log" "${extra[@]}" >/dev/null 2>"$RUN/$name.err" &
   pid=$!; echo "$pid" > "$RUN/$name.pid"; echo "$port" > "$RUN/$name.port"
   for i in $(seq 1 50); do

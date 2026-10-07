@@ -68,6 +68,11 @@ STREAMS = {"/stream/jazz-one": ("QA Jazz One", "jazz", True), "/stream/jazz-two"
            "/stream/news-one": ("QA News One", "news", False)}
 
 
+# --favicon-one: QA Jazz One's `favicon` (default none, as every row of the fixture had). The integration smoke points it
+# at the catalogue fixture's cover PNG, so the shell's own logo fetch (r3 D2) has something to fetch.
+FAVICON_ONE = ""
+
+
 def station_rows(base):
     """The four stations with every field radio-browser 0.7.45 returns for a station (rb-sample-stats.txt)."""
     rows = []
@@ -76,7 +81,7 @@ def station_rows(base):
         rows.append({
             "changeuuid": "c%07d-0000-4000-8000-000000000000" % i, "stationuuid": uuid,
             "serveruuid": None, "name": name, "url": url, "url_resolved": url,
-            "homepage": "", "favicon": "", "tags": tags, "country": country, "countrycode": code,
+            "homepage": "", "favicon": FAVICON_ONE if uuid == JAZZ_ONE else "", "tags": tags, "country": country, "countrycode": code,
             "iso_3166_2": "", "state": "", "language": "english", "languagecodes": "en", "votes": clicks // 10,
             "lastchangetime": "2026-10-01 00:00:00", "lastchangetime_iso8601": "2026-10-01T00:00:00Z",
             "codec": "MP3", "bitrate": BITRATE // 1000, "hls": 0, "lastcheckok": 1,
@@ -302,7 +307,10 @@ def main():
     ap.add_argument("--page-cap", type=int, default=2, help="the most stations in one /json/stations answer (0 = only `limit`)")
     ap.add_argument("--switch-s", type=float, default=20.0, help="seconds after a connection opens at which QA Song 1 becomes QA Song 2")
     ap.add_argument("--burst-s", type=float, default=4.0, help="seconds of audio sent ahead of real time")
+    ap.add_argument("--favicon-one", default="", help="QA Jazz One's favicon address (default: none)")
     args = ap.parse_args()
+    global FAVICON_ONE
+    FAVICON_ONE = args.favicon_one
     if not os.path.exists(args.loop):
         make_loop(args.loop)
     with open(args.loop, "rb") as f:
