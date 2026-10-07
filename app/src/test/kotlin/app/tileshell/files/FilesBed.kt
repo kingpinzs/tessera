@@ -33,7 +33,8 @@ class FilesBed {
     fun newJournal() = OpsJournal(privateDir, { now }, canonical, { lines += it })
     val journal = newJournal()
 
-    val ops = FileOps(
+    /** The write layer over this phone, its folders answering for their names as [names] says (a FAT volume, a kill). */
+    fun opsOn(names: FolderNames, journal: OpsJournal = this.journal) = FileOps(
         volumes = { mounted.toList() },
         canonical = canonical,
         clock = { now },
@@ -44,7 +45,10 @@ class FilesBed {
         access = { granted },
         freeSpace = { free ?: it.usableSpace },
         removeSource = { removeWorks && it.delete() },
+        names = names,
     )
+
+    val ops = opsOn(FolderNames.Real)
 
     val root: File get() = File(primary.root)
     val cardRoot: File get() = File(card.root)

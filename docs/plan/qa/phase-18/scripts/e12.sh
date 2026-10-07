@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Phase 18 E12: diagnostics coverage (C-20; r3 V14's form, phase 17 E18's). Host-side reading: the union of
-# qa/phase-18/<row>/ring-*.txt over this build's rows — a row folder counts when its own log is stamped
-# `apk installed <the gate candidate's id>` (the rows' APK id matching); earlier runs kept as <row>-run<k> are not read.
+# qa/phase-18/<row>/ring-*.txt over the gate builds' rows — a row folder counts when its own log is stamped
+# `apk installed <id>` with the CURRENT gate candidate's id or a prior gate build's whose rows stand (rowsb.sh
+# GATE_PRIOR_FILES: build 2, of which build 3 is one fix more). Each row's LATEST run is the one read (the folder
+# <row>; earlier runs kept as <row>-run<k>… are not), its build is stated per row, and a row stamped with any other
+# build (the brief's first, 87f6eac1) is NOT read — it is listed, never counted.
 #
 #   * every `|` alternative of the doc's list is one line of E12/producers.tsv (the row or edge sub-step that produces
 #     it) or of E12/notrun.tsv (no AVD row can produce it, with the reason); the doc's list is the one the floor's
@@ -30,9 +33,9 @@ assert_gate_apk
 git -C "$REPO" show "HEAD:docs/plan/qa/phase-18/E12/producers.tsv" > "$ROW_DIR/.doc-producers.tsv" 2>/dev/null
 git -C "$REPO" show "HEAD:docs/plan/qa/phase-18/E12/notrun.tsv" > "$ROW_DIR/.doc-notrun.tsv" 2>/dev/null
 
-python3 - "$P18" "${GATE_APK_MD5:0:16}" "$ROW_DIR" > "$ROW_DIR/join.out" <<'PY'
+python3 - "$P18" "$(gate_ids)" "$ROW_DIR" > "$ROW_DIR/join.out" <<'PY'
 import glob, os, re, sys
-QA, GATE, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
+QA, GATES, OUT = sys.argv[1], sys.argv[2].split(), sys.argv[3]
 
 def rows(path):
     out = []
@@ -56,13 +59,16 @@ def to_regex(pattern):
 
 # this build's rows: <row>/<row>.txt stamped with the gate candidate's id
 runs = {}   # row -> (failed count or None, [ring files])
+built = {}  # row -> the build id its latest run's log is stamped with
 for d in sorted(glob.glob(os.path.join(QA, "*"))):
     row = os.path.basename(d)
     if not re.fullmatch(r"E[0-9]+[a-z]*|EDGE_[A-Z_]+|REVIEW_EXP|L18_[0-9]+", row) or row == "E12": continue
     log = os.path.join(d, row + ".txt")
     if not os.path.isfile(log): continue
     text = open(log, encoding="utf-8", errors="replace").read()
-    if ("apk installed " + GATE) not in text: continue
+    stamp = re.search(r"^apk installed ([0-9a-f]{16})", text, re.M)
+    built[row] = stamp.group(1) if stamp else "none"
+    if built[row] not in GATES: continue
     m = re.findall(r"^%s: (\d+) passed, (\d+) failed" % re.escape(row), text, re.M)
     runs[row] = (int(m[-1][1]) if m else None, sorted(glob.glob(os.path.join(d, "ring-*.txt"))))
 slices = {}
@@ -70,9 +76,14 @@ for row, (failed, files) in runs.items():
     for f in files:
         try: slices[f] = (row, failed, open(f, encoding="utf-8", errors="replace").read())
         except OSError: pass
-print("RECORD|this build's rows read (row: failed count, ring files)|" + " ".join("%s:%s,%d" % (r, "?" if v[0] is None else v[0], len(v[1])) for r, v in runs.items()))
-others = sorted(os.path.basename(d) for d in glob.glob(os.path.join(QA, "*")) if re.fullmatch(r"(E[0-9]+[a-z]*|EDGE_[A-Z_]+|REVIEW_EXP|L18_[0-9]+)(-run[0-9]+)?", os.path.basename(d)) and os.path.basename(d) not in runs)
-print("RECORD|row folders NOT read (an earlier run kept, another build's stamp, or no log)|" + (" ".join(others) or "none"))
+print("RECORD|the gate builds whose rows are read (the current one first)|" + " ".join(GATES))
+for g in GATES:
+    mine = [r for r in runs if built[r] == g]
+    print("RECORD|rows read on build %s%s (row: failed count, ring files)|%s" % (g[:8], " — the current build" if g == GATES[0] else " — a prior gate build, standing", " ".join("%s:%s,%d" % (r, "?" if runs[r][0] is None else runs[r][0], len(runs[r][1])) for r in mine) or "none"))
+other_build = sorted("%s(%s)" % (r, b[:8]) for r, b in built.items() if r not in runs)
+print("RECORD|rows whose latest run is stamped with NO gate build read here — not counted|" + (" ".join(other_build) or "none"))
+others = sorted(os.path.basename(d) for d in glob.glob(os.path.join(QA, "*")) if re.fullmatch(r"(E[0-9]+[a-z]*|EDGE_[A-Z_]+|REVIEW_EXP|L18_[0-9]+)(-run[0-9]+(-[0-9a-z]+)?)?", os.path.basename(d)) and os.path.basename(d) not in runs and os.path.basename(d) not in built)
+print("RECORD|row folders NOT read (an earlier run kept, or no log)|" + (" ".join(others) or "none"))
 
 def holder(rx):
     cre = re.compile(rx, re.M)
@@ -101,8 +112,8 @@ for pat, by, _ in prod:
         note = "" if failed == 0 else " — that row's run has %s failed" % ("?" if failed is None else failed)
         if failed != 0: failing_only.append(pat)
         kind = "RECORD" if pat in beyond else "PASS"
-        print("%s|%s|held by %s%s (%d slice(s) in all; producer named: %s)" % (kind, pat, rel, note, len(hits), by[:70]))
-        joined[pat] = rel + note
+        print("%s|%s|held by %s [build %s]%s (%d slice(s) in all; producer named: %s)" % (kind, pat, rel, built[row][:8], note, len(hits), by[:70]))
+        joined[pat] = rel + " [build %s]" % built[row][:8] + note
     elif pat in beyond:
         print("RECORD|%s|beyond the doc's list; held by no slice of this build's rows (producer named: %s)" % (pat, by[:90]))
         joined[pat] = "NOT HELD (beyond the doc's list)"

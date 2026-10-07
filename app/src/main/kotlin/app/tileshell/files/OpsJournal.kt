@@ -27,7 +27,8 @@ class OpsJournal(
     private val canonical: (String) -> String?,
     private val say: (String) -> Unit,
 ) {
-    data class Entry(val opId: String, val path: String, val volumeUuid: String)
+    /** [to] is set only for a rename's in-between name ([FilePaths.renameName]): the path the file is on its way to. */
+    data class Entry(val opId: String, val path: String, val volumeUuid: String, val to: String? = null)
 
     private val file = File(dir, FILE_NAME)
     private var counter = 0
@@ -45,9 +46,18 @@ class OpsJournal(
      */
     @Synchronized
     @Throws(IOException::class)
-    fun put(opId: String, path: String, volumeUuid: String) {
+    fun put(opId: String, path: String, volumeUuid: String, to: String? = null) {
         live += opId
-        write(entries().filter { it.opId != opId } + Entry(opId, path, volumeUuid))
+        write(entries().filter { it.opId != opId } + Entry(opId, path, volumeUuid, to))
+    }
+
+    /**
+     * The operation stopped in THIS process with its entry still owed: a case-only rename whose file could be moved
+     * neither on nor back. The entry stays, so the next sweep finishes it.
+     */
+    @Synchronized
+    fun abandon(opId: String) {
+        live -= opId
     }
 
     /** The operation ended (done, cancelled or failed) and removed its own temp. */
@@ -64,14 +74,15 @@ class OpsJournal(
         val root = runCatching { MiniJson.parseOrNull(file.readText()) }.getOrNull().jsonObject() ?: return emptyList()
         return root["ops"].jsonArray().mapNotNull { row ->
             val o = row.jsonObject() ?: return@mapNotNull null
-            Entry(o.jsonString("op") ?: return@mapNotNull null, o.jsonString("path") ?: return@mapNotNull null, o.jsonString("volume") ?: return@mapNotNull null)
+            Entry(o.jsonString("op") ?: return@mapNotNull null, o.jsonString("path") ?: return@mapNotNull null, o.jsonString("volume") ?: return@mapNotNull null, o.jsonString("to"))
         }
     }
 
     /**
      * Deletes the journalled temps on the [mounted] volumes and returns how many it removed, writing `sweep: removed
      * <n>`. An entry on a volume that is not mounted waits for its mount; an entry that is not a temp, or is the bin, is
-     * dropped from the journal untouched.
+     * dropped from the journal untouched. An entry with a destination ([Entry.to]) is a rename a kill stopped between its
+     * two steps: the file it names is the user's own, so it is never deleted — the rename is FINISHED ([finish]).
      */
     @Synchronized
     fun sweep(mounted: List<FileVolume>): Int {
@@ -81,6 +92,7 @@ class OpsJournal(
             if (e.opId in live) { keep += e; continue }
             val volume = mounted.firstOrNull { it.uuid == e.volumeUuid }
             if (volume == null) { keep += e; continue }
+            if (e.to != null) { if (!finish(e, e.to, volume)) keep += e; continue }
             if (!sweepable(e.path, volume)) continue
             val f = File(e.path)
             if (!FilePaths.existsNoFollow(f)) continue
@@ -89,6 +101,30 @@ class OpsJournal(
         runCatching { write(keep) }
         say("sweep: removed $removed")
         return removed
+    }
+
+    /**
+     * A rename stopped between its two steps: the file sits under its in-between name and goes on to the name it was
+     * given (`rename recovered <in-between path> -> <name>`); were something to hold that name by now, to the first
+     * "keep both" name. Nothing is ever deleted or replaced here. True when the entry is settled — also when the
+     * in-between name is not there (the kill came before the first step or after the second) or the entry is not one
+     * this code wrote (left untouched); false when the move failed, so the entry waits for the next sweep.
+     */
+    private fun finish(e: Entry, to: String, volume: FileVolume): Boolean {
+        val temp = File(e.path)
+        val wanted = File(to)
+        if (!FilePaths.isRenameName(temp.name) || FilePaths.volumeOf(e.path, listOf(volume), canonical) == null || inBin(e.path, volume)) return true
+        if (!FilePaths.existsNoFollow(temp)) return true
+        val dir = temp.parentFile ?: return true
+        if (wanted.parentFile != dir || !FilePaths.validName(wanted.name) || FilePaths.inShellDir(wanted.path, volume, canonical)) return true
+        val dest = if (FilePaths.existsNoFollow(wanted)) FilePaths.keepBoth(dir, wanted.name, FilePaths.isRealDirectory(temp)) else wanted
+        return try {
+            FilePaths.rename(temp, dest, replace = false)
+            say("rename recovered ${FilePaths.lineText(temp.path)} -> ${FilePaths.lineText(dest.name)}")
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     /** A temp by name, under its own volume, and never a bin path — asked of the path as written AND as it resolves. */
@@ -108,7 +144,7 @@ class OpsJournal(
 
     private fun write(entries: List<Entry>) {
         dir.mkdirs()
-        val rows = entries.map { linkedMapOf("op" to it.opId, "path" to it.path, "volume" to it.volumeUuid) }
+        val rows = entries.map { e -> linkedMapOf("op" to e.opId, "path" to e.path, "volume" to e.volumeUuid).also { row -> e.to?.let { row["to"] = it } } }
         FilePaths.writeAtomic(file, MiniJson.write(linkedMapOf("ops" to rows)))
     }
 

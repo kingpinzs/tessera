@@ -2,8 +2,10 @@
 # Phase 18 E20: the edge cases, executed (r3 V17). scripts/edge_index.tsv has one line per bullet of the doc's "Edge
 # cases" (the bullet's first words, the sub-step / row / P row / JVM test that covers it, its last run), and
 # `edge_files.sh <ID>` runs each AVD sub-step on its own fixtures (row folders EDGE_<ID>). This row is the JOIN: it runs
-# no device command. It FAILS when a bullet of the doc has no line, or a line names a sub-step with no pass on this
-# build — a pass is EDGE_<ID>/EDGE_<ID>.txt stamped `apk installed <the gate candidate's id>` ending `0 failed`. The
+# no device command. It FAILS when a bullet of the doc has no line, or a line names a sub-step with no pass on a gate
+# build — a pass is EDGE_<ID>/EDGE_<ID>.txt (the sub-step's LATEST run) stamped `apk installed <id>` with the current
+# gate candidate's id or a prior gate build's whose rows stand (rowsb.sh GATE_PRIOR_FILES), ending `0 failed`; each
+# line says WHICH build its pass is on. The
 # rows, P rows and JVM tests a line names beside its sub-step are RECORDED with their state. The index's last-run
 # column is rewritten from the logs.
 #
@@ -16,9 +18,11 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 keep_earlier_run E20
 jvm_row_begin E20 "the edge cases, executed: every bullet has a line, every sub-step a line names has a pass on this build"
-python3 - "$P18" "$REPO/docs/plan/phase-18-files.md" "${GATE_APK_MD5:0:16}" "$HERE/edge_index.tsv" "$HERE/edge_files.sh" > "$ROW_DIR/join.out" <<'PY'
+python3 - "$P18" "$REPO/docs/plan/phase-18-files.md" "$(gate_ids)" "$HERE/edge_index.tsv" "$HERE/edge_files.sh" > "$ROW_DIR/join.out" <<'PY'
 import os, re, sys
-QA, DOC, GATE, INDEX, DRIVER = sys.argv[1:6]
+QA, DOC, GATES, INDEX, DRIVER = sys.argv[1:6]
+GATES = GATES.split()
+print("RECORD|the gate builds a pass may be on (the current one first; the others are prior gate builds whose rows stand)|" + " ".join(GATES))
 doc = open(DOC, encoding="utf-8").read()
 sec = doc[doc.index("\n## Edge cases"):]
 sec = sec[:sec.index("\n## ", 5)]
@@ -37,9 +41,10 @@ def state(row):
     m = re.findall(r"^%s: (\d+) passed, (\d+) failed, (\d+) recorded" % re.escape(row), t, re.M)
     if not m: return ("no summary line (the run did not end)", "%s — did not end (build %s)" % (at, build))
     p, f, r = m[-1]
-    on = build.startswith(GATE)
+    on = build in GATES
+    which = "the current build" if build == GATES[0] else ("a prior gate build, standing" if on else "NOT a gate build")
     ok = on and f == "0" and int(p) > 0
-    return ("pass" if ok else ("%s failed" % f if on else "another build (%s)" % build), "%s %s: %s passed, %s failed, %s recorded (build %s)" % (at, "PASS" if ok else "FAIL", p, f, r, build))
+    return ("pass" if ok else ("%s failed" % f if on else "another build (%s)" % build), "%s %s: %s passed, %s failed, %s recorded (build %s — %s)" % (at, "PASS" if ok else "FAIL", p, f, r, build, which))
 
 for b in bullets:
     hit = [r for r in rows if b.replace("`", "").startswith(r[0].replace("`", ""))]
@@ -54,7 +59,7 @@ for r in rows:
     for s in subs:
         named.add(s)
         st, text = state("EDGE_" + s)
-        print("%s|%s — sub-step %s has a pass on this build|%s" % ("PASS" if st == "pass" else "FAIL", r[0][:48], s, text))
+        print("%s|%s — sub-step %s has a pass on a gate build|%s" % ("PASS" if st == "pass" else "FAIL", r[0][:48], s, text))
         runs.append("EDGE_%s %s" % (s, text))
     for o in others:
         st, text = state(o)

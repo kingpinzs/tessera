@@ -42,6 +42,7 @@ import java.util.zip.ZipFile
  * @param access All-files access is held now (`Environment.isExternalStorageManager()`)
  * @param freeSpace usable bytes in the folder's volume
  * @param removeSource removes one copied file (or emptied folder) of a cross-volume move
+ * @param names how a folder answers for its names ([FolderNames]): asked by [rename] alone
  * @param openZip the platform's `ZipFile` ([ZipArchive.open])
  */
 class FileOps(
@@ -56,6 +57,7 @@ class FileOps(
     private val freeSpace: (File) -> Long = { it.usableSpace },
     private val removeSource: (File) -> Boolean = { it.delete() },
     private val openZip: (File) -> ZipFile = { ZipFile(it, Charsets.ISO_8859_1) },
+    private val names: FolderNames = FolderNames.Real,
 ) {
     /** The bin's reader (its page's rows, phase 19's stats). Its writes are this class's `bin*` functions. */
     val bin = RecycleBin(clock, canonical, say)
@@ -209,22 +211,33 @@ class FileOps(
 
     // ---- rename and new folder
 
-    /** Renames [file] in its folder; a name something else holds is refused (a change of case alone is allowed — FAT). */
+    /**
+     * Renames [file] in its folder; a name something else holds is refused. A change of CASE alone is the file's own
+     * name on a volume that folds case (FAT): there the new name already "exists" and is the same file, and `rename(2)`
+     * between the two reports done while it changes nothing — so that rename goes through an in-between name
+     * ([renameCase]). Every rename is then read back from the folder's own listing: `ok` is said only of a name that is
+     * there, exactly as asked, with the old one gone; else `failed the name did not change`.
+     */
     fun rename(file: File, newName: String): OpResult {
         val target = File(file.parentFile, newName)
         val moved = ArrayList<String>()
         val result = guarded(file) {
-            volumeFor(file) ?: throw Refused(OUTSIDE)
+            val volume = volumeFor(file) ?: throw Refused(OUTSIDE)
             if (!FilePaths.validName(newName)) throw Refused("not a name a file can have")
             notShell(file, target)
             if (!FilePaths.existsNoFollow(file)) throw Refused("${FilePaths.lineText(file.name)} is gone")
             val before = if (FilePaths.isRealDirectory(file)) filesUnder(file) else listOf(file.path)
-            if (FilePaths.existsNoFollow(target)) {
-                if (!sameFile(file, target)) throw Refused("the name is taken")
-                // The same file under another case (FAT): `Files.move` would call that done; rename(2) changes the name.
-                if (!file.renameTo(target)) throw java.io.IOException("rename")
-            } else {
-                FilePaths.rename(file, target, replace = false)
+            if (newName != file.name) {
+                if (names.exists(target)) {
+                    // Taken — unless it is this very file answering to its own name in another case. Another file that
+                    // differs only by case (a case-sensitive volume), or another name of this one, is the ordinary clash.
+                    if (!newName.equals(file.name, ignoreCase = true) || !names.same(file, target)) throw Refused("the name is taken")
+                    renameCase(file, target, volume)
+                } else {
+                    names.rename(file, target)
+                }
+                val now = names.names(target.parentFile ?: file)
+                if (now == null || newName !in now || file.name in now) throw Refused(UNCHANGED)
             }
             moved += before
             moved += before.map { target.path + it.substring(file.path.length) }
@@ -234,6 +247,45 @@ class FileOps(
         if (moved.isNotEmpty()) scan(moved)
         say("rename ${FilePaths.lineText(file.path)} -> ${FilePaths.lineText(newName)}: ${outcome(result)}")
         return result
+    }
+
+    /**
+     * [file] to [target], its own name in another case, in two steps: to `.<name>.<opid>.rename` beside it, then on to
+     * [target]. The in-between name is journalled BEFORE the first step with where the file is going (r3 D4's rule, with
+     * one difference that matters: this is the user's file, not a copy, so [OpsJournal.sweep] FINISHES such an entry and
+     * never deletes it). A kill at any point therefore leaves the file whole:
+     *  - before step one — it has its old name; the sweep finds no in-between file and drops the entry;
+     *  - between the steps — it has the in-between name; the next start's sweep moves it on to [target];
+     *  - after step two — it has the new name; the sweep drops the entry.
+     * A step that fails or does nothing (each is read back from the listing) puts the file back under its old name; if
+     * even that cannot be done the entry is left owed ([OpsJournal.abandon]) and the next sweep finishes the rename.
+     */
+    private fun renameCase(file: File, target: File, volume: FileVolume) {
+        val dir = file.parentFile ?: throw Refused(OUTSIDE)
+        fun listed(f: File) = names.names(dir)?.contains(f.name) == true
+        val opId = journal.newOpId()
+        val temp = File(dir, FilePaths.renameName(file.name, opId))
+        journal.put(opId, temp.path, volume.uuid, to = target.path)
+        var owed = false
+        try {
+            names.rename(file, temp)
+            if (!listed(temp)) throw Refused(UNCHANGED)
+            val failure = try {
+                names.rename(temp, target)
+                if (listed(target)) null else Refused(UNCHANGED)
+            } catch (e: Exception) {
+                e
+            }
+            if (failure != null) {
+                if (listed(temp)) try { names.rename(temp, file) } catch (_: Exception) { }
+                if (listed(temp)) { owed = true; throw Refused("not finished: Files finishes it when it next starts") }
+                throw failure
+            }
+        } catch (e: Exception) {
+            if (owed) journal.abandon(opId) else journal.end(opId)
+            throw e
+        }
+        journal.end(opId)
     }
 
     /** Makes the folder [name] in [parent]; a name something holds is refused. */
@@ -432,6 +484,9 @@ class FileOps(
         const val ACCESS_REMOVED = "access removed"
         const val TIME_LIMIT = "time limit"
 
+        /** A rename the volume reported done whose name the folder's listing does not show (Edge cases "Names", FAT). */
+        const val UNCHANGED = "the name did not change"
+
         /** A path that resolves under no mounted volume (rule 1; T18-11's words). */
         const val OUTSIDE = "outside shared storage"
 
@@ -454,6 +509,33 @@ class FileOps(
             OpResult.Cancelled -> "failed cancelled"
             is OpResult.Failed -> "failed ${FilePaths.lineText(result.reason)}"
         }
+    }
+}
+
+/**
+ * How a folder answers for its names — the part of the file system [FileOps.rename] cannot take for granted, because a
+ * volume that folds case (FAT, as FUSE shows it) says a name "exists" when only its other-case twin does, and reports a
+ * rename between the two as done while it changes nothing. [Real] is `java.nio`; a test hands in such a volume.
+ */
+interface FolderNames {
+    /** Something answers to this path (a dangling link included). */
+    fun exists(file: File): Boolean
+
+    /** Both paths lead to one and the same file. */
+    fun same(a: File, b: File): Boolean
+
+    /** `rename(2)`, never onto something that is there. */
+    @Throws(java.io.IOException::class)
+    fun rename(from: File, to: File)
+
+    /** The names in [dir] exactly as the volume holds them; null when it cannot be listed. */
+    fun names(dir: File): List<String>?
+
+    object Real : FolderNames {
+        override fun exists(file: File): Boolean = FilePaths.existsNoFollow(file)
+        override fun same(a: File, b: File): Boolean = runCatching { Files.isSameFile(a.toPath(), b.toPath()) }.getOrDefault(false)
+        override fun rename(from: File, to: File) = FilePaths.rename(from, to, replace = false)
+        override fun names(dir: File): List<String>? = dir.list()?.toList()
     }
 }
 

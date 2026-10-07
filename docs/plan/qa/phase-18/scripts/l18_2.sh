@@ -148,6 +148,12 @@ for id in $MADE; do app_delete_alarm "$id"; done
 adb shell input keyevent KEYCODE_HOME; sleep 1
 assert_eq "restore: the alarm store is empty again" "" "$(alarm_ids | xargs)"
 assert_eq "restore: none of the shell's alarms is pending (dumpsys alarm)" "0" "$(alarm_trigger_ms | grep -c .)"
+# MediaProvider makes /sdcard/Pictures/.thumbnails/<id>.jpg while the row runs (the first run's one FAIL: files_down
+# found it). It is the platform's file, caused by this row: removed here by name and recorded, as E6 and E14 do.
+_snap_sdcard > "$ROW_DIR/.snap-now.txt"
+THUMBS="$(grep -vxFf "$ROW_DIR/snap-sdcard-before.txt" "$ROW_DIR/.snap-now.txt" | grep '^/sdcard/Pictures/\.thumbnails/' | xargs)"
+record "MediaProvider's thumbnails made during the row (the platform's; removed)" "[${THUMBS}]"
+for t in $THUMBS; do adb shell "rm -f '$t'"; done
 files_down
 ensure_start
 

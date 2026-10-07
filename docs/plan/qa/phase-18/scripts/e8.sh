@@ -35,6 +35,11 @@ adb shell cp "$QA_FILES/b.bin" "$QA_FILES/sub/b.bin"
 assert_eq "the row's own sub/b.bin (a copy of b.bin): same md5" "$(fx_md5 b.bin)" "$(q "md5sum $QA_FILES/sub/b.bin" | cut -d' ' -f1)"
 search_pace_set 1000
 ensure_start
+# This row types: the pace write above force-stopped the shell, which deselects the shell's keyboard (p18.sh
+# ime_baseline). It is selected again here, so the search box is typed into with the phase baseline's keyboard up —
+# the earlier run (kept, build 87f6eac1) typed with LatinIME selected.
+ime_baseline
+assert_eq "the keyboard while the row types is the baseline's (settings get secure default_input_method)" "$IME_BASELINE" "$(ime_now)"
 
 # The hits of a dump, in order: "name=detail" per row (two hits may share a name; the detail tells them apart).
 hits() { # dump
@@ -109,6 +114,8 @@ assert_eq "…exactly one search cancelled line" "1" "$(printf '%s\n' "$SL" | gr
 
 # ------------------------------------------------------------------------------------------------- restore
 log "--- restore"
+assert_eq "the keyboard is still the baseline's after the last typing (nothing in the row's legs deselected it)" "$IME_BASELINE" "$(ime_now)"
+record "the keyboard's window while the walk ran / after the cancel (dumpsys input_method mInputShown at this point)" "$(adb shell dumpsys input_method | tr -d '\r' | grep -o 'mInputShown=[a-z]*' | head -1)"
 assert_eq "no AndroidRuntime line names the shell since the row began" "0" "$(crash_since "$LC0")"
 c6; ensure_start
 files_down

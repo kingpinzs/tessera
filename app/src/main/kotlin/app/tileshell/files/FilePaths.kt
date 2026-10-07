@@ -175,6 +175,16 @@ object FilePaths {
     /** r3 D4's temp name for a zip being extracted: `.<zip>.<opid>.extract`. */
     fun extractName(zipName: String, opId: String): String = fitName(".", zipName, ".$opId.extract", isDirectory = true)
 
+    /**
+     * The name a file holds between the two steps of a rename that changes only its case (`.<name>.<opid>.rename`,
+     * dot-hidden, in its own folder). It is the user's FILE, not a copy of it: [isTempName] is false of it, so the sweep
+     * can never delete it — it finishes the rename instead ([OpsJournal.sweep]).
+     */
+    fun renameName(name: String, opId: String): String = fitName(".", name, ".$opId.rename", isDirectory = true)
+
+    /** A rename's in-between name by its name alone: what the sweep is willing to finish. */
+    fun isRenameName(name: String): Boolean = name.startsWith(".") && name.endsWith(".rename")
+
     /** A journalled temp by its name alone: what the sweep is willing to delete. */
     fun isTempName(name: String): Boolean = name.startsWith(".") && (name.endsWith(".part") || name.endsWith(".extract"))
 

@@ -9,11 +9,23 @@ GATE_COMMIT=80810722
 # The lead's change of plan (2026-10-06): the adversarial review's fixes make a SECOND gate build; its md5 and commit are
 # in the file below (the first 32-hex word is the APK's md5, the first other 7-40-hex word its commit) and replace the
 # brief's for everything run from then on.
-GATE2_FILE=/tmp/claude-1000/-home-jeremyking/340515de-6745-4b8c-a7bc-95d3c74d1c3e/scratchpad/gate-build-2
+# 2026-10-06 23:30: a THIRD gate build (the case-only rename fix, EDGE_NAMES' defect) — the pointer below names its file.
+GATE2_FILE=/tmp/claude-1000/-home-jeremyking/340515de-6745-4b8c-a7bc-95d3c74d1c3e/scratchpad/gate-build-3
 if [ -s "$GATE2_FILE" ]; then
   _g="$(grep -oE '\b[0-9a-f]{32}\b' "$GATE2_FILE" | head -1)"; [ -n "$_g" ] && GATE_APK_MD5="$_g"
   _g="$(grep -oE '\b[0-9a-f]{7,40}\b' "$GATE2_FILE" | grep -vE '^[0-9a-f]{32}$' | grep -E '[a-f]' | head -1)"; [ -n "$_g" ] && GATE_COMMIT="$_g"
 fi
+# The gate builds BEFORE the current one whose rows still stand (the lead's ruling for build 3: the rows run on build 2
+# stand unless FileOps.rename is their subject). E12 and E20 read a row's latest run when it is stamped with the current
+# build or one of these, and say which. The brief's first build (87f6eac1) is NOT one: build 2 replaced it.
+GATE_PRIOR_FILES="/tmp/claude-1000/-home-jeremyking/340515de-6745-4b8c-a7bc-95d3c74d1c3e/scratchpad/gate-build-2"
+GATE_PRIOR_MD5S=""
+for _f in $GATE_PRIOR_FILES; do
+  [ -s "$_f" ] && GATE_PRIOR_MD5S="$GATE_PRIOR_MD5S $(grep -oE '\b[0-9a-f]{32}\b' "$_f" | head -1)"
+done
+GATE_PRIOR_MD5S="$(echo $GATE_PRIOR_MD5S)"
+# "<current id> <prior id>…" — the 16-character ids the logs are stamped with, the current build first.
+gate_ids() { local m out="${GATE_APK_MD5:0:16}"; for m in $GATE_PRIOR_MD5S; do [ "$m" != "$GATE_APK_MD5" ] && out="$out ${m:0:16}"; done; echo "$out"; }
 QF=/storage/emulated/0/QA-Files                     # the real path the app logs (BUILD-NOTES pure layer 2)
 ZD=$QF/zips
 PROVISION="$P18/../phase-03/scripts/provision.sh"

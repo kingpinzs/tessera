@@ -191,11 +191,25 @@ media_down() {
 
 # Evidence is kept: a row folder left by an earlier run is renamed <ROW>-run<k> (the next free k) before row_begin
 # writes into <ROW> again. Call it BEFORE row_begin.
-keep_earlier_run() { # row
-  local dir="$P18/$1" k=1
+keep_earlier_run() { # row — the kept folder names the run AND the build its log is stamped with: <ROW>-run<k>-<md5's first 8>
+  local dir="$P18/$1" k=1 build
   [ -d "$dir" ] || return 0
-  while [ -e "$dir-run$k" ]; do k=$((k + 1)); done
-  mv "$dir" "$dir-run$k"
+  while [ -e "$dir-run$k" ] || compgen -G "$dir-run$k-*" >/dev/null; do k=$((k + 1)); done
+  build="$(sed -n 's/^apk installed \([0-9a-f]\{8\}\).*/\1/p' "$dir/$1.txt" 2>/dev/null | head -1)"
+  mv "$dir" "$dir-run$k-${build:-nobuild}"
+}
+
+# The phase baseline's keyboard (qa/phase-03/scripts/provision.sh: the shell's own, enabled and selected). EVERY
+# `am force-stop app.tileshell` makes Android select another keyboard (qa/phase-05/README.md; measured again
+# 2026-10-06 23:31: selected -> force-stop -> com.android.inputmethod.latin/.LatinIME), and every row force-stops the
+# shell (layout_restore, c6, the pace writes) — so a device provisioned on the shell's keyboard reads LatinIME after
+# its first row. baseline_start selects it again, exactly as provision.sh does, and records what it found. A row that
+# types after a force-stop of its own calls ime_baseline again before the typing (E8).
+IME_BASELINE=app.tileshell/.ime.KeyboardService
+ime_now() { q "settings get secure default_input_method"; }
+ime_baseline() {
+  adb shell ime enable "$IME_BASELINE" >/dev/null 2>&1
+  adb shell ime set "$IME_BASELINE" >/dev/null 2>&1
 }
 
 # Every row starts from qa/phase-18/baseline_layout.json through layout_restore, and after the restore the ring holds
@@ -217,6 +231,9 @@ baseline_start() {
   else
     _verdict FAIL "after the restore: zero assignSlotOnce … -> assigned lines" "the ring slice is empty or unreadable, so the absence proves nothing"
   fi
+  local ime_found; ime_found="$(ime_now)"
+  ime_baseline
+  record "the default keyboard as the row found it (after the restore's force-stop) / set to the baseline's" "$ime_found / $(ime_now)"
 }
 
 # ---------------------------------------------------------------- the EXIT trap

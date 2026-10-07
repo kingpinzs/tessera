@@ -134,7 +134,10 @@ assert_contains "while it plays: the session still holds the shell's own track (
 # What another app's controller may do with what is ALREADY playing (pause it, read its title) is the session's ordinary
 # contract and not this row's subject; the legacy controller's play request can only resume the shell's own track.
 record "while it plays: the music session / the probe's lines" "$(grep -v session.id.video "$ROW_DIR/probe-playing.session.txt" | xargs) / $(tr '\n' ';' < "$ROW_DIR/probe-playing.txt")"
-absent_in "while it plays: the fresh controller never sees the probe's own id as the item" "id=qa-probe-playing" "$(cat "$ROW_DIR/probe-playing.txt")"
+# The probe's own text is not a ring slice (it holds no wall= stamp, so absent_in could never pass on it — the row's
+# first run): the plain-text absence, after proving the text is the probe's real lines.
+assert_ne "while it plays: the probe logged what it observed (the text the next line searches is real)" "" "$(grep '^observed ' "$ROW_DIR/probe-playing.txt")"
+assert_absent "while it plays: the fresh controller never sees the probe's own id as the item" "id=qa-probe-playing" "$(cat "$ROW_DIR/probe-playing.txt")"
 
 # ------------------------------------------------------------------------------------------------ restore
 c6; ensure_start
