@@ -199,3 +199,23 @@ show it at once. Still unclosed (stated): Music's own open of FilesProvider.file
 PLAN: when row writer A finishes -> merge phase-18-fix into phase-18, rebuild, install, write scratchpad/gate-build-2 (md5 +
 commit); row writer B (told by message) runs ALL its device rows once on that build; A's rows the fixes touch (E17, E10) are
 re-run on it; the rest of A's rows stand on 87f6eac1 only if git diff shows their code untouched — decide per row from the diff.
+
+## Row writer B's report, 2026-10-06 23:25 — its device rows ran once on gate build 2 (ad587e3e)
+
+PASS: E18 38/0, E19a 34/0, E19 65/0, E4 99/0, E4b 141/0, E13 82/0, E7 56/0, E6 96/0, E14 88/0, E9 26/0, REVIEW_EXP 51/0.
+FAIL: E20 56/1 (only EDGE_NAMES: PRODUCT DEFECT — a case-only rename on FAT logs ok and changes nothing); E12 54/3 (it reads
+only rows stamped with the gate build; A's rows are on 87f6eac1); L18_1 75/1 and L18_2 81/1 (driver faults: absent_in on
+plain text; a MediaProvider thumbnail left for files_down).
+Doc text not met (OWED a ruling / Change Log line by the lead before the gate):
+1. "Volume unmounted mid-copy fails with storage removed": vold SIGINTs the shell's process at sm unmount (the pid changes),
+   so no end line and no page exist; asserted instead: no temp or partial on either side, source md5 unchanged, the sweep on
+   remount. 2. E12: no producer for "move … failed" nor "bin restore|purge|empty … failed" (recorded). 3. E9's [music] library
+   line needs Music's store started in the process (the row opens Music once first). 4. "Back goes up" from "This folder is
+   gone" holds when the folder was reached by taps; opened by the path extra (empty history) Back leaves Files. 5. A skipped
+   copy still writes "copy 1 files … done". 6. REVIEW_EXP 7 (the forged page extra) was refused as "too long", so the
+   newline path was not exercised on a device; 8 (a custom Parcelable) NOT RUN (no sender fixture); 5's app-side ln -s proof
+   is weak.
+DEVICE: default_input_method reads LatinIME at the end; provision.sh's baseline is the shell's keyboard — cause being traced.
+IN HAND: an Opus builder fixes the FAT rename (FileOps.rename, two-step through a journalled temp + a verify), the two
+driver faults and the keyboard baseline, builds gate candidate 3, and runs EDGE_NAMES, l18_1, l18_2, E1, E2, E16, E17, E10,
+E8, E4 and E12 on it. A second adversarial pass over the fixes runs in ~/projects/metro-launcher-p18-review (0cdc96b6).
