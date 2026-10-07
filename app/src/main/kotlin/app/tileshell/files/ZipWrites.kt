@@ -4,6 +4,8 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.IOException
+import java.nio.file.Files
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -19,7 +21,9 @@ sealed interface NestedZip {
  * [FileOps]' zip half (T18-2, r3 D6): extract, create and the nested-zip copy, reached only through [FileOps]. The
  * guards that make extraction safe, each proven by `FileOpsZipTest` on `make_zips.py`'s fixtures:
  *  - **entry names**: an entry whose name is absolute or holds `..` ([ZipNames.normalise]), or whose canonical path
- *    would land outside the extract root, is refused with `zip: refused entry <name>` while the others extract;
+ *    would land outside the extract root, is refused with `zip: refused entry <name>` while the others extract; so is
+ *    an entry with no place beside the ones already written (a second entry of one name, a file where a folder is or
+ *    a folder where a file is) and one whose name the volume will not take ([ZipNames.unwritable]);
  *  - **free space**: the declared uncompressed total of what will be written is summed first and the extract refused
  *    above the volume's free space − 50 MB, before any write — `zip: refused (needs <bytes>, free <bytes>)`;
  *  - **the bomb**: no byte is written past the declared total + 1 MB; the extract stops, its temp folder is removed —
@@ -42,6 +46,9 @@ internal class ZipWrites(
         val result = ops.guarded(destDir, zip) {
             ops.volumeFor(zip) ?: throw Refused(FileOps.OUTSIDE)
             val volume = ops.volumeFor(destDir) ?: throw Refused(FileOps.OUTSIDE)
+            // FileOps' rule 7: not a zip lying in the shell's folder, and not an output that would BE that folder —
+            // `.Tessera.zip` at a volume's root is refused (not renamed "keep both": nothing of it is written).
+            ops.notShell(zip, destDir, target)
             val archive = when (val opened = ops.zipOpen(zip)) {
                 is ZipOpen.Opened -> opened.archive
                 ZipOpen.Encrypted -> throw Refused("password-protected")
@@ -60,14 +67,15 @@ internal class ZipWrites(
                 roomFor(declared, destDir)
 
                 var merge = false
+                var displace = false
                 // `archive` extracting to `archive`: the folder cannot take the zip's own name, so it is "keep both".
                 if (target.name == zip.name) target = FilePaths.keepBoth(destDir, target.name, isDirectory = true)
                 if (FilePaths.existsNoFollow(target)) {
                     when (conflict(target)) {
                         Conflict.SKIP -> { skipped = true; return@guarded OpResult.Done(skipped = 1) }
                         Conflict.KEEP_BOTH -> target = FilePaths.keepBoth(destDir, target.name, isDirectory = true)
-                        Conflict.REPLACE -> if (FilePaths.isRealDirectory(target)) merge = true
-                        else if (!FilePaths.deleteTree(target)) throw Refused("what is there could not be replaced")
+                        // A folder merges; a file of that name goes to the bin when the extract is whole (FileOps' rule 5).
+                        Conflict.REPLACE -> if (FilePaths.isRealDirectory(target)) merge = true else displace = true
                     }
                 }
 
@@ -83,16 +91,29 @@ internal class ZipWrites(
                     // The name guard's second half: where this would really be written.
                     val outCanon = ops.canonicalOf(out)
                     if (outCanon == null || !FilePaths.under(outCanon, rootCanon)) { refused(e); continue }
-                    if (e.isDirectory) { out.mkdirs(); continue }
-                    out.parentFile?.mkdirs()
+                    // An entry that has no place beside the ones already written — a second one of its name, a file
+                    // where the archive made a folder (or the reverse, or under a file), a name the volume will not
+                    // take — is refused by itself; the others extract (the GATE review's L13).
+                    val folder = if (e.isDirectory) out else out.parentFile ?: root
+                    if (blocked(root, folder) || (!e.isDirectory && FilePaths.existsNoFollow(out))) { refused(e); continue }
+                    val stream = try {
+                        Files.createDirectories(folder.toPath())
+                        if (e.isDirectory) continue
+                        FileOutputStream(out)
+                    } catch (io: IOException) {
+                        if (!ZipNames.unwritable(io)) throw io
+                        refused(e)
+                        continue
+                    }
                     try {
                         // A symlink entry's data is its link text: it lands in a regular file like any other entry (r3 D6).
-                        archive.input(e).use { input -> FileOutputStream(out).use { meter.pump(input, it, limit = saturatingAdd(declared, BOMB_ALLOWANCE)) } }
+                        archive.input(e).use { input -> stream.use { meter.pump(input, it, limit = saturatingAdd(declared, BOMB_ALLOWANCE)) } }
                     } catch (o: Overrun) {
                         say("zip: stopped at ${o.written} (declared $declared)")
                         throw o
                     }
                 }
+                if (displace) ops.displace(target)
                 if (merge) mergeInto(root, target) else FilePaths.rename(root, target, replace = false)
                 written = ops.filesUnder(target)
                 OpResult.Done(listOf(target.path))
@@ -115,12 +136,13 @@ internal class ZipWrites(
         var files = 0
         val result = ops.guarded(destDir, sources) {
             val volume = ops.volumeFor(destDir) ?: throw Refused(FileOps.OUTSIDE)
+            ops.notShell(destDir, target)
             if (sources.isEmpty()) throw Refused("nothing selected")
             if (!destDir.isDirectory) throw Refused("the folder is gone")
             val destCanon = ops.canonicalOf(destDir) ?: throw Refused(FileOps.OUTSIDE)
             var bytes = 0L
             for (src in sources) {
-                ops.volumeFor(src) ?: throw Refused(FileOps.OUTSIDE)
+                ops.notSource(src, ops.volumeFor(src) ?: throw Refused(FileOps.OUTSIDE))
                 if (!FilePaths.existsNoFollow(src)) throw Refused("${FilePaths.lineText(src.name)} is gone")
                 val srcCanon = ops.canonicalOf(src) ?: throw Refused(FileOps.OUTSIDE)
                 // The zip is written in destDir: inside one of its own sources it would be zipping itself.
@@ -130,13 +152,13 @@ internal class ZipWrites(
                 files += ops.countFiles(src)
                 bytes += FilePaths.treeBytes(src)
             }
-            var replace = false
+            var displace = false
             if (FilePaths.existsNoFollow(target)) {
                 when (conflict(target)) {
                     Conflict.SKIP -> { skipped = true; return@guarded OpResult.Done(skipped = 1) }
                     Conflict.KEEP_BOTH -> target = FilePaths.keepBoth(destDir, target.name, isDirectory = false)
-                    Conflict.REPLACE -> if (!FilePaths.isRealDirectory(target)) replace = true
-                    else if (!FilePaths.deleteTree(target)) throw Refused("what is there could not be replaced")
+                    // The zip (or the folder) of that name goes to the bin when the new zip is whole (FileOps' rule 5).
+                    Conflict.REPLACE -> displace = true
                 }
             }
             val part = File(destDir, FilePaths.partName(target.name, opId))
@@ -154,7 +176,8 @@ internal class ZipWrites(
                     add(out, src, entryName, meter)
                 }
             }
-            FilePaths.rename(part, target, replace)
+            if (displace) ops.displace(target)
+            FilePaths.rename(part, target, replace = false)
             OpResult.Done(listOf(target.path))
         }
         temp?.let { if (FilePaths.existsNoFollow(it)) it.delete() }
@@ -187,6 +210,9 @@ internal class ZipWrites(
         val result = ops.guarded(outer.file) {
             val entry = row.entry?.takeIf { !row.isDirectory } ?: throw Refused("not a file")
             val volume = ops.volumeFor(outer.file) ?: throw Refused(FileOps.OUTSIDE)
+            // FileOps' rule 7. The one archive that may lie in the shell's folder is this layer's own open copy (a zip
+            // in a zip in a zip) — known by the journal, which is private storage, naming exactly that path.
+            if (ops.inShell(outer.file) && journal.entries().none { it.path == outer.file.path }) throw Refused(FileOps.SHELL)
             // The same three guards as an extract: the name, the room, the declared size.
             if (ZipNames.normalise(entry.name) == null) { refused(entry); throw Refused("refused entry") }
             val dir = tmpDir(volume)
@@ -229,6 +255,16 @@ internal class ZipWrites(
 
     private fun refused(e: ZipEntryInfo) = say("zip: refused entry ${FilePaths.lineText(e.name)}")
 
+    /** Something that is not a folder already stands at [dir] or above it, inside [root]: no folder can be made there. */
+    private fun blocked(root: File, dir: File): Boolean {
+        var d: File? = dir
+        while (d != null && d != root) {
+            if (FilePaths.existsNoFollow(d) && !d.isDirectory) return true
+            d = d.parentFile
+        }
+        return false
+    }
+
     /** Refuses, before any write, a declared size the volume cannot take with [SPACE_MARGIN] to spare. */
     private fun roomFor(declared: Long, dir: File) {
         val free = freeSpace(dir)
@@ -238,17 +274,18 @@ internal class ZipWrites(
         }
     }
 
-    /** Moves everything in [from] into [into], replacing what has the same name; a folder met by a folder merges. */
+    /**
+     * Moves everything in [from] into [into]; a folder met by a folder merges, and anything else of the same name goes
+     * to the bin first ([FileOps.displace]) — the merge removes nothing.
+     */
     private fun mergeInto(from: File, into: File) {
-        from.listFiles()?.forEach { child ->
+        from.listFiles()?.sortedBy { it.name }?.forEach { child ->
             val there = File(into, child.name)
             if (FilePaths.isRealDirectory(child) && FilePaths.isRealDirectory(there)) {
                 mergeInto(child, there)
             } else {
-                if (FilePaths.existsNoFollow(there) && (FilePaths.isRealDirectory(child) || FilePaths.isRealDirectory(there)) && !FilePaths.deleteTree(there)) {
-                    throw Refused("what is there could not be replaced")
-                }
-                FilePaths.rename(child, there, replace = true)
+                if (FilePaths.existsNoFollow(there)) ops.displace(there)
+                FilePaths.rename(child, there, replace = false)
             }
         }
         from.delete()

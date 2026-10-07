@@ -193,22 +193,32 @@ class MusicService : MediaSessionService() {
             )
         }
 
-        /** Items that arrive without their URI (a controller sends ids, or a search) are rebuilt from the library. */
+        /**
+         * Every item of every controller is [MusicItemRule]'s to decide (ledger L18-1). This service is exported, and
+         * a Media3 controller can send an item that carries a URI of its own choosing, which the player would open with
+         * the shell's identity: only the shell's own controller keeps the URI its item came with. Anyone else's item is
+         * rebuilt from the library by its id, answered as a search, or dropped — the URI is never read, so what happens
+         * cannot depend on the file it names.
+         */
         override fun onAddMediaItems(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
             mediaItems: MutableList<MediaItem>,
         ): ListenableFuture<MutableList<MediaItem>> {
-            if (mediaItems.all { it.localConfiguration != null }) return Futures.immediateFuture(mediaItems)
-            val lib = library()
+            val lib by lazy { library() }
+            var notKept = 0
             val out = mediaItems.flatMap { item ->
-                val query = item.requestMetadata.searchQuery
-                when {
-                    item.localConfiguration != null -> listOf(item)
-                    query != null -> MusicSearch.resolve(query, lib)?.queue.orEmpty().map { mediaItem(it) }
-                    else -> lib.firstOrNull { it.id.toString() == item.mediaId }?.let { listOf(mediaItem(it)) }.orEmpty()
+                val hasUri = item.localConfiguration != null
+                val decision = MusicItemRule.decide(controller.uid, Process.myUid(), item.mediaId, hasUri, item.requestMetadata.searchQuery != null)
+                if (hasUri && decision != MusicItemRule.Decision.Keep) notKept++
+                when (decision) {
+                    MusicItemRule.Decision.Keep -> listOf(item)
+                    MusicItemRule.Decision.Search -> MusicSearch.resolve(item.requestMetadata.searchQuery.orEmpty(), lib)?.queue.orEmpty().map { mediaItem(it) }
+                    is MusicItemRule.Decision.Rebuild -> lib.firstOrNull { it.id == decision.id }?.let { listOf(mediaItem(it)) }.orEmpty()
+                    MusicItemRule.Decision.Drop -> emptyList()
                 }
             }
+            if (notKept > 0) Diagnostics.add("music", "controller uid ${controller.uid}: $notKept item(s) came with a uri of their own, none used (${out.size} from the library)")
             if (out.isEmpty()) return Futures.immediateFailedFuture(UnsupportedOperationException("nothing to add"))
             return Futures.immediateFuture(out.toMutableList())
         }

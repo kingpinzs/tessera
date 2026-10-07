@@ -45,6 +45,24 @@ object FileListing {
     fun detail(row: FileRow, zone: ZoneId): String =
         if (row.isDirectory) dateText(row.modifiedMs, zone) else "${sizeText(row.size)} ${dateText(row.modifiedMs, zone)}"
 
+    /**
+     * A Recycle Bin row's detail line (the GATE review's M5): the deleted-at date, then the folder Restore will put the
+     * file in, relative to its volume — "1/2/2026 Pictures/Trip"; a file with no usable record reads "Download/Restored".
+     * The volume's own root reads as the volume's name, and with more than one volume mounted ([manyVolumes]) the name
+     * leads every path — "1/2/2026 Virtual SD card/Pictures". [deleted] is null for a file no record names.
+     */
+    fun binDetail(deleted: String?, restoreDir: String, volumeRoot: String, volumeLabel: String, manyVolumes: Boolean): String {
+        val root = volumeRoot.trimEnd('/')
+        val dir = restoreDir.trimEnd('/')
+        val where = when {
+            dir == root -> volumeLabel
+            FilePaths.under(dir, root) -> dir.substring(root.length + 1).let { if (manyVolumes) "$volumeLabel/$it" else it }
+            // Not under its volume: never the case for a row the bin made, and then the whole path is the honest text.
+            else -> dir
+        }
+        return listOfNotNull(deleted, FilePaths.lineText(where)).joinToString(" ")
+    }
+
     /** Recent's row (pass 2 §4.8): the date only — the OPENED-AT date ("below Q-18-1"). */
     fun recentDetail(openedAtMs: Long, zone: ZoneId): String = dateText(openedAtMs, zone)
 

@@ -118,13 +118,21 @@ object FilePaths {
         }
     }
 
-    /** [path] is the shell's folder at [volume]'s root, or inside it (the bin, the nested-zip copies). */
+    /**
+     * [path] is the shell's folder at [volume]'s root, or inside it (the bin, the nested-zip copies) — asked of the path
+     * as it RESOLVES (links and `..` followed) and as it is WRITTEN (`.` and `..` folded by its own text), so neither a
+     * link into the folder nor a link out of it gets a path past this. The folder's name is compared ignoring case:
+     * FAT folds case, so `.tessera` is the same folder there.
+     */
     fun inShellDir(path: String, volume: FileVolume, canonical: (String) -> String?): Boolean {
-        val p = runCatching { canonical(path) }.getOrNull() ?: return false
-        val r = runCatching { canonical(volume.root) }.getOrNull()?.trimEnd('/') ?: return false
-        if (!under(p, r)) return false
-        // FAT ignores case, so `.tessera` is the same folder there.
-        return p.substring(r.length + 1).substringBefore('/').equals(SHELL_DIR, ignoreCase = true)
+        fun shellUnder(p: String?, root: String?): Boolean {
+            val r = root?.trimEnd('/') ?: return false
+            return p != null && under(p, r) && p.substring(r.length + 1).substringBefore('/').equals(SHELL_DIR, ignoreCase = true)
+        }
+        val root = runCatching { canonical(volume.root) }.getOrNull()
+        val resolved = runCatching { canonical(path) }.getOrNull()
+        val written = runCatching { java.nio.file.Paths.get(path).toAbsolutePath().normalize().toString() }.getOrNull()
+        return shellUnder(resolved, root) || shellUnder(written, root) || shellUnder(written, volume.root)
     }
 
     /** A name the user may give a file or folder: one path segment that fits. */

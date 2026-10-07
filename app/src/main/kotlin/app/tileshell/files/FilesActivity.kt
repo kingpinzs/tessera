@@ -74,7 +74,7 @@ class FilesActivity : ComponentActivity() {
         state = FilesState(this, FilesBehaviour(this, FilesOpener(this)))
         val request = requestOf(intent)
         pending = request to true
-        Diagnostics.add("files", "FilesActivity created page=${request.page ?: "none"}")
+        Diagnostics.add("files", FilesIntents.createdLine(request))
         setContent {
             ShellRoot {
                 Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
@@ -125,12 +125,14 @@ class FilesActivity : ComponentActivity() {
         state.open(request, cold)
     }
 
-    private fun requestOf(intent: Intent?) = FilesRequest(
-        page = intent?.getStringExtra(FilesIntents.EXTRA_PAGE),
-        path = intent?.getStringExtra(FilesIntents.EXTRA_PATH),
-        name = intent?.getStringExtra(FilesIntents.EXTRA_NAME),
-        from = intent?.getStringExtra(FilesIntents.EXTRA_FROM),
-    )
+    /**
+     * The launch's extras through [FilesIntents.request], the one reader: whatever another app put in the intent — a
+     * Parcelable of its own class, a megabyte of text — this cannot throw, and so neither can [onCreate] or
+     * [onNewIntent] because of an intent (the GATE review's L9).
+     */
+    @Suppress("DEPRECATION") // Bundle.get(key): the one read that says what TYPE an extra is, so a wrong one is named.
+    private fun requestOf(intent: Intent?): FilesRequest =
+        FilesIntents.request({ key -> intent?.extras?.get(key) }) { Diagnostics.add("files", it) }
 
     /**
      * Back with nothing left in Files' history: the task goes behind the one that was there before it (Voice Recorder
