@@ -634,6 +634,9 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
             StationStart.plan(RadioNet.gate(context, isStation = true), StationQueue(listOf(station), 0), RadioNet.qaHost(context)).refusal
                 .also { if (it == null) controller.transportControls.playFromSearch(query, null) }
         } else {
+            // No session to ask: the hit's line is the one the session's search writes when it resolves a station
+            // (Decisions "one resolver": "a hit logs `[music] search "<q>": station <name>`"), so it is written here.
+            Diagnostics.add("music", "search \"${app.tileshell.music.MusicQueueStart.lineQuery(query)}\": station ${RadioText.shown(station.name, RadioText.NAME_MAX)}")
             app.tileshell.music.MusicPlayer.playStations(context, station)
         }
         val name = RadioText.shown(station.name, RadioText.NAME_MAX)
