@@ -179,3 +179,23 @@ OWED: run l18_1.sh and l18_2.sh after the merge; the sink has no device leg (JVM
 crash to check — a foreign setMediaItems(items, startIndex) whose items are dropped may hand the player an out-of-range
 startIndex (not changed; verify on the device with the l18_1 probe or log it on the ledger).
 Change Log line OWED at the merge (phase 10's and phase 15's parts changed).
+
+## Phase 18's own review fixes, 2026-10-06 19:52 — on branch phase-18-fix (cbe38719 H3, a34742dd M4, fea5c6a8 M5, 2471c2b9 M6, 9e7fffa7 M7, d2f989ca L8-L13, 73a64279), NOT merged, NOT run on a device
+
+Lead's run on the fix branch: whole suite 2037 tests, 0 failures, rc 0; debug APK 79c7d5a1. Builder's mutation table: 94 / 94
+red (the review's 15 survivors included); evidence copied to qa/phase-18/GATE-fixes/.
+User-visible changes (H rows and a Change Log line OWED at the merge):
+- Replace never deletes: the replaced item goes to the Recycle Bin (file-over-file too); a merge still merges.
+- The bin row's detail = "<date> <restore folder relative to the volume>" (volume name prefixed when >1 volume).
+- A record under Android/ or not canonical restores to Download/Restored (so a file deleted from Android/media/<app> does).
+- No write touches <volume>/.Tessera; ".Tessera.zip" at a volume root is refused; a whole volume is never a source.
+- Zip limits: 100,000 entries / 16 MB central directory (was "256 MB"); duplicate / kind-clash / unwritable names skip the entry.
+- The provider refuses .Tessera/** and Android/data|obb/app.tileshell/**; every open compares /proc/self/fd/<n> with the
+  checked path (line "share refused: not the file that was checked").
+- FilesActivity's extras read defensively; caller text sanitised in lines.
+UNVERIFIED AND RISKY: /proc/self/fd readlink == File.canonicalPath on FUSE — if not, EVERY provider open is refused; E6 / E7
+show it at once. Still unclosed (stated): Music's own open of FilesProvider.fileFor's path (check-then-open); hard links;
+.Tessera/tmp has no redirect check; restore's folder creation vs a concurrent All-files app.
+PLAN: when row writer A finishes -> merge phase-18-fix into phase-18, rebuild, install, write scratchpad/gate-build-2 (md5 +
+commit); row writer B (told by message) runs ALL its device rows once on that build; A's rows the fixes touch (E17, E10) are
+re-run on it; the rest of A's rows stand on 87f6eac1 only if git diff shows their code untouched — decide per row from the diff.
