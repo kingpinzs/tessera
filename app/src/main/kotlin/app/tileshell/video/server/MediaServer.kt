@@ -122,6 +122,15 @@ class MediaServer(context: Context, private val tag: String = "video") {
     /** Phase 20: a song's direct-play address on the sealed server. No token is in it and none is added ([ServerRules.audioStreamUrl]). */
     fun audioStreamUrl(track: ServerTrack): String? = store.credential()?.let { ServerRules.audioStreamUrl(it.base, track.id) }
 
+    /**
+     * [audioStreamUrl] for each of [tracks], with the sealed server opened ONCE for the list — a file read and a Keystore
+     * call that a queue of a whole library must not repeat per song. Blocks: off the main thread.
+     */
+    fun audioStreamUrls(tracks: List<ServerTrack>): List<String?> {
+        val base = store.credential()?.base
+        return tracks.map { track -> base?.let { ServerRules.audioStreamUrl(it, track.id) } }
+    }
+
     /** An item's picture, asked for with the token in the header. Null when there is none. */
     fun thumbnail(item: ServerItem): Bitmap? {
         val server = store.credential() ?: return null

@@ -261,9 +261,10 @@ fun MusicCollectionPage(
     val playServer: (List<ServerTrack>, Int) -> Unit = { tracks, index ->
         val server = online.server
         if (server != null) {
-            val refusal = MusicPlayer.playServerTracks(context, server, tracks, index)
-            online.serverNotice = refusal
-            if (refusal == null) onNowPlaying()
+            MusicPlayer.playServerTracks(context, server, tracks, index) { refusal ->
+                online.serverNotice = refusal
+                if (refusal == null) onNowPlaying()
+            }
         }
     }
 

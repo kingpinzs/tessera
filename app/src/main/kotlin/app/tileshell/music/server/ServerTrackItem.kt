@@ -33,8 +33,12 @@ object ServerTrackItem {
         return !ServerRules.mayCarryToken(url, base) && ServerRules.reportedUrl(url) == url
     }
 
-    /** The item for a song of the saved server, or null when no server is set up or [accepts] refuses its address. */
-    fun build(server: MediaServer, track: ServerTrack): MediaItem? = build(server.audioStreamUrl(track), track)
+    /**
+     * The items for songs of the saved server, in order: null where no server is set up or [accepts] refuses the
+     * song's address. The server is opened once for the list ([MediaServer.audioStreamUrls]) — it BLOCKS on the sealed
+     * store, so this is called off the main thread.
+     */
+    fun buildAll(server: MediaServer, tracks: List<ServerTrack>): List<MediaItem?> = server.audioStreamUrls(tracks).mapIndexed { i, url -> build(url, tracks[i]) }
 
     /**
      * The item, or null when [accepts] refuses [url]. The server's measured length rides in the metadata, so the built

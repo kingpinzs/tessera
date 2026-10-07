@@ -369,15 +369,31 @@ object MusicPlayer {
         return null
     }
 
-    /** Play the home server's [tracks] from [startIndex], built by ServerTrackItem; null when started, else the text to show. */
-    fun playServerTracks(context: Context, server: app.tileshell.video.server.MediaServer, tracks: List<app.tileshell.video.server.ServerTrack>, startIndex: Int): String? {
-        // No network gate: a home server on a LAN with no internet must play (StreamGate exempts a server track from
-        // both refusals), and the metered caption is a station's.
-        val built = tracks.map { ServerTrackItem.build(server, it) }
-        val start = MusicQueueStart.own(built.map { it != null }, startIndex) ?: return CANT_PLAY_TRACK
-        connect(context.applicationContext)
-        playOwn(OwnQueue(built.filterNotNull(), start, MusicQueueStart.lineQuery(tracks[startIndex].title)))
-        return null
+    /** Counts the asks of [playServerTracks]: the newest wins when two lists are being built at once. */
+    private var serverAsk = 0L
+
+    /**
+     * Play the home server's [tracks] from [startIndex], built by ServerTrackItem. Called on the main thread; the
+     * items are built on a thread of their own — the server's address is read from the sealed store (a file and the
+     * Keystore) — and the queue is set back on the main thread, where [done] is told null when it started, else the
+     * text to show.
+     */
+    fun playServerTracks(context: Context, server: app.tileshell.video.server.MediaServer, tracks: List<app.tileshell.video.server.ServerTrack>, startIndex: Int, done: (String?) -> Unit) {
+        val appContext = context.applicationContext
+        val ask = ++serverAsk
+        Thread({
+            // No network gate: a home server on a LAN with no internet must play (StreamGate exempts a server track
+            // from both refusals), and the metered caption is a station's.
+            val built = ServerTrackItem.buildAll(server, tracks)
+            appContext.mainExecutor.execute {
+                if (ask != serverAsk) return@execute
+                val start = MusicQueueStart.own(built.map { it != null }, startIndex)
+                if (start == null) return@execute done(CANT_PLAY_TRACK)
+                connect(appContext)
+                playOwn(OwnQueue(built.filterNotNull(), start, MusicQueueStart.lineQuery(tracks[startIndex].title)))
+                done(null)
+            }
+        }, "music-server-queue").start()
     }
 
     /** What a home-server row says when its song has no address the builder accepts (no server set up, an id that is not one). */

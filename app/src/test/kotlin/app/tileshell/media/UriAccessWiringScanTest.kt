@@ -427,7 +427,8 @@ class UriAccessWiringScanTest {
      *  - each builder is its one form: the station's id and address are its accepted plan's — `StationUrl.playable`, then
      *    `StationUrl.accept` with the caller's `qaHost` — and a server track's address is the one `accepts` took;
      *  - `StationItem.build` is called by `MusicService.stationItems` alone, with `RadioNet.qaHost`'s host and nothing
-     *    else; `ServerTrackItem.build` by `MusicPlayer.playServerTracks` alone;
+     *    else; `ServerTrackItem.buildAll` by `MusicPlayer.playServerTracks` alone
+     *    (off the main thread: it opens the sealed server, once for the list);
      *  - the session's search finds a station only through `RadioSearchRule.stationsFor(controller.uid,
      *    Process.myUid(), …)`, which is its one form; the stranger's path (`fromLibrary`) stays the two-argument,
      *    library-only resolve; a station match is `startedStation`'s one form — `StationStart.plan` over the real
@@ -467,7 +468,7 @@ class UriAccessWiringScanTest {
             problems += "a station's plan or item is made other than once, from the URL rule's answer"
         }
         if (!body(server, "fun build(url: String?, track: ServerTrack): MediaItem?").startsWith(serverBuildForm) ||
-            !server.contains("fun build(server: MediaServer, track: ServerTrack): MediaItem? = build(server.audioStreamUrl(track), track)") || count(server, "accepts(") != 2
+            !server.contains("fun buildAll(server: MediaServer, tracks: List<ServerTrack>): List<MediaItem?> = server.audioStreamUrls(tracks).mapIndexed { i, url -> build(url, tracks[i]) }") || count(server, "accepts(") != 2
         ) problems += "a server track's item is built from an address its rule did not accept"
 
         // Who asks the builders.
@@ -476,7 +477,7 @@ class UriAccessWiringScanTest {
             problems += "a station's item is asked for other than by MusicService.stationItems, in its one form: $stationBuilders"
         }
         val serverBuilders = where("ServerTrackItem.build")
-        if (serverBuilders != mapOf("music/MusicPlayer.kt" to 1) || !player.contains("val built = tracks.map { ServerTrackItem.build(server, it) } val start = MusicQueueStart.own(built.map { it != null }, startIndex) ?: return CANT_PLAY_TRACK")) {
+        if (serverBuilders != mapOf("music/MusicPlayer.kt" to 1) || !player.contains("val built = ServerTrackItem.buildAll(server, tracks) appContext.mainExecutor.execute { if (ask != serverAsk) return@execute val start = MusicQueueStart.own(built.map { it != null }, startIndex) if (start == null) return@execute done(CANT_PLAY_TRACK)")) {
             problems += "a server track's item is asked for other than by MusicPlayer.playServerTracks: $serverBuilders"
         }
         val itemMakers = where("stationItems(")
@@ -576,7 +577,7 @@ class UriAccessWiringScanTest {
         assertTrue(server("if (url == null || !accepts(url, track)) return null", "if (url == null) return null").isNotEmpty())
         assertTrue(server("if (url == null || !accepts(url, track)) return null", "if (url == null || accepts(url, track)) return null").isNotEmpty())
         assertTrue(server(".setMediaId(mediaId(track)) .setUri(MusicSources.own.queued(url))", ".setMediaId(mediaId(track)) .setUri(url + \"&ApiKey=\" + track.id)").isNotEmpty())
-        assertTrue(server("= build(server.audioStreamUrl(track), track)", "= MediaItem.Builder().setMediaId(mediaId(track)).setUri(server.audioStreamUrl(track)).build()").isNotEmpty())
+        assertTrue(server("= server.audioStreamUrls(tracks).mapIndexed { i, url -> build(url, tracks[i]) }", "= server.audioStreamUrls(tracks).mapIndexed { i, url -> MediaItem.Builder().setMediaId(mediaId(tracks[i])).setUri(url).build() }").isNotEmpty())
         assertTrue(service("(StationItem.build(it, qaHost) as? StationItem.Built.Item)?.item", "MediaItem.Builder().setMediaId(MusicLive.stationId(it.uuid)).setUri(it.url).build()").isNotEmpty())
         assertTrue(service("(StationItem.build(it, qaHost) as? StationItem.Built.Item)?.item", "(StationItem.build(it, \"10.0.2.2\") as? StationItem.Built.Item)?.item").isNotEmpty())
         assertTrue(service("val qaHost = RadioNet.qaHost(context) return stations.mapNotNull", "val qaHost = stations.firstOrNull()?.let { StationUrl.qaHost(it.url) } return stations.mapNotNull").isNotEmpty())
@@ -636,7 +637,9 @@ class UriAccessWiringScanTest {
         assertTrue(player("StationStart.plan(RadioNet.gate(appContext, isStation = true),", "StationStart.plan(StreamGate.Decision(play = true),").isNotEmpty())
         assertTrue(player("RadioFavouritesStore.get(appContext).stations()), RadioNet.qaHost(appContext))", "RadioFavouritesStore.get(appContext).stations()), StationUrl.qaHost(station.url))").isNotEmpty())
         assertTrue(player("val items = MusicService.stationItems(appContext, plan.stations)", "val items = MusicService.stationItems(appContext, listOf(station))").isNotEmpty())
-        assertTrue(player("val built = tracks.map { ServerTrackItem.build(server, it) }", "val built = tracks.map { ServerTrackItem.build(server.audioStreamUrl(it) + \"&ApiKey=x\", it) }").isNotEmpty())
+        assertTrue(player("val built = ServerTrackItem.buildAll(server, tracks)", "val built = tracks.map { ServerTrackItem.build(server.audioStreamUrl(it) + \"&ApiKey=x\", it) }").isNotEmpty())
+        // The newest ask's guard dropped, so an older list's queue could replace a newer one's.
+        assertTrue(player("if (ask != serverAsk) return@execute val start", "val start").isNotEmpty())
         assertTrue(player("playOwn(OwnQueue(built.filterNotNull(), start,", "playOwn(OwnQueue(pendingOwn?.items.orEmpty() + built.filterNotNull(), start,").isNotEmpty())
         assertTrue(added("music/MusicPlayer.kt", "fun x(i: List<MediaItem>) = playOwn(OwnQueue(i, 0, \"x\"))").isNotEmpty())
     }
