@@ -3,6 +3,12 @@
 # with an EMPTY config volume and a media folder holding one 10-s test video, seeded over Jellyfin's own REST start-up
 # calls (not a shipped config dir: that holds a database tied to one version). The AVD reaches it at 10.0.2.2:8096.
 #
+# PHASE 20's ADD (its build task 11; row A7): `up` also makes a MUSIC folder — two MP3s generated here with ffmpeg
+# (lavfi sine, mono, 44.1 kHz, 32 kbit/s, as phase 01's MUSIC6 fixtures were; no audio device), 30 s and 45 s long,
+# tagged QA Track One / QA Track Two, artist "QA Server Artist", album "QA Server Album", tracks 1 and 2 — and a second
+# VirtualFolders call (name=Music, collectionType=music, paths=/media/music). It then waits for both tracks and writes
+# audio.ids. Everything phase 17 reads (container.id, volumes, admin.token, user.id, item.id, seed.log) is unchanged.
+#
 #   jellyfin_fixture.sh up <work dir> <video file>   start, seed, wait until the video is in the library
 #   jellyfin_fixture.sh stop|start <work dir>        docker stop / docker start of the recorded container (E22)
 #   jellyfin_fixture.sh devices <work dir>           GET /Devices with the fixture admin's token
@@ -11,8 +17,8 @@
 #   jellyfin_fixture.sh revoke <work dir> <AppName>     delete that app's devices, so its token stops working
 #   jellyfin_fixture.sh down <work dir>              stop and remove the container and its two volumes, by recorded id
 #
-# <work dir> is a scratch folder (never the repo): it receives container.id, volumes, admin.token, user.id, item.id and
-# seed.log. The fixture account is "qa" with the password "qa-password" (a fixture value, in this file by design).
+# <work dir> is a scratch folder (never the repo): it receives container.id, volumes, admin.token, user.id, item.id,
+# audio.ids (one line per track: <item id> TAB <title> TAB <length in seconds, as the server reports it>) and seed.log. The fixture account is "qa" with the password "qa-password" (a fixture value, in this file by design).
 # Only the container this script started is ever stopped or removed: by the id it recorded, never by name or pattern.
 set -uo pipefail
 IMAGE="jellyfin/jellyfin:12.1@sha256:78d3ea1207d1322471fcac39a614f004f2ccf7e878f95ab2977d752f07e4dd7e"
@@ -32,6 +38,16 @@ up)
   : > "$LOG"
   say "image $IMAGE"
   mkdir -p "$WORK/media/movies"; cp "$VIDEO" "$WORK/media/movies/qa-steps.mp4"
+  # Phase 20's ADD: the music folder's two tracks, made before the container starts so the first scan finds them.
+  MUSIC_DIR="$WORK/media/music/QA Server Artist/QA Server Album"; mkdir -p "$MUSIC_DIR"
+  tone() { # tone <file> <seconds> <Hz> <title> <track>
+    ffmpeg -loglevel error -y -f lavfi -i "sine=frequency=$3:duration=$2" -ac 1 -ar 44100 -c:a libmp3lame -b:a 32k \
+      -metadata title="$4" -metadata artist="QA Server Artist" -metadata album_artist="QA Server Artist" \
+      -metadata album="QA Server Album" -metadata track="$5/2" "$1"
+  }
+  tone "$MUSIC_DIR/01 - QA Track One.mp3" 30 440 "QA Track One" 1 && tone "$MUSIC_DIR/02 - QA Track Two.mp3" 45 550 "QA Track Two" 2 \
+    || { say "ffmpeg could not make the music folder's tracks"; exit 6; }
+  say "music folder: $(for f in "$MUSIC_DIR"/*.mp3; do printf '%s %s s; ' "$(basename "$f")" "$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f")"; done)"
   CFG="$(docker volume create)"; CACHE="$(docker volume create)"; echo "$CFG $CACHE" > "$WORK/volumes"
   ID="$(docker run -d -p "127.0.0.1:$PORT:8096" -v "$CFG:/config" -v "$CACHE:/cache" -v "$WORK/media:/media:ro" "$IMAGE")" || { say "docker run failed"; exit 3; }
   echo "$ID" > "$WORK/container.id"; say "container $ID"
@@ -51,6 +67,7 @@ up)
   say "GET /Startup/User -> $(code "$URL/Startup/User")"
   say "POST /Startup/User -> $(code -X POST -H 'Content-Type: application/json' -d "{\"Name\":\"$USER_NAME\",\"Password\":\"$PASSWORD\"}" "$URL/Startup/User")"
   say "POST /Library/VirtualFolders -> $(code -X POST -H 'Content-Type: application/json' -d '{"LibraryOptions":{}}' "$URL/Library/VirtualFolders?name=Movies&collectionType=movies&paths=%2Fmedia%2Fmovies&refreshLibrary=true")"
+  say "POST /Library/VirtualFolders (Music) -> $(code -X POST -H 'Content-Type: application/json' -d '{"LibraryOptions":{}}' "$URL/Library/VirtualFolders?name=Music&collectionType=music&paths=%2Fmedia%2Fmusic&refreshLibrary=true")"
   say "POST /Startup/Complete -> $(code -X POST "$URL/Startup/Complete")"
   say "POST /Users/AuthenticateByName -> $(code -X POST -H 'Content-Type: application/json' -H "Authorization: $CLIENT" -d "{\"Username\":\"$USER_NAME\",\"Pw\":\"$PASSWORD\"}" "$URL/Users/AuthenticateByName")"
   python3 - "$WORK" <<'PY' || { echo "sign-in as the fixture admin failed" >&2; exit 4; }
@@ -72,9 +89,24 @@ except Exception: print("")' "$WORK/.body")"
     [ "$i" = 20 ] && say "POST /Library/Refresh -> $(code -X POST -H "Authorization: MediaBrowser Token=\"$TOKEN\"" "$URL/Library/Refresh")"
     sleep 1
   done
-  rm -f "$WORK/.body"
-  [ -n "$ITEM" ] || { say "the video never appeared in the library"; exit 5; }
+  [ -n "$ITEM" ] || { rm -f "$WORK/.body"; say "the video never appeared in the library"; exit 5; }
   echo "$ITEM" > "$WORK/item.id"; say "library lists qa-steps as item $ITEM"
+  # Phase 20's ADD: both tracks of the Music folder, with the length the server read from each file.
+  : > "$WORK/audio.ids"
+  for i in $(seq 1 120); do
+    code -H "Authorization: MediaBrowser Token=\"$TOKEN\"" "$URL/Items?userId=$USER_ID&recursive=true&includeItemTypes=Audio&sortBy=IndexNumber" >/dev/null
+    python3 -c 'import json,sys
+try:
+    items = [i for i in json.load(open(sys.argv[1])).get("Items", []) if i.get("Name", "").startswith("QA Track") and i.get("RunTimeTicks")]
+    print("\n".join("%s\t%s\t%.3f" % (i["Id"], i["Name"], i["RunTimeTicks"] / 1e7) for i in sorted(items, key=lambda i: i["Name"])))
+except Exception: pass' "$WORK/.body" > "$WORK/audio.ids"
+    [ "$(grep -c . "$WORK/audio.ids")" -ge 2 ] && break
+    [ "$i" = 20 ] && say "POST /Library/Refresh -> $(code -X POST -H "Authorization: MediaBrowser Token=\"$TOKEN\"" "$URL/Library/Refresh")"
+    sleep 1
+  done
+  rm -f "$WORK/.body"
+  [ "$(grep -c . "$WORK/audio.ids")" -ge 2 ] || { say "the two music tracks never appeared in the library"; exit 6; }
+  say "library lists the music tracks: $(tr '\t\n' ' ;' < "$WORK/audio.ids")"
   ;;
 stop|start)
   docker "$cmd" "$(cat "$WORK/container.id")" >/dev/null && echo "$cmd: $(cat "$WORK/container.id" | cut -c1-12)"
@@ -118,7 +150,7 @@ down)
     docker volume rm $(cat "$WORK/volumes") >/dev/null 2>&1 && echo "removed its volumes"
     rm -f "$WORK/volumes"
   fi
-  rm -f "$WORK/admin.token" "$WORK/user.id" "$WORK/item.id"
+  rm -f "$WORK/admin.token" "$WORK/user.id" "$WORK/item.id" "$WORK/audio.ids"
   ;;
 *) echo "unknown command $cmd" >&2; exit 2 ;;
 esac
