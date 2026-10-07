@@ -26,6 +26,8 @@ import org.junit.Test
  *    35+, and nobody below it.
  *  - (ledger L18-1) a controller's item reaches Music's player only as `MusicItemRule` says — a URI is kept for the
  *    shell's own controller and for nobody else — and PLAY_FILE is the shell's alone, through the provider's own rule.
+ *  - (ledger L18-4) every list the session hands the player starts where `MusicQueueStart` says — an index the final
+ *    list has — or the request is refused before the player is touched.
  * Each check has its twin: the same source with the site changed (the reviewers' surviving mutations, applied to a copy
  * in memory) must be caught, so a clean result is never an empty one. That the device does what the source says is
  * still the device legs'.
@@ -241,8 +243,11 @@ class UriAccessWiringScanTest {
 
     // ------------------------------------------------------------------------------------- Music's session (L18-1)
 
-    /** The whole of `onAddMediaItems`, as code: every item of every controller is the rule's to decide, and nothing else's. */
-    private val addItemsForm = "{ val lib by lazy { library() } var notKept = 0 val out = mediaItems.flatMap { item -> " +
+    /**
+     * The whole of `fromLibrary`, as code: every item of every controller is the rule's to decide, and nothing else's —
+     * and what each item became is kept apart (one list per item), so the start of a set can be re-derived (L18-4).
+     */
+    private val partsForm = "{ val lib by lazy { library() } var notKept = 0 val parts = mediaItems.map { item -> " +
         "val hasUri = item.localConfiguration != null " +
         "val decision = MusicItemRule.decide(controller.uid, Process.myUid(), item.mediaId, hasUri, item.requestMetadata.searchQuery != null) " +
         "if (hasUri && decision != MusicItemRule.Decision.Keep) notKept++ " +
@@ -251,9 +256,33 @@ class UriAccessWiringScanTest {
         "MusicItemRule.Decision.Search -> MusicSearch.resolve(item.requestMetadata.searchQuery.orEmpty(), lib)?.queue.orEmpty().map { mediaItem(it) } " +
         "is MusicItemRule.Decision.Rebuild -> lib.firstOrNull { it.id == decision.id }?.let { listOf(mediaItem(it)) }.orEmpty() " +
         "MusicItemRule.Decision.Drop -> emptyList() } } " +
-        "if (notKept > 0) Diagnostics.add(\"music\", \"controller uid \${controller.uid}: \$notKept item(s) came with a uri of their own, none used (\${out.size} from the library)\") " +
-        "if (out.isEmpty()) return Futures.immediateFailedFuture(UnsupportedOperationException(\"nothing to add\")) " +
-        "return Futures.immediateFuture(out.toMutableList()) }"
+        "if (notKept > 0) Diagnostics.add(\"music\", \"controller uid \${controller.uid}: \$notKept item(s) came with a uri of their own, none used (\${parts.sumOf { it.size }} from the library)\") " +
+        "return parts }"
+
+    /** The whole of `onAddMediaItems`: the rule's items, refused before the player is touched when nothing is left (L18-4). */
+    private val addItemsForm = "{ val parts = fromLibrary(controller, mediaItems) " +
+        "if (!MusicQueueStart.mayAdd(parts.map { it.size })) return Futures.immediateFailedFuture(UnsupportedOperationException(\"nothing to add\")) " +
+        "return Futures.immediateFuture(parts.flatten().toMutableList()) }"
+
+    /**
+     * The whole of `onSetMediaItems` (L18-4): a library search, else the rule's items — and in both the index and the
+     * position the player is handed are `MusicQueueStart`'s, worked out from what each item BECAME, never the request's own.
+     */
+    private val setItemsForm = "{ val query = mediaItems.singleOrNull()?.requestMetadata?.searchQuery if (query != null) { " +
+        "val match = MusicSearch.resolve(query, library()) " +
+        "if (match == null) { Diagnostics.add(\"music\", \"search \\\"\${MusicQueueStart.lineQuery(query)}\\\": nothing in the library\") " +
+        "return Futures.immediateFailedFuture(UnsupportedOperationException(\"no match in the library\")) } " +
+        "Diagnostics.add(\"music\", \"search \\\"\${MusicQueueStart.lineQuery(query)}\\\": \${match.kind.name.lowercase()} \${match.label}, \${match.queue.size} track(s)\") " +
+        "return started(match.queue.map { mediaItem(it) }, MusicQueueStart.search(match.queue.size, match.startIndex)) } " +
+        "val parts = fromLibrary(controller, mediaItems) " +
+        "val start = MusicQueueStart.set(parts.map { it.size }, startIndex, startPositionMs) " +
+        "MusicQueueStart.line(controller.uid, parts.map { it.size }, startIndex, start)?.let { Diagnostics.add(\"music\", it) } " +
+        "return started(parts.flatten(), start) }"
+
+    /** The whole of `started`: the one place a list with a start is made for the player — the rule's index and position, or a refusal. */
+    private val startedForm = "{ return when (start) { " +
+        "MusicQueueStart.Start.Refuse -> Futures.immediateFailedFuture(UnsupportedOperationException(\"nothing to play\")) " +
+        "is MusicQueueStart.Start.At -> Futures.immediateFuture(MediaSession.MediaItemsWithStartPosition(items, start.index, start.positionMs)) } }"
 
     /** `playFile` from its first line to the file the provider's own rule resolves: the caller, the URI, then the provider. */
     private val playFileForm = "{ val me = Process.myUid() val decision = MusicPlayExtra.decide(controller.uid, me, null, raw.orEmpty(), FilesProvider.AUTHORITY) " +
@@ -281,15 +310,23 @@ class UriAccessWiringScanTest {
         val service = sources["music/MusicService.kt"].orEmpty()
         val add = body(service, "override fun onAddMediaItems(")
         if (add != addItemsForm) problems += "onAddMediaItems is not its one form:\n  is:      $add\n  must be: $addItemsForm"
+        val parts = body(service, "private fun fromLibrary(controller: MediaSession.ControllerInfo, mediaItems: List<MediaItem>): List<List<MediaItem>>")
+        if (parts != partsForm) problems += "fromLibrary is not its one form:\n  is:      $parts\n  must be: $partsForm"
         val deciders = sources.mapValues { (_, text) -> count(text, "MusicItemRule.decide(") }.filterValues { it > 0 }
         if (deciders != mapOf("music/MusicService.kt" to 1)) problems += "the item rule is asked other than once, by the session: $deciders"
         if (count(service, "localConfiguration") != 1 || service.contains("mediaUri")) problems += "the service reads a controller's URI outside the rule's one question"
-        // A search is the library's answer; anything else is Media3's default, which asks onAddMediaItems.
+        // Ledger L18-4: a set is a library search or the rule's items, and the start the player is handed is always
+        // MusicQueueStart's. Media3's default (which hands the request's own index on beside a shorter list) is not used.
         val set = body(service, "override fun onSetMediaItems(")
-        if (!set.startsWith("{ val query = mediaItems.singleOrNull()?.requestMetadata?.searchQuery ?: return super.onSetMediaItems(mediaSession, controller, mediaItems, startIndex, startPositionMs) val match = MusicSearch.resolve(query, library()) ") ||
-            !set.endsWith("return Futures.immediateFuture( MediaSession.MediaItemsWithStartPosition(match.queue.map { mediaItem(it) }, match.startIndex, 0L), ) }") ||
-            count(service, "MediaItemsWithStartPosition(") != 1 || count(set, "mediaItems") != 2
-        ) problems += "onSetMediaItems hands the player something other than a library search or Media3's default"
+        if (set != setItemsForm) problems += "onSetMediaItems is not its one form:\n  is:      $set\n  must be: $setItemsForm"
+        val started = body(service, "private fun started(items: List<MediaItem>, start: MusicQueueStart.Start): ListenableFuture<MediaSession.MediaItemsWithStartPosition>")
+        if (started != startedForm) problems += "started is not its one form:\n  is:      $started\n  must be: $startedForm"
+        if (count(service, "MediaItemsWithStartPosition(") != 1 || service.contains("super.onSetMediaItems") || service.contains("super.onAddMediaItems") ||
+            count(service, "started(") != 3 || count(service, "fromLibrary(") != 3 ||
+            Regex("\\bstartIndex\\b").findAll(service).count() != 4 || Regex("\\bstartPositionMs\\b").findAll(service).count() != 2
+        ) problems += "a list reaches the player with a start that MusicQueueStart did not work out"
+        val starters = sources.mapValues { (_, text) -> count(text, "MusicQueueStart.set(") + count(text, "MusicQueueStart.search(") + count(text, "MusicQueueStart.mayAdd(") }.filterValues { it > 0 }
+        if (starters != mapOf("music/MusicService.kt" to 3)) problems += "the queue's start is asked other than three times, by the session: $starters"
         if (service.contains("onPlaybackResumption")) problems += "playback resumption is answered: what it hands the player is not held here"
         // The player is handed items by the session (above) and by playFile's one-item queue; nothing else.
         if (count(service, "setMediaItems(") != 1 || !service.contains("player.setMediaItems(listOf(item))") || service.contains("setMediaItem(") || service.contains("addMediaItem") || service.contains("replaceMediaItem")) {
@@ -321,7 +358,8 @@ class UriAccessWiringScanTest {
         fun with(file: String, old: String, new: String) = musicSessionProblems(sources + (file to mutate(sources.getValue(file), old, new)))
         fun service(old: String, new: String) = with("music/MusicService.kt", old, new)
         // The defect itself (H1): items that all carry a URI handed back untouched, before the rule is asked.
-        assertTrue(service("{ val lib by lazy { library() } var notKept = 0", "{ if (mediaItems.all { it.localConfiguration != null }) return Futures.immediateFuture(mediaItems) val lib by lazy { library() } var notKept = 0").isNotEmpty())
+        assertTrue(service("{ val parts = fromLibrary(controller, mediaItems) if (!MusicQueueStart.mayAdd(", "{ if (mediaItems.all { it.localConfiguration != null }) return Futures.immediateFuture(mediaItems) val parts = fromLibrary(controller, mediaItems) if (!MusicQueueStart.mayAdd(").isNotEmpty())
+        assertTrue(service("{ val lib by lazy { library() } var notKept = 0", "{ if (mediaItems.all { it.localConfiguration != null }) return mediaItems.map { listOf(it) } val lib by lazy { library() } var notKept = 0").isNotEmpty())
         // The rule asked about the wrong controller, with the uids swapped round, or with a constant for the shell.
         assertTrue(service("MusicItemRule.decide(controller.uid, Process.myUid(), item.mediaId,", "MusicItemRule.decide(Process.myUid(), Process.myUid(), item.mediaId,").isNotEmpty())
         assertTrue(service("MusicItemRule.decide(controller.uid, Process.myUid(), item.mediaId,", "MusicItemRule.decide(Process.myUid(), controller.uid, item.mediaId,").isNotEmpty())
@@ -332,11 +370,11 @@ class UriAccessWiringScanTest {
         assertTrue(service("is MusicItemRule.Decision.Rebuild -> lib.firstOrNull { it.id == decision.id }?.let { listOf(mediaItem(it)) }.orEmpty()", "is MusicItemRule.Decision.Rebuild -> listOf(item)").isNotEmpty())
         assertTrue(service("lib.firstOrNull { it.id == decision.id }?.let { listOf(mediaItem(it)) }.orEmpty()", "lib.firstOrNull { it.id == decision.id }?.let { listOf(mediaItem(it)) } ?: listOf(item)").isNotEmpty())
         assertTrue(service("when (decision) { MusicItemRule.Decision.Keep ->", "when (if (hasUri) MusicItemRule.Decision.Keep else decision) { MusicItemRule.Decision.Keep ->").isNotEmpty())
-        assertTrue(service("return Futures.immediateFuture(out.toMutableList())", "return Futures.immediateFuture(if (out.size == mediaItems.size) out.toMutableList() else mediaItems)").isNotEmpty())
+        assertTrue(service("return Futures.immediateFuture(parts.flatten().toMutableList())", "return Futures.immediateFuture(if (parts.all { it.size == 1 }) parts.flatten().toMutableList() else mediaItems)").isNotEmpty())
         // A second path round the rule: the set callback answering with the controller's own items, a resumption
         // answered, an item set on the player or given a URI somewhere else, the request's URI read.
-        assertTrue(service("?: return super.onSetMediaItems(mediaSession, controller, mediaItems, startIndex, startPositionMs)", "?: return Futures.immediateFuture(MediaSession.MediaItemsWithStartPosition(mediaItems, startIndex, startPositionMs))").isNotEmpty())
-        assertTrue(service("match.queue.map { mediaItem(it) }, match.startIndex, 0L)", "mediaItems, match.startIndex, 0L)").isNotEmpty())
+        assertTrue(service("val parts = fromLibrary(controller, mediaItems) val start = MusicQueueStart.set(", "if (controller.uid >= 0) return Futures.immediateFuture(MediaSession.MediaItemsWithStartPosition(mediaItems, startIndex, startPositionMs)) val parts = fromLibrary(controller, mediaItems) val start = MusicQueueStart.set(").isNotEmpty())
+        assertTrue(service("return started(match.queue.map { mediaItem(it) }, MusicQueueStart.search(", "return started(mediaItems, MusicQueueStart.search(").isNotEmpty())
         assertTrue(service("override fun onGetSession(", "fun onPlaybackResumption() = Unit override fun onGetSession(").isNotEmpty())
         assertTrue(service("Diagnostics.add(\"music\", MusicFile.line(file.path))", "Diagnostics.add(\"music\", MusicFile.line(file.path)); player.setMediaItem(MediaItem.fromUri(raw.orEmpty()))").isNotEmpty())
         assertTrue(service(".setUri(MusicStore.uriOf(track))", ".setUri(track.path)").isNotEmpty())
@@ -354,6 +392,51 @@ class UriAccessWiringScanTest {
         assertTrue(service("val item = fileItem(uri, file, ask)", "val item = fileItem(uri, File(raw.orEmpty()), ask)").isNotEmpty())
         // The caller check dropped from playFile, or its refusal turned into the play.
         assertTrue(service("if (decision !is MusicPlayExtra.Decision.PlayUri) {", "if (false) {").isNotEmpty())
+    }
+
+    // ------------------------------------------------------------------------------------ Music's queue start (L18-4)
+
+    /**
+     * Ledger L18-4 (the adversarial review's pass 2, N3): when the item rule drops or expands a controller's items, the
+     * request's start index still counts the ORIGINAL list, and ExoPlayer throws for an index its list does not have
+     * only AFTER it has taken the list — the player is wedged. `MusicQueueStart` is the rule (`MusicQueueStartTest`);
+     * held by `musicSessionProblems` above is that the service cannot hand the player a list without it: `onSetMediaItems`,
+     * `onAddMediaItems`, `fromLibrary` and `started` are each one form, the one `MediaItemsWithStartPosition` is made
+     * from the rule's index and position, and Media3's default (the request's own index beside a shorter list) is gone.
+     */
+    @Test fun `L18-4 every list the session hands the player starts where MusicQueueStart says, or is refused first`() {
+        val sources = SourceScan.all()
+        assertEquals(emptyList<String>(), musicSessionProblems(sources))
+        val service = sources.getValue("music/MusicService.kt")
+        assertEquals(setItemsForm, body(service, "override fun onSetMediaItems("))
+        assertEquals(1, count(service, "MusicQueueStart.set(parts.map { it.size }, startIndex, startPositionMs)"))
+    }
+
+    @Test fun `L18-4 a session that hands on the request's own index, clamps by the original list, skips the refusal or goes back to Media3's default is caught`() {
+        val sources = SourceScan.all()
+        fun service(old: String, new: String) = musicSessionProblems(sources + ("music/MusicService.kt" to mutate(sources.getValue("music/MusicService.kt"), old, new)))
+        // The defect itself (N3): Media3's default, or the request's own index and position beside the rule's list.
+        assertTrue(service("val parts = fromLibrary(controller, mediaItems) val start = MusicQueueStart.set(", "if (mediaItems.size > 1) return super.onSetMediaItems(mediaSession, controller, mediaItems, startIndex, startPositionMs) val parts = fromLibrary(controller, mediaItems) val start = MusicQueueStart.set(").isNotEmpty())
+        assertTrue(service("MediaSession.MediaItemsWithStartPosition(items, start.index, start.positionMs)", "MediaSession.MediaItemsWithStartPosition(items, startIndexAsked, start.positionMs)").isNotEmpty())
+        assertTrue(service("return started(parts.flatten(), start) }", "return Futures.immediateFuture(MediaSession.MediaItemsWithStartPosition(parts.flatten(), startIndex, startPositionMs)) }").isNotEmpty())
+        // The rule asked about the wrong list: the request's size instead of what each item became; or after a clamp of the service's own.
+        assertTrue(service("MusicQueueStart.set(parts.map { it.size }, startIndex, startPositionMs)", "MusicQueueStart.set(mediaItems.map { 1 }, startIndex, startPositionMs)").isNotEmpty())
+        assertTrue(service("MusicQueueStart.set(parts.map { it.size }, startIndex, startPositionMs)", "MusicQueueStart.set(parts.map { it.size }, startIndex.coerceAtMost(mediaItems.size - 1), startPositionMs)").isNotEmpty())
+        assertTrue(service("MusicQueueStart.set(parts.map { it.size }, startIndex, startPositionMs)", "MusicQueueStart.Start.At(startIndex.coerceIn(0, parts.size), startPositionMs)").isNotEmpty())
+        // The rule's answer not used: its index dropped, its position swapped for the request's, the refusal answered with an empty list.
+        assertTrue(service("MediaItemsWithStartPosition(items, start.index, start.positionMs)", "MediaItemsWithStartPosition(items, 0, start.positionMs)").isNotEmpty())
+        assertTrue(service("MediaItemsWithStartPosition(items, start.index, start.positionMs)", "MediaItemsWithStartPosition(items, start.index, 0L)").isNotEmpty())
+        assertTrue(service("MusicQueueStart.Start.Refuse -> Futures.immediateFailedFuture(UnsupportedOperationException(\"nothing to play\"))", "MusicQueueStart.Start.Refuse -> Futures.immediateFuture(MediaSession.MediaItemsWithStartPosition(items, 0, 0L))").isNotEmpty())
+        // The search's own index handed on unchecked, and the add's refusal dropped or turned round.
+        assertTrue(service("MusicQueueStart.search(match.queue.size, match.startIndex))", "MusicQueueStart.Start.At(match.startIndex, 0L))").isNotEmpty())
+        assertTrue(service("if (!MusicQueueStart.mayAdd(parts.map { it.size })) return", "if (false) return").isNotEmpty())
+        assertTrue(service("if (!MusicQueueStart.mayAdd(parts.map { it.size })) return", "if (MusicQueueStart.mayAdd(parts.map { it.size })) return").isNotEmpty())
+        // A second maker of a start, anywhere in the shell.
+        assertTrue(musicSessionProblems(sources + ("music/MusicSearch.kt" to sources.getValue("music/MusicSearch.kt") + " fun x() = MusicQueueStart.set(listOf(1), 0, 0L)")).isNotEmpty())
+        // N10: the query raw in either of its two lines.
+        assertTrue(service("\"search \\\"\${MusicQueueStart.lineQuery(query)}\\\": nothing in the library\"", "\"search \\\"\$query\\\": nothing in the library\"").isNotEmpty())
+        assertTrue(service("\"search \\\"\${MusicQueueStart.lineQuery(query)}\\\": \${match.kind.name.lowercase()}", "\"search \\\"\$query\\\": \${match.kind.name.lowercase()}").isNotEmpty())
+        assertTrue(service("UnsupportedOperationException(\"no match in the library\")", "UnsupportedOperationException(\"no match for \\\"\$query\\\"\")").isNotEmpty())
     }
 
     // ---------------------------------------------------------------------------------------------- the capture answer
