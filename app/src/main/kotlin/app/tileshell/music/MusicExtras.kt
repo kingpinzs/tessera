@@ -48,6 +48,13 @@ object MusicCommands {
     const val X_EQ_AVAILABLE = "eqAvailable"
     /** Session extras: the crossfade length in ms, 0 for off (gapless). */
     const val X_CROSSFADE_MS = "crossfadeMs"
+    /**
+     * Session extras (phase 20): "Reconnecting…" or "This station isn't answering" while a station's reconnect clock
+     * says so, else absent. Extras and not metadata, so the tile keeps the last title.
+     */
+    const val X_STREAM_STATE = "streamState"
+    /** Session extras (phase 20): "Streaming over mobile data" (or its Data Saver form) while a station is loaded on a metered network, else absent. */
+    const val X_METERED_LINE = "meteredLine"
 }
 
 object SleepTimer {
