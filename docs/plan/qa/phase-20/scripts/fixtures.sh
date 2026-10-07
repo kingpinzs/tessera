@@ -11,7 +11,7 @@
 # publishing 0.0.0.0:8080 and :8081 — not ours, never stopped), exactly as 8090 was for phase 17 (p17_video.sh:7-11).
 # So the defaults here are 8092 (radio) and 8093 (catalogue); every `10.0.2.2:8080` / `:8081` of the rows reads
 # `10.0.2.2:$P20_RADIO_PORT` / `:$P20_CATALOGUE_PORT`. The bases are debug PREFS, so nothing in the app changes.
-# Override with P20_RADIO_PORT / P20_CATALOGUE_PORT. P20_RADIO_PAGE_CAP (default 2) is radio_fixture.py's --page-cap:
+# Override with P20_RADIO_PORT / P20_CATALOGUE_PORT. P20_RADIO_PAGE_CAP (default 0 = honour the app's own limit; INDEX Change Log 2026-10-07: the app stops at the first page shorter than 2,000 rows, so a capped page would end the directory after it) is radio_fixture.py's --page-cap:
 # the most stations in one /json/stations answer, whatever `limit` asks (0 = `limit` alone decides). `up` refuses a port that something already listens on.
 #
 # State (git-ignored): ../gen/run/<name>.pid, <name>.port, <name>.err. The request log goes to <log dir>/<name>.log
@@ -39,7 +39,7 @@ up_one() {
   if pid="$(live_pid "$name")"; then echo "$name: already up, pid $pid, port $(cat "$RUN/$name.port")"; return 0; fi
   if listening "$port"; then echo "$name: port $port is already in use by something else — set P20_${name^^}_PORT" >&2; return 3; fi
   mkdir -p "$logdir"
-  local extra=(); [ "$name" = radio ] && extra=(--page-cap "${P20_RADIO_PAGE_CAP:-2}")
+  local extra=(); [ "$name" = radio ] && extra=(--page-cap "${P20_RADIO_PAGE_CAP:-0}")
   nohup python3 "$HERE/$(script_of "$name")" --port "$port" --log "$logdir/$name.log" "${extra[@]}" >/dev/null 2>"$RUN/$name.err" &
   pid=$!; echo "$pid" > "$RUN/$name.pid"; echo "$port" > "$RUN/$name.port"
   for i in $(seq 1 50); do

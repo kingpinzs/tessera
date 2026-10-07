@@ -132,9 +132,10 @@ class TrustWiringScanTest {
         "SERVER" to ("video/server/MediaServer.kt" to "ServerRules.signInBase(BuildConfig.DEBUG, "),
         "FILES_RATE" to ("files/FileOpsService.kt" to "FilePace.rate(BuildConfig.DEBUG, "),
         "FILES_SEARCH_RATE" to ("files/FilesState.kt" to "FilePace.searchRate(BuildConfig.DEBUG, "),
-        // Phase 20 (T20-6, r3 D16): the radio directory's base. MUSIC_CATALOGUE and COVERART are named and not read
-        // yet: each gets its one site here with the task that reads it (build task 8).
+        // Phase 20 (T20-6, r3 D16): the radio directory's base, and the music catalogue's and the cover art's (build task 8).
         "RADIO" to ("music/radio/RadioNet.kt" to "CatalogueRules.base(BuildConfig.DEBUG, "),
+        "MUSIC_CATALOGUE" to ("music/catalogue/MusicCatalogueFetcher.kt" to "CatalogueRules.base(BuildConfig.DEBUG, "),
+        "COVERART" to ("music/catalogue/MusicCatalogueFetcher.kt" to "CatalogueRules.base(BuildConfig.DEBUG, "),
     )
     private val GATED = listOf("CatalogueRules.base(BuildConfig.DEBUG, ", "ServerRules.signInBase(BuildConfig.DEBUG, ", "FilePace.rate(BuildConfig.DEBUG, ", "FilePace.searchRate(BuildConfig.DEBUG, ")
     private val PREF_NAMES = Regex("QaBases\\.(CATALOGUE|WIKIDATA|SERVER|FILES_RATE|FILES_SEARCH_RATE|RADIO|MUSIC_CATALOGUE|COVERART)\\b")
@@ -161,7 +162,7 @@ class TrustWiringScanTest {
             // The prefs' names as text: only the three constants, in the one file.
             for (literal in Regex("\"qa_[a-z_]*").findAll(text)) if (file != "video/catalogue/Catalogue.kt") problems += "$file: ${literal.value}\" is spelled outside QaBases"
         }
-        if (reads != 6 || prefsRead != setOf("CATALOGUE", "WIKIDATA", "SERVER", "FILES_RATE", "FILES_SEARCH_RATE", "RADIO")) problems += "the six QA prefs that are read are each read once (reads=$reads, prefs=$prefsRead)"
+        if (reads != 8 || prefsRead != setOf("CATALOGUE", "WIKIDATA", "SERVER", "FILES_RATE", "FILES_SEARCH_RATE", "RADIO", "MUSIC_CATALOGUE", "COVERART")) problems += "the eight QA prefs are each read once (reads=$reads, prefs=$prefsRead)"
         val qa = sources["video/catalogue/Catalogue.kt"].orEmpty()
         if (Regex("\"qa_[a-z_]*\"").findAll(qa).map { it.value }.toList() != listOf("\"qa_catalogue_base\"", "\"qa_wikidata_base\"", "\"qa_server_base\"", "\"qa_files_rate_bps\"", "\"qa_files_search_eps\"", "\"qa_radio_base\"", "\"qa_music_catalogue_base\"", "\"qa_coverart_base\"")) problems += "QaBases names exactly the eight prefs"
         if (!body(qa, "fun read(context: Context, key: String): String?").startsWith("{ if (!BuildConfig.DEBUG) return null ")) problems += "QaBases.read does not begin by returning null outside a debug build"
@@ -215,6 +216,10 @@ class TrustWiringScanTest {
         assertTrue(with("music/radio/RadioNet.kt", radio, "app.getSharedPreferences(\"start_theme\", 0).getString(QaBases.RADIO, null).orEmpty()").isNotEmpty())
         assertTrue(with("music/radio/RadioNet.kt", radio, "$radio + $radio").isNotEmpty())
         assertTrue(with("music/radio/RadioNet.kt", "QaBases.read(app, QaBases.RADIO)", "QaBases.read(app, QaBases.COVERART)").isNotEmpty())
+        // … and the catalogue's two bases (build task 8): the gate a constant at each, and one pref read at the other's place twice.
+        assertEquals(1, with("music/catalogue/MusicCatalogueFetcher.kt", "CatalogueRules.base(BuildConfig.DEBUG, QaBases.read(app, QaBases.MUSIC_CATALOGUE)", "CatalogueRules.base(true, QaBases.read(app, QaBases.MUSIC_CATALOGUE)").size)
+        assertEquals(1, with("music/catalogue/MusicCatalogueFetcher.kt", "CatalogueRules.base(BuildConfig.DEBUG, QaBases.read(app, QaBases.COVERART)", "CatalogueRules.base(!BuildConfig.DEBUG, QaBases.read(app, QaBases.COVERART)").size)
+        assertTrue(with("music/catalogue/MusicCatalogueFetcher.kt", "QaBases.read(app, QaBases.COVERART)", "QaBases.read(app, QaBases.MUSIC_CATALOGUE)").isNotEmpty())
         assertTrue(with("music/radio/StationUrl.kt", "const val NO_SCHEME = \"none\"", "const val NO_SCHEME = \"none\" const val BASE = \"qa_radio_base\"").isNotEmpty())
         assertTrue(with("video/catalogue/Catalogue.kt", "const val RADIO = \"qa_radio_base\"", "").isNotEmpty())
     }

@@ -299,6 +299,38 @@ object MusicPlayer {
         Diagnostics.add("music", "play ${track.title} (${startIndex + 1} of ${queue.size})")
     }
 
+    // ---- phase 20: stations and the home server's tracks -------------------------------------------
+    // What the now-playing screen draws for a live item, read off the SESSION like everything above.
+
+    /** "Reconnecting…" / "This station isn't answering" while the reconnect clock runs (X_STREAM_STATE); else null. */
+    var streamState by mutableStateOf<String?>(null)
+        private set
+
+    /** "Streaming over mobile data" (or its Data Saver form) while a station plays on a metered network; else null. */
+    var meteredLine by mutableStateOf<String?>(null)
+        private set
+
+    /** The playing station's logo, fetched and bounded by the shell (never an artworkUri); null draws the placeholder. */
+    var liveArt by mutableStateOf<ByteArray?>(null)
+        private set
+
+    /** The loaded item is a station: the mark alone, never the duration (an HLS live window reports one). */
+    val isLive: Boolean get() = MusicLive.isLive(nowPlayingId)
+
+    /**
+     * Play [station] through the shell's own controller: the queue is RadioFavourites.queueFor's and always
+     * replaces the queue. Answers null when it started (or is queued until the controller connects), else the
+     * text the page shows instead ("can't play this station", "Sign in to this Wi-Fi network first", …).
+     */
+    fun playStations(context: Context, station: app.tileshell.music.radio.Station): String? {
+        return null // CONTRACT STUB (phase 20 wave 2, the service builder writes the body)
+    }
+
+    /** Play the home server's [tracks] from [startIndex], built by ServerTrackItem; null when started, else the text to show. */
+    fun playServerTracks(context: Context, server: app.tileshell.video.server.MediaServer, tracks: List<app.tileshell.video.server.ServerTrack>, startIndex: Int): String? {
+        return null // CONTRACT STUB (phase 20 wave 2, the service builder writes the body)
+    }
+
     fun release() {
         controller?.removeListener(listener)
         controller?.release()

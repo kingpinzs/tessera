@@ -6,8 +6,11 @@ import android.graphics.BitmapFactory
 import android.os.SystemClock
 import app.tileshell.BuildConfig
 import app.tileshell.diag.Diagnostics
+import app.tileshell.music.MusicNet
+import app.tileshell.video.catalogue.CatalogueRules
 import app.tileshell.video.catalogue.FetchOutcome
 import app.tileshell.video.catalogue.ImageHop
+import app.tileshell.video.catalogue.QaBases
 import app.tileshell.video.catalogue.VideoHttp
 
 /**
@@ -98,15 +101,11 @@ object MusicCatalogueFetcher {
         session ?: run {
             val app = context.applicationContext
             CatalogueSession(
-                // The two fixture routes (`qa_music_catalogue_base`, `qa_coverart_base`) are NOT read on this branch:
-                // `TrustWiringScanTest` holds every QA pref to one constant in `QaBases` and one gated read site, and
-                // phase-20-radio adds the constants. The lead joins them at merge — each line below becomes
-                //   CatalogueRules.base(BuildConfig.DEBUG, <QaBases' read of QaBases.MUSIC_CATALOGUE>, MusicCatalogue.API)
-                //   CatalogueRules.base(BuildConfig.DEBUG, <QaBases' read of QaBases.COVERART>, MusicCatalogue.COVERS)
-                // with the two sites added to that test's SITES / PREF_NAMES lists.
-                apiBase = { MusicCatalogue.API },
-                coverBase = { MusicCatalogue.COVERS },
-                userAgent = userAgent(BuildConfig.VERSION_NAME),
+                // The two fixture routes (T20-6): debug-only prefs, each read at this one site behind the debug gate
+                // (`TrustWiringScanTest`); a release build always gets the real endpoints.
+                apiBase = { CatalogueRules.base(BuildConfig.DEBUG, QaBases.read(app, QaBases.MUSIC_CATALOGUE), MusicCatalogue.API) },
+                coverBase = { CatalogueRules.base(BuildConfig.DEBUG, QaBases.read(app, QaBases.COVERART), MusicCatalogue.COVERS) },
+                userAgent = MusicNet.userAgent(BuildConfig.VERSION_NAME),
                 online = { VideoHttp.online(app) },
                 get = { url, headers -> VideoHttp.get(url, headers) },
                 hop = { url, headers -> VideoHttp.hop(url, headers) },
@@ -115,10 +114,6 @@ object MusicCatalogueFetcher {
             )
         }.also { session = it }
     }
-
-    // = MusicNet.userAgent, joined at merge (phase-20-radio writes the pure rule in `music/radio`). The form is the
-    // hand-off's own Wikidata User-Agent (`StreamingHandoff`): the app's name, its version, what it is.
-    private fun userAgent(version: String): String = "Tessera/$version (personal launcher; Music)"
 
     /** One submitted search (submit-only: never call it as the user types). */
     fun search(context: Context, query: String): MusicCatalogueResult = session(context).search(query)
