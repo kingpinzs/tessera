@@ -1,6 +1,10 @@
 package app.tileshell.music
 
 import androidx.media3.common.C
+import app.tileshell.music.radio.RadioFavourites
+import app.tileshell.music.radio.StationStart
+import app.tileshell.music.radio.StreamGate
+import app.tileshell.music.radio.station
 import app.tileshell.music.MusicQueueStart.Start
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -126,6 +130,38 @@ class MusicQueueStartTest {
         assertFalse(MusicQueueStart.mayAdd(listOf(0, 0, 0)))
         assertFalse(MusicQueueStart.mayAdd(listOf(2, -2)))
         assertFalse(MusicQueueStart.mayAdd(listOf(-1, 3)))
+    }
+
+    @Test fun `a search's station match - the queue of favourites starts at the match`() {
+        val favourites = listOf(station("a"), station("b"), station("c"))
+        // The match is the second favourite: the favourites in order, started at it.
+        val plan = StationStart.plan(StreamGate.Decision(play = true), RadioFavourites.queueFor(station("b"), favourites), null)
+        assertEquals(favourites, plan.stations)
+        assertEquals(Start.At(1, 0L), MusicQueueStart.search(plan.stations.size, plan.start))
+        // A favourite before it that may not play is left out, and the start is still the match.
+        val withRefused = listOf(station("a", url = "file:///sdcard/x.mp3"), station("b"), station("c"))
+        val shorter = StationStart.plan(StreamGate.Decision(play = true), RadioFavourites.queueFor(station("b"), withRefused), null)
+        assertEquals(listOf("b", "c"), shorter.stations.map { it.uuid })
+        assertEquals(Start.At(0, 0L), MusicQueueStart.search(shorter.stations.size, shorter.start))
+        // A match that is no favourite plays alone.
+        val alone = StationStart.plan(StreamGate.Decision(play = true), RadioFavourites.queueFor(station("z"), favourites), null)
+        assertEquals(Start.At(0, 0L), MusicQueueStart.search(alone.stations.size, alone.start))
+        assertEquals(listOf("z"), alone.stations.map { it.uuid })
+        // A refused start hands the player nothing: the request fails and what is playing goes on.
+        val refused = StationStart.plan(StreamGate.Decision(play = false, refusal = "x"), RadioFavourites.queueFor(station("b"), favourites), null)
+        assertEquals(Start.Refuse, MusicQueueStart.search(refused.stations.size, refused.start))
+    }
+
+    @Test fun `a queue of the shell's own starts at the asked item among the kept ones, or not at all`() {
+        assertEquals(0, MusicQueueStart.own(listOf(true), 0))
+        assertEquals(2, MusicQueueStart.own(listOf(true, true, true), 2))
+        assertEquals(1, MusicQueueStart.own(listOf(true, false, true), 2))
+        assertEquals(0, MusicQueueStart.own(listOf(false, false, true, true), 2))
+        // The asked item itself refused, or an index the list does not have: nothing is played in its place.
+        assertEquals(null, MusicQueueStart.own(listOf(true, false, true), 1))
+        assertEquals(null, MusicQueueStart.own(listOf(true, true), 2))
+        assertEquals(null, MusicQueueStart.own(listOf(true, true), -1))
+        assertEquals(null, MusicQueueStart.own(emptyList(), 0))
     }
 
     @Test fun `N10 a search query reaches a diagnostics line with no line break, no control or format character, and capped`() {
