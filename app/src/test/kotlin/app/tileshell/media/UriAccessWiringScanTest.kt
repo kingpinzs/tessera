@@ -74,9 +74,13 @@ class UriAccessWiringScanTest {
         val made = sources.mapValues { (_, text) -> count(text, "AndroidUriAccess(this)") }.filterValues { it > 0 }
         // Phase 18: Music is the fourth activity another app can start with something to weigh (its play extra); it
         // makes the port once, for the launch's caller (`musicProblems` holds that one expression).
-        if (made != mapOf("camera/CaptureActivity.kt" to 1, "photos/ViewerActivity.kt" to 1, "video/PlayerActivity.kt" to 2, "music/MusicActivity.kt" to 1)) problems += "the port is made other than by the four activities, each for itself: $made"
+        // Ledger L18-2: the AlarmClock API handler is the fifth — it makes the port once, for `AlarmApiRules.parse`, which
+        // asks whether the app that started it could read the ringtone it names (`clock/AlarmSoundWiringScanTest` holds
+        // that one expression).
+        val makers = mapOf("camera/CaptureActivity.kt" to 1, "photos/ViewerActivity.kt" to 1, "video/PlayerActivity.kt" to 2, "music/MusicActivity.kt" to 1, "clock/AlarmApiActivity.kt" to 1)
+        if (made != makers) problems += "the port is made other than by the five activities, each for itself: $made"
         val all = sources.filterKeys { it != "media/AndroidUriAccess.kt" }.values.sumOf { Regex("(?<!class )AndroidUriAccess\\(").findAll(it).count() }
-        if (all != 5) problems += "AndroidUriAccess is constructed $all times, not the five of the four activities"
+        if (all != 6) problems += "AndroidUriAccess is constructed $all times, not the six of the five activities"
         return problems
     }
 
@@ -125,6 +129,13 @@ class UriAccessWiringScanTest {
         assertTrue(with("music/MusicActivity.kt", "super.onNewIntent(intent, caller)", "super.onNewIntent(intent, caller); AndroidUriAccess(this)").isNotEmpty())
         assertTrue(with("music/MusicActivity.kt", "takePlay(intent, caller.uid)", "takePlay(intent, currentCaller.uid)").isNotEmpty())
         assertTrue(with("music/MusicService.kt", "val me = Process.myUid()", "val me = Process.myUid(); AndroidUriAccess(null!!)").isNotEmpty())
+        // Ledger L18-2: the AlarmClock handler's one port — a second made there, one made by the exported editor or by
+        // the ring, the handler reading who started it itself, or its port left out.
+        assertTrue(with("clock/AlarmApiActivity.kt", "access = AndroidUriAccess(this),", "access = AndroidUriAccess(this).also { AndroidUriAccess(this).launchedFromUid() },").isNotEmpty())
+        assertTrue(with("clock/AlarmApiActivity.kt", "access = AndroidUriAccess(this),", "access = null,").isNotEmpty())
+        assertTrue(with("clock/AlarmApiActivity.kt", "val caller = callingPackage", "val who = launchedFromUid val caller = callingPackage").isNotEmpty())
+        assertTrue(with("clock/ClockActivity.kt", "AlarmRingtoneRules.fromApi(api.getString(API_SOUND_URI), null)", "AlarmRingtoneRules.fromApi(api.getString(API_SOUND_URI), AndroidUriAccess(this))").isNotEmpty())
+        assertTrue(with("clock/RingService.kt", "AlarmRingtoneRules.sinkRefusal(uri)", "AlarmRingtoneRules.sinkRefusal(uri.also { checkUriPermission(Uri.parse(it), -1, 0, 1) })").isNotEmpty())
     }
 
     // ------------------------------------------------------------------------------------------- Music's play extra

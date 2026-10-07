@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import app.tileshell.clock.AlarmApiRules.Request
 import app.tileshell.diag.Diagnostics
+import app.tileshell.media.AndroidUriAccess
 
 /**
  * The `AlarmClock` API handler (phase 15 T15-37; trust item (j)): an exported, translucent trampoline guarded by
@@ -32,7 +33,15 @@ class AlarmApiActivity : ComponentActivity() {
             lengthSeconds = intExtra(AlarmClock.EXTRA_LENGTH),
             ringtone = intent.getStringExtra(AlarmClock.EXTRA_RINGTONE),
             vibrate = if (intent.hasExtra(AlarmClock.EXTRA_VIBRATE)) intent.getBooleanExtra(AlarmClock.EXTRA_VIBRATE, true) else null,
+            access = AndroidUriAccess(this),
         )
+        // L18-2: a ringtone the caller could not have read itself is not kept; the line names why, never the caller's text.
+        val refusedSound = when (request) {
+            is Request.CreateAlarm -> request.fields.soundRefused
+            is Request.EditAlarm -> request.fields.soundRefused
+            else -> null
+        }
+        refusedSound?.let { Diagnostics.add("alarms", "api ringtone not kept ($it) -> default sound") }
         val store = ClockStore.get(this)
         val result = when (request) {
             is Request.CreateAlarm -> {

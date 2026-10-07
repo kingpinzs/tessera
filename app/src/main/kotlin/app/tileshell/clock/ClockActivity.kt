@@ -283,7 +283,9 @@ class ClockActivity : ComponentActivity() {
                 val days = api.getIntArray(API_DAYS)?.map { DayOfWeek.of(it) }?.toSet().orEmpty()
                 val sound = when (api.getString(API_SOUND_KIND)) {
                     AlarmSound.Kind.VIBRATE.name -> AlarmSound(AlarmSound.Kind.VIBRATE)
-                    AlarmSound.Kind.TONE.name -> AlarmSound(AlarmSound.Kind.TONE, api.getString(API_SOUND_URI), null)
+                    // L18-2: this activity is exported and the bundle is only a bundle, so the sound it names is weighed
+                    // again, as for a caller nobody can be asked about: a sound every app can read, else the default.
+                    AlarmSound.Kind.TONE.name -> AlarmRingtoneRules.fromApi(api.getString(API_SOUND_URI), null).sound
                     else -> AlarmSound.DEFAULT
                 }
                 val base = AlarmDraft.new()

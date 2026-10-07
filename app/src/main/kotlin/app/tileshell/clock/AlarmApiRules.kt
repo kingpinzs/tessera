@@ -1,5 +1,6 @@
 package app.tileshell.clock
 
+import app.tileshell.media.UriAccessPort
 import java.time.DayOfWeek
 
 /**
@@ -20,8 +21,11 @@ object AlarmApiRules {
     /** The message ceiling (the trust list: "a message ≤ 64 characters"). */
     const val MAX_MESSAGE = 64
 
-    /** What an alarm request carries once validated. */
-    data class AlarmFields(val hour: Int?, val minute: Int, val days: Set<DayOfWeek>, val message: String, val sound: AlarmSound)
+    /**
+     * What an alarm request carries once validated. [soundRefused] is why the ringtone it asked for was not kept and
+     * the default sound stands in its place ([AlarmRingtoneRules]), else null.
+     */
+    data class AlarmFields(val hour: Int?, val minute: Int, val days: Set<DayOfWeek>, val message: String, val sound: AlarmSound, val soundRefused: String? = null)
 
     sealed interface Request {
         /** `EXTRA_SKIP_UI`: the alarm is created and switched on. [fields].hour is never null here. */
@@ -39,6 +43,11 @@ object AlarmApiRules {
      * [days] are `AlarmClock.EXTRA_DAYS` values (java.util.Calendar's SUNDAY = 1 … SATURDAY = 7); [lengthSeconds]
      * is `EXTRA_LENGTH`; [ringtone] is `EXTRA_RINGTONE` ("silent" or a content URI); [vibrate] is `EXTRA_VIBRATE`,
      * accepted and not acted on (the ring always vibrates, Decisions "Ringing").
+     *
+     * The ringtone is another app's word for something the ring will open with the shell's identity (ledger L18-2):
+     * [AlarmRingtoneRules.fromApi] keeps it only when it is a system sound the caller could read itself — asked of
+     * [access], the platform port of the activity the caller started — and anything else is the default sound. The
+     * alarm itself is never refused for its ringtone.
      */
     fun parse(
         action: String?,
@@ -50,6 +59,7 @@ object AlarmApiRules {
         lengthSeconds: Int?,
         ringtone: String?,
         @Suppress("UNUSED_PARAMETER") vibrate: Boolean?,
+        access: UriAccessPort?,
     ): Request {
         val text = message.orEmpty().trim()
         if (text.length > MAX_MESSAGE) return Request.Refused("message longer than $MAX_MESSAGE characters")
@@ -63,13 +73,8 @@ object AlarmApiRules {
                     if (d !in 1..7) return Request.Refused("days out of range")
                     DayOfWeek.of((d + 5) % 7 + 1)
                 }.toSet()
-                val sound = when {
-                    ringtone == null -> AlarmSound.DEFAULT
-                    ringtone == RINGTONE_SILENT -> AlarmSound(AlarmSound.Kind.VIBRATE)
-                    ringtone.isBlank() -> AlarmSound.DEFAULT
-                    else -> AlarmSound(AlarmSound.Kind.TONE, ringtone, null)
-                }
-                val fields = AlarmFields(hour, minute, daySet, text, sound)
+                val tone = AlarmRingtoneRules.fromApi(ringtone, access)
+                val fields = AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused)
                 // No hour: the API says the app's UI should open for the user to pick one, SKIP_UI or not.
                 if (hour == null || !skipUi) Request.EditAlarm(fields) else Request.CreateAlarm(fields)
             }

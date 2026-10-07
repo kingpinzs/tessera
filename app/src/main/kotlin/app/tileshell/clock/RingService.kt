@@ -269,6 +269,12 @@ class RingService : Service() {
                 AlarmSounds.byUri(uri)?.let { brand ->
                     return Uri.fromFile(AlarmSounds.file(this, brand)).also { Diagnostics.add("alarms", "ring $id sound=$uri") }
                 }
+                // L18-2: whatever the store holds, the ring opens only a content URI that is not one of the shell's own
+                // providers (never a file: URI or a path) — it would be opened with the shell's identity.
+                AlarmRingtoneRules.sinkRefusal(uri)?.let { why ->
+                    Diagnostics.add("alarms", "ring $id sound refused ($why) -> default")
+                    return default()
+                }
                 if (sound.kind == AlarmSound.Kind.MUSIC && !getSystemService(UserManager::class.java).isUserUnlocked) {
                     // Before the first unlock the music on shared storage cannot be read (T15-22).
                     Diagnostics.add("alarms", "sound $uri locked -> default")
