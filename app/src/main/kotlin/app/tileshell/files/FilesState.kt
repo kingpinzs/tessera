@@ -176,7 +176,7 @@ class FilesState(context: Context, val actions: FilesActions) {
                 history.reset(asked.location)
                 paneOpen = false
                 if (asked.location is FilesLocation.Folder && request.from != null) {
-                    say("open at ${FilePaths.lineText(asked.location.path)} (from ${caller(request.from)})")
+                    say(FilesIntents.openAtLine(asked.location.path, request.from))
                 }
                 showName = request.name?.takeIf { asked.location is FilesLocation.Folder && FilePaths.validName(it) }
                 show(asked.location)
@@ -194,9 +194,6 @@ class FilesState(context: Context, val actions: FilesActions) {
         paneOpen = true
         show(FilesLocation.Recent)
     }
-
-    /** A caller's name fit for a diagnostics line: letters, digits, `.`, `_` and `-`, 32 at most. */
-    private fun caller(from: String): String = from.filter { it.isLetterOrDigit() || it in "._-" }.take(32).ifEmpty { "unknown" }
 
     /** On every resume: a folder deleted while Files was away reads "This folder is gone"; one that changed is re-read. */
     fun revalidate() {

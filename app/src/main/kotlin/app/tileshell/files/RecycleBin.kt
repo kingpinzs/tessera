@@ -30,6 +30,9 @@ import java.io.File
  *     and restores to `Download/Restored/`. A bin name is one plain file name. Nothing here follows a symlink.
  *  4. **A row says where Restore will put it** ([Entry.restoreDir]), and Restore puts it exactly there
  *     ([restoreTarget] answers both), so the user sees the destination before the tap.
+ *  5. **The bin is `<volume>/.Tessera/bin` itself, or it is not used** ([usable]): when that path resolves anywhere
+ *     else (the folder, or `.Tessera`, replaced by a link) a delete fails and the file stays, and list / restore / purge
+ *     / empty touch nothing and say [UNUSABLE]. The bin's own names ([RESERVED]) are its own in any case (FAT).
  *
  * @param say one `[files]` diagnostics line, without its tag
  */
@@ -69,6 +72,10 @@ class RecycleBin(
     @Synchronized
     fun list(volume: FileVolume): List<Entry> {
         val bin = binDir(volume)
+        if (!usable(volume)) {
+            say("bin index ${volume.root}: unusable ($UNUSABLE)")
+            return emptyList()
+        }
         if (!FilePaths.isRealDirectory(bin)) {
             say("bin index ${volume.root}: 0 entries")
             return emptyList()
@@ -84,7 +91,7 @@ class RecycleBin(
     /** The bin's entry count and bytes for [volume], without a line and without changing anything (phase 19's reader). */
     @Synchronized
     fun stats(volume: FileVolume): Stats {
-        if (!FilePaths.isRealDirectory(binDir(volume))) return Stats(0, 0)
+        if (!usable(volume) || !FilePaths.isRealDirectory(binDir(volume))) return Stats(0, 0)
         val entries = entries(volume, load(volume).records)
         return Stats(entries.size, entries.sumOf { it.size })
     }
@@ -95,6 +102,7 @@ class RecycleBin(
     @Synchronized
     internal fun delete(file: File, volume: FileVolume): String? {
         if (!FilePaths.existsNoFollow(file)) return "not found"
+        if (!usable(volume)) return UNUSABLE
         val bin = binDir(volume)
         var rebuilt: String? = null
         if (!FilePaths.isRealDirectory(bin)) {
@@ -149,6 +157,7 @@ class RecycleBin(
     @Synchronized
     internal fun restore(entry: Entry, conflict: (File) -> Conflict, displace: (File) -> String?): Restored {
         val volume = entry.volume
+        if (!usable(volume)) return Restored.Failed(UNUSABLE, entry.binName)
         val source = binFile(volume, entry.binName) ?: return Restored.Failed("not a bin entry", entry.binName)
         // The record is asked again here: an entry is only as good as the read it came from.
         var target = restoreTarget(volume, entry.originalPath?.takeIf { restorable(it, volume) }, entry.binName)
@@ -186,6 +195,7 @@ class RecycleBin(
     /** "Delete permanently": [entry]'s file and record are gone. Returns null when done, else why not. */
     @Synchronized
     internal fun purge(entry: Entry): String? {
+        if (!usable(entry.volume)) return UNUSABLE
         val source = binFile(entry.volume, entry.binName) ?: return "not a bin entry"
         if (!FilePaths.deleteTree(source)) return "could not be deleted"
         return try {
@@ -200,10 +210,11 @@ class RecycleBin(
     /** "Empty": everything in [volume]'s bin but its marker and its index, which is left holding zero records. Null when done. */
     @Synchronized
     internal fun empty(volume: FileVolume): String? {
+        if (!usable(volume)) return UNUSABLE
         val bin = binDir(volume)
         if (!FilePaths.isRealDirectory(bin)) return null
         var failed = 0
-        bin.listFiles()?.forEach { if (it.name !in RESERVED && !FilePaths.deleteTree(it)) failed++ }
+        bin.listFiles()?.forEach { if (!reserved(it.name) && !FilePaths.deleteTree(it)) failed++ }
         return try {
             writeIndex(volume, load(volume).records)
             if (failed == 0) null else "$failed could not be deleted"
@@ -220,7 +231,7 @@ class RecycleBin(
             Entry(volume, r.bin, File(r.path).name.ifEmpty { r.bin }, r.path, r.deletedAt, r.size, FilePaths.isRealDirectory(File(bin, r.bin)))
         }
         val known = records.map { it.bin }.toHashSet()
-        val loose = bin.listFiles().orEmpty().filter { it.name !in RESERVED && it.name !in known }.sortedBy { it.name }.map { f ->
+        val loose = bin.listFiles().orEmpty().filter { !reserved(it.name) && it.name !in known }.sortedBy { it.name }.map { f ->
             Entry(volume, f.name, f.name, null, null, FilePaths.treeBytes(f), FilePaths.isRealDirectory(f))
         }
         return indexed + loose
@@ -255,7 +266,17 @@ class RecycleBin(
     /** The bin file a name stands for — only a plain name directly in the bin, never the marker or the index. */
     private fun binFile(volume: FileVolume, binName: String): File? = if (plainBinName(binName)) File(binDir(volume), binName) else null
 
-    private fun plainBinName(name: String): Boolean = FilePaths.validName(name) && name !in RESERVED
+    private fun plainBinName(name: String): Boolean = FilePaths.validName(name) && !reserved(name)
+
+    /**
+     * Rule 5: [volume]'s bin path resolves to exactly `<its root, resolved>/.Tessera/bin` — so nothing the bin lists,
+     * moves or deletes lies anywhere else. A bin that does not exist yet resolves to itself and is usable.
+     */
+    private fun usable(volume: FileVolume): Boolean {
+        val root = runCatching { canonical(volume.root) }.getOrNull()?.trimEnd('/') ?: return false
+        val bin = runCatching { canonical(binDir(volume).path) }.getOrNull() ?: return false
+        return bin == "$root/${FilePaths.SHELL_DIR}/$BIN_DIR"
+    }
 
     /**
      * Rule 3: a record's original path is used only in the form a delete writes. Each clause is one way a forged index
@@ -323,6 +344,12 @@ class RecycleBin(
 
         /** The bin's own two files (and the index's temp): never listed, restored, purged or emptied. */
         val RESERVED = setOf(NOMEDIA, INDEX, "$INDEX.tmp")
+
+        /** [name] is one of [RESERVED], in any case: on a case-folding volume `.NOMEDIA` IS the marker. */
+        fun reserved(name: String): Boolean = RESERVED.any { it.equals(name, ignoreCase = true) }
+
+        /** Why a bin that is not `<volume>/.Tessera/bin` itself does nothing (rule 5). */
+        const val UNUSABLE = "the bin folder is not the shell's own"
 
         fun binDir(volume: FileVolume): File = File(File(volume.root, FilePaths.SHELL_DIR), BIN_DIR)
     }

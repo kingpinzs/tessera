@@ -4,6 +4,8 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.IOException
+import java.nio.file.Files
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -19,7 +21,9 @@ sealed interface NestedZip {
  * [FileOps]' zip half (T18-2, r3 D6): extract, create and the nested-zip copy, reached only through [FileOps]. The
  * guards that make extraction safe, each proven by `FileOpsZipTest` on `make_zips.py`'s fixtures:
  *  - **entry names**: an entry whose name is absolute or holds `..` ([ZipNames.normalise]), or whose canonical path
- *    would land outside the extract root, is refused with `zip: refused entry <name>` while the others extract;
+ *    would land outside the extract root, is refused with `zip: refused entry <name>` while the others extract; so is
+ *    an entry with no place beside the ones already written (a second entry of one name, a file where a folder is or
+ *    a folder where a file is) and one whose name the volume will not take ([ZipNames.unwritable]);
  *  - **free space**: the declared uncompressed total of what will be written is summed first and the extract refused
  *    above the volume's free space − 50 MB, before any write — `zip: refused (needs <bytes>, free <bytes>)`;
  *  - **the bomb**: no byte is written past the declared total + 1 MB; the extract stops, its temp folder is removed —
@@ -87,11 +91,23 @@ internal class ZipWrites(
                     // The name guard's second half: where this would really be written.
                     val outCanon = ops.canonicalOf(out)
                     if (outCanon == null || !FilePaths.under(outCanon, rootCanon)) { refused(e); continue }
-                    if (e.isDirectory) { out.mkdirs(); continue }
-                    out.parentFile?.mkdirs()
+                    // An entry that has no place beside the ones already written — a second one of its name, a file
+                    // where the archive made a folder (or the reverse, or under a file), a name the volume will not
+                    // take — is refused by itself; the others extract (the GATE review's L13).
+                    val folder = if (e.isDirectory) out else out.parentFile ?: root
+                    if (blocked(root, folder) || (!e.isDirectory && FilePaths.existsNoFollow(out))) { refused(e); continue }
+                    val stream = try {
+                        Files.createDirectories(folder.toPath())
+                        if (e.isDirectory) continue
+                        FileOutputStream(out)
+                    } catch (io: IOException) {
+                        if (!ZipNames.unwritable(io)) throw io
+                        refused(e)
+                        continue
+                    }
                     try {
                         // A symlink entry's data is its link text: it lands in a regular file like any other entry (r3 D6).
-                        archive.input(e).use { input -> FileOutputStream(out).use { meter.pump(input, it, limit = saturatingAdd(declared, BOMB_ALLOWANCE)) } }
+                        archive.input(e).use { input -> stream.use { meter.pump(input, it, limit = saturatingAdd(declared, BOMB_ALLOWANCE)) } }
                     } catch (o: Overrun) {
                         say("zip: stopped at ${o.written} (declared $declared)")
                         throw o
@@ -238,6 +254,16 @@ internal class ZipWrites(
     }
 
     private fun refused(e: ZipEntryInfo) = say("zip: refused entry ${FilePaths.lineText(e.name)}")
+
+    /** Something that is not a folder already stands at [dir] or above it, inside [root]: no folder can be made there. */
+    private fun blocked(root: File, dir: File): Boolean {
+        var d: File? = dir
+        while (d != null && d != root) {
+            if (FilePaths.existsNoFollow(d) && !d.isDirectory) return true
+            d = d.parentFile
+        }
+        return false
+    }
 
     /** Refuses, before any write, a declared size the volume cannot take with [SPACE_MARGIN] to spare. */
     private fun roomFor(declared: Long, dir: File) {

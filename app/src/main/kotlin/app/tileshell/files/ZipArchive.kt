@@ -37,6 +37,11 @@ class ZipFormatException(message: String) : Exception(message)
  * Files' own central-directory reader (r3 D6): the end record (zip64's when there is one), then every entry's flags,
  * sizes, name bytes and Unix mode. It reads the directory only — no entry's data — so it is the same cost for a 3 GB
  * entry as for an empty one.
+ *
+ * What the end record CLAIMS is bounded before anything is allocated for it (the GATE review's L10): at most
+ * [MAX_ENTRIES] entries and [MAX_DIRECTORY_BYTES] of directory, and a count that could not fit in its directory is
+ * damage. The directory is then read through one [WINDOW]-byte buffer, an entry at a time — never into one array of
+ * its own size.
  */
 object ZipCentral {
     private const val SIG_END = 0x06054b50L
@@ -46,15 +51,24 @@ object ZipCentral {
     private const val END_SIZE = 22
     private const val FLAG_UTF8 = 0x800
 
-    /** A directory bigger than this is not read into memory (70,000 entries take about 4 MB). */
-    private const val MAX_DIRECTORY_BYTES = 256L * 1024 * 1024
+    private const val ENTRY_SIZE = 46
+
+    /** More entries than this is "too many entries": no list of them is ever built (the fixtures' largest is 70,000). */
+    const val MAX_ENTRIES = 100_000
+
+    /** A directory bigger than this is "too many entries" too (70,000 entries take about 4 MB). */
+    const val MAX_DIRECTORY_BYTES = 16L * 1024 * 1024
+
+    /** The reader's one buffer: bigger than the biggest entry (46 bytes and three fields of at most 65,535). */
+    private const val WINDOW = 256 * 1024
 
     @Throws(ZipFormatException::class)
     fun read(file: File): List<ZipEntryInfo> = try {
         RandomAccessFile(file, "r").use(::read)
     } catch (e: ZipFormatException) {
         throw e
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
+        // An Error too (OutOfMemoryError): a file never takes the process down by being read.
         throw ZipFormatException("unreadable (${e.javaClass.simpleName})")
     }
 
@@ -90,29 +104,45 @@ object ZipCentral {
                 offset = u64(rec, 48)
             }
         }
-        if (size < 0 || offset < 0 || count < 0 || offset + size > length) throw ZipFormatException("damaged (central directory)")
-        if (size > MAX_DIRECTORY_BYTES) throw ZipFormatException("too many entries")
-        val dir = ByteArray(size.toInt())
-        raf.seek(offset)
-        raf.readFully(dir)
+        if (size < 0 || offset < 0 || count < 0 || size > length || offset > length - size) throw ZipFormatException("damaged (central directory)")
+        // The claim is weighed before a byte of the directory is read or a list is made for it.
+        if (count > MAX_ENTRIES || size > MAX_DIRECTORY_BYTES) throw ZipFormatException("too many entries")
+        if (count * ENTRY_SIZE > size) throw ZipFormatException("damaged (central directory)")
 
         val zone = ZoneId.systemDefault()
-        val out = ArrayList<ZipEntryInfo>(minOf(count, 1_000_000L).toInt())
-        var p = 0
+        val out = ArrayList<ZipEntryInfo>(count.toInt())
+        // One window over the directory: `dir[p]` is the byte at `windowAt + p` of the file.
+        val dir = ByteArray(minOf(size, WINDOW.toLong()).toInt())
+        var windowAt = offset
+        var held = 0
+        val dirEnd = offset + size
+        var at = offset
+        /** Makes the [n] bytes at [at] readable and returns their index in [dir]; past the directory's end is damage. */
+        fun need(n: Int): Int {
+            if (n > dir.size || at + n > dirEnd) throw ZipFormatException("damaged (central directory)")
+            if (at < windowAt || at + n > windowAt + held) {
+                windowAt = at
+                held = minOf(dir.size.toLong(), dirEnd - at).toInt()
+                raf.seek(at)
+                raf.readFully(dir, 0, held)
+            }
+            return (at - windowAt).toInt()
+        }
         while (out.size < count) {
-            if (p + 46 > dir.size || u32(dir, p) != SIG_ENTRY) throw ZipFormatException("damaged (central directory)")
-            val madeBy = u16(dir, p + 4)
-            val flags = u16(dir, p + 8)
+            var p = need(ENTRY_SIZE)
+            if (u32(dir, p) != SIG_ENTRY) throw ZipFormatException("damaged (central directory)")
             val nameLen = u16(dir, p + 28)
             val extraLen = u16(dir, p + 30)
             val commentLen = u16(dir, p + 32)
+            val whole = ENTRY_SIZE + nameLen + extraLen + commentLen
+            p = need(whole)
+            val madeBy = u16(dir, p + 4)
+            val flags = u16(dir, p + 8)
             val mode = (u32(dir, p + 38) ushr 16).toInt()
             var compressed = u32(dir, p + 20)
             var plain = u32(dir, p + 24)
-            val next = p + 46 + nameLen + extraLen + commentLen
-            if (next > dir.size) throw ZipFormatException("damaged (central directory)")
             // The zip64 extra holds, in this order, only the values whose 32-bit field is all ones.
-            var x = p + 46 + nameLen
+            var x = p + ENTRY_SIZE + nameLen
             val extraEnd = x + extraLen
             while (x + 4 <= extraEnd) {
                 val id = u16(dir, x)
@@ -125,7 +155,7 @@ object ZipCentral {
                 x += 4 + len
             }
             if (plain < 0 || compressed < 0) throw ZipFormatException("damaged (entry size)")
-            val raw = dir.copyOfRange(p + 46, p + 46 + nameLen)
+            val raw = dir.copyOfRange(p + ENTRY_SIZE, p + ENTRY_SIZE + nameLen)
             out += ZipEntryInfo(
                 index = out.size,
                 name = if (flags and FLAG_UTF8 != 0) String(raw, Charsets.UTF_8) else Cp437.decode(raw),
@@ -138,7 +168,7 @@ object ZipCentral {
                 // Host 3 = Unix; S_IFMT 0170000, S_IFLNK 0120000.
                 isSymlink = madeBy ushr 8 == 3 && mode and 0xF000 == 0xA000,
             )
-            p = next
+            at += whole
         }
         return out
     }
@@ -180,6 +210,17 @@ object ZipNames {
         val parts = name.split('/').filter { it.isNotEmpty() && it != "." }
         if (parts.isEmpty() || parts.any { it == ".." }) return null
         return parts.joinToString("/")
+    }
+
+    /**
+     * Creating an entry's file or folder failed because of its NAME, not because of the volume: `ENAMETOOLONG` (a
+     * segment over the volume's limit) or `EINVAL` (a character the volume's filesystem rejects — a backslash, a colon
+     * or a trailing dot on FAT). That entry is refused by itself. Anything else — no space, the volume gone, no access
+     * — is the extract's failure and is not answered here.
+     */
+    fun unwritable(e: java.io.IOException): Boolean {
+        val why = (e.message.orEmpty() + " " + ((e as? java.nio.file.FileSystemException)?.reason.orEmpty())).lowercase()
+        return listOf("enametoolong", "file name too long", "einval", "invalid argument").any { it in why }
     }
 
     /** A zip by its name: what opens as a folder (and, inside a zip, the one kind of entry that opens — r3 D6). */
@@ -276,15 +317,33 @@ class ZipArchive private constructor(
                 say("zip: encrypted $path")
                 return ZipOpen.Encrypted
             }
-            val zip = try { openZip(file) } catch (e: Exception) { return failed("unreadable (${e.javaClass.simpleName})") }
-            val handles = try { zip.entries().toList() } catch (e: Exception) { zip.close(); return failed("unreadable (${e.javaClass.simpleName})") }
-            // The pairing by position holds only if the platform read the same directory Files did.
-            val same = handles.size == entries.size && entries.indices.all { i ->
-                handles[i].crc == entries[i].crc && handles[i].size == entries[i].size && handles[i].compressedSize == entries[i].compressedSize
+            // Whatever the platform's reader throws — an Error too (OutOfMemoryError on a hostile file) — is this
+            // zip's failure with its line, never the process's (the GATE review's L10).
+            var zip: ZipFile? = null
+            return try {
+                zip = openZip(file)
+                // No more handles are ever held than Files' own reading of the directory found entries.
+                val handles = ArrayList<ZipEntry>(entries.size)
+                val all = zip.entries()
+                var same = true
+                while (same && all.hasMoreElements()) {
+                    val handle = all.nextElement()
+                    // The pairing by position holds only if the platform read the same directory Files did.
+                    val mine = entries.getOrNull(handles.size)
+                    same = mine != null && handle.crc == mine.crc && handle.size == mine.size && handle.compressedSize == mine.compressedSize
+                    if (same) handles += handle
+                }
+                if (!same || handles.size != entries.size) {
+                    zip.close()
+                    failed("unreadable (directory mismatch)")
+                } else {
+                    say("zip open $path: ${entries.size} entries")
+                    ZipOpen.Opened(ZipArchive(file, zip, entries, handles))
+                }
+            } catch (e: Throwable) {
+                runCatching { zip?.close() }
+                failed("unreadable (${e.javaClass.simpleName})")
             }
-            if (!same) { zip.close(); return failed("unreadable (directory mismatch)") }
-            say("zip open $path: ${entries.size} entries")
-            return ZipOpen.Opened(ZipArchive(file, zip, entries, handles))
         }
     }
 }
