@@ -502,7 +502,9 @@ class FilesState(context: Context, val actions: FilesActions) {
                     FileEntry(
                         FileRow(e.name, e.isDirectory, e.size, e.deletedAt ?: 0L),
                         File(RecycleBin.binDir(v.volume), e.binName).path, v.uuid,
-                        listOfNotNull(date, v.paneLabel).joinToString(" "), FileKind.of(e.name, e.isDirectory), EntrySource.BIN, bin = e,
+                        // Where Restore will put it, so the destination is seen before the tap (the GATE review's M5).
+                        FileListing.binDetail(date, e.restoreDir, v.volume.root, v.paneLabel, mounted.size > 1),
+                        FileKind.of(e.name, e.isDirectory), EntrySource.BIN, bin = e,
                     )
                 }
             }.sortedWith(compareByDescending<FileEntry> { it.row.modifiedMs }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.name })

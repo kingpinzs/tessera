@@ -23,9 +23,13 @@ import java.io.File
  *     `<volume>/Download/Restored/`, with `bin index <volume>: rebuilt (<why>)`; a record whose file is gone is dropped
  *     on the next read; a bin file with no record lists by its bin name; a bin folder that is gone is made again by the
  *     next delete (`rebuilt (bin folder missing)`).
- *  3. **The index is shared storage, so it is not trusted.** A record's original path is honoured only when it resolves
- *     under its own volume and outside `.Tessera`; anything else restores to `Download/Restored/`. A bin name is one
- *     plain file name. Nothing here follows a symlink.
+ *  3. **The index is shared storage, so it is not trusted.** A record's original path is honoured only in the exact
+ *     form a delete writes ([restorable]): already canonical (no `.` or `..` segment, no doubled separator, no link on
+ *     the way), under its own volume, not the volume's root, outside `.Tessera` and outside `Android/`, ending in a
+ *     valid name. Any other record is no record at all: it is dropped at the next read, its file lists by its bin name
+ *     and restores to `Download/Restored/`. A bin name is one plain file name. Nothing here follows a symlink.
+ *  4. **A row says where Restore will put it** ([Entry.restoreDir]), and Restore puts it exactly there
+ *     ([restoreTarget] answers both), so the user sees the destination before the tap.
  *
  * @param say one `[files]` diagnostics line, without its tag
  */
@@ -48,6 +52,9 @@ class RecycleBin(
         val isDirectory: Boolean,
     ) {
         val indexed: Boolean get() = originalPath != null
+
+        /** The folder Restore puts this entry in: its original folder, or `<volume>/Download/Restored` with no record (rule 4). */
+        val restoreDir: String get() = restoreTarget(volume, originalPath, binName).parent ?: volume.root
     }
 
     /** The published reader's answer for phase 19 (T18-9): how many entries a volume's bin holds, and their bytes. */
@@ -107,8 +114,10 @@ class RecycleBin(
         var name: String
         do { name = FilePaths.fitName("$now-${seq++}-", file.name, isDirectory = FilePaths.isRealDirectory(file)) } while (name.lowercase() in taken)
 
-        // The record FIRST (r3 D3): a file is never in the bin without its original path on record.
-        val record = Record(name, file.path, now, FilePaths.treeBytes(file))
+        // The record FIRST (r3 D3): a file is never in the bin without its original path on record — in the canonical
+        // form of its folder, the only form a read honours (rule 3).
+        val folder = file.absoluteFile.parentFile?.let { runCatching { canonical(it.path) }.getOrNull() }
+        val record = Record(name, if (folder == null) file.path else File(folder, file.name).path, now, FilePaths.treeBytes(file))
         try {
             writeIndex(volume, index.records + record)
         } catch (e: Exception) {
@@ -141,7 +150,8 @@ class RecycleBin(
     internal fun restore(entry: Entry, conflict: (File) -> Conflict, displace: (File) -> String?): Restored {
         val volume = entry.volume
         val source = binFile(volume, entry.binName) ?: return Restored.Failed("not a bin entry", entry.binName)
-        var target = entry.originalPath?.let(::File)?.takeIf { restorable(it, volume) } ?: File(File(volume.root, RESTORED_DIR), entry.binName)
+        // The record is asked again here: an entry is only as good as the read it came from.
+        var target = restoreTarget(volume, entry.originalPath?.takeIf { restorable(it, volume) }, entry.binName)
         // Whatever the record says and wherever a folder on the way leads: never back into the shell's own folder.
         if (FilePaths.inShellDir(target.path, volume, canonical)) return Restored.Failed(FileOps.SHELL, target.path)
         if (!FilePaths.existsNoFollow(source)) return Restored.Failed("not in the bin any more", target.path)
@@ -230,7 +240,8 @@ class RecycleBin(
             val name = o?.jsonString("bin")
             val path = o?.jsonString("path")
             val ok = o != null && name != null && path != null && plainBinName(name) && seen.add(name.lowercase()) && FilePaths.existsNoFollow(File(bin, name))
-            if (!ok) { dropped = true; return@mapNotNull null }
+            // A record whose path Restore would not honour is no record (rule 3): the file lists by its bin name.
+            if (!ok || !restorable(path!!, volume)) { dropped = true; return@mapNotNull null }
             Record(name, path, o.jsonLong("deletedAt") ?: 0L, o.jsonLong("size") ?: 0L)
         }
         return Index(records, null, dropped)
@@ -246,12 +257,26 @@ class RecycleBin(
 
     private fun plainBinName(name: String): Boolean = FilePaths.validName(name) && name !in RESERVED
 
-    /** A record's original path is used only when it resolves under its own volume and outside the shell's folder. */
-    private fun restorable(target: File, volume: FileVolume): Boolean =
-        target.isAbsolute && FilePaths.validName(target.name) &&
+    /**
+     * Rule 3: a record's original path is used only in the form a delete writes. Each clause is one way a forged index
+     * could send a restore somewhere the bin's row does not show, or somewhere that is not the user's to fill.
+     */
+    private fun restorable(path: String, volume: FileVolume): Boolean {
+        val target = File(path)
+        return target.isAbsolute && FilePaths.validName(target.name) &&
             FilePaths.volumeOf(target.path, listOf(volume), canonical) != null &&
             runCatching { canonical(target.path) }.getOrNull() != runCatching { canonical(volume.root) }.getOrNull() &&
-            !FilePaths.inShellDir(target.path, volume, canonical)
+            !FilePaths.inShellDir(target.path, volume, canonical) &&
+            // Exactly as it resolves: no `.` or `..` segment, no doubled or trailing separator, no link on the way.
+            runCatching { canonical(path) }.getOrNull() == path &&
+            !underAndroid(path, volume)
+    }
+
+    /** `<volume>/Android` or inside it, in any case: the other apps' folders (and the shell's own), never restored into. */
+    private fun underAndroid(path: String, volume: FileVolume): Boolean {
+        val root = runCatching { canonical(volume.root) }.getOrNull()?.trimEnd('/') ?: return true
+        return FilePaths.under(path, root) && path.substring(root.length + 1).substringBefore('/').equals(ANDROID_DIR, ignoreCase = true)
+    }
 
     private sealed interface Folder {
         data class At(val dir: File) : Folder
@@ -285,6 +310,16 @@ class RecycleBin(
 
         /** Where a bin file with no usable record is restored, under its volume's root (T18-1). */
         const val RESTORED_DIR = "Download/Restored"
+
+        /** The platform's per-app folders at a volume's root: no record restores into them (rule 3). */
+        const val ANDROID_DIR = "Android"
+
+        /**
+         * Rule 4: where Restore puts a bin file — its record's [originalPath], or `Download/Restored/<bin name>` with
+         * none. The ONE answer, for the row that shows the folder and for the restore that uses it.
+         */
+        fun restoreTarget(volume: FileVolume, originalPath: String?, binName: String): File =
+            originalPath?.let(::File) ?: File(File(volume.root, RESTORED_DIR), binName)
 
         /** The bin's own two files (and the index's temp): never listed, restored, purged or emptied. */
         val RESERVED = setOf(NOMEDIA, INDEX, "$INDEX.tmp")
