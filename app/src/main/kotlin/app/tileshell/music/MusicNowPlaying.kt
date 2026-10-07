@@ -169,6 +169,18 @@ object NowPlayingMetrics {
     val SCRUB_CY_BELOW_CHROME_EXPANDED = 80.dp
 
     val NAV: Dp = BarMetrics.NAV_EPX.dp
+
+    // ---- phase 20 (Y1 / Y3): the live form. P4 designs — R8 measured tracks, and Groove's Radio played tracks too.
+
+    /** The caption that stands where the elapsed label stood while a station plays. */
+    const val LIVE_CAPTION = "LIVE"
+    /**
+     * P4 design: the live bar starts where the track starts and runs to where the total label ended (its 16-epx
+     * inset) — the room the label left — R8's 3 epx thick, in the played ink from end to end, with no thumb.
+     */
+    val LIVE_RIGHT_INSET = TOTAL_INSET
+    /** P4 design: the metered line's centre, between the second metadata line (46 above) and the bar. */
+    val METERED_CY_ABOVE_SCRUB = 25.dp
 }
 
 /**
@@ -191,7 +203,7 @@ fun clockText(ms: Long): String {
 }
 
 /** Which level of the `•••` menu is open (task 9): the two entries, or one of their choice lists. */
-private enum class MoreMenu { ROOT, SLEEP, EQUALISER, CROSSFADE }
+internal enum class MoreMenu { ROOT, SLEEP, EQUALISER, CROSSFADE }
 
 @Composable
 fun NowPlayingPage(onBack: () -> Unit, onWindows: () -> Unit) {
@@ -227,7 +239,14 @@ fun NowPlayingPage(onBack: () -> Unit, onWindows: () -> Unit) {
 
         Metadata(cy = scrubCy - NowPlayingMetrics.TITLE_CY_ABOVE_SCRUB, style = MetaLine.TITLE)
         Metadata(cy = scrubCy - NowPlayingMetrics.ARTIST_CY_ABOVE_SCRUB, style = MetaLine.ARTIST)
-        Scrubber(cy = scrubCy, width = maxWidth)
+        // Phase 20: a station is live by its MARK, never by its duration (an HLS live window reports one). It has no
+        // length to scrub, so the scrubber and both labels are not drawn at all; a track keeps R8's, untouched.
+        if (MusicPlayer.isLive) {
+            MeteredLine(cy = scrubCy - NowPlayingMetrics.METERED_CY_ABOVE_SCRUB)
+            LiveBar(cy = scrubCy, width = maxWidth)
+        } else {
+            Scrubber(cy = scrubCy, width = maxWidth)
+        }
         TransportRow(cy = transportCy, width = maxWidth, onMore = { more = MoreMenu.ROOT })
         Chevron(cy = chevronCy, width = maxWidth, expanded = expanded) { expanded = !expanded }
 
@@ -311,7 +330,8 @@ private fun BoxWithConstraintsScope.AlbumArt(top: Dp, side: Dp, width: Dp) {
     val albumId = MusicPlayer.albumId
     val px = with(LocalDensity.current) { (width - side * 2).roundToPx() }
     // Phase 18: a file played outside the library has no album row; its art, when its tags hold any, comes with the item.
-    val fileArt = MusicPlayer.fileArt
+    // Phase 20: a station's logo, when the directory has one, comes the same way — bytes the shell fetched and bounded.
+    val fileArt = MusicPlayer.fileArt ?: MusicPlayer.liveArt?.takeIf { MusicPlayer.isLive }
     val art by produceState<ImageBitmap?>(null, albumId, fileArt, px) {
         value = when {
             albumId != null -> withContext(Dispatchers.IO) { MusicArt.loadById(context, albumId, px) }
@@ -338,14 +358,29 @@ private fun BoxWithConstraintsScope.AlbumArt(top: Dp, side: Dp, width: Dp) {
 
 private enum class MetaLine { TITLE, ARTIST }
 
+/**
+ * The two metadata lines' text. A track's are R8's, as built. Phase 20, for a station only ([live]): the first line is
+ * the reconnect state while there is one ("Reconnecting…"), else the song on air; and the second is the station's
+ * name ONCE — a station item carries its name as both artist and album, so R8's "Artist • Album" would say it twice.
+ */
+internal fun metaText(titleLine: Boolean, title: String, artist: String, album: String, live: Boolean, streamState: String?): String = when {
+    titleLine -> if (live && streamState != null) streamState else title
+    live && (album.isEmpty() || album == artist) -> artist
+    live && artist.isEmpty() -> album
+    else -> buildString {
+        append(artist)
+        if (album.isNotEmpty()) append(NowPlayingMetrics.META_SEPARATOR).append(album)
+    }
+}
+
 @Composable
 private fun BoxWithConstraintsScope.Metadata(cy: Dp, style: MetaLine) {
     val title = style == MetaLine.TITLE
     // R8 §1.4 (V-2016): line 1 is the track title; line 2 is "Artist • Album", the version's own change.
-    val text = if (title) MusicPlayer.title else buildString {
-        append(MusicPlayer.artist)
-        if (MusicPlayer.album.isNotEmpty()) append(NowPlayingMetrics.META_SEPARATOR).append(MusicPlayer.album)
-    }
+    val text = metaText(
+        title, MusicPlayer.title, MusicPlayer.artist, MusicPlayer.album,
+        live = MusicPlayer.isLive, streamState = MusicPlayer.streamState,
+    )
     val size = if (title) NowPlayingMetrics.TITLE_SP else NowPlayingMetrics.ARTIST_SP
     val half = with(LocalDensity.current) { (size.toDp() / 2) }
     BasicText(
@@ -411,6 +446,48 @@ private fun BoxWithConstraintsScope.Scrubber(cy: Dp, width: Dp) {
     }
 }
 
+/**
+ * Phase 20 (Y1, a P4 design): the live form of the scrubber row. A bar with no thumb and no pointer input — there is
+ * nowhere to seek to — and one "LIVE" caption where the elapsed label stood. `nowplaying_scrubber`,
+ * `nowplaying_elapsed` and `nowplaying_total` are not in the tree while this is.
+ */
+@Composable
+private fun BoxWithConstraintsScope.LiveBar(cy: Dp, width: Dp) {
+    val left = NowPlayingMetrics.TRACK_LEFT
+    Canvas(
+        Modifier
+            .offset(x = left, y = cy - NowPlayingMetrics.THUMB / 2)
+            .width(width - left - NowPlayingMetrics.LIVE_RIGHT_INSET)
+            .height(NowPlayingMetrics.THUMB)
+            .testTag("nowplaying_live"),
+    ) {
+        val thick = NowPlayingMetrics.TRACK_THICK.toPx()
+        drawRect(NowPlayingMetrics.PLAYED, Offset(0f, size.height / 2f - thick / 2f), androidx.compose.ui.geometry.Size(size.width, thick))
+    }
+    val timeHalf = with(LocalDensity.current) { NowPlayingMetrics.TIME_SP.toDp() / 2 }
+    BasicText(
+        NowPlayingMetrics.LIVE_CAPTION,
+        style = ShellType.caption.copy(color = Color.White, fontSize = NowPlayingMetrics.TIME_SP),
+        maxLines = 1,
+        modifier = Modifier.offset(x = NowPlayingMetrics.ELAPSED_X, y = cy - timeHalf).testTag("nowplaying_live_caption"),
+    )
+}
+
+/** Phase 20 (Y3, a P4 design): "Streaming over mobile data", one caption line under the metadata block; nothing when unmetered. */
+@Composable
+private fun BoxWithConstraintsScope.MeteredLine(cy: Dp) {
+    val line = MusicPlayer.meteredLine ?: return
+    val half = with(LocalDensity.current) { NowPlayingMetrics.TIME_SP.toDp() / 2 }
+    BasicText(
+        line,
+        style = ShellType.caption.copy(color = NowPlayingMetrics.PLAYED, fontSize = NowPlayingMetrics.TIME_SP),
+        maxLines = 1,
+        overflow = TextOverflow.Clip,
+        softWrap = false,
+        modifier = Modifier.offset(x = NowPlayingMetrics.META_X, y = cy - half).testTag("nowplaying_metered"),
+    )
+}
+
 private fun seekFromTouch(x: Float, lengthPx: Float, density: androidx.compose.ui.unit.Density, radiusDp: Dp, durationMs: Long) {
     val r = with(density) { radiusDp.toPx() }
     val travel = (lengthPx - 2f * r).coerceAtLeast(1f)
@@ -436,9 +513,16 @@ private enum class Control { PREVIOUS, PLAY_PAUSE, NEXT, REPEAT, SHUFFLE, MORE }
  * The `•••` menu's entries (task 9). R8 UNMEASURED-3 never established what the `•••` holds; the sleep
  * timer and the equaliser are this build's "more", which is a P4 design call and not something R8 said.
  * Each entry's label carries the current state, so the menu IS the status display.
+ *
+ * Phase 20: while a station plays ([live]) the sleep list has no end-of-track entry — a stream never reaches its end,
+ * so the timer could never fire; the minute choices stay.
  */
-private fun moreEntries(level: MoreMenu, go: (MoreMenu?) -> Unit): List<MenuEntry> {
-    val now = android.os.SystemClock.elapsedRealtime()
+internal fun moreEntries(
+    level: MoreMenu,
+    live: Boolean = MusicPlayer.isLive,
+    now: Long = android.os.SystemClock.elapsedRealtime(),
+    go: (MoreMenu?) -> Unit,
+): List<MenuEntry> {
     return when (level) {
         MoreMenu.ROOT -> buildList {
             add(MenuEntry(SleepTimer.menuLabel(now, MusicPlayer.sleepAt, MusicPlayer.sleepEndOfTrack), "music_menu_sleep") { go(MoreMenu.SLEEP) })
@@ -454,7 +538,7 @@ private fun moreEntries(level: MoreMenu, go: (MoreMenu?) -> Unit): List<MenuEntr
             MenuEntry(label, "music_menu_crossfade:${choice.tag}") { MusicPlayer.setCrossfade(choice.ms); go(null) }
         }
         MoreMenu.SLEEP -> buildList {
-            SleepTimer.Choice.entries.forEach { choice ->
+            SleepTimer.Choice.entries.filterNot { live && it == SleepTimer.Choice.END_OF_TRACK }.forEach { choice ->
                 add(MenuEntry(choice.label, "music_menu_sleep:${choice.tag}") { MusicPlayer.setSleep(choice.minutes); go(null) })
             }
             if (MusicPlayer.sleepEndOfTrack || MusicPlayer.sleepAt > now) {
