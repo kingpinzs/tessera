@@ -5,10 +5,19 @@ import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import app.tileshell.diag.Diagnostics
+import app.tileshell.music.radio.LiveMetadata
+import app.tileshell.music.radio.RadioFavourites
+import app.tileshell.music.radio.RadioFavouritesStore
+import app.tileshell.music.radio.RadioNet
+import app.tileshell.music.radio.StationItem
+import app.tileshell.music.radio.StationStart
+import app.tileshell.music.radio.StreamLine
+import app.tileshell.music.server.ServerTrackItem
 
 /**
  * The collection's handle on [MusicService] (phase 10 build task 6).
@@ -87,6 +96,8 @@ object MusicPlayer {
         eqPresets = extras.getStringArray(MusicCommands.X_EQ_PRESETS)?.toList().orEmpty()
         eqAvailable = extras.getBoolean(MusicCommands.X_EQ_AVAILABLE, false)
         crossfadeMs = extras.getInt(MusicCommands.X_CROSSFADE_MS, Crossfade.OFF)
+        streamState = extras.getString(MusicCommands.X_STREAM_STATE)
+        meteredLine = extras.getString(MusicCommands.X_METERED_LINE)
     }
 
     private val controllerListener = object : MediaController.Listener {
@@ -127,13 +138,20 @@ object MusicPlayer {
     private fun readSession() {
         val c = controller ?: return
         val item = c.currentMediaItem
+        val live = MusicLive.isLive(item?.mediaId)
+        // Phase 20: a station's logo arrives once and its title changes with every song, each as a new value of the
+        // session's metadata; the logo last seen for THIS station is kept, so a title change never blanks the art.
+        if (!live || item?.mediaId != nowPlayingId) liveArt = null
         nowPlayingId = item?.mediaId
         val meta = item?.mediaMetadata
-        title = meta?.title?.toString().orEmpty()
+        // A station's item has no title of its own: the song on air is the SESSION's metadata (the stream's own
+        // StreamTitle), shown only through LiveMetadata — the station's name when the stream names no song.
+        title = if (live) LiveMetadata.merge(meta?.albumTitle?.toString(), c.mediaMetadata.title?.toString()).title else meta?.title?.toString().orEmpty()
         artist = meta?.artist?.toString().orEmpty()
         album = meta?.albumTitle?.toString().orEmpty()
         albumId = albumIdOf(item?.mediaId)
         fileArt = if (MusicFile.isFile(item?.mediaId)) meta?.artworkData else null
+        if (live) c.mediaMetadata.artworkData?.let { liveArt = it }
         // A duration of C.TIME_UNSET is negative; it means "not known yet", not "zero seconds".
         durationMs = c.duration.takeIf { it > 0L } ?: 0L
         positionMs = c.currentPosition.coerceAtLeast(0L)
@@ -145,7 +163,8 @@ object MusicPlayer {
             val m = c.getMediaItemAt(i)
             QueueEntry(
                 m.mediaId,
-                m.mediaMetadata.title?.toString().orEmpty(),
+                // Phase 20: a station's row has no title; it is listed by its name, which its album line carries.
+                m.mediaMetadata.title?.toString().orEmpty().ifEmpty { m.mediaMetadata.albumTitle?.toString().orEmpty() },
                 m.mediaMetadata.artist?.toString().orEmpty(),
                 m.mediaMetadata.albumTitle?.toString().orEmpty(),
             )
@@ -228,12 +247,22 @@ object MusicPlayer {
     private var pendingFile: String? = null
 
     /**
+     * Phase 20: a queue of the shell's own items that are not library tracks — stations, the home server's songs —
+     * each built by its one builder, with where it starts and what its start is called in the `play` line.
+     */
+    private class OwnQueue(val items: List<MediaItem>, val start: Int, val label: String)
+
+    /** Phase 20: such a queue asked for before the controller connected. The newest of the three pending asks is the one done. */
+    private var pendingOwn: OwnQueue? = null
+
+    /**
      * Phase 18 ("below Q-18-2"): ask the service to play one file by its `content://` URI of the shell's
      * FileProvider, as a one-item queue outside the library. The service decides (and checks the URI again).
      */
     fun playFile(uri: String) {
         val c = controller ?: run {
             pendingPlay = null
+            pendingOwn = null
             pendingFile = uri
             Diagnostics.add("music", "play queued until the controller connects")
             return
@@ -268,6 +297,10 @@ object MusicPlayer {
                     pendingFile = null
                     playFile(uri)
                 }
+                pendingOwn?.let { own ->
+                    pendingOwn = null
+                    playOwn(own)
+                }
             }
         }, context.mainExecutor)
     }
@@ -285,6 +318,7 @@ object MusicPlayer {
             // Kept, not dropped: whoever asked (Tess, starting the player herself) has already been told it plays.
             pendingPlay = queue to startIndex
             pendingFile = null
+            pendingOwn = null
             Diagnostics.add("music", "play queued until the controller connects")
             return
         }
@@ -323,12 +357,45 @@ object MusicPlayer {
      * text the page shows instead ("can't play this station", "Sign in to this Wi-Fi network first", …).
      */
     fun playStations(context: Context, station: app.tileshell.music.radio.Station): String? {
-        return null // CONTRACT STUB (phase 20 wave 2, the service builder writes the body)
+        val appContext = context.applicationContext
+        // The network's answer first, then the station's own address, then the favourites around it (StationStart).
+        val plan = StationStart.plan(RadioNet.gate(appContext, isStation = true), RadioFavourites.queueFor(station, RadioFavouritesStore.get(appContext).stations()), RadioNet.qaHost(appContext))
+        plan.lines.forEach { Diagnostics.add(StreamLine.TAG, it) }
+        plan.refusal?.let { return it }
+        val items = MusicService.stationItems(appContext, plan.stations)
+        val start = plan.start.takeIf { it in items.indices } ?: return StationItem.CANT_PLAY
+        connect(appContext)
+        playOwn(OwnQueue(items, start, "station ${plan.stations[start].name}"))
+        return null
     }
 
     /** Play the home server's [tracks] from [startIndex], built by ServerTrackItem; null when started, else the text to show. */
     fun playServerTracks(context: Context, server: app.tileshell.video.server.MediaServer, tracks: List<app.tileshell.video.server.ServerTrack>, startIndex: Int): String? {
-        return null // CONTRACT STUB (phase 20 wave 2, the service builder writes the body)
+        // No network gate: a home server on a LAN with no internet must play (StreamGate exempts a server track from
+        // both refusals), and the metered caption is a station's.
+        val built = tracks.map { ServerTrackItem.build(server, it) }
+        val start = MusicQueueStart.own(built.map { it != null }, startIndex) ?: return CANT_PLAY_TRACK
+        connect(context.applicationContext)
+        playOwn(OwnQueue(built.filterNotNull(), start, MusicQueueStart.lineQuery(tracks[startIndex].title)))
+        return null
+    }
+
+    /** What a home-server row says when its song has no address the builder accepts (no server set up, an id that is not one). */
+    const val CANT_PLAY_TRACK = "can't play this song"
+
+    /** Set [own] through the shell's own controller, ALWAYS replacing the queue; kept until the controller connects. */
+    private fun playOwn(own: OwnQueue) {
+        val c = controller ?: run {
+            pendingOwn = own
+            pendingPlay = null
+            pendingFile = null
+            Diagnostics.add("music", "play queued until the controller connects")
+            return
+        }
+        c.setMediaItems(own.items, own.start, 0L)
+        c.prepare()
+        c.play()
+        Diagnostics.add("music", "play ${own.label} (${own.start + 1} of ${own.items.size})")
     }
 
     fun release() {

@@ -28,6 +28,9 @@ import org.junit.Test
  *    shell's own controller and for nobody else — and PLAY_FILE is the shell's alone, through the provider's own rule.
  *  - (ledger L18-4) every list the session hands the player starts where `MusicQueueStart` says — an index the final
  *    list has — or the request is refused before the player is touched.
+ *  - (phase 20, r3 D1) a station's or a home-server track's item is built by its ONE builder and nowhere else under
+ *    `music/`, after its URL rule accepted the address; the session finds a station only for the shell's own
+ *    controller (`RadioSearchRule`); and items reach a player under `music/` only at the sites held here.
  * Each check has its twin: the same source with the site changed (the reviewers' surviving mutations, applied to a copy
  * in memory) must be caught, so a clean result is never an empty one. That the device does what the source says is
  * still the device legs'.
@@ -271,19 +274,68 @@ class UriAccessWiringScanTest {
         "return Futures.immediateFuture(parts.flatten().toMutableList()) }"
 
     /**
-     * The whole of `onSetMediaItems` (L18-4): a library search, else the rule's items — and in both the index and the
-     * position the player is handed are `MusicQueueStart`'s, worked out from what each item BECAME, never the request's own.
+     * The whole of `onSetMediaItems` (L18-4; phase 20, r3 D1 / D6): a search, else the rule's items — and in both the
+     * index and the position the player is handed are `MusicQueueStart`'s, worked out from what each item BECAME, never
+     * the request's own. The search is the ONE resolver's, handed the stations only as `RadioSearchRule.stationsFor`
+     * gives them for THIS controller's uid beside the shell's real one; a station match goes to `startedStation` and
+     * nowhere else, and a library match is the library's tracks as before.
      */
     private val setItemsForm = "{ val query = mediaItems.singleOrNull()?.requestMetadata?.searchQuery if (query != null) { " +
-        "val match = MusicSearch.resolve(query, library()) " +
+        "val match = MusicSearch.resolve(query, library(), RadioSearchRule.stationsFor(controller.uid, Process.myUid(), ::radioStations)) " +
         "if (match == null) { Diagnostics.add(\"music\", \"search \\\"\${MusicQueueStart.lineQuery(query)}\\\": nothing in the library\") " +
         "return Futures.immediateFailedFuture(UnsupportedOperationException(\"no match in the library\")) } " +
+        "match.station?.let { return startedStation(query, it) } " +
         "Diagnostics.add(\"music\", \"search \\\"\${MusicQueueStart.lineQuery(query)}\\\": \${match.kind.name.lowercase()} \${match.label}, \${match.queue.size} track(s)\") " +
         "return started(match.queue.map { mediaItem(it) }, MusicQueueStart.search(match.queue.size, match.startIndex)) } " +
         "val parts = fromLibrary(controller, mediaItems) " +
         "val start = MusicQueueStart.set(parts.map { it.size }, startIndex, startPositionMs) " +
         "MusicQueueStart.line(controller.uid, parts.map { it.size }, startIndex, start)?.let { Diagnostics.add(\"music\", it) } " +
         "return started(parts.flatten(), start) }"
+
+    /**
+     * The whole of `startedStation` (phase 20, r3 D1 / D15): the queue `StationStart` plans — the network's answer, the
+     * station's own address, the favourites round it — built by `stationItems` (which is `StationItem.build` and
+     * nothing else), and started where `MusicQueueStart.search` says for the list that was BUILT.
+     */
+    private val stationForm = "{ val plan = StationStart.plan(RadioNet.gate(this@MusicService, isStation = true), " +
+        "RadioFavourites.queueFor(station, RadioFavouritesStore.get(this@MusicService).stations()), RadioNet.qaHost(this@MusicService)) " +
+        "Diagnostics.add(\"music\", \"search \\\"\${MusicQueueStart.lineQuery(query)}\\\": station \${RadioText.shown(station.name, RadioText.NAME_MAX)}\") " +
+        "plan.lines.forEach { Diagnostics.add(StreamLine.TAG, it) } " +
+        "val items = stationItems(this@MusicService, plan.stations) " +
+        "return started(items, MusicQueueStart.search(items.size, plan.start)) }"
+
+    /** The whole of `stationItems`: each station's item from `StationItem.build`, with the debug override's host and no logo — or no item. */
+    private val stationItemsForm = "{ val qaHost = RadioNet.qaHost(context) " +
+        "return stations.mapNotNull { (StationItem.build(it, qaHost) as? StationItem.Built.Item)?.item } }"
+
+    /** The whole of `RadioSearchRule`, as code: the shell's own uid and nobody else's — and a stranger's stations are never even asked for. */
+    private val searchRuleForm = "object RadioSearchRule { " +
+        "fun stationsFor(controllerUid: Int, myUid: Int): Boolean = myUid >= 0 && controllerUid == myUid " +
+        "fun stationsFor(controllerUid: Int, myUid: Int, all: () -> MusicSearch.Stations): MusicSearch.Stations = " +
+        "if (stationsFor(controllerUid, myUid)) all() else MusicSearch.Stations.NONE }"
+
+    /**
+     * `StationItem.build` from its first line to the item: no item without an accepted plan, and the item's id and
+     * address are that plan's — [StationItem.plan]'s, which is `StationUrl.playable` then `StationUrl.accept`.
+     */
+    private val stationBuildForm = "{ val play = when (val p = plan(station, qaHost)) { is Plan.Refused -> return Built.Refused(p.line) is Plan.Play -> p } " +
+        "val meta = MediaMetadata.Builder() .setAlbumTitle(play.name) .setArtist(play.name) .setIsBrowsable(false) .setIsPlayable(true) " +
+        "logo?.let { meta.setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER) } " +
+        "val item = MediaItem.Builder() .setMediaId(play.mediaId) .setUri(play.url) .setMediaMetadata(meta.build()) " +
+        "play.mimeType?.let { item.setMimeType(it) } return Built.Item(item.build()) }"
+
+    /** The whole of `StationItem.plan`: the one address the directory's row gives, and only when the URL rule accepts it. */
+    private val stationPlanForm = "{ val stream = when (val p = StationUrl.playable(station.urlResolved, station.url, station.hls)) { " +
+        "StationUrl.Playable.Playlist -> return Plan.Refused(StreamLine.UNSUPPORTED_PLAYLIST) " +
+        "StationUrl.Playable.None -> return Plan.Refused(StreamLine.unsupportedScheme(null)) " +
+        "is StationUrl.Playable.Stream -> p } " +
+        "return when (val a = StationUrl.accept(stream.url, qaHost)) { " +
+        "is StationUrl.Accept.UnsupportedScheme -> Plan.Refused(StreamLine.unsupportedScheme(a.scheme)) " +
+        "StationUrl.Accept.UnsupportedHost -> Plan.Refused(StreamLine.UNSUPPORTED_HOST) " +
+        "StationUrl.Accept.Ok -> Plan.Play( mediaId = MusicLive.stationId(station.uuid), url = stream.url, mimeType = stream.mimeType, name = RadioText.shown(station.name, RadioText.NAME_MAX), ) } }"
+
+    /** `ServerTrackItem.build(url, track)` from its first line to the address: no item unless `accepts` took THAT address. */
+    private val serverBuildForm = "{ if (url == null || !accepts(url, track)) return null return MediaItem.Builder() .setMediaId(mediaId(track)) .setUri(url) "
 
     /** The whole of `started`: the one place a list with a start is made for the player — the rule's index and position, or a refusal. */
     private val startedForm = "{ return when (start) { " +
@@ -305,11 +357,15 @@ class UriAccessWiringScanTest {
      *  - `onAddMediaItems` (where Media3 sends every set, add and replace of a Media3 controller, and every play-from
      *    and queue request of a legacy one): each item is the rule's to decide, with the controller's uid as the session
      *    reports it beside the shell's real uid, and only the rule's Keep hands an item back as it arrived;
-     *  - `onSetMediaItems`: a search answered from the library, else Media3's default, which is `onAddMediaItems`;
+     *  - `onSetMediaItems`: a search answered by the one resolver — from the library, and from the stations only for
+     *    the shell's own controller, a station match built by `StationItem` (phase 20, `stationProblems`) — else the
+     *    rule's items;
      *  - playback resumption is not answered at all (Media3's default refuses), so it hands the player nothing;
      *  - the PLAY_FILE command is offered only to a controller running as the shell, is weighed again in `playFile`
      *    against that controller's uid, and the file is the one the shell's FileProvider resolves by its own rule;
-     *  - nothing else in the service reads an item's URI or sets an item on the player.
+     *  - nothing else in the service reads an item's URI or sets an item on the player;
+     *  - (phase 20, r3 D1) an item gets a URI in the service at its two sites and, anywhere else under `music/`, only in
+     *    the two builders (`stationProblems`).
      */
     private fun musicSessionProblems(sources: Map<String, String>): List<String> {
         val problems = mutableListOf<String>()
@@ -328,11 +384,12 @@ class UriAccessWiringScanTest {
         val started = body(service, "private fun started(items: List<MediaItem>, start: MusicQueueStart.Start): ListenableFuture<MediaSession.MediaItemsWithStartPosition>")
         if (started != startedForm) problems += "started is not its one form:\n  is:      $started\n  must be: $startedForm"
         if (count(service, "MediaItemsWithStartPosition(") != 1 || service.contains("super.onSetMediaItems") || service.contains("super.onAddMediaItems") ||
-            count(service, "started(") != 3 || count(service, "fromLibrary(") != 3 ||
+            count(service, "started(") != 4 || count(service, "fromLibrary(") != 3 ||
             Regex("\\bstartIndex\\b").findAll(service).count() != 4 || Regex("\\bstartPositionMs\\b").findAll(service).count() != 2
         ) problems += "a list reaches the player with a start that MusicQueueStart did not work out"
         val starters = sources.mapValues { (_, text) -> count(text, "MusicQueueStart.set(") + count(text, "MusicQueueStart.search(") + count(text, "MusicQueueStart.mayAdd(") }.filterValues { it > 0 }
-        if (starters != mapOf("music/MusicService.kt" to 3)) problems += "the queue's start is asked other than three times, by the session: $starters"
+        // Phase 20: the fourth is the station queue's start (`startedStation`, whose one form `stationProblems` holds).
+        if (starters != mapOf("music/MusicService.kt" to 4)) problems += "the queue's start is asked other than four times, by the session: $starters"
         if (service.contains("onPlaybackResumption")) problems += "playback resumption is answered: what it hands the player is not held here"
         // The player is handed items by the session (above) and by playFile's one-item queue; nothing else.
         if (count(service, "setMediaItems(") != 1 || !service.contains("player.setMediaItems(listOf(item))") || service.contains("setMediaItem(") || service.contains("addMediaItem") || service.contains("replaceMediaItem")) {
@@ -352,7 +409,234 @@ class UriAccessWiringScanTest {
         if (!play.startsWith(playFileForm) || count(service, "FilesProvider.fileFor(") != 1 || count(service, "Uri.parse(") != 1 || count(service, "fileItem(") != 2 ||
             Regex("\\bFile\\(").containsMatchIn(service) || service.contains("uri.path") || service.contains("getPath") || service.contains("pathSegments")
         ) problems += "playFile's file is not the one FilesProvider.fileFor resolves from the checked URI"
+        problems += stationProblems(sources)
         return problems
+    }
+
+    /**
+     * Phase 20 (r3 D1; the adversarial review reads this diff): a station's address comes from a community directory and
+     * a home-server track's from a saved server, and the player opens what an item names with the SHELL's identity. The
+     * URL rules are pure (`StationUrlTest`, `StationItemTest`, `ServerTrackItemTest`, `RadioSearchRuleTest`); held here
+     * is what no unit test runs — that nothing reaches a player except through them:
+     *  - under `music/` an item is BUILT in four places and no fifth: the service's library track and its checked file,
+     *    `music/radio/StationItem.kt` and `music/server/ServerTrackItem.kt`. Those are the only `.setUri(` and the only
+     *    `MediaItem.Builder(` there; no item is made from a URI or a bundle; nothing but the service's one question
+     *    reads an item's `localConfiguration`; and no item is given an `artworkUri` (r3 D2);
+     *  - each builder is its one form: the station's id and address are its accepted plan's — `StationUrl.playable`, then
+     *    `StationUrl.accept` with the caller's `qaHost` — and a server track's address is the one `accepts` took;
+     *  - `StationItem.build` is called by `MusicService.stationItems` alone, with `RadioNet.qaHost`'s host and nothing
+     *    else; `ServerTrackItem.build` by `MusicPlayer.playServerTracks` alone;
+     *  - the session's search finds a station only through `RadioSearchRule.stationsFor(controller.uid,
+     *    Process.myUid(), …)`, which is its one form; the stranger's path (`fromLibrary`) stays the two-argument,
+     *    library-only resolve; a station match is `startedStation`'s one form — `StationStart.plan` over the real
+     *    network gate, `stationItems`, `MusicQueueStart.search` over the list that was built;
+     *  - items are set on a player under `music/` at four sites: the session's `playFile`, Music's own queue of
+     *    library tracks, Music's own queue of the two builders' items, and the crossfade's fader (the primary's own
+     *    next item). `MusicPlayer.playStations` is its one form, the gate's refusal returned before anything is built.
+     */
+    private fun stationProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val service = sources["music/MusicService.kt"].orEmpty()
+        val player = sources["music/MusicPlayer.kt"].orEmpty()
+        val station = sources["music/radio/StationItem.kt"].orEmpty()
+        val server = sources["music/server/ServerTrackItem.kt"].orEmpty()
+        val rule = sources["music/radio/RadioSearchRule.kt"].orEmpty()
+        val music = sources.filterKeys { it.startsWith("music/") }
+        fun where(piece: String, among: Map<String, String> = sources) = among.mapValues { (_, text) -> count(text, piece) }.filterValues { it > 0 }
+        fun where(piece: Regex, among: Map<String, String>) = among.mapValues { (_, text) -> piece.findAll(text).count() }.filterValues { it > 0 }
+
+        // The two builders, and no other maker of an item with an address, under music/.
+        val four = mapOf("music/MusicService.kt" to 2, "music/radio/StationItem.kt" to 1, "music/server/ServerTrackItem.kt" to 1)
+        val uris = where(Regex("\\bsetUri\\s*\\("), music)
+        if (uris != four) problems += "an item is given a URI under music/ outside the service's two sites and the two builders: $uris"
+        val made = where(Regex("\\bMediaItem\\s*\\.\\s*Builder\\b"), music)
+        if (made != four) problems += "a MediaItem is built under music/ outside the service's two sites and the two builders: $made"
+        val otherWays = where(Regex("\\bfromUri\\b|\\bfromBundle\\b|\\bsetMediaUri\\b|\\bMediaItem\\s*\\(|\\bMediaItem\\s*\\.\\s*LocalConfiguration\\b|\\bsetArtworkUri\\b"), music)
+        if (otherWays.isNotEmpty()) problems += "an item, its address or an artwork address is made another way under music/: $otherWays"
+        val read = where(Regex("\\blocalConfiguration\\b"), music)
+        if (read != mapOf("music/MusicService.kt" to 1)) problems += "an item's own address is read under music/ outside the item rule's one question: $read"
+
+        // Each builder's one form.
+        val build = body(station, "fun build(station: Station, qaHost: String?, logo: ByteArray? = null): Built")
+        if (build != stationBuildForm) problems += "StationItem.build is not its one form:\n  is:      $build\n  must be: $stationBuildForm"
+        val plan = body(station, "fun plan(station: Station, qaHost: String?): Plan")
+        if (plan != stationPlanForm) problems += "StationItem.plan is not its one form:\n  is:      $plan\n  must be: $stationPlanForm"
+        if (count(station, "StationUrl.accept(") != 1 || count(station, "StationUrl.playable(") != 1 || count(station, "Plan.Play(") != 1 || count(station, "Built.Item(") != 1) {
+            problems += "a station's plan or item is made other than once, from the URL rule's answer"
+        }
+        if (!body(server, "fun build(url: String?, track: ServerTrack): MediaItem?").startsWith(serverBuildForm) ||
+            !server.contains("fun build(server: MediaServer, track: ServerTrack): MediaItem? = build(server.audioStreamUrl(track), track)") || count(server, "accepts(") != 2
+        ) problems += "a server track's item is built from an address its rule did not accept"
+
+        // Who asks the builders.
+        val stationBuilders = where("StationItem.build")
+        if (stationBuilders != mapOf("music/MusicService.kt" to 1) || body(service, "fun stationItems(context: Context, stations: List<Station>): List<MediaItem>") != stationItemsForm) {
+            problems += "a station's item is asked for other than by MusicService.stationItems, in its one form: $stationBuilders"
+        }
+        val serverBuilders = where("ServerTrackItem.build")
+        if (serverBuilders != mapOf("music/MusicPlayer.kt" to 1) || !player.contains("val built = tracks.map { ServerTrackItem.build(server, it) } val start = MusicQueueStart.own(built.map { it != null }, startIndex) ?: return CANT_PLAY_TRACK")) {
+            problems += "a server track's item is asked for other than by MusicPlayer.playServerTracks: $serverBuilders"
+        }
+        val itemMakers = where("stationItems(")
+        if (itemMakers != mapOf("music/MusicService.kt" to 2, "music/MusicPlayer.kt" to 1)) problems += "station items are made other than for the session's station match and Music's own queue: $itemMakers"
+
+        // The session's search: stations for the shell's own controller only; a match is startedStation's one form.
+        val at = rule.indexOf("object RadioSearchRule")
+        val ruleIs = if (at < 0) "" else rule.substring(at).trim()
+        if (ruleIs != searchRuleForm) problems += "RadioSearchRule is not its one form:\n  is:      $ruleIs\n  must be: $searchRuleForm"
+        val askers = where("RadioSearchRule.stationsFor(")
+        if (askers != mapOf("music/MusicService.kt" to 1)) problems += "the station-search rule is asked other than once, by the session: $askers"
+        if (Regex("\\bradioStations\\b").findAll(service).count() != 2 ||
+            !service.contains("private fun radioStations(): MusicSearch.Stations = MusicSearch.Stations(RadioFavouritesStore.get(this).favourites.value) { RadioDirectoryStore.get(this).directory.value.index }")
+        ) problems += "the session reaches the stations other than through the rule's one call"
+        val resolvers = where("MusicSearch.resolve(")
+        val stations = where("MusicSearch.Stations(")
+        if (resolvers != mapOf("music/MusicService.kt" to 2, "cortana/action/ActionLayer.kt" to 1) || stations != mapOf("music/MusicService.kt" to 1, "cortana/action/ActionLayer.kt" to 1)) {
+            problems += "the resolver is asked, or handed stations, somewhere else: $resolvers $stations"
+        }
+        val started = body(service, "private fun startedStation(query: String, station: Station): ListenableFuture<MediaSession.MediaItemsWithStartPosition>")
+        if (started != stationForm || count(service, "startedStation(") != 2) problems += "startedStation is not its one form:\n  is:      $started\n  must be: $stationForm"
+        val planners = where("StationStart.plan(")
+        if (planners != mapOf("music/MusicService.kt" to 1, "music/MusicPlayer.kt" to 1, "cortana/action/ActionLayer.kt" to 1)) problems += "a station start is planned somewhere else: $planners"
+
+        // Items reach a player under music/ at these sites and no other.
+        val sets = where(Regex("\\b(?:set|add|replace)MediaItems?\\s*\\("), music)
+        if (sets != mapOf("music/MusicService.kt" to 1, "music/MusicPlayer.kt" to 2, "music/CrossfadeFader.kt" to 1) ||
+            !player.contains("c.setMediaItems(queue.map { MusicService.mediaItem(it) }, startIndex, 0L)") || !player.contains("c.setMediaItems(own.items, own.start, 0L)") ||
+            !sources["music/CrossfadeFader.kt"].orEmpty().contains("val next = primary.getMediaItemAt(primary.nextMediaItemIndex)") || !sources["music/CrossfadeFader.kt"].orEmpty().contains("f.setMediaItem(next)")
+        ) problems += "an item is set on a player under music/ outside the four sites: $sets"
+        if (count(player, "OwnQueue(") != 3 || count(player, "playOwn(") != 4 ||
+            !player.contains("playOwn(OwnQueue(items, start, \"station \${plan.stations[start].name}\"))") ||
+            !player.contains("playOwn(OwnQueue(built.filterNotNull(), start, MusicQueueStart.lineQuery(tracks[startIndex].title)))")
+        ) problems += "Music's own queue is made of something other than the two builders' items"
+        val stationsBody = body(player, "fun playStations(context: Context, station: app.tileshell.music.radio.Station): String?")
+        if (stationsBody != playStationsForm) problems += "MusicPlayer.playStations is not its one form:\n  is:      $stationsBody\n  must be: $playStationsForm"
+        return problems
+    }
+
+    /**
+     * The whole of `MusicPlayer.playStations` (phase 20, r3 D14 / D15): the network's answer and the station's own
+     * address first — a refusal is returned before anything is built — then `stationItems`, the shell's own controller.
+     */
+    private val playStationsForm = "{ val appContext = context.applicationContext " +
+        "val plan = StationStart.plan(RadioNet.gate(appContext, isStation = true), RadioFavourites.queueFor(station, RadioFavouritesStore.get(appContext).stations()), RadioNet.qaHost(appContext)) " +
+        "plan.lines.forEach { Diagnostics.add(StreamLine.TAG, it) } " +
+        "plan.refusal?.let { return it } " +
+        "val items = MusicService.stationItems(appContext, plan.stations) " +
+        "val start = plan.start.takeIf { it in items.indices } ?: return StationItem.CANT_PLAY " +
+        "connect(appContext) " +
+        "playOwn(OwnQueue(items, start, \"station \${plan.stations[start].name}\")) " +
+        "return null }"
+
+    @Test fun `phase 20 D1 a station or server item is built by its one builder, searched only for the shell, and set on a player only at the held sites`() {
+        val sources = SourceScan.all()
+        assertEquals(emptyList<String>(), stationProblems(sources))
+        // The clean result is not an empty one: the scan saw the builders, the rule and the three callers.
+        for (file in listOf("music/radio/StationItem.kt", "music/server/ServerTrackItem.kt", "music/radio/RadioSearchRule.kt", "music/radio/StreamWatch.kt", "music/MusicPlayer.kt", "music/KnownDurationPlayer.kt", "cortana/action/ActionLayer.kt")) {
+            assertTrue("$file was read", sources.getValue(file).length > 200)
+        }
+        assertEquals(1, count(sources.getValue("music/radio/StationItem.kt"), ".setMediaId(play.mediaId) .setUri(play.url) "))
+        assertEquals(1, count(sources.getValue("music/server/ServerTrackItem.kt"), ".setMediaId(mediaId(track)) .setUri(url) "))
+    }
+
+    @Test fun `phase 20 D1 a third builder, a station found for a stranger, an unchecked address, or an item set somewhere else is caught`() {
+        val sources = SourceScan.all()
+        fun with(file: String, old: String, new: String) = musicSessionProblems(sources + (file to mutate(sources.getValue(file), old, new)))
+        fun added(file: String, code: String) = musicSessionProblems(sources + (file to sources.getValue(file) + " " + code))
+        fun service(old: String, new: String) = with("music/MusicService.kt", old, new)
+        fun player(old: String, new: String) = with("music/MusicPlayer.kt", old, new)
+        fun station(old: String, new: String) = with("music/radio/StationItem.kt", old, new)
+        fun server(old: String, new: String) = with("music/server/ServerTrackItem.kt", old, new)
+        fun rule(old: String, new: String) = with("music/radio/RadioSearchRule.kt", old, new)
+
+        // ---- the two-builders clause: a third maker of an item with an address, anywhere under music/, in any spelling.
+        assertTrue(added("music/radio/RadioNet.kt", "fun x(u: String) = androidx.media3.common.MediaItem.Builder().setUri(u).build()").isNotEmpty())
+        assertTrue(added("music/MusicPlayer.kt", "fun x(u: String) = MediaItem.fromUri(u)").isNotEmpty())
+        assertTrue(added("music/MusicCollectionPage.kt", "fun x(i: androidx.media3.common.MediaItem, u: String) = i.buildUpon().setUri(u).build()").isNotEmpty())
+        assertTrue(added("music/radio/StreamWatch.kt", "fun x(i: MediaItem, u: android.net.Uri) = i.buildUpon() .setUri (u).build()").isNotEmpty())
+        assertTrue(added("music/KnownDurationPlayer.kt", "fun x(b: android.os.Bundle) = androidx.media3.common.MediaItem.fromBundle(b)").isNotEmpty())
+        assertTrue(added("music/MusicNowPlaying.kt", "fun x(u: android.net.Uri) = androidx.media3.common.MediaItem.RequestMetadata.Builder().setMediaUri(u).build()").isNotEmpty())
+        assertTrue(added("music/handoff/MusicHandoff.kt", "fun x() = androidx.media3.common.MediaItem . Builder()").isNotEmpty())
+        assertTrue(added("music/radio/StationLogos.kt", "fun x(i: androidx.media3.common.MediaItem) = i.localConfiguration?.uri").isNotEmpty())
+        // A logo handed to the session as an address (r3 D2), in a builder or anywhere else under music/.
+        assertTrue(station("val meta = MediaMetadata.Builder() .setAlbumTitle(play.name)", "val meta = MediaMetadata.Builder() .setArtworkUri(android.net.Uri.parse(station.favicon)) .setAlbumTitle(play.name)").isNotEmpty())
+        assertTrue(added("music/KnownDurationPlayer.kt", "fun x(m: MediaMetadata.Builder, u: android.net.Uri) = m.setArtworkUri(u)").isNotEmpty())
+
+        // ---- the builders: the address not the accepted one, the URL rule not asked or its answer ignored, the override's host a constant.
+        assertTrue(station(".setMediaId(play.mediaId) .setUri(play.url)", ".setMediaId(play.mediaId) .setUri(station.url)").isNotEmpty())
+        assertTrue(station(".setMediaId(play.mediaId) .setUri(play.url)", ".setMediaId(play.mediaId) .setUri(station.urlResolved.ifEmpty { play.url })").isNotEmpty())
+        assertTrue(station("is Plan.Refused -> return Built.Refused(p.line) is Plan.Play -> p }", "is Plan.Refused -> Plan.Play(MusicLive.stationId(station.uuid), station.url, null, station.name) is Plan.Play -> p }").isNotEmpty())
+        assertTrue(station("return when (val a = StationUrl.accept(stream.url, qaHost)) {", "return when (val a = StationUrl.Accept.Ok as StationUrl.Accept) {").isNotEmpty())
+        assertTrue(station("StationUrl.accept(stream.url, qaHost)", "StationUrl.accept(stream.url, StationUrl.qaHost(stream.url))").isNotEmpty())
+        assertTrue(station("StationUrl.Accept.UnsupportedHost -> Plan.Refused(StreamLine.UNSUPPORTED_HOST)", "StationUrl.Accept.UnsupportedHost, StationUrl.Accept.Ok -> Plan.Play(MusicLive.stationId(station.uuid), stream.url, null, station.name) else -> Plan.Refused(StreamLine.UNSUPPORTED_HOST)").isNotEmpty())
+        assertTrue(station("StationUrl.Playable.Playlist -> return Plan.Refused(StreamLine.UNSUPPORTED_PLAYLIST)", "StationUrl.Playable.Playlist -> StationUrl.Playable.Stream(station.url, null)").isNotEmpty())
+        assertTrue(station("url = stream.url,", "url = station.url,").isNotEmpty())
+        assertTrue(server("if (url == null || !accepts(url, track)) return null", "if (url == null) return null").isNotEmpty())
+        assertTrue(server("if (url == null || !accepts(url, track)) return null", "if (url == null || accepts(url, track)) return null").isNotEmpty())
+        assertTrue(server(".setMediaId(mediaId(track)) .setUri(url)", ".setMediaId(mediaId(track)) .setUri(url + \"&ApiKey=\" + track.id)").isNotEmpty())
+        assertTrue(server("= build(server.audioStreamUrl(track), track)", "= MediaItem.Builder().setMediaId(mediaId(track)).setUri(server.audioStreamUrl(track)).build()").isNotEmpty())
+        assertTrue(service("(StationItem.build(it, qaHost) as? StationItem.Built.Item)?.item", "MediaItem.Builder().setMediaId(MusicLive.stationId(it.uuid)).setUri(it.url).build()").isNotEmpty())
+        assertTrue(service("(StationItem.build(it, qaHost) as? StationItem.Built.Item)?.item", "(StationItem.build(it, \"10.0.2.2\") as? StationItem.Built.Item)?.item").isNotEmpty())
+        assertTrue(service("val qaHost = RadioNet.qaHost(context) return stations.mapNotNull", "val qaHost = stations.firstOrNull()?.let { StationUrl.qaHost(it.url) } return stations.mapNotNull").isNotEmpty())
+        // A builder asked from somewhere that is not its one caller.
+        assertTrue(added("cortana/action/ActionLayer.kt", "fun x(s: Station) = StationItem.build(s, null)").isNotEmpty())
+        assertTrue(added("music/MusicCollectionPage.kt", "fun x(s: app.tileshell.music.radio.Station) = app.tileshell.music.radio.StationItem.buildAll(listOf(s), \"10.0.2.2\")").isNotEmpty())
+        assertTrue(added("music/MusicActivity.kt", "fun x(u: String, t: app.tileshell.video.server.ServerTrack) = app.tileshell.music.server.ServerTrackItem.build(u, t)").isNotEmpty())
+        assertTrue(added("music/MusicActivity.kt", "fun x(s: List<app.tileshell.music.radio.Station>) = MusicService.stationItems(this, s)").isNotEmpty())
+
+        // ---- the search: a station found for a controller that is not the shell's own.
+        val asked = "RadioSearchRule.stationsFor(controller.uid, Process.myUid(), ::radioStations)"
+        assertTrue(service(asked, "RadioSearchRule.stationsFor(Process.myUid(), Process.myUid(), ::radioStations)").isNotEmpty())
+        assertTrue(service(asked, "RadioSearchRule.stationsFor(controller.uid, controller.uid, ::radioStations)").isNotEmpty())
+        assertTrue(service(asked, "RadioSearchRule.stationsFor(Process.myUid(), controller.uid, ::radioStations)").isNotEmpty())
+        assertTrue(service(asked, "radioStations()").isNotEmpty())
+        assertTrue(service(asked, "if (controller.uid >= 0) radioStations() else MusicSearch.Stations.NONE").isNotEmpty())
+        assertTrue(service(asked, "RadioSearchRule.stationsFor(mediaSession.mediaNotificationControllerInfo?.uid ?: controller.uid, Process.myUid(), ::radioStations)").isNotEmpty())
+        // The stranger's own path (an item that is a search, through fromLibrary) handed the stations.
+        assertTrue(service("MusicSearch.resolve(item.requestMetadata.searchQuery.orEmpty(), lib)?.queue", "MusicSearch.resolve(item.requestMetadata.searchQuery.orEmpty(), lib, radioStations())?.queue").isNotEmpty())
+        assertTrue(service("MusicItemRule.Decision.Search -> MusicSearch.resolve(item.requestMetadata.searchQuery.orEmpty(), lib)?.queue.orEmpty().map { mediaItem(it) }", "MusicItemRule.Decision.Search -> MusicSearch.resolve(item.requestMetadata.searchQuery.orEmpty(), lib, radioStations())?.station?.let { stationItems(this@MusicService, listOf(it)) }.orEmpty()").isNotEmpty())
+        // The rule itself: turned round, widened, a constant, or its stations handed out whoever asks.
+        assertTrue(rule("myUid >= 0 && controllerUid == myUid", "myUid >= 0 && controllerUid != myUid").isNotEmpty())
+        assertTrue(rule("myUid >= 0 && controllerUid == myUid", "myUid >= 0 || controllerUid == myUid").isNotEmpty())
+        assertTrue(rule("myUid >= 0 && controllerUid == myUid", "controllerUid >= 0").isNotEmpty())
+        assertTrue(rule("myUid >= 0 && controllerUid == myUid", "true").isNotEmpty())
+        assertTrue(rule("if (stationsFor(controllerUid, myUid)) all() else MusicSearch.Stations.NONE", "all()").isNotEmpty())
+        assertTrue(rule("if (stationsFor(controllerUid, myUid)) all() else MusicSearch.Stations.NONE", "if (stationsFor(controllerUid, myUid)) MusicSearch.Stations.NONE else all()").isNotEmpty())
+        assertTrue(rule("if (stationsFor(controllerUid, myUid)) all() else MusicSearch.Stations.NONE", "if (stationsFor(myUid, myUid)) all() else MusicSearch.Stations.NONE").isNotEmpty())
+        // A second asker of the rule, of the resolver with stations, or of the stations themselves.
+        assertTrue(added("music/MusicSearch.kt", "fun x(u: Int) = app.tileshell.music.radio.RadioSearchRule.stationsFor(u, u)").isNotEmpty())
+        assertTrue(added("music/MusicPlayer.kt", "fun x(q: String, s: MusicSearch.Stations) = MusicSearch.resolve(q, emptyList(), s)").isNotEmpty())
+        assertTrue(added("music/MusicService.kt", "fun x() = MusicSearch.Stations(emptyList()) { RadioIndex.EMPTY }").isNotEmpty())
+
+        // ---- the station match: the controller's own items in its place, a start the rule did not work out, no gate, a raw query.
+        assertTrue(service("match.station?.let { return startedStation(query, it) }", "match.station?.let { return started(mediaItems, MusicQueueStart.search(mediaItems.size, 0)) }").isNotEmpty())
+        assertTrue(service("match.station?.let { return startedStation(query, it) } ", "").isNotEmpty())
+        assertTrue(service("val items = stationItems(this@MusicService, plan.stations)", "val items = mediaItems").isNotEmpty())
+        assertTrue(service("val items = stationItems(this@MusicService, plan.stations)", "val items = stationItems(this@MusicService, listOf(station))").isNotEmpty())
+        assertTrue(service("return started(items, MusicQueueStart.search(items.size, plan.start))", "return started(items, MusicQueueStart.Start.At(plan.start, 0L))").isNotEmpty())
+        assertTrue(service("return started(items, MusicQueueStart.search(items.size, plan.start))", "return started(items, MusicQueueStart.search(plan.stations.size, plan.start))").isNotEmpty())
+        assertTrue(service("return started(items, MusicQueueStart.search(items.size, plan.start))", "return Futures.immediateFuture(MediaSession.MediaItemsWithStartPosition(items, plan.start, 0L))").isNotEmpty())
+        assertTrue(service("StationStart.plan(RadioNet.gate(this@MusicService, isStation = true),", "StationStart.plan(StreamGate.Decision(play = true),").isNotEmpty())
+        assertTrue(service("StationStart.plan(RadioNet.gate(this@MusicService, isStation = true),", "StationStart.plan(RadioNet.gate(this@MusicService, isStation = false),").isNotEmpty())
+        assertTrue(service("RadioFavouritesStore.get(this@MusicService).stations()), RadioNet.qaHost(this@MusicService))", "RadioFavouritesStore.get(this@MusicService).stations()), \"10.0.2.2\")").isNotEmpty())
+        assertTrue(service("\"search \\\"\${MusicQueueStart.lineQuery(query)}\\\": station \${RadioText.shown(station.name, RadioText.NAME_MAX)}\"", "\"search \\\"\$query\\\": station \${RadioText.shown(station.name, RadioText.NAME_MAX)}\"").isNotEmpty())
+        assertTrue(service("station \${RadioText.shown(station.name, RadioText.NAME_MAX)}\"", "station \${station.name}\"").isNotEmpty())
+
+        // ---- a player handed an item somewhere else under music/: the reconnect, the wrapper, a page, Music's own handle.
+        assertTrue(added("music/radio/StreamWatch.kt", "fun x(i: MediaItem) = player.setMediaItem(i)").isNotEmpty())
+        assertTrue(added("music/radio/StreamWatch.kt", "fun x(i: MediaItem) = player.addMediaItem(i)").isNotEmpty())
+        assertTrue(added("music/KnownDurationPlayer.kt", "fun x(i: androidx.media3.common.MediaItem) = replaceMediaItem(0, i)").isNotEmpty())
+        assertTrue(added("music/MusicCollection.kt", "fun x(c: androidx.media3.session.MediaController, i: List<androidx.media3.common.MediaItem>) = c.setMediaItems (i)").isNotEmpty())
+        assertTrue(player("c.setMediaItems(own.items, own.start, 0L)", "c.setMediaItems(own.items, own.start, 0L); c.addMediaItems(own.items)").isNotEmpty())
+        assertTrue(service("Diagnostics.add(StreamLine.TAG, StreamLine.SLEEP_CLEARED)", "Diagnostics.add(StreamLine.TAG, StreamLine.SLEEP_CLEARED); mediaItem?.let { exo.replaceMediaItem(0, it) }").isNotEmpty())
+        // Music's own queue: the gate's refusal skipped, the items or the tracks made by hand, a queue from elsewhere.
+        assertTrue(player("plan.refusal?.let { return it } ", "").isNotEmpty())
+        assertTrue(player("StationStart.plan(RadioNet.gate(appContext, isStation = true),", "StationStart.plan(StreamGate.Decision(play = true),").isNotEmpty())
+        assertTrue(player("RadioFavouritesStore.get(appContext).stations()), RadioNet.qaHost(appContext))", "RadioFavouritesStore.get(appContext).stations()), StationUrl.qaHost(station.url))").isNotEmpty())
+        assertTrue(player("val items = MusicService.stationItems(appContext, plan.stations)", "val items = MusicService.stationItems(appContext, listOf(station))").isNotEmpty())
+        assertTrue(player("val built = tracks.map { ServerTrackItem.build(server, it) }", "val built = tracks.map { ServerTrackItem.build(server.audioStreamUrl(it) + \"&ApiKey=x\", it) }").isNotEmpty())
+        assertTrue(player("playOwn(OwnQueue(built.filterNotNull(), start,", "playOwn(OwnQueue(pendingOwn?.items.orEmpty() + built.filterNotNull(), start,").isNotEmpty())
+        assertTrue(added("music/MusicPlayer.kt", "fun x(i: List<MediaItem>) = playOwn(OwnQueue(i, 0, \"x\"))").isNotEmpty())
     }
 
     @Test fun `L18-1 a controller's item reaches the player only as the item rule says, and PLAY_FILE only for the shell through the provider's rule`() {
