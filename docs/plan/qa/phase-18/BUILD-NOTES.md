@@ -219,3 +219,31 @@ DEVICE: default_input_method reads LatinIME at the end; provision.sh's baseline 
 IN HAND: an Opus builder fixes the FAT rename (FileOps.rename, two-step through a journalled temp + a verify), the two
 driver faults and the keyboard baseline, builds gate candidate 3, and runs EDGE_NAMES, l18_1, l18_2, E1, E2, E16, E17, E10,
 E8, E4 and E12 on it. A second adversarial pass over the fixes runs in ~/projects/metro-launcher-p18-review (0cdc96b6).
+
+## 2026-10-07 06:25: round 2 merged (5ba4238c), fixes only — the session's last state
+
+Unit suite on the merge 2099 / 0; APK b1a22a1d installed on emulator-5554; NO row has run on it. Evidence of the two round-2
+builders is copied to qa/phase-18/GATE-fixes-round2/ (files/) and qa/phase-18/L18-fix-round2/ (clock/, music/).
+DEVICE EXPERIMENTS OWED for round 2 (the emulator's /sdcard folds names — n2probe.out):
+1. mkdir -p /sdcard/.Tessera/bin; start Files with the path extra /sdcard/.Teßera/bin. Safe: "open ignored: inside the shell's
+   own folder".
+2. Push .Teßera.zip holding bin/.index.json to /sdcard, extract in Files. Safe: "failed inside the shell's own folder", the
+   index unchanged. Again with no .Tessera present. Safe: the same refusal (an empty .Tessera then exists).
+3. rm -r /sdcard/.Tessera; mkdir -p "/sdcard/.Teßera/bin"; delete a file in Files. Safe: "A folder named .Teßera is in the
+   way…", the file stays.
+4. Copy a folder onto a same-named file, Replace, Cancel mid-copy. Safe: the file still there, no bin row, no .part left.
+5. Move file a onto file a in another folder of the same volume, Replace. Safe: the old a is a bin row.
+6. rm -r /sdcard/.Tessera; touch /sdcard/.Tessera; delete a file. Safe: "A file named .Tessera is in the way on This Device…".
+7. Any copy or move on FUSE completes and a failed one leaves no 0-byte placeholder (N13's exclusive create — the one
+   assumption no JVM test can check), and Files.isSameFile gives one identity for two folded names through FUSE.
+L18-3 / L18-4: pass 2's experiments 2, 3, 4, 7 (drivers l18_3.sh / l18_4.sh and the qa-capture sender are NOT written).
+NOT FIXED: N7, N8, N9, S5, G2, G3, X5, W1, W3, the whole-file provider scan + entry-point audit, N6's recovery, N14's note;
+phase 15: N11, A6, the editor / handler agreement, N12's test. N15 (any controller may ask for library track N) is left as it
+is — the owner was told.
+User-visible changes of round 2 (H2 / H5 wording when NEEDS-HUMAN.md is written): the bin's failure sentence naming the
+obstacle; "it is inside what it would replace"; "the shell's own folder cannot be made on this storage"; an empty .Tessera
+may appear at a volume root before any delete; a cancelled folder Replace leaves the old item in place.
+Row writer A's two observations for H3 / H6: the app bar's buttons flash dim for one frame on a folder change; the
+unreadable-folder reason covers the first row until tapped.
+The gate pointer: scripts/rowsb.sh reads its gate build from files in the OLD session's scratchpad (gate-build-2 /
+gate-build-3 under /tmp/claude-1000/…/scratchpad/). A new session must re-create them or repoint rowsb.sh.
