@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Phase 18 (T18-11, r3 D10): the shell FileProvider's one entry. root-path is what reaches /storage/<UUID>; it also
+  covers the shell's private dirs, so files/FilesProvider.kt hands out and serves a URI only for a file under a
+  StorageVolume.getDirectory(). The name is FilesProviderRules.ROOT_NAME.
+-->
+<paths>
+    <root-path name="root" path="." />
+</paths>

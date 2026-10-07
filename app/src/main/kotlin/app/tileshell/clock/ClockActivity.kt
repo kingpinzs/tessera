@@ -1,14 +1,18 @@
 package app.tileshell.clock
 
+import android.app.ComponentCaller
 import android.content.Intent
 import android.database.ContentObserver
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.Process
 import android.os.SystemClock
 import android.provider.Settings
 import android.text.format.DateFormat
 import androidx.activity.ComponentActivity
+import androidx.annotation.RequiresApi
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
@@ -25,10 +29,9 @@ import androidx.compose.ui.semantics.testTagsAsResourceId
 import app.tileshell.bars.hideSystemBars
 import app.tileshell.brand.Glyph
 import app.tileshell.diag.Diagnostics
+import app.tileshell.media.AndroidUriAccess
 import app.tileshell.settings.SettingsActivity
 import app.tileshell.settings.SettingsPage
-import app.tileshell.tiles.api.LiveTileProtocol
-import app.tileshell.tiles.engine.TileRouting
 import app.tileshell.ui.ShellRoot
 import java.time.DayOfWeek
 import app.tileshell.ui.components.dismissOverlay
@@ -210,7 +213,7 @@ class ClockActivity : ComponentActivity() {
         Diagnostics.add("clock", "ClockActivity created")
         hideSystemBars()
         ClockStore.get(this)
-        route(intent)
+        route(intent, ClockIntents.launchCaller(AndroidUriAccess(this)))
         is24h = DateFormat.is24HourFormat(this)
         // The 12/24-hour setting changes with no broadcast (SystemBars does the same).
         observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
@@ -244,7 +247,16 @@ class ClockActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        route(intent)
+        // Before Android 15 the platform does not say who sent a NEW intent to a running activity, so its edit bundle
+        // has no shell to be from (as MusicActivity's play extra).
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) route(intent, ClockIntents.NO_CALLER)
+    }
+
+    /** Android 15+: the new intent comes with its own caller, so the edit bundle is weighed against THIS intent's sender. */
+    @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
+    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
+        super.onNewIntent(intent, caller)
+        route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER })
     }
 
     override fun onResume() {
@@ -258,43 +270,18 @@ class ClockActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    /** The `page` extra, a secondary tile's id, or an `AlarmClock` request to edit. */
-    private fun route(intent: Intent?) {
-        intent ?: return
-        val tileId = intent.getStringExtra(LiveTileProtocol.EXTRA_LAUNCH_TILE_ID)
-        val page = intent.getStringExtra(EXTRA_PAGE)
-        when {
-            tileId != null && tileId.startsWith(TileRouting.TIMER_TILE_PREFIX) -> {
-                nav.focusedTimer = tileId.removePrefix(TileRouting.TIMER_TILE_PREFIX)
-                nav.show(ClockTab.TIMER)
-            }
-            tileId == TileRouting.STOPWATCH_TILE_ID -> nav.show(ClockTab.STOPWATCH)
-            page != null -> ClockTab.byId(page)?.let { nav.show(it) }
-        }
-        val api = intent.getBundleExtra(EXTRA_API_EDIT)
-        if (api != null) {
-            if (api.containsKey(API_TIMER_LENGTH_MS) || api.getString(API_KIND) == "timer") {
-                val length = api.getLong(API_TIMER_LENGTH_MS, -1L).takeIf { it > 0 }
-                val draft = length?.let { ClockText.hmsParts(it) }?.let { (h, m, s) -> TimerDraft(null, h, m, s, api.getString(API_MESSAGE).orEmpty()) }
-                    ?: TimerDraft.new().copy(name = api.getString(API_MESSAGE).orEmpty())
-                nav.show(ClockTab.TIMER)
-                nav.openTimerEditor(draft)
-            } else {
-                val days = api.getIntArray(API_DAYS)?.map { DayOfWeek.of(it) }?.toSet().orEmpty()
-                val sound = when (api.getString(API_SOUND_KIND)) {
-                    AlarmSound.Kind.VIBRATE.name -> AlarmSound(AlarmSound.Kind.VIBRATE)
-                    AlarmSound.Kind.TONE.name -> AlarmSound(AlarmSound.Kind.TONE, api.getString(API_SOUND_URI), null)
-                    else -> AlarmSound.DEFAULT
-                }
-                val base = AlarmDraft.new()
-                nav.show(ClockTab.ALARM)
-                nav.openAlarmEditor(base.copy(
-                    hour = api.getInt(API_HOUR, base.hour), minute = api.getInt(API_MINUTE, base.minute),
-                    name = api.getString(API_MESSAGE).orEmpty(), days = days, sound = sound,
-                ))
-            }
-        }
-        Diagnostics.add("clock", "open page=$page tile=$tileId api=${api != null} -> tab ${nav.tab.id}")
+    /**
+     * The `page` extra, a secondary tile's id, or an `AlarmClock` request to edit — all decided by [ClockIntents.open]
+     * (ledger L18-3): this activity is exported, so every extra is read there through the reader that cannot throw, and
+     * the edit bundle is honoured only when [callerUid], the uid that sent this intent, is the shell's own.
+     */
+    private fun route(intent: Intent?, callerUid: Int) {
+        val open = ClockIntents.open(intent?.let { AndroidExtras(it) }, callerUid, Process.myUid())
+        open.focusedTimer?.let { nav.focusedTimer = it }
+        open.tab?.let { nav.show(it) }
+        open.timer?.let { nav.openTimerEditor(it) }
+        open.alarm?.let { nav.openAlarmEditor(it) }
+        open.lines.forEach { Diagnostics.add("clock", it) }
     }
 
     private fun goHome() {
@@ -309,17 +296,17 @@ class ClockActivity : ComponentActivity() {
 
     companion object {
         /** The same key SettingsActivity.EXTRA_PAGE uses (build task 9's rule). */
-        const val EXTRA_PAGE = "page"
+        const val EXTRA_PAGE = ClockIntents.EXTRA_PAGE
 
         /** An `AlarmClock` request without SKIP_UI: the editor opens filled in with these (AlarmApiActivity). */
-        const val EXTRA_API_EDIT = "api_edit"
-        const val API_KIND = "kind"
-        const val API_HOUR = "hour"
-        const val API_MINUTE = "minute"
-        const val API_DAYS = "days"
-        const val API_MESSAGE = "message"
-        const val API_SOUND_KIND = "sound_kind"
-        const val API_SOUND_URI = "sound_uri"
-        const val API_TIMER_LENGTH_MS = "timer_length_ms"
+        const val EXTRA_API_EDIT = ClockIntents.EXTRA_API_EDIT
+        const val API_KIND = ClockIntents.API_KIND
+        const val API_HOUR = ClockIntents.API_HOUR
+        const val API_MINUTE = ClockIntents.API_MINUTE
+        const val API_DAYS = ClockIntents.API_DAYS
+        const val API_MESSAGE = ClockIntents.API_MESSAGE
+        const val API_SOUND_KIND = ClockIntents.API_SOUND_KIND
+        const val API_SOUND_URI = ClockIntents.API_SOUND_URI
+        const val API_TIMER_LENGTH_MS = ClockIntents.API_TIMER_LENGTH_MS
     }
 }

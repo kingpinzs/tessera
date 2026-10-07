@@ -25,6 +25,11 @@ object QaBases {
     const val WIKIDATA = "qa_wikidata_base"
     const val SERVER = "qa_server_base"
 
+    /** Phase 18, Q-18-3: Files' copy service keeps its byte loops at or under this many bytes a second. */
+    const val FILES_RATE = "qa_files_rate_bps"
+    /** Phase 18, Q-18-5: Files' search walk examines at most this many entries a second. */
+    const val FILES_SEARCH_RATE = "qa_files_search_eps"
+
     /** The pref's value in a DEBUG build, else null: a release build never reads it. */
     fun read(context: Context, key: String): String? {
         if (!BuildConfig.DEBUG) return null

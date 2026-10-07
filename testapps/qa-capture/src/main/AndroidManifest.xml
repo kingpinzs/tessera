@@ -19,7 +19,9 @@
             android:name=".CaptureProbeActivity"
             android:exported="true" />
 
-        <!-- E5: Photos' Share picks this in the system chooser; it logs what it was sent. -->
+        <!-- E5 (phase 17): Photos' Share picks this in the system chooser; it logs what it was sent.
+             Phase 18 E7 (r3 V2) widened it: one stream of any type, and SEND_MULTIPLE of any type. `*/*` covers
+             phase 17's `image/*`, so the chooser still lists this one activity once for an image share. -->
         <activity
             android:name=".SendProbeActivity"
             android:exported="true"
@@ -29,7 +31,24 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="image/*" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
         </activity>
+
+        <!-- The probe's own sender, for the phase 18 floor's self-test (`am start` cannot carry a URI list). No filter. -->
+        <activity
+            android:name=".SendDriverActivity"
+            android:exported="true" />
+
+        <!-- Ledger L18-1: another app's controller on the shell's exported music session (a Media3 controller and a legacy
+             MediaBrowser), handing it an item that carries a URI. Started by the row with `am start -n`. No filter. -->
+        <activity
+            android:name=".MediaProbeActivity"
+            android:exported="true" />
 
         <!-- Its own file provider: the capture's output lives in this app's cache and is reached only by a URI grant. -->
         <provider

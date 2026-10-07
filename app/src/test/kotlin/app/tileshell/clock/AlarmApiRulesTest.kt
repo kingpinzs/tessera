@@ -1,17 +1,26 @@
 package app.tileshell.clock
 
 import app.tileshell.clock.AlarmApiRules.Request
+import app.tileshell.media.FakeUriAccess
+import app.tileshell.media.Platform
+import app.tileshell.media.ProviderFacts
+import app.tileshell.media.UriAccessPort
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.DayOfWeek
 
 class AlarmApiRulesTest {
-    private fun alarm(hour: Int? = 6, minutes: Int? = 45, days: List<Int>? = null, message: String? = "Gym", skipUi: Boolean = true, ringtone: String? = null) =
-        AlarmApiRules.parse(AlarmApiRules.ACTION_SET_ALARM, hour, minutes, days, message, skipUi, null, ringtone, null)
+    /** The platform as it answers for an app that started the handler without naming itself and holds nothing. */
+    private val nobody = FakeUriAccess()
+
+    private fun alarm(
+        hour: Int? = 6, minutes: Int? = 45, days: List<Int>? = null, message: String? = "Gym", skipUi: Boolean = true, ringtone: String? = null,
+        access: UriAccessPort? = nobody,
+    ) = AlarmApiRules.parse(AlarmApiRules.ACTION_SET_ALARM, hour, minutes, days, message, skipUi, null, ringtone, null, access)
 
     private fun timer(length: Int? = 120, message: String? = null, skipUi: Boolean = true) =
-        AlarmApiRules.parse(AlarmApiRules.ACTION_SET_TIMER, null, null, null, message, skipUi, length, null, null)
+        AlarmApiRules.parse(AlarmApiRules.ACTION_SET_TIMER, null, null, null, message, skipUi, length, null, null, nobody)
 
     @Test fun setAlarmWithSkipUiCreates() {
         val r = alarm() as Request.CreateAlarm
@@ -51,12 +60,106 @@ class AlarmApiRulesTest {
         assertEquals(setOf(DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.SATURDAY), r.fields.days)
     }
 
+    private fun sound(ringtone: String?, skipUi: Boolean = true, access: UriAccessPort? = nobody): AlarmSound = when (val r = alarm(ringtone = ringtone, skipUi = skipUi, access = access)) {
+        is Request.CreateAlarm -> r.fields.sound
+        is Request.EditAlarm -> r.fields.sound
+        else -> throw AssertionError("an odd ringtone refused the whole alarm: $r")
+    }
+
+    /** L18-2: the forms a ringtone from another app must never be kept in — each becomes the default sound, the alarm still made. */
+    private val forbidden = listOf(
+        "file:///storage/emulated/0/Documents/private-memo.m4a",
+        "file:///data/user/0/app.tileshell/files/anything",
+        "FILE:///storage/emulated/0/Music/a.mp3",
+        "/storage/emulated/0/Music/a.mp3",
+        "storage/emulated/0/Music/a.mp3",
+        "content://app.tileshell.files/root/storage/emulated/0/QA-Files/hidden/qa-hidden.mp3",
+        "content://app.tileshell.livetile/tiles",
+        "content://app.tileshell.keyboardconfig/x",
+        "content://APP.TILESHELL.FILES/root/storage/emulated/0/a.mp3",
+        "content://0@app.tileshell.files/root/storage/emulated/0/a.mp3",
+        "http://example.com/a.mp3",
+        "https://example.com/a.mp3",
+        "android.resource://app.tileshell/raw/x",
+        "tessera-sound:classic",
+        "content://com.android.contacts/contacts/7/display_photo",
+        "content://com.other.files/share/a.mp3",
+        "content://settings/secure/android_id",
+        "content://media/external/images/media/41",
+        "content://media/internal/audio/media/7/../../../external/audio/media/9",
+        "content://media/internal/audio/media/7#x",
+        "content://media/internal/audio/media/7 ",
+        "content://media/internal/audio/media/",
+        "content:/media/internal/audio/media/7",
+        "not a uri",
+    )
+
     @Test fun ringtoneMapsToTheSound() {
-        assertEquals(AlarmSound.Kind.VIBRATE, (alarm(ringtone = "silent") as Request.CreateAlarm).fields.sound.kind)
-        val tone = (alarm(ringtone = "content://media/internal/audio/media/7") as Request.CreateAlarm).fields.sound
-        assertEquals(AlarmSound.Kind.TONE, tone.kind)
-        assertEquals("content://media/internal/audio/media/7", tone.uri)
-        assertEquals(AlarmSound.DEFAULT, (alarm(ringtone = "") as Request.CreateAlarm).fields.sound)
+        assertEquals(AlarmSound.Kind.VIBRATE, sound("silent").kind)
+        assertEquals(AlarmSound.DEFAULT, sound(""))
+        assertEquals(AlarmSound.DEFAULT, sound("  "))
+        assertEquals(AlarmSound.DEFAULT, sound(null))
+        // A sound the system offers, that every app can read itself, is kept exactly as it was sent.
+        for (system in listOf(
+            "content://media/internal/audio/media/7",
+            "content://media/internal/audio/media/27?title=Argon&canonical=1",
+            "content://settings/system/alarm_alert",
+            "content://settings/system/ringtone",
+            "content://settings/system/notification_sound",
+        )) {
+            assertEquals(system, AlarmSound(AlarmSound.Kind.TONE, system, null), sound(system))
+            assertEquals(system, AlarmSound(AlarmSound.Kind.TONE, system, null), sound(system, skipUi = false))
+        }
+    }
+
+    @Test fun aRingtoneTheCallerCouldNotHaveReadBecomesTheDefaultSound() {
+        // Even a platform that would say yes to everything does not make a forbidden form a sound.
+        val yesToAll = FakeUriAccess(
+            launchedFrom = Platform.Said(FakeUriAccess.CALLER),
+            providers = mapOf("media" to ProviderFacts(FakeUriAccess.CALLER, true), "app.tileshell.files" to ProviderFacts(FakeUriAccess.CALLER, false)),
+            providerAnswer = { _, _, _ -> FakeUriAccess.YES }, launchAnswer = { _, _ -> FakeUriAccess.YES },
+        )
+        for (bad in forbidden) for (access in listOf(nobody, yesToAll, null)) {
+            // With SKIP_UI (no tap at all) and without it (the editor filled in): the alarm is made, with the default sound.
+            assertEquals(bad, AlarmSound.DEFAULT, sound(bad, access = access))
+            assertEquals(bad, AlarmSound.DEFAULT, sound(bad, skipUi = false, access = access))
+        }
+        // The alarm itself is made exactly as asked, and says why its sound is the default.
+        val r = alarm(ringtone = "file:///storage/emulated/0/Documents/private-memo.m4a") as Request.CreateAlarm
+        assertEquals(AlarmApiRules.AlarmFields(6, 45, emptySet(), "Gym", AlarmSound.DEFAULT, AlarmRingtoneRules.WHY_NOT_CONTENT), r.fields)
+        assertEquals(null, (alarm(ringtone = "content://media/internal/audio/media/7") as Request.CreateAlarm).fields.soundRefused)
+        // The word the handler logs names the class of what was wrong, and a shell provider is named as one.
+        fun why(ringtone: String) = (alarm(ringtone = ringtone) as Request.CreateAlarm).fields.soundRefused
+        assertEquals(AlarmRingtoneRules.WHY_SHELL, why("content://app.tileshell.files/root/storage/emulated/0/QA-Files/hidden/qa-hidden.mp3"))
+        assertEquals(AlarmRingtoneRules.WHY_AUTHORITY, why("content://0@app.tileshell.files/root/storage/emulated/0/a.mp3"))
+        assertEquals(AlarmRingtoneRules.WHY_NOT_CONTENT, why("http://example.com/a.mp3"))
+        assertEquals(AlarmRingtoneRules.WHY_NOT_SOUND, why("content://com.other.files/share/a.mp3"))
+        assertEquals(AlarmRingtoneRules.WHY_NOT_SOUND, why("content://settings/secure/android_id"))
+    }
+
+    @Test fun aRingtoneOnTheUsersOwnVolumeIsKeptOnlyWhenThePlatformSaysTheCallerCouldReadIt() {
+        val row = "content://media/external/audio/media/41"
+        // Nobody named, no grant, the launch answer "denied" (or throwing): the default sound.
+        assertEquals(AlarmSound.DEFAULT, sound(row))
+        assertEquals(AlarmSound.DEFAULT, sound(row, access = FakeUriAccess(launchAnswer = { _, _ -> Platform.Threw("SecurityException") })))
+        assertEquals(AlarmSound.DEFAULT, sound(row, access = null))
+        assertEquals(AlarmRingtoneRules.WHY_CALLER, (alarm(ringtone = row) as Request.CreateAlarm).fields.soundRefused)
+        // The platform's launch answer for THIS uri says the starter could read it: kept.
+        val asked = FakeUriAccess(launchAnswer = { uri, mode -> if (uri == row && mode == FakeUriAccess.READ) FakeUriAccess.YES else FakeUriAccess.NO })
+        assertEquals(AlarmSound(AlarmSound.Kind.TONE, row, null), sound(row, access = asked))
+        assertEquals(listOf("launch $row ${FakeUriAccess.READ}"), asked.asked)
+        assertEquals(AlarmSound.DEFAULT, sound("content://media/external/audio/media/42", access = asked))
+        // A named starter that holds the media permission (the provider, asked about that uid, says yes): kept.
+        val holder = FakeUriAccess(launchedFrom = Platform.Said(FakeUriAccess.CALLER), providerAnswer = { uri, uid, mode -> if (uri == row && uid == FakeUriAccess.CALLER && mode == FakeUriAccess.READ) FakeUriAccess.YES else FakeUriAccess.NO })
+        assertEquals(AlarmSound(AlarmSound.Kind.TONE, row, null), sound(row, access = holder))
+        // The shell's own answer is never the caller's: a platform that is only asked about another uid keeps nothing.
+        val other = FakeUriAccess(launchedFrom = Platform.Said(FakeUriAccess.CALLER), providerAnswer = { _, uid, _ -> if (uid == FakeUriAccess.SHELL) FakeUriAccess.YES else FakeUriAccess.NO })
+        assertEquals(AlarmSound.DEFAULT, sound(row, access = other))
+        // The world-readable system sounds need no answer at all, and none is asked for.
+        val silent = FakeUriAccess()
+        assertEquals(AlarmSound.Kind.TONE, sound("content://media/internal/audio/media/7", access = silent).kind)
+        assertEquals(AlarmSound.Kind.TONE, sound("content://settings/system/alarm_alert", access = null).kind)
+        assertEquals(emptyList<String>(), silent.asked)
     }
 
     @Test fun setTimerCreatesOpensOrRefuses() {
@@ -70,9 +173,9 @@ class AlarmApiRulesTest {
     }
 
     @Test fun showActionsAndUnknownOnes() {
-        assertEquals(Request.ShowAlarms, AlarmApiRules.parse(AlarmApiRules.ACTION_SHOW_ALARMS, null, null, null, null, false, null, null, null))
-        assertEquals(Request.ShowTimers, AlarmApiRules.parse(AlarmApiRules.ACTION_SHOW_TIMERS, null, null, null, null, false, null, null, null))
-        assertEquals(Request.Refused("unsupported action android.intent.action.DISMISS_ALARM"), AlarmApiRules.parse("android.intent.action.DISMISS_ALARM", null, null, null, null, false, null, null, null))
-        assertEquals(Request.Refused("unsupported action (none)"), AlarmApiRules.parse(null, null, null, null, null, false, null, null, null))
+        assertEquals(Request.ShowAlarms, AlarmApiRules.parse(AlarmApiRules.ACTION_SHOW_ALARMS, null, null, null, null, false, null, null, null, nobody))
+        assertEquals(Request.ShowTimers, AlarmApiRules.parse(AlarmApiRules.ACTION_SHOW_TIMERS, null, null, null, null, false, null, null, null, nobody))
+        assertEquals(Request.Refused("unsupported action android.intent.action.DISMISS_ALARM"), AlarmApiRules.parse("android.intent.action.DISMISS_ALARM", null, null, null, null, false, null, null, null, nobody))
+        assertEquals(Request.Refused("unsupported action (none)"), AlarmApiRules.parse(null, null, null, null, null, false, null, null, null, nobody))
     }
 }

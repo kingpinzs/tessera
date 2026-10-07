@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Files' static App Shortcuts (phase 18 build task 11, phase 11 Q1's standing rule; r3 D9 / V20): This Device, Recent
+  and the Recycle Bin. Declaration order is the rank (0, 1, 2). Each opens FilesActivity with the extra "page"
+  (FilesIntents.EXTRA_PAGE): device / recent / bin. "SD card" is a DYNAMIC shortcut (files_sdcard, rank 3), published
+  by ShellApp while a card is mounted (T18-6 / C-9) - it is not declared here.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="files_device"
+        android:enabled="true"
+        android:icon="@drawable/ic_files_glyph"
+        android:shortcutShortLabel="@string/files_shortcut_device"
+        android:shortcutLongLabel="@string/files_shortcut_device">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.files.FilesActivity">
+            <extra android:name="page" android:value="device" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="files_recent"
+        android:enabled="true"
+        android:icon="@drawable/ic_files_glyph"
+        android:shortcutShortLabel="@string/files_shortcut_recent"
+        android:shortcutLongLabel="@string/files_shortcut_recent">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.files.FilesActivity">
+            <extra android:name="page" android:value="recent" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="files_bin"
+        android:enabled="true"
+        android:icon="@drawable/ic_files_glyph"
+        android:shortcutShortLabel="@string/files_shortcut_bin"
+        android:shortcutLongLabel="@string/files_shortcut_bin">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="app.tileshell"
+            android:targetClass="app.tileshell.files.FilesActivity">
+            <extra android:name="page" android:value="bin" />
+        </intent>
+    </shortcut>
+</shortcuts>

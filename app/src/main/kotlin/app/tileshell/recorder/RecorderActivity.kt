@@ -55,6 +55,8 @@ import app.tileshell.bars.W10mStatusBar
 import app.tileshell.bars.hideSystemBars
 import app.tileshell.cortana.ui.CortanaUi
 import app.tileshell.diag.Diagnostics
+import app.tileshell.files.FilesActivity
+import app.tileshell.files.FilesIntents
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.ShellRoot
 import app.tileshell.ui.tokens.ShellType
@@ -178,6 +180,22 @@ class RecorderActivity : ComponentActivity() {
 private sealed interface RecDialog {
     data class Delete(val recording: Recording) : RecDialog
     data class Rename(val recording: Recording) : RecDialog
+}
+
+/**
+ * "Open file location" (phase 18 build task 13; T15-16, r3 D12): Files, by explicit component, at the recording's
+ * folder — its MediaStore `RELATIVE_PATH` under `/storage/emulated/0` — with the recording's row shown. The extras
+ * only choose what Files shows; Files itself decides whether the path is one it opens.
+ */
+private fun openFileLocation(context: Context, recording: Recording) {
+    val folder = "/storage/emulated/0/" + recording.relativePath.orEmpty().trim('/')
+    val open = Intent(context, FilesActivity::class.java)
+        .putExtra(FilesIntents.EXTRA_PATH, folder)
+        .putExtra(FilesIntents.EXTRA_NAME, recording.displayName)
+        .putExtra(FilesIntents.EXTRA_FROM, "recorder")
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    runCatching { context.startActivity(open) }
+        .onFailure { Diagnostics.add("recorder", "open file location ${recording.id} failed: $it") }
 }
 
 @Composable
@@ -375,11 +393,13 @@ private fun RecorderScreen(
                             },
                             onHold = { r, x, _, bottom ->
                                 val caps = RecordingCaps.of(r.ownerPackage, shell)
-                                // 1.6: Share / Delete / Rename (W10M's, less "Open file location"); another app's: Share (T15-3).
+                                // 1.6: Share / Delete / Rename / Open file location (W10M's); another app's: Share and the location (T15-3).
                                 val items = buildList {
                                     add(FlyoutItem("Share", "rec_menu:share") { flyout = null; onShare(r) })
                                     if (caps.delete) add(FlyoutItem("Delete", "rec_menu:delete") { flyout = null; dialog = RecDialog.Delete(r) })
                                     if (caps.rename) add(FlyoutItem("Rename", "rec_menu:rename") { flyout = null; dialog = RecDialog.Rename(r) })
+                                    // Phase 18 (T15-16, r3 D12): W10M's fourth entry, now that Files exists to open.
+                                    if (!r.relativePath.isNullOrBlank()) add(FlyoutItem("Open file location", "rec_menu:location") { flyout = null; openFileLocation(context, r) })
                                 }
                                 flyout = FlyoutState("rec_menu", items, x, bottom, null)
                             },

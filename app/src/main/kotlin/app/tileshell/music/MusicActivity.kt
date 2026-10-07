@@ -1,7 +1,11 @@
 package app.tileshell.music
 
+import android.app.ComponentCaller
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.Process
+import androidx.annotation.RequiresApi
 import androidx.activity.ComponentActivity
 import android.Manifest
 import android.net.Uri
@@ -12,6 +16,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +30,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import app.tileshell.bars.hideSystemBars
 import app.tileshell.diag.Diagnostics
+import app.tileshell.files.FilesProvider
+import app.tileshell.media.AndroidUriAccess
 import app.tileshell.ui.ShellRoot
 
 /**
@@ -69,9 +76,59 @@ class MusicActivity : ComponentActivity() {
         pivotRequest = PivotRequest(pivot)
     }
 
+    /**
+     * Phase 18 (an ADD to phase 10; r3 D5, "below Q-18-2"): a play asked for by the launch. Each is a new object, and
+     * each opens now-playing, as a tap on a song does.
+     */
+    private var nowPlayingRequest by mutableStateOf<Any?>(null)
+
+    /**
+     * The play extra ([MusicPlayExtra]; a trust rule — this activity is exported). [callerUid] is the uid that sent
+     * THIS intent as the platform reports it, which it does only for a launch from the shell's own uid (or a caller
+     * that chose to share its identity): anyone else is -1, and the extra is ignored with its line.
+     *
+     * An id plays that one library track through [MusicPlayer.play], the path a tap on a song takes; a URI of the
+     * shell's FileProvider goes to the service, which plays the file as a one-item queue outside the library.
+     */
+    private fun takePlay(intent: Intent?, callerUid: Int) {
+        if (intent == null) return
+        // A launch replayed from Recents is not someone asking again.
+        if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return
+        // The extras are whatever the sender put there: one of the wrong type reads as a value the rule refuses.
+        val id = runCatching { if (intent.hasExtra(MusicPlayExtra.EXTRA_PLAY_ID)) intent.getLongExtra(MusicPlayExtra.EXTRA_PLAY_ID, 0L) else null }.getOrNull()
+        val uri = runCatching { if (intent.hasExtra(MusicPlayExtra.EXTRA_PLAY_URI)) intent.getStringExtra(MusicPlayExtra.EXTRA_PLAY_URI).orEmpty() else null }.getOrNull()
+        when (val decision = MusicPlayExtra.decide(callerUid, Process.myUid(), id, uri, FilesProvider.AUTHORITY)) {
+            MusicPlayExtra.Decision.None -> Unit
+            is MusicPlayExtra.Decision.Ignored -> Diagnostics.add("music", decision.line)
+            is MusicPlayExtra.Decision.PlayId -> {
+                val track = MusicStore.library.value.firstOrNull { it.id == decision.id }
+                if (track == null) {
+                    Diagnostics.add("music", "play extra ignored: not in the library")
+                } else {
+                    MusicPlayer.play(listOf(track), 0)
+                    nowPlayingRequest = Any()
+                }
+            }
+            is MusicPlayExtra.Decision.PlayUri -> {
+                MusicPlayer.playFile(decision.uri)
+                nowPlayingRequest = Any()
+            }
+        }
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         takePivot(intent)
+        // Before Android 15 the platform does not say who sent a NEW intent to a running activity
+        // (getLaunchedFromUid is the caller that CREATED it), so its play extra has no shell to be from.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) takePlay(intent, Process.INVALID_UID)
+    }
+
+    /** Android 15+: the new intent comes with its own caller, so the own-launch rule is asked of THIS intent's sender. */
+    @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
+    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
+        super.onNewIntent(intent, caller)
+        takePlay(intent, caller.uid)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,11 +138,15 @@ class MusicActivity : ComponentActivity() {
         MusicStore.start(this)
         MusicPlayer.connect(this)
         takePivot(intent)
+        // Only a fresh launch: a re-creation carries the same intent, and replaying it would restart the track.
+        if (savedInstanceState == null) takePlay(intent, MusicPlayExtra.launchCaller(AndroidUriAccess(this)))
         setContent {
             ShellRoot {
                 Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
                     var screen by remember { mutableStateOf(Screen.COLLECTION) }
                     BackHandler(enabled = screen == Screen.NOW_PLAYING) { screen = Screen.COLLECTION }
+                    val asked = nowPlayingRequest
+                    LaunchedEffect(asked) { if (asked != null) screen = Screen.NOW_PLAYING }
                     when (screen) {
                         Screen.COLLECTION -> {
                             val context = LocalContext.current

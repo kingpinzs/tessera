@@ -48,6 +48,10 @@ object MusicPlayer {
         private set
     var albumId by mutableStateOf<Long?>(null)
         private set
+
+    /** Phase 18: the art a file played outside the library carries in its own tags (it has no album row); else null. */
+    var fileArt by mutableStateOf<ByteArray?>(null)
+        private set
     var durationMs by mutableStateOf(0L)
         private set
     var positionMs by mutableStateOf(0L)
@@ -129,6 +133,7 @@ object MusicPlayer {
         artist = meta?.artist?.toString().orEmpty()
         album = meta?.albumTitle?.toString().orEmpty()
         albumId = albumIdOf(item?.mediaId)
+        fileArt = if (MusicFile.isFile(item?.mediaId)) meta?.artworkData else null
         // A duration of C.TIME_UNSET is negative; it means "not known yet", not "zero seconds".
         durationMs = c.duration.takeIf { it > 0L } ?: 0L
         positionMs = c.currentPosition.coerceAtLeast(0L)
@@ -219,6 +224,26 @@ object MusicPlayer {
     /** A play asked for before the controller connected, done the moment it does (Tess starting music, J5). */
     private var pendingPlay: Pair<List<Track>, Int>? = null
 
+    /** Phase 18: a file asked for before the controller connected. The newer of this and [pendingPlay] is the one done. */
+    private var pendingFile: String? = null
+
+    /**
+     * Phase 18 ("below Q-18-2"): ask the service to play one file by its `content://` URI of the shell's
+     * FileProvider, as a one-item queue outside the library. The service decides (and checks the URI again).
+     */
+    fun playFile(uri: String) {
+        val c = controller ?: run {
+            pendingPlay = null
+            pendingFile = uri
+            Diagnostics.add("music", "play queued until the controller connects")
+            return
+        }
+        c.sendCustomCommand(
+            androidx.media3.session.SessionCommand(MusicCommands.PLAY_FILE, android.os.Bundle.EMPTY),
+            android.os.Bundle().apply { putString(MusicCommands.ARG_URI, uri) },
+        )
+    }
+
     fun connect(context: Context) {
         if (controller != null || connecting) return
         connecting = true
@@ -239,6 +264,10 @@ object MusicPlayer {
                     pendingPlay = null
                     play(queue, start)
                 }
+                pendingFile?.let { uri ->
+                    pendingFile = null
+                    playFile(uri)
+                }
             }
         }, context.mainExecutor)
     }
@@ -255,6 +284,7 @@ object MusicPlayer {
         val c = controller ?: run {
             // Kept, not dropped: whoever asked (Tess, starting the player herself) has already been told it plays.
             pendingPlay = queue to startIndex
+            pendingFile = null
             Diagnostics.add("music", "play queued until the controller connects")
             return
         }

@@ -74,9 +74,12 @@ class ShellApp : Application() {
         // Phase 15 build task 4: the next-alarm face on the Alarms & Clock tile and the pinned timer / stopwatch faces.
         app.tileshell.clock.ClockTiles.start(this)
         startBadgeExpirySweep()
+        // Phase 18 (r3 D9): the mounted volumes for Files' pane and the dynamic "SD card" shortcut, reconciled at every process start.
+        app.tileshell.files.FileVolumes.start(this)
         // A reboot, an app update and `am force-stop` all cancel alarms and proximity alerts, so every
         // process start re-arms what the reminder store holds (phase 03 Decisions; E6).
         ReminderScheduler.rearm(this, "process start")
+        app.tileshell.files.FilesEnv.sweep(this) // Phase 18, r3 D4: the temps a killed copy left are removed (`[files] sweep: removed <n>`).
     }
 
     /**
