@@ -114,6 +114,16 @@ object FilesProviderRules {
         }
     }
 
+    /** The one mode a file is ever opened in: read-only (the GATE review's W2 — a grant holder never gets a writable descriptor). */
+    const val OPEN_MODE = ParcelFileDescriptor.MODE_READ_ONLY
+
+    /**
+     * The provider's opener: a regular file at the path (null: none there), opened through [open] in [OPEN_MODE] and in
+     * no other. [open] is `ParcelFileDescriptor.open` on the device; `FilesProviderRulesTest` hands in its own and reads
+     * the mode it was given.
+     */
+    fun <T : OpenedFile> opener(open: (File, Int) -> T): (String) -> T? = { path -> File(path).takeIf { it.isFile }?.let { open(it, OPEN_MODE) } }
+
     /** `getType`: by the checked path's extension through [mimeOf] (`MimeTypeMap`); null for a refused URI. */
     fun type(served: String?, mimeOf: (String) -> String?): String? {
         val path = served ?: return null
@@ -230,9 +240,7 @@ class FilesProvider : FileProvider() {
         private val MIME: (String) -> String? = { MimeTypeMap.getSingleton().getMimeTypeFromExtension(it) }
 
         /** Opens a regular file read-only (null: none there), for [FilesProviderRules] to prove and hand out. */
-        private val OPENER: (String) -> AndroidOpenedFile? = { path ->
-            File(path).takeIf { it.isFile }?.let { AndroidOpenedFile(ParcelFileDescriptor.open(it, ParcelFileDescriptor.MODE_READ_ONLY)) }
-        }
+        private val OPENER: (String) -> AndroidOpenedFile? = FilesProviderRules.opener { file, mode -> AndroidOpenedFile(ParcelFileDescriptor.open(file, mode)) }
 
         /** The directory of every mounted volume (`StorageVolume.getDirectory()` is null for one that is not). */
         fun roots(context: Context): List<String> =
