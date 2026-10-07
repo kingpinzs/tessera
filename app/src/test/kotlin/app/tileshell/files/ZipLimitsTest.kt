@@ -67,9 +67,15 @@ class ZipLimitsTest {
     }
 
     @Test
-    fun `a count that cannot fit in the directory it comes with is damage, not an allocation`() {
-        // 90,000 entries need at least 90,000 x 46 bytes of directory; this one declares 4,096.
+    fun `a count under the cap with no such directory behind it is damage`() {
+        // 90,000 entries declared over 4,096 bytes of nothing: the first entry is not one.
         failed(claiming("liar.zip", 90_000, 4096), "damaged (central directory)")
+        // ... and a real directory that ends before the count does: the entry past its end is damage, not a read.
+        val bytes = ByteArrayOutputStream().also { out -> ZipOutputStream(out).use { z -> z.putNextEntry(ZipEntry("a.txt")); z.write(1); z.closeEntry() } }.toByteArray()
+        // The end record's two entry counts (offsets 8 and 10 of its 22 bytes) say 3 where there is 1.
+        bytes[bytes.size - 22 + 8] = 3
+        bytes[bytes.size - 22 + 10] = 3
+        failed(File(dir, "short.zip").apply { writeBytes(bytes) }, "damaged (central directory)")
     }
 
     @Test
@@ -98,13 +104,17 @@ class ZipLimitsTest {
         val bytes = ByteArrayOutputStream().also { out -> ZipOutputStream(out).use { z -> z.putNextEntry(ZipEntry("a.txt")); z.write(1); z.closeEntry() } }.toByteArray()
         val file = File(dir, "ok.zip").apply { writeBytes(bytes) }
 
-        assertEquals(ZipOpen.Failed("unreadable (OutOfMemoryError)"), ZipArchive.open(file, { lines += it }) { throw OutOfMemoryError("simulated") })
-        assertEquals(ZipOpen.Failed("unreadable (StackOverflowError)"), ZipArchive.open(file, { lines += it }) { throw StackOverflowError() })
-        assertEquals(ZipOpen.Failed("unreadable (IllegalStateException)"), ZipArchive.open(file, { lines += it }) { error("boom") })
+        assertEquals(ZipOpen.Failed("unreadable (OutOfMemoryError)"), ZipArchive.open(file, { lines += it }, openZip = { throw OutOfMemoryError("simulated") }))
+        assertEquals(ZipOpen.Failed("unreadable (StackOverflowError)"), ZipArchive.open(file, { lines += it }, openZip = { throw StackOverflowError() }))
+        assertEquals(ZipOpen.Failed("unreadable (IllegalStateException)"), ZipArchive.open(file, { lines += it }, openZip = { error("boom") }))
         assertEquals(
             listOf("OutOfMemoryError", "StackOverflowError", "IllegalStateException").map { "zip open ${file.path}: failed unreadable ($it)" },
             lines,
         )
+        // ... and the same from Files' own reading of the directory.
+        lines.clear()
+        assertEquals(ZipOpen.Failed("unreadable (OutOfMemoryError)"), ZipArchive.open(file, { lines += it }, central = { throw OutOfMemoryError("simulated") }))
+        assertEquals(listOf("zip open ${file.path}: failed unreadable (OutOfMemoryError)"), lines)
         // The control: the same file opens with the platform's own ZipFile.
         assertTrue(ZipArchive.open(file, { }) is ZipOpen.Opened)
     }

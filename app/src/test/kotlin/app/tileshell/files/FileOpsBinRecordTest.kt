@@ -124,6 +124,15 @@ class FileOpsBinRecordTest {
         assertEquals("voice", back.readText())
     }
 
+    @Test
+    fun `restore asks the record again - an entry made by hand with a forged path still goes to Download Restored`() {
+        bed.ops.binDelete(bed.file("Download/a.txt", "hello".toByteArray()))
+        val planted = File(bed.root, "Android/media/com.victim.app/a.txt")
+        val byHand = RecycleBin.Entry(bed.primary, "1000-0-a.txt", "a.txt", planted.path, 1000L, 5, false)
+        assertEquals(OpResult.Done(listOf(restored.path)), bed.ops.binRestore(byHand, FilesBed.never))
+        assertFalse(File(bed.root, "Android").exists())
+    }
+
     // ---- the row shows where Restore will put the file
 
     @Test

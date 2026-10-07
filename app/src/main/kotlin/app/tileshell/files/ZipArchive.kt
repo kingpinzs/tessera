@@ -39,9 +39,9 @@ class ZipFormatException(message: String) : Exception(message)
  * entry as for an empty one.
  *
  * What the end record CLAIMS is bounded before anything is allocated for it (the GATE review's L10): at most
- * [MAX_ENTRIES] entries and [MAX_DIRECTORY_BYTES] of directory, and a count that could not fit in its directory is
- * damage. The directory is then read through one [WINDOW]-byte buffer, an entry at a time — never into one array of
- * its own size.
+ * [MAX_ENTRIES] entries and [MAX_DIRECTORY_BYTES] of directory. The directory is then read through one [WINDOW]-byte
+ * buffer, an entry at a time — never into one array of its own size — and an entry that would lie past the
+ * directory's end is damage.
  */
 object ZipCentral {
     private const val SIG_END = 0x06054b50L
@@ -67,8 +67,7 @@ object ZipCentral {
         RandomAccessFile(file, "r").use(::read)
     } catch (e: ZipFormatException) {
         throw e
-    } catch (e: Throwable) {
-        // An Error too (OutOfMemoryError): a file never takes the process down by being read.
+    } catch (e: Exception) {
         throw ZipFormatException("unreadable (${e.javaClass.simpleName})")
     }
 
@@ -107,7 +106,6 @@ object ZipCentral {
         if (size < 0 || offset < 0 || count < 0 || size > length || offset > length - size) throw ZipFormatException("damaged (central directory)")
         // The claim is weighed before a byte of the directory is read or a list is made for it.
         if (count > MAX_ENTRIES || size > MAX_DIRECTORY_BYTES) throw ZipFormatException("too many entries")
-        if (count * ENTRY_SIZE > size) throw ZipFormatException("damaged (central directory)")
 
         val zone = ZoneId.systemDefault()
         val out = ArrayList<ZipEntryInfo>(count.toInt())
@@ -304,21 +302,32 @@ class ZipArchive private constructor(
          * directory's count), `zip: encrypted <path>`, or `zip open <path>: failed <why>`.
          *
          * [openZip] is the platform's `ZipFile`; ISO-8859-1 is asked for only so that no name can fail to decode — the
-         * names shown are [ZipCentral]'s.
+         * names shown are [ZipCentral]'s ([central] is its reader). Whatever either of them throws — an Error too
+         * (`OutOfMemoryError` on a hostile file) — is this zip's failure with its line, never the process's (the GATE
+         * review's L10).
          */
-        fun open(file: File, say: (String) -> Unit, openZip: (File) -> ZipFile = { ZipFile(it, Charsets.ISO_8859_1) }): ZipOpen {
+        fun open(
+            file: File,
+            say: (String) -> Unit,
+            openZip: (File) -> ZipFile = { ZipFile(it, Charsets.ISO_8859_1) },
+            central: (File) -> List<ZipEntryInfo> = ZipCentral::read,
+        ): ZipOpen {
             val path = FilePaths.lineText(file.path)
             fun failed(why: String): ZipOpen {
                 say("zip open $path: failed $why")
                 return ZipOpen.Failed(why)
             }
-            val entries = try { ZipCentral.read(file) } catch (e: ZipFormatException) { return failed(e.message ?: "unreadable") }
+            val entries = try {
+                central(file)
+            } catch (e: ZipFormatException) {
+                return failed(e.message ?: "unreadable")
+            } catch (e: Throwable) {
+                return failed("unreadable (${e.javaClass.simpleName})")
+            }
             if (entries.any { it.encrypted }) {
                 say("zip: encrypted $path")
                 return ZipOpen.Encrypted
             }
-            // Whatever the platform's reader throws — an Error too (OutOfMemoryError on a hostile file) — is this
-            // zip's failure with its line, never the process's (the GATE review's L10).
             var zip: ZipFile? = null
             return try {
                 zip = openZip(file)

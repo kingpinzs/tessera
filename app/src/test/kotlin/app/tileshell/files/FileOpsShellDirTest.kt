@@ -188,6 +188,20 @@ class FileOpsShellDirTest {
         assertEquals(listOf(".Tessera", "Download"), bed.names(bed.root))
     }
 
+    @Test
+    fun `restore - a folder on the way that leads into the shell's folder fails the restore, and the file stays binned`() {
+        val binned = binOne()
+        File(bin, ".index.json").delete()
+        // No record: the file would go to Download/Restored — and Download is a link into the shell's folder.
+        File(bed.root, "Download").deleteRecursively()
+        java.nio.file.Files.createSymbolicLink(File(bed.root, "Download").toPath(), shell.toPath())
+        val entry = bed.ops.bin.list(bed.primary).single()
+
+        assertEquals(refused, bed.ops.binRestore(entry, FilesBed.never))
+        assertEquals("hello", binned.readText())
+        assertEquals(listOf("bin"), bed.names(shell))
+    }
+
     // ---- zip
 
     @Test
@@ -223,6 +237,12 @@ class FileOpsShellDirTest {
         val inside = zipOf(File(bin, "1000-1-x.zip"), "a.txt" to "a")
         assertEquals(refused, bed.ops.zipExtract(inside, conflict = replace))
         assertEquals(listOf(".index.json", ".nomedia", "1000-0-a.txt", "1000-1-x.zip"), bed.names(bin))
+
+        // A link in an ordinary folder that resolves to that zip: its folder is fine, the zip itself is not.
+        val link = File(bed.dir("QA-Files"), "innocent.zip")
+        java.nio.file.Files.createSymbolicLink(link.toPath(), inside.toPath())
+        assertEquals(refused, bed.ops.zipExtract(link, conflict = replace))
+        assertEquals(listOf("innocent.zip"), bed.names(link.parentFile!!))
 
         val out = bed.dir("Download/out")
         assertEquals(refused, bed.ops.zipCreate(listOf(binned), out, conflict = replace))

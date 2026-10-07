@@ -107,6 +107,9 @@ class FileOpsBinHardeningTest {
 
         assertEquals(unusable, bed.ops.binDelete(file))
         assertEquals(unusable, bed.ops.binEmpty(bed.primary))
+        // What lies in the folder the link leads to is not the bin's to list or count.
+        assertEquals(emptyList<RecycleBin.Entry>(), bed.ops.bin.list(bed.primary))
+        assertEquals(RecycleBin.Stats(0, 0), bed.ops.bin.stats(bed.primary))
         assertEquals("a", file.readText())
         assertEquals("the user's", keep.readText())
         assertEquals(listOf("keep.txt"), bed.names(File(elsewhere, "bin")))
