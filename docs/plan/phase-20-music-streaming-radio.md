@@ -1,7 +1,7 @@
 ---
 phase: 20
 slug: music-streaming-radio
-status: DRAFT   # 2026-09-23; interview DONE 2026-09-23 (Q1 C, Q2 A, Q3 A, Q4 A, Q5 A + Pandora); review triage round 2 applied 2026-09-23 (review/2026-09-23-phases11-20-r2-triage.md); Q-D: A (plain-http streams, with phase 17); ADDS to phase 10's FINAL part, never rebuilds it; round 3 applied 2026-10-07 (review/2026-10-07-phase20-r3-triage.md; r11/music-radio-addendum-2026-10-07.md); Q-20-1 answered 2026-10-07 (offline browsing is not a goal)
+status: FINAL   # FINAL 2026-10-07 10:47 (Jeremy: "(a)"); was DRAFT: 2026-09-23; interview DONE 2026-09-23 (Q1 C, Q2 A, Q3 A, Q4 A, Q5 A + Pandora); review triage round 2 applied 2026-09-23 (review/2026-09-23-phases11-20-r2-triage.md); Q-D: A (plain-http streams, with phase 17); ADDS to phase 10's FINAL part, never rebuilds it; round 3 applied 2026-10-07 (review/2026-10-07-phase20-r3-triage.md; r11/music-radio-addendum-2026-10-07.md); Q-20-1 answered 2026-10-07 (offline browsing is not a goal)
 depends-on: [03, 10, 12, 15, 17, 18]   # C-23 / T20-7: 15 for its build task 0 (shell-session routing by tag), which "must be in first"; 12 for C-4's `pm clear` → `provision.sh` form and C-15; 17 for StreamingHandoff, the network security config (C-16) and the Jellyfin fixture; 11 is not needed (T20-3: no shortcut is declared); 18 added 2026-10-07 (r3 D1): the station / server item rule is an ADD to phase 18's `MusicItemRule` (ledger L18-1) and rewrites clauses of its `UriAccessWiringScanTest`, and the harness reuses `p18.sh`'s `baseline_start` / `absent_in` and `qa/phase-18/baseline_layout.json` — NOT for phase 18's `QaBases` constants or `MusicPlayExtra`, which this phase does not touch
 ---
 
@@ -55,6 +55,7 @@ forms); a Plex client (phase 17 Q-B: Jellyfin only); pinning a station to Start 
 change to phase 10's measured now-playing geometry for local tracks (R8, H-M1 signed off).
 
 ## Decisions
+- 2026-10-07 10:47: **FINAL** (Jeremy: "(a)"), after the research addendum, review round 3 (the last allowed; opus + opus) and Q-20-1. From here this doc changes only through a dated entry in INDEX.md's Change Log. The build runs in a clean session of its own from docs/plan/prompts/session-phase-20.md.
 - 2026-10-07 09:25: **Q-20-1 ANSWERED — browsing stations offline is not a goal** (Jeremy, asked how much of the directory lives
   on the phone, first "will the stations work offline?" — no, a station is a live stream — then: "why would it matter
   since you can't paly any of them offline so having a list offline does not help anyone it can cache the whole thing but
