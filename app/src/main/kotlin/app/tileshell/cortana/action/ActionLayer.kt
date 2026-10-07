@@ -38,6 +38,15 @@ import app.tileshell.diag.Diagnostics
 import app.tileshell.feeds.TileNotificationListener
 import app.tileshell.music.handoff.MusicHandoff
 import app.tileshell.music.handoff.MusicServicesTable
+import app.tileshell.music.radio.RadioDirectoryStore
+import app.tileshell.music.radio.RadioFavouritesStore
+import app.tileshell.music.radio.RadioIndex
+import app.tileshell.music.radio.RadioNet
+import app.tileshell.music.radio.RadioText
+import app.tileshell.music.radio.Station
+import app.tileshell.music.radio.StationItem
+import app.tileshell.music.radio.StationQueue
+import app.tileshell.music.radio.StationStart
 import app.tileshell.tiles.LayoutStore
 import app.tileshell.tiles.Slot
 import app.tileshell.tiles.SlotResolver
@@ -586,8 +595,11 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
         val ownSlot = controller == null && slotApp(Slot.MUSIC)?.component?.packageName == context.packageName
         if (ownSession || ownSlot) {
             if (app.tileshell.music.MusicStore.library.value.isEmpty()) app.tileshell.music.MusicStore.refresh(context, "Tess")
-            val match = app.tileshell.music.MusicSearch.resolve(query, app.tileshell.music.MusicStore.library.value)
+            // Phase 20 (r3 D6): the ONE resolver, here with the stations too — the favourites, and the cached directory
+            // when a rule reaches it. The session's search branch asks the same resolver for the shell's own controller.
+            val match = app.tileshell.music.MusicSearch.resolve(query, app.tileshell.music.MusicStore.library.value, radioStations())
                 ?: return answer("I couldn't find $query in your music.")
+            match.station?.let { return playStation(query, it, controller) }
             if (controller != null) {
                 controller.transportControls.playFromSearch(query, null)
             } else {
@@ -609,6 +621,47 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
         host.launch(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         return Outcome("Playing $query.", null, close = true)
     }
+
+    /**
+     * Phase 20 (Q5 A; r3 D6): a station match of "play <station>", "play <genre> radio" or "play radio". With the
+     * shell's session up, the search goes to it as any other does (it resolves the same station and logs it); with no
+     * controller the station is started through `MusicPlayer.playStations`. Either way it is a media session, never an
+     * activity, so it plays over the keyguard. What would refuse the start — no network, a captive portal, an address
+     * that may not be played — is asked first, so Tess says that instead of "Playing".
+     */
+    private fun playStation(query: String, station: Station, controller: MediaController?): Outcome {
+        val refusal = if (controller != null) {
+            StationStart.plan(RadioNet.gate(context, isStation = true), StationQueue(listOf(station), 0), RadioNet.qaHost(context)).refusal
+                .also { if (it == null) controller.transportControls.playFromSearch(query, null) }
+        } else {
+            app.tileshell.music.MusicPlayer.playStations(context, station)
+        }
+        val name = RadioText.shown(station.name, RadioText.NAME_MAX)
+        Diagnostics.add("cortana", "play \"${app.tileshell.music.MusicQueueStart.lineQuery(query)}\": station $name ${if (refusal == null) "in the shell's player" else "not started"}")
+        return answer(
+            when (refusal) {
+                null -> "Playing $name."
+                StationItem.CANT_PLAY -> "I can't play $name."
+                else -> "$refusal."
+            },
+        )
+    }
+
+    /**
+     * The stations Tess's "play …" may find: the favourites, and the cached directory. The directory is read from its
+     * file the first time in a process, which is not this thread's to wait long for: it is read on a thread of its own
+     * and waited for up to [DIRECTORY_WAIT_MS] — only when a rule reaches the directory at all — and a read that is not
+     * in by then counts as no directory this once (it goes on, and the next ask has it).
+     */
+    private fun radioStations(): app.tileshell.music.MusicSearch.Stations =
+        app.tileshell.music.MusicSearch.Stations(RadioFavouritesStore.get(context).favourites.value) {
+            val read = java.util.concurrent.FutureTask { RadioDirectoryStore.get(context).loadedIndex() }
+            Thread(read, "tess-radio-directory").start()
+            runCatching { read.get(DIRECTORY_WAIT_MS, java.util.concurrent.TimeUnit.MILLISECONDS) }.getOrElse {
+                Diagnostics.add("cortana", "radio directory not read in $DIRECTORY_WAIT_MS ms: favourites only this time")
+                RadioIndex.EMPTY
+            }
+        }
 
     /**
      * Phase 20 (Q5 A; r3 D7): "listen to <x> on <app>". The app is found by code among the music hand-off's entries as
@@ -753,5 +806,8 @@ class ActionLayer(private val context: Context, private val host: ActionHost) {
 
     private companion object {
         val DATE_FORMAT = SimpleDateFormat("EEEE, MMMM d", Locale.US)
+
+        /** How long "play …" waits for the station directory to be read from its file, the first time in a process. */
+        const val DIRECTORY_WAIT_MS = 2_500L
     }
 }
