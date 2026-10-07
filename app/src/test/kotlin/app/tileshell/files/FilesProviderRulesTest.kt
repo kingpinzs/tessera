@@ -5,6 +5,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -97,5 +98,36 @@ class FilesProviderRulesTest {
         assertNull(FilesProviderRules.serve(path, roots) { error("unreadable") })
         // A prefix that is not a folder boundary is not "under" the volume.
         assertNull(FilesProviderRules.serve(uriPath("/storage/emulated/01/x"), roots, lexical))
+    }
+
+    /** The GATE review's W2 (pass 2): the opener hands out a READ-ONLY descriptor, and no other. */
+    @Test
+    fun `the opener opens a regular file read-only - a read-write mode fails this`() {
+        class Opened(val mode: Int) : OpenedFile {
+            override val realPath: String? = null
+            override val isRegularFile = true
+            override val size = 0L
+            override fun close() = Unit
+        }
+        val dir = Files.createTempDirectory("opener").toFile()
+        try {
+            val file = File(dir, "a.txt").apply { writeText("x") }
+            val modes = ArrayList<Int>()
+            val opener = FilesProviderRules.opener { f, mode -> modes += mode; assertEquals(file, f); Opened(mode) }
+            assertEquals(0x10000000, opener(file.path)!!.mode) // ParcelFileDescriptor.MODE_READ_ONLY
+            assertEquals(listOf(0x10000000), modes)
+            assertEquals(0x10000000, FilesProviderRules.OPEN_MODE)
+            // Not a regular file, or nothing there: nothing is opened at all.
+            assertNull(opener(dir.path))
+            assertNull(opener(File(dir, "gone").path))
+            assertEquals(1, modes.size)
+            // The device's side hands the rule's mode straight on, and names no mode of its own.
+            val source = app.tileshell.media.SourceScan.read("files/FilesProvider.kt")
+            assertEquals(1, Regex("ParcelFileDescriptor\\.open\\(").findAll(source).count())
+            assertTrue(source.contains("FilesProviderRules.opener { file, mode -> AndroidOpenedFile(ParcelFileDescriptor.open(file, mode)) }"))
+            assertEquals(listOf("MODE_READ_ONLY"), Regex("MODE_[A-Z_]+").findAll(source).map { it.value }.toList())
+        } finally {
+            dir.deleteRecursively()
+        }
     }
 }

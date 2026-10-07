@@ -21,20 +21,23 @@ class AlarmApiActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val intent = intent
-        val caller = callingPackage ?: referrer?.host ?: "?"
-        fun intExtra(key: String): Int? = if (intent.hasExtra(key)) intent.getIntExtra(key, 0) else null
-        val request = AlarmApiRules.parse(
+        val caller = ClockIntents.token(try { callingPackage ?: referrer?.host } catch (e: Throwable) { null }).ifEmpty { "?" }
+        // Ledger L18-3: every extra through the reader that cannot throw; one that could not be read refuses the request.
+        val extras = SafeExtras(AndroidExtras(intent))
+        val parsed = AlarmApiRules.parse(
             action = intent.action,
-            hour = intExtra(AlarmClock.EXTRA_HOUR),
-            minutes = intExtra(AlarmClock.EXTRA_MINUTES),
-            days = intent.getIntegerArrayListExtra(AlarmClock.EXTRA_DAYS),
-            message = intent.getStringExtra(AlarmClock.EXTRA_MESSAGE),
-            skipUi = intent.getBooleanExtra(AlarmClock.EXTRA_SKIP_UI, false),
-            lengthSeconds = intExtra(AlarmClock.EXTRA_LENGTH),
-            ringtone = intent.getStringExtra(AlarmClock.EXTRA_RINGTONE),
-            vibrate = if (intent.hasExtra(AlarmClock.EXTRA_VIBRATE)) intent.getBooleanExtra(AlarmClock.EXTRA_VIBRATE, true) else null,
+            hour = extras.int(AlarmClock.EXTRA_HOUR),
+            minutes = extras.int(AlarmClock.EXTRA_MINUTES),
+            days = extras.ints(AlarmClock.EXTRA_DAYS, AlarmApiRules.MAX_DAYS),
+            message = extras.string(AlarmClock.EXTRA_MESSAGE, AlarmApiRules.MAX_EXTRA_TEXT),
+            skipUi = extras.boolean(AlarmClock.EXTRA_SKIP_UI) ?: false,
+            lengthSeconds = extras.int(AlarmClock.EXTRA_LENGTH),
+            ringtone = extras.string(AlarmClock.EXTRA_RINGTONE, AlarmApiRules.MAX_EXTRA_TEXT),
+            vibrate = extras.boolean(AlarmClock.EXTRA_VIBRATE),
             access = AndroidUriAccess(this),
         )
+        extras.refused.forEach { Diagnostics.add("alarms", "api $it") }
+        val request = AlarmApiRules.unlessUnreadable(parsed, extras.refused.size)
         // L18-2: a ringtone the caller could not have read itself is not kept; the line names why, never the caller's text.
         val refusedSound = when (request) {
             is Request.CreateAlarm -> request.fields.soundRefused
@@ -83,7 +86,7 @@ class AlarmApiActivity : ComponentActivity() {
             Request.ShowTimers -> { openClock(ClockTab.TIMER, null); "opened" }
             is Request.Refused -> "refused: ${request.why}"
         }
-        Diagnostics.add("alarms", "api ${intent.action} from $caller -> $result")
+        Diagnostics.add("alarms", AlarmApiRules.line(intent.action, caller, result))
         finish()
     }
 

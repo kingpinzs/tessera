@@ -79,6 +79,31 @@ class FilePace(
     }
 }
 
+/**
+ * What only the VOLUME can answer about a name (the GATE review's N2). Shared storage folds names by its own tables —
+ * measured on the emulator: with `.Tessera` there, `.TESSERA`, `.Teßera`, `.Teſſera`, `.Tess<U+200B>era` and
+ * `.Tessera<U+00AD>` all lead to it, and `realpath` returns each name as it was written — so no comparison of TEXT can
+ * say "this path is the shell's folder". Every such question is asked here instead: do two paths lead to ONE file, and
+ * under which name does a folder list an entry. [Real] is `java.nio` (device and inode); a JVM test hands in a volume
+ * that folds (`FoldingVolume`), because the host's file system does not.
+ */
+interface FileIdentity {
+    /** Something answers to this path (a dangling link included). */
+    fun exists(file: File): Boolean
+
+    /** Both paths lead to one and the same file that is there (links followed) — or are one and the same path. */
+    fun same(a: File, b: File): Boolean
+
+    /** The names in [dir] exactly as the volume holds them; null when it cannot be listed. */
+    fun names(dir: File): List<String>?
+
+    object Real : FileIdentity {
+        override fun exists(file: File): Boolean = FilePaths.existsNoFollow(file)
+        override fun same(a: File, b: File): Boolean = a == b || runCatching { Files.isSameFile(a.toPath(), b.toPath()) }.getOrDefault(false)
+        override fun names(dir: File): List<String>? = dir.list()?.toList()
+    }
+}
+
 /** Path, name and small-file rules shared by every part of Files' pure layer. */
 object FilePaths {
     /** [FileVolume.uuid] of the primary shared storage. */
@@ -118,21 +143,84 @@ object FilePaths {
         }
     }
 
+    /** The platform's per-app folders at a volume's root (`Android/data`, `Android/obb`, `Android/media`). */
+    const val ANDROID_DIR = "Android"
+
+    /** [path] as its own text reads once `.` and `..` are folded; null when it is not a path at all. */
+    fun written(path: String): String? = runCatching { java.nio.file.Paths.get(path).toAbsolutePath().normalize().toString() }.getOrNull()
+
     /**
-     * [path] is the shell's folder at [volume]'s root, or inside it (the bin, the nested-zip copies) — asked of the path
-     * as it RESOLVES (links and `..` followed) and as it is WRITTEN (`.` and `..` folded by its own text), so neither a
-     * link into the folder nor a link out of it gets a path past this. The folder's name is compared ignoring case:
-     * FAT folds case, so `.tessera` is the same folder there.
+     * [path] IS [anchor], or lies inside it — by FILE IDENTITY (N2): [path] as it is written and as it resolves, and
+     * every folder above each, is asked whether it leads to the same file as [anchor] ([FileIdentity.same]). So a name
+     * the volume folds onto the anchor's, an 8.3 alias of it, a link to it and a link out of it are all the anchor;
+     * a path whose anchor is not there yet matches only the anchor's own path.
      */
-    fun inShellDir(path: String, volume: FileVolume, canonical: (String) -> String?): Boolean {
+    fun within(path: String, anchor: File, canonical: (String) -> String?, id: FileIdentity): Boolean {
+        return within(listOfNotNull(written(path), runCatching { canonical(path) }.getOrNull()), anchor, id)
+    }
+
+    /** [within], of a path whose forms — as written, as resolved — are already in hand (so it is resolved only once). */
+    fun within(forms: List<String>, anchor: File, id: FileIdentity): Boolean {
+        for (form in forms.distinct()) {
+            var at: File? = File(form)
+            while (at != null) {
+                if (id.same(at, anchor)) return true
+                at = at.parentFile
+            }
+        }
+        return false
+    }
+
+    /** The shell's folder on [volume], where it is (or will be). */
+    fun shellDir(volume: FileVolume): File = File(volume.root, SHELL_DIR)
+
+    /**
+     * [path] is the shell's folder at [volume]'s root, or inside it (the bin, the nested-zip copies). Decided by FILE
+     * IDENTITY ([within]): any path that leads into the folder that IS `<root>/.Tessera` is in it, whatever it is called
+     * — so neither a name the volume folds onto `.Tessera`, nor a link into the folder, nor a link out of it gets a path
+     * past this. The name is ALSO refused as text, in any case, as written and as resolved ([byName]): that half speaks
+     * for a folder that is not there yet (nothing to compare with) and can only refuse more.
+     */
+    fun inShellDir(path: String, volume: FileVolume, canonical: (String) -> String?, id: FileIdentity = FileIdentity.Real): Boolean {
         fun shellUnder(p: String?, root: String?): Boolean {
             val r = root?.trimEnd('/') ?: return false
             return p != null && under(p, r) && p.substring(r.length + 1).substringBefore('/').equals(SHELL_DIR, ignoreCase = true)
         }
         val root = runCatching { canonical(volume.root) }.getOrNull()
         val resolved = runCatching { canonical(path) }.getOrNull()
-        val written = runCatching { java.nio.file.Paths.get(path).toAbsolutePath().normalize().toString() }.getOrNull()
-        return shellUnder(resolved, root) || shellUnder(written, root) || shellUnder(written, volume.root)
+        val written = written(path)
+        fun byName(): Boolean {
+            return shellUnder(resolved, root) || shellUnder(written, root) || shellUnder(written, volume.root)
+        }
+        return byName() || within(path, shellDir(volume), canonical, id)
+    }
+
+    /**
+     * [dir] is the shell's folder ITSELF (not something inside it): what a walk that comes down from an allowed folder
+     * asks of each folder before entering it, and a root listing of each row — one question, where [inShellDir] asks one
+     * per folder above the path.
+     */
+    fun isShellDir(dir: File, volume: FileVolume, id: FileIdentity = FileIdentity.Real): Boolean {
+        val shell = shellDir(volume)
+        val atRoot = dir.parentFile?.let { it.path.trimEnd('/') == volume.root.trimEnd('/') || id.same(it, File(volume.root)) } == true
+        return (atRoot && dir.name.equals(SHELL_DIR, ignoreCase = true)) || id.same(dir, shell)
+    }
+
+    /**
+     * [path] is `<volume>/Android` or inside it — by identity ([within]) and, for a folder that is not there, by its
+     * name in any case: the other apps' folders (and the shell's own), which no bin record restores into.
+     */
+    fun underAndroid(path: String, volume: FileVolume, canonical: (String) -> String?, id: FileIdentity = FileIdentity.Real): Boolean {
+        val root = runCatching { canonical(volume.root) }.getOrNull()?.trimEnd('/') ?: return true
+        val byName = under(path, root) && path.substring(root.length + 1).substringBefore('/').equals(ANDROID_DIR, ignoreCase = true)
+        return byName || within(path, File(volume.root, ANDROID_DIR), canonical, id)
+    }
+
+    /** [path] is [volume]'s own root: by its resolved text, or because it leads to the same folder (N2). */
+    fun isVolumeRoot(path: String, volume: FileVolume, canonical: (String) -> String?, id: FileIdentity = FileIdentity.Real): Boolean {
+        val p = runCatching { canonical(path) }.getOrNull()
+        val r = runCatching { canonical(volume.root) }.getOrNull()
+        return (p != null && r != null && p.trimEnd('/') == r.trimEnd('/')) || id.same(File(path), File(volume.root))
     }
 
     /** A name the user may give a file or folder: one path segment that fits. */
@@ -227,14 +315,43 @@ object FilePaths {
         else -> f.length()
     }
 
-    /** [from] becomes [to]; never onto something that is there ([replace] = false) — `rename(2)` alone would replace it. */
+    /**
+     * [from] becomes [to]; with [replace] false never onto something that is there — `rename(2)` alone would replace it,
+     * and "look, then rename" (which is also all `Files.move` without REPLACE_EXISTING does) leaves a gap in which a file
+     * another writer makes is overwritten (the GATE review's N13). So the name is TAKEN first ([renameNoReplace]).
+     */
     @Throws(IOException::class)
     fun rename(from: File, to: File, replace: Boolean) {
-        if (replace) {
-            Files.move(from.toPath(), to.toPath(), StandardCopyOption.REPLACE_EXISTING)
-        } else {
-            if (existsNoFollow(to)) throw java.nio.file.FileAlreadyExistsException(to.path)
-            Files.move(from.toPath(), to.toPath())
+        if (replace) Files.move(from.toPath(), to.toPath(), StandardCopyOption.REPLACE_EXISTING) else renameNoReplace(from, to)
+    }
+
+    /**
+     * The no-replace rename, from what shared storage really offers (FUSE and FAT have no `link(2)`, and the platform
+     * exposes no `renameat2(RENAME_NOREPLACE)`):
+     *  1. the name [to] is taken by an EXCLUSIVE create — an empty file for a file, an empty folder for a folder
+     *     (`O_CREAT|O_EXCL`, `mkdir`). The volume itself answers whether the name is free, by its own folding, in one
+     *     step: anything that answers to it fails the rename with `FileAlreadyExistsException` and is untouched;
+     *  2. [from] is renamed onto that placeholder by ONE `rename(2)` (ATOMIC_MOVE: no copy on another device, no
+     *     delete-then-rename). A folder goes only onto an EMPTY folder, so whatever another writer put into the
+     *     placeholder meanwhile fails the rename instead of being lost.
+     * A failed step 2 removes the placeholder (only while it is still empty) and leaves [from] where it was.
+     * What remains: a writer that OPENS the empty placeholder file between the two steps and writes into it loses those
+     * bytes when the rename lands. Nothing that was there before step 1 can be replaced.
+     * [gap] runs between the steps — a test's other writer.
+     */
+    @Throws(IOException::class)
+    internal fun renameNoReplace(from: File, to: File, gap: () -> Unit = {}) {
+        val source = from.toPath()
+        val target = to.toPath()
+        if (!existsNoFollow(from)) throw java.nio.file.NoSuchFileException(from.path)
+        val folder = isRealDirectory(from)
+        if (folder) Files.createDirectory(target) else Files.createFile(target)
+        try {
+            gap()
+            Files.move(source, target, StandardCopyOption.ATOMIC_MOVE)
+        } catch (e: Exception) {
+            runCatching { if (folder || (Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS) && Files.size(target) == 0L)) Files.delete(target) }
+            throw e
         }
     }
 

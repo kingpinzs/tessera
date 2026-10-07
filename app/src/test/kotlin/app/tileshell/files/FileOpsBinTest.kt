@@ -128,9 +128,10 @@ class FileOpsBinTest {
         val file = bed.file("QA-Files/a.txt", bytes)
         val result = bed.ops.binDelete(file)
 
-        assertEquals(OpResult.Failed("the bin folder cannot be made"), result)
+        val why = "A file named .Tessera is in the way on ${bed.primary.root}. Remove or rename it from a computer, then try again."
+        assertEquals(OpResult.Failed(why), result)
         assertArrayEquals(bytes, file.readBytes())
-        assertEquals(listOf("bin delete ${file.path}: failed the bin folder cannot be made"), bed.lines)
+        assertEquals(listOf("bin delete ${file.path}: failed $why"), bed.lines)
         assertTrue(bed.scanned.isEmpty())
     }
 

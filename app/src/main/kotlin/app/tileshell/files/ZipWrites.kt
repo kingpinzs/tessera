@@ -161,6 +161,8 @@ internal class ZipWrites(
                     Conflict.REPLACE -> displace = true
                 }
             }
+            // The folder (or zip) to be displaced holds one of the sources: binning it would bin the source (N5).
+            if (displace && sources.any { ops.inside(it, target) }) throw Refused(FileOps.INSIDE_REPLACED)
             val part = File(destDir, FilePaths.partName(target.name, opId))
             journal.put(opId, part.path, volume.uuid)
             temp = part

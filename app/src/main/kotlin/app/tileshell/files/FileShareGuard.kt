@@ -1,5 +1,7 @@
 package app.tileshell.files
 
+import java.io.File
+
 /**
  * The FileProvider's scope (T18-11, r3 D10; a trust rule): Files holds All-files access and its provider needs a
  * `root-path` entry to reach `/storage/<UUID>`, which also covers the shell's private dirs — so a URI is handed out, and
@@ -30,25 +32,32 @@ object FileShareGuard {
      * [path]'s canonical form lies strictly under one of [roots] and outside the shell's [own] folders there. A path
      * that cannot be canonicalised, a canonicaliser that throws, and a root that is empty or only slashes all refuse.
      */
-    fun allowed(path: String?, roots: List<String>, canonical: (String) -> String?): Boolean {
+    fun allowed(path: String?, roots: List<String>, canonical: (String) -> String?): Boolean = allowed(path, roots, FileIdentity.Real, canonical)
+
+    /** [allowed], with the volume's answers about names handed in ([FileIdentity]; a JVM test's folding volume). */
+    fun allowed(path: String?, roots: List<String>, id: FileIdentity, canonical: (String) -> String?): Boolean {
         if (path.isNullOrEmpty() || path.contains('\u0000')) return false
         val p = runCatching { canonical(path) }.getOrNull() ?: return false
         return roots.any { root ->
             // The root in the same form as the path: a volume directory is canonical already on the device.
             val r = runCatching { canonical(root) }.getOrNull() ?: return@any false
-            FilePaths.under(p, r) && !own(p, r)
+            FilePaths.under(p, r) && !own(p, r, listOfNotNull(FilePaths.written(path), p), id)
         }
     }
 
     /**
      * [path] (canonical, under the canonical [root]) is the shell's own: `.Tessera` or inside it, or
-     * `Android/data|obb/<the shell's package>` or inside that. Names are compared ignoring case (FAT folds it).
+     * `Android/data|obb/<the shell's package>` or inside that. By its names in any case — and by FILE IDENTITY
+     * ([FilePaths.within]; N2): a path the volume folds onto one of those folders IS in it, whatever it is called.
      */
-    internal fun own(path: String, root: String): Boolean {
-        val parts = path.substring(root.trimEnd('/').length + 1).split('/')
+    internal fun own(path: String, root: String, forms: List<String> = listOf(path), id: FileIdentity = FileIdentity.Real): Boolean {
+        val r = root.trimEnd('/')
+        val parts = path.substring(r.length + 1).split('/')
         if (parts[0].equals(FilePaths.SHELL_DIR, ignoreCase = true)) return true
-        return parts.size >= 3 && parts[0].equals(RecycleBin.ANDROID_DIR, ignoreCase = true) &&
-            OWN_APP_DIRS.any { parts[1].equals(it, ignoreCase = true) } && parts[2].equals(OWN_PACKAGE, ignoreCase = true)
+        if (parts.size >= 3 && parts[0].equals(RecycleBin.ANDROID_DIR, ignoreCase = true) &&
+            OWN_APP_DIRS.any { parts[1].equals(it, ignoreCase = true) } && parts[2].equals(OWN_PACKAGE, ignoreCase = true)) return true
+        val anchors = listOf(File(r, FilePaths.SHELL_DIR)) + OWN_APP_DIRS.map { File(r, "${RecycleBin.ANDROID_DIR}/$it/$OWN_PACKAGE") }
+        return anchors.any { FilePaths.within(forms, it, id) }
     }
 
     /** As [allowed], writing [LINE_REFUSED] through [say] when the answer is no — the share then does not start. */

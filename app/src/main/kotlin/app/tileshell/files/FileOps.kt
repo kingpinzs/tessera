@@ -29,7 +29,8 @@ import java.util.zip.ZipFile
  *  5. **A delete goes to the bin** ([RecycleBin]'s rules), never straight off the disk.
  *  6. **Every write is followed by a scan** of the paths it touched ([scan]; T18-4), and by Recent's upkeep ([recent]).
  *  7. **The shell's own folder is not the user's.** No write here has a source, a destination or a resulting path inside
- *     `<volume>/.Tessera` ([FilePaths.inShellDir]: any case, as written and as resolved) — refused with [SHELL] — and a
+ *     `<volume>/.Tessera` ([FilePaths.inShellDir]: by FILE IDENTITY, so under any name the volume folds onto it; N2) —
+ *     refused with [SHELL] — and a
  *     whole volume is never a source (it holds that folder). The bin's writes ([RecycleBin]) and the nested-zip copy
  *     ([ZipWrites.openNested]) are the only code that writes there.
  * Each operation writes its one `[files]` line through [say] and returns the same outcome as an [OpResult].
@@ -42,7 +43,9 @@ import java.util.zip.ZipFile
  * @param access All-files access is held now (`Environment.isExternalStorageManager()`)
  * @param freeSpace usable bytes in the folder's volume
  * @param removeSource removes one copied file (or emptied folder) of a cross-volume move
- * @param names how a folder answers for its names ([FolderNames]): asked by [rename] alone
+ * @param names what the volume answers about names ([FolderNames], a [FileIdentity]): asked by [rename], and by every
+ *   "is this the shell's folder / a volume's root" question (rule 7; N2)
+ * @param label a volume's name as the user sees it, for the message that names what is in the bin's way (N6)
  * @param openZip the platform's `ZipFile` ([ZipArchive.open])
  */
 class FileOps(
@@ -58,9 +61,10 @@ class FileOps(
     private val removeSource: (File) -> Boolean = { it.delete() },
     private val openZip: (File) -> ZipFile = { ZipFile(it, Charsets.ISO_8859_1) },
     private val names: FolderNames = FolderNames.Real,
+    label: (FileVolume) -> String = { it.root },
 ) {
     /** The bin's reader (its page's rows, phase 19's stats). Its writes are this class's `bin*` functions. */
-    val bin = RecycleBin(clock, canonical, say)
+    val bin = RecycleBin(clock, canonical, say, names, label)
 
     private val zips = ZipWrites(this, journal, say, freeSpace)
 
@@ -158,8 +162,12 @@ class FileOps(
                     Conflict.REPLACE -> if (isDir && FilePaths.isRealDirectory(target)) merge = true else displace = true
                 }
             }
+            // What is about to be displaced holds the very item that would take its place: binning it would bin the
+            // source too. Refused before anything is touched (N5).
+            if (displace && inside(src, target)) throw Refused(INSIDE_REPLACED)
             if (!isDir) {
                 if (move && !cross) {
+                    // A rename is ready at once: the old file goes to the bin, the new one takes its name.
                     if (displace) displace(target)
                     FilePaths.rename(src, target, replace = false)
                 } else {
@@ -173,14 +181,18 @@ class FileOps(
                 }
                 return target
             }
-            if (displace) displace(target)
             if (move && !cross && !merge) {
                 val before = filesUnder(src)
+                if (displace) displace(target)
                 FilePaths.rename(src, target, replace = false)
                 touched += before
                 touched += before.map { target.path + it.substring(src.path.length) }
                 return target
             }
+            // A folder that takes the place of something (N5): it is built whole under its journalled temp name, and
+            // only then is what stands there binned and the folder renamed in. A cancel or a failure before that moment
+            // leaves what was there exactly where it was.
+            if (displace) return staged(src, target, cross)
             if (!merge && !target.mkdir()) throw java.io.IOException("mkdir")
             // A new folder has nothing to conflict with; a merged one was answered "replace" as a whole.
             src.listFiles()?.sortedBy { it.name }?.forEach { place(it, target, cross, if (merge) Conflict.REPLACE else forced) }
@@ -188,6 +200,58 @@ class FileOps(
             // The moved folder is empty now unless something in it was skipped; a folder that is not empty stays.
             if (move) { if (cross) removeSource(src) else src.delete() }
             return target
+        }
+
+        /**
+         * N5: the folder [src] in the place of what stands at [target]. Its copy is made in `.<name>.<opid>.part/` beside
+         * [target] — journalled, so a kill leaves it for the sweep, and removed here on a cancel or a failure — and no
+         * original is removed while it is being made (a cross-volume move deletes its originals only after the folder is
+         * in place: rule 4). Then [target] goes to the bin and the temp takes its name.
+         */
+        private fun staged(src: File, target: File, cross: Boolean): File {
+            val temp = File(target.parentFile, FilePaths.partName(target.name, opId))
+            journal.put(opId, temp.path, destVolume.uuid)
+            try {
+                if (!temp.mkdir()) throw java.io.IOException("mkdir")
+                src.listFiles()?.sortedBy { it.name }?.forEach { fill(it, temp) }
+                temp.setLastModified(src.lastModified())
+                displace(target)
+                FilePaths.rename(temp, target, replace = false)
+            } finally {
+                if (FilePaths.existsNoFollow(temp)) FilePaths.deleteTree(temp)
+            }
+            touched += filesUnder(target)
+            if (move) {
+                touched += filesUnder(src)
+                removeCopied(src, cross)
+            }
+            return target
+        }
+
+        /** [src] copied into [dir], a folder of [staged]'s temp: nothing is there to conflict with, nothing is removed. */
+        private fun fill(src: File, dir: File) {
+            meter.check()
+            if (FilePaths.isSymlink(src)) return
+            val out = File(dir, src.name)
+            if (FilePaths.isRealDirectory(src)) {
+                if (!out.mkdir()) throw java.io.IOException("mkdir")
+                src.listFiles()?.sortedBy { it.name }?.forEach { fill(it, out) }
+                out.setLastModified(src.lastModified())
+            } else {
+                FileInputStream(src).use { input -> FileOutputStream(out).use { o -> meter.pump(input, o) } }
+                out.setLastModified(src.lastModified())
+            }
+        }
+
+        /** A moved folder's originals, once its copy is in place: each copied file, then each folder that is empty. */
+        private fun removeCopied(src: File, cross: Boolean) {
+            if (FilePaths.isSymlink(src)) return
+            if (FilePaths.isRealDirectory(src)) {
+                src.listFiles()?.forEach { removeCopied(it, cross) }
+                if (cross) removeSource(src) else src.delete()
+            } else if (!(if (cross) removeSource(src) else src.delete())) {
+                throw Refused("copied, but the original could not be removed")
+            }
         }
 
         /**
@@ -312,8 +376,8 @@ class FileOps(
         var gone = emptyList<String>()
         val result = guarded(file) {
             val volume = volumeFor(file) ?: throw Refused(OUTSIDE)
-            if (canonical(file.path) == canonical(volume.root)) throw Refused("a volume cannot be deleted")
-            if (FilePaths.inShellDir(file.path, volume, canonical)) throw Refused("not a file Files deletes")
+            if (FilePaths.isVolumeRoot(file.path, volume, canonical, names)) throw Refused("a volume cannot be deleted")
+            if (FilePaths.inShellDir(file.path, volume, canonical, names)) throw Refused("not a file Files deletes")
             val before = if (FilePaths.isRealDirectory(file)) filesUnder(file) else listOf(file.path)
             bin.delete(file, volume)?.let { throw Refused(it) }
             gone = before
@@ -412,17 +476,30 @@ class FileOps(
     internal fun canonicalOf(file: File): String? = runCatching { canonical(file.path) }.getOrNull()
 
     /** [file] is a mounted volume's shell folder, or inside one (rule 7). */
-    internal fun inShell(file: File): Boolean = volumes().any { FilePaths.inShellDir(file.path, it, canonical) }
+    internal fun inShell(file: File): Boolean = volumes().any { FilePaths.inShellDir(file.path, it, canonical, names) }
 
-    /** Rule 7: none of [files] — a source, a destination, a path about to be made — is in a volume's shell folder. */
+    /**
+     * Rule 7: none of [files] — a source, a destination, a path about to be made — is in a volume's shell folder.
+     * A path that is NOT THERE yet and would be made directly under a volume's root is the one case identity cannot
+     * answer by itself: on a volume that folds names it could become the shell's folder when that is made later. So the
+     * shell's folder is made FIRST ([RecycleBin.anchor]) — from then on a name the volume folds onto it exists, and the
+     * identity rule refuses it. When nothing can be made there the path is refused: it cannot be proven.
+     */
     internal fun notShell(vararg files: File) {
+        if (files.any(::inShell)) throw Refused(SHELL)
+        for (file in files) {
+            if (names.exists(file) || FilePaths.existsNoFollow(file)) continue
+            val parent = file.absoluteFile.parentFile ?: continue
+            val volume = volumes().firstOrNull { FilePaths.isVolumeRoot(parent.path, it, canonical, names) } ?: continue
+            if (!bin.anchor(volume)) throw Refused(SHELL_UNPROVEN)
+        }
         if (files.any(::inShell)) throw Refused(SHELL)
     }
 
     /** Rule 7 for a source on [volume]: not in the shell's folder, and not the volume itself (which holds it). */
     internal fun notSource(src: File, volume: FileVolume) {
         notShell(src)
-        if (canonicalOf(src) == canonicalOf(File(volume.root))) throw Refused(VOLUME_SOURCE)
+        if (FilePaths.isVolumeRoot(src.path, volume, canonical, names)) throw Refused(VOLUME_SOURCE)
     }
 
     internal fun scanPaths(paths: List<String>) = scan(paths)
@@ -477,6 +554,13 @@ class FileOps(
 
     private fun sameFile(a: File, b: File): Boolean = runCatching { Files.isSameFile(a.toPath(), b.toPath()) }.getOrDefault(false)
 
+    /** [item] lies inside the folder [holder] (or is it), as both resolve. */
+    internal fun inside(item: File, holder: File): Boolean {
+        val i = canonicalOf(item) ?: return true
+        val h = canonicalOf(holder) ?: return true
+        return i == h || FilePaths.under(i, h)
+    }
+
     companion object {
         // The failure reasons the doc names (Edge cases, r3 D4, r3 D8).
         const val NO_SPACE = "not enough space"
@@ -492,6 +576,12 @@ class FileOps(
 
         /** A source, a destination or a resulting path in a volume's `.Tessera` (rule 7; the GATE review's M4). */
         const val SHELL = "inside the shell's own folder"
+
+        /** A not-yet-existing name directly under a volume's root, where the shell's folder cannot be made to compare with (N2). */
+        const val SHELL_UNPROVEN = "the shell's own folder cannot be made on this storage"
+
+        /** "Replace" asked of something that holds the very item that would replace it (N5). */
+        const val INSIDE_REPLACED = "it is inside what it would replace"
 
         /** A volume's root handed in as a source (rule 7). */
         const val VOLUME_SOURCE = "a whole volume cannot be the source"
@@ -517,25 +607,13 @@ class FileOps(
  * volume that folds case (FAT, as FUSE shows it) says a name "exists" when only its other-case twin does, and reports a
  * rename between the two as done while it changes nothing. [Real] is `java.nio`; a test hands in such a volume.
  */
-interface FolderNames {
-    /** Something answers to this path (a dangling link included). */
-    fun exists(file: File): Boolean
-
-    /** Both paths lead to one and the same file. */
-    fun same(a: File, b: File): Boolean
-
+interface FolderNames : FileIdentity {
     /** `rename(2)`, never onto something that is there. */
     @Throws(java.io.IOException::class)
     fun rename(from: File, to: File)
 
-    /** The names in [dir] exactly as the volume holds them; null when it cannot be listed. */
-    fun names(dir: File): List<String>?
-
-    object Real : FolderNames {
-        override fun exists(file: File): Boolean = FilePaths.existsNoFollow(file)
-        override fun same(a: File, b: File): Boolean = runCatching { Files.isSameFile(a.toPath(), b.toPath()) }.getOrDefault(false)
+    object Real : FolderNames, FileIdentity by FileIdentity.Real {
         override fun rename(from: File, to: File) = FilePaths.rename(from, to, replace = false)
-        override fun names(dir: File): List<String>? = dir.list()?.toList()
     }
 }
 

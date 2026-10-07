@@ -30,16 +30,23 @@ import java.io.File
  *     and restores to `Download/Restored/`. A bin name is one plain file name. Nothing here follows a symlink.
  *  4. **A row says where Restore will put it** ([Entry.restoreDir]), and Restore puts it exactly there
  *     ([restoreTarget] answers both), so the user sees the destination before the tap.
- *  5. **The bin is `<volume>/.Tessera/bin` itself, or it is not used** ([usable]): when that path resolves anywhere
- *     else (the folder, or `.Tessera`, replaced by a link) a delete fails and the file stays, and list / restore / purge
- *     / empty touch nothing and say [UNUSABLE]. The bin's own names ([RESERVED]) are its own in any case (FAT).
+ *  5. **The bin is `<volume>/.Tessera/bin` itself, or it is not used** ([obstacle]): the two folders must be real
+ *     folders that the volume LISTS under exactly those names, and the path must resolve to itself. Anything else — a
+ *     file in the folder's place, a folder the volume folds onto the name (`.Teßera`: an alias, N2), a link — is an
+ *     obstacle: a delete fails and the file stays, list / restore / purge / empty touch nothing, and the reason NAMES
+ *     the obstacle and says what to do ([BinObstacle.message]; N6). The bin's own names ([RESERVED]) are its own
+ *     under every name the volume gives them ([reservedIn]).
  *
  * @param say one `[files]` diagnostics line, without its tag
+ * @param id what the volume answers about names ([FileIdentity]; N2)
+ * @param label a volume's name as the user sees it ("This Device", a card's label), for [BinObstacle.message]
  */
 class RecycleBin(
     private val clock: () -> Long,
     private val canonical: (String) -> String?,
     private val say: (String) -> Unit,
+    private val id: FileIdentity = FileIdentity.Real,
+    private val label: (FileVolume) -> String = { it.root },
 ) {
     /**
      * One row of the bin page. [name] is the original name — or the bin name when no record names the file ([indexed]
@@ -72,7 +79,7 @@ class RecycleBin(
     @Synchronized
     fun list(volume: FileVolume): List<Entry> {
         val bin = binDir(volume)
-        if (!usable(volume)) {
+        if (obstacle(volume) != null) {
             say("bin index ${volume.root}: unusable ($UNUSABLE)")
             return emptyList()
         }
@@ -91,7 +98,7 @@ class RecycleBin(
     /** The bin's entry count and bytes for [volume], without a line and without changing anything (phase 19's reader). */
     @Synchronized
     fun stats(volume: FileVolume): Stats {
-        if (!usable(volume) || !FilePaths.isRealDirectory(binDir(volume))) return Stats(0, 0)
+        if (obstacle(volume) != null || !FilePaths.isRealDirectory(binDir(volume))) return Stats(0, 0)
         val entries = entries(volume, load(volume).records)
         return Stats(entries.size, entries.sumOf { it.size })
     }
@@ -102,11 +109,13 @@ class RecycleBin(
     @Synchronized
     internal fun delete(file: File, volume: FileVolume): String? {
         if (!FilePaths.existsNoFollow(file)) return "not found"
-        if (!usable(volume)) return UNUSABLE
+        obstacle(volume)?.let { return message(volume, it) }
         val bin = binDir(volume)
         var rebuilt: String? = null
         if (!FilePaths.isRealDirectory(bin)) {
-            if (!bin.mkdirs() && !FilePaths.isRealDirectory(bin)) return "the bin folder cannot be made"
+            if (!bin.mkdirs() && !FilePaths.isRealDirectory(bin)) return message(volume, BinObstacle(BinObstacle.Kind.UNWRITABLE, FilePaths.SHELL_DIR, inShell = false))
+            // What was just made must be the shell's own: a folder the volume folded the name onto is not (N2).
+            obstacle(volume)?.let { return message(volume, it) }
             rebuilt = "bin folder missing"
         }
         val nomedia = File(bin, NOMEDIA)
@@ -120,7 +129,7 @@ class RecycleBin(
         val taken = (bin.list()?.toList().orEmpty() + index.records.map { it.bin }).map { it.lowercase() }.toHashSet()
         var seq = 0
         var name: String
-        do { name = FilePaths.fitName("$now-${seq++}-", file.name, isDirectory = FilePaths.isRealDirectory(file)) } while (name.lowercase() in taken)
+        do { name = FilePaths.fitName("$now-${seq++}-", file.name, isDirectory = FilePaths.isRealDirectory(file)) } while (name.lowercase() in taken || id.exists(File(bin, name)))
 
         // The record FIRST (r3 D3): a file is never in the bin without its original path on record — in the canonical
         // form of its folder, the only form a read honours (rule 3).
@@ -157,12 +166,12 @@ class RecycleBin(
     @Synchronized
     internal fun restore(entry: Entry, conflict: (File) -> Conflict, displace: (File) -> String?): Restored {
         val volume = entry.volume
-        if (!usable(volume)) return Restored.Failed(UNUSABLE, entry.binName)
+        obstacle(volume)?.let { return Restored.Failed(message(volume, it), entry.binName) }
         val source = binFile(volume, entry.binName) ?: return Restored.Failed("not a bin entry", entry.binName)
         // The record is asked again here: an entry is only as good as the read it came from.
         var target = restoreTarget(volume, entry.originalPath?.takeIf { restorable(it, volume) }, entry.binName)
         // Whatever the record says and wherever a folder on the way leads: never back into the shell's own folder.
-        if (FilePaths.inShellDir(target.path, volume, canonical)) return Restored.Failed(FileOps.SHELL, target.path)
+        if (FilePaths.inShellDir(target.path, volume, canonical, id)) return Restored.Failed(FileOps.SHELL, target.path)
         if (!FilePaths.existsNoFollow(source)) return Restored.Failed("not in the bin any more", target.path)
         val isDir = FilePaths.isRealDirectory(source)
 
@@ -195,7 +204,7 @@ class RecycleBin(
     /** "Delete permanently": [entry]'s file and record are gone. Returns null when done, else why not. */
     @Synchronized
     internal fun purge(entry: Entry): String? {
-        if (!usable(entry.volume)) return UNUSABLE
+        obstacle(entry.volume)?.let { return message(entry.volume, it) }
         val source = binFile(entry.volume, entry.binName) ?: return "not a bin entry"
         if (!FilePaths.deleteTree(source)) return "could not be deleted"
         return try {
@@ -210,11 +219,11 @@ class RecycleBin(
     /** "Empty": everything in [volume]'s bin but its marker and its index, which is left holding zero records. Null when done. */
     @Synchronized
     internal fun empty(volume: FileVolume): String? {
-        if (!usable(volume)) return UNUSABLE
+        obstacle(volume)?.let { return message(volume, it) }
         val bin = binDir(volume)
         if (!FilePaths.isRealDirectory(bin)) return null
         var failed = 0
-        bin.listFiles()?.forEach { if (!reserved(it.name) && !FilePaths.deleteTree(it)) failed++ }
+        bin.listFiles()?.forEach { if (!reservedIn(bin, it.name) && !FilePaths.deleteTree(it)) failed++ }
         return try {
             writeIndex(volume, load(volume).records)
             if (failed == 0) null else "$failed could not be deleted"
@@ -231,7 +240,7 @@ class RecycleBin(
             Entry(volume, r.bin, File(r.path).name.ifEmpty { r.bin }, r.path, r.deletedAt, r.size, FilePaths.isRealDirectory(File(bin, r.bin)))
         }
         val known = records.map { it.bin }.toHashSet()
-        val loose = bin.listFiles().orEmpty().filter { !reserved(it.name) && it.name !in known }.sortedBy { it.name }.map { f ->
+        val loose = bin.listFiles().orEmpty().filter { !reservedIn(bin, it.name) && it.name !in known }.sortedBy { it.name }.map { f ->
             Entry(volume, f.name, f.name, null, null, FilePaths.treeBytes(f), FilePaths.isRealDirectory(f))
         }
         return indexed + loose
@@ -250,7 +259,7 @@ class RecycleBin(
             val o = row.jsonObject()
             val name = o?.jsonString("bin")
             val path = o?.jsonString("path")
-            val ok = o != null && name != null && path != null && plainBinName(name) && seen.add(name.lowercase()) && FilePaths.existsNoFollow(File(bin, name))
+            val ok = o != null && name != null && path != null && plainBinName(bin, name) && seen.add(name.lowercase()) && FilePaths.existsNoFollow(File(bin, name))
             // A record whose path Restore would not honour is no record (rule 3): the file lists by its bin name.
             if (!ok || !restorable(path!!, volume)) { dropped = true; return@mapNotNull null }
             Record(name, path, o.jsonLong("deletedAt") ?: 0L, o.jsonLong("size") ?: 0L)
@@ -264,18 +273,72 @@ class RecycleBin(
     }
 
     /** The bin file a name stands for — only a plain name directly in the bin, never the marker or the index. */
-    private fun binFile(volume: FileVolume, binName: String): File? = if (plainBinName(binName)) File(binDir(volume), binName) else null
+    private fun binFile(volume: FileVolume, binName: String): File? = if (plainBinName(binDir(volume), binName)) File(binDir(volume), binName) else null
 
-    private fun plainBinName(name: String): Boolean = FilePaths.validName(name) && !reserved(name)
+    private fun plainBinName(bin: File, name: String): Boolean = FilePaths.validName(name) && !reservedIn(bin, name)
 
     /**
-     * Rule 5: [volume]'s bin path resolves to exactly `<its root, resolved>/.Tessera/bin` — so nothing the bin lists,
-     * moves or deletes lies anywhere else. A bin that does not exist yet resolves to itself and is usable.
+     * [name], in [bin], is one of the bin's own files — by its text in any case ([reserved]) or because the volume
+     * leads it to the very file the marker or the index is (N2: `.index.jſon` on a folding volume, an 8.3 alias on
+     * FAT). A name that begins with an ASCII digit — every name a delete makes — is not asked: no folding turns a
+     * digit into the leading dot of a reserved name, so the page's read stays one `lstat` per entry.
      */
-    private fun usable(volume: FileVolume): Boolean {
-        val root = runCatching { canonical(volume.root) }.getOrNull()?.trimEnd('/') ?: return false
-        val bin = runCatching { canonical(binDir(volume).path) }.getOrNull() ?: return false
-        return bin == "$root/${FilePaths.SHELL_DIR}/$BIN_DIR"
+    internal fun reservedIn(bin: File, name: String): Boolean {
+        if (reserved(name)) return true
+        if (name.firstOrNull()?.let { it in '0'..'9' } == true) return false
+        val file = File(bin, name)
+        return RESERVED.any { r -> File(bin, r).let { id.exists(it) && id.same(file, it) } }
+    }
+
+    /**
+     * Rule 5: what stands in the way of [volume]'s bin being the shell's own, or null when nothing does. `.Tessera`
+     * and `.Tessera/bin` are each asked the same three things, of the VOLUME: does anything answer to the name; if so,
+     * does the folder above LIST it under exactly that name (else it is another entry the volume folds onto it — an
+     * alias, N2 — named here by its listed name); and is it a real folder (else a file or a link). Last, the whole path
+     * must resolve to itself. A folder that is not there yet is no obstacle: a delete makes it.
+     */
+    internal fun obstacle(volume: FileVolume): BinObstacle? {
+        val root = File(volume.root)
+        val rootCanon = runCatching { canonical(volume.root) }.getOrNull()?.trimEnd('/')
+            ?: return BinObstacle(BinObstacle.Kind.UNWRITABLE, FilePaths.SHELL_DIR, inShell = false)
+        val shell = FilePaths.shellDir(volume)
+        at(root, FilePaths.SHELL_DIR, inShell = false)?.let { return it }
+        if (!id.exists(shell)) return null
+        at(shell, BIN_DIR, inShell = true)?.let { return it }
+        val bin = runCatching { canonical(binDir(volume).path) }.getOrNull()
+        return if (bin == "$rootCanon/${FilePaths.SHELL_DIR}/$BIN_DIR") null else BinObstacle(BinObstacle.Kind.LINK, FilePaths.SHELL_DIR, inShell = false)
+    }
+
+    /** What is wrong with the entry [name] of [dir], or null: not there, or a real folder listed under exactly [name]. */
+    private fun at(dir: File, name: String, inShell: Boolean): BinObstacle? {
+        val entry = File(dir, name)
+        if (!id.exists(entry)) return null
+        val listed = id.names(dir) ?: return BinObstacle(BinObstacle.Kind.UNWRITABLE, name, inShell)
+        if (name !in listed) {
+            // Something answers to the name and the folder does not list it: the entry the volume folds onto it.
+            val alias = listed.firstOrNull { id.same(File(dir, it), entry) } ?: return BinObstacle(BinObstacle.Kind.FOLDER, name, inShell)
+            return BinObstacle(if (FilePaths.isRealDirectory(File(dir, alias))) BinObstacle.Kind.FOLDER else BinObstacle.Kind.FILE, alias, inShell)
+        }
+        return when {
+            FilePaths.isRealDirectory(entry) -> null
+            FilePaths.isSymlink(entry) -> BinObstacle(BinObstacle.Kind.LINK, name, inShell)
+            else -> BinObstacle(BinObstacle.Kind.FILE, name, inShell)
+        }
+    }
+
+    private fun message(volume: FileVolume, o: BinObstacle): String = BinObstacle.message(o, label(volume))
+
+    /**
+     * The shell's folder at [volume]'s root, made when nothing answers to its name — so that a name the volume would
+     * fold onto it is, from then on, a path that EXISTS and that [FilePaths.inShellDir] knows by identity (N2: what
+     * [FileOps] asks before it makes anything directly under a volume's root). True when something is there afterwards.
+     */
+    @Synchronized
+    internal fun anchor(volume: FileVolume): Boolean {
+        val shell = FilePaths.shellDir(volume)
+        if (id.exists(shell)) return true
+        shell.mkdir()
+        return id.exists(shell)
     }
 
     /**
@@ -286,17 +349,11 @@ class RecycleBin(
         val target = File(path)
         return target.isAbsolute && FilePaths.validName(target.name) &&
             FilePaths.volumeOf(target.path, listOf(volume), canonical) != null &&
-            runCatching { canonical(target.path) }.getOrNull() != runCatching { canonical(volume.root) }.getOrNull() &&
-            !FilePaths.inShellDir(target.path, volume, canonical) &&
+            !FilePaths.isVolumeRoot(target.path, volume, canonical, id) &&
+            !FilePaths.inShellDir(target.path, volume, canonical, id) &&
             // Exactly as it resolves: no `.` or `..` segment, no doubled or trailing separator, no link on the way.
             runCatching { canonical(path) }.getOrNull() == path &&
-            !underAndroid(path, volume)
-    }
-
-    /** `<volume>/Android` or inside it, in any case: the other apps' folders (and the shell's own), never restored into. */
-    private fun underAndroid(path: String, volume: FileVolume): Boolean {
-        val root = runCatching { canonical(volume.root) }.getOrNull()?.trimEnd('/') ?: return true
-        return FilePaths.under(path, root) && path.substring(root.length + 1).substringBefore('/').equals(ANDROID_DIR, ignoreCase = true)
+            !FilePaths.underAndroid(path, volume, canonical, id)
     }
 
     private sealed interface Folder {
@@ -333,7 +390,7 @@ class RecycleBin(
         const val RESTORED_DIR = "Download/Restored"
 
         /** The platform's per-app folders at a volume's root: no record restores into them (rule 3). */
-        const val ANDROID_DIR = "Android"
+        const val ANDROID_DIR = FilePaths.ANDROID_DIR
 
         /**
          * Rule 4: where Restore puts a bin file — its record's [originalPath], or `Download/Restored/<bin name>` with
@@ -345,12 +402,35 @@ class RecycleBin(
         /** The bin's own two files (and the index's temp): never listed, restored, purged or emptied. */
         val RESERVED = setOf(NOMEDIA, INDEX, "$INDEX.tmp")
 
-        /** [name] is one of [RESERVED], in any case: on a case-folding volume `.NOMEDIA` IS the marker. */
+        /** [name] is one of [RESERVED] by its text, in any case. What the VOLUME makes of a name is [reservedIn]'s. */
         fun reserved(name: String): Boolean = RESERVED.any { it.equals(name, ignoreCase = true) }
 
-        /** Why a bin that is not `<volume>/.Tessera/bin` itself does nothing (rule 5). */
+        /** A bin that is not `<volume>/.Tessera/bin` itself does nothing (rule 5): the `bin index` line's word for it. */
         const val UNUSABLE = "the bin folder is not the shell's own"
 
         fun binDir(volume: FileVolume): File = File(File(volume.root, FilePaths.SHELL_DIR), BIN_DIR)
+    }
+}
+
+/**
+ * What stands where a volume's Recycle Bin folder must be (rule 5 of [RecycleBin]; the GATE review's N6): [name] is the
+ * entry as the volume LISTS it — `.Tessera` itself, or the name it folds onto it — in the volume's root, or in
+ * `.Tessera` when [inShell].
+ */
+data class BinObstacle(val kind: Kind, val name: String, val inShell: Boolean) {
+    enum class Kind(val noun: String) { FILE("file"), FOLDER("folder"), LINK("link"), UNWRITABLE("") }
+
+    companion object {
+        /**
+         * What the user reads when a delete, a Replace, a restore or "Empty" cannot use the bin: the obstacle by name,
+         * where it is, and what to do. Control characters in the name are shown as `?` ([FilePaths.lineText]).
+         */
+        fun message(o: BinObstacle, volumeLabel: String): String {
+            val where = (if (o.inShell) "in ${FilePaths.SHELL_DIR} " else "") + "on ${FilePaths.lineText(volumeLabel, 60)}"
+            return when (o.kind) {
+                Kind.UNWRITABLE -> "The Recycle Bin folder cannot be made $where. Check that the storage is not full or read-only, then try again."
+                else -> "A ${o.kind.noun} named ${FilePaths.lineText(o.name, 80)} is in the way $where. Remove or rename it from a computer, then try again."
+            }
+        }
     }
 }

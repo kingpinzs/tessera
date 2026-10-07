@@ -103,7 +103,7 @@ class FilesNavTest {
         val isDir: (String) -> Boolean = { File(it).isDirectory }
         val sub = bed.dir("QA-Files/sub")
         bed.file("QA-Files/a.txt")
-        fun resolve(page: String?, path: String?) = FilesNav.resolve(page, path, volumes, bed.canonical, isDir)
+        fun resolve(page: String?, path: String?) = FilesNav.resolve(page, path, volumes, bed.canonical, isDirectory = isDir)
 
         assertEquals(FilesOpen.None, resolve(null, null))
         assertEquals(FilesOpen.Go(FilesLocation.Folder(FilePaths.PRIMARY, sub.path)), resolve(null, sub.path))
@@ -126,7 +126,7 @@ class FilesNavTest {
     fun `the page extra names Recent, the bin, This Device or a mounted volume`() {
         val bed = FilesBed()
         val isDir: (String) -> Boolean = { File(it).isDirectory }
-        fun resolve(page: String?) = FilesNav.resolve(page, null, bed.mounted.toList(), bed.canonical, isDir)
+        fun resolve(page: String?) = FilesNav.resolve(page, null, bed.mounted.toList(), bed.canonical, isDirectory = isDir)
         assertEquals(FilesOpen.Go(FilesLocation.Recent), resolve("recent"))
         assertEquals(FilesOpen.Go(FilesLocation.Bin), resolve("bin"))
         assertEquals(FilesOpen.Go(FilesLocation.Folder(FilePaths.PRIMARY, bed.primary.root)), resolve("device"))
