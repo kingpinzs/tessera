@@ -69,6 +69,9 @@ class MusicActivity : ComponentActivity() {
 
     private class PivotRequest(val pivot: MusicPivot)
 
+    /** Phase 20: the request that brings Back from now-playing to the radio pivot after a station was started there. */
+    private var radioReturn: PivotRequest? = null
+
     private fun takePivot(intent: Intent?) {
         val name = intent?.getStringExtra(EXTRA_PIVOT) ?: return
         val pivot = runCatching { MusicPivot.valueOf(name) }.getOrNull() ?: return
@@ -144,6 +147,8 @@ class MusicActivity : ComponentActivity() {
             ShellRoot {
                 Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
                     var screen by remember { mutableStateOf(Screen.COLLECTION) }
+                    // Phase 20: the streaming side's pages, kept here so they are still open after now-playing.
+                    val online = remember { OnlineNav() }
                     BackHandler(enabled = screen == Screen.NOW_PLAYING) { screen = Screen.COLLECTION }
                     val asked = nowPlayingRequest
                     LaunchedEffect(asked) { if (asked != null) screen = Screen.NOW_PLAYING }
@@ -188,6 +193,8 @@ class MusicActivity : ComponentActivity() {
                                 store = store,
                                 onPlay = { queue, index ->
                                     MusicPlayer.play(queue, index)
+                                    // A song of the phone's comes back where it always did, not to the radio pivot.
+                                    if (pivotRequest != null && pivotRequest === radioReturn) pivotRequest = null
                                     screen = Screen.NOW_PLAYING
                                 },
                                 // L13-8: the drawn Back is the system Back — the same dispatcher, so the same callbacks
@@ -199,6 +206,16 @@ class MusicActivity : ComponentActivity() {
                                 onGrant = { grant.launch(Manifest.permission.READ_MEDIA_AUDIO) },
                                 openPivot = pivotRequest?.pivot,
                                 openPivotToken = pivotRequest,
+                                online = online,
+                                onNowPlaying = {
+                                    // Phase 20: a station or a server song was started from the radio pivot's side, so
+                                    // Back from now-playing returns to that pivot — and to the page the tap was made on.
+                                    val back = PivotRequest(MusicPivot.RADIO)
+                                    online.seenPivotToken = back
+                                    radioReturn = back
+                                    pivotRequest = back
+                                    screen = Screen.NOW_PLAYING
+                                },
                             )
                         }
                         Screen.NOW_PLAYING -> NowPlayingPage(
