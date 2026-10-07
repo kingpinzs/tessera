@@ -78,6 +78,30 @@ Android's own 30-day media trash (`IS_TRASHED`) as the bin (Decisions); password
 ~~a recycle bin unless Q3 rules one; zip handling unless Q2 rules it~~ SUPERSEDED 2026-09-23 by Q3 C / Q2 C (T18-7).
 
 ## Decisions
+- 2026-10-06 (agent, after the adversarial GATE review — review/2026-10-06-phase18-gate-adversarial.md; trust changes, each
+  with JVM tests that fail without it and a mutation round, 94 of 94 mutants red): **what the review changed in Files.**
+  (1) **Replace never deletes** (review H3): in copy, move, restore, extract and create, whatever a "Replace" answer
+  displaces — a file or a whole folder — goes to its volume's Recycle Bin with its own `bin delete … ok` line; if it
+  cannot be binned the item's operation FAILS and nothing is removed; folder onto folder still merges. SUPERSEDES E4 /
+  E4b / E13's "replace … does what it says" only in that the replaced item is now a bin row. (2) **No write touches
+  `<volume>/.Tessera`** (M4), compared ignoring case, as written and as resolved: copy, move, rename, new folder,
+  extract, create and the nested-zip open refuse it ("inside the shell's own folder"); a zip named `.Tessera.zip` at a
+  volume root is refused; a whole volume is never a source. (3) **Restore goes only where its row says** (M5; the
+  agent's form, chosen over a signed index because T18-1 requires the bin to survive an uninstall): a record is
+  honoured only if its path is already canonical, under its volume, not the root, outside `.Tessera` and `Android/`,
+  with a valid name — otherwise it is treated as unindexed (listed by bin name, restored to `Download/Restored/`); and
+  the bin row's detail is "<deleted date> <restore folder relative to the volume>" (prefixed by the volume's name when
+  more than one is mounted). SUPERSEDES T18-1's "each row naming its volume" and E4b's "with its volume". (4) **The
+  FileProvider** (M6): every entry is one delegation to a pure rule, pinned by a source scan; it refuses `.Tessera/**`
+  and `Android/data|obb/app.tileshell/**`; after opening it compares the opened descriptor's real path with the path
+  that was checked and refuses on a mismatch (`share refused: not the file that was checked`). (5) **Zip limits**
+  (L10, L13): a central directory over 100,000 entries or 16 MB is not read ("This zip can't be opened"; SUPERSEDES
+  the 256 MB figure of the build-time entry); any failure to open, OutOfMemoryError included, is that state; a duplicate
+  name, a file-then-folder clash or a name the volume rejects skips that ENTRY with `zip: refused entry` and the rest
+  extract. (6) **FilesActivity's extras** (L8, L9) are read defensively (`open ignored: the <key> extra …`) and caller
+  text is sanitised before any line. (7) **The bin's own folder** (L11, L12): reserved names compared ignoring case;
+  the bin is used only when `.Tessera/bin` resolves to itself, else a delete fails and the file stays (`bin index <root>:
+  unusable (…)`). Reason: each closes a finding the review proved by running it; H2 and H5 carry the visible ones.
 - 2026-10-06: Q-18-6 — selection mode on the Recent page keeps the folder page's full bar (Jeremy: "(b)"): Delete / Move
   to / Copy to / Share act on the selected FILES, and Delete sends them to the Recycle Bin (recoverable; the file's
   Recent entry is dropped, as for any delete made in Files). Asked at the build because the "below Q-18-1" entry's
@@ -1051,7 +1075,7 @@ Recent no longer reads modified dates or MediaStore.
   uris=<list>` (r3 V2, E7), `[files] copy|move|zip extract progress <bytes>/<total>` (r3 V7, E4 / E13), `[files] sweep:
   removed <n>` (r3 D4, E4), `[files] open <path> via provider` (r3 D1, E6), `[files] open ignored: <why>` (r3 D12, E17),
   `[files] recent add|remove <path>` (below Q-18-1, E14), `[files] shortcut sdcard failed (rate limit)` (r3 D9, notrun),
-  `[files] copy … failed time limit` (r3 D8, notrun), `[music] play extra ignored: not the shell` (r3 D5, E6). **Added 2026-10-06 (Q-18-3):** `[files] qa pace <bps>` (E4).
+  `[files] copy … failed time limit` (r3 D8, notrun), `[music] play extra ignored: not the shell` (r3 D5, E6). **Added 2026-10-06 (Q-18-3):** `[files] qa pace <bps>` (E4). **Added 2026-10-06 (the review's fixes):** `[files] share refused: not the file that was checked`, `[files] bin index <root>: unusable (<why>)`, `[files] open ignored: the <key> extra <why>`.
 - E13 **Zip (T18-2).** Open `qa.zip` → a virtual root (`files_zip_root`) listing `one.txt` "1.00 KB" (~~1,024 bytes~~
   SUPERSEDED 2026-10-06 by r3 V13: 3 significant figures, r11/files.md 1.5.8), `dir`, `ü-name.txt`
   (dump `files_row:` / `files_detail:` text), `[files] zip open …: 3 entries`; tapping `one.txt` inside it → "Extract
