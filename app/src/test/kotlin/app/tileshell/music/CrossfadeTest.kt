@@ -92,6 +92,32 @@ class CrossfadeTest {
         assertEquals(Crossfade.gains(1f), Crossfade.gains(3f))
     }
 
+    // ---- phase 20 (r3 D10): a live item ----
+
+    @Test
+    fun `a live item never prepares a fade, whatever its duration says`() {
+        // A progressive station reports no duration; an HLS station's live window reports one above 0.
+        assertFalse(CrossfadeFader.mayPrepare("station:qa-jazz-one", androidx.media3.common.C.TIME_UNSET))
+        assertFalse(CrossfadeFader.mayPrepare("station:qa-jazz-one", 0L))
+        assertFalse(CrossfadeFader.mayPrepare("station:qa-jazz-one", 30_000L))
+        assertFalse(CrossfadeFader.mayPrepare("station:qa-jazz-one", 3_600_000L))
+    }
+
+    @Test
+    fun `a server track with a known length prepares a fade, as a library track does`() {
+        assertTrue(CrossfadeFader.mayPrepare("server:0a1b2c3d", 200_000L))
+        assertTrue(CrossfadeFader.mayPrepare("42", 200_000L))
+        // And then it is a fade like any other: the setting, within half of either track.
+        assertEquals(5_000L, Crossfade.fadeLength(5_000, 200_000L, 180_000L))
+    }
+
+    @Test
+    fun `a track whose length is not known yet prepares nothing, as before`() {
+        assertFalse(CrossfadeFader.mayPrepare("42", androidx.media3.common.C.TIME_UNSET))
+        assertFalse(CrossfadeFader.mayPrepare("server:0a1b2c3d", androidx.media3.common.C.TIME_UNSET))
+        assertFalse(CrossfadeFader.mayPrepare("42", 0L))
+    }
+
     // ---- the handback ----
 
     @Test

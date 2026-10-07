@@ -130,7 +130,7 @@ class CrossfadeFader(
         val id = currentId() ?: return
         if (id == skipFor || !primary.isPlaying) return
         val duration = primary.duration
-        if (duration == C.TIME_UNSET || duration <= 0L) return
+        if (!mayPrepare(id, duration)) return
         val left = duration - primary.currentPosition
         if (left > settingMs + Crossfade.PREPARE_LEAD_MS) return
         val repeatOne = primary.repeatMode == Player.REPEAT_MODE_ONE
@@ -292,13 +292,23 @@ class CrossfadeFader(
         else -> "playlist change"
     }
 
-    private companion object {
-        const val IDLE_TICK_MS = 100L
-        const val FADE_TICK_MS = 30L
+    companion object {
+        private const val IDLE_TICK_MS = 100L
+        private const val FADE_TICK_MS = 30L
         /** Where the first handback seek aims ahead of the fader, to cover the seek's own rebuffer. */
-        const val INITIAL_SEEK_LEAD_MS = 150L
-        const val SETTLE_MS = 150L
-        const val MAX_SEEKS = 3
-        const val HANDBACK_TIMEOUT_MS = 3_000L
+        private const val INITIAL_SEEK_LEAD_MS = 150L
+        private const val SETTLE_MS = 150L
+        private const val MAX_SEEKS = 3
+        private const val HANDBACK_TIMEOUT_MS = 3_000L
+
+        /**
+         * Whether a fade may be prepared out of the loaded item at all: only out of one whose length is known, and
+         * never out of a live one (phase 20, r3 D10). "Live" is the item's mark alone ([MusicLive.isLive]) — an HLS
+         * station's live window reports a duration above 0, and a fade prepared against it would be a fade out of a
+         * stream that does not end. A home-server track has a known length and fades like a local one. Pure
+         * (`CrossfadeTest`).
+         */
+        fun mayPrepare(mediaId: String?, durationMs: Long): Boolean =
+            !MusicLive.isLive(mediaId) && durationMs != C.TIME_UNSET && durationMs > 0L
     }
 }
