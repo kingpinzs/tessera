@@ -7,6 +7,7 @@ import android.net.NetworkCapabilities
 import android.os.Handler
 import android.os.PowerManager
 import android.os.SystemClock
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -32,7 +33,9 @@ import java.io.IOException
  * error — and writes `stream: lost, retrying`, once. From T0 the service holds its own partial wake lock (the
  * player's wake mode lets go once it stops buffering) and the session's extras say "Reconnecting…". On each player
  * error the player is prepared again after [StreamRetry.next]'s delay; at T0 + 60 s it is paused, the line is
- * `stream: gave up after 60000 ms` and the extras say "This station isn't answering". A stream that returns inside
+ * `stream: gave up after 60000 ms` and the extras say "This station isn't answering". A stream its server CLOSED —
+ * which the player reads as the item's end, with no error at all — is put on the same clock ([StreamFacts.streamEnded]),
+ * so a station never goes silent, or hands over to the next favourite, without a word. A stream that returns inside
  * the window writes `stream: reconnected after <ms> ms` and goes on with no tap. A pause, or another item, ends the
  * clock without a word. A home-server track and a library track are never on it.
  *
@@ -98,9 +101,32 @@ class StreamWatch(
         override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) = networkMoved()
     }
 
+    /** The item the player is on and its place in the queue, as the last move left them: what the next move comes FROM. */
+    private var loadedId: String? = null
+    private var loadedIndex = C.INDEX_UNSET
+
+    /** The station a move of the player's own is being undone to ([StreamFacts.Ended.MOVED_ON]). */
+    private var returningTo: String? = null
+
     private val listener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             val id = mediaItem?.mediaId
+            val fromId = loadedId
+            val fromIndex = loadedIndex
+            val returning = returningTo
+            loadedId = id
+            loadedIndex = player.currentMediaItemIndex
+            returningTo = null
+            // A station's server closed the stream: the player read that as the item's end (see StreamFacts.streamEnded).
+            when (StreamFacts.streamEnded(reason, fromId, id, returning, MusicLive::isLive)) {
+                StreamFacts.Ended.MOVED_ON -> if (fromIndex in 0 until player.mediaItemCount && player.getMediaItemAt(fromIndex).mediaId == fromId) {
+                    returningTo = fromId
+                    player.seekTo(fromIndex, C.TIME_UNSET)
+                    return
+                }
+                StreamFacts.Ended.LOST -> return streamEnded()
+                null -> Unit
+            }
             endClock()
             connectedFor = null
             redirectRefusedFor = null
@@ -117,6 +143,8 @@ class StreamWatch(
             // Prepared afresh (a tap on play after the refusal): the next refusal is said again.
             if (this@StreamWatch.playbackState == Player.STATE_IDLE && playbackState == Player.STATE_BUFFERING) redirectRefusedFor = null
             this@StreamWatch.playbackState = playbackState
+            // The last item of the queue, and a station: its server closed the stream (StreamFacts.streamEnded).
+            if (playbackState == Player.STATE_ENDED && liveId() != null) streamEnded()
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -146,18 +174,34 @@ class StreamWatch(
             if (!player.playWhenReady) return
             if (StreamFacts.redirectRefused(messages(error))) return redirectRefused(id)
             if (redirectRefusedFor == id) return
-            val now = SystemClock.elapsedRealtime()
-            lost(now)
-            val (next, step) = StreamRetry.onPlayerError(clock, now)
-            clock = next
-            when (step) {
-                is StreamRetry.Step.Retry -> handler.postDelayed(retry, step.delayMs)
-                is StreamRetry.Step.GiveUp -> {
-                    handler.removeCallbacks(giveUp)
-                    handler.postDelayed(giveUp, step.inMs)
-                }
+            failed(SystemClock.elapsedRealtime())
+        }
+    }
+
+    /** The player stopped on a station at [now]: T0 when this is the first sign, then the clock's next step. */
+    private fun failed(now: Long) {
+        lost(now)
+        val (next, step) = StreamRetry.onPlayerError(clock, now)
+        clock = next
+        handler.removeCallbacks(retry)
+        when (step) {
+            is StreamRetry.Step.Retry -> handler.postDelayed(retry, step.delayMs)
+            is StreamRetry.Step.GiveUp -> {
+                handler.removeCallbacks(giveUp)
+                handler.postDelayed(giveUp, step.inMs)
             }
         }
+    }
+
+    /**
+     * The station's stream ended without an error — its server closed it. The player is stopped where it is (the
+     * queue and the place kept: the state a player error leaves it in), so the clock's `prepare()` is the reconnect
+     * and its back-off holds against a server that accepts and closes again at once.
+     */
+    private fun streamEnded() {
+        if (!player.playWhenReady || liveId() == null) return
+        player.stop()
+        failed(SystemClock.elapsedRealtime())
     }
 
     private val analytics = object : AnalyticsListener {

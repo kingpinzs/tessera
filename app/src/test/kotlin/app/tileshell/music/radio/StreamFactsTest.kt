@@ -3,6 +3,7 @@ package app.tileshell.music.radio
 import androidx.media3.common.Player
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -17,6 +18,34 @@ class StreamFactsTest {
         assertEquals(listOf(0, 1, 2, 3), listOf(Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT, Player.MEDIA_ITEM_TRANSITION_REASON_AUTO, Player.MEDIA_ITEM_TRANSITION_REASON_SEEK, Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED))
         assertFalse(StreamFacts.userStarted(4))
         assertFalse(StreamFacts.userStarted(-1))
+    }
+
+    @Test fun `a station whose server closed the stream is gone back to and put on the clock - never left silent or handed to the next favourite`() {
+        val jazz = "station:11111111-1111-4111-8111-111111111111"
+        val news = "station:33333333-3333-4333-8333-333333333333"
+        val live = { id: String? -> id != null && id.startsWith("station:") }
+        fun ended(reason: Int, from: String?, to: String?, returningTo: String? = null) = StreamFacts.streamEnded(reason, from, to, returningTo, live)
+        // The player went on by itself out of a station (a favourites queue): undone.
+        assertEquals(StreamFacts.Ended.MOVED_ON, ended(Player.MEDIA_ITEM_TRANSITION_REASON_AUTO, jazz, news))
+        // …and the move back to it is the loss — but only that move, to that station.
+        assertEquals(StreamFacts.Ended.LOST, ended(Player.MEDIA_ITEM_TRANSITION_REASON_SEEK, news, jazz, returningTo = jazz))
+        assertNull(ended(Player.MEDIA_ITEM_TRANSITION_REASON_SEEK, news, jazz, returningTo = null))
+        assertNull(ended(Player.MEDIA_ITEM_TRANSITION_REASON_SEEK, jazz, news, returningTo = jazz))
+        assertNull(ended(Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED, news, jazz, returningTo = jazz))
+        // The station began again by itself (repeat one, or repeat all over a queue of one): the loss, with no move to undo.
+        assertEquals(StreamFacts.Ended.LOST, ended(Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT, jazz, jazz))
+        // The user's own moves are never a loss: a tap or Tess, next / previous.
+        assertNull(ended(Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED, jazz, news))
+        assertNull(ended(Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED, null, jazz))
+        assertNull(ended(Player.MEDIA_ITEM_TRANSITION_REASON_SEEK, jazz, news))
+        // A track is not a stream: its end is its end, a repeat is a repeat.
+        for (track in listOf("42", "file:1", "server:0a1b")) {
+            assertNull(ended(Player.MEDIA_ITEM_TRANSITION_REASON_AUTO, track, "43"))
+            assertNull(ended(Player.MEDIA_ITEM_TRANSITION_REASON_AUTO, track, jazz))
+            assertNull(ended(Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT, track, track))
+        }
+        assertNull(ended(Player.MEDIA_ITEM_TRANSITION_REASON_AUTO, null, jazz))
+        assertNull(ended(Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT, null, null))
     }
 
     @Test fun `a refused cross-protocol redirect is known by Media3's own message, at any depth of the error`() {

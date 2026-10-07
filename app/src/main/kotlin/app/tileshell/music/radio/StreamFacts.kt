@@ -20,6 +20,32 @@ object StreamFacts {
     fun userStarted(transitionReason: Int): Boolean =
         transitionReason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED || transitionReason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK
 
+    /** What a move of the player says about a station whose stream its server closed ([streamEnded]). */
+    enum class Ended {
+        /** The player went on to the next item by itself: the station is gone back to, and that move is [BACK]. */
+        MOVED_ON,
+
+        /** The player is back on the station it had left, or began it again by itself (repeat): the stream is lost. */
+        LOST,
+    }
+
+    /**
+     * A station's stream never ends by itself: when its server closes the connection cleanly the player reads "the end
+     * of the item" — no load error, no player error — and would go silent, or play the next favourite as if asked.
+     * So a move the PLAYER made out of a station ([Player.MEDIA_ITEM_TRANSITION_REASON_AUTO]) is undone
+     * ([Ended.MOVED_ON]), and the move back — or a repeat of the station — puts it on the reconnect clock
+     * ([Ended.LOST]) exactly as a player error does. Null: an ordinary move (a tap, next / previous, Tess, a track).
+     *
+     * @param fromId the item the player was on, [toId] the item it is on now
+     * @param returningTo the station [Ended.MOVED_ON] is going back to, while that move is under way
+     */
+    fun streamEnded(transitionReason: Int, fromId: String?, toId: String?, returningTo: String?, isLive: (String?) -> Boolean): Ended? = when {
+        returningTo != null && toId == returningTo && transitionReason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK -> Ended.LOST
+        transitionReason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT && isLive(toId) -> Ended.LOST
+        transitionReason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && isLive(fromId) -> Ended.MOVED_ON
+        else -> null
+    }
+
     /**
      * Whether a load or player error is Media3 refusing a redirect between https and http (its kept default, r3
      * D12): [messages] are the error's own and its causes'. Such a station is not retried.
