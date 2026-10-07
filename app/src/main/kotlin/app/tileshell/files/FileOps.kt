@@ -21,6 +21,9 @@ import java.util.zip.ZipFile
  *     [OpsJournal.sweep] removes it afterwards.
  *  3. **Nothing is overwritten unasked.** A name already there asks [Conflict]: replace, keep both (`name (2).ext`,
  *     then `(3)`…) or skip. Replacing a folder with a folder merges into it (its other contents stay).
+ *     **"Replace" never removes anything** (rule 5): what the new item takes the place of — a file, or a folder with
+ *     everything in it — goes to its volume's bin first ([displace]), with its own `bin delete <path>: ok` line; when
+ *     it cannot be binned the operation fails and what was there stays.
  *  4. **A move never loses the file.** On one volume it is a rename; across volumes it is copy, then delete — and a
  *     failure after the copy leaves both, never neither.
  *  5. **A delete goes to the bin** ([RecycleBin]'s rules), never straight off the disk.
@@ -128,7 +131,7 @@ class FileOps(
             if (FilePaths.isSymlink(src)) return null
             val isDir = FilePaths.isRealDirectory(src)
             var target = File(dir, src.name)
-            var replace = false
+            var displace = false
             var merge = false
             if (FilePaths.existsNoFollow(target)) {
                 if (sameFile(src, target)) {
@@ -138,16 +141,17 @@ class FileOps(
                 } else when (forced ?: conflict(target)) {
                     Conflict.SKIP -> return null
                     Conflict.KEEP_BOTH -> target = FilePaths.keepBoth(dir, src.name, isDir)
-                    Conflict.REPLACE -> when {
-                        isDir && FilePaths.isRealDirectory(target) -> merge = true
-                        // A folder cannot be renamed over a file, nor a file over a folder: what is there goes first.
-                        isDir || FilePaths.isRealDirectory(target) -> if (!FilePaths.deleteTree(target)) throw Refused("what is there could not be replaced")
-                        else -> replace = true
-                    }
+                    // A folder met by a folder merges; anything else that is there goes to the bin (rule 5), never off the disk.
+                    Conflict.REPLACE -> if (isDir && FilePaths.isRealDirectory(target)) merge = true else displace = true
                 }
             }
             if (!isDir) {
-                if (move && !cross) FilePaths.rename(src, target, replace) else copyFile(src, target, replace)
+                if (move && !cross) {
+                    if (displace) displace(target)
+                    FilePaths.rename(src, target, replace = false)
+                } else {
+                    copyFile(src, target, displace)
+                }
                 touched += target.path
                 if (move) {
                     touched += src.path
@@ -156,6 +160,7 @@ class FileOps(
                 }
                 return target
             }
+            if (displace) displace(target)
             if (move && !cross && !merge) {
                 val before = filesUnder(src)
                 FilePaths.rename(src, target, replace = false)
@@ -172,14 +177,19 @@ class FileOps(
             return target
         }
 
-        /** Rule 2: the bytes go to the journalled temp, and the temp becomes [target] only when it is whole. */
-        private fun copyFile(src: File, target: File, replace: Boolean) {
+        /**
+         * Rule 2: the bytes go to the journalled temp, and the temp becomes [target] only when it is whole. With
+         * [displace], what is at [target] is binned at that moment — after the copy, so a cancelled or failed copy
+         * leaves it where it was.
+         */
+        private fun copyFile(src: File, target: File, displace: Boolean) {
             val temp = File(target.parentFile, FilePaths.partName(target.name, opId))
             journal.put(opId, temp.path, destVolume.uuid)
             try {
                 FileInputStream(src).use { input -> FileOutputStream(temp).use { out -> meter.pump(input, out) } }
                 temp.setLastModified(src.lastModified())
-                FilePaths.rename(temp, target, replace)
+                if (displace) displace(target)
+                FilePaths.rename(temp, target, replace = false)
             } finally {
                 if (FilePaths.existsNoFollow(temp)) temp.delete()
             }
@@ -260,7 +270,7 @@ class FileOps(
         var back = emptyList<String>()
         val result = guarded(File(entry.volume.root)) {
             mounted(entry.volume)
-            when (val r = bin.restore(entry, conflict)) {
+            when (val r = bin.restore(entry, conflict, ::binned)) {
                 is RecycleBin.Restored.To -> {
                     shown = r.file.path
                     back = if (FilePaths.isRealDirectory(r.file)) filesUnder(r.file) else listOf(r.file.path)
@@ -317,6 +327,19 @@ class FileOps(
     fun zipOpen(zip: File): ZipOpen = ZipArchive.open(zip, say, openZip)
 
     // ---- what every operation shares
+
+    /**
+     * Rule 5 for a conflict's "Replace": [target] — the file, or the folder with everything in it, that a new item is
+     * about to take the place of — goes to its volume's bin ([binDelete]: its line, its scan, Recent's upkeep). Null
+     * when it is there; else why it is not, and then [target] is untouched and must not be replaced.
+     */
+    private fun binned(target: File): String? =
+        (binDelete(target) as? OpResult.Failed)?.let { "what is there could not go to the Recycle Bin (${it.reason})" }
+
+    /** As [binned], for a running operation: one that cannot bin what is in its way stops there. */
+    internal fun displace(target: File) {
+        binned(target)?.let { throw Refused(it) }
+    }
 
     /** The mounted volume [file] resolves under, or null (rule 1). */
     internal fun volumeFor(file: File): FileVolume? = FilePaths.volumeOf(file.path, volumes(), canonical)

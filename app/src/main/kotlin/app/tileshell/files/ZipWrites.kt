@@ -60,14 +60,15 @@ internal class ZipWrites(
                 roomFor(declared, destDir)
 
                 var merge = false
+                var displace = false
                 // `archive` extracting to `archive`: the folder cannot take the zip's own name, so it is "keep both".
                 if (target.name == zip.name) target = FilePaths.keepBoth(destDir, target.name, isDirectory = true)
                 if (FilePaths.existsNoFollow(target)) {
                     when (conflict(target)) {
                         Conflict.SKIP -> { skipped = true; return@guarded OpResult.Done(skipped = 1) }
                         Conflict.KEEP_BOTH -> target = FilePaths.keepBoth(destDir, target.name, isDirectory = true)
-                        Conflict.REPLACE -> if (FilePaths.isRealDirectory(target)) merge = true
-                        else if (!FilePaths.deleteTree(target)) throw Refused("what is there could not be replaced")
+                        // A folder merges; a file of that name goes to the bin when the extract is whole (FileOps' rule 5).
+                        Conflict.REPLACE -> if (FilePaths.isRealDirectory(target)) merge = true else displace = true
                     }
                 }
 
@@ -93,6 +94,7 @@ internal class ZipWrites(
                         throw o
                     }
                 }
+                if (displace) ops.displace(target)
                 if (merge) mergeInto(root, target) else FilePaths.rename(root, target, replace = false)
                 written = ops.filesUnder(target)
                 OpResult.Done(listOf(target.path))
@@ -130,13 +132,13 @@ internal class ZipWrites(
                 files += ops.countFiles(src)
                 bytes += FilePaths.treeBytes(src)
             }
-            var replace = false
+            var displace = false
             if (FilePaths.existsNoFollow(target)) {
                 when (conflict(target)) {
                     Conflict.SKIP -> { skipped = true; return@guarded OpResult.Done(skipped = 1) }
                     Conflict.KEEP_BOTH -> target = FilePaths.keepBoth(destDir, target.name, isDirectory = false)
-                    Conflict.REPLACE -> if (!FilePaths.isRealDirectory(target)) replace = true
-                    else if (!FilePaths.deleteTree(target)) throw Refused("what is there could not be replaced")
+                    // The zip (or the folder) of that name goes to the bin when the new zip is whole (FileOps' rule 5).
+                    Conflict.REPLACE -> displace = true
                 }
             }
             val part = File(destDir, FilePaths.partName(target.name, opId))
@@ -154,7 +156,8 @@ internal class ZipWrites(
                     add(out, src, entryName, meter)
                 }
             }
-            FilePaths.rename(part, target, replace)
+            if (displace) ops.displace(target)
+            FilePaths.rename(part, target, replace = false)
             OpResult.Done(listOf(target.path))
         }
         temp?.let { if (FilePaths.existsNoFollow(it)) it.delete() }
@@ -238,17 +241,18 @@ internal class ZipWrites(
         }
     }
 
-    /** Moves everything in [from] into [into], replacing what has the same name; a folder met by a folder merges. */
+    /**
+     * Moves everything in [from] into [into]; a folder met by a folder merges, and anything else of the same name goes
+     * to the bin first ([FileOps.displace]) — the merge removes nothing.
+     */
     private fun mergeInto(from: File, into: File) {
-        from.listFiles()?.forEach { child ->
+        from.listFiles()?.sortedBy { it.name }?.forEach { child ->
             val there = File(into, child.name)
             if (FilePaths.isRealDirectory(child) && FilePaths.isRealDirectory(there)) {
                 mergeInto(child, there)
             } else {
-                if (FilePaths.existsNoFollow(there) && (FilePaths.isRealDirectory(child) || FilePaths.isRealDirectory(there)) && !FilePaths.deleteTree(there)) {
-                    throw Refused("what is there could not be replaced")
-                }
-                FilePaths.rename(child, there, replace = true)
+                if (FilePaths.existsNoFollow(there)) ops.displace(there)
+                FilePaths.rename(child, there, replace = false)
             }
         }
         from.delete()

@@ -134,10 +134,11 @@ class RecycleBin(
     /**
      * Puts [entry] back: at its original path, the folder recreated when it is gone — or, with no usable record, in
      * `<volume>/Download/Restored/` under its bin name. Something already there (the name itself, or a FILE where the
-     * original folder was) asks [conflict].
+     * original folder was) asks [conflict]. "Replace" removes nothing: what is there is handed to [displace]
+     * ([FileOps]' bin delete — null when it is binned, else why not), and when that fails so does the restore.
      */
     @Synchronized
-    internal fun restore(entry: Entry, conflict: (File) -> Conflict): Restored {
+    internal fun restore(entry: Entry, conflict: (File) -> Conflict, displace: (File) -> String?): Restored {
         val volume = entry.volume
         val source = binFile(volume, entry.binName) ?: return Restored.Failed("not a bin entry", entry.binName)
         var target = entry.originalPath?.let(::File)?.takeIf { restorable(it, volume) } ?: File(File(volume.root, RESTORED_DIR), entry.binName)
@@ -145,30 +146,23 @@ class RecycleBin(
         val isDir = FilePaths.isRealDirectory(source)
 
         // The original folder, made again when it is gone; a FILE standing where a folder was is a conflict of its own.
-        val parent = when (val p = folderFor(target.parentFile ?: return Restored.Failed("no folder", target.path), conflict)) {
+        val parent = when (val p = folderFor(target.parentFile ?: return Restored.Failed("no folder", target.path), conflict, displace)) {
             is Folder.At -> p.dir
             Folder.Skipped -> return Restored.Skipped
             is Folder.Failed -> return Restored.Failed(p.why, target.path)
         }
         target = File(parent, target.name)
 
-        var replace = false
         if (FilePaths.existsNoFollow(target)) {
             when (conflict(target)) {
                 Conflict.SKIP -> return Restored.Skipped
                 Conflict.KEEP_BOTH -> target = FilePaths.keepBoth(parent, target.name, isDir)
-                Conflict.REPLACE -> {
-                    // A folder cannot be renamed over a file, nor a file over a folder: what is there goes first.
-                    if (isDir || FilePaths.isRealDirectory(target)) {
-                        if (!FilePaths.deleteTree(target)) return Restored.Failed("what is there could not be replaced", target.path)
-                    } else {
-                        replace = true
-                    }
-                }
+                // What is there — a file, or a folder with everything in it — goes to the bin, never off the disk.
+                Conflict.REPLACE -> displace(target)?.let { return Restored.Failed(it, target.path) }
             }
         }
         try {
-            FilePaths.rename(source, target, replace)
+            FilePaths.rename(source, target, replace = false)
         } catch (e: Exception) {
             return Restored.Failed("not moved back (${e.javaClass.simpleName})", target.path)
         }
@@ -264,17 +258,17 @@ class RecycleBin(
     }
 
     /** [dir] as a folder that exists: made when it is gone; a file in its way (at any level) is the caller's to answer. */
-    private fun folderFor(dir: File, conflict: (File) -> Conflict): Folder {
+    private fun folderFor(dir: File, conflict: (File) -> Conflict, displace: (File) -> String?): Folder {
         if (FilePaths.isRealDirectory(dir) || dir.isDirectory) return Folder.At(dir)
         if (FilePaths.existsNoFollow(dir)) {
             return when (conflict(dir)) {
                 Conflict.SKIP -> Folder.Skipped
                 Conflict.KEEP_BOTH -> made(FilePaths.keepBoth(dir.parentFile ?: return Folder.Failed("no folder"), dir.name, isDirectory = true))
-                Conflict.REPLACE -> if (FilePaths.deleteTree(dir)) made(dir) else Folder.Failed("what is there could not be replaced")
+                Conflict.REPLACE -> displace(dir)?.let { Folder.Failed(it) } ?: made(dir)
             }
         }
         val up = dir.parentFile ?: return Folder.Failed("no folder")
-        return when (val parent = folderFor(up, conflict)) {
+        return when (val parent = folderFor(up, conflict, displace)) {
             is Folder.At -> made(File(parent.dir, dir.name))
             else -> parent
         }

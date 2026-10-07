@@ -311,13 +311,15 @@ class FileOpsBinTest {
         assertArrayEquals(bytes, File(bed.root, "QA-Files/c (2).bin").readBytes())
         assertEquals(emptyList<String>(), binned())
 
-        // replace: the binned file takes the name back.
+        // replace: the binned file takes the name back, and the newer one takes its place in the bin (GATE fix H3).
         file.delete()
         bed.now = 2_000
         entry = binOne()
+        bed.now = 3_000
         assertEquals(OpResult.Done(listOf(file.path)), bed.ops.binRestore(entry, FilesBed.always(Conflict.REPLACE)))
         assertArrayEquals(bytes, file.readBytes())
-        assertEquals(emptyList<String>(), binned())
+        assertEquals(listOf("3000-0-c.bin"), binned())
+        assertEquals("the newer one", File(bin, "3000-0-c.bin").readText())
     }
 
     @Test
