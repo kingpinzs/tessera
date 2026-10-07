@@ -61,7 +61,7 @@ over it (`:41`), the token resolver over that (`:42`), and OUTERMOST `GuardedDat
 mayOpen)` (`:44`), which is the factory given to the one `DefaultMediaSourceFactory` (`:47-48`). By M1 / M2 that factory
 makes every data source HLS uses — playlists, segments, parts, init segments, keys — and `Aes128DataSource` wraps one of
 them. `GuardedDataSource.open` (`:105-108`) asks before `upstream.open`. Pinned: `T/media/UriAccessWiringScanTest.kt`
-`playerProblems` (`:1050`; the factory's one form, `.setDataSourceFactory(sources)` once, `open`'s one form) and its
+`playerProblems` (`:1053`; the factory's one form, `.setDataSourceFactory(sources)` once, `open`'s one form) and its
 mutation twin. The player builds no `HlsInterstitialsAdsLoader` and sets no `drmConfiguration` (M2, M6).
 
 **(3) The server token does not ride on a segment request to another host — HOLDS.**
@@ -114,7 +114,7 @@ spec's rule (Decisions "untrusted URLs never reach ExoPlayer's other schemes", r
   under `K/music/` — the only ones (`UriAccessWiringScanTest.stationProblems`) — hand the address through
   `MusicSources.own.queued(…)` on its way into the item: `MusicService.mediaItem` (`:599`) and `fileItem` (`:433`) via
   the service's `queued(uri)` (`:594`), `StationItem.build` (`K/music/radio/StationItem.kt:77`), `ServerTrackItem.build`
-  (`K/music/server/ServerTrackItem.kt:47`). The Music screens' controller and the service run in one process (the
+  (`K/music/server/ServerTrackItem.kt:51`). The Music screens' controller and the service run in one process (the
   manifest gives neither a `android:process`), so an item Music builds and the session keeps (`MusicItemRule` Keep, own
   uid only) is already in the set; a stranger's item never keeps its address, so it never reaches a builder with one.
   The set is in memory, only grows, and is not saved (resumption is not answered).
@@ -122,7 +122,7 @@ spec's rule (Decisions "untrusted URLs never reach ExoPlayer's other schemes", r
 **Pinned.** The rule, every case: `T/music/MusicSourceRuleTest.kt` (queued addresses incl. a private server track and
 its re-open; public segments / keys / nested playlists allowed; private, loopback, link-local, unspecified and odd
 spellings refused; the fixture host only with `qaHost`; every other scheme; whole-string matching). The wiring:
-`T/media/UriAccessWiringScanTest.kt` `musicSourceProblems` (`:720`) and its two tests (`:759`, `:766`):
+`T/media/UriAccessWiringScanTest.kt` `musicSourceProblems` (`:723`) and its two tests (`:762`, `:769`):
 the service's one guarded factory in its one form, handed to the media source factory, the player and the fader; no
 other data source / media source / player under `music/`; the set told only at the four builders; the fixture host
 `RadioNet`'s; the rule's one form and its one asker. `UriAccessWiringScanTest`'s older clauses stay as strict as they
@@ -149,6 +149,15 @@ Also for the review, not gaps of the rule: the queued set admits a private http(
 `ServerTrackItem.build` (after `accepts`) and `StationItem.build` (after `StationUrl.accept`, so private only for the
 debug fixture host) can put one there; and the video player's network launch admits any http(s) host by design
 (observation under (a)).
+
+## Proved on the device (integration smoke, 2026-10-07; evidence qa/phase-20/build-notes-integration/)
+
+With the guard in, through the service's player: a fixture station at the debug fixture host plays, reconnects and is
+stepped through as a preset; a home-server track at a private address plays and SEEKS (the range re-open of the queued
+address); a library track plays, scrubs and crossfades into the next (the fader opens the next track's MediaStore URI
+through the same factory); phase 18's play-file plays a file the library does not list. NOT driven on the device: an
+HLS station — none of the fixture's four stations is HLS (`hls` is 0 on every row) — so HLS through the guard rests on
+the bytecode reading above and the JVM rule; and no refusal of a private segment was provoked on the device.
 
 ## The test that replaced the tripwire
 
