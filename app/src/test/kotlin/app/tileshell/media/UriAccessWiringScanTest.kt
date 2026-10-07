@@ -79,10 +79,12 @@ class UriAccessWiringScanTest {
         // Ledger L18-2: the AlarmClock API handler is the fifth — it makes the port once, for `AlarmApiRules.parse`, which
         // asks whether the app that started it could read the ringtone it names (`clock/AlarmSoundWiringScanTest` holds
         // that one expression).
-        val makers = mapOf("camera/CaptureActivity.kt" to 1, "photos/ViewerActivity.kt" to 1, "video/PlayerActivity.kt" to 2, "music/MusicActivity.kt" to 1, "clock/AlarmApiActivity.kt" to 1)
-        if (made != makers) problems += "the port is made other than by the five activities, each for itself: $made"
+        // Ledger L18-3: ClockActivity is the sixth — it makes the port once, for the launch's caller, whom its edit bundle is
+        // weighed against (`clock/AlarmSoundWiringScanTest` holds that one expression).
+        val makers = mapOf("camera/CaptureActivity.kt" to 1, "photos/ViewerActivity.kt" to 1, "video/PlayerActivity.kt" to 2, "music/MusicActivity.kt" to 1, "clock/AlarmApiActivity.kt" to 1, "clock/ClockActivity.kt" to 1)
+        if (made != makers) problems += "the port is made other than by the six activities, each for itself: $made"
         val all = sources.filterKeys { it != "media/AndroidUriAccess.kt" }.values.sumOf { Regex("(?<!class )AndroidUriAccess\\(").findAll(it).count() }
-        if (all != 6) problems += "AndroidUriAccess is constructed $all times, not the six of the five activities"
+        if (all != 7) problems += "AndroidUriAccess is constructed $all times, not the seven of the six activities"
         return problems
     }
 
@@ -135,8 +137,8 @@ class UriAccessWiringScanTest {
         // the ring, the handler reading who started it itself, or its port left out.
         assertTrue(with("clock/AlarmApiActivity.kt", "access = AndroidUriAccess(this),", "access = AndroidUriAccess(this).also { AndroidUriAccess(this).launchedFromUid() },").isNotEmpty())
         assertTrue(with("clock/AlarmApiActivity.kt", "access = AndroidUriAccess(this),", "access = null,").isNotEmpty())
-        assertTrue(with("clock/AlarmApiActivity.kt", "val caller = callingPackage", "val who = launchedFromUid val caller = callingPackage").isNotEmpty())
-        assertTrue(with("clock/ClockActivity.kt", "AlarmRingtoneRules.fromApi(api.getString(API_SOUND_URI), null)", "AlarmRingtoneRules.fromApi(api.getString(API_SOUND_URI), AndroidUriAccess(this))").isNotEmpty())
+        assertTrue(with("clock/AlarmApiActivity.kt", "val caller = ClockIntents.token(", "val who = launchedFromUid val caller = ClockIntents.token(").isNotEmpty())
+        assertTrue(with("clock/ClockActivity.kt", "open.tab?.let { nav.show(it) }", "open.tab?.let { nav.show(it) } AndroidUriAccess(this)").isNotEmpty())
         assertTrue(with("clock/RingService.kt", "AlarmRingtoneRules.sinkRefusal(uri)", "AlarmRingtoneRules.sinkRefusal(uri.also { checkUriPermission(Uri.parse(it), -1, 0, 1) })").isNotEmpty())
     }
 
@@ -181,11 +183,15 @@ class UriAccessWiringScanTest {
         ) problems += "what is played is not what the rule's answer named"
         // The platform's per-intent caller: only that override, only its uid.
         val callers = sources.mapValues { (_, text) -> count(text, "ComponentCaller") }.filterValues { it > 0 }
-        if (callers != mapOf("music/MusicActivity.kt" to 2)) problems += "a ComponentCaller is used outside Music's one onNewIntent: $callers"
-        if (Regex("\\bcaller\\b").findAll(activity).count() != 3) problems += "the new intent's caller is used for something other than its uid"
+        // Ledger L18-3: ClockActivity's onNewIntent is the second, in the same form (its edit bundle is the shell's alone).
+        val clock = sources["clock/ClockActivity.kt"].orEmpty()
+        if (callers != mapOf("music/MusicActivity.kt" to 2, "clock/ClockActivity.kt" to 2)) problems += "a ComponentCaller is used outside Music's and Clock's one onNewIntent each: $callers"
+        if (Regex("\\bcaller\\b").findAll(activity).count() != 3 || Regex("\\bcaller\\b").findAll(clock).count() != 3) problems += "the new intent's caller is used for something other than its uid"
         // The rule's side: the port's answer or nobody, and the caller weighed before the extra's contents are looked at.
         val asked = sources.mapValues { (_, text) -> count(text, "launchCaller(") }.filterValues { it > 0 }
-        if (asked != mapOf("music/MusicActivity.kt" to 1, "music/MusicPlayExtra.kt" to 1) ||
+        if (asked != mapOf("music/MusicActivity.kt" to 1, "music/MusicPlayExtra.kt" to 1, "clock/ClockActivity.kt" to 1, "clock/ClockIntents.kt" to 1) ||
+            !sources["clock/ClockIntents.kt"].orEmpty().contains("fun launchCaller(access: UriAccessPort): Int = try { UriAccessRules.starterUid(access) ?: NO_CALLER } catch (e: Throwable) { NO_CALLER }") ||
+            !sources["clock/ClockIntents.kt"].orEmpty().contains("const val NO_CALLER = -1") ||
             !extra.contains("fun launchCaller(access: UriAccessPort): Int = UriAccessRules.starterUid(access) ?: NO_CALLER") || !extra.contains("const val NO_CALLER = -1")
         ) problems += "the launch's caller is not the port's named starter, or nobody: $asked"
         val decide = body(extra, "fun decide(callerUid: Int, myUid: Int, id: Long?, uri: String?, providerAuthority: String): Decision")

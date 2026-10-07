@@ -36,10 +36,12 @@ class AlarmSoundWiringScanTest {
         val problems = mutableListOf<String>()
         val api = sources["clock/AlarmApiActivity.kt"].orEmpty()
         val rules = sources["clock/AlarmApiRules.kt"].orEmpty()
-        val clock = sources["clock/ClockActivity.kt"].orEmpty()
+        // Ledger L18-3: the editor's hand-off bundle is read and weighed in ClockIntents (pure), not in the activity.
+        val clock = sources["clock/ClockIntents.kt"].orEmpty()
+        val clockActivity = sources["clock/ClockActivity.kt"].orEmpty()
         val ring = sources["clock/RingService.kt"].orEmpty()
         // The API handler: the extra goes to the rule and nowhere else, beside the real port; the rule's sound is stored.
-        if (count(api, "EXTRA_RINGTONE") != 1 || !api.contains("ringtone = intent.getStringExtra(AlarmClock.EXTRA_RINGTONE),") ||
+        if (count(api, "EXTRA_RINGTONE") != 1 || !api.contains("ringtone = extras.string(AlarmClock.EXTRA_RINGTONE, AlarmApiRules.MAX_EXTRA_TEXT),") ||
             count(api, "AlarmApiRules.parse(") != 1 || !api.contains("access = AndroidUriAccess(this), )") || count(api, "access") != 1
         ) problems += "the handler does not hand AlarmApiRules.parse the caller's ringtone and the real port, once"
         val parsers = sources.mapValues { (_, text) -> count(text, "AlarmApiRules.parse(") }.filterValues { it > 0 }
@@ -53,10 +55,10 @@ class AlarmSoundWiringScanTest {
             !rules.contains("val tone = AlarmRingtoneRules.fromApi(ringtone, access) val fields = AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused)")
         ) problems += "AlarmApiRules does not make the ringtone a sound through AlarmRingtoneRules.fromApi(ringtone, access)"
         val askers = sources.mapValues { (_, text) -> count(text, "AlarmRingtoneRules.fromApi(") }.filterValues { it > 0 }
-        if (askers != mapOf("clock/AlarmApiRules.kt" to 1, "clock/ClockActivity.kt" to 1)) problems += "a ringtone is weighed somewhere else: $askers"
+        if (askers != mapOf("clock/AlarmApiRules.kt" to 1, "clock/ClockIntents.kt" to 1)) problems += "a ringtone is weighed somewhere else: $askers"
         // The editor's hand-off: exported, so the bundle's sound is weighed again — with no port, never with a yes.
-        if (count(clock, "API_SOUND_URI") != 2 || !clock.contains("AlarmSound.Kind.TONE.name -> AlarmRingtoneRules.fromApi(api.getString(API_SOUND_URI), null).sound") ||
-            count(clock, "AlarmSound(") != 1 || !clock.contains("AlarmSound.Kind.VIBRATE.name -> AlarmSound(AlarmSound.Kind.VIBRATE)")
+        if (count(clock, "API_SOUND_URI") != 2 || !clock.contains("AlarmSound.Kind.TONE.name -> AlarmRingtoneRules.fromApi(soundUri, null).sound") || !clock.contains("val soundUri = api.string(API_SOUND_URI, MAX_URI)") ||
+            count(clock, "AlarmSound(") != 1 || count(clockActivity, "AlarmSound(") != 0 || !clock.contains("AlarmSound.Kind.VIBRATE.name -> AlarmSound(AlarmSound.Kind.VIBRATE)")
         ) problems += "the editor takes the hand-off bundle's sound without weighing it"
         // The sink: one function opens a stored URI, and it asks the rule first.
         val source = body(ring, "private fun source(ring: Ring, sound: AlarmSound): Uri?")
@@ -90,9 +92,10 @@ class AlarmSoundWiringScanTest {
         assertTrue(with("clock/AlarmApiRules.kt", "AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused)", "AlarmFields(hour, minute, daySet, text, ringtone?.let { AlarmSound(AlarmSound.Kind.TONE, it, null) } ?: tone.sound, tone.refused)").isNotEmpty())
         assertTrue(with("clock/AlarmApiRules.kt", "AlarmRingtoneRules.fromApi(ringtone, access)", "AlarmRingtoneRules.fromApi(ringtone, null)").isNotEmpty())
         assertTrue(with("clock/AlarmApiActivity.kt", "access = AndroidUriAccess(this),", "access = null,").isNotEmpty())
-        assertTrue(with("clock/AlarmApiActivity.kt", "ringtone = intent.getStringExtra(AlarmClock.EXTRA_RINGTONE),", "ringtone = intent.getStringExtra(AlarmClock.EXTRA_RINGTONE) ?: intent.dataString,").isNotEmpty())
+        assertTrue(with("clock/AlarmApiActivity.kt", "ringtone = extras.string(AlarmClock.EXTRA_RINGTONE, AlarmApiRules.MAX_EXTRA_TEXT),", "ringtone = extras.string(AlarmClock.EXTRA_RINGTONE, AlarmApiRules.MAX_EXTRA_TEXT) ?: intent.dataString,").isNotEmpty())
         // The editor trusting its bundle (the old line), or a second parser of the API.
-        assertTrue(with("clock/ClockActivity.kt", "AlarmRingtoneRules.fromApi(api.getString(API_SOUND_URI), null).sound", "AlarmSound(AlarmSound.Kind.TONE, api.getString(API_SOUND_URI), null)").isNotEmpty())
+        assertTrue(with("clock/ClockIntents.kt", "AlarmRingtoneRules.fromApi(soundUri, null).sound", "AlarmSound(AlarmSound.Kind.TONE, soundUri, null)").isNotEmpty())
+        assertTrue(with("clock/ClockActivity.kt", "open.alarm?.let { nav.openAlarmEditor(it) }", "open.alarm?.let { nav.openAlarmEditor(it.copy(sound = AlarmSound(AlarmSound.Kind.TONE, intent?.dataString, null))) }").isNotEmpty())
         assertTrue(problems(sources + ("clock/ClockText.kt" to sources.getValue("clock/ClockText.kt") + " fun x(a: app.tileshell.media.UriAccessPort) = AlarmApiRules.parse(null, null, null, null, null, true, null, \"x\", null, a)")).isNotEmpty())
         // The sink: the check dropped, turned round, made after the open, or its answer ignored.
         val check = "AlarmRingtoneRules.sinkRefusal(uri)?.let { why -> Diagnostics.add(\"alarms\", \"ring \$id sound refused (\$why) -> default\") return default() } "
@@ -106,5 +109,61 @@ class AlarmSoundWiringScanTest {
         // A second place that plays a stored URI: the player handed the alarm's own string, or another clock file opening one.
         assertTrue(ring("setDataSource(this@RingService, source)", "setDataSource(this@RingService, Uri.parse(sound.uri))").isNotEmpty())
         assertTrue(problems(sources + ("clock/AlarmTab.kt" to sources.getValue("clock/AlarmTab.kt") + " fun x(c: android.content.Context, u: android.net.Uri) = c.contentResolver.openFileDescriptor(u, \"r\")")).isNotEmpty())
+    }
+
+    // ------------------------------------------------------------------------------- the exported activities' extras (L18-3)
+
+    /**
+     * Ledger L18-3 (the adversarial review's N1 and N4): ClockActivity and AlarmApiActivity are exported, in the
+     * launcher's process. `SafeExtras` and `ClockIntents` are the rules (`ClockIntentsTest`); held here is that the two
+     * activities read NO extra themselves, that ClockActivity routes every intent through `ClockIntents.open` with the
+     * uid that sent THAT intent (the port for the launch, the platform's own caller for a new intent on API 35+, nobody
+     * below it), and that the handler refuses a request one of whose extras could not be read.
+     */
+    private fun extrasProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val api = sources["clock/AlarmApiActivity.kt"].orEmpty()
+        val clock = sources["clock/ClockActivity.kt"].orEmpty()
+        val rawRead = Regex("get\\w*Extra\\(|hasExtra\\(|\\.extras\\b|getParcelable|getSerializable|\\.getString\\(|\\.getInt\\(|\\.getIntArray\\(|\\.getLong\\(|\\.getBundle\\(|containsKey")
+        for ((name, text) in listOf("AlarmApiActivity" to api.substringBefore("private fun openClock("), "ClockActivity" to clock)) {
+            rawRead.findAll(text).forEach { problems += "$name reads an extra itself (${it.value}): only SafeExtras reads another app's extras" }
+        }
+        if (count(clock, "route(") != 4 || !clock.contains("route(intent, ClockIntents.launchCaller(AndroidUriAccess(this)))") ||
+            !clock.contains("if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) route(intent, ClockIntents.NO_CALLER)") ||
+            !clock.contains("super.onNewIntent(intent, caller) route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER })") ||
+            !clock.contains("private fun route(intent: Intent?, callerUid: Int) { val open = ClockIntents.open(intent?.let { AndroidExtras(it) }, callerUid, Process.myUid()) ") ||
+            count(clock, "Process.myUid()") != 1 || count(clock, "openAlarmEditor(") != 2 || count(clock, "openTimerEditor(") != 2
+        ) problems += "ClockActivity does not route every intent through ClockIntents.open with that intent's own caller"
+        val openers = sources.mapValues { (_, text) -> count(text, "ClockIntents.open(") }.filterValues { it > 0 }
+        if (openers != mapOf("clock/ClockActivity.kt" to 1)) problems += "an intent is weighed for Clock somewhere else: $openers"
+        if (!sources["clock/ClockIntents.kt"].orEmpty().contains("if (myUid < 0 || callerUid != myUid) { api = \"ignored: \$WHY_NOT_SHELL\" } else { when (val edit = edit(safe.nested(EXTRA_API_EDIT))) {")) {
+            problems += "the edit bundle is read before, or without, the caller check"
+        }
+        if (!api.contains("val extras = SafeExtras(AndroidExtras(intent)) val parsed = AlarmApiRules.parse(") || count(api, "SafeExtras(") != 1 ||
+            !api.contains("val request = AlarmApiRules.unlessUnreadable(parsed, extras.refused.size)") || Regex("\\bparsed\\b").findAll(api).count() != 2 ||
+            !api.contains("Diagnostics.add(\"alarms\", AlarmApiRules.line(intent.action, caller, result))")
+        ) problems += "the handler acts on a request whose extras it could not all read, or reads them outside SafeExtras"
+        return problems
+    }
+
+    @Test fun `L18-3 the exported clock activities read no extra themselves, and the edit bundle is weighed against that intent's caller`() {
+        assertEquals(emptyList<String>(), extrasProblems(SourceScan.all()))
+    }
+
+    @Test fun `L18-3 an activity that reads an extra itself, drops or fakes the caller, or acts on a half-read request is caught`() {
+        val sources = SourceScan.all()
+        fun with(file: String, old: String, new: String) = extrasProblems(sources + (file to mutate(sources.getValue(file), old, new)))
+        // The defect itself (N1, N4): a raw read in either activity.
+        assertTrue(with("clock/ClockActivity.kt", "open.tab?.let { nav.show(it) }", "open.tab?.let { nav.show(it) } intent?.getBundleExtra(\"api_edit\")?.getIntArray(\"days\")?.map { DayOfWeek.of(it) }").isNotEmpty())
+        assertTrue(with("clock/AlarmApiActivity.kt", "days = extras.ints(AlarmClock.EXTRA_DAYS, AlarmApiRules.MAX_DAYS),", "days = intent.getIntegerArrayListExtra(AlarmClock.EXTRA_DAYS),").isNotEmpty())
+        // The caller dropped, made the shell's own, or the launch's caller used for a new intent.
+        assertTrue(with("clock/ClockActivity.kt", "ClockIntents.open(intent?.let { AndroidExtras(it) }, callerUid, Process.myUid())", "ClockIntents.open(intent?.let { AndroidExtras(it) }, Process.myUid(), Process.myUid())").isNotEmpty())
+        assertTrue(with("clock/ClockActivity.kt", "route(intent, ClockIntents.launchCaller(AndroidUriAccess(this)))", "route(intent, Process.myUid())").isNotEmpty())
+        assertTrue(with("clock/ClockActivity.kt", "VANILLA_ICE_CREAM) route(intent, ClockIntents.NO_CALLER)", "VANILLA_ICE_CREAM) route(intent, Process.myUid())").isNotEmpty())
+        assertTrue(with("clock/ClockActivity.kt", "route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER })", "route(intent, try { caller.uid } catch (e: Throwable) { Process.myUid() })").isNotEmpty())
+        assertTrue(with("clock/ClockIntents.kt", "if (myUid < 0 || callerUid != myUid) {", "if (myUid < 0 && callerUid != myUid) {").isNotEmpty())
+        // The handler acting on what it parsed although an extra was unreadable.
+        assertTrue(with("clock/AlarmApiActivity.kt", "val request = AlarmApiRules.unlessUnreadable(parsed, extras.refused.size)", "val request = parsed").isNotEmpty())
+        assertTrue(with("clock/AlarmApiActivity.kt", "AlarmApiRules.unlessUnreadable(parsed, extras.refused.size)", "AlarmApiRules.unlessUnreadable(parsed, 0)").isNotEmpty())
     }
 }
