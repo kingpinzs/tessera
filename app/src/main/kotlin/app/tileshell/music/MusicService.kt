@@ -104,6 +104,10 @@ class MusicService : MediaSessionService() {
         val exo = ExoPlayer.Builder(this, mediaSourceFactory)
             .setAudioAttributes(attributes, /* handleAudioFocus = */ true)
             .setHandleAudioBecomingNoisy(true)
+            // Phase 20 build task 2: a stream through a screen-off needs the CPU and the Wi-Fi radio held while it plays
+            // (a wake lock and a Wi-Fi lock, only while READY or BUFFERING). The shared player, so a local track gets it
+            // too — which is the screen-off half phase 10 still owed.
+            .setWakeMode(C.WAKE_MODE_NETWORK)
             .build()
         exo.audioSessionId = audioSession
         exo.addListener(object : Player.Listener {
