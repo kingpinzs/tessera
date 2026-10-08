@@ -1,6 +1,5 @@
 package app.tileshell.music
 
-import android.graphics.BitmapFactory
 import android.util.LruCache
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -148,7 +147,8 @@ internal fun StationRow(station: Station, tag: String, logo: Boolean, actions: S
 
 /**
  * The picture on a station's row, or null for the placeholder: a favourite's logo ([fetch]), fetched once and off the
- * main thread, or — for the row of the station that is playing — the logo the player holds. Never anything else.
+ * main thread, or — for the row of the station that is playing — the logo the player holds. Never anything else,
+ * and decoded only through [StationLogos.decode].
  */
 @Composable
 private fun stationArt(station: Station, fetch: Boolean, playing: Boolean): ImageBitmap? {
@@ -159,7 +159,7 @@ private fun stationArt(station: Station, fetch: Boolean, playing: Boolean): Imag
         if (value == null) {
             value = withContext(Dispatchers.IO) {
                 val bytes = live ?: runCatching { StationLogos.get(context).logo(station) }.getOrNull()
-                bytes?.let { runCatching { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }.getOrNull() }
+                StationLogos.decode(bytes)?.asImageBitmap()
             }?.also { StationArtMemory.put(station, it) }
         }
     }

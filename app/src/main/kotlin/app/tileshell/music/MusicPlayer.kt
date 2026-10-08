@@ -15,6 +15,7 @@ import app.tileshell.music.radio.RadioFavourites
 import app.tileshell.music.radio.RadioFavouritesStore
 import app.tileshell.music.radio.RadioNet
 import app.tileshell.music.radio.StationItem
+import app.tileshell.music.radio.StationLogos
 import app.tileshell.music.radio.StationStart
 import app.tileshell.music.radio.StreamLine
 import app.tileshell.music.server.ServerTrackItem
@@ -139,8 +140,8 @@ object MusicPlayer {
         val c = controller ?: return
         val item = c.currentMediaItem
         val live = MusicLive.isLive(item?.mediaId)
-        // Phase 20: a station's logo arrives once and its title changes with every song, each as a new value of the
-        // session's metadata; the logo last seen for THIS station is kept, so a title change never blanks the art.
+        // Phase 20: a station's logo arrives once and its title changes with every song; the logo last seen for THIS
+        // station is kept, so a title change never blanks the art.
         if (!live || item?.mediaId != nowPlayingId) liveArt = null
         nowPlayingId = item?.mediaId
         val meta = item?.mediaMetadata
@@ -151,7 +152,11 @@ object MusicPlayer {
         album = meta?.albumTitle?.toString().orEmpty()
         albumId = albumIdOf(item?.mediaId)
         fileArt = if (MusicFile.isFile(item?.mediaId)) meta?.artworkData else null
-        if (live) c.mediaMetadata.artworkData?.let { liveArt = it }
+        // Review R20-2: never the session's art for a station — a stream can carry a picture of its own, of any size,
+        // and the session's first value of a change is the stream's raw metadata. The logo is the one the shell
+        // fetched and bounded itself (StationLogos; this process, as the service is), read when the session says
+        // anything changed — which it does when the logo arrives.
+        if (live) StationLogos.cachedFor(item?.mediaId)?.let { liveArt = it }
         // A duration of C.TIME_UNSET is negative; it means "not known yet", not "zero seconds".
         durationMs = c.duration.takeIf { it > 0L } ?: 0L
         positionMs = c.currentPosition.coerceAtLeast(0L)
@@ -344,7 +349,7 @@ object MusicPlayer {
     var meteredLine by mutableStateOf<String?>(null)
         private set
 
-    /** The playing station's logo, fetched and bounded by the shell (never an artworkUri); null draws the placeholder. */
+    /** The playing station's logo, fetched and bounded by the shell ([StationLogos] — never an artworkUri, never the session's art); null draws the placeholder. */
     var liveArt by mutableStateOf<ByteArray?>(null)
         private set
 

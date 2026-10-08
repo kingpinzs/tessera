@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.LruCache
+import app.tileshell.music.MusicLive
 import app.tileshell.video.catalogue.VideoHttp
 import java.io.ByteArrayOutputStream
 
@@ -13,6 +14,10 @@ import java.io.ByteArrayOutputStream
  * [StationLogo.MAX_PX] a side — bytes fit for an item's `artworkData` and for a row. Asked only for favourites and
  * the playing station. The request carries a header, so `VideoHttp` follows no redirect with it: a logo's host cannot
  * send the phone on to another address.
+ *
+ * These bytes are the ONLY art a live item is drawn with (review R20-2): a stream can carry a picture of its own, of
+ * any size, and the session hands its controllers that raw metadata before the corrected value. So the screens take a
+ * station's art from [cachedFor] — never from the session — and decode it through [decode], bounds first.
  */
 class StationLogos private constructor(context: Context) {
     private val app = context.applicationContext
@@ -24,6 +29,16 @@ class StationLogos private constructor(context: Context) {
 
     /** The logo already fetched in this process, with no request; null when there is none (yet). */
     fun cached(station: Station): ByteArray? = cache.get(key(station))?.bytes
+
+    /**
+     * The logo already fetched for the station a `station:` media id names — a favourite, else the directory's row,
+     * as the service finds it — with no request; null for any other id, and when there is none (yet).
+     */
+    fun cachedFor(mediaId: String?): ByteArray? {
+        val uuid = MusicLive.stationUuid(mediaId) ?: return null
+        val station = RadioFavouritesStore.get(app).stations().firstOrNull { it.uuid == uuid } ?: RadioDirectoryStore.get(app).directory.value.index.byUuid(uuid)
+        return station?.let { cached(it) }
+    }
 
     /** The station's bounded logo, or null. BLOCKS on the network: call it off the main thread. */
     fun logo(station: Station): ByteArray? {
@@ -40,11 +55,7 @@ class StationLogos private constructor(context: Context) {
     private fun key(station: Station): String = station.uuid + " " + station.favicon
 
     private fun bounded(raw: ByteArray): ByteArray? = runCatching {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeByteArray(raw, 0, raw.size, bounds)
-        val sample = StationLogo.sampleSize(bounds.outWidth, bounds.outHeight)
-        if (sample <= 0) return@runCatching null
-        val bitmap = BitmapFactory.decodeByteArray(raw, 0, raw.size, BitmapFactory.Options().apply { inSampleSize = sample }) ?: return@runCatching null
+        val bitmap = decode(raw) ?: return@runCatching null
         ByteArrayOutputStream().use { out ->
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
             bitmap.recycle()
@@ -62,5 +73,23 @@ class StationLogos private constructor(context: Context) {
             instance ?: synchronized(this) {
                 instance ?: StationLogos(context).also { instance = it }
             }
+
+        /** [StationLogos.cachedFor] of this process's logos; null when none was ever asked for. Never a request. */
+        fun cachedFor(mediaId: String?): ByteArray? = instance?.cachedFor(mediaId)
+
+        /**
+         * A live item's art, decoded — the one way such bytes become a picture: no more than [StationLogo.MAX_BYTES],
+         * the bounds read first, and never larger than [StationLogo.MAX_PX] a side ([StationLogo.sampleSize]; 0 = not
+         * decoded at all). Null for anything else, and for bytes that are no picture.
+         */
+        fun decode(bytes: ByteArray?): Bitmap? {
+            if (bytes == null || !StationLogo.accept(bytes)) return null
+            return runCatching {
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                val sample = StationLogo.sampleSize(bounds.outWidth, bounds.outHeight)
+                if (sample <= 0) null else BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })
+            }.getOrNull()
+        }
     }
 }
