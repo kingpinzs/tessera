@@ -83,6 +83,21 @@ class StationUrlTest {
         assertEquals(Accept.UnsupportedHost, accept("http://127.0.0.1#@stream.example.net"))
     }
 
+    // Review R20-7: the last @ and the percent sign were held only by hosts another rule refuses (a numeric one).
+    @Test fun `the host after the LAST of two at-signs is the one judged, when it is a name`() {
+        assertEquals(Accept.UnsupportedHost, accept("http://a@b@localhost/"))
+        assertEquals(Accept.UnsupportedHost, accept("http://stream.example.net@b@nas.local:8000/x"))
+        assertEquals(Accept.UnsupportedHost, accept("https://a:b@c:d@printer.localhost/x"))
+        assertEquals(Accept.Ok, accept("http://localhost@nas.local@stream.example.net/x"))
+    }
+
+    @Test fun `a percent sign in a NAME is refused - the rule decodes nothing, so an encoded name is nobody's`() {
+        for (url in listOf(
+            "http://%6c%6f%63%61%6c%68%6f%73%74/", "http://%6Cocalhost/x", "http://nas%2elocal/x", "http://stream%2eexample.net/x",
+            "http://stream.example.net%/x", "http://user@%6eas.local:8000/x",
+        )) assertEquals(url, Accept.UnsupportedHost, accept(url))
+    }
+
     @Test fun `the qaHost exception holds only when it is non-null, for that host alone, and never for a scheme`() {
         val fixture = "http://10.0.2.2:8080/stream/jazz-one"
         assertEquals(Accept.UnsupportedHost, accept(fixture, qaHost = null))
@@ -95,6 +110,12 @@ class StationUrlTest {
         assertEquals(Accept.UnsupportedHost, accept("http://10.0.2.2.example.net@192.168.1.1/x", qaHost = "10.0.2.2"))
         assertEquals(Accept.UnsupportedScheme("file"), accept("file://10.0.2.2/sdcard/x.mp3", qaHost = "10.0.2.2"))
         assertEquals(Accept.UnsupportedScheme("file"), accept("file:///sdcard/Music/x.mp3", qaHost = "10.0.2.2"))
+        // Review R20-7: the fixture host is matched WHOLE - a host that only ends, starts or holds it is judged as any other.
+        assertEquals(Accept.UnsupportedHost, accept("http://010.0.2.2:8080/x", qaHost = "10.0.2.2"))
+        assertEquals(Accept.UnsupportedHost, accept("http://1.10.0.2.2/x", qaHost = "10.0.2.2"))
+        assertEquals(Accept.UnsupportedHost, accept("http://10.0.2.25/x", qaHost = "10.0.2.2"))
+        assertEquals(Accept.UnsupportedHost, accept("http://nas.local/x", qaHost = "local"))
+        assertEquals(Accept.UnsupportedHost, accept("http://printer.localhost/x", qaHost = "localhost"))
     }
 
     @Test fun `the qaHost is the host of the override's base, and null with no override`() {

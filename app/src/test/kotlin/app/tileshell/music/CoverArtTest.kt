@@ -58,6 +58,14 @@ class CoverArtTest {
         assertFalse(CoverArt.mayFollow(null))
     }
 
+    // Review R20-7: a port was refused only by the suffix check, in the cases tested.
+    @Test fun `a port is refused - on the archive's own host, and where the text after it ends as the archive does`() {
+        for (location in listOf(
+            "https://archive.org:443/x", "https://ia800100.us.archive.org:8443/x.jpg", "https://archive.org:/x",
+            "https://evil.example:.archive.org/x", "https://evil.example:443.archive.org/x", "https://evil.example:x.archive.org",
+        )) assertFalse(location, CoverArt.mayFollow(location))
+    }
+
     private val start = "https://coverartarchive.org/release/76df3287-6cda-33eb-8e9a-044b5e15ffdd/front-250"
     private val agent = mapOf("User-Agent" to "Tessera/1.2 (test)")
 
