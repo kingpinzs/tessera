@@ -48,7 +48,7 @@ object ServerTrackItem {
         if (url == null || !accepts(url, track)) return null
         return MediaItem.Builder()
             .setMediaId(mediaId(track))
-            .setUri(MusicSources.own.queued(url))
+            .setUri(MusicSources.own.queuedServer(url))
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(track.title)

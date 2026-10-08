@@ -25,8 +25,9 @@ import java.util.concurrent.ConcurrentHashMap
  *  - anything else — any other scheme, an address with none — is refused. Nothing a playlist, a redirect or a nested
  *    reference names can be local unless the shell queued that very address already.
  *
- * NOT covered, as for [StationUrl] (stated gaps, `hls-rereview.md`): a same-scheme REDIRECT is followed inside the
- * http data source and never comes back here, and a NAME that resolves to a private address is not resolved.
+ * This is the FIRST layer, and it reads text only. A NAME that resolves to a private address, and a REDIRECT — which
+ * is followed under the data source and never comes back here — are judged where the player connects (review R20-1;
+ * [MusicConnectRule], [MusicHttp]).
  */
 object MusicSourceRule {
     /**
@@ -56,8 +57,20 @@ object MusicSourceRule {
 class MusicSources {
     private val queued: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
+    /**
+     * The home server's among them (review R20-1): the one kind of address whose CONNECTION may be to a private
+     * network — the user's own server, there by design ([MusicConnectRule]). Told by `ServerTrackItem.build` alone.
+     */
+    private val servers: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
     /** The shell is giving an item this address: remembered, and handed back for the item. */
     fun queued(address: String): String = address.also { queued.add(it) }
+
+    /** [queued], for a home-server track's address. */
+    fun queuedServer(address: String): String = address.also { queued.add(it); servers.add(it) }
+
+    /** The home-server addresses queued so far (a live view: it grows). */
+    fun servers(): Set<String> = servers
 
     /** [MusicSourceRule.mayOpen] against what was queued. */
     fun mayOpen(asked: String, qaHost: String?): Boolean = MusicSourceRule.mayOpen(asked, queued, qaHost)

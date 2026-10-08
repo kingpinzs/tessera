@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.LruCache
+import app.tileshell.music.MusicHttp
 import app.tileshell.music.MusicLive
 import app.tileshell.video.catalogue.VideoHttp
 import java.io.ByteArrayOutputStream
@@ -12,7 +13,8 @@ import java.io.ByteArrayOutputStream
  * The shell's own fetch of a station's logo (phase 20, r3 D2; the rules are [StationLogo]'s): the address through
  * [StationUrl.accept], at most [StationLogo.MAX_BYTES] off the wire, decoded at bounds and re-encoded no larger than
  * [StationLogo.MAX_PX] a side — bytes fit for an item's `artworkData` and for a row. Asked only for favourites and
- * the playing station. The request carries a header, so `VideoHttp` follows no redirect with it: a logo's host cannot
+ * the playing station. The request is [MusicHttp.bytes]' (review R20-1): it connects only to an address judged public
+ * at the moment of connecting — a logo's NAME may resolve anywhere — and follows no redirect, so a logo's host cannot
  * send the phone on to another address.
  *
  * These bytes are the ONLY art a live item is drawn with (review R20-2): a stream can carry a picture of its own, of
@@ -26,6 +28,9 @@ class StationLogos private constructor(context: Context) {
     private class Entry(val bytes: ByteArray?)
 
     private val cache = LruCache<String, Entry>(CACHED)
+
+    /** The judged client (review R20-1); the fixture host is read once, as the service reads it. */
+    private val http by lazy { MusicHttp(RadioNet.qaHost(app)) }
 
     /** The logo already fetched in this process, with no request; null when there is none (yet). */
     fun cached(station: Station): ByteArray? = cache.get(key(station))?.bytes
@@ -47,7 +52,7 @@ class StationLogos private constructor(context: Context) {
         val url = StationLogo.url(station.favicon, RadioNet.qaHost(app))
         // No network is not "no logo": only an answer that was had is remembered.
         if (url != null && !VideoHttp.online(app)) return null
-        val bytes = url?.let { VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong()) }?.takeIf { StationLogo.accept(it) }?.let { bounded(it) }
+        val bytes = url?.let { http.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong()) }?.takeIf { StationLogo.accept(it) }?.let { bounded(it) }
         cache.put(key, Entry(bytes))
         return bytes
     }

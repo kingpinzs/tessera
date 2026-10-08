@@ -20,6 +20,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.Util
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.DefaultExtractorsFactory
@@ -126,13 +127,18 @@ class MusicService : MediaSessionService() {
         // Phase 20 (r3 D11 / D12): outermost, so every address a media source asks for — a station's playlist names
         // segments, keys and playlists of its own — is weighed by MusicSourceRule before anything opens it. The
         // crossfade's fader is handed this same factory.
-        val upstream = DefaultDataSource.Factory(this)
+        // Review R20-1: under it, every http(s) open is MusicHttp's — a station, what its playlist names and every
+        // redirect connect only to an address judged public at the moment of connecting; the home server's own queued
+        // address is the exception (MusicConnectRule). A refused address is not asked for again. The User-Agent is the
+        // platform's, as the default source sent it.
         val qaHost = RadioNet.qaHost(this)
+        val http = OkHttpDataSource.Factory(MusicHttp(qaHost, MusicSources.own::servers).calls).setUserAgent(MusicHttp.platformAgent())
+        val upstream = DefaultDataSource.Factory(this, http)
         val sources = DataSource.Factory { GuardedDataSource(upstream.createDataSource()) { asked -> MusicSources.own.mayOpen(asked, qaHost) } }
         val mediaSourceFactory = DefaultMediaSourceFactory(
             sources,
             DefaultExtractorsFactory().setMp3ExtractorFlags(Mp3Extractor.FLAG_ENABLE_INDEX_SEEKING),
-        )
+        ).setLoadErrorHandlingPolicy(MusicHttp.refusalIsFinal())
         val exo = ExoPlayer.Builder(this, mediaSourceFactory)
             .setAudioAttributes(attributes, /* handleAudioFocus = */ true)
             .setHandleAudioBecomingNoisy(true)

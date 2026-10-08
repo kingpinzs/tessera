@@ -118,4 +118,20 @@ class MusicSourceRuleTest {
         assertFalse(sources.mayOpen("content://media/external/audio/media/8000", null))
         assertFalse(sources.mayOpen("file:///sdcard/x", null))
     }
+
+    // Review R20-1: the connection's rule lets ONE kind of queued address reach a private network — the home server's.
+    @Test fun `only an address queued as the home server's is one of the servers - a station's, a track's and a file's are not`() {
+        val sources = MusicSources()
+        assertTrue(sources.servers().isEmpty())
+        sources.queued(track)
+        sources.queued(file)
+        sources.queued(station)
+        sources.queued("http://10.0.2.2:8092/stream")
+        assertTrue(sources.servers().isEmpty())
+        assertTrue(sources.queuedServer(serverTrack) == serverTrack)
+        assertTrue(sources.servers() == setOf(serverTrack))
+        // It is queued like any other, so the guard's first layer opens it — and its range re-open.
+        assertTrue(sources.mayOpen(serverTrack, null))
+        assertTrue(sources.mayOpen(track, null))
+    }
 }

@@ -17,6 +17,7 @@ import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.LoadEventInfo
 import androidx.media3.exoplayer.source.MediaLoadData
 import app.tileshell.diag.Diagnostics
+import app.tileshell.music.MusicHttp
 import app.tileshell.music.MusicLive
 import java.io.IOException
 
@@ -37,7 +38,9 @@ import java.io.IOException
  * which the player reads as the item's end, with no error at all — is put on the same clock ([StreamFacts.streamEnded]),
  * so a station never goes silent, or hands over to the next favourite, without a word. A stream that returns inside
  * the window writes `stream: reconnected after <ms> ms` and goes on with no tap. A pause, or another item, ends the
- * clock without a word. A home-server track and a library track are never on it.
+ * clock without a word. A home-server track and a library track are never on it. Nor is a station whose address was
+ * REFUSED — a redirect between https and http, or (review R20-1) a connection to an address that is not public: that
+ * is said once, the station is paused, and nothing asks for the address again until the person does.
  *
  * [state] and [meteredLine] are what the service puts in the session's extras; [changed] says one of them moved.
  */
@@ -49,7 +52,7 @@ class StreamWatch(
 ) {
     private val app = context.applicationContext
 
-    /** [StreamRetry.RECONNECTING] or [StreamRetry.NOT_ANSWERING] while that is so, else null. */
+    /** [StreamRetry.RECONNECTING], [StreamRetry.NOT_ANSWERING] or [StationItem.CANT_PLAY] while that is so, else null. */
     var state: String? = null
         private set
 
@@ -65,7 +68,7 @@ class StreamWatch(
     /** The item whose `stream: connected` line is written; one line for each time an item is come to. */
     private var connectedFor: String? = null
 
-    /** The item whose redirect was refused, until it is prepared afresh or left: the line is written once. */
+    /** The item whose redirect or address was refused, until it is prepared afresh or left: the line is written once. */
     private var redirectRefusedFor: String? = null
     private var playbackState = Player.STATE_IDLE
 
@@ -172,7 +175,8 @@ class StreamWatch(
         override fun onPlayerError(error: PlaybackException) {
             val id = liveId() ?: return
             if (!player.playWhenReady) return
-            if (StreamFacts.redirectRefused(messages(error))) return redirectRefused(id)
+            if (MusicHttp.refused(error)) return refused(id, StreamLine.UNSUPPORTED_HOST, StationItem.CANT_PLAY)
+            if (StreamFacts.redirectRefused(messages(error))) return refused(id, StreamLine.REDIRECT_REFUSED, StreamRetry.NOT_ANSWERING)
             if (redirectRefusedFor == id) return
             failed(SystemClock.elapsedRealtime())
         }
@@ -215,7 +219,8 @@ class StreamWatch(
         override fun onLoadError(eventTime: AnalyticsListener.EventTime, loadEventInfo: LoadEventInfo, mediaLoadData: MediaLoadData, error: IOException, wasCanceled: Boolean) {
             val id = idOf(eventTime) ?: return
             if (wasCanceled || id != liveId() || !player.playWhenReady) return
-            if (StreamFacts.redirectRefused(messages(error))) return redirectRefused(id)
+            if (MusicHttp.refused(error)) return refused(id, StreamLine.UNSUPPORTED_HOST, StationItem.CANT_PLAY)
+            if (StreamFacts.redirectRefused(messages(error))) return refused(id, StreamLine.REDIRECT_REFUSED, StreamRetry.NOT_ANSWERING)
             if (redirectRefusedFor == id) return
             lost(SystemClock.elapsedRealtime())
         }
@@ -287,13 +292,16 @@ class StreamWatch(
         changed()
     }
 
-    /** A redirect between https and http: said once, never put on the clock, and the station is left paused. */
-    private fun redirectRefused(id: String) {
+    /**
+     * A redirect between https and http, or an address the connection refused ([MusicHttp.RefusedAddress]): [line] is
+     * said once, the station is never put on the clock, and it is left paused with [shown] in the extras.
+     */
+    private fun refused(id: String, line: String, shown: String) {
         if (redirectRefusedFor == id) return
         redirectRefusedFor = id
         endClock()
-        state = StreamRetry.NOT_ANSWERING
-        Diagnostics.add(StreamLine.TAG, StreamLine.REDIRECT_REFUSED)
+        state = shown
+        Diagnostics.add(StreamLine.TAG, line)
         player.pause()
         changed()
     }
