@@ -119,6 +119,9 @@ dependencies {
     implementation(libs.media3.exoplayer)
     // Phase 20 (r3 D10): HLS radio stations — the same library's own module, not a second engine.
     implementation(libs.media3.exoplayer.hls)
+    // Phase 20 (review R20-1): the Music player's stations connect only to an address that was judged — the http data
+    // source over OkHttp, whose Dns and sockets are the shell's (music/MusicHttp.kt). The video player keeps the default.
+    implementation(libs.media3.datasource.okhttp)
     implementation(libs.media3.session)
     // Phase 17: video trim in Photos' editor (Media3 Transformer), and the Camera app (CameraX).
     implementation(libs.media3.transformer)
