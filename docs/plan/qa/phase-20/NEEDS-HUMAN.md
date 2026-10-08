@@ -1,6 +1,6 @@
 # Phase 20 (Music streaming and Radio) — Jeremy's sign-off checklist
 
-**STATUS: D1 answered 2026-10-08 ("(a)"); its fix is being built. The phone and sign-off rows wait for that build.** Written 2026-10-07 22:56.
+**STATUS: READY FOR YOU. D1 is answered ("(a)", 2026-10-08), built, pushed and re-run (A2, A3, A7: 12 of 12). Open: P1–P4 and H1–H5.** Written 2026-10-07 22:56; updated 2026-10-08 11:23.
 
 - The build was pushed first (`origin/phase-20` = 62eea325), then the ONE round of testing ran on it.
 - Emulator rows A1–A7: all pass, 28 of 28 lettered conditions (`RESULTS.md` beside this file). The three static
@@ -14,8 +14,8 @@
 - The phase goes `done` when every row below is signed off: reply with the ids that pass, and what you saw for any
   that do not.
 
-**The phone build does not exist yet.** CI builds only on a push to `main`. Merge the `phase-20` pull request on
-GitHub, wait for the build on the repository's "latest" release page, install it, then do the phone rows.
+**The phone build on main does not hold the D1 fix yet.** You merged the first `phase-20` pull request (everything up to the first fix round). Open and merge a second pull request from `phase-20` for D1,
+then wait for the build on the repository's "latest" release page, install it, then do the phone rows.
 Everything in the phone rows is done on the phone alone — nothing over a cable, adb or a PC. Where a row needs a
 value, read it on Start settings > Diagnostics and paste it back.
 
@@ -23,7 +23,7 @@ value, read it on Start settings > Diagnostics and paste it back.
 
 | id | the question | my lean |
 |---|---|---|
-| D1 | **A station entry can make the phone send a request into your home network (review finding R20-1, MEDIUM).** The plan's rule reads only the text of a station's address. A station in the community directory can use a name that resolves to a home address (`192.168.1.1.nip.io`, `nas`, `router.lan`), or a public address that redirects there. The phone then sends one request, with a path the station chose, to a device on your Wi-Fi. Nothing comes back to the station and no password leaves, but some routers and smart devices act on such a request. The plan states this gap on purpose (r3 D12). Choices: **A** close it fully — check the real address when connecting, redirects included (likely adds one Media3 module; needs one more push and a re-run of rows A2 and A3); **B** close names only — a redirect still gets through; **C** leave it as planned and accept the risk. Asked in chat 2026-10-07; your reply was "push all changes", which I did not read as an answer. **ANSWERED 2026-10-08 08:16: "(a)" — close it fully. Being built; then one more push, then rows A2 and A3 run once more.** | A |
+| D1 | **A station entry can make the phone send a request into your home network (review finding R20-1, MEDIUM).** The plan's rule reads only the text of a station's address. A station in the community directory can use a name that resolves to a home address (`192.168.1.1.nip.io`, `nas`, `router.lan`), or a public address that redirects there. The phone then sends one request, with a path the station chose, to a device on your Wi-Fi. Nothing comes back to the station and no password leaves, but some routers and smart devices act on such a request. The plan states this gap on purpose (r3 D12). Choices: **A** close it fully — check the real address when connecting, redirects included (likely adds one Media3 module; needs one more push and a re-run of rows A2 and A3); **B** close names only — a redirect still gets through; **C** leave it as planned and accept the risk. Asked in chat 2026-10-07; your reply was "push all changes", which I did not read as an answer. **ANSWERED 2026-10-08 08:16: "(a)" — close it fully. BUILT and pushed (origin/phase-20 = 5c22c612): every station request, everything a playlist names, every redirect and the logo fetch may connect only to a public address, checked at the socket; your home server and the debug test host are the two exceptions. Rows A2, A3 and A7 ran once more and pass.** | A |
 
 ## Phone rows (the CI build, on the S25 Ultra)
 

@@ -56,10 +56,23 @@ R0="$(flog "$RLOG.jsonl" 'True' | wc -l | xargs)"
 MARK="$(ring_mark)"
 tap radio-srv music_server_entry; sleep 3; d srv0; shot 01-server-sign-in
 assert_eq "(a) the sign-in form is showing (host, user, password, connect)" "yes yes yes yes" "$(has srv0 server_host) $(has srv0 server_user) $(has srv0 server_password) $(has srv0 server_connect)"
-tap srv0 server_host; sleep 0.8; adb shell input text "10.0.2.2:8096"; sleep 0.5
-tap srv0 server_user; sleep 0.8; adb shell input text "qa"; sleep 0.5
+# A server saved by an earlier A7 run (it points at the removed fixture) opens this form as "Sign in again" with the
+# address and the user name already filled in; the 2026-10-08 D1 run typed after them ("http://10.0.2.2:809610.0.2.2:8096",
+# "qaqa") and the form answered "That isn't a server address" — a driver fault, that row re-run. A field that already
+# reads what the row would type is left alone; one that reads anything else is emptied first.
+record "(a) the form as it opened: notice / host / user" "$(nt srv0 server_notice) / $(nt srv0 server_host) / $(nt srv0 server_user)"
+fill() { # resource-id, the text to type, a second reading that also counts as already filled
+  local cur; cur="$(nt srv0 "$1")"
+  if [ "$cur" = "$2" ] || { [ -n "${3:-}" ] && [ "$cur" = "$3" ]; }; then return 0; fi
+  tap srv0 "$1"; sleep 0.8
+  if [ -n "$cur" ]; then adb shell input keyevent KEYCODE_MOVE_END </dev/null; local i; for i in $(seq 1 "${#cur}"); do adb shell input keyevent KEYCODE_DEL </dev/null; done; fi
+  adb shell input text "$2" </dev/null; sleep 0.5
+}
+fill server_host "10.0.2.2:8096" "http://10.0.2.2:8096"
+fill server_user "qa"
 tap srv0 server_password; sleep 0.8; adb shell input text "$JF_PASSWORD" >/dev/null 2>&1; sleep 0.5
 adb shell input keyevent KEYCODE_BACK; sleep 1; d srv1
+assert_eq "(a) the form holds the address and the user name once each before Connect" "10.0.2.2:8096 qa" "$(nt srv1 server_host | sed 's#^http://##') $(nt srv1 server_user)"
 tap srv1 server_connect; sleep 3; d srv-step
 # A plain-http server asks once before it signs in (phase 17's form): continue, as a user with a home server would.
 if [ "$(has srv-step server_insecure_continue)" = yes ]; then record "(a) the plain-http notice was shown" "continued"; tap srv-step server_insecure_continue; fi
