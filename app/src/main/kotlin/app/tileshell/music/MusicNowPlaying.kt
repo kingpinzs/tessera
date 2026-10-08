@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import app.tileshell.bars.BarMetrics
 import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
+import app.tileshell.music.radio.StationLogos
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.components.OverlayLayer
 import app.tileshell.ui.components.dismissOverlay
@@ -330,14 +331,17 @@ private fun BoxWithConstraintsScope.AlbumArt(top: Dp, side: Dp, width: Dp) {
     val albumId = MusicPlayer.albumId
     val px = with(LocalDensity.current) { (width - side * 2).roundToPx() }
     // Phase 18: a file played outside the library has no album row; its art, when its tags hold any, comes with the item.
-    // Phase 20: a station's logo, when the directory has one, comes the same way — bytes the shell fetched and bounded.
-    val fileArt = MusicPlayer.fileArt ?: MusicPlayer.liveArt?.takeIf { MusicPlayer.isLive }
-    val art by produceState<ImageBitmap?>(null, albumId, fileArt, px) {
+    // Phase 20: a station's logo, when the directory has one, is the bytes the shell fetched and bounded itself, and is
+    // decoded only through StationLogos.decode — the cap and the bounds again (review R20-2).
+    val fileArt = MusicPlayer.fileArt
+    val liveArt = MusicPlayer.liveArt?.takeIf { MusicPlayer.isLive }
+    val art by produceState<ImageBitmap?>(null, albumId, fileArt, liveArt, px) {
         value = when {
             albumId != null -> withContext(Dispatchers.IO) { MusicArt.loadById(context, albumId, px) }
             fileArt != null -> withContext(Dispatchers.IO) {
                 runCatching { android.graphics.BitmapFactory.decodeByteArray(fileArt, 0, fileArt.size)?.asImageBitmap() }.getOrNull()
             }
+            liveArt != null -> withContext(Dispatchers.IO) { StationLogos.decode(liveArt)?.asImageBitmap() }
             else -> null
         }
     }

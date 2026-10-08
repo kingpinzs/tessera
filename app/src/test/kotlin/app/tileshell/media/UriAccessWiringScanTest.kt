@@ -1162,4 +1162,208 @@ class UriAccessWiringScanTest {
         assertTrue(with("camera/CameraSaver.kt", "app.tileshell.media.ShellMediaWrites.of(context)", "MediaWrites(app.tileshell.media.AndroidMediaStorePort(context), context.packageName, app.tileshell.media.MemoryPendingLedger())").isNotEmpty())
         assertTrue(with("photos/PhotoActions.kt", "app.tileshell.media.ShellMediaWrites.of(context)", "app.tileshell.media.MediaWrites(app.tileshell.media.AndroidMediaStorePort(context), context.packageName, app.tileshell.media.FilePendingLedger.of(java.io.File(context.filesDir, \"x\")))").isNotEmpty())
     }
+
+    // ------------------------------------------------------------------ phase 20: a station's text and its logo (review R20-4)
+
+    /** `MusicPlayer.readSession`'s title, as code: a station's is the stream's own StreamTitle only through `LiveMetadata.merge`. */
+    private val liveTitleForm = "title = if (live) LiveMetadata.merge(meta?.albumTitle?.toString(), c.mediaMetadata.title?.toString()).title else meta?.title?.toString().orEmpty()"
+
+    /** `KnownDurationPlayer.getMediaMetadata`, as code: the ITEM's own metadata, the merged title, the shell's logo. */
+    private val liveMetadataForm = "{ val reported = super.getMediaMetadata() " +
+        "val item = currentMediaItem ?: return reported " +
+        "if (!MusicLive.isLive(item.mediaId)) return reported " +
+        "val own = item.mediaMetadata " +
+        "val shown = LiveMetadata.merge(own.albumTitle?.toString(), reported.title?.toString()) " +
+        "val meta = own.buildUpon().setTitle(shown.title).setAlbumTitle(shown.albumTitle) " +
+        "if (own.artworkData == null) liveArt(item.mediaId)?.let { meta.setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER) } " +
+        "return meta.build() }"
+
+    /** `KnownDurationPlayer.liveMetadataChanged`, as code: the listeners are told the value above, never another. */
+    private val liveRetellForm = "{ if (!MusicLive.isLive(currentMediaItem?.mediaId)) return " +
+        "val shown = mediaMetadata " +
+        "listeners.forEach { it.onMediaMetadataChanged(shown) } }"
+
+    /** `StationLogos.logo`, as code: the address by the rule, a header (so no redirect is followed), the cap, then the bounds. */
+    private val logoFetchForm = "{ val key = key(station) " +
+        "cache.get(key)?.let { return it.bytes } " +
+        "val url = StationLogo.url(station.favicon, RadioNet.qaHost(app)) " +
+        "if (url != null && !VideoHttp.online(app)) return null " +
+        "val bytes = url?.let { VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong()) }?.takeIf { StationLogo.accept(it) }?.let { bounded(it) } " +
+        "cache.put(key, Entry(bytes)) " +
+        "return bytes }"
+
+    /**
+     * Phase 20 Decisions "live metadata" and "untrusted URLs" → Logos (r3 D9 / D2), the review's R20-4: the pure rules
+     * (`LiveMetadata`, `RadioText`, `StationLogo`) are unit-tested, and what calls them was held by nothing — four of
+     * the review's mutations survived. So each call site is its one form:
+     *  - `MusicPlayer.readSession` shows a station's title only through `LiveMetadata.merge` (which cleans and cuts a
+     *    StreamTitle), and sets the title nowhere else;
+     *  - `KnownDurationPlayer.getMediaMetadata` — what the tile and the notification are built from — is the ITEM's
+     *    own metadata with the merged title, never the stream's; and a retelling tells that same value;
+     *  - `StationLogos.logo` asks for the address `StationLogo.url` accepted, with `RadioNet.headers()` (a request with
+     *    a header follows no redirect) and `StationLogo.MAX_BYTES`, and keeps only what `accept` and `bounded` pass;
+     *    nothing else under `music/radio/` makes a request for a picture.
+     */
+    private fun liveWiringProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val player = sources["music/MusicPlayer.kt"].orEmpty()
+        val known = sources["music/KnownDurationPlayer.kt"].orEmpty()
+        val logos = sources["music/radio/StationLogos.kt"].orEmpty()
+        if (count(player, liveTitleForm) != 1 || Regex("\\btitle\\s*=(?!=)").findAll(body(player, "private fun readSession()")).count() != 1) problems += "MusicPlayer.readSession's title is not its one form: a station's through LiveMetadata.merge"
+        val metadata = body(known, "override fun getMediaMetadata(): MediaMetadata")
+        if (metadata != liveMetadataForm) problems += "KnownDurationPlayer.getMediaMetadata is not its one form:\n  is:      $metadata\n  must be: $liveMetadataForm"
+        val retell = body(known, "fun liveMetadataChanged()")
+        if (retell != liveRetellForm) problems += "KnownDurationPlayer.liveMetadataChanged is not its one form:\n  is:      $retell\n  must be: $liveRetellForm"
+        if (count(known, "onMediaMetadataChanged(") != 2 || count(known, "private val retell = Runnable { liveMetadataChanged() }") != 1) problems += "KnownDurationPlayer tells a listener a station's metadata somewhere other than liveMetadataChanged"
+        val fetch = body(logos, "fun logo(station: Station): ByteArray?")
+        if (fetch != logoFetchForm) problems += "StationLogos.logo is not its one form:\n  is:      $fetch\n  must be: $logoFetchForm"
+        val requests = sources.filterKeys { it.startsWith("music/radio/") }.mapValues { (_, text) -> Regex("\\bVideoHttp\\s*\\.\\s*(?:bytes|hop|image)\\b|\\bopenConnection\\b|\\bopenStream\\b").findAll(text).count() }.filterValues { it > 0 }
+        if (requests != mapOf("music/radio/StationLogos.kt" to 1)) problems += "a picture is asked for under music/radio/ outside StationLogos.logo: $requests"
+        return problems
+    }
+
+    @Test fun `phase 20 R20-4 a station's title, the session's metadata and the logo fetch are each their one form`() {
+        val sources = SourceScan.all()
+        assertEquals(emptyList<String>(), liveWiringProblems(sources))
+        for (file in listOf("music/MusicPlayer.kt", "music/KnownDurationPlayer.kt", "music/radio/StationLogos.kt")) assertTrue("$file was read", sources.getValue(file).length > 200)
+    }
+
+    @Test fun `phase 20 R20-4 a raw StreamTitle shown or told, the stream's own metadata passed on, or a logo fetched with no header or no cap is caught`() {
+        val sources = SourceScan.all()
+        fun with(file: String, old: String, new: String) = liveWiringProblems(sources + (file to mutate(sources.getValue(file), old, new)))
+        fun added(file: String, code: String) = liveWiringProblems(sources + (file to sources.getValue(file) + " " + code))
+        // The review's four surviving mutations, as it wrote them: M33, M34, M36, M35.
+        assertTrue(with("music/MusicPlayer.kt", "title = if (live) LiveMetadata.merge(meta?.albumTitle?.toString(), c.mediaMetadata.title?.toString()).title else", "title = if (live) c.mediaMetadata.title?.toString().orEmpty() else").isNotEmpty())
+        assertTrue(with("music/KnownDurationPlayer.kt", "val meta = own.buildUpon().setTitle(shown.title)", "val meta = reported.buildUpon().setTitle(shown.title)").isNotEmpty())
+        assertTrue(with("music/KnownDurationPlayer.kt", "val shown = LiveMetadata.merge(own.albumTitle?.toString(), reported.title?.toString())", "val shown = LiveMetadata.Shown(reported.title?.toString() ?: own.albumTitle?.toString().orEmpty(), own.albumTitle?.toString().orEmpty())").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "VideoHttp.bytes(it)").isNotEmpty())
+        // Their neighbours: the cap alone, the header alone, the size check or the bounds skipped, the address unchecked.
+        assertTrue(with("music/radio/StationLogos.kt", "VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "VideoHttp.bytes(it, RadioNet.headers())").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "VideoHttp.bytes(it, emptyMap(), StationLogo.MAX_BYTES.toLong())").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "?.takeIf { StationLogo.accept(it) }?.let { bounded(it) }", "?.let { bounded(it) }").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "?.takeIf { StationLogo.accept(it) }?.let { bounded(it) }", "?.takeIf { StationLogo.accept(it) }").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "val url = StationLogo.url(station.favicon, RadioNet.qaHost(app))", "val url = station.favicon.takeIf { it.isNotEmpty() }").isNotEmpty())
+        assertTrue(added("music/radio/StreamWatch.kt", "fun x(u: String) = app.tileshell.video.catalogue.VideoHttp.bytes(u)").isNotEmpty())
+        // A second title for a station; the stream's metadata told to the listeners as it came.
+        assertTrue(with("music/MusicPlayer.kt", "artist = meta?.artist?.toString().orEmpty()", "artist = meta?.artist?.toString().orEmpty(); if (live) title = c.mediaMetadata.title.toString()").isNotEmpty())
+        assertTrue(with("music/KnownDurationPlayer.kt", "val shown = mediaMetadata listeners", "val shown = super.getMediaMetadata() listeners").isNotEmpty())
+        assertTrue(with("music/KnownDurationPlayer.kt", "if (!MusicLive.isLive(item.mediaId)) return reported val own", "if (MusicLive.isLive(item.mediaId)) return reported val own").isNotEmpty())
+        assertTrue(with("music/KnownDurationPlayer.kt", "handler.post(retell)", "handler.post(retell); listeners.forEach { it.onMediaMetadataChanged(mediaMetadata) }").isNotEmpty())
+    }
+
+    // --------------------------------------------------------------------- phase 20: a live item's art (review R20-2)
+
+    /** `StationLogos.decode`, as code: the byte cap, the bounds read first, the sample size — or nothing is decoded. */
+    private val logoDecodeForm = "{ if (bytes == null || !StationLogo.accept(bytes)) return null " +
+        "return runCatching { " +
+        "val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true } " +
+        "BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds) " +
+        "val sample = StationLogo.sampleSize(bounds.outWidth, bounds.outHeight) " +
+        "if (sample <= 0) null else BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample }) " +
+        "}.getOrNull() }"
+
+    /** `StationLogos.cachedFor`, as code: the station the id names, and only what `logo` already put in the cache. */
+    private val logoCachedForm = "{ val uuid = MusicLive.stationUuid(mediaId) ?: return null " +
+        "val station = RadioFavouritesStore.get(app).stations().firstOrNull { it.uuid == uuid } ?: RadioDirectoryStore.get(app).directory.value.index.byUuid(uuid) " +
+        "return station?.let { cached(it) } }"
+
+    /** Now Playing's art, as code: a played file's own (phase 18's path, as it was) and a station's, each from its one source. */
+    private val nowPlayingArtForm = "val fileArt = MusicPlayer.fileArt " +
+        "val liveArt = MusicPlayer.liveArt?.takeIf { MusicPlayer.isLive } " +
+        "val art by produceState<ImageBitmap?>(null, albumId, fileArt, liveArt, px) { value = when { " +
+        "albumId != null -> withContext(Dispatchers.IO) { MusicArt.loadById(context, albumId, px) } " +
+        "fileArt != null -> withContext(Dispatchers.IO) { runCatching { android.graphics.BitmapFactory.decodeByteArray(fileArt, 0, fileArt.size)?.asImageBitmap() }.getOrNull() } " +
+        "liveArt != null -> withContext(Dispatchers.IO) { StationLogos.decode(liveArt)?.asImageBitmap() } " +
+        "else -> null } }"
+
+    /** The Radio row's art, as code. */
+    private val radioRowArtForm = "val live = if (playing) MusicPlayer.liveArt else null " +
+        "if (!fetch && live == null) return null " +
+        "val art by produceState(StationArtMemory.get(station), station.uuid, station.favicon, fetch, live) { if (value == null) { value = withContext(Dispatchers.IO) { " +
+        "val bytes = live ?: runCatching { StationLogos.get(context).logo(station) }.getOrNull() " +
+        "StationLogos.decode(bytes)?.asImageBitmap() " +
+        "}?.also { StationArtMemory.put(station, it) } } } return art"
+
+    /**
+     * Phase 20 Decisions "untrusted URLs" → Logos (r3 D2), the review's R20-2: a stream can carry a picture of its own
+     * (an ID3 `APIC` frame, an Ogg / FLAC picture block), of any size, and Media3 hands the session's controllers that
+     * raw metadata before the wrapper's corrected value. So a live item's art NEVER comes from the session:
+     *  - `MusicPlayer.liveArt` is set at two sites — cleared when the station changes, and from
+     *    `StationLogos.cachedFor(<the item's id>)`, the bytes the shell fetched, capped and bounded itself; the
+     *    session's metadata is read once in the file, for a station's title (`liveWiringProblems`), and an item's
+     *    `artworkData` once, for a played FILE (phase 18's path);
+     *  - `StationLogos.cachedFor` answers only from the cache `logo` fills; the cache is put to there alone;
+     *  - the two pages that draw `MusicPlayer.liveArt` decode it through `StationLogos.decode` — the byte cap, the
+     *    bounds read first, the sample size — and nothing else under `music/` decodes a picture's bytes, but the three
+     *    older sites held here by count: the service's `boundedArt`, the catalogue's cover, and Now Playing's line
+     *    for a played file's art (phase 18; the service bounded those bytes when it built the item).
+     */
+    private fun liveArtProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val player = sources["music/MusicPlayer.kt"].orEmpty()
+        val logos = sources["music/radio/StationLogos.kt"].orEmpty()
+        val music = sources.filterKeys { it.startsWith("music/") }
+        fun where(piece: Regex, among: Map<String, String> = music) = among.mapValues { (_, text) -> piece.findAll(text).count() }.filterValues { it > 0 }
+
+        if (Regex("\\bc\\s*\\.\\s*mediaMetadata\\b").findAll(player).count() != 1 || Regex("\\bcontroller\\s*\\??\\s*\\.\\s*mediaMetadata\\b|\\bgetMediaMetadata\\b").containsMatchIn(player)) problems += "MusicPlayer reads the session's metadata for something other than a station's title"
+        if (Regex("\\bartworkData\\b").findAll(player).count() != 1 || count(player, "fileArt = if (MusicFile.isFile(item?.mediaId)) meta?.artworkData else null") != 1) problems += "MusicPlayer reads art out of metadata for something other than a played file"
+        if (Regex("\\bliveArt\\s*=(?!=)").findAll(player).count() != 2 || count(player, "if (!live || item?.mediaId != nowPlayingId) liveArt = null") != 1 ||
+            count(player, "if (live) StationLogos.cachedFor(item?.mediaId)?.let { liveArt = it }") != 1 || count(player, "var liveArt by mutableStateOf<ByteArray?>(null) private set") != 1
+        ) problems += "MusicPlayer.liveArt is set from something other than StationLogos' own bounded bytes"
+
+        val decode = body(logos, "fun decode(bytes: ByteArray?): Bitmap?")
+        if (decode != logoDecodeForm) problems += "StationLogos.decode is not its one form:\n  is:      $decode\n  must be: $logoDecodeForm"
+        val cachedFor = body(logos, "fun cachedFor(mediaId: String?): ByteArray? { val uuid")
+        if (cachedFor != logoCachedForm) problems += "StationLogos.cachedFor is not its one form:\n  is:      $cachedFor\n  must be: $logoCachedForm"
+        if (count(logos, "fun cached(station: Station): ByteArray? = cache.get(key(station))?.bytes") != 1 || count(logos, "fun cachedFor(mediaId: String?): ByteArray? = instance?.cachedFor(mediaId)") != 1 ||
+            count(logos, "cache.put(") != 1 || count(logos, "val bitmap = decode(raw) ?: return@runCatching null") != 1
+        ) problems += "StationLogos' cache is filled, or read, other than by logo's bounded bytes"
+
+        val decoders = where(Regex("\\bBitmapFactory\\s*\\.\\s*decode\\w+|\\bImageDecoder\\b"))
+        if (decoders != mapOf("music/MusicService.kt" to 2, "music/radio/StationLogos.kt" to 2, "music/catalogue/MusicCatalogueFetcher.kt" to 2, "music/MusicNowPlaying.kt" to 1)) problems += "a picture's bytes are decoded under music/ outside the held sites: $decoders"
+        val readers = where(Regex("\\bMusicPlayer\\s*\\.\\s*liveArt\\b"), sources)
+        if (readers != mapOf("music/MusicNowPlaying.kt" to 1, "music/MusicRadioPages.kt" to 1)) problems += "MusicPlayer.liveArt is drawn somewhere other than the two held pages: $readers"
+        if (count(sources["music/MusicNowPlaying.kt"].orEmpty(), nowPlayingArtForm) != 1) problems += "Now Playing's art is not its one form: a station's through StationLogos.decode"
+        if (count(sources["music/MusicRadioPages.kt"].orEmpty(), radioRowArtForm) != 1) problems += "the Radio row's art is not its one form: through StationLogos.decode"
+        return problems
+    }
+
+    @Test fun `phase 20 R20-2 a live item's art is the shell's own bounded logo - never the session's metadata, never decoded without bounds`() {
+        val sources = SourceScan.all()
+        assertEquals(emptyList<String>(), liveArtProblems(sources))
+        for (file in listOf("music/MusicPlayer.kt", "music/radio/StationLogos.kt", "music/MusicNowPlaying.kt", "music/MusicRadioPages.kt")) assertTrue("$file was read", sources.getValue(file).length > 200)
+    }
+
+    @Test fun `phase 20 R20-2 art taken from the session, a logo decoded with no bounds, or a cache filled by anything else is caught`() {
+        val sources = SourceScan.all()
+        fun with(file: String, old: String, new: String) = liveArtProblems(sources + (file to mutate(sources.getValue(file), old, new)))
+        fun added(file: String, code: String) = liveArtProblems(sources + (file to sources.getValue(file) + " " + code))
+        val fromLogos = "if (live) StationLogos.cachedFor(item?.mediaId)?.let { liveArt = it }"
+        // The review's finding, as the code was: the session's raw metadata, and each page's unbounded decode.
+        assertTrue(with("music/MusicPlayer.kt", fromLogos, "if (live) c.mediaMetadata.artworkData?.let { liveArt = it }").isNotEmpty())
+        assertTrue(with("music/MusicNowPlaying.kt", "val fileArt = MusicPlayer.fileArt val liveArt = MusicPlayer.liveArt?.takeIf { MusicPlayer.isLive }", "val liveArt: ByteArray? = null val fileArt = MusicPlayer.fileArt ?: MusicPlayer.liveArt?.takeIf { MusicPlayer.isLive }").isNotEmpty())
+        assertTrue(with("music/MusicNowPlaying.kt", "StationLogos.decode(liveArt)?.asImageBitmap()", "runCatching { android.graphics.BitmapFactory.decodeByteArray(liveArt, 0, liveArt.size)?.asImageBitmap() }.getOrNull()").isNotEmpty())
+        assertTrue(with("music/MusicRadioPages.kt", "StationLogos.decode(bytes)?.asImageBitmap()", "bytes?.let { runCatching { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }.getOrNull() }").isNotEmpty())
+        // Its neighbours: the item's own art, the session's by another name, a second source beside the logo, never cleared.
+        assertTrue(with("music/MusicPlayer.kt", fromLogos, "if (live) meta?.artworkData?.let { liveArt = it }").isNotEmpty())
+        assertTrue(with("music/MusicPlayer.kt", fromLogos, "if (live) controller?.mediaMetadata?.artworkData?.let { liveArt = it }").isNotEmpty())
+        assertTrue(with("music/MusicPlayer.kt", fromLogos, "$fromLogos; if (live && liveArt == null) liveArt = c.mediaMetadata.artworkData").isNotEmpty())
+        assertTrue(with("music/MusicPlayer.kt", fromLogos, "$fromLogos; if (live && liveArt == null) liveArt = fileArt").isNotEmpty())
+        assertTrue(with("music/MusicPlayer.kt", "if (!live || item?.mediaId != nowPlayingId) liveArt = null", "if (!live) liveArt = null").isNotEmpty())
+        assertTrue(with("music/MusicPlayer.kt", "fileArt = if (MusicFile.isFile(item?.mediaId)) meta?.artworkData else null", "fileArt = if (MusicFile.isFile(item?.mediaId) || live) c.mediaMetadata.artworkData else null").isNotEmpty())
+        assertTrue(with("music/MusicPlayer.kt", "artist = meta?.artist?.toString().orEmpty()", "artist = c.mediaMetadata.artist?.toString().orEmpty()").isNotEmpty())
+        assertTrue(with("music/MusicPlayer.kt", "album = meta?.albumTitle?.toString().orEmpty()", "album = c.mediaMetadata.station?.toString().orEmpty()").isNotEmpty())
+        // The decode without its cap, its bounds or its sample size; the cache answered from, or filled by, something else.
+        assertTrue(with("music/radio/StationLogos.kt", "if (bytes == null || !StationLogo.accept(bytes)) return null", "if (bytes == null) return null").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "if (sample <= 0) null else BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })", "BitmapFactory.decodeByteArray(bytes, 0, bytes.size)").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "if (sample <= 0) null else BitmapFactory", "if (sample < 0) null else BitmapFactory").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "return station?.let { cached(it) } }", "return station?.let { logo(it) } }").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "val bitmap = decode(raw) ?: return@runCatching null", "val bitmap = BitmapFactory.decodeByteArray(raw, 0, raw.size) ?: return@runCatching null").isNotEmpty())
+        assertTrue(added("music/radio/StationLogos.kt", "fun x(s: Station, b: ByteArray) = StationLogos.get(null!!).also { it.cache.put(s.uuid, Entry(b)) }").isNotEmpty())
+        // A picture decoded, or the player's logo drawn, anywhere else.
+        assertTrue(added("music/MusicRadioPages.kt", "fun x(b: ByteArray) = BitmapFactory.decodeByteArray(b, 0, b.size)").isNotEmpty())
+        assertTrue(added("music/MusicCollectionPage.kt", "fun x(b: ByteArray) = android.graphics.ImageDecoder.createSource(b)").isNotEmpty())
+        assertTrue(added("music/MusicCollectionPage.kt", "fun x() = MusicPlayer.liveArt?.let { android.graphics.BitmapFactory.decodeByteArray(it, 0, it.size) }").isNotEmpty())
+        assertTrue(added("tiles/ActiveTiles.kt", "fun x() = app.tileshell.music.MusicPlayer.liveArt").isNotEmpty())
+    }
 }

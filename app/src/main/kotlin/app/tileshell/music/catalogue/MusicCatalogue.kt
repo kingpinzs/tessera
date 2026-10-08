@@ -1,5 +1,6 @@
 package app.tileshell.music.catalogue
 
+import app.tileshell.music.radio.RadioText
 import app.tileshell.net.FixedEndpoints
 import app.tileshell.net.MiniJson
 import app.tileshell.net.jsonArray
@@ -55,6 +56,11 @@ object MusicCatalogue {
     /**
      * A search's answer → its recordings, in MusicBrainz's order (by score). Null when the body is not a recording
      * search's answer; a row with no MBID or no title is dropped. Nothing here throws on a missing or mistyped field.
+     *
+     * MusicBrainz is community-edited, as the station directory is (review R20-10; a trust rule): a title, an artist
+     * and a release each pass [RadioText.shown] HERE — no control, format or bidi character, a title or a release cut
+     * at [RadioText.TITLE_MAX] and an artist at [RadioText.NAME_MAX] — before a row, a page, a line, a hand-off's
+     * query or Tess's reply has it. A title that is nothing once cleaned is no title.
      */
     fun parse(body: String): List<CatalogueTrack>? {
         val o = MiniJson.parseOrNull(body).jsonObject() ?: return null
@@ -62,11 +68,11 @@ object MusicCatalogue {
         return o["recordings"].jsonArray().mapNotNull { row ->
             val r = row.jsonObject() ?: return@mapNotNull null
             val id = r.jsonString("id")?.takeIf(MBID::matches) ?: return@mapNotNull null
-            val title = r.jsonString("title")?.trim()?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            val title = RadioText.shown(r.jsonString("title"), RadioText.TITLE_MAX).takeIf { it.isNotEmpty() } ?: return@mapNotNull null
             val release = r["releases"].jsonArray().firstOrNull().jsonObject()
             CatalogueTrack(
                 id, title, artist(r["artist-credit"].jsonArray()),
-                release?.jsonString("title").orEmpty().trim(),
+                RadioText.shown(release?.jsonString("title"), RadioText.TITLE_MAX),
                 release?.jsonString("id")?.takeIf(MBID::matches),
                 release?.jsonString("date").orEmpty().take(4).takeIf { it.length == 4 && it.all(Char::isDigit) }.orEmpty(),
                 r.jsonLong("length")?.takeIf { it > 0 },
@@ -74,15 +80,16 @@ object MusicCatalogue {
         }
     }
 
-    /** The credits in order, each followed by its own join phrase (" & ", " feat. "), or ", " where it gives none. */
+    /** The credits in order, each followed by its own join phrase (" & ", " feat. "), or ", " where it gives none — as one cleaned, cut name. */
     private fun artist(credits: List<Any?>): String {
         val named = credits.mapNotNull { c -> c.jsonObject()?.let { o -> o.jsonString("name")?.takeIf(String::isNotBlank)?.let { it to o.jsonString("joinphrase") } } }
-        return buildString {
+        val joined = buildString {
             named.forEachIndexed { i, (name, join) ->
                 append(name)
                 if (i < named.lastIndex) append(join?.takeIf { it.isNotEmpty() } ?: ", ")
             }
-        }.trim()
+        }
+        return RadioText.shown(joined, RadioText.NAME_MAX)
     }
 
     /** `<base>release/<mbid>/front-250` for the row's first release; null — the placeholder — when it has none. */

@@ -65,6 +65,30 @@ class MusicCatalogueTest {
         assertEquals(listOf(CatalogueTrack(songA, "T", "", "R", null, "", null)), MusicCatalogue.parse(odd))
     }
 
+    // Review R20-10: MusicBrainz is community-edited, as the station directory is. Its strings reach a row, a page, a
+    // hand-off's query and Tess's reply, so each is made fit to show AT PARSE (RadioText.shown) - cleaned, then cut.
+    @Test fun `a title, an artist and a release are cleaned and cut at parse - no control or bidi character, no megabyte`() {
+        fun q(text: String) = text.replace("\\", "\\\\").replace("\"", "\\\"")
+        val long = "x".repeat(600_000)
+        val hostile = """{"recordings":[{"id":"$songA","title":"${q(long)}",
+            "artist-credit":[{"name":"a‮b\nc","joinphrase":" ⁦&⁩ "},{"name":"${q(long)}"}],
+            "releases":[{"id":"$release","title":"R\u0007e l​ease ${q(long)}","date":"1999"}]}]}"""
+        val row = MusicCatalogue.parse(hostile)!!.single()
+        assertEquals("x".repeat(120), row.title)
+        assertEquals(("abc & " + long).take(80), row.artist)
+        assertEquals(("Release " + long).take(120), row.release)
+        assertEquals(release, row.releaseId)
+        // Every string, in one row: nothing a line, a page or a spoken reply cannot take.
+        val forged = """{"recordings":[{"id":"$songA","title":" ‮evilT\r\n[music] forged line\u0000 ",
+            "artist-credit":[{"name":"⁧A⁩\tB"}],"releases":[{"id":"$release","title":"﻿Al­bum "}]}]}"""
+        assertEquals(listOf(CatalogueTrack(songA, "evilT[music] forged line", "AB", "Album", release, "", null)), MusicCatalogue.parse(forged))
+        // A title that is nothing once cleaned is no title: the row is dropped, as a row with none is.
+        val empty = """{"recordings":[{"id":"$songA","title":"​‮ \n"},{"id":"$songB","title":"Kept"}]}"""
+        assertEquals(listOf(CatalogueTrack(songB, "Kept", "", "", null, "", null)), MusicCatalogue.parse(empty))
+        assertEquals(120, app.tileshell.music.radio.RadioText.TITLE_MAX)
+        assertEquals(80, app.tileshell.music.radio.RadioText.NAME_MAX)
+    }
+
     @Test fun `the artwork is the first release's front-250, and no release is the placeholder`() {
         assertEquals("https://coverartarchive.org/", MusicCatalogue.COVERS)
         assertEquals("https://coverartarchive.org/release/$release/front-250", MusicCatalogue.coverUrl(MusicCatalogue.COVERS, release))

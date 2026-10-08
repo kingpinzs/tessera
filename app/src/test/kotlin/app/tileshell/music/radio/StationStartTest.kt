@@ -52,6 +52,16 @@ class StationStartTest {
         assertEquals(c, p.stations[p.start])
     }
 
+    // Review R20-3: one favourite whose address Media3 would read as DASH or SmoothStreaming made every favourite fail.
+    @Test fun `a favourite whose address is DASH or SmoothStreaming is left out, so the rest of the favourites still play`() {
+        val dash = station("d", url = "http://stream.example.net/live.mpd")
+        val smooth = station("s", url = "http://stream.example.net/radio.ism/manifest")
+        val p = plan(b, listOf(a, dash, b, smooth, c))
+        assertEquals(StationStart.Plan(listOf(a, b, c), 1, listOf("stream: unsupported playlist", "stream: unsupported playlist"), null), p)
+        assertEquals(StationStart.Plan(emptyList(), 0, listOf("stream: unsupported playlist"), StationItem.CANT_PLAY), plan(dash, listOf(a, dash, b)))
+        assertEquals(StationStart.Plan(emptyList(), 0, listOf("stream: unsupported playlist"), StationItem.CANT_PLAY), plan(smooth, emptyList()))
+    }
+
     @Test fun `the private host of the debug override plays only when the override is set`() {
         val fixture = station("q", url = "http://10.0.2.2:8080/stream/jazz1")
         assertEquals(StationItem.CANT_PLAY, plan(fixture, emptyList()).refusal)
