@@ -1162,4 +1162,92 @@ class UriAccessWiringScanTest {
         assertTrue(with("camera/CameraSaver.kt", "app.tileshell.media.ShellMediaWrites.of(context)", "MediaWrites(app.tileshell.media.AndroidMediaStorePort(context), context.packageName, app.tileshell.media.MemoryPendingLedger())").isNotEmpty())
         assertTrue(with("photos/PhotoActions.kt", "app.tileshell.media.ShellMediaWrites.of(context)", "app.tileshell.media.MediaWrites(app.tileshell.media.AndroidMediaStorePort(context), context.packageName, app.tileshell.media.FilePendingLedger.of(java.io.File(context.filesDir, \"x\")))").isNotEmpty())
     }
+
+    // ------------------------------------------------------------------ phase 20: a station's text and its logo (review R20-4)
+
+    /** `MusicPlayer.readSession`'s title, as code: a station's is the stream's own StreamTitle only through `LiveMetadata.merge`. */
+    private val liveTitleForm = "title = if (live) LiveMetadata.merge(meta?.albumTitle?.toString(), c.mediaMetadata.title?.toString()).title else meta?.title?.toString().orEmpty()"
+
+    /** `KnownDurationPlayer.getMediaMetadata`, as code: the ITEM's own metadata, the merged title, the shell's logo. */
+    private val liveMetadataForm = "{ val reported = super.getMediaMetadata() " +
+        "val item = currentMediaItem ?: return reported " +
+        "if (!MusicLive.isLive(item.mediaId)) return reported " +
+        "val own = item.mediaMetadata " +
+        "val shown = LiveMetadata.merge(own.albumTitle?.toString(), reported.title?.toString()) " +
+        "val meta = own.buildUpon().setTitle(shown.title).setAlbumTitle(shown.albumTitle) " +
+        "if (own.artworkData == null) liveArt(item.mediaId)?.let { meta.setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER) } " +
+        "return meta.build() }"
+
+    /** `KnownDurationPlayer.liveMetadataChanged`, as code: the listeners are told the value above, never another. */
+    private val liveRetellForm = "{ if (!MusicLive.isLive(currentMediaItem?.mediaId)) return " +
+        "val shown = mediaMetadata " +
+        "listeners.forEach { it.onMediaMetadataChanged(shown) } }"
+
+    /** `StationLogos.logo`, as code: the address by the rule, a header (so no redirect is followed), the cap, then the bounds. */
+    private val logoFetchForm = "{ val key = key(station) " +
+        "cache.get(key)?.let { return it.bytes } " +
+        "val url = StationLogo.url(station.favicon, RadioNet.qaHost(app)) " +
+        "if (url != null && !VideoHttp.online(app)) return null " +
+        "val bytes = url?.let { VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong()) }?.takeIf { StationLogo.accept(it) }?.let { bounded(it) } " +
+        "cache.put(key, Entry(bytes)) " +
+        "return bytes }"
+
+    /**
+     * Phase 20 Decisions "live metadata" and "untrusted URLs" → Logos (r3 D9 / D2), the review's R20-4: the pure rules
+     * (`LiveMetadata`, `RadioText`, `StationLogo`) are unit-tested, and what calls them was held by nothing — four of
+     * the review's mutations survived. So each call site is its one form:
+     *  - `MusicPlayer.readSession` shows a station's title only through `LiveMetadata.merge` (which cleans and cuts a
+     *    StreamTitle), and sets the title nowhere else;
+     *  - `KnownDurationPlayer.getMediaMetadata` — what the tile and the notification are built from — is the ITEM's
+     *    own metadata with the merged title, never the stream's; and a retelling tells that same value;
+     *  - `StationLogos.logo` asks for the address `StationLogo.url` accepted, with `RadioNet.headers()` (a request with
+     *    a header follows no redirect) and `StationLogo.MAX_BYTES`, and keeps only what `accept` and `bounded` pass;
+     *    nothing else under `music/radio/` makes a request for a picture.
+     */
+    private fun liveWiringProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val player = sources["music/MusicPlayer.kt"].orEmpty()
+        val known = sources["music/KnownDurationPlayer.kt"].orEmpty()
+        val logos = sources["music/radio/StationLogos.kt"].orEmpty()
+        if (count(player, liveTitleForm) != 1 || Regex("\\btitle\\s*=(?!=)").findAll(body(player, "private fun readSession()")).count() != 1) problems += "MusicPlayer.readSession's title is not its one form: a station's through LiveMetadata.merge"
+        val metadata = body(known, "override fun getMediaMetadata(): MediaMetadata")
+        if (metadata != liveMetadataForm) problems += "KnownDurationPlayer.getMediaMetadata is not its one form:\n  is:      $metadata\n  must be: $liveMetadataForm"
+        val retell = body(known, "fun liveMetadataChanged()")
+        if (retell != liveRetellForm) problems += "KnownDurationPlayer.liveMetadataChanged is not its one form:\n  is:      $retell\n  must be: $liveRetellForm"
+        if (count(known, "onMediaMetadataChanged(") != 2 || count(known, "private val retell = Runnable { liveMetadataChanged() }") != 1) problems += "KnownDurationPlayer tells a listener a station's metadata somewhere other than liveMetadataChanged"
+        val fetch = body(logos, "fun logo(station: Station): ByteArray?")
+        if (fetch != logoFetchForm) problems += "StationLogos.logo is not its one form:\n  is:      $fetch\n  must be: $logoFetchForm"
+        val requests = sources.filterKeys { it.startsWith("music/radio/") }.mapValues { (_, text) -> Regex("\\bVideoHttp\\s*\\.\\s*(?:bytes|hop|image)\\b|\\bopenConnection\\b|\\bopenStream\\b").findAll(text).count() }.filterValues { it > 0 }
+        if (requests != mapOf("music/radio/StationLogos.kt" to 1)) problems += "a picture is asked for under music/radio/ outside StationLogos.logo: $requests"
+        return problems
+    }
+
+    @Test fun `phase 20 R20-4 a station's title, the session's metadata and the logo fetch are each their one form`() {
+        val sources = SourceScan.all()
+        assertEquals(emptyList<String>(), liveWiringProblems(sources))
+        for (file in listOf("music/MusicPlayer.kt", "music/KnownDurationPlayer.kt", "music/radio/StationLogos.kt")) assertTrue("$file was read", sources.getValue(file).length > 200)
+    }
+
+    @Test fun `phase 20 R20-4 a raw StreamTitle shown or told, the stream's own metadata passed on, or a logo fetched with no header or no cap is caught`() {
+        val sources = SourceScan.all()
+        fun with(file: String, old: String, new: String) = liveWiringProblems(sources + (file to mutate(sources.getValue(file), old, new)))
+        fun added(file: String, code: String) = liveWiringProblems(sources + (file to sources.getValue(file) + " " + code))
+        // The review's four surviving mutations, as it wrote them: M33, M34, M36, M35.
+        assertTrue(with("music/MusicPlayer.kt", "title = if (live) LiveMetadata.merge(meta?.albumTitle?.toString(), c.mediaMetadata.title?.toString()).title else", "title = if (live) c.mediaMetadata.title?.toString().orEmpty() else").isNotEmpty())
+        assertTrue(with("music/KnownDurationPlayer.kt", "val meta = own.buildUpon().setTitle(shown.title)", "val meta = reported.buildUpon().setTitle(shown.title)").isNotEmpty())
+        assertTrue(with("music/KnownDurationPlayer.kt", "val shown = LiveMetadata.merge(own.albumTitle?.toString(), reported.title?.toString())", "val shown = LiveMetadata.Shown(reported.title?.toString() ?: own.albumTitle?.toString().orEmpty(), own.albumTitle?.toString().orEmpty())").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "VideoHttp.bytes(it)").isNotEmpty())
+        // Their neighbours: the cap alone, the header alone, the size check or the bounds skipped, the address unchecked.
+        assertTrue(with("music/radio/StationLogos.kt", "VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "VideoHttp.bytes(it, RadioNet.headers())").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "VideoHttp.bytes(it, emptyMap(), StationLogo.MAX_BYTES.toLong())").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "?.takeIf { StationLogo.accept(it) }?.let { bounded(it) }", "?.let { bounded(it) }").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "?.takeIf { StationLogo.accept(it) }?.let { bounded(it) }", "?.takeIf { StationLogo.accept(it) }").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "val url = StationLogo.url(station.favicon, RadioNet.qaHost(app))", "val url = station.favicon.takeIf { it.isNotEmpty() }").isNotEmpty())
+        assertTrue(added("music/radio/StreamWatch.kt", "fun x(u: String) = app.tileshell.video.catalogue.VideoHttp.bytes(u)").isNotEmpty())
+        // A second title for a station; the stream's metadata told to the listeners as it came.
+        assertTrue(with("music/MusicPlayer.kt", "artist = meta?.artist?.toString().orEmpty()", "artist = meta?.artist?.toString().orEmpty(); if (live) title = c.mediaMetadata.title.toString()").isNotEmpty())
+        assertTrue(with("music/KnownDurationPlayer.kt", "val shown = mediaMetadata listeners", "val shown = super.getMediaMetadata() listeners").isNotEmpty())
+        assertTrue(with("music/KnownDurationPlayer.kt", "if (!MusicLive.isLive(item.mediaId)) return reported val own", "if (MusicLive.isLive(item.mediaId)) return reported val own").isNotEmpty())
+        assertTrue(with("music/KnownDurationPlayer.kt", "handler.post(retell)", "handler.post(retell); listeners.forEach { it.onMediaMetadataChanged(mediaMetadata) }").isNotEmpty())
+    }
 }
