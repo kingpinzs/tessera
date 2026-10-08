@@ -11,7 +11,9 @@ import java.util.Locale
  * `rawresource://` and `data:` — with the SHELL's identity. So:
  *
  *  - [playable] picks the one address: the directory's `url_resolved`, else `url`. No playlist is fetched or parsed
- *    by the shell; a leftover `.pls` / `.m3u` / `.asx` is refused.
+ *    by the shell; a leftover `.pls` / `.m3u` / `.asx` is refused. So is an address Media3 would read as DASH or
+ *    SmoothStreaming (review R20-3): neither is linked, and ONE such item makes the player refuse the whole queue it
+ *    is handed — silently — so one favourite would stop every favourite.
  *  - [accept] lets only `http` / `https` through, and refuses an empty host, `localhost`, and an IP literal that is
  *    loopback, link-local, RFC 1918, unique-local or unspecified ([ServerRules.isPrivate]) — a station must not be a
  *    way to make the phone call a device on the network it is on. An address in a form only an address parser would
@@ -60,8 +62,49 @@ object StationUrl {
         if (chosen.isEmpty()) return Playable.None
         val path = chosen.substringBefore('#').substringBefore('?').lowercase(Locale.ROOT)
         if (PLAYLISTS.any { path.endsWith(it) }) return Playable.Playlist
+        // With no MIME type on the item the player infers the source type from the address; with one, it goes by that.
+        if (!hls && isUnlinkedType(chosen)) return Playable.Playlist
         return Playable.Stream(chosen, if (hls) MimeTypes.APPLICATION_M3U8 else null)
     }
+
+    /** Media3's own pattern for a SmoothStreaming address (`Util.ISM_PATH_PATTERN`, 1.9.0), case-insensitive as there. */
+    private val ISM_PATH = Regex("(?:.*\\.)?isml?(?:/(manifest(.*))?)?", RegexOption.IGNORE_CASE)
+    private val ESCAPE = Regex("%([0-9A-Fa-f]{2})")
+
+    /**
+     * Whether Media3 1.9.0 would infer DASH or SmoothStreaming for [address] when its item has no MIME type —
+     * `Util.inferContentType(Uri)`, read from the bytecode and followed step by step: the extension of the last
+     * non-empty path segment, DECODED (`mpd` → DASH, `ism` / `isml` → SmoothStreaming, `m3u8` → HLS, which is linked);
+     * else the whole decoded path against [ISM_PATH] (`….ism`, `….isml`, with `/` or `/manifest…` after it) — DASH
+     * when the manifest asks `format=mpd-time-csf`, HLS when it asks `format=m3u8-aapl`, SmoothStreaming otherwise.
+     * (RTSP is inferred from the scheme alone, and [accept] refuses every scheme but `http` / `https`.)
+     */
+    private fun isUnlinkedType(address: String): Boolean {
+        val path = pathOf(address)
+        val last = path.split('/').lastOrNull { it.isNotEmpty() }?.let(::unescaped) ?: return false
+        val dot = last.lastIndexOf('.')
+        if (dot >= 0) {
+            when (last.substring(dot + 1).lowercase(Locale.ROOT)) {
+                "mpd", "ism", "isml" -> return true
+                "m3u8" -> return false
+            }
+        }
+        val manifest = ISM_PATH.matchEntire(unescaped(path))?.groupValues?.get(2) ?: return false
+        return manifest.contains("format=mpd-time-csf") || !manifest.contains("format=m3u8-aapl")
+    }
+
+    /** The path as the player's parser reads it: after the authority, to the first `?` or `#`; a bare path is all path. */
+    private fun pathOf(address: String): String {
+        val bare = address.substringBefore('#').substringBefore('?')
+        val rest = if (schemeOf(bare) != null) bare.substringAfter(':') else bare
+        if (!rest.startsWith("//")) return rest
+        val slash = rest.indexOf('/', 2)
+        return if (slash < 0) "" else rest.substring(slash)
+    }
+
+    /** Percent-escapes decoded once, as the player's parser decodes a path. Only an ASCII byte can become a letter. */
+    private fun unescaped(text: String): String =
+        ESCAPE.replace(text) { m -> m.groupValues[1].toInt(16).let { if (it < 0x80) it.toChar().toString() else m.value } }
 
     fun accept(url: String?, qaHost: String?): Accept {
         val text = url.orEmpty()

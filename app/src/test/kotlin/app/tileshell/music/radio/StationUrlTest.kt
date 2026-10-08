@@ -216,4 +216,42 @@ class StationUrlTest {
         assertEquals(Playable.Stream("http://a.example.net/live?file=x.pls", null), StationUrl.playable("http://a.example.net/live?file=x.pls", "", hls = false))
         assertEquals(Playable.Stream("http://a.example.net/live.mp3", null), StationUrl.playable("http://a.example.net/live.mp3", "", hls = false))
     }
+
+    // Review R20-3: with no MIME type on the item Media3 infers the source type from the address
+    // (`Util.inferContentType`, 1.9.0), and DASH and SmoothStreaming are not linked: handing the player one such item
+    // makes the whole `setMediaItems` fail, silently. So exactly what Media3 would infer as either is refused here.
+    @Test fun `an address Media3 would read as DASH or SmoothStreaming is an unsupported playlist - mpd, ism, isml and their manifest forms`() {
+        for (path in listOf(
+            "live.mpd", "x.MPD", "a/b/live.Mpd", "radio.ism", "x.isml", "X.ISML", "live.mpd?x=1", "live.mpd#y", "radio.ism?sid=1#f",
+            // The last segment is the last one that is not empty.
+            "live.mpd/", "radio.ism//", "a/x.isml/",
+            // SmoothStreaming's own forms, by Media3's pattern - a manifest, and DASH asked of one.
+            "radio.ism/manifest", "radio.ism/Manifest", "x.isml/manifest", "radio.ISM/MANIFEST", "radio.ism/manifest(format=mpd-time-csf)",
+            "radio.ism/manifest(filter=x)", "radio.ism/manifestwhatever", "a.b.ism/manifest", "x.ism/manifest/more.aac",
+            // The player decodes the path before it looks.
+            "live%2Empd", "live.mp%64", "live.%4dPD", "a%2Fb.mpd", "radio%2eism/manifest", "radio.ism%2Fmanifest", "x.is%6d", "x.is%6D%6c",
+        )) {
+            val url = "http://a.example.net/$path"
+            assertEquals(url, Playable.Playlist, StationUrl.playable(url, "http://a.example.net/live", hls = false))
+            assertEquals(url, Playable.Playlist, StationUrl.playable(" ", url, hls = false))
+        }
+    }
+
+    @Test fun `what Media3 would not read as DASH or SmoothStreaming still plays`() {
+        for (path in listOf(
+            "live.mpd.mp3", "mpd", "ism", "live.mpda", "x.ismv", "x.ismc", "live?file=x.mpd", "live?x.ism/manifest", "live#x.mpd", "ism/live", "x.ism/other",
+            "radio.ism/manifest(format=m3u8-aapl)", "radio.ism/manifest(format=m3u8-aapl,filter=x)", "x.ism/list.m3u8", "live.mpd/audio.aac",
+            "live%252Empd", "live.mp%C3%A4", "live.mpd%00", "live.mpd%24", "live.mpd%5C", "",
+        )) {
+            val url = "http://a.example.net/$path"
+            assertEquals(url, Playable.Stream(url, null), StationUrl.playable(url, "", hls = false))
+        }
+        // A host that ends so has no path to read.
+        assertEquals(Playable.Stream("http://radio.mpd", null), StationUrl.playable("http://radio.mpd", "", hls = false))
+        assertEquals(Playable.Stream("http://radio.ism?x", null), StationUrl.playable("http://radio.ism?x", "", hls = false))
+        assertEquals(Playable.Stream("http://user@radio.ism:8000#x", null), StationUrl.playable("http://user@radio.ism:8000#x", "", hls = false))
+        // hls=1: the item carries the HLS MIME type, Media3 goes by that and never reads the path.
+        assertEquals(Playable.Stream("https://a.example.net/live.mpd", "application/x-mpegURL"), StationUrl.playable("https://a.example.net/live.mpd", "", hls = true))
+        assertEquals(Playable.Stream("https://a.example.net/x.ism/manifest", "application/x-mpegURL"), StationUrl.playable("https://a.example.net/x.ism/manifest", "", hls = true))
+    }
 }
