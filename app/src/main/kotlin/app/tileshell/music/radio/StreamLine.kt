@@ -20,6 +20,10 @@ object StreamLine {
     /** T0 of the reconnect clock: the first load error of a live item. */
     const val LOST = "stream: lost, retrying"
     const val CAPTIVE_PORTAL = "stream: captive portal"
+    /**
+     * A station whose address names a private host — and (review R20-1) one whose connection was refused where it was
+     * made: a name that resolved to a private address, or a redirect to one. The address is not in the line.
+     */
     const val UNSUPPORTED_HOST = "stream: unsupported host"
     const val UNSUPPORTED_PLAYLIST = "stream: unsupported playlist"
 

@@ -335,7 +335,7 @@ class UriAccessWiringScanTest {
         "StationUrl.Accept.Ok -> Plan.Play( mediaId = MusicLive.stationId(station.uuid), url = stream.url, mimeType = stream.mimeType, name = RadioText.shown(station.name, RadioText.NAME_MAX), ) } }"
 
     /** `ServerTrackItem.build(url, track)` from its first line to the address: no item unless `accepts` took THAT address. */
-    private val serverBuildForm = "{ if (url == null || !accepts(url, track)) return null return MediaItem.Builder() .setMediaId(mediaId(track)) .setUri(MusicSources.own.queued(url)) "
+    private val serverBuildForm = "{ if (url == null || !accepts(url, track)) return null return MediaItem.Builder() .setMediaId(mediaId(track)) .setUri(MusicSources.own.queuedServer(url)) "
 
     /** The whole of `started`: the one place a list with a start is made for the player — the rule's index and position, or a refusal. */
     private val startedForm = "{ return when (start) { " +
@@ -539,7 +539,7 @@ class UriAccessWiringScanTest {
             assertTrue("$file was read", sources.getValue(file).length > 200)
         }
         assertEquals(1, count(sources.getValue("music/radio/StationItem.kt"), ".setMediaId(play.mediaId) .setUri(MusicSources.own.queued(play.url)) "))
-        assertEquals(1, count(sources.getValue("music/server/ServerTrackItem.kt"), ".setMediaId(mediaId(track)) .setUri(MusicSources.own.queued(url)) "))
+        assertEquals(1, count(sources.getValue("music/server/ServerTrackItem.kt"), ".setMediaId(mediaId(track)) .setUri(MusicSources.own.queuedServer(url)) "))
     }
 
     @Test fun `phase 20 D1 a third builder, a station found for a stranger, an unchecked address, or an item set somewhere else is caught`() {
@@ -576,7 +576,7 @@ class UriAccessWiringScanTest {
         assertTrue(station("url = stream.url,", "url = station.url,").isNotEmpty())
         assertTrue(server("if (url == null || !accepts(url, track)) return null", "if (url == null) return null").isNotEmpty())
         assertTrue(server("if (url == null || !accepts(url, track)) return null", "if (url == null || accepts(url, track)) return null").isNotEmpty())
-        assertTrue(server(".setMediaId(mediaId(track)) .setUri(MusicSources.own.queued(url))", ".setMediaId(mediaId(track)) .setUri(url + \"&ApiKey=\" + track.id)").isNotEmpty())
+        assertTrue(server(".setMediaId(mediaId(track)) .setUri(MusicSources.own.queuedServer(url))", ".setMediaId(mediaId(track)) .setUri(url + \"&ApiKey=\" + track.id)").isNotEmpty())
         assertTrue(server("= server.audioStreamUrls(tracks).mapIndexed { i, url -> build(url, tracks[i]) }", "= server.audioStreamUrls(tracks).mapIndexed { i, url -> MediaItem.Builder().setMediaId(mediaId(tracks[i])).setUri(url).build() }").isNotEmpty())
         assertTrue(service("(StationItem.build(it, qaHost) as? StationItem.Built.Item)?.item", "MediaItem.Builder().setMediaId(MusicLive.stationId(it.uuid)).setUri(it.url).build()").isNotEmpty())
         assertTrue(service("(StationItem.build(it, qaHost) as? StationItem.Built.Item)?.item", "(StationItem.build(it, \"10.0.2.2\") as? StationItem.Built.Item)?.item").isNotEmpty())
@@ -697,11 +697,15 @@ class UriAccessWiringScanTest {
         "if (scheme != \"http\" && scheme != \"https\") return false " +
         "return StationUrl.accept(asked, qaHost) == StationUrl.Accept.Ok }"
 
-    /** The service's data source, as code: the default one, the guard outermost, and that factory the media source factory's. */
-    private val sourceWiringForm = "val upstream = DefaultDataSource.Factory(this) " +
-        "val qaHost = RadioNet.qaHost(this) " +
+    /**
+     * The service's data source, as code: the default one over the connection-checked http source (review R20-1), the
+     * guard outermost, and that factory the media source factory's — with a refused address never loaded again.
+     */
+    private val sourceWiringForm = "val qaHost = RadioNet.qaHost(this) " +
+        "val http = OkHttpDataSource.Factory(MusicHttp(qaHost, MusicSources.own::servers).calls).setUserAgent(MusicHttp.platformAgent()) " +
+        "val upstream = DefaultDataSource.Factory(this, http) " +
         "val sources = DataSource.Factory { GuardedDataSource(upstream.createDataSource()) { asked -> MusicSources.own.mayOpen(asked, qaHost) } } " +
-        "val mediaSourceFactory = DefaultMediaSourceFactory( sources, DefaultExtractorsFactory().setMp3ExtractorFlags(Mp3Extractor.FLAG_ENABLE_INDEX_SEEKING), ) " +
+        "val mediaSourceFactory = DefaultMediaSourceFactory( sources, DefaultExtractorsFactory().setMp3ExtractorFlags(Mp3Extractor.FLAG_ENABLE_INDEX_SEEKING), ).setLoadErrorHandlingPolicy(MusicHttp.refusalIsFinal()) " +
         "val exo = ExoPlayer.Builder(this, mediaSourceFactory)"
 
     /**
@@ -709,7 +713,8 @@ class UriAccessWiringScanTest {
      * segments, keys, init segments and nested playlists of its own, and the player's `DefaultDataSource` opens `file:`,
      * `content:`, `asset:`, `android.resource:` and `data:` with the shell's identity. `MusicSourceRule` is the rule
      * (`MusicSourceRuleTest`); held here is what no unit test runs — that every open of the music player is asked:
-     *  - the service makes ONE data source factory — `DefaultDataSource` wrapped, outermost, in `GuardedDataSource`
+     *  - the service makes ONE data source factory — `DefaultDataSource`, its http source `MusicHttp`'s calls (review
+     *    R20-1; `musicConnectProblems` below), wrapped, outermost, in `GuardedDataSource`
      *    with `MusicSources.own.mayOpen(asked, qaHost)`, `qaHost` being `RadioNet.qaHost`'s (null in a release build) —
      *    and hands that to its one `DefaultMediaSourceFactory`, which is the factory
      *    of the service's player AND of the crossfade's fader; nothing else under `music/` makes a data source, a media
@@ -730,10 +735,10 @@ class UriAccessWiringScanTest {
 
         // One guarded factory, the media source factory's; no other data source, media source or player under music/.
         if (!service.contains(sourceWiringForm)) problems += "the music player's media source factory is not given the guarded data source"
-        // The five: DefaultDataSource.Factory(, DataSource.Factory {, GuardedDataSource(, its upstream.createDataSource( —
-        // and the tag reader's setDataSource(.
+        // The six: OkHttpDataSource.Factory(, DefaultDataSource.Factory(, DataSource.Factory {, GuardedDataSource(, its
+        // upstream.createDataSource( — and the tag reader's setDataSource(.
         val dataSources = where(Regex("\\b\\w*DataSource\\b\\s*(?:\\.\\s*Factory\\s*)?[({]"))
-        if (dataSources != mapOf("music/MusicService.kt" to 5) || count(service, "tags.setDataSource(file.path)") != 1) problems += "a data source is made under music/ outside the service's guarded one: $dataSources"
+        if (dataSources != mapOf("music/MusicService.kt" to 6) || count(service, "tags.setDataSource(file.path)") != 1) problems += "a data source is made under music/ outside the service's guarded one: $dataSources"
         val mediaSources = where(Regex("\\b\\w*MediaSourceFactory\\s*\\(|\\b\\w+MediaSource\\b|\\bsetDataSourceFactory\\b|\\bsetMediaSourceFactory\\b|\\bcreateMediaSource\\b|\\bsetMediaSource\\w*\\b"))
         if (mediaSources != mapOf("music/MusicService.kt" to 1)) problems += "a media source or its factory is made under music/ outside the service's one: $mediaSources"
         val players = where(Regex("\\bExoPlayer\\s*\\.\\s*Builder\\b|\\bSimpleExoPlayer\\b|\\bMediaPlayer\\s*\\("))
@@ -744,17 +749,18 @@ class UriAccessWiringScanTest {
         ) problems += "a player under music/ is built with something other than the service's guarded media source factory: $players"
 
         // What the guard is told, and by whom; the rule's one form and its one asker.
-        // By name: the service's two (the guard's question, its `queued` helper) and each builder's one, its import beside it.
+        // By name: the service's three (the home server's addresses for the connection's rule, the guard's question, its
+        // `queued` helper) and each builder's one, its import beside it.
         val told = where(Regex("\\bMusicSources\\b"), sources.filterKeys { it != "music/MusicSourceRule.kt" })
-        val tellers = where(Regex("\\.\\s*queued\\s*\\("), sources.filterKeys { it != "music/MusicSourceRule.kt" })
-        if (told != mapOf("music/MusicService.kt" to 2, "music/radio/StationItem.kt" to 2, "music/server/ServerTrackItem.kt" to 2) ||
+        val tellers = where(Regex("\\.\\s*queued\\w*\\s*\\("), sources.filterKeys { it != "music/MusicSourceRule.kt" })
+        if (told != mapOf("music/MusicService.kt" to 3, "music/radio/StationItem.kt" to 2, "music/server/ServerTrackItem.kt" to 2) ||
             tellers != mapOf("music/MusicService.kt" to 1, "music/radio/StationItem.kt" to 1, "music/server/ServerTrackItem.kt" to 1) ||
             !service.contains("private fun queued(uri: Uri): Uri = uri.also { MusicSources.own.queued(it.toString()) }") || Regex("(?<!\\.)\\bqueued\\s*\\(").findAll(service).count() != 3 ||
-            Regex("\\bqaHost\\b").findAll(service).count() != 7 || count(service, "RadioNet.qaHost(") != 3
+            Regex("\\bqaHost\\b").findAll(service).count() != 8 || count(service, "RadioNet.qaHost(") != 3
         ) problems += "the guard's set is told an address outside the four item builders, or its fixture host is not RadioNet's: $told $tellers"
         if (body(rule, "fun mayOpen(asked: String, queued: Set<String>, qaHost: String?): Boolean") != sourceRuleForm) problems += "MusicSourceRule.mayOpen is not its one form:\n  is:      ${body(rule, "fun mayOpen(asked: String, queued: Set<String>, qaHost: String?): Boolean")}\n  must be: $sourceRuleForm"
         if (!rule.contains("fun mayOpen(asked: String, qaHost: String?): Boolean = MusicSourceRule.mayOpen(asked, queued, qaHost)") ||
-            !rule.contains("fun queued(address: String): String = address.also { queued.add(it) }") || Regex("\\bqueued\\b").findAll(rule).count() != 6 || count(rule, "StationUrl.accept(") != 1 || where(Regex("MusicSourceRule\\s*\\.\\s*mayOpen"), sources) != mapOf("music/MusicSourceRule.kt" to 1)
+            !rule.contains("fun queued(address: String): String = address.also { queued.add(it) }") || Regex("\\bqueued\\b").findAll(rule).count() != 7 || count(rule, "StationUrl.accept(") != 1 || where(Regex("MusicSourceRule\\s*\\.\\s*mayOpen"), sources) != mapOf("music/MusicSourceRule.kt" to 1)
         ) problems += "the music source rule is asked, or its set changed, other than by MusicSources"
         return problems
     }
@@ -777,7 +783,7 @@ class UriAccessWiringScanTest {
         assertTrue(service("{ asked -> MusicSources.own.mayOpen(asked, qaHost) }", "{ true }").isNotEmpty())
         assertTrue(service("GuardedDataSource(upstream.createDataSource()) { asked -> MusicSources.own.mayOpen(asked, qaHost) }", "upstream.createDataSource()").isNotEmpty())
         // The fixture host made up, so a private host is let through in a release build.
-        assertTrue(service("val qaHost = RadioNet.qaHost(this) val sources", "val qaHost = \"192.168.1.1\" val sources").isNotEmpty())
+        assertTrue(service("val qaHost = RadioNet.qaHost(this) val http", "val qaHost = \"192.168.1.1\" val http").isNotEmpty())
         assertTrue(service("MusicSources.own.mayOpen(asked, qaHost)", "MusicSources.own.mayOpen(asked, Uri.parse(asked).host)").isNotEmpty())
         assertTrue(service("val exo = ExoPlayer.Builder(this, mediaSourceFactory)", "val exo = ExoPlayer.Builder(this)").isNotEmpty())
         assertTrue(service("val exo = ExoPlayer.Builder(this, mediaSourceFactory)", "val exo = ExoPlayer.Builder(this, DefaultMediaSourceFactory(this))").isNotEmpty())
@@ -802,6 +808,194 @@ class UriAccessWiringScanTest {
         assertTrue(with("music/MusicSourceRule.kt", "return StationUrl.accept(asked, qaHost) == StationUrl.Accept.Ok }", "return StationUrl.accept(asked, qaHost) !is StationUrl.Accept.UnsupportedScheme }").isNotEmpty())
         assertTrue(with("music/MusicSourceRule.kt", "= MusicSourceRule.mayOpen(asked, queued, qaHost)", "= MusicSourceRule.mayOpen(asked, queued + asked, qaHost)").isNotEmpty())
         assertTrue(added("music/MusicSourceRule.kt", "fun x(a: String) = MusicSourceRule.mayOpen(a, setOf(a), null)").isNotEmpty())
+    }
+
+    // ------------------------------------------------------ the address the music player CONNECTS to (review R20-1)
+
+    /** `MusicHttp`'s judged client, as code: the shell's look-up and sockets, no proxy, HTTP/1.1, and no redirect followed by the client itself. */
+    private val judgedClientForm = "private val bare: OkHttpClient = OkHttpClient.Builder() .dns(judged) .socketFactory(JudgedSockets()) .proxy(Proxy.NO_PROXY) " +
+        ".protocols(listOf(Protocol.HTTP_1_1)) .followRedirects(false) .followSslRedirects(false) " +
+        ".connectTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS) .readTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS) .build() " +
+        "private val strict: OkHttpClient = bare.newBuilder().addInterceptor(Hops(homeServer = false)).build()"
+
+    /** The home server's lane, as code: a client of its own — its own pool — that follows no redirect itself either. */
+    private val homeClientForm = "private val home: OkHttpClient = OkHttpClient.Builder() .connectionPool(ConnectionPool()) " +
+        ".protocols(listOf(Protocol.HTTP_1_1)) .followRedirects(false) .followSslRedirects(false) " +
+        ".connectTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS) .readTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS) .addInterceptor(Hops(homeServer = true)) .build()"
+
+    /** The look-up, as code: every answer judged, or it throws. */
+    private val lookupForm = "{ val answers = resolve(hostname) " +
+        "if (!MusicConnectRule.mayConnect(hostname, answers, homeServer = false, qaHost)) throw RefusedAddress() " +
+        "return answers.map { InetAddress.getByAddress(hostname, it.address) } }"
+
+    /** The socket's `connect`, as code: the address it was handed is judged, then connected to — that one. */
+    private val connectForm = "{ val to = endpoint as? InetSocketAddress " +
+        "val address = to?.address " +
+        "if (to == null || address == null || !MusicConnectRule.mayConnect(to.hostString, listOf(address), homeServer = false, qaHost)) throw RefusedAddress() " +
+        "super.connect(endpoint, timeout) }"
+
+    /** Which request is the home server's, as code: one whose address, as the client writes it, is a queued server address's. */
+    private val homeServerForm = "{ val asked = url.toString() " +
+        "return servers().any { queued -> written.getOrPut(queued) { queued.toHttpUrlOrNull()?.toString().orEmpty() } == asked } }"
+
+    /** `StreamWatch.refused`, as code: said once, the clock ended and never started, the station paused. */
+    private val refusedForm = "{ if (redirectRefusedFor == id) return " +
+        "redirectRefusedFor = id " +
+        "endClock() " +
+        "state = shown " +
+        "Diagnostics.add(StreamLine.TAG, line) " +
+        "player.pause() " +
+        "changed() }"
+
+    /**
+     * Phase 20, the review's R20-1 (the owner's ruling 2026-10-08): a station's address is text, and text is not where
+     * a request goes — a name resolves anywhere, and a public host can answer with a redirect. `MusicConnectRule` is
+     * the rule (`MusicConnectRuleTest`) and `MusicHttp` carries it out against real sockets (`MusicHttpTest`); held
+     * here is what neither runs — that the player and the logo fetch are made of it, and that it is its one form:
+     *  - the service's ONE data source factory (`musicSourceProblems` holds that there is one, the player's and the
+     *    fader's) has `MusicHttp(qaHost, MusicSources.own::servers).calls` for its http source and nothing else, and a
+     *    refused address is never loaded again; `MusicHttp` is made there and in `StationLogos` and nowhere else, and
+     *    nothing else in the shell holds an OkHttp client;
+     *  - the judged client's look-up and its sockets are `MusicHttp`'s own, each asking `MusicConnectRule.mayConnect`
+     *    with `homeServer = false`; it uses no proxy and follows no redirect itself — `Hops` asks
+     *    `MusicConnectRule.hop` for each;
+     *  - the home server's lane is entered only by a request whose address is a queued server address's, has a pool
+     *    of its own, and hands a redirect that leaves its host to the judged client; only `ServerTrackItem.build`
+     *    tells the set;
+     *  - `StationLogos.logo` fetches through `MusicHttp.bytes` (`liveWiringProblems` holds its form), whose client is
+     *    the judged one with no redirect loop;
+     *  - a refused address is `StreamWatch.refused`'s: `stream: unsupported host`, once, and never the reconnect clock.
+     */
+    private fun musicConnectProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val service = sources["music/MusicService.kt"].orEmpty()
+        val http = sources["music/MusicHttp.kt"].orEmpty()
+        val rule = sources["music/MusicSourceRule.kt"].orEmpty()
+        val logos = sources["music/radio/StationLogos.kt"].orEmpty()
+        val watch = sources["music/radio/StreamWatch.kt"].orEmpty()
+        val track = sources["music/server/ServerTrackItem.kt"].orEmpty()
+        fun where(piece: Regex, among: Map<String, String> = sources) = among.mapValues { (_, text) -> piece.findAll(text).count() }.filterValues { it > 0 }
+
+        // The player's http source, and who holds a client.
+        if (count(service, "val http = OkHttpDataSource.Factory(MusicHttp(qaHost, MusicSources.own::servers).calls).setUserAgent(MusicHttp.platformAgent()) val upstream = DefaultDataSource.Factory(this, http) val sources") != 1 ||
+            Regex("\\bhttp\\b").findAll(service).count() != 2 || count(sources["music/MusicHttp.kt"].orEmpty(), "fun platformAgent(): String? = System.getProperty(\"http.agent\")?.filter { it in ' '..'~' }?.takeIf { it.isNotBlank() }") != 1 || count(service, ").setLoadErrorHandlingPolicy(MusicHttp.refusalIsFinal()) val exo") != 1
+        ) problems += "the music player's http source is not MusicHttp's calls, or a refused address is loaded again"
+        val made = where(Regex("\\bMusicHttp\\s*\\("))
+        // Its own declaration, and the two that make one.
+        if (made != mapOf("music/MusicHttp.kt" to 1, "music/MusicService.kt" to 1, "music/radio/StationLogos.kt" to 1) || where(Regex("\\.\\s*calls\\b")) != mapOf("music/MusicService.kt" to 1)) problems += "MusicHttp is made, or its calls taken, outside the service and StationLogos: $made"
+        val clients = where(Regex("\\bokhttp3\\b|\\bOkHttpClient\\b|\\bOkHttpDataSource\\b|\\bDefaultHttpDataSource\\b|\\bHttpEngineDataSource\\b|\\bCronetDataSource\\b"), sources.filterKeys { it != "music/MusicHttp.kt" && !it.startsWith("video/") })
+        if (clients != mapOf("music/MusicService.kt" to 2)) problems += "an http client or http data source is made outside MusicHttp and the service's one: $clients"
+
+        // The judged client and the home server's lane, each its one form; the two clients are the only two.
+        if (count(http, judgedClientForm) != 1) problems += "MusicHttp's judged client is not its one form: its own look-up and sockets, no proxy, no redirect followed"
+        if (count(http, homeClientForm) != 1) problems += "MusicHttp's home-server client is not its one form: a pool of its own, no redirect followed"
+        if (count(http, "OkHttpClient.Builder()") != 2 || Regex("\\bnewBuilder\\b").findAll(http).count() != 3 || Regex("\\bhome\\b").findAll(http).count() != 2 || Regex("\\bstrict\\b").findAll(http).count() != 3 || Regex("\\bbare\\b").findAll(http).count() != 3) problems += "MusicHttp holds a client beyond its judged one, its redirect-following one and the home server's"
+        val lookup = body(http, "override fun lookup(hostname: String): List<InetAddress>")
+        if (lookup != lookupForm) problems += "MusicHttp's look-up is not its one form:\n  is:      $lookup\n  must be: $lookupForm"
+        val connect = body(http, "override fun connect(endpoint: SocketAddress?, timeout: Int)")
+        if (connect != connectForm || count(http, "override fun connect(endpoint: SocketAddress?) = connect(endpoint, 0)") != 1 || Regex("\\bsuper\\s*\\.\\s*connect\\b").findAll(http).count() != 1) problems += "MusicHttp's socket connects other than through its one judged form:\n  is:      $connect\n  must be: $connectForm"
+        if (count(http, "MusicConnectRule.mayConnect(") != 2 || Regex("homeServer\\s*=\\s*true").findAll(http).count() != 1 || count(http, "Hops(homeServer = true)") != 1 || count(http, "Follow(homeServer = true)") != 0) problems += "MusicHttp grants the home server's exception somewhere other than its own lane"
+        if (count(http, "throw RefusedAddress()") != 6 || count(http, "private val judged = object : Dns {") != 1 || count(http, "override fun createSocket(): Socket = object : Socket() {") != 1) problems += "MusicHttp's look-up or sockets are not the judged ones"
+
+        // The redirect: one proceed in one loop, each answer the rule's; the home lane hands over when it leaves its host.
+        val hops = body(http, "override fun intercept(chain: Interceptor.Chain): Response")
+        if (count(hops, "val response = chain.proceed(request) if (response.code !in REDIRECTS) return response") != 1 || count(http, "chain.proceed(") != 1 ||
+            count(hops, "when (val hop = MusicConnectRule.hop(request.url.scheme, request.url.host, target, followed, homeServer, qaHost)) {") != 1 || count(http, "MusicConnectRule.hop(") != 1 ||
+            count(hops, "is MusicConnectRule.Hop.Refused -> throw if (hop.message == MusicConnectRule.REFUSED) RefusedAddress() else IOException(hop.message)") != 1 ||
+            count(hops, "followed++ val next = request.newBuilder().url(to!!).tag(Followed::class.java, Followed(followed)).build() if (homeServer && !hop.homeServer) return strict.newCall(next).execute() request = next") != 1 ||
+            count(hops, "var followed = request.tag(Followed::class.java)?.count ?: 0") != 1 || count(http, "private val REDIRECTS = setOf(300, 301, 302, 303, 307, 308)") != 1
+        ) problems += "MusicHttp follows a redirect other than as MusicConnectRule.hop says:\n  is: $hops"
+
+        // The home server's lane: entered by a queued server address alone, and only its builder tells the set.
+        if (count(http, "val calls: Call.Factory = Call.Factory { request -> (if (isHomeServer(request.url)) home else strict).newCall(request) }") != 1 || Regex("\\bisHomeServer\\b").findAll(http).count() != 2 ||
+            body(http, "private fun isHomeServer(url: HttpUrl): Boolean") != homeServerForm || Regex("\\bservers\\b").findAll(http).count() != 2
+        ) problems += "MusicHttp's home-server lane is entered by something other than a queued server address"
+        val tellers = where(Regex("\\bqueuedServer\\b"), sources.filterKeys { it != "music/MusicSourceRule.kt" })
+        if (tellers != mapOf("music/server/ServerTrackItem.kt" to 1) || count(track, ".setUri(MusicSources.own.queuedServer(url))") != 1 || count(body(track, "fun build(url: String?, track: ServerTrack): MediaItem?"), "if (url == null || !accepts(url, track)) return null") != 1 ||
+            count(rule, "fun queuedServer(address: String): String = address.also { queued.add(it); servers.add(it) }") != 1 || count(rule, "fun servers(): Set<String> = servers") != 1 ||
+            count(rule, "servers.add(") != 1 || Regex("\\bservers\\b").findAll(rule).count() != 4 || where(Regex("MusicSources\\s*\\.\\s*own\\s*(?:::|\\.)\\s*servers\\b")) != mapOf("music/MusicService.kt" to 1)
+        ) problems += "the home server's addresses are told by something other than ServerTrackItem.build, or read by something other than the service's MusicHttp: $tellers"
+
+        // The logo: the judged client, with no redirect loop and no lane.
+        if (count(logos, "private val http by lazy { MusicHttp(RadioNet.qaHost(app)) }") != 1 || Regex("\\bhttp\\b").findAll(logos).count() != 2 ||
+            count(http, "bare.newBuilder().callTimeout(totalMs, TimeUnit.MILLISECONDS).build().newCall(request).execute().use { response ->") != 1 || count(http, ".newCall(") != 3
+        ) problems += "a station's logo is not fetched through MusicHttp's judged client, or that client follows a redirect"
+
+        // The refusal: said once, final for that start.
+        if (count(watch, "if (MusicHttp.refused(error)) return refused(id, StreamLine.UNSUPPORTED_HOST, StationItem.CANT_PLAY) if (StreamFacts.redirectRefused(messages(error))) return refused(id, StreamLine.REDIRECT_REFUSED, StreamRetry.NOT_ANSWERING)") != 2 ||
+            body(watch, "private fun refused(id: String, line: String, shown: String)") != refusedForm || Regex("(?<![.\\w])refused\\s*\\(").findAll(watch).count() != 5 ||
+            count(http, "if (refused(loadErrorInfo.exception)) C.TIME_UNSET else super.getRetryDelayMsFor(loadErrorInfo)") != 1 ||
+            count(http, "fun refused(error: Throwable?): Boolean = generateSequence(error) { it.cause }.take(CAUSES_READ).any { it is RefusedAddress }") != 1
+        ) problems += "a refused address is not StreamWatch.refused's — said once, never on the reconnect clock — at both of its two sites"
+        return problems
+    }
+
+    @Test fun `phase 20 R20-1 the music player and the logo fetch connect only through MusicHttp's judged client, and a refusal is final`() {
+        val sources = SourceScan.all()
+        assertEquals(emptyList<String>(), musicConnectProblems(sources))
+        for (file in listOf("music/MusicHttp.kt", "music/MusicConnectRule.kt", "music/radio/StreamWatch.kt")) assertTrue("$file was read", sources.getValue(file).length > 200)
+    }
+
+    @Test fun `phase 20 R20-1 a default http source, an unjudged look-up or socket, a followed redirect, a wider home-server lane or a retried refusal is caught`() {
+        val sources = SourceScan.all()
+        fun with(file: String, old: String, new: String) = musicConnectProblems(sources + (file to mutate(sources.getValue(file), old, new)))
+        fun service(old: String, new: String) = with("music/MusicService.kt", old, new)
+        fun http(old: String, new: String) = with("music/MusicHttp.kt", old, new)
+        fun added(file: String, code: String) = musicConnectProblems(sources + (file to sources.getValue(file) + " " + code))
+        // The review's finding itself: the stock http source, which resolves and follows redirects inside itself.
+        assertTrue(service("DefaultDataSource.Factory(this, http)", "DefaultDataSource.Factory(this)").isNotEmpty())
+        assertTrue(service("OkHttpDataSource.Factory(MusicHttp(qaHost, MusicSources.own::servers).calls)", "androidx.media3.datasource.DefaultHttpDataSource.Factory()").isNotEmpty())
+        assertTrue(service("OkHttpDataSource.Factory(MusicHttp(qaHost, MusicSources.own::servers).calls)", "OkHttpDataSource.Factory(okhttp3.OkHttpClient())").isNotEmpty())
+        // A made-up fixture host or server set; the refusal loaded again.
+        assertTrue(service("MusicHttp(qaHost, MusicSources.own::servers)", "MusicHttp(\"192.168.1.1\", MusicSources.own::servers)").isNotEmpty())
+        assertTrue(service("MusicHttp(qaHost, MusicSources.own::servers)", "MusicHttp(qaHost, { setOf(\"x\") })").isNotEmpty())
+        assertTrue(service(").setLoadErrorHandlingPolicy(MusicHttp.refusalIsFinal()) val exo", ") val exo").isNotEmpty())
+        assertTrue(http("if (refused(loadErrorInfo.exception)) C.TIME_UNSET else super", "if (false) C.TIME_UNSET else super").isNotEmpty())
+        // The look-up or the socket unjudged, judged as the home server's, or a second way to connect.
+        assertTrue(http(".dns(judged) ", "").isNotEmpty())
+        assertTrue(http(".socketFactory(JudgedSockets()) ", "").isNotEmpty())
+        assertTrue(http(".proxy(Proxy.NO_PROXY) ", "").isNotEmpty())
+        assertTrue(http("if (!MusicConnectRule.mayConnect(hostname, answers, homeServer = false, qaHost)) throw RefusedAddress() ", "").isNotEmpty())
+        assertTrue(http("MusicConnectRule.mayConnect(hostname, answers, homeServer = false, qaHost)", "MusicConnectRule.mayConnect(hostname, answers, homeServer = true, qaHost)").isNotEmpty())
+        assertTrue(http("MusicConnectRule.mayConnect(hostname, answers, homeServer = false, qaHost)", "MusicConnectRule.mayConnect(hostname, answers.take(1), homeServer = false, qaHost)").isNotEmpty())
+        assertTrue(http("|| !MusicConnectRule.mayConnect(to.hostString, listOf(address), homeServer = false, qaHost)) throw", ") throw").isNotEmpty())
+        assertTrue(http("MusicConnectRule.mayConnect(to.hostString, listOf(address), homeServer = false, qaHost)", "MusicConnectRule.mayConnect(to.hostString, listOf(address), homeServer = false, to.hostString)").isNotEmpty())
+        assertTrue(http("override fun connect(endpoint: SocketAddress?) = connect(endpoint, 0)", "override fun connect(endpoint: SocketAddress?) = super.connect(endpoint)").isNotEmpty())
+        assertTrue(http("override fun createSocket(host: String?, port: Int): Socket = throw RefusedAddress()", "override fun createSocket(host: String?, port: Int): Socket = Socket(host, port)").isNotEmpty())
+        // The client following redirects itself, or the loop following one the rule was not asked about.
+        assertTrue(http(".followRedirects(false) .followSslRedirects(false) .connectTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS) .readTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS) .build() private val strict", ".connectTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS) .readTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS) .build() private val strict").isNotEmpty())
+        assertTrue(http(".followRedirects(false) .followSslRedirects(false) .connectTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS) .readTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS) .addInterceptor", ".followRedirects(true) .followSslRedirects(false) .connectTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS) .readTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS) .addInterceptor").isNotEmpty())
+        assertTrue(http("when (val hop = MusicConnectRule.hop(request.url.scheme, request.url.host, target, followed, homeServer, qaHost)) {", "when (val hop = MusicConnectRule.Hop.Follow(homeServer) as MusicConnectRule.Hop) {").isNotEmpty())
+        assertTrue(http("MusicConnectRule.hop(request.url.scheme, request.url.host, target, followed, homeServer, qaHost)", "MusicConnectRule.hop(request.url.scheme, request.url.host, target, 0, homeServer, qaHost)").isNotEmpty())
+        assertTrue(http("MusicConnectRule.hop(request.url.scheme, request.url.host, target, followed, homeServer, qaHost)", "MusicConnectRule.hop(to!!.scheme, request.url.host, target, followed, homeServer, qaHost)").isNotEmpty())
+        assertTrue(http("private val REDIRECTS = setOf(300, 301, 302, 303, 307, 308)", "private val REDIRECTS = setOf(301)").isNotEmpty())
+        // The home server's lane: taken by host, by every request, kept after the redirect left its host, or sharing the judged pool.
+        assertTrue(http("(if (isHomeServer(request.url)) home else strict)", "home").isNotEmpty())
+        assertTrue(http("(if (isHomeServer(request.url)) home else strict)", "(if (servers().any { it.contains(request.url.host) }) home else strict)").isNotEmpty())
+        assertTrue(http("queued.toHttpUrlOrNull()?.toString().orEmpty() } == asked }", "queued.toHttpUrlOrNull()?.host.orEmpty() } == url.host }").isNotEmpty())
+        assertTrue(http("if (homeServer && !hop.homeServer) return strict.newCall(next).execute() ", "").isNotEmpty())
+        assertTrue(http("bare.newBuilder().addInterceptor(Hops(homeServer = false)).build()", "bare.newBuilder().addInterceptor(Hops(homeServer = true)).build()").isNotEmpty())
+        assertTrue(http(".connectionPool(ConnectionPool()) ", ".connectionPool(bare.connectionPool) ").isNotEmpty())
+        // The set told by a station's builder, by every address, or read by another client.
+        assertTrue(with("music/radio/StationItem.kt", ".setUri(MusicSources.own.queued(play.url))", ".setUri(MusicSources.own.queuedServer(play.url))").isNotEmpty())
+        assertTrue(with("music/MusicSourceRule.kt", "fun queued(address: String): String = address.also { queued.add(it) }", "fun queued(address: String): String = address.also { queued.add(it); servers.add(it) }").isNotEmpty())
+        assertTrue(with("music/server/ServerTrackItem.kt", "if (url == null || !accepts(url, track)) return null", "if (url == null) return null").isNotEmpty())
+        assertTrue(added("music/MusicPlayer.kt", "fun x(u: String) = MusicSources.own.queuedServer(u)").isNotEmpty())
+        assertTrue(added("music/radio/StationLogos.kt", "fun x() = MusicHttp(null, app.tileshell.music.MusicSources.own::servers).calls").isNotEmpty())
+        // The logo through the unjudged fetch, a made-up fixture host, or a client that follows redirects or has the server's lane.
+        assertTrue(with("music/radio/StationLogos.kt", "MusicHttp(RadioNet.qaHost(app))", "MusicHttp(\"192.168.1.1\")").isNotEmpty())
+        assertTrue(http("bare.newBuilder().callTimeout(", "strict.newBuilder().callTimeout(").isNotEmpty())
+        assertTrue(http("bare.newBuilder().callTimeout(", "home.newBuilder().callTimeout(").isNotEmpty())
+        // Another client anywhere in the shell.
+        assertTrue(added("music/radio/StreamWatch.kt", "fun x() = okhttp3.OkHttpClient()").isNotEmpty())
+        assertTrue(added("weather/WeatherProvider.kt", "fun x(c: okhttp3.Call.Factory) = c").isNotEmpty())
+        assertTrue(added("music/MusicPlayer.kt", "fun x() = MusicHttp(null).calls").isNotEmpty())
+        // The refusal put on the reconnect clock, at either site, or not paused.
+        assertTrue(with("music/radio/StreamWatch.kt", "if (!player.playWhenReady) return if (MusicHttp.refused(error)) return refused(id, StreamLine.UNSUPPORTED_HOST, StationItem.CANT_PLAY) ", "if (!player.playWhenReady) return ").isNotEmpty())
+        assertTrue(with("music/radio/StreamWatch.kt", "|| !player.playWhenReady) return if (MusicHttp.refused(error)) return refused(id, StreamLine.UNSUPPORTED_HOST, StationItem.CANT_PLAY) ", "|| !player.playWhenReady) return ").isNotEmpty())
+        assertTrue(with("music/radio/StreamWatch.kt", "endClock() state = shown", "failed(SystemClock.elapsedRealtime()) state = shown").isNotEmpty())
+        assertTrue(with("music/radio/StreamWatch.kt", "Diagnostics.add(StreamLine.TAG, line) player.pause()", "Diagnostics.add(StreamLine.TAG, line) player.prepare()").isNotEmpty())
+        assertTrue(http("any { it is RefusedAddress }", "any { false }").isNotEmpty())
     }
 
     // ------------------------------------------------------------------------------------ Music's queue start (L18-4)
@@ -1183,12 +1377,12 @@ class UriAccessWiringScanTest {
         "val shown = mediaMetadata " +
         "listeners.forEach { it.onMediaMetadataChanged(shown) } }"
 
-    /** `StationLogos.logo`, as code: the address by the rule, a header (so no redirect is followed), the cap, then the bounds. */
+    /** `StationLogos.logo`, as code: the address by the rule, through the judged client (review R20-1; no redirect is followed), a header, the cap, then the bounds. */
     private val logoFetchForm = "{ val key = key(station) " +
         "cache.get(key)?.let { return it.bytes } " +
         "val url = StationLogo.url(station.favicon, RadioNet.qaHost(app)) " +
         "if (url != null && !VideoHttp.online(app)) return null " +
-        "val bytes = url?.let { VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong()) }?.takeIf { StationLogo.accept(it) }?.let { bounded(it) } " +
+        "val bytes = url?.let { http.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong()) }?.takeIf { StationLogo.accept(it) }?.let { bounded(it) } " +
         "cache.put(key, Entry(bytes)) " +
         "return bytes }"
 
@@ -1200,8 +1394,9 @@ class UriAccessWiringScanTest {
      *    StreamTitle), and sets the title nowhere else;
      *  - `KnownDurationPlayer.getMediaMetadata` — what the tile and the notification are built from — is the ITEM's
      *    own metadata with the merged title, never the stream's; and a retelling tells that same value;
-     *  - `StationLogos.logo` asks for the address `StationLogo.url` accepted, with `RadioNet.headers()` (a request with
-     *    a header follows no redirect) and `StationLogo.MAX_BYTES`, and keeps only what `accept` and `bounded` pass;
+     *  - `StationLogos.logo` asks for the address `StationLogo.url` accepted, through `MusicHttp.bytes` (review R20-1:
+     *    the address connected to is judged, and no redirect is followed — `musicConnectProblems`), with
+     *    `RadioNet.headers()` and `StationLogo.MAX_BYTES`, and keeps only what `accept` and `bounded` pass;
      *    nothing else under `music/radio/` makes a request for a picture.
      */
     private fun liveWiringProblems(sources: Map<String, String>): List<String> {
@@ -1217,8 +1412,8 @@ class UriAccessWiringScanTest {
         if (count(known, "onMediaMetadataChanged(") != 2 || count(known, "private val retell = Runnable { liveMetadataChanged() }") != 1) problems += "KnownDurationPlayer tells a listener a station's metadata somewhere other than liveMetadataChanged"
         val fetch = body(logos, "fun logo(station: Station): ByteArray?")
         if (fetch != logoFetchForm) problems += "StationLogos.logo is not its one form:\n  is:      $fetch\n  must be: $logoFetchForm"
-        val requests = sources.filterKeys { it.startsWith("music/radio/") }.mapValues { (_, text) -> Regex("\\bVideoHttp\\s*\\.\\s*(?:bytes|hop|image)\\b|\\bopenConnection\\b|\\bopenStream\\b").findAll(text).count() }.filterValues { it > 0 }
-        if (requests != mapOf("music/radio/StationLogos.kt" to 1)) problems += "a picture is asked for under music/radio/ outside StationLogos.logo: $requests"
+        val requests = sources.filterKeys { it.startsWith("music/radio/") }.mapValues { (_, text) -> Regex("\\bVideoHttp\\s*\\.\\s*(?:bytes|hop|image)\\b|\\bhttp\\s*\\.\\s*bytes\\b|\\bMusicHttp\\s*\\(|\\bopenConnection\\b|\\bopenStream\\b").findAll(text).count() }.filterValues { it > 0 }
+        if (requests != mapOf("music/radio/StationLogos.kt" to 2)) problems += "a picture is asked for under music/radio/ outside StationLogos.logo: $requests"
         return problems
     }
 
@@ -1236,10 +1431,12 @@ class UriAccessWiringScanTest {
         assertTrue(with("music/MusicPlayer.kt", "title = if (live) LiveMetadata.merge(meta?.albumTitle?.toString(), c.mediaMetadata.title?.toString()).title else", "title = if (live) c.mediaMetadata.title?.toString().orEmpty() else").isNotEmpty())
         assertTrue(with("music/KnownDurationPlayer.kt", "val meta = own.buildUpon().setTitle(shown.title)", "val meta = reported.buildUpon().setTitle(shown.title)").isNotEmpty())
         assertTrue(with("music/KnownDurationPlayer.kt", "val shown = LiveMetadata.merge(own.albumTitle?.toString(), reported.title?.toString())", "val shown = LiveMetadata.Shown(reported.title?.toString() ?: own.albumTitle?.toString().orEmpty(), own.albumTitle?.toString().orEmpty())").isNotEmpty())
-        assertTrue(with("music/radio/StationLogos.kt", "VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "VideoHttp.bytes(it)").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "http.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "VideoHttp.bytes(it)").isNotEmpty())
+        // Review R20-1: the same fetch, whole, through the client whose connection nobody judges.
+        assertTrue(with("music/radio/StationLogos.kt", "http.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())").isNotEmpty())
         // Their neighbours: the cap alone, the header alone, the size check or the bounds skipped, the address unchecked.
-        assertTrue(with("music/radio/StationLogos.kt", "VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "VideoHttp.bytes(it, RadioNet.headers())").isNotEmpty())
-        assertTrue(with("music/radio/StationLogos.kt", "VideoHttp.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "VideoHttp.bytes(it, emptyMap(), StationLogo.MAX_BYTES.toLong())").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "http.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "http.bytes(it, RadioNet.headers(), VideoHttp.MAX_IMAGE_BYTES)").isNotEmpty())
+        assertTrue(with("music/radio/StationLogos.kt", "http.bytes(it, RadioNet.headers(), StationLogo.MAX_BYTES.toLong())", "http.bytes(it, emptyMap(), StationLogo.MAX_BYTES.toLong())").isNotEmpty())
         assertTrue(with("music/radio/StationLogos.kt", "?.takeIf { StationLogo.accept(it) }?.let { bounded(it) }", "?.let { bounded(it) }").isNotEmpty())
         assertTrue(with("music/radio/StationLogos.kt", "?.takeIf { StationLogo.accept(it) }?.let { bounded(it) }", "?.takeIf { StationLogo.accept(it) }").isNotEmpty())
         assertTrue(with("music/radio/StationLogos.kt", "val url = StationLogo.url(station.favicon, RadioNet.qaHost(app))", "val url = station.favicon.takeIf { it.isNotEmpty() }").isNotEmpty())

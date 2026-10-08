@@ -16,8 +16,8 @@ import org.junit.Test
  * What it reads: every Kotlin and Java source under `app/src/main` and under the `:calc` module's `src/main`; the
  * manifests under `app/src`; and every `res/values*` XML file. In sources, every `http://` and `https://` inside a
  * STRING LITERAL (comments are not literals and are skipped); also a literal that holds a bare `://` with no scheme
- * before it, and a `URL(…)`, `URI(…)` or `Uri.Builder()` / `.scheme(…)` in code — the plain ways an address is built
- * from pieces — outside `net/`, unless the file is listed with its reason. Each URL literal must be one of:
+ * before it, and a `URL(…)`, `URI(…)`, `Uri.Builder()` / `.scheme(…)` or an OkHttp `Request.Builder(…)` in code — the
+ * plain ways an address is built from pieces, or a request made — outside `net/`, unless the file is listed with its reason. Each URL literal must be one of:
  *  1. an `https://` URL of a host in [FixedEndpoints.HOSTS], or of a subdomain of one — the hosts the network security
  *     config denies cleartext to;
  *  2. a host on [NOT_ENDPOINTS], in the file named there: text that is never requested by the shell;
@@ -184,9 +184,10 @@ class EndpointLiteralScanTest {
         "weather/WeatherProvider.kt" to (1 to "URL(url) of an address built from FixedEndpoints' weather constants"),
         "video/catalogue/Catalogue.kt" to (2 to "URL(url) of a catalogue address: FixedEndpoints, or the debug-only QA base (CatalogueRules.base)"),
         "ime/engine/FieldKind.kt" to (1 to "an enum constant named URL (a kind of text field), not java.net.URL"),
+        "music/MusicHttp.kt" to (1 to "Request.Builder().url(url) of a station's logo address, StationLogo.url's (phase 20, review R20-1): no fixed endpoint — any host's, which is why the address CONNECTED to is judged there (MusicConnectRule)"),
     )
 
-    private val BUILDER = Regex("\\bURL\\(|\\bURI\\(|\\bUri\\.Builder\\(|\\.scheme\\(|\\bURI\\.create\\(")
+    private val BUILDER = Regex("\\bURL\\(|\\bURI\\(|\\bUri\\.Builder\\(|\\.scheme\\(|\\bURI\\.create\\(|\\bRequest\\.Builder\\(")
 
     /** A source with its comments and the insides of its string literals blanked: what is left is code. */
     private fun codeOnly(source: String): String {
@@ -295,6 +296,8 @@ class EndpointLiteralScanTest {
         assertEquals("spelled in full", listOf("URL("), whys("video/New.kt", "val u = java.net.URL(\"http\", host, 80, \"/v1\")"))
         assertEquals(listOf("Uri.Builder(", ".scheme("), whys("video/New.kt", "val u = Uri.Builder().scheme(\"http\").authority(host).build()"))
         assertEquals(listOf("URI("), whys("calc:kotlin/app/tileshell/calc/CalcModule.kt", "val u = URI(\"http\", host, \"/x\", null)"))
+        assertEquals(listOf("Request.Builder("), whys("video/New.kt", "val r = okhttp3.Request.Builder().url(text).build()"))
+        assertEquals("one more than listed", 2, whys("music/MusicHttp.kt", "val a = Request.Builder().url(url)\nval b = Request.Builder().url(other)").size)
         // One more in a listed file than it is listed for; and a listed file that no longer holds any.
         assertEquals(2, whys("weather/WeatherProvider.kt", "val a = URL(url)\nval b = URL(other)").size)
         assertEquals(1, checkBuilders("weather/WeatherProvider.kt", "val a = 1").size)

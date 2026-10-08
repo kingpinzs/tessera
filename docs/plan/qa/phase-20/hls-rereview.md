@@ -166,3 +166,10 @@ SmoothStreaming and RTSP are not on the classpath": `HlsMediaSource` IS linked; 
 exactly one field, the `DataSource.Factory` it was given (M1 — a Media3 upgrade that changes this fails here);
 `DashMediaSource`, `SsMediaSource` and `RtspMediaSource` are NOT linked. Its comment names the tests that hold points
 (1)–(4) and says what to re-review the day another module is added (RTSP in particular takes no data source factory).
+
+
+## Superseded 2026-10-08 11:23 — the two stated gaps are closed
+
+The owner ruled D1 = (a) on 2026-10-08. A same-scheme redirect to a private address and a name that resolves to a
+private address are now refused at connection time (`music/MusicHttp.kt`, `MusicConnectRule`; INDEX Change Log of
+that date). The text above is kept as the record of the state the adversarial review read.

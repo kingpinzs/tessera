@@ -113,3 +113,71 @@ Fixtures down (nothing listens on 8092 / 8093 / 8096); no Jellyfin container; QA
 `AndroidWifi;none`, Wi-Fi NOT_METERED; airplane mode off; no PIN (`locksettings get-disabled` = true), no keyguard; the
 phone awake on Start; the tested debug build installed (`apk_matches` yes); the three `qa_*` prefs in place, pointing at
 the stopped fixtures; no shell crash in logcat.
+
+## Re-run after D1 (2026-10-08)
+
+Run 2026-10-08 10:51–11:02 MDT on `emulator-5554` (AVD tileshell_fhd; already up, not restarted, no crash). After the
+owner's ruling on R20-1 the Music player's http stack was replaced (`music/MusicHttp.kt`, Media3's OkHttp data source);
+the three rows that exercise it — A2, A3, A7 — were run ONCE each on the pushed build. No other row was run. The earlier
+runs' folders are untouched. Host audio and microphone not touched; the device's media stream at volume 0.
+
+**Verdict: A2, A3 and A7 pass (12 of 12 lettered conditions); no product failure.** A7 needed one re-run for a driver
+fault (below). No row reached a live server: each proved the three `qa_*` prefs from the file before Music opened.
+
+### The build under test
+
+| | |
+|---|---|
+| debug APK | `app/build/outputs/apk/debug/app-debug.apk`, 358,600,865 B, md5 `7f2e21c8fbfc21a2159972026c6c194b`, sha256 `9042a8d20218285c…` |
+| built with | `./gradlew :app:assembleDebug -Ptmdb.readToken=qa-dummy-token` — rc 0, every task up to date against HEAD's tree (`static-d1/build-debug.txt`, `.rc`) |
+| source | HEAD = `origin/phase-20` = `5c22c612`, nothing changed under `app/` in the worktree |
+| on the device | `adb install -r` rc 0 (`static-d1/install.txt`); `apk_matches` = `yes (7f2e21c8fbfc21a2)` in every row's stamp and at the end (`static-d1/apk-stamp.txt`, `end-state.txt`) |
+
+### Rows
+
+| row | letter | result | the real line | evidence |
+|---|---|---|---|---|
+| A2 | a | PASS | session at 30 s `PLAYING \| QA Song 2, QA Jazz One, QA Jazz One` ("QA Song 1" from t+1 s to t+24 s, "QA Song 2" from t+26 s); `[music] stream: connected http://10.0.2.2:8092/stream/jazz-one codec=mp3` | A2-d1/title-timeline.txt, session-30s.txt, slice-play.txt |
+| A2 | b | PASS | `nowplaying_live_caption` = `LIVE`; scrubber / total `no no`; sleep list `music_menu_sleep:15 :30 :45 :60`, no `:eot` | A2-d1/np30.xml, sleep.xml, 01-nowplaying-30s.png |
+| A2 | c | PASS | tile texts `QA Song 2 \| QA Jazz One`; after the control `PAUSED \| QA Song 2, QA Jazz One, QA Jazz One`; Photos / Camera bounds unchanged | A2-d1/start-playing.xml, start-paused.xml, 04-start-playing.png |
+| A2 | d | PASS | `1 GET /json/url/11111111-1111-4111-8111-111111111111` — one, and still one at the end of the row | A2-d1/click-calls.txt, click-calls-end.txt |
+| A2 | e | PASS | row reads `can't play this station`; session `PAUSED \| QA Song 2, …` before = after; `[music] stream: unsupported scheme=file` | A2-d1/file1.xml, slice-file.txt, 06-qa-file-refused.png |
+| A3 | a | PASS | override read back `AndroidWifi;true`; t+15 s `QA Song 1 \| Streaming over mobile data \| PLAYING` | A3-d1/metered-15.xml, 01-metered.png |
+| A3 | b | PASS | airplane t+6 / 12 / 18 s: `Reconnecting… \| \| BUFFERING`, `BUFFERING`, `ERROR`; `[music] stream: lost, retrying` | A3-d1/airplane-12.xml, slice-airplane.txt, 02-reconnecting.png |
+| A3 | c | PASS | back t+5 s `QA Song 1 \| Streaming over mobile data \| PLAYING`, no tap; `[music] stream: reconnected after 18067 ms` | A3-d1/back-5.xml, slice-airplane.txt, 03-playing-again.png |
+| A7 | a | PASS | `[music] server 10.0.2.2:8096: connected`; `server_album:07e8… (QA Server Album)`, `server_artist:QA Server Artist`, two `server_song:` | A7-d1-rerun1/slice-signin.txt, srv2.xml, artists.xml, songs.xml |
+| A7 | b | PASS | `PLAYING \| QA Track One, QA Server Artist, QA Server Album`; elapsed / total `0:06 / 0:30` vs 30.000 s; scrubber present, no live caption; `[music] stream: connected http://10.0.2.2:8096/Audio/07e8f1d6bf6aec8f14dab70db2190eb1/stream codec=mp3` (no `?`) | A7-d1-rerun1/np.xml, slice-song.txt, 05-server-song-playing.png |
+| A7 | c | PASS | `leak_scan.sh` rc 0: every secret `clean` in qa/phase-20 and in `adb logcat -d` (135016 lines); the token read was 32 characters | A7-d1-rerun1/leak-scan.out, leak-scan.rc |
+| A7 | d | PASS | `PLAYING \| QA Song 1, QA Jazz One, QA Jazz One` after the server's song; 2 radio requests after the sign-in, 0 with `Authorization`, 0 with an ApiKey; header names seen: `Accept-Encoding, Connection, Host, Icy-MetaData, User-Agent` | A7-d1-rerun1/fixture-logs/radio.log, radio-requests.txt, session-station.txt |
+
+Each run's full output is `<folder>/run.txt`, its exit code `<folder>/rc.txt` (A2-d1 0, A3-d1 0, A7-d1 1, A7-d1-rerun1 0).
+A3's restore checks passed inside the row (netpolicy `AndroidWifi;none`, Wi-Fi `NOT_METERED`, airplane mode off).
+
+### Driver fault fixed (only that row was re-run; the first run's folder is kept)
+
+| row | the fault | the fix | re-run |
+|---|---|---|---|
+| A7 | the shell still held the server saved by the 10-07 A7 run, so the form opened as "Sign in again" with the address and user name filled in; the driver typed after them (`http://10.0.2.2:809610.0.2.2:8096`, `qaqa`) and the form answered "That isn't a server address". No sign-in was attempted, so a, b and c failed on the driver's input (d passed). A7-d1/srv0.xml, srv1.xml, srv-step.xml | `scripts/a7.sh`: a field that already reads what the row would type is left alone, any other content is deleted first; the form's opening state is recorded and the address / user name are asserted once each before Connect | A7-d1-rerun1: 4 / 0 |
+
+### Observations (not pass conditions)
+
+- **The stream request on the new stack** (A2-d1/fixture-logs/radio.log.jsonl, request 2 `GET /stream/jazz-one`):
+  `User-Agent: Dalvik/2.1.0 (Linux; U; Android 16; Android SDK built for x86_64 Build/BE2A.250530.026.D1)` and
+  `Icy-MetaData: 1` IS on it. Full header list in order: `Icy-MetaData, User-Agent, Accept-Encoding: identity, Host,
+  Connection: Keep-Alive`. The agent is the platform's, set on purpose (`MusicService.kt:135`
+  `.setUserAgent(MusicHttp.platformAgent())`, `MusicHttp.kt:202`); the click call still carries `Tessera/0.1.0
+  (personal launcher; Music)`. The header ORDER differs from the 10-07 build's stream request (there `Accept-Encoding`
+  came before `User-Agent`), which is consistent with the request now coming from a different http client.
+- A3 again read the session as `ERROR` at airplane t+18 s and `PLAYING` 5 s after the network returned — the same as on
+  10-07, not new with D1. Step 1 (the metered override) again did not interrupt the station (no `stream:` line).
+- A7 b's "normal scrubber" is read from the page (scrubber and total present, total = the file's length); the Jellyfin
+  server's own request log was not read, so range requests are shown by the result, not by a logged `Range` header.
+
+### End state (`static-d1/end-state.txt`, 11:01 MDT)
+
+Fixtures down (nothing listens on 8092 / 8093 / 8096); no Jellyfin container; netpolicy `AndroidWifi;none`, Wi-Fi
+NOT_METERED; airplane mode off; no PIN (`locksettings get-disabled` = true), no keyguard; the phone awake on Start
+(`app.tileshell/.StartActivity`); the tested build installed (`apk_matches` yes); the three `qa_*` prefs in place,
+pointing at the stopped fixtures; default keyboard LatinIME; no shell crash in logcat. A home server stays saved in the
+shell (it points at the removed fixture). Nothing committed, nothing pushed; the only tracked file changed besides this
+one is `scripts/a7.sh`.
