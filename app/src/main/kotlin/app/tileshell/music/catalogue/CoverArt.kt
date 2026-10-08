@@ -18,14 +18,17 @@ object CoverArt {
      * Whether a redirect's `Location` is somewhere a cover-art fetch may go: an absolute `https` address whose host is
      * `archive.org` or a subdomain of it — the hosts the network security config keeps https-only. Anything else is
      * refused: plain http, a relative address, another host, a look-alike (`archive.org.evil.example`,
-     * `evilarchive.org`), a user part, a port, a backslash or a control character.
+     * `evilarchive.org`), a user part, a port, a backslash, a control character, or an authority holding anything but
+     * plain ASCII letters, digits, dots and hyphens.
      */
     fun mayFollow(location: String?): Boolean {
         val text = location ?: return false
         if (text.any { it <= ' ' || it == '\\' || it in '\u007f'..'\u009f' }) return false
         if (!text.startsWith("https://", ignoreCase = true)) return false
         val authority = text.substring("https://".length).takeWhile { it != '/' && it != '?' && it != '#' }.lowercase(Locale.ROOT)
-        if (authority.isEmpty() || authority.any { it == '@' || it == ':' || it == '[' || it == '%' }) return false
+        // Letters, digits, dots and hyphens — plain ASCII — and nothing else: no user part, port, bracket or escape, and
+        // (review R20-9) no character the platform's own mapping of a host would turn into one of those or into a `/`.
+        if (authority.isEmpty() || !authority.all { it in 'a'..'z' || it in '0'..'9' || it == '.' || it == '-' }) return false
         return authority == HOST || (authority.endsWith(".$HOST") && authority.split('.').none { it.isEmpty() })
     }
 

@@ -66,6 +66,18 @@ class CoverArtTest {
         )) assertFalse(location, CoverArt.mayFollow(location))
     }
 
+    // Review R20-9: the platform maps a host to ASCII before it connects, and a fullwidth solidus maps to a real one -
+    // so the authority is plain ASCII letters, digits, dots and hyphens, or the redirect is not followed.
+    @Test fun `an authority that is not plain ASCII is refused - a fullwidth solidus, question mark, hash, at-sign, colon or full stop`() {
+        for (location in listOf(
+            "https://evil.example／.archive.org/x", "https://evil.example？.archive.org/x", "https://evil.example＃.archive.org/x",
+            "https://evil.example＠.archive.org/x", "https://evil.example：.archive.org/x", "https://evil.example。archive.org/x",
+            "https://ａrchive.org/x", "https://archive．org/x", "https://ia800100.us.archive.оrg/x.jpg", "https://bücher.archive.org/x",
+            "https://evil.example⁄.archive.org/x", "https://a_b.archive.org/x", "https://a!b.archive.org/x", "https://a,b.archive.org/x",
+        )) assertFalse(location, CoverArt.mayFollow(location))
+        assertTrue(CoverArt.mayFollow("https://IA-800100.us.Archive.org/x.jpg"))
+    }
+
     private val start = "https://coverartarchive.org/release/76df3287-6cda-33eb-8e9a-044b5e15ffdd/front-250"
     private val agent = mapOf("User-Agent" to "Tessera/1.2 (test)")
 
