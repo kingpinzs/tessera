@@ -36,10 +36,14 @@ import java.util.UUID
  * [ServerStore.streamToken] for it, which refuse any other server. It is sent as the `Authorization` header and, for a
  * stream, added as `ApiKey` by the player's data source ([streamResolver]; the shell's own launches only) — so it is in
  * no intent, no saved URL and no line. Every line names the host and a state only.
+ *
+ * Phase 20 (r3 D4): [tag] is the diagnostics tag its lines are written under. Movies & TV runs in `:video` and keeps
+ * `"video"`; the Music app is in the main process and passes `"music"`, so its `[music] server <host>: …` lines land in
+ * the MAIN ring. The store and the token are the same ones either way.
  */
-class MediaServer(context: Context) {
+class MediaServer(context: Context, private val tag: String = "video") {
     private val app = context.applicationContext
-    private val store = storeOf(app)
+    private val store = storeOf(app, tag)
 
     /** What the pages show about the saved server, or null when none is set up. Reads the file every time. */
     fun config(): ServerConfig? = store.display()
@@ -69,7 +73,7 @@ class MediaServer(context: Context) {
                 val signIn = ServerRules.parseSignIn(outcome.body)
                 if (signIn == null) {
                     // An answer with no token, or with one that is not a plain token: the words only (B-1).
-                    Diagnostics.add("video", ServerRules.line(address.label, ServerRules.WORD_BAD_ANSWER))
+                    Diagnostics.add(tag, ServerRules.line(address.label, ServerRules.WORD_BAD_ANSWER))
                     ServerState.UNREACHABLE
                 } else {
                     // Connected only when the token, the address it belongs to and the page's file are all written.
@@ -80,34 +84,52 @@ class MediaServer(context: Context) {
             is FetchOutcome.Status -> ServerRules.stateOf(outcome.code)
             FetchOutcome.NoConnection, FetchOutcome.TooLarge -> ServerState.UNREACHABLE
         }
-        Diagnostics.add("video", ServerRules.line(address.label, state.word))
+        Diagnostics.add(tag, ServerRules.line(address.label, state.word))
         if (state == ServerState.CONNECTED) MediaServerShortcut.publish(app)
         return state
     }
 
     /** `mediaServer.library()`: the server's videos, or the state that stopped the read. Writes the state's line. */
-    fun library(): Pair<ServerState, List<ServerItem>> {
+    fun library(): Pair<ServerState, List<ServerItem>> = list(ServerRules::libraryPath, ServerRules::parseItems)
+
+    /** Phase 20: the server's songs, read as [library] is — the token in the `Authorization` header, the line under [tag]. */
+    fun music(): Pair<ServerState, List<ServerTrack>> = list(ServerRules::musicPath, ServerRules::parseTracks)
+
+    /** One listing of the sealed server: [path] is given the user's id, [parse] the answer's body. */
+    private fun <T> list(path: (userId: String) -> String, parse: (String) -> List<T>?): Pair<ServerState, List<T>> {
         val label = store.display()?.label ?: return ServerState.UNREACHABLE to emptyList()
         val server = store.credential()
-        val url = server?.let { it.base + ServerRules.libraryPath(it.userId) }
+        val url = server?.let { it.base + path(it.userId) }
         val token = url?.let(store::tokenFor)
         if (url == null || token == null) {
-            Diagnostics.add("video", ServerRules.line(label, ServerState.UNAUTHORISED.word))
+            Diagnostics.add(tag, ServerRules.line(label, ServerState.UNAUTHORISED.word))
             return ServerState.UNAUTHORISED to emptyList()
         }
         val outcome = VideoHttp.get(url, mapOf("Authorization" to header(token), "Accept" to "application/json"))
-        val items = (outcome as? FetchOutcome.Answer)?.let { ServerRules.parseItems(it.body) }
+        val items = (outcome as? FetchOutcome.Answer)?.let { parse(it.body) }
         val state = when {
             items != null -> ServerState.CONNECTED
             outcome is FetchOutcome.Status -> ServerRules.stateOf(outcome.code)
             else -> ServerState.UNREACHABLE
         }
-        Diagnostics.add("video", ServerRules.line(label, state.word))
+        Diagnostics.add(tag, ServerRules.line(label, state.word))
         return state to items.orEmpty()
     }
 
     /** `mediaServer.streamUrl(item)`: the direct-play address on the sealed server, with no token in it. */
     fun streamUrl(item: ServerItem): String? = store.credential()?.let { ServerRules.streamUrl(it.base, item.id) }
+
+    /** Phase 20: a song's direct-play address on the sealed server. No token is in it and none is added ([ServerRules.audioStreamUrl]). */
+    fun audioStreamUrl(track: ServerTrack): String? = store.credential()?.let { ServerRules.audioStreamUrl(it.base, track.id) }
+
+    /**
+     * [audioStreamUrl] for each of [tracks], with the sealed server opened ONCE for the list — a file read and a Keystore
+     * call that a queue of a whole library must not repeat per song. Blocks: off the main thread.
+     */
+    fun audioStreamUrls(tracks: List<ServerTrack>): List<String?> {
+        val base = store.credential()?.base
+        return tracks.map { track -> base?.let { ServerRules.audioStreamUrl(it, track.id) } }
+    }
 
     /** An item's picture, asked for with the token in the header. Null when there is none. */
     fun thumbnail(item: ServerItem): Bitmap? {
@@ -144,8 +166,8 @@ class MediaServer(context: Context) {
         const val CONFIG_FILE = ServerStore.CONFIG_FILE
         private const val DEVICE_FILE = ServerStore.DEVICE_FILE
 
-        private fun storeOf(app: Context): ServerStore =
-            ServerStore(app.filesDir, CredentialStore.of(app)) { Diagnostics.add("video", it) }
+        private fun storeOf(app: Context, tag: String = "video"): ServerStore =
+            ServerStore(app.filesDir, CredentialStore.of(app)) { Diagnostics.add(tag, it) }
 
         /**
          * What the player's data source does to a request as it opens: a direct-play request to the server the token

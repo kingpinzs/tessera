@@ -41,12 +41,18 @@ class EndpointLiteralScanTest {
         )) put(service, "a streaming service's link, handed to that service's app" to "video/handoff/ServicesTable.kt")
         // The QA fixture service of the same table: offered in a debug build only, and a reserved name (.test) that resolves nowhere.
         put("qa-flix.test", "the debug-only fixture service's link" to "video/handoff/ServicesTable.kt")
+        // "Listen on" (phase 20): a music service's own search, handed to THAT service's app with a VIEW intent. The shell requests none of them.
+        for (service in listOf("www.pandora.com", "music.youtube.com", "music.amazon.com", "music.apple.com", "www.deezer.com", "soundcloud.com")) {
+            put(service, "a music service's search link, handed to that service's app" to "music/handoff/MusicServicesTable.kt")
+        }
+        put("qa-tunes.test", "the debug-only fixture music service's link" to "music/handoff/MusicServicesTable.kt")
     }
 
     /** Files that hold a scheme prefix or a URL whose host is not in the literal: file to why. */
     private val DYNAMIC: Map<String, String> = mapOf(
         "video/server/ServerRules.kt" to "reads the scheme off the media server address the user typed (Q-D A: the user's own server)",
         "video/catalogue/CatalogueRules.kt" to "accepts a QA base URL pref by its scheme, in a debug build only",
+        "music/catalogue/CoverArt.kt" to "reads the scheme off a Cover Art redirect's Location, to refuse every host but https archive.org (phase 20, r3 D13)",
     )
 
     private data class Literal(val line: Int, val text: String)

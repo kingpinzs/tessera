@@ -1,5 +1,6 @@
 package app.tileshell.music
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -17,6 +18,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.Util
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.DefaultExtractorsFactory
@@ -26,8 +29,21 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import app.tileshell.tiles.engine.TileRouting
+import app.tileshell.video.GuardedDataSource
 import app.tileshell.diag.Diagnostics
 import app.tileshell.files.FilesProvider
+import app.tileshell.music.radio.RadioDirectoryStore
+import app.tileshell.music.radio.RadioFavourites
+import app.tileshell.music.radio.RadioFavouritesStore
+import app.tileshell.music.radio.RadioNet
+import app.tileshell.music.radio.RadioSearchRule
+import app.tileshell.music.radio.RadioText
+import app.tileshell.music.radio.Station
+import app.tileshell.music.radio.StationItem
+import app.tileshell.music.radio.StationLogos
+import app.tileshell.music.radio.StationStart
+import app.tileshell.music.radio.StreamLine
+import app.tileshell.music.radio.StreamWatch
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import java.io.ByteArrayOutputStream
@@ -83,6 +99,16 @@ class MusicService : MediaSessionService() {
     // ---- E17: crossfade ---------------------------------------------------------------------------
     private var crossfade: CrossfadeFader? = null
 
+    // ---- phase 20: stations -----------------------------------------------------------------------
+    private var known: KnownDurationPlayer? = null
+
+    /** The reconnect clock, the stream's lines and the metered caption; its two texts ride the session's extras. */
+    private var stream: StreamWatch? = null
+
+    /** The station the logo below was looked up for, and that logo (null: none had yet): one look-up an item, not one a read. */
+    private var logoFor: String? = null
+    private var logo: ByteArray? = null
+
     override fun onCreate() {
         super.onCreate()
         // A session id of the service's own, set BEFORE any audio plays, so the equaliser can be
@@ -97,13 +123,23 @@ class MusicService : MediaSessionService() {
         // seek to where the fader has got to; a VBR file without a seek table otherwise seeks to an
         // ESTIMATE, and two copies of one song a second apart cannot be swapped without hearing it. Index
         // seeking reads up to the target instead, which on a local file is fast.
+        // Phase 20 (r3 D11 / D12): outermost, so every address a media source asks for — a station's playlist names
+        // segments, keys and playlists of its own — is weighed by MusicSourceRule before anything opens it. The
+        // crossfade's fader is handed this same factory.
+        val upstream = DefaultDataSource.Factory(this)
+        val qaHost = RadioNet.qaHost(this)
+        val sources = DataSource.Factory { GuardedDataSource(upstream.createDataSource()) { asked -> MusicSources.own.mayOpen(asked, qaHost) } }
         val mediaSourceFactory = DefaultMediaSourceFactory(
-            this,
+            sources,
             DefaultExtractorsFactory().setMp3ExtractorFlags(Mp3Extractor.FLAG_ENABLE_INDEX_SEEKING),
         )
         val exo = ExoPlayer.Builder(this, mediaSourceFactory)
             .setAudioAttributes(attributes, /* handleAudioFocus = */ true)
             .setHandleAudioBecomingNoisy(true)
+            // Phase 20 build task 2: a stream through a screen-off needs the CPU and the Wi-Fi radio held while it plays
+            // (a wake lock and a Wi-Fi lock, only while READY or BUFFERING). The shared player, so a local track gets it
+            // too — which is the screen-off half phase 10 still owed.
+            .setWakeMode(C.WAKE_MODE_NETWORK)
             .build()
         exo.audioSessionId = audioSession
         exo.addListener(object : Player.Listener {
@@ -115,10 +151,23 @@ class MusicService : MediaSessionService() {
                     clearSleep()
                 }
             }
+
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                // Phase 20 (r3 D15): a stream never reaches its end, so an end-of-track timer armed for the track
+                // queue a station queue replaced could never fire.
+                if (MusicLive.clearsEndOfTrack(sleepEndOfTrack, mediaItem?.mediaId)) {
+                    clearSleep()
+                    Diagnostics.add(StreamLine.TAG, StreamLine.SLEEP_CLEARED)
+                }
+                fetchLogo(mediaItem?.mediaId)
+            }
         })
         player = exo
-        // Everything outside this service sees the track length even when the MP3 carries no header (J2).
-        val known = KnownDurationPlayer(exo)
+        stream = StreamWatch(this, exo, handler) { publishExtras() }
+        // Everything outside this service sees the track length even when the MP3 carries no header (J2), and a
+        // station's title and logo (phase 20).
+        val known = KnownDurationPlayer(exo) { stationLogo(it) }
+        this.known = known
         crossfade = CrossfadeFader(this, known, audioSession, mediaSourceFactory, attributes) { sleepEndOfTrack }.also {
             it.settingMs = prefs.getInt(KEY_CROSSFADE, Crossfade.OFF)
             Diagnostics.add("music", "crossfade: ${it.settingMs} ms (restored)")
@@ -186,11 +235,12 @@ class MusicService : MediaSessionService() {
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
             val query = mediaItems.singleOrNull()?.requestMetadata?.searchQuery
             if (query != null) {
-                val match = MusicSearch.resolve(query, library())
+                val match = MusicSearch.resolve(query, library(), RadioSearchRule.stationsFor(controller.uid, Process.myUid(), ::radioStations))
                 if (match == null) {
                     Diagnostics.add("music", "search \"${MusicQueueStart.lineQuery(query)}\": nothing in the library")
                     return Futures.immediateFailedFuture(UnsupportedOperationException("no match in the library"))
                 }
+                match.station?.let { return startedStation(query, it) }
                 Diagnostics.add("music", "search \"${MusicQueueStart.lineQuery(query)}\": ${match.kind.name.lowercase()} ${match.label}, ${match.queue.size} track(s)")
                 return started(match.queue.map { mediaItem(it) }, MusicQueueStart.search(match.queue.size, match.startIndex))
             }
@@ -242,6 +292,20 @@ class MusicService : MediaSessionService() {
             return parts
         }
 
+        /**
+         * A search's station match (phase 20, r3 D1 / D6; reached only for the shell's own controller —
+         * [RadioSearchRule]): the queue a tap on that station plays, as [StationStart] plans it — the network's answer
+         * first, then the station's own address, the favourites around it — built by [StationItem] and nothing else.
+         * A refused start hands the player nothing and what is playing goes on.
+         */
+        private fun startedStation(query: String, station: Station): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+            val plan = StationStart.plan(RadioNet.gate(this@MusicService, isStation = true), RadioFavourites.queueFor(station, RadioFavouritesStore.get(this@MusicService).stations()), RadioNet.qaHost(this@MusicService))
+            Diagnostics.add("music", "search \"${MusicQueueStart.lineQuery(query)}\": station ${RadioText.shown(station.name, RadioText.NAME_MAX)}")
+            plan.lines.forEach { Diagnostics.add(StreamLine.TAG, it) }
+            val items = stationItems(this@MusicService, plan.stations)
+            return started(items, MusicQueueStart.search(items.size, plan.start))
+        }
+
         /** The one place a list with a start is made for the player: [MusicQueueStart]'s index and position, or a refusal. */
         private fun started(items: List<MediaItem>, start: MusicQueueStart.Start): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
             return when (start) {
@@ -249,6 +313,46 @@ class MusicService : MediaSessionService() {
                 is MusicQueueStart.Start.At -> Futures.immediateFuture(MediaSession.MediaItemsWithStartPosition(items, start.index, start.positionMs))
             }
         }
+    }
+
+    /**
+     * The stations a search by the shell's own controller may find: the favourites, and the directory as far as this
+     * process has it in memory — never read from its file here, which is the main thread (Tess reads it before she asks).
+     */
+    private fun radioStations(): MusicSearch.Stations =
+        MusicSearch.Stations(RadioFavouritesStore.get(this).favourites.value) { RadioDirectoryStore.get(this).directory.value.index }
+
+    /** The station a `station:` media id names, from what is in memory: a favourite, else the directory's row. */
+    private fun stationOf(mediaId: String?): Station? {
+        val uuid = MusicLive.stationUuid(mediaId) ?: return null
+        return RadioFavouritesStore.get(this).stations().firstOrNull { it.uuid == uuid } ?: RadioDirectoryStore.get(this).directory.value.index.byUuid(uuid)
+    }
+
+    /**
+     * The playing station's logo as the session's metadata carries it (r3 D2): the bytes the shell fetched and bounded
+     * ([StationLogos]), never an address. Asked on every read of the metadata, so it is looked up once an item.
+     */
+    private fun stationLogo(mediaId: String): ByteArray? {
+        if (logoFor != mediaId) {
+            logoFor = mediaId
+            logo = stationOf(mediaId)?.let { StationLogos.get(this).cached(it) }
+        }
+        return logo
+    }
+
+    /** A station became the loaded item: its logo is fetched off the main thread when it is not at hand, and the session told. */
+    private fun fetchLogo(mediaId: String?) {
+        val station = stationOf(mediaId) ?: return
+        if (mediaId == null || stationLogo(mediaId) != null) return
+        Thread({
+            val bytes = StationLogos.get(this).logo(station) ?: return@Thread
+            handler.post {
+                if (session?.player?.currentMediaItem?.mediaId != mediaId) return@post
+                logoFor = mediaId
+                logo = bytes
+                known?.liveMetadataChanged()
+            }
+        }, "radio-logo").start()
     }
 
     /** The library as the Music screens see it; read now if nothing has loaded it in this process yet. */
@@ -326,7 +430,7 @@ class MusicService : MediaSessionService() {
         art?.let { meta.setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER) }
         return MediaItem.Builder()
             .setMediaId(MusicFile.mediaId(ask))
-            .setUri(uri)
+            .setUri(queued(uri))
             .setMediaMetadata(meta.build())
             .build()
     }
@@ -433,6 +537,8 @@ class MusicService : MediaSessionService() {
                 putStringArray(MusicCommands.X_EQ_PRESETS, presetNames().toTypedArray())
                 putBoolean(MusicCommands.X_EQ_AVAILABLE, equalizer != null)
                 putInt(MusicCommands.X_CROSSFADE_MS, crossfade?.settingMs ?: Crossfade.OFF)
+                stream?.state?.let { putString(MusicCommands.X_STREAM_STATE, it) }
+                stream?.meteredLine?.let { putString(MusicCommands.X_METERED_LINE, it) }
             },
         )
     }
@@ -450,6 +556,9 @@ class MusicService : MediaSessionService() {
 
     override fun onDestroy() {
         handler.removeCallbacks(sleepRunnable)
+        stream?.release()
+        stream = null
+        known = null
         crossfade?.shutdown()
         crossfade = null
         equalizer?.release()
@@ -472,10 +581,22 @@ class MusicService : MediaSessionService() {
         /** The longer side, in pixels, of a played file's embedded art as the session carries it. */
         private const val FILE_ART_PX = 512
 
+        /**
+         * A station queue as Media3 sees it (phase 20, r3 D1): each station's item from [StationItem] — the only
+         * builder of one — in order. No item carries a logo: the playing station's rides the session's metadata.
+         */
+        fun stationItems(context: Context, stations: List<Station>): List<MediaItem> {
+            val qaHost = RadioNet.qaHost(context)
+            return stations.mapNotNull { (StationItem.build(it, qaHost) as? StationItem.Built.Item)?.item }
+        }
+
+        /** The address the shell is giving one of its own items, told to the data source's guard ([MusicSources]) on the way. */
+        private fun queued(uri: Uri): Uri = uri.also { MusicSources.own.queued(it.toString()) }
+
         /** A track as Media3 sees it: the MediaStore URI, and the metadata the notification shows. */
         fun mediaItem(track: Track): MediaItem = MediaItem.Builder()
             .setMediaId(track.id.toString())
-            .setUri(MusicStore.uriOf(track))
+            .setUri(queued(MusicStore.uriOf(track)))
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(track.title)

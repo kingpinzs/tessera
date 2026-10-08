@@ -46,7 +46,7 @@ object StreamingHandoff {
         val launcher = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setPackage(service.packageName)
         if (pm.queryIntentActivities(launcher, 0).isNotEmpty()) return true
         val probe = service.searchUrl?.replace("%s", "x") ?: return false
-        return pm.queryIntentActivities(view(probe, service), 0).isNotEmpty()
+        return pm.queryIntentActivities(view(probe, service.packageName), 0).isNotEmpty()
     }
 
     /**
@@ -56,7 +56,7 @@ object StreamingHandoff {
      * a verified domain). Blocking — it may ask Wikidata: call it off the main thread.
      */
     fun openTitle(context: Context, service: StreamingService, title: TitleRef): Intent? =
-        intentFor(context, service, ServicesTable.plan(service, title, wikidataIds(context, service, title)), fallback = false)?.first
+        intentFor(context, service.packageName, ServicesTable.plan(service, title, wikidataIds(context, service, title)), fallback = false)?.first
 
     /**
      * Starts the hand-off and writes its lines. An intent nothing answers falls back to the search address, and when
@@ -65,23 +65,49 @@ object StreamingHandoff {
     fun open(context: Context, service: StreamingService, title: TitleRef): Opened {
         val plan = ServicesTable.plan(service, title, wikidataIds(context, service, title))
         for (fallback in listOf(false, true)) {
-            val (intent, address) = intentFor(context, service, plan, fallback) ?: continue
-            try {
-                context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                Diagnostics.add("video", ServicesTable.openLine(service, title, address))
-                return when {
-                    address == "launch" -> Opened.LAUNCH
-                    plan is HandoffPlan.Title && !fallback -> Opened.TITLE
-                    else -> Opened.SEARCH
-                }
-            } catch (e: ActivityNotFoundException) {
-                // The next form, if there is one.
-            } catch (e: SecurityException) {
-                // An activity that is there but not open to the shell answers as if it were not.
+            val (intent, address) = intentFor(context, service.packageName, plan, fallback) ?: continue
+            // An intent nothing answers: the next form, if there is one.
+            if (!start(context, intent)) continue
+            Diagnostics.add("video", ServicesTable.openLine(service, title, address))
+            return when {
+                address == "launch" -> Opened.LAUNCH
+                plan is HandoffPlan.Title && !fallback -> Opened.TITLE
+                else -> Opened.SEARCH
             }
         }
         Diagnostics.add("video", ServicesTable.openLine(service, title, "not installed"))
         return Opened.NOT_INSTALLED
+    }
+
+    /**
+     * Phase 20 (r3 D3 (c)): the same try-next loop over a LIST of plans, for a caller with no [StreamingService] —
+     * Music's "Listen on <app>". Each plan is tried in order against [packageName] until one is answered; after every
+     * try [line] is asked — the plan, and whether it opened — for the line to write under [tag], or null for none.
+     * [Opened.NOT_INSTALLED] when nothing answered: the app has gone since the list was drawn. Every intent names
+     * [packageName]; nothing here blocks.
+     */
+    fun openPlans(context: Context, packageName: String, plans: List<HandoffPlan>, tag: String = "music", line: (plan: HandoffPlan, opened: Boolean) -> String?): Opened {
+        for (plan in plans) {
+            val opened = intentFor(context, packageName, plan, fallback = false)?.let { start(context, it.first) } == true
+            line(plan, opened)?.let { Diagnostics.add(tag, it) }
+            if (opened) return when (plan) {
+                is HandoffPlan.Title -> Opened.TITLE
+                HandoffPlan.Launch -> Opened.LAUNCH
+                else -> Opened.SEARCH
+            }
+        }
+        return Opened.NOT_INSTALLED
+    }
+
+    /** Starts [intent]; false when nothing answers it. */
+    private fun start(context: Context, intent: Intent): Boolean = try {
+        context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        true
+    } catch (e: ActivityNotFoundException) {
+        false
+    } catch (e: SecurityException) {
+        // An activity that is there but not open to the shell answers as if it were not.
+        false
     }
 
     /** The line a title page writes for a service its catalogue names that is not on the phone. */
@@ -89,14 +115,19 @@ object StreamingHandoff {
         Diagnostics.add("video", ServicesTable.openLine(service, title, "not installed"))
     }
 
-    private fun intentFor(context: Context, service: StreamingService, plan: HandoffPlan, fallback: Boolean): Pair<Intent, String>? = when (plan) {
-        is HandoffPlan.Title -> if (!fallback) view(plan.url, service) to plan.url else plan.searchFallback?.let { view(it, service) to it }
-        is HandoffPlan.Search -> if (!fallback) view(plan.url, service) to plan.url else null
-        HandoffPlan.Launch -> if (!fallback) context.packageManager.getLaunchIntentForPackage(service.packageName)?.let { it to "launch" } else null
+    private fun intentFor(context: Context, packageName: String, plan: HandoffPlan, fallback: Boolean): Pair<Intent, String>? = when (plan) {
+        is HandoffPlan.Title -> if (!fallback) view(plan.url, packageName) to plan.url else plan.searchFallback?.let { view(it, packageName) to it }
+        is HandoffPlan.Search -> if (!fallback) view(plan.url, packageName) to plan.url else null
+        is HandoffPlan.PlayFromSearch -> if (!fallback) playFromSearch(plan.intent(packageName)) to plan.intent(packageName).action else null
+        HandoffPlan.Launch -> if (!fallback) context.packageManager.getLaunchIntentForPackage(packageName)?.let { it to "launch" } else null
     }
 
-    private fun view(url: String, service: StreamingService): Intent =
-        Intent(Intent.ACTION_VIEW, Uri.parse(url)).setPackage(service.packageName)
+    private fun view(url: String, packageName: String): Intent =
+        Intent(Intent.ACTION_VIEW, Uri.parse(url)).setPackage(packageName)
+
+    /** [HandoffPlan.PlayFromSearch] as an intent: its action, the package, its extras — and no data. */
+    private fun playFromSearch(spec: HandoffIntent): Intent =
+        Intent(spec.action).setPackage(spec.packageName).apply { for ((name, value) in spec.extras) putExtra(name, value) }
 
     // ---- Wikidata (T17-15, BS-4): a service's own title id by the TMDB id; keyless; one query at a time; cached 7 days.
 

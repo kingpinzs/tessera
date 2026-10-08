@@ -1,5 +1,7 @@
 package app.tileshell.video.handoff
 
+import android.app.SearchManager
+import android.provider.MediaStore
 import app.tileshell.net.MiniJson
 import app.tileshell.net.jsonArray
 import app.tileshell.net.jsonObject
@@ -42,7 +44,30 @@ sealed interface HandoffPlan {
 
     /** No id and no search address (Disney+): the app itself is opened. */
     data object Launch : HandoffPlan
+
+    /**
+     * Phase 20 (r3 D3 (b)): Android's `MEDIA_PLAY_FROM_SEARCH`, tried for a music app after its search links and before
+     * the plain open. Its intent names the app's package and carries NO data URI: the query and an unstructured focus
+     * are its two extras ([intent]) — the platform's contract asks for both.
+     */
+    data class PlayFromSearch(val query: String) : HandoffPlan {
+        fun intent(packageName: String): HandoffIntent =
+            HandoffIntent(ACTION, packageName, null, mapOf(SearchManager.QUERY to query, MediaStore.EXTRA_MEDIA_FOCUS to FOCUS_ANY))
+
+        companion object {
+            const val ACTION = MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH
+
+            /** "Play this, whatever it is": the focus of a query that is not known to be an artist, an album or a song. */
+            const val FOCUS_ANY = "vnd.android.cursor.item/*"
+        }
+    }
 }
+
+/**
+ * What a hand-off's intent holds, before any Android object exists — so a unit test reads exactly what leaves the
+ * shell (phase 20, build task 12's trust surface). Only the platform's constant NAMES are used to make one.
+ */
+data class HandoffIntent(val action: String, val packageName: String, val data: String?, val extras: Map<String, String>)
 
 /**
  * The services table and its logic (build task 11; T17-1, T17-15, r3 D13), free of Android types so the unit tests

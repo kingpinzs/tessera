@@ -77,6 +77,11 @@ import androidx.compose.ui.unit.dp
 import app.tileshell.applist.AppListMetrics
 import app.tileshell.bars.BarMetrics
 import app.tileshell.diag.Diagnostics
+import app.tileshell.music.radio.RadioFavourites
+import app.tileshell.music.radio.RadioFavouritesStore
+import app.tileshell.music.server.ServerLibrary
+import app.tileshell.video.server.ServerTrack
+import androidx.compose.runtime.collectAsState
 import app.tileshell.bars.W10mNavBar
 import app.tileshell.bars.W10mStatusBar
 import app.tileshell.brand.Glyph
@@ -155,6 +160,10 @@ fun MusicCollectionPage(
     /** Phase 11: a pivot an App Shortcut asked for; [openPivotToken] changes with every request. */
     openPivot: MusicPivot? = null,
     openPivotToken: Any? = null,
+    /** Phase 20: the streaming side's pages and what they hold, kept by the activity ([OnlineNav]). */
+    online: OnlineNav = remember { OnlineNav() },
+    /** Phase 20: a station or a home-server song was started — now-playing opens, as it does for a song of the phone's. */
+    onNowPlaying: () -> Unit = {},
 ) {
     val colors = LocalShellColors.current
     val locale = LocalConfiguration.current.locales[0]
@@ -166,6 +175,11 @@ fun MusicCollectionPage(
     var contentTopPx by remember { mutableStateOf(0f) }
     val pager = rememberPagerState { MusicPivot.entries.size }
     LaunchedEffect(openPivotToken) {
+        // A NEW request (an App Shortcut) closes whatever streaming page is open; coming back from now-playing does not.
+        if (openPivotToken !== online.seenPivotToken) {
+            online.stack.clear()
+            online.seenPivotToken = openPivotToken
+        }
         val target = openPivot ?: return@LaunchedEffect
         detail = null
         openPlaylist = null
@@ -175,10 +189,11 @@ fun MusicCollectionPage(
 
     // Innermost first: an overlay closes before the page under it does. L13-6: an overlay's Back is applied at once, so
     // a touch right after it is not hit-tested against the overlay it closed (its OverlayLayer stops placing it).
-    BackHandler(enabled = naming != null || menu != null || openPlaylist != null || detail != null) {
+    BackHandler(enabled = naming != null || menu != null || online.top != null || openPlaylist != null || detail != null) {
         when {
             naming != null -> dismissOverlay { naming = null }
             menu != null -> dismissOverlay { menu = null }
+            online.top != null -> online.back()
             openPlaylist != null -> openPlaylist = null
             else -> detail = null
         }
@@ -203,6 +218,56 @@ fun MusicCollectionPage(
         },
     )
 
+    // ---- phase 20: the radio pivot's stations, wherever one is listed ----
+    val context = LocalContext.current
+    // The favourites file is read off the main thread; until it is, there are none to show.
+    val favouriteStore by produceState<RadioFavouritesStore?>(null) { value = withContext(Dispatchers.IO) { RadioFavouritesStore.get(context) } }
+    val favourites = favouriteStore?.favourites?.collectAsState()?.value.orEmpty()
+    val favouriteStations = remember(favourites) { favourites.map { it.station } }
+    val stationActions = StationActions(
+        refusalOf = { online.refused[it.uuid] },
+        onTap = { station ->
+            // The player answers null when it started the station, else what to say instead ("can't play this station").
+            val refusal = MusicPlayer.playStations(context, station)
+            if (refusal == null) {
+                online.refused.remove(station.uuid)
+                onNowPlaying()
+            } else {
+                online.refused[station.uuid] = refusal
+            }
+        },
+        // T20-4: add to / remove from favourites, and nothing else — a station is never pinned to Start.
+        onHold = { station, anchorPx ->
+            val store = favouriteStore
+            if (store != null) {
+                val entry =
+                    if (favourites.any { it.station.uuid == station.uuid }) {
+                        MenuEntry("Remove from favourites", "music_menu_fav_remove") {
+                            menu = null
+                            scope.launch(Dispatchers.IO) { store.remove(station.uuid) }
+                        }
+                    } else {
+                        MenuEntry("Add to favourites", "music_menu_fav_add") {
+                            menu = null
+                            scope.launch(Dispatchers.IO) {
+                                if (!store.add(station)) withContext(Dispatchers.Main) { online.refused[station.uuid] = FAVOURITES_FULL }
+                            }
+                        }
+                    }
+                menu = MenuState(anchorPx - contentTopPx, listOf(entry))
+            }
+        },
+    )
+    val playServer: (List<ServerTrack>, Int) -> Unit = { tracks, index ->
+        val server = online.server
+        if (server != null) {
+            MusicPlayer.playServerTracks(context, server, tracks, index) { refusal ->
+                online.serverNotice = refusal
+                if (refusal == null) onNowPlaying()
+            }
+        }
+    }
+
     // The shell's own chrome, drawn by the page as every other shell-owned page draws it: the music
     // player is an app INSIDE the shell, so it gets the same status bar and the same W10M nav bar
     // rather than Android's.
@@ -226,7 +291,21 @@ fun MusicCollectionPage(
                 },
         ) {
             val open = detail
-            if (playlist != null) {
+            val streaming = online.top
+            if (streaming != null) {
+                when (streaming) {
+                    RadioSearchPage -> RadioSearch(online, favouriteStations, stationActions)
+                    RadioGenresPage -> RadioGenres(online)
+                    RadioCountriesPage -> RadioCountries(online)
+                    is RadioGenrePage -> RadioGenre(streaming, favouriteStations, stationActions)
+                    is RadioCountryPage -> RadioCountryStations(streaming, favouriteStations, stationActions)
+                    CatalogueSearchPage -> CatalogueSearch(online)
+                    is CatalogueTitlePage -> CatalogueTitle(streaming)
+                    ServerPage -> ServerMusic(online, playServer)
+                    is ServerAlbumPage -> ServerSongsPage(streaming.album.artist, streaming.album.name, "server_page:album", streaming.album.tracks, online.serverNotice, playServer)
+                    is ServerArtistPage -> ServerSongsPage(ServerLibrary.countText(streaming.artist.tracks.size), streaming.artist.name, "server_page:artist", streaming.artist.tracks, online.serverNotice, playServer)
+                }
+            } else if (playlist != null) {
                 PlaylistDetailPage(
                     playlist = playlist,
                     tracks = PlaylistRules.tracksOf(playlist, tracks),
@@ -261,11 +340,20 @@ fun MusicCollectionPage(
                     LaunchedEffect(pager.settledPage) {
                         Diagnostics.add("music", "pivot settled on ${MusicPivot.entries[pager.settledPage].title}")
                     }
-                    PivotHeaders(pager.currentPage + pager.currentPageOffsetFraction) { page ->
+                    PivotHeaders(
+                        MusicPivot.entries.map { it.title },
+                        MusicPivot.entries.map { "music_pivot_header:${it.name.lowercase()}" },
+                        pager.currentPage + pager.currentPageOffsetFraction,
+                    ) { page ->
                         scope.launch { pager.animateScrollToPage(page, animationSpec = androidx.compose.animation.core.tween(app.tileshell.ui.motion.Motion.PIVOT_SETTLE_MS)) }
                     }
                     HorizontalPager(state = pager, modifier = Modifier.fillMaxSize().testTag("music_pivot")) { index ->
                         val pivot = MusicPivot.entries[index]
+                        if (pivot == MusicPivot.RADIO) {
+                            // Phase 20: the fifth pivot draws from the directory and the favourites, not from the library.
+                            RadioPivot(active = pager.settledPage == index, nav = online, favourites = favouriteStations, actions = stationActions)
+                            return@HorizontalPager
+                        }
                         val page = remember(pivot, tracks, playlists, locale) { MusicCollection.page(pivot, tracks, playlists, locale) }
                         PivotPage(
                             pivot = pivot,
@@ -283,7 +371,7 @@ fun MusicCollectionPage(
                                             naming = null
                                         }
                                     }
-                                    is LetterHeader -> Unit
+                                    is LetterHeader, is RadioItem -> Unit
                                 }
                             },
                             onHold = { item, anchorPx ->
@@ -351,12 +439,15 @@ fun MusicCollectionPage(
  * So each page has its own offset, `max(0, headerRight − visibleWidth)`, and the strip interpolates
  * between the two the swipe is between. That makes the scroll-in and the scroll-out the same motion
  * run in opposite directions, and it returns to zero on the way back without any state to reset.
+ *
+ * Phase 20: the headers are handed in ([titles], and each one's test tag), so the home server's three groupings draw
+ * the same strip; the collection's own are [MusicPivot]'s, as before.
  */
 @Composable
-private fun PivotHeaders(pageOffset: Float, onPick: (Int) -> Unit) {
+internal fun PivotHeaders(titles: List<String>, tags: List<String>, pageOffset: Float, onPick: (Int) -> Unit) {
     val colors = LocalShellColors.current
     val density = LocalDensity.current
-    val widths = remember { mutableStateListOf(*Array(MusicPivot.entries.size) { 0 }) }
+    val widths = remember(titles.size) { mutableStateListOf(*Array(titles.size) { 0 }) }
     BoxWithConstraints(
         Modifier
             .fillMaxWidth()
@@ -375,7 +466,7 @@ private fun PivotHeaders(pageOffset: Float, onPick: (Int) -> Unit) {
                 (right - visiblePx).coerceAtLeast(0f)
             }
         }
-        val last = MusicPivot.entries.lastIndex
+        val last = titles.lastIndex
         val lo = pageOffset.toInt().coerceIn(0, last)
         val hi = (lo + 1).coerceAtMost(last)
         val shift = shiftFor[lo] + (shiftFor[hi] - shiftFor[lo]) * (pageOffset - lo).coerceIn(0f, 1f)
@@ -388,10 +479,10 @@ private fun PivotHeaders(pageOffset: Float, onPick: (Int) -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(MusicMetrics.PIVOT_GAP),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            MusicPivot.entries.forEachIndexed { i, pivot ->
+            titles.forEachIndexed { i, title ->
                 val ink = if (i == current) colors.text else colors.text.copy(alpha = MusicMetrics.PIVOT_DIM)
                 BasicText(
-                    pivot.title,
+                    title,
                     style = ShellType.subheader.copy(color = ink),
                     maxLines = 1,
                     softWrap = false,
@@ -402,7 +493,7 @@ private fun PivotHeaders(pageOffset: Float, onPick: (Int) -> Unit) {
                         // Role.Tab: Compose reports `selected` as checked on any other node (E15's first run read
                         // checked="true" on the right header and selected="false" on all four).
                         .semantics { role = Role.Tab; selected = i == current }
-                        .testTag("music_pivot_header:${pivot.name.lowercase()}"),
+                        .testTag(tags[i]),
                 )
             }
         }
@@ -458,6 +549,8 @@ private fun PivotPage(
                     is SongItem -> SongRow(item, onTap = { onTap(item) }, onHold = { y -> onHold(item, y) })
                     is PlaylistItem -> PlaylistRow(item, onTap = { onTap(item) }, onHold = { y -> onHold(item, y) })
                     NewPlaylistItem -> NewPlaylistRow { onTap(item) }
+                    // Phase 20: the radio pivot's lines are drawn by RadioPivot, never by this page.
+                    is RadioItem -> Unit
                 }
             }
         }
@@ -551,10 +644,13 @@ private fun SongRow(item: SongItem, onTap: () -> Unit, onHold: ((Float) -> Unit)
     }
 }
 
+/** What a station's row says when the favourites already hold [RadioFavourites.MAX]. */
+private const val FAVOURITES_FULL = "Favourites are full"
+
 private fun countText(n: Int): String = if (n == 1) "1 song" else "$n songs"
 
 /** What an open menu or name box is about; held by the page so Back can close the innermost first. */
-private data class MenuState(val anchorPx: Float, val entries: List<MenuEntry>)
+internal data class MenuState(val anchorPx: Float, val entries: List<MenuEntry>)
 
 private data class NamingState(val caption: String, val initial: String, val onDone: (String) -> Unit)
 
@@ -674,7 +770,7 @@ private fun PlaylistDetailPage(
 }
 
 /** A play triangle, or the two pause bars while this row is the one sounding. */
-private fun DrawScope.drawTransportMark(paused: Boolean, ink: Color) {
+internal fun DrawScope.drawTransportMark(paused: Boolean, ink: Color) {
     val side = minOf(size.width, size.height) * 0.42f
     val half = side / 2f
     val cx = size.width / 2f
@@ -696,7 +792,7 @@ private fun DrawScope.drawTransportMark(paused: Boolean, ink: Color) {
 
 /** The app list's row, with whatever square belongs on the left of it. */
 @Composable
-private fun TwoLineRow(
+internal fun TwoLineRow(
     tag: String,
     primary: String,
     secondary: String,
@@ -752,7 +848,7 @@ private fun TwoLineRow(
 }
 
 @Composable
-private fun AlbumArt(art: ImageBitmap?) {
+internal fun AlbumArt(art: ImageBitmap?) {
     val colors = LocalShellColors.current
     if (art != null) {
         Image(art, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(MusicMetrics.ART))

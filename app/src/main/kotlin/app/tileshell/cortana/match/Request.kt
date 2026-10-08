@@ -37,6 +37,11 @@ sealed interface Request {
     data object TimeQuery : Action
     data object DateQuery : Action
     data class PlayMusic(val query: String?) : Action
+    /**
+     * Phase 20 (Q5 A; r3 D7): "listen to <x> on <app>" — a hand-off to an installed music app, opened on its own
+     * search for [query]. It starts another app's activity, so unlike [PlayMusic] it is gated while locked.
+     */
+    data class ListenOn(val query: String, val app: String) : Action
     data class Directions(val destination: String) : Action
     data object TakePhoto : Action
     data class TakeNote(val text: String?) : Action

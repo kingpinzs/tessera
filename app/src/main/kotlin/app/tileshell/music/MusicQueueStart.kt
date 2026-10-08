@@ -68,10 +68,23 @@ object MusicQueueStart {
         return Start.At(before.toInt(), position)
     }
 
-    /** A library search's own queue: it starts at its match when the queue has that index, else at its first track. */
+    /**
+     * A search's own queue — the library's, or (phase 20) a station queue of the favourites: it starts at its match
+     * when the queue has that index, else at its first item.
+     */
     fun search(queueSize: Int, matchIndex: Int): Start {
         if (queueSize <= 0) return Start.Refuse
         return Start.At(if (matchIndex in 0 until queueSize) matchIndex else 0, 0L)
+    }
+
+    /**
+     * A queue of the shell's OWN making (phase 20: a station queue, a home-server queue), some of whose items the
+     * item's own builder refused ([kept] is false for those): where it starts in the list of the kept ones, or null
+     * when the item the person asked for is itself not kept — nothing is played in its place.
+     */
+    fun own(kept: List<Boolean>, startIndex: Int): Int? {
+        if (startIndex !in kept.indices || !kept[startIndex]) return null
+        return (0 until startIndex).count { kept[it] }
     }
 
     /**

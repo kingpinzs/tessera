@@ -295,23 +295,43 @@ class PlayerAccessTest {
     }
 
     /**
-     * C2-M3 is LATENT today because the player links no playlist format: every source is one progressive file, and the
-     * only addresses its data source is asked for are the launch URI and the shell's own subtitle. THE DAY A PLAYLIST
-     * MODULE IS ADDED (media3-exoplayer-hls or -dash — phase 20's radio is the likely first), this test fails, and
-     * these must be re-reviewed before it is changed: (1) `PlayerAccess.mayOpen` for a network launch still admits only
-     * http(s) — a playlist entry naming content:, file:, asset: or android.resource: must stay refused; (2) every
-     * segment, key and nested playlist goes through `GuardedDataSource` (it wraps the factory the media source factory
-     * is given — check the new module's own data source factories, for keys and init segments in particular);
-     * (3) the media server's token (`MediaServer.streamResolver`) must not ride on a playlist's segment requests to
-     * another host; (4) a content launch of a playlist file must still open only the launch URI.
+     * C2-M3 is LIVE since phase 20: `media3-exoplayer-hls` is linked ON PURPOSE (phase 20 Decisions "HLS", r3 D10), so
+     * a `DefaultMediaSourceFactory` — this player's and the music player's — makes an HLS source for a `.m3u8` address,
+     * and a playlist goes on to name segments, keys, init segments and nested playlists of its own. The four points
+     * this test's first form listed were re-reviewed against Media3 1.9.0's HLS module before it was changed —
+     * `docs/plan/qa/phase-20/hls-rereview.md`, point by point — and each is held by a test:
+     *  (1) a network launch's data source still admits only http(s): `C2-M3 a network launch opens only http and https`
+     *      above (a `data:` key is refused with the rest);
+     *  (2) every playlist, segment, key and init segment is opened through `GuardedDataSource` — HLS takes every data
+     *      source from the ONE factory the media source factory was given (`DefaultHlsDataSourceFactory`), and that the
+     *      factory IS the guarded one, asked before the upstream opens, is `media/UriAccessWiringScanTest`
+     *      (`playerProblems` for this player; `musicSourceProblems` for the music player, whose rule is
+     *      `music/MusicSourceRuleTest`);
+     *  (3) the media server's token rides only on the saved server's own `/Videos/<id>/stream`:
+     *      `video/ServerRulesTest` (`mayCarryToken`), asked per REQUEST by the resolver, so a segment on another
+     *      host gets none;
+     *  (4) a content launch opens only the launch URI: `C2-M3 a content launch opens only the launch URI itself` above —
+     *      a playlist read from it gets none of its segments.
+     *
+     * THE DAY ANOTHER SOURCE MODULE IS ADDED this test fails again, and the same four points must be re-reviewed FOR
+     * THAT MODULE before it is changed — its own data source factories in particular: `media3-exoplayer-dash` and
+     * `-smoothstreaming` are handed the factory like HLS, but their manifests name addresses in other ways (base URLs,
+     * templates, `xlink`, licence servers); `media3-exoplayer-rtsp` takes NO data source factory at all — it opens its
+     * own sockets, so neither guard would see anything it does.
      */
-    @Test fun `C2-M3 no playlist media source is linked - HLS and DASH are not on the classpath`() {
-        for (name in listOf("androidx.media3.exoplayer.hls.HlsMediaSource", "androidx.media3.exoplayer.dash.DashMediaSource")) {
-            val found = try { Class.forName(name); true } catch (e: ClassNotFoundException) { false }
-            assertFalse("$name is linked: re-review the player's data source (see this test's comment) before changing this", found)
-        }
-        // The progressive source the player does use is there, so the check above is not vacuous.
-        assertTrue(Class.forName("androidx.media3.exoplayer.source.ProgressiveMediaSource") != null)
+    @Test fun `C2-M3 HLS is linked on purpose and is the only playlist or network source module - DASH, SmoothStreaming and RTSP are not on the classpath`() {
+        fun linked(name: String) = try { Class.forName(name); true } catch (e: ClassNotFoundException) { false }
+        // Linked, and what the re-review read: HLS takes its data sources from the factory it is given, and nowhere else.
+        assertTrue(linked("androidx.media3.exoplayer.hls.HlsMediaSource"))
+        val hlsFactory = Class.forName("androidx.media3.exoplayer.hls.DefaultHlsDataSourceFactory")
+        assertEquals(listOf("androidx.media3.datasource.DataSource\$Factory"), hlsFactory.declaredFields.map { it.type.name })
+        for (name in listOf(
+            "androidx.media3.exoplayer.dash.DashMediaSource",
+            "androidx.media3.exoplayer.smoothstreaming.SsMediaSource",
+            "androidx.media3.exoplayer.rtsp.RtspMediaSource",
+        )) assertFalse("$name is linked: re-review both players' data sources for it (see this test's comment) before changing this", linked(name))
+        // The progressive source both players use is there, so the checks above are not vacuous.
+        assertTrue(linked("androidx.media3.exoplayer.source.ProgressiveMediaSource"))
     }
 
     @Test fun `a file source's path is made canonical before the rule sees it, and a link out of the shell's files is not its own`() {

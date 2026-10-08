@@ -103,6 +103,17 @@ sealed interface FetchOutcome {
     data object TooLarge : FetchOutcome
 }
 
+/** How ONE image request ended when no redirect is followed for it ([VideoHttp.hop]; phase 20, r3 D13). */
+sealed interface ImageHop {
+    class Body(val bytes: ByteArray) : ImageHop
+
+    /** A 3xx answer: where it points, as the server wrote it. Whether that is somewhere to go is the caller's rule. */
+    data class Redirect(val location: String) : ImageHop
+
+    /** Anything else: no connection, another status, an answer over the cap. */
+    data object Failed : ImageHop
+}
+
 /** The catalogue's rules that need no network (build task 12): the cache's age rule, the lines and the notices. */
 object CatalogueRules {
     const val CACHE_DAYS = 7L

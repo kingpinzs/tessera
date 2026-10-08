@@ -85,9 +85,12 @@ private const val FIELD_GAP = 10.6f
  *
  * Tags: `server_host`, `server_user`, `server_password`, `server_connect`, `server_error`, `server_insecure`,
  * `server_insecure_continue`, `server_insecure_cancel`.
+ *
+ * Phase 20 (r3 D4): [tag] is the diagnostics tag the sign-in's lines are written under — `"video"` here, `"music"`
+ * when the Music app shows this form for the same server ([MediaServer]'s own `tag`). Nothing else differs.
  */
 @Composable
-fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?, onConnected: () -> Unit) {
+fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?, tag: String = "video", onConnected: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val focus = LocalFocusManager.current
@@ -105,7 +108,7 @@ fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?,
         busy = true
         error = null
         scope.launch {
-            val state = VideoCalls.io("server sign-in", ServerState.UNREACHABLE) { MediaServer(context).connect(address, user.trim(), secret) }
+            val state = VideoCalls.io("server sign-in", ServerState.UNREACHABLE) { MediaServer(context, tag).connect(address, user.trim(), secret) }
             busy = false
             when (state) {
                 ServerState.CONNECTED -> onConnected()
@@ -124,7 +127,7 @@ fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?,
         when (ServerRules.signInAction(address, answer = null)) {
             SignInAction.ASK -> {
                 // Asked first: nothing is sent — not the sign-in, not a probe — until Continue.
-                Diagnostics.add("video", ServerRules.line(address.label, "insecure, asked"))
+                Diagnostics.add(tag, ServerRules.line(address.label, "insecure, asked"))
                 asking = address
             }
             SignInAction.SEND -> signIn(address)

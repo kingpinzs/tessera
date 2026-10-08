@@ -5,6 +5,7 @@ import app.tileshell.video.server.ServerConfig
 import app.tileshell.video.server.ServerItem
 import app.tileshell.video.server.ServerRules
 import app.tileshell.video.server.ServerState
+import app.tileshell.video.server.ServerTrack
 import app.tileshell.video.server.SignIn
 import app.tileshell.video.server.SignInAction
 import org.junit.Assert.assertEquals
@@ -256,6 +257,65 @@ class ServerRulesTest {
         val url = ServerRules.streamUrl("http://10.0.2.2:8096", "e90356d9dbdedc30a27710927ef3ac87")
         assertEquals("http://10.0.2.2:8096/Videos/e90356d9dbdedc30a27710927ef3ac87/stream?static=true", url)
         assertEquals("http://10.0.2.2:8096/Videos/e90356d9dbdedc30a27710927ef3ac87/stream", ServerRules.withoutQuery("$url&ApiKey=SECRET"))
+    }
+
+    // ---- phase 20 (r3 D4): the server's music
+
+    @Test fun `phase 20 - the music listing asks for Audio items, and its answer is read as tracks`() {
+        assertEquals("/Items?userId=u1&recursive=true&includeItemTypes=Audio&sortBy=SortName", ServerRules.musicPath("u1"))
+        val body = """{"Items":[
+            {"Name":"QA Track One","Id":"e90356d9dbdedc30a27710927ef3ac87","Type":"Audio","Album":"QA Album","AlbumArtist":"QA Artist","Artists":["Someone Else"],"IndexNumber":1,"RunTimeTicks":50000000},
+            {"Name":"QA Track Two","Id":"aa11","Type":"Audio","Album":"QA Album","Artists":["", "QA Guest"],"IndexNumber":2,"RunTimeTicks":123456789},
+            {"Name":"","Id":"bb22","Type":"Audio"},
+            {"Name":"odd numbers","Id":"cc33","IndexNumber":0,"RunTimeTicks":-5},
+            {"Name":"bad id","Id":"../../x","Type":"Audio"},
+            {"Id":5}
+        ],"TotalRecordCount":6,"StartIndex":0}"""
+        assertEquals(
+            listOf(
+                // RunTimeTicks / 10_000 → durationMs: 5 s, and 12 345 ms (the remainder dropped).
+                ServerTrack("e90356d9dbdedc30a27710927ef3ac87", "QA Track One", "QA Album", "QA Artist", 1, 5000L),
+                // No album artist: the first artist that has a name.
+                ServerTrack("aa11", "QA Track Two", "QA Album", "QA Guest", 2, 12345L),
+                ServerTrack("bb22", "bb22", "", "", null, 0L),
+                ServerTrack("cc33", "odd numbers", "", "", null, 0L),
+            ),
+            ServerRules.parseTracks(body),
+        )
+        assertEquals(emptyList<ServerTrack>(), ServerRules.parseTracks("""{"Items":[],"TotalRecordCount":0}"""))
+        assertNull(ServerRules.parseTracks("""{"error":"x"}"""))
+        assertNull(ServerRules.parseTracks("Error processing request."))
+    }
+
+    @Test fun `phase 20 - a song's stream address is direct play with no token`() {
+        val url = ServerRules.audioStreamUrl("http://10.0.2.2:8096", "e90356d9dbdedc30a27710927ef3ac87")
+        assertEquals("http://10.0.2.2:8096/Audio/e90356d9dbdedc30a27710927ef3ac87/stream?static=true", url)
+        assertFalse(url.contains("ApiKey", ignoreCase = true) || url.contains("api_key", ignoreCase = true) || url.contains("Token", ignoreCase = true))
+        assertEquals("the reported address is the address: there is no key to take out", url, ServerRules.reportedUrl(url))
+        // A logged one holds no `?`.
+        assertEquals("http://10.0.2.2:8096/Audio/e90356d9dbdedc30a27710927ef3ac87/stream", ServerRules.withoutQuery(url))
+    }
+
+    @Test fun `phase 20 - as built, an Audio stream carries no token, and a radio host never could`() {
+        val base = "http://10.0.2.2:8096"
+        fun may(url: String, saved: String = base) = ServerRules.mayCarryToken(url, saved)
+        // The saved server's own song: no token is added (Jellyfin 12.1 asks for none on this path).
+        assertFalse(may(ServerRules.audioStreamUrl(base, "e90356d9dbdedc30a27710927ef3ac87")))
+        assertFalse(may("http://10.0.2.2:8096/Audio/ab12/stream"))
+        assertFalse(may("http://10.0.2.2:8096/Audio/ab12/stream?static=true"))
+        assertFalse(may("http://10.0.2.2:8096/Audio/ab12/universal"))
+        assertFalse(may("https://media.example.org/Audio/ab12/stream?static=true", "https://media.example.org"))
+        // The video path still does, on the saved server only — the control that the rule is the one being asked.
+        assertTrue(may("http://10.0.2.2:8096/Videos/ab12/stream?static=true"))
+        // A radio station's address is never the saved server's direct-play path, whatever it is shaped like.
+        for (station in listOf(
+            "http://stream.example.net/Videos/ab12/stream",
+            "http://stream.example.net/Audio/ab12/stream",
+            "https://ice.example.org:8000/live.mp3",
+            "http://10.0.2.2:8080/Videos/ab12/stream",                       // the radio fixture: another port
+            "http://10.0.2.2:8096.radio.example/Videos/ab12/stream",
+            "http://radio.example/stream?u=http://10.0.2.2:8096/Videos/ab12/stream",
+        )) assertFalse(station, may(station))
     }
 
     @Test fun `the address the player reports has no ApiKey`() {

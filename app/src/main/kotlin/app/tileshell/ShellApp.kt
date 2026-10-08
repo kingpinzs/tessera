@@ -61,6 +61,8 @@ class ShellApp : Application() {
         // Phase 17 build task 17 (C-16): what the installed network security config says for each fixed host. Here, not
         // in onCreate, so the lines are also written when this start-up was deferred to the first unlock (C-L5).
         app.tileshell.net.FixedEndpoints.logPolicy()
+        // Phase 20 (Q3's negative): `[music] radio: fm feature=<bool>`, read on the Diagnostics page.
+        app.tileshell.music.radio.RadioNet.logFm(this)
         followPackageChanges(AppCatalog.get(this))
         addCortanaTile()
         addCategoryFolders()

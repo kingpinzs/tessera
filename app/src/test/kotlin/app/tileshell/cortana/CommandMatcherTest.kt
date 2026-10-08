@@ -182,6 +182,31 @@ class CommandMatcherTest {
     }
 
     @Test
+    fun `phase 20 - listen to x on app is a hand-off, split at the last on`() {
+        assertEquals(Request.ListenOn("qa artist", "qa tunes"), match("listen to qa artist on qa tunes"))
+        assertEquals(Request.ListenOn("qa artist", "qa tunes"), match("LISTEN TO QA ARTIST ON QA-TUNES"))
+        assertEquals(Request.ListenOn("bloom", "pandora"), match("please listen to Bloom on Pandora"))
+        // The LAST " on " splits: a title with the word in it stays whole.
+        assertEquals(Request.ListenOn("come on eileen", "pandora"), match("listen to come on eileen on pandora"))
+        assertEquals(Request.ListenOn("rain on me on repeat", "youtube music"), match("listen to rain on me on repeat on youtube music"))
+        // Matched before the weather words are looked for.
+        assertEquals(Request.ListenOn("stormy weather", "pandora"), match("listen to stormy weather on pandora"))
+    }
+
+    @Test
+    fun `phase 20 - the listen rule does not steal play, and listen to x with no app is not it`() {
+        // "play …" stays PlayMusic, whatever follows — a station phrase, or words shaped like the hand-off's.
+        assertEquals(Request.PlayMusic("jazz radio"), match("play jazz radio"))
+        assertEquals(Request.PlayMusic("qa artist on qa tunes"), match("play qa artist on qa tunes"))
+        assertEquals(Request.PlayMusic("listen to your heart on repeat"), match("play listen to your heart on repeat"))
+        assertEquals(Request.PlayMusic(null), match("play music"))
+        // No app, or nothing to listen to: not this request (and nothing else in the list).
+        for (text in listOf("listen to qa artist", "listen to bloom on", "listen to on pandora", "listen to", "listen", "listen to bloom onpandora")) {
+            assertTrue(text, match(text) is Request.NotUnderstood)
+        }
+    }
+
+    @Test
     fun `saving a place at the spot`() {
         assertEquals(Request.SavePlaceHere("Home"), match("this is home"))
         assertEquals(Request.SavePlaceHere("Work"), match("save this as work"))
