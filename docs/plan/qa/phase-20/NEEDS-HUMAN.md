@@ -1,6 +1,6 @@
 # Phase 20 (Music streaming and Radio) — Jeremy's sign-off checklist
 
-**STATUS: READY FOR YOU, with one decision open (D1).** Written 2026-10-07 22:56.
+**STATUS: D1 answered 2026-10-08 ("(a)"); its fix is being built. The phone and sign-off rows wait for that build.** Written 2026-10-07 22:56.
 
 - The build was pushed first (`origin/phase-20` = 62eea325), then the ONE round of testing ran on it.
 - Emulator rows A1–A7: all pass, 28 of 28 lettered conditions (`RESULTS.md` beside this file). The three static
@@ -23,7 +23,7 @@ value, read it on Start settings > Diagnostics and paste it back.
 
 | id | the question | my lean |
 |---|---|---|
-| D1 | **A station entry can make the phone send a request into your home network (review finding R20-1, MEDIUM).** The plan's rule reads only the text of a station's address. A station in the community directory can use a name that resolves to a home address (`192.168.1.1.nip.io`, `nas`, `router.lan`), or a public address that redirects there. The phone then sends one request, with a path the station chose, to a device on your Wi-Fi. Nothing comes back to the station and no password leaves, but some routers and smart devices act on such a request. The plan states this gap on purpose (r3 D12). Choices: **A** close it fully — check the real address when connecting, redirects included (likely adds one Media3 module; needs one more push and a re-run of rows A2 and A3); **B** close names only — a redirect still gets through; **C** leave it as planned and accept the risk. Asked in chat 2026-10-07; your reply was "push all changes", which I did not read as an answer. | A |
+| D1 | **A station entry can make the phone send a request into your home network (review finding R20-1, MEDIUM).** The plan's rule reads only the text of a station's address. A station in the community directory can use a name that resolves to a home address (`192.168.1.1.nip.io`, `nas`, `router.lan`), or a public address that redirects there. The phone then sends one request, with a path the station chose, to a device on your Wi-Fi. Nothing comes back to the station and no password leaves, but some routers and smart devices act on such a request. The plan states this gap on purpose (r3 D12). Choices: **A** close it fully — check the real address when connecting, redirects included (likely adds one Media3 module; needs one more push and a re-run of rows A2 and A3); **B** close names only — a redirect still gets through; **C** leave it as planned and accept the risk. Asked in chat 2026-10-07; your reply was "push all changes", which I did not read as an answer. **ANSWERED 2026-10-08 08:16: "(a)" — close it fully. Being built; then one more push, then rows A2 and A3 run once more.** | A |
 
 ## Phone rows (the CI build, on the S25 Ultra)
 
