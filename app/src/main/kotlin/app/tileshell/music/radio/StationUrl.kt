@@ -27,8 +27,9 @@ import java.util.Locale
  *    in carrier-grade NAT (100.64/10), the benchmarking and protocol blocks (198.18/15, 192.0.0/24), multicast or
  *    the reserved top (224/3) is refused. An authority with two ports, or a bare IPv6 address, has no host.
  *
- * NOT checked, by design and stated for the review: a NAME that resolves to a private address. Nothing is resolved
- * here.
+ * Nothing is resolved here: a NAME that resolves to a private address passes [accept]. That is judged where the
+ * player connects (review R20-1; `MusicConnectRule`, `MusicHttp`), by [publicAddress] — these same ranges, asked of
+ * every address the name gave.
  *
  * `qaHost` is the host of the debug-only radio base override (null in a release build): the one private host let
  * through, so the fixtures at `10.0.2.2` play in a debug build and nowhere else. Pure (`StationUrlTest`); the address
@@ -113,6 +114,17 @@ object StationUrl {
         val host = hostOf(text) ?: return Accept.UnsupportedHost
         if (qaHost != null && qaHost.isNotEmpty() && host == qaHost.lowercase(Locale.ROOT)) return Accept.Ok
         return if (isRefusedHost(host)) Accept.UnsupportedHost else Accept.Ok
+    }
+
+    /**
+     * Whether an address a name RESOLVED to — its 4 or 16 bytes, in network order — is one [accept] would take as a
+     * literal: the same ranges, read off the address itself (review R20-1). Sixteen bytes are judged as the IPv6
+     * address they are, so an IPv4-mapped one (first group zero) is refused whatever it maps.
+     */
+    fun publicAddress(address: ByteArray): Boolean = when (address.size) {
+        4 -> !isRefusedHost(address.joinToString(".") { (it.toInt() and 0xff).toString() })
+        16 -> !isRefusedHost((0 until 8).joinToString(":") { (((address[2 * it].toInt() and 0xff) shl 8) or (address[2 * it + 1].toInt() and 0xff)).toString(16) })
+        else -> false
     }
 
     /** The host of the debug-only override's base, for [accept]; null when there is no override. */
