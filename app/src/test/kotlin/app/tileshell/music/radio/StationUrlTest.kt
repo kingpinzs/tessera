@@ -98,6 +98,64 @@ class StationUrlTest {
         )) assertEquals(url, Accept.UnsupportedHost, accept(url))
     }
 
+    // Review R20-5: the platform's HTTP stack maps a host to ASCII (IDNA) before it connects, so the rule judges the
+    // host AFTER that mapping, and a host that is not a plain ASCII name or literal after it is refused.
+    @Test fun `a host is judged as the platform will read it - fullwidth and circled digits, the other full stops, a fullwidth localhost`() {
+        for (host in listOf(
+            "127。0。0。1", // ideographic full stops
+            "192｡168｡1｡1", "nas．local", // the halfwidth and the fullwidth full stop
+            "①⑨②.①⑥⑧.①.①", // circled digits: 192.168.1.1
+            "１２７.０.０.１", "１０.0.2.2", // fullwidth digits: 127.0.0.1, 10.0.2.2
+            "ｌｏｃａｌｈｏｓｔ", "ＬＯＣＡＬＨＯＳＴ", // fullwidth localhost, both cases
+            "printer.ｌocalhost", "１２７.1", "０x7f.0.0.1",
+        )) for (rest in listOf("/x", ":8000/x", "")) {
+            assertEquals("$host$rest", Accept.UnsupportedHost, accept("http://$host$rest"))
+            assertEquals("$host$rest", Accept.UnsupportedHost, accept("https://user:pw@$host$rest"))
+        }
+    }
+
+    @Test fun `a host that is not a plain name after the mapping is refused, and a real international name is judged by its ASCII form`() {
+        for (host in listOf(
+            "stream.example.net／.evil.example", "stream.example.net？.evil.example", "stream.example.net＃.evil.example", // fullwidth / ? #
+            "evil.example＠stream.example.net", "stream.example.net：80", "stream.example.net％", // fullwidth @ : %
+            "stream!.example.net", "stream.example.net,x", "stream(1).example.net", "a=b.example.net", "stream.example.net;x", "st*eam.example.net",
+            "\ud83d", "stream͸.example.net", // a lone surrogate, an unassigned character
+        )) assertEquals(host, Accept.UnsupportedHost, accept("http://$host/x"))
+        assertEquals(Accept.Ok, accept("http://bücher.example/live"))
+        assertEquals(Accept.Ok, accept("http://xn--bcher-kva.example/live"))
+        assertEquals(Accept.Ok, accept("https://rádio.example.net:8443/live"))
+        assertEquals(Accept.Ok, accept("http://stream_1.my-radio.example.net/live"))
+        // The mapped host is the one compared with the fixture's, too.
+        assertEquals(Accept.Ok, accept("http://１０.0.2.2:8080/x", qaHost = "10.0.2.2"))
+    }
+
+    // Review R20-6: the ranges nobody's station is on, and an authority two parsers read differently.
+    @Test fun `carrier-grade NAT and the other special-use literals are refused, and the addresses beside them are not`() {
+        for (host in listOf(
+            "100.64.0.1", "100.100.100.100", "100.127.255.254", "198.18.0.1", "198.19.255.254", "192.0.0.1", "192.0.0.170",
+            "224.0.0.1", "239.255.255.250", "240.0.0.1", "255.255.255.255",
+            "[fec0::1]", "[feff::1]", "[ff02::1]", "[ff00::]", "[64:ff9b::c0a8:101]", "[0064:ff9b::7f00:1]", "[64:ff9b:1::c0a8:101]", "[2002:c0a8:101::1]",
+            "[100::1]", "[1fff::1]", "[4000::1]", "[fe00::1]", "[2002::]",
+        )) for (rest in listOf("/x", ":8000/x", "")) assertEquals("$host$rest", Accept.UnsupportedHost, accept("http://$host$rest"))
+        for (host in listOf(
+            "100.63.255.255", "100.128.0.1", "198.17.255.255", "198.20.0.1", "192.0.1.1", "192.1.0.1", "223.255.255.254", "1.1.1.1",
+            "[2001:4860:4860::8888]", "[2000::1]", "[2003::1]", "[3fff::1]", "[2A01:4F8::1]",
+        )) assertEquals(host, Accept.Ok, accept("http://$host/x"))
+    }
+
+    @Test fun `an IPv6 literal is hex groups in brackets and nothing else`() {
+        for (host in listOf("[2a01:4f8::g]", "[2a01:4f8::1%eth0]", "[2a01:4f8::1 ]", "[v1.fe80::a]", "[20010:4f8::1]", "[:2a01::1]", "[2a01：:1]", "[２a01::1]")) {
+            assertEquals(host, Accept.UnsupportedHost, accept("http://$host/x"))
+        }
+    }
+
+    @Test fun `an authority with two ports, or a bare IPv6 address, is refused - no parser agrees on its host`() {
+        for (url in listOf(
+            "http://127.0.0.1:80:80/x", "http://stream.example.net:80:80/x", "http://stream.example.net::80/x", "http://stream.example.net:80:/x",
+            "http://2a01:4f8::1/x", "http://::1/x", "http://user@stream.example.net:80:8000/x",
+        )) assertEquals(url, Accept.UnsupportedHost, accept(url))
+    }
+
     @Test fun `the qaHost exception holds only when it is non-null, for that host alone, and never for a scheme`() {
         val fixture = "http://10.0.2.2:8080/stream/jazz-one"
         assertEquals(Accept.UnsupportedHost, accept(fixture, qaHost = null))
