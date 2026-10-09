@@ -52,3 +52,7 @@ T-M21 / R2-m4, T-B5 / F1-M12. Superseded by the re-cut: R3T-M3, R3T-M9.
 - Q-04-11 — Should the setup wizard walk the helper's pairing (phase 12's text says yes), or leave it to the helper's own page?
 - Q-04-12 — Keep a phone screen-recording row for the motion timings (PLAN RV11), or drop it for this phase?
 - Q-04-13 — Over a locked phone, does the volume panel's media section show the track title?
+
+Answered (recorded dated in the phase doc's Decisions and applied): Q-04-11 "(a)" 2026-10-09 12:11 (the wizard walks the
+three permission steps only; pairing on the helper's page); Q-04-12 "(a)" 12:18 (no phone recording; RV11 set aside for phase 04,
+INDEX Change Log); Q-04-13 "(b)" 12:28 (buttons, no track title, over a secure lock screen).
