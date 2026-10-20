@@ -5,6 +5,10 @@ The seam every builder of phase 04 codes against. The phase doc (`docs/plan/phas
 can work at once in their own worktrees and merge cleanly. Where this file and the phase doc disagree, the phase doc wins
 and the builder reports the disagreement (never silently picks).
 
+**2026-10-20 (Jeremy, "(a)"; INDEX Change Log):** build tasks 2 and 3 (the rows **helper** and **keeper** below) are NOT
+built in this session. Five builders run: ac, quick, notif, volume, tess. `HelperKeeper` stays the committed stub (state
+`NotPaired`); the quick actions and Tess call it through its signatures and nobody fills its body.
+
 ## Rules for every builder
 
 1. **Your worktree only.** You work in `~/projects/metro-launcher-p04/.claude/worktrees/<name>` on branch `phase-04-<name>`.
