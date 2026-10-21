@@ -53,6 +53,15 @@ class MediaProbeActivity : Activity() {
         tag = intent.getStringExtra("tag") ?: "probe"
         uri = intent.getStringExtra("uri").orEmpty()
         val id = intent.getStringExtra("id") ?: "qa-probe"
+        // Ledger L18-4 / pass 3's N3 (phase 18 l18_4 leg a): a controller that sends setMediaItems of a LIST with a
+        // start index — `--esa items <mediaId>,x --ei start 1 [--el pos 0]`. Additive: no existing row passes `items`,
+        // so the URI-injection path above is untouched. One item survives the library rule, so start index 1 is out of
+        // range after the drop; the session must re-derive a valid start, not wedge the player.
+        val items = intent.getStringArrayExtra("items")
+        if (items != null) {
+            setItems(items, intent.getIntExtra("start", 0), intent.getLongExtra("pos", 0L))
+            return
+        }
         connect(
             onFailed = { say("connect=failed ${it.javaClass.simpleName} play_file_offered=false set_item_offered=false"); legacy() },
         ) { controller ->
@@ -80,6 +89,24 @@ class MediaProbeActivity : Activity() {
                     legacy()
                 }
             }, WAIT_MS)
+        }
+    }
+
+    /**
+     * L18-4 leg a: a Media3 controller sends `setMediaItems([<mediaId>, "x"], startIndex, positionMs)`. Each item
+     * carries only a media id (no URI), so the library rule keeps the real id and drops "x"; the session re-derives a
+     * valid start. Logged as `media <tag> setitems count=<n> start=<i> result=<ok|threw <Class>>`, then `done`.
+     */
+    private fun setItems(ids: Array<String>, startIndex: Int, positionMs: Long) {
+        connect(onFailed = { say("setitems connect=failed ${it.javaClass.simpleName}"); finish() }) { controller ->
+            val list = ids.map { MediaItem.Builder().setMediaId(it).build() }
+            val result = runCatching {
+                controller.setMediaItems(list, startIndex, positionMs)
+                controller.prepare()
+                "ok"
+            }.getOrElse { "threw ${it.javaClass.simpleName}" }
+            say("setitems count=${ids.size} start=$startIndex result=$result")
+            main.postDelayed({ controller.release(); say("done"); finish() }, WAIT_MS)
         }
     }
 
