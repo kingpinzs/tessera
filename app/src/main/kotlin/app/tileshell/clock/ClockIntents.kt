@@ -132,6 +132,20 @@ object ClockIntents {
     private const val MAX_URI = 2048
     private val TIMER_ID = Regex("[A-Za-z0-9_-]{1,40}")
 
+    /** `Build.VERSION_CODES.VANILLA_ICE_CREAM`: the first API that names the sender of a NEW intent to a running activity. */
+    const val API_NAMES_NEW_INTENT_SENDER = 35
+
+    /**
+     * Ledger L18-6 (the third pass's P3-7): whether [AlarmApiActivity] must start Clock AFRESH — clearing Clock's task
+     * (FLAG_ACTIVITY_CLEAR_TASK) — to hand over an editor ([edit]). Clock is singleTask, so with its task alive a start
+     * is a NEW intent, and below [API_NAMES_NEW_INTENT_SENDER] the platform does not name a new intent's sender: the
+     * shell's own bundle would be weighed as nobody's and no editor would open. A fresh start is a LAUNCH, whose launcher
+     * the platform does name — the handler, the shell — so [open] honours it, and a relaunch routes it against that same
+     * launcher (P3-4). From API 35 a new intent names its sender, so nothing changes there; a request with no editor (a
+     * tab to show) needs no sender and keeps Clock's task as it is.
+     */
+    fun handOffFresh(apiLevel: Int, edit: Boolean): Boolean = edit && apiLevel < API_NAMES_NEW_INTENT_SENDER
+
     /** Who started the activity, asked of the one platform port; [NO_CALLER] when the platform names nobody or throws. */
     fun launchCaller(access: UriAccessPort): Int = try { UriAccessRules.starterUid(access) ?: NO_CALLER } catch (e: Throwable) { NO_CALLER }
 
