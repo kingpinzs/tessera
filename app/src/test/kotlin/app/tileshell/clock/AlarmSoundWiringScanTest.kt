@@ -111,6 +111,61 @@ class AlarmSoundWiringScanTest {
         assertTrue(problems(sources + ("clock/AlarmTab.kt" to sources.getValue("clock/AlarmTab.kt") + " fun x(c: android.content.Context, u: android.net.Uri) = c.contentResolver.openFileDescriptor(u, \"r\")")).isNotEmpty())
     }
 
+    // ------------------------------------------------------------------------------- a sound that will not play (L18-3, N11)
+
+    /** The one place the ring makes a player: started, or released and thrown; an error while playing goes to the rule. */
+    private val openForm = "{ val p = MediaPlayer() try { p.setAudioAttributes(attrs) p.setDataSource(this@RingService, source) p.isLooping = true p.prepare() " +
+        "p.setOnErrorListener { failed, what, extra -> if (player === failed) { player = null failed.release() " +
+        "take(RingSoundRules.fallback(id, source, \"error \$what \$extra\", { defaultSound() }) { open(id, attrs, it) }) applyCallLevel() } true } " +
+        "p.start() return p } catch (e: Throwable) { p.release() throw e } }"
+
+    /**
+     * Ledger L18-3 (the adversarial review's N11): `RingSoundRules` is the rule (`RingSoundRulesTest`); held here is that
+     * the ring hands it the chosen source, the DEFAULT sound as the fallback and the one function that starts a player —
+     * at the start and on an error while playing — and that what plays is the rule's answer, its lines written.
+     */
+    private fun ringSoundProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val ring = sources["clock/RingService.kt"].orEmpty()
+        val start = body(ring, "private fun startSound(ring: Ring, store: ClockStore)")
+        if (!start.contains("val source = source(ring, sound) if (source != null) { val audio = getSystemService(AudioManager::class.java) " +
+                "focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT).setAudioAttributes(attrs).build().also { audio.requestAudioFocus(it) } " +
+                "take(RingSoundRules.start(ring.logId, source, { defaultSound() }) { open(ring.logId, attrs, it) }) applyCallLevel()")
+        ) problems += "the ring does not start its sound through RingSoundRules.start with the default sound as the fallback"
+        val open = body(ring, "private fun open(id: String, attrs: AudioAttributes, source: Uri): MediaPlayer")
+        if (open != openForm) problems += "RingService.open is not its one form:\n  is:      $open\n  must be: $openForm"
+        if (body(ring, "private fun take(started: RingSoundRules.Started<MediaPlayer>)") != "{ started.lines.forEach { Diagnostics.add(\"alarms\", it) } player = started.player }") {
+            problems += "what plays is not the rule's answer, or its lines are not written"
+        }
+        if (!ring.contains("private fun defaultSound(): Uri = Uri.fromFile(AlarmSounds.file(this, AlarmSounds.default))")) problems += "the fallback is not the default alarm sound"
+        if (count(ring, "MediaPlayer()") != 1 || count(ring, "RingSoundRules.start(") != 1 || count(ring, "RingSoundRules.fallback(") != 1 || count(ring, "take(") != 3 ||
+            Regex("\\bplayer = ").findAll(ring).count() != 3 || count(ring, "prepare()") != 1
+        ) problems += "a player is made, or the ring's player set, outside open() and the rule's answer"
+        return problems
+    }
+
+    @Test fun `L18-3 N11 the ring's sound is the rule's answer - the default when the chosen will not play, at the start or while playing`() {
+        assertEquals(emptyList<String>(), ringSoundProblems(SourceScan.all()))
+    }
+
+    @Test fun `L18-3 N11 a ring that logs and goes silent, falls back to the chosen sound, drops the error path or keeps a failed player is caught`() {
+        val sources = SourceScan.all()
+        fun with(old: String, new: String) = ringSoundProblems(sources + ("clock/RingService.kt" to mutate(sources.getValue("clock/RingService.kt"), old, new)))
+        val started = "take(RingSoundRules.start(ring.logId, source, { defaultSound() }) { open(ring.logId, attrs, it) })"
+        // The defect itself: the failure only logged, the alarm vibrating silently.
+        assertTrue(with(started, "player = runCatching { open(ring.logId, attrs, source) }.onFailure { Diagnostics.add(\"alarms\", \"ring \${ring.logId} could not play \$source: \$it\") }.getOrNull()").isNotEmpty())
+        // The fallback that is not the default sound, the rule's answer ignored, or a second player made round the rule.
+        assertTrue(with("source, { defaultSound() }) { open(ring.logId", "source, { source }) { open(ring.logId").isNotEmpty())
+        assertTrue(with("private fun defaultSound(): Uri = Uri.fromFile(AlarmSounds.file(this, AlarmSounds.default))", "private fun defaultSound(): Uri = Uri.fromFile(AlarmSounds.file(this, AlarmSounds.all.last()))").isNotEmpty())
+        assertTrue(with("player = started.player", "player = started.player ?: MediaPlayer()").isNotEmpty())
+        assertTrue(with("started.lines.forEach { Diagnostics.add(\"alarms\", it) }", "").isNotEmpty())
+        // An error while playing: not listened for, or its fallback dropped.
+        assertTrue(with("p.setOnErrorListener { failed, what, extra ->", "p.setOnCompletionListener { failed -> val what = 0; val extra = 0").isNotEmpty())
+        assertTrue(with("take(RingSoundRules.fallback(id, source,", "(RingSoundRules.fallback(id, source,").isNotEmpty())
+        // A player that would not start kept, not released.
+        assertTrue(with("catch (e: Throwable) { p.release() throw e }", "catch (e: Throwable) { throw e }").isNotEmpty())
+    }
+
     // ------------------------------------------------------------------------------- the exported activities' extras (L18-3)
 
     /**
