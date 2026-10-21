@@ -124,13 +124,26 @@ object FilePaths {
 
     private const val EXT_MAX = 32
 
-    /** Text fit for one diagnostics line: control characters (a newline in a file name) become `?`, the length is capped. */
+    /**
+     * Text fit to be SHOWN — on one diagnostics line, in a row, in a message — with the length capped at [max]. Every
+     * character that is invisible or moves the text around it becomes `?`, one per character, so what is drawn is
+     * every character there is, in the order it is stored: a control character (a newline in a file name), a format
+     * character (Unicode Cf: the bidi controls U+202A..U+202E, U+2066..U+2069, U+200E, U+200F, U+061C; the zero-width
+     * U+200B, U+200C, U+200D, U+2060, U+FEFF; the soft hyphen; the tag characters), a line or paragraph separator, and
+     * half a surrogate pair (the GATE review's N9: a bin row's name and folder come from the index and from names another
+     * app chose).
+     */
     fun lineText(text: String?, max: Int = 400): String {
         val t = text.orEmpty()
         val out = StringBuilder(minOf(t.length, max))
-        for (c in t) {
-            if (out.length >= max) break
-            out.append(if (c < ' ' || c == '\u007f' || c == ' ' || c == ' ') '?' else c)
+        var i = 0
+        while (i < t.length && out.length < max) {
+            val cp = t.codePointAt(i)
+            i += Character.charCount(cp)
+            when (Character.getType(cp).toByte()) {
+                Character.CONTROL, Character.FORMAT, Character.LINE_SEPARATOR, Character.PARAGRAPH_SEPARATOR, Character.SURROGATE -> out.append('?')
+                else -> out.appendCodePoint(cp)
+            }
         }
         return out.toString()
     }

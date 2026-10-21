@@ -52,7 +52,9 @@ class RecycleBin(
 ) {
     /**
      * One row of the bin page. [name] is the original name — or the bin name when no record names the file ([indexed]
-     * false: [originalPath] and [deletedAt] are then null). [size] is the record's, or the file's own.
+     * false: [originalPath] and [deletedAt] are then null) — as it may be SHOWN ([FilePaths.lineText]: a bidi control or
+     * a zero-width character is a `?`; N9). [size] is the bin file's own (a folder's: its files'), never the record's:
+     * the index is shared storage, and what Empty frees is what the files hold.
      */
     data class Entry(
         val volume: FileVolume,
@@ -239,14 +241,18 @@ class RecycleBin(
     private fun entries(volume: FileVolume, records: List<Record>): List<Entry> {
         val bin = binDir(volume)
         val indexed = records.sortedWith(compareByDescending<Record> { it.deletedAt }.thenByDescending { it.bin }).map { r ->
-            Entry(volume, r.bin, File(r.path).name.ifEmpty { r.bin }, r.path, r.deletedAt, r.size, FilePaths.isRealDirectory(File(bin, r.bin)))
+            val f = File(bin, r.bin)
+            Entry(volume, r.bin, shown(File(r.path).name.ifEmpty { r.bin }), r.path, r.deletedAt, FilePaths.treeBytes(f), FilePaths.isRealDirectory(f))
         }
         val known = records.map { it.bin }.toHashSet()
         val loose = bin.listFiles().orEmpty().filter { !reservedIn(bin, it.name) && it.name !in known }.sortedBy { it.name }.map { f ->
-            Entry(volume, f.name, f.name, null, null, FilePaths.treeBytes(f), FilePaths.isRealDirectory(f))
+            Entry(volume, f.name, shown(f.name), null, null, FilePaths.treeBytes(f), FilePaths.isRealDirectory(f))
         }
         return indexed + loose
     }
+
+    /** A name as a row shows it: every character of it, none invisible or reordering (N9); a name is never capped here. */
+    private fun shown(name: String): String = FilePaths.lineText(name, Int.MAX_VALUE)
 
     /** The index as it can be trusted: records that are well-formed, name one plain bin file each, and whose file is there. */
     private fun load(volume: FileVolume): Index {
