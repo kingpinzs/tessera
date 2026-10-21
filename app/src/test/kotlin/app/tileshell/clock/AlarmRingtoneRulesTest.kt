@@ -6,6 +6,7 @@ import app.tileshell.clock.AlarmApiRules.Request
 import app.tileshell.files.FilesProvider
 import app.tileshell.media.FakeUriAccess
 import app.tileshell.media.Platform
+import app.tileshell.media.ProviderFacts
 import app.tileshell.media.UriAccessPort
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -161,6 +162,38 @@ class AlarmRingtoneRulesTest {
             assertEquals(system, AlarmSound(AlarmSound.Kind.TONE, system, null), AlarmRingtoneRules.fromApi(system, handler).sound)
         }
         assertEquals(AlarmSound.DEFAULT, AlarmRingtoneRules.fromApi(null, handler).sound)
+    }
+
+    /**
+     * The adversarial review's A6 (ledger L18-3): a guard broadened to keep any `content://settings/system/<name>` went
+     * unnoticed (GATE-adversarial-pass2/mut.py's A6, not red). Only the three named default sounds are system sounds;
+     * every other row of the system table is a setting, not a sound — the default, whoever asks and whatever the
+     * platform says, with SKIP_UI and in the editor alike.
+     */
+    @Test fun `A6 only the three named system default sounds are kept from settings - never another system row`() {
+        val yesToAll = FakeUriAccess(
+            launchedFrom = Platform.Said(FakeUriAccess.CALLER), providers = mapOf("settings" to ProviderFacts(FakeUriAccess.CALLER, true)),
+            providerAnswer = { _, _, _ -> FakeUriAccess.YES }, launchAnswer = { _, _ -> FakeUriAccess.YES },
+        )
+        val callers = listOf(AlarmRingtoneRules.Caller.Ask(null), AlarmRingtoneRules.Caller.Ask(FakeUriAccess()), AlarmRingtoneRules.Caller.Ask(yesToAll), AlarmRingtoneRules.Caller.AskedByHandler)
+        for (name in listOf(
+            "screen_brightness", "volume_alarm", "next_alarm_formatted", "dtmf_tone", "alarm_alert_cache", "ringtone_cache", "notification_sound_cache",
+            "alarm_alert2", "ringtones", "ALARM_ALERT", "Ringtone", "alarm_alert/", "alarm_alert/7", "alarm_alert?x=1", "alarm_alert#x", "x/../alarm_alert", "",
+        )) {
+            val uri = "content://settings/system/$name"
+            for (caller in callers) {
+                assertEquals("$uri, $caller", AlarmRingtoneRules.FromApi(AlarmSound.DEFAULT, AlarmRingtoneRules.WHY_NOT_SOUND), AlarmRingtoneRules.fromApi(uri, caller))
+            }
+            for (skipUi in listOf(true, false)) {
+                val r = parse(uri, skipUi, yesToAll)
+                val sound = if (r is Request.CreateAlarm) r.fields.sound else (r as Request.EditAlarm).fields.sound
+                assertEquals("$uri through the API", AlarmSound.DEFAULT, sound)
+            }
+        }
+        for (name in listOf("alarm_alert", "ringtone", "notification_sound")) {
+            val uri = "content://settings/system/$name"
+            for (caller in callers) assertEquals("$uri, $caller", AlarmRingtoneRules.FromApi(AlarmSound(AlarmSound.Kind.TONE, uri, null)), AlarmRingtoneRules.fromApi(uri, caller))
+        }
     }
 
     private fun parse(ringtone: String?, skipUi: Boolean, access: UriAccessPort?) =
