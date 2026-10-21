@@ -132,20 +132,72 @@ object FilePaths {
      * U+200B, U+200C, U+200D, U+2060, U+FEFF; the soft hyphen; the tag characters), a line or paragraph separator, and
      * half a surrogate pair (the GATE review's N9: a bin row's name and folder come from the index and from names another
      * app chose).
+     * Two uses of format characters are an emoji's own and are kept: a ZERO WIDTH JOINER between two pictographs (an
+     * emoji ZWJ sequence, "family" or "rainbow flag"; variation selectors and skin tones beside it skipped), and a run of
+     * tag characters U+E0020..U+E007E after U+1F3F4 ended by the cancel tag U+E007F (an emoji tag sequence, a
+     * subdivision flag). Anywhere else they are `?` like the rest.
      */
     fun lineText(text: String?, max: Int = 400): String {
-        val t = text.orEmpty()
-        val out = StringBuilder(minOf(t.length, max))
+        val cps = text.orEmpty().codePoints().toArray()
+        val emoji = BooleanArray(cps.size)
         var i = 0
-        while (i < t.length && out.length < max) {
-            val cp = t.codePointAt(i)
-            i += Character.charCount(cp)
-            when (Character.getType(cp).toByte()) {
-                Character.CONTROL, Character.FORMAT, Character.LINE_SEPARATOR, Character.PARAGRAPH_SEPARATOR, Character.SURROGATE -> out.append('?')
-                else -> out.appendCodePoint(cp)
+        while (i < cps.size) {
+            if (cps[i] == BLACK_FLAG) {
+                var j = i + 1
+                while (j < cps.size && cps[j] in TAG_FIRST..TAG_LAST) j++
+                if (j > i + 1 && j < cps.size && cps[j] == CANCEL_TAG) {
+                    for (k in i + 1..j) emoji[k] = true
+                    i = j + 1
+                    continue
+                }
+            } else if (cps[i] == ZWJ && joinsPictographs(cps, i)) {
+                emoji[i] = true
             }
+            i++
+        }
+        val out = StringBuilder(minOf(cps.size, max))
+        for (k in cps.indices) {
+            if (out.length >= max) break
+            val hidden = when (Character.getType(cps[k]).toByte()) {
+                Character.CONTROL, Character.FORMAT, Character.LINE_SEPARATOR, Character.PARAGRAPH_SEPARATOR, Character.SURROGATE -> !emoji[k]
+                else -> false
+            }
+            if (hidden) out.append('?') else out.appendCodePoint(cps[k])
         }
         return out.toString()
+    }
+
+    private const val ZWJ = 0x200D
+    private const val BLACK_FLAG = 0x1F3F4
+    private const val TAG_FIRST = 0xE0020
+    private const val TAG_LAST = 0xE007E
+    private const val CANCEL_TAG = 0xE007F
+
+    /** The ZWJ at [at] has a pictograph on each side, past any variation selector or skin tone: an emoji ZWJ sequence. */
+    private fun joinsPictographs(cps: IntArray, at: Int): Boolean {
+        var before = at - 1
+        while (before >= 0 && emojiModifier(cps[before])) before--
+        var after = at + 1
+        while (after < cps.size && emojiModifier(cps[after])) after++
+        return before >= 0 && after < cps.size && pictographic(cps[before]) && pictographic(cps[after])
+    }
+
+    /** U+FE0E / U+FE0F (text / emoji presentation) and the five skin tones U+1F3FB..U+1F3FF. */
+    private fun emojiModifier(cp: Int): Boolean = cp == 0xFE0E || cp == 0xFE0F || cp in 0x1F3FB..0x1F3FF
+
+    /**
+     * A pictograph that may begin or end an emoji ZWJ sequence: the blocks Unicode's Extended_Pictographic property
+     * covers (UTS #51), held as a table here — `Character.isExtendedPictographic` is Java 21 and is not in Android's
+     * `Character` (minSdk 34), and `android.icu`'s property is not on the JVM the unit tests run on — so the device and
+     * the tests answer alike. Whole blocks, unassigned code points included, as Extended_Pictographic itself reserves
+     * them for emoji to come; the regional indicators and the skin tones are not pictographs.
+     */
+    internal fun pictographic(cp: Int): Boolean = when (cp) {
+        0x00A9, 0x00AE, 0x203C, 0x2049, 0x2122, 0x2139, 0x24C2, 0x3030, 0x303D, 0x3297, 0x3299 -> true
+        in 0x1F1E6..0x1F1FF, in 0x1F3FB..0x1F3FF -> false
+        in 0x2194..0x21AA, in 0x2300..0x23FF, in 0x25AA..0x25FE, in 0x2600..0x27BF, in 0x2934..0x2935, in 0x2B00..0x2BFF,
+        in 0x1F000..0x1FAFF, in 0x1FC00..0x1FFFD -> true
+        else -> false
     }
 
     /** [path] lies strictly under [root]; both already canonical. An empty or all-slash root names the whole disk and matches nothing. */

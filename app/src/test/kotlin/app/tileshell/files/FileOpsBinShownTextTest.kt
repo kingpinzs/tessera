@@ -89,4 +89,52 @@ class FileOpsBinShownTextTest {
             BinObstacle.message(BinObstacle(BinObstacle.Kind.FOLDER, ".Tess​era", inShell = false), "This Device"),
         )
     }
+
+    // ---- emoji: the ZWJ and tag sequences an emoji is made of are not hidden characters (N9, the lead's correction)
+
+    private fun cps(vararg cp: Int) = cp.joinToString("") { String(Character.toChars(it)) }
+
+    /** "family 👨‍👩‍👧.txt": man ZWJ woman ZWJ girl. */
+    private val family = "family " + cps(0x1F468, 0x200D, 0x1F469, 0x200D, 0x1F467) + ".txt"
+
+    /** "🏳️‍🌈 pride.jpg": white flag, VS16, ZWJ, rainbow. */
+    private val pride = cps(0x1F3F3, 0xFE0F, 0x200D, 0x1F308) + " pride.jpg"
+
+    /** Scotland's flag: black flag, the tag letters g b s c t, cancel tag. */
+    private val scotland = cps(0x1F3F4, 0xE0067, 0xE0062, 0xE0073, 0xE0063, 0xE0074, 0xE007F) + " trip.jpg"
+
+    /** "👩🏽‍💻": woman, a skin tone, ZWJ, laptop. */
+    private val coder = cps(0x1F469, 0x1F3FD, 0x200D, 0x1F4BB) + ".png"
+
+    @Test
+    fun `an emoji ZWJ sequence and an emoji tag sequence are shown whole`() {
+        for (name in listOf(family, pride, scotland, coder)) assertEquals(name, FilePaths.lineText(name))
+    }
+
+    @Test
+    fun `a binned file whose name is an emoji sequence lists whole, as the folder page shows it`() {
+        for (name in listOf(family, pride, scotland)) assertEquals(OpResult.Done(), bed.ops.binDelete(bed.file("Pictures/$name")))
+        assertEquals(setOf(family, pride, scotland), bed.ops.bin.list(bed.primary).map { it.name }.toSet())
+    }
+
+    @Test
+    fun `a ZWJ or a tag character outside an emoji sequence is still a question mark`() {
+        val zwj = 0x200D
+        // Between letters, at either end, between a pictograph and a letter, before a bidi control.
+        assertEquals("a?b.txt", FilePaths.lineText("a\u200Db.txt"))
+        assertEquals("a?b.txt", FilePaths.lineText("a\u200Cb.txt"))
+        assertEquals("?" + cps(0x1F468), FilePaths.lineText(cps(zwj, 0x1F468)))
+        assertEquals(cps(0x1F468) + "?", FilePaths.lineText(cps(0x1F468, zwj)))
+        assertEquals(cps(0x1F468) + "?a", FilePaths.lineText(cps(0x1F468, zwj) + "a"))
+        assertEquals(cps(0x1F468) + "??" + cps(0x1F469), FilePaths.lineText(cps(0x1F468, zwj, 0x202E, 0x1F469)))
+        assertEquals(cps(0x1F468) + "??" + cps(0x1F469), FilePaths.lineText(cps(0x1F468, 0x200B, zwj, 0x1F469)))
+        // Two regional indicators are not pictographs: a ZWJ between them is hidden.
+        assertEquals(cps(0x1F1FA) + "?" + cps(0x1F1F8), FilePaths.lineText(cps(0x1F1FA, zwj, 0x1F1F8)))
+        // Tag characters after anything but the black flag; a tag sequence with no cancel tag; a cancel tag alone.
+        assertEquals("x?????", FilePaths.lineText("x" + cps(0xE0067, 0xE0062, 0xE0073, 0xE0063, 0xE007F)))
+        assertEquals(cps(0x1F3F4) + "??", FilePaths.lineText(cps(0x1F3F4, 0xE0067, 0xE0062)))
+        assertEquals(cps(0x1F3F4) + "?", FilePaths.lineText(cps(0x1F3F4, 0xE007F)))
+        assertEquals(cps(0x1F3F4) + "???", FilePaths.lineText(cps(0x1F3F4, 0xE0067, 0x202E, 0xE007F)))
+        assertEquals(cps(0x1F3F4) + "??", FilePaths.lineText(cps(0x1F3F4, 0xE0001, 0xE007F)))
+    }
 }
