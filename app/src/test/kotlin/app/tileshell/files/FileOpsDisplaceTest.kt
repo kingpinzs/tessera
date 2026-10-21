@@ -76,6 +76,60 @@ class FileOpsDisplaceTest {
         assertEquals(listOf(old.path), binRows().map { it.originalPath })
     }
 
+    // ---- P3-2 (pass 3): a cross-volume folder move whose displacement or rename-in fails AFTER the fill
+
+    /** `album/1.jpg` and `album/2.jpg` on the card, and a FILE named `album` in the primary volume's Download. */
+    private fun cardAlbumOverFile(): Pair<File, File> {
+        val album = bed.dir("album", bed.card)
+        bed.file("album/1.jpg", FilesBed.bytes(3_000), bed.card)
+        bed.file("album/2.jpg", FilesBed.bytes(4_000, 9), bed.card)
+        return album to bed.file("Download/album", "old".toByteArray())
+    }
+
+    private fun assertOriginalsWhole(album: File) {
+        assertEquals(listOf("1.jpg", "2.jpg"), bed.names(album))
+        assertArrayEquals(FilesBed.bytes(3_000), File(album, "1.jpg").readBytes())
+        assertArrayEquals(FilesBed.bytes(4_000, 9), File(album, "2.jpg").readBytes())
+    }
+
+    @Test
+    fun `a folder moved across volumes over a file, the bin unusable - it fails after the copy, and the originals and the file are both there`() {
+        val (album, old) = cardAlbumOverFile()
+        // The primary volume's bin cannot be used: the displacement fails once the folder has been copied whole.
+        File(bed.root, ".Tessera").writeText("x")
+        val why = BinObstacle.message(BinObstacle(BinObstacle.Kind.FILE, ".Tessera", inShell = false), bed.primary.root)
+
+        assertEquals(OpResult.Failed("what is there could not go to the Recycle Bin ($why)"), bed.ops.move(listOf(album), old.parentFile!!, conflict = replace))
+
+        assertOriginalsWhole(album)
+        assertEquals("old", old.readText())
+        // The copy was built under its journalled temp name and is gone; nothing else is left beside the file.
+        assertEquals(listOf("album"), bed.names(old.parentFile!!))
+        assertTrue(bed.journal.entries().isEmpty())
+    }
+
+    @Test
+    fun `a folder moved across volumes over a file, the rename-in failing - the originals stay and the old file is a bin row`() {
+        val (album, old) = cardAlbumOverFile()
+        // Another writer takes the name the moment the old file has gone to the bin, so the rename-in cannot land.
+        var theirs = false
+        val ops = FileOps({ bed.mounted.toList() }, bed.canonical, { bed.now }, { bed.scanned += it }, { line ->
+            bed.lines += line
+            if (!theirs && line == "bin delete ${old.path}: ok") { old.writeText("theirs"); theirs = true }
+        }, bed.journal)
+
+        assertEquals(OpResult.Failed("FileAlreadyExistsException"), ops.move(listOf(album), old.parentFile!!, conflict = replace))
+
+        assertTrue(theirs)
+        assertOriginalsWhole(album)
+        assertEquals("theirs", old.readText())
+        val row = ops.bin.list(bed.primary).single()
+        assertEquals(old.path, row.originalPath)
+        assertEquals("old", File(RecycleBin.binDir(bed.primary), row.binName).readText())
+        assertEquals(listOf("album"), bed.names(old.parentFile!!))
+        assertTrue(bed.journal.entries().isEmpty())
+    }
+
     @Test
     fun `a move with Replace from inside the folder being replaced is refused before anything is binned`() {
         val src = bed.file("Docs/notes/notes", "inner".toByteArray())
