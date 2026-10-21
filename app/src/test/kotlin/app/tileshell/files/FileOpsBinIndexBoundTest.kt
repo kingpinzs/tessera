@@ -139,4 +139,68 @@ class FileOpsBinIndexBoundTest {
         assertFalse(row.indexed)
         assertEquals(0, counting.asked)
     }
+
+    // ---- a record's own checks (round 3): they cost the same however deep a forged path is
+
+    /** A record for the bin file `1000-0-a.jpg` at `<root>/<folders>/a.jpg`, [folders] deep, each folder named [seg]. */
+    private fun deep(folders: Int, seg: String = "d"): String = (listOf(bed.primary.root) + List(folders) { seg } + "a.jpg").joinToString("/")
+
+    private fun listedAt(path: String): RecycleBin.Entry {
+        binned()
+        writeIndex(listOf(mapOf("bin" to "1000-0-a.jpg", "path" to path, "deletedAt" to 1000L, "size" to 5L)))
+        return bed.ops.bin.list(bed.primary).single()
+    }
+
+    @Test
+    fun `a record's path bound is PATH_MAX`() {
+        assertEquals(4095, RecycleBin.MAX_RECORD_PATH_BYTES)
+    }
+
+    @Test
+    fun `a record ninety folders deep is honoured, as before - depth costs nothing now, so it is not bounded`() {
+        val path = deep(90)
+        val row = listedAt(path)
+        assertTrue(row.indexed)
+        assertEquals(path, row.originalPath)
+    }
+
+    @Test
+    fun `a record of PATH_MAX bytes is honoured, one byte longer is no record`() {
+        val head = bed.primary.root + "/" + "p".repeat(200)
+        fun of(bytes: Int): String {
+            // Folders of 100 letters, and a last one that makes up the length exactly; well under the depth bound.
+            val room = bytes - head.length - "/a.jpg".length
+            val full = (room - 2) / 101
+            val folders = List(full) { "q".repeat(100) } + "r".repeat(room - full * 101 - 1)
+            return (head + "/" + folders.joinToString("/") + "/a.jpg").also { assertEquals(bytes, it.length) }
+        }
+        assertTrue(listedAt(of(RecycleBin.MAX_RECORD_PATH_BYTES)).indexed)
+        bed.ops.bin.list(bed.primary).single().let { bed.ops.binPurge(it) }
+        assertFalse(listedAt(of(RecycleBin.MAX_RECORD_PATH_BYTES + 1)).indexed)
+    }
+
+    /** The real volume, counting every identity question. */
+    private class CountingAll : FileIdentity by FileIdentity.Real {
+        var asked = 0
+        override fun same(a: File, b: File): Boolean { asked++; return FileIdentity.Real.same(a, b) }
+        override fun exists(file: File): Boolean = FileIdentity.Real.exists(file)
+    }
+
+    /** The identity questions one listing asks about a single honest record at [path]. */
+    private fun questionsFor(path: String): Int {
+        val counting = CountingAll()
+        val bin = RecycleBin({ bed.now }, bed.canonical, { bed.lines += it }, counting)
+        writeIndex(listOf(mapOf("bin" to "1000-0-a.jpg", "path" to path, "deletedAt" to 1000L, "size" to 5L)))
+        assertTrue(bin.list(bed.primary).single().indexed)
+        return counting.asked
+    }
+
+    @Test
+    fun `a record is asked the same few identity questions at three folders deep as at sixty`() {
+        binned()
+        val shallow = questionsFor(deep(3))
+        val deeper = questionsFor(deep(60))
+        assertEquals(shallow, deeper)
+        assertTrue("$shallow", shallow <= 12)
+    }
 }

@@ -28,7 +28,7 @@ import java.io.FileInputStream
  *  3. **The index is shared storage, so it is not trusted.** A record's original path is honoured only in the exact
  *     form a delete writes ([restorable]): already canonical (no `.` or `..` segment, no doubled separator, no link on
  *     the way), under its own volume, not the volume's root, outside `.Tessera` and outside `Android/`, ending in a
- *     valid name. Any other record is no record at all: it is dropped at the next read, its file lists by its bin name
+ *     valid name, no longer than PATH_MAX. Any other record is no record at all: it is dropped at the next read, its file lists by its bin name
  *     and restores to `Download/Restored/`. A bin name is one plain file name. Nothing here follows a symlink.
  *  4. **A row says where Restore will put it** ([Entry.restoreDir]), and Restore puts it exactly there
  *     ([restoreTarget] answers both), so the user sees the destination before the tap.
@@ -366,16 +366,40 @@ class RecycleBin(
     private fun restorable(path: String, volume: FileVolume): Boolean {
         val target = File(path)
         if (!target.isAbsolute || !FilePaths.validName(target.name)) return false
-        // Exactly as it resolves: no `.` or `..` segment, no doubled or trailing separator, no link on the way. Asked
-        // FIRST, and resolved ONCE for every question below — each identity question walks every folder above the
-        // path (P3-5), and resolving a deep path is itself a walk.
-        val resolved = runCatching { canonical(path) }.getOrNull()
-        if (resolved != path) return false
-        val once: (String) -> String? = { p -> if (p == path) resolved else canonical(p) }
-        return FilePaths.volumeOf(path, listOf(volume), once) != null &&
-            !FilePaths.isVolumeRoot(path, volume, once, id) &&
-            !FilePaths.inShellDir(path, volume, once, id) &&
-            !FilePaths.underAndroid(path, volume, once, id)
+        // Strictly under its own volume, and no longer than any path a delete can write ([MAX_RECORD_PATH_BYTES]) —
+        // asked of the TEXT, before anything is resolved.
+        val root = runCatching { canonical(volume.root) }.getOrNull()?.trimEnd('/') ?: return false
+        if (!FilePaths.under(path, root)) return false
+        if (FilePaths.utf8(path) > MAX_RECORD_PATH_BYTES) return false
+        // Exactly as it resolves: no `.` or `..` segment, no doubled or trailing separator, no link on the way.
+        if (!asItResolves(path, root)) return false
+        // With no link on the way, the one folder of the path that can be the shell's own or `Android` — under any name
+        // the volume folds onto them (N2) — is its first under the root: a folded name is an alias of its own sibling
+        // only. So each is ONE identity question ([FilePaths.isShellDir]'s form), not a walk up every folder (P3-5).
+        val top = File(root, path.substring(root.length + 1).substringBefore('/'))
+        return !FilePaths.isShellDir(top, volume, id) &&
+            !(top.name.equals(ANDROID_DIR, ignoreCase = true) || id.same(top, File(volume.root, ANDROID_DIR)))
+    }
+
+    /**
+     * [path], strictly under the resolved [root], is exactly as it resolves: no empty, `.` or `..` segment (a doubled
+     * or trailing separator is an empty one), and no link on the way. Only what IS there can be a link, so the path is
+     * resolved at its deepest folder that exists — found by a binary search of its folders, a few `stat`s — and the
+     * names below that are names of nothing. One resolve of an existing path however deep the path is: resolving a
+     * deep path that is not there walks back up it one folder at a time.
+     */
+    private fun asItResolves(path: String, root: String): Boolean {
+        val segments = path.substring(root.length + 1).split('/')
+        if (segments.any { it.isEmpty() || it == "." || it == ".." }) return false
+        fun upTo(n: Int) = if (n == 0) root else root + "/" + segments.subList(0, n).joinToString("/")
+        var there = 0
+        var notThere = segments.size + 1
+        while (notThere - there > 1) {
+            val mid = (there + notThere) / 2
+            if (File(upTo(mid)).exists()) there = mid else notThere = mid
+        }
+        val deepest = upTo(there)
+        return runCatching { canonical(deepest) }.getOrNull() == deepest
     }
 
     private sealed interface Folder {
@@ -436,6 +460,9 @@ class RecycleBin(
          */
         const val MAX_INDEX_BYTES = 8 * 1024 * 1024
         const val MAX_INDEX_RECORDS = 40_000
+
+        /** A record's own bound (rule 3): no path a delete writes is longer than PATH_MAX (4,096 bytes with its closing NUL). */
+        const val MAX_RECORD_PATH_BYTES = 4095
 
         /** The `bin index <volume>: rebuilt (<why>)` line's why for an index over a bound. */
         const val TOO_LARGE = "index too large"
