@@ -68,7 +68,7 @@ AUDIO_BEFORE="$(q "content query --uri content://media/external/audio/media --pr
 adb shell "mkdir -p $MUSICDIR" >/dev/null 2>&1
 for f in "$MUSIC6"/*.mp3; do adb push "$f" "$MUSICDIR/" >/dev/null 2>&1; done
 adb shell "content call --uri content://media --method scan_volume --arg external_primary" >/dev/null 2>&1; sleep 3
-REAL_ID="$(q "content query --uri content://media/external/audio/media --projection _id:_data" | grep -F "$MUSICDIR/" | sed -n 's/.*_id=\([0-9]*\),.*/\1/p' | sort -n | head -1)"
+REAL_ID="$(q "content query --uri content://media/external/audio/media --projection _id:_data" | grep -F "/Music/tessera-qa/" | sed -n 's/.*_id=\([0-9]*\),.*/\1/p' | sort -n | head -1)"
 assert_ne "a real library id exists (a MUSIC6 track in MediaStore)" "" "$REAL_ID"
 record "the library track id the probe points at (and its count)" "$REAL_ID (library size $(q "content query --uri content://media/external/audio/media --projection _id" | grep -c '_id='))"
 
@@ -113,6 +113,7 @@ if leg b; then
     sleep 5
     probe_out "legacyqueue q$QID" > "$ROW_DIR/b-$QID.txt"; sed 's/^/      /' "$ROW_DIR/b-$QID.txt" >> "$LOG"
     P1="$(pid_now)"; CR="$(crash)"
+    adb logcat -d -s AndroidRuntime:E > "$ROW_DIR/b-$QID.fatal.txt" 2>&1   # the exception itself, kept before the clear below
     record "b: skipToQueueItem($QID) — probe lines / pid $P0 -> $P1 / crash $CR" "$(tr '\n' ';' < "$ROW_DIR/b-$QID.txt")"
     assert_eq "b ($QID): SAFE — the launcher's pid is unchanged and AndroidRuntime is empty of the shell" "$P0 0" "$P1 $CR"
     if [ "$P0" != "$P1" ] || [ "$CR" != 0 ]; then

@@ -149,7 +149,8 @@ assert_gap() { # name slice motion — C-31: maxGapMs <= 33.4
 
 # ---- logcat from a point in time (the device's clock): crashes and START lines
 lc_mark() { adb shell "date '+%m-%d %H:%M:%S.000'" | tr -d '\r'; }
-crash_since() { adb logcat -d -T "$1" -s AndroidRuntime:E 2>/dev/null | tr -d '\r' | grep -c 'app\.tileshell'; }
+# The shell's own FATAL only (rowsb.sh crash()'s reason: the test apps' packages start with app.tileshell).
+crash_since() { adb logcat -d -T "$1" -s AndroidRuntime:E 2>/dev/null | tr -d '\r' | grep -cE 'Process: app\.tileshell(:[A-Za-z0-9_.]+)?, PID'; }
 starts_since() { adb logcat -d -T "$1" -s ActivityTaskManager:I 2>/dev/null | tr -d '\r' | grep 'START u0'; }
 
 # ---- dumpsys shortcut: app.tileshell's shortcuts, one per line: "<id> rank=<n> flags=[…] <activity>"

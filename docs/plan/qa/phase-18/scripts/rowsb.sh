@@ -93,7 +93,10 @@ hold() { # dump id — a 900-ms press on the node's centre
 epx() { python3 -c "import sys; print(' '.join('%.1f' % (int(v)/3) for v in sys.argv[1:]))" "$@"; }
 files_open() { adb shell am start -W -n "$FILES_ACTIVITY" "$@" >/dev/null 2>&1; sleep 1.5; }
 files_at() { files_open --es path "$1"; }
-crash() { adb logcat -d -s AndroidRuntime:E | grep -c "app.tileshell"; }
+# A crash of the SHELL: AndroidRuntime's "Process: app.tileshell[:<name>], PID" line. Not a bare "app.tileshell": the test
+# apps' packages start with it (app.tileshell.testclient.qacapture, app.tileshell.qa.imefixture), so a probe's own crash
+# counted as the shell's (L18_4 b, 2026-10-20: "crash 1" with the shell's pid unchanged).
+crash() { adb logcat -d -s AndroidRuntime:E | tr -d '\r' | grep -cE 'Process: app\.tileshell(:[A-Za-z0-9_.]+)?, PID'; }
 anr() { adb logcat -d | grep -c 'ANR in app.tileshell'; }
 px() { python3 - "$1" "$2" "$3" <<'PY'
 import sys
