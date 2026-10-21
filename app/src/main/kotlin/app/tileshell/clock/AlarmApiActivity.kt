@@ -38,13 +38,13 @@ class AlarmApiActivity : ComponentActivity() {
         )
         extras.refused.forEach { Diagnostics.add("alarms", "api $it") }
         val request = AlarmApiRules.unlessUnreadable(parsed, extras.refused.size)
-        // L18-2: a ringtone the caller could not have read itself is not kept; the line names why, never the caller's text.
-        val refusedSound = when (request) {
-            is Request.CreateAlarm -> request.fields.soundRefused
-            is Request.EditAlarm -> request.fields.soundRefused
+        // L18-2: a ringtone the caller could not have read itself is not kept; the rule's line names why, never the caller's text.
+        val soundLine = when (request) {
+            is Request.CreateAlarm -> request.fields.soundLine
+            is Request.EditAlarm -> request.fields.soundLine
             else -> null
         }
-        refusedSound?.let { Diagnostics.add("alarms", "api ringtone not kept ($it) -> default sound") }
+        soundLine?.let { Diagnostics.add("alarms", it) }
         val store = ClockStore.get(this)
         val result = when (request) {
             is Request.CreateAlarm -> {

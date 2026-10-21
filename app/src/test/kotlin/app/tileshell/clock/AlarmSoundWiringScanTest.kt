@@ -52,9 +52,13 @@ class AlarmSoundWiringScanTest {
             !api.contains("val alarm = store.newAlarm(f.hour!!, f.minute, f.message, f.days, f.sound, Alarm.DEFAULT_SNOOZE)") ||
             !api.contains("putString(ClockActivity.API_SOUND_KIND, f.sound.kind.name) f.sound.uri?.let { putString(ClockActivity.API_SOUND_URI, it) }")
         ) problems += "the handler stores or hands on a sound other than the rule's"
+        // Ledger L18-3 (N12): the handler's ringtone line is the rule's, written as it is; no other text reaches it.
+        if (!api.contains("is Request.CreateAlarm -> request.fields.soundLine is Request.EditAlarm -> request.fields.soundLine else -> null } soundLine?.let { Diagnostics.add(\"alarms\", it) }") ||
+            count(api, "soundLine") != 4 || count(api, "ringtone") != 1
+        ) problems += "the handler does not write the rule's ringtone line"
         // The rule's side: the ringtone becomes a sound only through AlarmRingtoneRules.fromApi, asked with that port.
         if (Regex("\\bringtone\\b").findAll(rules).count() != 2 || Regex("\\baccess\\b").findAll(rules).count() != 2 || count(rules, "AlarmSound(") != 0 ||
-            !rules.contains("val tone = AlarmRingtoneRules.fromApi(ringtone, AlarmRingtoneRules.Caller.Ask(access)) val fields = AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused)")
+            !rules.contains("val tone = AlarmRingtoneRules.fromApi(ringtone, AlarmRingtoneRules.Caller.Ask(access)) val fields = AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused, tone.line)")
         ) problems += "AlarmApiRules does not make the ringtone a sound through AlarmRingtoneRules.fromApi(ringtone, Caller.Ask(access))"
         val askers = sources.mapValues { (_, text) -> count(text, "AlarmRingtoneRules.fromApi(") }.filterValues { it > 0 }
         if (askers != mapOf("clock/AlarmApiRules.kt" to 1, "clock/ClockIntents.kt" to 1)) problems += "a ringtone is weighed somewhere else: $askers"
@@ -94,12 +98,15 @@ class AlarmSoundWiringScanTest {
         assertTrue(with("clock/AlarmApiActivity.kt", "f.days, f.sound, Alarm.DEFAULT_SNOOZE)", "f.days, AlarmSound(AlarmSound.Kind.TONE, intent.getStringExtra(AlarmClock.EXTRA_RINGTONE), null), Alarm.DEFAULT_SNOOZE)").isNotEmpty())
         assertTrue(with("clock/AlarmApiActivity.kt", "f.sound.uri?.let { putString(ClockActivity.API_SOUND_URI, it) }", "putString(ClockActivity.API_SOUND_URI, intent.getStringExtra(AlarmClock.EXTRA_RINGTONE))").isNotEmpty())
         // The rule's answer ignored, or asked with no port / about nothing.
-        assertTrue(with("clock/AlarmApiRules.kt", "AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused)", "AlarmFields(hour, minute, daySet, text, ringtone?.let { AlarmSound(AlarmSound.Kind.TONE, it, null) } ?: tone.sound, tone.refused)").isNotEmpty())
+        assertTrue(with("clock/AlarmApiRules.kt", "AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused, tone.line)", "AlarmFields(hour, minute, daySet, text, ringtone?.let { AlarmSound(AlarmSound.Kind.TONE, it, null) } ?: tone.sound, tone.refused, tone.line)").isNotEmpty())
         assertTrue(with("clock/AlarmApiRules.kt", "AlarmRingtoneRules.Caller.Ask(access))", "AlarmRingtoneRules.Caller.Ask(null))").isNotEmpty())
         // L18-3: the handler taking the editor's stand-in for the caller's answer — a yes nobody asked for.
         assertTrue(with("clock/AlarmApiRules.kt", "AlarmRingtoneRules.Caller.Ask(access))", "AlarmRingtoneRules.Caller.AskedByHandler)").isNotEmpty())
         assertTrue(with("clock/AlarmApiActivity.kt", "access = AndroidUriAccess(this),", "access = null,").isNotEmpty())
         assertTrue(with("clock/AlarmApiActivity.kt", "ringtone = extras.string(AlarmClock.EXTRA_RINGTONE, AlarmApiRules.MAX_EXTRA_TEXT),", "ringtone = extras.string(AlarmClock.EXTRA_RINGTONE, AlarmApiRules.MAX_EXTRA_TEXT) ?: intent.dataString,").isNotEmpty())
+        // L18-3 (N12): the rule's ringtone line dropped, or the caller's own text written beside it.
+        assertTrue(with("clock/AlarmApiActivity.kt", "soundLine?.let { Diagnostics.add(\"alarms\", it) }", "").isNotEmpty())
+        assertTrue(with("clock/AlarmApiActivity.kt", "soundLine?.let { Diagnostics.add(\"alarms\", it) }", "soundLine?.let { Diagnostics.add(\"alarms\", \"\$it \${intent.getStringExtra(AlarmClock.EXTRA_RINGTONE)}\") }").isNotEmpty())
         // The editor trusting its bundle (the old line), or a second parser of the API.
         assertTrue(with("clock/ClockIntents.kt", "AlarmRingtoneRules.fromApi(soundUri, AlarmRingtoneRules.Caller.AskedByHandler).sound", "AlarmSound(AlarmSound.Kind.TONE, soundUri, null)").isNotEmpty())
         // L18-3: the stand-in used where the bundle is not yet known to be the shell's (before the caller check).

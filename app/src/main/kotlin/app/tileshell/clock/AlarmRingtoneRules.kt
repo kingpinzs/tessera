@@ -42,8 +42,21 @@ object AlarmRingtoneRules {
     const val WHY_NOT_SOUND = "not a system sound"
     const val WHY_CALLER = "the caller could not read it"
 
-    /** [refused] is why the ringtone asked for was not kept (a diagnostics word, never the caller's text), else null. */
-    data class FromApi(val sound: AlarmSound, val refused: String? = null)
+    /**
+     * [refused] is why the ringtone asked for was not kept (a diagnostics word, never the caller's text), else null;
+     * [asked] is what the platform answered when it was asked about the caller (ledger L18-3, N12), else null.
+     */
+    data class FromApi(val sound: AlarmSound, val refused: String? = null, val asked: String? = null) {
+        /**
+         * The handler's diagnostics line for this answer, or null when there is nothing to say: `api ringtone not kept
+         * (<why>[; <asked>]) -> default sound`, or `api ringtone kept (<asked>)` for a row kept on the platform's word.
+         */
+        val line: String? get() = when {
+            refused != null -> "api ringtone not kept (${listOfNotNull(refused, asked).joinToString("; ")}) -> default sound"
+            asked != null -> "api ringtone kept ($asked)"
+            else -> null
+        }
+    }
 
     /** Who answers [fromApi]'s one question that depends on where it is asked: could the app that named a row of the user's own volume read it? */
     sealed interface Caller {
@@ -77,16 +90,30 @@ object AlarmRingtoneRules {
             "media" -> when {
                 INTERNAL_SOUND.matches(rest) -> kept
                 !VOLUME_SOUND.matches(rest) -> FromApi(AlarmSound.DEFAULT, WHY_NOT_SOUND)
-                callerMayRead(caller, uri) -> kept
-                else -> FromApi(AlarmSound.DEFAULT, WHY_CALLER)
+                else -> callerMayRead(caller, uri).let { (yes, asked) -> if (yes) kept.copy(asked = asked) else FromApi(AlarmSound.DEFAULT, WHY_CALLER, asked) }
             }
             else -> FromApi(AlarmSound.DEFAULT, WHY_NOT_SOUND)
         }
     }
 
-    private fun callerMayRead(caller: Caller, uri: ContentUriText): Boolean = when (caller) {
-        is Caller.Ask -> caller.access != null && UriAccessRules.starterMayRead(caller.access, uri).allowed
-        Caller.AskedByHandler -> true
+    /**
+     * Whether the caller may read [uri], and what the platform answered (null: it was not asked). Ledger L18-3, N12: on
+     * API 35+ the launch answer is asked about a URI that came as a string extra, which the platform may answer with a
+     * throw — handed back by the real port as its class, so "no". A port that throws itself is "no" too: nothing it
+     * throws reaches the launcher's process.
+     */
+    private fun callerMayRead(caller: Caller, uri: ContentUriText): Pair<Boolean, String?> = when (caller) {
+        Caller.AskedByHandler -> true to null
+        is Caller.Ask -> when (val access = caller.access) {
+            null -> false to null
+            else -> try {
+                val read = UriAccessRules.starterMayRead(access, uri)
+                val launch = UriAccessRules.launchLine(UriAccessRules.READ, read.launch)
+                read.allowed to (if (read.allowed) "${read.why.word}; $launch" else launch)
+            } catch (e: Throwable) {
+                false to "the check threw ${UriAccessRules.className(e.javaClass.simpleName.orEmpty())}"
+            }
+        }
     }
 
     /**
