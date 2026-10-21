@@ -713,6 +713,9 @@ files_down() {
     grep -qxF "$extra" "$ROW_DIR/snap-sdcard-before.txt" || adb shell rm -rf "$extra"
   done
   if _fx_has media && [ -n "$MEDIA_MARK" ]; then media_down; else media_scan; fi
+  # media_up's `mkdir -p` makes DCIM/Camera on a device that had none (the AVD of 2026-10-20), and media_down (p17.sh's,
+  # verbatim) removes only Pictures/QA-Album: the folder goes again when the snapshot did not hold it (rmdir: only if empty).
+  grep -qxF /sdcard/DCIM/Camera "$ROW_DIR/snap-sdcard-before.txt" || { adb shell rmdir /sdcard/DCIM/Camera >/dev/null 2>&1; media_scan; }
   for i in $(seq 1 30); do
     _snap_sdcard > "$ROW_DIR/snap-sdcard-after.txt"
     _snap_files > "$ROW_DIR/snap-files-after.txt"

@@ -304,7 +304,10 @@ search_for() { # term dump-name
   if [ "$(X "$2" files_sort)" != "Sort by: Relevance" ]; then adb shell input keyevent KEYCODE_ENTER; sleep 2; D "$2"; fi
   # The keyboard covers the app bar while the box has it: a tap at the bar's dumped bounds would land on a key (E4b's
   # run 1). Back puts the keyboard away — only when it is showing, since Back with no keyboard leaves search.
-  local ime; ime="$(adb shell dumpsys input_method | tr -d '\r' | grep -c 'mInputShown=true')"     # counted, not grep -q: pipefail
+  # "Showing" = the InputMethod window has a surface (dumpsys window). `mInputShown=true` (dumpsys input_method) is not
+  # enough: with the AVD's hardware keyboard and show_ime_with_hard_keyboard=0 it reads true while the IME window is
+  # GONE with no surface, nothing covers the bar, and the Back closed the search (E4b, 2026-10-20, two runs).
+  local ime; ime="$(adb shell dumpsys window windows | tr -d '\r' | awk '/Window #[0-9]+ Window\{.* InputMethod\}:/ { f = 1; next } /Window #[0-9]+ Window\{/ { f = 0 } f && /mHasSurface=true/ { n++ } END { print n + 0 }')"
   if [ "${ime:-0}" != 0 ]; then adb shell input keyevent KEYCODE_BACK; sleep 1; D "$2"; fi
 }
 

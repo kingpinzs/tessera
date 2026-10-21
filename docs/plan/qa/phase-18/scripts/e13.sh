@@ -127,7 +127,10 @@ else
   _verdict FAIL "qa-huge.zip: fill_volume 2147483648" "its precondition failed (above); the leg was not run"
 fi
 unfill_volume
-assert_eq "qa-huge.zip: unfill_volume — fill.bin is gone" "" "$(lsdev /sdcard/fill.bin)"
+# Read from the LISTING of /sdcard, not a path lookup: unfill_volume removes the file as root below FUSE
+# (/data/media/0), which does not invalidate FUSE's cached entry for that name, so `ls -d /sdcard/fill.bin` can still
+# answer from the cache after the file is gone (E4b, 2026-10-20: `ls /sdcard` and `head` said gone, `ls -d` / `stat` did not).
+assert_eq "qa-huge.zip: unfill_volume — fill.bin is gone (ls -a /sdcard)" "" "$(q 'ls -a /sdcard' | grep -Fx fill.bin)"
 assert_eq "awake after unfill_volume" "Awake" "$(wake_device)"
 ensure_start
 
