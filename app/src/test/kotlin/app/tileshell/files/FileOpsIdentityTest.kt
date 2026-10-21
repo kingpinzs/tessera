@@ -113,6 +113,31 @@ class FileOpsIdentityTest {
         assertTrue(File(bin, ".index.json").isFile)
     }
 
+    // ---- the sweep's bin check (round 3): by identity, as N2's rule requires
+
+    @Test
+    fun `the sweep never removes a journalled path the volume folds into the bin - as written it is not the bin's text`() {
+        bed.ops.binDelete(bed.file("Download/mine.txt"))
+        val bin = RecycleBin.binDir(bed.primary)
+        val binned = listOf(File(bin, ".1000-0-x.abc.part"), File(bin, ".1000-1-y.abc.part")).onEach { it.writeText("binned") }
+        // `.Teßera` and `.Tess<U+200B>era` lead to the shell's folder, and resolving keeps the name as written: the device's
+        // folding, made real on the host by a link per alias. As text, neither path is the bin's.
+        for (alias in listOf(sharp, zeroWidth)) Files.createSymbolicLink(File(bed.root, alias).toPath(), File(bed.root, ".Tessera").toPath())
+        val written = listOf(File(bed.root, "$sharp/bin/${binned[0].name}"), File(bed.root, "$zeroWidth/bin/${binned[1].name}"))
+        val journal = { OpsJournal(bed.privateDir, { bed.now }, asWritten, { bed.lines += it }, folding) }
+        journal().put("op1", written[0].path, bed.primary.uuid)
+        journal().put("op2", written[1].path, bed.primary.uuid)
+
+        assertEquals(0, journal().sweep(bed.mounted))
+        assertTrue(binned.all { it.readText() == "binned" })
+        assertTrue(journal().entries().isEmpty())
+        // The control: an ordinary temp of a dead operation is still swept.
+        val temp = bed.file("Download/.a.txt.zz00.part")
+        journal().put("op3", temp.path, bed.primary.uuid)
+        assertEquals(1, journal().sweep(bed.mounted))
+        assertFalse(temp.exists())
+    }
+
     // ---- a name that is NOT THERE yet, directly under a volume's root
 
     @Test
