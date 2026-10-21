@@ -227,6 +227,14 @@ object FilePaths {
     }
 
     /**
+     * What a search walk down from an allowed folder skips: the shell's own folder, asked of each folder before it is
+     * entered by the one question [isShellDir] (at most two identity questions), never [inShellDir]'s walk up every
+     * folder above it (pass 3, P3-5). The walk starts outside the shell's folder and follows no link, so the only way
+     * in is to meet that folder itself.
+     */
+    fun walkSkip(volume: FileVolume, id: FileIdentity = FileIdentity.Real): (File) -> Boolean = { isShellDir(it, volume, id) }
+
+    /**
      * [path] is `<volume>/Android` or inside it — by identity ([within]) and, for a folder that is not there, by its
      * name in any case: the other apps' folders (and the shell's own), which no bin record restores into.
      */
