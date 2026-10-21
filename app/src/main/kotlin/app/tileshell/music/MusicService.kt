@@ -186,7 +186,10 @@ class MusicService : MediaSessionService() {
         // The id is how Start tells this session from the shell's other players (Voice Recorder's playback, later
         // the video player): they share this package, and only Music's tile carries a now-playing face
         // (TileRouting, phase 15 build task 0). Media3 writes it into the platform session's tag.
-        session = MediaSession.Builder(this, known).setId(TileRouting.MUSIC_SESSION_ID).setCallback(callback).build()
+        // Ledger L18-5: the session's player refuses any index a controller sends that the list does not have
+        // (BoundedIndexPlayer) — this service is exported, and ExoPlayer throws on this thread for one it cannot take.
+        // Only the session is handed it: the crossfade and the stream watch keep driving their own players.
+        session = MediaSession.Builder(this, BoundedIndexPlayer(known) { session?.controllerForCurrentRequest?.uid }).setId(TileRouting.MUSIC_SESSION_ID).setCallback(callback).build()
         publishExtras()
         Diagnostics.add("music", "playback service started (audio session $audioSession, equaliser ${if (equalizer != null) "available" else "unavailable"})")
     }
